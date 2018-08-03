@@ -6,7 +6,6 @@ pkg/testing/test/dart_sdk_negative_test: Fail
 tests/compiler/dart2js_extra/empty_negative_test: Fail
 tests/compiler/dart2js_extra/invalid_length_negative_test: Fail
 tests/compiler/dart2js_extra/timer_negative_test: Fail
-tests/language/application_negative_test: Fail
 tests/language/assign_instance_method_negative_test: Fail
 tests/language/bad_initializer1_negative_test: Fail
 tests/language/bad_initializer2_negative_test: Fail
@@ -101,8 +100,6 @@ tests/language/private_member2_negative_test: Fail
 tests/language/private_member3_negative_test: Fail
 tests/language/script1_negative_test: Fail
 tests/language/script2_negative_test: Fail
-tests/language/setter_declaration2_negative_test: Fail
-tests/language/setter_declaration_negative_test: Fail
 tests/language/source_self_negative_test: Fail
 tests/language/static_call_wrong_argument_count_negative_test: Fail
 tests/language/string_escape4_negative_test: Fail
@@ -124,7 +121,6 @@ tests/language/unhandled_exception_negative_test: Fail
 tests/language/unresolved_in_factory_negative_test: Fail
 tests/language/unresolved_top_level_method_negative_test: Fail
 tests/language/unresolved_top_level_var_negative_test: Fail
-tests/language_strong/application_negative_test: Fail
 tests/language_strong/assign_instance_method_negative_test: Fail
 tests/language_strong/bad_initializer1_negative_test: Fail
 tests/language_strong/bad_initializer2_negative_test: Fail
@@ -216,8 +212,6 @@ tests/language_strong/private_member2_negative_test: Fail
 tests/language_strong/private_member3_negative_test: Fail
 tests/language_strong/script1_negative_test: Fail
 tests/language_strong/script2_negative_test: Fail
-tests/language_strong/setter_declaration2_negative_test: Fail
-tests/language_strong/setter_declaration_negative_test: Fail
 tests/language_strong/source_self_negative_test: Fail
 tests/language_strong/static_call_wrong_argument_count_negative_test: Fail
 tests/language_strong/string_escape4_negative_test: Fail

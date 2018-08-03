@@ -15,3 +15,5 @@ class Bar {}
 
 @Foo.named(/*@typeArgs=String*/ const [])
 class Baz {}
+
+main() {}

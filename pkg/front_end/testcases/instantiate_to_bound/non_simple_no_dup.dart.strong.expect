@@ -1,0 +1,22 @@
+// Errors:
+//
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_no_dup.dart:11:12: Error: Generic type 'Hest' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'Hest' here.
+// class Fisk<TypeY extends Map<Hest, Hest>> {}
+//            ^^^^^
+
+library;
+import self as self;
+import "dart:core" as core;
+
+class Hest<TypeX extends self::Hest<self::Hest::TypeX> = self::Hest<dynamic>> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class Fisk<TypeY extends core::Map<self::Hest<self::Hest<dynamic>>, self::Hest<self::Hest<dynamic>>> = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

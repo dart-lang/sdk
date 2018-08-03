@@ -1,0 +1,9 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method f() → void {
+  core::List<core::String> y;
+  core::Iterable<core::String> x = y.map((core::String z) → dynamic => 1.0);
+}
+static method main() → dynamic {}

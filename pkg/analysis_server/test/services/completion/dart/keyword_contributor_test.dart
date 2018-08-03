@@ -21,6 +21,7 @@ main() {
 class KeywordContributorTest extends DartCompletionContributorTest {
   static const List<Keyword> CLASS_BODY_KEYWORDS = const [
     Keyword.CONST,
+    Keyword.COVARIANT,
     Keyword.DYNAMIC,
     Keyword.FACTORY,
     Keyword.FINAL,
@@ -36,6 +37,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Keyword.ABSTRACT,
     Keyword.CLASS,
     Keyword.CONST,
+    Keyword.COVARIANT,
     Keyword.DYNAMIC,
     Keyword.FINAL,
     Keyword.TYPEDEF,
@@ -47,6 +49,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Keyword.ABSTRACT,
     Keyword.CLASS,
     Keyword.CONST,
+    Keyword.COVARIANT,
     Keyword.DYNAMIC,
     Keyword.EXPORT,
     Keyword.FINAL,
@@ -62,6 +65,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Keyword.ABSTRACT,
     Keyword.CLASS,
     Keyword.CONST,
+    Keyword.COVARIANT,
     Keyword.DYNAMIC,
     Keyword.EXPORT,
     Keyword.FINAL,
@@ -217,13 +221,15 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Set<String> expectedCompletions = new Set<String>();
     Map<String, int> expectedOffsets = <String, int>{};
     Set<String> actualCompletions = new Set<String>();
-    expectedCompletions.addAll(expectedKeywords.map((k) => k.lexeme));
-    ['import', 'export', 'part'].forEach((s) {
-      if (expectedCompletions.contains(s)) {
-        expectedCompletions.remove(s);
-        expectedCompletions.add('$s \'\';');
+    expectedCompletions.addAll(expectedKeywords.map((keyword) {
+      String text = keyword.lexeme;
+      if (['import', 'export', 'part'].contains(text)) {
+        return '$text \'\';';
+      } else if (text == 'default') {
+        return '$text:';
       }
-    });
+      return text;
+    }));
 
     expectedCompletions.addAll(pseudoKeywords);
     for (CompletionSuggestion s in suggestions) {
@@ -279,35 +285,6 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     return new KeywordContributor();
   }
 
-  fail_import_partial() async {
-    addTestSource('imp^ import "package:foo/foo.dart"; import "bar.dart";');
-    await computeSuggestions();
-    // TODO(danrubel) should not suggest declaration keywords
-    assertNotSuggested('class');
-  }
-
-  fail_import_partial4() async {
-    addTestSource('^ imp import "package:foo/foo.dart";');
-    await computeSuggestions();
-    // TODO(danrubel) should not suggest declaration keywords
-    assertNotSuggested('class');
-  }
-
-  fail_import_partial5() async {
-    addTestSource('library libA; imp^ import "package:foo/foo.dart";');
-    await computeSuggestions();
-    // TODO(danrubel) should not suggest declaration keywords
-    assertNotSuggested('class');
-  }
-
-  fail_import_partial6() async {
-    addTestSource(
-        'library bar; import "zoo.dart"; imp^ import "package:foo/foo.dart";');
-    await computeSuggestions();
-    // TODO(danrubel) should not suggest declaration keywords
-    assertNotSuggested('class');
-  }
-
   test_after_class() async {
     addTestSource('class A {} ^');
     await computeSuggestions();
@@ -345,8 +322,18 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   test_anonymous_function_async2() async {
     addTestSource('main() {foo(() a^ {}}}');
     await computeSuggestions();
-    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS,
-        pseudoKeywords: ['async', 'async*', 'sync*']);
+    // Fasta adds a closing paren after the first `}`
+    // and reports a single function expression argument
+    // while analyzer adds the closing paren before the `a`
+    // and adds synthetic `;`s making `a` a statement.
+    if (usingFastaParser) {
+      assertSuggestKeywords([],
+          pseudoKeywords: ['async', 'async*', 'sync*'],
+          relevance: DART_RELEVANCE_HIGH);
+    } else {
+      assertSuggestKeywords(STMT_START_OUTSIDE_CLASS,
+          pseudoKeywords: ['async', 'async*', 'sync*']);
+    }
   }
 
   test_anonymous_function_async3() async {
@@ -381,8 +368,32 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     addTestSource('main() {foo("bar", () as^ => null');
     await computeSuggestions();
     assertSuggestKeywords([],
+        pseudoKeywords:
+            usingFastaParser ? ['async'] : ['async', 'async*', 'sync*'],
+        relevance: DART_RELEVANCE_HIGH);
+  }
+
+  test_anonymous_function_async8() async {
+    addTestSource('main() {foo(() ^ {})}}');
+    await computeSuggestions();
+    assertSuggestKeywords([],
         pseudoKeywords: ['async', 'async*', 'sync*'],
         relevance: DART_RELEVANCE_HIGH);
+  }
+
+  test_anonymous_function_async9() async {
+    addTestSource('main() {foo(() a^ {})}}');
+    await computeSuggestions();
+    // Fasta interprets the argument as a function expression
+    // while analyzer adds synthetic `;`s making `a` a statement.
+    if (usingFastaParser) {
+      assertSuggestKeywords([],
+          pseudoKeywords: ['async', 'async*', 'sync*'],
+          relevance: DART_RELEVANCE_HIGH);
+    } else {
+      assertSuggestKeywords(STMT_START_OUTSIDE_CLASS,
+          pseudoKeywords: ['async', 'async*', 'sync*']);
+    }
   }
 
   test_argument() async {
@@ -732,16 +743,20 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   test_class_implements2() async {
     addTestSource('class A e^ implements foo');
     await computeSuggestions();
-    // TODO (danrubel) refinement: don't suggest implements
-    assertSuggestKeywords([Keyword.EXTENDS, Keyword.IMPLEMENTS],
+    assertSuggestKeywords(
+        usingFastaParser
+            ? [Keyword.EXTENDS]
+            : [Keyword.EXTENDS, Keyword.IMPLEMENTS],
         relevance: DART_RELEVANCE_HIGH);
   }
 
   test_class_implements3() async {
     addTestSource('class A e^ implements foo { }');
     await computeSuggestions();
-    // TODO (danrubel) refinement: don't suggest implements
-    assertSuggestKeywords([Keyword.EXTENDS, Keyword.IMPLEMENTS],
+    assertSuggestKeywords(
+        usingFastaParser
+            ? [Keyword.EXTENDS]
+            : [Keyword.EXTENDS, Keyword.IMPLEMENTS],
         relevance: DART_RELEVANCE_HIGH);
   }
 
@@ -749,6 +764,26 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     addTestSource('class A implements ^');
     await computeSuggestions();
     assertSuggestKeywords([]);
+  }
+
+  test_class_member_const_afterStatic() async {
+    addTestSource('''
+class C {
+  static c^
+}
+''');
+    await computeSuggestions();
+    assertSuggestKeywords([Keyword.CONST, Keyword.COVARIANT, Keyword.FINAL]);
+  }
+
+  test_class_member_final_afterStatic() async {
+    addTestSource('''
+class C {
+  static f^
+}
+''');
+    await computeSuggestions();
+    assertSuggestKeywords([Keyword.CONST, Keyword.COVARIANT, Keyword.FINAL]);
   }
 
   test_class_name() async {
@@ -802,16 +837,28 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     assertSuggestKeywords([]);
   }
 
+  test_constructor_initializers_first() async {
+    addTestSource('class A { int f; A() : ^, f = 1; }');
+    await computeSuggestions();
+    assertSuggestKeywords([Keyword.ASSERT]);
+  }
+
+  test_constructor_initializers_last() async {
+    addTestSource('class A { A() : ^; }');
+    await computeSuggestions();
+    assertSuggestKeywords([Keyword.ASSERT, Keyword.SUPER, Keyword.THIS]);
+  }
+
   test_constructor_param() async {
     addTestSource('class A { A(^) {});}');
     await computeSuggestions();
-    assertSuggestKeywords([Keyword.THIS]);
+    assertSuggestKeywords([Keyword.COVARIANT, Keyword.THIS]);
   }
 
   test_constructor_param2() async {
     addTestSource('class A { A(t^) {});}');
     await computeSuggestions();
-    assertSuggestKeywords([Keyword.THIS]);
+    assertSuggestKeywords([Keyword.COVARIANT, Keyword.THIS]);
   }
 
   test_do_break_continue() async {
@@ -888,7 +935,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   test_function_async() async {
     addTestSource('main()^');
     await computeSuggestions();
-    assertSuggestKeywords(DECLARATION_KEYWORDS,
+    assertSuggestKeywords(usingFastaParser ? [] : DECLARATION_KEYWORDS,
         pseudoKeywords: ['async', 'async*', 'sync*'],
         relevance: DART_RELEVANCE_HIGH);
   }
@@ -912,7 +959,7 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   test_function_async4() async {
     addTestSource('main()a^{}');
     await computeSuggestions();
-    assertSuggestKeywords(DECLARATION_KEYWORDS,
+    assertSuggestKeywords(usingFastaParser ? [] : DECLARATION_KEYWORDS,
         pseudoKeywords: ['async', 'async*', 'sync*'],
         relevance: DART_RELEVANCE_HIGH);
   }
@@ -1376,6 +1423,18 @@ class A {
         relevance: DART_RELEVANCE_HIGH);
   }
 
+  test_integerLiteral_inArgumentList() async {
+    addTestSource('main() { print(42^); }');
+    await computeSuggestions();
+    assertSuggestKeywords([]);
+  }
+
+  test_integerLiteral_inListLiteral() async {
+    addTestSource('main() { var items = [42^]; }');
+    await computeSuggestions();
+    assertSuggestKeywords([]);
+  }
+
   test_is_expression() async {
     addTestSource('main() {if (x is^)}');
     await computeSuggestions();
@@ -1444,8 +1503,14 @@ class A {
   test_method_async4() async {
     addTestSource('class A { foo() a^{}}');
     await computeSuggestions();
-    assertSuggestKeywords(CLASS_BODY_KEYWORDS,
-        pseudoKeywords: ['async', 'async*', 'sync*']);
+    if (usingFastaParser) {
+      assertSuggestKeywords([],
+          pseudoKeywords: ['async', 'async*', 'sync*'],
+          relevance: DART_RELEVANCE_HIGH);
+    } else {
+      assertSuggestKeywords(CLASS_BODY_KEYWORDS,
+          pseudoKeywords: ['async', 'async*', 'sync*']);
+    }
   }
 
   test_method_async5() async {
@@ -1564,13 +1629,15 @@ class A {
   test_method_param() async {
     addTestSource('class A { foo(^) {});}');
     await computeSuggestions();
-    expect(suggestions, isEmpty);
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords([Keyword.COVARIANT]);
   }
 
   test_method_param2() async {
     addTestSource('class A { foo(t^) {});}');
     await computeSuggestions();
-    expect(suggestions, isEmpty);
+    expect(suggestions, isNotEmpty);
+    assertSuggestKeywords([Keyword.COVARIANT]);
   }
 
   test_method_param_named_init() async {

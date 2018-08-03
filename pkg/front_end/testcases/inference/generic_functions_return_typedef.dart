@@ -9,8 +9,8 @@ typedef void ToValue<T>(T value);
 
 main() {
   ToValue<T> f<T>(T x) => null;
-  var /*@type=<int>(int) -> void*/ x = f<int>(42);
-  var /*@type=<int>(int) -> void*/ y = /*@typeArgs=int*/ f(42);
+  var /*@type=(int) -> void*/ x = f<int>(42);
+  var /*@type=(int) -> void*/ y = /*@typeArgs=int*/ f(42);
   ToValue<int> takesInt = x;
   takesInt = y;
 }

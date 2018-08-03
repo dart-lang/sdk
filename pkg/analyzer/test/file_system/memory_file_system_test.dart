@@ -28,9 +28,9 @@ main() {
   });
 }
 
-var _isFile = new isInstanceOf<File>();
-var _isFileSystemException = new isInstanceOf<FileSystemException>();
-var _isFolder = new isInstanceOf<Folder>();
+final _isFile = new TypeMatcher<File>();
+final _isFileSystemException = new TypeMatcher<FileSystemException>();
+final _isFolder = new TypeMatcher<Folder>();
 
 @reflectiveTest
 class FileSystemExceptionTest {
@@ -158,7 +158,7 @@ class FileTest {
     provider.newFile(path, 'content');
     File file = provider.getResource(path);
     Resource parent = file.parent;
-    expect(parent, new isInstanceOf<Folder>());
+    expect(parent, _isFolder);
     expect(parent.path, equals(provider.convertPath('/foo/bar')));
   }
 
@@ -473,10 +473,10 @@ class FolderTest {
 
   void test_parent() {
     Resource parent1 = folder.parent;
-    expect(parent1, new isInstanceOf<Folder>());
+    expect(parent1, _isFolder);
     expect(parent1.path, equals(provider.convertPath('/foo')));
     Resource parent2 = parent1.parent;
-    expect(parent2, new isInstanceOf<Folder>());
+    expect(parent2, _isFolder);
     expect(parent2.path, equals(provider.convertPath('/')));
     expect(parent2.parent, isNull);
   }
@@ -484,7 +484,7 @@ class FolderTest {
   void test_toUri() {
     String path = provider.convertPath('/foo/directory');
     Folder folder = provider.newFolder(path);
-    expect(folder.toUri(), provider.pathContext.toUri(path));
+    expect(folder.toUri(), provider.pathContext.toUri(path + '/'));
   }
 
   /**
@@ -681,15 +681,15 @@ class MemoryResourceProviderTest {
     provider.newFolder(path);
     expect(() {
       provider.deleteFile(path);
-    }, throwsA(new isInstanceOf<ArgumentError>()));
-    expect(provider.getResource(path), new isInstanceOf<Folder>());
+    }, throwsArgumentError);
+    expect(provider.getResource(path), _isFolder);
   }
 
   void test_deleteFile_notExistent() {
     String path = provider.convertPath('/my/file');
     expect(() {
       provider.deleteFile(path);
-    }, throwsA(new isInstanceOf<ArgumentError>()));
+    }, throwsArgumentError);
     Resource file = provider.getResource(path);
     expect(file, isNotNull);
     expect(file.exists, isFalse);
@@ -699,7 +699,7 @@ class MemoryResourceProviderTest {
     String path = provider.convertPath('/my/file');
     provider.newFile(path, 'contents');
     Resource file = provider.getResource(path);
-    expect(file, new isInstanceOf<File>());
+    expect(file, _isFile);
     expect(file.exists, isTrue);
     provider.deleteFile(path);
     expect(file.exists, isFalse);
@@ -745,15 +745,15 @@ class MemoryResourceProviderTest {
     provider.newFolder(path);
     expect(() {
       provider.modifyFile(path, 'contents');
-    }, throwsA(new isInstanceOf<ArgumentError>()));
-    expect(provider.getResource(path), new isInstanceOf<Folder>());
+    }, throwsArgumentError);
+    expect(provider.getResource(path), _isFolder);
   }
 
   void test_modifyFile_notExistent() {
     String path = provider.convertPath('/my/file');
     expect(() {
       provider.modifyFile(path, 'contents');
-    }, throwsA(new isInstanceOf<ArgumentError>()));
+    }, throwsArgumentError);
     Resource file = provider.getResource(path);
     expect(file, isNotNull);
     expect(file.exists, isFalse);
@@ -763,7 +763,7 @@ class MemoryResourceProviderTest {
     String path = provider.convertPath('/my/file');
     provider.newFile(path, 'contents 1');
     Resource file = provider.getResource(path);
-    expect(file, new isInstanceOf<File>());
+    expect(file, _isFile);
     Source source = (file as File).createSource();
     expect(source.contents.data, equals('contents 1'));
     provider.modifyFile(path, 'contents 2');
@@ -784,7 +784,7 @@ class MemoryResourceProviderTest {
     provider.newFile(provider.convertPath('/my/file'), 'qwerty');
     expect(() {
       provider.newFolder(provider.convertPath('/my/file'));
-    }, throwsA(new isInstanceOf<ArgumentError>()));
+    }, throwsArgumentError);
   }
 
   void test_newFolder_alreadyExists_asFolder() {
@@ -797,13 +797,13 @@ class MemoryResourceProviderTest {
   void test_newFolder_emptyPath() {
     expect(() {
       provider.newFolder('');
-    }, throwsA(new isInstanceOf<ArgumentError>()));
+    }, throwsArgumentError);
   }
 
   void test_newFolder_notAbsolute() {
     expect(() {
       provider.newFolder('not/absolute');
-    }, throwsA(new isInstanceOf<ArgumentError>()));
+    }, throwsArgumentError);
   }
 
   test_watch_createFile() {
@@ -872,7 +872,7 @@ class MemoryResourceProviderTest {
   }
 
   Future _delayed(computation()) {
-    return new Future.delayed(Duration.ZERO, computation);
+    return new Future.delayed(Duration.zero, computation);
   }
 
   _watchingFolder(String path, test(List<WatchEvent> changesReceived)) {

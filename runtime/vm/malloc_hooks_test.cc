@@ -25,13 +25,49 @@ static void MallocHookTestBufferInitializer(volatile char* buffer,
   }
 }
 
+class EnableMallocHooksScope : public ValueObject {
+ public:
+  EnableMallocHooksScope() {
+    OSThread::Current();  // Ensure not allocated during test.
+    saved_enable_malloc_hooks_ = FLAG_profiler_native_memory;
+    FLAG_profiler_native_memory = true;
+    MallocHooks::InitOnce();
+    MallocHooks::ResetStats();
+  }
+
+  ~EnableMallocHooksScope() {
+    MallocHooks::TearDown();
+    FLAG_profiler_native_memory = saved_enable_malloc_hooks_;
+  }
+
+ private:
+  bool saved_enable_malloc_hooks_;
+};
+
+class EnableMallocHooksAndStacksScope : public EnableMallocHooksScope {
+ public:
+  EnableMallocHooksAndStacksScope() {
+    OSThread::Current();  // Ensure not allocated during test.
+    saved_enable_stack_traces_ = MallocHooks::stack_trace_collection_enabled();
+    MallocHooks::set_stack_trace_collection_enabled(true);
+    if (!FLAG_profiler) {
+      FLAG_profiler = true;
+      Profiler::InitOnce();
+    }
+    MallocHooks::ResetStats();
+  }
+
+  ~EnableMallocHooksAndStacksScope() {
+    MallocHooks::set_stack_trace_collection_enabled(saved_enable_stack_traces_);
+  }
+
+ private:
+  bool saved_enable_stack_traces_;
+};
 
 UNIT_TEST_CASE(BasicMallocHookTest) {
-  bool enable_malloc_hooks_saved = FLAG_profiler_native_memory;
-  FLAG_profiler_native_memory = true;
+  EnableMallocHooksScope scope;
 
-  MallocHooks::InitOnce();
-  MallocHooks::ResetStats();
   EXPECT_EQ(0L, MallocHooks::allocation_count());
   EXPECT_EQ(0L, MallocHooks::heap_allocated_memory_in_bytes());
   const intptr_t buffer_size = 10;
@@ -45,17 +81,11 @@ UNIT_TEST_CASE(BasicMallocHookTest) {
   delete[] buffer;
   EXPECT_EQ(0L, MallocHooks::allocation_count());
   EXPECT_EQ(0L, MallocHooks::heap_allocated_memory_in_bytes());
-  MallocHooks::TearDown();
-
-  FLAG_profiler_native_memory = enable_malloc_hooks_saved;
 }
 
-
 UNIT_TEST_CASE(FreeUnseenMemoryMallocHookTest) {
-  bool enable_malloc_hooks_saved = FLAG_profiler_native_memory;
-  FLAG_profiler_native_memory = true;
+  EnableMallocHooksScope scope;
 
-  MallocHooks::InitOnce();
   const intptr_t pre_hook_buffer_size = 3;
   char* pre_hook_buffer = new char[pre_hook_buffer_size];
   MallocHookTestBufferInitializer(pre_hook_buffer, pre_hook_buffer_size);
@@ -77,26 +107,13 @@ UNIT_TEST_CASE(FreeUnseenMemoryMallocHookTest) {
   EXPECT_EQ(static_cast<intptr_t>(sizeof(char) * buffer_size),
             MallocHooks::heap_allocated_memory_in_bytes());
 
-
   delete[] buffer;
   EXPECT_EQ(0L, MallocHooks::allocation_count());
   EXPECT_EQ(0L, MallocHooks::heap_allocated_memory_in_bytes());
-  MallocHooks::TearDown();
-
-  FLAG_profiler_native_memory = enable_malloc_hooks_saved;
 }
 
-
 VM_UNIT_TEST_CASE(StackTraceMallocHookSimpleTest) {
-  bool enable_malloc_hooks_saved = FLAG_profiler_native_memory;
-  FLAG_profiler_native_memory = true;
-
-  MallocHooks::InitOnce();
-  MallocHooks::ResetStats();
-
-  bool enable_stack_traces_saved =
-      MallocHooks::stack_trace_collection_enabled();
-  MallocHooks::set_stack_trace_collection_enabled(true);
+  EnableMallocHooksAndStacksScope scope;
 
   char* var = static_cast<char*>(malloc(16 * sizeof(char)));
   Sample* sample = MallocHooks::GetSample(var);
@@ -105,11 +122,7 @@ VM_UNIT_TEST_CASE(StackTraceMallocHookSimpleTest) {
   free(var);
   sample = MallocHooks::GetSample(var);
   EXPECT(sample == NULL);
-  MallocHooks::TearDown();
-  MallocHooks::set_stack_trace_collection_enabled(enable_stack_traces_saved);
-  FLAG_profiler_native_memory = enable_malloc_hooks_saved;
 }
-
 
 static char* DART_NOINLINE StackTraceLengthHelper(uintptr_t* end_address) {
   char* var = static_cast<char*>(malloc(16 * sizeof(char)));
@@ -117,23 +130,14 @@ static char* DART_NOINLINE StackTraceLengthHelper(uintptr_t* end_address) {
   return var;
 }
 
-
 VM_UNIT_TEST_CASE(StackTraceMallocHookLengthTest) {
-  bool enable_malloc_hooks_saved = FLAG_profiler_native_memory;
-  FLAG_profiler_native_memory = true;
+  EnableMallocHooksAndStacksScope scope;
 
   uintptr_t test_start_address =
       reinterpret_cast<uintptr_t>(Dart_TestStackTraceMallocHookLengthTest);
   uintptr_t helper_start_address =
       reinterpret_cast<uintptr_t>(StackTraceLengthHelper);
   uintptr_t helper_end_address = 0;
-
-  MallocHooks::InitOnce();
-  MallocHooks::ResetStats();
-
-  bool enable_stack_traces_saved =
-      MallocHooks::stack_trace_collection_enabled();
-  MallocHooks::set_stack_trace_collection_enabled(true);
 
   char* var = StackTraceLengthHelper(&helper_end_address);
   Sample* sample = MallocHooks::GetSample(var);
@@ -166,22 +170,10 @@ VM_UNIT_TEST_CASE(StackTraceMallocHookLengthTest) {
   }
 
   free(var);
-  MallocHooks::TearDown();
-  MallocHooks::set_stack_trace_collection_enabled(enable_stack_traces_saved);
-  FLAG_profiler_native_memory = enable_malloc_hooks_saved;
 }
 
-
 ISOLATE_UNIT_TEST_CASE(StackTraceMallocHookSimpleJSONTest) {
-  bool enable_malloc_hooks_saved = FLAG_profiler_native_memory;
-  FLAG_profiler_native_memory = true;
-
-  MallocHooks::InitOnce();
-  MallocHooks::ResetStats();
-
-  bool enable_stack_traces_saved =
-      MallocHooks::stack_trace_collection_enabled();
-  MallocHooks::set_stack_trace_collection_enabled(true);
+  EnableMallocHooksAndStacksScope scope;
 
   ClearProfileVisitor cpv(Isolate::Current());
   Profiler::sample_buffer()->VisitSamples(&cpv);
@@ -195,6 +187,8 @@ ISOLATE_UNIT_TEST_CASE(StackTraceMallocHookSimpleJSONTest) {
   // present in the profile. This is just a simple sanity check to make sure
   // that the ProfileTrie has a representation of the stack trace collected when
   // var is allocated. More intense testing is already done in profiler_test.cc.
+  // This is brittle: inlining and ICF in the C compiler and linker will affect
+  // the frames we see.
   EXPECT_SUBSTRING("\"dart::Dart_TestStackTraceMallocHookSimpleJSONTest()\"",
                    json);
   EXPECT_SUBSTRING("\"dart::TestCase::Run()\"", json);
@@ -202,9 +196,6 @@ ISOLATE_UNIT_TEST_CASE(StackTraceMallocHookSimpleJSONTest) {
   EXPECT_SUBSTRING("\"main\"", json);
 
   free(var);
-  MallocHooks::TearDown();
-  MallocHooks::set_stack_trace_collection_enabled(enable_stack_traces_saved);
-  FLAG_profiler_native_memory = enable_malloc_hooks_saved;
 }
 
 };  // namespace dart

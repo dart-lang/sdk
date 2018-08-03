@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/ide_options.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -52,11 +51,6 @@ abstract class CompletionContributor {
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class CompletionRequest {
-  /**
-   * IDE options for this server instance.
-   */
-  IdeOptions get ideOptions;
-
   /**
    * Return the offset within the source at which the completion is being
    * requested.

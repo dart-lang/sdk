@@ -1,0 +1,45 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class M extends core::Object {
+  field dynamic m = null;
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+abstract class N extends self::M {
+  synthetic constructor •() → void
+    : super self::M::•()
+    ;
+  set superM(dynamic value) → void {
+    super.{self::M::m} = value;
+  }
+  get superM() → dynamic
+    return super.{self::M::m};
+}
+class S extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+abstract class _Named&S&M = self::S with self::M {
+}
+abstract class _Named&S&M&N = self::_Named&S&M with self::N {
+}
+class Named = self::_Named&S&M&N with self::M {
+  synthetic constructor •() → void
+    : super self::S::•()
+    ;
+}
+static method main() → dynamic {
+  self::Named named = new self::Named::•();
+  named.{self::M::m} = 42;
+  named.{self::N::superM} = 87;
+  if(!named.{self::M::m}.{core::Object::==}(42)) {
+    throw "Bad mixin translation of set:superM";
+  }
+  if(!named.{self::N::superM}.{core::Object::==}(87)) {
+    throw "Bad mixin translation of get:superM";
+  }
+}

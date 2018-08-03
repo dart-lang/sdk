@@ -4,7 +4,6 @@
 
 import("//build/config/sysroot.gni")  # Imports android/config.gni.
 import("//build/toolchain/ccache.gni")
-import("//build/toolchain/clang.gni")
 import("//build/toolchain/goma.gni")
 import("//build/toolchain/gcc_toolchain.gni")
 
@@ -47,17 +46,8 @@ template("android_gcc_toolchain") {
 
     is_clang = invoker.is_clang
     if (is_clang) {
-      host_suffix = ""
-      if (host_os == "linux") {
-        host_suffix = "x86_64-linux"
-      } else if (host_os == "mac") {
-        host_suffix = "x86_64-darwin"
-      } else {
-        assert(false, "Unknown host")
-      }
-
-      prefix = rebase_path("//buildtools/toolchain/clang+llvm-$host_suffix/bin",
-                           root_build_dir)
+      prefix =
+          rebase_path("//buildtools/${host_os}-x64/clang/bin", root_build_dir)
 
       cc = compiler_prefix + prefix + "/clang"
       cxx = compiler_prefix + prefix + "/clang++"
@@ -132,14 +122,6 @@ android_gcc_toolchains_helper("arm") {
   toolchain_cpu = "arm"
 }
 
-android_gcc_toolchains_helper("mipsel") {
-  android_ndk_sysroot = "$android_ndk_root/$mips_android_sysroot_subdir"
-  android_ndk_lib_dir = "usr/lib"
-
-  tool_prefix = "$mips_android_toolchain_root/bin/mipsel-linux-android-"
-  toolchain_cpu = "mipsel"
-}
-
 android_gcc_toolchains_helper("x64") {
   android_ndk_sysroot = "$android_ndk_root/$x86_64_android_sysroot_subdir"
   android_ndk_lib_dir = "usr/lib64"
@@ -154,12 +136,4 @@ android_gcc_toolchains_helper("arm64") {
 
   tool_prefix = "$arm64_android_toolchain_root/bin/aarch64-linux-android-"
   toolchain_cpu = "aarch64"
-}
-
-android_gcc_toolchains_helper("mips64el") {
-  android_ndk_sysroot = "$android_ndk_root/$mips64_android_sysroot_subdir"
-  android_ndk_lib_dir = "usr/lib64"
-
-  tool_prefix = "$mips64_android_toolchain_root/bin/mipsel-linux-android-"
-  toolchain_cpu = "mipsel64el"
 }

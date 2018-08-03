@@ -21,7 +21,6 @@ static RawObject* ExecuteScript(const char* script) {
   return Api::UnwrapHandle(h_lib);
 }
 
-
 TEST_CASE(SourceReport_Coverage_NoCalls) {
   char buffer[1024];
   const char* kScript =
@@ -41,16 +40,15 @@ TEST_CASE(SourceReport_Coverage_NoCalls) {
   EXPECT_STREQ(
       "{\"type\":\"SourceReport\",\"ranges\":"
 
-      // One compiled range, no hits or misses.
+      // One compiled range, one hit at function declaration.
       "[{\"scriptIndex\":0,\"startPos\":0,\"endPos\":5,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[],\"misses\":[]}}],"
+      "\"coverage\":{\"hits\":[0],\"misses\":[]}}],"
 
       // One script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
       "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
       buffer);
 }
-
 
 TEST_CASE(SourceReport_Coverage_SimpleCall) {
   char buffer[1024];
@@ -79,23 +77,22 @@ TEST_CASE(SourceReport_Coverage_SimpleCall) {
   EXPECT_STREQ(
       "{\"type\":\"SourceReport\",\"ranges\":["
 
-      // One range compiled with no hits or misses (helper0).
+      // One range compiled with one hit at function declaration (helper0).
       "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":4,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[],\"misses\":[]}},"
+      "\"coverage\":{\"hits\":[0],\"misses\":[]}},"
 
       // One range not compiled (helper1).
       "{\"scriptIndex\":0,\"startPos\":6,\"endPos\":10,\"compiled\":false},"
 
-      // One range with a hit and a miss (main).
+      // One range with two hits and a miss (main).
       "{\"scriptIndex\":0,\"startPos\":12,\"endPos\":39,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[23],\"misses\":[32]}}],"
+      "\"coverage\":{\"hits\":[12,23],\"misses\":[32]}}],"
 
       // Only one script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
       "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
       buffer);
 }
-
 
 TEST_CASE(SourceReport_Coverage_ForceCompile) {
   char buffer[1024];
@@ -124,24 +121,23 @@ TEST_CASE(SourceReport_Coverage_ForceCompile) {
   EXPECT_STREQ(
       "{\"type\":\"SourceReport\",\"ranges\":["
 
-      // One range compiled with no hits or misses (helper0).
+      // One range compiled with one hit at function declaration (helper0).
       "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":4,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[],\"misses\":[]}},"
+      "\"coverage\":{\"hits\":[0],\"misses\":[]}},"
 
       // This range is compiled even though it wasn't called (helper1).
       "{\"scriptIndex\":0,\"startPos\":6,\"endPos\":10,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[],\"misses\":[]}},"
+      "\"coverage\":{\"hits\":[],\"misses\":[6]}},"
 
-      // One range with a hit and a miss (main).
+      // One range with two hits and a miss (main).
       "{\"scriptIndex\":0,\"startPos\":12,\"endPos\":39,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[23],\"misses\":[32]}}],"
+      "\"coverage\":{\"hits\":[12,23],\"misses\":[32]}}],"
 
       // Only one script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
       "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
       buffer);
 }
-
 
 TEST_CASE(SourceReport_Coverage_UnusedClass_NoForceCompile) {
   char buffer[1024];
@@ -173,18 +169,17 @@ TEST_CASE(SourceReport_Coverage_UnusedClass_NoForceCompile) {
 
       // helper0 is compiled.
       "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":4,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[],\"misses\":[]}},"
+      "\"coverage\":{\"hits\":[0],\"misses\":[]}},"
 
-      // One range with a hit (main).
+      // One range with two hits (main).
       "{\"scriptIndex\":0,\"startPos\":22,\"endPos\":32,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[27],\"misses\":[]}}],"
+      "\"coverage\":{\"hits\":[22,27],\"misses\":[]}}],"
 
       // Only one script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
       "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
       buffer);
 }
-
 
 TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompile) {
   char buffer[1024];
@@ -213,22 +208,21 @@ TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompile) {
 
       // UnusedClass.helper1 is compiled.
       "{\"scriptIndex\":0,\"startPos\":10,\"endPos\":18,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[],\"misses\":[14]}},"
+      "\"coverage\":{\"hits\":[],\"misses\":[10,14]}},"
 
       // helper0 is compiled.
       "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":4,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[],\"misses\":[]}},"
+      "\"coverage\":{\"hits\":[0],\"misses\":[]}},"
 
-      // One range with a hit (main).
+      // One range with two hits (main).
       "{\"scriptIndex\":0,\"startPos\":22,\"endPos\":32,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[27],\"misses\":[]}}],"
+      "\"coverage\":{\"hits\":[22,27],\"misses\":[]}}],"
 
       // Only one script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
       "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
       buffer);
 }
-
 
 TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompileError) {
   char buffer[1024];
@@ -264,18 +258,17 @@ TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompileError) {
 
       // helper0 is compiled.
       "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":4,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[],\"misses\":[]}},"
+      "\"coverage\":{\"hits\":[0],\"misses\":[]}},"
 
-      // One range with a hit (main).
+      // One range with two hits (main).
       "{\"scriptIndex\":0,\"startPos\":22,\"endPos\":32,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[27],\"misses\":[]}}],"
+      "\"coverage\":{\"hits\":[22,27],\"misses\":[]}}],"
 
       // Only one script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
       "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
       buffer);
 }
-
 
 TEST_CASE(SourceReport_Coverage_NestedFunctions) {
   char buffer[1024];
@@ -310,18 +303,18 @@ TEST_CASE(SourceReport_Coverage_NestedFunctions) {
 
       // One range compiled with one hit (helper0).
       "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":22,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[18],\"misses\":[]}},"
+      "\"coverage\":{\"hits\":[0,18],\"misses\":[]}},"
 
       // One range not compiled (helper1).
       "{\"scriptIndex\":0,\"startPos\":24,\"endPos\":28,\"compiled\":false},"
 
-      // One range with a hit and a miss (main).
+      // One range with two hits and a miss (main).
       "{\"scriptIndex\":0,\"startPos\":30,\"endPos\":57,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[41],\"misses\":[50]}},"
+      "\"coverage\":{\"hits\":[30,41],\"misses\":[50]}},"
 
       // Nested range compiled (nestedHelper0).
       "{\"scriptIndex\":0,\"startPos\":5,\"endPos\":9,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[],\"misses\":[]}},"
+      "\"coverage\":{\"hits\":[5],\"misses\":[]}},"
 
       // Nested range not compiled (nestedHelper1).
       "{\"scriptIndex\":0,\"startPos\":11,\"endPos\":15,\"compiled\":false}],"
@@ -331,7 +324,6 @@ TEST_CASE(SourceReport_Coverage_NestedFunctions) {
       "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
       buffer);
 }
-
 
 TEST_CASE(SourceReport_Coverage_RestrictedRange) {
   char buffer[1024];
@@ -369,11 +361,11 @@ TEST_CASE(SourceReport_Coverage_RestrictedRange) {
 
       // One range compiled with one hit (helper0).
       "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":22,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[18],\"misses\":[]}},"
+      "\"coverage\":{\"hits\":[0,18],\"misses\":[]}},"
 
       // Nested range compiled (nestedHelper0).
       "{\"scriptIndex\":0,\"startPos\":5,\"endPos\":9,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[],\"misses\":[]}},"
+      "\"coverage\":{\"hits\":[5],\"misses\":[]}},"
 
       // Nested range not compiled (nestedHelper1).
       "{\"scriptIndex\":0,\"startPos\":11,\"endPos\":15,\"compiled\":false}],"
@@ -383,7 +375,6 @@ TEST_CASE(SourceReport_Coverage_RestrictedRange) {
       "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
       buffer);
 }
-
 
 TEST_CASE(SourceReport_Coverage_AllFunctions) {
   const char* kScript =
@@ -415,7 +406,7 @@ TEST_CASE(SourceReport_Coverage_AllFunctions) {
   // Make sure that the main function was found.
   EXPECT_SUBSTRING(
       "\"startPos\":12,\"endPos\":39,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[23],\"misses\":[32]}",
+      "\"coverage\":{\"hits\":[12,23],\"misses\":[32]}",
       result);
 
   // More than one script is referenced in the report.
@@ -423,7 +414,6 @@ TEST_CASE(SourceReport_Coverage_AllFunctions) {
   EXPECT_SUBSTRING("\"scriptIndex\":1", result);
   EXPECT_SUBSTRING("\"scriptIndex\":2", result);
 }
-
 
 TEST_CASE(SourceReport_Coverage_AllFunctions_ForceCompile) {
   const char* kScript =
@@ -458,7 +448,7 @@ TEST_CASE(SourceReport_Coverage_AllFunctions_ForceCompile) {
   // Make sure that the main function was found.
   EXPECT_SUBSTRING(
       "\"startPos\":12,\"endPos\":39,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[23],\"misses\":[32]}",
+      "\"coverage\":{\"hits\":[12,23],\"misses\":[32]}",
       result);
 
   // More than one script is referenced in the report.
@@ -466,7 +456,6 @@ TEST_CASE(SourceReport_Coverage_AllFunctions_ForceCompile) {
   EXPECT_SUBSTRING("\"scriptIndex\":1", result);
   EXPECT_SUBSTRING("\"scriptIndex\":2", result);
 }
-
 
 TEST_CASE(SourceReport_CallSites_SimpleCall) {
   char buffer[1024];
@@ -588,7 +577,6 @@ TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
       buffer);
 }
 
-
 TEST_CASE(SourceReport_MultipleReports) {
   char buffer[1024];
   const char* kScript =
@@ -615,7 +603,7 @@ TEST_CASE(SourceReport_MultipleReports) {
       // One range compiled with no callsites (helper0).
       "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":4,\"compiled\":true,"
       "\"callSites\":[],"
-      "\"coverage\":{\"hits\":[],\"misses\":[]}},"
+      "\"coverage\":{\"hits\":[0],\"misses\":[]}},"
 
       // One range not compiled (helper1).
       "{\"scriptIndex\":0,\"startPos\":6,\"endPos\":10,\"compiled\":false},"
@@ -629,14 +617,13 @@ TEST_CASE(SourceReport_MultipleReports) {
       "\"id\":\"\",\"name\":\"\",\"uri\":\"test-lib\"},"
       "\"_kind\":\"RegularFunction\",\"static\":true,\"const\":false,"
       "\"_intrinsic\":false,\"_native\":false},\"count\":1}]}],"
-      "\"coverage\":{\"hits\":[17],\"misses\":[]}}],"
+      "\"coverage\":{\"hits\":[12,17],\"misses\":[]}}],"
 
       // One script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
       "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
       buffer);
 }
-
 
 TEST_CASE(SourceReport_PossibleBreakpoints_Simple) {
   char buffer[1024];

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/ast_transformer.h"
 
 #include "vm/object_store.h"
@@ -60,12 +62,10 @@ AwaitTransformer::AwaitTransformer(SequenceNode* preamble,
   ASSERT(async_temp_scope_ != NULL);
 }
 
-
 AstNode* AwaitTransformer::Transform(AstNode* expr) {
   expr->Visit(this);
   return result_;
 }
-
 
 LocalVariable* AwaitTransformer::EnsureCurrentTempVar() {
   String& symbol =
@@ -87,14 +87,12 @@ LocalVariable* AwaitTransformer::EnsureCurrentTempVar() {
   return await_tmp;
 }
 
-
 LocalVariable* AwaitTransformer::GetVariableInScope(LocalScope* scope,
                                                     const String& symbol) {
   LocalVariable* var = scope->LookupVariable(symbol, false);
   ASSERT(var != NULL);
   return var;
 }
-
 
 LocalVariable* AwaitTransformer::AddNewTempVarToPreamble(
     AstNode* node,
@@ -106,17 +104,14 @@ LocalVariable* AwaitTransformer::AddNewTempVarToPreamble(
   return tmp_var;
 }
 
-
 LoadLocalNode* AwaitTransformer::MakeName(AstNode* node) {
   LocalVariable* temp = AddNewTempVarToPreamble(node, ST(node->token_pos()));
   return new (Z) LoadLocalNode(ST(node->token_pos()), temp);
 }
 
-
 void AwaitTransformer::VisitLiteralNode(LiteralNode* node) {
   result_ = node;
 }
-
 
 void AwaitTransformer::VisitTypeNode(TypeNode* node) {
   if (node->is_deferred_reference()) {
@@ -128,7 +123,6 @@ void AwaitTransformer::VisitTypeNode(TypeNode* node) {
     result_ = node;
   }
 }
-
 
 void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   // Await transformation:
@@ -184,8 +178,9 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   async_await_helper_args->Add(
       new (Z) LoadLocalNode(token_pos, async_catch_error_callback));
   async_await_helper_args->Add(new (Z) LoadLocalNode(token_pos, async_op));
-  StaticCallNode* await_helper_call = new (Z) StaticCallNode(
-      node->token_pos(), async_await_helper, async_await_helper_args);
+  StaticCallNode* await_helper_call =
+      new (Z) StaticCallNode(node->token_pos(), async_await_helper,
+                             async_await_helper_args, StaticCallNode::kStatic);
 
   preamble_->Add(
       new (Z) StoreLocalNode(token_pos, result_param, await_helper_call));
@@ -224,17 +219,17 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   error_ne_null_branch->Add(
       new (Z) ThrowNode(token_pos, load_error_param, load_stack_trace_param));
   preamble_->Add(new (Z) IfNode(
-      token_pos, new (Z) ComparisonNode(
-                     token_pos, Token::kNE, load_error_param,
-                     new (Z) LiteralNode(token_pos, Object::null_instance())),
+      token_pos,
+      new (Z) ComparisonNode(
+          token_pos, Token::kNE, load_error_param,
+          new (Z) LiteralNode(token_pos, Object::null_instance())),
       error_ne_null_branch, NULL));
 
   result_ = MakeName(new (Z) LoadLocalNode(token_pos, result_param));
 }
 
-
-// Transforms boolean expressions into a sequence of evaluatons that only lazily
-// evaluate subexpressions.
+// Transforms boolean expressions into a sequence of evaluations that only
+// lazily evaluate subexpressions.
 //
 // Example:
 //
@@ -271,17 +266,15 @@ AstNode* AwaitTransformer::LazyTransform(const Token::Kind logical_op,
   return result;
 }
 
-
 LocalScope* AwaitTransformer::ChainNewScope(LocalScope* parent) {
   return new (Z)
       LocalScope(parent, parent->function_level(), parent->loop_level());
 }
 
-
 void AwaitTransformer::VisitBinaryOpNode(BinaryOpNode* node) {
   AstNode* new_left = Transform(node->left());
   AstNode* new_right = NULL;
-  // Preserve lazy evaluaton.
+  // Preserve lazy evaluation.
   if ((node->kind() == Token::kAND) || (node->kind() == Token::kOR)) {
     new_right = LazyTransform(node->kind(), new_left, node->right());
   } else {
@@ -291,7 +284,6 @@ void AwaitTransformer::VisitBinaryOpNode(BinaryOpNode* node) {
                                           new_left, new_right));
 }
 
-
 void AwaitTransformer::VisitComparisonNode(ComparisonNode* node) {
   AstNode* new_left = Transform(node->left());
   AstNode* new_right = Transform(node->right());
@@ -299,13 +291,11 @@ void AwaitTransformer::VisitComparisonNode(ComparisonNode* node) {
                                             new_left, new_right));
 }
 
-
 void AwaitTransformer::VisitUnaryOpNode(UnaryOpNode* node) {
   AstNode* new_operand = Transform(node->operand());
   result_ = MakeName(
       new (Z) UnaryOpNode(node->token_pos(), node->kind(), new_operand));
 }
-
 
 // ::= (<condition>) ? <true-branch> : <false-branch>
 //
@@ -328,16 +318,15 @@ void AwaitTransformer::VisitConditionalExprNode(ConditionalExprNode* node) {
       ST(node->token_pos()), new_condition, new_true_result, new_false_result));
 }
 
-
 void AwaitTransformer::VisitArgumentListNode(ArgumentListNode* node) {
-  ArgumentListNode* new_args = new (Z) ArgumentListNode(node->token_pos());
+  ArgumentListNode* new_args =
+      new (Z) ArgumentListNode(node->token_pos(), node->type_arguments());
   for (intptr_t i = 0; i < node->length(); i++) {
     new_args->Add(Transform(node->NodeAt(i)));
   }
   new_args->set_names(node->names());
   result_ = new_args;
 }
-
 
 void AwaitTransformer::VisitArrayNode(ArrayNode* node) {
   GrowableArray<AstNode*> new_elements;
@@ -347,13 +336,11 @@ void AwaitTransformer::VisitArrayNode(ArrayNode* node) {
   result_ = new (Z) ArrayNode(node->token_pos(), node->type(), new_elements);
 }
 
-
 void AwaitTransformer::VisitStringInterpolateNode(StringInterpolateNode* node) {
   ArrayNode* new_value = Transform(node->value())->AsArrayNode();
   result_ =
       MakeName(new (Z) StringInterpolateNode(node->token_pos(), new_value));
 }
-
 
 void AwaitTransformer::VisitClosureNode(ClosureNode* node) {
   AstNode* new_receiver = node->receiver();
@@ -364,7 +351,6 @@ void AwaitTransformer::VisitClosureNode(ClosureNode* node) {
                                          new_receiver, node->scope()));
 }
 
-
 void AwaitTransformer::VisitInstanceCallNode(InstanceCallNode* node) {
   AstNode* new_receiver = Transform(node->receiver());
   ArgumentListNode* new_args =
@@ -374,14 +360,12 @@ void AwaitTransformer::VisitInstanceCallNode(InstanceCallNode* node) {
                                               node->is_conditional()));
 }
 
-
 void AwaitTransformer::VisitStaticCallNode(StaticCallNode* node) {
   ArgumentListNode* new_args =
       Transform(node->arguments())->AsArgumentListNode();
-  result_ = MakeName(
-      new (Z) StaticCallNode(node->token_pos(), node->function(), new_args));
+  result_ = MakeName(new (Z) StaticCallNode(node->token_pos(), node->function(),
+                                            new_args, node->rebind_rule()));
 }
-
 
 void AwaitTransformer::VisitConstructorCallNode(ConstructorCallNode* node) {
   ArgumentListNode* new_args =
@@ -391,14 +375,12 @@ void AwaitTransformer::VisitConstructorCallNode(ConstructorCallNode* node) {
                                   node->constructor(), new_args));
 }
 
-
 void AwaitTransformer::VisitInstanceGetterNode(InstanceGetterNode* node) {
   AstNode* new_receiver = Transform(node->receiver());
   result_ = MakeName(new (Z) InstanceGetterNode(node->token_pos(), new_receiver,
                                                 node->field_name(),
                                                 node->is_conditional()));
 }
-
 
 void AwaitTransformer::VisitInstanceSetterNode(InstanceSetterNode* node) {
   AstNode* new_receiver = node->receiver();
@@ -411,18 +393,17 @@ void AwaitTransformer::VisitInstanceSetterNode(InstanceSetterNode* node) {
                                                 node->is_conditional()));
 }
 
-
 void AwaitTransformer::VisitStaticGetterNode(StaticGetterNode* node) {
   AstNode* new_receiver = node->receiver();
   if (new_receiver != NULL) {
     new_receiver = Transform(new_receiver);
   }
-  StaticGetterNode* new_getter = new (Z) StaticGetterNode(
-      node->token_pos(), new_receiver, node->cls(), node->field_name());
+  StaticGetterNode* new_getter =
+      new (Z) StaticGetterNode(node->token_pos(), new_receiver, node->cls(),
+                               node->field_name(), node->rebind_rule());
   new_getter->set_owner(node->owner());
   result_ = MakeName(new_getter);
 }
-
 
 void AwaitTransformer::VisitStaticSetterNode(StaticSetterNode* node) {
   AstNode* new_receiver = node->receiver();
@@ -433,19 +414,18 @@ void AwaitTransformer::VisitStaticSetterNode(StaticSetterNode* node) {
   StaticSetterNode* new_setter =
       node->function().IsNull()
           ? new (Z) StaticSetterNode(node->token_pos(), new_receiver,
-                                     node->cls(), node->field_name(), new_value)
+                                     node->cls(), node->field_name(), new_value,
+                                     node->rebind_rule())
           : new (Z) StaticSetterNode(node->token_pos(), new_receiver,
                                      node->field_name(), node->function(),
-                                     new_value);
+                                     new_value, node->rebind_rule());
 
   result_ = MakeName(new_setter);
 }
 
-
 void AwaitTransformer::VisitLoadLocalNode(LoadLocalNode* node) {
   result_ = MakeName(node);
 }
-
 
 void AwaitTransformer::VisitStoreLocalNode(StoreLocalNode* node) {
   AstNode* new_value = Transform(node->value());
@@ -453,11 +433,9 @@ void AwaitTransformer::VisitStoreLocalNode(StoreLocalNode* node) {
       new (Z) StoreLocalNode(node->token_pos(), &node->local(), new_value));
 }
 
-
 void AwaitTransformer::VisitLoadStaticFieldNode(LoadStaticFieldNode* node) {
   result_ = MakeName(node);
 }
-
 
 void AwaitTransformer::VisitStoreStaticFieldNode(StoreStaticFieldNode* node) {
   AstNode* new_value = Transform(node->value());
@@ -466,14 +444,12 @@ void AwaitTransformer::VisitStoreStaticFieldNode(StoreStaticFieldNode* node) {
       new_value));
 }
 
-
 void AwaitTransformer::VisitLoadIndexedNode(LoadIndexedNode* node) {
   AstNode* new_array = Transform(node->array());
   AstNode* new_index = Transform(node->index_expr());
   result_ = MakeName(new (Z) LoadIndexedNode(node->token_pos(), new_array,
                                              new_index, node->super_class()));
 }
-
 
 void AwaitTransformer::VisitStoreIndexedNode(StoreIndexedNode* node) {
   AstNode* new_array = Transform(node->array());
@@ -483,13 +459,11 @@ void AwaitTransformer::VisitStoreIndexedNode(StoreIndexedNode* node) {
       node->token_pos(), new_array, new_index, new_value, node->super_class()));
 }
 
-
 void AwaitTransformer::VisitAssignableNode(AssignableNode* node) {
   AstNode* new_expr = Transform(node->expr());
   result_ = MakeName(new (Z) AssignableNode(node->token_pos(), new_expr,
                                             node->type(), node->dst_name()));
 }
-
 
 void AwaitTransformer::VisitLetNode(LetNode* node) {
   // Add all the initializer nodes to the preamble and the
@@ -520,7 +494,6 @@ void AwaitTransformer::VisitLetNode(LetNode* node) {
   result_ = Transform(node->nodes()[last_node_index]);
 }
 
-
 void AwaitTransformer::VisitThrowNode(ThrowNode* node) {
   AstNode* new_exception = Transform(node->exception());
   result_ = MakeName(
@@ -528,3 +501,5 @@ void AwaitTransformer::VisitThrowNode(ThrowNode* node) {
 }
 
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

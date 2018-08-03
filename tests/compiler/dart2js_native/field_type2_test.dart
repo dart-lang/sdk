@@ -14,13 +14,16 @@ class Node {
 
 makeNode(parent) native;
 
-void setup() native """
+void setup() {
+  JS('', r"""
+(function(){
 // This code is all inside 'setup' and so not accessible from the global scope.
 function Node(parent){ this.parentNode = parent; }
 makeNode = function(p){return new Node(p);};
 
 self.nativeConstructor(Node);
-""";
+})()""");
+}
 
 main() {
   nativeTesting();

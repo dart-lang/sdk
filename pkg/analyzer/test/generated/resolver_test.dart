@@ -26,6 +26,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
+import 'package:analyzer/src/generated/testing/element_search.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/source/source_resource.dart';
@@ -54,6 +55,15 @@ main() {
     defineReflectiveTests(TypeProviderImplTest);
     defineReflectiveTests(TypeResolverVisitorTest);
   });
+}
+
+/// Wrapper around the test package's `fail` function.
+///
+/// Unlike the test package's `fail` function, this function is not annotated
+/// with @alwaysThrows, so we can call it at the top of a test method without
+/// causing the rest of the method to be flagged as dead code.
+void _fail(String message) {
+  fail(message);
 }
 
 @reflectiveTest
@@ -195,32 +205,34 @@ class A {
   }
 
   test_enclosingElement_invalidLocalFunction() async {
-    Source source = addSource(r'''
+    String code = r'''
 class C {
   C() {
     int get x => 0;
   }
-}''');
-    LibraryElement library = resolve2(source);
+}''';
+    Source source = addSource(code);
+
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertErrors(source, [ParserErrorCode.GETTER_IN_FUNCTION]);
+
+    CompilationUnitElement unit = analysisResult.unit.element;
+    LibraryElement library = unit.library;
     expect(library, isNotNull);
-    var unit = library.definingCompilationUnit;
-    expect(unit, isNotNull);
+    expect(unit.enclosingElement, same(library));
+
     var types = unit.types;
-    expect(types, isNotNull);
     expect(types, hasLength(1));
     var type = types[0];
     expect(type, isNotNull);
+
     var constructors = type.constructors;
-    expect(constructors, isNotNull);
     expect(constructors, hasLength(1));
     ConstructorElement constructor = constructors[0];
     expect(constructor, isNotNull);
-    List<FunctionElement> functions = constructor.functions;
-    expect(functions, isNotNull);
-    expect(functions, hasLength(1));
-    expect(functions[0].enclosingElement, constructor);
-    await computeAnalysisResult(source);
-    assertErrors(source, [ParserErrorCode.GETTER_IN_FUNCTION]);
+
+    FunctionElement x = findElementsByName(analysisResult.unit, 'x').single;
+    expect(x.enclosingElement, constructor);
   }
 }
 
@@ -360,8 +372,8 @@ class PrefixedNamespaceTest extends ResolverTestCase {
     expect(namespace.get('p.A'), same(element));
   }
 
-  HashMap<String, Element> _toMap(List<Element> elements) {
-    HashMap<String, Element> map = new HashMap<String, Element>();
+  Map<String, Element> _toMap(List<Element> elements) {
+    Map<String, Element> map = new HashMap<String, Element>();
     for (Element element in elements) {
       map[element.name] = element;
     }
@@ -1091,6 +1103,9 @@ main() {
   }
 
   test_as() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 class A {
   bool get g => true;
@@ -1117,6 +1132,9 @@ A f(var p) {
   }
 
   test_assert() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1136,6 +1154,9 @@ A f(var p) {
   }
 
   test_assignment() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 f() {
   var v;
@@ -1152,6 +1173,9 @@ f() {
   }
 
   test_assignment_afterInitializer() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 f() {
   var v = 0;
@@ -1203,6 +1227,9 @@ main() {
   }
 
   test_assignment_throwExpression() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 f() {
   var v = 1;
@@ -1219,6 +1246,9 @@ f() {
   }
 
   test_CanvasElement_getContext() async {
+    if (previewDart2) {
+      return;
+    }
     String code = r'''
 import 'dart:html';
 main(CanvasElement canvas) {
@@ -1233,6 +1263,9 @@ main(CanvasElement canvas) {
   }
 
   test_forEach() async {
+    if (previewDart2) {
+      return;
+    }
     String code = r'''
 main() {
   var list = <String> [];
@@ -1257,6 +1290,9 @@ main() {
   }
 
   test_forEach_async() async {
+    if (previewDart2) {
+      return;
+    }
     String code = r'''
 import 'dart:async';
 f(Stream<String> stream) async {
@@ -1281,6 +1317,9 @@ f(Stream<String> stream) async {
   }
 
   test_forEach_async_inheritedStream() async {
+    if (previewDart2) {
+      return;
+    }
     // From https://github.com/dart-lang/sdk/issues/24191, this ensures that
     // `await for` works for types where the generic parameter doesn't
     // correspond to the type of the Stream's data.
@@ -1311,6 +1350,9 @@ f(MyCustomStream<String> stream) async {
   }
 
   test_functionExpression_asInvocationArgument() async {
+    if (previewDart2) {
+      return;
+    }
     String code = r'''
 class MyMap<K, V> {
   forEach(f(K key, V value)) {}
@@ -1342,6 +1384,9 @@ f(MyMap<int, String> m) {
   }
 
   test_functionExpression_asInvocationArgument_fromInferredInvocation() async {
+    if (previewDart2) {
+      return;
+    }
     String code = r'''
 class MyMap<K, V> {
   forEach(f(K key, V value)) {}
@@ -1363,6 +1408,9 @@ f(MyMap<int, String> m) {
   }
 
   test_functionExpression_asInvocationArgument_functionExpressionInvocation() async {
+    if (previewDart2) {
+      return;
+    }
     String code = r'''
 main() {
   (f(String value)) {} ((v) {
@@ -1383,6 +1431,9 @@ main() {
   }
 
   test_functionExpression_asInvocationArgument_keepIfLessSpecific() async {
+    if (previewDart2) {
+      return;
+    }
     String code = r'''
 class MyList {
   forEach(f(Object value)) {}
@@ -1426,6 +1477,9 @@ x() {
   }
 
   test_functionExpression_asInvocationArgument_replaceIfMoreSpecific() async {
+    if (previewDart2) {
+      return;
+    }
     String code = r'''
 class MyList<E> {
   forEach(f(E value)) {}
@@ -1448,6 +1502,9 @@ f(MyList<String> list) {
   }
 
   test_Future_then() async {
+    if (previewDart2) {
+      return;
+    }
     String code = r'''
 import 'dart:async';
 main(Future<int> firstFuture) {
@@ -1475,6 +1532,9 @@ main(Future<int> firstFuture) {
   }
 
   test_initializer() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 f() {
   var v = 0;
@@ -1502,10 +1562,13 @@ f() {
   }
 
   test_initializer_dereference() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 f() {
   var v = 'String';
-  v.
+  v.length;
 }''');
     CompilationUnit unit = await _computeResolvedUnit(source, noErrors: false);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
@@ -1615,9 +1678,7 @@ f() {
   }
 
   test_invocation_target_prefixed() async {
-    addNamedSource(
-        '/helper.dart',
-        '''
+    addNamedSource('/helper.dart', '''
 library helper;
 int max(int x, int y) => 0;
 ''');
@@ -1635,6 +1696,9 @@ main() {
   }
 
   test_is_conditional() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1656,6 +1720,9 @@ A f(var p) {
   }
 
   test_is_if() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1714,6 +1781,9 @@ A f(A p) {
   }
 
   test_is_if_logicalAnd() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1738,6 +1808,9 @@ A f(var p) {
   }
 
   test_is_postConditional() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1757,6 +1830,9 @@ A f(var p) {
   }
 
   test_is_postIf() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1804,6 +1880,9 @@ A f(A p) {
   }
 
   test_is_while() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1827,6 +1906,9 @@ A f(var p) {
   }
 
   test_isNot_conditional() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1848,6 +1930,9 @@ A f(var p) {
   }
 
   test_isNot_if() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1872,6 +1957,9 @@ A f(var p) {
   }
 
   test_isNot_if_logicalOr() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1896,6 +1984,9 @@ A f(var p) {
   }
 
   test_isNot_postConditional() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -1915,6 +2006,9 @@ A f(var p) {
   }
 
   test_isNot_postIf() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 class A {}
 A f(var p) {
@@ -2007,6 +2101,9 @@ f() {
   }
 
   test_listLiteral_same() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 f() {
   var v = [0, 1, 2];
@@ -2028,6 +2125,9 @@ f() {
   }
 
   test_mapLiteral_different() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 f() {
   var v = {'0' : 0, 1 : '1', '2' : 2};
@@ -2048,6 +2148,9 @@ f() {
   }
 
   test_mapLiteral_same() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 f() {
   var v = {'a' : 0, 'b' : 1, 'c' : 2};
@@ -2068,6 +2171,9 @@ f() {
   }
 
   test_mergePropagatedTypes_afterIfThen_different() async {
+    if (previewDart2) {
+      return;
+    }
     String code = r'''
 main() {
   var v = 0;
@@ -2088,6 +2194,9 @@ main() {
   }
 
   test_mergePropagatedTypes_afterIfThen_same() async {
+    if (previewDart2) {
+      return;
+    }
     var code = r'''
 main() {
   var v = 1;
@@ -2116,6 +2225,9 @@ main() {
   }
 
   test_mergePropagatedTypes_afterIfThenElse_same() async {
+    if (previewDart2) {
+      return;
+    }
     var code = r'''
 main() {
   var v = 1;
@@ -2132,6 +2244,9 @@ main() {
 
   test_mergePropagatedTypesAtJoinPoint_4() async {
     // https://code.google.com/p/dart/issues/detail?id=19929
+    if (previewDart2) {
+      return;
+    }
     var code = r'''
 f5(x) {
   var y = [];
@@ -2180,9 +2295,7 @@ void g() {
 
   test_objectAccessInference_disabled_for_library_prefix() async {
     String name = 'hashCode';
-    addNamedSource(
-        '/helper.dart',
-        '''
+    addNamedSource('/helper.dart', '''
 library helper;
 dynamic get $name => 42;
 ''');
@@ -2213,6 +2326,9 @@ main() {
   }
 
   test_objectAccessInference_enabled_for_cascades() async {
+    if (previewDart2) {
+      return;
+    }
     String name = 'hashCode';
     String code = '''
 main() {
@@ -2228,11 +2344,9 @@ main() {
 
   test_objectMethodInference_disabled_for_library_prefix() async {
     String name = 'toString';
-    addNamedSource(
-        '/helper.dart',
-        '''
+    addNamedSource('/helper.dart', '''
 library helper;
-dynamic $name = (int x) => x + 42');
+dynamic toString = (int x) => x + 42;
 ''');
     String code = '''
 import 'helper.dart' as helper;
@@ -2267,6 +2381,9 @@ main() {
   }
 
   test_objectMethodInference_enabled_for_cascades() async {
+    if (previewDart2) {
+      return;
+    }
     String name = 'toString';
     String code = '''
 main() {
@@ -2289,6 +2406,9 @@ main() {
     // static type of [bool] for [==] comparison and the implementation
     // was already consistent with the spec there. But, it's another
     // [Object] method, so it's included here.
+    if (previewDart2) {
+      return;
+    }
     var code = r'''
 f1(x) {
   var v = (x == x);
@@ -2300,6 +2420,9 @@ f1(x) {
 
   test_objectMethodOnDynamicExpression_hashCode() async {
     // https://code.google.com/p/dart/issues/detail?id=20342
+    if (previewDart2) {
+      return;
+    }
     var code = r'''
 f1(x) {
   var v = x.hashCode;
@@ -2311,6 +2434,9 @@ f1(x) {
 
   test_objectMethodOnDynamicExpression_runtimeType() async {
     // https://code.google.com/p/dart/issues/detail?id=20342
+    if (previewDart2) {
+      return;
+    }
     var code = r'''
 f1(x) {
   var v = x.runtimeType;
@@ -2322,6 +2448,9 @@ f1(x) {
 
   test_objectMethodOnDynamicExpression_toString() async {
     // https://code.google.com/p/dart/issues/detail?id=20342
+    if (previewDart2) {
+      return;
+    }
     var code = r'''
 f1(x) {
   var v = x.toString();
@@ -2332,6 +2461,9 @@ f1(x) {
   }
 
   test_propagatedReturnType_localFunction() async {
+    if (previewDart2) {
+      return;
+    }
     String code = r'''
 main() {
   f() => 42;
@@ -2343,6 +2475,9 @@ main() {
   }
 
   test_query() async {
+    if (previewDart2) {
+      return;
+    }
     Source source = addSource(r'''
 import 'dart:html';
 
@@ -2537,17 +2672,17 @@ class TypeResolverVisitorTest extends ParserTestCase {
   TypeResolverVisitor _visitor;
 
   fail_visitConstructorDeclaration() async {
-    fail("Not yet tested");
+    _fail("Not yet tested");
     _listener.assertNoErrors();
   }
 
   fail_visitFunctionTypeAlias() async {
-    fail("Not yet tested");
+    _fail("Not yet tested");
     _listener.assertNoErrors();
   }
 
   fail_visitVariableDeclaration() async {
-    fail("Not yet tested");
+    _fail("Not yet tested");
     ClassElement type = ElementFactory.classElement2("A");
     VariableDeclaration node = AstTestFactory.variableDeclaration("a");
     AstTestFactory
@@ -2678,8 +2813,7 @@ A V = new A();
 
   test_modeLocal_noContext() async {
     CompilationUnit unit;
-    _resolveTypeModeLocal(
-        r'''
+    _resolveTypeModeLocal(r'''
 class C {
   A f = new A();
   A m([A p = const A()]) {
@@ -2792,8 +2926,7 @@ A get G => new A();
 
   test_modeLocal_withContext_bad_methodBody() async {
     expect(() {
-      _resolveTypeModeLocal(
-          r'''
+      _resolveTypeModeLocal(r'''
 class C<T1> {
   A m<T2>() {
     T1 v1;
@@ -2811,8 +2944,7 @@ class C<T1> {
 
   test_modeLocal_withContext_bad_topLevelVariable_declaration() async {
     expect(() {
-      _resolveTypeModeLocal(
-          r'''
+      _resolveTypeModeLocal(r'''
 var v = new A();
 ''', (CompilationUnit u) {
         var tlv = u.declarations[0] as TopLevelVariableDeclaration;
@@ -2823,8 +2955,7 @@ var v = new A();
 
   test_modeLocal_withContext_bad_topLevelVariable_initializer() async {
     expect(() {
-      _resolveTypeModeLocal(
-          r'''
+      _resolveTypeModeLocal(r'''
 var v = new A();
 ''', (CompilationUnit u) {
         var tlv = u.declarations[0] as TopLevelVariableDeclaration;
@@ -2835,8 +2966,7 @@ var v = new A();
 
   test_modeLocal_withContext_class() async {
     ClassDeclaration c;
-    _resolveTypeModeLocal(
-        r'''
+    _resolveTypeModeLocal(r'''
 class C<T1> {
   A m<T2>() {
     T1 v1;
@@ -2870,8 +3000,7 @@ class C<T1> {
 
   test_modeLocal_withContext_inClass_constructor() async {
     ConstructorDeclaration cc;
-    _resolveTypeModeLocal(
-        r'''
+    _resolveTypeModeLocal(r'''
 class C<T> {
   C() {
     T v1;
@@ -2895,8 +3024,7 @@ class C<T> {
 
   test_modeLocal_withContext_inClass_method() async {
     MethodDeclaration m;
-    _resolveTypeModeLocal(
-        r'''
+    _resolveTypeModeLocal(r'''
 class C<T1> {
   A m<T2>() {
     T1 v1;
@@ -2930,8 +3058,7 @@ class C<T1> {
 
   test_modeLocal_withContext_topLevelFunction() async {
     FunctionDeclaration f;
-    _resolveTypeModeLocal(
-        r'''
+    _resolveTypeModeLocal(r'''
 A m<T>() {
   T v;
 }
@@ -2953,8 +3080,7 @@ A m<T>() {
 
   test_modeLocal_withContext_topLevelVariable() async {
     TopLevelVariableDeclaration v;
-    _resolveTypeModeLocal(
-        r'''
+    _resolveTypeModeLocal(r'''
 A v = new A();
 ''', (CompilationUnit u) {
       v = u.declarations[0] as TopLevelVariableDeclaration;
@@ -3131,9 +3257,6 @@ A v = new A();
     expect(constructor.isFactory, isFalse);
     expect(constructor.isSynthetic, isTrue);
     expect(constructor.name, 'c1');
-    expect(constructor.functions, hasLength(0));
-    expect(constructor.labels, hasLength(0));
-    expect(constructor.localVariables, hasLength(0));
     expect(constructor.parameters, isEmpty);
   }
 
@@ -3162,9 +3285,6 @@ A v = new A();
     expect(constructor.isFactory, isFalse);
     expect(constructor.isSynthetic, isTrue);
     expect(constructor.name, '');
-    expect(constructor.functions, hasLength(0));
-    expect(constructor.labels, hasLength(0));
-    expect(constructor.localVariables, hasLength(0));
     expect(constructor.parameters, hasLength(1));
     expect(constructor.parameters[0].type, equals(classT.type));
     expect(constructor.parameters[0].name,
@@ -3193,34 +3313,33 @@ A v = new A();
     expect(constructor.isFactory, isFalse);
     expect(constructor.isSynthetic, isTrue);
     expect(constructor.name, '');
-    expect(constructor.functions, hasLength(0));
-    expect(constructor.labels, hasLength(0));
-    expect(constructor.localVariables, hasLength(0));
     expect(constructor.parameters, isEmpty);
   }
 
   test_visitFieldFormalParameter_functionType() async {
     InterfaceType intType = _typeProvider.intType;
-    TypeName intTypeName = AstTestFactory.typeName4("int");
-    String innerParameterName = "a";
-    SimpleFormalParameterImpl parameter =
-        AstTestFactory.simpleFormalParameter3(innerParameterName);
-    parameter.element = parameter.identifier.staticElement =
-        ElementFactory.requiredParameter(innerParameterName);
-    String outerParameterName = "p";
-    FormalParameter node = AstTestFactory.fieldFormalParameter(
-        null,
-        intTypeName,
-        outerParameterName,
-        AstTestFactory.formalParameterList([parameter]));
-    node.identifier.staticElement =
-        ElementFactory.requiredParameter(outerParameterName);
-    DartType parameterType = _resolveFormalParameter(node, [intType.element]);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is FunctionType, FunctionType, parameterType);
-    FunctionType functionType = parameterType as FunctionType;
-    expect(functionType.returnType, same(intType));
-    expect(functionType.parameters, hasLength(1));
+    TypeName intTypeName = AstTestFactory.typeName4('int');
+
+    String aName = 'a';
+    SimpleFormalParameterImpl aNode =
+        AstTestFactory.simpleFormalParameter3(aName);
+    aNode.element = aNode.identifier.staticElement =
+        ElementFactory.requiredParameter(aName);
+
+    String pName = 'p';
+    FormalParameter pNode = AstTestFactory.fieldFormalParameter(
+        null, intTypeName, pName, AstTestFactory.formalParameterList([aNode]));
+    var pElement = ElementFactory.requiredParameter(pName);
+    pNode.identifier.staticElement = pElement;
+
+    FunctionType pType = new FunctionTypeImpl(
+        new GenericFunctionTypeElementImpl.forOffset(-1)
+          ..parameters = [aNode.element]);
+    pElement.type = pType;
+
+    _resolveFormalParameter(pNode, [intType.element]);
+    expect(pType.returnType, same(intType));
+    expect(pType.parameters, hasLength(1));
     _listener.assertNoErrors();
   }
 
@@ -3302,28 +3421,38 @@ A v = new A();
     // class P {}
     ClassElement elementR = ElementFactory.classElement2('R');
     ClassElement elementP = ElementFactory.classElement2('P');
-    FunctionElement elementF = ElementFactory.functionElement('f');
-    ParameterElementImpl requiredParameter =
-        ElementFactory.requiredParameter('p');
-    FunctionTypedFormalParameter parameterDeclaration = AstTestFactory
-        .functionTypedFormalParameter(AstTestFactory.typeName4('R'), 'g', [
-      AstTestFactory.simpleFormalParameter4(AstTestFactory.typeName4('P'), 'p')
-    ]);
-    parameterDeclaration.identifier.staticElement = requiredParameter;
-    FunctionDeclaration declaration = AstTestFactory.functionDeclaration(
+
+    SimpleFormalParameter pNode = AstTestFactory.simpleFormalParameter4(
+        AstTestFactory.typeName4('P'), 'p');
+    ParameterElementImpl pElement = ElementFactory.requiredParameter('p');
+    pNode.identifier.staticElement = pElement;
+
+    FunctionTypedFormalParameter gNode = AstTestFactory
+        .functionTypedFormalParameter(
+            AstTestFactory.typeName4('R'), 'g', [pNode]);
+    ParameterElementImpl gElement = ElementFactory.requiredParameter('g');
+    gNode.identifier.staticElement = gElement;
+
+    FunctionTypeImpl gType = new FunctionTypeImpl(
+        new GenericFunctionTypeElementImpl.forOffset(-1)
+          ..parameters = [pElement]);
+    gElement.type = gType;
+
+    FunctionDeclaration fNode = AstTestFactory.functionDeclaration(
         AstTestFactory.typeName4('R'),
         null,
         'f',
         AstTestFactory.functionExpression2(
-            AstTestFactory.formalParameterList([parameterDeclaration]), null));
-    declaration.name.staticElement = elementF;
-    _resolveNode(declaration, [elementR, elementP]);
-    expect(declaration.returnType.type, elementR.type);
-    FunctionTypedFormalParameter parameter =
-        declaration.functionExpression.parameters.parameters[0];
-    expect(parameter.returnType.type, elementR.type);
-    SimpleFormalParameter innerParameter = parameter.parameters.parameters[0];
-    expect(innerParameter.type.type, elementP.type);
+            AstTestFactory.formalParameterList([gNode]), null));
+    fNode.name.staticElement = ElementFactory.functionElement('f');
+
+    _resolveNode(fNode, [elementR, elementP]);
+
+    expect(fNode.returnType.type, elementR.type);
+    expect(gType.returnType, elementR.type);
+    expect(gNode.returnType.type, elementR.type);
+    expect(pNode.type.type, elementP.type);
+
     _listener.assertNoErrors();
   }
 
@@ -3332,29 +3461,38 @@ A v = new A();
     // class R {}
     ClassElement elementR = ElementFactory.classElement2('R');
     TypeParameterElement elementE = ElementFactory.typeParameterElement('E');
-    FunctionElement elementF = ElementFactory.functionElement('f');
-    ParameterElementImpl requiredParameter =
-        ElementFactory.requiredParameter('g');
-    requiredParameter.typeParameters = <TypeParameterElement>[elementE];
-    FunctionTypedFormalParameter parameterDeclaration = AstTestFactory
-        .functionTypedFormalParameter(AstTestFactory.typeName4('R'), 'g', [
-      AstTestFactory.simpleFormalParameter4(AstTestFactory.typeName4('E'), 'e')
-    ]);
-    parameterDeclaration.identifier.staticElement = requiredParameter;
-    FunctionDeclaration declaration = AstTestFactory.functionDeclaration(
+
+    SimpleFormalParameterImpl eNode = AstTestFactory.simpleFormalParameter4(
+        AstTestFactory.typeName4('E'), 'e');
+    eNode.element = ElementFactory.requiredParameter('e');
+
+    FunctionTypedFormalParameter gNode = AstTestFactory
+        .functionTypedFormalParameter(
+            AstTestFactory.typeName4('R'), 'g', [eNode]);
+    ParameterElementImpl gElement = ElementFactory.requiredParameter('g');
+    gNode.identifier.staticElement = gElement;
+
+    FunctionTypeImpl gType =
+        new FunctionTypeImpl(new GenericFunctionTypeElementImpl.forOffset(-1)
+          ..typeParameters = [elementE]
+          ..parameters = [eNode.element]);
+    gElement.type = gType;
+
+    FunctionDeclaration fNode = AstTestFactory.functionDeclaration(
         AstTestFactory.typeName4('R'),
         null,
         'f',
         AstTestFactory.functionExpression2(
-            AstTestFactory.formalParameterList([parameterDeclaration]), null));
-    declaration.name.staticElement = elementF;
-    _resolveNode(declaration, [elementR]);
-    expect(declaration.returnType.type, elementR.type);
-    FunctionTypedFormalParameter parameter =
-        declaration.functionExpression.parameters.parameters[0];
-    expect(parameter.returnType.type, elementR.type);
-    SimpleFormalParameter innerParameter = parameter.parameters.parameters[0];
-    expect(innerParameter.type.type, elementE.type);
+            AstTestFactory.formalParameterList([gNode]), null));
+    fNode.name.staticElement = ElementFactory.functionElement('f');
+
+    _resolveNode(fNode, [elementR]);
+
+    expect(fNode.returnType.type, elementR.type);
+    expect(gType.returnType, elementR.type);
+    expect(gNode.returnType.type, elementR.type);
+    expect(eNode.type.type, elementE.type);
+
     _listener.assertNoErrors();
   }
 
@@ -3624,5 +3762,5 @@ class _StaleElement extends ElementImpl {
   get kind => throw "_StaleElement's kind shouldn't be accessed";
 
   @override
-  /*=T*/ accept/*<T>*/(_) => throw "_StaleElement shouldn't be visited";
+  T accept<T>(_) => throw "_StaleElement shouldn't be visited";
 }

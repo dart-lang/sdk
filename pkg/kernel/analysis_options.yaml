@@ -1,6 +1,5 @@
 analyzer:
-  strong-mode: true
   language:
-    enableSuperMixins: true
+    enableSuperMixins: false
   exclude:
     - testcases/**

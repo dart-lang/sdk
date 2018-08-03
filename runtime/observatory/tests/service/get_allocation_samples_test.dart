@@ -6,7 +6,7 @@
 import 'dart:developer';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_io.dart';
-import 'package:observatory/cpu_profile.dart';
+import 'package:observatory/sample_profile.dart';
 import 'package:unittest/unittest.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
@@ -27,7 +27,7 @@ void test() {
   debugger();
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
 
   // Initial.
@@ -55,13 +55,13 @@ var tests = [
     var fooClass = await getClassFromRootLib(isolate, 'Foo');
     await fooClass.reload();
     expect(fooClass.traceAllocations, isTrue);
-    var profileResponse = await fooClass.getAllocationSamples();
+    dynamic profileResponse = await fooClass.getAllocationSamples();
     expect(profileResponse, isNotNull);
     expect(profileResponse['type'], equals('_CpuProfile'));
     await fooClass.setTraceAllocations(false);
     await fooClass.reload();
     expect(fooClass.traceAllocations, isFalse);
-    CpuProfile cpuProfile = new CpuProfile();
+    SampleProfile cpuProfile = new SampleProfile();
     await cpuProfile.load(isolate, profileResponse);
     cpuProfile.buildCodeCallerAndCallees();
     cpuProfile.buildFunctionCallerAndCallees();

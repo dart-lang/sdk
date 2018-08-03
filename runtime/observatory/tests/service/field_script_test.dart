@@ -15,7 +15,7 @@ code() {
   print(otherField);
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasPausedAtStart,
   (Isolate isolate) async {
     Library lib = await isolate.rootLibrary.load();

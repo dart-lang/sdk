@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class D<X extends (self::D::X, self::D::Y) → void = dynamic, Y extends (self::D::X, self::D::Y) → void = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class E<X extends (self::E::X) → void = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static field self::D<dynamic, dynamic> d;
+static field self::E<dynamic> e;
+static method main() → dynamic {}

@@ -1,0 +1,12 @@
+library test;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+static method foo(() → asy::Stream<core::int> values) → void {}
+static method main() → void {
+  self::foo(() → asy::Stream<dynamic> async* {
+    yield 0;
+    yield 1;
+  });
+}

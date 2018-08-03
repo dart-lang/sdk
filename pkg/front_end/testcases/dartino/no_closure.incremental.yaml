@@ -1,0 +1,27 @@
+# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+main.dart.patch: |
+  // Similar to closure, but doesn't use closures.
+  class A {
+  <<<< "v1"
+    foo() {
+      print("v1");
+    }
+  ==== "v2"
+    a() {
+      print("v2");
+    }
+  >>>>
+  }
+
+  void main() {
+  <<<<
+    var a = new A();
+    a.foo();
+  ====
+    var a = new A();
+    a.a();
+  >>>>
+  }

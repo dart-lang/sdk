@@ -821,7 +821,7 @@ class ArticleView extends View {
         new CanvasElement(height: img.height, width: img.width);
 
     final CanvasRenderingContext2D ctx = canvas.getContext("2d");
-    ctx.drawImage(img, 0, 0, img.width, img.height);
+    ctx.drawImageScaled(img, 0, 0, img.width, img.height);
 
     return canvas.toDataUrl("image/png");
   }

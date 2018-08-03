@@ -7,13 +7,15 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
-#include "vm/atomic.h"
+#include "platform/atomic.h"
+#include "platform/safe_stack.h"
 #include "vm/bitfield.h"
 #include "vm/globals.h"
 #include "vm/handles.h"
+#include "vm/heap/store_buffer.h"
 #include "vm/os_thread.h"
-#include "vm/store_buffer.h"
 #include "vm/runtime_entry_list.h"
+
 namespace dart {
 
 class AbstractType;
@@ -30,6 +32,7 @@ class Function;
 class GrowableObjectArray;
 class HandleScope;
 class Heap;
+class HierarchyInfo;
 class Instance;
 class Isolate;
 class Library;
@@ -53,6 +56,7 @@ class String;
 class TimelineStream;
 class TypeArguments;
 class TypeParameter;
+class TypeUsageInfo;
 class Zone;
 
 #define REUSABLE_HANDLE_LIST(V)                                                \
@@ -74,7 +78,6 @@ class Zone;
   V(TypeArguments)                                                             \
   V(TypeParameter)
 
-
 #if defined(TARGET_ARCH_DBC)
 #define CACHED_VM_STUBS_LIST(V)
 #else
@@ -87,8 +90,18 @@ class Zone;
     StubCode::FixAllocationStubTarget_entry()->code(), NULL)                   \
   V(RawCode*, invoke_dart_code_stub_,                                          \
     StubCode::InvokeDartCode_entry()->code(), NULL)                            \
+  V(RawCode*, invoke_dart_code_from_bytecode_stub_,                            \
+    StubCode::InvokeDartCodeFromBytecode_entry()->code(), NULL)                \
   V(RawCode*, call_to_runtime_stub_, StubCode::CallToRuntime_entry()->code(),  \
     NULL)                                                                      \
+  V(RawCode*, null_error_shared_without_fpu_regs_stub_,                        \
+    StubCode::NullErrorSharedWithoutFPURegs_entry()->code(), NULL)             \
+  V(RawCode*, null_error_shared_with_fpu_regs_stub_,                           \
+    StubCode::NullErrorSharedWithFPURegs_entry()->code(), NULL)                \
+  V(RawCode*, stack_overflow_shared_without_fpu_regs_stub_,                    \
+    StubCode::StackOverflowSharedWithoutFPURegs_entry()->code(), NULL)         \
+  V(RawCode*, stack_overflow_shared_with_fpu_regs_stub_,                       \
+    StubCode::StackOverflowSharedWithFPURegs_entry()->code(), NULL)            \
   V(RawCode*, monomorphic_miss_stub_,                                          \
     StubCode::MonomorphicMiss_entry()->code(), NULL)                           \
   V(RawCode*, ic_lookup_through_code_stub_,                                    \
@@ -96,16 +109,30 @@ class Zone;
   V(RawCode*, lazy_deopt_from_return_stub_,                                    \
     StubCode::DeoptimizeLazyFromReturn_entry()->code(), NULL)                  \
   V(RawCode*, lazy_deopt_from_throw_stub_,                                     \
-    StubCode::DeoptimizeLazyFromThrow_entry()->code(), NULL)
+    StubCode::DeoptimizeLazyFromThrow_entry()->code(), NULL)                   \
+  V(RawCode*, slow_type_test_stub_, StubCode::SlowTypeTest_entry()->code(),    \
+    NULL)                                                                      \
+  V(RawCode*, lazy_specialize_type_test_stub_,                                 \
+    StubCode::LazySpecializeTypeTest_entry()->code(), NULL)
 
 #endif
 
-// List of VM-global objects/addresses cached in each Thread object.
-#define CACHED_VM_OBJECTS_LIST(V)                                              \
+#define CACHED_NON_VM_STUB_LIST(V)                                             \
   V(RawObject*, object_null_, Object::null(), NULL)                            \
   V(RawBool*, bool_true_, Object::bool_true().raw(), NULL)                     \
-  V(RawBool*, bool_false_, Object::bool_false().raw(), NULL)                   \
+  V(RawBool*, bool_false_, Object::bool_false().raw(), NULL)
+
+// List of VM-global objects/addresses cached in each Thread object.
+// Important: constant false must immediately follow constant true.
+#define CACHED_VM_OBJECTS_LIST(V)                                              \
+  CACHED_NON_VM_STUB_LIST(V)                                                   \
   CACHED_VM_STUBS_LIST(V)
+
+// This assertion marks places which assume that boolean false immediate
+// follows bool true in the CACHED_VM_OBJECTS_LIST
+#define ASSERT_BOOL_FALSE_FOLLOWS_BOOL_TRUE()                                  \
+  ASSERT((Thread::bool_true_offset() + kWordSize) ==                           \
+         Thread::bool_false_offset());
 
 #if defined(TARGET_ARCH_DBC)
 #define CACHED_VM_STUBS_ADDRESSES_LIST(V)
@@ -115,6 +142,14 @@ class Zone;
     StubCode::UpdateStoreBuffer_entry()->EntryPoint(), 0)                      \
   V(uword, call_to_runtime_entry_point_,                                       \
     StubCode::CallToRuntime_entry()->EntryPoint(), 0)                          \
+  V(uword, null_error_shared_without_fpu_regs_entry_point_,                    \
+    StubCode::NullErrorSharedWithoutFPURegs_entry()->EntryPoint(), 0)          \
+  V(uword, null_error_shared_with_fpu_regs_entry_point_,                       \
+    StubCode::NullErrorSharedWithFPURegs_entry()->EntryPoint(), 0)             \
+  V(uword, stack_overflow_shared_without_fpu_regs_entry_point_,                \
+    StubCode::StackOverflowSharedWithoutFPURegs_entry()->EntryPoint(), 0)      \
+  V(uword, stack_overflow_shared_with_fpu_regs_entry_point_,                   \
+    StubCode::StackOverflowSharedWithFPURegs_entry()->EntryPoint(), 0)         \
   V(uword, megamorphic_call_checked_entry_,                                    \
     StubCode::MegamorphicCall_entry()->EntryPoint(), 0)                        \
   V(uword, monomorphic_miss_entry_,                                            \
@@ -128,8 +163,11 @@ class Zone;
     NativeEntry::NoScopeNativeCallWrapperEntry(), 0)                           \
   V(uword, auto_scope_native_wrapper_entry_point_,                             \
     NativeEntry::AutoScopeNativeCallWrapperEntry(), 0)                         \
+  V(uword, interpret_call_entry_point_, RuntimeEntry::InterpretCallEntry(), 0) \
   V(RawString**, predefined_symbols_address_, Symbols::PredefinedAddress(),    \
     NULL)                                                                      \
+  V(uword, double_nan_address_, reinterpret_cast<uword>(&double_nan_constant), \
+    0)                                                                         \
   V(uword, double_negate_address_,                                             \
     reinterpret_cast<uword>(&double_negate_constant), 0)                       \
   V(uword, double_abs_address_, reinterpret_cast<uword>(&double_abs_constant), \
@@ -147,6 +185,11 @@ class Zone;
   CACHED_VM_OBJECTS_LIST(V)                                                    \
   CACHED_ADDRESSES_LIST(V)
 
+enum class ValidationPolicy {
+  kValidateFrames = 0,
+  kDontValidateFrames = 1,
+};
+
 // A VM thread; may be executing Dart code or performing helper tasks like
 // garbage collection or compilation. The Thread structure associated with
 // a thread is allocated by EnsureInit before entering an isolate, and destroyed
@@ -159,8 +202,9 @@ class Thread : public BaseThread {
     kUnknownTask = 0x0,
     kMutatorTask = 0x1,
     kCompilerTask = 0x2,
-    kSweeperTask = 0x4,
-    kMarkerTask = 0x8,
+    kMarkerTask = 0x4,
+    kSweeperTask = 0x8,
+    kCompactorTask = 0x10,
   };
   // Converts a TaskKind to its corresponding C-String name.
   static const char* TaskKindToCString(TaskKind kind);
@@ -169,11 +213,15 @@ class Thread : public BaseThread {
 
   // The currently executing thread, or NULL if not yet initialized.
   static Thread* Current() {
+#if defined(HAS_C11_THREAD_LOCAL)
+    return OSThread::CurrentVMThread();
+#else
     BaseThread* thread = OSThread::GetCurrentTLS();
     if (thread == NULL || thread->is_os_thread()) {
       return NULL;
     }
     return reinterpret_cast<Thread*>(thread);
+#endif
   }
 
   // Makes the current thread enter 'isolate'.
@@ -194,12 +242,7 @@ class Thread : public BaseThread {
   void PrepareForGC();
 
   void SetStackLimit(uword value);
-  void SetStackLimitFromStackBase(uword stack_base);
   void ClearStackLimit();
-
-  // Returns the current C++ stack pointer. Equivalent taking the address of a
-  // stack allocated local, but plays well with AddressSanitizer.
-  static uword GetCurrentStackPointer();
 
   // Access to the current stack limit for generated code.  This may be
   // overwritten with a special value to trigger interrupts.
@@ -212,6 +255,13 @@ class Thread : public BaseThread {
 
   // The true stack limit for this isolate.
   uword saved_stack_limit() const { return saved_stack_limit_; }
+
+#if defined(USING_SAFE_STACK)
+  uword saved_safestack_limit() const { return saved_safestack_limit_; }
+  void set_saved_safestack_limit(uword limit) {
+    saved_safestack_limit_ = limit;
+  }
+#endif
 
 #if defined(TARGET_ARCH_DBC)
   // Access to the current stack limit for DBC interpreter.
@@ -269,7 +319,7 @@ class Thread : public BaseThread {
   void IncrementMemoryCapacity(uintptr_t value) {
     current_zone_capacity_ += value;
     if (current_zone_capacity_ > zone_high_watermark_) {
-      zone_high_watermark_ = current_zone_capacity_;
+      SetHighWatermark(current_zone_capacity_);
     }
   }
 
@@ -282,7 +332,9 @@ class Thread : public BaseThread {
 
   uintptr_t zone_high_watermark() const { return zone_high_watermark_; }
 
-  void ResetHighWatermark() { zone_high_watermark_ = current_zone_capacity_; }
+  void ResetHighWatermark() { SetHighWatermark(current_zone_capacity_); }
+
+  void SetHighWatermark(intptr_t value);
 
   // The reusable api local scope for this thread.
   ApiLocalScope* api_reusable_scope() const { return api_reusable_scope_; }
@@ -322,6 +374,30 @@ class Thread : public BaseThread {
   void set_cha(CHA* value) {
     ASSERT(isolate_ != NULL);
     cha_ = value;
+  }
+
+  HierarchyInfo* hierarchy_info() const {
+    ASSERT(isolate_ != NULL);
+    return hierarchy_info_;
+  }
+
+  void set_hierarchy_info(HierarchyInfo* value) {
+    ASSERT(isolate_ != NULL);
+    ASSERT((hierarchy_info_ == NULL && value != NULL) ||
+           (hierarchy_info_ != NULL && value == NULL));
+    hierarchy_info_ = value;
+  }
+
+  TypeUsageInfo* type_usage_info() const {
+    ASSERT(isolate_ != NULL);
+    return type_usage_info_;
+  }
+
+  void set_type_usage_info(TypeUsageInfo* value) {
+    ASSERT(isolate_ != NULL);
+    ASSERT((type_usage_info_ == NULL && value != NULL) ||
+           (type_usage_info_ != NULL && value == NULL));
+    type_usage_info_ = value;
   }
 
   int32_t no_callback_scope_depth() const { return no_callback_scope_depth_; }
@@ -365,6 +441,21 @@ class Thread : public BaseThread {
   // Heap of the isolate that this thread is operating on.
   Heap* heap() const { return heap_; }
   static intptr_t heap_offset() { return OFFSET_OF(Thread, heap_); }
+
+  void set_top(uword value) {
+    ASSERT(heap_ != NULL);
+    top_ = value;
+  }
+  void set_end(uword value) {
+    ASSERT(heap_ != NULL);
+    end_ = value;
+  }
+
+  uword top() { return top_; }
+  uword end() { return end_; }
+
+  static intptr_t top_offset() { return OFFSET_OF(Thread, top_); }
+  static intptr_t end_offset() { return OFFSET_OF(Thread, end_); }
 
   int32_t no_handle_scope_depth() const {
 #if defined(DEBUG)
@@ -486,6 +577,16 @@ class Thread : public BaseThread {
   void set_vm_tag(uword tag) { vm_tag_ = tag; }
   static intptr_t vm_tag_offset() { return OFFSET_OF(Thread, vm_tag_); }
 
+  int64_t unboxed_int64_runtime_arg() const {
+    return unboxed_int64_runtime_arg_;
+  }
+  void set_unboxed_int64_runtime_arg(int64_t value) {
+    unboxed_int64_runtime_arg_ = value;
+  }
+  static intptr_t unboxed_int64_runtime_arg_offset() {
+    return OFFSET_OF(Thread, unboxed_int64_runtime_arg_);
+  }
+
   RawGrowableObjectArray* pending_functions();
   void clear_pending_functions();
 
@@ -567,9 +668,6 @@ class Thread : public BaseThread {
    *   kThreadInNative - The thread is running native code.
    *   kThreadInBlockedState - The thread is blocked waiting for a resource.
    */
-  static intptr_t safepoint_state_offset() {
-    return OFFSET_OF(Thread, safepoint_state_);
-  }
   static bool IsAtSafepoint(uint32_t state) {
     return AtSafepointField::decode(state);
   }
@@ -625,30 +723,39 @@ class Thread : public BaseThread {
   void set_execution_state(ExecutionState state) {
     execution_state_ = static_cast<uint32_t>(state);
   }
-  static intptr_t execution_state_offset() {
-    return OFFSET_OF(Thread, execution_state_);
+
+  bool TryEnterSafepoint() {
+    uint32_t new_state = SetAtSafepoint(true, 0);
+    if (AtomicOperations::CompareAndSwapUint32(&safepoint_state_, 0,
+                                               new_state) != 0) {
+      return false;
+    }
+    return true;
   }
 
   void EnterSafepoint() {
     // First try a fast update of the thread state to indicate it is at a
     // safepoint.
-    uint32_t new_state = SetAtSafepoint(true, 0);
-    uword addr = reinterpret_cast<uword>(this) + safepoint_state_offset();
-    if (AtomicOperations::CompareAndSwapUint32(
-            reinterpret_cast<uint32_t*>(addr), 0, new_state) != 0) {
+    if (!TryEnterSafepoint()) {
       // Fast update failed which means we could potentially be in the middle
       // of a safepoint operation.
       EnterSafepointUsingLock();
     }
   }
 
+  bool TryExitSafepoint() {
+    uint32_t old_state = SetAtSafepoint(true, 0);
+    if (AtomicOperations::CompareAndSwapUint32(&safepoint_state_, old_state,
+                                               0) != old_state) {
+      return false;
+    }
+    return true;
+  }
+
   void ExitSafepoint() {
     // First try a fast update of the thread state to indicate it is not at a
     // safepoint anymore.
-    uint32_t old_state = SetAtSafepoint(true, 0);
-    uword addr = reinterpret_cast<uword>(this) + safepoint_state_offset();
-    if (AtomicOperations::CompareAndSwapUint32(
-            reinterpret_cast<uint32_t*>(addr), old_state, 0) != old_state) {
+    if (!TryExitSafepoint()) {
       // Fast update failed which means we could potentially be in the middle
       // of a safepoint operation.
       ExitSafepointUsingLock();
@@ -664,7 +771,8 @@ class Thread : public BaseThread {
   Thread* next() const { return next_; }
 
   // Visit all object pointers.
-  void VisitObjectPointers(ObjectPointerVisitor* visitor, bool validate_frames);
+  void VisitObjectPointers(ObjectPointerVisitor* visitor,
+                           ValidationPolicy validate_frames);
 
   bool IsValidHandle(Dart_Handle object) const;
   bool IsValidLocalHandle(Dart_Handle object) const;
@@ -696,11 +804,19 @@ class Thread : public BaseThread {
   uword stack_overflow_flags_;
   Isolate* isolate_;
   Heap* heap_;
+  uword top_;
+  uword end_;
   uword top_exit_frame_info_;
   StoreBufferBlock* store_buffer_block_;
   uword vm_tag_;
   TaskKind task_kind_;
   RawStackTrace* async_stack_trace_;
+  // Memory location dedicated for passing unboxed int64 values from
+  // generated code to runtime.
+  // TODO(dartbug.com/33549): Clean this up when unboxed values
+  // could be passed as arguments.
+  int64_t unboxed_int64_runtime_arg_;
+
 // State that is cached in the TLS for fast access in generated code.
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \
   type_name member_name;
@@ -740,6 +856,8 @@ class Thread : public BaseThread {
 
   // Compiler state:
   CHA* cha_;
+  HierarchyInfo* hierarchy_info_;
+  TypeUsageInfo* type_usage_info_;
   intptr_t deopt_id_;  // Compilation specific counter.
   RawGrowableObjectArray* pending_functions_;
 
@@ -770,6 +888,10 @@ class Thread : public BaseThread {
   uint32_t safepoint_state_;
   uint32_t execution_state_;
 
+#if defined(USING_SAFE_STACK)
+  uword saved_safestack_limit_;
+#endif
+
   Thread* next_;  // Used to chain the thread structures in an isolate.
 
   explicit Thread(Isolate* isolate);
@@ -785,9 +907,7 @@ class Thread : public BaseThread {
   void ExitSafepointUsingLock();
   void BlockForSafepoint();
 
-  static void SetCurrent(Thread* current) {
-    OSThread::SetCurrentTLS(reinterpret_cast<uword>(current));
-  }
+  static void SetCurrent(Thread* current) { OSThread::SetCurrentTLS(current); }
 
   void DeferOOBMessageInterrupts();
   void RestoreOOBMessageInterrupts();
@@ -798,6 +918,7 @@ class Thread : public BaseThread {
 #undef REUSABLE_FRIEND_DECLARATION
 
   friend class ApiZone;
+  friend class Interpreter;
   friend class InterruptChecker;
   friend class Isolate;
   friend class IsolateTestHelper;
@@ -808,12 +929,10 @@ class Thread : public BaseThread {
   DISALLOW_COPY_AND_ASSIGN(Thread);
 };
 
-
 #if defined(HOST_OS_WINDOWS)
 // Clears the state of the current thread and frees the allocation.
 void WindowsThreadCleanUp();
 #endif
-
 
 // Disable thread interrupts.
 class DisableThreadInterruptsScope : public StackResource {

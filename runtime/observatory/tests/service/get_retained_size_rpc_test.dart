@@ -26,7 +26,7 @@ eval(Isolate isolate, String expression) async {
   return await isolate.invokeRpcNoUpgrade('evaluate', params);
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     // One instance of _TestClass retained.
     var evalResult = await eval(isolate, 'myVar = new _TestClass(null, null)');

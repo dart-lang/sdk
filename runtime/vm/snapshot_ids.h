@@ -5,8 +5,8 @@
 #ifndef RUNTIME_VM_SNAPSHOT_IDS_H_
 #define RUNTIME_VM_SNAPSHOT_IDS_H_
 
-#include "vm/raw_object.h"
 #include "vm/dart_entry.h"
+#include "vm/raw_object.h"
 
 namespace dart {
 
@@ -42,10 +42,15 @@ enum {
   kBoolType,
   kStringType,
   kArrayType,
+  kIntTypeArguments,
+  kDoubleTypeArguments,
+  kStringTypeArguments,
+  kStringDynamicTypeArguments,
+  kStringStringTypeArguments,
+  kEmptyTypeArguments,
 
   kExtractorParameterTypes,
   kExtractorParameterNames,
-  kEmptyContextObject,
   kEmptyContextScopeObject,
   kImplicitClosureScopeObject,
   kEmptyObjectPool,
@@ -53,9 +58,9 @@ enum {
   kEmptyVarDescriptors,
   kEmptyExceptionHandlers,
   kCachedArgumentsDescriptor0,
-  kCachedArgumentsDescriptorN = (kCachedArgumentsDescriptor0 +
-                                 ArgumentsDescriptor::kCachedDescriptorCount -
-                                 1),
+  kCachedArgumentsDescriptorN =
+      (kCachedArgumentsDescriptor0 +
+       ArgumentsDescriptor::kCachedDescriptorCount - 1),
   kCachedICDataArray0,
   kCachedICDataArrayN =
       (kCachedICDataArray0 + ICData::kCachedICDataArrayCount - 1),

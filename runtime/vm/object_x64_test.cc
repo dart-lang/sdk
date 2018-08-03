@@ -6,14 +6,13 @@
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_X64)
 
-#include "vm/assembler.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/object.h"
 #include "vm/unit_test.h"
 
 namespace dart {
 
 #define __ assembler->
-
 
 // Generate a simple dart code sequence.
 // This is used to test Code and Instruction object creation.
@@ -28,7 +27,6 @@ void GenerateIncrement(Assembler* assembler) {
   __ ret();
 }
 
-
 // Generate a dart code sequence that embeds a string object in it.
 // This is used to test Embedded String objects in the instructions.
 void GenerateEmbedStringInCode(Assembler* assembler, const char* str) {
@@ -39,7 +37,6 @@ void GenerateEmbedStringInCode(Assembler* assembler, const char* str) {
   __ LeaveStubFrame();
   __ ret();
 }
-
 
 // Generate a dart code sequence that embeds a smi object in it.
 // This is used to test Embedded Smi objects in the instructions.

@@ -76,6 +76,20 @@ class UriContributorTest extends DartCompletionContributorTest {
         csKind: CompletionSuggestionKind.IMPORT);
   }
 
+  test_export_package2_off() async {
+    try {
+      UriContributor.suggestFilePaths = false;
+      addPackageSource('foo', 'foo.dart', 'library foo;');
+      addPackageSource('foo', 'baz/too.dart', 'library too;');
+      addPackageSource('bar', 'bar.dart', 'library bar;');
+      addTestSource('export "package:foo/baz/^" import');
+      await computeSuggestions();
+      assertNotSuggested('package:foo/baz/too.dart');
+    } finally {
+      UriContributor.suggestFilePaths = true;
+    }
+  }
+
   test_import() async {
     addTestSource('import "^"');
     await computeSuggestions();
@@ -163,6 +177,28 @@ class UriContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('../blat.dart');
   }
 
+  test_import_file2_off() async {
+    try {
+      UriContributor.suggestFilePaths = false;
+      testFile = '/proj/completion.dart';
+      addSource('/proj/other.dart', 'library other;');
+      addSource('/proj/foo/bar.dart', 'library bar;');
+      addSource('/blat.dart', 'library blat;');
+      addTestSource('import "..^" import');
+      await computeSuggestions();
+      expect(replacementOffset, completionOffset - 2);
+      expect(replacementLength, 2);
+      assertNotSuggested('completion.dart');
+      assertNotSuggested('other.dart');
+      assertNotSuggested('foo');
+      assertNotSuggested('foo/');
+      assertNotSuggested('foo/bar.dart');
+      assertNotSuggested('../blat.dart');
+    } finally {
+      UriContributor.suggestFilePaths = true;
+    }
+  }
+
   test_import_file_child() async {
     testFile = '/proj/completion.dart';
     addSource('/proj/other.dart', 'library other;');
@@ -236,6 +272,24 @@ class UriContributorTest extends DartCompletionContributorTest {
     assertSuggest('../blat.dart', csKind: CompletionSuggestionKind.IMPORT);
   }
 
+  test_import_no_dot_folders() async {
+    testFile = '/proj/completion.dart';
+    addSource('/proj/other.dart', 'library other;');
+    newFolder('/proj/.fooFolder');
+    addTestSource('import "package:^";');
+    await computeSuggestions();
+    assertNotSuggested('.fooFolder/');
+  }
+
+  test_import_only_dart_files() async {
+    testFile = '/proj/completion.dart';
+    addSource('/proj/other.dart', 'library other;');
+    newFile('/proj/analysis_options.yaml', content: '# analysis options');
+    addTestSource('import "package:^";');
+    await computeSuggestions();
+    assertNotSuggested('analysis_options.yaml');
+  }
+
   test_import_package() async {
     addPackageSource('foo', 'foo.dart', 'library foo;');
     addPackageSource('foo', 'baz/too.dart', 'library too;');
@@ -265,6 +319,20 @@ class UriContributorTest extends DartCompletionContributorTest {
         csKind: CompletionSuggestionKind.IMPORT);
   }
 
+  test_import_package2_off() async {
+    try {
+      UriContributor.suggestFilePaths = false;
+      addPackageSource('foo', 'foo.dart', 'library foo;');
+      addPackageSource('foo', 'baz/too.dart', 'library too;');
+      addPackageSource('bar', 'bar.dart', 'library bar;');
+      addTestSource('import "package:foo/baz/^" import');
+      await computeSuggestions();
+      assertNotSuggested('package:foo/baz/too.dart');
+    } finally {
+      UriContributor.suggestFilePaths = true;
+    }
+  }
+
   test_import_package2_raw() async {
     addPackageSource('foo', 'foo.dart', 'library foo;');
     addPackageSource('foo', 'baz/too.dart', 'library too;');
@@ -289,7 +357,7 @@ class UriContributorTest extends DartCompletionContributorTest {
 
   test_import_package_missing_lib() async {
     var pkgSrc = addPackageSource('bar', 'bar.dart', 'library bar;');
-    provider.deleteFolder(dirname(pkgSrc.fullName));
+    deleteFolder(dirname(pkgSrc.fullName));
     addTestSource('import "p^" class');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 1);
@@ -469,7 +537,7 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
 
   @override
   void setupResourceProvider() {
-    provider = new _TestWinResourceProvider();
+    resourceProvider = new MemoryResourceProvider(context: windows);
   }
 
   test_import_file() async {
@@ -624,9 +692,4 @@ class UriContributorWindowsTest extends DartCompletionContributorTest {
     assertNotSuggested('foo/bar.dart');
     assertSuggest('../blat.dart', csKind: CompletionSuggestionKind.IMPORT);
   }
-}
-
-class _TestWinResourceProvider extends MemoryResourceProvider {
-  @override
-  Context get pathContext => windows;
 }

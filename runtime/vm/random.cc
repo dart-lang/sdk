@@ -9,7 +9,10 @@
 
 namespace dart {
 
-DEFINE_FLAG(int, random_seed, 0, "Override the random seed for debugging.");
+DEFINE_FLAG(uint64_t,
+            random_seed,
+            0,
+            "Override the random seed for debugging.");
 
 Random::Random() {
   uint64_t seed = FLAG_random_seed;
@@ -29,7 +32,6 @@ Random::Random() {
   Initialize(seed);
 }
 
-
 void Random::Initialize(uint64_t seed) {
   ASSERT(seed != 0);
   // Crank the next state a couple of times.
@@ -40,11 +42,9 @@ void Random::Initialize(uint64_t seed) {
   NextState();
 }
 
-
 Random::Random(uint64_t seed) {
   Initialize(seed);
 }
-
 
 Random::~Random() {
   // Nothing to be done here.
@@ -61,7 +61,6 @@ void Random::NextState() {
   uint64_t state_hi = (_state >> 32) & MASK_32;
   _state = (A * state_lo) + state_hi;
 }
-
 
 uint32_t Random::NextUInt32() {
   const uint64_t MASK_32 = 0xffffffff;

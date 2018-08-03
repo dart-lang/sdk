@@ -8,7 +8,7 @@ library test;
 import 'infer_from_variables_in_cycle_libs_when_flag_is_on2_a.dart';
 
 class B {
-  static var /*@topType=dynamic*/ y = A.x;
+  static var /*@topType=int*/ y = A.x;
 }
 
 test1() {
@@ -16,3 +16,5 @@ test1() {
   t = A.x;
   t = B.y;
 }
+
+main() {}

@@ -17,7 +17,8 @@ List restoredStackTrace = [];
 
 List events = [];
 
-debugZoneRegisterCallback(Zone self, ZoneDelegate parent, Zone origin, f()) {
+ZoneCallback<R> debugZoneRegisterCallback<R>(
+    Zone self, ZoneDelegate parent, Zone origin, R f()) {
   List savedTrace = [stackTrace]..addAll(restoredStackTrace);
   return parent.registerCallback(origin, () {
     restoredStackTrace = savedTrace;
@@ -25,8 +26,8 @@ debugZoneRegisterCallback(Zone self, ZoneDelegate parent, Zone origin, f()) {
   });
 }
 
-debugZoneRegisterUnaryCallback(
-    Zone self, ZoneDelegate parent, Zone origin, f(arg)) {
+ZoneUnaryCallback<R, T> debugZoneRegisterUnaryCallback<R, T>(
+    Zone self, ZoneDelegate parent, Zone origin, R f(T arg)) {
   List savedTrace = [stackTrace]..addAll(restoredStackTrace);
   return parent.registerUnaryCallback(origin, (arg) {
     restoredStackTrace = savedTrace;
@@ -34,13 +35,14 @@ debugZoneRegisterUnaryCallback(
   });
 }
 
-debugZoneRun(Zone self, ZoneDelegate parent, Zone origin, f()) {
+T debugZoneRun<T>(Zone self, ZoneDelegate parent, Zone origin, T f()) {
   stackTrace++;
   restoredStackTrace = [];
   return parent.run(origin, f);
 }
 
-debugZoneRunUnary(Zone self, ZoneDelegate parent, Zone origin, f(arg), arg) {
+R debugZoneRunUnary<R, T>(
+    Zone self, ZoneDelegate parent, Zone origin, R f(T arg), T arg) {
   stackTrace++;
   restoredStackTrace = [];
   return parent.runUnary(origin, f, arg);
@@ -48,7 +50,7 @@ debugZoneRunUnary(Zone self, ZoneDelegate parent, Zone origin, f(arg), arg) {
 
 List expectedDebugTrace;
 
-debugUncaughtHandler(
+void debugUncaughtHandler(
     Zone self, ZoneDelegate parent, Zone origin, error, StackTrace stackTrace) {
   events.add("handling uncaught error $error");
   Expect.listEquals(expectedDebugTrace, restoredStackTrace);
@@ -116,8 +118,8 @@ main() {
         expectedDebugTrace = [fork3Trace, fork2Trace, globalTrace];
         throw "gee";
       });
-    }, runGuarded: false);
-  }, runGuarded: false);
+    });
+  });
   openTests++;
   f();
   f2();

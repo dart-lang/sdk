@@ -1,0 +1,22 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method test(core::int x, () → void f) → void {
+  #L1:
+  switch(x) {
+    #L2:
+    case 0:
+      {
+        f.call();
+        continue #L3;
+      }
+    #L3:
+    case 1:
+      {
+        f.call();
+        break #L1;
+      }
+  }
+}
+static method main() → dynamic {}

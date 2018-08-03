@@ -8,34 +8,44 @@ import "native_testing.dart";
 class A {}
 
 @Native("B")
-class B implements Comparable {}
+class B implements Comparable {
+  noSuchMethod(m) => super.noSuchMethod(m);
+}
 
 @Native("C")
-class C implements Pattern {}
+class C implements Pattern {
+  noSuchMethod(m) => super.noSuchMethod(m);
+}
 
 @Native("D")
-class D implements Pattern, Comparable {}
+class D implements Pattern, Comparable {
+  noSuchMethod(m) => super.noSuchMethod(m);
+}
 
 makeA() native;
 makeB() native;
 makeC() native;
 makeD() native;
 
-void setup() native """
-function A() {};
-makeA = function() { return new A; }
-function B() {};
-makeB = function() { return new B; }
-function C() {};
-makeC = function() { return new C; }
-function D() {};
-makeD = function() { return new D; }
+void setup() {
+  JS('', r"""
+(function(){
+  function A() {};
+  makeA = function() { return new A(); };
+  function B() {};
+  makeB = function() { return new B(); };
+  function C() {};
+  makeC = function() { return new C(); };
+  function D() {};
+  makeD = function() { return new D(); };
 
-self.nativeConstructor(A);
-self.nativeConstructor(B);
-self.nativeConstructor(C);
-self.nativeConstructor(D);
-""";
+  self.nativeConstructor(A);
+  self.nativeConstructor(B);
+  self.nativeConstructor(C);
+  self.nativeConstructor(D);
+})()
+""");
+}
 
 checkTest(value, expectComparable, expectPattern) {
   Expect.equals(expectComparable, value is Comparable);

@@ -14,8 +14,8 @@ import 'package:analyzer/error/error.dart';
  * might aggregated to define a project's style guide.
  */
 class LintCode extends ErrorCode {
-  const LintCode(String name, String message, [String correction])
-      : super(name, message, correction);
+  const LintCode(String name, String message, {String correction})
+      : super.temporary(name, message, correction: correction);
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.INFO;

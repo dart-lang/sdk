@@ -4,41 +4,65 @@
 
 import 'graph_builder.dart';
 import 'nodes.dart';
-import '../closure.dart';
-import '../common.dart';
-import '../types/types.dart';
-import '../elements/elements.dart';
 import '../elements/entities.dart';
-import '../elements/resolution_types.dart';
+import '../elements/types.dart';
 import '../io/source_information.dart';
+import '../types/abstract_value_domain.dart';
 import '../universe/use.dart' show TypeUse;
+
+/// Enum that defines how a member has access to the current type variables.
+enum ClassTypeVariableAccess {
+  /// The member has no access to type variables.
+  none,
+
+  /// Type variables are accessible as a property on `this`.
+  property,
+
+  /// Type variables are accessible as parameters in the current context.
+  parameter,
+
+  /// If the current context is a generative constructor, type variables are
+  /// accessible as parameters, otherwise type variables are accessible as
+  /// a property on `this`.
+  ///
+  /// This is used for instance fields whose initializers are executed in the
+  /// constructors.
+  // TODO(johnniwinther): Avoid the need for this by adding a field-setter
+  // to the J-model.
+  instanceField,
+}
 
 /// Functions to insert type checking, coercion, and instruction insertion
 /// depending on the environment for dart code.
-class TypeBuilder {
+abstract class TypeBuilder {
   final GraphBuilder builder;
   TypeBuilder(this.builder);
 
-  /// Create an instruction to simply trust the provided type.
-  HInstruction _trustType(HInstruction original, ResolutionDartType type) {
-    assert(builder.options.trustTypeAnnotations);
-    assert(type != null);
+  /// Create a type mask for 'trusting' a DartType. Returns `null` if there is
+  /// no approximating type mask (i.e. the type mask would be `dynamic`).
+  AbstractValue trustTypeMask(DartType type) {
+    if (type == null) return null;
     type = builder.localsHandler.substInContext(type);
     type = type.unaliased;
-    if (type.isDynamic) return original;
-    if (!type.isInterfaceType) return original;
-    if (type.isObject) return original;
+    if (type.isDynamic) return null;
+    if (!type.isInterfaceType) return null;
+    if (type == builder.commonElements.objectType) return null;
     // The type element is either a class or the void element.
-    ClassElement element = type.element;
-    TypeMask mask = new TypeMask.subtype(element, builder.closedWorld);
+    ClassEntity element = (type as InterfaceType).element;
+    return builder.abstractValueDomain.createNullableSubtype(element);
+  }
+
+  /// Create an instruction to simply trust the provided type.
+  HInstruction _trustType(HInstruction original, DartType type) {
+    assert(type != null);
+    AbstractValue mask = trustTypeMask(type);
+    if (mask == null) return original;
     return new HTypeKnown.pinned(mask, original);
   }
 
   /// Produces code that checks the runtime type is actually the type specified
   /// by attempting a type conversion.
-  HInstruction _checkType(
-      HInstruction original, ResolutionDartType type, int kind) {
-    assert(builder.options.enableTypeAssertions);
+  HInstruction _checkType(HInstruction original, DartType type, int kind) {
     assert(type != null);
     type = builder.localsHandler.substInContext(type);
     HInstruction other = buildTypeConversion(original, type, kind);
@@ -48,20 +72,49 @@ class TypeBuilder {
     // a similar operation on `registry`; otherwise, this one might not be
     // needed.
     builder.registry?.registerTypeUse(new TypeUse.isCheck(type));
+    if (other is HTypeConversion && other.isRedundant(builder.closedWorld)) {
+      return original;
+    }
     return other;
+  }
+
+  HInstruction trustTypeOfParameter(HInstruction original, DartType type) {
+    if (type == null) return original;
+    HInstruction trusted = _trustType(original, type);
+    if (trusted == original) return original;
+    if (trusted is HTypeKnown && trusted.isRedundant(builder.closedWorld)) {
+      return original;
+    }
+    builder.add(trusted);
+    return trusted;
+  }
+
+  HInstruction potentiallyCheckOrTrustTypeOfParameter(
+      HInstruction original, DartType type) {
+    if (type == null) return original;
+    HInstruction checkedOrTrusted = original;
+    if (builder.options.parameterCheckPolicy.isTrusted) {
+      checkedOrTrusted = _trustType(original, type);
+    } else if (builder.options.parameterCheckPolicy.isEmitted) {
+      checkedOrTrusted =
+          _checkType(original, type, HTypeConversion.CHECKED_MODE_CHECK);
+    }
+    if (checkedOrTrusted == original) return original;
+    builder.add(checkedOrTrusted);
+    return checkedOrTrusted;
   }
 
   /// Depending on the context and the mode, wrap the given type in an
   /// instruction that checks the type is what we expect or automatically
   /// trusts the written type.
-  HInstruction potentiallyCheckOrTrustType(
-      HInstruction original, ResolutionDartType type,
+  HInstruction potentiallyCheckOrTrustTypeOfAssignment(
+      HInstruction original, DartType type,
       {int kind: HTypeConversion.CHECKED_MODE_CHECK}) {
     if (type == null) return original;
     HInstruction checkedOrTrusted = original;
-    if (builder.options.trustTypeAnnotations) {
+    if (builder.options.assignmentCheckPolicy.isTrusted) {
       checkedOrTrusted = _trustType(original, type);
-    } else if (builder.options.enableTypeAssertions) {
+    } else if (builder.options.assignmentCheckPolicy.isEmitted) {
       checkedOrTrusted = _checkType(original, type, kind);
     }
     if (checkedOrTrusted == original) return original;
@@ -69,117 +122,103 @@ class TypeBuilder {
     return checkedOrTrusted;
   }
 
+  ClassTypeVariableAccess computeTypeVariableAccess(MemberEntity member);
+
   /// Helper to create an instruction that gets the value of a type variable.
   HInstruction addTypeVariableReference(
-      ResolutionTypeVariableType type, Element member,
+      TypeVariableType type, MemberEntity member,
       {SourceInformation sourceInformation}) {
-    assert(assertTypeInContext(type));
-    if (type is MethodTypeVariableType) {
+    if (type.element.typeDeclaration is! ClassEntity &&
+        !builder.options.strongMode) {
+      // GENERIC_METHODS:  We currently don't reify method type variables.
       return builder.graph.addConstantNull(builder.closedWorld);
     }
-    bool isClosure = member.enclosingElement.isClosure;
-    if (isClosure) {
-      ClosureClassElement closureClass = member.enclosingElement;
-      member = closureClass.methodElement;
-      member = member.outermostEnclosingMemberOrTopLevel;
-    }
-    bool isInConstructorContext =
-        member.isConstructor || member.isGenerativeConstructorBody;
     Local typeVariableLocal =
         builder.localsHandler.getTypeVariableAsLocal(type);
-    if (isClosure) {
-      if (member.isFactoryConstructor ||
-          (isInConstructorContext &&
-              builder.hasDirectLocal(typeVariableLocal))) {
-        // The type variable is used from a closure in a factory constructor.
-        // The value of the type argument is stored as a local on the closure
-        // itself.
-        return builder.localsHandler
-            .readLocal(typeVariableLocal, sourceInformation: sourceInformation);
-      } else if (member.isFunction ||
-          member.isGetter ||
-          member.isSetter ||
-          isInConstructorContext) {
-        // The type variable is stored on the "enclosing object" and needs to be
-        // accessed using the this-reference in the closure.
-        return readTypeVariable(type, member,
-            sourceInformation: sourceInformation);
-      } else {
-        assert(member.isField);
-        // The type variable is stored in a parameter of the method.
-        return builder.localsHandler.readLocal(typeVariableLocal);
-      }
-    } else if (isInConstructorContext ||
-        // When [member] is a field, we can be either
-        // generating a checked setter or inlining its
-        // initializer in a constructor. An initializer is
-        // never built standalone, so in that case [target] is not
-        // the [member] itself.
-        (member.isField && member != builder.targetElement)) {
-      // The type variable is stored in a parameter of the method.
-      return builder.localsHandler
-          .readLocal(typeVariableLocal, sourceInformation: sourceInformation);
-    } else if (member.isInstanceMember) {
-      // The type variable is stored on the object.
+
+    /// Read [typeVariable] as a property of on `this`.
+    HInstruction readAsProperty() {
       return readTypeVariable(type, member,
           sourceInformation: sourceInformation);
-    } else {
-      builder.reporter.internalError(
-          type.element, 'Unexpected type variable in static context.');
-      return null;
     }
+
+    /// Read [typeVariable] as a parameter.
+    HInstruction readAsParameter() {
+      return builder.localsHandler
+          .readLocal(typeVariableLocal, sourceInformation: sourceInformation);
+    }
+
+    ClassTypeVariableAccess typeVariableAccess;
+    if (type.element.typeDeclaration is ClassEntity) {
+      typeVariableAccess = computeTypeVariableAccess(member);
+    } else {
+      typeVariableAccess = ClassTypeVariableAccess.parameter;
+    }
+    switch (typeVariableAccess) {
+      case ClassTypeVariableAccess.parameter:
+        return readAsParameter();
+      case ClassTypeVariableAccess.instanceField:
+        if (member != builder.targetElement) {
+          // When [member] is a field, we can either be generating a checked
+          // setter or inlining its initializer in a constructor. An initializer
+          // is never built standalone, so in that case [target] is not the
+          // [member] itself.
+          return readAsParameter();
+        }
+        return readAsProperty();
+      case ClassTypeVariableAccess.property:
+        return readAsProperty();
+      case ClassTypeVariableAccess.none:
+        builder.reporter.internalError(
+            type.element, 'Unexpected type variable in static context.');
+    }
+    builder.reporter.internalError(
+        type.element, 'Unexpected type variable access: $typeVariableAccess.');
+    return null;
   }
 
   /// Generate code to extract the type argument from the object.
-  HInstruction readTypeVariable(
-      ResolutionTypeVariableType variable, Element member,
+  HInstruction readTypeVariable(TypeVariableType variable, MemberEntity member,
       {SourceInformation sourceInformation}) {
     assert(member.isInstanceMember);
-    assert(variable is! MethodTypeVariableType);
-    HInstruction target = builder.localsHandler.readThis();
-    builder.push(new HTypeInfoReadVariable(
-        variable, target, builder.commonMasks.dynamicType)
+    assert(variable.element.typeDeclaration is ClassEntity);
+    HInstruction target =
+        builder.localsHandler.readThis(sourceInformation: sourceInformation);
+    HInstruction interceptor =
+        new HInterceptor(target, builder.abstractValueDomain.nonNullType)
+          ..sourceInformation = sourceInformation;
+    builder.add(interceptor);
+    builder.push(new HTypeInfoReadVariable.intercepted(
+        variable, interceptor, target, builder.abstractValueDomain.dynamicType)
       ..sourceInformation = sourceInformation);
     return builder.pop();
   }
 
   HInstruction buildTypeArgumentRepresentations(
-      ResolutionDartType type, Element sourceElement) {
+      DartType type, MemberEntity sourceElement,
+      [SourceInformation sourceInformation]) {
     assert(!type.isTypeVariable);
     // Compute the representation of the type arguments, including access
     // to the runtime type information for type variables as instructions.
-    assert(type.element.isClass);
-    ResolutionInterfaceType interface = type;
+    assert(type.isInterfaceType);
+    InterfaceType interface = type;
     List<HInstruction> inputs = <HInstruction>[];
-    for (ResolutionDartType argument in interface.typeArguments) {
-      inputs.add(analyzeTypeArgument(argument, sourceElement));
+    for (DartType argument in interface.typeArguments) {
+      inputs.add(analyzeTypeArgument(argument, sourceElement,
+          sourceInformation: sourceInformation));
     }
     HInstruction representation = new HTypeInfoExpression(
         TypeInfoExpressionKind.INSTANCE,
-        interface.element.thisType,
+        builder.closedWorld.elementEnvironment.getThisType(interface.element),
         inputs,
-        builder.commonMasks.dynamicType);
+        builder.abstractValueDomain.dynamicType)
+      ..sourceInformation = sourceInformation;
     return representation;
   }
 
-  /// Check that [type] is valid in the context of `localsHandler.contextClass`.
-  /// This should only be called in assertions.
-  bool assertTypeInContext(ResolutionDartType type, [Spannable spannable]) {
-    if (builder.compiler.options.useKernel) return true;
-    return invariant(spannable == null ? CURRENT_ELEMENT_SPANNABLE : spannable,
-        () {
-      ClassElement contextClass = Types.getClassContext(type);
-      return contextClass == null ||
-          contextClass == builder.localsHandler.contextClass;
-    },
-        message: "Type '$type' is not valid context of "
-            "${builder.localsHandler.contextClass}.");
-  }
-
   HInstruction analyzeTypeArgument(
-      ResolutionDartType argument, Element sourceElement,
+      DartType argument, MemberEntity sourceElement,
       {SourceInformation sourceInformation}) {
-    assert(assertTypeInContext(argument));
     argument = argument.unaliased;
     if (argument.treatAsDynamic) {
       // Represent [dynamic] as [null].
@@ -192,8 +231,11 @@ class TypeBuilder {
     }
 
     List<HInstruction> inputs = <HInstruction>[];
-    argument.forEachTypeVariable((variable) {
-      if (variable is! MethodTypeVariableType) {
+    argument.forEachTypeVariable((TypeVariableType variable) {
+      if (variable.element.typeDeclaration is ClassEntity ||
+          builder.options.strongMode) {
+        // TODO(johnniwinther): Also make this conditional on whether we have
+        // calculated we need that particular method signature.
         inputs.add(analyzeTypeArgument(variable, sourceElement));
       }
     });
@@ -201,25 +243,14 @@ class TypeBuilder {
         TypeInfoExpressionKind.COMPLETE,
         argument,
         inputs,
-        builder.commonMasks.dynamicType)
+        builder.abstractValueDomain.dynamicType)
       ..sourceInformation = sourceInformation;
     builder.add(result);
     return result;
   }
 
-  /// In checked mode, generate type tests for the parameters of the inlined
-  /// function.
-  void potentiallyCheckInlinedParameterTypes(FunctionElement function) {
-    if (!checkOrTrustTypes) return;
-
-    FunctionSignature signature = function.functionSignature;
-    signature.orderedForEachParameter((ParameterElement parameter) {
-      HInstruction argument = builder.localsHandler.readLocal(parameter);
-      potentiallyCheckOrTrustType(argument, parameter.type);
-    });
-  }
-
   bool get checkOrTrustTypes =>
+      builder.options.strongMode ||
       builder.options.enableTypeAssertions ||
       builder.options.trustTypeAnnotations;
 
@@ -228,38 +259,46 @@ class TypeBuilder {
   /// Invariant: [type] must be valid in the context.
   /// See [LocalsHandler.substInContext].
   HInstruction buildTypeConversion(
-      HInstruction original, ResolutionDartType type, int kind) {
+      HInstruction original, DartType type, int kind,
+      {SourceInformation sourceInformation}) {
     if (type == null) return original;
-    // GENERIC_METHODS: The following statement was added for parsing and
-    // ignoring method type variables; must be generalized for full support of
-    // generic methods.
-    type = type.dynamifyMethodTypeVariableType;
+    if (type.isTypeVariable) {
+      TypeVariableType typeVariable = type;
+      // In Dart 1, method type variables are ignored.
+      if (!builder.options.strongMode &&
+          typeVariable.element.typeDeclaration is! ClassEntity) {
+        type = const DynamicType();
+      }
+    }
     type = type.unaliased;
-    assert(assertTypeInContext(type, original));
     if (type.isInterfaceType && !type.treatAsRaw) {
-      ResolutionInterfaceType interfaceType = type;
-      TypeMask subtype =
-          new TypeMask.subtype(interfaceType.element, builder.closedWorld);
-      HInstruction representations =
-          buildTypeArgumentRepresentations(type, builder.sourceElement);
+      InterfaceType interfaceType = type;
+      AbstractValue subtype = builder.abstractValueDomain
+          .createNullableSubtype(interfaceType.element);
+      HInstruction representations = buildTypeArgumentRepresentations(
+          type, builder.sourceElement, sourceInformation);
       builder.add(representations);
       return new HTypeConversion.withTypeRepresentation(
-          type, kind, subtype, original, representations);
+          type, kind, subtype, original, representations)
+        ..sourceInformation = sourceInformation;
     } else if (type.isTypeVariable) {
-      TypeMask subtype = original.instructionType;
+      AbstractValue subtype = original.instructionType;
       HInstruction typeVariable =
           addTypeVariableReference(type, builder.sourceElement);
       return new HTypeConversion.withTypeRepresentation(
-          type, kind, subtype, original, typeVariable);
-    } else if (type.isFunctionType) {
+          type, kind, subtype, original, typeVariable)
+        ..sourceInformation = sourceInformation;
+    } else if (type.isFunctionType || type.isFutureOr) {
       HInstruction reifiedType =
           analyzeTypeArgument(type, builder.sourceElement);
-      // TypeMasks don't encode function types.
-      TypeMask refinedMask = original.instructionType;
+      // TypeMasks don't encode function types or FutureOr types.
+      AbstractValue refinedMask = original.instructionType;
       return new HTypeConversion.withTypeRepresentation(
-          type, kind, refinedMask, original, reifiedType);
+          type, kind, refinedMask, original, reifiedType)
+        ..sourceInformation = sourceInformation;
     } else {
-      return original.convertType(builder.closedWorld, type, kind);
+      return original.convertType(builder.closedWorld, type, kind)
+        ..sourceInformation = sourceInformation;
     }
   }
 }

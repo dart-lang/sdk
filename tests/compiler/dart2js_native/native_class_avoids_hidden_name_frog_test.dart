@@ -27,22 +27,28 @@ class CC {
 makeA() native;
 makeB() native;
 
-void setup1() native """
-// Poison hidden native names 'BB' and 'CC' to prove the compiler didn't place
-// anything on the hidden native class.
-BB = null;
-CC = null;
-""";
+void setup1() {
+  JS('', r"""
+(function(){
+  // Poison hidden native names 'BB' and 'CC' to prove the compiler didn't place
+  // anything on the hidden native class.
+  BB = null;
+  CC = null;
+})()""");
+}
 
-void setup2() native """
-// This code is all inside 'setup' and so not accessible from the global scope.
-function BB(){}
-function CC(){}
-makeA = function(){return new BB};  // AA is native "BB"
-makeB = function(){return new CC};  // BB is native "CC"
-self.nativeConstructor(BB);
-self.nativeConstructor(CC);
-""";
+void setup2() {
+  JS('', r"""
+(function(){
+  // This code is inside 'setup' and so not accessible from the global scope.
+  function BB(){}
+  function CC(){}
+  makeA = function(){return new BB()};  // AA is native "BB"
+  makeB = function(){return new CC()};  // BB is native "CC"
+  self.nativeConstructor(BB);
+  self.nativeConstructor(CC);
+})()""");
+}
 
 main() {
   nativeTesting();

@@ -3,23 +3,41 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
 import 'memory_compiler.dart';
 
 main() {
   asyncTest(() async {
-    DiagnosticCollector collector = new DiagnosticCollector();
-    await runCompiler(
-        entryPoint: Uris.dart_html,
-        diagnosticHandler: collector,
-        options: [Flags.analyzeAll, Flags.verbose]);
-    int allNativeUsedCount =
-        collector.verboseInfos.where((CollectedMessage message) {
-      return message.text.startsWith('All native types marked as used due to ');
-    }).length;
-    Expect.equals(
-        1, allNativeUsedCount, "Unexpected message count: $allNativeUsedCount");
+    print('--test from kernel------------------------------------------------');
+    await test([]);
   });
+}
+
+test(List<String> options) async {
+  DiagnosticCollector collector = new DiagnosticCollector();
+  String fileName = 'sdk/tests/compiler/dart2js_native/main.dart';
+  Uri entryPoint = Uri.parse('memory:$fileName');
+  await runCompiler(
+      entryPoint: entryPoint,
+      memorySourceFiles: {
+        fileName: '''
+        import 'dart:html';
+        import 'dart:_js_helper';
+        
+        method(o) native;
+        
+        main() {
+          method(document);
+        }
+        '''
+      },
+      diagnosticHandler: collector,
+      options: [Flags.verbose]..addAll(options));
+  int allNativeUsedCount =
+      collector.verboseInfos.where((CollectedMessage message) {
+    return message.text.startsWith('All native types marked as used due to ');
+  }).length;
+  Expect.equals(
+      1, allNativeUsedCount, "Unexpected message count: $allNativeUsedCount");
 }

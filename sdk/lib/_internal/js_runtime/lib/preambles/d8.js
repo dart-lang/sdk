@@ -15,22 +15,13 @@ if (typeof global != "undefined") self = global;  // Node.js.
   "use strict"; // Should be first statement of this function.
 
   // Location (Uri.base)
-
-  var workingDirectory;
-  // TODO(sgjesse): This does not work on Windows.
-  if (typeof os == "object" && "system" in os) {
-    // V8.
-    workingDirectory = os.system("pwd");
-    var length = workingDirectory.length;
-    if (workingDirectory[length - 1] == '\n') {
-      workingDirectory = workingDirectory.substring(0, length - 1);
-    }
-  } else if (typeof process != "undefined" &&
+  var baseUri = 'org-dartlang-d8-preamble:///mock/uri/base/';
+  if (typeof process != "undefined" &&
              typeof process.cwd == "function") {
     // Node.js.
-    workingDirectory = process.cwd();
+    baseUri = 'file://' + process.cwd() + '/';
   }
-  self.location = { href: "file://" + workingDirectory + "/" };
+  self.location = { href: baseUri };
 
   // Event loop.
 
@@ -86,7 +77,7 @@ if (typeof global != "undefined") self = global;  // Node.js.
     var id = timerIdCounter++;
     f.$timerId = id;
     timerIds[id] = f;
-    if (ms == 0) {
+    if (ms == 0 && !isNextTimerDue()) {
       zeroTimerQueue.push(f);
     } else {
       addDelayedTimer(f, ms);
@@ -135,7 +126,10 @@ if (typeof global != "undefined") self = global;  // Node.js.
   var originalDate = Date;
   var originalNow = originalDate.now;
   function advanceTimeTo(time) {
-    timeOffset = time - originalNow();
+    var now = originalNow();
+    if (timeOffset < time - now) {
+      timeOffset = time - now;
+    }
   }
   function installMockDate() {
     var NewDate = function Date(Y, M, D, h, m, s, ms) {
@@ -178,6 +172,12 @@ if (typeof global != "undefined") self = global;  // Node.js.
     } else {
       timerList.push(f);
     }
+  }
+
+  function isNextTimerDue() {
+    if (timerHeap.length == 0) return false;
+    var head = timerHeap[0];
+    return head[0] < originalNow() + timeOffset;
   }
 
   function nextDelayedTimerQueue() {
@@ -269,7 +269,7 @@ if (typeof global != "undefined") self = global;  // Node.js.
 
   // Global properties. "self" refers to the global object, so adding a
   // property to "self" defines a global variable.
-  self.self = self
+  self.self = self;
   self.dartMainRunner = function(main, args) {
     // Initialize.
     var action = function() { main(args); }
@@ -334,4 +334,9 @@ if (typeof global != "undefined") self = global;  // Node.js.
       array[i] = Math.random() * 256;
     }
   }};
+
+  // D8 Workers are not sufficiently compatible with browser Workers
+  // so pretend they don't exist.
+  // TODO(30217): Try to use D8's worker.
+  delete self.Worker;
 })(self);

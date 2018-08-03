@@ -40,15 +40,18 @@ class D extends C {
 makeA() native;
 makeB() native;
 
-void setup() native """
-// This code is all inside 'setup' and so not accessible from the global scope.
-function A(){}
-function B(){}
-makeA = function(){return new A};
-makeB = function(){return new B};
-self.nativeConstructor(A);
-self.nativeConstructor(B);
-""";
+void setup() {
+  JS('', r"""
+(function(){
+  // This code is inside 'setup' and so not accessible from the global scope.
+  function A(){}
+  function B(){}
+  makeA = function(){return new A()};
+  makeB = function(){return new B()};
+  self.nativeConstructor(A);
+  self.nativeConstructor(B);
+})()""");
+}
 
 testThing(a) {
   a.foo = 123;

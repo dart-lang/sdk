@@ -1,0 +1,25 @@
+// Errors:
+//
+// pkg/front_end/testcases/inference_new/infer_field_getter_setter_mismatch.dart:16:24: Error: The return type of the method 'B::x' is dart.core::int, which does not match the return type of the overridden method (dart.core::double).
+// Change to a subtype of dart.core::double.
+//   var /*@topType=int*/ x;
+//                        ^
+
+library test;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract get x() → core::int;
+  abstract set x(core::double value) → void;
+}
+class B extends self::A {
+  field core::int x = null;
+  synthetic constructor •() → void
+    : super self::A::•()
+    ;
+}
+static method main() → dynamic {}

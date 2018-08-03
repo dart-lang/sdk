@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.task.dart_work_manager;
-
 import 'dart:collection';
 
 import 'package:analyzer/error/error.dart';
@@ -12,10 +10,10 @@ import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, AnalysisErrorInfo, CacheState, InternalAnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
+import 'package:analyzer/src/task/api/dart.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/html.dart';
-import 'package:analyzer/task/dart.dart';
-import 'package:analyzer/task/model.dart';
 
 /**
  * The manager for Dart specific analysis.

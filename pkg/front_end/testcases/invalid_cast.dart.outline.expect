@@ -1,0 +1,31 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  static field dynamic _redirecting# = <dynamic>[self::C::fact2];
+  constructor •() → void
+    ;
+  constructor nonFact() → void
+    ;
+  constructor nonFact2() → void
+    ;
+  static factory fact() → self::C
+    ;
+  static factory fact2() → self::C
+    let dynamic #redirecting_factory = self::D::• in invalid-expression;
+  static method staticFunction(core::int i) → void
+    ;
+}
+class D extends self::C {
+  synthetic constructor •() → void
+    ;
+}
+static method topLevelFunction(core::int i) → void
+  ;
+static method bad() → dynamic
+  ;
+static method ok() → dynamic
+  ;
+static method main() → dynamic
+  ;

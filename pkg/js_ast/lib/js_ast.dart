@@ -12,3 +12,4 @@ part 'src/nodes.dart';
 part 'src/builder.dart';
 part 'src/printer.dart';
 part 'src/template.dart';
+part 'src/equivalence_visitor.dart';

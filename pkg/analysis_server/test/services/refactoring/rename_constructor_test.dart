@@ -230,8 +230,8 @@ main() {
   }
 
   test_newInstance_nullElement() async {
-    RenameRefactoring refactoring =
-        new RenameRefactoring(searchEngine, null, null);
+    var workspace = new RefactoringWorkspace([driver], searchEngine);
+    var refactoring = new RenameRefactoring(workspace, null, null);
     expect(refactoring, isNull);
   }
 

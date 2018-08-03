@@ -7,17 +7,21 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
-import 'package:kernel/transformations/closure_conversion.dart' as closures;
+import 'package:kernel/src/tool/batch_util.dart';
+import 'package:kernel/target/targets.dart';
+import 'package:kernel/transformations/constants.dart' as constants;
 import 'package:kernel/transformations/continuation.dart' as cont;
 import 'package:kernel/transformations/empty.dart' as empty;
 import 'package:kernel/transformations/method_call.dart' as method_call;
 import 'package:kernel/transformations/mixin_full_resolution.dart' as mix;
 import 'package:kernel/transformations/treeshaker.dart' as treeshaker;
-import 'package:kernel/verifier.dart';
-
-import 'batch_util.dart';
-import 'util.dart';
+// import 'package:kernel/verifier.dart';
+import 'package:kernel/transformations/coq.dart' as coq;
+import 'package:kernel/vm/constants_native_effects.dart';
+import 'package:kernel/src/tool/command_line_util.dart';
 
 ArgParser parser = new ArgParser()
   ..addOption('format',
@@ -31,14 +35,16 @@ ArgParser parser = new ArgParser()
       negatable: false,
       help: 'Be verbose (e.g. prints transformed main library).',
       defaultsTo: false)
-  ..addOption('embedder-entry-points-manifest',
-      allowMultiple: true,
+  ..addMultiOption('embedder-entry-points-manifest',
       help: 'A path to a file describing entrypoints '
           '(lines of the form `<library>,<class>,<member>`).')
   ..addOption('transformation',
       abbr: 't',
       help: 'The transformation to apply.',
-      defaultsTo: 'continuation');
+      defaultsTo: 'continuation')
+  ..addFlag('sync-async',
+      help: 'Whether `async` functions start synchronously.',
+      defaultsTo: false);
 
 main(List<String> arguments) async {
   if (arguments.isNotEmpty && arguments[0] == '--batch') {
@@ -63,6 +69,7 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
   var output = options['out'];
   var format = options['format'];
   var verbose = options['verbose'];
+  var syncAsync = options['sync-async'];
 
   if (output == null) {
     output = '${input.substring(0, input.lastIndexOf('.'))}.transformed.dill';
@@ -73,42 +80,58 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
   List<treeshaker.ProgramRoot> programRoots =
       parseProgramRoots(embedderEntryPointManifests);
 
-  var program = loadProgramFromBinary(input);
+  var component = loadComponentFromBinary(input);
+
+  final coreTypes = new CoreTypes(component);
+  final hierarchy = new ClassHierarchy(component);
   switch (options['transformation']) {
     case 'continuation':
-      program = cont.transformProgram(program);
+      component = cont.transformComponent(coreTypes, component, syncAsync);
       break;
     case 'resolve-mixins':
-      program = mix.transformProgram(program);
+      mix.transformLibraries(
+          new NoneTarget(null), coreTypes, hierarchy, component.libraries);
       break;
-    case 'closures':
-      program = closures.transformProgram(program);
+    case 'coq':
+      component = coq.transformComponent(coreTypes, component);
+      break;
+    case 'constants':
+      // We use the -D defines supplied to this VM instead of explicitly using a
+      // constructed map of constants.
+      final Map<String, String> defines = null;
+      final VmConstantsBackend backend =
+          new VmConstantsBackend(defines, coreTypes);
+      component = constants.transformComponent(component, backend);
       break;
     case 'treeshake':
-      program =
-          treeshaker.transformProgram(program, programRoots: programRoots);
+      component = treeshaker.transformComponent(coreTypes, hierarchy, component,
+          programRoots: programRoots);
       break;
     case 'methodcall':
-      program = method_call.transformProgram(program);
+      component =
+          method_call.transformComponent(coreTypes, hierarchy, component);
       break;
     case 'empty':
-      program = empty.transformProgram(program);
+      component = empty.transformComponent(component);
       break;
     default:
       throw 'Unknown transformation';
   }
 
-  verifyProgram(program);
+  // TODO(30631): Fix the verifier so we can check that the transform produced
+  // valid output.
+  //
+  // verifyComponent(component);
 
   if (format == 'text') {
-    writeProgramToText(program, path: output);
+    writeComponentToText(component, path: output);
   } else {
     assert(format == 'bin');
-    await writeProgramToBinary(program, output);
+    await writeComponentToBinary(component, output);
   }
 
   if (verbose) {
-    writeLibraryToText(program.mainMethod.parent as Library);
+    writeLibraryToText(component.mainMethod.parent as Library);
   }
 
   return CompilerOutcome.Ok;

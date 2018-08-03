@@ -36,24 +36,18 @@ ServiceEvent::ServiceEvent(Isolate* isolate, EventKind event_kind)
   ASSERT(isolate == NULL ||
          !ServiceIsolate::IsServiceIsolateDescendant(isolate_));
 
-  if ((event_kind == ServiceEvent::kPauseStart) &&
-      !isolate->message_handler()->is_paused_on_start()) {
-    // We will pause on start but the message handler lacks a valid
-    // paused timestamp because we haven't paused yet. Use the current time.
-    timestamp_ = OS::GetCurrentTimeMillis();
-  } else if ((event_kind == ServiceEvent::kPauseStart) ||
-             (event_kind == ServiceEvent::kPauseExit)) {
+  if ((event_kind == ServiceEvent::kPauseStart) ||
+      (event_kind == ServiceEvent::kPauseExit)) {
     timestamp_ = isolate->message_handler()->paused_timestamp();
   } else if (event_kind == ServiceEvent::kResume) {
     timestamp_ = isolate->last_resume_timestamp();
   }
+  ASSERT(timestamp_ > -1);
 }
-
 
 void ServiceEvent::UpdateTimestamp() {
   timestamp_ = OS::GetCurrentTimeMillis();
 }
-
 
 const char* ServiceEvent::KindAsCString() const {
   switch (kind()) {
@@ -117,7 +111,6 @@ const char* ServiceEvent::KindAsCString() const {
   }
 }
 
-
 const StreamInfo* ServiceEvent::stream_info() const {
   switch (kind()) {
     case kVMUpdate:
@@ -168,7 +161,6 @@ const StreamInfo* ServiceEvent::stream_info() const {
   }
 }
 
-
 const char* ServiceEvent::stream_id() const {
   const StreamInfo* stream = stream_info();
   if (stream == NULL) {
@@ -178,7 +170,6 @@ const char* ServiceEvent::stream_id() const {
     return stream->id();
   }
 }
-
 
 void ServiceEvent::PrintJSON(JSONStream* js) const {
   JSONObject jsobj(js);
@@ -263,7 +254,6 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
                                extension_event_.event_data->ToCString());
   }
 }
-
 
 void ServiceEvent::PrintJSONHeader(JSONObject* jsobj) const {
   ASSERT(jsobj != NULL);

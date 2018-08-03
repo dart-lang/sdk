@@ -74,7 +74,6 @@ DEFINE_NATIVE_ENTRY(Math_doublePow, 2) {
   return Double::New(pow(operand, exponent));
 }
 
-
 // Returns the typed-data array store in '_Random._state' field.
 static RawTypedData* GetRandomStateArray(const Instance& receiver) {
   const Class& random_class = Class::Handle(receiver.clazz());
@@ -90,7 +89,6 @@ static RawTypedData* GetRandomStateArray(const Instance& receiver) {
   ASSERT(array.ElementType() == kUint32ArrayElement);
   return array.raw();
 }
-
 
 // Implements:
 //   var state =
@@ -110,7 +108,6 @@ DEFINE_NATIVE_ENTRY(Random_nextState, 1) {
   return Object::null();
 }
 
-
 RawTypedData* CreateRandomState(Zone* zone, uint64_t seed) {
   const TypedData& result =
       TypedData::Handle(zone, TypedData::New(kTypedDataUint32ArrayCid, 2));
@@ -119,7 +116,6 @@ RawTypedData* CreateRandomState(Zone* zone, uint64_t seed) {
                    static_cast<uint32_t>(seed >> 32));
   return result.raw();
 }
-
 
 uint64_t mix64(uint64_t n) {
   // Thomas Wang 64-bit mix.
@@ -134,7 +130,6 @@ uint64_t mix64(uint64_t n) {
   n = n + (n << 31);
   return n;
 }
-
 
 // Implements:
 //   uint64_t hash = 0;
@@ -151,39 +146,7 @@ uint64_t mix64(uint64_t n) {
 //   return result;
 DEFINE_NATIVE_ENTRY(Random_setupSeed, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, seed_int, arguments->NativeArgAt(0));
-  uint64_t seed = 0;
-  if (seed_int.IsBigint()) {
-    Bigint& big_seed = Bigint::Handle();
-    big_seed ^= seed_int.raw();
-    uint64_t negate_mask = 0;
-    uint64_t borrow = 0;
-    if (big_seed.IsNegative()) {
-      // Negate bits to make seed positive.
-      // Negate bits again (by xor with negate_mask) when extracted below,
-      // to get original bits.
-      negate_mask = 0xffffffffffffffffLL;
-
-      // Instead of computing ~big_seed here, we compute it on the fly below as
-      // follows: ~(-big_seed) == ~(~(big_seed-1)) == big_seed-1
-      borrow = 1;
-    }
-    const intptr_t used = big_seed.Used();
-    intptr_t digit = 0;
-    do {
-      uint64_t low64 = ((digit + 1) < used) ? big_seed.DigitAt(digit + 1) : 0;
-      low64 <<= 32;
-      low64 |= (digit < used) ? big_seed.DigitAt(digit) : 0;
-      low64 -= borrow;
-      if ((borrow == 1) && (low64 != 0xffffffffffffffffLL)) {
-        borrow = 0;
-      }
-      low64 ^= negate_mask;
-      seed = (seed * 1037) ^ mix64(low64);
-      digit += 2;
-    } while (digit < used);
-  } else {
-    seed = mix64(static_cast<uint64_t>(seed_int.AsInt64Value()));
-  }
+  uint64_t seed = mix64(static_cast<uint64_t>(seed_int.AsInt64Value()));
 
   if (seed == 0) {
     seed = 0x5a17;
@@ -191,14 +154,12 @@ DEFINE_NATIVE_ENTRY(Random_setupSeed, 1) {
   return CreateRandomState(zone, seed);
 }
 
-
 DEFINE_NATIVE_ENTRY(Random_initialSeed, 0) {
   Random* rnd = isolate->random();
   uint64_t seed = rnd->NextUInt32();
   seed |= (static_cast<uint64_t>(rnd->NextUInt32()) << 32);
   return CreateRandomState(zone, seed);
 }
-
 
 DEFINE_NATIVE_ENTRY(SecureRandom_getBytes, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, count, arguments->NativeArgAt(0));

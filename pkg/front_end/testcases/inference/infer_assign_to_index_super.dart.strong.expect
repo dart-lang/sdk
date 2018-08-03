@@ -1,0 +1,63 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class Index extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class A extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → void
+    : super self::A::•()
+    ;
+  operator +(self::C v) → self::A
+    return null;
+  operator -(core::int i) → self::B
+    return null;
+  operator *(self::B v) → self::B
+    return null;
+  operator &(self::A v) → self::C
+    return null;
+}
+class C extends self::B {
+  synthetic constructor •() → void
+    : super self::B::•()
+    ;
+}
+class Base extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  operator [](self::Index i) → self::B
+    return null;
+  operator []=(self::Index i, self::B v) → void {}
+}
+class Test extends self::Base {
+  synthetic constructor •() → void
+    : super self::Base::•()
+    ;
+  method test() → void {
+    super.{self::Base::[]=}(self::f<dynamic>() as{TypeError} self::Index, self::f<self::B>());
+    let final dynamic #t1 = self::f<dynamic>() in super.{self::Base::[]}(#t1 as{TypeError} self::Index).{core::Object::==}(null) ?{self::B} let final self::B #t2 = self::f<self::B>() in let final void #t3 = super.{self::Base::[]=}(#t1 as{TypeError} self::Index, #t2) in #t2 : null;
+    let final dynamic #t4 = self::f<dynamic>() in super.{self::Base::[]=}(#t4 as{TypeError} self::Index, super.{self::Base::[]}(#t4 as{TypeError} self::Index).{self::B::+}(self::f<dynamic>() as{TypeError} self::C) as{TypeError} self::B);
+    let final dynamic #t5 = self::f<dynamic>() in super.{self::Base::[]=}(#t5 as{TypeError} self::Index, super.{self::Base::[]}(#t5 as{TypeError} self::Index).{self::B::*}(self::f<dynamic>() as{TypeError} self::B));
+    let final dynamic #t6 = self::f<dynamic>() in super.{self::Base::[]=}(#t6 as{TypeError} self::Index, super.{self::Base::[]}(#t6 as{TypeError} self::Index).{self::B::&}(self::f<dynamic>() as{TypeError} self::A));
+    let final dynamic #t7 = self::f<dynamic>() in let final self::B #t8 = super.{self::Base::[]}(#t7 as{TypeError} self::Index).{self::B::-}(1) in let final void #t9 = super.{self::Base::[]=}(#t7 as{TypeError} self::Index, #t8) in #t8;
+    let final dynamic #t10 = self::f<dynamic>() in super.{self::Base::[]=}(#t10 as{TypeError} self::Index, super.{self::Base::[]}(#t10 as{TypeError} self::Index).{self::B::-}(1));
+    self::B v1 = let final dynamic #t11 = self::f<dynamic>() in let final self::B #t12 = self::f<self::B>() in let final void #t13 = super.{self::Base::[]=}(#t11 as{TypeError} self::Index, #t12) in #t12;
+    self::B v2 = let final dynamic #t14 = self::f<dynamic>() in let final self::B #t15 = super.{self::Base::[]}(#t14 as{TypeError} self::Index) in #t15.{core::Object::==}(null) ?{self::B} let final self::B #t16 = self::f<self::B>() in let final void #t17 = super.{self::Base::[]=}(#t14 as{TypeError} self::Index, #t16) in #t16 : #t15;
+    self::B v4 = let final dynamic #t18 = self::f<dynamic>() in let final self::B #t19 = super.{self::Base::[]}(#t18 as{TypeError} self::Index).{self::B::*}(self::f<dynamic>() as{TypeError} self::B) in let final void #t20 = super.{self::Base::[]=}(#t18 as{TypeError} self::Index, #t19) in #t19;
+    self::C v5 = let final dynamic #t21 = self::f<dynamic>() in let final self::C #t22 = super.{self::Base::[]}(#t21 as{TypeError} self::Index).{self::B::&}(self::f<dynamic>() as{TypeError} self::A) in let final void #t23 = super.{self::Base::[]=}(#t21 as{TypeError} self::Index, #t22) in #t22;
+    self::B v6 = let final dynamic #t24 = self::f<dynamic>() in let final self::B #t25 = super.{self::Base::[]}(#t24 as{TypeError} self::Index).{self::B::-}(1) in let final void #t26 = super.{self::Base::[]=}(#t24 as{TypeError} self::Index, #t25) in #t25;
+    self::B v7 = let final dynamic #t27 = self::f<dynamic>() in let final self::B #t28 = super.{self::Base::[]}(#t27 as{TypeError} self::Index) in let final void #t29 = super.{self::Base::[]=}(#t27 as{TypeError} self::Index, #t28.{self::B::-}(1)) in #t28;
+  }
+}
+static method f<T extends core::Object = dynamic>() → self::f::T
+  return null;
+static method main() → dynamic {}

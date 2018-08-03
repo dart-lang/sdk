@@ -5,9 +5,15 @@
 #ifndef RUNTIME_VM_OS_THREAD_H_
 #define RUNTIME_VM_OS_THREAD_H_
 
+#include "platform/address_sanitizer.h"
 #include "platform/globals.h"
+#include "platform/safe_stack.h"
 #include "vm/allocation.h"
 #include "vm/globals.h"
+
+#if !HOST_OS_IOS
+#define HAS_C11_THREAD_LOCAL 1
+#endif
 
 // Declare the OS-specific types ahead of defining the generic classes.
 #if defined(HOST_OS_ANDROID)
@@ -47,7 +53,6 @@ class BaseThread {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(BaseThread);
 };
-
 
 // Low-level operations on OS platform threads.
 class OSThread : public BaseThread {
@@ -94,21 +99,35 @@ class OSThread : public BaseThread {
   Log* log() const { return log_; }
 
   uword stack_base() const { return stack_base_; }
-  void set_stack_base(uword stack_base) { stack_base_ = stack_base; }
-
-  // Retrieve the stack address bounds for profiler.
-  bool GetProfilerStackBounds(uword* lower, uword* upper) const {
-    uword stack_upper = stack_base_;
-    if (stack_upper == 0) {
-      return false;
-    }
-    uword stack_lower = stack_upper - GetSpecifiedStackSize();
-    *lower = stack_lower;
-    *upper = stack_upper;
-    return true;
+  uword stack_limit() const { return stack_limit_; }
+  uword stack_limit_with_headroom() const {
+    return stack_limit_ + kStackSizeBuffer;
   }
 
+  bool HasStackHeadroom(intptr_t headroom = kStackSizeBuffer) {
+    return GetCurrentStackPointer() > (stack_limit_ + headroom);
+  }
+
+  void RefineStackBoundsFromSP(uword sp) {
+    if (sp > stack_base_) {
+      stack_base_ = sp;
+      stack_limit_ = sp - GetSpecifiedStackSize();
+    }
+  }
+
+  // May fail for the main thread on Linux and Android.
   static bool GetCurrentStackBounds(uword* lower, uword* upper);
+
+  // Returns the current C++ stack pointer. Equivalent taking the address of a
+  // stack allocated local, but plays well with AddressSanitizer and SafeStack.
+  // Accurate enough for stack overflow checks but not accurate enough for
+  // alignment checks.
+  static uword GetCurrentStackPointer();
+
+#if defined(USING_SAFE_STACK)
+  static uword GetCurrentSafestackPointer();
+  static void SetCurrentSafestackPointer(uword ssp);
+#endif
 
   // Used to temporarily disable or enable thread interrupts.
   void DisableThreadInterrupts();
@@ -139,7 +158,11 @@ class OSThread : public BaseThread {
     }
     return os_thread;
   }
-  static void SetCurrent(OSThread* current);
+  static void SetCurrent(OSThread* current) { SetCurrentTLS(current); }
+
+#if defined(HAS_C11_THREAD_LOCAL)
+  static Thread* CurrentVMThread() { return current_vm_thread_; }
+#endif
 
   // TODO(5411455): Use flag to override default value and Validate the
   // stack size by querying OS.
@@ -151,7 +174,7 @@ class OSThread : public BaseThread {
   static BaseThread* GetCurrentTLS() {
     return reinterpret_cast<BaseThread*>(OSThread::GetThreadLocal(thread_key_));
   }
-  static void SetCurrentTLS(uword value) { SetThreadLocal(thread_key_, value); }
+  static void SetCurrentTLS(BaseThread* value);
 
   typedef void (*ThreadStartFunction)(uword parameter);
   typedef void (*ThreadDestructor)(void* parameter);
@@ -238,6 +261,7 @@ class OSThread : public BaseThread {
   uintptr_t thread_interrupt_disabled_;
   Log* log_;
   uword stack_base_;
+  uword stack_limit_;
   Thread* thread_;
 
   // thread_list_lock_ cannot have a static lifetime because the order in which
@@ -249,12 +273,15 @@ class OSThread : public BaseThread {
   static OSThread* thread_list_head_;
   static bool creation_enabled_;
 
+#if defined(HAS_C11_THREAD_LOCAL)
+  static thread_local Thread* current_vm_thread_;
+#endif
+
   friend class Isolate;  // to access set_thread(Thread*).
   friend class OSThreadIterator;
   friend class ThreadInterrupterWin;
   friend class ThreadInterrupterFuchsia;
 };
-
 
 // Note that this takes the thread list lock, prohibiting threads from coming
 // on- or off-line.
@@ -273,10 +300,9 @@ class OSThreadIterator : public ValueObject {
   OSThread* next_;
 };
 
-
 class Mutex {
  public:
-  Mutex();
+  explicit Mutex(NOT_IN_PRODUCT(const char* name = "anonymous mutex"));
   ~Mutex();
 
 #if defined(DEBUG)
@@ -296,6 +322,7 @@ class Mutex {
   void Unlock();
 
   MutexData data_;
+  NOT_IN_PRODUCT(const char* name_);
 #if defined(DEBUG)
   ThreadId owner_;
 #endif  // defined(DEBUG)
@@ -310,7 +337,6 @@ class Mutex {
   friend void Dart_TestMutex();
   DISALLOW_COPY_AND_ASSIGN(Mutex);
 };
-
 
 class Monitor {
  public:
@@ -356,8 +382,6 @@ class Monitor {
   DISALLOW_COPY_AND_ASSIGN(Monitor);
 };
 
-
 }  // namespace dart
-
 
 #endif  // RUNTIME_VM_OS_THREAD_H_

@@ -5,8 +5,8 @@
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_IA32)
 
-#include "vm/assembler.h"
 #include "vm/code_patcher.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/dart_entry.h"
 #include "vm/instructions.h"
 #include "vm/native_entry.h"
@@ -37,14 +37,13 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   const intptr_t kNumArgs = 1;
   const Array& args_descriptor = Array::Handle(
       ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs, Object::null_array()));
-  const ICData& ic_data = ICData::ZoneHandle(
-      ICData::New(function, target_name, args_descriptor, 15, 1, false));
+  const ICData& ic_data = ICData::ZoneHandle(ICData::New(
+      function, target_name, args_descriptor, 15, 1, ICData::kInstance));
 
   __ LoadObject(ECX, ic_data);
   __ Call(*StubCode::OneArgCheckInlineCache_entry());
   __ ret();
 }
-
 
 ASSEMBLER_TEST_RUN(IcDataAccess, test) {
   uword return_address = test->entry() + CodePatcher::InstanceCallSizeInBytes();

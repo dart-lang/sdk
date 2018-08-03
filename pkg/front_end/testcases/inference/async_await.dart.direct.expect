@@ -1,0 +1,53 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+abstract class MyFuture extends core::Object implements asy::Future<core::int> {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method test() → void async {
+  core::int x0;
+  asy::Future<core::int> x1;
+  asy::Future<asy::Future<core::int>> x2;
+  asy::Future<asy::FutureOr<core::int>> x3;
+  asy::Future<self::MyFuture> x4;
+  asy::FutureOr<core::int> x5;
+  asy::FutureOr<asy::Future<core::int>> x6;
+  asy::FutureOr<asy::FutureOr<core::int>> x7;
+  asy::FutureOr<self::MyFuture> x8;
+  self::MyFuture x9;
+  function test0() → dynamic async 
+    return x0;
+  function test1() → dynamic async 
+    return x1;
+  function test2() → dynamic async 
+    return x2;
+  function test3() → dynamic async 
+    return x3;
+  function test4() → dynamic async 
+    return x4;
+  function test5() → dynamic async 
+    return x5;
+  function test6() → dynamic async 
+    return x6;
+  function test7() → dynamic async 
+    return x7;
+  function test8() → dynamic async 
+    return x8;
+  function test9() → dynamic async 
+    return x9;
+  dynamic y0 = await x0;
+  dynamic y1 = await x1;
+  dynamic y2 = await x2;
+  dynamic y3 = await x3;
+  dynamic y4 = await x4;
+  dynamic y5 = await x5;
+  dynamic y6 = await x6;
+  dynamic y7 = await x7;
+  dynamic y8 = await x8;
+  dynamic y9 = await x9;
+}
+static method main() → dynamic {}

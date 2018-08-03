@@ -34,6 +34,8 @@ DECLARE_FLAG(bool, trace_reload_verbose);
   if (FLAG_trace_reload_verbose) Log::Current()->Print(format, ##__VA_ARGS__)
 #endif
 
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
 namespace dart {
 
 class BitVector;
@@ -49,7 +51,6 @@ class RawObject;
 class RawString;
 class Script;
 class UpdateClassesVisitor;
-
 
 class InstanceMorpher : public ZoneAllocated {
  public:
@@ -96,7 +97,6 @@ class InstanceMorpher : public ZoneAllocated {
   void DumpFormatFor(const Class& cls) const;
 };
 
-
 class ReasonForCancelling : public ZoneAllocated {
  public:
   explicit ReasonForCancelling(Zone* zone) {}
@@ -119,7 +119,6 @@ class ReasonForCancelling : public ZoneAllocated {
   // Concrete subclasses must override either ToError or ToString.
 };
 
-
 // Abstract class for also capturing the from_ and to_ class.
 class ClassReasonForCancelling : public ReasonForCancelling {
  public:
@@ -130,7 +129,6 @@ class ClassReasonForCancelling : public ReasonForCancelling {
   const Class& from_;
   const Class& to_;
 };
-
 
 class IsolateReloadContext {
  public:
@@ -171,6 +169,7 @@ class IsolateReloadContext {
 
   // Prefers old classes when we are in the middle of a reload.
   RawClass* GetClassForHeapWalkAt(intptr_t cid);
+  intptr_t GetClassSizeForHeapWalkAt(intptr_t cid);
 
   void RegisterClass(const Class& new_cls);
 
@@ -233,12 +232,17 @@ class IsolateReloadContext {
   void CheckpointClasses();
 
   bool ScriptModifiedSince(const Script& script, int64_t since);
-  BitVector* FindModifiedLibraries(bool force_reload);
+  BitVector* FindModifiedLibraries(bool force_reload, bool root_lib_modified);
+  void FindModifiedSources(Thread* thread,
+                           bool force_reload,
+                           Dart_SourceFile** modified_sources,
+                           intptr_t* count);
 
   void CheckpointLibraries();
 
-  // Transforms the heap based on instance_morphers_.
-  void MorphInstances();
+  // Transforms the heap based on instance_morphers_. Return whether there was
+  // any morphing.
+  bool MorphInstances();
 
   void RunNewFieldInitializers();
 
@@ -256,8 +260,6 @@ class IsolateReloadContext {
   void Commit();
 
   void PostCommit();
-
-  void RehashConstants();
 
   void ClearReplacedObjectBits();
 
@@ -279,7 +281,7 @@ class IsolateReloadContext {
   JSONStream* js_;
 
   intptr_t saved_num_cids_;
-  RawClass** saved_class_table_;
+  ClassAndSize* saved_class_table_;
   intptr_t num_saved_libs_;
 
   // Collect the necessary instance transformation for schema changes.
@@ -362,5 +364,7 @@ class IsolateReloadContext {
 };
 
 }  // namespace dart
+
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 #endif  // RUNTIME_VM_ISOLATE_RELOAD_H_

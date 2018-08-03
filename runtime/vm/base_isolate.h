@@ -31,13 +31,13 @@ class BaseIsolate {
 #endif
 
  protected:
-  BaseIsolate() : mutator_thread_(NULL) {}
+  BaseIsolate() : scheduled_mutator_thread_(NULL) {}
 
   ~BaseIsolate() {
     // Do not delete stack resources: top_resource_ and current_zone_.
   }
 
-  Thread* mutator_thread_;
+  Thread* scheduled_mutator_thread_;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BaseIsolate);

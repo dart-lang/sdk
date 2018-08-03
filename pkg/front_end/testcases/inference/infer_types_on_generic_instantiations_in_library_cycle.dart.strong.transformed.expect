@@ -1,0 +1,33 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "./infer_types_on_generic_instantiations_in_library_cycle_a.dart" as inf;
+
+abstract class A<E extends core::Object = dynamic> extends core::Object implements inf::I<self::A::E> {
+  final field self::A::E value = null;
+  const constructor •() → void
+    : super core::Object::•()
+    ;
+}
+abstract class M extends core::Object {
+  final field core::int y = 0;
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B<E extends core::Object = dynamic> extends self::A<self::B::E> implements self::M {
+  const constructor •() → void
+    : super self::A::•()
+    ;
+  get y() → core::int
+    return 0;
+  method m(dynamic a, (dynamic, core::int) → dynamic f) → self::A<self::B::E> {}
+}
+static method foo() → dynamic {
+  core::int y = let<BottomType> _ = null in let final dynamic #t1 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_in_library_cycle.dart:30:30: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+      . /*@target=A::value*/ value;
+                             ^" in let final core::String #t2 = new self::B::•<core::String>().{self::B::m}(null, null).{self::A::value} in null;
+  core::String z = new self::B::•<core::String>().{self::B::m}(null, null).{self::A::value};
+}
+static method main() → dynamic {}

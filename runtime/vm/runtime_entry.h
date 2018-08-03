@@ -7,9 +7,9 @@
 
 #include "vm/allocation.h"
 #include "vm/flags.h"
+#include "vm/heap/safepoint.h"
 #include "vm/native_arguments.h"
 #include "vm/runtime_entry_list.h"
-#include "vm/safepoint.h"
 #include "vm/tags.h"
 
 namespace dart {
@@ -58,13 +58,21 @@ class RuntimeEntry : public ValueObject {
   uword GetEntryPoint() const;
 
   // Generate code to call the runtime entry.
-  void Call(Assembler* assembler, intptr_t argument_count) const;
+  NOT_IN_PRECOMPILED(void Call(Assembler* assembler, intptr_t argument_count)
+                         const);
 
   void set_next(const RuntimeEntry* next) { next_ = next; }
   const RuntimeEntry* next() const { return next_; }
 
   static inline uword AddressFromId(RuntimeFunctionId id);
   static inline RuntimeFunctionId RuntimeFunctionIdFromAddress(uword address);
+
+  static uword InterpretCallEntry();
+  static RawObject* InterpretCall(RawFunction* function,
+                                  RawArray* argdesc,
+                                  intptr_t argc,
+                                  RawObject** argv,
+                                  Thread* thread);
 
  private:
   const char* name_;
@@ -130,7 +138,7 @@ class RuntimeEntry : public ValueObject {
 
 #define END_LEAF_RUNTIME_ENTRY }
 
-// TODO(rmacnak): Fix alignment issue on simarm and simmips and use
+// TODO(rmacnak): Fix alignment issue on simarm and use
 // DEFINE_LEAF_RUNTIME_ENTRY instead.
 #define DEFINE_RAW_LEAF_RUNTIME_ENTRY(name, argument_count, is_float, func)    \
   extern const RuntimeEntry k##name##RuntimeEntry(                             \
@@ -140,11 +148,9 @@ class RuntimeEntry : public ValueObject {
   extern const RuntimeEntry k##name##RuntimeEntry;                             \
   extern "C" type DLRT_##name(__VA_ARGS__);
 
-
 // Declare all runtime functions here.
 RUNTIME_ENTRY_LIST(DECLARE_RUNTIME_ENTRY)
 LEAF_RUNTIME_ENTRY_LIST(DECLARE_LEAF_RUNTIME_ENTRY)
-
 
 uword RuntimeEntry::AddressFromId(RuntimeFunctionId id) {
   switch (id) {
@@ -164,7 +170,6 @@ uword RuntimeEntry::AddressFromId(RuntimeFunctionId id) {
   }
   return 0;
 }
-
 
 RuntimeFunctionId RuntimeEntry::RuntimeFunctionIdFromAddress(uword address) {
 #define CHECK_RUNTIME_ADDRESS(name)                                            \

@@ -6,11 +6,21 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
-$if DART2JS
-  @DomName('Navigator.language')
+  List<Gamepad> getGamepads() {
+    var gamepadList = _getGamepads();
+
+    // If no prototype we need one for the world to hookup to the proper Dart class.
+    var jsProto = JS('', '#.prototype', gamepadList);
+    if (jsProto == null) {
+      JS('', '#.prototype = Object.create(null)', gamepadList);
+    }
+
+    applyExtension('GamepadList', gamepadList);
+    return gamepadList;
+  }
+
   String get language => JS('String', '#.language || #.userLanguage', this,
       this);
-$endif
 
   /**
    * Gets a stream (video and or audio) from the local computer.
@@ -47,16 +57,13 @@ $endif
    * See also:
    * * [MediaStream.supported]
    */
-  @DomName('Navigator.webkitGetUserMedia')
   @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental()
   Future<MediaStream> getUserMedia({audio: false, video: false}) {
     var completer = new Completer<MediaStream>();
     var options = {
       'audio': audio,
       'video': video
     };
-$if DART2JS
     _ensureGetUserMedia();
     this._getUserMedia(convertDartToNative_SerializedScriptValue(options),
       (stream) {
@@ -65,19 +72,9 @@ $if DART2JS
       (error) {
         completer.completeError(error);
       });
-$else
-    this._getUserMedia(options,
-      (stream) {
-        completer.complete(stream);
-      },
-      (error) {
-        completer.completeError(error);
-      });
-$endif
     return completer.future;
   }
 
-$if DART2JS
   _ensureGetUserMedia() {
     if (JS('bool', '!(#.getUserMedia)', this)) {
       JS('void', '#.getUserMedia = '
@@ -89,7 +86,6 @@ $if DART2JS
   @JSName('getUserMedia')
   void _getUserMedia(options, _NavigatorUserMediaSuccessCallback success,
       _NavigatorUserMediaErrorCallback error) native;
-$endif
 
 $!MEMBERS
 }

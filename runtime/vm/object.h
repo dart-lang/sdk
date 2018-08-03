@@ -8,16 +8,16 @@
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/utils.h"
-#include "vm/json_stream.h"
 #include "vm/bitmap.h"
+#include "vm/compiler/method_recognizer.h"
 #include "vm/dart.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/handles.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/isolate.h"
-#include "vm/method_recognizer.h"
+#include "vm/json_stream.h"
 #include "vm/os.h"
 #include "vm/raw_object.h"
 #include "vm/report.h"
@@ -32,7 +32,7 @@ namespace dart {
 namespace kernel {
 class Program;
 class TreeNode;
-}
+}  // namespace kernel
 
 #define DEFINE_FORWARD_DECLARATION(clazz) class clazz;
 CLASS_LIST(DEFINE_FORWARD_DECLARATION)
@@ -42,10 +42,12 @@ class ArgumentsDescriptor;
 class Assembler;
 class Closure;
 class Code;
-class DisassemblyFormatter;
 class DeoptInstr;
+class DisassemblyFormatter;
 class FinalizablePersistentHandle;
+class HierarchyInfo;
 class LocalScope;
+class CodeStatistics;
 
 #define REUSABLE_FORWARD_DECLARATION(name) class Reusable##name##HandleScope;
 REUSABLE_HANDLE_LIST(REUSABLE_FORWARD_DECLARATION)
@@ -128,7 +130,7 @@ class Symbols;
     return reinterpret_cast<const object&>(obj);                               \
   }                                                                            \
   static Raw##object* RawCast(RawObject* raw) {                                \
-    ASSERT(Object::Handle(raw).Is##object());                                  \
+    ASSERT(Object::Handle(raw).IsNull() || Object::Handle(raw).Is##object());  \
     return reinterpret_cast<Raw##object*>(raw);                                \
   }                                                                            \
   static Raw##object* null() {                                                 \
@@ -245,9 +247,9 @@ class Object {
   RawObject* raw() const { return raw_; }
   void operator=(RawObject* value) { initializeHandle(this, value); }
 
-  uword CompareAndSwapTags(uword old_tags, uword new_tags) const {
-    return AtomicOperations::CompareAndSwapWord(&raw()->ptr()->tags_, old_tags,
-                                                new_tags);
+  uint32_t CompareAndSwapTags(uint32_t old_tags, uint32_t new_tags) const {
+    return AtomicOperations::CompareAndSwapUint32(&raw()->ptr()->tags_,
+                                                  old_tags, new_tags);
   }
   bool IsCanonical() const { return raw()->IsCanonical(); }
   void SetCanonical() const { raw()->SetCanonical(); }
@@ -360,6 +362,10 @@ class Object {
     ASSERT(null_instance_ != NULL);
     return *null_instance_;
   }
+  static const Function& null_function() {
+    ASSERT(null_function_ != NULL);
+    return *null_function_;
+  }
   static const TypeArguments& null_type_arguments() {
     ASSERT(null_type_arguments_ != NULL);
     return *null_type_arguments_;
@@ -376,11 +382,6 @@ class Object {
   static const Array& zero_array() {
     ASSERT(zero_array_ != NULL);
     return *zero_array_;
-  }
-
-  static const Context& empty_context() {
-    ASSERT(empty_context_ != NULL);
-    return *empty_context_;
   }
 
   static const ContextScope& empty_context_scope() {
@@ -434,13 +435,11 @@ class Object {
 
 #if defined(HASH_IN_OBJECT_HEADER)
   static uint32_t GetCachedHash(const RawObject* obj) {
-    uword tags = obj->ptr()->tags_;
-    return tags >> 32;
+    return obj->ptr()->hash_;
   }
 
-  static void SetCachedHash(RawObject* obj, uintptr_t hash) {
-    ASSERT(hash >> 32 == 0);
-    obj->ptr()->tags_ |= hash << 32;
+  static void SetCachedHash(RawObject* obj, uint32_t hash) {
+    obj->ptr()->hash_ = hash;
   }
 #endif
 
@@ -518,6 +517,9 @@ class Object {
   static RawClass* script_class() { return script_class_; }
   static RawClass* library_class() { return library_class_; }
   static RawClass* namespace_class() { return namespace_class_; }
+  static RawClass* kernel_program_info_class() {
+    return kernel_program_info_class_;
+  }
   static RawClass* code_class() { return code_class_; }
   static RawClass* instructions_class() { return instructions_class_; }
   static RawClass* object_pool_class() { return object_pool_class_; }
@@ -550,11 +552,15 @@ class Object {
   // Initialize the VM isolate.
   static void InitNull(Isolate* isolate);
   static void InitOnce(Isolate* isolate);
+  static void FinishInitOnce(Isolate* isolate);
   static void FinalizeVMIsolate(Isolate* isolate);
+  static void FinalizeReadOnlyObject(RawObject* object);
 
   // Initialize a new isolate either from a Kernel IR, from source, or from a
   // snapshot.
-  static RawError* Init(Isolate* isolate, kernel::Program* program);
+  static RawError* Init(Isolate* isolate,
+                        const uint8_t* kernel_buffer,
+                        intptr_t kernel_buffer_size);
 
   static void MakeUnusedSpaceTraversable(const Object& obj,
                                          intptr_t original_size,
@@ -776,6 +782,8 @@ class Object {
   static RawClass* script_class_;        // Class of the Script vm object.
   static RawClass* library_class_;       // Class of the Library vm object.
   static RawClass* namespace_class_;     // Class of Namespace vm object.
+  static RawClass* kernel_program_info_class_;  // Class of KernelProgramInfo vm
+                                                // object.
   static RawClass* code_class_;          // Class of the Code vm object.
   static RawClass* instructions_class_;  // Class of the Instructions vm object.
   static RawClass* object_pool_class_;   // Class of the ObjectPool vm object.
@@ -803,11 +811,11 @@ class Object {
   static Array* null_array_;
   static String* null_string_;
   static Instance* null_instance_;
+  static Function* null_function_;
   static TypeArguments* null_type_arguments_;
   static TypeArguments* empty_type_arguments_;
   static Array* empty_array_;
   static Array* zero_array_;
-  static Context* empty_context_;
   static ContextScope* empty_context_scope_;
   static ObjectPool* empty_object_pool_;
   static PcDescriptors* empty_descriptors_;
@@ -849,7 +857,6 @@ class Object {
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Object);
 };
-
 
 class PassiveObject : public Object {
  public:
@@ -895,16 +902,23 @@ class PassiveObject : public Object {
   DISALLOW_COPY_AND_ASSIGN(PassiveObject);
 };
 
-
 typedef ZoneGrowableHandlePtrArray<const AbstractType> Trail;
 typedef ZoneGrowableHandlePtrArray<const AbstractType>* TrailPtr;
 
+// A URIs array contains triplets of strings.
+// The first string in the triplet is a type name (usually a class).
+// The second string in the triplet is the URI of the type.
+// The third string in the triplet is "print" if the triplet should be printed.
+typedef ZoneGrowableHandlePtrArray<const String> URIs;
 
 class Class : public Object {
  public:
   intptr_t instance_size() const {
     ASSERT(is_finalized() || is_prefinalized());
     return (raw_ptr()->instance_size_in_words_ * kWordSize);
+  }
+  static intptr_t instance_size(RawClass* clazz) {
+    return (clazz->ptr()->instance_size_in_words_ * kWordSize);
   }
   void set_instance_size(intptr_t value_in_bytes) const {
     ASSERT(kWordSize != 0);
@@ -959,6 +973,8 @@ class Class : public Object {
   void set_token_pos(TokenPosition value) const;
 
   TokenPosition ComputeEndTokenPos() const;
+
+  int32_t SourceFingerprint() const;
 
   // This class represents a typedef if the signature function is not null.
   RawFunction* signature_function() const {
@@ -1103,6 +1119,12 @@ class Class : public Object {
   // Check if this class represents the 'Function' class.
   bool IsDartFunctionClass() const;
 
+  // Check if this class represents the 'Future' class.
+  bool IsFutureClass() const;
+
+  // Check if this class represents the 'FutureOr' class.
+  bool IsFutureOrClass() const;
+
   // Check if this class represents the 'Closure' class.
   bool IsClosureClass() const { return id() == kClosureCid; }
   static bool IsClosureClass(RawClass* cls) {
@@ -1196,27 +1218,16 @@ class Class : public Object {
 
   RawLibraryPrefix* LookupLibraryPrefix(const String& name) const;
 
-  // Returns an instance of Double or Double::null().
-  // 'index' points to either:
-  // - constants_list_ position of found element, or
-  // - constants_list_ position where new canonical can be inserted.
-  RawDouble* LookupCanonicalDouble(Zone* zone,
-                                   double value,
-                                   intptr_t* index) const;
-  RawMint* LookupCanonicalMint(Zone* zone,
-                               int64_t value,
-                               intptr_t* index) const;
-  RawBigint* LookupCanonicalBigint(Zone* zone,
-                                   const Bigint& value,
-                                   intptr_t* index) const;
+  RawDouble* LookupCanonicalDouble(Zone* zone, double value) const;
+  RawMint* LookupCanonicalMint(Zone* zone, int64_t value) const;
+
   // The methods above are more efficient than this generic one.
   RawInstance* LookupCanonicalInstance(Zone* zone, const Instance& value) const;
 
   RawInstance* InsertCanonicalConstant(Zone* zone,
                                        const Instance& constant) const;
-  void InsertCanonicalNumber(Zone* zone,
-                             intptr_t index,
-                             const Number& constant) const;
+  void InsertCanonicalDouble(Zone* zone, const Double& constant) const;
+  void InsertCanonicalMint(Zone* zone, const Mint& constant) const;
 
   void RehashConstants(Zone* zone) const;
 
@@ -1290,6 +1301,17 @@ class Class : public Object {
   }
   void set_is_mixin_type_applied() const;
 
+  // Tests if this is a mixin application class which was desugared
+  // to a normal class by kernel mixin transformation
+  // (pkg/kernel/lib/transformations/mixin_full_resolution.dart).
+  //
+  // In such case, its mixed-in type was pulled into the end of
+  // interfaces list.
+  bool is_transformed_mixin_application() const {
+    return TransformedMixinApplicationBit::decode(raw_ptr()->state_bits_);
+  }
+  void set_is_transformed_mixin_application() const;
+
   bool is_fields_marked_nullable() const {
     return FieldsMarkedNullableBit::decode(raw_ptr()->state_bits_);
   }
@@ -1313,6 +1335,18 @@ class Class : public Object {
   RawCode* allocation_stub() const { return raw_ptr()->allocation_stub_; }
   void set_allocation_stub(const Code& value) const;
 
+  intptr_t kernel_offset() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return -1;
+#else
+    return raw_ptr()->kernel_offset_;
+#endif
+  }
+
+  void set_kernel_offset(intptr_t offset) const {
+    NOT_IN_PRECOMPILED(StoreNonPointer(&raw_ptr()->kernel_offset_, offset));
+  }
+
   void DisableAllocationStub() const;
 
   RawArray* constants() const;
@@ -1332,14 +1366,25 @@ class Class : public Object {
   // Return true on success, or false and error otherwise.
   bool ApplyPatch(const Class& patch, Error* error) const;
 
-  // Evaluate the given expression as if it appeared in a static
-  // method of this class and return the resulting value, or an
-  // error object if evaluating the expression fails. The method has
-  // the formal parameters given in param_names, and is invoked with
-  // the argument values given in param_values.
+  // Evaluate the given expression as if it appeared in a static method of this
+  // class and return the resulting value, or an error object if evaluating the
+  // expression fails. The method has the formal (type) parameters given in
+  // (type_)param_names, and is invoked with the (type)argument values given in
+  // (type_)param_values.
   RawObject* Evaluate(const String& expr,
                       const Array& param_names,
                       const Array& param_values) const;
+  RawObject* Evaluate(const String& expr,
+                      const Array& param_names,
+                      const Array& param_values,
+                      const Array& type_param_names,
+                      const TypeArguments& type_param_values) const;
+  RawObject* EvaluateCompiledExpression(
+      const uint8_t* kernel_bytes,
+      intptr_t kernel_length,
+      const Array& type_definitions,
+      const Array& param_values,
+      const TypeArguments& type_param_values) const;
 
   RawError* EnsureIsFinalized(Thread* thread) const;
 
@@ -1397,6 +1442,10 @@ class Class : public Object {
   void CheckReload(const Class& replacement,
                    IsolateReloadContext* context) const;
 
+  void AddInvocationDispatcher(const String& target_name,
+                               const Array& args_desc,
+                               const Function& dispatcher) const;
+
  private:
   bool CanReloadFinalized(const Class& replacement,
                           IsolateReloadContext* context) const;
@@ -1432,6 +1481,7 @@ class Class : public Object {
     kFieldsMarkedNullableBit = 11,
     kCycleFreeBit = 12,
     kEnumBit = 13,
+    kTransformedMixinApplicationBit = 14,
     kIsAllocatedBit = 15,
   };
   class ConstBit : public BitField<uint16_t, bool, kConstBit, 1> {};
@@ -1456,6 +1506,8 @@ class Class : public Object {
       : public BitField<uint16_t, bool, kFieldsMarkedNullableBit, 1> {};
   class CycleFreeBit : public BitField<uint16_t, bool, kCycleFreeBit, 1> {};
   class EnumBit : public BitField<uint16_t, bool, kEnumBit, 1> {};
+  class TransformedMixinApplicationBit
+      : public BitField<uint16_t, bool, kTransformedMixinApplicationBit, 1> {};
   class IsAllocatedBit : public BitField<uint16_t, bool, kIsAllocatedBit, 1> {};
 
   void set_name(const String& value) const;
@@ -1520,6 +1572,17 @@ class Class : public Object {
                 TrailPtr bound_trail,
                 Heap::Space space) const;
 
+  // Returns true if the type specified by this class and type_arguments is a
+  // subtype of FutureOr<T> specified by other class and other_type_arguments.
+  // Returns false if other class is not a FutureOr.
+  bool FutureOrTypeTest(Zone* zone,
+                        const TypeArguments& type_arguments,
+                        const Class& other,
+                        const TypeArguments& other_type_arguments,
+                        Error* bound_error,
+                        TrailPtr bound_trail,
+                        Heap::Space space) const;
+
   static bool TypeTestNonRecursive(const Class& cls,
                                    TypeTestKind test_kind,
                                    const TypeArguments& type_arguments,
@@ -1535,9 +1598,8 @@ class Class : public Object {
   friend class Object;
   friend class Type;
   friend class Intrinsifier;
-  friend class ProgramVisitor;
+  friend class ClassFunctionVisitor;
 };
-
 
 // Unresolved class is used for storing unresolved names which will be resolved
 // to a class after all classes have been loaded and finalized.
@@ -1570,232 +1632,34 @@ class UnresolvedClass : public Object {
   friend class Class;
 };
 
-
 // Classification of type genericity according to type parameter owners.
 enum Genericity {
-  kAny,              // Consider type params of current class and functions.
-  kCurrentClass,     // Consider type params of current class only.
-  kFunctions,        // Consider type params of current and parent functions.
+  kAny,           // Consider type params of current class and functions.
+  kCurrentClass,  // Consider type params of current class only.
+  kFunctions,     // Consider type params of current and parent functions.
 };
-
-
-// A TypeArguments is an array of AbstractType.
-class TypeArguments : public Object {
- public:
-  // We use 30 bits for the hash code so hashes in a snapshot taken on a
-  // 64-bit architecture stay in Smi range when loaded on a 32-bit
-  // architecture.
-  static const intptr_t kHashBits = 30;
-
-  intptr_t Length() const;
-  RawAbstractType* TypeAt(intptr_t index) const;
-  static intptr_t type_at_offset(intptr_t index) {
-    return OFFSET_OF_RETURNED_VALUE(RawTypeArguments, types) +
-           index * kWordSize;
-  }
-  void SetTypeAt(intptr_t index, const AbstractType& value) const;
-
-  // The name of this type argument vector, e.g. "<T, dynamic, List<T>, Smi>".
-  RawString* Name() const { return SubvectorName(0, Length(), kInternalName); }
-
-  // The name of this type argument vector, e.g. "<T, dynamic, List<T>, int>".
-  // Names of internal classes are mapped to their public interfaces.
-  RawString* UserVisibleName() const {
-    return SubvectorName(0, Length(), kUserVisibleName);
-  }
-
-  // Check if the subvector of length 'len' starting at 'from_index' of this
-  // type argument vector consists solely of DynamicType.
-  bool IsRaw(intptr_t from_index, intptr_t len) const {
-    return IsDynamicTypes(false, from_index, len);
-  }
-
-  // Check if this type argument vector would consist solely of DynamicType if
-  // it was instantiated from both a raw (null) instantiator typearguments and
-  // a raw (null) function type arguments, i.e. consider each class type
-  // parameter and function type parameters as it would be first instantiated
-  // from a vector of dynamic types.
-  // Consider only a prefix of length 'len'.
-  bool IsRawWhenInstantiatedFromRaw(intptr_t len) const {
-    return IsDynamicTypes(true, 0, len);
-  }
-
-  // Check the subtype relationship, considering only a subvector of length
-  // 'len' starting at 'from_index'.
-  bool IsSubtypeOf(const TypeArguments& other,
-                   intptr_t from_index,
-                   intptr_t len,
-                   Error* bound_error,
-                   TrailPtr bound_trail,
-                   Heap::Space space) const {
-    return TypeTest(kIsSubtypeOf, other, from_index, len, bound_error,
-                    bound_trail, space);
-  }
-
-  // Check the 'more specific' relationship, considering only a subvector of
-  // length 'len' starting at 'from_index'.
-  bool IsMoreSpecificThan(const TypeArguments& other,
-                          intptr_t from_index,
-                          intptr_t len,
-                          Error* bound_error,
-                          TrailPtr bound_trail,
-                          Heap::Space space) const {
-    return TypeTest(kIsMoreSpecificThan, other, from_index, len, bound_error,
-                    bound_trail, space);
-  }
-
-  // Check if the vectors are equal (they may be null).
-  bool Equals(const TypeArguments& other) const {
-    return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length());
-  }
-
-  bool IsEquivalent(const TypeArguments& other, TrailPtr trail = NULL) const {
-    return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length(), trail);
-  }
-  bool IsSubvectorEquivalent(const TypeArguments& other,
-                             intptr_t from_index,
-                             intptr_t len,
-                             TrailPtr trail = NULL) const;
-
-  // Check if the vector is instantiated (it must not be null).
-  bool IsInstantiated(Genericity genericity = kAny,
-                      TrailPtr trail = NULL) const {
-    return IsSubvectorInstantiated(0, Length(), genericity, trail);
-  }
-  bool IsSubvectorInstantiated(intptr_t from_index,
-                               intptr_t len,
-                               Genericity genericity = kAny,
-                               TrailPtr trail = NULL) const;
-  bool IsUninstantiatedIdentity() const;
-  bool CanShareInstantiatorTypeArguments(const Class& instantiator_class) const;
-
-  // Return true if all types of this vector are respectively, resolved,
-  // finalized, or bounded.
-  bool IsResolved() const;
-  bool IsFinalized() const;
-  bool IsBounded() const;
-
-  // Return true if this vector contains a recursive type argument.
-  bool IsRecursive() const;
-
-  // Clone this type argument vector and clone all unfinalized type arguments.
-  // Finalized type arguments are shared.
-  RawTypeArguments* CloneUnfinalized() const;
-
-  // Clone this type argument vector and clone all uninstantiated type
-  // arguments, changing the class owner of type parameters.
-  // Instantiated type arguments are shared.
-  RawTypeArguments* CloneUninstantiated(const Class& new_owner,
-                                        TrailPtr trail = NULL) const;
-
-  // Canonicalize only if instantiated, otherwise returns 'this'.
-  RawTypeArguments* Canonicalize(TrailPtr trail = NULL) const;
-
-  // Returns a formatted list of occurring type arguments with their URI.
-  RawString* EnumerateURIs() const;
-
-  // Return 'this' if this type argument vector is instantiated, i.e. if it does
-  // not refer to type parameters. Otherwise, return a new type argument vector
-  // where each reference to a type parameter is replaced with the corresponding
-  // type from the various type argument vectors (class instantiator, function,
-  // or parent functions via the current context).
-  // If bound_error is not NULL, it may be set to reflect a bound error.
-  RawTypeArguments* InstantiateFrom(
-      const TypeArguments& instantiator_type_arguments,
-      const TypeArguments& function_type_arguments,
-      Error* bound_error,
-      TrailPtr instantiation_trail,
-      TrailPtr bound_trail,
-      Heap::Space space) const;
-
-  // Runtime instantiation with canonicalization. Not to be used during type
-  // finalization at compile time.
-  RawTypeArguments* InstantiateAndCanonicalizeFrom(
-      const TypeArguments& instantiator_type_arguments,
-      const TypeArguments& function_type_arguments,
-      Error* bound_error) const;
-
-  // Return true if this type argument vector has cached instantiations.
-  bool HasInstantiations() const;
-
-  // Return the number of cached instantiations for this type argument vector.
-  intptr_t NumInstantiations() const;
-
-  static intptr_t instantiations_offset() {
-    return OFFSET_OF(RawTypeArguments, instantiations_);
-  }
-
-  static const intptr_t kBytesPerElement = kWordSize;
-  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
-
-  static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawTypeArguments) ==
-           OFFSET_OF_RETURNED_VALUE(RawTypeArguments, types));
-    return 0;
-  }
-
-  static intptr_t InstanceSize(intptr_t len) {
-    // Ensure that the types() is not adding to the object size, which includes
-    // 3 fields: instantiations_, length_ and hash_.
-    ASSERT(sizeof(RawTypeArguments) ==
-           (sizeof(RawObject) + (kNumFields * kWordSize)));
-    ASSERT(0 <= len && len <= kMaxElements);
-    return RoundedAllocationSize(sizeof(RawTypeArguments) +
-                                 (len * kBytesPerElement));
-  }
-
-  intptr_t Hash() const;
-
-  static RawTypeArguments* New(intptr_t len, Heap::Space space = Heap::kOld);
-
- private:
-  intptr_t ComputeHash() const;
-  void SetHash(intptr_t value) const;
-
-  // Check if the subvector of length 'len' starting at 'from_index' of this
-  // type argument vector consists solely of DynamicType.
-  // If raw_instantiated is true, consider each class type parameter to be first
-  // instantiated from a vector of dynamic types.
-  bool IsDynamicTypes(bool raw_instantiated,
-                      intptr_t from_index,
-                      intptr_t len) const;
-
-  // Check the subtype or 'more specific' relationship, considering only a
-  // subvector of length 'len' starting at 'from_index'.
-  bool TypeTest(TypeTestKind test_kind,
-                const TypeArguments& other,
-                intptr_t from_index,
-                intptr_t len,
-                Error* bound_error,
-                TrailPtr bound_trail,
-                Heap::Space space) const;
-
-  // Return the internal or public name of a subvector of this type argument
-  // vector, e.g. "<T, dynamic, List<T>, int>".
-  RawString* SubvectorName(intptr_t from_index,
-                           intptr_t len,
-                           NameVisibility name_visibility) const;
-
-  RawArray* instantiations() const;
-  void set_instantiations(const Array& value) const;
-  RawAbstractType* const* TypeAddr(intptr_t index) const;
-  void SetLength(intptr_t value) const;
-  // Number of fields in the raw object=3 (instantiations_, length_ and hash_).
-  static const int kNumFields = 3;
-
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeArguments, Object);
-  friend class AbstractType;
-  friend class Class;
-  friend class ClearTypeHashVisitor;
-  friend class Object;
-};
-
 
 class PatchClass : public Object {
  public:
   RawClass* patched_class() const { return raw_ptr()->patched_class_; }
   RawClass* origin_class() const { return raw_ptr()->origin_class_; }
   RawScript* script() const { return raw_ptr()->script_; }
+  RawExternalTypedData* library_kernel_data() const {
+    return raw_ptr()->library_kernel_data_;
+  }
+  void set_library_kernel_data(const ExternalTypedData& data) const;
+
+  intptr_t library_kernel_offset() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    return raw_ptr()->library_kernel_offset_;
+#else
+    return -1;
+#endif
+  }
+  void set_library_kernel_offset(intptr_t offset) const {
+    NOT_IN_PRECOMPILED(
+        StoreNonPointer(&raw_ptr()->library_kernel_offset_, offset));
+  }
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawPatchClass));
@@ -1820,7 +1684,6 @@ class PatchClass : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(PatchClass, Object);
   friend class Class;
 };
-
 
 class SingleTargetCache : public Object {
  public:
@@ -1855,7 +1718,6 @@ class SingleTargetCache : public Object {
   friend class Class;
 };
 
-
 class UnlinkedCall : public Object {
  public:
   RawString* target_name() const { return raw_ptr()->target_name_; }
@@ -1873,7 +1735,6 @@ class UnlinkedCall : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(UnlinkedCall, Object);
   friend class Class;
 };
-
 
 // Object holding information about an IC: test classes and their
 // corresponding targets. The owner of the ICData can be either the function
@@ -1896,6 +1757,12 @@ class ICData : public Object {
 
   intptr_t NumArgsTested() const;
 
+  intptr_t TypeArgsLen() const;
+
+  intptr_t CountWithTypeArgs() const;
+
+  intptr_t CountWithoutTypeArgs() const;
+
   intptr_t deopt_id() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
@@ -1915,13 +1782,13 @@ class ICData : public Object {
 // printed during deoptimization itself.
 #define DEOPT_REASONS(V)                                                       \
   V(BinarySmiOp)                                                               \
-  V(BinaryMintOp)                                                              \
+  V(BinaryInt64Op)                                                             \
   V(DoubleToSmi)                                                               \
   V(CheckSmi)                                                                  \
   V(CheckClass)                                                                \
   V(Unknown)                                                                   \
   V(PolymorphicInstanceCallTestFail)                                           \
-  V(UnaryMintOp)                                                               \
+  V(UnaryInt64Op)                                                              \
   V(BinaryDoubleOp)                                                            \
   V(UnaryOp)                                                                   \
   V(UnboxInteger)                                                              \
@@ -1953,6 +1820,20 @@ class ICData : public Object {
 
   bool HasDeoptReason(ICData::DeoptReasonId reason) const;
   void AddDeoptReason(ICData::DeoptReasonId reason) const;
+
+  // Call site classification that is helpful for hot-reload. Call sites with
+  // different `RebindRule` have to be rebound differently.
+  enum RebindRule {
+    kInstance,
+    kNoRebind,
+    kNSMDispatch,
+    kOptimized,
+    kStatic,
+    kSuper,
+    kNumRebindRules,
+  };
+  RebindRule rebind_rule() const;
+  void set_rebind_rule(uint32_t rebind_rule) const;
 
   // The length of the array. This includes all sentinel entries including
   // the final one.
@@ -2093,7 +1974,7 @@ class ICData : public Object {
                         const Array& arguments_descriptor,
                         intptr_t deopt_id,
                         intptr_t num_args_tested,
-                        bool is_static_call);
+                        RebindRule rebind_rule);
   static RawICData* NewFrom(const ICData& from, intptr_t num_args_tested);
 
   // Generates a new ICData with descriptor and data array copied (deep clone).
@@ -2123,11 +2004,11 @@ class ICData : public Object {
   enum { kCachedICDataArrayCount = 4 };
 
 #if defined(TAG_IC_DATA)
-  void set_tag(intptr_t value) const;
-  intptr_t tag() const { return raw_ptr()->tag_; }
+  using Tag = RawICData::Tag;
+  void set_tag(Tag value) const;
+  Tag tag() const { return raw_ptr()->tag_; }
 #endif
 
-  void SetIsStaticCall(bool static_call) const;
   bool is_static_call() const;
 
  private:
@@ -2150,9 +2031,11 @@ class ICData : public Object {
     kNumArgsTestedSize = 2,
     kDeoptReasonPos = kNumArgsTestedPos + kNumArgsTestedSize,
     kDeoptReasonSize = kLastRecordedDeoptReason + 1,
-    kStaticCallPos = kDeoptReasonPos + kDeoptReasonSize,
-    kStaticCallSize = 1,
+    kRebindRulePos = kDeoptReasonPos + kDeoptReasonSize,
+    kRebindRuleSize = 3
   };
+
+  COMPILE_ASSERT(kNumRebindRules <= (1 << kRebindRuleSize));
 
   class NumArgsTestedBits : public BitField<uint32_t,
                                             uint32_t,
@@ -2162,10 +2045,10 @@ class ICData : public Object {
                                           uint32_t,
                                           ICData::kDeoptReasonPos,
                                           ICData::kDeoptReasonSize> {};
-  class StaticCallBit : public BitField<uint32_t,
-                                        bool,
-                                        ICData::kStaticCallPos,
-                                        ICData::kStaticCallSize> {};
+  class RebindRuleBits : public BitField<uint32_t,
+                                         uint32_t,
+                                         ICData::kRebindRulePos,
+                                         ICData::kRebindRuleSize> {};
 #if defined(DEBUG)
   // Used in asserts to verify that a check is not added twice.
   bool HasCheck(const GrowableArray<intptr_t>& cids) const;
@@ -2180,7 +2063,7 @@ class ICData : public Object {
                                   const Array& arguments_descriptor,
                                   intptr_t deopt_id,
                                   intptr_t num_args_tested,
-                                  bool is_static_call);
+                                  RebindRule rebind_rule);
 
   static void WriteSentinel(const Array& data, intptr_t test_entry_length);
 
@@ -2194,6 +2077,24 @@ class ICData : public Object {
   friend class Deserializer;
 };
 
+// Often used constants for number of free function type parameters.
+enum {
+  kNoneFree = 0,
+
+  // 'kCurrentAndEnclosingFree' is used when partially applying a signature
+  // function to a set of type arguments. It indicates that the set of type
+  // parameters declared by the current function and enclosing functions should
+  // be considered free, and the current function type parameters should be
+  // substituted as well.
+  //
+  // For instance, if the signature "<T>(T, R) => T" is instantiated with
+  // function type arguments [int, String] and kCurrentAndEnclosingFree is
+  // supplied, the result of the instantiation will be "(String, int) => int".
+  kCurrentAndEnclosingFree = kMaxInt32 - 1,
+
+  // Only parameters declared by enclosing functions are free.
+  kAllFree = kMaxInt32,
+};
 
 class Function : public Object {
  public:
@@ -2225,16 +2126,19 @@ class Function : public Object {
   RawFunction* InstantiateSignatureFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
+      intptr_t num_free_fun_type_params,
       Heap::Space space) const;
 
-  // Build a string of the form '(T, {B b, C c}) => R' representing the
-  // internal signature of the given function. In this example, T and R are
-  // type parameters of class C, the owner of the function.
+  // Build a string of the form '<T>(T, {B b, C c}) => R' representing the
+  // internal signature of the given function. In this example, T is a type
+  // parameter of this function and R is a type parameter of class C, the owner
+  // of the function. B and C are not type parameters.
   RawString* Signature() const { return BuildSignature(kInternalName); }
 
-  // Build a string of the form '(T, {B b, C c}) => R' representing the
-  // user visible signature of the given function. In this example, T and R are
-  // type parameters of class C, the owner of the function.
+  // Build a string of the form '<T>(T, {B b, C c}) => R' representing the
+  // user visible signature of the given function. In this example, T is a type
+  // parameter of this function and R is a type parameter of class C, the owner
+  // of the function. B and C are not type parameters.
   // Implicit parameters are hidden.
   RawString* UserVisibleSignature() const {
     return BuildSignature(kUserVisibleName);
@@ -2242,18 +2146,19 @@ class Function : public Object {
 
   // Returns true if the signature of this function is instantiated, i.e. if it
   // does not involve generic parameter types or generic result type.
+  // Note that function type parameters declared by this function do not make
+  // its signature uninstantiated, only type parameters declared by parent
+  // generic functions or class type parameters.
   bool HasInstantiatedSignature(Genericity genericity = kAny,
+                                intptr_t num_free_fun_type_params = kAllFree,
                                 TrailPtr trail = NULL) const;
-
-  // Build a string of the form 'T, {B b, C c}' representing the user
-  // visible formal parameters of the function.
-  RawString* UserVisibleFormalParameters() const;
 
   // Reloading support:
   void Reparent(const Class& new_cls) const;
   void ZeroEdgeCounters() const;
 
   RawClass* Owner() const;
+  void set_owner(const Object& value) const;
   RawClass* origin() const;
   RawScript* script() const;
   RawObject* RawOwner() const { return raw_ptr()->owner_; }
@@ -2300,6 +2205,9 @@ class Function : public Object {
 
   // Return the number of type parameters declared in parent generic functions.
   intptr_t NumParentTypeParameters() const;
+
+  // Print the signature type of this function and of all of its parents.
+  void PrintSignatureTypes() const;
 
   // Return a TypeParameter if the type_name is a type parameter of this
   // function or of one of its parent functions.
@@ -2350,12 +2258,22 @@ class Function : public Object {
   }
   void set_unoptimized_code(const Code& value) const;
   bool HasCode() const;
+#if defined(DART_USE_INTERPRETER)
+  static bool HasCode(RawFunction* function);
+  static bool HasBytecode(RawFunction* function);
+#endif
 
   static intptr_t code_offset() { return OFFSET_OF(RawFunction, code_); }
 
   static intptr_t entry_point_offset() {
     return OFFSET_OF(RawFunction, entry_point_);
   }
+
+#if defined(DART_USE_INTERPRETER)
+  void AttachBytecode(const Code& bytecode) const;
+  RawCode* Bytecode() const { return raw_ptr()->bytecode_; }
+  bool HasBytecode() const;
+#endif
 
   virtual intptr_t Hash() const;
 
@@ -2366,16 +2284,20 @@ class Function : public Object {
   RawContextScope* context_scope() const;
   void set_context_scope(const ContextScope& value) const;
 
-  RawField* LookupImplicitGetterSetterField() const;
-
   // Enclosing function of this local function.
   RawFunction* parent_function() const;
+
+  // Enclosing outermost function of this local function.
+  RawFunction* GetOutermostFunction() const;
 
   void set_extracted_method_closure(const Function& function) const;
   RawFunction* extracted_method_closure() const;
 
   void set_saved_args_desc(const Array& array) const;
   RawArray* saved_args_desc() const;
+
+  void set_accessor_field(const Field& value) const;
+  RawField* accessor_field() const;
 
   bool IsMethodExtractor() const {
     return kind() == RawFunction::kMethodExtractor;
@@ -2389,14 +2311,25 @@ class Function : public Object {
     return kind() == RawFunction::kInvokeFieldDispatcher;
   }
 
+  bool IsDynamicInvocationForwader() const {
+    return kind() == RawFunction::kDynamicInvocationForwarder;
+  }
+
+  bool IsImplicitGetterOrSetter() const {
+    return kind() == RawFunction::kImplicitGetter ||
+           kind() == RawFunction::kImplicitSetter ||
+           kind() == RawFunction::kImplicitStaticFinalGetter;
+  }
+
   // Returns true iff an implicit closure function has been created
   // for this function.
   bool HasImplicitClosureFunction() const {
     return implicit_closure_function() != null();
   }
 
-  // Return the closure function implicitly created for this function.
-  // If none exists yet, create one and remember it.
+  // Returns the closure function implicitly created for this function.  If none
+  // exists yet, create one and remember it.  Implicit closure functions are
+  // used in VM Closure instances that represent results of tear-off operations.
   RawFunction* ImplicitClosureFunction() const;
   void DropUncompiledImplicitClosureFunction() const;
 
@@ -2406,7 +2339,7 @@ class Function : public Object {
 
   RawInstance* ImplicitInstanceClosure(const Instance& receiver) const;
 
-  RawSmi* GetClosureHashCode() const;
+  intptr_t ComputeClosureHash() const;
 
   // Redirection information for a redirecting factory.
   bool IsRedirectingFactory() const;
@@ -2419,6 +2352,9 @@ class Function : public Object {
 
   RawFunction::Kind kind() const {
     return KindBits::decode(raw_ptr()->kind_tag_);
+  }
+  static RawFunction::Kind kind(RawFunction* function) {
+    return KindBits::decode(function->ptr()->kind_tag_);
   }
 
   RawFunction::AsyncModifier modifier() const {
@@ -2447,8 +2383,10 @@ class Function : public Object {
       case RawFunction::kMethodExtractor:
       case RawFunction::kNoSuchMethodDispatcher:
       case RawFunction::kInvokeFieldDispatcher:
+      case RawFunction::kDynamicInvocationForwarder:
         return true;
       case RawFunction::kClosureFunction:
+      case RawFunction::kImplicitClosureFunction:
       case RawFunction::kSignatureFunction:
       case RawFunction::kConstructor:
       case RawFunction::kImplicitStaticFinalGetter:
@@ -2473,11 +2411,13 @@ class Function : public Object {
       case RawFunction::kIrregexpFunction:
         return true;
       case RawFunction::kClosureFunction:
+      case RawFunction::kImplicitClosureFunction:
       case RawFunction::kSignatureFunction:
       case RawFunction::kConstructor:
       case RawFunction::kMethodExtractor:
       case RawFunction::kNoSuchMethodDispatcher:
       case RawFunction::kInvokeFieldDispatcher:
+      case RawFunction::kDynamicInvocationForwarder:
         return false;
       default:
         UNREACHABLE();
@@ -2485,6 +2425,17 @@ class Function : public Object {
     }
   }
   bool IsInFactoryScope() const;
+
+  bool NeedsArgumentTypeChecks(Isolate* I) const {
+    if (I->strong()) {
+      if (FLAG_omit_strong_type_checks) {
+        return false;
+      }
+      return IsNonImplicitClosureFunction() ||
+             !(is_static() || (kind() == RawFunction::kConstructor));
+    }
+    return I->type_checks();
+  }
 
   TokenPosition token_pos() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -2510,136 +2461,95 @@ class Function : public Object {
 #endif
   }
 
+  bool is_no_such_method_forwarder() const {
+    return RawFunction::PackedIsNoSuchMethodForwarder::decode(
+        raw_ptr()->packed_fields_);
+  }
+
+  void set_is_no_such_method_forwarder(bool value) const;
+
   intptr_t num_fixed_parameters() const {
-    return raw_ptr()->num_fixed_parameters_;
+    return RawFunction::PackedNumFixedParameters::decode(
+        raw_ptr()->packed_fields_);
   }
   void set_num_fixed_parameters(intptr_t value) const;
 
+  uint32_t packed_fields() const { return raw_ptr()->packed_fields_; }
+  void set_packed_fields(uint32_t packed_fields) const;
+
   bool HasOptionalParameters() const {
-    return raw_ptr()->num_optional_parameters_ != 0;
-  }
-  bool HasOptionalPositionalParameters() const {
-    return raw_ptr()->num_optional_parameters_ > 0;
+    return RawFunction::PackedNumOptionalParameters::decode(
+               raw_ptr()->packed_fields_) > 0;
   }
   bool HasOptionalNamedParameters() const {
-    return raw_ptr()->num_optional_parameters_ < 0;
+    return HasOptionalParameters() &&
+           RawFunction::PackedHasNamedOptionalParameters::decode(
+               raw_ptr()->packed_fields_);
+  }
+  bool HasOptionalPositionalParameters() const {
+    return HasOptionalParameters() && !HasOptionalNamedParameters();
   }
   intptr_t NumOptionalParameters() const {
-    const intptr_t num_opt_params = raw_ptr()->num_optional_parameters_;
-    return (num_opt_params >= 0) ? num_opt_params : -num_opt_params;
+    return RawFunction::PackedNumOptionalParameters::decode(
+        raw_ptr()->packed_fields_);
   }
   void SetNumOptionalParameters(intptr_t num_optional_parameters,
                                 bool are_optional_positional) const;
 
   intptr_t NumOptionalPositionalParameters() const {
-    const intptr_t num_opt_params = raw_ptr()->num_optional_parameters_;
-    return (num_opt_params > 0) ? num_opt_params : 0;
+    return HasOptionalPositionalParameters() ? NumOptionalParameters() : 0;
   }
+
   intptr_t NumOptionalNamedParameters() const {
-    const intptr_t num_opt_params = raw_ptr()->num_optional_parameters_;
-    return (num_opt_params < 0) ? -num_opt_params : 0;
+    return HasOptionalNamedParameters() ? NumOptionalParameters() : 0;
   }
 
   intptr_t NumParameters() const;
 
   intptr_t NumImplicitParameters() const;
 
-  static intptr_t usage_counter_offset() {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-    return 0;
+#define DEFINE_GETTERS_AND_SETTERS(return_type, type, name)                    \
+  static intptr_t name##_offset() {                                            \
+    UNREACHABLE();                                                             \
+    return 0;                                                                  \
+  }                                                                            \
+  return_type name() const { return 0; }                                       \
+                                                                               \
+  void set_##name(type value) const { UNREACHABLE(); }
 #else
-    return OFFSET_OF(RawFunction, usage_counter_);
-#endif
+#define DEFINE_GETTERS_AND_SETTERS(return_type, type, name)                    \
+  static intptr_t name##_offset() { return OFFSET_OF(RawFunction, name##_); }  \
+  return_type name() const { return raw_ptr()->name##_; }                      \
+                                                                               \
+  void set_##name(type value) const {                                          \
+    StoreNonPointer(&raw_ptr()->name##_, value);                               \
   }
-  intptr_t usage_counter() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    return 0;
-#else
-    return raw_ptr()->usage_counter_;
 #endif
-  }
-  void set_usage_counter(intptr_t value) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-#else
-    // TODO(Srdjan): Assert that this is thread-safe, i.e., only
-    // set from mutator-thread or while at a safepoint (e.g., during marking).
-    StoreNonPointer(&raw_ptr()->usage_counter_, value);
-#endif
-  }
 
-  int8_t deoptimization_counter() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    return 0;
-#else
-    return raw_ptr()->deoptimization_counter_;
-#endif
-  }
-  void set_deoptimization_counter(int8_t value) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-#else
-    ASSERT(value >= 0);
-    StoreNonPointer(&raw_ptr()->deoptimization_counter_, value);
-#endif
-  }
+  JIT_FUNCTION_COUNTERS(DEFINE_GETTERS_AND_SETTERS)
+
+#undef DEFINE_GETTERS_AND_SETTERS
 
   static const intptr_t kMaxInstructionCount = (1 << 16) - 1;
-  intptr_t optimized_instruction_count() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-    return 0;
-#else
-    return raw_ptr()->optimized_instruction_count_;
-#endif
-  }
-  void set_optimized_instruction_count(intptr_t value) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-#else
-    ASSERT(value >= 0);
-    if (value > kMaxInstructionCount) {
-      value = kMaxInstructionCount;
-    }
-    StoreNonPointer(&raw_ptr()->optimized_instruction_count_,
-                    static_cast<uint16_t>(value));
-#endif
+
+  void SetOptimizedInstructionCountClamped(uintptr_t value) const {
+    if (value > kMaxInstructionCount) value = kMaxInstructionCount;
+    set_optimized_instruction_count(value);
   }
 
-  intptr_t optimized_call_site_count() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    return 0;
-#else
-    return raw_ptr()->optimized_call_site_count_;
-#endif
-  }
-  void set_optimized_call_site_count(intptr_t value) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-#else
-    ASSERT(value >= 0);
-    if (value > kMaxInstructionCount) {
-      value = kMaxInstructionCount;
-    }
-    StoreNonPointer(&raw_ptr()->optimized_call_site_count_,
-                    static_cast<uint16_t>(value));
-#endif
+  void SetOptimizedCallSiteCountClamped(uintptr_t value) const {
+    if (value > kMaxInstructionCount) value = kMaxInstructionCount;
+    set_optimized_call_site_count(value);
   }
 
-  void* kernel_function() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    return NULL;
-#else
-    return raw_ptr()->kernel_function_;
-#endif
-  }
+  void SetKernelDataAndScript(const Script& script,
+                              const ExternalTypedData& data,
+                              intptr_t offset);
 
-  void set_kernel_function(void* kernel_function) const {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    StoreNonPointer(&raw_ptr()->kernel_function_, kernel_function);
-#endif
-  }
+  intptr_t KernelDataProgramOffset() const;
+
+  RawExternalTypedData* KernelData() const;
 
   bool IsOptimizable() const;
   void SetIsOptimizable(bool value) const;
@@ -2720,6 +2630,7 @@ class Function : public Object {
       case RawFunction::kImplicitSetter:
       case RawFunction::kNoSuchMethodDispatcher:
       case RawFunction::kInvokeFieldDispatcher:
+      case RawFunction::kDynamicInvocationForwarder:
         return true;
       default:
         return false;
@@ -2746,10 +2657,18 @@ class Function : public Object {
     return kind() == RawFunction::kImplicitSetter;
   }
 
+  // Returns true if this function represents an implicit static field
+  // initializer function.
+  bool IsImplicitStaticFieldInitializer() const {
+    return kind() == RawFunction::kImplicitStaticFinalGetter;
+  }
+
   // Returns true if this function represents a (possibly implicit) closure
   // function.
   bool IsClosureFunction() const {
-    return kind() == RawFunction::kClosureFunction;
+    RawFunction::Kind k = kind();
+    return (k == RawFunction::kClosureFunction) ||
+           (k == RawFunction::kImplicitClosureFunction);
   }
 
   // Returns true if this function represents a generated irregexp function.
@@ -2758,7 +2677,9 @@ class Function : public Object {
   }
 
   // Returns true if this function represents an implicit closure function.
-  bool IsImplicitClosureFunction() const;
+  bool IsImplicitClosureFunction() const {
+    return kind() == RawFunction::kImplicitClosureFunction;
+  }
 
   // Returns true if this function represents a non implicit closure function.
   bool IsNonImplicitClosureFunction() const {
@@ -2768,17 +2689,15 @@ class Function : public Object {
   // Returns true if this function represents an implicit static closure
   // function.
   bool IsImplicitStaticClosureFunction() const {
-    return is_static() && IsImplicitClosureFunction();
+    return IsImplicitClosureFunction() && is_static();
   }
   static bool IsImplicitStaticClosureFunction(RawFunction* func);
 
   // Returns true if this function represents an implicit instance closure
   // function.
   bool IsImplicitInstanceClosureFunction() const {
-    return !is_static() && IsImplicitClosureFunction();
+    return IsImplicitClosureFunction() && !is_static();
   }
-
-  bool IsConstructorClosureFunction() const;
 
   // Returns true if this function represents a local function.
   bool IsLocalFunction() const { return parent_function() != Function::null(); }
@@ -2847,14 +2766,28 @@ class Function : public Object {
                           TokenPosition token_pos,
                           Heap::Space space = Heap::kOld);
 
+  // Allocates a new Function object representing a closure function
+  // with given kind - kClosureFunction or kImplicitClosureFunction.
+  static RawFunction* NewClosureFunctionWithKind(RawFunction::Kind kind,
+                                                 const String& name,
+                                                 const Function& parent,
+                                                 TokenPosition token_pos);
+
   // Allocates a new Function object representing a closure function.
   static RawFunction* NewClosureFunction(const String& name,
                                          const Function& parent,
                                          TokenPosition token_pos);
 
+  // Allocates a new Function object representing an implicit closure function.
+  static RawFunction* NewImplicitClosureFunction(const String& name,
+                                                 const Function& parent,
+                                                 TokenPosition token_pos);
+
   // Allocates a new Function object representing a signature function.
   // The owner is the scope class of the function type.
+  // The parent is the enclosing function or null if none.
   static RawFunction* NewSignatureFunction(const Object& owner,
+                                           const Function& parent,
                                            TokenPosition token_pos,
                                            Heap::Space space = Heap::kOld);
 
@@ -2864,6 +2797,17 @@ class Function : public Object {
 
   RawFunction* CreateMethodExtractor(const String& getter_name) const;
   RawFunction* GetMethodExtractor(const String& getter_name) const;
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  static bool IsDynamicInvocationForwaderName(const String& name);
+  static RawString* DemangleDynamicInvocationForwarderName(const String& name);
+  static RawString* CreateDynamicInvocationForwarderName(const String& name);
+
+  RawFunction* CreateDynamicInvocationForwarder(
+      const String& mangled_name) const;
+  RawFunction* GetDynamicInvocationForwarder(const String& mangled_name,
+                                             bool allow_add = true) const;
+#endif
 
   // Allocate new function object, clone values from this function. The
   // owner of the clone is new_owner.
@@ -2893,48 +2837,72 @@ class Function : public Object {
 
   void set_modifier(RawFunction::AsyncModifier value) const;
 
-  // 'was_compiled' is true if the function was compiled once in this
-  // VM instantiation. It is independent from presence of type feedback
-  // (ic_data_array) and code, which may be loaded from a snapshot.
-  void set_was_compiled(bool value) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-#else
-    StoreNonPointer(&raw_ptr()->was_compiled_, value ? 1 : 0);
-#endif
-  }
-  bool was_compiled() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-    return true;
-#else
-    return raw_ptr()->was_compiled_ == 1;
-#endif
+// 'WasCompiled' is true if the function was compiled once in this
+// VM instantiation. It is independent from presence of type feedback
+// (ic_data_array) and code, which may be loaded from a snapshot.
+// 'WasExecuted' is true if the usage counter has ever been positive.
+// 'ProhibitsHoistingCheckClass' is true if this function deoptimized before on
+// a hoisted check class instruction.
+// 'ProhibitsBoundsCheckGeneralization' is true if this function deoptimized
+// before on a generalized bounds check.
+#define STATE_BITS_LIST(V)                                                     \
+  V(WasCompiled)                                                               \
+  V(WasExecutedBit)                                                            \
+  V(ProhibitsHoistingCheckClass)                                               \
+  V(ProhibitsBoundsCheckGeneralization)
+
+  enum StateBits {
+#define DECLARE_FLAG_POS(Name) k##Name##Pos,
+    STATE_BITS_LIST(DECLARE_FLAG_POS)
+#undef DECLARE_FLAG_POS
+  };
+#define DEFINE_FLAG_BIT(Name)                                                  \
+  class Name##Bit : public BitField<uint8_t, bool, k##Name##Pos, 1> {};
+  STATE_BITS_LIST(DEFINE_FLAG_BIT)
+#undef DEFINE_FLAG_BIT
+
+#define DEFINE_FLAG_ACCESSORS(Name)                                            \
+  void Set##Name(bool value) const {                                           \
+    set_state_bits(Name##Bit::update(value, state_bits()));                    \
+  }                                                                            \
+  bool Name() const { return Name##Bit::decode(state_bits()); }
+  STATE_BITS_LIST(DEFINE_FLAG_ACCESSORS)
+#undef DEFINE_FLAG_ACCESSORS
+
+  void SetUsageCounter(intptr_t value) const {
+    if (usage_counter() > 0) {
+      SetWasExecuted(true);
+    }
+    set_usage_counter(value);
   }
 
-// static: Considered during class-side or top-level resolution rather than
-//         instance-side resolution.
-// const: Valid target of a const constructor call.
-// abstract: Skipped during instance-side resolution.
-// reflectable: Enumerated by mirrors, invocable by mirrors. False for private
-//              functions of dart: libraries.
-// debuggable: Valid location of a breakpoint. Synthetic code is not
-//             debuggable.
-// visible: Frame is included in stack traces. Synthetic code such as
-//          dispatchers is not visible. Synthetic code that can trigger
-//          exceptions such as the outer async functions that create Futures
-//          is visible.
-// optimizable: Candidate for going through the optimizing compiler. False for
-//              some functions known to be execute infrequently and functions
-//              which have been de-optimized too many times.
-// instrinsic: Has a hand-written assembly prologue.
-// inlinable: Candidate for inlining. False for functions with features we
-//            don't support during inlining (e.g., optional parameters),
-//            functions which are too big, etc.
-// native: Bridge to C/C++ code.
-// redirecting: Redirecting generative or factory constructor.
-// external: Just a declaration that expects to be defined in another patch
-//           file.
+  bool WasExecuted() const { return (usage_counter() > 0) || WasExecutedBit(); }
+
+  void SetWasExecuted(bool value) const { SetWasExecutedBit(value); }
+
+  // static: Considered during class-side or top-level resolution rather than
+  //         instance-side resolution.
+  // const: Valid target of a const constructor call.
+  // abstract: Skipped during instance-side resolution.
+  // reflectable: Enumerated by mirrors, invocable by mirrors. False for private
+  //              functions of dart: libraries.
+  // debuggable: Valid location of a breakpoint. Synthetic code is not
+  //             debuggable.
+  // visible: Frame is included in stack traces. Synthetic code such as
+  //          dispatchers is not visible. Synthetic code that can trigger
+  //          exceptions such as the outer async functions that create Futures
+  //          is visible.
+  // optimizable: Candidate for going through the optimizing compiler. False for
+  //              some functions known to be execute infrequently and functions
+  //              which have been de-optimized too many times.
+  // instrinsic: Has a hand-written assembly prologue.
+  // inlinable: Candidate for inlining. False for functions with features we
+  //            don't support during inlining (e.g., optional parameters),
+  //            functions which are too big, etc.
+  // native: Bridge to C/C++ code.
+  // redirecting: Redirecting generative or factory constructor.
+  // external: Just a declaration that expects to be defined in another patch
+  //           file.
 
 #define FOR_EACH_FUNCTION_KIND_BIT(V)                                          \
   V(Static, is_static)                                                         \
@@ -2949,11 +2917,10 @@ class Function : public Object {
   V(Native, is_native)                                                         \
   V(Redirecting, is_redirecting)                                               \
   V(External, is_external)                                                     \
-  V(AllowsHoistingCheckClass, allows_hoisting_check_class)                     \
-  V(AllowsBoundsCheckGeneralization, allows_bounds_check_generalization)       \
   V(GeneratedBody, is_generated_body)                                          \
   V(AlwaysInline, always_inline)                                               \
-  V(PolymorphicTarget, is_polymorphic_target)
+  V(PolymorphicTarget, is_polymorphic_target)                                  \
+  V(HasPragma, has_pragma)
 
 #define DEFINE_ACCESSORS(name, accessor_name)                                  \
   void set_##accessor_name(bool value) const {                                 \
@@ -2962,6 +2929,18 @@ class Function : public Object {
   bool accessor_name() const { return name##Bit::decode(raw_ptr()->kind_tag_); }
   FOR_EACH_FUNCTION_KIND_BIT(DEFINE_ACCESSORS)
 #undef DEFINE_ACCESSORS
+
+  // Indicates whether this function can be optimized on the background compiler
+  // thread.
+  bool is_background_optimizable() const {
+    return RawFunction::BackgroundOptimizableBit::decode(
+        raw_ptr()->packed_fields_);
+  }
+
+  void set_is_background_optimizable(bool value) const {
+    set_packed_fields(RawFunction::BackgroundOptimizableBit::update(
+        value, raw_ptr()->packed_fields_));
+  }
 
  private:
   void set_ic_data_array(const Array& value) const;
@@ -3010,7 +2989,6 @@ class Function : public Object {
   void set_name(const String& value) const;
   void set_kind(RawFunction::Kind value) const;
   void set_parent_function(const Function& value) const;
-  void set_owner(const Object& value) const;
   RawFunction* implicit_closure_function() const;
   void set_implicit_closure_function(const Function& value) const;
   RawInstance* implicit_static_closure() const;
@@ -3051,8 +3029,8 @@ class Function : public Object {
   // Function.
   friend class RawFunction;
   friend class ClassFinalizer;  // To reset parent_function.
+  friend class Type;            // To adjust parent_function.
 };
-
 
 class ClosureData : public Object {
  public:
@@ -3075,9 +3053,6 @@ class ClosureData : public Object {
   RawInstance* implicit_static_closure() const { return raw_ptr()->closure_; }
   void set_implicit_static_closure(const Instance& closure) const;
 
-  RawObject* hash() const { return raw_ptr()->hash_; }
-  void set_hash(intptr_t value) const;
-
   static RawClosureData* New();
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ClosureData, Object);
@@ -3085,7 +3060,6 @@ class ClosureData : public Object {
   friend class Function;
   friend class HeapProfiler;
 };
-
 
 class SignatureData : public Object {
  public:
@@ -3109,7 +3083,6 @@ class SignatureData : public Object {
   friend class Function;
   friend class HeapProfiler;
 };
-
 
 class RedirectionData : public Object {
  public:
@@ -3137,7 +3110,6 @@ class RedirectionData : public Object {
   friend class Function;
   friend class HeapProfiler;
 };
-
 
 class Field : public Object {
  public:
@@ -3181,20 +3153,37 @@ class Field : public Object {
     set_kind_bits(DoubleInitializedBit::update(value, raw_ptr()->kind_bits_));
   }
 
-  void* kernel_field() const {
+  bool initializer_changed_after_initialization() const {
+    return InitializerChangedAfterInitializatonBit::decode(
+        raw_ptr()->kind_bits_);
+  }
+  void set_initializer_changed_after_initialization(bool value) const {
+    set_kind_bits(InitializerChangedAfterInitializatonBit::update(
+        value, raw_ptr()->kind_bits_));
+  }
+
+  intptr_t kernel_offset() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    return NULL;
+    return 0;
 #else
-    return raw_ptr()->kernel_field_;
+    return raw_ptr()->kernel_offset_;
 #endif
   }
 
-  void set_kernel_field(void* kernel_field) const {
+  void set_kernel_offset(intptr_t offset) const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-    StoreNonPointer(&raw_ptr()->kernel_field_, kernel_field);
+    StoreNonPointer(&raw_ptr()->kernel_offset_, offset);
 #endif
   }
 
+  RawExternalTypedData* KernelData() const;
+
+  intptr_t KernelDataProgramOffset() const;
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  void GetCovarianceAttributes(bool* is_covariant,
+                               bool* is_generic_covariant) const;
+#endif
 
   inline intptr_t Offset() const;
   // Called during class finalization.
@@ -3224,13 +3213,15 @@ class Field : public Object {
                        bool is_reflectable,
                        const Object& owner,
                        const AbstractType& type,
-                       TokenPosition token_pos);
+                       TokenPosition token_pos,
+                       TokenPosition end_token_pos);
 
   static RawField* NewTopLevel(const String& name,
                                bool is_final,
                                bool is_const,
                                const Object& owner,
-                               TokenPosition token_pos);
+                               TokenPosition token_pos,
+                               TokenPosition end_token_pos);
 
   // Allocate new field object, clone values from this field. The
   // owner of the clone is new_owner.
@@ -3249,6 +3240,9 @@ class Field : public Object {
   static intptr_t kind_bits_offset() { return OFFSET_OF(RawField, kind_bits_); }
 
   TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
+  TokenPosition end_token_pos() const { return raw_ptr()->end_token_pos_; }
+
+  int32_t SourceFingerprint() const;
 
   RawString* InitializingExpression() const;
 
@@ -3318,8 +3312,6 @@ class Field : public Object {
     ASSERT(IsOriginal());
     set_kind_bits(UnboxingCandidateBit::update(b, raw_ptr()->kind_bits_));
   }
-
-  static bool IsExternalizableCid(intptr_t cid);
 
   enum {
     kUnknownLengthOffset = -1,
@@ -3406,7 +3398,8 @@ class Field : public Object {
                             bool is_const,
                             bool is_reflectable,
                             const Object& owner,
-                            TokenPosition token_pos);
+                            TokenPosition token_pos,
+                            TokenPosition end_token_pos);
   friend class StoreInstanceFieldInstr;  // Generated code access to bit field.
 
   enum {
@@ -3417,6 +3410,7 @@ class Field : public Object {
     kUnboxingCandidateBit,
     kReflectableBit,
     kDoubleInitializedBit,
+    kInitializerChangedAfterInitializatonBit,
   };
   class ConstBit : public BitField<uint8_t, bool, kConstBit, 1> {};
   class StaticBit : public BitField<uint8_t, bool, kStaticBit, 1> {};
@@ -3428,6 +3422,11 @@ class Field : public Object {
   class ReflectableBit : public BitField<uint8_t, bool, kReflectableBit, 1> {};
   class DoubleInitializedBit
       : public BitField<uint8_t, bool, kDoubleInitializedBit, 1> {};
+  class InitializerChangedAfterInitializatonBit
+      : public BitField<uint8_t,
+                        bool,
+                        kInitializerChangedAfterInitializatonBit,
+                        1> {};
 
   // Update guarded cid and guarded length for this field. Returns true, if
   // deoptimization of dependent code is required.
@@ -3452,6 +3451,9 @@ class Field : public Object {
   void set_token_pos(TokenPosition token_pos) const {
     StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
   }
+  void set_end_token_pos(TokenPosition token_pos) const {
+    StoreNonPointer(&raw_ptr()->end_token_pos_, token_pos);
+  }
   void set_kind_bits(uint8_t value) const {
     StoreNonPointer(&raw_ptr()->kind_bits_, value);
   }
@@ -3464,7 +3466,6 @@ class Field : public Object {
   friend class RawField;
   friend class FieldSerializationCluster;
 };
-
 
 class LiteralToken : public Object {
  public:
@@ -3489,7 +3490,6 @@ class LiteralToken : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(LiteralToken, Object);
   friend class Class;
 };
-
 
 class TokenStream : public Object {
  public:
@@ -3579,10 +3579,10 @@ class TokenStream : public Object {
   friend class Class;
 };
 
-
 class Script : public Object {
  public:
   RawString* url() const { return raw_ptr()->url_; }
+  void set_url(const String& value) const;
 
   // The actual url which was loaded from disk, if provided by the embedder.
   RawString* resolved_url() const { return raw_ptr()->resolved_url_; }
@@ -3605,33 +3605,32 @@ class Script : public Object {
   }
   void set_compile_time_constants(const Array& value) const;
 
-  RawTypedData* kernel_string_offsets() const {
-    return raw_ptr()->kernel_string_offsets_;
+  RawKernelProgramInfo* kernel_program_info() const {
+    return raw_ptr()->kernel_program_info_;
   }
-  void set_kernel_string_offsets(const TypedData& offsets) const;
+  void set_kernel_program_info(const KernelProgramInfo& info) const;
 
-  RawTypedData* kernel_string_data() const {
-    return raw_ptr()->kernel_string_data_;
+  intptr_t kernel_script_index() const {
+    return raw_ptr()->kernel_script_index_;
   }
-  void set_kernel_string_data(const TypedData& data) const;
+  void set_kernel_script_index(const intptr_t kernel_script_index) const;
 
-  RawTypedData* kernel_canonical_names() const {
-    return raw_ptr()->kernel_canonical_names_;
-  }
-  void set_kernel_canonical_names(const TypedData& names) const;
+  RawTypedData* kernel_string_offsets() const;
 
   RawTokenStream* tokens() const {
     ASSERT(kind() != RawScript::kKernelTag);
     return raw_ptr()->tokens_;
   }
 
-  void set_line_starts(const Array& value) const;
+  RawTypedData* line_starts() const;
+
+  void set_line_starts(const TypedData& value) const;
 
   void set_debug_positions(const Array& value) const;
 
   void set_yield_positions(const Array& value) const;
 
-  RawArray* yield_positions() const { return raw_ptr()->yield_positions_; }
+  RawArray* yield_positions() const;
 
   void Tokenize(const String& private_key, bool use_shared_tokens = true) const;
 
@@ -3677,14 +3676,12 @@ class Script : public Object {
                         RawScript::Kind kind);
 
  private:
-  void set_url(const String& value) const;
   void set_resolved_url(const String& value) const;
   void set_source(const String& value) const;
   void set_kind(RawScript::Kind value) const;
   void set_load_timestamp(int64_t value) const;
   void set_tokens(const TokenStream& value) const;
-  RawArray* line_starts() const { return raw_ptr()->line_starts_; }
-  RawArray* debug_positions() const { return raw_ptr()->debug_positions_; }
+  RawArray* debug_positions() const;
 
   static RawScript* New();
 
@@ -3692,7 +3689,6 @@ class Script : public Object {
   friend class Class;
   friend class Precompiler;
 };
-
 
 class DictionaryIterator : public ValueObject {
  public:
@@ -3714,7 +3710,6 @@ class DictionaryIterator : public ValueObject {
   friend class LibraryPrefixIterator;
   DISALLOW_COPY_AND_ASSIGN(DictionaryIterator);
 };
-
 
 class ClassDictionaryIterator : public DictionaryIterator {
  public:
@@ -3743,7 +3738,6 @@ class ClassDictionaryIterator : public DictionaryIterator {
   DISALLOW_COPY_AND_ASSIGN(ClassDictionaryIterator);
 };
 
-
 class LibraryPrefixIterator : public DictionaryIterator {
  public:
   explicit LibraryPrefixIterator(const Library& library);
@@ -3753,7 +3747,6 @@ class LibraryPrefixIterator : public DictionaryIterator {
   void Advance();
   DISALLOW_COPY_AND_ASSIGN(LibraryPrefixIterator);
 };
-
 
 class Library : public Object {
  public:
@@ -3792,14 +3785,27 @@ class Library : public Object {
 
   static RawLibrary* New(const String& url);
 
-  // Evaluate the given expression as if it appeared in an top-level
-  // method of this library and return the resulting value, or an
-  // error object if evaluating the expression fails. The method has
-  // the formal parameters given in param_names, and is invoked with
-  // the argument values given in param_values.
+  // Evaluate the given expression as if it appeared in an top-level method of
+  // this library and return the resulting value, or an error object if
+  // evaluating the expression fails. The method has the formal (type)
+  // parameters given in (type_)param_names, and is invoked with the (type)
+  // argument values given in (type_)param_values.
   RawObject* Evaluate(const String& expr,
                       const Array& param_names,
                       const Array& param_values) const;
+
+  RawObject* Evaluate(const String& expr,
+                      const Array& param_names,
+                      const Array& param_values,
+                      const Array& type_param_names,
+                      const TypeArguments& type_arguments) const;
+
+  RawObject* EvaluateCompiledExpression(
+      const uint8_t* kernel_bytes,
+      intptr_t kernel_length,
+      const Array& type_definitions,
+      const Array& param_values,
+      const TypeArguments& type_param_values) const;
 
   // Library scope name dictionary.
   //
@@ -3817,13 +3823,14 @@ class Library : public Object {
   RawObject* LookupImportedObject(const String& name) const;
   RawClass* LookupClass(const String& name) const;
   RawClass* LookupClassAllowPrivate(const String& name) const;
+  RawClass* SlowLookupClassAllowMultiPartPrivate(const String& name) const;
   RawClass* LookupLocalClass(const String& name) const;
   RawField* LookupFieldAllowPrivate(const String& name) const;
   RawField* LookupLocalField(const String& name) const;
   RawFunction* LookupFunctionAllowPrivate(const String& name) const;
   RawFunction* LookupLocalFunction(const String& name) const;
   RawLibraryPrefix* LookupLocalLibraryPrefix(const String& name) const;
-  RawScript* LookupScript(const String& url) const;
+  RawScript* LookupScript(const String& url, bool useResolvedUri = false) const;
   RawArray* LoadedScripts() const;
 
   // Resolve name in the scope of this library. First check the cache
@@ -3842,17 +3849,21 @@ class Library : public Object {
   void AddClassMetadata(const Class& cls,
                         const Object& tl_owner,
                         TokenPosition token_pos,
-                        kernel::TreeNode* kernel_node = NULL) const;
+                        intptr_t kernel_offset = 0) const;
   void AddFieldMetadata(const Field& field,
                         TokenPosition token_pos,
-                        kernel::TreeNode* kernel_node = NULL) const;
+                        intptr_t kernel_offset = 0) const;
   void AddFunctionMetadata(const Function& func,
                            TokenPosition token_pos,
-                           kernel::TreeNode* kernel_node = NULL) const;
+                           intptr_t kernel_offset = 0) const;
   void AddLibraryMetadata(const Object& tl_owner,
-                          TokenPosition token_pos) const;
+                          TokenPosition token_pos,
+                          intptr_t kernel_offset = 0) const;
   void AddTypeParameterMetadata(const TypeParameter& param,
                                 TokenPosition token_pos) const;
+  void CloneMetadataFrom(const Library& from_library,
+                         const Function& from_fun,
+                         const Function& to_fun) const;
   RawObject* GetMetadata(const Object& obj) const;
 
   RawClass* toplevel_class() const { return raw_ptr()->toplevel_class_; }
@@ -3921,6 +3932,20 @@ class Library : public Object {
 
   inline intptr_t UrlHash() const;
 
+  RawExternalTypedData* kernel_data() const { return raw_ptr()->kernel_data_; }
+  void set_kernel_data(const ExternalTypedData& data) const;
+
+  intptr_t kernel_offset() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    return raw_ptr()->kernel_offset_;
+#else
+    return -1;
+#endif
+  }
+  void set_kernel_offset(intptr_t offset) const {
+    NOT_IN_PRECOMPILED(StoreNonPointer(&raw_ptr()->kernel_offset_, offset));
+  }
+
   static RawLibrary* LookupLibrary(Thread* thread, const String& url);
   static RawLibrary* GetLibrary(intptr_t index);
 
@@ -3935,7 +3960,7 @@ class Library : public Object {
   static RawLibrary* InternalLibrary();
   static RawLibrary* IsolateLibrary();
   static RawLibrary* MathLibrary();
-#if !defined(PRODUCT)
+#if !defined(DART_PRECOMPILED_RUNTIME)
   static RawLibrary* MirrorsLibrary();
 #endif
   static RawLibrary* NativeWrappersLibrary();
@@ -3960,7 +3985,6 @@ class Library : public Object {
   // helper methods and classes. Allow look up of private classes.
   static RawClass* LookupCoreClass(const String& class_name);
 
-
   // Return Function::null() if function does not exist in libs.
   static RawFunction* GetFunction(const GrowableArray<Library*>& libs,
                                   const char* class_name,
@@ -3976,16 +4000,27 @@ class Library : public Object {
   void CheckReload(const Library& replacement,
                    IsolateReloadContext* context) const;
 
+  // Returns a closure of top level function 'name' in the exported namespace
+  // of this library. If a top level function 'name' does not exist we look
+  // for a top level getter 'name' that returns a closure.
+  RawObject* GetFunctionClosure(const String& name) const;
+
  private:
   static const int kInitialImportsCapacity = 4;
   static const int kImportsCapacityIncrement = 8;
 
   static RawLibrary* New();
 
+  // These methods are only used by the Precompiler to obfuscate
+  // the name and url.
+  void set_name(const String& name) const;
+  void set_url(const String& url) const;
+
   void set_num_imports(intptr_t value) const;
   bool HasExports() const;
   RawArray* loaded_scripts() const { return raw_ptr()->loaded_scripts_; }
   RawGrowableObjectArray* metadata() const { return raw_ptr()->metadata_; }
+  void set_metadata(const GrowableObjectArray& value) const;
   RawArray* dictionary() const { return raw_ptr()->dictionary_; }
   void InitClassDictionary() const;
 
@@ -4004,7 +4039,6 @@ class Library : public Object {
   void ClearExportedNamesCache() const;
   static void InvalidateExportedNamesCaches();
 
-
   void InitImportList() const;
   void RehashDictionary(const Array& old_dict, intptr_t new_dict_size) const;
   static RawLibrary* NewLibraryHelper(const String& url, bool import_core_lib);
@@ -4017,7 +4051,7 @@ class Library : public Object {
   void AddMetadata(const Object& owner,
                    const String& name,
                    TokenPosition token_pos,
-                   kernel::TreeNode* kernel_node = NULL) const;
+                   intptr_t kernel_offset = 0) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Library, Object);
 
@@ -4032,7 +4066,6 @@ class Library : public Object {
   friend class Precompiler;
 };
 
-
 // A Namespace contains the names in a library dictionary, filtered by
 // the show/hide combinators.
 class Namespace : public Object {
@@ -4041,7 +4074,9 @@ class Namespace : public Object {
   RawArray* show_names() const { return raw_ptr()->show_names_; }
   RawArray* hide_names() const { return raw_ptr()->hide_names_; }
 
-  void AddMetadata(const Object& owner, TokenPosition token_pos);
+  void AddMetadata(const Object& owner,
+                   TokenPosition token_pos,
+                   intptr_t kernel_offset = 0);
   RawObject* GetMetadata() const;
 
   static intptr_t InstanceSize() {
@@ -4064,18 +4099,70 @@ class Namespace : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Namespace, Object);
   friend class Class;
+  friend class Precompiler;
 };
 
+class KernelProgramInfo : public Object {
+ public:
+  static RawKernelProgramInfo* New(const TypedData& string_offsets,
+                                   const ExternalTypedData& string_data,
+                                   const TypedData& canonical_names,
+                                   const ExternalTypedData& metadata_payload,
+                                   const ExternalTypedData& metadata_mappings,
+                                   const Array& scripts);
 
-// ObjectPool contains constants, immediates and addresses embedded in code
-// and deoptimization infos. Each entry has an type-info associated with it
-// which is stored in a typed data array (info_array).
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawKernelProgramInfo));
+  }
+
+  RawTypedData* string_offsets() const { return raw_ptr()->string_offsets_; }
+
+  RawExternalTypedData* string_data() const { return raw_ptr()->string_data_; }
+
+  RawTypedData* canonical_names() const { return raw_ptr()->canonical_names_; }
+
+  RawExternalTypedData* metadata_payloads() const {
+    return raw_ptr()->metadata_payloads_;
+  }
+
+  RawExternalTypedData* metadata_mappings() const {
+    return raw_ptr()->metadata_mappings_;
+  }
+
+  RawArray* scripts() const { return raw_ptr()->scripts_; }
+
+  RawArray* constants() const { return raw_ptr()->constants_; }
+  void set_constants(const Array& constants) const;
+
+  // If we load a kernel blob with evaluated constants, then we delay setting
+  // the native names of [Function] objects until we've read the constant table
+  // (since native names are encoded as constants).
+  //
+  // This array will hold the functions which might need their native name set.
+  RawGrowableObjectArray* potential_natives() const {
+    return raw_ptr()->potential_natives_;
+  }
+  void set_potential_natives(const GrowableObjectArray& candidates) const;
+
+  RawScript* ScriptAt(intptr_t index) const;
+
+ private:
+  static RawKernelProgramInfo* New();
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(KernelProgramInfo, Object);
+  friend class Class;
+};
+
+// ObjectPool contains constants, immediates and addresses referenced by
+// generated code and deoptimization infos. Each entry has an type associated
+// with it which is stored in-inline after all the entries.
 class ObjectPool : public Object {
  public:
   enum EntryType {
     kTaggedObject,
     kImmediate,
-    kNativeEntry,
+    kNativeFunction,
+    kNativeFunctionWrapper,
   };
 
   struct Entry {
@@ -4094,36 +4181,38 @@ class ObjectPool : public Object {
     StoreNonPointer(&raw_ptr()->length_, value);
   }
 
-  RawTypedData* info_array() const { return raw_ptr()->info_array_; }
-
-  void set_info_array(const TypedData& info_array) const;
-
   static intptr_t length_offset() { return OFFSET_OF(RawObjectPool, length_); }
   static intptr_t data_offset() {
     return OFFSET_OF_RETURNED_VALUE(RawObjectPool, data);
   }
   static intptr_t element_offset(intptr_t index) {
     return OFFSET_OF_RETURNED_VALUE(RawObjectPool, data) +
-           kBytesPerElement * index;
+           sizeof(RawObjectPool::Entry) * index;
   }
 
-  EntryType InfoAt(intptr_t index) const;
+  EntryType TypeAt(intptr_t index) const {
+    return static_cast<EntryType>(raw_ptr()->entry_types()[index]);
+  }
+  void SetTypeAt(intptr_t index, EntryType type) const {
+    StoreNonPointer(&raw_ptr()->entry_types()[index],
+                    static_cast<uint8_t>(type));
+  }
 
   RawObject* ObjectAt(intptr_t index) const {
-    ASSERT(InfoAt(index) == kTaggedObject);
+    ASSERT(TypeAt(index) == kTaggedObject);
     return EntryAddr(index)->raw_obj_;
   }
   void SetObjectAt(intptr_t index, const Object& obj) const {
-    ASSERT(InfoAt(index) == kTaggedObject);
+    ASSERT(TypeAt(index) == kTaggedObject);
     StorePointer(&EntryAddr(index)->raw_obj_, obj.raw());
   }
 
   uword RawValueAt(intptr_t index) const {
-    ASSERT(InfoAt(index) != kTaggedObject);
+    ASSERT(TypeAt(index) != kTaggedObject);
     return EntryAddr(index)->raw_value_;
   }
   void SetRawValueAt(intptr_t index, uword raw_value) const {
-    ASSERT(InfoAt(index) != kTaggedObject);
+    ASSERT(TypeAt(index) != kTaggedObject);
     StoreNonPointer(&EntryAddr(index)->raw_value_, raw_value);
   }
 
@@ -4133,12 +4222,13 @@ class ObjectPool : public Object {
     return 0;
   }
 
-  static const intptr_t kBytesPerElement = sizeof(RawObjectPool::Entry);
+  static const intptr_t kBytesPerElement =
+      sizeof(RawObjectPool::Entry) + sizeof(uint8_t);
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t InstanceSize(intptr_t len) {
     // Ensure that variable length data is not adding to the object length.
-    ASSERT(sizeof(RawObjectPool) == (sizeof(RawObject) + (2 * kWordSize)));
+    ASSERT(sizeof(RawObjectPool) == (sizeof(RawObject) + (1 * kWordSize)));
     ASSERT(0 <= len && len <= kMaxElements);
     return RoundedAllocationSize(sizeof(RawObjectPool) +
                                  (len * kBytesPerElement));
@@ -4150,7 +4240,8 @@ class ObjectPool : public Object {
   // adjusting for the tag-bit.
   static intptr_t IndexFromOffset(intptr_t offset) {
     ASSERT(Utils::IsAligned(offset + kHeapObjectTag, kWordSize));
-    return (offset + kHeapObjectTag - data_offset()) / kBytesPerElement;
+    return (offset + kHeapObjectTag - data_offset()) /
+           sizeof(RawObjectPool::Entry);
   }
 
   static intptr_t OffsetFromIndex(intptr_t index) {
@@ -4170,7 +4261,6 @@ class ObjectPool : public Object {
   friend class Object;
   friend class RawObjectPool;
 };
-
 
 class Instructions : public Object {
  public:
@@ -4208,17 +4298,14 @@ class Instructions : public Object {
   static const intptr_t kCheckedEntryOffset = 0;
   static const intptr_t kUncheckedEntryOffset = 0;
 #elif defined(TARGET_ARCH_X64)
-  static const intptr_t kCheckedEntryOffset = 16;
-  static const intptr_t kUncheckedEntryOffset = 38;
+  static const intptr_t kCheckedEntryOffset = 15;
+  static const intptr_t kUncheckedEntryOffset = 34;
 #elif defined(TARGET_ARCH_ARM)
   static const intptr_t kCheckedEntryOffset = 8;
   static const intptr_t kUncheckedEntryOffset = 32;
 #elif defined(TARGET_ARCH_ARM64)
   static const intptr_t kCheckedEntryOffset = 16;
   static const intptr_t kUncheckedEntryOffset = 40;
-#elif defined(TARGET_ARCH_MIPS)
-  static const intptr_t kCheckedEntryOffset = 12;
-  static const intptr_t kUncheckedEntryOffset = 52;
 #elif defined(TARGET_ARCH_DBC)
   static const intptr_t kCheckedEntryOffset = 0;
   static const intptr_t kUncheckedEntryOffset = 0;
@@ -4261,7 +4348,9 @@ class Instructions : public Object {
 
   static intptr_t HeaderSize() {
     intptr_t alignment = OS::PreferredCodeAlignment();
-    return Utils::RoundUp(sizeof(RawInstructions), alignment);
+    intptr_t aligned_size = Utils::RoundUp(sizeof(RawInstructions), alignment);
+    ASSERT(aligned_size == alignment);
+    return aligned_size;
   }
 
   static RawInstructions* FromPayloadStart(uword payload_start) {
@@ -4275,6 +4364,20 @@ class Instructions : public Object {
     }
     NoSafepointScope no_safepoint;
     return memcmp(raw_ptr(), other.raw_ptr(), InstanceSize(Size())) == 0;
+  }
+
+  CodeStatistics* stats() const {
+#if defined(DART_PRECOMPILER)
+    return raw_ptr()->stats_;
+#else
+    return nullptr;
+#endif
+  }
+
+  void set_stats(CodeStatistics* stats) const {
+#if defined(DART_PRECOMPILER)
+    StoreNonPointer(&raw_ptr()->stats_, stats);
+#endif
   }
 
  private:
@@ -4301,7 +4404,6 @@ class Instructions : public Object {
   friend class AssemblyImageWriter;
   friend class BlobImageWriter;
 };
-
 
 class LocalVarDescriptors : public Object {
  public:
@@ -4342,12 +4444,17 @@ class LocalVarDescriptors : public Object {
   friend class Object;
 };
 
-
 class PcDescriptors : public Object {
  public:
   static const intptr_t kBytesPerElement = 1;
   static const intptr_t kMaxElements = kMaxInt32 / kBytesPerElement;
 
+  static intptr_t UnroundedSize(RawPcDescriptors* desc) {
+    return UnroundedSize(desc->ptr()->length_);
+  }
+  static intptr_t UnroundedSize(intptr_t len) {
+    return sizeof(RawPcDescriptors) + len;
+  }
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawPcDescriptors) ==
            OFFSET_OF_RETURNED_VALUE(RawPcDescriptors, data));
@@ -4355,7 +4462,7 @@ class PcDescriptors : public Object {
   }
   static intptr_t InstanceSize(intptr_t len) {
     ASSERT(0 <= len && len <= kMaxElements);
-    return RoundedAllocationSize(sizeof(RawPcDescriptors) + len);
+    return RoundedAllocationSize(UnroundedSize(len));
   }
 
   static RawPcDescriptors* New(GrowableArray<uint8_t>* delta_encoded_data);
@@ -4399,8 +4506,11 @@ class PcDescriptors : public Object {
             RawPcDescriptors::MergedKindTry::DecodeTryIndex(merged_kind_try);
 
         cur_pc_offset_ += descriptors_.DecodeInteger(&byte_index_);
-        cur_deopt_id_ += descriptors_.DecodeInteger(&byte_index_);
-        cur_token_pos_ += descriptors_.DecodeInteger(&byte_index_);
+
+        if (!FLAG_precompiled_mode) {
+          cur_deopt_id_ += descriptors_.DecodeInteger(&byte_index_);
+          cur_token_pos_ += descriptors_.DecodeInteger(&byte_index_);
+        }
 
         if ((cur_kind_ & kind_mask_) != 0) {
           return true;  // Current is valid.
@@ -4465,12 +4575,17 @@ class PcDescriptors : public Object {
   friend class Object;
 };
 
-
 class CodeSourceMap : public Object {
  public:
   static const intptr_t kBytesPerElement = 1;
   static const intptr_t kMaxElements = kMaxInt32 / kBytesPerElement;
 
+  static intptr_t UnroundedSize(RawCodeSourceMap* map) {
+    return UnroundedSize(map->ptr()->length_);
+  }
+  static intptr_t UnroundedSize(intptr_t len) {
+    return sizeof(RawCodeSourceMap) + len;
+  }
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawCodeSourceMap) ==
            OFFSET_OF_RETURNED_VALUE(RawCodeSourceMap, data));
@@ -4478,7 +4593,7 @@ class CodeSourceMap : public Object {
   }
   static intptr_t InstanceSize(intptr_t len) {
     ASSERT(0 <= len && len <= kMaxElements);
-    return RoundedAllocationSize(sizeof(RawCodeSourceMap) + len);
+    return RoundedAllocationSize(UnroundedSize(len));
   }
 
   static RawCodeSourceMap* New(intptr_t length);
@@ -4506,12 +4621,8 @@ class CodeSourceMap : public Object {
   friend class Object;
 };
 
-
 class StackMap : public Object {
  public:
-  static const intptr_t kNoMaximum = -1;
-  static const intptr_t kNoMinimum = -1;
-
   bool IsObject(intptr_t index) const {
     ASSERT(InRange(index));
     return GetBit(index);
@@ -4527,7 +4638,7 @@ class StackMap : public Object {
 
   intptr_t SlowPathBitCount() const { return raw_ptr()->slow_path_bit_count_; }
   void SetSlowPathBitCount(intptr_t bit_count) const {
-    ASSERT(bit_count < kMaxInt32);
+    ASSERT(bit_count <= kMaxUint16);
     StoreNonPointer(&raw_ptr()->slow_path_bit_count_, bit_count);
   }
 
@@ -4541,15 +4652,20 @@ class StackMap : public Object {
 
   static const intptr_t kMaxLengthInBytes = kSmiMax;
 
+  static intptr_t UnroundedSize(RawStackMap* map) {
+    return UnroundedSize(map->ptr()->length_);
+  }
+  static intptr_t UnroundedSize(intptr_t len) {
+    // The stackmap payload is in an array of bytes.
+    intptr_t payload_size = Utils::RoundUp(len, kBitsPerByte) / kBitsPerByte;
+    return sizeof(RawStackMap) + payload_size;
+  }
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawStackMap) == OFFSET_OF_RETURNED_VALUE(RawStackMap, data));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t length) {
-    ASSERT(length >= 0);
-    // The stackmap payload is in an array of bytes.
-    intptr_t payload_size = Utils::RoundUp(length, kBitsPerByte) / kBitsPerByte;
-    return RoundedAllocationSize(sizeof(RawStackMap) + payload_size);
+    return RoundedAllocationSize(UnroundedSize(length));
   }
   static RawStackMap* New(intptr_t pc_offset,
                           BitmapBuilder* bmap,
@@ -4561,6 +4677,7 @@ class StackMap : public Object {
 
  private:
   void SetLength(intptr_t length) const {
+    ASSERT(length <= kMaxUint16);
     StoreNonPointer(&raw_ptr()->length_, length);
   }
 
@@ -4573,7 +4690,6 @@ class StackMap : public Object {
   friend class BitmapBuilder;
   friend class Class;
 };
-
 
 class ExceptionHandlers : public Object {
  public:
@@ -4629,52 +4745,6 @@ class ExceptionHandlers : public Object {
   friend class Object;
 };
 
-
-// Holds deopt information at one deoptimization point. The information consists
-// of two parts:
-//  - first a prefix consisting of kMaterializeObject instructions describing
-//    objects which had their allocation removed as part of AllocationSinking
-//    pass and have to be materialized;
-//  - followed by a list of DeoptInstr objects, specifying transformation
-//    information for each slot in unoptimized frame(s).
-// Arguments for object materialization (class of instance to be allocated and
-// field-value pairs) are added as artificial slots to the expression stack
-// of the bottom-most frame. They are removed from the stack at the very end
-// of deoptimization by the deoptimization stub.
-class DeoptInfo : public AllStatic {
- public:
-  // Size of the frame part of the translation not counting kMaterializeObject
-  // instructions in the prefix.
-  static intptr_t FrameSize(const TypedData& packed);
-
-  // Returns the number of kMaterializeObject instructions in the prefix.
-  static intptr_t NumMaterializations(const GrowableArray<DeoptInstr*>&);
-
-  // Unpack the entire translation into an array of deoptimization
-  // instructions.  This copies any shared suffixes into the array.
-  static void Unpack(const Array& table,
-                     const TypedData& packed,
-                     GrowableArray<DeoptInstr*>* instructions);
-
-  // Size of the frame part of the translation not counting kMaterializeObject
-  // instructions in the prefix.
-  static const char* ToCString(const Array& table, const TypedData& packed);
-
-  // Returns true iff decompression yields the same instructions as the
-  // original.
-  static bool VerifyDecompression(const GrowableArray<DeoptInstr*>& original,
-                                  const Array& deopt_table,
-                                  const TypedData& packed);
-
-
- private:
-  static void UnpackInto(const Array& table,
-                         const TypedData& packed,
-                         GrowableArray<DeoptInstr*>* instructions,
-                         intptr_t length);
-};
-
-
 class Code : public Object {
  public:
   RawInstructions* active_instructions() const {
@@ -4687,6 +4757,9 @@ class Code : public Object {
   }
 
   RawInstructions* instructions() const { return raw_ptr()->instructions_; }
+  static RawInstructions* InstructionsOf(const RawCode* code) {
+    return code->ptr()->instructions_;
+  }
 
   static intptr_t saved_instructions_offset() {
     return OFFSET_OF(RawCode, instructions_);
@@ -4716,8 +4789,7 @@ class Code : public Object {
   void set_is_alive(bool value) const;
 
   uword PayloadStart() const {
-    const Instructions& instr = Instructions::Handle(instructions());
-    return instr.PayloadStart();
+    return Instructions::PayloadStart(instructions());
   }
   uword UncheckedEntryPoint() const {
     const Instructions& instr = Instructions::Handle(instructions());
@@ -4727,10 +4799,7 @@ class Code : public Object {
     const Instructions& instr = Instructions::Handle(instructions());
     return instr.CheckedEntryPoint();
   }
-  intptr_t Size() const {
-    const Instructions& instr = Instructions::Handle(instructions());
-    return instr.Size();
-  }
+  intptr_t Size() const { return Instructions::Size(instructions()); }
   RawObjectPool* GetObjectPool() const { return object_pool(); }
   bool ContainsInstructionAt(uword addr) const {
     const Instructions& instr = Instructions::Handle(instructions());
@@ -4852,7 +4921,6 @@ class Code : public Object {
     DISALLOW_COPY_AND_ASSIGN(Comments);
   };
 
-
   const Comments& comments() const;
   void set_comments(const Comments& comments) const;
 
@@ -4884,7 +4952,7 @@ class Code : public Object {
       intptr_t pc_offset,
       GrowableArray<const Function*>* functions,
       GrowableArray<TokenPosition>* token_positions) const;
-  // Same as above, expect the pc is intepreted as a return address (as needed
+  // Same as above, expect the pc is interpreted as a return address (as needed
   // for a stack trace or the bottom frames of a profiler sample).
   void GetInlinedFunctionsAtReturnAddress(
       intptr_t pc_offset,
@@ -4960,12 +5028,22 @@ class Code : public Object {
     ASSERT(0 <= len && len <= kMaxElements);
     return RoundedAllocationSize(sizeof(RawCode) + (len * kBytesPerElement));
   }
+#if !defined(DART_PRECOMPILED_RUNTIME)
   static RawCode* FinalizeCode(const Function& function,
                                Assembler* assembler,
-                               bool optimized = false);
+                               bool optimized = false,
+                               CodeStatistics* stats = nullptr);
   static RawCode* FinalizeCode(const char* name,
                                Assembler* assembler,
-                               bool optimized);
+                               bool optimized,
+                               CodeStatistics* stats = nullptr);
+#if defined(DART_USE_INTERPRETER)
+  static RawCode* FinalizeBytecode(const void* bytecode_data,
+                                   intptr_t bytecode_size,
+                                   const ObjectPool& object_pool,
+                                   CodeStatistics* stats = nullptr);
+#endif
+#endif
   static RawCode* LookupCode(uword pc);
   static RawCode* LookupCodeInVmIsolate(uword pc);
   static RawCode* FindCode(uword pc, int64_t timestamp);
@@ -5094,13 +5172,12 @@ class Code : public Object {
   friend class SnapshotWriter;
   friend class FunctionSerializationCluster;
   friend class CodeSerializationCluster;
-  friend class CodePatcher;  // for set_instructions
+  friend class CodePatcher;     // for set_instructions
   friend class ProgramVisitor;  // for set_instructions
   // So that the RawFunction pointer visitor can determine whether code the
   // function points to is optimized.
   friend class RawFunction;
 };
-
 
 class Context : public Object {
  public:
@@ -5157,7 +5234,6 @@ class Context : public Object {
   friend class Class;
   friend class Object;
 };
-
 
 // The ContextScope class makes it possible to delay the compilation of a local
 // function until it is invoked. A ContextScope instance collects the local
@@ -5238,7 +5314,6 @@ class ContextScope : public Object {
   friend class Object;
 };
 
-
 class MegamorphicCache : public Object {
  public:
   static const intptr_t kInitialCapacity = 16;
@@ -5307,7 +5382,6 @@ class MegamorphicCache : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(MegamorphicCache, Object);
 };
 
-
 class SubtypeTestCache : public Object {
  public:
   enum Entries {
@@ -5353,7 +5427,6 @@ class SubtypeTestCache : public Object {
   friend class Class;
 };
 
-
 class Error : public Object {
  public:
   virtual const char* ToErrorCString() const;
@@ -5361,7 +5434,6 @@ class Error : public Object {
  private:
   HEAP_OBJECT_IMPLEMENTATION(Error, Object);
 };
-
 
 class ApiError : public Error {
  public:
@@ -5384,7 +5456,6 @@ class ApiError : public Error {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ApiError, Error);
   friend class Class;
 };
-
 
 class LanguageError : public Error {
  public:
@@ -5452,7 +5523,6 @@ class LanguageError : public Error {
   friend class Class;
 };
 
-
 class UnhandledException : public Error {
  public:
   RawInstance* exception() const { return raw_ptr()->exception_; }
@@ -5486,7 +5556,6 @@ class UnhandledException : public Error {
   friend class ObjectStore;
 };
 
-
 class UnwindError : public Error {
  public:
   bool is_user_initiated() const { return raw_ptr()->is_user_initiated_; }
@@ -5510,7 +5579,6 @@ class UnwindError : public Error {
   friend class Class;
 };
 
-
 // Instance is the base class for all instance objects (aka the Object class
 // in Dart source code.
 class Instance : public Object {
@@ -5525,7 +5593,7 @@ class Instance : public Object {
   virtual bool OperatorEquals(const Instance& other) const;
   bool IsIdenticalTo(const Instance& other) const;
   virtual bool CanonicalizeEquals(const Instance& other) const;
-  virtual uword ComputeCanonicalTableHash() const;
+  virtual uint32_t CanonicalizeHash() const;
 
   intptr_t SizeFromClass() const {
 #if defined(DEBUG)
@@ -5571,6 +5639,13 @@ class Instance : public Object {
                     const TypeArguments& other_function_type_arguments,
                     Error* bound_error) const;
 
+  // Returns true if the type of this instance is a subtype of FutureOr<T>
+  // specified by instantiated type 'other'.
+  // Returns false if other type is not a FutureOr.
+  bool IsFutureOrInstanceOf(Zone* zone,
+                            const AbstractType& other,
+                            Error* bound_error) const;
+
   bool IsValidNativeIndex(int index) const {
     return ((index >= 0) && (index < clazz()->ptr()->num_native_fields_));
   }
@@ -5592,18 +5667,36 @@ class Instance : public Object {
   // (if not NULL) to call.
   bool IsCallable(Function* function) const;
 
-  // Evaluate the given expression as if it appeared in an instance
-  // method of this instance and return the resulting value, or an
-  // error object if evaluating the expression fails. The method has
-  // the formal parameters given in param_names, and is invoked with
-  // the argument values given in param_values.
+  // Evaluate the given expression as if it appeared in an instance method of
+  // this instance and return the resulting value, or an error object if
+  // evaluating the expression fails. The method has the formal (type)
+  // parameters given in (type_)param_names, and is invoked with the (type)
+  // argument values given in (type_)param_values.
   RawObject* Evaluate(const Class& method_cls,
                       const String& expr,
                       const Array& param_names,
                       const Array& param_values) const;
 
+  RawObject* Evaluate(const Class& method_cls,
+                      const String& expr,
+                      const Array& param_names,
+                      const Array& param_values,
+                      const Array& type_param_names,
+                      const TypeArguments& type_param_values) const;
+
+  RawObject* EvaluateCompiledExpression(
+      const Class& method_cls,
+      const uint8_t* kernel_bytes,
+      intptr_t kernel_length,
+      const Array& type_definitions,
+      const Array& param_values,
+      const TypeArguments& type_param_values) const;
+
   // Equivalent to invoking hashCode on this instance.
   virtual RawObject* HashCode() const;
+
+  // Equivalent to invoking identityHashCode with this instance.
+  RawObject* IdentityHashCode() const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawInstance));
@@ -5638,7 +5731,7 @@ class Instance : public Object {
 
   static intptr_t NextFieldOffset() { return sizeof(RawInstance); }
 
-  // The follwoing raw methods are used for morphing.
+  // The following raw methods are used for morphing.
   // They are needed due to the extraction of the class in IsValidFieldOffset.
   RawObject** RawFieldAddrAtOffset(intptr_t offset) const {
     return reinterpret_cast<RawObject**>(raw_value() - kHeapObjectTag + offset);
@@ -5664,8 +5757,8 @@ class Instance : public Object {
   friend class InstanceDeserializationCluster;
   friend class ClassDeserializationCluster;  // vtable
   friend class InstanceMorpher;
+  friend class Obfuscator;  // RawGetFieldAtOffset, RawSetFieldAtOffset
 };
-
 
 class LibraryPrefix : public Instance {
  public:
@@ -5723,6 +5816,238 @@ class LibraryPrefix : public Instance {
   friend class Class;
 };
 
+// A TypeArguments is an array of AbstractType.
+class TypeArguments : public Instance {
+ public:
+  // We use 30 bits for the hash code so hashes in a snapshot taken on a
+  // 64-bit architecture stay in Smi range when loaded on a 32-bit
+  // architecture.
+  static const intptr_t kHashBits = 30;
+
+  intptr_t Length() const;
+  RawAbstractType* TypeAt(intptr_t index) const;
+  static intptr_t type_at_offset(intptr_t index) {
+    return OFFSET_OF_RETURNED_VALUE(RawTypeArguments, types) +
+           index * kWordSize;
+  }
+  void SetTypeAt(intptr_t index, const AbstractType& value) const;
+
+  // The name of this type argument vector, e.g. "<T, dynamic, List<T>, Smi>".
+  RawString* Name() const { return SubvectorName(0, Length(), kInternalName); }
+
+  // The name of this type argument vector, e.g. "<T, dynamic, List<T>, int>".
+  // Names of internal classes are mapped to their public interfaces.
+  RawString* UserVisibleName() const {
+    return SubvectorName(0, Length(), kUserVisibleName);
+  }
+
+  // Check if the subvector of length 'len' starting at 'from_index' of this
+  // type argument vector consists solely of DynamicType.
+  bool IsRaw(intptr_t from_index, intptr_t len) const {
+    return IsDynamicTypes(false, from_index, len);
+  }
+
+  // Check if this type argument vector would consist solely of DynamicType if
+  // it was instantiated from both a raw (null) instantiator typearguments and
+  // a raw (null) function type arguments, i.e. consider each class type
+  // parameter and function type parameters as it would be first instantiated
+  // from a vector of dynamic types.
+  // Consider only a prefix of length 'len'.
+  bool IsRawWhenInstantiatedFromRaw(intptr_t len) const {
+    return IsDynamicTypes(true, 0, len);
+  }
+
+  RawTypeArguments* Prepend(Zone* zone,
+                            const TypeArguments& other,
+                            intptr_t other_length,
+                            intptr_t total_length) const;
+
+  // Check if the subvector of length 'len' starting at 'from_index' of this
+  // type argument vector consists solely of DynamicType, ObjectType, or
+  // VoidType.
+  bool IsTopTypes(intptr_t from_index, intptr_t len) const;
+
+  // Check the subtype relationship, considering only a subvector of length
+  // 'len' starting at 'from_index'.
+  bool IsSubtypeOf(const TypeArguments& other,
+                   intptr_t from_index,
+                   intptr_t len,
+                   Error* bound_error,
+                   TrailPtr bound_trail,
+                   Heap::Space space) const {
+    return TypeTest(kIsSubtypeOf, other, from_index, len, bound_error,
+                    bound_trail, space);
+  }
+
+  // Check the 'more specific' relationship, considering only a subvector of
+  // length 'len' starting at 'from_index'.
+  bool IsMoreSpecificThan(const TypeArguments& other,
+                          intptr_t from_index,
+                          intptr_t len,
+                          Error* bound_error,
+                          TrailPtr bound_trail,
+                          Heap::Space space) const {
+    return TypeTest(kIsMoreSpecificThan, other, from_index, len, bound_error,
+                    bound_trail, space);
+  }
+
+  // Check if the vectors are equal (they may be null).
+  bool Equals(const TypeArguments& other) const {
+    return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length());
+  }
+
+  bool IsEquivalent(const TypeArguments& other, TrailPtr trail = NULL) const {
+    return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length(), trail);
+  }
+  bool IsSubvectorEquivalent(const TypeArguments& other,
+                             intptr_t from_index,
+                             intptr_t len,
+                             TrailPtr trail = NULL) const;
+
+  // Check if the vector is instantiated (it must not be null).
+  bool IsInstantiated(Genericity genericity = kAny,
+                      intptr_t num_free_fun_type_params = kAllFree,
+                      TrailPtr trail = NULL) const {
+    return IsSubvectorInstantiated(0, Length(), genericity,
+                                   num_free_fun_type_params, trail);
+  }
+  bool IsSubvectorInstantiated(intptr_t from_index,
+                               intptr_t len,
+                               Genericity genericity = kAny,
+                               intptr_t num_free_fun_type_params = kAllFree,
+                               TrailPtr trail = NULL) const;
+  bool IsUninstantiatedIdentity() const;
+  bool CanShareInstantiatorTypeArguments(const Class& instantiator_class) const;
+
+  // Return true if all types of this vector are respectively, resolved,
+  // finalized, or bounded.
+  bool IsResolved() const;
+  bool IsFinalized() const;
+  bool IsBounded() const;
+
+  // Return true if this vector contains a recursive type argument.
+  bool IsRecursive() const;
+
+  // Set the scope of this type argument vector to the given function.
+  void SetScopeFunction(const Function& function) const;
+
+  // Clone this type argument vector and clone all unfinalized type arguments.
+  // Finalized type arguments are shared.
+  RawTypeArguments* CloneUnfinalized() const;
+
+  // Clone this type argument vector and clone all uninstantiated type
+  // arguments, changing the class owner of type parameters.
+  // Instantiated type arguments are shared.
+  RawTypeArguments* CloneUninstantiated(const Class& new_owner,
+                                        TrailPtr trail = NULL) const;
+
+  // Canonicalize only if instantiated, otherwise returns 'this'.
+  RawTypeArguments* Canonicalize(TrailPtr trail = NULL) const;
+
+  // Add the class name and URI of each type argument of this vector to the uris
+  // list and mark ambiguous triplets to be printed.
+  void EnumerateURIs(URIs* uris) const;
+
+  // Return 'this' if this type argument vector is instantiated, i.e. if it does
+  // not refer to type parameters. Otherwise, return a new type argument vector
+  // where each reference to a type parameter is replaced with the corresponding
+  // type from the various type argument vectors (class instantiator, function,
+  // or parent functions via the current context).
+  // If bound_error is not NULL, it may be set to reflect a bound error.
+  RawTypeArguments* InstantiateFrom(
+      const TypeArguments& instantiator_type_arguments,
+      const TypeArguments& function_type_arguments,
+      intptr_t num_free_fun_type_params,
+      Error* bound_error,
+      TrailPtr instantiation_trail,
+      TrailPtr bound_trail,
+      Heap::Space space) const;
+
+  // Runtime instantiation with canonicalization. Not to be used during type
+  // finalization at compile time.
+  RawTypeArguments* InstantiateAndCanonicalizeFrom(
+      const TypeArguments& instantiator_type_arguments,
+      const TypeArguments& function_type_arguments,
+      Error* bound_error) const;
+
+  // Return true if this type argument vector has cached instantiations.
+  bool HasInstantiations() const;
+
+  // Return the number of cached instantiations for this type argument vector.
+  intptr_t NumInstantiations() const;
+
+  static intptr_t instantiations_offset() {
+    return OFFSET_OF(RawTypeArguments, instantiations_);
+  }
+
+  static const intptr_t kBytesPerElement = kWordSize;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
+  static intptr_t InstanceSize() {
+    ASSERT(sizeof(RawTypeArguments) ==
+           OFFSET_OF_RETURNED_VALUE(RawTypeArguments, types));
+    return 0;
+  }
+
+  static intptr_t InstanceSize(intptr_t len) {
+    // Ensure that the types() is not adding to the object size, which includes
+    // 3 fields: instantiations_, length_ and hash_.
+    ASSERT(sizeof(RawTypeArguments) ==
+           (sizeof(RawObject) + (kNumFields * kWordSize)));
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(sizeof(RawTypeArguments) +
+                                 (len * kBytesPerElement));
+  }
+
+  virtual uint32_t CanonicalizeHash() const {
+    // Hash() is not stable until finalization is done.
+    return 0;
+  }
+  intptr_t Hash() const;
+
+  static RawTypeArguments* New(intptr_t len, Heap::Space space = Heap::kOld);
+
+ private:
+  intptr_t ComputeHash() const;
+  void SetHash(intptr_t value) const;
+
+  // Check if the subvector of length 'len' starting at 'from_index' of this
+  // type argument vector consists solely of DynamicType.
+  // If raw_instantiated is true, consider each class type parameter to be first
+  // instantiated from a vector of dynamic types.
+  bool IsDynamicTypes(bool raw_instantiated,
+                      intptr_t from_index,
+                      intptr_t len) const;
+
+  // Check the subtype or 'more specific' relationship, considering only a
+  // subvector of length 'len' starting at 'from_index'.
+  bool TypeTest(TypeTestKind test_kind,
+                const TypeArguments& other,
+                intptr_t from_index,
+                intptr_t len,
+                Error* bound_error,
+                TrailPtr bound_trail,
+                Heap::Space space) const;
+
+  // Return the internal or public name of a subvector of this type argument
+  // vector, e.g. "<T, dynamic, List<T>, int>".
+  RawString* SubvectorName(intptr_t from_index,
+                           intptr_t len,
+                           NameVisibility name_visibility) const;
+
+  RawArray* instantiations() const;
+  void set_instantiations(const Array& value) const;
+  RawAbstractType* const* TypeAddr(intptr_t index) const;
+  void SetLength(intptr_t value) const;
+  // Number of fields in the raw object=3 (instantiations_, length_ and hash_).
+  static const int kNumFields = 3;
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeArguments, Instance);
+  friend class AbstractType;
+  friend class Class;
+  friend class ClearTypeHashVisitor;
+  friend class Object;
+};
 
 // AbstractType is an abstract superclass.
 // Subclasses of AbstractType are Type and TypeParameter.
@@ -5752,26 +6077,40 @@ class AbstractType : public Instance {
   virtual void set_arguments(const TypeArguments& value) const;
   virtual TokenPosition token_pos() const;
   virtual bool IsInstantiated(Genericity genericity = kAny,
+                              intptr_t num_free_fun_type_params = kAllFree,
                               TrailPtr trail = NULL) const;
   virtual bool CanonicalizeEquals(const Instance& other) const {
     return Equals(other);
   }
+  virtual uint32_t CanonicalizeHash() const { return Hash(); }
   virtual bool Equals(const Instance& other) const {
     return IsEquivalent(other);
   }
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
 
+  // Set the scope of this type to the given function.
+  virtual void SetScopeFunction(const Function& function) const;
+
   // Check if this type represents a function type.
   virtual bool IsFunctionType() const { return false; }
 
-  // Instantiate this type using the given type argument vectors and possibly
-  // the current context.
+  // Instantiate this type using the given type argument vectors.
+  //
+  // Note that some type parameters appearing in this type may not require
+  // instantiation. Consider a class C<T> declaring a non-generic method
+  // foo(bar<B>(T t, B b)). Although foo is not a generic method, it takes a
+  // generic function bar<B> as argument and its function type refers to class
+  // type parameter T and function type parameter B. When instantiating the
+  // function type of foo for a particular value of T, function type parameter B
+  // must remain uninstantiated, because only T is a free variable in this type.
+  //
   // Return a new type, or return 'this' if it is already instantiated.
   // If bound_error is not NULL, it may be set to reflect a bound error.
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
+      intptr_t num_free_fun_type_params,
       Error* bound_error,
       TrailPtr instantiation_trail,
       TrailPtr bound_trail,
@@ -5825,6 +6164,12 @@ class AbstractType : public Instance {
   // The receiver may be added several times, each time with a different buddy.
   bool TestAndAddBuddyToTrail(TrailPtr* trail, const AbstractType& buddy) const;
 
+  // Add the pair <name, uri> to the list, if not already present.
+  static void AddURI(URIs* uris, const String& name, const String& uri);
+
+  // Return a formatted string of the uris.
+  static RawString* PrintURIs(URIs* uris);
+
   // The name of this type, including the names of its type arguments, if any.
   virtual RawString* Name() const { return BuildName(kInternalName); }
 
@@ -5834,14 +6179,18 @@ class AbstractType : public Instance {
     return BuildName(kUserVisibleName);
   }
 
-  // Returns a formatted list of occurring types with their URI.
-  virtual RawString* EnumerateURIs() const;
+  // Add the class name and URI of each occuring type to the uris
+  // list and mark ambiguous triplets to be printed.
+  virtual void EnumerateURIs(URIs* uris) const;
 
   virtual intptr_t Hash() const;
 
   // The name of this type's class, i.e. without the type argument names of this
   // type.
   RawString* ClassName() const;
+
+  // Check if this type is a still uninitialized TypeRef.
+  bool IsNullTypeRef() const;
 
   // Check if this type represents the 'dynamic' type or if it is malformed,
   // since a malformed type is mapped to 'dynamic'.
@@ -5854,10 +6203,12 @@ class AbstractType : public Instance {
   // Check if this type represents the 'Null' type.
   bool IsNullType() const;
 
-  bool IsObjectType() const {
-    return !IsFunctionType() && HasResolvedTypeClass() &&
-           Class::Handle(type_class()).IsObjectClass();
-  }
+  // Check if this type represents the 'Object' type.
+  bool IsObjectType() const;
+
+  // Check if this type represents a top type, i.e. 'dynamic', 'Object', or
+  // 'void' type.
+  bool IsTopType() const;
 
   // Check if this type represents the 'bool' type.
   bool IsBoolType() const;
@@ -5912,13 +6263,40 @@ class AbstractType : public Instance {
                     space);
   }
 
+  // Returns true iff subtype is a subtype of supertype, false otherwise or if
+  // an error occurred.
+  static bool InstantiateAndTestSubtype(
+      AbstractType* subtype,
+      AbstractType* supertype,
+      Error* bound_error,
+      const TypeArguments& instantiator_type_args,
+      const TypeArguments& function_type_args);
+
+  static intptr_t type_test_stub_entry_point_offset() {
+    return OFFSET_OF(RawAbstractType, type_test_stub_entry_point_);
+  }
+
+  uword type_test_stub_entry_point() const {
+    return raw_ptr()->type_test_stub_entry_point_;
+  }
+
+  void SetTypeTestingStub(const Instructions& instr) const;
+
  private:
-  // Check the subtype or 'more specific' relationship.
+  // Check the 'is subtype of' or 'is more specific than' relationship.
   bool TypeTest(TypeTestKind test_kind,
                 const AbstractType& other,
                 Error* bound_error,
                 TrailPtr bound_trail,
                 Heap::Space space) const;
+
+  // Returns true if this type is a subtype of FutureOr<T> specified by 'other'.
+  // Returns false if other type is not a FutureOr.
+  bool FutureOrTypeTest(Zone* zone,
+                        const AbstractType& other,
+                        Error* bound_error,
+                        TrailPtr bound_trail,
+                        Heap::Space space) const;
 
   // Return the internal or public name of this type, including the names of its
   // type arguments, if any.
@@ -5930,7 +6308,6 @@ class AbstractType : public Instance {
   friend class Function;
   friend class TypeArguments;
 };
-
 
 // A Type consists of a class, possibly parameterized with type
 // arguments. Example: C<T1, T2>.
@@ -5944,6 +6321,13 @@ class Type : public AbstractType {
   static intptr_t type_class_id_offset() {
     return OFFSET_OF(RawType, type_class_id_);
   }
+  static intptr_t arguments_offset() {
+    return OFFSET_OF(RawType, type_class_id_);
+  }
+  static intptr_t type_state_offset() {
+    return OFFSET_OF(RawType, type_state_);
+  }
+  static intptr_t hash_offset() { return OFFSET_OF(RawType, hash_); }
   virtual bool IsFinalized() const {
     return (raw_ptr()->type_state_ == RawType::kFinalizedInstantiated) ||
            (raw_ptr()->type_state_ == RawType::kFinalizedUninstantiated);
@@ -5973,9 +6357,11 @@ class Type : public AbstractType {
   virtual void set_arguments(const TypeArguments& value) const;
   virtual TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated(Genericity genericity = kAny,
+                              intptr_t num_free_fun_type_params = kAllFree,
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
+  virtual void SetScopeFunction(const Function& function) const;
   // If signature is not null, this type represents a function type. Note that
   // the signature fully represents the type and type arguments can be ignored.
   // However, in case of a generic typedef, they document how the typedef class
@@ -5988,6 +6374,7 @@ class Type : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
+      intptr_t num_free_fun_type_params,
       Error* bound_error,
       TrailPtr instantiation_trail,
       TrailPtr bound_trail,
@@ -6000,7 +6387,7 @@ class Type : public AbstractType {
   // Check if type is canonical.
   virtual bool CheckIsCanonical(Thread* thread) const;
 #endif  // DEBUG
-  virtual RawString* EnumerateURIs() const;
+  virtual void EnumerateURIs(URIs* uris) const;
 
   virtual intptr_t Hash() const;
 
@@ -6059,6 +6446,9 @@ class Type : public AbstractType {
   // The 'Function' type.
   static RawType* DartFunctionType();
 
+  // The 'Type' type.
+  static RawType* DartTypeType();
+
   // The finalized type of the given non-parameterized class.
   static RawType* NewNonParameterizedType(const Class& type_class);
 
@@ -6082,13 +6472,14 @@ class Type : public AbstractType {
   friend class ClearTypeHashVisitor;
 };
 
-
 // A TypeRef is used to break cycles in the representation of recursive types.
 // Its only field is the recursive AbstractType it refers to, which can
 // temporarily be null during finalization.
 // Note that the cycle always involves type arguments.
 class TypeRef : public AbstractType {
  public:
+  static intptr_t type_offset() { return OFFSET_OF(RawTypeRef, type_); }
+
   virtual bool IsFinalized() const {
     const AbstractType& ref_type = AbstractType::Handle(type());
     return !ref_type.IsNull() && ref_type.IsFinalized();
@@ -6106,12 +6497,19 @@ class TypeRef : public AbstractType {
   virtual bool IsMalformedOrMalbounded() const {
     return AbstractType::Handle(type()).IsMalformedOrMalbounded();
   }
+  virtual RawLanguageError* error() const {
+    return AbstractType::Handle(type()).error();
+  }
   virtual bool IsResolved() const { return true; }
   virtual bool HasResolvedTypeClass() const {
-    return AbstractType::Handle(type()).HasResolvedTypeClass();
+    return (type() != AbstractType::null()) &&
+           AbstractType::Handle(type()).HasResolvedTypeClass();
   }
   RawAbstractType* type() const { return raw_ptr()->type_; }
   void set_type(const AbstractType& value) const;
+  virtual classid_t type_class_id() const {
+    return AbstractType::Handle(type()).type_class_id();
+  }
   virtual RawClass* type_class() const {
     return AbstractType::Handle(type()).type_class();
   }
@@ -6122,12 +6520,15 @@ class TypeRef : public AbstractType {
     return AbstractType::Handle(type()).token_pos();
   }
   virtual bool IsInstantiated(Genericity genericity = kAny,
+                              intptr_t num_free_fun_type_params = kAllFree,
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const { return true; }
+  virtual void SetScopeFunction(const Function& function) const;
   virtual RawTypeRef* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
+      intptr_t num_free_fun_type_params,
       Error* bound_error,
       TrailPtr instantiation_trail,
       TrailPtr bound_trail,
@@ -6139,7 +6540,7 @@ class TypeRef : public AbstractType {
   // Check if typeref is canonical.
   virtual bool CheckIsCanonical(Thread* thread) const;
 #endif  // DEBUG
-  virtual RawString* EnumerateURIs() const;
+  virtual void EnumerateURIs(URIs* uris) const;
 
   virtual intptr_t Hash() const;
 
@@ -6155,7 +6556,6 @@ class TypeRef : public AbstractType {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeRef, AbstractType);
   friend class Class;
 };
-
 
 // A TypeParameter represents a type parameter of a parameterized class.
 // It specifies its index (and its name for debugging purposes), as well as its
@@ -6207,12 +6607,15 @@ class TypeParameter : public AbstractType {
                   Heap::Space space) const;
   virtual TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated(Genericity genericity = kAny,
+                              intptr_t num_free_fun_type_params = kAllFree,
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const { return false; }
+  virtual void SetScopeFunction(const Function& function) const {}
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
+      intptr_t num_free_fun_type_params,
       Error* bound_error,
       TrailPtr instantiation_trail,
       TrailPtr bound_trail,
@@ -6227,7 +6630,7 @@ class TypeParameter : public AbstractType {
   // Check if type parameter is canonical.
   virtual bool CheckIsCanonical(Thread* thread) const { return true; }
 #endif  // DEBUG
-  virtual RawString* EnumerateURIs() const;
+  virtual void EnumerateURIs(URIs* uris) const;
 
   virtual intptr_t Hash() const;
 
@@ -6260,7 +6663,6 @@ class TypeParameter : public AbstractType {
   friend class ClearTypeHashVisitor;
 };
 
-
 // A BoundedType represents a type instantiated at compile time from a type
 // parameter specifying a bound that either cannot be checked at compile time
 // because the type or the bound are still uninstantiated or can be checked and
@@ -6283,6 +6685,9 @@ class BoundedType : public AbstractType {
   virtual bool HasResolvedTypeClass() const {
     return AbstractType::Handle(type()).HasResolvedTypeClass();
   }
+  virtual classid_t type_class_id() const {
+    return AbstractType::Handle(type()).type_class_id();
+  }
   virtual RawClass* type_class() const {
     return AbstractType::Handle(type()).type_class();
   }
@@ -6301,18 +6706,22 @@ class BoundedType : public AbstractType {
     return AbstractType::Handle(type()).token_pos();
   }
   virtual bool IsInstantiated(Genericity genericity = kAny,
+                              intptr_t num_free_fun_type_params = kAllFree,
                               TrailPtr trail = NULL) const {
     // It is not possible to encounter an instantiated bounded type with an
     // uninstantiated upper bound. Therefore, we do not need to check if the
     // bound is instantiated. Moreover, doing so could lead into cycles, as in
     // class C<T extends C<C>> { }.
-    return AbstractType::Handle(type()).IsInstantiated(genericity, trail);
+    return AbstractType::Handle(type()).IsInstantiated(
+        genericity, num_free_fun_type_params, trail);
   }
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
+  virtual void SetScopeFunction(const Function& function) const;
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       const TypeArguments& function_type_arguments,
+      intptr_t num_free_fun_type_params,
       Error* bound_error,
       TrailPtr instantiation_trail,
       TrailPtr bound_trail,
@@ -6327,7 +6736,7 @@ class BoundedType : public AbstractType {
   // Check if bounded type is canonical.
   virtual bool CheckIsCanonical(Thread* thread) const { return true; }
 #endif  // DEBUG
-  virtual RawString* EnumerateURIs() const;
+  virtual void EnumerateURIs(URIs* uris) const;
 
   virtual intptr_t Hash() const;
 
@@ -6353,7 +6762,6 @@ class BoundedType : public AbstractType {
   friend class Class;
   friend class ClearTypeHashVisitor;
 };
-
 
 // A MixinAppType represents a parsed mixin application clause, e.g.
 // "S<T> with M<U>, N<V>".
@@ -6406,7 +6814,6 @@ class MixinAppType : public AbstractType {
   friend class Class;
 };
 
-
 class Number : public Instance {
  public:
   // TODO(iposva): Add more useful Number methods.
@@ -6427,17 +6834,24 @@ class Number : public Instance {
   friend class Class;
 };
 
-
 class Integer : public Number {
  public:
   static RawInteger* New(const String& str, Heap::Space space = Heap::kNew);
+
+  // Creates a new Integer by given uint64_t value.
+  // Silently casts value to int64_t with wrap-around if it is greater
+  // than kMaxInt64.
   static RawInteger* NewFromUint64(uint64_t value,
                                    Heap::Space space = Heap::kNew);
 
   // Returns a canonical Integer object allocated in the old gen space.
+  // Returns null if integer is out of range.
   static RawInteger* NewCanonical(const String& str);
 
   static RawInteger* New(int64_t value, Heap::Space space = Heap::kNew);
+
+  // Returns true iff the given uint64_t value is representable as Dart integer.
+  static bool IsValueInRange(uint64_t value);
 
   virtual bool OperatorEquals(const Instance& other) const {
     return Equals(other);
@@ -6445,10 +6859,7 @@ class Integer : public Number {
   virtual bool CanonicalizeEquals(const Instance& other) const {
     return Equals(other);
   }
-  virtual uword ComputeCanonicalTableHash() const {
-    UNREACHABLE();
-    return 0;
-  }
+  virtual uint32_t CanonicalizeHash() const { return AsTruncatedUint32Value(); }
   virtual bool Equals(const Instance& other) const;
 
   virtual RawObject* HashCode() const { return raw(); }
@@ -6466,6 +6877,9 @@ class Integer : public Number {
   // Returns 0, -1 or 1.
   virtual int CompareWith(const Integer& other) const;
 
+  // Converts integer to hex string.
+  const char* ToHexCString(Zone* zone) const;
+
   // Return the most compact presentation of an integer.
   RawInteger* AsValidInteger() const;
 
@@ -6476,12 +6890,14 @@ class Integer : public Number {
   RawInteger* BitOp(Token::Kind operation,
                     const Integer& other,
                     Heap::Space space = Heap::kNew) const;
+  RawInteger* ShiftOp(Token::Kind operation,
+                      const Integer& other,
+                      Heap::Space space = Heap::kNew) const;
 
  private:
   OBJECT_IMPLEMENTATION(Integer, Number);
   friend class Class;
 };
-
 
 class Smi : public Integer {
  public:
@@ -6530,10 +6946,6 @@ class Smi : public Integer {
     return (value >= kMinValue) && (value <= kMaxValue);
   }
 
-  RawInteger* ShiftOp(Token::Kind kind,
-                      const Smi& other,
-                      Heap::Space space = Heap::kNew) const;
-
   void operator=(RawSmi* value) {
     raw_ = value;
     CHECK_HANDLE();
@@ -6566,7 +6978,6 @@ class Smi : public Integer {
   friend class ReusableSmiHandleScope;
   friend class Thread;
 };
-
 
 class Mint : public Integer {
  public:
@@ -6612,105 +7023,6 @@ class Mint : public Integer {
   friend class Number;
 };
 
-
-class Bigint : public Integer {
- public:
-  virtual bool IsZero() const { return Used() == 0; }
-  virtual bool IsNegative() const { return Neg(); }
-  virtual bool Equals(const Instance& other) const;
-
-  virtual double AsDoubleValue() const;
-  virtual int64_t AsInt64Value() const;
-  virtual int64_t AsTruncatedInt64Value() const;
-  virtual uint32_t AsTruncatedUint32Value() const;
-
-  virtual int CompareWith(const Integer& other) const;
-
-  virtual bool CheckAndCanonicalizeFields(Thread* thread,
-                                          const char** error_str) const;
-
-  virtual bool FitsIntoSmi() const;
-  bool FitsIntoInt64() const;
-  bool FitsIntoUint64() const;
-  uint64_t AsUint64Value() const;
-
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawBigint));
-  }
-
-  // Offsets of fields accessed directly by optimized code.
-  static intptr_t neg_offset() { return OFFSET_OF(RawBigint, neg_); }
-  static intptr_t used_offset() { return OFFSET_OF(RawBigint, used_); }
-  static intptr_t digits_offset() { return OFFSET_OF(RawBigint, digits_); }
-
-  // Accessors used by native calls from Dart.
-  RawBool* neg() const { return raw_ptr()->neg_; }
-  RawSmi* used() const { return raw_ptr()->used_; }
-  RawTypedData* digits() const { return raw_ptr()->digits_; }
-
-  // Accessors used by runtime calls from C++.
-  bool Neg() const;
-  intptr_t Used() const;
-  uint32_t DigitAt(intptr_t index) const;
-
-  const char* ToDecCString(Zone* zone) const;
-  const char* ToHexCString(Zone* zone) const;
-
-  static const intptr_t kBitsPerDigit = 32;  // Same as _Bigint._DIGIT_BITS
-  static const intptr_t kBytesPerDigit = 4;
-  static const int64_t kDigitBase = 1LL << kBitsPerDigit;
-  static const int64_t kDigitMask = kDigitBase - 1;
-
-  static RawBigint* New(Heap::Space space = Heap::kNew);  // For snapshots.
-
-  static RawBigint* New(bool neg,
-                        intptr_t used,
-                        const TypedData& digits,
-                        Heap::Space space = Heap::kNew);
-
-  static RawBigint* NewFromInt64(int64_t value, Heap::Space space = Heap::kNew);
-
-  static RawBigint* NewFromUint64(uint64_t value,
-                                  Heap::Space space = Heap::kNew);
-
-  static RawBigint* NewFromShiftedInt64(int64_t value,
-                                        intptr_t shift,
-                                        Heap::Space space = Heap::kNew);
-
-  static RawBigint* NewFromCString(const char* str,
-                                   Heap::Space space = Heap::kNew);
-
-  // Returns a canonical Bigint object allocated in the old gen space.
-  static RawBigint* NewCanonical(const String& str);
-
- private:
-  void SetNeg(bool value) const;
-  void SetUsed(intptr_t value) const;
-  void set_digits(const TypedData& value) const;
-
-  // Convenience helpers.
-  static RawTypedData* NewDigits(intptr_t length,
-                                 Heap::Space space = Heap::kNew);
-  static uint32_t DigitAt(const TypedData& digits, intptr_t index);
-  static void SetDigitAt(const TypedData& digits,
-                         intptr_t index,
-                         uint32_t value);
-
-  static RawTypedData* NewDigitsFromHexCString(const char* str,
-                                               intptr_t* used,
-                                               Heap::Space space = Heap::kNew);
-
-  static RawTypedData* NewDigitsFromDecCString(const char* str,
-                                               intptr_t* used,
-                                               Heap::Space space = Heap::kNew);
-
-  static RawBigint* Allocate(intptr_t length, Heap::Space space = Heap::kNew);
-
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(Bigint, Integer);
-  friend class Class;
-};
-
-
 // Class Double represents class Double in corelib_impl, which implements
 // abstract class double in corelib.
 class Double : public Number {
@@ -6720,10 +7032,7 @@ class Double : public Number {
   bool BitwiseEqualsToDouble(double value) const;
   virtual bool OperatorEquals(const Instance& other) const;
   virtual bool CanonicalizeEquals(const Instance& other) const;
-  virtual uword ComputeCanonicalTableHash() const {
-    UNREACHABLE();
-    return 0;
-  }
+  virtual uint32_t CanonicalizeHash() const;
 
   static RawDouble* New(double d, Heap::Space space = Heap::kNew);
 
@@ -6751,7 +7060,6 @@ class Double : public Number {
   friend class Number;
 };
 
-
 // String may not be '\0' terminated.
 class String : public Instance {
  public:
@@ -6763,9 +7071,9 @@ class String : public Instance {
   static const intptr_t kOneByteChar = 1;
   static const intptr_t kTwoByteChar = 2;
 
-  // All strings share the same maximum element count to keep things
-  // simple.  We choose a value that will prevent integer overflow for
-  // 2 byte strings, since it is the worst case.
+// All strings share the same maximum element count to keep things
+// simple.  We choose a value that will prevent integer overflow for
+// 2 byte strings, since it is the worst case.
 #if defined(HASH_IN_OBJECT_HEADER)
   static const intptr_t kSizeofRawString = sizeof(RawInstance) + kWordSize;
 #else
@@ -6815,16 +7123,14 @@ class String : public Instance {
     return result;
   }
 
+  static intptr_t Hash(RawString* raw);
+
   bool HasHash() const {
     ASSERT(Smi::New(0) == NULL);
     return GetCachedHash(raw()) != 0;
   }
 
-#if defined(HASH_IN_OBJECT_HEADER)
-  static intptr_t hash_offset() { return kInt32Size; }  // Wrong for big-endian?
-#else
   static intptr_t hash_offset() { return OFFSET_OF(RawString, hash_); }
-#endif
   static intptr_t Hash(const String& str, intptr_t begin_index, intptr_t len);
   static intptr_t Hash(const char* characters, intptr_t len);
   static intptr_t Hash(const uint16_t* characters, intptr_t len);
@@ -6876,10 +7182,7 @@ class String : public Instance {
   virtual bool CanonicalizeEquals(const Instance& other) const {
     return Equals(other);
   }
-  virtual uword ComputeCanonicalTableHash() const {
-    UNREACHABLE();
-    return 0;
-  }
+  virtual uint32_t CanonicalizeHash() const { return Hash(); }
   virtual bool Equals(const Instance& other) const;
 
   intptr_t CompareTo(const String& other) const;
@@ -6919,17 +7222,8 @@ class String : public Instance {
 
   void* GetPeer() const;
 
+  char* ToMallocCString() const;
   void ToUTF8(uint8_t* utf8_array, intptr_t array_len) const;
-
-  // Copies the string characters into the provided external array
-  // and morphs the string object into an external string object.
-  // The remaining unused part of the original string object is marked as
-  // an Array object or a regular Object so that it can be traversed during
-  // garbage collection.
-  RawString* MakeExternal(void* array,
-                          intptr_t external_size,
-                          void* peer,
-                          Dart_PeerFinalizer cback) const;
 
   // Creates a new String object from a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.
@@ -6964,7 +7258,8 @@ class String : public Instance {
   static RawString* NewExternal(const uint8_t* utf8_array,
                                 intptr_t array_len,
                                 void* peer,
-                                Dart_PeerFinalizer callback,
+                                intptr_t external_allocation_size,
+                                Dart_WeakPersistentHandleFinalizer callback,
                                 Heap::Space = Heap::kNew);
 
   // Creates a new External String object using the specified array of
@@ -6972,7 +7267,8 @@ class String : public Instance {
   static RawString* NewExternal(const uint16_t* utf16_array,
                                 intptr_t array_len,
                                 void* peer,
-                                Dart_PeerFinalizer callback,
+                                intptr_t external_allocation_size,
+                                Dart_WeakPersistentHandleFinalizer callback,
                                 Heap::Space = Heap::kNew);
 
   static void Copy(const String& dst,
@@ -7101,7 +7397,6 @@ class String : public Instance {
   friend class RODataSerializationCluster;  // SetHash
 };
 
-
 class OneByteString : public AllStatic {
  public:
   static uint16_t CharAt(const String& str, intptr_t index) {
@@ -7123,12 +7418,17 @@ class OneByteString : public AllStatic {
     return OFFSET_OF_RETURNED_VALUE(RawOneByteString, data);
   }
 
+  static intptr_t UnroundedSize(RawOneByteString* str) {
+    return UnroundedSize(Smi::Value(str->ptr()->length_));
+  }
+  static intptr_t UnroundedSize(intptr_t len) {
+    return sizeof(RawOneByteString) + (len * kBytesPerElement);
+  }
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawOneByteString) ==
            OFFSET_OF_RETURNED_VALUE(RawOneByteString, data));
     return 0;
   }
-
   static intptr_t InstanceSize(intptr_t len) {
     ASSERT(sizeof(RawOneByteString) == String::kSizeofRawString);
     ASSERT(0 <= len && len <= kMaxElements);
@@ -7138,8 +7438,7 @@ class OneByteString : public AllStatic {
     // memory allocated for the raw string.
     if (len == 0) return InstanceSize(1);
 #endif
-    return String::RoundedAllocationSize(sizeof(RawOneByteString) +
-                                         (len * kBytesPerElement));
+    return String::RoundedAllocationSize(UnroundedSize(len));
   }
 
   static RawOneByteString* New(intptr_t len, Heap::Space space);
@@ -7195,13 +7494,9 @@ class OneByteString : public AllStatic {
                                               Heap::Space space);
 
   static void SetPeer(const String& str,
-                      intptr_t external_size,
                       void* peer,
-                      Dart_PeerFinalizer cback);
-
-  static void Finalize(void* isolate_callback_data,
-                       Dart_WeakPersistentHandle handle,
-                       void* peer);
+                      intptr_t external_allocation_size,
+                      Dart_WeakPersistentHandleFinalizer callback);
 
   static const ClassId kClassId = kOneByteStringCid;
 
@@ -7224,6 +7519,11 @@ class OneByteString : public AllStatic {
     return &str.UnsafeMutableNonPointer(raw_ptr(str)->data())[index];
   }
 
+  static uint8_t* DataStart(const String& str) {
+    ASSERT(str.IsOneByteString());
+    return &str.UnsafeMutableNonPointer(raw_ptr(str)->data())[0];
+  }
+
   static RawOneByteString* ReadFrom(SnapshotReader* reader,
                                     intptr_t object_id,
                                     intptr_t tags,
@@ -7236,8 +7536,8 @@ class OneByteString : public AllStatic {
   friend class ExternalOneByteString;
   friend class SnapshotReader;
   friend class StringHasher;
+  friend class Utf8;
 };
-
 
 class TwoByteString : public AllStatic {
  public:
@@ -7262,12 +7562,17 @@ class TwoByteString : public AllStatic {
     return OFFSET_OF_RETURNED_VALUE(RawTwoByteString, data);
   }
 
+  static intptr_t UnroundedSize(RawTwoByteString* str) {
+    return UnroundedSize(Smi::Value(str->ptr()->length_));
+  }
+  static intptr_t UnroundedSize(intptr_t len) {
+    return sizeof(RawTwoByteString) + (len * kBytesPerElement);
+  }
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawTwoByteString) ==
            OFFSET_OF_RETURNED_VALUE(RawTwoByteString, data));
     return 0;
   }
-
   static intptr_t InstanceSize(intptr_t len) {
     ASSERT(sizeof(RawTwoByteString) == String::kSizeofRawString);
     ASSERT(0 <= len && len <= kMaxElements);
@@ -7275,8 +7580,7 @@ class TwoByteString : public AllStatic {
     // If we don't pad, then the external string object does not fit in the
     // memory allocated for the raw string.
     if (len == 0) return InstanceSize(1);
-    return String::RoundedAllocationSize(sizeof(RawTwoByteString) +
-                                         (len * kBytesPerElement));
+    return String::RoundedAllocationSize(UnroundedSize(len));
   }
 
   static RawTwoByteString* New(intptr_t len, Heap::Space space);
@@ -7313,18 +7617,13 @@ class TwoByteString : public AllStatic {
                                      Heap::Space space);
 
   static void SetPeer(const String& str,
-                      intptr_t external_size,
                       void* peer,
-                      Dart_PeerFinalizer cback);
-
-  static void Finalize(void* isolate_callback_data,
-                       Dart_WeakPersistentHandle handle,
-                       void* peer);
+                      intptr_t external_allocation_size,
+                      Dart_WeakPersistentHandleFinalizer callback);
 
   static RawTwoByteString* null() {
     return reinterpret_cast<RawTwoByteString*>(Object::null());
   }
-
 
   static const ClassId kClassId = kTwoByteStringCid;
 
@@ -7343,6 +7642,13 @@ class TwoByteString : public AllStatic {
     return &str.UnsafeMutableNonPointer(raw_ptr(str)->data())[index];
   }
 
+  // Use this instead of CharAddr(0).  It will not assert that the index is <
+  // length.
+  static uint16_t* DataStart(const String& str) {
+    ASSERT(str.IsTwoByteString());
+    return &str.UnsafeMutableNonPointer(raw_ptr(str)->data())[0];
+  }
+
   static RawTwoByteString* ReadFrom(SnapshotReader* reader,
                                     intptr_t object_id,
                                     intptr_t tags,
@@ -7355,7 +7661,6 @@ class TwoByteString : public AllStatic {
   friend class Symbols;
 };
 
-
 class ExternalOneByteString : public AllStatic {
  public:
   static uint16_t CharAt(const String& str, intptr_t index) {
@@ -7363,9 +7668,7 @@ class ExternalOneByteString : public AllStatic {
     return *CharAddr(str, index);
   }
 
-  static void* GetPeer(const String& str) {
-    return raw_ptr(str)->external_data_->peer();
-  }
+  static void* GetPeer(const String& str) { return raw_ptr(str)->peer_; }
 
   static intptr_t external_data_offset() {
     return OFFSET_OF(RawExternalOneByteString, external_data_);
@@ -7379,11 +7682,13 @@ class ExternalOneByteString : public AllStatic {
     return String::RoundedAllocationSize(sizeof(RawExternalOneByteString));
   }
 
-  static RawExternalOneByteString* New(const uint8_t* characters,
-                                       intptr_t len,
-                                       void* peer,
-                                       Dart_PeerFinalizer callback,
-                                       Heap::Space space);
+  static RawExternalOneByteString* New(
+      const uint8_t* characters,
+      intptr_t len,
+      void* peer,
+      intptr_t external_allocation_size,
+      Dart_WeakPersistentHandleFinalizer callback,
+      Heap::Space space);
 
   static RawExternalOneByteString* null() {
     return reinterpret_cast<RawExternalOneByteString*>(Object::null());
@@ -7407,15 +7712,22 @@ class ExternalOneByteString : public AllStatic {
   static const uint8_t* CharAddr(const String& str, intptr_t index) {
     ASSERT((index >= 0) && (index < str.Length()));
     ASSERT(str.IsExternalOneByteString());
-    return &(raw_ptr(str)->external_data_->data()[index]);
+    return &(raw_ptr(str)->external_data_[index]);
+  }
+
+  static const uint8_t* DataStart(const String& str) {
+    ASSERT(str.IsExternalOneByteString());
+    return raw_ptr(str)->external_data_;
   }
 
   static void SetExternalData(const String& str,
-                              ExternalStringData<uint8_t>* data) {
+                              const uint8_t* data,
+                              void* peer) {
     ASSERT(str.IsExternalOneByteString());
-    ASSERT(!Isolate::Current()->heap()->Contains(
-        reinterpret_cast<uword>(data->data())));
+    ASSERT(
+        !Isolate::Current()->heap()->Contains(reinterpret_cast<uword>(data)));
     str.StoreNonPointer(&raw_ptr(str)->external_data_, data);
+    str.StoreNonPointer(&raw_ptr(str)->peer_, peer);
   }
 
   static void Finalize(void* isolate_callback_data,
@@ -7437,8 +7749,8 @@ class ExternalOneByteString : public AllStatic {
   friend class String;
   friend class SnapshotReader;
   friend class Symbols;
+  friend class Utf8;
 };
-
 
 class ExternalTwoByteString : public AllStatic {
  public:
@@ -7447,9 +7759,7 @@ class ExternalTwoByteString : public AllStatic {
     return *CharAddr(str, index);
   }
 
-  static void* GetPeer(const String& str) {
-    return raw_ptr(str)->external_data_->peer();
-  }
+  static void* GetPeer(const String& str) { return raw_ptr(str)->peer_; }
 
   static intptr_t external_data_offset() {
     return OFFSET_OF(RawExternalTwoByteString, external_data_);
@@ -7463,11 +7773,13 @@ class ExternalTwoByteString : public AllStatic {
     return String::RoundedAllocationSize(sizeof(RawExternalTwoByteString));
   }
 
-  static RawExternalTwoByteString* New(const uint16_t* characters,
-                                       intptr_t len,
-                                       void* peer,
-                                       Dart_PeerFinalizer callback,
-                                       Heap::Space space = Heap::kNew);
+  static RawExternalTwoByteString* New(
+      const uint16_t* characters,
+      intptr_t len,
+      void* peer,
+      intptr_t external_allocation_size,
+      Dart_WeakPersistentHandleFinalizer callback,
+      Heap::Space space = Heap::kNew);
 
   static RawExternalTwoByteString* null() {
     return reinterpret_cast<RawExternalTwoByteString*>(Object::null());
@@ -7487,15 +7799,22 @@ class ExternalTwoByteString : public AllStatic {
   static const uint16_t* CharAddr(const String& str, intptr_t index) {
     ASSERT((index >= 0) && (index < str.Length()));
     ASSERT(str.IsExternalTwoByteString());
-    return &(raw_ptr(str)->external_data_->data()[index]);
+    return &(raw_ptr(str)->external_data_[index]);
+  }
+
+  static const uint16_t* DataStart(const String& str) {
+    ASSERT(str.IsExternalTwoByteString());
+    return raw_ptr(str)->external_data_;
   }
 
   static void SetExternalData(const String& str,
-                              ExternalStringData<uint16_t>* data) {
+                              const uint16_t* data,
+                              void* peer) {
     ASSERT(str.IsExternalTwoByteString());
-    ASSERT(!Isolate::Current()->heap()->Contains(
-        reinterpret_cast<uword>(data->data())));
+    ASSERT(
+        !Isolate::Current()->heap()->Contains(reinterpret_cast<uword>(data)));
     str.StoreNonPointer(&raw_ptr(str)->external_data_, data);
+    str.StoreNonPointer(&raw_ptr(str)->peer_, peer);
   }
 
   static void Finalize(void* isolate_callback_data,
@@ -7519,7 +7838,6 @@ class ExternalTwoByteString : public AllStatic {
   friend class Symbols;
 };
 
-
 // Class Bool implements Dart core class bool.
 class Bool : public Instance {
  public:
@@ -7537,6 +7855,10 @@ class Bool : public Instance {
     return value ? Bool::True() : Bool::False();
   }
 
+  virtual uint32_t CanonicalizeHash() const {
+    return raw() == True().raw() ? 1231 : 1237;
+  }
+
  private:
   void set_value(bool value) const {
     StoreNonPointer(&raw_ptr()->value_, value);
@@ -7549,7 +7871,6 @@ class Bool : public Instance {
   friend class Class;
   friend class Object;  // To initialize the true and false values.
 };
-
 
 class Array : public Instance {
  public:
@@ -7594,10 +7915,12 @@ class Array : public Instance {
   }
 
   virtual bool CanonicalizeEquals(const Instance& other) const;
-  virtual uword ComputeCanonicalTableHash() const;
+  virtual uint32_t CanonicalizeHash() const;
 
   static const intptr_t kBytesPerElement = kWordSize;
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+  static const intptr_t kMaxNewSpaceElements =
+      (Heap::kNewAllocatableSize - sizeof(RawArray)) / kBytesPerElement;
 
   static intptr_t type_arguments_offset() {
     return OFFSET_OF(RawArray, type_arguments_);
@@ -7624,6 +7947,9 @@ class Array : public Instance {
   void MakeImmutable() const;
 
   static RawArray* New(intptr_t len, Heap::Space space = Heap::kNew);
+  static RawArray* New(intptr_t len,
+                       const AbstractType& element_type,
+                       Heap::Space space = Heap::kNew);
 
   // Creates and returns a new array with 'new_length'. Copies all elements from
   // 'source' to the new array. 'new_length' must be greater than or equal to
@@ -7640,7 +7966,10 @@ class Array : public Instance {
   // object or a regular Object so that it can be traversed during garbage
   // collection. The backing array of the original Growable Object Array is
   // set to an empty array.
-  static RawArray* MakeArray(const GrowableObjectArray& growable_array);
+  // If the unique parameter is false, the function is allowed to return
+  // a shared Array instance.
+  static RawArray* MakeFixedLength(const GrowableObjectArray& growable_array,
+                                   bool unique = false);
 
   RawArray* Slice(intptr_t start,
                   intptr_t count,
@@ -7667,10 +7996,10 @@ class Array : public Instance {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Array, Instance);
   friend class Class;
   friend class ImmutableArray;
+  friend class Interpreter;
   friend class Object;
   friend class String;
 };
-
 
 class ImmutableArray : public AllStatic {
  public:
@@ -7702,7 +8031,6 @@ class ImmutableArray : public AllStatic {
 
   friend class Class;
 };
-
 
 class GrowableObjectArray : public Instance {
  public:
@@ -7754,8 +8082,6 @@ class GrowableObjectArray : public Instance {
     // reusing the type argument vector of the instantiator.
     ASSERT(value.IsNull() || ((value.Length() >= 1) && value.IsInstantiated() &&
                               value.IsCanonical()));
-    const Array& contents = Array::Handle(data());
-    contents.SetTypeArguments(value);
     StorePointer(&raw_ptr()->type_arguments_, value.raw());
   }
 
@@ -7763,10 +8089,6 @@ class GrowableObjectArray : public Instance {
   virtual bool CanonicalizeEquals(const Instance& other) const {
     UNREACHABLE();
     return false;
-  }
-  virtual uword ComputeCanonicalTableHash() const {
-    UNREACHABLE();
-    return 0;
   }
 
   // We don't expect a growable object array to be canonicalized.
@@ -7806,13 +8128,12 @@ class GrowableObjectArray : public Instance {
     return &(DataArray()->data()[index]);
   }
 
-  static const int kDefaultInitialCapacity = 4;
+  static const int kDefaultInitialCapacity = 0;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(GrowableObjectArray, Instance);
   friend class Array;
   friend class Class;
 };
-
 
 class Float32x4 : public Instance {
  public:
@@ -7848,7 +8169,6 @@ class Float32x4 : public Instance {
   friend class Class;
 };
 
-
 class Int32x4 : public Instance {
  public:
   static RawInt32x4* New(int32_t value0,
@@ -7882,7 +8202,6 @@ class Int32x4 : public Instance {
   friend class Class;
 };
 
-
 class Float64x2 : public Instance {
  public:
   static RawFloat64x2* New(double value0,
@@ -7910,7 +8229,6 @@ class Float64x2 : public Instance {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Float64x2, Instance);
   friend class Class;
 };
-
 
 class TypedData : public Instance {
  public:
@@ -7947,31 +8265,19 @@ class TypedData : public Instance {
   }
 
   virtual bool CanonicalizeEquals(const Instance& other) const;
-  virtual uword ComputeCanonicalTableHash() const;
+  virtual uint32_t CanonicalizeHash() const;
 
-#if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
 #define TYPED_GETTER_SETTER(name, type)                                        \
   type Get##name(intptr_t byte_offset) const {                                 \
-    NoSafepointScope no_safepoint;                                             \
-    return *reinterpret_cast<type*>(DataAddr(byte_offset));                    \
+    ASSERT((byte_offset >= 0) &&                                               \
+           (byte_offset + static_cast<intptr_t>(sizeof(type)) - 1) <           \
+               LengthInBytes());                                               \
+    return ReadUnaligned(ReadOnlyDataAddr<type>(byte_offset));                 \
   }                                                                            \
   void Set##name(intptr_t byte_offset, type value) const {                     \
     NoSafepointScope no_safepoint;                                             \
-    *reinterpret_cast<type*>(DataAddr(byte_offset)) = value;                   \
+    StoreUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)), value);     \
   }
-#else  // defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
-#define TYPED_GETTER_SETTER(name, type)                                        \
-  type Get##name(intptr_t byte_offset) const {                                 \
-    NoSafepointScope no_safepoint;                                             \
-    type result;                                                               \
-    memmove(&result, DataAddr(byte_offset), sizeof(type));                     \
-    return result;                                                             \
-  }                                                                            \
-  void Set##name(intptr_t byte_offset, type value) const {                     \
-    NoSafepointScope no_safepoint;                                             \
-    memmove(DataAddr(byte_offset), &value, sizeof(type));                      \
-  }
-#endif  // defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
 
   TYPED_GETTER_SETTER(Int8, int8_t)
   TYPED_GETTER_SETTER(Uint8, uint8_t)
@@ -8021,6 +8327,12 @@ class TypedData : public Instance {
     return (kSmiMax / ElementSizeInBytes(class_id));
   }
 
+  static intptr_t MaxNewSpaceElements(intptr_t class_id) {
+    ASSERT(RawObject::IsTypedDataClassId(class_id));
+    return (Heap::kNewAllocatableSize - sizeof(RawTypedData)) /
+           ElementSizeInBytes(class_id);
+  }
+
   static RawTypedData* New(intptr_t class_id,
                            intptr_t len,
                            Heap::Space space = Heap::kNew);
@@ -8043,7 +8355,6 @@ class TypedData : public Instance {
       }
     }
   }
-
 
   template <typename DstType, typename SrcType>
   static void ClampedCopy(const DstType& dst,
@@ -8087,6 +8398,18 @@ class TypedData : public Instance {
   }
 
  private:
+  // Provides const access to non-pointer, non-aligned data within the object.
+  // Such access does not need a write barrier, but it is *not* GC-safe, since
+  // the object might move.
+  //
+  // Therefore this method is private and the call-sites in this class need to
+  // ensure the returned pointer does not escape.
+  template <typename FieldType>
+  const FieldType* ReadOnlyDataAddr(intptr_t byte_offset) const {
+    return reinterpret_cast<const FieldType*>((raw_ptr()->data()) +
+                                              byte_offset);
+  }
+
   static intptr_t element_size(intptr_t index) {
     ASSERT(0 <= index && index < kNumElementSizes);
     intptr_t size = element_size_table[index];
@@ -8102,7 +8425,6 @@ class TypedData : public Instance {
   friend class ExternalTypedData;
   friend class TypedDataView;
 };
-
 
 class ExternalTypedData : public Instance {
  public:
@@ -8134,10 +8456,10 @@ class ExternalTypedData : public Instance {
 
 #define TYPED_GETTER_SETTER(name, type)                                        \
   type Get##name(intptr_t byte_offset) const {                                 \
-    return *reinterpret_cast<type*>(DataAddr(byte_offset));                    \
+    return ReadUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)));      \
   }                                                                            \
   void Set##name(intptr_t byte_offset, type value) const {                     \
-    *reinterpret_cast<type*>(DataAddr(byte_offset)) = value;                   \
+    StoreUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)), value);     \
   }
   TYPED_GETTER_SETTER(Int8, int8_t)
   TYPED_GETTER_SETTER(Uint8, uint8_t)
@@ -8215,7 +8537,6 @@ class ExternalTypedData : public Instance {
   friend class Class;
 };
 
-
 class TypedDataView : public AllStatic {
  public:
   static intptr_t ElementSizeInBytes(const Instance& view_obj) {
@@ -8275,7 +8596,6 @@ class TypedDataView : public AllStatic {
   };
 };
 
-
 class ByteBuffer : public AllStatic {
  public:
   static RawInstance* Data(const Instance& view_obj) {
@@ -8293,7 +8613,6 @@ class ByteBuffer : public AllStatic {
     kDataOffset = 1,
   };
 };
-
 
 // Corresponds to
 // - "new Map()",
@@ -8331,6 +8650,7 @@ class LinkedHashMap : public Instance {
 
   RawTypedData* index() const { return raw_ptr()->index_; }
   void SetIndex(const TypedData& value) const {
+    ASSERT(!value.IsNull());
     StorePointer(&raw_ptr()->index_, value.raw());
   }
   static intptr_t index_offset() { return OFFSET_OF(RawLinkedHashMap, index_); }
@@ -8428,7 +8748,6 @@ class LinkedHashMap : public Instance {
   friend class LinkedHashMapDeserializationCluster;
 };
 
-
 class Closure : public Instance {
  public:
   RawTypeArguments* instantiator_type_arguments() const {
@@ -8445,11 +8764,21 @@ class Closure : public Instance {
     return OFFSET_OF(RawClosure, function_type_arguments_);
   }
 
+  RawTypeArguments* delayed_type_arguments() const {
+    return raw_ptr()->delayed_type_arguments_;
+  }
+  static intptr_t delayed_type_arguments_offset() {
+    return OFFSET_OF(RawClosure, delayed_type_arguments_);
+  }
+
   RawFunction* function() const { return raw_ptr()->function_; }
   static intptr_t function_offset() { return OFFSET_OF(RawClosure, function_); }
 
   RawContext* context() const { return raw_ptr()->context_; }
   static intptr_t context_offset() { return OFFSET_OF(RawClosure, context_); }
+
+  RawSmi* hash() const { return raw_ptr()->hash_; }
+  static intptr_t hash_offset() { return OFFSET_OF(RawClosure, hash_); }
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawClosure));
@@ -8461,6 +8790,10 @@ class Closure : public Instance {
     // None of the fields of a closure are instances.
     return true;
   }
+  virtual uint32_t CanonicalizeHash() const {
+    return Function::Handle(function()).Hash();
+  }
+  int64_t ComputeHash() const;
 
   static RawClosure* New(const TypeArguments& instantiator_type_arguments,
                          const TypeArguments& function_type_arguments,
@@ -8468,13 +8801,21 @@ class Closure : public Instance {
                          const Context& context,
                          Heap::Space space = Heap::kNew);
 
+  static RawClosure* New(const TypeArguments& instantiator_type_arguments,
+                         const TypeArguments& function_type_arguments,
+                         const TypeArguments& delayed_type_arguments,
+                         const Function& function,
+                         const Context& context,
+                         Heap::Space space = Heap::kNew);
+
+  RawFunction* GetInstantiatedSignature(Zone* zone) const;
+
  private:
   static RawClosure* New();
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Closure, Instance);
   friend class Class;
 };
-
 
 class Capability : public Instance {
  public:
@@ -8489,7 +8830,6 @@ class Capability : public Instance {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Capability, Instance);
   friend class Class;
 };
-
 
 class ReceivePort : public Instance {
  public:
@@ -8510,7 +8850,6 @@ class ReceivePort : public Instance {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ReceivePort, Instance);
   friend class Class;
 };
-
 
 class SendPort : public Instance {
  public:
@@ -8535,11 +8874,10 @@ class SendPort : public Instance {
   friend class Class;
 };
 
-
 // Internal stacktrace object used in exceptions for printing stack traces.
 class StackTrace : public Instance {
  public:
-  static const int kPreallocatedStackdepth = 30;
+  static const int kPreallocatedStackdepth = 90;
 
   intptr_t Length() const;
 
@@ -8579,7 +8917,6 @@ class StackTrace : public Instance {
   friend class Class;
   friend class Debugger;
 };
-
 
 // Internal JavaScript regular expression object.
 class RegExp : public Instance {
@@ -8721,7 +9058,6 @@ class RegExp : public Instance {
   friend class Class;
 };
 
-
 class WeakProperty : public Instance {
  public:
   RawObject* key() const { return raw_ptr()->key_; }
@@ -8752,7 +9088,6 @@ class WeakProperty : public Instance {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(WeakProperty, Instance);
   friend class Class;
 };
-
 
 class MirrorReference : public Instance {
  public:
@@ -8785,7 +9120,6 @@ class MirrorReference : public Instance {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(MirrorReference, Instance);
   friend class Class;
 };
-
 
 class UserTag : public Instance {
  public:
@@ -8823,36 +9157,15 @@ class UserTag : public Instance {
   friend class Class;
 };
 
-
-class ObjectPoolInfo : public ValueObject {
- public:
-  explicit ObjectPoolInfo(const ObjectPool& pool)
-      : array_(TypedData::Handle(pool.info_array())) {}
-
-  explicit ObjectPoolInfo(const TypedData& info_array) : array_(info_array) {}
-
-  ObjectPool::EntryType InfoAt(intptr_t i) {
-    return static_cast<ObjectPool::EntryType>(array_.GetInt8(i));
-  }
-
-  void SetInfoAt(intptr_t i, ObjectPool::EntryType info) {
-    array_.SetInt8(i, static_cast<int8_t>(info));
-  }
-
- private:
-  const TypedData& array_;
-};
-
-
 // Breaking cycles and loops.
 RawClass* Object::clazz() const {
   uword raw_value = reinterpret_cast<uword>(raw_);
   if ((raw_value & kSmiTagMask) == kSmiTag) {
     return Smi::Class();
   }
+  ASSERT(!Isolate::Current()->compaction_in_progress());
   return Isolate::Current()->class_table()->At(raw()->GetClassId());
 }
-
 
 DART_FORCE_INLINE void Object::SetRaw(RawObject* value) {
   NoSafepointScope no_safepoint_scope;
@@ -8880,13 +9193,11 @@ DART_FORCE_INLINE void Object::SetRaw(RawObject* value) {
 #endif
 }
 
-
 intptr_t Field::Offset() const {
   ASSERT(is_instance());  // Valid only for dart instance fields.
   intptr_t value = Smi::Value(raw_ptr()->value_.offset_);
   return (value * kWordSize);
 }
-
 
 void Field::SetOffset(intptr_t offset_in_bytes) const {
   ASSERT(is_instance());  // Valid only for dart instance fields.
@@ -8895,12 +9206,10 @@ void Field::SetOffset(intptr_t offset_in_bytes) const {
                Smi::New(offset_in_bytes / kWordSize));
 }
 
-
 RawInstance* Field::StaticValue() const {
   ASSERT(is_static());  // Valid only for static dart fields.
   return raw_ptr()->value_.static_value_;
 }
-
 
 void Field::SetStaticValue(const Instance& value,
                            bool save_initial_value) const {
@@ -8913,11 +9222,9 @@ void Field::SetStaticValue(const Instance& value,
   }
 }
 
-
 void Context::SetAt(intptr_t index, const Object& value) const {
   StorePointer(ObjectAddr(index), value.raw());
 }
-
 
 intptr_t Instance::GetNativeField(int index) const {
   ASSERT(IsValidNativeIndex(index));
@@ -8929,7 +9236,6 @@ intptr_t Instance::GetNativeField(int index) const {
   }
   return reinterpret_cast<intptr_t*>(native_fields->ptr()->data())[index];
 }
-
 
 void Instance::GetNativeFields(uint16_t num_fields,
                                intptr_t* field_values) const {
@@ -8949,7 +9255,6 @@ void Instance::GetNativeFields(uint16_t num_fields,
   }
 }
 
-
 bool String::Equals(const String& str) const {
   if (raw() == str.raw()) {
     return true;  // Both handles point to the same raw instance.
@@ -8966,13 +9271,11 @@ bool String::Equals(const String& str) const {
   return Equals(str, 0, str.Length());
 }
 
-
 intptr_t Library::UrlHash() const {
   intptr_t result = String::GetCachedHash(url());
   ASSERT(result != 0);
   return result;
 }
-
 
 void MegamorphicCache::SetEntry(const Array& array,
                                 intptr_t index,
@@ -8982,17 +9285,14 @@ void MegamorphicCache::SetEntry(const Array& array,
   array.SetAt((index * kEntryLength) + kTargetFunctionIndex, target);
 }
 
-
 RawObject* MegamorphicCache::GetClassId(const Array& array, intptr_t index) {
   return array.At((index * kEntryLength) + kClassIdIndex);
 }
-
 
 RawObject* MegamorphicCache::GetTargetFunction(const Array& array,
                                                intptr_t index) {
   return array.At((index * kEntryLength) + kTargetFunctionIndex);
 }
-
 
 inline intptr_t Type::Hash() const {
   intptr_t result = Smi::Value(raw_ptr()->hash_);
@@ -9002,13 +9302,11 @@ inline intptr_t Type::Hash() const {
   return ComputeHash();
 }
 
-
 inline void Type::SetHash(intptr_t value) const {
   // This is only safe because we create a new Smi, which does not cause
   // heap allocation.
   StoreSmi(&raw_ptr()->hash_, Smi::New(value));
 }
-
 
 inline intptr_t TypeParameter::Hash() const {
   ASSERT(IsFinalized());
@@ -9019,13 +9317,11 @@ inline intptr_t TypeParameter::Hash() const {
   return ComputeHash();
 }
 
-
 inline void TypeParameter::SetHash(intptr_t value) const {
   // This is only safe because we create a new Smi, which does not cause
   // heap allocation.
   StoreSmi(&raw_ptr()->hash_, Smi::New(value));
 }
-
 
 inline intptr_t BoundedType::Hash() const {
   intptr_t result = Smi::Value(raw_ptr()->hash_);
@@ -9035,13 +9331,11 @@ inline intptr_t BoundedType::Hash() const {
   return ComputeHash();
 }
 
-
 inline void BoundedType::SetHash(intptr_t value) const {
   // This is only safe because we create a new Smi, which does not cause
   // heap allocation.
   StoreSmi(&raw_ptr()->hash_, Smi::New(value));
 }
-
 
 inline intptr_t TypeArguments::Hash() const {
   if (IsNull()) return 0;
@@ -9051,7 +9345,6 @@ inline intptr_t TypeArguments::Hash() const {
   }
   return ComputeHash();
 }
-
 
 inline void TypeArguments::SetHash(intptr_t value) const {
   // This is only safe because we create a new Smi, which does not cause

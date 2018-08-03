@@ -1,0 +1,15 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  function f() → core::String
+    return null;
+  () → core::String g = f;
+  g = () → core::String {
+    return let<BottomType> _ = null in let final dynamic #t1 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/block_bodied_lambdas_downwards_incompatible_with_upwards_inference.dart:12:45: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+    return /*error:RETURN_OF_INVALID_TYPE*/ 1;
+                                            ^" in let final core::int #t2 = 1 in null;
+  };
+}

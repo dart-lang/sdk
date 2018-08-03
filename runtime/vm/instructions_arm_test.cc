@@ -5,7 +5,7 @@
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_ARM)
 
-#include "vm/assembler.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/cpu.h"
 #include "vm/instructions.h"
 #include "vm/stub_code.h"
@@ -21,7 +21,6 @@ ASSEMBLER_TEST_GENERATE(Call, assembler) {
   __ BranchLinkPatchable(*StubCode::InvokeDartCode_entry());
   __ Ret();
 }
-
 
 ASSEMBLER_TEST_RUN(Call, test) {
   // The return address, which must be the address of an instruction contained

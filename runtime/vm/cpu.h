@@ -5,15 +5,14 @@
 #ifndef RUNTIME_VM_CPU_H_
 #define RUNTIME_VM_CPU_H_
 
-#include "vm/globals.h"
 #include "vm/allocation.h"
+#include "vm/globals.h"
 
 namespace dart {
 
 // Forward Declarations.
 class Error;
 class Instance;
-
 
 class CPU : public AllStatic {
  public:
@@ -31,8 +30,6 @@ class CPU : public AllStatic {
 #include "vm/cpu_arm.h"
 #elif defined(TARGET_ARCH_ARM64)
 #include "vm/cpu_arm64.h"
-#elif defined(TARGET_ARCH_MIPS)
-#include "vm/cpu_mips.h"
 #elif defined(TARGET_ARCH_DBC)
 #include "vm/cpu_dbc.h"
 #else

@@ -1,0 +1,11 @@
+name: status_file
+# This package is not intended to be published.
+publish_to: none
+
+dependencies:
+  path: "^1.4.0"
+  args: "^0.13.7"
+
+dev_dependencies:
+  expect:
+    path: ../expect

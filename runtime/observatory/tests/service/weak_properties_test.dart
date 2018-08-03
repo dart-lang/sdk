@@ -35,9 +35,9 @@ void script() {
   print(weak_property);
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
-    var lib = await isolate.rootLibrary.load();
+    Library lib = await isolate.rootLibrary.load();
     Field keyField = lib.variables.singleWhere((v) => v.name == 'key');
     await keyField.load();
     Instance key = keyField.staticValue;

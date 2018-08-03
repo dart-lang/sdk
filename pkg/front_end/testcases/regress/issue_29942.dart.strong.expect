@@ -1,0 +1,18 @@
+// Errors:
+//
+// pkg/front_end/testcases/regress/issue_29942.dart:8:5: Error: Expected a function body or '=>'.
+// Try adding {}.
+// f() =
+//     ^
+//
+// pkg/front_end/testcases/regress/issue_29942.dart:10:1: Error: A function expression can't have a name.
+// h() => null;
+// ^
+
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {}
+static method f() → dynamic
+  return let final () → core::Null h = () → core::Null => null in h;

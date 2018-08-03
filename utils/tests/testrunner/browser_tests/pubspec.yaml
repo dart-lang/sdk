@@ -1,5 +1,0 @@
-name: browser_tests
-dependencies:
-  html: any
-  unittest: any
-

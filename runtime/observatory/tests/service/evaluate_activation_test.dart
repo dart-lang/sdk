@@ -7,6 +7,7 @@ import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
+import 'dart:async';
 import 'dart:math' as math;
 
 breakHere() {}
@@ -67,7 +68,7 @@ class C {
   }
 }
 
-testMethod(Isolate isolate) async {
+Future testMethod(Isolate isolate) async {
   // silence analyzer.
   expect(math.sqrt(4), equals(2));
   Library rootLib = await isolate.rootLibrary.load();
@@ -113,12 +114,12 @@ testMethod(Isolate isolate) async {
     }
   });
 
-  var result = await rootLib.evaluate('new C().method(3);');
+  var result = await rootLib.evaluate('new C().method(3)');
   print("Result $result");
   expect(hitBreakpoint, isTrue);
 }
 
-testMethod2(Isolate isolate) async {
+Future testMethod2(Isolate isolate) async {
   Library rootLib = await isolate.rootLibrary.load();
   ServiceFunction function =
       rootLib.functions.singleWhere((f) => f.name == 'breakHere');
@@ -162,12 +163,12 @@ testMethod2(Isolate isolate) async {
     }
   });
 
-  var result = await rootLib.evaluate('C.method2(3);');
+  var result = await rootLib.evaluate('C.method2(3)');
   print("Result $result");
   expect(hitBreakpoint, isTrue);
 }
 
-testMethod3(Isolate isolate) async {
+Future testMethod3(Isolate isolate) async {
   Library rootLib = await isolate.rootLibrary.load();
   ServiceFunction function =
       rootLib.functions.singleWhere((f) => f.name == 'breakHere');
@@ -203,13 +204,13 @@ testMethod3(Isolate isolate) async {
     }
   });
 
-  var result = await rootLib.evaluate('new C().method3(3);');
+  var result = await rootLib.evaluate('new C().method3(3)');
   print("Result $result");
   expect(hitBreakpoint, isTrue);
 }
 
 
-testMethod4(Isolate isolate) async {
+Future testMethod4(Isolate isolate) async {
   Library rootLib = await isolate.rootLibrary.load();
   ServiceFunction function =
       rootLib.functions.singleWhere((f) => f.name == 'breakHere');
@@ -259,7 +260,7 @@ testMethod4(Isolate isolate) async {
   expect(hitBreakpoint, isTrue);
 }
 
-var tests = [
+var tests = <IsolateTest>[
   testMethod,
   testMethod2,
   testMethod3,

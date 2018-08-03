@@ -5,7 +5,7 @@
 library status_clean;
 
 import "dart:async";
-import "dart:convert" show JSON, UTF8;
+import "dart:convert" show json, utf8;
 import "dart:io";
 import "testing/dart/multitest.dart";
 import "testing/dart/status_file_parser.dart";
@@ -19,6 +19,7 @@ import "testing/dart/utils.dart" show Path;
 
 // [STATUS_TUPLES] is a list of (suite-name, directory, status-file)-tuples.
 final STATUS_TUPLES = [
+  ["corelib_2", "tests/corelib_2", "tests/corelib_2/corelib_2.status"],
   ["corelib", "tests/corelib", "tests/corelib/corelib.status"],
   ["html", "tests/html", "tests/html/html.status"],
   ["isolate", "tests/isolate", "tests/isolate/isolate.status"],
@@ -309,7 +310,7 @@ class MultiTestDetector {
         var tests = new Map<String, String>();
         var outcomes = new Map<String, Set<String>>();
         if (multiTestRegExp.hasMatch(new File(file).readAsStringSync())) {
-          ExtractTestsFromMultitest(new Path(file), tests, outcomes);
+          extractTestsFromMultitest(new Path(file), tests, outcomes);
         }
         return tests.keys.toList();
       } catch (error) {
@@ -387,8 +388,8 @@ class TestOutcomeFetcher {
         .then((HttpClientRequest request) => request.close())
         .then((HttpClientResponse response) {
       return response
-          .transform(UTF8.decoder)
-          .transform(JSON.decoder)
+          .transform(utf8.decoder)
+          .transform(json.decoder)
           .first
           .then((List testResults) {
         var setOfActualOutcomes = new Set<Expectation>();

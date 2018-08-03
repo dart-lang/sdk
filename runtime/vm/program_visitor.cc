@@ -5,9 +5,9 @@
 #include "vm/program_visitor.h"
 
 #include "vm/deopt_instructions.h"
+#include "vm/hash_map.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
-#include "vm/hash_map.h"
 #include "vm/symbols.h"
 
 namespace dart {
@@ -20,6 +20,8 @@ void ProgramVisitor::VisitClasses(ClassVisitor* visitor) {
       GrowableObjectArray::Handle(zone, isolate->object_store()->libraries());
   Library& lib = Library::Handle(zone);
   Class& cls = Class::Handle(zone);
+  Object& entry = Object::Handle(zone);
+  GrowableObjectArray& patches = GrowableObjectArray::Handle(zone);
 
   for (intptr_t i = 0; i < libraries.Length(); i++) {
     lib ^= libraries.At(i);
@@ -31,70 +33,86 @@ void ProgramVisitor::VisitClasses(ClassVisitor* visitor) {
       }
       visitor->Visit(cls);
     }
+    patches = lib.patch_classes();
+    for (intptr_t j = 0; j < patches.Length(); j++) {
+      entry = patches.At(j);
+      if (entry.IsClass()) {
+        visitor->Visit(Class::Cast(entry));
+      }
+    }
   }
 }
 
+class ClassFunctionVisitor : public ClassVisitor {
+ public:
+  ClassFunctionVisitor(Zone* zone, FunctionVisitor* visitor)
+      : visitor_(visitor),
+        functions_(Array::Handle(zone)),
+        function_(Function::Handle(zone)),
+        object_(Object::Handle(zone)),
+        fields_(Array::Handle(zone)),
+        field_(Field::Handle(zone)) {}
+
+  void Visit(const Class& cls) {
+    if (cls.IsDynamicClass()) {
+      return;  // class 'dynamic' is in the read-only VM isolate.
+    }
+
+    functions_ = cls.functions();
+    for (intptr_t j = 0; j < functions_.Length(); j++) {
+      function_ ^= functions_.At(j);
+      visitor_->Visit(function_);
+      if (function_.HasImplicitClosureFunction()) {
+        function_ = function_.ImplicitClosureFunction();
+        visitor_->Visit(function_);
+      }
+    }
+
+    functions_ = cls.invocation_dispatcher_cache();
+    for (intptr_t j = 0; j < functions_.Length(); j++) {
+      object_ = functions_.At(j);
+      if (object_.IsFunction()) {
+        function_ ^= functions_.At(j);
+        visitor_->Visit(function_);
+      }
+    }
+
+    fields_ = cls.fields();
+    for (intptr_t j = 0; j < fields_.Length(); j++) {
+      field_ ^= fields_.At(j);
+      if (field_.is_static() && field_.HasPrecompiledInitializer()) {
+        function_ ^= field_.PrecompiledInitializer();
+        visitor_->Visit(function_);
+      }
+    }
+  }
+
+ private:
+  FunctionVisitor* visitor_;
+  Array& functions_;
+  Function& function_;
+  Object& object_;
+  Array& fields_;
+  Field& field_;
+};
 
 void ProgramVisitor::VisitFunctions(FunctionVisitor* visitor) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
-  GrowableObjectArray& libraries =
-      GrowableObjectArray::Handle(zone, isolate->object_store()->libraries());
-  Library& lib = Library::Handle(zone);
-  Class& cls = Class::Handle(zone);
-  Array& functions = Array::Handle(zone);
-  Array& fields = Array::Handle(zone);
-  Field& field = Field::Handle(zone);
-  Object& object = Object::Handle(zone);
+
+  ClassFunctionVisitor class_visitor(zone, visitor);
+  VisitClasses(&class_visitor);
+
   Function& function = Function::Handle(zone);
-  GrowableObjectArray& closures = GrowableObjectArray::Handle(zone);
-
-  for (intptr_t i = 0; i < libraries.Length(); i++) {
-    lib ^= libraries.At(i);
-    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
-    while (it.HasNext()) {
-      cls = it.GetNextClass();
-      if (cls.IsDynamicClass()) {
-        continue;  // class 'dynamic' is in the read-only VM isolate.
-      }
-
-      functions = cls.functions();
-      for (intptr_t j = 0; j < functions.Length(); j++) {
-        function ^= functions.At(j);
-        visitor->Visit(function);
-        if (function.HasImplicitClosureFunction()) {
-          function = function.ImplicitClosureFunction();
-          visitor->Visit(function);
-        }
-      }
-
-      functions = cls.invocation_dispatcher_cache();
-      for (intptr_t j = 0; j < functions.Length(); j++) {
-        object = functions.At(j);
-        if (object.IsFunction()) {
-          function ^= functions.At(j);
-          visitor->Visit(function);
-        }
-      }
-      fields = cls.fields();
-      for (intptr_t j = 0; j < fields.Length(); j++) {
-        field ^= fields.At(j);
-        if (field.is_static() && field.HasPrecompiledInitializer()) {
-          function ^= field.PrecompiledInitializer();
-          visitor->Visit(function);
-        }
-      }
-    }
-  }
-  closures = isolate->object_store()->closure_functions();
-  for (intptr_t j = 0; j < closures.Length(); j++) {
-    function ^= closures.At(j);
+  const GrowableObjectArray& closures = GrowableObjectArray::Handle(
+      zone, isolate->object_store()->closure_functions());
+  for (intptr_t i = 0; i < closures.Length(); i++) {
+    function ^= closures.At(i);
     visitor->Visit(function);
     ASSERT(!function.HasImplicitClosureFunction());
   }
 }
-
 
 void ProgramVisitor::ShareMegamorphicBuckets() {
   Thread* thread = Thread::Current();
@@ -122,7 +140,6 @@ void ProgramVisitor::ShareMegamorphicBuckets() {
   }
 }
 
-
 class StackMapKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
@@ -143,7 +160,6 @@ class StackMapKeyValueTrait {
 
 typedef DirectChainedHashMap<StackMapKeyValueTrait> StackMapSet;
 
-
 void ProgramVisitor::DedupStackMaps() {
   class DedupStackMapsVisitor : public FunctionVisitor {
    public:
@@ -153,6 +169,10 @@ void ProgramVisitor::DedupStackMaps() {
           code_(Code::Handle(zone)),
           stackmaps_(Array::Handle(zone)),
           stackmap_(StackMap::Handle(zone)) {}
+
+    void AddStackMap(const StackMap& stackmap) {
+      canonical_stackmaps_.Insert(&StackMap::ZoneHandle(zone_, stackmap.raw()));
+    }
 
     void Visit(const Function& function) {
       if (!function.HasCode()) {
@@ -172,8 +192,7 @@ void ProgramVisitor::DedupStackMaps() {
       const StackMap* canonical_stackmap =
           canonical_stackmaps_.LookupValue(&stackmap);
       if (canonical_stackmap == NULL) {
-        canonical_stackmaps_.Insert(
-            &StackMap::ZoneHandle(zone_, stackmap.raw()));
+        AddStackMap(stackmap);
         return stackmap.raw();
       } else {
         return canonical_stackmap->raw();
@@ -189,9 +208,19 @@ void ProgramVisitor::DedupStackMaps() {
   };
 
   DedupStackMapsVisitor visitor(Thread::Current()->zone());
+  if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
+    // Prefer existing objects in the VM isolate.
+    const Array& object_table = Object::vm_isolate_snapshot_object_table();
+    Object& object = Object::Handle();
+    for (intptr_t i = 0; i < object_table.Length(); i++) {
+      object = object_table.At(i);
+      if (object.IsStackMap()) {
+        visitor.AddStackMap(StackMap::Cast(object));
+      }
+    }
+  }
   ProgramVisitor::VisitFunctions(&visitor);
 }
-
 
 class PcDescriptorsKeyValueTrait {
  public:
@@ -213,7 +242,6 @@ class PcDescriptorsKeyValueTrait {
 
 typedef DirectChainedHashMap<PcDescriptorsKeyValueTrait> PcDescriptorsSet;
 
-
 void ProgramVisitor::DedupPcDescriptors() {
   class DedupPcDescriptorsVisitor : public FunctionVisitor {
    public:
@@ -222,6 +250,11 @@ void ProgramVisitor::DedupPcDescriptors() {
           canonical_pc_descriptors_(),
           code_(Code::Handle(zone)),
           pc_descriptor_(PcDescriptors::Handle(zone)) {}
+
+    void AddPcDescriptor(const PcDescriptors& pc_descriptor) {
+      canonical_pc_descriptors_.Insert(
+          &PcDescriptors::ZoneHandle(zone_, pc_descriptor.raw()));
+    }
 
     void Visit(const Function& function) {
       if (!function.HasCode()) {
@@ -238,8 +271,7 @@ void ProgramVisitor::DedupPcDescriptors() {
       const PcDescriptors* canonical_pc_descriptor =
           canonical_pc_descriptors_.LookupValue(&pc_descriptor);
       if (canonical_pc_descriptor == NULL) {
-        canonical_pc_descriptors_.Insert(
-            &PcDescriptors::ZoneHandle(zone_, pc_descriptor.raw()));
+        AddPcDescriptor(pc_descriptor);
         return pc_descriptor.raw();
       } else {
         return canonical_pc_descriptor->raw();
@@ -254,9 +286,19 @@ void ProgramVisitor::DedupPcDescriptors() {
   };
 
   DedupPcDescriptorsVisitor visitor(Thread::Current()->zone());
+  if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
+    // Prefer existing objects in the VM isolate.
+    const Array& object_table = Object::vm_isolate_snapshot_object_table();
+    Object& object = Object::Handle();
+    for (intptr_t i = 0; i < object_table.Length(); i++) {
+      object = object_table.At(i);
+      if (object.IsPcDescriptors()) {
+        visitor.AddPcDescriptor(PcDescriptors::Cast(object));
+      }
+    }
+  }
   ProgramVisitor::VisitFunctions(&visitor);
 }
-
 
 class TypedDataKeyValueTrait {
  public:
@@ -269,9 +311,7 @@ class TypedDataKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) {
-    return key->ComputeCanonicalTableHash();
-  }
+  static inline intptr_t Hashcode(Key key) { return key->CanonicalizeHash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->CanonicalizeEquals(*key);
@@ -280,7 +320,7 @@ class TypedDataKeyValueTrait {
 
 typedef DirectChainedHashMap<TypedDataKeyValueTrait> TypedDataSet;
 
-
+#if !defined(DART_PRECOMPILED_RUNTIME)
 void ProgramVisitor::DedupDeoptEntries() {
   class DedupDeoptEntriesVisitor : public FunctionVisitor {
    public:
@@ -337,7 +377,57 @@ void ProgramVisitor::DedupDeoptEntries() {
   DedupDeoptEntriesVisitor visitor(Thread::Current()->zone());
   ProgramVisitor::VisitFunctions(&visitor);
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
+#if defined(DART_PRECOMPILER)
+void ProgramVisitor::DedupCatchEntryStateMaps() {
+  if (!FLAG_precompiled_mode) {
+    return;
+  }
+  class DedupCatchEntryStateMapsVisitor : public FunctionVisitor {
+   public:
+    explicit DedupCatchEntryStateMapsVisitor(Zone* zone)
+        : zone_(zone),
+          canonical_catch_entry_state_maps_(),
+          code_(Code::Handle(zone)),
+          catch_entry_state_maps_(TypedData::Handle(zone)) {}
+
+    void Visit(const Function& function) {
+      if (!function.HasCode()) {
+        return;
+      }
+      code_ = function.CurrentCode();
+      catch_entry_state_maps_ = code_.catch_entry_state_maps();
+      catch_entry_state_maps_ =
+          DedupCatchEntryStateMaps(catch_entry_state_maps_);
+      code_.set_catch_entry_state_maps(catch_entry_state_maps_);
+    }
+
+    RawTypedData* DedupCatchEntryStateMaps(
+        const TypedData& catch_entry_state_maps) {
+      const TypedData* canonical_catch_entry_state_maps =
+          canonical_catch_entry_state_maps_.LookupValue(
+              &catch_entry_state_maps);
+      if (canonical_catch_entry_state_maps == NULL) {
+        canonical_catch_entry_state_maps_.Insert(
+            &TypedData::ZoneHandle(zone_, catch_entry_state_maps.raw()));
+        return catch_entry_state_maps.raw();
+      } else {
+        return canonical_catch_entry_state_maps->raw();
+      }
+    }
+
+   private:
+    Zone* zone_;
+    TypedDataSet canonical_catch_entry_state_maps_;
+    Code& code_;
+    TypedData& catch_entry_state_maps_;
+  };
+
+  DedupCatchEntryStateMapsVisitor visitor(Thread::Current()->zone());
+  ProgramVisitor::VisitFunctions(&visitor);
+}
+#endif  // !defined(DART_PRECOMPILER)
 
 class CodeSourceMapKeyValueTrait {
  public:
@@ -359,7 +449,6 @@ class CodeSourceMapKeyValueTrait {
 
 typedef DirectChainedHashMap<CodeSourceMapKeyValueTrait> CodeSourceMapSet;
 
-
 void ProgramVisitor::DedupCodeSourceMaps() {
   class DedupCodeSourceMapsVisitor : public FunctionVisitor {
    public:
@@ -368,6 +457,11 @@ void ProgramVisitor::DedupCodeSourceMaps() {
           canonical_code_source_maps_(),
           code_(Code::Handle(zone)),
           code_source_map_(CodeSourceMap::Handle(zone)) {}
+
+    void AddCodeSourceMap(const CodeSourceMap& code_source_map) {
+      canonical_code_source_maps_.Insert(
+          &CodeSourceMap::ZoneHandle(zone_, code_source_map.raw()));
+    }
 
     void Visit(const Function& function) {
       if (!function.HasCode()) {
@@ -384,8 +478,7 @@ void ProgramVisitor::DedupCodeSourceMaps() {
       const CodeSourceMap* canonical_code_source_map =
           canonical_code_source_maps_.LookupValue(&code_source_map);
       if (canonical_code_source_map == NULL) {
-        canonical_code_source_maps_.Insert(
-            &CodeSourceMap::ZoneHandle(zone_, code_source_map.raw()));
+        AddCodeSourceMap(code_source_map);
         return code_source_map.raw();
       } else {
         return canonical_code_source_map->raw();
@@ -400,9 +493,19 @@ void ProgramVisitor::DedupCodeSourceMaps() {
   };
 
   DedupCodeSourceMapsVisitor visitor(Thread::Current()->zone());
+  if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
+    // Prefer existing objects in the VM isolate.
+    const Array& object_table = Object::vm_isolate_snapshot_object_table();
+    Object& object = Object::Handle();
+    for (intptr_t i = 0; i < object_table.Length(); i++) {
+      object = object_table.At(i);
+      if (object.IsCodeSourceMap()) {
+        visitor.AddCodeSourceMap(CodeSourceMap::Cast(object));
+      }
+    }
+  }
   ProgramVisitor::VisitFunctions(&visitor);
 }
-
 
 class ArrayKeyValueTrait {
  public:
@@ -431,7 +534,6 @@ class ArrayKeyValueTrait {
 };
 
 typedef DirectChainedHashMap<ArrayKeyValueTrait> ArraySet;
-
 
 void ProgramVisitor::DedupLists() {
   class DedupListsVisitor : public FunctionVisitor {
@@ -510,6 +612,10 @@ void ProgramVisitor::DedupLists() {
     }
 
     RawArray* DedupList(const Array& list) {
+      if (list.InVMHeap()) {
+        // Avoid using read-only VM objects for de-duplication.
+        return list.raw();
+      }
       const Array* canonical_list = canonical_lists_.LookupValue(&list);
       if (canonical_list == NULL) {
         canonical_lists_.Insert(&Array::ZoneHandle(zone_, list.raw()));
@@ -529,7 +635,6 @@ void ProgramVisitor::DedupLists() {
   DedupListsVisitor visitor(Thread::Current()->zone());
   ProgramVisitor::VisitFunctions(&visitor);
 }
-
 
 class InstructionsKeyValueTrait {
  public:
@@ -551,15 +656,22 @@ class InstructionsKeyValueTrait {
 
 typedef DirectChainedHashMap<InstructionsKeyValueTrait> InstructionsSet;
 
-
 void ProgramVisitor::DedupInstructions() {
-  class DedupInstructionsVisitor : public FunctionVisitor {
+  class DedupInstructionsVisitor : public FunctionVisitor,
+                                   public ObjectVisitor {
    public:
     explicit DedupInstructionsVisitor(Zone* zone)
         : zone_(zone),
           canonical_instructions_set_(),
           code_(Code::Handle(zone)),
           instructions_(Instructions::Handle(zone)) {}
+
+    void VisitObject(RawObject* obj) {
+      if (obj->IsInstructions()) {
+        canonical_instructions_set_.Insert(
+            &Instructions::ZoneHandle(zone_, Instructions::RawCast(obj)));
+      }
+    }
 
     void Visit(const Function& function) {
       if (!function.HasCode()) {
@@ -593,9 +705,12 @@ void ProgramVisitor::DedupInstructions() {
   };
 
   DedupInstructionsVisitor visitor(Thread::Current()->zone());
+  if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
+    // Prefer existing objects in the VM isolate.
+    Dart::vm_isolate()->heap()->VisitObjectsImagePages(&visitor);
+  }
   ProgramVisitor::VisitFunctions(&visitor);
 }
-
 
 void ProgramVisitor::Dedup() {
   Thread* thread = Thread::Current();
@@ -607,14 +722,17 @@ void ProgramVisitor::Dedup() {
   ShareMegamorphicBuckets();
   DedupStackMaps();
   DedupPcDescriptors();
-  DedupDeoptEntries();
+  NOT_IN_PRECOMPILED(DedupDeoptEntries());
+#if defined(DART_PRECOMPILER)
+  DedupCatchEntryStateMaps();
+#endif
   DedupCodeSourceMaps();
   DedupLists();
 
-  if (!FLAG_profiler) {
-    // Reduces binary size but obfuscates profiler results.
-    DedupInstructions();
-  }
+#if defined(PRODUCT)
+  // Reduces binary size but obfuscates profiler results.
+  DedupInstructions();
+#endif
 }
 
 }  // namespace dart

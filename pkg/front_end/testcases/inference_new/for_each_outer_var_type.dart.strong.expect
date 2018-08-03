@@ -1,0 +1,55 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+class A extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → void
+    : super self::A::•()
+    ;
+}
+static method f<T extends core::Object = dynamic>() → self::f::T
+  return null;
+static method test() → dynamic async {
+  core::Iterable<self::A> iterable;
+  asy::Stream<self::A> stream;
+  self::A a;
+  self::B b;
+  core::int i;
+  for (final self::A #t1 in iterable) {
+    a = #t1;
+  }
+  await for (final self::A #t2 in stream) {
+    a = #t2;
+  }
+  for (final self::A #t3 in iterable) {
+    b = #t3 as{TypeError} self::B;
+  }
+  await for (final self::A #t4 in stream) {
+    b = #t4 as{TypeError} self::B;
+  }
+  for (final self::A #t5 in iterable) {
+    i = let dynamic _ = null in let final dynamic #t6 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:26:55: Error: A value of type 'test::A' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the variable.
+  for (i /*@error=ForInLoopElementTypeNotAssignable*/ in iterable) {}
+                                                      ^" in let final dynamic #t7 = #t5 in null;
+  }
+  await for (final self::A #t8 in stream) {
+    i = let dynamic _ = null in let final dynamic #t9 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:27:61: Error: A value of type 'test::A' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the variable.
+  await for (i /*@error=ForInLoopElementTypeNotAssignable*/ in stream) {}
+                                                            ^" in let final dynamic #t10 = #t8 in null;
+  }
+  for (final self::A #t11 in self::f<core::Iterable<self::A>>()) {
+    a = #t11;
+  }
+  await for (final self::A #t12 in self::f<asy::Stream<self::A>>()) {
+    a = #t12;
+  }
+}
+static method main() → dynamic {}

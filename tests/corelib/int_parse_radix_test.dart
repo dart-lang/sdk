@@ -6,8 +6,6 @@ import "package:expect/expect.dart";
 import "dart:math" show pow;
 
 void main() {
-  bool checkedMode = false;
-  assert((checkedMode = true));
   const String oneByteWhiteSpace = "\x09\x0a\x0b\x0c\x0d\x20"
     "\x85" //   //# 01: ok
       "\xa0";
@@ -116,13 +114,13 @@ void main() {
   }
 
   testBadTypes(var source, var radix) {
-    if (!checkedMode) {
+    if (!typeAssertionsEnabled) {
       // No promises on what error is thrown if the type doesn't match.
       // Likely either ArgumentError or NoSuchMethodError.
       Expect.throws(() => int.parse(source, radix: radix, onError: (s) => 0));
       return;
     }
-    // In checked mode, it's always a TypeError.
+    // With type assertions enabled we can be more precise.
     Expect.throws(() => int.parse(source, radix: radix, onError: (s) => 0),
         (e) => e is TypeError || e is CastError);
   }

@@ -134,14 +134,16 @@ class Metrics {
     _metrics.remove(metric.name);
   }
 
+  // ignore: unused_element, called from native code
   static String _printMetric(String id) {
     var metric = _metrics[id];
     if (metric == null) {
       return null;
     }
-    return JSON.encode(metric._toJSON());
+    return json.encode(metric._toJSON());
   }
 
+  // ignore: unused_element, called from native code
   static String _printMetrics() {
     var metrics = [];
     for (var metric in _metrics.values) {
@@ -151,6 +153,6 @@ class Metrics {
       'type': 'MetricList',
       'metrics': metrics,
     };
-    return JSON.encode(map);
+    return json.encode(map);
   }
 }

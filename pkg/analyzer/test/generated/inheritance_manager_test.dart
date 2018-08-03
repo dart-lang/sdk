@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -54,6 +55,9 @@ class InheritanceManagerTest {
    * The number of members that Object implements (as determined by [TestTypeProvider]).
    */
   int _numOfMembersInObject = 0;
+
+  bool get previewDart2 =>
+      _definingLibrary.context.analysisOptions.previewDart2;
 
   void setUp() {
     _typeProvider = new TestTypeProvider();
@@ -568,8 +572,14 @@ class InheritanceManagerTest {
     Map<String, ExecutableElement> mapA =
         _inheritanceManager.getMembersInheritedFromInterfaces(classA);
     expect(mapA.length, _numOfMembersInObject + 1);
-    PropertyAccessorElement syntheticAccessor = ElementFactory.getterElement(
-        accessorName, false, _typeProvider.dynamicType);
+    PropertyAccessorElement syntheticAccessor;
+    if (previewDart2) {
+      syntheticAccessor = ElementFactory.getterElement(
+          accessorName, false, _typeProvider.intType);
+    } else {
+      syntheticAccessor = ElementFactory.getterElement(
+          accessorName, false, _typeProvider.dynamicType);
+    }
     expect(mapA[accessorName].type, syntheticAccessor.type);
     _assertNoErrors(classA);
   }
@@ -603,8 +613,14 @@ class InheritanceManagerTest {
     Map<String, ExecutableElement> mapA =
         _inheritanceManager.getMembersInheritedFromInterfaces(classA);
     expect(mapA.length, _numOfMembersInObject + 1);
-    MethodElement syntheticMethod = ElementFactory.methodElement(
-        methodName, _typeProvider.dynamicType, [_typeProvider.dynamicType]);
+    MethodElement syntheticMethod;
+    if (previewDart2) {
+      syntheticMethod = ElementFactory.methodElement(
+          methodName, _typeProvider.dynamicType, [_typeProvider.numType]);
+    } else {
+      syntheticMethod = ElementFactory.methodElement(
+          methodName, _typeProvider.dynamicType, [_typeProvider.dynamicType]);
+    }
     expect(mapA[methodName].type, syntheticMethod.type);
     _assertNoErrors(classA);
   }
@@ -628,9 +644,16 @@ class InheritanceManagerTest {
     Map<String, ExecutableElement> mapA =
         _inheritanceManager.getMembersInheritedFromInterfaces(classA);
     expect(mapA.length, _numOfMembersInObject + 1);
-    PropertyAccessorElementImpl syntheticAccessor = ElementFactory
-        .setterElement(accessorName, false, _typeProvider.dynamicType);
-    syntheticAccessor.returnType = _typeProvider.dynamicType;
+    PropertyAccessorElementImpl syntheticAccessor;
+    if (previewDart2) {
+      syntheticAccessor = ElementFactory.setterElement(
+          accessorName, false, _typeProvider.numType);
+      syntheticAccessor.returnType = VoidTypeImpl.instance;
+    } else {
+      syntheticAccessor = ElementFactory.setterElement(
+          accessorName, false, _typeProvider.dynamicType);
+      syntheticAccessor.returnType = _typeProvider.dynamicType;
+    }
     expect(mapA["$accessorName="].type, syntheticAccessor.type);
     _assertNoErrors(classA);
   }
@@ -669,8 +692,14 @@ class InheritanceManagerTest {
     Map<String, ExecutableElement> mapD =
         _inheritanceManager.getMembersInheritedFromInterfaces(classD);
     expect(mapD.length, _numOfMembersInObject + 1);
-    PropertyAccessorElement syntheticAccessor = ElementFactory.getterElement(
-        accessorName, false, _typeProvider.dynamicType);
+    PropertyAccessorElement syntheticAccessor;
+    if (previewDart2) {
+      syntheticAccessor =
+          ElementFactory.getterElement(accessorName, false, classC.type);
+    } else {
+      syntheticAccessor = ElementFactory.getterElement(
+          accessorName, false, _typeProvider.dynamicType);
+    }
     expect(mapD[accessorName].type, syntheticAccessor.type);
     _assertNoErrors(classD);
   }
@@ -724,8 +753,14 @@ class InheritanceManagerTest {
     Map<String, ExecutableElement> mapD =
         _inheritanceManager.getMembersInheritedFromInterfaces(classD);
     expect(mapD.length, _numOfMembersInObject + 1);
-    MethodElement syntheticMethod = ElementFactory.methodElement(
-        methodName, _typeProvider.dynamicType, [_typeProvider.dynamicType]);
+    MethodElement syntheticMethod;
+    if (previewDart2) {
+      syntheticMethod = ElementFactory
+          .methodElement(methodName, _typeProvider.dynamicType, [classA.type]);
+    } else {
+      syntheticMethod = ElementFactory.methodElement(
+          methodName, _typeProvider.dynamicType, [_typeProvider.dynamicType]);
+    }
     expect(mapD[methodName].type, syntheticMethod.type);
     _assertNoErrors(classD);
   }
@@ -764,9 +799,16 @@ class InheritanceManagerTest {
     Map<String, ExecutableElement> mapD =
         _inheritanceManager.getMembersInheritedFromInterfaces(classD);
     expect(mapD.length, _numOfMembersInObject + 1);
-    PropertyAccessorElementImpl syntheticAccessor = ElementFactory
-        .setterElement(accessorName, false, _typeProvider.dynamicType);
-    syntheticAccessor.returnType = _typeProvider.dynamicType;
+    PropertyAccessorElementImpl syntheticAccessor;
+    if (previewDart2) {
+      syntheticAccessor =
+          ElementFactory.setterElement(accessorName, false, classA.type);
+      syntheticAccessor.returnType = VoidTypeImpl.instance;
+    } else {
+      syntheticAccessor = ElementFactory.setterElement(
+          accessorName, false, _typeProvider.dynamicType);
+      syntheticAccessor.returnType = _typeProvider.dynamicType;
+    }
     expect(mapD["$accessorName="].type, syntheticAccessor.type);
     _assertNoErrors(classD);
   }

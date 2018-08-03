@@ -26,10 +26,8 @@
 
 namespace dart {
 
-
 DECLARE_FLAG(bool, trace_service);
 DECLARE_FLAG(bool, trace_service_verbose);
-
 
 Thread::~Thread() {
   // We should cleanly exit any isolate before destruction.
@@ -58,18 +56,20 @@ Thread::~Thread() {
 
 #define REUSABLE_HANDLE_INITIALIZERS(object) object##_handle_(NULL),
 
-
 Thread::Thread(Isolate* isolate)
     : BaseThread(false),
       stack_limit_(0),
       stack_overflow_flags_(0),
       isolate_(NULL),
       heap_(NULL),
+      top_(0),
+      end_(0),
       top_exit_frame_info_(0),
       store_buffer_block_(NULL),
       vm_tag_(0),
       task_kind_(kUnknownTask),
       async_stack_trace_(StackTrace::null()),
+      unboxed_int64_runtime_arg_(0),
       dart_stream_(NULL),
       os_thread_(NULL),
       thread_lock_(new Monitor()),
@@ -93,6 +93,8 @@ Thread::Thread(Isolate* isolate)
       deferred_interrupts_(0),
       stack_overflow_count_(0),
       cha_(NULL),
+      hierarchy_info_(NULL),
+      type_usage_info_(NULL),
       deopt_id_(0),
       pending_functions_(GrowableObjectArray::null()),
       active_exception_(Object::null()),
@@ -103,6 +105,9 @@ Thread::Thread(Isolate* isolate)
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
           REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT) safepoint_state_(0),
       execution_state_(kThreadInNative),
+#if defined(USING_SAFE_STACK)
+      saved_safestack_limit_(0),
+#endif
       next_(NULL) {
 #if !defined(PRODUCT)
   dart_stream_ = Timeline::GetDartStream();
@@ -148,6 +153,7 @@ Thread::Thread(Isolate* isolate)
   }
 }
 
+static const double double_nan_constant = NAN;
 
 static const struct ALIGN16 {
   uint64_t a;
@@ -187,7 +193,6 @@ static const struct ALIGN16 {
   uint32_t d;
 } float_zerow_constant = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000};
 
-
 void Thread::InitVMConstants() {
 #define ASSERT_VM_HEAP(type_name, member_name, init_expr, default_init_value)  \
   ASSERT((init_expr)->IsOldObject());
@@ -219,7 +224,6 @@ void Thread::InitVMConstants() {
 #undef REUSABLE_HANDLE_ALLOCATION
 }
 
-
 #ifndef PRODUCT
 // Collect information about each individual zone associated with this thread.
 void Thread::PrintJSON(JSONStream* stream) const {
@@ -233,7 +237,6 @@ void Thread::PrintJSON(JSONStream* stream) const {
 }
 #endif
 
-
 RawGrowableObjectArray* Thread::pending_functions() {
   if (pending_functions_ == GrowableObjectArray::null()) {
     pending_functions_ = GrowableObjectArray::New(Heap::kOld);
@@ -241,38 +244,30 @@ RawGrowableObjectArray* Thread::pending_functions() {
   return pending_functions_;
 }
 
-
 void Thread::clear_pending_functions() {
   pending_functions_ = GrowableObjectArray::null();
 }
 
-
 void Thread::set_active_exception(const Object& value) {
-  ASSERT(!value.IsNull());
   active_exception_ = value.raw();
 }
-
 
 void Thread::set_active_stacktrace(const Object& value) {
   active_stacktrace_ = value.raw();
 }
 
-
 RawError* Thread::sticky_error() const {
   return sticky_error_;
 }
-
 
 void Thread::set_sticky_error(const Error& value) {
   ASSERT(!value.IsNull());
   sticky_error_ = value.raw();
 }
 
-
 void Thread::clear_sticky_error() {
   sticky_error_ = Error::null();
 }
-
 
 RawError* Thread::get_and_clear_sticky_error() {
   NoSafepointScope nss;
@@ -280,7 +275,6 @@ RawError* Thread::get_and_clear_sticky_error() {
   sticky_error_ = Error::null();
   return return_value;
 }
-
 
 const char* Thread::TaskKindToCString(TaskKind kind) {
   switch (kind) {
@@ -300,27 +294,22 @@ const char* Thread::TaskKindToCString(TaskKind kind) {
   }
 }
 
-
 RawStackTrace* Thread::async_stack_trace() const {
   return async_stack_trace_;
 }
-
 
 void Thread::set_async_stack_trace(const StackTrace& stack_trace) {
   ASSERT(!stack_trace.IsNull());
   async_stack_trace_ = stack_trace.raw();
 }
 
-
 void Thread::set_raw_async_stack_trace(RawStackTrace* raw_stack_trace) {
   async_stack_trace_ = raw_stack_trace;
 }
 
-
 void Thread::clear_async_stack_trace() {
   async_stack_trace_ = StackTrace::null();
 }
-
 
 bool Thread::EnterIsolate(Isolate* isolate) {
   const bool kIsMutatorThread = true;
@@ -333,7 +322,6 @@ bool Thread::EnterIsolate(Isolate* isolate) {
   }
   return false;
 }
-
 
 void Thread::ExitIsolate() {
   Thread* thread = Thread::Current();
@@ -354,7 +342,6 @@ void Thread::ExitIsolate() {
   const bool kIsMutatorThread = true;
   isolate->UnscheduleThread(thread, kIsMutatorThread);
 }
-
 
 bool Thread::EnterIsolateAsHelper(Isolate* isolate,
                                   TaskKind kind,
@@ -377,7 +364,6 @@ bool Thread::EnterIsolateAsHelper(Isolate* isolate,
   return false;
 }
 
-
 void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
   Thread* thread = Thread::Current();
   ASSERT(thread != NULL);
@@ -393,7 +379,6 @@ void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
   isolate->UnscheduleThread(thread, kIsNotMutatorThread, bypass_safepoint);
 }
 
-
 void Thread::PrepareForGC() {
   ASSERT(IsAtSafepoint());
   // Prevent scheduling another GC by ignoring the threshold.
@@ -404,24 +389,6 @@ void Thread::PrepareForGC() {
   // TODO(koda): Replace with an epilogue (PrepareAfterGC) that acquires.
   store_buffer_block_ = isolate()->store_buffer()->PopEmptyBlock();
 }
-
-
-void Thread::SetStackLimitFromStackBase(uword stack_base) {
-// Set stack limit.
-#if !defined(TARGET_ARCH_DBC)
-#if defined(USING_SIMULATOR)
-  // Ignore passed-in native stack top and use Simulator stack top.
-  Simulator* sim = Simulator::Current();  // May allocate a simulator.
-  ASSERT(isolate()->simulator() == sim);  // Isolate's simulator is current one.
-  stack_base = sim->StackTop();
-// The overflow area is accounted for by the simulator.
-#endif
-  SetStackLimit(stack_base - OSThread::GetSpecifiedStackSize());
-#else
-  SetStackLimit(Simulator::Current()->StackTop());
-#endif  // !defined(TARGET_ARCH_DBC)
-}
-
 
 void Thread::SetStackLimit(uword limit) {
   // The thread setting the stack limit is not necessarily the thread which
@@ -434,44 +401,14 @@ void Thread::SetStackLimit(uword limit) {
   saved_stack_limit_ = limit;
 }
 
-
 void Thread::ClearStackLimit() {
   SetStackLimit(~static_cast<uword>(0));
 }
-
-
-/* static */
-uword Thread::GetCurrentStackPointer() {
-#if !defined(TARGET_ARCH_DBC)
-  // Since AddressSanitizer's detect_stack_use_after_return instruments the
-  // C++ code to give out fake stack addresses, we call a stub in that case.
-  ASSERT(StubCode::GetStackPointer_entry() != NULL);
-  uword (*func)() = reinterpret_cast<uword (*)()>(
-      StubCode::GetStackPointer_entry()->EntryPoint());
-#else
-  uword (*func)() = NULL;
-#endif
-// But for performance (and to support simulators), we normally use a local.
-#if defined(__has_feature)
-#if __has_feature(address_sanitizer) || __has_feature(safe_stack)
-  uword current_sp = func();
-  return current_sp;
-#else
-  uword stack_allocated_local_address = reinterpret_cast<uword>(&func);
-  return stack_allocated_local_address;
-#endif
-#else
-  uword stack_allocated_local_address = reinterpret_cast<uword>(&func);
-  return stack_allocated_local_address;
-#endif
-}
-
 
 void Thread::ScheduleInterrupts(uword interrupt_bits) {
   MonitorLocker ml(thread_lock_);
   ScheduleInterruptsLocked(interrupt_bits);
 }
-
 
 void Thread::ScheduleInterruptsLocked(uword interrupt_bits) {
   ASSERT(thread_lock_->IsOwnedByCurrentThread());
@@ -493,7 +430,6 @@ void Thread::ScheduleInterruptsLocked(uword interrupt_bits) {
   stack_limit_ |= interrupt_bits;
 }
 
-
 uword Thread::GetAndClearInterrupts() {
   MonitorLocker ml(thread_lock_);
   if (stack_limit_ == saved_stack_limit_) {
@@ -503,7 +439,6 @@ uword Thread::GetAndClearInterrupts() {
   stack_limit_ = saved_stack_limit_;
   return interrupt_bits;
 }
-
 
 bool Thread::ZoneIsOwnedByThread(Zone* zone) const {
   ASSERT(zone != NULL);
@@ -517,6 +452,24 @@ bool Thread::ZoneIsOwnedByThread(Zone* zone) const {
   return false;
 }
 
+void Thread::SetHighWatermark(intptr_t value) {
+  zone_high_watermark_ = value;
+
+#if !defined(PRODUCT)
+  if ((isolate()->name() != NULL)) {
+    TimelineEvent* event = Timeline::GetZoneStream()->StartEvent();
+    if (event != NULL) {
+      event->Counter(strdup(isolate()->name()));
+      event->set_owns_label(true);
+      // Prevent Catapult from showing "isolateId" as another series.
+      event->set_isolate_id(ILLEGAL_PORT);
+      event->SetNumArguments(1);
+      event->FormatArgument(0, "zoneHighWatermark", "%" Pd, value);
+      event->Complete();
+    }
+  }
+#endif
+}
 
 void Thread::DeferOOBMessageInterrupts() {
   MonitorLocker ml(thread_lock_);
@@ -541,11 +494,10 @@ void Thread::DeferOOBMessageInterrupts() {
     }
   }
   if (FLAG_trace_service && FLAG_trace_service_verbose) {
-    OS::Print("[+%" Pd64 "ms] Isolate %s deferring OOB interrupts\n",
-              Dart::UptimeMillis(), isolate()->name());
+    OS::PrintErr("[+%" Pd64 "ms] Isolate %s deferring OOB interrupts\n",
+                 Dart::UptimeMillis(), isolate()->name());
   }
 }
-
 
 void Thread::RestoreOOBMessageInterrupts() {
   MonitorLocker ml(thread_lock_);
@@ -564,11 +516,10 @@ void Thread::RestoreOOBMessageInterrupts() {
     deferred_interrupts_ = 0;
   }
   if (FLAG_trace_service && FLAG_trace_service_verbose) {
-    OS::Print("[+%" Pd64 "ms] Isolate %s restoring OOB interrupts\n",
-              Dart::UptimeMillis(), isolate()->name());
+    OS::PrintErr("[+%" Pd64 "ms] Isolate %s restoring OOB interrupts\n",
+                 Dart::UptimeMillis(), isolate()->name());
   }
 }
-
 
 RawError* Thread::HandleInterrupts() {
   uword interrupt_bits = GetAndClearInterrupts();
@@ -587,7 +538,7 @@ RawError* Thread::HandleInterrupts() {
       // False result from HandleOOBMessages signals that the isolate should
       // be terminating.
       if (FLAG_trace_isolates) {
-        OS::Print(
+        OS::PrintErr(
             "[!] Terminating isolate due to OOB message:\n"
             "\tisolate:    %s\n",
             isolate()->name());
@@ -602,19 +553,16 @@ RawError* Thread::HandleInterrupts() {
   return Error::null();
 }
 
-
 uword Thread::GetAndClearStackOverflowFlags() {
   uword stack_overflow_flags = stack_overflow_flags_;
   stack_overflow_flags_ = 0;
   return stack_overflow_flags;
 }
 
-
 void Thread::StoreBufferBlockProcess(StoreBuffer::ThresholdPolicy policy) {
   StoreBufferRelease(policy);
   StoreBufferAcquire();
 }
-
 
 void Thread::StoreBufferAddObject(RawObject* obj) {
   store_buffer_block_->Push(obj);
@@ -623,7 +571,6 @@ void Thread::StoreBufferAddObject(RawObject* obj) {
   }
 }
 
-
 void Thread::StoreBufferAddObjectGC(RawObject* obj) {
   store_buffer_block_->Push(obj);
   if (store_buffer_block_->IsFull()) {
@@ -631,23 +578,19 @@ void Thread::StoreBufferAddObjectGC(RawObject* obj) {
   }
 }
 
-
 void Thread::StoreBufferRelease(StoreBuffer::ThresholdPolicy policy) {
   StoreBufferBlock* block = store_buffer_block_;
   store_buffer_block_ = NULL;
   isolate()->store_buffer()->PushBlock(block, policy);
 }
 
-
 void Thread::StoreBufferAcquire() {
   store_buffer_block_ = isolate()->store_buffer()->PopNonFullBlock();
 }
 
-
 bool Thread::IsMutatorThread() const {
   return ((isolate_ != NULL) && (isolate_->mutator_thread() == this));
 }
-
 
 bool Thread::CanCollectGarbage() const {
   // We grow the heap instead of triggering a garbage collection when a
@@ -659,16 +602,13 @@ bool Thread::CanCollectGarbage() const {
   return !IsAtSafepoint();
 }
 
-
 bool Thread::IsExecutingDartCode() const {
   return (top_exit_frame_info() == 0) && (vm_tag() == VMTag::kDartTagId);
 }
 
-
 bool Thread::HasExitedDartCode() const {
   return (top_exit_frame_info() != 0) && (vm_tag() != VMTag::kDartTagId);
 }
-
 
 template <class C>
 C* Thread::AllocateReusableHandle() {
@@ -677,16 +617,14 @@ C* Thread::AllocateReusableHandle() {
   return handle;
 }
 
-
 void Thread::ClearReusableHandles() {
 #define CLEAR_REUSABLE_HANDLE(object) *object##_handle_ = object::null();
   REUSABLE_HANDLE_LIST(CLEAR_REUSABLE_HANDLE)
 #undef CLEAR_REUSABLE_HANDLE
 }
 
-
 void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
-                                 bool validate_frames) {
+                                 ValidationPolicy validation_policy) {
   ASSERT(visitor != NULL);
 
   if (zone_ != NULL) {
@@ -722,10 +660,6 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
   const StackFrameIterator::CrossThreadPolicy cross_thread_policy =
       StackFrameIterator::kAllowCrossThreadIteration;
 
-  const StackFrameIterator::ValidationPolicy validation_policy =
-      validate_frames ? StackFrameIterator::kValidateFrames
-                      : StackFrameIterator::kDontValidateFrames;
-
   // Iterate over all the stack frames and visit objects on the stack.
   StackFrameIterator frames_iterator(top_exit_frame_info(), validation_policy,
                                      this, cross_thread_policy);
@@ -736,26 +670,57 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
   }
 }
 
-
 bool Thread::CanLoadFromThread(const Object& object) {
+  // In order to allow us to use assembler helper routines with non-[Code]
+  // objects *before* stubs are initialized, we only loop ver the stubs if the
+  // [object] is in fact a [Code] object.
+  if (object.IsCode()) {
 #define CHECK_OBJECT(type_name, member_name, expr, default_init_value)         \
-  if (object.raw() == expr) return true;
-  CACHED_VM_OBJECTS_LIST(CHECK_OBJECT)
+  if (object.raw() == expr) {                                                  \
+    return true;                                                               \
+  }
+    CACHED_VM_STUBS_LIST(CHECK_OBJECT)
+#undef CHECK_OBJECT
+  }
+
+  // For non [Code] objects we check if the object equals to any of the cached
+  // non-stub entries.
+#define CHECK_OBJECT(type_name, member_name, expr, default_init_value)         \
+  if (object.raw() == expr) {                                                  \
+    return true;                                                               \
+  }
+  CACHED_NON_VM_STUB_LIST(CHECK_OBJECT)
 #undef CHECK_OBJECT
   return false;
 }
 
-
 intptr_t Thread::OffsetFromThread(const Object& object) {
+  // In order to allow us to use assembler helper routines with non-[Code]
+  // objects *before* stubs are initialized, we only loop ver the stubs if the
+  // [object] is in fact a [Code] object.
+  if (object.IsCode()) {
 #define COMPUTE_OFFSET(type_name, member_name, expr, default_init_value)       \
   ASSERT((expr)->IsVMHeapObject());                                            \
-  if (object.raw() == expr) return Thread::member_name##offset();
-  CACHED_VM_OBJECTS_LIST(COMPUTE_OFFSET)
+  if (object.raw() == expr) {                                                  \
+    return Thread::member_name##offset();                                      \
+  }
+    CACHED_VM_STUBS_LIST(COMPUTE_OFFSET)
 #undef COMPUTE_OFFSET
+  }
+
+  // For non [Code] objects we check if the object equals to any of the cached
+  // non-stub entries.
+#define COMPUTE_OFFSET(type_name, member_name, expr, default_init_value)       \
+  ASSERT((expr)->IsVMHeapObject());                                            \
+  if (object.raw() == expr) {                                                  \
+    return Thread::member_name##offset();                                      \
+  }
+  CACHED_NON_VM_STUB_LIST(COMPUTE_OFFSET)
+#undef COMPUTE_OFFSET
+
   UNREACHABLE();
   return -1;
 }
-
 
 bool Thread::ObjectAtOffset(intptr_t offset, Object* object) {
   if (Isolate::Current() == Dart::vm_isolate()) {
@@ -773,7 +738,6 @@ bool Thread::ObjectAtOffset(intptr_t offset, Object* object) {
 #undef COMPUTE_OFFSET
   return false;
 }
-
 
 intptr_t Thread::OffsetFromThread(const RuntimeEntry* runtime_entry) {
 #define COMPUTE_OFFSET(name)                                                   \
@@ -794,12 +758,10 @@ intptr_t Thread::OffsetFromThread(const RuntimeEntry* runtime_entry) {
   return -1;
 }
 
-
 bool Thread::IsValidHandle(Dart_Handle object) const {
   return IsValidLocalHandle(object) || IsValidZoneHandle(object) ||
          IsValidScopedHandle(object);
 }
-
 
 bool Thread::IsValidLocalHandle(Dart_Handle object) const {
   ApiLocalScope* scope = api_top_scope_;
@@ -812,7 +774,6 @@ bool Thread::IsValidLocalHandle(Dart_Handle object) const {
   return false;
 }
 
-
 intptr_t Thread::CountLocalHandles() const {
   intptr_t total = 0;
   ApiLocalScope* scope = api_top_scope_;
@@ -822,7 +783,6 @@ intptr_t Thread::CountLocalHandles() const {
   }
   return total;
 }
-
 
 bool Thread::IsValidZoneHandle(Dart_Handle object) const {
   Zone* zone = zone_;
@@ -835,7 +795,6 @@ bool Thread::IsValidZoneHandle(Dart_Handle object) const {
   return false;
 }
 
-
 intptr_t Thread::CountZoneHandles() const {
   intptr_t count = 0;
   Zone* zone = zone_;
@@ -846,7 +805,6 @@ intptr_t Thread::CountZoneHandles() const {
   ASSERT(count >= 0);
   return count;
 }
-
 
 bool Thread::IsValidScopedHandle(Dart_Handle object) const {
   Zone* zone = zone_;
@@ -859,7 +817,6 @@ bool Thread::IsValidScopedHandle(Dart_Handle object) const {
   return false;
 }
 
-
 intptr_t Thread::CountScopedHandles() const {
   intptr_t count = 0;
   Zone* zone = zone_;
@@ -871,7 +828,6 @@ intptr_t Thread::CountScopedHandles() const {
   return count;
 }
 
-
 int Thread::ZoneSizeInBytes() const {
   int total = 0;
   ApiLocalScope* scope = api_top_scope_;
@@ -881,7 +837,6 @@ int Thread::ZoneSizeInBytes() const {
   }
   return total;
 }
-
 
 void Thread::UnwindScopes(uword stack_marker) {
   // Unwind all scopes using the same stack_marker, i.e. all scopes allocated
@@ -895,21 +850,17 @@ void Thread::UnwindScopes(uword stack_marker) {
   }
 }
 
-
 void Thread::EnterSafepointUsingLock() {
   isolate()->safepoint_handler()->EnterSafepointUsingLock(this);
 }
-
 
 void Thread::ExitSafepointUsingLock() {
   isolate()->safepoint_handler()->ExitSafepointUsingLock(this);
 }
 
-
 void Thread::BlockForSafepoint() {
   isolate()->safepoint_handler()->BlockForSafepoint(this);
 }
-
 
 DisableThreadInterruptsScope::DisableThreadInterruptsScope(Thread* thread)
     : StackResource(thread) {
@@ -919,7 +870,6 @@ DisableThreadInterruptsScope::DisableThreadInterruptsScope(Thread* thread)
     os_thread->DisableThreadInterrupts();
   }
 }
-
 
 DisableThreadInterruptsScope::~DisableThreadInterruptsScope() {
   if (thread() != NULL) {

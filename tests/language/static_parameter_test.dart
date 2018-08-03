@@ -3,25 +3,25 @@
 // BSD-style license that can be found in the LICENSE file.
 
 foo(x
-    , static int y // //# 01: compile-time error
-    , static final y // //# 02: compile-time error
-    , {static y} // //# 03: compile-time error
-    , [static y] // //# 04: compile-time error
+    , static int y // //# 01: syntax error
+    , static final y // //# 02: syntax error
+    , {static y} // //# 03: syntax error
+    , [static y] // //# 04: syntax error
     ) {}
 
 class C {
   bar(x
-      , static int y // //# 05: compile-time error
-      , static final y // //# 06: compile-time error
-      , {static y} // //# 07: compile-time error
-      , [static y] // //# 08: compile-time error
+      , static int y // //# 05: syntax error
+      , static final y // //# 06: syntax error
+      , {static y} // //# 07: syntax error
+      , [static y] // //# 08: syntax error
       ) {}
 
   static baz(x
-      , static int y // //# 09: compile-time error
-      , static final y // //# 10: compile-time error
-      , {static y} // //# 11: compile-time error
-      , [static y] // //# 12: compile-time error
+      , static int y // //# 09: syntax error
+      , static final y // //# 10: syntax error
+      , {static y} // //# 11: syntax error
+      , [static y] // //# 12: syntax error
       ) {}
 }
 

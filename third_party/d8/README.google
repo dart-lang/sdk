@@ -1,14 +1,20 @@
 Name: V8 command line javascript shell.
 Short Name: d8
-URL: https://chromium.googlesource.com/v8/v8/+/4.4.63.5
-Version: 4.4.63.5
-Revision: 288da5c7788134004a4b34a4ba0cb4814428cf7c
-Date: September 2nd 2014
+URL: https://chromium.googlesource.com/v8/v8/+/efdf8385488430cb3fc15a37ca284c4e2ea1b97f
+Version: 6.2.0
+Revision: 7bb6cd63ed02f850f00e5b456fcf817b754779b2
+Date: July 27 2017
 License: BSD
 
-
 Description:
-This directory contains the d8 binaries for Windows, Mac and Linux.
+This directory contains hashes of the d8 binaries for Windows, Mac and Linux.
+The files are stored in cloud storage in the bucket dart-dependencies,
+and are downloaded by the depot_tools tool download_from_cloud_storage.py.
 The files were fetched from the v8 builders on the DartFYI waterfall:
 http://build.chromium.org/p/client.dart.fyi/console
+
+When all users are updated to use linux binaries from the ia32 or other
+subdirectories, remove them from d8/linux.
+Build and add an ARMv8 64-bit build on linux.
+
 The binaries are used for testing dart code compiled to javascript.

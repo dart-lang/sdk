@@ -37,7 +37,7 @@ class NavIsolateMenuElement extends HtmlElement implements Renderable {
     assert(isolate != null);
     assert(events != null);
     NavIsolateMenuElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<NavIsolateMenuElement>(e, queue: queue);
     e._isolate = isolate;
     e._events = events;
     return e;
@@ -60,7 +60,7 @@ class NavIsolateMenuElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
     assert(_updatesSubscription != null);
     _updatesSubscription.cancel();
@@ -68,7 +68,7 @@ class NavIsolateMenuElement extends HtmlElement implements Renderable {
   }
 
   void render() {
-    final content = [
+    final content = <Element>[
       new NavMenuItemElement('debugger',
           queue: _r.queue, link: Uris.debugger(isolate)),
       new NavMenuItemElement('class hierarchy',
@@ -92,7 +92,7 @@ class NavIsolateMenuElement extends HtmlElement implements Renderable {
       new NavMenuItemElement('logging',
           queue: _r.queue, link: Uris.logging(isolate)),
     ]..addAll(_content);
-    children = [
+    children = <Element>[
       navMenu(isolate.name, content: content, link: Uris.inspect(isolate))
     ];
   }

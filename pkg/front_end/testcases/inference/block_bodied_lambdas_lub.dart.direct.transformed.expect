@@ -1,0 +1,19 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:math" as math;
+
+static method test2() → dynamic {
+  core::List<core::num> o;
+  dynamic y = o.map((dynamic x) → dynamic {
+    if(math::Random::•().nextBool()) {
+      return x.toInt().+(1);
+    }
+    else {
+      return x.toDouble();
+    }
+  });
+  core::Iterable<core::num> w = y;
+  core::Iterable<core::int> z = y;
+}
+static method main() → dynamic {}

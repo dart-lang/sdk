@@ -89,12 +89,11 @@ library dart.js;
 
 import 'dart:collection' show HashMap, ListMixin;
 
-import 'dart:_interceptors' as _interceptors show JSArray;
 import 'dart:_js_helper' show Primitives;
 import 'dart:_foreign_helper' show JS;
+import 'dart:_runtime' as dart;
 
-final _global = JS('', 'dart.global');
-final JsObject context = _wrapToDart(_global);
+final JsObject context = _wrapToDart(dart.global_);
 
 /**
  * Proxies a JavaScript object to Dart.
@@ -120,7 +119,7 @@ class JsObject {
     if (arguments == null) {
       return _wrapToDart(JS('', 'new #()', ctor));
     }
-    var unwrapped = new List.from(arguments.map(_convertToJS));
+    var unwrapped = List.from(arguments.map(_convertToJS));
     return _wrapToDart(JS('', 'new #(...#)', ctor, unwrapped));
   }
 
@@ -137,7 +136,7 @@ class JsObject {
    */
   factory JsObject.fromBrowserObject(object) {
     if (object is num || object is String || object is bool || object == null) {
-      throw new ArgumentError("object cannot be a num, string, bool, or null");
+      throw ArgumentError("object cannot be a num, string, bool, or null");
     }
     return _wrapToDart(_convertToJS(object));
   }
@@ -153,13 +152,13 @@ class JsObject {
    */
   factory JsObject.jsify(object) {
     if ((object is! Map) && (object is! Iterable)) {
-      throw new ArgumentError("object must be a Map or Iterable");
+      throw ArgumentError("object must be a Map or Iterable");
     }
     return _wrapToDart(_convertDataTree(object));
   }
 
   static _convertDataTree(data) {
-    var _convertedObjects = new HashMap.identity();
+    var _convertedObjects = HashMap.identity();
 
     _convert(o) {
       if (_convertedObjects.containsKey(o)) {
@@ -193,7 +192,7 @@ class JsObject {
    */
   dynamic operator [](Object property) {
     if (property is! String && property is! num) {
-      throw new ArgumentError("property is not a String or num");
+      throw ArgumentError("property is not a String or num");
     }
     return _convertToDart(JS('', '#[#]', _jsObject, property));
   }
@@ -206,7 +205,7 @@ class JsObject {
    */
   void operator []=(Object property, value) {
     if (property is! String && property is! num) {
-      throw new ArgumentError("property is not a String or num");
+      throw ArgumentError("property is not a String or num");
     }
     JS('', '#[#] = #', _jsObject, property, _convertToJS(value));
   }
@@ -224,7 +223,7 @@ class JsObject {
    */
   bool hasProperty(property) {
     if (property is! String && property is! num) {
-      throw new ArgumentError("property is not a String or num");
+      throw ArgumentError("property is not a String or num");
     }
     return JS('bool', '# in #', property, _jsObject);
   }
@@ -236,7 +235,7 @@ class JsObject {
    */
   void deleteProperty(property) {
     if (property is! String && property is! num) {
-      throw new ArgumentError("property is not a String or num");
+      throw ArgumentError("property is not a String or num");
     }
     JS('bool', 'delete #[#]', _jsObject, property);
   }
@@ -269,12 +268,12 @@ class JsObject {
    */
   dynamic callMethod(method, [List args]) {
     if (method is! String && method is! num) {
-      throw new ArgumentError("method is not a String or num");
+      throw ArgumentError("method is not a String or num");
     }
-    if (args != null) args = new List.from(args.map(_convertToJS));
+    if (args != null) args = List.from(args.map(_convertToJS));
     var fn = JS('', '#[#]', _jsObject, method);
     if (JS('bool', 'typeof(#) !== "function"', fn)) {
-      throw new NoSuchMethodError(_jsObject, new Symbol(method), args, {});
+      throw NoSuchMethodError(_jsObject, Symbol(method), args, {});
     }
     return _convertToDart(JS('', '#.apply(#, #)', fn, _jsObject, args));
   }
@@ -289,7 +288,7 @@ class JsFunction extends JsObject {
    * with the value of this passed as the first argument.
    */
   factory JsFunction.withThis(Function f) {
-    return new JsFunction._fromJs(JS(
+    return JsFunction._fromJs(JS(
         '',
         'function(/*...arguments*/) {'
         '  let args = [#(this)];'
@@ -315,7 +314,7 @@ class JsFunction extends JsObject {
       '#.apply(#, #)',
       _jsObject,
       _convertToJS(thisArg),
-      args == null ? null : new List.from(args.map(_convertToJS))));
+      args == null ? null : List.from(args.map(_convertToJS))));
 }
 
 // TODO(jmesserly): this is totally unnecessary in dev_compiler.
@@ -337,22 +336,22 @@ class JsArray<E> extends JsObject with ListMixin<E> {
 
   _checkIndex(int index) {
     if (index is int && (index < 0 || index >= length)) {
-      throw new RangeError.range(index, 0, length);
+      throw RangeError.range(index, 0, length);
     }
   }
 
   _checkInsertIndex(int index) {
     if (index is int && (index < 0 || index >= length + 1)) {
-      throw new RangeError.range(index, 0, length);
+      throw RangeError.range(index, 0, length);
     }
   }
 
   static _checkRange(int start, int end, int length) {
     if (start < 0 || start > length) {
-      throw new RangeError.range(start, 0, length);
+      throw RangeError.range(start, 0, length);
     }
     if (end < start || end > length) {
-      throw new RangeError.range(end, start, length);
+      throw RangeError.range(end, start, length);
     }
   }
 
@@ -383,7 +382,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
     if (JS('bool', 'typeof # === "number" && (# >>> 0) === #', len, len, len)) {
       return JS('int', '#', len);
     }
-    throw new StateError('Bad JsArray length');
+    throw StateError('Bad JsArray length');
   }
 
   void set length(int length) {
@@ -399,7 +398,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
   void addAll(Iterable<E> iterable) {
     var list = (JS('bool', '# instanceof Array', iterable))
         ? iterable
-        : new List.from(iterable);
+        : List.from(iterable);
     callMethod('push', list);
   }
 
@@ -414,7 +413,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
   }
 
   E removeLast() {
-    if (length == 0) throw new RangeError(-1);
+    if (length == 0) throw RangeError(-1);
     return callMethod('pop') as E;
   }
 
@@ -427,7 +426,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
     _checkRange(start, end, this.length);
     int length = end - start;
     if (length == 0) return;
-    if (skipCount < 0) throw new ArgumentError(skipCount);
+    if (skipCount < 0) throw ArgumentError(skipCount);
     var args = <Object>[start, length]
       ..addAll(iterable.skip(skipCount).take(length));
     callMethod('splice', args);
@@ -482,7 +481,7 @@ dynamic _convertToJS(dynamic o) {
   } else {
     // TODO(jmesserly): for now, we wrap other objects, to keep compatibility
     // with the original dart:js behavior.
-    return _putIfAbsent(_jsProxies, o, (o) => new _DartObject(o));
+    return _putIfAbsent(_jsProxies, o, (o) => _DartObject(o));
   }
 }
 
@@ -504,17 +503,13 @@ dynamic _wrapDartFunction(f) {
 // converts a Dart object to a reference to a native JS object
 // which might be a DartObject JS->Dart proxy
 Object _convertToDart(o) {
-  if (JS('bool', '# == null', o) ||
-      JS('bool', 'typeof # == "string"', o) ||
-      JS('bool', 'typeof # == "number"', o) ||
-      JS('bool', 'typeof # == "boolean"', o) ||
-      _isBrowserType(o)) {
+  if (o == null || o is String || o is num || o is bool || _isBrowserType(o)) {
     return o;
-  } else if (JS('bool', '# instanceof Date', o)) {
-    var ms = JS('num', '#.getTime()', o);
-    return new DateTime.fromMillisecondsSinceEpoch(ms);
+  } else if (JS('!', '# instanceof Date', o)) {
+    num ms = JS('!', '#.getTime()', o);
+    return DateTime.fromMillisecondsSinceEpoch(ms);
   } else if (o is _DartObject &&
-      JS('bool', 'dart.jsobject != dart.getReifiedType(#)', o)) {
+      !identical(dart.getReifiedType(o), dart.jsobject)) {
     return o._dartObj;
   } else {
     return _wrapToDart(o);
@@ -525,12 +520,12 @@ Object _wrapToDart(o) => _putIfAbsent(_dartProxies, o, _wrapToDartHelper);
 
 Object _wrapToDartHelper(o) {
   if (JS('bool', 'typeof # == "function"', o)) {
-    return new JsFunction._fromJs(o);
+    return JsFunction._fromJs(o);
   }
   if (JS('bool', '# instanceof Array', o)) {
-    return new JsArray._fromJs(o);
+    return JsArray._fromJs(o);
   }
-  return new JsObject._fromJs(o);
+  return JsObject._fromJs(o);
 }
 
 final _dartProxies = JS('', 'new WeakMap()');
@@ -560,9 +555,9 @@ Object _putIfAbsent(weakMap, o, getValue(o)) {
 /// JavaScript. We may remove the need to call this method completely in the
 /// future if Dart2Js is refactored so that its function calling conventions
 /// are more compatible with JavaScript.
-Function/*=F*/ allowInterop/*<F extends Function>*/(Function/*=F*/ f) => f;
+F allowInterop<F extends Function>(F f) => f;
 
-Expando<Function> _interopCaptureThisExpando = new Expando<Function>();
+Expando<Function> _interopCaptureThisExpando = Expando<Function>();
 
 /// Returns a [Function] that when called from JavaScript captures its 'this'
 /// binding and calls [f] with the value of this passed as the first argument.

@@ -5,10 +5,6 @@
 #ifndef RUNTIME_BIN_SOCKET_BASE_H_
 #define RUNTIME_BIN_SOCKET_BASE_H_
 
-#if defined(DART_IO_DISABLED)
-#error "socket_base.h can only be included on builds with IO enabled"
-#endif
-
 #include "platform/globals.h"
 // Declare the OS-specific types ahead of defining the generic class.
 #if defined(HOST_OS_ANDROID)

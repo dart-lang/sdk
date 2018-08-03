@@ -7,12 +7,14 @@
 
 import "package:expect/expect.dart";
 import 'dart:_js_helper' show Native;
+import 'dart:_foreign_helper' show JS;
 
 export "package:expect/expect.dart";
 export 'dart:_js_helper' show Creates, Native, JSName, Returns;
 export 'dart:_foreign_helper' show JS;
 
-void _setup() native r'''
+void nativeTesting() {
+  JS('', r'''
 ((function() {
   var toStringResultProperty = "_toStringResult";
   var objectToStringMethod = Object.prototype.toString;
@@ -26,7 +28,7 @@ void _setup() native r'''
       }
     }
     return objectToStringMethod.call(this);
-  }
+  };
 
   // To mock a @Native class with JavaScript constructor `Foo`, add
   //
@@ -36,12 +38,9 @@ void _setup() native r'''
   self.nativeConstructor = function(constructor, opt_name) {
     var toStringResult = "[object " + (opt_name || constructor.name) + "]";
     constructor[toStringResultProperty] = toStringResult;
-  }
-})());
-''';
-
-void nativeTesting() {
-  _setup();
+  };
+})())
+''');
 }
 
 @NoInline()

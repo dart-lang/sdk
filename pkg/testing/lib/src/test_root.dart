@@ -6,7 +6,7 @@ library testing.test_root;
 
 import 'dart:async' show Future;
 
-import 'dart:convert' show JSON;
+import 'dart:convert' show json;
 
 import 'dart:io' show File;
 
@@ -68,15 +68,16 @@ class TestRoot {
   }
 
   static Future<TestRoot> fromUri(Uri uri) async {
-    String json = await new File.fromUri(uri).readAsString();
-    Map data = JSON.decode(json);
+    String jsonText = await new File.fromUri(uri).readAsString();
+    Map data = json.decode(jsonText);
 
     addDefaults(data);
 
     Uri packages = uri.resolve(data["packages"]);
 
-    List<Suite> suites = new List<Suite>.from(
-        data["suites"].map((Map json) => new Suite.fromJsonMap(uri, json)));
+    List<Suite> suites = data["suites"]
+        .map<Suite>((json) => new Suite.fromJsonMap(uri, json))
+        .toList();
 
     Analyze analyze = await Analyze.fromJsonMap(uri, data["analyze"], suites);
 

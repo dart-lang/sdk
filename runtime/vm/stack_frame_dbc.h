@@ -39,6 +39,7 @@ static const int kDartFrameFixedSize = 4;  // Function, Code, PC, FP
 static const int kSavedPcSlotFromSp = 3;
 
 static const int kFirstObjectSlotFromFp = -4;  // Used by GC to traverse stack.
+static const int kLastFixedObjectSlotFromFp = -3;
 
 static const int kSavedCallerFpSlotFromFp = -1;
 static const int kSavedCallerPpSlotFromFp = kSavedCallerFpSlotFromFp;
@@ -55,17 +56,14 @@ static const int kFunctionSlotFromFp = -4;
 static const int kParamEndSlotFromFp = 4;  // One slot past last parameter.
 static const int kFirstLocalSlotFromFp = -1;
 
-
 DART_FORCE_INLINE static intptr_t LocalVarIndex(intptr_t fp_offset,
                                                 intptr_t var_index) {
-  ASSERT(var_index != 0);
   if (var_index > 0) {
     return fp_offset - var_index;
   } else {
     return fp_offset - (var_index + 1);
   }
 }
-
 
 DART_FORCE_INLINE static uword ParamAddress(uword fp, intptr_t reverse_index) {
   return fp - (kDartFrameFixedSize + reverse_index) * kWordSize;

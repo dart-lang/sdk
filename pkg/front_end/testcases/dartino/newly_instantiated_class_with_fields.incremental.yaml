@@ -1,0 +1,26 @@
+# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+main.dart.patch: |
+  // Test that fields of a newly instantiated class are handled
+
+  class A {
+    var x;
+    A(this.x);
+  }
+  var instance;
+  foo() {
+    if (instance != null) {
+      print(instance.x);
+    } else {
+      print('v1');
+    }
+  }
+  main() {
+  <<<< "v1"
+  ==== "v2"
+    instance = new A('v2');
+  >>>>
+    foo();
+  }

@@ -10,7 +10,7 @@ import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
 /// Test that we correctly remove sockets that have been closed from the list
-/// of open sockets. We explictly leave one socket open.
+/// of open sockets. We explicitly leave one socket open.
 
 Future setup() async {
   var serverSocket = await io.ServerSocket.bind('127.0.0.1', 0);
@@ -42,7 +42,7 @@ Future setup() async {
     }
   });
   var client = await io.RawDatagramSocket.bind('127.0.0.1', 0);
-  client.send(UTF8.encoder.convert('foobar'),
+  client.send(utf8.encoder.convert('foobar'),
       new io.InternetAddress('127.0.0.1'), server.port);
   client.close();
 
@@ -50,7 +50,7 @@ Future setup() async {
   await io.ServerSocket.bind('127.0.0.1', 0);
 }
 
-var tests = [
+var tests = <IsolateTest>[
   // Initial.
   (Isolate isolate) async {
     var result =

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_IO_DISABLED)
-
 #include "bin/stdio.h"
 
 #include "bin/builtin.h"
@@ -18,79 +16,126 @@
 namespace dart {
 namespace bin {
 
+static bool GetIntptrArgument(Dart_NativeArguments args,
+                              intptr_t idx,
+                              intptr_t* value) {
+  ASSERT(value != NULL);
+  int64_t v;
+  Dart_Handle status = Dart_GetNativeIntegerArgument(args, 0, &v);
+  if (Dart_IsError(status)) {
+    // The caller is expecting an OSError if something goes wrong.
+    OSError os_error(-1, "Invalid argument", OSError::kUnknown);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    return false;
+  }
+  if ((v < kIntptrMin) || (kIntptrMax < v)) {
+    // The caller is expecting an OSError if something goes wrong.
+    OSError os_error(-1, "Invalid argument", OSError::kUnknown);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    return false;
+  }
+  *value = static_cast<intptr_t>(v);
+  return true;
+}
+
 void FUNCTION_NAME(Stdin_ReadByte)(Dart_NativeArguments args) {
   ScopedBlockingCall blocker;
+  intptr_t fd;
+  if (!GetIntptrArgument(args, 0, &fd)) {
+    return;
+  }
   int byte = -1;
-  if (Stdin::ReadByte(&byte)) {
-    Dart_SetReturnValue(args, Dart_NewInteger(byte));
+  if (Stdin::ReadByte(fd, &byte)) {
+    Dart_SetIntegerReturnValue(args, byte);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
-
 
 void FUNCTION_NAME(Stdin_GetEchoMode)(Dart_NativeArguments args) {
   bool enabled = false;
-  if (Stdin::GetEchoMode(&enabled)) {
-    Dart_SetReturnValue(args, Dart_NewBoolean(enabled));
+  intptr_t fd;
+  if (!GetIntptrArgument(args, 0, &fd)) {
+    return;
+  }
+  if (Stdin::GetEchoMode(fd, &enabled)) {
+    Dart_SetBooleanReturnValue(args, enabled);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
-
 void FUNCTION_NAME(Stdin_SetEchoMode)(Dart_NativeArguments args) {
-  bool enabled = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 0));
-  if (Stdin::SetEchoMode(enabled)) {
+  intptr_t fd;
+  if (!GetIntptrArgument(args, 0, &fd)) {
+    return;
+  }
+  bool enabled;
+  Dart_Handle status = Dart_GetNativeBooleanArgument(args, 1, &enabled);
+  if (Dart_IsError(status)) {
+    // The caller is expecting an OSError if something goes wrong.
+    OSError os_error(-1, "Invalid argument", OSError::kUnknown);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    return;
+  }
+  if (Stdin::SetEchoMode(fd, enabled)) {
     Dart_SetReturnValue(args, Dart_True());
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
-
 
 void FUNCTION_NAME(Stdin_GetLineMode)(Dart_NativeArguments args) {
   bool enabled = false;
-  if (Stdin::GetLineMode(&enabled)) {
-    Dart_SetReturnValue(args, Dart_NewBoolean(enabled));
+  intptr_t fd;
+  if (!GetIntptrArgument(args, 0, &fd)) {
+    return;
+  }
+  if (Stdin::GetLineMode(fd, &enabled)) {
+    Dart_SetBooleanReturnValue(args, enabled);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
-
 
 void FUNCTION_NAME(Stdin_SetLineMode)(Dart_NativeArguments args) {
-  bool enabled = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 0));
-  if (Stdin::SetLineMode(enabled)) {
-    Dart_SetReturnValue(args, Dart_True());
+  intptr_t fd;
+  if (!GetIntptrArgument(args, 0, &fd)) {
+    return;
+  }
+  bool enabled;
+  Dart_Handle status = Dart_GetNativeBooleanArgument(args, 1, &enabled);
+  if (Dart_IsError(status)) {
+    // The caller is expecting an OSError if something goes wrong.
+    OSError os_error(-1, "Invalid argument", OSError::kUnknown);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+    return;
+  }
+  if (Stdin::SetLineMode(fd, enabled)) {
+    Dart_SetBooleanReturnValue(args, true);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
-
 
 void FUNCTION_NAME(Stdin_AnsiSupported)(Dart_NativeArguments args) {
   bool supported = false;
-  if (Stdin::AnsiSupported(&supported)) {
+  intptr_t fd;
+  if (!GetIntptrArgument(args, 0, &fd)) {
+    return;
+  }
+  if (Stdin::AnsiSupported(fd, &supported)) {
     Dart_SetBooleanReturnValue(args, supported);
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
-
 void FUNCTION_NAME(Stdout_GetTerminalSize)(Dart_NativeArguments args) {
-  if (!Dart_IsInteger(Dart_GetNativeArgument(args, 0))) {
-    OSError os_error(-1, "Invalid argument", OSError::kUnknown);
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
+  intptr_t fd;
+  if (!GetIntptrArgument(args, 0, &fd)) {
     return;
   }
-  intptr_t fd = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 0));
-  if ((fd != 1) && (fd != 2)) {
-    Dart_SetReturnValue(args, Dart_NewApiError("Terminal fd must be 1 or 2"));
-    return;
-  }
-
   int size[2];
   if (Stdout::GetTerminalSize(fd, size)) {
     Dart_Handle list = Dart_NewList(2);
@@ -102,16 +147,9 @@ void FUNCTION_NAME(Stdout_GetTerminalSize)(Dart_NativeArguments args) {
   }
 }
 
-
 void FUNCTION_NAME(Stdout_AnsiSupported)(Dart_NativeArguments args) {
-  if (!Dart_IsInteger(Dart_GetNativeArgument(args, 0))) {
-    OSError os_error(-1, "Invalid argument", OSError::kUnknown);
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
-    return;
-  }
-  intptr_t fd = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 0));
-  if ((fd != 1) && (fd != 2)) {
-    Dart_SetReturnValue(args, Dart_NewApiError("Terminal fd must be 1 or 2"));
+  intptr_t fd;
+  if (!GetIntptrArgument(args, 0, &fd)) {
     return;
   }
   bool supported = false;
@@ -124,5 +162,3 @@ void FUNCTION_NAME(Stdout_AnsiSupported)(Dart_NativeArguments args) {
 
 }  // namespace bin
 }  // namespace dart
-
-#endif  // !defined(DART_IO_DISABLED)

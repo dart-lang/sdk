@@ -20,13 +20,12 @@ ZoneTextBuffer::ZoneTextBuffer(Zone* zone, intptr_t initial_capacity)
   buffer_[length_] = '\0';
 }
 
-
 intptr_t ZoneTextBuffer::Printf(const char* format, ...) {
   va_list args;
   va_start(args, format);
   intptr_t remaining = capacity_ - length_;
   ASSERT(remaining >= 0);
-  intptr_t len = OS::VSNPrint(buffer_ + length_, remaining, format, args);
+  intptr_t len = Utils::VSNPrint(buffer_ + length_, remaining, format, args);
   va_end(args);
   if (len >= remaining) {
     EnsureCapacity(len);
@@ -34,7 +33,8 @@ intptr_t ZoneTextBuffer::Printf(const char* format, ...) {
     ASSERT(remaining > len);
     va_list args2;
     va_start(args2, format);
-    intptr_t len2 = OS::VSNPrint(buffer_ + length_, remaining, format, args2);
+    intptr_t len2 =
+        Utils::VSNPrint(buffer_ + length_, remaining, format, args2);
     va_end(args2);
     ASSERT(len == len2);
   }
@@ -43,11 +43,9 @@ intptr_t ZoneTextBuffer::Printf(const char* format, ...) {
   return len;
 }
 
-
 void ZoneTextBuffer::AddString(const char* s) {
   Printf("%s", s);
 }
-
 
 void ZoneTextBuffer::EnsureCapacity(intptr_t len) {
   intptr_t remaining = capacity_ - length_;

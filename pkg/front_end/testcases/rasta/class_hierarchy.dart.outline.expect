@@ -3,22 +3,22 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  constructor •() → void
+  synthetic constructor •() → void
     ;
 }
 class B extends core::Object {
-  constructor •() → void
+  synthetic constructor •() → void
     ;
 }
 class C extends core::Object {
-  constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
 class D extends core::Object {
   static field dynamic _redirecting# = <dynamic>[self::D::•];
-  static factory •() → dynamic
-    throw "Redirection constructor target not found: Missing";
+  static factory •() → self::D
+    let dynamic #redirecting_factory = "Missing" in invalid-expression;
 }
 static method main() → void
   ;

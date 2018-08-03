@@ -1,0 +1,8 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef T = dynamic;
+typedef F = () → core::Map<core::String, dynamic>;
+static method main() → dynamic
+  ;

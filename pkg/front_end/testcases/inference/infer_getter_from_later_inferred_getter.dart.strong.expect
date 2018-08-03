@@ -1,0 +1,26 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object implements self::B {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  get x() → core::int
+    return self::f() as{TypeError} core::int;
+}
+abstract class B extends core::Object implements self::C {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract get x() → core::int;
+}
+abstract class C extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract get x() → core::int;
+}
+static method f() → dynamic
+  return null;
+static method main() → dynamic {}

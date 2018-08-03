@@ -5,7 +5,7 @@
 import 'dart:convert';
 import 'dart:io' as io;
 
-import '../lib/shared_messages.dart';
+import 'package:dart_messages/shared_messages.dart';
 
 const String jsonPath = '../lib/generated/shared_messages.json';
 const String dart2jsPath =
@@ -47,7 +47,7 @@ void emitJson() {
 ///
 /// The parameter [str] may be `null` in which case the result is "null".
 String escapeString(String str) {
-  return JSON.encode(str);
+  return jsonEncode(str);
 }
 
 /// Emits the messages in dart2js format.
@@ -128,7 +128,7 @@ void emitDart2js() {
           out.write(escapeExampleContent(example));
         } else if (example is Map) {
           out.writeln("      const {");
-          example.forEach((String fileName, String content) {
+          example.forEach((fileName, content) {
             out.writeln("      '$fileName': ");
             out.write(escapeExampleContent(content));
             out.writeln(",");

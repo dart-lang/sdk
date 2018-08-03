@@ -9,16 +9,14 @@
 #include "vm/allocation.h"
 #include "vm/bitfield.h"
 #include "vm/datastream.h"
-#include "vm/exceptions.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/hash_map.h"
-#include "vm/heap.h"
-#include "vm/isolate.h"
+#include "vm/heap/heap.h"
 #include "vm/object.h"
 #include "vm/snapshot.h"
+#include "vm/type_testing_stubs.h"
 #include "vm/version.h"
-#include "vm/visitor.h"
 
 #if defined(DEBUG)
 #define SNAPSHOT_BACKTRACE
@@ -30,6 +28,8 @@ namespace dart {
 class Serializer;
 class Deserializer;
 class ObjectStore;
+class ImageWriter;
+class ImageReader;
 
 // For full snapshots, we use a clustered snapshot format that trades longer
 // serialization time for faster deserialization time and smaller snapshots.
@@ -50,6 +50,8 @@ class ObjectStore;
 
 class SerializationCluster : public ZoneAllocated {
  public:
+  explicit SerializationCluster(const char* name)
+      : name_(name), size_(0), num_objects_(0) {}
   virtual ~SerializationCluster() {}
 
   // Add [object] to the cluster and push its outgoing references.
@@ -62,8 +64,19 @@ class SerializationCluster : public ZoneAllocated {
 
   // Write the byte and reference data of the cluster's objects.
   virtual void WriteFill(Serializer* serializer) = 0;
-};
 
+  void WriteAndMeasureAlloc(Serializer* serializer);
+  void WriteAndMeasureFill(Serializer* serializer);
+
+  const char* name() const { return name_; }
+  intptr_t size() const { return size_; }
+  intptr_t num_objects() const { return num_objects_; }
+
+ protected:
+  const char* name_;
+  intptr_t size_;
+  intptr_t num_objects_;
+};
 
 class DeserializationCluster : public ZoneAllocated {
  public:
@@ -87,7 +100,6 @@ class DeserializationCluster : public ZoneAllocated {
   intptr_t stop_index_;
 };
 
-
 class SmiObjectIdPair {
  public:
   SmiObjectIdPair() : smi_(NULL), id_(0) {}
@@ -98,7 +110,6 @@ class SmiObjectIdPair {
     return (smi_ == other.smi_) && (id_ == other.id_);
   }
 };
-
 
 class SmiObjectIdPairTrait {
  public:
@@ -112,9 +123,7 @@ class SmiObjectIdPairTrait {
   static inline bool IsKeyEqual(Pair kv, Key key) { return kv.smi_ == key; }
 };
 
-
 typedef DirectChainedHashMap<SmiObjectIdPairTrait> SmiObjectIdMap;
-
 
 class Serializer : public StackResource {
  public:
@@ -126,7 +135,8 @@ class Serializer : public StackResource {
              ImageWriter* image_writer_);
   ~Serializer();
 
-  intptr_t WriteVMSnapshot(const Array& symbols, const Array& scripts);
+  intptr_t WriteVMSnapshot(const Array& symbols,
+                           ZoneGrowableArray<Object*>* seeds);
   void WriteIsolateSnapshot(intptr_t num_base_objects,
                             ObjectStore* object_store);
 
@@ -176,16 +186,17 @@ class Serializer : public StackResource {
 
   void ReserveHeader() {
     // Make room for recording snapshot buffer size.
-    stream_.set_current(stream_.buffer() + Snapshot::kHeaderSize);
+    stream_.SetPosition(Snapshot::kHeaderSize);
   }
 
   void FillHeader(Snapshot::Kind kind) {
-    int64_t* data = reinterpret_cast<int64_t*>(stream_.buffer());
-    data[Snapshot::kLengthIndex] = stream_.bytes_written();
-    data[Snapshot::kSnapshotFlagIndex] = kind;
+    Snapshot* header = reinterpret_cast<Snapshot*>(stream_.buffer());
+    header->set_magic();
+    header->set_length(stream_.bytes_written());
+    header->set_kind(kind);
   }
 
-  void WriteVersionAndFeatures();
+  void WriteVersionAndFeatures(bool is_vm_snapshot);
 
   void Serialize();
   WriteStream* stream() { return &stream_; }
@@ -197,7 +208,7 @@ class Serializer : public StackResource {
   void Write(T value) {
     WriteStream::Raw<sizeof(T), T>::Write(&stream_, value);
   }
-
+  void WriteUnsigned(intptr_t value) { stream_.WriteUnsigned(value); }
   void WriteBytes(const uint8_t* addr, intptr_t len) {
     stream_.WriteBytes(addr, len);
   }
@@ -209,7 +220,7 @@ class Serializer : public StackResource {
       if (id == 0) {
         FATAL("Missing ref");
       }
-      Write<int32_t>(id);
+      WriteUnsigned(id);
       return;
     }
 
@@ -230,7 +241,7 @@ class Serializer : public StackResource {
       }
       FATAL("Missing ref");
     }
-    Write<int32_t>(id);
+    WriteUnsigned(id);
   }
 
   void WriteTokenPosition(TokenPosition pos) {
@@ -242,23 +253,19 @@ class Serializer : public StackResource {
     Write<int32_t>(cid);
   }
 
-  int32_t GetTextOffset(RawInstructions* instr, RawCode* code) {
-    intptr_t offset = heap_->GetObjectId(instr);
-    if (offset == 0) {
-      offset = image_writer_->GetTextOffsetFor(instr, code);
-      ASSERT(offset != 0);
-      heap_->SetObjectId(instr, offset);
-    }
-    return offset;
-  }
-
-  int32_t GetDataOffset(RawObject* object) {
-    return image_writer_->GetDataOffsetFor(object);
-  }
+  void WriteInstructions(RawInstructions* instr, RawCode* code);
+  bool GetSharedDataOffset(RawObject* object, uint32_t* offset) const;
+  uint32_t GetDataOffset(RawObject* object) const;
+  intptr_t GetDataSize() const;
+  intptr_t GetTextSize() const;
 
   Snapshot::Kind kind() const { return kind_; }
+  intptr_t next_ref_index() const { return next_ref_index_; }
+
+  void DumpCombinedCodeStatistics();
 
  private:
+  TypeTestingStubFinder type_testing_stubs_;
   Heap* heap_;
   Zone* zone_;
   Snapshot::Kind kind_;
@@ -280,15 +287,16 @@ class Serializer : public StackResource {
   DISALLOW_IMPLICIT_CONSTRUCTORS(Serializer);
 };
 
-
 class Deserializer : public StackResource {
  public:
   Deserializer(Thread* thread,
                Snapshot::Kind kind,
                const uint8_t* buffer,
                intptr_t size,
+               const uint8_t* data_buffer,
                const uint8_t* instructions_buffer,
-               const uint8_t* data_buffer);
+               const uint8_t* shared_data_buffer,
+               const uint8_t* shared_instructions_buffer);
   ~Deserializer();
 
   void ReadIsolateSnapshot(ObjectStore* object_store);
@@ -308,7 +316,7 @@ class Deserializer : public StackResource {
   T Read() {
     return ReadStream::Raw<sizeof(T), T>::Read(&stream_);
   }
-
+  intptr_t ReadUnsigned() { return stream_.ReadUnsigned(); }
   void ReadBytes(uint8_t* addr, intptr_t len) { stream_.ReadBytes(addr, len); }
 
   const uint8_t* CurrentBufferAddress() const {
@@ -333,10 +341,7 @@ class Deserializer : public StackResource {
     return refs_->ptr()->data()[index];
   }
 
-  RawObject* ReadRef() {
-    int32_t index = Read<int32_t>();
-    return Ref(index);
-  }
+  RawObject* ReadRef() { return Ref(ReadUnsigned()); }
 
   TokenPosition ReadTokenPosition() {
     return TokenPosition::SnapshotDecode(Read<int32_t>());
@@ -347,13 +352,9 @@ class Deserializer : public StackResource {
     return Read<int32_t>();
   }
 
-  RawInstructions* GetInstructionsAt(int32_t offset) {
-    return image_reader_->GetInstructionsAt(offset);
-  }
-
-  RawObject* GetObjectAt(int32_t offset) {
-    return image_reader_->GetObjectAt(offset);
-  }
+  RawInstructions* ReadInstructions();
+  RawObject* GetObjectAt(uint32_t offset) const;
+  RawObject* GetSharedObjectAt(uint32_t offset) const;
 
   RawApiError* VerifyVersionAndFeatures(Isolate* isolate);
 
@@ -379,7 +380,6 @@ class Deserializer : public StackResource {
   intptr_t next_ref_index_;
   DeserializationCluster** clusters_;
 };
-
 
 class FullSnapshotWriter {
  public:
@@ -426,7 +426,7 @@ class FullSnapshotWriter {
   ForwardList* forward_list_;
   ImageWriter* vm_image_writer_;
   ImageWriter* isolate_image_writer_;
-  Array& token_streams_;
+  ZoneGrowableArray<Object*>* seeds_;
   Array& saved_symbol_table_;
   Array& new_vm_symbol_table_;
 
@@ -434,16 +434,17 @@ class FullSnapshotWriter {
   intptr_t clustered_vm_size_;
   intptr_t clustered_isolate_size_;
   intptr_t mapped_data_size_;
-  intptr_t mapped_instructions_size_;
+  intptr_t mapped_text_size_;
 
   DISALLOW_COPY_AND_ASSIGN(FullSnapshotWriter);
 };
-
 
 class FullSnapshotReader {
  public:
   FullSnapshotReader(const Snapshot* snapshot,
                      const uint8_t* instructions_buffer,
+                     const uint8_t* shared_data,
+                     const uint8_t* shared_instructions,
                      Thread* thread);
   ~FullSnapshotReader() {}
 
@@ -455,8 +456,10 @@ class FullSnapshotReader {
   Thread* thread_;
   const uint8_t* buffer_;
   intptr_t size_;
-  const uint8_t* instructions_buffer_;
-  const uint8_t* data_buffer_;
+  const uint8_t* data_image_;
+  const uint8_t* instructions_image_;
+  const uint8_t* shared_data_image_;
+  const uint8_t* shared_instructions_image_;
 
   DISALLOW_COPY_AND_ASSIGN(FullSnapshotReader);
 };

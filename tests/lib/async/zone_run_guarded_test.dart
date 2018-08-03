@@ -7,6 +7,8 @@ import 'package:async_helper/async_helper.dart';
 import 'dart:async';
 
 main() {
+  var result;
+
   Completer done = new Completer();
   List events = [];
 
@@ -17,7 +19,7 @@ main() {
   Zone forked;
   forked = Zone.current.fork(
       specification: new ZoneSpecification(
-          run: (Zone self, ZoneDelegate parent, Zone origin, f()) {
+          run: <R>(Zone self, ZoneDelegate parent, Zone origin, R f()) {
     // The zone is still the same as when origin.run was invoked, which
     // is the root zone. (The origin zone hasn't been set yet).
     Expect.identical(Zone.ROOT, Zone.current);
@@ -28,19 +30,19 @@ main() {
     Expect.identical(Zone.ROOT, Zone.current);
     Expect.identical(forked, origin);
     events.add("forked.handleUncaught $error");
-    return 499;
+    result = 499;
   }));
 
-  var result = forked.runGuarded(() {
+  forked.runGuarded(() {
     events.add("runGuarded 1");
     Expect.identical(forked, Zone.current);
-    return 42;
+    result = 42;
   });
   Expect.identical(Zone.ROOT, Zone.current);
   Expect.equals(42, result);
   events.add("after runGuarded 1");
 
-  result = forked.runGuarded(() {
+  forked.runGuarded(() {
     events.add("runGuarded 2");
     Expect.identical(forked, Zone.current);
     throw 42;
@@ -56,9 +58,10 @@ main() {
     "forked.handleUncaught 42"
   ], events);
 
+  result = null;
   events.clear();
   asyncStart();
-  result = forked.runGuarded(() {
+  forked.runGuarded(() {
     Expect.identical(forked, Zone.current);
     events.add("run closure");
     forked.scheduleMicrotask(() {

@@ -4,13 +4,13 @@
 
 library testing.multitest;
 
-import 'dart:async' show Stream, StreamTransformer;
+import 'dart:async' show Stream, StreamTransformerBase;
 
 import 'dart:io' show Directory, File;
 
 import 'log.dart' show splitLines;
 
-import 'test_description.dart' show TestDescription;
+import 'test_description.dart' show FileBasedTestDescription;
 
 bool isError(Set<String> expectations) {
   if (expectations.contains("compile-time error")) return true;
@@ -24,13 +24,14 @@ bool isCheckedModeError(Set<String> expectations) {
   return isError(expectations);
 }
 
-class MultitestTransformer
-    implements StreamTransformer<TestDescription, TestDescription> {
+class MultitestTransformer extends StreamTransformerBase<
+    FileBasedTestDescription, FileBasedTestDescription> {
   static RegExp multitestMarker = new RegExp(r"//[#/]");
   static int _multitestMarkerLength = 3;
 
   static const List<String> validOutcomesList = const <String>[
     "ok",
+    "syntax error",
     "compile-time error",
     "runtime error",
     "static type warning",
@@ -41,7 +42,8 @@ class MultitestTransformer
   static final Set<String> validOutcomes =
       new Set<String>.from(validOutcomesList);
 
-  Stream<TestDescription> bind(Stream<TestDescription> stream) async* {
+  Stream<FileBasedTestDescription> bind(
+      Stream<FileBasedTestDescription> stream) async* {
     List<String> errors = <String>[];
     reportError(String error) {
       errors.add(error);
@@ -49,7 +51,7 @@ class MultitestTransformer
     }
 
     nextTest:
-    await for (TestDescription test in stream) {
+    await for (FileBasedTestDescription test in stream) {
       String contents = await test.file.readAsString();
       if (!contents.contains(multitestMarker)) {
         yield test;
@@ -123,8 +125,8 @@ class MultitestTransformer
       for (String name in testsAsLines.keys) {
         List<String> lines = testsAsLines[name];
         Uri uri = generated.uri.resolve("${name}_generated.dart");
-        TestDescription subtest =
-            new TestDescription(root, new File.fromUri(uri));
+        FileBasedTestDescription subtest =
+            new FileBasedTestDescription(root, new File.fromUri(uri));
         subtest.multitestExpectations = outcomes[name];
         await subtest.file.writeAsString(lines.join(""));
         yield subtest;

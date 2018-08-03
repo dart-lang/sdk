@@ -25,7 +25,7 @@ Element convertElement(engine.Element element) {
       name,
       Element.makeFlags(
           isPrivate: element.isPrivate,
-          isDeprecated: element.isDeprecated,
+          isDeprecated: element.hasDeprecated,
           isAbstract: _isAbstract(element),
           isConst: _isConst(element),
           isFinal: _isFinal(element),
@@ -129,12 +129,15 @@ String _getParametersString(engine.Element element) {
         element.parameters.isEmpty) {
       return null;
     }
-    parameters = element.parameters;
+    parameters = element.parameters.toList();
   } else if (element is engine.FunctionTypeAliasElement) {
-    parameters = element.parameters;
+    parameters = element.parameters.toList();
   } else {
     return null;
   }
+
+  parameters.sort(_preferRequiredParams);
+
   StringBuffer sb = new StringBuffer();
   String closeOptionalString = '';
   for (engine.ParameterElement parameter in parameters) {
@@ -142,15 +145,16 @@ String _getParametersString(engine.Element element) {
       sb.write(', ');
     }
     if (closeOptionalString.isEmpty) {
-      engine.ParameterKind kind = parameter.parameterKind;
-      if (kind == engine.ParameterKind.NAMED) {
+      if (parameter.isNamed) {
         sb.write('{');
         closeOptionalString = '}';
-      }
-      if (kind == engine.ParameterKind.POSITIONAL) {
+      } else if (parameter.isOptionalPositional) {
         sb.write('[');
         closeOptionalString = ']';
       }
+    }
+    if (parameter.hasRequired) {
+      sb.write('@required ');
     }
     parameter.appendToWithoutDelimiters(sb);
   }
@@ -213,4 +217,12 @@ bool _isStatic(engine.Element element) {
     return element.isStatic;
   }
   return false;
+}
+
+// Sort @required named parameters before optional ones.
+int _preferRequiredParams(
+    engine.ParameterElement e1, engine.ParameterElement e2) {
+  int rank1 = e1.hasRequired ? 0 : !e1.isNamed ? -1 : 1;
+  int rank2 = e2.hasRequired ? 0 : !e2.isNamed ? -1 : 1;
+  return rank1 - rank2;
 }

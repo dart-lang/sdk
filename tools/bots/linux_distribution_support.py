@@ -129,7 +129,8 @@ def SrcSteps(build_info):
          '--out_dir', builddir])
 
   with bot.BuildStep('Sanity check installation'):
-    if os.path.exists('/usr/bin/dart'):
+    if os.path.exists('/usr/bin/dart') or os.path.exists(
+        '/usr/lib/dart/bin/dart2js'):
       print "Dart already installed, removing"
       UninstallDart()
     TestInstallation(assume_installed=False)

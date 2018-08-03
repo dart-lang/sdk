@@ -4,25 +4,22 @@
 
 library dart_scanner.error_token;
 
-import '../../scanner/token.dart' show TokenType, TokenWithComment;
+import '../../scanner/token.dart' show BeginToken, SimpleToken, TokenType;
 
 import '../fasta_codes.dart'
     show
-        FastaCode,
-        codeAsciiControlCharacter,
-        codeEncoding,
-        codeExpectedHexDigit,
-        codeMissingExponent,
-        codeNonAsciiIdentifier,
-        codeNonAsciiWhitespace,
-        codeUnexpectedDollarInString,
-        codeUnmatchedToken,
-        codeUnterminatedComment,
-        codeUnterminatedString,
-        codeUnterminatedToken;
+        Code,
+        Message,
+        messageEncoding,
+        templateAsciiControlCharacter,
+        templateNonAsciiIdentifier,
+        templateNonAsciiWhitespace,
+        templateUnmatchedToken,
+        templateUnterminatedString;
 
-import '../scanner.dart'
-    show BeginGroupToken, Token, unicodeReplacementCharacter;
+import '../scanner.dart' show Token, unicodeReplacementCharacter;
+
+import '../scanner/recover.dart' show closeBraceFor, closeQuoteFor;
 
 ErrorToken buildUnexpectedCharacterToken(int character, int charOffset) {
   if (character < 0x1f) {
@@ -66,7 +63,7 @@ ErrorToken buildUnexpectedCharacterToken(int character, int charOffset) {
 ///
 /// It's considered an implementation error to access [lexeme] of an
 /// [ErrorToken].
-abstract class ErrorToken extends TokenWithComment {
+abstract class ErrorToken extends SimpleToken {
   ErrorToken(int offset) : super(TokenType.BAD_INPUT, offset, null);
 
   /// This is a token that wraps around an error message. Return 1
@@ -74,11 +71,11 @@ abstract class ErrorToken extends TokenWithComment {
   @override
   int get length => 1;
 
-  String get lexeme => throw assertionMessage;
+  String get lexeme => throw assertionMessage.message;
 
-  String get assertionMessage;
+  Message get assertionMessage;
 
-  FastaCode get errorCode;
+  Code get errorCode => assertionMessage.code;
 
   int get character => null;
 
@@ -86,7 +83,7 @@ abstract class ErrorToken extends TokenWithComment {
 
   int get endOffset => null;
 
-  BeginGroupToken get begin => null;
+  BeginToken get begin => null;
 
   @override
   Token copy() {
@@ -100,9 +97,7 @@ class EncodingErrorToken extends ErrorToken {
 
   String toString() => "EncodingErrorToken()";
 
-  String get assertionMessage => "Unable to decode bytes as UTF-8.";
-
-  FastaCode get errorCode => codeEncoding;
+  Message get assertionMessage => messageEncoding;
 }
 
 /// Represents a non-ASCII character outside a string or comment.
@@ -113,18 +108,8 @@ class NonAsciiIdentifierToken extends ErrorToken {
 
   String toString() => "NonAsciiIdentifierToken($character)";
 
-  String get assertionMessage {
-    String c = new String.fromCharCodes([character]);
-    String hex = character.toRadixString(16);
-    String padding = "0000".substring(hex.length);
-    hex = "$padding$hex";
-    return "The non-ASCII character '$c' (U+$hex) can't be used in identifiers,"
-        " only in strings and comments.\n"
-        "Try using an US-ASCII letter, a digit, '_' (an underscore),"
-        " or '\$' (a dollar sign).";
-  }
-
-  FastaCode get errorCode => codeNonAsciiIdentifier;
+  Message get assertionMessage => templateNonAsciiIdentifier.withArguments(
+      new String.fromCharCodes([character]), character);
 }
 
 /// Represents a non-ASCII whitespace outside a string or comment.
@@ -135,13 +120,8 @@ class NonAsciiWhitespaceToken extends ErrorToken {
 
   String toString() => "NonAsciiWhitespaceToken($character)";
 
-  String get assertionMessage {
-    String hex = character.toRadixString(16);
-    return "The non-ASCII space character U+$hex can only be used in strings "
-        "and comments.";
-  }
-
-  FastaCode get errorCode => codeNonAsciiWhitespace;
+  Message get assertionMessage =>
+      templateNonAsciiWhitespace.withArguments(character);
 }
 
 /// Represents an ASCII control character outside a string or comment.
@@ -153,57 +133,37 @@ class AsciiControlCharacterToken extends ErrorToken {
 
   String toString() => "AsciiControlCharacterToken($character)";
 
-  String get assertionMessage {
-    String hex = character.toRadixString(16);
-    return "The control character U+$hex can only be used in strings and "
-        "comments.";
-  }
-
-  FastaCode get errorCode => codeAsciiControlCharacter;
+  Message get assertionMessage =>
+      templateAsciiControlCharacter.withArguments(character);
 }
 
 /// Represents an unterminated string.
-class UnterminatedToken extends ErrorToken {
+class UnterminatedString extends ErrorToken {
   final String start;
   final int endOffset;
 
-  UnterminatedToken(this.start, int charOffset, this.endOffset)
+  UnterminatedString(this.start, int charOffset, this.endOffset)
       : super(charOffset);
 
-  String toString() => "UnterminatedToken($start)";
-
-  String get assertionMessage => "'$start' isn't terminated.";
+  String toString() => "UnterminatedString($start)";
 
   int get charCount => endOffset - charOffset;
 
-  FastaCode get errorCode {
-    switch (start) {
-      case '1e':
-        return codeMissingExponent;
+  Message get assertionMessage => templateUnterminatedString.withArguments(
+      start, closeQuoteFor(start));
+}
 
-      case '"':
-      case "'":
-      case '"""':
-      case "'''":
-      case 'r"':
-      case "r'":
-      case 'r"""':
-      case "r'''":
-        return codeUnterminatedString;
+/// Represents an unterminated token.
+class UnterminatedToken extends ErrorToken {
+  final Message assertionMessage;
+  final int endOffset;
 
-      case '0x':
-        return codeExpectedHexDigit;
+  UnterminatedToken(this.assertionMessage, int charOffset, this.endOffset)
+      : super(charOffset);
 
-      case r'$':
-        return codeUnexpectedDollarInString;
+  String toString() => "UnterminatedToken(${assertionMessage.code.name})";
 
-      case '/*':
-        return codeUnterminatedComment;
-
-      default:
-        return codeUnterminatedToken;
-    }
-  }
+  int get charCount => endOffset - charOffset;
 }
 
 /// Represents an open brace without a matching close brace.
@@ -211,15 +171,14 @@ class UnterminatedToken extends ErrorToken {
 /// In this case, brace means any of `(`, `{`, `[`, and `<`, parenthesis, curly
 /// brace, square brace, and angle brace, respectively.
 class UnmatchedToken extends ErrorToken {
-  final BeginGroupToken begin;
+  final BeginToken begin;
 
-  UnmatchedToken(BeginGroupToken begin)
+  UnmatchedToken(BeginToken begin)
       : this.begin = begin,
         super(begin.charOffset);
 
   String toString() => "UnmatchedToken(${begin.lexeme})";
 
-  String get assertionMessage => "'$begin' isn't closed.";
-
-  FastaCode get errorCode => codeUnmatchedToken;
+  Message get assertionMessage => templateUnmatchedToken.withArguments(
+      closeBraceFor(begin.lexeme), begin);
 }

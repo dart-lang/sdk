@@ -132,10 +132,10 @@ checkTypeError(o) {
     print(o);
   } on TypeError catch (e) {
     print(e); // This might provoke an error.
-    if (assertionsEnabled) return; // Expected type error.
+    if (typeAssertionsEnabled) return; // Expected type error.
     rethrow; // Rethrow unexpected type error.
   }
-  if (assertionsEnabled) {
+  if (typeAssertionsEnabled) {
     throw 'expected TypeError';
   }
 }
@@ -145,7 +145,7 @@ checkAssert(o) {
     assert(o);
   } on TypeError catch (e) {
     print(e); // This might provoke an error.
-    if (!assertionsEnabled) rethrow; // Unexpected error.
+    if (!assertStatementsEnabled) rethrow; // Unexpected error.
   }
 }
 
@@ -162,11 +162,7 @@ checkCastError(o) {
   throw 'expected CastError';
 }
 
-bool assertionsEnabled = false;
-
 main() {
-  assert(assertionsEnabled = true);
-
   checkTypeError(new IntTypeError());
   checkTypeError(new StringTypeError());
   checkTypeError(new DoubleTypeError());

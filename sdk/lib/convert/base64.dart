@@ -13,11 +13,11 @@ part of dart.convert;
  *
  * Examples:
  *
- *     var encoded = BASE64.encode([0x62, 0x6c, 0xc3, 0xa5, 0x62, 0xc3, 0xa6,
+ *     var encoded = base64.encode([0x62, 0x6c, 0xc3, 0xa5, 0x62, 0xc3, 0xa6,
  *                                  0x72, 0x67, 0x72, 0xc3, 0xb8, 0x64]);
- *     var decoded = BASE64.decode("YmzDpWLDpnJncsO4ZAo=");
+ *     var decoded = base64.decode("YmzDpWLDpnJncsO4ZAo=");
  */
-const Base64Codec BASE64 = const Base64Codec();
+const Base64Codec base64 = const Base64Codec();
 
 /**
  * A [base64url](https://tools.ietf.org/html/rfc4648) encoder and decoder.
@@ -28,11 +28,32 @@ const Base64Codec BASE64 = const Base64Codec();
  *
  * Examples:
  *
- *     var encoded = BASE64URL.encode([0x62, 0x6c, 0xc3, 0xa5, 0x62, 0xc3, 0xa6,
+ *     var encoded = base64Url.encode([0x62, 0x6c, 0xc3, 0xa5, 0x62, 0xc3, 0xa6,
  *                                     0x72, 0x67, 0x72, 0xc3, 0xb8, 0x64]);
- *     var decoded = BASE64URL.decode("YmzDpWLDpnJncsO4ZAo=");
+ *     var decoded = base64Url.decode("YmzDpWLDpnJncsO4ZAo=");
  */
-const Base64Codec BASE64URL = const Base64Codec.urlSafe();
+const Base64Codec base64Url = const Base64Codec.urlSafe();
+
+/**
+ * Encodes [bytes] using [base64](https://tools.ietf.org/html/rfc4648) encoding.
+ *
+ * Shorthand for [base64.encode].
+ */
+String base64Encode(List<int> bytes) => base64.encode(bytes);
+
+/**
+ * Encodes [bytes] using [base64url](https://tools.ietf.org/html/rfc4648) encoding.
+ *
+ * Shorthand for [base64url.encode].
+ */
+String base64UrlEncode(List<int> bytes) => base64Url.encode(bytes);
+
+/**
+ * Decodes [base64](https://tools.ietf.org/html/rfc4648) or [base64url](https://tools.ietf.org/html/rfc4648) encoded bytes.
+ *
+ * Shorthand for [base64.decode].
+ */
+Uint8List base64Decode(String source) => base64.decode(source);
 
 // Constants used in more than one class.
 const int _paddingChar = 0x3d; // '='.
@@ -57,6 +78,17 @@ class Base64Codec extends Codec<List<int>, String> {
   Base64Encoder get encoder => _encoder;
 
   Base64Decoder get decoder => const Base64Decoder();
+
+  /**
+   * Decodes [encoded].
+   *
+   * The input is decoded as if by `decoder.convert`.
+   *
+   * The returned [Uint8List] contains exactly the decoded bytes,
+   * so the [Uint8List.length] is precisely the number of decoded bytes.
+   * The [Uint8List.buffer] may be larger than the decoded bytes.
+   */
+  Uint8List decode(String encoded) => decoder.convert(encoded);
 
   /**
    * Validates and normalizes the base64 encoded data in [source].
@@ -172,7 +204,7 @@ class Base64Codec extends Codec<List<int>, String> {
     return source;
   }
 
-  static int _checkPadding(String source, int sourceIndex, int sourceEnd,
+  static void _checkPadding(String source, int sourceIndex, int sourceEnd,
       int firstPadding, int paddingCount, int length) {
     if (length % 4 != 0) {
       throw new FormatException(
@@ -235,7 +267,7 @@ class _Base64Encoder {
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
   /** The RFC 4648 base64url encoding alphabet. */
-  static const String _base64urlAlphabet =
+  static const String _base64UrlAlphabet =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
   /** Shift-count to extract the values stored in [_state]. */
@@ -259,7 +291,7 @@ class _Base64Encoder {
   final String _alphabet;
 
   _Base64Encoder(bool urlSafe)
-      : _alphabet = urlSafe ? _base64urlAlphabet : _base64Alphabet;
+      : _alphabet = urlSafe ? _base64UrlAlphabet : _base64Alphabet;
 
   /** Encode count and bits into a value to be stored in [_state]. */
   static int _encodeState(int count, int bits) {
@@ -396,7 +428,7 @@ class _BufferCachingBase64Encoder extends _Base64Encoder {
     if (bufferCache == null || bufferCache.length < bufferLength) {
       bufferCache = new Uint8List(bufferLength);
     }
-    // Return a view of the buffer, so it has the reuested length.
+    // Return a view of the buffer, so it has the requested length.
     return new Uint8List.view(bufferCache.buffer, 0, bufferLength);
   }
 }
@@ -467,7 +499,17 @@ class _Utf8Base64EncoderSink extends _Base64EncoderSink {
 class Base64Decoder extends Converter<String, List<int>> {
   const Base64Decoder();
 
-  List<int> convert(String input, [int start = 0, int end]) {
+  /**
+   * Decodes the characters of [input] from [start] to [end] as base64.
+   *
+   * If [start] is omitted, it defaults to the start of [input].
+   * If [end] is omitted, it defaults to the end of [input].
+   *
+   * The returned [Uint8List] contains exactly the decoded bytes,
+   * so the [Uint8List.length] is precisely the number of decoded bytes.
+   * The [Uint8List.buffer] may be larger than the decoded bytes.
+   */
+  Uint8List convert(String input, [int start = 0, int end]) {
     end = RangeError.checkValidRange(start, end, input.length);
     if (start == end) return new Uint8List(0);
     var decoder = new _Base64Decoder();
@@ -542,7 +584,7 @@ class _Base64Decoder {
    * contains six bits per seen character.
    *
    * If padding has been seen the value is negative. It's the bitwise negation
-   * of the number of remanining allowed padding characters (always ~0 or ~1).
+   * of the number of remaining allowed padding characters (always ~0 or ~1).
    *
    * A state of `0` or `~0` are valid places to end decoding, all other values
    * mean that a four-character block has not been completed.

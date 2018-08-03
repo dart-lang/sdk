@@ -5,7 +5,7 @@
 import '../constant_system_dart.dart';
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 import 'nodes.dart';
 import 'optimize.dart';
 
@@ -16,11 +16,11 @@ class ValueRangeInfo {
   IntValue intOne;
 
   ValueRangeInfo(this.constantSystem) {
-    intZero = newIntValue(0);
-    intOne = newIntValue(1);
+    intZero = newIntValue(BigInt.zero);
+    intOne = newIntValue(BigInt.one);
   }
 
-  Value newIntValue(int value) {
+  Value newIntValue(BigInt value) {
     return new IntValue(value, this);
   }
 
@@ -128,52 +128,53 @@ class MarkerValue extends Value {
  * An [IntValue] contains a constant integer value.
  */
 class IntValue extends Value {
-  final int value;
+  final BigInt value;
 
   const IntValue(this.value, info) : super(info);
 
-  Value operator +(other) {
+  Value operator +(dynamic other) {
     if (other.isZero) return this;
     if (other is! IntValue) return other + this;
     ConstantSystem constantSystem = info.constantSystem;
-    var constant = constantSystem.add.fold(
+    dynamic constant = constantSystem.add.fold(
         constantSystem.createInt(value), constantSystem.createInt(other.value));
     if (!constant.isInt) return const UnknownValue();
-    return info.newIntValue(constant.primitiveValue);
+    return info.newIntValue(constant.intValue);
   }
 
-  Value operator -(other) {
+  Value operator -(dynamic other) {
     if (other.isZero) return this;
     if (other is! IntValue) return -other + this;
     ConstantSystem constantSystem = info.constantSystem;
-    var constant = constantSystem.subtract.fold(
+    dynamic constant = constantSystem.subtract.fold(
         constantSystem.createInt(value), constantSystem.createInt(other.value));
     if (!constant.isInt) return const UnknownValue();
-    return info.newIntValue(constant.primitiveValue);
+    return info.newIntValue(constant.intValue);
   }
 
   Value operator -() {
     if (isZero) return this;
     ConstantSystem constantSystem = info.constantSystem;
-    var constant = constantSystem.negate.fold(constantSystem.createInt(value));
+    dynamic constant =
+        constantSystem.negate.fold(constantSystem.createInt(value));
     if (!constant.isInt) return const UnknownValue();
-    return info.newIntValue(constant.primitiveValue);
+    return info.newIntValue(constant.intValue);
   }
 
-  Value operator &(other) {
+  Value operator &(dynamic other) {
     if (other is! IntValue) return const UnknownValue();
     ConstantSystem constantSystem = info.constantSystem;
-    var constant = constantSystem.bitAnd.fold(
+    dynamic constant = constantSystem.bitAnd.fold(
         constantSystem.createInt(value), constantSystem.createInt(other.value));
-    return info.newIntValue(constant.primitiveValue);
+    return info.newIntValue(constant.intValue);
   }
 
-  Value min(other) {
+  Value min(dynamic other) {
     if (other is! IntValue) return other.min(this);
     return this.value < other.value ? this : other;
   }
 
-  Value max(other) {
+  Value max(dynamic other) {
     if (other is! IntValue) return other.max(this);
     return this.value < other.value ? other : this;
   }
@@ -186,9 +187,9 @@ class IntValue extends Value {
   int get hashCode => throw new UnsupportedError('IntValue.hashCode');
 
   String toString() => 'IntValue $value';
-  bool get isNegative => value < 0;
-  bool get isPositive => value >= 0;
-  bool get isZero => value == 0;
+  bool get isNegative => value < BigInt.zero;
+  bool get isPositive => value >= BigInt.zero;
+  bool get isZero => value == BigInt.zero;
 }
 
 /**
@@ -599,13 +600,13 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
    */
   final Map<HInstruction, Range> ranges = new Map<HInstruction, Range>();
 
-  final ClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
   final ValueRangeInfo info;
   final SsaOptimizerTask optimizer;
 
   HGraph graph;
 
-  SsaValueRangeAnalyzer(ClosedWorld closedWorld, this.optimizer)
+  SsaValueRangeAnalyzer(JClosedWorld closedWorld, this.optimizer)
       : info = new ValueRangeInfo(closedWorld.constantSystem),
         this.closedWorld = closedWorld;
 
@@ -632,7 +633,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   void visitBasicBlock(HBasicBlock block) {
     void visit(HInstruction instruction) {
       Range range = instruction.accept(this);
-      if (instruction.isInteger(closedWorld)) {
+      if (instruction.isInteger(closedWorld.abstractValueDomain)) {
         assert(range != null);
         ranges[instruction] = range;
       }
@@ -643,10 +644,10 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   }
 
   Range visitInstruction(HInstruction instruction) {
-    if (instruction.isPositiveInteger(closedWorld)) {
+    if (instruction.isPositiveInteger(closedWorld.abstractValueDomain)) {
       return info.newNormalizedRange(
           info.intZero, info.newPositiveValue(instruction));
-    } else if (instruction.isInteger(closedWorld)) {
+    } else if (instruction.isInteger(closedWorld.abstractValueDomain)) {
       InstructionValue value = info.newInstructionValue(instruction);
       return info.newNormalizedRange(value, value);
     } else {
@@ -655,12 +656,13 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   }
 
   Range visitPhi(HPhi phi) {
-    if (!phi.isInteger(closedWorld)) return info.newUnboundRange();
+    if (!phi.isInteger(closedWorld.abstractValueDomain))
+      return info.newUnboundRange();
     // Some phases may replace instructions that change the inputs of
     // this phi. Only the [SsaTypesPropagation] phase will update the
     // phi type. Play it safe by assuming the [SsaTypesPropagation]
     // phase is not necessarily run before the [ValueRangeAnalyzer].
-    if (phi.inputs.any((i) => !i.isInteger(closedWorld))) {
+    if (phi.inputs.any((i) => !i.isInteger(closedWorld.abstractValueDomain))) {
       return info.newUnboundRange();
     }
     if (phi.block.isLoopHeader()) {
@@ -678,10 +680,13 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   }
 
   Range visitConstant(HConstant hConstant) {
-    if (!hConstant.isInteger(closedWorld)) return info.newUnboundRange();
+    if (!hConstant.isInteger(closedWorld.abstractValueDomain))
+      return info.newUnboundRange();
     ConstantValue constant = hConstant.constant;
     NumConstantValue constantNum;
     if (constant is DeferredConstantValue) {
+      constantNum = constant.referenced;
+    } else if (constant is DeferredGlobalConstantValue) {
       constantNum = constant.referenced;
     } else {
       constantNum = constant;
@@ -689,8 +694,14 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     if (constantNum.isPositiveInfinity || constantNum.isNegativeInfinity) {
       return info.newUnboundRange();
     }
-    if (constantNum.isMinusZero) constantNum = new IntConstantValue(0);
-    Value value = info.newIntValue(constantNum.primitiveValue);
+    if (constantNum.isMinusZero) {
+      constantNum = new IntConstantValue(BigInt.zero);
+    }
+
+    BigInt intValue = constantNum is IntConstantValue
+        ? constantNum.intValue
+        : new BigInt.from(constantNum.doubleValue.toInt());
+    Value value = info.newIntValue(intValue);
     return info.newNormalizedRange(value, value);
   }
 
@@ -714,7 +725,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     Range lengthRange = ranges[check.length];
     if (indexRange == null) {
       indexRange = info.newUnboundRange();
-      assert(!check.index.isInteger(closedWorld));
+      assert(!check.index.isInteger(closedWorld.abstractValueDomain));
     }
     if (lengthRange == null) {
       // We might have lost the length range due to a type conversion that
@@ -722,7 +733,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
       // get to this point anyway, so no need to try and refine ranges.
       return indexRange;
     }
-    assert(check.length.isInteger(closedWorld));
+    assert(check.length.isInteger(closedWorld.abstractValueDomain));
 
     // Check if the index is strictly below the upper bound of the length
     // range.
@@ -775,8 +786,10 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   Range visitRelational(HRelational relational) {
     HInstruction right = relational.right;
     HInstruction left = relational.left;
-    if (!left.isInteger(closedWorld)) return info.newUnboundRange();
-    if (!right.isInteger(closedWorld)) return info.newUnboundRange();
+    if (!left.isInteger(closedWorld.abstractValueDomain))
+      return info.newUnboundRange();
+    if (!right.isInteger(closedWorld.abstractValueDomain))
+      return info.newUnboundRange();
     BinaryOperation operation = relational.operation(constantSystem);
     Range rightRange = ranges[relational.right];
     Range leftRange = ranges[relational.left];
@@ -811,7 +824,8 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     if (divisor != null) {
       // For Integer values we can be precise in the upper bound, so special
       // case those.
-      if (left.isInteger(closedWorld) && right.isInteger(closedWorld)) {
+      if (left.isInteger(closedWorld.abstractValueDomain) &&
+          right.isInteger(closedWorld.abstractValueDomain)) {
         if (divisor.isPositive) {
           return info.newNormalizedRange(
               info.intZero, divisor.upper - info.intOne);
@@ -819,7 +833,8 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
           return info.newNormalizedRange(
               info.intZero, info.newNegateValue(divisor.lower) - info.intOne);
         }
-      } else if (left.isNumber(closedWorld) && right.isNumber(closedWorld)) {
+      } else if (left.isNumber(closedWorld.abstractValueDomain) &&
+          right.isNumber(closedWorld.abstractValueDomain)) {
         if (divisor.isPositive) {
           return info.newNormalizedRange(info.intZero, divisor.upper);
         } else if (divisor.isNegative) {
@@ -837,16 +852,18 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     Range dividend = ranges[left];
     // If both operands are >=0, the result is >= 0 and bounded by the divisor.
     if ((dividend != null && dividend.isPositive) ||
-        left.isPositiveInteger(closedWorld)) {
+        left.isPositiveInteger(closedWorld.abstractValueDomain)) {
       Range divisor = ranges[right];
       if (divisor != null) {
         if (divisor.isPositive) {
           // For Integer values we can be precise in the upper bound.
-          if (left.isInteger(closedWorld) && right.isInteger(closedWorld)) {
+          if (left.isInteger(closedWorld.abstractValueDomain) &&
+              right.isInteger(closedWorld.abstractValueDomain)) {
             return info.newNormalizedRange(
                 info.intZero, divisor.upper - info.intOne);
           }
-          if (left.isNumber(closedWorld) && right.isNumber(closedWorld)) {
+          if (left.isNumber(closedWorld.abstractValueDomain) &&
+              right.isNumber(closedWorld.abstractValueDomain)) {
             return info.newNormalizedRange(info.intZero, divisor.upper);
           }
         }
@@ -862,7 +879,9 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   }
 
   Range handleBinaryOperation(HBinaryArithmetic instruction) {
-    if (!instruction.isInteger(closedWorld)) return info.newUnboundRange();
+    if (!instruction.isInteger(closedWorld.abstractValueDomain)) {
+      return info.newUnboundRange();
+    }
     return instruction
         .operation(constantSystem)
         .apply(ranges[instruction.left], ranges[instruction.right]);
@@ -877,10 +896,13 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   }
 
   Range visitBitAnd(HBitAnd node) {
-    if (!node.isInteger(closedWorld)) return info.newUnboundRange();
+    if (!node.isInteger(closedWorld.abstractValueDomain)) {
+      return info.newUnboundRange();
+    }
     HInstruction right = node.right;
     HInstruction left = node.left;
-    if (left.isInteger(closedWorld) && right.isInteger(closedWorld)) {
+    if (left.isInteger(closedWorld.abstractValueDomain) &&
+        right.isInteger(closedWorld.abstractValueDomain)) {
       return ranges[left] & ranges[right];
     }
 
@@ -894,9 +916,9 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
       return info.newUnboundRange();
     }
 
-    if (left.isInteger(closedWorld)) {
+    if (left.isInteger(closedWorld.abstractValueDomain)) {
       return tryComputeRange(left);
-    } else if (right.isInteger(closedWorld)) {
+    } else if (right.isInteger(closedWorld.abstractValueDomain)) {
       return tryComputeRange(right);
     }
     return info.newUnboundRange();
@@ -911,8 +933,8 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction createRangeConversion(
       HInstruction cursor, HInstruction instruction) {
-    HRangeConversion newInstruction =
-        new HRangeConversion(instruction, closedWorld.commonMasks.intType);
+    HRangeConversion newInstruction = new HRangeConversion(
+        instruction, closedWorld.abstractValueDomain.intType);
     conversions.add(newInstruction);
     cursor.block.addBefore(cursor, newInstruction);
     // Update the users of the instruction dominated by [cursor] to
@@ -969,14 +991,18 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   }
 
   Range visitConditionalBranch(HConditionalBranch branch) {
-    var condition = branch.condition;
+    dynamic condition = branch.condition;
     // TODO(ngeoffray): Handle complex conditions.
     if (condition is! HRelational) return info.newUnboundRange();
     if (condition is HIdentity) return info.newUnboundRange();
     HInstruction right = condition.right;
     HInstruction left = condition.left;
-    if (!left.isInteger(closedWorld)) return info.newUnboundRange();
-    if (!right.isInteger(closedWorld)) return info.newUnboundRange();
+    if (!left.isInteger(closedWorld.abstractValueDomain)) {
+      return info.newUnboundRange();
+    }
+    if (!right.isInteger(closedWorld.abstractValueDomain)) {
+      return info.newUnboundRange();
+    }
 
     Range rightRange = ranges[right];
     Range leftRange = ranges[left];
@@ -1038,7 +1064,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
  * Tries to find a range for the update instruction of a loop phi.
  */
 class LoopUpdateRecognizer extends HBaseVisitor {
-  final ClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
   final Map<HInstruction, Range> ranges;
   final ValueRangeInfo info;
   LoopUpdateRecognizer(this.closedWorld, this.ranges, this.info);
@@ -1066,7 +1092,7 @@ class LoopUpdateRecognizer extends HBaseVisitor {
   }
 
   Range visit(HInstruction instruction) {
-    if (!instruction.isInteger(closedWorld)) return null;
+    if (!instruction.isInteger(closedWorld.abstractValueDomain)) return null;
     if (ranges[instruction] != null) return ranges[instruction];
     return instruction.accept(this);
   }

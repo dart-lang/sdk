@@ -7,6 +7,8 @@
 
 #include "vm/allocation.h"
 #include "vm/growable_array.h"
+#include "vm/object.h"
+#include "vm/raw_object.h"
 
 namespace dart {
 
@@ -34,9 +36,11 @@ class ArgumentsDescriptor : public ValueObject {
   explicit ArgumentsDescriptor(const Array& array);
 
   // Accessors.
-  intptr_t TypeArgsLen() const;
-  intptr_t Count() const;
-  intptr_t PositionalCount() const;
+  intptr_t TypeArgsLen() const;  // 0 if no type argument vector is passed.
+  intptr_t FirstArgIndex() const { return TypeArgsLen() > 0 ? 1 : 0; }
+  intptr_t CountWithTypeArgs() const { return FirstArgIndex() + Count(); }
+  intptr_t Count() const;            // Excluding type arguments vector.
+  intptr_t PositionalCount() const;  // Excluding type arguments vector.
   intptr_t NamedCount() const { return Count() - PositionalCount(); }
   RawString* NameAt(intptr_t i) const;
   intptr_t PositionAt(intptr_t i) const;
@@ -72,29 +76,36 @@ class ArgumentsDescriptor : public ValueObject {
   enum { kCachedDescriptorCount = 32 };
 
  private:
-  // Absolute indexes into the array.
+  // Absolute indices into the array.
   // Keep these in sync with the constants in invocation_mirror_patch.dart.
   enum {
     kTypeArgsLenIndex,
     kCountIndex,
+
     kPositionalCountIndex,
     kFirstNamedEntryIndex,
   };
 
+ private:
   // Relative indexes into each named argument entry.
   enum {
     kNameOffset,
+    // The least significant bit of the entry in 'kPositionOffset' (second
+    // least-significant after Smi-encoding) holds the strong-mode checking bit
+    // for the named argument.
     kPositionOffset,
     kNamedEntrySize,
   };
 
+ public:
   static intptr_t LengthFor(intptr_t num_named_arguments) {
     // Add 1 for the terminating null.
     return kFirstNamedEntryIndex + (kNamedEntrySize * num_named_arguments) + 1;
   }
 
-  static RawArray* NewNonCached(intptr_t num_arguments,
-                                bool canonicalize = true);
+  static RawArray* NewNonCached(intptr_t type_args_len,
+                                intptr_t num_arguments,
+                                bool canonicalize);
 
   // Used by Simulator to parse argument descriptors.
   static intptr_t name_index(intptr_t index) {
@@ -114,10 +125,12 @@ class ArgumentsDescriptor : public ValueObject {
   friend class SnapshotWriter;
   friend class Serializer;
   friend class Deserializer;
+  friend class Interpreter;
+  friend class InterpreterHelpers;
   friend class Simulator;
+  friend class SimulatorHelpers;
   DISALLOW_COPY_AND_ASSIGN(ArgumentsDescriptor);
 };
-
 
 // DartEntry abstracts functionality needed to resolve dart functions
 // and invoke them from C++.
@@ -143,7 +156,7 @@ class DartEntry : public AllStatic {
       const Function& function,
       const Array& arguments,
       const Array& arguments_descriptor,
-      uword current_sp = Thread::GetCurrentStackPointer());
+      uword current_sp = OSThread::GetCurrentStackPointer());
 
   // Invokes the closure object given as the first argument.
   // On success, returns a RawInstance.  On failure, a RawError.
@@ -164,7 +177,6 @@ class DartEntry : public AllStatic {
                                        const Array& arguments_descriptor);
 };
 
-
 // Utility functions to call from VM into Dart bootstrap libraries.
 // Each may return an exception object.
 class DartLibraryCalls : public AllStatic {
@@ -184,6 +196,9 @@ class DartLibraryCalls : public AllStatic {
   // On success, returns a RawInstance.  On failure, a RawError.
   static RawObject* Equals(const Instance& left, const Instance& right);
 
+  // On success, returns a RawInstance.  On failure, a RawError.
+  static RawObject* IdentityHashCode(const Instance& object);
+
   // Returns the handler if one has been registered for this port id.
   static RawObject* LookupHandler(Dart_Port port_id);
 
@@ -193,6 +208,11 @@ class DartLibraryCalls : public AllStatic {
 
   // Returns null on success, a RawError on failure.
   static RawObject* DrainMicrotaskQueue();
+
+  // Ensures that the isolate's _pendingImmediateCallback is set to
+  // _startMicrotaskLoop from dart:async.
+  // Returns null on success, a RawError on failure.
+  static RawObject* EnsureScheduleImmediate();
 
   // map[key] = value;
   //

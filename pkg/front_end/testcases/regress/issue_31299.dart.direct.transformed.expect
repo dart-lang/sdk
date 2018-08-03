@@ -1,0 +1,22 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int m;
+  constructor •() → void
+    : self::A::m = 1, super core::Object::•()
+    ;
+  constructor foo() → void
+    : self::A::m = 2, super core::Object::•()
+    ;
+  method foo(core::int a, core::int b) → core::int
+    return a.+(b.*(this.{self::A::m}));
+}
+static method test() → dynamic {
+  new self::A::•().foo();
+  new self::A::•().foo(1, 2);
+  new self::A::foo();
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#foo, 32, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[1, 2]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+}
+static method main() → dynamic {}

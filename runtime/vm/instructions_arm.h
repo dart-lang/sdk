@@ -42,11 +42,14 @@ class InstructionPattern : public AllStatic {
   // address of the first instruction in the sequence.  Returns the register
   // being loaded and the index in the pool being read from in the output
   // parameters 'reg' and 'index' respectively.
+  // IMPORANT: When generating code loading values from pool on ARM use
+  // LoadWordFromPool macro instruction instead of emitting direct load.
+  // The macro instruction takes care of pool offsets that can't be
+  // encoded as immediates.
   static uword DecodeLoadWordFromPool(uword end,
                                       Register* reg,
                                       intptr_t* index);
 };
-
 
 class CallPattern : public ValueObject {
  public:
@@ -69,7 +72,6 @@ class CallPattern : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(CallPattern);
 };
 
-
 class NativeCallPattern : public ValueObject {
  public:
   NativeCallPattern(uword pc, const Code& code);
@@ -89,7 +91,6 @@ class NativeCallPattern : public ValueObject {
 
   DISALLOW_COPY_AND_ASSIGN(NativeCallPattern);
 };
-
 
 // Instance call that can switch between a direct monomorphic call, an IC call,
 // and a megamorphic call.
@@ -112,7 +113,6 @@ class SwitchableCallPattern : public ValueObject {
 
   DISALLOW_COPY_AND_ASSIGN(SwitchableCallPattern);
 };
-
 
 class ReturnPattern : public ValueObject {
  public:

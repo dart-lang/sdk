@@ -19,13 +19,18 @@ class DirectiveOrganizer {
   final List<AnalysisError> errors;
   final bool removeUnresolved;
   final bool removeUnused;
+
   String code;
   String endOfLine;
+  bool hasUnresolvedIdentifierError;
 
   DirectiveOrganizer(this.initialCode, this.unit, this.errors,
       {this.removeUnresolved: true, this.removeUnused: true}) {
     this.code = initialCode;
     this.endOfLine = getEOL(code);
+    this.hasUnresolvedIdentifierError = errors.any((error) {
+      return error.errorCode.isUnresolvedIdentifier;
+    });
   }
 
   /**
@@ -68,7 +73,7 @@ class DirectiveOrganizer {
   }
 
   /**
-   * Oraganize all [Directive]s.
+   * Organize all [Directive]s.
    */
   void _organizeDirectives() {
     List<_DirectiveInfo> directives = [];
@@ -99,11 +104,14 @@ class DirectiveOrganizer {
       StringBuffer sb = new StringBuffer();
       _DirectivePriority currentPriority = null;
       for (_DirectiveInfo directiveInfo in directives) {
-        if (removeUnresolved && _isUnresolvedUri(directiveInfo.directive)) {
-          continue;
-        }
-        if (removeUnused && _isUnusedImport(directiveInfo.directive)) {
-          continue;
+        if (!hasUnresolvedIdentifierError) {
+          UriBasedDirective directive = directiveInfo.directive;
+          if (removeUnresolved && _isUnresolvedUri(directive)) {
+            continue;
+          }
+          if (removeUnused && _isUnusedImport(directive)) {
+            continue;
+          }
         }
         if (currentPriority != directiveInfo.priority) {
           if (sb.length != 0) {

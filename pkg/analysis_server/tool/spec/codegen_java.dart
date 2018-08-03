@@ -19,7 +19,7 @@ import 'to_html.dart';
  */
 GeneratedFile javaGeneratedFile(
     String path, CodegenJavaVisitor createVisitor(Api api)) {
-  return new GeneratedFile(path, (String pkgPath) {
+  return new GeneratedFile(path, (String pkgPath) async {
     CodegenJavaVisitor visitor = createVisitor(readApi(pkgPath));
     return visitor.collectCode(visitor.visitApi);
   });

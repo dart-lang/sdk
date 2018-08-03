@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "platform/assert.h"
-#include "vm/unit_test.h"
 #include "vm/virtual_memory.h"
+#include "platform/assert.h"
+#include "vm/heap/heap.h"
+#include "vm/unit_test.h"
 
 namespace dart {
 
@@ -17,10 +18,10 @@ bool IsZero(char* begin, char* end) {
   return true;
 }
 
-
 VM_UNIT_TEST_CASE(AllocateVirtualMemory) {
   const intptr_t kVirtualMemoryBlockSize = 64 * KB;
-  VirtualMemory* vm = VirtualMemory::Reserve(kVirtualMemoryBlockSize);
+  VirtualMemory* vm =
+      VirtualMemory::Allocate(kVirtualMemoryBlockSize, false, NULL);
   EXPECT(vm != NULL);
   EXPECT(vm->address() != NULL);
   EXPECT_EQ(kVirtualMemoryBlockSize, vm->size());
@@ -36,8 +37,6 @@ VM_UNIT_TEST_CASE(AllocateVirtualMemory) {
   EXPECT(!vm->Contains(0));
   EXPECT(!vm->Contains(static_cast<uword>(-1)));
 
-  vm->Commit(false);
-
   char* buf = reinterpret_cast<char*>(vm->address());
   EXPECT(IsZero(buf, buf + vm->size()));
   buf[0] = 'a';
@@ -51,60 +50,54 @@ VM_UNIT_TEST_CASE(AllocateVirtualMemory) {
   delete vm;
 }
 
+VM_UNIT_TEST_CASE(AllocateAlignedVirtualMemory) {
+  intptr_t kHeapPageSize = kPageSize;
+  intptr_t kVirtualPageSize = 4096;
+
+  intptr_t kIterations = kHeapPageSize / kVirtualPageSize;
+  for (intptr_t i = 0; i < kIterations; i++) {
+    VirtualMemory* vm = VirtualMemory::AllocateAligned(
+        kHeapPageSize, kHeapPageSize, false, NULL);
+    EXPECT(Utils::IsAligned(vm->start(), kHeapPageSize));
+    EXPECT_EQ(kHeapPageSize, vm->size());
+    delete vm;
+  }
+}
 
 VM_UNIT_TEST_CASE(FreeVirtualMemory) {
   // Reservations should always be handed back to OS upon destruction.
   const intptr_t kVirtualMemoryBlockSize = 10 * MB;
   const intptr_t kIterations = 900;  // Enough to exhaust 32-bit address space.
   for (intptr_t i = 0; i < kIterations; ++i) {
-    VirtualMemory* vm = VirtualMemory::Reserve(kVirtualMemoryBlockSize);
-    vm->Commit(false);
+    VirtualMemory* vm =
+        VirtualMemory::Allocate(kVirtualMemoryBlockSize, false, NULL);
     delete vm;
   }
   // Check that truncation does not introduce leaks.
   for (intptr_t i = 0; i < kIterations; ++i) {
-    VirtualMemory* vm = VirtualMemory::Reserve(kVirtualMemoryBlockSize);
-    vm->Commit(false);
+    VirtualMemory* vm =
+        VirtualMemory::Allocate(kVirtualMemoryBlockSize, false, NULL);
     vm->Truncate(kVirtualMemoryBlockSize / 2, true);
     delete vm;
   }
   for (intptr_t i = 0; i < kIterations; ++i) {
-    VirtualMemory* vm = VirtualMemory::Reserve(kVirtualMemoryBlockSize);
-    vm->Commit(true);
+    VirtualMemory* vm =
+        VirtualMemory::Allocate(kVirtualMemoryBlockSize, true, NULL);
     vm->Truncate(kVirtualMemoryBlockSize / 2, false);
     delete vm;
   }
   for (intptr_t i = 0; i < kIterations; ++i) {
-    VirtualMemory* vm = VirtualMemory::Reserve(kVirtualMemoryBlockSize);
-    vm->Commit(true);
+    VirtualMemory* vm =
+        VirtualMemory::Allocate(kVirtualMemoryBlockSize, true, NULL);
     vm->Truncate(0, true);
     delete vm;
   }
   for (intptr_t i = 0; i < kIterations; ++i) {
-    VirtualMemory* vm = VirtualMemory::Reserve(kVirtualMemoryBlockSize);
-    vm->Commit(false);
+    VirtualMemory* vm =
+        VirtualMemory::Allocate(kVirtualMemoryBlockSize, false, NULL);
     vm->Truncate(0, false);
     delete vm;
   }
-}
-
-
-VM_UNIT_TEST_CASE(VirtualMemoryCommitPartial) {
-  const intptr_t kVirtualMemoryBlockSize = 3 * MB;
-  VirtualMemory* vm = VirtualMemory::Reserve(kVirtualMemoryBlockSize);
-  EXPECT(vm != NULL);
-  // Commit only the middle MB and write to it.
-  const uword commit_start = vm->start() + (1 * MB);
-  const intptr_t kCommitSize = 1 * MB;
-  vm->Commit(commit_start, kCommitSize, false);
-  char* buf = reinterpret_cast<char*>(commit_start);
-  EXPECT(IsZero(buf, buf + kCommitSize));
-  buf[0] = 'f';
-  buf[1] = 'o';
-  buf[2] = 'o';
-  buf[3] = 0;
-  EXPECT_STREQ("foo", buf);
-  delete vm;
 }
 
 }  // namespace dart

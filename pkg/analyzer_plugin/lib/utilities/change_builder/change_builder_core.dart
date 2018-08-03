@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
-import 'package:meta/meta.dart';
 
 /**
  * A builder used to build a [SourceChange].
@@ -21,6 +20,12 @@ abstract class ChangeBuilder {
   factory ChangeBuilder() = ChangeBuilderImpl;
 
   /**
+   * Return the range of the selection for the change being built, or `null` if
+   * there is no selection.
+   */
+  SourceRange get selectionRange;
+
+  /**
    * Return the source change that was built. The source change will not be
    * complete until all of the futures returned by [addFileEdit] have completed.
    */
@@ -29,12 +34,10 @@ abstract class ChangeBuilder {
   /**
    * Use the [buildFileEdit] function to create a collection of edits to the
    * file with the given [path]. The edits will be added to the source change
-   * that is being built. The [timeStamp] is the time at which the file was last
-   * modified and is used by clients to ensure that it is safe to apply the
-   * edits.
+   * that is being built.
    */
   Future<Null> addFileEdit(
-      String path, int timeStamp, void buildFileEdit(FileEditBuilder builder));
+      String path, void buildFileEdit(FileEditBuilder builder));
 
   /**
    * Set the selection for the change being built to the given [position].
@@ -58,9 +61,24 @@ abstract class EditBuilder {
       String groupName, void buildLinkedEdit(LinkedEditBuilder builder));
 
   /**
-   * Set the selection to the given location within the edit being built.
+   * Add the given text as a linked edit group with the given [groupName]. If
+   * both a [kind] and a list of [suggestions] are provided, they will be added
+   * as suggestions to the group with the given kind.
+   *
+   * Throws an [ArgumentError] if either [kind] or [suggestions] are provided
+   * without the other.
    */
-  @experimental
+  void addSimpleLinkedEdit(String groupName, String text,
+      {LinkedEditSuggestionKind kind, List<String> suggestions});
+
+  /**
+   * Set the selection to cover all of the code written by the given [writer].
+   */
+  void selectAll(void writer());
+
+  /**
+   * Set the selection to the current location within the edit being built.
+   */
   void selectHere();
 
   /**

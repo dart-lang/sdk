@@ -40,11 +40,11 @@ class ErrorRefElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
   void render() {
-    children = [new PreElement()..text = error.message];
+    children = <Element>[new PreElement()..text = error.message];
   }
 }

@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_SCOPES_H_
 #define RUNTIME_VM_SCOPES_H_
 
+#include <limits>
+
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "vm/allocation.h"
@@ -16,27 +18,78 @@
 
 namespace dart {
 
+class CompileType;
 class LocalScope;
 
+// Indices of [LocalVariable]s are abstract and have little todo with the
+// actual frame layout!
+//
+// There are generally 4 different kinds of [LocalVariable]s:
+//
+//    a) [LocalVariable]s refering to a parameter: The indices for those
+//       variables are assigned by the flow graph builder. Parameter n gets
+//       assigned the index (function.num_parameters - n - 1). I.e. the last
+//       parameter has index 1.
+//
+//    b) [LocalVariable]s referring to actual variables in the body of a
+//       function (either from Dart code or specially injected ones. The
+//       indices of those variables are assigned by the scope builder
+//       from 0, -1, ... -(M-1) for M local variables.
+//
+//       -> These variables participate in full SSA renaming and can therefore
+//          be used with [StoreLocalInstr]s (in addition to [LoadLocal]s).
+//
+//    c) [LocalVariable]s referring to values on the expression stack. Those are
+//       assigned by the flow graph builder. The indices of those variables are
+//       assigned by the flow graph builder (it simulates the expression stack
+//       height), they go from -NumVariabables - ExpressionHeight.
+//
+//       -> These variables participate only partially in SSA renaming and can
+//          therefore only be used with [LoadLocalInstr]s and with
+//          [StoreLocalInstr]s **where no phis are necessary**.
+//
+//    b) [LocalVariable]s referring to captured variables.  Those are never
+//       loaded/stored directly. Their only purpose is to tell the flow graph
+//       builder how many parent links to follow and into which context index to
+//       store.  The indices of those variables are assigned by the scope
+//       builder and they refer to indices into context objects.
+class VariableIndex {
+ public:
+  static const int kInvalidIndex = std::numeric_limits<int>::min();
+
+  explicit VariableIndex(int value = kInvalidIndex) : value_(value) {}
+
+  int operator==(const VariableIndex& other) { return value_ == other.value_; }
+
+  bool IsValid() const { return value_ != kInvalidIndex; }
+
+  int value() const { return value_; }
+
+ private:
+  int value_;
+};
 
 class LocalVariable : public ZoneAllocated {
  public:
   LocalVariable(TokenPosition declaration_pos,
                 TokenPosition token_pos,
                 const String& name,
-                const AbstractType& type)
+                const AbstractType& type,
+                CompileType* parameter_type = NULL)
       : declaration_pos_(declaration_pos),
         token_pos_(token_pos),
         name_(name),
         owner_(NULL),
         type_(type),
+        parameter_type_(parameter_type),
         const_value_(NULL),
         is_final_(false),
         is_captured_(false),
         is_invisible_(false),
         is_captured_parameter_(false),
         is_forced_stack_(false),
-        index_(LocalVariable::kUninitializedIndex) {
+        type_check_mode_(kDoTypeCheck),
+        index_() {
     ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
     ASSERT(type.IsFinalized());
     ASSERT(name.IsSymbol());
@@ -53,6 +106,8 @@ class LocalVariable : public ZoneAllocated {
 
   const AbstractType& type() const { return type_; }
 
+  CompileType* parameter_type() const { return parameter_type_; }
+
   bool is_final() const { return is_final_; }
   void set_is_final() { is_final_ = true; }
 
@@ -66,15 +121,35 @@ class LocalVariable : public ZoneAllocated {
   bool is_forced_stack() const { return is_forced_stack_; }
   void set_is_forced_stack() { is_forced_stack_ = true; }
 
-  bool HasIndex() const { return index_ != kUninitializedIndex; }
-  int index() const {
+  enum TypeCheckMode {
+    kDoTypeCheck,
+    kSkipTypeCheck,
+    kTypeCheckedByCaller,
+  };
+
+  // Returns true if this local variable represents a parameter that needs type
+  // check when we enter the function.
+  bool needs_type_check() const {
+    return (type_check_mode_ == kDoTypeCheck) && !FLAG_omit_strong_type_checks;
+  }
+
+  // Returns true if this local variable represents a parameter which type is
+  // guaranteed by the caller.
+  bool was_type_checked_by_caller() const {
+    return type_check_mode_ == kTypeCheckedByCaller;
+  }
+
+  void set_type_check_mode(TypeCheckMode mode) { type_check_mode_ = mode; }
+
+  bool HasIndex() const { return index_.IsValid(); }
+  VariableIndex index() const {
     ASSERT(HasIndex());
     return index_;
   }
 
   // Assign an index to a local.
-  void set_index(int index) {
-    ASSERT(index != kUninitializedIndex);
+  void set_index(VariableIndex index) {
+    ASSERT(index.IsValid());
     index_ = index;
   }
 
@@ -101,12 +176,6 @@ class LocalVariable : public ZoneAllocated {
 
   bool Equals(const LocalVariable& other) const;
 
-  // Map the frame index to a bit-vector index.  Assumes the variable is
-  // allocated to the frame.
-  // var_count is the total number of stack-allocated variables including
-  // all parameters.
-  int BitIndexIn(intptr_t var_count) const;
-
  private:
   static const int kUninitializedIndex = INT_MIN;
 
@@ -117,6 +186,8 @@ class LocalVariable : public ZoneAllocated {
 
   const AbstractType& type_;  // Declaration type of local variable.
 
+  CompileType* const parameter_type_;  // NULL or incoming parameter type.
+
   const Instance* const_value_;  // NULL or compile-time const value.
 
   bool is_final_;     // If true, this variable is readonly.
@@ -125,13 +196,12 @@ class LocalVariable : public ZoneAllocated {
   bool is_invisible_;
   bool is_captured_parameter_;
   bool is_forced_stack_;
-  int index_;  // Allocation index in words relative to frame pointer (if not
-               // captured), or relative to the context pointer (if captured).
+  TypeCheckMode type_check_mode_;
+  VariableIndex index_;
 
   friend class LocalScope;
   DISALLOW_COPY_AND_ASSIGN(LocalVariable);
 };
-
 
 class NameReference : public ZoneAllocated {
  public:
@@ -147,7 +217,6 @@ class NameReference : public ZoneAllocated {
   TokenPosition token_pos_;
   const String& name_;
 };
-
 
 class SourceLabel : public ZoneAllocated {
  public:
@@ -198,7 +267,6 @@ class SourceLabel : public ZoneAllocated {
 
   DISALLOW_COPY_AND_ASSIGN(SourceLabel);
 };
-
 
 class LocalScope : public ZoneAllocated {
  public:
@@ -311,16 +379,19 @@ class LocalScope : public ZoneAllocated {
   // and not in its children (we do not yet handle register parameters).
   // Locals must be listed after parameters in top scope and in its children.
   // Two locals in different sibling scopes may share the same frame slot.
+  //
   // Return the index of the next available frame slot.
-  int AllocateVariables(int first_parameter_index,
-                        int num_parameters,
-                        int first_frame_index,
-                        LocalScope* context_owner,
-                        bool* found_captured_variables);
+  VariableIndex AllocateVariables(VariableIndex first_parameter_index,
+                                  int num_parameters,
+                                  VariableIndex first_local_index,
+                                  LocalScope* context_owner,
+                                  bool* found_captured_variables);
 
   // Creates variable info for the scope and all its nested scopes.
   // Must be called after AllocateVariables() has been called.
-  RawLocalVarDescriptors* GetVarDescriptors(const Function& func);
+  RawLocalVarDescriptors* GetVarDescriptors(
+      const Function& func,
+      ZoneGrowableArray<intptr_t>* context_level_array);
 
   // Create a ContextScope object describing all captured variables referenced
   // from this scope and belonging to outer scopes.

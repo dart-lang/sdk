@@ -1,0 +1,20 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class NullEquality extends core::Object {
+  synthetic constructor •() → void
+    ;
+  operator ==(core::Object other) → core::Null
+    ;
+}
+class SubNullEquality extends self::NullEquality {
+  synthetic constructor •() → void
+    ;
+  method test() → void
+    ;
+}
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

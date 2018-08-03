@@ -1,7 +1,0 @@
-library;
-import self as self;
-import "dart:core" as core;
-
-static method main() → dynamic {
-  throw core::_malformedTypeError("Cannot resolve 'Missing'.");
-}

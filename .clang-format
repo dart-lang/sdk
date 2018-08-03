@@ -2,9 +2,6 @@
 # http://clang.llvm.org/docs/ClangFormatStyleOptions.html
 BasedOnStyle: Chromium
 
-# Keep up to 2 blank lines. More blank lines are removed.
-MaxEmptyLinesToKeep: 2
-
 # clang-format doesn't seem to do a good job of this for longer comments.
 ReflowComments: 'false'
 

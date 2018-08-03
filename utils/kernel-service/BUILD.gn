@@ -2,16 +2,77 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("../../build/dart/dart_action.gni")
+import("../../build/dart/dart_host_sdk_toolchain.gni")
 import("../application_snapshot.gni")
 
+# TODO: Switch this to use kernel based app-jit snapshot
+# when we are ready to switch to the kernel based core snapshots.
 application_snapshot("kernel-service") {
-  dfe_script = "kernel-service.dart"
+  main_dart = "../../pkg/vm/bin/kernel_service.dart"
   deps = [
-    "../../runtime/vm:patched_sdk($host_toolchain)",
+    "../../runtime/vm:kernel_platform_files($dart_host_toolchain)",
   ]
-  main_dart = dfe_script
   training_args = [
     "--train",
     "file://" + rebase_path("../../pkg/compiler/lib/src/dart2js.dart"),
+  ]
+}
+
+copy("copy_kernel_service_snapshot") {
+  deps = [
+    ":kernel-service",
+  ]
+  sources = [
+    "$root_gen_dir/kernel-service.dart.snapshot",
+  ]
+  outputs = [
+    "$root_out_dir/kernel-service.dart.snapshot",
+  ]
+}
+
+application_snapshot("frontend_server") {
+  main_dart = "../../pkg/vm/bin/frontend_server_starter.dart"
+  deps = [
+    "../../runtime/vm:kernel_platform_files($dart_host_toolchain)",
+  ]
+  sdk_root = rebase_path("$root_out_dir")
+  training_args = [
+    "--train",
+    "--sdk-root=$sdk_root/",
+    "--platform=$sdk_root/vm_platform.dill",
+  ]
+  output = "$root_out_dir/frontend_server.dart.snapshot"
+}
+
+prebuilt_dart_action("kernel_service_dill") {
+  deps = [
+    "../../runtime/vm:vm_legacy_platform",
+  ]
+  kernel_service_script = "../../pkg/vm/bin/kernel_service.dart"
+  gen_kernel_script = "../../pkg/vm/bin/gen_kernel.dart"
+
+  inputs = [
+    gen_kernel_script,
+    kernel_service_script,
+    "$root_out_dir/vm_platform.dill",
+  ]
+  outputs = [
+    "$root_gen_dir/kernel_service.dill",
+  ]
+
+  script = gen_kernel_script
+
+  # TODO: Switch over to vm_platform_strong.dill and remove the
+  # flags --no-strong-mode once https://github.com/dart-lang/sdk/issues/31623
+  # is fixed.
+  args = [
+    "--packages=" + rebase_path("../../.packages"),
+    "--platform=" + rebase_path("$root_out_dir/vm_platform.dill"),
+    "--no-aot",
+    "--no-strong-mode",
+    "--no-embed-sources",
+    "--output=" + rebase_path("$root_gen_dir/kernel_service.dill"),
+    rebase_path(kernel_service_script),
   ]
 }

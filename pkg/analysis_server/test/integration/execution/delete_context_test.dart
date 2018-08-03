@@ -11,6 +11,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeleteContextTest);
+    defineReflectiveTests(DeleteContextTest_UseCFE);
   });
 }
 
@@ -40,4 +41,10 @@ class DeleteContextTest extends AbstractAnalysisServerIntegrationTest {
       expect(message.error['code'], 'INVALID_PARAMETER');
     }
   }
+}
+
+@reflectiveTest
+class DeleteContextTest_UseCFE extends DeleteContextTest {
+  @override
+  bool get useCFE => true;
 }

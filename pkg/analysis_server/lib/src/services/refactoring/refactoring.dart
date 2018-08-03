@@ -9,6 +9,7 @@ import 'package:analysis_server/src/services/refactoring/convert_getter_to_metho
 import 'package:analysis_server/src/services/refactoring/convert_method_to_getter.dart';
 import 'package:analysis_server/src/services/refactoring/extract_local.dart';
 import 'package:analysis_server/src/services/refactoring/extract_method.dart';
+import 'package:analysis_server/src/services/refactoring/extract_widget.dart';
 import 'package:analysis_server/src/services/refactoring/inline_local.dart';
 import 'package:analysis_server/src/services/refactoring/inline_method.dart';
 import 'package:analysis_server/src/services/refactoring/move_file.dart';
@@ -20,11 +21,13 @@ import 'package:analysis_server/src/services/refactoring/rename_library.dart';
 import 'package:analysis_server/src/services/refactoring/rename_local.dart';
 import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/ast_provider.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show RefactoringMethodParameter, SourceChange;
@@ -66,11 +69,8 @@ abstract class ExtractLocalRefactoring implements Refactoring {
   /**
    * Returns a new [ExtractLocalRefactoring] instance.
    */
-  factory ExtractLocalRefactoring(
-      CompilationUnit unit, int selectionOffset, int selectionLength) {
-    return new ExtractLocalRefactoringImpl(
-        unit, selectionOffset, selectionLength);
-  }
+  factory ExtractLocalRefactoring(ResolveResult resolveResult,
+      int selectionOffset, int selectionLength) = ExtractLocalRefactoringImpl;
 
   /**
    * The lengths of the expressions that cover the specified selection,
@@ -128,6 +128,12 @@ abstract class ExtractLocalRefactoring implements Refactoring {
    * level of checking.
    */
   RefactoringStatus checkName();
+
+  /**
+   * Return `true` if refactoring is available, possibly without checking all
+   * initial conditions.
+   */
+  bool isAvailable();
 }
 
 /**
@@ -137,10 +143,14 @@ abstract class ExtractMethodRefactoring implements Refactoring {
   /**
    * Returns a new [ExtractMethodRefactoring] instance.
    */
-  factory ExtractMethodRefactoring(SearchEngine searchEngine,
-      CompilationUnit unit, int selectionOffset, int selectionLength) {
+  factory ExtractMethodRefactoring(
+      SearchEngine searchEngine,
+      AstProvider astProvider,
+      CompilationUnit unit,
+      int selectionOffset,
+      int selectionLength) {
     return new ExtractMethodRefactoringImpl(
-        searchEngine, unit, selectionOffset, selectionLength);
+        searchEngine, astProvider, unit, selectionOffset, selectionLength);
   }
 
   /**
@@ -217,6 +227,49 @@ abstract class ExtractMethodRefactoring implements Refactoring {
    * level of checking.
    */
   RefactoringStatus checkName();
+
+  /**
+   * Return `true` if refactoring is available, possibly without checking all
+   * initial conditions.
+   */
+  bool isAvailable();
+}
+
+/**
+ * [Refactoring] to extract a widget creation expression or a method returning
+ * a widget, into a new stateless or stateful widget.
+ */
+abstract class ExtractWidgetRefactoring implements Refactoring {
+  /**
+   * Returns a new [ExtractWidgetRefactoring] instance.
+   */
+  factory ExtractWidgetRefactoring(SearchEngine searchEngine,
+      AnalysisSession session, CompilationUnit unit, int offset, int length) {
+    return new ExtractWidgetRefactoringImpl(
+        searchEngine, session, unit, offset, length);
+  }
+
+  /**
+   * The name that the class should be given.
+   */
+  void set name(String name);
+
+  /**
+   * Validates that the [name] is a valid identifier and is appropriate for a
+   * class.
+   *
+   * It does not perform all the checks (such as checking for conflicts with any
+   * existing names in any of the scopes containing the current name), as many
+   * of these checks require search engine. Use [checkFinalConditions] for this
+   * level of checking.
+   */
+  RefactoringStatus checkName();
+
+  /**
+   * Return `true` if refactoring is available, possibly without checking all
+   * initial conditions.
+   */
+  bool isAvailable();
 }
 
 /**
@@ -293,14 +346,10 @@ abstract class MoveFileRefactoring implements Refactoring {
   /**
    * Returns a new [MoveFileRefactoring] instance.
    */
-  factory MoveFileRefactoring(
-      ResourceProvider resourceProvider,
-      SearchEngine searchEngine,
-      AnalysisContext context,
-      Source source,
-      String oldFile) {
+  factory MoveFileRefactoring(ResourceProvider resourceProvider,
+      RefactoringWorkspace workspace, Source source, String oldFile) {
     return new MoveFileRefactoringImpl(
-        resourceProvider, searchEngine, context, source, oldFile);
+        resourceProvider, workspace, source, oldFile);
   }
 
   /**
@@ -362,6 +411,34 @@ abstract class Refactoring {
 }
 
 /**
+ * Information about the workspace refactorings operate it.
+ */
+class RefactoringWorkspace {
+  final Iterable<AnalysisDriver> drivers;
+  final SearchEngine searchEngine;
+
+  RefactoringWorkspace(this.drivers, this.searchEngine);
+
+  /**
+   * Whether the file with the given [path] is in a context root.
+   */
+  bool containsFile(String path) {
+    return drivers.any((driver) {
+      return driver.contextRoot.containsFile(path);
+    });
+  }
+
+  /**
+   * Returns the drivers that have [path] in a context root.
+   */
+  Iterable<AnalysisDriver> driversContaining(String path) {
+    return drivers.where((driver) {
+      return driver.contextRoot.containsFile(path);
+    });
+  }
+}
+
+/**
  * Abstract [Refactoring] for renaming some [Element].
  */
 abstract class RenameRefactoring implements Refactoring {
@@ -370,8 +447,8 @@ abstract class RenameRefactoring implements Refactoring {
    * maybe `null` if there is no support for renaming [Element]s of the given
    * type.
    */
-  factory RenameRefactoring(
-      SearchEngine searchEngine, AstProvider astProvider, Element element) {
+  factory RenameRefactoring(RefactoringWorkspace workspace,
+      AstProvider astProvider, Element element) {
     if (element == null) {
       return null;
     }
@@ -379,26 +456,27 @@ abstract class RenameRefactoring implements Refactoring {
       element = (element as PropertyAccessorElement).variable;
     }
     if (element.enclosingElement is CompilationUnitElement) {
-      return new RenameUnitMemberRefactoringImpl(searchEngine, element);
+      return new RenameUnitMemberRefactoringImpl(workspace, element);
     }
     if (element is ConstructorElement) {
       return new RenameConstructorRefactoringImpl(
-          searchEngine, astProvider, element);
+          workspace, astProvider, element);
     }
     if (element is ImportElement) {
-      return new RenameImportRefactoringImpl(searchEngine, element);
+      return new RenameImportRefactoringImpl(workspace, astProvider, element);
     }
     if (element is LabelElement) {
-      return new RenameLabelRefactoringImpl(searchEngine, element);
+      return new RenameLabelRefactoringImpl(workspace, element);
     }
     if (element is LibraryElement) {
-      return new RenameLibraryRefactoringImpl(searchEngine, element);
+      return new RenameLibraryRefactoringImpl(workspace, element);
     }
     if (element is LocalElement) {
-      return new RenameLocalRefactoringImpl(searchEngine, astProvider, element);
+      return new RenameLocalRefactoringImpl(workspace, astProvider, element);
     }
     if (element.enclosingElement is ClassElement) {
-      return new RenameClassMemberRefactoringImpl(searchEngine, element);
+      return new RenameClassMemberRefactoringImpl(
+          workspace, astProvider, element);
     }
     return null;
   }
@@ -449,14 +527,19 @@ class ResolvedUnitCache {
   }
 
   Future<CompilationUnit> getUnit(Element element) async {
-    CompilationUnitElement unitElement =
-        element.getAncestor((e) => e is CompilationUnitElement)
-            as CompilationUnitElement;
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    CompilationUnitElement unitElement = getUnitElement(element);
     CompilationUnit unit = _map[unitElement];
     if (unit == null) {
       unit = await _astProvider.getResolvedUnitForElement(element);
       _map[unitElement] = unit;
     }
     return unit;
+  }
+
+  CompilationUnitElement getUnitElement(Element element) {
+    return element.getAncestor((e) => e is CompilationUnitElement)
+        as CompilationUnitElement;
   }
 }

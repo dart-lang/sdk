@@ -12,7 +12,6 @@ import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
-import 'package:plugin/manager.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -45,8 +44,6 @@ class AssistsTest extends AbstractAnalysisTest {
   void setUp() {
     super.setUp();
     createProject();
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins([server.serverPlugin]);
     handler = new EditDomainHandler(server);
   }
 
@@ -79,9 +76,7 @@ main() {
 ''');
     await waitForTasksFinished();
     await prepareAssists('v =');
-    _assertHasChange(
-        'Remove type annotation',
-        '''
+    _assertHasChange('Remove type annotation', '''
 main() {
   var v = 1;
 }
@@ -96,9 +91,7 @@ main() {
 ''');
     await waitForTasksFinished();
     await prepareAssists('v =');
-    _assertHasChange(
-        'Split variable declaration',
-        '''
+    _assertHasChange('Split variable declaration', '''
 main() {
   int v;
   v = 1;
@@ -117,9 +110,7 @@ main() {
     int offset = findOffset('  print(1)');
     int length = findOffset('}') - offset;
     await prepareAssistsAt(offset, length);
-    _assertHasChange(
-        "Surround with 'if'",
-        '''
+    _assertHasChange("Surround with 'if'", '''
 main() {
   if (condition) {
     print(1);

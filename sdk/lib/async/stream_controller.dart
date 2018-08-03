@@ -31,32 +31,6 @@ typedef ControllerCancelCallback();
  * It's possible to check whether the stream is paused or not, and whether
  * it has subscribers or not, as well as getting a callback when either of
  * these change.
- *
- * If the stream starts or stops having listeners (first listener subscribing,
- * last listener unsubscribing), the `onSubscriptionStateChange` callback
- * is notified as soon as possible. If the subscription stat changes during
- * an event firing or a callback being executed, the change will not be reported
- * until the current event or callback has finished.
- * If the pause state has also changed during an event or callback, only the
- * subscription state callback is notified.
- *
- * If the subscriber state has not changed, but the pause state has, the
- * `onPauseStateChange` callback is notified as soon as possible, after firing
- * a current event or completing another callback. This happens if the stream
- * is not paused, and a listener pauses it, or if the stream has been resumed
- * from pause and has no pending events. If the listeners resume a paused stream
- * while it still has queued events, the controller will still consider the
- * stream paused until all queued events have been dispatched.
- *
- * Whether to invoke a callback depends only on the state before and after
- * a stream action, for example firing an event. If the state changes multiple
- * times during the action, and then ends up in the same state as before, no
- * callback is performed.
- *
- * If listeners are added after the stream has completed (sent a "done" event),
- * the listeners will be sent a "done" event eventually, but they won't affect
- * the stream at all, and won't trigger callbacks. From the controller's point
- * of view, the stream is completely inert when has completed.
  */
 abstract class StreamController<T> implements StreamSink<T> {
   /** The stream that this controller is controlling. */
@@ -297,8 +271,9 @@ abstract class StreamController<T> implements StreamSink<T> {
    * forwarded to the controller's stream, and the `addStream` ends
    * after this. If [cancelOnError] is false, all errors are forwarded
    * and only a done event will end the `addStream`.
+   * If [cancelOnError] is omitted, it defaults to false.
    */
-  Future addStream(Stream<T> source, {bool cancelOnError: true});
+  Future addStream(Stream<T> source, {bool cancelOnError});
 }
 
 /**
@@ -531,11 +506,10 @@ abstract class _StreamController<T>
   _PendingEvents<T> get _pendingEvents {
     assert(_isInitialState);
     if (!_isAddingStream) {
-      return _varData as Object/*=_PendingEvents<T>*/;
+      return _varData;
     }
-    _StreamControllerAddStreamState<T> state =
-        _varData as Object/*=_StreamControllerAddStreamState<T>*/;
-    return state.varData as Object/*=_PendingEvents<T>*/;
+    _StreamControllerAddStreamState<T> state = _varData;
+    return state.varData;
   }
 
   // Returns the pending events, and creates the object if necessary.
@@ -543,12 +517,11 @@ abstract class _StreamController<T>
     assert(_isInitialState);
     if (!_isAddingStream) {
       if (_varData == null) _varData = new _StreamImplEvents<T>();
-      return _varData as Object/*=_StreamImplEvents<T>*/;
+      return _varData;
     }
-    _StreamControllerAddStreamState<T> state =
-        _varData as Object/*=_StreamControllerAddStreamState<T>*/;
+    _StreamControllerAddStreamState<T> state = _varData;
     if (state.varData == null) state.varData = new _StreamImplEvents<T>();
-    return state.varData as Object/*=_StreamImplEvents<T>*/;
+    return state.varData;
   }
 
   // Get the current subscription.
@@ -557,11 +530,10 @@ abstract class _StreamController<T>
   _ControllerSubscription<T> get _subscription {
     assert(hasListener);
     if (_isAddingStream) {
-      _StreamControllerAddStreamState<T> addState =
-          _varData as Object/*=_StreamControllerAddStreamState<T>*/;
-      return addState.varData as Object/*=_ControllerSubscription<T>*/;
+      _StreamControllerAddStreamState<T> addState = _varData;
+      return addState.varData;
     }
-    return _varData as Object/*=_ControllerSubscription<T>*/;
+    return _varData;
   }
 
   /**
@@ -578,12 +550,12 @@ abstract class _StreamController<T>
   }
 
   // StreamSink interface.
-  Future addStream(Stream<T> source, {bool cancelOnError: true}) {
+  Future addStream(Stream<T> source, {bool cancelOnError}) {
     if (!_mayAddEvent) throw _badEventState();
     if (_isCanceled) return new _Future.immediate(null);
     _StreamControllerAddStreamState<T> addState =
         new _StreamControllerAddStreamState<T>(
-            this, _varData, source, cancelOnError);
+            this, _varData, source, cancelOnError ?? false);
     _varData = addState;
     _state |= _STATE_ADDSTREAM;
     return addState.addStreamFuture;
@@ -681,8 +653,7 @@ abstract class _StreamController<T>
   void _close() {
     // End of addStream stream.
     assert(_isAddingStream);
-    _StreamControllerAddStreamState<T> addState =
-        _varData as Object/*=_StreamControllerAddStreamState<T>*/;
+    _StreamControllerAddStreamState<T> addState = _varData;
     _varData = addState.varData;
     _state &= ~_STATE_ADDSTREAM;
     addState.complete();
@@ -701,8 +672,7 @@ abstract class _StreamController<T>
     _PendingEvents<T> pendingEvents = _pendingEvents;
     _state |= _STATE_SUBSCRIBED;
     if (_isAddingStream) {
-      _StreamControllerAddStreamState<T> addState =
-          _varData as Object/*=_StreamControllerAddStreamState<T>*/;
+      _StreamControllerAddStreamState<T> addState = _varData;
       addState.varData = subscription;
       addState.resume();
     } else {
@@ -727,8 +697,7 @@ abstract class _StreamController<T>
     // returned future.
     Future result;
     if (_isAddingStream) {
-      _StreamControllerAddStreamState<T> addState =
-          _varData as Object/*=_StreamControllerAddStreamState<T>*/;
+      _StreamControllerAddStreamState<T> addState = _varData;
       result = addState.cancel();
     }
     _varData = null;
@@ -770,8 +739,7 @@ abstract class _StreamController<T>
 
   void _recordPause(StreamSubscription<T> subscription) {
     if (_isAddingStream) {
-      _StreamControllerAddStreamState<T> addState =
-          _varData as Object/*=_StreamControllerAddStreamState<T>*/;
+      _StreamControllerAddStreamState<T> addState = _varData;
       addState.pause();
     }
     _runGuarded(onPause);
@@ -779,8 +747,7 @@ abstract class _StreamController<T>
 
   void _recordResume(StreamSubscription<T> subscription) {
     if (_isAddingStream) {
-      _StreamControllerAddStreamState<T> addState =
-          _varData as Object/*=_StreamControllerAddStreamState<T>*/;
+      _StreamControllerAddStreamState<T> addState = _varData;
       addState.resume();
     }
     _runGuarded(onResume);
@@ -896,8 +863,9 @@ class _StreamSinkWrapper<T> implements StreamSink<T> {
   }
 
   Future close() => _target.close();
-  Future addStream(Stream<T> source, {bool cancelOnError: true}) =>
-      _target.addStream(source, cancelOnError: cancelOnError);
+
+  Future addStream(Stream<T> source) => _target.addStream(source);
+
   Future get done => _target.done;
 }
 
@@ -911,7 +879,8 @@ class _AddStreamState<T> {
   // Subscription on stream argument to addStream.
   final StreamSubscription addSubscription;
 
-  _AddStreamState(_EventSink<T> controller, Stream source, bool cancelOnError)
+  _AddStreamState(
+      _EventSink<T> controller, Stream<T> source, bool cancelOnError)
       : addStreamFuture = new _Future(),
         addSubscription = source.listen(controller._add,
             onError: cancelOnError

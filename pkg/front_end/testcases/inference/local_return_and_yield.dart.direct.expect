@@ -1,0 +1,26 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+typedef IntToInt = (core::int) → core::int;
+static method main() → dynamic {
+  function a() → (core::int) → core::int {
+    return (dynamic x) → dynamic => x;
+  }
+  function b() → asy::Future<(core::int) → core::int> async {
+    return (dynamic x) → dynamic => x;
+  }
+  function c() → core::Iterable<(core::int) → core::int> sync* {
+    yield(dynamic x) → dynamic => x;
+  }
+  function d() → core::Iterable<(core::int) → core::int> sync* {
+    yield*<dynamic>[(dynamic x) → dynamic => x];
+  }
+  function e() → asy::Stream<(core::int) → core::int> async* {
+    yield(dynamic x) → dynamic => x;
+  }
+  function f() → asy::Stream<(core::int) → core::int> async* {
+    yield* asy::Stream::fromIterable<dynamic>(<dynamic>[(dynamic x) → dynamic => x]);
+  }
+}

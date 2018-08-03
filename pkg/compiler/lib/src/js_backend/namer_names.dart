@@ -4,6 +4,7 @@
 
 part of js_backend.namer;
 
+// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 abstract class _NamerName extends jsAst.Name {
   int get _kind;
   _NamerName get _target => this;
@@ -18,6 +19,7 @@ abstract class _NamerName extends jsAst.Name {
 
 enum _NamerNameKinds { StringBacked, Getter, Setter, Async, Compound, Token }
 
+// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class StringBackedName extends _NamerName {
   final String name;
   int get _kind => _NamerNameKinds.StringBacked.index;
@@ -34,13 +36,14 @@ class StringBackedName extends _NamerName {
 
   int get hashCode => name.hashCode;
 
-  int compareTo(_NamerName other) {
+  int compareTo(covariant _NamerName other) {
     other = other._target;
     if (other._kind != _kind) return other._kind - _kind;
     return name.compareTo(other.name);
   }
 }
 
+// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 abstract class _PrefixedName extends _NamerName implements jsAst.AstContainer {
   final jsAst.Name prefix;
   final jsAst.Name base;
@@ -63,7 +66,7 @@ abstract class _PrefixedName extends _NamerName implements jsAst.AstContainer {
 
   int get hashCode => base.hashCode * 13 + prefix.hashCode;
 
-  int compareTo(_NamerName other) {
+  int compareTo(covariant _NamerName other) {
     other = other._target;
     if (other._kind != _kind) return other._kind - _kind;
     _PrefixedName otherSameKind = other;
@@ -78,18 +81,21 @@ abstract class _PrefixedName extends _NamerName implements jsAst.AstContainer {
   }
 }
 
+// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class GetterName extends _PrefixedName {
   int get _kind => _NamerNameKinds.Getter.index;
 
   GetterName(jsAst.Name prefix, jsAst.Name base) : super(prefix, base);
 }
 
+// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class SetterName extends _PrefixedName {
   int get _kind => _NamerNameKinds.Setter.index;
 
   SetterName(jsAst.Name prefix, jsAst.Name base) : super(prefix, base);
 }
 
+// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class _AsyncName extends _PrefixedName {
   int get _kind => _NamerNameKinds.Async.index;
 
@@ -99,6 +105,7 @@ class _AsyncName extends _PrefixedName {
   bool get allowRename => true;
 }
 
+// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class CompoundName extends _NamerName implements jsAst.AstContainer {
   final List<_NamerName> _parts;
   int get _kind => _NamerNameKinds.Compound.index;
@@ -139,7 +146,7 @@ class CompoundName extends _NamerName implements jsAst.AstContainer {
     return _cachedHashCode;
   }
 
-  int compareTo(_NamerName other) {
+  int compareTo(covariant _NamerName other) {
     other = other._target;
     if (other._kind != _kind) return other._kind - _kind;
     CompoundName otherSameKind = other;
@@ -154,6 +161,7 @@ class CompoundName extends _NamerName implements jsAst.AstContainer {
   }
 }
 
+// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class TokenName extends _NamerName implements jsAst.ReferenceCountedAstNode {
   int get _kind => _NamerNameKinds.Token.index;
   String _name;
@@ -171,7 +179,7 @@ class TokenName extends _NamerName implements jsAst.ReferenceCountedAstNode {
   }
 
   @override
-  int compareTo(_NamerName other) {
+  int compareTo(covariant _NamerName other) {
     other = other._target;
     if (other._kind != _kind) return other._kind - _kind;
     TokenName otherToken = other;
@@ -191,12 +199,15 @@ class TokenName extends _NamerName implements jsAst.ReferenceCountedAstNode {
   int get hashCode => super.hashCode;
 
   finalize() {
-    assert(invariant(NO_LOCATION_SPANNABLE, !isFinalized,
-        message: "TokenName($key)=$_name has already been finalized."));
+    assert(
+        !isFinalized,
+        failedAt(NO_LOCATION_SPANNABLE,
+            "TokenName($key)=$_name has already been finalized."));
     _name = _scope.getNextName();
   }
 }
 
+// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class _NameReference extends _NamerName implements jsAst.AstContainer {
   _NamerName _target;
 
@@ -210,7 +221,7 @@ class _NameReference extends _NamerName implements jsAst.AstContainer {
   String get name => _target.name;
 
   @override
-  int compareTo(_NamerName other) => _target.compareTo(other);
+  int compareTo(covariant _NamerName other) => _target.compareTo(other);
 
   @override
   bool operator ==(other) => _target == other;

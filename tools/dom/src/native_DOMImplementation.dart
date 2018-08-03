@@ -520,7 +520,7 @@ class _Utils {
     // Inject all the already defined console variables.
     _consoleTempVariables._data.forEach(addArg);
 
-    // TODO(jacobr): remove the parentheses around the expresson once
+    // TODO(jacobr): remove the parentheses around the expression once
     // dartbug.com/13723 is fixed. Currently we wrap expression in parentheses
     // to ensure only valid Dart expressions are allowed. Otherwise the DartVM
     // quietly ignores trailing Dart statements resulting in user confusion
@@ -1359,7 +1359,7 @@ class _ScheduleImmediateHelper {
   _ScheduleImmediateHelper() {
     // Run in the root-zone as the DOM callback would otherwise execute in the
     // current zone.
-    Zone.ROOT.run(() {
+    Zone.root.run(() {
       // Mutation events get fired as soon as the current event stack is unwound
       // so we just make a dummy event and listen for that.
       _observer = new MutationObserver(_handleMutation);

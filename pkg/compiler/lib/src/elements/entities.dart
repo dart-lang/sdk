@@ -4,8 +4,14 @@
 
 library entities;
 
+import 'package:front_end/src/fasta/parser/async_modifier.dart'
+    show AsyncModifier;
+
 import '../common.dart';
 import '../universe/call_structure.dart' show CallStructure;
+import '../util/util.dart';
+import 'names.dart';
+import 'types.dart';
 
 /// Abstract interface for entities.
 ///
@@ -29,6 +35,20 @@ abstract class LibraryEntity extends Entity {
   Uri get canonicalUri;
 }
 
+/// Stripped down super interface for import entities.
+///
+/// The [name] property corresponds to the prefix name, if any.
+abstract class ImportEntity extends Entity {
+  /// The library where this import occurs (where the import is declared).
+  LibraryEntity get enclosingLibrary;
+
+  /// Whether the import is a deferred import.
+  bool get isDeferred;
+
+  /// The target import URI.
+  Uri get uri;
+}
+
 /// Stripped down super interface for class like entities.
 ///
 /// Currently only [ClassElement] but later also kernel based Dart classes
@@ -47,6 +67,11 @@ abstract class ClassEntity extends Entity {
   bool get isAbstract;
 }
 
+abstract class TypedefEntity extends Entity {
+  /// The library in which the typedef was declared.
+  LibraryEntity get library;
+}
+
 abstract class TypeVariableEntity extends Entity {
   /// The class or generic method that declared this type variable.
   Entity get typeDeclaration;
@@ -62,6 +87,10 @@ abstract class TypeVariableEntity extends Entity {
 /// Currently only [MemberElement] but later also kernel based Dart members
 /// and/or Dart-in-JS properties.
 abstract class MemberEntity extends Entity {
+  /// The [Name] of member which takes privacy and getter/setter naming into
+  /// account.
+  Name get memberName;
+
   /// Whether this is a member of a library.
   bool get isTopLevel;
 
@@ -123,6 +152,61 @@ abstract class FunctionEntity extends MemberEntity {
 
   /// The structure of the function parameters.
   ParameterStructure get parameterStructure;
+
+  /// The synchronous/asynchronous marker on this function.
+  AsyncMarker get asyncMarker;
+}
+
+/// Enum for the synchronous/asynchronous function body modifiers.
+class AsyncMarker {
+  /// The default function body marker.
+  static const AsyncMarker SYNC = const AsyncMarker._(AsyncModifier.Sync);
+
+  /// The `sync*` function body marker.
+  static const AsyncMarker SYNC_STAR =
+      const AsyncMarker._(AsyncModifier.SyncStar, isYielding: true);
+
+  /// The `async` function body marker.
+  static const AsyncMarker ASYNC =
+      const AsyncMarker._(AsyncModifier.Async, isAsync: true);
+
+  /// The `async*` function body marker.
+  static const AsyncMarker ASYNC_STAR = const AsyncMarker._(
+      AsyncModifier.AsyncStar,
+      isAsync: true,
+      isYielding: true);
+
+  /// Is `true` if this marker defines the function body to have an
+  /// asynchronous result, that is, either a [Future] or a [Stream].
+  final bool isAsync;
+
+  /// Is `true` if this marker defines the function body to have a plural
+  /// result, that is, either an [Iterable] or a [Stream].
+  final bool isYielding;
+
+  final AsyncModifier asyncParserState;
+
+  const AsyncMarker._(this.asyncParserState,
+      {this.isAsync: false, this.isYielding: false});
+
+  String toString() {
+    return '${isAsync ? 'async' : 'sync'}${isYielding ? '*' : ''}';
+  }
+
+  /// Canonical list of marker values.
+  ///
+  /// Added to make [AsyncMarker] enum-like.
+  static const List<AsyncMarker> values = const <AsyncMarker>[
+    SYNC,
+    SYNC_STAR,
+    ASYNC,
+    ASYNC_STAR
+  ];
+
+  /// Index to this marker within [values].
+  ///
+  /// Added to make [AsyncMarker] enum-like.
+  int get index => values.indexOf(this);
 }
 
 /// Stripped down super interface for constructor like entities.
@@ -137,6 +221,21 @@ abstract class ConstructorEntity extends FunctionEntity {
 
   /// Whether this is a factory constructor, possibly redirecting.
   bool get isFactoryConstructor;
+
+  /// Whether this is a `fromEnvironment` const constructor in `int`, `bool` or
+  /// `String`.
+  bool get isFromEnvironmentConstructor;
+}
+
+/// The constructor body for a [ConstructorEntity].
+///
+/// This is used only in the backend to split encoding of a Dart constructor
+/// into two JavaScript functions; the constructor and the constructor body.
+// TODO(johnniwinther): Remove this when modelx is removed. Constructor bodies
+// should then be created directly with the J-model.
+abstract class ConstructorBodyEntity extends FunctionEntity {
+  /// The constructor for which this constructor body was created.
+  ConstructorEntity get constructor;
 }
 
 /// An entity that defines a local entity (memory slot) in generated code.
@@ -149,19 +248,7 @@ abstract class ConstructorEntity extends FunctionEntity {
 /// but since one type variable can introduce different locals in different
 /// factories and constructors it is not itself a [Local] but instead
 /// a non-element [Local] is created through a specialized class.
-// TODO(johnniwinther): Should [Local] have `isAssignable` or `type`?
-abstract class Local extends Entity {
-  /// The context in which this local is defined.
-  Entity get executableContext;
-
-  /// The outermost member that contains this element.
-  ///
-  /// For top level, static or instance members, the member context is the
-  /// element itself. For parameters, local variables and nested closures, the
-  /// member context is the top level, static or instance member in which it is
-  /// defined.
-  MemberEntity get memberContext;
-}
+abstract class Local extends Entity {}
 
 /// The structure of function parameters.
 class ParameterStructure {
@@ -174,21 +261,69 @@ class ParameterStructure {
   /// The named parameters sorted alphabetically.
   final List<String> namedParameters;
 
-  const ParameterStructure(
-      this.requiredParameters, this.positionalParameters, this.namedParameters);
+  /// The number of type parameters.
+  final int typeParameters;
 
-  const ParameterStructure.getter() : this(0, 0, const <String>[]);
+  const ParameterStructure(this.requiredParameters, this.positionalParameters,
+      this.namedParameters, this.typeParameters);
 
-  const ParameterStructure.setter() : this(1, 1, const <String>[]);
+  const ParameterStructure.getter() : this(0, 0, const <String>[], 0);
+
+  const ParameterStructure.setter() : this(1, 1, const <String>[], 0);
+
+  factory ParameterStructure.fromType(FunctionType type) {
+    return new ParameterStructure(
+        type.parameterTypes.length,
+        type.parameterTypes.length + type.optionalParameterTypes.length,
+        type.namedParameters,
+        type.typeVariables.length);
+  }
 
   /// The number of optional parameters (positional or named).
   int get optionalParameters =>
       positionalParameters - requiredParameters + namedParameters.length;
 
+  /// The total number of parameters (required or optional).
+  int get totalParameters => positionalParameters + namedParameters.length;
+
   /// Returns the [CallStructure] corresponding to a call site passing all
   /// parameters both required and optional.
   CallStructure get callStructure {
-    return new CallStructure(
-        positionalParameters + namedParameters.length, namedParameters);
+    return new CallStructure(positionalParameters + namedParameters.length,
+        namedParameters, typeParameters);
+  }
+
+  int get hashCode => Hashing.listHash(
+      namedParameters,
+      Hashing.objectHash(
+          positionalParameters,
+          Hashing.objectHash(
+              requiredParameters, Hashing.objectHash(typeParameters))));
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! ParameterStructure) return false;
+    if (requiredParameters != other.requiredParameters ||
+        positionalParameters != other.positionalParameters ||
+        typeParameters != other.typeParameters ||
+        namedParameters.length != other.namedParameters.length) {
+      return false;
+    }
+    for (int i = 0; i < namedParameters.length; i++) {
+      if (namedParameters[i] != other.namedParameters[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('ParameterStructure(');
+    sb.write('requiredParameters=$requiredParameters,');
+    sb.write('positionalParameters=$positionalParameters,');
+    sb.write('namedParameters={${namedParameters.join(',')}},');
+    sb.write('typeParameters=$typeParameters)');
+    return sb.toString();
   }
 }

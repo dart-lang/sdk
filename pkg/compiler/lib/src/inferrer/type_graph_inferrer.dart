@@ -6,15 +6,12 @@ library type_graph_inferrer;
 
 import 'dart:collection' show Queue;
 
-import '../compiler.dart' show Compiler;
-import '../elements/elements.dart';
+import 'package:kernel/ast.dart' as ir;
 import '../elements/entities.dart';
-import '../tree/tree.dart' as ast show Node;
-import '../types/masks.dart'
-    show CommonMasks, ContainerTypeMask, MapTypeMask, TypeMask;
-import '../types/types.dart' show TypesInferrer;
+import '../types/abstract_value_domain.dart';
+import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
-import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
+import '../world.dart' show JClosedWorld;
 import 'inferrer_engine.dart';
 import 'type_graph_nodes.dart';
 
@@ -49,93 +46,109 @@ class WorkQueue {
   int get length => queue.length;
 }
 
-class TypeGraphInferrer implements TypesInferrer {
+abstract class TypeGraphInferrer implements TypesInferrer {
   InferrerEngine inferrer;
-  final Compiler compiler;
-  final ClosedWorld closedWorld;
-  final ClosedWorldRefiner closedWorldRefiner;
+  final bool _disableTypeInference;
+  final JClosedWorld closedWorld;
 
-  TypeGraphInferrer(this.compiler, this.closedWorld, this.closedWorldRefiner);
+  TypeGraphInferrer(this.closedWorld, {bool disableTypeInference: false})
+      : this._disableTypeInference = disableTypeInference;
 
   String get name => 'Graph inferrer';
 
-  CommonMasks get commonMasks => closedWorld.commonMasks;
+  AbstractValueDomain get abstractValueDomain =>
+      closedWorld.abstractValueDomain;
 
-  TypeMask get _dynamicType => commonMasks.dynamicType;
+  AbstractValue get _dynamicType => abstractValueDomain.dynamicType;
 
   void analyzeMain(FunctionEntity main) {
-    inferrer =
-        new InferrerEngine(compiler, closedWorld, closedWorldRefiner, main);
+    inferrer = createInferrerEngineFor(main);
+    if (_disableTypeInference) return;
     inferrer.runOverAllElements();
   }
 
-  TypeMask getReturnTypeOfElement(Element element) {
-    if (compiler.disableTypeInference) return _dynamicType;
+  InferrerEngine createInferrerEngineFor(FunctionEntity main);
+
+  AbstractValue getReturnTypeOfMember(MemberEntity element) {
+    if (_disableTypeInference) return _dynamicType;
     // Currently, closure calls return dynamic.
-    if (element is! FunctionElement) return _dynamicType;
-    return inferrer.types.getInferredTypeOf(element).type;
+    if (element is! FunctionEntity) return _dynamicType;
+    return inferrer.types.getInferredTypeOfMember(element).type;
   }
 
-  TypeMask getTypeOfElement(Element element) {
-    if (compiler.disableTypeInference) return _dynamicType;
+  AbstractValue getReturnTypeOfParameter(Local element) {
+    if (_disableTypeInference) return _dynamicType;
+    return _dynamicType;
+  }
+
+  AbstractValue getTypeOfMember(MemberEntity element) {
+    if (_disableTypeInference) return _dynamicType;
     // The inferrer stores the return type for a function, so we have to
     // be careful to not return it here.
-    if (element is FunctionElement) return commonMasks.functionType;
-    return inferrer.types.getInferredTypeOf(element).type;
+    if (element is FunctionEntity) return abstractValueDomain.functionType;
+    return inferrer.types.getInferredTypeOfMember(element).type;
   }
 
-  TypeMask getTypeForNewList(Element owner, ast.Node node) {
-    if (compiler.disableTypeInference) return _dynamicType;
+  AbstractValue getTypeOfParameter(Local element) {
+    if (_disableTypeInference) return _dynamicType;
+    // The inferrer stores the return type for a function, so we have to
+    // be careful to not return it here.
+    return inferrer.types.getInferredTypeOfParameter(element).type;
+  }
+
+  AbstractValue getTypeForNewList(ir.Node node) {
+    if (_disableTypeInference) return _dynamicType;
     return inferrer.types.allocatedLists[node].type;
   }
 
-  bool isFixedArrayCheckedForGrowable(ast.Node node) {
-    if (compiler.disableTypeInference) return true;
+  bool isFixedArrayCheckedForGrowable(ir.Node node) {
+    if (_disableTypeInference) return true;
     ListTypeInformation info = inferrer.types.allocatedLists[node];
     return info.checksGrowable;
   }
 
-  TypeMask getTypeOfSelector(Selector selector, TypeMask mask) {
-    if (compiler.disableTypeInference) return _dynamicType;
+  AbstractValue getTypeOfSelector(Selector selector, AbstractValue receiver) {
+    if (_disableTypeInference) return _dynamicType;
     // Bailout for closure calls. We're not tracking types of
     // closures.
     if (selector.isClosureCall) return _dynamicType;
     if (selector.isSetter || selector.isIndexSet) {
       return _dynamicType;
     }
-    if (inferrer.returnsListElementType(selector, mask)) {
-      ContainerTypeMask containerTypeMask = mask;
-      TypeMask elementType = containerTypeMask.elementType;
-      return elementType == null ? _dynamicType : elementType;
+    if (inferrer.returnsListElementType(selector, receiver)) {
+      return abstractValueDomain.getContainerElementType(receiver);
     }
-    if (inferrer.returnsMapValueType(selector, mask)) {
-      MapTypeMask mapTypeMask = mask;
-      TypeMask valueType = mapTypeMask.valueType;
-      return valueType == null ? _dynamicType : valueType;
+    if (inferrer.returnsMapValueType(selector, receiver)) {
+      return abstractValueDomain.getMapValueType(receiver);
     }
 
-    TypeMask result = const TypeMask.nonNullEmpty();
-    Iterable<MemberEntity> elements =
-        inferrer.closedWorld.locateMembers(selector, mask);
-    for (MemberElement element in elements) {
-      TypeMask type =
-          inferrer.typeOfElementWithSelector(element, selector).type;
-      result = result.union(type, inferrer.closedWorld);
+    if (inferrer.closedWorld.includesClosureCall(selector, receiver)) {
+      return abstractValueDomain.dynamicType;
+    } else {
+      Iterable<MemberEntity> elements =
+          inferrer.closedWorld.locateMembers(selector, receiver);
+      List<AbstractValue> types = <AbstractValue>[];
+      for (MemberEntity element in elements) {
+        AbstractValue type =
+            inferrer.typeOfMemberWithSelector(element, selector).type;
+        types.add(type);
+      }
+      return abstractValueDomain.unionOfMany(types);
     }
-    return result;
   }
 
-  Iterable<Element> getCallersOf(Element element) {
-    if (compiler.disableTypeInference) {
+  Iterable<MemberEntity> getCallersOfForTesting(MemberEntity element) {
+    if (_disableTypeInference) {
       throw new UnsupportedError(
           "Cannot query the type inferrer when type inference is disabled.");
     }
-    return inferrer.getCallersOf(element);
+    return inferrer.getCallersOfForTesting(element);
   }
 
-  bool isCalledOnce(Element element) {
-    if (compiler.disableTypeInference) return false;
-    MemberTypeInformation info = inferrer.types.getInferredTypeOf(element);
+  bool isMemberCalledOnce(MemberEntity element) {
+    if (_disableTypeInference) return false;
+    MemberTypeInformation info =
+        inferrer.types.getInferredTypeOfMember(element);
     return info.isCalledOnce();
   }
 

@@ -143,6 +143,12 @@ class AllocationInfo {
     }
   }
 
+  ~AllocationInfo() {
+    if (sample_ != NULL) {
+      Profiler::allocation_sample_buffer()->FreeAllocationSample(sample_);
+    }
+  }
+
   Sample* sample() const { return sample_; }
   intptr_t allocation_size() const { return allocation_size_; }
 
@@ -155,7 +161,6 @@ class AllocationInfo {
   uword address_;
   intptr_t allocation_size_;
 };
-
 
 // Custom key/value trait specifically for address/size pairs. Unlike
 // RawPointerKeyValueTrait, the default value is -1 as 0 can be a valid entry.
@@ -177,7 +182,6 @@ class AddressKeyValueTrait : public AllStatic {
   static intptr_t Hashcode(Key key) { return reinterpret_cast<intptr_t>(key); }
   static bool IsKeyEqual(Pair kv, Key key) { return kv.key == key; }
 };
-
 
 // Map class that will be used to store mappings between ptr -> allocation size.
 class AddressMap : public MallocDirectChainedHashMap<AddressKeyValueTrait> {
@@ -216,7 +220,6 @@ class AddressMap : public MallocDirectChainedHashMap<AddressKeyValueTrait> {
   }
 };
 
-
 // MallocHooks state / locks.
 bool MallocHooksState::active_ = false;
 bool MallocHooksState::stack_trace_collection_enabled_ = false;
@@ -230,7 +233,6 @@ intptr_t MallocHooksState::allocation_count_ = 0;
 intptr_t MallocHooksState::heap_allocated_memory_in_bytes_ = 0;
 AddressMap* MallocHooksState::address_map_ = NULL;
 
-
 void MallocHooksState::Init() {
   address_map_ = new AddressMap();
   active_ = true;
@@ -242,14 +244,12 @@ void MallocHooksState::Init() {
   original_pid_ = OS::ProcessId();
 }
 
-
 void MallocHooksState::ResetStats() {
   ASSERT(malloc_hook_mutex()->IsOwnedByCurrentThread());
   allocation_count_ = 0;
   heap_allocated_memory_in_bytes_ = 0;
   address_map_->Clear();
 }
-
 
 void MallocHooksState::TearDown() {
   ASSERT(malloc_hook_mutex()->IsOwnedByCurrentThread());
@@ -259,7 +259,6 @@ void MallocHooksState::TearDown() {
   delete address_map_;
   address_map_ = NULL;
 }
-
 
 void MallocHooks::InitOnce() {
   if (!FLAG_profiler_native_memory || MallocHooks::Active()) {
@@ -279,7 +278,6 @@ void MallocHooks::InitOnce() {
   ASSERT(success);
 }
 
-
 void MallocHooks::TearDown() {
   if (!FLAG_profiler_native_memory || !MallocHooks::Active()) {
     return;
@@ -298,11 +296,9 @@ void MallocHooks::TearDown() {
   MallocHooksState::TearDown();
 }
 
-
 bool MallocHooks::ProfilingEnabled() {
   return MallocHooksState::ProfilingEnabled();
 }
-
 
 bool MallocHooks::stack_trace_collection_enabled() {
   MallocLocker ml(MallocHooksState::malloc_hook_mutex(),
@@ -310,13 +306,11 @@ bool MallocHooks::stack_trace_collection_enabled() {
   return MallocHooksState::stack_trace_collection_enabled();
 }
 
-
 void MallocHooks::set_stack_trace_collection_enabled(bool enabled) {
   MallocLocker ml(MallocHooksState::malloc_hook_mutex(),
                   MallocHooksState::malloc_hook_mutex_owner());
   MallocHooksState::set_stack_trace_collection_enabled(enabled);
 }
-
 
 void MallocHooks::ResetStats() {
   if (!FLAG_profiler_native_memory) {
@@ -329,7 +323,6 @@ void MallocHooks::ResetStats() {
   }
 }
 
-
 bool MallocHooks::Active() {
   if (!FLAG_profiler_native_memory) {
     return false;
@@ -339,7 +332,6 @@ bool MallocHooks::Active() {
 
   return MallocHooksState::Active();
 }
-
 
 void MallocHooks::PrintToJSONObject(JSONObject* jsobj) {
   if (!FLAG_profiler_native_memory) {
@@ -366,7 +358,6 @@ void MallocHooks::PrintToJSONObject(JSONObject* jsobj) {
   }
 }
 
-
 intptr_t MallocHooks::allocation_count() {
   if (!FLAG_profiler_native_memory) {
     return 0;
@@ -376,7 +367,6 @@ intptr_t MallocHooks::allocation_count() {
   return MallocHooksState::allocation_count();
 }
 
-
 intptr_t MallocHooks::heap_allocated_memory_in_bytes() {
   if (!FLAG_profiler_native_memory) {
     return 0;
@@ -385,7 +375,6 @@ intptr_t MallocHooks::heap_allocated_memory_in_bytes() {
                   MallocHooksState::malloc_hook_mutex_owner());
   return MallocHooksState::heap_allocated_memory_in_bytes();
 }
-
 
 Sample* MallocHooks::GetSample(const void* ptr) {
   MallocLocker ml(MallocHooksState::malloc_hook_mutex(),
@@ -403,7 +392,6 @@ Sample* MallocHooks::GetSample(const void* ptr) {
   return NULL;
 }
 
-
 void MallocHooksState::RecordAllocHook(const void* ptr, size_t size) {
   if (MallocHooksState::IsLockHeldByCurrentThread() ||
       !MallocHooksState::IsOriginalProcess()) {
@@ -419,7 +407,6 @@ void MallocHooksState::RecordAllocHook(const void* ptr, size_t size) {
         ptr, new AllocationInfo(reinterpret_cast<uword>(ptr), size));
   }
 }
-
 
 void MallocHooksState::RecordFreeHook(const void* ptr) {
   if (MallocHooksState::IsLockHeldByCurrentThread() ||

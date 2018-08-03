@@ -12,89 +12,11 @@ import 'token_constants.dart' show IDENTIFIER_TOKEN;
 import 'string_canonicalizer.dart';
 
 /**
- * A [SymbolToken] represents the symbol in its precedence info.
- * Also used for end of file with EOF_INFO.
- */
-class SymbolToken extends analyzer.TokenWithComment {
-  SymbolToken(TokenType type, int offset,
-      [analyzer.CommentToken precedingComments])
-      : super(type, offset, precedingComments);
-
-  factory SymbolToken.eof(int charOffset,
-      [analyzer.CommentToken precedingComments]) {
-    var eof =
-        new SyntheticSymbolToken(TokenType.EOF, charOffset, precedingComments);
-    // EOF points to itself so there's always infinite look-ahead.
-    eof.previous = eof;
-    eof.next = eof;
-    return eof;
-  }
-
-  @override
-  String get lexeme => type.value;
-
-  @override
-  String toString() => "SymbolToken(${isEof ? '-eof-' : lexeme})";
-
-  @override
-  Token copy() => isEof
-      ? new SymbolToken.eof(charOffset, precedingComments)
-      : new SymbolToken(type, charOffset, precedingComments);
-}
-
-/**
- * A [SyntheticSymbolToken] represents the symbol in its precedence info
- * which does not exist in the original source.
- * For example, if the scanner finds '(' missing a ')'
- * then it will insert an synthetic ')'.
- */
-class SyntheticSymbolToken extends SymbolToken {
-  SyntheticSymbolToken(TokenType type, int charOffset,
-      [analyzer.CommentToken precedingComments])
-      : super(type, charOffset, precedingComments);
-
-  @override
-  int get length => 0;
-
-  @override
-  Token copy() => isEof
-      ? new SymbolToken.eof(charOffset, precedingComments)
-      : new SyntheticSymbolToken(type, charOffset, precedingComments);
-}
-
-/**
- * A [BeginGroupToken] represents a symbol that may be the beginning of
- * a pair of brackets, i.e., ( { [ < or ${
- * The [endGroup] token points to the matching closing bracket in case
- * it can be identified during scanning.
- */
-class BeginGroupToken extends SymbolToken
-    implements analyzer.BeginTokenWithComment {
-  Token endGroup;
-
-  BeginGroupToken(TokenType type, int charOffset,
-      [analyzer.CommentToken precedingComments])
-      : super(type, charOffset, precedingComments);
-
-  @override
-  analyzer.Token get endToken => endGroup;
-
-  @override
-  void set endToken(analyzer.Token token) {
-    endGroup = token;
-  }
-
-  @override
-  Token copy() => new BeginGroupToken(type, charOffset, precedingComments);
-}
-
-/**
  * A String-valued token. Represents identifiers, string literals,
  * number literals, comments, and error tokens, using the corresponding
  * precedence info.
  */
-class StringToken extends analyzer.TokenWithComment
-    implements analyzer.StringTokenWithComment {
+class StringToken extends analyzer.SimpleToken implements analyzer.StringToken {
   /**
    * The length threshold above which substring tokens are computed lazily.
    *
@@ -179,7 +101,7 @@ class StringToken extends analyzer.TokenWithComment
   bool get isIdentifier => identical(kind, IDENTIFIER_TOKEN);
 
   @override
-  String toString() => "StringToken($lexeme)";
+  String toString() => lexeme;
 
   static final StringCanonicalizer canonicalizer = new StringCanonicalizer();
 
@@ -195,7 +117,7 @@ class StringToken extends analyzer.TokenWithComment
 
   @override
   Token copy() => new StringToken._(
-      type, valueOrLazySubstring, charOffset, precedingComments);
+      type, valueOrLazySubstring, charOffset, copyComments(precedingComments));
 
   @override
   String value() => lexeme;
@@ -215,12 +137,12 @@ class SyntheticStringToken extends StringToken
 
   @override
   Token copy() => new SyntheticStringToken(
-      type, valueOrLazySubstring, offset, precedingComments);
+      type, valueOrLazySubstring, offset, copyComments(precedingComments));
 }
 
 class CommentToken extends StringToken implements analyzer.CommentToken {
   @override
-  analyzer.TokenWithComment parent;
+  analyzer.SimpleToken parent;
 
   /**
    * Creates a lazy comment token. If [canonicalize] is true, the string
@@ -313,7 +235,7 @@ abstract class _LazySubstring {
   int get length;
 
   /**
-   * If this substring is based on a String, the [boolValue] indicates wheter
+   * If this substring is based on a String, the [boolValue] indicates whether
    * the resulting substring should be canonicalized.
    *
    * For substrings based on a byte array, the [boolValue] is true if the

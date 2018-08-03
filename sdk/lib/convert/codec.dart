@@ -7,7 +7,7 @@ part of dart.convert;
 /**
  * A [Codec] encodes and (if supported) decodes data.
  *
- * Codecs can be fused. For example fusing [JSON] and [UTF8] produces
+ * Codecs can be fused. For example fusing [json] and [utf8] produces
  * an encoder that can convert Json objects directly to bytes, or can decode
  * bytes directly to json objects.
  *
@@ -17,7 +17,18 @@ part of dart.convert;
 abstract class Codec<S, T> {
   const Codec();
 
+  /**
+   * Encodes [input].
+   *
+   * The input is encoded as if by `encoder.convert`.
+   */
   T encode(S input) => encoder.convert(input);
+
+  /**
+   * Decodes [encoded] data.
+   *
+   * The input is decoded as if by `decoder.convert`.
+   */
   S decode(T encoded) => decoder.convert(encoded);
 
   /**
@@ -29,7 +40,7 @@ abstract class Codec<S, T> {
   /**
    * Returns the decoder of `this`, converting from [T] to [S].
    *
-   * It may be stateful an should not be reused.
+   * It may be stateful and should not be reused.
    */
   Converter<T, S> get decoder;
 
@@ -47,16 +58,17 @@ abstract class Codec<S, T> {
    * input type of the second codec [other].
    *
    * Examples:
+   * ```dart
+   * final jsonToBytes = json.fuse(utf8);
+   * List<int> bytes = jsonToBytes.encode(["json-object"]);
+   * var decoded = jsonToBytes.decode(bytes);
+   * assert(decoded is List && decoded[0] == "json-object");
    *
-   *     final JSON_TO_BYTES = JSON.fuse(UTF8);
-   *     List<int> bytes = JSON_TO_BYTES.encode(["json-object"]);
-   *     var decoded = JSON_TO_BYTES.decode(bytes);
-   *     assert(decoded is List && decoded[0] == "json-object");
-   *
-   *     var inverted = JSON.inverted;
-   *     var jsonIdentity = JSON.fuse(inverted);
-   *     var jsonObject = jsonIdentity.encode(["1", 2]);
-   *     assert(jsonObject is List && jsonObject[0] == "1" && jsonObject[1] == 2);
+   * var inverted = json.inverted;
+   * var jsonIdentity = json.fuse(inverted);
+   * var jsonObject = jsonIdentity.encode(["1", 2]);
+   * assert(jsonObject is List && jsonObject[0] == "1" && jsonObject[1] == 2);
+   * ```
    */
   // TODO(floitsch): use better example with line-splitter once that one is
   // in this library.

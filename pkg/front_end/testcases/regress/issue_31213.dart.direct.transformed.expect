@@ -1,0 +1,14 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef C<A extends core::Object = dynamic, K extends core::Object = dynamic> = <B extends core::Object = dynamic>(A, K, B) → core::int;
+typedef D<K extends core::Object = dynamic> = <A extends core::Object = dynamic>(core::int) → <B extends core::Object = dynamic>(A, K, B) → core::int;
+static method producer<K extends core::Object = dynamic>() → dynamic {
+  return <A extends core::Object = dynamic>(core::int v1) → dynamic {
+    return <B extends core::Object = dynamic>(A v2, self::producer::K v3, B v4) → dynamic => 0;
+  };
+}
+static method main() → dynamic {
+  assert(self::producer<core::String>() is <A extends core::Object = dynamic>(core::int) → <B extends core::Object = dynamic>(A, core::String, B) → core::int);
+}

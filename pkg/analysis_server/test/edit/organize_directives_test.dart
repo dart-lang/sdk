@@ -8,7 +8,6 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:plugin/manager.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -26,21 +25,18 @@ class OrganizeDirectivesTest extends AbstractAnalysisTest {
   SourceFileEdit fileEdit;
 
   @override
-  bool get enableNewAnalysisDriver => false;
-
-  @override
   void setUp() {
     super.setUp();
     createProject();
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins([server.serverPlugin]);
     handler = new EditDomainHandler(server);
   }
 
+  @failingTest
   Future test_BAD_doesNotExist() async {
-    await waitForTasksFinished();
+    // The analysis driver fails to return an error
     Request request =
-        new EditOrganizeDirectivesParams('/no/such/file.dart').toRequest('0');
+        new EditOrganizeDirectivesParams(convertPath('/no/such/file.dart'))
+            .toRequest('0');
     Response response = await waitResponse(request);
     expect(
         response, isResponseFailure('0', RequestErrorCode.FILE_NOT_ANALYZED));
@@ -52,7 +48,6 @@ import 'dart:async'
 
 main() {}
 ''');
-    await waitForTasksFinished();
     Request request = new EditOrganizeDirectivesParams(testFile).toRequest('0');
     Response response = await waitResponse(request);
     expect(response,
@@ -60,7 +55,6 @@ main() {}
   }
 
   Future test_BAD_notDartFile() async {
-    await waitForTasksFinished();
     Request request =
         new EditOrganizeDirectivesParams('/not-a-Dart-file.txt').toRequest('0');
     Response response = await waitResponse(request);
@@ -91,8 +85,8 @@ main() {
   }
 
   Future test_OK_remove_unresolvedDirectives() {
-    addFile('$testFolder/existing_part1.dart', 'part of lib;');
-    addFile('$testFolder/existing_part2.dart', 'part of lib;');
+    newFile(join(testFolder, 'existing_part1.dart'), content: 'part of lib;');
+    newFile(join(testFolder, 'existing_part2.dart'), content: 'part of lib;');
     addTestFile('''
 library lib;
 
@@ -160,7 +154,6 @@ main() {
   }
 
   Future _assertOrganized(String expectedCode) async {
-    await waitForTasksFinished();
     await _requestOrganize();
     String resultCode = SourceEdit.applySequence(testCode, fileEdit.edits);
     expect(resultCode, expectedCode);

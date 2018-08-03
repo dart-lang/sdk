@@ -27,7 +27,7 @@ Future setupFiles() async {
 
   Future<ServiceExtensionResponse> cleanup(ignored_a, ignored_b) {
     closeDown();
-    var result = JSON.encode({'type': 'foobar'});
+    var result = jsonEncode({'type': 'foobar'});
     return new Future.value(new ServiceExtensionResponse.result(result));
   }
 
@@ -60,7 +60,7 @@ Future setupFiles() async {
       closeDown();
       throw e;
     }
-    var result = JSON.encode({'type': 'foobar'});
+    var result = jsonEncode({'type': 'foobar'});
     return new Future.value(new ServiceExtensionResponse.result(result));
   }
 
@@ -68,7 +68,7 @@ Future setupFiles() async {
   registerExtension('ext.dart.io.setup', setup);
 }
 
-var fileTests = [
+var fileTests = <IsolateTest>[
   (Isolate isolate) async {
     await isolate.invokeRpcNoUpgrade('ext.dart.io.setup', {});
     try {

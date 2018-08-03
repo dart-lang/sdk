@@ -1,0 +1,7 @@
+directories:
+  ads/acx2/testing/angular
+
+targets:
+  //ads/acx2/testing/angular/...:all
+additional_languages:
+  dart

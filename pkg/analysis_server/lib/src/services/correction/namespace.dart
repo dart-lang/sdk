@@ -114,8 +114,7 @@ ImportElement internal_getImportElement(
     if (importElementsMap.containsKey(importElement)) {
       continue;
     }
-    Namespace namespace =
-        new NamespaceBuilder().createImportNamespaceForDirective(importElement);
+    Namespace namespace = importElement.namespace;
     Set<Element> elements = new Set.from(namespace.definedNames.values);
     importElementsMap[importElement] = elements;
   }

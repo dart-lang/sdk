@@ -6,6 +6,8 @@ library fasta.parser.class_member_parser;
 
 import '../../scanner/token.dart' show Token;
 
+import 'error_delegation_listener.dart' show ErrorDelegationListener;
+
 import 'listener.dart' show Listener;
 
 import 'parser.dart' show Parser;
@@ -13,15 +15,31 @@ import 'parser.dart' show Parser;
 /// Parser similar to [TopLevelParser] but also parses class members (excluding
 /// their bodies).
 class ClassMemberParser extends Parser {
+  Parser skipParser;
+
   ClassMemberParser(Listener listener) : super(listener);
 
-  Token parseExpression(Token token) => skipExpression(token);
+  @override
+  Token parseExpression(Token token) {
+    return skipExpression(token);
+  }
 
-  Token parseRecoverExpression(Token token) {
-    Token begin = token;
-    token = skipExpression(token);
-    listener.handleRecoverExpression(begin);
-    return token;
+  @override
+  Token parseIdentifierExpression(Token token) {
+    return token.next;
+  }
+
+  Token skipExpression(Token token) {
+    // TODO(askesc): We listen to errors occurring during expression parsing,
+    // since the parser may rewrite the token stream such that the error is
+    // not triggered during the second parse.
+    // When the parser supports not doing token stream rewriting, use that
+    // feature together with a no-op listener instead.
+    skipParser ??= new Parser(new ErrorDelegationListener(listener));
+    skipParser.mayParseFunctionExpressions = mayParseFunctionExpressions;
+    skipParser.asyncState = asyncState;
+    skipParser.loopState = loopState;
+    return skipParser.parseExpression(token);
   }
 
   // This method is overridden for two reasons:
@@ -32,4 +50,7 @@ class ClassMemberParser extends Parser {
   Token parseFunctionBody(Token token, bool isExpression, bool allowAbstract) {
     return skipFunctionBody(token, isExpression, allowAbstract);
   }
+
+  @override
+  Token parseInvalidBlock(Token token) => skipBlock(token);
 }

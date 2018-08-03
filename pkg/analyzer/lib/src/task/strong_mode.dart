@@ -16,21 +16,10 @@ import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/generated/resolver.dart'
     show TypeProvider, InheritanceManager;
 import 'package:analyzer/src/generated/type_system.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart'
     show FieldElementForLink_ClassField, ParameterElementForLink;
-
-/**
- * Return `true` if the given [expression] is an immediately-evident expression,
- * so can be used to infer the type for a top-level variable or a class field.
- */
-bool isValidForTypeInference(Expression expression) {
-  var visitor = new _IsValidForTypeInferenceVisitor();
-  expression.accept(visitor);
-  return visitor.isValid;
-}
 
 /**
  * Sets the type of the field. The types in implicit accessors are updated
@@ -71,13 +60,6 @@ class InstanceMemberInferrer {
   final InheritanceManagerProvider inheritanceManagerProvider;
 
   /**
-   * The set of fields for which type inference from initializer should be
-   * disabled, because their initializers are not immediately-evident
-   * expressions.
-   */
-  final Set<FieldElement> fieldsWithDisabledInitializerInference;
-
-  /**
    * The classes that have been visited while attempting to infer the types of
    * instance members of some base class.
    */
@@ -88,9 +70,7 @@ class InstanceMemberInferrer {
    * Initialize a newly create inferrer.
    */
   InstanceMemberInferrer(
-      TypeProvider typeProvider,
-      this.inheritanceManagerProvider,
-      this.fieldsWithDisabledInitializerInference,
+      TypeProvider typeProvider, this.inheritanceManagerProvider,
       {TypeSystem typeSystem})
       : typeSystem = (typeSystem != null)
             ? typeSystem
@@ -188,7 +168,18 @@ class InstanceMemberInferrer {
           parameter, index, overriddenTypes[i].parameters);
       DartType type = matchingParameter?.type ?? typeProvider.dynamicType;
       if (parameterType == null) {
-        parameterType = type;
+        if (type is FunctionType &&
+            type.element is! TypeDefiningElement &&
+            type.element.enclosingElement is! TypeDefiningElement) {
+          // The resulting parameter's type element has an `enclosingElement` of
+          // the overridden parameter. Change it to the overriding parameter.
+          parameterType = new FunctionTypeImpl.fresh(type, force: true);
+          (parameterType.element as ElementImpl).enclosingElement = parameter;
+          // TODO(mfairhurst) handle cases where non-functions contain functions
+          // See test_inferredType_parameter_genericFunctionType_asTypeArgument
+        } else {
+          parameterType = type;
+        }
       } else if (parameterType != type) {
         if (parameter is ParameterElementForLink) {
           parameter.setInferenceError(new TopLevelInferenceErrorBuilder(
@@ -234,15 +225,14 @@ class InstanceMemberInferrer {
     //
     // Find the corresponding parameter.
     //
-    if (parameter.parameterKind == ParameterKind.NAMED) {
+    if (parameter.isNamed) {
       //
       // If we're looking for a named parameter, only a named parameter with
       // the same name will be matched.
       //
       return methodParameters.lastWhere(
           (ParameterElement methodParameter) =>
-              methodParameter.parameterKind == ParameterKind.NAMED &&
-              methodParameter.name == parameter.name,
+              methodParameter.isNamed && methodParameter.name == parameter.name,
           orElse: () => null);
     }
     //
@@ -251,7 +241,7 @@ class InstanceMemberInferrer {
     //
     if (index < methodParameters.length) {
       var matchingParameter = methodParameters[index];
-      if (matchingParameter.parameterKind != ParameterKind.NAMED) {
+      if (!matchingParameter.isNamed) {
         return matchingParameter;
       }
     }
@@ -382,7 +372,7 @@ class InstanceMemberInferrer {
     //
     // Infer the return type.
     //
-    if (element.hasImplicitReturnType) {
+    if (element.hasImplicitReturnType && element.displayName != '[]=') {
       (element as ExecutableElementImpl).returnType =
           _computeReturnType(overriddenTypes.map((t) => t.returnType));
       if (element is PropertyAccessorElement) {
@@ -430,9 +420,7 @@ class InstanceMemberInferrer {
 
     if (field.hasImplicitType) {
       DartType newType = typeResult.type;
-      if (newType == null &&
-          field.initializer != null &&
-          !fieldsWithDisabledInitializerInference.contains(field)) {
+      if (newType == null && field.initializer != null) {
         newType = field.initializer.returnType;
       }
 
@@ -607,94 +595,4 @@ class _FieldOverrideInferenceResult {
   final bool isError;
 
   _FieldOverrideInferenceResult(this.isCovariant, this.type, this.isError);
-}
-
-/**
- * The visitor for [isValidForTypeInference].
- */
-class _IsValidForTypeInferenceVisitor extends RecursiveAstVisitor {
-  bool isValid = true;
-
-  @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    isValid = false;
-  }
-
-  @override
-  void visitCascadeExpression(CascadeExpression node) {
-    node.target.accept(this);
-  }
-
-  @override
-  void visitFunctionExpression(FunctionExpression node) {
-    FunctionBody body = node.body;
-    if (body is ExpressionFunctionBody) {
-      body.accept(this);
-    } else {
-      isValid = false;
-    }
-  }
-
-  @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    node.function?.accept(this);
-  }
-
-  @override
-  void visitIndexExpression(IndexExpression node) {
-    isValid = false;
-  }
-
-  @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    ConstructorElement constructor = node.staticElement;
-    if (constructor != null) {
-      ClassElement clazz = constructor?.enclosingElement;
-      if (clazz.typeParameters.isNotEmpty &&
-          node.constructorName.type.typeArguments == null) {
-        isValid = false;
-        return;
-      }
-    }
-  }
-
-  @override
-  void visitListLiteral(ListLiteral node) {
-    if (node.typeArguments == null) {
-      super.visitListLiteral(node);
-    }
-  }
-
-  @override
-  void visitMapLiteral(MapLiteral node) {
-    if (node.typeArguments == null) {
-      super.visitMapLiteral(node);
-    }
-  }
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    Element element = node.methodName.staticElement;
-    if (element is ExecutableElement) {
-      if (element.type.typeFormals.isNotEmpty && node.typeArguments == null) {
-        isValid = false;
-        return;
-      }
-    }
-    node.target?.accept(this);
-  }
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    Element element = node.staticElement;
-    if (element == null) {
-      AstNode parent = node.parent;
-      if (parent is PropertyAccess && parent.propertyName == node ||
-          parent is PrefixedIdentifier && parent.identifier == node) {
-        isValid = false;
-      }
-    } else if (element is PropertyAccessorElement && !element.isStatic) {
-      isValid = false;
-    }
-  }
 }

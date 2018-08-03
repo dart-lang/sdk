@@ -5,6 +5,8 @@
 #ifndef RUNTIME_PLATFORM_UTILS_H_
 #define RUNTIME_PLATFORM_UTILS_H_
 
+#include <limits>
+
 #include "platform/assert.h"
 #include "platform/globals.h"
 
@@ -22,9 +24,33 @@ class Utils {
     return x > y ? x : y;
   }
 
+  // Calculates absolute value of a given signed integer.
+  // `x` must not be equal to minimum value representable by `T`
+  // as its absolute value is out of range.
   template <typename T>
   static inline T Abs(T x) {
+    // Note: as a general rule, it is not OK to use STL in Dart VM.
+    // However, std::numeric_limits<T>::min() and max() are harmless
+    // and worthwhile exception from this rule.
+    ASSERT(x != std::numeric_limits<T>::min());
     if (x < 0) return -x;
+    return x;
+  }
+
+  // Calculates absolute value of a given signed integer with saturation.
+  // If `x` equals to minimum value representable by `T`, then
+  // absolute value is saturated to the maximum value representable by `T`.
+  template <typename T>
+  static inline T AbsWithSaturation(T x) {
+    if (x < 0) {
+      // Note: as a general rule, it is not OK to use STL in Dart VM.
+      // However, std::numeric_limits<T>::min() and max() are harmless
+      // and worthwhile exception from this rule.
+      if (x == std::numeric_limits<T>::min()) {
+        return std::numeric_limits<T>::max();
+      }
+      return -x;
+    }
     return x;
   }
 
@@ -77,7 +103,40 @@ class Utils {
   }
 
   static uintptr_t RoundUpToPowerOfTwo(uintptr_t x);
-  static int CountOneBits(uint32_t x);
+
+  static int CountOneBits32(uint32_t x) {
+    // Apparently there are x64 chips without popcount.
+#if __GNUC__ && !defined(HOST_ARCH_IA32) && !defined(HOST_ARCH_X64)
+    return __builtin_popcount(x);
+#else
+    // Implementation is from "Hacker's Delight" by Henry S. Warren, Jr.,
+    // figure 5-2, page 66, where the function is called pop.
+    x = x - ((x >> 1) & 0x55555555);
+    x = (x & 0x33333333) + ((x >> 2) & 0x33333333);
+    x = (x + (x >> 4)) & 0x0F0F0F0F;
+    x = x + (x >> 8);
+    x = x + (x >> 16);
+    return static_cast<int>(x & 0x0000003F);
+#endif
+  }
+
+  static int CountOneBits64(uint64_t x) {
+    // Apparently there are x64 chips without popcount.
+#if __GNUC__ && !defined(HOST_ARCH_IA32) && !defined(HOST_ARCH_X64)
+    return __builtin_popcountll(x);
+#else
+    return CountOneBits32(static_cast<uint32_t>(x)) +
+           CountOneBits32(static_cast<uint32_t>(x >> 32));
+#endif
+  }
+
+  static int CountOneBitsWord(uword x) {
+#ifdef ARCH_IS_64_BIT
+    return CountOneBits64(x);
+#else
+    return CountOneBits32(x);
+#endif
+  }
 
   static int HighestBit(int64_t v);
 
@@ -183,8 +242,42 @@ class Utils {
            ((b < 0) && (a > (kMaxInt64 + b)));
   }
 
+  // Adds two int64_t values with wrapping around
+  // (two's complement arithmetic).
+  static inline int64_t AddWithWrapAround(int64_t a, int64_t b) {
+    // Avoid undefined behavior by doing arithmetic in the unsigned type.
+    return static_cast<int64_t>(static_cast<uint64_t>(a) +
+                                static_cast<uint64_t>(b));
+  }
 
-  // Utility functions for converting values from host endianess to
+  // Subtracts two int64_t values with wrapping around
+  // (two's complement arithmetic).
+  static inline int64_t SubWithWrapAround(int64_t a, int64_t b) {
+    // Avoid undefined behavior by doing arithmetic in the unsigned type.
+    return static_cast<int64_t>(static_cast<uint64_t>(a) -
+                                static_cast<uint64_t>(b));
+  }
+
+  // Multiplies two int64_t values with wrapping around
+  // (two's complement arithmetic).
+  static inline int64_t MulWithWrapAround(int64_t a, int64_t b) {
+    // Avoid undefined behavior by doing arithmetic in the unsigned type.
+    return static_cast<int64_t>(static_cast<uint64_t>(a) *
+                                static_cast<uint64_t>(b));
+  }
+
+  // Shifts int64_t value left. Supports any non-negative number of bits and
+  // silently discards shifted out bits.
+  static inline int64_t ShiftLeftWithTruncation(int64_t a, int64_t b) {
+    ASSERT(b >= 0);
+    if (b >= kBitsPerInt64) {
+      return 0;
+    }
+    // Avoid undefined behavior by doing arithmetic in the unsigned type.
+    return static_cast<int64_t>(static_cast<uint64_t>(a) << b);
+  }
+
+  // Utility functions for converting values from host endianness to
   // big or little endian values.
   static uint16_t HostToBigEndian16(uint16_t host_value);
   static uint32_t HostToBigEndian32(uint32_t host_value);
@@ -193,8 +286,25 @@ class Utils {
   static uint32_t HostToLittleEndian32(uint32_t host_value);
   static uint64_t HostToLittleEndian64(uint64_t host_value);
 
+  static uint32_t BigEndianToHost32(uint32_t be_value) {
+    // Going between Host <-> BE is the same operation for all practical
+    // purposes.
+    return HostToBigEndian32(be_value);
+  }
+
   static bool DoublesBitEqual(const double a, const double b) {
     return bit_cast<int64_t, double>(a) == bit_cast<int64_t, double>(b);
+  }
+
+  // A double-to-integer conversion that avoids undefined behavior.
+  // Out of range values and NaNs are converted to minimum value
+  // for type T.
+  template <typename T>
+  static T SafeDoubleToInt(double v) {
+    const double min = static_cast<double>(std::numeric_limits<T>::min());
+    const double max = static_cast<double>(std::numeric_limits<T>::max());
+    return (min <= v && v <= max) ? static_cast<T>(v)
+                                  : std::numeric_limits<T>::min();
   }
 
   // dart2js represents integers as double precision floats, which can
@@ -203,7 +313,55 @@ class Utils {
     return ((-0x20000000000000LL <= value) && (value <= 0x20000000000000LL));
   }
 
+  // The lowest n bits are 1, the others are 0.
+  static uword NBitMask(uint32_t n) {
+    ASSERT(n <= kBitsPerWord);
+    if (n == kBitsPerWord) {
+#if defined(TARGET_ARCH_X64)
+      return 0xffffffffffffffffll;
+#else
+      return 0xffffffff;
+#endif
+    }
+    return (1ll << n) - 1;
+  }
+
+  static word SignedNBitMask(uint32_t n) {
+    uword mask = NBitMask(n);
+    return bit_cast<word>(mask);
+  }
+
+  static uword Bit(uint32_t n) {
+    ASSERT(n < kBitsPerWord);
+    uword bit = 1;
+    return bit << n;
+  }
+
   static char* StrError(int err, char* buffer, size_t bufsize);
+
+  // Not all platforms support strndup.
+  static char* StrNDup(const char* s, intptr_t n);
+  static intptr_t StrNLen(const char* s, intptr_t n);
+
+  // Print formatted output info a buffer.
+  //
+  // Does not write more than size characters (including the trailing '\0').
+  //
+  // Returns the number of characters (excluding the trailing '\0')
+  // that would been written if the buffer had been big enough.  If
+  // the return value is greater or equal than the given size then the
+  // output has been truncated.  The return value is never negative.
+  //
+  // The buffer will always be terminated by a '\0', unless the buffer
+  // is of size 0.  The buffer might be NULL if the size is 0.
+  //
+  // This specification conforms to C99 standard which is implemented
+  // by glibc 2.1+ with one exception: the C99 standard allows a
+  // negative return value.  We will terminate the vm rather than let
+  // that occur.
+  static int SNPrint(char* str, size_t size, const char* format, ...)
+      PRINTF_ATTRIBUTE(3, 4);
+  static int VSNPrint(char* str, size_t size, const char* format, va_list args);
 };
 
 }  // namespace dart

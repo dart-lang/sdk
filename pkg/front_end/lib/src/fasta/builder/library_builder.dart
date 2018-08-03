@@ -6,31 +6,35 @@ library fasta.library_builder;
 
 import '../combinator.dart' show Combinator;
 
-import '../errors.dart' show InputError, internalError, printUnexpected;
+import '../problems.dart' show internalProblem, unsupported;
 
 import '../export.dart' show Export;
 
 import '../loader.dart' show Loader;
 
-import '../messages.dart' show nit, warning;
-
-import '../util/relativize.dart' show relativizeUri;
+import '../messages.dart'
+    show
+        LocatedMessage,
+        Message,
+        templateInternalProblemConstructorNotFound,
+        templateInternalProblemNotFoundIn,
+        templateInternalProblemPrivateConstructorAccess;
 
 import 'builder.dart'
     show
-        Builder,
         ClassBuilder,
-        DynamicTypeBuilder,
+        Declaration,
+        ModifierBuilder,
         PrefixBuilder,
         Scope,
         ScopeBuilder,
-        TypeBuilder,
-        VoidTypeBuilder;
+        TypeBuilder;
 
-abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
+abstract class LibraryBuilder<T extends TypeBuilder, R>
+    extends ModifierBuilder {
   final Scope scope;
 
-  final Scope exports;
+  final Scope exportScope;
 
   final ScopeBuilder scopeBuilder;
 
@@ -38,68 +42,73 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
 
   final List<Export> exporters = <Export>[];
 
-  final List<InputError> compileTimeErrors = <InputError>[];
-
-  final Uri fileUri;
-
-  final String relativeFileUri;
-
   LibraryBuilder partOfLibrary;
 
-  LibraryBuilder(Uri fileUri, this.scope, this.exports)
-      : fileUri = fileUri,
-        relativeFileUri = relativizeUri(fileUri),
-        scopeBuilder = new ScopeBuilder(scope),
-        exportScopeBuilder = new ScopeBuilder(exports),
+  bool mayImplementRestrictedTypes = false;
+
+  LibraryBuilder(Uri fileUri, this.scope, this.exportScope)
+      : scopeBuilder = new ScopeBuilder(scope),
+        exportScopeBuilder = new ScopeBuilder(exportScope),
         super(null, -1, fileUri);
+
+  @override
+  Declaration get parent => null;
+
+  bool get isPart => false;
+
+  @override
+  String get debugName => "LibraryBuilder";
 
   Loader get loader;
 
+  @override
+  int get modifiers => 0;
+
+  @override
+  R get target;
+
+  bool get disableTypeInference => true;
+
   Uri get uri;
 
-  Builder addBuilder(String name, Builder builder, int charOffset);
+  Declaration addBuilder(String name, Declaration declaration, int charOffset);
 
   void addExporter(
       LibraryBuilder exporter, List<Combinator> combinators, int charOffset) {
     exporters.add(new Export(exporter, this, combinators, charOffset));
   }
 
-  void addCompileTimeError(int charOffset, Object message,
-      {Uri fileUri, bool silent: false}) {
+  /// See `Loader.addCompileTimeError` for an explanation of the
+  /// arguments passed to this method.
+  ///
+  /// If [fileUri] is null, it defaults to `this.fileUri`.
+  void addCompileTimeError(
+      Message message, int charOffset, int length, Uri fileUri,
+      {bool wasHandled: false, List<LocatedMessage> context}) {
     fileUri ??= this.fileUri;
-    if (!silent) {
-      printUnexpected(fileUri, charOffset, message);
-    }
-    compileTimeErrors.add(new InputError(fileUri, charOffset, message));
+    loader.addCompileTimeError(message, charOffset, length, fileUri,
+        wasHandled: wasHandled, context: context);
   }
 
-  void addWarning(int charOffset, Object message,
-      {Uri fileUri, bool silent: false}) {
+  /// Add a problem with a severity determined by the severity of the message.
+  void addProblem(Message message, int charOffset, int length, Uri fileUri,
+      {List<LocatedMessage> context}) {
     fileUri ??= this.fileUri;
-    if (!silent) {
-      warning(fileUri, charOffset, message);
-    }
-  }
-
-  void addNit(int charOffset, Object message,
-      {Uri fileUri, bool silent: false}) {
-    fileUri ??= this.fileUri;
-    if (!silent) {
-      nit(fileUri, charOffset, message);
-    }
+    loader.addProblem(message, charOffset, length, fileUri, context: context);
   }
 
   /// Returns true if the export scope was modified.
-  bool addToExportScope(String name, Builder member) {
+  bool addToExportScope(String name, Declaration member) {
     if (name.startsWith("_")) return false;
     if (member is PrefixBuilder) return false;
-    Map<String, Builder> map =
-        member.isSetter ? exports.setters : exports.local;
-    Builder existing = map[name];
+    Map<String, Declaration> map =
+        member.isSetter ? exportScope.setters : exportScope.local;
+    Declaration existing = map[name];
     if (existing == member) return false;
     if (existing != null) {
-      Builder result =
-          buildAmbiguousBuilder(name, existing, member, -1, isExport: true);
+      Declaration result = computeAmbiguousDeclaration(
+          name, existing, member, -1,
+          isExport: true);
       map[name] = result;
       return result != existing;
     } else {
@@ -108,31 +117,50 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
     return true;
   }
 
-  void addToScope(String name, Builder member, int charOffset, bool isImport);
+  void addToScope(
+      String name, Declaration member, int charOffset, bool isImport);
 
-  Builder buildAmbiguousBuilder(
-      String name, Builder builder, Builder other, int charOffset,
+  Declaration computeAmbiguousDeclaration(
+      String name, Declaration declaration, Declaration other, int charOffset,
       {bool isExport: false, bool isImport: false});
 
-  int finishStaticInvocations() => 0;
+  int finishDeferredLoadTearoffs() => 0;
+
+  int finishForwarders() => 0;
 
   int finishNativeMethods() => 0;
 
-  /// Looks up [constructorName] in the class named [className]. It's an error
-  /// if no such class is exported by this library, or if the class doesn't
-  /// have a matching constructor (or factory).
+  int finishPatchMethods() => 0;
+
+  /// Looks up [constructorName] in the class named [className].
+  ///
+  /// The class is looked up in this library's export scope unless
+  /// [bypassLibraryPrivacy] is true, in which case it is looked up in the
+  /// library scope of this library.
+  ///
+  /// It is an error if no such class is found, or if the class doesn't have a
+  /// matching constructor (or factory).
   ///
   /// If [constructorName] is null or the empty string, it's assumed to be an
-  /// unnamed constructor.
-  Builder getConstructor(String className,
-      {String constructorName, bool isPrivate: false}) {
+  /// unnamed constructor. it's an error if [constructorName] starts with
+  /// `"_"`, and [bypassLibraryPrivacy] is false.
+  Declaration getConstructor(String className,
+      {String constructorName, bool bypassLibraryPrivacy: false}) {
     constructorName ??= "";
-    Builder cls = (isPrivate ? scope : exports).lookup(className, -1, null);
+    if (constructorName.startsWith("_") && !bypassLibraryPrivacy) {
+      return internalProblem(
+          templateInternalProblemPrivateConstructorAccess
+              .withArguments(constructorName),
+          -1,
+          null);
+    }
+    Declaration cls = (bypassLibraryPrivacy ? scope : exportScope)
+        .lookup(className, -1, null);
     if (cls is ClassBuilder) {
       // TODO(ahe): This code is similar to code in `endNewExpression` in
       // `body_builder.dart`, try to share it.
-      Builder constructor =
-          cls.findConstructorOrFactory(constructorName, -1, null);
+      Declaration constructor =
+          cls.findConstructorOrFactory(constructorName, -1, null, this);
       if (constructor == null) {
         // Fall-through to internal error below.
       } else if (constructor.isConstructor) {
@@ -143,29 +171,51 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
         return constructor;
       }
     }
-    throw internalError("Internal error: No constructor named"
-        " '$className::$constructorName' in '$uri'.");
+    throw internalProblem(
+        templateInternalProblemConstructorNotFound.withArguments(
+            "$className::$constructorName", uri),
+        -1,
+        null);
   }
 
-  int finishTypeVariables(ClassBuilder object) => 0;
+  int finishTypeVariables(ClassBuilder object, TypeBuilder dynamicType) => 0;
 
-  void becomeCoreLibrary(dynamicType, voidType) {
-    addBuilder("dynamic",
-        new DynamicTypeBuilder<T, dynamic>(dynamicType, this, -1), -1);
-    addBuilder("void", new VoidTypeBuilder<T, dynamic>(voidType, this, -1), -1);
+  /// This method instantiates type parameters to their bounds in some cases
+  /// where they were omitted by the programmer and not provided by the type
+  /// inference.  The method returns the number of distinct type variables
+  /// that were instantiated in this library.
+  int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder bottomType,
+      ClassBuilder objectClass) {
+    return 0;
   }
 
-  void forEach(void f(String name, Builder builder)) {
-    scope.forEach(f);
+  void becomeCoreLibrary(dynamicType);
+
+  void forEach(void f(String name, Declaration declaration)) {
+    scope.forEach((String name, Declaration declaration) {
+      if (declaration.parent == this) {
+        f(name, declaration);
+      }
+    });
   }
 
   /// Don't use for scope lookup. Only use when an element is known to exist
   /// (and not a setter).
-  Builder operator [](String name) {
-    return scope.local[name] ?? internalError("Not found: '$name'.");
+  Declaration operator [](String name) {
+    return scope.local[name] ??
+        internalProblem(
+            templateInternalProblemNotFoundIn.withArguments(name, "$fileUri"),
+            -1,
+            fileUri);
   }
 
-  Builder lookup(String name, int charOffset, Uri fileUri) {
+  Declaration lookup(String name, int charOffset, Uri fileUri) {
     return scope.lookup(name, charOffset, fileUri);
+  }
+
+  /// If this is a patch library, apply its patches to [origin].
+  void applyPatches() {
+    if (!isPatch) return;
+    unsupported("${runtimeType}.applyPatches", -1, fileUri);
   }
 }

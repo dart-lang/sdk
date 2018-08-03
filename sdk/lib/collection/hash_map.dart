@@ -48,7 +48,7 @@ abstract class HashMap<K, V> implements Map<K, V> {
    * for keys in order to place them in the hash table. If it is omitted, the
    * key's own [Object.hashCode] is used.
    *
-   * If using methods like [[]], [remove] and [containsKey] together
+   * If using methods like [operator []], [remove] and [containsKey] together
    * with a custom equality and hashcode, an extra `isValidKey` function
    * can be supplied. This function is called before calling [equals] or
    * [hashCode] with an argument that may not be a [K] instance, and if the
@@ -100,14 +100,22 @@ abstract class HashMap<K, V> implements Map<K, V> {
 
   /**
    * Creates a [HashMap] that contains all key/value pairs of [other].
+   *
+   * The keys must all be instances of [K] and the values of [V].
+   * The [other] map itself can have any type.
    */
   factory HashMap.from(Map other) {
-    HashMap<K, V> result = new HashMap<K, V>();
+    Map<K, V> result = new HashMap<K, V>();
     other.forEach((k, v) {
-      result[k as Object/*=K*/] = v as Object/*=V*/;
+      result[k] = v;
     });
     return result;
   }
+
+  /**
+   * Creates a [HashMap] that contains all key/value pairs of [other].
+   */
+  factory HashMap.of(Map<K, V> other) => new HashMap<K, V>()..addAll(other);
 
   /**
    * Creates a [HashMap] where the keys and values are computed from the
@@ -124,8 +132,8 @@ abstract class HashMap<K, V> implements Map<K, V> {
    */
   factory HashMap.fromIterable(Iterable iterable,
       {K key(element), V value(element)}) {
-    HashMap<K, V> map = new HashMap<K, V>();
-    Maps._fillMapWithMappedIterable(map, iterable, key, value);
+    Map<K, V> map = new HashMap<K, V>();
+    MapBase._fillMapWithMappedIterable(map, iterable, key, value);
     return map;
   }
 
@@ -141,8 +149,8 @@ abstract class HashMap<K, V> implements Map<K, V> {
    * It is an error if the two [Iterable]s don't have the same length.
    */
   factory HashMap.fromIterables(Iterable<K> keys, Iterable<V> values) {
-    HashMap<K, V> map = new HashMap<K, V>();
-    Maps._fillMapWithIterables(map, keys, values);
+    Map<K, V> map = new HashMap<K, V>();
+    MapBase._fillMapWithIterables(map, keys, values);
     return map;
   }
 }

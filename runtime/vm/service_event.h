@@ -6,7 +6,7 @@
 #define RUNTIME_VM_SERVICE_EVENT_H_
 
 #include "vm/globals.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 
 namespace dart {
 

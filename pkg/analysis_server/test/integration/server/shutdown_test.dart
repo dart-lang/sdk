@@ -12,6 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ShutdownTest);
+    defineReflectiveTests(ShutdownTest_UseCFE);
   });
 }
 
@@ -28,4 +29,10 @@ class ShutdownTest extends AbstractAnalysisServerIntegrationTest {
       });
     });
   }
+}
+
+@reflectiveTest
+class ShutdownTest_UseCFE extends ShutdownTest {
+  @override
+  bool get useCFE => true;
 }

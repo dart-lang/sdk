@@ -11,7 +11,7 @@ import 'package:kernel/ast.dart' show AsyncMarker, ProcedureKind;
 
 import 'builder.dart'
     show
-        Builder,
+        Declaration,
         FormalParameterBuilder,
         LibraryBuilder,
         MemberBuilder,
@@ -44,6 +44,8 @@ abstract class ProcedureBuilder<T extends TypeBuilder> extends MemberBuilder {
       int charOffset)
       : super(compilationUnit, charOffset);
 
+  String get debugName => "ProcedureBuilder";
+
   AsyncMarker get asyncModifier;
 
   ProcedureKind get kind;
@@ -66,13 +68,39 @@ abstract class ProcedureBuilder<T extends TypeBuilder> extends MemberBuilder {
   /// Language Specifiction, 4th ed, section 9.2.
   Scope computeFormalParameterScope(Scope parent) {
     if (formals == null) return parent;
-    Map<String, Builder> local = <String, Builder>{};
+    Map<String, Declaration> local = <String, Declaration>{};
     for (FormalParameterBuilder formal in formals) {
       if (!isConstructor || !formal.hasThis) {
         local[formal.name] = formal;
       }
     }
-    return new Scope(local, null, parent, isModifiable: false);
+    return new Scope(local, null, parent, "formal parameter",
+        isModifiable: false);
+  }
+
+  Scope computeFormalParameterInitializerScope(Scope parent) {
+    // From
+    // [dartLangSpec.tex](../../../../../../docs/language/dartLangSpec.tex) at
+    // revision 94b23d3b125e9d246e07a2b43b61740759a0dace:
+    //
+    // When the formal parameter list of a non-redirecting generative
+    // constructor contains any initializing formals, a new scope is
+    // introduced, the _formal parameter initializer scope_, which is the
+    // current scope of the initializer list of the constructor, and which is
+    // enclosed in the scope where the constructor is declared.  Each
+    // initializing formal in the formal parameter list introduces a final
+    // local variable into the formal parameter initializer scope, but not into
+    // the formal parameter scope; every other formal parameter introduces a
+    // local variable into both the formal parameter scope and the formal
+    // parameter initializer scope.
+
+    if (formals == null) return parent;
+    Map<String, Declaration> local = <String, Declaration>{};
+    for (FormalParameterBuilder formal in formals) {
+      local[formal.name] = formal.forFormalParameterInitializerScope();
+    }
+    return new Scope(local, null, parent, "formal parameter initializer",
+        isModifiable: false);
   }
 
   /// This scope doesn't correspond to any scope specified in the Dart
@@ -80,10 +108,18 @@ abstract class ProcedureBuilder<T extends TypeBuilder> extends MemberBuilder {
   /// to support generic methods.
   Scope computeTypeParameterScope(Scope parent) {
     if (typeVariables == null) return parent;
-    Map<String, Builder> local = <String, Builder>{};
+    Map<String, Declaration> local = <String, Declaration>{};
     for (TypeVariableBuilder variable in typeVariables) {
       local[variable.name] = variable;
     }
-    return new Scope(local, null, parent, isModifiable: false);
+    return new Scope(local, null, parent, "type parameter",
+        isModifiable: false);
+  }
+
+  FormalParameterBuilder getFormal(String name) {
+    for (FormalParameterBuilder formal in formals) {
+      if (formal.name == name) return formal;
+    }
+    return null;
   }
 }

@@ -1,0 +1,8 @@
+library;
+import self as self;
+
+static method main() → dynamic
+  return self::test();
+static method test() → dynamic {
+  invalid-type x = null;
+}

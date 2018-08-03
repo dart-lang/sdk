@@ -13,7 +13,7 @@ import bot_utils
 
 utils = bot_utils.GetUtils()
 
-VERSION_BUILDER = r'version-checker'
+VERSION_BUILDER = r'versionchecker'
 
 def VersionConfig(name, is_buildbot):
   version_pattern = re.match(VERSION_BUILDER, name)

@@ -18,7 +18,7 @@ void testeeDo() {
   inspect(new Point(3, 4));
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     Completer completer = new Completer();
     var stream = await isolate.vm.getEventStream(VM.kDebugStream);
@@ -32,7 +32,7 @@ var tests = [
     });
 
     // Start listening for events first.
-    await isolate.rootLibrary.evaluate('testeeDo();');
+    await isolate.rootLibrary.evaluate('testeeDo()');
     return completer.future;
   },
 ];

@@ -1,0 +1,11 @@
+library private_module;
+import self as self;
+import "dart:core" as core;
+
+abstract class Fisk extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract method _hest() → void;
+}
+static method main() → dynamic {}

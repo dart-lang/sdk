@@ -1,0 +1,22 @@
+// Errors:
+//
+// pkg/front_end/testcases/inference_new/strongly_connected_component.dart:19:67: Error: Can't infer the type of 'y': circularity found during type inference.
+// Specify the type explicitly.
+// var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ y = /*@returnType=dynamic*/ () =>
+//                                                                   ^
+//
+// pkg/front_end/testcases/inference_new/strongly_connected_component.dart:17:67: Error: Can't infer the type of 'x': circularity found during type inference.
+// Specify the type explicitly.
+// var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ x = /*@returnType=dynamic*/ () =>
+//                                                                   ^
+
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field dynamic x = () → dynamic => self::f() ?{dynamic} self::y : self::z;
+static field dynamic y = () → dynamic => self::x;
+static field () → dynamic z = () → dynamic => self::x;
+static method f() → core::bool
+  return null;
+static method main() → dynamic {}

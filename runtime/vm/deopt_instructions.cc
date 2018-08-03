@@ -2,14 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/deopt_instructions.h"
 
-#include "vm/assembler.h"
 #include "vm/code_patcher.h"
-#include "vm/compiler.h"
-#include "vm/disassembler.h"
-#include "vm/intermediate_language.h"
-#include "vm/locations.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/assembler/disassembler.h"
+#include "vm/compiler/backend/il.h"
+#include "vm/compiler/backend/locations.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/parser.h"
 #include "vm/stack_frame.h"
 #include "vm/thread.h"
@@ -23,7 +25,6 @@ DEFINE_FLAG(bool,
             "Compress the size of the deoptimization info for optimized code.");
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
-
 
 DeoptContext::DeoptContext(const StackFrame* frame,
                            const Code& code,
@@ -73,7 +74,7 @@ DeoptContext::DeoptContext(const StackFrame* frame,
       function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
 
 // The fixed size section of the (fake) Dart frame called via a stub by the
-// optimized function contains FP, PP (ARM and MIPS only), PC-marker and
+// optimized function contains FP, PP (ARM only), PC-marker and
 // return-address. This section is copied as well, so that its contained
 // values can be updated before returning to the deoptimized function.
 // Note: on DBC stack grows upwards unlike on all other architectures.
@@ -132,7 +133,6 @@ DeoptContext::DeoptContext(const StackFrame* frame,
   }
 }
 
-
 DeoptContext::~DeoptContext() {
   // Delete memory for source frame and registers.
   if (source_frame_is_allocated_) {
@@ -183,7 +183,6 @@ DeoptContext::~DeoptContext() {
 #endif  // !PRODUCT
 }
 
-
 void DeoptContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&object_pool_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&deopt_info_));
@@ -198,7 +197,6 @@ void DeoptContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   }
 }
 
-
 intptr_t DeoptContext::DestStackAdjustment() const {
   return dest_frame_size_ - kDartFrameFixedSize - num_args_
 #if !defined(TARGET_ARCH_DBC)
@@ -206,7 +204,6 @@ intptr_t DeoptContext::DestStackAdjustment() const {
 #endif
          - kParamEndSlotFromFp;
 }
-
 
 intptr_t DeoptContext::GetSourceFp() const {
 #if !defined(TARGET_ARCH_DBC)
@@ -217,7 +214,6 @@ intptr_t DeoptContext::GetSourceFp() const {
                        kSavedCallerFpSlotFromFp];
 #endif
 }
-
 
 intptr_t DeoptContext::GetSourcePp() const {
 #if !defined(TARGET_ARCH_DBC)
@@ -230,7 +226,6 @@ intptr_t DeoptContext::GetSourcePp() const {
 #endif
 }
 
-
 intptr_t DeoptContext::GetSourcePc() const {
 #if !defined(TARGET_ARCH_DBC)
   return source_frame_[source_frame_size_ - num_args_ + kSavedPcSlotFromSp];
@@ -240,16 +235,13 @@ intptr_t DeoptContext::GetSourcePc() const {
 #endif
 }
 
-
 intptr_t DeoptContext::GetCallerFp() const {
   return caller_fp_;
 }
 
-
 void DeoptContext::SetCallerFp(intptr_t caller_fp) {
   caller_fp_ = caller_fp;
 }
-
 
 static bool IsObjectInstruction(DeoptInstr::Kind kind) {
   switch (kind) {
@@ -283,7 +275,6 @@ static bool IsObjectInstruction(DeoptInstr::Kind kind) {
   UNREACHABLE();
   return false;
 }
-
 
 void DeoptContext::FillDestFrame() {
   const Code& code = Code::Handle(code_);
@@ -344,7 +335,6 @@ void DeoptContext::FillDestFrame() {
   }
 }
 
-
 intptr_t* DeoptContext::CatchEntryState(intptr_t num_vars) {
   const Code& code = Code::Handle(code_);
   const TypedData& deopt_info = TypedData::Handle(deopt_info_);
@@ -380,7 +370,6 @@ intptr_t* DeoptContext::CatchEntryState(intptr_t num_vars) {
   return state;
 }
 
-
 static void FillDeferredSlots(DeoptContext* deopt_context,
                               DeferredSlot** slot_list) {
   DeferredSlot* slot = *slot_list;
@@ -395,7 +384,6 @@ static void FillDeferredSlots(DeoptContext* deopt_context,
     delete current;
   }
 }
-
 
 // Materializes all deferred objects.  Returns the total number of
 // artificial arguments used during deoptimization.
@@ -429,15 +417,14 @@ intptr_t DeoptContext::MaterializeDeferredObjects() {
     String& line_string = String::Handle(script.GetLine(line));
     THR_Print("  Function: %s\n", top_function.ToFullyQualifiedCString());
     char line_buffer[80];
-    OS::SNPrint(line_buffer, sizeof(line_buffer), "  Line %" Pd ": '%s'", line,
-                line_string.ToCString());
+    Utils::SNPrint(line_buffer, sizeof(line_buffer), "  Line %" Pd ": '%s'",
+                   line, line_string.ToCString());
     THR_Print("%s\n", line_buffer);
     THR_Print("  Deopt args: %" Pd "\n", deopt_arg_count);
   }
 
   return deopt_arg_count;
 }
-
 
 RawArray* DeoptContext::DestFrameAsArray() {
   ASSERT(dest_frame_ != NULL && dest_frame_is_allocated_);
@@ -449,7 +436,6 @@ RawArray* DeoptContext::DestFrameAsArray() {
   }
   return dest_array.raw();
 }
-
 
 // Deoptimization instruction creating return address using function and
 // deopt-id stored at 'object_table_index'.
@@ -499,7 +485,6 @@ class DeoptRetAddressInstr : public DeoptInstr {
   DISALLOW_COPY_AND_ASSIGN(DeoptRetAddressInstr);
 };
 
-
 // Deoptimization instruction moving a constant stored at 'object_table_index'.
 class DeoptConstantInstr : public DeoptInstr {
  public:
@@ -532,7 +517,6 @@ class DeoptConstantInstr : public DeoptInstr {
 
   DISALLOW_COPY_AND_ASSIGN(DeoptConstantInstr);
 };
-
 
 // Deoptimization instruction moving value from optimized frame at
 // 'source_index' to specified slots in the unoptimized frame.
@@ -567,7 +551,6 @@ class DeoptWordInstr : public DeoptInstr {
   DISALLOW_COPY_AND_ASSIGN(DeoptWordInstr);
 };
 
-
 class DeoptIntegerInstrBase : public DeoptInstr {
  public:
   DeoptIntegerInstrBase() {}
@@ -588,7 +571,6 @@ class DeoptIntegerInstrBase : public DeoptInstr {
  private:
   DISALLOW_COPY_AND_ASSIGN(DeoptIntegerInstrBase);
 };
-
 
 class DeoptMintPairInstr : public DeoptIntegerInstrBase {
  public:
@@ -628,7 +610,6 @@ class DeoptMintPairInstr : public DeoptIntegerInstrBase {
   DISALLOW_COPY_AND_ASSIGN(DeoptMintPairInstr);
 };
 
-
 template <DeoptInstr::Kind K, typename T>
 class DeoptIntInstr : public DeoptIntegerInstrBase {
  public:
@@ -653,11 +634,9 @@ class DeoptIntInstr : public DeoptIntegerInstrBase {
   DISALLOW_COPY_AND_ASSIGN(DeoptIntInstr);
 };
 
-
 typedef DeoptIntInstr<DeoptInstr::kUint32, uint32_t> DeoptUint32Instr;
 typedef DeoptIntInstr<DeoptInstr::kInt32, int32_t> DeoptInt32Instr;
 typedef DeoptIntInstr<DeoptInstr::kMint, int64_t> DeoptMintInstr;
-
 
 template <DeoptInstr::Kind K, typename Type, typename RawObjectType>
 class DeoptFpuInstr : public DeoptInstr {
@@ -740,7 +719,6 @@ class DeoptPcMarkerInstr : public DeoptInstr {
   DISALLOW_COPY_AND_ASSIGN(DeoptPcMarkerInstr);
 };
 
-
 // Deoptimization instruction creating a pool pointer for the code of
 // function at 'object_table_index'.
 class DeoptPpInstr : public DeoptInstr {
@@ -770,7 +748,6 @@ class DeoptPpInstr : public DeoptInstr {
   DISALLOW_COPY_AND_ASSIGN(DeoptPpInstr);
 };
 
-
 // Deoptimization instruction copying the caller saved FP from optimized frame.
 class DeoptCallerFpInstr : public DeoptInstr {
  public:
@@ -789,7 +766,6 @@ class DeoptCallerFpInstr : public DeoptInstr {
   DISALLOW_COPY_AND_ASSIGN(DeoptCallerFpInstr);
 };
 
-
 // Deoptimization instruction copying the caller saved PP from optimized frame.
 class DeoptCallerPpInstr : public DeoptInstr {
  public:
@@ -805,7 +781,6 @@ class DeoptCallerPpInstr : public DeoptInstr {
  private:
   DISALLOW_COPY_AND_ASSIGN(DeoptCallerPpInstr);
 };
-
 
 // Deoptimization instruction copying the caller return address from optimized
 // frame.
@@ -823,7 +798,6 @@ class DeoptCallerPcInstr : public DeoptInstr {
  private:
   DISALLOW_COPY_AND_ASSIGN(DeoptCallerPcInstr);
 };
-
 
 // Write reference to a materialized object with the given index into the
 // stack slot.
@@ -850,7 +824,6 @@ class DeoptMaterializedObjectRefInstr : public DeoptInstr {
 
   DISALLOW_COPY_AND_ASSIGN(DeoptMaterializedObjectRefInstr);
 };
-
 
 // Materialize object with the given number of fields.
 // Arguments for materialization (class and field-value pairs) are pushed
@@ -880,7 +853,6 @@ class DeoptMaterializeObjectInstr : public DeoptInstr {
   DISALLOW_COPY_AND_ASSIGN(DeoptMaterializeObjectInstr);
 };
 
-
 uword DeoptInstr::GetRetAddress(DeoptInstr* instr,
                                 const ObjectPool& object_table,
                                 Code* code) {
@@ -908,7 +880,6 @@ uword DeoptInstr::GetRetAddress(DeoptInstr* instr,
   ASSERT(res != 0);
   return res;
 }
-
 
 DeoptInstr* DeoptInstr::Create(intptr_t kind_as_int, intptr_t source_index) {
   Kind kind = static_cast<Kind>(kind_as_int);
@@ -954,7 +925,6 @@ DeoptInstr* DeoptInstr::Create(intptr_t kind_as_int, intptr_t source_index) {
   return NULL;
 }
 
-
 const char* DeoptInstr::KindToCString(Kind kind) {
   switch (kind) {
     case kWord:
@@ -997,7 +967,6 @@ const char* DeoptInstr::KindToCString(Kind kind) {
   return NULL;
 }
 
-
 class DeoptInfoBuilder::TrieNode : public ZoneAllocated {
  public:
   // Construct the root node representing the implicit "shared" terminator
@@ -1029,7 +998,6 @@ class DeoptInfoBuilder::TrieNode : public ZoneAllocated {
   GrowableArray<TrieNode*> children_;
 };
 
-
 DeoptInfoBuilder::DeoptInfoBuilder(Zone* zone,
                                    const intptr_t num_args,
                                    Assembler* assembler)
@@ -1042,19 +1010,16 @@ DeoptInfoBuilder::DeoptInfoBuilder(Zone* zone,
       frame_start_(-1),
       materializations_() {}
 
-
 intptr_t DeoptInfoBuilder::FindOrAddObjectInTable(const Object& obj) const {
   return assembler_->object_pool_wrapper().FindObject(obj);
 }
 
-
 intptr_t DeoptInfoBuilder::CalculateStackIndex(
     const Location& source_loc) const {
-  return source_loc.stack_index() < 0
-             ? source_loc.stack_index() + num_args_
-             : source_loc.stack_index() + num_args_ + kDartFrameFixedSize;
+  intptr_t index = -VariableIndexForFrameSlot(source_loc.stack_index());
+  return index < 0 ? index + num_args_
+                   : index + num_args_ + kDartFrameFixedSize;
 }
-
 
 CpuRegisterSource DeoptInfoBuilder::ToCpuRegisterSource(const Location& loc) {
   if (loc.IsRegister()) {
@@ -1065,7 +1030,6 @@ CpuRegisterSource DeoptInfoBuilder::ToCpuRegisterSource(const Location& loc) {
                              CalculateStackIndex(loc));
   }
 }
-
 
 FpuRegisterSource DeoptInfoBuilder::ToFpuRegisterSource(
     const Location& loc,
@@ -1094,7 +1058,6 @@ void DeoptInfoBuilder::AddReturnAddress(const Function& function,
                         DeoptRetAddressInstr(object_table_index, deopt_id));
 }
 
-
 void DeoptInfoBuilder::AddPcMarker(const Function& function,
                                    intptr_t dest_index) {
   intptr_t object_table_index = FindOrAddObjectInTable(function);
@@ -1102,13 +1065,11 @@ void DeoptInfoBuilder::AddPcMarker(const Function& function,
   instructions_.Add(new (zone()) DeoptPcMarkerInstr(object_table_index));
 }
 
-
 void DeoptInfoBuilder::AddPp(const Function& function, intptr_t dest_index) {
   intptr_t object_table_index = FindOrAddObjectInTable(function);
   ASSERT(dest_index == FrameSize());
   instructions_.Add(new (zone()) DeoptPpInstr(object_table_index));
 }
-
 
 void DeoptInfoBuilder::AddCopy(Value* value,
                                const Location& source_loc,
@@ -1136,7 +1097,7 @@ void DeoptInfoBuilder::AddCopy(Value* value,
         deopt_instr =
             new (zone()) DeoptWordInstr(ToCpuRegisterSource(source_loc));
         break;
-      case kUnboxedMint: {
+      case kUnboxedInt64: {
         if (source_loc.IsPairLocation()) {
           PairLocation* pair = source_loc.AsPairLocation();
           deopt_instr =
@@ -1183,31 +1144,26 @@ void DeoptInfoBuilder::AddCopy(Value* value,
   instructions_.Add(deopt_instr);
 }
 
-
 void DeoptInfoBuilder::AddCallerFp(intptr_t dest_index) {
   ASSERT(dest_index == FrameSize());
   instructions_.Add(new (zone()) DeoptCallerFpInstr());
 }
-
 
 void DeoptInfoBuilder::AddCallerPp(intptr_t dest_index) {
   ASSERT(dest_index == FrameSize());
   instructions_.Add(new (zone()) DeoptCallerPpInstr());
 }
 
-
 void DeoptInfoBuilder::AddCallerPc(intptr_t dest_index) {
   ASSERT(dest_index == FrameSize());
   instructions_.Add(new (zone()) DeoptCallerPcInstr());
 }
-
 
 void DeoptInfoBuilder::AddConstant(const Object& obj, intptr_t dest_index) {
   ASSERT(dest_index == FrameSize());
   intptr_t object_table_index = FindOrAddObjectInTable(obj);
   instructions_.Add(new (zone()) DeoptConstantInstr(object_table_index));
 }
-
 
 void DeoptInfoBuilder::AddMaterialization(MaterializeObjectInstr* mat) {
   const intptr_t index = FindMaterialization(mat);
@@ -1237,7 +1193,6 @@ void DeoptInfoBuilder::AddMaterialization(MaterializeObjectInstr* mat) {
   }
 }
 
-
 intptr_t DeoptInfoBuilder::EmitMaterializationArguments(intptr_t dest_index) {
   ASSERT(dest_index == kDartFrameFixedSize);
   for (intptr_t i = 0; i < materializations_.length(); i++) {
@@ -1257,7 +1212,6 @@ intptr_t DeoptInfoBuilder::EmitMaterializationArguments(intptr_t dest_index) {
   return dest_index;
 }
 
-
 intptr_t DeoptInfoBuilder::FindMaterialization(
     MaterializeObjectInstr* mat) const {
   for (intptr_t i = 0; i < materializations_.length(); i++) {
@@ -1268,13 +1222,11 @@ intptr_t DeoptInfoBuilder::FindMaterialization(
   return -1;
 }
 
-
 static uint8_t* ZoneReAlloc(uint8_t* ptr,
                             intptr_t old_size,
                             intptr_t new_size) {
   return Thread::Current()->zone()->Realloc<uint8_t>(ptr, old_size, new_size);
 }
-
 
 RawTypedData* DeoptInfoBuilder::CreateDeoptInfo(const Array& deopt_table) {
   intptr_t length = instructions_.length();
@@ -1291,7 +1243,6 @@ RawTypedData* DeoptInfoBuilder::CreateDeoptInfo(const Array& deopt_table) {
       ++suffix_length;
     }
   }
-
 
   // Allocate space for the translation.  If the shared suffix is longer
   // than one instruction, we replace it with a single suffix instruction.
@@ -1344,7 +1295,6 @@ RawTypedData* DeoptInfoBuilder::CreateDeoptInfo(const Array& deopt_table) {
   return deopt_info.raw();
 }
 
-
 intptr_t DeoptTable::SizeFor(intptr_t length) {
   return length * kEntrySize;
 }
@@ -1361,12 +1311,10 @@ void DeoptTable::SetEntry(const Array& table,
   table.SetAt(i + 2, reason);
 }
 
-
 intptr_t DeoptTable::GetLength(const Array& table) {
   ASSERT((table.Length() % kEntrySize) == 0);
   return table.Length() / kEntrySize;
 }
-
 
 void DeoptTable::GetEntry(const Array& table,
                           intptr_t index,
@@ -1379,4 +1327,111 @@ void DeoptTable::GetEntry(const Array& table,
   *reason ^= table.At(i + 2);
 }
 
+
+intptr_t DeoptInfo::FrameSize(const TypedData& packed) {
+  NoSafepointScope no_safepoint;
+  typedef ReadStream::Raw<sizeof(intptr_t), intptr_t> Reader;
+  ReadStream read_stream(reinterpret_cast<uint8_t*>(packed.DataAddr(0)),
+                         packed.LengthInBytes());
+  return Reader::Read(&read_stream);
+}
+
+
+intptr_t DeoptInfo::NumMaterializations(
+    const GrowableArray<DeoptInstr*>& unpacked) {
+  intptr_t num = 0;
+  while (unpacked[num]->kind() == DeoptInstr::kMaterializeObject) {
+    num++;
+  }
+  return num;
+}
+
+
+void DeoptInfo::UnpackInto(const Array& table,
+                           const TypedData& packed,
+                           GrowableArray<DeoptInstr*>* unpacked,
+                           intptr_t length) {
+  NoSafepointScope no_safepoint;
+  typedef ReadStream::Raw<sizeof(intptr_t), intptr_t> Reader;
+  ReadStream read_stream(reinterpret_cast<uint8_t*>(packed.DataAddr(0)),
+                         packed.LengthInBytes());
+  const intptr_t frame_size = Reader::Read(&read_stream);  // Skip frame size.
+  USE(frame_size);
+
+  const intptr_t suffix_length = Reader::Read(&read_stream);
+  if (suffix_length != 0) {
+    ASSERT(suffix_length > 1);
+    const intptr_t info_number = Reader::Read(&read_stream);
+
+    TypedData& suffix = TypedData::Handle();
+    Smi& offset = Smi::Handle();
+    Smi& reason_and_flags = Smi::Handle();
+    DeoptTable::GetEntry(table, info_number, &offset, &suffix,
+                         &reason_and_flags);
+    UnpackInto(table, suffix, unpacked, suffix_length);
+  }
+
+  while ((read_stream.PendingBytes() > 0) && (unpacked->length() < length)) {
+    const intptr_t instruction = Reader::Read(&read_stream);
+    const intptr_t from_index = Reader::Read(&read_stream);
+    unpacked->Add(DeoptInstr::Create(instruction, from_index));
+  }
+}
+
+
+void DeoptInfo::Unpack(const Array& table,
+                       const TypedData& packed,
+                       GrowableArray<DeoptInstr*>* unpacked) {
+  ASSERT(unpacked->is_empty());
+
+  // Pass kMaxInt32 as the length to unpack all instructions from the
+  // packed stream.
+  UnpackInto(table, packed, unpacked, kMaxInt32);
+
+  unpacked->Reverse();
+}
+
+
+const char* DeoptInfo::ToCString(const Array& deopt_table,
+                                 const TypedData& packed) {
+#define FORMAT "[%s]"
+  GrowableArray<DeoptInstr*> deopt_instrs;
+  Unpack(deopt_table, packed, &deopt_instrs);
+
+  // Compute the buffer size required.
+  intptr_t len = 1;  // Trailing '\0'.
+  for (intptr_t i = 0; i < deopt_instrs.length(); i++) {
+    len += Utils::SNPrint(NULL, 0, FORMAT, deopt_instrs[i]->ToCString());
+  }
+
+  // Allocate the buffer.
+  char* buffer = Thread::Current()->zone()->Alloc<char>(len);
+
+  // Layout the fields in the buffer.
+  intptr_t index = 0;
+  for (intptr_t i = 0; i < deopt_instrs.length(); i++) {
+    index += Utils::SNPrint((buffer + index), (len - index), FORMAT,
+                            deopt_instrs[i]->ToCString());
+  }
+
+  return buffer;
+#undef FORMAT
+}
+
+
+// Returns a bool so it can be asserted.
+bool DeoptInfo::VerifyDecompression(const GrowableArray<DeoptInstr*>& original,
+                                    const Array& deopt_table,
+                                    const TypedData& packed) {
+  GrowableArray<DeoptInstr*> unpacked;
+  Unpack(deopt_table, packed, &unpacked);
+  ASSERT(unpacked.length() == original.length());
+  for (intptr_t i = 0; i < unpacked.length(); ++i) {
+    ASSERT(unpacked[i]->Equals(*original[i]));
+  }
+  return true;
+}
+
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

@@ -3,9 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.ast.visitor;
 
+import 'dart:core' hide MapEntry;
+
 import 'ast.dart';
 
 abstract class ExpressionVisitor<R> {
+  const ExpressionVisitor();
+
   R defaultExpression(Expression node) => null;
   R defaultBasicLiteral(BasicLiteral node) => defaultExpression(node);
 
@@ -45,12 +49,14 @@ abstract class ExpressionVisitor<R> {
   R visitMapLiteral(MapLiteral node) => defaultExpression(node);
   R visitAwaitExpression(AwaitExpression node) => defaultExpression(node);
   R visitFunctionExpression(FunctionExpression node) => defaultExpression(node);
+  R visitConstantExpression(ConstantExpression node) => defaultExpression(node);
   R visitStringLiteral(StringLiteral node) => defaultBasicLiteral(node);
   R visitIntLiteral(IntLiteral node) => defaultBasicLiteral(node);
   R visitDoubleLiteral(DoubleLiteral node) => defaultBasicLiteral(node);
   R visitBoolLiteral(BoolLiteral node) => defaultBasicLiteral(node);
   R visitNullLiteral(NullLiteral node) => defaultBasicLiteral(node);
   R visitLet(Let node) => defaultExpression(node);
+  R visitInstantiation(Instantiation node) => defaultExpression(node);
   R visitLoadLibrary(LoadLibrary node) => defaultExpression(node);
   R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) =>
       defaultExpression(node);
@@ -62,12 +68,14 @@ abstract class ExpressionVisitor<R> {
 }
 
 abstract class StatementVisitor<R> {
+  const StatementVisitor();
+
   R defaultStatement(Statement node) => null;
 
-  R visitInvalidStatement(InvalidStatement node) => defaultStatement(node);
   R visitExpressionStatement(ExpressionStatement node) =>
       defaultStatement(node);
   R visitBlock(Block node) => defaultStatement(node);
+  R visitAssertBlock(AssertBlock node) => defaultStatement(node);
   R visitEmptyStatement(EmptyStatement node) => defaultStatement(node);
   R visitAssertStatement(AssertStatement node) => defaultStatement(node);
   R visitLabeledStatement(LabeledStatement node) => defaultStatement(node);
@@ -91,14 +99,21 @@ abstract class StatementVisitor<R> {
 }
 
 abstract class MemberVisitor<R> {
+  const MemberVisitor();
+
   R defaultMember(Member node) => null;
 
   R visitConstructor(Constructor node) => defaultMember(node);
   R visitProcedure(Procedure node) => defaultMember(node);
   R visitField(Field node) => defaultMember(node);
+  R visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
+    return defaultMember(node);
+  }
 }
 
 abstract class InitializerVisitor<R> {
+  const InitializerVisitor();
+
   R defaultInitializer(Initializer node) => null;
 
   R visitInvalidInitializer(InvalidInitializer node) =>
@@ -108,6 +123,7 @@ abstract class InitializerVisitor<R> {
   R visitRedirectingInitializer(RedirectingInitializer node) =>
       defaultInitializer(node);
   R visitLocalInitializer(LocalInitializer node) => defaultInitializer(node);
+  R visitAssertInitializer(AssertInitializer node) => defaultInitializer(node);
 }
 
 class TreeVisitor<R>
@@ -116,6 +132,8 @@ class TreeVisitor<R>
         StatementVisitor<R>,
         MemberVisitor<R>,
         InitializerVisitor<R> {
+  const TreeVisitor();
+
   R defaultTreeNode(TreeNode node) => null;
 
   // Expressions
@@ -157,12 +175,14 @@ class TreeVisitor<R>
   R visitMapLiteral(MapLiteral node) => defaultExpression(node);
   R visitAwaitExpression(AwaitExpression node) => defaultExpression(node);
   R visitFunctionExpression(FunctionExpression node) => defaultExpression(node);
+  R visitConstantExpression(ConstantExpression node) => defaultExpression(node);
   R visitStringLiteral(StringLiteral node) => defaultBasicLiteral(node);
   R visitIntLiteral(IntLiteral node) => defaultBasicLiteral(node);
   R visitDoubleLiteral(DoubleLiteral node) => defaultBasicLiteral(node);
   R visitBoolLiteral(BoolLiteral node) => defaultBasicLiteral(node);
   R visitNullLiteral(NullLiteral node) => defaultBasicLiteral(node);
   R visitLet(Let node) => defaultExpression(node);
+  R visitInstantiation(Instantiation node) => defaultExpression(node);
   R visitLoadLibrary(LoadLibrary node) => defaultExpression(node);
   R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) =>
       defaultExpression(node);
@@ -174,10 +194,10 @@ class TreeVisitor<R>
 
   // Statements
   R defaultStatement(Statement node) => defaultTreeNode(node);
-  R visitInvalidStatement(InvalidStatement node) => defaultStatement(node);
   R visitExpressionStatement(ExpressionStatement node) =>
       defaultStatement(node);
   R visitBlock(Block node) => defaultStatement(node);
+  R visitAssertBlock(AssertBlock node) => defaultStatement(node);
   R visitEmptyStatement(EmptyStatement node) => defaultStatement(node);
   R visitAssertStatement(AssertStatement node) => defaultStatement(node);
   R visitLabeledStatement(LabeledStatement node) => defaultStatement(node);
@@ -204,6 +224,9 @@ class TreeVisitor<R>
   R visitConstructor(Constructor node) => defaultMember(node);
   R visitProcedure(Procedure node) => defaultMember(node);
   R visitField(Field node) => defaultMember(node);
+  R visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
+    return defaultMember(node);
+  }
 
   // Classes
   R visitClass(Class node) => defaultTreeNode(node);
@@ -217,11 +240,13 @@ class TreeVisitor<R>
   R visitRedirectingInitializer(RedirectingInitializer node) =>
       defaultInitializer(node);
   R visitLocalInitializer(LocalInitializer node) => defaultInitializer(node);
+  R visitAssertInitializer(AssertInitializer node) => defaultInitializer(node);
 
   // Other tree nodes
   R visitLibrary(Library node) => defaultTreeNode(node);
   R visitLibraryDependency(LibraryDependency node) => defaultTreeNode(node);
   R visitCombinator(Combinator node) => defaultTreeNode(node);
+  R visitLibraryPart(LibraryPart node) => defaultTreeNode(node);
   R visitTypedef(Typedef node) => defaultTreeNode(node);
   R visitTypeParameter(TypeParameter node) => defaultTreeNode(node);
   R visitFunctionNode(FunctionNode node) => defaultTreeNode(node);
@@ -230,7 +255,7 @@ class TreeVisitor<R>
   R visitSwitchCase(SwitchCase node) => defaultTreeNode(node);
   R visitCatch(Catch node) => defaultTreeNode(node);
   R visitMapEntry(MapEntry node) => defaultTreeNode(node);
-  R visitProgram(Program node) => defaultTreeNode(node);
+  R visitComponent(Component node) => defaultTreeNode(node);
 }
 
 class DartTypeVisitor<R> {
@@ -247,16 +272,44 @@ class DartTypeVisitor<R> {
   R visitTypedefType(TypedefType node) => defaultDartType(node);
 }
 
+class ConstantVisitor<R> {
+  R defaultConstant(Constant node) => null;
+
+  R visitNullConstant(NullConstant node) => defaultConstant(node);
+  R visitBoolConstant(BoolConstant node) => defaultConstant(node);
+  R visitIntConstant(IntConstant node) => defaultConstant(node);
+  R visitDoubleConstant(DoubleConstant node) => defaultConstant(node);
+  R visitStringConstant(StringConstant node) => defaultConstant(node);
+  R visitMapConstant(MapConstant node) => defaultConstant(node);
+  R visitListConstant(ListConstant node) => defaultConstant(node);
+  R visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
+  R visitPartialInstantiationConstant(PartialInstantiationConstant node) =>
+      defaultConstant(node);
+  R visitTearOffConstant(TearOffConstant node) => defaultConstant(node);
+  R visitTypeLiteralConstant(TypeLiteralConstant node) => defaultConstant(node);
+}
+
 class MemberReferenceVisitor<R> {
+  const MemberReferenceVisitor();
+
   R defaultMemberReference(Member node) => null;
 
   R visitFieldReference(Field node) => defaultMemberReference(node);
   R visitConstructorReference(Constructor node) => defaultMemberReference(node);
   R visitProcedureReference(Procedure node) => defaultMemberReference(node);
+  R visitRedirectingFactoryConstructorReference(
+      RedirectingFactoryConstructor node) {
+    return defaultMemberReference(node);
+  }
 }
 
 class Visitor<R> extends TreeVisitor<R>
-    implements DartTypeVisitor<R>, MemberReferenceVisitor<R> {
+    implements
+        DartTypeVisitor<R>,
+        ConstantVisitor<R>,
+        MemberReferenceVisitor<R> {
+  const Visitor();
+
   /// The catch-all case, except for references.
   R defaultNode(Node node) => null;
   R defaultTreeNode(TreeNode node) => defaultNode(node);
@@ -273,15 +326,60 @@ class Visitor<R> extends TreeVisitor<R>
   R visitTypeParameterType(TypeParameterType node) => defaultDartType(node);
   R visitTypedefType(TypedefType node) => defaultDartType(node);
 
+  // Constants
+  R defaultConstant(Constant node) => defaultNode(node);
+  R visitNullConstant(NullConstant node) => defaultConstant(node);
+  R visitBoolConstant(BoolConstant node) => defaultConstant(node);
+  R visitIntConstant(IntConstant node) => defaultConstant(node);
+  R visitDoubleConstant(DoubleConstant node) => defaultConstant(node);
+  R visitStringConstant(StringConstant node) => defaultConstant(node);
+  R visitMapConstant(MapConstant node) => defaultConstant(node);
+  R visitListConstant(ListConstant node) => defaultConstant(node);
+  R visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
+  R visitPartialInstantiationConstant(PartialInstantiationConstant node) =>
+      defaultConstant(node);
+  R visitTearOffConstant(TearOffConstant node) => defaultConstant(node);
+  R visitTypeLiteralConstant(TypeLiteralConstant node) => defaultConstant(node);
+
   // Class references
   R visitClassReference(Class node) => null;
   R visitTypedefReference(Typedef node) => null;
+
+  // Constant references
+  R defaultConstantReference(Constant node) => null;
+  R visitNullConstantReference(NullConstant node) =>
+      defaultConstantReference(node);
+  R visitBoolConstantReference(BoolConstant node) =>
+      defaultConstantReference(node);
+  R visitIntConstantReference(IntConstant node) =>
+      defaultConstantReference(node);
+  R visitDoubleConstantReference(DoubleConstant node) =>
+      defaultConstantReference(node);
+  R visitStringConstantReference(StringConstant node) =>
+      defaultConstantReference(node);
+  R visitMapConstantReference(MapConstant node) =>
+      defaultConstantReference(node);
+  R visitListConstantReference(ListConstant node) =>
+      defaultConstantReference(node);
+  R visitInstanceConstantReference(InstanceConstant node) =>
+      defaultConstantReference(node);
+  R visitPartialInstantiationConstantReference(
+          PartialInstantiationConstant node) =>
+      defaultConstantReference(node);
+  R visitTearOffConstantReference(TearOffConstant node) =>
+      defaultConstantReference(node);
+  R visitTypeLiteralConstantReference(TypeLiteralConstant node) =>
+      defaultConstantReference(node);
 
   // Member references
   R defaultMemberReference(Member node) => null;
   R visitFieldReference(Field node) => defaultMemberReference(node);
   R visitConstructorReference(Constructor node) => defaultMemberReference(node);
   R visitProcedureReference(Procedure node) => defaultMemberReference(node);
+  R visitRedirectingFactoryConstructorReference(
+      RedirectingFactoryConstructor node) {
+    return defaultMemberReference(node);
+  }
 
   R visitName(Name node) => defaultNode(node);
   R visitSupertype(Supertype node) => defaultNode(node);
@@ -289,6 +387,8 @@ class Visitor<R> extends TreeVisitor<R>
 }
 
 class RecursiveVisitor<R> extends Visitor<R> {
+  const RecursiveVisitor();
+
   R defaultNode(Node node) {
     node.visitChildren(this);
     return null;
@@ -320,10 +420,14 @@ class RecursiveVisitor<R> extends Visitor<R> {
 ///     }
 ///
 class Transformer extends TreeVisitor<TreeNode> {
+  const Transformer();
+
   /// Replaces a use of a type.
   ///
   /// By default, recursion stops at this point.
   DartType visitDartType(DartType node) => node;
+
+  Constant visitConstant(Constant node) => node;
 
   Supertype visitSupertype(Supertype node) => node;
 
@@ -334,6 +438,8 @@ class Transformer extends TreeVisitor<TreeNode> {
 }
 
 abstract class ExpressionVisitor1<R, T> {
+  const ExpressionVisitor1();
+
   R defaultExpression(Expression node, T arg) => null;
   R defaultBasicLiteral(BasicLiteral node, T arg) =>
       defaultExpression(node, arg);
@@ -377,6 +483,8 @@ abstract class ExpressionVisitor1<R, T> {
   R visitTypeLiteral(TypeLiteral node, T arg) => defaultExpression(node, arg);
   R visitThisExpression(ThisExpression node, T arg) =>
       defaultExpression(node, arg);
+  R visitConstantExpression(ConstantExpression node, arg) =>
+      defaultExpression(node, arg);
   R visitRethrow(Rethrow node, T arg) => defaultExpression(node, arg);
   R visitThrow(Throw node, T arg) => defaultExpression(node, arg);
   R visitListLiteral(ListLiteral node, T arg) => defaultExpression(node, arg);
@@ -385,14 +493,16 @@ abstract class ExpressionVisitor1<R, T> {
       defaultExpression(node, arg);
   R visitFunctionExpression(FunctionExpression node, T arg) =>
       defaultExpression(node, arg);
+  R visitIntLiteral(IntLiteral node, T arg) => defaultBasicLiteral(node, arg);
   R visitStringLiteral(StringLiteral node, T arg) =>
       defaultBasicLiteral(node, arg);
-  R visitIntLiteral(IntLiteral node, T arg) => defaultBasicLiteral(node, arg);
   R visitDoubleLiteral(DoubleLiteral node, T arg) =>
       defaultBasicLiteral(node, arg);
   R visitBoolLiteral(BoolLiteral node, T arg) => defaultBasicLiteral(node, arg);
   R visitNullLiteral(NullLiteral node, T arg) => defaultBasicLiteral(node, arg);
   R visitLet(Let node, T arg) => defaultExpression(node, arg);
+  R visitInstantiation(Instantiation node, T arg) =>
+      defaultExpression(node, arg);
   R visitLoadLibrary(LoadLibrary node, T arg) => defaultExpression(node, arg);
   R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node, T arg) =>
       defaultExpression(node, arg);
@@ -406,13 +516,14 @@ abstract class ExpressionVisitor1<R, T> {
 }
 
 abstract class StatementVisitor1<R, T> {
+  const StatementVisitor1();
+
   R defaultStatement(Statement node, T arg) => null;
 
-  R visitInvalidStatement(InvalidStatement node, T arg) =>
-      defaultStatement(node, arg);
   R visitExpressionStatement(ExpressionStatement node, T arg) =>
       defaultStatement(node, arg);
   R visitBlock(Block node, T arg) => defaultStatement(node, arg);
+  R visitAssertBlock(AssertBlock node, T arg) => defaultStatement(node, arg);
   R visitEmptyStatement(EmptyStatement node, T arg) =>
       defaultStatement(node, arg);
   R visitAssertStatement(AssertStatement node, T arg) =>

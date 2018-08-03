@@ -13,7 +13,11 @@ abstract class AllocationProfile {
 }
 
 abstract class ClassHeapStats {
+  /// [Optional] at least one between clazz and displayName should be non null
   ClassRef get clazz;
+
+  /// [Optional] at least one between clazz and displayName should be non null
+  String get displayName;
   Allocations get newSpace;
   Allocations get oldSpace;
   int get promotedInstances;

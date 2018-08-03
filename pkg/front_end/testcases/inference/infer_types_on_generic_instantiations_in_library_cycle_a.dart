@@ -6,7 +6,7 @@
 import 'infer_types_on_generic_instantiations_in_library_cycle.dart';
 
 abstract class I<E> {
-  A<E> m(a, String f(v, int e));
+  A<E> m(/*@topType=dynamic*/ a, String f(v, int e));
 }
 
 main() {}

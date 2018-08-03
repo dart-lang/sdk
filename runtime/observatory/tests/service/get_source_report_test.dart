@@ -44,7 +44,7 @@ bool allRangesCompiled(coverage) {
   return true;
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   (Isolate isolate) async {
     var stack = await isolate.getStack();
@@ -61,12 +61,12 @@ var tests = [
 
     var expectedRange = {
       'scriptIndex': 0,
-      'startPos': ifKernel(501, 39),
-      'endPos': ifKernel(633, 88),
+      'startPos': ifKernel(489, 40),
+      'endPos': ifKernel(633, 89),
       'compiled': true,
       'coverage': {
-        'hits': ifKernel([539, 590, 619], [54, 72, 82]),
-        'misses': ifKernel([552], [60])
+        'hits': ifKernel([489, 539, 590, 619], [40, 55, 73, 83]),
+        'misses': ifKernel([552], [61])
       }
     };
 
@@ -113,6 +113,16 @@ var tests = [
     // Full isolate
     params = {
       'reports': ['Coverage']
+    };
+    coverage = await isolate.invokeRpcNoUpgrade('getSourceReport', params);
+    expect(coverage['type'], equals('SourceReport'));
+    expect(coverage['ranges'].length, greaterThan(1));
+    expect(coverage['scripts'].length, greaterThan(1));
+
+    // Full isolate
+    params = {
+      'reports': ['Coverage'],
+      'forceCompile': true
     };
     coverage = await isolate.invokeRpcNoUpgrade('getSourceReport', params);
     expect(coverage['type'], equals('SourceReport'));

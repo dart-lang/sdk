@@ -9,16 +9,14 @@
 #include "vm/regexp_assembler_bytecode.h"
 #include "vm/regexp_assembler_ir.h"
 #include "vm/regexp_ast.h"
-#include "vm/unibrow-inl.h"
-#include "vm/unicode.h"
 #include "vm/symbols.h"
 #include "vm/thread.h"
+#include "vm/unibrow-inl.h"
+#include "vm/unicode.h"
 
 #define Z (zone())
 
 namespace dart {
-
-DECLARE_FLAG(bool, trace_irregexp);
 
 // Default to generating optimized regexp code.
 static const bool kRegexpOptimization = true;
@@ -198,37 +196,30 @@ ContainedInLattice AddRange(ContainedInLattice containment,
 //   trace is not recorded in the node and so it cannot currently be reused in
 //   the event that code generation is requested for an identical trace.
 
-
 void RegExpTree::AppendToText(RegExpText* text) {
   UNREACHABLE();
 }
-
 
 void RegExpAtom::AppendToText(RegExpText* text) {
   text->AddElement(TextElement::Atom(this));
 }
 
-
 void RegExpCharacterClass::AppendToText(RegExpText* text) {
   text->AddElement(TextElement::CharClass(this));
 }
-
 
 void RegExpText::AppendToText(RegExpText* text) {
   for (intptr_t i = 0; i < elements()->length(); i++)
     text->AddElement((*elements())[i]);
 }
 
-
 TextElement TextElement::Atom(RegExpAtom* atom) {
   return TextElement(ATOM, atom);
 }
 
-
 TextElement TextElement::CharClass(RegExpCharacterClass* char_class) {
   return TextElement(CHAR_CLASS, char_class);
 }
-
 
 intptr_t TextElement::length() const {
   switch (text_type()) {
@@ -241,7 +232,6 @@ intptr_t TextElement::length() const {
   UNREACHABLE();
   return 0;
 }
-
 
 class FrequencyCollator : public ValueObject {
  public:
@@ -285,12 +275,10 @@ class FrequencyCollator : public ValueObject {
     DISALLOW_ALLOCATION();
   };
 
-
  private:
   CharacterFrequency frequencies_[RegExpMacroAssembler::kTableSize];
   intptr_t total_samples_;
 };
-
 
 class RegExpCompiler : public ValueObject {
  public:
@@ -298,10 +286,12 @@ class RegExpCompiler : public ValueObject {
 
   intptr_t AllocateRegister() { return next_register_++; }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   RegExpEngine::CompilationResult Assemble(IRRegExpMacroAssembler* assembler,
                                            RegExpNode* start,
                                            intptr_t capture_count,
                                            const String& pattern);
+#endif
 
   RegExpEngine::CompilationResult Assemble(
       BytecodeRegExpMacroAssembler* assembler,
@@ -352,7 +342,6 @@ class RegExpCompiler : public ValueObject {
   Zone* zone_;
 };
 
-
 class RecursionCheck : public ValueObject {
  public:
   explicit RecursionCheck(RegExpCompiler* compiler) : compiler_(compiler) {
@@ -364,11 +353,9 @@ class RecursionCheck : public ValueObject {
   RegExpCompiler* compiler_;
 };
 
-
 static RegExpEngine::CompilationResult IrregexpRegExpTooBig() {
   return RegExpEngine::CompilationResult("RegExp too big");
 }
-
 
 // Attempts to compile the regexp using an Irregexp code generator.  Returns
 // a fixed array or a null handle depending on whether it succeeded.
@@ -386,7 +373,7 @@ RegExpCompiler::RegExpCompiler(intptr_t capture_count,
   accept_ = new (Z) EndNode(EndNode::ACCEPT, Z);
 }
 
-
+#if !defined(DART_PRECOMPILED_RUNTIME)
 RegExpEngine::CompilationResult RegExpCompiler::Assemble(
     IRRegExpMacroAssembler* macro_assembler,
     RegExpNode* start,
@@ -416,7 +403,7 @@ RegExpEngine::CompilationResult RegExpCompiler::Assemble(
       macro_assembler->num_blocks(), macro_assembler->num_stack_locals(),
       next_register_);
 }
-
+#endif
 
 RegExpEngine::CompilationResult RegExpCompiler::Assemble(
     BytecodeRegExpMacroAssembler* macro_assembler,
@@ -443,7 +430,6 @@ RegExpEngine::CompilationResult RegExpCompiler::Assemble(
   return RegExpEngine::CompilationResult(&bytecode, next_register_);
 }
 
-
 bool Trace::DeferredAction::Mentions(intptr_t that) {
   if (action_type() == ActionNode::CLEAR_CAPTURES) {
     Interval range = static_cast<DeferredClearCaptures*>(this)->range();
@@ -453,7 +439,6 @@ bool Trace::DeferredAction::Mentions(intptr_t that) {
   }
 }
 
-
 bool Trace::mentions_reg(intptr_t reg) {
   for (DeferredAction* action = actions_; action != NULL;
        action = action->next()) {
@@ -461,7 +446,6 @@ bool Trace::mentions_reg(intptr_t reg) {
   }
   return false;
 }
-
 
 bool Trace::GetStoredPosition(intptr_t reg, intptr_t* cp_offset) {
   ASSERT(*cp_offset == 0);
@@ -478,7 +462,6 @@ bool Trace::GetStoredPosition(intptr_t reg, intptr_t* cp_offset) {
   }
   return false;
 }
-
 
 // This is called as we come into a loop choice node and some other tricky
 // nodes.  It normalizes the state of the code generator to ensure we can
@@ -500,7 +483,6 @@ intptr_t Trace::FindAffectedRegisters(OutSet* affected_registers, Zone* zone) {
   return max_register;
 }
 
-
 void Trace::RestoreAffectedRegisters(RegExpMacroAssembler* assembler,
                                      intptr_t max_register,
                                      const OutSet& registers_to_pop,
@@ -517,7 +499,6 @@ void Trace::RestoreAffectedRegisters(RegExpMacroAssembler* assembler,
     }
   }
 }
-
 
 void Trace::PerformDeferredActions(RegExpMacroAssembler* assembler,
                                    intptr_t max_register,
@@ -633,7 +614,6 @@ void Trace::PerformDeferredActions(RegExpMacroAssembler* assembler,
   }
 }
 
-
 // This is called as we come into a loop choice node and some other tricky
 // nodes.  It normalizes the state of the code generator to ensure we can
 // generate generic code.
@@ -690,7 +670,6 @@ void Trace::Flush(RegExpCompiler* compiler, RegExpNode* successor) {
   }
 }
 
-
 void NegativeSubmatchSuccess::Emit(RegExpCompiler* compiler, Trace* trace) {
   RegExpMacroAssembler* assembler = compiler->macro_assembler();
 
@@ -717,7 +696,6 @@ void NegativeSubmatchSuccess::Emit(RegExpCompiler* compiler, Trace* trace) {
   assembler->Backtrack();
 }
 
-
 void EndNode::Emit(RegExpCompiler* compiler, Trace* trace) {
   if (!trace->is_trivial()) {
     trace->Flush(compiler, this);
@@ -741,12 +719,10 @@ void EndNode::Emit(RegExpCompiler* compiler, Trace* trace) {
   UNIMPLEMENTED();
 }
 
-
 void GuardedAlternative::AddGuard(Guard* guard, Zone* zone) {
   if (guards_ == NULL) guards_ = new (zone) ZoneGrowableArray<Guard*>(1);
   guards_->Add(guard);
 }
-
 
 ActionNode* ActionNode::SetRegister(intptr_t reg,
                                     intptr_t val,
@@ -758,7 +734,6 @@ ActionNode* ActionNode::SetRegister(intptr_t reg,
   return result;
 }
 
-
 ActionNode* ActionNode::IncrementRegister(intptr_t reg,
                                           RegExpNode* on_success) {
   ActionNode* result =
@@ -766,7 +741,6 @@ ActionNode* ActionNode::IncrementRegister(intptr_t reg,
   result->data_.u_increment_register.reg = reg;
   return result;
 }
-
 
 ActionNode* ActionNode::StorePosition(intptr_t reg,
                                       bool is_capture,
@@ -778,7 +752,6 @@ ActionNode* ActionNode::StorePosition(intptr_t reg,
   return result;
 }
 
-
 ActionNode* ActionNode::ClearCaptures(Interval range, RegExpNode* on_success) {
   ActionNode* result =
       new (on_success->zone()) ActionNode(CLEAR_CAPTURES, on_success);
@@ -786,7 +759,6 @@ ActionNode* ActionNode::ClearCaptures(Interval range, RegExpNode* on_success) {
   result->data_.u_clear_captures.range_to = range.to();
   return result;
 }
-
 
 ActionNode* ActionNode::BeginSubmatch(intptr_t stack_reg,
                                       intptr_t position_reg,
@@ -797,7 +769,6 @@ ActionNode* ActionNode::BeginSubmatch(intptr_t stack_reg,
   result->data_.u_submatch.current_position_register = position_reg;
   return result;
 }
-
 
 ActionNode* ActionNode::PositiveSubmatchSuccess(intptr_t stack_reg,
                                                 intptr_t position_reg,
@@ -813,7 +784,6 @@ ActionNode* ActionNode::PositiveSubmatchSuccess(intptr_t stack_reg,
   return result;
 }
 
-
 ActionNode* ActionNode::EmptyMatchCheck(intptr_t start_register,
                                         intptr_t repetition_register,
                                         intptr_t repetition_limit,
@@ -826,21 +796,17 @@ ActionNode* ActionNode::EmptyMatchCheck(intptr_t start_register,
   return result;
 }
 
-
 #define DEFINE_ACCEPT(Type)                                                    \
   void Type##Node::Accept(NodeVisitor* visitor) { visitor->Visit##Type(this); }
 FOR_EACH_NODE_TYPE(DEFINE_ACCEPT)
 #undef DEFINE_ACCEPT
 
-
 void LoopChoiceNode::Accept(NodeVisitor* visitor) {
   visitor->VisitLoopChoice(this);
 }
 
-
 // -------------------------------------------------------------------
 // Emit code.
-
 
 void ChoiceNode::GenerateGuard(RegExpMacroAssembler* macro_assembler,
                                Guard* guard,
@@ -858,7 +824,6 @@ void ChoiceNode::GenerateGuard(RegExpMacroAssembler* macro_assembler,
       break;
   }
 }
-
 
 // Returns the number of characters in the equivalence class, omitting those
 // that cannot occur in the source string because it is ASCII.
@@ -884,7 +849,6 @@ static intptr_t GetCaseIndependentLetters(uint16_t character,
   return 0;
 }
 
-
 static inline bool EmitSimpleCharacter(Zone* zone,
                                        RegExpCompiler* compiler,
                                        uint16_t c,
@@ -901,7 +865,6 @@ static inline bool EmitSimpleCharacter(Zone* zone,
   assembler->CheckNotCharacter(c, on_failure);
   return bound_checked;
 }
-
 
 // Only emits non-letters (things that don't have case).  Only used for case
 // independent matches.
@@ -938,7 +901,6 @@ static inline bool EmitAtomNonLetter(Zone* zone,
   return checked;
 }
 
-
 static bool ShortCutEmitCharacterPair(RegExpMacroAssembler* macro_assembler,
                                       bool one_byte,
                                       uint16_t c1,
@@ -974,7 +936,6 @@ static bool ShortCutEmitCharacterPair(RegExpMacroAssembler* macro_assembler,
   }
   return false;
 }
-
 
 typedef bool EmitCharacterFunction(Zone* zone,
                                    RegExpCompiler* compiler,
@@ -1032,7 +993,6 @@ static inline bool EmitAtomLetter(Zone* zone,
   return true;
 }
 
-
 static void EmitBoundaryTest(RegExpMacroAssembler* masm,
                              intptr_t border,
                              BlockLabel* fall_through,
@@ -1045,7 +1005,6 @@ static void EmitBoundaryTest(RegExpMacroAssembler* masm,
     masm->CheckCharacterGT(border - 1, above_or_equal);
   }
 }
-
 
 static void EmitDoubleBoundaryTest(RegExpMacroAssembler* masm,
                                    intptr_t first,
@@ -1068,7 +1027,6 @@ static void EmitDoubleBoundaryTest(RegExpMacroAssembler* masm,
     if (out_of_range != fall_through) masm->GoTo(out_of_range);
   }
 }
-
 
 // even_label is for ranges[i] to ranges[i + 1] where i - start_index is even.
 // odd_label is for ranges[i] to ranges[i + 1] where i - start_index is odd.
@@ -1129,7 +1087,6 @@ static void EmitUseLookupTable(RegExpMacroAssembler* masm,
   if (on_bit_clear != fall_through) masm->GoTo(on_bit_clear);
 }
 
-
 static void CutOutRange(RegExpMacroAssembler* masm,
                         ZoneGrowableArray<int>* ranges,
                         intptr_t start_index,
@@ -1154,7 +1111,6 @@ static void CutOutRange(RegExpMacroAssembler* masm,
     (*ranges)[j] = ranges->At(j + 1);
   }
 }
-
 
 // Unicode case.  Split the search space into kSize spaces that are handled
 // with recursion.
@@ -1220,7 +1176,6 @@ static void SplitSearchSpace(ZoneGrowableArray<int>* ranges,
     *new_end_index = end_index - 1;
   }
 }
-
 
 // Gets a series of segment boundaries representing a character class.  If the
 // character is in the range between an even and an odd boundary (counting from
@@ -1342,7 +1297,6 @@ static void GenerateBranches(RegExpMacroAssembler* masm,
   }
 }
 
-
 static void EmitCharClass(RegExpMacroAssembler* macro_assembler,
                           RegExpCharacterClass* cc,
                           bool one_byte,
@@ -1408,12 +1362,10 @@ static void EmitCharClass(RegExpMacroAssembler* macro_assembler,
     macro_assembler->LoadCurrentCharacter(cp_offset, on_failure, check_offset);
   }
 
-  if (cc->is_standard() &&
-      macro_assembler->CheckSpecialCharacterClass(cc->standard_type(),
-                                                  on_failure)) {
+  if (cc->is_standard() && macro_assembler->CheckSpecialCharacterClass(
+                               cc->standard_type(), on_failure)) {
     return;
   }
-
 
   // A new list with ascending entries.  Each entry is a code unit
   // where there is a boundary between code units that are part of
@@ -1452,9 +1404,7 @@ static void EmitCharClass(RegExpMacroAssembler* macro_assembler,
   macro_assembler->BindBlock(&fall_through);
 }
 
-
 RegExpNode::~RegExpNode() {}
-
 
 RegExpNode::LimitResult RegExpNode::LimitVersions(RegExpCompiler* compiler,
                                                   Trace* trace) {
@@ -1498,7 +1448,6 @@ RegExpNode::LimitResult RegExpNode::LimitVersions(RegExpCompiler* compiler,
   return DONE;
 }
 
-
 intptr_t ActionNode::EatsAtLeast(intptr_t still_to_find,
                                  intptr_t budget,
                                  bool not_at_start) {
@@ -1506,7 +1455,6 @@ intptr_t ActionNode::EatsAtLeast(intptr_t still_to_find,
   if (action_type_ == POSITIVE_SUBMATCH_SUCCESS) return 0;  // Rewinds input!
   return on_success()->EatsAtLeast(still_to_find, budget - 1, not_at_start);
 }
-
 
 void ActionNode::FillInBMInfo(intptr_t offset,
                               intptr_t budget,
@@ -1519,7 +1467,6 @@ void ActionNode::FillInBMInfo(intptr_t offset,
   }
   SaveBMInfo(bm, not_at_start, offset);
 }
-
 
 intptr_t AssertionNode::EatsAtLeast(intptr_t still_to_find,
                                     intptr_t budget,
@@ -1534,7 +1481,6 @@ intptr_t AssertionNode::EatsAtLeast(intptr_t still_to_find,
   return on_success()->EatsAtLeast(still_to_find, budget - 1, not_at_start);
 }
 
-
 void AssertionNode::FillInBMInfo(intptr_t offset,
                                  intptr_t budget,
                                  BoyerMooreLookahead* bm,
@@ -1545,14 +1491,12 @@ void AssertionNode::FillInBMInfo(intptr_t offset,
   SaveBMInfo(bm, not_at_start, offset);
 }
 
-
 intptr_t BackReferenceNode::EatsAtLeast(intptr_t still_to_find,
                                         intptr_t budget,
                                         bool not_at_start) {
   if (budget <= 0) return 0;
   return on_success()->EatsAtLeast(still_to_find, budget - 1, not_at_start);
 }
-
 
 intptr_t TextNode::EatsAtLeast(intptr_t still_to_find,
                                intptr_t budget,
@@ -1565,7 +1509,6 @@ intptr_t TextNode::EatsAtLeast(intptr_t still_to_find,
          on_success()->EatsAtLeast(still_to_find - answer, budget - 1, true);
 }
 
-
 intptr_t NegativeLookaheadChoiceNode::EatsAtLeast(intptr_t still_to_find,
                                                   intptr_t budget,
                                                   bool not_at_start) {
@@ -1575,7 +1518,6 @@ intptr_t NegativeLookaheadChoiceNode::EatsAtLeast(intptr_t still_to_find,
   RegExpNode* node = (*alternatives_)[1].node();
   return node->EatsAtLeast(still_to_find, budget - 1, not_at_start);
 }
-
 
 void NegativeLookaheadChoiceNode::GetQuickCheckDetails(
     QuickCheckDetails* details,
@@ -1587,7 +1529,6 @@ void NegativeLookaheadChoiceNode::GetQuickCheckDetails(
   RegExpNode* node = (*alternatives_)[1].node();
   return node->GetQuickCheckDetails(details, compiler, filled_in, not_at_start);
 }
-
 
 intptr_t ChoiceNode::EatsAtLeastHelper(intptr_t still_to_find,
                                        intptr_t budget,
@@ -1608,20 +1549,17 @@ intptr_t ChoiceNode::EatsAtLeastHelper(intptr_t still_to_find,
   return min;
 }
 
-
 intptr_t LoopChoiceNode::EatsAtLeast(intptr_t still_to_find,
                                      intptr_t budget,
                                      bool not_at_start) {
   return EatsAtLeastHelper(still_to_find, budget - 1, loop_node_, not_at_start);
 }
 
-
 intptr_t ChoiceNode::EatsAtLeast(intptr_t still_to_find,
                                  intptr_t budget,
                                  bool not_at_start) {
   return EatsAtLeastHelper(still_to_find, budget, NULL, not_at_start);
 }
-
 
 // Takes the left-most 1-bit and smears it out, setting all bits to its right.
 static inline uint32_t SmearBitsRight(uint32_t v) {
@@ -1632,7 +1570,6 @@ static inline uint32_t SmearBitsRight(uint32_t v) {
   v |= v >> 16;
   return v;
 }
-
 
 bool QuickCheckDetails::Rationalize(bool asc) {
   bool found_useful_op = false;
@@ -1656,7 +1593,6 @@ bool QuickCheckDetails::Rationalize(bool asc) {
   }
   return found_useful_op;
 }
-
 
 bool RegExpNode::EmitQuickCheck(RegExpCompiler* compiler,
                                 Trace* bounds_check_trace,
@@ -1687,7 +1623,6 @@ bool RegExpNode::EmitQuickCheck(RegExpCompiler* compiler,
         trace->cp_offset(), bounds_check_trace->backtrack(),
         !preload_has_checked_bounds, details->characters());
   }
-
 
   bool need_mask = true;
 
@@ -1729,7 +1664,6 @@ bool RegExpNode::EmitQuickCheck(RegExpCompiler* compiler,
   }
   return true;
 }
-
 
 // Here is the meat of GetQuickCheckDetails (see also the comment on the
 // super-class in the .h file).
@@ -1894,7 +1828,6 @@ void TextNode::GetQuickCheckDetails(QuickCheckDetails* details,
   }
 }
 
-
 void QuickCheckDetails::Clear() {
   for (int i = 0; i < characters_; i++) {
     positions_[i].mask = 0;
@@ -1903,7 +1836,6 @@ void QuickCheckDetails::Clear() {
   }
   characters_ = 0;
 }
-
 
 void QuickCheckDetails::Advance(intptr_t by, bool one_byte) {
   ASSERT(by >= 0);
@@ -1924,7 +1856,6 @@ void QuickCheckDetails::Advance(intptr_t by, bool one_byte) {
   // they had already been used in a check and they won't be used again because
   // it would gain us nothing.  So there's no point.
 }
-
 
 void QuickCheckDetails::Merge(QuickCheckDetails* other, intptr_t from_index) {
   ASSERT(characters_ == other->characters_);
@@ -1953,7 +1884,6 @@ void QuickCheckDetails::Merge(QuickCheckDetails* other, intptr_t from_index) {
   }
 }
 
-
 class VisitMarker : public ValueObject {
  public:
   explicit VisitMarker(NodeInfo* info) : info_(info) {
@@ -1966,7 +1896,6 @@ class VisitMarker : public ValueObject {
   NodeInfo* info_;
 };
 
-
 RegExpNode* SeqRegExpNode::FilterOneByte(intptr_t depth, bool ignore_case) {
   if (info()->replacement_calculated) return replacement();
   if (depth < 0) return this;
@@ -1975,7 +1904,6 @@ RegExpNode* SeqRegExpNode::FilterOneByte(intptr_t depth, bool ignore_case) {
   return FilterSuccessor(depth - 1, ignore_case);
 }
 
-
 RegExpNode* SeqRegExpNode::FilterSuccessor(intptr_t depth, bool ignore_case) {
   RegExpNode* next = on_success_->FilterOneByte(depth - 1, ignore_case);
   if (next == NULL) return set_replacement(NULL);
@@ -1983,14 +1911,12 @@ RegExpNode* SeqRegExpNode::FilterSuccessor(intptr_t depth, bool ignore_case) {
   return set_replacement(this);
 }
 
-
 // We need to check for the following characters: 0x39c 0x3bc 0x178.
 static inline bool RangeContainsLatin1Equivalents(CharacterRange range) {
   // TODO(dcarney): this could be a lot more efficient.
   return range.Contains(0x39c) || range.Contains(0x3bc) ||
          range.Contains(0x178);
 }
-
 
 static bool RangesContainLatin1Equivalents(
     ZoneGrowableArray<CharacterRange>* ranges) {
@@ -2000,7 +1926,6 @@ static bool RangesContainLatin1Equivalents(
   }
   return false;
 }
-
 
 static uint16_t ConvertNonLatin1ToLatin1(uint16_t c) {
   ASSERT(c > Symbols::kMaxOneCharCodeSymbol);
@@ -2016,7 +1941,6 @@ static uint16_t ConvertNonLatin1ToLatin1(uint16_t c) {
   }
   return 0;
 }
-
 
 RegExpNode* TextNode::FilterOneByte(intptr_t depth, bool ignore_case) {
   if (info()->replacement_calculated) return replacement();
@@ -2069,7 +1993,6 @@ RegExpNode* TextNode::FilterOneByte(intptr_t depth, bool ignore_case) {
   return FilterSuccessor(depth - 1, ignore_case);
 }
 
-
 RegExpNode* LoopChoiceNode::FilterOneByte(intptr_t depth, bool ignore_case) {
   if (info()->replacement_calculated) return replacement();
   if (depth < 0) return this;
@@ -2086,7 +2009,6 @@ RegExpNode* LoopChoiceNode::FilterOneByte(intptr_t depth, bool ignore_case) {
 
   return ChoiceNode::FilterOneByte(depth - 1, ignore_case);
 }
-
 
 RegExpNode* ChoiceNode::FilterOneByte(intptr_t depth, bool ignore_case) {
   if (info()->replacement_calculated) return replacement();
@@ -2138,7 +2060,6 @@ RegExpNode* ChoiceNode::FilterOneByte(intptr_t depth, bool ignore_case) {
   return this;
 }
 
-
 RegExpNode* NegativeLookaheadChoiceNode::FilterOneByte(intptr_t depth,
                                                        bool ignore_case) {
   if (info()->replacement_calculated) return replacement();
@@ -2161,7 +2082,6 @@ RegExpNode* NegativeLookaheadChoiceNode::FilterOneByte(intptr_t depth,
   return set_replacement(this);
 }
 
-
 void LoopChoiceNode::GetQuickCheckDetails(QuickCheckDetails* details,
                                           RegExpCompiler* compiler,
                                           intptr_t characters_filled_in,
@@ -2171,7 +2091,6 @@ void LoopChoiceNode::GetQuickCheckDetails(QuickCheckDetails* details,
   return ChoiceNode::GetQuickCheckDetails(details, compiler,
                                           characters_filled_in, not_at_start);
 }
-
 
 void LoopChoiceNode::FillInBMInfo(intptr_t offset,
                                   intptr_t budget,
@@ -2185,7 +2104,6 @@ void LoopChoiceNode::FillInBMInfo(intptr_t offset,
   ChoiceNode::FillInBMInfo(offset, budget - 1, bm, not_at_start);
   SaveBMInfo(bm, not_at_start, offset);
 }
-
 
 void ChoiceNode::GetQuickCheckDetails(QuickCheckDetails* details,
                                       RegExpCompiler* compiler,
@@ -2205,7 +2123,6 @@ void ChoiceNode::GetQuickCheckDetails(QuickCheckDetails* details,
     details->Merge(&new_details, characters_filled_in);
   }
 }
-
 
 // Check for [0-9A-Z_a-z].
 static void EmitWordCheck(RegExpMacroAssembler* assembler,
@@ -2230,7 +2147,6 @@ static void EmitWordCheck(RegExpMacroAssembler* assembler,
     assembler->CheckCharacter('_', word);
   }
 }
-
 
 // Emit the code to check for a ^ in multiline mode (1-character lookbehind
 // that matches newline or the start of input).
@@ -2264,7 +2180,6 @@ static void EmitHat(RegExpCompiler* compiler,
   assembler->BindBlock(&ok);
   on_success->Emit(compiler, &new_trace);
 }
-
 
 // Emit the code to handle \b and \B (word-boundary or non-word-boundary).
 void AssertionNode::EmitBoundaryCheck(RegExpCompiler* compiler, Trace* trace) {
@@ -2320,7 +2235,6 @@ void AssertionNode::EmitBoundaryCheck(RegExpCompiler* compiler, Trace* trace) {
   }
 }
 
-
 void AssertionNode::BacktrackIfPrevious(
     RegExpCompiler* compiler,
     Trace* trace,
@@ -2352,7 +2266,6 @@ void AssertionNode::BacktrackIfPrevious(
   on_success()->Emit(compiler, &new_trace);
 }
 
-
 void AssertionNode::GetQuickCheckDetails(QuickCheckDetails* details,
                                          RegExpCompiler* compiler,
                                          intptr_t filled_in,
@@ -2364,7 +2277,6 @@ void AssertionNode::GetQuickCheckDetails(QuickCheckDetails* details,
   return on_success()->GetQuickCheckDetails(details, compiler, filled_in,
                                             not_at_start);
 }
-
 
 void AssertionNode::Emit(RegExpCompiler* compiler, Trace* trace) {
   RegExpMacroAssembler* assembler = compiler->macro_assembler();
@@ -2401,20 +2313,17 @@ void AssertionNode::Emit(RegExpCompiler* compiler, Trace* trace) {
   on_success()->Emit(compiler, trace);
 }
 
-
 static bool DeterminedAlready(QuickCheckDetails* quick_check, intptr_t offset) {
   if (quick_check == NULL) return false;
   if (offset >= quick_check->characters()) return false;
   return quick_check->positions(offset)->determines_perfectly;
 }
 
-
 static void UpdateBoundsCheck(intptr_t index, intptr_t* checked_up_to) {
   if (index > *checked_up_to) {
     *checked_up_to = index;
   }
 }
-
 
 // We call this repeatedly to generate code for each pass over the text node.
 // The passes are in increasing order of difficulty because we hope one
@@ -2506,13 +2415,11 @@ void TextNode::TextEmitPass(RegExpCompiler* compiler,
   }
 }
 
-
 intptr_t TextNode::Length() {
   TextElement elm = elms_->Last();
   ASSERT(elm.cp_offset() >= 0);
   return elm.cp_offset() + elm.length();
 }
-
 
 bool TextNode::SkipPass(intptr_t intptr_t_pass, bool ignore_case) {
   TextEmitPassType pass = static_cast<TextEmitPassType>(intptr_t_pass);
@@ -2522,7 +2429,6 @@ bool TextNode::SkipPass(intptr_t intptr_t_pass, bool ignore_case) {
     return pass == NON_LETTER_CHARACTER_MATCH || pass == CASE_CHARACTER_MATCH;
   }
 }
-
 
 // This generates the code to match a text node.  A text node can contain
 // straight character sequences (possibly to be matched in a case-independent
@@ -2575,11 +2481,9 @@ void TextNode::Emit(RegExpCompiler* compiler, Trace* trace) {
   on_success()->Emit(compiler, &successor_trace);
 }
 
-
 void Trace::InvalidateCurrentCharacter() {
   characters_preloaded_ = 0;
 }
-
 
 void Trace::AdvanceCurrentPositionInTrace(intptr_t by,
                                           RegExpCompiler* compiler) {
@@ -2601,7 +2505,6 @@ void Trace::AdvanceCurrentPositionInTrace(intptr_t by,
       Utils::Maximum(static_cast<intptr_t>(0), bound_checked_up_to_ - by);
 }
 
-
 void TextNode::MakeCaseIndependent(bool is_one_byte) {
   intptr_t element_count = elms_->length();
   for (intptr_t i = 0; i < element_count; i++) {
@@ -2620,12 +2523,10 @@ void TextNode::MakeCaseIndependent(bool is_one_byte) {
   }
 }
 
-
 intptr_t TextNode::GreedyLoopTextLength() {
   TextElement elm = elms_->At(elms_->length() - 1);
   return elm.cp_offset() + elm.length();
 }
-
 
 RegExpNode* TextNode::GetSuccessorOfOmnivorousTextNode(
     RegExpCompiler* compiler) {
@@ -2649,7 +2550,6 @@ RegExpNode* TextNode::GetSuccessorOfOmnivorousTextNode(
   }
   return ranges->At(0).IsEverything(max_char) ? on_success() : NULL;
 }
-
 
 // Finds the fixed match length of a sequence of nodes that goes from
 // this alternative and back to this choice node.  If there are variable
@@ -2677,20 +2577,17 @@ intptr_t ChoiceNode::GreedyLoopTextLengthForAlternative(
   return length;
 }
 
-
 void LoopChoiceNode::AddLoopAlternative(GuardedAlternative alt) {
   ASSERT(loop_node_ == NULL);
   AddAlternative(alt);
   loop_node_ = alt.node();
 }
 
-
 void LoopChoiceNode::AddContinueAlternative(GuardedAlternative alt) {
   ASSERT(continue_node_ == NULL);
   AddAlternative(alt);
   continue_node_ = alt.node();
 }
-
 
 void LoopChoiceNode::Emit(RegExpCompiler* compiler, Trace* trace) {
   RegExpMacroAssembler* macro_assembler = compiler->macro_assembler();
@@ -2714,7 +2611,6 @@ void LoopChoiceNode::Emit(RegExpCompiler* compiler, Trace* trace) {
   ChoiceNode::Emit(compiler, trace);
 }
 
-
 intptr_t ChoiceNode::CalculatePreloadCharacters(RegExpCompiler* compiler,
                                                 intptr_t eats_at_least) {
   intptr_t preload_characters =
@@ -2736,7 +2632,6 @@ intptr_t ChoiceNode::CalculatePreloadCharacters(RegExpCompiler* compiler,
   return preload_characters;
 }
 
-
 // This structure is used when generating the alternatives in a choice node.  It
 // records the way the alternative is being code generated.
 struct AlternativeGeneration {
@@ -2750,7 +2645,6 @@ struct AlternativeGeneration {
   BlockLabel after;
   QuickCheckDetails quick_check_details;
 };
-
 
 // Creates a list of AlternativeGenerations.  If the list has a reasonable
 // size then it is on the stack, otherwise the excess is on the heap.
@@ -2781,13 +2675,14 @@ class AlternativeGenerationList {
   DISALLOW_ALLOCATION();
 };
 
-
 // The '2' variant is inclusive from and exclusive to.
 // This covers \s as defined in ECMA-262 5.1, 15.10.2.12,
 // which include WhiteSpace (7.2) or LineTerminator (7.3) values.
+// 0x180E has been removed from Unicode's Zs category and thus
+// from ECMAScript's WhiteSpace category as of Unicode 6.3.
 static const intptr_t kSpaceRanges[] = {
-    '\t',   '\r' + 1, ' ',    ' ' + 1, 0x00A0, 0x00A1, 0x1680, 0x1681,
-    0x180E, 0x180F,   0x2000, 0x200B,  0x2028, 0x202A, 0x202F, 0x2030,
+    '\t',   '\r' + 1, ' ',    ' ' + 1, 0x00A0, 0x00A1, 0x1680,
+    0x1681, 0x2000,   0x200B, 0x2028,  0x202A, 0x202F, 0x2030,
     0x205F, 0x2060,   0x3000, 0x3001,  0xFEFF, 0xFF00, 0x10000};
 static const intptr_t kSpaceRangeCount = ARRAY_SIZE(kSpaceRanges);
 static const intptr_t kWordRanges[] = {'0',     '9' + 1, 'A',     'Z' + 1, '_',
@@ -2802,11 +2697,9 @@ static const intptr_t kLineTerminatorRanges[] = {0x000A, 0x000B, 0x000D, 0x000E,
 static const intptr_t kLineTerminatorRangeCount =
     ARRAY_SIZE(kLineTerminatorRanges);
 
-
 void BoyerMoorePositionInfo::Set(intptr_t character) {
   SetInterval(Interval(character, character));
 }
-
 
 void BoyerMoorePositionInfo::SetInterval(const Interval& interval) {
   s_ = AddRange(s_, kSpaceRanges, kSpaceRangeCount, interval);
@@ -2832,7 +2725,6 @@ void BoyerMoorePositionInfo::SetInterval(const Interval& interval) {
   }
 }
 
-
 void BoyerMoorePositionInfo::SetAll() {
   s_ = w_ = d_ = kLatticeUnknown;
   if (map_count_ != kMapSize) {
@@ -2841,7 +2733,6 @@ void BoyerMoorePositionInfo::SetAll() {
       (*map_)[i] = true;
   }
 }
-
 
 BoyerMooreLookahead::BoyerMooreLookahead(intptr_t length,
                                          RegExpCompiler* compiler,
@@ -2857,7 +2748,6 @@ BoyerMooreLookahead::BoyerMooreLookahead(intptr_t length,
     bitmaps_->Add(new (zone) BoyerMoorePositionInfo(zone));
   }
 }
-
 
 // Find the longest range of lookahead that has the fewest number of different
 // characters that can occur at a given position.  Since we are optimizing two
@@ -2875,7 +2765,6 @@ bool BoyerMooreLookahead::FindWorthwhileInterval(intptr_t* from, intptr_t* to) {
   if (biggest_points == 0) return false;
   return true;
 }
-
 
 // Find the highest-points range between 0 and length_ where the character
 // information is not too vague.  'Too vague' means that there are more than
@@ -2936,7 +2825,6 @@ intptr_t BoyerMooreLookahead::FindBestInterval(intptr_t max_number_of_chars,
   return biggest_points;
 }
 
-
 // Take all the characters that will not prevent a successful match if they
 // occur in the subject string in the range between min_lookahead and
 // max_lookahead (inclusive) measured from the current position.  If the
@@ -2967,7 +2855,6 @@ intptr_t BoyerMooreLookahead::GetSkipTable(
 
   return skip;
 }
-
 
 // See comment above on the implementation of GetSkipTable.
 void BoyerMooreLookahead::EmitSkipInstructions(RegExpMacroAssembler* masm) {
@@ -3029,6 +2916,7 @@ void BoyerMooreLookahead::EmitSkipInstructions(RegExpMacroAssembler* masm) {
   BlockLabel cont, again;
 
   masm->BindBlock(&again);
+  masm->CheckPreemption(/*is_backtrack=*/false);
   masm->LoadCurrentCharacter(max_lookahead, &cont, true);
   masm->CheckBitInTable(boolean_skip_table, &cont);
   masm->AdvanceCurrentPosition(skip_distance);
@@ -3037,7 +2925,6 @@ void BoyerMooreLookahead::EmitSkipInstructions(RegExpMacroAssembler* masm) {
 
   return;
 }
-
 
 /* Code generation for choice nodes.
  *
@@ -3118,7 +3005,6 @@ GreedyLoopState::GreedyLoopState(bool not_at_start) {
   if (not_at_start) counter_backtrack_trace_.set_at_start(false);
 }
 
-
 void ChoiceNode::AssertGuardsMentionRegisters(Trace* trace) {
 #ifdef DEBUG
   intptr_t choice_count = alternatives_->length();
@@ -3132,7 +3018,6 @@ void ChoiceNode::AssertGuardsMentionRegisters(Trace* trace) {
   }
 #endif
 }
-
 
 void ChoiceNode::SetUpPreLoad(RegExpCompiler* compiler,
                               Trace* current_trace,
@@ -3150,7 +3035,6 @@ void ChoiceNode::SetUpPreLoad(RegExpCompiler* compiler,
       (current_trace->characters_preloaded() == state->preload_characters_);
   state->preload_has_checked_bounds_ = state->preload_is_current_;
 }
-
 
 void ChoiceNode::Emit(RegExpCompiler* compiler, Trace* trace) {
   intptr_t choice_count = alternatives_->length();
@@ -3235,6 +3119,7 @@ Trace* ChoiceNode::EmitGreedyLoop(RegExpCompiler* compiler,
   greedy_match_trace.set_backtrack(&greedy_match_failed);
   BlockLabel loop_label;
   macro_assembler->BindBlock(&loop_label);
+  macro_assembler->CheckPreemption(/*is_backtrack=*/false);
   greedy_match_trace.set_stop_node(this);
   greedy_match_trace.set_loop_label(&loop_label);
   (*alternatives_)[0].node()->Emit(compiler, &greedy_match_trace);
@@ -3255,7 +3140,6 @@ Trace* ChoiceNode::EmitGreedyLoop(RegExpCompiler* compiler,
   macro_assembler->GoTo(&second_choice);
   return new_trace;
 }
-
 
 intptr_t ChoiceNode::EmitOptimizedUnanchoredSearch(RegExpCompiler* compiler,
                                                    Trace* trace) {
@@ -3303,7 +3187,6 @@ intptr_t ChoiceNode::EmitOptimizedUnanchoredSearch(RegExpCompiler* compiler,
   }
   return eats_at_least;
 }
-
 
 void ChoiceNode::EmitChoices(RegExpCompiler* compiler,
                              AlternativeGenerationList* alt_gens,
@@ -3389,7 +3272,6 @@ void ChoiceNode::EmitChoices(RegExpCompiler* compiler,
   }
 }
 
-
 void ChoiceNode::EmitOutOfLineContinuation(RegExpCompiler* compiler,
                                            Trace* trace,
                                            GuardedAlternative alternative,
@@ -3428,7 +3310,6 @@ void ChoiceNode::EmitOutOfLineContinuation(RegExpCompiler* compiler,
     alternative.node()->Emit(compiler, &out_of_line_trace);
   }
 }
-
 
 void ActionNode::Emit(RegExpCompiler* compiler, Trace* trace) {
   RegExpMacroAssembler* assembler = compiler->macro_assembler();
@@ -3550,7 +3431,6 @@ void ActionNode::Emit(RegExpCompiler* compiler, Trace* trace) {
   }
 }
 
-
 void BackReferenceNode::Emit(RegExpCompiler* compiler, Trace* trace) {
   RegExpMacroAssembler* assembler = compiler->macro_assembler();
   if (!trace->is_trivial()) {
@@ -3573,13 +3453,10 @@ void BackReferenceNode::Emit(RegExpCompiler* compiler, Trace* trace) {
   on_success()->Emit(compiler, trace);
 }
 
-
 // -------------------------------------------------------------------
 // Dot/dotty output
 
-
 #ifdef DEBUG
-
 
 class DotPrinter : public NodeVisitor {
  public:
@@ -3593,27 +3470,25 @@ class DotPrinter : public NodeVisitor {
 #undef DECLARE_VISIT
 };
 
-
 void DotPrinter::PrintNode(const char* label, RegExpNode* node) {
-  OS::Print("digraph G {\n  graph [label=\"");
+  OS::PrintErr("digraph G {\n  graph [label=\"");
   for (intptr_t i = 0; label[i]; i++) {
     switch (label[i]) {
       case '\\':
-        OS::Print("\\\\");
+        OS::PrintErr("\\\\");
         break;
       case '"':
-        OS::Print("\"");
+        OS::PrintErr("\"");
         break;
       default:
-        OS::Print("%c", label[i]);
+        OS::PrintErr("%c", label[i]);
         break;
     }
   }
-  OS::Print("\"];\n");
+  OS::PrintErr("\"];\n");
   Visit(node);
-  OS::Print("}\n");
+  OS::PrintErr("}\n");
 }
-
 
 void DotPrinter::Visit(RegExpNode* node) {
   if (node->info()->visited) return;
@@ -3621,12 +3496,10 @@ void DotPrinter::Visit(RegExpNode* node) {
   node->Accept(this);
 }
 
-
 void DotPrinter::PrintOnFailure(RegExpNode* from, RegExpNode* on_failure) {
-  OS::Print("  n%p -> n%p [style=dotted];\n", from, on_failure);
+  OS::PrintErr("  n%p -> n%p [style=dotted];\n", from, on_failure);
   Visit(on_failure);
 }
-
 
 class AttributePrinter : public ValueObject {
  public:
@@ -3635,27 +3508,26 @@ class AttributePrinter : public ValueObject {
     if (first_) {
       first_ = false;
     } else {
-      OS::Print("|");
+      OS::PrintErr("|");
     }
   }
   void PrintBit(const char* name, bool value) {
     if (!value) return;
     PrintSeparator();
-    OS::Print("{%s}", name);
+    OS::PrintErr("{%s}", name);
   }
   void PrintPositive(const char* name, intptr_t value) {
     if (value < 0) return;
     PrintSeparator();
-    OS::Print("{%s|%" Pd "}", name, value);
+    OS::PrintErr("{%s|%" Pd "}", name, value);
   }
 
  private:
   bool first_;
 };
 
-
 void DotPrinter::PrintAttributes(RegExpNode* that) {
-  OS::Print(
+  OS::PrintErr(
       "  a%p [shape=Mrecord, color=grey, fontcolor=grey, "
       "margin=0.1, fontsize=10, label=\"{",
       that);
@@ -3666,18 +3538,17 @@ void DotPrinter::PrintAttributes(RegExpNode* that) {
   printer.PrintBit("SI", info->follows_start_interest);
   BlockLabel* label = that->label();
   if (label->IsBound()) printer.PrintPositive("@", label->Position());
-  OS::Print(
+  OS::PrintErr(
       "}\"];\n"
       "  a%p -> n%p [style=dashed, color=grey, arrowhead=none];\n",
       that, that);
 }
 
-
 void DotPrinter::VisitChoice(ChoiceNode* that) {
-  OS::Print("  n%p [shape=Mrecord, label=\"?\"];\n", that);
+  OS::PrintErr("  n%p [shape=Mrecord, label=\"?\"];\n", that);
   for (intptr_t i = 0; i < that->alternatives()->length(); i++) {
     GuardedAlternative alt = that->alternatives()->At(i);
-    OS::Print("  n%p -> n%p", that, alt.node());
+    OS::PrintErr("  n%p -> n%p", that, alt.node());
   }
   for (intptr_t i = 0; i < that->alternatives()->length(); i++) {
     GuardedAlternative alt = that->alternatives()->At(i);
@@ -3685,129 +3556,123 @@ void DotPrinter::VisitChoice(ChoiceNode* that) {
   }
 }
 
-
 void DotPrinter::VisitText(TextNode* that) {
-  OS::Print("  n%p [label=\"", that);
+  OS::PrintErr("  n%p [label=\"", that);
   for (intptr_t i = 0; i < that->elements()->length(); i++) {
-    if (i > 0) OS::Print(" ");
+    if (i > 0) OS::PrintErr(" ");
     TextElement elm = that->elements()->At(i);
     switch (elm.text_type()) {
       case TextElement::ATOM: {
         ZoneGrowableArray<uint16_t>* data = elm.atom()->data();
         for (intptr_t i = 0; i < data->length(); i++) {
-          OS::Print("%c", static_cast<char>(data->At(i)));
+          OS::PrintErr("%c", static_cast<char>(data->At(i)));
         }
         break;
       }
       case TextElement::CHAR_CLASS: {
         RegExpCharacterClass* node = elm.char_class();
-        OS::Print("[");
-        if (node->is_negated()) OS::Print("^");
+        OS::PrintErr("[");
+        if (node->is_negated()) OS::PrintErr("^");
         for (intptr_t j = 0; j < node->ranges()->length(); j++) {
           CharacterRange range = node->ranges()->At(j);
           PrintUtf16(range.from());
-          OS::Print("-");
+          OS::PrintErr("-");
           PrintUtf16(range.to());
         }
-        OS::Print("]");
+        OS::PrintErr("]");
         break;
       }
       default:
         UNREACHABLE();
     }
   }
-  OS::Print("\", shape=box, peripheries=2];\n");
+  OS::PrintErr("\", shape=box, peripheries=2];\n");
   PrintAttributes(that);
-  OS::Print("  n%p -> n%p;\n", that, that->on_success());
+  OS::PrintErr("  n%p -> n%p;\n", that, that->on_success());
   Visit(that->on_success());
 }
-
 
 void DotPrinter::VisitBackReference(BackReferenceNode* that) {
-  OS::Print("  n%p [label=\"$%" Pd "..$%" Pd "\", shape=doubleoctagon];\n",
-            that, that->start_register(), that->end_register());
+  OS::PrintErr("  n%p [label=\"$%" Pd "..$%" Pd "\", shape=doubleoctagon];\n",
+               that, that->start_register(), that->end_register());
   PrintAttributes(that);
-  OS::Print("  n%p -> n%p;\n", that, that->on_success());
+  OS::PrintErr("  n%p -> n%p;\n", that, that->on_success());
   Visit(that->on_success());
 }
 
-
 void DotPrinter::VisitEnd(EndNode* that) {
-  OS::Print("  n%p [style=bold, shape=point];\n", that);
+  OS::PrintErr("  n%p [style=bold, shape=point];\n", that);
   PrintAttributes(that);
 }
 
-
 void DotPrinter::VisitAssertion(AssertionNode* that) {
-  OS::Print("  n%p [", that);
+  OS::PrintErr("  n%p [", that);
   switch (that->assertion_type()) {
     case AssertionNode::AT_END:
-      OS::Print("label=\"$\", shape=septagon");
+      OS::PrintErr("label=\"$\", shape=septagon");
       break;
     case AssertionNode::AT_START:
-      OS::Print("label=\"^\", shape=septagon");
+      OS::PrintErr("label=\"^\", shape=septagon");
       break;
     case AssertionNode::AT_BOUNDARY:
-      OS::Print("label=\"\\b\", shape=septagon");
+      OS::PrintErr("label=\"\\b\", shape=septagon");
       break;
     case AssertionNode::AT_NON_BOUNDARY:
-      OS::Print("label=\"\\B\", shape=septagon");
+      OS::PrintErr("label=\"\\B\", shape=septagon");
       break;
     case AssertionNode::AFTER_NEWLINE:
-      OS::Print("label=\"(?<=\\n)\", shape=septagon");
+      OS::PrintErr("label=\"(?<=\\n)\", shape=septagon");
       break;
   }
-  OS::Print("];\n");
+  OS::PrintErr("];\n");
   PrintAttributes(that);
   RegExpNode* successor = that->on_success();
-  OS::Print("  n%p -> n%p;\n", that, successor);
+  OS::PrintErr("  n%p -> n%p;\n", that, successor);
   Visit(successor);
 }
 
-
 void DotPrinter::VisitAction(ActionNode* that) {
-  OS::Print("  n%p [", that);
+  OS::PrintErr("  n%p [", that);
   switch (that->action_type_) {
     case ActionNode::SET_REGISTER:
-      OS::Print("label=\"$%" Pd ":=%" Pd "\", shape=octagon",
-                that->data_.u_store_register.reg,
-                that->data_.u_store_register.value);
+      OS::PrintErr("label=\"$%" Pd ":=%" Pd "\", shape=octagon",
+                   that->data_.u_store_register.reg,
+                   that->data_.u_store_register.value);
       break;
     case ActionNode::INCREMENT_REGISTER:
-      OS::Print("label=\"$%" Pd "++\", shape=octagon",
-                that->data_.u_increment_register.reg);
+      OS::PrintErr("label=\"$%" Pd "++\", shape=octagon",
+                   that->data_.u_increment_register.reg);
       break;
     case ActionNode::STORE_POSITION:
-      OS::Print("label=\"$%" Pd ":=$pos\", shape=octagon",
-                that->data_.u_position_register.reg);
+      OS::PrintErr("label=\"$%" Pd ":=$pos\", shape=octagon",
+                   that->data_.u_position_register.reg);
       break;
     case ActionNode::BEGIN_SUBMATCH:
-      OS::Print("label=\"$%" Pd ":=$pos,begin\", shape=septagon",
-                that->data_.u_submatch.current_position_register);
+      OS::PrintErr("label=\"$%" Pd ":=$pos,begin\", shape=septagon",
+                   that->data_.u_submatch.current_position_register);
       break;
     case ActionNode::POSITIVE_SUBMATCH_SUCCESS:
-      OS::Print("label=\"escape\", shape=septagon");
+      OS::PrintErr("label=\"escape\", shape=septagon");
       break;
     case ActionNode::EMPTY_MATCH_CHECK:
-      OS::Print("label=\"$%" Pd "=$pos?,$%" Pd "<%" Pd "?\", shape=septagon",
-                that->data_.u_empty_match_check.start_register,
-                that->data_.u_empty_match_check.repetition_register,
-                that->data_.u_empty_match_check.repetition_limit);
+      OS::PrintErr("label=\"$%" Pd "=$pos?,$%" Pd "<%" Pd "?\", shape=septagon",
+                   that->data_.u_empty_match_check.start_register,
+                   that->data_.u_empty_match_check.repetition_register,
+                   that->data_.u_empty_match_check.repetition_limit);
       break;
     case ActionNode::CLEAR_CAPTURES: {
-      OS::Print("label=\"clear $%" Pd " to $%" Pd "\", shape=septagon",
-                that->data_.u_clear_captures.range_from,
-                that->data_.u_clear_captures.range_to);
+      OS::PrintErr("label=\"clear $%" Pd " to $%" Pd "\", shape=septagon",
+                   that->data_.u_clear_captures.range_from,
+                   that->data_.u_clear_captures.range_to);
       break;
     }
   }
-  OS::Print("];\n");
+  OS::PrintErr("];\n");
   PrintAttributes(that);
   RegExpNode* successor = that->on_success();
-  OS::Print("  n%p -> n%p;\n", that, successor);
+  OS::PrintErr("  n%p -> n%p;\n", that, successor);
   Visit(successor);
 }
-
 
 void RegExpEngine::DotPrint(const char* label,
                             RegExpNode* node,
@@ -3816,9 +3681,7 @@ void RegExpEngine::DotPrint(const char* label,
   printer.PrintNode(label, node);
 }
 
-
 #endif  // DEBUG
-
 
 // -------------------------------------------------------------------
 // Tree to graph conversion
@@ -3834,7 +3697,6 @@ RegExpNode* RegExpAtom::ToNode(RegExpCompiler* compiler,
   return new (OZ) TextNode(elms, on_success);
 }
 
-
 RegExpNode* RegExpText::ToNode(RegExpCompiler* compiler,
                                RegExpNode* on_success) {
   ZoneGrowableArray<TextElement>* elms =
@@ -3844,7 +3706,6 @@ RegExpNode* RegExpText::ToNode(RegExpCompiler* compiler,
   }
   return new (OZ) TextNode(elms, on_success);
 }
-
 
 static bool CompareInverseRanges(ZoneGrowableArray<CharacterRange>* ranges,
                                  const intptr_t* special_class,
@@ -3876,7 +3737,6 @@ static bool CompareInverseRanges(ZoneGrowableArray<CharacterRange>* ranges,
   return true;
 }
 
-
 static bool CompareRanges(ZoneGrowableArray<CharacterRange>* ranges,
                           const intptr_t* special_class,
                           intptr_t length) {
@@ -3894,7 +3754,6 @@ static bool CompareRanges(ZoneGrowableArray<CharacterRange>* ranges,
   }
   return true;
 }
-
 
 bool RegExpCharacterClass::is_standard() {
   // TODO(lrn): Remove need for this function, by not throwing away information
@@ -3934,12 +3793,10 @@ bool RegExpCharacterClass::is_standard() {
   return false;
 }
 
-
 RegExpNode* RegExpCharacterClass::ToNode(RegExpCompiler* compiler,
                                          RegExpNode* on_success) {
   return new (OZ) TextNode(this, on_success);
 }
-
 
 RegExpNode* RegExpDisjunction::ToNode(RegExpCompiler* compiler,
                                       RegExpNode* on_success) {
@@ -3954,12 +3811,10 @@ RegExpNode* RegExpDisjunction::ToNode(RegExpCompiler* compiler,
   return result;
 }
 
-
 RegExpNode* RegExpQuantifier::ToNode(RegExpCompiler* compiler,
                                      RegExpNode* on_success) {
   return ToNode(min(), max(), is_greedy(), body(), compiler, on_success);
 }
-
 
 // Scoped object to keep track of how much we unroll quantifier loops in the
 // regexp graph generator.
@@ -3997,7 +3852,6 @@ class RegExpExpansionLimiter : public ValueObject {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(RegExpExpansionLimiter);
 };
-
 
 RegExpNode* RegExpQuantifier::ToNode(intptr_t min,
                                      intptr_t max,
@@ -4135,7 +3989,6 @@ RegExpNode* RegExpQuantifier::ToNode(intptr_t min,
   }
 }
 
-
 RegExpNode* RegExpAssertion::ToNode(RegExpCompiler* compiler,
                                     RegExpNode* on_success) {
   switch (assertion_type()) {
@@ -4184,7 +4037,6 @@ RegExpNode* RegExpAssertion::ToNode(RegExpCompiler* compiler,
   return on_success;
 }
 
-
 RegExpNode* RegExpBackReference::ToNode(RegExpCompiler* compiler,
                                         RegExpNode* on_success) {
   return new (OZ)
@@ -4192,12 +4044,10 @@ RegExpNode* RegExpBackReference::ToNode(RegExpCompiler* compiler,
                         RegExpCapture::EndRegister(index()), on_success);
 }
 
-
 RegExpNode* RegExpEmpty::ToNode(RegExpCompiler* compiler,
                                 RegExpNode* on_success) {
   return on_success;
 }
-
 
 RegExpNode* RegExpLookahead::ToNode(RegExpCompiler* compiler,
                                     RegExpNode* on_success) {
@@ -4242,12 +4092,10 @@ RegExpNode* RegExpLookahead::ToNode(RegExpCompiler* compiler,
   }
 }
 
-
 RegExpNode* RegExpCapture::ToNode(RegExpCompiler* compiler,
                                   RegExpNode* on_success) {
   return ToNode(body(), index(), compiler, on_success);
 }
-
 
 RegExpNode* RegExpCapture::ToNode(RegExpTree* body,
                                   intptr_t index,
@@ -4260,7 +4108,6 @@ RegExpNode* RegExpCapture::ToNode(RegExpTree* body,
   return ActionNode::StorePosition(start_reg, true, body_node);
 }
 
-
 RegExpNode* RegExpAlternative::ToNode(RegExpCompiler* compiler,
                                       RegExpNode* on_success) {
   ZoneGrowableArray<RegExpTree*>* children = nodes();
@@ -4270,7 +4117,6 @@ RegExpNode* RegExpAlternative::ToNode(RegExpCompiler* compiler,
   }
   return current;
 }
-
 
 static void AddClass(const intptr_t* elmv,
                      intptr_t elmc,
@@ -4282,7 +4128,6 @@ static void AddClass(const intptr_t* elmv,
     ranges->Add(CharacterRange(elmv[i], elmv[i + 1] - 1));
   }
 }
-
 
 static void AddClassNegated(const intptr_t* elmv,
                             intptr_t elmc,
@@ -4300,7 +4145,6 @@ static void AddClassNegated(const intptr_t* elmv,
   }
   ranges->Add(CharacterRange(last, Utf16::kMaxCodeUnit));
 }
-
 
 void CharacterRange::AddClassEscape(uint16_t type,
                                     ZoneGrowableArray<CharacterRange>* ranges) {
@@ -4341,7 +4185,6 @@ void CharacterRange::AddClassEscape(uint16_t type,
       UNREACHABLE();
   }
 }
-
 
 void CharacterRange::AddCaseEquivalents(
     ZoneGrowableArray<CharacterRange>* ranges,
@@ -4414,7 +4257,6 @@ void CharacterRange::AddCaseEquivalents(
   }
 }
 
-
 bool CharacterRange::IsCanonical(ZoneGrowableArray<CharacterRange>* ranges) {
   ASSERT(ranges != NULL);
   intptr_t n = ranges->length();
@@ -4428,7 +4270,6 @@ bool CharacterRange::IsCanonical(ZoneGrowableArray<CharacterRange>* ranges) {
   return true;
 }
 
-
 ZoneGrowableArray<CharacterRange>* CharacterSet::ranges() {
   if (ranges_ == NULL) {
     ranges_ = new ZoneGrowableArray<CharacterRange>(2);
@@ -4436,7 +4277,6 @@ ZoneGrowableArray<CharacterRange>* CharacterSet::ranges() {
   }
   return ranges_;
 }
-
 
 // Move a number of elements in a zone array to another position
 // in the same array. Handles overlapping source and target areas.
@@ -4455,7 +4295,6 @@ static void MoveRanges(ZoneGrowableArray<CharacterRange>* list,
     }
   }
 }
-
 
 static intptr_t InsertRangeInCanonicalList(
     ZoneGrowableArray<CharacterRange>* list,
@@ -4515,14 +4354,12 @@ static intptr_t InsertRangeInCanonicalList(
   return count - (end_pos - start_pos) + 1;
 }
 
-
 void CharacterSet::Canonicalize() {
   // Special/default classes are always considered canonical. The result
   // of calling ranges() will be sorted.
   if (ranges_ == NULL) return;
   CharacterRange::Canonicalize(ranges_);
 }
-
 
 void CharacterRange::Canonicalize(
     ZoneGrowableArray<CharacterRange>* character_ranges) {
@@ -4560,7 +4397,6 @@ void CharacterRange::Canonicalize(
   ASSERT(CharacterRange::IsCanonical(character_ranges));
 }
 
-
 void CharacterRange::Negate(ZoneGrowableArray<CharacterRange>* ranges,
                             ZoneGrowableArray<CharacterRange>* negated_ranges) {
   ASSERT(CharacterRange::IsCanonical(ranges));
@@ -4583,10 +4419,8 @@ void CharacterRange::Negate(ZoneGrowableArray<CharacterRange>* ranges,
   }
 }
 
-
 // -------------------------------------------------------------------
 // Splay tree
-
 
 // Workaround for the fact that ZoneGrowableArray does not have contains().
 static bool ArrayContains(ZoneGrowableArray<unsigned>* array, unsigned value) {
@@ -4597,7 +4431,6 @@ static bool ArrayContains(ZoneGrowableArray<unsigned>* array, unsigned value) {
   }
   return false;
 }
-
 
 void OutSet::Set(unsigned value, Zone* zone) {
   if (value < kFirstLimit) {
@@ -4613,7 +4446,6 @@ void OutSet::Set(unsigned value, Zone* zone) {
   }
 }
 
-
 bool OutSet::Get(unsigned value) const {
   if (value < kFirstLimit) {
     return (first_ & (1 << value)) != 0;
@@ -4624,10 +4456,8 @@ bool OutSet::Get(unsigned value) const {
   }
 }
 
-
 // -------------------------------------------------------------------
 // Analysis
-
 
 void Analysis::EnsureAnalyzed(RegExpNode* that) {
   if (that->info()->been_analyzed || that->info()->being_analyzed) return;
@@ -4637,11 +4467,9 @@ void Analysis::EnsureAnalyzed(RegExpNode* that) {
   that->info()->been_analyzed = true;
 }
 
-
 void Analysis::VisitEnd(EndNode* that) {
   // nothing to do
 }
-
 
 void TextNode::CalculateOffsets() {
   intptr_t element_count = elements()->length();
@@ -4655,7 +4483,6 @@ void TextNode::CalculateOffsets() {
   }
 }
 
-
 void Analysis::VisitText(TextNode* that) {
   if (ignore_case_) {
     that->MakeCaseIndependent(is_one_byte_);
@@ -4666,7 +4493,6 @@ void Analysis::VisitText(TextNode* that) {
   }
 }
 
-
 void Analysis::VisitAction(ActionNode* that) {
   RegExpNode* target = that->on_success();
   EnsureAnalyzed(target);
@@ -4676,7 +4502,6 @@ void Analysis::VisitAction(ActionNode* that) {
     that->info()->AddFromFollowing(target->info());
   }
 }
-
 
 void Analysis::VisitChoice(ChoiceNode* that) {
   NodeInfo* info = that->info();
@@ -4689,7 +4514,6 @@ void Analysis::VisitChoice(ChoiceNode* that) {
     info->AddFromFollowing(node->info());
   }
 }
-
 
 void Analysis::VisitLoopChoice(LoopChoiceNode* that) {
   NodeInfo* info = that->info();
@@ -4709,16 +4533,13 @@ void Analysis::VisitLoopChoice(LoopChoiceNode* that) {
   }
 }
 
-
 void Analysis::VisitBackReference(BackReferenceNode* that) {
   EnsureAnalyzed(that->on_success());
 }
 
-
 void Analysis::VisitAssertion(AssertionNode* that) {
   EnsureAnalyzed(that->on_success());
 }
-
 
 void BackReferenceNode::FillInBMInfo(intptr_t offset,
                                      intptr_t budget,
@@ -4730,10 +4551,8 @@ void BackReferenceNode::FillInBMInfo(intptr_t offset,
   SaveBMInfo(bm, not_at_start, offset);
 }
 
-
 COMPILE_ASSERT(BoyerMoorePositionInfo::kMapSize ==
                RegExpMacroAssembler::kTableSize);
-
 
 void ChoiceNode::FillInBMInfo(intptr_t offset,
                               intptr_t budget,
@@ -4752,7 +4571,6 @@ void ChoiceNode::FillInBMInfo(intptr_t offset,
   }
   SaveBMInfo(bm, not_at_start, offset);
 }
-
 
 void TextNode::FillInBMInfo(intptr_t initial_offset,
                             intptr_t budget,
@@ -4814,11 +4632,12 @@ void TextNode::FillInBMInfo(intptr_t initial_offset,
   if (initial_offset == 0) set_bm_info(not_at_start, bm);
 }
 
-
+#if !defined(DART_PRECOMPILED_RUNTIME)
 RegExpEngine::CompilationResult RegExpEngine::CompileIR(
     RegExpCompileData* data,
     const ParsedFunction* parsed_function,
-    const ZoneGrowableArray<const ICData*>& ic_data_array) {
+    const ZoneGrowableArray<const ICData*>& ic_data_array,
+    intptr_t osr_id) {
   ASSERT(!FLAG_interpret_irregexp);
   Zone* zone = Thread::Current()->zone();
 
@@ -4894,9 +4713,9 @@ RegExpEngine::CompilationResult RegExpEngine::CompileIR(
 
   // Native regexp implementation.
 
-  IRRegExpMacroAssembler* macro_assembler =
-      new (zone) IRRegExpMacroAssembler(specialization_cid, data->capture_count,
-                                        parsed_function, ic_data_array, zone);
+  IRRegExpMacroAssembler* macro_assembler = new (zone)
+      IRRegExpMacroAssembler(specialization_cid, data->capture_count,
+                             parsed_function, ic_data_array, osr_id, zone);
 
   // Inserted here, instead of in Assembler, because it depends on information
   // in the AST that isn't replicated in the Node structure.
@@ -4922,7 +4741,7 @@ RegExpEngine::CompilationResult RegExpEngine::CompileIR(
 
   return result;
 }
-
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 RegExpEngine::CompilationResult RegExpEngine::CompileBytecode(
     RegExpCompileData* data,
@@ -5026,7 +4845,6 @@ RegExpEngine::CompilationResult RegExpEngine::CompileBytecode(
   return result;
 }
 
-
 static void CreateSpecializedFunction(Thread* thread,
                                       Zone* zone,
                                       const RegExp& regexp,
@@ -5074,7 +4892,6 @@ static void CreateSpecializedFunction(Thread* thread,
   // The function is compiled lazily during the first call.
 }
 
-
 RawRegExp* RegExpEngine::CreateRegExp(Thread* thread,
                                       const String& pattern,
                                       bool multi_line,
@@ -5112,6 +4929,5 @@ RawRegExp* RegExpEngine::CreateRegExp(Thread* thread,
 
   return regexp.raw();
 }
-
 
 }  // namespace dart

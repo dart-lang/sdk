@@ -5,9 +5,9 @@
 library compiler.src.inferrer.closure_tracer;
 
 import '../common/names.dart' show Names;
-import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend;
-import '../types/types.dart' show TypeMask;
+import '../types/abstract_value_domain.dart';
 import '../universe/selector.dart' show Selector;
 import 'debug.dart' as debug;
 import 'inferrer_engine.dart';
@@ -15,13 +15,18 @@ import 'node_tracer.dart';
 import 'type_graph_nodes.dart';
 
 class ClosureTracerVisitor extends TracerVisitor {
-  final Iterable<FunctionElement> tracedElements;
+  final Iterable<FunctionEntity> tracedElements;
   final List<CallSiteTypeInformation> _callsToAnalyze =
       new List<CallSiteTypeInformation>();
 
   ClosureTracerVisitor(this.tracedElements, ApplyableTypeInformation tracedType,
       InferrerEngine inferrer)
-      : super(tracedType, inferrer);
+      : super(tracedType, inferrer) {
+    assert(
+        tracedElements.every((f) => !f.isAbstract),
+        "Tracing abstract methods: "
+        "${tracedElements.where((f) => f.isAbstract)}");
+  }
 
   ApplyableTypeInformation get tracedType => super.tracedType;
 
@@ -29,10 +34,10 @@ class ClosureTracerVisitor extends TracerVisitor {
     analyze();
     if (!continueAnalyzing) return;
     _callsToAnalyze.forEach(_analyzeCall);
-    for (FunctionElement e in tracedElements) {
-      e.functionSignature.forEachParameter((Element parameter) {
+    for (FunctionEntity element in tracedElements) {
+      inferrer.types.strategy.forEachParameter(element, (Local parameter) {
         ElementTypeInformation info =
-            inferrer.types.getInferredTypeOf(parameter);
+            inferrer.types.getInferredTypeOfParameter(parameter);
         info.disableInferenceForClosures = false;
       });
     }
@@ -51,8 +56,8 @@ class ClosureTracerVisitor extends TracerVisitor {
 
   void _analyzeCall(CallSiteTypeInformation info) {
     Selector selector = info.selector;
-    TypeMask mask = info.mask;
-    tracedElements.forEach((FunctionElement functionElement) {
+    AbstractValue mask = info.mask;
+    tracedElements.forEach((FunctionEntity functionElement) {
       if (!selector.callStructure
           .signatureApplies(functionElement.parameterStructure)) {
         return;
@@ -76,34 +81,33 @@ class ClosureTracerVisitor extends TracerVisitor {
   @override
   visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
     super.visitStaticCallSiteTypeInformation(info);
-    Element called = info.calledElement;
-    if (compiler.backend.isForeign(called)) {
+    MemberEntity called = info.calledElement;
+    if (inferrer.closedWorld.commonElements.isForeign(called)) {
       String name = called.name;
       if (name == JavaScriptBackend.JS || name == 'DART_CLOSURE_TO_JS') {
-        bailout('Used in JS ${info.call}');
+        bailout('Used in JS ${info.debugName}');
       }
     }
     if (called.isGetter &&
         info.selector != null &&
         info.selector.isCall &&
-        inferrer.types.getInferredTypeOf(called) == currentUser) {
+        inferrer.types.getInferredTypeOfMember(called) == currentUser) {
       // This node can be a closure call as well. For example, `foo()`
       // where `foo` is a getter.
       _registerCallForLaterAnalysis(info);
     }
-    if (called is MemberElement &&
-        _checkIfFunctionApply(called) &&
+    if (_checkIfFunctionApply(called) &&
         info.arguments != null &&
         info.arguments.contains(currentUser)) {
       _tagAsFunctionApplyTarget("static call");
     }
   }
 
-  bool _checkIfCurrentUser(element) =>
-      inferrer.types.getInferredTypeOf(element) == currentUser;
+  bool _checkIfCurrentUser(MemberEntity element) =>
+      inferrer.types.getInferredTypeOfMember(element) == currentUser;
 
-  bool _checkIfFunctionApply(MemberElement element) {
-    return compiler.commonElements.isFunctionApplyMethod(element);
+  bool _checkIfFunctionApply(MemberEntity element) {
+    return inferrer.closedWorld.commonElements.isFunctionApplyMethod(element);
   }
 
   @override
@@ -111,13 +115,14 @@ class ClosureTracerVisitor extends TracerVisitor {
     super.visitDynamicCallSiteTypeInformation(info);
     if (info.selector.isCall) {
       if (info.arguments.contains(currentUser)) {
-        if (!info.targets.every((element) => element.isFunction)) {
+        if (info.hasClosureCallTargets ||
+            info.concreteTargets.any((element) => !element.isFunction)) {
           bailout('Passed to a closure');
         }
-        if (info.targets.any(_checkIfFunctionApply)) {
+        if (info.concreteTargets.any(_checkIfFunctionApply)) {
           _tagAsFunctionApplyTarget("dynamic call");
         }
-      } else if (info.targets.any((element) => _checkIfCurrentUser(element))) {
+      } else if (info.concreteTargets.any(_checkIfCurrentUser)) {
         _registerCallForLaterAnalysis(info);
       }
     } else if (info.selector.isGetter &&
@@ -129,7 +134,8 @@ class ClosureTracerVisitor extends TracerVisitor {
 }
 
 class StaticTearOffClosureTracerVisitor extends ClosureTracerVisitor {
-  StaticTearOffClosureTracerVisitor(tracedElement, tracedType, inferrer)
+  StaticTearOffClosureTracerVisitor(
+      FunctionEntity tracedElement, tracedType, inferrer)
       : super([tracedElement], tracedType, inferrer);
 
   @override

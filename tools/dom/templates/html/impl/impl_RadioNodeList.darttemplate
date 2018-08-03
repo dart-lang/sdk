@@ -4,13 +4,7 @@
 
 part of $LIBRARYNAME;
 
-$if DART2JS
 // Omit RadioNodeList for dart2js.  The Dart Form and FieldSet APIs don't
 // currently expose an API the returns RadioNodeList.  The only use of a
 // RadioNodeList is to get the selected value and it will be cleaner to
 // introduce a different API for that purpose.
-$else
-$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
-$!MEMBERS
-}
-$endif

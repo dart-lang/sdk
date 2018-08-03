@@ -4,7 +4,9 @@
 
 library fasta.quote;
 
-import 'errors.dart' show inputError, internalError;
+import 'problems.dart' show unhandled;
+
+import 'fasta_codes.dart' as fasta;
 
 import 'scanner/characters.dart'
     show
@@ -49,7 +51,7 @@ Quote analyzeQuote(String first) {
   if (first.startsWith('r"')) return Quote.RawDouble;
   if (first.startsWith("'")) return Quote.Single;
   if (first.startsWith("r'")) return Quote.RawSingle;
-  return internalError("Unexpected string literal: $first");
+  return unhandled(first, "analyzeQuote", -1, null);
 }
 
 // Note: based on [StringValidator.quotingFromString]
@@ -99,7 +101,7 @@ int firstQuoteLength(String first, Quote quote) {
     case Quote.RawMultiLineDouble:
       return lengthOfOptionalWhitespacePrefix(first, 4);
   }
-  return internalError("Unhandled string quote: $quote");
+  return unhandled("$quote", "firstQuoteLength", -1, null);
 }
 
 int lastQuoteLength(Quote quote) {
@@ -116,39 +118,46 @@ int lastQuoteLength(Quote quote) {
     case Quote.RawMultiLineDouble:
       return 3;
   }
-  return internalError("Unhandled string quote: $quote");
+  return unhandled("$quote", "lastQuoteLength", -1, null);
 }
 
-String unescapeFirstStringPart(String first, Quote quote) {
-  return unescape(first.substring(firstQuoteLength(first, quote)), quote);
+String unescapeFirstStringPart(String first, Quote quote, Object location,
+    UnescapeErrorListener listener) {
+  return unescape(first.substring(firstQuoteLength(first, quote)), quote,
+      location, listener);
 }
 
-String unescapeLastStringPart(String last, Quote quote) {
-  return unescape(
-      last.substring(0, last.length - lastQuoteLength(quote)), quote);
+String unescapeLastStringPart(
+    String last, Quote quote, Object location, UnescapeErrorListener listener) {
+  return unescape(last.substring(0, last.length - lastQuoteLength(quote)),
+      quote, location, listener);
 }
 
-String unescapeString(String string) {
+String unescapeString(
+    String string, Object location, UnescapeErrorListener listener) {
   Quote quote = analyzeQuote(string);
   return unescape(
       string.substring(firstQuoteLength(string, quote),
           string.length - lastQuoteLength(quote)),
-      quote);
+      quote,
+      location,
+      listener);
 }
 
-String unescape(String string, Quote quote) {
+String unescape(String string, Quote quote, Object location,
+    UnescapeErrorListener listener) {
   switch (quote) {
     case Quote.Single:
     case Quote.Double:
       return !string.contains("\\")
           ? string
-          : unescapeCodeUnits(string.codeUnits, false);
+          : unescapeCodeUnits(string.codeUnits, false, location, listener);
 
     case Quote.MultiLineSingle:
     case Quote.MultiLineDouble:
       return !string.contains("\\") && !string.contains("\r")
           ? string
-          : unescapeCodeUnits(string.codeUnits, false);
+          : unescapeCodeUnits(string.codeUnits, false, location, listener);
 
     case Quote.RawSingle:
     case Quote.RawDouble:
@@ -158,26 +167,18 @@ String unescape(String string, Quote quote) {
     case Quote.RawMultiLineDouble:
       return !string.contains("\r")
           ? string
-          : unescapeCodeUnits(string.codeUnits, true);
+          : unescapeCodeUnits(string.codeUnits, true, location, listener);
   }
-  return internalError("Unhandled string quote: $quote");
+  return unhandled("$quote", "unescape", -1, null);
 }
-
-const String incompleteSequence = "Incomplete escape sequence.";
-
-const String invalidCharacter = "Invalid character in escape sequence.";
-
-const String invalidCodePoint = "Invalid code point.";
 
 // Note: based on
 // [StringValidator.validateString](pkg/compiler/lib/src/string_validator.dart).
-String unescapeCodeUnits(List<int> codeUnits, bool isRaw) {
+String unescapeCodeUnits(List<int> codeUnits, bool isRaw, Object location,
+    UnescapeErrorListener listener) {
   // Can't use Uint8List or Uint16List here, the code units may be larger.
   List<int> result = new List<int>(codeUnits.length);
   int resultOffset = 0;
-  error(int offset, String message) {
-    inputError(null, null, message);
-  }
 
   for (int i = 0; i < codeUnits.length; i++) {
     int code = codeUnits[i];
@@ -187,7 +188,11 @@ String unescapeCodeUnits(List<int> codeUnits, bool isRaw) {
       }
       code = $LF;
     } else if (!isRaw && code == $BACKSLASH) {
-      if (codeUnits.length == ++i) return error(i, incompleteSequence);
+      if (codeUnits.length == ++i) {
+        listener.handleUnescapeError(
+            fasta.messageInvalidUnicodeEscape, location, i, 1);
+        return new String.fromCharCodes(codeUnits);
+      }
       code = codeUnits[i];
 
       /// `\n` for newline, equivalent to `\x0A`.
@@ -212,43 +217,86 @@ String unescapeCodeUnits(List<int> codeUnits, bool isRaw) {
         code = $VTAB;
       } else if (code == $x) {
         // Expect exactly 2 hex digits.
-        if (codeUnits.length <= i + 2) return error(i, incompleteSequence);
+        int begin = i;
+        if (codeUnits.length <= i + 2) {
+          listener.handleUnescapeError(fasta.messageInvalidHexEscape, location,
+              begin, codeUnits.length + 1 - begin);
+          return new String.fromCharCodes(codeUnits);
+        }
         code = 0;
         for (int j = 0; j < 2; j++) {
           int digit = codeUnits[++i];
-          if (!isHexDigit(digit)) return error(i, invalidCharacter);
+          if (!isHexDigit(digit)) {
+            listener.handleUnescapeError(
+                fasta.messageInvalidHexEscape, location, begin, i + 1 - begin);
+            return new String.fromCharCodes(codeUnits);
+          }
           code = (code << 4) + hexDigitValue(digit);
         }
       } else if (code == $u) {
-        if (codeUnits.length == i + 1) return error(i, incompleteSequence);
+        int begin = i;
+        if (codeUnits.length == i + 1) {
+          listener.handleUnescapeError(fasta.messageInvalidUnicodeEscape,
+              location, begin, codeUnits.length + 1 - begin);
+          return new String.fromCharCodes(codeUnits);
+        }
         code = codeUnits[i + 1];
         if (code == $OPEN_CURLY_BRACKET) {
           // Expect 1-6 hex digits followed by '}'.
-          if (codeUnits.length == ++i) return error(i, incompleteSequence);
+          if (codeUnits.length == ++i) {
+            listener.handleUnescapeError(fasta.messageInvalidUnicodeEscape,
+                location, begin, i + 1 - begin);
+            return new String.fromCharCodes(codeUnits);
+          }
           code = 0;
           for (int j = 0; j < 7; j++) {
-            if (codeUnits.length == ++i) return error(i, incompleteSequence);
+            if (codeUnits.length == ++i) {
+              listener.handleUnescapeError(fasta.messageInvalidUnicodeEscape,
+                  location, begin, i + 1 - begin);
+              return new String.fromCharCodes(codeUnits);
+            }
             int digit = codeUnits[i];
             if (j != 0 && digit == $CLOSE_CURLY_BRACKET) break;
-            if (!isHexDigit(digit)) return error(i, invalidCharacter);
+            if (!isHexDigit(digit)) {
+              listener.handleUnescapeError(fasta.messageInvalidUnicodeEscape,
+                  location, begin, i + 2 - begin);
+              return new String.fromCharCodes(codeUnits);
+            }
             code = (code << 4) + hexDigitValue(digit);
           }
         } else {
           // Expect exactly 4 hex digits.
-          if (codeUnits.length <= i + 4) return error(i, incompleteSequence);
+          if (codeUnits.length <= i + 4) {
+            listener.handleUnescapeError(fasta.messageInvalidUnicodeEscape,
+                location, begin, codeUnits.length + 1 - begin);
+            return new String.fromCharCodes(codeUnits);
+          }
           code = 0;
           for (int j = 0; j < 4; j++) {
             int digit = codeUnits[++i];
-            if (!isHexDigit(digit)) return error(i, invalidCharacter);
+            if (!isHexDigit(digit)) {
+              listener.handleUnescapeError(fasta.messageInvalidUnicodeEscape,
+                  location, begin, i + 1 - begin);
+              return new String.fromCharCodes(codeUnits);
+            }
             code = (code << 4) + hexDigitValue(digit);
           }
+        }
+        if (code > 0x10FFFF) {
+          listener.handleUnescapeError(
+              fasta.messageInvalidCodePoint, location, begin, i + 1 - begin);
+          return new String.fromCharCodes(codeUnits);
         }
       } else {
         // Nothing, escaped character is passed through;
       }
-      if (code > 0x10FFFF) return error(i, invalidCodePoint);
     }
     result[resultOffset++] = code;
   }
   return new String.fromCharCodes(result, 0, resultOffset);
+}
+
+abstract class UnescapeErrorListener {
+  void handleUnescapeError(
+      fasta.Message message, covariant location, int offset, int length);
 }

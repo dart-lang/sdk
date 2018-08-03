@@ -5,32 +5,7 @@
 library dart2js.backend_api;
 
 import '../common/resolution.dart' show ResolutionImpact;
-import '../constants/expressions.dart' show ConstantExpression;
-import '../elements/resolution_types.dart'
-    show ResolutionDartType, ResolutionInterfaceType;
-import '../serialization/serialization.dart'
-    show DeserializerPlugin, SerializerPlugin;
-import '../tree/tree.dart' show Node;
 import '../universe/world_impact.dart' show WorldImpact;
-
-/// Interface for resolving native data for a target specific element.
-abstract class NativeRegistry {
-  /// Registers [nativeData] as part of the resolution impact.
-  void registerNativeData(dynamic nativeData);
-}
-
-/// Interface for resolving calls to foreign functions.
-abstract class ForeignResolver {
-  /// Returns the constant expression of [node], or `null` if [node] is not
-  /// a constant expression.
-  ConstantExpression getConstant(Node node);
-
-  /// Registers [type] as instantiated.
-  void registerInstantiatedType(ResolutionInterfaceType type);
-
-  /// Resolves [typeName] to a type in the context of [node].
-  ResolutionDartType resolveTypeFromString(Node node, String typeName);
-}
 
 /// Target-specific transformation for resolution world impacts.
 ///
@@ -44,12 +19,4 @@ class ImpactTransformer {
   WorldImpact transformResolutionImpact(ResolutionImpact worldImpact) {
     return worldImpact;
   }
-}
-
-/// Interface for serialization of backend specific data.
-class BackendSerialization {
-  const BackendSerialization();
-
-  SerializerPlugin get serializer => const SerializerPlugin();
-  DeserializerPlugin get deserializer => const DeserializerPlugin();
 }

@@ -10,9 +10,8 @@ import '../common/tasks.dart' show CompilerTask;
 import '../common/work.dart' show WorkItem;
 import '../common.dart';
 import '../common_elements.dart' show ElementEnvironment;
-import '../elements/resolution_types.dart'
-    show ResolutionDartType, ResolutionInterfaceType;
 import '../elements/entities.dart';
+import '../elements/types.dart';
 import '../enqueue.dart';
 import '../options.dart';
 import '../universe/world_builder.dart';
@@ -51,6 +50,10 @@ class CodegenEnqueuer extends EnqueuerImpl {
   /// All declaration elements that have been processed by codegen.
   final Set<MemberEntity> _processedEntities = new Set<MemberEntity>();
 
+  // If not `null` this is called when the queue has been emptied. It allows for
+  // applying additional impacts before re-emptying the queue.
+  void Function() onEmptyForTesting;
+
   static const ImpactUseCase IMPACT_USE =
       const ImpactUseCase('CodegenEnqueuer');
 
@@ -67,8 +70,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   @override
   void checkQueueIsEmpty() {
     if (_queue.isNotEmpty) {
-      throw new SpannableAssertionFailure(
-          _queue.first.element, "$name queue is not empty.");
+      failedAt(_queue.first.element, "$name queue is not empty.");
     }
   }
 
@@ -84,8 +86,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
     if (workItem == null) return;
 
     if (queueIsClosed) {
-      throw new SpannableAssertionFailure(
-          entity, "Codegen work list is closed. Trying to add $entity");
+      failedAt(entity, "Codegen work list is closed. Trying to add $entity");
     }
 
     applyImpact(listener.registerUsedElement(entity));
@@ -98,7 +99,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
         impactSource, worldImpact, _impactVisitor, impactUse);
   }
 
-  void _registerInstantiatedType(ResolutionInterfaceType type,
+  void _registerInstantiatedType(InterfaceType type,
       {bool mirrorUsage: false, bool nativeUsage: false}) {
     task.measure(() {
       _worldBuilder.registerTypeInstantiation(type, _applyClassUse,
@@ -115,7 +116,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   void checkClass(ClassEntity cls) {
     _worldBuilder.processClassMembers(cls, (MemberEntity member, useSet) {
       if (useSet.isNotEmpty) {
-        throw new SpannableAssertionFailure(member,
+        failedAt(member,
             'Unenqueued use of $member: ${useSet.iterable(MemberUse.values)}');
       }
     });
@@ -173,7 +174,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   }
 
   void processTypeUse(TypeUse typeUse) {
-    ResolutionDartType type = typeUse.type;
+    DartType type = typeUse.type;
     switch (typeUse.kind) {
       case TypeUseKind.INSTANTIATION:
         _registerInstantiatedType(type);
@@ -189,12 +190,31 @@ class CodegenEnqueuer extends EnqueuerImpl {
       case TypeUseKind.CATCH_TYPE:
         _registerIsCheck(type);
         break;
+      case TypeUseKind.IMPLICIT_CAST:
+        if (_options.implicitDowncastCheckPolicy.isEmitted) {
+          _registerIsCheck(type);
+        }
+        break;
+      case TypeUseKind.PARAMETER_CHECK:
+        if (_options.parameterCheckPolicy.isEmitted) {
+          _registerIsCheck(type);
+        }
+        break;
       case TypeUseKind.CHECKED_MODE_CHECK:
-        if (_options.enableTypeAssertions) {
+        if (_options.assignmentCheckPolicy.isEmitted) {
           _registerIsCheck(type);
         }
         break;
       case TypeUseKind.TYPE_LITERAL:
+        if (type is TypeVariableType) {
+          _worldBuilder.registerTypeVariableTypeLiteral(type);
+        }
+        break;
+      case TypeUseKind.RTI_VALUE:
+        _worldBuilder.registerConstTypeLiteral(type);
+        break;
+      case TypeUseKind.TYPE_ARGUMENT:
+        _worldBuilder.registerTypeArgument(type);
         break;
     }
   }
@@ -208,7 +228,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
     });
   }
 
-  void _registerIsCheck(ResolutionDartType type) {
+  void _registerIsCheck(DartType type) {
     _worldBuilder.registerIsCheck(type);
   }
 
@@ -218,7 +238,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
     _worldBuilder.registerClosurizedMember(element);
   }
 
-  void forEach(void f(WorkItem work)) {
+  void _forEach(void f(WorkItem work)) {
     do {
       while (_queue.isNotEmpty) {
         // TODO(johnniwinther): Find an optimal process order.
@@ -230,12 +250,20 @@ class CodegenEnqueuer extends EnqueuerImpl {
           _processedEntities.add(work.element);
         }
       }
-      List recents = _recentClasses.toList(growable: false);
+      List<ClassEntity> recents = _recentClasses.toList(growable: false);
       _recentClasses.clear();
       _recentConstants = false;
       if (!_onQueueEmpty(recents)) _recentClasses.addAll(recents);
     } while (
         _queue.isNotEmpty || _recentClasses.isNotEmpty || _recentConstants);
+  }
+
+  void forEach(void f(WorkItem work)) {
+    _forEach(f);
+    if (onEmptyForTesting != null) {
+      onEmptyForTesting();
+      _forEach(f);
+    }
   }
 
   /// [_onQueueEmpty] is called whenever the queue is drained. [recentClasses]

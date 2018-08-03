@@ -9,5 +9,9 @@ class Pair<T, U> {
   T t;
   U u;
   Pair(this.t, this.u);
-  Pair<U, T> get reversed => new /*@typeArgs=U, T*/ Pair(u, t);
+  Pair<U, T> get reversed => new /*@typeArgs=Pair::U, Pair::T*/ Pair(
+      /*@target=Pair::u*/ u,
+      /*@target=Pair::t*/ t);
 }
+
+main() {}

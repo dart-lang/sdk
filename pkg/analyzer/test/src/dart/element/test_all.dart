@@ -7,10 +7,12 @@ library analyzer.test.src.dart.element.test_all;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'element_test.dart' as element;
+import 'function_type_test.dart' as function_type;
 
 /// Utility for manually running all tests.
 main() {
   defineReflectiveSuite(() {
     element.main();
+    function_type.main();
   }, name: 'element');
 }

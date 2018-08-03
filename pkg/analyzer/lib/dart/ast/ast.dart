@@ -6,7 +6,7 @@
  * Defines the AST model. The AST (Abstract Syntax Tree) model describes the
  * syntactic (as opposed to semantic) structure of Dart code. The semantic
  * structure of the code is modeled by the
- * [element model](../element/element.dart).
+ * [element model](../dart_element_element/dart_element_element-library.html).
  *
  * An AST consists of nodes (instances of a subclass of [AstNode]). The nodes
  * are organized in a tree structure in which the children of a node are the
@@ -517,21 +517,25 @@ abstract class AstNode implements SyntacticEntity {
    * Use the given [visitor] to visit this node. Return the value returned by
    * the visitor as a result of visiting this node.
    */
-  dynamic/*=E*/ accept/*<E>*/(AstVisitor/*<E>*/ visitor);
+  E accept<E>(AstVisitor<E> visitor);
+
+  /**
+   * Return the token before [target] or `null` if it cannot be found.
+   */
+  Token findPrevious(Token target);
 
   /**
    * Return the most immediate ancestor of this node for which the [predicate]
    * returns `true`, or `null` if there is no such ancestor. Note that this node
    * will never be returned.
    */
-  AstNode/*=E*/ getAncestor/*<E extends AstNode>*/(
-      Predicate<AstNode> predicate);
+  E getAncestor<E extends AstNode>(Predicate<AstNode> predicate);
 
   /**
    * Return the value of the property with the given [name], or `null` if this
    * node does not have a property with the given name.
    */
-  Object/*=E*/ getProperty/*<E>*/(String name);
+  E getProperty<E>(String name);
 
   /**
    * Set the value of the property with the given [name] to the given [value].
@@ -3029,8 +3033,43 @@ abstract class FormalParameter extends AstNode {
   bool get isFinal;
 
   /**
+   * Return `true` if this parameter is a named parameter. Named parameters are
+   * always optional, even when they are annotated with the `@required`
+   * annotation.
+   */
+  bool get isNamed;
+
+  /**
+   * Return `true` if this parameter is an optional parameter. Optional
+   * parameters can either be positional or named.
+   */
+  bool get isOptional;
+
+  /**
+   * Return `true` if this parameter is both an optional and positional
+   * parameter.
+   */
+  bool get isOptionalPositional;
+
+  /**
+   * Return `true` if this parameter is a positional parameter. Positional
+   * parameters can either be required or optional.
+   */
+  bool get isPositional;
+
+  /**
+   * Return `true` if this parameter is a required parameter. Required
+   * parameters are always positional.
+   *
+   * Note: this will return `false` for a named parameter that is annotated with
+   * the `@required` annotation.
+   */
+  bool get isRequired;
+
+  /**
    * Return the kind of this parameter.
    */
+  @deprecated
   ParameterKind get kind;
 
   /**
@@ -4196,9 +4235,11 @@ abstract class IndexExpression extends Expression
  * An instance creation expression.
  *
  *    newExpression ::=
- *        ('new' | 'const') [TypeName] ('.' [SimpleIdentifier])? [ArgumentList]
+ *        ('new' | 'const')? [TypeName] ('.' [SimpleIdentifier])? [ArgumentList]
  *
  * Clients may not extend, implement or mix-in this class.
+ *
+ * 'new' | 'const' are only optional if the previewDart2 option is enabled.
  */
 abstract class InstanceCreationExpression extends Expression
     implements ConstructorReferenceNode {
@@ -4224,13 +4265,15 @@ abstract class InstanceCreationExpression extends Expression
 
   /**
    * Return `true` if this creation expression is used to invoke a constant
-   * constructor.
+   * constructor, either because the keyword `const` was explicitly provided or
+   * because no keyword was provided and this expression is in a constant
+   * context.
    */
   bool get isConst;
 
   /**
    * Return the 'new' or 'const' keyword used to indicate how an object should
-   * be created.
+   * be created, or `null` if the keyword was not explicitly provided.
    */
   Token get keyword;
 
@@ -4426,9 +4469,9 @@ abstract class InvocationExpression extends Expression {
    * information, or `null` if the AST structure has not been resolved, or if
    * the invoke could not be resolved.
    *
-   * This will usually be a [FunctionType], but it can also be an
-   * [InterfaceType] with a `call` method, `dynamic`, `Function`, or a `@proxy`
-   * interface type that implements `Function`.
+   * This will usually be a [FunctionType], but it can also be `dynamic` or
+   * `Function`. In the case of interface types that have a `call` method, we
+   * store the type of that `call` method here as parameterized.
    */
   DartType get staticInvokeType;
 
@@ -4965,7 +5008,7 @@ abstract class MethodInvocation extends InvocationExpression {
 }
 
 /**
- * An expression that implicity makes reference to a method.
+ * An expression that implicitly makes reference to a method.
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -6608,6 +6651,13 @@ abstract class TypedLiteral extends Literal {
    * Set the token representing the 'const' keyword to the given [token].
    */
   void set constKeyword(Token token);
+
+  /**
+   * Return `true` if this literal is a constant expression, either because the
+   * keyword `const` was explicitly provided or because no keyword was provided
+   * and this expression is in a constant context.
+   */
+  bool get isConst;
 
   /**
    * Return the type argument associated with this literal, or `null` if no type

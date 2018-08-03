@@ -5,63 +5,95 @@
 typedef void DebugCallback(String methodName, var arg1, var arg2);
 
 class DebugMap<K, V> implements Map<K, V> {
-  final Map<K, V> map;
-  DebugCallback indexSetCallBack;
-  DebugCallback putIfAbsentCallBack;
+  final Map<K, V> sourceMap;
+  DebugCallback indexSetCallback;
+  DebugCallback putIfAbsentCallback;
+  DebugCallback removeCallback;
 
-  DebugMap(this.map, {DebugCallback addCallback}) {
+  DebugMap(this.sourceMap, {DebugCallback addCallback, this.removeCallback}) {
     if (addCallback != null) {
       this.addCallback = addCallback;
     }
   }
 
   void set addCallback(DebugCallback value) {
-    indexSetCallBack = value;
-    putIfAbsentCallBack = value;
+    indexSetCallback = value;
+    putIfAbsentCallback = value;
   }
 
+  Map<RK, RV> cast<RK, RV>() => Map.castFrom<K, V, RK, RV>(this);
   bool containsValue(Object value) {
-    return map.containsValue(value);
+    return sourceMap.containsValue(value);
   }
 
-  bool containsKey(Object key) => map.containsKey(key);
+  bool containsKey(Object key) => sourceMap.containsKey(key);
 
-  V operator [](Object key) => map[key];
+  V operator [](Object key) => sourceMap[key];
 
   void operator []=(K key, V value) {
-    if (indexSetCallBack != null) {
-      indexSetCallBack('[]=', key, value);
+    if (indexSetCallback != null) {
+      indexSetCallback('[]=', key, value);
     }
-    map[key] = value;
+    sourceMap[key] = value;
   }
 
   V putIfAbsent(K key, V ifAbsent()) {
-    return map.putIfAbsent(key, () {
+    return sourceMap.putIfAbsent(key, () {
       V v = ifAbsent();
-      if (putIfAbsentCallBack != null) {
-        putIfAbsentCallBack('putIfAbsent', key, v);
+      if (putIfAbsentCallback != null) {
+        putIfAbsentCallback('putIfAbsent', key, v);
       }
       return v;
     });
   }
 
-  void addAll(Map<K, V> other) => map.addAll(other);
+  void addAll(Map<K, V> other) => sourceMap.addAll(other);
 
-  V remove(Object key) => map.remove(key);
+  V remove(Object key) {
+    if (removeCallback != null) {
+      removeCallback('remove', key, sourceMap[key]);
+    }
+    return sourceMap.remove(key);
+  }
 
-  void clear() => map.clear();
+  void clear() {
+    if (removeCallback != null) {
+      removeCallback('clear', sourceMap, null);
+    }
+    sourceMap.clear();
+  }
 
-  void forEach(void f(K key, V value)) => map.forEach(f);
+  void forEach(void f(K key, V value)) => sourceMap.forEach(f);
 
-  Iterable<K> get keys => map.keys;
+  Iterable<K> get keys => sourceMap.keys;
 
-  Iterable<V> get values => map.values;
+  Iterable<V> get values => sourceMap.values;
 
-  int get length => map.length;
+  Iterable<MapEntry<K, V>> get entries => sourceMap.entries;
 
-  bool get isEmpty => map.isEmpty;
+  void addEntries(Iterable<MapEntry<K, V>> entries) {
+    sourceMap.addEntries(entries);
+  }
 
-  bool get isNotEmpty => map.isNotEmpty;
+  Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> transform(K key, V value)) =>
+      sourceMap.map(transform);
+
+  int get length => sourceMap.length;
+
+  bool get isEmpty => sourceMap.isEmpty;
+
+  bool get isNotEmpty => sourceMap.isNotEmpty;
+
+  V update(K key, V update(V value), {V ifAbsent()}) =>
+      sourceMap.update(key, update, ifAbsent: ifAbsent);
+
+  void updateAll(V update(K key, V value)) {
+    sourceMap.updateAll(update);
+  }
+
+  void removeWhere(bool test(K key, V value)) {
+    sourceMap.removeWhere(test);
+  }
 }
 
 class DebugIterable<E> implements Iterable<E> {
@@ -71,6 +103,7 @@ class DebugIterable<E> implements Iterable<E> {
 
   Iterator<E> get iterator => iterable.iterator;
 
+  Iterable<R> cast<R>() => Iterable.castFrom<E, R>(this);
   Iterable<T> map<T>(T f(E element)) => iterable.map(f);
 
   Iterable<E> where(bool test(E element)) => iterable.where(test);
@@ -127,9 +160,14 @@ class DebugIterable<E> implements Iterable<E> {
     return iterable.lastWhere(test, orElse: orElse);
   }
 
-  E singleWhere(bool test(E element)) => iterable.singleWhere(test);
+  E singleWhere(bool test(E element), {E orElse()}) =>
+      iterable.singleWhere(test, orElse: orElse);
 
   E elementAt(int index) => iterable.elementAt(index);
+
+  Iterable<E> followedBy(Iterable<E> other) => iterable.followedBy(other);
+
+  Iterable<T> whereType<T>() => iterable.whereType<T>();
 
   String toString() => iterable.toString();
 }
@@ -143,10 +181,21 @@ class DebugList<E> extends DebugIterable<E> implements List<E> {
 
   List<E> get list => iterable;
 
+  List<R> cast<R>() => List.castFrom<E, R>(this);
+  List<E> operator +(List<E> other) => list + other;
+
   E operator [](int index) => list[index];
 
   void operator []=(int index, E value) {
     list[index] = value;
+  }
+
+  void set first(E element) {
+    list.first = element;
+  }
+
+  void set last(E element) {
+    list.last = element;
   }
 
   int get length => list.length;
@@ -177,7 +226,13 @@ class DebugList<E> extends DebugIterable<E> implements List<E> {
 
   int indexOf(E element, [int start = 0]) => list.indexOf(element, start);
 
+  int indexWhere(bool test(E element), [int start = 0]) =>
+      list.indexWhere(test, start);
+
   int lastIndexOf(E element, [int start]) => list.lastIndexOf(element, start);
+
+  int lastIndexWhere(bool test(E element), [int start]) =>
+      list.lastIndexWhere(test, start);
 
   void clear() => list.clear();
 
@@ -229,6 +284,7 @@ class DebugSet<E> extends DebugIterable<E> implements Set<E> {
 
   Set<E> get set => iterable;
 
+  Set<R> cast<R>() => Set.castFrom<E, R>(this);
   bool contains(Object value) => set.contains(value);
 
   bool add(E value) {

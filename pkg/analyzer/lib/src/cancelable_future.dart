@@ -252,8 +252,7 @@ class _CancelableCompleterFuture<T> implements CancelableFuture<T> {
       _completer._outerCompleter.future.catchError(onError, test: test);
 
   @override
-  Future/*<S>*/ then/*<S>*/(FutureOr/*<S>*/ onValue(T value),
-          {Function onError}) =>
+  Future<S> then<S>(FutureOr<S> onValue(T value), {Function onError}) =>
       _completer._outerCompleter.future.then(onValue, onError: onError);
 
   @override
@@ -289,8 +288,7 @@ class _WrappedFuture<T> implements CancelableFuture<T> {
       _future.catchError(onError, test: test);
 
   @override
-  Future/*<S>*/ then/*<S>*/(FutureOr/*<S>*/ onValue(T value),
-          {Function onError}) =>
+  Future<S> then<S>(FutureOr<S> onValue(T value), {Function onError}) =>
       _future.then(onValue, onError: onError);
 
   @override

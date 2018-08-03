@@ -4,6 +4,8 @@
 
 part of repositories;
 
+typedef bool IsConnectedVMTargetDelegate(M.Target target);
+
 class TargetChangeEvent implements M.TargetChangeEvent {
   final TargetRepository repository;
   final bool disconnected;
@@ -19,21 +21,25 @@ class TargetRepository implements M.TargetRepository {
 
   final List<SC.WebSocketVMTarget> _list = <SC.WebSocketVMTarget>[];
   SC.WebSocketVMTarget current;
+  final IsConnectedVMTargetDelegate _isConnectedVMTarget;
 
-  factory TargetRepository() {
+  factory TargetRepository(IsConnectedVMTargetDelegate isConnectedVMTarget) {
     var controller = new StreamController<TargetChangeEvent>();
     var stream = controller.stream.asBroadcastStream();
-    return new TargetRepository._(controller, stream);
+    return new TargetRepository._(isConnectedVMTarget, controller, stream);
   }
 
-  TargetRepository._(this._onChange, this.onChange) {
+  TargetRepository._(this._isConnectedVMTarget, this._onChange, this.onChange) {
     _restore();
+    final defaultAddress = _networkAddressOfDefaultTarget();
+    var defaultTarget = find(defaultAddress);
     // Add the default address if it doesn't already exist.
-    if (find(_networkAddressOfDefaultTarget()) == null) {
-      add(_networkAddressOfDefaultTarget());
+    if (defaultTarget == null) {
+      defaultTarget = new SC.WebSocketVMTarget(defaultAddress);
+      _list.insert(0, defaultTarget);
     }
     // Set the current target to the default target.
-    current = find(_networkAddressOfDefaultTarget());
+    current = defaultTarget;
   }
 
   void add(String address) {
@@ -45,7 +51,7 @@ class TargetRepository implements M.TargetRepository {
     _store();
   }
 
-  Iterable<SC.WebSocketVMTarget> list() => _list;
+  Iterable<M.Target> list() => _list.toList();
 
   void setCurrent(M.Target t) {
     SC.WebSocketVMTarget target = t as SC.WebSocketVMTarget;
@@ -79,7 +85,9 @@ class TargetRepository implements M.TargetRepository {
     if (loaded == null) {
       return;
     }
-    _list.addAll(loaded.map((i) => new SC.WebSocketVMTarget.fromMap(i)));
+    for (var i in loaded) {
+      _list.add(new SC.WebSocketVMTarget.fromMap(i));
+    }
     _list.sort((SC.WebSocketVMTarget a, SC.WebSocketVMTarget b) {
       return b.lastConnectionTime.compareTo(a.lastConnectionTime);
     });
@@ -101,11 +109,21 @@ class TargetRepository implements M.TargetRepository {
   }
 
   static String _networkAddressOfDefaultTarget() {
-    if (!identical(1, 1.0)) {
-      // Dartium, assume we are developing.
-      return 'ws://127.0.0.1:8181/ws';
-    }
-    Uri serverAddress = Uri.parse(window.location.toString());
-    return 'ws://${serverAddress.authority}${serverAddress.path}ws';
+    // It is possible to override the default port and host by adding extra
+    // query parameters:
+    // http://localhost:8080?override-port=8181
+    // http://localhost:8080?override-port=8181&override-host=10.0.0.2
+    final Uri serverAddress = Uri.parse(window.location.toString());
+    final String port = serverAddress.queryParameters['override-port'];
+    final String host = serverAddress.queryParameters['override-host'];
+    final Uri wsAddress = new Uri(
+      scheme: 'ws',
+      host: host ?? serverAddress.host,
+      port: int.tryParse(port ?? '') ?? serverAddress.port,
+      path: '/ws',
+    );
+    return wsAddress.toString();
   }
+
+  bool isConnectedVMTarget(M.Target target) => _isConnectedVMTarget(target);
 }

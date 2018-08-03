@@ -37,6 +37,13 @@ class CompletionTestCase extends CompletionDomainHandlerTest {
         if (matchingSuggestion == null) {
           matchingSuggestion = suggestion;
         } else {
+          // It is OK to have a class and its default constructor suggestions.
+          if (matchingSuggestion.element?.kind == ElementKind.CLASS &&
+                  suggestion.element?.kind == ElementKind.CONSTRUCTOR ||
+              matchingSuggestion.element?.kind == ElementKind.CONSTRUCTOR &&
+                  suggestion.element?.kind == ElementKind.CLASS) {
+            return;
+          }
           fail(
               "Expected exactly one '$completion' but found multiple:\n  $suggestedCompletions");
         }
@@ -74,12 +81,12 @@ class CompletionTestCase extends CompletionDomainHandlerTest {
     super.setUp();
     return new Future(() {
       String content = spec.source;
-      addFile(testFile, content);
+      newFile(testFile, content: content);
       this.testCode = content;
       completionOffset = spec.testLocation;
       if (extraFiles != null) {
         extraFiles.forEach((String fileName, String content) {
-          addFile(fileName, content);
+          newFile(fileName, content: content);
         });
       }
     }).then((_) => getSuggestions()).then((_) {

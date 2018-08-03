@@ -26,12 +26,11 @@ RawField* LookupField(Dart_Handle library,
   return field.raw();
 }
 
-
 TEST_CASE(GuardFieldSimpleTest) {
   const char* script_chars =
       "class A {\n"
       "  var f1 = 3.0;\n"
-      "  var f2 = 3;\n"
+      "  dynamic f2 = 3;\n"
       "  var f3 = new List(4);\n"
       "  foo() {\n"
       "    f1 = f1 + f1;\n"
@@ -77,12 +76,11 @@ TEST_CASE(GuardFieldSimpleTest) {
   EXPECT_EQ(no_length, f3.guarded_list_length());
 }
 
-
 TEST_CASE(GuardFieldFinalListTest) {
   const char* script_chars =
       "class A {\n"
       "  var f1 = 3.0;\n"
-      "  var f2 = 3;\n"
+      "  dynamic f2 = 3;\n"
       "  final f3 = new List(4);\n"
       "  foo() {\n"
       "    f1 = f1 + f1;\n"
@@ -130,12 +128,11 @@ TEST_CASE(GuardFieldFinalListTest) {
   EXPECT_EQ(false, f3.is_nullable());
 }
 
-
 TEST_CASE(GuardFieldFinalVariableLengthListTest) {
   const char* script_chars =
       "class A {\n"
       "  var f1 = 3.0;\n"
-      "  var f2 = 3;\n"
+      "  dynamic f2 = 3;\n"
       "  final f3 = new List();\n"
       "  foo() {\n"
       "    f1 = f1 + f1;\n"
@@ -183,13 +180,12 @@ TEST_CASE(GuardFieldFinalVariableLengthListTest) {
   EXPECT_EQ(false, f3.is_nullable());
 }
 
-
 TEST_CASE(GuardFieldConstructorTest) {
   const char* script_chars =
       "import 'dart:typed_data';\n"
       "class A {\n"
       "  var f1 = 3.0;\n"
-      "  var f2 = 3;\n"
+      "  dynamic f2 = 3;\n"
       "  final f3;\n"
       "  A(x) : f3 = x;\n"
       "  foo() {\n"
@@ -240,7 +236,6 @@ TEST_CASE(GuardFieldConstructorTest) {
   EXPECT_EQ(kTypedDataFloat32ArrayCid, f3.guarded_cid());
   EXPECT_EQ(false, f3.is_nullable());
 }
-
 
 TEST_CASE(GuardFieldConstructor2Test) {
   const char* script_chars =

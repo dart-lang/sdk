@@ -29,13 +29,13 @@ abstract class SetMixin<E> implements Set<E> {
   // If/when Dart mixins get more powerful, we should just create a single
   // Mixin class from IterableMixin and the new methods of this class.
 
-  bool add(E element);
+  bool add(E value);
 
   bool contains(Object element);
 
   E lookup(Object element);
 
-  bool remove(Object element);
+  bool remove(Object value);
 
   Iterator<E> get iterator;
 
@@ -46,6 +46,12 @@ abstract class SetMixin<E> implements Set<E> {
   bool get isEmpty => length == 0;
 
   bool get isNotEmpty => length != 0;
+
+  Set<R> cast<R>() => Set.castFrom<E, R>(this);
+  Iterable<E> followedBy(Iterable<E> other) =>
+      new FollowedByIterable<E>.firstEfficient(this, other);
+
+  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
 
   void clear() {
     removeAll(toList());
@@ -113,8 +119,7 @@ abstract class SetMixin<E> implements Set<E> {
   }
 
   List<E> toList({bool growable: true}) {
-    List<E> result =
-        growable ? (new List<E>()..length = length) : new List<E>(length);
+    List<E> result = growable ? (<E>[]..length = length) : new List<E>(length);
     int i = 0;
     for (E element in this) result[i++] = element;
     return result;
@@ -253,7 +258,7 @@ abstract class SetMixin<E> implements Set<E> {
     throw IterableElementError.noElement();
   }
 
-  E singleWhere(bool test(E value)) {
+  E singleWhere(bool test(E value), {E orElse()}) {
     E result = null;
     bool foundMatching = false;
     for (E element in this) {
@@ -266,6 +271,7 @@ abstract class SetMixin<E> implements Set<E> {
       }
     }
     if (foundMatching) return result;
+    if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
 

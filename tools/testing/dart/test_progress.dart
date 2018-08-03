@@ -2,17 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test_progress;
+import 'dart:convert';
+import 'dart:io';
 
-import "dart:convert" show JSON;
-import "dart:io";
+import "package:status_file/expectation.dart";
 
-import "expectation.dart";
-import "path.dart";
-import "summary_report.dart";
-import "test_runner.dart";
-import "test_suite.dart";
-import "utils.dart";
+import 'command.dart';
+import 'command_output.dart';
+import 'configuration.dart';
+import 'path.dart';
+import 'summary_report.dart';
+import 'test_runner.dart';
+import 'utils.dart';
 
 /// Controls how message strings are processed before being displayed.
 class Formatter {
@@ -30,19 +31,24 @@ class Formatter {
 
   /// Formats a failure message.
   String failed(String message) => message;
+
+  /// Formats a section header.
+  String section(String message) => message;
 }
 
 class _ColorFormatter extends Formatter {
-  static const _green = 32;
-  static const _red = 31;
+  static const _gray = "1;30";
+  static const _green = "32";
+  static const _red = "31";
   static const _escape = '\u001b';
 
   const _ColorFormatter() : super._();
 
   String passed(String message) => _color(message, _green);
   String failed(String message) => _color(message, _red);
+  String section(String message) => _color(message, _gray);
 
-  static String _color(String message, int color) =>
+  static String _color(String message, String color) =>
       "$_escape[${color}m$message$_escape[0m";
 }
 
@@ -99,7 +105,7 @@ class FlakyLogWriter extends EventListener {
 
   void _appendToFlakyFile(String msg) {
     var file = new File(TestUtils.flakyFileName);
-    var fd = file.openSync(mode: FileMode.APPEND);
+    var fd = file.openSync(mode: FileMode.append);
     fd.writeStringSync(msg);
     fd.closeSync();
   }
@@ -135,31 +141,10 @@ class TestOutcomeLogWriter extends EventListener {
    *     }
    *  },
    */
-
-  static final INTERESTED_CONFIGURATION_PARAMETERS = [
-    'mode',
-    'arch',
-    'compiler',
-    'runtime',
-    'checked',
-    'strong',
-    'host_checked',
-    'minified',
-    'csp',
-    'system',
-    'vm_options',
-    'use_sdk',
-    'builder_tag'
-  ];
-
   IOSink _sink;
 
   void done(TestCase test) {
     var name = test.displayName;
-    var configuration = {};
-    for (var key in INTERESTED_CONFIGURATION_PARAMETERS) {
-      configuration[key] = test.configuration[key];
-    }
     var outcome = '${test.lastCommandOutput.result(test)}';
     var expectations =
         test.expectedOutcomes.map((expectation) => "$expectation").toList();
@@ -179,7 +164,7 @@ class TestOutcomeLogWriter extends EventListener {
     }
     _writeTestOutcomeRecord({
       'name': name,
-      'configuration': configuration,
+      'configuration': test.configuration.toSummaryMap(),
       'test_result': {
         'outcome': outcome,
         'expected_outcomes': expectations,
@@ -194,11 +179,14 @@ class TestOutcomeLogWriter extends EventListener {
   }
 
   void _writeTestOutcomeRecord(Map record) {
+    // TODO(mkroghj) change the location of this file
+    // to be in the debug_output_directory
+    // if the current location is not used.
     if (_sink == null) {
       _sink = new File(TestUtils.testOutcomeFileName)
-          .openWrite(mode: FileMode.APPEND);
+          .openWrite(mode: FileMode.append);
     }
-    _sink.write("${JSON.encode(record)}\n");
+    _sink.write("${jsonEncode(record)}\n");
   }
 }
 
@@ -209,8 +197,8 @@ class UnexpectedCrashLogger extends EventListener {
     if (test.unexpectedOutput &&
         test.result == Expectation.crash &&
         test.lastCommandExecuted is ProcessCommand) {
-      final pid = "${test.lastCommandOutput.pid}";
-      final lastCommand = test.lastCommandExecuted as ProcessCommand;
+      var pid = "${test.lastCommandOutput.pid}";
+      var lastCommand = test.lastCommandExecuted as ProcessCommand;
 
       // We might have a coredump for the process. This coredump will be
       // archived by CoreDumpArchiver (see tools/utils.py).
@@ -220,13 +208,13 @@ class UnexpectedCrashLogger extends EventListener {
       // To simplify the archiving code we simply copy binaries into current
       // folder next to core dumps and name them
       // `binary.${mode}_${arch}_${binary_name}`.
-      final binName = lastCommand.executable;
-      final binFile = new File(binName);
-      final binBaseName = new Path(binName).filename;
+      var binName = lastCommand.executable;
+      var binFile = new File(binName);
+      var binBaseName = new Path(binName).filename;
       if (!archivedBinaries.containsKey(binName) && binFile.existsSync()) {
-        final mode = test.configuration['mode'];
-        final arch = test.configuration['arch'];
-        final archived = "binary.${mode}_${arch}_${binBaseName}";
+        var mode = test.configuration.mode.name;
+        var arch = test.configuration.architecture.name;
+        var archived = "binary.${mode}_${arch}_${binBaseName}";
         TestUtils.copyFile(new Path(binName), new Path(archived));
         archivedBinaries[binName] = archived;
       }
@@ -236,7 +224,7 @@ class UnexpectedCrashLogger extends EventListener {
         RandomAccessFile unexpectedCrashesFile;
         try {
           unexpectedCrashesFile =
-              new File('unexpected-crashes').openSync(mode: FileMode.APPEND);
+              new File('unexpected-crashes').openSync(mode: FileMode.append);
           unexpectedCrashesFile.writeStringSync(
               "${test.displayName},${pid},${archivedBinaries[binName]}\n");
         } catch (e) {
@@ -264,7 +252,7 @@ class SummaryPrinter extends EventListener {
   void allTestsKnown() {
     if (jsonOnly) {
       print("JSON:");
-      print(JSON.encode(summaryReport.values));
+      print(jsonEncode(summaryReport.values));
     } else {
       summaryReport.printReport();
     }
@@ -342,30 +330,32 @@ class StatusFileUpdatePrinter extends EventListener {
   }
 
   void _printFailureSummary() {
-    var groupedStatuses = new Map<String, List<String>>();
-    statusToConfigs.forEach((String status, List<String> configs) {
-      var runtimeToConfiguration = new Map<String, List<String>>();
-      for (String config in configs) {
-        String runtime = _extractRuntime(config);
-        var runtimeConfigs =
-            runtimeToConfiguration.putIfAbsent(runtime, () => <String>[]);
-        runtimeConfigs.add(config);
+    var groupedStatuses = <String, List<String>>{};
+    statusToConfigs.forEach((status, configs) {
+      var runtimeToConfiguration = <String, List<String>>{};
+      for (var config in configs) {
+        var runtime = _extractRuntime(config);
+        runtimeToConfiguration
+            .putIfAbsent(runtime, () => <String>[])
+            .add(config);
       }
-      runtimeToConfiguration
-          .forEach((String runtime, List<String> runtimeConfigs) {
+
+      runtimeToConfiguration.forEach((runtime, runtimeConfigs) {
         runtimeConfigs.sort((a, b) => a.compareTo(b));
-        List<String> statuses = groupedStatuses.putIfAbsent(
+        var statuses = groupedStatuses.putIfAbsent(
             '$runtime: $runtimeConfigs', () => <String>[]);
         statuses.add(status);
       });
     });
+
+    if (groupedStatuses.isEmpty) return;
 
     print('\n\nNecessary status file updates:');
     groupedStatuses.forEach((String config, List<String> statuses) {
       print('');
       print('$config:');
       statuses.sort((a, b) => a.compareTo(b));
-      for (String status in statuses) {
+      for (var status in statuses) {
         print('  $status');
       }
     });
@@ -404,6 +394,7 @@ class TestFailurePrinter extends EventListener {
   final Formatter _formatter;
   final _failureSummary = <String>[];
   int _failedTests = 0;
+  int _passedTests = 0;
 
   TestFailurePrinter(this._printSummary, [this._formatter = Formatter.normal]);
 
@@ -419,43 +410,74 @@ class TestFailurePrinter extends EventListener {
         _failureSummary.addAll(lines);
         _failureSummary.add('');
       }
+    } else {
+      _passedTests++;
     }
   }
 
   void allDone() {
-    if (_printSummary) {
-      if (!_failureSummary.isEmpty) {
-        print('\n=== Failure summary:\n');
-        for (var line in _failureSummary) {
-          print(line);
-        }
-        print('');
+    if (!_printSummary || _failureSummary.isEmpty) return;
 
-        print(_buildSummaryEnd(_failedTests));
+    // Don't bother showing the summary if it's longer than the number of lines
+    // of successful test output. The benefit of the summary is that it saves
+    // you from scrolling past lots of passed tests to find the few failures.
+    // If most of the output *is* failures, showing them *twice* just makes it
+    // worse.
+    if (_passedTests <= _failureSummary.length) return;
+
+    print('\n=== Failure summary:\n');
+    for (var line in _failureSummary) {
+      print(line);
+    }
+    print('');
+    print(_buildSummaryEnd(_formatter, _failedTests));
+  }
+}
+
+class PassingStdoutPrinter extends EventListener {
+  final Formatter _formatter;
+  final _failureSummary = <String>[];
+
+  PassingStdoutPrinter([this._formatter = Formatter.normal]);
+
+  void done(TestCase test) {
+    if (!test.unexpectedOutput) {
+      var lines = <String>[];
+      var output = new OutputWriter(_formatter, lines);
+      for (final command in test.commands) {
+        var commandOutput = test.commandOutputs[command];
+        if (commandOutput == null) continue;
+
+        commandOutput.describe(test.configuration.progress, output);
+      }
+      for (var line in lines) {
+        print(line);
       }
     }
   }
+
+  void allDone() {}
 }
 
 class ProgressIndicator extends EventListener {
   ProgressIndicator(this._startTime);
 
-  static EventListener fromName(
-      String name, DateTime startTime, Formatter formatter) {
-    switch (name) {
-      case 'compact':
+  static EventListener fromProgress(
+      Progress progress, DateTime startTime, Formatter formatter) {
+    switch (progress) {
+      case Progress.compact:
         return new CompactProgressIndicator(startTime, formatter);
-      case 'line':
+      case Progress.line:
         return new LineProgressIndicator();
-      case 'verbose':
+      case Progress.verbose:
         return new VerboseProgressIndicator(startTime);
-      case 'status':
+      case Progress.status:
         return new ProgressIndicator(startTime);
-      case 'buildbot':
+      case Progress.buildbot:
         return new BuildbotProgressIndicator(startTime);
-      default:
-        throw new ArgumentError('Unknown progress indicator "$name".');
     }
+
+    throw "unreachable";
   }
 
   void testAdded() {
@@ -568,7 +590,7 @@ class BuildbotProgressIndicator extends ProgressIndicator {
       }
       print('');
     }
-    print(_buildSummaryEnd(_failedTests));
+    print(_buildSummaryEnd(Formatter.normal, _failedTests));
   }
 }
 
@@ -578,41 +600,76 @@ String _timeString(Duration duration) {
   return '${min.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}';
 }
 
-List<String> _linesWithoutCarriageReturn(List<int> output) {
-  return decodeUtf8(output)
-      .replaceAll('\r\n', '\n')
-      .replaceAll('\r', '\n')
-      .split('\n');
+/// Builds and formats the failure output for a failed test.
+class OutputWriter {
+  final Formatter _formatter;
+  final List<String> _lines;
+  String _pendingSection;
+  String _pendingSubsection;
+
+  OutputWriter(this._formatter, this._lines);
+
+  void section(String name) {
+    _pendingSection = name;
+    _pendingSubsection = null;
+  }
+
+  void subsection(String name) {
+    _pendingSubsection = name;
+  }
+
+  void write(String line) {
+    _flushSection();
+    _lines.add(line);
+  }
+
+  void writeAll(Iterable<String> lines) {
+    if (lines.isEmpty) return;
+    _flushSection();
+    _lines.addAll(lines);
+  }
+
+  /// Writes the current section header.
+  void _flushSection() {
+    if (_pendingSection != null) {
+      if (_lines.isNotEmpty) _lines.add("");
+      _lines.add(_formatter.section("--- $_pendingSection:"));
+      _pendingSection = null;
+    }
+
+    if (_pendingSubsection != null) {
+      _lines.add("");
+      _lines.add(_formatter.section("$_pendingSubsection:"));
+      _pendingSubsection = null;
+    }
+  }
 }
 
 List<String> _buildFailureOutput(TestCase test,
     [Formatter formatter = Formatter.normal]) {
-  var output = [
-    '',
-    formatter.failed('FAILED: ${test.configurationString} ${test.displayName}')
-  ];
+  var lines = <String>[];
+  var output = new OutputWriter(formatter, lines);
 
-  var expected = new StringBuffer();
-  expected.write('Expected: ');
-  for (var expectation in test.expectedOutcomes) {
-    expected.write('$expectation ');
-  }
+  output.write('');
+  output.write(formatter
+      .failed('FAILED: ${test.configurationString} ${test.displayName}'));
 
-  output.add(expected.toString());
-  output.add('Actual: ${test.result}');
+  output.write('Expected: ${test.expectedOutcomes.join(" ")}');
+  output.write('Actual: ${test.result}');
+
+  var ranAllCommands = test.commandOutputs.length == test.commands.length;
   if (!test.lastCommandOutput.hasTimedOut) {
-    if (test.commandOutputs.length != test.commands.length &&
-        !test.expectCompileError) {
-      output.add('Unexpected compile-time error.');
+    if (!ranAllCommands && !test.expectCompileError) {
+      output.write('Unexpected compile error.');
     } else {
       if (test.expectCompileError) {
-        output.add('Compile-time error expected.');
+        output.write('Missing expected compile error.');
       }
       if (test.hasRuntimeError) {
-        output.add('Runtime error expected.');
+        output.write('Missing expected runtime error.');
       }
-      if (test.configuration['checked'] && test.isNegativeIfChecked) {
-        output.add('Dynamic type error expected.');
+      if (test.configuration.isChecked && test.isNegativeIfChecked) {
+        output.write('Missing expected dynamic type error.');
       }
     }
   }
@@ -620,63 +677,123 @@ List<String> _buildFailureOutput(TestCase test,
   for (var i = 0; i < test.commands.length; i++) {
     var command = test.commands[i];
     var commandOutput = test.commandOutputs[command];
-    if (commandOutput != null) {
-      output.add("CommandOutput[${command.displayName}]:");
-      if (!commandOutput.diagnostics.isEmpty) {
-        String prefix = 'diagnostics:';
-        for (var s in commandOutput.diagnostics) {
-          output.add('$prefix ${s}');
-          prefix = '   ';
-        }
-      }
-      if (!commandOutput.stdout.isEmpty) {
-        output.add('');
-        output.add('stdout:');
-        output.addAll(_linesWithoutCarriageReturn(commandOutput.stdout));
-      }
-      if (!commandOutput.stderr.isEmpty) {
-        output.add('');
-        output.add('stderr:');
-        output.addAll(_linesWithoutCarriageReturn(commandOutput.stderr));
-      }
-    }
+    if (commandOutput == null) continue;
+
+    var time = niceTime(commandOutput.time);
+    output.section('Command "${command.displayName}" (took $time)');
+    output.write(command.toString());
+    commandOutput.describe(test.configuration.progress, output);
   }
 
-  if (test is BrowserTestCase) {
+  if (test.configuration.runtime.isBrowser && ranAllCommands) {
     // Additional command for rerunning the steps locally after the fact.
-    var command = test.configuration["_servers_"].httpServerCommandLine();
-    output.add('');
-    output.add('To retest, run:  $command');
+    output.section('To debug locally, run');
+    output.write(test.configuration.servers.commandLine);
   }
 
-  for (var i = 0; i < test.commands.length; i++) {
-    var command = test.commands[i];
-    var commandOutput = test.commandOutputs[command];
-    output.add('');
-    output.add('Command[${command.displayName}]: $command');
-    if (commandOutput != null) {
-      output.add('Took ${commandOutput.time}');
-    } else {
-      output.add('Did not run');
-    }
+  output.section('Re-run this test');
+  List<String> arguments;
+  if (Platform.isFuchsia) {
+    arguments = [Platform.executable, Platform.script.path];
+  } else {
+    arguments = ['python', 'tools/test.py'];
   }
-
-  var arguments = ['python', 'tools/test.py'];
-  arguments.addAll(test.configuration['_reproducing_arguments_']);
+  arguments.addAll(test.configuration.reproducingArguments);
   arguments.add(test.displayName);
-  var testPyCommandline = arguments.map(escapeCommandLineArgument).join(' ');
 
-  output.add('');
-  output.add('Short reproduction command (experimental):');
-  output.add("    $testPyCommandline");
-  return output;
+  output.write(arguments.map(escapeCommandLineArgument).join(' '));
+  return lines;
 }
 
-String _buildSummaryEnd(int failedTests) {
+String _buildSummaryEnd(Formatter formatter, int failedTests) {
   if (failedTests == 0) {
-    return '\n===\n=== All tests succeeded\n===\n';
+    return formatter.passed('\n===\n=== All tests succeeded\n===\n');
   } else {
     var pluralSuffix = failedTests != 1 ? 's' : '';
-    return '\n===\n=== ${failedTests} test$pluralSuffix failed\n===\n';
+    return formatter
+        .failed('\n===\n=== ${failedTests} test$pluralSuffix failed\n===\n');
+  }
+}
+
+class ResultLogWriter extends EventListener {
+  Map<String, Map> _configurations = {};
+  List<Map> _results = [];
+  String _outputDirectory;
+
+  ResultLogWriter(this._outputDirectory);
+
+  void allTestsKnown() {
+    // Write an empty result log file, that will be overwritten if any tests
+    // are actually run, when the allDone event handler is invoked.
+    writeToFile({}, []);
+  }
+
+  void done(TestCase test) {
+    // We try to find an existing configuration, so as to not duplicate this
+    // for each test.
+    var thisConf = test.configuration.toSummaryMap();
+    String key = _configurations.keys.firstWhere(
+        (key) => identical(_configurations[key], thisConf), orElse: () {
+      var newKey = "conf${_configurations.length + 1}";
+      _configurations[newKey] = thisConf;
+      return newKey;
+    });
+    var commands = test.commands.map((command) {
+      var output = test.commandOutputs[command];
+      if (output == null) {
+        return {'name': command.displayName};
+      }
+      return {
+        'name': command.displayName,
+        'exitCode': output.exitCode,
+        'timeout': output.hasTimedOut,
+        'duration': output.time.inMilliseconds
+      };
+    }).toList();
+
+    // Compute inlined expectations.
+    var inlineExpectations = <String>[];
+    if (test.hasStaticWarning) {
+      inlineExpectations.add("static-type-warning");
+    }
+    if (test.hasRuntimeError) {
+      inlineExpectations.add("runtime-error");
+    }
+    if (test.hasSyntaxError) {
+      inlineExpectations.add("syntax-error");
+    }
+    if (test.hasCompileError) {
+      inlineExpectations.add("compile-time-error");
+    }
+    if (test.hasCompileErrorIfChecked) {
+      inlineExpectations.add("checked-compile-time-error");
+    }
+    if (test.isNegativeIfChecked) {
+      inlineExpectations.add("dynamic-type-error");
+    }
+    _results.add({
+      'configuration': key,
+      'name': test.displayName,
+      'result': test.lastCommandOutput.result(test).toString(),
+      'test_expectation': inlineExpectations,
+      'flaky': test.isFlaky,
+      'negative': test.isNegative,
+      'commands': commands
+    });
+  }
+
+  void allDone() {
+    writeToFile(_configurations, _results);
+  }
+
+  void writeToFile(Map<String, Map> configurations, List<Map> results) {
+    if (_outputDirectory != null) {
+      var path = new Path(_outputDirectory);
+      var file =
+          new File(path.append(TestUtils.resultLogFileName).toNativePath());
+      file.createSync(recursive: true);
+      file.writeAsStringSync(
+          jsonEncode({'configurations': configurations, 'results': results}));
+    }
   }
 }

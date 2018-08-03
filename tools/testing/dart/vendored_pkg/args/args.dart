@@ -261,7 +261,8 @@ class ArgParser {
       bool defaultsTo: false,
       bool negatable: true,
       void callback(bool value)}) {
-    _addOption(name, abbr, help, null, null, defaultsTo, callback,
+    _addOption(name, abbr, help, null, null, defaultsTo,
+        callback == null ? null : (value) => callback(value as bool),
         isFlag: true, negatable: negatable);
   }
 
@@ -277,15 +278,23 @@ class ArgParser {
       List<String> allowed,
       Map<String, String> allowedHelp,
       String defaultsTo,
-      void callback(value),
+      void callback(dynamic value),
       bool allowMultiple: false}) {
     _addOption(name, abbr, help, allowed, allowedHelp, defaultsTo, callback,
         isFlag: false, allowMultiple: allowMultiple);
   }
 
-  void _addOption(String name, String abbr, String help, List<String> allowed,
-      Map<String, String> allowedHelp, defaultsTo, void callback(value),
-      {bool isFlag, bool negatable: false, bool allowMultiple: false}) {
+  void _addOption(
+      String name,
+      String abbr,
+      String help,
+      List<String> allowed,
+      Map<String, String> allowedHelp,
+      dynamic defaultsTo,
+      void callback(dynamic value),
+      {bool isFlag,
+      bool negatable: false,
+      bool allowMultiple: false}) {
     // Make sure the name isn't in use.
     if (options.containsKey(name)) {
       throw new ArgumentError('Duplicate option "$name".');
@@ -327,7 +336,7 @@ class ArgParser {
    * Get the default value for an option. Useful after parsing to test
    * if the user specified something other than the default.
    */
-  getDefault(String option) {
+  dynamic getDefault(String option) {
     if (!options.containsKey(option)) {
       throw new ArgumentError('No option named $option');
     }
@@ -351,7 +360,7 @@ class Option {
   final String name;
   final String abbreviation;
   final List allowed;
-  final defaultValue;
+  final dynamic defaultValue;
   final Function callback;
   final String help;
   final Map<String, String> allowedHelp;
@@ -370,7 +379,7 @@ class Option {
  * command line arguments.
  */
 class ArgResults {
-  final Map _options;
+  final Map<String, dynamic> _options;
 
   /**
    * If these are the results for parsing a command's options, this will be
@@ -395,7 +404,7 @@ class ArgResults {
   ArgResults(this._options, this.name, this.command, this.rest);
 
   /** Gets the parsed command-line option named [name]. */
-  operator [](String name) {
+  dynamic operator [](String name) {
     if (!_options.containsKey(name)) {
       throw new ArgumentError('Could not find an option named "$name".');
     }

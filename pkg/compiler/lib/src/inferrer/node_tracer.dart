@@ -5,9 +5,8 @@
 library compiler.src.inferrer.node_tracer;
 
 import '../common/names.dart' show Identifiers;
-import '../compiler.dart' show Compiler;
-import '../elements/elements.dart';
-import '../types/types.dart' show ContainerTypeMask, MapTypeMask;
+import '../elements/entities.dart';
+import '../types/abstract_value_domain.dart';
 import '../util/util.dart' show Setlet;
 import 'debug.dart' as debug;
 import 'inferrer_engine.dart';
@@ -75,15 +74,12 @@ Set<String> doesNotEscapeMapSet = new Set<String>.from(const <String>[
 abstract class TracerVisitor implements TypeInformationVisitor {
   final TypeInformation tracedType;
   final InferrerEngine inferrer;
-  final Compiler compiler;
 
   static const int MAX_ANALYSIS_COUNT =
       const int.fromEnvironment('dart2js.tracing.limit', defaultValue: 32);
-  final Setlet<Element> analyzedElements = new Setlet<Element>();
+  final Setlet<MemberEntity> analyzedElements = new Setlet<MemberEntity>();
 
-  TracerVisitor(this.tracedType, InferrerEngine inferrer)
-      : this.inferrer = inferrer,
-        this.compiler = inferrer.compiler;
+  TracerVisitor(this.tracedType, this.inferrer);
 
   // Work list that gets populated with [TypeInformation] that could
   // contain the container.
@@ -208,8 +204,9 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       ClosureCallSiteTypeInformation info) {}
 
   visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
-    Element called = info.calledElement;
-    if (inferrer.types.getInferredTypeOf(called) == currentUser) {
+    MemberEntity called = info.calledElement;
+    TypeInformation inferred = inferrer.types.getInferredTypeOfMember(called);
+    if (inferred == currentUser) {
       addNewEscapeInformation(info);
     }
   }
@@ -220,7 +217,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       bailout('Stored in a list that bailed out');
     } else {
       list.flowsInto.forEach((flow) {
-        flow.users.forEach((user) {
+        flow.users.forEach((dynamic user) {
           if (user is! DynamicCallSiteTypeInformation) return;
           if (user.receiver != flow) return;
           if (inferrer.returnsListElementTypeSet.contains(user.selector)) {
@@ -239,7 +236,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       bailout('Stored in a map that bailed out');
     } else {
       map.flowsInto.forEach((flow) {
-        flow.users.forEach((user) {
+        flow.users.forEach((dynamic user) {
           if (user is! DynamicCallSiteTypeInformation) return;
           if (user.receiver != flow) return;
           if (user.selector.isIndex) {
@@ -296,10 +293,10 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     return isIndexSetArgument(info, 1);
   }
 
-  void bailoutIfReaches(bool predicate(Element e)) {
+  void bailoutIfReaches(bool predicate(ParameterTypeInformation e)) {
     for (var user in currentUser.users) {
       if (user is ParameterTypeInformation) {
-        if (predicate(user.element)) {
+        if (predicate(user)) {
           bailout('Reached suppressed parameter without precise receiver');
           break;
         }
@@ -309,31 +306,33 @@ abstract class TracerVisitor implements TypeInformationVisitor {
 
   void visitDynamicCallSiteTypeInformation(
       DynamicCallSiteTypeInformation info) {
-    void addsToContainer(ContainerTypeMask mask) {
-      if (mask.allocationNode != null) {
+    void addsToContainer(AbstractValue mask) {
+      Object allocationNode =
+          inferrer.abstractValueDomain.getAllocationNode(mask);
+      if (allocationNode != null) {
         ListTypeInformation list =
-            inferrer.types.allocatedLists[mask.allocationNode];
+            inferrer.types.allocatedLists[allocationNode];
         listsToAnalyze.add(list);
       } else {
-        // The [ContainerTypeMask] is a union of two containers, and we lose
-        // track of where these containers have been allocated at this point.
+        // The [mask] is a union of two containers, and we lose track of where
+        // these containers have been allocated at this point.
         bailout('Stored in too many containers');
       }
     }
 
-    void addsToMapValue(MapTypeMask mask) {
-      if (mask.allocationNode != null) {
-        MapTypeInformation map =
-            inferrer.types.allocatedMaps[mask.allocationNode];
+    void addsToMapValue(AbstractValue mask) {
+      Object allocationNode =
+          inferrer.abstractValueDomain.getAllocationNode(mask);
+      if (allocationNode != null) {
+        MapTypeInformation map = inferrer.types.allocatedMaps[allocationNode];
         mapsToAnalyze.add(map);
       } else {
-        // The [MapTypeMask] is a union. See comment for [ContainerTypeMask]
-        // above.
+        // The [mask] is a union. See comment for [mask] above.
         bailout('Stored in too many maps');
       }
     }
 
-    void addsToMapKey(MapTypeMask mask) {
+    void addsToMapKey(AbstractValue mask) {
       // We do not track the use of keys from a map, so we have to bail.
       bailout('Used as key in Map');
     }
@@ -341,9 +340,9 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     // "a[...] = x" could be a list (container) or map assignemnt.
     if (isIndexSetValue(info)) {
       var receiverType = info.receiver.type;
-      if (receiverType is ContainerTypeMask) {
+      if (inferrer.abstractValueDomain.isContainer(receiverType)) {
         addsToContainer(receiverType);
-      } else if (receiverType is MapTypeMask) {
+      } else if (inferrer.abstractValueDomain.isMap(receiverType)) {
         addsToMapValue(receiverType);
       } else {
         // Not a container or map, so the targets could be any methods. There
@@ -366,7 +365,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     // Could be:  m[x] = ...;
     if (isIndexSetKey(info)) {
       var receiverType = info.receiver.type;
-      if (receiverType is MapTypeMask) {
+      if (inferrer.abstractValueDomain.isMap(receiverType)) {
         addsToMapKey(receiverType);
       } else {
         bailoutIfReaches(isParameterOfListAddingMethod);
@@ -376,7 +375,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
 
     if (mightAddToContainer(info)) {
       var receiverType = info.receiver.type;
-      if (receiverType is ContainerTypeMask) {
+      if (inferrer.abstractValueDomain.isContainer(receiverType)) {
         addsToContainer(receiverType);
       } else {
         // Not a container, see note above.
@@ -390,9 +389,9 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       bailout('Passed to noSuchMethod');
     }
 
-    Iterable<Element> inferredTargetTypes =
-        info.targets.map((MemberElement element) {
-      return inferrer.types.getInferredTypeOf(element);
+    Iterable<TypeInformation> inferredTargetTypes =
+        info.concreteTargets.map((MemberEntity entity) {
+      return inferrer.types.getInferredTypeOfMember(entity);
     });
     if (inferredTargetTypes.any((user) => user == currentUser)) {
       addNewEscapeInformation(info);
@@ -404,12 +403,13 @@ abstract class TracerVisitor implements TypeInformationVisitor {
    * The definition of what a list adding method is has to stay in sync with
    * [mightAddToContainer].
    */
-  bool isParameterOfListAddingMethod(Element element) {
-    if (!element.isRegularParameter) return false;
-    if (element.enclosingClass != compiler.commonElements.jsArrayClass) {
+  bool isParameterOfListAddingMethod(ParameterTypeInformation parameterInfo) {
+    if (!parameterInfo.isRegularParameter) return false;
+    if (parameterInfo.method.enclosingClass !=
+        inferrer.closedWorld.commonElements.jsArrayClass) {
       return false;
     }
-    String name = element.enclosingElement.name;
+    String name = parameterInfo.method.name;
     return (name == '[]=') || (name == 'add') || (name == 'insert');
   }
 
@@ -418,16 +418,17 @@ abstract class TracerVisitor implements TypeInformationVisitor {
    * The definition of what a list adding method is has to stay in sync with
    * [isIndexSetKey] and [isIndexSetValue].
    */
-  bool isParameterOfMapAddingMethod(Element element) {
-    if (!element.isRegularParameter) return false;
-    if (element.enclosingClass != compiler.commonElements.mapLiteralClass) {
+  bool isParameterOfMapAddingMethod(ParameterTypeInformation parameterInfo) {
+    if (!parameterInfo.isRegularParameter) return false;
+    if (parameterInfo.method.enclosingClass !=
+        inferrer.closedWorld.commonElements.mapLiteralClass) {
       return false;
     }
-    String name = element.enclosingElement.name;
+    String name = parameterInfo.method.name;
     return (name == '[]=');
   }
 
-  bool isClosure(Element element) {
+  bool isClosure(MemberEntity element) {
     if (!element.isFunction) return false;
 
     /// Creating an instance of a class that implements [Function] also
@@ -438,37 +439,34 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     if (element.isInstanceMember && element.name == Identifiers.call) {
       return true;
     }
-    Element outermost = element.outermostEnclosingMemberOrTopLevel;
-    return outermost.declaration != element.declaration;
+    ClassEntity cls = element.enclosingClass;
+    return cls != null && cls.isClosure;
   }
 
   void visitMemberTypeInformation(MemberTypeInformation info) {
     if (info.isClosurized) {
       bailout('Returned from a closurized method');
     }
-    if (isClosure(info.element)) {
+    if (isClosure(info.member)) {
       bailout('Returned from a closure');
     }
-    if (info.element.isField &&
-        !inferrer.compiler.backend.canFieldBeUsedForGlobalOptimizations(
-            info.element, inferrer.closedWorld)) {
+    if (info.member.isField &&
+        !inferrer.canFieldBeUsedForGlobalOptimizations(info.member)) {
       bailout('Escape to code that has special backend treatment');
     }
     addNewEscapeInformation(info);
   }
 
   void visitParameterTypeInformation(ParameterTypeInformation info) {
-    ParameterElement element = info.element;
-    if (inferrer.isNativeMember(element.functionDeclaration)) {
+    if (inferrer.closedWorld.nativeData.isNativeMember(info.method)) {
       bailout('Passed to a native method');
     }
-    if (!inferrer.compiler.backend
-        .canFunctionParametersBeUsedForGlobalOptimizations(
-            element.functionDeclaration, inferrer.closedWorld)) {
+    if (!inferrer
+        .canFunctionParametersBeUsedForGlobalOptimizations(info.method)) {
       bailout('Escape to code that has special backend treatment');
     }
-    if (isParameterOfListAddingMethod(element) ||
-        isParameterOfMapAddingMethod(element)) {
+    if (isParameterOfListAddingMethod(info) ||
+        isParameterOfMapAddingMethod(info)) {
       // These elements are being handled in
       // [visitDynamicCallSiteTypeInformation].
       return;

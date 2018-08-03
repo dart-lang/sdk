@@ -1,15 +1,22 @@
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// Dart core library.
 
-// VM implementation of int.
+// part of "core_patch.dart";
 
+/// VM implementation of int.
 @patch
 class int {
   @patch
   const factory int.fromEnvironment(String name, {int defaultValue})
       native "Integer_fromEnvironment";
+
+  int _bitAndFromSmi(_Smi other);
+  int _bitAndFromInteger(int other);
+  int _bitOrFromInteger(int other);
+  int _bitXorFromInteger(int other);
+  int _shrFromInteger(int other);
+  int _shlFromInteger(int other);
 
   static int _tryParseSmi(String str, int first, int last) {
     assert(first <= last);
@@ -24,7 +31,7 @@ class int {
         return null; // Empty.
       }
     }
-    var smiLimit = internal.is64Bit ? 18 : 9;
+    var smiLimit = is64Bit ? 18 : 9;
     if ((last - ix) >= smiLimit) {
       return null; // May not fit into a Smi.
     }
@@ -54,7 +61,7 @@ class int {
     return _parse(source, radix, onError);
   }
 
-  static int _parse(String source, int radix, onError) {
+  static int _parse(_StringBase source, int radix, onError) {
     int end = source._lastNonWhitespace() + 1;
     if (end == 0) {
       return _throwFormatException(onError, source, source.length, radix);
@@ -83,7 +90,7 @@ class int {
           if (index == end) {
             return _throwFormatException(onError, source, index, null);
           }
-          int result = _parseRadix(source, 16, index, end, sign);
+          int result = _parseRadix(source, 16, index, end, sign, sign > 0);
           if (result == null) {
             return _throwFormatException(onError, source, null, null);
           }
@@ -92,12 +99,28 @@ class int {
       }
       radix = 10;
     }
-    int result = _parseRadix(source, radix, start, end, sign);
+    int result = _parseRadix(source, radix, start, end, sign, false);
     if (result == null) {
       return _throwFormatException(onError, source, null, radix);
     }
     return result;
   }
+
+  @patch
+  static int tryParse(String source, {int radix}) {
+    if (source == null) throw new ArgumentError("The source must not be null");
+    if (source.isEmpty) return null;
+    if (radix == null || radix == 10) {
+      // Try parsing immediately, without trimming whitespace.
+      int result = _tryParseSmi(source, 0, source.length - 1);
+      if (result != null) return result;
+    } else if (radix < 2 || radix > 36) {
+      throw new RangeError("Radix $radix not in range 2..36");
+    }
+    return _parse(source, radix, _kNull);
+  }
+
+  static Null _kNull(_) => null;
 
   static int _throwFormatException(onError, source, index, radix) {
     if (onError != null) return onError(source);
@@ -108,8 +131,8 @@ class int {
   }
 
   static int _parseRadix(
-      String source, int radix, int start, int end, int sign) {
-    int tableIndex = (radix - 2) * 4 + (internal.is64Bit ? 2 : 0);
+      String source, int radix, int start, int end, int sign, bool allowU64) {
+    int tableIndex = (radix - 2) * 4 + (is64Bit ? 2 : 0);
     int blockSize = _PARSE_LIMITS[tableIndex];
     int length = end - start;
     if (length <= blockSize) {
@@ -132,10 +155,40 @@ class int {
       start = blockEnd;
     }
     int multiplier = _PARSE_LIMITS[tableIndex + 1];
+    int positiveOverflowLimit = 0;
+    int negativeOverflowLimit = 0;
+    tableIndex = tableIndex << 1; // pre-multiply by 2 for simpler indexing
+    positiveOverflowLimit = _int64OverflowLimits[tableIndex];
+    if (positiveOverflowLimit == 0) {
+      positiveOverflowLimit = _initInt64OverflowLimits(tableIndex, multiplier);
+    }
+    negativeOverflowLimit = _int64OverflowLimits[tableIndex + 1];
     int blockEnd = start + blockSize;
     do {
       _Smi smi = _parseBlock(source, radix, start, blockEnd);
       if (smi == null) return null;
+      if (result >= positiveOverflowLimit) {
+        if ((result > positiveOverflowLimit) ||
+            (smi > _int64OverflowLimits[tableIndex + 2])) {
+          // Although the unsigned overflow limits do not depend on the
+          // platform, the multiplier and block size, which are used to
+          // compute it, do.
+          int X = is64Bit ? 1 : 0;
+          if (allowU64 &&
+              !(result >= _int64UnsignedOverflowLimits[X] &&
+                  (result > _int64UnsignedOverflowLimits[X] ||
+                      smi > _int64UnsignedSmiOverflowLimits[X])) &&
+              blockEnd + blockSize > end) {
+            return (result * multiplier) + smi;
+          }
+          return null;
+        }
+      } else if (result <= negativeOverflowLimit) {
+        if ((result < negativeOverflowLimit) ||
+            (smi > _int64OverflowLimits[tableIndex + 3])) {
+          return null;
+        }
+      }
       result = (result * multiplier) + (sign * smi);
       start = blockEnd;
       blockEnd = start + blockSize;
@@ -206,4 +259,39 @@ class int {
     5, 52521875, 12, 3379220508056640625, //    radix: 35
     5, 60466176, 11, 131621703842267136,
   ];
+
+  static const _maxInt64 = 0x7fffffffffffffff;
+  static const _minInt64 = -0x8000000000000000;
+
+  static const _int64UnsignedOverflowLimits = const [0xfffffffff, 0xf];
+  static const _int64UnsignedSmiOverflowLimits = const [
+    0xfffffff,
+    0xfffffffffffffff
+  ];
+
+  /// Calculation of the expression
+  ///
+  ///   result = (result * multiplier) + (sign * smi)
+  ///
+  /// in `_parseRadix()` may overflow 64-bit integers. In such case,
+  /// `int.parse()` should stop with an error.
+  ///
+  /// This table is lazily filled with int64 overflow limits for result and smi.
+  /// For each multiplier from `_PARSE_LIMITS[tableIndex + 1]` this table
+  /// contains
+  ///
+  /// * `[tableIndex*2]` = positive limit for result
+  /// * `[tableIndex*2 + 1]` = negative limit for result
+  /// * `[tableIndex*2 + 2]` = limit for smi if result is exactly at positive limit
+  /// * `[tableIndex*2 + 3]` = limit for smi if result is exactly at negative limit
+  static final Int64List _int64OverflowLimits =
+      new Int64List(_PARSE_LIMITS.length * 2);
+
+  static int _initInt64OverflowLimits(int tableIndex, int multiplier) {
+    _int64OverflowLimits[tableIndex] = _maxInt64 ~/ multiplier;
+    _int64OverflowLimits[tableIndex + 1] = _minInt64 ~/ multiplier;
+    _int64OverflowLimits[tableIndex + 2] = _maxInt64.remainder(multiplier);
+    _int64OverflowLimits[tableIndex + 3] = -(_minInt64.remainder(multiplier));
+    return _int64OverflowLimits[tableIndex];
+  }
 }

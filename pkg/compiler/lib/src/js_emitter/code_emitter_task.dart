@@ -14,19 +14,18 @@ import '../deferred_load.dart' show OutputUnit;
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
+import '../js_backend/inferred_data.dart';
 import '../universe/world_builder.dart' show CodegenWorldBuilder;
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 import 'full_emitter/emitter.dart' as full_js_emitter;
-import 'lazy_emitter/emitter.dart' as lazy_js_emitter;
 import 'program_builder/program_builder.dart';
 import 'startup_emitter/emitter.dart' as startup_js_emitter;
 
 import 'metadata_collector.dart' show MetadataCollector;
+import 'model.dart';
 import 'native_emitter.dart' show NativeEmitter;
 import 'type_test_registry.dart' show TypeTestRegistry;
 import 'sorter.dart';
-
-const USE_LAZY_EMITTER = const bool.fromEnvironment("dart2js.use.lazy.emitter");
 
 /**
  * Generates the code for all used classes in the program. Static fields (even
@@ -38,7 +37,7 @@ class CodeEmitterTask extends CompilerTask {
   TypeTestRegistry typeTestRegistry;
   NativeEmitter _nativeEmitter;
   MetadataCollector metadataCollector;
-  EmitterFactory _emitterFactory;
+  final EmitterFactory _emitterFactory;
   Emitter _emitter;
   final Compiler compiler;
 
@@ -54,17 +53,12 @@ class CodeEmitterTask extends CompilerTask {
   CodeEmitterTask(
       Compiler compiler, bool generateSourceMap, bool useStartupEmitter)
       : compiler = compiler,
-        super(compiler.measurer) {
-    if (USE_LAZY_EMITTER) {
-      _emitterFactory = new lazy_js_emitter.EmitterFactory();
-    } else if (useStartupEmitter) {
-      _emitterFactory = new startup_js_emitter.EmitterFactory(
-          generateSourceMap: generateSourceMap);
-    } else {
-      _emitterFactory = new full_js_emitter.EmitterFactory(
-          generateSourceMap: generateSourceMap);
-    }
-  }
+        _emitterFactory = useStartupEmitter
+            ? new startup_js_emitter.EmitterFactory(
+                generateSourceMap: generateSourceMap)
+            : new full_js_emitter.EmitterFactory(
+                generateSourceMap: generateSourceMap),
+        super(compiler.measurer);
 
   NativeEmitter get nativeEmitter {
     assert(
@@ -79,11 +73,6 @@ class CodeEmitterTask extends CompilerTask {
         failedAt(NO_LOCATION_SPANNABLE, "Emitter has not been created yet."));
     return _emitter;
   }
-
-  /// Returns the [Sorter] use for ordering elements in the generated
-  /// JavaScript.
-  // TODO(johnniwinther): Switch this based on the used entity model.
-  Sorter get sorter => const ElementSorter();
 
   String get name => 'Code emitter';
 
@@ -162,54 +151,48 @@ class CodeEmitterTask extends CompilerTask {
     // 'is$' method.
     typeTestRegistry.computeRequiredTypeChecks(backend.rtiChecksBuilder);
     // Compute the classes needed by RTI.
-    typeTestRegistry.computeRtiNeededClasses(backend.rtiSubstitutions,
-        backend.mirrorsData, backend.generatedCode.keys);
+    typeTestRegistry.computeRtiNeededClasses(
+        backend.rtiSubstitutions, backend.generatedCode.keys);
   }
 
   /// Creates the [Emitter] for this task.
-  void createEmitter(Namer namer, ClosedWorld closedWorld,
-      CodegenWorldBuilder codegenWorldBuilder) {
+  void createEmitter(Namer namer, JClosedWorld closedWorld,
+      CodegenWorldBuilder codegenWorldBuilder, Sorter sorter) {
     measure(() {
       _nativeEmitter = new NativeEmitter(this, closedWorld, codegenWorldBuilder,
           backend.nativeCodegenEnqueuer);
-      _emitter = _emitterFactory.createEmitter(this, namer, closedWorld);
-      metadataCollector = new MetadataCollector(
-          compiler.options,
-          compiler.reporter,
-          compiler.deferredLoadTask,
-          _emitter,
-          backend.constants,
-          backend.typeVariableCodegenAnalysis,
-          backend.mirrorsData,
-          backend.rtiEncoder);
-      typeTestRegistry = new TypeTestRegistry(
-          codegenWorldBuilder, closedWorld, compiler.elementEnvironment);
+      _emitter =
+          _emitterFactory.createEmitter(this, namer, closedWorld, sorter);
+      metadataCollector = new MetadataCollector(compiler.options,
+          compiler.reporter, _emitter, backend.rtiEncoder, codegenWorldBuilder);
+      typeTestRegistry = new TypeTestRegistry(compiler.options,
+          codegenWorldBuilder, closedWorld.elementEnvironment);
     });
   }
 
-  int assembleProgram(Namer namer, ClosedWorld closedWorld) {
+  int assembleProgram(
+      Namer namer, JClosedWorld closedWorld, InferredData inferredData) {
     return measure(() {
       _finalizeRti();
       ProgramBuilder programBuilder = new ProgramBuilder(
           compiler.options,
           compiler.reporter,
-          compiler.elementEnvironment,
-          compiler.commonElements,
-          compiler.types,
+          closedWorld.elementEnvironment,
+          closedWorld.commonElements,
+          closedWorld.dartTypes,
           compiler.deferredLoadTask,
-          compiler.closureToClassMapper,
+          backend.outputUnitData,
+          compiler.backendStrategy.closureDataLookup,
           compiler.codegenWorldBuilder,
           backend.nativeCodegenEnqueuer,
           closedWorld.backendUsage,
           backend.constants,
           closedWorld.nativeData,
-          backend.rtiNeed,
-          backend.mirrorsData,
+          closedWorld.rtiNeed,
           closedWorld.interceptorData,
           backend.superMemberData,
           typeTestRegistry.rtiChecks,
           backend.rtiEncoder,
-          backend.rtiSubstitutions,
           backend.jsInteropAnalysis,
           backend.oneShotInterceptorData,
           backend.customElementsCodegenAnalysis,
@@ -217,9 +200,12 @@ class CodeEmitterTask extends CompilerTask {
           namer,
           this,
           closedWorld,
+          closedWorld.allocatorAnalysis,
+          inferredData,
+          backend.sourceInformationStrategy,
+          compiler.backendStrategy.sorter,
           typeTestRegistry.rtiNeededClasses,
-          compiler.mainFunction,
-          isMockCompilation: compiler.isMockCompilation);
+          closedWorld.elementEnvironment.mainFunction);
       int size = emitter.emitProgram(programBuilder);
       // TODO(floitsch): we shouldn't need the `neededClasses` anymore.
       neededClasses = programBuilder.collector.neededClasses;
@@ -233,21 +219,23 @@ abstract class EmitterFactory {
   bool get supportsReflection;
 
   /// Create the [Emitter] for the emitter [task] that uses the given [namer].
-  Emitter createEmitter(
-      CodeEmitterTask task, Namer namer, ClosedWorld closedWorld);
+  Emitter createEmitter(CodeEmitterTask task, Namer namer,
+      JClosedWorld closedWorld, Sorter sorter);
 }
 
 abstract class Emitter {
+  Program get programForTesting;
+
   /// Uses the [programBuilder] to generate a model of the program, emits
   /// the program, and returns the size of the generated output.
   int emitProgram(ProgramBuilder programBuilder);
 
   /// Returns the JS function that must be invoked to get the value of the
   /// lazily initialized static.
-  jsAst.Expression isolateLazyInitializerAccess(FieldEntity element);
+  jsAst.Expression isolateLazyInitializerAccess(covariant FieldEntity element);
 
   /// Returns the closure expression of a static function.
-  jsAst.Expression isolateStaticClosureAccess(FunctionEntity element);
+  jsAst.Expression isolateStaticClosureAccess(covariant FunctionEntity element);
 
   /// Returns the JS code for accessing the embedded [global].
   jsAst.Expression generateEmbeddedGlobalAccess(String global);
@@ -265,7 +253,8 @@ abstract class Emitter {
   jsAst.Expression constructorAccess(ClassEntity e);
 
   /// Returns the JS prototype of the given class [e].
-  jsAst.Expression prototypeAccess(ClassEntity e, bool hasBeenInstantiated);
+  jsAst.Expression prototypeAccess(
+      covariant ClassEntity e, bool hasBeenInstantiated);
 
   /// Returns the JS constructor of the given interceptor class [e].
   jsAst.Expression interceptorClassAccess(ClassEntity e);
@@ -287,4 +276,55 @@ abstract class Emitter {
 
   /// Returns the size of the code generated for a given output [unit].
   int generatedSize(OutputUnit unit);
+}
+
+abstract class EmitterBase implements Emitter {
+  Program programForTesting;
+  Namer get namer;
+
+  jsAst.PropertyAccess globalPropertyAccessForMember(MemberEntity element) {
+    jsAst.Name name = namer.globalPropertyNameForMember(element);
+    jsAst.PropertyAccess pa = new jsAst.PropertyAccess(
+        new jsAst.VariableUse(namer.globalObjectForMember(element)), name);
+    return pa;
+  }
+
+  jsAst.PropertyAccess globalPropertyAccessForClass(ClassEntity element) {
+    jsAst.Name name = namer.globalPropertyNameForClass(element);
+    jsAst.PropertyAccess pa = new jsAst.PropertyAccess(
+        new jsAst.VariableUse(namer.globalObjectForClass(element)), name);
+    return pa;
+  }
+
+  jsAst.PropertyAccess globalPropertyAccessForType(Entity element) {
+    jsAst.Name name = namer.globalPropertyNameForType(element);
+    jsAst.PropertyAccess pa = new jsAst.PropertyAccess(
+        new jsAst.VariableUse(namer.globalObjectForType(element)), name);
+    return pa;
+  }
+
+  @override
+  jsAst.PropertyAccess staticFieldAccess(FieldEntity element) {
+    return globalPropertyAccessForMember(element);
+  }
+
+  @override
+  jsAst.PropertyAccess staticFunctionAccess(FunctionEntity element) {
+    return globalPropertyAccessForMember(element);
+  }
+
+  @override
+  jsAst.PropertyAccess constructorAccess(ClassEntity element) {
+    return globalPropertyAccessForClass(element);
+  }
+
+  @override
+  jsAst.Expression interceptorClassAccess(ClassEntity element) {
+    return globalPropertyAccessForClass(element);
+  }
+
+  @override
+  jsAst.Expression typeAccess(Entity element) {
+    return globalPropertyAccessForType(element);
+  }
 }

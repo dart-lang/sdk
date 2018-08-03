@@ -5,10 +5,9 @@
 #ifndef RUNTIME_VM_CONSTANTS_DBC_H_
 #define RUNTIME_VM_CONSTANTS_DBC_H_
 
-#include "platform/globals.h"
 #include "platform/assert.h"
+#include "platform/globals.h"
 #include "platform/utils.h"
-
 
 namespace dart {
 
@@ -74,6 +73,10 @@ namespace dart {
 //   +--------+--------+--------+--------+
 //
 //   +--------+--------+--------+--------+
+//   | opcode |    A   |    B   |    Y   | A_B_Y: 2 unsigned 8-bit operands
+//   +--------+--------+--------+--------+        1 signed 8-bit operand
+//
+//   +--------+--------+--------+--------+
 //   | opcode |             T            |   T: signed 24-bit operand
 //   +--------+--------+--------+--------+
 //
@@ -86,7 +89,7 @@ namespace dart {
 //
 //  - Nop D
 //
-//    This instuction does nothing. It may refer to an object in the constant
+//    This instruction does nothing. It may refer to an object in the constant
 //    pool that may be decoded by other instructions.
 //
 //  - Compile
@@ -147,21 +150,25 @@ namespace dart {
 //  - StaticCall ArgC, D
 //
 //    Invoke function in SP[0] with arguments SP[-(1+ArgC)], ..., SP[-1] and
-//    argument descriptor PP[D].
+//    argument descriptor PP[D], which indicates whether the first argument
+//    is a type argument vector.
 //
 //  - IndirectStaticCall ArgC, D
 //
 //    Invoke the function given by the ICData in SP[0] with arguments
-//    SP[-(1+ArgC)], ..., SP[-1] and argument descriptor PP[D].
+//    SP[-(1+ArgC)], ..., SP[-1] and argument descriptor PP[D], which
+//    indicates whether the first argument is a type argument vector.
 //
 //  - InstanceCall<N> ArgC, D; InstanceCall<N>Opt ArgC, D
 //
 //    Lookup and invoke method with N checked arguments using ICData in PP[D]
 //    with arguments SP[-(1+ArgC)], ..., SP[-1].
+//    The ICData indicates whether the first argument is a type argument vector.
 //
-//  - NativeBootstrapCall, NativeNoScopeCall, NativeAutoScopeCall
+//  - NativeCall ArgA, ArgB, ArgC
 //
-//    Invoke native function SP[-1] with argc_tag SP[0].
+//    Invoke native function at pool[ArgB] with argc_tag at pool[ArgC] using
+//    wrapper at pool[ArgA].
 //
 //  - PushPolymorphicInstanceCall ArgC, D
 //
@@ -208,6 +215,11 @@ namespace dart {
 //    the immediately following instruction is skipped. These instructions
 //    expect their operands to be Smis, but don't check that they are.
 //
+//  - Smi<op>TOS
+//
+//    Performs SP[0] <op> SP[-1], pops operands and pushes result on the stack.
+//    Assumes SP[0] and SP[-1] are both smis and the result is a Smi.
+//
 //  - ShlImm rA, rB, rC
 //
 //    FP[rA] <- FP[rB] << rC. Shifts the Smi in FP[rB] left by rC. rC is
@@ -225,7 +237,7 @@ namespace dart {
 //
 //  - DMin, DMax, DAdd, DSub, DMul, DDiv, DPow, DMod rA, rB, rC
 //
-//    Arithmetic operaions on unboxed doubles. FP[rA] <- FP[rB] op FP[rC].
+//    Arithmetic operations on unboxed doubles. FP[rA] <- FP[rB] op FP[rC].
 //
 //  - DNeg, DCos, DSin, DSqrt rA, rD
 //
@@ -298,7 +310,7 @@ namespace dart {
 //    this instruction does so, and skips the following instruction. Otherwise,
 //    the following instruction is not skipped.
 //
-//  - StoreStaticT`OS D
+//  - StoreStaticTOS D
 //
 //    Stores TOS into the static field PP[D].
 //
@@ -334,7 +346,13 @@ namespace dart {
 //    Cond is Le, Lt, Ge, Gt, unsigned variants ULe, ULt, UGe, UGt, and
 //    unboxed double variants DEq, DNe, DLe, DLt, DGe, DGt.
 //    Skips the next instruction unless FP[rA] <Cond> FP[rD]. Assumes that
-//    FP[rA] and FP[rD] are Smis or unboxed doubles as inidcated by <Cond>.
+//    FP[rA] and FP[rD] are Smis or unboxed doubles as indicated by <Cond>.
+//
+//  - IfSmi<Cond>TOS
+//
+//    Cond is Lt, Le, Ge, Gt.
+//    Skips the next instruction unless SP[-1] <Cond> SP[-0].
+//    It is expected both SP[-1] and SP[-0] are Smis.
 //
 //  - CreateArrayTOS
 //
@@ -392,6 +410,55 @@ namespace dart {
 //  - StoreIndexedExternalUint8 rA, rB, rC
 //
 //    Similar to StoreIndexedUint8 but FP[rA] is an external typed data aray.
+//
+//  - NoSuchMethod
+//
+//    Performs noSuchmethod handling code.
+//
+//  - TailCall
+//
+//    Unwinds the current frame, populates the arguments descriptor register
+//    with SP[-1] and tail calls the code in SP[-0].
+//
+//  - TailCallOpt  rA, rD
+//
+//    Unwinds the current frame, populates the arguments descriptor register
+//    with rA and tail calls the code in rD.
+//
+//  - LoadArgDescriptor
+//
+//    Load the caller-provoided argument descriptor and pushes it onto the
+//    stack.
+//
+//  - LoadArgDescriptorOpt rA
+//
+//    Load the caller-provoided argument descriptor into [rA].
+//
+//  - LoadFpRelativeSlot rD
+//
+//    Loads from FP using the negative index of SP[-0]+rD.
+//    It is assumed that SP[-0] is a Smi.
+//
+//  - LoadFpRelativeSlotOpt  rA, rB, rY
+//
+//    Loads from FP using the negative index of FP[rB]+rY and stores the result
+//    into rA.
+//    It is assumed that rY is a Smi.
+//
+//  - StoreFpRelativeSlot rD
+//
+//    Stores SP[-0] by indexing into FP using the negative index of SP[-1]+rD.
+//    It is assumed that SP[-1] is a Smi.
+//
+//  - StoreFpRelativeSlotOpt  rA, rB, rY
+//
+//    Stores rA by indexing into FP using the the negative index of FP[rB]+rY.
+//    It is assumed that rY is a Smi.
+//
+//  - LoadIndexedTOS
+//
+//    Loads from array SP[-1] at index SP[-0].
+//    It is assumed that SP[-0] is a Smi.
 //
 //  - LoadIndexed rA, rB, rC
 //
@@ -458,42 +525,15 @@ namespace dart {
 //    Throw (Rethrow if A != 0) exception. Exception object and stack object
 //    are taken from TOS.
 //
-//  - Entry A, B, rC
+//  - Entry rD
 //
-//    Function prologue for the function with no optional or named arguments:
-//        A - expected number of positional arguments;
-//        B - number of local slots to reserve;
-//        rC - specifies context register to initialize with empty context.
+//    Function prologue for the function
+//        rD - number of local slots to reserve;
 //
-//  - EntryOptional A, B, C
+//  - EntryOptimized rD
 //
-//    Function prologue for the function with optional or named arguments:
-//        A - expected number of positional arguments;
-//        B - number of optional arguments;
-//        C - number of named arguments;
-//
-//    Only one of B and C can be not 0.
-//
-//    If B is not 0 then EntryOptional bytecode is followed by B LoadConstant
-//    bytecodes specifying default values for optional arguments.
-//
-//    If C is not 0 then EntryOptional is followed by 2 * B LoadConstant
-//    bytecodes.
-//    Bytecode at 2 * i specifies name of the i-th named argument and at
-//    2 * i + 1 default value. rA part of the LoadConstant bytecode specifies
-//    the location of the parameter on the stack. Here named arguments are
-//    sorted alphabetically to enable linear matching similar to how function
-//    prologues are implemented on other architectures.
-//
-//    Note: Unlike Entry bytecode EntryOptional does not setup the frame for
-//    local variables this is done by a separate bytecode Frame.
-//
-//  - EntryOptimized A, D
-//
-//    Function prologue for optimized functions with no optional or named
-//    arguments.
-//        A - expected number of positional arguments;
-//        B - number of local slots to reserve for registers;
+//    Function prologue for optimized functions.
+//        rD - number of local slots to reserve for registers;
 //
 //    Note: reserved slots are not initialized because optimized code
 //    has stack maps attached to call sites.
@@ -555,6 +595,21 @@ namespace dart {
 //    type SP[-1] with instantiator type arguments SP[-3] and function type
 //    arguments SP[-2] using SubtypeTestCache PP[D].
 //    If A is 1, then the instance may be a Smi.
+//
+//    Instance remains on stack. Other arguments are consumed.
+//
+//  - AssertSubtype
+//
+//    Assert that one type is a subtype of another.  Throws a TypeError
+//    otherwise.  The stack has the following arguments on it:
+//
+//        SP[-4]  instantiator type args
+//        SP[-3]  function type args
+//        SP[-2]  sub_type
+//        SP[-1]  super_type
+//        SP[-0]  dst_name
+//
+//    All 5 arguments are consumed from the stack and no results is pushed.
 //
 //  - BadTypeError
 //
@@ -621,6 +676,15 @@ namespace dart {
 //
 //    Compare SP against isolate stack limit and call StackOverflow handler if
 //    necessary.
+//
+//  - CheckStackAlwaysExit
+//
+//    Unconditionally call StackOverflow handler.
+//
+//  - CheckFunctionTypeArgs A, D
+//
+//    Check for a passed-in type argument vector of length A and
+//    store it at FP[D].
 //
 //  - DebugStep, DebugBreak A
 //
@@ -706,9 +770,7 @@ namespace dart {
   V(InstanceCall2Opt,                    A_D, num, num, ___) \
   V(PushPolymorphicInstanceCall,         A_D, num, num, ___) \
   V(PushPolymorphicInstanceCallByRange,  A_D, num, num, ___) \
-  V(NativeBootstrapCall,                   0, ___, ___, ___) \
-  V(NativeNoScopeCall,                     0, ___, ___, ___) \
-  V(NativeAutoScopeCall,                   0, ___, ___, ___) \
+  V(NativeCall,                        A_B_C, num, num, num) \
   V(OneByteStringFromCharCode,           A_X, reg, xeg, ___) \
   V(StringToCharCode,                    A_X, reg, xeg, ___) \
   V(AddTOS,                                0, ___, ___, ___) \
@@ -719,6 +781,10 @@ namespace dart {
   V(EqualTOS,                              0, ___, ___, ___) \
   V(LessThanTOS,                           0, ___, ___, ___) \
   V(GreaterThanTOS,                        0, ___, ___, ___) \
+  V(SmiAddTOS,                             0, ___, ___, ___) \
+  V(SmiSubTOS,                             0, ___, ___, ___) \
+  V(SmiMulTOS,                             0, ___, ___, ___) \
+  V(SmiBitAndTOS,                          0, ___, ___, ___) \
   V(Add,                               A_B_C, reg, reg, reg) \
   V(Sub,                               A_B_C, reg, reg, reg) \
   V(Mul,                               A_B_C, reg, reg, reg) \
@@ -768,6 +834,10 @@ namespace dart {
   V(IfEqStrictTOS,                         0, ___, ___, ___) \
   V(IfNeStrictNumTOS,                      0, ___, ___, ___) \
   V(IfEqStrictNumTOS,                      0, ___, ___, ___) \
+  V(IfSmiLtTOS,                            0, ___, ___, ___) \
+  V(IfSmiLeTOS,                            0, ___, ___, ___) \
+  V(IfSmiGeTOS,                            0, ___, ___, ___) \
+  V(IfSmiGtTOS,                            0, ___, ___, ___) \
   V(IfNeStrict,                          A_D, reg, reg, ___) \
   V(IfEqStrict,                          A_D, reg, reg, ___) \
   V(IfLe,                                A_D, reg, reg, ___) \
@@ -804,6 +874,16 @@ namespace dart {
   V(StoreIndexed4Float32,              A_B_C, reg, reg, reg) \
   V(StoreIndexedFloat64,               A_B_C, reg, reg, reg) \
   V(StoreIndexed8Float64,              A_B_C, reg, reg, reg) \
+  V(NoSuchMethod,                          0, ___, ___, ___) \
+  V(TailCall,                              0, ___, ___, ___) \
+  V(TailCallOpt,                         A_D, reg, reg, ___) \
+  V(LoadArgDescriptor,                     0, ___, ___, ___) \
+  V(LoadArgDescriptorOpt,                  A, reg, ___, ___) \
+  V(LoadFpRelativeSlot,                    X, reg, ___, ___) \
+  V(LoadFpRelativeSlotOpt,             A_B_Y, reg, reg, reg) \
+  V(StoreFpRelativeSlot,                    X, reg, ___, ___) \
+  V(StoreFpRelativeSlotOpt,             A_B_Y, reg, reg, reg) \
+  V(LoadIndexedTOS,                        0, ___, ___, ___) \
   V(LoadIndexed,                       A_B_C, reg, reg, reg) \
   V(LoadIndexedUint8,                  A_B_C, reg, reg, reg) \
   V(LoadIndexedInt8,                   A_B_C, reg, reg, reg) \
@@ -827,11 +907,10 @@ namespace dart {
   V(BooleanNegateTOS,                      0, ___, ___, ___) \
   V(BooleanNegate,                       A_D, reg, reg, ___) \
   V(Throw,                                 A, num, ___, ___) \
-  V(Entry,                             A_B_C, num, num, num) \
-  V(EntryOptional,                     A_B_C, num, num, num) \
+  V(Entry,                                 D, num, ___, ___) \
   V(EntryOptimized,                      A_D, num, num, ___) \
   V(Frame,                                 D, num, ___, ___) \
-  V(SetFrame,                              A, num, ___, num) \
+  V(SetFrame,                              A, num, ___, ___) \
   V(AllocateContext,                       D, num, ___, ___) \
   V(AllocateUninitializedContext,        A_D, reg, num, ___) \
   V(CloneContext,                          0, ___, ___, ___) \
@@ -841,6 +920,7 @@ namespace dart {
   V(InstanceOf,                            0, ___, ___, ___) \
   V(BadTypeError,                          0, ___, ___, ___) \
   V(AssertAssignable,                    A_D, num, lit, ___) \
+  V(AssertSubtype,                         0, ___, ___, ___) \
   V(AssertBoolean,                         A, num, ___, ___) \
   V(TestSmi,                             A_D, reg, reg, ___) \
   V(TestCids,                            A_D, reg, num, ___) \
@@ -853,6 +933,7 @@ namespace dart {
   V(CheckCidsByRange,                  A_B_C, reg, num, num) \
   V(CheckStack,                            0, ___, ___, ___) \
   V(CheckStackAlwaysExit,                  0, ___, ___, ___) \
+  V(CheckFunctionTypeArgs,               A_D, num, num, ___) \
   V(DebugStep,                             0, ___, ___, ___) \
   V(DebugBreak,                            A, num, ___, ___) \
   V(Deopt,                               A_D, num, num, ___) \
@@ -870,6 +951,15 @@ class Bytecode {
 #undef DECLARE_BYTECODE
   };
 
+  static const char* NameOf(Instr instr) {
+    const char* names[] = {
+#define NAME(name, encoding, op1, op2, op3) #name,
+        BYTECODES_LIST(NAME)
+#undef NAME
+    };
+    return names[DecodeOpcode(instr)];
+  }
+
   static const intptr_t kOpShift = 0;
   static const intptr_t kAShift = 8;
   static const intptr_t kAMask = 0xFF;
@@ -879,6 +969,8 @@ class Bytecode {
   static const intptr_t kCMask = 0xFF;
   static const intptr_t kDShift = 16;
   static const intptr_t kDMask = 0xFFFF;
+  static const intptr_t kYShift = 24;
+  static const intptr_t kYMask = 0xFF;
 
   static Instr Encode(Opcode op, uintptr_t a, uintptr_t b, uintptr_t c) {
     ASSERT((a & kAMask) == a);
@@ -910,12 +1002,20 @@ class Bytecode {
     return (bc >> kAShift) & kAMask;
   }
 
+  DART_FORCE_INLINE static uint8_t DecodeB(Instr bc) {
+    return (bc >> kBShift) & kBMask;
+  }
+
   DART_FORCE_INLINE static uint16_t DecodeD(Instr bc) {
     return (bc >> kDShift) & kDMask;
   }
 
   DART_FORCE_INLINE static Opcode DecodeOpcode(Instr bc) {
     return static_cast<Opcode>(bc & 0xFF);
+  }
+
+  DART_FORCE_INLINE static bool IsTrap(Instr instr) {
+    return DecodeOpcode(instr) == Bytecode::kTrap;
   }
 
   DART_FORCE_INLINE static bool IsCallOpcode(Instr instr) {
@@ -982,7 +1082,6 @@ const intptr_t ARGS_DESC_REG = 0;
 const intptr_t CODE_REG = 0;
 const intptr_t kExceptionObjectReg = 0;
 const intptr_t kStackTraceObjectReg = 0;
-const intptr_t CTX = 0;
 
 enum FpuRegister {
   kNoFpuRegister = -1,
@@ -996,7 +1095,7 @@ const intptr_t kNumberOfFpuRegisters = 1;
 // instruction is executed if the comparison is true and skipped over overwise.
 // Condition NEXT_IS_FALSE means the following instruction is executed if the
 // comparison is false and skipped over otherwise.
-enum Condition { NEXT_IS_TRUE, NEXT_IS_FALSE };
+enum Condition { NEXT_IS_TRUE, NEXT_IS_FALSE, INVALID_CONDITION };
 
 }  // namespace dart
 

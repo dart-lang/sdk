@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class C extends core::Object {
   const constructor •() → void
-    : final dynamic #t1 = throw new core::_CompileTimeError::•("pkg/front_end/test/fasta/rasta/issue_000034.dart:6:15: \u0027[31mError: Can't use x here.\u0027[0m"), super core::Object::•()
+    : final dynamic #t1 = const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/issue_000034.dart:6:20: Error: Can't use x here.\n  const C() : this.x;\n                   ^"))
     ;
 }
 static method main() → dynamic {

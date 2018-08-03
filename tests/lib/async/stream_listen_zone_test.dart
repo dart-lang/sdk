@@ -64,27 +64,28 @@ void testStream(
     registerExpect += 3;
     Expect.equals(registerExpect, registerCount, name);
   },
-      zoneSpecification:
-          new ZoneSpecification(registerCallback: (self, p, z, callback()) {
+      zoneSpecification: new ZoneSpecification(
+          registerCallback: <R>(self, p, z, R callback()) {
         Expect.identical(zone, self, name);
         registerCount++;
         return () {
           Expect.identical(zone, Zone.current, name);
-          callback();
+          return callback();
         };
-      }, registerUnaryCallback: (self, p, z, callback(a)) {
+      }, registerUnaryCallback: <R, T>(self, p, z, R callback(T a)) {
         Expect.identical(zone, self, name);
         registerCount++;
         return (a) {
           Expect.identical(zone, Zone.current, name);
-          callback(a);
+          return callback(a);
         };
-      }, registerBinaryCallback: (self, package, z, callback(a, b)) {
+      }, registerBinaryCallback:
+              <R, T1, T2>(self, package, z, R callback(T1 a, T2 b)) {
         Expect.identical(zone, self, name);
         registerCount++;
         return (a, b) {
           Expect.identical(zone, Zone.current, name);
-          callback(a, b);
+          return callback(a, b);
         };
       }));
 

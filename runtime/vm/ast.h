@@ -8,9 +8,9 @@
 #include "platform/assert.h"
 #include "vm/allocation.h"
 #include "vm/growable_array.h"
-#include "vm/scopes.h"
-#include "vm/object.h"
 #include "vm/native_entry.h"
+#include "vm/object.h"
+#include "vm/scopes.h"
 #include "vm/token.h"
 #include "vm/token_position.h"
 
@@ -66,11 +66,9 @@ namespace dart {
   V(InlinedFinally)                                                            \
   V(StringInterpolate)
 
-
 #define FORWARD_DECLARATION(BaseName) class BaseName##Node;
 FOR_EACH_NODE(FORWARD_DECLARATION)
 #undef FORWARD_DECLARATION
-
 
 // Abstract class to implement an AST node visitor. An example is AstPrinter.
 class AstNodeVisitor : public ValueObject {
@@ -88,12 +86,10 @@ class AstNodeVisitor : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(AstNodeVisitor);
 };
 
-
 #define DECLARE_COMMON_NODE_FUNCTIONS(type)                                    \
   virtual void Visit(AstNodeVisitor* visitor);                                 \
   virtual const char* Name() const;                                            \
   virtual type* As##type() { return this; }
-
 
 class AstNode : public ZoneAllocated {
  public:
@@ -158,7 +154,6 @@ class AstNode : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(AstNode);
 };
 
-
 class AwaitNode : public AstNode {
  public:
   AwaitNode(TokenPosition token_pos,
@@ -200,7 +195,6 @@ class AwaitNode : public AstNode {
   DISALLOW_COPY_AND_ASSIGN(AwaitNode);
 };
 
-
 // AwaitMarker nodes are used to generate markers that the FlowGraphBuilder
 // relies on. A marker indicates that a new await state needs to be
 // added to a function preamble. This type also triggers storing of the
@@ -237,7 +231,6 @@ class AwaitMarkerNode : public AstNode {
   DISALLOW_COPY_AND_ASSIGN(AwaitMarkerNode);
 };
 
-
 class SequenceNode : public AstNode {
  public:
   SequenceNode(TokenPosition token_pos, LocalScope* scope)
@@ -268,19 +261,22 @@ class SequenceNode : public AstNode {
   DISALLOW_COPY_AND_ASSIGN(SequenceNode);
 };
 
-
 class CloneContextNode : public AstNode {
  public:
-  explicit CloneContextNode(TokenPosition token_pos) : AstNode(token_pos) {}
+  explicit CloneContextNode(TokenPosition token_pos, LocalScope* scope)
+      : AstNode(token_pos), scope_(scope) {}
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const {}
+
+  LocalScope* scope() const { return scope_; }
 
   DECLARE_COMMON_NODE_FUNCTIONS(CloneContextNode);
 
  private:
+  LocalScope* scope_;
+
   DISALLOW_COPY_AND_ASSIGN(CloneContextNode);
 };
-
 
 class ArgumentListNode : public AstNode {
  public:
@@ -300,6 +296,7 @@ class ArgumentListNode : public AstNode {
         nodes_(4),
         names_(Array::ZoneHandle()) {
     ASSERT(type_arguments_.IsZoneHandle());
+    ASSERT(type_arguments_.IsNull() || type_arguments_.IsCanonical());
   }
 
   ArgumentListNode(TokenPosition token_pos,
@@ -343,7 +340,6 @@ class ArgumentListNode : public AstNode {
   DISALLOW_COPY_AND_ASSIGN(ArgumentListNode);
 };
 
-
 class LetNode : public AstNode {
  public:
   explicit LetNode(TokenPosition token_pos);
@@ -373,7 +369,6 @@ class LetNode : public AstNode {
 
   DISALLOW_COPY_AND_ASSIGN(LetNode);
 };
-
 
 class ArrayNode : public AstNode {
  public:
@@ -421,7 +416,6 @@ class ArrayNode : public AstNode {
   DISALLOW_IMPLICIT_CONSTRUCTORS(ArrayNode);
 };
 
-
 class StringInterpolateNode : public AstNode {
  public:
   StringInterpolateNode(TokenPosition token_pos, ArrayNode* value)
@@ -442,7 +436,6 @@ class StringInterpolateNode : public AstNode {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(StringInterpolateNode);
 };
-
 
 class LiteralNode : public AstNode {
  public:
@@ -476,7 +469,6 @@ class LiteralNode : public AstNode {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(LiteralNode);
 };
-
 
 class TypeNode : public AstNode {
  public:
@@ -519,7 +511,6 @@ class TypeNode : public AstNode {
   DISALLOW_IMPLICIT_CONSTRUCTORS(TypeNode);
 };
 
-
 class AssignableNode : public AstNode {
  public:
   AssignableNode(TokenPosition token_pos,
@@ -551,7 +542,6 @@ class AssignableNode : public AstNode {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(AssignableNode);
 };
-
 
 class ClosureNode : public AstNode {
  public:
@@ -600,7 +590,6 @@ class ClosureNode : public AstNode {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(ClosureNode);
 };
-
 
 // Primary nodes hold identifiers or values (library, class or function)
 // resolved from an identifier. Primary nodes should not ever make it to the
@@ -701,7 +690,6 @@ class ReturnNode : public AstNode {
   DISALLOW_COPY_AND_ASSIGN(ReturnNode);
 };
 
-
 class ComparisonNode : public AstNode {
  public:
   ComparisonNode(TokenPosition token_pos,
@@ -738,7 +726,6 @@ class ComparisonNode : public AstNode {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(ComparisonNode);
 };
-
 
 class BinaryOpNode : public AstNode {
  public:
@@ -783,7 +770,6 @@ class BinaryOpNode : public AstNode {
   DISALLOW_IMPLICIT_CONSTRUCTORS(BinaryOpNode);
 };
 
-
 class UnaryOpNode : public AstNode {
  public:
   // Returns optimized version, e.g., for ('-' '1') ('-1') literal is returned.
@@ -817,7 +803,6 @@ class UnaryOpNode : public AstNode {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(UnaryOpNode);
 };
-
 
 class ConditionalExprNode : public AstNode {
  public:
@@ -866,7 +851,6 @@ class ConditionalExprNode : public AstNode {
   DISALLOW_IMPLICIT_CONSTRUCTORS(ConditionalExprNode);
 };
 
-
 class IfNode : public AstNode {
  public:
   IfNode(TokenPosition token_pos,
@@ -901,7 +885,6 @@ class IfNode : public AstNode {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(IfNode);
 };
-
 
 class CaseNode : public AstNode {
  public:
@@ -946,7 +929,6 @@ class CaseNode : public AstNode {
   DISALLOW_IMPLICIT_CONSTRUCTORS(CaseNode);
 };
 
-
 class SwitchNode : public AstNode {
  public:
   SwitchNode(TokenPosition token_pos, SourceLabel* label, SequenceNode* body)
@@ -970,7 +952,6 @@ class SwitchNode : public AstNode {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(SwitchNode);
 };
-
 
 class WhileNode : public AstNode {
  public:
@@ -1013,7 +994,6 @@ class WhileNode : public AstNode {
   DISALLOW_IMPLICIT_CONSTRUCTORS(WhileNode);
 };
 
-
 class DoWhileNode : public AstNode {
  public:
   DoWhileNode(TokenPosition token_pos,
@@ -1044,7 +1024,6 @@ class DoWhileNode : public AstNode {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(DoWhileNode);
 };
-
 
 // The condition can be NULL.
 class ForNode : public AstNode {
@@ -1102,7 +1081,6 @@ class ForNode : public AstNode {
   DISALLOW_IMPLICIT_CONSTRUCTORS(ForNode);
 };
 
-
 class JumpNode : public AstNode {
  public:
   JumpNode(TokenPosition token_pos, Token::Kind kind, SourceLabel* label)
@@ -1141,7 +1119,6 @@ class JumpNode : public AstNode {
   DISALLOW_IMPLICIT_CONSTRUCTORS(JumpNode);
 };
 
-
 class StopNode : public AstNode {
  public:
   StopNode(TokenPosition token_pos, const char* message)
@@ -1160,7 +1137,6 @@ class StopNode : public AstNode {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(StopNode);
 };
-
 
 class LoadLocalNode : public AstNode {
  public:
@@ -1184,7 +1160,6 @@ class LoadLocalNode : public AstNode {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(LoadLocalNode);
 };
-
 
 class StoreLocalNode : public AstNode {
  public:
@@ -1212,7 +1187,6 @@ class StoreLocalNode : public AstNode {
   DISALLOW_IMPLICIT_CONSTRUCTORS(StoreLocalNode);
 };
 
-
 class LoadInstanceFieldNode : public AstNode {
  public:
   LoadInstanceFieldNode(TokenPosition token_pos,
@@ -1238,7 +1212,6 @@ class LoadInstanceFieldNode : public AstNode {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(LoadInstanceFieldNode);
 };
-
 
 class StoreInstanceFieldNode : public AstNode {
  public:
@@ -1278,7 +1251,6 @@ class StoreInstanceFieldNode : public AstNode {
   DISALLOW_IMPLICIT_CONSTRUCTORS(StoreInstanceFieldNode);
 };
 
-
 class LoadStaticFieldNode : public AstNode {
  public:
   LoadStaticFieldNode(TokenPosition token_pos, const Field& field)
@@ -1314,7 +1286,6 @@ class LoadStaticFieldNode : public AstNode {
   DISALLOW_IMPLICIT_CONSTRUCTORS(LoadStaticFieldNode);
 };
 
-
 class StoreStaticFieldNode : public AstNode {
  public:
   StoreStaticFieldNode(TokenPosition token_pos,
@@ -1340,7 +1311,6 @@ class StoreStaticFieldNode : public AstNode {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(StoreStaticFieldNode);
 };
-
 
 class LoadIndexedNode : public AstNode {
  public:
@@ -1377,7 +1347,6 @@ class LoadIndexedNode : public AstNode {
   const Class& super_class_;
   DISALLOW_IMPLICIT_CONSTRUCTORS(LoadIndexedNode);
 };
-
 
 class StoreIndexedNode : public AstNode {
  public:
@@ -1419,7 +1388,6 @@ class StoreIndexedNode : public AstNode {
   DISALLOW_IMPLICIT_CONSTRUCTORS(StoreIndexedNode);
 };
 
-
 class InstanceCallNode : public AstNode {
  public:
   InstanceCallNode(TokenPosition token_pos,
@@ -1459,7 +1427,6 @@ class InstanceCallNode : public AstNode {
   DISALLOW_IMPLICIT_CONSTRUCTORS(InstanceCallNode);
 };
 
-
 class InstanceGetterNode : public AstNode {
  public:
   InstanceGetterNode(TokenPosition token_pos,
@@ -1497,7 +1464,6 @@ class InstanceGetterNode : public AstNode {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(InstanceGetterNode);
 };
-
 
 class InstanceSetterNode : public AstNode {
  public:
@@ -1538,7 +1504,6 @@ class InstanceSetterNode : public AstNode {
   DISALLOW_IMPLICIT_CONSTRUCTORS(InstanceSetterNode);
 };
 
-
 class InitStaticFieldNode : public AstNode {
  public:
   InitStaticFieldNode(TokenPosition token_pos, const Field& field)
@@ -1558,19 +1523,26 @@ class InitStaticFieldNode : public AstNode {
   DISALLOW_COPY_AND_ASSIGN(InitStaticFieldNode);
 };
 
+class StaticGetterSetter {
+ public:
+  // The rule below is mapped to ICData::RebindRule (runtime/vm/object.h).
+  enum RebindRule { kNoRebind, kStatic, kSuper };
+};
 
 class StaticGetterNode : public AstNode {
  public:
   StaticGetterNode(TokenPosition token_pos,
                    AstNode* receiver,
                    const Class& cls,
-                   const String& field_name)
+                   const String& field_name,
+                   StaticGetterSetter::RebindRule rebind_rule)
       : AstNode(token_pos),
         receiver_(receiver),
         owner_(Object::ZoneHandle(cls.raw())),
         cls_(cls),
         field_name_(field_name),
-        is_deferred_reference_(false) {
+        is_deferred_reference_(false),
+        rebind_rule_(rebind_rule) {
     ASSERT(cls_.IsZoneHandle());
     ASSERT(field_name_.IsZoneHandle());
     ASSERT(field_name_.IsSymbol());
@@ -1595,6 +1567,11 @@ class StaticGetterNode : public AstNode {
   bool is_super_getter() const { return receiver_ != NULL; }
   void set_is_deferred(bool value) { is_deferred_reference_ = value; }
 
+  StaticGetterSetter::RebindRule rebind_rule() const { return rebind_rule_; }
+  void set_rebind_rule(StaticGetterSetter::RebindRule rule) {
+    rebind_rule_ = rule;
+  }
+
   virtual void VisitChildren(AstNodeVisitor* visitor) const {}
 
   virtual AstNode* MakeAssignmentNode(AstNode* rhs);
@@ -1610,10 +1587,10 @@ class StaticGetterNode : public AstNode {
   const Class& cls_;
   const String& field_name_;
   bool is_deferred_reference_;
+  StaticGetterSetter::RebindRule rebind_rule_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(StaticGetterNode);
 };
-
 
 class StaticSetterNode : public AstNode {
  public:
@@ -1622,13 +1599,15 @@ class StaticSetterNode : public AstNode {
                    AstNode* receiver,
                    const String& field_name,
                    const Function& function,
-                   AstNode* value)
+                   AstNode* value,
+                   StaticGetterSetter::RebindRule rebind_rule)
       : AstNode(token_pos),
         receiver_(receiver),
         cls_(Class::ZoneHandle(function.Owner())),
         field_name_(field_name),
         function_(function),
-        value_(value) {
+        value_(value),
+        rebind_rule_(rebind_rule) {
     ASSERT(function_.IsZoneHandle());
     ASSERT(function.is_static() || receiver != NULL);
     ASSERT(field_name_.IsZoneHandle());
@@ -1640,13 +1619,15 @@ class StaticSetterNode : public AstNode {
                    AstNode* receiver,
                    const Class& cls,
                    const String& field_name,
-                   AstNode* value)
+                   AstNode* value,
+                   StaticGetterSetter::RebindRule rebind_rule)
       : AstNode(token_pos),
         receiver_(receiver),
         cls_(cls),
         field_name_(field_name),
         function_(Function::ZoneHandle()),
-        value_(value) {
+        value_(value),
+        rebind_rule_(rebind_rule) {
     ASSERT(cls_.IsZoneHandle());
     ASSERT(field_name_.IsZoneHandle());
     ASSERT(value_ != NULL);
@@ -1661,6 +1642,11 @@ class StaticSetterNode : public AstNode {
   const Function& function() const { return function_; }
   AstNode* value() const { return value_; }
 
+  StaticGetterSetter::RebindRule rebind_rule() const { return rebind_rule_; }
+  void set_rebind_rule(StaticGetterSetter::RebindRule rule) {
+    rebind_rule_ = rule;
+  }
+
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
     value()->Visit(visitor);
   }
@@ -1673,23 +1659,33 @@ class StaticSetterNode : public AstNode {
   const String& field_name_;
   const Function& function_;
   AstNode* value_;
+  StaticGetterSetter::RebindRule rebind_rule_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(StaticSetterNode);
 };
 
-
 class StaticCallNode : public AstNode {
  public:
+  // The rule below is mapped to ICData::RebindRule (runtime/vm/object.h).
+  enum RebindRule { kNoRebind, kNSMDispatch, kStatic, kSuper };
+
   StaticCallNode(TokenPosition token_pos,
                  const Function& function,
-                 ArgumentListNode* arguments)
-      : AstNode(token_pos), function_(function), arguments_(arguments) {
+                 ArgumentListNode* arguments,
+                 RebindRule rebind_rule)
+      : AstNode(token_pos),
+        function_(function),
+        arguments_(arguments),
+        rebind_rule_(rebind_rule) {
     ASSERT(function_.IsZoneHandle());
     ASSERT(arguments_ != NULL);
   }
 
   const Function& function() const { return function_; }
   ArgumentListNode* arguments() const { return arguments_; }
+
+  RebindRule rebind_rule() const { return rebind_rule_; }
+  void set_rebind_rule(RebindRule rule) { rebind_rule_ = rule; }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
     arguments()->Visit(visitor);
@@ -1702,10 +1698,10 @@ class StaticCallNode : public AstNode {
  private:
   const Function& function_;
   ArgumentListNode* arguments_;
+  RebindRule rebind_rule_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(StaticCallNode);
 };
-
 
 class ClosureCallNode : public AstNode {
  public:
@@ -1733,7 +1729,6 @@ class ClosureCallNode : public AstNode {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(ClosureCallNode);
 };
-
 
 // There are two kinds of constructor calls: factory calls and constructor
 // calls, distinguishable by constructor.IsFactory().
@@ -1794,7 +1789,6 @@ class ConstructorCallNode : public AstNode {
   DISALLOW_IMPLICIT_CONSTRUCTORS(ConstructorCallNode);
 };
 
-
 // The body of a Dart function marked as 'native' consists of this node.
 class NativeBodyNode : public AstNode {
  public:
@@ -1833,7 +1827,6 @@ class NativeBodyNode : public AstNode {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(NativeBodyNode);
 };
-
 
 class CatchClauseNode : public AstNode {
  public:
@@ -1901,7 +1894,6 @@ class CatchClauseNode : public AstNode {
   DISALLOW_COPY_AND_ASSIGN(CatchClauseNode);
 };
 
-
 class TryCatchNode : public AstNode {
  public:
   TryCatchNode(TokenPosition token_pos,
@@ -1954,7 +1946,6 @@ class TryCatchNode : public AstNode {
   DISALLOW_COPY_AND_ASSIGN(TryCatchNode);
 };
 
-
 class ThrowNode : public AstNode {
  public:
   ThrowNode(TokenPosition token_pos, AstNode* exception, AstNode* stacktrace)
@@ -1980,7 +1971,6 @@ class ThrowNode : public AstNode {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(ThrowNode);
 };
-
 
 class InlinedFinallyNode : public AstNode {
  public:

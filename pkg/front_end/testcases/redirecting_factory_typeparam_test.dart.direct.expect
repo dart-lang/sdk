@@ -1,0 +1,13 @@
+library redirecting_factory_constructors.typeparam_test;
+import self as self;
+import "dart:core" as core;
+
+class A<T extends core::Object, S extends core::Object> extends core::Object {
+  constructor •(self::A::T t, self::A::S s) → void
+    : super core::Object::•()
+    ;
+  redirecting_factory redir<T extends core::Object, S extends core::Object>(T t, S s) = self::A::•<T, S>;
+}
+static method main() → dynamic {
+  new self::A::•<core::int, core::String>(42, "foobar");
+}

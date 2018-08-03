@@ -8,12 +8,14 @@
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
+#include "vm/debugger_api_impl_test.h"
 #include "vm/globals.h"
+#include "vm/heap/safepoint.h"
 #include "vm/message_handler.h"
 #include "vm/object_id_ring.h"
 #include "vm/os.h"
 #include "vm/port.h"
-#include "vm/safepoint.h"
+#include "vm/profiler.h"
 #include "vm/service.h"
 #include "vm/unit_test.h"
 
@@ -42,7 +44,7 @@ class ServiceTestMessageHandler : public MessageHandler {
       response_obj = message->raw_obj();
     } else {
       Thread* thread = Thread::Current();
-      MessageSnapshotReader reader(message->data(), message->len(), thread);
+      MessageSnapshotReader reader(message, thread);
       response_obj = reader.ReadObject();
     }
     if (response_obj.IsString()) {
@@ -72,45 +74,42 @@ class ServiceTestMessageHandler : public MessageHandler {
   char* _msg;
 };
 
-
 static RawArray* Eval(Dart_Handle lib, const char* expr) {
   const String& dummy_isolate_id = String::Handle(String::New("isolateId"));
-  Dart_Handle expr_val = Dart_EvaluateExpr(lib, NewString(expr));
+  Dart_Handle expr_val = Dart_EvaluateStaticExpr(lib, NewString(expr));
   EXPECT_VALID(expr_val);
   Zone* zone = Thread::Current()->zone();
   const GrowableObjectArray& value =
       Api::UnwrapGrowableObjectArrayHandle(zone, expr_val);
-  const Array& result = Array::Handle(Array::MakeArray(value));
+  const Array& result = Array::Handle(Array::MakeFixedLength(value));
   GrowableObjectArray& growable = GrowableObjectArray::Handle();
   growable ^= result.At(4);
   // Append dummy isolate id to parameter values.
   growable.Add(dummy_isolate_id);
-  Array& array = Array::Handle(Array::MakeArray(growable));
+  Array& array = Array::Handle(Array::MakeFixedLength(growable));
   result.SetAt(4, array);
   growable ^= result.At(5);
   // Append dummy isolate id to parameter values.
   growable.Add(dummy_isolate_id);
-  array = Array::MakeArray(growable);
+  array = Array::MakeFixedLength(growable);
   result.SetAt(5, array);
   return result.raw();
 }
 
-
 static RawArray* EvalF(Dart_Handle lib, const char* fmt, ...) {
   va_list args;
   va_start(args, fmt);
-  intptr_t len = OS::VSNPrint(NULL, 0, fmt, args);
+  intptr_t len = Utils::VSNPrint(NULL, 0, fmt, args);
   va_end(args);
 
   char* buffer = Thread::Current()->zone()->Alloc<char>(len + 1);
   va_list args2;
   va_start(args2, fmt);
-  OS::VSNPrint(buffer, (len + 1), fmt, args2);
+  Utils::VSNPrint(buffer, (len + 1), fmt, args2);
   va_end(args2);
 
   return Eval(lib, buffer);
 }
-
 
 static RawFunction* GetFunction(const Class& cls, const char* name) {
   const Function& result = Function::Handle(
@@ -119,7 +118,6 @@ static RawFunction* GetFunction(const Class& cls, const char* name) {
   return result.raw();
 }
 
-
 static RawClass* GetClass(const Library& lib, const char* name) {
   const Class& cls = Class::Handle(
       lib.LookupClass(String::Handle(Symbols::New(Thread::Current(), name))));
@@ -127,18 +125,15 @@ static RawClass* GetClass(const Library& lib, const char* name) {
   return cls.raw();
 }
 
-
 static void HandleIsolateMessage(Isolate* isolate, const Array& msg) {
   TransitionNativeToVM transition(Thread::Current());
   Service::HandleIsolateMessage(isolate, msg);
 }
 
-
 static void HandleRootMessage(const Array& message) {
   TransitionNativeToVM transition(Thread::Current());
   Service::HandleRootMessage(message);
 }
-
 
 TEST_CASE(Service_IsolateStickyError) {
   const char* kScript = "main() => throw 'HI THERE STICKY';\n";
@@ -183,7 +178,6 @@ TEST_CASE(Service_IsolateStickyError) {
   }
 }
 
-
 TEST_CASE(Service_IdZones) {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
@@ -217,7 +211,6 @@ TEST_CASE(Service_IdZones) {
   EXPECT_STREQ("objects/5", reuse_zone.GetServiceId(test_d));
   EXPECT_STREQ("objects/5", reuse_zone.GetServiceId(test_d));
 }
-
 
 TEST_CASE(Service_Code) {
   const char* kScript =
@@ -287,9 +280,9 @@ TEST_CASE(Service_Code) {
     // Only perform a partial match.
     const intptr_t kBufferSize = 512;
     char buffer[kBufferSize];
-    OS::SNPrint(buffer, kBufferSize - 1,
-                "\"fixedId\":true,\"id\":\"code\\/%" Px64 "-%" Px "\",",
-                compile_timestamp, entry);
+    Utils::SNPrint(buffer, kBufferSize - 1,
+                   "\"fixedId\":true,\"id\":\"code\\/%" Px64 "-%" Px "\",",
+                   compile_timestamp, entry);
     EXPECT_SUBSTRING(buffer, handler.msg());
   }
 
@@ -335,7 +328,6 @@ TEST_CASE(Service_Code) {
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   EXPECT_SUBSTRING("\"error\"", handler.msg());
 }
-
 
 TEST_CASE(Service_TokenStream) {
   const char* kScript =
@@ -385,7 +377,6 @@ TEST_CASE(Service_TokenStream) {
   // Check for members array.
   EXPECT_SUBSTRING("\"members\":[", handler.msg());
 }
-
 
 TEST_CASE(Service_PcDescriptors) {
   const char* kScript =
@@ -450,7 +441,6 @@ TEST_CASE(Service_PcDescriptors) {
   EXPECT_SUBSTRING("\"members\":[", handler.msg());
 }
 
-
 TEST_CASE(Service_LocalVarDescriptors) {
   const char* kScript =
       "var port;\n"  // Set to our mock port by C++.
@@ -514,11 +504,9 @@ TEST_CASE(Service_LocalVarDescriptors) {
   EXPECT_SUBSTRING("\"members\":[", handler.msg());
 }
 
-
 static void WeakHandleFinalizer(void* isolate_callback_data,
                                 Dart_WeakPersistentHandle handle,
                                 void* peer) {}
-
 
 TEST_CASE(Service_PersistentHandles) {
   const char* kScript =
@@ -585,7 +573,6 @@ TEST_CASE(Service_PersistentHandles) {
   EXPECT_NOTSUBSTRING("\"externalSize\":\"128\"", handler.msg());
 }
 
-
 TEST_CASE(Service_Address) {
   const char* kScript =
       "var port;\n"  // Set to our mock port by C++.
@@ -614,12 +601,12 @@ TEST_CASE(Service_Address) {
     uword addr = start_addr + offset;
     char buf[1024];
     bool ref = offset % 2 == 0;
-    OS::SNPrint(buf, sizeof(buf),
-                (ref ? "[0, port, '0', '_getObjectByAddress', "
-                       "['address', 'ref'], ['%" Px "', 'true']]"
-                     : "[0, port, '0', '_getObjectByAddress', "
-                       "['address'], ['%" Px "']]"),
-                addr);
+    Utils::SNPrint(buf, sizeof(buf),
+                   (ref ? "[0, port, '0', '_getObjectByAddress', "
+                          "['address', 'ref'], ['%" Px "', 'true']]"
+                        : "[0, port, '0', '_getObjectByAddress', "
+                          "['address'], ['%" Px "']]"),
+                   addr);
     service_msg = Eval(lib, buf);
     HandleIsolateMessage(isolate, service_msg);
     EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
@@ -641,7 +628,6 @@ TEST_CASE(Service_Address) {
       handler.msg());
 }
 
-
 static bool alpha_callback(const char* name,
                            const char** option_keys,
                            const char** option_values,
@@ -651,7 +637,6 @@ static bool alpha_callback(const char* name,
   *result = strdup("alpha");
   return true;
 }
-
 
 static bool beta_callback(const char* name,
                           const char** option_keys,
@@ -663,7 +648,6 @@ static bool beta_callback(const char* name,
   return false;
 }
 
-
 TEST_CASE(Service_EmbedderRootHandler) {
   const char* kScript =
       "var port;\n"  // Set to our mock port by C++.
@@ -671,7 +655,7 @@ TEST_CASE(Service_EmbedderRootHandler) {
       "var x = 7;\n"
       "main() {\n"
       "  x = x * x;\n"
-      "  x = x / 13;\n"
+      "  x = (x / 13).floor();\n"
       "}";
 
   Dart_RegisterRootServiceRequestCallback("alpha", alpha_callback, NULL);
@@ -689,7 +673,6 @@ TEST_CASE(Service_EmbedderRootHandler) {
   EXPECT_VALID(port);
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
-
   Array& service_msg = Array::Handle();
   service_msg = Eval(lib, "[0, port, '\"', 'alpha', [], []]");
   HandleRootMessage(service_msg);
@@ -702,7 +685,6 @@ TEST_CASE(Service_EmbedderRootHandler) {
   EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"error\":beta,\"id\":1}", handler.msg());
 }
 
-
 TEST_CASE(Service_EmbedderIsolateHandler) {
   const char* kScript =
       "var port;\n"  // Set to our mock port by C++.
@@ -710,7 +692,7 @@ TEST_CASE(Service_EmbedderIsolateHandler) {
       "var x = 7;\n"
       "main() {\n"
       "  x = x * x;\n"
-      "  x = x / 13;\n"
+      "  x = (x / 13).floor();\n"
       "}";
 
   Dart_RegisterIsolateServiceRequestCallback("alpha", alpha_callback, NULL);
@@ -745,14 +727,22 @@ TEST_CASE(Service_EmbedderIsolateHandler) {
 // TODO(zra): Remove when tests are ready to enable.
 #if !defined(TARGET_ARCH_ARM64)
 
+static void EnableProfiler() {
+  if (!FLAG_profiler) {
+    FLAG_profiler = true;
+    Profiler::InitOnce();
+  }
+}
+
 TEST_CASE(Service_Profile) {
+  EnableProfiler();
   const char* kScript =
       "var port;\n"  // Set to our mock port by C++.
       "\n"
       "var x = 7;\n"
       "main() {\n"
       "  x = x * x;\n"
-      "  x = x / 13;\n"
+      "  x = (x / 13).floor();\n"
       "}";
 
   Isolate* isolate = thread->isolate();

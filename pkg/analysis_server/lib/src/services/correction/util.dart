@@ -16,20 +16,19 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceChange, SourceEdit;
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as pathos;
 
 /**
  * Adds edits to the given [change] that ensure that all the [libraries] are
  * imported into the given [targetLibrary].
  */
-void addLibraryImports(
-    SourceChange change, LibraryElement targetLibrary, Set<Source> libraries) {
+void addLibraryImports(pathos.Context pathContext, SourceChange change,
+    LibraryElement targetLibrary, Set<Source> libraries) {
   CorrectionUtils libUtils;
   try {
     CompilationUnitElement unitElement = targetLibrary.definingCompilationUnit;
@@ -53,7 +52,8 @@ void addLibraryImports(
 
   // Prepare all URIs to import.
   List<String> uriList = libraries
-      .map((library) => getLibrarySourceUri(targetLibrary, library))
+      .map((library) =>
+          getLibrarySourceUri(pathContext, targetLibrary, library.uri))
       .toList();
   uriList.sort((a, b) => a.compareTo(b));
 
@@ -126,19 +126,6 @@ void addLibraryImports(
 }
 
 /**
- * @return <code>true</code> if given [List]s are identical at given position.
- */
-bool allListsIdentical(List<List> lists, int position) {
-  Object element = lists[0][position];
-  for (List list in lists) {
-    if (list[position] != element) {
-      return false;
-    }
-  }
-  return true;
-}
-
-/**
  * Climbs up [PrefixedIdentifier] and [PropertyAccess] nodes that include [node].
  */
 Expression climbPropertyAccess(AstNode node) {
@@ -157,13 +144,13 @@ Expression climbPropertyAccess(AstNode node) {
 }
 
 /**
- * Returns the EOL to use for the given [code].
+ * Return references to the [element] inside the [root] node.
  */
-String getCodeEndOfLine(String code) {
-  if (code.contains('\r\n')) {
-    return '\r\n';
-  }
-  return '\n';
+List<SimpleIdentifier> findLocalElementReferences(
+    AstNode root, LocalElement element) {
+  var collector = new _ElementReferenceCollector(element);
+  root.accept(collector);
+  return collector.references;
 }
 
 /**
@@ -215,6 +202,15 @@ String getDefaultValueCode(DartType type) {
   }
   // no better guess
   return "null";
+}
+
+/**
+ * Return all [LocalElement]s defined in the given [node].
+ */
+List<LocalElement> getDefinedLocalElements(AstNode node) {
+  var collector = new _LocalElementsCollector();
+  node.accept(collector);
+  return collector.elements;
 }
 
 /**
@@ -270,7 +266,7 @@ AstNode getEnclosingClassOrUnitMember(AstNode node) {
 }
 
 /**
- * @return the [ExecutableElement] of the enclosing executable [AstNode].
+ * Return the [ExecutableElement] of the enclosing executable [AstNode].
  */
 ExecutableElement getEnclosingExecutableElement(AstNode node) {
   while (node != null) {
@@ -289,7 +285,7 @@ ExecutableElement getEnclosingExecutableElement(AstNode node) {
 }
 
 /**
- * @return the enclosing executable [AstNode].
+ * Return the enclosing executable [AstNode].
  */
 AstNode getEnclosingExecutableNode(AstNode node) {
   while (node != null) {
@@ -308,8 +304,8 @@ AstNode getEnclosingExecutableNode(AstNode node) {
 }
 
 /**
- * Returns [getExpressionPrecedence] for the parent of [node],
- * or `0` if the parent node is [ParenthesizedExpression].
+ * Returns [getExpressionPrecedence] for the parent of [node], or `0` if the
+ * parent node is a [ParenthesizedExpression].
  *
  * The reason is that `(expr)` is always executed after `expr`.
  */
@@ -317,9 +313,17 @@ int getExpressionParentPrecedence(AstNode node) {
   AstNode parent = node.parent;
   if (parent is ParenthesizedExpression) {
     return 0;
-  }
-  if (parent is IndexExpression && parent.index == node) {
+  } else if (parent is IndexExpression && parent.index == node) {
     return 0;
+  } else if (parent is AssignmentExpression &&
+      node == parent.rightHandSide &&
+      parent.parent is CascadeExpression) {
+    // This is a hack to allow nesting of cascade expressions within other
+    // cascade expressions. The problem is that if the precedence of two
+    // expressions are equal it sometimes means that we don't need parentheses
+    // (such as replacing the `b` in `a + b` with `c + d`) and sometimes do
+    // (such as replacing the `v` in `..f = v` with `a..b`).
+    return 3;
   }
   return getExpressionPrecedence(parent);
 }
@@ -338,26 +342,20 @@ int getExpressionPrecedence(AstNode node) {
  * Returns the namespace of the given [ImportElement].
  */
 Map<String, Element> getImportNamespace(ImportElement imp) {
-  NamespaceBuilder builder = new NamespaceBuilder();
-  Namespace namespace = builder.createImportNamespaceForDirective(imp);
-  return namespace.definedNames;
+  return imp.namespace.definedNames;
 }
 
 /**
  * Computes the best URI to import [what] into [from].
  */
-String getLibrarySourceUri(LibraryElement from, Source what) {
-  String whatPath = what.fullName;
-  // check if an absolute URI (such as 'dart:' or 'package:')
-  Uri whatUri = what.uri;
-  String whatUriScheme = whatUri.scheme;
-  if (whatUriScheme != '' && whatUriScheme != 'file') {
-    return whatUri.toString();
+String getLibrarySourceUri(
+    pathos.Context pathContext, LibraryElement from, Uri what) {
+  if (what.scheme == 'file') {
+    String fromFolder = pathContext.dirname(from.source.fullName);
+    String relativeFile = pathContext.relative(what.path, from: fromFolder);
+    return pathContext.split(relativeFile).join('/');
   }
-  // compute a relative URI
-  String fromFolder = dirname(from.source.fullName);
-  String relativeFile = relative(whatPath, from: fromFolder);
-  return split(relativeFile).join('/');
+  return what.toString();
 }
 
 /**
@@ -377,24 +375,8 @@ String getLinePrefix(String line) {
 }
 
 /**
- * @return the [LocalVariableElement] or [ParameterElement] if given
- *         [SimpleIdentifier] is the reference to local variable or parameter, or
- *         <code>null</code> in the other case.
- */
-VariableElement getLocalOrParameterVariableElement(SimpleIdentifier node) {
-  Element element = node.staticElement;
-  if (element is LocalVariableElement) {
-    return element;
-  }
-  if (element is ParameterElement) {
-    return element;
-  }
-  return null;
-}
-
-/**
- * @return the [LocalVariableElement] if given [SimpleIdentifier] is the reference to
- *         local variable, or <code>null</code> in the other case.
+ * Return the [LocalVariableElement] if given [node] is a reference to a local
+ * variable, or `null` in the other case.
  */
 LocalVariableElement getLocalVariableElement(SimpleIdentifier node) {
   Element element = node.staticElement;
@@ -405,7 +387,7 @@ LocalVariableElement getLocalVariableElement(SimpleIdentifier node) {
 }
 
 /**
- * @return the nearest common ancestor [AstNode] of the given [AstNode]s.
+ * Return the nearest common ancestor of the given [nodes].
  */
 AstNode getNearestCommonAncestor(List<AstNode> nodes) {
   // may be no nodes
@@ -425,7 +407,7 @@ AstNode getNearestCommonAncestor(List<AstNode> nodes) {
   // find deepest parent
   int i = 0;
   for (; i < minLength; i++) {
-    if (!allListsIdentical(parents, i)) {
+    if (!_allListsIdentical(parents, i)) {
       break;
     }
   }
@@ -433,7 +415,7 @@ AstNode getNearestCommonAncestor(List<AstNode> nodes) {
 }
 
 /**
- * Returns the [Expression] qualifier if given node is the name part of a
+ * Returns the [Expression] qualifier if given [node] is the name part of a
  * [PropertyAccess] or a [PrefixedIdentifier]. Maybe `null`.
  */
 Expression getNodeQualifier(SimpleIdentifier node) {
@@ -451,8 +433,8 @@ Expression getNodeQualifier(SimpleIdentifier node) {
 }
 
 /**
- * Returns the [ParameterElement] if the given [SimpleIdentifier] is a reference
- * to a parameter, or `null` in the other case.
+ * Returns the [ParameterElement] if the given [node] is a reference to a
+ * parameter, or `null` in the other case.
  */
 ParameterElement getParameterElement(SimpleIdentifier node) {
   Element element = node.staticElement;
@@ -463,7 +445,8 @@ ParameterElement getParameterElement(SimpleIdentifier node) {
 }
 
 /**
- * @return parent [AstNode]s from [CompilationUnit] (at index "0") to the given one.
+ * Return parent [AstNode]s from compilation unit (at index "0") to the given
+ * [node].
  */
 List<AstNode> getParents(AstNode node) {
   // prepare number of parents
@@ -521,20 +504,8 @@ CompilationUnit getParsedUnit(CompilationUnitElement unitElement) {
 }
 
 /**
- * Returns a [PropertyAccessorElement] if the given [SimpleIdentifier] is a
- * reference to a property, or `null` in the other case.
- */
-PropertyAccessorElement getPropertyAccessorElement(SimpleIdentifier node) {
-  Element element = node.staticElement;
-  if (element is PropertyAccessorElement) {
-    return element;
-  }
-  return null;
-}
-
-/**
- * If given [AstNode] is name of qualified property extraction, returns target from which
- * this property is extracted. Otherwise `null`.
+ * If given [node] is name of qualified property extraction, returns target from
+ * which this property is extracted, otherwise `null`.
  */
 Expression getQualifiedPropertyTarget(AstNode node) {
   AstNode parent = node.parent;
@@ -554,8 +525,8 @@ Expression getQualifiedPropertyTarget(AstNode node) {
 }
 
 /**
- * Returns the given [Statement] if not a [Block], or the first child
- * [Statement] if a [Block], or `null` if more than one child.
+ * Returns the given [statement] if not a block, or the first child statement if
+ * a block, or `null` if more than one child.
  */
 Statement getSingleStatement(Statement statement) {
   if (statement is Block) {
@@ -569,15 +540,8 @@ Statement getSingleStatement(Statement statement) {
 }
 
 /**
- * Returns the [String] content of the given [Source].
- */
-String getSourceContent(AnalysisContext context, Source source) {
-  return context.getContents(source).data;
-}
-
-/**
- * Returns the given [Statement] if not a [Block], or all the children
- * [Statement]s if a [Block].
+ * Returns the given [statement] if not a block, or all the children statements
+ * if a block.
  */
 List<Statement> getStatements(Statement statement) {
   if (statement is Block) {
@@ -587,21 +551,13 @@ List<Statement> getStatements(Statement statement) {
 }
 
 /**
- * Checks if the given [Element]'s display name equals to the given name.
+ * Checks if the given [element]'s display name equals to the given [name].
  */
 bool hasDisplayName(Element element, String name) {
   if (element == null) {
     return false;
   }
   return element.displayName == name;
-}
-
-/**
- * Checks if the given [PropertyAccessorElement] is an accessor of a
- * [FieldElement].
- */
-bool isFieldAccessorElement(PropertyAccessorElement accessor) {
-  return accessor != null && accessor.variable is FieldElement;
 }
 
 /**
@@ -617,8 +573,7 @@ bool isLeftHandOfAssignment(SimpleIdentifier node) {
 }
 
 /**
- * @return `true` if the given [SimpleIdentifier] is the name of the
- *         [NamedExpression].
+ * Return `true` if the given [node] is the name of a [NamedExpression].
  */
 bool isNamedExpressionName(SimpleIdentifier node) {
   AstNode parent = node.parent;
@@ -636,7 +591,7 @@ bool isNamedExpressionName(SimpleIdentifier node) {
 
 /**
  * If the given [expression] is the `expression` property of a [NamedExpression]
- * then returns this [NamedExpression]. Otherwise returns [expression].
+ * then returns this [NamedExpression], otherwise returns [expression].
  */
 Expression stepUpNamedExpression(Expression expression) {
   if (expression != null) {
@@ -649,6 +604,19 @@ Expression stepUpNamedExpression(Expression expression) {
 }
 
 /**
+ * Return `true` if the given [lists] are identical at the given [position].
+ */
+bool _allListsIdentical(List<List> lists, int position) {
+  Object element = lists[0][position];
+  for (List list in lists) {
+    if (list[position] != element) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
  * This exception is thrown to cancel the current correction operation,
  * such as quick assist or quick fix because an inconsistency was detected.
  * These inconsistencies may happen as a part of normal workflow, e.g. because
@@ -656,6 +624,7 @@ Expression stepUpNamedExpression(Expression expression) {
  */
 class CancelCorrectionException {
   final Object exception;
+
   CancelCorrectionException({this.exception});
 }
 
@@ -685,14 +654,14 @@ class CorrectionUtils {
   String _buffer;
   String _endOfLine;
 
-  CorrectionUtils(this.unit) {
+  CorrectionUtils(this.unit, {String buffer}) {
     CompilationUnitElement unitElement = unit.element;
     AnalysisContext context = unitElement.context;
     if (context == null) {
       throw new CancelCorrectionException();
     }
     this._library = unitElement.library;
-    this._buffer = context.getContents(unitElement.source).data;
+    this._buffer = buffer ?? context.getContents(unitElement.source).data;
   }
 
   /**
@@ -707,17 +676,6 @@ class CorrectionUtils {
       }
     }
     return _endOfLine;
-  }
-
-  /**
-   * Returns an [Edit] that changes indentation of the source of the given
-   * [SourceRange] from [oldIndent] to [newIndent], keeping indentation of lines
-   * relative to each other.
-   */
-  SourceEdit createIndentEdit(
-      SourceRange range, String oldIndent, String newIndent) {
-    String newSource = replaceSourceRangeIndent(range, oldIndent, newIndent);
-    return new SourceEdit(range.offset, range.length, newSource);
   }
 
   /**
@@ -743,80 +701,9 @@ class CorrectionUtils {
   }
 
   /**
-   * Returns the actual type source of the given [Expression], may be `null`
-   * if can not be resolved, should be treated as the `dynamic` type.
-   */
-  String getExpressionTypeSource(
-      Expression expression, Set<Source> librariesToImport) {
-    if (expression == null) {
-      return null;
-    }
-    DartType type = expression.bestType;
-    if (type.isDynamic) {
-      return null;
-    }
-    return getTypeSource(type, librariesToImport);
-  }
-
-  /**
    * Returns the indentation with the given level.
    */
   String getIndent(int level) => repeat('  ', level);
-
-  /**
-   * Returns a [InsertDesc] describing where to insert a new library-related
-   * directive.
-   */
-  CorrectionUtils_InsertDesc getInsertDescImport() {
-    // analyze directives
-    Directive prevDirective = null;
-    for (Directive directive in unit.directives) {
-      if (directive is LibraryDirective ||
-          directive is ImportDirective ||
-          directive is ExportDirective) {
-        prevDirective = directive;
-      }
-    }
-    // insert after last library-related directive
-    if (prevDirective != null) {
-      CorrectionUtils_InsertDesc result = new CorrectionUtils_InsertDesc();
-      result.offset = prevDirective.end;
-      String eol = endOfLine;
-      if (prevDirective is LibraryDirective) {
-        result.prefix = "$eol$eol";
-      } else {
-        result.prefix = eol;
-      }
-      return result;
-    }
-    // no directives, use "top" location
-    return getInsertDescTop();
-  }
-
-  /**
-   * Returns a [InsertDesc] describing where to insert a new 'part' directive.
-   */
-  CorrectionUtils_InsertDesc getInsertDescPart() {
-    // analyze directives
-    Directive prevDirective = null;
-    for (Directive directive in unit.directives) {
-      prevDirective = directive;
-    }
-    // insert after last directive
-    if (prevDirective != null) {
-      CorrectionUtils_InsertDesc result = new CorrectionUtils_InsertDesc();
-      result.offset = prevDirective.end;
-      String eol = endOfLine;
-      if (prevDirective is PartDirective) {
-        result.prefix = eol;
-      } else {
-        result.prefix = "$eol$eol";
-      }
-      return result;
-    }
-    // no directives, use "top" location
-    return getInsertDescTop();
-  }
 
   /**
    * Returns a [InsertDesc] describing where to insert a new directive or a
@@ -984,7 +871,15 @@ class CorrectionUtils {
     }
     // end
     int endOffset = sourceRange.end;
-    int afterEndLineOffset = getLineContentEnd(endOffset);
+    int afterEndLineOffset = endOffset;
+    int lineStart = unit.lineInfo.getOffsetOfLine(
+        unit.lineInfo.getLocation(startLineOffset).lineNumber - 1);
+    if (lineStart == startLineOffset) {
+      // Only consume line ends after the end of the range if there is nothing
+      // else on the line containing the beginning of the range. Otherwise this
+      // will end up incorrectly merging two line.
+      afterEndLineOffset = getLineContentEnd(endOffset);
+    }
     // range
     return range.startOffsetEndOffset(startLineOffset, afterEndLineOffset);
   }
@@ -1032,48 +927,6 @@ class CorrectionUtils {
   }
 
   /**
-   * @return the source for the parameter with the given type and name.
-   */
-  String getParameterSource(
-      DartType type, String name, Set<Source> librariesToImport) {
-    // no type
-    if (type == null || type.isDynamic) {
-      return name;
-    }
-    // function type
-    if (type is FunctionType && type.element.isSynthetic) {
-      FunctionType functionType = type;
-      StringBuffer sb = new StringBuffer();
-      // return type
-      DartType returnType = functionType.returnType;
-      if (returnType != null && !returnType.isDynamic) {
-        String returnTypeSource = getTypeSource(returnType, librariesToImport);
-        sb.write(returnTypeSource);
-        sb.write(' ');
-      }
-      // parameter name
-      sb.write(name);
-      // parameters
-      sb.write('(');
-      List<ParameterElement> fParameters = functionType.parameters;
-      for (int i = 0; i < fParameters.length; i++) {
-        ParameterElement fParameter = fParameters[i];
-        if (i != 0) {
-          sb.write(", ");
-        }
-        sb.write(getParameterSource(
-            fParameter.type, fParameter.name, librariesToImport));
-      }
-      sb.write(')');
-      // done
-      return sb.toString();
-    }
-    // simple type
-    String typeSource = getTypeSource(type, librariesToImport);
-    return '$typeSource $name';
-  }
-
-  /**
    * Returns the line prefix consisting of spaces and tabs on the left from the
    * given offset.
    */
@@ -1109,8 +962,18 @@ class CorrectionUtils {
     if (!_isTypeVisible(type)) {
       return 'dynamic';
     }
+
+    Element element = type.element;
+
+    // Typedef(s) are represented as GenericFunctionTypeElement(s).
+    if (element is GenericFunctionTypeElement &&
+        element.typeParameters.isEmpty &&
+        element.enclosingElement is GenericTypeAliasElement) {
+      element = element.enclosingElement;
+    }
+
     // just a Function, not FunctionTypeAliasElement
-    if (type is FunctionType && type.element is! FunctionTypeAliasElement) {
+    if (type is FunctionType && element is! FunctionTypeAliasElement) {
       if (parametersBuffer == null) {
         return "Function";
       }
@@ -1132,7 +995,6 @@ class CorrectionUtils {
       return 'dynamic';
     }
     // prepare element
-    Element element = type.element;
     if (element == null) {
       String source = type.toString();
       source = source.replaceAll('<dynamic>', '');
@@ -1195,7 +1057,7 @@ class CorrectionUtils {
   /**
    * Indents given source left or right.
    */
-  String indentSourceLeftRight(String source, bool right) {
+  String indentSourceLeftRight(String source, {bool indentLeft: true}) {
     StringBuffer sb = new StringBuffer();
     String indent = getIndent(1);
     String eol = endOfLine;
@@ -1207,10 +1069,10 @@ class CorrectionUtils {
         break;
       }
       // update line
-      if (right) {
-        line = "$indent$line";
-      } else {
+      if (indentLeft) {
         line = removeStart(line, indent);
+      } else {
+        line = "$indent$line";
       }
       // append line
       sb.write(line);
@@ -1428,8 +1290,8 @@ class CorrectionUtils {
       TokenType operator = expression.operator.type;
       Expression le = expression.leftOperand;
       Expression re = expression.rightOperand;
-      _InvertedCondition ls = _invertCondition0(le);
-      _InvertedCondition rs = _invertCondition0(re);
+      _InvertedCondition ls = _InvertedCondition._simple(getNodeText(le));
+      _InvertedCondition rs = _InvertedCondition._simple(getNodeText(re));
       if (operator == TokenType.LT) {
         return _InvertedCondition._binary2(ls, " >= ", rs);
       }
@@ -1449,10 +1311,14 @@ class CorrectionUtils {
         return _InvertedCondition._binary2(ls, " == ", rs);
       }
       if (operator == TokenType.AMPERSAND_AMPERSAND) {
+        ls = _invertCondition0(le);
+        rs = _invertCondition0(re);
         return _InvertedCondition._binary(
             TokenType.BAR_BAR.precedence, ls, " || ", rs);
       }
       if (operator == TokenType.BAR_BAR) {
+        ls = _invertCondition0(le);
+        rs = _invertCondition0(re);
         return _InvertedCondition._binary(
             TokenType.AMPERSAND_AMPERSAND.precedence, ls, " && ", rs);
       }
@@ -1533,32 +1399,6 @@ class CorrectionUtils_InsertDesc {
  */
 class TokenUtils {
   /**
-   * Return the first token in the list of [tokens] representing the given
-   * [keyword], or `null` if there is no such token.
-   */
-  static Token findKeywordToken(List<Token> tokens, Keyword keyword) {
-    for (Token token in tokens) {
-      if (token.keyword == keyword) {
-        return token;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * @return the first [Token] with given [TokenType], may be <code>null</code> if not
-   *         found.
-   */
-  static Token findToken(List<Token> tokens, TokenType type) {
-    for (Token token in tokens) {
-      if (token.type == type) {
-        return token;
-      }
-    }
-    return null;
-  }
-
-  /**
    * @return [Token]s of the given Dart source, not <code>null</code>, may be empty if no
    *         tokens or some exception happens.
    */
@@ -1576,13 +1416,6 @@ class TokenUtils {
       return [];
     }
   }
-
-  /**
-   * @return <code>true</code> if given [Token]s contain only single [Token] with given
-   *         [TokenType].
-   */
-  static bool hasOnly(List<Token> tokens, TokenType type) =>
-      tokens.length == 1 && tokens[0].type == type;
 }
 
 class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor {
@@ -1602,6 +1435,20 @@ class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor {
             parent.realTarget != null ||
         parent is PrefixedIdentifier && parent.identifier == node ||
         parent is PropertyAccess && parent.target == node;
+  }
+}
+
+class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
+  final Element element;
+  final List<SimpleIdentifier> references = [];
+
+  _ElementReferenceCollector(this.element);
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.staticElement == element) {
+      references.add(node);
+    }
   }
 }
 
@@ -1652,4 +1499,21 @@ class _InvertedCondition {
 
   static _InvertedCondition _simple(String source) =>
       new _InvertedCondition(2147483647, source);
+}
+
+/**
+ * Visitor that collects defined [LocalElement]s.
+ */
+class _LocalElementsCollector extends RecursiveAstVisitor {
+  final elements = <LocalElement>[];
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.inDeclarationContext()) {
+      Element element = node.staticElement;
+      if (element is LocalElement) {
+        elements.add(element);
+      }
+    }
+  }
 }

@@ -24,19 +24,22 @@ class B {
 A makeA() native;
 B makeB() native;
 
-void setup() native """
-function A() {}
-A.prototype.foo = function () { return arguments.length; };
+void setup() {
+  JS('', r"""
+(function(){
+  function A() {}
+  A.prototype.foo = function () { return arguments.length; };
 
-function B() {}
-B.prototype.foo = function () { return arguments.length; };
+  function B() {}
+  B.prototype.foo = function () { return arguments.length; };
 
-makeA = function(){return new A;};
-makeB = function(){return new B;};
+  makeA = function(){return new A();};
+  makeB = function(){return new B();};
 
-self.nativeConstructor(A);
-self.nativeConstructor(B);
-""";
+  self.nativeConstructor(A);
+  self.nativeConstructor(B);
+})()""");
+}
 
 testDynamicContext() {
   var a = confuse(makeA());
@@ -62,10 +65,7 @@ testStaticContext() {
   A a = makeA();
   B b = makeB();
 
-  Expect.throws(() => a.foo());
   Expect.equals(1, a.foo(10));
-  Expect.throws(() => a.foo(10, 20));
-  Expect.throws(() => a.foo(10, 20, 30));
 
   Expect.equals(0, b.foo());
   Expect.equals(1, b.foo(10));
@@ -75,7 +75,6 @@ testStaticContext() {
   Expect.equals(1, b.foo(10));
   Expect.equals(2, b.foo(null, 20));
   Expect.equals(3, b.foo(null, null, 30));
-  Expect.throws(() => b.foo(10, 20, 30, 40));
 }
 
 main() {

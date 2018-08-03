@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import 'package:compiler/src/util/util.dart';
+import 'package:front_end/src/fasta/util/link.dart' show Link;
 import 'link_helper.dart';
 
 main() {
@@ -21,8 +21,6 @@ main() {
   testFromList([0, 1, 2, 3, 4]);
   testFromList([0, 1, 2, 3, 4, 5]);
   testSkip();
-
-  testCopyWithout();
 }
 
 testFromList(List list) {
@@ -62,15 +60,4 @@ testSkip() {
   var emptyLink = const Link();
   Expect.isTrue(emptyLink.skip(0).isEmpty);
   Expect.throws(() => emptyLink.skip(1), (e) => e is RangeError);
-}
-
-testCopyWithout() {
-  test(const Link().copyWithout(0), []);
-
-  test(LinkFromList([0]).copyWithout(0), []);
-  test(LinkFromList([0, 1]).copyWithout(0), [1]);
-  test(LinkFromList([0, 1, 2]).copyWithout(0), [1, 2]);
-  test(LinkFromList([0, 1, 2]).copyWithout(1), [0, 2]);
-  test(LinkFromList([0, 1, 2]).copyWithout(2), [0, 1]);
-  test(LinkFromList([0, 1, 2]).copyWithout(3), [0, 1, 2]);
 }

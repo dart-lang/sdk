@@ -89,7 +89,7 @@ class StatsPage extends PageWriter {
    * each kind.
    */
   void _processEntries(List<LogEntry> entries) {
-    void increment/*<K>*/(Map<dynamic/*=K*/, int> map, dynamic/*=K*/ key) {
+    void increment<K>(Map<K, int> map, K key) {
       map[key] = (map[key] ?? 0) + 1;
     }
 
@@ -258,7 +258,6 @@ class StatsPage extends PageWriter {
           sink.write(method);
           sink.writeln('</td></tr>');
         }
-        ;
         sink.writeln('</table>');
       });
     }

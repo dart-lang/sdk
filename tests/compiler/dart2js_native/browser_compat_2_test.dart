@@ -36,7 +36,9 @@ makeT1D() native;
 int getTagCallCount() native;
 void clearTagCallCount() native;
 
-void setup() native r'''
+void setup() {
+  JS('', r'''
+(function(){
 function T1A() { this.v = "a"; }
 function T1B() { this.v = "b"; }
 function T1C() { this.v = "c"; }
@@ -51,16 +53,16 @@ T1C.prototype.__proto__ = T1A.prototype;
 T1D.prototype.__proto__ = T1A.prototype;
 
 // All classes share one implementation of native method 'foo'.
-T1A.prototype.foo = function() { return this.v + this.name(); }
-T1A.prototype.name = function() { return "A"; }
-T1B.prototype.name = function() { return "B"; }
-T1C.prototype.name = function() { return "C"; }
-T1D.prototype.name = function() { return "D"; }
+T1A.prototype.foo = function() { return this.v + this.name(); };
+T1A.prototype.name = function() { return "A"; };
+T1B.prototype.name = function() { return "B"; };
+T1C.prototype.name = function() { return "C"; };
+T1D.prototype.name = function() { return "D"; };
 
-makeT1A = function(){return new T1A;};
-makeT1B = function(){return new T1B;};
-makeT1C = function(){return new T1C;};
-makeT1D = function(){return new T1D;};
+makeT1A = function(){return new T1A()};
+makeT1B = function(){return new T1B()};
+makeT1C = function(){return new T1C()};
+makeT1D = function(){return new T1D()};
 
 self.nativeConstructor(T1A);
 self.nativeConstructor(T1B);
@@ -68,8 +70,8 @@ self.nativeConstructor(T1C);
 self.nativeConstructor(T1D);
 
 var getTagCount = 0;
-getTagCallCount = function() { return getTagCount; }
-clearTagCallCount = function() { getTagCount = 0; }
+getTagCallCount = function() { return getTagCount; };
+clearTagCallCount = function() { getTagCount = 0; };
 
 function transformer1(hooks) {
   var getTag = hooks.getTag;
@@ -101,7 +103,8 @@ function transformer2(hooks) {
 }
 
 dartNativeDispatchHooksTransformer = [transformer1, transformer2];
-''';
+})()''');
+}
 
 main() {
   nativeTesting();

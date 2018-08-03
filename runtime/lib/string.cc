@@ -5,11 +5,12 @@
 #include "vm/bootstrap_natives.h"
 
 #include "include/dart_api.h"
-#include "vm/exceptions.h"
 #include "vm/dart_api_impl.h"
+#include "vm/exceptions.h"
 #include "vm/isolate.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
+#include "vm/object_store.h"
 #include "vm/symbols.h"
 #include "vm/unicode.h"
 
@@ -26,7 +27,6 @@ DEFINE_NATIVE_ENTRY(String_fromEnvironment, 3) {
   }
   return default_value.raw();
 }
-
 
 DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, list, arguments->NativeArgAt(0));
@@ -89,7 +89,6 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 3) {
   return TwoByteString::New(utf16_len, utf32_array, array_len, Heap::kNew);
 }
 
-
 DEFINE_NATIVE_ENTRY(StringBase_substringUnchecked, 3) {
   const String& receiver =
       String::CheckedHandle(zone, arguments->NativeArgAt(0));
@@ -100,7 +99,6 @@ DEFINE_NATIVE_ENTRY(StringBase_substringUnchecked, 3) {
   intptr_t end = end_obj.Value();
   return String::SubString(receiver, start, (end - start));
 }
-
 
 // Return the bitwise-or of all characters in the slice from start to end.
 static uint16_t CharacterLimit(const String& string,
@@ -161,7 +159,6 @@ static bool CheckSlicesOneByte(const String& base,
   }
   return true;
 }
-
 
 DEFINE_NATIVE_ENTRY(StringBase_joinReplaceAllResult, 4) {
   const String& base = String::CheckedHandle(zone, arguments->NativeArgAt(0));
@@ -260,7 +257,6 @@ DEFINE_NATIVE_ENTRY(OneByteString_substringUnchecked, 3) {
   return OneByteString::New(receiver, start, end - start, Heap::kNew);
 }
 
-
 // This is high-performance code.
 DEFINE_NATIVE_ENTRY(OneByteString_splitWithCharCode, 2) {
   const String& receiver =
@@ -285,15 +281,15 @@ DEFINE_NATIVE_ENTRY(OneByteString_splitWithCharCode, 2) {
   str = OneByteString::SubStringUnchecked(receiver, start, (i - start),
                                           Heap::kNew);
   result.Add(str);
+  result.SetTypeArguments(TypeArguments::Handle(
+      zone, isolate->object_store()->type_argument_string()));
   return result.raw();
 }
-
 
 DEFINE_NATIVE_ENTRY(OneByteString_allocate, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length_obj, arguments->NativeArgAt(0));
   return OneByteString::New(length_obj.Value(), Heap::kNew);
 }
-
 
 DEFINE_NATIVE_ENTRY(OneByteString_allocateFromOneByteList, 3) {
   Instance& list = Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
@@ -381,7 +377,6 @@ DEFINE_NATIVE_ENTRY(OneByteString_allocateFromOneByteList, 3) {
   return Object::null();
 }
 
-
 DEFINE_NATIVE_ENTRY(OneByteString_setAt, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, receiver, arguments->NativeArgAt(0));
   ASSERT(receiver.IsOneByteString());
@@ -391,12 +386,6 @@ DEFINE_NATIVE_ENTRY(OneByteString_setAt, 3) {
   OneByteString::SetCharAt(receiver, index_obj.Value(), code_point_obj.Value());
   return Object::null();
 }
-
-
-DEFINE_NATIVE_ENTRY(ExternalOneByteString_getCid, 0) {
-  return Smi::New(kExternalOneByteStringCid);
-}
-
 
 DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 3) {
   Instance& list = Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
@@ -483,7 +472,6 @@ DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 3) {
   return Object::null();
 }
 
-
 DEFINE_NATIVE_ENTRY(String_getHashCode, 1) {
   const String& receiver =
       String::CheckedHandle(zone, arguments->NativeArgAt(0));
@@ -493,13 +481,11 @@ DEFINE_NATIVE_ENTRY(String_getHashCode, 1) {
   return Smi::New(hash_val);
 }
 
-
 DEFINE_NATIVE_ENTRY(String_getLength, 1) {
   const String& receiver =
       String::CheckedHandle(zone, arguments->NativeArgAt(0));
   return Smi::New(receiver.Length());
 }
-
 
 static uint16_t StringValueAt(const String& str, const Integer& index) {
   if (index.IsSmi()) {
@@ -514,7 +500,6 @@ static uint16_t StringValueAt(const String& str, const Integer& index) {
   return 0;
 }
 
-
 DEFINE_NATIVE_ENTRY(String_charAt, 2) {
   const String& receiver =
       String::CheckedHandle(zone, arguments->NativeArgAt(0));
@@ -522,7 +507,6 @@ DEFINE_NATIVE_ENTRY(String_charAt, 2) {
   uint16_t value = StringValueAt(receiver, index);
   return Symbols::FromCharCode(thread, static_cast<int32_t>(value));
 }
-
 
 // Returns the 16-bit UTF-16 code unit at the given index.
 DEFINE_NATIVE_ENTRY(String_codeUnitAt, 2) {
@@ -533,14 +517,12 @@ DEFINE_NATIVE_ENTRY(String_codeUnitAt, 2) {
   return Smi::New(static_cast<intptr_t>(value));
 }
 
-
 DEFINE_NATIVE_ENTRY(String_concat, 2) {
   const String& receiver =
       String::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, b, arguments->NativeArgAt(1));
   return String::Concat(receiver, b);
 }
-
 
 DEFINE_NATIVE_ENTRY(String_toLowerCase, 1) {
   const String& receiver =
@@ -549,14 +531,12 @@ DEFINE_NATIVE_ENTRY(String_toLowerCase, 1) {
   return String::ToLowerCase(receiver);
 }
 
-
 DEFINE_NATIVE_ENTRY(String_toUpperCase, 1) {
   const String& receiver =
       String::CheckedHandle(zone, arguments->NativeArgAt(0));
   ASSERT(!receiver.IsNull());
   return String::ToUpperCase(receiver);
 }
-
 
 DEFINE_NATIVE_ENTRY(String_concatRange, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, argument, arguments->NativeArgAt(0));
@@ -592,7 +572,6 @@ DEFINE_NATIVE_ENTRY(String_concatRange, 3) {
 #endif
   return String::ConcatAllRange(strings, start_ix, end_ix, Heap::kNew);
 }
-
 
 DEFINE_NATIVE_ENTRY(StringBuffer_createStringFromUint16Array, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(TypedData, codeUnits, arguments->NativeArgAt(0));

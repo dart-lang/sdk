@@ -6,51 +6,32 @@ library analyzer_cli.test.strong_mode;
 
 import 'dart:io';
 
-import 'package:analyzer_cli/src/driver.dart' show Driver, errorSink, outSink;
-import 'package:path/path.dart' as path;
+import 'package:analyzer_cli/src/driver.dart' show outSink;
 import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_test.dart';
-import 'utils.dart';
 
-/// End-to-end test for --strong checking.
+main() {
+  defineReflectiveTests(StrongModeTest);
+}
+
+/// End-to-end test for strong checking.
 ///
 /// Most strong mode tests are in Analyzer, but this verifies the option is
 /// working and producing extra errors as expected.
 ///
 /// Generally we don't want a lot of cases here as it requires spinning up a
 /// full analysis context.
-///
-// TODO(pq): fix tests to run safely on the bots
-// https://github.com/dart-lang/sdk/issues/25001
-main() {}
-not_main() {
-  group('--strong', () {
-    StringSink savedOutSink, savedErrorSink;
-    int savedExitCode;
-    setUp(() {
-      savedOutSink = outSink;
-      savedErrorSink = errorSink;
-      savedExitCode = exitCode;
-      outSink = new StringBuffer();
-      errorSink = new StringBuffer();
-    });
-    tearDown(() {
-      outSink = savedOutSink;
-      errorSink = savedErrorSink;
-      exitCode = savedExitCode;
-    });
+@reflectiveTest
+class StrongModeTest extends BaseTest {
+  test_producesStricterErrors() async {
+    await drive('data/strong_example.dart');
 
-    test('produces stricter errors', () async {
-      var testPath = path.join(testDirectory, 'data/strong_example.dart');
-      new Driver().start(['--options', emptyOptionsFile, '--strong', testPath]);
-
-      expect(exitCode, 3);
-      var stdout = outSink.toString();
-      expect(stdout, contains('[error] Invalid override'));
-      expect(stdout, contains('[error] Type check failed'));
-      expect(stdout, contains('2 errors found.'));
-      expect(errorSink.toString(), '');
-    });
-  });
+    expect(exitCode, 3);
+    var stdout = bulletToDash(outSink);
+    expect(stdout, contains('error - Invalid override'));
+    expect(stdout, contains('error - The list literal type'));
+    expect(stdout, contains('2 errors found'));
+  }
 }

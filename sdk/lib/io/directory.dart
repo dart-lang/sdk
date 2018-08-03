@@ -115,7 +115,7 @@ abstract class Directory implements FileSystemEntity {
   /**
    * Gets the path of this directory.
    */
-  final String path;
+  String get path;
 
   /**
    * Creates a [Directory] object.
@@ -126,7 +126,18 @@ abstract class Directory implements FileSystemEntity {
    * If [path] is an absolute path, it will be immune to changes to the
    * current working directory.
    */
-  factory Directory(String path) => new _Directory(path);
+  factory Directory(String path) {
+    final IOOverrides overrides = IOOverrides.current;
+    if (overrides == null) {
+      return new _Directory(path);
+    }
+    return overrides.createDirectory(path);
+  }
+
+  factory Directory.fromRawPath(Uint8List path) {
+    // TODO(bkonyi): Handle overrides.
+    return new _Directory.fromRawPath(path);
+  }
 
   /**
    * Create a Directory object from a URI.
@@ -139,7 +150,13 @@ abstract class Directory implements FileSystemEntity {
    * Creates a directory object pointing to the current working
    * directory.
    */
-  static Directory get current => _Directory.current;
+  static Directory get current {
+    final IOOverrides overrides = IOOverrides.current;
+    if (overrides == null) {
+      return _Directory.current;
+    }
+    return overrides.getCurrentDirectory();
+  }
 
   /**
    * Returns a [Uri] representing the directory's location.
@@ -169,7 +186,12 @@ abstract class Directory implements FileSystemEntity {
    * are working with the file system, can lead to unexpected results.
    */
   static void set current(path) {
-    _Directory.current = path;
+    final IOOverrides overrides = IOOverrides.current;
+    if (overrides == null) {
+      _Directory.current = path;
+      return;
+    }
+    overrides.setCurrentDirectory(path);
   }
 
   /**
@@ -204,7 +226,13 @@ abstract class Directory implements FileSystemEntity {
    * The location of the system temp directory is platform-dependent,
    * and may be set by an environment variable.
    */
-  static Directory get systemTemp => _Directory.systemTemp;
+  static Directory get systemTemp {
+    final IOOverrides overrides = IOOverrides.current;
+    if (overrides == null) {
+      return _Directory.systemTemp;
+    }
+    return overrides.getSystemTempDirectory();
+  }
 
   /**
    * Creates a temporary directory in this directory. Additional random

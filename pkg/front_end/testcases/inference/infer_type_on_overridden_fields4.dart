@@ -10,14 +10,12 @@ class A {
 }
 
 class B implements A {
-  get x => 3;
+  get /*@topType=int*/ x => 3;
 }
 
 foo() {
-  String y = /*error:INVALID_ASSIGNMENT*/ new B().x;
-  int z = new B().x;
+  String y = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::x*/ x;
+  int z = new B(). /*@target=B::x*/ x;
 }
 
-main() {
-  foo();
-}
+main() {}

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.task.options_work_manager;
-
 import 'dart:collection';
 
 import 'package:analyzer/error/error.dart';
@@ -11,8 +9,8 @@ import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, AnalysisErrorInfo, CacheState, InternalAnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/options.dart';
-import 'package:analyzer/task/model.dart';
 
 /// The manager for analysis options specific analysis.
 class OptionsWorkManager implements WorkManager {

@@ -7,7 +7,6 @@ import 'dart:html';
 import 'package:observatory/models.dart' as M show Target;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
-import 'package:observatory/src/elements/helpers/uris.dart';
 
 class TargetEvent {
   final M.Target target;
@@ -40,7 +39,7 @@ class VMConnectTargetElement extends HtmlElement implements Renderable {
     assert(target != null);
     assert(current != null);
     VMConnectTargetElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<VMConnectTargetElement>(e, queue: queue);
     e._target = target;
     e._current = current;
     return e;
@@ -57,7 +56,7 @@ class VMConnectTargetElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
@@ -70,8 +69,8 @@ class VMConnectTargetElement extends HtmlElement implements Renderable {
   }
 
   void render() {
-    children = [
-      new AnchorElement(href: Uris.vm())
+    children = <Element>[
+      new AnchorElement()
         ..text = current ? '${target.name} (Connected)' : '${target.name}'
         ..onClick.where(_filter).map(_toEvent).listen(_connect),
       new ButtonElement()

@@ -22,7 +22,7 @@ testMain() async {
   print('zoo'); // LINE_C.
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   markDartColonLibrariesDebuggable,
   (Isolate isolate) async {

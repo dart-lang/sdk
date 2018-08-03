@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisErrorInfo, AnalysisErrorInfoImpl, Logger;
 import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
@@ -14,6 +16,7 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/lint/analysis.dart';
 import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/io.dart';
+import 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
 import 'package:analyzer/src/lint/project.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -21,9 +24,12 @@ import 'package:analyzer/src/services/lint.dart' show Linter;
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
 
+export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
+
 typedef Printer(String msg);
 
 /// Describes a String in valid camel case format.
+@deprecated // Never intended for public use.
 class CamelCaseString {
   static final _camelCaseMatcher = new RegExp(r'[A-Z][a-z]*');
   static final _camelCaseTester = new RegExp(r'^([_$]*)([A-Z?$]+[a-z0-9]*)+$');
@@ -60,11 +66,13 @@ class DartLinter implements AnalysisErrorListener {
   /// Creates a new linter.
   DartLinter(this.options, {this.reporter: const PrintingReporter()});
 
-  Iterable<AnalysisErrorInfo> lintFiles(List<File> files) {
+  Future<Iterable<AnalysisErrorInfo>> lintFiles(List<File> files) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     List<AnalysisErrorInfo> errors = [];
-    var analysisDriver = new LintDriver(options);
-    errors.addAll(analysisDriver.analyze(files.where((f) => isDartFile(f))));
-    numSourcesAnalyzed = analysisDriver.numSourcesAnalyzed;
+    final lintDriver = new LintDriver(options);
+    errors.addAll(await lintDriver.analyze(files.where((f) => isDartFile(f))));
+    numSourcesAnalyzed = lintDriver.numSourcesAnalyzed;
     files.where((f) => isPubspecFile(f)).forEach((p) {
       numSourcesAnalyzed++;
       return errors.addAll(_lintPubspecFile(p));
@@ -193,6 +201,7 @@ class LinterException implements Exception {
 class LinterOptions extends DriverOptions {
   Iterable<LintRule> enabledLints;
   LintFilter filter;
+  file_system.ResourceProvider resourceProvider;
   LinterOptions([this.enabledLints]) {
     enabledLints ??= Registry.ruleRegistry;
   }
@@ -204,7 +213,7 @@ class LinterOptions extends DriverOptions {
   }
 }
 
-/// Filtered lints are ommitted from linter output.
+/// Filtered lints are omitted from linter output.
 abstract class LintFilter {
   bool filter(AnalysisError lint);
 }
@@ -315,6 +324,14 @@ class Maturity implements Comparable<Maturity> {
   int compareTo(Maturity other) => this.ordinal - other.ordinal;
 }
 
+/// [LintRule]s that implement this interface want to process only some types
+/// of AST nodes, and will register their processors in the registry.
+abstract class NodeLintRule {
+  /// This method is invoked to let the [LintRule] register node processors
+  /// in the given [registry].
+  void registerNodeProcessors(NodeLintRegistry registry);
+}
+
 class PrintingReporter implements Reporter, Logger {
   final Printer _print;
 
@@ -361,11 +378,13 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
   SourceLinter(this.options, {this.reporter: const PrintingReporter()});
 
   @override
-  Iterable<AnalysisErrorInfo> lintFiles(List<File> files) {
+  Future<Iterable<AnalysisErrorInfo>> lintFiles(List<File> files) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     List<AnalysisErrorInfo> errors = [];
-    var analysisDriver = new LintDriver(options);
-    errors.addAll(analysisDriver.analyze(files.where((f) => isDartFile(f))));
-    numSourcesAnalyzed = analysisDriver.numSourcesAnalyzed;
+    final lintDriver = new LintDriver(options);
+    errors.addAll(await lintDriver.analyze(files.where((f) => isDartFile(f))));
+    numSourcesAnalyzed = lintDriver.numSourcesAnalyzed;
     files.where((f) => isPubspecFile(f)).forEach((p) {
       numSourcesAnalyzed++;
       return errors.addAll(_lintPubspecFile(p));

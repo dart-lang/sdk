@@ -203,16 +203,25 @@ class Event {
    */
 
   /// Registers an event listener <em>callback</em> to an event.
-  void addListener(Function callback) => JS('void', '#.addListener(#)',
-      this._jsObject, convertDartClosureToJS(callback, this._callbackArity));
+  void addListener(covariant Function callback) => JS(
+      'void',
+      '#.addListener(#)',
+      this._jsObject,
+      convertDartClosureToJS(callback, this._callbackArity));
 
   /// Deregisters an event listener <em>callback</em> from an event.
-  void removeListener(Function callback) => JS('void', '#.removeListener(#)',
-      this._jsObject, convertDartClosureToJS(callback, this._callbackArity));
+  void removeListener(covariant Function callback) => JS(
+      'void',
+      '#.removeListener(#)',
+      this._jsObject,
+      convertDartClosureToJS(callback, this._callbackArity));
 
   /// Returns True if <em>callback</em> is registered to the event.
-  bool hasListener(Function callback) => JS('bool', '#.hasListener(#)',
-      this._jsObject, convertDartClosureToJS(callback, this._callbackArity));
+  bool hasListener(covariant Function callback) => JS(
+      'bool',
+      '#.hasListener(#)',
+      this._jsObject,
+      convertDartClosureToJS(callback, this._callbackArity));
 
   /// Returns true if any event listeners are registered to the event.
   bool hasListeners() => JS('bool', '#.hasListeners()', this._jsObject);

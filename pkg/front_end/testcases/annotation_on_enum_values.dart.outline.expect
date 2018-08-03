@@ -1,0 +1,25 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Fisk<T extends core::Object = dynamic> extends core::Object {
+  final field self::Fisk::T x;
+  const constructor fisk(self::Fisk::T x) → void
+    ;
+}
+class Foo extends core::Object {
+  final field core::int index;
+  final field core::String _name;
+  static const field core::List<self::Foo> values = const <self::Foo>[self::Foo::bar, self::Foo::baz, self::Foo::cafebabe];
+  static const field self::Foo bar = const self::Foo::•(0, "Foo.bar");
+  static const field self::Foo baz = const self::Foo::•(1, "Foo.baz");
+  static const field self::Foo cafebabe = const self::Foo::•(2, "Foo.cafebabe");
+  const constructor •(core::int index, core::String _name) → void
+    : self::Foo::index = index, self::Foo::_name = _name, super core::Object::•()
+    ;
+  method toString() → core::String
+    return this.{=self::Foo::_name};
+}
+static const field core::int hest;
+static method main() → dynamic
+  ;

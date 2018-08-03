@@ -1,0 +1,27 @@
+------------ #lib::foo ------------
+
+RESULT: _T {}?
+------------ #lib::bar ------------
+
+RESULT: _T {}?
+------------ #lib::bool_expressions ------------
+t0* = _Call direct [#lib::foo] ()
+t1* = _Call direct [#lib::bar] ()
+t2* = _Call [dart.core::num::+] (_T (dart.core::int)+?, _T (dart.core::int)+)
+i = _Join [dart.core::int] (_T (dart.core::int)+, t2)
+t4* = _Call [dart.core::num::<] (i, _T (dart.core::int)+)
+t5* = _Call direct [#lib::bar] ()
+x = _Join [dart.core::bool] (t5, _T (dart.core::bool)+)
+t7* = _Call direct [#lib::foo] ()
+t8* = _Call direct [#lib::bar] ()
+t9* = _Call direct [#lib::bar] ()
+t10* = _Call direct [#lib::foo] ()
+t11* = _Call direct [#lib::foo] ()
+t12 = _Join [dynamic] (_T (dart.core::bool)+, t7)
+t13 = _Narrow (t12 to _T ANY?)
+t14 = _Narrow (t13 to _T (dart.core::bool)+?)
+y = _Join [dart.core::bool] (_T (dart.core::bool)+, t14, _T (dart.core::bool)+, _T (dart.core::bool)+)
+RESULT: _T {}?
+------------ #lib::main ------------
+
+RESULT: _T {}?

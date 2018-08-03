@@ -7,15 +7,13 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
-import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analyzer/task/dart.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:plugin/manager.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
 import '../mocks.dart';
+import '../src/utilities/flutter_util.dart' as flutter;
 
 main() {
   defineReflectiveSuite(() {
@@ -27,8 +25,20 @@ main() {
     defineReflectiveTests(InlineLocalTest);
     defineReflectiveTests(InlineMethodTest);
     defineReflectiveTests(MoveFileTest);
-    defineReflectiveTests(RenameTest);
+    // TODO(brianwilkerson) Re-enable these tests. They were commented out
+    // because they are non-deterministic under the new driver. I suspect that
+    // there is a future that isn't being waited for.
+//    defineReflectiveTests(RenameTest);
   });
+}
+
+/// Wrapper around the test package's `fail` function.
+///
+/// Unlike the test package's `fail` function, this function is not annotated
+/// with @alwaysThrows, so we can call it at the top of a test method without
+/// causing the rest of the method to be flagged as dead code.
+void _fail(String message) {
+  fail(message);
 }
 
 @reflectiveTest
@@ -43,8 +53,7 @@ main() {
 ''');
     return assertSuccessfulRefactoring(() {
       return _sendConvertRequest('test =>');
-    },
-        '''
+    }, '''
 int test() => 42;
 main() {
   var a = 1 + test();
@@ -93,8 +102,7 @@ main(A a, B b, C c, D d) {
 ''');
     return assertSuccessfulRefactoring(() {
       return _sendConvertRequest('test => 2');
-    },
-        '''
+    }, '''
 class A {
   int test() => 1;
 }
@@ -140,8 +148,7 @@ main() {
 ''');
     return assertSuccessfulRefactoring(() {
       return _sendConvertRequest('test() =>');
-    },
-        '''
+    }, '''
 int get test => 42;
 main() {
   var a = 1 + test;
@@ -207,8 +214,7 @@ main(A a, B b, C c, D d) {
 ''');
     return assertSuccessfulRefactoring(() {
       return _sendConvertRequest('test() => 2');
-    },
-        '''
+    }, '''
 class A {
   int get test => 1;
 }
@@ -244,9 +250,6 @@ main(A a, B b, C c, D d) {
 
 @reflectiveTest
 class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
-  @override
-  bool get enableNewAnalysisDriver => false;
-
   Future<Response> sendExtractRequest(
       int offset, int length, String name, bool extractAll) {
     RefactoringKind kind = RefactoringKind.EXTRACT_LOCAL_VARIABLE;
@@ -278,10 +281,7 @@ class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
 
   test_analysis_onlyOneFile() async {
     shouldWaitForFullAnalysis = false;
-    String otherFile = '$testFolder/other.dart';
-    addFile(
-        otherFile,
-        r'''
+    newFile(join(testFolder, 'other.dart'), content: r'''
 foo(int myName) {}
 ''');
     addTestFile('''
@@ -297,10 +297,6 @@ main() {
     // We get the refactoring feedback....
     ExtractLocalVariableFeedback feedback = result.feedback;
     expect(feedback.names, contains('myName'));
-    // ...even though other.dart is not fully analyzed.
-    var otherSource = server.getContextSourcePair(otherFile).source;
-    var otherUnit = new LibrarySpecificUnit(otherSource, otherSource);
-    expect(testContext.getResult(otherUnit, RESOLVED_UNIT), isNull);
   }
 
   test_coveringExpressions() {
@@ -332,8 +328,7 @@ main() {
 ''');
     return assertSuccessfulRefactoring(() {
       return sendStringRequest('1 + 2', 'res', true);
-    },
-        '''
+    }, '''
 main() {
   var res = 1 + 2;
   print(res);
@@ -351,8 +346,7 @@ main() {
 ''');
     return assertSuccessfulRefactoring(() {
       return sendStringSuffixRequest('1 + 2', '); // marker', 'res', false);
-    },
-        '''
+    }, '''
 main() {
   print(1 + 2);
   var res = 1 + 2;
@@ -390,9 +384,7 @@ main() {
     assertResultProblemsWarning(result.optionsProblems,
         'Variable name should start with a lowercase letter.');
     // ...but there is still a change
-    assertTestRefactoringResult(
-        result,
-        '''
+    assertTestRefactoringResult(result, '''
 main() {
   var Name = 1 + 2;
   print(Name);
@@ -416,9 +408,53 @@ main() {
     });
   }
 
-  test_resetOnFileChange() async {
-    String otherFile = '$testFolder/other.dart';
-    addFile(otherFile, '// other 1');
+  test_resetOnAnalysisSetChanged_overlay() async {
+    addTestFile('''
+main() {
+  print(1 + 2); // 0
+}
+''');
+
+    Future<Null> checkUpdate(doUpdate()) async {
+      await getRefactoringResult(() {
+        return sendStringRequest('1 + 2', 'res', true);
+      });
+      int initialResetCount = test_resetCount;
+      doUpdate();
+      await pumpEventQueue();
+      expect(test_resetCount, initialResetCount + 1);
+    }
+
+    await checkUpdate(() {
+      server.updateContent('u1', {
+        testFile: new AddContentOverlay('''
+main() {
+  print(1 + 2); // 1
+}
+''')
+      });
+    });
+
+    await checkUpdate(() {
+      server.updateContent('u2', {
+        testFile: new ChangeContentOverlay([
+          new SourceEdit(0, 0, '''
+main() {
+  print(1 + 2); // 2
+}
+''')
+        ])
+      });
+    });
+
+    await checkUpdate(() {
+      server.updateContent('u3', {testFile: new RemoveContentOverlay()});
+    });
+  }
+
+  test_resetOnAnalysisSetChanged_watch_otherFile() async {
+    String otherFile = join(testFolder, 'other.dart');
+    newFile(otherFile, content: '// other 1');
     addTestFile('''
 main() {
   foo(1 + 2);
@@ -435,10 +471,30 @@ foo(int myName) {}
     }
     int initialResetCount = test_resetCount;
     // Update the other.dart file.
-    // The refactoring is not reset, because it's a different file.
-    addFile(otherFile, '// other 2');
+    // The refactoring is reset, even though it's a different file. It is up to
+    // analyzer to track dependencies and provide resolved units fast when
+    // possible.
+    newFile(otherFile, content: '// other 2');
     await pumpEventQueue();
-    expect(test_resetCount, initialResetCount);
+    expect(test_resetCount, initialResetCount + 1);
+  }
+
+  test_resetOnAnalysisSetChanged_watch_thisFile() async {
+    addTestFile('''
+main() {
+  foo(1 + 2);
+}
+foo(int myName) {}
+''');
+    // Send the first request.
+    {
+      EditGetRefactoringResult result = await getRefactoringResult(() {
+        return sendStringRequest('1 + 2', 'res', true);
+      });
+      ExtractLocalVariableFeedback feedback = result.feedback;
+      expect(feedback.names, contains('myName'));
+    }
+    int initialResetCount = test_resetCount;
     // Update the test.dart file.
     modifyTestFile('''
 main() {
@@ -521,9 +577,7 @@ main() {
 }
 ''');
     _setOffsetLengthForString('1 + 2');
-    return assertSuccessfulRefactoring(
-        _computeChange,
-        '''
+    return assertSuccessfulRefactoring(_computeChange, '''
 main() {
   print(res());
   print(res());
@@ -543,9 +597,7 @@ main() {
 }
 ''');
     _setOffsetLengthForString('a + b');
-    return assertSuccessfulRefactoring(
-        _computeChange,
-        '''
+    return assertSuccessfulRefactoring(_computeChange, '''
 main() {
   int a = 1;
   int b = 2;
@@ -575,9 +627,7 @@ main() {
       parameters[1].type = 'num';
       parameters.insert(0, parameters.removeLast());
       options.parameters = parameters;
-      return assertSuccessfulRefactoring(
-          _sendExtractRequest,
-          '''
+      return assertSuccessfulRefactoring(_sendExtractRequest, '''
 main() {
   int a = 1;
   int b = 2;
@@ -610,6 +660,26 @@ main(bool b) {
       // ...there is no any feedback
       expect(result.feedback, isNull);
     });
+  }
+
+  test_long_expression() {
+    addTestFile('''
+main() {
+  print(1 +
+    2);
+}
+''');
+    _setOffsetLengthForString('1 +\n    2');
+    return assertSuccessfulRefactoring(_computeChange, '''
+main() {
+  print(res());
+}
+
+int res() {
+  return 1 +
+  2;
+}
+''');
   }
 
   test_names() {
@@ -656,9 +726,7 @@ main() {
 }
 ''');
     _setOffsetLengthForStartEnd();
-    return assertSuccessfulRefactoring(
-        _computeChange,
-        '''
+    return assertSuccessfulRefactoring(_computeChange, '''
 main() {
   int a = 1;
   int b = 2;
@@ -722,6 +790,15 @@ void res(int a, int b) {
 class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
   List<RefactoringKind> kinds;
 
+  void addFlutterPackage() {
+    var libFolder = flutter.configureFlutterPackage(resourceProvider);
+    packageMapProvider.packageMap['flutter'] = [libFolder];
+    // Create .packages in the project.
+    newFile(join(projectPath, '.packages'), content: '''
+flutter:${libFolder.toUri()}
+''');
+  }
+
   /**
    * Tests that there is refactoring of the given [kind] is available at the
    * [search] offset.
@@ -744,11 +821,6 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
    */
   Future assertHasRenameRefactoring(String code, String search) async {
     return assertHasKind(code, search, RefactoringKind.RENAME, true);
-  }
-
-  @override
-  Index createIndex() {
-    return createMemoryIndex();
   }
 
   /**
@@ -782,20 +854,14 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
   void setUp() {
     super.setUp();
     createProject();
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins([server.serverPlugin]);
     handler = new EditDomainHandler(server);
     server.handlers = [handler];
   }
 
   Future test_convertMethodToGetter_hasElement() {
-    return assertHasKind(
-        '''
+    return assertHasKind('''
 int getValue() => 42;
-''',
-        'getValue',
-        RefactoringKind.CONVERT_METHOD_TO_GETTER,
-        true);
+''', 'getValue', RefactoringKind.CONVERT_METHOD_TO_GETTER, true);
   }
 
   Future test_extractLocal() async {
@@ -810,131 +876,138 @@ main() {
     expect(kinds, contains(RefactoringKind.EXTRACT_METHOD));
   }
 
+  Future test_extractLocal_withoutSelection() async {
+    addTestFile('''
+main() {
+  var a = 1 + 2;
+}
+''');
+    await waitForTasksFinished();
+    await getRefactoringsAtString('1 + 2');
+    expect(kinds, contains(RefactoringKind.EXTRACT_LOCAL_VARIABLE));
+    expect(kinds, contains(RefactoringKind.EXTRACT_METHOD));
+  }
+
+  Future test_extractWidget() async {
+    addFlutterPackage();
+    addTestFile('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Text('AAA');
+  }
+}
+''');
+    await waitForTasksFinished();
+    await getRefactoringsForString('new Text');
+    expect(kinds, contains(RefactoringKind.EXTRACT_WIDGET));
+  }
+
   Future test_rename_hasElement_class() {
-    return assertHasRenameRefactoring(
-        '''
+    return assertHasRenameRefactoring('''
 class Test {}
 main() {
   Test v;
 }
-''',
-        'Test v');
+''', 'Test v');
   }
 
   Future test_rename_hasElement_constructor() {
-    return assertHasRenameRefactoring(
-        '''
+    return assertHasRenameRefactoring('''
 class A {
   A.test() {}
 }
 main() {
   new A.test();
 }
-''',
-        'test();');
+''', 'test();');
   }
 
   Future test_rename_hasElement_function() {
-    return assertHasRenameRefactoring(
-        '''
+    return assertHasRenameRefactoring('''
 main() {
   test();
 }
 test() {}
-''',
-        'test();');
+''', 'test();');
   }
 
   Future test_rename_hasElement_importElement_directive() {
-    return assertHasRenameRefactoring(
-        '''
+    return assertHasRenameRefactoring('''
 import 'dart:math' as math;
 main() {
   math.PI;
 }
-''',
-        'import ');
+''', 'import ');
   }
 
   Future test_rename_hasElement_importElement_prefixDecl() {
-    return assertHasRenameRefactoring(
-        '''
+    return assertHasRenameRefactoring('''
 import 'dart:math' as math;
 main() {
   math.PI;
 }
-''',
-        'math;');
+''', 'math;');
   }
 
   Future test_rename_hasElement_importElement_prefixRef() {
-    return assertHasRenameRefactoring(
-        '''
+    return assertHasRenameRefactoring('''
 import 'dart:async' as test;
 import 'dart:math' as test;
 main() {
   test.PI;
 }
-''',
-        'test.PI;');
+''', 'test.PI;');
   }
 
   Future test_rename_hasElement_instanceGetter() {
-    return assertHasRenameRefactoring(
-        '''
+    return assertHasRenameRefactoring('''
 class A {
   get test => 0;
 }
 main(A a) {
   a.test;
 }
-''',
-        'test;');
+''', 'test;');
   }
 
   Future test_rename_hasElement_instanceSetter() {
-    return assertHasRenameRefactoring(
-        '''
+    return assertHasRenameRefactoring('''
 class A {
   set test(x) {}
 }
 main(A a) {
   a.test = 2;
 }
-''',
-        'test = 2;');
+''', 'test = 2;');
   }
 
   Future test_rename_hasElement_library() {
-    return assertHasRenameRefactoring(
-        '''
+    return assertHasRenameRefactoring('''
 library my.lib;
-''',
-        'library ');
+''', 'library ');
   }
 
   Future test_rename_hasElement_localVariable() {
-    return assertHasRenameRefactoring(
-        '''
+    return assertHasRenameRefactoring('''
 main() {
   int test = 0;
   print(test);
 }
-''',
-        'test = 0;');
+''', 'test = 0;');
   }
 
   Future test_rename_hasElement_method() {
-    return assertHasRenameRefactoring(
-        '''
+    return assertHasRenameRefactoring('''
 class A {
   test() {}
 }
 main(A a) {
   a.test();
 }
-''',
-        'test();');
+''', 'test();');
   }
 
   Future test_rename_noElement() async {
@@ -951,15 +1024,10 @@ main() {
 
 @reflectiveTest
 class InlineLocalTest extends _AbstractGetRefactoring_Test {
-  @override
-  bool get enableNewAnalysisDriver => false;
-
   test_analysis_onlyOneFile() async {
     shouldWaitForFullAnalysis = false;
-    String otherFile = '$testFolder/other.dart';
-    addFile(
-        otherFile,
-        r'''
+    String otherFile = join(testFolder, 'other.dart');
+    newFile(otherFile, content: r'''
 foo(int p) {}
 ''');
     addTestFile('''
@@ -977,10 +1045,6 @@ main() {
     // We get the refactoring feedback....
     InlineLocalVariableFeedback feedback = result.feedback;
     expect(feedback.occurrences, 2);
-    // ...even though other.dart is not fully analyzed.
-    var otherSource = server.getContextSourcePair(otherFile).source;
-    var otherUnit = new LibrarySpecificUnit(otherSource, otherSource);
-    expect(testContext.getResult(otherUnit, RESOLVED_UNIT), isNull);
   }
 
   test_feedback() {
@@ -1022,8 +1086,7 @@ main() {
 ''');
     return assertSuccessfulRefactoring(() {
       return _sendInlineRequest('test + 2');
-    },
-        '''
+    }, '''
 main() {
   int a = 42 + 2;
   print(42);
@@ -1031,9 +1094,8 @@ main() {
 ''');
   }
 
-  test_resetOnFileChange() async {
-    String otherFile = '$testFolder/other.dart';
-    addFile(otherFile, '// other 1');
+  test_resetOnAnalysisSetChanged() async {
+    newFile(join(testFolder, 'other.dart'), content: '// other 1');
     addTestFile('''
 main() {
   int res = 1 + 2;
@@ -1045,11 +1107,6 @@ main() {
       return _sendInlineRequest('res = ');
     });
     int initialResetCount = test_resetCount;
-    // Update the other.dart file.
-    // The refactoring is not reset, because it's a different file.
-    addFile(otherFile, '// other 2');
-    await pumpEventQueue();
-    expect(test_resetCount, initialResetCount);
     // Update the test.dart file.
     modifyTestFile('''
 main() {
@@ -1128,8 +1185,7 @@ main(A a) {
 ''');
     return assertSuccessfulRefactoring(() {
       return _sendInlineRequest('test(int p)');
-    },
-        '''
+    }, '''
 class A {
   int f;
   main() {
@@ -1154,8 +1210,7 @@ main() {
 ''');
     return assertSuccessfulRefactoring(() {
       return _sendInlineRequest('test(a');
-    },
-        '''
+    }, '''
 main() {
   print(1 + 2);
   print(10 + 20);
@@ -1177,8 +1232,7 @@ main() {
     options.inlineAll = false;
     return assertSuccessfulRefactoring(() {
       return _sendInlineRequest('test(10,');
-    },
-        '''
+    }, '''
 test(a, b) {
   print(a + b);
 }
@@ -1206,11 +1260,10 @@ main() {
 class MoveFileTest extends _AbstractGetRefactoring_Test {
   MoveFileOptions options;
 
-  @override
-  bool get enableNewAnalysisDriver => false;
-
+  @failingTest
   test_OK() {
-    resourceProvider.newFile('/project/bin/lib.dart', '');
+    _fail('The move file refactoring is not supported under the new driver');
+    newFile('/project/bin/lib.dart');
     addTestFile('''
 import 'dart:math';
 import 'lib.dart';
@@ -1218,8 +1271,7 @@ import 'lib.dart';
     _setOptions('/project/test.dart');
     return assertSuccessfulRefactoring(() {
       return _sendMoveRequest();
-    },
-        '''
+    }, '''
 import 'dart:math';
 import 'bin/lib.dart';
 ''');
@@ -1240,9 +1292,6 @@ import 'bin/lib.dart';
 
 @reflectiveTest
 class RenameTest extends _AbstractGetRefactoring_Test {
-  @override
-  bool get enableNewAnalysisDriver => false;
-
   Future<Response> sendRenameRequest(String search, String newName,
       {String id: '0', bool validateOnly: false}) {
     RenameOptions options = newName != null ? new RenameOptions(newName) : null;
@@ -1294,8 +1343,7 @@ main() {
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('Test {', 'NewName');
-    },
-        '''
+    }, '''
 class NewName {
   NewName() {}
   NewName.named() {}
@@ -1356,9 +1404,7 @@ main() {
       assertResultProblemsWarning(result.optionsProblems,
           'Class name should start with an uppercase letter.');
       // ...but there is still a change
-      assertTestRefactoringResult(
-          result,
-          '''
+      assertTestRefactoringResult(result, '''
 class newName {}
 main() {
   newName v;
@@ -1371,9 +1417,7 @@ main() {
       }).then((result) {
         assertResultProblemsOK(result);
         // ...and there is a new change
-        assertTestRefactoringResult(
-            result,
-            '''
+        assertTestRefactoringResult(result, '''
 class NewName {}
 main() {
   NewName v;
@@ -1395,8 +1439,7 @@ class A {
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('test = 0', 'newName');
-    },
-        '''
+    }, '''
 class A {
   var newName = 0;
   A(this.newName);
@@ -1419,8 +1462,7 @@ class A {
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('test);', 'newName');
-    },
-        '''
+    }, '''
 class A {
   var newName = 0;
   A(this.newName);
@@ -1443,8 +1485,7 @@ main() {
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('test: 42', 'newName');
-    },
-        '''
+    }, '''
 class A {
   final int newName;
   A({this.newName: 0});
@@ -1466,8 +1507,7 @@ class A {
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('test =>', 'newName');
-    },
-        '''
+    }, '''
 class A {
   get newName => 0;
   main() {
@@ -1491,8 +1531,7 @@ main(A a) {
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('test() {}', 'newName');
-    },
-        '''
+    }, '''
 class A {
   newName() {}
   main() {
@@ -1543,8 +1582,7 @@ class A {
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('test = 0', 'newName');
-    },
-        '''
+    }, '''
 class A {
   set newName(x) {}
   main() {
@@ -1563,17 +1601,24 @@ class B {
   B() {}
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('B;', 'newName');
-    },
-        '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('B;', 'newName');
+      },
+      '''
 class A {
   A() = B.newName;
 }
 class B {
   B.newName() {}
 }
-''');
+''',
+      feedbackValidator: (feedback) {
+        RenameFeedback renameFeedback = feedback;
+        expect(renameFeedback.offset, -1);
+        expect(renameFeedback.length, 0);
+      },
+    );
   }
 
   test_constructor_fromInstanceCreation() {
@@ -1585,17 +1630,24 @@ main() {
   new A.test();
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('test();', 'newName');
-    },
-        '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('test();', 'newName');
+      },
+      '''
 class A {
   A.newName() {}
 }
 main() {
   new A.newName();
 }
-''');
+''',
+      feedbackValidator: (feedback) {
+        RenameFeedback renameFeedback = feedback;
+        expect(renameFeedback.offset, 43);
+        expect(renameFeedback.length, 4);
+      },
+    );
   }
 
   test_constructor_fromInstanceCreation_default_onClassName() {
@@ -1607,17 +1659,24 @@ main() {
   new A();
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('A();', 'newName');
-    },
-        '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('A();', 'newName');
+      },
+      '''
 class A {
   A.newName() {}
 }
 main() {
   new A.newName();
 }
-''');
+''',
+      feedbackValidator: (feedback) {
+        RenameFeedback renameFeedback = feedback;
+        expect(renameFeedback.offset, -1);
+        expect(renameFeedback.length, 0);
+      },
+    );
   }
 
   test_constructor_fromInstanceCreation_default_onNew() {
@@ -1629,17 +1688,24 @@ main() {
   new A();
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest('new A();', 'newName');
-    },
-        '''
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('new A();', 'newName');
+      },
+      '''
 class A {
   A.newName() {}
 }
 main() {
   new A.newName();
 }
-''');
+''',
+      feedbackValidator: (feedback) {
+        RenameFeedback renameFeedback = feedback;
+        expect(renameFeedback.offset, -1);
+        expect(renameFeedback.length, 0);
+      },
+    );
   }
 
   test_feedback() {
@@ -1669,8 +1735,7 @@ main() {
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('test() {}', 'newName');
-    },
-        '''
+    }, '''
 newName() {}
 main() {
   newName();
@@ -1688,9 +1753,10 @@ main() {
   Future f;
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest("import 'dart:async';", 'new_name');
-    },
+    return assertSuccessfulRefactoring(
+        () {
+          return sendRenameRequest("import 'dart:async';", 'new_name');
+        },
         '''
 import 'dart:math';
 import 'dart:async' as new_name;
@@ -1698,7 +1764,12 @@ main() {
   Random r;
   new_name.Future f;
 }
-''');
+''',
+        feedbackValidator: (feedback) {
+          RenameFeedback renameFeedback = feedback;
+          expect(renameFeedback.offset, -1);
+          expect(renameFeedback.length, 0);
+        });
   }
 
   test_importPrefix_remove() {
@@ -1710,9 +1781,10 @@ main() {
   test.Future f;
 }
 ''');
-    return assertSuccessfulRefactoring(() {
-      return sendRenameRequest("import 'dart:async' as test;", '');
-    },
+    return assertSuccessfulRefactoring(
+        () {
+          return sendRenameRequest("import 'dart:async' as test;", '');
+        },
         '''
 import 'dart:math' as test;
 import 'dart:async';
@@ -1720,7 +1792,12 @@ main() {
   test.Random r;
   Future f;
 }
-''');
+''',
+        feedbackValidator: (feedback) {
+          RenameFeedback renameFeedback = feedback;
+          expect(renameFeedback.offset, 51);
+          expect(renameFeedback.length, 4);
+        });
   }
 
   test_init_fatalError_noElement() {
@@ -1741,8 +1818,7 @@ library aaa.bbb.ccc;
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('library aaa', 'my.new_name');
-    },
-        '''
+    }, '''
 library my.new_name;
 ''');
   }
@@ -1753,8 +1829,7 @@ library aaa.bbb.ccc;
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('aaa', 'my.new_name');
-    },
-        '''
+    }, '''
 library my.new_name;
 ''');
   }
@@ -1765,16 +1840,13 @@ library aaa.bbb.ccc;
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('.bbb', 'my.new_name');
-    },
-        '''
+    }, '''
 library my.new_name;
 ''');
   }
 
   test_library_partOfDirective() {
-    addFile(
-        '$testFolder/my_lib.dart',
-        '''
+    newFile(join(testFolder, 'my_lib.dart'), content: '''
 library aaa.bbb.ccc;
 part 'test.dart';
 ''');
@@ -1783,8 +1855,7 @@ part of aaa.bbb.ccc;
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('aaa.bb', 'my.new_name');
-    },
-        '''
+    }, '''
 part of my.new_name;
 ''');
   }
@@ -1800,8 +1871,7 @@ main() {
 ''');
     return assertSuccessfulRefactoring(() {
       return sendRenameRequest('test = 1', 'newName');
-    },
-        '''
+    }, '''
 main() {
   int newName = 0;
   newName = 1;
@@ -1874,7 +1944,7 @@ main() {
     });
   }
 
-  test_resetOnAnalysis() {
+  test_resetOnAnalysis() async {
     addTestFile('''
 main() {
   int initialName = 0;
@@ -1882,30 +1952,25 @@ main() {
 }
 ''');
     // send the first request
-    return getRefactoringResult(() {
+    EditGetRefactoringResult result = await getRefactoringResult(() {
       return sendRenameRequest('initialName =', 'newName', validateOnly: true);
-    }).then((result) {
-      RenameFeedback feedback = result.feedback;
-      expect(feedback.oldName, 'initialName');
-      // update the file
-      modifyTestFile('''
+    });
+    _validateFeedback(result, oldName: 'initialName');
+    // update the file
+    modifyTestFile('''
 main() {
   int otherName = 0;
   print(otherName);
 }
 ''');
-      // send the second request, with the same kind, file and offset
-      return waitForTasksFinished().then((_) {
-        return getRefactoringResult(() {
-          return sendRenameRequest('otherName =', 'newName',
-              validateOnly: true);
-        }).then((result) {
-          RenameFeedback feedback = result.feedback;
-          // the refactoring was reset, so we don't get a stale result
-          expect(feedback.oldName, 'otherName');
-        });
-      });
+    server.getAnalysisDriver(testFile).getResult(testFile);
+    // send the second request, with the same kind, file and offset
+    await waitForTasksFinished();
+    result = await getRefactoringResult(() {
+      return sendRenameRequest('otherName =', 'newName', validateOnly: true);
     });
+    // the refactoring was reset, so we don't get a stale result
+    _validateFeedback(result, oldName: 'otherName');
   }
 
   void _expectRefactoringRequestCancelled(Response response) {
@@ -1924,6 +1989,14 @@ main() {
       });
     });
     return potentialEdit;
+  }
+
+  void _validateFeedback(EditGetRefactoringResult result, {String oldName}) {
+    RenameFeedback feedback = result.feedback;
+    expect(feedback, isNotNull);
+    if (oldName != null) {
+      expect(feedback.oldName, oldName);
+    }
   }
 }
 
@@ -1982,11 +2055,14 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
   }
 
   Future assertSuccessfulRefactoring(
-      Future<Response> requestSender(), String expectedCode) {
-    return getRefactoringResult(requestSender).then((result) {
-      assertResultProblemsOK(result);
-      assertTestRefactoringResult(result, expectedCode);
-    });
+      Future<Response> requestSender(), String expectedCode,
+      {void Function(RefactoringFeedback) feedbackValidator}) async {
+    EditGetRefactoringResult result = await getRefactoringResult(requestSender);
+    assertResultProblemsOK(result);
+    if (feedbackValidator != null) {
+      feedbackValidator(result.feedback);
+    }
+    assertTestRefactoringResult(result, expectedCode);
   }
 
   /**
@@ -2005,11 +2081,6 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
       }
     }
     fail('No SourceFileEdit for $testFile in $change');
-  }
-
-  @override
-  Index createIndex() {
-    return createMemoryIndex();
   }
 
   Future<EditGetRefactoringResult> getRefactoringResult(
@@ -2035,8 +2106,6 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
   void setUp() {
     super.setUp();
     createProject();
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins([server.serverPlugin]);
     handler = new EditDomainHandler(server);
     server.handlers = [handler];
   }

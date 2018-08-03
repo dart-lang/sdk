@@ -85,7 +85,7 @@ abstract class ClientCommunicationChannel {
  */
 class JsonStreamDecoder extends Converter<String, Map> {
   @override
-  Map convert(String text) => JSON.decode(text);
+  Map convert(String text) => json.decode(text);
 
   @override
   ChunkedConversionSink<String> startChunkedConversion(Sink<Map> sink) =>

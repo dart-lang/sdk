@@ -1,0 +1,46 @@
+// Errors:
+//
+// pkg/front_end/testcases/override_check_after_inference.dart:24:53: Error: The parameter 'x' of the method 'F::f' has type #lib1::B, which does not match the corresponding type in the overridden method (#lib1::A).
+// Change to a supertype of #lib1::A (or, for a covariant parameter, a subtype).
+//   void f(B /*@error=OverrideTypeMismatchParameter*/ x) {}
+//                                                     ^
+
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → void
+    : super self::A::•()
+    ;
+}
+class C extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method f(self::A x) → void {}
+}
+class D extends self::C {
+  synthetic constructor •() → void
+    : super self::C::•()
+    ;
+  method f(self::A x) → void {}
+}
+class E extends self::D {
+  synthetic constructor •() → void
+    : super self::D::•()
+    ;
+  method f(self::A x) → void {}
+}
+class F extends self::D {
+  synthetic constructor •() → void
+    : super self::D::•()
+    ;
+  method f(self::B x) → void {}
+}
+static method main() → dynamic {}

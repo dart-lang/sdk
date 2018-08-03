@@ -5,8 +5,8 @@
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -24,8 +24,7 @@ main() {
 class AnalysisNotificationHighlightsTest extends AbstractAnalysisTest {
   List<HighlightRegion> regions;
 
-  @override
-  bool get enableNewAnalysisDriver => false;
+  Completer _resultsAvailable = new Completer();
 
   void assertHasRawRegion(HighlightRegionType type, int offset, int length) {
     for (HighlightRegion region in regions) {
@@ -93,14 +92,15 @@ class AnalysisNotificationHighlightsTest extends AbstractAnalysisTest {
 
   Future prepareHighlights() {
     addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);
-    return waitForTasksFinished();
+    return _resultsAvailable.future;
   }
 
   void processNotification(Notification notification) {
-    if (notification.event == ANALYSIS_HIGHLIGHTS) {
+    if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
       var params = new AnalysisHighlightsParams.fromNotification(notification);
       if (params.file == testFile) {
         regions = params.regions;
+        _resultsAvailable.complete(null);
       }
     }
   }
@@ -344,7 +344,7 @@ part "my_part.dart";
 main() {
   var part = 42;
 }''');
-    addFile('/project/bin/my_part.dart', 'part of lib;');
+    newFile('/project/bin/my_part.dart', content: 'part of lib;');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.BUILT_IN, 'part "my_');
     assertNoRegion(HighlightRegionType.BUILT_IN, 'part = 42');
@@ -496,22 +496,44 @@ void my_function(String a) {
     assertHasRegion(HighlightRegionType.COMMENT_BLOCK, '/* b', 19);
   }
 
-  test_CONSTRUCTOR() async {
+  test_CONSTRUCTOR_explicitNew() async {
     addTestFile('''
-class AAA {
+class AAA<T> {
   AAA() {}
   AAA.name(p) {}
 }
 main() {
-  new AAA();
-  new AAA.name(42);
+  new AAA<int>();
+  new AAA<int>.name(42);
 }
 ''');
     await prepareHighlights();
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'AAA<int>(');
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'AAA<int>.name(');
+    assertHasRegion(HighlightRegionType.CLASS, 'int>(');
+    assertHasRegion(HighlightRegionType.CLASS, 'int>.name(');
     assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'name(p)');
     assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'name(42)');
-    assertNoRegion(HighlightRegionType.CONSTRUCTOR, 'AAA() {}');
-    assertNoRegion(HighlightRegionType.CONSTRUCTOR, 'AAA();');
+  }
+
+  test_CONSTRUCTOR_implicitNew() async {
+    addTestFile('''
+class AAA<T> {
+  AAA() {}
+  AAA.name(p) {}
+}
+main() {
+  AAA<int>();
+  AAA<int>.name(42);
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'AAA<int>(');
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'AAA<int>.name(');
+    assertHasRegion(HighlightRegionType.CLASS, 'int>(');
+    assertHasRegion(HighlightRegionType.CLASS, 'int>.name(');
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'name(p)');
+    assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'name(42)');
   }
 
   test_DIRECTIVE() async {
@@ -934,9 +956,7 @@ class A<T> {
   }
 
   void _addLibraryForTestPart() {
-    addFile(
-        '$testFolder/my_lib.dart',
-        '''
+    newFile(join(testFolder, 'my_lib.dart'), content: '''
 library lib;
 part 'test.dart';
     ''');
@@ -957,6 +977,6 @@ class HighlightTypeTest {
   void test_valueOf_unknown() {
     expect(() {
       new HighlightRegionType('no-such-type');
-    }, throws);
+    }, throwsException);
   }
 }

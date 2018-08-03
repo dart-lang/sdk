@@ -9,15 +9,19 @@ class Tag {
 
   static const int Class = 2;
 
+  static const int FunctionNode = 3;
+
   static const int Field = 4;
   static const int Constructor = 5;
   static const int Procedure = 6;
+  static const int RedirectingFactoryConstructor = 108;
 
   static const int InvalidInitializer = 7;
   static const int FieldInitializer = 8;
   static const int SuperInitializer = 9;
   static const int RedirectingInitializer = 10;
   static const int LocalInitializer = 11;
+  static const int AssertInitializer = 12;
 
   static const int CheckLibraryIsLoaded = 13;
   static const int LoadLibrary = 14;
@@ -60,13 +64,13 @@ class Tag {
   static const int AwaitExpression = 51;
   static const int FunctionExpression = 52;
   static const int Let = 53;
+  static const int Instantiation = 54;
   static const int PositiveIntLiteral = 55;
   static const int NegativeIntLiteral = 56;
   static const int BigIntLiteral = 57;
   static const int ConstListLiteral = 58;
   static const int ConstMapLiteral = 59;
 
-  static const int InvalidStatement = 60;
   static const int ExpressionStatement = 61;
   static const int Block = 62;
   static const int EmptyStatement = 63;
@@ -87,6 +91,7 @@ class Tag {
   static const int VariableDeclaration = 78;
   static const int FunctionDeclaration = 79;
   static const int AsyncForInStatement = 80;
+  static const int AssertBlock = 81;
 
   static const int TypedefType = 87;
   static const int VectorType = 88;
@@ -111,6 +116,10 @@ class Tag {
 
   static const int ClosureCreation = 106;
 
+  static const int ConstantExpression = 107;
+
+  // Note that 108 is occupied by [RedirectingFactoryConstructor] above.
+
   static const int SpecializedTagHighBit = 0x80; // 10000000
   static const int SpecializedTagMask = 0xF8; // 11111000
   static const int SpecializedPayloadMask = 0x7; // 00000111
@@ -121,5 +130,24 @@ class Tag {
 
   static const int SpecializedIntLiteralBias = 3;
 
-  static const int ProgramFile = 0x90ABCDEF;
+  static const int ComponentFile = 0x90ABCDEF;
+
+  /// Internal version of kernel binary format.
+  /// Bump it when making incompatible changes in kernel binaries.
+  /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
+  static const int BinaryFormatVersion = 9;
+}
+
+abstract class ConstantTag {
+  static const int NullConstant = 0;
+  static const int BoolConstant = 1;
+  static const int IntConstant = 2;
+  static const int DoubleConstant = 3;
+  static const int StringConstant = 4;
+  static const int MapConstant = 5;
+  static const int ListConstant = 6;
+  static const int InstanceConstant = 7;
+  static const int PartialInstantiationConstant = 8;
+  static const int TearOffConstant = 9;
+  static const int TypeLiteralConstant = 10;
 }

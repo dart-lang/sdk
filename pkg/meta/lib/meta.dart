@@ -18,12 +18,45 @@
 /// in the language tour.
 library meta;
 
+/// Used to annotate a function `f`. Indicates that `f` always throws an
+/// exception. Any functions that override `f`, in class inheritence, are also
+/// expected to conform to this contract.
+///
+/// Tools, such as the analyzer, can use this to understand whether a block of
+/// code "exits". For example:
+///
+/// ```dart
+/// @alwaysThrows toss() { throw 'Thrown'; }
+///
+/// int fn(bool b) {
+///   if (b) {
+///     return 0;
+///   } else {
+///     toss();
+///     print("Hello.");
+///   }
+/// }
+/// ```
+///
+/// Without the annotation on `toss`, it would look as though `fn` doesn't
+/// always return a value. The annotation shows that `fn` does always exit. In
+/// addition, the annotation reveals that any statements following a call to
+/// `toss` (like the `print` call) are dead code.
+///
+/// Tools, such as the analyzer, can also expect this contract to be enforced;
+/// that is, tools may emit warnings if a function with this annotation
+/// _doesn't_ always throw.
+const _AlwaysThrows alwaysThrows = const _AlwaysThrows();
+
 /// Used to annotate a parameter of an instance method that overrides another
 /// method.
 ///
 /// Indicates that this parameter may have a tighter type than the parameter on
 /// its superclass. The actual argument will be checked at runtime to ensure it
 /// is a subtype of the overridden parameter type.
+///
+/// DEPRECATED: Use the `covariant` modifier instead.
+@deprecated
 const _Checked checked = const _Checked();
 
 /// Used to annotate a library, or any declaration that is part of the public
@@ -71,6 +104,22 @@ const _Factory factory = const _Factory();
 /// * a class that has this annotation or extends, implements or mixes in a
 ///   class that has this annotation is not immutable.
 const Immutable immutable = const Immutable();
+
+/// Used to annotate a test framework function that runs a single test.
+///
+/// Tools, such as IDEs, can show invocations of such function in a file
+/// structure view to help the user navigating in large test files.
+///
+/// The first parameter of the function must be the description of the test.
+const _IsTest isTest = const _IsTest();
+
+/// Used to annotate a test framework function that runs a group of tests.
+///
+/// Tools, such as IDEs, can show invocations of such function in a file
+/// structure view to help the user navigating in large test files.
+///
+/// The first parameter of the function must be the description of the group.
+const _IsTestGroup isTestGroup = const _IsTestGroup();
 
 /// Used to annotate a const constructor `c`. Indicates that any invocation of
 /// the constructor must use the keyword `const` unless one or more of the
@@ -195,6 +244,10 @@ class Required {
   const Required([this.reason]);
 }
 
+class _AlwaysThrows {
+  const _AlwaysThrows();
+}
+
 class _Checked {
   const _Checked();
 }
@@ -205,6 +258,14 @@ class _Experimental {
 
 class _Factory {
   const _Factory();
+}
+
+class _IsTest {
+  const _IsTest();
+}
+
+class _IsTestGroup {
+  const _IsTestGroup();
 }
 
 class _Literal {

@@ -4,11 +4,10 @@
 
 #include "vm/class_table.h"
 
-#include "vm/atomic.h"
+#include "platform/atomic.h"
 #include "vm/flags.h"
-#include "vm/freelist.h"
 #include "vm/growable_array.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
 #include "vm/visitor.h"
@@ -21,26 +20,27 @@ ClassTable::ClassTable()
     : top_(kNumPredefinedCids),
       capacity_(0),
       table_(NULL),
-      old_tables_(new MallocGrowableArray<RawClass**>()) {
+      old_tables_(new MallocGrowableArray<ClassAndSize*>()) {
   NOT_IN_PRODUCT(class_heap_stats_table_ = NULL);
   NOT_IN_PRODUCT(predefined_class_heap_stats_table_ = NULL);
   if (Dart::vm_isolate() == NULL) {
     capacity_ = initial_capacity_;
-    table_ = reinterpret_cast<RawClass**>(
-        calloc(capacity_, sizeof(RawClass*)));  // NOLINT
+    table_ = reinterpret_cast<ClassAndSize*>(
+        calloc(capacity_, sizeof(ClassAndSize)));  // NOLINT
   } else {
     // Duplicate the class table from the VM isolate.
     ClassTable* vm_class_table = Dart::vm_isolate()->class_table();
     capacity_ = vm_class_table->capacity_;
-    table_ = reinterpret_cast<RawClass**>(
-        calloc(capacity_, sizeof(RawClass*)));  // NOLINT
+    table_ = reinterpret_cast<ClassAndSize*>(
+        calloc(capacity_, sizeof(ClassAndSize)));  // NOLINT
     for (intptr_t i = kObjectCid; i < kInstanceCid; i++) {
-      table_[i] = vm_class_table->At(i);
+      table_[i] = vm_class_table->PairAt(i);
     }
-    table_[kFreeListElement] = vm_class_table->At(kFreeListElement);
-    table_[kForwardingCorpse] = vm_class_table->At(kForwardingCorpse);
-    table_[kDynamicCid] = vm_class_table->At(kDynamicCid);
-    table_[kVoidCid] = vm_class_table->At(kVoidCid);
+    table_[kTypeArgumentsCid] = vm_class_table->PairAt(kTypeArgumentsCid);
+    table_[kFreeListElement] = vm_class_table->PairAt(kFreeListElement);
+    table_[kForwardingCorpse] = vm_class_table->PairAt(kForwardingCorpse);
+    table_[kDynamicCid] = vm_class_table->PairAt(kDynamicCid);
+    table_[kVoidCid] = vm_class_table->PairAt(kVoidCid);
 
 #ifndef PRODUCT
     class_heap_stats_table_ = reinterpret_cast<ClassHeapStats*>(
@@ -59,7 +59,6 @@ ClassTable::ClassTable()
 #endif  // !PRODUCT
 }
 
-
 ClassTable::ClassTable(ClassTable* original)
     : top_(original->top_),
       capacity_(original->top_),
@@ -68,7 +67,6 @@ ClassTable::ClassTable(ClassTable* original)
   NOT_IN_PRODUCT(class_heap_stats_table_ = NULL);
   NOT_IN_PRODUCT(predefined_class_heap_stats_table_ = NULL);
 }
-
 
 ClassTable::~ClassTable() {
   if (old_tables_ != NULL) {
@@ -84,12 +82,10 @@ ClassTable::~ClassTable() {
   }
 }
 
-
-void ClassTable::AddOldTable(RawClass** old_table) {
+void ClassTable::AddOldTable(ClassAndSize* old_table) {
   ASSERT(Thread::Current()->IsMutatorThread());
   old_tables_->Add(old_table);
 }
-
 
 void ClassTable::FreeOldTables() {
   while (old_tables_->length() > 0) {
@@ -97,13 +93,11 @@ void ClassTable::FreeOldTables() {
   }
 }
 
-
 #ifndef PRODUCT
 void ClassTable::SetTraceAllocationFor(intptr_t cid, bool trace) {
   ClassHeapStats* stats = PreliminaryStatsAt(cid);
   stats->set_trace_allocation(trace);
 }
-
 
 bool ClassTable::TraceAllocationFor(intptr_t cid) {
   ClassHeapStats* stats = PreliminaryStatsAt(cid);
@@ -111,16 +105,15 @@ bool ClassTable::TraceAllocationFor(intptr_t cid) {
 }
 #endif  // !PRODUCT
 
-
 void ClassTable::Register(const Class& cls) {
   ASSERT(Thread::Current()->IsMutatorThread());
   intptr_t index = cls.id();
   if (index != kIllegalCid) {
     ASSERT(index > 0);
     ASSERT(index < kNumPredefinedCids);
-    ASSERT(table_[index] == 0);
+    ASSERT(table_[index].class_ == NULL);
     ASSERT(index < capacity_);
-    table_[index] = cls.raw();
+    table_[index] = ClassAndSize(cls.raw(), Class::instance_size(cls.raw()));
     // Add the vtable for this predefined class into the static vtable registry
     // if it has not been setup yet.
     cpp_vtable cls_vtable = cls.handle_vtable();
@@ -134,16 +127,16 @@ void ClassTable::Register(const Class& cls) {
       // Grow the capacity of the class table.
       // TODO(koda): Add ClassTable::Grow to share code.
       intptr_t new_capacity = capacity_ + capacity_increment_;
-      RawClass** new_table = reinterpret_cast<RawClass**>(
-          malloc(new_capacity * sizeof(RawClass*)));  // NOLINT
-      memmove(new_table, table_, capacity_ * sizeof(RawClass*));
+      ClassAndSize* new_table = reinterpret_cast<ClassAndSize*>(
+          malloc(new_capacity * sizeof(ClassAndSize)));  // NOLINT
+      memmove(new_table, table_, capacity_ * sizeof(ClassAndSize));
 #ifndef PRODUCT
       ClassHeapStats* new_stats_table = reinterpret_cast<ClassHeapStats*>(
           realloc(class_heap_stats_table_,
                   new_capacity * sizeof(ClassHeapStats)));  // NOLINT
 #endif
       for (intptr_t i = capacity_; i < new_capacity; i++) {
-        new_table[i] = NULL;
+        new_table[i] = ClassAndSize(NULL, 0);
         NOT_IN_PRODUCT(new_stats_table[i].Initialize());
       }
       capacity_ = new_capacity;
@@ -157,11 +150,10 @@ void ClassTable::Register(const Class& cls) {
              top_);
     }
     cls.set_id(top_);
-    table_[top_] = cls.raw();
+    table_[top_] = ClassAndSize(cls.raw());
     top_++;  // Increment next index.
   }
 }
-
 
 void ClassTable::AllocateIndex(intptr_t index) {
   if (index >= capacity_) {
@@ -172,16 +164,16 @@ void ClassTable::AllocateIndex(intptr_t index) {
       FATAL1("Fatal error in ClassTable::Register: invalid index %" Pd "\n",
              index);
     }
-    RawClass** new_table = reinterpret_cast<RawClass**>(
-        malloc(new_capacity * sizeof(RawClass*)));  // NOLINT
-    memmove(new_table, table_, capacity_ * sizeof(RawClass*));
+    ClassAndSize* new_table = reinterpret_cast<ClassAndSize*>(
+        malloc(new_capacity * sizeof(ClassAndSize)));  // NOLINT
+    memmove(new_table, table_, capacity_ * sizeof(ClassAndSize));
 #ifndef PRODUCT
     ClassHeapStats* new_stats_table = reinterpret_cast<ClassHeapStats*>(
         realloc(class_heap_stats_table_,
                 new_capacity * sizeof(ClassHeapStats)));  // NOLINT
 #endif
     for (intptr_t i = capacity_; i < new_capacity; i++) {
-      new_table[i] = NULL;
+      new_table[i] = ClassAndSize(NULL);
       NOT_IN_PRODUCT(new_stats_table[i].Initialize());
     }
     capacity_ = new_capacity;
@@ -191,34 +183,22 @@ void ClassTable::AllocateIndex(intptr_t index) {
     ASSERT(capacity_increment_ >= 1);
   }
 
-  ASSERT(table_[index] == 0);
+  ASSERT(table_[index].class_ == NULL);
   if (index >= top_) {
     top_ = index + 1;
   }
 }
 
-
-void ClassTable::RegisterAt(intptr_t index, const Class& cls) {
-  ASSERT(Thread::Current()->IsMutatorThread());
-  ASSERT(index != kIllegalCid);
-  ASSERT(index >= kNumPredefinedCids);
-  AllocateIndex(index);
-  cls.set_id(index);
-  table_[index] = cls.raw();
-}
-
-
 #if defined(DEBUG)
 void ClassTable::Unregister(intptr_t index) {
-  table_[index] = 0;
+  table_[index] = ClassAndSize(NULL);
 }
 #endif
 
-
 void ClassTable::Remap(intptr_t* old_to_new_cid) {
-  ASSERT(Thread::Current()->no_safepoint_scope_depth() > 0);
+  ASSERT(Thread::Current()->IsAtSafepoint());
   intptr_t num_cids = NumCids();
-  RawClass** cls_by_old_cid = new RawClass*[num_cids];
+  ClassAndSize* cls_by_old_cid = new ClassAndSize[num_cids];
   for (intptr_t i = 0; i < num_cids; i++) {
     cls_by_old_cid[i] = table_[i];
   }
@@ -228,12 +208,19 @@ void ClassTable::Remap(intptr_t* old_to_new_cid) {
   delete[] cls_by_old_cid;
 }
 
-
 void ClassTable::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
-  visitor->VisitPointers(reinterpret_cast<RawObject**>(&table_[0]), top_);
+  for (intptr_t i = 0; i < top_; i++) {
+    visitor->VisitPointer(reinterpret_cast<RawObject**>(&(table_[i].class_)));
+  }
 }
 
+void ClassTable::CopySizesFromClassObjects() {
+  ASSERT(kIllegalCid == 0);
+  for (intptr_t i = 1; i < top_; i++) {
+    SetAt(i, At(i));
+  }
+}
 
 void ClassTable::Validate() {
   Class& cls = Class::Handle();
@@ -253,7 +240,6 @@ void ClassTable::Validate() {
   }
 }
 
-
 void ClassTable::Print() {
   Class& cls = Class::Handle();
   String& name = String::Handle();
@@ -265,11 +251,23 @@ void ClassTable::Print() {
     cls = At(i);
     if (cls.raw() != reinterpret_cast<RawClass*>(0)) {
       name = cls.Name();
-      OS::Print("%" Pd ": %s\n", i, name.ToCString());
+      OS::PrintErr("%" Pd ": %s\n", i, name.ToCString());
     }
   }
 }
 
+void ClassTable::SetAt(intptr_t index, RawClass* raw_cls) {
+  ASSERT(index < capacity_);
+  if (raw_cls == NULL) {
+    table_[index] = ClassAndSize(raw_cls, 0);
+  } else {
+    table_[index] = ClassAndSize(raw_cls, Class::instance_size(raw_cls));
+  }
+}
+
+ClassAndSize::ClassAndSize(RawClass* clazz) : class_(clazz) {
+  size_ = clazz == NULL ? 0 : Class::instance_size(clazz);
+}
 
 #ifndef PRODUCT
 void ClassTable::PrintToJSONObject(JSONObject* object) {
@@ -289,7 +287,6 @@ void ClassTable::PrintToJSONObject(JSONObject* object) {
   }
 }
 
-
 void ClassHeapStats::Initialize() {
   pre_gc.Reset();
   post_gc.Reset();
@@ -302,14 +299,17 @@ void ClassHeapStats::Initialize() {
   USE(align_);
 }
 
-
 void ClassHeapStats::ResetAtNewGC() {
   Verify();
   pre_gc.new_count = post_gc.new_count + recent.new_count;
   pre_gc.new_size = post_gc.new_size + recent.new_size;
+  pre_gc.new_external_size =
+      post_gc.new_external_size + recent.new_external_size;
   // Accumulate allocations.
   accumulated.new_count += recent.new_count - last_reset.new_count;
   accumulated.new_size += recent.new_size - last_reset.new_size;
+  accumulated.new_external_size +=
+      recent.new_external_size - last_reset.new_external_size;
   last_reset.ResetNew();
   post_gc.ResetNew();
   recent.ResetNew();
@@ -317,19 +317,21 @@ void ClassHeapStats::ResetAtNewGC() {
   old_pre_new_gc_size_ = recent.old_size;
 }
 
-
 void ClassHeapStats::ResetAtOldGC() {
   Verify();
   pre_gc.old_count = post_gc.old_count + recent.old_count;
   pre_gc.old_size = post_gc.old_size + recent.old_size;
+  pre_gc.old_external_size =
+      post_gc.old_external_size + recent.old_external_size;
   // Accumulate allocations.
   accumulated.old_count += recent.old_count - last_reset.old_count;
   accumulated.old_size += recent.old_size - last_reset.old_size;
+  accumulated.old_external_size +=
+      recent.old_external_size - last_reset.old_external_size;
   last_reset.ResetOld();
   post_gc.ResetOld();
   recent.ResetOld();
 }
-
 
 void ClassHeapStats::Verify() {
   pre_gc.Verify();
@@ -338,7 +340,6 @@ void ClassHeapStats::Verify() {
   accumulated.Verify();
   last_reset.Verify();
 }
-
 
 void ClassHeapStats::UpdateSize(intptr_t instance_size) {
   pre_gc.UpdateSize(instance_size);
@@ -350,23 +351,22 @@ void ClassHeapStats::UpdateSize(intptr_t instance_size) {
   old_pre_new_gc_size_ = old_pre_new_gc_count_ * instance_size;
 }
 
-
 void ClassHeapStats::ResetAccumulator() {
   // Remember how much was allocated so we can subtract this from the result
   // when printing.
   last_reset.new_count = recent.new_count;
   last_reset.new_size = recent.new_size;
+  last_reset.new_external_size = recent.new_external_size;
   last_reset.old_count = recent.old_count;
   last_reset.old_size = recent.old_size;
+  last_reset.old_external_size = recent.old_external_size;
   accumulated.Reset();
 }
-
 
 void ClassHeapStats::UpdatePromotedAfterNewGC() {
   promoted_count = recent.old_count - old_pre_new_gc_count_;
   promoted_size = recent.old_size - old_pre_new_gc_size_;
 }
-
 
 void ClassHeapStats::PrintToJSONObject(const Class& cls,
                                        JSONObject* obj) const {
@@ -378,33 +378,34 @@ void ClassHeapStats::PrintToJSONObject(const Class& cls,
   {
     JSONArray new_stats(obj, "new");
     new_stats.AddValue(pre_gc.new_count);
-    new_stats.AddValue(pre_gc.new_size);
+    new_stats.AddValue(pre_gc.new_size + pre_gc.new_external_size);
     new_stats.AddValue(post_gc.new_count);
-    new_stats.AddValue(post_gc.new_size);
+    new_stats.AddValue(post_gc.new_size + post_gc.new_external_size);
     new_stats.AddValue(recent.new_count);
-    new_stats.AddValue(recent.new_size);
+    new_stats.AddValue(recent.new_size + recent.new_external_size);
     new_stats.AddValue64(accumulated.new_count + recent.new_count -
                          last_reset.new_count);
-    new_stats.AddValue64(accumulated.new_size + recent.new_size -
-                         last_reset.new_size);
+    new_stats.AddValue64(accumulated.new_size + accumulated.new_external_size +
+                         recent.new_size + recent.new_external_size -
+                         last_reset.new_size - last_reset.new_external_size);
   }
   {
     JSONArray old_stats(obj, "old");
     old_stats.AddValue(pre_gc.old_count);
-    old_stats.AddValue(pre_gc.old_size);
+    old_stats.AddValue(pre_gc.old_size + pre_gc.old_external_size);
     old_stats.AddValue(post_gc.old_count);
-    old_stats.AddValue(post_gc.old_size);
+    old_stats.AddValue(post_gc.old_size + post_gc.old_external_size);
     old_stats.AddValue(recent.old_count);
-    old_stats.AddValue(recent.old_size);
+    old_stats.AddValue(recent.old_size + recent.old_external_size);
     old_stats.AddValue64(accumulated.old_count + recent.old_count -
                          last_reset.old_count);
-    old_stats.AddValue64(accumulated.old_size + recent.old_size -
-                         last_reset.old_size);
+    old_stats.AddValue64(accumulated.old_size + accumulated.old_external_size +
+                         recent.old_size + recent.old_external_size -
+                         last_reset.old_size - last_reset.old_external_size);
   }
   obj->AddProperty("promotedInstances", promoted_count);
   obj->AddProperty("promotedBytes", promoted_size);
 }
-
 
 void ClassTable::UpdateAllocatedNew(intptr_t cid, intptr_t size) {
   ClassHeapStats* stats = PreliminaryStatsAt(cid);
@@ -413,7 +414,6 @@ void ClassTable::UpdateAllocatedNew(intptr_t cid, intptr_t size) {
   stats->recent.AddNew(size);
 }
 
-
 void ClassTable::UpdateAllocatedOld(intptr_t cid, intptr_t size) {
   ClassHeapStats* stats = PreliminaryStatsAt(cid);
   ASSERT(stats != NULL);
@@ -421,11 +421,21 @@ void ClassTable::UpdateAllocatedOld(intptr_t cid, intptr_t size) {
   stats->recent.AddOld(size);
 }
 
+void ClassTable::UpdateAllocatedExternalNew(intptr_t cid, intptr_t size) {
+  ClassHeapStats* stats = PreliminaryStatsAt(cid);
+  ASSERT(stats != NULL);
+  stats->recent.AddNewExternal(size);
+}
+
+void ClassTable::UpdateAllocatedExternalOld(intptr_t cid, intptr_t size) {
+  ClassHeapStats* stats = PreliminaryStatsAt(cid);
+  ASSERT(stats != NULL);
+  stats->recent.AddOldExternal(size);
+}
 
 bool ClassTable::ShouldUpdateSizeForClassId(intptr_t cid) {
   return !RawObject::IsVariableSizeClassId(cid);
 }
-
 
 ClassHeapStats* ClassTable::PreliminaryStatsAt(intptr_t cid) {
   ASSERT(cid > 0);
@@ -435,7 +445,6 @@ ClassHeapStats* ClassTable::PreliminaryStatsAt(intptr_t cid) {
   ASSERT(cid < top_);
   return &class_heap_stats_table_[cid];
 }
-
 
 ClassHeapStats* ClassTable::StatsWithUpdatedSize(intptr_t cid) {
   if (!HasValidClassAt(cid) || (cid == kFreeListElement) ||
@@ -455,7 +464,6 @@ ClassHeapStats* ClassTable::StatsWithUpdatedSize(intptr_t cid) {
   return stats;
 }
 
-
 void ClassTable::ResetCountersOld() {
   for (intptr_t i = 0; i < kNumPredefinedCids; i++) {
     predefined_class_heap_stats_table_[i].ResetAtOldGC();
@@ -464,7 +472,6 @@ void ClassTable::ResetCountersOld() {
     class_heap_stats_table_[i].ResetAtOldGC();
   }
 }
-
 
 void ClassTable::ResetCountersNew() {
   for (intptr_t i = 0; i < kNumPredefinedCids; i++) {
@@ -475,7 +482,6 @@ void ClassTable::ResetCountersNew() {
   }
 }
 
-
 void ClassTable::UpdatePromoted() {
   for (intptr_t i = 0; i < kNumPredefinedCids; i++) {
     predefined_class_heap_stats_table_[i].UpdatePromotedAfterNewGC();
@@ -485,12 +491,10 @@ void ClassTable::UpdatePromoted() {
   }
 }
 
-
 ClassHeapStats** ClassTable::TableAddressFor(intptr_t cid) {
   return (cid < kNumPredefinedCids) ? &predefined_class_heap_stats_table_
                                     : &class_heap_stats_table_;
 }
-
 
 intptr_t ClassTable::TableOffsetFor(intptr_t cid) {
   return (cid < kNumPredefinedCids)
@@ -498,11 +502,9 @@ intptr_t ClassTable::TableOffsetFor(intptr_t cid) {
              : OFFSET_OF(ClassTable, class_heap_stats_table_);
 }
 
-
 intptr_t ClassTable::ClassOffsetFor(intptr_t cid) {
   return cid * sizeof(ClassHeapStats);  // NOLINT
 }
-
 
 intptr_t ClassTable::CounterOffsetFor(intptr_t cid, bool is_new_space) {
   const intptr_t class_offset = ClassOffsetFor(cid);
@@ -512,11 +514,9 @@ intptr_t ClassTable::CounterOffsetFor(intptr_t cid, bool is_new_space) {
   return class_offset + count_field_offset;
 }
 
-
 intptr_t ClassTable::StateOffsetFor(intptr_t cid) {
   return ClassOffsetFor(cid) + ClassHeapStats::state_offset();
 }
-
 
 intptr_t ClassTable::SizeOffsetFor(intptr_t cid, bool is_new_space) {
   const uword class_offset = ClassOffsetFor(cid);
@@ -525,7 +525,6 @@ intptr_t ClassTable::SizeOffsetFor(intptr_t cid, bool is_new_space) {
                    : ClassHeapStats::allocated_size_since_gc_old_space_offset();
   return class_offset + size_field_offset;
 }
-
 
 void ClassTable::AllocationProfilePrintJSON(JSONStream* stream) {
   if (!FLAG_support_service) {
@@ -566,7 +565,6 @@ void ClassTable::AllocationProfilePrintJSON(JSONStream* stream) {
   }
 }
 
-
 void ClassTable::ResetAllocationAccumulators() {
   for (intptr_t i = 1; i < top_; i++) {
     ClassHeapStats* stats = StatsWithUpdatedSize(i);
@@ -576,7 +574,6 @@ void ClassTable::ResetAllocationAccumulators() {
   }
 }
 
-
 void ClassTable::UpdateLiveOld(intptr_t cid, intptr_t size, intptr_t count) {
   ClassHeapStats* stats = PreliminaryStatsAt(cid);
   ASSERT(stats != NULL);
@@ -585,14 +582,26 @@ void ClassTable::UpdateLiveOld(intptr_t cid, intptr_t size, intptr_t count) {
   stats->post_gc.AddOld(size, count);
 }
 
-
 void ClassTable::UpdateLiveNew(intptr_t cid, intptr_t size) {
   ClassHeapStats* stats = PreliminaryStatsAt(cid);
   ASSERT(stats != NULL);
   ASSERT(size >= 0);
   stats->post_gc.AddNew(size);
 }
-#endif  // !PRODUCT
 
+void ClassTable::UpdateLiveOldExternal(intptr_t cid, intptr_t size) {
+  ClassHeapStats* stats = PreliminaryStatsAt(cid);
+  ASSERT(stats != NULL);
+  ASSERT(size >= 0);
+  stats->post_gc.AddOldExternal(size);
+}
+
+void ClassTable::UpdateLiveNewExternal(intptr_t cid, intptr_t size) {
+  ClassHeapStats* stats = PreliminaryStatsAt(cid);
+  ASSERT(stats != NULL);
+  ASSERT(size >= 0);
+  stats->post_gc.AddNewExternal(size);
+}
+#endif  // !PRODUCT
 
 }  // namespace dart

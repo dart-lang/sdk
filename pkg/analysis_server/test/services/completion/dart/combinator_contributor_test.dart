@@ -36,28 +36,22 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
 
   test_Combinator_hide() async {
     // SimpleIdentifier  HideCombinator  ImportDirective
-    addSource(
-        '/testAB.dart',
-        '''
+    addSource('/testAB.dart', '''
       library libAB;
-      part '/partAB.dart';
+      part "${convertPathForImport('/partAB.dart')}";
       class A { }
       class B { }''');
-    addSource(
-        '/partAB.dart',
-        '''
+    addSource('/partAB.dart', '''
       part of libAB;
       var T1;
       PB F1() => new PB();
       class PB { }''');
-    addSource(
-        '/testCD.dart',
-        '''
+    addSource('/testCD.dart', '''
       class C { }
       class D { }''');
     addTestSource('''
-      import "/testAB.dart" hide ^;
-      import "/testCD.dart";
+      import "${convertPathForImport("/testAB.dart")}" hide ^;
+      import "${convertPathForImport("/testCD.dart")}";
       class X {}''');
 
     await computeSuggestions();
@@ -82,31 +76,25 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
 
   test_Combinator_show() async {
     // SimpleIdentifier  HideCombinator  ImportDirective
-    addSource(
-        '/testAB.dart',
-        '''
+    addSource('/testAB.dart', '''
       library libAB;
-      part '/partAB.dart';
+      part "${convertPathForImport('/partAB.dart')}";
       class A { }
       class B { }
       class _AB''');
-    addSource(
-        '/partAB.dart',
-        '''
+    addSource('/partAB.dart', '''
       part of libAB;
       var T1;
       PB F1() => new PB();
       typedef PB2 F2(int blat);
       class Clz = Object with Object;
       class PB { }''');
-    addSource(
-        '/testCD.dart',
-        '''
+    addSource('/testCD.dart', '''
       class C { }
       class D { }''');
     addTestSource('''
-      import "/testAB.dart" show ^;
-      import "/testCD.dart";
+      import "${convertPathForImport("/testAB.dart")}" show ^;
+      import "${convertPathForImport("/testCD.dart")}";
       class X {}''');
 
     await computeSuggestions();
@@ -135,10 +123,49 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('Object');
   }
 
+  test_Combinator_show_export_withShow() async {
+    addSource('/a.dart', r'''
+class A {}
+class B {}
+''');
+    addSource('/b.dart', r'''
+export 'a.dart' show A;
+''');
+    addTestSource(r'''
+import 'b.dart' show ^;
+''');
+    await computeSuggestions();
+    assertSuggestClass('A',
+        relevance: DART_RELEVANCE_DEFAULT,
+        kind: CompletionSuggestionKind.IDENTIFIER);
+    assertNotSuggested('B');
+  }
+
   test_Combinator_show_PI() async {
     addTestSource('import "dart:math" show ^;');
     await computeSuggestions();
     assertSuggestTopLevelVar('PI', 'double',
+        kind: CompletionSuggestionKind.IDENTIFIER);
+  }
+
+  test_Combinator_show_recursive() async {
+    addSource('/testA.dart', '''
+class A {}
+''');
+    addSource('/testB.dart', '''
+export 'testA.dart';
+export 'testB.dart';
+class B {}
+''');
+    addTestSource('''
+import "${convertPathForImport("/testB.dart")}" show ^;
+''');
+    await computeSuggestions();
+    assertSuggestClass('A',
+        relevance: DART_RELEVANCE_DEFAULT,
+        kind: CompletionSuggestionKind.IDENTIFIER);
+    assertSuggestClass('B',
+        relevance: DART_RELEVANCE_DEFAULT,
         kind: CompletionSuggestionKind.IDENTIFIER);
   }
 }

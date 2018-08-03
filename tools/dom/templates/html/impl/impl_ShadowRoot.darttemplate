@@ -8,13 +8,9 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 $!MEMBERS
-$if DART2JS
   static bool get supported =>
       JS('bool', '!!(Element.prototype.createShadowRoot||'
                  'Element.prototype.webkitCreateShadowRoot)');
-$else
-  static final bool supported = true;
-$endif
 
   static bool _shadowRootDeprecationReported = false;
   static void _shadowRootDeprecationReport() {

@@ -1,0 +1,9 @@
+Errors: {
+  Getter not found: 'staticVar'. (@12)
+}
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
+  return #lib1::globalVar.{dart.core::num::+}((throw new dart.core::NoSuchMethodError::withInvocation(null, new dart.core::_InvocationMirror::_withType(#staticVar, 33, const <dart.core::Type>[], const <dynamic>[], dart.core::Map::unmodifiable<dart.core::Symbol, dynamic>(const <dart.core::Symbol, dynamic>{})))) as{TypeError} dart.core::num).{dart.core::num::+}(5);
+Errors: {
+}
+static method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
+  return #lib1::globalVar.{dart.core::num::+}(#lib1::MyClass::staticVar).{dart.core::num::+}(5);

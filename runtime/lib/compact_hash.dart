@@ -2,10 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:typed_data' show Uint32List;
-import 'dart:_internal' as internal;
+// part of "collection_patch.dart";
 
 // Hash table with open addressing that separates the index from keys/values.
+
+// This function takes care of rehashing of the linked hashmaps in [objects]. We
+// do this eagerly after snapshot deserialization.
+void _rehashObjects(List objects) {
+  final int length = objects.length;
+  for (int i = 0; i < length; ++i) {
+    objects[i]._regenerateIndex();
+  }
+}
 
 abstract class _HashFieldBase {
   // Each occupied entry in _index is a fixed-size integer that encodes a pair:
@@ -14,8 +22,7 @@ abstract class _HashFieldBase {
   // The length of _index is always a power of two, and there is always at
   // least one unoccupied entry.
   // NOTE: When maps are deserialized, their _index and _hashMask is regenerated
-  // lazily by _regenerateIndex.
-  // TODO(koda): Consider also using null _index for tiny, linear-search tables.
+  // eagerly by _regenerateIndex.
   Uint32List _index = new Uint32List(_HashBase._INITIAL_INDEX_SIZE);
 
   // Cached in-place mask for the hash pattern component.
@@ -55,10 +62,10 @@ abstract class _HashVMBase {
 }
 
 // This mixin can be applied to _HashFieldBase or _HashVMBase (for
-// normal and VM-internalized classes, respectivley), which provide the
+// normal and VM-internalized classes, respectiveley), which provide the
 // actual fields/accessors that this mixin assumes.
 // TODO(koda): Consider moving field comments to _HashFieldBase.
-abstract class _HashBase {
+abstract class _HashBase implements _HashVMBase {
   // The number of bits used for each component is determined by table size.
   // The length of _index is twice the number of entries in _data, and both
   // are doubled when _data is full. Thus, _index will have a max load factor
@@ -108,6 +115,8 @@ abstract class _HashBase {
   int get _checkSum => _usedData + _deletedKeys;
   bool _isModifiedSince(List oldData, int oldCheckSum) =>
       !identical(_data, oldData) || (_checkSum != oldCheckSum);
+
+  int get length;
 }
 
 class _OperatorEqualsAndHashCode {
@@ -137,7 +146,12 @@ class _InternalLinkedHashMap<K, V> extends _HashVMBase
   }
 }
 
-class _LinkedHashMapMixin<K, V> {
+abstract class _LinkedHashMapMixin<K, V> implements _HashBase {
+  int _hashCode(e);
+  bool _equals(e1, e2);
+  int get _checkSum;
+  bool _isModifiedSince(List oldData, int oldCheckSum);
+
   int get length => (_usedData >> 1) - _deletedKeys;
   bool get isEmpty => length == 0;
   bool get isNotEmpty => !isEmpty;
@@ -155,8 +169,7 @@ class _LinkedHashMapMixin<K, V> {
 
   void clear() {
     if (!isEmpty) {
-      // Use _data.length, since _index might be null.
-      _init(_data.length, _hashMask, null, 0);
+      _init(_HashBase._INITIAL_INDEX_SIZE, _hashMask, null, 0);
     }
   }
 
@@ -180,22 +193,16 @@ class _LinkedHashMapMixin<K, V> {
     }
   }
 
-  int _getIndexLength() {
-    return (_index == null) ? _regenerateIndex() : _index.length;
-  }
-
-  int _regenerateIndex() {
-    assert(_index == null);
+  // This method is called by [_rehashObjects] (see above).
+  void _regenerateIndex() {
     _index = new Uint32List(_data.length);
     assert(_hashMask == 0);
     _hashMask = _HashBase._indexSizeToHashMask(_index.length);
     final int tmpUsed = _usedData;
     _usedData = 0;
     for (int i = 0; i < tmpUsed; i += 2) {
-      // TODO(koda): Avoid redundant equality tests and stores into _data.
       this[_data[i]] = _data[i + 1];
     }
-    return _index.length;
   }
 
   void _insert(K key, V value, int hashPattern, int i) {
@@ -241,7 +248,7 @@ class _LinkedHashMapMixin<K, V> {
   }
 
   void operator []=(K key, V value) {
-    final int size = _getIndexLength();
+    final int size = _index.length;
     final int sizeMask = size - 1;
     final int fullHash = _hashCode(key);
     final int hashPattern = _HashBase._hashPattern(fullHash, _hashMask, size);
@@ -255,7 +262,7 @@ class _LinkedHashMapMixin<K, V> {
   }
 
   V putIfAbsent(K key, V ifAbsent()) {
-    final int size = _getIndexLength();
+    final int size = _index.length;
     final int sizeMask = size - 1;
     final int maxEntries = size >> 1;
     final int fullHash = _hashCode(key);
@@ -278,7 +285,7 @@ class _LinkedHashMapMixin<K, V> {
   }
 
   V remove(Object key) {
-    final int size = _getIndexLength();
+    final int size = _index.length;
     final int sizeMask = size - 1;
     final int maxEntries = size >> 1;
     final int fullHash = _hashCode(key);
@@ -308,7 +315,7 @@ class _LinkedHashMapMixin<K, V> {
 
   // If key is absent, return _data (which is never a value).
   Object _getValueOrData(Object key) {
-    final int size = _getIndexLength();
+    final int size = _index.length;
     final int sizeMask = size - 1;
     final int maxEntries = size >> 1;
     final int fullHash = _hashCode(key);
@@ -395,8 +402,8 @@ class _CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
 
 // Iterates through _data[_offset + _step], _data[_offset + 2*_step], ...
 // and checks for concurrent modification.
-class _CompactIterable<E> extends IterableBase<E> {
-  final _table;
+class _CompactIterable<E> extends Iterable<E> {
+  final _HashBase _table;
   final List _data;
   final int _len;
   final int _offset;
@@ -414,7 +421,7 @@ class _CompactIterable<E> extends IterableBase<E> {
 }
 
 class _CompactIterator<E> implements Iterator<E> {
-  final _table;
+  final _HashBase _table;
   final List _data;
   final int _len;
   int _offset;
@@ -451,7 +458,30 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
     assert(_HashBase._UNUSED_PAIR == 0);
   }
 
+  static Set<R> _newEmpty<R>() => new _CompactLinkedHashSet<R>();
+
+  Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
   int get length => _usedData - _deletedKeys;
+
+  E get first {
+    for (int offset = 0; offset < _usedData; offset++) {
+      Object current = _data[offset];
+      if (!_HashBase._isDeleted(_data, current)) {
+        return current;
+      }
+    }
+    throw IterableElementError.noElement();
+  }
+
+  E get last {
+    for (int offset = _usedData - 1; offset >= 0; offset--) {
+      Object current = _data[offset];
+      if (!_HashBase._isDeleted(_data, current)) {
+        return current;
+      }
+    }
+    throw IterableElementError.noElement();
+  }
 
   void _rehash() {
     if ((_deletedKeys << 1) > _usedData) {
@@ -463,7 +493,7 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
 
   void clear() {
     if (!isEmpty) {
-      _init(_index.length, _hashMask, null, 0);
+      _init(_HashBase._INITIAL_INDEX_SIZE, _hashMask, null, 0);
     }
   }
 
@@ -584,6 +614,10 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
 class _CompactLinkedIdentityHashSet<E> extends _CompactLinkedHashSet<E>
     with _IdenticalAndIdentityHashCode {
   Set<E> toSet() => new _CompactLinkedIdentityHashSet<E>()..addAll(this);
+
+  static Set<R> _newEmpty<R>() => new _CompactLinkedIdentityHashSet<R>();
+
+  Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
 }
 
 class _CompactLinkedCustomHashSet<E> extends _CompactLinkedHashSet<E> {
@@ -601,6 +635,7 @@ class _CompactLinkedCustomHashSet<E> extends _CompactLinkedHashSet<E> {
   _CompactLinkedCustomHashSet(this._equality, this._hasher, validKey)
       : _validKey = (validKey != null) ? validKey : new _TypeTest<E>().test;
 
+  Set<R> cast<R>() => Set.castFrom<E, R>(this);
   Set<E> toSet() =>
       new _CompactLinkedCustomHashSet<E>(_equality, _hasher, _validKey)
         ..addAll(this);

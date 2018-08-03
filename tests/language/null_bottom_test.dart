@@ -7,12 +7,6 @@ import "package:expect/expect.dart";
 
 // Test that `Null` acts like the bottom type - less than any other type.
 
-bool isCheckedMode = () {
-  bool c = false;
-  assert(c = true);
-  return c;
-}();
-
 typedef R Fun<A, R>(A argument);
 
 class C<T> {
@@ -57,7 +51,7 @@ void testClassTypes() {
   var co = new C<Object>();
   Expect.isFalse(co is C<Null>);
 
-  if (!isCheckedMode) return;
+  if (!typeAssertionsEnabled) return;
 
   List<int> li1 = const <Null>[];
 

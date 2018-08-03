@@ -10,6 +10,7 @@
 #include "bin/builtin.h"
 #include "bin/io_buffer.h"
 #include "bin/lockers.h"
+#include "bin/namespace.h"
 #include "bin/thread.h"
 #include "platform/globals.h"
 #if !defined(HOST_OS_WINDOWS)
@@ -40,7 +41,6 @@ class ProcessResult {
 
   DISALLOW_ALLOCATION();
 };
-
 
 // To be kept in sync with ProcessSignal consts in sdk/lib/io/process.dart
 // Note that this map is as on Linux.
@@ -77,20 +77,20 @@ enum ProcessSignals {
   kLastSignal = kSigsys,
 };
 
-
 // To be kept in sync with ProcessStartMode consts in sdk/lib/io/process.dart.
 enum ProcessStartMode {
   kNormal = 0,
-  kDetached = 1,
-  kDetachedWithStdio = 2,
+  kInheritStdio = 1,
+  kDetached = 2,
+  kDetachedWithStdio = 3,
 };
-
 
 class Process {
  public:
   // Start a new process providing access to stdin, stdout, stderr and
   // process exit streams.
-  static int Start(const char* path,
+  static int Start(Namespace* namespc,
+                   const char* path,
                    char* arguments[],
                    intptr_t arguments_length,
                    const char* working_directory,
@@ -139,7 +139,11 @@ class Process {
   static intptr_t CurrentProcessId();
 
   static intptr_t SetSignalHandler(intptr_t signal);
-  static void ClearSignalHandler(intptr_t signal);
+  // When there is a current Isolate and the 'port' argument is
+  // Dart_GetMainPortId(), this clears the signal handler for the current
+  // isolate. When 'port' is ILLEGAL_PORT, this clears all signal handlers for
+  // 'signal' for all Isolates.
+  static void ClearSignalHandler(intptr_t signal, Dart_Port port);
   static void ClearAllSignalHandlers();
 
   static Dart_Handle GetProcessIdNativeField(Dart_Handle process,
@@ -148,6 +152,10 @@ class Process {
 
   static int64_t CurrentRSS();
   static int64_t MaxRSS();
+  static void GetRSSInformation(int64_t* max_rss, int64_t* current_rss);
+
+  static bool ModeIsAttached(ProcessStartMode mode);
+  static bool ModeHasStdio(ProcessStartMode mode);
 
  private:
   static int global_exit_code_;
@@ -157,7 +165,6 @@ class Process {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Process);
 };
-
 
 class SignalInfo {
  public:
@@ -199,7 +206,6 @@ class SignalInfo {
 
   DISALLOW_COPY_AND_ASSIGN(SignalInfo);
 };
-
 
 // Utility class for collecting the output when running a process
 // synchronously by using Process::Wait. This class is sub-classed in
@@ -245,6 +251,9 @@ class BufferListBase {
     uint8_t* buffer;
     intptr_t buffer_position = 0;
     Dart_Handle result = IOBuffer::Allocate(data_size_, &buffer);
+    if (Dart_IsNull(result)) {
+      return DartUtils::NewDartOSError();
+    }
     if (Dart_IsError(result)) {
       Free();
       return result;

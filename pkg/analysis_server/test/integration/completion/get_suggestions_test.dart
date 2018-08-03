@@ -12,6 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetSuggestionsTest);
+    defineReflectiveTests(GetSuggestionsTest_UseCFE);
   });
 }
 
@@ -33,9 +34,7 @@ class GetSuggestionsTest extends AbstractAnalysisServerIntegrationTest {
   }
 
   test_getSuggestions() async {
-    setTestSource(
-        'test.dart',
-        r'''
+    setTestSource('test.dart', r'''
 String test = '';
 main() {
   test.^
@@ -57,9 +56,7 @@ main() {
   }
 
   test_getSuggestions_onlyOverlay() async {
-    setTestSource(
-        'test.dart',
-        r'''
+    setTestSource('test.dart', r'''
 String test = '';
 main() {
   test.^
@@ -83,9 +80,7 @@ main() {
   }
 
   test_getSuggestions_onlyOverlay_noWait() async {
-    setTestSource(
-        'test.dart',
-        r'''
+    setTestSource('test.dart', r'''
 String test = '';
 main() {
   test.^
@@ -113,12 +108,17 @@ main() {
     standardAnalysisSetup(subscribeStatus: false);
     // Missing file and no overlay
     //sendAnalysisUpdateContent({path: new AddContentOverlay(content)});
-    var errorToken = 'exception from server';
     return sendCompletionGetSuggestions(path, 0).catchError((e) {
       // Exception expected
-      return errorToken;
+      return null;
     }).then((result) {
-      expect(result, same(errorToken));
+      expect(result, const TypeMatcher<CompletionGetSuggestionsResult>());
     });
   }
+}
+
+@reflectiveTest
+class GetSuggestionsTest_UseCFE extends GetSuggestionsTest {
+  @override
+  bool get useCFE => true;
 }

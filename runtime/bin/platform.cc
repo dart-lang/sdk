@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_IO_DISABLED)
-
 #include "bin/platform.h"
 
 #include "bin/file.h"
@@ -17,16 +15,22 @@ void FUNCTION_NAME(Platform_NumberOfProcessors)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, Dart_NewInteger(Platform::NumberOfProcessors()));
 }
 
-
 void FUNCTION_NAME(Platform_OperatingSystem)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, DartUtils::NewString(Platform::OperatingSystem()));
 }
 
+void FUNCTION_NAME(Platform_OperatingSystemVersion)(Dart_NativeArguments args) {
+  const char* version = Platform::OperatingSystemVersion();
+  if (version == NULL) {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  } else {
+    Dart_SetReturnValue(args, DartUtils::NewString(version));
+  }
+}
 
 void FUNCTION_NAME(Platform_PathSeparator)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, DartUtils::NewString(File::PathSeparator()));
 }
-
 
 void FUNCTION_NAME(Platform_LocalHostname)(Dart_NativeArguments args) {
   const intptr_t HOSTNAME_LENGTH = 256;
@@ -38,7 +42,6 @@ void FUNCTION_NAME(Platform_LocalHostname)(Dart_NativeArguments args) {
   }
 }
 
-
 void FUNCTION_NAME(Platform_ExecutableName)(Dart_NativeArguments args) {
   if (Platform::GetExecutableName() != NULL) {
     Dart_SetReturnValue(
@@ -47,7 +50,6 @@ void FUNCTION_NAME(Platform_ExecutableName)(Dart_NativeArguments args) {
     Dart_SetReturnValue(args, Dart_Null());
   }
 }
-
 
 void FUNCTION_NAME(Platform_ResolvedExecutableName)(Dart_NativeArguments args) {
   if (Platform::GetResolvedExecutableName() != NULL) {
@@ -58,11 +60,10 @@ void FUNCTION_NAME(Platform_ResolvedExecutableName)(Dart_NativeArguments args) {
   }
 }
 
-
 void FUNCTION_NAME(Platform_ExecutableArguments)(Dart_NativeArguments args) {
   int end = Platform::GetScriptIndex();
   char** argv = Platform::GetArgv();
-  Dart_Handle result = Dart_NewList(end - 1);
+  Dart_Handle result = Dart_NewListOf(Dart_CoreType_String, end - 1);
   for (intptr_t i = 1; i < end; i++) {
     Dart_Handle str = DartUtils::NewString(argv[i]);
     Dart_Handle error = Dart_ListSetAt(result, i - 1, str);
@@ -72,7 +73,6 @@ void FUNCTION_NAME(Platform_ExecutableArguments)(Dart_NativeArguments args) {
   }
   Dart_SetReturnValue(args, result);
 }
-
 
 void FUNCTION_NAME(Platform_Environment)(Dart_NativeArguments args) {
   intptr_t count = 0;
@@ -104,11 +104,9 @@ void FUNCTION_NAME(Platform_Environment)(Dart_NativeArguments args) {
   }
 }
 
-
 void FUNCTION_NAME(Platform_GetVersion)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, Dart_NewStringFromCString(Dart_VersionString()));
 }
-
 
 void FUNCTION_NAME(Platform_LocaleName)(Dart_NativeArguments args) {
   const char* locale = Platform::LocaleName();
@@ -121,5 +119,3 @@ void FUNCTION_NAME(Platform_LocaleName)(Dart_NativeArguments args) {
 
 }  // namespace bin
 }  // namespace dart
-
-#endif  // !defined(DART_IO_DISABLED)

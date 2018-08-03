@@ -9,12 +9,12 @@ import '../ast.dart';
 // The DartVM has a special `dart:_builtin` library which exposes a
 // `_getMainClosure()` method.  We need to change this method to return a
 // closure of `main()`.
-Program transformProgram(Program program,
+Component transformComponent(Component component,
     {String libraryUri: 'dart:_builtin'}) {
-  Procedure mainMethod = program.mainMethod;
+  Procedure mainMethod = component.mainMethod;
 
   Library builtinLibrary;
-  for (Library library in program.libraries) {
+  for (Library library in component.libraries) {
     if (library.importUri.toString() == libraryUri) {
       builtinLibrary = library;
       break;
@@ -46,5 +46,5 @@ Program transformProgram(Program program,
     getMainClosure.body = null;
   }
 
-  return program;
+  return component;
 }

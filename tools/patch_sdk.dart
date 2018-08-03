@@ -10,16 +10,26 @@ import 'dart:io';
 import 'dart:isolate' show RawReceivePort;
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:convert' show jsonEncode;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:path/path.dart' as path;
 
-import 'package:front_end/src/fasta/fasta.dart' as fasta
-    show compilePlatform, writeDepsFile;
+import 'package:front_end/src/api_prototype/front_end.dart';
 
-import 'package:compiler/src/kernel/fasta_support.dart' as dart2js
-    show compilePlatform;
+import 'package:front_end/src/base/processed_options.dart';
+import 'package:front_end/src/kernel_generator_impl.dart';
+import 'package:front_end/src/fasta/util/relativize.dart' show relativizeUri;
+
+import 'package:front_end/src/fasta/get_dependencies.dart' show getDependencies;
+import 'package:front_end/src/fasta/kernel/utils.dart'
+    show writeComponentToFile;
+
+import 'package:kernel/target/targets.dart';
+import 'package:kernel/target/vm.dart' show VmTarget;
+import 'package:kernel/target/flutter.dart' show FlutterTarget;
+import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
 
 /// Set of input files that were read by this script to generate patched SDK.
 /// We will dump it out into the depfile for ninja to use.
@@ -34,7 +44,8 @@ final deps = new Set<Uri>();
 File getInputFile(String path, {canBeMissing: false}) {
   final file = new File(path);
   if (!file.existsSync()) {
-    if (!canBeMissing) throw "patch_sdk.dart expects all inputs to exist";
+    if (!canBeMissing)
+      throw "patch_sdk.dart expects all inputs to exist, missing: $path";
     return null;
   }
   deps.add(Uri.base.resolveUri(file.uri));
@@ -73,14 +84,18 @@ void usage(String mode) {
   exit(1);
 }
 
+const validModes = const ['vm', 'flutter', 'runner'];
+String mode;
+bool get forVm => mode == 'vm';
+bool get forFlutter => mode == 'flutter';
+bool get forRunner => mode == 'runner';
+
 Future _main(List<String> argv) async {
-  if (argv.isEmpty) usage('[vm|dart2js]');
-  var mode = argv.first;
-  if (mode != 'vm' && mode != 'dart2js') usage('[vm|dart2js]');
+  if (argv.isEmpty) usage('[${validModes.join('|')}]');
+  mode = argv.first;
+  if (!validModes.contains(mode)) usage('[${validModes.join('|')}]');
   if (argv.length != 5) usage(mode);
 
-  bool forVm = mode == 'vm';
-  bool forDart2js = mode == 'dart2js';
   var input = argv[1];
   var sdkLibIn = path.join(input, 'lib');
   var patchIn = argv[2];
@@ -89,66 +104,156 @@ Future _main(List<String> argv) async {
   var sdkOut = path.join(outDir, 'lib');
   var packagesFile = argv[4];
 
+  await new Directory.fromUri(outDirUri).delete(recursive: true);
+
   // Parse libraries.dart
   var libContents = readInputFile(path.join(
       sdkLibIn, '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart'));
-  if (forVm) libContents = _updateLibraryMetadata(sdkOut, libContents);
+  libContents = _updateLibraryMetadata(sdkOut, libContents);
   var sdkLibraries = _getSdkLibraries(libContents);
+
+  var locations = <String, Map<String, String>>{};
 
   // Enumerate core libraries and apply patches
   for (SdkLibrary library in sdkLibraries) {
-    if (forDart2js && library.isVmLibrary) continue;
-    if (forVm && library.isDart2JsLibrary) continue;
-    _applyPatch(library, sdkLibIn, patchIn, sdkOut);
+    if (library.isDart2JsLibrary) continue;
+    _applyPatch(library, sdkLibIn, patchIn, sdkOut, locations);
   }
 
-  if (forVm) _copyExtraVmLibraries(sdkOut);
+  _copyExtraLibraries(sdkOut, locations);
 
-  Uri platform = outDirUri.resolve('platform.dill.tmp');
-  Uri outline = outDirUri.resolve('outline.dill');
-  Uri packages = Uri.base.resolveUri(new Uri.file(packagesFile));
-  if (forVm) {
-    await fasta.compilePlatform(outDirUri, platform,
-        packages: packages, outlineOutput: outline);
-  } else {
-    await dart2js.compilePlatform(outDirUri, platform,
-        packages: packages, outlineOutput: outline);
+  final Uri platform = outDirUri.resolve('platform.dill.tmp');
+  final Uri librariesJson = outDirUri.resolve("lib/libraries.json");
+  final Uri packages = Uri.base.resolveUri(new Uri.file(packagesFile));
+  TargetFlags flags = new TargetFlags();
+  Target target;
+
+  switch (mode) {
+    case 'vm':
+      target = new VmTarget(flags);
+      break;
+
+    case 'flutter':
+    case 'flutter_release':
+      target = new FlutterTarget(flags);
+      break;
+
+    case 'dart2js':
+      target = new Dart2jsTarget("dart2js", flags);
+      break;
+
+    default:
+      throw "Unknown mode: $mode";
   }
 
-  Uri platformFinalLocation = outDirUri.resolve('platform.dill');
+  await _writeSync(
+      librariesJson.toFilePath(),
+      jsonEncode({
+        mode: {"libraries": locations}
+      }));
 
-  // To properly regenerate the patched_sdk, patched_dart2js_sdk, and
-  // platform.dill only when necessary, we track dependencies as follows:
-  //  - inputs like the sdk libraries and patch files are covered by the
-  //    extraDependencies argument.
-  //  - this script and its script dependencies are handled by writeDepsFile
-  //    here.
-  //  - the internal platform libraries that may affect how this script
-  //    runs in the VM are discovered by providing the `platform` argument
-  //    below. Regardless of patched_sdk or patched_dart2js_sdk we provide below
-  //    the .dill file of patched_sdk (since the script runs in the VM and not
-  //    in dart2js). At the BUILD.gn level we have a dependency from
-  //    patched_dart2js_sdk to patched_sdk to ensure that file already exists.
-  await fasta.writeDepsFile(Platform.script,
-      Uri.base.resolveUri(new Uri.file("$outDir.d")), platformFinalLocation,
-      packages: packages,
-      platform:
-          forVm ? platform : outDirUri.resolve('../patched_sdk/platform.dill'),
-      extraDependencies: deps,
-      verbose: false);
+  await compilePlatform(outDirUri, target, packages, platform);
 
-  await new File.fromUri(platform).rename(platformFinalLocation.toFilePath());
+  // We generate a dependency file for GN to properly regenerate the patched sdk
+  // folder, outline.dill and platform.dill files when necessary: either when
+  // the sdk sources change or when this script is updated. In particular:
+  //
+  //  - sdk changes: we track the actual sources we are compiling. If we are
+  //    building the dart2js sdk, this includes the dart2js-specific patch
+  //    files.
+  //
+  //    These files are tracked by [deps] and passed below to [writeDepsFile] in
+  //    the extraDependencies argument.
+  //
+  //  - script updates: we track this script file and any code it imports (even
+  //    sdk libraries). Note that this script runs on the standalone VM, so any
+  //    sdk library used by this script indirectly depends on a VM-specific
+  //    patch file.
+  //
+  //    These set of files is discovered by `getDependencies` below, and the
+  //    [platformForDeps] is always the VM-specific `platform.dill` file.
+  var platformForDeps = platform;
+  var sdkDir = outDirUri;
+  if (forFlutter || forRunner) {
+    // Note: this fails if `$root_out_dir/vm_platform.dill` doesn't exist.  The
+    // target to build the flutter patched sdk depends on
+    // //runtime/vm:kernel_platform_files to ensure this file exists.
+    platformForDeps = outDirUri.resolve('../vm_platform.dill');
+    sdkDir = null;
+  }
+  deps.addAll(await getDependencies(Platform.script,
+      sdk: sdkDir, packages: packages, platform: platformForDeps));
+  await writeDepsFile(
+      librariesJson, Uri.base.resolveUri(new Uri.file("$outDir.d")), deps);
+}
+
+/// Generates an outline.dill and platform.dill file containing the result of
+/// compiling a platform's SDK.
+///
+/// Returns a list of dependencies read by the compiler. This list can be used
+/// to create GN dependency files.
+Future<List<Uri>> compilePlatform(
+    Uri patchedSdk, Target target, Uri packages, Uri output) async {
+  var options = new CompilerOptions()
+    ..setExitCodeOnProblem = true
+    ..strongMode = false
+    ..compileSdk = true
+    ..sdkRoot = patchedSdk
+    ..packagesFileUri = packages
+    ..target = target;
+
+  var inputs = [Uri.parse('dart:core')];
+  var result = await generateKernel(new ProcessedOptions(options, inputs),
+      buildSummary: true, buildComponent: true);
+  await writeComponentToFile(result.component, output);
+  return result.deps;
+}
+
+Future writeDepsFile(
+    Uri output, Uri depsFile, Iterable<Uri> allDependencies) async {
+  if (allDependencies.isEmpty) return;
+  String toRelativeFilePath(Uri uri) {
+    // Ninja expects to find file names relative to the current working
+    // directory. We've tried making them relative to the deps file, but that
+    // doesn't work for downstream projects. Making them absolute also
+    // doesn't work.
+    //
+    // We can test if it works by running ninja twice, for example:
+    //
+    //     ninja -C xcodebuild/ReleaseX64 runtime_kernel -d explain
+    //     ninja -C xcodebuild/ReleaseX64 runtime_kernel -d explain
+    //
+    // The second time, ninja should say:
+    //
+    //     ninja: Entering directory `xcodebuild/ReleaseX64'
+    //     ninja: no work to do.
+    //
+    // It's broken if it says something like this:
+    //
+    //     ninja explain: expected depfile 'patched_sdk.d' to mention
+    //     'patched_sdk/platform.dill', got
+    //     '/.../xcodebuild/ReleaseX64/patched_sdk/platform.dill'
+    return Uri.parse(relativizeUri(uri, base: Uri.base)).toFilePath();
+  }
+
+  StringBuffer sb = new StringBuffer();
+  sb.write(toRelativeFilePath(output));
+  sb.write(":");
+  for (Uri uri in allDependencies) {
+    sb.write(" ");
+    sb.write(toRelativeFilePath(uri));
+  }
+  sb.writeln();
+  await new File.fromUri(depsFile).writeAsString("$sb");
 }
 
 /// Updates the contents of
 /// sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart to include
 /// declarations for vm internal libraries.
 String _updateLibraryMetadata(String sdkOut, String libContents) {
-  // Copy and patch libraries.dart and version
-  libContents = libContents.replaceAll(
-      ' libraries = const {',
-      ''' libraries = const {
-
+  if (!forVm && !forFlutter && !forRunner) return libContents;
+  var extraLibraries = new StringBuffer();
+  extraLibraries.write('''
   "_builtin": const LibraryInfo(
       "_builtin/_builtin.dart",
       categories: "Client,Server",
@@ -163,17 +268,59 @@ String _updateLibraryMetadata(String sdkOut, String libContents) {
 
   "_vmservice": const LibraryInfo(
       "vmservice/vmservice.dart",
+      categories: "Client,Server",
       implementation: true,
       documented: false,
       platforms: VM_PLATFORM),
 
   "vmservice_io": const LibraryInfo(
       "vmservice_io/vmservice_io.dart",
+      categories: "Client,Server",
       implementation: true,
       documented: false,
       platforms: VM_PLATFORM),
+  ''');
 
-''');
+  if (forFlutter) {
+    extraLibraries.write('''
+      "ui": const LibraryInfo(
+          "ui/ui.dart",
+          categories: "Client,Server",
+          implementation: true,
+          documented: false,
+          platforms: VM_PLATFORM),
+  ''');
+  }
+
+  if (forRunner) {
+    extraLibraries.write('''
+      "fuchsia.builtin": const LibraryInfo(
+          "fuchsia.builtin/builtin.dart",
+          categories: "Client,Server",
+          implementation: true,
+          documented: false,
+          platforms: VM_PLATFORM),
+  ''');
+    extraLibraries.write('''
+      "zircon": const LibraryInfo(
+          "zircon/zircon.dart",
+          categories: "Client,Server",
+          implementation: true,
+          documented: false,
+          platforms: VM_PLATFORM),
+  ''');
+    extraLibraries.write('''
+      "fuchsia": const LibraryInfo(
+          "fuchsia/fuchsia.dart",
+          categories: "Client,Server",
+          implementation: true,
+          documented: false,
+          platforms: VM_PLATFORM),
+  ''');
+  }
+
+  libContents = libContents.replaceAll(
+      ' libraries = const {', ' libraries = const { $extraLibraries');
   _writeSync(
       path.join(
           sdkOut, '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart'),
@@ -181,38 +328,95 @@ String _updateLibraryMetadata(String sdkOut, String libContents) {
   return libContents;
 }
 
-/// Copy internal libraries that are developed under 'runtime/bin/' to the
-/// patched_sdk folder.
-_copyExtraVmLibraries(String sdkOut) {
+/// Copy internal libraries that are developed outside the sdk folder into the
+/// patched_sdk folder. For the VM< this includes files under 'runtime/bin/',
+/// for flutter, this is includes also the ui library.
+_copyExtraLibraries(String sdkOut, Map<String, Map<String, String>> locations) {
   var base = path.fromUri(Platform.script);
   var dartDir = path.dirname(path.dirname(path.absolute(base)));
 
-  for (var tuple in [
-    ['_builtin', 'builtin.dart']
-  ]) {
-    var vmLibrary = tuple[0];
-    var dartFile = tuple[1];
-
-    // The "dart:_builtin" library is only available for the DartVM.
-    var builtinLibraryIn = path.join(dartDir, 'runtime', 'bin', dartFile);
-    var builtinLibraryOut = path.join(sdkOut, vmLibrary, '${vmLibrary}.dart');
-    _writeSync(builtinLibraryOut, readInputFile(builtinLibraryIn));
-  }
-
+  var builtinLibraryIn = path.join(dartDir, 'runtime', 'bin', 'builtin.dart');
+  var builtinLibraryOut = path.join(sdkOut, '_builtin', '_builtin.dart');
+  _writeSync(builtinLibraryOut, readInputFile(builtinLibraryIn));
+  addLocation(locations, '_builtin', path.join('_builtin', '_builtin.dart'));
   for (var file in ['loader.dart', 'server.dart', 'vmservice_io.dart']) {
     var libraryIn = path.join(dartDir, 'runtime', 'bin', 'vmservice', file);
     var libraryOut = path.join(sdkOut, 'vmservice_io', file);
     _writeSync(libraryOut, readInputFile(libraryIn));
   }
+  addLocation(locations, 'vmservice_io',
+      path.join('vmservice_io', 'vmservice_io.dart'));
+  addLocation(
+      locations, '_vmservice', path.join('vmservice', 'vmservice.dart'));
+
+  if (forFlutter) {
+    // Flutter repo has this layout:
+    //  engine/src/
+    //       third_party/dart/
+    //       [third_party/]flutter/
+    var srcDir = path
+        .dirname(path.dirname(path.dirname(path.dirname(path.absolute(base)))));
+    var flutterDir = new Directory(path.join(srcDir, 'flutter'));
+    if (!flutterDir.existsSync()) {
+      // In Fuchsia Flutter is under 'third_party'.
+      flutterDir = new Directory(path.join(srcDir, 'third_party', 'flutter'));
+    }
+    var uiLibraryInDir = new Directory(path.join(flutterDir.path, 'lib', 'ui'));
+    for (var file in uiLibraryInDir.listSync()) {
+      if (!file.path.endsWith('.dart')) continue;
+      var name = path.basename(file.path);
+      var uiLibraryOut = path.join(sdkOut, 'ui', name);
+      _writeSync(uiLibraryOut, readInputFile(file.path));
+    }
+    addLocation(locations, 'ui', path.join('ui', 'ui.dart'));
+  }
+
+  if (forRunner) {
+    var gnRoot = path
+        .dirname(path.dirname(path.dirname(path.dirname(path.absolute(base)))));
+
+    var builtinLibraryInDir = new Directory(
+        path.join(gnRoot, 'topaz', 'runtime', 'dart_runner', 'embedder'));
+    for (var file in builtinLibraryInDir.listSync()) {
+      if (!file.path.endsWith('.dart')) continue;
+      var name = path.basename(file.path);
+      var builtinLibraryOut = path.join(sdkOut, 'fuchsia.builtin', name);
+      _writeSync(builtinLibraryOut, readInputFile(file.path));
+    }
+    addLocation(locations, 'fuchsia.builtin',
+        path.join('fuchsia.builtin', 'builtin.dart'));
+
+    var zirconLibraryInDir = new Directory(
+        path.join(gnRoot, 'topaz', 'public', 'dart-pkg', 'zircon', 'lib'));
+    for (var file in zirconLibraryInDir.listSync(recursive: true)) {
+      if (!file.path.endsWith('.dart')) continue;
+      var name = file.path.substring(zirconLibraryInDir.path.length + 1);
+      var zirconLibraryOut = path.join(sdkOut, 'zircon', name);
+      _writeSync(zirconLibraryOut, readInputFile(file.path));
+    }
+    addLocation(locations, 'zircon', path.join('zircon', 'zircon.dart'));
+
+    var fuchsiaLibraryInDir = new Directory(
+        path.join(gnRoot, 'topaz', 'public', 'dart-pkg', 'fuchsia', 'lib'));
+    for (var file in fuchsiaLibraryInDir.listSync(recursive: true)) {
+      if (!file.path.endsWith('.dart')) continue;
+      var name = file.path.substring(fuchsiaLibraryInDir.path.length + 1);
+      var fuchsiaLibraryOut = path.join(sdkOut, 'fuchsia', name);
+      _writeSync(fuchsiaLibraryOut, readInputFile(file.path));
+    }
+    addLocation(locations, 'fuchsia', path.join('fuchsia', 'fuchsia.dart'));
+  }
 }
 
-_applyPatch(
-    SdkLibrary library, String sdkLibIn, String patchIn, String sdkOut) {
+_applyPatch(SdkLibrary library, String sdkLibIn, String patchIn, String sdkOut,
+    Map<String, Map<String, String>> locations) {
   var libraryOut = path.join(sdkLibIn, library.path);
   var libraryIn = libraryOut;
 
   var libraryFile = getInputFile(libraryIn, canBeMissing: true);
   if (libraryFile != null) {
+    addLocation(locations, Uri.parse(library.shortName).path,
+        path.relative(libraryOut, from: sdkLibIn));
     var outPaths = <String>[libraryOut];
     var libraryContents = libraryFile.readAsStringSync();
 
@@ -335,7 +539,6 @@ final String injectedCidFields = [
   'ImmutableArray',
   'OneByteString',
   'TwoByteString',
-  'Bigint'
 ].map((name) => "static final int cid${name} = 0;").join('\n');
 
 /// Merge `@patch` declarations into `external` declarations.
@@ -428,6 +631,7 @@ class PatchApplier extends GeneralizingAstVisitor {
     if (patchNode == null) {
       if (externalKeyword != null) {
         print('warning: patch not found for $name: $node');
+        exitCode = 1;
       }
       return;
     }
@@ -613,7 +817,13 @@ class _StringEdit implements Comparable<_StringEdit> {
 }
 
 List<SdkLibrary> _getSdkLibraries(String contents) {
-  var libraryBuilder = new SdkLibrariesReader_LibraryBuilder(true);
+  var libraryBuilder = new SdkLibrariesReader_LibraryBuilder(false);
   parseCompilationUnit(contents).accept(libraryBuilder);
   return libraryBuilder.librariesMap.sdkLibraries;
+}
+
+void addLocation(Map<String, Map<String, String>> locations, String libraryName,
+    String libraryPath) {
+  assert(locations[libraryName] == null);
+  locations[libraryName] = {'uri': '${path.toUri(libraryPath)}'};
 }

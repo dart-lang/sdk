@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library utils;
-
+import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
 
+import 'configuration.dart';
 import 'path.dart';
 
 // This is the maximum time we expect stdout/stderr of subprocesses to deliver
@@ -18,6 +18,19 @@ String MAX_STDIO_DELAY_PASSED_MESSAGE =
  ($MAX_STDIO_DELAY passed). Please note that this could be an indicator
  that there is a hanging process which we were unable to kill.""";
 
+/// The names of the packages that are available for use in tests.
+const testPackages = const [
+  "async_helper",
+  "collection",
+  "expect",
+  "js",
+  "matcher",
+  "meta",
+  "path",
+  "stack_trace",
+  "unittest"
+];
+
 class DebugLogger {
   static IOSink _sink;
 
@@ -26,7 +39,7 @@ class DebugLogger {
    */
   static void init(Path path, {bool append: false}) {
     if (path != null) {
-      var mode = append ? FileMode.APPEND : FileMode.WRITE;
+      var mode = append ? FileMode.append : FileMode.write;
       _sink = new File(path.toNativePath()).openWrite(mode: mode);
     }
   }
@@ -168,67 +181,55 @@ int findBytes(List<int> data, List<int> pattern, [int startPos = 0]) {
 }
 
 List<int> encodeUtf8(String string) {
-  return UTF8.encode(string);
+  return utf8.encode(string);
 }
 
 // TODO(kustermann,ricow): As soon we have a debug log we should log
 // invalid utf8-encoded input to the log.
 // Currently invalid bytes will be replaced by a replacement character.
 String decodeUtf8(List<int> bytes) {
-  return UTF8.decode(bytes, allowMalformed: true);
+  return utf8.decode(bytes, allowMalformed: true);
 }
 
-class Locations {
-  static String getBrowserLocation(
-      String browserName, Map<String, String> globalConfiguration) {
-    var location = globalConfiguration[browserName];
-    if (location != null && location != '') {
-      return location;
-    }
-    var browserLocations = {
-      'firefox': const {
-        'windows': 'C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe',
-        'linux': 'firefox',
-        'macos': '/Applications/Firefox.app/Contents/MacOS/firefox'
-      },
-      'chrome': const {
-        'windows':
-            'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-        'macos': '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-        'linux': 'google-chrome'
-      },
-      'dartium': const {
-        'windows': 'client\\tests\\dartium\\chrome.exe',
-        'macos': 'client/tests/dartium/Chromium.app/Contents/MacOS/Chromium',
-        'linux': 'client/tests/dartium/chrome'
-      },
-      'safari': const {
-        'macos': '/Applications/Safari.app/Contents/MacOS/Safari'
-      },
-      'safarimobilesim': const {
-        'macos': '/Applications/Xcode.app/Contents/Developer/Platforms/'
-            'iPhoneSimulator.platform/Developer/Applications/'
-            'iPhone Simulator.app/Contents/MacOS/iPhone Simulator'
-      },
-      'ie9': const {
-        'windows': 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
-      },
-      'ie10': const {
-        'windows': 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
-      },
-      'ie11': const {
-        'windows': 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
-      }
-    };
-    browserLocations['ff'] = browserLocations['firefox'];
+/// Given a chunk of UTF-8 output, splits it into lines, normalizes carriage
+/// returns, and deletes and trailing and leading whitespace.
+List<String> decodeLines(List<int> output) {
+  return decodeUtf8(output)
+      .replaceAll('\r\n', '\n')
+      .replaceAll('\r', '\n')
+      .trim()
+      .split('\n');
+}
 
-    assert(browserLocations[browserName] != null);
-    location = browserLocations[browserName][Platform.operatingSystem];
-    if (location != null) {
-      return location;
-    } else {
-      throw '$browserName not supported on ${Platform.operatingSystem}';
-    }
+String indent(String string, int numSpaces) {
+  var spaces = new List.filled(numSpaces, ' ').join('');
+  return string
+      .replaceAll('\r\n', '\n')
+      .split('\n')
+      .map((line) => "$spaces$line")
+      .join('\n');
+}
+
+/// Convert [duration] to a short but precise human-friendly string.
+String niceTime(Duration duration) {
+  String digits(int count, int n, int period) {
+    n = n.remainder(period).toInt();
+    return n.toString().padLeft(count, "0");
+  }
+
+  var minutes = digits(2, duration.inMinutes, Duration.minutesPerHour);
+  var seconds = digits(2, duration.inSeconds, Duration.secondsPerMinute);
+  var millis =
+      digits(6, duration.inMilliseconds, Duration.millisecondsPerSecond);
+
+  if (duration.inHours >= 1) {
+    return "${duration.inHours}:${minutes}:${seconds}s";
+  } else if (duration.inMinutes >= 1) {
+    return "${minutes}:${seconds}.${millis}s";
+  } else if (duration.inSeconds >= 1) {
+    return "${seconds}.${millis}s";
+  } else {
+    return "${duration.inMilliseconds}ms";
   }
 }
 
@@ -310,4 +311,256 @@ class UniqueObject {
       other is UniqueObject && _hashCode == other._hashCode;
 
   UniqueObject() : _hashCode = ++_nextId;
+}
+
+class LastModifiedCache {
+  Map<String, DateTime> _cache = <String, DateTime>{};
+
+  /**
+   * Returns the last modified date of the given [uri].
+   *
+   * The return value will be cached for future queries. If [uri] is a local
+   * file, it's last modified [Date] will be returned. If the file does not
+   * exist, null will be returned instead.
+   * In case [uri] is not a local file, this method will always return
+   * the current date.
+   */
+  DateTime getLastModified(Uri uri) {
+    if (uri.scheme == "file") {
+      if (_cache.containsKey(uri.path)) {
+        return _cache[uri.path];
+      }
+      var file = new File(new Path(uri.path).toNativePath());
+      _cache[uri.path] = file.existsSync() ? file.lastModifiedSync() : null;
+      return _cache[uri.path];
+    }
+    return new DateTime.now();
+  }
+}
+
+class ExistsCache {
+  Map<String, bool> _cache = <String, bool>{};
+
+  /**
+   * Returns true if the file in [path] exists, false otherwise.
+   *
+   * The information will be cached.
+   */
+  bool doesFileExist(String path) {
+    if (!_cache.containsKey(path)) {
+      _cache[path] = new File(path).existsSync();
+    }
+    return _cache[path];
+  }
+}
+
+class TestUtils {
+  static LastModifiedCache lastModifiedCache = new LastModifiedCache();
+  static ExistsCache existsCache = new ExistsCache();
+
+  /**
+   * Creates a directory using a [relativePath] to an existing
+   * [base] directory if that [relativePath] does not already exist.
+   */
+  static Directory mkdirRecursive(Path base, Path relativePath) {
+    if (relativePath.isAbsolute) {
+      base = new Path('/');
+    }
+    Directory dir = new Directory(base.toNativePath());
+    assert(dir.existsSync());
+    var segments = relativePath.segments();
+    for (String segment in segments) {
+      base = base.append(segment);
+      if (base.toString() == "/$segment" &&
+          segment.length == 2 &&
+          segment.endsWith(':')) {
+        // Skip the directory creation for a path like "/E:".
+        continue;
+      }
+      dir = new Directory(base.toNativePath());
+      if (!dir.existsSync()) {
+        dir.createSync();
+      }
+      assert(dir.existsSync());
+    }
+    return dir;
+  }
+
+  /**
+   * Keep a map of files copied to avoid race conditions.
+   */
+  static Map<String, Future> _copyFilesMap = {};
+
+  /**
+   * Copy a [source] file to a new place.
+   * Assumes that the directory for [dest] already exists.
+   */
+  static Future copyFile(Path source, Path dest) {
+    return _copyFilesMap.putIfAbsent(dest.toNativePath(),
+        () => new File(source.toNativePath()).copy(dest.toNativePath()));
+  }
+
+  static Future copyDirectory(String source, String dest) {
+    source = new Path(source).toNativePath();
+    dest = new Path(dest).toNativePath();
+
+    var executable = 'cp';
+    var args = ['-Rp', source, dest];
+    if (Platform.operatingSystem == 'windows') {
+      executable = 'xcopy';
+      args = [source, dest, '/e', '/i'];
+    }
+    return Process.run(executable, args).then((ProcessResult result) {
+      if (result.exitCode != 0) {
+        throw new Exception("Failed to execute '$executable "
+            "${args.join(' ')}'.");
+      }
+    });
+  }
+
+  static Future deleteDirectory(String path) {
+    // We are seeing issues with long path names on windows when
+    // deleting them. Use the system tools to delete our long paths.
+    // See issue 16264.
+    if (Platform.operatingSystem == 'windows') {
+      var native_path = new Path(path).toNativePath();
+      // Running this in a shell sucks, but rmdir is not part of the standard
+      // path.
+      return Process
+          .run('rmdir', ['/s', '/q', native_path], runInShell: true)
+          .then((ProcessResult result) {
+        if (result.exitCode != 0) {
+          throw new Exception('Can\'t delete path $native_path. '
+              'This path might be too long');
+        }
+      });
+    } else {
+      var dir = new Directory(path);
+      return dir.delete(recursive: true);
+    }
+  }
+
+  static void deleteTempSnapshotDirectory(Configuration configuration) {
+    if (configuration.compiler == Compiler.appJit ||
+        configuration.compiler == Compiler.precompiler ||
+        configuration.compiler == Compiler.dartk ||
+        configuration.compiler == Compiler.dartkp) {
+      var checked = configuration.isChecked ? '-checked' : '';
+      var legacy = configuration.noPreviewDart2 ? '-legacy' : '';
+      var minified = configuration.isMinified ? '-minified' : '';
+      var csp = configuration.isCsp ? '-csp' : '';
+      var sdk = configuration.useSdk ? '-sdk' : '';
+      var dirName = "${configuration.compiler.name}"
+          "$checked$legacy$minified$csp$sdk";
+      var generatedPath =
+          configuration.buildDirectory + "/generated_compilations/$dirName";
+      if (FileSystemEntity.isDirectorySync(generatedPath)) {
+        TestUtils.deleteDirectory(generatedPath);
+      }
+    }
+  }
+
+  static final debugLogFilePath = new Path(".debug.log");
+
+  /// If a flaky test failed, information about it (test name, stdin, stdout)
+  /// is written to this file.
+  ///
+  /// This is useful for debugging flaky tests. When running on a buildbot, the
+  /// file can be made visible in the waterfall UI.
+  static const flakyFileName = ".flaky.log";
+
+  /// If test.py was invoked with '--write-test-outcome-log it will write
+  /// test outcomes to this file.
+  static const testOutcomeFileName = ".test-outcome.log";
+
+  /// If test.py was invoked with '--write-result-log it will write
+  /// test outcomes to this file in the '--output-directory'.
+  static const resultLogFileName = "result.log";
+
+  static void ensureExists(String filename, Configuration configuration) {
+    if (!configuration.listTests && !existsCache.doesFileExist(filename)) {
+      throw "'$filename' does not exist";
+    }
+  }
+
+  static int shortNameCounter = 0; // Make unique short file names on Windows.
+
+  static String getShortName(String path) {
+    const pathReplacements = const {
+      "tests_co19_src_Language_12_Expressions_14_Function_Invocation_":
+          "co19_fn_invoke_",
+      "tests_co19_src_LayoutTests_fast_css_getComputedStyle_getComputedStyle-":
+          "co19_css_getComputedStyle_",
+      "tests_co19_src_LayoutTests_fast_dom_Document_CaretRangeFromPoint_"
+          "caretRangeFromPoint-": "co19_caretrangefrompoint_",
+      "tests_co19_src_LayoutTests_fast_dom_Document_CaretRangeFromPoint_"
+          "hittest-relative-to-viewport_": "co19_caretrange_hittest_",
+      "tests_co19_src_LayoutTests_fast_dom_HTMLLinkElement_link-onerror-"
+          "stylesheet-with-": "co19_dom_link-",
+      "tests_co19_src_LayoutTests_fast_dom_": "co19_dom",
+      "tests_co19_src_LayoutTests_fast_canvas_webgl": "co19_canvas_webgl",
+      "tests_co19_src_LibTest_core_AbstractClassInstantiationError_"
+          "AbstractClassInstantiationError_": "co19_abstract_class_",
+      "tests_co19_src_LibTest_core_IntegerDivisionByZeroException_"
+          "IntegerDivisionByZeroException_": "co19_division_by_zero",
+      "tests_co19_src_WebPlatformTest_html_dom_documents_dom-tree-accessors_":
+          "co19_dom_accessors_",
+      "tests_co19_src_WebPlatformTest_html_semantics_embedded-content_"
+          "media-elements_": "co19_media_elements",
+      "tests_co19_src_WebPlatformTest_html_semantics_": "co19_semantics_",
+      "tests_co19_src_WebPlatformTest_html-templates_additions-to-"
+          "the-steps-to-clone-a-node_": "co19_htmltemplates_clone_",
+      "tests_co19_src_WebPlatformTest_html-templates_definitions_"
+          "template-contents-owner": "co19_htmltemplates_contents",
+      "tests_co19_src_WebPlatformTest_html-templates_parsing-html-"
+          "templates_additions-to-": "co19_htmltemplates_add_",
+      "tests_co19_src_WebPlatformTest_html-templates_parsing-html-"
+          "templates_appending-to-a-template_": "co19_htmltemplates_append_",
+      "tests_co19_src_WebPlatformTest_html-templates_parsing-html-"
+          "templates_clearing-the-stack-back-to-a-given-context_":
+          "co19_htmltemplates_clearstack_",
+      "tests_co19_src_WebPlatformTest_html-templates_parsing-html-"
+          "templates_creating-an-element-for-the-token_":
+          "co19_htmltemplates_create_",
+      "tests_co19_src_WebPlatformTest_html-templates_template-element"
+          "_template-": "co19_htmltemplates_element-",
+      "tests_co19_src_WebPlatformTest_html-templates_": "co19_htmltemplate_",
+      "tests_co19_src_WebPlatformTest_shadow-dom_shadow-trees_":
+          "co19_shadow-trees_",
+      "tests_co19_src_WebPlatformTest_shadow-dom_elements-and-dom-objects_":
+          "co19_shadowdom_",
+      "tests_co19_src_WebPlatformTest_shadow-dom_html-elements-in-"
+          "shadow-trees_": "co19_shadow_html_",
+      "tests_co19_src_WebPlatformTest_html_webappapis_system-state-and-"
+          "capabilities_the-navigator-object": "co19_webappapis_navigator_",
+      "tests_co19_src_WebPlatformTest_DOMEvents_approved_": "co19_dom_approved_"
+    };
+
+    // Some tests are already in [build_dir]/generated_tests.
+    var generated = 'generated_tests/';
+    if (path.contains(generated)) {
+      var index = path.indexOf(generated) + generated.length;
+      path = 'multitest/${path.substring(index)}';
+    }
+
+    path = path.replaceAll('/', '_');
+    var windowsShortenPathLimit = 58;
+    var windowsPathEndLength = 30;
+    if (Platform.operatingSystem == 'windows' &&
+        path.length > windowsShortenPathLimit) {
+      for (var key in pathReplacements.keys) {
+        if (path.startsWith(key)) {
+          path = path.replaceFirst(key, pathReplacements[key]);
+          break;
+        }
+      }
+
+      if (path.length > windowsShortenPathLimit) {
+        shortNameCounter++;
+        var pathEnd = path.substring(path.length - windowsPathEndLength);
+        path = "short${shortNameCounter}_$pathEnd";
+      }
+    }
+    return path;
+  }
 }

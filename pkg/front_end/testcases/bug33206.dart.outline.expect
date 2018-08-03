@@ -1,0 +1,29 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+class X extends core::Object {
+  final field dynamic x;
+  final field dynamic y;
+  constructor •(dynamic x, dynamic y) → void
+    ;
+  method toString() → dynamic
+    ;
+}
+class Y extends core::Object {
+  synthetic constructor •() → void
+    ;
+  method f(dynamic _) → dynamic
+    ;
+}
+static method f1() → asy::Future<core::List<core::Object>>
+  ;
+static method f2() → core::List<core::Object>
+  ;
+static method f3() → asy::Future<core::Object>
+  ;
+static method foo() → asy::Future<self::X>
+  ;
+static method main() → asy::Future<void>
+  ;

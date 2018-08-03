@@ -22,7 +22,6 @@ int SourceLabel::FunctionLevel() const {
   return owner()->function_level();
 }
 
-
 LocalScope::LocalScope(LocalScope* parent, int function_level, int loop_level)
     : parent_(parent),
       child_(NULL),
@@ -45,7 +44,6 @@ LocalScope::LocalScope(LocalScope* parent, int function_level, int loop_level)
   }
 }
 
-
 bool LocalScope::IsNestedWithin(LocalScope* scope) const {
   const LocalScope* current_scope = this;
   while (current_scope != NULL) {
@@ -56,7 +54,6 @@ bool LocalScope::IsNestedWithin(LocalScope* scope) const {
   }
   return false;
 }
-
 
 bool LocalScope::AddVariable(LocalVariable* variable) {
   ASSERT(variable != NULL);
@@ -72,7 +69,6 @@ bool LocalScope::AddVariable(LocalVariable* variable) {
   return true;
 }
 
-
 bool LocalScope::InsertParameterAt(intptr_t pos, LocalVariable* parameter) {
   ASSERT(parameter != NULL);
   if (LocalLookupVariable(parameter->name()) != NULL) {
@@ -84,7 +80,6 @@ bool LocalScope::InsertParameterAt(intptr_t pos, LocalVariable* parameter) {
   parameter->set_owner(this);
   return true;
 }
-
 
 bool LocalScope::AddLabel(SourceLabel* label) {
   if (LocalLookupLabel(label->name()) != NULL) {
@@ -99,14 +94,12 @@ bool LocalScope::AddLabel(SourceLabel* label) {
   return true;
 }
 
-
 void LocalScope::MoveLabel(SourceLabel* label) {
   ASSERT(LocalLookupLabel(label->name()) == NULL);
   ASSERT(label->kind() == SourceLabel::kForward);
   labels_.Add(label);
   label->set_owner(this);
 }
-
 
 NameReference* LocalScope::FindReference(const String& name) const {
   ASSERT(name.IsSymbol());
@@ -118,7 +111,6 @@ NameReference* LocalScope::FindReference(const String& name) const {
   }
   return NULL;
 }
-
 
 void LocalScope::AddReferencedName(TokenPosition token_pos,
                                    const String& name) {
@@ -141,7 +133,6 @@ void LocalScope::AddReferencedName(TokenPosition token_pos,
   }
 }
 
-
 TokenPosition LocalScope::PreviousReferencePos(const String& name) const {
   NameReference* ref = FindReference(name);
   if (ref != NULL) {
@@ -149,7 +140,6 @@ TokenPosition LocalScope::PreviousReferencePos(const String& name) const {
   }
   return TokenPosition::kNoSource;
 }
-
 
 void LocalScope::AllocateContextVariable(LocalVariable* variable,
                                          LocalScope** context_owner) {
@@ -188,15 +178,15 @@ void LocalScope::AllocateContextVariable(LocalVariable* variable,
       ASSERT(context_level() == (*context_owner)->context_level());
     }
   }
-  variable->set_index((*context_owner)->num_context_variables_++);
+  variable->set_index(
+      VariableIndex((*context_owner)->num_context_variables_++));
 }
 
-
-int LocalScope::AllocateVariables(int first_parameter_index,
-                                  int num_parameters,
-                                  int first_frame_index,
-                                  LocalScope* context_owner,
-                                  bool* found_captured_variables) {
+VariableIndex LocalScope::AllocateVariables(VariableIndex first_parameter_index,
+                                            int num_parameters,
+                                            VariableIndex first_local_index,
+                                            LocalScope* context_owner,
+                                            bool* found_captured_variables) {
   // We should not allocate variables of nested functions while compiling an
   // enclosing function.
   ASSERT(function_level() == 0);
@@ -204,7 +194,8 @@ int LocalScope::AllocateVariables(int first_parameter_index,
   // Parameters must be listed first and must all appear in the top scope.
   ASSERT(num_parameters <= num_variables());
   int pos = 0;                              // Current variable position.
-  int frame_index = first_parameter_index;  // Current free frame index.
+  VariableIndex next_index =
+      first_parameter_index;  // Current free frame index.
   while (pos < num_parameters) {
     LocalVariable* parameter = VariableAt(pos);
     pos++;
@@ -217,45 +208,49 @@ int LocalScope::AllocateVariables(int first_parameter_index,
       // A captured parameter has a slot allocated in the frame and one in the
       // context, where it gets copied to. The parameter index reflects the
       // context allocation index.
-      frame_index--;
+      next_index = VariableIndex(next_index.value() - 1);
       AllocateContextVariable(parameter, &context_owner);
       *found_captured_variables = true;
     } else {
-      parameter->set_index(frame_index--);
+      parameter->set_index(next_index);
+      next_index = VariableIndex(next_index.value() - 1);
     }
   }
   // No overlapping of parameters and locals.
-  ASSERT(frame_index >= first_frame_index);
-  frame_index = first_frame_index;
+  ASSERT(next_index.value() >= first_local_index.value());
+  next_index = first_local_index;
   while (pos < num_variables()) {
     LocalVariable* variable = VariableAt(pos);
-    pos++;
     if (variable->owner() == this) {
       if (variable->is_captured()) {
         AllocateContextVariable(variable, &context_owner);
         *found_captured_variables = true;
       } else {
-        variable->set_index(frame_index--);
+        variable->set_index(next_index);
+        next_index = VariableIndex(next_index.value() - 1);
       }
     }
+    pos++;
   }
   // Allocate variables of all children.
-  int min_frame_index = frame_index;  // Frame index decreases with allocations.
+  VariableIndex min_index = next_index;
   LocalScope* child = this->child();
   while (child != NULL) {
-    int const dummy_parameter_index = 0;    // Ignored, since no parameters.
-    int const num_parameters_in_child = 0;  // No parameters in children scopes.
-    int child_frame_index = child->AllocateVariables(
-        dummy_parameter_index, num_parameters_in_child, frame_index,
+    // Ignored, since no parameters.
+    const VariableIndex dummy_parameter_index(0);
+
+    // No parameters in children scopes.
+    const int num_parameters_in_child = 0;
+    VariableIndex child_next_index = child->AllocateVariables(
+        dummy_parameter_index, num_parameters_in_child, next_index,
         context_owner, found_captured_variables);
-    if (child_frame_index < min_frame_index) {
-      min_frame_index = child_frame_index;
+    if (child_next_index.value() < min_index.value()) {
+      min_index = child_next_index;
     }
     child = child->sibling();
   }
-  return min_frame_index;
+  return min_index;
 }
-
 
 // The parser creates internal variables that start with ":"
 static bool IsFilteredIdentifier(const String& str) {
@@ -280,12 +275,49 @@ static bool IsFilteredIdentifier(const String& str) {
     // Keep :async_stack_trace for asynchronous debugging.
     return false;
   }
+  if (str.raw() == Symbols::FunctionTypeArgumentsVar().raw()) {
+    // Keep :function_type_arguments for accessing type variables in debugging.
+    return false;
+  }
   return str.CharAt(0) == ':';
 }
 
-
-RawLocalVarDescriptors* LocalScope::GetVarDescriptors(const Function& func) {
+RawLocalVarDescriptors* LocalScope::GetVarDescriptors(
+    const Function& func,
+    ZoneGrowableArray<intptr_t>* context_level_array) {
   GrowableArray<VarDesc> vars(8);
+
+  // Record deopt-id -> context-level mappings, using ranges of deopt-ids with
+  // the same context-level. [context_level_array] contains (deopt_id,
+  // context_level) tuples.
+  for (intptr_t start = 0; start < context_level_array->length();) {
+    intptr_t start_deopt_id = (*context_level_array)[start];
+    intptr_t start_context_level = (*context_level_array)[start + 1];
+    intptr_t end = start;
+    intptr_t end_deopt_id = start_deopt_id;
+    for (intptr_t peek = start + 2; peek < context_level_array->length();
+         peek += 2) {
+      intptr_t peek_deopt_id = (*context_level_array)[peek];
+      intptr_t peek_context_level = (*context_level_array)[peek + 1];
+      // The range encoding assumes the tuples have ascending deopt_ids.
+      ASSERT(peek_deopt_id > end_deopt_id);
+      if (peek_context_level != start_context_level) break;
+      end = peek;
+      end_deopt_id = peek_deopt_id;
+    }
+
+    VarDesc desc;
+    desc.name = &Symbols::Empty();  // No name.
+    desc.info.set_kind(RawLocalVarDescriptors::kContextLevel);
+    desc.info.scope_id = 0;
+    desc.info.begin_pos = TokenPosition(start_deopt_id);
+    desc.info.end_pos = TokenPosition(end_deopt_id);
+    desc.info.set_index(start_context_level);
+    vars.Add(desc);
+
+    start = end + 2;
+  }
+
   // First enter all variables from scopes of outer functions.
   const ContextScope& context_scope =
       ContextScope::Handle(func.context_scope());
@@ -327,22 +359,11 @@ RawLocalVarDescriptors* LocalScope::GetVarDescriptors(const Function& func) {
   return var_desc.raw();
 }
 
-
 // Add visible variables that are declared in this scope to vars, then
 // collect visible variables of children, followed by siblings.
 void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
                                        int16_t* scope_id) {
   (*scope_id)++;
-  if (num_context_variables() > 0) {
-    VarDesc desc;
-    desc.name = &Symbols::Empty();  // No name.
-    desc.info.set_kind(RawLocalVarDescriptors::kContextLevel);
-    desc.info.scope_id = *scope_id;
-    desc.info.begin_pos = begin_token_pos();
-    desc.info.end_pos = end_token_pos();
-    desc.info.set_index(context_level());
-    vars->Add(desc);
-  }
   for (int i = 0; i < this->variables_.length(); i++) {
     LocalVariable* var = variables_[i];
     if ((var->owner() == this) && !var->is_invisible()) {
@@ -356,7 +377,7 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
         desc.info.declaration_pos = TokenPosition::kMinSource;
         desc.info.begin_pos = TokenPosition::kMinSource;
         desc.info.end_pos = TokenPosition::kMinSource;
-        desc.info.set_index(var->index());
+        desc.info.set_index(var->index().value());
         vars->Add(desc);
       } else if (!IsFilteredIdentifier(var->name())) {
         // This is a regular Dart variable, either stack-based or captured.
@@ -371,10 +392,10 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
           desc.info.set_kind(RawLocalVarDescriptors::kStackVar);
           desc.info.scope_id = *scope_id;
         }
+        desc.info.set_index(var->index().value());
         desc.info.declaration_pos = var->declaration_token_pos();
         desc.info.begin_pos = var->token_pos();
         desc.info.end_pos = var->owner()->end_token_pos();
-        desc.info.set_index(var->index());
         vars->Add(desc);
       }
     }
@@ -385,7 +406,6 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
     child = child->sibling();
   }
 }
-
 
 SourceLabel* LocalScope::LocalLookupLabel(const String& name) const {
   ASSERT(name.IsSymbol());
@@ -398,7 +418,6 @@ SourceLabel* LocalScope::LocalLookupLabel(const String& name) const {
   return NULL;
 }
 
-
 LocalVariable* LocalScope::LocalLookupVariable(const String& name) const {
   ASSERT(name.IsSymbol());
   for (intptr_t i = 0; i < variables_.length(); i++) {
@@ -410,7 +429,6 @@ LocalVariable* LocalScope::LocalLookupVariable(const String& name) const {
   }
   return NULL;
 }
-
 
 LocalVariable* LocalScope::LookupVariable(const String& name, bool test_only) {
   LocalScope* current_scope = this;
@@ -428,9 +446,9 @@ LocalVariable* LocalScope::LookupVariable(const String& name, bool test_only) {
   return NULL;
 }
 
-
 void LocalScope::CaptureVariable(LocalVariable* variable) {
   ASSERT(variable != NULL);
+
   // The variable must exist in an enclosing scope, not necessarily in this one.
   variable->set_is_captured();
   const int variable_function_level = variable->owner()->function_level();
@@ -454,7 +472,6 @@ void LocalScope::CaptureVariable(LocalVariable* variable) {
   }
 }
 
-
 SourceLabel* LocalScope::LookupLabel(const String& name) {
   LocalScope* current_scope = this;
   while (current_scope != NULL) {
@@ -466,7 +483,6 @@ SourceLabel* LocalScope::LookupLabel(const String& name) {
   }
   return NULL;
 }
-
 
 SourceLabel* LocalScope::LookupInnermostLabel(Token::Kind jump_kind) {
   ASSERT((jump_kind == Token::kCONTINUE) || (jump_kind == Token::kBREAK));
@@ -487,7 +503,6 @@ SourceLabel* LocalScope::LookupInnermostLabel(Token::Kind jump_kind) {
   return NULL;
 }
 
-
 LocalScope* LocalScope::LookupSwitchScope() {
   LocalScope* current_scope = this->parent();
   int this_level = this->function_level();
@@ -507,7 +522,6 @@ LocalScope* LocalScope::LookupSwitchScope() {
   return NULL;
 }
 
-
 SourceLabel* LocalScope::CheckUnresolvedLabels() {
   for (int i = 0; i < this->labels_.length(); i++) {
     SourceLabel* label = this->labels_[i];
@@ -522,7 +536,6 @@ SourceLabel* LocalScope::CheckUnresolvedLabels() {
   }
   return NULL;
 }
-
 
 int LocalScope::NumCapturedVariables() const {
   // It is not necessary to traverse parent scopes, since we are only interested
@@ -547,7 +560,6 @@ int LocalScope::NumCapturedVariables() const {
   }
   return num_captured;
 }
-
 
 RawContextScope* LocalScope::PreserveOuterScope(
     int current_context_level) const {
@@ -580,7 +592,7 @@ RawContextScope* LocalScope::PreserveOuterScope(
       } else {
         context_scope.SetTypeAt(captured_idx, variable->type());
       }
-      context_scope.SetContextIndexAt(captured_idx, variable->index());
+      context_scope.SetContextIndexAt(captured_idx, variable->index().value());
       // Adjust the context level relative to the current context level,
       // since the context of the current scope will be at level 0 when
       // compiling the nested function.
@@ -593,7 +605,6 @@ RawContextScope* LocalScope::PreserveOuterScope(
   ASSERT(context_scope.num_variables() == captured_idx);  // Verify count.
   return context_scope.raw();
 }
-
 
 LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
   // The function level of the outer scope is one less than the function level
@@ -617,7 +628,7 @@ LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
                             AbstractType::ZoneHandle(context_scope.TypeAt(i)));
     }
     variable->set_is_captured();
-    variable->set_index(context_scope.ContextIndexAt(i));
+    variable->set_index(VariableIndex(context_scope.ContextIndexAt(i)));
     if (context_scope.IsFinalAt(i)) {
       variable->set_is_final();
     }
@@ -633,7 +644,6 @@ LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
   return outer_scope;
 }
 
-
 void LocalScope::CaptureLocalVariables(LocalScope* top_scope) {
   ASSERT(top_scope->function_level() == function_level());
   LocalScope* scope = this;
@@ -643,7 +653,10 @@ void LocalScope::CaptureLocalVariables(LocalScope* top_scope) {
       if (variable->is_forced_stack() ||
           (variable->name().raw() == Symbols::StackTraceVar().raw()) ||
           (variable->name().raw() == Symbols::ExceptionVar().raw()) ||
-          (variable->name().raw() == Symbols::SavedTryContextVar().raw())) {
+          (variable->name().raw() == Symbols::SavedTryContextVar().raw()) ||
+          (variable->name().raw() == Symbols::ArgDescVar().raw()) ||
+          (variable->name().raw() ==
+           Symbols::FunctionTypeArgumentsVar().raw())) {
         // Don't capture those variables because the VM expects them to be on
         // the stack.
         continue;
@@ -653,7 +666,6 @@ void LocalScope::CaptureLocalVariables(LocalScope* top_scope) {
     scope = scope->parent();
   }
 }
-
 
 RawContextScope* LocalScope::CreateImplicitClosureScope(const Function& func) {
   static const intptr_t kNumCapturedVars = 1;
@@ -676,7 +688,6 @@ RawContextScope* LocalScope::CreateImplicitClosureScope(const Function& func) {
   return context_scope.raw();
 }
 
-
 bool LocalVariable::Equals(const LocalVariable& other) const {
   if (HasIndex() && other.HasIndex() && (index() == other.index())) {
     if (is_captured() == other.is_captured()) {
@@ -690,22 +701,5 @@ bool LocalVariable::Equals(const LocalVariable& other) const {
   }
   return false;
 }
-
-
-int LocalVariable::BitIndexIn(intptr_t fixed_parameter_count) const {
-  ASSERT(!is_captured());
-  // Parameters have positive indexes with the lowest index being
-  // kParamEndSlotFromFp + 1.  Locals and copied parameters have negative
-  // indexes with the lowest (closest to 0) index being kFirstLocalSlotFromFp.
-  if (index() > 0) {
-    // Shift non-negative indexes so that the lowest one is 0.
-    return fixed_parameter_count - (index() - kParamEndSlotFromFp);
-  } else {
-    // Shift negative indexes so that the lowest one is 0 (they are still
-    // non-positive).
-    return fixed_parameter_count - (index() - kFirstLocalSlotFromFp);
-  }
-}
-
 
 }  // namespace dart

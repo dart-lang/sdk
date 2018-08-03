@@ -126,12 +126,6 @@ class KeywordState {
  */
 abstract class Scanner {
   /**
-   * A flag indicating whether the [Scanner] factory method
-   * will return a fasta based scanner or an analyzer based scanner.
-   */
-  static bool useFasta = false;
-
-  /**
    * The reader used to access the characters in the source.
    */
   final CharacterReader _reader;
@@ -209,8 +203,7 @@ abstract class Scanner {
    * character [_reader].
    */
   Scanner.create(this._reader) {
-    _tokens = new Token(TokenType.EOF, -1);
-    _tokens.setNext(_tokens);
+    _tokens = new Token.eof(-1);
     _tail = _tokens;
     _tokenStart = -1;
     _lineStarts.add(0);
@@ -490,7 +483,7 @@ abstract class Scanner {
     if (_firstComment == null) {
       token = new BeginToken(type, _tokenStart);
     } else {
-      token = new BeginTokenWithComment(type, _tokenStart, _firstComment);
+      token = new BeginToken(type, _tokenStart, _firstComment);
       _firstComment = null;
       _lastComment = null;
     }
@@ -528,7 +521,7 @@ abstract class Scanner {
     if (_firstComment == null) {
       token = new Token(type, _tokenStart);
     } else {
-      token = new TokenWithComment(type, _tokenStart, _firstComment);
+      token = new Token(type, _tokenStart, _firstComment);
       _firstComment = null;
       _lastComment = null;
     }
@@ -545,10 +538,9 @@ abstract class Scanner {
   void _appendEofToken() {
     Token eofToken;
     if (_firstComment == null) {
-      eofToken = new Token(TokenType.EOF, _reader.offset + 1);
+      eofToken = new Token.eof(_reader.offset + 1);
     } else {
-      eofToken = new TokenWithComment(
-          TokenType.EOF, _reader.offset + 1, _firstComment);
+      eofToken = new Token.eof(_reader.offset + 1, _firstComment);
       _firstComment = null;
       _lastComment = null;
     }
@@ -558,7 +550,7 @@ abstract class Scanner {
     _tail = _tail.setNext(eofToken);
     if (_stackEnd >= 0) {
       _hasUnmatchedGroups = true;
-      // TODO(brianwilkerson) Fix the ungrouped tokens?
+      // TODO(brianwilkerson): Fix the ungrouped tokens?
     }
   }
 
@@ -566,8 +558,8 @@ abstract class Scanner {
     if (_firstComment == null) {
       _tail = _tail.setNext(new KeywordToken(keyword, _tokenStart));
     } else {
-      _tail = _tail.setNext(
-          new KeywordTokenWithComment(keyword, _tokenStart, _firstComment));
+      _tail =
+          _tail.setNext(new KeywordToken(keyword, _tokenStart, _firstComment));
       _firstComment = null;
       _lastComment = null;
     }
@@ -577,8 +569,8 @@ abstract class Scanner {
     if (_firstComment == null) {
       _tail = _tail.setNext(new StringToken(type, value, _tokenStart));
     } else {
-      _tail = _tail.setNext(
-          new StringTokenWithComment(type, value, _tokenStart, _firstComment));
+      _tail = _tail
+          .setNext(new StringToken(type, value, _tokenStart, _firstComment));
       _firstComment = null;
       _lastComment = null;
     }
@@ -588,8 +580,8 @@ abstract class Scanner {
     if (_firstComment == null) {
       _tail = _tail.setNext(new StringToken(type, value, _tokenStart + offset));
     } else {
-      _tail = _tail.setNext(new StringTokenWithComment(
-          type, value, _tokenStart + offset, _firstComment));
+      _tail = _tail.setNext(
+          new StringToken(type, value, _tokenStart + offset, _firstComment));
       _firstComment = null;
       _lastComment = null;
     }
@@ -599,8 +591,7 @@ abstract class Scanner {
     if (_firstComment == null) {
       _tail = _tail.setNext(new Token(type, _tokenStart));
     } else {
-      _tail =
-          _tail.setNext(new TokenWithComment(type, _tokenStart, _firstComment));
+      _tail = _tail.setNext(new Token(type, _tokenStart, _firstComment));
       _firstComment = null;
       _lastComment = null;
     }
@@ -610,7 +601,7 @@ abstract class Scanner {
     if (_firstComment == null) {
       _tail = _tail.setNext(new Token(type, offset));
     } else {
-      _tail = _tail.setNext(new TokenWithComment(type, offset, _firstComment));
+      _tail = _tail.setNext(new Token(type, offset, _firstComment));
       _firstComment = null;
       _lastComment = null;
     }

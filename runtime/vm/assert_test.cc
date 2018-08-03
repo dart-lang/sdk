@@ -5,13 +5,11 @@
 #include "platform/assert.h"
 #include "vm/unit_test.h"
 
-
 VM_UNIT_TEST_CASE(Assert) {
   ASSERT(true);
   ASSERT(87 == 87);
   ASSERT(42 != 87);
 }
-
 
 VM_UNIT_TEST_CASE(Expect) {
   EXPECT(true);
@@ -47,16 +45,13 @@ VM_UNIT_TEST_CASE(Expect) {
   EXPECT_FLOAT_EQ(1.43, 1.43, 0.00);
 }
 
-
 VM_UNIT_TEST_CASE(Fail0) {
   FAIL("This test fails");
 }
 
-
 VM_UNIT_TEST_CASE(Fail1) {
   FAIL1("This test fails with one argument: %d", 4);
 }
-
 
 VM_UNIT_TEST_CASE(Fail2) {
   FAIL2("This test fails with two arguments: %d, %d", -100, 42);

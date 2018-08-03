@@ -2,92 +2,83 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library runtime_configuration;
+import 'dart:io';
 
-import 'dart:io' show Directory, File;
-
-import 'compiler_configuration.dart' show CommandArtifact;
-
+import 'command.dart';
+import 'compiler_configuration.dart';
+import 'configuration.dart';
+import 'repository.dart';
 // TODO(ahe): Remove this import, we can precompute all the values required
 // from TestSuite once the refactoring is complete.
-import 'test_suite.dart' show TestSuite, TestUtils;
-
-import 'test_runner.dart' show Command, CommandBuilder;
+import 'test_suite.dart';
 
 /// Describes the commands to run a given test case or its compiled output.
 ///
 /// A single runtime configuration object exists per test suite, and is thus
 /// shared between multiple test cases, it should not be mutated after
 /// construction.
-//
-// TODO(ahe): I expect this class will become abstract very soon.
-class RuntimeConfiguration {
-  // TODO(ahe): Remove this constructor and move the switch to
-  // test_options.dart.  We probably want to store an instance of
-  // [RuntimeConfiguration] in [configuration] there.
-  factory RuntimeConfiguration(Map<String, dynamic> configuration) {
-    String runtime = configuration['runtime'];
-    bool useBlobs = configuration['use_blobs'];
-
-    switch (runtime) {
-      case 'ContentShellOnAndroid':
-      case 'DartiumOnAndroid':
-      case 'chrome':
-      case 'chromeOnAndroid':
-      case 'dartium':
-      case 'ff':
-      case 'firefox':
-      case 'ie11':
-      case 'ie10':
-      case 'ie9':
-      case 'opera':
-      case 'safari':
-      case 'safarimobilesim':
+abstract class RuntimeConfiguration {
+  factory RuntimeConfiguration(Configuration configuration) {
+    switch (configuration.runtime) {
+      case Runtime.contentShellOnAndroid:
+      case Runtime.chrome:
+      case Runtime.chromeOnAndroid:
+      case Runtime.firefox:
+      case Runtime.ie11:
+      case Runtime.ie10:
+      case Runtime.ie9:
+      case Runtime.opera:
+      case Runtime.safari:
         // TODO(ahe): Replace this with one or more browser runtimes.
         return new DummyRuntimeConfiguration();
 
-      case 'jsshell':
+      case Runtime.jsshell:
         return new JsshellRuntimeConfiguration();
 
-      case 'd8':
+      case Runtime.d8:
         return new D8RuntimeConfiguration();
 
-      case 'none':
+      case Runtime.none:
         return new NoneRuntimeConfiguration();
 
-      case 'vm':
+      case Runtime.vm:
         return new StandaloneDartRuntimeConfiguration();
 
-      case 'flutter':
+      case Runtime.flutter:
         return new StandaloneFlutterEngineConfiguration();
 
-      case 'dart_precompiled':
-        if (configuration['system'] == 'android') {
-          return new DartPrecompiledAdbRuntimeConfiguration(useBlobs: useBlobs);
+      case Runtime.dartPrecompiled:
+        if (configuration.system == System.android) {
+          return new DartPrecompiledAdbRuntimeConfiguration(
+              useBlobs: configuration.useBlobs);
+        } else {
+          return new DartPrecompiledRuntimeConfiguration(
+              useBlobs: configuration.useBlobs);
         }
-        return new DartPrecompiledRuntimeConfiguration(useBlobs: useBlobs);
+        break;
 
-      case 'drt':
+      case Runtime.drt:
         return new DrtRuntimeConfiguration();
 
-      case 'self_check':
+      case Runtime.selfCheck:
         return new SelfCheckRuntimeConfiguration();
-
-      default:
-        throw "Unknown runtime '$runtime'";
     }
+
+    throw "unreachable";
   }
 
   RuntimeConfiguration._subclass();
 
-  int computeTimeoutMultiplier(
-      {String mode, bool isChecked: false, bool isReload: false, String arch}) {
+  int timeoutMultiplier(
+      {Mode mode,
+      bool isChecked: false,
+      bool isReload: false,
+      Architecture arch}) {
     return 1;
   }
 
   List<Command> computeRuntimeCommands(
       TestSuite suite,
-      CommandBuilder commandBuilder,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides) {
@@ -106,7 +97,6 @@ class NoneRuntimeConfiguration extends RuntimeConfiguration {
 
   List<Command> computeRuntimeCommands(
       TestSuite suite,
-      CommandBuilder commandBuilder,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides) {
@@ -133,14 +123,13 @@ class D8RuntimeConfiguration extends CommandLineJavaScriptRuntime {
 
   List<Command> computeRuntimeCommands(
       TestSuite suite,
-      CommandBuilder commandBuilder,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides) {
     // TODO(ahe): Avoid duplication of this method between d8 and jsshell.
     checkArtifact(artifact);
-    return <Command>[
-      commandBuilder.getJSCommandlineCommand(
+    return [
+      Command.jsCommandLine(
           moniker, suite.d8FileName, arguments, environmentOverrides)
     ];
   }
@@ -156,13 +145,12 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
 
   List<Command> computeRuntimeCommands(
       TestSuite suite,
-      CommandBuilder commandBuilder,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides) {
     checkArtifact(artifact);
-    return <Command>[
-      commandBuilder.getJSCommandlineCommand(
+    return [
+      Command.jsCommandLine(
           moniker, suite.jsShellFileName, arguments, environmentOverrides)
     ];
   }
@@ -176,25 +164,29 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
 class DartVmRuntimeConfiguration extends RuntimeConfiguration {
   DartVmRuntimeConfiguration() : super._subclass();
 
-  int computeTimeoutMultiplier(
-      {String mode, bool isChecked: false, bool isReload: false, String arch}) {
-    int multiplier = 1;
+  int timeoutMultiplier(
+      {Mode mode,
+      bool isChecked: false,
+      bool isReload: false,
+      Architecture arch}) {
+    var multiplier = 1;
+
     switch (arch) {
-      case 'simarm':
-      case 'arm':
-      case 'simarmv6':
-      case 'armv6':
-      case ' simarmv5te':
-      case 'armv5te':
-      case 'simmips':
-      case 'mips':
-      case 'simarm64':
-      case 'simdbc':
-      case 'simdbc64':
+      case Architecture.simarm:
+      case Architecture.arm:
+      case Architecture.arm64:
+      case Architecture.simarmv6:
+      case Architecture.armv6:
+      case Architecture.simarmv5te:
+      case Architecture.armv5te:
+      case Architecture.simarm64:
+      case Architecture.simdbc:
+      case Architecture.simdbc64:
         multiplier *= 4;
         break;
     }
-    if (mode == 'debug') {
+
+    if (mode.isDebug) {
       multiplier *= 2;
       if (isReload) {
         multiplier *= 2;
@@ -207,14 +199,17 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
 /// Runtime configuration for Content Shell.  We previously used a similar
 /// program named Dump Render Tree, hence the name.
 class DrtRuntimeConfiguration extends DartVmRuntimeConfiguration {
-  int computeTimeoutMultiplier(
-      {String mode, bool isChecked: false, bool isReload: false, String arch}) {
+  int timeoutMultiplier(
+      {Mode mode,
+      bool isChecked: false,
+      bool isReload: false,
+      Architecture arch}) {
     return 4 // Allow additional time for browser testing to run.
         // TODO(ahe): We might need to distinguish between DRT for running
         // JavaScript and Dart code.  I'm not convinced the inherited timeout
         // multiplier is relevant for JavaScript.
         *
-        super.computeTimeoutMultiplier(
+        super.timeoutMultiplier(
             mode: mode, isChecked: isChecked, isReload: isReload);
   }
 }
@@ -223,7 +218,6 @@ class DrtRuntimeConfiguration extends DartVmRuntimeConfiguration {
 class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
   List<Command> computeRuntimeCommands(
       TestSuite suite,
-      CommandBuilder commandBuilder,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides) {
@@ -231,13 +225,17 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
     String type = artifact.mimeType;
     if (script != null &&
         type != 'application/dart' &&
-        type != 'application/dart-snapshot') {
+        type != 'application/dart-snapshot' &&
+        type != 'application/kernel-ir' &&
+        type != 'application/kernel-ir-fully-linked') {
       throw "Dart VM cannot run files of type '$type'.";
     }
+
     String executable = suite.dartVmBinaryFileName;
-    return <Command>[
-      commandBuilder.getVmCommand(executable, arguments, environmentOverrides)
-    ];
+    if (type == 'application/kernel-ir-fully-linked') {
+      executable = suite.dartVmExecutableFileName;
+    }
+    return [Command.vm(executable, arguments, environmentOverrides)];
   }
 }
 
@@ -245,7 +243,6 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
 class StandaloneFlutterEngineConfiguration extends DartVmRuntimeConfiguration {
   List<Command> computeRuntimeCommands(
       TestSuite suite,
-      CommandBuilder commandBuilder,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides) {
@@ -258,9 +255,7 @@ class StandaloneFlutterEngineConfiguration extends DartVmRuntimeConfiguration {
     }
     String executable = suite.flutterEngineBinaryFileName;
     var args = <String>['--non-interactive']..addAll(arguments);
-    return <Command>[
-      commandBuilder.getVmCommand(executable, args, environmentOverrides)
-    ];
+    return [Command.vm(executable, args, environmentOverrides)];
   }
 }
 
@@ -270,7 +265,6 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
 
   List<Command> computeRuntimeCommands(
       TestSuite suite,
-      CommandBuilder commandBuilder,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides) {
@@ -280,8 +274,8 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
       throw "dart_precompiled cannot run files of type '$type'.";
     }
 
-    return <Command>[
-      commandBuilder.getVmCommand(
+    return [
+      Command.vm(
           suite.dartPrecompiledBinaryFileName, arguments, environmentOverrides)
     ];
   }
@@ -298,7 +292,6 @@ class DartPrecompiledAdbRuntimeConfiguration
 
   List<Command> computeRuntimeCommands(
       TestSuite suite,
-      CommandBuilder commandBuilder,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides) {
@@ -310,8 +303,8 @@ class DartPrecompiledAdbRuntimeConfiguration
 
     String precompiledRunner = suite.dartPrecompiledBinaryFileName;
     String processTest = suite.processTestBinaryFileName;
-    return <Command>[
-      commandBuilder.getAdbPrecompiledCommand(
+    return [
+      Command.adbPrecompiled(
           precompiledRunner, processTest, script, arguments, useBlobs)
     ];
   }
@@ -325,7 +318,7 @@ class SelfCheckRuntimeConfiguration extends DartVmRuntimeConfiguration {
   }
 
   void searchForSelfCheckers() {
-    Uri pkg = TestUtils.dartDirUri.resolve('pkg');
+    Uri pkg = Repository.uri.resolve('pkg');
     for (var entry in new Directory.fromUri(pkg).listSync(recursive: true)) {
       if (entry is File && entry.path.endsWith('_self_check.dart')) {
         selfCheckers.add(entry.path);
@@ -335,15 +328,14 @@ class SelfCheckRuntimeConfiguration extends DartVmRuntimeConfiguration {
 
   List<Command> computeRuntimeCommands(
       TestSuite suite,
-      CommandBuilder commandBuilder,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides) {
     String executable = suite.dartVmBinaryFileName;
     return selfCheckers
-        .map((String tester) => commandBuilder.getVmBatchCommand(
+        .map((String tester) => Command.vmBatch(
             executable, tester, arguments, environmentOverrides,
-            checked: suite.configuration['checked']))
+            checked: suite.configuration.isChecked))
         .toList();
   }
 
@@ -357,7 +349,6 @@ class SelfCheckRuntimeConfiguration extends DartVmRuntimeConfiguration {
 class DummyRuntimeConfiguration extends DartVmRuntimeConfiguration {
   List<Command> computeRuntimeCommands(
       TestSuite suite,
-      CommandBuilder commandBuilder,
       CommandArtifact artifact,
       List<String> arguments,
       Map<String, String> environmentOverrides) {

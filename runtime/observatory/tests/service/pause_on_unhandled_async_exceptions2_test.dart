@@ -34,7 +34,7 @@ testeeMain() async {
   await asyncThrower(); // LINE_A
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedWithUnhandledException,
   (Isolate isolate) async {
     print("We stopped!");

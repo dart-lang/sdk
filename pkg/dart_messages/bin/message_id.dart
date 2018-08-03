@@ -4,7 +4,7 @@
 
 import 'dart:math' as math;
 
-import '../lib/shared_messages.dart' as shared_messages;
+import 'package:dart_messages/shared_messages.dart' as shared_messages;
 
 math.Random random = new math.Random();
 
@@ -13,7 +13,7 @@ final $A = "A".codeUnitAt(0);
 final $Z = "Z".codeUnitAt(0);
 
 String computeId() {
-  List charCodes = [];
+  List<int> charCodes = [];
   for (int i = 0; i < idLength; i++) {
     charCodes.add($A + random.nextInt($Z - $A));
   }

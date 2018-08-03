@@ -55,7 +55,6 @@ namespace dart {
 //   ....
 // }
 
-
 // Forward declarations.
 class ObjectPointerVisitor;
 class Thread;
@@ -76,7 +75,6 @@ class HandleVisitor {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(HandleVisitor);
 };
-
 
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 class Handles {
@@ -239,7 +237,6 @@ class Handles {
   DISALLOW_COPY_AND_ASSIGN(Handles);
 };
 
-
 static const int kVMHandleSizeInWords = 2;
 static const int kVMHandlesPerChunk = 64;
 static const int kOffsetOfRawPtr = kWordSize;
@@ -281,7 +278,6 @@ class VMHandles : public Handles<kVMHandleSizeInWords,
   friend class ApiNativeScope;
 };
 
-
 // The class HandleScope is used to start a new handles scope in the code.
 // It is used as follows:
 // {
@@ -310,7 +306,6 @@ class HandleScope : public StackResource {
 // Macro to start a new Handle scope.
 #define HANDLESCOPE(thread)                                                    \
   dart::HandleScope vm_internal_handles_scope_(thread);
-
 
 // The class NoHandleScope is used in critical regions of the virtual machine
 // code where raw dart object pointers are directly manipulated.

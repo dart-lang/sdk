@@ -9,11 +9,11 @@ import 'package:expect/expect.dart';
 class C {
   const C();
 
-  const //# 01: compile-time error
+  const //# 01: syntax error
   get x => 1;
 }
 
-const //# 02: compile-time error
+const //# 02: syntax error
 get y => 2;
 
 main() {

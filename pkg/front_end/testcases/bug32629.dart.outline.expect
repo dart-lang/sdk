@@ -1,0 +1,15 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef Reducer<S extends core::Object = dynamic> = (S, dynamic) → S;
+class A extends core::Object {
+  synthetic constructor •() → void
+    ;
+  method call(dynamic a, dynamic b) → dynamic
+    ;
+}
+static method foo<S extends core::Object = dynamic>((self::foo::S, dynamic) → self::foo::S v) → void
+  ;
+static method main() → void
+  ;

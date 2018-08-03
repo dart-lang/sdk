@@ -8,8 +8,11 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
+import 'package:analyzer/src/string_source.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -25,6 +28,7 @@ main() {
     defineReflectiveTests(IndexExpressionTest);
     defineReflectiveTests(MethodDeclarationTest);
     defineReflectiveTests(NodeListTest);
+    defineReflectiveTests(PreviousTokenTest);
     defineReflectiveTests(SimpleIdentifierTest);
     defineReflectiveTests(SimpleStringLiteralTest);
     defineReflectiveTests(StringInterpolationTest);
@@ -366,7 +370,7 @@ class NodeListTest extends EngineTestCase {
     AstNode parent = AstTestFactory.argumentList();
     AstNode firstNode = AstTestFactory.booleanLiteral(true);
     AstNode secondNode = AstTestFactory.booleanLiteral(false);
-    NodeList<AstNode> list = astFactory.nodeList/*<AstNode>*/(parent);
+    NodeList<AstNode> list = astFactory.nodeList<AstNode>(parent);
     list.insert(0, secondNode);
     list.insert(0, firstNode);
     expect(list, hasLength(2));
@@ -387,7 +391,7 @@ class NodeListTest extends EngineTestCase {
 
   void test_add_negative() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list.insert(-1, AstTestFactory.booleanLiteral(true));
       fail("Expected IndexOutOfBoundsException");
@@ -398,7 +402,7 @@ class NodeListTest extends EngineTestCase {
 
   void test_add_tooBig() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list.insert(1, AstTestFactory.booleanLiteral(true));
       fail("Expected IndexOutOfBoundsException");
@@ -414,7 +418,7 @@ class NodeListTest extends EngineTestCase {
     AstNode secondNode = AstTestFactory.booleanLiteral(false);
     firstNodes.add(firstNode);
     firstNodes.add(secondNode);
-    NodeList<AstNode> list = astFactory.nodeList/*<AstNode>*/(parent);
+    NodeList<AstNode> list = astFactory.nodeList<AstNode>(parent);
     list.addAll(firstNodes);
     expect(list, hasLength(2));
     expect(list[0], same(firstNode));
@@ -440,7 +444,7 @@ class NodeListTest extends EngineTestCase {
 
   void test_creation() {
     AstNode owner = AstTestFactory.argumentList();
-    NodeList<AstNode> list = astFactory.nodeList/*<AstNode>*/(owner);
+    NodeList<AstNode> list = astFactory.nodeList<AstNode>(owner);
     expect(list, isNotNull);
     expect(list, hasLength(0));
     expect(list.owner, same(owner));
@@ -448,7 +452,7 @@ class NodeListTest extends EngineTestCase {
 
   void test_get_negative() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list[-1];
       fail("Expected IndexOutOfBoundsException");
@@ -459,7 +463,7 @@ class NodeListTest extends EngineTestCase {
 
   void test_get_tooBig() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list[1];
       fail("Expected IndexOutOfBoundsException");
@@ -470,13 +474,13 @@ class NodeListTest extends EngineTestCase {
 
   void test_getBeginToken_empty() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     expect(list.beginToken, isNull);
   }
 
   void test_getBeginToken_nonEmpty() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     AstNode node = AstTestFactory
         .parenthesizedExpression(AstTestFactory.booleanLiteral(true));
     list.add(node);
@@ -485,13 +489,13 @@ class NodeListTest extends EngineTestCase {
 
   void test_getEndToken_empty() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     expect(list.endToken, isNull);
   }
 
   void test_getEndToken_nonEmpty() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     AstNode node = AstTestFactory
         .parenthesizedExpression(AstTestFactory.booleanLiteral(true));
     list.add(node);
@@ -508,7 +512,7 @@ class NodeListTest extends EngineTestCase {
     nodes.add(secondNode);
     nodes.add(thirdNode);
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     list.addAll(nodes);
     expect(list, hasLength(3));
     expect(list.indexOf(firstNode), 0);
@@ -527,7 +531,7 @@ class NodeListTest extends EngineTestCase {
     nodes.add(secondNode);
     nodes.add(thirdNode);
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     list.addAll(nodes);
     expect(list, hasLength(3));
     expect(list.removeAt(1), same(secondNode));
@@ -538,7 +542,7 @@ class NodeListTest extends EngineTestCase {
 
   void test_remove_negative() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list.removeAt(-1);
       fail("Expected IndexOutOfBoundsException");
@@ -549,7 +553,7 @@ class NodeListTest extends EngineTestCase {
 
   void test_remove_tooBig() {
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list.removeAt(1);
       fail("Expected IndexOutOfBoundsException");
@@ -567,7 +571,7 @@ class NodeListTest extends EngineTestCase {
     nodes.add(secondNode);
     nodes.add(thirdNode);
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     list.addAll(nodes);
     expect(list, hasLength(3));
     AstNode fourthNode = AstTestFactory.integer(0);
@@ -581,7 +585,7 @@ class NodeListTest extends EngineTestCase {
   void test_set_negative() {
     AstNode node = AstTestFactory.booleanLiteral(true);
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list[-1] = node;
       fail("Expected IndexOutOfBoundsException");
@@ -593,13 +597,112 @@ class NodeListTest extends EngineTestCase {
   void test_set_tooBig() {
     AstNode node = AstTestFactory.booleanLiteral(true);
     NodeList<AstNode> list =
-        astFactory.nodeList/*<AstNode>*/(AstTestFactory.argumentList());
+        astFactory.nodeList<AstNode>(AstTestFactory.argumentList());
     try {
       list[1] = node;
       fail("Expected IndexOutOfBoundsException");
     } on RangeError {
       // Expected
     }
+  }
+}
+
+@reflectiveTest
+class PreviousTokenTest {
+  static final String contents = '''
+class A {
+  B foo(C c) {
+    return bar;
+  }
+  D get baz => null;
+}
+E f() => g;
+''';
+
+  CompilationUnit _unit;
+
+  CompilationUnit get unit {
+    if (_unit == null) {
+      GatheringErrorListener listener =
+          new GatheringErrorListener(checkRanges: true);
+      var source =
+          new StringSource(contents, 'PreviousTokenTest_findPrevious.dart');
+      Token tokens = new Scanner.fasta(source, listener).tokenize();
+      _unit = new Parser(source, listener, useFasta: true)
+          .parseCompilationUnit(tokens);
+    }
+    return _unit;
+  }
+
+  Token findToken(String lexeme) {
+    Token token = unit.beginToken;
+    while (!token.isEof) {
+      if (token.lexeme == lexeme) {
+        return token;
+      }
+      token = token.next;
+    }
+    fail('Failed to find $lexeme');
+  }
+
+  void test_findPrevious_basic_class() {
+    ClassDeclaration clazz = unit.declarations[0];
+    expect(clazz.findPrevious(findToken('A')).lexeme, 'class');
+  }
+
+  void test_findPrevious_basic_method() {
+    ClassDeclaration clazz = unit.declarations[0];
+    MethodDeclaration method = clazz.members[0];
+    expect(method.findPrevious(findToken('foo')).lexeme, 'B');
+  }
+
+  void test_findPrevious_basic_statement() {
+    ClassDeclaration clazz = unit.declarations[0];
+    MethodDeclaration method = clazz.members[0];
+    BlockFunctionBody body = method.body;
+    Statement statement = body.block.statements[0];
+    expect(statement.findPrevious(findToken('bar')).lexeme, 'return');
+    expect(statement.findPrevious(findToken(';')).lexeme, 'bar');
+  }
+
+  void test_findPrevious_missing() {
+    ClassDeclaration clazz = unit.declarations[0];
+    MethodDeclaration method = clazz.members[0];
+    BlockFunctionBody body = method.body;
+    Statement statement = body.block.statements[0];
+
+    GatheringErrorListener listener =
+        new GatheringErrorListener(checkRanges: true);
+    var source = new StringSource('missing', 'PreviousTokenTest_missing.dart');
+    Token missing = new Scanner.fasta(source, listener).tokenize();
+
+    expect(statement.findPrevious(missing), null);
+    expect(statement.findPrevious(null), null);
+  }
+
+  void test_findPrevious_parent_method() {
+    ClassDeclaration clazz = unit.declarations[0];
+    MethodDeclaration method = clazz.members[0];
+    expect(method.findPrevious(findToken('B')).lexeme, '{');
+  }
+
+  void test_findPrevious_parent_statement() {
+    ClassDeclaration clazz = unit.declarations[0];
+    MethodDeclaration method = clazz.members[0];
+    BlockFunctionBody body = method.body;
+    Statement statement = body.block.statements[0];
+    expect(statement.findPrevious(findToken('return')).lexeme, '{');
+  }
+
+  void test_findPrevious_sibling_method() {
+    ClassDeclaration clazz = unit.declarations[0];
+    MethodDeclaration method = clazz.members[1];
+    expect(method.findPrevious(findToken('D')).lexeme, '}');
+  }
+
+  void test_findPrevious_sibling_class() {
+    CompilationUnitMember declaration = unit.declarations[1];
+    expect(declaration.findPrevious(findToken('E')).lexeme, '}');
   }
 }
 

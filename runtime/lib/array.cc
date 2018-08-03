@@ -4,19 +4,23 @@
 
 #include "platform/assert.h"
 #include "vm/bootstrap_natives.h"
-#include "vm/assembler.h"
 #include "vm/exceptions.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
 
 namespace dart {
 
+DEFINE_NATIVE_ENTRY(List_new, 2) {
+  // This function is handled by flow-graph builder.
+  UNREACHABLE();
+  return Object::null();
+}
+
 DEFINE_NATIVE_ENTRY(List_allocate, 2) {
   // Implemented in FlowGraphBuilder::VisitNativeBody.
   UNREACHABLE();
   return Object::null();
 }
-
 
 DEFINE_NATIVE_ENTRY(List_getIndexed, 2) {
   const Array& array = Array::CheckedHandle(arguments->NativeArgAt(0));
@@ -26,7 +30,6 @@ DEFINE_NATIVE_ENTRY(List_getIndexed, 2) {
   }
   return array.At(index.Value());
 }
-
 
 DEFINE_NATIVE_ENTRY(List_setIndexed, 3) {
   const Array& array = Array::CheckedHandle(arguments->NativeArgAt(0));
@@ -39,12 +42,10 @@ DEFINE_NATIVE_ENTRY(List_setIndexed, 3) {
   return Object::null();
 }
 
-
 DEFINE_NATIVE_ENTRY(List_getLength, 1) {
   const Array& array = Array::CheckedHandle(arguments->NativeArgAt(0));
   return Smi::New(array.Length());
 }
-
 
 // ObjectArray src, int start, int count, bool needTypeArgument.
 DEFINE_NATIVE_ENTRY(List_slice, 4) {
@@ -66,7 +67,6 @@ DEFINE_NATIVE_ENTRY(List_slice, 4) {
 
   return src.Slice(istart, icount, needs_type_arg.value());
 }
-
 
 // Private factory, expects correct arguments.
 DEFINE_NATIVE_ENTRY(ImmutableList_from, 4) {

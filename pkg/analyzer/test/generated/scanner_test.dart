@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.generated.scanner_test;
-
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -79,10 +78,10 @@ class CharacterRangeReaderTest extends EngineTestCase {
 @reflectiveTest
 class LineInfoTest extends EngineTestCase {
   void test_lineInfo_multilineComment() {
-    String source = "/*\r *\r */";
+    String source = "/*\r\n *\r\n */";
     _assertLineInfo(source, [
       new ScannerTest_ExpectedLocation(0, 1, 1),
-      new ScannerTest_ExpectedLocation(4, 2, 2),
+      new ScannerTest_ExpectedLocation(5, 2, 2),
       new ScannerTest_ExpectedLocation(source.length - 1, 3, 3)
     ]);
   }
@@ -123,6 +122,30 @@ class LineInfoTest extends EngineTestCase {
     ]);
   }
 
+  void test_linestarts() {
+    String source = "var\r\ni\n=\n1;\n";
+    GatheringErrorListener listener = new GatheringErrorListener();
+    Scanner scanner =
+        new Scanner(null, new CharSequenceReader(source), listener);
+    var token = scanner.tokenize();
+    expect(token.lexeme, 'var');
+    var lineStarts = scanner.lineStarts;
+    expect(lineStarts, orderedEquals([0, 5, 7, 9, 12]));
+  }
+
+  void test_translate_missing_closing_gt_error() {
+    // Ensure that the UnmatchedToken error for missing '>' is translated
+    // to the correct analyzer error code.
+    // See https://github.com/dart-lang/sdk/issues/30320
+    String source = '<!-- @Component(';
+    GatheringErrorListener listener = new GatheringErrorListener();
+    _scanWithListener(source, listener);
+    listener.assertErrorsWithCodes(const [
+      ScannerErrorCode.EXPECTED_TOKEN,
+      ScannerErrorCode.EXPECTED_TOKEN,
+    ]);
+  }
+
   void _assertLineInfo(
       String source, List<ScannerTest_ExpectedLocation> expectedLocations) {
     GatheringErrorListener listener = new GatheringErrorListener();
@@ -133,7 +156,7 @@ class LineInfoTest extends EngineTestCase {
     int count = expectedLocations.length;
     for (int i = 0; i < count; i++) {
       ScannerTest_ExpectedLocation expectedLocation = expectedLocations[i];
-      LineInfo_Location location = info.getLocation(expectedLocation._offset);
+      CharacterLocation location = info.getLocation(expectedLocation._offset);
       expect(location.lineNumber, expectedLocation._lineNumber,
           reason: 'Line number in location $i');
       expect(location.columnNumber, expectedLocation._columnNumber,

@@ -1,0 +1,41 @@
+// Errors:
+//
+// pkg/front_end/testcases/inference/mixin_inference_unification_1.dart:15:38: Error: 'A' can't implement both '#lib1::I<dynamic, dart.core::int>' and '#lib1::I<dart.core::String, dynamic>'
+// class /*@error=AmbiguousSupertypes*/ A extends Object with M0, M1 {}
+//                                      ^
+
+library;
+import self as self;
+import "dart:core" as core;
+
+class I<X extends core::Object = dynamic, Y extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class M0<T extends core::Object = dynamic> extends core::Object implements self::I<self::M0::T, core::int> {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class M1<T extends core::Object = dynamic> extends core::Object implements self::I<core::String, self::M1::T> {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+abstract class _A&Object&M0 extends core::Object implements self::M0<dynamic> {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+abstract class _A&Object&M0&M1 extends self::_A&Object&M0 implements self::M1<dynamic> {
+  synthetic constructor •() → void
+    : super self::_A&Object&M0::•()
+    ;
+}
+class A extends self::_A&Object&M0&M1 {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

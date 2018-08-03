@@ -69,9 +69,9 @@ class Platform {
   static final _numberOfProcessors = _Platform.numberOfProcessors;
   static final _pathSeparator = _Platform.pathSeparator;
   static final _operatingSystem = _Platform.operatingSystem;
+  static final _operatingSystemVersion = _Platform.operatingSystemVersion;
   static final _localHostname = _Platform.localHostname;
   static final _version = _Platform.version;
-  static final _localeName = _Platform.localeName;
 
   /**
    * The number of individual execution units of the machine.
@@ -87,12 +87,17 @@ class Platform {
   /**
    * Get the name of the current locale.
    */
-  static String get localeName => _localeName;
+  static String get localeName => _Platform.localeName();
 
   /**
    * A string representing the operating system or platform.
    */
   static String get operatingSystem => _operatingSystem;
+
+  /**
+   * A string representing the version of the operating system or platform.
+   */
+  static String get operatingSystemVersion => _operatingSystemVersion;
 
   /**
    * The local hostname for the system.
@@ -199,14 +204,11 @@ class Platform {
   static List<String> get executableArguments => _Platform.executableArguments;
 
   /**
-   * The `--package-root` flag passed to the executable used to run the script
-   * in this isolate.
+   * This returns `null`, as `packages/` directories are no longer supported.
    *
-   * If present, it specifies the directory where Dart packages are looked up.
-   *
-   * Is `null` if there is no `--package-root` flag.
    */
-  static String get packageRoot => _Platform.packageRoot;
+  @Deprecated('packages/ directory resolution is not supported in Dart 2')
+  static String get packageRoot => null; // TODO(mfairhurst): remove this
 
   /**
    * The `--packages` flag passed to the executable used to run the script

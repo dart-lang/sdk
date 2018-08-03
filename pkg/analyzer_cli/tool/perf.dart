@@ -3,35 +3,24 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// An entrypoint used to run portions of analyzer and measure its performance.
-library analyzer_cli.tool.perf;
-
 import 'dart:async';
 import 'dart:io' show exit;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/file_system/file_system.dart' show ResourceUriResolver;
 import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart' show FolderBasedDartSdk;
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:package_config/discovery.dart';
-
-/// Cumulative total number of chars scanned.
-int scanTotalChars = 0;
-
-/// Cumulative time spent scanning.
-Stopwatch scanTimer = new Stopwatch();
-
-/// Factory to load and resolve app, packages, and sdk sources.
-SourceFactory sources;
 
 main(List<String> args) async {
   // TODO(sigmund): provide sdk folder as well.
@@ -64,94 +53,14 @@ main(List<String> args) async {
   report("total", totalTimer.elapsedMicroseconds);
 }
 
-/// Sets up analyzer to be able to load and resolve app, packages, and sdk
-/// sources.
-Future setup(Uri entryUri) async {
-  var provider = PhysicalResourceProvider.INSTANCE;
-  var packageMap = new ContextBuilder(provider, null, null)
-      .convertPackagesToMap(await findPackages(entryUri));
-  sources = new SourceFactory([
-    new ResourceUriResolver(provider),
-    new PackageMapUriResolver(provider, packageMap),
-    new DartUriResolver(
-        new FolderBasedDartSdk(provider, provider.getFolder("sdk"))),
-  ]);
-}
+/// Cumulative time spent scanning.
+Stopwatch scanTimer = new Stopwatch();
 
-/// Load and scans all files we need to process: files reachable from the
-/// entrypoint and all core libraries automatically included by the VM.
-Set<Source> scanReachableFiles(Uri entryUri) {
-  var files = new Set<Source>();
-  var loadTimer = new Stopwatch()..start();
-  collectSources(sources.forUri2(entryUri), files);
+/// Cumulative total number of chars scanned.
+int scanTotalChars = 0;
 
-  var libs = [
-    "dart:async",
-    "dart:collection",
-    "dart:convert",
-    "dart:core",
-    "dart:developer",
-    "dart:_internal",
-    "dart:isolate",
-    "dart:math",
-    "dart:mirrors",
-    "dart:typed_data",
-    "dart:io"
-  ];
-
-  for (var lib in libs) {
-    collectSources(sources.forUri(lib), files);
-  }
-
-  loadTimer.stop();
-
-  print('input size: ${scanTotalChars} chars');
-  var loadTime = loadTimer.elapsedMicroseconds - scanTimer.elapsedMicroseconds;
-  report("load", loadTime);
-  report("scan", scanTimer.elapsedMicroseconds);
-  return files;
-}
-
-/// Scans every file in [files] and reports the time spent doing so.
-void scanFiles(Set<Source> files) {
-  // The code below will record again how many chars are scanned and how long it
-  // takes to scan them, even though we already did so in [scanReachableFiles].
-  // Recording and reporting this twice is unnecessary, but we do so for now to
-  // validate that the results are consistent.
-  scanTimer = new Stopwatch();
-  var old = scanTotalChars;
-  scanTotalChars = 0;
-  for (var source in files) {
-    tokenize(source);
-  }
-
-  // Report size and scanning time again. See discussion above.
-  if (old != scanTotalChars) print('input size changed? ${old} chars');
-  report("scan", scanTimer.elapsedMicroseconds);
-}
-
-/// Parses every file in [files] and reports the time spent doing so.
-void parseFiles(Set<Source> files) {
-  // The code below will record again how many chars are scanned and how long it
-  // takes to scan them, even though we already did so in [scanReachableFiles].
-  // Recording and reporting this twice is unnecessary, but we do so for now to
-  // validate that the results are consistent.
-  scanTimer = new Stopwatch();
-  var old = scanTotalChars;
-  scanTotalChars = 0;
-  var parseTimer = new Stopwatch()..start();
-  for (var source in files) {
-    parseFull(source);
-  }
-  parseTimer.stop();
-
-  // Report size and scanning time again. See discussion above.
-  if (old != scanTotalChars) print('input size changed? ${old} chars');
-  report("scan", scanTimer.elapsedMicroseconds);
-
-  var pTime = parseTimer.elapsedMicroseconds - scanTimer.elapsedMicroseconds;
-  report("parse", pTime);
-}
+/// Factory to load and resolve app, packages, and sdk sources.
+SourceFactory sources;
 
 /// Add to [files] all sources reachable from [start].
 void collectSources(Source start, Set<Source> files) {
@@ -172,11 +81,110 @@ CompilationUnit parseDirectives(Source source) {
   return parser.parseDirectives(token);
 }
 
+/// Parses every file in [files] and reports the time spent doing so.
+void parseFiles(Set<Source> files) {
+  // The code below will record again how many chars are scanned and how long it
+  // takes to scan them, even though we already did so in [scanReachableFiles].
+  // Recording and reporting this twice is unnecessary, but we do so for now to
+  // validate that the results are consistent.
+  scanTimer = new Stopwatch();
+  var old = scanTotalChars;
+  scanTotalChars = 0;
+  var parseTimer = new Stopwatch()..start();
+  for (var source in files) {
+    parseFull(source);
+  }
+  parseTimer.stop();
+
+  // Report size and scanning time again. See discussion above.
+  if (old != scanTotalChars) print('input size changed? $old chars');
+  report("scan", scanTimer.elapsedMicroseconds);
+
+  var pTime = parseTimer.elapsedMicroseconds - scanTimer.elapsedMicroseconds;
+  report("parse", pTime);
+}
+
 /// Parse the full body of [source] and return it's compilation unit.
 CompilationUnit parseFull(Source source) {
   var token = tokenize(source);
   var parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER);
   return parser.parseCompilationUnit(token);
+}
+
+/// Report that metric [name] took [time] micro-seconds to process
+/// [scanTotalChars] characters.
+void report(String name, int time) {
+  var sb = new StringBuffer();
+  sb.write('$name: $time us, ${time ~/ 1000} ms');
+  sb.write(', ${scanTotalChars * 1000 ~/ time} chars/ms');
+  print('$sb');
+}
+
+/// Scans every file in [files] and reports the time spent doing so.
+void scanFiles(Set<Source> files) {
+  // The code below will record again how many chars are scanned and how long it
+  // takes to scan them, even though we already did so in [scanReachableFiles].
+  // Recording and reporting this twice is unnecessary, but we do so for now to
+  // validate that the results are consistent.
+  scanTimer = new Stopwatch();
+  var old = scanTotalChars;
+  scanTotalChars = 0;
+  for (var source in files) {
+    tokenize(source);
+  }
+
+  // Report size and scanning time again. See discussion above.
+  if (old != scanTotalChars) print('input size changed? $old chars');
+  report("scan", scanTimer.elapsedMicroseconds);
+}
+
+/// Load and scans all files we need to process: files reachable from the
+/// entrypoint and all core libraries automatically included by the VM.
+Set<Source> scanReachableFiles(Uri entryUri) {
+  var files = new Set<Source>();
+  var loadTimer = new Stopwatch()..start();
+  collectSources(sources.forUri2(entryUri), files);
+
+  var libs = [
+    "dart:async",
+    "dart:cli",
+    "dart:collection",
+    "dart:convert",
+    "dart:core",
+    "dart:developer",
+    "dart:_internal",
+    "dart:isolate",
+    "dart:math",
+    "dart:mirrors",
+    "dart:typed_data",
+    "dart:io",
+  ];
+
+  for (var lib in libs) {
+    collectSources(sources.forUri(lib), files);
+  }
+
+  loadTimer.stop();
+
+  print('input size: $scanTotalChars chars');
+  var loadTime = loadTimer.elapsedMicroseconds - scanTimer.elapsedMicroseconds;
+  report("load", loadTime);
+  report("scan", scanTimer.elapsedMicroseconds);
+  return files;
+}
+
+/// Sets up analyzer to be able to load and resolve app, packages, and sdk
+/// sources.
+Future setup(Uri entryUri) async {
+  var provider = PhysicalResourceProvider.INSTANCE;
+  var packageMap = new ContextBuilder(provider, null, null)
+      .convertPackagesToMap(await findPackages(entryUri));
+  sources = new SourceFactory([
+    new ResourceUriResolver(provider),
+    new PackageMapUriResolver(provider, packageMap),
+    new DartUriResolver(
+        new FolderBasedDartSdk(provider, provider.getFolder("sdk"))),
+  ]);
 }
 
 /// Scan [source] and return the first token produced by the scanner.
@@ -192,13 +200,4 @@ Token tokenize(Source source) {
   var token = scanner.tokenize();
   scanTimer.stop();
   return token;
-}
-
-/// Report that metric [name] took [time] micro-seconds to process
-/// [scanTotalChars] characters.
-void report(String name, int time) {
-  var sb = new StringBuffer();
-  sb.write('$name: $time us, ${time ~/ 1000} ms');
-  sb.write(', ${scanTotalChars * 1000 ~/ time} chars/ms');
-  print('$sb');
 }

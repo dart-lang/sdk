@@ -166,7 +166,7 @@ class InferredTypeCollector {
   String formatParam(UnlinkedParam param) {
     if (param.isFunctionTyped) {
       // TODO(paulberry): fix this case.
-      return 'BAD(${JSON.encode(param)})';
+      return 'BAD(${json.encode(param)})';
     }
     String result;
     if (param.type != null) {

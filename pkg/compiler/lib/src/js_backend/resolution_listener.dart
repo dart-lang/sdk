@@ -4,37 +4,31 @@
 
 library js_backend.backend.resolution_listener;
 
-import '../common/names.dart' show Identifiers, Uris;
+import '../common/names.dart' show Identifiers;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../constants/values.dart';
 import '../deferred_load.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart' show Enqueuer, EnqueuerListener;
-import '../kernel/task.dart';
 import '../native/enqueue.dart';
 import '../options.dart' show CompilerOptions;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/use.dart' show StaticUse, TypeUse;
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
+import 'allocator_analysis.dart';
 import 'backend.dart';
 import 'backend_impact.dart';
 import 'backend_usage.dart';
 import 'checked_mode_helpers.dart';
 import 'custom_elements_analysis.dart';
 import 'interceptor_data.dart';
-import 'lookup_map_analysis.dart' show LookupMapResolutionAnalysis;
-import 'mirrors_analysis.dart';
-import 'mirrors_data.dart';
 import 'native_data.dart' show NativeBasicData;
 import 'no_such_method_registry.dart';
-import 'type_variable_handler.dart';
-import 'runtime_types.dart';
 
 class ResolutionEnqueuerListener extends EnqueuerListener {
   // TODO(johnniwinther): Avoid the need for this.
-  final KernelTask _kernelTask;
   final DeferredLoadTask _deferredLoadTask;
 
   final CompilerOptions _options;
@@ -45,16 +39,12 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   final NativeBasicData _nativeData;
   final InterceptorDataBuilder _interceptorData;
   final BackendUsageBuilder _backendUsage;
-  final RuntimeTypesNeedBuilder _rtiNeedBuilder;
-  final MirrorsDataBuilder _mirrorsDataBuilder;
 
   final NoSuchMethodRegistry _noSuchMethodRegistry;
   final CustomElementsResolutionAnalysis _customElementsAnalysis;
-  final LookupMapResolutionAnalysis _lookupMapResolutionAnalysis;
-  final MirrorsResolutionAnalysis _mirrorsAnalysis;
-  final TypeVariableResolutionAnalysis _typeVariableResolutionAnalysis;
 
   final NativeResolutionEnqueuer _nativeEnqueuer;
+  final KAllocatorAnalysis _allocatorAnalysis;
 
   /// True when we enqueue the loadLibrary code.
   bool _isLoadLibraryFunctionResolved = false;
@@ -67,16 +57,11 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       this._nativeData,
       this._interceptorData,
       this._backendUsage,
-      this._rtiNeedBuilder,
-      this._mirrorsDataBuilder,
       this._noSuchMethodRegistry,
       this._customElementsAnalysis,
-      this._lookupMapResolutionAnalysis,
-      this._mirrorsAnalysis,
-      this._typeVariableResolutionAnalysis,
       this._nativeEnqueuer,
-      this._deferredLoadTask,
-      [this._kernelTask]);
+      this._allocatorAnalysis,
+      this._deferredLoadTask);
 
   void _registerBackendImpact(
       WorldImpactBuilder builder, BackendImpact impact) {
@@ -126,30 +111,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     }
   }
 
-  /// Called to enable support for isolates. Any backend specific [WorldImpact]
-  /// of this is returned.
-  WorldImpact _enableIsolateSupport(FunctionEntity mainMethod) {
-    WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
-    // TODO(floitsch): We should also ensure that the class IsolateMessage is
-    // instantiated. Currently, just enabling isolate support works.
-    if (mainMethod != null) {
-      // The JavaScript backend implements [Isolate.spawn] by looking up
-      // top-level functions by name. So all top-level function tear-off
-      // closures have a private name field.
-      //
-      // The JavaScript backend of [Isolate.spawnUri] uses the same internal
-      // implementation as [Isolate.spawn], and fails if it cannot look main up
-      // by name.
-      impactBuilder.registerStaticUse(new StaticUse.staticTearOff(mainMethod));
-    }
-    _impacts.isolateSupport.registerImpact(impactBuilder, _elementEnvironment);
-    _backendUsage.processBackendImpact(_impacts.isolateSupport);
-    _impacts.isolateSupportForResolution
-        .registerImpact(impactBuilder, _elementEnvironment);
-    _backendUsage.processBackendImpact(_impacts.isolateSupportForResolution);
-    return impactBuilder;
-  }
-
   /// Computes the [WorldImpact] of calling [mainMethod] as the entry point.
   WorldImpact _computeMainImpact(FunctionEntity mainMethod) {
     WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
@@ -160,11 +121,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       _backendUsage.processBackendImpact(_impacts.mainWithArguments);
       mainImpact.registerStaticUse(
           new StaticUse.staticInvoke(mainMethod, callStructure));
-      // If the main method takes arguments, this compilation could be the
-      // target of Isolate.spawnUri. Strictly speaking, that can happen also if
-      // main takes no arguments, but in this case the spawned isolate can't
-      // communicate with the spawning isolate.
-      mainImpact.addImpact(_enableIsolateSupport(mainMethod));
     }
     mainImpact.registerStaticUse(
         new StaticUse.staticInvoke(mainMethod, CallStructure.NO_ARGS));
@@ -178,8 +134,8 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   }
 
   @override
-  void onQueueOpen(Enqueuer enqueuer, FunctionEntity mainMethod,
-      Iterable<LibraryEntity> libraries) {
+  void onQueueOpen(
+      Enqueuer enqueuer, FunctionEntity mainMethod, Iterable<Uri> libraries) {
     if (_deferredLoadTask.isProgramSplit) {
       enqueuer.applyImpact(_computeDeferredLoadingImpact(),
           impactSource: 'deferred load');
@@ -204,15 +160,14 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     // due to mirrors.
     enqueuer.applyImpact(_customElementsAnalysis.flush(),
         impactSource: _customElementsAnalysis);
-    enqueuer.applyImpact(_lookupMapResolutionAnalysis.flush(),
-        impactSource: _lookupMapResolutionAnalysis);
-    enqueuer.applyImpact(_typeVariableResolutionAnalysis.flush(),
-        impactSource: _typeVariableResolutionAnalysis);
 
     for (ClassEntity cls in recentClasses) {
-      MemberEntity element =
-          _elementEnvironment.lookupClassMember(cls, Identifiers.noSuchMethod_);
-      if (element != null && element.isInstanceMember && element.isFunction) {
+      MemberEntity element = _elementEnvironment.lookupLocalClassMember(
+          cls, Identifiers.noSuchMethod_);
+      if (element != null &&
+          element.isInstanceMember &&
+          element.isFunction &&
+          !element.isAbstract) {
         _noSuchMethodRegistry.registerNoSuchMethod(element);
       }
     }
@@ -228,11 +183,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
     if (!enqueuer.queueIsEmpty) return false;
 
-    if (_options.useKernel) {
-      _kernelTask?.buildKernelIr();
-    }
-
-    _mirrorsAnalysis.onQueueEmpty(enqueuer, recentClasses);
     return true;
   }
 
@@ -301,19 +251,43 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   @override
   WorldImpact registerUsedElement(MemberEntity member) {
     WorldImpactBuilderImpl worldImpact = new WorldImpactBuilderImpl();
-    _mirrorsDataBuilder.registerUsedMember(member);
     _customElementsAnalysis.registerStaticUse(member);
 
-    if (member.isFunction && member.isInstanceMember) {
-      FunctionEntity method = member;
-      ClassEntity cls = method.enclosingClass;
+    if (member.isFunction) {
+      FunctionEntity function = member;
+      if (function.isExternal) {
+        FunctionType functionType =
+            _elementEnvironment.getFunctionType(function);
 
-      if (method.name == Identifiers.call &&
-          _elementEnvironment.isGenericClass(cls)) {
-        worldImpact.addImpact(_registerComputeSignature());
+        var allParameterTypes = <DartType>[]
+          ..addAll(functionType.parameterTypes)
+          ..addAll(functionType.optionalParameterTypes)
+          ..addAll(functionType.namedParameterTypes);
+        for (var type in allParameterTypes) {
+          if (type.isFunctionType || type.isTypedef) {
+            var closureConverter = _commonElements.closureConverter;
+            worldImpact.registerStaticUse(
+                new StaticUse.implicitInvoke(closureConverter));
+            _backendUsage.registerBackendFunctionUse(closureConverter);
+            _backendUsage.registerGlobalFunctionDependency(closureConverter);
+            break;
+          }
+        }
+      }
+      if (function.isInstanceMember) {
+        ClassEntity cls = function.enclosingClass;
+
+        if (function.name == Identifiers.call &&
+            _elementEnvironment.isGenericClass(cls)) {
+          worldImpact.addImpact(_registerComputeSignature());
+        }
       }
     }
     _backendUsage.registerUsedMember(member);
+
+    if (_commonElements.isCreateInvocationMirrorHelper(member)) {
+      _registerBackendImpact(worldImpact, _impacts.noSuchMethodSupport);
+    }
 
     if (_elementEnvironment.isDeferredLoadLibraryGetter(member)) {
       // TODO(sigurdm): Create a function registerLoadLibraryAccess.
@@ -323,35 +297,11 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       }
     }
 
-    // Enable isolate support if we start using something from the isolate
-    // library, or timers for the async library.  We exclude constant fields,
-    // which are ending here because their initializing expression is
-    // compiled.
-    LibraryEntity library = member.library;
-    if (!_backendUsage.isIsolateInUse && !(member.isField && member.isConst)) {
-      Uri uri = library.canonicalUri;
-      if (uri == Uris.dart_isolate) {
-        _backendUsage.isIsolateInUse = true;
-        worldImpact
-            .addImpact(_enableIsolateSupport(_elementEnvironment.mainFunction));
-      } else if (uri == Uris.dart_async) {
-        if (member.name == '_createTimer' ||
-            member.name == '_createPeriodicTimer') {
-          // The [:Timer:] class uses the event queue of the isolate
-          // library, so we make sure that event queue is generated.
-          _backendUsage.isIsolateInUse = true;
-          worldImpact.addImpact(
-              _enableIsolateSupport(_elementEnvironment.mainFunction));
-        }
-      }
-    }
-
     if (member.isGetter && member.name == Identifiers.runtimeType_) {
       // Enable runtime type support if we discover a getter called
       // runtimeType. We have to enable runtime type before hitting the
       // codegen, so that constructors know whether they need to generate code
       // for runtime type.
-      _backendUsage.isRuntimeTypeUsed = true;
       // TODO(ahe): Record precise dependency here.
       worldImpact.addImpact(_registerRuntimeType());
     }
@@ -368,9 +318,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
   WorldImpact _processClass(ClassEntity cls) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
-    if (_elementEnvironment.isGenericClass(cls)) {
-      _typeVariableResolutionAnalysis.registerClassWithTypeVariables(cls);
-    }
     // TODO(johnniwinther): Extract an `implementationClassesOf(...)` function
     // for these into [CommonElements] or [BackendImpacts].
     // Register any helper that will be needed by the backend.
@@ -385,10 +332,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       _registerBackendImpact(impactBuilder, _impacts.functionClass);
     } else if (cls == _commonElements.mapClass) {
       _registerBackendImpact(impactBuilder, _impacts.mapClass);
-      // For map literals, the dependency between the implementation class
-      // and [Map] is not visible, so we have to add it manually.
-      _rtiNeedBuilder.registerRtiDependency(
-          _commonElements.mapLiteralClass, cls);
     } else if (cls == _commonElements.boundClosureClass) {
       _registerBackendImpact(impactBuilder, _impacts.boundClosureClass);
     } else if (_nativeData.isNativeOrExtendsNative(cls)) {
@@ -466,6 +409,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
   @override
   WorldImpact registerInstantiatedClass(ClassEntity cls) {
+    _allocatorAnalysis.registerInstantiatedClass(cls);
     return _processClass(cls);
   }
 
@@ -480,6 +424,12 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     _addInterceptors(_commonElements.jsNullClass, impactBuilder);
     if (_options.enableTypeAssertions) {
       _registerBackendImpact(impactBuilder, _impacts.enableTypeAssertions);
+    }
+    if (_options.disableRtiOptimization) {
+      // When RTI optimization is disabled we always need all RTI helpers, so
+      // register these here.
+      _registerBackendImpact(impactBuilder, _impacts.computeSignature);
+      _registerBackendImpact(impactBuilder, _impacts.getRuntimeTypeArgument);
     }
 
     if (JavaScriptBackend.TRACE_CALLS) {

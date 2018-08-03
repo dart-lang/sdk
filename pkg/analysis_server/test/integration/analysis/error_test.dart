@@ -12,6 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisErrorIntegrationTest);
+    defineReflectiveTests(AnalysisErrorIntegrationTest_UseCFE);
   });
 }
 
@@ -20,9 +21,7 @@ class AnalysisErrorIntegrationTest
     extends AbstractAnalysisServerIntegrationTest {
   test_detect_simple_error() {
     String pathname = sourcePath('test.dart');
-    writeFile(
-        pathname,
-        '''
+    writeFile(pathname, '''
 main() {
   print(null) // parse error: missing ';'
 }''');
@@ -37,9 +36,7 @@ main() {
 
   test_super_mixins_disabled() async {
     String pathname = sourcePath('test.dart');
-    writeFile(
-        pathname,
-        '''
+    writeFile(pathname, '''
 class Test extends Object with C {
   void foo() {}
 }
@@ -79,9 +76,7 @@ abstract class C extends B {
     //  ]
 
     String pathname = sourcePath('test.dart');
-    writeFile(
-        pathname,
-        '''
+    writeFile(pathname, '''
 class Test extends Object with C {
   void foo() {}
 }
@@ -102,5 +97,23 @@ abstract class C extends B {
     expect(currentAnalysisErrors[pathname], isList);
     List<AnalysisError> errors = currentAnalysisErrors[pathname];
     expect(errors, isEmpty);
+  }
+}
+
+@reflectiveTest
+class AnalysisErrorIntegrationTest_UseCFE extends AnalysisErrorIntegrationTest {
+  @override
+  bool get useCFE => true;
+
+  @override
+  @failingTest
+  test_super_mixins_disabled() {
+    // Disabling super mixins is not supported in the new FE.
+    return super.test_super_mixins_disabled();
+  }
+
+  @override
+  test_super_mixins_enabled() {
+    return super.test_super_mixins_enabled();
   }
 }

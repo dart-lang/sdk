@@ -5,15 +5,14 @@
 #ifndef RUNTIME_VM_REGEXP_ASSEMBLER_H_
 #define RUNTIME_VM_REGEXP_ASSEMBLER_H_
 
-#include "vm/assembler.h"
-#include "vm/intermediate_language.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/il.h"
 #include "vm/object.h"
 
 namespace dart {
 
 // Utility function for the DotPrinter
 void PrintUtf16(uint16_t c);
-
 
 /// Convenience wrapper around a BlockEntryInstr pointer.
 class BlockLabel : public ValueObject {
@@ -75,7 +74,6 @@ class BlockLabel : public ValueObject {
  private:
   intptr_t pos_;
 };
-
 
 class RegExpMacroAssembler : public ZoneAllocated {
  public:
@@ -152,6 +150,9 @@ class RegExpMacroAssembler : public ZoneAllocated {
   // array, and if the found byte is non-zero, we jump to the on_bit_set label.
   virtual void CheckBitInTable(const TypedData& table,
                                BlockLabel* on_bit_set) = 0;
+
+  // Checks for preemption and serves as an OSR entry.
+  virtual void CheckPreemption(bool is_backtrack) {}
 
   // Checks whether the given offset from the current position is before
   // the end of the string.  May overwrite the current character.

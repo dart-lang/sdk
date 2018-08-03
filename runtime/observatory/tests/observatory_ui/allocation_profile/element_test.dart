@@ -4,7 +4,7 @@
 
 import 'dart:html';
 import 'dart:async';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/allocation_profile.dart';
 import 'package:observatory/src/elements/class_ref.dart';
@@ -31,10 +31,12 @@ main() {
   test('elements created', () async {
     final completer = new Completer<AllocationProfileMock>();
     final repo = new AllocationProfileRepositoryMock(
-        getter: expectAsync((M.IsolateRef i, bool gc, bool reset) {
+        getter:
+            expectAsync4((M.IsolateRef i, bool gc, bool reset, bool combine) {
       expect(i, equals(isolate));
       expect(gc, isFalse);
       expect(reset, isFalse);
+      expect(combine, isFalse);
       return completer.future;
     }, count: 1));
     final e = new AllocationProfileElement(vm, isolate, events, notif, repo);
@@ -54,8 +56,10 @@ main() {
       final completer = new Completer<AllocationProfileMock>();
       int step = 0;
       final repo = new AllocationProfileRepositoryMock(
-          getter: expectAsync((M.IsolateRef i, bool gc, bool reset) {
+          getter:
+              expectAsync4((M.IsolateRef i, bool gc, bool reset, bool combine) {
         expect(i, equals(isolate));
+        expect(combine, isFalse);
         switch (step) {
           case 0:
             expect(gc, isFalse);
@@ -85,7 +89,7 @@ main() {
       e
           .querySelectorAll(rTag)
           .sublist(1, 4)
-          .forEach((NavRefreshElement e) => e.refresh());
+          .forEach((e) => (e as NavRefreshElement).refresh());
       e.remove();
       await e.onRendered.first;
       expect(e.children.length, isZero, reason: 'is empty');
@@ -95,10 +99,12 @@ main() {
       final completer = new Completer<AllocationProfileMock>();
       int count = 0;
       final repo = new AllocationProfileRepositoryMock(
-          getter: expectAsync((M.IsolateRef i, bool gc, bool reset) {
+          getter:
+              expectAsync4((M.IsolateRef i, bool gc, bool reset, bool combine) {
         expect(i, equals(isolate));
         expect(gc, isFalse);
         expect(reset, isFalse);
+        expect(combine, isFalse);
         count++;
         return completer.future;
       }, count: 2));
@@ -128,22 +134,28 @@ main() {
       const clazz2 = const ClassRefMock(name: 'class2');
       const clazz3 = const ClassRefMock(name: 'class3');
       const profile = const AllocationProfileMock(members: const [
+        const ClassHeapStatsMock(clazz: clazz1),
         const ClassHeapStatsMock(
             clazz: clazz2,
             newSpace: const AllocationsMock(
-                accumulated: const AllocationCountMock(bytes: 10))),
-        const ClassHeapStatsMock(clazz: clazz3),
+                current: const AllocationCountMock(bytes: 10)),
+            oldSpace: const AllocationsMock(
+                current: const AllocationCountMock(bytes: 2))),
         const ClassHeapStatsMock(
-            clazz: clazz1,
+            clazz: clazz3,
             newSpace: const AllocationsMock(
-                accumulated: const AllocationCountMock(bytes: 5)))
+                current: const AllocationCountMock(bytes: 5)),
+            oldSpace: const AllocationsMock(
+                current: const AllocationCountMock(bytes: 3)))
       ]);
       final completer = new Completer<AllocationProfileMock>();
       final repo = new AllocationProfileRepositoryMock(
-          getter: expectAsync((M.IsolateRef i, bool gc, bool reset) {
+          getter:
+              expectAsync4((M.IsolateRef i, bool gc, bool reset, bool combine) {
         expect(i, equals(isolate));
         expect(gc, isFalse);
         expect(reset, isFalse);
+        expect(combine, isFalse);
         return completer.future;
       }, count: 1));
       final e = new AllocationProfileElement(vm, isolate, events, notif, repo);
@@ -151,13 +163,19 @@ main() {
       await e.onRendered.first;
       completer.complete(profile);
       await e.onRendered.first;
-      expect((e.querySelector(cTag) as ClassRefElement).cls, equals(clazz1));
-      e.querySelector('button.bytes').click();
-      await e.onRendered.first;
       expect((e.querySelector(cTag) as ClassRefElement).cls, equals(clazz2));
-      e.querySelector('button.bytes').click();
+      e.querySelector('button.name').click();
+      await e.onRendered.first;
+      expect((e.querySelector(cTag) as ClassRefElement).cls, equals(clazz1));
+      e.querySelector('button.name').click();
       await e.onRendered.first;
       expect((e.querySelector(cTag) as ClassRefElement).cls, equals(clazz3));
+      e.querySelectorAll('button.bytes').last.click();
+      await e.onRendered.first;
+      expect((e.querySelector(cTag) as ClassRefElement).cls, equals(clazz3));
+      e.querySelectorAll('button.bytes').last.click();
+      await e.onRendered.first;
+      expect((e.querySelector(cTag) as ClassRefElement).cls, equals(clazz1));
       e.remove();
       await e.onRendered.first;
       expect(e.children.length, isZero, reason: 'is empty');

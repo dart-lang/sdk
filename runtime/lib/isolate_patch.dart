@@ -2,23 +2,36 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// Note: the VM concatenates all patch files into a single patch file. This
+/// file is the first patch in "dart:isolate" which contains all the imports
+/// used by patches of that library. We plan to change this when we have a
+/// shared front end and simply use parts.
+
+import "dart:_internal" show VMLibraryHooks, patch;
+
+import "dart:async"
+    show Completer, Future, Stream, StreamController, StreamSubscription, Timer;
+
 import "dart:collection" show HashMap;
-import "dart:_internal" hide Symbol;
+
+/// These are the additional parts of this patch library:
+// part "timer_impl.dart";
 
 @patch
 class ReceivePort {
   @patch
-  factory ReceivePort() = _ReceivePortImpl;
+  factory ReceivePort() => new _ReceivePortImpl();
 
   @patch
-  factory ReceivePort.fromRawReceivePort(RawReceivePort rawPort) =
-      _ReceivePortImpl.fromRawReceivePort;
+  factory ReceivePort.fromRawReceivePort(RawReceivePort rawPort) {
+    return new _ReceivePortImpl.fromRawReceivePort(rawPort);
+  }
 }
 
 @patch
 class Capability {
   @patch
-  factory Capability() = _CapabilityImpl;
+  factory Capability() => new _CapabilityImpl();
 }
 
 class _CapabilityImpl implements Capability {
@@ -46,7 +59,7 @@ class RawReceivePort {
    * event is received.
    */
   @patch
-  factory RawReceivePort([void handler(event)]) {
+  factory RawReceivePort([Function handler]) {
     _RawReceivePortImpl result = new _RawReceivePortImpl();
     result.handler = handler;
     return result;
@@ -88,7 +101,8 @@ _ImmediateCallback _pendingImmediateCallback;
 /// The closure that should be used as scheduleImmediateClosure, when the VM
 /// is responsible for the event loop.
 void _isolateScheduleImmediate(void callback()) {
-  assert(_pendingImmediateCallback == null);
+  assert((_pendingImmediateCallback == null) ||
+      (_pendingImmediateCallback == callback));
   _pendingImmediateCallback = callback;
 }
 
@@ -197,8 +211,8 @@ class _SendPortImpl implements SendPort {
 }
 
 typedef _NullaryFunction();
-typedef _UnaryFunction(args);
-typedef _BinaryFunction(args, message);
+typedef _UnaryFunction(Null args);
+typedef _BinaryFunction(Null args, Null message);
 
 /**
  * Takes the real entry point as argument and invokes it with the
@@ -258,9 +272,9 @@ void _startIsolate(
 
     if (isSpawnUri) {
       if (entryPoint is _BinaryFunction) {
-        entryPoint(args, message);
+        (entryPoint as dynamic)(args, message);
       } else if (entryPoint is _UnaryFunction) {
-        entryPoint(args);
+        (entryPoint as dynamic)(args);
       } else {
         entryPoint();
       }
@@ -313,7 +327,7 @@ class Isolate {
       (VMLibraryHooks.resolvePackageUriFuture != null);
 
   @patch
-  static Future<Isolate> spawn(void entryPoint(message), var message,
+  static Future<Isolate> spawn<T>(void entryPoint(T message), T message,
       {bool paused: false,
       bool errorsAreFatal,
       SendPort onExit,
@@ -329,10 +343,8 @@ class Isolate {
       // The VM will invoke [_startIsolate] with entryPoint as argument.
       readyPort = new RawReceivePort();
 
-      // We do not inherit the package root or package config settings
-      // from the parent isolate, instead we use the values that were
-      // set on the command line.
-      var packageRoot = VMLibraryHooks.packageRootString;
+      // We do not inherit the package config settings from the parent isolate,
+      // instead we use the values that were set on the command line.
       var packageConfig = VMLibraryHooks.packageConfigString;
       var script = VMLibraryHooks.platformScript;
       if (script == null) {
@@ -345,7 +357,7 @@ class Isolate {
       }
 
       _spawnFunction(readyPort.sendPort, script.toString(), entryPoint, message,
-          paused, errorsAreFatal, onExit, onError, packageRoot, packageConfig);
+          paused, errorsAreFatal, onExit, onError, null, packageConfig);
       return await _spawnCommon(readyPort);
     } catch (e, st) {
       if (readyPort != null) {
@@ -405,11 +417,9 @@ class Isolate {
 
       // Ensure to resolve package: URIs being handed in as parameters.
       if (packageRoot != null) {
-        // Avoid calling resolvePackageUri if not stricly necessary in case
-        // the API is not supported.
-        if (packageRoot.scheme == "package") {
-          packageRoot = await Isolate.resolvePackageUri(packageRoot);
-        }
+        // `packages/` directory is no longer supported. Force it null.
+        // TODO(mfairhurst) Should this throw an exception?
+        packageRoot = null;
       } else if (packageConfig != null) {
         // Avoid calling resolvePackageUri if not strictly necessary in case
         // the API is not supported.
@@ -561,7 +571,7 @@ class Isolate {
   }
 
   @patch
-  void kill({int priority: BEFORE_NEXT_EVENT}) {
+  void kill({int priority: beforeNextEvent}) {
     var msg = new List(4)
       ..[0] = 0 // Make room for OOB message type.
       ..[1] = _KILL
@@ -571,7 +581,7 @@ class Isolate {
   }
 
   @patch
-  void ping(SendPort responsePort, {Object response, int priority: IMMEDIATE}) {
+  void ping(SendPort responsePort, {Object response, int priority: immediate}) {
     var msg = new List(5)
       ..[0] = 0 // Make room for OOM message type.
       ..[1] = _PING

@@ -5,13 +5,13 @@
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/constants.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
-import '../mocks.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -29,13 +29,18 @@ class AnalysisNotificationAnalyzedFilesTest extends AbstractAnalysisTest {
     expect(analyzedFiles, contains(filePath));
   }
 
+  void assertHasNoFile(String filePath) {
+    expect(analyzedFilesReceived, isTrue);
+    expect(analyzedFiles, isNot(contains(filePath)));
+  }
+
   Future<Null> prepareAnalyzedFiles() async {
     addGeneralAnalysisSubscription(GeneralAnalysisService.ANALYZED_FILES);
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
   }
 
   void processNotification(Notification notification) {
-    if (notification.event == ANALYSIS_ANALYZED_FILES) {
+    if (notification.event == ANALYSIS_NOTIFICATION_ANALYZED_FILES) {
       AnalysisAnalyzedFilesParams params =
           new AnalysisAnalyzedFilesParams.fromNotification(notification);
       analyzedFilesReceived = true;
@@ -64,6 +69,17 @@ class A {}
 ''');
     await prepareAnalyzedFiles();
     assertHasFile(testFile);
+  }
+
+  test_beforeAnalysis_excludeYamlFiles() async {
+    File yamlFile = getFolder(projectPath).getChildAssumingFile('sample.yaml');
+    yamlFile.writeAsStringSync('');
+    addTestFile('''
+class A {}
+''');
+    await prepareAnalyzedFiles();
+    assertHasFile(testFile);
+    assertHasNoFile(yamlFile.path);
   }
 
   test_insignificant_change() async {
@@ -98,14 +114,14 @@ class A {}
     // Making a change that *does* affect the set of reachable files should
     // trigger the notification to be re-sent.
     addTestFile('class A {}');
-    addFile('/foo.dart', 'library foo;');
+    newFile('/foo.dart', content: 'library foo;');
     await prepareAnalyzedFiles();
     expect(analyzedFilesReceived, isTrue);
 
     analyzedFilesReceived = false;
-    modifyTestFile('import "/foo.dart";');
+    modifyTestFile('import "${convertPathForImport('/foo.dart')}";');
     await prepareAnalyzedFiles();
-    assertHasFile('/foo.dart');
+    assertHasFile(convertPath('/foo.dart'));
   }
 
   void unsubscribeAnalyzedFiles() {

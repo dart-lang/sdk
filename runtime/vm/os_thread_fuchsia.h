@@ -9,8 +9,8 @@
 #error Do not include os_thread_fuchsia.h directly; use os_thread.h instead.
 #endif
 
-#include <magenta/syscalls/object.h>
 #include <pthread.h>
+#include <zircon/syscalls/object.h>
 
 #include "platform/assert.h"
 #include "platform/globals.h"
@@ -18,13 +18,11 @@
 namespace dart {
 
 typedef pthread_key_t ThreadLocalKey;
-typedef mx_koid_t ThreadId;
+typedef zx_koid_t ThreadId;
 typedef pthread_t ThreadJoinId;
-
 
 static const ThreadLocalKey kUnsetThreadLocalKey =
     static_cast<pthread_key_t>(-1);
-
 
 class ThreadInlineImpl {
  private:
@@ -42,7 +40,6 @@ class ThreadInlineImpl {
   DISALLOW_COPY_AND_ASSIGN(ThreadInlineImpl);
 };
 
-
 class MutexData {
  private:
   MutexData() {}
@@ -57,7 +54,6 @@ class MutexData {
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(MutexData);
 };
-
 
 class MonitorData {
  private:

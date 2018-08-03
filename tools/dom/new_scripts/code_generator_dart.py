@@ -81,7 +81,7 @@ import jinja2
 import idl_types
 from idl_types import IdlType
 from utilities import write_pickle_file
-from v8_globals import includes, interfaces
+from v8_globals import includes
 from dart_utilities import DartUtilities
 
 
@@ -122,10 +122,6 @@ class CodeGeneratorDart(object):
             interface_name
             for interface_name, interface_info in interfaces_info.iteritems()
             if 'GarbageCollected' in interface_info['inherited_extended_attributes']))
-        IdlType.set_will_be_garbage_collected_types(set(
-            interface_name
-            for interface_name, interface_info in interfaces_info.iteritems()
-            if 'WillBeGarbageCollected' in interface_info['inherited_extended_attributes']))
 
     def generate_code(self, definitions, interface_name, idl_pickle_filename,
                       only_if_changed):

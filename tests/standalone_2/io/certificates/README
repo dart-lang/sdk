@@ -1,0 +1,70 @@
+    This directory, tests/standalone/io/certificates, contains the
+X509 TLS certificates and private keys needed to run tests of Dart's
+secure networking code.  The SecureSocket and SecureServer classes
+are tested by making TLS (formerly called SSL) connections, secured
+by certificates from a self-signed test root authority.
+
+The certificates are created by running ../create_sample_certificates.sh
+in a bash or sh shell, with the openssl tools installed.  Run the script
+twice to create the untrusted_* files.
+
+PEM files:
+
+server_chain.pem:
+  Contains the chain of certificates, from the self-signed
+test certificate authority, through the intermediate CA, to the server
+certificate, used on the server side of a test connection.
+
+server_key.pem:
+  Contains the private key for the server certificate
+
+trusted_certs.pem:
+  Contains the self-signed certificate of the test certificate authority.
+This certificate is set as "trusted" by the client side of the connection
+in its SecurityContext object, so that a verified TLS connection to the
+server can be made.
+
+untrusted_server_chain.pem:
+  Contains a chain of certificates, from a different self-signed
+test certificate authority, through an intermediate CA, to a server
+certificate, used on the server side of a test connection that is intended
+to fail because the client does not accept this certificate authority
+
+untrusted_server_key.pem:
+  Contains the private key for the untrusted server certificate
+in untrusted_server_chain.pem
+
+*_malformed.pem:
+  Truncated PEM formatted certificates used to test error handling.
+
+PKCS12 files:
+
+server_key.12:
+  Created with:
+  $ openssl pkcs12 -export -inkey server_key.pem -out server_key.p12 -nocerts
+  with password 'dartdart'
+
+server_chain.p12:
+  Created with:
+  $ openssl pkcs12 -export -in server_chain.pem -out server_chain.p12 -nokeys
+  with password 'dartdart'
+
+client1_key.p12:
+  Created with:
+  $ openssl pkcs12 -export -inkey client1_key.pem -out client1_key.p12 -nocerts
+  with password 'dartdart'
+
+client1.p12:
+  Created with:
+  $ openssl pkcs12 -export -in client1.pem -out client1.p12 -nokeys
+  with password 'dartdart'
+
+trusted_certs.p12:
+  Created with:
+  $ openssl pkcs12 -export -in trusted_certs.pem -out trusted_certs.p12 -nokeys
+  with password 'dartdart'
+
+client_authority.p12:
+  Created with:
+  $ openssl pkcs12 -export -in client_authority.pem -out client_authority.p12 -nokeys
+  with password 'dartdart'

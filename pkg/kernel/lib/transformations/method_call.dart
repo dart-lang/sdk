@@ -53,12 +53,17 @@ import '../visitor.dart';
 ///   var b = new B();
 ///   b.foo(499, named1: 88);
 /// }
-Program transformProgram(Program program, [debug = false]) {
-  new MethodCallTransformer(debug).visitProgram(program);
-  return program;
+Component transformComponent(
+    CoreTypes coreTypes, ClassHierarchy hierarchy, Component component,
+    [debug = false]) {
+  new MethodCallTransformer(coreTypes, hierarchy, debug)
+      .visitComponent(component);
+  return component;
 }
 
 class MethodCallTransformer extends Transformer {
+  final CoreTypes coreTypes;
+
   /// Keep track of "visited" procedures and constructors to not visit already
   /// visited stuff, nor visit newly created stubs.
   Set<Member> _visited = new Set<Member>();
@@ -105,17 +110,13 @@ class MethodCallTransformer extends Transformer {
 
   /// For noSuchMethod calls.
   ClassHierarchy hierarchy;
-  CoreTypes coreTypes;
   Constructor _invocationMirrorConstructor; // cached
   Procedure _listFrom; // cached
 
-  MethodCallTransformer(this._debug);
+  MethodCallTransformer(this.coreTypes, this.hierarchy, this._debug);
 
   @override
-  TreeNode visitProgram(Program node) {
-    hierarchy = new ClassHierarchy(node);
-    coreTypes = new CoreTypes(node);
-
+  TreeNode visitComponent(Component node) {
     // First move body of all procedures that takes optional positional or named
     // parameters and record which non-static procedure names have optional
     // positional arguments.
@@ -851,7 +852,7 @@ class MethodCallTransformer extends Transformer {
     } else {
       // Get noSuchMethod on Object then...
       noSuchMethod = hierarchy.getDispatchTarget(
-          hierarchy.rootClass, new Name("noSuchMethod"));
+          coreTypes.objectClass, new Name("noSuchMethod"));
       ConstructorInvocation invocation = _createInvocation(
           procedureName.name, new Arguments(newParameterVariableGets));
       ConstructorInvocation invocationPrime =
@@ -1256,9 +1257,9 @@ class MethodCallTransformer extends Transformer {
 
   // Below methods used to add debug prints etc
 
-  Library _getDartCoreLibrary(Program program) {
-    if (program == null) return null;
-    return program.libraries.firstWhere((lib) =>
+  Library _getDartCoreLibrary(Component component) {
+    if (component == null) return null;
+    return component.libraries.firstWhere((lib) =>
         lib.importUri.scheme == 'dart' && lib.importUri.path == 'core');
   }
 
@@ -1277,8 +1278,8 @@ class MethodCallTransformer extends Transformer {
   }
 
   Expression _getPrintExpression(String msg, TreeNode treeNode) {
-    TreeNode program = treeNode;
-    while (program is! Program) program = program.parent;
+    TreeNode component = treeNode;
+    while (component is! Component) component = component.parent;
     var finalMsg = msg;
     if (treeNode is Member) {
       finalMsg += " [ ${treeNode.name.name} ]";
@@ -1291,9 +1292,9 @@ class MethodCallTransformer extends Transformer {
     }
 
     var stacktrace = new StaticGet(_getProcedureInClassInLib(
-        _getDartCoreLibrary(program), 'StackTrace', 'current'));
+        _getDartCoreLibrary(component), 'StackTrace', 'current'));
     var printStackTrace = new StaticInvocation(
-        _getProcedureInLib(_getDartCoreLibrary(program), 'print'),
+        _getProcedureInLib(_getDartCoreLibrary(component), 'print'),
         new Arguments([
           new StringConcatenation([
             new StringLiteral(finalMsg),

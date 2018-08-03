@@ -4,16 +4,19 @@
 
 library fasta.formal_parameter_builder;
 
-import '../parser/parser.dart' show FormalParameterType;
+import '../parser.dart' show FormalParameterKind;
+
+import '../parser/formal_parameter_kind.dart'
+    show
+        isMandatoryFormalParameterKind,
+        isOptionalNamedFormalParameterKind,
+        isOptionalPositionalFormalParameterKind;
 
 import 'builder.dart'
     show LibraryBuilder, MetadataBuilder, ModifierBuilder, TypeBuilder;
 
 abstract class FormalParameterBuilder<T extends TypeBuilder>
     extends ModifierBuilder {
-  @override
-  final int charOffset;
-
   final List<MetadataBuilder> metadata;
 
   final int modifiers;
@@ -25,17 +28,22 @@ abstract class FormalParameterBuilder<T extends TypeBuilder>
   /// True if this parameter is on the form `this.name`.
   final bool hasThis;
 
-  FormalParameterType kind = FormalParameterType.REQUIRED;
+  FormalParameterKind kind = FormalParameterKind.mandatory;
 
   FormalParameterBuilder(this.metadata, this.modifiers, this.type, this.name,
-      this.hasThis, LibraryBuilder compilationUnit, this.charOffset)
+      this.hasThis, LibraryBuilder compilationUnit, int charOffset)
       : super(compilationUnit, charOffset);
 
-  bool get isRequired => kind.isRequired;
+  String get debugName => "FormalParameterBuilder";
 
-  bool get isPositional => kind.isPositional || kind.isRequired;
+  bool get isRequired => isMandatoryFormalParameterKind(kind);
 
-  bool get isNamed => kind.isNamed;
+  bool get isPositional {
+    return isOptionalPositionalFormalParameterKind(kind) ||
+        isMandatoryFormalParameterKind(kind);
+  }
+
+  bool get isNamed => isOptionalNamedFormalParameterKind(kind);
 
   bool get isOptional => !isRequired;
 
@@ -43,4 +51,6 @@ abstract class FormalParameterBuilder<T extends TypeBuilder>
 
   @override
   String get fullNameForErrors => name;
+
+  FormalParameterBuilder forFormalParameterInitializerScope();
 }

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analyzer.dart';
-import 'package:analyzer/source/analysis_options_provider.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/options_rule_validator.dart';
@@ -34,43 +34,35 @@ class LinterRuleOptionsValidatorTest {
   }
 
   test_linter_defined_rules() {
-    validate(
-        '''
+    validate('''
 linter:
   rules:
     - camel_case_types
-    ''',
-        []);
+    ''', []);
   }
 
   test_linter_no_rules() {
-    validate(
-        '''
+    validate('''
 linter:
   rules:
-    ''',
-        []);
+    ''', []);
   }
 
   test_linter_null_rule() {
-    validate(
-        '''
+    validate('''
 linter:
   rules:
     -
 
-    ''',
-        []);
+    ''', []);
   }
 
   test_linter_undefined_rule() {
-    validate(
-        '''
+    validate('''
 linter:
   rules:
     - undefined
-    ''',
-        [UNDEFINED_LINT_WARNING]);
+    ''', [UNDEFINED_LINT_WARNING]);
   }
 
   validate(String source, List<ErrorCode> expected) {

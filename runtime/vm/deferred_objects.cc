@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/deferred_objects.h"
 
 #include "vm/code_patcher.h"
-#include "vm/compiler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/deopt_instructions.h"
 #include "vm/flags.h"
 #include "vm/object.h"
@@ -14,7 +16,6 @@ namespace dart {
 
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
-
 
 void DeferredDouble::Materialize(DeoptContext* deopt_context) {
   RawDouble** double_slot = reinterpret_cast<RawDouble**>(slot());
@@ -25,7 +26,6 @@ void DeferredDouble::Materialize(DeoptContext* deopt_context) {
                  reinterpret_cast<uword>(slot()), value());
   }
 }
-
 
 void DeferredMint::Materialize(DeoptContext* deopt_context) {
   RawMint** mint_slot = reinterpret_cast<RawMint**>(slot());
@@ -39,7 +39,6 @@ void DeferredMint::Materialize(DeoptContext* deopt_context) {
                  reinterpret_cast<uword>(slot()), value());
   }
 }
-
 
 void DeferredFloat32x4::Materialize(DeoptContext* deopt_context) {
   RawFloat32x4** float32x4_slot = reinterpret_cast<RawFloat32x4**>(slot());
@@ -56,7 +55,6 @@ void DeferredFloat32x4::Materialize(DeoptContext* deopt_context) {
   }
 }
 
-
 void DeferredFloat64x2::Materialize(DeoptContext* deopt_context) {
   RawFloat64x2** float64x2_slot = reinterpret_cast<RawFloat64x2**>(slot());
   RawFloat64x2* raw_float64x2 = Float64x2::New(value());
@@ -69,7 +67,6 @@ void DeferredFloat64x2::Materialize(DeoptContext* deopt_context) {
                  reinterpret_cast<uword>(slot()), x, y);
   }
 }
-
 
 void DeferredInt32x4::Materialize(DeoptContext* deopt_context) {
   RawInt32x4** int32x4_slot = reinterpret_cast<RawInt32x4**>(slot());
@@ -86,7 +83,6 @@ void DeferredInt32x4::Materialize(DeoptContext* deopt_context) {
   }
 }
 
-
 void DeferredObjectRef::Materialize(DeoptContext* deopt_context) {
   DeferredObject* obj = deopt_context->GetDeferredObject(index());
   *slot() = obj->object();
@@ -97,7 +93,6 @@ void DeferredObjectRef::Materialize(DeoptContext* deopt_context) {
                  cls.ToCString(), reinterpret_cast<uword>(slot()));
   }
 }
-
 
 void DeferredRetAddr::Materialize(DeoptContext* deopt_context) {
   Thread* thread = deopt_context->thread();
@@ -144,15 +139,14 @@ void DeferredRetAddr::Materialize(DeoptContext* deopt_context) {
   } else {
     if (deopt_context->HasDeoptFlag(ICData::kHoisted)) {
       // Prevent excessive deoptimization.
-      function.set_allows_hoisting_check_class(false);
+      function.SetProhibitsHoistingCheckClass(true);
     }
 
     if (deopt_context->HasDeoptFlag(ICData::kGeneralized)) {
-      function.set_allows_bounds_check_generalization(false);
+      function.SetProhibitsBoundsCheckGeneralization(true);
     }
   }
 }
-
 
 void DeferredPcMarker::Materialize(DeoptContext* deopt_context) {
   Thread* thread = deopt_context->thread();
@@ -189,12 +183,11 @@ void DeferredPcMarker::Materialize(DeoptContext* deopt_context) {
   }
   // Clear invocation counter so that hopefully the function gets reoptimized
   // only after more feedback has been collected.
-  function.set_usage_counter(0);
+  function.SetUsageCounter(0);
   if (function.HasOptimizedCode()) {
     function.SwitchToUnoptimizedCode();
   }
 }
-
 
 void DeferredPp::Materialize(DeoptContext* deopt_context) {
   Thread* thread = deopt_context->thread();
@@ -219,14 +212,12 @@ void DeferredPp::Materialize(DeoptContext* deopt_context) {
   }
 }
 
-
 RawObject* DeferredObject::object() {
   if (object_ == NULL) {
     Create();
   }
   return object_->raw();
 }
-
 
 void DeferredObject::Create() {
   if (object_ != NULL) {
@@ -256,13 +247,11 @@ void DeferredObject::Create() {
   }
 }
 
-
 static intptr_t ToContextIndex(intptr_t offset_in_bytes) {
   intptr_t result = (offset_in_bytes - Context::variable_offset(0)) / kWordSize;
   ASSERT(result >= 0);
   return result;
 }
-
 
 void DeferredObject::Fill() {
   Create();  // Ensure instance is created.
@@ -329,3 +318,5 @@ void DeferredObject::Fill() {
 }
 
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

@@ -4,20 +4,19 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol_server.dart' hide Element;
+import 'package:analysis_server/src/protocol_server.dart'
+    hide Element, ElementKind;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
  * A [Refactoring] for renaming [LocalElement]s.
@@ -26,12 +25,12 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   final AstProvider astProvider;
   final ResolvedUnitCache unitCache;
 
-  Set<LocalElement> elements = new Set<LocalElement>();
+  List<LocalElement> elements = [];
 
   RenameLocalRefactoringImpl(
-      SearchEngine searchEngine, this.astProvider, LocalElement element)
+      RefactoringWorkspace workspace, this.astProvider, LocalElement element)
       : unitCache = new ResolvedUnitCache(astProvider),
-        super(searchEngine, element);
+        super(workspace, element);
 
   @override
   LocalElement get element => super.element as LocalElement;
@@ -49,13 +48,14 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     RefactoringStatus result = new RefactoringStatus();
     await _prepareElements();
     for (LocalElement element in elements) {
       CompilationUnit unit = await unitCache.getUnit(element);
       if (unit != null) {
-        SourceRange elementRange = element.visibleRange;
-        unit.accept(new _ConflictValidatorVisitor(this, result, elementRange));
+        unit.accept(new _ConflictValidatorVisitor(result, newName, element));
       }
     }
     return result;
@@ -76,9 +76,18 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future fillChange() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     for (Element element in elements) {
       addDeclarationEdit(element);
-      await searchEngine.searchReferences(element).then(addReferenceEdits);
+      var references = await searchEngine.searchReferences(element);
+
+      // Exclude "implicit" references to optional positional parameters.
+      if (element is ParameterElement && element.isOptionalPositional) {
+        references.removeWhere((match) => match.sourceRange.length == 0);
+      }
+
+      addReferenceEdits(references);
     }
   }
 
@@ -86,46 +95,31 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
    * Fills [elements] with [Element]s to rename.
    */
   Future _prepareElements() async {
-    Element enclosing = element.enclosingElement;
-    if (enclosing is MethodElement &&
-        element is ParameterElement &&
-        (element as ParameterElement).parameterKind == ParameterKind.NAMED) {
-      // prepare hierarchy methods
-      Set<ClassMemberElement> methods =
-          await getHierarchyMembers(searchEngine, enclosing);
-      // add named parameter from each method
-      for (ClassMemberElement method in methods) {
-        if (method is MethodElement) {
-          for (ParameterElement parameter in method.parameters) {
-            if (parameter.parameterKind == ParameterKind.NAMED &&
-                parameter.name == element.name) {
-              elements.add(parameter);
-            }
-          }
-        }
-      }
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    Element element = this.element;
+    if (element is ParameterElement && element.isNamed) {
+      elements = await getHierarchyNamedParameters(searchEngine, element);
     } else {
-      elements = new Set.from([element]);
+      elements = [element];
     }
   }
 }
 
 class _ConflictValidatorVisitor extends RecursiveAstVisitor {
-  final RenameLocalRefactoringImpl refactoring;
   final RefactoringStatus result;
-  final SourceRange elementRange;
+  final String newName;
+  final LocalElement target;
   final Set<Element> conflictingLocals = new Set<Element>();
 
-  _ConflictValidatorVisitor(this.refactoring, this.result, this.elementRange);
+  _ConflictValidatorVisitor(this.result, this.newName, this.target);
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
     Element nodeElement = node.bestElement;
-    String newName = refactoring.newName;
     if (nodeElement != null && nodeElement.name == newName) {
-      // duplicate declaration
-      if (node.inDeclarationContext() &&
-          haveIntersectingRanges(refactoring.element, nodeElement)) {
+      // Duplicate declaration.
+      if (node.inDeclarationContext() && _isVisibleWithTarget(nodeElement)) {
         conflictingLocals.add(nodeElement);
         String nodeKind = nodeElement.kind.displayName;
         String message = "Duplicate $nodeKind '$newName'.";
@@ -135,21 +129,36 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor {
       if (conflictingLocals.contains(nodeElement)) {
         return;
       }
-      // shadowing referenced element
-      if (elementRange != null &&
-          elementRange.contains(node.offset) &&
+      // Shadowing by the target element.
+      SourceRange targetRange = target.visibleRange;
+      if (targetRange != null &&
+          targetRange.contains(node.offset) &&
           !node.isQualified &&
           !_isNamedExpressionName(node)) {
         nodeElement = getSyntheticAccessorVariable(nodeElement);
         String nodeKind = nodeElement.kind.displayName;
         String nodeName = getElementQualifiedName(nodeElement);
         String nameElementSourceName = nodeElement.source.shortName;
-        String refKind = refactoring.element.kind.displayName;
+        String refKind = target.kind.displayName;
         String message = 'Usage of $nodeKind "$nodeName" declared in '
             '"$nameElementSourceName" will be shadowed by renamed $refKind.';
         result.addError(message, newLocation_fromNode(node));
       }
     }
+  }
+
+  /**
+   * Returns whether [element] and [target] are visible together.
+   */
+  bool _isVisibleWithTarget(Element element) {
+    if (element is LocalElement) {
+      SourceRange targetRange = target.visibleRange;
+      SourceRange elementRange = element.visibleRange;
+      return targetRange != null &&
+          elementRange != null &&
+          elementRange.intersects(targetRange);
+    }
+    return false;
   }
 
   static bool _isNamedExpressionName(SimpleIdentifier node) {

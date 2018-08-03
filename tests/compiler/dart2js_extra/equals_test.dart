@@ -9,7 +9,7 @@ void main() {
   } else {
     throw "x != x with x == 3";
   }
-  var y = x;
+  dynamic y = x;
   if (true) {
     y = 10;
   }

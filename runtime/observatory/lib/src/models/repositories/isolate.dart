@@ -5,6 +5,7 @@
 part of models;
 
 abstract class IsolateRepository {
+  Iterable<Service> get reloadSourcesServices;
   Future<Isolate> get(IsolateRef isolate);
-  Future reloadSources(IsolateRef isolate);
+  Future reloadSources(IsolateRef isolate, {Service service});
 }

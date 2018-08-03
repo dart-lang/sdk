@@ -49,7 +49,7 @@ class DeoptimizedCodeSet : public ZoneAllocated {
     if ((size_before > 0) && FLAG_trace_profiler) {
       intptr_t length_before = previous_.Length();
       intptr_t length_after = current_.Length();
-      OS::Print(
+      OS::PrintErr(
           "Updating isolate deoptimized code array: "
           "%" Pd " -> %" Pd " [%" Pd " -> %" Pd "]\n",
           size_before, size_after, length_before, length_after);
@@ -91,11 +91,9 @@ class DeoptimizedCodeSet : public ZoneAllocated {
   const GrowableObjectArray& current_;
 };
 
-
 ProfileFunctionSourcePosition::ProfileFunctionSourcePosition(
     TokenPosition token_pos)
     : token_pos_(token_pos), exclusive_ticks_(0), inclusive_ticks_(0) {}
-
 
 void ProfileFunctionSourcePosition::Tick(bool exclusive) {
   if (exclusive) {
@@ -104,7 +102,6 @@ void ProfileFunctionSourcePosition::Tick(bool exclusive) {
     inclusive_ticks_++;
   }
 }
-
 
 ProfileFunction::ProfileFunction(Kind kind,
                                  const char* name,
@@ -124,7 +121,6 @@ ProfileFunction::ProfileFunction(Kind kind,
   ASSERT(profile_codes_.length() == 0);
 }
 
-
 const char* ProfileFunction::Name() const {
   if (name_ != NULL) {
     return name_;
@@ -135,7 +131,6 @@ const char* ProfileFunction::Name() const {
   return func_name.ToCString();
 }
 
-
 bool ProfileFunction::is_visible() const {
   if (function_.IsNull()) {
     // Some synthetic function.
@@ -143,7 +138,6 @@ bool ProfileFunction::is_visible() const {
   }
   return FLAG_show_invisible_frames || function_.is_visible();
 }
-
 
 void ProfileFunction::Tick(bool exclusive,
                            intptr_t inclusive_serial,
@@ -162,7 +156,6 @@ void ProfileFunction::Tick(bool exclusive,
   TickSourcePosition(token_position, false);
 }
 
-
 void ProfileFunction::TickSourcePosition(TokenPosition token_position,
                                          bool exclusive) {
   intptr_t i = 0;
@@ -170,9 +163,9 @@ void ProfileFunction::TickSourcePosition(TokenPosition token_position,
     ProfileFunctionSourcePosition& position = source_position_ticks_[i];
     if (position.token_pos().value() == token_position.value()) {
       if (FLAG_trace_profiler_verbose) {
-        OS::Print("Ticking source position %s %s\n",
-                  exclusive ? "exclusive" : "inclusive",
-                  token_position.ToCString());
+        OS::PrintErr("Ticking source position %s %s\n",
+                     exclusive ? "exclusive" : "inclusive",
+                     token_position.ToCString());
       }
       // Found existing position, tick it.
       position.Tick(exclusive);
@@ -186,9 +179,9 @@ void ProfileFunction::TickSourcePosition(TokenPosition token_position,
   // Add new one, sorted by token position value.
   ProfileFunctionSourcePosition pfsp(token_position);
   if (FLAG_trace_profiler_verbose) {
-    OS::Print("Ticking source position %s %s\n",
-              exclusive ? "exclusive" : "inclusive",
-              token_position.ToCString());
+    OS::PrintErr("Ticking source position %s %s\n",
+                 exclusive ? "exclusive" : "inclusive",
+                 token_position.ToCString());
   }
   pfsp.Tick(exclusive);
 
@@ -198,7 +191,6 @@ void ProfileFunction::TickSourcePosition(TokenPosition token_position,
     source_position_ticks_.Add(pfsp);
   }
 }
-
 
 const char* ProfileFunction::KindToCString(Kind kind) {
   switch (kind) {
@@ -218,19 +210,17 @@ const char* ProfileFunction::KindToCString(Kind kind) {
   }
 }
 
-
 void ProfileFunction::PrintToJSONObject(JSONObject* func) {
   func->AddProperty("type", "@Function");
   func->AddProperty("name", name());
   func->AddProperty("_kind", KindToCString(kind()));
 }
 
-
 void ProfileFunction::PrintToJSONArray(JSONArray* functions) {
   JSONObject obj(functions);
   obj.AddProperty("kind", KindToCString(kind()));
-  obj.AddPropertyF("inclusiveTicks", "%" Pd "", inclusive_ticks());
-  obj.AddPropertyF("exclusiveTicks", "%" Pd "", exclusive_ticks());
+  obj.AddProperty("inclusiveTicks", inclusive_ticks());
+  obj.AddProperty("exclusiveTicks", exclusive_ticks());
   if (kind() == kDartFunction) {
     ASSERT(!function_.IsNull());
     obj.AddProperty("function", function_);
@@ -247,7 +237,6 @@ void ProfileFunction::PrintToJSONArray(JSONArray* functions) {
   }
 }
 
-
 void ProfileFunction::AddProfileCode(intptr_t code_table_index) {
   for (intptr_t i = 0; i < profile_codes_.length(); i++) {
     if (profile_codes_[i] == code_table_index) {
@@ -256,7 +245,6 @@ void ProfileFunction::AddProfileCode(intptr_t code_table_index) {
   }
   profile_codes_.Add(code_table_index);
 }
-
 
 bool ProfileFunction::GetSinglePosition(ProfileFunctionSourcePosition* pfsp) {
   if (pfsp == NULL) {
@@ -269,10 +257,8 @@ bool ProfileFunction::GetSinglePosition(ProfileFunctionSourcePosition* pfsp) {
   return true;
 }
 
-
 ProfileCodeAddress::ProfileCodeAddress(uword pc)
     : pc_(pc), exclusive_ticks_(0), inclusive_ticks_(0) {}
-
 
 void ProfileCodeAddress::Tick(bool exclusive) {
   if (exclusive) {
@@ -281,7 +267,6 @@ void ProfileCodeAddress::Tick(bool exclusive) {
     inclusive_ticks_++;
   }
 }
-
 
 ProfileCode::ProfileCode(Kind kind,
                          uword start,
@@ -299,19 +284,37 @@ ProfileCode::ProfileCode(Kind kind,
       compile_timestamp_(0),
       function_(NULL),
       code_table_index_(-1),
-      address_ticks_(0) {}
+      address_ticks_(0) {
+  ASSERT(start_ < end_);
+}
 
-
-void ProfileCode::AdjustExtent(uword start, uword end) {
-  if (start < start_) {
+void ProfileCode::TruncateLower(uword start) {
+  if (start > start_) {
     start_ = start;
   }
-  if (end > end_) {
+  ASSERT(start_ < end_);
+}
+
+void ProfileCode::TruncateUpper(uword end) {
+  if (end < end_) {
     end_ = end;
   }
   ASSERT(start_ < end_);
 }
 
+void ProfileCode::ExpandLower(uword start) {
+  if (start < start_) {
+    start_ = start;
+  }
+  ASSERT(start_ < end_);
+}
+
+void ProfileCode::ExpandUpper(uword end) {
+  if (end > end_) {
+    end_ = end;
+  }
+  ASSERT(start_ < end_);
+}
 
 bool ProfileCode::Overlaps(const ProfileCode* other) const {
   ASSERT(other != NULL);
@@ -319,11 +322,9 @@ bool ProfileCode::Overlaps(const ProfileCode* other) const {
          Contains(other->start()) || Contains(other->end() - 1);
 }
 
-
 bool ProfileCode::IsOptimizedDart() const {
   return !code_.IsNull() && code_.is_optimized();
 }
-
 
 void ProfileCode::SetName(const char* name) {
   if (name == NULL) {
@@ -335,15 +336,13 @@ void ProfileCode::SetName(const char* name) {
   name_[len] = '\0';
 }
 
-
 void ProfileCode::GenerateAndSetSymbolName(const char* prefix) {
   const intptr_t kBuffSize = 512;
   char buff[kBuffSize];
-  OS::SNPrint(&buff[0], kBuffSize - 1, "%s [%" Px ", %" Px ")", prefix, start(),
-              end());
+  Utils::SNPrint(&buff[0], kBuffSize - 1, "%s [%" Px ", %" Px ")", prefix,
+                 start(), end());
   SetName(buff);
 }
-
 
 void ProfileCode::Tick(uword pc, bool exclusive, intptr_t serial) {
   // If exclusive is set, tick it.
@@ -360,7 +359,6 @@ void ProfileCode::Tick(uword pc, bool exclusive, intptr_t serial) {
   inclusive_ticks_++;
   TickAddress(pc, false);
 }
-
 
 void ProfileCode::TickAddress(uword pc, bool exclusive) {
   const intptr_t length = address_ticks_.length();
@@ -392,7 +390,6 @@ void ProfileCode::TickAddress(uword pc, bool exclusive) {
   }
 }
 
-
 void ProfileCode::PrintNativeCode(JSONObject* profile_code_obj) {
   ASSERT(kind() == kNativeCode);
   JSONObject obj(profile_code_obj, "code");
@@ -409,7 +406,6 @@ void ProfileCode::PrintNativeCode(JSONObject* profile_code_obj) {
     function_->PrintToJSONObject(&func);
   }
 }
-
 
 void ProfileCode::PrintCollectedCode(JSONObject* profile_code_obj) {
   ASSERT(kind() == kCollectedCode);
@@ -428,7 +424,6 @@ void ProfileCode::PrintCollectedCode(JSONObject* profile_code_obj) {
   }
 }
 
-
 void ProfileCode::PrintOverwrittenCode(JSONObject* profile_code_obj) {
   ASSERT(kind() == kReusedCode);
   JSONObject obj(profile_code_obj, "code");
@@ -445,7 +440,6 @@ void ProfileCode::PrintOverwrittenCode(JSONObject* profile_code_obj) {
     function_->PrintToJSONObject(&func);
   }
 }
-
 
 void ProfileCode::PrintTagCode(JSONObject* profile_code_obj) {
   ASSERT(kind() == kTagCode);
@@ -464,7 +458,6 @@ void ProfileCode::PrintTagCode(JSONObject* profile_code_obj) {
   }
 }
 
-
 const char* ProfileCode::KindToCString(Kind kind) {
   switch (kind) {
     case kDartCode:
@@ -482,12 +475,11 @@ const char* ProfileCode::KindToCString(Kind kind) {
   return NULL;
 }
 
-
 void ProfileCode::PrintToJSONArray(JSONArray* codes) {
   JSONObject obj(codes);
   obj.AddProperty("kind", ProfileCode::KindToCString(kind()));
-  obj.AddPropertyF("inclusiveTicks", "%" Pd "", inclusive_ticks());
-  obj.AddPropertyF("exclusiveTicks", "%" Pd "", exclusive_ticks());
+  obj.AddProperty("inclusiveTicks", inclusive_ticks());
+  obj.AddProperty("exclusiveTicks", exclusive_ticks());
   if (kind() == kDartCode) {
     ASSERT(!code_.IsNull());
     obj.AddProperty("code", code_);
@@ -506,12 +498,11 @@ void ProfileCode::PrintToJSONArray(JSONArray* codes) {
     for (intptr_t i = 0; i < address_ticks_.length(); i++) {
       const ProfileCodeAddress& entry = address_ticks_[i];
       ticks.AddValueF("%" Px "", entry.pc());
-      ticks.AddValueF("%" Pd "", entry.exclusive_ticks());
-      ticks.AddValueF("%" Pd "", entry.inclusive_ticks());
+      ticks.AddValue(entry.exclusive_ticks());
+      ticks.AddValue(entry.inclusive_ticks());
     }
   }
 }
-
 
 class ProfileFunctionTable : public ZoneAllocated {
  public:
@@ -610,7 +601,6 @@ class ProfileFunctionTable : public ZoneAllocated {
   DirectChainedHashMap<ProfileFunctionTableTrait> function_hash_;
 };
 
-
 ProfileFunction* ProfileCode::SetFunctionAndName(ProfileFunctionTable* table) {
   ASSERT(function_ == NULL);
 
@@ -694,174 +684,160 @@ ProfileFunction* ProfileCode::SetFunctionAndName(ProfileFunctionTable* table) {
   return function_;
 }
 
-
-typedef bool (*RangeCompare)(uword pc, uword region_start, uword region_end);
-
-class ProfileCodeTable : public ZoneAllocated {
- public:
-  ProfileCodeTable() : table_(8) {}
-
-  intptr_t length() const { return table_.length(); }
-
-  ProfileCode* At(intptr_t index) const {
-    ASSERT(index >= 0);
-    ASSERT(index < length());
-    return table_[index];
+intptr_t ProfileCodeTable::FindCodeIndexForPC(uword pc) const {
+  intptr_t length = table_.length();
+  if (length == 0) {
+    return -1;  // Not found.
   }
-
-  // Find the table index to the ProfileCode containing pc.
-  // Returns < 0 if not found.
-  intptr_t FindCodeIndexForPC(uword pc) const {
-    intptr_t index = FindCodeIndex(pc, &CompareLowerBound);
-    if (index == length()) {
-      // Not present.
-      return -1;
-    }
-    const ProfileCode* code = At(index);
-    if (!code->Contains(pc)) {
-      // Not present.
-      return -1;
-    }
-    // Found at index.
-    return index;
-  }
-
-  ProfileCode* FindCodeForPC(uword pc) const {
-    intptr_t index = FindCodeIndexForPC(pc);
-    if (index < 0) {
-      return NULL;
-    }
-    return At(index);
-  }
-
-  // Insert |new_code| into the table. Returns the table index where |new_code|
-  // was inserted. Will merge with an overlapping ProfileCode if one is present.
-  intptr_t InsertCode(ProfileCode* new_code) {
-    const uword start = new_code->start();
-    const uword end = new_code->end();
-    const intptr_t length = table_.length();
-    if (length == 0) {
-      table_.Add(new_code);
-      return length;
-    }
-    // Determine the correct place to insert or merge |new_code| into table.
-    intptr_t lo = FindCodeIndex(start, &CompareLowerBound);
-    intptr_t hi = FindCodeIndex(end - 1, &CompareUpperBound);
-    // TODO(johnmccutchan): Simplify below logic.
-    if ((lo == length) && (hi == length)) {
-      lo = length - 1;
-    }
-    if (lo == length) {
-      ProfileCode* code = At(hi);
-      if (code->Overlaps(new_code)) {
-        HandleOverlap(code, new_code, start, end);
-        return hi;
-      }
-      table_.Add(new_code);
-      return length;
-    } else if (hi == length) {
-      ProfileCode* code = At(lo);
-      if (code->Overlaps(new_code)) {
-        HandleOverlap(code, new_code, start, end);
-        return lo;
-      }
-      table_.Add(new_code);
-      return length;
-    } else if (lo == hi) {
-      ProfileCode* code = At(lo);
-      if (code->Overlaps(new_code)) {
-        HandleOverlap(code, new_code, start, end);
-        return lo;
-      }
-      table_.InsertAt(lo, new_code);
-      return lo;
+  intptr_t lo = 0;
+  intptr_t hi = length - 1;
+  while (lo <= hi) {
+    intptr_t mid = (hi - lo + 1) / 2 + lo;
+    ASSERT(mid >= lo);
+    ASSERT(mid <= hi);
+    ProfileCode* code = At(mid);
+    if (code->Contains(pc)) {
+      return mid;
+    } else if (pc < code->start()) {
+      hi = mid - 1;
     } else {
-      ProfileCode* code = At(lo);
-      if (code->Overlaps(new_code)) {
-        HandleOverlap(code, new_code, start, end);
-        return lo;
-      }
-      code = At(hi);
-      if (code->Overlaps(new_code)) {
-        HandleOverlap(code, new_code, start, end);
-        return hi;
-      }
-      table_.InsertAt(hi, new_code);
-      return hi;
-    }
-    UNREACHABLE();
-    return -1;
-  }
-
- private:
-  intptr_t FindCodeIndex(uword pc, RangeCompare comparator) const {
-    ASSERT(comparator != NULL);
-    intptr_t count = table_.length();
-    intptr_t first = 0;
-    while (count > 0) {
-      intptr_t it = first;
-      intptr_t step = count / 2;
-      it += step;
-      const ProfileCode* code = At(it);
-      if (comparator(pc, code->start(), code->end())) {
-        first = ++it;
-        count -= (step + 1);
-      } else {
-        count = step;
-      }
-    }
-    return first;
-  }
-
-  static bool CompareUpperBound(uword pc, uword start, uword end) {
-    return pc >= end;
-  }
-
-  static bool CompareLowerBound(uword pc, uword start, uword end) {
-    return end <= pc;
-  }
-
-  void HandleOverlap(ProfileCode* existing,
-                     ProfileCode* code,
-                     uword start,
-                     uword end) {
-    // We should never see overlapping Dart code regions.
-    ASSERT(existing->kind() != ProfileCode::kDartCode);
-    // We should never see overlapping Tag code regions.
-    ASSERT(existing->kind() != ProfileCode::kTagCode);
-    // When code regions overlap, they should be of the same kind.
-    ASSERT(existing->kind() == code->kind());
-    existing->AdjustExtent(start, end);
-  }
-
-  void VerifyOrder() {
-    const intptr_t length = table_.length();
-    if (length == 0) {
-      return;
-    }
-    uword last = table_[0]->end();
-    for (intptr_t i = 1; i < length; i++) {
-      ProfileCode* a = table_[i];
-      ASSERT(last <= a->start());
-      last = a->end();
+      lo = mid + 1;
     }
   }
+  return -1;
+}
 
-  void VerifyOverlap() {
-    const intptr_t length = table_.length();
-    for (intptr_t i = 0; i < length; i++) {
-      ProfileCode* a = table_[i];
-      for (intptr_t j = i + 1; j < length; j++) {
-        ProfileCode* b = table_[j];
-        ASSERT(!a->Contains(b->start()) && !a->Contains(b->end() - 1) &&
-               !b->Contains(a->start()) && !b->Contains(a->end() - 1));
-      }
-    }
+intptr_t ProfileCodeTable::InsertCode(ProfileCode* new_code) {
+  const intptr_t length = table_.length();
+  if (length == 0) {
+    table_.Add(new_code);
+    return length;
   }
 
-  ZoneGrowableArray<ProfileCode*> table_;
-};
+  // Determine the correct place to insert or merge |new_code| into table.
+  intptr_t lo = -1;
+  intptr_t hi = -1;
+  ProfileCode* lo_code = NULL;
+  ProfileCode* hi_code = NULL;
+  const uword pc = new_code->end() - 1;
+  FindNeighbors(pc, &lo, &hi, &lo_code, &hi_code);
+  ASSERT((lo_code != NULL) || (hi_code != NULL));
 
+  if (lo != -1) {
+    // Has left neighbor.
+    new_code->TruncateLower(lo_code->end());
+    ASSERT(!new_code->Overlaps(lo_code));
+  }
+  if (hi != -1) {
+    // Has right neighbor.
+    new_code->TruncateUpper(hi_code->start());
+    ASSERT(!new_code->Overlaps(hi_code));
+  }
+
+  if ((lo != -1) && (lo_code->kind() == ProfileCode::kNativeCode) &&
+      (new_code->kind() == ProfileCode::kNativeCode) &&
+      (lo_code->end() == new_code->start())) {
+    // Adjacent left neighbor of the same kind: merge.
+    // (dladdr doesn't give us symbol size so processing more samples may see
+    // more PCs we didn't previously know belonged to it.)
+    lo_code->ExpandUpper(new_code->end());
+    return lo;
+  }
+
+  if ((hi != -1) && (hi_code->kind() == ProfileCode::kNativeCode) &&
+      (new_code->kind() == ProfileCode::kNativeCode) &&
+      (new_code->end() == hi_code->start())) {
+    // Adjacent right neighbor of the same kind: merge.
+    // (dladdr doesn't give us symbol size so processing more samples may see
+    // more PCs we didn't previously know belonged to it.)
+    hi_code->ExpandLower(new_code->start());
+    return hi;
+  }
+
+  intptr_t insert;
+  if (lo == -1) {
+    insert = 0;
+  } else if (hi == -1) {
+    insert = length;
+  } else {
+    insert = lo + 1;
+  }
+  table_.InsertAt(insert, new_code);
+  return insert;
+}
+
+void ProfileCodeTable::FindNeighbors(uword pc,
+                                     intptr_t* lo,
+                                     intptr_t* hi,
+                                     ProfileCode** lo_code,
+                                     ProfileCode** hi_code) const {
+  ASSERT(table_.length() >= 1);
+
+  intptr_t length = table_.length();
+
+  if (pc < At(0)->start()) {
+    // Lower than any existing code.
+    *lo = -1;
+    *lo_code = NULL;
+    *hi = 0;
+    *hi_code = At(*hi);
+    return;
+  }
+
+  if (pc >= At(length - 1)->end()) {
+    // Higher than any existing code.
+    *lo = length - 1;
+    *lo_code = At(*lo);
+    *hi = -1;
+    *hi_code = NULL;
+    return;
+  }
+
+  *lo = 0;
+  *lo_code = At(*lo);
+  *hi = length - 1;
+  *hi_code = At(*hi);
+
+  while ((*hi - *lo) > 1) {
+    intptr_t mid = (*hi - *lo + 1) / 2 + *lo;
+    ASSERT(*lo <= mid);
+    ASSERT(*hi >= mid);
+    ProfileCode* code = At(mid);
+    if (code->end() <= pc) {
+      *lo = mid;
+      *lo_code = code;
+    }
+    if (pc < code->end()) {
+      *hi = mid;
+      *hi_code = code;
+    }
+  }
+}
+
+void ProfileCodeTable::VerifyOrder() {
+  const intptr_t length = table_.length();
+  if (length == 0) {
+    return;
+  }
+  uword last = table_[0]->end();
+  for (intptr_t i = 1; i < length; i++) {
+    ProfileCode* a = table_[i];
+    ASSERT(last <= a->start());
+    last = a->end();
+  }
+}
+
+void ProfileCodeTable::VerifyOverlap() {
+  const intptr_t length = table_.length();
+  for (intptr_t i = 0; i < length; i++) {
+    ProfileCode* a = table_[i];
+    for (intptr_t j = i + 1; j < length; j++) {
+      ProfileCode* b = table_[j];
+      ASSERT(!a->Contains(b->start()) && !a->Contains(b->end() - 1) &&
+             !b->Contains(a->start()) && !b->Contains(a->end() - 1));
+    }
+  }
+}
 
 ProfileTrieNode::ProfileTrieNode(intptr_t table_index)
     : table_index_(table_index),
@@ -873,15 +849,12 @@ ProfileTrieNode::ProfileTrieNode(intptr_t table_index)
   ASSERT(table_index_ >= 0);
 }
 
-
 ProfileTrieNode::~ProfileTrieNode() {}
-
 
 void ProfileTrieNode::Tick(ProcessedSample* sample, bool exclusive) {
   count_++;
   IncrementAllocation(sample->native_allocation_size_bytes(), exclusive);
 }
-
 
 void ProfileTrieNode::SortChildren() {
   children_.Sort(ProfileTrieNodeCompare);
@@ -891,7 +864,6 @@ void ProfileTrieNode::SortChildren() {
   }
 }
 
-
 intptr_t ProfileTrieNode::IndexOf(ProfileTrieNode* node) {
   for (intptr_t i = 0; i < children_.length(); i++) {
     if (children_[i] == node) {
@@ -900,7 +872,6 @@ intptr_t ProfileTrieNode::IndexOf(ProfileTrieNode* node) {
   }
   return -1;
 }
-
 
 class ProfileCodeTrieNode : public ProfileTrieNode {
  public:
@@ -952,7 +923,6 @@ class ProfileCodeTrieNode : public ProfileTrieNode {
   }
 };
 
-
 class ProfileFunctionTrieNodeCode {
  public:
   explicit ProfileFunctionTrieNodeCode(intptr_t index)
@@ -968,7 +938,6 @@ class ProfileFunctionTrieNodeCode {
   intptr_t code_index_;
   intptr_t ticks_;
 };
-
 
 class ProfileFunctionTrieNode : public ProfileTrieNode {
  public:
@@ -1045,7 +1014,6 @@ class ProfileFunctionTrieNode : public ProfileTrieNode {
   ZoneGrowableArray<ProfileFunctionTrieNodeCode> code_objects_;
 };
 
-
 class ProfileCodeInlinedFunctionsCache : public ValueObject {
  public:
   ProfileCodeInlinedFunctionsCache() : cache_cursor_(0), last_hit_(0) {
@@ -1059,8 +1027,8 @@ class ProfileCodeInlinedFunctionsCache : public ValueObject {
   ~ProfileCodeInlinedFunctionsCache() {
     if (FLAG_trace_profiler) {
       intptr_t total = cache_hit_ + cache_miss_;
-      OS::Print("LOOKUPS: %" Pd " HITS: %" Pd " MISSES: %" Pd "\n", total,
-                cache_hit_, cache_miss_);
+      OS::PrintErr("LOOKUPS: %" Pd " HITS: %" Pd " MISSES: %" Pd "\n", total,
+                   cache_hit_, cache_miss_);
     }
   }
 
@@ -1190,7 +1158,6 @@ class ProfileCodeInlinedFunctionsCache : public ValueObject {
   intptr_t cache_hit_;
 };
 
-
 class ProfileBuilder : public ValueObject {
  public:
   enum ProfileInfoKind {
@@ -1205,12 +1172,14 @@ class ProfileBuilder : public ValueObject {
 
   ProfileBuilder(Thread* thread,
                  SampleFilter* filter,
+                 SampleBuffer* sample_buffer,
                  Profile::TagOrder tag_order,
                  intptr_t extra_tags,
                  Profile* profile)
       : thread_(thread),
         vm_isolate_(Dart::vm_isolate()),
         filter_(filter),
+        sample_buffer_(sample_buffer),
         tag_order_(tag_order),
         extra_tags_(extra_tags),
         profile_(profile),
@@ -1221,6 +1190,8 @@ class ProfileBuilder : public ValueObject {
         inclusive_tree_(false),
         samples_(NULL),
         info_kind_(kNone) {
+    ASSERT((sample_buffer_ == Profiler::sample_buffer()) ||
+           (sample_buffer_ == Profiler::allocation_sample_buffer()));
     ASSERT(profile_ != NULL);
   }
 
@@ -1272,11 +1243,8 @@ class ProfileBuilder : public ValueObject {
 
   bool FilterSamples() {
     ScopeTimer sw("ProfileBuilder::FilterSamples", FLAG_trace_profiler);
-    SampleBuffer* sample_buffer = Profiler::sample_buffer();
-    if (sample_buffer == NULL) {
-      return false;
-    }
-    samples_ = sample_buffer->BuildProcessedSampleBuffer(filter_);
+    ASSERT(sample_buffer_ != NULL);
+    samples_ = sample_buffer_->BuildProcessedSampleBuffer(filter_);
     profile_->samples_ = samples_;
     profile_->sample_count_ = samples_->length();
     return true;
@@ -1765,7 +1733,6 @@ class ProfileBuilder : public ValueObject {
     function->IncInclusiveTicks();
   }
 
-
   // Tag append functions are overloaded for |ProfileCodeTrieNode| and
   // |ProfileFunctionTrieNode| types.
 
@@ -2212,7 +2179,6 @@ class ProfileBuilder : public ValueObject {
            thread_->isolate()->heap()->CodeContains(pc);
   }
 
-
   ProfileCode* FindOrRegisterNativeProfileCode(uword pc) {
     // Check if |pc| is already known in the live code table.
     ProfileCodeTable* live_table = profile_->live_code_;
@@ -2238,6 +2204,24 @@ class ProfileBuilder : public ValueObject {
     // at function entry which will have pc xxx0.
     native_start &= ~1;
 #endif
+
+    if (native_start > pc) {
+      // Bogus lookup result.
+      if (native_name != NULL) {
+        NativeSymbolResolver::FreeSymbolName(native_name);
+        native_name = NULL;
+      }
+      native_start = pc;
+    }
+    if ((pc - native_start) > (32 * KB)) {
+      // Suspect lookup result. More likely dladdr going off the rails than a
+      // jumbo function.
+      if (native_name != NULL) {
+        NativeSymbolResolver::FreeSymbolName(native_name);
+        native_name = NULL;
+      }
+      native_start = pc;
+    }
 
     ASSERT(pc >= native_start);
     profile_code = new ProfileCode(ProfileCode::kNativeCode, native_start,
@@ -2300,6 +2284,7 @@ class ProfileBuilder : public ValueObject {
   Thread* thread_;
   Isolate* vm_isolate_;
   SampleFilter* filter_;
+  SampleBuffer* sample_buffer_;
   Profile::TagOrder tag_order_;
   intptr_t extra_tags_;
   Profile* profile_;
@@ -2312,7 +2297,6 @@ class ProfileBuilder : public ValueObject {
   ProcessedSampleBuffer* samples_;
   ProfileInfoKind info_kind_;
 };  // ProfileBuilder.
-
 
 Profile::Profile(Isolate* isolate)
     : isolate_(isolate),
@@ -2332,15 +2316,15 @@ Profile::Profile(Isolate* isolate)
   }
 }
 
-
 void Profile::Build(Thread* thread,
                     SampleFilter* filter,
+                    SampleBuffer* sample_buffer,
                     TagOrder tag_order,
                     intptr_t extra_tags) {
-  ProfileBuilder builder(thread, filter, tag_order, extra_tags, this);
+  ProfileBuilder builder(thread, filter, sample_buffer, tag_order, extra_tags,
+                         this);
   builder.Build();
 }
-
 
 intptr_t Profile::NumFunctions() const {
   return functions_->length();
@@ -2350,7 +2334,6 @@ ProfileFunction* Profile::GetFunction(intptr_t index) {
   ASSERT(functions_ != NULL);
   return functions_->At(index);
 }
-
 
 ProfileCode* Profile::GetCode(intptr_t index) {
   ASSERT(live_code_ != NULL);
@@ -2377,11 +2360,9 @@ ProfileCode* Profile::GetCode(intptr_t index) {
   return tag_code_->At(index);
 }
 
-
 ProfileTrieNode* Profile::GetTrieRoot(TrieKind trie_kind) {
   return roots_[static_cast<intptr_t>(trie_kind)];
 }
-
 
 void Profile::PrintHeaderJSON(JSONObject* obj) {
   obj->AddProperty("samplePeriod", static_cast<intptr_t>(FLAG_profile_period));
@@ -2415,6 +2396,7 @@ void Profile::PrintHeaderJSON(JSONObject* obj) {
   }
 }
 
+static const intptr_t kRootFrameId = 0;
 
 void Profile::PrintTimelineFrameJSON(JSONObject* frames,
                                      ProfileTrieNode* current,
@@ -2426,7 +2408,7 @@ void Profile::PrintTimelineFrameJSON(JSONObject* frames,
   current->set_frame_id(id);
   ASSERT(current->frame_id() != -1);
 
-  {
+  if (id != kRootFrameId) {
     // The samples from many isolates may be merged into a single timeline,
     // so prefix frames id with the isolate.
     intptr_t isolate_id = reinterpret_cast<intptr_t>(isolate_);
@@ -2436,7 +2418,7 @@ void Profile::PrintTimelineFrameJSON(JSONObject* frames,
     frame.AddProperty("category", "Dart");
     ProfileFunction* func = GetFunction(current->table_index());
     frame.AddProperty("name", func->Name());
-    if (parent != NULL) {
+    if ((parent != NULL) && (parent->frame_id() != kRootFrameId)) {
       ASSERT(parent->frame_id() != -1);
       frame.AddPropertyF("parent", "%" Pd "-%" Pd, isolate_id,
                          parent->frame_id());
@@ -2449,7 +2431,6 @@ void Profile::PrintTimelineFrameJSON(JSONObject* frames,
   }
 }
 
-
 void Profile::PrintTimelineJSON(JSONStream* stream) {
   ScopeTimer sw("Profile::PrintTimelineJSON", FLAG_trace_profiler);
   JSONObject obj(stream);
@@ -2458,7 +2439,7 @@ void Profile::PrintTimelineJSON(JSONStream* stream) {
   {
     JSONObject frames(&obj, "stackFrames");
     ProfileTrieNode* root = GetTrieRoot(kInclusiveFunction);
-    intptr_t next_id = 0;
+    intptr_t next_id = kRootFrameId;
     PrintTimelineFrameJSON(&frames, root, NULL, &next_id);
   }
   {
@@ -2476,6 +2457,10 @@ void Profile::PrintTimelineJSON(JSONStream* stream) {
       event.AddProperty64("tid", OSThread::ThreadIdToIntPtr(sample->tid()));
       event.AddPropertyTimeMicros("ts", sample->timestamp());
       event.AddProperty("cat", "Dart");
+      if (!Isolate::IsVMInternalIsolate(isolate_)) {
+        JSONObject args(&event, "args");
+        args.AddProperty("mode", "basic");
+      }
 
       ProfileTrieNode* trie = sample->timeline_trie();
       ASSERT(trie->frame_id() != -1);
@@ -2484,11 +2469,9 @@ void Profile::PrintTimelineJSON(JSONStream* stream) {
   }
 }
 
-
 ProfileFunction* Profile::FindFunction(const Function& function) {
   return (functions_ != NULL) ? functions_->Lookup(function) : NULL;
 }
-
 
 void Profile::PrintProfileJSON(JSONStream* stream) {
   ScopeTimer sw("Profile::PrintProfileJSON", FLAG_trace_profiler);
@@ -2548,14 +2531,12 @@ void Profile::PrintProfileJSON(JSONStream* stream) {
   }
 }
 
-
 void ProfileTrieWalker::Reset(Profile::TrieKind trie_kind) {
   code_trie_ = Profile::IsCodeTrie(trie_kind);
   parent_ = NULL;
   current_ = profile_->GetTrieRoot(trie_kind);
   ASSERT(current_ != NULL);
 }
-
 
 const char* ProfileTrieWalker::CurrentName() {
   if (current_ == NULL) {
@@ -2572,14 +2553,12 @@ const char* ProfileTrieWalker::CurrentName() {
   return NULL;
 }
 
-
 intptr_t ProfileTrieWalker::CurrentNodeTickCount() {
   if (current_ == NULL) {
     return -1;
   }
   return current_->count();
 }
-
 
 intptr_t ProfileTrieWalker::CurrentInclusiveTicks() {
   if (current_ == NULL) {
@@ -2596,7 +2575,6 @@ intptr_t ProfileTrieWalker::CurrentInclusiveTicks() {
   return -1;
 }
 
-
 intptr_t ProfileTrieWalker::CurrentExclusiveTicks() {
   if (current_ == NULL) {
     return -1;
@@ -2612,7 +2590,6 @@ intptr_t ProfileTrieWalker::CurrentExclusiveTicks() {
   return -1;
 }
 
-
 intptr_t ProfileTrieWalker::CurrentInclusiveAllocations() {
   if (current_ == NULL) {
     return -1;
@@ -2620,14 +2597,12 @@ intptr_t ProfileTrieWalker::CurrentInclusiveAllocations() {
   return current_->inclusive_allocations();
 }
 
-
 intptr_t ProfileTrieWalker::CurrentExclusiveAllocations() {
   if (current_ == NULL) {
     return -1;
   }
   return current_->exclusive_allocations();
 }
-
 
 const char* ProfileTrieWalker::CurrentToken() {
   if (current_ == NULL) {
@@ -2648,11 +2623,6 @@ const char* ProfileTrieWalker::CurrentToken() {
     // No script.
     return NULL;
   }
-  const TokenStream& token_stream = TokenStream::Handle(zone, script.tokens());
-  if (token_stream.IsNull()) {
-    // No token position.
-    return NULL;
-  }
   ProfileFunctionSourcePosition pfsp(TokenPosition::kNoSource);
   if (!func->GetSinglePosition(&pfsp)) {
     // Not exactly one source position.
@@ -2666,12 +2636,23 @@ const char* ProfileTrieWalker::CurrentToken() {
   if (token_pos.IsSynthetic()) {
     token_pos = token_pos.FromSynthetic();
   }
-  TokenStream::Iterator iterator(zone, token_stream, token_pos);
-  const String& str = String::Handle(zone, iterator.CurrentLiteral());
-  if (str.IsNull()) {
-    return NULL;
+
+  String& str = String::Handle(zone);
+  if (script.kind() == RawScript::kKernelTag) {
+    intptr_t line = 0, column = 0, token_len = 0;
+    script.GetTokenLocation(token_pos, &line, &column, &token_len);
+    str = script.GetSnippet(line, column, line, column + token_len);
+  } else {
+    const TokenStream& token_stream =
+        TokenStream::Handle(zone, script.tokens());
+    if (token_stream.IsNull()) {
+      // No token position.
+      return NULL;
+    }
+    TokenStream::Iterator iterator(zone, token_stream, token_pos);
+    str = iterator.CurrentLiteral();
   }
-  return str.ToCString();
+  return str.IsNull() ? NULL : str.ToCString();
 }
 
 bool ProfileTrieWalker::Down() {
@@ -2682,7 +2663,6 @@ bool ProfileTrieWalker::Down() {
   current_ = current_->At(0);
   return true;
 }
-
 
 bool ProfileTrieWalker::NextSibling() {
   if (parent_ == NULL) {
@@ -2700,24 +2680,22 @@ bool ProfileTrieWalker::NextSibling() {
   return true;
 }
 
-
 intptr_t ProfileTrieWalker::SiblingCount() {
   ASSERT(parent_ != NULL);
   return parent_->NumChildren();
 }
-
 
 void ProfilerService::PrintJSONImpl(Thread* thread,
                                     JSONStream* stream,
                                     Profile::TagOrder tag_order,
                                     intptr_t extra_tags,
                                     SampleFilter* filter,
+                                    SampleBuffer* sample_buffer,
                                     bool as_timeline) {
   Isolate* isolate = thread->isolate();
   // Disable thread interrupts while processing the buffer.
   DisableThreadInterruptsScope dtis(thread);
 
-  SampleBuffer* sample_buffer = Profiler::sample_buffer();
   if (sample_buffer == NULL) {
     stream->PrintError(kFeatureDisabled, NULL);
     return;
@@ -2727,7 +2705,7 @@ void ProfilerService::PrintJSONImpl(Thread* thread,
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
-    profile.Build(thread, filter, tag_order, extra_tags);
+    profile.Build(thread, filter, sample_buffer, tag_order, extra_tags);
     if (as_timeline) {
       profile.PrintTimelineJSON(stream);
     } else {
@@ -2735,7 +2713,6 @@ void ProfilerService::PrintJSONImpl(Thread* thread,
     }
   }
 }
-
 
 class NoAllocationSampleFilter : public SampleFilter {
  public:
@@ -2748,12 +2725,8 @@ class NoAllocationSampleFilter : public SampleFilter {
                      time_origin_micros,
                      time_extent_micros) {}
 
-  bool FilterSample(Sample* sample) {
-    return !sample->is_allocation_sample() &&
-           !sample->is_native_allocation_sample();
-  }
+  bool FilterSample(Sample* sample) { return !sample->is_allocation_sample(); }
 };
-
 
 void ProfilerService::PrintJSON(JSONStream* stream,
                                 Profile::TagOrder tag_order,
@@ -2765,9 +2738,9 @@ void ProfilerService::PrintJSON(JSONStream* stream,
   NoAllocationSampleFilter filter(isolate->main_port(), Thread::kMutatorTask,
                                   time_origin_micros, time_extent_micros);
   const bool as_timeline = false;
-  PrintJSONImpl(thread, stream, tag_order, extra_tags, &filter, as_timeline);
+  PrintJSONImpl(thread, stream, tag_order, extra_tags, &filter,
+                Profiler::sample_buffer(), as_timeline);
 }
-
 
 class ClassAllocationSampleFilter : public SampleFilter {
  public:
@@ -2793,7 +2766,6 @@ class ClassAllocationSampleFilter : public SampleFilter {
   const Class& cls_;
 };
 
-
 void ProfilerService::PrintAllocationJSON(JSONStream* stream,
                                           Profile::TagOrder tag_order,
                                           const Class& cls,
@@ -2805,9 +2777,9 @@ void ProfilerService::PrintAllocationJSON(JSONStream* stream,
                                      Thread::kMutatorTask, time_origin_micros,
                                      time_extent_micros);
   const bool as_timeline = false;
-  PrintJSONImpl(thread, stream, tag_order, kNoExtraTags, &filter, as_timeline);
+  PrintJSONImpl(thread, stream, tag_order, kNoExtraTags, &filter,
+                Profiler::sample_buffer(), as_timeline);
 }
-
 
 void ProfilerService::PrintNativeAllocationJSON(JSONStream* stream,
                                                 Profile::TagOrder tag_order,
@@ -2816,9 +2788,9 @@ void ProfilerService::PrintNativeAllocationJSON(JSONStream* stream,
   Thread* thread = Thread::Current();
   NativeAllocationSampleFilter filter(time_origin_micros, time_extent_micros);
   const bool as_timeline = false;
-  PrintJSONImpl(thread, stream, tag_order, kNoExtraTags, &filter, as_timeline);
+  PrintJSONImpl(thread, stream, tag_order, kNoExtraTags, &filter,
+                Profiler::allocation_sample_buffer(), as_timeline);
 }
-
 
 void ProfilerService::PrintTimelineJSON(JSONStream* stream,
                                         Profile::TagOrder tag_order,
@@ -2832,9 +2804,9 @@ void ProfilerService::PrintTimelineJSON(JSONStream* stream,
   NoAllocationSampleFilter filter(isolate->main_port(), thread_task_mask,
                                   time_origin_micros, time_extent_micros);
   const bool as_timeline = true;
-  PrintJSONImpl(thread, stream, tag_order, kNoExtraTags, &filter, as_timeline);
+  PrintJSONImpl(thread, stream, tag_order, kNoExtraTags, &filter,
+                Profiler::sample_buffer(), as_timeline);
 }
-
 
 void ProfilerService::ClearSamples() {
   SampleBuffer* sample_buffer = Profiler::sample_buffer();

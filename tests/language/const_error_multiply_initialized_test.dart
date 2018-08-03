@@ -13,11 +13,11 @@ class C {
 
   const C(
       this. //# 01: compile-time error
-      this. //# 02: static type warning
+      this. //# 02: compile-time error 
       x
     )
     : x = 2 //# 03: compile-time error
-    : x = 2 //# 04: static type warning
+    : x = 2 //# 04: compile-time error
     ;
 }
 
@@ -32,7 +32,7 @@ main() {
   shouldThrow = true; //# 02: continued
   shouldThrow = true; //# 04: continued
   if (shouldThrow) {
-    Expect.throws(instantiateC);
+    Expect.throws(instantiateC());
   } else {
     instantiateC();
   }

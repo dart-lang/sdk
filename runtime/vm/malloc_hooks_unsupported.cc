@@ -15,51 +15,41 @@ void MallocHooks::InitOnce() {
   // Do nothing.
 }
 
-
 void MallocHooks::TearDown() {
   // Do nothing.
 }
-
 
 bool MallocHooks::ProfilingEnabled() {
   return false;
 }
 
-
 bool MallocHooks::stack_trace_collection_enabled() {
   return false;
 }
-
 
 void MallocHooks::set_stack_trace_collection_enabled(bool enabled) {
   // Do nothing.
 }
 
-
 void MallocHooks::ResetStats() {
   // Do nothing.
 }
-
 
 bool MallocHooks::Active() {
   return false;
 }
 
-
 void MallocHooks::PrintToJSONObject(JSONObject* jsobj) {
   // Do nothing.
 }
-
 
 Sample* MallocHooks::GetSample(const void* ptr) {
   return NULL;
 }
 
-
 intptr_t MallocHooks::allocation_count() {
   return 0;
 }
-
 
 intptr_t MallocHooks::heap_allocated_memory_in_bytes() {
   return 0;

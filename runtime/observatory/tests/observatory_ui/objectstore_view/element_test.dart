@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:html';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:observatory/src/elements/objectstore_view.dart';
 import '../mocks.dart';
 
@@ -30,7 +30,7 @@ main() {
     ];
     const store = const ObjectStoreMock(fields: fields);
     final stores = new ObjectStoreRepositoryMock(
-        getter: expectAsync((i) async {
+        getter: expectAsync1((i) async {
       expect(i, equals(isolate));
       return store;
     }, count: 1));
@@ -40,6 +40,7 @@ main() {
     document.body.append(e);
     await e.onRendered.first;
     expect(e.children.length, isNonZero, reason: 'has elements');
+    await e.onRendered.first;
     expect(e.querySelectorAll('.memberItem').length, equals(fields.length));
     e.remove();
     await e.onRendered.first;

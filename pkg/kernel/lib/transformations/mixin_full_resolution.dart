@@ -7,47 +7,70 @@ import '../ast.dart';
 import '../class_hierarchy.dart';
 import '../clone.dart';
 import '../core_types.dart';
-import '../target/targets.dart' show NoneTarget, Target;
+import '../target/targets.dart' show Target;
 import '../type_algebra.dart';
 
-Program transformProgram(Program program) {
-  new MixinFullResolution(new NoneTarget(null)).transform(program);
-  return program;
+void transformLibraries(Target targetInfo, CoreTypes coreTypes,
+    ClassHierarchy hierarchy, List<Library> libraries,
+    {bool doSuperResolution: true}) {
+  new MixinFullResolution(targetInfo, coreTypes, hierarchy,
+          doSuperResolution: doSuperResolution)
+      .transform(libraries);
 }
 
 /// Replaces all mixin applications with regular classes, cloning all fields
 /// and procedures from the mixed-in class, cloning all constructors from the
 /// base class.
 ///
-/// Super calls (as well as super initializer invocations) are also resolved
-/// to their targets in this pass.
+/// When [doSuperResolution] constructor parameter is [true], super calls
+/// (as well as super initializer invocations) are also resolved to their
+/// targets in this pass.
 class MixinFullResolution {
   final Target targetInfo;
+  final CoreTypes coreTypes;
 
+  /// The [ClassHierarchy] that should be used after applying this transformer.
+  /// If any class was updated, in general we need to create a new
+  /// [ClassHierarchy] instance, with new dispatch targets; or at least let
+  /// the existing instance know that some of its dispatch tables are not
+  /// valid anymore.
   ClassHierarchy hierarchy;
-  CoreTypes coreTypes;
 
-  MixinFullResolution(this.targetInfo);
+  // This enables `super` resolution transformation, which is not compatible
+  // with Dart VM's requirements around incremental compilation and has been
+  // moved to Dart VM itself.
+  final bool doSuperResolution;
 
-  void transform(Program program) {
+  MixinFullResolution(this.targetInfo, this.coreTypes, this.hierarchy,
+      {this.doSuperResolution: true});
+
+  /// Transform the given new [libraries].  It is expected that all other
+  /// libraries have already been transformed.
+  void transform(List<Library> libraries) {
+    if (libraries.isEmpty) return;
+
     var transformedClasses = new Set<Class>();
 
     // Desugar all mixin application classes by copying in fields/methods from
     // the mixin and constructors from the base class.
     var processedClasses = new Set<Class>();
-    for (var library in program.libraries) {
+    for (var library in libraries) {
       if (library.isExternal) continue;
 
       for (var class_ in library.classes) {
-        transformClass(processedClasses, transformedClasses, class_);
+        transformClass(libraries, processedClasses, transformedClasses, class_);
       }
     }
 
-    hierarchy = new ClassHierarchy(program);
-    coreTypes = new CoreTypes(program);
+    // We might need to update the class hierarchy.
+    hierarchy =
+        hierarchy.applyMemberChanges(transformedClasses, findDescendants: true);
 
+    if (!doSuperResolution) {
+      return;
+    }
     // Resolve all super call expressions and super initializers.
-    for (var library in program.libraries) {
+    for (var library in libraries) {
       if (library.isExternal) continue;
 
       for (var class_ in library.classes) {
@@ -76,21 +99,33 @@ class MixinFullResolution {
     }
   }
 
-  transformClass(Set<Class> processedClasses, Set<Class> transformedClasses,
+  transformClass(
+      List<Library> librariesToBeTransformed,
+      Set<Class> processedClasses,
+      Set<Class> transformedClasses,
       Class class_) {
     // If this class was already handled then so were all classes up to the
     // [Object] class.
     if (!processedClasses.add(class_)) return;
 
+    if (!librariesToBeTransformed.contains(class_.enclosingLibrary) &&
+        class_.enclosingLibrary.importUri?.scheme == "dart") {
+      // If we're not asked to transform the platform libraries then we expect
+      // that they will be already transformed.
+      return;
+    }
+
     // Ensure super classes have been transformed before this class.
     if (class_.superclass != null &&
         class_.superclass.level.index >= ClassLevel.Mixin.index) {
-      transformClass(processedClasses, transformedClasses, class_.superclass);
+      transformClass(librariesToBeTransformed, processedClasses,
+          transformedClasses, class_.superclass);
     }
 
     // If this is not a mixin application we don't need to make forwarding
     // constructors in this class.
     if (!class_.isMixinApplication) return;
+    assert(librariesToBeTransformed.contains(class_.enclosingLibrary));
 
     if (class_.mixedInClass.level.index < ClassLevel.Mixin.index) {
       throw new Exception(
@@ -103,11 +138,87 @@ class MixinFullResolution {
     // Clone fields and methods from the mixin class.
     var substitution = getSubstitutionMap(class_.mixedInType);
     var cloner = new CloneVisitor(typeSubstitution: substitution);
-    for (var field in class_.mixin.fields) {
-      class_.addMember(cloner.clone(field));
+
+    // When we copy a field from the mixed in class, we remove any
+    // forwarding-stub getters/setters from the superclass, but copy their
+    // covariance-bits onto the new field.
+    var nonSetters = <Name, Procedure>{};
+    var setters = <Name, Procedure>{};
+    for (var procedure in class_.procedures) {
+      if (procedure.isSetter) {
+        setters[procedure.name] = procedure;
+      } else {
+        nonSetters[procedure.name] = procedure;
+      }
     }
+    for (var field in class_.mixin.fields) {
+      Field clone = cloner.clone(field);
+      Procedure setter = setters[field.name];
+      if (setter != null) {
+        setters.remove(field.name);
+        VariableDeclaration parameter =
+            setter.function.positionalParameters.first;
+        clone.isGenericCovariantImpl = parameter.isGenericCovariantImpl;
+      }
+      nonSetters.remove(field.name);
+      class_.addMember(clone);
+    }
+    class_.procedures.clear();
+    class_.procedures..addAll(nonSetters.values)..addAll(setters.values);
+
+    // Existing procedures in the class should only be forwarding stubs.
+    // Replace them with methods from the mixin class if they have the same
+    // name, but keep their parameter flags.
+    int originalLength = class_.procedures.length;
+    outer:
     for (var procedure in class_.mixin.procedures) {
-      class_.addMember(cloner.clone(procedure));
+      // Forwarding stubs in the mixin class are used when calling through the
+      // mixin class's interface, not when calling through the mixin
+      // application.  They should not be copied.
+      if (procedure.isForwardingStub) continue;
+
+      // Factory constructors are not cloned.
+      if (procedure.isFactory) continue;
+
+      // NoSuchMethod forwarders aren't cloned.
+      if (procedure.isNoSuchMethodForwarder) continue;
+
+      Procedure clone = cloner.clone(procedure);
+      // Linear search for a forwarding stub with the same name.
+      for (int i = 0; i < originalLength; ++i) {
+        var originalProcedure = class_.procedures[i];
+        if (originalProcedure.name == clone.name &&
+            originalProcedure.kind == clone.kind) {
+          FunctionNode src = originalProcedure.function;
+          FunctionNode dst = clone.function;
+
+          if (src.positionalParameters.length !=
+                  dst.positionalParameters.length ||
+              src.namedParameters.length != dst.namedParameters.length) {
+            // A compile time error has already occured, but don't crash below,
+            // and don't add several procedures with the same name to the class.
+            continue outer;
+          }
+
+          assert(src.typeParameters.length == dst.typeParameters.length);
+          for (int j = 0; j < src.typeParameters.length; ++j) {
+            dst.typeParameters[j].flags = src.typeParameters[i].flags;
+          }
+          for (int j = 0; j < src.positionalParameters.length; ++j) {
+            dst.positionalParameters[j].flags =
+                src.positionalParameters[j].flags;
+          }
+          // TODO(kernel team): The named parameters are not sorted,
+          // this might not be correct.
+          for (int j = 0; j < src.namedParameters.length; ++j) {
+            dst.namedParameters[j].flags = src.namedParameters[j].flags;
+          }
+
+          class_.procedures[i] = clone;
+          continue outer;
+        }
+      }
+      class_.addMember(clone);
     }
     // For each generative constructor in the superclass we make a
     // corresponding forwarding constructor in the subclass.
@@ -124,11 +235,15 @@ class MixinFullResolution {
       }
     }
 
-    // This class implements the mixin type.
+    // This class implements the mixin type. Also, backends rely on the fact
+    // that eliminated mixin is appended into the end of interfaces list.
     class_.implementedTypes.add(class_.mixedInType);
 
     // This class is now a normal class.
     class_.mixedInType = null;
+
+    // Leave breadcrumbs for backends (e.g. for dart:mirrors implementation).
+    class_.isEliminatedMixin = true;
   }
 
   Constructor buildForwardingConstructor(
@@ -173,7 +288,8 @@ class MixinFullResolution {
     // Assemble the constructor.
     return new Constructor(function,
         name: superclassConstructor.name,
-        initializers: <Initializer>[superInitializer]);
+        initializers: <Initializer>[superInitializer],
+        isSynthetic: true);
   }
 }
 
@@ -182,7 +298,6 @@ class SuperCallResolutionTransformer extends Transformer {
   final CoreTypes coreTypes;
   final Class lookupClass;
   final Target targetInfo;
-  Constructor _invocationMirrorConstructor; // cached
 
   SuperCallResolutionTransformer(
       this.hierarchy, this.coreTypes, this.lookupClass, this.targetInfo);
@@ -264,7 +379,7 @@ class SuperCallResolutionTransformer extends Transformer {
       // Incorrect noSuchMethod method: Call noSuchMethod on Object
       // with Invocation of noSuchMethod as the method that did not exist.
       noSuchMethod = hierarchy.getDispatchTarget(
-          hierarchy.rootClass, new Name("noSuchMethod"));
+          coreTypes.objectClass, new Name("noSuchMethod"));
       ConstructorInvocation invocation = _createInvocation(
           methodNameUsed, methodArguments, isSuper, new ThisExpression());
       ConstructorInvocation invocationPrime = _createInvocation("noSuchMethod",
@@ -278,13 +393,8 @@ class SuperCallResolutionTransformer extends Transformer {
   /// Creates an "new _InvocationMirror(...)" invocation.
   ConstructorInvocation _createInvocation(String methodName,
       Arguments callArguments, bool isSuperInvocation, Expression receiver) {
-    if (_invocationMirrorConstructor == null) {
-      Class clazz = coreTypes.invocationMirrorClass;
-      _invocationMirrorConstructor = clazz.constructors[0];
-    }
-
-    return targetInfo.instantiateInvocation(_invocationMirrorConstructor,
-        receiver, methodName, callArguments, -1, isSuperInvocation);
+    return targetInfo.instantiateInvocation(
+        coreTypes, receiver, methodName, callArguments, -1, isSuperInvocation);
   }
 
   /// Check that a call to the targetFunction is legal given the arguments.

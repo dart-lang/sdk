@@ -110,6 +110,7 @@ class JavaFile {
   File _newFile() => new File(_path);
 }
 
+@Deprecated("Only used by `DirectoryBasedDartSdk`, which is also deprecated.")
 class JavaSystemIO {
   static Map<String, String> _properties = new Map();
   static String getenv(String name) => Platform.environment[name];
@@ -151,6 +152,12 @@ class JavaSystemIO {
     return null;
   }
 
+  /// Only needed when when using `DirectoryBasedDartSdk`, which is also
+  /// deprecated.
+  ///
+  /// When using `FolderBasedDartSdk`, there is no need to set
+  /// `com.google.dart.sdk`.
+  @deprecated
   static String setProperty(String name, String value) {
     String oldValue = _properties[name];
     _properties[name] = value;

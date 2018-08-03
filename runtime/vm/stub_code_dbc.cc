@@ -5,12 +5,12 @@
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_DBC)
 
-#include "vm/assembler.h"
-#include "vm/compiler.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/flow_graph_compiler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
-#include "vm/flow_graph_compiler.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/instructions.h"
 #include "vm/object_store.h"
 #include "vm/runtime_entry.h"
@@ -33,6 +33,9 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ Compile();
 }
 
+void StubCode::GenerateCallClosureNoSuchMethodStub(Assembler* assembler) {
+  __ NoSuchMethod();
+}
 
 // Not executed, but used as a stack marker when calling
 // DRT_OptimizeInvokedFunction.
@@ -40,23 +43,19 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ Trap();
 }
 
-
 // Not executed, but used as a sentinel in Simulator::JumpToFrame.
 void StubCode::GenerateRunExceptionHandlerStub(Assembler* assembler) {
   __ Trap();
 }
 
-
 void StubCode::GenerateDeoptForRewindStub(Assembler* assembler) {
   __ DeoptRewind();
 }
-
 
 // TODO(vegorov) Don't generate this stub.
 void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ Trap();
 }
-
 
 // TODO(vegorov) Don't generate these stubs.
 void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
@@ -64,12 +63,10 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   __ Trap();
 }
 
-
 // TODO(vegorov) Don't generate this stub.
 void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ Trap();
 }
-
 
 // These deoptimization stubs are only used to populate stack frames
 // with something meaningful to make sure GC can scan the stack during
@@ -78,32 +75,51 @@ void StubCode::GenerateDeoptimizeLazyFromReturnStub(Assembler* assembler) {
   __ Trap();
 }
 
-
 void StubCode::GenerateDeoptimizeLazyFromThrowStub(Assembler* assembler) {
   __ Trap();
 }
-
 
 void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
   __ Trap();
 }
 
+// TODO(kustermann): Don't generate this stub.
+void StubCode::GenerateDefaultTypeTestStub(Assembler* assembler) {
+  __ Trap();
+}
+
+// TODO(kustermann): Don't generate this stub.
+void StubCode::GenerateTopTypeTypeTestStub(Assembler* assembler) {
+  __ Trap();
+}
+
+// TODO(kustermann): Don't generate this stub.
+void StubCode::GenerateTypeRefTypeTestStub(Assembler* assembler) {
+  __ Trap();
+}
+
+// TODO(kustermann): Don't generate this stub.
+void StubCode::GenerateUnreachableTypeTestStub(Assembler* assembler) {
+  __ Trap();
+}
+
+// TODO(kustermann): Don't generate this stub.
+void StubCode::GenerateLazySpecializeTypeTestStub(Assembler* assembler) {
+  __ Trap();
+}
+
+// TODO(kustermann): Don't generate this stub.
+void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
+  __ Trap();
+}
 
 void StubCode::GenerateFrameAwaitingMaterializationStub(Assembler* assembler) {
   __ Trap();
 }
 
-
 void StubCode::GenerateAsynchronousGapMarkerStub(Assembler* assembler) {
   __ Trap();
 }
-
-
-// Print the stop message.
-DEFINE_LEAF_RUNTIME_ENTRY(void, PrintStopMessage, 1, const char* message) {
-  OS::Print("Stop message: %s\n", message);
-}
-END_LEAF_RUNTIME_ENTRY
 
 }  // namespace dart
 

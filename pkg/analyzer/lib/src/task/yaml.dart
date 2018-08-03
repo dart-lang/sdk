@@ -2,18 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.task.yaml;
-
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/task/api/general.dart';
+import 'package:analyzer/src/task/api/model.dart';
+import 'package:analyzer/src/task/api/yaml.dart';
 import 'package:analyzer/src/task/general.dart';
-import 'package:analyzer/task/general.dart';
-import 'package:analyzer/task/model.dart';
-import 'package:analyzer/task/yaml.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
@@ -144,8 +142,8 @@ class YamlErrorCode extends ErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const YamlErrorCode(String name, String message, [String correction])
-      : super(name, message, correction);
+  const YamlErrorCode(String name, String message, {String correction})
+      : super.temporary(name, message, correction: correction);
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;

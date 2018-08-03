@@ -26,9 +26,8 @@ class FilteredElementList extends ListBase<Element> implements NodeListWrapper {
 
   // We can't memoize this, since it's possible that children will be messed
   // with externally to this class.
-  Iterable<Element> get _iterable => _childNodes
-      .where((n) => n is Element)
-      .map/*<Element>*/((n) => n as Element);
+  Iterable<Element> get _iterable =>
+      _childNodes.where((n) => n is Element).map<Element>((n) => n as Element);
   List<Element> get _filtered =>
       new List<Element>.from(_iterable, growable: false);
 

@@ -251,6 +251,51 @@ main() {
     return _assertConditionsError('Ambiguous return value.');
   }
 
+  test_cascadeInCascade() async {
+    await indexTestUnit(r'''
+class Inner {
+  String a;
+  String b;
+}
+
+class Outer {
+  Inner inner;
+}
+
+void main() {
+  Inner createInner() => new Inner()
+      ..a = 'a'
+      ..b = 'b';
+
+  final value = new Outer()
+      ..inner = createInner();
+}
+''');
+    _createRefactoring('createInner();');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+class Inner {
+  String a;
+  String b;
+}
+
+class Outer {
+  Inner inner;
+}
+
+void main() {
+  Inner createInner() => new Inner()
+      ..a = 'a'
+      ..b = 'b';
+
+  final value = new Outer()
+      ..inner = (new Inner()
+      ..a = 'a'
+      ..b = 'b');
+}
+''');
+  }
+
   test_fieldAccessor_getter() async {
     await indexTestUnit(r'''
 class A {

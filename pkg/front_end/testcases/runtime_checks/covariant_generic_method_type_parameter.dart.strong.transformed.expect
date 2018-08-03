@@ -1,0 +1,24 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method f<generic-covariant-impl U extends self::C::T = self::C::T>(self::C::f::U x) → void {}
+  method g1<generic-covariant-impl U extends self::C::T = self::C::T>() → void {
+    this.{self::C::f}<self::C::g1::U>(let<BottomType> _ = null in let final dynamic #t1 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/runtime_checks/covariant_generic_method_type_parameter.dart:11:15: Error: The argument type 'dart.core::double' can't be assigned to the parameter type 'test::C::g1::U'.
+Try changing the type of the parameter, or casting the argument to 'test::C::g1::U'.
+    this.f<U>(1.5);
+              ^" in let final core::double #t2 = 1.5 in null);
+  }
+}
+static method g2(self::C<core::Object> c) → void {
+  c.{self::C::f}<core::num>(1.5);
+}
+static method test() → void {
+  new self::C::•<core::int>().{self::C::g1}<core::num>();
+  self::g2(new self::C::•<core::int>());
+}
+static method main() → void {}

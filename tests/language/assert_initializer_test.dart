@@ -32,53 +32,53 @@ main() {
 
   // Failing const expressions
 
-  const c = const AssertArgument.constFirst(false, 0, 1); //       //# 01: compile-time error
-  const c = const AssertArgument.constLast(false, 0, 1); //        //# 02: compile-time error
-  const c = const AssertArgument.constMiddle(false, 0, 1); //      //# 03: compile-time error
-  const c = const AssertArgument.constMulti(false, 0, 1); //       //# 04: compile-time error
-  const c = const AssertArgument.constFirstSuper(false, 0, 1); //  //# 05: compile-time error
-  const c = const AssertArgument.constLastSuper(false, 0, 1); //   //# 06: compile-time error
-  const c = const AssertArgument.constMiddleSuper(false, 0, 1); // //# 07: compile-time error
-  const c = const AssertArgument.constMultiSuper(false, 0, 1); //  //# 08: compile-time error
+  const c = const AssertArgument.constFirst(false, 0, 1); //       //# 01: checked mode compile-time error
+  const c = const AssertArgument.constLast(false, 0, 1); //        //# 02: checked mode compile-time error
+  const c = const AssertArgument.constMiddle(false, 0, 1); //      //# 03: checked mode compile-time error
+  const c = const AssertArgument.constMulti(false, 0, 1); //       //# 04: checked mode compile-time error
+  const c = const AssertArgument.constFirstSuper(false, 0, 1); //  //# 05: checked mode compile-time error
+  const c = const AssertArgument.constLastSuper(false, 0, 1); //   //# 06: checked mode compile-time error
+  const c = const AssertArgument.constMiddleSuper(false, 0, 1); // //# 07: checked mode compile-time error
+  const c = const AssertArgument.constMultiSuper(false, 0, 1); //  //# 08: checked mode compile-time error
 
-  const c = const AssertArgument.constFirst("str", 0, 1); //       //# 11: compile-time error
-  const c = const AssertArgument.constLast("str", 0, 1); //        //# 12: compile-time error
-  const c = const AssertArgument.constMiddle("str", 0, 1); //      //# 13: compile-time error
-  const c = const AssertArgument.constMulti("str", 0, 1); //       //# 14: compile-time error
-  const c = const AssertArgument.constFirstSuper("str", 0, 1); //  //# 15: compile-time error
-  const c = const AssertArgument.constLastSuper("str", 0, 1); //   //# 16: compile-time error
-  const c = const AssertArgument.constMiddleSuper("str", 0, 1); // //# 17: compile-time error
-  const c = const AssertArgument.constMultiSuper("str", 0, 1); //  //# 18: compile-time error
+  const c = const AssertArgument.constFirst("str", 0, 1); //       //# 11: checked mode compile-time error
+  const c = const AssertArgument.constLast("str", 0, 1); //        //# 12: checked mode compile-time error
+  const c = const AssertArgument.constMiddle("str", 0, 1); //      //# 13: checked mode compile-time error
+  const c = const AssertArgument.constMulti("str", 0, 1); //       //# 14: checked mode compile-time error
+  const c = const AssertArgument.constFirstSuper("str", 0, 1); //  //# 15: checked mode compile-time error
+  const c = const AssertArgument.constLastSuper("str", 0, 1); //   //# 16: checked mode compile-time error
+  const c = const AssertArgument.constMiddleSuper("str", 0, 1); // //# 17: checked mode compile-time error
+  const c = const AssertArgument.constMultiSuper("str", 0, 1); //  //# 18: checked mode compile-time error
 
-  const c = const AssertCompare.constFirst(3, 2); //               //# 21: compile-time error
-  const c = const AssertCompare.constLast(3, 2); //                //# 22: compile-time error
-  const c = const AssertCompare.constMiddle(3, 2); //              //# 23: compile-time error
-  const c = const AssertCompare.constMulti(3, 2); //               //# 24: compile-time error
-  const c = const AssertCompare.constFirstSuper(3, 2); //          //# 25: compile-time error
-  const c = const AssertCompare.constLastSuper(3, 2); //           //# 26: compile-time error
-  const c = const AssertCompare.constMiddleSuper(3, 2); //         //# 27: compile-time error
-  const c = const AssertCompare.constMultiSuper(3, 2); //          //# 28: compile-time error
+  const c = const AssertCompare.constFirst(3, 2); //               //# 21: checked mode compile-time error
+  const c = const AssertCompare.constLast(3, 2); //                //# 22: checked mode compile-time error
+  const c = const AssertCompare.constMiddle(3, 2); //              //# 23: checked mode compile-time error
+  const c = const AssertCompare.constMulti(3, 2); //               //# 24: checked mode compile-time error
+  const c = const AssertCompare.constFirstSuper(3, 2); //          //# 25: checked mode compile-time error
+  const c = const AssertCompare.constLastSuper(3, 2); //           //# 26: checked mode compile-time error
+  const c = const AssertCompare.constMiddleSuper(3, 2); //         //# 27: checked mode compile-time error
+  const c = const AssertCompare.constMultiSuper(3, 2); //          //# 28: checked mode compile-time error
 
   // Functions not allowed in asserts in const execution.
-  const c = const AssertArgument.constFirst(kTrue, 0, 1); //       //# 31: compile-time error
-  const c = const AssertArgument.constLast(kTrue, 0, 1); //        //# 32: compile-time error
-  const c = const AssertArgument.constMiddle(kTrue, 0, 1); //      //# 33: compile-time error
-  const c = const AssertArgument.constMulti(kTrue, 0, 1); //       //# 34: compile-time error
-  const c = const AssertArgument.constFirstSuper(kTrue, 0, 1); //  //# 35: compile-time error
-  const c = const AssertArgument.constLastSuper(kTrue, 0, 1); //   //# 36: compile-time error
-  const c = const AssertArgument.constMiddleSuper(kTrue, 0, 1); // //# 37: compile-time error
-  const c = const AssertArgument.constMultiSuper(kTrue, 0, 1); //  //# 38: compile-time error
+  const c = const AssertArgument.constFirst(kTrue, 0, 1); //       //# 31: checked mode compile-time error
+  const c = const AssertArgument.constLast(kTrue, 0, 1); //        //# 32: checked mode compile-time error
+  const c = const AssertArgument.constMiddle(kTrue, 0, 1); //      //# 33: checked mode compile-time error
+  const c = const AssertArgument.constMulti(kTrue, 0, 1); //       //# 34: checked mode compile-time error
+  const c = const AssertArgument.constFirstSuper(kTrue, 0, 1); //  //# 35: checked mode compile-time error
+  const c = const AssertArgument.constLastSuper(kTrue, 0, 1); //   //# 36: checked mode compile-time error
+  const c = const AssertArgument.constMiddleSuper(kTrue, 0, 1); // //# 37: checked mode compile-time error
+  const c = const AssertArgument.constMultiSuper(kTrue, 0, 1); //  //# 38: checked mode compile-time error
 
   const cTrue = const TrickCompare(true);
   // Value must be integer for potential-const expression to be actually const.
-  const c = const AssertCompare.constFirst(cTrue, 2); //           //# 41: compile-time error
-  const c = const AssertCompare.constLast(cTrue, 2); //            //# 42: compile-time error
-  const c = const AssertCompare.constMiddle(cTrue, 2); //          //# 43: compile-time error
-  const c = const AssertCompare.constMulti(cTrue, 2); //           //# 44: compile-time error
-  const c = const AssertCompare.constFirstSuper(cTrue, 2); //      //# 45: compile-time error
-  const c = const AssertCompare.constLastSuper(cTrue, 2); //       //# 46: compile-time error
-  const c = const AssertCompare.constMiddleSuper(cTrue, 2); //     //# 47: compile-time error
-  const c = const AssertCompare.constMultiSuper(cTrue, 2); //      //# 48: compile-time error
+  const c = const AssertCompare.constFirst(cTrue, 2); //           //# 41: checked mode compile-time error
+  const c = const AssertCompare.constLast(cTrue, 2); //            //# 42: checked mode compile-time error
+  const c = const AssertCompare.constMiddle(cTrue, 2); //          //# 43: checked mode compile-time error
+  const c = const AssertCompare.constMulti(cTrue, 2); //           //# 44: checked mode compile-time error
+  const c = const AssertCompare.constFirstSuper(cTrue, 2); //      //# 45: checked mode compile-time error
+  const c = const AssertCompare.constLastSuper(cTrue, 2); //       //# 46: checked mode compile-time error
+  const c = const AssertCompare.constMiddleSuper(cTrue, 2); //     //# 47: checked mode compile-time error
+  const c = const AssertCompare.constMultiSuper(cTrue, 2); //      //# 48: checked mode compile-time error
 }
 
 

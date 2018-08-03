@@ -16,5 +16,7 @@ class Foo {
 void f([List<int> l = /*@typeArgs=int*/ const [1]]) {}
 // We do this inference in an early task but don't preserve the infos.
 Function2<List<int>, String> g = /*@returnType=String*/ (
-        [llll = /*@typeArgs=int*/ const [1]]) =>
+        [/*@type=List<int>*/ llll = /*@typeArgs=int*/ const [1]]) =>
     "hello";
+
+main() {}

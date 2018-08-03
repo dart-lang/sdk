@@ -28,12 +28,12 @@ testeeMain() {
   y & 4; // Line C.
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
 
 // Add breakpoints.
   (Isolate isolate) async {
-    var rootLib = await isolate.rootLibrary.load();
+    Library rootLib = await isolate.rootLibrary.load();
     var script = rootLib.scripts[0];
 
     var bpt1 = await isolate.addBreakpoint(script, LINE_A);

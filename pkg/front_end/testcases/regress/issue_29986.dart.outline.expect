@@ -1,0 +1,6 @@
+library;
+import self as self;
+
+static method main() → dynamic
+  ;
+static abstract method C(dynamic name) → dynamic;

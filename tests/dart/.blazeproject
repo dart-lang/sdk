@@ -1,0 +1,10 @@
+
+directories:
+  # Add the directories you want added as source here
+  experimental/users/jcollins/dart
+
+targets:
+  # Add targets that reach the source code that you want to resolve here
+  //experimental/users/jcollins/dart:deep_nesting1_negative_test
+additional_languages:
+  dart

@@ -36,7 +36,7 @@ class WebSocketClient extends Client {
     if (message is String) {
       var map;
       try {
-        map = JSON.decode(message);
+        map = json.decode(message);
       } catch (e) {
         socket.close(PARSE_ERROR_CODE, 'Message parse error: $e');
         return;
@@ -45,34 +45,46 @@ class WebSocketClient extends Client {
         socket.close(NOT_MAP_ERROR_CODE, 'Message must be a JSON map.');
         return;
       }
-      var serial = map['id'];
-      if (serial != null && serial is! num && serial is! String) {
-        socket.close(ID_ERROR_CODE, '"id" must be a number, string, or null.');
+      try {
+        final rpc = new Message.fromJsonRpc(this, map);
+        switch (rpc.type) {
+          case MessageType.Request:
+            onRequest(rpc);
+            break;
+          case MessageType.Notification:
+            onNotification(rpc);
+            break;
+          case MessageType.Response:
+            onResponse(rpc);
+            break;
+        }
+      } catch (e) {
+        socket.close(ID_ERROR_CODE, e.message);
       }
-      onMessage(serial, new Message.fromJsonRpc(this, map));
     } else {
       socket.close(BINARY_MESSAGE_ERROR_CODE, 'Message must be a string.');
     }
   }
 
-  void post(dynamic result) {
+  void post(Response result) {
     if (result == null) {
       // Do nothing.
       return;
     }
     try {
-      if (result is String || result is Uint8List) {
-        socket.add(result); // String or binary message.
-      } else {
-        // String message as external Uint8List.
-        assert(result is List);
-        Uint8List cstring = result[0];
-        socket.addUtf8Text(cstring);
+      switch (result.kind) {
+        case ResponsePayloadKind.String:
+        case ResponsePayloadKind.Binary:
+          socket.add(result.payload);
+          break;
+        case ResponsePayloadKind.Utf8String:
+          socket.addUtf8Text(result.payload);
+          break;
       }
     } catch (e, st) {
       serverPrint("Ignoring error posting over WebSocket.");
-      serverPrint(e);
-      serverPrint(st);
+      serverPrint(e.toString());
+      serverPrint(st.toString());
     }
   }
 
@@ -97,7 +109,7 @@ class HttpRequestClient extends Client {
     close();
   }
 
-  void post(dynamic result) {
+  void post(Response result) {
     if (result == null) {
       close();
       return;
@@ -106,12 +118,15 @@ class HttpRequestClient extends Client {
     // We closed the connection for bad origins earlier.
     response.headers.add('Access-Control-Allow-Origin', '*');
     response.headers.contentType = jsonContentType;
-    if (result is String) {
-      response.write(result);
-    } else {
-      assert(result is List);
-      Uint8List cstring = result[0]; // Already in UTF-8.
-      response.add(cstring);
+    switch (result.kind) {
+      case ResponsePayloadKind.String:
+        response.write(result.payload);
+        break;
+      case ResponsePayloadKind.Utf8String:
+        response.add(result.payload);
+        break;
+      case ResponsePayloadKind.Binary:
+        throw 'Can not handle binary responses';
     }
     response.close();
     close();
@@ -175,7 +190,7 @@ class Server {
   }
 
   bool _originCheck(HttpRequest request) {
-    if (_originCheckDisabled || Platform.isFuchsia) {
+    if (_originCheckDisabled) {
       // Always allow.
       return true;
     }
@@ -245,7 +260,7 @@ class Server {
         // Prefer Uri encoding first.
         fsUriBase64List = request.headers['dev_fs_uri_b64'];
         if ((fsUriBase64List != null) && (fsUriBase64List.length > 0)) {
-          String decodedFsUri = UTF8.decode(BASE64.decode(fsUriBase64List[0]));
+          String decodedFsUri = utf8.decode(base64.decode(fsUriBase64List[0]));
           fsUri = Uri.parse(decodedFsUri);
         }
 
@@ -255,7 +270,7 @@ class Server {
           fsPathBase64List = request.headers['dev_fs_path_b64'];
           // If the 'dev_fs_path_b64' header field was sent, use that instead.
           if ((fsPathBase64List != null) && (fsPathBase64List.length > 0)) {
-            fsPath = UTF8.decode(BASE64.decode(fsPathBase64List[0]));
+            fsPath = utf8.decode(base64.decode(fsPathBase64List[0]));
           } else {
             fsPath = fsPathList[0];
           }
@@ -311,15 +326,9 @@ class Server {
       return;
     }
     // HTTP based service request.
-    try {
-      var client = new HttpRequestClient(request, _service);
-      var message = new Message.fromUri(client, request.uri);
-      client.onMessage(null, message);
-    } catch (e) {
-      serverPrint('Unexpected error processing HTTP request uri: '
-          '${request.uri}\n$e\n');
-      rethrow;
-    }
+    final client = new HttpRequestClient(request, _service);
+    final message = new Message.fromUri(client, request.uri);
+    client.onRequest(message); // exception free, no need to try catch
   }
 
   Future startup() async {
@@ -334,15 +343,11 @@ class Server {
     Future<bool> poll() async {
       try {
         var address;
-        if (Platform.isFuchsia) {
-          address = InternetAddress.ANY_IP_V6;
-        } else {
-          var addresses = await InternetAddress.lookup(_ip);
-          // Prefer IPv4 addresses.
-          for (var i = 0; i < addresses.length; i++) {
-            address = addresses[i];
-            if (address.type == InternetAddressType.IP_V4) break;
-          }
+        var addresses = await InternetAddress.lookup(_ip);
+        // Prefer IPv4 addresses.
+        for (var i = 0; i < addresses.length; i++) {
+          address = addresses[i];
+          if (address.type == InternetAddressType.IP_V4) break;
         }
         _server = await HttpServer.bind(address, _port);
         return true;

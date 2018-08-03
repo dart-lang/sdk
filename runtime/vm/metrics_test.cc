@@ -16,8 +16,7 @@ namespace dart {
 #ifndef PRODUCT
 
 VM_UNIT_TEST_CASE(Metric_Simple) {
-  Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
-                     bin::core_isolate_snapshot_instructions, NULL, NULL, NULL);
+  TestCase::CreateTestIsolate();
   {
     Metric metric;
 
@@ -45,8 +44,7 @@ class MyMetric : public Metric {
 };
 
 VM_UNIT_TEST_CASE(Metric_OnDemand) {
-  Dart_CreateIsolate(NULL, NULL, bin::core_isolate_snapshot_data,
-                     bin::core_isolate_snapshot_instructions, NULL, NULL, NULL);
+  TestCase::CreateTestIsolate();
   {
     Thread* thread = Thread::Current();
     StackZone zone(thread);

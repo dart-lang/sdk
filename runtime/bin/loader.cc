@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 #include "bin/loader.h"
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/dfe.h"
+#include "bin/error_exit.h"
 #include "bin/extensions.h"
 #include "bin/file.h"
+#include "bin/gzip.h"
 #include "bin/lockers.h"
 #include "bin/utils.h"
 #include "include/dart_tools_api.h"
@@ -19,6 +21,10 @@ namespace bin {
 
 // Development flag.
 static bool trace_loader = false;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+extern DFE dfe;
+#endif
+
 // Keep in sync with loader.dart.
 static const intptr_t _Dart_kImportExtension = 9;
 static const intptr_t _Dart_kResolveAsFilePath = 10;
@@ -41,7 +47,6 @@ Loader::Loader(IsolateData* isolate_data)
   AddLoader(port_, isolate_data_);
 }
 
-
 Loader::~Loader() {
   ASSERT(port_ != ILLEGAL_PORT);
   // Enter the monitor while we close the Dart port. After the Dart port is
@@ -63,7 +68,6 @@ Loader::~Loader() {
   payload_ = NULL;
   payload_length_ = 0;
 }
-
 
 // Copy the contents of |message| into an |IOResult|.
 void Loader::IOResult::Setup(Dart_CObject* message) {
@@ -117,14 +121,12 @@ void Loader::IOResult::Setup(Dart_CObject* message) {
   }
 }
 
-
 void Loader::IOResult::Cleanup() {
   free(uri);
   free(resolved_uri);
   free(library_uri);
   free(payload);
 }
-
 
 // Send the Loader Initialization message to the service isolate. This
 // message is sent the first time a loader is constructed for an isolate and
@@ -145,30 +147,30 @@ void Loader::Init(const char* package_root,
   Dart_ListSetAt(request, 1, Dart_NewInteger(Dart_GetMainPortId()));
   Dart_ListSetAt(request, 2, Dart_NewInteger(_Dart_kInitLoader));
   Dart_ListSetAt(request, 3, Dart_NewSendPort(port_));
-  Dart_ListSetAt(request, 4, (package_root == NULL)
-                                 ? Dart_Null()
-                                 : Dart_NewStringFromCString(package_root));
-  Dart_ListSetAt(request, 5, (packages_file == NULL)
-                                 ? Dart_Null()
-                                 : Dart_NewStringFromCString(packages_file));
+  Dart_ListSetAt(request, 4,
+                 (package_root == NULL)
+                     ? Dart_Null()
+                     : Dart_NewStringFromCString(package_root));
+  Dart_ListSetAt(request, 5,
+                 (packages_file == NULL)
+                     ? Dart_Null()
+                     : Dart_NewStringFromCString(packages_file));
   Dart_ListSetAt(request, 6, Dart_NewStringFromCString(working_directory));
-  Dart_ListSetAt(request, 7, (root_script_uri == NULL)
-                                 ? Dart_Null()
-                                 : Dart_NewStringFromCString(root_script_uri));
+  Dart_ListSetAt(request, 7,
+                 (root_script_uri == NULL)
+                     ? Dart_Null()
+                     : Dart_NewStringFromCString(root_script_uri));
   Dart_ListSetAt(request, 8, Dart_NewBoolean(Dart_IsReloading()));
-
 
   bool success = Dart_Post(loader_port, request);
   ASSERT(success);
 }
-
 
 void Loader::SendImportExtensionRequest(Dart_Handle url,
                                         Dart_Handle library_url) {
   // This port delivers loading messages to the service isolate.
   Dart_Port loader_port = Builtin::LoadPort();
   ASSERT(loader_port != ILLEGAL_PORT);
-
 
   Dart_Handle request = Dart_NewList(6);
   Dart_ListSetAt(request, 0, trace_loader ? Dart_True() : Dart_False());
@@ -184,7 +186,6 @@ void Loader::SendImportExtensionRequest(Dart_Handle url,
     pending_operations_++;
   }
 }
-
 
 // Forward a request from the tag handler to the service isolate.
 void Loader::SendRequest(intptr_t tag,
@@ -209,25 +210,6 @@ void Loader::SendRequest(intptr_t tag,
   }
 }
 
-
-// Forward a request from the tag handler to the kernel isolate.
-// [ tag, send port, url ]
-void Loader::SendKernelRequest(Dart_LibraryTag tag, Dart_Handle url) {
-  // This port delivers loading messages to the Kernel isolate.
-  Dart_Port kernel_port = Dart_KernelPort();
-  ASSERT(kernel_port != ILLEGAL_PORT);
-
-  Dart_Handle request = Dart_NewList(3);
-  Dart_ListSetAt(request, 0, Dart_NewInteger(tag));
-  Dart_ListSetAt(request, 1, Dart_NewSendPort(port_));
-  Dart_ListSetAt(request, 2, url);
-  if (Dart_Post(kernel_port, request)) {
-    MonitorLocker ml(monitor_);
-    pending_operations_++;
-  }
-}
-
-
 void Loader::QueueMessage(Dart_CObject* message) {
   MonitorLocker ml(monitor_);
   if (results_length_ == results_capacity_) {
@@ -243,7 +225,6 @@ void Loader::QueueMessage(Dart_CObject* message) {
   results_length_++;
   ml.Notify();
 }
-
 
 void Loader::BlockUntilComplete(ProcessResult process_result) {
   MonitorLocker ml(monitor_);
@@ -265,7 +246,6 @@ void Loader::BlockUntilComplete(ProcessResult process_result) {
   }
 }
 
-
 static bool LibraryHandleError(Dart_Handle library, Dart_Handle error) {
   if (!Dart_IsNull(library) && !Dart_IsError(library)) {
     ASSERT(Dart_IsLibrary(library));
@@ -278,13 +258,11 @@ static bool LibraryHandleError(Dart_Handle library, Dart_Handle error) {
   return false;
 }
 
-
 static bool PathContainsSeparator(const char* path) {
   return (strchr(path, '/') != NULL) ||
          ((strncmp(File::PathSeparator(), "/", 1) != 0) &&
           (strstr(path, File::PathSeparator()) != NULL));
 }
-
 
 void Loader::AddDependencyLocked(Loader* loader, const char* resolved_uri) {
   MallocGrowableArray<char*>* dependencies =
@@ -294,7 +272,6 @@ void Loader::AddDependencyLocked(Loader* loader, const char* resolved_uri) {
   }
   dependencies->Add(strdup(resolved_uri));
 }
-
 
 void Loader::ResolveDependenciesAsFilePaths() {
   IsolateData* isolate_data =
@@ -308,24 +285,57 @@ void Loader::ResolveDependenciesAsFilePaths() {
   for (intptr_t i = 0; i < dependencies->length(); i++) {
     char* resolved_uri = (*dependencies)[i];
 
-    uint8_t* scoped_file_path = NULL;
-    intptr_t scoped_file_path_length = -1;
+    uint8_t* file_path = NULL;
+    intptr_t file_path_length = -1;
     Dart_Handle uri = Dart_NewStringFromCString(resolved_uri);
     ASSERT(!Dart_IsError(uri));
-    Dart_Handle result = Loader::ResolveAsFilePath(uri, &scoped_file_path,
-                                                   &scoped_file_path_length);
+    Dart_Handle result =
+        Loader::ResolveAsFilePath(uri, &file_path, &file_path_length);
     if (Dart_IsError(result)) {
       Log::Print("Error resolving dependency: %s\n", Dart_GetError(result));
       return;
     }
 
-    (*dependencies)[i] =
-        StringUtils::StrNDup(reinterpret_cast<const char*>(scoped_file_path),
-                             scoped_file_path_length);
+    // Convert buffer buffer to NUL-terminated string.
+    (*dependencies)[i] = Utils::StrNDup(
+        reinterpret_cast<const char*>(file_path), file_path_length);
+    free(file_path);
     free(resolved_uri);
   }
 }
 
+class ScopedDecompress : public ValueObject {
+ public:
+  ScopedDecompress(const uint8_t** payload, intptr_t* payload_length)
+      : payload_(payload),
+        payload_length_(payload_length),
+        decompressed_(NULL) {
+    DartUtils::MagicNumber payload_type =
+        DartUtils::SniffForMagicNumber(*payload, *payload_length);
+    if (payload_type == DartUtils::kGzipMagicNumber) {
+      int64_t start = Dart_TimelineGetMicros();
+      intptr_t decompressed_length = 0;
+      Decompress(*payload, *payload_length, &decompressed_,
+                 &decompressed_length);
+      int64_t end = Dart_TimelineGetMicros();
+      Dart_TimelineEvent("Decompress", start, end, Dart_Timeline_Event_Duration,
+                         0, NULL, NULL);
+      *payload_ = decompressed_;
+      *payload_length_ = decompressed_length;
+    }
+  }
+
+  ~ScopedDecompress() {
+    if (decompressed_ != NULL) {
+      free(decompressed_);
+    }
+  }
+
+ private:
+  const uint8_t** payload_;
+  intptr_t* payload_length_;
+  uint8_t* decompressed_;
+};
 
 bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
   // We have to copy everything we care about out of |result| because after
@@ -397,11 +407,15 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
   // Check for payload and load accordingly.
   const uint8_t* payload = result->payload;
   intptr_t payload_length = result->payload_length;
+
+  // Decompress if gzip'd.
+  ScopedDecompress decompress(&payload, &payload_length);
+
   const DartUtils::MagicNumber payload_type =
-      DartUtils::SniffForMagicNumber(&payload, &payload_length);
+      DartUtils::SniffForMagicNumber(payload, payload_length);
   Dart_Handle source = Dart_Null();
   if (payload_type == DartUtils::kUnknownMagicNumber) {
-    source = Dart_NewStringFromUTF8(result->payload, result->payload_length);
+    source = Dart_NewStringFromUTF8(payload, payload_length);
     if (Dart_IsError(source)) {
       loader->error_ =
           DartUtils::NewError("%s is not a valid UTF-8 script",
@@ -440,8 +454,7 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
         // isolates. We currently do not have support for neither
         // `Isolate.spawn()` nor `Isolate.spawnUri()` with kernel-based
         // frontend.
-        void* kernel_binary = Dart_ReadKernelBinary(payload, payload_length);
-        dart_result = Dart_LoadKernel(kernel_binary);
+        dart_result = Dart_LoadScriptFromKernel(payload, payload_length);
       } else {
         dart_result = Dart_LoadScript(uri, resolved_uri, source, 0, 0);
       }
@@ -470,7 +483,6 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
   return true;
 }
 
-
 bool Loader::ProcessPayloadResultLocked(Loader* loader,
                                         Loader::IOResult* result) {
   // A negative result tag indicates a loading error occurred in the service
@@ -488,7 +500,6 @@ bool Loader::ProcessPayloadResultLocked(Loader* loader,
   return true;
 }
 
-
 bool Loader::ProcessQueueLocked(ProcessResult process_result) {
   bool hit_error = false;
   for (intptr_t i = 0; i < results_length(); i++) {
@@ -503,7 +514,6 @@ bool Loader::ProcessQueueLocked(ProcessResult process_result) {
   return !hit_error;
 }
 
-
 void Loader::InitForSnapshot(const char* snapshot_uri) {
   IsolateData* isolate_data =
       reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
@@ -517,7 +527,6 @@ void Loader::InitForSnapshot(const char* snapshot_uri) {
   // Destroy the loader. The destructor does a bunch of leg work.
   delete loader;
 }
-
 
 #define RETURN_ERROR(result)                                                   \
   if (Dart_IsError(result)) return result;
@@ -563,7 +572,6 @@ Dart_Handle Loader::ReloadNativeExtensions() {
   return Dart_True();
 }
 
-
 Dart_Handle Loader::SendAndProcessReply(intptr_t tag,
                                         Dart_Handle url,
                                         uint8_t** payload,
@@ -604,13 +612,11 @@ Dart_Handle Loader::SendAndProcessReply(intptr_t tag,
   return Dart_Null();
 }
 
-
 Dart_Handle Loader::LoadUrlContents(Dart_Handle url,
                                     uint8_t** payload,
                                     intptr_t* payload_length) {
   return SendAndProcessReply(Dart_kScriptTag, url, payload, payload_length);
 }
-
 
 Dart_Handle Loader::ResolveAsFilePath(Dart_Handle url,
                                       uint8_t** payload,
@@ -626,7 +632,6 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
   return Dart_Null();
 }
 
-
 Dart_Handle Loader::DartColonLibraryTagHandler(Dart_LibraryTag tag,
                                                Dart_Handle library,
                                                Dart_Handle url,
@@ -635,6 +640,12 @@ Dart_Handle Loader::DartColonLibraryTagHandler(Dart_LibraryTag tag,
   return Dart_Null();
 }
 #else
+static void MallocFinalizer(void* isolate_callback_data,
+                            Dart_WeakPersistentHandle handle,
+                            void* peer) {
+  free(peer);
+}
+
 Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
                                       Dart_Handle library,
                                       Dart_Handle url) {
@@ -650,9 +661,34 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
   if (Dart_IsError(result)) {
     return result;
   }
+  if (tag == Dart_kKernelTag) {
+    uint8_t* kernel_buffer = NULL;
+    intptr_t kernel_buffer_size = 0;
+    if (!DFE::TryReadKernelFile(url_string, &kernel_buffer,
+                                &kernel_buffer_size)) {
+      return DartUtils::NewError("'%s' is not a kernel file", url_string);
+    }
+    result = Dart_NewExternalTypedData(Dart_TypedData_kUint8, kernel_buffer,
+                                       kernel_buffer_size);
+    Dart_NewWeakPersistentHandle(result, kernel_buffer, kernel_buffer_size,
+                                 MallocFinalizer);
+    return result;
+  }
+  if (tag == Dart_kImportResolvedExtensionTag) {
+    if (strncmp(url_string, "file://", 7)) {
+      return DartUtils::NewError(
+          "Resolved native extensions must use the file:// scheme.");
+    }
+    const char* absolute_path = DartUtils::RemoveScheme(url_string);
 
-  // Special case for handling dart: imports and parts.
+    if (!File::IsAbsolutePath(absolute_path)) {
+      return DartUtils::NewError("Native extension path must be absolute.");
+    }
+
+    return Extensions::LoadExtension("/", absolute_path, library);
+  }
   if (tag != Dart_kScriptTag) {
+    // Special case for handling dart: imports and parts.
     // Grab the library's url.
     Dart_Handle library_url = Dart_LibraryUrl(library);
     if (Dart_IsError(library_url)) {
@@ -672,7 +708,6 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
                                         url_string);
     }
   }
-
   if (DartUtils::IsDartExtensionSchemeURL(url_string)) {
     // Handle early error cases for dart-ext: imports.
     if (tag != Dart_kImportTag) {
@@ -729,12 +764,30 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
   if (DartUtils::IsDartExtensionSchemeURL(url_string)) {
     loader->SendImportExtensionRequest(url, Dart_LibraryUrl(library));
   } else {
-    if (Dart_KernelIsolateIsRunning()) {
-      loader->SendKernelRequest(tag, url);
+    if (dfe.CanUseDartFrontend() && dfe.UseDartFrontend() &&
+        (tag == Dart_kImportTag)) {
+      // E.g., IsolateMirror.loadUri.
+      char* error = NULL;
+      int exit_code = 0;
+      uint8_t* kernel_buffer = NULL;
+      intptr_t kernel_buffer_size = -1;
+      dfe.CompileAndReadScript(url_string, &kernel_buffer, &kernel_buffer_size,
+                               &error, &exit_code, true /* strong */, NULL);
+      if (exit_code == 0) {
+        return Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size);
+      } else if (exit_code == kCompilationErrorExitCode) {
+        Dart_Handle result = Dart_NewCompilationError(error);
+        free(error);
+        return result;
+      } else {
+        Dart_Handle result = Dart_NewApiError(error);
+        free(error);
+        return result;
+      }
     } else {
-      loader->SendRequest(tag, url, (library != Dart_Null())
-                                        ? Dart_LibraryUrl(library)
-                                        : Dart_Null());
+      loader->SendRequest(
+          tag, url,
+          (library != Dart_Null()) ? Dart_LibraryUrl(library) : Dart_Null());
     }
   }
 
@@ -778,7 +831,6 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
   return Dart_Null();
 }
 
-
 Dart_Handle Loader::DartColonLibraryTagHandler(Dart_LibraryTag tag,
                                                Dart_Handle library,
                                                Dart_Handle url,
@@ -812,9 +864,11 @@ Dart_Handle Loader::DartColonLibraryTagHandler(Dart_LibraryTag tag,
     char* part_uri = reinterpret_cast<char*>(malloc(len + 1));
     snprintf(part_uri, len + 1, "%s/%s", library_url_string, url_string);
     Dart_Handle part_uri_obj = DartUtils::NewString(part_uri);
+    Dart_Handle result =
+        Dart_LoadSource(library, part_uri_obj, Dart_Null(),
+                        Builtin::PartSource(id, part_uri), 0, 0);
     free(part_uri);
-    return Dart_LoadSource(library, part_uri_obj, Dart_Null(),
-                           Builtin::PartSource(id, url_string), 0, 0);
+    return result;
   }
   // All cases should have been handled above.
   UNREACHABLE();
@@ -822,17 +876,14 @@ Dart_Handle Loader::DartColonLibraryTagHandler(Dart_LibraryTag tag,
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-
 void Loader::InitOnce() {
   loader_infos_lock_ = new Mutex();
 }
-
 
 Mutex* Loader::loader_infos_lock_;
 Loader::LoaderInfo* Loader::loader_infos_ = NULL;
 intptr_t Loader::loader_infos_length_ = 0;
 intptr_t Loader::loader_infos_capacity_ = 0;
-
 
 // Add a mapping from |port| to |isolate_data| (really the loader). When a
 // native message arrives, we use this map to report the I/O result to the
@@ -861,7 +912,6 @@ void Loader::AddLoader(Dart_Port port, IsolateData* isolate_data) {
   ASSERT(LoaderForLocked(port) != NULL);
 }
 
-
 // Remove |port| from the map.
 // This happens once an isolate has finished loading.
 void Loader::RemoveLoader(Dart_Port port) {
@@ -877,7 +927,6 @@ void Loader::RemoveLoader(Dart_Port port) {
   loader_infos_length_--;
 }
 
-
 intptr_t Loader::LoaderIndexFor(Dart_Port port) {
   for (intptr_t i = 0; i < loader_infos_length_; i++) {
     if (loader_infos_[i].port == port) {
@@ -887,7 +936,6 @@ intptr_t Loader::LoaderIndexFor(Dart_Port port) {
   return -1;
 }
 
-
 Loader* Loader::LoaderForLocked(Dart_Port port) {
   intptr_t index = LoaderIndexFor(port);
   if (index < 0) {
@@ -896,12 +944,10 @@ Loader* Loader::LoaderForLocked(Dart_Port port) {
   return loader_infos_[index].isolate_data->loader();
 }
 
-
 Loader* Loader::LoaderFor(Dart_Port port) {
   MutexLocker ml(loader_infos_lock_);
   return LoaderForLocked(port);
 }
-
 
 void Loader::NativeMessageHandler(Dart_Port dest_port_id,
                                   Dart_CObject* message) {

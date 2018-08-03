@@ -19,6 +19,8 @@ class LibraryPrefixContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     if (!request.includeIdentifiers) {
       return EMPTY_LIST;
     }
@@ -34,8 +36,7 @@ class LibraryPrefixContributor extends DartCompletionContributor {
       if (completion != null && completion.length > 0) {
         LibraryElement libElem = element.importedLibrary;
         if (libElem != null) {
-          CompletionSuggestion suggestion = createSuggestion(
-              libElem, request.ideOptions,
+          CompletionSuggestion suggestion = createSuggestion(libElem,
               completion: completion,
               kind: CompletionSuggestionKind.IDENTIFIER);
           if (suggestion != null) {

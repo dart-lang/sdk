@@ -13,9 +13,9 @@ main() {
   Expect.equals(87, f2);
 
   Expect.equals(42, F0);
-  Expect.equals(null, F1); //# 03: compile-time error
+  Expect.equals(null, F1); //# 03: continued
   Expect.equals(87, F2);
-  Expect.equals(null, F3); //# 04: compile-time error
+  Expect.equals(null, F3); //# 04: continued
 
   Expect.isTrue(P0 is Point);
   Expect.isTrue(P1 is int);
@@ -35,9 +35,9 @@ main() {
 }
 
 final F0 = 42;
-final F1; //                //# 03: continued
+final F1; //                //# 03: syntax error
 final int F2 = 87;
-final int F3; //            //# 04: continued
+final int F3; //            //# 04: syntax error
 
 class Point {
   final x, y;

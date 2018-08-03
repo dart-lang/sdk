@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_IO_DISABLED)
-
 #include "platform/globals.h"
 #if defined(HOST_OS_WINDOWS)
 
@@ -24,18 +22,16 @@ bool FileSystemWatcher::IsSupported() {
   return true;
 }
 
-
 intptr_t FileSystemWatcher::Init() {
   return 0;
 }
-
 
 void FileSystemWatcher::Close(intptr_t id) {
   USE(id);
 }
 
-
 intptr_t FileSystemWatcher::WatchPath(intptr_t id,
+                                      Namespace* namespc,
                                       const char* path,
                                       int events,
                                       bool recursive) {
@@ -67,7 +63,6 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
   return reinterpret_cast<intptr_t>(handle);
 }
 
-
 void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {
   USE(id);
   DirectoryWatchHandle* handle =
@@ -75,12 +70,10 @@ void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {
   handle->Stop();
 }
 
-
 intptr_t FileSystemWatcher::GetSocketId(intptr_t id, intptr_t path_id) {
   USE(id);
   return path_id;
 }
-
 
 Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
   USE(id);
@@ -117,9 +110,10 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
     Dart_ListSetAt(event, 0, Dart_NewInteger(mask));
     // Move events come in pairs. Just 'enable' by default.
     Dart_ListSetAt(event, 1, Dart_NewInteger(1));
-    Dart_ListSetAt(event, 2, Dart_NewStringFromUTF16(
-                                 reinterpret_cast<uint16_t*>(e->FileName),
-                                 e->FileNameLength / 2));
+    Dart_ListSetAt(
+        event, 2,
+        Dart_NewStringFromUTF16(reinterpret_cast<uint16_t*>(e->FileName),
+                                e->FileNameLength / 2));
     Dart_ListSetAt(event, 3, Dart_NewBoolean(true));
     Dart_ListSetAt(event, 4, Dart_NewInteger(path_id));
     Dart_ListSetAt(events, i, event);
@@ -136,5 +130,3 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
 }  // namespace dart
 
 #endif  // defined(HOST_OS_WINDOWS)
-
-#endif  // !defined(DART_IO_DISABLED)

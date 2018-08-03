@@ -6,7 +6,7 @@
 </head>
 <body>
 <h1>Common Types</h1>
-<version>1.0.0</version>
+<version>1.0.2</version>
 <p>
   This document contains a specification of the types that are common between
   the analysis server wire protocol and the analysis server plugin wire
@@ -198,6 +198,14 @@
           required in order to do so is contained in other fields.
         </p>
       </field>
+      <field name="displayText" optional="true">
+        <ref>String</ref>
+        <p>
+          Text to be displayed in, for example, a completion pop-up. This field
+          is only defined if the displayed text should be different than the
+          completion.  Otherwise it is omitted.
+        </p>
+      </field>
       <field name="selectionOffset">
         <ref>int</ref>
         <p>
@@ -228,7 +236,7 @@
         <ref>String</ref>
         <p>
           An abbreviated version of the Dartdoc associated with the element
-          being suggested, This field is omitted if there is no Dartdoc
+          being suggested. This field is omitted if there is no Dartdoc
           associated with the element.
         </p>
       </field>
@@ -391,6 +399,12 @@
         </p>
       </value>
       <value><code>OPTIONAL_ARGUMENT</code></value>
+      <value>
+        <code>OVERRIDE</code>
+        <p>
+          An overriding implementation of a class member is being suggested.
+        </p>
+      </value>
       <value><code>PARAMETER</code></value>
     </enum>
   </type>
@@ -480,11 +494,13 @@
       <value><code>CLASS_TYPE_ALIAS</code></value>
       <value><code>COMPILATION_UNIT</code></value>
       <value><code>CONSTRUCTOR</code></value>
+      <value><code>CONSTRUCTOR_INVOCATION</code></value>
       <value><code>ENUM</code></value>
       <value><code>ENUM_CONSTANT</code></value>
       <value><code>FIELD</code></value>
       <value><code>FILE</code></value>
       <value><code>FUNCTION</code></value>
+      <value><code>FUNCTION_INVOCATION</code></value>
       <value><code>FUNCTION_TYPE_ALIAS</code></value>
       <value><code>GETTER</code></value>
       <value><code>LABEL</code></value>
@@ -496,14 +512,8 @@
       <value><code>SETTER</code></value>
       <value><code>TOP_LEVEL_VARIABLE</code></value>
       <value><code>TYPE_PARAMETER</code></value>
-      <value deprecated="true">
-        <code>UNIT_TEST_GROUP</code>
-        <p><b>Deprecated:</b> support for tests was removed.</p>
-      </value>
-      <value deprecated="true">
-        <code>UNIT_TEST_TEST</code>
-        <p><b>Deprecated:</b> support for tests was removed.</p>
-      </value>
+      <value><code>UNIT_TEST_GROUP</code></value>
+      <value><code>UNIT_TEST_TEST</code></value>
       <value><code>UNKNOWN</code></value>
     </enum>
   </type>
@@ -523,11 +533,14 @@
       An enumeration of the kinds of folding regions.
     </p>
     <enum>
-      <value><code>COMMENT</code></value>
-      <value><code>CLASS_MEMBER</code></value>
+      <value><code>ANNOTATIONS</code></value>
+      <value><code>CLASS_BODY</code></value>
       <value><code>DIRECTIVES</code></value>
       <value><code>DOCUMENTATION_COMMENT</code></value>
-      <value><code>TOP_LEVEL_DECLARATION</code></value>
+      <value><code>FILE_HEADER</code></value>
+      <value><code>FUNCTION_BODY</code></value>
+      <value><code>INVOCATION</code></value>
+      <value><code>LITERAL</code></value>
     </enum>
   </type>
   <type name="FoldingRegion">
@@ -808,6 +821,93 @@
       </value>
     </enum>
   </type>
+  <type name="KytheEntry">
+    <p>
+      This object matches the format and documentation of the Entry object
+      documented in the
+      <a href="https://kythe.io/docs/kythe-storage.html#_entry">Kythe Storage
+        Model</a>.
+    </p>
+    <object>
+      <field name="source">
+        <ref>KytheVName</ref>
+        <p>
+          The ticket of the source node.
+        </p>
+      </field>
+      <field name="kind" optional="true">
+        <ref>String</ref>
+        <p>
+          An edge label. The schema defines which labels are meaningful.
+        </p>
+      </field>
+      <field name="target" optional="true">
+        <ref>KytheVName</ref>
+        <p>
+          The ticket of the target node.
+        </p>
+      </field>
+      <field name="fact">
+        <ref>String</ref>
+        <p>
+          A fact label. The schema defines which fact labels are meaningful.
+        </p>
+      </field>
+      <field name="value" optional="true">
+        <list>
+          <ref>int</ref>
+        </list>
+        <p>
+          The <tt>String</tt> value of the fact.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="KytheVName">
+    <p>
+      This object matches the format and documentation of the Vector-Name object
+      documented in the
+      <a href="https://kythe.io/docs/kythe-storage.html#_a_id_termvname_a_vector_name_strong_vname_strong">Kythe
+        Storage Model</a>.
+    </p>
+    <object>
+      <field name="signature">
+        <ref>String</ref>
+        <p>
+          An opaque signature generated by the analyzer.
+        </p>
+      </field>
+      <field name="corpus">
+        <ref>String</ref>
+        <p>
+          The corpus of source code this <tt>KytheVName</tt> belongs to.
+          Loosely, a corpus is a collection of related files, such as the
+          contents of a given source repository.
+        </p>
+      </field>
+      <field name="root">
+        <ref>String</ref>
+        <p>
+          A corpus-specific root label, typically a directory path or project
+          identifier, denoting a distinct subset of the corpus. This may also be
+          used to designate virtual collections like generated files.
+        </p>
+      </field>
+      <field name="path">
+        <ref>String</ref>
+        <p>
+          A path-structured label describing the “location” of the named object
+          relative to the corpus and the root.
+        </p>
+      </field>
+      <field name="language">
+        <ref>String</ref>
+        <p>
+          The language this name belongs to.
+        </p>
+      </field>
+    </object>
+  </type>
   <type name="LinkedEditGroup">
     <p>
       A collection of positions that should be linked (edited simultaneously)
@@ -1044,13 +1144,26 @@
           The length of the element.
         </p>
       </field>
+      <field name="codeOffset">
+        <ref>int</ref>
+        <p>
+          The offset of the first character of the element code, which is
+          neither documentation, nor annotation.
+        </p>
+      </field>
+      <field name="codeLength">
+        <ref>int</ref>
+        <p>
+          The length of the element code.
+        </p>
+      </field>
       <field name="children" optional="true">
         <list>
           <ref>Outline</ref>
         </list>
         <p>
           The children of the node. The field will be omitted if the node has no
-          children.
+          children. Children are sorted by offset.
         </p>
       </field>
     </object>
@@ -1083,11 +1196,11 @@
       <value><code>CONVERT_METHOD_TO_GETTER</code></value>
       <value><code>EXTRACT_LOCAL_VARIABLE</code></value>
       <value><code>EXTRACT_METHOD</code></value>
+      <value><code>EXTRACT_WIDGET</code></value>
       <value><code>INLINE_LOCAL_VARIABLE</code></value>
       <value><code>INLINE_METHOD</code></value>
       <value><code>MOVE_FILE</code></value>
       <value><code>RENAME</code></value>
-      <value><code>SORT_MEMBERS</code></value>
     </enum>
   </type>
   <type name="RefactoringMethodParameter">
@@ -1266,6 +1379,13 @@
           applied.
         </p>
       </field>
+      <field name="id" optional="true">
+        <ref>String</ref>
+        <p>
+          The optional identifier of the change kind. The identifier remains
+          stable even if the message changes, or is parameterized.
+        </p>
+      </field>
     </object>
   </type>
   <type name="SourceEdit">
@@ -1318,7 +1438,7 @@
           The file containing the code to be modified.
         </p>
       </field>
-      <field name="fileStamp">
+      <field name="fileStamp" deprecated="true">
         <ref>long</ref>
         <p>
           The modification stamp of the file at the moment when the change was

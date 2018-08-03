@@ -39,4 +39,10 @@ void main() {
         parseFunctionBodies: false);
     expect(unit.toString(), equals("void main();"));
   });
+
+  test("allows you to specify whether or not to parse function bodies 2", () {
+    var unit = parseCompilationUnit("void main() { print('Hello, world!'); }",
+        parseFunctionBodies: false);
+    expect(unit.toString(), equals("void main();"));
+  });
 }

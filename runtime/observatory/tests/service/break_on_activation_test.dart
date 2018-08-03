@@ -47,9 +47,9 @@ void testeeDoNamed() {
   r3_named(y: 'Not a closure', x: 'Not a closure');
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
-    var rootLib = await isolate.rootLibrary.load();
+    Library rootLib = await isolate.rootLibrary.load();
 
     var breaksHit = 0;
 
@@ -65,7 +65,7 @@ var tests = [
     valueOfField(String name) async {
       var field = rootLib.variables.singleWhere((v) => v.name == name);
       await field.load();
-      return field.staticValue;
+      return field.staticValue as Instance;
     }
 
     var r1Ref = await valueOfField('r1');
@@ -93,7 +93,7 @@ var tests = [
     await cancelFutureSubscription(subscriptionFuture);
   },
   (Isolate isolate) async {
-    var rootLib = await isolate.rootLibrary.load();
+    Library rootLib = await isolate.rootLibrary.load();
 
     var breaksHit = 0;
 
@@ -109,7 +109,7 @@ var tests = [
     valueOfField(String name) async {
       var field = rootLib.variables.singleWhere((v) => v.name == name);
       await field.load();
-      return field.staticValue;
+      return field.staticValue as Instance;
     }
 
     var r1Ref = await valueOfField('r1_named');
@@ -137,7 +137,7 @@ var tests = [
     await cancelFutureSubscription(subscriptionFuture);
   },
   (Isolate isolate) async {
-    var rootLib = await isolate.rootLibrary.load();
+    Library rootLib = await isolate.rootLibrary.load();
 
     var breaksHit = 0;
 
@@ -153,7 +153,7 @@ var tests = [
     valueOfField(String name) async {
       var field = rootLib.variables.singleWhere((v) => v.name == name);
       await field.load();
-      return field.staticValue;
+      return field.staticValue as Instance;
     }
 
     var r1Ref = await valueOfField('r1');

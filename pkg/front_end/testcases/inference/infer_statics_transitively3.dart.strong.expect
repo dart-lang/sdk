@@ -1,0 +1,19 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "./infer_statics_transitively3_a.dart" as inf;
+
+static const field core::int t1 = 1;
+static const field core::int t2 = self::t1;
+static const field core::int t3 = inf::a1;
+static const field core::int t4 = inf::a2;
+static const field dynamic t5 = inf::A::a3;
+static const field dynamic t6 = inf::A::a3;
+static method foo() → dynamic {
+  core::int i;
+  i = self::t1;
+  i = self::t2;
+  i = self::t3;
+  i = self::t4;
+}
+static method main() → dynamic {}

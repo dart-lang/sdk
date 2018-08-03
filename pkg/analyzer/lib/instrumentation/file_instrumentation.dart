@@ -22,10 +22,10 @@ class FileInstrumentationServer implements InstrumentationServer {
   }
 
   @override
-  String get sessionId => '';
+  String get describe => "file: $filePath";
 
   @override
-  String get describe => "file: $filePath";
+  String get sessionId => '';
 
   @override
   void log(String message) {
@@ -39,6 +39,8 @@ class FileInstrumentationServer implements InstrumentationServer {
 
   @override
   Future shutdown() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     await _sink.close();
     _sink = null;
   }

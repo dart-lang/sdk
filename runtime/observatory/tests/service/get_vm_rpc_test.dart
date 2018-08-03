@@ -8,7 +8,7 @@ import 'package:unittest/unittest.dart';
 
 import 'test_helper.dart';
 
-var tests = [
+var tests = <VMTest>[
   (VM vm) async {
     var result = await vm.invokeRpcNoUpgrade('getVM', {});
     expect(result['type'], equals('VM'));

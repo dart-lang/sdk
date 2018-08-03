@@ -33,7 +33,7 @@ class GeneralErrorElement extends HtmlElement implements Renderable {
     assert(notifications != null);
     assert(message != null);
     GeneralErrorElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<GeneralErrorElement>(e, queue: queue);
     e._message = message;
     e._notifications = notifications;
     return e;
@@ -50,19 +50,19 @@ class GeneralErrorElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
   void render() {
-    children = [
-      navBar([
+    children = <Element>[
+      navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue),
         new NavNotifyElement(_notifications, queue: _r.queue)
       ]),
       new DivElement()
         ..classes = ['content-centered']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h1()..text = 'Error',
           new BRElement(),
           new DivElement()

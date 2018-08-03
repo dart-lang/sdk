@@ -1,0 +1,23 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int x = 2;
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method test5() → dynamic {
+  self::A a1 = new self::A::•();
+  a1.{self::A::x} = let<BottomType> _ = null in let final dynamic #t1 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/propagate_inference_transitively.dart:14:57: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+  a1. /*@target=A::x*/ x = /*error:INVALID_ASSIGNMENT*/ \"hi\";
+                                                        ^" in let final core::String #t2 = "hi" in null;
+  self::A a2 = new self::A::•();
+  a2.{self::A::x} = let<BottomType> _ = null in let final dynamic #t3 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/propagate_inference_transitively.dart:17:57: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+  a2. /*@target=A::x*/ x = /*error:INVALID_ASSIGNMENT*/ \"hi\";
+                                                        ^" in let final core::String #t4 = "hi" in null;
+}
+static method main() → dynamic {}

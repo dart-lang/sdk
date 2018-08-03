@@ -1,0 +1,15 @@
+// Errors:
+//
+// pkg/front_end/testcases/check_deferred_is_check.dart:9:14: Error: The type '#lib1::C' is deferred loaded via prefix 'lib' and can't be used as a type annotation.
+// Try removing 'deferred' from the import of 'lib' or use a supertype of '#lib1::C' that isn't deferred.
+//   print(x is lib.C);
+//              ^^^^^
+
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {}
+static method test(dynamic x) → dynamic {
+  core::print(x is invalid-type);
+}

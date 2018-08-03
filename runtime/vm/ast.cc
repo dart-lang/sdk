@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/ast.h"
-#include "vm/compiler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/isolate.h"
 #include "vm/log.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
-
 
 namespace dart {
 
@@ -21,13 +22,11 @@ namespace dart {
 FOR_EACH_NODE(DEFINE_VISIT_FUNCTION)
 #undef DEFINE_VISIT_FUNCTION
 
-
 #define DEFINE_NAME_FUNCTION(BaseName)                                         \
   const char* BaseName##Node::Name() const { return #BaseName; }
 
 FOR_EACH_NODE(DEFINE_NAME_FUNCTION)
 #undef DEFINE_NAME_FUNCTION
-
 
 const Field* AstNode::MayCloneField(const Field& value) {
   if (Compiler::IsBackgroundCompilation() ||
@@ -38,7 +37,6 @@ const Field* AstNode::MayCloneField(const Field& value) {
     return &value;
   }
 }
-
 
 // A visitor class to collect all the nodes (including children) into an
 // array.
@@ -60,19 +58,16 @@ class AstNodeCollector : public AstNodeVisitor {
   DISALLOW_COPY_AND_ASSIGN(AstNodeCollector);
 };
 
-
 void SequenceNode::CollectAllNodes(GrowableArray<AstNode*>* nodes) {
   AstNodeCollector node_collector(nodes);
   this->Visit(&node_collector);
 }
-
 
 void SequenceNode::VisitChildren(AstNodeVisitor* visitor) const {
   for (intptr_t i = 0; i < this->length(); i++) {
     NodeAt(i)->Visit(visitor);
   }
 }
-
 
 void SequenceNode::Add(AstNode* node) {
   if (node->IsReturnNode()) {
@@ -81,9 +76,7 @@ void SequenceNode::Add(AstNode* node) {
   nodes_.Add(node);
 }
 
-
 void PrimaryNode::VisitChildren(AstNodeVisitor* visitor) const {}
-
 
 void ArgumentListNode::VisitChildren(AstNodeVisitor* visitor) const {
   for (intptr_t i = 0; i < this->length(); i++) {
@@ -91,18 +84,16 @@ void ArgumentListNode::VisitChildren(AstNodeVisitor* visitor) const {
   }
 }
 
-
 LetNode::LetNode(TokenPosition token_pos)
     : AstNode(token_pos), vars_(1), initializers_(1), nodes_(1) {}
-
 
 LocalVariable* LetNode::AddInitializer(AstNode* node) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   initializers_.Add(node);
   char name[64];
-  OS::SNPrint(name, sizeof(name), ":lt%s_%" Pd "", token_pos().ToCString(),
-              vars_.length());
+  Utils::SNPrint(name, sizeof(name), ":lt%s_%" Pd "", token_pos().ToCString(),
+                 vars_.length());
   LocalVariable* temp_var =
       new LocalVariable(TokenPosition::kNoSource, token_pos(),
                         String::ZoneHandle(zone, Symbols::New(thread, name)),
@@ -110,7 +101,6 @@ LocalVariable* LetNode::AddInitializer(AstNode* node) {
   vars_.Add(temp_var);
   return temp_var;
 }
-
 
 void LetNode::VisitChildren(AstNodeVisitor* visitor) const {
   for (intptr_t i = 0; i < num_temps(); ++i) {
@@ -151,13 +141,11 @@ const Instance* LetNode::EvalConstExpr() const {
   return last;
 }
 
-
 void ArrayNode::VisitChildren(AstNodeVisitor* visitor) const {
   for (intptr_t i = 0; i < this->length(); i++) {
     ElementAt(i)->Visit(visitor);
   }
 }
-
 
 bool StringInterpolateNode::IsPotentiallyConst() const {
   for (int i = 0; i < value_->length(); i++) {
@@ -168,11 +156,9 @@ bool StringInterpolateNode::IsPotentiallyConst() const {
   return true;
 }
 
-
 bool LiteralNode::IsPotentiallyConst() const {
   return true;
 }
-
 
 AstNode* LiteralNode::ApplyUnaryOp(Token::Kind unary_op_kind) {
   if (unary_op_kind == Token::kNEGATE) {
@@ -218,11 +204,9 @@ AstNode* LiteralNode::ApplyUnaryOp(Token::Kind unary_op_kind) {
   return NULL;
 }
 
-
 const char* TypeNode::TypeName() const {
   return String::Handle(type().UserVisibleName()).ToCString();
 }
-
 
 bool ComparisonNode::IsKindValid() const {
   return Token::IsRelationalOperator(kind_) ||
@@ -230,11 +214,9 @@ bool ComparisonNode::IsKindValid() const {
          Token::IsTypeCastOperator(kind_);
 }
 
-
 const char* ComparisonNode::TokenName() const {
   return (kind_ == Token::kAS) ? "as" : Token::Str(kind_);
 }
-
 
 bool ComparisonNode::IsPotentiallyConst() const {
   switch (kind_) {
@@ -252,7 +234,6 @@ bool ComparisonNode::IsPotentiallyConst() const {
       return false;
   }
 }
-
 
 const Instance* ComparisonNode::EvalConstExpr() const {
   const Instance* left_val = this->left()->EvalConstExpr();
@@ -295,7 +276,6 @@ const Instance* ComparisonNode::EvalConstExpr() const {
   return NULL;
 }
 
-
 bool BinaryOpNode::IsKindValid() const {
   switch (kind_) {
     case Token::kADD:
@@ -318,11 +298,9 @@ bool BinaryOpNode::IsKindValid() const {
   }
 }
 
-
 const char* BinaryOpNode::TokenName() const {
   return Token::Str(kind_);
 }
-
 
 bool BinaryOpNode::IsPotentiallyConst() const {
   switch (kind_) {
@@ -336,7 +314,7 @@ bool BinaryOpNode::IsPotentiallyConst() const {
           this->right()->AsLiteralNode()->literal().IsNull()) {
         return false;
       }
-    // Fall-through intentional.
+      /* Falls through */
     case Token::kADD:
     case Token::kSUB:
     case Token::kMUL:
@@ -357,7 +335,6 @@ bool BinaryOpNode::IsPotentiallyConst() const {
   }
 }
 
-
 const Instance* BinaryOpNode::EvalConstExpr() const {
   const Instance* left_val = this->left()->EvalConstExpr();
   if (left_val == NULL) {
@@ -376,7 +353,7 @@ const Instance* BinaryOpNode::EvalConstExpr() const {
       if (left_val->IsString()) {
         return right_val->IsString() ? left_val : NULL;
       }
-    // Fall-through intentional.
+      /* Falls through */
     case Token::kSUB:
     case Token::kMUL:
     case Token::kDIV:
@@ -419,7 +396,6 @@ const Instance* BinaryOpNode::EvalConstExpr() const {
   return NULL;
 }
 
-
 AstNode* UnaryOpNode::UnaryOpOrLiteral(TokenPosition token_pos,
                                        Token::Kind kind,
                                        AstNode* operand) {
@@ -429,7 +405,6 @@ AstNode* UnaryOpNode::UnaryOpOrLiteral(TokenPosition token_pos,
   }
   return new UnaryOpNode(token_pos, kind, operand);
 }
-
 
 bool UnaryOpNode::IsKindValid() const {
   switch (kind_) {
@@ -442,7 +417,6 @@ bool UnaryOpNode::IsKindValid() const {
   }
 }
 
-
 bool UnaryOpNode::IsPotentiallyConst() const {
   if (this->operand()->IsLiteralNode() &&
       this->operand()->AsLiteralNode()->literal().IsNull()) {
@@ -450,7 +424,6 @@ bool UnaryOpNode::IsPotentiallyConst() const {
   }
   return this->operand()->IsPotentiallyConst();
 }
-
 
 const Instance* UnaryOpNode::EvalConstExpr() const {
   const Instance* val = this->operand()->EvalConstExpr();
@@ -469,13 +442,11 @@ const Instance* UnaryOpNode::EvalConstExpr() const {
   }
 }
 
-
 bool ConditionalExprNode::IsPotentiallyConst() const {
   return this->condition()->IsPotentiallyConst() &&
          this->true_expr()->IsPotentiallyConst() &&
          this->false_expr()->IsPotentiallyConst();
 }
-
 
 const Instance* ConditionalExprNode::EvalConstExpr() const {
   const Instance* cond = this->condition()->EvalConstExpr();
@@ -487,14 +458,12 @@ const Instance* ConditionalExprNode::EvalConstExpr() const {
   return NULL;
 }
 
-
 bool ClosureNode::IsPotentiallyConst() const {
   if (function().IsImplicitStaticClosureFunction()) {
     return true;
   }
   return false;
 }
-
 
 const Instance* ClosureNode::EvalConstExpr() const {
   if (!is_deferred_reference_ && function().IsImplicitStaticClosureFunction()) {
@@ -504,7 +473,6 @@ const Instance* ClosureNode::EvalConstExpr() const {
   return NULL;
 }
 
-
 AstNode* ClosureNode::MakeAssignmentNode(AstNode* rhs) {
   if (scope() == NULL) {
     // This is an implicit closure node created because a static getter was not
@@ -512,21 +480,19 @@ AstNode* ClosureNode::MakeAssignmentNode(AstNode* rhs) {
     // noSuchMethod will be called.
     return new StaticSetterNode(token_pos(), receiver(),
                                 Class::ZoneHandle(function().Owner()),
-                                String::ZoneHandle(function().name()), rhs);
+                                String::ZoneHandle(function().name()), rhs,
+                                StaticGetterSetter::kNoRebind);
   }
   return NULL;
 }
-
 
 const char* UnaryOpNode::TokenName() const {
   return Token::Str(kind_);
 }
 
-
 const char* JumpNode::TokenName() const {
   return Token::Str(kind_);
 }
-
 
 bool LoadLocalNode::IsPotentiallyConst() const {
   // Parameters of const constructors are implicitly final and can be
@@ -537,7 +503,6 @@ bool LoadLocalNode::IsPotentiallyConst() const {
   return local().is_final();
 }
 
-
 const Instance* LoadLocalNode::EvalConstExpr() const {
   if (local().IsConst()) {
     return local().ConstValue();
@@ -545,14 +510,12 @@ const Instance* LoadLocalNode::EvalConstExpr() const {
   return NULL;
 }
 
-
 AstNode* LoadLocalNode::MakeAssignmentNode(AstNode* rhs) {
   if (local().is_final()) {
     return NULL;
   }
   return new StoreLocalNode(token_pos(), &local(), rhs);
 }
-
 
 AstNode* LoadStaticFieldNode::MakeAssignmentNode(AstNode* rhs) {
   if (field().is_final()) {
@@ -567,18 +530,15 @@ AstNode* LoadStaticFieldNode::MakeAssignmentNode(AstNode* rhs) {
                                   Field::ZoneHandle(field().Original()), rhs);
 }
 
-
 AstNode* InstanceGetterNode::MakeAssignmentNode(AstNode* rhs) {
   return new InstanceSetterNode(token_pos(), receiver(), field_name(), rhs,
                                 is_conditional());
 }
 
-
 bool InstanceGetterNode::IsPotentiallyConst() const {
   return field_name().Equals(Symbols::Length()) && !is_conditional() &&
          receiver()->IsPotentiallyConst();
 }
-
 
 const Instance* InstanceGetterNode::EvalConstExpr() const {
   if (field_name().Equals(Symbols::Length()) && !is_conditional()) {
@@ -590,12 +550,10 @@ const Instance* InstanceGetterNode::EvalConstExpr() const {
   return NULL;
 }
 
-
 AstNode* LoadIndexedNode::MakeAssignmentNode(AstNode* rhs) {
   return new StoreIndexedNode(token_pos(), array(), index_expr(), rhs,
                               super_class());
 }
-
 
 AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
   Thread* thread = Thread::Current();
@@ -613,10 +571,10 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
       // No instance setter found in super class chain,
       // noSuchMethod will be called at runtime.
       return new StaticSetterNode(token_pos(), receiver(), cls(), field_name_,
-                                  rhs);
+                                  rhs, StaticGetterSetter::kSuper);
     }
     return new StaticSetterNode(token_pos(), receiver(), field_name_, setter,
-                                rhs);
+                                rhs, StaticGetterSetter::kSuper);
   }
 
   if (owner().IsLibraryPrefix()) {
@@ -628,7 +586,8 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
     // If the prefix is not yet loaded, the getter doesn't exist. Return a
     // setter that will throw a NSME at runtime.
     if (!prefix.is_loaded()) {
-      return new StaticSetterNode(token_pos(), NULL, cls(), field_name_, rhs);
+      return new StaticSetterNode(token_pos(), NULL, cls(), field_name_, rhs,
+                                  StaticGetterSetter::kStatic);
     }
 
     Object& obj = Object::Handle(zone, prefix.LookupObject(field_name_));
@@ -653,14 +612,15 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
         const Function& setter =
             Function::ZoneHandle(zone, Function::Cast(obj).raw());
         ASSERT(setter.is_static() && setter.IsSetterFunction());
-        return new StaticSetterNode(token_pos(), NULL, field_name_, setter,
-                                    rhs);
+        return new StaticSetterNode(token_pos(), NULL, field_name_, setter, rhs,
+                                    StaticGetterSetter::kStatic);
       }
     }
 
     // No writeable field and no setter found in the prefix. Return a
     // non-existing setter that will throw an NSM error.
-    return new StaticSetterNode(token_pos(), NULL, cls(), field_name_, rhs);
+    return new StaticSetterNode(token_pos(), NULL, cls(), field_name_, rhs,
+                                StaticGetterSetter::kStatic);
   }
 
   if (owner().IsLibrary()) {
@@ -687,20 +647,22 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
         const Function& setter =
             Function::ZoneHandle(zone, Function::Cast(obj).raw());
         ASSERT(setter.is_static() && setter.IsSetterFunction());
-        return new StaticSetterNode(token_pos(), NULL, field_name_, setter,
-                                    rhs);
+        return new StaticSetterNode(token_pos(), NULL, field_name_, setter, rhs,
+                                    StaticGetterSetter::kStatic);
       }
     }
 
     // No writeable field and no setter found in the library. Return a
     // non-existing setter that will throw an NSM error.
-    return new StaticSetterNode(token_pos(), NULL, cls(), field_name_, rhs);
+    return new StaticSetterNode(token_pos(), NULL, cls(), field_name_, rhs,
+                                StaticGetterSetter::kStatic);
   }
 
   const Function& setter =
       Function::ZoneHandle(zone, cls().LookupSetterFunction(field_name_));
   if (!setter.IsNull() && setter.IsStaticFunction()) {
-    return new StaticSetterNode(token_pos(), NULL, field_name_, setter, rhs);
+    return new StaticSetterNode(token_pos(), NULL, field_name_, setter, rhs,
+                                StaticGetterSetter::kStatic);
   }
   // Could not find a static setter. Look for a field.
   // Access to a lazily initialized static field that has not yet been
@@ -713,7 +675,8 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
       // Attempting to assign to a final variable will cause a NoSuchMethodError
       // to be thrown. Change static getter to non-existent static setter in
       // order to trigger the throw at runtime.
-      return new StaticSetterNode(token_pos(), NULL, cls(), field_name_, rhs);
+      return new StaticSetterNode(token_pos(), NULL, cls(), field_name_, rhs,
+                                  StaticGetterSetter::kStatic);
     }
 #if defined(DEBUG)
     const String& getter_name =
@@ -733,9 +696,9 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
   }
   // Didn't find a static setter or a static field. Make a call to
   // the non-existent setter to trigger a NoSuchMethodError at runtime.
-  return new StaticSetterNode(token_pos(), NULL, cls(), field_name_, rhs);
+  return new StaticSetterNode(token_pos(), NULL, cls(), field_name_, rhs,
+                              StaticGetterSetter::kStatic);
 }
-
 
 AstNode* StaticCallNode::MakeAssignmentNode(AstNode* rhs) {
   // Return this node if it represents a 'throw NoSuchMethodError' indicating
@@ -750,7 +713,6 @@ AstNode* StaticCallNode::MakeAssignmentNode(AstNode* rhs) {
   return NULL;
 }
 
-
 bool StaticGetterNode::IsPotentiallyConst() const {
   if (is_deferred_reference_) {
     return false;
@@ -764,7 +726,6 @@ bool StaticGetterNode::IsPotentiallyConst() const {
   }
   return true;
 }
-
 
 const Instance* StaticGetterNode::EvalConstExpr() const {
   if (is_deferred_reference_) {
@@ -792,3 +753,5 @@ const Instance* StaticGetterNode::EvalConstExpr() const {
 }
 
 }  // namespace dart
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

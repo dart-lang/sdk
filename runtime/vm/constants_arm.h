@@ -5,8 +5,8 @@
 #ifndef RUNTIME_VM_CONSTANTS_ARM_H_
 #define RUNTIME_VM_CONSTANTS_ARM_H_
 
-#include "platform/globals.h"
 #include "platform/assert.h"
+#include "platform/globals.h"
 
 namespace dart {
 
@@ -24,9 +24,8 @@ namespace dart {
 #error "Exactly one of VFPv3_D16 or VFPv3_D32 can be defined at a time."
 #endif
 
-
 // The Linux/Android ABI and the iOS ABI differ in their choice of frame
-// pointer, their treatment of R9, and the interproduceral stack alignment.
+// pointer, their treatment of R9, and the interprocedural stack alignment.
 
 // EABI (Linux, Android)
 // See "Procedure Call Standard for the ARM Architecture".
@@ -41,8 +40,8 @@ namespace dart {
 // Stack alignment: 4 bytes always, 8 bytes at public interfaces
 
 // Linux (Debian armhf) and Android also differ in whether floating point
-// arguments are passed in registers. Linux uses hardfp and Android uses
-// softfp. See TargetCPUFeatures::hardfp_supported().
+// arguments are passed in floating point registers. Linux uses hardfp and
+// Android uses softfp. See TargetCPUFeatures::hardfp_supported().
 
 // iOS ABI
 // See "iOS ABI Function Call Guide"
@@ -57,8 +56,7 @@ namespace dart {
 // R15:   Program counter
 // Stack alignment: 4 bytes always, 4 bytes at public interfaces
 
-// iOS passes floating point arguments in registers (hardfp)
-
+// iOS passes floating point arguments in integer registers (softfp)
 
 enum Register {
   R0 = 0,
@@ -67,7 +65,7 @@ enum Register {
   R3 = 3,
   R4 = 4,
   R5 = 5,  // PP
-  R6 = 6,  // CTX
+  R6 = 6,
   R7 = 7,  // iOS FP
   R8 = 8,
   R9 = 9,
@@ -93,7 +91,6 @@ enum Register {
   LR = R14,
   PC = R15,
 };
-
 
 // Values for single-precision floating point registers.
 enum SRegister {
@@ -132,7 +129,6 @@ enum SRegister {
   S31 = 31,
   kNumberOfSRegisters = 32,
 };
-
 
 // Values for double-precision floating point registers.
 enum DRegister {
@@ -196,7 +192,6 @@ enum DRegister {
   kNumberOfOverlappingDRegisters = 16,
 };
 
-
 enum QRegister {
   kNoQRegister = -1,
   Q0 = 0,
@@ -230,7 +225,6 @@ enum QRegister {
 #endif
 };
 
-
 static inline DRegister EvenDRegisterOf(QRegister q) {
   return static_cast<DRegister>(q * 2);
 }
@@ -238,7 +232,6 @@ static inline DRegister EvenDRegisterOf(QRegister q) {
 static inline DRegister OddDRegisterOf(QRegister q) {
   return static_cast<DRegister>((q * 2) + 1);
 }
-
 
 static inline SRegister EvenSRegisterOf(DRegister d) {
 #if defined(VFPv3_D32)
@@ -256,11 +249,10 @@ static inline SRegister OddSRegisterOf(DRegister d) {
   return static_cast<SRegister>((d * 2) + 1);
 }
 
-
 // Register aliases for floating point scratch registers.
 const QRegister QTMP = Q7;                     // Overlaps with DTMP, STMP.
 const DRegister DTMP = EvenDRegisterOf(QTMP);  // Overlaps with STMP.
-const SRegister STMP = EvenSRegisterOf(DTMP);
+const SRegister STMP DART_USED = EvenSRegisterOf(DTMP);
 
 // Architecture independent aliases.
 typedef QRegister FpuRegister;
@@ -272,12 +264,10 @@ const FpuRegister kNoFpuRegister = kNoQRegister;
 // Register aliases.
 const Register TMP = IP;            // Used as scratch register by assembler.
 const Register TMP2 = kNoRegister;  // There is no second assembler temporary.
-const Register CTX = R6;    // Location of current context at method entry.
 const Register PP = R5;     // Caches object pool pointer in generated code.
 const Register SPREG = SP;  // Stack pointer register.
 const Register FPREG = FP;  // Frame pointer register.
 const Register LRREG = LR;  // Link register.
-const Register ICREG = R9;  // IC data register.
 const Register ARGS_DESC_REG = R4;
 const Register CODE_REG = R6;
 const Register THR = R10;  // Caches current thread in generated code.
@@ -294,11 +284,9 @@ const Register kExceptionObjectReg = R0;
 // an exception is thrown.
 const Register kStackTraceObjectReg = R1;
 
-
 // List of registers used in load/store multiple.
 typedef uint16_t RegList;
 const RegList kAllCpuRegistersList = 0xFFFF;
-
 
 // C++ ABI call registers.
 const RegList kAbiArgumentCpuRegs =
@@ -334,7 +322,6 @@ const QRegister kDartFirstVolatileFpuReg = Q0;
 const QRegister kDartLastVolatileFpuReg = Q3;
 const int kDartVolatileFpuRegCount = 4;
 
-
 // Values for the condition field as defined in section A3.2.
 enum Condition {
   kNoCondition = -1,
@@ -354,9 +341,24 @@ enum Condition {
   LE = 13,                 // signed less than or equal
   AL = 14,                 // always (unconditional)
   kSpecialCondition = 15,  // special condition (refer to section A3.2.1)
-  kMaxCondition = 16,
-};
+  kNumberOfConditions = 16,
 
+  // Platform-independent variants declared for all platforms
+  EQUAL = EQ,
+  ZERO = EQUAL,
+  NOT_EQUAL = NE,
+  NOT_ZERO = NOT_EQUAL,
+  LESS = LT,
+  LESS_EQUAL = LE,
+  GREATER_EQUAL = GE,
+  GREATER = GT,
+  UNSIGNED_LESS = CC,
+  UNSIGNED_LESS_EQUAL = LS,
+  UNSIGNED_GREATER = HI,
+  UNSIGNED_GREATER_EQUAL = CS,
+
+  kInvalidCondition = 16
+};
 
 // Opcodes for Data-processing instructions (instructions with a type 0 and 1)
 // as defined in section A3.4
@@ -381,7 +383,6 @@ enum Opcode {
   kMaxOperand = 16
 };
 
-
 // Shifter types for Data-processing operands as defined in section A5.1.2.
 enum Shift {
   kNoShift = -1,
@@ -391,7 +392,6 @@ enum Shift {
   ROR = 3,  // Rotate right
   kMaxShift = 4
 };
-
 
 // Constants used for the decoding or encoding of the individual fields of
 // instructions. Based on the "Figure 3-1 ARM instruction set summary".
@@ -471,7 +471,6 @@ enum InstructionFields {
   kBranchOffsetMask = 0x00ffffff
 };
 
-
 // The class Instr enables access to individual fields defined in the ARM
 // architecture instruction set encoding as described in figure A3-1.
 //
@@ -527,7 +526,6 @@ class Instr {
   inline int Bits(int shift, int count) const {
     return (InstructionBits() >> shift) & ((1 << count) - 1);
   }
-
 
   // Accessors for the different named fields used in the ARM encoding.
   // The naming of these accessor corresponds to figure A3-1.

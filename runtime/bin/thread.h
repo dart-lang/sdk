@@ -12,8 +12,8 @@ namespace bin {
 class Thread;
 class Mutex;
 class Monitor;
-}
-}
+}  // namespace bin
+}  // namespace dart
 
 // Declare the OS-specific types ahead of defining the generic classes.
 #if defined(HOST_OS_ANDROID)
@@ -63,7 +63,6 @@ class Thread {
   DISALLOW_IMPLICIT_CONSTRUCTORS(Thread);
 };
 
-
 class Mutex {
  public:
   Mutex();
@@ -78,7 +77,6 @@ class Mutex {
 
   DISALLOW_COPY_AND_ASSIGN(Mutex);
 };
-
 
 class Monitor {
  public:
@@ -108,6 +106,5 @@ class Monitor {
 
 }  // namespace bin
 }  // namespace dart
-
 
 #endif  // RUNTIME_BIN_THREAD_H_

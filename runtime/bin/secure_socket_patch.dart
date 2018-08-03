@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// part of "common_patch.dart";
+
 @patch
 class SecureSocket {
   @patch
@@ -22,14 +24,9 @@ class X509Certificate {
 }
 
 class _SecureSocket extends _Socket implements SecureSocket {
-  _SecureSocket(RawSecureSocket raw) : super(raw);
+  _RawSecureSocket get _raw => super._raw as _RawSecureSocket;
 
-  void set onBadCertificate(bool callback(X509Certificate certificate)) {
-    if (_raw == null) {
-      throw new StateError("onBadCertificate called on destroyed SecureSocket");
-    }
-    _raw.onBadCertificate = callback;
-  }
+  _SecureSocket(RawSecureSocket raw) : super(raw);
 
   void renegotiate(
       {bool useSessionCache: true,
@@ -69,12 +66,13 @@ class _SecureFilterImpl extends NativeFieldWrapperClass1
     implements _SecureFilter {
   // Performance is improved if a full buffer of plaintext fits
   // in the encrypted buffer, when encrypted.
+  // SIZE and ENCRYPTED_SIZE are referenced from C++.
   static final int SIZE = 8 * 1024;
   static final int ENCRYPTED_SIZE = 10 * 1024;
 
   _SecureFilterImpl() {
-    buffers = new List<_ExternalBuffer>(_RawSecureSocket.NUM_BUFFERS);
-    for (int i = 0; i < _RawSecureSocket.NUM_BUFFERS; ++i) {
+    buffers = new List<_ExternalBuffer>(_RawSecureSocket.bufferCount);
+    for (int i = 0; i < _RawSecureSocket.bufferCount; ++i) {
       buffers[i] = new _ExternalBuffer(
           _RawSecureSocket._isBufferEncrypted(i) ? ENCRYPTED_SIZE : SIZE);
     }
@@ -96,6 +94,10 @@ class _SecureFilterImpl extends NativeFieldWrapperClass1
   void _destroy() native "SecureSocket_Destroy";
 
   void handshake() native "SecureSocket_Handshake";
+
+  void rehandshake() => throw new UnimplementedError();
+
+  int processBuffer(int bufferIndex) => throw new UnimplementedError();
 
   String selectedProtocol() native "SecureSocket_GetSelectedProtocol";
 
@@ -131,9 +133,7 @@ class SecurityContext {
   }
 
   @patch
-  static bool get alpnSupported {
-    return _SecurityContext.alpnSupported;
-  }
+  static bool get alpnSupported => true;
 }
 
 class _SecurityContext extends NativeFieldWrapperClass1
@@ -181,8 +181,6 @@ class _SecurityContext extends NativeFieldWrapperClass1
   void setClientAuthoritiesBytes(List<int> authCertBytes, {String password})
       native "SecurityContext_SetClientAuthoritiesBytes";
 
-  static bool get alpnSupported => _alpnSupported();
-  static bool _alpnSupported() native "SecurityContext_AlpnSupported";
   void setAlpnProtocols(List<String> protocols, bool isServer) {
     Uint8List encodedProtocols =
         SecurityContext._protocolsToLengthEncoding(protocols);
@@ -203,6 +201,33 @@ class _X509CertificateImpl extends NativeFieldWrapperClass1
   // The native field must be set manually on a new object, in native code.
   // This is done by WrappedX509 in secure_socket.cc.
   _X509CertificateImpl();
+
+  Uint8List _cachedDer;
+  Uint8List get _der native "X509_Der";
+  Uint8List get der {
+    if (_cachedDer == null) {
+      _cachedDer = _der;
+    }
+    return _cachedDer;
+  }
+
+  String _cachedPem;
+  String get _pem native "X509_Pem";
+  String get pem {
+    if (_cachedPem == null) {
+      _cachedPem = _pem;
+    }
+    return _cachedPem;
+  }
+
+  Uint8List _cachedSha1;
+  Uint8List get _sha1 native "X509_Sha1";
+  Uint8List get sha1 {
+    if (_cachedSha1 == null) {
+      _cachedSha1 = _sha1;
+    }
+    return _cachedSha1;
+  }
 
   String get subject native "X509_Subject";
   String get issuer native "X509_Issuer";

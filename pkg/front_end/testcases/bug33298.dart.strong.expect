@@ -1,0 +1,40 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method call(core::String s) → core::String
+    return "${s}${s}";
+}
+class B<T extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method call(generic-covariant-impl self::B::T t) → self::B::T
+    return t;
+}
+class C extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method call<T extends core::Object = dynamic>(self::C::call::T t) → self::C::call::T
+    return t;
+}
+static method test() → dynamic {
+  self::A a = new self::A::•();
+  core::List<core::String> list1 = <core::String>["a", "b", "c"].{core::Iterable::map}<core::String>(a.{self::A::call}).{core::Iterable::toList}();
+  core::List<core::String> list2 = <core::String>["a", "b", "c"].{core::Iterable::map}<core::String>(let final self::A #t1 = a in #t1.==(null) ?{(core::String) → core::String} null : #t1.{self::A::call}).{core::Iterable::toList}();
+  self::B<core::String> b = new self::B::•<core::String>();
+  core::List<core::String> list3 = <core::String>["a", "b", "c"].{core::Iterable::map}<core::String>(b.{self::B::call}).{core::Iterable::toList}();
+  core::List<core::String> list4 = <core::String>["a", "b", "c"].{core::Iterable::map}<core::String>(let final self::B<core::String> #t2 = b in #t2.==(null) ?{(core::String) → core::String} null : #t2.{self::B::call}).{core::Iterable::toList}();
+  self::C c = new self::C::•();
+  core::List<core::String> list5 = <core::String>["a", "b", "c"].{core::Iterable::map}<core::String>(c.{self::C::call}<core::String>).{core::Iterable::toList}();
+  core::List<core::String> list6 = <core::String>["a", "b", "c"].{core::Iterable::map}<dynamic>(let dynamic _ = null in let final dynamic #t3 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/bug33298.dart:28:44: Error: The argument type '<T extends dart.core::Object = dynamic>(#lib1::C::call::T) \u8594 #lib1::C::call::T' can't be assigned to the parameter type '(dart.core::String) \u8594 dynamic'.
+Try changing the type of the parameter, or casting the argument to '(dart.core::String) \u8594 dynamic'.
+  List<String> list6 = ['a', 'b', 'c'].map(c).toList();
+                                           ^" in let final dynamic #t4 = let final self::C #t5 = c in #t5.==(null) ?{<T extends core::Object = dynamic>(self::C::call::T) → self::C::call::T} null : #t5.{self::C::call} in null).{core::Iterable::toList}() as{TypeError} core::List<core::String>;
+}
+static method main() → dynamic {}

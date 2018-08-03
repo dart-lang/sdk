@@ -5,19 +5,23 @@
 library fasta.kernel_formal_parameter_builder;
 
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
-    show KernelVariableDeclaration;
+    show VariableDeclarationJudgment;
+
+import '../modifier.dart' show finalMask;
 
 import 'kernel_builder.dart'
     show
         FormalParameterBuilder,
         KernelLibraryBuilder,
         KernelTypeBuilder,
-        LibraryBuilder,
         MetadataBuilder;
+
+import 'package:front_end/src/fasta/source/source_library_builder.dart'
+    show SourceLibraryBuilder;
 
 class KernelFormalParameterBuilder
     extends FormalParameterBuilder<KernelTypeBuilder> {
-  KernelVariableDeclaration declaration;
+  VariableDeclarationJudgment declaration;
   final int charOffset;
 
   KernelFormalParameterBuilder(
@@ -31,11 +35,28 @@ class KernelFormalParameterBuilder
       : super(metadata, modifiers, type, name, hasThis, compilationUnit,
             charOffset);
 
-  KernelVariableDeclaration get target => declaration;
+  VariableDeclarationJudgment get target => declaration;
 
-  KernelVariableDeclaration build(LibraryBuilder library) {
-    return declaration ??= new KernelVariableDeclaration(name, 0,
-        type: type?.build(library), isFinal: isFinal, isConst: isConst)
-      ..fileOffset = charOffset;
+  VariableDeclarationJudgment build(SourceLibraryBuilder library) {
+    if (declaration == null) {
+      declaration = new VariableDeclarationJudgment(name, 0,
+          type: type?.build(library),
+          isFinal: isFinal,
+          isConst: isConst,
+          isFieldFormal: hasThis,
+          isCovariant: isCovariant)
+        ..fileOffset = charOffset;
+    }
+    return declaration;
+  }
+
+  @override
+  FormalParameterBuilder forFormalParameterInitializerScope() {
+    assert(declaration != null);
+    return !hasThis
+        ? this
+        : (new KernelFormalParameterBuilder(metadata, modifiers | finalMask,
+            type, name, hasThis, parent, charOffset)
+          ..declaration = declaration);
   }
 }

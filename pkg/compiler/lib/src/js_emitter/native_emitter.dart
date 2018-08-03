@@ -14,14 +14,14 @@ import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../native/enqueue.dart' show NativeCodegenEnqueuer;
 import '../universe/world_builder.dart' show CodegenWorldBuilder;
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 
 import 'code_emitter_task.dart' show CodeEmitterTask;
 import 'model.dart';
 
 class NativeEmitter {
   final CodeEmitterTask _emitterTask;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   final CodegenWorldBuilder _worldBuilder;
   final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
 
@@ -79,7 +79,7 @@ class NativeEmitter {
   Set<Class> prepareNativeClasses(
       List<Class> classes,
       Set<ClassEntity> interceptorClassesNeededByConstants,
-      Set<ClassEntity> classesModifiedByEmitRTISupport) {
+      Iterable<ClassEntity> classesNeededForRti) {
     assert(classes.every((Class cls) => cls != null));
 
     hasNativeClasses = classes.isNotEmpty;
@@ -136,9 +136,7 @@ class NativeEmitter {
         needed = true;
       } else if (interceptorClassesNeededByConstants.contains(classElement)) {
         needed = true;
-      } else if (classesModifiedByEmitRTISupport.contains(classElement)) {
-        // TODO(9556): Remove this test when [emitRuntimeTypeSupport] no longer
-        // adds information to a class prototype or constructor.
+      } else if (classesNeededForRti.contains(classElement)) {
         needed = true;
       } else if (extensionPoints.containsKey(cls)) {
         needed = true;
@@ -268,7 +266,7 @@ class NativeEmitter {
     FunctionEntity converter = _commonElements.closureConverter;
     jsAst.Expression closureConverter =
         _emitterTask.staticFunctionAccess(converter);
-    _worldBuilder.forEachParameter(member, (DartType type, String name) {
+    _worldBuilder.forEachParameter(member, (DartType type, String name, _) {
       // If [name] is not in [stubParameters], then the parameter is an optional
       // parameter that was not provided for this stub.
       for (jsAst.Parameter stubParameter in stubParameters) {

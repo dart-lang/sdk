@@ -15,9 +15,9 @@ import 'package:test/test.dart';
 import 'integration_test_methods.dart';
 import 'protocol_matchers.dart';
 
-const Matcher isBool = const isInstanceOf<bool>();
+const Matcher isBool = const TypeMatcher<bool>();
 
-const Matcher isInt = const isInstanceOf<int>();
+const Matcher isInt = const TypeMatcher<int>();
 
 const Matcher isNotification = const MatchesJsonObject(
     'notification', const {'event': isString},
@@ -25,7 +25,7 @@ const Matcher isNotification = const MatchesJsonObject(
 
 const Matcher isObject = isMap;
 
-const Matcher isString = const isInstanceOf<String>();
+const Matcher isString = const TypeMatcher<String>();
 
 final Matcher isResponse = new MatchesJsonObject('response', {'id': isString},
     optionalFields: {'result': anything, 'error': isRequestError});
@@ -40,7 +40,7 @@ Matcher isOneOf(List<Matcher> choiceMatchers) => new _OneOf(choiceMatchers);
 /**
  * Assert that [actual] matches [matcher].
  */
-void outOfTestExpect(actual, matcher,
+void outOfTestExpect(actual, Matcher matcher,
     {String reason, skip, bool verbose: false}) {
   var matchState = {};
   try {
@@ -110,7 +110,7 @@ abstract class AbstractAnalysisServerIntegrationTest
    * Map from file path to the list of analysis errors which have most recently
    * been received for the file.
    */
-  HashMap<String, List<AnalysisError>> currentAnalysisErrors =
+  Map<String, List<AnalysisError>> currentAnalysisErrors =
       new HashMap<String, List<AnalysisError>>();
 
   /**
@@ -374,7 +374,7 @@ class MatchesJsonObject extends _RecursiveMatcher {
     }
     if (requiredFields != null) {
       requiredFields.forEach((String key, Matcher valueMatcher) {
-        if (!item.containsKey(key)) {
+        if (!(item as Map).containsKey(key)) {
           mismatches.add((Description mismatchDescription) =>
               mismatchDescription
                   .add('is missing field ')
@@ -542,7 +542,7 @@ class Server {
       _recordStdio('RECV: $trimmedLine');
       var message;
       try {
-        message = JSON.decoder.convert(trimmedLine);
+        message = json.decoder.convert(trimmedLine);
       } catch (exception) {
         _badDataFromServer('JSON decode failure: $exception');
         return;
@@ -608,9 +608,9 @@ class Server {
     }
     Completer completer = new Completer();
     _pendingCommands[id] = completer;
-    String line = JSON.encode(command);
+    String line = json.encode(command);
     _recordStdio('SEND: $line');
-    _process.stdin.add(UTF8.encoder.convert("$line\n"));
+    _process.stdin.add(utf8.encoder.convert("$line\n"));
     return completer.future;
   }
 
@@ -652,9 +652,6 @@ class Server {
       arguments.add('--pause-isolates-on-exit');
     } else if (servicesPort != null) {
       arguments.add('--enable-vm-service=$servicesPort');
-    }
-    if (Platform.packageRoot != null) {
-      arguments.add('--package-root=${Platform.packageRoot}');
     }
     if (Platform.packageConfig != null) {
       arguments.add('--packages=${Platform.packageConfig}');
@@ -886,7 +883,7 @@ abstract class _RecursiveMatcher extends Matcher {
    * substructure did not match.
    */
   checkSubstructure(item, Matcher matcher, List<MismatchDescriber> mismatches,
-      Description describeSubstructure(Description)) {
+      Description describeSubstructure(Description description)) {
     Map subState = {};
     if (!matcher.matches(item, subState)) {
       mismatches.add((Description mismatchDescription) {

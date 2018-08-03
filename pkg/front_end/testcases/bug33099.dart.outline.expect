@@ -1,0 +1,28 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:mirrors" as mir;
+
+class _FailingTest extends core::Object {
+  const constructor •() → void
+    ;
+}
+class MyTest extends core::Object {
+  synthetic constructor •() → void
+    ;
+  method foo() → void
+    ;
+}
+abstract class _MyTest2&Object&MyTest = core::Object with self::MyTest {
+}
+class MyTest2 extends self::_MyTest2&Object&MyTest {
+  synthetic constructor •() → void
+    ;
+}
+static const field self::_FailingTest failingTest;
+static method main() → dynamic
+  ;
+static method _hasFailingTestAnnotation(mir::MethodMirror method) → core::bool
+  ;
+static method _hasAnnotationInstance(mir::DeclarationMirror declaration, dynamic instance) → core::bool
+  ;

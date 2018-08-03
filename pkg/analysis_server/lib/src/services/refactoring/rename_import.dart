@@ -11,9 +11,12 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -21,8 +24,11 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
  * A [Refactoring] for renaming [ImportElement]s.
  */
 class RenameImportRefactoringImpl extends RenameRefactoringImpl {
-  RenameImportRefactoringImpl(SearchEngine searchEngine, ImportElement element)
-      : super(searchEngine, element);
+  final AstProvider astProvider;
+
+  RenameImportRefactoringImpl(
+      RefactoringWorkspace workspace, this.astProvider, ImportElement element)
+      : super(workspace, element);
 
   @override
   ImportElement get element => super.element as ImportElement;
@@ -47,19 +53,24 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future fillChange() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     // update declaration
     {
       PrefixElement prefix = element.prefix;
       SourceEdit edit = null;
       if (newName.isEmpty) {
-        int uriEnd = element.uriEnd;
+        ImportDirective node = await _findNode();
+        int uriEnd = node.uri.end;
         int prefixEnd = element.prefixOffset + prefix.nameLength;
         edit = newSourceEdit_range(
             range.startOffsetEndOffset(uriEnd, prefixEnd), "");
       } else {
         if (prefix == null) {
-          edit = newSourceEdit_range(
-              new SourceRange(element.uriEnd, 0), " as $newName");
+          ImportDirective node = await _findNode();
+          int uriEnd = node.uri.end;
+          edit =
+              newSourceEdit_range(new SourceRange(uriEnd, 0), " as $newName");
         } else {
           int offset = element.prefixOffset;
           int length = prefix.nameLength;
@@ -78,7 +89,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
         reference.addEdit(change, '');
       } else {
         SimpleIdentifier interpolationIdentifier =
-            _getInterpolationIdentifier(reference);
+            await _getInterpolationIdentifier(reference);
         if (interpolationIdentifier != null) {
           doSourceChange_addElementEdit(
               change,
@@ -95,13 +106,30 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   }
 
   /**
+   * Return the [ImportDirective] node that corresponds to the [element].
+   */
+  Future<ImportDirective> _findNode() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    LibraryElement library = element.library;
+    CompilationUnit unit = await astProvider.getParsedUnitForElement(library);
+    int index = library.imports.indexOf(element);
+    return unit.directives.where((d) => d is ImportDirective).toList()[index];
+  }
+
+  /**
    * If the given [reference] is before an interpolated [SimpleIdentifier] in
    * an [InterpolationExpression] without surrounding curly brackets, return it.
    * Otherwise return `null`.
    */
-  SimpleIdentifier _getInterpolationIdentifier(SourceReference reference) {
+  Future<SimpleIdentifier> _getInterpolationIdentifier(
+      SourceReference reference) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     Source source = reference.element.source;
-    CompilationUnit unit = context.parseCompilationUnit(source);
+    AnalysisSession currentSession = astProvider.driver.currentSession;
+    ParseResult result = await currentSession.getParsedAst(source.fullName);
+    CompilationUnit unit = result.unit;
     NodeLocator nodeLocator = new NodeLocator(reference.range.offset);
     AstNode node = nodeLocator.searchWithin(unit);
     if (node is SimpleIdentifier) {

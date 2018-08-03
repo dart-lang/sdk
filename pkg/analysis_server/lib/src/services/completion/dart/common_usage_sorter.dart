@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library services.completion.dart.sorter.common;
+
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
@@ -9,12 +11,13 @@ import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 
 part 'common_usage_sorter.g.dart';
 
@@ -99,27 +102,44 @@ class CommonUsageSorter implements DartContributionSorter {
 /**
  * An [AstVisitor] used to determine the best defining type of a node.
  */
-class _BestTypeVisitor extends GeneralizingAstVisitor<DartType> {
+class _BestTypeVisitor extends UnifyingAstVisitor<DartType> {
   /**
    * The entity which the completed text will replace (or which will be
    * displaced once the completed text is inserted).  This may be an AstNode or
-   * a Token, or it may be null if the cursor is after all tokens in the file.
+   * a Token, or it may be `null` if the cursor is after all tokens in the file.
    * See field of the same name in [CompletionTarget].
    */
   final Object entity;
 
   _BestTypeVisitor(this.entity);
 
+  @override
   DartType visitConstructorName(ConstructorName node) =>
       node.period != null && node.name == entity ? node.type?.type : null;
 
+  @override
+  DartType visitNamedExpression(NamedExpression node) {
+    AstNode parent = node.parent;
+    if (parent is ArgumentListImpl) {
+      List<ParameterElement> params = parent.correspondingStaticParameters;
+      if (params != null) {
+        int index = parent.arguments.indexOf(node);
+        return params[index]?.type;
+      }
+    }
+    return super.visitNamedExpression(node);
+  }
+
+  @override
   DartType visitNode(AstNode node) {
     return null;
   }
 
+  @override
   DartType visitPrefixedIdentifier(PrefixedIdentifier node) =>
       node.identifier == entity ? node.prefix?.bestType : null;
 
+  @override
   DartType visitPropertyAccess(PropertyAccess node) =>
       node.propertyName == entity ? node.realTarget?.bestType : null;
 }

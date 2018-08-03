@@ -40,7 +40,7 @@ _DebugIndentation _indentation = new _DebugIndentation();
 /// Function signature of [debugPrint].
 typedef DebugPrint(s);
 
-/// If [DEBUG_PRINT_ENABLED] is `true` print [s] using the current identation.
+/// If [DEBUG_PRINT_ENABLED] is `true` print [s] using the current indentation.
 DebugPrint get debugPrint {
   enableDebugMode();
   // TODO(johnniwinther): Maybe disable debug mode after the call.
@@ -94,7 +94,7 @@ _reportHere(DiagnosticReporter reporter, Spannable node, String debugMessage) {
 }
 
 /// Set of tracked objects used by [track] and [ifTracked].
-var _trackedObjects = new Set();
+var _trackedObjects = new Set<Object>();
 
 /// Global default value for the `printTrace` option of [track] and [ifTracked].
 bool trackWithTrace = false;

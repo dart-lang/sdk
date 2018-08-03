@@ -1,0 +1,8 @@
+Errors: {
+  Getter not found: 'y'. (@16)
+  Getter not found: 'x'. (@12)
+}
+static method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
+  return () → dynamic {
+    return (throw new dart.core::NoSuchMethodError::withInvocation(null, new dart.core::_InvocationMirror::_withType(#x, 33, const <dart.core::Type>[], const <dynamic>[], dart.core::Map::unmodifiable<dart.core::Symbol, dynamic>(const <dart.core::Symbol, dynamic>{})))).+(throw new dart.core::NoSuchMethodError::withInvocation(null, new dart.core::_InvocationMirror::_withType(#y, 33, const <dart.core::Type>[], const <dynamic>[], dart.core::Map::unmodifiable<dart.core::Symbol, dynamic>(const <dart.core::Symbol, dynamic>{}))));
+  };

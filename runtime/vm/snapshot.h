@@ -9,10 +9,11 @@
 #include "vm/allocation.h"
 #include "vm/bitfield.h"
 #include "vm/datastream.h"
-#include "vm/exceptions.h"
+#include "vm/finalizable_data.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/isolate.h"
+#include "vm/message.h"
 #include "vm/visitor.h"
 
 namespace dart {
@@ -24,13 +25,13 @@ class Class;
 class ClassTable;
 class Closure;
 class Code;
-class Dwarf;
 class ExternalTypedData;
 class GrowableObjectArray;
 class Heap;
 class Instructions;
 class LanguageError;
 class Library;
+class LinkedHashMap;
 class Object;
 class PassiveObject;
 class ObjectStore;
@@ -38,7 +39,6 @@ class MegamorphicCache;
 class PageSpace;
 class RawApiError;
 class RawArray;
-class RawBigint;
 class RawBoundedType;
 class RawCapability;
 class RawClass;
@@ -68,7 +68,6 @@ class RawLocalVarDescriptors;
 class RawMegamorphicCache;
 class RawMint;
 class RawMixinAppType;
-class RawBigint;
 class RawNamespace;
 class RawObject;
 class RawObjectPool;
@@ -121,30 +120,24 @@ static const bool kAsReference = true;
 static const bool kAsInlinedObject = false;
 static const intptr_t kInvalidPatchIndex = -1;
 
-
 class SerializedHeaderTag
     : public BitField<intptr_t, enum SerializedHeaderType, 0, kHeaderTagBits> {
 };
 
-
 class SerializedHeaderData
     : public BitField<intptr_t, intptr_t, kHeaderTagBits, kObjectIdBits> {};
-
 
 enum DeserializeState {
   kIsDeserialized = 0,
   kIsNotDeserialized = 1,
 };
 
-
 enum SerializeState {
   kIsSerialized = 0,
   kIsNotSerialized = 1,
 };
 
-
 #define HEAP_SPACE(kind) (kind == Snapshot::kMessage) ? Heap::kNew : Heap::kOld
-
 
 // Structure capturing the raw snapshot.
 //
@@ -154,88 +147,85 @@ enum SerializeState {
 class Snapshot {
  public:
   enum Kind {
-    kCore = 0,  // Full snapshot of core libraries. No root library, no code.
+    // N.B. The order of these values must be preserved to give proper error
+    // messages for old snapshots.
+    kFull = 0,  // Full snapshot of core libraries or an application.
     kScript,    // A partial snapshot of only the application script.
     kMessage,   // A partial snapshot used only for isolate messaging.
-    kAppJIT,    // Full snapshot of core libraries and application. Has some
-                // code, but may compile in the future because we haven't
-                // necessarily included code for every function or to
-                // (de)optimize.
-    kAppAOT,    // Full snapshot of core libraries and application. Has
-                // complete code for the application that never deopts. Will
-                // not compile in the future.
+    kFullJIT,   // Full + JIT code
+    kFullAOT,   // Full + AOT code
     kNone,      // dart_bootstrap/gen_snapshot
     kInvalid
   };
   static const char* KindToCString(Kind kind);
 
-  static const int kHeaderSize = 2 * sizeof(int64_t);
-  static const int kLengthIndex = 0;
-  static const int kSnapshotFlagIndex = 1;
-
   static const Snapshot* SetupFromBuffer(const void* raw_memory);
 
-  // Getters.
-  const uint8_t* content() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
-  intptr_t length() const {
-    return static_cast<intptr_t>(ReadUnaligned(&unaligned_length_));
+  static const int32_t kMagicValue = 0xdcdcf5f5;
+  static const intptr_t kMagicOffset = 0;
+  static const intptr_t kMagicSize = sizeof(int32_t);
+  static const intptr_t kLengthOffset = kMagicOffset + kMagicSize;
+  static const intptr_t kLengthSize = sizeof(int64_t);
+  static const intptr_t kKindOffset = kLengthOffset + kLengthSize;
+  static const intptr_t kKindSize = sizeof(int64_t);
+  static const intptr_t kHeaderSize = kKindOffset + kKindSize;
+
+  // Accessors.
+  bool check_magic() const {
+    return Read<int32_t>(kMagicOffset) == kMagicValue;
   }
-  Kind kind() const {
-    return static_cast<Kind>(ReadUnaligned(&unaligned_kind_));
+  void set_magic() { return Write<int32_t>(kMagicOffset, kMagicValue); }
+  // Excluding the magic value from the size written in the buffer is needed
+  // so we give a proper version mismatch error for snapshots create before
+  // magic value was written by the VM instead of the embedder.
+  int64_t large_length() const {
+    return Read<int64_t>(kLengthOffset) + kMagicSize;
+  }
+  intptr_t length() const { return static_cast<intptr_t>(large_length()); }
+  void set_length(intptr_t value) {
+    return Write<int64_t>(kLengthOffset, value - kMagicSize);
+  }
+  Kind kind() const { return static_cast<Kind>(Read<int64_t>(kKindOffset)); }
+  void set_kind(Kind value) { return Write<int64_t>(kKindOffset, value); }
+  const uint8_t* content() const {
+    return reinterpret_cast<const uint8_t*>(this) + kHeaderSize;
   }
 
   static bool IsFull(Kind kind) {
-    return (kind == kCore) || (kind == kAppJIT) || (kind == kAppAOT);
+    return (kind == kFull) || (kind == kFullJIT) || (kind == kFullAOT);
   }
   static bool IncludesCode(Kind kind) {
-    return (kind == kAppJIT) || (kind == kAppAOT);
+    return (kind == kFullJIT) || (kind == kFullAOT);
   }
 
   const uint8_t* Addr() const { return reinterpret_cast<const uint8_t*>(this); }
 
-  static intptr_t length_offset() {
-    return OFFSET_OF(Snapshot, unaligned_length_);
+  const uint8_t* DataImage() const {
+    if (!IncludesCode(kind())) {
+      return NULL;
+    }
+    uword offset = Utils::RoundUp(length(), OS::kMaxPreferredCodeAlignment);
+    return Addr() + offset;
   }
-  static intptr_t kind_offset() { return OFFSET_OF(Snapshot, unaligned_kind_); }
 
  private:
   // Prevent Snapshot from ever being allocated directly.
   Snapshot();
 
-  // The following fields are potentially unaligned.
-  int64_t unaligned_length_;  // Stream length.
-  int64_t unaligned_kind_;    // Kind of snapshot.
+  template <typename T>
+  T Read(intptr_t offset) const {
+    return ReadUnaligned(
+        reinterpret_cast<const T*>(reinterpret_cast<uword>(this) + offset));
+  }
 
-  // Variable length data follows here.
+  template <typename T>
+  void Write(intptr_t offset, T value) {
+    return StoreUnaligned(
+        reinterpret_cast<T*>(reinterpret_cast<uword>(this) + offset), value);
+  }
 
   DISALLOW_COPY_AND_ASSIGN(Snapshot);
 };
-
-
-class Image : ValueObject {
- public:
-  explicit Image(const void* raw_memory) : raw_memory_(raw_memory) {
-    ASSERT(Utils::IsAligned(raw_memory, OS::kMaxPreferredCodeAlignment));
-  }
-
-  void* object_start() {
-    return reinterpret_cast<void*>(reinterpret_cast<uword>(raw_memory_) +
-                                   kHeaderSize);
-  }
-
-  uword object_size() {
-    uword snapshot_size = *reinterpret_cast<const uword*>(raw_memory_);
-    return snapshot_size - kHeaderSize;
-  }
-
-  static const intptr_t kHeaderSize = OS::kMaxPreferredCodeAlignment;
-
- private:
-  const void* raw_memory_;  // The symbol kInstructionsSnapshot.
-
-  DISALLOW_COPY_AND_ASSIGN(Image);
-};
-
 
 class BaseReader {
  public:
@@ -245,11 +235,6 @@ class BaseReader {
   template <typename T>
   T Read() {
     return ReadStream::Raw<sizeof(T), T>::Read(&stream_);
-  }
-
-  intptr_t ReadRawPointerValue() {
-    int64_t value = Read<int64_t>();
-    return static_cast<intptr_t>(value);
   }
 
   classid_t ReadClassIDValue() {
@@ -295,7 +280,6 @@ class BaseReader {
   ReadStream stream_;  // input stream.
 };
 
-
 class BackRefNode : public ValueObject {
  public:
   BackRefNode(Object* reference,
@@ -336,28 +320,6 @@ class BackRefNode : public ValueObject {
   ZoneGrowableArray<intptr_t>* patch_records_;
 };
 
-
-class ImageReader : public ZoneAllocated {
- public:
-  ImageReader(const uint8_t* instructions_buffer, const uint8_t* data_buffer)
-      : instructions_buffer_(instructions_buffer), data_buffer_(data_buffer) {
-    ASSERT(instructions_buffer != NULL);
-    ASSERT(data_buffer != NULL);
-    ASSERT(Utils::IsAligned(reinterpret_cast<uword>(instructions_buffer),
-                            OS::PreferredCodeAlignment()));
-  }
-
-  RawInstructions* GetInstructionsAt(int32_t offset);
-  RawObject* GetObjectAt(int32_t offset);
-
- private:
-  const uint8_t* instructions_buffer_;
-  const uint8_t* data_buffer_;
-
-  DISALLOW_COPY_AND_ASSIGN(ImageReader);
-};
-
-
 // Reads a snapshot into objects.
 class SnapshotReader : public BaseReader {
  public:
@@ -370,6 +332,8 @@ class SnapshotReader : public BaseReader {
   PassiveObject* PassiveObjectHandle() { return &pobj_; }
   Array* ArrayHandle() { return &array_; }
   Class* ClassHandle() { return &cls_; }
+  Code* CodeHandle() { return &code_; }
+  Instructions* InstructionsHandle() { return &instructions_; }
   String* StringHandle() { return &str_; }
   AbstractType* TypeHandle() { return &type_; }
   TypeArguments* TypeArgumentsHandle() { return &type_arguments_; }
@@ -415,6 +379,12 @@ class SnapshotReader : public BaseReader {
   PageSpace* old_space() const { return old_space_; }
 
  private:
+  void EnqueueTypePostprocessing(const AbstractType& type);
+  void RunDelayedTypePostprocessing();
+
+  void EnqueueRehashingOfMap(const LinkedHashMap& map);
+  RawObject* RunDelayedRehashingOfMaps();
+
   RawClass* ReadClassId(intptr_t object_id);
   RawFunction* ReadFunctionId(intptr_t object_id);
   RawObject* ReadStaticImplicitClosure(intptr_t object_id, intptr_t cls_header);
@@ -449,6 +419,10 @@ class SnapshotReader : public BaseReader {
   // Process all the deferred canonicalization entries and patch all references.
   void ProcessDeferredCanonicalizations();
 
+  // Update subclasses array and is implemented bit for interfaces/superclass in
+  // the core snapshot.
+  void FixSubclassesAndImplementors();
+
   // Decode class id from the header field.
   intptr_t LookupInternalClass(intptr_t class_header);
 
@@ -465,19 +439,21 @@ class SnapshotReader : public BaseReader {
 
   bool is_vm_isolate() const;
 
-  Snapshot::Kind kind_;   // Indicates type of snapshot(full, script, message).
-  Thread* thread_;        // Current thread.
-  Zone* zone_;            // Zone for allocations while reading snapshot.
-  Heap* heap_;            // Heap of the current isolate.
-  PageSpace* old_space_;  // Old space of the current isolate.
-  Class& cls_;            // Temporary Class handle.
-  Object& obj_;           // Temporary Object handle.
-  PassiveObject& pobj_;   // Temporary PassiveObject handle.
-  Array& array_;          // Temporary Array handle.
-  Field& field_;          // Temporary Field handle.
-  String& str_;           // Temporary String handle.
-  Library& library_;      // Temporary library handle.
-  AbstractType& type_;    // Temporary type handle.
+  Snapshot::Kind kind_;            // Indicates type of the snapshot.
+  Thread* thread_;                 // Current thread.
+  Zone* zone_;                     // Zone for allocations while reading.
+  Heap* heap_;                     // Heap of the current isolate.
+  PageSpace* old_space_;           // Old space of the current isolate.
+  Class& cls_;                     // Temporary Class handle.
+  Code& code_;                     // Temporary Code handle.
+  Instructions& instructions_;     // Temporary Instructions handle
+  Object& obj_;                    // Temporary Object handle.
+  PassiveObject& pobj_;            // Temporary PassiveObject handle.
+  Array& array_;                   // Temporary Array handle.
+  Field& field_;                   // Temporary Field handle.
+  String& str_;                    // Temporary String handle.
+  Library& library_;               // Temporary library handle.
+  AbstractType& type_;             // Temporary type handle.
   TypeArguments& type_arguments_;  // Temporary type argument handle.
   GrowableObjectArray& tokens_;    // Temporary tokens handle.
   TokenStream& stream_;            // Temporary token stream handle.
@@ -487,10 +463,11 @@ class SnapshotReader : public BaseReader {
   UnhandledException& error_;      // Error handle.
   intptr_t max_vm_isolate_object_id_;
   ZoneGrowableArray<BackRefNode>* backward_references_;
+  GrowableObjectArray& types_to_postprocess_;
+  GrowableObjectArray& objects_to_rehash_;
 
   friend class ApiError;
   friend class Array;
-  friend class Bigint;
   friend class BoundedType;
   friend class Class;
   friend class Closure;
@@ -503,7 +480,7 @@ class SnapshotReader : public BaseReader {
   friend class GrowableObjectArray;
   friend class ICData;
   friend class ImmutableArray;
-  friend class RegExp;
+  friend class KernelProgramInfo;
   friend class LanguageError;
   friend class Library;
   friend class LibraryPrefix;
@@ -514,6 +491,7 @@ class SnapshotReader : public BaseReader {
   friend class Namespace;
   friend class PatchClass;
   friend class RedirectionData;
+  friend class RegExp;
   friend class Script;
   friend class SignatureData;
   friend class SubtypeTestCache;
@@ -528,7 +506,6 @@ class SnapshotReader : public BaseReader {
   DISALLOW_COPY_AND_ASSIGN(SnapshotReader);
 };
 
-
 class ScriptSnapshotReader : public SnapshotReader {
  public:
   ScriptSnapshotReader(const uint8_t* buffer, intptr_t size, Thread* thread);
@@ -538,20 +515,22 @@ class ScriptSnapshotReader : public SnapshotReader {
   DISALLOW_COPY_AND_ASSIGN(ScriptSnapshotReader);
 };
 
-
 class MessageSnapshotReader : public SnapshotReader {
  public:
-  MessageSnapshotReader(const uint8_t* buffer, intptr_t size, Thread* thread);
+  MessageSnapshotReader(Message* message, Thread* thread);
   ~MessageSnapshotReader();
 
+  MessageFinalizableData* finalizable_data() const { return finalizable_data_; }
+
  private:
+  MessageFinalizableData* finalizable_data_;
+
   DISALLOW_COPY_AND_ASSIGN(MessageSnapshotReader);
 };
 
-
 class BaseWriter : public StackResource {
  public:
-  // Size of the snapshot.
+  uint8_t* buffer() { return stream_.buffer(); }
   intptr_t BytesWritten() const { return stream_.bytes_written(); }
 
   // Writes raw data to the stream (basic type).
@@ -560,8 +539,6 @@ class BaseWriter : public StackResource {
   void Write(T value) {
     WriteStream::Raw<sizeof(T), T>::Write(&stream_, value);
   }
-
-  void WriteRawPointerValue(intptr_t value) { Write<int64_t>(value); }
 
   void WriteClassIDValue(classid_t value) { Write<uint32_t>(value); }
   COMPILE_ASSERT(sizeof(uint32_t) >= sizeof(classid_t));
@@ -609,27 +586,25 @@ class BaseWriter : public StackResource {
   }
 
  protected:
-  BaseWriter(uint8_t** buffer,
-             ReAlloc alloc,
-             DeAlloc dealloc,
-             intptr_t initial_size)
+  BaseWriter(ReAlloc alloc, DeAlloc dealloc, intptr_t initial_size)
       : StackResource(Thread::Current()),
-        stream_(buffer, alloc, initial_size),
+        buffer_(NULL),
+        stream_(&buffer_, alloc, initial_size),
         dealloc_(dealloc) {
-    ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
   }
   ~BaseWriter() {}
 
   void ReserveHeader() {
     // Make room for recording snapshot buffer size.
-    stream_.set_current(stream_.buffer() + Snapshot::kHeaderSize);
+    stream_.SetPosition(Snapshot::kHeaderSize);
   }
 
   void FillHeader(Snapshot::Kind kind) {
-    int64_t* data = reinterpret_cast<int64_t*>(stream_.buffer());
-    data[Snapshot::kLengthIndex] = stream_.bytes_written();
-    data[Snapshot::kSnapshotFlagIndex] = kind;
+    Snapshot* header = reinterpret_cast<Snapshot*>(stream_.buffer());
+    header->set_magic();
+    header->set_length(stream_.bytes_written());
+    header->set_kind(kind);
   }
 
   void FreeBuffer() {
@@ -638,12 +613,12 @@ class BaseWriter : public StackResource {
   }
 
  private:
+  uint8_t* buffer_;
   WriteStream stream_;
   DeAlloc dealloc_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(BaseWriter);
 };
-
 
 class ForwardList {
  public:
@@ -699,131 +674,10 @@ class ForwardList {
   DISALLOW_COPY_AND_ASSIGN(ForwardList);
 };
 
-
-class ImageWriter : public ZoneAllocated {
- public:
-  ImageWriter()
-      : next_offset_(0), next_object_offset_(0), instructions_(), objects_() {
-    ResetOffsets();
-  }
-  virtual ~ImageWriter() {}
-
-  void ResetOffsets() {
-    next_offset_ = Image::kHeaderSize;
-    next_object_offset_ = Image::kHeaderSize;
-    instructions_.Clear();
-    objects_.Clear();
-  }
-  int32_t GetTextOffsetFor(RawInstructions* instructions, RawCode* code);
-  int32_t GetDataOffsetFor(RawObject* raw_object);
-
-  void Write(WriteStream* clustered_stream, bool vm);
-  virtual intptr_t text_size() = 0;
-  intptr_t data_size() { return next_object_offset_; }
-
- protected:
-  void WriteROData(WriteStream* stream);
-  virtual void WriteText(WriteStream* clustered_stream, bool vm) = 0;
-
-  struct InstructionsData {
-    explicit InstructionsData(RawInstructions* insns,
-                              RawCode* code,
-                              intptr_t offset)
-        : raw_insns_(insns), raw_code_(code), offset_(offset) {}
-
-    union {
-      RawInstructions* raw_insns_;
-      const Instructions* insns_;
-    };
-    union {
-      RawCode* raw_code_;
-      const Code* code_;
-    };
-    intptr_t offset_;
-  };
-
-  struct ObjectData {
-    explicit ObjectData(RawObject* raw_obj) : raw_obj_(raw_obj) {}
-
-    union {
-      RawObject* raw_obj_;
-      const Object* obj_;
-    };
-  };
-
-  intptr_t next_offset_;
-  intptr_t next_object_offset_;
-  GrowableArray<InstructionsData> instructions_;
-  GrowableArray<ObjectData> objects_;
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(ImageWriter);
-};
-
-
-class AssemblyImageWriter : public ImageWriter {
- public:
-  AssemblyImageWriter(uint8_t** assembly_buffer,
-                      ReAlloc alloc,
-                      intptr_t initial_size);
-  void Finalize();
-
-  virtual void WriteText(WriteStream* clustered_stream, bool vm);
-  virtual intptr_t text_size() { return text_size_; }
-
-  intptr_t AssemblySize() const { return assembly_stream_.bytes_written(); }
-
- private:
-  void FrameUnwindPrologue();
-  void FrameUnwindEpilogue();
-  void WriteByteSequence(uword start, uword end);
-  void WriteWordLiteralText(uword value) {
-// Padding is helpful for comparing the .S with --disassemble.
-#if defined(ARCH_IS_64_BIT)
-    assembly_stream_.Print(".quad 0x%0.16" Px "\n", value);
-#else
-    assembly_stream_.Print(".long 0x%0.8" Px "\n", value);
-#endif
-    text_size_ += sizeof(value);
-  }
-
-  WriteStream assembly_stream_;
-  intptr_t text_size_;
-  Dwarf* dwarf_;
-
-  DISALLOW_COPY_AND_ASSIGN(AssemblyImageWriter);
-};
-
-
-class BlobImageWriter : public ImageWriter {
- public:
-  BlobImageWriter(uint8_t** instructions_blob_buffer,
-                  ReAlloc alloc,
-                  intptr_t initial_size)
-      : ImageWriter(),
-        instructions_blob_stream_(instructions_blob_buffer,
-                                  alloc,
-                                  initial_size) {}
-
-  virtual void WriteText(WriteStream* clustered_stream, bool vm);
-  virtual intptr_t text_size() { return InstructionsBlobSize(); }
-
-  intptr_t InstructionsBlobSize() const {
-    return instructions_blob_stream_.bytes_written();
-  }
-
- private:
-  WriteStream instructions_blob_stream_;
-
-  DISALLOW_COPY_AND_ASSIGN(BlobImageWriter);
-};
-
-
 class SnapshotWriter : public BaseWriter {
  protected:
   SnapshotWriter(Thread* thread,
                  Snapshot::Kind kind,
-                 uint8_t** buffer,
                  ReAlloc alloc,
                  DeAlloc dealloc,
                  intptr_t initial_size,
@@ -841,7 +695,8 @@ class SnapshotWriter : public BaseWriter {
   // Serialize an object into the buffer.
   void WriteObject(RawObject* raw);
 
-  uword GetObjectTags(RawObject* raw);
+  static uint32_t GetObjectTags(RawObject* raw);
+  static uword GetObjectTagsAndHash(RawObject* raw);
 
   Exceptions::ExceptionType exception_type() const { return exception_type_; }
   void set_exception_type(Exceptions::ExceptionType type) {
@@ -928,6 +783,8 @@ class SnapshotWriter : public BaseWriter {
   friend class RawSubtypeTestCache;
   friend class RawTokenStream;
   friend class RawType;
+  friend class RawTypeRef;
+  friend class RawBoundedType;
   friend class RawTypeArguments;
   friend class RawTypeParameter;
   friend class RawUserTag;
@@ -936,11 +793,10 @@ class SnapshotWriter : public BaseWriter {
   DISALLOW_COPY_AND_ASSIGN(SnapshotWriter);
 };
 
-
 class ScriptSnapshotWriter : public SnapshotWriter {
  public:
   static const intptr_t kInitialSize = 64 * KB;
-  ScriptSnapshotWriter(uint8_t** buffer, ReAlloc alloc);
+  explicit ScriptSnapshotWriter(ReAlloc alloc);
   ~ScriptSnapshotWriter() {}
 
   // Writes a partial snapshot of the script.
@@ -952,52 +808,44 @@ class ScriptSnapshotWriter : public SnapshotWriter {
   DISALLOW_COPY_AND_ASSIGN(ScriptSnapshotWriter);
 };
 
-
 class SerializedObjectBuffer : public StackResource {
  public:
-  SerializedObjectBuffer()
-      : StackResource(Thread::Current()),
-        object_data_(NULL),
-        object_length_(0) {}
+  SerializedObjectBuffer() : StackResource(Thread::Current()), message_(NULL) {}
 
-  virtual ~SerializedObjectBuffer() { free(object_data_); }
+  virtual ~SerializedObjectBuffer() { delete message_; }
 
-  void StealBuffer(uint8_t** out_data, intptr_t* out_length) {
-    *out_data = object_data_;
-    *out_length = object_length_;
-
-    object_data_ = NULL;
-    object_length_ = 0;
+  void set_message(Message* message) {
+    ASSERT(message_ == NULL);
+    message_ = message;
+  }
+  Message* StealMessage() {
+    Message* result = message_;
+    message_ = NULL;
+    return result;
   }
 
-  uint8_t** data_buffer() { return &object_data_; }
-  intptr_t* data_length() { return &object_length_; }
-
  private:
-  uint8_t* object_data_;
-  intptr_t object_length_;
+  Message* message_;
 };
-
 
 class MessageWriter : public SnapshotWriter {
  public:
   static const intptr_t kInitialSize = 512;
-  MessageWriter(uint8_t** buffer,
-                ReAlloc alloc,
-                DeAlloc dealloc,
-                bool can_send_any_object,
-                intptr_t* buffer_len = NULL);
-  ~MessageWriter() {}
+  explicit MessageWriter(bool can_send_any_object);
+  ~MessageWriter();
 
-  void WriteMessage(const Object& obj);
+  Message* WriteMessage(const Object& obj,
+                        Dart_Port dest_port,
+                        Message::Priority priority);
+
+  MessageFinalizableData* finalizable_data() const { return finalizable_data_; }
 
  private:
   ForwardList forward_list_;
-  intptr_t* buffer_len_;
+  MessageFinalizableData* finalizable_data_;
 
   DISALLOW_COPY_AND_ASSIGN(MessageWriter);
 };
-
 
 // An object pointer visitor implementation which writes out
 // objects to a snap shot.

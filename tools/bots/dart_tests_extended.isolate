@@ -1,0 +1,13 @@
+{
+  'includes': ['dart_tests.isolate'],
+  'variables': {
+    'files': ['out/ReleaseIA32/gen/',
+              'out/ReleaseX64/gen/',
+              'out/ReleaseIA32/patched_sdk/',
+              'out/ReleaseX64/patched_sdk/',
+              'xcodebuild/ReleaseIA32/gen/',
+              'xcodebuild/ReleaseX64/gen/',
+              'xcodebuild/ReleaseIA32/patched_sdk/',
+              'xcodebuild/ReleaseX64/patched_sdk/']
+  }
+}

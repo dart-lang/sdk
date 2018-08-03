@@ -24,15 +24,12 @@ main() {
 
 @reflectiveTest
 class RefactoringLocationTest extends AbstractSingleUnitTest {
-  @override
-  bool get enableNewAnalysisDriver => false;
-
   test_createLocation_forElement() async {
     await resolveTestUnit('class MyClass {}');
     Element element = findElement('MyClass');
     // check
     Location location = newLocation_fromElement(element);
-    expect(location.file, '/test.dart');
+    expect(location.file, convertPath('/project/test.dart'));
     expect(location.offset, 6);
     expect(location.length, 7);
     expect(location.startLine, 1);
@@ -44,16 +41,18 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
     Element element = findElement('MyClass');
     SourceRange sourceRange = range.elementName(element);
     SearchMatch match = new SearchMatchImpl(
-        element.context,
-        element.library.source.uri.toString(),
-        element.source.uri.toString(),
-        null,
-        sourceRange,
+        element.source.fullName,
+        element.library.source,
+        element.source,
+        element.library,
+        element,
         true,
-        false);
+        false,
+        MatchKind.DECLARATION,
+        sourceRange);
     // check
     Location location = newLocation_fromMatch(match);
-    expect(location.file, '/test.dart');
+    expect(location.file, convertPath('/project/test.dart'));
     expect(location.offset, sourceRange.offset);
     expect(location.length, sourceRange.length);
   }
@@ -66,7 +65,7 @@ main() {
     AstNode node = findNodeAtString('main');
     // check
     Location location = newLocation_fromNode(node);
-    expect(location.file, '/test.dart');
+    expect(location.file, convertPath('/project/test.dart'));
     expect(location.offset, node.offset);
     expect(location.length, node.length);
   }
@@ -76,7 +75,7 @@ main() {
     SourceRange sourceRange = new SourceRange(10, 20);
     // check
     Location location = newLocation_fromUnit(testUnit, sourceRange);
-    expect(location.file, '/test.dart');
+    expect(location.file, convertPath('/project/test.dart'));
     expect(location.offset, sourceRange.offset);
     expect(location.length, sourceRange.length);
   }

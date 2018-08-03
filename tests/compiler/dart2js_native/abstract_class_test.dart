@@ -21,16 +21,19 @@ class C {}
 makeA() native;
 makeB() native;
 
-void setup() native """
-// This code is all inside 'setup' and so not accessible from the global scope.
-function A(){}
-function B(){}
-B.prototype.foo = function() { return 'B.foo'; };
-makeA = function(){return new A};
-makeB = function(){return new B};
-self.nativeConstructor(A);
-self.nativeConstructor(B);
-""";
+void setup() {
+  JS('', r"""
+(function(){
+  function A(){}
+  function B(){}
+  B.prototype.foo = function() { return 'B.foo'; };
+  makeA = function(){return new A()};
+  makeB = function(){return new B()};
+  self.nativeConstructor(A);
+  self.nativeConstructor(B);
+})()
+""");
+}
 
 main() {
   nativeTesting();

@@ -180,10 +180,10 @@ class View implements Positionable {
 
   /**
    * Registers the given listener callback to the given observable. Also
-   * immedially invokes the callback once as if a change has just come in. This
-   * lets you define a render() method that renders the skeleton of a view, then
-   * register a bunch of listeners which all fire to populate the view with
-   * model data.
+   * immediately invokes the callback once as if a change has just come in.
+   * This lets you define a render() method that renders the skeleton of a
+   * view, then register a bunch of listeners which all fire to populate the
+   * view with model data.
    */
   void watch(Observable observable, void watcher(EventSummary summary)) {
     // Make a fake summary for the initial watch.

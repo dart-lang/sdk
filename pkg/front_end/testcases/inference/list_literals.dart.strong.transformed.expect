@@ -1,0 +1,27 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method test1() → dynamic {
+  core::List<core::int> x = <core::int>[1, 2, 3];
+  x.{core::List::add}(let<BottomType> _ = null in let final dynamic #t1 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/list_literals.dart:10:71: Error: The argument type 'dart.core::String' can't be assigned to the parameter type 'dart.core::int'.
+Try changing the type of the parameter, or casting the argument to 'dart.core::int'.
+  x. /*@target=List::add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi');
+                                                                      ^" in let final core::String #t2 = "hi" in null);
+  x.{core::List::add}(let<BottomType> _ = null in let final dynamic #t3 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/list_literals.dart:11:71: Error: The argument type 'dart.core::double' can't be assigned to the parameter type 'dart.core::int'.
+Try changing the type of the parameter, or casting the argument to 'dart.core::int'.
+  x. /*@target=List::add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 4.0);
+                                                                      ^" in let final core::double #t4 = 4.0 in null);
+  x.{core::List::add}(4);
+  core::List<core::num> y = x;
+}
+static method test2() → dynamic {
+  core::List<core::num> x = <core::num>[1, 2.0, 3];
+  x.{core::List::add}(let<BottomType> _ = null in let final dynamic #t5 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/list_literals.dart:18:71: Error: The argument type 'dart.core::String' can't be assigned to the parameter type 'dart.core::num'.
+Try changing the type of the parameter, or casting the argument to 'dart.core::num'.
+  x. /*@target=List::add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi');
+                                                                      ^" in let final core::String #t6 = "hi" in null);
+  x.{core::List::add}(4.0);
+  core::List<core::int> y = x as{TypeError} core::List<core::int>;
+}
+static method main() → dynamic {}

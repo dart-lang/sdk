@@ -8,11 +8,9 @@ import 'dart:html';
 import 'dart:async';
 import 'dart:convert';
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/app.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
-import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
@@ -48,7 +46,7 @@ class VMConnectElement extends HtmlElement implements Renderable {
     assert(notifications != null);
     assert(targets != null);
     VMConnectElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<VMConnectElement>(e, queue: queue);
     e._address = address;
     e._loadDump = loadDump;
     e._notifications = notifications;
@@ -68,7 +66,7 @@ class VMConnectElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
     _targetsSubscription.cancel();
   }
@@ -76,34 +74,30 @@ class VMConnectElement extends HtmlElement implements Renderable {
   void render() {
     final host = window.location.hostname;
     final port = window.location.port;
-    children = [
-      navBar([
+    children = <Element>[
+      navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue),
         new NavNotifyElement(_notifications, queue: _r.queue)
       ]),
       new DivElement()
         ..classes = ['content-centered']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h1()..text = 'Connect to a Dart VM',
           new HRElement(),
           new BRElement(),
           new DivElement()
             ..classes = ['flex-row']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['flex-item-40-percent']
-                ..children = [
+                ..children = <Element>[
                   new HeadingElement.h2()..text = 'Connect over WebSocket',
                   new BRElement(),
                   new UListElement()
-                    ..children = _targets.list().map((target) {
-                      final ObservatoryApplication app =
-                          ObservatoryApplication.app;
-                      final bool current = (app != null)
-                          ? app.isConnectedVMTarget(target)
-                          : false;
+                    ..children = _targets.list().map<Element>((target) {
+                      final bool current = _targets.isConnectedVMTarget(target);
                       return new LIElement()
-                        ..children = [
+                        ..children = <Element>[
                           new VMConnectTargetElement(target,
                               current: current, queue: _r.queue)
                             ..onConnect.listen(_connect)
@@ -113,7 +107,7 @@ class VMConnectElement extends HtmlElement implements Renderable {
                   new HRElement(),
                   new FormElement()
                     ..autocomplete = 'on'
-                    ..children = [
+                    ..children = <Element>[
                       _createAddressBox(),
                       new SpanElement()..text = ' ',
                       new ButtonElement()
@@ -132,7 +126,7 @@ class VMConnectElement extends HtmlElement implements Renderable {
               new DivElement()..classes = ['flex-item-20-percent'],
               new DivElement()
                 ..classes = ['flex-item-40-percent']
-                ..children = [
+                ..children = <Element>[
                   new HeadingElement.h2()..text = 'View crash dump',
                   new BRElement(),
                   _createCrushDumpLoader(),
@@ -171,7 +165,7 @@ class VMConnectElement extends HtmlElement implements Renderable {
       var reader = new FileReader();
       reader.readAsText(e.files[0]);
       reader.onLoad.listen((_) {
-        var crashDump = JSON.decode(reader.result);
+        var crashDump = json.decode(reader.result);
         _loadDump(crashDump);
       });
     });
@@ -185,7 +179,7 @@ class VMConnectElement extends HtmlElement implements Renderable {
     var target = _targets.find(normalizedNetworkAddress);
     assert(target != null);
     _targets.setCurrent(target);
-    ObservatoryApplication.app.locationManager.go(Uris.vm());
+    // the navigation to the VM page is done in the ObservatoryApplication
   }
 
   void _connect(TargetEvent e) {
@@ -201,7 +195,10 @@ class VMConnectElement extends HtmlElement implements Renderable {
     }
     try {
       Uri uri = Uri.parse(networkAddress);
-      return 'ws://${uri.authority}${uri.path}ws';
+      if (uri.path.endsWith('/ws')) {
+        return 'ws://${uri.authority}${uri.path}';
+      }
+      return 'ws://${uri.authority}${uri.path}/ws';
     } catch (e) {
       print('caught exception with: $networkAddress -- $e');
       return networkAddress;

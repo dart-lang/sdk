@@ -18,11 +18,11 @@ Future setupUDP() async {
     }
   });
   var client = await io.RawDatagramSocket.bind('127.0.0.1', 0);
-  client.send(UTF8.encoder.convert('foobar'),
+  client.send(utf8.encoder.convert('foobar'),
       new io.InternetAddress('127.0.0.1'), server.port);
 }
 
-var udpTests = [
+var udpTests = <IsolateTest>[
   // Initial.
   (Isolate isolate) async {
     var result =

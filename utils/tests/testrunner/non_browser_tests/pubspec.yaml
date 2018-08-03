@@ -1,4 +1,0 @@
-name: non_browser_tests
-dependencies:
-  unittest: any
-

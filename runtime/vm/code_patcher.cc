@@ -12,24 +12,31 @@ namespace dart {
 
 DEFINE_FLAG(bool, write_protect_code, true, "Write protect jitted code");
 
-
 WritableInstructionsScope::WritableInstructionsScope(uword address,
                                                      intptr_t size)
     : address_(address), size_(size) {
   if (FLAG_write_protect_code) {
-    bool status = VirtualMemory::Protect(reinterpret_cast<void*>(address), size,
-                                         VirtualMemory::kReadWrite);
-    ASSERT(status);
+    VirtualMemory::Protect(reinterpret_cast<void*>(address), size,
+                           VirtualMemory::kReadWrite);
   }
 }
 
-
 WritableInstructionsScope::~WritableInstructionsScope() {
   if (FLAG_write_protect_code) {
-    bool status = VirtualMemory::Protect(reinterpret_cast<void*>(address_),
-                                         size_, VirtualMemory::kReadExecute);
-    ASSERT(status);
+    VirtualMemory::Protect(reinterpret_cast<void*>(address_), size_,
+                           VirtualMemory::kReadExecute);
   }
+}
+
+bool MatchesPattern(uword addr, int16_t* pattern, intptr_t size) {
+  uint8_t* bytes = reinterpret_cast<uint8_t*>(addr);
+  for (intptr_t i = 0; i < size; i++) {
+    int16_t val = pattern[i];
+    if ((val >= 0) && (val != bytes[i])) {
+      return false;
+    }
+  }
+  return true;
 }
 
 }  // namespace dart

@@ -178,7 +178,7 @@ class FunctionScope extends EnclosedScope {
   /**
    * The element representing the function that defines this scope.
    */
-  final ExecutableElement _functionElement;
+  final FunctionTypedElement _functionElement;
 
   /**
    * A flag indicating whether the parameters have already been defined, used to
@@ -488,13 +488,11 @@ class LibraryImportScope extends Scope {
    * later reference.
    */
   void _createImportedNamespaces() {
-    NamespaceBuilder builder = new NamespaceBuilder();
     List<ImportElement> imports = _definingLibrary.imports;
     int count = imports.length;
     _importedNamespaces = new List<Namespace>(count);
     for (int i = 0; i < count; i++) {
-      _importedNamespaces[i] =
-          builder.createImportNamespaceForDirective(imports[i]);
+      _importedNamespaces[i] = imports[i].namespace;
     }
   }
 
@@ -587,6 +585,14 @@ class LibraryScope extends EnclosedScope {
   LibraryScope(LibraryElement definingLibrary)
       : super(new LibraryImportScope(definingLibrary)) {
     _defineTopLevelNames(definingLibrary);
+
+    // For `dart:core` to be able to pass analysis, it has to have `dynamic`
+    // added to its library scope. Note that this is not true of, for instance,
+    // `Object`, because `Object` has a source definition which is not possible
+    // for `dynamic`.
+    if (definingLibrary.isDartCore) {
+      define(DynamicElementImpl.instance);
+    }
   }
 
   @override
@@ -707,7 +713,7 @@ class NamespaceBuilder {
       //
       return Namespace.EMPTY;
     }
-    HashMap<String, Element> exportedNames = _getExportMapping(exportedLibrary);
+    Map<String, Element> exportedNames = _getExportMapping(exportedLibrary);
     exportedNames = _applyCombinators(exportedNames, element.combinators);
     return new Namespace(exportedNames);
   }
@@ -716,7 +722,7 @@ class NamespaceBuilder {
    * Create a namespace representing the export namespace of the given [library].
    */
   Namespace createExportNamespaceForLibrary(LibraryElement library) {
-    HashMap<String, Element> exportedNames = _getExportMapping(library);
+    Map<String, Element> exportedNames = _getExportMapping(library);
     return new Namespace(exportedNames);
   }
 
@@ -732,7 +738,7 @@ class NamespaceBuilder {
       //
       return Namespace.EMPTY;
     }
-    HashMap<String, Element> exportedNames = _getExportMapping(importedLibrary);
+    Map<String, Element> exportedNames = _getExportMapping(importedLibrary);
     exportedNames = _applyCombinators(exportedNames, element.combinators);
     PrefixElement prefix = element.prefix;
     if (prefix != null) {
@@ -746,11 +752,21 @@ class NamespaceBuilder {
    * [library].
    */
   Namespace createPublicNamespaceForLibrary(LibraryElement library) {
-    HashMap<String, Element> definedNames = new HashMap<String, Element>();
+    Map<String, Element> definedNames = new HashMap<String, Element>();
     _addPublicNames(definedNames, library.definingCompilationUnit);
     for (CompilationUnitElement compilationUnit in library.parts) {
       _addPublicNames(definedNames, compilationUnit);
     }
+
+    // For libraries that import `dart:core` with a prefix, we have to add
+    // `dynamic` to the `dart:core` [Namespace] specially. Note that this is not
+    // true of, for instance, `Object`, because `Object` has a source definition
+    // which is not possible for `dynamic`.
+    if (library.isDartCore) {
+      DynamicElementImpl.instance.library = library;
+      definedNames['dynamic'] = DynamicElementImpl.instance;
+    }
+
     return new Namespace(definedNames);
   }
 
@@ -805,8 +821,7 @@ class NamespaceBuilder {
    * Apply the given [combinators] to all of the names in the given table of
    * [definedNames].
    */
-  HashMap<String, Element> _applyCombinators(
-      HashMap<String, Element> definedNames,
+  Map<String, Element> _applyCombinators(Map<String, Element> definedNames,
       List<NamespaceCombinator> combinators) {
     for (NamespaceCombinator combinator in combinators) {
       if (combinator is HideElementCombinator) {
@@ -829,11 +844,11 @@ class NamespaceBuilder {
    * library because all of the names defined by them will be added by another
    * library.
    */
-  HashMap<String, Element> _computeExportMapping(
+  Map<String, Element> _computeExportMapping(
       LibraryElement library, HashSet<LibraryElement> visitedElements) {
     visitedElements.add(library);
     try {
-      HashMap<String, Element> definedNames = new HashMap<String, Element>();
+      Map<String, Element> definedNames = new HashMap<String, Element>();
       for (ExportElement element in library.exports) {
         LibraryElement exportedLibrary = element.exportedLibrary;
         if (exportedLibrary != null &&
@@ -842,7 +857,7 @@ class NamespaceBuilder {
           // The exported library will be null if the URI does not reference a
           // valid library.
           //
-          HashMap<String, Element> exportedNames =
+          Map<String, Element> exportedNames =
               _computeExportMapping(exportedLibrary, visitedElements);
           exportedNames = _applyCombinators(exportedNames, element.combinators);
           definedNames.addAll(exportedNames);
@@ -858,12 +873,12 @@ class NamespaceBuilder {
     }
   }
 
-  HashMap<String, Element> _getExportMapping(LibraryElement library) {
+  Map<String, Element> _getExportMapping(LibraryElement library) {
     if (library.exportNamespace != null) {
       return library.exportNamespace.definedNames;
     }
     if (library is LibraryElementImpl) {
-      HashMap<String, Element> exportMapping =
+      Map<String, Element> exportMapping =
           _computeExportMapping(library, new HashSet<LibraryElement>());
       library.exportNamespace = new Namespace(exportMapping);
       return exportMapping;
@@ -876,8 +891,8 @@ class NamespaceBuilder {
    * with exception of [hiddenNames].
    */
   Map<String, Element> _hide(
-      HashMap<String, Element> definedNames, List<String> hiddenNames) {
-    HashMap<String, Element> newNames =
+      Map<String, Element> definedNames, List<String> hiddenNames) {
+    Map<String, Element> newNames =
         new HashMap<String, Element>.from(definedNames);
     for (String name in hiddenNames) {
       newNames.remove(name);
@@ -889,9 +904,9 @@ class NamespaceBuilder {
   /**
    * Return a new map of names which has only [shownNames] from [definedNames].
    */
-  HashMap<String, Element> _show(
-      HashMap<String, Element> definedNames, List<String> shownNames) {
-    HashMap<String, Element> newNames = new HashMap<String, Element>();
+  Map<String, Element> _show(
+      Map<String, Element> definedNames, List<String> shownNames) {
+    Map<String, Element> newNames = new HashMap<String, Element>();
     for (String name in shownNames) {
       Element element = definedNames[name];
       if (element != null) {
@@ -926,7 +941,7 @@ class PrefixedNamespace implements Namespace {
    * A table mapping names that are defined in this namespace to the element
    * representing the thing declared with that name.
    */
-  final HashMap<String, Element> _definedNames;
+  final Map<String, Element> _definedNames;
 
   /**
    * Initialize a newly created namespace to have the names resulting from
@@ -992,7 +1007,7 @@ abstract class Scope {
    * A table mapping names that are defined in this scope to the element
    * representing the thing declared with that name.
    */
-  HashMap<String, Element> _definedNames = null;
+  Map<String, Element> _definedNames = null;
 
   /**
    * Return the scope in which this scope is lexically enclosed.

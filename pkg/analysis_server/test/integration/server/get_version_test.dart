@@ -9,6 +9,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetVersionTest);
+    defineReflectiveTests(GetVersionTest_UseCFE);
   });
 }
 
@@ -17,4 +18,10 @@ class GetVersionTest extends AbstractAnalysisServerIntegrationTest {
   test_getVersion() {
     return sendServerGetVersion();
   }
+}
+
+@reflectiveTest
+class GetVersionTest_UseCFE extends GetVersionTest {
+  @override
+  bool get useCFE => true;
 }

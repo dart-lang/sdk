@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo<T extends core::Object = dynamic> extends core::Object {
+  generic-covariant-impl field self::Foo::T x;
+  constructor from(core::String _init) → void
+    : this self::Foo::_internal(x: let dynamic _ = null in let final dynamic #t1 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/redirecting_initializer_arguments_test.dart:12:46: Error: The argument type 'dart.core::String' can't be assigned to the parameter type '#lib1::Foo::T'.
+Try changing the type of the parameter, or casting the argument to '#lib1::Foo::T'.
+  Foo.from(String _init) : this._internal(x: _init);
+                                             ^" in let final dynamic #t2 = _init in null)
+    ;
+  constructor _internal({self::Foo::T x = null}) → void
+    : self::Foo::x = x, super core::Object::•()
+    ;
+}
+static method main() → void {}

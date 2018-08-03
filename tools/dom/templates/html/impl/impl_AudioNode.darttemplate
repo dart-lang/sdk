@@ -6,12 +6,10 @@ part of web_audio;
 
 $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 $!MEMBERS
-  @DomName('AudioNode.connect')
   void connectNode(AudioNode destination, [int output = 0, int input = 0]) {
     _connect(destination, output, input);
   }
 
-  @DomName('AudioNode.connect')
   void connectParam(AudioParam destination, [int output = 0]) {
     _connect(destination, output);
   }

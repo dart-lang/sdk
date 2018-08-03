@@ -30,6 +30,7 @@ static const int kDartFrameFixedSize = 3;  // PC marker, EBP, PC.
 static const int kSavedPcSlotFromSp = -1;
 
 static const int kFirstObjectSlotFromFp = -1;  // Used by GC to traverse stack.
+static const int kLastFixedObjectSlotFromFp = -1;
 
 static const int kFirstLocalSlotFromFp = -2;
 static const int kPcMarkerSlotFromFp = -1;

@@ -14,6 +14,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisGetHoverIntegrationTest);
+    defineReflectiveTests(AnalysisGetHoverIntegrationTest_UseCFE);
   });
 }
 
@@ -61,14 +62,19 @@ main() {
    * match the hover parameters.  [propagatedType], if specified, is the
    * expected propagated type of the element.
    */
-  checkHover(String target, int length, List<String> descriptionRegexps,
-      String kind, List<String> staticTypeRegexps,
-      {bool isLocal: false,
-      bool isCore: false,
-      String docRegexp: null,
-      bool isLiteral: false,
-      List<String> parameterRegexps: null,
-      propagatedType: null}) {
+  Future<AnalysisGetHoverResult> checkHover(
+    String target,
+    int length,
+    List<String> descriptionRegexps,
+    String kind,
+    List<String> staticTypeRegexps, {
+    bool isLocal: false,
+    bool isCore: false,
+    String docRegexp: null,
+    bool isLiteral: false,
+    List<String> parameterRegexps: null,
+    propagatedType: null,
+  }) {
     int offset = text.indexOf(target);
     return sendAnalysisGetHover(pathname, offset).then((result) {
       expect(result.hovers, hasLength(1));
@@ -107,7 +113,6 @@ main() {
           expect(info.parameter, matches(parameterRegexp));
         }
       }
-      expect(info.propagatedType, equals(propagatedType));
       if (staticTypeRegexps == null) {
         expect(info.staticType, isNull);
       } else {
@@ -185,5 +190,19 @@ main() {
       tests.add(checkNoHover('comment'));
       return Future.wait(tests);
     });
+  }
+}
+
+@reflectiveTest
+class AnalysisGetHoverIntegrationTest_UseCFE
+    extends AnalysisGetHoverIntegrationTest {
+  @override
+  bool get useCFE => true;
+
+  @override
+  @failingTest
+  test_getHover() {
+    // TODO(devoncarew): NoSuchMethodError: The getter 'canonicalName' was called on null.
+    return super.test_getHover();
   }
 }

@@ -1,0 +1,9 @@
+library;
+import self as self;
+
+static method testDynamic() → invalid-type
+  ;
+static method testVoid() → void
+  ;
+static method main() → dynamic
+  ;

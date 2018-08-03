@@ -54,6 +54,7 @@ class _DOMWindowCrossFrame implements WindowBase {
       return w;
     } else {
       // TODO(vsm): Cache or implement equality.
+      registerGlobalObject(w);
       return new _DOMWindowCrossFrame(w);
     }
   }

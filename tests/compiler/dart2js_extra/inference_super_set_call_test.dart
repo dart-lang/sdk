@@ -17,7 +17,7 @@ abstract class A {
 
 class S extends A {
   var _x; //      was bad: inferred as null, than [null | int]
-  var _y = ''; // was bad: inferred as String, rather than [String | int]
+  dynamic _y = ''; // was bad: inferred as String, rather than [String | int]
   var _z; //      was ok : inferred as [null | int]
 
   set x(v) {

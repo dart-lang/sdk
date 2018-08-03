@@ -48,8 +48,26 @@ class CommonUsageSorterTest extends AbstractCompletionDomainTest {
     assertNoResult('A');
   }
 
+  test_namedArgument_enum() async {
+    addTestFile('''
+enum E {e1, e2}
+f({E e}) {}
+main() {
+  f(e: ^);
+}
+''');
+    await getSuggestionsWith(<String, List<String>>{});
+    expect(replacementOffset, equals(completionOffset));
+    expect(replacementLength, equals(0));
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'E');
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'E.e1',
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'E.e2',
+        relevance: DART_RELEVANCE_DEFAULT + DART_RELEVANCE_BOOST_TYPE);
+  }
+
   test_PrefixedIdentifier_field() async {
-    // SimpleIdentifier  PrefixedIdentifeir  ExpressionStatement
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestFile('class A {static int s1; static int s2; x() {A.^}}');
     await getSuggestionsWith({
       '.A': ['s2']
@@ -65,9 +83,10 @@ class CommonUsageSorterTest extends AbstractCompletionDomainTest {
   }
 
   test_PrefixedIdentifier_field_inPart() async {
-    // SimpleIdentifier  PrefixedIdentifeir  ExpressionStatement
-    addFile('/project/bin/myLib.dart',
-        'library L; part "$testFile"; class A {static int s2;}');
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    newFile('/project/bin/myLib.dart',
+        content:
+            'library L; part "${convertPathForImport(testFile)}"; class A {static int s2;}');
     addTestFile('part of L; foo() {A.^}');
     await getSuggestionsWith({
       'L.A': ['s2']
@@ -82,7 +101,7 @@ class CommonUsageSorterTest extends AbstractCompletionDomainTest {
   }
 
   test_PrefixedIdentifier_getter() async {
-    // SimpleIdentifier  PrefixedIdentifeir  ExpressionStatement
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestFile('class A {int get g1 => 1; int get g2 => 2; x() {new A().^}}');
     await getSuggestionsWith({
       '.A': ['g2']
@@ -98,7 +117,7 @@ class CommonUsageSorterTest extends AbstractCompletionDomainTest {
   }
 
   test_PrefixedIdentifier_setter() async {
-    // SimpleIdentifier  PrefixedIdentifeir  ExpressionStatement
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestFile('class A {set s1(v) {}; set s2(v) {}; x() {new A().^}}');
     await getSuggestionsWith({
       '.A': ['s2']
@@ -114,7 +133,7 @@ class CommonUsageSorterTest extends AbstractCompletionDomainTest {
   }
 
   test_PrefixedIdentifier_static_method() async {
-    // SimpleIdentifier  PrefixedIdentifeir  ExpressionStatement
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestFile('import "dart:async"; class A {x() {Future.^}}');
     await getSuggestionsWith({
       'dart.async.Future': ['value', 'wait']

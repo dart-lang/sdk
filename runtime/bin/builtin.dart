@@ -6,7 +6,7 @@ library builtin;
 
 // NOTE: Do not import 'dart:io' in builtin.
 import 'dart:async';
-import 'dart:collection';
+import 'dart:collection' hide LinkedList, LinkedListEntry;
 import 'dart:_internal' hide Symbol;
 import 'dart:isolate';
 import 'dart:typed_data';
@@ -19,11 +19,6 @@ bool _traceLoading = false;
 // dart:_builtin library.
 bool _setupCompleted = false;
 
-// The root library (aka the script) is imported into this library. The
-// standalone embedder uses this to lookup the main entrypoint in the
-// root library's namespace.
-Function _getMainClosure() => main;
-
 // 'print' implementation.
 // The standalone embedder registers the closurized _print function with the
 // dart:core library.
@@ -34,20 +29,6 @@ void _print(arg) {
 }
 
 _getPrintClosure() => _print;
-
-// Corelib 'Uri.base' implementation.
-// Uri.base is susceptible to changes in the current working directory.
-_getCurrentDirectoryPath() native "Builtin_GetCurrentDirectory";
-
-Uri _uriBase() {
-  // We are not using Dircetory.current here to limit the dependency
-  // on dart:io. This code is the same as:
-  //   return new Uri.directory(Directory.current.path);
-  var path = _getCurrentDirectoryPath();
-  return new Uri.directory(path);
-}
-
-_getUriBaseClosure() => _uriBase;
 
 // Asynchronous loading of resources.
 // The embedder forwards loading requests to the service isolate.
@@ -69,10 +50,12 @@ const _Dart_kResolvePackageUri = 8; // Resolve a package: uri.
 
 // Make a request to the loader. Future will complete with result which is
 // either a Uri or a List<int>.
-Future _makeLoaderRequest(int tag, String uri) {
+Future<T> _makeLoaderRequest<T>(int tag, String uri) {
   assert(_isolateId != null);
-  assert(_loadPort != null);
-  Completer completer = new Completer();
+  if (_loadPort == null) {
+    throw new UnsupportedError("Service isolate is not available.");
+  }
+  Completer completer = new Completer<T>();
   RawReceivePort port = new RawReceivePort();
   port.handler = (msg) {
     // Close the port.
@@ -154,7 +137,7 @@ _enforceTrailingSlash(uri) {
 
 // Embedder Entrypoint:
 // The embedder calls this method with the current working directory.
-void _setWorkingDirectory(cwd) {
+void _setWorkingDirectory(String cwd) {
   if (!_setupCompleted) {
     _setupHooks();
   }
@@ -169,7 +152,7 @@ void _setWorkingDirectory(cwd) {
 
 // Embedder Entrypoint:
 // The embedder calls this method with a custom package root.
-_setPackageRoot(String packageRoot) {
+String _setPackageRoot(String packageRoot) {
   if (!_setupCompleted) {
     _setupHooks();
   }
@@ -190,14 +173,16 @@ _setPackageRoot(String packageRoot) {
   // up for use in Platform.packageRoot. This is only set when the embedder
   // sets up the package root. Automatically discovered package root will
   // not update the VMLibraryHooks value.
-  VMLibraryHooks.packageRootString = _packageRoot.toString();
+  var packageRootStr = _packageRoot.toString();
+  VMLibraryHooks.packageRootString = packageRootStr;
   if (_traceLoading) {
     _log('Package root URI: $_packageRoot');
   }
+  return packageRootStr;
 }
 
 // Embedder Entrypoint:
-void _setPackagesMap(String packagesParam) {
+String _setPackagesMap(String packagesParam) {
   if (!_setupCompleted) {
     _setupHooks();
   }
@@ -223,6 +208,7 @@ void _setPackagesMap(String packagesParam) {
   if (_traceLoading) {
     _log('Resolved packages map to: $packagesUri');
   }
+  return packagesUriStr;
 }
 
 // Resolves the script uri in the current working directory iff the given uri
@@ -337,7 +323,8 @@ _setupHooks() {
 
 // Handling of Resource class by dispatching to the load port.
 Future<List<int>> _resourceReadAsBytes(Uri uri) async {
-  List response = await _makeLoaderRequest(_Dart_kResourceLoad, uri.toString());
+  List response =
+      await _makeLoaderRequest<List<int>>(_Dart_kResourceLoad, uri.toString());
   if (response[4] is String) {
     // Throw the error.
     throw response[4];
@@ -346,11 +333,13 @@ Future<List<int>> _resourceReadAsBytes(Uri uri) async {
   }
 }
 
+// TODO(mfairhurst): remove this
 Future<Uri> _getPackageRootFuture() {
   if (_traceLoading) {
     _log("Request for package root from user code.");
   }
-  return _makeLoaderRequest(_Dart_kGetPackageRootUri, null);
+  // Return null, as the `packages/` directory is not supported in dart 2.
+  return new Future.value(null);
 }
 
 Future<Uri> _getPackageConfigFuture() {
@@ -358,7 +347,7 @@ Future<Uri> _getPackageConfigFuture() {
     _log("Request for package config from user code.");
   }
   assert(_loadPort != null);
-  return _makeLoaderRequest(_Dart_kGetPackageConfigUri, null);
+  return _makeLoaderRequest<Uri>(_Dart_kGetPackageConfigUri, null);
 }
 
 Future<Uri> _resolvePackageUriFuture(Uri packageUri) async {
@@ -372,8 +361,8 @@ Future<Uri> _resolvePackageUriFuture(Uri packageUri) async {
     // Return the incoming parameter if not passed a package: URI.
     return packageUri;
   }
-  var result =
-      await _makeLoaderRequest(_Dart_kResolvePackageUri, packageUri.toString());
+  var result = await _makeLoaderRequest<Uri>(
+      _Dart_kResolvePackageUri, packageUri.toString());
   if (result is! Uri) {
     if (_traceLoading) {
       _log("Exception when resolving package URI: $packageUri");

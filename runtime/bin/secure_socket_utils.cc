@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_IO_DISABLED) && !defined(DART_IO_SECURE_SOCKET_DISABLED)
+#if !defined(DART_IO_SECURE_SOCKET_DISABLED)
 
 #include "bin/secure_socket_utils.h"
 
@@ -45,7 +45,6 @@ void SecureSocketUtils::FetchErrorString(const SSL* ssl,
   }
 }
 
-
 // Handle an error reported from the BoringSSL library.
 void SecureSocketUtils::ThrowIOException(int status,
                                          const char* exception_type,
@@ -64,7 +63,6 @@ void SecureSocketUtils::ThrowIOException(int status,
   Dart_ThrowException(exception);
   UNREACHABLE();
 }
-
 
 void SecureSocketUtils::CheckStatusSSL(int status,
                                        const char* type,
@@ -85,7 +83,6 @@ void SecureSocketUtils::CheckStatusSSL(int status,
   SecureSocketUtils::ThrowIOException(status, type, message, ssl);
 }
 
-
 void SecureSocketUtils::CheckStatus(int status,
                                     const char* type,
                                     const char* message) {
@@ -95,5 +92,4 @@ void SecureSocketUtils::CheckStatus(int status,
 }  // namespace bin
 }  // namespace dart
 
-#endif  // !defined(DART_IO_DISABLED) &&
-        // !defined(DART_IO_SECURE_SOCKET_DISABLED)
+#endif  // !defined(DART_IO_SECURE_SOCKET_DISABLED)

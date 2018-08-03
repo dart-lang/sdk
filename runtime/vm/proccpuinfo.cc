@@ -14,10 +14,8 @@
 
 namespace dart {
 
-
 char* ProcCpuInfo::data_ = NULL;
 intptr_t ProcCpuInfo::datalen_ = 0;
-
 
 void ProcCpuInfo::InitOnce() {
   // Get the size of the cpuinfo file by reading it until the end. This is
@@ -55,13 +53,11 @@ void ProcCpuInfo::InitOnce() {
   data_[datalen_] = '\0';
 }
 
-
 void ProcCpuInfo::Cleanup() {
   ASSERT(data_);
   free(data_);
   data_ = NULL;
 }
-
 
 char* ProcCpuInfo::FieldStart(const char* field) {
   // Look for first field occurrence, and ensure it starts the line.
@@ -88,7 +84,6 @@ char* ProcCpuInfo::FieldStart(const char* field) {
   return p;
 }
 
-
 bool ProcCpuInfo::FieldContains(const char* field, const char* search_string) {
   ASSERT(data_ != NULL);
   ASSERT(search_string != NULL);
@@ -111,7 +106,6 @@ bool ProcCpuInfo::FieldContains(const char* field, const char* search_string) {
 
   return ret;
 }
-
 
 // Extract the content of a the first occurrence of a given field in
 // the content of the cpuinfo file and return it as a heap-allocated
@@ -143,7 +137,6 @@ const char* ProcCpuInfo::ExtractField(const char* field) {
 
   return result;
 }
-
 
 bool ProcCpuInfo::HasField(const char* field) {
   ASSERT(field != NULL);

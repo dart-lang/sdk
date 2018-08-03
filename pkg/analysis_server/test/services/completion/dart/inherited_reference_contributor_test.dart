@@ -1,6 +1,7 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
@@ -12,12 +13,12 @@ import 'completion_contributor_util.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(InheritedContributorTest);
+    defineReflectiveTests(InheritedReferenceContributorTest);
   });
 }
 
 @reflectiveTest
-class InheritedContributorTest extends DartCompletionContributorTest {
+class InheritedReferenceContributorTest extends DartCompletionContributorTest {
   @override
   bool get isNullExpectedReturnTypeConsideredDynamic => false;
 
@@ -29,9 +30,7 @@ class InheritedContributorTest extends DartCompletionContributorTest {
   /// Sanity check.  Permutations tested in local_ref_contributor.
   test_ArgDefaults_inherited_method_with_required_named() async {
     addMetaPackageSource();
-    resolveSource(
-        '/testB.dart',
-        '''
+    resolveSource('/testB.dart', '''
 import 'package:meta/meta.dart';
 
 lib libB;
@@ -39,7 +38,7 @@ class A {
    bool foo(int bar, {bool boo, @required int baz}) => false;
 }''');
     addTestSource('''
-import "/testB.dart";
+import "testB.dart";
 class B extends A {
   b() => f^
 }
@@ -52,15 +51,13 @@ class B extends A {
 
   test_AwaitExpression_inherited() async {
     // SimpleIdentifier  AwaitExpression  ExpressionStatement
-    resolveSource(
-        '/testB.dart',
-        '''
+    resolveSource('/testB.dart', '''
 lib libB;
 class A {
   Future y() async {return 0;}
 }''');
     addTestSource('''
-import "/testB.dart";
+import "testB.dart";
 class B extends A {
   Future a() async {return 0;}
   foo() async {await ^}
@@ -80,16 +77,14 @@ class B extends A {
 
   test_Block_inherited_imported() async {
     // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
-    resolveSource(
-        '/testB.dart',
-        '''
+    resolveSource('/testB.dart', '''
       lib B;
       class F { var f1; f2() { } get f3 => 0; set f4(fx) { } var _pf; }
       class E extends F { var e1; e2() { } }
       class I { int i1; i2() { } }
       class M { var m1; int m2() { } }''');
     addTestSource('''
-      import "/testB.dart";
+      import "testB.dart";
       class A extends E implements I with M {a() {^}}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
@@ -131,10 +126,44 @@ class A extends E implements I with M {a() {^}}''');
     assertSuggestMethod('m2', 'M', 'int');
   }
 
-  test_inherited() async {
-    resolveSource(
-        '/testB.dart',
+  test_flutter_setState_hasPrefix() async {
+    var spaces_4 = ' ' * 4;
+    var spaces_6 = ' ' * 6;
+    await _check_flutter_setState(
+        '    setSt',
         '''
+setState(() {
+$spaces_6
+$spaces_4});''',
+        20);
+  }
+
+  test_flutter_setState_longPrefix() async {
+    var spaces_6 = ' ' * 6;
+    var spaces_8 = ' ' * 8;
+    await _check_flutter_setState(
+        '      setSt',
+        '''
+setState(() {
+$spaces_8
+$spaces_6});''',
+        22);
+  }
+
+  test_flutter_setState_noPrefix() async {
+    var spaces_4 = ' ' * 4;
+    var spaces_6 = ' ' * 6;
+    await _check_flutter_setState(
+        '    ',
+        '''
+setState(() {
+$spaces_6
+$spaces_4});''',
+        20);
+  }
+
+  test_inherited() async {
+    resolveSource('/testB.dart', '''
 lib libB;
 class A2 {
   int x;
@@ -143,7 +172,7 @@ class A2 {
   int y2() {return 0;}
 }''');
     addTestSource('''
-import "/testB.dart";
+import "testB.dart";
 class A1 {
   int x;
   int y() {return 0;}
@@ -167,7 +196,7 @@ class B extends A1 with A2 {
     assertNotSuggested('foo');
     assertNotSuggested('A');
     assertSuggestField('x', 'int');
-    assertSuggestMethod('y', 'A2', 'int');
+    assertSuggestMethod('y', 'A1', 'int');
     assertSuggestField('x1', 'int');
     assertSuggestMethod('y1', 'A1', 'int');
     assertSuggestField('x2', 'int');
@@ -186,15 +215,13 @@ class A {
   }
 
   test_method_parameters_mixed_required_and_named() async {
-    resolveSource(
-        '/libA.dart',
-        '''
+    resolveSource('/libA.dart', '''
 class A {
   void m(x, {int y}) {}
 }
 ''');
     addTestSource('''
-import '/libA.dart';
+import 'libA.dart';
 class B extends A {
   main() {^}
 }
@@ -231,15 +258,13 @@ class B extends A {
   }
 
   test_method_parameters_mixed_required_and_positional() async {
-    resolveSource(
-        '/libA.dart',
-        '''
+    resolveSource('/libA.dart', '''
 class A {
   void m(x, [int y]) {}
 }
 ''');
     addTestSource('''
-import '/libA.dart';
+import 'libA.dart';
 class B extends A {
   main() {^}
 }
@@ -276,15 +301,13 @@ class B extends A {
   }
 
   test_method_parameters_named() async {
-    resolveSource(
-        '/libA.dart',
-        '''
+    resolveSource('/libA.dart', '''
 class A {
   void m({x, int y}) {}
 }
 ''');
     addTestSource('''
-import '/libA.dart';
+import 'libA.dart';
 class B extends A {
   main() {^}
 }
@@ -321,15 +344,13 @@ class B extends A {
   }
 
   test_method_parameters_none() async {
-    resolveSource(
-        '/libA.dart',
-        '''
+    resolveSource('/libA.dart', '''
 class A {
   void m() {}
 }
 ''');
     addTestSource('''
-import '/libA.dart';
+import 'libA.dart';
 class B extends A {
   main() {^}
 }
@@ -360,15 +381,13 @@ class B extends A {
   }
 
   test_method_parameters_positional() async {
-    resolveSource(
-        '/libA.dart',
-        '''
+    resolveSource('/libA.dart', '''
 class A {
   void m([x, int y]) {}
 }
 ''');
     addTestSource('''
-import '/libA.dart';
+import 'libA.dart';
 class B extends A {
   main() {^}
 }
@@ -405,15 +424,13 @@ class B extends A {
   }
 
   test_method_parameters_required() async {
-    resolveSource(
-        '/libA.dart',
-        '''
+    resolveSource('/libA.dart', '''
 class A {
   void m(x, int y) {}
 }
 ''');
     addTestSource('''
-import '/libA.dart';
+import 'libA.dart';
 class B extends A {
   main() {^}
 }
@@ -430,9 +447,7 @@ class B extends A {
   }
 
   test_mixin_ordering() async {
-    resolveSource(
-        '/libA.dart',
-        '''
+    resolveSource('/libA.dart', '''
 class B {}
 class M1 {
   void m() {}
@@ -442,7 +457,7 @@ class M2 {
 }
 ''');
     addTestSource('''
-import '/libA.dart';
+import 'libA.dart';
 class C extends B with M1, M2 {
   void f() {
     ^
@@ -454,15 +469,13 @@ class C extends B with M1, M2 {
   }
 
   test_no_parameters_field() async {
-    resolveSource(
-        '/libA.dart',
-        '''
+    resolveSource('/libA.dart', '''
 class A {
   int x;
 }
 ''');
     addTestSource('''
-import '/libA.dart';
+import 'libA.dart';
 class B extends A {
   main() {^}
 }
@@ -473,15 +486,13 @@ class B extends A {
   }
 
   test_no_parameters_getter() async {
-    resolveSource(
-        '/libA.dart',
-        '''
+    resolveSource('/libA.dart', '''
 class A {
   int get x => null;
 }
 ''');
     addTestSource('''
-import '/libA.dart';
+import 'libA.dart';
 class B extends A {
   main() {^}
 }
@@ -492,15 +503,13 @@ class B extends A {
   }
 
   test_no_parameters_setter() async {
-    resolveSource(
-        '/libA.dart',
-        '''
+    resolveSource('/libA.dart', '''
 class A {
   set x(int value) {};
 }
 ''');
     addTestSource('''
-import '/libA.dart';
+import 'libA.dart';
 class B extends A {
   main() {^}
 }
@@ -510,10 +519,8 @@ class B extends A {
     assertHasNoParameterInfo(suggestion);
   }
 
-  test_ouside_class() async {
-    resolveSource(
-        '/testB.dart',
-        '''
+  test_outside_class() async {
+    resolveSource('/testB.dart', '''
 lib libB;
 class A2 {
   int x;
@@ -522,7 +529,7 @@ class A2 {
   int y2() {return 0;}
 }''');
     addTestSource('''
-import "/testB.dart";
+import "testB.dart";
 class A1 {
   int x;
   int y() {return 0;}
@@ -554,9 +561,7 @@ foo() {^}
   }
 
   test_static_field() async {
-    resolveSource(
-        '/testB.dart',
-        '''
+    resolveSource('/testB.dart', '''
 lib libB;
 class A2 {
   int x;
@@ -565,7 +570,7 @@ class A2 {
   int y2() {return 0;}
 }''');
     addTestSource('''
-import "/testB.dart";
+import "testB.dart";
 class A1 {
   int x;
   int y() {return 0;}
@@ -597,9 +602,7 @@ class B extends A1 with A2 {
   }
 
   test_static_method() async {
-    resolveSource(
-        '/testB.dart',
-        '''
+    resolveSource('/testB.dart', '''
 lib libB;
 class A2 {
   int x;
@@ -608,7 +611,7 @@ class A2 {
   int y2() {return 0;}
 }''');
     addTestSource('''
-import "/testB.dart";
+import "testB.dart";
 class A1 {
   int x;
   int y() {return 0;}
@@ -637,5 +640,38 @@ class B extends A1 with A2 {
     assertNotSuggested('y1');
     assertNotSuggested('x2');
     assertNotSuggested('y2');
+  }
+
+  Future<void> _check_flutter_setState(
+      String line, String completion, int selectionOffset) async {
+    addFlutterPackage();
+    addTestSource('''
+import 'package:flutter/widgets.dart';
+
+class TestWidget extends StatefulWidget {
+  @override
+  TestWidgetState createState() {
+    return new TestWidgetState();
+  }
+}
+
+class TestWidgetState extends State<TestWidget> {
+  @override
+  Widget build(BuildContext context) {
+$line^
+  }
+}
+''');
+    await computeSuggestions();
+    CompletionSuggestion cs =
+        assertSuggest(completion, selectionOffset: selectionOffset);
+    expect(cs.selectionLength, 0);
+
+    // It is an invocation, but we don't need any additional info for it.
+    // So, all parameter information is absent.
+    expect(cs.parameterNames, isNull);
+    expect(cs.parameterTypes, isNull);
+    expect(cs.requiredParameterCount, isNull);
+    expect(cs.hasNamedParameters, isNull);
   }
 }

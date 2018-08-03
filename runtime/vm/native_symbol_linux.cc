@@ -15,9 +15,7 @@ namespace dart {
 
 void NativeSymbolResolver::InitOnce() {}
 
-
 void NativeSymbolResolver::ShutdownOnce() {}
-
 
 char* NativeSymbolResolver::LookupSymbolName(uintptr_t pc, uintptr_t* start) {
   Dl_info info;
@@ -41,11 +39,9 @@ char* NativeSymbolResolver::LookupSymbolName(uintptr_t pc, uintptr_t* start) {
   return strdup(info.dli_sname);
 }
 
-
 void NativeSymbolResolver::FreeSymbolName(char* name) {
   free(name);
 }
-
 
 bool NativeSymbolResolver::LookupSharedObject(uword pc,
                                               uword* dso_base,

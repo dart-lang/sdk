@@ -1,0 +1,21 @@
+// Errors:
+//
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_generic_function_in_bound_regress.dart:11:12: Error: Type variables can't have generic function types in their bounds.
+// class Fisk<TypeY extends Function<TypeZ extends Hest<Null>>(TypeZ)> {}
+//            ^^^^^
+
+library;
+import self as self;
+import "dart:core" as core;
+
+class Hest<TypeX extends self::Hest<self::Hest::TypeX> = self::Hest<dynamic>> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class Fisk<TypeY extends <TypeZ extends self::Hest<core::Null> = dynamic>(TypeZ) → dynamic = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

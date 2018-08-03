@@ -12,7 +12,7 @@ part of dart.core;
  *
  * When you define a class, you should override [toString]
  * to return a string describing an instance of that class.
- * You might also need to define [hashCode] and [==], as described in the
+ * You might also need to define [hashCode] and [operator ==], as described in the
  * [Implementing map
  * keys](https://www.dartlang.org/docs/dart-up-and-running/ch03.html#implementing-map-keys)
  * section of the [library
@@ -62,18 +62,18 @@ class Object {
    * The hash code for this object.
    *
    * A hash code is a single integer which represents the state of the object
-   * that affects [==] comparisons.
+   * that affects [operator ==] comparisons.
    *
    * All objects have hash codes.
    * The default hash code represents only the identity of the object,
-   * the same way as the default [==] implementation only considers objects
+   * the same way as the default [operator ==] implementation only considers objects
    * equal if they are identical (see [identityHashCode]).
    *
-   * If [==] is overridden to use the object state instead,
+   * If [operator ==] is overridden to use the object state instead,
    * the hash code must also be changed to represent that state.
    *
    * Hash codes must be the same for objects that are equal to each other
-   * according to [==].
+   * according to [operator ==].
    * The hash code of an object should only change if the object changes
    * in a way that affects equality.
    * There are no further requirements for the hash codes.
@@ -86,7 +86,7 @@ class Object {
    * data structures like [HashSet] or [HashMap].
    *
    * If a subclass overrides [hashCode], it should override the
-   * [==] operator as well to maintain consistency.
+   * [operator ==] operator as well to maintain consistency.
    */
   external int get hashCode;
 

@@ -15,86 +15,88 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   const JSArray();
 
   /**
-   * Constructor for adding type parameters to an existing JavaScript Array.
-   */
-  factory JSArray.typed(allocation) =>
-      // TODO(jmesserly): skip this when E is dynamic and Object.
-      JS('-dynamic', 'dart.list(#, #)', allocation, E);
-
-  /**
    * Constructor for adding type parameters to an existing JavaScript
    * Array. Used for creating literal lists.
    */
-  factory JSArray.of(allocation) {
+  factory JSArray.of(list) {
     // TODO(sra): Move this to core.List for better readability.
-    // Capture the parameterized ES6 'JSArray' class.
-    return JS('-dynamic', 'dart.setType(#, JSArray)', allocation);
+    //
+    // TODO(jmesserly): this uses special compiler magic to close over the
+    // parameterized ES6 'JSArray' class.
+    JS('', '#.__proto__ = JSArray.prototype', list);
+    return JS('-dynamic', '#', list);
   }
 
   // TODO(jmesserly): consider a fixed array subclass instead.
-  factory JSArray.markFixed(allocation) =>
-      new JSArray<E>.typed(markFixedList(allocation));
-
-  factory JSArray.markGrowable(allocation) = JSArray<E>.typed;
-
-  static List markFixedList(List list) {
-    // Functions are stored in the hidden class and not as properties in
-    // the object. We never actually look at the value, but only want
-    // to know if the property exists.
-    JS('void', r'#.fixed$length = Array', list);
-    return JS('JSFixedArray', '#', list);
+  factory JSArray.fixed(list) {
+    JS('', '#.__proto__ = JSArray.prototype', list);
+    JS('', r'#.fixed$length = Array', list);
+    return JS('-dynamic', '#', list);
   }
 
-  static List markUnmodifiableList(List list) {
+  factory JSArray.unmodifiable(list) {
+    JS('', '#.__proto__ = JSArray.prototype', list);
+    JS('', r'#.fixed$length = Array', list);
+    JS('', r'#.immutable$list = Array', list);
+    return JS('-dynamic', '#', list);
+  }
+
+  static void markFixedList(list) {
     // Functions are stored in the hidden class and not as properties in
     // the object. We never actually look at the value, but only want
     // to know if the property exists.
-    JS('void', r'#.fixed$length = Array', list);
-    JS('void', r'#.immutable$list = Array', list);
-    return JS('JSUnmodifiableArray', '#', list);
+    JS('', r'#.fixed$length = Array', list);
+  }
+
+  static void markUnmodifiableList(list) {
+    // Functions are stored in the hidden class and not as properties in
+    // the object. We never actually look at the value, but only want
+    // to know if the property exists.
+    JS('', r'#.fixed$length = Array', list);
+    JS('', r'#.immutable$list = Array', list);
   }
 
   checkMutable(reason) {
     if (JS('bool', r'#.immutable$list', this)) {
-      throw new UnsupportedError(reason);
+      throw UnsupportedError(reason);
     }
   }
 
   checkGrowable(reason) {
     if (JS('bool', r'#.fixed$length', this)) {
-      throw new UnsupportedError(reason);
+      throw UnsupportedError(reason);
     }
   }
 
+  List<R> cast<R>() => List.castFrom<E, R>(this);
   void add(E value) {
     checkGrowable('add');
     JS('void', r'#.push(#)', this, value);
   }
 
-  E removeAt(int index) {
+  E removeAt(@nullCheck int index) {
     checkGrowable('removeAt');
-    if (index is! int) throw argumentErrorValue(index);
     if (index < 0 || index >= length) {
-      throw new RangeError.value(index);
+      throw RangeError.value(index);
     }
     return JS('-dynamic', r'#.splice(#, 1)[0]', this, index);
   }
 
-  void insert(int index, E value) {
+  void insert(@nullCheck int index, E value) {
     checkGrowable('insert');
-    if (index is! int) throw argumentErrorValue(index);
     if (index < 0 || index > length) {
-      throw new RangeError.value(index);
+      throw RangeError.value(index);
     }
     JS('void', r'#.splice(#, 0, #)', this, index, value);
   }
 
-  void insertAll(int index, Iterable<E> iterable) {
+  void insertAll(@nullCheck int index, Iterable<E> iterable) {
     checkGrowable('insertAll');
     RangeError.checkValueInInterval(index, 0, this.length, "index");
     if (iterable is! EfficientLengthIterable) {
       iterable = iterable.toList();
     }
+    @nullCheck
     int insertionLength = iterable.length;
     this.length += insertionLength;
     int end = index + insertionLength;
@@ -102,7 +104,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     this.setRange(index, end, iterable);
   }
 
-  void setAll(int index, Iterable<E> iterable) {
+  void setAll(@nullCheck int index, Iterable<E> iterable) {
     checkMutable('setAll');
     RangeError.checkValueInInterval(index, 0, this.length, "index");
     for (var element in iterable) {
@@ -118,7 +120,8 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
 
   bool remove(Object element) {
     checkGrowable('remove');
-    for (int i = 0; i < this.length; i++) {
+    var length = this.length;
+    for (int i = 0; i < length; i++) {
       if (this[i] == element) {
         JS('var', r'#.splice(#, 1)', this, i);
         return true;
@@ -153,33 +156,35 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     for (int i = 0; i < end; i++) {
       // TODO(22407): Improve bounds check elimination to allow this JS code to
       // be replaced by indexing.
-      var element = JS('', '#[#]', this, i);
+      E element = JS('-dynamic', '#[#]', this, i);
       // !test() ensures bool conversion in checked mode.
       if (!test(element) == removeMatching) {
         retained.add(element);
       }
-      if (this.length != end) throw new ConcurrentModificationError(this);
+      if (this.length != end) throw ConcurrentModificationError(this);
     }
     if (retained.length == end) return;
     this.length = retained.length;
-    for (int i = 0; i < retained.length; i++) {
-      this[i] = retained[i];
+    @nullCheck
+    var length = retained.length;
+    for (int i = 0; i < length; i++) {
+      JS('', '#[#] = #[#]', this, i, retained, i);
     }
   }
 
   Iterable<E> where(bool f(E element)) {
-    return new WhereIterable<E>(this, f);
+    return WhereIterable<E>(this, f);
   }
 
-  Iterable/*<T>*/ expand/*<T>*/(Iterable/*<T>*/ f(E element)) {
-    return new ExpandIterable<E, dynamic/*=T*/ >(this, f);
+  Iterable<T> expand<T>(Iterable<T> f(E element)) {
+    return ExpandIterable<E, T>(this, f);
   }
 
   void addAll(Iterable<E> collection) {
     int i = this.length;
     checkGrowable('addAll');
     for (E e in collection) {
-      assert(i == this.length || (throw new ConcurrentModificationError(this)));
+      assert(i == this.length || (throw ConcurrentModificationError(this)));
       i++;
       JS('void', r'#.push(#)', this, e);
     }
@@ -196,36 +201,37 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
       // be replaced by indexing.
       var/*=E*/ element = JS('', '#[#]', this, i);
       f(element);
-      if (this.length != end) throw new ConcurrentModificationError(this);
+      if (this.length != end) throw ConcurrentModificationError(this);
     }
   }
 
-  Iterable/*<T>*/ map/*<T>*/(/*=T*/ f(E element)) {
-    return new MappedListIterable<E, T>(this, f);
+  Iterable<T> map<T>(T f(E element)) {
+    return MappedListIterable<E, T>(this, f);
   }
 
   String join([String separator = ""]) {
-    var list = new List(this.length);
-    for (int i = 0; i < this.length; i++) {
+    var length = this.length;
+    var list = List(length);
+    for (int i = 0; i < length; i++) {
       list[i] = "${this[i]}";
     }
     return JS('String', "#.join(#)", list, separator);
   }
 
   Iterable<E> take(int n) {
-    return new SubListIterable<E>(this, 0, n);
+    return SubListIterable<E>(this, 0, n);
   }
 
   Iterable<E> takeWhile(bool test(E value)) {
-    return new TakeWhileIterable<E>(this, test);
+    return TakeWhileIterable<E>(this, test);
   }
 
   Iterable<E> skip(int n) {
-    return new SubListIterable<E>(this, n, null);
+    return SubListIterable<E>(this, n, null);
   }
 
   Iterable<E> skipWhile(bool test(E value)) {
-    return new SkipWhileIterable<E>(this, test);
+    return SkipWhileIterable<E>(this, test);
   }
 
   E reduce(E combine(E previousValue, E element)) {
@@ -237,22 +243,20 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
       // be replaced by indexing.
       var/*=E*/ element = JS('', '#[#]', this, i);
       value = combine(value, element);
-      if (length != this.length) throw new ConcurrentModificationError(this);
+      if (length != this.length) throw ConcurrentModificationError(this);
     }
     return value;
   }
 
-  /*=T*/ fold/*<T>*/(
-      /*=T*/ initialValue,
-      /*=T*/ combine(/*=T*/ previousValue, E element)) {
-    var/*=T*/ value = initialValue;
+  T fold<T>(T initialValue, T combine(T previousValue, E element)) {
+    var value = initialValue;
     int length = this.length;
     for (int i = 0; i < length; i++) {
       // TODO(22407): Improve bounds check elimination to allow this JS code to
       // be replaced by indexing.
       var/*=E*/ element = JS('', '#[#]', this, i);
       value = combine(value, element);
-      if (this.length != length) throw new ConcurrentModificationError(this);
+      if (this.length != length) throw ConcurrentModificationError(this);
     }
     return value;
   }
@@ -264,7 +268,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
       // be replaced by indexing.
       var/*=E*/ element = JS('', '#[#]', this, i);
       if (test(element)) return element;
-      if (this.length != end) throw new ConcurrentModificationError(this);
+      if (this.length != end) throw ConcurrentModificationError(this);
     }
     if (orElse != null) return orElse();
     throw IterableElementError.noElement();
@@ -278,21 +282,21 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
       var/*=E*/ element = JS('', '#[#]', this, i);
       if (test(element)) return element;
       if (length != this.length) {
-        throw new ConcurrentModificationError(this);
+        throw ConcurrentModificationError(this);
       }
     }
     if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
 
-  E singleWhere(bool test(E element)) {
+  E singleWhere(bool test(E element), {E orElse()}) {
     int length = this.length;
     E match = null;
     bool matchFound = false;
     for (int i = 0; i < length; i++) {
       // TODO(22407): Improve bounds check elimination to allow this JS code to
       // be replaced by indexing.
-      var element = JS('', '#[#]', this, i);
+      E element = JS('-dynamic', '#[#]', this, i);
       if (test(element)) {
         if (matchFound) {
           throw IterableElementError.tooMany();
@@ -301,10 +305,11 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
         match = element;
       }
       if (length != this.length) {
-        throw new ConcurrentModificationError(this);
+        throw ConcurrentModificationError(this);
       }
     }
     if (matchFound) return match;
+    if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
 
@@ -312,27 +317,26 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     return this[index];
   }
 
-  List<E> sublist(int start, [int end]) {
-    checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
-    if (start is! int) throw argumentErrorValue(start);
+  List<E> sublist(@nullCheck int start, [int end]) {
     if (start < 0 || start > length) {
-      throw new RangeError.range(start, 0, length, "start");
+      throw RangeError.range(start, 0, length, "start");
     }
     if (end == null) {
       end = length;
     } else {
-      if (end is! int) throw argumentErrorValue(end);
-      if (end < start || end > length) {
-        throw new RangeError.range(end, start, length, "end");
+      @notNull
+      var _end = end;
+      if (_end < start || _end > length) {
+        throw RangeError.range(end, start, length, "end");
       }
     }
     if (start == end) return <E>[];
-    return new JSArray<E>.typed(JS('', r'#.slice(#, #)', this, start, end));
+    return JSArray<E>.of(JS('', r'#.slice(#, #)', this, start, end));
   }
 
   Iterable<E> getRange(int start, int end) {
     RangeError.checkValidRange(start, end, this.length);
-    return new SubListIterable<E>(this, start, end);
+    return SubListIterable<E>(this, start, end);
   }
 
   E get first {
@@ -351,14 +355,15 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     throw IterableElementError.tooMany();
   }
 
-  void removeRange(int start, int end) {
+  void removeRange(@nullCheck int start, @nullCheck int end) {
     checkGrowable('removeRange');
     RangeError.checkValidRange(start, end, this.length);
     int deleteCount = end - start;
     JS('', '#.splice(#, #)', this, start, deleteCount);
   }
 
-  void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
+  void setRange(@nullCheck int start, @nullCheck int end, Iterable<E> iterable,
+      [@nullCheck int skipCount = 0]) {
     checkMutable('set range');
 
     RangeError.checkValidRange(start, end, this.length);
@@ -366,10 +371,10 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     if (length == 0) return;
     RangeError.checkNotNegative(skipCount, "skipCount");
 
-    List/*<E>*/ otherList;
-    int otherStart;
+    List<E> otherList;
+    int otherStart = 0;
     // TODO(floitsch): Make this accept more.
-    if (iterable is List) {
+    if (iterable is List<E>) {
       otherList = iterable;
       otherStart = skipCount;
     } else {
@@ -398,7 +403,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     }
   }
 
-  void fillRange(int start, int end, [E fillValue]) {
+  void fillRange(@nullCheck int start, @nullCheck int end, [E fillValue]) {
     checkMutable('fill range');
     RangeError.checkValidRange(start, end, this.length);
     for (int i = start; i < end; i++) {
@@ -407,13 +412,15 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     }
   }
 
-  void replaceRange(int start, int end, Iterable<E> replacement) {
+  void replaceRange(
+      @nullCheck int start, @nullCheck int end, Iterable<E> replacement) {
     checkGrowable('replace range');
     RangeError.checkValidRange(start, end, this.length);
     if (replacement is! EfficientLengthIterable) {
       replacement = replacement.toList();
     }
     int removeLength = end - start;
+    @nullCheck
     int insertLength = replacement.length;
     if (removeLength >= insertLength) {
       int delta = removeLength - insertLength;
@@ -441,7 +448,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
       // be replaced by indexing.
       var/*=E*/ element = JS('', '#[#]', this, i);
       if (test(element)) return true;
-      if (this.length != end) throw new ConcurrentModificationError(this);
+      if (this.length != end) throw ConcurrentModificationError(this);
     }
     return false;
   }
@@ -451,14 +458,14 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     for (int i = 0; i < end; i++) {
       // TODO(22407): Improve bounds check elimination to allow this JS code to
       // be replaced by indexing.
-      var/*=E*/ element = JS('', '#[#]', this, i);
+      E element = JS('-dynamic', '#[#]', this, i);
       if (!test(element)) return false;
-      if (this.length != end) throw new ConcurrentModificationError(this);
+      if (this.length != end) throw ConcurrentModificationError(this);
     }
     return true;
   }
 
-  Iterable<E> get reversed => new ReversedListIterable<E>(this);
+  Iterable<E> get reversed => ReversedListIterable<E>(this);
 
   void sort([int compare(E a, E b)]) {
     checkMutable('sort');
@@ -471,7 +478,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
 
   void shuffle([Random random]) {
     checkMutable('shuffle');
-    if (random == null) random = new Random();
+    if (random == null) random = Random();
     int length = this.length;
     while (length > 1) {
       int pos = random.nextInt(length);
@@ -482,14 +489,15 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     }
   }
 
-  int indexOf(Object element, [int start = 0]) {
-    if (start >= this.length) {
+  int indexOf(Object element, [@nullCheck int start = 0]) {
+    int length = this.length;
+    if (start >= length) {
       return -1;
     }
     if (start < 0) {
       start = 0;
     }
-    for (int i = start; i < this.length; i++) {
+    for (int i = start; i < length; i++) {
       if (this[i] == element) {
         return i;
       }
@@ -497,16 +505,13 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     return -1;
   }
 
-  int lastIndexOf(Object element, [int startIndex]) {
-    if (startIndex == null) {
+  int lastIndexOf(Object element, [int _startIndex]) {
+    @notNull
+    int startIndex = _startIndex ?? this.length - 1;
+    if (startIndex >= this.length) {
       startIndex = this.length - 1;
-    } else {
-      if (startIndex < 0) {
-        return -1;
-      }
-      if (startIndex >= this.length) {
-        startIndex = this.length - 1;
-      }
+    } else if (startIndex < 0) {
+      return -1;
     }
     for (int i = startIndex; i >= 0; i--) {
       if (this[i] == element) {
@@ -517,40 +522,45 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   }
 
   bool contains(Object other) {
+    var length = this.length;
     for (int i = 0; i < length; i++) {
-      if (this[i] == other) return true;
+      E element = JS('Null', '#[#]', this, i);
+      if (element == other) return true;
     }
     return false;
   }
 
+  @notNull
   bool get isEmpty => length == 0;
 
+  @notNull
   bool get isNotEmpty => !isEmpty;
 
   String toString() => ListBase.listToString(this);
 
-  List<E> toList({bool growable: true}) {
+  List<E> toList({@nullCheck bool growable = true}) {
     var list = JS('', '#.slice()', this);
     if (!growable) markFixedList(list);
-    return new JSArray<E>.typed(list);
+    return JSArray<E>.of(list);
   }
 
-  Set<E> toSet() => new Set<E>.from(this);
+  Set<E> toSet() => Set<E>.from(this);
 
-  Iterator<E> get iterator => new ArrayIterator<E>(this);
+  Iterator<E> get iterator => ArrayIterator<E>(this);
 
-  int get hashCode => Primitives.objectHashCode(this);
+  int get hashCode => identityHashCode(this);
 
+  @notNull
+  bool operator ==(other) => identical(this, other);
+
+  @notNull
   int get length => JS('int', r'#.length', this);
 
-  void set length(int newLength) {
+  void set length(@nullCheck int newLength) {
     checkGrowable('set length');
-    if (newLength is! int) {
-      throw new ArgumentError.value(newLength, 'newLength');
-    }
     // TODO(sra): Remove this test and let JavaScript throw an error.
     if (newLength < 0) {
-      throw new RangeError.range(newLength, 0, null, 'newLength');
+      throw RangeError.range(newLength, 0, null, 'newLength');
     }
     // JavaScript with throw a RangeError for numbers that are too big. The
     // message does not contain the value.
@@ -558,20 +568,71 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   }
 
   E operator [](int index) {
-    if (index is! int) throw diagnoseIndexError(this, index);
-    if (index >= length || index < 0) throw diagnoseIndexError(this, index);
+    // Suppress redundant null checks via JS.
+    if (index == null ||
+        JS('int', '#', index) >= JS('int', '#.length', this) ||
+        JS('int', '#', index) < 0) {
+      throw diagnoseIndexError(this, index);
+    }
     return JS('var', '#[#]', this, index);
   }
 
   void operator []=(int index, E value) {
     checkMutable('indexed set');
-    if (index is! int) throw diagnoseIndexError(this, index);
-    if (index >= length || index < 0) throw diagnoseIndexError(this, index);
+    if (index == null ||
+        JS('int', '#', index) >= JS('int', '#.length', this) ||
+        JS('int', '#', index) < 0) {
+      throw diagnoseIndexError(this, index);
+    }
     JS('void', r'#[#] = #', this, index, value);
   }
 
   Map<int, E> asMap() {
-    return new ListMapView<E>(this);
+    return ListMapView<E>(this);
+  }
+
+  Type get runtimeType =>
+      dart.wrapType(JS('', '#(#)', dart.getGenericClass(List), E));
+
+  Iterable<E> followedBy(Iterable<E> other) =>
+      FollowedByIterable<E>.firstEfficient(this, other);
+
+  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
+
+  List<E> operator +(List<E> other) {
+    int totalLength = this.length + other.length;
+    return <E>[]
+      ..length = totalLength
+      ..setRange(0, this.length, this)
+      ..setRange(this.length, totalLength, other);
+  }
+
+  int indexWhere(bool test(E element), [int start = 0]) {
+    if (start >= this.length) return -1;
+    if (start < 0) start = 0;
+    for (int i = start; i < this.length; i++) {
+      if (test(this[i])) return i;
+    }
+    return -1;
+  }
+
+  int lastIndexWhere(bool test(E element), [int start]) {
+    if (start == null) start = this.length - 1;
+    if (start < 0) return -1;
+    for (int i = start; i >= 0; i--) {
+      if (test(this[i])) return i;
+    }
+    return -1;
+  }
+
+  void set first(E element) {
+    if (this.isEmpty) throw RangeError.index(0, this);
+    this[0] = element;
+  }
+
+  void set last(E element) {
+    if (this.isEmpty) throw RangeError.index(0, this);
+    this[this.length - 1] = element;
   }
 }
 
@@ -598,7 +659,9 @@ class JSUnmodifiableArray<E> extends JSArray<E> {} // Already is JSIndexable.
 ///
 class ArrayIterator<E> implements Iterator<E> {
   final JSArray<E> _iterable;
+  @notNull
   final int _length;
+  @notNull
   int _index;
   E _current;
 
@@ -610,6 +673,7 @@ class ArrayIterator<E> implements Iterator<E> {
   E get current => _current;
 
   bool moveNext() {
+    @notNull
     int length = _iterable.length;
 
     // We have to do the length check even on fixed length Arrays.  If we can

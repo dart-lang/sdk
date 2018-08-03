@@ -17,7 +17,6 @@
 #include "platform/hashmap.h"
 #include "platform/signal_blocker.h"
 
-
 namespace dart {
 namespace bin {
 
@@ -50,7 +49,6 @@ class DescriptorInfo : public DescriptorInfoBase {
   DISALLOW_COPY_AND_ASSIGN(DescriptorInfo);
 };
 
-
 class DescriptorInfoSingle : public DescriptorInfoSingleMixin<DescriptorInfo> {
  public:
   explicit DescriptorInfoSingle(intptr_t fd)
@@ -60,7 +58,6 @@ class DescriptorInfoSingle : public DescriptorInfoSingleMixin<DescriptorInfo> {
  private:
   DISALLOW_COPY_AND_ASSIGN(DescriptorInfoSingle);
 };
-
 
 class DescriptorInfoMultiple
     : public DescriptorInfoMultipleMixin<DescriptorInfo> {
@@ -72,7 +69,6 @@ class DescriptorInfoMultiple
  private:
   DISALLOW_COPY_AND_ASSIGN(DescriptorInfoMultiple);
 };
-
 
 class EventHandlerImplementation {
  public:

@@ -1,0 +1,23 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+class B extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class X<T extends self::B = self::B> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class Y extends self::X<self::B> {
+  synthetic constructor •() → void
+    : super self::X::•()
+    ;
+}
+static method main() → void {
+  exp::Expect::isTrue(new self::Y::•() is self::X<self::B>);
+}

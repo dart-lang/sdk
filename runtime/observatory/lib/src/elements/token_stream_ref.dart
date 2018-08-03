@@ -27,7 +27,7 @@ class TokenStreamRefElement extends HtmlElement implements Renderable {
     assert(isolate != null);
     assert(token != null);
     TokenStreamRefElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<TokenStreamRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._token = token;
     return e;
@@ -45,14 +45,14 @@ class TokenStreamRefElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
     final text = (_token.name == null || _token.name == '')
         ? 'TokenStream'
         : _token.name;
-    children = [
+    children = <Element>[
       new AnchorElement(href: Uris.inspect(_isolate, object: _token))
         ..text = text
     ];

@@ -7,9 +7,7 @@
 part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
-  $if DART2JS
     @Creates('Null')  // Set from Dart code; does not instantiate a native type.
-  $endif
   var _dartDetail;
 
   factory $CLASSNAME(String type,
@@ -35,7 +33,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     return e;
   }
 
-  @DomName('CustomEvent.detail')
   get detail {
     if (_dartDetail != null) {
       return _dartDetail;

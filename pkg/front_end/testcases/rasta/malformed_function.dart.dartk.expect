@@ -1,6 +1,0 @@
-library;
-import self as self;
-
-static method main() → dynamic {
-  let final dynamic #t1 = null in invalid-expression;
-}

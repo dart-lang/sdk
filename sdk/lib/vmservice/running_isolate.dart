@@ -13,8 +13,12 @@ class RunningIsolate implements MessageRouter {
 
   String get serviceId => 'isolates/$portId';
 
-  Future<String> route(Message message) {
+  @override
+  Future<Response> routeRequest(VMService service, Message message) {
     // Send message to isolate.
-    return message.send(sendPort);
+    return message.sendToIsolate(sendPort);
   }
+
+  @override
+  void routeResponse(Message message) {}
 }

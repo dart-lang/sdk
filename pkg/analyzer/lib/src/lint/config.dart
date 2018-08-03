@@ -2,16 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/util/yaml.dart';
 import 'package:yaml/yaml.dart';
 
 /**
  * Parse the given map into a lint config.
  */
-LintConfig parseConfig(Map optionsMap) {
+LintConfig parseConfig(YamlMap optionsMap) {
   if (optionsMap != null) {
-    var options = optionsMap['linter'];
+    var options = getValue(optionsMap, 'linter');
     // Quick check of basic contract.
-    if (options is Map) {
+    if (options is YamlMap) {
       return new LintConfig.parseMap(options);
     }
   }
@@ -37,7 +38,8 @@ abstract class LintConfig {
   factory LintConfig.parse(String source, {String sourceUrl}) =>
       new _LintConfig().._parse(source, sourceUrl: sourceUrl);
 
-  factory LintConfig.parseMap(Map map) => new _LintConfig().._parseMap(map);
+  factory LintConfig.parseMap(YamlMap map) =>
+      new _LintConfig().._parseYaml(map);
 
   List<String> get fileExcludes;
   List<String> get fileIncludes;
@@ -76,14 +78,15 @@ class _LintConfig implements LintConfig {
   }
 
   bool asBool(scalar) {
-    if (scalar is bool) {
-      return scalar;
+    Object value = scalar is YamlScalar ? scalar.value : scalar;
+    if (value is bool) {
+      return value;
     }
-    if (scalar is String) {
-      if (scalar == 'true') {
+    if (value is String) {
+      if (value == 'true') {
         return true;
       }
-      if (scalar == 'false') {
+      if (value == 'false') {
         return false;
       }
     }
@@ -91,8 +94,9 @@ class _LintConfig implements LintConfig {
   }
 
   String asString(scalar) {
-    if (scalar is String) {
-      return scalar;
+    Object value = scalar is YamlScalar ? scalar.value : scalar;
+    if (value is String) {
+      return value;
     }
     return null;
   }
@@ -110,71 +114,6 @@ class _LintConfig implements LintConfig {
     if (yaml is YamlMap) {
       _parseYaml(yaml);
     }
-  }
-
-  void _parseMap(Map options) {
-    //TODO(pq): unify map parsing.
-    if (options is YamlMap) {
-      _parseYaml(options);
-    } else {
-      _parseRawMap(options);
-    }
-  }
-
-  void _parseRawMap(Map options) {
-    options.forEach((k, v) {
-      if (k is! String) {
-        return;
-      }
-      String key = k;
-      switch (key) {
-        case 'files':
-          if (v is Map) {
-            addAsListOrString(v['include'], fileIncludes);
-            addAsListOrString(v['exclude'], fileExcludes);
-          }
-          break;
-
-        case 'rules':
-          // - unnecessary_getters
-          // - camel_case_types
-          if (v is List) {
-            v.forEach((rule) {
-              var config = new _RuleConfig();
-              config.name = asString(rule);
-              config.args = {'enabled': true};
-              ruleConfigs.add(config);
-            });
-          }
-
-          // {unnecessary_getters: false, camel_case_types: true}
-          if (v is Map) {
-            v.forEach((key, value) {
-              // style_guide: {unnecessary_getters: false, camel_case_types: true}
-              if (value is Map) {
-                value.forEach((rule, args) {
-                  // unnecessary_getters: false
-                  var config = new _RuleConfig();
-                  config.group = key;
-                  config.name = asString(rule);
-                  config.args = parseArgs(args);
-                  ruleConfigs.add(config);
-                });
-              } else {
-                //{unnecessary_getters: false}
-                value = asBool(value);
-                if (value != null) {
-                  var config = new _RuleConfig();
-                  config.name = asString(key);
-                  config.args = {'enabled': value};
-                  ruleConfigs.add(config);
-                }
-              }
-            });
-          }
-          break;
-      }
-    });
   }
 
   void _parseYaml(YamlMap yaml) {
@@ -195,8 +134,8 @@ class _LintConfig implements LintConfig {
 
           // - unnecessary_getters
           // - camel_case_types
-          if (v is List) {
-            (v as List).forEach((rule) {
+          if (v is YamlList) {
+            v.nodes.forEach((rule) {
               var config = new _RuleConfig();
               config.name = asString(rule);
               config.args = {'enabled': true};
@@ -206,22 +145,22 @@ class _LintConfig implements LintConfig {
 
           // style_guide: {unnecessary_getters: false, camel_case_types: true}
           if (v is YamlMap) {
-            v.forEach((key, value) {
+            v.nodes.forEach((key, value) {
               //{unnecessary_getters: false}
-              if (value is bool) {
+              if (asBool(value) != null) {
                 var config = new _RuleConfig();
                 config.name = asString(key);
-                config.args = {'enabled': value};
+                config.args = {'enabled': asBool(value)};
                 ruleConfigs.add(config);
               }
 
               // style_guide: {unnecessary_getters: false, camel_case_types: true}
               if (value is YamlMap) {
-                value.forEach((rule, args) {
+                value.nodes.forEach((rule, args) {
                   // TODO: verify format
                   // unnecessary_getters: false
                   var config = new _RuleConfig();
-                  config.group = key;
+                  config.group = asString(key);
                   config.name = asString(rule);
                   config.args = parseArgs(args);
                   ruleConfigs.add(config);

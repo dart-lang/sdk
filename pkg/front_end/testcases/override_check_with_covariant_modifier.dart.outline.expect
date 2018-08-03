@@ -1,0 +1,46 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → void
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → void
+    ;
+}
+class C extends core::Object {
+  synthetic constructor •() → void
+    ;
+  method f1(covariant self::A x) → void
+    ;
+  method f2(self::A x) → void
+    ;
+  method f3(covariant self::A x) → void
+    ;
+  method f4(self::A x) → void
+    ;
+  method f5(covariant self::A x) → void
+    ;
+  method f6(covariant self::B x) → void
+    ;
+}
+class D extends self::C {
+  synthetic constructor •() → void
+    ;
+  method f1(self::B x) → void
+    ;
+  method f2(covariant self::B x) → void
+    ;
+  method f3(covariant self::B x) → void
+    ;
+  method f4(self::B x) → void
+    ;
+  method f5(covariant core::String x) → void
+    ;
+  method f6(covariant self::A x) → void
+    ;
+}
+static method main() → dynamic
+  ;

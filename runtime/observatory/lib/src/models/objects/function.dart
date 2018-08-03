@@ -7,6 +7,7 @@ part of models;
 enum FunctionKind {
   regular,
   closure,
+  implicitClosure,
   getter,
   setter,
   constructor,
@@ -22,7 +23,8 @@ enum FunctionKind {
   native,
   stub,
   tag,
-  signatureFunction
+  signatureFunction,
+  dynamicInvocationForwarder
 }
 
 bool isSyntheticFunction(FunctionKind kind) {
@@ -74,7 +76,7 @@ abstract class FunctionRef extends ObjectRef {
   FunctionKind get kind;
 }
 
-abstract class Function extends Object implements FunctionRef {
+abstract class ServiceFunction extends Object implements FunctionRef {
   /// The location of this function in the source code. [optional]
   SourceLocation get location;
 

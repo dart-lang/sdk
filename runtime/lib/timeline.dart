@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// part of "developer.dart";
+
 @patch
 bool _isDartStreamEnabled() native "Timeline_isDartStreamEnabled";
 
@@ -15,15 +17,16 @@ int _getThreadCpuClock() native "Timeline_getThreadCpuClock";
 int _getNextAsyncId() native "Timeline_getNextAsyncId";
 
 @patch
-int _getIsolateNum() native "Timeline_getIsolateNum";
-
-@patch
 void _reportTaskEvent(int start, int taskId, String phase, String category,
     String name, String argumentsAsJson) native "Timeline_reportTaskEvent";
 
 @patch
 void _reportCompleteEvent(int start, int startCpu, String category, String name,
     String argumentsAsJson) native "Timeline_reportCompleteEvent";
+
+@patch
+void _reportFlowEvent(int start, int startCpu, String category, String name,
+    int type, int id, String argumentsAsJson) native "Timeline_reportFlowEvent";
 
 @patch
 void _reportInstantEvent(int start, String category, String name,

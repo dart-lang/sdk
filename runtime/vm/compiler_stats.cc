@@ -10,7 +10,6 @@
 #include "vm/object_store.h"
 #include "vm/timer.h"
 
-
 namespace dart {
 
 DEFINE_FLAG(bool, compiler_stats, false, "Compiler stat counters.");
@@ -18,7 +17,6 @@ DEFINE_FLAG(bool,
             compiler_benchmark,
             false,
             "Compiler stat counters for benchmark.");
-
 
 class TokenStreamVisitor : public ObjectVisitor {
  public:
@@ -48,7 +46,6 @@ class TokenStreamVisitor : public ObjectVisitor {
   CompilerStats* stats_;
 };
 
-
 CompilerStats::CompilerStats(Isolate* isolate)
     : isolate_(isolate),
 #define INITIALIZE_TIMER(timer_name, description) timer_name(true, description),
@@ -62,9 +59,7 @@ CompilerStats::CompilerStats(Isolate* isolate)
       use_benchmark_output(false) {
 }
 
-
 #ifndef PRODUCT
-
 
 // Used to aggregate stats. Must be atomic.
 void CompilerStats::Add(const CompilerStats& other) {
@@ -80,7 +75,6 @@ void CompilerStats::Add(const CompilerStats& other) {
 #undef ADD_COUNTER
 }
 
-
 void CompilerStats::Clear() {
 #define CLEAR_TIMER(timer_name, literal) timer_name.Reset();
 
@@ -92,7 +86,6 @@ void CompilerStats::Clear() {
   STAT_COUNTERS(CLEAR_COUNTER)
 #undef CLEAR_COUNTER
 }
-
 
 bool CompilerStats::IsCleared() const {
 #define CHECK_TIMERS(timer_name, literal)                                      \
@@ -108,7 +101,6 @@ bool CompilerStats::IsCleared() const {
 #undef CHECK_COUNTERS
   return true;
 }
-
 
 // This function is used as a callback in the log object to which the
 // compiler stats are printed. It will be called only once, to print
@@ -127,22 +119,23 @@ static void PrintToStats(const char* format, ...) {
   va_end(args);
 }
 
-
 void CompilerStats::Update() {
   // Traverse the heap and compute number of tokens in all
   // TokenStream objects.
   num_tokens_total = 0;
-  TokenStreamVisitor visitor(this);
-  isolate_->heap()->IterateObjects(&visitor);
-  Dart::vm_isolate()->heap()->IterateObjects(&visitor);
-}
 
+  {
+    HeapIterationScope iteration(Thread::Current());
+    TokenStreamVisitor visitor(this);
+    iteration.IterateObjects(&visitor);
+    iteration.IterateVMIsolateObjects(&visitor);
+  }
+}
 
 void CompilerStats::EnableBenchmark() {
   FLAG_compiler_stats = true;
   use_benchmark_output = true;
 }
-
 
 // Generate output for Golem benchmark harness. If the output format
 // changes, the parsing function in Golem must be updated.
@@ -150,8 +143,8 @@ char* CompilerStats::BenchmarkOutput() {
   Update();
   Log log(PrintToStats);
   LogBlock lb(Thread::Current(), &log);
-  log.Print("==== Compiler Stats for isolate '%s' ====\n",
-            isolate_->debugger_name());
+  log.Print("==== Compiler Stats for isolate (%" Pd64 ") '%s' ====\n",
+            static_cast<int64_t>(isolate_->main_port()), isolate_->name());
 
   log.Print("NumberOfTokens: %" Pd64 "\n", num_tokens_total);
   log.Print("NumClassesParsed: %" Pd64 "\n", num_classes_parsed);
@@ -198,7 +191,6 @@ char* CompilerStats::BenchmarkOutput() {
   return benchmark_text;
 }
 
-
 char* CompilerStats::PrintToZone() {
   if (!FLAG_compiler_stats) {
     return NULL;
@@ -211,8 +203,8 @@ char* CompilerStats::PrintToZone() {
   Log log(PrintToStats);
   LogBlock lb(Thread::Current(), &log);
 
-  log.Print("==== Compiler Stats for isolate '%s' ====\n",
-            isolate_->debugger_name());
+  log.Print("==== Compiler Stats for isolate  (%" Pd64 ") '%s' ====\n",
+            static_cast<int64_t>(isolate_->main_port()), isolate_->name());
   log.Print("Number of tokens:        %" Pd64 "\n", num_tokens_total);
   log.Print("Source length:           %" Pd64 " characters\n", src_length);
   log.Print("Number of source tokens: %" Pd64 "\n", num_tokens_scanned);

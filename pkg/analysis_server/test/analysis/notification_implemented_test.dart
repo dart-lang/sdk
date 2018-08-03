@@ -5,9 +5,8 @@
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -24,9 +23,6 @@ main() {
 class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
   List<ImplementedClass> implementedClasses;
   List<ImplementedMember> implementedMembers;
-
-  @override
-  bool get enableNewAnalysisDriver => false;
 
   /**
    * Validates that there is an [ImplementedClass] at the offset of [search].
@@ -96,11 +92,6 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
     }
   }
 
-  @override
-  Index createIndex() {
-    return createMemoryIndex();
-  }
-
   /**
    * Subscribe for `IMPLEMENTED` and wait for the notification.
    */
@@ -110,7 +101,7 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
   }
 
   void processNotification(Notification notification) {
-    if (notification.event == ANALYSIS_IMPLEMENTED) {
+    if (notification.event == ANALYSIS_NOTIFICATION_IMPLEMENTED) {
       var params = new AnalysisImplementedParams.fromNotification(notification);
       if (params.file == testFile) {
         implementedClasses = params.classes;
@@ -125,6 +116,7 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
   }
 
   void subscribeForImplemented() {
+    setPriorityFiles([testFile]);
     addAnalysisSubscription(AnalysisService.IMPLEMENTED, testFile);
   }
 
@@ -279,9 +271,7 @@ class C extends A {
   }
 
   test_method_withMethod_private_differentLib() async {
-    addFile(
-        '$testFolder/lib.dart',
-        r'''
+    newFile(join(testFolder, 'lib.dart'), content: r'''
 import 'test.dart';
 class B extends A {
   void _m() {}

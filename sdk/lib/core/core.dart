@@ -101,7 +101,7 @@
  * and used by Map for its keys and values.
  *
  * For other kinds of collections, check out the
- * [dart:collection](#dart-collection) library.
+ * `dart:collection` library.
  *
  * ## Date and time
  *
@@ -149,18 +149,28 @@
  * The
  * [Dart Language Specification](http://www.dartlang.org/docs/spec/)
  * provides technical details.
+ *
+ * {@category Core}
  */
 library dart.core;
 
 import "dart:collection";
-import "dart:_internal" hide Symbol;
+import "dart:_internal" hide Symbol, LinkedList, LinkedListEntry;
 import "dart:_internal" as internal show Symbol;
 import "dart:convert"
-    show Encoding, ASCII, LATIN1, UTF8, BASE64, StringConversionSink;
+    show
+        ascii,
+        base64,
+        Base64Codec,
+        Encoding,
+        latin1,
+        StringConversionSink,
+        utf8;
 import "dart:math" show Random; // Used by List.shuffle.
-import "dart:typed_data" show Uint8List;
+import "dart:typed_data" show Uint8List, Uint16List, Endian;
 
 part "annotations.dart";
+part "bigint.dart";
 part "bool.dart";
 part "comparable.dart";
 part "date_time.dart";

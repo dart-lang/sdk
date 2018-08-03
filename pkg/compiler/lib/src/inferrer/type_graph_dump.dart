@@ -4,8 +4,9 @@
 library dart2js.inferrer.type_graph_dump;
 
 import '../../compiler_new.dart';
-import '../elements/elements.dart';
-import '../types/types.dart';
+import '../elements/entities.dart';
+import '../elements/entity_utils.dart' as utils;
+import '../types/abstract_value_domain.dart';
 import 'inferrer_engine.dart';
 import 'type_graph_nodes.dart';
 import 'debug.dart';
@@ -29,6 +30,7 @@ import 'debug.dart';
 class TypeGraphDump {
   static const String outputDir = 'typegraph';
 
+  final CompilerOutput compilerOutput;
   final InferrerEngine inferrer;
   final Map<TypeInformation, Set<TypeInformation>> assignmentsBeforeAnalysis =
       <TypeInformation, Set<TypeInformation>>{};
@@ -36,7 +38,7 @@ class TypeGraphDump {
       <TypeInformation, Set<TypeInformation>>{};
   final Set<String> usedFilenames = new Set<String>();
 
-  TypeGraphDump(this.inferrer);
+  TypeGraphDump(this.compilerOutput, this.inferrer);
 
   /// Take a copy of the assignment set for each node, since that may change
   /// during the analysis.
@@ -62,8 +64,8 @@ class TypeGraphDump {
   /// Dumps the entire graph.
   void afterAnalysis() {
     // Group all the type nodes by their context member.
-    Map<Element, List<TypeInformation>> nodes =
-        <Element, List<TypeInformation>>{};
+    Map<MemberEntity, List<TypeInformation>> nodes =
+        <MemberEntity, List<TypeInformation>>{};
     for (TypeInformation node in inferrer.types.allTypes) {
       if (node.contextMember != null) {
         nodes
@@ -72,13 +74,14 @@ class TypeGraphDump {
       }
     }
     // Print every group separately.
-    for (Element element in nodes.keys) {
+    for (MemberEntity element in nodes.keys) {
       OutputSink output;
       try {
         String name = filenameFromElement(element);
-        output = inferrer.compiler
-            .outputProvider('$outputDir/$name', 'dot', OutputType.debug);
-        _GraphGenerator visitor = new _GraphGenerator(this, element, output);
+        output = compilerOutput.createOutputSink(
+            '$outputDir/$name', 'dot', OutputType.debug);
+        _GraphGenerator visitor = new _GraphGenerator(
+            this, element, output, inferrer.abstractValueDomain.getCompactText);
         for (TypeInformation node in nodes[element]) {
           visitor.visit(node);
         }
@@ -97,37 +100,25 @@ class TypeGraphDump {
   ///
   /// Will never return the a given filename more than once, even if called with
   /// the same element.
-  String filenameFromElement(Element element) {
+  String filenameFromElement(MemberEntity element) {
     // The toString method of elements include characters that are unsuitable
     // for URIs and file systems.
     List<String> parts = <String>[];
-    parts.add(element.library?.libraryName);
+    parts.add(element.library.canonicalUri.pathSegments.last);
     parts.add(element.enclosingClass?.name);
-    Element namedElement =
-        element is LocalElement ? element.executableContext : element;
-    if (namedElement.isGetter) {
-      parts.add('get-${namedElement.name}');
-    } else if (namedElement.isSetter) {
-      parts.add('set-${namedElement.name}');
-    } else if (namedElement.isConstructor) {
-      if (namedElement.name.isEmpty) {
-        parts.add('-constructor');
-      } else {
-        parts.add(namedElement.name);
-      }
-    } else if (namedElement.isOperator) {
-      parts.add(Elements
-          .operatorNameToIdentifier(namedElement.name)
-          .replaceAll(r'$', '-'));
-    } else {
-      parts.add(namedElement.name);
-    }
-    if (namedElement != element) {
+    if (element.isGetter) {
+      parts.add('get-${element.name}');
+    } else if (element.isSetter) {
+      parts.add('set-${element.name}');
+    } else if (element.isConstructor) {
       if (element.name.isEmpty) {
-        parts.add('anon${element.sourcePosition.begin}');
+        parts.add('-constructor');
       } else {
         parts.add(element.name);
       }
+    } else {
+      parts.add(
+          utils.operatorNameToIdentifier(element.name).replaceAll(r'$', '-'));
     }
     String filename = parts.where((x) => x != null && x != '').join('.');
     if (usedFilenames.add(filename)) return filename;
@@ -147,13 +138,14 @@ class _GraphGenerator extends TypeInformationVisitor {
   final Set<TypeInformation> seen = new Set<TypeInformation>();
   final List<TypeInformation> worklist = new List<TypeInformation>();
   final Map<TypeInformation, int> nodeId = <TypeInformation, int>{};
+  final String Function(AbstractValue) formatType;
   int usedIds = 0;
   final OutputSink output;
-  final Element element;
+  final MemberEntity element;
   TypeInformation returnValue;
 
-  _GraphGenerator(this.global, this.element, this.output) {
-    returnValue = global.inferrer.types.getInferredTypeOf(element);
+  _GraphGenerator(this.global, this.element, this.output, this.formatType) {
+    returnValue = global.inferrer.types.getInferredTypeOfMember(element);
     getNode(returnValue); // Ensure return value is part of graph.
     append('digraph {');
   }
@@ -296,7 +288,7 @@ class _GraphGenerator extends TypeInformationVisitor {
       append('$id [shape=record,label="$label",$style]');
       // Add assignment edges. Color the edges based on whether they were
       // added, removed, temporary, or unchanged.
-      var originalSet = global.assignmentsBeforeAnalysis[node] ?? const [];
+      dynamic originalSet = global.assignmentsBeforeAnalysis[node] ?? const [];
       var tracerSet = global.assignmentsBeforeTracing[node] ?? const [];
       var currentSet = node.assignments.toSet();
       for (TypeInformation assignment in currentSet) {
@@ -372,8 +364,9 @@ class _GraphGenerator extends TypeInformationVisitor {
     addNode(info, 'BoolLiteral\n${info.value}');
   }
 
-  void handleCall(CallSiteTypeInformation info, String text, Map inputs) {
-    String sourceCode = shorten('${info.call}');
+  void handleCall(CallSiteTypeInformation info, String text,
+      Map<String, TypeInformation> inputs) {
+    String sourceCode = shorten('${info.debugName}');
     text = '$text\n$sourceCode';
     if (info.arguments != null) {
       for (int i = 0; i < info.arguments.positional.length; ++i) {
@@ -401,63 +394,25 @@ class _GraphGenerator extends TypeInformationVisitor {
   }
 
   void visitMemberTypeInformation(MemberTypeInformation info) {
-    addNode(info, 'Member\n${info.element}');
+    addNode(info, 'Member\n${info.debugName}');
   }
 
   void visitParameterTypeInformation(ParameterTypeInformation info) {
-    addNode(info, 'Parameter ${info.element?.name ?? ''}');
+    addNode(info, 'Parameter ${info.debugName}');
   }
 
   void visitClosureTypeInformation(ClosureTypeInformation info) {
-    String text = shorten('${info.node}');
+    String text = shorten('${info.debugName}');
     addNode(info, 'Closure\n$text');
   }
 
   void visitAwaitTypeInformation(AwaitTypeInformation info) {
-    String text = shorten('${info.node}');
+    String text = shorten('${info.debugName}');
     addNode(info, 'Await\n$text');
   }
 
   void visitYieldTypeInformation(YieldTypeInformation info) {
-    String text = shorten('${info.node}');
+    String text = shorten('${info.debugName}');
     addNode(info, 'Yield\n$text');
   }
-}
-
-/// Convert the given TypeMask to a compact string format.
-///
-/// The default format is too verbose for the graph format since long strings
-/// create oblong nodes that obstruct the graph layout.
-String formatType(TypeMask type) {
-  if (type is FlatTypeMask) {
-    // TODO(asgerf): Disambiguate classes whose name is not unique. Using the
-    //     library name for all classes is not a good idea, since library names
-    //     can be really long and mess up the layout.
-    // Capitalize Null to emphasize that it's the null type mask and not
-    // a null value we accidentally printed out.
-    if (type.isEmptyOrNull) return type.isNullable ? 'Null' : 'Empty';
-    String nullFlag = type.isNullable ? '?' : '';
-    String subFlag = type.isExact ? '' : type.isSubclass ? '+' : '*';
-    return '${type.base.name}$nullFlag$subFlag';
-  }
-  if (type is UnionTypeMask) {
-    return type.disjointMasks.map(formatType).join(' | ');
-  }
-  if (type is ContainerTypeMask) {
-    String container = formatType(type.forwardTo);
-    String member = formatType(type.elementType);
-    return '$container<$member>';
-  }
-  if (type is MapTypeMask) {
-    String container = formatType(type.forwardTo);
-    String key = formatType(type.keyType);
-    String value = formatType(type.valueType);
-    return '$container<$key,$value>';
-  }
-  if (type is ValueTypeMask) {
-    String baseType = formatType(type.forwardTo);
-    String value = type.value.toStructuredText();
-    return '$baseType=$value';
-  }
-  return '$type'; // Fall back on toString if not supported here.
 }

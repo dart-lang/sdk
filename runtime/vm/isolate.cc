@@ -7,11 +7,11 @@
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
 #include "platform/assert.h"
+#include "platform/atomic.h"
 #include "platform/text_buffer.h"
-#include "vm/atomic.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_observers.h"
-#include "vm/compiler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/compiler_stats.h"
 #include "vm/dart_api_message.h"
 #include "vm/dart_api_state.h"
@@ -19,25 +19,29 @@
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
 #include "vm/flags.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
+#include "vm/heap/safepoint.h"
+#include "vm/heap/store_buffer.h"
+#include "vm/heap/verifier.h"
+#include "vm/image_snapshot.h"
+#include "vm/interpreter.h"
 #include "vm/isolate_reload.h"
+#include "vm/kernel_isolate.h"
 #include "vm/lockers.h"
 #include "vm/log.h"
 #include "vm/message_handler.h"
+#include "vm/object.h"
 #include "vm/object_id_ring.h"
 #include "vm/object_store.h"
-#include "vm/object.h"
 #include "vm/os_thread.h"
 #include "vm/port.h"
 #include "vm/profiler.h"
 #include "vm/reusable_handles.h"
-#include "vm/safepoint.h"
 #include "vm/service.h"
 #include "vm/service_event.h"
 #include "vm/service_isolate.h"
 #include "vm/simulator.h"
 #include "vm/stack_frame.h"
-#include "vm/store_buffer.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
@@ -46,9 +50,7 @@
 #include "vm/timeline.h"
 #include "vm/timeline_analysis.h"
 #include "vm/timer.h"
-#include "vm/verifier.h"
 #include "vm/visitor.h"
-
 
 namespace dart {
 
@@ -58,11 +60,12 @@ DECLARE_FLAG(bool, trace_service);
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
 
 // Reload flags.
-DECLARE_FLAG(bool, check_reloaded);
 DECLARE_FLAG(int, reload_every);
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+DECLARE_FLAG(bool, check_reloaded);
 DECLARE_FLAG(bool, reload_every_back_off);
 DECLARE_FLAG(bool, trace_reload);
-
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 #if !defined(PRODUCT)
 static void CheckedModeHandler(bool value) {
@@ -79,6 +82,24 @@ DEFINE_FLAG_HANDLER(CheckedModeHandler,
 DEFINE_FLAG_HANDLER(CheckedModeHandler, checked, "Enable checked mode.");
 #endif  // !defined(PRODUCT)
 
+static void DeterministicModeHandler(bool value) {
+  if (value) {
+    FLAG_background_compilation = false;  // Timing dependent.
+    FLAG_collect_code = false;            // Timing dependent.
+    FLAG_random_seed = 0x44617274;  // "Dart"
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    FLAG_load_deferred_eagerly = true;
+    FLAG_print_stop_message = false;  // Embedds addresses in instructions.
+#else
+    COMPILE_ASSERT(FLAG_load_deferred_eagerly);
+    COMPILE_ASSERT(!FLAG_print_stop_message);
+#endif
+  }
+}
+
+DEFINE_FLAG_HANDLER(DeterministicModeHandler,
+                    deterministic,
+                    "Enable deterministic mode.");
 
 // Quick access to the locally defined thread() and isolate() methods.
 #define T (thread())
@@ -99,94 +120,116 @@ class VerifyOriginId : public IsolateVisitor {
 };
 #endif
 
-
-static uint8_t* malloc_allocator(uint8_t* ptr,
-                                 intptr_t old_size,
-                                 intptr_t new_size) {
-  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
-  return reinterpret_cast<uint8_t*>(new_ptr);
-}
-
-static void malloc_deallocator(uint8_t* ptr) {
-  free(reinterpret_cast<void*>(ptr));
-}
-
-
-static void SerializeObject(const Instance& obj,
-                            uint8_t** obj_data,
-                            intptr_t* obj_len,
-                            bool allow_any_object) {
-  MessageWriter writer(obj_data, &malloc_allocator, &malloc_deallocator,
-                       allow_any_object);
-  writer.WriteMessage(obj);
-  *obj_len = writer.BytesWritten();
-}
-
-// TODO(zra): Allocation of Message objects should be centralized.
 static Message* SerializeMessage(Dart_Port dest_port, const Instance& obj) {
   if (ApiObjectConverter::CanConvert(obj.raw())) {
     return new Message(dest_port, obj.raw(), Message::kNormalPriority);
   } else {
-    uint8_t* obj_data;
-    intptr_t obj_len;
-    SerializeObject(obj, &obj_data, &obj_len, false);
-    return new Message(dest_port, obj_data, obj_len, Message::kNormalPriority);
+    MessageWriter writer(false);
+    return writer.WriteMessage(obj, dest_port, Message::kNormalPriority);
   }
 }
 
-
-bool IsolateVisitor::IsVMInternalIsolate(Isolate* isolate) const {
-  return ((isolate == Dart::vm_isolate()) ||
-          ServiceIsolate::IsServiceIsolateDescendant(isolate));
+static RawInstance* DeserializeMessage(Thread* thread, Message* message) {
+  if (message == NULL) {
+    return Instance::null();
+  }
+  Zone* zone = thread->zone();
+  if (message->IsRaw()) {
+    return Instance::RawCast(message->raw_obj());
+  } else {
+    MessageSnapshotReader reader(message, thread);
+    const Object& obj = Object::Handle(zone, reader.ReadObject());
+    ASSERT(!obj.IsError());
+    return Instance::RawCast(obj.raw());
+  }
 }
 
+bool IsolateVisitor::IsVMInternalIsolate(Isolate* isolate) const {
+  return Isolate::IsVMInternalIsolate(isolate);
+}
 
 NoOOBMessageScope::NoOOBMessageScope(Thread* thread) : StackResource(thread) {
   thread->DeferOOBMessageInterrupts();
 }
 
-
 NoOOBMessageScope::~NoOOBMessageScope() {
   thread()->RestoreOOBMessageInterrupts();
 }
 
-
 NoReloadScope::NoReloadScope(Isolate* isolate, Thread* thread)
     : StackResource(thread), isolate_(isolate) {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   ASSERT(isolate_ != NULL);
   AtomicOperations::FetchAndIncrement(&(isolate_->no_reload_scope_depth_));
   ASSERT(AtomicOperations::LoadRelaxed(&(isolate_->no_reload_scope_depth_)) >=
          0);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 
-
 NoReloadScope::~NoReloadScope() {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   AtomicOperations::FetchAndDecrement(&(isolate_->no_reload_scope_depth_));
   ASSERT(AtomicOperations::LoadRelaxed(&(isolate_->no_reload_scope_depth_)) >=
          0);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 
-
 void Isolate::RegisterClass(const Class& cls) {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   if (IsReloading()) {
     reload_context()->RegisterClass(cls);
     return;
   }
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   class_table()->Register(cls);
 }
 
-
-void Isolate::RegisterClassAt(intptr_t index, const Class& cls) {
-  class_table()->RegisterAt(index, cls);
-}
-
-
+#if defined(DEBUG)
 void Isolate::ValidateClassTable() {
   class_table()->Validate();
 }
+#endif  // DEBUG
 
+void Isolate::RehashConstants() {
+  StackZone stack_zone(Thread::Current());
+  Zone* zone = stack_zone.GetZone();
+
+  Class& cls = Class::Handle(zone);
+  intptr_t top = class_table()->NumCids();
+  for (intptr_t cid = kInstanceCid; cid < top; cid++) {
+    if (!class_table()->IsValidIndex(cid) ||
+        !class_table()->HasValidClassAt(cid)) {
+      continue;
+    }
+    if ((cid == kTypeArgumentsCid) || RawObject::IsStringClassId(cid)) {
+      // TypeArguments and Symbols have special tables for canonical objects
+      // that aren't based on address.
+      continue;
+    }
+    cls = class_table()->At(cid);
+    cls.RehashConstants(zone);
+  }
+}
+
+#if defined(DEBUG)
+void Isolate::ValidateConstants() {
+  if (FLAG_precompiled_mode) {
+    // TODO(27003)
+    return;
+  }
+  if (HasAttemptedReload()) {
+    return;
+  }
+  // Verify that all canonical instances are correctly setup in the
+  // corresponding canonical tables.
+  BackgroundCompiler::Stop(this);
+  heap()->CollectAllGarbage();
+  Thread* thread = Thread::Current();
+  HeapIterationScope iteration(thread);
+  VerifyCanonicalVisitor check_canonical(thread);
+  iteration.IterateObjects(&check_canonical);
+}
+#endif  // DEBUG
 
 void Isolate::SendInternalLibMessage(LibMsgId msg_id, uint64_t capability) {
   const Array& msg = Array::Handle(Array::New(3));
@@ -199,14 +242,10 @@ void Isolate::SendInternalLibMessage(LibMsgId msg_id, uint64_t capability) {
   element = Capability::New(capability);
   msg.SetAt(2, element);
 
-  uint8_t* data = NULL;
-  MessageWriter writer(&data, &malloc_allocator, &malloc_deallocator, false);
-  writer.WriteMessage(msg);
-
-  PortMap::PostMessage(new Message(main_port(), data, writer.BytesWritten(),
-                                   Message::kOOBPriority));
+  MessageWriter writer(false);
+  PortMap::PostMessage(
+      writer.WriteMessage(msg, main_port(), Message::kOOBPriority));
 }
-
 
 class IsolateMessageHandler : public MessageHandler {
  public:
@@ -237,17 +276,14 @@ class IsolateMessageHandler : public MessageHandler {
   Isolate* isolate_;
 };
 
-
 IsolateMessageHandler::IsolateMessageHandler(Isolate* isolate)
     : isolate_(isolate) {}
-
 
 IsolateMessageHandler::~IsolateMessageHandler() {}
 
 const char* IsolateMessageHandler::name() const {
   return isolate_->name();
 }
-
 
 // Isolate library OOB messages are fixed sized arrays which have the
 // following format:
@@ -362,10 +398,16 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
       Object& obj = Object::Handle(zone, message.At(2));
       if (!I->VerifyPauseCapability(obj)) return Error::null();
 
+#if !defined(PRODUCT)
       // If we are already paused, don't pause again.
-      if (FLAG_support_debugger && (I->debugger()->PauseEvent() == NULL)) {
+      if (I->debugger()->PauseEvent() == NULL) {
         return I->debugger()->PauseInterrupted();
       }
+#endif
+      break;
+    }
+    case Isolate::kLowMemoryMsg: {
+      I->heap()->NotifyLowMemory();
       break;
     }
 
@@ -430,7 +472,6 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
   return Error::null();
 }
 
-
 void IsolateMessageHandler::MessageNotify(Message::Priority priority) {
   if (priority >= Message::kOOBPriority) {
     // Handle out of band messages even if the mutator thread is busy.
@@ -443,7 +484,6 @@ void IsolateMessageHandler::MessageNotify(Message::Priority priority) {
   }
 }
 
-
 MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
     Message* message) {
   ASSERT(IsCurrentIsolate());
@@ -452,8 +492,9 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
   Zone* zone = stack_zone.GetZone();
   HandleScope handle_scope(thread);
 #ifndef PRODUCT
-  TimelineDurationScope tds(thread, Timeline::GetIsolateStream(),
-                            "HandleMessage");
+  TimelineDurationScope tds(
+      thread, Timeline::GetIsolateStream(),
+      message->IsOOB() ? "HandleOOBMessage" : "HandleMessage");
   tds.SetNumArguments(1);
   tds.CopyArgument(0, "isolateName", I->name());
 #endif
@@ -488,7 +529,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
     // We should only be sending RawObjects that can be converted to CObjects.
     ASSERT(ApiObjectConverter::CanConvert(msg_obj.raw()));
   } else {
-    MessageSnapshotReader reader(message->data(), message->len(), thread);
+    MessageSnapshotReader reader(message, thread);
     msg_obj = reader.ReadObject();
   }
   if (msg_obj.IsError()) {
@@ -566,6 +607,17 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
       }
     }
   } else {
+#ifndef PRODUCT
+    if (!Isolate::IsVMInternalIsolate(I)) {
+      // Mark all the user isolates as white-listed for the simplified timeline
+      // page of Observatory. The internal isolates will be filtered out from
+      // the Timeline due to absence of this argument. We still send them in
+      // order to maintain the original behavior of the full timeline and allow
+      // the developer to download complete dump files.
+      tds.SetNumArguments(2);
+      tds.CopyArgument(1, "mode", "basic");
+    }
+#endif
     const Object& result =
         Object::Handle(zone, DartLibraryCalls::HandleMessage(msg_handler, msg));
     if (result.IsError()) {
@@ -589,7 +641,6 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
   return status;
 }
 
-
 #ifndef PRODUCT
 void IsolateMessageHandler::NotifyPauseOnStart() {
   if (!FLAG_support_service) {
@@ -602,11 +653,10 @@ void IsolateMessageHandler::NotifyPauseOnStart() {
     ServiceEvent pause_event(I, ServiceEvent::kPauseStart);
     Service::HandleEvent(&pause_event);
   } else if (FLAG_trace_service) {
-    OS::Print("vm-service: Dropping event of type PauseStart (%s)\n",
-              I->name());
+    OS::PrintErr("vm-service: Dropping event of type PauseStart (%s)\n",
+                 I->name());
   }
 }
-
 
 void IsolateMessageHandler::NotifyPauseOnExit() {
   if (!FLAG_support_service) {
@@ -619,11 +669,11 @@ void IsolateMessageHandler::NotifyPauseOnExit() {
     ServiceEvent pause_event(I, ServiceEvent::kPauseExit);
     Service::HandleEvent(&pause_event);
   } else if (FLAG_trace_service) {
-    OS::Print("vm-service: Dropping event of type PauseExit (%s)\n", I->name());
+    OS::PrintErr("vm-service: Dropping event of type PauseExit (%s)\n",
+                 I->name());
   }
 }
 #endif  // !PRODUCT
-
 
 #if defined(DEBUG)
 void IsolateMessageHandler::CheckAccess() {
@@ -631,11 +681,9 @@ void IsolateMessageHandler::CheckAccess() {
 }
 #endif
 
-
 bool IsolateMessageHandler::IsCurrentIsolate() const {
   return (I == Isolate::Current());
 }
-
 
 static MessageHandler::MessageStatus StoreError(Thread* thread,
                                                 const Error& error) {
@@ -649,9 +697,15 @@ static MessageHandler::MessageStatus StoreError(Thread* thread,
   return MessageHandler::kError;
 }
 
-
 MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
     const Error& result) {
+  if (FLAG_trace_isolates) {
+    OS::PrintErr(
+        "[!] Unhandled exception in %s:\n"
+        "         exception: %s\n",
+        T->isolate()->name(), result.ToErrorCString());
+  }
+
   NoReloadScope no_reload_scope(T->isolate(), T);
   // Generate the error and stacktrace strings for the error message.
   String& exc_str = String::Handle(T->zone());
@@ -688,6 +742,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
       } else {
         T->set_sticky_error(result);
       }
+#if !defined(PRODUCT)
       // Notify the debugger about specific unhandled exceptions which are
       // withheld when being thrown. Do this after setting the sticky error
       // so the isolate has an error set when paused with the unhandled
@@ -698,45 +753,93 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
         if ((exception == I->object_store()->out_of_memory()) ||
             (exception == I->object_store()->stack_overflow())) {
           // We didn't notify the debugger when the stack was full. Do it now.
-          if (FLAG_support_debugger) {
-            I->debugger()->PauseException(Instance::Handle(exception));
-          }
+          I->debugger()->PauseException(Instance::Handle(exception));
         }
       }
+#endif  // !defined(PRODUCT)
       return kError;
     }
   }
   return kOK;
 }
 
-
 void Isolate::FlagsInitialize(Dart_IsolateFlags* api_flags) {
+  const bool false_by_default = false;
+  const bool true_by_default = true;
+  USE(true_by_default);
+  USE(false_by_default);
+
   api_flags->version = DART_FLAGS_CURRENT_VERSION;
-#define INIT_FROM_FLAG(name, isolate_flag, flag) api_flags->isolate_flag = flag;
+#define INIT_FROM_FLAG(when, name, bitname, isolate_flag, flag)                \
+  api_flags->isolate_flag = flag;
   ISOLATE_FLAG_LIST(INIT_FROM_FLAG)
 #undef INIT_FROM_FLAG
+  api_flags->use_dart_frontend = false;
+  api_flags->entry_points = NULL;
+  api_flags->load_vmservice_library = false;
 }
-
 
 void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
   api_flags->version = DART_FLAGS_CURRENT_VERSION;
-#define INIT_FROM_FIELD(name, isolate_flag, flag)                              \
+#define INIT_FROM_FIELD(when, name, bitname, isolate_flag, flag)               \
   api_flags->isolate_flag = name();
   ISOLATE_FLAG_LIST(INIT_FROM_FIELD)
 #undef INIT_FROM_FIELD
+  api_flags->use_dart_frontend = use_dart_frontend();
+  api_flags->entry_points = NULL;
+  api_flags->load_vmservice_library = should_load_vmservice();
 }
 
+void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
+#if defined(DART_PRECOMPILER)
+#define FLAG_FOR_PRECOMPILER(action) action
+#else
+#define FLAG_FOR_PRECOMPILER(action)
+#endif
 
 #if !defined(PRODUCT)
-void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
-#define SET_FROM_FLAG(name, isolate_flag, flag)                                \
-  name##_ = api_flags.isolate_flag;
+#define FLAG_FOR_NONPRODUCT(action) action
+#else
+#define FLAG_FOR_NONPRODUCT(action)
+#endif
+
+#define FLAG_FOR_PRODUCT(action) action
+
+#define SET_FROM_FLAG(when, name, bitname, isolate_flag, flag)                 \
+  FLAG_FOR_##when(isolate_flags_ = bitname##Bit::update(                       \
+                      api_flags.isolate_flag, isolate_flags_));
+
   ISOLATE_FLAG_LIST(SET_FROM_FLAG)
+
+#undef FLAG_FOR_NONPRODUCT
+#undef FLAG_FOR_PRECOMPILER
+#undef FLAG_FOR_PRODUCT
 #undef SET_FROM_FLAG
+
+  set_use_dart_frontend(api_flags.use_dart_frontend);
+  set_should_load_vmservice(api_flags.load_vmservice_library);
+
+  // Copy entry points list.
+  ASSERT(embedder_entry_points_ == NULL);
+  if (api_flags.entry_points != NULL) {
+    intptr_t count = 0;
+    while (api_flags.entry_points[count].function_name != NULL)
+      count++;
+    embedder_entry_points_ = new Dart_QualifiedFunctionName[count + 1];
+    for (intptr_t i = 0; i < count; i++) {
+      embedder_entry_points_[i].library_uri =
+          strdup(api_flags.entry_points[i].library_uri);
+      embedder_entry_points_[i].class_name =
+          strdup(api_flags.entry_points[i].class_name);
+      embedder_entry_points_[i].function_name =
+          strdup(api_flags.entry_points[i].function_name);
+    }
+    memset(&embedder_entry_points_[count], 0,
+           sizeof(Dart_QualifiedFunctionName));
+  }
+
   // Leave others at defaults.
 }
-#endif  // !defined(PRODUCT)
-
 
 #if defined(DEBUG)
 // static
@@ -762,103 +865,131 @@ void BaseIsolate::AssertCurrentThreadIsMutator() const {
 // TODO(srdjan): Some Isolate monitors can be shared. Replace their usage with
 // that shared monitor.
 Isolate::Isolate(const Dart_IsolateFlags& api_flags)
-    : store_buffer_(new StoreBuffer()),
+    : BaseIsolate(),
+      store_buffer_(new StoreBuffer()),
       heap_(NULL),
       user_tag_(0),
       current_tag_(UserTag::null()),
       default_tag_(UserTag::null()),
+      ic_miss_code_(Code::null()),
       object_store_(NULL),
       class_table_(),
       single_step_(false),
-      thread_registry_(new ThreadRegistry()),
-      safepoint_handler_(new SafepointHandler(this)),
-      message_notify_callback_(NULL),
-      name_(NULL),
-      debugger_name_(NULL),
-      start_time_micros_(OS::GetCurrentMonotonicMicros()),
-      main_port_(0),
-      origin_id_(0),
-      pause_capability_(0),
-      terminate_capability_(0),
-      errors_fatal_(true),
-      init_callback_data_(NULL),
-      environment_callback_(NULL),
-      library_tag_handler_(NULL),
-      api_state_(NULL),
+      isolate_flags_(0),
+      background_compiler_(NULL),
+#if !defined(PRODUCT)
       debugger_(NULL),
-      resume_request_(false),
       last_resume_timestamp_(OS::GetCurrentTimeMillis()),
-      random_(),
-      simulator_(NULL),
-      mutex_(new Mutex()),
-      symbols_mutex_(new Mutex()),
-      type_canonicalization_mutex_(new Mutex()),
-      constant_canonicalization_mutex_(new Mutex()),
-      megamorphic_lookup_mutex_(new Mutex()),
-      message_handler_(NULL),
-      spawn_state_(NULL),
-      is_runnable_(false),
-      gc_prologue_callback_(NULL),
-      gc_epilogue_callback_(NULL),
-      defer_finalization_count_(0),
-      pending_deopts_(new MallocGrowableArray<PendingLazyDeopt>),
-      deopt_context_(NULL),
-      is_service_isolate_(false),
       last_allocationprofile_accumulator_reset_timestamp_(0),
       last_allocationprofile_gc_timestamp_(0),
-      object_id_ring_(NULL),
-      tag_table_(GrowableObjectArray::null()),
-      deoptimized_code_array_(GrowableObjectArray::null()),
-      sticky_error_(Error::null()),
-      background_compiler_(NULL),
-      background_compiler_disabled_depth_(0),
+      vm_tag_counters_(),
       pending_service_extension_calls_(GrowableObjectArray::null()),
       registered_service_extension_handlers_(GrowableObjectArray::null()),
       metrics_list_head_(NULL),
-      compilation_allowed_(true),
-      all_classes_finalized_(false),
-      remapping_cids_(false),
-      next_(NULL),
       pause_loop_monitor_(NULL),
-      loading_invalidation_gen_(kInvalidGen),
-      top_level_parsing_count_(0),
-      field_list_mutex_(new Mutex()),
-      boxed_field_list_(GrowableObjectArray::null()),
-      spawn_count_monitor_(new Monitor()),
-      spawn_count_(0),
 #define ISOLATE_METRIC_CONSTRUCTORS(type, variable, name, unit)                \
   metric_##variable##_(),
       ISOLATE_METRIC_LIST(ISOLATE_METRIC_CONSTRUCTORS)
 #undef ISOLATE_METRIC_CONSTRUCTORS
-          has_attempted_reload_(false),
-      no_reload_scope_depth_(0),
+          no_reload_scope_depth_(0),
       reload_every_n_stack_overflow_checks_(FLAG_reload_every),
       reload_context_(NULL),
       last_reload_timestamp_(OS::GetCurrentTimeMillis()),
-      should_pause_post_service_request_(false),
-      handler_info_cache_() {
-  NOT_IN_PRODUCT(FlagsCopyFrom(api_flags));
+      object_id_ring_(NULL),
+#endif  // !defined(PRODUCT)
+      start_time_micros_(OS::GetCurrentMonotonicMicros()),
+      thread_registry_(new ThreadRegistry()),
+      safepoint_handler_(new SafepointHandler(this)),
+      message_notify_callback_(NULL),
+      name_(NULL),
+      main_port_(0),
+      origin_id_(0),
+      pause_capability_(0),
+      terminate_capability_(0),
+      init_callback_data_(NULL),
+      environment_callback_(NULL),
+      library_tag_handler_(NULL),
+      api_state_(NULL),
+      random_(),
+      interpreter_(NULL),
+      simulator_(NULL),
+      mutex_(new Mutex(NOT_IN_PRODUCT("Isolate::mutex_"))),
+      symbols_mutex_(new Mutex(NOT_IN_PRODUCT("Isolate::symbols_mutex_"))),
+      type_canonicalization_mutex_(
+          new Mutex(NOT_IN_PRODUCT("Isolate::type_canonicalization_mutex_"))),
+      constant_canonicalization_mutex_(new Mutex(
+          NOT_IN_PRODUCT("Isolate::constant_canonicalization_mutex_"))),
+      megamorphic_lookup_mutex_(
+          new Mutex(NOT_IN_PRODUCT("Isolate::megamorphic_lookup_mutex_"))),
+      message_handler_(NULL),
+      spawn_state_(NULL),
+      defer_finalization_count_(0),
+      pending_deopts_(new MallocGrowableArray<PendingLazyDeopt>()),
+      deopt_context_(NULL),
+      tag_table_(GrowableObjectArray::null()),
+      deoptimized_code_array_(GrowableObjectArray::null()),
+      sticky_error_(Error::null()),
+      next_(NULL),
+      loading_invalidation_gen_(kInvalidGen),
+      top_level_parsing_count_(0),
+      field_list_mutex_(
+          new Mutex(NOT_IN_PRODUCT("Isolate::field_list_mutex_"))),
+      boxed_field_list_(GrowableObjectArray::null()),
+      spawn_count_monitor_(new Monitor()),
+      spawn_count_(0),
+      handler_info_cache_(),
+      catch_entry_state_cache_(),
+      embedder_entry_points_(NULL),
+      obfuscation_map_(NULL) {
+  FlagsCopyFrom(api_flags);
+  SetErrorsFatal(true);
+  set_compilation_allowed(true);
   // TODO(asiva): A Thread is not available here, need to figure out
   // how the vm_tag (kEmbedderTagId) can be set, these tags need to
   // move to the OSThread structure.
   set_user_tag(UserTags::kDefaultUserTag);
+
+  if (obfuscate()) {
+    OS::PrintErr(
+        "Warning: This VM has been configured to obfuscate symbol information "
+        "which violates the Dart standard.\n"
+        "         See dartbug.com/30524 for more information.\n");
+  }
+
+  NOT_IN_PRECOMPILED(background_compiler_ = new BackgroundCompiler(this));
 }
 
 #undef REUSABLE_HANDLE_SCOPE_INIT
 #undef REUSABLE_HANDLE_INITIALIZERS
 
 Isolate::~Isolate() {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  // TODO(32796): Re-enable assertion.
+  // RELEASE_ASSERT(reload_context_ == NULL);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
+  delete background_compiler_;
+  background_compiler_ = NULL;
+
+#if !defined(PRODUCT)
+  delete debugger_;
+  debugger_ = NULL;
+  if (FLAG_support_service) {
+    delete object_id_ring_;
+  }
+  object_id_ring_ = NULL;
+  delete pause_loop_monitor_;
+  pause_loop_monitor_ = NULL;
+#endif  // !defined(PRODUCT)
+
   free(name_);
-  free(debugger_name_);
   delete store_buffer_;
   delete heap_;
   delete object_store_;
   delete api_state_;
-#ifndef PRODUCT
-  if (FLAG_support_debugger) {
-    delete debugger_;
-  }
-#endif  // !PRODUCT
+#if defined(DART_USE_INTERPRETER)
+  delete interpreter_;
+#endif
 #if defined(USING_SIMULATOR)
   delete simulator_;
 #endif
@@ -878,22 +1009,29 @@ Isolate::~Isolate() {
   message_handler_ = NULL;  // Fail fast if we send messages to a dead isolate.
   ASSERT(deopt_context_ == NULL);  // No deopt in progress when isolate deleted.
   delete spawn_state_;
-#ifndef PRODUCT
-  if (FLAG_support_service) {
-    delete object_id_ring_;
-  }
-#endif  // !PRODUCT
-  object_id_ring_ = NULL;
-  delete pause_loop_monitor_;
-  pause_loop_monitor_ = NULL;
   delete field_list_mutex_;
   field_list_mutex_ = NULL;
   ASSERT(spawn_count_ == 0);
   delete spawn_count_monitor_;
   delete safepoint_handler_;
   delete thread_registry_;
-}
 
+  if (obfuscation_map_ != NULL) {
+    for (intptr_t i = 0; obfuscation_map_[i] != NULL; i++) {
+      delete[] obfuscation_map_[i];
+    }
+    delete[] obfuscation_map_;
+  }
+
+  if (embedder_entry_points_ != NULL) {
+    for (intptr_t i = 0; embedder_entry_points_[i].function_name != NULL; i++) {
+      free(const_cast<char*>(embedder_entry_points_[i].library_uri));
+      free(const_cast<char*>(embedder_entry_points_[i].class_name));
+      free(const_cast<char*>(embedder_entry_points_[i].function_name));
+    }
+    delete[] embedder_entry_points_;
+  }
+}
 
 void Isolate::InitOnce() {
   create_callback_ = NULL;
@@ -902,25 +1040,33 @@ void Isolate::InitOnce() {
   EnableIsolateCreation();
 }
 
-
 Isolate* Isolate::Init(const char* name_prefix,
                        const Dart_IsolateFlags& api_flags,
                        bool is_vm_isolate) {
   Isolate* result = new Isolate(api_flags);
   ASSERT(result != NULL);
 
+#if !defined(PRODUCT)
 // Initialize metrics.
 #define ISOLATE_METRIC_INIT(type, variable, name, unit)                        \
   result->metric_##variable##_.Init(result, name, NULL, Metric::unit);
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_INIT);
 #undef ISOLATE_METRIC_INIT
+#endif  // !defined(PRODUCT)
+
+  bool is_service_or_kernel_isolate = ServiceIsolate::NameEquals(name_prefix);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  is_service_or_kernel_isolate =
+      is_service_or_kernel_isolate || KernelIsolate::NameEquals(name_prefix);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   Heap::Init(result,
              is_vm_isolate
                  ? 0  // New gen size 0; VM isolate should only allocate in old.
                  : FLAG_new_gen_semi_max_size * MBInWords,
-             FLAG_old_gen_heap_size * MBInWords,
-             FLAG_external_max_size * MBInWords);
+             (is_service_or_kernel_isolate ? kDefaultMaxOldGenHeapSize
+                                           : FLAG_old_gen_heap_size) *
+                 MBInWords);
 
   // TODO(5411455): For now just set the recently created isolate as
   // the current isolate.
@@ -952,13 +1098,13 @@ Isolate* Isolate::Init(const char* name_prefix,
   result->set_terminate_capability(result->random()->NextUInt64());
 
   result->BuildName(name_prefix);
-  if (FLAG_support_debugger) {
-    result->debugger_ = new Debugger();
-    result->debugger_->Initialize(result);
-  }
+#if !defined(PRODUCT)
+  result->debugger_ = new Debugger();
+  result->debugger_->Initialize(result);
+#endif
   if (FLAG_trace_isolates) {
     if (name_prefix == NULL || strcmp(name_prefix, "vm-isolate") != 0) {
-      OS::Print(
+      OS::PrintErr(
           "[+] Starting isolate:\n"
           "\tisolate:    %s\n",
           result->name());
@@ -982,19 +1128,16 @@ Isolate* Isolate::Init(const char* name_prefix,
   return result;
 }
 
-
 Thread* Isolate::mutator_thread() const {
   ASSERT(thread_registry() != NULL);
   return thread_registry()->mutator_thread();
 }
-
 
 void Isolate::SetupImagePage(const uint8_t* image_buffer, bool is_executable) {
   Image image(image_buffer);
   heap_->SetupImagePage(image.object_start(), image.object_size(),
                         is_executable);
 }
-
 
 void Isolate::ScheduleMessageInterrupts() {
   // We take the threads lock here to ensure that the mutator thread does not
@@ -1006,27 +1149,25 @@ void Isolate::ScheduleMessageInterrupts() {
   }
 }
 
-
-void Isolate::set_debugger_name(const char* name) {
-  free(debugger_name_);
-  debugger_name_ = strdup(name);
+void Isolate::set_name(const char* name) {
+  free(name_);
+  name_ = strdup(name);
 }
-
 
 int64_t Isolate::UptimeMicros() const {
   return OS::GetCurrentMonotonicMicros() - start_time_micros_;
 }
 
-
 bool Isolate::IsPaused() const {
+#if defined(PRODUCT)
+  return false;
+#else
   return (debugger_ != NULL) && (debugger_->PauseEvent() != NULL);
+#endif  // !defined(PRODUCT)
 }
 
-
 RawError* Isolate::PausePostRequest() {
-  if (!FLAG_support_debugger) {
-    return Error::null();
-  }
+#if !defined(PRODUCT)
   if (debugger_ == NULL) {
     return Error::null();
   }
@@ -1040,23 +1181,18 @@ RawError* Isolate::PausePostRequest() {
       UNREACHABLE();
     }
   }
+#endif
   return Error::null();
 }
-
 
 void Isolate::BuildName(const char* name_prefix) {
   ASSERT(name_ == NULL);
   if (name_prefix == NULL) {
-    name_prefix = "isolate";
-  }
-  set_debugger_name(name_prefix);
-  if (ServiceIsolate::NameEquals(name_prefix)) {
+    name_ = OS::SCreate(NULL, "isolate-%" Pd64 "", main_port());
+  } else {
     name_ = strdup(name_prefix);
-    return;
   }
-  name_ = OS::SCreate(NULL, "%s-%" Pd64 "", name_prefix, main_port());
 }
-
 
 void Isolate::DoneLoading() {
   GrowableObjectArray& libs =
@@ -1074,27 +1210,22 @@ void Isolate::DoneLoading() {
   TokenStream::CloseSharedTokenList(this);
 }
 
-
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 bool Isolate::CanReload() const {
-#ifndef PRODUCT
   return !ServiceIsolate::IsServiceIsolateDescendant(this) && is_runnable() &&
          !IsReloading() &&
          (AtomicOperations::LoadRelaxed(&no_reload_scope_depth_) == 0) &&
-         IsolateCreationEnabled();
-#else
-  return false;
-#endif
+         IsolateCreationEnabled() &&
+         OSThread::Current()->HasStackHeadroom(64 * KB);
 }
 
-
-#ifndef PRODUCT
 bool Isolate::ReloadSources(JSONStream* js,
                             bool force_reload,
                             const char* root_script_url,
                             const char* packages_url,
                             bool dont_delete_reload_context) {
   ASSERT(!IsReloading());
-  has_attempted_reload_ = true;
+  SetHasAttemptedReload(true);
   reload_context_ = new IsolateReloadContext(this, js);
   reload_context_->Reload(force_reload, root_script_url, packages_url);
   bool success = !reload_context_->reload_aborted();
@@ -1104,7 +1235,6 @@ bool Isolate::ReloadSources(JSONStream* js,
   return success;
 }
 
-
 void Isolate::DeleteReloadContext() {
   // Another thread may be in the middle of GetClassForHeapWalkAt.
   Thread* thread = Thread::Current();
@@ -1113,37 +1243,33 @@ void Isolate::DeleteReloadContext() {
   delete reload_context_;
   reload_context_ = NULL;
 }
-#endif  // !PRODUCT
-
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 void Isolate::DoneFinalizing() {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   if (IsReloading()) {
     reload_context_->FinalizeLoading();
   }
-#endif  // !defined(PRODUCT)
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 
-
-bool Isolate::MakeRunnable() {
+const char* Isolate::MakeRunnable() {
   ASSERT(Isolate::Current() == NULL);
 
   MutexLocker ml(mutex_);
   // Check if we are in a valid state to make the isolate runnable.
   if (is_runnable() == true) {
-    return false;  // Already runnable.
+    return "Isolate is already runnable";
   }
   // Set the isolate as runnable and if we are being spawned schedule
   // isolate on thread pool for execution.
   ASSERT(object_store()->root_library() != Library::null());
   set_is_runnable(true);
 #ifndef PRODUCT
-  if (FLAG_support_debugger) {
-    if (!ServiceIsolate::IsServiceIsolate(this)) {
-      debugger()->OnIsolateRunnable();
-      if (FLAG_pause_isolates_on_unhandled_exceptions) {
-        debugger()->SetExceptionPauseInfo(kPauseOnUnhandledExceptions);
-      }
+  if (!ServiceIsolate::IsServiceIsolate(this)) {
+    debugger()->OnIsolateRunnable();
+    if (FLAG_pause_isolates_on_unhandled_exceptions) {
+      debugger()->SetExceptionPauseInfo(kPauseOnUnhandledExceptions);
     }
   }
 #endif  // !PRODUCT
@@ -1166,7 +1292,6 @@ bool Isolate::MakeRunnable() {
     ServiceEvent runnableEvent(this, ServiceEvent::kIsolateRunnable);
     Service::HandleEvent(&runnableEvent);
   }
-#endif  // !PRODUCT
   GetRunnableLatencyMetric()->set_value(UptimeMicros());
   if (FLAG_print_benchmarking_metrics) {
     {
@@ -1177,21 +1302,19 @@ bool Isolate::MakeRunnable() {
                         (heap()->UsedInWords(Heap::kOld) * kWordSize);
     GetRunnableHeapSizeMetric()->set_value(heap_size);
   }
-  return true;
+#endif  // !PRODUCT
+  return NULL;
 }
-
 
 bool Isolate::VerifyPauseCapability(const Object& capability) const {
   return !capability.IsNull() && capability.IsCapability() &&
          (pause_capability() == Capability::Cast(capability).Id());
 }
 
-
 bool Isolate::VerifyTerminateCapability(const Object& capability) const {
   return !capability.IsNull() && capability.IsCapability() &&
          (terminate_capability() == Capability::Cast(capability).Id());
 }
-
 
 bool Isolate::AddResumeCapability(const Capability& capability) {
   // Ensure a limit for the number of resume capabilities remembered.
@@ -1225,7 +1348,6 @@ bool Isolate::AddResumeCapability(const Capability& capability) {
   return true;
 }
 
-
 bool Isolate::RemoveResumeCapability(const Capability& capability) {
   const GrowableObjectArray& caps = GrowableObjectArray::Handle(
       current_zone(), object_store()->resume_capabilities());
@@ -1241,7 +1363,6 @@ bool Isolate::RemoveResumeCapability(const Capability& capability) {
   }
   return false;
 }
-
 
 // TODO(iposva): Remove duplicated code and start using some hash based
 // structure instead of these linear lookups.
@@ -1280,7 +1401,6 @@ void Isolate::AddExitListener(const SendPort& listener,
   }
 }
 
-
 void Isolate::RemoveExitListener(const SendPort& listener) {
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
       current_zone(), object_store()->exit_listeners());
@@ -1296,7 +1416,6 @@ void Isolate::RemoveExitListener(const SendPort& listener) {
     }
   }
 }
-
 
 void Isolate::NotifyExitListeners() {
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
@@ -1314,7 +1433,6 @@ void Isolate::NotifyExitListeners() {
     }
   }
 }
-
 
 void Isolate::AddErrorListener(const SendPort& listener) {
   // Ensure a limit for the number of listeners remembered.
@@ -1347,7 +1465,6 @@ void Isolate::AddErrorListener(const SendPort& listener) {
   }
 }
 
-
 void Isolate::RemoveErrorListener(const SendPort& listener) {
   const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
       current_zone(), object_store()->error_listeners());
@@ -1362,7 +1479,6 @@ void Isolate::RemoveErrorListener(const SendPort& listener) {
     }
   }
 }
-
 
 bool Isolate::NotifyErrorListeners(const String& msg,
                                    const String& stacktrace) {
@@ -1383,7 +1499,6 @@ bool Isolate::NotifyErrorListeners(const String& msg,
   }
   return listeners.Length() > 0;
 }
-
 
 static MessageHandler::MessageStatus RunIsolate(uword parameter) {
   Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
@@ -1416,7 +1531,6 @@ static MessageHandler::MessageStatus RunIsolate(uword parameter) {
 
     // Switch back to spawning isolate.
 
-
     if (!ClassFinalizer::ProcessPendingClasses()) {
 // Error is in sticky error already.
 #if defined(DEBUG)
@@ -1435,16 +1549,6 @@ static MessageHandler::MessageStatus RunIsolate(uword parameter) {
     ASSERT(result.IsFunction());
     Function& func = Function::Handle(thread->zone());
     func ^= result.raw();
-
-    // TODO(turnidge): Currently we need a way to force a one-time
-    // breakpoint for all spawned isolates to support isolate
-    // debugging.  Remove this once the vmservice becomes the standard
-    // way to debug. Set the breakpoint on the static function instead
-    // of its implicit closure function because that latter is merely
-    // a dispatcher that is marked as undebuggable.
-    if (FLAG_support_debugger && FLAG_break_at_isolate_spawn) {
-      isolate->debugger()->OneTimeBreakAtEntry(func);
-    }
 
     func = func.ImplicitClosureFunction();
 
@@ -1491,7 +1595,6 @@ static MessageHandler::MessageStatus RunIsolate(uword parameter) {
   return MessageHandler::kOK;
 }
 
-
 static void ShutdownIsolate(uword parameter) {
   Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
   // We must wait for any outstanding spawn calls to complete before
@@ -1505,27 +1608,19 @@ static void ShutdownIsolate(uword parameter) {
     ASSERT(thread->isolate() == isolate);
     StackZone zone(thread);
     HandleScope handle_scope(thread);
-// TODO(27003): Enable for precompiled.
-#if defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
-    if (!isolate->HasAttemptedReload()) {
-      // For this verification we need to stop the background compiler earlier.
-      // This would otherwise happen in Dart::ShowdownIsolate.
-      isolate->StopBackgroundCompiler();
-      isolate->heap()->CollectAllGarbage();
-      VerifyCanonicalVisitor check_canonical(thread);
-      isolate->heap()->IterateObjects(&check_canonical);
-    }
-#endif  // DEBUG
+#if defined(DEBUG)
+    isolate->ValidateConstants();
+#endif  // defined(DEBUG)
     const Error& error = Error::Handle(thread->sticky_error());
     if (!error.IsNull() && !error.IsUnwindError()) {
       OS::PrintErr("in ShutdownIsolate: %s\n", error.ToErrorCString());
     }
+    TransitionVMToNative transition(thread);
     Dart::RunShutdownCallback();
   }
   // Shut the isolate down.
   Dart::ShutdownIsolate(isolate);
 }
-
 
 void Isolate::SetStickyError(RawError* sticky_error) {
   ASSERT(
@@ -1534,12 +1629,14 @@ void Isolate::SetStickyError(RawError* sticky_error) {
   sticky_error_ = sticky_error;
 }
 
-
 void Isolate::Run() {
   message_handler()->Run(Dart::thread_pool(), RunIsolate, ShutdownIsolate,
                          reinterpret_cast<uword>(this));
 }
 
+void Isolate::NotifyIdle(int64_t deadline) {
+  heap()->NotifyIdle(deadline);
+}
 
 void Isolate::AddClosureFunction(const Function& function) const {
   ASSERT(!Compiler::IsBackgroundCompilation());
@@ -1549,7 +1646,6 @@ void Isolate::AddClosureFunction(const Function& function) const {
   ASSERT(function.IsNonImplicitClosureFunction());
   closures.Add(function, Heap::kOld);
 }
-
 
 // If the linear lookup turns out to be too expensive, the list
 // of closures could be maintained in a hash map, with the key
@@ -1574,7 +1670,6 @@ RawFunction* Isolate::LookupClosureFunction(const Function& parent,
   return Function::null();
 }
 
-
 intptr_t Isolate::FindClosureIndex(const Function& needle) const {
   const GrowableObjectArray& closures_array =
       GrowableObjectArray::Handle(object_store()->closure_functions());
@@ -1587,7 +1682,6 @@ intptr_t Isolate::FindClosureIndex(const Function& needle) const {
   return -1;
 }
 
-
 RawFunction* Isolate::ClosureFunctionFromIndex(intptr_t idx) const {
   const GrowableObjectArray& closures_array =
       GrowableObjectArray::Handle(object_store()->closure_functions());
@@ -1596,7 +1690,6 @@ RawFunction* Isolate::ClosureFunctionFromIndex(intptr_t idx) const {
   }
   return Function::RawCast(closures_array.At(idx));
 }
-
 
 class FinalizeWeakPersistentHandlesVisitor : public HandleVisitor {
  public:
@@ -1612,6 +1705,10 @@ class FinalizeWeakPersistentHandlesVisitor : public HandleVisitor {
   DISALLOW_COPY_AND_ASSIGN(FinalizeWeakPersistentHandlesVisitor);
 };
 
+// static
+void Isolate::NotifyLowMemory() {
+  Isolate::KillAllIsolates(Isolate::kLowMemoryMsg);
+}
 
 void Isolate::LowLevelShutdown() {
   // Ensure we have a zone and handle scope so that we can call VM functions,
@@ -1630,16 +1727,15 @@ void Isolate::LowLevelShutdown() {
     }
   }
 
+#if !defined(PRODUCT)
   // Clean up debugger resources.
-  if (FLAG_support_debugger) {
-    debugger()->Shutdown();
-  }
-
+  debugger()->Shutdown();
+#endif
 
   // Close all the ports owned by this isolate.
   PortMap::ClosePorts(message_handler());
 
-  // Fail fast if anybody tries to post any more messsages to this isolate.
+  // Fail fast if anybody tries to post any more messages to this isolate.
   delete message_handler();
   set_message_handler(NULL);
   if (FLAG_support_timeline) {
@@ -1660,6 +1756,7 @@ void Isolate::LowLevelShutdown() {
   FinalizeWeakPersistentHandlesVisitor visitor;
   api_state()->weak_persistent_handles().VisitHandles(&visitor);
 
+#if !defined(PRODUCT)
   if (FLAG_dump_megamorphic_stats) {
     MegamorphicCacheTable::PrintSizes(this);
   }
@@ -1668,7 +1765,7 @@ void Isolate::LowLevelShutdown() {
   }
   if (FLAG_trace_isolates) {
     heap()->PrintSizes();
-    OS::Print(
+    OS::PrintErr(
         "[-] Stopping isolate:\n"
         "\tisolate:    %s\n",
         name());
@@ -1682,17 +1779,10 @@ void Isolate::LowLevelShutdown() {
 #undef ISOLATE_METRIC_PRINT
     OS::PrintErr("\n");
   }
+#endif  // !defined(PRODUCT)
 }
 
-
-void Isolate::StopBackgroundCompiler() {
-  // Wait until all background compilation has finished.
-  if (background_compiler_ != NULL) {
-    BackgroundCompiler::Stop(this);
-  }
-}
-
-
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 void Isolate::MaybeIncreaseReloadEveryNStackOverflowChecks() {
   if (FLAG_reload_every_back_off) {
     if (reload_every_n_stack_overflow_checks_ < 5000) {
@@ -1706,11 +1796,13 @@ void Isolate::MaybeIncreaseReloadEveryNStackOverflowChecks() {
     }
   }
 }
-
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 void Isolate::Shutdown() {
   ASSERT(this == Isolate::Current());
-  StopBackgroundCompiler();
+  BackgroundCompiler::Stop(this);
+  delete background_compiler_;
+  background_compiler_ = NULL;
 
 #if defined(DEBUG)
   if (heap_ != NULL && FLAG_verify_on_transition) {
@@ -1734,7 +1826,7 @@ void Isolate::Shutdown() {
     if (FLAG_support_compiler_stats && FLAG_compiler_stats &&
         !ServiceIsolate::IsServiceIsolateDescendant(this) &&
         (this != Dart::vm_isolate())) {
-      OS::Print("%s", aggregate_compiler_stats()->PrintToZone());
+      OS::PrintErr("%s", aggregate_compiler_stats()->PrintToZone());
     }
   }
 
@@ -1752,7 +1844,9 @@ void Isolate::Shutdown() {
     }
   }
 
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_check_reloaded && is_runnable() && (this != Dart::vm_isolate()) &&
+      !KernelIsolate::IsKernelIsolate(this) &&
       !ServiceIsolate::IsServiceIsolateDescendant(this)) {
     if (!HasAttemptedReload()) {
       FATAL(
@@ -1760,6 +1854,11 @@ void Isolate::Shutdown() {
           "--check-reloaded is enabled.\n");
     }
   }
+
+  // TODO(33514): Ideally this should be moved to Dart_ShutdownIsolate,
+  // next to ServiceIsolate::SendIsolateShutdownMessage().
+  KernelIsolate::NotifyAboutIsolateShutdown(Isolate::Current());
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
   // Then, proceed with low-level teardown.
   LowLevelShutdown();
@@ -1783,7 +1882,6 @@ void Isolate::Shutdown() {
   }
 }
 
-
 Dart_IsolateCreateCallback Isolate::create_callback_ = NULL;
 Dart_IsolateShutdownCallback Isolate::shutdown_callback_ = NULL;
 Dart_IsolateCleanupCallback Isolate::cleanup_callback_ = NULL;
@@ -1792,22 +1890,8 @@ Monitor* Isolate::isolates_list_monitor_ = NULL;
 Isolate* Isolate::isolates_list_head_ = NULL;
 bool Isolate::creation_enabled_ = false;
 
-void Isolate::IterateObjectPointers(ObjectPointerVisitor* visitor,
-                                    bool validate_frames) {
-  HeapIterationScope heap_iteration_scope;
-  VisitObjectPointers(visitor, validate_frames);
-}
-
-
-void Isolate::IterateStackPointers(ObjectPointerVisitor* visitor,
-                                   bool validate_frames) {
-  HeapIterationScope heap_iteration_scope;
-  VisitStackPointers(visitor, validate_frames);
-}
-
-
 void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
-                                  bool validate_frames) {
+                                  ValidationPolicy validate_frames) {
   ASSERT(visitor != NULL);
 
   // Visit objects in the object store.
@@ -1824,69 +1908,71 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
     api_state()->VisitObjectPointers(visitor);
   }
 
-  // Visit the current tag which is stored in the isolate.
+  // Visit the objects directly referenced from the isolate structure.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&current_tag_));
-
-  // Visit the default tag which is stored in the isolate.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&default_tag_));
-
-  // Visit the tag table which is stored in the isolate.
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&ic_miss_code_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&tag_table_));
-
-  if (background_compiler() != NULL) {
-    background_compiler()->VisitPointers(visitor);
-  }
-
-  // Visit the deoptimized code array which is stored in the isolate.
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&deoptimized_code_array_));
-
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&sticky_error_));
-
-  // Visit the pending service extension calls.
+#if !defined(PRODUCT)
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&pending_service_extension_calls_));
-
-  // Visit the registered service extension handlers.
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&registered_service_extension_handlers_));
-
+#endif  // !defined(PRODUCT)
   // Visit the boxed_field_list_.
   // 'boxed_field_list_' access via mutator and background compilation threads
   // is guarded with a monitor. This means that we can visit it only
   // when at safepoint or the field_list_mutex_ lock has been taken.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&boxed_field_list_));
 
-  // Visit objects in the debugger.
-  if (FLAG_support_debugger) {
-    debugger()->VisitObjectPointers(visitor);
+  if (background_compiler() != NULL) {
+    background_compiler()->VisitPointers(visitor);
   }
 
 #if !defined(PRODUCT)
+  // Visit objects in the debugger.
+  debugger()->VisitObjectPointers(visitor);
+#if !defined(DART_PRECOMPILED_RUNTIME)
   // Visit objects that are being used for isolate reload.
   if (reload_context() != NULL) {
     reload_context()->VisitObjectPointers(visitor);
   }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   if (ServiceIsolate::IsServiceIsolate(this)) {
     ServiceIsolate::VisitObjectPointers(visitor);
   }
 #endif  // !defined(PRODUCT)
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   // Visit objects that are being used for deoptimization.
   if (deopt_context() != NULL) {
     deopt_context()->VisitObjectPointers(visitor);
   }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+#if defined(DART_USE_INTERPRETER)
+  if (interpreter() != NULL) {
+    interpreter()->VisitObjectPointers(visitor);
+  }
+#endif  // defined(DART_USE_INTERPRETER)
+
+#if defined(TARGET_ARCH_DBC)
+  if (simulator() != NULL) {
+    simulator()->VisitObjectPointers(visitor);
+  }
+#endif  // defined(TARGET_ARCH_DBC)
 
   VisitStackPointers(visitor, validate_frames);
 }
 
-
 void Isolate::VisitStackPointers(ObjectPointerVisitor* visitor,
-                                 bool validate_frames) {
+                                 ValidationPolicy validate_frames) {
   // Visit objects in all threads (e.g., Dart stack, handles in zones).
   thread_registry()->VisitObjectPointers(visitor, validate_frames);
 }
-
 
 void Isolate::VisitWeakPersistentHandles(HandleVisitor* visitor) {
   if (api_state() != NULL) {
@@ -1894,15 +1980,13 @@ void Isolate::VisitWeakPersistentHandles(HandleVisitor* visitor) {
   }
 }
 
-
 void Isolate::PrepareForGC() {
   thread_registry()->PrepareForGC();
 }
 
-
 RawClass* Isolate::GetClassForHeapWalkAt(intptr_t cid) {
   RawClass* raw_class = NULL;
-#ifndef PRODUCT
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   if (IsReloading()) {
     raw_class = reload_context()->GetClassForHeapWalkAt(cid);
   } else {
@@ -1910,12 +1994,23 @@ RawClass* Isolate::GetClassForHeapWalkAt(intptr_t cid) {
   }
 #else
   raw_class = class_table()->At(cid);
-#endif  // !PRODUCT
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   ASSERT(raw_class != NULL);
-  ASSERT(remapping_cids_ || raw_class->ptr()->id_ == cid);
+  ASSERT(remapping_cids() || raw_class->ptr()->id_ == cid);
   return raw_class;
 }
 
+intptr_t Isolate::GetClassSizeForHeapWalkAt(intptr_t cid) {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  if (IsReloading()) {
+    return reload_context()->GetClassSizeForHeapWalkAt(cid);
+  } else {
+    return class_table()->SizeAt(cid);
+  }
+#else
+  return class_table()->SizeAt(cid);
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+}
 
 void Isolate::AddPendingDeopt(uword fp, uword pc) {
   // GrowableArray::Add is not atomic and may be interrupt by a profiler
@@ -1935,7 +2030,6 @@ void Isolate::AddPendingDeopt(uword fp, uword pc) {
   delete old_pending_deopts;
 }
 
-
 uword Isolate::FindPendingDeopt(uword fp) const {
   for (intptr_t i = 0; i < pending_deopts_->length(); i++) {
     if ((*pending_deopts_)[i].fp() == fp) {
@@ -1946,7 +2040,6 @@ uword Isolate::FindPendingDeopt(uword fp) const {
   return 0;
 }
 
-
 void Isolate::ClearPendingDeoptsAtOrBelow(uword fp) const {
   for (intptr_t i = pending_deopts_->length() - 1; i >= 0; i--) {
     if ((*pending_deopts_)[i].fp() <= fp) {
@@ -1954,7 +2047,6 @@ void Isolate::ClearPendingDeoptsAtOrBelow(uword fp) const {
     }
   }
 }
-
 
 #ifndef PRODUCT
 static const char* ExceptionPauseInfoToServiceEnum(Dart_ExceptionPauseInfo pi) {
@@ -1971,7 +2063,6 @@ static const char* ExceptionPauseInfoToServiceEnum(Dart_ExceptionPauseInfo pi) {
   }
 }
 
-
 void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   if (!FLAG_support_service) {
     return;
@@ -1981,7 +2072,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   jsobj.AddFixedServiceId(ISOLATE_SERVICE_ID_FORMAT_STRING,
                           static_cast<int64_t>(main_port()));
 
-  jsobj.AddProperty("name", debugger_name());
+  jsobj.AddProperty("name", name());
   jsobj.AddPropertyF("number", "%" Pd64 "", static_cast<int64_t>(main_port()));
   if (ref) {
     return;
@@ -2000,24 +2091,37 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   jsobj.AddProperty("runnable", is_runnable());
   jsobj.AddProperty("livePorts", message_handler()->live_ports());
   jsobj.AddProperty("pauseOnExit", message_handler()->should_pause_on_exit());
+#if !defined(DART_PRECOMPILED_RUNTIME)
   jsobj.AddProperty("_isReloading", IsReloading());
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   if (!is_runnable()) {
     // Isolate is not yet runnable.
     ASSERT((debugger() == NULL) || (debugger()->PauseEvent() == NULL));
     ServiceEvent pause_event(this, ServiceEvent::kNone);
     jsobj.AddProperty("pauseEvent", &pause_event);
-  } else if (message_handler()->is_paused_on_start() ||
-             message_handler()->should_pause_on_start()) {
-    ASSERT((debugger() == NULL) || (debugger()->PauseEvent() == NULL));
-    ServiceEvent pause_event(this, ServiceEvent::kPauseStart);
-    jsobj.AddProperty("pauseEvent", &pause_event);
+  } else if (message_handler()->should_pause_on_start()) {
+    if (message_handler()->is_paused_on_start()) {
+      ASSERT((debugger() == NULL) || (debugger()->PauseEvent() == NULL));
+      ServiceEvent pause_event(this, ServiceEvent::kPauseStart);
+      jsobj.AddProperty("pauseEvent", &pause_event);
+    } else {
+      // Isolate is runnable but not paused on start.
+      // Some service clients get confused if they see:
+      // NotRunnable -> Runnable -> PausedAtStart
+      // Treat Runnable+ShouldPauseOnStart as NotRunnable so they see:
+      // NonRunnable -> PausedAtStart
+      // The should_pause_on_start flag is set to false after resume.
+      ASSERT((debugger() == NULL) || (debugger()->PauseEvent() == NULL));
+      ServiceEvent pause_event(this, ServiceEvent::kNone);
+      jsobj.AddProperty("pauseEvent", &pause_event);
+    }
   } else if (message_handler()->is_paused_on_exit() &&
              ((debugger() == NULL) || (debugger()->PauseEvent() == NULL))) {
     ServiceEvent pause_event(this, ServiceEvent::kPauseExit);
     jsobj.AddProperty("pauseEvent", &pause_event);
   } else if ((debugger() != NULL) && (debugger()->PauseEvent() != NULL) &&
-             !resume_request_) {
+             !ResumeRequest()) {
     jsobj.AddProperty("pauseEvent", debugger()->PauseEvent());
   } else {
     ServiceEvent pause_event(this, ServiceEvent::kResume);
@@ -2106,11 +2210,9 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
 }
 #endif
 
-
 void Isolate::set_tag_table(const GrowableObjectArray& value) {
   tag_table_ = value.raw();
 }
-
 
 void Isolate::set_current_tag(const UserTag& tag) {
   uword user_tag = tag.tag();
@@ -2118,7 +2220,6 @@ void Isolate::set_current_tag(const UserTag& tag) {
   set_user_tag(user_tag);
   current_tag_ = tag.raw();
 }
-
 
 void Isolate::set_default_tag(const UserTag& tag) {
   default_tag_ = tag.raw();
@@ -2128,12 +2229,10 @@ void Isolate::set_ic_miss_code(const Code& code) {
   ic_miss_code_ = code.raw();
 }
 
-
 void Isolate::set_deoptimized_code_array(const GrowableObjectArray& value) {
   ASSERT(Thread::Current()->IsMutatorThread());
   deoptimized_code_array_ = value.raw();
 }
-
 
 void Isolate::TrackDeoptimizedCode(const Code& code) {
   ASSERT(!code.IsNull());
@@ -2148,23 +2247,21 @@ void Isolate::TrackDeoptimizedCode(const Code& code) {
   deoptimized_code.Add(code);
 }
 
-
 void Isolate::clear_sticky_error() {
   sticky_error_ = Error::null();
 }
 
-
+#if !defined(PRODUCT)
 void Isolate::set_pending_service_extension_calls(
     const GrowableObjectArray& value) {
   pending_service_extension_calls_ = value.raw();
 }
 
-
 void Isolate::set_registered_service_extension_handlers(
     const GrowableObjectArray& value) {
   registered_service_extension_handlers_ = value.raw();
 }
-
+#endif  // !defined(PRODUCT)
 
 void Isolate::AddDeoptimizingBoxedField(const Field& field) {
   ASSERT(Compiler::IsBackgroundCompilation());
@@ -2180,7 +2277,6 @@ void Isolate::AddDeoptimizingBoxedField(const Field& field) {
   array.Add(Field::Handle(field.Original()), Heap::kOld);
 }
 
-
 RawField* Isolate::GetDeoptimizingBoxedField() {
   ASSERT(Thread::Current()->IsMutatorThread());
   SafepointMutexLocker ml(field_list_mutex_);
@@ -2194,7 +2290,6 @@ RawField* Isolate::GetDeoptimizingBoxedField() {
   }
   return Field::RawCast(array.RemoveLast());
 }
-
 
 #ifndef PRODUCT
 RawObject* Isolate::InvokePendingServiceExtensionCalls() {
@@ -2244,13 +2339,13 @@ RawObject* Isolate::InvokePendingServiceExtensionCalls() {
     arguments.SetAt(kPendingEntrySize, Bool::Get(FLAG_trace_service));
 
     if (FLAG_trace_service) {
-      OS::Print("[+%" Pd64 "ms] Isolate %s invoking _runExtension for %s\n",
-                Dart::UptimeMillis(), name(), method_name.ToCString());
+      OS::PrintErr("[+%" Pd64 "ms] Isolate %s invoking _runExtension for %s\n",
+                   Dart::UptimeMillis(), name(), method_name.ToCString());
     }
     result = DartEntry::InvokeFunction(run_extension, arguments);
     if (FLAG_trace_service) {
-      OS::Print("[+%" Pd64 "ms] Isolate %s : _runExtension complete for %s\n",
-                Dart::UptimeMillis(), name(), method_name.ToCString());
+      OS::PrintErr("[+%" Pd64 "ms] Isolate %s _runExtension complete for %s\n",
+                   Dart::UptimeMillis(), name(), method_name.ToCString());
     }
     // Propagate the error.
     if (result.IsError()) {
@@ -2273,13 +2368,11 @@ RawObject* Isolate::InvokePendingServiceExtensionCalls() {
   return Object::null();
 }
 
-
 RawGrowableObjectArray* Isolate::GetAndClearPendingServiceExtensionCalls() {
   RawGrowableObjectArray* r = pending_service_extension_calls_;
   pending_service_extension_calls_ = GrowableObjectArray::null();
   return r;
 }
-
 
 void Isolate::AppendServiceExtensionCall(const Instance& closure,
                                          const String& method_name,
@@ -2288,8 +2381,9 @@ void Isolate::AppendServiceExtensionCall(const Instance& closure,
                                          const Instance& reply_port,
                                          const Instance& id) {
   if (FLAG_trace_service) {
-    OS::Print("[+%" Pd64 "ms] Isolate %s ENQUEUING request for extension %s\n",
-              Dart::UptimeMillis(), name(), method_name.ToCString());
+    OS::PrintErr("[+%" Pd64
+                 "ms] Isolate %s ENQUEUING request for extension %s\n",
+                 Dart::UptimeMillis(), name(), method_name.ToCString());
   }
   GrowableObjectArray& calls =
       GrowableObjectArray::Handle(pending_service_extension_calls());
@@ -2311,7 +2405,6 @@ void Isolate::AppendServiceExtensionCall(const Instance& closure,
   ASSERT(kPendingIdIndex == 5);
   calls.Add(id);
 }
-
 
 // This function is written in C++ and not Dart because we must do this
 // operation atomically in the face of random OOB messages. Do not port
@@ -2348,7 +2441,6 @@ void Isolate::RegisterServiceExtensionHandler(const String& name,
   }
 }
 
-
 // This function is written in C++ and not Dart because we must do this
 // operation atomically in the face of random OOB messages. Do not port
 // to Dart code unless you can ensure that the operations will can be
@@ -2372,15 +2464,12 @@ RawInstance* Isolate::LookupServiceExtensionHandler(const String& name) {
   }
   return Instance::null();
 }
-#endif  // !PRODUCT
-
 
 void Isolate::WakePauseEventHandler(Dart_Isolate isolate) {
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
   MonitorLocker ml(iso->pause_loop_monitor_);
   ml.Notify();
 }
-
 
 void Isolate::PauseEventHandler() {
   // We are stealing a pause event (like a breakpoint) from the
@@ -2397,9 +2486,11 @@ void Isolate::PauseEventHandler() {
   Dart_MessageNotifyCallback saved_notify_callback = message_notify_callback();
   set_message_notify_callback(Isolate::WakePauseEventHandler);
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   const bool had_isolate_reload_context = reload_context() != NULL;
   const int64_t start_time_micros =
       !had_isolate_reload_context ? 0 : reload_context()->start_time_micros();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   bool resume = false;
   while (true) {
     // Handle all available vm service messages, up to a resume
@@ -2413,15 +2504,17 @@ void Isolate::PauseEventHandler() {
       break;
     }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
     if (had_isolate_reload_context && (reload_context() == NULL)) {
       if (FLAG_trace_reload) {
         const int64_t reload_time_micros =
             OS::GetCurrentMonotonicMicros() - start_time_micros;
         double reload_millis = MicrosecondsToMilliseconds(reload_time_micros);
-        OS::Print("Reloading has finished! (%.2f ms)\n", reload_millis);
+        OS::PrintErr("Reloading has finished! (%.2f ms)\n", reload_millis);
       }
       break;
     }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
     // Wait for more service messages.
     Monitor::WaitResult res = ml.Wait();
@@ -2430,7 +2523,7 @@ void Isolate::PauseEventHandler() {
   set_message_notify_callback(saved_notify_callback);
   Dart_ExitScope();
 }
-
+#endif  // !PRODUCT
 
 void Isolate::VisitIsolates(IsolateVisitor* visitor) {
   if (visitor == NULL) {
@@ -2446,7 +2539,6 @@ void Isolate::VisitIsolates(IsolateVisitor* visitor) {
   }
 }
 
-
 intptr_t Isolate::IsolateListLength() {
   MonitorLocker ml(isolates_list_monitor_);
   intptr_t count = 0;
@@ -2457,7 +2549,6 @@ intptr_t Isolate::IsolateListLength() {
   }
   return count;
 }
-
 
 bool Isolate::AddIsolateToList(Isolate* isolate) {
   MonitorLocker ml(isolates_list_monitor_);
@@ -2470,7 +2561,6 @@ bool Isolate::AddIsolateToList(Isolate* isolate) {
   isolates_list_head_ = isolate;
   return true;
 }
-
 
 void Isolate::RemoveIsolateFromList(Isolate* isolate) {
   MonitorLocker ml(isolates_list_monitor_);
@@ -2500,24 +2590,26 @@ void Isolate::RemoveIsolateFromList(Isolate* isolate) {
   ASSERT(!creation_enabled_);
 }
 
-
 void Isolate::DisableIsolateCreation() {
   MonitorLocker ml(isolates_list_monitor_);
   creation_enabled_ = false;
 }
-
 
 void Isolate::EnableIsolateCreation() {
   MonitorLocker ml(isolates_list_monitor_);
   creation_enabled_ = true;
 }
 
-
 bool Isolate::IsolateCreationEnabled() {
   MonitorLocker ml(isolates_list_monitor_);
   return creation_enabled_;
 }
 
+bool Isolate::IsVMInternalIsolate(Isolate* isolate) {
+  return (isolate == Dart::vm_isolate()) ||
+         ServiceIsolate::IsServiceIsolateDescendant(isolate) ||
+         KernelIsolate::IsKernelIsolate(isolate);
+}
 
 void Isolate::KillLocked(LibMsgId msg_id) {
   Dart_CObject kill_msg;
@@ -2547,18 +2639,16 @@ void Isolate::KillLocked(LibMsgId msg_id) {
   list_values[3] = &imm;
 
   {
-    uint8_t* buffer = NULL;
-    ApiMessageWriter writer(&buffer, &malloc_allocator);
-    bool success = writer.WriteCMessage(&kill_msg);
-    ASSERT(success);
+    ApiMessageWriter writer;
+    Message* message =
+        writer.WriteCMessage(&kill_msg, main_port(), Message::kOOBPriority);
+    ASSERT(message != NULL);
 
     // Post the message at the given port.
-    success = PortMap::PostMessage(new Message(
-        main_port(), buffer, writer.BytesWritten(), Message::kOOBPriority));
+    bool success = PortMap::PostMessage(message);
     ASSERT(success);
   }
 }
-
 
 class IsolateKillerVisitor : public IsolateVisitor {
  public:
@@ -2591,24 +2681,20 @@ class IsolateKillerVisitor : public IsolateVisitor {
   Isolate::LibMsgId msg_id_;
 };
 
-
 void Isolate::KillAllIsolates(LibMsgId msg_id) {
   IsolateKillerVisitor visitor(msg_id);
   VisitIsolates(&visitor);
 }
-
 
 void Isolate::KillIfExists(Isolate* isolate, LibMsgId msg_id) {
   IsolateKillerVisitor visitor(isolate, msg_id);
   VisitIsolates(&visitor);
 }
 
-
 void Isolate::IncrementSpawnCount() {
   MonitorLocker ml(spawn_count_monitor_);
   spawn_count_++;
 }
-
 
 void Isolate::WaitForOutstandingSpawns() {
   MonitorLocker ml(spawn_count_monitor_);
@@ -2617,11 +2703,9 @@ void Isolate::WaitForOutstandingSpawns() {
   }
 }
 
-
 Monitor* Isolate::threads_lock() const {
   return thread_registry_->threads_lock();
 }
-
 
 Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
   // Schedule the thread into the isolate by associating
@@ -2638,7 +2722,7 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
     MonitorLocker ml(threads_lock(), false);
 
     // Check to make sure we don't already have a mutator thread.
-    if (is_mutator && mutator_thread_ != NULL) {
+    if (is_mutator && scheduled_mutator_thread_ != NULL) {
       return NULL;
     }
 
@@ -2652,8 +2736,6 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
     thread = thread_registry()->GetFreeThreadLocked(this, is_mutator);
     ASSERT(thread != NULL);
 
-    thread->ResetHighWatermark();
-
     // Set up other values and set the TLS value.
     thread->isolate_ = this;
     ASSERT(heap() != NULL);
@@ -2666,14 +2748,19 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
     ASSERT(thread->no_safepoint_scope_depth() == 0);
     os_thread->set_thread(thread);
     if (is_mutator) {
-      mutator_thread_ = thread;
+      scheduled_mutator_thread_ = thread;
+      if (this != Dart::vm_isolate()) {
+        scheduled_mutator_thread_->set_top(heap()->new_space()->top());
+        scheduled_mutator_thread_->set_end(heap()->new_space()->end());
+      }
     }
     Thread::SetCurrent(thread);
     os_thread->EnableThreadInterrupts();
+
+    thread->ResetHighWatermark();
   }
   return thread;
 }
-
 
 void Isolate::UnscheduleThread(Thread* thread,
                                bool is_mutator,
@@ -2706,7 +2793,13 @@ void Isolate::UnscheduleThread(Thread* thread,
   os_thread->set_thread(NULL);
   OSThread::SetCurrent(os_thread);
   if (is_mutator) {
-    mutator_thread_ = NULL;
+    if (this != Dart::vm_isolate()) {
+      heap()->new_space()->set_top(scheduled_mutator_thread_->top_);
+      heap()->new_space()->set_end(scheduled_mutator_thread_->end_);
+    }
+    scheduled_mutator_thread_->top_ = 0;
+    scheduled_mutator_thread_->end_ = 0;
+    scheduled_mutator_thread_ = NULL;
   }
   thread->isolate_ = NULL;
   thread->heap_ = NULL;
@@ -2719,30 +2812,12 @@ void Isolate::UnscheduleThread(Thread* thread,
   thread_registry()->ReturnThreadLocked(is_mutator, thread);
 }
 
-
-static RawInstance* DeserializeObject(Thread* thread,
-                                      uint8_t* obj_data,
-                                      intptr_t obj_len) {
-  if (obj_data == NULL) {
-    return Instance::null();
-  }
-  MessageSnapshotReader reader(obj_data, obj_len, thread);
-  Zone* zone = thread->zone();
-  const Object& obj = Object::Handle(zone, reader.ReadObject());
-  ASSERT(!obj.IsError());
-  Instance& instance = Instance::Handle(zone);
-  instance ^= obj.raw();  // Can't use Instance::Cast because may be null.
-  return instance.raw();
-}
-
-
 static const char* NewConstChar(const char* chars) {
   size_t len = strlen(chars);
   char* mem = new char[len + 1];
   memmove(mem, chars, len + 1);
   return mem;
 }
-
 
 IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      Dart_Port origin_id,
@@ -2771,9 +2846,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       class_name_(NULL),
       function_name_(NULL),
       serialized_args_(NULL),
-      serialized_args_len_(0),
-      serialized_message_(NULL),
-      serialized_message_len_(0),
+      serialized_message_(message_buffer->StealMessage()),
       spawn_count_monitor_(spawn_count_monitor),
       spawn_count_(spawn_count),
       paused_(paused),
@@ -2791,12 +2864,10 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
     const String& class_name = String::Handle(cls.Name());
     class_name_ = NewConstChar(class_name.ToCString());
   }
-  message_buffer->StealBuffer(&serialized_message_, &serialized_message_len_);
 
   // Inherit flags from spawning isolate.
   Isolate::Current()->FlagsCopyTo(isolate_flags());
 }
-
 
 IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      void* init_data,
@@ -2823,24 +2894,19 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       library_url_(NULL),
       class_name_(NULL),
       function_name_(NULL),
-      serialized_args_(NULL),
-      serialized_args_len_(0),
-      serialized_message_(NULL),
-      serialized_message_len_(0),
+      serialized_args_(args_buffer->StealMessage()),
+      serialized_message_(message_buffer->StealMessage()),
       spawn_count_monitor_(spawn_count_monitor),
       spawn_count_(spawn_count),
       isolate_flags_(),
       paused_(paused),
       errors_are_fatal_(errors_are_fatal) {
   function_name_ = NewConstChar("main");
-  args_buffer->StealBuffer(&serialized_args_, &serialized_args_len_);
-  message_buffer->StealBuffer(&serialized_message_, &serialized_message_len_);
 
   // By default inherit flags from spawning isolate. These can be overridden
   // from the calling code.
   Isolate::Current()->FlagsCopyTo(isolate_flags());
 }
-
 
 IsolateSpawnState::~IsolateSpawnState() {
   delete[] script_url_;
@@ -2849,10 +2915,9 @@ IsolateSpawnState::~IsolateSpawnState() {
   delete[] library_url_;
   delete[] class_name_;
   delete[] function_name_;
-  free(serialized_args_);
-  free(serialized_message_);
+  delete serialized_args_;
+  delete serialized_message_;
 }
-
 
 RawObject* IsolateSpawnState::ResolveFunction() {
   Thread* thread = Thread::Current();
@@ -2931,17 +2996,13 @@ RawObject* IsolateSpawnState::ResolveFunction() {
   return func.raw();
 }
 
-
 RawInstance* IsolateSpawnState::BuildArgs(Thread* thread) {
-  return DeserializeObject(thread, serialized_args_, serialized_args_len_);
+  return DeserializeMessage(thread, serialized_args_);
 }
-
 
 RawInstance* IsolateSpawnState::BuildMessage(Thread* thread) {
-  return DeserializeObject(thread, serialized_message_,
-                           serialized_message_len_);
+  return DeserializeMessage(thread, serialized_message_);
 }
-
 
 void IsolateSpawnState::DecrementSpawnCount() {
   ASSERT(spawn_count_monitor_ != NULL);

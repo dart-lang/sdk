@@ -11,4 +11,3 @@ export 'constant_handler_javascript.dart';
 export 'custom_elements_analysis.dart';
 export 'namer.dart';
 export 'no_such_method_registry.dart';
-export 'type_variable_handler.dart';

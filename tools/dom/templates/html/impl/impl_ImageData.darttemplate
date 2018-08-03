@@ -4,16 +4,6 @@
 
 part of $LIBRARYNAME;
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
-$if DARTIUM
-  List<int> __data;
-
-  List<int> get data {
-    if (__data == null) {
-      __data = _data;
-    }
-    return __data;
-  }
-$endif
 
 $!MEMBERS
 }

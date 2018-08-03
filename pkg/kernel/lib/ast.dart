@@ -3,6 +3,20 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// -----------------------------------------------------------------------
+///                          WHEN CHANGING THIS FILE:
+/// -----------------------------------------------------------------------
+///
+/// If you are adding/removing/modifying fields/classes of the AST, you must
+/// also update the following files:
+///
+///   - binary/ast_to_binary.dart
+///   - binary/ast_from_binary.dart
+///   - text/ast_to_text.dart
+///   - clone.dart
+///   - binary.md
+///   - type_checker.dart (if relevant)
+///
+/// -----------------------------------------------------------------------
 ///                           ERROR HANDLING
 /// -----------------------------------------------------------------------
 ///
@@ -50,7 +64,7 @@
 ///
 library kernel.ast;
 
-import 'dart:convert' show UTF8;
+import 'dart:convert' show utf8;
 
 import 'visitor.dart';
 export 'visitor.dart';
@@ -62,6 +76,7 @@ import 'transformations/flags.dart';
 import 'text/ast_to_text.dart';
 import 'type_algebra.dart';
 import 'type_environment.dart';
+import 'coq_annot.dart';
 
 /// Any type of node in the IR.
 abstract class Node {
@@ -138,7 +153,7 @@ abstract class TreeNode extends Node {
     parent = null;
   }
 
-  Program get enclosingProgram => parent?.enclosingProgram;
+  Component get enclosingComponent => parent?.enclosingComponent;
 
   /// Returns the best known source location of the given AST node, or `null` if
   /// the node is orphaned.
@@ -159,7 +174,9 @@ abstract class TreeNode extends Node {
 ///
 /// There is a single [reference] belonging to this node, providing a level of
 /// indirection that is needed during serialization.
+@coq
 abstract class NamedNode extends TreeNode {
+  @coqdef
   final Reference reference;
 
   NamedNode(Reference reference)
@@ -170,11 +187,19 @@ abstract class NamedNode extends TreeNode {
   CanonicalName get canonicalName => reference?.canonicalName;
 }
 
+abstract class FileUriNode extends TreeNode {
+  /// The URI of the source file this node was loaded from.
+  Uri get fileUri;
+}
+
 /// Indirection between a reference and its definition.
 ///
 /// There is only one reference object per [NamedNode].
+@coqref
 class Reference {
   CanonicalName canonicalName;
+
+  @nocoq
   NamedNode node;
 
   String toString() {
@@ -241,7 +266,8 @@ class Reference {
 //                      LIBRARIES and CLASSES
 // ------------------------------------------------------------------------
 
-class Library extends NamedNode implements Comparable<Library> {
+@coq
+class Library extends NamedNode implements Comparable<Library>, FileUriNode {
   /// An import path to this library.
   ///
   /// The [Uri] should have the `dart`, `package`, `app`, or `file` scheme.
@@ -249,8 +275,8 @@ class Library extends NamedNode implements Comparable<Library> {
   /// If the URI has the `app` scheme, it is relative to the application root.
   Uri importUri;
 
-  /// The uri of the source file this library was loaded from.
-  String fileUri;
+  /// The URI of the source file this library was loaded from.
+  Uri fileUri;
 
   /// If true, the library is part of another build unit and its contents
   /// are only partially loaded.
@@ -264,8 +290,21 @@ class Library extends NamedNode implements Comparable<Library> {
   bool isExternal;
 
   String name;
+
+  @nocoq
   final List<Expression> annotations;
+
   final List<LibraryDependency> dependencies;
+
+  /// References to nodes exported by `export` declarations that:
+  /// - aren't ambiguous, or
+  /// - aren't hidden by local declarations.
+  @nocoq
+  final List<Reference> additionalExports = <Reference>[];
+
+  @informative
+  final List<LibraryPart> parts;
+
   final List<Typedef> typedefs;
   final List<Class> classes;
   final List<Procedure> procedures;
@@ -276,6 +315,7 @@ class Library extends NamedNode implements Comparable<Library> {
       this.isExternal: false,
       List<Expression> annotations,
       List<LibraryDependency> dependencies,
+      List<LibraryPart> parts,
       List<Typedef> typedefs,
       List<Class> classes,
       List<Procedure> procedures,
@@ -284,12 +324,14 @@ class Library extends NamedNode implements Comparable<Library> {
       Reference reference})
       : this.annotations = annotations ?? <Expression>[],
         this.dependencies = dependencies ?? <LibraryDependency>[],
+        this.parts = parts ?? <LibraryPart>[],
         this.typedefs = typedefs ?? <Typedef>[],
         this.classes = classes ?? <Class>[],
         this.procedures = procedures ?? <Procedure>[],
         this.fields = fields ?? <Field>[],
         super(reference) {
     setParents(this.dependencies, this);
+    setParents(this.parts, this);
     setParents(this.typedefs, this);
     setParents(this.classes, this);
     setParents(this.procedures, this);
@@ -314,19 +356,29 @@ class Library extends NamedNode implements Comparable<Library> {
     }
   }
 
+  void addAnnotation(Expression node) {
+    node.parent = this;
+    annotations.add(node);
+  }
+
   void addClass(Class class_) {
     class_.parent = this;
     classes.add(class_);
   }
 
+  void addField(Field field) {
+    field.parent = this;
+    fields.add(field);
+  }
+
+  void addProcedure(Procedure procedure) {
+    procedure.parent = this;
+    procedures.add(procedure);
+  }
+
   void addTypedef(Typedef typedef_) {
     typedef_.parent = this;
     typedefs.add(typedef_);
-  }
-
-  void addAnnotation(Expression node) {
-    node.parent = this;
-    annotations.add(node);
   }
 
   void computeCanonicalNames() {
@@ -350,10 +402,16 @@ class Library extends NamedNode implements Comparable<Library> {
     dependencies.add(node..parent = this);
   }
 
+  void addPart(LibraryPart node) {
+    parts.add(node..parent = this);
+  }
+
   accept(TreeVisitor v) => v.visitLibrary(this);
 
   visitChildren(Visitor v) {
+    visitList(annotations, v);
     visitList(dependencies, v);
+    visitList(parts, v);
     visitList(typedefs, v);
     visitList(classes, v);
     visitList(procedures, v);
@@ -361,7 +419,9 @@ class Library extends NamedNode implements Comparable<Library> {
   }
 
   transformChildren(Transformer v) {
+    transformList(annotations, v, this);
     transformList(dependencies, v, this);
+    transformList(parts, v, this);
     transformList(typedefs, v, this);
     transformList(classes, v, this);
     transformList(procedures, v, this);
@@ -378,7 +438,7 @@ class Library extends NamedNode implements Comparable<Library> {
   String toString() => debugLibraryName(this);
 
   Location _getLocationInEnclosingFile(int offset) {
-    return enclosingProgram.getLocation(fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 }
 
@@ -460,9 +520,38 @@ class LibraryDependency extends TreeNode {
   }
 }
 
+/// A part declaration in a library.
+///
+///     part <url>;
+///
+/// optionally with metadata.
+class LibraryPart extends TreeNode {
+  final List<Expression> annotations;
+  final String partUri;
+
+  LibraryPart(this.annotations, this.partUri) {
+    setParents(annotations, this);
+  }
+
+  void addAnnotation(Expression annotation) {
+    annotations.add(annotation..parent = this);
+  }
+
+  accept(TreeVisitor v) => v.visitLibraryPart(this);
+
+  visitChildren(Visitor v) {
+    visitList(annotations, v);
+  }
+
+  transformChildren(Transformer v) {
+    transformList(annotations, v, this);
+  }
+}
+
 /// A `show` or `hide` clause for an import or export.
 class Combinator extends TreeNode {
   bool isShow;
+
   final List<String> names;
 
   LibraryDependency get dependency => parent;
@@ -484,9 +573,9 @@ class Combinator extends TreeNode {
 }
 
 /// Declaration of a type alias.
-class Typedef extends NamedNode {
-  /// The uri of the source file that contains the declaration of this typedef.
-  String fileUri;
+class Typedef extends NamedNode implements FileUriNode {
+  /// The URI of the source file that contains the declaration of this typedef.
+  Uri fileUri;
   List<Expression> annotations = const <Expression>[];
   String name;
   final List<TypeParameter> typeParameters;
@@ -581,7 +670,22 @@ enum ClassLevel {
 /// use those from its mixed-in type.  However, the IR does not enforce this
 /// rule directly, as doing so can obstruct transformations.  It is possible to
 /// transform a mixin application to become a regular class, and vice versa.
-class Class extends NamedNode {
+@coq
+class Class extends NamedNode implements FileUriNode {
+  /// Start offset of the class in the source file it comes from.
+  ///
+  /// Note that this includes annotations if any.
+  ///
+  /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset]) if the file
+  /// start offset is not available (this is the default if none is specifically
+  /// set).
+  int startFileOffset = TreeNode.noOffset;
+
+  /// End offset in the source file it comes from. Valid values are from 0 and
+  /// up, or -1 ([TreeNode.noOffset]) if the file end offset is not available
+  /// (this is the default if none is specifically set).
+  int fileEndOffset = TreeNode.noOffset;
+
   /// The degree to which the contents of the class have been loaded.
   ClassLevel level = ClassLevel.Body;
 
@@ -589,6 +693,7 @@ class Class extends NamedNode {
   ///
   /// This defaults to an immutable empty list. Use [addAnnotation] to add
   /// annotations if needed.
+  @nocoq
   List<Expression> annotations = const <Expression>[];
 
   /// Name of the class.
@@ -598,11 +703,63 @@ class Class extends NamedNode {
   /// The name may contain characters that are not valid in a Dart identifier,
   /// in particular, the symbol '&' is used in class names generated for mixin
   /// applications.
+  @coq
   String name;
-  bool isAbstract;
 
-  /// The uri of the source file this class was loaded from.
-  String fileUri;
+  // Must match serialized bit positions.
+  static const int LevelMask = 0x3; // Bits 0 and 1.
+  static const int FlagAbstract = 1 << 2;
+  static const int FlagEnum = 1 << 3;
+  static const int FlagAnonymousMixin = 1 << 4;
+  static const int FlagEliminatedMixin = 1 << 5;
+
+  int flags = 0;
+
+  bool get isAbstract => flags & FlagAbstract != 0;
+
+  void set isAbstract(bool value) {
+    flags = value ? (flags | FlagAbstract) : (flags & ~FlagAbstract);
+  }
+
+  /// Whether this class is an enum.
+  bool get isEnum => flags & FlagEnum != 0;
+
+  void set isEnum(bool value) {
+    flags = value ? (flags | FlagEnum) : (flags & ~FlagEnum);
+  }
+
+  /// Whether this class is a synthetic implementation created for each
+  /// mixed-in class. For example the following code:
+  /// class Z extends A with B, C, D {}
+  /// class A {}
+  /// class B {}
+  /// class C {}
+  /// class D {}
+  /// ...creates:
+  /// abstract class A&B extends A mixedIn B {}
+  /// abstract class A&B&C extends A&B mixedIn C {}
+  /// abstract class A&B&C&D extends A&B&C mixedIn D {}
+  /// class Z extends A&B&C&D {}
+  /// All X&Y classes are marked as synthetic.
+  bool get isAnonymousMixin => flags & FlagAnonymousMixin != 0;
+
+  void set isAnonymousMixin(bool value) {
+    flags =
+        value ? (flags | FlagAnonymousMixin) : (flags & ~FlagAnonymousMixin);
+  }
+
+  /// Whether this class was transformed from a mixin application.
+  /// In such case, its mixed-in type was pulled into the end of implemented
+  /// types list.
+  bool get isEliminatedMixin => flags & FlagEliminatedMixin != 0;
+
+  void set isEliminatedMixin(bool value) {
+    flags =
+        value ? (flags | FlagEliminatedMixin) : (flags & ~FlagEliminatedMixin);
+  }
+
+  /// The URI of the source file this class was loaded from.
+  Uri fileUri;
 
   final List<TypeParameter> typeParameters;
 
@@ -625,12 +782,18 @@ class Class extends NamedNode {
 
   /// Procedures declared in the class.
   ///
-  /// For mixin applications this should be empty.
+  /// For mixin applications this should only contain forwarding stubs.
   final List<Procedure> procedures;
+
+  /// Redirecting factory constructors declared in the class.
+  ///
+  /// For mixin applications this should be empty.
+  final List<RedirectingFactoryConstructor> redirectingFactoryConstructors;
 
   Class(
       {this.name,
-      this.isAbstract: false,
+      bool isAbstract: false,
+      bool isAnonymousMixin: false,
       this.supertype,
       this.mixedInType,
       List<TypeParameter> typeParameters,
@@ -638,6 +801,7 @@ class Class extends NamedNode {
       List<Constructor> constructors,
       List<Procedure> procedures,
       List<Field> fields,
+      List<RedirectingFactoryConstructor> redirectingFactoryConstructors,
       this.fileUri,
       Reference reference})
       : this.typeParameters = typeParameters ?? <TypeParameter>[],
@@ -645,11 +809,16 @@ class Class extends NamedNode {
         this.fields = fields ?? <Field>[],
         this.constructors = constructors ?? <Constructor>[],
         this.procedures = procedures ?? <Procedure>[],
+        this.redirectingFactoryConstructors =
+            redirectingFactoryConstructors ?? <RedirectingFactoryConstructor>[],
         super(reference) {
     setParents(this.typeParameters, this);
     setParents(this.constructors, this);
     setParents(this.procedures, this);
     setParents(this.fields, this);
+    setParents(this.redirectingFactoryConstructors, this);
+    this.isAbstract = isAbstract;
+    this.isAnonymousMixin = isAnonymousMixin;
   }
 
   void computeCanonicalNames() {
@@ -661,6 +830,9 @@ class Class extends NamedNode {
       canonicalName.getChildFromMember(member).bindTo(member.reference);
     }
     for (var member in constructors) {
+      canonicalName.getChildFromMember(member).bindTo(member.reference);
+    }
+    for (var member in redirectingFactoryConstructors) {
       canonicalName.getChildFromMember(member).bindTo(member.reference);
     }
   }
@@ -683,8 +855,12 @@ class Class extends NamedNode {
   ///
   /// This getter is for convenience, not efficiency.  Consider manually
   /// iterating the members to speed up code in production.
-  Iterable<Member> get members =>
-      <Iterable<Member>>[fields, constructors, procedures].expand((x) => x);
+  Iterable<Member> get members => <Iterable<Member>>[
+        fields,
+        constructors,
+        procedures,
+        redirectingFactoryConstructors
+      ].expand((x) => x);
 
   /// The immediately extended, mixed-in, and implemented types.
   ///
@@ -711,6 +887,8 @@ class Class extends NamedNode {
       procedures.add(member);
     } else if (member is Field) {
       fields.add(member);
+    } else if (member is RedirectingFactoryConstructor) {
+      redirectingFactoryConstructors.add(member);
     } else {
       throw new ArgumentError(member);
     }
@@ -743,15 +921,18 @@ class Class extends NamedNode {
     return new Supertype(this, _getAsTypeArguments(typeParameters));
   }
 
+  @nocoq
   InterfaceType _rawType;
   InterfaceType get rawType => _rawType ??= new InterfaceType(this);
 
+  @nocoq
   InterfaceType _thisType;
   InterfaceType get thisType {
     return _thisType ??=
         new InterfaceType(this, _getAsTypeArguments(typeParameters));
   }
 
+  @nocoq
   InterfaceType _bottomType;
   InterfaceType get bottomType {
     return _bottomType ??= new InterfaceType(this,
@@ -771,6 +952,7 @@ class Class extends NamedNode {
     visitList(constructors, v);
     visitList(procedures, v);
     visitList(fields, v);
+    visitList(redirectingFactoryConstructors, v);
   }
 
   transformChildren(Transformer v) {
@@ -786,10 +968,11 @@ class Class extends NamedNode {
     transformList(constructors, v, this);
     transformList(procedures, v, this);
     transformList(fields, v, this);
+    transformList(redirectingFactoryConstructors, v, this);
   }
 
   Location _getLocationInEnclosingFile(int offset) {
-    return enclosingProgram.getLocation(fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 }
 
@@ -797,18 +980,26 @@ class Class extends NamedNode {
 //                            MEMBERS
 // ------------------------------------------------------------------------
 
-abstract class Member extends NamedNode {
-  /// End offset in the source file it comes from. Valid values are from 0 and
-  /// up, or -1 ([TreeNode.noOffset]) if the file end offset is not available
-  /// (this is the default if none is specifically set).
+@coq
+abstract class Member extends NamedNode implements FileUriNode {
+  /// End offset in the source file it comes from.
+  ///
+  /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset]) if the file
+  /// end offset is not available (this is the default if none is specifically
+  /// set).
   int fileEndOffset = TreeNode.noOffset;
 
   /// List of metadata annotations on the member.
   ///
   /// This defaults to an immutable empty list. Use [addAnnotation] to add
   /// annotations if needed.
+  @nocoq
   List<Expression> annotations = const <Expression>[];
+
   Name name;
+
+  /// The URI of the source file this member was loaded from.
+  Uri fileUri;
 
   /// Flags summarizing the kinds of AST nodes contained in this member, for
   /// speeding up transformations that only affect certain types of nodes.
@@ -827,7 +1018,7 @@ abstract class Member extends NamedNode {
   // TODO(asgerf): It might be worthwhile to put this on classes as well.
   int transformerFlags = 0;
 
-  Member(this.name, Reference reference) : super(reference);
+  Member(this.name, this.fileUri, Reference reference) : super(reference);
 
   Class get enclosingClass => parent is Class ? parent : null;
   Library get enclosingLibrary => parent is Class ? parent.parent : parent;
@@ -896,23 +1087,22 @@ class Field extends Member {
   int flags = 0;
   Expression initializer; // May be null.
 
-  /// The uri of the source file this field was loaded from.
-  String fileUri;
-
   Field(Name name,
       {this.type: const DynamicType(),
       this.initializer,
+      bool isCovariant: false,
       bool isFinal: false,
       bool isConst: false,
       bool isStatic: false,
       bool hasImplicitGetter,
       bool hasImplicitSetter,
       int transformerFlags: 0,
-      this.fileUri,
+      Uri fileUri,
       Reference reference})
-      : super(name, reference) {
+      : super(name, fileUri, reference) {
     assert(type != null);
     initializer?.parent = this;
+    this.isCovariant = isCovariant;
     this.isFinal = isFinal;
     this.isConst = isConst;
     this.isStatic = isStatic;
@@ -926,6 +1116,11 @@ class Field extends Member {
   static const int FlagStatic = 1 << 2;
   static const int FlagHasImplicitGetter = 1 << 3;
   static const int FlagHasImplicitSetter = 1 << 4;
+  static const int FlagCovariant = 1 << 5;
+  static const int FlagGenericCovariantImpl = 1 << 6;
+
+  /// Whether the field is declared with the `covariant` keyword.
+  bool get isCovariant => flags & FlagCovariant != 0;
 
   bool get isFinal => flags & FlagFinal != 0;
   bool get isConst => flags & FlagConst != 0;
@@ -951,6 +1146,17 @@ class Field extends Member {
   /// By default, all non-static, non-final fields have implicit setters.
   bool get hasImplicitSetter => flags & FlagHasImplicitSetter != 0;
 
+  /// Indicates whether the implicit setter associated with this field needs to
+  /// contain a runtime type check to deal with generic covariance.
+  ///
+  /// When `true`, runtime checks may need to be performed; see
+  /// [DispatchCategory] for details.
+  bool get isGenericCovariantImpl => flags & FlagGenericCovariantImpl != 0;
+
+  void set isCovariant(bool value) {
+    flags = value ? (flags | FlagCovariant) : (flags & ~FlagCovariant);
+  }
+
   void set isFinal(bool value) {
     flags = value ? (flags | FlagFinal) : (flags & ~FlagFinal);
   }
@@ -973,6 +1179,12 @@ class Field extends Member {
     flags = value
         ? (flags | FlagHasImplicitSetter)
         : (flags & ~FlagHasImplicitSetter);
+  }
+
+  void set isGenericCovariantImpl(bool value) {
+    flags = value
+        ? (flags | FlagGenericCovariantImpl)
+        : (flags & ~FlagGenericCovariantImpl);
   }
 
   /// True if the field is neither final nor const.
@@ -1010,7 +1222,7 @@ class Field extends Member {
   DartType get setterType => isMutable ? type : const BottomType();
 
   Location _getLocationInEnclosingFile(int offset) {
-    return enclosingProgram.getLocation(fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 }
 
@@ -1023,6 +1235,15 @@ class Field extends Member {
 ///
 /// For unnamed constructors, the name is an empty string (in a [Name]).
 class Constructor extends Member {
+  /// Start offset of the constructor in the source file it comes from.
+  ///
+  /// Note that this includes annotations if any.
+  ///
+  /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset]) if the file
+  /// start offset is not available (this is the default if none is specifically
+  /// set).
+  int startFileOffset = TreeNode.noOffset;
+
   int flags = 0;
   FunctionNode function;
   List<Initializer> initializers;
@@ -1031,30 +1252,31 @@ class Constructor extends Member {
       {Name name,
       bool isConst: false,
       bool isExternal: false,
-      bool isSyntheticDefault: false,
+      bool isSynthetic: false,
       List<Initializer> initializers,
       int transformerFlags: 0,
+      Uri fileUri,
       Reference reference})
       : this.initializers = initializers ?? <Initializer>[],
-        super(name, reference) {
+        super(name, fileUri, reference) {
     function?.parent = this;
     setParents(this.initializers, this);
     this.isConst = isConst;
     this.isExternal = isExternal;
-    this.isSyntheticDefault = isSyntheticDefault;
+    this.isSynthetic = isSynthetic;
     this.transformerFlags = transformerFlags;
   }
 
   static const int FlagConst = 1 << 0; // Must match serialized bit positions.
   static const int FlagExternal = 1 << 1;
-  static const int FlagSyntheticDefault = 1 << 2;
+  static const int FlagSynthetic = 1 << 2;
 
   bool get isConst => flags & FlagConst != 0;
   bool get isExternal => flags & FlagExternal != 0;
 
-  /// True if this is a synthetic default constructor inserted in a class that
+  /// True if this is a synthetic constructor inserted in a class that
   /// does not otherwise declare any constructors.
-  bool get isSyntheticDefault => flags & FlagSyntheticDefault != 0;
+  bool get isSynthetic => flags & FlagSynthetic != 0;
 
   void set isConst(bool value) {
     flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
@@ -1064,10 +1286,8 @@ class Constructor extends Member {
     flags = value ? (flags | FlagExternal) : (flags & ~FlagExternal);
   }
 
-  void set isSyntheticDefault(bool value) {
-    flags = value
-        ? (flags | FlagSyntheticDefault)
-        : (flags & ~FlagSyntheticDefault);
+  void set isSynthetic(bool value) {
+    flags = value ? (flags | FlagSynthetic) : (flags & ~FlagSynthetic);
   }
 
   bool get isInstanceMember => false;
@@ -1082,21 +1302,155 @@ class Constructor extends Member {
   visitChildren(Visitor v) {
     visitList(annotations, v);
     name?.accept(v);
-    function?.accept(v);
     visitList(initializers, v);
+    function?.accept(v);
   }
 
   transformChildren(Transformer v) {
     transformList(annotations, v, this);
+    transformList(initializers, v, this);
     if (function != null) {
       function = function.accept(v);
       function?.parent = this;
     }
-    transformList(initializers, v, this);
   }
 
   DartType get getterType => const BottomType();
   DartType get setterType => const BottomType();
+
+  Location _getLocationInEnclosingFile(int offset) {
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
+  }
+}
+
+/// Residue of a redirecting factory constructor for the linking phase.
+///
+/// In the following example, `bar` is a redirecting factory constructor.
+///
+///     class A {
+///       A.foo();
+///       factory A.bar() = A.foo;
+///     }
+///
+/// An invocation of `new A.bar()` has the same effect as an invocation of
+/// `new A.foo()`.  In Kernel, the invocations of `bar` are replaced with
+/// invocations of `foo`, and after it is done, the redirecting constructor can
+/// be removed from the class.  However, it is needed during the linking phase,
+/// because other modules can refer to that constructor.
+///
+/// [RedirectingFactoryConstructor]s contain the necessary information for
+/// linking and are treated as non-runnable members of classes that merely serve
+/// as containers for that information.
+///
+/// Redirecting factory constructors can be unnamed.  In this case, the name is
+/// an empty string (in a [Name]).
+class RedirectingFactoryConstructor extends Member {
+  int flags = 0;
+
+  /// [RedirectingFactoryConstructor]s may redirect to constructors or factories
+  /// of instantiated generic types, that is, generic types with supplied type
+  /// arguments.  The supplied type arguments are stored in this field.
+  final List<DartType> typeArguments;
+
+  /// Reference to the constructor or the factory that this
+  /// [RedirectingFactoryConstructor] redirects to.
+  Reference targetReference;
+
+  /// [typeParameters] are duplicates of the type parameters of the enclosing
+  /// class.  Because [RedirectingFactoryConstructor]s aren't instance members,
+  /// references to the type parameters of the enclosing class in the
+  /// redirection target description are encoded with references to the elements
+  /// of [typeParameters].
+  List<TypeParameter> typeParameters;
+
+  /// Positional parameters of [RedirectingFactoryConstructor]s should be
+  /// compatible with that of the target constructor.
+  List<VariableDeclaration> positionalParameters;
+  int requiredParameterCount;
+
+  /// Named parameters of [RedirectingFactoryConstructor]s should be compatible
+  /// with that of the target constructor.
+  List<VariableDeclaration> namedParameters;
+
+  RedirectingFactoryConstructor(this.targetReference,
+      {Name name,
+      bool isConst: false,
+      bool isExternal: false,
+      int transformerFlags: 0,
+      List<DartType> typeArguments,
+      List<TypeParameter> typeParameters,
+      List<VariableDeclaration> positionalParameters,
+      List<VariableDeclaration> namedParameters,
+      int requiredParameterCount,
+      Uri fileUri,
+      Reference reference})
+      : this.typeArguments = typeArguments ?? <DartType>[],
+        this.typeParameters = typeParameters ?? <TypeParameter>[],
+        this.positionalParameters =
+            positionalParameters ?? <VariableDeclaration>[],
+        this.namedParameters = namedParameters ?? <VariableDeclaration>[],
+        this.requiredParameterCount =
+            requiredParameterCount ?? positionalParameters?.length ?? 0,
+        super(name, fileUri, reference) {
+    setParents(this.typeParameters, this);
+    setParents(this.positionalParameters, this);
+    setParents(this.namedParameters, this);
+    this.isConst = isConst;
+    this.isExternal = isExternal;
+    this.transformerFlags = transformerFlags;
+  }
+
+  static const int FlagConst = 1 << 0; // Must match serialized bit positions.
+  static const int FlagExternal = 1 << 1;
+
+  bool get isConst => flags & FlagConst != 0;
+  bool get isExternal => flags & FlagExternal != 0;
+
+  void set isConst(bool value) {
+    flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
+  }
+
+  void set isExternal(bool value) {
+    flags = value ? (flags | FlagExternal) : (flags & ~FlagExternal);
+  }
+
+  bool get isInstanceMember => false;
+  bool get hasGetter => false;
+  bool get hasSetter => false;
+
+  bool get isUnresolved => targetReference == null;
+
+  Member get target => targetReference?.asMember;
+
+  void set target(Member member) {
+    assert(member is Constructor ||
+        (member is Procedure && member.kind == ProcedureKind.Factory));
+    targetReference = getMemberReference(member);
+  }
+
+  accept(MemberVisitor v) => v.visitRedirectingFactoryConstructor(this);
+
+  acceptReference(MemberReferenceVisitor v) =>
+      v.visitRedirectingFactoryConstructorReference(this);
+
+  visitChildren(Visitor v) {
+    visitList(annotations, v);
+    target?.acceptReference(v);
+    visitList(typeArguments, v);
+    name?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    transformList(annotations, v, this);
+    transformTypeList(typeArguments, v);
+  }
+
+  DartType get getterType => const BottomType();
+  DartType get setterType => const BottomType();
+
+  Location _getLocationInEnclosingFile(int offset) {
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
+  }
 }
 
 /// A method, getter, setter, index-getter, index-setter, operator overloader,
@@ -1114,28 +1468,95 @@ class Constructor extends Member {
 /// For index-getters/setters, this is `[]` and `[]=`.
 /// For operators, this is the token for the operator, e.g. `+` or `==`,
 /// except for the unary minus operator, whose name is `unary-`.
+@coq
 class Procedure extends Member {
+  /// Start offset of the function in the source file it comes from.
+  ///
+  /// Note that this includes annotations if any.
+  ///
+  /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset]) if the file
+  /// start offset is not available (this is the default if none is specifically
+  /// set).
+  int startFileOffset = TreeNode.noOffset;
+
   ProcedureKind kind;
   int flags = 0;
-  FunctionNode function; // Body is null if and only if abstract or external.
+  // function is null if and only if abstract, external.
+  FunctionNode function;
 
-  /// The uri of the source file this procedure was loaded from.
-  String fileUri;
+  // The function node's body might be lazily loaded, meaning that this value
+  // might not be set correctly yet. Make sure the body is loaded before
+  // returning anything.
+  int get transformerFlags {
+    function?.body;
+    return super.transformerFlags;
+  }
 
-  Procedure(Name name, this.kind, this.function,
+  // The function node's body might be lazily loaded, meaning that this value
+  // might get overwritten later (when the body is read). To avoid that read the
+  // body now and only set the value afterwards.
+  void set transformerFlags(int newValue) {
+    function?.body;
+    super.transformerFlags = newValue;
+  }
+
+  // This function will set the transformer flags without loading the body.
+  // Used when reading the binary. For other cases one should probably use
+  // `transformerFlags = value;`.
+  void setTransformerFlagsWithoutLazyLoading(int newValue) {
+    super.transformerFlags = newValue;
+  }
+
+  Reference forwardingStubSuperTargetReference;
+  Reference forwardingStubInterfaceTargetReference;
+
+  Procedure(Name name, ProcedureKind kind, FunctionNode function,
       {bool isAbstract: false,
       bool isStatic: false,
       bool isExternal: false,
       bool isConst: false,
+      bool isForwardingStub: false,
+      bool isForwardingSemiStub: false,
       int transformerFlags: 0,
-      this.fileUri,
-      Reference reference})
-      : super(name, reference) {
+      Uri fileUri,
+      Reference reference,
+      Member forwardingStubSuperTarget,
+      Member forwardingStubInterfaceTarget})
+      : this.byReference(name, kind, function,
+            isAbstract: isAbstract,
+            isStatic: isStatic,
+            isExternal: isExternal,
+            isConst: isConst,
+            isForwardingStub: isForwardingStub,
+            isForwardingSemiStub: isForwardingSemiStub,
+            transformerFlags: transformerFlags,
+            fileUri: fileUri,
+            reference: reference,
+            forwardingStubSuperTargetReference:
+                getMemberReference(forwardingStubSuperTarget),
+            forwardingStubInterfaceTargetReference:
+                getMemberReference(forwardingStubInterfaceTarget));
+
+  Procedure.byReference(Name name, this.kind, this.function,
+      {bool isAbstract: false,
+      bool isStatic: false,
+      bool isExternal: false,
+      bool isConst: false,
+      bool isForwardingStub: false,
+      bool isForwardingSemiStub: false,
+      int transformerFlags: 0,
+      Uri fileUri,
+      Reference reference,
+      this.forwardingStubSuperTargetReference,
+      this.forwardingStubInterfaceTargetReference})
+      : super(name, fileUri, reference) {
     function?.parent = this;
     this.isAbstract = isAbstract;
     this.isStatic = isStatic;
     this.isExternal = isExternal;
     this.isConst = isConst;
+    this.isForwardingStub = isForwardingStub;
+    this.isForwardingSemiStub = isForwardingSemiStub;
     this.transformerFlags = transformerFlags;
   }
 
@@ -1143,6 +1564,11 @@ class Procedure extends Member {
   static const int FlagAbstract = 1 << 1;
   static const int FlagExternal = 1 << 2;
   static const int FlagConst = 1 << 3; // Only for external const factories.
+  static const int FlagForwardingStub = 1 << 4;
+  static const int FlagForwardingSemiStub = 1 << 5;
+  // TODO(29841): Remove this flag after the issue is resolved.
+  static const int FlagRedirectingFactoryConstructor = 1 << 6;
+  static const int FlagNoSuchMethodForwarder = 1 << 7;
 
   bool get isStatic => flags & FlagStatic != 0;
   bool get isAbstract => flags & FlagAbstract != 0;
@@ -1151,6 +1577,33 @@ class Procedure extends Member {
   /// True if this has the `const` modifier.  This is only possible for external
   /// constant factories, such as `String.fromEnvironment`.
   bool get isConst => flags & FlagConst != 0;
+
+  /// If set, this flag indicates that this function's implementation exists
+  /// solely for the purpose of type checking arguments and forwarding to
+  /// [forwardingStubSuperTarget].
+  ///
+  /// Note that just because this bit is set doesn't mean that the function was
+  /// not declared in the source; it's possible that this is a forwarding
+  /// semi-stub (see isForwardingSemiStub).  To determine whether this function
+  /// was present in the source, consult [isSyntheticForwarder].
+  bool get isForwardingStub => flags & FlagForwardingStub != 0;
+
+  /// If set, this flag indicates that although this function is a forwarding
+  /// stub, it was present in the original source as an abstract method.
+  bool get isForwardingSemiStub => flags & FlagForwardingSemiStub != 0;
+
+  // Indicates if this [Procedure] represents a redirecting factory constructor
+  // and doesn't have a runnable body.
+  bool get isRedirectingFactoryConstructor {
+    return flags & FlagRedirectingFactoryConstructor != 0;
+  }
+
+  /// If set, this flag indicates that this function was not present in the
+  /// source, and it exists solely for the purpose of type checking arguments
+  /// and forwarding to [forwardingStubSuperTarget].
+  bool get isSyntheticForwarder => isForwardingStub && !isForwardingSemiStub;
+
+  bool get isNoSuchMethodForwarder => flags & FlagNoSuchMethodForwarder != 0;
 
   void set isStatic(bool value) {
     flags = value ? (flags | FlagStatic) : (flags & ~FlagStatic);
@@ -1168,6 +1621,29 @@ class Procedure extends Member {
     flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
   }
 
+  void set isForwardingStub(bool value) {
+    flags =
+        value ? (flags | FlagForwardingStub) : (flags & ~FlagForwardingStub);
+  }
+
+  void set isForwardingSemiStub(bool value) {
+    flags = value
+        ? (flags | FlagForwardingSemiStub)
+        : (flags & ~FlagForwardingSemiStub);
+  }
+
+  void set isRedirectingFactoryConstructor(bool value) {
+    flags = value
+        ? (flags | FlagRedirectingFactoryConstructor)
+        : (flags & ~FlagRedirectingFactoryConstructor);
+  }
+
+  void set isNoSuchMethodForwarder(bool value) {
+    flags = value
+        ? (flags | FlagNoSuchMethodForwarder)
+        : (flags & ~FlagNoSuchMethodForwarder);
+  }
+
   bool get isInstanceMember => !isStatic;
   bool get isGetter => kind == ProcedureKind.Getter;
   bool get isSetter => kind == ProcedureKind.Setter;
@@ -1175,6 +1651,20 @@ class Procedure extends Member {
   bool get hasGetter => kind != ProcedureKind.Setter;
   bool get hasSetter => kind == ProcedureKind.Setter;
   bool get isFactory => kind == ProcedureKind.Factory;
+
+  Member get forwardingStubSuperTarget =>
+      forwardingStubSuperTargetReference?.asMember;
+
+  void set forwardingStubSuperTarget(Member target) {
+    forwardingStubSuperTargetReference = getMemberReference(target);
+  }
+
+  Member get forwardingStubInterfaceTarget =>
+      forwardingStubInterfaceTargetReference?.asMember;
+
+  void set forwardingStubInterfaceTarget(Member target) {
+    forwardingStubInterfaceTargetReference = getMemberReference(target);
+  }
 
   accept(MemberVisitor v) => v.visitProcedure(this);
 
@@ -1205,7 +1695,7 @@ class Procedure extends Member {
   }
 
   Location _getLocationInEnclosingFile(int offset) {
-    return enclosingProgram.getLocation(fileUri, offset);
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 }
 
@@ -1223,6 +1713,10 @@ enum ProcedureKind {
 
 /// Part of an initializer list in a constructor.
 abstract class Initializer extends TreeNode {
+  /// True if this is a synthetic constructor initializer.
+  @informative
+  bool isSynthetic = false;
+
   accept(InitializerVisitor v);
 }
 
@@ -1385,6 +1879,25 @@ class LocalInitializer extends Initializer {
   }
 }
 
+class AssertInitializer extends Initializer {
+  AssertStatement statement;
+
+  AssertInitializer(this.statement) {
+    statement.parent = this;
+  }
+
+  accept(InitializerVisitor v) => v.visitAssertInitializer(this);
+
+  visitChildren(Visitor v) {
+    statement.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    statement = statement.accept(v);
+    statement.parent = this;
+  }
+}
+
 // ------------------------------------------------------------------------
 //                            FUNCTIONS
 // ------------------------------------------------------------------------
@@ -1393,6 +1906,7 @@ class LocalInitializer extends Initializer {
 ///
 /// This may occur in a procedure, constructor, function expression, or local
 /// function declaration.
+@coq
 class FunctionNode extends TreeNode {
   /// End offset in the source file it comes from. Valid values are from 0 and
   /// up, or -1 ([TreeNode.noOffset]) if the file end offset is not available
@@ -1414,14 +1928,37 @@ class FunctionNode extends TreeNode {
   /// For example, when async/await is translated away,
   /// a Dart async function might be represented by a Kernel sync function.
   AsyncMarker dartAsyncMarker;
+
   List<TypeParameter> typeParameters;
   int requiredParameterCount;
+  @coqsingledef
   List<VariableDeclaration> positionalParameters;
+  @nocoq
   List<VariableDeclaration> namedParameters;
   DartType returnType; // Not null.
-  Statement body;
+  Statement _body;
 
-  FunctionNode(this.body,
+  void Function() lazyBuilder;
+
+  void _buildLazy() {
+    if (lazyBuilder != null) {
+      var lazyBuilderLocal = lazyBuilder;
+      lazyBuilder = null;
+      lazyBuilderLocal();
+    }
+  }
+
+  Statement get body {
+    _buildLazy();
+    return _body;
+  }
+
+  void set body(Statement body) {
+    _buildLazy();
+    _body = body;
+  }
+
+  FunctionNode(this._body,
       {List<TypeParameter> typeParameters,
       List<VariableDeclaration> positionalParameters,
       List<VariableDeclaration> namedParameters,
@@ -1439,7 +1976,7 @@ class FunctionNode extends TreeNode {
     setParents(this.typeParameters, this);
     setParents(this.positionalParameters, this);
     setParents(this.namedParameters, this);
-    body?.parent = this;
+    _body?.parent = this;
     dartAsyncMarker ??= asyncMarker;
   }
 
@@ -1454,13 +1991,16 @@ class FunctionNode extends TreeNode {
     List<NamedType> named =
         namedParameters.map(_getNamedTypeOfVariable).toList(growable: false);
     named.sort();
+    // We need create a copy of the list of type parameters, otherwise
+    // transformations like erasure don't work.
+    var typeParametersCopy = new List<TypeParameter>.from(parent is Constructor
+        ? parent.enclosingClass.typeParameters
+        : typeParameters);
     return new FunctionType(
         positionalParameters.map(_getTypeOfVariable).toList(growable: false),
         returnType,
         namedParameters: named,
-        typeParameters: parent is Constructor
-            ? parent.enclosingClass.typeParameters
-            : typeParameters,
+        typeParameters: typeParametersCopy,
         requiredParameterCount: requiredParameterCount);
   }
 
@@ -1535,6 +2075,7 @@ enum AsyncMarker {
 //                                EXPRESSIONS
 // ------------------------------------------------------------------------
 
+@coq
 abstract class Expression extends TreeNode {
   /// Returns the static type of the expression.
   ///
@@ -1548,7 +2089,7 @@ abstract class Expression extends TreeNode {
   /// Should only be used on code compiled in strong mode, as this method
   /// assumes the IR is strongly typed.
   ///
-  /// This method futhermore assumes that the type of the expression actually
+  /// This method furthermore assumes that the type of the expression actually
   /// is a subtype of (some instantiation of) the given [superclass].
   /// If this is not the case, either an exception is thrown or the raw type of
   /// [superclass] is returned.
@@ -1584,6 +2125,10 @@ abstract class Expression extends TreeNode {
 ///
 /// Should throw a runtime error when evaluated.
 class InvalidExpression extends Expression {
+  String message;
+
+  InvalidExpression(this.message);
+
   DartType getStaticType(TypeEnvironment types) => const BottomType();
 
   accept(ExpressionVisitor v) => v.visitInvalidExpression(this);
@@ -1594,8 +2139,10 @@ class InvalidExpression extends Expression {
 }
 
 /// Read a local variable, a local function, or a function parameter.
+@coq
 class VariableGet extends Expression {
   VariableDeclaration variable;
+  @nocoq
   DartType promotedType; // Null if not promoted.
 
   VariableGet(this.variable, [this.promotedType]);
@@ -1649,10 +2196,13 @@ class VariableSet extends Expression {
 /// Expression of form `x.field`.
 ///
 /// This may invoke a getter, read a field, or tear off a method.
+@coq
 class PropertyGet extends Expression {
   Expression receiver;
+  @coq
   Name name;
 
+  @nocoq
   Reference interfaceTargetReference;
 
   PropertyGet(Expression receiver, Name name, [Member interfaceTarget])
@@ -1910,6 +2460,7 @@ class DirectMethodInvocation extends InvocationExpression {
 /// This may invoke a getter, read a field, or tear off a method.
 class SuperPropertyGet extends Expression {
   Name name;
+
   Reference interfaceTargetReference;
 
   SuperPropertyGet(Name name, [Member interfaceTarget])
@@ -1953,6 +2504,7 @@ class SuperPropertyGet extends Expression {
 class SuperPropertySet extends Expression {
   Name name;
   Expression value;
+
   Reference interfaceTargetReference;
 
   SuperPropertySet(Name name, Expression value, Member interfaceTarget)
@@ -2055,8 +2607,11 @@ class StaticSet extends Expression {
 
 /// The arguments to a function call, divided into type arguments,
 /// positional arguments, and named arguments.
+@coq
 class Arguments extends TreeNode {
+  @nocoq
   final List<DartType> types;
+  @coqsingle
   final List<Expression> positional;
   final List<NamedExpression> named;
 
@@ -2072,6 +2627,17 @@ class Arguments extends TreeNode {
       : types = <DartType>[],
         positional = <Expression>[],
         named = <NamedExpression>[];
+
+  factory Arguments.forwarded(FunctionNode function) {
+    return new Arguments(
+        function.positionalParameters.map((p) => new VariableGet(p)).toList(),
+        named: function.namedParameters
+            .map((p) => new NamedExpression(p.name, new VariableGet(p)))
+            .toList(),
+        types: function.typeParameters
+            .map((p) => new TypeParameterType(p))
+            .toList());
+  }
 
   accept(TreeVisitor v) => v.visitArguments(this);
 
@@ -2113,6 +2679,7 @@ class NamedExpression extends TreeNode {
 
 /// Common super class for [DirectMethodInvocation], [MethodInvocation],
 /// [SuperMethodInvocation], [StaticInvocation], and [ConstructorInvocation].
+@coq
 abstract class InvocationExpression extends Expression {
   Arguments get arguments;
   set arguments(Arguments value);
@@ -2124,6 +2691,7 @@ abstract class InvocationExpression extends Expression {
 }
 
 /// Expression of form `x.foo(y)`.
+@coq
 class MethodInvocation extends InvocationExpression {
   Expression receiver;
   Name name;
@@ -2132,7 +2700,7 @@ class MethodInvocation extends InvocationExpression {
   Reference interfaceTargetReference;
 
   MethodInvocation(Expression receiver, Name name, Arguments arguments,
-      [Procedure interfaceTarget])
+      [Member interfaceTarget])
       : this.byReference(
             receiver, name, arguments, getMemberReference(interfaceTarget));
 
@@ -2142,27 +2710,33 @@ class MethodInvocation extends InvocationExpression {
     arguments?.parent = this;
   }
 
-  Procedure get interfaceTarget => interfaceTargetReference?.asProcedure;
+  Member get interfaceTarget => interfaceTargetReference?.asMember;
 
   void set interfaceTarget(Member target) {
     interfaceTargetReference = getMemberReference(target);
   }
 
   DartType getStaticType(TypeEnvironment types) {
+    var interfaceTarget = this.interfaceTarget;
     if (interfaceTarget != null) {
-      if (types.isOverloadedArithmeticOperator(interfaceTarget)) {
+      if (interfaceTarget is Procedure &&
+          types.isOverloadedArithmeticOperator(interfaceTarget)) {
         return types.getTypeOfOverloadedArithmetic(
             receiver.getStaticType(types),
             arguments.positional[0].getStaticType(types));
       }
       Class superclass = interfaceTarget.enclosingClass;
       var receiverType = receiver.getStaticTypeAsInstanceOf(superclass, types);
-      var returnType = Substitution
+      var getterType = Substitution
           .fromInterfaceType(receiverType)
-          .substituteType(interfaceTarget.function.returnType);
-      return Substitution
-          .fromPairs(interfaceTarget.function.typeParameters, arguments.types)
-          .substituteType(returnType);
+          .substituteType(interfaceTarget.getterType);
+      if (getterType is FunctionType) {
+        return Substitution
+            .fromPairs(getterType.typeParameters, arguments.types)
+            .substituteType(getterType.returnType);
+      } else {
+        return const DynamicType();
+      }
     }
     if (name.name == 'call') {
       var receiverType = receiver.getStaticType(types);
@@ -2313,8 +2887,10 @@ class StaticInvocation extends InvocationExpression {
 // DESIGN TODO: Should we pass type arguments in a separate field
 // `classTypeArguments`? They are quite different from type arguments to
 // generic functions.
+@coq
 class ConstructorInvocation extends InvocationExpression {
   Reference targetReference;
+  @nocoq
   Arguments arguments;
   bool isConst;
 
@@ -2361,6 +2937,39 @@ class ConstructorInvocation extends InvocationExpression {
     return arguments.types.isEmpty
         ? target.enclosingClass.rawType
         : new InterfaceType(target.enclosingClass, arguments.types);
+  }
+}
+
+/// An explicit type instantiation of a generic function.
+class Instantiation extends Expression {
+  Expression expression;
+  final List<DartType> typeArguments;
+
+  Instantiation(this.expression, this.typeArguments) {
+    expression?.parent = this;
+  }
+
+  DartType getStaticType(TypeEnvironment types) {
+    FunctionType type = expression.getStaticType(types);
+    return Substitution
+        .fromPairs(type.typeParameters, typeArguments)
+        .substituteType(type.withoutTypeParameters);
+  }
+
+  accept(ExpressionVisitor v) => v.visitInstantiation(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitInstantiation(this, arg);
+
+  visitChildren(Visitor v) {
+    expression?.accept(v);
+    visitList(typeArguments, v);
+  }
+
+  transformChildren(Transformer v) {
+    if (expression != null) {
+      expression = expression.accept(v);
+      expression?.parent = this;
+    }
+    transformTypeList(typeArguments, v);
   }
 }
 
@@ -2530,11 +3139,25 @@ class IsExpression extends Expression {
 
 /// Expression of form `x as T`.
 class AsExpression extends Expression {
+  int flags = 0;
   Expression operand;
   DartType type;
 
   AsExpression(this.operand, this.type) {
     operand?.parent = this;
+  }
+
+  // Must match serialized bit positions.
+  static const int FlagTypeError = 1 << 0;
+
+  /// Indicates the type of error that should be thrown if the check fails.
+  ///
+  /// `true` means that a TypeError should be thrown.  `false` means that a
+  /// CastError should be thrown.
+  bool get isTypeError => flags & FlagTypeError != 0;
+
+  void set isTypeError(bool value) {
+    flags = value ? (flags | FlagTypeError) : (flags & ~FlagTypeError);
   }
 
   DartType getStaticType(TypeEnvironment types) => type;
@@ -2576,6 +3199,10 @@ class StringLiteral extends BasicLiteral {
 }
 
 class IntLiteral extends BasicLiteral {
+  /// Note that this value holds a uint64 value.
+  /// E.g. "0x8000000000000000" will be saved as "-9223372036854775808" despite
+  /// technically (on some platforms, particularly Javascript) being positive.
+  /// If the number is meant to be negative it will be wrapped in a "unary-".
   int value;
 
   IntLiteral(this.value);
@@ -2840,6 +3467,27 @@ class FunctionExpression extends Expression {
   }
 }
 
+class ConstantExpression extends Expression {
+  Constant constant;
+
+  ConstantExpression(this.constant) {
+    assert(constant != null);
+  }
+
+  DartType getStaticType(TypeEnvironment types) => constant.getType(types);
+
+  accept(ExpressionVisitor v) => v.visitConstantExpression(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitConstantExpression(this, arg);
+
+  visitChildren(Visitor v) {
+    constant?.acceptReference(v);
+  }
+
+  transformChildren(Transformer v) {
+    constant = v.visitConstant(constant);
+  }
+}
+
 /// Synthetic expression of form `let v = x in y`
 class Let extends Expression {
   VariableDeclaration variable; // Must have an initializer.
@@ -3032,21 +3680,36 @@ class VectorCopy extends Expression {
   }
 }
 
-/// Expression of the form `MakeClosure(f, c, t)` where `f` is a name of a
-/// closed top-level function, `c` is a Vector representing closure context, and
-/// `t` is the type of the resulting closure.
+/// Expression of the form `MakeClosure<T>(f, c, t)` where `f` is a name of a
+/// closed top-level function, `c` is a Vector representing closure context, `t`
+/// is the type of the resulting closure and `T` is a vector of type arguments
+/// to be passed to `f`.
+///
+/// Note these restrictions on its usage:
+///
+///   1. `f` must reference a statically-resolved top-level function.
+///
+///   2. The length of `T` must be less than or equal to the number of type
+///      parameters on `f`.
+///
+///   3. It is disallowed to use `MakeClosure` on the same function twice with
+///      different numbers of type arguments.
+///
+///   4. The type arguments `T` must be guaranteed to satisfy the bounds of the
+///      corresponding type parameters on `f`.
 class ClosureCreation extends Expression {
   Reference topLevelFunctionReference;
   Expression contextVector;
   FunctionType functionType;
+  List<DartType> typeArguments;
 
   ClosureCreation(Member topLevelFunction, Expression contextVector,
-      FunctionType functionType)
-      : this.byReference(
-            getMemberReference(topLevelFunction), contextVector, functionType);
+      FunctionType functionType, List<DartType> typeArguments)
+      : this.byReference(getMemberReference(topLevelFunction), contextVector,
+            functionType, typeArguments);
 
-  ClosureCreation.byReference(
-      this.topLevelFunctionReference, this.contextVector, this.functionType) {
+  ClosureCreation.byReference(this.topLevelFunctionReference,
+      this.contextVector, this.functionType, this.typeArguments) {
     contextVector?.parent = this;
   }
 
@@ -3061,6 +3724,8 @@ class ClosureCreation extends Expression {
 
   visitChildren(Visitor v) {
     contextVector?.accept(v);
+    functionType.accept(v);
+    visitList(typeArguments, v);
   }
 
   transformChildren(Transformer v) {
@@ -3068,6 +3733,8 @@ class ClosureCreation extends Expression {
       contextVector = contextVector.accept(v);
       contextVector?.parent = this;
     }
+    functionType = v.visitDartType(functionType);
+    transformTypeList(typeArguments, v);
   }
 
   DartType getStaticType(TypeEnvironment types) {
@@ -3079,22 +3746,13 @@ class ClosureCreation extends Expression {
 //                              STATEMENTS
 // ------------------------------------------------------------------------
 
+@coq
 abstract class Statement extends TreeNode {
   accept(StatementVisitor v);
   accept1(StatementVisitor1 v, arg);
 }
 
-/// A statement with a compile-time error.
-///
-/// Should throw an exception at runtime.
-class InvalidStatement extends Statement {
-  accept(StatementVisitor v) => v.visitInvalidStatement(this);
-  accept1(StatementVisitor1 v, arg) => v.visitInvalidStatement(this, arg);
-
-  visitChildren(Visitor v) {}
-  transformChildren(Transformer v) {}
-}
-
+@coq
 class ExpressionStatement extends Statement {
   Expression expression;
 
@@ -3117,10 +3775,16 @@ class ExpressionStatement extends Statement {
   }
 }
 
+@coq
 class Block extends Statement {
   final List<Statement> statements;
 
   Block(this.statements) {
+    // Ensure statements is mutable.
+    assert((statements
+          ..add(null)
+          ..removeLast()) !=
+        null);
     setParents(statements, this);
   }
 
@@ -3141,6 +3805,40 @@ class Block extends Statement {
   }
 }
 
+/// A block that is only executed when asserts are enabled.
+///
+/// Sometimes arbitrary statements must be guarded by whether asserts are
+/// enabled.  For example, when a subexpression of an assert in async code is
+/// linearized and named, it can produce such a block of statements.
+class AssertBlock extends Statement {
+  final List<Statement> statements;
+
+  AssertBlock(this.statements) {
+    // Ensure statements is mutable.
+    assert((statements
+          ..add(null)
+          ..removeLast()) !=
+        null);
+    setParents(statements, this);
+  }
+
+  accept(StatementVisitor v) => v.visitAssertBlock(this);
+  accept1(StatementVisitor1 v, arg) => v.visitAssertBlock(this, arg);
+
+  transformChildren(Transformer v) {
+    transformList(statements, v, this);
+  }
+
+  visitChildren(Visitor v) {
+    visitList(statements, v);
+  }
+
+  void addStatement(Statement node) {
+    statements.add(node);
+    node.parent = this;
+  }
+}
+
 class EmptyStatement extends Statement {
   accept(StatementVisitor v) => v.visitEmptyStatement(this);
   accept1(StatementVisitor1 v, arg) => v.visitEmptyStatement(this, arg);
@@ -3152,8 +3850,11 @@ class EmptyStatement extends Statement {
 class AssertStatement extends Statement {
   Expression condition;
   Expression message; // May be null.
+  int conditionStartOffset;
+  int conditionEndOffset;
 
-  AssertStatement(this.condition, [this.message]) {
+  AssertStatement(this.condition,
+      {this.message, this.conditionStartOffset, this.conditionEndOffset}) {
     condition?.parent = this;
     message?.parent = this;
   }
@@ -3333,6 +4034,12 @@ class ForStatement extends Statement {
 }
 
 class ForInStatement extends Statement {
+  /// Offset in the source file it comes from.
+  ///
+  /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset]) if the file
+  /// offset is not available (this is the default if none is specifically set).
+  int bodyOffset = TreeNode.noOffset;
+
   VariableDeclaration variable; // Has no initializer.
   Expression iterable;
   Statement body;
@@ -3494,6 +4201,7 @@ class IfStatement extends Statement {
   }
 }
 
+@coq
 class ReturnStatement extends Statement {
   Expression expression; // May be null.
 
@@ -3519,8 +4227,9 @@ class ReturnStatement extends Statement {
 class TryCatch extends Statement {
   Statement body;
   List<Catch> catches;
+  bool isSynthetic;
 
-  TryCatch(this.body, this.catches) {
+  TryCatch(this.body, this.catches, {this.isSynthetic: false}) {
     body?.parent = this;
     setParents(catches, this);
   }
@@ -3662,6 +4371,7 @@ class YieldStatement extends Statement {
 /// When this occurs as a statement, it must be a direct child of a [Block].
 //
 // DESIGN TODO: Should we remove the 'final' modifier from variables?
+@coqref
 class VariableDeclaration extends Statement {
   /// Offset of the equals sign in the source file it comes from.
   ///
@@ -3669,6 +4379,12 @@ class VariableDeclaration extends Statement {
   /// if the equals sign offset is not available (e.g. if not initialized)
   /// (this is the default if none is specifically set).
   int fileEqualsOffset = TreeNode.noOffset;
+
+  /// List of metadata annotations on the variable declaration.
+  ///
+  /// This defaults to an immutable empty list. Use [addAnnotation] to add
+  /// annotations if needed.
+  List<Expression> annotations = const <Expression>[];
 
   /// For named parameters, this is the name of the parameter. No two named
   /// parameters (in the same parameter list) can have the same name.
@@ -3680,42 +4396,73 @@ class VariableDeclaration extends Statement {
   DartType type; // Not null, defaults to dynamic.
 
   /// Offset of the declaration, set and used when writing the binary.
-  int binaryOffset = -1;
+  int binaryOffsetNoTag = -1;
 
   /// For locals, this is the initial value.
   /// For parameters, this is the default value.
   ///
   /// Should be null in other cases.
+  @coqopt
   Expression initializer; // May be null.
 
   VariableDeclaration(this.name,
       {this.initializer,
       this.type: const DynamicType(),
+      int flags: -1,
       bool isFinal: false,
-      bool isConst: false}) {
+      bool isConst: false,
+      bool isFieldFormal: false,
+      bool isCovariant: false}) {
     assert(type != null);
     initializer?.parent = this;
-    this.isFinal = isFinal;
-    this.isConst = isConst;
+    if (flags != -1) {
+      this.flags = flags;
+    } else {
+      this.isFinal = isFinal;
+      this.isConst = isConst;
+      this.isFieldFormal = isFieldFormal;
+      this.isCovariant = isCovariant;
+    }
   }
 
   /// Creates a synthetic variable with the given expression as initializer.
   VariableDeclaration.forValue(this.initializer,
       {bool isFinal: true,
       bool isConst: false,
+      bool isFieldFormal: false,
       this.type: const DynamicType()}) {
     assert(type != null);
     initializer?.parent = this;
     this.isFinal = isFinal;
     this.isConst = isConst;
+    this.isFieldFormal = isFieldFormal;
   }
 
   static const int FlagFinal = 1 << 0; // Must match serialized bit positions.
   static const int FlagConst = 1 << 1;
-  static const int FlagInScope = 1 << 2; // Temporary flag used by verifier.
+  static const int FlagFieldFormal = 1 << 2;
+  static const int FlagCovariant = 1 << 3;
+  static const int FlagInScope = 1 << 4; // Temporary flag used by verifier.
+  static const int FlagGenericCovariantImpl = 1 << 5;
 
   bool get isFinal => flags & FlagFinal != 0;
   bool get isConst => flags & FlagConst != 0;
+
+  /// Whether the parameter is declared with the `covariant` keyword.
+  bool get isCovariant => flags & FlagCovariant != 0;
+
+  /// Whether the variable is declared as a field formal parameter of
+  /// a constructor.
+  @informative
+  bool get isFieldFormal => flags & FlagFieldFormal != 0;
+
+  /// If this [VariableDeclaration] is a parameter of a method, indicates
+  /// whether the method implementation needs to contain a runtime type check to
+  /// deal with generic covariance.
+  ///
+  /// When `true`, runtime checks may need to be performed; see
+  /// [DispatchCategory] for details.
+  bool get isGenericCovariantImpl => flags & FlagGenericCovariantImpl != 0;
 
   void set isFinal(bool value) {
     flags = value ? (flags | FlagFinal) : (flags & ~FlagFinal);
@@ -3725,15 +4472,39 @@ class VariableDeclaration extends Statement {
     flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
   }
 
+  void set isCovariant(bool value) {
+    flags = value ? (flags | FlagCovariant) : (flags & ~FlagCovariant);
+  }
+
+  @informative
+  void set isFieldFormal(bool value) {
+    flags = value ? (flags | FlagFieldFormal) : (flags & ~FlagFieldFormal);
+  }
+
+  void set isGenericCovariantImpl(bool value) {
+    flags = value
+        ? (flags | FlagGenericCovariantImpl)
+        : (flags & ~FlagGenericCovariantImpl);
+  }
+
+  void addAnnotation(Expression annotation) {
+    if (annotations.isEmpty) {
+      annotations = <Expression>[];
+    }
+    annotations.add(annotation..parent = this);
+  }
+
   accept(StatementVisitor v) => v.visitVariableDeclaration(this);
   accept1(StatementVisitor1 v, arg) => v.visitVariableDeclaration(this, arg);
 
   visitChildren(Visitor v) {
+    visitList(annotations, v);
     type?.accept(v);
     initializer?.accept(v);
   }
 
   transformChildren(Transformer v) {
+    transformList(annotations, v, this);
     type = v.visitDartType(type);
     if (initializer != null) {
       initializer = initializer.accept(v);
@@ -3792,10 +4563,14 @@ class FunctionDeclaration extends Statement {
 ///
 /// The [toString] method returns a human-readable string that includes the
 /// library name for private names; uniqueness is not guaranteed.
+@coq
 abstract class Name implements Node {
   final int hashCode;
+  @coq
   final String name;
+  @nocoq
   Reference get libraryName;
+  @nocoq
   Library get library;
   bool get isPrivate;
 
@@ -3867,6 +4642,7 @@ class _PublicName extends Name {
 ///
 /// The `==` operator on [DartType]s compare based on type equality, not
 /// object identity.
+@coq
 abstract class DartType extends Node {
   const DartType();
 
@@ -3933,8 +4709,10 @@ class BottomType extends DartType {
   bool operator ==(Object other) => other is BottomType;
 }
 
+@coq
 class InterfaceType extends DartType {
-  final Reference className;
+  Reference className;
+  @nocoq
   final List<DartType> typeArguments;
 
   /// The [typeArguments] list must not be modified after this call. If the
@@ -4008,7 +4786,7 @@ class InterfaceType extends DartType {
 ///
 /// * Access to Vectors is untyped.
 ///
-/// * Vectors can be used by various transformations of Kernel programs.
+/// * Vectors can be used by various transformations of Kernel components.
 /// Currently they are used by Closure Conversion to represent closure contexts.
 class VectorType extends DartType {
   const VectorType();
@@ -4018,21 +4796,38 @@ class VectorType extends DartType {
 }
 
 /// A possibly generic function type.
+@coq
 class FunctionType extends DartType {
   final List<TypeParameter> typeParameters;
   final int requiredParameterCount;
+  @coqsingle
   final List<DartType> positionalParameters;
   final List<NamedType> namedParameters; // Must be sorted.
+
+  /// The optional names of [positionalParameters], not `null`, but might be
+  /// empty if information is not available.
+  @informative
+  final List<String> positionalParameterNames;
+
+  /// The [Typedef] this function type is created for.
+  @nocoq
+  Reference typedefReference;
+
   final DartType returnType;
   int _hashCode;
 
   FunctionType(List<DartType> positionalParameters, this.returnType,
       {this.namedParameters: const <NamedType>[],
       this.typeParameters: const <TypeParameter>[],
-      int requiredParameterCount})
+      int requiredParameterCount,
+      this.positionalParameterNames: const <String>[],
+      this.typedefReference})
       : this.positionalParameters = positionalParameters,
         this.requiredParameterCount =
             requiredParameterCount ?? positionalParameters.length;
+
+  /// The [Typedef] this function type is created for.
+  Typedef get typedef => typedefReference?.asTypedef;
 
   accept(DartTypeVisitor v) => v.visitFunctionType(this);
 
@@ -4084,7 +4879,8 @@ class FunctionType extends DartType {
     if (typeParameters.isEmpty) return this;
     return new FunctionType(positionalParameters, returnType,
         requiredParameterCount: requiredParameterCount,
-        namedParameters: namedParameters);
+        namedParameters: namedParameters,
+        typedefReference: typedefReference);
   }
 
   /// Looks up the type of the named parameter with the given name.
@@ -4232,9 +5028,9 @@ class TypeParameterType extends DartType {
   ///
   /// 'null' indicates that the type parameter's bound has not been promoted and
   /// is therefore the same as the bound of [parameter].
-  DartType bound;
+  DartType promotedBound;
 
-  TypeParameterType(this.parameter, [this.bound]);
+  TypeParameterType(this.parameter, [this.promotedBound]);
 
   accept(DartTypeVisitor v) => v.visitTypeParameterType(this);
 
@@ -4245,6 +5041,9 @@ class TypeParameterType extends DartType {
   }
 
   int get hashCode => _temporaryHashCodeTable[parameter] ?? parameter.hashCode;
+
+  /// Returns the bound of the type parameter, accounting for promotions.
+  DartType get bound => promotedBound ?? parameter.bound;
 }
 
 /// Declaration of a type variable.
@@ -4257,6 +5056,14 @@ class TypeParameterType extends DartType {
 /// parent pointer.  [TypeParameter] objects should not be shared between
 /// different [FunctionType] objects.
 class TypeParameter extends TreeNode {
+  int flags = 0;
+
+  /// List of metadata annotations on the type parameter.
+  ///
+  /// This defaults to an immutable empty list. Use [addAnnotation] to add
+  /// annotations if needed.
+  List<Expression> annotations = const <Expression>[];
+
   String name; // Cosmetic name.
 
   /// The bound on the type variable.
@@ -4265,28 +5072,62 @@ class TypeParameter extends TreeNode {
   /// be set to the root class for type parameters without an explicit bound.
   DartType bound;
 
-  /// Offset of the declaration, set and used when writing the binary.
-  int binaryOffset = 0;
+  /// The default value of the type variable. It is used to provide the
+  /// corresponding missing type argument in type annotations and as the
+  /// fall-back type value in type inference at compile time. At run time,
+  /// [defaultType] is used by the backends in place of the missing type
+  /// argument of a dynamic invocation of a generic function.
+  DartType defaultType;
 
-  TypeParameter([this.name, this.bound]);
+  TypeParameter([this.name, this.bound, this.defaultType]);
+
+  // Must match serialized bit positions.
+  static const int FlagGenericCovariantImpl = 1 << 0;
+
+  /// If this [TypeParameter] is a type parameter of a generic method, indicates
+  /// whether the method implementation needs to contain a runtime type check to
+  /// deal with generic covariance.
+  ///
+  /// When `true`, runtime checks may need to be performed; see
+  /// [DispatchCategory] for details.
+  bool get isGenericCovariantImpl => flags & FlagGenericCovariantImpl != 0;
+
+  void set isGenericCovariantImpl(bool value) {
+    flags = value
+        ? (flags | FlagGenericCovariantImpl)
+        : (flags & ~FlagGenericCovariantImpl);
+  }
+
+  void addAnnotation(Expression annotation) {
+    if (annotations.isEmpty) {
+      annotations = <Expression>[];
+    }
+    annotations.add(annotation..parent = this);
+  }
 
   accept(TreeVisitor v) => v.visitTypeParameter(this);
 
   visitChildren(Visitor v) {
     bound.accept(v);
+    defaultType?.accept(v);
   }
 
   transformChildren(Transformer v) {
     bound = v.visitDartType(bound);
+    if (defaultType != null) {
+      defaultType = v.visitDartType(defaultType);
+    }
   }
 
   /// Returns a possibly synthesized name for this type parameter, consistent
   /// with the names used across all [toString] calls.
   String toString() => debugQualifiedTypeParameterName(this);
+
+  bool get isFunctionTypeTypeParameter => parent == null;
 }
 
 class Supertype extends Node {
-  final Reference className;
+  Reference className;
   final List<DartType> typeArguments;
 
   Supertype(Class classNode, List<DartType> typeArguments)
@@ -4331,31 +5172,382 @@ class Supertype extends Node {
 }
 
 // ------------------------------------------------------------------------
-//                                PROGRAM
+//                             CONSTANTS
 // ------------------------------------------------------------------------
 
-/// A way to bundle up all the libraries in a program.
-class Program extends TreeNode {
+abstract class Constant extends Node {
+  /// Calls the `visit*ConstantReference()` method on visitor [v] for all
+  /// constants referenced in this constant.
+  ///
+  /// (Note that a constant can be seen as a DAG (directed acyclic graph) and
+  ///  not a tree!)
+  visitChildren(Visitor v);
+
+  /// Calls the `visit*Constant()` method on the visitor [v].
+  accept(ConstantVisitor v);
+
+  /// Calls the `visit*ConstantReference()` method on the visitor [v].
+  acceptReference(Visitor v);
+
+  /// The Kernel AST will reference [Constant]s via [ConstantExpression]s.  The
+  /// constants are not required to be canonicalized, but they have to be deeply
+  /// comparable via hashCode/==!
+  int get hashCode;
+  bool operator ==(Object other);
+
+  /// Gets the type of this constant.
+  DartType getType(TypeEnvironment types);
+}
+
+abstract class PrimitiveConstant<T> extends Constant {
+  final T value;
+
+  PrimitiveConstant(this.value);
+
+  String toString() => '$value';
+
+  int get hashCode => value.hashCode;
+
+  bool operator ==(Object other) =>
+      other is PrimitiveConstant<T> && other.value == value;
+}
+
+class NullConstant extends PrimitiveConstant<Null> {
+  NullConstant() : super(null);
+
+  visitChildren(Visitor v) {}
+  accept(ConstantVisitor v) => v.visitNullConstant(this);
+  acceptReference(Visitor v) => v.visitNullConstantReference(this);
+
+  DartType getType(TypeEnvironment types) => types.nullType;
+}
+
+class BoolConstant extends PrimitiveConstant<bool> {
+  BoolConstant(bool value) : super(value);
+
+  visitChildren(Visitor v) {}
+  accept(ConstantVisitor v) => v.visitBoolConstant(this);
+  acceptReference(Visitor v) => v.visitBoolConstantReference(this);
+
+  DartType getType(TypeEnvironment types) => types.boolType;
+}
+
+class IntConstant extends PrimitiveConstant<int> {
+  IntConstant(int value) : super(value);
+
+  visitChildren(Visitor v) {}
+  accept(ConstantVisitor v) => v.visitIntConstant(this);
+  acceptReference(Visitor v) => v.visitIntConstantReference(this);
+
+  DartType getType(TypeEnvironment types) => types.intType;
+}
+
+class DoubleConstant extends PrimitiveConstant<double> {
+  DoubleConstant(double value) : super(value);
+
+  visitChildren(Visitor v) {}
+  accept(ConstantVisitor v) => v.visitDoubleConstant(this);
+  acceptReference(Visitor v) => v.visitDoubleConstantReference(this);
+
+  int get hashCode => value.isNaN ? 199 : super.hashCode;
+  bool operator ==(Object other) =>
+      other is DoubleConstant &&
+      (other.value == value || identical(value, other.value) /* For NaN */);
+
+  DartType getType(TypeEnvironment types) => types.doubleType;
+}
+
+class StringConstant extends PrimitiveConstant<String> {
+  StringConstant(String value) : super(value) {
+    assert(value != null);
+  }
+
+  visitChildren(Visitor v) {}
+  accept(ConstantVisitor v) => v.visitStringConstant(this);
+  acceptReference(Visitor v) => v.visitStringConstantReference(this);
+
+  DartType getType(TypeEnvironment types) => types.stringType;
+}
+
+class MapConstant extends Constant {
+  final DartType keyType;
+  final DartType valueType;
+  final List<ConstantMapEntry> entries;
+
+  MapConstant(this.keyType, this.valueType, this.entries);
+
+  visitChildren(Visitor v) {
+    keyType.accept(v);
+    valueType.accept(v);
+    for (final ConstantMapEntry entry in entries) {
+      entry.key.acceptReference(v);
+      entry.value.acceptReference(v);
+    }
+  }
+
+  accept(ConstantVisitor v) => v.visitMapConstant(this);
+  acceptReference(Visitor v) => v.visitMapConstantReference(this);
+
+  String toString() => '${this.runtimeType}<$keyType, $valueType>($entries)';
+
+  // TODO(kustermann): Consider combining the hash codes in a better way (also
+  // below and in [listHashCode]/[mapHashCode].
+  int _cachedHashCode;
+  int get hashCode {
+    return _cachedHashCode ??=
+        keyType.hashCode ^ valueType.hashCode ^ listHashCode(entries);
+  }
+
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MapConstant &&
+          other.keyType == keyType &&
+          other.valueType == valueType &&
+          listEquals(other.entries, entries));
+
+  DartType getType(TypeEnvironment types) =>
+      types.literalMapType(keyType, valueType);
+}
+
+class ConstantMapEntry {
+  final Constant key;
+  final Constant value;
+  ConstantMapEntry(this.key, this.value);
+
+  String toString() => '$key: $value';
+
+  int get hashCode => key.hashCode ^ value.hashCode;
+
+  bool operator ==(Object other) =>
+      other is ConstantMapEntry && other.key == key && other.value == value;
+}
+
+class ListConstant extends Constant {
+  final DartType typeArgument;
+  final List<Constant> entries;
+
+  ListConstant(this.typeArgument, this.entries);
+
+  visitChildren(Visitor v) {
+    typeArgument.accept(v);
+    for (final Constant constant in entries) {
+      constant.acceptReference(v);
+    }
+  }
+
+  accept(ConstantVisitor v) => v.visitListConstant(this);
+  acceptReference(Visitor v) => v.visitListConstantReference(this);
+
+  String toString() => '${this.runtimeType}<$typeArgument>($entries)';
+
+  int _cachedHashCode;
+  int get hashCode {
+    return _cachedHashCode ??= typeArgument.hashCode ^ listHashCode(entries);
+  }
+
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ListConstant &&
+          other.typeArgument == typeArgument &&
+          listEquals(other.entries, entries));
+
+  DartType getType(TypeEnvironment types) =>
+      types.literalListType(typeArgument);
+}
+
+class InstanceConstant extends Constant {
+  final Reference classReference;
+  final List<DartType> typeArguments;
+  final Map<Reference, Constant> fieldValues;
+
+  InstanceConstant(this.classReference, this.typeArguments, this.fieldValues);
+
+  Class get klass => classReference.asClass;
+
+  visitChildren(Visitor v) {
+    classReference.asClass.acceptReference(v);
+    visitList(typeArguments, v);
+    for (final Reference reference in fieldValues.keys) {
+      reference.asField.acceptReference(v);
+    }
+    for (final Constant constant in fieldValues.values) {
+      constant.acceptReference(v);
+    }
+  }
+
+  accept(ConstantVisitor v) => v.visitInstanceConstant(this);
+  acceptReference(Visitor v) => v.visitInstanceConstantReference(this);
+
+  String toString() {
+    final sb = new StringBuffer();
+    sb.write('${classReference.asClass}');
+    if (!classReference.asClass.typeParameters.isEmpty) {
+      sb.write('<');
+      sb.write(typeArguments.map((type) => type.toString()).join(', '));
+      sb.write('>');
+    }
+    sb.write(' {');
+    fieldValues.forEach((Reference fieldRef, Constant constant) {
+      sb.write('${fieldRef.asField.name}: $constant, ');
+    });
+    sb.write('}');
+    return sb.toString();
+  }
+
+  int _cachedHashCode;
+  int get hashCode {
+    return _cachedHashCode ??= classReference.hashCode ^
+        listHashCode(typeArguments) ^
+        mapHashCode(fieldValues);
+  }
+
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other is InstanceConstant &&
+            other.classReference == classReference &&
+            listEquals(other.typeArguments, typeArguments) &&
+            mapEquals(other.fieldValues, fieldValues));
+  }
+
+  DartType getType(TypeEnvironment types) =>
+      new InterfaceType(klass, typeArguments);
+}
+
+class PartialInstantiationConstant extends Constant {
+  final TearOffConstant tearOffConstant;
+  final List<DartType> types;
+
+  PartialInstantiationConstant(this.tearOffConstant, this.types);
+
+  visitChildren(Visitor v) {
+    tearOffConstant.acceptReference(v);
+    visitList(types, v);
+  }
+
+  accept(ConstantVisitor v) => v.visitPartialInstantiationConstant(this);
+  acceptReference(Visitor v) =>
+      v.visitPartialInstantiationConstantReference(this);
+
+  String toString() {
+    return '${runtimeType}(${tearOffConstant.procedure}<${types.join(', ')}>)';
+  }
+
+  int get hashCode => tearOffConstant.hashCode ^ listHashCode(types);
+
+  bool operator ==(Object other) {
+    return other is PartialInstantiationConstant &&
+        other.tearOffConstant == tearOffConstant &&
+        listEquals(other.types, types);
+  }
+
+  DartType getType(TypeEnvironment typeEnvironment) {
+    final FunctionType type = tearOffConstant.getType(typeEnvironment);
+    final mapping = <TypeParameter, DartType>{};
+    for (final parameter in type.typeParameters) {
+      mapping[parameter] = types[mapping.length];
+    }
+    return substitute(type.withoutTypeParameters, mapping);
+  }
+}
+
+class TearOffConstant extends Constant {
+  final Reference procedureReference;
+
+  TearOffConstant(Procedure procedure)
+      : procedureReference = procedure.reference {
+    assert(procedure.isStatic);
+  }
+
+  TearOffConstant.byReference(this.procedureReference);
+
+  Procedure get procedure => procedureReference?.asProcedure;
+
+  visitChildren(Visitor v) {
+    procedureReference.asProcedure.acceptReference(v);
+  }
+
+  accept(ConstantVisitor v) => v.visitTearOffConstant(this);
+  acceptReference(Visitor v) => v.visitTearOffConstantReference(this);
+
+  String toString() {
+    return '${runtimeType}(${procedure})';
+  }
+
+  int get hashCode => procedure.hashCode;
+
+  bool operator ==(Object other) {
+    return other is TearOffConstant && other.procedure == procedure;
+  }
+
+  FunctionType getType(TypeEnvironment types) =>
+      procedure.function.functionType;
+}
+
+class TypeLiteralConstant extends Constant {
+  final DartType type;
+
+  TypeLiteralConstant(this.type);
+
+  visitChildren(Visitor v) {
+    type.accept(v);
+  }
+
+  accept(ConstantVisitor v) => v.visitTypeLiteralConstant(this);
+  acceptReference(Visitor v) => v.visitTypeLiteralConstantReference(this);
+
+  String toString() => '${runtimeType}(${type})';
+
+  int get hashCode => type.hashCode;
+
+  bool operator ==(Object other) {
+    return other is TypeLiteralConstant && other.type == type;
+  }
+
+  DartType getType(TypeEnvironment types) => types.typeType;
+}
+
+// ------------------------------------------------------------------------
+//                                COMPONENT
+// ------------------------------------------------------------------------
+
+/// A way to bundle up libraries in a component.
+class Component extends TreeNode {
   final CanonicalName root;
 
   final List<Library> libraries;
 
-  /// Map from a source file uri to a line-starts table and source code.
-  /// Given a source file uri and a offset in that file one can translate
+  /// Map from a source file URI to a line-starts table and source code.
+  /// Given a source file URI and a offset in that file one can translate
   /// it to a line:column position in that file.
-  final Map<String, Source> uriToSource;
+  final Map<Uri, Source> uriToSource;
+
+  /// Mapping between string tags and [MetadataRepository] corresponding to
+  /// those tags.
+  final Map<String, MetadataRepository<dynamic>> metadata =
+      <String, MetadataRepository<dynamic>>{};
 
   /// Reference to the main method in one of the libraries.
   Reference mainMethodName;
 
-  Program(
+  Component(
       {CanonicalName nameRoot,
       List<Library> libraries,
-      Map<String, Source> uriToSource})
+      Map<Uri, Source> uriToSource})
       : root = nameRoot ?? new CanonicalName.root(),
         libraries = libraries ?? <Library>[],
-        uriToSource = uriToSource ?? <String, Source>{} {
-    setParents(this.libraries, this);
+        uriToSource = uriToSource ?? <Uri, Source>{} {
+    if (libraries != null) {
+      for (int i = 0; i < libraries.length; ++i) {
+        // The libraries are owned by this component, and so are their canonical
+        // names if they exist.
+        Library library = libraries[i];
+        library.parent = this;
+        CanonicalName name = library.reference.canonicalName;
+        if (name != null && name.parent != root) {
+          root.adoptChild(name);
+        }
+      }
+    }
   }
 
   void computeCanonicalNames() {
@@ -4375,7 +5567,7 @@ class Program extends TreeNode {
     mainMethodName = getMemberReference(main);
   }
 
-  accept(TreeVisitor v) => v.visitProgram(this);
+  accept(TreeVisitor v) => v.visitComponent(this);
 
   visitChildren(Visitor v) {
     visitList(libraries, v);
@@ -4386,24 +5578,114 @@ class Program extends TreeNode {
     transformList(libraries, v, this);
   }
 
-  Program get enclosingProgram => this;
+  Component get enclosingComponent => this;
 
   /// Translates an offset to line and column numbers in the given file.
-  Location getLocation(String file, int offset) {
+  Location getLocation(Uri file, int offset) {
     return uriToSource[file]?.getLocation(file, offset);
+  }
+
+  void addMetadataRepository(MetadataRepository repository) {
+    metadata[repository.tag] = repository;
   }
 }
 
 /// A tuple with file, line, and column number, for displaying human-readable
 /// locations.
 class Location {
-  final String file;
+  final Uri file;
   final int line; // 1-based.
   final int column; // 1-based.
 
   Location(this.file, this.line, this.column);
 
   String toString() => '$file:$line:$column';
+}
+
+abstract class MetadataRepository<T> {
+  /// Unique string tag associated with this repository.
+  String get tag;
+
+  /// Mutable mapping between nodes and their metadata.
+  Map<TreeNode, T> get mapping;
+
+  /// Write [metadata] object corresponding to the given [Node] into
+  /// the given [BinarySink].
+  ///
+  /// Metadata is serialized immediately before serializing [node],
+  /// so implementation of this method can use serialization context of
+  /// [node]'s parents (such as declared type parameters and variables).
+  /// In order to use scope declared by the [node] itself, implementation of
+  /// this method can use [BinarySink.enterScope] and [BinarySink.leaveScope]
+  /// methods.
+  ///
+  /// [metadata] must be an object owned by this repository.
+  void writeToBinary(T metadata, Node node, BinarySink sink);
+
+  /// Construct a metadata object from its binary payload read from the
+  /// given [BinarySource].
+  ///
+  /// Metadata is deserialized immediately after deserializing [node],
+  /// so it can use deserialization context of [node]'s parents.
+  /// In order to use scope declared by the [node] itself, implementation of
+  /// this method can use [BinarySource.enterScope] and
+  /// [BinarySource.leaveScope] methods.
+  T readFromBinary(Node node, BinarySource source);
+
+  /// Method to check whether a node can have metadata attached to it
+  /// or referenced from the metadata payload.
+  ///
+  /// Currently due to binary format specifics Catch and MapEntry nodes
+  /// can't have metadata attached to them.
+  static bool isSupported(TreeNode node) {
+    return !(node is MapEntry || node is Catch);
+  }
+}
+
+abstract class BinarySink {
+  void writeByte(int byte);
+  void writeBytes(List<int> bytes);
+  void writeUInt32(int value);
+  void writeUInt30(int value);
+
+  /// Write List<Byte> into the sink.
+  void writeByteList(List<int> bytes);
+
+  void writeCanonicalNameReference(CanonicalName name);
+  void writeStringReference(String str);
+  void writeName(Name node);
+  void writeDartType(DartType type);
+  void writeNode(Node node);
+
+  void enterScope(
+      {List<TypeParameter> typeParameters,
+      bool memberScope: false,
+      bool variableScope: false});
+  void leaveScope(
+      {List<TypeParameter> typeParameters,
+      bool memberScope: false,
+      bool variableScope: false});
+}
+
+abstract class BinarySource {
+  int get currentOffset;
+  List<int> get bytes;
+
+  int readByte();
+  int readUInt();
+  int readUint32();
+
+  /// Read List<Byte> from the source.
+  List<int> readByteList();
+
+  CanonicalName readCanonicalNameReference();
+  String readStringReference();
+  Name readName();
+  DartType readDartType();
+  FunctionNode readFunctionNode();
+
+  void enterScope({List<TypeParameter> typeParameters});
+  void leaveScope({List<TypeParameter> typeParameters});
 }
 
 // ------------------------------------------------------------------------
@@ -4509,7 +5791,7 @@ class Source {
     RangeError.checkValueInInterval(line, 1, lineStarts.length, 'line');
     if (source == null) return null;
 
-    cachedText ??= UTF8.decode(source, allowMalformed: true);
+    cachedText ??= utf8.decode(source, allowMalformed: true);
     // -1 as line numbers start at 1.
     int index = line - 1;
     if (index + 1 == lineStarts.length) {
@@ -4530,7 +5812,7 @@ class Source {
   }
 
   /// Translates an offset to line and column numbers in the given file.
-  Location getLocation(String file, int offset) {
+  Location getLocation(Uri file, int offset) {
     RangeError.checkValueInInterval(offset, 0, lineStarts.last, 'offset');
     int low = 0, high = lineStarts.length - 1;
     while (low < high) {
@@ -4600,6 +5882,33 @@ CanonicalName getCanonicalNameOfLibrary(Library library) {
   return library.canonicalName;
 }
 
+int listHashCode(List list) {
+  return list.fold(0, (int value, Object item) => value ^ item.hashCode);
+}
+
+int mapHashCode(Map map) {
+  int value = 0;
+  for (final Object x in map.keys) value ^= x.hashCode;
+  for (final Object x in map.values) value ^= x.hashCode;
+  return value;
+}
+
+bool listEquals(List a, List b) {
+  if (a.length != b.length) return false;
+  for (int i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) return false;
+  }
+  return true;
+}
+
+bool mapEquals(Map a, Map b) {
+  if (a.length != b.length) return false;
+  for (final Object key in a.keys) {
+    if (!b.containsKey(key) || a[key] != b[key]) return false;
+  }
+  return true;
+}
+
 /// Returns the canonical name of [typedef_], or throws an exception if the
 /// typedef has not been assigned a canonical name yet.
 ///
@@ -4610,4 +5919,17 @@ CanonicalName getCanonicalNameOfTypedef(Typedef typedef_) {
     throw '$typedef_ has no canonical name';
   }
   return typedef_.canonicalName;
+}
+
+/// Annotation describing information which is not part of Dart semantics; in
+/// other words, if this information (or any information it refers to) changes,
+/// static analysis and runtime behavior of the library are unaffected.
+const informative = null;
+
+Location _getLocationInComponent(Component component, Uri fileUri, int offset) {
+  if (component != null) {
+    return component.getLocation(fileUri, offset);
+  } else {
+    return new Location(fileUri, TreeNode.noOffset, TreeNode.noOffset);
+  }
 }

@@ -2,6 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// part of "core_patch.dart";
+
+int _getHash(obj) native "Object_getHash";
+void _setHash(obj, hash) native "Object_setHash";
+
 @patch
 class Object {
   // The VM has its own implementation of equals.
@@ -9,22 +14,18 @@ class Object {
   bool operator ==(other) native "Object_equals";
 
   // Helpers used to implement hashCode. If a hashCode is used, we remember it
-  // in a weak table in the VM. A new hashCode value is calculated using a
-  // number generator.
+  // in a weak table in the VM (32 bit) or in the header of the object (64
+  // bit). A new hashCode value is calculated using a random number generator.
   static final _hashCodeRnd = new Random();
 
-  static _getHash(obj) native "Object_getHash";
-  static _setHash(obj, hash) native "Object_setHash";
-
-  // Shared static implentation for hashCode and _identityHashCode.
   static int _objectHashCode(obj) {
     var result = _getHash(obj);
     if (result == 0) {
       // We want the hash to be a Smi value greater than 0.
       result = _hashCodeRnd.nextInt(0x40000000);
-      while (result == 0) {
+      do {
         result = _hashCodeRnd.nextInt(0x40000000);
-      }
+      } while (result == 0);
       _setHash(obj, result);
     }
     return result;
@@ -39,17 +40,10 @@ class Object {
   // A statically dispatched version of Object.toString.
   static String _toString(obj) native "Object_toString";
 
-  _noSuchMethod(bool isMethod, String memberName, int type, List arguments,
-      Map<String, dynamic> namedArguments) native "Object_noSuchMethod";
-
   @patch
   dynamic noSuchMethod(Invocation invocation) {
-    return _noSuchMethod(
-        invocation.isMethod,
-        internal.Symbol.getName(invocation.memberName),
-        invocation._type,
-        invocation.positionalArguments,
-        _symbolMapToStringMap(invocation.namedArguments));
+    // TODO(regis): Remove temp constructor identifier 'withInvocation'.
+    throw new NoSuchMethodError.withInvocation(this, invocation);
   }
 
   @patch
@@ -59,7 +53,7 @@ class Object {
 
   // Call this function instead of inlining instanceof, thus collecting
   // type feedback and reducing code size of unoptimized code.
-  bool _instanceOf(instantiator_type_arguments, function_type_arguments, type)
+  bool _instanceOf(instantiatorTypeArguments, functionTypeArguments, type)
       native "Object_instanceOf";
 
   // Group of functions for implementing fast simple instance of.
@@ -69,14 +63,6 @@ class Object {
 
   // Call this function instead of inlining 'as', thus collecting type
   // feedback. Returns receiver.
-  _as(instantiator_type_arguments, function_type_arguments, type)
+  _as(instantiatorTypeArguments, functionTypeArguments, type)
       native "Object_as";
-
-  static _symbolMapToStringMap(Map<Symbol, dynamic> map) {
-    var result = new Map<String, dynamic>();
-    map.forEach((Symbol key, value) {
-      result[internal.Symbol.getName(key)] = value;
-    });
-    return result;
-  }
 }

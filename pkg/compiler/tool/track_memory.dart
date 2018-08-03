@@ -66,7 +66,7 @@ _resumeMainIsolateIfPaused() async {
 Future _sendMessage(String method, [Map args = const {}]) {
   var id = _requestId++;
   _pendingResponses[id] = new Completer();
-  socket.add(JSON.encode({
+  socket.add(jsonEncode({
     'jsonrpc': '2.0',
     'id': '$id',
     'method': '$method',
@@ -76,8 +76,8 @@ Future _sendMessage(String method, [Map args = const {}]) {
 }
 
 /// Handle all responses
-_handleResponse(String s) {
-  var json = JSON.decode(s);
+void _handleResponse(Object s) {
+  var json = jsonDecode(s);
   if (json['method'] != 'streamNotify') {
     var id = json['id'];
     if (id is String) id = int.parse(id);
@@ -151,8 +151,8 @@ _showProgress(newUsed, newCapacity, oldUsed, oldCapacity) {
       color: true);
 
   sb.write(' | ');
-  var maxUsed = max(lastMaxUsed, newUsed + oldUsed);
-  var maxCapacity = max(lastMaxCapacity, newCapacity + oldCapacity);
+  int maxUsed = max(lastMaxUsed, newUsed + oldUsed);
+  int maxCapacity = max(lastMaxCapacity, newCapacity + oldCapacity);
   _writeNumber(sb, lastMaxUsed, maxUsed);
   _writeNumber(sb, lastMaxCapacity, maxCapacity, color: true);
   stdout.write('$sb');

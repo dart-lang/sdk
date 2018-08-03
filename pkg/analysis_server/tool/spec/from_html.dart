@@ -121,7 +121,7 @@ class ApiReader {
       dom.Element element, List<String> requiredAttributes, String context,
       {List<String> optionalAttributes: const []}) {
     Set<String> attributesFound = new Set<String>();
-    element.attributes.forEach((String name, String value) {
+    element.attributes.forEach((name, value) {
       if (!requiredAttributes.contains(name) &&
           !optionalAttributes.contains(name)) {
         throw new Exception(
@@ -131,8 +131,8 @@ class ApiReader {
     });
     for (String expectedAttribute in requiredAttributes) {
       if (!attributesFound.contains(expectedAttribute)) {
-        throw new Exception(
-            '$context: ${element.localName} must contain attribute $expectedAttribute');
+        throw new Exception('$context: ${element
+            .localName} must contain attribute $expectedAttribute');
       }
     }
   }
@@ -211,14 +211,17 @@ class ApiReader {
     checkName(html, 'notification', context);
     String event = html.attributes['event'];
     context = '$context.${event != null ? event : 'event'}';
-    checkAttributes(html, ['event'], context);
-    TypeDecl params;
+    checkAttributes(html, ['event'], context,
+        optionalAttributes: ['experimental']);
+    bool experimental = html.attributes['experimental'] == 'true';
+    TypeObject params;
     recurse(html, context, {
       'params': (dom.Element child) {
         params = typeObjectFromHtml(child, '$context.params');
       }
     });
-    return new Notification(domainName, event, params, html);
+    return new Notification(domainName, event, params, html,
+        experimental: experimental);
   }
 
   /**
@@ -365,8 +368,8 @@ class ApiReader {
     String kind = html.attributes['kind'];
     String context = kind != null ? kind : 'refactoring';
     checkAttributes(html, ['kind'], context);
-    TypeDecl feedback;
-    TypeDecl options;
+    TypeObject feedback;
+    TypeObject options;
     recurse(html, context, {
       'feedback': (dom.Element child) {
         feedback = typeObjectFromHtml(child, '$context.feedback');
@@ -422,8 +425,8 @@ class ApiReader {
         optionalAttributes: ['experimental', 'deprecated']);
     bool experimental = html.attributes['experimental'] == 'true';
     bool deprecated = html.attributes['deprecated'] == 'true';
-    TypeDecl params;
-    TypeDecl result;
+    TypeObject params;
+    TypeObject result;
     recurse(html, context, {
       'params': (dom.Element child) {
         params = typeObjectFromHtml(child, '$context.params');

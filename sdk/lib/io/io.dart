@@ -3,22 +3,25 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * File, socket, HTTP, and other I/O support for server applications.
+ * File, socket, HTTP, and other I/O support for non-web applications.
  *
- * The I/O library is used for Dart server applications,
- * which run on a stand-alone Dart VM from the command line.
- * *This library does not work in browser-based applications.*
+ * **Important:** Browser-based applications can't use this library.
+ * Only servers, command-line scripts, and Flutter mobile apps can import
+ * and use dart:io.
  *
  * This library allows you to work with files, directories,
  * sockets, processes, HTTP servers and clients, and more.
+ * Many operations related to input and output are asynchronous
+ * and are handled using [Future]s or [Stream]s, both of which
+ * are defined in the [dart:async
+ * library](../dart-async/dart-async-library.html).
  *
- * To use this library in your code:
+ * To use the dart:io library in your code:
  *
  *     import 'dart:io';
  *
- * *Note:* Many operations related to input and output are asynchronous
- * and are handled using [Future]s or [Stream]s, both of which
- * are defined in the `dart:async` library.
+ * For an introduction to I/O in Dart, see the [dart:io library
+ * tour](https://www.dartlang.org/dart-vm/io-library-tour).
  *
  * ## File, Directory, and Link
  *
@@ -95,7 +98,6 @@
  *
  * The [WebSocket] class provides support for the web socket protocol. This
  * allows full-duplex communications between client and server applications.
- * Use the WebSocket class in the `dart:html` library for web clients.
  *
  * A web socket server uses a normal HTTP server for accepting web socket
  * connections. The initial handshake is a HTTP request which is then upgraded to a
@@ -105,32 +107,27 @@
  * For example, here's a mini server that listens for 'ws' data
  * on a WebSocket:
  *
- *     runZoned(() {
- *       HttpServer.bind('127.0.0.1', 4040).then((server) {
- *         server.listen((HttpRequest req) {
- *           if (req.uri.path == '/ws') {
- *             WebSocketTransformer.upgrade(req).then((socket) {
- *               socket.listen(handleMsg);
- *             });
- *           }
- *         });
+ *     runZoned(() async {
+ *       var server = await HttpServer.bind('127.0.0.1', 4040);
+ *       server.listen((HttpRequest req) async {
+ *         if (req.uri.path == '/ws') {
+ *           var socket = await WebSocketTransformer.upgrade(req);
+ *           socket.listen(handleMsg);
+ *         }
  *       });
- *     },
- *     onError: (e) => print("An error occurred."));
+ *     }, onError: (e) => print("An error occurred."));
  *
  * The client connects to the WebSocket using the `connect()` method
  * and a URI that uses the Web Socket protocol.
  * The client can write to the WebSocket with the `add()` method.
  * For example,
  *
- *     WebSocket.connect('ws://127.0.0.1:4040/ws').then((socket) {
- *       socket.add('Hello, World!');
- *     });
+ *     var socket = await WebSocket.connect('ws://127.0.0.1:4040/ws');
+ *     socket.add('Hello, World!');
  *
  * Check out the
- * [dartiverse_search](https://github.com/dart-lang/sample-dartiverse-search)
- * sample for a client/server pair that uses
- * WebSockets to communicate.
+ * [websocket_sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/websockets/basics)
+ * app, which uses WebSockets to communicate with a server.
  *
  * ## Socket and ServerSocket
  *
@@ -142,7 +139,7 @@
  *     ServerSocket.bind('127.0.0.1', 4041)
  *       .then((serverSocket) {
  *         serverSocket.listen((socket) {
- *           socket.transform(UTF8.decoder).listen(print);
+ *           socket.transform(utf8.decoder).listen(print);
  *         });
  *       });
  *
@@ -184,54 +181,38 @@
  *
  *      String inputText = stdin.readLineSync();
  *
- * ## Other resources
- *
- * For an introduction to I/O in Dart, see the [dart:io section of the library
- * tour](https://www.dartlang.org/docs/dart-up-and-running/ch03.html#dartio---io-for-command-line-apps).
- *
- * To learn more about I/O in Dart, refer to the [tutorial about writing
- * command-line apps](https://www.dartlang.org/docs/tutorials/cmdline/).
+ * {@category VM}
  */
 library dart.io;
 
 import 'dart:async';
 import 'dart:_internal' hide Symbol;
 import 'dart:collection'
-    show
-        HashMap,
-        HashSet,
-        Queue,
-        ListQueue,
-        LinkedList,
-        LinkedListEntry,
-        UnmodifiableMapView;
+    show HashMap, HashSet, Queue, ListQueue, MapBase, UnmodifiableMapView;
 import 'dart:convert';
 import 'dart:developer' hide log;
 import 'dart:isolate';
 import 'dart:math';
 import 'dart:typed_data';
-import 'dart:nativewrappers';
+
+export 'dart:_http';
 
 part 'bytes_builder.dart';
 part 'common.dart';
-part 'crypto.dart';
 part 'data_transformer.dart';
 part 'directory.dart';
 part 'directory_impl.dart';
+part 'embedder_config.dart';
 part 'eventhandler.dart';
 part 'file.dart';
 part 'file_impl.dart';
 part 'file_system_entity.dart';
-part 'http.dart';
-part 'http_date.dart';
-part 'http_headers.dart';
-part 'http_impl.dart';
-part 'http_parser.dart';
-part 'http_session.dart';
 part 'io_resource_info.dart';
 part 'io_sink.dart';
 part 'io_service.dart';
 part 'link.dart';
+part 'namespace_impl.dart';
+part 'overrides.dart';
 part 'platform.dart';
 part 'platform_impl.dart';
 part 'process.dart';
@@ -243,5 +224,3 @@ part 'socket.dart';
 part 'stdio.dart';
 part 'string_transformer.dart';
 part 'sync_socket.dart';
-part 'websocket.dart';
-part 'websocket_impl.dart';

@@ -29,7 +29,7 @@ part of dart.collection;
  * constant time: [add], [contains], [remove], and [length], provided the hash
  * codes of objects are well distributed..
  */
-abstract class LinkedHashSet<E> implements HashSet<E> {
+abstract class LinkedHashSet<E> implements Set<E> {
   /**
    * Create an insertion-ordered hash set using the provided
    * [equals] and [hashCode].
@@ -95,7 +95,7 @@ abstract class LinkedHashSet<E> implements HashSet<E> {
    * Creates a linked hash set as by `new LinkedHashSet<E>()` and adds each
    * element of `elements` to this set in the order they are iterated.
    *
-   * All the [elements] should be assignable to [E].
+   * All the [elements] should be instances of [E].
    * The `elements` iterable itself may have any element type,
    * so this constructor can be used to down-cast a `Set`, for example as:
    *
@@ -106,11 +106,19 @@ abstract class LinkedHashSet<E> implements HashSet<E> {
   factory LinkedHashSet.from(Iterable elements) {
     LinkedHashSet<E> result = new LinkedHashSet<E>();
     for (final element in elements) {
-      E e = element as Object/*=E*/;
-      result.add(e);
+      result.add(element);
     }
     return result;
   }
+
+  /**
+   * Create a linked hash set from [elements].
+   *
+   * Creates a linked hash set as by `new LinkedHashSet<E>()` and adds each
+   * element of `elements` to this set in the order they are iterated.
+   */
+  factory LinkedHashSet.of(Iterable<E> elements) =>
+      new LinkedHashSet<E>()..addAll(elements);
 
   /**
    * Executes a function on each element of the set.

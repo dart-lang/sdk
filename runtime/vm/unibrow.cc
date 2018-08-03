@@ -4,8 +4,8 @@
 //
 // This file was generated at 2014-10-08 15:25:47.940335 (in v8, copied to dart)
 
-#include "vm/unibrow-inl.h"
 #include "vm/unibrow.h"
+#include "vm/unibrow-inl.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,16 +27,13 @@ static inline int32_t TableGet(const int32_t* table, intptr_t index) {
   return table[D * index];
 }
 
-
 static inline int32_t GetEntry(int32_t entry) {
   return entry & (kStartBit - 1);
 }
 
-
 static inline bool IsStart(int32_t entry) {
   return (entry & kStartBit) != 0;
 }
-
 
 /**
  * Look up a character in the unicode table using a mix of binary and
@@ -83,7 +80,6 @@ struct MultiCharacterSpecialCase {
   static const int32_t kEndOfEncoding = kSentinel;
   int32_t chars[kW];
 };
-
 
 // Look up the mapping for the given character in the specified table,
 // which is of the specified length and uses the specified special case
@@ -185,7 +181,6 @@ static intptr_t LookupMapping(const int32_t* table,
     return 0;
   }
 }
-
 
 // Letter:               point.category in ['Lu', 'Ll', 'Lt', 'Lm', 'Lo', 'Nl']
 // clang-format off

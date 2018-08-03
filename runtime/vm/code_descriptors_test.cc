@@ -6,9 +6,9 @@
 #include "vm/globals.h"
 
 #include "vm/ast.h"
-#include "vm/assembler.h"
 #include "vm/code_descriptors.h"
-#include "vm/compiler.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/native_entry.h"
 #include "vm/parser.h"
@@ -19,7 +19,6 @@
 namespace dart {
 
 static const TokenPosition kPos = TokenPosition::kNoSource;
-
 
 CODEGEN_TEST_GENERATE(StackMapCodegen, test) {
   ParsedFunction* parsed_function =
@@ -166,7 +165,6 @@ CODEGEN_TEST_GENERATE(StackMapCodegen, test) {
 }
 CODEGEN_TEST_RUN(StackMapCodegen, Smi::New(1))
 
-
 static void NativeFunc(Dart_NativeArguments args) {
   Dart_Handle i = Dart_GetNativeArgument(args, 0);
   Dart_Handle k = Dart_GetNativeArgument(args, 1);
@@ -181,7 +179,6 @@ static void NativeFunc(Dart_NativeArguments args) {
   }
 }
 
-
 static Dart_NativeFunction native_resolver(Dart_Handle name,
                                            int argument_count,
                                            bool* auto_setup_scope) {
@@ -189,7 +186,6 @@ static Dart_NativeFunction native_resolver(Dart_Handle name,
   *auto_setup_scope = false;
   return reinterpret_cast<Dart_NativeFunction>(&NativeFunc);
 }
-
 
 TEST_CASE(StackMapGC) {
   const char* kScriptChars =
@@ -206,7 +202,7 @@ TEST_CASE(StackMapGC) {
       "    return i + k; }"
       "  static int moo() {"
       "    var i = A.foo();"
-      "    Expect.equals(30, i);"
+      "    if (i != 30) throw '$i != 30';"
       "  }\n"
       "}\n";
   // First setup the script and compile the script.
@@ -270,7 +266,6 @@ TEST_CASE(StackMapGC) {
   EXPECT(!result.IsError());
 }
 
-
 TEST_CASE(DescriptorList_TokenPositions) {
   DescriptorList* descriptors = new DescriptorList(64);
   ASSERT(descriptors != NULL);
@@ -310,8 +305,8 @@ TEST_CASE(DescriptorList_TokenPositions) {
   intptr_t i = 0;
   while (it.MoveNext()) {
     if (token_positions[i] != it.TokenPos().value()) {
-      OS::Print("[%" Pd "]: Expected: %" Pd " != %" Pd "\n", i,
-                token_positions[i], it.TokenPos().value());
+      OS::PrintErr("[%" Pd "]: Expected: %" Pd " != %" Pd "\n", i,
+                   token_positions[i], it.TokenPos().value());
     }
     EXPECT(token_positions[i] == it.TokenPos().value());
     i++;

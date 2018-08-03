@@ -36,7 +36,7 @@ main() {
          </ResultSet>''',
           'text/xml');
 
-      var rs = doc.query('ResultSet');
+      var rs = doc.querySelector('ResultSet');
       expect(rs, isNotNull);
     });
 
@@ -54,7 +54,7 @@ main() {
       expect(doc.adoptNode(div), div);
       expect(div.ownerDocument, doc);
       doc.body.nodes.add(div);
-      expect(doc.query('#foo').text, 'bar');
+      expect(doc.querySelector('#foo').text, 'bar');
     });
 
     test('importNode', () {
@@ -64,7 +64,7 @@ main() {
       expect(div2, isNot(equals(div)));
       expect(div2.ownerDocument, doc);
       doc.body.nodes.add(div2);
-      expect(doc.query('#foo').text, 'bar');
+      expect(doc.querySelector('#foo').text, 'bar');
     });
 
     test('typeTest1', () {

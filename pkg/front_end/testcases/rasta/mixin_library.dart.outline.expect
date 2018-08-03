@@ -2,12 +2,12 @@ library test.mixin_library;
 import self as self;
 import "dart:core" as core;
 
-class Mixin<T extends core::Object> extends core::Object {
+class Mixin<T extends core::Object = dynamic> extends core::Object {
   field dynamic x;
   field dynamic y;
   field dynamic z;
   field self::Mixin::T t;
-  constructor •() → void
+  synthetic constructor •() → void
     ;
   method foo() → dynamic
     ;

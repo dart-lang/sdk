@@ -17,7 +17,6 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -134,9 +133,7 @@ class StatementCompletionProcessor {
       DartStatementCompletion.NO_COMPLETION, new SourceChange("", edits: []));
 
   final StatementCompletionContext statementContext;
-  final AnalysisContext analysisContext;
   final CorrectionUtils utils;
-  int fileStamp;
   AstNode node;
   StatementCompletion completion;
   SourceChange change = new SourceChange('statement-completion');
@@ -146,10 +143,7 @@ class StatementCompletionProcessor {
   Position exitPosition = null;
 
   StatementCompletionProcessor(this.statementContext)
-      : analysisContext = statementContext.unitElement.context,
-        utils = new CorrectionUtils(statementContext.unit) {
-    fileStamp = analysisContext.getModificationStamp(source);
-  }
+      : utils = new CorrectionUtils(statementContext.unit);
 
   String get eol => utils.endOfLine;
 
@@ -168,11 +162,8 @@ class StatementCompletionProcessor {
   CompilationUnitElement get unitElement => statementContext.unitElement;
 
   Future<StatementCompletion> compute() async {
-    // If the source was changed between the constructor and running
-    // this asynchronous method, it is not safe to use the unit.
-    if (analysisContext.getModificationStamp(source) != fileStamp) {
-      return NO_COMPLETION;
-    }
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     node = _selectedNode();
     if (node == null) {
       return NO_COMPLETION;
@@ -328,7 +319,8 @@ class StatementCompletionProcessor {
       _removeError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
       _addInsertEdit(loc, delimiter);
     }
-    expr = errorMatching(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "']'");
+    expr = errorMatching(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "']'") ??
+        errorMatching(ScannerErrorCode.EXPECTED_TOKEN, partialMatch: "']'");
     if (expr != null) {
       expr = expr.getAncestor((n) => n is ListLiteral);
       if (expr != null) {
@@ -343,6 +335,7 @@ class StatementCompletionProcessor {
             _addInsertEdit(loc, ']');
           }
           _removeError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "']'");
+          _removeError(ScannerErrorCode.EXPECTED_TOKEN, partialMatch: "']'");
           var ms =
               _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "';'");
           if (ms != null) {
@@ -425,7 +418,10 @@ class StatementCompletionProcessor {
           _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "';'");
       if (error != null) {
         int insertOffset;
-        if (expr == null || expr.isSynthetic) {
+        // Fasta scanner reports unterminated string literal errors
+        // and generates a synthetic string token with non-zero length.
+        // Because of this, check for length == 0 rather than isSynthetic.
+        if (expr == null || expr.length == 0) {
           if (node is ReturnStatement) {
             insertOffset = (node as ReturnStatement).returnKeyword.end;
           } else if (node is ExpressionStatement) {
@@ -810,6 +806,9 @@ class StatementCompletionProcessor {
       if (_isSyntheticExpression(statement.condition)) {
         exitPosition = _newPosition(statement.leftParenthesis.offset + 1);
         sb = new SourceBuilder(file, statement.rightParenthesis.offset + 1);
+      } else if (statement.rightParenthesis.isSynthetic) {
+        sb = new SourceBuilder(file, statement.condition.end);
+        sb.append(')');
       } else {
         int afterParen = statement.rightParenthesis.offset + 1;
         if (utils
@@ -828,7 +827,8 @@ class StatementCompletionProcessor {
 
   bool _complete_methodCall() {
     var parenError =
-        _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "')'");
+        _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "')'") ??
+            _findError(ScannerErrorCode.EXPECTED_TOKEN, partialMatch: "')'");
     if (parenError == null) {
       return false;
     }

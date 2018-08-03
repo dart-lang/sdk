@@ -6,7 +6,7 @@
 library get_object_rpc_test;
 
 import 'dart:typed_data';
-import 'dart:convert' show BASE64;
+import 'dart:convert' show base64Decode;
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'service_test_common.dart';
@@ -36,7 +36,7 @@ eval(Isolate isolate, String expression) async {
 var uint8List = new Uint8List.fromList([3, 2, 1]);
 var uint64List = new Uint64List.fromList([3, 2, 1]);
 
-var tests = [
+var tests = <IsolateTest>[
   // null object.
   (Isolate isolate) async {
     var params = {
@@ -447,7 +447,7 @@ var tests = [
     expect(result['offset'], isNull);
     expect(result['count'], isNull);
     expect(result['bytes'], equals('AwIB'));
-    Uint8List bytes = BASE64.decode(result['bytes']);
+    Uint8List bytes = base64Decode(result['bytes']);
     expect(bytes.buffer.asUint8List().toString(), equals('[3, 2, 1]'));
   },
 
@@ -473,7 +473,7 @@ var tests = [
     expect(result['offset'], isNull);
     expect(result['count'], equals(2));
     expect(result['bytes'], equals('AwI='));
-    Uint8List bytes = BASE64.decode(result['bytes']);
+    Uint8List bytes = base64Decode(result['bytes']);
     expect(bytes.buffer.asUint8List().toString(), equals('[3, 2]'));
   },
 
@@ -500,7 +500,7 @@ var tests = [
     expect(result['offset'], equals(2));
     expect(result['count'], equals(1));
     expect(result['bytes'], equals('AQ=='));
-    Uint8List bytes = BASE64.decode(result['bytes']);
+    Uint8List bytes = base64Decode(result['bytes']);
     expect(bytes.buffer.asUint8List().toString(), equals('[1]'));
   },
 
@@ -550,7 +550,7 @@ var tests = [
     expect(result['offset'], isNull);
     expect(result['count'], isNull);
     expect(result['bytes'], equals('AwAAAAAAAAACAAAAAAAAAAEAAAAAAAAA'));
-    Uint8List bytes = BASE64.decode(result['bytes']);
+    Uint8List bytes = base64Decode(result['bytes']);
     expect(bytes.buffer.asUint64List().toString(), equals('[3, 2, 1]'));
   },
 
@@ -576,7 +576,7 @@ var tests = [
     expect(result['offset'], isNull);
     expect(result['count'], equals(2));
     expect(result['bytes'], equals('AwAAAAAAAAACAAAAAAAAAA=='));
-    Uint8List bytes = BASE64.decode(result['bytes']);
+    Uint8List bytes = base64Decode(result['bytes']);
     expect(bytes.buffer.asUint64List().toString(), equals('[3, 2]'));
   },
 
@@ -603,7 +603,7 @@ var tests = [
     expect(result['offset'], equals(2));
     expect(result['count'], equals(1));
     expect(result['bytes'], equals('AQAAAAAAAAA='));
-    Uint8List bytes = BASE64.decode(result['bytes']);
+    Uint8List bytes = base64Decode(result['bytes']);
     expect(bytes.buffer.asUint64List().toString(), equals('[1]'));
   },
 
@@ -657,9 +657,8 @@ var tests = [
     expect(result['uri'], startsWith('file:'));
     expect(result['uri'], endsWith('get_object_rpc_test.dart'));
     expect(result['debuggable'], equals(true));
-    expect(result['dependencies'].length, ifKernel(isZero, isPositive));
-    nonKernelExecute(() => expect(
-        result['dependencies'][0]['target']['type'], equals('@Library')));
+    expect(result['dependencies'].length, isPositive);
+    expect(result['dependencies'][0]['target']['type'], equals('@Library'));
     expect(result['scripts'].length, isPositive);
     expect(result['scripts'][0]['type'], equals('@Script'));
     expect(result['variables'].length, isPositive);

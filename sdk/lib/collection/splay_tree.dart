@@ -273,7 +273,7 @@ Comparator<K> _defaultCompare<K>() {
  * Non-comparable objects (including `null`) will not work as keys
  * in that case.
  *
- * To allow calling [[]], [remove] or [containsKey] with objects
+ * To allow calling [operator []], [remove] or [containsKey] with objects
  * that are not supported by the `compare` function, an extra `isValidKey`
  * predicate function can be supplied. This function is tested before
  * using the `compare` function on an argument value that may not be a [K]
@@ -281,7 +281,7 @@ Comparator<K> _defaultCompare<K>() {
  * value is a [K].
  */
 class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
-    implements Map<K, V> {
+    with MapMixin<K, V> {
   _SplayTreeMapNode<K, V> _root;
   final _SplayTreeMapNode<K, V> _dummy =
       new _SplayTreeMapNode<K, V>(null, null);
@@ -295,15 +295,25 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
 
   /**
    * Creates a [SplayTreeMap] that contains all key/value pairs of [other].
+   *
+   * The keys must all be instances of [K] and the values of [V].
+   * The [other] map itself can have any type.
    */
   factory SplayTreeMap.from(Map other,
       [int compare(K key1, K key2), bool isValidKey(potentialKey)]) {
     SplayTreeMap<K, V> result = new SplayTreeMap<K, V>(compare, isValidKey);
     other.forEach((k, v) {
-      result[k as Object/*=K*/] = v as Object/*=V*/;
+      result[k] = v;
     });
     return result;
   }
+
+  /**
+   * Creates a [SplayTreeMap] that contains all key/value pairs of [other].
+   */
+  factory SplayTreeMap.of(Map<K, V> other,
+          [int compare(K key1, K key2), bool isValidKey(potentialKey)]) =>
+      new SplayTreeMap<K, V>(compare, isValidKey)..addAll(other);
 
   /**
    * Creates a [SplayTreeMap] where the keys and values are computed from the
@@ -324,7 +334,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
       int compare(K key1, K key2),
       bool isValidKey(potentialKey)}) {
     SplayTreeMap<K, V> map = new SplayTreeMap<K, V>(compare, isValidKey);
-    Maps._fillMapWithMappedIterable(map, iterable, key, value);
+    MapBase._fillMapWithMappedIterable(map, iterable, key, value);
     return map;
   }
 
@@ -342,7 +352,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   factory SplayTreeMap.fromIterables(Iterable<K> keys, Iterable<V> values,
       [int compare(K key1, K key2), bool isValidKey(potentialKey)]) {
     SplayTreeMap<K, V> map = new SplayTreeMap<K, V>(compare, isValidKey);
-    Maps._fillMapWithIterables(map, keys, values);
+    MapBase._fillMapWithIterables(map, keys, values);
     return map;
   }
 
@@ -353,7 +363,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   V operator [](Object key) {
     if (!_validKey(key)) return null;
     if (_root != null) {
-      int comp = _splay(key as dynamic/*=K*/);
+      int comp = _splay(key);
       if (comp == 0) {
         return _root.value;
       }
@@ -363,7 +373,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
 
   V remove(Object key) {
     if (!_validKey(key)) return null;
-    _SplayTreeMapNode<K, V> mapRoot = _remove(key as dynamic/*=K*/);
+    _SplayTreeMapNode<K, V> mapRoot = _remove(key);
     if (mapRoot != null) return mapRoot.value;
     return null;
   }
@@ -430,7 +440,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   }
 
   bool containsKey(Object key) {
-    return _validKey(key) && _splay(key as dynamic/*=K*/) == 0;
+    return _validKey(key) && _splay(key) == 0;
   }
 
   bool containsValue(Object value) {
@@ -454,10 +464,6 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   Iterable<K> get keys => new _SplayTreeKeyIterable<K>(this);
 
   Iterable<V> get values => new _SplayTreeValueIterable<K, V>(this);
-
-  String toString() {
-    return Maps.mapToString(this);
-  }
 
   /**
    * Get the first key in the map. Returns [:null:] if the map is empty.
@@ -654,8 +660,7 @@ class _SplayTreeKeyIterator<K> extends _SplayTreeIterator<K, K> {
 class _SplayTreeValueIterator<K, V> extends _SplayTreeIterator<K, V> {
   _SplayTreeValueIterator(SplayTreeMap<K, V> map) : super(map);
   V _getValue(_SplayTreeNode<K> node) {
-    _SplayTreeMapNode<K, V> mapNode =
-        node as dynamic/*=_SplayTreeMapNode<K, V>*/;
+    _SplayTreeMapNode<K, V> mapNode = node;
     return mapNode.value;
   }
 }
@@ -726,18 +731,41 @@ class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeNode<E>>
    *
    * The set works as if created by `new SplayTreeSet<E>(compare, isValidKey)`.
    *
-   * All the [elements] should be valid as arguments to the [compare] function.
+   * All the [elements] should be instances of [E] and valid arguments to
+   * [compare].
+   * The `elements` iterable itself may have any element type, so this
+   * constructor can be used to down-cast a `Set`, for example as:
+   * ```dart
+   * Set<SuperType> superSet = ...;
+   * Set<SubType> subSet =
+   *     new SplayTreeSet<SubType>.from(superSet.whereType<SubType>());
+   * ```
    */
   factory SplayTreeSet.from(Iterable elements,
       [int compare(E key1, E key2), bool isValidKey(potentialKey)]) {
     SplayTreeSet<E> result = new SplayTreeSet<E>(compare, isValidKey);
     for (final element in elements) {
-      E e = element as Object/*=E*/;
+      E e = element;
       result.add(e);
     }
     return result;
   }
 
+  /**
+   * Creates a [SplayTreeSet] from [elements].
+   *
+   * The set works as if created by `new SplayTreeSet<E>(compare, isValidKey)`.
+   *
+   * All the [elements] should be valid as arguments to the [compare] function.
+   */
+  factory SplayTreeSet.of(Iterable<E> elements,
+          [int compare(E key1, E key2), bool isValidKey(potentialKey)]) =>
+      new SplayTreeSet(compare, isValidKey)..addAll(elements);
+
+  Set<T> _newSet<T>() =>
+      new SplayTreeSet<T>((T a, T b) => _comparator(a as E, b as E), _validKey);
+
+  Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newSet);
   int _compare(E e1, E e2) => _comparator(e1, e2);
 
   // From Iterable.
@@ -765,8 +793,8 @@ class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeNode<E>>
   }
 
   // From Set.
-  bool contains(Object object) {
-    return _validKey(object) && _splay(object as dynamic/*=E*/) == 0;
+  bool contains(Object element) {
+    return _validKey(element) && _splay(element) == 0;
   }
 
   bool add(E element) {
@@ -778,7 +806,7 @@ class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeNode<E>>
 
   bool remove(Object object) {
     if (!_validKey(object)) return false;
-    return _remove(object as dynamic/*=E*/) != null;
+    return _remove(object) != null;
   }
 
   void addAll(Iterable<E> elements) {
@@ -792,7 +820,7 @@ class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeNode<E>>
 
   void removeAll(Iterable<Object> elements) {
     for (Object element in elements) {
-      if (_validKey(element)) _remove(element as dynamic/*=E*/);
+      if (_validKey(element)) _remove(element);
     }
   }
 
@@ -806,7 +834,7 @@ class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeNode<E>>
         throw new ConcurrentModificationError(this);
       }
       // Equivalent to this.contains(object).
-      if (_validKey(object) && _splay(object as dynamic/*=E*/) == 0) {
+      if (_validKey(object) && _splay(object) == 0) {
         retainSet.add(_root.key);
       }
     }
@@ -820,7 +848,7 @@ class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeNode<E>>
 
   E lookup(Object object) {
     if (!_validKey(object)) return null;
-    int comp = _splay(object as dynamic/*=E*/);
+    int comp = _splay(object);
     if (comp != 0) return null;
     return _root.key;
   }

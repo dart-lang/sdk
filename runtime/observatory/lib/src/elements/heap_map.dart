@@ -49,7 +49,7 @@ class HeapMapElement extends HtmlElement implements Renderable {
     assert(events != null);
     assert(notifications != null);
     HeapMapElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<HeapMapElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
     e._events = events;
@@ -70,7 +70,7 @@ class HeapMapElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   CanvasElement _canvas;
@@ -98,25 +98,35 @@ class HeapMapElement extends HtmlElement implements Renderable {
         ..onMouseMove.listen(_handleMouseMove)
         ..onMouseDown.listen(_handleClick);
     }
-    children = [
-      navBar([
+
+    // Set hover text to describe the object under the cursor.
+    _canvas.title = _status;
+
+    children = <Element>[
+      navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue),
         new NavVMMenuElement(_vm, _events, queue: _r.queue),
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
         navMenu('heap map'),
+        new NavRefreshElement(label: 'Mark-Compact', queue: _r.queue)
+          ..onRefresh.listen((_) => _refresh(gc: "mark-compact")),
+        new NavRefreshElement(label: 'Mark-Sweep', queue: _r.queue)
+          ..onRefresh.listen((_) => _refresh(gc: "mark-sweep")),
+        new NavRefreshElement(label: 'Scavenge', queue: _r.queue)
+          ..onRefresh.listen((_) => _refresh(gc: "scavenge")),
         new NavRefreshElement(queue: _r.queue)
           ..onRefresh.listen((_) => _refresh()),
         new NavNotifyElement(_notifications, queue: _r.queue)
       ]),
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h2()..text = _status,
           new HRElement(),
         ],
       new DivElement()
         ..classes = ['flex-row']
-        ..children = [_canvas]
+        ..children = <Element>[_canvas]
     ];
   }
 
@@ -159,19 +169,19 @@ class HeapMapElement extends HtmlElement implements Renderable {
     return [rng.nextInt(128), rng.nextInt(128), rng.nextInt(128), 255];
   }
 
-  String _classNameAt(Point<int> point) {
+  String _classNameAt(Point<num> point) {
     var color = new PixelReference(_fragmentationData, point).color;
     return _classIdToName[_colorToClassId[_packColor(color)]];
   }
 
-  ObjectInfo _objectAt(Point<int> point) {
+  ObjectInfo _objectAt(Point<num> point) {
     if (_fragmentation == null || _canvas == null) {
       return null;
     }
     var pagePixels = _pageHeight * _fragmentationData.width;
     var index = new PixelReference(_fragmentationData, point).index;
     var pageIndex = index ~/ pagePixels;
-    var pageOffset = index % pagePixels;
+    num pageOffset = index % pagePixels;
     var pages = _fragmentation['pages'];
     if (pageIndex < 0 || pageIndex >= pages.length) {
       return null;
@@ -213,9 +223,7 @@ class HeapMapElement extends HtmlElement implements Renderable {
     final address = _objectAt(event.offset).address.toRadixString(16);
     isolate.getObjectByAddress(address).then((result) {
       if (result.type != 'Sentinel') {
-        new AnchorElement(
-                href: Uris.inspect(_isolate, object: result as S.HeapObject))
-            .click();
+        new AnchorElement(href: Uris.inspect(_isolate, object: result)).click();
       }
     });
   }
@@ -245,8 +253,8 @@ class HeapMapElement extends HtmlElement implements Renderable {
     var pages = _fragmentation['pages'];
     _status = 'Loaded $startPage of ${pages.length} pages';
     _r.dirty();
-    var startY = startPage * _pageHeight;
-    var endY = startY + _pageHeight;
+    var startY = (startPage * _pageHeight).round();
+    var endY = startY + _pageHeight.round();
     if (startPage >= pages.length || endY > _fragmentationData.height) {
       return;
     }
@@ -273,9 +281,14 @@ class HeapMapElement extends HtmlElement implements Renderable {
     });
   }
 
-  Future _refresh() {
+  Future _refresh({String gc}) {
     final isolate = _isolate as S.Isolate;
-    return isolate.invokeRpc('_getHeapMap', {}).then((S.ServiceMap response) {
+    var params = {};
+    if (gc != null) {
+      params['gc'] = gc;
+    }
+    return isolate.invokeRpc('_getHeapMap', params).then((serviceObject) {
+      S.ServiceMap response = serviceObject;
       assert(response['type'] == 'HeapMap');
       _fragmentation = response;
       _updateFragmentationData();
@@ -289,13 +302,13 @@ class PixelReference {
   var _dataIndex;
   static const NUM_COLOR_COMPONENTS = 4;
 
-  PixelReference(ImageData data, Point<int> point)
+  PixelReference(ImageData data, Point<num> point)
       : _data = data,
         _dataIndex = (point.y * data.width + point.x) * NUM_COLOR_COMPONENTS;
 
   PixelReference._fromDataIndex(this._data, this._dataIndex);
 
-  Point<int> get point => new Point(index % _data.width, index ~/ _data.width);
+  Point<num> get point => new Point(index % _data.width, index ~/ _data.width);
 
   void set color(Iterable<int> color) {
     _data.data.setRange(_dataIndex, _dataIndex + NUM_COLOR_COMPONENTS, color);

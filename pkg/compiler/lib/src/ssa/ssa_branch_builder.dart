@@ -4,7 +4,6 @@
 
 import '../common.dart';
 import '../io/source_information.dart';
-import '../tree/tree.dart' as ast;
 
 import 'graph_builder.dart';
 import 'locals_handler.dart';
@@ -22,14 +21,13 @@ class SsaBranch {
 
 class SsaBranchBuilder {
   final GraphBuilder builder;
-  final ast.Node diagnosticNode;
+  final Spannable diagnosticNode;
 
   SsaBranchBuilder(this.builder, [this.diagnosticNode]);
 
   void checkNotAborted() {
     if (builder.isAborted()) {
-      throw new SpannableAssertionFailure(
-          diagnosticNode, "aborted control flow");
+      failedAt(diagnosticNode, "aborted control flow");
     }
   }
 
@@ -44,7 +42,8 @@ class SsaBranchBuilder {
     checkNotAborted();
     assert(identical(builder.current, builder.lastOpenedBlock));
     HInstruction conditionValue = builder.popBoolified();
-    HIf branch = new HIf(conditionValue)..sourceInformation = sourceInformation;
+    HIf branch = new HIf(builder.abstractValueDomain, conditionValue)
+      ..sourceInformation = sourceInformation;
     HBasicBlock conditionExitBlock = builder.current;
     builder.close(branch);
     conditionBranch.exitLocals = builder.localsHandler;
@@ -151,7 +150,9 @@ class SsaBranchBuilder {
   ///       t1 = boolify(y);
   ///     }
   ///     result = phi(t1, true);
-  void handleLogicalBinary(void left(), void right(), {bool isAnd}) {
+  void handleLogicalBinary(
+      void left(), void right(), SourceInformation sourceInformation,
+      {bool isAnd}) {
     HInstruction boolifiedLeft;
     HInstruction boolifiedRight;
 
@@ -160,7 +161,9 @@ class SsaBranchBuilder {
       boolifiedLeft = builder.popBoolified();
       builder.stack.add(boolifiedLeft);
       if (!isAnd) {
-        builder.push(new HNot(builder.pop(), builder.commonMasks.boolType));
+        builder.push(
+            new HNot(builder.pop(), builder.abstractValueDomain.boolType)
+              ..sourceInformation = sourceInformation);
       }
     }
 
@@ -169,13 +172,15 @@ class SsaBranchBuilder {
       boolifiedRight = builder.popBoolified();
     }
 
-    handleIf(visitCondition, visitThen, null);
+    handleIf(visitCondition, visitThen, null,
+        sourceInformation: sourceInformation);
     HConstant notIsAnd =
         builder.graph.addConstantBool(!isAnd, builder.closedWorld);
     HPhi result = new HPhi.manyInputs(
         null,
         <HInstruction>[boolifiedRight, notIsAnd],
-        builder.commonMasks.dynamicType);
+        builder.abstractValueDomain.dynamicType)
+      ..sourceInformation = sourceInformation;
     builder.current.addPhi(result);
     builder.stack.add(result);
   }
@@ -201,7 +206,7 @@ class SsaBranchBuilder {
     if (isExpression) {
       assert(thenValue != null && elseValue != null);
       HPhi phi = new HPhi.manyInputs(null, <HInstruction>[thenValue, elseValue],
-          builder.commonMasks.dynamicType);
+          builder.abstractValueDomain.dynamicType);
       joinBranch.block.addPhi(phi);
       builder.stack.add(phi);
     }

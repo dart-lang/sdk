@@ -7,7 +7,7 @@ library _interceptors;
 import 'dart:_js_embedded_names'
     show DISPATCH_PROPERTY_NAME, TYPE_TO_INTERCEPTOR_MAP;
 
-import 'dart:collection';
+import 'dart:collection' hide LinkedList, LinkedListEntry;
 import 'dart:_internal' hide Symbol;
 import "dart:_internal" as _symbol_dev show Symbol;
 import 'dart:_js_helper'
@@ -36,6 +36,7 @@ import 'dart:_js_helper'
         stringReplaceFirstUnchecked,
         stringReplaceFirstMappedUnchecked,
         stringReplaceRangeUnchecked,
+        stringSplitUnchecked,
         throwConcurrentModificationError,
         lookupAndCacheInterceptor,
         StringMatch,
@@ -484,6 +485,7 @@ class JavaScriptFunction extends JavaScriptObject implements Function {
 
   String toString() {
     var dartClosure = JS('', '#.#', this, DART_CLOSURE_PROPERTY_NAME);
-    return dartClosure == null ? super.toString() : dartClosure.toString();
+    if (dartClosure == null) return super.toString();
+    return 'JavaScript function for ${dartClosure.toString()}';
   }
 }

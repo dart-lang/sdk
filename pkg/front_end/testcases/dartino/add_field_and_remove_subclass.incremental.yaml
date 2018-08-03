@@ -1,0 +1,27 @@
+# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+main.dart.patch: |
+  // Regression test for what happens when a field is added at the same time a
+  // class is removed.
+  class A {
+  <<<< []
+  ==== []
+    var field;
+  >>>>
+  }
+
+  <<<<
+  class B extends A {
+  }
+  ====
+  >>>>
+
+  main() {
+  <<<<
+    new B();
+  ====
+    new A();
+  >>>>
+  }

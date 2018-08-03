@@ -16,7 +16,7 @@ Future sleep(int milliseconds) {
   return completer.future;
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     var params = {};
     var result =

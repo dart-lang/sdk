@@ -90,7 +90,6 @@ RawString* DoubleToStringAsFixed(double d, int fraction_digits) {
   return String::New(builder.Finalize());
 }
 
-
 RawString* DoubleToStringAsExponential(double d, int fraction_digits) {
   static const int kMinFractionDigits = -1;  // -1 represents shortest mode.
   static const int kMaxFractionDigits = 20;
@@ -120,7 +119,6 @@ RawString* DoubleToStringAsExponential(double d, int fraction_digits) {
   ASSERT(status);
   return String::New(builder.Finalize());
 }
-
 
 RawString* DoubleToStringAsPrecision(double d, int precision) {
   static const int kMinPrecisionDigits = 1;
@@ -158,7 +156,6 @@ RawString* DoubleToStringAsPrecision(double d, int precision) {
   return String::New(builder.Finalize());
 }
 
-
 bool CStringToDouble(const char* str, intptr_t length, double* result) {
   if (length == 0) {
     return false;
@@ -173,6 +170,5 @@ bool CStringToDouble(const char* str, intptr_t length, double* result) {
       converter.StringToDouble(str, static_cast<int>(length), &parsed_count);
   return (parsed_count == length);
 }
-
 
 }  // namespace dart

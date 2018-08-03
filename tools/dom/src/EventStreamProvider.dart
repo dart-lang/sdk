@@ -75,7 +75,8 @@ class EventStreamProvider<T extends Event> {
    *
    * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
    */
-  ElementStream<T> _forElementList(ElementList e, {bool useCapture: false}) {
+  ElementStream<T> _forElementList(ElementList<Element> e,
+      {bool useCapture: false}) {
     return new _ElementListEventStreamImpl<T>(e, _eventType, useCapture);
   }
 
@@ -135,6 +136,9 @@ class _EventStream<T extends Event> extends Stream<T> {
       this;
   bool get isBroadcast => true;
 
+  // TODO(9757): Inlining should be smart and inline only when inlining would
+  // enable scalar replacement of an immediately allocated receiver.
+  @ForceInline()
   StreamSubscription<T> listen(void onData(T event),
       {Function onError, void onDone(), bool cancelOnError}) {
     return new _EventStreamSubscription<T>(
@@ -225,9 +229,9 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
 
   // TODO(leafp): It would be better to write this as
   // _onData = onData == null ? null :
-  //   onData is _wrapZoneCallback<Event, dynamic>
-  //     ? _wrapZone/*<Event, dynamic>*/(onData)
-  //     : _wrapZone/*<Event, dynamic>*/((e) => onData(e as T))
+  //   onData is void Function(Event)
+  //     ? _wrapZone<Event>(onData)
+  //     : _wrapZone<Event>((e) => onData(e as T))
   // In order to support existing tests which pass the wrong type of events but
   // use a more general listener, without causing as much slowdown for things
   // which are typed correctly.  But this currently runs afoul of restrictions
@@ -236,7 +240,7 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
       this._target, this._eventType, void onData(T event), this._useCapture)
       : _onData = onData == null
             ? null
-            : _wrapZone<Event, dynamic>((e) => (onData as dynamic)(e)) {
+            : _wrapZone<Event>((e) => (onData as dynamic)(e)) {
     _tryResume();
   }
 
@@ -258,7 +262,7 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
     }
     // Remove current event listener.
     _unlisten();
-    _onData = _wrapZone/*<Event, dynamic>*/(handleData);
+    _onData = _wrapZone<Event>(handleData);
     _tryResume();
   }
 
@@ -433,7 +437,8 @@ class _CustomEventStreamProvider<T extends Event>
     return new _ElementEventStreamImpl<T>(e, _eventTypeGetter(e), useCapture);
   }
 
-  ElementStream<T> _forElementList(ElementList e, {bool useCapture: false}) {
+  ElementStream<T> _forElementList(ElementList<Element> e,
+      {bool useCapture: false}) {
     return new _ElementListEventStreamImpl<T>(
         e, _eventTypeGetter(e), useCapture);
   }

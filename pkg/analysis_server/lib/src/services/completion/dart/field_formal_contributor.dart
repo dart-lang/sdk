@@ -18,6 +18,8 @@ class FieldFormalContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     AstNode node = request.target.containingNode;
     if (node is! FieldFormalParameter) {
       return EMPTY_LIST;
@@ -62,7 +64,7 @@ class FieldFormalContributor extends DartCompletionContributor {
             if (fieldName != null && fieldName.length > 0) {
               if (!referencedFields.contains(fieldName)) {
                 CompletionSuggestion suggestion = createSuggestion(
-                    fieldId.bestElement, request.ideOptions,
+                    fieldId.bestElement,
                     relevance: DART_RELEVANCE_LOCAL_FIELD);
                 if (suggestion != null) {
                   suggestions.add(suggestion);

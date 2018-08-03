@@ -5,10 +5,6 @@
 #ifndef RUNTIME_BIN_SOCKET_H_
 #define RUNTIME_BIN_SOCKET_H_
 
-#if defined(DART_IO_DISABLED)
-#error "socket.h can only be included on builds with IO enabled"
-#endif
-
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/reference_counting.h"
@@ -39,6 +35,15 @@ class Socket : public ReferenceCounted<Socket> {
     kFinalizerNormal,
     kFinalizerListening,
     kFinalizerStdio,
+    kFinalizerSignal,
+  };
+
+  // Keep in sync with constants in _NativeSocket in socket_patch.dart.
+  enum SocketType {
+    kTcpSocket = 18,
+    kUdpSocket = 19,
+    kInternalSocket = 20,
+    kInternalSignalSocket = 21,
   };
 
   explicit Socket(intptr_t fd);
@@ -46,8 +51,13 @@ class Socket : public ReferenceCounted<Socket> {
   intptr_t fd() const { return fd_; }
   void SetClosedFd();
 
+  Dart_Port isolate_port() const { return isolate_port_; }
+
   Dart_Port port() const { return port_; }
   void set_port(Dart_Port port) { port_ = port; }
+
+  uint8_t* udp_receive_buffer() const { return udp_receive_buffer_; }
+  void set_udp_receive_buffer(uint8_t* buffer) { udp_receive_buffer_ = buffer; }
 
   static bool Initialize();
 
@@ -76,18 +86,39 @@ class Socket : public ReferenceCounted<Socket> {
                                        SocketFinalizer finalizer);
   static Socket* GetSocketIdNativeField(Dart_Handle socket);
 
+  static bool short_socket_read() { return short_socket_read_; }
+  static void set_short_socket_read(bool short_socket_read) {
+    short_socket_read_ = short_socket_read;
+  }
+  static bool short_socket_write() { return short_socket_write_; }
+  static void set_short_socket_write(bool short_socket_write) {
+    short_socket_write_ = short_socket_write;
+  }
+
+  static bool IsSignalSocketFlag(intptr_t flag) {
+    return ((flag & (0x1 << kInternalSignalSocket)) != 0);
+  }
+
  private:
-  ~Socket() { ASSERT(fd_ == kClosedFd); }
+  ~Socket() {
+    ASSERT(fd_ == kClosedFd);
+    free(udp_receive_buffer_);
+    udp_receive_buffer_ = NULL;
+  }
 
   static const int kClosedFd = -1;
 
+  static bool short_socket_read_;
+  static bool short_socket_write_;
+
   intptr_t fd_;
+  Dart_Port isolate_port_;
   Dart_Port port_;
+  uint8_t* udp_receive_buffer_;
 
   friend class ReferenceCounted<Socket>;
   DISALLOW_COPY_AND_ASSIGN(Socket);
 };
-
 
 class ServerSocket {
  public:
@@ -115,7 +146,6 @@ class ServerSocket {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(ServerSocket);
 };
-
 
 class ListeningSocketRegistry {
  public:
@@ -202,7 +232,6 @@ class ListeningSocketRegistry {
   static uint32_t GetHashmapHashFromIntptr(intptr_t i) {
     return static_cast<uint32_t>((i + 1) & 0xFFFFFFFF);
   }
-
 
   static void* GetHashmapKeyFromIntptr(intptr_t i) {
     return reinterpret_cast<void*>(i + 1);

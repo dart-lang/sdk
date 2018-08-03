@@ -4,11 +4,11 @@
 
 part of dart.io;
 
-const int _STDIO_HANDLE_TYPE_TERMINAL = 0;
-const int _STDIO_HANDLE_TYPE_PIPE = 1;
-const int _STDIO_HANDLE_TYPE_FILE = 2;
-const int _STDIO_HANDLE_TYPE_SOCKET = 3;
-const int _STDIO_HANDLE_TYPE_OTHER = 4;
+const int _stdioHandleTypeTerminal = 0;
+const int _stdioHandleTypePipe = 1;
+const int _stdioHandleTypeFile = 2;
+const int _stdioHandleTypeSocket = 3;
+const int _stdioHandleTypeOther = 4;
 
 class _StdStream extends Stream<List<int>> {
   final Stream<List<int>> _stream;
@@ -29,14 +29,16 @@ class _StdStream extends Stream<List<int>> {
  * Mixing synchronous and asynchronous reads is undefined.
  */
 class Stdin extends _StdStream implements Stream<List<int>> {
-  Stdin._(Stream<List<int>> stream) : super(stream);
+  int _fd;
+
+  Stdin._(Stream<List<int>> stream, this._fd) : super(stream);
 
   /**
    * Synchronously read a line from stdin. This call will block until a full
    * line is available.
    *
    * The argument [encoding] can be used to changed how the input should be
-   * decoded. Default is [SYSTEM_ENCODING].
+   * decoded. Default is [systemEncoding].
    *
    * If [retainNewlines] is `false`, the returned String will not contain the
    * final newline. If `true`, the returned String will contain the line
@@ -47,13 +49,13 @@ class Stdin extends _StdStream implements Stream<List<int>> {
    * Returns `null` if no bytes preceded the end of input.
    */
   String readLineSync(
-      {Encoding encoding: SYSTEM_ENCODING, bool retainNewlines: false}) {
+      {Encoding encoding: systemEncoding, bool retainNewlines: false}) {
     const CR = 13;
     const LF = 10;
     final List<int> line = <int>[];
     // On Windows, if lineMode is disabled, only CR is received.
     bool crIsNewline = Platform.isWindows &&
-        (stdioType(stdin) == StdioType.TERMINAL) &&
+        (stdioType(stdin) == StdioType.terminal) &&
         !lineMode;
     if (retainNewlines) {
       int byte;
@@ -79,7 +81,7 @@ class Stdin extends _StdStream implements Stream<List<int>> {
         line.add(byte);
       }
     } else {
-      // Case having to handel CR LF as a single unretained line terminator.
+      // Case having to handle CR LF as a single unretained line terminator.
       outer:
       while (true) {
         int byte = readByteSync();
@@ -154,7 +156,7 @@ class Stdin extends _StdStream implements Stream<List<int>> {
     * will be taken as evidence that ANSI escape sequences are supported.
     * On Windows, only versions of Windows 10 after v.1511
     * ("TH2", OS build 10586) will be detected as supporting the output of
-    * ANSI escape sequences, and only versions after v.1607 ("Anniversery
+    * ANSI escape sequences, and only versions after v.1607 ("Anniversary
     * Update", OS build 14393) will be detected as supporting the input of
     * ANSI escape sequences.
     */
@@ -167,6 +169,20 @@ class Stdin extends _StdStream implements Stream<List<int>> {
    * If at end of file, -1 is returned.
    */
   external int readByteSync();
+
+  /**
+   * Returns true if there is a terminal attached to stdin.
+   */
+  bool get hasTerminal {
+    try {
+      return stdioType(this) == StdioType.terminal;
+    } on FileSystemException catch (_) {
+      // If stdioType throws a FileSystemException, then it is not hooked up to
+      // a terminal, probably because it is closed, but let other exception
+      // types bubble up.
+      return false;
+    }
+  }
 }
 
 /**
@@ -228,7 +244,7 @@ class Stdout extends _StdSink implements IOSink {
     * will be taken as evidence that ANSI escape sequences are supported.
     * On Windows, only versions of Windows 10 after v.1511
     * ("TH2", OS build 10586) will be detected as supporting the output of
-    * ANSI escape sequences, and only versions after v.1607 ("Anniversery
+    * ANSI escape sequences, and only versions after v.1607 ("Anniversary
     * Update", OS build 14393) will be detected as supporting the input of
     * ANSI escape sequences.
     */
@@ -342,10 +358,20 @@ class _StdSink implements IOSink {
 
 /// The type of object a standard IO stream is attached to.
 class StdioType {
-  static const StdioType TERMINAL = const StdioType._("terminal");
-  static const StdioType PIPE = const StdioType._("pipe");
-  static const StdioType FILE = const StdioType._("file");
-  static const StdioType OTHER = const StdioType._("other");
+  static const StdioType terminal = const StdioType._("terminal");
+  static const StdioType pipe = const StdioType._("pipe");
+  static const StdioType file = const StdioType._("file");
+  static const StdioType other = const StdioType._("other");
+
+  @Deprecated("Use terminal instead")
+  static const StdioType TERMINAL = terminal;
+  @Deprecated("Use pipe instead")
+  static const StdioType PIPE = pipe;
+  @Deprecated("Use file instead")
+  static const StdioType FILE = file;
+  @Deprecated("Use other instead")
+  static const StdioType OTHER = other;
+
   final String name;
   const StdioType._(this.name);
   String toString() => "StdioType: $name";
@@ -355,10 +381,23 @@ Stdin _stdin;
 Stdout _stdout;
 Stdout _stderr;
 
+// These may be set to different values by the embedder by calling
+// _setStdioFDs when initializing dart:io.
+int _stdinFD = 0;
+int _stdoutFD = 1;
+int _stderrFD = 2;
+
+// This is an embedder entrypoint.
+void _setStdioFDs(int stdin, int stdout, int stderr) {
+  _stdinFD = stdin;
+  _stdoutFD = stdout;
+  _stderrFD = stderr;
+}
+
 /// The standard input stream of data read by this program.
 Stdin get stdin {
   if (_stdin == null) {
-    _stdin = _StdIOUtils._getStdioInputStream();
+    _stdin = _StdIOUtils._getStdioInputStream(_stdinFD);
   }
   return _stdin;
 }
@@ -366,7 +405,7 @@ Stdin get stdin {
 /// The standard output stream of data written by this program.
 Stdout get stdout {
   if (_stdout == null) {
-    _stdout = _StdIOUtils._getStdioOutputStream(1);
+    _stdout = _StdIOUtils._getStdioOutputStream(_stdoutFD);
   }
   return _stdout;
 }
@@ -374,7 +413,7 @@ Stdout get stdout {
 /// The standard output stream of errors written by this program.
 Stdout get stderr {
   if (_stderr == null) {
-    _stderr = _StdIOUtils._getStdioOutputStream(2);
+    _stderr = _StdIOUtils._getStdioOutputStream(_stderrFD);
   }
   return _stderr;
 }
@@ -385,45 +424,46 @@ StdioType stdioType(object) {
   if (object is _StdStream) {
     object = object._stream;
   } else if (object == stdout || object == stderr) {
-    switch (_StdIOUtils._getStdioHandleType(object == stdout ? 1 : 2)) {
-      case _STDIO_HANDLE_TYPE_TERMINAL:
-        return StdioType.TERMINAL;
-      case _STDIO_HANDLE_TYPE_PIPE:
-        return StdioType.PIPE;
-      case _STDIO_HANDLE_TYPE_FILE:
-        return StdioType.FILE;
+    int stdiofd = object == stdout ? _stdoutFD : _stderrFD;
+    switch (_StdIOUtils._getStdioHandleType(stdiofd)) {
+      case _stdioHandleTypeTerminal:
+        return StdioType.terminal;
+      case _stdioHandleTypePipe:
+        return StdioType.pipe;
+      case _stdioHandleTypeFile:
+        return StdioType.file;
     }
   }
   if (object is _FileStream) {
-    return StdioType.FILE;
+    return StdioType.file;
   }
   if (object is Socket) {
     int socketType = _StdIOUtils._socketType(object);
-    if (socketType == null) return StdioType.OTHER;
+    if (socketType == null) return StdioType.other;
     switch (socketType) {
-      case _STDIO_HANDLE_TYPE_TERMINAL:
-        return StdioType.TERMINAL;
-      case _STDIO_HANDLE_TYPE_PIPE:
-        return StdioType.PIPE;
-      case _STDIO_HANDLE_TYPE_FILE:
-        return StdioType.FILE;
+      case _stdioHandleTypeTerminal:
+        return StdioType.terminal;
+      case _stdioHandleTypePipe:
+        return StdioType.pipe;
+      case _stdioHandleTypeFile:
+        return StdioType.file;
     }
   }
   if (object is _IOSinkImpl) {
     try {
       if (object._target is _FileStreamConsumer) {
-        return StdioType.FILE;
+        return StdioType.file;
       }
     } catch (e) {
       // Only the interface implemented, _sink not available.
     }
   }
-  return StdioType.OTHER;
+  return StdioType.other;
 }
 
 class _StdIOUtils {
   external static _getStdioOutputStream(int fd);
-  external static Stdin _getStdioInputStream();
+  external static Stdin _getStdioInputStream(int fd);
 
   /// Returns the socket type or `null` if [socket] is not a builtin socket.
   external static int _socketType(Socket socket);

@@ -7,8 +7,9 @@
 
 #include "vm/virtual_memory.h"
 
-#include <sys/mman.h>  // NOLINT
-#include <unistd.h>    // NOLINT
+#include <errno.h>
+#include <sys/mman.h>
+#include <unistd.h>
 
 #include "platform/assert.h"
 #include "platform/utils.h"
@@ -24,23 +25,9 @@ namespace dart {
 
 uword VirtualMemory::page_size_ = 0;
 
-
 void VirtualMemory::InitOnce() {
   page_size_ = getpagesize();
 }
-
-
-VirtualMemory* VirtualMemory::ReserveInternal(intptr_t size) {
-  ASSERT((size & (PageSize() - 1)) == 0);
-  void* address = mmap(NULL, size, PROT_NONE,
-                       MAP_PRIVATE | MAP_ANON | MAP_NORESERVE, -1, 0);
-  if (address == MAP_FAILED) {
-    return NULL;
-  }
-  MemoryRegion region(address, size);
-  return new VirtualMemory(region);
-}
-
 
 static void unmap(void* address, intptr_t size) {
   if (size == 0) {
@@ -48,40 +35,73 @@ static void unmap(void* address, intptr_t size) {
   }
 
   if (munmap(address, size) != 0) {
-    FATAL("munmap failed\n");
+    int error = errno;
+    const int kBufferSize = 1024;
+    char error_buf[kBufferSize];
+    FATAL2("munmap error: %d (%s)", error,
+           Utils::StrError(error, error_buf, kBufferSize));
   }
 }
 
+VirtualMemory* VirtualMemory::Allocate(intptr_t size,
+                                       bool is_executable,
+                                       const char* name) {
+  ASSERT(Utils::IsAligned(size, page_size_));
+  int prot = PROT_READ | PROT_WRITE | (is_executable ? PROT_EXEC : 0);
+  void* address = mmap(NULL, size, prot, MAP_PRIVATE | MAP_ANON, -1, 0);
+  if (address == MAP_FAILED) {
+    return NULL;
+  }
+  MemoryRegion region(address, size);
+  return new VirtualMemory(region, region);
+}
+
+VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
+                                              intptr_t alignment,
+                                              bool is_executable,
+                                              const char* name) {
+  ASSERT(Utils::IsAligned(size, page_size_));
+  ASSERT(Utils::IsAligned(alignment, page_size_));
+  intptr_t allocated_size = size + alignment;
+  int prot = PROT_READ | PROT_WRITE | (is_executable ? PROT_EXEC : 0);
+  void* address =
+      mmap(NULL, allocated_size, prot, MAP_PRIVATE | MAP_ANON, -1, 0);
+  if (address == MAP_FAILED) {
+    return NULL;
+  }
+
+  uword base = reinterpret_cast<uword>(address);
+  uword aligned_base = Utils::RoundUp(base, alignment);
+  ASSERT(base <= aligned_base);
+
+  if (base != aligned_base) {
+    uword extra_leading_size = aligned_base - base;
+    unmap(reinterpret_cast<void*>(base), extra_leading_size);
+    allocated_size -= extra_leading_size;
+  }
+
+  if (allocated_size != size) {
+    uword extra_trailing_size = allocated_size - size;
+    unmap(reinterpret_cast<void*>(aligned_base + size), extra_trailing_size);
+  }
+
+  MemoryRegion region(reinterpret_cast<void*>(aligned_base), size);
+  return new VirtualMemory(region, region);
+}
 
 VirtualMemory::~VirtualMemory() {
   if (vm_owns_region()) {
-    unmap(address(), reserved_size_);
+    unmap(reserved_.pointer(), reserved_.size());
   }
 }
 
-
-bool VirtualMemory::FreeSubSegment(int32_t handle,
-                                   void* address,
+bool VirtualMemory::FreeSubSegment(void* address,
                                    intptr_t size) {
   unmap(address, size);
   return true;
 }
 
-
-bool VirtualMemory::Commit(uword addr, intptr_t size, bool executable) {
-  ASSERT(Contains(addr));
-  ASSERT(Contains(addr + size) || (addr + size == end()));
-  int prot = PROT_READ | PROT_WRITE | (executable ? PROT_EXEC : 0);
-  void* address = mmap(reinterpret_cast<void*>(addr), size, prot,
-                       MAP_PRIVATE | MAP_ANON | MAP_FIXED, -1, 0);
-  if (address == MAP_FAILED) {
-    return false;
-  }
-  return true;
-}
-
-
-bool VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
+void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
   ASSERT(Thread::Current()->IsMutatorThread() ||
          Isolate::Current()->mutator_thread()->IsAtSafepoint());
   uword start_address = reinterpret_cast<uword>(address);
@@ -105,8 +125,14 @@ bool VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
       prot = PROT_READ | PROT_WRITE | PROT_EXEC;
       break;
   }
-  return (mprotect(reinterpret_cast<void*>(page_address),
-                   end_address - page_address, prot) == 0);
+  if (mprotect(reinterpret_cast<void*>(page_address),
+               end_address - page_address, prot) != 0) {
+    int error = errno;
+    const int kBufferSize = 1024;
+    char error_buf[kBufferSize];
+    FATAL2("mprotect error: %d (%s)", error,
+           Utils::StrError(error, error_buf, kBufferSize));
+  }
 }
 
 }  // namespace dart

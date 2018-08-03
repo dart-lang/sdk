@@ -2,40 +2,53 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// part of "common_patch.dart";
+
 @patch
 class _File {
   @patch
-  static _exists(String path) native "File_Exists";
+  static _exists(_Namespace namespace, Uint8List rawPath) native "File_Exists";
   @patch
-  static _create(String path) native "File_Create";
+  static _create(_Namespace namespace, Uint8List rawPath) native "File_Create";
   @patch
-  static _createLink(String path, String target) native "File_CreateLink";
+  static _createLink(_Namespace namespace, Uint8List rawPath, String target)
+      native "File_CreateLink";
   @patch
-  static _linkTarget(String path) native "File_LinkTarget";
+  static _linkTarget(_Namespace namespace, Uint8List rawPath)
+      native "File_LinkTarget";
   @patch
-  static _deleteNative(String path) native "File_Delete";
+  static _deleteNative(_Namespace namespace, Uint8List rawPath)
+      native "File_Delete";
   @patch
-  static _deleteLinkNative(String path) native "File_DeleteLink";
+  static _deleteLinkNative(_Namespace namespace, Uint8List rawPath)
+      native "File_DeleteLink";
   @patch
-  static _rename(String oldPath, String newPath) native "File_Rename";
+  static _rename(_Namespace namespace, Uint8List oldPath, String newPath)
+      native "File_Rename";
   @patch
-  static _renameLink(String oldPath, String newPath) native "File_RenameLink";
+  static _renameLink(_Namespace namespace, Uint8List oldPath, String newPath)
+      native "File_RenameLink";
   @patch
-  static _copy(String oldPath, String newPath) native "File_Copy";
+  static _copy(_Namespace namespace, Uint8List oldPath, String newPath)
+      native "File_Copy";
   @patch
-  static _lengthFromPath(String path) native "File_LengthFromPath";
+  static _lengthFromPath(_Namespace namespace, Uint8List rawPath)
+      native "File_LengthFromPath";
   @patch
-  static _lastModified(String path) native "File_LastModified";
+  static _lastModified(_Namespace namespace, Uint8List rawPath)
+      native "File_LastModified";
   @patch
-  static _setLastModified(String path, int millis)
+  static _setLastModified(_Namespace namespace, Uint8List rawPath, int millis)
       native "File_SetLastModified";
   @patch
-  static _lastAccessed(String path) native "File_LastAccessed";
+  static _lastAccessed(_Namespace namespace, Uint8List rawPath)
+      native "File_LastAccessed";
   @patch
-  static _setLastAccessed(String path, int millis)
+  static _setLastAccessed(_Namespace namespace, Uint8List rawPath, int millis)
       native "File_SetLastAccessed";
   @patch
-  static _open(String path, int mode) native "File_Open";
+  static _open(_Namespace namespace, Uint8List rawPath, int mode)
+      native "File_Open";
   @patch
   static int _openStdio(int fd) native "File_OpenStdio";
 }
@@ -81,6 +94,8 @@ class _WatcherPath {
 
 @patch
 class _FileSystemWatcher {
+  void _pathWatchedEnd();
+
   static int _id;
   static final Map<int, _WatcherPath> _idMap = {};
 
@@ -90,7 +105,7 @@ class _FileSystemWatcher {
 
   _WatcherPath _watcherPath;
 
-  StreamController _broadcastController;
+  StreamController<FileSystemEvent> _broadcastController;
 
   @patch
   static Stream<FileSystemEvent> _watch(
@@ -114,11 +129,11 @@ class _FileSystemWatcher {
       throw new FileSystemException(
           "File system watching is not supported on this platform", _path);
     }
-    _broadcastController =
-        new StreamController.broadcast(onListen: _listen, onCancel: _cancel);
+    _broadcastController = new StreamController<FileSystemEvent>.broadcast(
+        onListen: _listen, onCancel: _cancel);
   }
 
-  Stream get _stream => _broadcastController.stream;
+  Stream<FileSystemEvent> get _stream => _broadcastController.stream;
 
   void _listen() {
     if (_id == null) {
@@ -134,7 +149,8 @@ class _FileSystemWatcher {
     }
     var pathId;
     try {
-      pathId = _watchPath(_id, _path, _events, _recursive);
+      pathId =
+          _watchPath(_id, _Namespace._namespace, _path, _events, _recursive);
     } catch (e) {
       _broadcastController
           .addError(new FileSystemException("Failed to watch path", _path, e));
@@ -187,7 +203,7 @@ class _FileSystemWatcher {
       var stops = [];
       var events = [];
       var pair = {};
-      if (event == RawSocketEvent.READ) {
+      if (event == RawSocketEvent.read) {
         String getPath(event) {
           var path = _pathFromPathId(event[4]).path;
           if (event[2] != null && event[2].isNotEmpty) {
@@ -202,7 +218,7 @@ class _FileSystemWatcher {
             // Windows does not get 'isDir' as part of the event.
             return FileSystemEntity.isDirectorySync(getPath(event));
           }
-          return (event[0] & FileSystemEvent._IS_DIR) != 0;
+          return (event[0] & FileSystemEvent._isDir) != 0;
         }
 
         void add(id, event) {
@@ -231,16 +247,16 @@ class _FileSystemWatcher {
             }
             bool isDir = getIsDir(event);
             var path = getPath(event);
-            if ((event[0] & FileSystemEvent.CREATE) != 0) {
+            if ((event[0] & FileSystemEvent.create) != 0) {
               add(event[4], new FileSystemCreateEvent._(path, isDir));
             }
-            if ((event[0] & FileSystemEvent.MODIFY) != 0) {
+            if ((event[0] & FileSystemEvent.modify) != 0) {
               add(event[4], new FileSystemModifyEvent._(path, isDir, true));
             }
-            if ((event[0] & FileSystemEvent._MODIFY_ATTRIBUTES) != 0) {
+            if ((event[0] & FileSystemEvent._modifyAttributes) != 0) {
               add(event[4], new FileSystemModifyEvent._(path, isDir, false));
             }
-            if ((event[0] & FileSystemEvent.MOVE) != 0) {
+            if ((event[0] & FileSystemEvent.move) != 0) {
               int link = event[1];
               if (link > 0) {
                 pair.putIfAbsent(pathId, () => {});
@@ -257,10 +273,10 @@ class _FileSystemWatcher {
                 rewriteMove(event, isDir);
               }
             }
-            if ((event[0] & FileSystemEvent.DELETE) != 0) {
+            if ((event[0] & FileSystemEvent.delete) != 0) {
               add(event[4], new FileSystemDeleteEvent._(path, isDir));
             }
-            if ((event[0] & FileSystemEvent._DELETE_SELF) != 0) {
+            if ((event[0] & FileSystemEvent._deleteSelf) != 0) {
               add(event[4], new FileSystemDeleteEvent._(path, isDir));
               // Signal done event.
               stops.add([event[4], null]);
@@ -275,8 +291,9 @@ class _FileSystemWatcher {
             rewriteMove(event, getIsDir(event));
           }
         }
-      } else if (event == RawSocketEvent.CLOSED) {} else if (event ==
-          RawSocketEvent.READ_CLOSED) {} else {
+      } else if (event == RawSocketEvent.closed) {
+      } else if (event == RawSocketEvent.readClosed) {
+      } else {
         assert(false);
       }
       events.addAll(stops);
@@ -290,8 +307,8 @@ class _FileSystemWatcher {
   static int _initWatcher() native "FileSystemWatcher_InitWatcher";
   static void _closeWatcher(int id) native "FileSystemWatcher_CloseWatcher";
 
-  static int _watchPath(int id, String path, int events, bool recursive)
-      native "FileSystemWatcher_WatchPath";
+  static int _watchPath(int id, _Namespace namespace, String path, int events,
+      bool recursive) native "FileSystemWatcher_WatchPath";
   static void _unwatchPath(int id, int path_id)
       native "FileSystemWatcher_UnwatchPath";
   static List _readEvents(int id, int path_id)
@@ -328,7 +345,7 @@ class _InotifyFileSystemWatcher extends _FileSystemWatcher {
   Stream _pathWatched() {
     var pathId = _watcherPath.pathId;
     if (!_idMap.containsKey(pathId)) {
-      _idMap[pathId] = new StreamController.broadcast();
+      _idMap[pathId] = new StreamController<FileSystemEvent>.broadcast();
     }
     return _idMap[pathId].stream;
   }
@@ -350,7 +367,7 @@ class _Win32FileSystemWatcher extends _FileSystemWatcher {
 
   Stream _pathWatched() {
     var pathId = _watcherPath.pathId;
-    _controller = new StreamController();
+    _controller = new StreamController<FileSystemEvent>();
     _subscription =
         _FileSystemWatcher._listenOnSocket(pathId, 0, pathId).listen((event) {
       assert(event[0] == pathId);
@@ -379,7 +396,7 @@ class _FSEventStreamFileSystemWatcher extends _FileSystemWatcher {
   Stream _pathWatched() {
     var pathId = _watcherPath.pathId;
     var socketId = _FileSystemWatcher._getSocketId(0, pathId);
-    _controller = new StreamController();
+    _controller = new StreamController<FileSystemEvent>();
     _subscription =
         _FileSystemWatcher._listenOnSocket(socketId, 0, pathId).listen((event) {
       if (event[1] != null) {

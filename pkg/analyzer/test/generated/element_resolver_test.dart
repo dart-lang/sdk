@@ -25,6 +25,7 @@ import 'package:analyzer/src/source/source_resource.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../utils.dart';
 import 'analysis_context_factory.dart';
 import 'resolver_test_case.dart';
 import 'test_support.dart';
@@ -33,15 +34,27 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ElementResolverCodeTest);
     defineReflectiveTests(ElementResolverTest);
+    defineReflectiveTests(PreviewDart2Test);
   });
+}
+
+const _isClassElement = const TypeMatcher<ClassElement>();
+
+const _isConstructorElement = const TypeMatcher<ConstructorElement>();
+
+/// Wrapper around the test package's `fail` function.
+///
+/// Unlike the test package's `fail` function, this function is not annotated
+/// with @alwaysThrows, so we can call it at the top of a test method without
+/// causing the rest of the method to be flagged as dead code.
+void _fail(String message) {
+  fail(message);
 }
 
 @reflectiveTest
 class ElementResolverCodeTest extends ResolverTestCase {
   test_annotation_class_namedConstructor() async {
-    addNamedSource(
-        '/a.dart',
-        r'''
+    addNamedSource('/a.dart', r'''
 class A {
   const A.named();
 }
@@ -51,10 +64,10 @@ class A {
         SimpleIdentifier name3,
         Element annotationElement) {
       expect(name1, isNotNull);
-      expect(name1.staticElement, new isInstanceOf<ClassElement>());
+      expect(name1.staticElement, new TypeMatcher<ClassElement>());
       expect(resolutionMap.staticElementForIdentifier(name1).displayName, 'A');
       expect(name2, isNotNull);
-      expect(name2.staticElement, new isInstanceOf<ConstructorElement>());
+      expect(name2.staticElement, new TypeMatcher<ConstructorElement>());
       expect(
           resolutionMap.staticElementForIdentifier(name2).displayName, 'named');
       expect(name3, isNull);
@@ -71,9 +84,7 @@ class A {
   }
 
   test_annotation_class_prefixed_namedConstructor() async {
-    addNamedSource(
-        '/a.dart',
-        r'''
+    addNamedSource('/a.dart', r'''
 class A {
   const A.named();
 }
@@ -83,13 +94,13 @@ class A {
         SimpleIdentifier name3,
         Element annotationElement) {
       expect(name1, isNotNull);
-      expect(name1.staticElement, new isInstanceOf<PrefixElement>());
+      expect(name1.staticElement, new TypeMatcher<PrefixElement>());
       expect(resolutionMap.staticElementForIdentifier(name1).displayName, 'p');
       expect(name2, isNotNull);
-      expect(name2.staticElement, new isInstanceOf<ClassElement>());
+      expect(name2.staticElement, new TypeMatcher<ClassElement>());
       expect(resolutionMap.staticElementForIdentifier(name2).displayName, 'A');
       expect(name3, isNotNull);
-      expect(name3.staticElement, new isInstanceOf<ConstructorElement>());
+      expect(name3.staticElement, new TypeMatcher<ConstructorElement>());
       expect(
           resolutionMap.staticElementForIdentifier(name3).displayName, 'named');
       if (annotationElement is ConstructorElement) {
@@ -105,9 +116,7 @@ class A {
   }
 
   test_annotation_class_prefixed_staticConstField() async {
-    addNamedSource(
-        '/a.dart',
-        r'''
+    addNamedSource('/a.dart', r'''
 class A {
   static const V = 0;
 }
@@ -117,13 +126,13 @@ class A {
         SimpleIdentifier name3,
         Element annotationElement) {
       expect(name1, isNotNull);
-      expect(name1.staticElement, new isInstanceOf<PrefixElement>());
+      expect(name1.staticElement, new TypeMatcher<PrefixElement>());
       expect(resolutionMap.staticElementForIdentifier(name1).displayName, 'p');
       expect(name2, isNotNull);
-      expect(name2.staticElement, new isInstanceOf<ClassElement>());
+      expect(name2.staticElement, new TypeMatcher<ClassElement>());
       expect(resolutionMap.staticElementForIdentifier(name2).displayName, 'A');
       expect(name3, isNotNull);
-      expect(name3.staticElement, new isInstanceOf<PropertyAccessorElement>());
+      expect(name3.staticElement, new TypeMatcher<PropertyAccessorElement>());
       expect(resolutionMap.staticElementForIdentifier(name3).displayName, 'V');
       if (annotationElement is PropertyAccessorElement) {
         expect(annotationElement, same(name3.staticElement));
@@ -137,9 +146,7 @@ class A {
   }
 
   test_annotation_class_prefixed_unnamedConstructor() async {
-    addNamedSource(
-        '/a.dart',
-        r'''
+    addNamedSource('/a.dart', r'''
 class A {
   const A();
 }
@@ -149,10 +156,10 @@ class A {
         SimpleIdentifier name3,
         Element annotationElement) {
       expect(name1, isNotNull);
-      expect(name1.staticElement, new isInstanceOf<PrefixElement>());
+      expect(name1.staticElement, new TypeMatcher<PrefixElement>());
       expect(resolutionMap.staticElementForIdentifier(name1).displayName, 'p');
       expect(name2, isNotNull);
-      expect(name2.staticElement, new isInstanceOf<ClassElement>());
+      expect(name2.staticElement, new TypeMatcher<ClassElement>());
       expect(resolutionMap.staticElementForIdentifier(name2).displayName, 'A');
       expect(name3, isNull);
       if (annotationElement is ConstructorElement) {
@@ -167,9 +174,7 @@ class A {
   }
 
   test_annotation_class_staticConstField() async {
-    addNamedSource(
-        '/a.dart',
-        r'''
+    addNamedSource('/a.dart', r'''
 class A {
   static const V = 0;
 }
@@ -179,10 +184,10 @@ class A {
         SimpleIdentifier name3,
         Element annotationElement) {
       expect(name1, isNotNull);
-      expect(name1.staticElement, new isInstanceOf<ClassElement>());
+      expect(name1.staticElement, new TypeMatcher<ClassElement>());
       expect(resolutionMap.staticElementForIdentifier(name1).displayName, 'A');
       expect(name2, isNotNull);
-      expect(name2.staticElement, new isInstanceOf<PropertyAccessorElement>());
+      expect(name2.staticElement, new TypeMatcher<PropertyAccessorElement>());
       expect(resolutionMap.staticElementForIdentifier(name2).displayName, 'V');
       expect(name3, isNull);
       if (annotationElement is PropertyAccessorElement) {
@@ -197,9 +202,7 @@ class A {
   }
 
   test_annotation_class_unnamedConstructor() async {
-    addNamedSource(
-        '/a.dart',
-        r'''
+    addNamedSource('/a.dart', r'''
 class A {
   const A();
 }
@@ -209,7 +212,7 @@ class A {
         SimpleIdentifier name3,
         Element annotationElement) {
       expect(name1, isNotNull);
-      expect(name1.staticElement, new isInstanceOf<ClassElement>());
+      expect(name1.staticElement, new TypeMatcher<ClassElement>());
       expect(resolutionMap.staticElementForIdentifier(name1).displayName, 'A');
       expect(name2, isNull);
       expect(name3, isNull);
@@ -225,9 +228,7 @@ class A {
   }
 
   test_annotation_topLevelVariable() async {
-    addNamedSource(
-        '/a.dart',
-        r'''
+    addNamedSource('/a.dart', r'''
 const V = 0;
 ''');
     await _validateAnnotation('', '@V', (SimpleIdentifier name1,
@@ -235,14 +236,14 @@ const V = 0;
         SimpleIdentifier name3,
         Element annotationElement) {
       expect(name1, isNotNull);
-      expect(name1.staticElement, new isInstanceOf<PropertyAccessorElement>());
+      expect(name1.staticElement, new TypeMatcher<PropertyAccessorElement>());
       expect(resolutionMap.staticElementForIdentifier(name1).displayName, 'V');
       expect(name2, isNull);
       expect(name3, isNull);
       if (annotationElement is PropertyAccessorElement) {
         expect(annotationElement, same(name1.staticElement));
         expect(annotationElement.enclosingElement,
-            new isInstanceOf<CompilationUnitElement>());
+            new TypeMatcher<CompilationUnitElement>());
         expect(annotationElement.displayName, 'V');
       } else {
         fail('Expected "annotationElement" is PropertyAccessorElement, '
@@ -252,9 +253,7 @@ const V = 0;
   }
 
   test_annotation_topLevelVariable_prefixed() async {
-    addNamedSource(
-        '/a.dart',
-        r'''
+    addNamedSource('/a.dart', r'''
 const V = 0;
 ''');
     await _validateAnnotation('as p', '@p.V', (SimpleIdentifier name1,
@@ -262,16 +261,16 @@ const V = 0;
         SimpleIdentifier name3,
         Element annotationElement) {
       expect(name1, isNotNull);
-      expect(name1.staticElement, new isInstanceOf<PrefixElement>());
+      expect(name1.staticElement, new TypeMatcher<PrefixElement>());
       expect(resolutionMap.staticElementForIdentifier(name1).displayName, 'p');
       expect(name2, isNotNull);
-      expect(name2.staticElement, new isInstanceOf<PropertyAccessorElement>());
+      expect(name2.staticElement, new TypeMatcher<PropertyAccessorElement>());
       expect(resolutionMap.staticElementForIdentifier(name2).displayName, 'V');
       expect(name3, isNull);
       if (annotationElement is PropertyAccessorElement) {
         expect(annotationElement, same(name2.staticElement));
         expect(annotationElement.enclosingElement,
-            new isInstanceOf<CompilationUnitElement>());
+            new TypeMatcher<CompilationUnitElement>());
         expect(annotationElement.displayName, 'V');
       } else {
         fail('Expected "annotationElement" is PropertyAccessorElement, '
@@ -333,7 +332,7 @@ class ElementResolverTest extends EngineTestCase {
   ElementResolver _resolver;
 
   void fail_visitExportDirective_combinators() {
-    fail("Not yet tested");
+    _fail("Not yet tested");
     // Need to set up the exported library so that the identifier can be
     // resolved.
     ExportDirective directive = AstTestFactory.exportDirective2(null, [
@@ -344,12 +343,12 @@ class ElementResolverTest extends EngineTestCase {
   }
 
   void fail_visitFunctionExpressionInvocation() {
-    fail("Not yet tested");
+    _fail("Not yet tested");
     _listener.assertNoErrors();
   }
 
   void fail_visitImportDirective_combinators_noPrefix() {
-    fail("Not yet tested");
+    _fail("Not yet tested");
     // Need to set up the imported library so that the identifier can be
     // resolved.
     ImportDirective directive = AstTestFactory.importDirective3(null, null, [
@@ -360,7 +359,7 @@ class ElementResolverTest extends EngineTestCase {
   }
 
   void fail_visitImportDirective_combinators_prefix() {
-    fail("Not yet tested");
+    _fail("Not yet tested");
     // Need to set up the imported library so that the identifiers can be
     // resolved.
     String prefixName = "p";
@@ -377,7 +376,7 @@ class ElementResolverTest extends EngineTestCase {
   }
 
   void fail_visitRedirectingConstructorInvocation() {
-    fail("Not yet tested");
+    _fail("Not yet tested");
     _listener.assertNoErrors();
   }
 
@@ -1301,5 +1300,349 @@ class ElementResolverTest extends EngineTestCase {
     } finally {
       _visitor.labelScope = outerScope;
     }
+  }
+}
+
+@reflectiveTest
+class PreviewDart2Test extends ResolverTestCase {
+  @override
+  bool get enableNewAnalysisDriver => true;
+
+  @override
+  void setUp() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl()
+      ..previewDart2 = true;
+    resetWith(options: options);
+  }
+
+  /**
+   * Tests and verifies that even with a explicit 'new' keyword, the
+   * construction of the InstanceCreationExpression node with types and elements
+   * is all correct.
+   */
+  test_visitMethodInvocations_explicit() async {
+    String code = '''
+class A {
+  A() {}
+}
+main() {
+  new A();
+}
+    ''';
+    CompilationUnit unit = await resolveSource(code);
+    var statements = AstFinder.getStatementsInTopLevelFunction(unit, 'main');
+
+    ExpressionStatement statement = statements[0];
+    InstanceCreationExpression creation = statement.expression;
+
+    expect(creation.staticElement, _isConstructorElement);
+    expect(creation.staticType, isNotNull);
+
+    expect(creation.constructorName.staticElement, _isConstructorElement);
+
+    expect(creation.constructorName.type.type, isNotNull);
+    expect(creation.constructorName.type.name.staticElement, _isClassElement);
+
+    expect(creation.constructorName.name, isNull);
+  }
+
+  /**
+   * Test that the call to a constructor with an implicit unnamed constructor is
+   * re-written as an InstanceCreationExpression AST node from a
+   * MethodInvocation.
+   *
+   * C()
+   */
+  test_visitMethodInvocations_implicit() async {
+    String code = '''
+class A {
+  A(a, {b}) {}
+}
+main() {
+  A(0, b: 1);
+}
+    ''';
+    CompilationUnit unit = await resolveSource(code);
+    var statements = AstFinder.getStatementsInTopLevelFunction(unit, 'main');
+
+    ExpressionStatement statement = statements[0];
+    InstanceCreationExpression creation = statement.expression;
+    ConstructorElement constructor = creation.staticElement;
+
+    expect(constructor, _isConstructorElement);
+    expect(creation.staticType, isNotNull);
+
+    expect(creation.constructorName.staticElement, constructor);
+
+    expect(creation.constructorName.type.type, isNotNull);
+    expect(creation.constructorName.type.name.staticElement, _isClassElement);
+
+    expect(creation.constructorName.name, isNull);
+
+    List<Expression> arguments = creation.argumentList.arguments;
+    Expression argumentA = arguments[0];
+    expect(argumentA.staticParameterElement, constructor.parameters[0]);
+    NamedExpression argumentB = arguments[1];
+    expect(argumentB.name.label.staticElement, constructor.parameters[1]);
+  }
+
+  /**
+   * Test that the call to a constructor with an implicit unnamed constructor is
+   * re-written as an InstanceCreationExpression AST node from a
+   * MethodInvocation.
+   *
+   * C(), where class C has no constructors
+   */
+  test_visitMethodInvocations_implicit_implicit() async {
+    String code = '''
+class A {}
+main() {
+  A();
+}
+    ''';
+    CompilationUnit unit = await resolveSource(code);
+    var statements = AstFinder.getStatementsInTopLevelFunction(unit, 'main');
+
+    ExpressionStatement statement = statements[0];
+    InstanceCreationExpression creation = statement.expression;
+    ConstructorElement constructor = creation.staticElement;
+
+    expect(constructor, _isConstructorElement);
+    expect(creation.staticType, isNotNull);
+
+    expect(creation.constructorName.staticElement, constructor);
+
+    expect(creation.constructorName.type.type, isNotNull);
+    expect(creation.constructorName.type.name.staticElement, _isClassElement);
+
+    expect(creation.constructorName.name, isNull);
+
+    expect(creation.argumentList.arguments, isEmpty);
+  }
+
+  /**
+   * Test that the call to a constructor with an implicit named constructor is
+   * re-written as an InstanceCreationExpression AST node from a
+   * MethodInvocation.
+   *
+   * C.n()
+   */
+  test_visitMethodInvocations_implicit_named() async {
+    String code = '''
+class A {
+  A.named() {}
+}
+main() {
+  A.named();
+}
+    ''';
+    CompilationUnit unit = await resolveSource(code);
+    var statements = AstFinder.getStatementsInTopLevelFunction(unit, 'main');
+
+    ExpressionStatement statement = statements[0];
+    InstanceCreationExpression creation = statement.expression;
+    ConstructorElement constructor = creation.staticElement;
+
+    expect(constructor, _isConstructorElement);
+    expect(creation.staticType, isNotNull);
+
+    expect(creation.constructorName.staticElement, constructor);
+
+    expect(creation.constructorName.type.type, isNotNull);
+    expect(creation.constructorName.type.name.staticElement, _isClassElement);
+
+    expect(creation.constructorName.name.staticElement, constructor);
+  }
+
+  /**
+   * Test that the call to a constructor with a prefixed implicit constructor is
+   * re-written as an InstanceCreationExpression AST node from a
+   * MethodInvocation.
+   *
+   * p.C()
+   */
+  test_visitMethodInvocations_implicit_prefixed() async {
+    addNamedSource("/fileOne.dart", r'''
+class A {
+  A() {}
+}
+''');
+    String code = '''
+import 'fileOne.dart' as one;
+
+main() {
+  one.A();
+}
+    ''';
+    CompilationUnit unit = await resolveSource(code);
+    var statements = AstFinder.getStatementsInTopLevelFunction(unit, 'main');
+
+    ExpressionStatement statement = statements[0];
+    InstanceCreationExpression creation = statement.expression;
+    ConstructorElement constructor = creation.staticElement;
+
+    expect(constructor, _isConstructorElement);
+    expect(creation.staticType, isNotNull);
+
+    expect(creation.constructorName.staticElement, constructor);
+
+    expect(creation.constructorName.type.type, isNotNull);
+    expect(creation.constructorName.type.name.staticElement, _isClassElement);
+
+    expect(creation.constructorName.name, isNull);
+  }
+
+  /**
+   * Test that the call to a constructor with a prefixed implicit named constructor is
+   * re-written as an InstanceCreationExpression AST node from a
+   * MethodInvocation.
+   *
+   * p.C.n()
+   */
+  test_visitMethodInvocations_implicit_prefixed_named() async {
+    addNamedSource("/fileOne.dart", r'''
+class A {
+  A.named(a, {b}) {}
+}
+''');
+    String code = '''
+import 'fileOne.dart' as one;
+main() {
+  one.A.named(0, b: 1);
+}
+    ''';
+    CompilationUnit unit = await resolveSource(code);
+    var statements = AstFinder.getStatementsInTopLevelFunction(unit, 'main');
+
+    ExpressionStatement statement = statements[0];
+    InstanceCreationExpression creation = statement.expression;
+    ConstructorElement constructor = creation.staticElement;
+
+    expect(constructor, _isConstructorElement);
+    expect(creation.staticType, isNotNull);
+
+    expect(creation.constructorName.staticElement, constructor);
+
+    expect(creation.constructorName.type.type, isNotNull);
+    expect(creation.constructorName.type.name.staticElement, _isClassElement);
+
+    expect(creation.constructorName.name.staticElement, constructor);
+
+    List<Expression> arguments = creation.argumentList.arguments;
+    Expression argumentA = arguments[0];
+    expect(argumentA.staticParameterElement, constructor.parameters[0]);
+    NamedExpression argumentB = arguments[1];
+    expect(argumentB.name.label.staticElement, constructor.parameters[1]);
+  }
+
+  /**
+   * Test that the call to a constructor with a prefixed implicit constructor is
+   * re-written as an InstanceCreationExpression AST node from a
+   * MethodInvocation.
+   *
+   * p.C<>()
+   */
+  test_visitMethodInvocations_implicit_prefixed_typeArgs() async {
+    addNamedSource("/fileOne.dart", r'''
+class A<T> {
+  final T x;
+  A(this.x) {}
+}
+''');
+    String code = '''
+import 'fileOne.dart' as one;
+
+main() {
+  one.A<int>(42);
+}
+    ''';
+    CompilationUnit unit = await resolveSource(code);
+    var statements = AstFinder.getStatementsInTopLevelFunction(unit, 'main');
+
+    ExpressionStatement statement = statements[0];
+    InstanceCreationExpression creation = statement.expression;
+    ConstructorElement constructor = creation.staticElement;
+
+    expect(constructor, _isConstructorElement);
+    expect(creation.staticType, isNotNull);
+
+    expect(creation.constructorName.staticElement, constructor);
+
+    expect(creation.constructorName.type.type, isNotNull);
+    expect(creation.constructorName.type.name.staticElement, _isClassElement);
+
+    expect(creation.constructorName.name, isNull);
+  }
+
+  /**
+   * Test that the call to a constructor with an implicit unnamed constructor is
+   * re-written as an InstanceCreationExpression AST node from a
+   * MethodInvocation.
+   *
+   * C<>()
+   */
+  test_visitMethodInvocations_implicit_typeArgs() async {
+    String code = '''
+class A<T> {
+  final T x;
+  A(this.x) {}
+}
+main() {
+  A<int>(42);
+}
+    ''';
+    CompilationUnit unit = await resolveSource(code);
+    var statements = AstFinder.getStatementsInTopLevelFunction(unit, 'main');
+
+    ExpressionStatement statement = statements[0];
+    InstanceCreationExpression creation = statement.expression;
+    ConstructorElement constructor = creation.staticElement;
+
+    expect(constructor, _isConstructorElement);
+    expect(creation.staticType, isNotNull);
+
+    expect(creation.constructorName.staticElement, constructor);
+
+    expect(creation.constructorName.type.type, isNotNull);
+    expect(creation.constructorName.type.name.staticElement, _isClassElement);
+
+    expect(creation.constructorName.name, isNull);
+  }
+
+  test_visitMethodInvocations_importPrefix_function() async {
+    String code = '''
+import 'dart:math' as ma;
+main() {
+  ma.max(1, 2); // marker
+}
+''';
+    CompilationUnit unit = await resolveSource(code);
+    var statements = AstFinder.getStatementsInTopLevelFunction(unit, 'main');
+
+    ExpressionStatement statement = statements[0];
+    MethodInvocation invocation = statement.expression;
+
+    SimpleIdentifier prefix = invocation.target;
+    expect(prefix.staticElement, new TypeMatcher<PrefixElement>());
+
+    expect(invocation.methodName.name, 'max');
+  }
+
+  /**
+   * Test that the call to a static method will not be re-written as a
+   * InstanceCreationExpression AST node.
+   */
+  test_visitMethodInvocations_not_implicit_constructor() async {
+    String code = '''
+class A {
+  static staticMethod() {}
+}
+main() {
+  A.staticMethod(); // marker
+}
+    ''';
+    CompilationUnit unit = await resolveSource(code);
+    AstNode node = findMarkedIdentifier(code, unit, "(); // marker");
+    assert(node.parent is MethodInvocation);
   }
 }

@@ -6,18 +6,18 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:front_end/src/base/performace_logger.dart';
-import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/api_prototype/byte_store.dart';
+import 'package:front_end/src/base/performance_logger.dart';
 import 'package:test/test.dart';
-import 'package:typed_mock/typed_mock.dart';
 
 import '../../context/mock_sdk.dart';
 
@@ -54,7 +54,8 @@ class BaseAnalysisDriverTest {
   final StringBuffer logBuffer = new StringBuffer();
   PerformanceLog logger;
 
-  final UriResolver generatedUriResolver = new _GeneratedUriResolverMock();
+  final _GeneratedUriResolverMock generatedUriResolver =
+      new _GeneratedUriResolverMock();
   AnalysisDriverScheduler scheduler;
   AnalysisDriver driver;
   final List<AnalysisStatus> allStatuses = <AnalysisStatus>[];
@@ -64,6 +65,11 @@ class BaseAnalysisDriverTest {
   String testProject;
   String testFile;
   String testCode;
+
+  /**
+   * Whether to enable the Dart 2.0 Common Front End.
+   */
+  bool useCFE = false;
 
   bool get disableChangesAndCacheAllResults => false;
 
@@ -76,7 +82,14 @@ class BaseAnalysisDriverTest {
     }
   }
 
-  AnalysisDriver createAnalysisDriver({SummaryDataStore externalSummaries}) {
+  AnalysisDriver createAnalysisDriver(
+      {Map<String, List<Folder>> packageMap,
+      SummaryDataStore externalSummaries}) {
+    packageMap ??= <String, List<Folder>>{
+      'test': [provider.getFolder(testProject)],
+      'aaa': [provider.getFolder(_p('/aaa/lib'))],
+      'bbb': [provider.getFolder(_p('/bbb/lib'))],
+    };
     return new AnalysisDriver(
         scheduler,
         logger,
@@ -87,17 +100,17 @@ class BaseAnalysisDriverTest {
         new SourceFactory([
           new DartUriResolver(sdk),
           generatedUriResolver,
-          new PackageMapUriResolver(provider, <String, List<Folder>>{
-            'test': [provider.getFolder(testProject)]
-          }),
+          new PackageMapUriResolver(provider, packageMap),
           new ResourceUriResolver(provider)
         ], null, provider),
-        new AnalysisOptionsImpl()
-          ..strongMode = true
-          ..enableUriInPartOf = true,
+        createAnalysisOptions(),
         disableChangesAndCacheAllResults: disableChangesAndCacheAllResults,
-        externalSummaries: externalSummaries);
+        externalSummaries: externalSummaries,
+        enableKernelDriver: useCFE);
   }
+
+  AnalysisOptionsImpl createAnalysisOptions() =>
+      new AnalysisOptionsImpl()..useFastaParser = useCFE;
 
   int findOffset(String search) {
     int offset = testCode.indexOf(search);
@@ -160,4 +173,29 @@ class _ElementVisitorFunctionWrapper extends GeneralizingElementVisitor {
   }
 }
 
-class _GeneratedUriResolverMock extends TypedMock implements UriResolver {}
+class _GeneratedUriResolverMock implements UriResolver {
+  Source Function(Uri, Uri) resolveAbsoluteFunction;
+
+  Uri Function(Source) restoreAbsoluteFunction;
+
+  @override
+  noSuchMethod(Invocation invocation) {
+    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+  }
+
+  @override
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+    if (resolveAbsoluteFunction != null) {
+      return resolveAbsoluteFunction(uri, actualUri);
+    }
+    return null;
+  }
+
+  @override
+  Uri restoreAbsolute(Source source) {
+    if (restoreAbsoluteFunction != null) {
+      return restoreAbsoluteFunction(source);
+    }
+    return null;
+  }
+}

@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.source.package_map_resolver_test;
-
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:path/path.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -45,13 +43,13 @@ class _PackageMapUriResolverTest {
   void test_new_null_packageMap() {
     expect(() {
       new PackageMapUriResolver(provider, null);
-    }, throws);
+    }, throwsArgumentError);
   }
 
   void test_new_null_resourceProvider() {
     expect(() {
       new PackageMapUriResolver(null, <String, List<Folder>>{});
-    }, throws);
+    }, throwsArgumentError);
   }
 
   void test_resolve_multiple_folders() {

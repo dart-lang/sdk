@@ -4,35 +4,45 @@
 
 library fasta.stack_listener;
 
-import '../fasta_codes.dart' show FastaMessage;
+import 'package:kernel/ast.dart'
+    show AsyncMarker, Expression, FunctionNode, TreeNode;
 
-import '../parser.dart' show Listener, MemberKind;
+import '../fasta_codes.dart'
+    show
+        Message,
+        messageNativeClauseShouldBeAnnotation,
+        templateInternalProblemStackNotEmpty;
+
+import '../parser.dart'
+    show Listener, MemberKind, Parser, lengthOfSpan, offsetForToken;
 
 import '../parser/identifier_context.dart' show IdentifierContext;
 
-import '../scanner.dart' show BeginGroupToken, Token;
-
-import 'package:kernel/ast.dart' show AsyncMarker;
-
-import '../errors.dart' show inputError, internalError;
+import '../problems.dart'
+    show internalProblem, unhandled, unimplemented, unsupported;
 
 import '../quote.dart' show unescapeString;
 
-import '../messages.dart' as messages;
+import '../scanner.dart' show Token;
 
 enum NullValue {
   Arguments,
+  As,
   Block,
   BreakTarget,
   CascadeReceiver,
   Combinators,
   Comments,
   ConditionalUris,
+  ConditionallySelectedImport,
   ConstructorInitializerSeparator,
   ConstructorInitializers,
   ConstructorReferenceContinuationAfterTypeArguments,
   ContinueTarget,
+  Deferred,
+  DocumentationComment,
   Expression,
+  ExtendsClause,
   FieldInitializer,
   FormalParameters,
   FunctionBody,
@@ -44,12 +54,17 @@ enum NullValue {
   Metadata,
   Modifiers,
   ParameterDefaultValue,
+  Prefix,
+  StringLiteral,
   SwitchScope,
   Type,
   TypeArguments,
+  TypeBuilderList,
   TypeList,
   TypeVariable,
   TypeVariables,
+  VarFinalOrConstToken,
+  WithClause,
 }
 
 abstract class StackListener extends Listener {
@@ -60,35 +75,55 @@ abstract class StackListener extends Listener {
 
   // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
   // and ast_builder.dart.
-  void finishFunction(
-      covariant formals, AsyncMarker asyncModifier, covariant body) {
-    return internalError("Unsupported operation");
+  void finishFunction(List annotations, covariant formals,
+      AsyncMarker asyncModifier, covariant body) {
+    return unsupported("finishFunction", -1, uri);
   }
 
   // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
   // and ast_builder.dart.
-  void exitLocalScope() => internalError("Unsupported operation");
+  dynamic finishFields() {
+    return unsupported("finishFields", -1, uri);
+  }
 
   // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
   // and ast_builder.dart.
-  void prepareInitializers() => internalError("Unsupported operation");
+  List<Expression> finishMetadata(TreeNode parent) {
+    return unsupported("finishMetadata", -1, uri);
+  }
+
+  // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
+  // and ast_builder.dart.
+  void exitLocalScope() => unsupported("exitLocalScope", -1, uri);
+
+  // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart.
+  dynamic parseSingleExpression(
+      Parser parser, Token token, FunctionNode parameters) {
+    return unsupported("finishSingleExpression", -1, uri);
+  }
 
   void push(Object node) {
-    if (node == null) internalError("null not allowed.");
+    if (node == null) unhandled("null", "push", -1, uri);
     stack.push(node);
   }
 
-  Object peek() => stack.last;
+  void pushIfNull(Token tokenOrNull, NullValue nullValue) {
+    if (tokenOrNull == null) stack.push(nullValue);
+  }
 
-  Object pop() => stack.pop();
+  Object peek() => stack.isNotEmpty ? stack.last : null;
+
+  Object pop([NullValue nullValue]) {
+    return stack.pop(nullValue);
+  }
 
   Object popIfNotNull(Object value) {
     return value == null ? null : pop();
   }
 
-  List popList(int n) {
+  List popList(int n, List list) {
     if (n == 0) return null;
-    return stack.popList(n);
+    return stack.popList(n, list);
   }
 
   void debugEvent(String name) {
@@ -105,12 +140,13 @@ abstract class StackListener extends Listener {
       print(s);
     }
     print(name);
+    print('------------------\n');
   }
 
   @override
   void logEvent(String name) {
-    internalError("Unhandled event: $name in $runtimeType $uri:\n"
-        "  ${stack.values.join('\n  ')}");
+    printEvent(name);
+    unhandled(name, "$runtimeType", -1, uri);
   }
 
   @override
@@ -132,15 +168,11 @@ abstract class StackListener extends Listener {
 
   void checkEmpty(int charOffset) {
     if (stack.isNotEmpty) {
-      internalError(
-          "${runtimeType}: Stack not empty:\n"
-          "  ${stack.values.join('\n  ')}",
-          uri,
-          charOffset);
-    }
-    if (recoverableErrors.isNotEmpty) {
-      // TODO(ahe): Handle recoverable errors better.
-      inputError(uri, recoverableErrors.first.beginOffset, recoverableErrors);
+      internalProblem(
+          templateInternalProblemStackNotEmpty.withArguments(
+              "${runtimeType}", stack.values.join("\n  ")),
+          charOffset,
+          uri);
     }
   }
 
@@ -154,6 +186,26 @@ abstract class StackListener extends Listener {
   void endCompilationUnit(int count, Token token) {
     debugEvent("CompilationUnit");
     checkEmpty(token.charOffset);
+  }
+
+  @override
+  void handleClassExtends(Token extendsKeyword) {
+    debugEvent("ClassExtends");
+  }
+
+  @override
+  void handleClassHeader(Token begin, Token classKeyword, Token nativeToken) {
+    debugEvent("ClassHeader");
+  }
+
+  @override
+  void handleRecoverClassHeader() {
+    debugEvent("RecoverClassHeader");
+  }
+
+  @override
+  void handleClassImplements(Token implementsKeyword, int interfacesCount) {
+    debugEvent("ClassImplements");
   }
 
   @override
@@ -174,7 +226,7 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleNoType(Token token) {
+  void handleNoType(Token lastConsumed) {
     debugEvent("NoType");
     push(NullValue.Type);
   }
@@ -192,6 +244,22 @@ abstract class StackListener extends Listener {
   }
 
   @override
+  void handleNativeFunctionBody(Token nativeToken, Token semicolon) {
+    debugEvent("NativeFunctionBody");
+    push(NullValue.FunctionBody);
+  }
+
+  @override
+  void handleNativeFunctionBodyIgnored(Token nativeToken, Token semicolon) {
+    debugEvent("NativeFunctionBodyIgnored");
+  }
+
+  @override
+  void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
+    debugEvent("NativeFunctionBodySkipped");
+  }
+
+  @override
   void handleNoFunctionBody(Token token) {
     debugEvent("NoFunctionBody");
     push(NullValue.FunctionBody);
@@ -204,7 +272,12 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleParenthesizedExpression(BeginGroupToken token) {
+  void handleParenthesizedCondition(Token token) {
+    debugEvent("handleParenthesizedCondition");
+  }
+
+  @override
+  void handleParenthesizedExpression(Token token) {
     debugEvent("ParenthesizedExpression");
   }
 
@@ -219,21 +292,41 @@ abstract class StackListener extends Listener {
     debugEvent("endLiteralString");
     if (interpolationCount == 0) {
       Token token = pop();
-      push(unescapeString(token.lexeme));
+      push(unescapeString(token.lexeme, token, this));
     } else {
-      internalError("String interpolation not implemented.");
+      unimplemented("string interpolation", endToken.charOffset, uri);
+    }
+  }
+
+  @override
+  void handleNativeClause(Token nativeToken, bool hasName) {
+    debugEvent("NativeClause");
+    if (hasName) {
+      pop(); // Pop the native name which is a String.
     }
   }
 
   @override
   void handleStringJuxtaposition(int literalCount) {
     debugEvent("StringJuxtaposition");
-    push(popList(literalCount).join(""));
+    push(popList(literalCount,
+            new List<Expression>.filled(literalCount, null, growable: true))
+        .join(""));
   }
 
   @override
-  void handleRecoverExpression(Token token) {
-    debugEvent("RecoverExpression");
+  void handleDirectivesOnly() {
+    pop(); // Discard the metadata.
+  }
+
+  void handleExtraneousExpression(Token token, Message message) {
+    debugEvent("ExtraneousExpression");
+    pop(); // Discard the extraneous expression.
+  }
+
+  @override
+  void endCaseExpression(Token colon) {
+    debugEvent("CaseExpression");
   }
 
   @override
@@ -242,23 +335,24 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleRecoverableError(Token token, FastaMessage message) {
+  void handleRecoverableError(
+      Message message, Token startToken, Token endToken) {
+    if (message == messageNativeClauseShouldBeAnnotation) {
+      // TODO(danrubel): Ignore this error until we deprecate `native` support.
+      return;
+    }
     debugEvent("Error: ${message.message}");
-    super.handleRecoverableError(token, message);
+    addCompileTimeError(message, offsetForToken(startToken),
+        lengthOfSpan(startToken, endToken));
   }
 
   @override
-  Token handleUnrecoverableError(Token token, FastaMessage message) {
-    throw inputError(uri, token.charOffset, message.message);
+  void handleUnescapeError(
+      Message message, Token token, int stringOffset, int length) {
+    addCompileTimeError(message, token.charOffset + stringOffset, length);
   }
 
-  void nit(String message, [int charOffset = -1]) {
-    messages.nit(uri, charOffset, message);
-  }
-
-  void warning(String message, [int charOffset = -1]) {
-    messages.warning(uri, charOffset, message);
-  }
+  void addCompileTimeError(Message message, int charOffset, int length);
 }
 
 class Stack {
@@ -281,28 +375,34 @@ class Stack {
     }
   }
 
-  Object pop() {
+  Object pop([NullValue nullValue]) {
     assert(arrayLength > 0);
     final Object value = array[--arrayLength];
     array[arrayLength] = null;
-    return value is NullValue ? null : value;
+    if (value is! NullValue) {
+      return value;
+    } else if (nullValue == null || value == nullValue) {
+      return null;
+    } else {
+      return value;
+    }
   }
 
-  List popList(int count) {
+  List popList(int count, List list) {
     assert(arrayLength >= count);
 
     final table = array;
     final length = arrayLength;
 
-    final tailList = new List.filled(count, null, growable: true);
     final startIndex = length - count;
     for (int i = 0; i < count; i++) {
       final value = table[startIndex + i];
-      tailList[i] = value is NullValue ? null : value;
+      list[i] = value is NullValue ? null : value;
+      table[startIndex + i] = null;
     }
     arrayLength -= count;
 
-    return tailList;
+    return list;
   }
 
   List get values {

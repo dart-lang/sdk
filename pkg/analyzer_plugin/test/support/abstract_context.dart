@@ -4,21 +4,24 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:front_end/src/base/performace_logger.dart';
-import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:analyzer/src/generated/testing/element_search.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
 
 import 'mock_sdk.dart';
 
@@ -56,10 +59,24 @@ class AbstractContextTest {
 
   AnalysisDriver get driver => _driver;
 
-  Source addMetaPackageSource() => addPackageSource(
-      'meta',
-      'meta.dart',
-      r'''
+  /**
+   * Return `true` if strong mode should be enabled for this test.
+   */
+  bool get enableStrongMode => true;
+
+  /**
+   * Return `true` if previewDart2 should be enabled for this test.
+   */
+  bool get enablePreviewDart2 => true;
+
+  bool get previewDart2 => driver.analysisOptions.previewDart2;
+
+  /**
+   * Return the analysis session associated with the driver.
+   */
+  AnalysisSession get session => driver.currentSession;
+
+  Source addMetaPackageSource() => addPackageSource('meta', 'meta.dart', r'''
 library meta;
 
 const Required required = const Required();
@@ -77,6 +94,9 @@ class Required {
   }
 
   Source addSource(String path, String content, [Uri uri]) {
+    if (path.startsWith('/')) {
+      path = provider.convertPath(path);
+    }
     driver.addFile(path);
     driver.changeFile(path);
     _fileContentOverlay[path] = content;
@@ -85,7 +105,9 @@ class Required {
 
   Element findElementInUnit(CompilationUnit unit, String name,
       [ElementKind kind]) {
-    return findChildElement(unit.element, name, kind);
+    return findElementsByName(unit, name)
+        .where((e) => kind == null || e.kind == kind)
+        .single;
   }
 
   File newFile(String path, [String content]) =>
@@ -114,6 +136,8 @@ class Required {
         [new DartUriResolver(sdk), packageResolver, resourceResolver]);
     PerformanceLog log = new PerformanceLog(_logBuffer);
     AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl()
+      ..previewDart2 = enablePreviewDart2;
     _driver = new AnalysisDriver(
         scheduler,
         log,
@@ -122,7 +146,7 @@ class Required {
         _fileContentOverlay,
         null,
         sourceFactory,
-        new AnalysisOptionsImpl());
+        options);
     scheduler.start();
     AnalysisEngine.instance.logger = PrintLogger.instance;
   }

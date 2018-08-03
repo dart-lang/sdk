@@ -14,6 +14,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetTypeHierarchyTest);
+    defineReflectiveTests(GetTypeHierarchyTest_UseCFE);
   });
 }
 
@@ -269,7 +270,17 @@ class HierarchyResults {
       return items[nameToIndex[name]];
     } else {
       fail('Class $name not found in hierarchy results');
-      return null;
     }
   }
+}
+
+@reflectiveTest
+class GetTypeHierarchyTest_UseCFE extends GetTypeHierarchyTest {
+  @override
+  bool get useCFE => true;
+
+  @override
+  @failingTest
+  // TODO(devoncarew): 'NoSuchMethodError: The getter 'source' was called on null'
+  Future test_getTypeHierarchy() => new Future.error('failing test');
 }

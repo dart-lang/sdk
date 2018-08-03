@@ -4,7 +4,7 @@
 
 part of js_ast;
 
-typedef String Renamer(Name);
+typedef String Renamer(Name name);
 
 class JavaScriptPrintingOptions {
   final bool shouldCompressOutput;
@@ -487,6 +487,8 @@ class Printer implements NodeVisitor {
       visitNestedExpression(node.value, EXPRESSION,
           newInForInit: false, newAtStatementBegin: false);
     }
+    // Set the closing position to be before the optional semicolon.
+    currentNode.closingPosition = _charCount;
     outSemicolonLn();
   }
 
@@ -962,9 +964,12 @@ class Printer implements NodeVisitor {
     VarCollector vars = new VarCollector();
     vars.visitNamedFunction(namedFunction);
     startNode(namedFunction.function);
-    currentNode.closingPosition =
+    int closingPosition = currentNode.closingPosition =
         functionOut(namedFunction.function, namedFunction.name, vars);
     endNode(namedFunction.function);
+    // Use closing position of `namedFunction.function` as the closing position
+    // of the named function itself.
+    currentNode.closingPosition = closingPosition;
   }
 
   @override
@@ -1292,7 +1297,7 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
 
   bool visitProgram(Program node) => false;
 
-  bool visitNode(Statement node) {
+  bool visitNode(Node node) {
     context.error("Forgot node: $node");
     return null;
   }

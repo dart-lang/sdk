@@ -15,25 +15,23 @@ import 'package:args/args.dart';
 import 'package:path/path.dart';
 
 const String analysisOptionsFileOption = 'options';
+const String bazelAnalysisOptionsPath =
+    'package:dart.analysis_options/default.yaml';
+const String declarationCastsFlag = 'declaration-casts';
 const String defineVariableOption = 'D';
 const String enableInitializingFormalAccessFlag = 'initializing-formal-access';
-const String enableStrictCallChecksFlag = 'enable-strict-call-checks';
 const String enableSuperMixinFlag = 'supermixin';
+const String flutterAnalysisOptionsPath =
+    'package:flutter/analysis_options_user.yaml';
 const String ignoreUnrecognizedFlagsFlag = 'ignore-unrecognized-flags';
+const String implicitCastsFlag = 'implicit-casts';
 const String lintsFlag = 'lints';
-const String noImplicitCastsFlag = 'no-implicit-casts';
 const String noImplicitDynamicFlag = 'no-implicit-dynamic';
-const String packageDefaultAnalysisOptions = 'package-default-analysis-options';
 const String packageRootOption = 'package-root';
 const String packagesOption = 'packages';
 const String sdkPathOption = 'dart-sdk';
-const String sdkSummaryPathOption = 'dart-sdk-summary';
-const String strongModeFlag = 'strong';
 
-const String bazelAnalysisOptionsPath =
-    'package:dart.analysis_options/default.yaml';
-const String flutterAnalysisOptionsPath =
-    'package:flutter/analysis_options_user.yaml';
+const String sdkSummaryPathOption = 'dart-sdk-summary';
 
 /**
  * Update [options] with the value of each analysis option command line flag.
@@ -46,25 +44,24 @@ void applyAnalysisOptionFlags(AnalysisOptionsImpl options, ArgResults args,
     }
   }
 
-  if (args.wasParsed(enableStrictCallChecksFlag)) {
-    options.enableStrictCallChecks = args[enableStrictCallChecksFlag];
-    verbose('$enableStrictCallChecksFlag = ${options.enableStrictCallChecks}');
-  }
   if (args.wasParsed(enableSuperMixinFlag)) {
     options.enableSuperMixins = args[enableSuperMixinFlag];
     verbose('$enableSuperMixinFlag = ${options.enableSuperMixins}');
   }
-  if (args.wasParsed(noImplicitCastsFlag)) {
-    options.implicitCasts = !args[noImplicitCastsFlag];
-    verbose('$noImplicitCastsFlag = ${options.implicitCasts}');
+  if (args.wasParsed(implicitCastsFlag)) {
+    options.implicitCasts = args[implicitCastsFlag];
+    verbose('$implicitCastsFlag = ${options.implicitCasts}');
+  }
+  if (args.wasParsed(declarationCastsFlag)) {
+    options.declarationCasts = args[declarationCastsFlag];
+    verbose('$declarationCastsFlag = ${options.declarationCasts}');
+  } else if (args.wasParsed(implicitCastsFlag)) {
+    options.declarationCasts = args[implicitCastsFlag];
+    verbose('$declarationCastsFlag = ${options.declarationCasts}');
   }
   if (args.wasParsed(noImplicitDynamicFlag)) {
     options.implicitDynamic = !args[noImplicitDynamicFlag];
     verbose('$noImplicitDynamicFlag = ${options.implicitDynamic}');
-  }
-  if (args.wasParsed(strongModeFlag)) {
-    options.strongMode = args[strongModeFlag];
-    verbose('$strongModeFlag = ${options.strongMode}');
   }
   try {
     if (args.wasParsed(lintsFlag)) {
@@ -81,7 +78,7 @@ void applyAnalysisOptionFlags(AnalysisOptionsImpl options, ArgResults args,
  * create a context builder.
  */
 ContextBuilderOptions createContextBuilderOptions(ArgResults args,
-    {bool strongMode, bool trackCacheDependencies}) {
+    {bool trackCacheDependencies}) {
   ContextBuilderOptions builderOptions = new ContextBuilderOptions();
   builderOptions.argResults = args;
   //
@@ -93,18 +90,10 @@ ContextBuilderOptions createContextBuilderOptions(ArgResults args,
   builderOptions.defaultPackageFilePath = args[packagesOption];
   builderOptions.defaultPackagesDirectoryPath = args[packageRootOption];
   //
-  // Flags.
-  //
-  builderOptions.packageDefaultAnalysisOptions =
-      args[packageDefaultAnalysisOptions];
-  //
   // Analysis options.
   //
   AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
   applyAnalysisOptionFlags(defaultOptions, args);
-  if (strongMode != null) {
-    defaultOptions.strongMode = strongMode;
-  }
   if (trackCacheDependencies != null) {
     defaultOptions.trackCacheDependencies = trackCacheDependencies;
   }
@@ -113,7 +102,7 @@ ContextBuilderOptions createContextBuilderOptions(ArgResults args,
   // Declared variables.
   //
   Map<String, String> declaredVariables = <String, String>{};
-  List<String> variables = args[defineVariableOption] as List<String>;
+  List<String> variables = (args[defineVariableOption] as List).cast<String>();
   for (String variable in variables) {
     int index = variable.indexOf('=');
     if (index < 0) {
@@ -165,41 +154,40 @@ DartSdkManager createDartSdkManager(
  * then remove the [ddc] named argument from this method.
  */
 void defineAnalysisArguments(ArgParser parser, {bool hide: true, ddc: false}) {
-  parser.addOption(sdkPathOption, help: 'The path to the Dart SDK.');
+  parser.addOption(sdkPathOption,
+      help: 'The path to the Dart SDK.', hide: ddc && hide);
   parser.addOption(analysisOptionsFileOption,
-      help: 'Path to an analysis options file.');
+      help: 'Path to an analysis options file.', hide: ddc && hide);
   parser.addOption(packageRootOption,
       help: 'The path to a package root directory (deprecated). '
-          'This option cannot be used with --packages.');
-  parser.addFlag(strongModeFlag,
-      help: 'Enable strong static checks (https://goo.gl/DqcBsw).',
-      defaultsTo: ddc);
-  parser.addFlag(noImplicitCastsFlag,
-      negatable: false,
-      help: 'Disable implicit casts in strong mode (https://goo.gl/cTLz40).');
+          'This option cannot be used with --packages.',
+      hide: ddc && hide);
+  parser.addFlag('strong',
+      help: 'Enable strong mode (deprecated); this option is now ignored.',
+      defaultsTo: true,
+      hide: true,
+      negatable: true);
+  parser.addFlag(declarationCastsFlag,
+      negatable: true,
+      help: 'Disable declaration casts in strong mode (https://goo.gl/cTLz40)\n'
+          'This option is deprecated and will be removed in a future release.',
+      hide: ddc && hide);
+  parser.addFlag(implicitCastsFlag,
+      negatable: true,
+      help: 'Disable implicit casts in strong mode (https://goo.gl/cTLz40).',
+      hide: ddc && hide);
   parser.addFlag(noImplicitDynamicFlag,
       negatable: false,
-      help: 'Disable implicit dynamic (https://goo.gl/m0UgXD).');
+      help: 'Disable implicit dynamic (https://goo.gl/m0UgXD).',
+      hide: ddc && hide);
 
   //
   // Hidden flags and options.
   //
-  parser.addOption(defineVariableOption,
+  parser.addMultiOption(defineVariableOption,
       abbr: 'D',
-      allowMultiple: true,
       help: 'Define environment variables. For example, "-Dfoo=bar" defines an '
           'environment variable named "foo" whose value is "bar".',
-      hide: hide);
-  parser.addFlag(packageDefaultAnalysisOptions,
-      help: 'If an analysis options file is not explicitly specified '
-          'via the "--$analysisOptionsFileOption" option\n'
-          'and an analysis options file cannot be found '
-          'in the project directory or any parent directory,\n'
-          'then look for analysis options in the following locations:\n'
-          '- $flutterAnalysisOptionsPath\n'
-          '- $bazelAnalysisOptionsPath',
-      defaultsTo: true,
-      negatable: true,
       hide: hide);
   parser.addOption(packagesOption,
       help: 'The path to the package resolution configuration file, which '
@@ -208,15 +196,10 @@ void defineAnalysisArguments(ArgParser parser, {bool hide: true, ddc: false}) {
       hide: ddc);
   parser.addOption(sdkSummaryPathOption,
       help: 'The path to the Dart SDK summary file.', hide: hide);
-  parser.addFlag(enableStrictCallChecksFlag,
-      help: 'Fix issue 21938.',
-      defaultsTo: false,
-      negatable: false,
-      hide: hide);
   parser.addFlag(enableInitializingFormalAccessFlag,
       help:
           'Enable support for allowing access to field formal parameters in a '
-          'constructor\'s initializer list.',
+          'constructor\'s initializer list (deprecated).',
       defaultsTo: false,
       negatable: false,
       hide: hide || ddc);
@@ -284,9 +267,12 @@ List<String> filterUnknownArguments(List<String> args, ArgParser parser) {
   Set<String> knownAbbreviations = new HashSet<String>();
   parser.options.forEach((String name, Option option) {
     knownOptions.add(name);
-    String abbreviation = option.abbreviation;
+    String abbreviation = option.abbr;
     if (abbreviation != null) {
       knownAbbreviations.add(abbreviation);
+    }
+    if (option.negatable) {
+      knownOptions.add('no-$name');
     }
   });
   String optionName(int prefixLength, String argument) {

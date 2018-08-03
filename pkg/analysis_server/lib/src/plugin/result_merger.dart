@@ -202,6 +202,25 @@ class ResultMerger {
   }
 
   /**
+   * Return kythe entry result parameters composed by merging the parameters in
+   * the [partialResultList].
+   *
+   * The resulting list will contain all of the kythe entries from all of the
+   * plugins. If a plugin contributes a kythe entry that is the same as the
+   * entry from a different plugin, the entry will appear twice in the list.
+   */
+  KytheGetKytheEntriesResult mergeKytheEntries(
+      List<KytheGetKytheEntriesResult> partialResultList) {
+    List<KytheEntry> mergedEntries = <KytheEntry>[];
+    Set<String> mergedFiles = new Set<String>();
+    for (KytheGetKytheEntriesResult partialResult in partialResultList) {
+      mergedEntries.addAll(partialResult.entries);
+      mergedFiles.addAll(partialResult.files);
+    }
+    return new KytheGetKytheEntriesResult(mergedEntries, mergedFiles.toList());
+  }
+
+  /**
    * Return navigation notification parameters composed by merging the
    * parameters in the [partialResultList].
    *
@@ -450,8 +469,12 @@ class ResultMerger {
           // The [newChild] isn't in the existing list.
           Outline copiedOutline = copyMap.putIfAbsent(
               mergedOutline,
-              () => new Outline(mergedOutline.element, mergedOutline.offset,
+              () => new Outline(
+                  mergedOutline.element,
+                  mergedOutline.offset,
                   mergedOutline.length,
+                  mergedOutline.codeOffset,
+                  mergedOutline.codeLength,
                   children: mergedOutline.children.toList()));
           copiedOutline.children.add(newChild);
           addToMap(newChild);
@@ -495,7 +518,11 @@ class ResultMerger {
       if (currentChildren != updatedChildren) {
         if (!isCopied) {
           return new Outline(
-              copiedOutline.element, copiedOutline.offset, copiedOutline.length,
+              copiedOutline.element,
+              copiedOutline.offset,
+              copiedOutline.length,
+              copiedOutline.codeOffset,
+              copiedOutline.codeLength,
               children: updatedChildren);
         }
         copiedOutline.children = updatedChildren;

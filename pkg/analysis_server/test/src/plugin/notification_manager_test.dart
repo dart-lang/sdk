@@ -22,6 +22,15 @@ main() {
   });
 }
 
+/// Wrapper around the test package's `fail` function.
+///
+/// Unlike the test package's `fail` function, this function is not annotated
+/// with @alwaysThrows, so we can call it at the top of a test method without
+/// causing the rest of the method to be flagged as dead code.
+void _fail(String message) {
+  fail(message);
+}
+
 @reflectiveTest
 class NotificationManagerTest extends ProtocolTestUtilities {
   String testDir;
@@ -355,7 +364,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
 
   @failingTest
   void test_recordOutlines_withSubscription() {
-    fail('The outline handling needs to be re-worked slightly');
+    _fail('The outline handling needs to be re-worked slightly');
     // TODO(brianwilkerson) Figure out outlines. What should we do when merge
     // cannot produce a single outline?
     manager.setSubscriptions({

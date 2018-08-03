@@ -1,0 +1,29 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+class A extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method foo() → dynamic
+    return null;
+}
+class B extends core::Object {
+  field self::A a = null;
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method bar() → asy::Future<dynamic> async 
+    return this.{self::B::a}.{self::A::foo}();
+}
+class C extends core::Object {
+  field self::B b = new self::B::•();
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method baz() → asy::Future<core::int> async 
+    return this.{self::C::b}.{self::B::bar}() as{TypeError} asy::FutureOr<core::int>;
+}
+static method main() → dynamic {}

@@ -20,6 +20,9 @@ class UnmodifiableListView<E> extends UnmodifiableListBase<E> {
    * efficient [Iterable.length] and [Iterable.elementAt].
    */
   UnmodifiableListView(Iterable<E> source) : _source = source;
+
+  List<R> cast<R>() => new UnmodifiableListView(_source.cast<R>());
   int get length => _source.length;
+
   E operator [](int index) => _source.elementAt(index);
 }

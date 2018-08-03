@@ -5,7 +5,7 @@
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_IA32)
 
-#include "vm/assembler.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/instructions.h"
 #include "vm/object.h"
 #include "vm/stub_code.h"
@@ -21,13 +21,11 @@ ASSEMBLER_TEST_GENERATE(Call, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Call, test) {
   CallPattern call(test->entry());
   EXPECT_EQ(StubCode::InvokeDartCode_entry()->EntryPoint(),
             call.TargetAddress());
 }
-
 
 }  // namespace dart
 

@@ -44,8 +44,8 @@ class MintWrapper {
 
   void createPurse(int balance, handlePurse(PurseWrapper purse)) {
     ReceivePort reply = new ReceivePort();
-    reply.first.then((SendPort purse) {
-      handlePurse(new PurseWrapper(purse));
+    reply.first.then((purse) {
+      handlePurse(new PurseWrapper(purse as SendPort));
     });
     _mint.send([balance, reply.sendPort]);
   }
@@ -77,7 +77,7 @@ class Purse {
         replyTo.send(result.port);
       } else {
         // TODO: Send an exception back.
-        throw UnsupportedError("Unsupported commend: $command");
+        throw new UnsupportedError("Unsupported commend: $command");
       }
     });
   }
@@ -114,8 +114,8 @@ class PurseWrapper {
   }
 
   void sproutPurse(handleSprouted(PurseWrapper sprouted)) {
-    _sendReceive("sprout", (SendPort sprouted) {
-      handleSprouted(new PurseWrapper(sprouted));
+    _sendReceive("sprout", (sprouted) {
+      handleSprouted(new PurseWrapper(sprouted as SendPort));
     });
   }
 
@@ -127,9 +127,9 @@ class PurseWrapper {
 mintMakerWrapper(SendPort replyPort) {
   ReceivePort receiver = new ReceivePort();
   replyPort.send(receiver.sendPort);
-  receiver.listen((SendPort replyTo) {
+  receiver.listen((replyTo) {
     Mint mint = new Mint();
-    replyTo.send(mint.port);
+    (replyTo as SendPort).send(mint.port);
   });
 }
 
@@ -147,8 +147,8 @@ class MintMakerWrapper {
 
   void makeMint(handleMint(MintWrapper mint)) {
     ReceivePort reply = new ReceivePort();
-    reply.first.then((SendPort mint) {
-      handleMint(new MintWrapper(mint));
+    reply.first.then((mint) {
+      handleMint(new MintWrapper(mint as SendPort));
     });
     _port.send(reply.sendPort);
   }

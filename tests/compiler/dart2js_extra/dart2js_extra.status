@@ -3,159 +3,130 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js ]
+bounds_check4a_test: RuntimeError # Issue 32741
+bounds_check4b_test: RuntimeError # Issue 32741
 class_test: Fail
-statements_test: Fail
-typed_locals_test: Fail
-no_such_method_test: Fail # Wrong Invocation.memberName.
 constant_javascript_semantics4_test: Fail, OK
-mirrors_used_closure_test: Fail # Issue 17939
+generic_class_is_test: Fail # Issue 32004
+many_instantiations_test/01: Crash # Issue 33819
+no_such_method_test: Fail # Wrong Invocation.memberName.
+statements_test: Fail
+typed_locals_test: Pass, Fail
 
-[ $compiler == dart2js && $checked ]
-variable_type_test/03: Fail, OK
-variable_type_test/01: Fail, OK
+[ $compiler != dart2js ]
+dummy_compiler_test: SkipByDesign # Issue 30773. Test should be migrated as a unit test of dart2js, is only intended to test self-hosting.
 
-[ $compiler == dart2js && $fast_startup ]
-21666_test: Fail # mirrors not supported
-23056_test: Fail # mirrors not supported
-closure_type_reflection2_test: Fail # mirrors not supported
-closure_type_reflection_test: Fail # mirrors not supported
-deferred/deferred_mirrors1_lib: Fail # mirrors not supported
-deferred/deferred_mirrors1_test: Fail # mirrors not supported
-deferred/deferred_mirrors2_lazy: Fail # mirrors not supported
-deferred/deferred_mirrors2_lib3: Fail # mirrors not supported
-deferred/deferred_mirrors2_test: Fail # mirrors not supported
-inference_nsm_mirrors_test: Fail # mirrors not supported
-invalid_annotation2_test/none: Fail # mirrors not supported
-invalid_annotation2_test/01: Pass # mirrors not supported, passes for the wrong reason
-lookup_map/dead_entry_through_mirrors_test: Fail # mirrors not supported
-lookup_map/live_entry_through_mirrors_test: Fail # mirrors not supported
-lookup_map/live_entry_through_mirrors_used_test: Fail # mirrors not supported
-mirror_enqueuer_regression_test: Fail # mirrors not supported
-mirror_invalid_field_access2_test: Fail # mirrors not supported
-mirror_invalid_field_access3_test: Fail # mirrors not supported
-mirror_invalid_field_access4_test: Fail # mirrors not supported
-mirror_invalid_field_access_test: Fail # mirrors not supported
-mirror_invalid_invoke2_test: Fail # mirrors not supported
-mirror_invalid_invoke3_test: Fail # mirrors not supported
-mirror_invalid_invoke_test: Fail # mirrors not supported
-mirror_printer_test: Fail # mirrors not supported
-mirror_test: Fail # mirrors not supported
-mirror_type_inference_field2_test: Fail # mirrors not supported
-mirror_type_inference_field_test: Fail # mirrors not supported
-mirror_type_inference_function_test: Fail # mirrors not supported
-mirrors_declarations_filtering_test: Fail # mirrors not supported
-mirrors_used_closure_test: Fail # mirrors not supported
-mirrors_used_metatargets_test: Fail # mirrors not supported
-mirrors_used_native_test: Fail # mirrors not supported
-mirrors_used_warning2_test: Fail # mirrors not supported
-mirrors_used_warning_test: Fail # mirrors not supported
-no_such_method_mirrors_test: Fail # mirrors not supported
-reflect_native_types_test: Fail # mirrors not supported
+[ $runtime == jsshell ]
+deferred/load_in_correct_order_test: SkipByDesign # jsshell preamble does not support this test.
+timer_test: Fail # Issue 7728.
 
-[ $compiler == dart2js && ($runtime == d8 || $runtime == chrome || $runtime == drt) ]
-bound_closure_interceptor_type_test: Fail, Pass # v8 issue 3084. https://code.google.com/p/v8/issues/detail?id=3084
+[ $runtime == none ]
+timer_negative_test: Fail, OK # A negative runtime test.
 
 [ $compiler == dart2js && $mode == debug ]
 operator_test: Skip
 string_interpolation_test: Skip
 
-[ $compiler == dart2js && $runtime == chromeOnAndroid ]
-no_such_method_mirrors_test: Pass, Slow # TODO(kasperl): Please triage.
-
-[ $compiler == dart2js && $runtime == none ]
-*: Fail, Pass # TODO(ahe): Triage these tests.
-
-[ $compiler == dart2js && $minified ]
-to_string_test: Fail # Issue 7179.
-runtime_type_test: Fail, OK # Tests extected output of Type.toString().
-code_motion_exception_test: Skip  # Requires unminified operator names.
-mirrors_used_warning_test/minif: Fail, OK # Tests warning that minified code will be broken.
-
-[ $compiler == dart2js && $runtime == safari ]
-deferred_fail_and_retry_worker_test: Timeout  # Issue 22106
-
-[ $compiler == dart2js && ($runtime == drt || $runtime == ff || $runtime == safari || $runtime == jsshell) ]
-code_motion_exception_test: Skip  # Required V8 specific format of JavaScript errors.
-
-[ $compiler == dart2js && ($runtime == drt || $runtime == ff || $runtime == safari || $runtime == safarimobilesim || $runtime == chrome || $runtime == chromeOnAndroid) ]
-isolate2_test/01: Fail # Issue 14458.
-
-[ $runtime == jsshell ]
-timer_test: Fail # Issue 7728.
-
-[ $runtime == none ]
-timer_negative_test: Fail, OK # A negative runtime test.
-bailout8_test: Fail, OK # Mismatch in thrown exception.
-
-[ $compiler == dart2js && $runtime == d8 && $system == windows ]
-deferred/*: Pass,RuntimeError # Issue 17458
-
-[ $compiler == dart2js && $csp ]
-deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loading.
-deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed loading.
-deferred_custom_loader_test: SkipByDesign # Issue 25683
-
-[ $compiler == none && $runtime == vm ]
-invalid_annotation_test/01: MissingCompileTimeError, OK # vm is lazy
-lookup_map/dead_entry_through_mirrors_test: SkipByDesign # Test for tree-shaking, vm never tree-shakes
-unconditional_dartio_import_test: SkipByDesign # dart2js only test
-
 [ $compiler == dart2js && $runtime == chrome && $system == windows ]
 class_test: Pass, Slow # Issue 25940
-consistent_codeUnitAt_error_test: Pass, Slow # Issue 25940
 closure_capture3_test: Pass, Slow # Issue 25940
-deferred_split_test: Pass, Slow # Issue 25940
 closure_capture5_test: Pass, Slow # Issue 25940
 conditional_test: Pass, Slow # Issue 25940
+consistent_codeUnitAt_error_test: Pass, Slow # Issue 25940
 constant_javascript_semantics2_test: Pass, Slow # Issue 25940
+deferred_split_test: Pass, Slow # Issue 25940
+
+[ $compiler == dart2js && $runtime == chrome && $csp ]
+deferred/load_in_correct_order_test: SkipByDesign # Purposely uses `eval`
+
+[ $compiler == dart2js && $runtime == d8 && $fasta ]
+deferred_fail_and_retry_test: RuntimeError # Uses XHR in dart:html
+deferred_with_csp_nonce_test: RuntimeError # Uses dart:html
+unconditional_dartio_import_test: RuntimeError # Uses dart:io
 
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
 consistent_index_error_string_test: Pass, Slow # Issue 25940
 
-[ $compiler == dart2js ]
-mirror_printer_test: Pass, Slow # Issue 25940, 16473
+[ $compiler == dart2js && $runtime == none ]
+*: Fail, Pass # TODO(ahe): Triage these tests.
 
-[ $compiler == dart2js && $dart2js_with_kernel ]
-big_allocation_expression_test: Pass # Issue 27394
-21666_test: Crash # Issue 27394
-23486_test/02: Crash # Issue 27394
-bailout_on_continue_test: RuntimeError # Issue 27394
-closure_type_reflection2_test: Crash # Issue 27394
-closure_type_reflection_test: Crash # Issue 27394
-deferred/deferred_constant3_test: RuntimeError # Issue 27394
-deferred/deferred_mirrors2_test: Crash # Issue 27394
-inference_super_set_call_test: RuntimeError # Issue 27394
-invalid_annotation2_test/01: Crash # Issue 27394
-invalid_annotation2_test/none: Crash # Issue 27394
-invalid_annotation_test/01: Crash # Issue 27394
-is_check_instanceof_test: RuntimeError # Issue 27394
-lookup_map/dead_entry_through_mirrors_test: Crash # Issue 27394
-lookup_map/generic_type_test: RuntimeError # Issue 27394
-lookup_map/live_entry_through_mirrors_test: Crash # Issue 27394
-lookup_map/live_entry_through_mirrors_used_test: Crash # Issue 27394
-many_fields_test: Crash # Issue 27394
-mirror_enqueuer_regression_test: Crash # Issue 27394
-mirror_invalid_field_access2_test: Crash # Issue 27394
-mirror_invalid_field_access3_test: Crash # Issue 27394
-mirror_invalid_field_access4_test: Crash # Issue 27394
-mirror_invalid_field_access_test: Crash # Issue 27394
-mirror_invalid_invoke2_test: Crash # Issue 27394
-mirror_invalid_invoke3_test: Crash # Issue 27394
-mirror_invalid_invoke_test: Crash # Issue 27394
-mirror_printer_test/01: Crash # Issue 27394
-mirror_printer_test/none: Crash # Issue 27394
-mirror_test: Crash # Issue 27394
-mirror_type_inference_field2_test: Crash # Issue 27394
-mirror_type_inference_field_test: Crash # Issue 27394
-mirror_type_inference_function_test: Crash # Issue 27394
-mirrors_declarations_filtering_test: Crash # Issue 27394
-mirrors_used_closure_test: Crash # Issue 27394
-mirrors_used_metatargets_test: Crash # Issue 27394
-mirrors_used_native_test: Crash # Issue 27394
-reflect_native_types_test: Crash # Issue 27394
-runtime_type_test: RuntimeError # Issue 27394
-type_argument_factory_nocrash_test: RuntimeError # Issue 27394
+[ $compiler == dart2js && $checked && $fasta ]
+dummy_compiler_test: Crash
+local_signature_test: Crash
+minus_zero_test/01: MissingCompileTimeError
 
-[ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-js_dispatch_property_test: Crash # Issue 27394
-regress/4562_test/01: Crash # Issue 27394
+[ $compiler == dart2js && $csp ]
+deferred_custom_loader_test: SkipByDesign # Issue 25683
+deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loading.
+js_interop_optional_arg_test: RuntimeError # Issue 31082
+js_interop_test: RuntimeError # Issue 31082
+
+[ $compiler == dart2js && $fasta ]
+23264_test: RuntimeError
+closure_capture2_test: RuntimeError
+constant_javascript_semantics_test/03: CompileTimeError
+constant_javascript_semantics_test/04: CompileTimeError
+constant_javascript_semantics_test/none: CompileTimeError
+private_symbol_literal_test/01: MissingCompileTimeError
+private_symbol_literal_test/02: MissingCompileTimeError
+private_symbol_literal_test/03: MissingCompileTimeError
+private_symbol_literal_test/04: MissingCompileTimeError
+private_symbol_literal_test/05: MissingCompileTimeError
+private_symbol_literal_test/06: MissingCompileTimeError
+regress/4562_test/none: CompileTimeError
+round_constant_folding_test: CompileTimeError
+type_constant_switch_test/01: MissingCompileTimeError
+
+[ $compiler == dart2js && $fasta && $minified ]
+closure_capture2_test: Pass # Passes for the wrong reason
+deferred/reflect_multiple_annotations_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred/reflect_multiple_default_arg_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+
+[ $compiler == dart2js && !$fasta ]
+expose_this1_test: RuntimeError # Issue 31254
+expose_this2_test: RuntimeError # Issue 31254
+string_interpolation_dynamic_test: Fail # CRLF handling clarified, see Issue 23562
+string_interpolation_test: Fail # CRLF handling clarified, see Issue 23562
+
+[ $compiler == dart2js && !$host_checked ]
+dummy_compiler_test: RuntimeError, Slow # Issue 32439. self-hosting doesn't work with CFE yet.
+
+[ $compiler == dart2js && $minified ]
+code_motion_exception_test: Skip # Requires unminified operator names.
+deferred/reflect_multiple_annotations_test: Fail
+deferred/reflect_multiple_default_arg_test: Fail
+generic_method_dynamic_type_test: Fail, OK # Tests expected output of Type.toString().
+mirrors_used_warning_test/minif: Fail, OK # Tests warning that minified code will be broken.
+runtime_type_test: Fail, OK # Tests extected output of Type.toString().
+to_string_test: Fail # Issue 7179.
+type_literal_test: Fail, OK # Tests expected output of Type.toString().
+typevariable_typedef_test: Fail, OK # Tests expected output of Type.toString().
+
+[ $compiler == dart2js && $strong ]
+bound_closure_interceptor_type_test: RuntimeError
+
+[ $compiler == dart2js && !$strong ]
+extract_type_arguments_1_test: RuntimeError # Uses function type variables
+extract_type_arguments_2_test: RuntimeError # Uses function type variables
+extract_type_arguments_3_test: RuntimeError # Uses function type variables
+generic_method_dynamic_is_test: RuntimeError # Test against function type variables is only supported in strong mode.
+generic_method_dynamic_type_test: SkipByDesign # Requires strong mode support for function type variables.
+generic_method_static_is_test: RuntimeError # Test against function type variables is only supported in strong mode.
+int_index_test/01: MissingCompileTimeError
+int_index_test/02: MissingCompileTimeError
+local_signature_test: RuntimeError # Test against function type variables is only supported in strong mode.
+switch_test/00: MissingCompileTimeError
+
+[ $compiler == dart2js && ($runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt || $runtime == ff || $runtime == safari) ]
+isolate2_test/01: Fail # Issue 14458.
+
+[ $compiler == dart2js && ($runtime == drt || $runtime == ff || $runtime == jsshell || $runtime == safari) ]
+code_motion_exception_test: Skip # Required V8 specific format of JavaScript errors.
+
+[ $compiler == dart2js && ($browser || $host_checked) ]
+dummy_compiler_test: SkipByDesign # Issue 30773. Test should be migrated as a unit test of dart2js, is only intended to test self-hosting.
+
+[ $compiler == none && $runtime == vm ]
+invalid_annotation_test/01: MissingCompileTimeError, OK # vm is lazy
+new_from_env_test: SkipByDesign # dart2js only test
+unconditional_dartio_import_test: SkipByDesign # dart2js only test

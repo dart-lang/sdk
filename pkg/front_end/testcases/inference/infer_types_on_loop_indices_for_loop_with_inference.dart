@@ -10,3 +10,5 @@ test() {
     int j = i /*@target=num::+*/ + 1;
   }
 }
+
+main() {}

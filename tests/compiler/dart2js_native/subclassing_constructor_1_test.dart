@@ -60,13 +60,16 @@ makeB() native;
 @Creates('=Object')
 getBPrototype() native;
 
-void setup() native r"""
-function B() { this.a2 = 102; }
+void setup() {
+  JS('', r"""
+(function(){
+  function B() { this.a2 = 102; }
 
-makeB = function(){return new B;};
+  makeB = function(){return new B()};
 
-getBPrototype = function(){return B.prototype;};
-""";
+  getBPrototype = function(){return B.prototype;};
+})()""");
+}
 
 test_one() {
   trace = [];

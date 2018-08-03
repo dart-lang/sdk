@@ -1,0 +1,43 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field dynamic x = null;
+  field core::int y = 2;
+  field core::String z = "hi";
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B extends core::Object implements self::A {
+  field dynamic x = 2;
+  field core::int y = 3;
+  field core::String z = null;
+  field core::int w = 2;
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method foo() → dynamic {
+  core::String s;
+  core::int i;
+  s = new self::B::•().{self::B::x} as{TypeError} core::String;
+  s = let dynamic _ = null in let final dynamic #t1 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:26:62: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+  s = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::y*/ y;
+                                                             ^" in let final dynamic #t2 = new self::B::•().{self::B::y} in null;
+  s = new self::B::•().{self::B::z};
+  s = let dynamic _ = null in let final dynamic #t3 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:28:62: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+  s = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::w*/ w;
+                                                             ^" in let final dynamic #t4 = new self::B::•().{self::B::w} in null;
+  i = new self::B::•().{self::B::x} as{TypeError} core::int;
+  i = new self::B::•().{self::B::y};
+  i = let dynamic _ = null in let final dynamic #t5 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:32:62: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+  i = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::z*/ z;
+                                                             ^" in let final dynamic #t6 = new self::B::•().{self::B::z} in null;
+  i = new self::B::•().{self::B::w};
+}
+static method main() → dynamic {}

@@ -1,0 +1,21 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field core::int topLevelInt;
+static field core::num topLevelNum;
+static field core::double topLevelDouble;
+static method getInt() → core::int
+  ;
+static method getNum() → core::num
+  ;
+static method getDouble() → core::double
+  ;
+static method test1() → void
+  ;
+static method test2() → void
+  ;
+static method test3() → void
+  ;
+static method main() → dynamic
+  ;

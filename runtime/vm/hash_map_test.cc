@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/hash_map.h"
 #include "platform/assert.h"
 #include "vm/unit_test.h"
-#include "vm/hash_map.h"
 
 namespace dart {
 
@@ -17,7 +17,6 @@ class TestValue {
  private:
   intptr_t x_;
 };
-
 
 TEST_CASE(DirectChainedHashMap) {
   DirectChainedHashMap<PointerKeyValueTrait<TestValue> > map;
@@ -39,7 +38,6 @@ TEST_CASE(DirectChainedHashMap) {
   EXPECT(map2.LookupValue(&v2) == &v2);
   EXPECT(map2.LookupValue(&v3) == &v1);
 }
-
 
 TEST_CASE(DirectChainedHashMapInsertRemove) {
   DirectChainedHashMap<PointerKeyValueTrait<TestValue> > map;
@@ -98,7 +96,6 @@ TEST_CASE(DirectChainedHashMapInsertRemove) {
   EXPECT(map.IsEmpty());
 }
 
-
 TEST_CASE(MallocDirectChainedHashMap) {
   MallocDirectChainedHashMap<PointerKeyValueTrait<TestValue> > map;
   EXPECT(map.IsEmpty());
@@ -116,7 +113,6 @@ TEST_CASE(MallocDirectChainedHashMap) {
   EXPECT(map2.LookupValue(&v2) == &v2);
   EXPECT(map2.LookupValue(&v3) == &v1);
 }
-
 
 class IntptrPair {
  public:
@@ -139,7 +135,6 @@ class IntptrPair {
   intptr_t first_;
   intptr_t second_;
 };
-
 
 TEST_CASE(DirectChainedHashMapIterator) {
   IntptrPair p1(1, 1);

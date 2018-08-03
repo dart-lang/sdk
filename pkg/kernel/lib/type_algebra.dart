@@ -5,6 +5,8 @@ library kernel.type_algebra;
 
 import 'ast.dart';
 
+import 'util/graph.dart';
+
 /// Returns a type where all occurrences of the given type parameters have been
 /// replaced with the corresponding types.
 ///
@@ -66,6 +68,122 @@ DartType substituteDeep(
   return substitutor.isInfinite ? null : result;
 }
 
+/// Calculates bounds to be provided as type arguments in place of missing type
+/// arguments on raw types with the given type parameters.
+///
+/// See the [description]
+/// (https://github.com/dart-lang/sdk/blob/master/docs/language/informal/instantiate-to-bound.md)
+/// of the algorithm for details.
+List<DartType> calculateBounds(
+    List<TypeParameter> typeParameters, Class object) {
+  List<DartType> bounds = new List<DartType>(typeParameters.length);
+  for (int i = 0; i < typeParameters.length; i++) {
+    DartType type = typeParameters[i].bound;
+    if (type == null || type is InterfaceType && type.classNode == object) {
+      type = const DynamicType();
+    }
+
+    bounds[i] = type;
+  }
+
+  _TypeVariableGraph graph = new _TypeVariableGraph(typeParameters, bounds);
+  List<List<int>> stronglyConnected = computeStrongComponents(graph);
+  for (List<int> component in stronglyConnected) {
+    Map<TypeParameter, DartType> dynamicSubstitution =
+        <TypeParameter, DartType>{};
+    Map<TypeParameter, DartType> nullSubstitution = <TypeParameter, DartType>{};
+    for (int typeParameterIndex in component) {
+      dynamicSubstitution[typeParameters[typeParameterIndex]] =
+          const DynamicType();
+      nullSubstitution[typeParameters[typeParameterIndex]] = const BottomType();
+    }
+    _TopSubstitutor substitutor = new _TopSubstitutor(
+        Substitution.fromUpperAndLowerBounds(
+            dynamicSubstitution, nullSubstitution),
+        false);
+    for (int typeParameterIndex in component) {
+      bounds[typeParameterIndex] =
+          substitutor.visit(bounds[typeParameterIndex]);
+    }
+  }
+
+  for (int i = 0; i < typeParameters.length; i++) {
+    Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
+    Map<TypeParameter, DartType> nullSubstitution = <TypeParameter, DartType>{};
+    substitution[typeParameters[i]] = bounds[i];
+    nullSubstitution[typeParameters[i]] = const BottomType();
+    _TopSubstitutor substitutor = new _TopSubstitutor(
+        Substitution.fromUpperAndLowerBounds(substitution, nullSubstitution),
+        false);
+    for (int j = 0; j < typeParameters.length; j++) {
+      bounds[j] = substitutor.visit(bounds[j]);
+    }
+  }
+
+  return bounds;
+}
+
+class _TypeVariableGraph extends Graph<int> {
+  List<int> vertices;
+  List<TypeParameter> typeParameters;
+  List<DartType> bounds;
+
+  // `edges[i]` is the list of indices of type variables that reference the type
+  // variable with the index `i` in their bounds.
+  List<List<int>> edges;
+
+  _TypeVariableGraph(this.typeParameters, this.bounds) {
+    assert(typeParameters.length == bounds.length);
+
+    vertices = new List<int>(typeParameters.length);
+    Map<TypeParameter, int> typeParameterIndices = <TypeParameter, int>{};
+    edges = new List<List<int>>(typeParameters.length);
+    for (int i = 0; i < vertices.length; i++) {
+      vertices[i] = i;
+      typeParameterIndices[typeParameters[i]] = i;
+      edges[i] = <int>[];
+    }
+
+    for (int i = 0; i < vertices.length; i++) {
+      _OccurrenceCollectorVisitor collector =
+          new _OccurrenceCollectorVisitor(typeParameters.toSet());
+      collector.visit(bounds[i]);
+      for (TypeParameter typeParameter in collector.occurred) {
+        edges[typeParameterIndices[typeParameter]].add(i);
+      }
+    }
+  }
+
+  Iterable<int> neighborsOf(int index) {
+    return edges[index];
+  }
+}
+
+DartType instantiateToBounds(DartType type, Class object) {
+  if (type is InterfaceType) {
+    for (var typeArgument in type.typeArguments) {
+      // If at least one of the arguments is not dynamic, we assume that the
+      // type is not raw and does not need instantiation of its type parameters
+      // to their bounds.
+      if (typeArgument is! DynamicType) {
+        return type;
+      }
+    }
+    return new InterfaceType.byReference(
+        type.className, calculateBounds(type.classNode.typeParameters, object));
+  }
+  if (type is TypedefType) {
+    for (var typeArgument in type.typeArguments) {
+      if (typeArgument is! DynamicType) {
+        return type;
+      }
+    }
+    return new TypedefType.byReference(type.typedefReference,
+        calculateBounds(type.typedefNode.typeParameters, object));
+  }
+  return type;
+}
+
 /// Returns true if [type] contains a reference to any of the given [variables].
 ///
 /// It is an error to call this with a [type] that contains a [FunctionType]
@@ -108,7 +226,12 @@ FreshTypeParameters getFreshTypeParameters(List<TypeParameter> typeParameters) {
   var map = <TypeParameter, DartType>{};
   for (int i = 0; i < typeParameters.length; ++i) {
     map[typeParameters[i]] = new TypeParameterType(freshParameters[i]);
+  }
+  for (int i = 0; i < typeParameters.length; ++i) {
     freshParameters[i].bound = substitute(typeParameters[i].bound, map);
+    freshParameters[i].defaultType = typeParameters[i].defaultType != null
+        ? substitute(typeParameters[i].defaultType, map)
+        : null;
   }
   return new FreshTypeParameters(freshParameters, Substitution.fromMap(map));
 }
@@ -119,7 +242,19 @@ class FreshTypeParameters {
 
   FreshTypeParameters(this.freshTypeParameters, this.substitution);
 
+  FunctionType applyToFunctionType(FunctionType type) => new FunctionType(
+      type.positionalParameters.map(substitute).toList(),
+      substitute(type.returnType),
+      namedParameters: type.namedParameters.map(substituteNamed).toList(),
+      typeParameters: freshTypeParameters,
+      requiredParameterCount: type.requiredParameterCount,
+      positionalParameterNames: type.positionalParameterNames,
+      typedefReference: type.typedefReference);
+
   DartType substitute(DartType type) => substitution.substituteType(type);
+
+  NamedType substituteNamed(NamedType type) =>
+      new NamedType(type.name, substitute(type.type));
 
   Supertype substituteSuper(Supertype type) {
     return substitution.substituteSupertype(type);
@@ -139,6 +274,10 @@ abstract class Substitution {
   static Substitution fromMap(Map<TypeParameter, DartType> map) {
     if (map.isEmpty) return _NullSubstitution.instance;
     return new _MapSubstitution(map, map);
+  }
+
+  static Substitution filtered(Substitution sub, TypeParameterFilter filter) {
+    return new _FilteredSubstitution(sub, filter);
   }
 
   /// Substitutes all occurrences of the given type parameters with the
@@ -309,6 +448,21 @@ class _CombinedSubstitution extends Substitution {
   }
 }
 
+typedef bool TypeParameterFilter(TypeParameter P);
+
+class _FilteredSubstitution extends Substitution {
+  final Substitution base;
+  final TypeParameterFilter filterFn;
+
+  _FilteredSubstitution(this.base, this.filterFn);
+
+  DartType getSubstitute(TypeParameter parameter, bool upperBound) {
+    return filterFn(parameter)
+        ? base.getSubstitute(parameter, upperBound)
+        : _NullSubstitution.instance.getSubstitute(parameter, upperBound);
+  }
+}
+
 class _InnerTypeSubstitutor extends _TypeSubstitutor {
   final Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
 
@@ -322,6 +476,9 @@ class _InnerTypeSubstitutor extends _TypeSubstitutor {
     var fresh = new TypeParameter(node.name);
     substitution[node] = new TypeParameterType(fresh);
     fresh.bound = visit(node.bound);
+    if (node.defaultType != null) {
+      fresh.defaultType = visit(node.defaultType);
+    }
     return fresh;
   }
 }
@@ -427,7 +584,8 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     return new FunctionType(positionalParameters, returnType,
         namedParameters: namedParameters,
         typeParameters: typeParameters,
-        requiredParameterCount: node.requiredParameterCount);
+        requiredParameterCount: node.requiredParameterCount,
+        typedefReference: node.typedefReference);
   }
 
   void bumpCountersUntil(_TypeSubstitutor target) {
@@ -688,6 +846,58 @@ class _OccurrenceVisitor extends DartTypeVisitor<bool> {
 
   bool handleTypeParameter(TypeParameter node) {
     assert(!variables.contains(node));
-    return node.bound.accept(this);
+    if (node.bound.accept(this)) return true;
+    if (node.defaultType == null) return false;
+    return node.defaultType.accept(this);
+  }
+}
+
+class _OccurrenceCollectorVisitor extends DartTypeVisitor {
+  final Set<TypeParameter> typeParameters;
+  Set<TypeParameter> occurred = new Set<TypeParameter>();
+
+  _OccurrenceCollectorVisitor(this.typeParameters);
+
+  visit(DartType node) => node.accept(this);
+
+  visitNamedType(NamedType node) {
+    node.type.accept(this);
+  }
+
+  visitInvalidType(InvalidType node);
+  visitDynamicType(DynamicType node);
+  visitVoidType(VoidType node);
+  visitVectorType(VectorType node);
+
+  visitInterfaceType(InterfaceType node) {
+    for (DartType argument in node.typeArguments) {
+      argument.accept(this);
+    }
+  }
+
+  visitTypedefType(TypedefType node) {
+    for (DartType argument in node.typeArguments) {
+      argument.accept(this);
+    }
+  }
+
+  visitFunctionType(FunctionType node) {
+    for (TypeParameter typeParameter in node.typeParameters) {
+      typeParameter.bound.accept(this);
+      typeParameter.defaultType?.accept(this);
+    }
+    for (DartType parameter in node.positionalParameters) {
+      parameter.accept(this);
+    }
+    for (NamedType namedParameter in node.namedParameters) {
+      namedParameter.type.accept(this);
+    }
+    node.returnType.accept(this);
+  }
+
+  visitTypeParameterType(TypeParameterType node) {
+    if (typeParameters.contains(node.parameter)) {
+      occurred.add(node.parameter);
+    }
   }
 }

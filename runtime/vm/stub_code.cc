@@ -6,15 +6,15 @@
 
 #include "platform/assert.h"
 #include "platform/globals.h"
-#include "vm/assembler.h"
-#include "vm/disassembler.h"
+#include "vm/clustered_snapshot.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/assembler/disassembler.h"
 #include "vm/flags.h"
+#include "vm/heap/safepoint.h"
 #include "vm/object_store.h"
-#include "vm/safepoint.h"
 #include "vm/snapshot.h"
 #include "vm/virtual_memory.h"
 #include "vm/visitor.h"
-#include "vm/clustered_snapshot.h"
 
 namespace dart {
 
@@ -26,7 +26,6 @@ StubEntry* StubCode::entries_[kNumStubEntries] = {
 #undef STUB_CODE_DECLARE
 };
 
-
 StubEntry::StubEntry(const Code& code)
     : code_(code.raw()),
       entry_point_(code.UncheckedEntryPoint()),
@@ -34,65 +33,86 @@ StubEntry::StubEntry(const Code& code)
       size_(code.Size()),
       label_(code.UncheckedEntryPoint()) {}
 
-
 // Visit all object pointers.
 void StubEntry::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&code_));
 }
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+void StubCode::InitOnce() {
+  // Stubs will be loaded from the snapshot.
+  UNREACHABLE();
+}
+#else
 
 #define STUB_CODE_GENERATE(name)                                               \
   code ^= Generate("_stub_" #name, StubCode::Generate##name##Stub);            \
   entries_[k##name##Index] = new StubEntry(code);
 
-
 void StubCode::InitOnce() {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  // Stubs will be loaded from the snapshot.
-  UNREACHABLE();
-#else
   // Generate all the stubs.
   Code& code = Code::Handle();
   VM_STUB_CODE_LIST(STUB_CODE_GENERATE);
-#endif  // DART_PRECOMPILED_RUNTIME
 }
-
 
 #undef STUB_CODE_GENERATE
 
-
-void StubCode::Init(Isolate* isolate) {}
-
+RawCode* StubCode::Generate(const char* name,
+                            void (*GenerateStub)(Assembler* assembler)) {
+  Assembler assembler;
+  GenerateStub(&assembler);
+  const Code& code =
+      Code::Handle(Code::FinalizeCode(name, &assembler, false /* optimized */));
+#ifndef PRODUCT
+  if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
+    LogBlock lb;
+    THR_Print("Code for stub '%s': {\n", name);
+    DisassembleToStdout formatter;
+    code.Disassemble(&formatter);
+    THR_Print("}\n");
+    const ObjectPool& object_pool = ObjectPool::Handle(code.object_pool());
+    object_pool.DebugPrint();
+  }
+#endif  // !PRODUCT
+  return code.raw();
+}
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 void StubCode::VisitObjectPointers(ObjectPointerVisitor* visitor) {}
 
-
 bool StubCode::HasBeenInitialized() {
-#if !defined(TARGET_ARCH_DBC)
-  // Use JumpToHandler and InvokeDart as canaries.
-  const StubEntry* entry_1 = StubCode::JumpToFrame_entry();
-  const StubEntry* entry_2 = StubCode::InvokeDartCode_entry();
-  return (entry_1 != NULL) && (entry_2 != NULL);
-#else
-  return true;
-#endif
+  // Use AsynchronousGapMarker as canary.
+  return StubCode::AsynchronousGapMarker_entry() != NULL;
 }
 
-
-bool StubCode::InInvocationStub(uword pc) {
+bool StubCode::InInvocationStub(uword pc, bool is_interpreted_frame) {
 #if !defined(TARGET_ARCH_DBC)
   ASSERT(HasBeenInitialized());
+#if defined(DART_USE_INTERPRETER)
+  if (is_interpreted_frame) {
+    // Recognize special marker set up by interpreter in entry frame.
+    return (pc & 2) != 0;
+  }
+  {
+    uword entry = StubCode::InvokeDartCodeFromBytecode_entry()->EntryPoint();
+    uword size = StubCode::InvokeDartCodeFromBytecodeSize();
+    if ((pc >= entry) && (pc < (entry + size))) {
+      return true;
+    }
+  }
+#endif
   uword entry = StubCode::InvokeDartCode_entry()->EntryPoint();
   uword size = StubCode::InvokeDartCodeSize();
   return (pc >= entry) && (pc < (entry + size));
+#elif defined(DART_USE_INTERPRETER)
+#error "Simultaneous usage of DBC simulator and interpreter not yet supported."
 #else
   // On DBC we use a special marker PC to signify entry frame because there is
   // no such thing as invocation stub.
   return (pc & 2) != 0;
 #endif
 }
-
 
 bool StubCode::InJumpToFrameStub(uword pc) {
 #if !defined(TARGET_ARCH_DBC)
@@ -106,7 +126,6 @@ bool StubCode::InJumpToFrameStub(uword pc) {
 #endif
 }
 
-
 RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
 // These stubs are not used by DBC.
 #if !defined(TARGET_ARCH_DBC)
@@ -118,6 +137,7 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
     return AllocateArray_entry()->code();
   }
   Code& stub = Code::Handle(zone, cls.allocation_stub());
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (stub.IsNull()) {
     Assembler assembler;
     const char* name = cls.ToCString();
@@ -169,12 +189,12 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
     }
 #endif  // !PRODUCT
   }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   return stub.raw();
 #endif  // !DBC
   UNIMPLEMENTED();
   return Code::null();
 }
-
 
 const StubEntry* StubCode::UnoptimizedStaticCallEntry(
     intptr_t num_args_tested) {
@@ -195,28 +215,6 @@ const StubEntry* StubCode::UnoptimizedStaticCallEntry(
   return NULL;
 #endif
 }
-
-
-RawCode* StubCode::Generate(const char* name,
-                            void (*GenerateStub)(Assembler* assembler)) {
-  Assembler assembler;
-  GenerateStub(&assembler);
-  const Code& code =
-      Code::Handle(Code::FinalizeCode(name, &assembler, false /* optimized */));
-#ifndef PRODUCT
-  if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
-    LogBlock lb;
-    THR_Print("Code for stub '%s': {\n", name);
-    DisassembleToStdout formatter;
-    code.Disassemble(&formatter);
-    THR_Print("}\n");
-    const ObjectPool& object_pool = ObjectPool::Handle(code.object_pool());
-    object_pool.DebugPrint();
-  }
-#endif  // !PRODUCT
-  return code.raw();
-}
-
 
 const char* StubCode::NameOfStub(uword entry_point) {
 #define VM_STUB_CODE_TESTER(name)                                              \

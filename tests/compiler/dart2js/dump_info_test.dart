@@ -4,8 +4,9 @@
 // Test that parameters keep their names in the output.
 
 import 'dart:convert';
-import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
+import 'package:expect/expect.dart';
 import 'memory_compiler.dart';
 
 const String TEST_BASIC = r"""
@@ -97,24 +98,26 @@ const String TEST_INLINED_2 = r"""
 typedef void JsonTaking(Map<String, dynamic> json);
 
 jsonTest(String program, JsonTaking testFn) async {
+  var options = ['--out=out.js', Flags.dumpInfo];
   var result = await runCompiler(
-      memorySourceFiles: {'main.dart': program},
-      options: ['--out=out.js', '--dump-info']);
+      memorySourceFiles: {'main.dart': program}, options: options);
   var compiler = result.compiler;
   Expect.isFalse(compiler.compilationFailed);
   var dumpTask = compiler.dumpInfoTask;
 
   StringBuffer sb = new StringBuffer();
-  dumpTask.dumpInfoJson(
-      sb, compiler.resolutionWorldBuilder.closedWorldForTesting);
-  String json = sb.toString();
-  Map<String, dynamic> map = JSON.decode(json);
+  dumpTask.dumpInfoJson(sb, compiler.backendClosedWorldForTesting);
+  String jsonString = sb.toString();
+  Map<String, dynamic> map = json.decode(jsonString);
 
   testFn(map);
 }
 
 main() {
-  asyncTest(runTests);
+  asyncTest(() async {
+    print('--test from kernel------------------------------------------------');
+    await runTests();
+  });
 }
 
 runTests() async {

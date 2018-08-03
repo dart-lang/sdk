@@ -8,13 +8,13 @@ library test;
 var /*@topType=dynamic*/ h = null;
 void foo(int f(Object _)) {}
 
-main() {
+test() {
   var /*@type=(Object) -> Null*/ f = /*@returnType=Null*/ (Object x) {
     return null;
   };
   String y = f(42);
 
-  f = /*error:INVALID_CAST_FUNCTION_EXPR*/ /*@returnType=String*/ (/*@type=Object*/ x) =>
+  f = /*error:INVALID_CAST_FUNCTION_EXPR*/ /*@returnType=Null*/ (/*@type=Object*/ x) =>
       'hello';
 
   foo(/*@returnType=Null*/ (/*@type=Object*/ x) {
@@ -24,3 +24,5 @@ main() {
     throw "not implemented";
   });
 }
+
+main() {}

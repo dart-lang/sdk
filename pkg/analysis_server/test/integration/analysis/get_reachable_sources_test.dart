@@ -13,6 +13,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetReachableSourcesTest);
+    defineReflectiveTests(GetReachableSourcesTest_UseCFE);
   });
 }
 
@@ -46,4 +47,10 @@ class Bar {
     expect(keys, contains(url));
     expect(sources[url], contains('dart:core'));
   }
+}
+
+@reflectiveTest
+class GetReachableSourcesTest_UseCFE extends GetReachableSourcesTest {
+  @override
+  bool get useCFE => true;
 }

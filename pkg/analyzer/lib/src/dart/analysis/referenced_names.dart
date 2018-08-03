@@ -15,6 +15,43 @@ Set<String> computeReferencedNames(CompilationUnit unit) {
 }
 
 /**
+ * Compute the set of names which are used in `extends`, `with` or `implements`
+ * clauses in the file. Import prefixes and type arguments are not included.
+ */
+Set<String> computeSubtypedNames(CompilationUnit unit) {
+  Set<String> subtypedNames = new Set<String>();
+
+  void _addSubtypedName(TypeName type) {
+    if (type != null) {
+      Identifier name = type.name;
+      if (name is SimpleIdentifier) {
+        subtypedNames.add(name.name);
+      } else if (name is PrefixedIdentifier) {
+        subtypedNames.add(name.identifier.name);
+      }
+    }
+  }
+
+  void _addSubtypedNames(List<TypeName> types) {
+    types?.forEach(_addSubtypedName);
+  }
+
+  for (CompilationUnitMember declaration in unit.declarations) {
+    if (declaration is ClassDeclaration) {
+      _addSubtypedName(declaration.extendsClause?.superclass);
+      _addSubtypedNames(declaration.withClause?.mixinTypes);
+      _addSubtypedNames(declaration.implementsClause?.interfaces);
+    } else if (declaration is ClassTypeAlias) {
+      _addSubtypedName(declaration.superclass);
+      _addSubtypedNames(declaration.withClause?.mixinTypes);
+      _addSubtypedNames(declaration.implementsClause?.interfaces);
+    }
+  }
+
+  return subtypedNames;
+}
+
+/**
  * Chained set of local names, that hide corresponding external names.
  */
 class _LocalNameScope {

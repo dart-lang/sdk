@@ -18,7 +18,7 @@ class NavTopMenuElement extends HtmlElement implements Renderable {
 
   Stream<RenderedEvent<NavTopMenuElement>> get onRendered => _r.onRendered;
 
-  Iterable<Element> _content = const [];
+  Iterable<Element> _content = const <Element>[];
 
   Iterable<Element> get content => _content;
 
@@ -29,7 +29,7 @@ class NavTopMenuElement extends HtmlElement implements Renderable {
 
   factory NavTopMenuElement({RenderingQueue queue}) {
     NavTopMenuElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<NavTopMenuElement>(e, queue: queue);
     return e;
   }
 
@@ -45,13 +45,15 @@ class NavTopMenuElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    final content = ([
+    final content = (<Element>[
       new NavMenuItemElement('Connect to a VM', link: Uris.vmConnect()),
     ]..addAll(_content));
-    children = [navMenu('Observatory', link: Uris.vm(), content: content)];
+    children = <Element>[
+      navMenu('Observatory', link: Uris.vm(), content: content)
+    ];
   }
 }

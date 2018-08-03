@@ -1,0 +1,34 @@
+// Errors:
+//
+// pkg/front_end/testcases/regress/issue_30994.dart:6:7: Error: Can't use string interpolation in a URI.
+// part '$foo';
+//       ^
+//
+// pkg/front_end/testcases/regress/issue_30994.dart:7:7: Error: Can't use string interpolation in a URI.
+// part '$foo/bar';
+//       ^
+//
+// pkg/front_end/testcases/regress/issue_30994.dart:8:7: Error: Can't use string interpolation in a URI.
+// part '$for/bar';
+//       ^
+//
+// pkg/front_end/testcases/regress/issue_30994.dart:9:7: Error: Can't use string interpolation in a URI.
+// part '${true}';
+//       ^
+//
+// pkg/front_end/testcases/regress/issue_30994.dart:10:10: Error: Can't use string interpolation in a URI.
+// part 'the${1}thing';
+//          ^
+//
+// pkg/front_end/testcases/regress/issue_30994.dart:11:12: Error: Can't use string interpolation in a URI.
+// part 'part_$foo${'a'}.dart';
+//            ^
+//
+// pkg/front_end/testcases/regress/issue_30994.dart:12:12: Error: Can't use string interpolation in a URI.
+// part 'part_${'a'}_$foo.dart';
+//            ^
+
+library lib;
+import self as self;
+
+static method main() → dynamic {}

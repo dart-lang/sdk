@@ -7,7 +7,7 @@ part of sha1_test;
 // Standard test vectors from:
 //   http://csrc.nist.gov/groups/STM/cavp/documents/shs/shabytetestvectors.zip
 
-const sha1_short_inputs = const [
+const List<List<int>> sha1_short_inputs = const [
   const [],
   const [0x36],
   const [0x19, 0x5a],

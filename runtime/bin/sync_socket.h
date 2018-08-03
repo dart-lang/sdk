@@ -5,10 +5,6 @@
 #ifndef RUNTIME_BIN_SYNC_SOCKET_H_
 #define RUNTIME_BIN_SYNC_SOCKET_H_
 
-#if defined(DART_IO_DISABLED)
-#error "sync_socket.h can only be included on builds with IO enabled"
-#endif
-
 #include "bin/socket_base.h"
 #include "platform/globals.h"
 

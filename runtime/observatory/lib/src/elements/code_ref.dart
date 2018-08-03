@@ -29,7 +29,7 @@ class CodeRefElement extends HtmlElement implements Renderable {
       {RenderingQueue queue}) {
     assert(code != null);
     CodeRefElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<CodeRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._code = code;
     return e;
@@ -46,18 +46,17 @@ class CodeRefElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
   void render() {
-    final name = (_code.isOptimized ? '*' : '') + _code.name;
-    children = [
+    children = <Element>[
       new AnchorElement(
           href: ((M.isSyntheticCode(_code.kind)) || (_isolate == null))
               ? null
               : Uris.inspect(_isolate, object: _code))
-        ..text = name
+        ..text = _code.name
     ];
   }
 }

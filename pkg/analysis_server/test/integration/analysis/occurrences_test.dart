@@ -12,6 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OccurrencesTest);
+    defineReflectiveTests(OccurrencesTest_UseCFE);
   });
 }
 
@@ -49,7 +50,6 @@ main() {
           }
         }
         fail('No element found matching $elementName');
-        return null;
       }
 
       void check(String elementName, Iterable<String> expectedOccurrences) {
@@ -65,4 +65,10 @@ main() {
       check('sum', ['sum = 0', 'sum +=', 'sum)']);
     });
   }
+}
+
+@reflectiveTest
+class OccurrencesTest_UseCFE extends OccurrencesTest {
+  @override
+  bool get useCFE => true;
 }

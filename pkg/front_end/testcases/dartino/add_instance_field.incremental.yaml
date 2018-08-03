@@ -1,0 +1,32 @@
+# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+main.dart.patch: |
+  // Test adding a field to a class works
+
+  class A {
+  <<<< ["instance is null","setter threw","getter threw"]
+  ==== "v2"
+    var x;
+  >>>>
+  }
+
+  var instance;
+
+  main() {
+    if (instance == null) {
+      print('instance is null');
+      instance = new A();
+    }
+    try {
+      instance.x = 'v2';
+    } catch(e) {
+      print('setter threw');
+    }
+    try {
+      print(instance.x);
+    } catch (e) {
+      print('getter threw');
+    }
+  }

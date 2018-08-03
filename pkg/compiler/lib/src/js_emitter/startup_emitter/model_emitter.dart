@@ -9,16 +9,12 @@ import 'dart:math' show Random;
 
 import 'package:js_runtime/shared/embedded_names.dart'
     show
-        CLASS_FIELDS_EXTRACTOR,
-        CLASS_ID_EXTRACTOR,
-        CREATE_NEW_ISOLATE,
         DEFERRED_INITIALIZED,
-        DEFERRED_LIBRARY_URIS,
-        DEFERRED_LIBRARY_HASHES,
+        DEFERRED_LIBRARY_PARTS,
+        DEFERRED_PART_URIS,
+        DEFERRED_PART_HASHES,
         GET_TYPE_FROM_NAME,
-        INITIALIZE_EMPTY_INSTANCE,
         INITIALIZE_LOADED_HUNK,
-        INSTANCE_FROM_CLASS_ID,
         INTERCEPTORS_BY_TAG,
         IS_HUNK_INITIALIZED,
         IS_HUNK_LOADED,
@@ -27,7 +23,6 @@ import 'package:js_runtime/shared/embedded_names.dart'
         MANGLED_NAMES,
         METADATA,
         NATIVE_SUPERCLASS_TAG_NAME,
-        STATIC_FUNCTION_NAME_TO_CLOSURE,
         TYPE_TO_INTERCEPTOR_MAP,
         TYPES;
 
@@ -36,7 +31,7 @@ import '../../common.dart';
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
 import '../../common_elements.dart' show CommonElements;
-import '../../elements/elements.dart' show ClassElement, MethodElement;
+import '../../elements/entities.dart';
 import '../../hash/sha1.dart' show Hasher;
 import '../../io/code_output.dart';
 import '../../io/location_provider.dart' show LocationCollector;
@@ -44,14 +39,14 @@ import '../../io/source_map_builder.dart' show SourceMapBuilder;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart'
     show JavaScriptBackend, Namer, ConstantEmitter, StringBackedName;
-import '../../js_backend/interceptor_data.dart';
 import '../../world.dart';
 import '../code_emitter_task.dart';
-import '../constant_ordering.dart' show deepCompareConstants;
+import '../constant_ordering.dart' show ConstantOrdering;
 import '../headers.dart';
 import '../js_emitter.dart' show NativeEmitter;
 import '../js_emitter.dart' show buildTearOffCode, NativeGenerator;
 import '../model.dart';
+import '../sorter.dart' show Sorter;
 
 part 'deferred_fragment_hash.dart';
 part 'fragment_emitter.dart';
@@ -62,7 +57,8 @@ class ModelEmitter {
   ConstantEmitter constantEmitter;
   final NativeEmitter nativeEmitter;
   final bool shouldGenerateSourceMap;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
+  final ConstantOrdering _constantOrdering;
 
   // The full code that is written to each hunk part-file.
   final Map<Fragment, CodeOutput> outputBuffers = <Fragment, CodeOutput>{};
@@ -79,13 +75,15 @@ class ModelEmitter {
   static const String typeNameProperty = r"builtin$cls";
 
   ModelEmitter(this.compiler, this.namer, this.nativeEmitter, this._closedWorld,
-      CodeEmitterTask task, this.shouldGenerateSourceMap) {
+      Sorter sorter, CodeEmitterTask task, this.shouldGenerateSourceMap)
+      : _constantOrdering = new ConstantOrdering(sorter) {
     this.constantEmitter = new ConstantEmitter(
         compiler.options,
         _closedWorld.commonElements,
-        compiler.backend.rtiNeed,
+        compiler.codegenWorldBuilder,
+        _closedWorld.rtiNeed,
         compiler.backend.rtiEncoder,
-        namer,
+        _closedWorld.allocatorAnalysis,
         task,
         this.generateConstantReference,
         constantListGenerator);
@@ -134,12 +132,14 @@ class ModelEmitter {
     if (r != 0) return r;
 
     // Resolve collisions in the long name by using a structural order.
-    return deepCompareConstants(a, b);
+    return _constantOrdering.compare(a, b);
   }
 
-  js.Expression generateStaticClosureAccess(MethodElement element) {
-    return js.js('#.#()',
-        [namer.globalObjectFor(element), namer.staticClosureName(element)]);
+  js.Expression generateStaticClosureAccess(FunctionEntity element) {
+    return js.js('#.#()', [
+      namer.globalObjectForMember(element),
+      namer.staticClosureName(element)
+    ]);
   }
 
   js.Expression generateConstantReference(ConstantValue value) {
@@ -220,10 +220,17 @@ class ModelEmitter {
 
   /// Generates a simple header that provides the compiler's build id.
   js.Comment buildGeneratedBy() {
-    String flavor = compiler.options.useContentSecurityPolicy
-        ? 'fast startup, CSP'
-        : 'fast startup';
-    return new js.Comment(generatedBy(compiler, flavor: flavor));
+    StringBuffer flavor = new StringBuffer();
+    flavor.write('fast startup emitter');
+    if (compiler.options.strongMode) flavor.write(', strong');
+    if (compiler.options.trustPrimitives) flavor.write(', trust primitives');
+    if (compiler.options.trustTypeAnnotations) flavor.write(', trust types');
+    if (compiler.options.omitImplicitChecks) flavor.write(', omit checks');
+    if (compiler.options.laxRuntimeTypeToString) {
+      flavor.write(', lax runtime type');
+    }
+    if (compiler.options.useContentSecurityPolicy) flavor.write(', CSP');
+    return new js.Comment(generatedBy(compiler, flavor: '$flavor'));
   }
 
   /// Writes all deferred fragment's code into files.
@@ -263,7 +270,8 @@ class ModelEmitter {
     }
 
     CodeOutput mainOutput = new StreamCodeOutput(
-        compiler.outputProvider('', 'js', OutputType.js), codeOutputListeners);
+        compiler.outputProvider.createOutputSink('', 'js', OutputType.js),
+        codeOutputListeners);
     outputBuffers[fragment] = mainOutput;
 
     js.Program program = new js.Program([
@@ -314,8 +322,8 @@ class ModelEmitter {
     String hunkPrefix = fragment.outputFileName;
 
     CodeOutput output = new StreamCodeOutput(
-        compiler.outputProvider(
-            hunkPrefix, deferredExtension, OutputType.jsPart),
+        compiler.outputProvider
+            .createOutputSink(hunkPrefix, deferredExtension, OutputType.jsPart),
         outputListeners);
 
     outputBuffers[fragment] = output;
@@ -392,7 +400,7 @@ class ModelEmitter {
     mapping["_comment"] = "This mapping shows which compiled `.js` files are "
         "needed for a given deferred library import.";
     mapping.addAll(compiler.deferredLoadTask.computeDeferredMap());
-    compiler.outputProvider(
+    compiler.outputProvider.createOutputSink(
         compiler.options.deferredMapUri.path, '', OutputType.info)
       ..add(const JsonEncoder.withIndent("  ").convert(mapping))
       ..close();

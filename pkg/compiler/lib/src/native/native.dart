@@ -4,14 +4,9 @@
 
 library native;
 
-import '../compiler.dart' show Compiler;
-import '../elements/entities.dart';
-
 export 'behavior.dart';
 export 'enqueue.dart';
 export 'js.dart';
-export 'scanner.dart';
-export 'ssa.dart';
 
 const Iterable<String> _allowedDartSchemePaths = const <String>[
   'async',
@@ -27,21 +22,17 @@ const Iterable<String> _allowedDartSchemePaths = const <String>[
   'web_sql'
 ];
 
-bool maybeEnableNative(Compiler compiler, LibraryEntity library) {
+bool maybeEnableNative(Uri uri) {
   bool allowedTestLibrary() {
-    Uri uri = library.canonicalUri;
     String scriptName = uri.path;
-    return scriptName.contains('sdk/tests/compiler/dart2js_native') ||
-        scriptName.contains('sdk/tests/compiler/dart2js_extra');
+    return scriptName.contains('tests/compiler/dart2js_native') ||
+        scriptName.contains('tests/compiler/dart2js_extra');
   }
 
   bool allowedDartLibary() {
-    Uri uri = library.canonicalUri;
     if (uri.scheme != 'dart') return false;
     return _allowedDartSchemePaths.contains(uri.path);
   }
 
-  return allowedTestLibrary() ||
-      allowedDartLibary() ||
-      compiler.options.allowNativeExtensions;
+  return allowedTestLibrary() || allowedDartLibary();
 }

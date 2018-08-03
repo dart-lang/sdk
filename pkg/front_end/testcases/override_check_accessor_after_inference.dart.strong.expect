@@ -1,0 +1,59 @@
+// Errors:
+//
+// pkg/front_end/testcases/override_check_accessor_after_inference.dart:28:51: Error: The return type of the method 'F::y' is #lib1::A, which does not match the return type of the overridden method (#lib1::B).
+// Change to a subtype of #lib1::B.
+//   A get /*@error=OverrideTypeMismatchReturnType*/ y => null;
+//                                                   ^
+//
+// pkg/front_end/testcases/override_check_accessor_after_inference.dart:27:57: Error: The parameter 'value' of the method 'F::x' has type #lib1::B, which does not match the corresponding type in the overridden method (#lib1::A).
+// Change to a supertype of #lib1::A (or, for a covariant parameter, a subtype).
+//   void set x(B /*@error=OverrideTypeMismatchParameter*/ value) {}
+//                                                         ^
+
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → void
+    : super self::A::•()
+    ;
+}
+class C extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  set x(self::A value) → void {}
+  get y() → self::B
+    return null;
+}
+class D extends self::C {
+  synthetic constructor •() → void
+    : super self::C::•()
+    ;
+  set x(self::A value) → void {}
+  get y() → self::B
+    return null;
+}
+class E extends self::D {
+  synthetic constructor •() → void
+    : super self::D::•()
+    ;
+  set x(self::A value) → void {}
+  get y() → self::B
+    return null;
+}
+class F extends self::D {
+  synthetic constructor •() → void
+    : super self::D::•()
+    ;
+  set x(self::B value) → void {}
+  get y() → self::A
+    return null;
+}
+static method main() → dynamic {}

@@ -13,6 +13,7 @@
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
+#include "platform/utils.h"
 
 namespace dart {
 namespace bin {
@@ -22,7 +23,6 @@ static char PathSeparator() {
   ASSERT(strlen(sep) == 1);
   return sep[0];
 }
-
 
 void* Extensions::MakePathAndResolve(const char* dir, const char* name) {
   // First try to find the library with a suffix specifying the architecture.
@@ -59,7 +59,6 @@ void* Extensions::MakePathAndResolve(const char* dir, const char* name) {
   }
 }
 
-
 // IMPORTANT: In the absolute path case, do not extract the filename and search
 // for that by passing it to LoadLibrary. That can lead to confusion in
 // which the absolute path is wrong, and a different version of the library is
@@ -67,13 +66,12 @@ void* Extensions::MakePathAndResolve(const char* dir, const char* name) {
 void* Extensions::ResolveAbsPathExtension(const char* extension_path) {
   const char* last_slash = strrchr(extension_path, PathSeparator()) + 1;
   char* name = strdup(last_slash);
-  char* dir = StringUtils::StrNDup(extension_path, last_slash - extension_path);
+  char* dir = Utils::StrNDup(extension_path, last_slash - extension_path);
   void* library_handle = MakePathAndResolve(dir, name);
   free(dir);
   free(name);
   return library_handle;
 }
-
 
 void* Extensions::ResolveExtension(const char* extension_directory,
                                    const char* extension_name) {
@@ -95,7 +93,6 @@ void* Extensions::ResolveExtension(const char* extension_directory,
   // own search in standard search locations.
   return MakePathAndResolve("", extension_name);
 }
-
 
 Dart_Handle Extensions::LoadExtension(const char* extension_directory,
                                       const char* extension_name,
@@ -122,7 +119,6 @@ Dart_Handle Extensions::LoadExtension(const char* extension_directory,
   InitFunctionType fn = reinterpret_cast<InitFunctionType>(init_function);
   return (*fn)(parent_library);
 }
-
 
 // Concatenates a NULL terminated array of strings.
 // The returned string is scope allocated.

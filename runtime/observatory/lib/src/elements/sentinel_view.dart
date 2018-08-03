@@ -50,7 +50,7 @@ class SentinelViewElement extends HtmlElement implements Renderable {
     assert(events != null);
     assert(notifications != null);
     SentinelViewElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<SentinelViewElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
     e._sentinel = sentinel;
@@ -76,8 +76,8 @@ class SentinelViewElement extends HtmlElement implements Renderable {
   }
 
   void render() {
-    children = [
-      navBar([
+    children = <Element>[
+      navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue),
         new NavVMMenuElement(_vm, _events, queue: _r.queue),
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
@@ -86,7 +86,7 @@ class SentinelViewElement extends HtmlElement implements Renderable {
       ]),
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h2()
             ..text = 'Sentinel: #{_sentinel.valueAsString}',
           new HRElement(),

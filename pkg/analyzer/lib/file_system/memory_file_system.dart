@@ -12,7 +12,6 @@ import 'dart:core';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/source/source_resource.dart';
-import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:watcher/watcher.dart';
 
@@ -31,9 +30,6 @@ class MemoryResourceProvider implements ResourceProvider {
 
   final pathos.Context _pathContext;
 
-  @override
-  final AbsolutePathContext absolutePathContext;
-
   MemoryResourceProvider(
       {pathos.Context context, @deprecated bool isWindows: false})
       : _pathContext = (context ??= pathos.style == pathos.Style.windows
@@ -41,9 +37,7 @@ class MemoryResourceProvider implements ResourceProvider {
             // the drive inserted by MemoryResourceProvider.convertPath
             // so that packages are mapped to the correct drive
             ? new pathos.Context(current: 'C:\\')
-            : pathos.context),
-        absolutePathContext =
-            new AbsolutePathContext(context.style == pathos.Style.windows);
+            : pathos.context);
 
   @override
   pathos.Context get pathContext => _pathContext;
@@ -111,6 +105,8 @@ class MemoryResourceProvider implements ResourceProvider {
 
   @override
   Future<List<int>> getModificationTimes(List<Source> sources) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     return sources.map((source) {
       String path = source.fullName;
       return _pathToTimestamp[path] ?? -1;
@@ -134,7 +130,7 @@ class MemoryResourceProvider implements ResourceProvider {
 
   void modifyFile(String path, String content) {
     _checkFileAtPath(path);
-    _pathToBytes[path] = UTF8.encode(content);
+    _pathToBytes[path] = utf8.encode(content);
     _pathToTimestamp[path] = nextStamp++;
     _notifyWatchers(path, ChangeType.MODIFY);
   }
@@ -156,7 +152,7 @@ class MemoryResourceProvider implements ResourceProvider {
   File newFile(String path, String content, [int stamp]) {
     path = pathContext.normalize(path);
     _MemoryFile file = _newFile(path);
-    _pathToBytes[path] = UTF8.encode(content);
+    _pathToBytes[path] = utf8.encode(content);
     _pathToTimestamp[path] = stamp ?? nextStamp++;
     _notifyWatchers(path, ChangeType.ADD);
     return file;
@@ -197,34 +193,12 @@ class MemoryResourceProvider implements ResourceProvider {
     }
   }
 
-  _MemoryFile renameFileSync(_MemoryFile file, String newPath) {
-    String path = file.path;
-    if (newPath == path) {
-      return file;
-    }
-    _MemoryResource existingNewResource = _pathToResource[newPath];
-    if (existingNewResource is _MemoryFolder) {
-      throw new FileSystemException(
-          path, 'Could not be renamed: $newPath is a folder.');
-    }
-    _MemoryFile newFile = _newFile(newPath);
-    _pathToResource.remove(path);
-    _pathToBytes[newPath] = _pathToBytes.remove(path);
-    _pathToTimestamp[newPath] = _pathToTimestamp.remove(path);
-    if (existingNewResource != null) {
-      _notifyWatchers(newPath, ChangeType.REMOVE);
-    }
-    _notifyWatchers(path, ChangeType.REMOVE);
-    _notifyWatchers(newPath, ChangeType.ADD);
-    return newFile;
-  }
-
   File updateFile(String path, String content, [int stamp]) {
     path = pathContext.normalize(path);
     newFolder(pathContext.dirname(path));
     _MemoryFile file = new _MemoryFile(this, path);
     _pathToResource[path] = file;
-    _pathToBytes[path] = UTF8.encode(content);
+    _pathToBytes[path] = utf8.encode(content);
     _pathToTimestamp[path] = stamp ?? nextStamp++;
     _notifyWatchers(path, ChangeType.MODIFY);
     return file;
@@ -284,6 +258,28 @@ class MemoryResourceProvider implements ResourceProvider {
         }
       }
     });
+  }
+
+  _MemoryFile _renameFileSync(_MemoryFile file, String newPath) {
+    String path = file.path;
+    if (newPath == path) {
+      return file;
+    }
+    _MemoryResource existingNewResource = _pathToResource[newPath];
+    if (existingNewResource is _MemoryFolder) {
+      throw new FileSystemException(
+          path, 'Could not be renamed: $newPath is a folder.');
+    }
+    _MemoryFile newFile = _newFile(newPath);
+    _pathToResource.remove(path);
+    _pathToBytes[newPath] = _pathToBytes.remove(path);
+    _pathToTimestamp[newPath] = _pathToTimestamp.remove(path);
+    if (existingNewResource != null) {
+      _notifyWatchers(newPath, ChangeType.REMOVE);
+    }
+    _notifyWatchers(path, ChangeType.REMOVE);
+    _notifyWatchers(newPath, ChangeType.ADD);
+    return newFile;
   }
 
   void _setFileContent(_MemoryFile file, List<int> bytes) {
@@ -439,12 +435,12 @@ class _MemoryFile extends _MemoryResource implements File {
     if (content == null) {
       throw new FileSystemException(path, 'File "$path" does not exist.');
     }
-    return UTF8.decode(content);
+    return utf8.decode(content);
   }
 
   @override
   File renameSync(String newPath) {
-    return _provider.renameFileSync(this, newPath);
+    return _provider._renameFileSync(this, newPath);
   }
 
   @override
@@ -457,7 +453,7 @@ class _MemoryFile extends _MemoryResource implements File {
 
   @override
   void writeAsStringSync(String content) {
-    _provider._setFileContent(this, UTF8.encode(content));
+    _provider._setFileContent(this, utf8.encode(content));
   }
 }
 
@@ -558,6 +554,9 @@ class _MemoryFolder extends _MemoryResource implements Folder {
 
   @override
   Folder resolveSymbolicLinksSync() => this;
+
+  @override
+  Uri toUri() => _provider.pathContext.toUri(path + '/');
 }
 
 /**

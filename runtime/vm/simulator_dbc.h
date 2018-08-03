@@ -9,8 +9,8 @@
 #error Do not include simulator_dbc.h directly; use simulator.h.
 #endif
 
+#include "vm/compiler/method_recognizer.h"
 #include "vm/constants_dbc.h"
-#include "vm/method_recognizer.h"
 
 namespace dart {
 
@@ -21,9 +21,11 @@ class Thread;
 class Code;
 class Array;
 class RawICData;
+class RawImmutableArray;
 class RawArray;
 class RawObjectPool;
 class RawFunction;
+class ObjectPointerVisitor;
 
 // Simulator intrinsic handler. It is invoked on entry to the intrinsified
 // function via Intrinsic bytecode before the frame is setup.
@@ -33,7 +35,6 @@ class RawFunction;
 typedef bool (*IntrinsicHandler)(Thread* thread,
                                  RawObject** FP,
                                  RawObject** result);
-
 
 class Simulator {
  public:
@@ -46,9 +47,10 @@ class Simulator {
   // current isolate
   static Simulator* Current();
 
-  // Accessors to the internal simulator stack base and top.
-  uword StackBase() const { return reinterpret_cast<uword>(stack_); }
-  uword StackTop() const;
+  // Low address (DBC stack grows up).
+  uword stack_base() const { return stack_base_; }
+  // High address (DBC stack grows up).
+  uword stack_limit() const { return stack_limit_; }
 
   // The thread's top_exit_frame_info refers to a Dart frame in the simulator
   // stack. The simulator's top_exit_frame_info refers to a C++ frame in the
@@ -88,15 +90,23 @@ class Simulator {
     kSpecialIndexCount
   };
 
+  void VisitObjectPointers(ObjectPointerVisitor* visitor);
+
  private:
   uintptr_t* stack_;
+  uword stack_base_;
+  uword stack_limit_;
 
   RawObject** fp_;
   uword pc_;
+  DEBUG_ONLY(uint64_t icount_;)
 
   SimulatorSetjmpBuffer* last_setjmp_buffer_;
   uword top_exit_frame_info_;
 
+  RawObjectPool* pp_;  // Pool Pointer.
+  RawArray* argdesc_;  // Arguments Descriptor: used to pass information between
+                       // call instruction and the function entry.
   RawObject* special_[kSpecialIndexCount];
 
   static IntrinsicHandler intrinsics_[kIntrinsicCount];
@@ -118,13 +128,11 @@ class Simulator {
   void Invoke(Thread* thread,
               RawObject** call_base,
               RawObject** call_top,
-              RawObjectPool** pp,
               uint32_t** pc,
               RawObject*** FP,
               RawObject*** SP);
 
   bool Deoptimize(Thread* thread,
-                  RawObjectPool** pp,
                   uint32_t** pc,
                   RawObject*** FP,
                   RawObject*** SP,
@@ -143,8 +151,6 @@ class Simulator {
                      RawICData* icdata,
                      RawObject** call_base,
                      RawObject** call_top,
-                     RawArray** argdesc,
-                     RawObjectPool** pp,
                      uint32_t** pc,
                      RawObject*** FP,
                      RawObject*** SP,
@@ -154,12 +160,24 @@ class Simulator {
                      RawICData* icdata,
                      RawObject** call_base,
                      RawObject** call_top,
-                     RawArray** argdesc,
-                     RawObjectPool** pp,
                      uint32_t** pc,
                      RawObject*** FP,
                      RawObject*** SP,
                      bool optimized);
+
+  void PrepareForTailCall(RawCode* code,
+                          RawImmutableArray* args_desc,
+                          RawObject** FP,
+                          RawObject*** SP,
+                          uint32_t** pc);
+
+#if !defined(PRODUCT)
+  // Returns true if tracing of executed instructions is enabled.
+  bool IsTracingExecution() const;
+
+  // Prints bytecode instruction at given pc for instruction tracing.
+  void TraceInstruction(uint32_t* pc) const;
+#endif  // !defined(PRODUCT)
 
   // Longjmp support for exceptions.
   SimulatorSetjmpBuffer* last_setjmp_buffer() { return last_setjmp_buffer_; }

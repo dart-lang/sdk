@@ -34,7 +34,7 @@ class Path {
   static String _cleanWindows(String source) {
     // Change \ to /.
     var clean = source.replaceAll('\\', '/');
-    // Add / before intial [Drive letter]:
+    // Add / before initial [Drive letter]:
     if (clean.length >= 2 && clean[1] == ':') {
       clean = '/$clean';
     }

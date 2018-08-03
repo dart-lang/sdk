@@ -6,7 +6,7 @@
 // merge these two packages.
 library colors;
 
-import 'dart:convert' show JSON;
+import 'dart:convert' show jsonEncode;
 
 import 'dart:io' show Platform, Process, ProcessResult, stderr, stdout;
 
@@ -166,7 +166,7 @@ bool computeEnableColors(CompilerContext context) {
   if (lines.length != 2) {
     if (context.options.verbose) {
       print("Not enabling colors, unexpected output from tput: "
-          "${JSON.encode(result.stdout)}.");
+          "${jsonEncode(result.stdout)}.");
     }
     return false;
   }
@@ -175,7 +175,7 @@ bool computeEnableColors(CompilerContext context) {
   if (int.parse(numberOfColors, onError: (_) => -1) < 8) {
     if (context.options.verbose) {
       print("Not enabling colors, less than 8 colors supported: "
-          "${JSON.encode(numberOfColors)}.");
+          "${jsonEncode(numberOfColors)}.");
     }
     return false;
   }
@@ -184,7 +184,7 @@ bool computeEnableColors(CompilerContext context) {
   if (ALL_CODES != allCodes) {
     if (context.options.verbose) {
       print("Not enabling colors, color codes don't match: "
-          "${JSON.encode(ALL_CODES)} != ${JSON.encode(allCodes)}.");
+          "${jsonEncode(ALL_CODES)} != ${jsonEncode(allCodes)}.");
     }
     return false;
   }

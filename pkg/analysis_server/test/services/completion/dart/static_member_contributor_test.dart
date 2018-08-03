@@ -22,18 +22,6 @@ class StaticMemberContributorTest extends DartCompletionContributorTest {
     return new StaticMemberContributor();
   }
 
-  fail_enumConst_deprecated() async {
-    addTestSource('@deprecated enum E { one, two } main() {E.^}');
-    await computeSuggestions();
-    assertNotSuggested('E');
-    // TODO(danrubel) Investigate why enum suggestion is not marked
-    // as deprecated if enum ast element is deprecated
-    assertSuggestEnumConst('one', isDeprecated: true);
-    assertSuggestEnumConst('two', isDeprecated: true);
-    assertNotSuggested('index');
-    assertSuggestField('values', 'List<E>', isDeprecated: true);
-  }
-
   test_enumConst() async {
     addTestSource('enum E { one, two } main() {E.^}');
     await computeSuggestions();
@@ -94,6 +82,40 @@ class StaticMemberContributorTest extends DartCompletionContributorTest {
     assertSuggestEnumConst('two');
     assertNotSuggested('index');
     assertSuggestField('values', 'List<E>');
+  }
+
+  @failingTest
+  test_enumConst_deprecated() async {
+    addTestSource('@deprecated enum E { one, two } main() {E.^}');
+    await computeSuggestions();
+    assertNotSuggested('E');
+    // TODO(danrubel) Investigate why enum suggestion is not marked
+    // as deprecated if enum ast element is deprecated
+    assertSuggestEnumConst('one', isDeprecated: true);
+    assertSuggestEnumConst('two', isDeprecated: true);
+    assertNotSuggested('index');
+    assertSuggestField('values', 'List<E>', isDeprecated: true);
+  }
+
+  test_implicitCreation() async {
+    configurePreviewDart2();
+    addSource('/a.dart', '''
+class A {
+  A.foo();
+  A.bar();
+}
+''');
+    addTestSource('''
+import 'a.dart';
+
+main() {
+  A.^;
+}
+''');
+    await computeSuggestions();
+
+    assertSuggestConstructor('foo', elementName: 'foo');
+    assertSuggestConstructor('bar', elementName: 'bar');
   }
 
   test_keyword() async {
@@ -240,9 +262,7 @@ void main() {async.Future.^.w()}''');
 
   test_PrefixedIdentifier_class_const() async {
     // SimpleIdentifier PrefixedIdentifier ExpressionStatement Block
-    addSource(
-        '/testB.dart',
-        '''
+    addSource('/testB.dart', '''
         lib B;
         class I {
           static const scI = 'boo';

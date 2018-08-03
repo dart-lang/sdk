@@ -1,0 +1,99 @@
+// Errors:
+//
+// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:19:61: Error: Getter not found: 'x'.
+// var /*@topType=B*/ b = new B(/*error:UNDEFINED_IDENTIFIER*/ x); // allocations
+//                                                             ^
+//
+// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:21:34: Error: Getter not found: 'x'.
+//   /*error:UNDEFINED_IDENTIFIER*/ x
+//                                  ^
+
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int x = null;
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  operator +(dynamic other) → self::B
+    return null;
+}
+class B extends self::A {
+  constructor •(dynamic ignore) → void
+    : super self::A::•()
+    ;
+}
+static field self::A a = new self::A::•();
+static field self::B b = new self::B::•(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#x, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+static field core::List<dynamic> c1 = <dynamic>[throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#x, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))];
+static field core::List<dynamic> c2 = const <dynamic>[];
+static field core::Map<dynamic, dynamic> d = <dynamic, dynamic>{"a": "b"};
+static field self::A e = let final self::A #t1 = new self::A::•() in let final core::int #t2 = #t1.{self::A::x} = 3 in #t1;
+static field core::int f = 2.{core::num::+}(3);
+static field core::int g = 3.{core::int::unary-}();
+static field self::B h = new self::A::•().{self::A::+}(3);
+static field dynamic i = let final self::A #t3 = new self::A::•() in let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:34:79: Error: The method 'unary-' isn't defined for the class 'test::A'.
+Try correcting the name to the name of an existing method, or defining a method named 'unary-'.
+var /*@topType=dynamic*/ i = /*error:UNDEFINED_OPERATOR,info:DYNAMIC_INVOKE*/ -new A();
+                                                                              ^";
+static field self::B j = null as self::B;
+static method test1() → dynamic {
+  self::a = let<BottomType> _ = null in let final dynamic #t4 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:38:36: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'test::A'.
+Try changing the type of the left hand side, or casting the right hand side to 'test::A'.
+  a = /*error:INVALID_ASSIGNMENT*/ \"hi\";
+                                   ^" in let final core::String #t5 = "hi" in null;
+  self::a = new self::B::•(3);
+  self::b = let<BottomType> _ = null in let final dynamic #t6 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:40:36: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'test::B'.
+Try changing the type of the left hand side, or casting the right hand side to 'test::B'.
+  b = /*error:INVALID_ASSIGNMENT*/ \"hi\";
+                                   ^" in let final core::String #t7 = "hi" in null;
+  self::b = new self::B::•(3);
+  self::c1 = <dynamic>[];
+  self::c1 = let<BottomType> _ = null in let final dynamic #t8 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:43:68: Error: A value of type 'dart.core::Map<dynamic, dynamic>' can't be assigned to a variable of type 'dart.core::List<dynamic>'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::List<dynamic>'.
+  c1 = /*error:INVALID_ASSIGNMENT*/ /*@typeArgs=dynamic, dynamic*/ {};
+                                                                   ^" in let final core::Map<dynamic, dynamic> #t9 = <dynamic, dynamic>{} in null;
+  self::c2 = <dynamic>[];
+  self::c2 = let<BottomType> _ = null in let final dynamic #t10 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:45:68: Error: A value of type 'dart.core::Map<dynamic, dynamic>' can't be assigned to a variable of type 'dart.core::List<dynamic>'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::List<dynamic>'.
+  c2 = /*error:INVALID_ASSIGNMENT*/ /*@typeArgs=dynamic, dynamic*/ {};
+                                                                   ^" in let final core::Map<dynamic, dynamic> #t11 = <dynamic, dynamic>{} in null;
+  self::d = <dynamic, dynamic>{};
+  self::d = let<BottomType> _ = null in let final dynamic #t12 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:47:36: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::Map<dynamic, dynamic>'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::Map<dynamic, dynamic>'.
+  d = /*error:INVALID_ASSIGNMENT*/ 3;
+                                   ^" in let final core::int #t13 = 3 in null;
+  self::e = new self::A::•();
+  self::e = let<BottomType> _ = null in let final dynamic #t14 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:49:67: Error: A value of type 'dart.core::Map<dynamic, dynamic>' can't be assigned to a variable of type 'test::A'.
+Try changing the type of the left hand side, or casting the right hand side to 'test::A'.
+  e = /*error:INVALID_ASSIGNMENT*/ /*@typeArgs=dynamic, dynamic*/ {};
+                                                                  ^" in let final core::Map<dynamic, dynamic> #t15 = <dynamic, dynamic>{} in null;
+  self::f = 3;
+  self::f = let<BottomType> _ = null in let final dynamic #t16 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:51:36: Error: A value of type 'dart.core::bool' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+  f = /*error:INVALID_ASSIGNMENT*/ false;
+                                   ^" in let final core::bool #t17 = false in null;
+  self::g = 1;
+  self::g = let<BottomType> _ = null in let final dynamic #t18 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:53:36: Error: A value of type 'dart.core::bool' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+  g = /*error:INVALID_ASSIGNMENT*/ false;
+                                   ^" in let final core::bool #t19 = false in null;
+  self::h = let<BottomType> _ = null in let final dynamic #t20 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:54:36: Error: A value of type 'dart.core::bool' can't be assigned to a variable of type 'test::B'.
+Try changing the type of the left hand side, or casting the right hand side to 'test::B'.
+  h = /*error:INVALID_ASSIGNMENT*/ false;
+                                   ^" in let final core::bool #t21 = false in null;
+  self::h = new self::B::•("b");
+  self::i = false;
+  self::j = new self::B::•("b");
+  self::j = let<BottomType> _ = null in let final dynamic #t22 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:58:36: Error: A value of type 'dart.core::bool' can't be assigned to a variable of type 'test::B'.
+Try changing the type of the left hand side, or casting the right hand side to 'test::B'.
+  j = /*error:INVALID_ASSIGNMENT*/ false;
+                                   ^" in let final core::bool #t23 = false in null;
+  self::j = let<BottomType> _ = null in let final dynamic #t24 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:59:58: Error: A value of type 'dart.core::List<dynamic>' can't be assigned to a variable of type 'test::B'.
+Try changing the type of the left hand side, or casting the right hand side to 'test::B'.
+  j = /*error:INVALID_ASSIGNMENT*/ /*@typeArgs=dynamic*/ [];
+                                                         ^" in let final core::List<dynamic> #t25 = <dynamic>[] in null;
+}
+static method main() → dynamic {}

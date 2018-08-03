@@ -18,7 +18,7 @@ class ViewFooterElement extends HtmlElement implements Renderable {
 
   factory ViewFooterElement({RenderingQueue queue}) {
     ViewFooterElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<ViewFooterElement>(e, queue: queue);
     return e;
   }
 
@@ -33,12 +33,12 @@ class ViewFooterElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
   void render() {
-    children = [
+    children = <Element>[
       new AnchorElement()
         ..href = 'https://dart-lang.github.io/observatory/'
         ..text = 'View documentation',

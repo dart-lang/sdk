@@ -1,0 +1,44 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  field core::int foo = null;
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B extends core::Object implements self::A {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method noSuchMethod(dynamic i) → dynamic {
+    self::count = self::count.+(1);
+    return null;
+  }
+  no-such-method-forwarder get foo() → core::int
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withoutType("get:foo", const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}), false)) as{TypeError} core::int;
+  no-such-method-forwarder set foo(core::int value) → void
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withoutType("set:foo", const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}), false));
+}
+abstract class _C&Object&B = core::Object with self::B {
+}
+class C extends self::_C&Object&B {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  get foo() → core::int
+    return 42;
+  set foo(core::int value) → void {}
+}
+static field core::int count = 0;
+static method main() → dynamic {
+  dynamic c = new self::C::•();
+  if(!c.foo.==(42)) {
+    throw "Value mismatch: c.foo != 42.";
+  }
+  c.foo = 43;
+  if(!self::count.==(0)) {
+    throw "Value mismatch: count != 0";
+  }
+}

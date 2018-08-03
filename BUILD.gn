@@ -2,9 +2,13 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("build/dart/dart_host_sdk_toolchain.gni")
+
+targetting_fuchsia = target_os == "fuchsia"
+
 # This target will be built if no target is specified when invoking ninja.
 group("default") {
-  if (is_fuchsia || is_fuchsia_host) {
+  if (targetting_fuchsia) {
     # Fuchsia has run_vm_tests marked testonly.
     testonly = true
   }
@@ -14,7 +18,7 @@ group("default") {
 }
 
 group("most") {
-  if (is_fuchsia || is_fuchsia_host) {
+  if (targetting_fuchsia) {
     # Fuchsia has run_vm_tests marked testonly.
     testonly = true
   }
@@ -30,7 +34,12 @@ group("most") {
 }
 
 group("runtime") {
-  if (is_fuchsia || is_fuchsia_host) {
+  import("runtime/runtime_args.gni")
+
+  target_supports_aot = dart_target_arch == "arm" ||
+                        dart_target_arch == "arm64" || dart_target_arch == "x64"
+
+  if (targetting_fuchsia) {
     # Fuchsia has run_vm_tests marked testonly.
     testonly = true
   }
@@ -41,20 +50,25 @@ group("runtime") {
     "runtime/bin:run_vm_tests",
     "runtime/bin:sample_extension",
     "runtime/bin:test_extension",
-    "runtime/vm:patched_sdk",
+    "runtime/vm:kernel_platform_files($host_toolchain)",
+
+    # TODO(rmacnak): Link this into 'dart'.
+    "utils/kernel-service:copy_kernel_service_snapshot",
+    "utils/kernel-service:kernel-service",
   ]
+
+  if (target_supports_aot) {
+    deps += [ "runtime/bin:precompiler_entry_points_json" ]
+  }
 }
 
 group("runtime_kernel") {
-  if (is_fuchsia || is_fuchsia_host) {
+  if (targetting_fuchsia) {
     # Fuchsia has run_vm_tests marked testonly.
     testonly = true
   }
   deps = [
     ":runtime",
-
-    # TODO(rmacnak): Link this into 'dart'.
-    "utils/kernel-service:kernel-service",
   ]
 }
 
@@ -63,14 +77,22 @@ group("runtime_precompiled") {
     "runtime/bin:dart_bootstrap($host_toolchain)",
     "runtime/bin:dart_precompiled_runtime",
     "runtime/bin:process_test",
-    "runtime/vm:patched_sdk",
   ]
 }
 
 group("create_sdk") {
-  deps = [
+  public_deps = [
     "sdk:create_sdk",
   ]
+}
+
+if (defined(dart_host_sdk_toolchain) &&
+    dart_host_sdk_toolchain != host_toolchain) {
+  group("create_host_sdk") {
+    deps = [
+      "sdk:create_sdk($dart_host_sdk_toolchain)",
+    ]
+  }
 }
 
 group("dart2js") {
@@ -118,86 +140,18 @@ group("samples") {
   ]
 }
 
-# The rules below build a Fuchsia OS image that includes the Dart tree
-# under /system/test/dart.
-if (is_fuchsia) {
-  action("generate_dart_test_manifest") {
-    testonly = true
+# This rule and the compressed_observatory_archive rule are for the Fuchsia
+# bots that pre-build the Observatory. They copy the observatory tar files to
+# the root build output directory for convenient access by the Fuchsia buildbot
+# scripts.
+group("observatory_archive") {
+  deps = [
+    "runtime/observatory:copy_observatory_archive",
+  ]
+}
 
-    deps = [
-      "//packages/gn:mkbootfs",
-    ]
-
-    output_prefix = "$target_gen_dir/dart_test_tree"
-    outputs = [
-      "$output_prefix.manifest",
-    ]
-
-    mode = "release"
-    if (is_debug) {
-      mode = "debug"
-    }
-
-    mkbootfs_gen = get_label_info("//packages/gn:mkbootfs", "target_gen_dir")
-    system_manifest = "$mkbootfs_gen/system.bootfs.manifest"
-
-    script = "tools/gen_fuchsia_test_manifest.py"
-    args = [
-      "-m",
-      mode,
-      "-u",
-      rebase_path(system_manifest),
-      "-o",
-      rebase_path(output_prefix),
-    ]
-  }
-
-  action("generate_dart_test_image") {
-    testonly = true
-    deps = [
-      ":generate_dart_test_manifest",
-      "runtime/bin:dart",
-      "runtime/bin:process_test",
-      "runtime/bin:run_vm_tests",
-    ]
-
-    mkbootfs_gen = get_label_info("//packages/gn:mkbootfs", "target_gen_dir")
-    boot_manifest = "$mkbootfs_gen/boot.bootfs.manifest"
-
-    # Compute path to magenta bootdata.bin
-    if (current_cpu == "arm64") {
-      magenta_bootdata =
-          "//out/build-magenta/build-magenta-qemu-arm64/bootdata.bin"
-    } else if (current_cpu == "x64") {
-      magenta_bootdata =
-          "//out/build-magenta/build-magenta-pc-x86-64/bootdata.bin"
-    } else {
-      assert(false, "unable to determine path to magenta's bootdata.bin")
-    }
-
-    input = "$target_gen_dir/dart_test_tree.manifest"
-    inputs = [
-      magenta_bootdata,
-      input,
-    ]
-
-    output = "$root_out_dir/dart_test_tree.bin"
-    outputs = [
-      output,
-    ]
-
-    script = "//packages/gn/make_bootfs.py"
-    args = [
-      "--boot-manifest",
-      rebase_path(boot_manifest),
-      "--system-manifest",
-      rebase_path(input),
-      "--output-file",
-      rebase_path(output),
-      "--build-id-map",
-      rebase_path("$target_gen_dir/build_id_map"),
-      "--pre-binaries",
-      rebase_path(magenta_bootdata),
-    ]
-  }
+group("compressed_observatory_archive") {
+  deps = [
+    "runtime/observatory:copy_compressed_observatory_archive",
+  ]
 }

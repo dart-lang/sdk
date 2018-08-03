@@ -28,7 +28,7 @@ import 'package:analyzer/src/dart/resolver/scope.dart' show Scope;
 import 'package:args/command_runner.dart';
 
 import 'package:dev_compiler/src/analyzer/context.dart' show AnalyzerOptions;
-import 'package:dev_compiler/src/compiler/compiler.dart'
+import 'package:dev_compiler/src/analyzer/module_compiler.dart'
     show BuildUnit, CompilerOptions, JSModuleFile, ModuleCompiler;
 
 import 'package:dev_compiler/src/compiler/module_builder.dart';
@@ -85,7 +85,6 @@ class WebCompileCommand extends Command {
       Function onCompileReady, Function onError, Function onProgress) async {
     var sdkRequest;
     var progress = 0;
-    int lastReported = 0;
     // Add 1 to the count for the SDK summary.
     var total = summaryMap.size + 1;
     // No need to report after every  summary is loaded. Posting about 100
@@ -101,7 +100,9 @@ class WebCompileCommand extends Command {
 
     try {
       sdkRequest = await HttpRequest.request(sdkUrl,
-          responseType: "arraybuffer", mimeType: "application/octet-stream");
+          responseType: "arraybuffer",
+          mimeType: "application/octet-stream",
+          withCredentials: true);
     } catch (error) {
       onError('Dart sdk summaries failed to load: $error. url: $sdkUrl');
       return null;
@@ -138,16 +139,16 @@ class WebCompileCommand extends Command {
       List<String> moduleIds) {
     var dartSdkSummaryPath = '/dart-sdk/lib/_internal/web_sdk.sum';
 
-    var resourceProvider = new MemoryResourceProvider()
+    var resourceProvider = MemoryResourceProvider()
       ..newFileWithBytes(dartSdkSummaryPath, sdkBytes);
 
-    var resourceUriResolver = new ResourceUriResolver(resourceProvider);
+    var resourceUriResolver = ResourceUriResolver(resourceProvider);
 
-    var options = new AnalyzerOptions.basic(
+    var options = AnalyzerOptions.basic(
         dartSdkPath: '/dart-sdk', dartSdkSummaryPath: dartSdkSummaryPath);
 
-    var summaryDataStore = new SummaryDataStore(options.summaryPaths,
-        resourceProvider: resourceProvider, recordDependencyInfo: true);
+    var summaryDataStore = SummaryDataStore(options.summaryPaths,
+        resourceProvider: resourceProvider);
     for (var i = 0; i < summaryBytes.length; i++) {
       var bytes = summaryBytes[i];
 
@@ -155,15 +156,15 @@ class WebCompileCommand extends Command {
       if (bytes.length == 0) continue;
 
       var url = '/${moduleIds[i]}.api.ds';
-      var summaryBundle = new PackageBundle.fromBuffer(bytes);
+      var summaryBundle = PackageBundle.fromBuffer(bytes);
       summaryDataStore.addBundle(url, summaryBundle);
     }
     var summaryResolver =
-        new InSummaryUriResolver(resourceProvider, summaryDataStore);
+        InSummaryUriResolver(resourceProvider, summaryDataStore);
 
     var fileResolvers = [summaryResolver, resourceUriResolver];
 
-    var compiler = new ModuleCompiler(options,
+    var compiler = ModuleCompiler(options,
         analysisRoot: '/web-compile-root',
         fileResolvers: fileResolvers,
         resourceProvider: resourceProvider,
@@ -171,7 +172,7 @@ class WebCompileCommand extends Command {
 
     var context = compiler.context as AnalysisContextImpl;
 
-    var compilerOptions = new CompilerOptions.fromArguments(argResults);
+    var compilerOptions = CompilerOptions.fromArguments(argResults);
 
     var resolveFn = (String url) {
       var packagePrefix = 'package:';
@@ -252,7 +253,7 @@ class WebCompileCommand extends Command {
         if (libraryElement == null) {
           throw "Unable to get library element.";
         }
-        var sb = new StringBuffer(imports);
+        var sb = StringBuffer(imports);
         sb.write('\n');
 
         // TODO(jacobr): we need to add a proper Analyzer flag specifing that
@@ -267,7 +268,7 @@ class WebCompileCommand extends Command {
 
         // We emulate running code in the context of an existing library by
         // importing that library and all libraries it imports.
-        sb.write('import ${JSON.encode(existingLibrary)};\n');
+        sb.write('import ${json.encode(existingLibrary)};\n');
 
         for (ImportElement importElement in libraryElement.imports) {
           if (importElement.uri == null) continue;
@@ -280,7 +281,7 @@ class WebCompileCommand extends Command {
               !uri.startsWith('dart:')) {
             uri = path.normalize(path.join(dir, uri));
           }
-          sb.write('import ${JSON.encode(uri)}');
+          sb.write('import ${json.encode(uri)}');
           if (importElement.prefix != null)
             sb.write(' as ${importElement.prefix.name}');
           for (var combinator in importElement.combinators) {
@@ -299,7 +300,7 @@ class WebCompileCommand extends Command {
       }
       resourceProvider.newFile(fileName, sourceCode);
 
-      var unit = new BuildUnit(libraryName, "", [fileName], _moduleForLibrary);
+      var unit = BuildUnit(libraryName, "", [fileName], _moduleForLibrary);
 
       JSModuleFile module = compiler.compile(unit, compilerOptions);
 
@@ -311,7 +312,7 @@ class WebCompileCommand extends Command {
             .code;
       }
 
-      return new CompileResult(
+      return CompileResult(
           code: moduleCode, isValid: module.isValid, errors: module.errors);
     };
 

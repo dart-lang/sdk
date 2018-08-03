@@ -11,6 +11,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UpdateContentTest);
+    defineReflectiveTests(UpdateContentTest_UseCFE);
   });
 }
 
@@ -60,12 +61,9 @@ main() {
     expect(currentAnalysisErrors[path], isNotEmpty);
   }
 
-  @failingTest
   test_updateContent_multipleAdds() async {
     String pathname = sourcePath('test.dart');
-    writeFile(
-        pathname,
-        r'''
+    writeFile(pathname, r'''
 class Person {
   String _name;
   Person(this._name);
@@ -106,4 +104,10 @@ void main() {
     expect(errors2, hasLength(1));
     expect(errors2[0].location.file, equals(pathname));
   }
+}
+
+@reflectiveTest
+class UpdateContentTest_UseCFE extends UpdateContentTest {
+  @override
+  bool get useCFE => true;
 }

@@ -1,0 +1,30 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+class Foo extends core::Object {
+  field core::int bar;
+  synthetic constructor •() → void
+    ;
+}
+class Bar<T extends asy::Stream<core::String> = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    ;
+  method foo(self::Bar::T t) → dynamic
+    ;
+}
+class Baz<T extends core::Object = dynamic, E extends asy::Stream<self::Baz::T> = dynamic, S extends self::Baz::E = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    ;
+  method foo(self::Baz::S t) → dynamic
+    ;
+}
+abstract class MyStream<T extends core::Object = dynamic> extends asy::Stream<self::MyStream::T> {
+  static factory •<T extends core::Object = dynamic>() → self::MyStream<self::MyStream::•::T>
+    ;
+}
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

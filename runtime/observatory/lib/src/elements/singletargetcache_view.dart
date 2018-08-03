@@ -80,7 +80,8 @@ class SingleTargetCacheViewElement extends HtmlElement implements Renderable {
     assert(retainingPaths != null);
     assert(objects != null);
     SingleTargetCacheViewElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r =
+        new RenderingScheduler<SingleTargetCacheViewElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
     e._events = events;
@@ -107,12 +108,12 @@ class SingleTargetCacheViewElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    children = [
-      navBar([
+    children = <Element>[
+      navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue),
         new NavVMMenuElement(_vm, _events, queue: _r.queue),
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
@@ -128,7 +129,7 @@ class SingleTargetCacheViewElement extends HtmlElement implements Renderable {
       ]),
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h2()..text = 'SingleTargetCache',
           new HRElement(),
           new ObjectCommonElement(_isolate, _singleTargetCache, _retainedSizes,
@@ -136,42 +137,42 @@ class SingleTargetCacheViewElement extends HtmlElement implements Renderable {
               queue: _r.queue),
           new DivElement()
             ..classes = ['memberList']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'target',
                   new DivElement()
                     ..classes = ['memberName']
-                    ..children = [
+                    ..children = <Element>[
                       anyRef(_isolate, _singleTargetCache.target, _objects,
                           queue: _r.queue)
                     ]
                 ],
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'lowerLimit',
                   new DivElement()
                     ..classes = ['memberName']
-                    ..children = [
+                    ..children = <Element>[
                       new SpanElement()
                         ..text = _singleTargetCache.lowerLimit.toString()
                     ]
                 ],
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'upperLimit',
                   new DivElement()
                     ..classes = ['memberName']
-                    ..children = [
+                    ..children = <Element>[
                       new SpanElement()
                         ..text = _singleTargetCache.upperLimit.toString()
                     ]

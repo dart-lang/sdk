@@ -5,10 +5,11 @@
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
 import 'package:front_end/src/scanner/token.dart';
+import 'package:front_end/src/scanner/errors.dart' as analyzer;
 import 'package:front_end/src/scanner/reader.dart' as analyzer;
+import 'package:front_end/src/scanner/scanner.dart' as analyzer;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'scanner_roundtrip_test.dart' show TestScanner;
 
 main() {
   defineReflectiveSuite(() {
@@ -103,8 +104,8 @@ class Foo {
     while (!token1.isEof) {
       if (token1 is fasta.StringToken) stringTokenFound = true;
       if (token1 is KeywordToken) keywordTokenFound = true;
-      if (token1 is fasta.SymbolToken) symbolTokenFound = true;
-      if (token1 is fasta.BeginGroupToken) beginGroupTokenFound = true;
+      if (token1.type == TokenType.OPEN_PAREN) symbolTokenFound = true;
+      if (token1 is BeginToken) beginGroupTokenFound = true;
 
       var copy1 = token1.copy();
       expect(copy1, isNotNull);
@@ -157,7 +158,9 @@ class Foo {
       Keyword.GET,
       Keyword.IMPLEMENTS,
       Keyword.IMPORT,
+      Keyword.INTERFACE,
       Keyword.LIBRARY,
+      Keyword.MIXIN,
       Keyword.OPERATOR,
       Keyword.PART,
       Keyword.SET,
@@ -167,7 +170,48 @@ class Foo {
     for (Keyword keyword in Keyword.values) {
       var isBuiltIn = builtInKeywords.contains(keyword);
       expect(keyword.isBuiltIn, isBuiltIn, reason: keyword.name);
-      expect(keyword.isBuiltIn, isBuiltIn, reason: keyword.name);
+    }
+  }
+
+  void test_isModifier() {
+    var modifierKeywords = new Set<Keyword>.from([
+      Keyword.ABSTRACT,
+      Keyword.CONST,
+      Keyword.COVARIANT,
+      Keyword.EXTERNAL,
+      Keyword.FINAL,
+      Keyword.STATIC,
+      Keyword.VAR,
+    ]);
+    for (Keyword keyword in Keyword.values) {
+      var isModifier = modifierKeywords.contains(keyword);
+      var scanner = new StringScanner(keyword.lexeme, includeComments: true);
+      Token token = scanner.tokenize();
+      expect(token.isModifier, isModifier, reason: keyword.name);
+      if (isModifier) {
+        expect(token.isTopLevelKeyword, isFalse, reason: keyword.name);
+      }
+    }
+  }
+
+  void test_isTopLevelKeyword() {
+    var topLevelKeywords = new Set<Keyword>.from([
+      Keyword.CLASS,
+      Keyword.ENUM,
+      Keyword.EXPORT,
+      Keyword.IMPORT,
+      Keyword.LIBRARY,
+      Keyword.PART,
+      Keyword.TYPEDEF,
+    ]);
+    for (Keyword keyword in Keyword.values) {
+      var isTopLevelKeyword = topLevelKeywords.contains(keyword);
+      var scanner = new StringScanner(keyword.lexeme, includeComments: true);
+      Token token = scanner.tokenize();
+      expect(token.isTopLevelKeyword, isTopLevelKeyword, reason: keyword.name);
+      if (isTopLevelKeyword) {
+        expect(token.isModifier, isFalse, reason: keyword.name);
+      }
     }
   }
 
@@ -206,5 +250,16 @@ class Foo {
     token = token.next;
     expect(token.lexeme, '"home"');
     expect(token.value(), '"home"');
+  }
+}
+
+class TestScanner extends analyzer.Scanner {
+  TestScanner(analyzer.CharacterReader reader) : super.create(reader);
+
+  @override
+  void reportError(
+      analyzer.ScannerErrorCode errorCode, int offset, List<Object> arguments) {
+    fail('Unexpected error $errorCode while scanning offset $offset\n'
+        '   arguments: $arguments');
   }
 }

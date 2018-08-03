@@ -11,6 +11,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetLibraryDependenciesTest);
+    defineReflectiveTests(GetLibraryDependenciesTest_UseCFE);
   });
 }
 
@@ -44,4 +45,10 @@ class Bar {
     Map<String, List<String>> map = packageMaps[packageMaps.keys.first];
     expect(map.keys, isEmpty);
   }
+}
+
+@reflectiveTest
+class GetLibraryDependenciesTest_UseCFE extends GetLibraryDependenciesTest {
+  @override
+  bool get useCFE => true;
 }

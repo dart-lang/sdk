@@ -19,17 +19,20 @@ class Z {
 
 makeZ() native;
 
-void setup() native """
-function A(){}
-makeZ = function(){return new A};
-self.nativeConstructor(A);
-""";
+void setup() {
+  JS('', r"""
+(function(){
+  function A(){}
+  makeZ = function(){return new A()};
+  self.nativeConstructor(A);
+})()""");
+}
 
 main() {
   nativeTesting();
   setup();
 
-  var a = new A();
+  dynamic a = new A();
   var z = makeZ();
 
   Expect.equals(100, z.foo());

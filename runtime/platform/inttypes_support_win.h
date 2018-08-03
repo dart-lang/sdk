@@ -18,10 +18,18 @@ typedef unsigned __int64 uint64_t;
 #define PRIdPTR "Id"
 #define PRIuPTR "Iu"
 #define PRIxPTR "Ix"
+#define PRIXPTR "IX"
 
 // Printf format specifiers for int64_t and uint64_t.
 #define PRId64 "I64d"
 #define PRIu64 "I64u"
 #define PRIx64 "I64x"
+#define PRIX64 "I64X"
+
+// Printf format specifiers for int32_t and uint32_t.
+#define PRId32 "I32d"
+#define PRIu32 "I32u"
+#define PRIx32 "I32x"
+#define PRIX32 "I32X"
 
 #endif  // RUNTIME_PLATFORM_INTTYPES_SUPPORT_WIN_H_

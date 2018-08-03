@@ -9,26 +9,26 @@ class A {}
 
 typedef int F();
 
-typedef G = F; //# 00: compile-time error
-typedef H = int; //# 01: compile-time error
-typedef I = A; //# 02: compile-time error
-typedef J = List<int>; //# 03: compile-time error
+typedef G = F; //# 00: syntax error
+typedef H = int; //# 01: syntax error
+typedef I = A; //# 02: syntax error
+typedef J = List<int>; //# 03: syntax error
 typedef K = Function(
     Function<A>(A
     <int> // //# 04: static type warning
         ));
 typedef L = Function(
     {
-  /* //  //# 05: compile-time error
+  /* //  //# 05: syntax error
     bool
-  */ //  //# 05: compile-time error
+  */ //  //# 05: continued
         x});
 
 typedef M = Function(
     {
-  /* //  //# 06: compile-time error
+  /* //  //# 06: syntax error
     bool
-  */ //  //# 06: compile-time error
+  */ //  //# 06: continued
         int});
 
 foo({bool int}) {}

@@ -1,15 +1,7 @@
 /*
- * Copyright (c) 2015, the Dart project authors.
- *
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
- * in compliance with the License. You may obtain a copy of the License at
- *
- * http://www.eclipse.org/legal/epl-v10.html
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
+ * Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+ * for details. All rights reserved. Use of this source code is governed by a
+ * BSD-style license that can be found in the LICENSE file.
  *
  * This file has been automatically generated.  Please do not edit it manually.
  * To regenerate the file, use the script "pkg/analysis_server/tool/spec/generate_files".
@@ -58,6 +50,18 @@ public class RequestErrorCode {
   public static final String GET_ERRORS_INVALID_FILE = "GET_ERRORS_INVALID_FILE";
 
   /**
+   * An "analysis.getImportedElements" request specified a FilePath that does not match a file
+   * currently subject to analysis.
+   */
+  public static final String GET_IMPORTED_ELEMENTS_INVALID_FILE = "GET_IMPORTED_ELEMENTS_INVALID_FILE";
+
+  /**
+   * An "analysis.getKytheEntries" request specified a FilePath that does not match a file that is
+   * currently subject to analysis.
+   */
+  public static final String GET_KYTHE_ENTRIES_INVALID_FILE = "GET_KYTHE_ENTRIES_INVALID_FILE";
+
+  /**
    * An "analysis.getNavigation" request specified a FilePath which does not match a file currently
    * subject to analysis.
    */
@@ -68,6 +72,12 @@ public class RequestErrorCode {
    * currently subject to analysis.
    */
   public static final String GET_REACHABLE_SOURCES_INVALID_FILE = "GET_REACHABLE_SOURCES_INVALID_FILE";
+
+  /**
+   * An "edit.importElements" request specified a FilePath that does not match a file currently
+   * subject to analysis.
+   */
+  public static final String IMPORT_ELEMENTS_INVALID_FILE = "IMPORT_ELEMENTS_INVALID_FILE";
 
   /**
    * A path passed as an argument to a request (such as analysis.reanalyze) is required to be an

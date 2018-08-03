@@ -12,7 +12,7 @@ have a working environment in which you are able to build and test the Dart SDK.
 ### Develop with Dartium ~ Suggested
 If you want to avoid triggering a new compilation to JavaScript for each edit
 you do, you can use a modified version of Chromium named Dartium that will
-interpret you dart code directly.
+interpret your dart code directly.
 
 You can obtain Dartium in two different ways:
 1. [Download][download_dartium] the binaries

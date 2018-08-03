@@ -145,14 +145,18 @@ class A {
     }
     // get parameter
     Expression rhs = assignment.rightHandSide;
-    expect(rhs.staticParameterElement, isNull);
+    expect(rhs.staticParameterElement, previewDart2 ? isNotNull : isNull);
     ParameterElement parameter = rhs.propagatedParameterElement;
-    expect(parameter, isNotNull);
-    expect(parameter.displayName, "x");
-    // validate
-    ClassElement classA = unit.element.types[0];
-    PropertyAccessorElement setter = classA.accessors[0];
-    expect(setter.parameters[0], same(parameter));
+    if (previewDart2) {
+      expect(parameter, isNull);
+    } else {
+      expect(parameter, isNotNull);
+      expect(parameter.displayName, "x");
+      // validate
+      ClassElement classA = unit.element.types[0];
+      PropertyAccessorElement setter = classA.accessors[0];
+      expect(setter.parameters[0], same(parameter));
+    }
   }
 
   test_argumentResolution_setter_propagated_propertyAccess() async {
@@ -176,14 +180,18 @@ class B {
     }
     // get parameter
     Expression rhs = assignment.rightHandSide;
-    expect(rhs.staticParameterElement, isNull);
+    expect(rhs.staticParameterElement, previewDart2 ? isNotNull : isNull);
     ParameterElement parameter = rhs.propagatedParameterElement;
-    expect(parameter, isNotNull);
-    expect(parameter.displayName, "x");
-    // validate
-    ClassElement classB = unit.element.types[1];
-    PropertyAccessorElement setter = classB.accessors[0];
-    expect(setter.parameters[0], same(parameter));
+    if (previewDart2) {
+      expect(parameter, isNull);
+    } else {
+      expect(parameter, isNotNull);
+      expect(parameter.displayName, "x");
+      // validate
+      ClassElement classB = unit.element.types[1];
+      PropertyAccessorElement setter = classB.accessors[0];
+      expect(setter.parameters[0], same(parameter));
+    }
   }
 
   test_argumentResolution_setter_static() async {
@@ -564,14 +572,10 @@ void f() {
   }
 
   test_entryPoint_exported() async {
-    addNamedSource(
-        "/two.dart",
-        r'''
+    addNamedSource("/two.dart", r'''
 library two;
 main() {}''');
-    Source source = addNamedSource(
-        "/one.dart",
-        r'''
+    Source source = addNamedSource("/one.dart", r'''
 library one;
 export 'two.dart';''');
     LibraryElement library = resolve2(source);
@@ -585,9 +589,7 @@ export 'two.dart';''');
   }
 
   test_entryPoint_local() async {
-    Source source = addNamedSource(
-        "/one.dart",
-        r'''
+    Source source = addNamedSource("/one.dart", r'''
 library one;
 main() {}''');
     LibraryElement library = resolve2(source);
@@ -611,9 +613,7 @@ main() {}''');
   }
 
   test_enum_externalLibrary() async {
-    addNamedSource(
-        "/my_lib.dart",
-        r'''
+    addNamedSource("/my_lib.dart", r'''
 library my_lib;
 enum EEE {A, B, C}''');
     Source source = addSource(r'''
@@ -654,7 +654,7 @@ class A {
     ConstructorDeclaration constructor = classA.members[2];
     ParameterElement paramElement =
         constructor.parameters.parameters[0].element;
-    expect(paramElement, new isInstanceOf<FieldFormalParameterElement>());
+    expect(paramElement, new TypeMatcher<FieldFormalParameterElement>());
     expect((paramElement as FieldFormalParameterElement).field,
         field.fields.variables[0].element);
     ConstructorFieldInitializer initializer = constructor.initializers[0];
@@ -877,20 +877,14 @@ class B {toString() => super.toString();}''');
   }
 
   test_import_hide() async {
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 set foo(value) {}
 class A {}''');
-    addNamedSource(
-        "/lib2.dart",
-        r'''
+    addNamedSource("/lib2.dart", r'''
 library lib2;
 set foo(value) {}''');
-    Source source = addNamedSource(
-        "/lib3.dart",
-        r'''
+    Source source = addNamedSource("/lib3.dart", r'''
 import 'lib1.dart' hide foo;
 import 'lib2.dart';
 
@@ -904,16 +898,12 @@ A a;''');
   }
 
   test_import_prefix() async {
-    addNamedSource(
-        "/two.dart",
-        r'''
+    addNamedSource("/two.dart", r'''
 library two;
 f(int x) {
   return x * x;
 }''');
-    Source source = addNamedSource(
-        "/one.dart",
-        r'''
+    Source source = addNamedSource("/one.dart", r'''
 library one;
 import 'two.dart' as _two;
 main() {
@@ -930,9 +920,7 @@ main() {
     // single error generated when the only problem is that an imported file
     // does not exist.
     //
-    Source source = addNamedSource(
-        "/a.dart",
-        r'''
+    Source source = addNamedSource("/a.dart", r'''
 import 'missing.dart' as p;
 int a = p.q + p.r.s;
 String b = p.t(a) + p.u(v: 0);
@@ -960,9 +948,7 @@ class H extends D<p.W> {
     // single error generated when the only problem is that an imported file
     // does not exist.
     //
-    Source source = addNamedSource(
-        "/a.dart",
-        r'''
+    Source source = addNamedSource("/a.dart", r'''
 import 'missing.dart' show q, r, t, u, T, U, V, W;
 int a = q + r.s;
 String b = t(a) + u(v: 0);
@@ -985,14 +971,10 @@ class H extends D<W> {
   }
 
   test_import_spaceInUri() async {
-    addNamedSource(
-        "/sub folder/lib.dart",
-        r'''
+    addNamedSource("/sub folder/lib.dart", r'''
 library lib;
 foo() {}''');
-    Source source = addNamedSource(
-        "/app.dart",
-        r'''
+    Source source = addNamedSource("/app.dart", r'''
 import 'sub folder/lib.dart';
 
 main() {
@@ -1864,10 +1846,22 @@ class _SimpleResolverTest_localVariable_types_invoked
         found[0] = true;
         // check static type
         DartType staticType = node.staticType;
-        expect(staticType, same(test.typeProvider.dynamicType));
+        if (test.previewDart2) {
+          expect(staticType is FunctionType, isTrue);
+          FunctionType functionType = staticType;
+          expect(
+              functionType.parameters[0].type, same(test.typeProvider.intType));
+          expect(functionType.returnType, same(test.typeProvider.stringType));
+        } else {
+          expect(staticType, same(test.typeProvider.dynamicType));
+        }
         // check propagated type
         FunctionType propagatedType = node.propagatedType as FunctionType;
-        expect(propagatedType.returnType, test.typeProvider.stringType);
+        if (test.previewDart2) {
+          expect(propagatedType, isNull);
+        } else {
+          expect(propagatedType.returnType, test.typeProvider.stringType);
+        }
       } on AnalysisException catch (e, stackTrace) {
         thrownException[0] = new CaughtException(e, stackTrace);
       }

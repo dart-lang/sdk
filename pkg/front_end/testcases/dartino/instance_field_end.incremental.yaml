@@ -1,0 +1,28 @@
+# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+main.dart.patch: |
+  // Test that we can manipulate a field from an instance
+  // of a class from the end of the field list
+  class A {
+    var x;
+  <<<< "instance is null"
+    var y;
+  ==== "x = 0"
+  ==== "x = 0"
+    var y;
+  >>>>
+  }
+
+  var instance;
+
+  main() {
+    if (instance == null) {
+      print('instance is null');
+      instance = new A();
+      instance.x = 0;
+    } else {
+      print('x = ${instance.x}');
+    }
+  }

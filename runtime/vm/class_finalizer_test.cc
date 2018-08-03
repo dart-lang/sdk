@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "platform/assert.h"
 #include "vm/class_finalizer.h"
+#include "platform/assert.h"
 #include "vm/symbols.h"
 #include "vm/unit_test.h"
 
 namespace dart {
-
 
 static RawClass* CreateTestClass(const char* name) {
   const String& class_name =
@@ -21,7 +20,6 @@ static RawClass* CreateTestClass(const char* name) {
   cls.SetFields(Object::empty_array());
   return cls.raw();
 }
-
 
 TEST_CASE(ClassFinalizer) {
   Zone* zone = thread->zone();
@@ -53,7 +51,6 @@ TEST_CASE(ClassFinalizer) {
   EXPECT(ClassFinalizer::ProcessPendingClasses());
 }
 
-
 TEST_CASE(ClassFinalize_Cycles) {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
@@ -73,12 +70,10 @@ TEST_CASE(ClassFinalize_Cycles) {
   EXPECT(!ClassFinalizer::ProcessPendingClasses());
 }
 
-
 static RawLibrary* NewLib(const char* url_chars) {
   String& url = String::ZoneHandle(Symbols::New(Thread::Current(), url_chars));
   return Library::New(url);
 }
-
 
 TEST_CASE(ClassFinalize_Resolve) {
   Zone* zone = thread->zone();

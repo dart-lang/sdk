@@ -12,6 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SortMembersTest);
+    defineReflectiveTests(SortMembersTest_UseCFE);
   });
 }
 
@@ -61,4 +62,10 @@ int bar;
       expect(message.error['code'], 'SORT_MEMBERS_PARSE_ERRORS');
     }
   }
+}
+
+@reflectiveTest
+class SortMembersTest_UseCFE extends SortMembersTest {
+  @override
+  bool get useCFE => true;
 }

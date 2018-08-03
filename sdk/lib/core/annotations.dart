@@ -72,14 +72,14 @@ class Deprecated {
   String toString() => "Deprecated feature. Will be removed $expires";
 }
 
-class _Override {
-  const _Override();
-}
-
 /**
  * Marks a feature as [Deprecated] until the next release.
  */
 const Deprecated deprecated = const Deprecated("next release");
+
+class _Override {
+  const _Override();
+}
 
 /**
  * The annotation `@override` marks an instance member as overriding a
@@ -108,11 +108,74 @@ const Deprecated deprecated = const Deprecated("next release");
  */
 const Object override = const _Override();
 
+/**
+ * The annotation `@Provisional('message')` marks a feature as provisional.
+ *
+ * An API is considered to be provisional if it is still going through the
+ * process of stabilizing and is subject to change or removal.
+ *
+ * The intent of the `@Provisional` annotation is to mark APIs that are still in
+ * development or that are added only tentatively. Adding the API allows users
+ * to experiment with using the APIs, which can provide valuable feedback. Such
+ * provisional APIs do not promise stability. They can be changed or removed
+ * without warning.
+ *
+ * The `@Provisional` annotation applies to:
+ * - library directives,
+ * - public top-level declarations, and
+ * - public members of public classes.
+ *
+ * Provisionality is transitive:
+ * - If a library is provisional, so is every member of it.
+ * - If a class is provisional, so is every member of it.
+ * - If a variable is provisional, so are its implicit getter and setter.
+ *
+ * Further, if a class is provisional, so are classes that extend, implement,
+ * and mix-in the class.
+ *
+ * A tool that processes Dart source code may report when:
+ * - the code imports a provisional library.
+ * - the code exports a provisional library, or any provisional member of
+ *   a non-provisional library.
+ * - the code refers statically to a provisional declaration.
+ * - the code dynamically uses a member of an object with a statically known
+ *   type, where the member is provisional on the static type of the object.
+ *
+ * If the provisional use is inside a library, class or method which is itself
+ * provisional, the tool should not bother the user about it.
+ * A provisional feature is expected to use other provisional features.
+ */
+class Provisional {
+  /**
+   * A brief message describing how or why the feature is provisional.
+   */
+  final String message;
+
+  const Provisional({String message})
+      : this.message = message ?? "Subject to change or removal.";
+}
+
+/**
+ * Marks a feature as provisional with the message "Subject to change or
+ * removal".
+ */
+const Provisional provisional = const Provisional();
+
 class _Proxy {
   const _Proxy();
 }
 
 /**
+ * This annotation is deprecated and will be removed in Dart 2.
+ *
+ * Dart 2 has a more restrictive type system than Dart 1, and it requires
+ * method access to be either through a known interface or by using
+ * dynamic invocations. The original intent of `@proxy` (to implement a class
+ * that isn't known statically, as documented at the end of this text),
+ * is not supported by Dart 2.
+ * To continue to perform dynamic invocations on an object,
+ * it should be accessed through a reference of type `dynamic`.
+ *
  * The annotation `@proxy` marks a class as implementing members dynamically
  * through `noSuchMethod`.
  *
@@ -120,8 +183,7 @@ class _Proxy {
  * superclass and interfaces.
  *
  * If a class is annotated with `@proxy`, or it implements any class that is
- * annotated, then the class is considered to implement any member with regard
- * to static type analysis.
+ * annotated, then all member accesses are allowed on an object of that type.
  * As such, it is not a static type warning to access any member of the object
  * which is not implemented by the class, or to call a method with a different
  * number of parameters than it is declared with.
@@ -150,4 +212,58 @@ class _Proxy {
  * are known at compile time, a class can be written that implements these
  * types.
  */
+@deprecated
 const Object proxy = const _Proxy();
+
+/**
+ * A hint to tools.
+ *
+ * Tools that work with Dart programs may accept hints to guide their behavior
+ * as `pragma` annotations on declarations.
+ * Each tool decides which hints it accepts, what they mean, and whether and
+ * how they apply to sub-parts of the annotated entity.
+ *
+ * Tools that recognize pragma hints should pick a pragma prefix to identify
+ * the tool. They should recognize any hint with a [name] starting with their
+ * prefix followed by `:` as if it was intended for that tool. A hint with a
+ * prefix for another tool should be ignored (unless compatibility with that
+ * other tool is a goal).
+ *
+ * A tool may recognize unprefixed names as well, if they would recognize that
+ * name with their own prefix in front.
+ *
+ * If the hint can be parameterized, an extra [options] object can be added as well.
+ *
+ * For example:
+ *
+ * ```dart
+ * @pragma('Tool:pragma-name', [param1, param2, ...])
+ * class Foo { }
+ *
+ * @pragma('OtherTool:other-pragma')
+ * void foo() { }
+ * ```
+ *
+ * Here class Foo is annotated with a Tool specific pragma 'pragma-name' and
+ * function foo is annotated with a pragma 'other-pragma' specific to OtherTool.
+ *
+ */
+@pragma('vm.entry_point')
+class pragma {
+  /**
+   * The name of the hint.
+   *
+   * A string that is recognized by one or more tools, or such a string prefixed
+   * by a tool identifier and a colon, which is only recognized by that
+   * particular tool.
+   */
+  final String name;
+
+  /** Optional extra data parameterizing the hint. */
+  final Object options;
+
+  /** Creates a hint named [name] with optional [options]. */
+  const factory pragma(String name, [Object options]) = pragma._;
+
+  const pragma._(this.name, [this.options]);
+}

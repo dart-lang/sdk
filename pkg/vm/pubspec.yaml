@@ -1,0 +1,13 @@
+# This package is not intended to be published.
+name: vm
+# version: do-not-upload
+description: VM specific Dart code and helper scripts
+
+dependencies:
+  build_integration:
+    path: ../build_integration
+  front_end: 0.1.0-alpha.6
+  kernel: 0.3.0-alpha.3
+
+dev_dependencies:
+  args: ^0.13.0

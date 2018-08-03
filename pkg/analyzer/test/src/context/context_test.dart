@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.context.context_test;
-
 import 'dart:async';
 import 'dart:collection';
 
@@ -16,7 +14,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
@@ -25,14 +22,14 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/task/api/dart.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/html.dart';
-import 'package:analyzer/task/dart.dart';
-import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart' show Document;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:watcher/src/utils.dart';
 
 import '../../generated/engine_test.dart';
 import '../../generated/test_support.dart';
@@ -47,9 +44,7 @@ main() {
 @reflectiveTest
 class AnalysisContextImplTest extends AbstractContextTest {
   void fail_getErrors_html_some() {
-    Source source = addSource(
-        "/test.html",
-        r'''
+    Source source = addSource("/test.html", r'''
 <html><head>
 <script type='application/dart' src='test.dart'/>
 </head></html>''');
@@ -89,9 +84,7 @@ class AnalysisContextImplTest extends AbstractContextTest {
 
   void fail_performAnalysisTask_importedLibraryDelete_html() {
     // NOTE: This was failing before converting to the new task model.
-    Source htmlSource = addSource(
-        "/page.html",
-        r'''
+    Source htmlSource = addSource("/page.html", r'''
 <html><body><script type="application/dart">
   import 'libB.dart';
   main() {print('hello dart');}
@@ -155,33 +148,24 @@ class AnalysisContextImplTest extends AbstractContextTest {
 
   void test_applyChanges_addNewImport_invalidateLibraryCycle() {
     context.analysisOptions =
-        new AnalysisOptionsImpl.from(context.analysisOptions)
-          ..strongMode = true;
-    Source embedder = addSource(
-        '/a.dart',
-        r'''
+        new AnalysisOptionsImpl.from(context.analysisOptions);
+    Source embedder = addSource('/a.dart', r'''
 library a;
 import 'b.dart';
 //import 'c.dart';
 ''');
-    addSource(
-        '/b.dart',
-        r'''
+    addSource('/b.dart', r'''
 library b;
 import 'a.dart';
 ''');
-    addSource(
-        '/c.dart',
-        r'''
+    addSource('/c.dart', r'''
 library c;
 import 'b.dart';
 ''');
     _performPendingAnalysisTasks();
     // Add a new import into a.dart, this should invalidate its library cycle.
     // If it doesn't, we will get a task cycle exception.
-    context.setContents(
-        embedder,
-        r'''
+    context.setContents(embedder, r'''
 library a;
 import 'b.dart';
 import 'c.dart';
@@ -233,15 +217,11 @@ import 'c.dart';
   }
 
   void test_applyChanges_change_flush_element() {
-    Source librarySource = addSource(
-        "/lib.dart",
-        r'''
+    Source librarySource = addSource("/lib.dart", r'''
 library lib;
 int a = 0;''');
     expect(context.computeLibraryElement(librarySource), isNotNull);
-    context.setContents(
-        librarySource,
-        r'''
+    context.setContents(librarySource, r'''
 library lib;
 int aa = 0;''');
     expect(context.getLibraryElement(librarySource), isNull);
@@ -346,46 +326,46 @@ int b = aa;''';
     if (context != null) return;
     throw 'is this test used by the new analysis driver?';
 
-    context.analysisOptions = new AnalysisOptionsImpl()..incremental = true;
-    Source source = addSource(
-        "/test.dart",
-        r'''
-main() {
-  print(42);
-}
-''');
-    _performPendingAnalysisTasks();
-    expect(context.getErrors(source).errors, hasLength(0));
-    // Update the source to have a parse error.
-    // This is an incremental change, but we always invalidate DART_ERRORS.
-    context.setContents(
-        source,
-        r'''
-main() {
-  print(42)
-}
-''');
-    AnalysisCache cache = context.analysisCache;
-    expect(cache.getValue(source, PARSE_ERRORS), hasLength(1));
-    expect(cache.getState(source, DART_ERRORS), CacheState.INVALID);
-    // Perform enough analysis to prepare inputs (is not actually tested) for
-    // the DART_ERRORS computing task, but don't compute it yet.
-    context.performAnalysisTask();
-    context.performAnalysisTask();
-    expect(cache.getState(source, DART_ERRORS), CacheState.INVALID);
-    // Update the source so that PARSE_ERRORS is empty.
-    context.setContents(
-        source,
-        r'''
-main() {
-  print(42);
-}
-''');
-    expect(cache.getValue(source, PARSE_ERRORS), hasLength(0));
-    // After full analysis DART_ERRORS should also be empty.
-    _performPendingAnalysisTasks();
-    expect(cache.getValue(source, DART_ERRORS), hasLength(0));
-    expect(context.getErrors(source).errors, hasLength(0));
+//    context.analysisOptions = new AnalysisOptionsImpl()..incremental = true;
+//    Source source = addSource(
+//        "/test.dart",
+//        r'''
+//main() {
+//  print(42);
+//}
+//''');
+//    _performPendingAnalysisTasks();
+//    expect(context.getErrors(source).errors, hasLength(0));
+//    // Update the source to have a parse error.
+//    // This is an incremental change, but we always invalidate DART_ERRORS.
+//    context.setContents(
+//        source,
+//        r'''
+//main() {
+//  print(42)
+//}
+//''');
+//    AnalysisCache cache = context.analysisCache;
+//    expect(cache.getValue(source, PARSE_ERRORS), hasLength(1));
+//    expect(cache.getState(source, DART_ERRORS), CacheState.INVALID);
+//    // Perform enough analysis to prepare inputs (is not actually tested) for
+//    // the DART_ERRORS computing task, but don't compute it yet.
+//    context.performAnalysisTask();
+//    context.performAnalysisTask();
+//    expect(cache.getState(source, DART_ERRORS), CacheState.INVALID);
+//    // Update the source so that PARSE_ERRORS is empty.
+//    context.setContents(
+//        source,
+//        r'''
+//main() {
+//  print(42);
+//}
+//''');
+//    expect(cache.getValue(source, PARSE_ERRORS), hasLength(0));
+//    // After full analysis DART_ERRORS should also be empty.
+//    _performPendingAnalysisTasks();
+//    expect(cache.getValue(source, DART_ERRORS), hasLength(0));
+//    expect(context.getErrors(source).errors, hasLength(0));
   }
 
   void test_applyChanges_overriddenSource() {
@@ -405,14 +385,10 @@ main() {
   }
 
   void test_applyChanges_recompute_exportNamespace() {
-    Source libSource = addSource(
-        "/lib.dart",
-        r'''
+    Source libSource = addSource("/lib.dart", r'''
 class A {}
 ''');
-    Source exporterSource = addSource(
-        "/exporter.dart",
-        r'''
+    Source exporterSource = addSource("/exporter.dart", r'''
 export 'lib.dart';
 ''');
     _performPendingAnalysisTasks();
@@ -424,9 +400,7 @@ export 'lib.dart';
           unorderedEquals(['A']));
     }
     // after update: B
-    context.setContents(
-        libSource,
-        r'''
+    context.setContents(libSource, r'''
 class B {}''');
     _performPendingAnalysisTasks();
     {
@@ -481,35 +455,35 @@ import 'libB.dart';''';
     if (context != null) return;
     throw 'is this test used by the new analysis driver?';
 
-    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
-    Source source = resourceProvider
-        .newFile(
-            '/test.dart',
-            r'''
-main() {
-  print(1);
-}
-''')
-        .createSource();
-    context.analysisOptions = new AnalysisOptionsImpl()..incremental = true;
-    context.applyChanges(new ChangeSet()..addedSource(source));
-    // remember compilation unit
-    _analyzeAll_assertFinished();
-    CompilationUnit unit = context.getResolvedCompilationUnit2(source, source);
-    // add overlay
-    context.setContents(
-        source,
-        r'''
-main() {
-  print(12);
-}
-''');
-    _analyzeAll_assertFinished();
-    expect(context.getResolvedCompilationUnit2(source, source), unit);
-    // remove overlay
-    context.setContents(source, null);
-    _analyzeAll_assertFinished();
-    expect(context.getResolvedCompilationUnit2(source, source), unit);
+//    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+//    Source source = resourceProvider
+//        .newFile(
+//            '/test.dart',
+//            r'''
+//main() {
+//  print(1);
+//}
+//''')
+//        .createSource();
+//    context.analysisOptions = new AnalysisOptionsImpl()..incremental = true;
+//    context.applyChanges(new ChangeSet()..addedSource(source));
+//    // remember compilation unit
+//    _analyzeAll_assertFinished();
+//    CompilationUnit unit = context.getResolvedCompilationUnit2(source, source);
+//    // add overlay
+//    context.setContents(
+//        source,
+//        r'''
+//main() {
+//  print(12);
+//}
+//''');
+//    _analyzeAll_assertFinished();
+//    expect(context.getResolvedCompilationUnit2(source, source), unit);
+//    // remove overlay
+//    context.setContents(source, null);
+//    _analyzeAll_assertFinished();
+//    expect(context.getResolvedCompilationUnit2(source, source), unit);
   }
 
   Future test_applyChanges_removeContainer() {
@@ -663,9 +637,7 @@ class B {}
 
   void test_computeDocumentationComment_class_block() {
     String comment = "/** Comment */";
-    Source source = addSource(
-        "/test.dart",
-        """
+    Source source = addSource("/test.dart", """
 $comment
 class A {}""");
     LibraryElement libraryElement = context.computeLibraryElement(source);
@@ -708,9 +680,7 @@ class A {}""");
 
   void test_computeDocumentationComment_exportDirective_block() {
     String comment = '/** Comment */';
-    Source source = addSource(
-        "/test.dart",
-        '''
+    Source source = addSource("/test.dart", '''
 $comment
 export 'dart:async';
 ''');
@@ -722,9 +692,7 @@ export 'dart:async';
 
   void test_computeDocumentationComment_importDirective_block() {
     String comment = '/** Comment */';
-    Source source = addSource(
-        "/test.dart",
-        '''
+    Source source = addSource("/test.dart", '''
 $comment
 import 'dart:async';
 ''');
@@ -736,9 +704,7 @@ import 'dart:async';
 
   void test_computeDocumentationComment_libraryDirective_block() {
     String comment = '/** Comment */';
-    Source source = addSource(
-        "/test.dart",
-        '''
+    Source source = addSource("/test.dart", '''
 $comment
 library lib;
 ''');
@@ -764,19 +730,16 @@ library lib;
     expect(errors, hasLength(0));
   }
 
+  @failingTest
   void test_computeErrors_dart_part() {
     Source librarySource =
         addSource("/lib.dart", "library lib; part 'part.dart';");
     Source partSource = addSource("/part.dart", "part of 'lib';");
     context.parseCompilationUnit(librarySource);
     List<AnalysisError> errors = context.computeErrors(partSource);
-    if (context.analysisOptions.enableUriInPartOf) {
-      // TODO(28522)
-      // Should report that 'lib' isn't the correct URI.
-    } else {
-      expect(errors, isNotNull);
-      expect(errors.length > 0, isTrue);
-    }
+    expect(errors, isNotNull);
+    // TODO(28522)
+    fail("Should report that 'lib' isn't the correct URI.");
   }
 
   void test_computeErrors_dart_some() {
@@ -842,10 +805,22 @@ library lib;
     expect(element, isNotNull);
   }
 
+  void test_computeLibraryElement_unresolvedUris() {
+    Source source = addSource("/lib.dart", r'''
+import 'package:foo/bar.dart';
+export 'package:foo/baz.dart';
+''');
+    var libraryElement = context.computeLibraryElement(source);
+    expect(libraryElement.imports, hasLength(2));
+    expect(libraryElement.exports, hasLength(1));
+    expect(libraryElement.imports[0].uri, 'package:foo/bar.dart');
+    expect(libraryElement.imports[0].importedLibrary, isNull);
+    expect(libraryElement.exports[0].uri, 'package:foo/baz.dart');
+    expect(libraryElement.exports[0].exportedLibrary, isNull);
+  }
+
   void test_computeLineInfo_dart() {
-    Source source = addSource(
-        "/test.dart",
-        r'''
+    Source source = addSource("/test.dart", r'''
 library lib;
 
 main() {}''');
@@ -854,9 +829,7 @@ main() {}''');
   }
 
   void test_computeLineInfo_html() {
-    Source source = addSource(
-        "/test.html",
-        r'''
+    Source source = addSource("/test.html", r'''
 <html>
   <body>
     <h1>A</h1>
@@ -906,7 +879,7 @@ main() {}''');
     future.then((CompilationUnit unit) {
       fail('Future should have completed with error');
     }, onError: (error) {
-      expect(error, new isInstanceOf<AnalysisNotScheduledError>());
+      expect(error, new TypeMatcher<AnalysisNotScheduledError>());
       completed = true;
     });
     return pumpEventQueue().then((_) {
@@ -926,7 +899,7 @@ main() {}''');
     future.then((CompilationUnit unit) {
       fail('Future should have been canceled');
     }, onError: (error) {
-      expect(error, new isInstanceOf<FutureCanceledError>());
+      expect(error, new TypeMatcher<FutureCanceledError>());
       completed = true;
     });
     expect(completed, isFalse);
@@ -951,7 +924,7 @@ main() {}''');
     future.then((CompilationUnit unit) {
       fail('Future should have completed with error');
     }, onError: (error) {
-      expect(error, new isInstanceOf<AnalysisNotScheduledError>());
+      expect(error, new TypeMatcher<AnalysisNotScheduledError>());
       completed = true;
     });
     expect(completed, isFalse);
@@ -1021,21 +994,15 @@ main() {}''');
   }
 
   void test_ensureResolvedDartUnits_partUnit_hasResolved() {
-    Source libSource1 = addSource(
-        '/lib1.dart',
-        r'''
+    Source libSource1 = addSource('/lib1.dart', r'''
 library lib;
 part 'part.dart';
 ''');
-    Source libSource2 = addSource(
-        '/lib2.dart',
-        r'''
+    Source libSource2 = addSource('/lib2.dart', r'''
 library lib;
 part 'part.dart';
 ''');
-    Source partSource = addSource(
-        '/part.dart',
-        r'''
+    Source partSource = addSource('/part.dart', r'''
 part of lib;
 ''');
     LibrarySpecificUnit partTarget1 =
@@ -1053,21 +1020,15 @@ part of lib;
   }
 
   void test_ensureResolvedDartUnits_partUnit_notResolved() {
-    Source libSource1 = addSource(
-        '/lib1.dart',
-        r'''
+    Source libSource1 = addSource('/lib1.dart', r'''
 library lib;
 part 'part.dart';
 ''');
-    Source libSource2 = addSource(
-        '/lib2.dart',
-        r'''
+    Source libSource2 = addSource('/lib2.dart', r'''
 library lib;
 part 'part.dart';
 ''');
-    Source partSource = addSource(
-        '/part.dart',
-        r'''
+    Source partSource = addSource('/part.dart', r'''
 part of lib;
 ''');
     LibrarySpecificUnit partTarget1 =
@@ -1183,8 +1144,7 @@ main() {}
   }
 
   void test_flushSingleResolvedUnit_instanceGetter() {
-    _checkFlushSingleResolvedUnit(
-        '''
+    _checkFlushSingleResolvedUnit('''
 abstract class B {
   int get x;
 }
@@ -1203,8 +1163,7 @@ class C extends B {
   }
 
   void test_flushSingleResolvedUnit_instanceMethod() {
-    _checkFlushSingleResolvedUnit(
-        '''
+    _checkFlushSingleResolvedUnit('''
 abstract class B {
   int f(String s);
 }
@@ -1224,8 +1183,7 @@ class C extends B {
   }
 
   void test_flushSingleResolvedUnit_instanceSetter() {
-    _checkFlushSingleResolvedUnit(
-        '''
+    _checkFlushSingleResolvedUnit('''
 abstract class B {
   set x(int value);
 }
@@ -1328,9 +1286,7 @@ class C extends B {
   }
 
   void test_getElement_constructor_named() {
-    Source source = addSource(
-        "/lib.dart",
-        r'''
+    Source source = addSource("/lib.dart", r'''
 class A {
   A.named() {}
 }''');
@@ -1344,9 +1300,7 @@ class A {
   }
 
   void test_getElement_constructor_unnamed() {
-    Source source = addSource(
-        "/lib.dart",
-        r'''
+    Source source = addSource("/lib.dart", r'''
 class A {
   A() {}
 }''');
@@ -1402,9 +1356,7 @@ class A {
   }
 
   void test_getHtmlFilesReferencing_html() {
-    Source htmlSource = addSource(
-        "/test.html",
-        r'''
+    Source htmlSource = addSource("/test.html", r'''
 <html><head>
 <script type='application/dart' src='test.dart'/>
 <script type='application/dart' src='test.js'/>
@@ -1420,9 +1372,7 @@ class A {
   }
 
   void test_getHtmlFilesReferencing_library() {
-    Source htmlSource = addSource(
-        "/test.html",
-        r'''
+    Source htmlSource = addSource("/test.html", r'''
 <!DOCTYPE html>
 <html><head>
 <script type='application/dart' src='test.dart'/>
@@ -1440,9 +1390,7 @@ class A {
   }
 
   void test_getHtmlFilesReferencing_part() {
-    Source htmlSource = addSource(
-        "/test.html",
-        r'''
+    Source htmlSource = addSource("/test.html", r'''
 <!DOCTYPE html>
 <html><head>
 <script type='application/dart' src='test.dart'/>
@@ -1495,9 +1443,7 @@ class A {
   }
 
   void test_getLaunchableClientLibrarySources_doesNotImportHtml() {
-    Source source = addSource(
-        "/test.dart",
-        r'''
+    Source source = addSource("/test.dart", r'''
 main() {}''');
     context.computeLibraryElement(source);
     List<Source> sources = context.launchableClientLibrarySources;
@@ -1507,9 +1453,7 @@ main() {}''');
   void test_getLaunchableClientLibrarySources_importsHtml_explicitly() {
     List<Source> sources = context.launchableClientLibrarySources;
     expect(sources, isEmpty);
-    Source source = addSource(
-        "/test.dart",
-        r'''
+    Source source = addSource("/test.dart", r'''
 import 'dart:html';
 main() {}''');
     context.computeLibraryElement(source);
@@ -1520,14 +1464,10 @@ main() {}''');
   void test_getLaunchableClientLibrarySources_importsHtml_implicitly() {
     List<Source> sources = context.launchableClientLibrarySources;
     expect(sources, isEmpty);
-    addSource(
-        '/a.dart',
-        r'''
+    addSource('/a.dart', r'''
 import 'dart:html';
 ''');
-    Source source = addSource(
-        "/test.dart",
-        r'''
+    Source source = addSource("/test.dart", r'''
 import 'a.dart';
 main() {}''');
     _analyzeAll_assertFinished();
@@ -1538,14 +1478,10 @@ main() {}''');
   void test_getLaunchableClientLibrarySources_importsHtml_implicitly2() {
     List<Source> sources = context.launchableClientLibrarySources;
     expect(sources, isEmpty);
-    addSource(
-        '/a.dart',
-        r'''
+    addSource('/a.dart', r'''
 export 'dart:html';
 ''');
-    Source source = addSource(
-        "/test.dart",
-        r'''
+    Source source = addSource("/test.dart", r'''
 import 'a.dart';
 main() {}''');
     _analyzeAll_assertFinished();
@@ -1561,9 +1497,7 @@ main() {}''');
   }
 
   void test_getLaunchableServerLibrarySources_importsHtml_explicitly() {
-    Source source = addSource(
-        "/test.dart",
-        r'''
+    Source source = addSource("/test.dart", r'''
 import 'dart:html';
 main() {}
 ''');
@@ -1572,14 +1506,10 @@ main() {}
   }
 
   void test_getLaunchableServerLibrarySources_importsHtml_implicitly() {
-    addSource(
-        "/imports_html.dart",
-        r'''
+    addSource("/imports_html.dart", r'''
 import 'dart:html';
 ''');
-    addSource(
-        "/test.dart",
-        r'''
+    addSource("/test.dart", r'''
 import 'imports_html.dart';
 main() {}''');
     _analyzeAll_assertFinished();
@@ -1593,9 +1523,7 @@ main() {}''');
   }
 
   void test_getLibrariesContaining() {
-    Source librarySource = addSource(
-        "/lib.dart",
-        r'''
+    Source librarySource = addSource("/lib.dart", r'''
 library lib;
 part 'part.dart';''');
     Source partSource = addSource("/part.dart", "part of lib;");
@@ -1611,15 +1539,11 @@ part 'part.dart';''');
   void test_getLibrariesDependingOn() {
     Source libASource = addSource("/libA.dart", "library libA;");
     addSource("/libB.dart", "library libB;");
-    Source lib1Source = addSource(
-        "/lib1.dart",
-        r'''
+    Source lib1Source = addSource("/lib1.dart", r'''
 library lib1;
 import 'libA.dart';
 export 'libB.dart';''');
-    Source lib2Source = addSource(
-        "/lib2.dart",
-        r'''
+    Source lib2Source = addSource("/lib2.dart", r'''
 library lib2;
 import 'libB.dart';
 export 'libA.dart';''');
@@ -1630,9 +1554,7 @@ export 'libA.dart';''');
   }
 
   void test_getLibrariesReferencedFromHtml() {
-    Source htmlSource = addSource(
-        "/test.html",
-        r'''
+    Source htmlSource = addSource("/test.html", r'''
 <!DOCTYPE html>
 <html><head>
 <script type='application/dart' src='test.dart'/>
@@ -1648,9 +1570,7 @@ export 'libA.dart';''');
   }
 
   void test_getLibrariesReferencedFromHtml_none() {
-    Source htmlSource = addSource(
-        "/test.html",
-        r'''
+    Source htmlSource = addSource("/test.html", r'''
 <html><head>
 <script type='application/dart' src='test.js'/>
 </head></html>''');
@@ -1685,9 +1605,7 @@ export 'libA.dart';''');
   }
 
   void test_getLibrarySources_inSDK() {
-    Source source = addSource(
-        '/test.dart',
-        r'''
+    Source source = addSource('/test.dart', r'''
 import 'dart:async';
 Stream S = null;
 ''');
@@ -1722,9 +1640,7 @@ Stream S = null;
   }
 
   void test_getLineInfo() {
-    Source source = addSource(
-        "/test.dart",
-        r'''
+    Source source = addSource("/test.dart", r'''
 library lib;
 
 main() {}''');
@@ -1824,22 +1740,6 @@ main() {}''');
     expect(analysisResult.changeNotices, isNotNull);
   }
 
-  void test_handleContentsChanged_incremental_newContentsNull() {
-    context.analysisOptions = new AnalysisOptionsImpl()..incremental = true;
-    ContentCache contentCache = new ContentCache();
-    context.contentCache = contentCache;
-    // old contents
-    String oldContents = 'foo() {}';
-    Source source = resourceProvider.getFile('/test.dart').createSource();
-    contentCache.setContents(source, oldContents);
-    expect(context.computeLibraryElement(source), isNotNull);
-    // new contents
-    String newContents = null;
-    contentCache.setContents(source, newContents);
-    context.handleContentsChanged(source, oldContents, newContents, true);
-    expect(context.getLibraryElement(source), isNull);
-  }
-
   void test_handleContentsChanged_noOriginal_sameAsFile() {
     ContentCache contentCache = new ContentCache();
     context.contentCache = contentCache;
@@ -1898,9 +1798,7 @@ main() {}''');
   }
 
   void test_isClientLibrary_dart() {
-    Source source = addSource(
-        "/test.dart",
-        r'''
+    Source source = addSource("/test.dart", r'''
 import 'dart:html';
 
 main() {}''');
@@ -1922,9 +1820,7 @@ main() {}''');
   }
 
   void test_isServerLibrary_dart() {
-    Source source = addSource(
-        "/test.dart",
-        r'''
+    Source source = addSource("/test.dart", r'''
 library lib;
 
 main() {}''');
@@ -2038,14 +1934,10 @@ main() {}''');
   }
 
   void test_parseHtmlUnit_resolveDirectives() {
-    Source libSource = addSource(
-        "/lib.dart",
-        r'''
+    Source libSource = addSource("/lib.dart", r'''
 library lib;
 class ClassA {}''');
-    Source source = addSource(
-        "/lib.html",
-        r'''
+    Source source = addSource("/lib.html", r'''
 <!DOCTYPE html>
 <html>
 <head>
@@ -2068,9 +1960,7 @@ class ClassA {}''');
   }
 
   void test_performAnalysisTask_addPart() {
-    Source libSource = addSource(
-        "/lib.dart",
-        r'''
+    Source libSource = addSource("/lib.dart", r'''
 library lib;
 part 'part.dart';''');
     // run all tasks without part
@@ -2079,9 +1969,7 @@ part 'part.dart';''');
         isTrue,
         reason: "lib has errors");
     // add part and run all tasks
-    Source partSource = addSource(
-        "/part.dart",
-        r'''
+    Source partSource = addSource("/part.dart", r'''
 part of lib;
 ''');
     _analyzeAll_assertFinished();
@@ -2168,9 +2056,7 @@ part of lib;
   }
 
   void test_performAnalysisTask_changePartContents_makeItAPart() {
-    Source libSource = addSource(
-        "/lib.dart",
-        r'''
+    Source libSource = addSource("/lib.dart", r'''
 library lib;
 part 'part.dart';
 void f(x) {}''');
@@ -2182,9 +2068,7 @@ void f(x) {}''');
         context.getResolvedCompilationUnit2(partSource, partSource), isNotNull,
         reason: "part resolved 1");
     // update and analyze
-    context.setContents(
-        partSource,
-        r'''
+    context.setContents(partSource, r'''
 part of lib;
 void g() { f(null); }''');
     expect(context.getResolvedCompilationUnit2(libSource, libSource), isNull,
@@ -2205,24 +2089,18 @@ void g() { f(null); }''');
    * https://code.google.com/p/dart/issues/detail?id=12424
    */
   void test_performAnalysisTask_changePartContents_makeItNotPart() {
-    Source libSource = addSource(
-        "/lib.dart",
-        r'''
+    Source libSource = addSource("/lib.dart", r'''
 library lib;
 part 'part.dart';
 void f(x) {}''');
-    Source partSource = addSource(
-        "/part.dart",
-        r'''
+    Source partSource = addSource("/part.dart", r'''
 part of lib;
 void g() { f(null); }''');
     _analyzeAll_assertFinished();
     expect(context.getErrors(libSource).errors, hasLength(0));
     expect(context.getErrors(partSource).errors, hasLength(0));
     // Remove 'part' directive, which should make "f(null)" an error.
-    context.setContents(
-        partSource,
-        r'''
+    context.setContents(partSource, r'''
 //part of lib;
 void g() { f(null); }''');
     _analyzeAll_assertFinished();
@@ -2314,9 +2192,7 @@ void g() { f(null); }''');
   }
 
   void test_performAnalysisTask_importedLibraryAdd_html() {
-    Source htmlSource = addSource(
-        "/page.html",
-        r'''
+    Source htmlSource = addSource("/page.html", r'''
 <html><body><script type="application/dart">
   import '/libB.dart';
   main() {print('hello dart');}
@@ -2367,9 +2243,7 @@ void g() { f(null); }''');
   }
 
   void test_performAnalysisTask_interruptBy_setContents() {
-    Source sourceA = addSource(
-        '/a.dart',
-        r'''
+    Source sourceA = addSource('/a.dart', r'''
 library expectedToFindSemicolon
 ''');
     // Analyze to the point where some of the results stop depending on
@@ -2467,28 +2341,20 @@ library expectedToFindSemicolon
 
   void test_performAnalysisTask_switchPackageVersion() {
     // version 1
-    resourceProvider.newFile(
-        '/pkgs/crypto-1/lib/crypto.dart',
-        r'''
+    resourceProvider.newFile('/pkgs/crypto-1/lib/crypto.dart', r'''
 library crypto;
 part 'src/hash_utils.dart';
 ''');
-    resourceProvider.newFile(
-        '/pkgs/crypto-1/lib/src/hash_utils.dart',
-        r'''
+    resourceProvider.newFile('/pkgs/crypto-1/lib/src/hash_utils.dart', r'''
 part of crypto;
 const _MASK_8 = 0xff;
 ''');
     // version 2
-    resourceProvider.newFile(
-        '/pkgs/crypto-2/lib/crypto.dart',
-        r'''
+    resourceProvider.newFile('/pkgs/crypto-2/lib/crypto.dart', r'''
 library crypto;
 part 'src/hash_utils.dart';
 ''');
-    resourceProvider.newFile(
-        '/pkgs/crypto-2/lib/src/hash_utils.dart',
-        r'''
+    resourceProvider.newFile('/pkgs/crypto-2/lib/src/hash_utils.dart', r'''
 part of crypto;
 const _MASK_8 = 0xff;
 ''');
@@ -2501,9 +2367,7 @@ const _MASK_8 = 0xff;
       })
     ]);
     // analyze
-    addSource(
-        "/test.dart",
-        r'''
+    addSource("/test.dart", r'''
 import 'package:crypto/crypto.dart';
 ''');
     _analyzeAll_assertFinished();
@@ -2521,10 +2385,8 @@ import 'package:crypto/crypto.dart';
 
   @failingTest // TODO(paulberry): Remove the annotation when dartbug.com/28515 is fixed.
   void test_resolveCompilationUnit_existingElementModel() {
-    prepareAnalysisContext(new AnalysisOptionsImpl()..strongMode = true);
-    Source source = addSource(
-        '/test.dart',
-        r'''
+    prepareAnalysisContext(new AnalysisOptionsImpl());
+    Source source = addSource('/test.dart', r'''
 library test;
 
 String topLevelVariable;
@@ -2626,15 +2488,6 @@ void functionWithClosureAsDefaultParam([x = () => null]) {}
     assertNamedElements(importedLibraries, ["dart.core", "libB"]);
   }
 
-  void test_resolveCompilationUnit_library() {
-    Source source = addSource("/lib.dart", "library lib;");
-    LibraryElement library = context.computeLibraryElement(source);
-    CompilationUnit compilationUnit =
-        context.resolveCompilationUnit(source, library);
-    expect(compilationUnit, isNotNull);
-    expect(compilationUnit.element, isNotNull);
-  }
-
 //  void test_resolveCompilationUnit_sourceChangeDuringResolution() {
 //    _context = new _AnalysisContext_sourceChangeDuringResolution();
 //    AnalysisContextFactory.initContextWithCore(_context);
@@ -2645,6 +2498,15 @@ void functionWithClosureAsDefaultParam([x = () => null]) {}
 //    expect(compilationUnit, isNotNull);
 //    expect(_context.getLineInfo(source), isNotNull);
 //  }
+
+  void test_resolveCompilationUnit_library() {
+    Source source = addSource("/lib.dart", "library lib;");
+    LibraryElement library = context.computeLibraryElement(source);
+    CompilationUnit compilationUnit =
+        context.resolveCompilationUnit(source, library);
+    expect(compilationUnit, isNotNull);
+    expect(compilationUnit.element, isNotNull);
+  }
 
   void test_resolveCompilationUnit_source() {
     Source source = addSource("/lib.dart", "library lib;");
@@ -2698,7 +2560,6 @@ void functionWithClosureAsDefaultParam([x = () => null]) {}
 
   Future test_setChangedContents_libraryWithPart() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.incremental = true;
     context.analysisOptions = options;
     SourcesChangedListener listener = new SourcesChangedListener();
     context.onSourcesChanged.listen(listener.onData);
@@ -2735,7 +2596,6 @@ int ya = 0;''';
   void test_setChangedContents_notResolved() {
     AnalysisOptionsImpl options =
         new AnalysisOptionsImpl.from(context.analysisOptions);
-    options.incremental = true;
     context.analysisOptions = options;
     String oldCode = r'''
 library lib;
@@ -2782,16 +2642,16 @@ int aa = 0;''';
     if (context != null) return;
     throw 'is this test used by the new analysis driver?';
 
-    Source librarySource = addSource(
-        "/lib.dart",
-        r'''
-library lib;
-int a = 0;''');
-    context.setContents(librarySource, '// different');
-    context.computeLibraryElement(librarySource);
-    context.setContents(librarySource, null);
-    expect(context.getResolvedCompilationUnit2(librarySource, librarySource),
-        isNull);
+//    Source librarySource = addSource(
+//        "/lib.dart",
+//        r'''
+//library lib;
+//int a = 0;''');
+//    context.setContents(librarySource, '// different');
+//    context.computeLibraryElement(librarySource);
+//    context.setContents(librarySource, null);
+//    expect(context.getResolvedCompilationUnit2(librarySource, librarySource),
+//        isNull);
   }
 
   void test_setContents_unchanged_consistentModificationTime() {
@@ -2932,7 +2792,7 @@ int a = 0;''');
 
   void _checkFlushSingleResolvedUnit(String code,
       void validate(CompilationUnitElement unitElement, String reason)) {
-    prepareAnalysisContext(new AnalysisOptionsImpl()..strongMode = true);
+    prepareAnalysisContext(new AnalysisOptionsImpl());
     String path = resourceProvider.convertPath('/test.dart');
     Source source = resourceProvider.newFile(path, code).createSource();
     context.applyChanges(new ChangeSet()..addedSource(source));

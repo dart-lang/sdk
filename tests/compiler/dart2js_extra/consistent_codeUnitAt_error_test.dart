@@ -116,7 +116,7 @@ class BadType {
 
   static f3() {
     var a = confuse(true) ? 'AB' : 'ABCDE'; // String with unknown length.
-    return a.codeUnitAt('a');
+    return a.codeUnitAt(('a' as dynamic));
   }
 
   static test() {

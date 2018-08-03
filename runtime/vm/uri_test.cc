@@ -19,7 +19,6 @@ TEST_CASE(ParseUri_WithScheme_NoQueryNoUser) {
   EXPECT(uri.fragment == NULL);
 }
 
-
 TEST_CASE(ParseUri_WithScheme_WithQuery) {
   ParsedUri uri;
   EXPECT(ParseUri("foo://example.com:8042/over/there?name=ferret", &uri));
@@ -32,7 +31,6 @@ TEST_CASE(ParseUri_WithScheme_WithQuery) {
   EXPECT(uri.fragment == NULL);
 }
 
-
 TEST_CASE(ParseUri_WithScheme_WithFragment) {
   ParsedUri uri;
   EXPECT(ParseUri("foo://example.com:8042/over/there#fragment", &uri));
@@ -44,7 +42,6 @@ TEST_CASE(ParseUri_WithScheme_WithFragment) {
   EXPECT(uri.query == NULL);
   EXPECT_STREQ("fragment", uri.fragment);
 }
-
 
 TEST_CASE(ParseUri_WithScheme_WithQueryWithFragment) {
   ParsedUri uri;
@@ -59,7 +56,6 @@ TEST_CASE(ParseUri_WithScheme_WithQueryWithFragment) {
   EXPECT_STREQ("fragment", uri.fragment);
 }
 
-
 TEST_CASE(ParseUri_WithScheme_WithUser) {
   ParsedUri uri;
   EXPECT(ParseUri("foo://user@example.com:8042/over/there", &uri));
@@ -71,7 +67,6 @@ TEST_CASE(ParseUri_WithScheme_WithUser) {
   EXPECT(uri.query == NULL);
   EXPECT(uri.fragment == NULL);
 }
-
 
 TEST_CASE(ParseUri_WithScheme_ShortPath) {
   ParsedUri uri;
@@ -85,7 +80,6 @@ TEST_CASE(ParseUri_WithScheme_ShortPath) {
   EXPECT(uri.fragment == NULL);
 }
 
-
 TEST_CASE(ParseUri_WithScheme_EmptyPath) {
   ParsedUri uri;
   EXPECT(ParseUri("foo://example.com:8042", &uri));
@@ -97,7 +91,6 @@ TEST_CASE(ParseUri_WithScheme_EmptyPath) {
   EXPECT(uri.query == NULL);
   EXPECT(uri.fragment == NULL);
 }
-
 
 TEST_CASE(ParseUri_WithScheme_Rootless1) {
   ParsedUri uri;
@@ -111,7 +104,6 @@ TEST_CASE(ParseUri_WithScheme_Rootless1) {
   EXPECT(uri.fragment == NULL);
 }
 
-
 TEST_CASE(ParseUri_WithScheme_Rootless2) {
   ParsedUri uri;
   EXPECT(ParseUri("foo:or/here", &uri));
@@ -123,7 +115,6 @@ TEST_CASE(ParseUri_WithScheme_Rootless2) {
   EXPECT(uri.query == NULL);
   EXPECT(uri.fragment == NULL);
 }
-
 
 TEST_CASE(ParseUri_NoScheme_AbsPath_WithAuthority) {
   ParsedUri uri;
@@ -137,7 +128,6 @@ TEST_CASE(ParseUri_NoScheme_AbsPath_WithAuthority) {
   EXPECT(uri.fragment == NULL);
 }
 
-
 TEST_CASE(ParseUri_NoScheme_AbsPath_NoAuthority) {
   ParsedUri uri;
   EXPECT(ParseUri("/over/there", &uri));
@@ -149,7 +139,6 @@ TEST_CASE(ParseUri_NoScheme_AbsPath_NoAuthority) {
   EXPECT(uri.query == NULL);
   EXPECT(uri.fragment == NULL);
 }
-
 
 // Colons are permitted in path segments, in many cases.
 TEST_CASE(ParseUri_NoScheme_AbsPath_StrayColon) {
@@ -163,7 +152,6 @@ TEST_CASE(ParseUri_NoScheme_AbsPath_StrayColon) {
   EXPECT(uri.query == NULL);
 }
 
-
 TEST_CASE(ParseUri_NoScheme_Rootless1) {
   ParsedUri uri;
   EXPECT(ParseUri("here", &uri));
@@ -175,7 +163,6 @@ TEST_CASE(ParseUri_NoScheme_Rootless1) {
   EXPECT(uri.query == NULL);
   EXPECT(uri.fragment == NULL);
 }
-
 
 TEST_CASE(ParseUri_NoScheme_Rootless2) {
   ParsedUri uri;
@@ -189,7 +176,6 @@ TEST_CASE(ParseUri_NoScheme_Rootless2) {
   EXPECT(uri.fragment == NULL);
 }
 
-
 TEST_CASE(ParseUri_NoScheme_Empty) {
   ParsedUri uri;
   EXPECT(ParseUri("", &uri));
@@ -201,7 +187,6 @@ TEST_CASE(ParseUri_NoScheme_Empty) {
   EXPECT(uri.query == NULL);
   EXPECT(uri.fragment == NULL);
 }
-
 
 TEST_CASE(ParseUri_NoScheme_QueryOnly) {
   ParsedUri uri;
@@ -215,7 +200,6 @@ TEST_CASE(ParseUri_NoScheme_QueryOnly) {
   EXPECT(uri.fragment == NULL);
 }
 
-
 TEST_CASE(ParseUri_NoScheme_FragmentOnly) {
   ParsedUri uri;
   EXPECT(ParseUri("#fragment", &uri));
@@ -228,7 +212,6 @@ TEST_CASE(ParseUri_NoScheme_FragmentOnly) {
   EXPECT_STREQ("fragment", uri.fragment);
 }
 
-
 TEST_CASE(ParseUri_LowerCaseScheme) {
   ParsedUri uri;
   EXPECT(ParseUri("ScHeMe:path", &uri));
@@ -240,7 +223,6 @@ TEST_CASE(ParseUri_LowerCaseScheme) {
   EXPECT(uri.query == NULL);
   EXPECT(uri.fragment == NULL);
 }
-
 
 TEST_CASE(ParseUri_NormalizeEscapes_PathQueryFragment) {
   ParsedUri uri;
@@ -255,7 +237,6 @@ TEST_CASE(ParseUri_NormalizeEscapes_PathQueryFragment) {
   EXPECT_STREQ("A%20Fragment", uri.fragment);
 }
 
-
 TEST_CASE(ParseUri_NormalizeEscapes_UppercaseEscapesPreferred) {
   ParsedUri uri;
   EXPECT(ParseUri("scheme:/%1b%1B", &uri));
@@ -267,7 +248,6 @@ TEST_CASE(ParseUri_NormalizeEscapes_UppercaseEscapesPreferred) {
   EXPECT(uri.query == NULL);
   EXPECT(uri.fragment == NULL);
 }
-
 
 TEST_CASE(ParseUri_NormalizeEscapes_Authority) {
   ParsedUri uri;
@@ -281,7 +261,6 @@ TEST_CASE(ParseUri_NormalizeEscapes_Authority) {
   EXPECT(uri.fragment == NULL);
 }
 
-
 TEST_CASE(ParseUri_NormalizeEscapes_UppercaseEscapeInHost) {
   ParsedUri uri;
   EXPECT(ParseUri("scheme://tEst%1b/", &uri));
@@ -293,7 +272,6 @@ TEST_CASE(ParseUri_NormalizeEscapes_UppercaseEscapeInHost) {
   EXPECT(uri.query == NULL);
   EXPECT(uri.fragment == NULL);
 }
-
 
 TEST_CASE(ParseUri_BrokenEscapeSequence) {
   ParsedUri uri;
@@ -307,7 +285,6 @@ TEST_CASE(ParseUri_BrokenEscapeSequence) {
   EXPECT(uri.fragment == NULL);
 }
 
-
 TEST_CASE(ResolveUri_WithScheme_NoAuthorityNoQuery) {
   const char* target_uri;
   EXPECT(ResolveUri("rscheme:/ref/path",
@@ -315,7 +292,6 @@ TEST_CASE(ResolveUri_WithScheme_NoAuthorityNoQuery) {
                     &target_uri));
   EXPECT_STREQ("rscheme:/ref/path", target_uri);
 }
-
 
 TEST_CASE(ResolveUri_WithScheme_WithAuthorityWithQuery) {
   const char* target_uri;
@@ -325,7 +301,6 @@ TEST_CASE(ResolveUri_WithScheme_WithAuthorityWithQuery) {
   EXPECT_STREQ("rscheme://ruser@rhost:22/ref/path?refQuery", target_uri);
 }
 
-
 TEST_CASE(ResolveUri_NoScheme_WithAuthority) {
   const char* target_uri;
   EXPECT(ResolveUri("//ruser@rhost:22/ref/path",
@@ -334,14 +309,12 @@ TEST_CASE(ResolveUri_NoScheme_WithAuthority) {
   EXPECT_STREQ("bscheme://ruser@rhost:22/ref/path", target_uri);
 }
 
-
 TEST_CASE(ResolveUri_NoSchemeNoAuthority_AbsolutePath) {
   const char* target_uri;
   EXPECT(ResolveUri("/ref/path", "bscheme://buser@bhost:11/base/path?baseQuery",
                     &target_uri));
   EXPECT_STREQ("bscheme://buser@bhost:11/ref/path", target_uri);
 }
-
 
 TEST_CASE(ResolveUri_NoSchemeNoAuthority_RelativePath) {
   const char* target_uri;
@@ -350,20 +323,17 @@ TEST_CASE(ResolveUri_NoSchemeNoAuthority_RelativePath) {
   EXPECT_STREQ("bscheme://buser@bhost:11/base/ref/path", target_uri);
 }
 
-
 TEST_CASE(ResolveUri_NoSchemeNoAuthority_RelativePathEmptyBasePath) {
   const char* target_uri;
   EXPECT(ResolveUri("ref/path", "bscheme://buser@bhost:11", &target_uri));
   EXPECT_STREQ("bscheme://buser@bhost:11/ref/path", target_uri);
 }
 
-
 TEST_CASE(ResolveUri_NoSchemeNoAuthority_RelativePathWeirdBasePath) {
   const char* target_uri;
   EXPECT(ResolveUri("ref/path", "bscheme:base", &target_uri));
   EXPECT_STREQ("bscheme:ref/path", target_uri);
 }
-
 
 TEST_CASE(ResolveUri_NoSchemeNoAuthority_EmptyPath) {
   const char* target_uri;
@@ -374,7 +344,6 @@ TEST_CASE(ResolveUri_NoSchemeNoAuthority_EmptyPath) {
   EXPECT_STREQ("bscheme://buser@bhost:11/base/path?baseQuery", target_uri);
 }
 
-
 TEST_CASE(ResolveUri_NoSchemeNoAuthority_EmptyPathWithQuery) {
   const char* target_uri;
   EXPECT(ResolveUri("?refQuery",
@@ -382,7 +351,6 @@ TEST_CASE(ResolveUri_NoSchemeNoAuthority_EmptyPathWithQuery) {
                     &target_uri));
   EXPECT_STREQ("bscheme://buser@bhost:11/base/path?refQuery", target_uri);
 }
-
 
 TEST_CASE(ResolveUri_NoSchemeNoAuthority_EmptyPathWithFragment) {
   const char* target_uri;
@@ -393,13 +361,11 @@ TEST_CASE(ResolveUri_NoSchemeNoAuthority_EmptyPathWithFragment) {
                target_uri);
 }
 
-
 TEST_CASE(ResolveUri_RemoveDots_RemoveOneDotSegment) {
   const char* target_uri;
   EXPECT(ResolveUri("./refpath", "scheme://auth/a/b/c/d", &target_uri));
   EXPECT_STREQ("scheme://auth/a/b/c/refpath", target_uri);
 }
-
 
 TEST_CASE(ResolveUri_RemoveDots_RemoveTwoDotSegments) {
   const char* target_uri;
@@ -407,20 +373,17 @@ TEST_CASE(ResolveUri_RemoveDots_RemoveTwoDotSegments) {
   EXPECT_STREQ("scheme://auth/a/b/c/refpath", target_uri);
 }
 
-
 TEST_CASE(ResolveUri_RemoveDots_RemoveOneDotDotSegment) {
   const char* target_uri;
   EXPECT(ResolveUri("../refpath", "scheme://auth/a/b/c/d", &target_uri));
   EXPECT_STREQ("scheme://auth/a/b/refpath", target_uri);
 }
 
-
 TEST_CASE(ResolveUri_RemoveDots_RemoveTwoDotDotSegments) {
   const char* target_uri;
   EXPECT(ResolveUri("../../refpath", "scheme://auth/a/b/c/d", &target_uri));
   EXPECT_STREQ("scheme://auth/a/refpath", target_uri);
 }
-
 
 TEST_CASE(ResolveUri_RemoveDots_RemoveTooManyDotDotSegments) {
   const char* target_uri;
@@ -429,13 +392,11 @@ TEST_CASE(ResolveUri_RemoveDots_RemoveTooManyDotDotSegments) {
   EXPECT_STREQ("scheme://auth/refpath", target_uri);
 }
 
-
 TEST_CASE(ResolveUri_RemoveDots_RemoveDotSegmentsNothingLeft1) {
   const char* target_uri;
   EXPECT(ResolveUri("../../../../..", "scheme://auth/a/b/c/d", &target_uri));
   EXPECT_STREQ("scheme://auth/", target_uri);
 }
-
 
 TEST_CASE(ResolveUri_RemoveDots_RemoveDotSegmentsNothingLeft2) {
   const char* target_uri;
@@ -443,13 +404,11 @@ TEST_CASE(ResolveUri_RemoveDots_RemoveDotSegmentsNothingLeft2) {
   EXPECT_STREQ("scheme://auth/", target_uri);
 }
 
-
 TEST_CASE(ResolveUri_RemoveDots_RemoveDotSegmentsInitialPrefix) {
   const char* target_uri;
   EXPECT(ResolveUri("../../../../refpath", "scheme://auth", &target_uri));
   EXPECT_STREQ("scheme://auth/refpath", target_uri);
 }
-
 
 TEST_CASE(ResolveUri_RemoveDots_RemoveDotSegmentsMixed) {
   const char* target_uri;
@@ -457,7 +416,6 @@ TEST_CASE(ResolveUri_RemoveDots_RemoveDotSegmentsMixed) {
                     "scheme://auth/a/b/c/d/e", &target_uri));
   EXPECT_STREQ("scheme://auth/a/b/1/3/5/7", target_uri);
 }
-
 
 TEST_CASE(ResolveUri_NormalizeEscapes_PathQueryFragment) {
   const char* target_uri;
@@ -469,13 +427,11 @@ TEST_CASE(ResolveUri_NormalizeEscapes_PathQueryFragment) {
       target_uri);
 }
 
-
 TEST_CASE(ResolveUri_NormalizeEscapes_UppercaseHexPreferred) {
   const char* target_uri;
   EXPECT(ResolveUri("", "scheme:/%1b%1B", &target_uri));
   EXPECT_STREQ("scheme:/%1B%1B", target_uri);
 }
-
 
 TEST_CASE(ResolveUri_NormalizeEscapes_Authority) {
   const char* target_uri;
@@ -486,14 +442,12 @@ TEST_CASE(ResolveUri_NormalizeEscapes_Authority) {
   EXPECT_STREQ("scheme://UsEr%20NaMe@host.com:80/", target_uri);
 }
 
-
 TEST_CASE(ResolveUri_NormalizeEscapes_BrokenEscapeSequence) {
   const char* target_uri;
   EXPECT(ResolveUri("", "scheme:/%1g", &target_uri));
   // We don't change broken escape sequences.
   EXPECT_STREQ("scheme:/%1g", target_uri);
 }
-
 
 TEST_CASE(ResolveUri_DataUri) {
   const char* data_uri =
@@ -548,13 +502,11 @@ TEST_CASE(ResolveUri_RelativeBase_NotImplemented) {
   EXPECT(target_uri == NULL);
 }
 
-
 static const char* TestResolve(const char* base_uri, const char* uri) {
   const char* target_uri;
   EXPECT(ResolveUri(uri, base_uri, &target_uri));
   return target_uri;
 }
-
 
 // This test is ported from sdk/tests/corelib/uri_test.dart (testUriPerRFCs).
 TEST_CASE(ResolveUri_TestUriPerRFCs) {
@@ -610,7 +562,6 @@ TEST_CASE(ResolveUri_TestUriPerRFCs) {
   base = "s:a/b";
   EXPECT_STREQ("s:/c", TestResolve(base, "../c"));
 }
-
 
 // This test is ported from sdk/tests/corelib/uri_test.dart (testResolvePath).
 TEST_CASE(ResolveUri_MoreDotSegmentTests) {

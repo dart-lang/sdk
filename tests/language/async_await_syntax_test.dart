@@ -11,14 +11,14 @@ var await = 0;
 get st => new Stream.fromIterable([]);
 
 a01a() async => null; //                       //# a01a: ok
-a01b() async* => null; //                      //# a01b: compile-time error
-a01c() sync* => null; //                       //# a01c: compile-time error
-a01d() async => yield 5; //                    //# a01d: compile-time error
+a01b() async* => null; //                      //# a01b: syntax error
+a01c() sync* => null; //                       //# a01c: syntax error
+a01d() async => yield 5; //                    //# a01d: syntax error
 a02a() async {} //                             //# a02a: ok
 a03a() async* {} //                            //# a03a: ok
 a03b() async * {} //                           //# a03b: ok
 a04a() sync* {} //                             //# a04a: ok
-a04b() sync {} //                              //# a04b: compile-time error
+a04b() sync {} //                              //# a04b: syntax error
 a04c() sync * {} //                            //# a04c: ok
 a05a() async { await 0; } //                   //# a05a: ok
 a05b() async { //                              //# a05b: ok
@@ -29,7 +29,7 @@ a05c() { //                                    //# a05c: ok
   await(a) {}; //                              //# a05c: continued
   await(0); //                                 //# a05c: continued
 } //                                           //# a05c: continued
-a05d() async { //                              //# a05d: compile-time error
+a05d() async { //                              //# a05d: syntax error
   await(a) {} //                               //# a05d: continued
   await(0); //                                 //# a05d: continued
 } //                                           //# a05d: continued
@@ -37,7 +37,7 @@ a05e() { //                                    //# a05e: ok
   await(a) {} //                               //# a05e: continued
   await(0); //                                 //# a05e: continued
 } //                                           //# a05e: continued
-a05f() async { //                              //# a05f: compile-time error
+a05f() async { //                              //# a05f: syntax error
   var await = (a) {}; //                       //# a05f: continued
   await(0); //                                 //# a05f: continued
 } //                                           //# a05f: continued
@@ -50,45 +50,45 @@ a05h() async { //                              //# a05h: continued
 a06a() async { await for (var o in st) {} } // //# a06a: ok
 a06b() sync* { await for (var o in st) {} } // //# a06b: compile-time error
 a07a() sync* { yield 0; } //                   //# a07a: ok
-a07b() sync { yield 0; } //                    //# a07b: compile-time error
+a07b() sync { yield 0; } //                    //# a07b: syntax error
 a08a() sync* { yield* []; } //                 //# a08a: ok
-a08b() sync { yield 0; } //                    //# a08b: compile-time error
+a08b() sync { yield 0; } //                    //# a08b: syntax error
 a09a() async* { yield 0; } //                  //# a09a: ok
 a10a() async* { yield* []; } //                //# a10a: static type warning
 
-get sync sync {} //                            //# a11a: compile-time error
+get sync sync {} //                            //# a11a: syntax error
 get sync sync* {} //                           //# a11b: ok
 get async async {} //                          //# a11c: ok
 get async async* {} //                         //# a11d: ok
 
 get sync {} //                                 //# a12a: ok
-get sync* {} //                                //# a12b: compile-time error
+get sync* {} //                                //# a12b: syntax error
 get async {} //                                //# a12c: ok
-get async* {} //                               //# a12d: compile-time error
-get a12e sync* => null; //                     //# a12e: compile-time error
-get a12f async* => null; //                    //# a12f: compile-time error
+get async* {} //                               //# a12d: syntax error
+get a12e sync* => null; //                     //# a12e: syntax error
+get a12f async* => null; //                    //# a12f: syntax error
 get a12g async => null; //                     //# a12g: ok
 
 int sync; //                                   //# a13a: ok
-int sync*; //                                  //# a13b: compile-time error
+int sync*; //                                  //# a13b: syntax error
 int async; //                                  //# a13c: ok
-int async*; //                                 //# a13d: compile-time error
+int async*; //                                 //# a13d: syntax error
 
 var sync; //                                   //# a14a: ok
-var sync*; //                                  //# a14b: compile-time error
+var sync*; //                                  //# a14b: syntax error
 var async; //                                  //# a14c: ok
-var async*; //                                 //# a14d: compile-time error
+var async*; //                                 //# a14d: syntax error
 
 sync() {} //                                   //# a15a: ok
-sync*() {} //                                  //# a15b: compile-time error
+sync*() {} //                                  //# a15b: syntax error
 async() {} //                                  //# a15c: ok
-async*() {} //                                 //# a15d: compile-time error
+async*() {} //                                 //# a15d: syntax error
 
 abstract class B {
-  b00a() async; //  //# b00a: compile-time error
-  b00b() async*; // //# b00b: compile-time error
-  b00c() sync*; //  //# b00c: compile-time error
-  b00d() sync; //   //# b00d: compile-time error
+  b00a() async; //  //# b00a: syntax error
+  b00b() async*; // //# b00b: syntax error
+  b00c() sync*; //  //# b00c: syntax error
+  b00d() sync; //   //# b00d: syntax error
 }
 
 class C extends B {
@@ -97,9 +97,9 @@ class C extends B {
   factory C.e1() async { return null; } //  //# e1: compile-time error
   factory C.e2() async* { return null; } // //# e2: compile-time error
   factory C.e3() sync* { return null; } //  //# e3: compile-time error
-  factory C.e4() async = C; //              //# e4: compile-time error
-  factory C.e5() async* = C; //             //# e5: compile-time error
-  factory C.e6() sync* = C; //              //# e6: compile-time error
+  factory C.e4() async = C; //              //# e4: syntax error
+  factory C.e5() async* = C; //             //# e5: syntax error
+  factory C.e6() sync* = C; //              //# e6: syntax error
   C.e7() async {} //                        //# e7: compile-time error
   C.e8() async* {} //                       //# e8: compile-time error
   C.e9() sync* {} //                        //# e9: compile-time error
@@ -110,12 +110,12 @@ class C extends B {
   b00d() {} //  //# b00d: continued
 
   b01a() async => null; //                       //# b01a: ok
-  b01b() async* => null; //                      //# b01b: compile-time error
-  b01c() sync* => null; //                       //# b01c: compile-time error
+  b01b() async* => null; //                      //# b01b: syntax error
+  b01c() sync* => null; //                       //# b01c: syntax error
   b02a() async {} //                             //# b02a: ok
   b03a() async* {} //                            //# b03a: ok
   b04a() sync* {} //                             //# b04a: ok
-  b04b() sync {} //                              //# b04b: compile-time error
+  b04b() sync {} //                              //# b04b: syntax error
   b05a() async { await 0; } //                   //# b05a: ok
   b06a() async { await for (var o in st) {} } // //# b06a: ok
   b06b() async { await for ( ; ; ) {} } //       //# b06b: compile-time error
@@ -125,43 +125,43 @@ class C extends B {
   b10a() async* { yield* []; } //                //# b10a: static type warning
   b10b() async { yield 0; } //                   //# b10b: compile-time error
 
-  get sync sync {} //                            //# b11a: compile-time error
+  get sync sync {} //                            //# b11a: syntax error
   get sync sync* {} //                           //# b11b: ok
   get async async {} //                          //# b11c: ok
   get async async* {} //                         //# b11d: ok
 
   get sync {} //                                 //# b12a: ok
-  get sync* {} //                                //# b12b: compile-time error
+  get sync* {} //                                //# b12b: syntax error
   get async {} //                                //# b12c: ok
-  get async* {} //                               //# b12d: compile-time error
-  get b12e sync* => null; //                     //# b12e: compile-time error
-  get b12f async* => null; //                    //# b12f: compile-time error
+  get async* {} //                               //# b12d: syntax error
+  get b12e sync* => null; //                     //# b12e: syntax error
+  get b12f async* => null; //                    //# b12f: syntax error
   get b12g async => null; //                     //# b12g: ok
 
   int sync; //                                   //# b13a: ok
-  int sync*; //                                  //# b13b: compile-time error
+  int sync*; //                                  //# b13b: syntax error
   int async; //                                  //# b13c: ok
-  int async*; //                                 //# b13d: compile-time error
+  int async*; //                                 //# b13d: syntax error
 
   var sync; //                                   //# b14a: ok
-  var sync*; //                                  //# b14b: compile-time error
+  var sync*; //                                  //# b14b: syntax error
   var async; //                                  //# b14c: ok
-  var async*; //                                 //# b14d: compile-time error
+  var async*; //                                 //# b14d: syntax error
 
   sync() {} //                                   //# b15a: ok
-  sync*() {} //                                  //# b15b: compile-time error
+  sync*() {} //                                  //# b15b: syntax error
   async() {} //                                  //# b15c: ok
-  async*() {} //                                 //# b15d: compile-time error
+  async*() {} //                                 //# b15d: syntax error
 }
 
 method1() {
   c01a() async => null; c01a(); //                       //# c01a: ok
-  c01b() async* => null; c01b(); //                      //# c01b: compile-time error
-  c01c() sync* => null; c01c(); //                       //# c01c: compile-time error
+  c01b() async* => null; c01b(); //                      //# c01b: syntax error
+  c01c() sync* => null; c01c(); //                       //# c01c: syntax error
   c02a() async {} c02a(); //                             //# c02a: ok
   c03a() async* {} c03a(); //                            //# c03a: ok
   c04a() sync* {} c04a(); //                             //# c04a: ok
-  c04b() sync {} c04b(); //                              //# c04b: compile-time error
+  c04b() sync {} c04b(); //                              //# c04b: syntax error
   c05a() async { await 0; } c05a(); //                   //# c05a: ok
   c06a() async { await for (var o in st) {} } c06a(); // //# c06a: ok
   c07a() sync* { yield 0; } c07a(); //                   //# c07a: ok
@@ -174,12 +174,12 @@ method1() {
 
 method2() {
   var d01a = () async => null; d01a(); //                        //# d01a: ok
-  var d01b = () async* => null; d01b(); //                       //# d01b: compile-time error
-  var d01c = () sync* => null; d01c(); //                        //# d01c: compile-time error
+  var d01b = () async* => null; d01b(); //                       //# d01b: syntax error
+  var d01c = () sync* => null; d01c(); //                        //# d01c: syntax error
   var d02a = () async {}; d02a(); //                             //# d02a: ok
   var d03a = () async* {}; d03a(); //                            //# d03a: ok
   var d04a = () sync* {}; d04a(); //                             //# d04a: ok
-  var d04b = () sync {}; d04b(); //                              //# d04b: compile-time error
+  var d04b = () sync {}; d04b(); //                              //# d04b: syntax error
   var d05a = () async { await 0; }; d05a(); //                   //# d05a: ok
   var d06a = () async { await for (var o in st) {} }; d06a(); // //# d06a: ok
   var d07a = () sync* { yield 0; }; d07a(); //                   //# d07a: ok

@@ -30,7 +30,6 @@ RawFunction* Resolver::ResolveDynamic(const Instance& receiver,
   return ResolveDynamicForReceiverClass(cls, function_name, args_desc);
 }
 
-
 RawFunction* Resolver::ResolveDynamicForReceiverClass(
     const Class& receiver_class,
     const String& function_name,
@@ -61,7 +60,6 @@ RawFunction* Resolver::ResolveDynamicForReceiverClass(
   return function.raw();
 }
 
-
 RawFunction* Resolver::ResolveDynamicAnyArgs(Zone* zone,
                                              const Class& receiver_class,
                                              const String& function_name,
@@ -71,53 +69,30 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(Zone* zone,
     THR_Print("ResolveDynamic '%s' for class %s\n", function_name.ToCString(),
               String::Handle(zone, cls.Name()).ToCString());
   }
+  Function& function = Function::Handle(zone);
+
+  String& demangled = String::Handle(zone);
 
   const bool is_getter = Field::IsGetterName(function_name);
-  String& field_name = String::Handle(zone);
   if (is_getter) {
-    field_name ^= Field::NameFromGetter(function_name);
-
-    if (field_name.CharAt(0) == '#') {
-      // Resolving a getter "get:#..." is a request to closurize an instance
-      // property of the receiver object. It can be of the form:
-      //  - get:#id, which closurizes a method or getter id
-      //  - get:#set:id, which closurizes a setter id
-      //  - get:#operator, eg. get:#<<, which closurizes an operator method.
-      // If the property can be resolved, a method extractor function
-      // "get:#..." is created and injected into the receiver's class.
-      field_name = String::SubString(field_name, 1);
-      ASSERT(!Field::IsGetterName(field_name));
-
-      String& property_getter_name = String::Handle(zone);
-      if (!Field::IsSetterName(field_name)) {
-        // If this is not a setter, we need to look for both the regular
-        // name and the getter name. (In the case of an operator, this
-        // code will also try to resolve for example get:<< and will fail,
-        // but that's harmless.)
-        property_getter_name = Field::GetterName(field_name);
-      }
-
-      Function& function = Function::Handle(zone);
-      while (!cls.IsNull()) {
-        function = cls.LookupDynamicFunction(field_name);
-        if (!function.IsNull()) {
-          return function.GetMethodExtractor(function_name);
-        }
-        if (!property_getter_name.IsNull()) {
-          function = cls.LookupDynamicFunction(property_getter_name);
-          if (!function.IsNull()) {
-            return function.GetMethodExtractor(function_name);
-          }
-        }
-        cls = cls.SuperClass();
-      }
-      return Function::null();
-    }
+    demangled ^= Field::NameFromGetter(function_name);
   }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (Function::IsDynamicInvocationForwaderName(function_name)) {
+    ASSERT(!FLAG_precompiled_mode);
+    demangled ^=
+        Function::DemangleDynamicInvocationForwarderName(function_name);
+    function =
+        ResolveDynamicAnyArgs(zone, receiver_class, demangled, allow_add);
+    return function.IsNull() ? function.raw()
+                             : function.GetDynamicInvocationForwarder(
+                                   function_name, allow_add);
+  }
+#endif
 
   // Now look for an instance function whose name matches function_name
   // in the class.
-  Function& function = Function::Handle(zone);
   while (!cls.IsNull()) {
     function ^= cls.LookupDynamicFunction(function_name);
     if (!function.IsNull()) {
@@ -126,7 +101,7 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(Zone* zone,
     // Getter invocation might actually be a method extraction.
     if (FLAG_lazy_dispatchers) {
       if (is_getter && function.IsNull()) {
-        function ^= cls.LookupDynamicFunction(field_name);
+        function ^= cls.LookupDynamicFunction(demangled);
         if (!function.IsNull() && allow_add) {
           // We were looking for the getter but found a method with the same
           // name. Create a method extractor and return it.
@@ -141,7 +116,6 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(Zone* zone,
   }
   return function.raw();
 }
-
 
 RawFunction* Resolver::ResolveStatic(const Library& library,
                                      const String& class_name,
@@ -191,7 +165,6 @@ RawFunction* Resolver::ResolveStatic(const Library& library,
   return function.raw();
 }
 
-
 RawFunction* Resolver::ResolveStatic(const Class& cls,
                                      const String& function_name,
                                      intptr_t type_args_len,
@@ -222,7 +195,6 @@ RawFunction* Resolver::ResolveStatic(const Class& cls,
   }
   return function.raw();
 }
-
 
 RawFunction* Resolver::ResolveStaticAllowPrivate(const Class& cls,
                                                  const String& function_name,

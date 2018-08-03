@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.declaration_resolver_test;
-
 import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -12,10 +10,9 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/declaration_resolver.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/task/api/dart.dart';
 import 'package:analyzer/src/task/dart.dart';
-import 'package:analyzer/task/dart.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -95,6 +92,11 @@ class DeclarationResolverMetadataTest extends ResolverTestCase {
   test_metadata_enumDeclaration() async {
     await setupCode('@a enum E { v }');
     checkMetadata('E');
+  }
+
+  test_metadata_enumDeclaration_constant() async {
+    await setupCode('enum E { @a v }');
+    checkMetadata('v');
   }
 
   test_metadata_exportDirective() async {
@@ -244,7 +246,12 @@ const b = null;
     // analyzer.  TODO(paulberry): is this a bug?
     FunctionDeclaration node = EngineTestCase.findNode(
         unit, code, 'g', (AstNode n) => n is FunctionDeclaration);
-    expect((node as FunctionDeclarationImpl).metadata, isEmpty);
+    NodeList<Annotation> metadata = (node as FunctionDeclarationImpl).metadata;
+    if (usingFastaParser) {
+      expect(metadata, hasLength(1));
+    } else {
+      expect(metadata, isEmpty);
+    }
   }
 
   test_metadata_localVariableDeclaration() async {
@@ -353,7 +360,6 @@ const b = null;
       node = node.parent;
     }
     fail('Node not found');
-    return null;
   }
 }
 
@@ -571,6 +577,15 @@ var v = <Function(int)>[];
     expect(initializer.typeArguments.arguments[0].type, isNotNull);
   }
 
+  test_genericFunction_invalid_missingParameterName() async {
+    String code = r'''
+typedef F = Function({int});
+''';
+    CompilationUnit unit = await resolveSource(code);
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
   test_invalid_functionDeclaration_getter_inFunction() async {
     String code = r'''
 var v = (() {
@@ -580,12 +595,11 @@ var v = (() {
 });
 ''';
     CompilationUnit unit = await resolveSource(code);
-    FunctionElement getterElement =
-        _findSimpleIdentifier(unit, code, 'zzz =>').staticElement;
     // re-resolve
     CompilationUnit unit2 = _cloneResolveUnit(unit);
     SimpleIdentifier getterName = _findSimpleIdentifier(unit2, code, 'zzz =>');
-    expect(getterName.staticElement, same(getterElement));
+    // Local getters are not allowed, so a FunctionElement is created.
+    expect(getterName.staticElement, new TypeMatcher<FunctionElement>());
   }
 
   test_invalid_functionDeclaration_setter_inFunction() async {
@@ -597,12 +611,11 @@ var v = (() {
 });
 ''';
     CompilationUnit unit = await resolveSource(code);
-    FunctionElement setterElement =
-        _findSimpleIdentifier(unit, code, 'zzz(x)').staticElement;
     // re-resolve
     CompilationUnit unit2 = _cloneResolveUnit(unit);
     SimpleIdentifier setterName = _findSimpleIdentifier(unit2, code, 'zzz(x)');
-    expect(setterName.staticElement, same(setterElement));
+    // Local getters are not allowed, so a FunctionElement is created.
+    expect(setterName.staticElement, new TypeMatcher<FunctionElement>());
   }
 
   test_visitExportDirective_notExistingSource() async {
@@ -801,10 +814,12 @@ part 'foo.bar';
 class StrongModeDeclarationResolverTest extends ResolverTestCase {
   @override
   void setUp() {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    reset();
   }
 
   test_genericFunction_typeParameter() async {
+    // Fasta ignores generic type comments
+    if (usingFastaParser) return;
     String code = r'''
 /*=T*/ max/*<T>*/(/*=T*/ x, /*=T*/ y) => null;
 ''';
@@ -827,6 +842,8 @@ class StrongModeDeclarationResolverTest extends ResolverTestCase {
   }
 
   test_genericMethod_typeParameter() async {
+    // Fasta ignores generic type comments
+    if (usingFastaParser) return;
     String code = r'''
 class C {
   /*=T*/ max/*<T>*/(/*=T*/ x, /*=T*/ y) => null;

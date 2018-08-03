@@ -1,0 +1,8 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::List<core::int> foo = <core::int>[1, 2, 3];
+  core::print(let final core::List<core::int> #t1 = foo in let final core::int #t2 = 0 in let final core::int #t3 = #t1.{core::List::[]}(#t2).{core::num::-}(1) in let final void #t4 = #t1.{core::List::[]=}(#t2, #t3) in #t3);
+}

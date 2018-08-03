@@ -12,7 +12,18 @@ abstract class Link implements FileSystemEntity {
   /**
    * Creates a Link object.
    */
-  factory Link(String path) => new _Link(path);
+  factory Link(String path) {
+    final IOOverrides overrides = IOOverrides.current;
+    if (overrides == null) {
+      return new _Link(path);
+    }
+    return overrides.createLink(path);
+  }
+
+  factory Link.fromRawPath(Uint8List rawPath) {
+    // TODO(bkonyi): handle overrides
+    return new _Link.fromRawPath(rawPath);
+  }
 
   /**
    * Creates a [Link] object.
@@ -144,22 +155,32 @@ abstract class Link implements FileSystemEntity {
 }
 
 class _Link extends FileSystemEntity implements Link {
-  final String path;
+  String _path;
+  Uint8List _rawPath;
 
-  _Link(this.path) {
+  _Link(String path) {
     if (path is! String) {
       throw new ArgumentError('${Error.safeToString(path)} '
           'is not a String');
     }
+    _path = path;
+    _rawPath = FileSystemEntity._toUtf8Array(path);
   }
+
+  _Link.fromRawPath(Uint8List rawPath) {
+    _rawPath = FileSystemEntity._toNullTerminatedUtf8Array(rawPath);
+    _path = FileSystemEntity._toStringFromUtf8Array(rawPath);
+  }
+
+  String get path => _path;
 
   String toString() => "Link: '$path'";
 
-  Future<bool> exists() => FileSystemEntity.isLink(path);
+  Future<bool> exists() => FileSystemEntity._isLinkRaw(_rawPath);
 
-  bool existsSync() => FileSystemEntity.isLinkSync(path);
+  bool existsSync() => FileSystemEntity._isLinkRawSync(_rawPath);
 
-  Link get absolute => new Link(_absolutePath);
+  Link get absolute => new Link.fromRawPath(_rawAbsolutePath);
 
   Future<Link> create(String target, {bool recursive: false}) {
     if (Platform.isWindows) {
@@ -168,7 +189,8 @@ class _Link extends FileSystemEntity implements Link {
     var result =
         recursive ? parent.create(recursive: true) : new Future.value(null);
     return result
-        .then((_) => _IOService._dispatch(_FILE_CREATE_LINK, [path, target]))
+        .then((_) => _File._dispatchWithNamespace(
+            _IOService.fileCreateLink, [null, _rawPath, target]))
         .then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(
@@ -185,7 +207,7 @@ class _Link extends FileSystemEntity implements Link {
     if (Platform.isWindows) {
       target = _makeWindowsLinkTarget(target);
     }
-    var result = _File._createLink(path, target);
+    var result = _File._createLink(_Namespace._namespace, _rawPath, target);
     throwIfError(result, "Cannot create link", path);
   }
 
@@ -223,9 +245,12 @@ class _Link extends FileSystemEntity implements Link {
 
   Future<Link> _delete({bool recursive: false}) {
     if (recursive) {
-      return new Directory(path).delete(recursive: true).then((_) => this);
+      return new Directory.fromRawPath(_rawPath)
+          .delete(recursive: true)
+          .then((_) => this);
     }
-    return _IOService._dispatch(_FILE_DELETE_LINK, [path]).then((response) {
+    return _File._dispatchWithNamespace(
+        _IOService.fileDeleteLink, [null, _rawPath]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "Cannot delete link", path);
       }
@@ -235,15 +260,15 @@ class _Link extends FileSystemEntity implements Link {
 
   void _deleteSync({bool recursive: false}) {
     if (recursive) {
-      return new Directory(path).deleteSync(recursive: true);
+      return new Directory.fromRawPath(_rawPath).deleteSync(recursive: true);
     }
-    var result = _File._deleteLinkNative(path);
+    var result = _File._deleteLinkNative(_Namespace._namespace, _rawPath);
     throwIfError(result, "Cannot delete link", path);
   }
 
   Future<Link> rename(String newPath) {
-    return _IOService
-        ._dispatch(_FILE_RENAME_LINK, [path, newPath]).then((response) {
+    return _File._dispatchWithNamespace(
+        _IOService.fileRenameLink, [null, _rawPath, newPath]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(
             response, "Cannot rename link to '$newPath'", path);
@@ -253,13 +278,14 @@ class _Link extends FileSystemEntity implements Link {
   }
 
   Link renameSync(String newPath) {
-    var result = _File._renameLink(path, newPath);
+    var result = _File._renameLink(_Namespace._namespace, _rawPath, newPath);
     throwIfError(result, "Cannot rename link '$path' to '$newPath'");
     return new Link(newPath);
   }
 
   Future<String> target() {
-    return _IOService._dispatch(_FILE_LINK_TARGET, [path]).then((response) {
+    return _File._dispatchWithNamespace(
+        _IOService.fileLinkTarget, [null, _rawPath]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(
             response, "Cannot get target of link", path);
@@ -269,7 +295,7 @@ class _Link extends FileSystemEntity implements Link {
   }
 
   String targetSync() {
-    var result = _File._linkTarget(path);
+    var result = _File._linkTarget(_Namespace._namespace, _rawPath);
     throwIfError(result, "Cannot read link", path);
     return result;
   }
@@ -281,17 +307,17 @@ class _Link extends FileSystemEntity implements Link {
   }
 
   bool _isErrorResponse(response) {
-    return response is List && response[0] != _SUCCESS_RESPONSE;
+    return response is List && response[0] != _successResponse;
   }
 
   _exceptionFromResponse(response, String message, String path) {
     assert(_isErrorResponse(response));
-    switch (response[_ERROR_RESPONSE_ERROR_TYPE]) {
-      case _ILLEGAL_ARGUMENT_RESPONSE:
+    switch (response[_errorResponseErrorType]) {
+      case _illegalArgumentResponse:
         return new ArgumentError();
-      case _OSERROR_RESPONSE:
-        var err = new OSError(response[_OSERROR_RESPONSE_MESSAGE],
-            response[_OSERROR_RESPONSE_ERROR_CODE]);
+      case _osErrorResponse:
+        var err = new OSError(response[_osErrorResponseMessage],
+            response[_osErrorResponseErrorCode]);
         return new FileSystemException(message, path, err);
       default:
         return new Exception("Unknown error");

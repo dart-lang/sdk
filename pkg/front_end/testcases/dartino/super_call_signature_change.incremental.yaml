@@ -1,0 +1,43 @@
+# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+main.dart.patch: |
+  // Test that super calls are dispatched correctly
+  class C {
+  <<<< ["instance is null", "v1", "super.foo()", "super.foo(42) threw"]
+    foo() {
+      print('v1');
+    }
+  ==== ["super.foo() threw", "v2", "super.foo(42)"]
+    foo(int i) {
+      print('v2');
+    }
+  >>>>>
+  }
+
+  class B extends C {
+    superFooNoArgs() => super.foo();
+    superFooOneArg(x) => super.foo(x);
+  }
+
+  var instance;
+
+  main() {
+    if (instance == null) {
+      print('instance is null');
+      instance = new B();
+    }
+    try {
+      instance.superFooNoArgs();
+      print("super.foo()");
+    } catch (e) {
+      print("super.foo() threw");
+    }
+    try {
+      instance.superFooOneArg(42);
+      print("super.foo(42)");
+    } catch (e) {
+      print("super.foo(42) threw");
+    }
+  }

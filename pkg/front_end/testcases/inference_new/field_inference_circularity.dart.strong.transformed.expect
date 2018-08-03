@@ -1,0 +1,31 @@
+// Errors:
+//
+// pkg/front_end/testcases/inference_new/field_inference_circularity.dart:12:69: Error: Can't infer the type of 'x': circularity found during type inference.
+// Specify the type explicitly.
+//   var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ x = /*@returnType=dynamic*/ () =>
+//                                                                     ^
+//
+// pkg/front_end/testcases/inference_new/field_inference_circularity.dart:19:69: Error: Can't infer the type of 'x': circularity found during type inference.
+// Specify the type explicitly.
+//   var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ x;
+//                                                                     ^
+
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field dynamic x = () → dynamic => new self::B::•().{self::B::x};
+  field () → dynamic y = () → dynamic => new self::B::•().{self::B::x};
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  field dynamic x = null;
+  field () → dynamic y = null;
+  synthetic constructor •() → void
+    : super self::A::•()
+    ;
+}
+static method main() → dynamic {}

@@ -19,7 +19,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'domain_completion_util.dart';
-import 'mocks.dart' show pumpEventQueue;
 
 main() {
   defineReflectiveSuite(() {
@@ -29,6 +28,17 @@ main() {
 
 @reflectiveTest
 class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
+  test_ArgumentList_constructor_named_fieldFormalParam() async {
+    // https://github.com/dart-lang/sdk/issues/31023
+    addTestFile('''
+main() { new A(field: ^);}
+class A {
+  A({this.field: -1}) {}
+}
+''');
+    await getSuggestions();
+  }
+
   test_ArgumentList_constructor_named_param_label() async {
     addTestFile('main() { new A(^);}'
         'class A { A({one, two}) {} }');
@@ -224,12 +234,11 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
         relevance: DART_RELEVANCE_LOCAL_FIELD);
   }
 
-  @failingTest
   test_html() {
     //
     // We no longer support the analysis of non-dart files.
     //
-    testFile = '/project/web/test.html';
+    testFile = resourceProvider.convertPath('/project/web/test.html');
     addTestFile('''
       <html>^</html>
     ''');
@@ -241,15 +250,18 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
   }
 
   test_import_uri_with_trailing() {
-    addFile('/project/bin/testA.dart', 'library libA;');
+    final filePath = '/project/bin/testA.dart';
+    final incompleteImportText = convertPathForImport('/project/bin/t');
+    newFile(filePath, content: 'library libA;');
     addTestFile('''
-      import '/project/bin/t^.dart';
-      main() {}''');
+    import "$incompleteImportText^.dart";
+    main() {}''');
     return getSuggestions().then((_) {
-      expect(replacementOffset, equals(completionOffset - 14));
-      expect(replacementLength, equals(5 + 14));
+      expect(replacementOffset,
+          equals(completionOffset - incompleteImportText.length));
+      expect(replacementLength, equals(5 + incompleteImportText.length));
       assertHasResult(
-          CompletionSuggestionKind.IMPORT, '/project/bin/testA.dart');
+          CompletionSuggestionKind.IMPORT, convertPathForImport(filePath));
       assertNoResult('test');
     });
   }
@@ -262,8 +274,10 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'HtmlElement');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object',
+          elementKind: ElementKind.CLASS);
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'HtmlElement',
+          elementKind: ElementKind.CLASS);
       assertNoResult('test');
     });
   }
@@ -418,7 +432,8 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object',
+          elementKind: ElementKind.CLASS);
       assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'foo');
       assertNoResult('HtmlElement');
       assertNoResult('test');
@@ -489,14 +504,12 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
   }
 
   test_inDartDoc_reference1() async {
-    addFile(
-        '/testA.dart',
-        '''
+    newFile('/testA.dart', content: '''
   part of libA;
   foo(bar) => 0;''');
     addTestFile('''
   library libA;
-  part "/testA.dart";
+  part "${convertPathForImport('/testA.dart')}";
   import "dart:math";
   /// The [^]
   main(aaa, bbb) {}
@@ -520,9 +533,9 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
   }
 
   test_inherited() {
-    addFile('/libA.dart', 'class A {m() {}}');
+    newFile('/libA.dart', content: 'class A {m() {}}');
     addTestFile('''
-import '/libA.dart';
+import ${convertPathForImport('/libA.dart')};
 class B extends A {
   x() {^}
 }
@@ -587,6 +600,32 @@ class B extends A {
     });
   }
 
+  test_local_implicitCreation() async {
+    addTestFile('''
+class A {
+  A();
+  A.named();
+}
+main() {
+  ^
+}
+''');
+    await getSuggestions();
+
+    expect(replacementOffset, equals(completionOffset));
+    expect(replacementLength, equals(0));
+
+    // The class is suggested.
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'A',
+        elementKind: ElementKind.CLASS);
+
+    // Both constructors - default and named, are suggested.
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'A',
+        elementKind: ElementKind.CONSTRUCTOR);
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'A.named',
+        elementKind: ElementKind.CONSTRUCTOR);
+  }
+
   test_local_named_constructor() {
     addTestFile('class A {A.c(); x() {new A.^}}');
     return getSuggestions().then((_) {
@@ -598,7 +637,7 @@ class B extends A {
   }
 
   test_local_override() {
-    addFile('/libA.dart', 'class A {m() {}}');
+    newFile('/libA.dart', content: 'class A {m() {}}');
     addTestFile('''
 import '/libA.dart';
 class B extends A {
@@ -614,19 +653,47 @@ class B extends A {
     });
   }
 
+  test_local_shadowClass() async {
+    addTestFile('''
+class A {
+  A();
+  A.named();
+}
+main() {
+  int A = 0;
+  ^
+}
+''');
+    await getSuggestions();
+
+    expect(replacementOffset, equals(completionOffset));
+    expect(replacementLength, equals(0));
+
+    // The class is suggested.
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'A',
+        relevance: DART_RELEVANCE_LOCAL_VARIABLE);
+
+    // Class and all its constructors are shadowed by the local variable.
+    assertNoResult('A', elementKind: ElementKind.CLASS);
+    assertNoResult('A', elementKind: ElementKind.CONSTRUCTOR);
+    assertNoResult('A.named', elementKind: ElementKind.CONSTRUCTOR);
+  }
+
   test_locals() {
     addTestFile('class A {var a; x() {var b;^}} class DateTime { }');
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'A');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'A',
+          elementKind: ElementKind.CLASS);
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'a',
           relevance: DART_RELEVANCE_LOCAL_FIELD);
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'b',
           relevance: DART_RELEVANCE_LOCAL_VARIABLE);
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'x',
           relevance: DART_RELEVANCE_LOCAL_METHOD);
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'DateTime');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'DateTime',
+          elementKind: ElementKind.CLASS);
     });
   }
 
@@ -641,7 +708,7 @@ class B extends A {
   }
 
   test_overrides() {
-    addFile('/libA.dart', 'class A {m() {}}');
+    newFile('/libA.dart', content: 'class A {m() {}}');
     addTestFile('''
 import '/libA.dart';
 class B extends A {m() {^}}
@@ -655,11 +722,9 @@ class B extends A {m() {^}}
   }
 
   test_partFile() {
-    addFile(
-        '/project/bin/testA.dart',
-        '''
+    newFile('/project/bin/testA.dart', content: '''
       library libA;
-      part "$testFile";
+      part "${convertPathForImport(testFile)}";
       import 'dart:html';
       class A { }
     ''');
@@ -669,31 +734,35 @@ class B extends A {m() {^}}
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'HtmlElement');
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'A');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object',
+          elementKind: ElementKind.CLASS);
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'HtmlElement',
+          elementKind: ElementKind.CLASS);
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'A',
+          elementKind: ElementKind.CLASS);
       assertNoResult('test');
     });
   }
 
   test_partFile2() {
-    addFile(
-        '/testA.dart',
-        '''
+    newFile('/testA.dart', content: '''
       part of libA;
       class A { }''');
     addTestFile('''
       library libA;
-      part "/testA.dart";
+      part "${convertPathForImport("/testA.dart")}";
       import 'dart:html';
       main() {^}
     ''');
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'HtmlElement');
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'A');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object',
+          elementKind: ElementKind.CLASS);
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'HtmlElement',
+          elementKind: ElementKind.CLASS);
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'A',
+          elementKind: ElementKind.CLASS);
       assertNoResult('test');
     });
   }
@@ -706,7 +775,8 @@ class B extends A {m() {^}}
     ''');
     PluginInfo info = new DiscoveredPluginInfo('a', 'b', 'c', null, null);
     plugin.CompletionGetSuggestionsResult result =
-        new plugin.CompletionGetSuggestionsResult(1, 2, <CompletionSuggestion>[
+        new plugin.CompletionGetSuggestionsResult(
+            testFile.indexOf('^'), 0, <CompletionSuggestion>[
       new CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER,
           DART_RELEVANCE_DEFAULT, 'plugin completion', 3, 0, false, false)
     ]);
@@ -727,7 +797,8 @@ class B extends A {m() {^}}
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object',
+          elementKind: ElementKind.CLASS);
       assertNoResult('HtmlElement');
       assertNoResult('test');
     });

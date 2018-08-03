@@ -241,7 +241,7 @@ abstract class SummaryTest {
    * a file reachable via the given [absoluteUri].
    */
   void checkDependency(int dependency, String absoluteUri) {
-    expect(dependency, new isInstanceOf<int>());
+    expect(dependency, new TypeMatcher<int>());
     expect(linked.dependencies[dependency].uri, absoluteUri);
   }
 
@@ -293,7 +293,7 @@ abstract class SummaryTest {
   void checkExportName(LinkedExportName exportName, String absoluteUri,
       String expectedName, ReferenceKind expectedKind,
       {int expectedTargetUnit: 0}) {
-    expect(exportName, new isInstanceOf<LinkedExportName>());
+    expect(exportName, new TypeMatcher<LinkedExportName>());
     // Exported names must come from other libraries.
     expect(exportName.dependency, isNot(0));
     checkDependency(exportName.dependency, absoluteUri);
@@ -325,7 +325,6 @@ abstract class SummaryTest {
       found.add(dep.uri);
     }
     fail('Did not find dependency $relativeUri.  Found: $found');
-    return null;
   }
 
   /**
@@ -456,7 +455,7 @@ abstract class SummaryTest {
    * having the given [deBruijnIndex].
    */
   void checkParamTypeRef(EntityRef typeRef, int deBruijnIndex) {
-    expect(typeRef, new isInstanceOf<EntityRef>());
+    expect(typeRef, new TypeMatcher<EntityRef>());
     expect(typeRef.reference, 0);
     expect(typeRef.typeArguments, isEmpty);
     expect(typeRef.paramReference, deBruijnIndex);
@@ -489,7 +488,6 @@ abstract class SummaryTest {
       LinkedUnit linkedSourceUnit,
       UnlinkedUnit unlinkedSourceUnit,
       int numTypeParameters: 0,
-      int localIndex: 0,
       bool unresolvedHasName: false}) {
     linkedSourceUnit ??= definingUnit;
     unlinkedSourceUnit ??= unlinkedUnits[0];
@@ -528,7 +526,6 @@ abstract class SummaryTest {
     expect(referenceResolution.kind, expectedKind);
     expect(referenceResolution.unit, expectedTargetUnit);
     expect(referenceResolution.numTypeParameters, numTypeParameters);
-    expect(referenceResolution.localIndex, localIndex);
     return reference;
   }
 
@@ -551,16 +548,23 @@ abstract class SummaryTest {
       List<_PrefixExpectation> prefixExpectations,
       int numTypeArguments: 0,
       ReferenceKind expectedKind: ReferenceKind.classOrEnum,
+      EntityRefKind entityKind: null,
       int expectedTargetUnit: 0,
       LinkedUnit linkedSourceUnit,
       UnlinkedUnit unlinkedSourceUnit,
       int numTypeParameters: 0,
       bool unresolvedHasName: false}) {
     linkedSourceUnit ??= definingUnit;
-    expect(typeRef, new isInstanceOf<EntityRef>());
+    expect(typeRef, new TypeMatcher<EntityRef>());
     expect(typeRef.paramReference, 0);
     int index = typeRef.reference;
     expect(typeRef.typeArguments, hasLength(numTypeArguments));
+
+    if (entityKind == EntityRefKind.genericFunctionType) {
+      // [GenericFunctionType]s don't have references to check.
+      return;
+    }
+
     UnlinkedReference reference = checkReferenceIndex(
         index, absoluteUri, expectedName,
         expectedKind: expectedKind,
@@ -710,6 +714,25 @@ abstract class SummaryTest {
     }
     if (result == null && failIfAbsent) {
       fail('Executable $executableName not found in serialized output');
+    }
+    return result;
+  }
+
+  /**
+   * Find the parameter with the given [name] in [parameters].
+   */
+  UnlinkedParam findParameter(List<UnlinkedParam> parameters, String name) {
+    UnlinkedParam result;
+    for (UnlinkedParam parameter in parameters) {
+      if (parameter.name == name) {
+        if (result != null) {
+          fail('Duplicate parameter $name');
+        }
+        result = parameter;
+      }
+    }
+    if (result == null) {
+      fail('Parameter $name not found');
     }
     return result;
   }
@@ -993,14 +1016,12 @@ main() {
   test_cascaded_export_hide_hide() {
     addNamedSource('/lib1.dart', 'export "lib2.dart" hide C hide B, C;');
     addNamedSource('/lib2.dart', 'class A {} class B {} class C {}');
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 import 'lib1.dart';
 A a;
 B b;
 C c;
-    ''',
-        allowErrors: true);
+    ''', allowErrors: true);
     checkTypeRef(findVariable('a').type, absUri('/lib2.dart'), 'A');
     checkUnresolvedTypeRef(findVariable('b').type, null, 'B');
     checkUnresolvedTypeRef(findVariable('c').type, null, 'C');
@@ -1009,14 +1030,12 @@ C c;
   test_cascaded_export_hide_show() {
     addNamedSource('/lib1.dart', 'export "lib2.dart" hide C show A, C;');
     addNamedSource('/lib2.dart', 'class A {} class B {} class C {}');
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 import 'lib1.dart';
 A a;
 B b;
 C c;
-    ''',
-        allowErrors: true);
+    ''', allowErrors: true);
     checkTypeRef(findVariable('a').type, absUri('/lib2.dart'), 'A');
     checkUnresolvedTypeRef(findVariable('b').type, null, 'B');
     checkUnresolvedTypeRef(findVariable('c').type, null, 'C');
@@ -1025,14 +1044,12 @@ C c;
   test_cascaded_export_show_hide() {
     addNamedSource('/lib1.dart', 'export "lib2.dart" show A, B hide B, C;');
     addNamedSource('/lib2.dart', 'class A {} class B {} class C {}');
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 import 'lib1.dart';
 A a;
 B b;
 C c;
-    ''',
-        allowErrors: true);
+    ''', allowErrors: true);
     checkTypeRef(findVariable('a').type, absUri('/lib2.dart'), 'A');
     checkUnresolvedTypeRef(findVariable('b').type, null, 'B');
     checkUnresolvedTypeRef(findVariable('c').type, null, 'C');
@@ -1041,14 +1058,12 @@ C c;
   test_cascaded_export_show_show() {
     addNamedSource('/lib1.dart', 'export "lib2.dart" show A, B show A, C;');
     addNamedSource('/lib2.dart', 'class A {} class B {} class C {}');
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 import 'lib1.dart';
 A a;
 B b;
 C c;
-    ''',
-        allowErrors: true);
+    ''', allowErrors: true);
     checkTypeRef(findVariable('a').type, absUri('/lib2.dart'), 'A');
     checkUnresolvedTypeRef(findVariable('b').type, null, 'B');
     checkUnresolvedTypeRef(findVariable('c').type, null, 'C');
@@ -1056,14 +1071,12 @@ C c;
 
   test_cascaded_import_hide_hide() {
     addNamedSource('/lib.dart', 'class A {} class B {} class C {}');
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 import 'lib.dart' hide C hide B, C;
 A a;
 B b;
 C c;
-    ''',
-        allowErrors: true);
+    ''', allowErrors: true);
     checkTypeRef(findVariable('a').type, absUri('/lib.dart'), 'A');
     checkUnresolvedTypeRef(findVariable('b').type, null, 'B');
     checkUnresolvedTypeRef(findVariable('c').type, null, 'C');
@@ -1071,14 +1084,12 @@ C c;
 
   test_cascaded_import_hide_show() {
     addNamedSource('/lib.dart', 'class A {} class B {} class C {}');
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 import 'lib.dart' hide C show A, C;
 A a;
 B b;
 C c;
-    ''',
-        allowErrors: true);
+    ''', allowErrors: true);
     checkTypeRef(findVariable('a').type, absUri('/lib.dart'), 'A');
     checkUnresolvedTypeRef(findVariable('b').type, null, 'B');
     checkUnresolvedTypeRef(findVariable('c').type, null, 'C');
@@ -1086,14 +1097,12 @@ C c;
 
   test_cascaded_import_show_hide() {
     addNamedSource('/lib.dart', 'class A {} class B {} class C {}');
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 import 'lib.dart' show A, B hide B, C;
 A a;
 B b;
 C c;
-    ''',
-        allowErrors: true);
+    ''', allowErrors: true);
     checkTypeRef(findVariable('a').type, absUri('/lib.dart'), 'A');
     checkUnresolvedTypeRef(findVariable('b').type, null, 'B');
     checkUnresolvedTypeRef(findVariable('c').type, null, 'C');
@@ -1101,14 +1110,12 @@ C c;
 
   test_cascaded_import_show_show() {
     addNamedSource('/lib.dart', 'class A {} class B {} class C {}');
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 import 'lib.dart' show A, B show A, C;
 A a;
 B b;
 C c;
-    ''',
-        allowErrors: true);
+    ''', allowErrors: true);
     checkTypeRef(findVariable('a').type, absUri('/lib.dart'), 'A');
     checkUnresolvedTypeRef(findVariable('b').type, null, 'B');
     checkUnresolvedTypeRef(findVariable('c').type, null, 'C');
@@ -1505,9 +1512,9 @@ class E {}
       closure = executable.localFunctions[0];
     }
     if (strongMode) {
-      // Strong mode infers a type for the closure of `() => dynamic`, so the
-      // inferred return type slot should be empty.
-      expect(getTypeRefForSlot(closure.inferredReturnTypeSlot), isNull);
+      // Strong mode infers a type for the closure of `() => Null`.
+      checkInferredTypeSlot(
+          closure.inferredReturnTypeSlot, 'dart:core', 'Null');
     } else {
       // Spec mode infers a type for the closure of `() => Bottom`.
       checkInferredTypeSlot(closure.inferredReturnTypeSlot, null, '*bottom*',
@@ -1553,7 +1560,7 @@ f() {
     int outerClosureIndex =
         definingUnit.references[closureType.reference].containingReference;
     checkReferenceIndex(outerClosureIndex, null, '',
-        expectedKind: ReferenceKind.function, localIndex: 1);
+        expectedKind: ReferenceKind.function);
     int topLevelFunctionIndex =
         definingUnit.references[outerClosureIndex].containingReference;
     checkReferenceIndex(topLevelFunctionIndex, null, 'f',
@@ -2013,9 +2020,7 @@ const v = const C<int, String>.named();
   }
 
   test_constExpr_invokeConstructor_generic_named_imported() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C<K, V> {
   const C.named();
 }
@@ -2045,9 +2050,7 @@ const v = const C<int, String>.named();
   }
 
   test_constExpr_invokeConstructor_generic_named_imported_withPrefix() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C<K, V> {
   const C.named();
 }
@@ -2102,9 +2105,7 @@ const v = const C<int, String>();
   }
 
   test_constExpr_invokeConstructor_generic_unnamed_imported() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C<K, V> {
   const C();
 }
@@ -2131,9 +2132,7 @@ const v = const C<int, String>();
   }
 
   test_constExpr_invokeConstructor_generic_unnamed_imported_withPrefix() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C<K, V> {
   const C();
 }
@@ -2184,9 +2183,7 @@ const v = const C.named();
   }
 
   test_constExpr_invokeConstructor_named_imported() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C {
   const C.named();
 }
@@ -2211,9 +2208,7 @@ const v = const C.named();
   }
 
   test_constExpr_invokeConstructor_named_imported_withPrefix() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C {
   const C.named();
 }
@@ -2280,9 +2275,7 @@ const v = const C(11, 22, 3.3, '444', e: 55, g: '777', f: 66);
   }
 
   test_constExpr_invokeConstructor_unnamed_imported() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C {
   const C();
 }
@@ -2303,9 +2296,7 @@ const v = const C();
   }
 
   test_constExpr_invokeConstructor_unnamed_imported_withPrefix() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C {
   const C();
 }
@@ -2329,12 +2320,10 @@ const v = const p.C();
   }
 
   test_constExpr_invokeConstructor_unresolved_named() {
-    UnlinkedVariable variable = serializeVariableText(
-        '''
+    UnlinkedVariable variable = serializeVariableText('''
 class C {}
 const v = const C.foo();
-''',
-        allowErrors: true);
+''', allowErrors: true);
     assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
       UnlinkedExprOperation.invokeConstructor,
     ], ints: [
@@ -2350,11 +2339,9 @@ const v = const C.foo();
   }
 
   test_constExpr_invokeConstructor_unresolved_named2() {
-    UnlinkedVariable variable = serializeVariableText(
-        '''
+    UnlinkedVariable variable = serializeVariableText('''
 const v = const C.foo();
-''',
-        allowErrors: true);
+''', allowErrors: true);
     assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
       UnlinkedExprOperation.invokeConstructor,
     ], ints: [
@@ -2370,18 +2357,14 @@ const v = const C.foo();
   }
 
   test_constExpr_invokeConstructor_unresolved_named_prefixed() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C {
 }
 ''');
-    UnlinkedVariable variable = serializeVariableText(
-        '''
+    UnlinkedVariable variable = serializeVariableText('''
 import 'a.dart' as p;
 const v = const p.C.foo();
-''',
-        allowErrors: true);
+''', allowErrors: true);
     assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
       UnlinkedExprOperation.invokeConstructor,
     ], ints: [
@@ -2400,12 +2383,10 @@ const v = const p.C.foo();
 
   test_constExpr_invokeConstructor_unresolved_named_prefixed2() {
     addNamedSource('/a.dart', '');
-    UnlinkedVariable variable = serializeVariableText(
-        '''
+    UnlinkedVariable variable = serializeVariableText('''
 import 'a.dart' as p;
 const v = const p.C.foo();
-''',
-        allowErrors: true);
+''', allowErrors: true);
     assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
       UnlinkedExprOperation.invokeConstructor,
     ], ints: [
@@ -2422,11 +2403,9 @@ const v = const p.C.foo();
   }
 
   test_constExpr_invokeConstructor_unresolved_unnamed() {
-    UnlinkedVariable variable = serializeVariableText(
-        '''
+    UnlinkedVariable variable = serializeVariableText('''
 const v = const Foo();
-''',
-        allowErrors: true);
+''', allowErrors: true);
     assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
       UnlinkedExprOperation.invokeConstructor,
     ], ints: [
@@ -2477,9 +2456,7 @@ const int v = C.length;
   }
 
   test_constExpr_length_classConstField_imported_withPrefix() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C {
   static const int length = 0;
 }
@@ -2540,9 +2517,7 @@ const int v = C.F.length;
   }
 
   test_constExpr_length_identifierTarget_imported() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 const String a = 'aaa';
 ''');
     UnlinkedVariable variable = serializeVariableText('''
@@ -2564,9 +2539,7 @@ const int v = a.length;
   }
 
   test_constExpr_length_identifierTarget_imported_withPrefix() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 const String a = 'aaa';
 ''');
     UnlinkedVariable variable = serializeVariableText('''
@@ -2667,6 +2640,70 @@ const int v = p.a.length;
       3
     ], referenceValidators: [
       (EntityRef r) => checkDynamicTypeRef(r)
+    ]);
+  }
+
+  test_constExpr_makeTypedList_functionType() {
+    UnlinkedVariable variable =
+        serializeVariableText('final v = <void Function(int)>[];');
+    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedExprOperation.makeTypedList
+    ], ints: [
+      0 // Size of the list
+    ], referenceValidators: [
+      (EntityRef reference) {
+        expect(reference, new TypeMatcher<EntityRef>());
+        expect(reference.entityKind, EntityRefKind.genericFunctionType);
+        expect(reference.syntheticParams, hasLength(1));
+        {
+          final param = reference.syntheticParams[0];
+          expect(param.name, ''); // no name for generic type parameters
+          checkTypeRef(param.type, 'dart:core', 'int',
+              expectedKind: ReferenceKind.classOrEnum);
+        }
+        expect(reference.paramReference, 0);
+        expect(reference.typeParameters, hasLength(0));
+        // TODO(mfairhurst) check this references void
+        expect(reference.syntheticReturnType, isNotNull);
+      }
+    ]);
+  }
+
+  test_constExpr_makeTypedList_functionType_withTypeParameters() {
+    UnlinkedVariable variable = serializeVariableText(
+        'final v = <void Function<T>(Function<Q>(T, Q))>[];');
+    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedExprOperation.makeTypedList
+    ], ints: [
+      0 // Size of the list
+    ], referenceValidators: [
+      (EntityRef reference) {
+        expect(reference, new TypeMatcher<EntityRef>());
+        expect(reference.entityKind, EntityRefKind.genericFunctionType);
+        expect(reference.syntheticParams, hasLength(1));
+        {
+          final param = reference.syntheticParams[0];
+          expect(param.type, new TypeMatcher<EntityRef>());
+          expect(param.type.entityKind, EntityRefKind.genericFunctionType);
+          expect(param.type.syntheticParams, hasLength(2));
+          {
+            final subparam = param.type.syntheticParams[0];
+            expect(subparam.name, ''); // no name for generic type parameters
+            expect(subparam.type, new TypeMatcher<EntityRef>());
+            expect(subparam.type.paramReference, 2);
+          }
+          {
+            final subparam = param.type.syntheticParams[1];
+            expect(subparam.name, ''); // no name for generic type parameters
+            expect(subparam.type, new TypeMatcher<EntityRef>());
+            expect(subparam.type.paramReference, 1);
+          }
+        }
+        expect(reference.paramReference, 0);
+        expect(reference.typeParameters, hasLength(1));
+        // TODO(mfairhurst) check this references void
+        expect(reference.syntheticReturnType, isNotNull);
+      }
     ]);
   }
 
@@ -2841,12 +2878,23 @@ const int v = p.a.length;
     ]);
   }
 
-  test_constExpr_pushLongInt() {
+  test_constExpr_pushLongInt_maxNegative() {
     UnlinkedVariable variable =
-        serializeVariableText('const v = 0xA123456789ABCDEF012345678;');
+        serializeVariableText('const v = 0xFFFFFFFFFFFFFFFF;');
+    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.negate
+    ], ints: [
+      1
+    ]);
+  }
+
+  test_constExpr_pushLongInt_maxPositive() {
+    UnlinkedVariable variable =
+        serializeVariableText('const v = 0x7FFFFFFFFFFFFFFF;');
     assertUnlinkedConst(variable.initializer.bodyExpr,
         operators: [UnlinkedExprOperation.pushLongInt],
-        ints: [4, 0xA, 0x12345678, 0x9ABCDEF0, 0x12345678]);
+        ints: [2, 0x7FFFFFFF, 0xFFFFFFFF]);
   }
 
   test_constExpr_pushLongInt_min2() {
@@ -2860,17 +2908,11 @@ const int v = p.a.length;
     ]);
   }
 
-  test_constExpr_pushLongInt_min3() {
+  test_constExpr_pushLongInt_tooLong() {
     UnlinkedVariable variable =
         serializeVariableText('const v = 0x10000000000000000;');
-    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedExprOperation.pushLongInt
-    ], ints: [
-      3,
-      1,
-      0,
-      0,
-    ]);
+    assertUnlinkedConst(variable.initializer.bodyExpr,
+        operators: [UnlinkedExprOperation.pushInt], ints: [0]);
   }
 
   test_constExpr_pushNull() {
@@ -2922,9 +2964,7 @@ const v = C.V1;
   }
 
   test_constExpr_pushReference_enumValue_viaImport() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 enum C {V1, V2, V3}
 ''');
     UnlinkedVariable variable = serializeVariableText('''
@@ -2960,9 +3000,7 @@ const v = C.values;
   }
 
   test_constExpr_pushReference_enumValues_viaImport() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 enum C {V1, V2, V3}
 ''');
     UnlinkedVariable variable = serializeVariableText('''
@@ -3000,9 +3038,7 @@ const v = C.F;
   }
 
   test_constExpr_pushReference_field_imported() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C {
   static const int F = 1;
 }
@@ -3024,9 +3060,7 @@ const v = C.F;
   }
 
   test_constExpr_pushReference_field_imported_withPrefix() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C {
   static const int F = 1;
 }
@@ -3085,9 +3119,7 @@ const v = C.x;
   }
 
   test_constExpr_pushReference_staticGetter_imported() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C {
   static int get x => null;
 }
@@ -3109,9 +3141,7 @@ const v = C.x;
   }
 
   test_constExpr_pushReference_staticGetter_imported_withPrefix() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C {
   static int get x => null;
 }
@@ -3152,9 +3182,7 @@ const v = C.m;
   }
 
   test_constExpr_pushReference_staticMethod_imported() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C {
   static m() {}
 }
@@ -3176,9 +3204,7 @@ const v = C.m;
   }
 
   test_constExpr_pushReference_staticMethod_imported_withPrefix() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C {
   static m() {}
 }
@@ -3232,9 +3258,7 @@ const v = f;
   }
 
   test_constExpr_pushReference_topLevelFunction_imported() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 f() {}
 ''');
     UnlinkedVariable variable = serializeVariableText('''
@@ -3250,9 +3274,7 @@ const v = f;
   }
 
   test_constExpr_pushReference_topLevelFunction_imported_withPrefix() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 f() {}
 ''');
     UnlinkedVariable variable = serializeVariableText('''
@@ -3374,11 +3396,9 @@ class C<T> {
   }
 
   test_constExpr_pushReference_unresolved_prefix0() {
-    UnlinkedVariable variable = serializeVariableText(
-        '''
+    UnlinkedVariable variable = serializeVariableText('''
 const v = foo;
-''',
-        allowErrors: true);
+''', allowErrors: true);
     assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
       UnlinkedExprOperation.pushReference
     ], referenceValidators: [
@@ -3388,12 +3408,10 @@ const v = foo;
   }
 
   test_constExpr_pushReference_unresolved_prefix1() {
-    UnlinkedVariable variable = serializeVariableText(
-        '''
+    UnlinkedVariable variable = serializeVariableText('''
 class C {}
 const v = C.foo;
-''',
-        allowErrors: true);
+''', allowErrors: true);
     assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
       UnlinkedExprOperation.pushReference
     ], referenceValidators: [
@@ -3406,17 +3424,13 @@ const v = C.foo;
   }
 
   test_constExpr_pushReference_unresolved_prefix2() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C {}
 ''');
-    UnlinkedVariable variable = serializeVariableText(
-        '''
+    UnlinkedVariable variable = serializeVariableText('''
 import 'a.dart' as p;
 const v = p.C.foo;
-''',
-        allowErrors: true);
+''', allowErrors: true);
     assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
       UnlinkedExprOperation.pushReference
     ], referenceValidators: [
@@ -4097,9 +4111,7 @@ class D<T, U> extends C<U, T> {
   }
 
   test_constructor_redirected_factory_named_imported() {
-    addNamedSource(
-        '/foo.dart',
-        '''
+    addNamedSource('/foo.dart', '''
 import 'test.dart';
 class D extends C {
   D.named() : super._();
@@ -4129,9 +4141,7 @@ class C {
   }
 
   test_constructor_redirected_factory_named_imported_generic() {
-    addNamedSource(
-        '/foo.dart',
-        '''
+    addNamedSource('/foo.dart', '''
 import 'test.dart';
 class D<T, U> extends C<U, T> {
   D.named() : super._();
@@ -4165,9 +4175,7 @@ class C<T, U> {
   }
 
   test_constructor_redirected_factory_named_prefixed() {
-    addNamedSource(
-        '/foo.dart',
-        '''
+    addNamedSource('/foo.dart', '''
 import 'test.dart';
 class D extends C {
   D.named() : super._();
@@ -4198,9 +4206,7 @@ class C {
   }
 
   test_constructor_redirected_factory_named_prefixed_generic() {
-    addNamedSource(
-        '/foo.dart',
-        '''
+    addNamedSource('/foo.dart', '''
 import 'test.dart';
 class D<T, U> extends C<U, T> {
   D.named() : super._();
@@ -4274,9 +4280,7 @@ class D<T, U> extends C<U, T> {
   }
 
   test_constructor_redirected_factory_unnamed_imported() {
-    addNamedSource(
-        '/foo.dart',
-        '''
+    addNamedSource('/foo.dart', '''
 import 'test.dart';
 class D extends C {
   D() : super._();
@@ -4298,9 +4302,7 @@ class C {
   }
 
   test_constructor_redirected_factory_unnamed_imported_generic() {
-    addNamedSource(
-        '/foo.dart',
-        '''
+    addNamedSource('/foo.dart', '''
 import 'test.dart';
 class D<T, U> extends C<U, T> {
   D() : super._();
@@ -4325,9 +4327,7 @@ class C<T, U> {
   }
 
   test_constructor_redirected_factory_unnamed_prefixed() {
-    addNamedSource(
-        '/foo.dart',
-        '''
+    addNamedSource('/foo.dart', '''
 import 'test.dart';
 class D extends C {
   D() : super._();
@@ -4350,9 +4350,7 @@ class C {
   }
 
   test_constructor_redirected_factory_unnamed_prefixed_generic() {
-    addNamedSource(
-        '/foo.dart',
-        '''
+    addNamedSource('/foo.dart', '''
 import 'test.dart';
 class D<T, U> extends C<U, T> {
   D() : super._();
@@ -4454,43 +4452,37 @@ class D {
   }
 
   test_constructorCycle_redirectToImplicitConstructor() {
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C {
   const factory C() = D;
 }
 class D extends C {}
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C', hasCycle: false);
   }
 
   test_constructorCycle_redirectToNonConstConstructor() {
     // It's not valid Dart but we need to make sure it doesn't crash
     // summary generation.
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C {
   const factory C() = D;
 }
 class D extends C {
   D();
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C', hasCycle: false);
   }
 
   test_constructorCycle_redirectToSymbolConstructor() {
     // The symbol constructor has some special case behaviors in analyzer.
     // Make sure those special case behaviors don't cause problems.
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C {
   const factory C(String name) = Symbol;
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C', hasCycle: false);
   }
 
@@ -4540,27 +4532,23 @@ class C {
   test_constructorCycle_referenceToGenericParameter() {
     // It's not valid Dart but we need to make sure it doesn't crash
     // summary generation.
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C<T> {
   final x;
   const C() : x = T;
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C', hasCycle: false);
   }
 
   test_constructorCycle_referenceToGenericParameter_asSupertype() {
     // It's not valid Dart but we need to make sure it doesn't crash
     // summary generation.
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C<T> extends T {
   const C();
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C', hasCycle: false);
   }
 
@@ -4613,14 +4601,12 @@ class C {
   test_constructorCycle_referenceToUndefinedName() {
     // It's not valid Dart but we need to make sure it doesn't crash
     // summary generation.
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C {
   final x;
   const C() : x = foo;
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C', hasCycle: false);
   }
 
@@ -4628,15 +4614,13 @@ class C {
     // It's not valid Dart but we need to make sure it doesn't crash
     // summary generation.
     addNamedSource('/a.dart', '');
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 import 'a.dart' as a;
 class C {
   final x;
   const C() : x = a.foo;
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C', hasCycle: false);
   }
 
@@ -4644,32 +4628,27 @@ class C {
     // It's not valid Dart but we need to make sure it doesn't crash
     // summary generation.
     allowMissingFiles = true;
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 import 'a.dart' as a;
 class C {
   final x;
   const C() : x = a.foo;
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C', hasCycle: false);
   }
 
   test_constructorCycle_trivial() {
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C {
   const C() : this();
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C');
   }
 
   test_constructorCycle_viaFactoryRedirect() {
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C {
   const C();
   const factory C.named() = D;
@@ -4679,37 +4658,32 @@ class D extends C {
   const D() : x = y;
 }
 const y = const C.named();
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C', hasCycle: false);
     checkConstCycle('C', name: 'named');
     checkConstCycle('D');
   }
 
   test_constructorCycle_viaFinalField() {
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C {
   final x = const C();
   const C();
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C');
   }
 
   test_constructorCycle_viaLength() {
     // It's not valid Dart but we need to make sure it doesn't crash
     // summary generation.
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C {
   final x;
   const C() : x = y.length;
 }
 const y = const C();
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C');
   }
 
@@ -4761,23 +4735,20 @@ class C extends B {
   }
 
   test_constructorCycle_viaRedirectArgument() {
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C {
   final x;
   const C() : this.named(y);
   const C.named(this.x);
 }
 const y = const C();
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C');
     checkConstCycle('C', name: 'named', hasCycle: false);
   }
 
   test_constructorCycle_viaStaticField_inOtherClass() {
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C {
   final x;
   const C() : x = D.y;
@@ -4785,27 +4756,23 @@ class C {
 class D {
   static const y = const C();
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C');
   }
 
   test_constructorCycle_viaStaticField_inSameClass() {
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C {
   final x;
   static const y = const C();
   const C() : x = y;
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C');
   }
 
   test_constructorCycle_viaSuperArgument() {
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class B {
   final x;
   const B(this.x);
@@ -4814,8 +4781,7 @@ class C extends B {
   const C() : super(y);
 }
 const y = const C();
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('B', hasCycle: false);
     checkConstCycle('C');
   }
@@ -4837,14 +4803,12 @@ class D extends C {
   test_constructorCycle_viaSupertype_Enum() {
     // It's not valid Dart but we need to make sure it doesn't crash
     // summary generation.
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 enum E { v }
 class C extends E {
   const C();
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C', hasCycle: false);
   }
 
@@ -4869,8 +4833,7 @@ class D extends C {
   test_constructorCycle_viaSupertype_explicit_undefined() {
     // It's not valid Dart but we need to make sure it doesn't crash
     // summary generation.
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C {
   final x;
   const C() : x = const D();
@@ -4878,8 +4841,7 @@ class C {
 class D extends C {
   const D() : super.named();
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C', hasCycle: false);
     checkConstCycle('D', hasCycle: false);
   }
@@ -4913,53 +4875,43 @@ class D extends C<int> {
   }
 
   test_constructorCycle_viaTopLevelVariable() {
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 class C {
   final x;
   const C() : x = y;
 }
 const y = const C();
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C');
   }
 
   test_constructorCycle_viaTopLevelVariable_imported() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 import 'test.dart';
 const y = const C();
     ''');
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 import 'a.dart';
 class C {
   final x;
   const C() : x = y;
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C');
   }
 
   test_constructorCycle_viaTopLevelVariable_importedViaPrefix() {
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 import 'test.dart';
 const y = const C();
     ''');
-    serializeLibraryText(
-        '''
+    serializeLibraryText('''
 import 'a.dart' as a;
 class C {
   final x;
   const C() : x = a.y;
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     checkConstCycle('C');
   }
 
@@ -5100,9 +5052,7 @@ class C {
   }
 
   test_elements_in_part() {
-    addNamedSource(
-        '/part1.dart',
-        '''
+    addNamedSource('/part1.dart', '''
 part of my.lib;
 
 class C {}
@@ -5319,317 +5269,6 @@ f() {
     UnlinkedExecutable executable = serializeExecutableText(code);
     List<UnlinkedExecutable> functions = executable.localFunctions;
     expect(functions, isEmpty);
-  }
-
-  test_executable_localLabels_inMethod() {
-    String code = r'''
-class C {
-  m() {
-    aaa: while (true) {}
-    bbb: while (true) {}
-  }
-}
-''';
-    UnlinkedExecutable executable =
-        findExecutable('m', executables: serializeClassText(code).executables);
-    List<UnlinkedLabel> labels = executable.localLabels;
-    expect(labels, isEmpty);
-  }
-
-  test_executable_localLabels_inTopLevelFunction() {
-    String code = r'''
-f() {
-  aaa: while (true) {}
-  bbb: switch (42) {
-    ccc: case 0:
-      break;
-    ddd: default:
-      break;
-  }
-}
-''';
-    UnlinkedExecutable executable = serializeExecutableText(code);
-    List<UnlinkedLabel> labels = executable.localLabels;
-    expect(labels, isEmpty);
-  }
-
-  test_executable_localLabels_inTopLevelGetter() {
-    String code = r'''
-get g {
-  aaa: while (true) {}
-  bbb: while (true) {}
-}
-''';
-    UnlinkedExecutable executable =
-        serializeExecutableText(code, executableName: 'g');
-    List<UnlinkedLabel> labels = executable.localLabels;
-    expect(labels, isEmpty);
-  }
-
-  test_executable_localLabels_namedExpressionLabel() {
-    String code = r'''
-f() {
-  foo(p: 42);
-}
-foo({int p}) {}
-''';
-    UnlinkedExecutable executable = serializeExecutableText(code);
-    List<UnlinkedLabel> labels = executable.localLabels;
-    expect(labels, isEmpty);
-  }
-
-  test_executable_localVariables_catch() {
-    String code = r'''
-var v = (
-  () { // 1
-    try {
-      throw 42;
-    } on int catch (e, st) { // 2
-      print(e);
-      print(st);
-    } // 3
-  } // 4
-);
-''';
-    UnlinkedExecutable executable =
-        serializeVariableText(code).initializer.localFunctions[0];
-    List<UnlinkedVariable> variables = executable.localVariables;
-    expect(variables, hasLength(2));
-    {
-      UnlinkedVariable e = variables.singleWhere((v) => v.name == 'e');
-      _assertVariableVisible(code, e, 'on int catch (', '} // 3');
-      checkTypeRef(e.type, 'dart:core', 'int');
-    }
-    {
-      UnlinkedVariable st = variables.singleWhere((v) => v.name == 'st');
-      _assertVariableVisible(code, st, 'on int catch (', '} // 3');
-    }
-  }
-
-  test_executable_localVariables_catch_noVariables() {
-    String code = r'''
-f() {
-  try {
-    throw 42;
-  } on int {}
-}
-''';
-    UnlinkedExecutable executable = serializeExecutableText(code);
-    List<UnlinkedVariable> variables = executable.localVariables;
-    expect(variables, isEmpty);
-  }
-
-  test_executable_localVariables_empty() {
-    UnlinkedExecutable executable = serializeExecutableText(r'''
-f() {
-}
-''');
-    expect(executable.localVariables, isEmpty);
-  }
-
-  test_executable_localVariables_forEachLoop() {
-    String code = r'''
-var v = (() {
-  f() { // 1
-    for (int i in <int>[]) { // 2
-      print(i);
-    } // 3
-  } // 4
-});
-''';
-    UnlinkedExecutable executable = serializeVariableText(code)
-        .initializer
-        .localFunctions[0]
-        .localFunctions[0];
-    List<UnlinkedVariable> variables = executable.localVariables;
-    expect(variables, hasLength(1));
-    {
-      UnlinkedVariable i = variables.singleWhere((v) => v.name == 'i');
-      _assertVariableVisible(code, i, 'for', '} // 3');
-      checkTypeRef(i.type, 'dart:core', 'int');
-    }
-  }
-
-  test_executable_localVariables_forEachLoop_outside() {
-    String code = r'''
-var v = (() {
-  f() { // 1
-    int i;
-    for (i in <int>[]) {
-      print(i);
-    }
-  } // 4
-});
-''';
-    UnlinkedExecutable executable = serializeVariableText(code)
-        .initializer
-        .localFunctions[0]
-        .localFunctions[0];
-    List<UnlinkedVariable> variables = executable.localVariables;
-    expect(variables, hasLength(1));
-    {
-      UnlinkedVariable i = variables.singleWhere((v) => v.name == 'i');
-      _assertVariableVisible(code, i, '{ // 1', '} // 4');
-      checkTypeRef(i.type, 'dart:core', 'int');
-    }
-  }
-
-  test_executable_localVariables_forLoop() {
-    String code = r'''
-var v = (() {
-  f() { // 1
-    for (int i = 0, j = 0; i < 10; i++, j++) { // 2
-      print(i);
-    } // 3
-  } // 4
-});
-''';
-    UnlinkedExecutable executable = serializeVariableText(code)
-        .initializer
-        .localFunctions[0]
-        .localFunctions[0];
-    List<UnlinkedVariable> variables = executable.localVariables;
-    expect(variables, hasLength(2));
-    {
-      UnlinkedVariable i = variables.singleWhere((v) => v.name == 'i');
-      _assertVariableVisible(code, i, 'for', '} // 3');
-      checkTypeRef(i.type, 'dart:core', 'int');
-    }
-    {
-      UnlinkedVariable i = variables.singleWhere((v) => v.name == 'j');
-      _assertVariableVisible(code, i, 'for', '} // 3');
-      checkTypeRef(i.type, 'dart:core', 'int');
-    }
-  }
-
-  test_executable_localVariables_forLoop_noVariables() {
-    String code = r'''
-var v = (() {
-  f() {
-    for (; true;) {}
-  }
-});
-''';
-    UnlinkedExecutable executable = serializeVariableText(code)
-        .initializer
-        .localFunctions[0]
-        .localFunctions[0];
-    List<UnlinkedVariable> variables = executable.localVariables;
-    expect(variables, isEmpty);
-  }
-
-  test_executable_localVariables_inConstructor() {
-    String code = r'''
-class C {
-  C() {
-    int v;
-  }
-}
-''';
-    UnlinkedExecutable executable =
-        findExecutable('', executables: serializeClassText(code).executables);
-    List<UnlinkedVariable> variables = executable.localVariables;
-    expect(variables, isEmpty);
-  }
-
-  test_executable_localVariables_inLocalFunctions() {
-    String code = r'''
-var v = (() {
-  f() {
-    f1() { // 1
-      int v1 = 1;
-    } // 2
-    f2() { // 3
-      int v1 = 1;
-      f3() { // 4
-        int v2 = 1;
-      } // 5
-    } // 6
-  } // 7
-});
-''';
-    UnlinkedExecutable executable = serializeVariableText(code)
-        .initializer
-        .localFunctions[0]
-        .localFunctions[0];
-    List<UnlinkedExecutable> functions = executable.localFunctions;
-    expect(functions, hasLength(2));
-    // f - f1
-    {
-      UnlinkedExecutable f1 = functions.singleWhere((v) => v.name == 'f1');
-      List<UnlinkedVariable> variables = f1.localVariables;
-      expect(variables, hasLength(1));
-      // f1 - v1
-      UnlinkedVariable v1 = variables.singleWhere((v) => v.name == 'v1');
-      _assertVariableVisible(code, v1, '{ // 1', '} // 2');
-      checkTypeRef(v1.type, 'dart:core', 'int');
-    }
-    // f - f2
-    {
-      UnlinkedExecutable f2 = functions.singleWhere((v) => v.name == 'f2');
-      List<UnlinkedVariable> variables2 = f2.localVariables;
-      List<UnlinkedExecutable> functions2 = f2.localFunctions;
-      expect(variables2, hasLength(1));
-      expect(functions2, hasLength(1));
-      // f - f2 - v1
-      UnlinkedVariable v1 = variables2.singleWhere((v) => v.name == 'v1');
-      _assertVariableVisible(code, v1, '{ // 3', '} // 6');
-      checkTypeRef(v1.type, 'dart:core', 'int');
-      // f - f2 - f3
-      UnlinkedExecutable f3 = functions2.singleWhere((v) => v.name == 'f3');
-      _assertExecutableVisible(code, f3, '{ // 3', '} // 6');
-      List<UnlinkedVariable> variables3 = f3.localVariables;
-      List<UnlinkedExecutable> functions3 = f3.localFunctions;
-      expect(variables3, hasLength(1));
-      expect(functions3, hasLength(0));
-      // f - f3 - v2
-      UnlinkedVariable v2 = variables3.singleWhere((v) => v.name == 'v2');
-      _assertVariableVisible(code, v2, '{ // 4', '} // 5');
-      checkTypeRef(v2.type, 'dart:core', 'int');
-    }
-  }
-
-  test_executable_localVariables_inMethod() {
-    String code = r'''
-class C {
-  m() {
-    int v;
-    f() {}
-  }
-}
-''';
-    UnlinkedExecutable executable =
-        findExecutable('m', executables: serializeClassText(code).executables);
-    expect(executable.localFunctions, isEmpty);
-    expect(executable.localVariables, isEmpty);
-  }
-
-  test_executable_localVariables_inTopLevelFunction() {
-    String code = r'''
-f() {
-  int v1 = 1;
-  {
-    int v2 = 2;
-  }
-  var v3 = 3;
-}
-''';
-    UnlinkedExecutable executable = serializeExecutableText(code);
-    List<UnlinkedVariable> variables = executable.localVariables;
-    expect(variables, isEmpty);
-  }
-
-  test_executable_localVariables_inTopLevelGetter() {
-    String code = r'''
-get g { // 1
-  int v;
-  f() {}
-} // 2
-''';
-    UnlinkedExecutable executable =
-        serializeExecutableText(code, executableName: 'g');
-    expect(executable.localFunctions, isEmpty);
-    expect(executable.localVariables, isEmpty);
   }
 
   test_executable_member_function() {
@@ -6866,9 +6505,7 @@ final v = (a = 1);
     if (skipNonConstInitializers) {
       return;
     }
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 int a = 0;
 ''');
     UnlinkedVariable variable = serializeVariableText('''
@@ -6898,9 +6535,7 @@ final v = (a = 1);
     if (skipNonConstInitializers) {
       return;
     }
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 int a = 0;
 ''');
     UnlinkedVariable variable = serializeVariableText('''
@@ -7114,11 +6749,16 @@ foo(a, b) {}
     assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushLocalFunctionReference,
           UnlinkedExprOperation.invokeMethodRef
         ],
         ints: [
+          5,
           0,
           0,
+          0,
+          2,
           0
         ],
         referenceValidators: [
@@ -7135,11 +6775,19 @@ foo(a, b, c) {}
     assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushLocalFunctionReference,
+          UnlinkedExprOperation.pushLocalFunctionReference,
           UnlinkedExprOperation.invokeMethodRef
         ],
         ints: [
+          5,
           0,
           0,
+          0,
+          1,
+          0,
+          3,
           0
         ],
         referenceValidators: [
@@ -7239,7 +6887,6 @@ final v = ((a, b) => 42)(1, 2);
     }
     UnlinkedVariable variable = serializeVariableText('var v = (x) => x.f();');
     assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
-        isValidConst: false,
         operators: [
           UnlinkedExprOperation.pushParameter,
           UnlinkedExprOperation.invokeMethod
@@ -7262,7 +6909,6 @@ final v = ((a, b) => 42)(1, 2);
     UnlinkedVariable variable =
         serializeVariableText('var v = (x) => x.y.f();');
     assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
-        isValidConst: false,
         operators: [
           UnlinkedExprOperation.pushParameter,
           UnlinkedExprOperation.extractProperty,
@@ -7411,16 +7057,24 @@ final v = new C().m(1, b: 2, c: 3);
         isValidConst: false,
         operators: [
           UnlinkedExprOperation.invokeConstructor,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushInt,
           UnlinkedExprOperation.invokeMethod,
         ],
         ints: [
           0,
           0,
-          0,
-          0,
+          1,
+          2,
+          3,
+          2,
+          1,
           0
         ],
         strings: [
+          'b',
+          'c',
           'm'
         ],
         referenceValidators: [
@@ -7479,36 +7133,33 @@ class C {
 A a = new A();
 final v = a.b.c.m(10, 20);
 ''');
-    assertUnlinkedConst(variable.initializer.bodyExpr,
-        isValidConst: false,
-        operators: [
-          UnlinkedExprOperation.invokeMethodRef,
-        ],
-        ints: [
-          0,
-          0,
-          0
-        ],
-        strings: [],
-        referenceValidators: [
-          (EntityRef r) => checkTypeRef(r, null, 'm',
-                  expectedKind: ReferenceKind.unresolved,
-                  prefixExpectations: [
-                    new _PrefixExpectation(ReferenceKind.unresolved, 'c'),
-                    new _PrefixExpectation(ReferenceKind.unresolved, 'b'),
-                    new _PrefixExpectation(
-                        ReferenceKind.topLevelPropertyAccessor, 'a')
-                  ])
-        ]);
+    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.invokeMethodRef,
+    ], ints: [
+      10,
+      20,
+      0,
+      2,
+      0
+    ], strings: [], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, 'm',
+              expectedKind: ReferenceKind.unresolved,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.unresolved, 'c'),
+                new _PrefixExpectation(ReferenceKind.unresolved, 'b'),
+                new _PrefixExpectation(
+                    ReferenceKind.topLevelPropertyAccessor, 'a')
+              ])
+    ]);
   }
 
   test_expr_invokeMethodRef_static_importedWithPrefix() {
     if (skipNonConstInitializers) {
       return;
     }
-    addNamedSource(
-        '/a.dart',
-        '''
+    addNamedSource('/a.dart', '''
 class C {
   static int m() => 42;
 }
@@ -7517,26 +7168,21 @@ class C {
 import 'a.dart' as p;
 final v = p.C.m();
 ''');
-    assertUnlinkedConst(variable.initializer.bodyExpr,
-        isValidConst: false,
-        operators: [
-          UnlinkedExprOperation.invokeMethodRef,
-        ],
-        ints: [
-          0,
-          0,
-          0
-        ],
-        strings: [],
-        referenceValidators: [
-          (EntityRef r) => checkTypeRef(r, null, 'm',
-                  expectedKind: ReferenceKind.method,
-                  prefixExpectations: [
-                    new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
-                        absoluteUri: absUri('/a.dart')),
-                    new _PrefixExpectation(ReferenceKind.prefix, 'p')
-                  ])
-        ]);
+    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedExprOperation.invokeMethodRef,
+    ], ints: [
+      0,
+      0,
+      0
+    ], strings: [], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, 'm',
+              expectedKind: ReferenceKind.method,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
+                    absoluteUri: absUri('/a.dart')),
+                new _PrefixExpectation(ReferenceKind.prefix, 'p')
+              ])
+    ]);
   }
 
   test_expr_invokeMethodRef_with_reference_arg() {
@@ -7548,20 +7194,19 @@ f(x) => null;
 final u = null;
 final v = f(u);
 ''');
-    assertUnlinkedConst(variable.initializer.bodyExpr,
-        isValidConst: false,
-        operators: [
-          UnlinkedExprOperation.invokeMethodRef
-        ],
-        ints: [
-          0,
-          0,
-          0
-        ],
-        referenceValidators: [
-          (EntityRef r) => checkTypeRef(r, null, 'f',
-              expectedKind: ReferenceKind.topLevelFunction)
-        ]);
+    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedExprOperation.pushReference,
+      UnlinkedExprOperation.invokeMethodRef
+    ], ints: [
+      0,
+      1,
+      0
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, 'u',
+          expectedKind: ReferenceKind.topLevelPropertyAccessor),
+      (EntityRef r) => checkTypeRef(r, null, 'f',
+          expectedKind: ReferenceKind.topLevelFunction)
+    ]);
   }
 
   test_expr_invokeMethodRef_withTypeParameters() {
@@ -7572,23 +7217,18 @@ final v = f(u);
 f<T, U>() => null;
 final v = f<int, String>();
 ''');
-    assertUnlinkedConst(variable.initializer.bodyExpr,
-        isValidConst: false,
-        operators: [
-          UnlinkedExprOperation.invokeMethodRef
-        ],
-        ints: [
-          0,
-          0,
-          2
-        ],
-        referenceValidators: [
-          (EntityRef r) => checkTypeRef(r, null, 'f',
-              expectedKind: ReferenceKind.topLevelFunction,
-              numTypeParameters: 2),
-          (EntityRef r) => checkTypeRef(r, 'dart:core', 'int'),
-          (EntityRef r) => checkTypeRef(r, 'dart:core', 'String')
-        ]);
+    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedExprOperation.invokeMethodRef
+    ], ints: [
+      0,
+      0,
+      2
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, 'f',
+          expectedKind: ReferenceKind.topLevelFunction, numTypeParameters: 2),
+      (EntityRef r) => checkTypeRef(r, 'dart:core', 'int'),
+      (EntityRef r) => checkTypeRef(r, 'dart:core', 'String')
+    ]);
   }
 
   test_expr_makeTypedList() {
@@ -7801,27 +7441,22 @@ class C {
   static int m() => 42;
 }''').fields[0];
     expect(variable.isFinal, isTrue);
-    assertUnlinkedConst(variable.initializer.bodyExpr,
-        isValidConst: false,
-        operators: [
-          UnlinkedExprOperation.pushInt,
-          UnlinkedExprOperation.invokeMethodRef,
-          UnlinkedExprOperation.add,
-        ],
-        ints: [
-          1,
-          0,
-          0,
-          0
-        ],
-        strings: [],
-        referenceValidators: [
-          (EntityRef r) => checkTypeRef(r, null, 'm',
-                  expectedKind: ReferenceKind.method,
-                  prefixExpectations: [
-                    new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
-                  ])
-        ]);
+    assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.invokeMethodRef,
+      UnlinkedExprOperation.add,
+    ], ints: [
+      1,
+      0,
+      0,
+      0
+    ], strings: [], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, 'm',
+              expectedKind: ReferenceKind.method,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
+              ])
+    ]);
   }
 
   test_field_final_typeParameter() {
@@ -8361,10 +7996,6 @@ import "${'a'}.dart";
     if (!strongMode || skipFullyLinkedData) {
       return;
     }
-    // The type that is inferred for C.f's parameter g is "() -> void".
-    // Since the associated element for that function type is B.f's parameter g,
-    // and B has a type parameter, the inferred type will record a type
-    // parameter.
     UnlinkedClass c = serializeClassText('''
 abstract class B<T> {
   void f(void g());
@@ -8379,9 +8010,14 @@ class C<T> extends B<T> {
     UnlinkedParam g = f.parameters[0];
     expect(g.name, 'g');
     EntityRef typeRef = getTypeRefForSlot(g.inferredTypeSlot);
-    checkLinkedTypeRef(typeRef, null, 'f',
-        expectedKind: ReferenceKind.method, numTypeArguments: 1);
-    checkParamTypeRef(typeRef.typeArguments[0], 1);
+
+    // The type that is inferred for C.f's parameter g is "() -> void".
+    // Therefore it has no type arguments. However, the associated element for
+    // that function type is B.f's parameter g, and B has a type parameter, so
+    // the inferred type *may* safely record that T as a type parameter, in
+    // which case this assertion can be altered accordingly.
+    checkTypeRef(typeRef, null, 'f',
+        numTypeArguments: 0, entityKind: EntityRefKind.genericFunctionType);
   }
 
   test_inferred_type_keeps_leading_dynamic() {
@@ -8443,7 +8079,7 @@ var v = h((y) {});
     expect(y.name, 'y');
     EntityRef typeRef = getTypeRefForSlot(y.inferredTypeSlot);
     checkLinkedTypeRef(typeRef, null, 'F', expectedKind: ReferenceKind.typedef);
-    expect(typeRef.implicitFunctionTypeIndices, [0]);
+    expect(typeRef.implicitFunctionTypeIndices, isEmpty);
   }
 
   test_inferred_type_refers_to_function_typed_parameter_type_generic_class() {
@@ -8458,24 +8094,15 @@ var v = h((y) {});
         getTypeRefForSlot(cls.executables[0].parameters[1].inferredTypeSlot);
     // Check that parameter g's inferred type is the type implied by D.f's 1st
     // (zero-based) parameter.
-    expect(type.implicitFunctionTypeIndices, [1]);
+    expect(type.implicitFunctionTypeIndices, isEmpty);
     expect(type.paramReference, 0);
-    expect(type.typeArguments, hasLength(2));
-    checkParamTypeRef(type.typeArguments[0], 1);
-    checkTypeRef(type.typeArguments[1], 'dart:core', 'int');
-    expect(type.reference,
-        greaterThanOrEqualTo(unlinkedUnits[0].references.length));
-    LinkedReference linkedReference =
-        linked.units[0].references[type.reference];
-    expect(linkedReference.dependency, 0);
-    expect(linkedReference.kind, ReferenceKind.method);
-    expect(linkedReference.name, 'f');
-    expect(linkedReference.numTypeParameters, 0);
-    expect(linkedReference.unit, 0);
-    expect(linkedReference.containingReference, isNot(0));
-    expect(linkedReference.containingReference, lessThan(type.reference));
-    checkReferenceIndex(linkedReference.containingReference, null, 'D',
-        numTypeParameters: 2);
+    // Note: this *may* legally have two type arguments (V, W), but for the
+    // moment does not in practice, so we assert isEmpty.
+    expect(type.typeArguments, isEmpty);
+    expect(type.entityKind, EntityRefKind.syntheticFunction);
+    expect(type.syntheticParams, hasLength(1));
+    checkParamTypeRef(type.syntheticParams[0].type, 1);
+    checkLinkedTypeRef(type.syntheticReturnType, 'dart:core', 'int');
   }
 
   test_inferred_type_refers_to_function_typed_parameter_type_other_lib() {
@@ -8489,24 +8116,15 @@ var v = h((y) {});
         'import "a.dart"; class C extends D { void f(int x, g) {} }');
     EntityRef type =
         getTypeRefForSlot(cls.executables[0].parameters[1].inferredTypeSlot);
-    // Check that parameter g's inferred type is the type implied by D.f's 1st
-    // (zero-based) parameter.
-    expect(type.implicitFunctionTypeIndices, [1]);
+    expect(type.implicitFunctionTypeIndices, isEmpty);
     expect(type.paramReference, 0);
+    // Note: this *may* legally have two type arguments (V, W), but for the
+    // moment does not in practice, so we assert isEmpty.
     expect(type.typeArguments, isEmpty);
-    expect(type.reference,
-        greaterThanOrEqualTo(unlinkedUnits[0].references.length));
-    LinkedReference linkedReference =
-        linked.units[0].references[type.reference];
-    expect(linkedReference.dependency, 0);
-    expect(linkedReference.kind, ReferenceKind.method);
-    expect(linkedReference.name, 'f');
-    expect(linkedReference.numTypeParameters, 0);
-    expect(linkedReference.unit, 0);
-    expect(linkedReference.containingReference, isNot(0));
-    expect(linkedReference.containingReference, lessThan(type.reference));
-    checkReferenceIndex(
-        linkedReference.containingReference, absUri('/b.dart'), 'E');
+    expect(type.entityKind, EntityRefKind.syntheticFunction);
+    expect(type.syntheticParams, hasLength(1));
+    checkLinkedTypeRef(type.syntheticReturnType, 'dart:core', 'int');
+    checkLinkedTypeRef(type.syntheticParams[0].type, 'dart:core', 'String');
   }
 
   test_inferred_type_refers_to_method_function_typed_parameter_type() {
@@ -8519,23 +8137,16 @@ var v = h((y) {});
         className: 'C');
     EntityRef type =
         getTypeRefForSlot(cls.executables[0].parameters[1].inferredTypeSlot);
-    // Check that parameter g's inferred type is the type implied by D.f's 1st
-    // (zero-based) parameter.
-    expect(type.implicitFunctionTypeIndices, [1]);
+
+    expect(type.implicitFunctionTypeIndices, isEmpty);
     expect(type.paramReference, 0);
+    // Note: this *may* legally have two type arguments (V, W), but for the
+    // moment does not in practice, so we assert isEmpty.
     expect(type.typeArguments, isEmpty);
-    expect(type.reference,
-        greaterThanOrEqualTo(unlinkedUnits[0].references.length));
-    LinkedReference linkedReference =
-        linked.units[0].references[type.reference];
-    expect(linkedReference.dependency, 0);
-    expect(linkedReference.kind, ReferenceKind.method);
-    expect(linkedReference.name, 'f');
-    expect(linkedReference.numTypeParameters, 0);
-    expect(linkedReference.unit, 0);
-    expect(linkedReference.containingReference, isNot(0));
-    expect(linkedReference.containingReference, lessThan(type.reference));
-    checkReferenceIndex(linkedReference.containingReference, null, 'D');
+    expect(type.entityKind, EntityRefKind.syntheticFunction);
+    expect(type.syntheticParams, hasLength(1));
+    checkLinkedTypeRef(type.syntheticReturnType, 'dart:core', 'int');
+    checkLinkedTypeRef(type.syntheticParams[0].type, 'dart:core', 'String');
   }
 
   test_inferred_type_refers_to_nested_function_typed_param() {
@@ -8687,13 +8298,11 @@ var v = f(g: (x, y) {});
     // `() => int` part refers to the closure declared inside the initializer
     // for v.  Note: `v` is mis-typed as `int` to prevent type propagation,
     // which would complicate the test.
-    UnlinkedClass cls = serializeClassText(
-        '''
+    UnlinkedClass cls = serializeClassText('''
 class C {
   int v = () => 0;
 }
-''',
-        allowErrors: true);
+''', allowErrors: true);
     UnlinkedVariable variable = cls.fields[0];
     EntityRef closureType =
         getTypeRefForSlot(variable.initializer.inferredReturnTypeSlot);
@@ -8710,42 +8319,6 @@ class C {
     int classIndex = definingUnit.references[variableIndex].containingReference;
     checkReferenceIndex(classIndex, null, 'C');
     expect(definingUnit.references[classIndex].containingReference, 0);
-  }
-
-  test_initializer_executable_with_return_type_from_closure_local() {
-    if (skipFullyLinkedData) {
-      return;
-    }
-    // The synthetic executable for `v` has type `() => () => int`, where the
-    // `() => int` part refers to the closure declared inside the initializer
-    // for v.  Note: `v` is mis-typed as `int` to prevent type propagation,
-    // which would complicate the test.
-    UnlinkedExecutable executable = serializeExecutableText(
-        '''
-void f() {
-  int u = 0; // force the variable below to have index 1
-  int v = () => 0;
-}''',
-        allowErrors: true);
-    UnlinkedVariable variable = executable.localVariables[1];
-    EntityRef closureType =
-        getTypeRefForSlot(variable.initializer.inferredReturnTypeSlot);
-    checkLinkedTypeRef(closureType, null, '',
-        expectedKind: ReferenceKind.function);
-    int initializerIndex =
-        definingUnit.references[closureType.reference].containingReference;
-    checkReferenceIndex(initializerIndex, null, '',
-        expectedKind: ReferenceKind.function);
-    int variableIndex =
-        definingUnit.references[initializerIndex].containingReference;
-    checkReferenceIndex(variableIndex, null, 'v',
-        expectedKind: ReferenceKind.variable, localIndex: 1);
-    int topLevelFunctionIndex =
-        definingUnit.references[variableIndex].containingReference;
-    checkReferenceIndex(topLevelFunctionIndex, null, 'f',
-        expectedKind: ReferenceKind.topLevelFunction);
-    expect(
-        definingUnit.references[topLevelFunctionIndex].containingReference, 0);
   }
 
   test_initializer_executable_with_unimported_return_type() {
@@ -9101,6 +8674,12 @@ D d;''');
         .annotations);
   }
 
+  test_metadata_enumConstantDeclaration() {
+    checkAnnotationA(serializeEnumText('const a = null; enum E { @a v }')
+        .values[0]
+        .annotations);
+  }
+
   test_metadata_enumDeclaration() {
     checkAnnotationA(
         serializeEnumText('const a = null; @a enum E { v }').annotations);
@@ -9181,10 +8760,15 @@ D d;''');
     serializeLibraryText('@a(-b=""c');
     expect(unlinkedUnits, hasLength(1));
     List<UnlinkedVariable> variables = unlinkedUnits[0].variables;
-    expect(variables, hasLength(1));
-    List<UnlinkedExpr> annotations = variables[0].annotations;
-    expect(annotations, hasLength(1));
-    expect(annotations[0].isValidConst, isFalse);
+    if (Parser.useFasta) {
+      // Fasta recovers by appending `)` after `c`
+      expect(variables, isEmpty);
+    } else {
+      expect(variables, hasLength(1));
+      List<UnlinkedExpr> annotations = variables[0].annotations;
+      expect(annotations, hasLength(1));
+      expect(annotations[0].isValidConst, isFalse);
+    }
   }
 
   test_metadata_invalid_instanceCreation_argument_super() {
@@ -9436,13 +9020,7 @@ class C {
 var v = (() {
   void f<T, U>() {
     void g<V, W>() {
-      void h<X, Y>() {
-        T t;
-        U u;
-        V v;
-        W w;
-        X x;
-        Y y;
+      void h<X, Y>(T t, U u, V v W w, X x, Y y) {
       }
     }
   }
@@ -9452,14 +9030,14 @@ var v = (() {
     expect(executable.localFunctions[0].typeParameters, hasLength(2));
     expect(executable.localFunctions[0].localFunctions[0].typeParameters,
         hasLength(2));
-    List<UnlinkedVariable> localVariables =
-        executable.localFunctions[0].localFunctions[0].localVariables;
-    checkParamTypeRef(findVariable('t', variables: localVariables).type, 6);
-    checkParamTypeRef(findVariable('u', variables: localVariables).type, 5);
-    checkParamTypeRef(findVariable('v', variables: localVariables).type, 4);
-    checkParamTypeRef(findVariable('w', variables: localVariables).type, 3);
-    checkParamTypeRef(findVariable('x', variables: localVariables).type, 2);
-    checkParamTypeRef(findVariable('y', variables: localVariables).type, 1);
+    List<UnlinkedParam> parameters =
+        executable.localFunctions[0].localFunctions[0].parameters;
+    checkParamTypeRef(findParameter(parameters, 't').type, 6);
+    checkParamTypeRef(findParameter(parameters, 'u').type, 5);
+    checkParamTypeRef(findParameter(parameters, 'v').type, 4);
+    checkParamTypeRef(findParameter(parameters, 'w').type, 3);
+    checkParamTypeRef(findParameter(parameters, 'x').type, 2);
+    checkParamTypeRef(findParameter(parameters, 'y').type, 1);
   }
 
   test_parameter_visibleRange_abstractMethod() {
@@ -9601,7 +9179,6 @@ part "${'a'}.dart"; // <-part
     expect(linkedReference0.containingReference, 0);
     expect(linkedReference0.dependency, 0);
     expect(linkedReference0.kind, ReferenceKind.unresolved);
-    expect(linkedReference0.localIndex, 0);
     expect(linkedReference0.name, '');
     expect(linkedReference0.numTypeParameters, 0);
     expect(linkedReference0.unit, 0);
@@ -9712,32 +9289,6 @@ bool f() => true;
     checkLinkedTypeRef(inferredType.syntheticParams[0].type, null, '*bottom*');
   }
 
-  test_syntheticFunctionType_genericClosure_inGenericFunction() {
-    if (skipFullyLinkedData) {
-      return;
-    }
-    if (!strongMode) {
-      // The test below uses generic comment syntax because proper generic
-      // method syntax doesn't support generic closures.  So it can only run in
-      // strong mode.
-      // TODO(paulberry): once proper generic method syntax supports generic
-      // closures, rewrite the test below without using generic comment syntax,
-      // and remove this hack.  See dartbug.com/25819
-      return;
-    }
-    UnlinkedVariable variable = serializeExecutableText('''
-void f<T, U>(bool b) {
-  final v = b ? /*<V>*/(T t, U u, V v) => 0 : /*<V>*/(T t, U u, V v) => 1;
-}
-''').localVariables[0];
-    EntityRef inferredType = getTypeRefForSlot(variable.inferredTypeSlot);
-    checkLinkedTypeRef(inferredType.syntheticReturnType, 'dart:core', 'int');
-    expect(inferredType.syntheticParams, hasLength(3));
-    checkParamTypeRef(inferredType.syntheticParams[0].type, 2);
-    checkParamTypeRef(inferredType.syntheticParams[1].type, 1);
-    checkLinkedTypeRef(inferredType.syntheticParams[2].type, null, '*bottom*');
-  }
-
   test_syntheticFunctionType_inGenericClass() {
     if (skipFullyLinkedData) {
       return;
@@ -9748,22 +9299,6 @@ class C<T, U> {
 }
 bool f() => false;
 ''').fields[0];
-    EntityRef inferredType =
-        getTypeRefForSlot(variable.initializer.inferredReturnTypeSlot);
-    checkLinkedTypeRef(inferredType.syntheticReturnType, 'dart:core', 'int');
-    checkParamTypeRef(inferredType.syntheticParams[0].type, 2);
-    checkParamTypeRef(inferredType.syntheticParams[1].type, 1);
-  }
-
-  test_syntheticFunctionType_inGenericFunction() {
-    if (skipFullyLinkedData) {
-      return;
-    }
-    UnlinkedVariable variable = serializeExecutableText('''
-void f<T, U>(bool b) {
-  var v = b ? (T t, U u) => 0 : (T t, U u) => 1;
-}
-''').localVariables[0];
     EntityRef inferredType =
         getTypeRefForSlot(variable.initializer.inferredReturnTypeSlot);
     checkLinkedTypeRef(inferredType.syntheticReturnType, 'dart:core', 'int');
@@ -10438,7 +9973,6 @@ var v;''';
     }
     expect(initializer.name, isEmpty);
     expect(initializer.localFunctions, isEmpty);
-    expect(initializer.localVariables, isEmpty);
   }
 
   test_variable_initializer_noInitializer() {
@@ -10470,12 +10004,6 @@ var v;''';
       if (includeInformative) {
         expect(closure.localFunctions[0].nameOffset, text.indexOf('f1()'));
       }
-      // closure - v1
-      expect(closure.localVariables, hasLength(1));
-      expect(closure.localVariables[0].name, 'v1');
-      if (includeInformative) {
-        expect(closure.localVariables[0].nameOffset, text.indexOf('v1;'));
-      }
     }
     // closure: () { f2() {} var v2; }
     {
@@ -10489,12 +10017,6 @@ var v;''';
       expect(closure.localFunctions[0].name, 'f2');
       if (includeInformative) {
         expect(closure.localFunctions[0].nameOffset, text.indexOf('f2()'));
-      }
-      // closure - v1
-      expect(closure.localVariables, hasLength(1));
-      expect(closure.localVariables[0].name, 'v2');
-      if (includeInformative) {
-        expect(closure.localVariables[0].nameOffset, text.indexOf('v2;'));
       }
     }
   }
@@ -10635,15 +10157,6 @@ final v = $expr;
     expect(codeRange.length, length);
   }
 
-  void _assertExecutableVisible(String code, UnlinkedExecutable f,
-      String visibleBegin, String visibleEnd) {
-    int expectedVisibleOffset = code.indexOf(visibleBegin);
-    int expectedVisibleLength =
-        code.indexOf(visibleEnd) - expectedVisibleOffset + 1;
-    expect(f.visibleOffset, expectedVisibleOffset);
-    expect(f.visibleLength, expectedVisibleLength);
-  }
-
   void _assertParameterVisible(
       String code, UnlinkedParam p, String visibleBegin, String visibleEnd) {
     int expectedVisibleOffset = code.indexOf(visibleBegin);
@@ -10689,15 +10202,6 @@ final v = $expr;
           (EntityRef r) => checkTypeRef(r, null, 'a',
               expectedKind: ReferenceKind.topLevelPropertyAccessor)
         ]);
-  }
-
-  void _assertVariableVisible(
-      String code, UnlinkedVariable v, String visibleBegin, String visibleEnd) {
-    int expectedVisibleOffset = code.indexOf(visibleBegin);
-    int expectedVisibleLength =
-        code.indexOf(visibleEnd) - expectedVisibleOffset + 1;
-    expect(v.visibleOffset, expectedVisibleOffset);
-    expect(v.visibleLength, expectedVisibleLength);
   }
 }
 

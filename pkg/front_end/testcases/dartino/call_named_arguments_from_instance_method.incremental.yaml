@@ -1,0 +1,32 @@
+# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+main.dart.patch: |
+  // Similiar to call_named_arguments_2 but where the change in the way the method
+  // with named parameters is called happens in an instance method belonging to
+  // the same class.
+
+  class C {
+    foo({a: 'v2'}) {
+      print(a);
+    }
+
+    bar() {
+  <<<< ["instance is null", "v1"]
+      foo(a: 'v1');
+  ==== "v2"
+      foo();
+  >>>>
+    }
+  }
+
+  var instance;
+
+  main() {
+    if (instance == null) {
+      print('instance is null');
+      instance = new C();
+    }
+    instance.bar();
+  }

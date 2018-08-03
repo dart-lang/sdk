@@ -1273,23 +1273,21 @@ main() {
 
   void _assertSingleLinkedEditGroup(
       {int length, List<int> offsets, List<String> names}) {
-    String positionsString = offsets
-        .map((offset) => '{"file": "$testFile", "offset": $offset}')
-        .join(',');
-    String suggestionsString =
-        names.map((name) => '{"value": "$name", "kind": "VARIABLE"}').join(',');
-    _assertSingleLinkedEditGroupJson('''
-{
-  "length": $length,
-  "positions": [$positionsString],
-  "suggestions": [$suggestionsString]
-}''');
+    var positions =
+        offsets.map((offset) => {"file": testFile, "offset": offset});
+    var suggestions = names.map((name) => {"value": name, "kind": "VARIABLE"});
+    var expected = <String, dynamic>{
+      "length": length,
+      "positions": positions.toList(),
+      "suggestions": suggestions.toList()
+    };
+    _assertSingleLinkedEditGroupJson(json.encode(expected));
   }
 
   void _assertSingleLinkedEditGroupJson(String expectedJsonString) {
     List<LinkedEditGroup> editGroups = refactoringChange.linkedEditGroups;
     expect(editGroups, hasLength(1));
-    expect(editGroups.first.toJson(), JSON.decode(expectedJsonString));
+    expect(editGroups.first.toJson(), json.decode(expectedJsonString));
   }
 
   /**
@@ -1304,7 +1302,8 @@ main() {
   }
 
   void _createRefactoring(int offset, int length) {
-    refactoring = new ExtractLocalRefactoring(testUnit, offset, length);
+    refactoring =
+        new ExtractLocalRefactoring(testAnalysisResult, offset, length);
     refactoring.name = 'res';
   }
 

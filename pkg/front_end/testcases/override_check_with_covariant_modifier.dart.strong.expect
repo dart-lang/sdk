@@ -1,0 +1,49 @@
+// Errors:
+//
+// pkg/front_end/testcases/override_check_with_covariant_modifier.dart:25:69: Error: The parameter 'x' of the method 'D::f5' has type dart.core::String, which does not match the corresponding type in the overridden method (#lib1::A).
+// Change to a supertype of #lib1::A (or, for a covariant parameter, a subtype).
+//   void f5(covariant String /*@error=OverrideTypeMismatchParameter*/ x) {}
+//                                                                     ^
+//
+// pkg/front_end/testcases/override_check_with_covariant_modifier.dart:24:54: Error: The parameter 'x' of the method 'D::f4' has type #lib1::B, which does not match the corresponding type in the overridden method (#lib1::A).
+// Change to a supertype of #lib1::A (or, for a covariant parameter, a subtype).
+//   void f4(B /*@error=OverrideTypeMismatchParameter*/ x) {} // Not covariant
+//                                                      ^
+
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → void
+    : super self::A::•()
+    ;
+}
+class C extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method f1(covariant self::A x) → void {}
+  method f2(self::A x) → void {}
+  method f3(covariant self::A x) → void {}
+  method f4(self::A x) → void {}
+  method f5(covariant self::A x) → void {}
+  method f6(covariant self::B x) → void {}
+}
+class D extends self::C {
+  synthetic constructor •() → void
+    : super self::C::•()
+    ;
+  method f1(covariant self::B x) → void {}
+  method f2(covariant self::B x) → void {}
+  method f3(covariant self::B x) → void {}
+  method f4(self::B x) → void {}
+  method f5(covariant core::String x) → void {}
+  method f6(covariant self::A x) → void {}
+}
+static method main() → dynamic {}

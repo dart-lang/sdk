@@ -4,14 +4,18 @@
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:io' show Platform;
+import 'dart:convert';
+import 'dart:io' show Platform, Process, ProcessResult;
 
 import 'package:analysis_server/src/plugin/notification_manager.dart';
-import 'package:analyzer/context/context_root.dart' as analyzer;
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/context/context_root.dart' as analyzer;
 import 'package:analyzer/src/generated/bazel.dart';
 import 'package:analyzer/src/generated/gn.dart';
+import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/workspace.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
@@ -23,7 +27,9 @@ import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as path;
 import 'package:watcher/watcher.dart' as watcher;
+import 'package:yaml/yaml.dart';
 
 /**
  * Information about a plugin that is built-in.
@@ -87,6 +93,9 @@ class DiscoveredPluginInfo extends PluginInfo {
       : super(notificationManager, instrumentationService);
 
   @override
+  bool get canBeStarted => executionPath != null;
+
+  @override
   String get pluginId => path;
 
   @override
@@ -96,6 +105,25 @@ class DiscoveredPluginInfo extends PluginInfo {
         new Uri.file(packagesPath, windows: Platform.isWindows),
         instrumentationService);
   }
+}
+
+/**
+ * An indication of a problem with the execution of a plugin that occurs prior
+ * to the execution of the plugin's entry point in an isolate.
+ */
+class PluginException implements Exception {
+  /**
+   * A message describing the problem.
+   */
+  final String message;
+
+  /**
+   * Initialize a newly created exception to have the given [message].
+   */
+  PluginException(this.message);
+
+  @override
+  String toString() => message;
 }
 
 /**
@@ -125,9 +153,24 @@ abstract class PluginInfo {
   PluginSession currentSession;
 
   /**
+   * The exception that occurred that prevented the plugin from being started,
+   * or `null` if there was no exception (possibly because no attempt has yet
+   * been made to start the plugin).
+   */
+  CaughtException exception;
+
+  /**
    * Initialize the newly created information about a plugin.
    */
   PluginInfo(this.notificationManager, this.instrumentationService);
+
+  /**
+   * Return `true` if this plugin can be started, or `false` if there is a
+   * reason why it cannot be started. For example, a plugin cannot be started if
+   * there was an error with a previous attempt to start running it or if the
+   * plugin is not correctly configured.
+   */
+  bool get canBeStarted => true;
 
   /**
    * Return the data known about this plugin.
@@ -146,6 +189,22 @@ abstract class PluginInfo {
    */
   void addContextRoot(analyzer.ContextRoot contextRoot) {
     if (contextRoots.add(contextRoot)) {
+      _updatePluginRoots();
+    }
+  }
+
+  /**
+   * Add the given context [roots] to the set of context roots being analyzed by
+   * this plugin.
+   */
+  void addContextRoots(Iterable<analyzer.ContextRoot> roots) {
+    bool changed = false;
+    for (analyzer.ContextRoot contextRoot in roots) {
+      if (contextRoots.add(contextRoot)) {
+        changed = true;
+      }
+    }
+    if (changed) {
       _updatePluginRoots();
     }
   }
@@ -187,6 +246,8 @@ abstract class PluginInfo {
    * used to interact with the plugin, or `null` if the plugin could not be run.
    */
   Future<PluginSession> start(String byteStorePath, String sdkPath) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     if (currentSession != null) {
       throw new StateError('Cannot start a plugin that is already running.');
     }
@@ -211,7 +272,7 @@ abstract class PluginInfo {
   }
 
   /**
-   * Create the channel used to communicate with the server.
+   * Create and return the channel used to communicate with the server.
    */
   ServerCommunicationChannel _createChannel();
 
@@ -222,8 +283,9 @@ abstract class PluginInfo {
     if (currentSession != null) {
       AnalysisSetContextRootsParams params = new AnalysisSetContextRootsParams(
           contextRoots
-              .map((analyzer.ContextRoot contextRoot) =>
-                  new ContextRoot(contextRoot.root, contextRoot.exclude))
+              .map((analyzer.ContextRoot contextRoot) => new ContextRoot(
+                  contextRoot.root, contextRoot.exclude,
+                  optionsFile: contextRoot.optionsFilePath))
               .toList());
       currentSession.sendRequest(params);
     }
@@ -241,6 +303,11 @@ class PluginManager {
    */
   static Map<PluginInfo, Map<String, List<int>>> pluginResponseTimes =
       <PluginInfo, Map<String, List<int>>>{};
+
+  /**
+   * The console environment key used by the pub tool.
+   */
+  static const String _pubEnvironmentKey = 'PUB_ENVIRONMENT';
 
   /**
    * The resource provider used to access the file system.
@@ -267,11 +334,6 @@ class PluginManager {
    * The instrumentation service that is being used by the analysis server.
    */
   final InstrumentationService instrumentationService;
-
-  /**
-   * The list of globs used to match plugin paths that have been whitelisted.
-   */
-  List<Glob> _whitelistGlobs;
 
   /**
    * A table mapping the paths of plugins to information about those plugins.
@@ -304,13 +366,12 @@ class PluginManager {
    * running plugins will be handled by the given [notificationManager].
    */
   PluginManager(this.resourceProvider, this.byteStorePath, this.sdkPath,
-      this.notificationManager, this.instrumentationService) {
-    // TODO(brianwilkerson) Figure out the right list of plugin paths.
-    _whitelistGlobs = <Glob>[
-      new Glob(resourceProvider.pathContext.separator,
-          '**/analyze_angular/tools/analysis_plugin')
-    ];
-  }
+      this.notificationManager, this.instrumentationService);
+
+  /**
+   * Return a list of all of the plugins that are currently known.
+   */
+  List<PluginInfo> get plugins => _pluginMap.values.toList();
 
   /**
    * Add the plugin with the given [path] to the list of plugins that should be
@@ -319,24 +380,36 @@ class PluginManager {
    */
   Future<Null> addPluginToContextRoot(
       analyzer.ContextRoot contextRoot, String path) async {
-    if (!_isWhitelisted(path)) {
-      return;
-    }
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     PluginInfo plugin = _pluginMap[path];
     bool isNew = plugin == null;
     if (isNew) {
-      List<String> pluginPaths = _pathsFor(path);
-      if (pluginPaths == null) {
+      List<String> pluginPaths;
+      try {
+        pluginPaths = pathsFor(path);
+      } catch (exception, stackTrace) {
+        plugin = new DiscoveredPluginInfo(
+            path, null, null, notificationManager, instrumentationService);
+        plugin.exception = new CaughtException(exception, stackTrace);
+        _pluginMap[path] = plugin;
         return;
       }
       plugin = new DiscoveredPluginInfo(path, pluginPaths[0], pluginPaths[1],
           notificationManager, instrumentationService);
       _pluginMap[path] = plugin;
       if (pluginPaths[0] != null) {
-        PluginSession session = await plugin.start(byteStorePath, sdkPath);
-        session?.onDone?.then((_) {
-          _pluginMap.remove(path);
-        });
+        try {
+          PluginSession session = await plugin.start(byteStorePath, sdkPath);
+          session?.onDone?.then((_) {
+            _pluginMap.remove(path);
+          });
+        } catch (exception, stackTrace) {
+          // Record the exception (for debugging purposes) and record the fact
+          // that we should not try to communicate with the plugin.
+          plugin.exception = new CaughtException(exception, stackTrace);
+          isNew = false;
+        }
       }
     }
     plugin.addContextRoot(contextRoot);
@@ -378,6 +451,8 @@ class PluginManager {
    */
   Future<List<Future<Response>>> broadcastWatchEvent(
       watcher.WatchEvent watchEvent) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     String filePath = watchEvent.path;
 
     /**
@@ -393,7 +468,12 @@ class PluginManager {
       PluginSession session = plugin.currentSession;
       if (session != null &&
           plugin.isAnalyzing(filePath) &&
+          session.interestingFiles != null &&
           session.interestingFiles.any(matches)) {
+        // The list of interesting file globs is `null` if the plugin has not
+        // yet responded to the plugin.versionCheck request. If that happens
+        // then the plugin hasn't had a chance to analyze anything yet, and
+        // hence it does not needed to get watch events.
         event ??= _convertWatchEvent(watchEvent);
         AnalysisHandleWatchEventsParams params =
             new AnalysisHandleWatchEventsParams([event]);
@@ -401,6 +481,46 @@ class PluginManager {
       }
     }
     return responses;
+  }
+
+  /**
+   * Return the execution path and .packages path associated with the plugin at
+   * the given [path]. Throw a [PluginException] if there is a problem that
+   * prevents the plugin from being executing.
+   */
+  @visibleForTesting
+  List<String> pathsFor(String pluginPath) {
+    Folder pluginFolder = resourceProvider.getFolder(pluginPath);
+    File pubspecFile = pluginFolder.getChildAssumingFile('pubspec.yaml');
+    if (!pubspecFile.exists) {
+      // If there's no pubspec file, then we don't need to copy the package
+      // because we won't be running pub.
+      return _computePaths(pluginFolder);
+    }
+    Workspace workspace =
+        BazelWorkspace.find(resourceProvider, pluginFolder.path) ??
+            GnWorkspace.find(resourceProvider, pluginFolder.path);
+    if (workspace != null) {
+      // Similarly, we won't be running pub if we're in a workspace because
+      // there is exactly one version of each package.
+      return _computePaths(pluginFolder, workspace: workspace);
+    }
+    //
+    // Copy the plugin directory to a unique subdirectory of the plugin
+    // manager's state location. The subdirectory's name is selected such that
+    // it will be invariant across sessions, reducing the number of times the
+    // plugin will need to be copied and pub will need to be run.
+    //
+    Folder stateFolder = resourceProvider.getStateLocation('.plugin_manager');
+    String stateName = _uniqueDirectoryName(pluginPath);
+    Folder parentFolder = stateFolder.getChildAssumingFolder(stateName);
+    if (parentFolder.exists) {
+      Folder executionFolder =
+          parentFolder.getChildAssumingFolder(pluginFolder.shortName);
+      return _computePaths(executionFolder);
+    }
+    Folder executionFolder = pluginFolder.copyTo(parentFolder);
+    return _computePaths(executionFolder, runPub: true);
   }
 
   /**
@@ -422,6 +542,25 @@ class PluginManager {
   }
 
   /**
+   * Record a failure to run the plugin associated with the host package with
+   * the given [hostPackageName]. The failure is described by the [message], and
+   * is expected to have occurred before a path could be computed, and hence
+   * before [addPluginToContextRoot] could be invoked.
+   */
+  void recordPluginFailure(String hostPackageName, String message) {
+    try {
+      throw new PluginException(message);
+    } catch (exception, stackTrace) {
+      String pluginPath =
+          path.join(hostPackageName, 'tools', 'analyzer_plugin');
+      DiscoveredPluginInfo plugin = new DiscoveredPluginInfo(
+          pluginPath, null, null, notificationManager, instrumentationService);
+      plugin.exception = new CaughtException(exception, stackTrace);
+      _pluginMap[pluginPath] = plugin;
+    }
+  }
+
+  /**
    * The given [contextRoot] is no longer being analyzed.
    */
   void removedContextRoot(analyzer.ContextRoot contextRoot) {
@@ -431,6 +570,48 @@ class PluginManager {
       if (plugin is DiscoveredPluginInfo && plugin.contextRoots.isEmpty) {
         _pluginMap.remove(plugin.path);
         plugin.stop();
+      }
+    }
+  }
+
+  /**
+   * Restart all currently running plugins.
+   */
+  Future<Null> restartPlugins() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    for (PluginInfo plugin in _pluginMap.values.toList()) {
+      if (plugin.currentSession != null) {
+        //
+        // Capture needed state.
+        //
+        Set<analyzer.ContextRoot> contextRoots = plugin.contextRoots;
+        String path = plugin.pluginId;
+        //
+        // Stop the plugin.
+        //
+        await plugin.stop();
+        //
+        // Restart the plugin.
+        //
+        _pluginMap[path] = plugin;
+        PluginSession session = await plugin.start(byteStorePath, sdkPath);
+        session?.onDone?.then((_) {
+          _pluginMap.remove(path);
+        });
+        //
+        // Re-initialize the plugin.
+        //
+        plugin.addContextRoots(contextRoots);
+        if (_analysisSetSubscriptionsParams != null) {
+          plugin.sendRequest(_analysisSetSubscriptionsParams);
+        }
+        if (_overlayState.isNotEmpty) {
+          plugin.sendRequest(new AnalysisUpdateContentParams(_overlayState));
+        }
+        if (_analysisSetPriorityFilesParams != null) {
+          plugin.sendRequest(_analysisSetPriorityFilesParams);
+        }
       }
     }
   }
@@ -498,13 +679,63 @@ class PluginManager {
   }
 
   /**
-   * Whitelist all plugins.
+   * Compute the paths to be returned by the enclosing method given that the
+   * plugin should exist in the given [pluginFolder].
    */
-  @visibleForTesting
-  void whitelistEverything() {
-    _whitelistGlobs = <Glob>[
-      new Glob(resourceProvider.pathContext.separator, '**/*')
-    ];
+  List<String> _computePaths(Folder pluginFolder,
+      {bool runPub: false, Workspace workspace}) {
+    File pluginFile = pluginFolder
+        .getChildAssumingFolder('bin')
+        .getChildAssumingFile('plugin.dart');
+    if (!pluginFile.exists) {
+      throw new PluginException('File "${pluginFile.path}" does not exist.');
+    }
+    String reason;
+    File packagesFile = pluginFolder.getChildAssumingFile('.packages');
+    bool packagesFilePreExists = packagesFile.exists;
+    if (runPub) {
+      String vmPath = Platform.executable;
+      String pubPath = path.join(path.dirname(vmPath), 'pub');
+      if (Platform.isWindows) {
+        // Process.run requires the `.bat` suffix on Windows
+        pubPath = '$pubPath.bat';
+      }
+      String pubSubcommand = packagesFilePreExists ? 'upgrade' : 'get';
+      ProcessResult result = Process.runSync(pubPath, <String>[pubSubcommand],
+          stderrEncoding: utf8,
+          stdoutEncoding: utf8,
+          workingDirectory: pluginFolder.path,
+          environment: {_pubEnvironmentKey: _getPubEnvironmentValue()});
+      if (result.exitCode != 0) {
+        StringBuffer buffer = new StringBuffer();
+        buffer.writeln('Failed to run pub get');
+        buffer.writeln('  pluginFolder = ${pluginFolder.path}');
+        buffer.writeln('  exitCode = ${result.exitCode}');
+        buffer.writeln('  stdout = ${result.stdout}');
+        buffer.writeln('  stderr = ${result.stderr}');
+        reason = buffer.toString();
+        instrumentationService.logError(reason);
+      }
+      if (!packagesFile.exists) {
+        reason ??= 'File "${packagesFile.path}" does not exist.';
+        packagesFile = null;
+      }
+    } else if (!packagesFilePreExists) {
+      if (workspace != null) {
+        packagesFile =
+            _createPackagesFile(pluginFolder, workspace.packageUriResolver);
+        if (packagesFile == null) {
+          reason = 'Could not create .packages file in workspace $workspace.';
+        }
+      } else {
+        reason = 'Could not create "${packagesFile.path}".';
+        packagesFile = null;
+      }
+    }
+    if (packagesFile == null) {
+      throw new PluginException(reason);
+    }
+    return <String>[pluginFile.path, packagesFile.path];
   }
 
   WatchEventType _convertChangeType(watcher.ChangeType type) {
@@ -525,83 +756,75 @@ class PluginManager {
   }
 
   /**
-   * Return `true` if the plugin with the given [path] has been whitelisted.
+   * Return a temporary `.packages` file that is appropriate for the plugin in
+   * the given [pluginFolder]. The [packageUriResolver] is used to determine the
+   * location of the packages that need to be included in the packages file.
    */
-  bool _isWhitelisted(String path) {
-    for (Glob glob in _whitelistGlobs) {
-      if (glob.matches(path)) {
-        return true;
+  File _createPackagesFile(
+      Folder pluginFolder, UriResolver packageUriResolver) {
+    String pluginPath = pluginFolder.path;
+    Folder stateFolder = resourceProvider.getStateLocation('.plugin_manager');
+    String stateName = _uniqueDirectoryName(pluginPath) + '.packages';
+    File packagesFile = stateFolder.getChildAssumingFile(stateName);
+    if (!packagesFile.exists) {
+      File pluginPubspec = pluginFolder.getChildAssumingFile('pubspec.yaml');
+      if (!pluginPubspec.exists) {
+        return null;
+      }
+
+      try {
+        Map<String, String> visitedPackages = <String, String>{};
+        path.Context context = resourceProvider.pathContext;
+        visitedPackages[context.basename(pluginPath)] =
+            context.join(pluginFolder.path, 'lib');
+        List<File> pubspecFiles = <File>[];
+        pubspecFiles.add(pluginPubspec);
+        while (pubspecFiles.isNotEmpty) {
+          File pubspecFile = pubspecFiles.removeLast();
+          for (String packageName in _readDependecies(pubspecFile)) {
+            if (!visitedPackages.containsKey(packageName)) {
+              Uri uri = Uri.parse('package:$packageName/$packageName.dart');
+              Source packageSource = packageUriResolver.resolveAbsolute(uri);
+              String libDirPath = context.dirname(packageSource.fullName);
+              visitedPackages[packageName] = libDirPath;
+              String pubspecPath =
+                  context.join(context.dirname(libDirPath), 'pubspec.yaml');
+              pubspecFiles.add(resourceProvider.getFile(pubspecPath));
+            }
+          }
+        }
+
+        StringBuffer buffer = new StringBuffer();
+        visitedPackages.forEach((String name, String path) {
+          buffer.write(name);
+          buffer.write(':');
+          buffer.writeln(new Uri.file(path));
+        });
+        packagesFile.writeAsStringSync(buffer.toString());
+      } catch (exception) {
+        // If we are not able to produce a .packages file, return null so that
+        // callers will not try to load the plugin.
+        return null;
       }
     }
-    return false;
+    return packagesFile;
   }
 
   /**
-   * Return the execution path and .packages path associated with the plugin at
-   * the given [path], or `null` if there is a problem that prevents us from
-   * executing the plugin.
+   * Return the names of packages that are listed as dependencies in the given
+   * [pubspecFile].
    */
-  List<String> _pathsFor(String pluginPath) {
-    /**
-     * Return `true` if the plugin in the give [folder] needs to be copied to a
-     * temporary location so that 'pub' can be run to resolve dependencies. We
-     * need to run `pub` if the plugin contains a `pubspec.yaml` file and is not
-     * in a workspace.
-     */
-    bool needToCopy(Folder folder) {
-      File pubspecFile = folder.getChildAssumingFile('pubspec.yaml');
-      if (!pubspecFile.exists) {
-        return false;
+  Iterable<String> _readDependecies(File pubspecFile) {
+    YamlDocument document = loadYamlDocument(pubspecFile.readAsStringSync(),
+        sourceUrl: pubspecFile.toUri());
+    YamlNode contents = document.contents;
+    if (contents is YamlMap) {
+      YamlNode dependencies = contents['dependencies'];
+      if (dependencies is YamlMap) {
+        return dependencies.keys.cast<String>();
       }
-      return BazelWorkspace.find(resourceProvider, folder.path) == null &&
-          GnWorkspace.find(resourceProvider, folder.path) == null;
     }
-
-    /**
-     * Compute the paths to be returned by the enclosing method given that the
-     * plugin should exist in the given [pluginFolder].
-     */
-    List<String> computePaths(Folder pluginFolder, {bool runPub: false}) {
-      File pluginFile = pluginFolder
-          .getChildAssumingFolder('bin')
-          .getChildAssumingFile('plugin.dart');
-      if (!pluginFile.exists) {
-        return null;
-      }
-      File packagesFile = pluginFolder.getChildAssumingFile('.packages');
-      if (!packagesFile.exists) {
-        if (runPub) {
-          // TODO(brianwilkerson) Run pub in the pluginFolder.
-          if (!packagesFile.exists) {
-            packagesFile = null;
-          }
-        } else {
-          packagesFile = null;
-        }
-      }
-      return <String>[pluginFile.path, packagesFile?.path];
-    }
-
-    Folder pluginFolder = resourceProvider.getFolder(pluginPath);
-    if (!needToCopy(pluginFolder)) {
-      return computePaths(pluginFolder);
-    }
-    //
-    // Copy the plugin directory to a unique subdirectory of the plugin
-    // manager's state location. The subdirectory's name is selected such that
-    // it will be invariant across sessions, reducing the number of times the
-    // plugin will need to be copied and pub will need to be run.
-    //
-    Folder stateFolder = resourceProvider.getStateLocation('.plugin_manager');
-    String stateName = _uniqueDirectoryName(pluginPath);
-    Folder parentFolder = stateFolder.getChildAssumingFolder(stateName);
-    if (parentFolder.exists) {
-      Folder executionFolder =
-          parentFolder.getChildAssumingFolder(pluginFolder.shortName);
-      return computePaths(executionFolder);
-    }
-    Folder executionFolder = pluginFolder.copyTo(parentFolder);
-    return computePaths(executionFolder, runPub: true);
+    return const <String>[];
   }
 
   /**
@@ -621,6 +844,28 @@ class PluginManager {
         .putIfAbsent(plugin, () => <String, List<int>>{})
         .putIfAbsent(method, () => <int>[])
         .add(time);
+  }
+
+  /**
+   * Returns the environment value that should be used when running pub.
+   *
+   * Includes any existing environment value, if one exists.
+   */
+  static String _getPubEnvironmentValue() {
+    // DO NOT update this function without contacting kevmoo.
+    // We have server-side tooling that assumes the values are consistent.
+    var values = <String>[];
+
+    var existing = Platform.environment[_pubEnvironmentKey];
+
+    // If there is an existing value for this var, make sure to include it.
+    if ((existing != null) && existing.isNotEmpty) {
+      values.add(existing);
+    }
+
+    values.add('analysis_server.plugin_manager');
+
+    return values.join(':');
   }
 }
 
@@ -732,23 +977,23 @@ class PluginSession {
    * Handle the fact that the plugin has stopped.
    */
   void handleOnDone() {
-    channel.close();
-    channel = null;
+    if (channel != null) {
+      channel.close();
+      channel = null;
+    }
     pluginStoppedCompleter.complete(null);
   }
 
   /**
    * Handle the fact that an unhandled error has occurred in the plugin.
    */
-  void handleOnError(List<String> errorPair) {
-    // TODO(brianwilkerson) Decide how we want to handle errors.
-//    String message = errorPair[0];
-//    String stackTrace = errorPair[1];
-//    print('PluginSession.handleOnError');
-//    print('  plugin = ${info.executionPath}');
-//    print('  $message');
-//    print('  ${new StackTrace.fromString(stackTrace)}');
-//    pluginStoppedCompleter.completeError(message, new StackTrace.fromString(stackTrace));
+  void handleOnError(dynamic error) {
+    List<String> errorPair = (error as List).cast<String>();
+    StackTrace stackTrace = new StackTrace.fromString(errorPair[1]);
+    info.exception =
+        new CaughtException(new PluginException(errorPair[0]), stackTrace);
+    info.instrumentationService
+        .logPluginException(info.data, errorPair[0], stackTrace);
   }
 
   /**
@@ -808,6 +1053,8 @@ class PluginSession {
    * running.
    */
   Future<bool> start(String byteStorePath, String sdkPath) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     if (channel != null) {
       throw new StateError('Cannot start a plugin that is already running.');
     }
@@ -815,6 +1062,13 @@ class PluginSession {
       throw new StateError('Missing byte store path');
     }
     if (!isCompatible) {
+      info.exception = new CaughtException(
+          new PluginException('Plugin is not compatible.'), null);
+      return false;
+    }
+    if (!info.canBeStarted) {
+      info.exception = new CaughtException(
+          new PluginException('Plugin cannot be started.'), null);
       return false;
     }
     channel = info._createChannel();
@@ -823,6 +1077,9 @@ class PluginSession {
     if (channel == null) {
       // If there is an error when starting the isolate, the channel will invoke
       // handleOnDone, which will cause `channel` to be set to `null`.
+      info.exception ??= new CaughtException(
+          new PluginException('Unrecorded error while starting the plugin.'),
+          null);
       return false;
     }
     Response response = await sendRequest(new PluginVersionCheckParams(
@@ -836,6 +1093,8 @@ class PluginSession {
     version = result.version;
     if (!isCompatible) {
       sendRequest(new PluginShutdownParams());
+      info.exception = new CaughtException(
+          new PluginException('Plugin is not compatible.'), null);
       return false;
     }
     return true;
@@ -851,7 +1110,7 @@ class PluginSession {
     sendRequest(new PluginShutdownParams());
     new Future.delayed(WAIT_FOR_SHUTDOWN_DURATION, () {
       if (channel != null) {
-        channel.kill();
+        channel?.kill();
         channel = null;
       }
     });

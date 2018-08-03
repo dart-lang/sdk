@@ -1,0 +1,28 @@
+library redirecting_factory_constructors.typeargs_test;
+import self as self;
+import "dart:core" as core;
+
+class X extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class Y extends self::X {
+  synthetic constructor •() → void
+    : super self::X::•()
+    ;
+}
+class A extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  redirecting_factory redir() = self::B::•<self::Y>;
+}
+class B<T extends self::X> extends self::A {
+  constructor •() → void
+    : super self::A::•()
+    ;
+}
+static method main() → dynamic {
+  new self::B::•<self::Y>();
+}

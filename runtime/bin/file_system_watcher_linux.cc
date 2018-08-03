@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_IO_DISABLED)
-
 #include "platform/globals.h"
 #if defined(HOST_OS_LINUX)
 
@@ -13,6 +11,7 @@
 #include <sys/inotify.h>  // NOLINT
 
 #include "bin/fdutils.h"
+#include "bin/file.h"
 #include "bin/socket.h"
 #include "platform/signal_blocker.h"
 
@@ -22,7 +21,6 @@ namespace bin {
 bool FileSystemWatcher::IsSupported() {
   return true;
 }
-
 
 intptr_t FileSystemWatcher::Init() {
   int id = NO_RETRY_EXPECTED(inotify_init1(IN_CLOEXEC));
@@ -36,13 +34,12 @@ intptr_t FileSystemWatcher::Init() {
   return id;
 }
 
-
 void FileSystemWatcher::Close(intptr_t id) {
   USE(id);
 }
 
-
 intptr_t FileSystemWatcher::WatchPath(intptr_t id,
+                                      Namespace* namespc,
                                       const char* path,
                                       int events,
                                       bool recursive) {
@@ -59,6 +56,8 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
   if ((events & kMove) != 0) {
     list_events |= IN_MOVE;
   }
+  const char* resolved_path = File::GetCanonicalPath(namespc, path);
+  path = resolved_path != NULL ? resolved_path : path;
   int path_id = NO_RETRY_EXPECTED(inotify_add_watch(id, path, list_events));
   if (path_id < 0) {
     return -1;
@@ -66,17 +65,14 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
   return path_id;
 }
 
-
 void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {
   VOID_NO_RETRY_EXPECTED(inotify_rm_watch(id, path_id));
 }
-
 
 intptr_t FileSystemWatcher::GetSocketId(intptr_t id, intptr_t path_id) {
   USE(path_id);
   return id;
 }
-
 
 static int InotifyEventToMask(struct inotify_event* e) {
   int mask = 0;
@@ -104,7 +100,6 @@ static int InotifyEventToMask(struct inotify_event* e) {
   return mask;
 }
 
-
 Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
   USE(path_id);
   const intptr_t kEventSize = sizeof(struct inotify_event);
@@ -128,9 +123,10 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
       Dart_ListSetAt(event, 0, Dart_NewInteger(mask));
       Dart_ListSetAt(event, 1, Dart_NewInteger(e->cookie));
       if (e->len > 0) {
-        Dart_ListSetAt(event, 2, Dart_NewStringFromUTF8(
-                                     reinterpret_cast<uint8_t*>(e->name),
-                                     strlen(e->name)));
+        Dart_ListSetAt(
+            event, 2,
+            Dart_NewStringFromUTF8(reinterpret_cast<uint8_t*>(e->name),
+                                   strlen(e->name)));
       } else {
         Dart_ListSetAt(event, 2, Dart_Null());
       }
@@ -149,5 +145,3 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
 }  // namespace dart
 
 #endif  // defined(HOST_OS_LINUX)
-
-#endif  // !defined(DART_IO_DISABLED)

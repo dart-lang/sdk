@@ -1,0 +1,8 @@
+library;
+import self as self;
+
+static method main() → dynamic {
+  invalid-expression "pkg/front_end/testcases/rasta/bad_continue.dart:6:12: Error: Can't find label 'here'.\n  continue here;\n           ^";
+  #L1:
+  break #L1;
+}

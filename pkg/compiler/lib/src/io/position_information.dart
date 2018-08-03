@@ -8,14 +8,10 @@
 library dart2js.source_information.position;
 
 import '../common.dart';
-import '../elements/elements.dart'
-    show AstElement, ResolvedAst, ResolvedAstKind;
 import '../js/js.dart' as js;
 import '../js/js_debug.dart';
 import '../js/js_source_mapping.dart';
-import '../tree/tree.dart' show Node, Send;
 import 'code_output.dart' show BufferedCodeOutput;
-import 'source_file.dart';
 import 'source_information.dart';
 
 /// [SourceInformation] that consists of an offset position into the source
@@ -25,9 +21,9 @@ class PositionSourceInformation extends SourceInformation {
   final SourceLocation startPosition;
 
   @override
-  final SourceLocation closingPosition;
+  final SourceLocation innerPosition;
 
-  PositionSourceInformation(this.startPosition, [this.closingPosition]);
+  PositionSourceInformation(this.startPosition, [this.innerPosition]);
 
   @override
   List<SourceLocation> get sourceLocations {
@@ -35,8 +31,8 @@ class PositionSourceInformation extends SourceInformation {
     if (startPosition != null) {
       list.add(startPosition);
     }
-    if (closingPosition != null) {
-      list.add(closingPosition);
+    if (innerPosition != null) {
+      list.add(innerPosition);
     }
     return list;
   }
@@ -44,7 +40,7 @@ class PositionSourceInformation extends SourceInformation {
   @override
   SourceSpan get sourceSpan {
     SourceLocation location =
-        startPosition != null ? startPosition : closingPosition;
+        startPosition != null ? startPosition : innerPosition;
     Uri uri = location.sourceUri;
     int offset = location.offset;
     return new SourceSpan(uri, offset, offset);
@@ -52,14 +48,14 @@ class PositionSourceInformation extends SourceInformation {
 
   int get hashCode {
     return 0x7FFFFFFF &
-        (startPosition.hashCode * 17 + closingPosition.hashCode * 19);
+        (startPosition.hashCode * 17 + innerPosition.hashCode * 19);
   }
 
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! PositionSourceInformation) return false;
     return startPosition == other.startPosition &&
-        closingPosition == other.closingPosition;
+        innerPosition == other.innerPosition;
   }
 
   /// Create a textual representation of the source information using [uriText]
@@ -72,9 +68,9 @@ class PositionSourceInformation extends SourceInformation {
       sb.write('[${startPosition.line},'
           '${startPosition.column}]');
     }
-    if (closingPosition != null) {
-      sb.write('-[${closingPosition.line},'
-          '${closingPosition.column}]');
+    if (innerPosition != null) {
+      sb.write('-[${innerPosition.line},'
+          '${innerPosition.column}]');
     }
     return sb.toString();
   }
@@ -83,7 +79,7 @@ class PositionSourceInformation extends SourceInformation {
     if (startPosition != null) {
       return _computeText(startPosition.sourceUri.pathSegments.last);
     } else {
-      return _computeText(closingPosition.sourceUri.pathSegments.last);
+      return _computeText(innerPosition.sourceUri.pathSegments.last);
     }
   }
 
@@ -91,19 +87,14 @@ class PositionSourceInformation extends SourceInformation {
     if (startPosition != null) {
       return _computeText('${startPosition.sourceUri}');
     } else {
-      return _computeText('${closingPosition.sourceUri}');
+      return _computeText('${innerPosition.sourceUri}');
     }
   }
 }
 
-class PositionSourceInformationStrategy
+abstract class AbstractPositionSourceInformationStrategy
     implements JavaScriptSourceInformationStrategy {
-  const PositionSourceInformationStrategy();
-
-  @override
-  SourceInformationBuilder createBuilderForContext(ResolvedAst resolvedAst) {
-    return new PositionSourceInformationBuilder(resolvedAst);
-  }
+  const AbstractPositionSourceInformationStrategy();
 
   @override
   SourceInformationProcessor createProcessor(
@@ -136,165 +127,6 @@ class SourceMappedMarker extends SourceInformation {
 
   @override
   SourceSpan get sourceSpan => new SourceSpan(null, null, null);
-}
-
-/// [SourceInformationBuilder] that generates [PositionSourceInformation].
-class PositionSourceInformationBuilder implements SourceInformationBuilder {
-  final SourceFile sourceFile;
-  final String name;
-  final ResolvedAst resolvedAst;
-
-  PositionSourceInformationBuilder(ResolvedAst resolvedAst)
-      : this.resolvedAst = resolvedAst,
-        sourceFile = computeSourceFile(resolvedAst),
-        name = computeElementNameForSourceMaps(resolvedAst.element);
-
-  SourceInformation buildDeclaration(ResolvedAst resolvedAst) {
-    if (resolvedAst.kind != ResolvedAstKind.PARSED) {
-      SourceSpan span = resolvedAst.element.sourcePosition;
-      return new PositionSourceInformation(
-          new OffsetSourceLocation(sourceFile, span.begin, name));
-    } else {
-      return new PositionSourceInformation(
-          new OffsetSourceLocation(
-              sourceFile, resolvedAst.node.getBeginToken().charOffset, name),
-          new OffsetSourceLocation(
-              sourceFile, resolvedAst.node.getEndToken().charOffset, name));
-    }
-  }
-
-  /// Builds a source information object pointing the start position of [node].
-  SourceInformation buildBegin(Node node) {
-    return new PositionSourceInformation(new OffsetSourceLocation(
-        sourceFile, node.getBeginToken().charOffset, name));
-  }
-
-  @override
-  SourceInformation buildGeneric(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildCreate(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildReturn(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildImplicitReturn(AstElement element) {
-    if (element.isSynthesized) {
-      return new PositionSourceInformation(new OffsetSourceLocation(
-          sourceFile, element.position.charOffset, name));
-    } else {
-      return new PositionSourceInformation(new OffsetSourceLocation(
-          sourceFile, element.resolvedAst.node.getEndToken().charOffset, name));
-    }
-  }
-
-  @override
-  SourceInformation buildLoop(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildGet(Node node) {
-    Node left = node;
-    Node right = node;
-    Send send = node.asSend();
-    if (send != null) {
-      right = send.selector;
-    }
-    // For a read access like `a.b` the first source locations points to the
-    // left-most part of the access, `a` in the example, and the second source
-    // location points to the 'name' of accessed property, `b` in the
-    // example. The latter is needed when both `a` and `b` are compiled into
-    // JavaScript invocations.
-    return new PositionSourceInformation(
-        new OffsetSourceLocation(
-            sourceFile, left.getBeginToken().charOffset, name),
-        new OffsetSourceLocation(
-            sourceFile, right.getBeginToken().charOffset, name));
-  }
-
-  // TODO(johnniwinther): Clean up the use of this and [buildBinary],
-  // [buildIndex], etc.
-  @override
-  SourceInformation buildCall(Node receiver, Node call) {
-    return new PositionSourceInformation(
-        new OffsetSourceLocation(
-            sourceFile, receiver.getBeginToken().charOffset, name),
-        new OffsetSourceLocation(
-            sourceFile, call.getBeginToken().charOffset, name));
-  }
-
-  @override
-  SourceInformation buildNew(Node node) {
-    return buildBegin(node);
-  }
-
-  @override
-  SourceInformation buildIf(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildThrow(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildAssignment(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildVariableDeclaration() {
-    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-      Node body = resolvedAst.body;
-      if (body != null) {
-        return buildBegin(body);
-      }
-      // TODO(johnniwinther): Are there other cases?
-    }
-    return null;
-  }
-
-  @override
-  SourceInformationBuilder forContext(ResolvedAst resolvedAst) {
-    return new PositionSourceInformationBuilder(resolvedAst);
-  }
-
-  @override
-  SourceInformation buildForeignCode(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildStringInterpolation(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildForInIterator(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildForInMoveNext(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildForInCurrent(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildForInSet(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildIndex(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildIndexSet(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildBinary(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildCatch(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildIs(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildAs(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildSwitch(Node node) => buildBegin(node);
-
-  @override
-  SourceInformation buildSwitchCase(Node node) => buildBegin(node);
 }
 
 /// The start, end and closing offsets for a [js.Node].
@@ -388,7 +220,7 @@ SourceLocation getSourceLocation(SourceInformation sourceInformation,
     case SourcePositionKind.START:
       return sourceInformation.startPosition;
     case SourcePositionKind.INNER:
-      return sourceInformation.closingPosition;
+      return sourceInformation.innerPosition ?? sourceInformation.startPosition;
   }
 }
 
@@ -544,6 +376,55 @@ class PositionTraceListener extends TraceListener
 
   PositionTraceListener(this.sourceMapper, this.reader);
 
+  /// Registers source information for [node] on the [offset] in the JavaScript
+  /// code using [kind] to determine what information to use.
+  ///
+  /// For most nodes the start position of the source information is used.
+  /// For instance a return expression points to the the start position of the
+  /// source information, typically the start of the return statement that
+  /// created the JavaScript return node:
+  ///
+  ///     JavaScript:                    Dart:
+  ///
+  ///     @return "foo";                 return "foo";
+  ///                                    ^
+  /// (@ marks the current JavaScript position and ^ point to the mapped Dart
+  /// code position.)
+  ///
+  ///
+  /// For [StepKind.CALL] the `CallPosition.getSemanticPositionForCall` method
+  /// is called to determine whether the start or the inner position should be
+  /// used. For instance if the receiver of the JavaScript call is a "simple"
+  /// expression then the start position of the source information is used:
+  ///
+  ///     JavaScript:                    Dart:
+  ///
+  ///     t1.@foo$0()                    local.foo()
+  ///                                    ^
+  ///
+  /// If the receiver of the JavaScript call is "complex" then the inner
+  /// position of the source information is used:
+  ///
+  ///     JavaScript:                    Dart:
+  ///
+  ///     get$bar().@foo()               bar.foo()
+  ///                                        ^
+  ///
+  /// For [StepKind.FUN_EXIT] the inner position of the source information
+  /// is used. For a JavaScript function without a return statement this maps
+  /// the end brace to the end brace of the corresponding Dart function. For a
+  /// JavaScript function exited through a return statement this maps the end of
+  /// the return statement to the end brace of the Dart function:
+  ///
+  ///     JavaScript:                    Dart:
+  ///
+  ///     foo: function() {              foo() {
+  ///     @}                             }
+  ///                                    ^
+  ///     foo: function() {              foo() {
+  ///       return 0;@                     return 0;
+  ///     }                              }
+  ///                                    ^
   @override
   void onStep(js.Node node, Offset offset, StepKind kind) {
     int codeLocation = offset.value;
@@ -604,13 +485,69 @@ class PositionTraceListener extends TraceListener
 
 /// The position of a [js.Call] node.
 class CallPosition {
+  /// The call node for which the positions have been computed.
   final js.Node node;
+
+  /// The position for [node] used as the offset in the JavaScript code.
+  ///
+  /// This is either `CodePositionKind.START` for code like
+  ///
+  ///     t1.foo$0()
+  ///     ^
+  /// where the left-most offset of the receiver should be used, or
+  /// `CodePositionKind.CLOSING` for code like
+  ///
+  ///     get$bar().foo$0()
+  ///               ^
+  ///
+  /// where the name of the called method should be used (here the method
+  /// 'foo$0').
   final CodePositionKind codePositionKind;
+
+  /// The position from the [SourceInformation] used in the mapped Dart code.
+  ///
+  /// This is either `SourcePositionKind.START` for code like
+  ///
+  ///     JavaScript:                    Dart:
+  ///
+  ///     t1.@foo$0()                    local.foo()
+  ///                                    ^
+  ///
+  /// where the JavaScript receiver is a "simple" expression, or
+  /// `SourcePositionKind.CLOSING` for code like
+  ///
+  ///     JavaScript:                    Dart:
+  ///
+  ///     get$bar().@foo()               bar.foo()
+  ///                                        ^
+  ///
+  /// where the JavaScript receiver is a "complex" expression.
+  ///
+  /// (@ marks the current JavaScript position and ^ point to the mapped Dart
+  /// code position.)
   final SourcePositionKind sourcePositionKind;
 
   CallPosition(this.node, this.codePositionKind, this.sourcePositionKind);
 
-  /// Computes the [CallPosition] for [node].
+  /// Computes the [CallPosition] for the call [node].
+  ///
+  /// For instance if the receiver of the JavaScript call is a "simple"
+  /// expression then the start position of the source information is used:
+  ///
+  ///     JavaScript:                    Dart:
+  ///
+  ///     t1.@foo$0()                    local.foo()
+  ///                                    ^
+  ///
+  /// If the receiver of the JavaScript call is "complex" then the inner
+  /// position of the source information is used:
+  ///
+  ///     JavaScript:                    Dart:
+  ///
+  ///     get$bar().@foo()               bar.foo()
+  ///                                        ^
+  /// (@ marks the current JavaScript position and ^ point to the mapped Dart
+  /// code position.)
   static CallPosition getSemanticPositionForCall(js.Call node) {
     if (node.target is js.PropertyAccess) {
       js.PropertyAccess access = node.target;
@@ -637,14 +574,16 @@ class CallPosition {
         return new CallPosition(
             access.selector, CodePositionKind.START, SourcePositionKind.INNER);
       }
-    } else if (node.target is js.VariableUse) {
-      // m()
-      // ^
+    } else if (node.target is js.VariableUse || node.target is js.This) {
+      // m()   this()
+      // ^     ^
       return new CallPosition(
           node, CodePositionKind.START, SourcePositionKind.START);
-    } else if (node.target is js.Fun || node.target is js.New) {
-      // function(){}()  new Function("...")()
-      //             ^                      ^
+    } else if (node.target is js.Fun ||
+        node.target is js.New ||
+        node.target is js.NamedFunction) {
+      // function(){}()  new Function("...")()   function foo(){}()
+      //             ^                      ^                    ^
       return new CallPosition(
           node.target, CodePositionKind.END, SourcePositionKind.INNER);
     } else if (node.target is js.Binary || node.target is js.Call) {
@@ -653,8 +592,12 @@ class CallPosition {
       return new CallPosition(
           node.target, CodePositionKind.END, SourcePositionKind.INNER);
     } else {
-      assert(invariant(NO_LOCATION_SPANNABLE, false,
-          message: "Unexpected property access ${nodeToString(node)}:\n"
+      // TODO(johnniwinther): Maybe remove this assertion.
+      assert(
+          false,
+          failedAt(
+              NO_LOCATION_SPANNABLE,
+              "Unexpected property access ${nodeToString(node)}:\n"
               "${DebugPrinter.prettyPrint(node)}"));
       // Don't know....
       return new CallPosition(
@@ -663,6 +606,13 @@ class CallPosition {
   }
 }
 
+/// An offset of a JavaScript node within the output code.
+///
+/// This object holds three different values for the offset corresponding to
+/// three different ways browsers can compute the offset of a JavaScript node.
+///
+/// Currently [subexpressionOffset] is used since it corresponds the most to the
+/// offset used by most browsers.
 class Offset {
   /// The offset of the enclosing statement relative to the beginning of the
   /// file.
@@ -857,8 +807,7 @@ class JavaScriptTracer extends js.BaseVisitor {
     }
   }
 
-  @override
-  visitFun(js.Fun node) {
+  void _handleFunction(js.Node node, js.Node body) {
     bool activeBefore = active;
     if (!active) {
       active = reader.getSourceInformation(node) != null;
@@ -868,7 +817,7 @@ class JavaScriptTracer extends js.BaseVisitor {
     Offset entryOffset = getOffsetForNode(node, statementOffset);
     notifyStep(node, entryOffset, StepKind.FUN_ENTRY);
 
-    visit(node.body);
+    visit(body);
 
     leftToRightOffset =
         statementOffset = getSyntaxOffset(node, kind: CodePositionKind.CLOSING);
@@ -880,6 +829,16 @@ class JavaScriptTracer extends js.BaseVisitor {
       notifyStep(node, endOffset, StepKind.NO_INFO);
     }
     active = activeBefore;
+  }
+
+  @override
+  visitFun(js.Fun node) {
+    _handleFunction(node, node.body);
+  }
+
+  @override
+  visitNamedFunction(js.NamedFunction node) {
+    _handleFunction(node, node.function.body);
   }
 
   @override
@@ -1079,6 +1038,9 @@ class JavaScriptTracer extends js.BaseVisitor {
     visit(node.value);
     notifyStep(
         node, getOffsetForNode(node, getSyntaxOffset(node)), StepKind.RETURN);
+    Offset exitOffset = getOffsetForNode(
+        node, getSyntaxOffset(node, kind: CodePositionKind.CLOSING));
+    notifyStep(node, exitOffset, StepKind.FUN_EXIT);
     statementOffset = null;
     leftToRightOffset = null;
   }
@@ -1201,7 +1163,9 @@ class JavaScriptTracer extends js.BaseVisitor {
         codeOffset = codePosition.startPosition;
       }
     }
-    if (leftToRightOffset != null && leftToRightOffset < codeOffset) {
+    if (leftToRightOffset != null &&
+        codeOffset != null &&
+        leftToRightOffset < codeOffset) {
       leftToRightOffset = codeOffset;
     }
     if (leftToRightOffset == null) {

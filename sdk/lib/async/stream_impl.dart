@@ -79,7 +79,7 @@ class _BufferingStreamSubscription<T>
    *   * a done event is sent.
    *
    * If the subscription is canceled while _STATE_WAIT_FOR_CANCEL is set, the
-   * state is unset, and no furher events must be delivered.
+   * state is unset, and no further events must be delivered.
    */
   static const int _STATE_WAIT_FOR_CANCEL = 16;
   static const int _STATE_IN_CALLBACK = 32;
@@ -141,9 +141,15 @@ class _BufferingStreamSubscription<T>
 
   void onError(Function handleError) {
     if (handleError == null) handleError = _nullErrorHandler;
-    // We are not allowed to use 'void' as type argument for the generic type,
-    // so we use 'dynamic' instead.
-    _onError = _registerErrorHandler<dynamic>(handleError, _zone);
+    if (handleError is void Function(Object, StackTrace)) {
+      _onError = _zone
+          .registerBinaryCallback<dynamic, Object, StackTrace>(handleError);
+    } else if (handleError is void Function(Object)) {
+      _onError = _zone.registerUnaryCallback<dynamic, Object>(handleError);
+    } else {
+      throw new ArgumentError("handleError callback must take either an Object "
+          "(the error), or both an Object (the error) and a StackTrace.");
+    }
   }
 
   void onDone(void handleDone()) {
@@ -332,7 +338,7 @@ class _BufferingStreamSubscription<T>
     _checkState(wasInputPaused);
   }
 
-  void _sendError(var error, StackTrace stackTrace) {
+  void _sendError(Object error, StackTrace stackTrace) {
     assert(!_isCanceled);
     assert(!_isPaused);
     assert(!_inCallback);
@@ -344,13 +350,12 @@ class _BufferingStreamSubscription<T>
       if (_isCanceled && !_waitsForCancel) return;
       _state |= _STATE_IN_CALLBACK;
       // TODO(floitsch): this dynamic should be 'void'.
-      if (_onError is ZoneBinaryCallback<dynamic, Object, StackTrace>) {
-        ZoneBinaryCallback<dynamic, Object, StackTrace> errorCallback = _onError
-            as Object/*=ZoneBinaryCallback<dynamic, Object, StackTrace>*/;
-        _zone.runBinaryGuarded(errorCallback, error, stackTrace);
+      var onError = _onError;
+      if (onError is void Function(Object, StackTrace)) {
+        _zone.runBinaryGuarded<Object, StackTrace>(onError, error, stackTrace);
       } else {
-        _zone.runUnaryGuarded<dynamic, Object>(
-            _onError as Object/*=ZoneUnaryCallback<dynamic, Object>*/, error);
+        assert(_onError is void Function(Object));
+        _zone.runUnaryGuarded<Object>(_onError, error);
       }
       _state &= ~_STATE_IN_CALLBACK;
     }
@@ -961,7 +966,7 @@ class _StreamIterator<T> implements StreamIterator<T> {
 
   T get current {
     if (_subscription != null && _isPaused) {
-      return _stateData as Object/*=T*/;
+      return _stateData;
     }
     return null;
   }
@@ -989,14 +994,14 @@ class _StreamIterator<T> implements StreamIterator<T> {
     assert(_subscription == null);
     var stateData = _stateData;
     if (stateData != null) {
-      Stream<T> stream = stateData as Object/*=Stream<T>*/;
+      Stream<T> stream = stateData;
       _subscription = stream.listen(_onData,
           onError: _onError, onDone: _onDone, cancelOnError: true);
       var future = new _Future<bool>();
       _stateData = future;
       return future;
     }
-    return new _Future<bool>.immediate(false);
+    return Future._falseFuture;
   }
 
   Future cancel() {
@@ -1006,7 +1011,7 @@ class _StreamIterator<T> implements StreamIterator<T> {
     if (subscription != null) {
       _subscription = null;
       if (!_isPaused) {
-        _Future<bool> future = stateData as Object/*=_Future<bool>*/;
+        _Future<bool> future = stateData;
         future._asyncComplete(false);
       }
       return subscription.cancel();
@@ -1016,7 +1021,7 @@ class _StreamIterator<T> implements StreamIterator<T> {
 
   void _onData(T data) {
     assert(_subscription != null && !_isPaused);
-    _Future<bool> moveNextFuture = _stateData as Object/*=_Future<bool>*/;
+    _Future<bool> moveNextFuture = _stateData;
     _stateData = data;
     _isPaused = true;
     moveNextFuture._complete(true);
@@ -1025,7 +1030,7 @@ class _StreamIterator<T> implements StreamIterator<T> {
 
   void _onError(Object error, [StackTrace stackTrace]) {
     assert(_subscription != null && !_isPaused);
-    _Future<bool> moveNextFuture = _stateData as Object/*=_Future<bool>*/;
+    _Future<bool> moveNextFuture = _stateData;
     _subscription = null;
     _stateData = null;
     moveNextFuture._completeError(error, stackTrace);
@@ -1033,7 +1038,7 @@ class _StreamIterator<T> implements StreamIterator<T> {
 
   void _onDone() {
     assert(_subscription != null && !_isPaused);
-    _Future<bool> moveNextFuture = _stateData as Object/*=_Future<bool>*/;
+    _Future<bool> moveNextFuture = _stateData;
     _subscription = null;
     _stateData = null;
     moveNextFuture._complete(false);

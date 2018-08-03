@@ -12,15 +12,16 @@ import 'codegen_dart_protocol.dart' as codegen_dart_protocol;
 import 'codegen_inttest_methods.dart' as codegen_inttest_methods;
 import 'codegen_java_types.dart' as codegen_java_types;
 import 'codegen_matchers.dart' as codegen_matchers;
+import 'codegen_protocol_constants.dart' as codegen_protocol_constants;
 import 'to_html.dart' as to_html;
 
 /**
  * Generate all targets.
  */
-main() {
+main() async {
   String script = Platform.script.toFilePath(windows: Platform.isWindows);
   String pkgPath = normalize(join(dirname(script), '..', '..'));
-  GeneratedContent.generateAll(pkgPath, allTargets);
+  await GeneratedContent.generateAll(pkgPath, allTargets);
 }
 
 /**
@@ -33,6 +34,7 @@ List<GeneratedContent> get allTargets {
   targets.add(codegen_java_types.targetDir);
   targets.add(codegen_inttest_methods.target);
   targets.add(codegen_matchers.target);
+  targets.add(codegen_protocol_constants.target);
   targets.add(to_html.target);
   return targets;
 }

@@ -1,0 +1,19 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef F<V extends core::Object = dynamic> = (V) → void;
+class C<T extends core::Object = dynamic> extends self::D<self::C::T> {
+  synthetic constructor •() → void
+    : super self::D::•()
+    ;
+  method f<U extends core::Object = dynamic>(dynamic x) → dynamic {}
+}
+class D<T extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method f<U extends core::Object = dynamic>(self::D::f::U u) → (self::D::f::U) → void
+    return null;
+}
+static method main() → dynamic {}

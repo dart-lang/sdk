@@ -5,7 +5,7 @@
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_X64)
 
-#include "vm/assembler.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/instructions.h"
 #include "vm/stub_code.h"
 #include "vm/unit_test.h"
@@ -19,9 +19,7 @@ ASSEMBLER_TEST_GENERATE(Call, assembler) {
   __ ret();
 }
 
-
 static intptr_t prologue_code_size = -1;
-
 
 ASSEMBLER_TEST_GENERATE(Jump, assembler) {
   ASSERT(assembler->CodeSize() == 0);
@@ -33,7 +31,6 @@ ASSEMBLER_TEST_GENERATE(Jump, assembler) {
   __ popq(PP);
   __ ret();
 }
-
 
 }  // namespace dart
 

@@ -96,6 +96,14 @@ abstract class UnmodifiableListMixin<E> implements List<E> {
         "Cannot change the length of an unmodifiable list");
   }
 
+  set first(E element) {
+    throw new UnsupportedError("Cannot modify an unmodifiable list");
+  }
+
+  set last(E element) {
+    throw new UnsupportedError("Cannot modify an unmodifiable list");
+  }
+
   /** This operation is not supported by an unmodifiable list. */
   void setAll(int at, Iterable<E> iterable) {
     throw new UnsupportedError("Cannot modify an unmodifiable list");
@@ -212,7 +220,7 @@ class _ListIndicesIterable extends ListIterable<int> {
   }
 }
 
-class ListMapView<E> implements Map<int, E> {
+class ListMapView<E> extends UnmodifiableMapBase<int, E> {
   List<E> _values;
 
   ListMapView(this._values);
@@ -237,33 +245,6 @@ class ListMapView<E> implements Map<int, E> {
       }
     }
   }
-
-  /** This operation is not supported by an unmodifiable map. */
-  void operator []=(int key, E value) {
-    throw new UnsupportedError("Cannot modify an unmodifiable map");
-  }
-
-  /** This operation is not supported by an unmodifiable map. */
-  E putIfAbsent(int key, E ifAbsent()) {
-    throw new UnsupportedError("Cannot modify an unmodifiable map");
-  }
-
-  /** This operation is not supported by an unmodifiable map. */
-  E remove(Object key) {
-    throw new UnsupportedError("Cannot modify an unmodifiable map");
-  }
-
-  /** This operation is not supported by an unmodifiable map. */
-  void clear() {
-    throw new UnsupportedError("Cannot modify an unmodifiable map");
-  }
-
-  /** This operation is not supported by an unmodifiable map. */
-  void addAll(Map<int, E> other) {
-    throw new UnsupportedError("Cannot modify an unmodifiable map");
-  }
-
-  String toString() => Maps.mapToString(this);
 }
 
 class ReversedListIterable<E> extends ListIterable<E> {
@@ -341,7 +322,7 @@ abstract class NonGrowableListError {
  * conversion, at the cost of leaving the original list in an unspecified
  * state.
  */
-external List makeListFixedLength(List growableList);
+external List<T> makeListFixedLength<T>(List<T> growableList);
 
 /**
  * Converts a fixed-length list to an unmodifiable list.
@@ -357,4 +338,4 @@ external List makeListFixedLength(List growableList);
  *
  * The unmodifiable list type is similar to the one used by const lists.
  */
-external List makeFixedListUnmodifiable(List fixedLengthList);
+external List<T> makeFixedListUnmodifiable<T>(List<T> fixedLengthList);

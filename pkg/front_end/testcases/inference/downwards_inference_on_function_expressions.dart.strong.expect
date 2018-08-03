@@ -1,0 +1,77 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef Function2<S extends core::Object = dynamic, T extends core::Object = dynamic> = (S) → T;
+static method test() → void {
+  {
+    (core::int) → core::String l0 = (core::int x) → core::Null => null;
+    (core::int) → core::String l1 = (core::int x) → core::String => "hello";
+    (core::int) → core::String l2 = let dynamic _ = null in let final dynamic #t1 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:15:66: Error: A value of type '(dart.core::String) \u8594 dart.core::String' can't be assigned to a variable of type '(dart.core::int) \u8594 dart.core::String'.
+Try changing the type of the left hand side, or casting the right hand side to '(dart.core::int) \u8594 dart.core::String'.
+        l2 = /*error:INVALID_ASSIGNMENT*/ /*@returnType=String*/ (String x) =>
+                                                                 ^" in let final dynamic #t2 = (core::String x) → core::String => "hello" in null;
+    (core::int) → core::String l3 = (core::int x) → core::String => let dynamic _ = null in let final dynamic #t3 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:18:77: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+        l3 = /*error:INVALID_ASSIGNMENT*/ /*@returnType=String*/ (int x) => 3;
+                                                                            ^" in let final dynamic #t4 = 3 in null;
+    (core::int) → core::String l4 = (core::int x) → core::String {
+      return let dynamic _ = null in let final dynamic #t5 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:20:47: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+      return /*error:RETURN_OF_INVALID_TYPE*/ 3;
+                                              ^" in let final dynamic #t6 = 3 in null;
+    };
+  }
+  {
+    (core::int) → core::String l0 = (core::int x) → core::Null => null;
+    (core::int) → core::String l1 = (core::int x) → core::String => "hello";
+    (core::int) → core::String l2 = (core::int x) → core::String => let dynamic _ = null in let final dynamic #t7 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:29:13: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+            3;
+            ^" in let final dynamic #t8 = 3 in null;
+    (core::int) → core::String l3 = (core::int x) → core::String {
+      return let dynamic _ = null in let final dynamic #t9 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:31:47: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+      return /*error:RETURN_OF_INVALID_TYPE*/ 3;
+                                              ^" in let final dynamic #t10 = 3 in null;
+    };
+    (core::int) → core::String l4 = (core::int x) → core::String {
+      return let dynamic _ = null in let final dynamic #t11 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:34:47: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+      return /*error:RETURN_OF_INVALID_TYPE*/ x;
+                                              ^" in let final dynamic #t12 = x in null;
+    };
+  }
+  {
+    (core::int) → core::List<core::String> l0 = (core::int x) → core::Null => null;
+    (core::int) → core::List<core::String> l1 = (core::int x) → core::List<core::String> => <core::String>["hello"];
+    (core::int) → core::List<core::String> l2 = let dynamic _ = null in let final dynamic #t13 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:42:72: Error: A value of type '(dart.core::String) \u8594 dart.core::List<dart.core::String>' can't be assigned to a variable of type '(dart.core::int) \u8594 dart.core::List<dart.core::String>'.
+Try changing the type of the left hand side, or casting the right hand side to '(dart.core::int) \u8594 dart.core::List<dart.core::String>'.
+        l2 = /*error:INVALID_ASSIGNMENT*/ /*@returnType=List<String>*/ (String
+                                                                       ^" in let final dynamic #t14 = (core::String x) → core::List<core::String> => <core::String>["hello"] in null;
+    (core::int) → core::List<core::String> l3 = (core::int x) → core::List<core::String> => <core::String>[let dynamic _ = null in let final dynamic #t15 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:46:58: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+              /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ 3
+                                                         ^" in let final dynamic #t16 = 3 in null];
+    (core::int) → core::List<core::String> l4 = (core::int x) → core::List<core::String> {
+      return <core::String>[let dynamic _ = null in let final dynamic #t17 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:50:52: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+        /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ 3
+                                                   ^" in let final dynamic #t18 = 3 in null];
+    };
+  }
+  {
+    (core::int) → core::int l0 = (core::int x) → core::int => x;
+    (core::int) → core::int l1 = (core::int x) → core::int => x.{core::num::+}(1);
+    (core::int) → core::String l2 = (core::int x) → core::String => let dynamic _ = null in let final dynamic #t19 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:60:13: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+            x;
+            ^" in let final dynamic #t20 = x in null;
+    (core::int) → core::String l3 = (core::int x) → core::String => (let final dynamic #t21 = x in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:63:14: Error: The method 'substring' isn't defined for the class 'dart.core::int'.
+Try correcting the name to the name of an existing method, or defining a method named 'substring'.
+            .substring(3);
+             ^") as{TypeError} core::String;
+    (core::String) → core::String l4 = (core::String x) → core::String => x.{core::String::substring}(3);
+  }
+}
+static method main() → dynamic {}

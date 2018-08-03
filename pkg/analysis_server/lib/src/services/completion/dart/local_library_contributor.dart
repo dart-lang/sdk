@@ -6,12 +6,12 @@ import 'dart:async';
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
-import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
     show createSuggestion, ElementSuggestionBuilder;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
 import '../../../protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
@@ -30,6 +30,11 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   List<String> showNames;
   List<String> hiddenNames;
 
+  /**
+   * The set of libraries that have been, or are currently being, visited.
+   */
+  final Set<LibraryElement> visitedLibraries = new Set<LibraryElement>();
+
   LibraryElementSuggestionBuilder(this.request, this.optype, [this.prefix]) {
     this.kind = request.target.isFunctionalArgument()
         ? CompletionSuggestionKind.IDENTIFIER
@@ -46,15 +51,27 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
       int relevance = optype.typeNameSuggestionsFilter(
           element.type, DART_RELEVANCE_DEFAULT);
       if (relevance != null) {
-        addSuggestion(element, request.ideOptions,
-            prefix: prefix, relevance: relevance);
+        addSuggestion(element, prefix: prefix, relevance: relevance);
       }
     }
     if (optype.includeConstructorSuggestions) {
-      int relevance = optype.constructorSuggestionsFilter(
+      int relevance = optype.returnValueSuggestionsFilter(
           element.type, DART_RELEVANCE_DEFAULT);
-      if (relevance != null) {
-        _addConstructorSuggestions(element, relevance);
+      _addConstructorSuggestions(element, relevance);
+    }
+    if (optype.includeReturnValueSuggestions) {
+      if (element.isEnum) {
+        String enumName = element.displayName;
+        int relevance = optype.returnValueSuggestionsFilter(
+            element.type, DART_RELEVANCE_DEFAULT);
+        for (var field in element.fields) {
+          if (field.isEnumConstant) {
+            addSuggestion(field,
+                prefix: prefix,
+                relevance: relevance,
+                elementCompletion: '$enumName.${field.name}');
+          }
+        }
       }
     }
   }
@@ -84,13 +101,11 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
     DartType returnType = element.returnType;
     if (returnType != null && returnType.isVoid) {
       if (optype.includeVoidReturnSuggestions) {
-        addSuggestion(element, request.ideOptions,
-            prefix: prefix, relevance: relevance);
+        addSuggestion(element, prefix: prefix, relevance: relevance);
       }
     } else {
       if (optype.includeReturnValueSuggestions) {
-        addSuggestion(element, request.ideOptions,
-            prefix: prefix, relevance: relevance);
+        addSuggestion(element, prefix: prefix, relevance: relevance);
       }
     }
   }
@@ -101,14 +116,15 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
       int relevance = element.library == containingLibrary
           ? DART_RELEVANCE_LOCAL_FUNCTION
           : DART_RELEVANCE_DEFAULT;
-      addSuggestion(element, request.ideOptions,
-          prefix: prefix, relevance: relevance);
+      addSuggestion(element, prefix: prefix, relevance: relevance);
     }
   }
 
   @override
   void visitLibraryElement(LibraryElement element) {
-    element.visitChildren(this);
+    if (visitedLibraries.add(element)) {
+      element.visitChildren(this);
+    }
   }
 
   @override
@@ -124,8 +140,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
       } else {
         relevance = DART_RELEVANCE_DEFAULT;
       }
-      addSuggestion(element, request.ideOptions,
-          prefix: prefix, relevance: relevance);
+      addSuggestion(element, prefix: prefix, relevance: relevance);
     }
   }
 
@@ -135,8 +150,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
       int relevance = element.library == containingLibrary
           ? DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE
           : DART_RELEVANCE_DEFAULT;
-      addSuggestion(element, request.ideOptions,
-          prefix: prefix, relevance: relevance);
+      addSuggestion(element, prefix: prefix, relevance: relevance);
     }
   }
 
@@ -146,20 +160,24 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   void _addConstructorSuggestions(ClassElement classElem, int relevance) {
     String className = classElem.name;
     for (ConstructorElement constructor in classElem.constructors) {
-      if (!constructor.isPrivate) {
-        CompletionSuggestion suggestion = createSuggestion(
-            constructor, request.ideOptions,
-            relevance: relevance);
-        if (suggestion != null) {
-          String name = suggestion.completion;
-          name = name.length > 0 ? '$className.$name' : className;
-          if (prefix != null && prefix.length > 0) {
-            name = '$prefix.$name';
-          }
-          suggestion.completion = name;
-          suggestion.selectionOffset = suggestion.completion.length;
-          suggestions.add(suggestion);
+      if (constructor.isPrivate) {
+        continue;
+      }
+      if (classElem.isAbstract && !constructor.isFactory) {
+        continue;
+      }
+
+      CompletionSuggestion suggestion =
+          createSuggestion(constructor, relevance: relevance);
+      if (suggestion != null) {
+        String name = suggestion.completion;
+        name = name.length > 0 ? '$className.$name' : className;
+        if (prefix != null && prefix.length > 0) {
+          name = '$prefix.$name';
         }
+        suggestion.completion = name;
+        suggestion.selectionOffset = suggestion.completion.length;
+        suggestions.add(suggestion);
       }
     }
   }
@@ -174,6 +192,8 @@ class LocalLibraryContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     if (!request.includeIdentifiers) {
       return EMPTY_LIST;
     }

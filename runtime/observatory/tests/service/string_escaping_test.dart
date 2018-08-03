@@ -5,6 +5,7 @@
 
 library string_escaping_test;
 
+import 'dart:async';
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
@@ -48,7 +49,7 @@ void script() {
   malformedWithTrailSurrogate = "before" + "𝄞"[1] + "after";
 }
 
-testStrings(Isolate isolate) async {
+Future testStrings(Isolate isolate) async {
   Library lib = isolate.rootLibrary;
   await lib.load();
   for (var variable in lib.variables) {
@@ -87,7 +88,7 @@ testStrings(Isolate isolate) async {
   expectFullString('malformedWithTrailSurrogate', malformedWithTrailSurrogate);
 }
 
-var tests = [
+var tests = <IsolateTest>[
   testStrings,
 ];
 

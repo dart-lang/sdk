@@ -1,0 +1,23 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+class A extends core::Object {
+  static field dynamic _redirecting# = <dynamic>[self::A::•];
+  const constructor empty() → void
+    : super core::Object::•()
+    ;
+  static factory •() → self::A
+    let dynamic #redirecting_factory = self::B::• in let core::String #typeArg0 = null in invalid-expression;
+}
+class B<T extends core::Object = dynamic> extends self::A {
+  const constructor •() → void
+    : super self::A::empty()
+    ;
+  method toString() → dynamic
+    return "${self::B::T}";
+}
+static method main() → void {
+  exp::Expect::equals("${const self::B::•<core::String>()}", "String");
+}

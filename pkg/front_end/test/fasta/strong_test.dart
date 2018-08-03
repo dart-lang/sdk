@@ -11,9 +11,9 @@ import 'testing/suite.dart';
 Future<FastaContext> createContext(
     Chain suite, Map<String, String> environment) {
   environment[ENABLE_FULL_COMPILE] = "";
-  environment[AST_KIND_INDEX] = "${AstKind.Kernel.index}";
   environment[STRONG_MODE] = "";
   return FastaContext.create(suite, environment);
 }
 
-main(List<String> arguments) => runMe(arguments, createContext, "testing.json");
+main([List<String> arguments = const []]) =>
+    runMe(arguments, createContext, "../../testing.json");

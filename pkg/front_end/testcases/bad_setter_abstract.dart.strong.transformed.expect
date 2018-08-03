@@ -1,0 +1,110 @@
+// Errors:
+//
+// pkg/front_end/testcases/bad_setter_abstract.dart:5:8: Error: Expected a function body or '=>'.
+// Try adding {}.
+// set b();
+//        ^
+//
+// pkg/front_end/testcases/bad_setter_abstract.dart:7:12: Error: Expected a function body or '=>'.
+// Try adding {}.
+// set c(x, y);
+//            ^
+//
+// pkg/front_end/testcases/bad_setter_abstract.dart:66:9: Error: The class 'B' is abstract and can't be instantiated.
+//     new B();
+//         ^
+
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  set a(dynamic #synthetic) → void
+    let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/bad_setter_abstract.dart:10:8: Error: A setter should have exactly one formal parameter.
+  set a();
+       ^";
+  set d(dynamic #synthetic) → void
+    let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/bad_setter_abstract.dart:11:8: Error: A setter should have exactly one formal parameter.
+  set d(x, y);
+       ^";
+}
+abstract class B extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  set a(dynamic #synthetic) → void
+    let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/bad_setter_abstract.dart:15:8: Error: A setter should have exactly one formal parameter.
+  set a();
+       ^";
+  set d(dynamic #synthetic) → void
+    let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/bad_setter_abstract.dart:16:8: Error: A setter should have exactly one formal parameter.
+  set d(x, y);
+       ^";
+}
+static set b(dynamic #synthetic) → void
+  let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/bad_setter_abstract.dart:5:6: Error: A setter should have exactly one formal parameter.
+set b();
+     ^";
+static set c(dynamic #synthetic) → void
+  let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/bad_setter_abstract.dart:7:6: Error: A setter should have exactly one formal parameter.
+set c(x, y);
+     ^";
+static method main() → dynamic {
+  core::bool threw;
+  try {
+    threw = true;
+    new self::A::•().{self::A::a} = null;
+    threw = false;
+  }
+  on dynamic catch(final dynamic e) {
+  }
+  if(!threw) {
+    throw "Expected an error above.";
+  }
+  try {
+    threw = true;
+    new self::A::•().{self::A::d} = null;
+    threw = false;
+  }
+  on dynamic catch(final dynamic e) {
+  }
+  if(!threw) {
+    throw "Expected an error above.";
+  }
+  try {
+    threw = true;
+    self::b = null;
+    threw = false;
+  }
+  on dynamic catch(final dynamic e) {
+  }
+  if(!threw) {
+    throw "Expected an error above.";
+  }
+  if(!threw) {
+    throw "Expected an error above.";
+  }
+  try {
+    threw = true;
+    self::c = null;
+    threw = false;
+  }
+  on dynamic catch(final dynamic e) {
+  }
+  if(!threw) {
+    throw "Expected an error above.";
+  }
+  try {
+    threw = true;
+    throw new core::AbstractClassInstantiationError::•("B");
+    threw = false;
+  }
+  on core::AbstractClassInstantiationError catch(final core::AbstractClassInstantiationError _) {
+  }
+  if(!threw) {
+    throw "Expected an error above.";
+  }
+}

@@ -21,21 +21,23 @@ class FieldRefElement extends HtmlElement implements Renderable {
   M.IsolateRef _isolate;
   M.FieldRef _field;
   M.ObjectRepository _objects;
+  bool _expandable;
 
   M.IsolateRef get isolate => _isolate;
   M.FieldRef get field => _field;
 
   factory FieldRefElement(
       M.IsolateRef isolate, M.FieldRef field, M.ObjectRepository objects,
-      {RenderingQueue queue}) {
+      {RenderingQueue queue, bool expandable: true}) {
     assert(isolate != null);
     assert(field != null);
     assert(objects != null);
     FieldRefElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<FieldRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._field = field;
     e._objects = objects;
+    e._expandable = expandable;
     return e;
   }
 
@@ -51,7 +53,7 @@ class FieldRefElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
@@ -71,16 +73,16 @@ class FieldRefElement extends HtmlElement implements Renderable {
       header += 'var ';
     }
     if (_field.declaredType.name == 'dynamic') {
-      children = [
+      children = <Element>[
         new SpanElement()..text = header,
         new AnchorElement(href: Uris.inspect(_isolate, object: _field))
           ..text = _field.name
       ];
     } else {
-      children = [
+      children = <Element>[
         new SpanElement()..text = header,
         new InstanceRefElement(_isolate, _field.declaredType, _objects,
-            queue: _r.queue),
+            queue: _r.queue, expandable: _expandable),
         new SpanElement()..text = ' ',
         new AnchorElement(href: Uris.inspect(_isolate, object: _field))
           ..text = _field.name

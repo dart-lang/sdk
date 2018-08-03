@@ -41,7 +41,11 @@ struct ResourcesEntry {
   int length_;
 };
 
+#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DART2_ONLY_MODE)
+ResourcesEntry __service_bin_resources_[] = {{NULL, NULL, 0}};
+#else
 extern ResourcesEntry __service_bin_resources_[];
+#endif
 
 class Resources {
  public:
@@ -88,7 +92,6 @@ class Resources {
   DISALLOW_IMPLICIT_CONSTRUCTORS(Resources);
 };
 
-
 void NotifyServerState(Dart_NativeArguments args) {
   Dart_EnterScope();
   const char* uri_chars;
@@ -108,11 +111,9 @@ void NotifyServerState(Dart_NativeArguments args) {
   Dart_ExitScope();
 }
 
-
 static void Shutdown(Dart_NativeArguments args) {
   // NO-OP.
 }
-
 
 struct VmServiceIONativeEntry {
   const char* name;
@@ -120,12 +121,10 @@ struct VmServiceIONativeEntry {
   Dart_NativeFunction function;
 };
 
-
 static VmServiceIONativeEntry _VmServiceIONativeEntries[] = {
     {"VMServiceIO_NotifyServerState", 1, NotifyServerState},
     {"VMServiceIO_Shutdown", 0, Shutdown},
 };
-
 
 static Dart_NativeFunction VmServiceIONativeResolver(Dart_Handle name,
                                                      int num_arguments,
@@ -147,16 +146,21 @@ static Dart_NativeFunction VmServiceIONativeResolver(Dart_Handle name,
   return NULL;
 }
 
-
 const char* VmService::error_msg_ = NULL;
 char VmService::server_uri_[kServerUriStringBufferSize];
 
-
-bool VmService::LoadForGenPrecompiled() {
+bool VmService::LoadForGenPrecompiled(bool use_dart_frontend) {
   Dart_Handle result;
   Dart_SetLibraryTagHandler(LibraryTagHandler);
-  Dart_Handle library =
-      LookupOrLoadLibrary(kVMServiceIOLibraryScriptResourceName);
+  Dart_Handle library;
+  if (use_dart_frontend) {
+    // The vmservice_io library should have already been loaded as part of
+    // creating the service isolate, we should be able to look it up.
+    library =
+        Dart_LookupLibrary(Dart_NewStringFromCString(kVMServiceIOLibraryUri));
+  } else {
+    library = LookupOrLoadLibrary(kVMServiceIOLibraryScriptResourceName);
+  }
   ASSERT(library != Dart_Null());
   SHUTDOWN_ON_ERROR(library);
   result = Dart_SetNativeResolver(library, VmServiceIONativeResolver, NULL);
@@ -166,12 +170,12 @@ bool VmService::LoadForGenPrecompiled() {
   return true;
 }
 
-
 bool VmService::Setup(const char* server_ip,
                       intptr_t server_port,
                       bool running_precompiled,
                       bool dev_mode_server,
-                      bool trace_loading) {
+                      bool trace_loading,
+                      bool deterministic) {
   Dart_Isolate isolate = Dart_CurrentIsolate();
   ASSERT(isolate != NULL);
   SetServerAddress("");
@@ -181,7 +185,8 @@ bool VmService::Setup(const char* server_ip,
   // Prepare builtin and its dependent libraries for use to resolve URIs.
   // Set up various closures, e.g: printing, timers etc.
   // Set up 'package root' for URI resolution.
-  result = DartUtils::PrepareForScriptLoading(true, false);
+  result = DartUtils::PrepareForScriptLoading(/*is_service_isolate=*/true,
+                                              trace_loading);
   SHUTDOWN_ON_ERROR(result);
 
   if (running_precompiled) {
@@ -207,11 +212,10 @@ bool VmService::Setup(const char* server_ip,
   // Make runnable.
   Dart_ExitScope();
   Dart_ExitIsolate();
-  bool retval = Dart_IsolateMakeRunnable(isolate);
-  if (!retval) {
+  error_msg_ = Dart_IsolateMakeRunnable(isolate);
+  if (error_msg_ != NULL) {
     Dart_EnterIsolate(isolate);
     Dart_ShutdownIsolate();
-    error_msg_ = "Invalid isolate state - Unable to make it runnable.";
     return false;
   }
   Dart_EnterIsolate(isolate);
@@ -258,8 +262,8 @@ bool VmService::Setup(const char* server_ip,
       Dart_SetField(library, DartUtils::NewString("_isFuchsia"), is_fuchsia);
   SHUTDOWN_ON_ERROR(result);
 
-  if (trace_loading) {
-    result = Dart_SetField(library, DartUtils::NewString("_traceLoading"),
+  if (deterministic) {
+    result = Dart_SetField(library, DartUtils::NewString("_deterministic"),
                            Dart_True());
     SHUTDOWN_ON_ERROR(result);
   }
@@ -281,11 +285,9 @@ bool VmService::Setup(const char* server_ip,
   return true;
 }
 
-
 const char* VmService::GetErrorMessage() {
   return (error_msg_ == NULL) ? "No error." : error_msg_;
 }
-
 
 void VmService::SetServerAddress(const char* server_uri) {
   if (server_uri == NULL) {
@@ -298,7 +300,6 @@ void VmService::SetServerAddress(const char* server_uri) {
   strncpy(server_uri_, server_uri, kServerUriStringBufferSize);
   server_uri_[kServerUriStringBufferSize - 1] = '\0';
 }
-
 
 Dart_Handle VmService::GetSource(const char* name) {
   const intptr_t kBufferSize = 512;
@@ -314,13 +315,11 @@ Dart_Handle VmService::GetSource(const char* name) {
   return Dart_NewStringFromCString(vmservice_source);
 }
 
-
 Dart_Handle VmService::LoadScript(const char* name) {
   Dart_Handle uri = Dart_NewStringFromCString(kVMServiceIOLibraryUri);
   Dart_Handle source = GetSource(name);
   return Dart_LoadScript(uri, Dart_Null(), source, 0, 0);
 }
-
 
 Dart_Handle VmService::LookupOrLoadLibrary(const char* name) {
   Dart_Handle uri = Dart_NewStringFromCString(kVMServiceIOLibraryUri);
@@ -332,13 +331,11 @@ Dart_Handle VmService::LookupOrLoadLibrary(const char* name) {
   return library;
 }
 
-
 Dart_Handle VmService::LoadSource(Dart_Handle library, const char* name) {
   Dart_Handle uri = Dart_NewStringFromCString(name);
   Dart_Handle source = GetSource(name);
   return Dart_LoadSource(library, uri, Dart_Null(), source, 0, 0);
 }
-
 
 Dart_Handle VmService::LibraryTagHandler(Dart_LibraryTag tag,
                                          Dart_Handle library,
@@ -375,7 +372,6 @@ Dart_Handle VmService::LibraryTagHandler(Dart_LibraryTag tag,
   }
   return Dart_LoadSource(library, url, Dart_Null(), source, 0, 0);
 }
-
 
 }  // namespace bin
 }  // namespace dart

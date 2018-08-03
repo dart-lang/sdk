@@ -20,8 +20,8 @@ printUsage() {
 }
 
 void main(List<String> args) {
-  List options = [];
-  List files = [];
+  var options = <String>[];
+  var files = <String>[];
 
   for (String arg in args) {
     if (arg.startsWith('-')) {

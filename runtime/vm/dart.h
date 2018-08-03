@@ -35,7 +35,8 @@ class Dart : public AllStatic {
                         Dart_FileWriteCallback file_write,
                         Dart_FileCloseCallback file_close,
                         Dart_EntropySource entropy_source,
-                        Dart_GetVMServiceAssetsArchive get_service_assets);
+                        Dart_GetVMServiceAssetsArchive get_service_assets,
+                        bool start_kernel_isolate);
   static const char* Cleanup();
 
   static Isolate* CreateIsolate(const char* name_prefix,
@@ -47,8 +48,10 @@ class Dart : public AllStatic {
   // from_kernel.  Otherwise, initialize from sources.
   static RawError* InitializeIsolate(const uint8_t* snapshot_data,
                                      const uint8_t* snapshot_instructions,
-                                     intptr_t snapshot_length,
-                                     kernel::Program* kernel_program,
+                                     const uint8_t* shared_data,
+                                     const uint8_t* shared_instructions,
+                                     const uint8_t* kernel_buffer,
+                                     intptr_t kernel_buffer_size,
                                      void* data);
   static void RunShutdownCallback();
   static void ShutdownIsolate(Isolate* isolate);
@@ -73,7 +76,9 @@ class Dart : public AllStatic {
   static uword AllocateReadOnlyHandle();
   static bool IsReadOnlyHandle(uword address);
 
-  static const char* FeaturesString(Isolate* isolate, Snapshot::Kind kind);
+  static const char* FeaturesString(Isolate* isolate,
+                                    bool is_vm_snapshot,
+                                    Snapshot::Kind kind);
   static Snapshot::Kind vm_snapshot_kind() { return vm_snapshot_kind_; }
 
   static Dart_ThreadExitCallback thread_exit_callback() {
@@ -115,6 +120,7 @@ class Dart : public AllStatic {
  private:
   static void WaitForIsolateShutdown();
   static void WaitForApplicationIsolateShutdown();
+  static bool HasApplicationIsolateLocked();
 
   static Isolate* vm_isolate_;
   static int64_t start_time_micros_;

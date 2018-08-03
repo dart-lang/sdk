@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:yaml/yaml.dart';
 
 /**
  * An object used to locate a plugin within a package.
@@ -13,13 +12,13 @@ class PluginLocator {
    * The key used in the `pubspec.yaml` file to specify the location of the
    * analysis plugin.
    */
-  static const String analysisPluginKey = 'analysis_plugin';
+  static const String analyzerPluginKey = 'analyzer_plugin';
 
   /**
    * The name of the default plugin directory, located within the `tools`
    * directory.
    */
-  static const String defaultPluginFolderName = 'analysis_plugin';
+  static const String defaultPluginFolderName = 'analyzer_plugin';
 
   /**
    * The name of the `pubspec.yaml` file.
@@ -72,26 +71,29 @@ class PluginLocator {
    */
   String _findPlugin(String packageRoot) {
     Folder packageFolder = resourceProvider.getFolder(packageRoot);
-    File pubspecFile = packageFolder.getChildAssumingFile(pubspecFileName);
-    if (pubspecFile.exists) {
-      try {
-        YamlDocument document = loadYamlDocument(pubspecFile.readAsStringSync(),
-            sourceUrl: pubspecFile.toUri());
-        YamlNode contents = document.contents;
-        if (contents is YamlMap) {
-          String pluginPath = contents[analysisPluginKey];
-          if (pluginPath != null) {
-            Folder pluginFolder =
-                packageFolder.getChildAssumingFolder(pluginPath);
-            if (pluginFolder.exists) {
-              return pluginFolder.path;
-            }
-          }
-        }
-      } catch (exception) {
-        // If we can't read the file, or if it isn't valid YAML, then ignore it.
-      }
-    }
+    // TODO(brianwilkerson) Re-enable this after deciding how we want to deal
+    // with discovery of plugins.
+//    import 'package:yaml/yaml.dart';
+//    File pubspecFile = packageFolder.getChildAssumingFile(pubspecFileName);
+//    if (pubspecFile.exists) {
+//      try {
+//        YamlDocument document = loadYamlDocument(pubspecFile.readAsStringSync(),
+//            sourceUrl: pubspecFile.toUri());
+//        YamlNode contents = document.contents;
+//        if (contents is YamlMap) {
+//          String pluginPath = contents[analyzerPluginKey];
+//          if (pluginPath != null) {
+//            Folder pluginFolder =
+//                packageFolder.getChildAssumingFolder(pluginPath);
+//            if (pluginFolder.exists) {
+//              return pluginFolder.path;
+//            }
+//          }
+//        }
+//      } catch (exception) {
+//        // If we can't read the file, or if it isn't valid YAML, then ignore it.
+//      }
+//    }
     Folder pluginFolder = packageFolder
         .getChildAssumingFolder(toolsFolderName)
         .getChildAssumingFolder(defaultPluginFolderName);

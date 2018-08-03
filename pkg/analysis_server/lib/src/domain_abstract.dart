@@ -42,6 +42,8 @@ abstract class AbstractRequestHandler implements RequestHandler {
       Map<PluginInfo, Future<plugin.Response>> futures,
       {plugin.RequestParams requestParameters,
       int timeout: 500}) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     // TODO(brianwilkerson) requestParameters might need to be required.
     int endTime = new DateTime.now().millisecondsSinceEpoch + timeout;
     List<plugin.Response> responses = <plugin.Response>[];

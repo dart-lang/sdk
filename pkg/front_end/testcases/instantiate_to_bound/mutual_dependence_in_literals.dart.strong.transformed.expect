@@ -1,0 +1,73 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class B<X extends core::Object = dynamic, Y extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class C1<X extends (self::C1::Y) → self::C1::X = (core::Null) → dynamic, Y extends (self::C1::Y) → self::C1::X = (core::Null) → dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class C2<X extends (self::C2::Y) → self::C2::X = (core::Null) → dynamic, Y extends (self::C2::X) → self::C2::Y = (core::Null) → dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class C3<X extends (self::C3::X, self::C3::Y) → self::C3::X = (core::Null, core::Null) → dynamic, Y extends (self::C3::X, self::C3::Y) → self::C3::X = (core::Null, core::Null) → dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class C4<X extends (self::C4::X, self::C4::Y) → self::C4::X = (core::Null, core::Null) → dynamic, Y extends (self::C4::X, self::C4::Y) → self::C4::Y = (core::Null, core::Null) → dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class D1<X extends self::B<self::D1::X, self::D1::Y> = self::B<dynamic, dynamic>, Y extends (self::D1::Y) → self::D1::X = (core::Null) → dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class D2<X extends self::B<self::D2::X, self::D2::Y> = self::B<dynamic, dynamic>, Y extends (self::D2::X) → self::D2::Y = (core::Null) → dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class D3<X extends self::B<self::D3::X, self::D3::Y> = self::B<dynamic, dynamic>, Y extends (self::D3::X, self::D3::Y) → self::D3::X = (core::Null, core::Null) → dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class D4<X extends self::B<self::D4::X, self::D4::Y> = self::B<dynamic, dynamic>, Y extends (self::D4::X, self::D4::Y) → self::D4::Y = (core::Null, core::Null) → dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class E<X extends (self::E::X) → self::E::X = (core::Null) → dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static field core::List<self::C1<(core::Null) → dynamic, (core::Null) → dynamic>> lc1 = <self::C1<(core::Null) → dynamic, (core::Null) → dynamic>>[];
+static field core::Map<self::C1<(core::Null) → dynamic, (core::Null) → dynamic>, self::C1<(core::Null) → dynamic, (core::Null) → dynamic>> mc1 = <self::C1<(core::Null) → dynamic, (core::Null) → dynamic>, self::C1<(core::Null) → dynamic, (core::Null) → dynamic>>{};
+static field core::List<self::C2<(core::Null) → dynamic, (core::Null) → dynamic>> lc2 = <self::C2<(core::Null) → dynamic, (core::Null) → dynamic>>[];
+static field core::Map<self::C2<(core::Null) → dynamic, (core::Null) → dynamic>, self::C2<(core::Null) → dynamic, (core::Null) → dynamic>> mc2 = <self::C2<(core::Null) → dynamic, (core::Null) → dynamic>, self::C2<(core::Null) → dynamic, (core::Null) → dynamic>>{};
+static field core::List<self::C3<(core::Null, core::Null) → dynamic, (core::Null, core::Null) → dynamic>> lc3 = <self::C3<(core::Null, core::Null) → dynamic, (core::Null, core::Null) → dynamic>>[];
+static field core::Map<self::C3<(core::Null, core::Null) → dynamic, (core::Null, core::Null) → dynamic>, self::C3<(core::Null, core::Null) → dynamic, (core::Null, core::Null) → dynamic>> mc3 = <self::C3<(core::Null, core::Null) → dynamic, (core::Null, core::Null) → dynamic>, self::C3<(core::Null, core::Null) → dynamic, (core::Null, core::Null) → dynamic>>{};
+static field core::List<self::C4<(core::Null, core::Null) → dynamic, (core::Null, core::Null) → dynamic>> lc4 = <self::C4<(core::Null, core::Null) → dynamic, (core::Null, core::Null) → dynamic>>[];
+static field core::Map<self::C4<(core::Null, core::Null) → dynamic, (core::Null, core::Null) → dynamic>, self::C4<(core::Null, core::Null) → dynamic, (core::Null, core::Null) → dynamic>> mc4 = <self::C4<(core::Null, core::Null) → dynamic, (core::Null, core::Null) → dynamic>, self::C4<(core::Null, core::Null) → dynamic, (core::Null, core::Null) → dynamic>>{};
+static field core::List<self::D1<self::B<dynamic, dynamic>, (core::Null) → dynamic>> ld1 = <self::D1<self::B<dynamic, dynamic>, (core::Null) → dynamic>>[];
+static field core::Map<self::D1<self::B<dynamic, dynamic>, (core::Null) → dynamic>, self::D1<self::B<dynamic, dynamic>, (core::Null) → dynamic>> md1 = <self::D1<self::B<dynamic, dynamic>, (core::Null) → dynamic>, self::D1<self::B<dynamic, dynamic>, (core::Null) → dynamic>>{};
+static field core::List<self::D2<self::B<dynamic, dynamic>, (core::Null) → dynamic>> ld2 = <self::D2<self::B<dynamic, dynamic>, (core::Null) → dynamic>>[];
+static field core::Map<self::D2<self::B<dynamic, dynamic>, (core::Null) → dynamic>, self::D2<self::B<dynamic, dynamic>, (core::Null) → dynamic>> md2 = <self::D2<self::B<dynamic, dynamic>, (core::Null) → dynamic>, self::D2<self::B<dynamic, dynamic>, (core::Null) → dynamic>>{};
+static field core::List<self::D3<self::B<dynamic, dynamic>, (core::Null, core::Null) → dynamic>> ld3 = <self::D3<self::B<dynamic, dynamic>, (core::Null, core::Null) → dynamic>>[];
+static field core::Map<self::D3<self::B<dynamic, dynamic>, (core::Null, core::Null) → dynamic>, self::D3<self::B<dynamic, dynamic>, (core::Null, core::Null) → dynamic>> md3 = <self::D3<self::B<dynamic, dynamic>, (core::Null, core::Null) → dynamic>, self::D3<self::B<dynamic, dynamic>, (core::Null, core::Null) → dynamic>>{};
+static field core::List<self::D4<self::B<dynamic, dynamic>, (core::Null, core::Null) → dynamic>> ld4 = <self::D4<self::B<dynamic, dynamic>, (core::Null, core::Null) → dynamic>>[];
+static field core::Map<self::D4<self::B<dynamic, dynamic>, (core::Null, core::Null) → dynamic>, self::D4<self::B<dynamic, dynamic>, (core::Null, core::Null) → dynamic>> md4 = <self::D4<self::B<dynamic, dynamic>, (core::Null, core::Null) → dynamic>, self::D4<self::B<dynamic, dynamic>, (core::Null, core::Null) → dynamic>>{};
+static field core::List<self::E<(core::Null) → dynamic>> le = <self::E<(core::Null) → dynamic>>[];
+static field core::Map<self::E<(core::Null) → dynamic>, self::E<(core::Null) → dynamic>> me = <self::E<(core::Null) → dynamic>, self::E<(core::Null) → dynamic>>{};
+static method main() → dynamic {}

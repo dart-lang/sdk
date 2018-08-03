@@ -19,7 +19,7 @@ class NamedParametersAggregatedTests {
   }
 
   static int f_missing_comma(a
-    [b = 42] //# 02: compile-time error
+    [b = 42] //# 02: syntax error
           ) =>
       a;
 
@@ -41,7 +41,7 @@ main() {
     , 25 //# 02: continued
       );
 
-  // Expect compile-time erorr due to duplicate named argument.
+  // Expect compile-time error due to duplicate named argument.
   NamedParametersAggregatedTests.F31(10, b: 25
     , b:35 //# 04: compile-time error
     , b:35, b:45 //# 06: compile-time error

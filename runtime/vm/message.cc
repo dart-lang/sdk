@@ -11,6 +11,49 @@
 
 namespace dart {
 
+Message::Message(Dart_Port dest_port,
+                 uint8_t* snapshot,
+                 intptr_t snapshot_length,
+                 MessageFinalizableData* finalizable_data,
+                 Priority priority,
+                 Dart_Port delivery_failure_port)
+    : next_(NULL),
+      dest_port_(dest_port),
+      delivery_failure_port_(delivery_failure_port),
+      snapshot_(snapshot),
+      snapshot_length_(snapshot_length),
+      finalizable_data_(finalizable_data),
+      priority_(priority) {
+  ASSERT((priority == kNormalPriority) ||
+         (delivery_failure_port == kIllegalPort));
+  ASSERT(!IsRaw());
+}
+
+Message::Message(Dart_Port dest_port,
+                 RawObject* raw_obj,
+                 Priority priority,
+                 Dart_Port delivery_failure_port)
+    : next_(NULL),
+      dest_port_(dest_port),
+      delivery_failure_port_(delivery_failure_port),
+      snapshot_(reinterpret_cast<uint8_t*>(raw_obj)),
+      snapshot_length_(0),
+      finalizable_data_(NULL),
+      priority_(priority) {
+  ASSERT(!raw_obj->IsHeapObject() || raw_obj->IsVMHeapObject());
+  ASSERT((priority == kNormalPriority) ||
+         (delivery_failure_port == kIllegalPort));
+  ASSERT(IsRaw());
+}
+
+Message::~Message() {
+  ASSERT(delivery_failure_port_ == kIllegalPort);
+  if (!IsRaw()) {
+    free(snapshot_);
+  }
+  delete finalizable_data_;
+}
+
 bool Message::RedirectToDeliveryFailurePort() {
   if (delivery_failure_port_ == kIllegalPort) {
     return false;
@@ -19,7 +62,6 @@ bool Message::RedirectToDeliveryFailurePort() {
   delivery_failure_port_ = kIllegalPort;
   return true;
 }
-
 
 intptr_t Message::Id() const {
   // Messages are allocated on the C heap. Use the raw address as the id.
@@ -40,19 +82,16 @@ const char* Message::PriorityAsString(Priority priority) {
   }
 }
 
-
 MessageQueue::MessageQueue() {
   head_ = NULL;
   tail_ = NULL;
 }
-
 
 MessageQueue::~MessageQueue() {
   // Ensure that all pending messages have been released.
   Clear();
   ASSERT(head_ == NULL);
 }
-
 
 void MessageQueue::Enqueue(Message* msg, bool before_events) {
   // Make sure messages are not reused.
@@ -95,7 +134,6 @@ void MessageQueue::Enqueue(Message* msg, bool before_events) {
   }
 }
 
-
 Message* MessageQueue::Dequeue() {
   Message* result = head_;
   if (result != NULL) {
@@ -112,7 +150,6 @@ Message* MessageQueue::Dequeue() {
   return NULL;
 }
 
-
 void MessageQueue::Clear() {
   Message* cur = head_;
   head_ = NULL;
@@ -128,11 +165,9 @@ void MessageQueue::Clear() {
   }
 }
 
-
 MessageQueue::Iterator::Iterator(const MessageQueue* queue) : next_(NULL) {
   Reset(queue);
 }
-
 
 MessageQueue::Iterator::~Iterator() {}
 
@@ -153,7 +188,6 @@ Message* MessageQueue::Iterator::Next() {
   return current;
 }
 
-
 intptr_t MessageQueue::Length() const {
   MessageQueue::Iterator it(this);
   intptr_t length = 0;
@@ -163,7 +197,6 @@ intptr_t MessageQueue::Length() const {
   }
   return length;
 }
-
 
 Message* MessageQueue::FindMessageById(intptr_t id) {
   MessageQueue::Iterator it(this);
@@ -176,7 +209,6 @@ Message* MessageQueue::FindMessageById(intptr_t id) {
   }
   return NULL;
 }
-
 
 void MessageQueue::PrintJSON(JSONStream* stream) {
 #ifndef PRODUCT
@@ -195,7 +227,7 @@ void MessageQueue::PrintJSON(JSONStream* stream) {
     message.AddProperty("type", "Message");
     message.AddPropertyF("name", "Isolate Message (%" Px ")", current->Id());
     message.AddPropertyF("messageObjectId", "messages/%" Px "", current->Id());
-    message.AddProperty("size", current->len());
+    message.AddProperty("size", current->Size());
     message.AddProperty("index", depth++);
     message.AddPropertyF("_destinationPort", "%" Pd64 "",
                          static_cast<int64_t>(current->dest_port()));

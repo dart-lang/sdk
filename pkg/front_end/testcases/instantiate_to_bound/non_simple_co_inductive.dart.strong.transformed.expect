@@ -1,0 +1,17 @@
+// Errors:
+//
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_co_inductive.dart:8:12: Error: Generic type 'Hest' can't be used without type arguments in the bounds of its own type variables.
+// Try providing type arguments to 'Hest' here.
+// class Hest<TypeX extends Hest> {}
+//            ^^^^^
+
+library;
+import self as self;
+import "dart:core" as core;
+
+class Hest<TypeX extends self::Hest<dynamic> = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

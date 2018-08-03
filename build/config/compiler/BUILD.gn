@@ -17,12 +17,6 @@ import("//build/config/android/config.gni")
 if (current_cpu == "arm") {
   import("//build/config/arm.gni")
 }
-if (current_cpu == "mipsel" || current_cpu == "mips64el") {
-  import("//build/config/mips.gni")
-}
-if (is_posix) {
-  import("//build/config/gcc/gcc_version.gni")
-}
 if (is_win) {
   import("//build/config/win/visual_studio_version.gni")
 }
@@ -81,10 +75,13 @@ config("compiler") {
       # so we do so here. Normal function visibility is controlled by
       # //build/config/gcc:symbol_visibility_hidden.
       "-fvisibility-inlines-hidden",
-
-      # We need the frame pointer for CPU and heap profiling.
-      "-fno-omit-frame-pointer",
     ]
+    if (!is_product) {
+      common_flags += [
+        # We need the frame pointer for CPU and heap profiling.
+        "-fno-omit-frame-pointer",
+      ]
+    }
     cflags_cc += common_flags
     cflags_objcc += common_flags
 
@@ -170,7 +167,7 @@ config("compiler") {
     ldflags += common_mac_flags
   } else if (is_posix) {
     # CPU architecture. We may or may not be doing a cross compile now, so for
-    # simplicity we always explicitly set the architecture.
+    # simplicitly we always explicitly set the architecture.
     if (current_cpu == "x64") {
       cflags += [
         "-m64",
@@ -190,10 +187,6 @@ config("compiler") {
           # Else building libyuv gives clang's register allocator issues,
           # see llvm.org/PR15798 / crbug.com/233709
           "-mno-omit-leaf-frame-pointer",
-
-          # Align the stack on 16-byte boundaries, http://crbug.com/418554.
-          "-mstack-alignment=16",
-          "-mstackrealign",
         ]
       }
     } else if (current_cpu == "arm") {
@@ -203,12 +196,6 @@ config("compiler") {
       ]
       if (arm_tune != "") {
         cflags += [ "-mtune=$arm_tune" ]
-      }
-      if (arm_use_thumb) {
-        cflags += [ "-mthumb" ]
-        if (is_android && !is_clang) {  # Clang doesn't support this option.
-          cflags += [ "-mthumb-interwork" ]
-        }
       }
       if (!is_clang) {
         # Clang doesn't support these flags.
@@ -225,72 +212,9 @@ config("compiler") {
           "-fno-caller-saves",
         ]
       }
-    } else if (current_cpu == "mipsel") {
-      # Some toolchains default to big-endian.
-      cflags += [ "-EL" ]
-      ldflags += [ "-EL" ]
-
-      # We have to explicitly request exceptions to get good heap profiles from
-      # tcmalloc.
-      if (is_debug || is_release) {
-        cflags += [
-          "-fexceptions",
-          "-funwind-tables",
-        ]
-      }
-
-      if (mips_arch_variant == "r6") {
-        cflags += [
-          "-mips32r6",
-          "-Wa,-mips32r6",
-        ]
-        if (is_android) {
-          ldflags += [
-            "-mips32r6",
-            "-Wl,-melf32ltsmip",
-          ]
-        }
-      } else if (mips_arch_variant == "r2") {
-        cflags += [
-          "-mips32r2",
-          "-Wa,-mips32r2",
-        ]
-        if (mips_float_abi == "hard" && mips_fpu_mode != "") {
-          cflags += [ "-m$mips_fpu_mode" ]
-        }
-      } else if (mips_arch_variant == "r1") {
-        cflags += [
-          "-mips32",
-          "-Wa,-mips32",
-        ]
-      }
-
-      if (mips_dsp_rev == 1) {
-        cflags += [ "-mdsp" ]
-      } else if (mips_dsp_rev == 2) {
-        cflags += [ "-mdspr2" ]
-      }
-
-      cflags += [ "-m${mips_float_abi}-float" ]
-    } else if (current_cpu == "mips64el") {
-      if (mips_arch_variant == "r6") {
-        cflags += [
-          "-mips64r6",
-          "-Wa,-mips64r6",
-        ]
-        ldflags += [ "-mips64r6" ]
-      } else if (mips_arch_variant == "r2") {
-        cflags += [
-          "-mips64r2",
-          "-Wa,-mips64r2",
-        ]
-        ldflags += [ "-mips64r2" ]
-      }
     }
 
-    if (current_cpu != "mipsel") {
-      cflags += [ "-fno-exceptions" ]
-    }
+    cflags += [ "-fno-exceptions" ]
   }
 
   # Linux/Android common flags setup.
@@ -300,16 +224,17 @@ config("compiler") {
       "-Wl,-z,noexecstack",
       "-Wl,-z,now",
       "-Wl,-z,relro",
+      "-Wl,--build-id=none",
     ]
   }
 
   # We need -fPIC:
-  # 1. On ARM and MIPS for tcmalloc.
+  # 1. On ARM for tcmalloc.
   # 2. On Android.
   # 3. When using the sanitizers.
   # Otherwise there is a performance hit, in particular on ia32.
   if (is_android || is_asan || is_lsan || is_msan || is_tsan ||
-      (is_linux && (current_cpu == "arm" || current_cpu == "mipsel"))) {
+      (is_linux && current_cpu != "x86")) {
     cflags += [ "-fPIC" ]
     ldflags += [ "-fPIC" ]
   }
@@ -319,6 +244,15 @@ config("compiler") {
   if (is_linux) {
     cflags += [ "-pthread" ]
     ldflags += [ "-pthread" ]
+    if (is_clang) {
+      if (current_cpu == "arm") {
+        cflags += [ "--target=arm-linux-gnueabihf" ]
+        ldflags += [ "--target=arm-linux-gnueabihf" ]
+      } else if (current_cpu == "arm64") {
+        cflags += [ "--target=aarch64-linux-gnu" ]
+        ldflags += [ "--target=aarch64-linux-gnu" ]
+      }
+    }
   }
 
   # Clang-specific compiler flags setup.
@@ -326,6 +260,16 @@ config("compiler") {
   if (is_clang) {
     cflags += [ "-fcolor-diagnostics" ]
   }
+
+  # C++14 compiler flags setup.
+  # ---------------------------
+  if (is_win) {
+    cc_std = [ "/std:c++14" ]
+  } else {
+    cc_std = [ "-std=c++14" ]
+  }
+  cflags_cc += cc_std
+  cflags_objcc += cc_std
 
   # Android-specific flags setup.
   # -----------------------------
@@ -371,12 +315,6 @@ config("compiler") {
       "-Wl,--exclude-libs=libgcc.a",
       "-Wl,--exclude-libs=libc++_static.a",
     ]
-    if (current_cpu == "arm") {
-      ldflags += [
-        # Enable identical code folding to reduce size.
-        "-Wl,--icf=safe",
-      ]
-    }
 
     if (is_clang) {
       if (current_cpu == "arm") {
@@ -395,6 +333,22 @@ config("compiler") {
     }
   }
 
+  # We want to force a recompile and relink of the world whenever our toolchain
+  # changes since artifacts from an older version of the toolchain may or may
+  # not be compatible with newer ones. To achieve this, we insert a synthetic
+  # define into the compile line.
+  if (is_clang && (is_linux || is_mac)) {
+    if (is_linux) {
+      toolchain_stamp_file =
+          "//buildtools/linux-x64/clang/.versions/clang.cipd_version"
+    } else {
+      toolchain_stamp_file =
+          "//buildtools/mac-x64/clang/.versions/clang.cipd_version"
+    }
+    cipd_version = read_file(toolchain_stamp_file, "json")
+    defines = [ "TOOLCHAIN_VERSION=${cipd_version.instance_id}" ]
+  }
+
   # Assign any flags set for the C compiler to asmflags so that they are sent
   # to the assembler. The Windows assembler takes different types of flags
   # so only do so for posix platforms.
@@ -404,9 +358,35 @@ config("compiler") {
   }
 }
 
+# This is separate from :compiler_codegen (and not even a sub-config there)
+# so that some targets can remove it from the list with:
+#   configs -= [ "//build/config/compiler:clang_stackrealign" ]
+# See https://crbug.com/556393 for details of where it must be avoided.
+config("clang_stackrealign") {
+  if (is_clang && current_cpu == "x86" && !is_nacl) {
+    cflags = [
+      # Align the stack on 16-byte boundaries, http://crbug.com/418554.
+      "-mstack-alignment=16",
+      "-mstackrealign",
+    ]
+  }
+}
+
 config("compiler_arm_fpu") {
   if (current_cpu == "arm") {
     cflags = [ "-mfpu=$arm_fpu" ]
+  }
+}
+
+config("compiler_arm_thumb") {
+  if (current_cpu == "arm") {
+    if (arm_use_thumb) {
+      cflags = [ "-mthumb" ]
+      if (is_android && !is_clang) {  # Clang doesn't support this option.
+        cflags += [ "-mthumb-interwork" ]
+      }
+      asmflags = cflags
+    }
   }
 }
 
@@ -447,19 +427,15 @@ config("runtime_library") {
   if (is_android) {
     if (is_clang) {
       # Work around incompatibilities between bionic and clang headers.
-      defines += [
-        "__compiler_offsetof=__builtin_offsetof",
-      ]
+      defines += [ "__compiler_offsetof=__builtin_offsetof" ]
     }
 
     defines += [ "__GNU_SOURCE=1" ]  # Necessary for clone().
 
-    # TODO(jdduke) Re-enable on mips after resolving linking
-    # issues with libc++ (crbug.com/456380).
-    if (current_cpu != "mipsel" && current_cpu != "mips64el") {
-      ldflags += [ "-Wl,--warn-shared-textrel" ]
-    }
-    ldflags += [ "-nostdlib" ]
+    ldflags += [
+      "-Wl,--warn-shared-textrel",
+      "-nostdlib",
+    ]
 
     # NOTE: The libc++ header include paths below are specified in cflags
     # rather than include_dirs because they need to come after include_dirs.
@@ -519,6 +495,7 @@ if (is_win) {
   default_warning_flags += [
     # Permanent.
     "/wd4091",  # typedef warning from dbghelp.h
+    "/wd4722",  # destructor never returns
 
     # Investigate.
     "/wd4312",  # int to pointer of greater size conversion.
@@ -538,6 +515,10 @@ if (is_win) {
     "-Wno-missing-field-initializers",  # "struct foo f = {0};"
     "-Wno-unused-parameter",  # Unused function parameters.
   ]
+
+  if (is_clang) {
+    default_warning_flags += [ "-Wno-tautological-constant-compare" ]
+  }
 
   if (is_mac) {
     # TODO(abarth): Re-enable once https://github.com/domokit/mojo/issues/728
@@ -572,23 +553,10 @@ if (is_win) {
       "-Wno-type-limits",
     ]
     default_warning_flags_cc += [
-      # Disabling c++0x-compat should be handled in WebKit, but
-      # this currently doesn't work because gcc_version is not set
-      # correctly when building with the Android build system.
-      # TODO(torne): Fix this in WebKit.
-      "-Wno-error=c++0x-compat",
-
       # Other things unrelated to -Wextra:
       "-Wno-non-virtual-dtor",
       "-Wno-sign-promo",
     ]
-  }
-
-  if (gcc_version >= 48) {
-    # Don't warn about the "typedef 'foo' locally defined but not used"
-    # for gcc 4.8.
-    # TODO: remove this flag once all builds work. See crbug.com/227506
-    default_warning_flags += [ "-Wno-unused-local-typedefs" ]
   }
 }
 
@@ -688,7 +656,10 @@ if (is_win) {
       "/Gw",
     ]
   }
-  common_optimize_on_ldflags = [ "/OPT:REF" ]
+  common_optimize_on_ldflags = [
+    "/OPT:REF",
+    "/OPT:ICF",
+  ]
 } else {
   common_optimize_on_cflags = [
     # Don't emit the GCC version ident directives, they just end up in the
@@ -719,6 +690,10 @@ if (is_win) {
       # See http://lwn.net/Articles/192624/ .
       "-Wl,-O1",
       "-Wl,--gc-sections",
+
+      # Identical code folding to reduce size.
+      # Warning: This changes C/C++ semantics of function pointer comparison.
+      "-Wl,--icf=all",
     ]
 
     if (!using_sanitizer) {

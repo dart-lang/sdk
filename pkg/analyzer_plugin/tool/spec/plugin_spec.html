@@ -39,14 +39,14 @@
     </p>
     <params>
       <field name="byteStorePath">
-        <ref>String</ref>
+        <ref>FilePath</ref>
         <p>
           The path to the directory containing the on-disk byte store that is to
           be used by any analysis drivers that are created.
         </p>
       </field>
       <field name="sdkPath">
-        <ref>String</ref>
+        <ref>FilePath</ref>
         <p>
           The path to the directory containing the SDK that is to be used by any
           analysis drivers that are created.
@@ -149,6 +149,77 @@
   <p>
     The analysis domain contains API’s related to the analysis of files.
   </p>
+  <request method="getNavigation">
+    <p>
+      Return the navigation information associated with the given region of
+      the given file. If the navigation information for the given file has
+      not yet been computed, or the most recently computed navigation
+      information for the given file is out of date, then the response for
+      this request will be delayed until it has been computed. If the
+      content of the file changes after this request was received but before
+      a response could be sent, then an error of type
+      <tt>CONTENT_MODIFIED</tt> will be generated.
+    </p>
+    <p>
+      If a navigation region overlaps (but extends either before or after)
+      the given region of the file it will be included in the result. This
+      means that it is theoretically possible to get the same navigation
+      region in response to multiple requests. Clients can avoid this by
+      always choosing a region that starts at the beginning of a line and
+      ends at the end of a (possibly different) line in the file.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file in which navigation information is being requested.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the region for which navigation information is being
+          requested.
+        </p>
+      </field>
+      <field name="length">
+        <ref>int</ref>
+        <p>
+          The length of the region for which navigation information is being
+          requested.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="files">
+        <list>
+          <ref>FilePath</ref>
+        </list>
+        <p>
+          A list of the paths of files that are referenced by the navigation
+          targets.
+        </p>
+      </field>
+      <field name="targets">
+        <list>
+          <ref>NavigationTarget</ref>
+        </list>
+        <p>
+          A list of the navigation targets that are referenced by the
+          navigation regions.
+        </p>
+      </field>
+      <field name="regions">
+        <list>
+          <ref>NavigationRegion</ref>
+        </list>
+        <p>
+          A list of the navigation regions within the requested region of
+          the file.
+        </p>
+      </field>
+    </result>
+  </request>
   <request method="handleWatchEvents">
     <p>
       Used to inform the plugin of changes to files in the file system. Only
@@ -162,42 +233,6 @@
         </list>
         <p>
           The watch events that the plugin should handle.
-        </p>
-      </field>
-    </params>
-  </request>
-  <request method="reanalyze">
-    <p>
-      Used to force the re-analysis of everything contained in the specified
-      context roots. This should cause all previously computed analysis results
-      to be discarded and recomputed, and should cause all subscribed
-      notifications to be re-sent.
-    </p>
-    <params>
-      <field name="roots" optional="true">
-        <list>
-          <ref>FilePath</ref>
-        </list>
-        <p>
-          A list of the context roots that are to be re-analyzed.
-        </p>
-        <p>
-          If no context roots are provided, then all current context roots
-          should be re-analyzed.
-        </p>
-      </field>
-    </params>
-  </request>
-  <request method="setContextBuilderOptions">
-    <p>
-      Used to set the options used to build analysis contexts. This request will
-      be sent exactly once before any context roots have been specified.
-    </p>
-    <params>
-      <field name="options">
-        <ref>ContextBuilderOptions</ref>
-        <p>
-          The options used to build the analysis contexts.
         </p>
       </field>
     </params>
@@ -608,7 +643,7 @@
       </field>
     </result>
   </request>
-  <request method="getAvailableRefactorings">
+  <request method="getAvailableRefactorings" experimental="true">
     <p>
       Used to request a list of the kinds of refactorings that are valid for the
       given selection in the given file.
@@ -680,7 +715,7 @@
       </field>
     </result>
   </request>
-  <request method="getRefactoring">
+  <request method="getRefactoring" experimental="true">
     <p>
       Used to request the changes required to perform a refactoring.
     </p>
@@ -794,6 +829,48 @@
     </result>
   </request>
 </domain>
+<domain name="kythe" experimental="true">
+  <p>
+    The kythe domain contains APIs related to generating Dart content in the
+    <a href="http://kythe.io/">Kythe</a> format.
+  </p>
+  <request method="getKytheEntries">
+    <p>
+      Return the list of <tt>KytheEntry</tt> objects for some file, given the
+      current state of the file system populated by "analysis.updateContent".
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file containing the code for which the Kythe Entry objects are
+          being requested.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="entries">
+        <list>
+          <ref>KytheEntry</ref>
+        </list>
+        <p>
+          The list of <tt>KytheEntry</tt> objects for the queried file.
+        </p>
+      </field>
+      <field name="files">
+        <list>
+          <ref>FilePath</ref>
+        </list>
+        <p>
+          The set of files paths that were required, but not in the file system,
+          to give a complete and accurate Kythe graph for the file. This could
+          be due to a referenced file that does not exist or generated files not
+          being generated or passed before the call to "getKytheEntries".
+        </p>
+      </field>
+    </result>
+  </request>
+</domain>
 <types>
   <h2 class="domain"><a name="types">Types</a></h2>
   <p>
@@ -836,87 +913,13 @@
       <value><code>OUTLINE</code></value>
     </enum>
   </type>
-  <type name="ContextBuilderOptions">
-    <p>
-      The options used to build an analysis context.
-    </p>
-    <object>
-      <field name="dartSdkSummaryPath" optional="true">
-        <ref>String</ref>
-        <p>
-          The file path of the file containing the summary of the SDK that
-          should be used to "analyze" the SDK. The field will be omitted if the
-          summary should be found in the SDK.
-        </p>
-      </field>
-      <field name="defaultAnalysisOptionsFilePath" optional="true">
-        <list>
-          <ref>String</ref>
-        </list>
-        <p>
-          The file path of the analysis options file that should be used in
-          place of any file in the root directory or a parent of the root
-          directory. The field will be omitted if the normal lookup mechanism
-          should be used.
-        </p>
-      </field>
-      <field name="declaredVariables" optional="true">
-        <map>
-          <key>
-            <ref>String</ref>
-          </key>
-          <value>
-            <ref>String</ref>
-          </value>
-        </map>
-        <p>
-          A table mapping variable names to values for the declared variables.
-          The field will be omitted if no additional variables need to be
-          declared.
-        </p>
-      </field>
-      <!--
-      TODO(brianwilkerson) Figure out how to handle analysis options.
-      <field name="defaultOptions" optional="true">
-        <ref>AnalysisOptions</ref>
-        <p>
-          The default analysis options that should be used unless some or all of
-          them are overridden in the analysis options file. The field will be
-          omitted if the default defaults should be used.
-        </p>
-      </field>
-      -->
-      <field name="defaultPackageFilePath" optional="true">
-        <list>
-          <ref>String</ref>
-        </list>
-        <p>
-          The file path of the .packages file that should be used in place of
-          any file found using the normal (Package Specification DEP) lookup
-          mechanism. The field will be omitted if the normal lookup mechanism
-          should be used.
-        </p>
-      </field>
-      <field name="defaultPackagesDirectoryPath" optional="true">
-        <list>
-          <ref>String</ref>
-        </list>
-        <p>
-          The file path of the packages directory that should be used in place
-          of any file found using the normal (Package Specification DEP) lookup
-          mechanism. The field will be omitted if the normal lookup mechanism
-          should be used.
-        </p>
-      </field>
-    </object>
-  </type>
   <type name="ContextRoot">
     <p>
       A description of an analysis context.
     </p>
     <object>
       <field name="root">
-        <ref>String</ref>
+        <ref>FilePath</ref>
         <p>
           The absolute path of the root directory containing the files to be
           analyzed.
@@ -924,11 +927,18 @@
       </field>
       <field name="exclude">
         <list>
-          <ref>String</ref>
+          <ref>FilePath</ref>
         </list>
         <p>
           A list of the absolute paths of files and directories within the root
           directory that should not be analyzed.
+        </p>
+      </field>
+      <field name="optionsFile" optional="true">
+        <ref>FilePath</ref>
+        <p>
+          The absolute path of the analysis options file that should be used to
+          control the analysis of the files in the context.
         </p>
       </field>
     </object>
@@ -953,14 +963,14 @@
       </field>
     </object>
   </type>
-  <type name="RefactoringFeedback">
+  <type name="RefactoringFeedback" experimental="true">
     <p>
       An abstract superclass of all refactoring feedbacks.
     </p>
     <object>
     </object>
   </type>
-  <type name="RefactoringOptions">
+  <type name="RefactoringOptions" experimental="true">
     <p>
       An abstract superclass of all refactoring options.
     </p>
@@ -1162,7 +1172,7 @@
         </p>
       </field>
       <field name="path">
-        <ref>String</ref>
+        <ref>FilePath</ref>
         <p>
           The absolute path of the file or directory that changed.
         </p>

@@ -12,7 +12,6 @@
 #include "vm/port.h"
 #include "vm/thread_interrupter.h"
 
-
 namespace dart {
 
 DECLARE_FLAG(bool, trace_service_pause_events);
@@ -34,7 +33,6 @@ class MessageHandlerTask : public ThreadPool::Task {
   DISALLOW_COPY_AND_ASSIGN(MessageHandlerTask);
 };
 
-
 // static
 const char* MessageHandler::MessageStatusString(MessageStatus status) {
   switch (status) {
@@ -52,21 +50,24 @@ const char* MessageHandler::MessageStatusString(MessageStatus status) {
   }
 }
 
-
 MessageHandler::MessageHandler()
     : queue_(new MessageQueue()),
       oob_queue_(new MessageQueue()),
       oob_message_handling_allowed_(true),
+      paused_for_messages_(false),
       live_ports_(0),
       paused_(0),
+#if !defined(PRODUCT)
       should_pause_on_start_(false),
       should_pause_on_exit_(false),
       is_paused_on_start_(false),
       is_paused_on_exit_(false),
-      delete_me_(false),
       paused_timestamp_(-1),
+#endif
+      delete_me_(false),
       pool_(NULL),
       task_(NULL),
+      idle_start_time_(0),
       start_callback_(NULL),
       end_callback_(NULL),
       callback_data_(0) {
@@ -74,8 +75,8 @@ MessageHandler::MessageHandler()
   ASSERT(oob_queue_ != NULL);
 }
 
-
 MessageHandler::~MessageHandler() {
+  IdleNotifier::Remove(this);
   delete queue_;
   delete oob_queue_;
   queue_ = NULL;
@@ -84,11 +85,9 @@ MessageHandler::~MessageHandler() {
   task_ = NULL;
 }
 
-
 const char* MessageHandler::name() const {
   return "<unnamed>";
 }
-
 
 #if defined(DEBUG)
 void MessageHandler::CheckAccess() {
@@ -96,11 +95,9 @@ void MessageHandler::CheckAccess() {
 }
 #endif
 
-
 void MessageHandler::MessageNotify(Message::Priority priority) {
   // By default, there is no custom message notification.
 }
-
 
 void MessageHandler::Run(ThreadPool* pool,
                          StartCallback start_callback,
@@ -109,7 +106,7 @@ void MessageHandler::Run(ThreadPool* pool,
   bool task_running;
   MonitorLocker ml(&monitor_);
   if (FLAG_trace_isolates) {
-    OS::Print(
+    OS::PrintErr(
         "[+] Starting message handler:\n"
         "\thandler:    %s\n",
         name());
@@ -125,26 +122,30 @@ void MessageHandler::Run(ThreadPool* pool,
   ASSERT(task_running);
 }
 
-
 void MessageHandler::PostMessage(Message* message, bool before_events) {
   Message::Priority saved_priority;
   bool task_running = true;
   {
     MonitorLocker ml(&monitor_);
     if (FLAG_trace_isolates) {
-      const char* source_name = "<native code>";
       Isolate* source_isolate = Isolate::Current();
       if (source_isolate) {
-        source_name = source_isolate->name();
+        OS::PrintErr(
+            "[>] Posting message:\n"
+            "\tlen:        %" Pd "\n\tsource:     (%" Pd64
+            ") %s\n\tdest:       %s\n"
+            "\tdest_port:  %" Pd64 "\n",
+            message->Size(), static_cast<int64_t>(source_isolate->main_port()),
+            source_isolate->name(), name(), message->dest_port());
+      } else {
+        OS::PrintErr(
+            "[>] Posting message:\n"
+            "\tlen:        %" Pd
+            "\n\tsource:     <native code>\n"
+            "\tdest:       %s\n"
+            "\tdest_port:  %" Pd64 "\n",
+            message->Size(), name(), message->dest_port());
       }
-      OS::Print(
-          "[>] Posting message:\n"
-          "\tlen:        %" Pd
-          "\n"
-          "\tsource:     %s\n"
-          "\tdest:       %s\n"
-          "\tdest_port:  %" Pd64 "\n",
-          message->len(), source_name, name(), message->dest_port());
     }
 
     saved_priority = message->priority();
@@ -152,6 +153,9 @@ void MessageHandler::PostMessage(Message* message, bool before_events) {
       oob_queue_->Enqueue(message, before_events);
     } else {
       queue_->Enqueue(message, before_events);
+    }
+    if (paused_for_messages_) {
+      ml.Notify();
     }
     message = NULL;  // Do not access message.  May have been deleted.
 
@@ -167,6 +171,18 @@ void MessageHandler::PostMessage(Message* message, bool before_events) {
   MessageNotify(saved_priority);
 }
 
+void MessageHandler::EnsureTaskForIdleCheck() {
+  MonitorLocker ml(&monitor_);
+  if ((pool_ != NULL) && (task_ == NULL)) {
+    task_ = new MessageHandlerTask(this);
+    bool task_running = pool_->Run(task_);
+    if (!task_running) {
+      OS::PrintErr("Failed to start idle wakeup\n");
+      delete task_;
+      task_ = NULL;
+    }
+  }
+}
 
 Message* MessageHandler::DequeueMessage(Message::Priority min_priority) {
   // TODO(turnidge): Add assert that monitor_ is held here.
@@ -177,11 +193,9 @@ Message* MessageHandler::DequeueMessage(Message::Priority min_priority) {
   return message;
 }
 
-
 void MessageHandler::ClearOOBQueue() {
   oob_queue_->Clear();
 }
-
 
 MessageHandler::MessageStatus MessageHandler::HandleMessages(
     MonitorLocker* ml,
@@ -198,9 +212,9 @@ MessageHandler::MessageStatus MessageHandler::HandleMessages(
                                             : Message::kOOBPriority);
   Message* message = DequeueMessage(min_priority);
   while (message != NULL) {
-    intptr_t message_len = message->len();
+    intptr_t message_len = message->Size();
     if (FLAG_trace_isolates) {
-      OS::Print(
+      OS::PrintErr(
           "[<] Handling message:\n"
           "\tlen:        %" Pd
           "\n"
@@ -221,7 +235,7 @@ MessageHandler::MessageStatus MessageHandler::HandleMessages(
     message = NULL;  // May be deleted by now.
     ml->Enter();
     if (FLAG_trace_isolates) {
-      OS::Print(
+      OS::PrintErr(
           "[.] Message handled (%s):\n"
           "\tlen:        %" Pd
           "\n"
@@ -233,6 +247,13 @@ MessageHandler::MessageStatus MessageHandler::HandleMessages(
     if (status == kShutdown) {
       ClearOOBQueue();
       break;
+    }
+
+    // Remember time since the last message. Don't consider OOB messages so
+    // using Observatory doesn't trigger additional idle tasks.
+    if ((FLAG_idle_timeout_micros != 0) &&
+        (saved_priority == Message::kNormalPriority)) {
+      idle_start_time_ = OS::GetCurrentMonotonicMicros();
     }
 
     // Some callers want to process only one normal message and then quit. At
@@ -257,7 +278,6 @@ MessageHandler::MessageStatus MessageHandler::HandleMessages(
   return max_status;
 }
 
-
 MessageHandler::MessageStatus MessageHandler::HandleNextMessage() {
   // We can only call HandleNextMessage when this handler is not
   // assigned to a thread pool.
@@ -270,19 +290,35 @@ MessageHandler::MessageStatus MessageHandler::HandleNextMessage() {
   return HandleMessages(&ml, true, false);
 }
 
-
-MessageHandler::MessageStatus MessageHandler::HandleAllMessages() {
-  // We can only call HandleAllMessages when this handler is not
-  // assigned to a thread pool.
+MessageHandler::MessageStatus MessageHandler::PauseAndHandleAllMessages(
+    int64_t timeout_millis) {
   MonitorLocker ml(&monitor_);
-  ASSERT(pool_ == NULL);
+  ASSERT(task_ != NULL);
   ASSERT(!delete_me_);
 #if defined(DEBUG)
   CheckAccess();
 #endif
+  paused_for_messages_ = true;
+  while (queue_->IsEmpty() && oob_queue_->IsEmpty()) {
+    Monitor::WaitResult wr = ml.Wait(timeout_millis);
+    ASSERT(task_ != NULL);
+    ASSERT(!delete_me_);
+    if (wr == Monitor::kTimedOut) {
+      break;
+    }
+    if (queue_->IsEmpty()) {
+      // There are only OOB messages. Handle them and then continue waiting for
+      // normal messages unless there is an error.
+      MessageStatus status = HandleMessages(&ml, false, false);
+      if (status != kOK) {
+        paused_for_messages_ = false;
+        return status;
+      }
+    }
+  }
+  paused_for_messages_ = false;
   return HandleMessages(&ml, true, true);
 }
-
 
 MessageHandler::MessageStatus MessageHandler::HandleOOBMessages() {
   if (!oob_message_handling_allowed_) {
@@ -296,7 +332,7 @@ MessageHandler::MessageStatus MessageHandler::HandleOOBMessages() {
   return HandleMessages(&ml, false, false);
 }
 
-
+#if !defined(PRODUCT)
 bool MessageHandler::ShouldPauseOnStart(MessageStatus status) const {
   Isolate* owning_isolate = isolate();
   if (owning_isolate == NULL) {
@@ -309,7 +345,6 @@ bool MessageHandler::ShouldPauseOnStart(MessageStatus status) const {
          should_pause_on_start() && owning_isolate->is_runnable();
 }
 
-
 bool MessageHandler::ShouldPauseOnExit(MessageStatus status) const {
   Isolate* owning_isolate = isolate();
   if (owning_isolate == NULL) {
@@ -319,13 +354,12 @@ bool MessageHandler::ShouldPauseOnExit(MessageStatus status) const {
           status != MessageHandler::kShutdown) &&
          should_pause_on_exit() && owning_isolate->is_runnable();
 }
-
+#endif
 
 bool MessageHandler::HasOOBMessages() {
   MonitorLocker ml(&monitor_);
   return !oob_queue_->IsEmpty();
 }
-
 
 void MessageHandler::TaskCallback() {
   ASSERT(Isolate::Current() == NULL);
@@ -340,6 +374,7 @@ void MessageHandler::TaskCallback() {
     // all pending OOB messages, or we may miss a request for vm
     // shutdown.
     MonitorLocker ml(&monitor_);
+#if !defined(PRODUCT)
     if (ShouldPauseOnStart(kOK)) {
       if (!is_paused_on_start()) {
         PausedOnStartLocked(&ml, true);
@@ -355,6 +390,18 @@ void MessageHandler::TaskCallback() {
         PausedOnStartLocked(&ml, false);
       }
     }
+    if (is_paused_on_exit()) {
+      status = HandleMessages(&ml, false, false);
+      if (ShouldPauseOnExit(status)) {
+        // Still paused.
+        ASSERT(oob_queue_->IsEmpty());
+        task_ = NULL;  // No task in queue.
+        return;
+      } else {
+        PausedOnExitLocked(&ml, false);
+      }
+    }
+#endif  // !defined(PRODUCT)
 
     if (status == kOK) {
       if (start_callback_) {
@@ -370,27 +417,35 @@ void MessageHandler::TaskCallback() {
         ml.Enter();
       }
 
-      // Handle any pending messages for this message handler.
-      if (status != kShutdown) {
-        status = HandleMessages(&ml, (status == kOK), true);
+      bool handle_messages = true;
+      while (handle_messages) {
+        handle_messages = false;
+
+        // Handle any pending messages for this message handler.
+        if (status != kShutdown) {
+          status = HandleMessages(&ml, (status == kOK), true);
+        }
+
+        if (status == kOK) {
+          handle_messages = CheckAndRunIdleLocked(&ml);
+        }
       }
     }
 
     // The isolate exits when it encounters an error or when it no
     // longer has live ports.
     if (status != kOK || !HasLivePorts()) {
+#if !defined(PRODUCT)
       if (ShouldPauseOnExit(status)) {
-        if (!is_paused_on_exit()) {
-          if (FLAG_trace_service_pause_events) {
-            OS::PrintErr(
-                "Isolate %s paused before exiting. "
-                "Use the Observatory to release it.\n",
-                name());
-          }
-          PausedOnExitLocked(&ml, true);
-          // More messages may have come in while we released the monitor.
-          status = HandleMessages(&ml, false, false);
+        if (FLAG_trace_service_pause_events) {
+          OS::PrintErr(
+              "Isolate %s paused before exiting. "
+              "Use the Observatory to release it.\n",
+              name());
         }
+        PausedOnExitLocked(&ml, true);
+        // More messages may have come in while we released the monitor.
+        status = HandleMessages(&ml, false, false);
         if (ShouldPauseOnExit(status)) {
           // Still paused.
           ASSERT(oob_queue_->IsEmpty());
@@ -400,16 +455,17 @@ void MessageHandler::TaskCallback() {
           PausedOnExitLocked(&ml, false);
         }
       }
+#endif  // !defined(PRODUCT)
       if (FLAG_trace_isolates) {
         if (status != kOK && thread() != NULL) {
           const Error& error = Error::Handle(thread()->sticky_error());
-          OS::Print(
+          OS::PrintErr(
               "[-] Stopping message handler (%s):\n"
               "\thandler:    %s\n"
               "\terror:    %s\n",
               MessageStatusString(status), name(), error.ToCString());
         } else {
-          OS::Print(
+          OS::PrintErr(
               "[-] Stopping message handler (%s):\n"
               "\thandler:    %s\n",
               MessageStatusString(status), name());
@@ -445,11 +501,40 @@ void MessageHandler::TaskCallback() {
   }
 }
 
+bool MessageHandler::CheckAndRunIdleLocked(MonitorLocker* ml) {
+  if ((isolate() == NULL) || (idle_start_time_ == 0) ||
+      (FLAG_idle_timeout_micros == 0)) {
+    return false;
+  }
+
+  const int64_t now = OS::GetCurrentMonotonicMicros();
+  const int64_t idle_expirary = idle_start_time_ + FLAG_idle_timeout_micros;
+  if (idle_expirary > now) {
+    IdleNotifier::Update(this, idle_expirary);
+    // No new messages.
+    return false;
+  }
+
+  // We've been without a message long enough to hope we can do some
+  // cleanup before the next message arrives.
+  const int64_t deadline = now + FLAG_idle_duration_micros;
+  // Idle tasks may take a while: don't block other isolates sending
+  // us messages.
+  ml->Exit();
+  {
+    StartIsolateScope start_isolate(isolate());
+    isolate()->NotifyIdle(deadline);
+    idle_start_time_ = 0;
+  }
+  ml->Enter();
+  // We may have received new messages while the monitor was released.
+  return true;
+}
 
 void MessageHandler::ClosePort(Dart_Port port) {
   MonitorLocker ml(&monitor_);
   if (FLAG_trace_isolates) {
-    OS::Print(
+    OS::PrintErr(
         "[-] Closing port:\n"
         "\thandler:    %s\n"
         "\tport:       %" Pd64
@@ -459,11 +544,10 @@ void MessageHandler::ClosePort(Dart_Port port) {
   }
 }
 
-
 void MessageHandler::CloseAllPorts() {
   MonitorLocker ml(&monitor_);
   if (FLAG_trace_isolates) {
-    OS::Print(
+    OS::PrintErr(
         "[-] Closing all ports:\n"
         "\thandler:    %s\n",
         name());
@@ -471,7 +555,6 @@ void MessageHandler::CloseAllPorts() {
   queue_->Clear();
   oob_queue_->Clear();
 }
-
 
 void MessageHandler::RequestDeletion() {
   ASSERT(OwnedByPortMap());
@@ -488,7 +571,6 @@ void MessageHandler::RequestDeletion() {
   delete this;
 }
 
-
 void MessageHandler::increment_live_ports() {
   MonitorLocker ml(&monitor_);
 #if defined(DEBUG)
@@ -496,7 +578,6 @@ void MessageHandler::increment_live_ports() {
 #endif
   live_ports_++;
 }
-
 
 void MessageHandler::decrement_live_ports() {
   MonitorLocker ml(&monitor_);
@@ -506,29 +587,21 @@ void MessageHandler::decrement_live_ports() {
   live_ports_--;
 }
 
+#if !defined(PRODUCT)
+void MessageHandler::DebugDump() {
+  PortMap::DebugDumpForMessageHandler(this);
+}
 
 void MessageHandler::PausedOnStart(bool paused) {
   MonitorLocker ml(&monitor_);
   PausedOnStartLocked(&ml, paused);
 }
 
-
-void MessageHandler::DebugDump() {
-  PortMap::DebugDumpForMessageHandler(this);
-}
-
-
 void MessageHandler::PausedOnStartLocked(MonitorLocker* ml, bool paused) {
   if (paused) {
     ASSERT(!is_paused_on_start_);
-    is_paused_on_start_ = true;
+    ASSERT(paused_timestamp_ == -1);
     paused_timestamp_ = OS::GetCurrentTimeMillis();
-  } else {
-    ASSERT(is_paused_on_start_);
-    is_paused_on_start_ = false;
-    paused_timestamp_ = -1;
-  }
-  if (is_paused_on_start_) {
     // Temporarily release the monitor when calling out to
     // NotifyPauseOnStart.  This avoids a dead lock that can occur
     // when this message handler tries to post a message while a
@@ -536,33 +609,30 @@ void MessageHandler::PausedOnStartLocked(MonitorLocker* ml, bool paused) {
     ml->Exit();
     NotifyPauseOnStart();
     ml->Enter();
+    is_paused_on_start_ = true;
   } else {
+    ASSERT(is_paused_on_start_);
+    ASSERT(paused_timestamp_ != -1);
+    paused_timestamp_ = -1;
     // Resumed. Clear the resume request of the owning isolate.
     Isolate* owning_isolate = isolate();
     if (owning_isolate != NULL) {
       owning_isolate->GetAndClearResumeRequest();
     }
+    is_paused_on_start_ = false;
   }
 }
-
 
 void MessageHandler::PausedOnExit(bool paused) {
   MonitorLocker ml(&monitor_);
   PausedOnExitLocked(&ml, paused);
 }
 
-
 void MessageHandler::PausedOnExitLocked(MonitorLocker* ml, bool paused) {
   if (paused) {
     ASSERT(!is_paused_on_exit_);
-    is_paused_on_exit_ = true;
+    ASSERT(paused_timestamp_ == -1);
     paused_timestamp_ = OS::GetCurrentTimeMillis();
-  } else {
-    ASSERT(is_paused_on_exit_);
-    is_paused_on_exit_ = false;
-    paused_timestamp_ = -1;
-  }
-  if (is_paused_on_exit_) {
     // Temporarily release the monitor when calling out to
     // NotifyPauseOnExit.  This avoids a dead lock that can
     // occur when this message handler tries to post a message
@@ -570,15 +640,20 @@ void MessageHandler::PausedOnExitLocked(MonitorLocker* ml, bool paused) {
     ml->Exit();
     NotifyPauseOnExit();
     ml->Enter();
+    is_paused_on_exit_ = true;
   } else {
+    ASSERT(is_paused_on_exit_);
+    ASSERT(paused_timestamp_ != -1);
+    paused_timestamp_ = -1;
     // Resumed. Clear the resume request of the owning isolate.
     Isolate* owning_isolate = isolate();
     if (owning_isolate != NULL) {
       owning_isolate->GetAndClearResumeRequest();
     }
+    is_paused_on_exit_ = false;
   }
 }
-
+#endif  // !defined(PRODUCT)
 
 MessageHandler::AcquiredQueues::AcquiredQueues(MessageHandler* handler)
     : handler_(handler), ml_(&handler->monitor_) {
@@ -586,10 +661,127 @@ MessageHandler::AcquiredQueues::AcquiredQueues(MessageHandler* handler)
   handler_->oob_message_handling_allowed_ = false;
 }
 
-
 MessageHandler::AcquiredQueues::~AcquiredQueues() {
   ASSERT(handler_ != NULL);
   handler_->oob_message_handling_allowed_ = true;
+}
+
+Monitor* IdleNotifier::monitor_ = NULL;
+bool IdleNotifier::task_running_ = false;
+IdleNotifier::Timer* IdleNotifier::queue_ = NULL;
+
+void IdleNotifier::InitOnce() {
+  monitor_ = new Monitor();
+}
+
+void IdleNotifier::Stop() {
+  Timer* timer;
+
+  {
+    MonitorLocker ml(monitor_);
+    timer = queue_;
+    queue_ = NULL;
+    ml.Notify();
+    while (task_running_) {
+      ml.Wait();
+    }
+  }
+
+  while (timer != NULL) {
+    Timer* next = timer->next;
+    delete timer;
+    timer = next;
+  }
+}
+
+void IdleNotifier::Cleanup() {
+  ASSERT(queue_ == NULL);
+  ASSERT(!task_running_);
+  delete monitor_;
+  monitor_ = NULL;
+}
+
+class IdleNotifier::Task : public ThreadPool::Task {
+ private:
+  void Run() {
+    MonitorLocker ml(monitor_);
+    while (queue_ != NULL) {
+      Timer* timer = queue_;
+      const int64_t now = OS::GetCurrentMonotonicMicros();
+      if (now >= timer->expirary) {
+        MessageHandler* handler = timer->handler;
+        queue_ = timer->next;
+        delete timer;
+        // A handler may try to update its expirary while we try to start its
+        // task for idle notification.
+        ml.Exit();
+        handler->EnsureTaskForIdleCheck();
+        ml.Enter();
+      } else {
+        ml.WaitMicros(timer->expirary - now);
+      }
+    }
+    task_running_ = false;
+    ml.Notify();
+  }
+};
+
+void IdleNotifier::Update(MessageHandler* handler, int64_t expirary) {
+  MonitorLocker ml(monitor_);
+
+  Timer* prev = NULL;
+  Timer* timer = queue_;
+  while (timer != NULL) {
+    if (timer->handler == handler) {
+      if (prev == NULL) {
+        queue_ = timer->next;
+      } else {
+        prev->next = timer->next;
+      }
+      if (expirary == 0) {
+        delete timer;
+      } else {
+        timer->expirary = expirary;
+      }
+      break;
+    } else {
+      prev = timer;
+      timer = timer->next;
+    }
+  }
+
+  if (expirary != 0) {
+    Timer* insert_timer = timer;
+    if (insert_timer == NULL) {
+      insert_timer = new Timer;
+      insert_timer->handler = handler;
+      insert_timer->expirary = expirary;
+    }
+
+    prev = NULL;
+    timer = queue_;
+    while ((timer != NULL) && (timer->expirary < insert_timer->expirary)) {
+      prev = timer;
+      timer = timer->next;
+    }
+    if (prev == NULL) {
+      queue_ = insert_timer;
+    } else {
+      prev->next = insert_timer;
+    }
+    insert_timer->next = timer;
+  }
+
+  if (task_running_) {
+    ml.Notify();
+  } else if ((queue_ != NULL) && (expirary != 0)) {
+    Task* task = new Task();
+    task_running_ = Dart::thread_pool()->Run(task);
+    if (!task_running_) {
+      OS::PrintErr("Failed to start idle ticker\n");
+      delete task;
+    }
+  }
 }
 
 }  // namespace dart

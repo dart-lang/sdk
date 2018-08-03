@@ -3,6 +3,37 @@
 # BSD-style license that can be found in the LICENSE file.
 
 declare_args() {
+  # Instead of using is_debug, we introduce a different flag for specifying a
+  # Debug build of Dart so that clients can still use a Release build of Dart
+  # while themselves doing a Debug build.
+  dart_debug = false
+
+  # Set the runtime mode. This affects how the runtime is built and what
+  # features it has. Valid values are:
+  # 'develop' (the default) - VM is built to run as a JIT with all development
+  # features enabled.
+  # 'profile' - The VM is built to run with AOT compiled code with only the
+  # CPU profiling features enabled.
+  # 'release' - The VM is built to run with AOT compiled code with no developer
+  # features enabled.
+  #
+  # These settings are only used for Flutter, at the moment. A standalone build
+  # of the Dart VM should leave this set to "develop", and should set
+  # 'is_debug', 'is_release', or 'is_product'.
+  #
+  # TODO(rmacnak): dart_runtime_mode no longer selects whether libdart is build
+  # for JIT or AOT, since libdart waw split into libdart_jit and
+  # libdart_precompiled_runtime. We should remove this flag and just set
+  # dart_debug/dart_product.
+  dart_runtime_mode = "develop"
+
+  # Explicitly set the target architecture to use a simulator.
+  # Available options are: arm, arm64, x64, ia32, and dbc.
+  dart_target_arch = target_cpu
+
+  # The optimization level to use for debug builds.
+  dart_debug_optimization_level = "2"
+
   # Whether to fall back to built-in root certificates when they cannot be
   # verified at the operating system level.
   dart_use_fallback_root_certificates = false
@@ -16,9 +47,42 @@ declare_args() {
   # Whether to link the standalone VM against tcmalloc. The standalone build of
   # the VM enables this only for Linux builds.
   dart_use_tcmalloc = false
-}
 
-# TODO(zra): Remove this when Fuchsia has a root cert cache on the filesystem.
-if (defined(is_fuchsia) && is_fuchsia) {
-  dart_use_fallback_root_certificates = true
+  # Controls the kind of core snapshot linked into the standalone VM. Using a
+  # core-jit snapshot breaks the ability to change various flags that affect
+  # code generation.
+  dart_core_snapshot_kind = "core"
+
+  # Whether the Dart binary version string should include the git hash and
+  # git commit time.
+  dart_version_git_info = true
+
+  # When this argument is a non-empty string, the version repoted by the
+  # Dart VM will be one that is compatible with pub's interpretation of
+  # semantic version strings. The version string will also include the values
+  # of the argument. In particular the version string will read:
+  #
+  #     "M.m.p-dev.x.x-$(dart_custom_version_for_pub)-$(short_git_hash)"
+  #
+  # Where 'M', 'm', and 'p' are the major, minor and patch version numbers,
+  # and 'dev.x.x' is the dev version tag most recently preceeding the current
+  # revision. The short git hash can be omitted by setting
+  # dart_version_git_info=false
+  dart_custom_version_for_pub = ""
+
+  # Controls whether the VM is built as a static library or a shared library.
+  if (is_fuchsia) {
+    # Allow for deduping the VM between standalone, flutter_runner and dart_runner.
+    dart_component_kind = "shared_library"
+  } else {
+    dart_component_kind = "static_library"
+  }
+
+  # Whether the runtime should interpret called functions for which bytecode
+  # is provided by kernel, rather than compile them before execution.
+  dart_use_interpreter = false
+
+  # Whether the VM includes the kernel service in all modes (debug, release,
+  # product).
+  exclude_kernel_service = false
 }

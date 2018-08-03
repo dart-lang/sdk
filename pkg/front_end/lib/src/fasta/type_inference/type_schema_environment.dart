@@ -4,14 +4,66 @@
 
 import 'dart:math' as math;
 
-import 'package:front_end/src/fasta/type_inference/type_constraint_gatherer.dart';
-import 'package:front_end/src/fasta/type_inference/type_schema.dart';
-import 'package:front_end/src/fasta/type_inference/type_schema_elimination.dart';
-import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart';
-import 'package:kernel/core_types.dart';
-import 'package:kernel/type_algebra.dart';
-import 'package:kernel/type_environment.dart';
+import 'package:kernel/ast.dart'
+    show
+        BottomType,
+        DartType,
+        DynamicType,
+        FunctionType,
+        InterfaceType,
+        NamedType,
+        Procedure,
+        TypeParameter,
+        TypeParameterType,
+        VoidType;
+
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+
+import 'package:kernel/core_types.dart' show CoreTypes;
+
+import 'package:kernel/type_algebra.dart' show Substitution;
+
+import 'package:kernel/type_environment.dart' show TypeEnvironment;
+
+import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
+
+import 'type_schema.dart' show UnknownType, typeSchemaToString, isKnown;
+
+import 'type_schema_elimination.dart' show greatestClosure, leastClosure;
+
+// TODO(paulberry): try to push this functionality into kernel.
+FunctionType substituteTypeParams(
+    FunctionType type,
+    Map<TypeParameter, DartType> substitutionMap,
+    List<TypeParameter> newTypeParameters) {
+  var substitution = Substitution.fromMap(substitutionMap);
+  return new FunctionType(
+      type.positionalParameters.map(substitution.substituteType).toList(),
+      substitution.substituteType(type.returnType),
+      namedParameters: type.namedParameters
+          .map((named) => new NamedType(
+              named.name, substitution.substituteType(named.type)))
+          .toList(),
+      typeParameters: newTypeParameters,
+      requiredParameterCount: type.requiredParameterCount,
+      typedefReference: type.typedefReference);
+}
+
+/// Given a [FunctionType], gets the type of the named parameter with the given
+/// [name], or `dynamic` if there is no parameter with the given name.
+DartType getNamedParameterType(FunctionType functionType, String name) {
+  return functionType.getNamedParameter(name) ?? const DynamicType();
+}
+
+/// Given a [FunctionType], gets the type of the [i]th positional parameter, or
+/// `dynamic` if there is no parameter with that index.
+DartType getPositionalParameterType(FunctionType functionType, int i) {
+  if (i < functionType.positionalParameters.length) {
+    return functionType.positionalParameters[i];
+  } else {
+    return const DynamicType();
+  }
+}
 
 /// A constraint on a type parameter that we're inferring.
 class TypeConstraint {
@@ -36,8 +88,9 @@ class TypeConstraint {
 }
 
 class TypeSchemaEnvironment extends TypeEnvironment {
-  TypeSchemaEnvironment(CoreTypes coreTypes, ClassHierarchy hierarchy)
-      : super(coreTypes, hierarchy);
+  TypeSchemaEnvironment(
+      CoreTypes coreTypes, ClassHierarchy hierarchy, bool strongMode)
+      : super(coreTypes, hierarchy, strongMode: strongMode);
 
   /// Modify the given [constraint]'s lower bound to include [lower].
   void addLowerBound(TypeConstraint constraint, DartType lower) {
@@ -47,28 +100,6 @@ class TypeSchemaEnvironment extends TypeEnvironment {
   /// Modify the given [constraint]'s upper bound to include [upper].
   void addUpperBound(TypeConstraint constraint, DartType upper) {
     constraint.upper = getGreatestLowerBound(constraint.upper, upper);
-  }
-
-  /// Implements the function "flatten" defined in the spec, where T is [type]:
-  ///
-  ///     If T = Future<S> then flatten(T) = flatten(S).
-  ///
-  ///     Otherwise if T <: Future then let S be a type such that T << Future<S>
-  ///     and for all R, if T << Future<R> then S << R.  Then flatten(T) = S.
-  ///
-  ///     In any other circumstance, flatten(T) = T.
-  DartType flattenFutures(DartType type) {
-    if (type is InterfaceType) {
-      if (identical(type.classNode, coreTypes.futureClass)) {
-        return flattenFutures(type.typeArguments[0]);
-      }
-      InterfaceType futureBase =
-          hierarchy.getTypeAsInstanceOf(type, coreTypes.futureClass);
-      if (futureBase != null) {
-        return futureBase.typeArguments[0];
-      }
-    }
-    return type;
   }
 
   /// Computes the greatest lower bound of [type1] and [type2].
@@ -221,7 +252,8 @@ class TypeSchemaEnvironment extends TypeEnvironment {
       List<DartType> formalTypes,
       List<DartType> actualTypes,
       DartType returnContextType,
-      List<DartType> inferredTypes) {
+      List<DartType> inferredTypes,
+      {bool isConst: false}) {
     if (typeParametersToInfer.isEmpty) {
       return;
     }
@@ -232,7 +264,11 @@ class TypeSchemaEnvironment extends TypeEnvironment {
     // are implied by this.
     var gatherer = new TypeConstraintGatherer(this, typeParametersToInfer);
 
-    if (returnContextType != null) {
+    if (!isEmptyContext(returnContextType)) {
+      if (isConst) {
+        returnContextType = new TypeVariableEliminator(coreTypes)
+            .substituteType(returnContextType);
+      }
       gatherer.trySubtypeMatch(declaredReturnType, returnContextType);
     }
 
@@ -249,7 +285,22 @@ class TypeSchemaEnvironment extends TypeEnvironment {
         downwardsInferPhase: formalTypes == null);
   }
 
-  /// Use the given [constraints] to substitute for type variables..
+  bool hasOmittedBound(TypeParameter parameter) {
+    // If the bound was omitted by the programmer, the Kernel representation for
+    // the parameter will look similar to the following:
+    //
+    //     T extends Object = dynamic
+    //
+    // Note that it's not possible to receive [Object] as [TypeParameter.bound]
+    // and `dynamic` as [TypeParameter.defaultType] from the front end in any
+    // other way.
+    DartType bound = parameter.bound;
+    return bound is InterfaceType &&
+        identical(bound.classNode, coreTypes.objectClass) &&
+        parameter.defaultType is DynamicType;
+  }
+
+  /// Use the given [constraints] to substitute for type variables.
   ///
   /// [typeParametersToInfer] is the set of type parameters that should be
   /// substituted for.  [inferredTypes] should be a list of the same length.
@@ -275,7 +326,7 @@ class TypeSchemaEnvironment extends TypeEnvironment {
 
       var typeParamBound = typeParam.bound;
       DartType extendsConstraint;
-      if (!_isObjectOrDynamic(typeParamBound)) {
+      if (!hasOmittedBound(typeParam)) {
         extendsConstraint = Substitution
             .fromPairs(typeParametersToInfer, inferredTypes)
             .substituteType(typeParamBound);
@@ -308,7 +359,7 @@ class TypeSchemaEnvironment extends TypeEnvironment {
 
       var inferred = inferredTypes[i];
       bool success = typeSatisfiesConstraint(inferred, constraint);
-      if (success && !_isObjectOrDynamic(typeParamBound)) {
+      if (success && !hasOmittedBound(typeParam)) {
         // If everything else succeeded, check the `extends` constraint.
         var extendsConstraint = typeParamBound;
         success = isSubtypeOf(inferred, extendsConstraint);
@@ -331,58 +382,44 @@ class TypeSchemaEnvironment extends TypeEnvironment {
     // TODO(paulberry): report any errors from instantiateToBounds.
   }
 
-  /// Given a [DartType] [type], if [type] is an uninstantiated
-  /// parameterized type then instantiate the parameters to their
-  /// bounds. See the issue for the algorithm description.
-  ///
-  /// https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397
-  ///
-  /// TODO(paulberry) Compute lazily and cache.
-  DartType instantiateToBounds(DartType type,
-      {Map<TypeParameter, DartType> knownTypes}) {
-    List<TypeParameter> typeFormals = _typeFormalsAsParameters(type);
-    int count = typeFormals.length;
-    if (count == 0) {
-      return type;
-    }
-    var substitution = <TypeParameter, DartType>{};
-    for (TypeParameter parameter in typeFormals) {
-      // Note: we treat class<T extends Object> as equivalent to class<T>; in
-      // both cases they instantiate to class<dynamic>.  See dartbug.com/29561
-      if (_isObjectOrDynamic(parameter.bound)) {
-        substitution[parameter] = const DynamicType();
-      } else {
-        substitution[parameter] = parameter.bound;
-      }
-    }
-    if (knownTypes != null) {
-      type = substitute(type, knownTypes);
-    }
-    var result = substituteDeep(type, substitution);
-    if (result != null) return result;
-
-    // Instantiation failed due to a circularity.
-    // TODO(paulberry): report the error.
-    // Substitute `dynamic` for all parameters to try to allow compilation to
-    // continue.  Note that [substituteDeep] is destructive of the
-    // [substitution] so we create a fresh one.
-    substitution = <TypeParameter, DartType>{};
-    for (TypeParameter parameter in typeFormals) {
-      substitution[parameter] = const DynamicType();
-    }
-    return substitute(type, substitution);
-  }
-
   @override
   bool isBottom(DartType t) {
     if (t is UnknownType) {
       return true;
-    } else if (t is InterfaceType &&
-        identical(t.classNode, coreTypes.nullClass)) {
-      return true;
     } else {
       return super.isBottom(t);
     }
+  }
+
+  bool isEmptyContext(DartType context) {
+    if (context is DynamicType) {
+      // Analyzer treats a type context of `dynamic` as equivalent to an empty
+      // context.  TODO(paulberry): this is not spec'ed anywhere; do we still
+      // want to do this?
+      return true;
+    }
+    return context == null;
+  }
+
+  /// True if [member] is a binary operator that returns an `int` if both
+  /// operands are `int`, and otherwise returns `double`.
+  ///
+  /// Note that this behavior depends on the receiver type, so we can only make
+  /// this determination if we know the type of the receiver.
+  ///
+  /// This is a case of type-based overloading, which in Dart is only supported
+  /// by giving special treatment to certain arithmetic operators.
+  bool isOverloadedArithmeticOperatorAndType(
+      Procedure member, DartType receiverType) {
+    // TODO(paulberry): this matches what is defined in the spec.  It would be
+    // nice if we could change kernel to match the spec and not have to
+    // override.
+    if (member.name.name == 'remainder') return false;
+    if (!(receiverType is InterfaceType &&
+        identical(receiverType.classNode, coreTypes.intClass))) {
+      return false;
+    }
+    return isOverloadedArithmeticOperator(member);
   }
 
   @override
@@ -662,23 +699,6 @@ class TypeSchemaEnvironment extends TypeEnvironment {
     return hierarchy.getClassicLeastUpperBound(type1, type2);
   }
 
-  bool _isObjectOrDynamic(DartType type) =>
-      type is DynamicType ||
-      (type is InterfaceType &&
-          identical(type.classNode, coreTypes.objectClass));
-
-  /// Given a [type], returns the [TypeParameter]s corresponding to its formal
-  /// type parameters (if any).
-  List<TypeParameter> _typeFormalsAsParameters(DartType type) {
-    if (type is TypedefType) {
-      return type.typedefNode.typeParameters;
-    } else if (type is InterfaceType) {
-      return type.classNode.typeParameters;
-    } else {
-      return const [];
-    }
-  }
-
   DartType _typeParameterLeastUpperBound(DartType type1, DartType type2) {
     // This currently just implements a simple least upper bound to
     // handle some common cases.  It also avoids some termination issues
@@ -737,5 +757,18 @@ class TypeSchemaEnvironment extends TypeEnvironment {
       assert(false);
       return const DynamicType();
     }
+  }
+}
+
+class TypeVariableEliminator extends Substitution {
+  final CoreTypes _coreTypes;
+
+  TypeVariableEliminator(this._coreTypes);
+
+  @override
+  DartType getSubstitute(TypeParameter parameter, bool upperBound) {
+    return upperBound
+        ? _coreTypes.nullClass.rawType
+        : _coreTypes.objectClass.rawType;
   }
 }

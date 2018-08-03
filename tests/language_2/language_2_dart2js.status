@@ -1,0 +1,1172 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+# Sections in this file should contain "$compiler == dart2js".
+
+[ $compiler == dart2js ]
+async_star_cancel_while_paused_test: RuntimeError # Issue 22853
+bit_operations_test: RuntimeError, OK # non JS number semantics
+bug32372_test: CompileTimeError
+config_import_corelib_test: CompileTimeError # we need a special platform.dill file for categories=all. Once we fix that, all dart:* are supported when using '--categories=all' so this will become a RuntimeError, OK.
+config_import_test: RuntimeError # Test flag is not passed to the compiler.
+double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in dart2js; bug #11551.
+issue23244_test: RuntimeError # Isolates - enum canonicalization - Issue 23244
+issue32353_test: CompileTimeError
+library_env_test/has_mirror_support: RuntimeError, OK
+library_env_test/has_no_html_support: RuntimeError, OK
+vm/*: SkipByDesign # Tests for the VM.
+
+[ $compiler != dart2js ]
+minify_closure_variable_collision_test: SkipByDesign # Regression test for dart2js
+
+[ $compiler == dart2js && $runtime == chrome ]
+field_override_optimization_test: RuntimeError
+field_type_check2_test/01: MissingRuntimeError
+
+[ $compiler == dart2js && $runtime == chrome && $system == macos ]
+await_future_test: Pass, Timeout # Issue 26735
+
+[ $compiler == dart2js && $runtime == chrome && $strong ]
+stacktrace_test: RuntimeError
+
+[ $compiler == dart2js && $runtime == chromeOnAndroid ]
+override_field_test/02: Pass, Slow # TODO(kasperl): Please triage.
+
+[ $compiler == dart2js && $runtime == d8 && !$checked ]
+field_override_optimization_test: RuntimeError
+field_type_check2_test/01: MissingRuntimeError
+
+[ $compiler == dart2js && $runtime == d8 && $fasta ]
+assertion_test: RuntimeError
+implicit_creation/implicit_new_constructor_generic_test: Pass
+
+[ $compiler == dart2js && $runtime == d8 && $strong ]
+stacktrace_test: RuntimeError
+
+[ $compiler == dart2js && $runtime == ff ]
+field_override_optimization_test: RuntimeError
+field_type_check2_test/01: MissingRuntimeError
+round_test: Pass, Fail, OK # Fixed in ff 35. Common JavaScript engine Math.round bug.
+
+[ $compiler == dart2js && $runtime == jsshell ]
+async_call_test: RuntimeError # Timer interface not supported: Issue 7728.
+async_star_await_pauses_test: RuntimeError # Need triage
+async_star_no_cancel2_test: RuntimeError # Need triage
+async_star_no_cancel_test: RuntimeError # Need triage
+async_star_test/01: RuntimeError
+async_star_test/02: RuntimeError
+async_star_test/03: RuntimeError
+async_star_test/04: RuntimeError
+async_star_test/05: RuntimeError
+async_star_test/none: RuntimeError
+await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
+field_override_optimization_test: RuntimeError
+field_type_check2_test/01: MissingRuntimeError
+regress_23996_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
+
+[ $compiler == dart2js && $runtime != none && $checked ]
+assert_with_message_test: RuntimeError
+function_type/function_type0_test: RuntimeError # Issue 30476
+function_type/function_type10_test: RuntimeError # Issue 30476
+function_type/function_type12_test: RuntimeError # Issue 30476
+function_type/function_type13_test: RuntimeError # Issue 30476
+function_type/function_type14_test: RuntimeError # Issue 30476
+function_type/function_type15_test: RuntimeError # Issue 30476
+function_type/function_type16_test: RuntimeError # Issue 30476
+function_type/function_type17_test: RuntimeError # Issue 30476
+function_type/function_type18_test: RuntimeError # Issue 30476
+function_type/function_type19_test: RuntimeError # Issue 30476
+function_type/function_type1_test: RuntimeError # Issue 30476
+function_type/function_type20_test: RuntimeError # Issue 30476
+function_type/function_type21_test: RuntimeError # Issue 30476
+function_type/function_type22_test: RuntimeError # Issue 30476
+function_type/function_type24_test: RuntimeError # Issue 30476
+function_type/function_type25_test: RuntimeError # Issue 30476
+function_type/function_type26_test: RuntimeError # Issue 30476
+function_type/function_type27_test: RuntimeError # Issue 30476
+function_type/function_type28_test: RuntimeError # Issue 30476
+function_type/function_type29_test: RuntimeError # Issue 30476
+function_type/function_type2_test: RuntimeError # Issue 30476
+function_type/function_type30_test: RuntimeError # Issue 30476
+function_type/function_type31_test: RuntimeError # Issue 30476
+function_type/function_type32_test: RuntimeError # Issue 30476
+function_type/function_type33_test: RuntimeError # Issue 30476
+function_type/function_type34_test: RuntimeError # Issue 30476
+function_type/function_type36_test: RuntimeError # Issue 30476
+function_type/function_type38_test: RuntimeError # Issue 30476
+function_type/function_type3_test: RuntimeError # Issue 30476
+function_type/function_type40_test: RuntimeError # Issue 30476
+function_type/function_type42_test: RuntimeError # Issue 30476
+function_type/function_type44_test: RuntimeError # Issue 30476
+function_type/function_type45_test: RuntimeError # Issue 30476
+function_type/function_type46_test: RuntimeError # Issue 30476
+function_type/function_type47_test: RuntimeError # Issue 30476
+function_type/function_type48_test: RuntimeError # Issue 30476
+function_type/function_type49_test: RuntimeError # Issue 30476
+function_type/function_type4_test: RuntimeError # Issue 30476
+function_type/function_type50_test: RuntimeError # Issue 30476
+function_type/function_type51_test: RuntimeError # Issue 30476
+function_type/function_type52_test: RuntimeError # Issue 30476
+function_type/function_type53_test: RuntimeError # Issue 30476
+function_type/function_type54_test: RuntimeError # Issue 30476
+function_type/function_type56_test: RuntimeError # Issue 30476
+function_type/function_type57_test: RuntimeError # Issue 30476
+function_type/function_type58_test: RuntimeError # Issue 30476
+function_type/function_type59_test: RuntimeError # Issue 30476
+function_type/function_type5_test: RuntimeError # Issue 30476
+function_type/function_type60_test: RuntimeError # Issue 30476
+function_type/function_type61_test: RuntimeError # Issue 30476
+function_type/function_type62_test: RuntimeError # Issue 30476
+function_type/function_type63_test: RuntimeError # Issue 30476
+function_type/function_type64_test: RuntimeError # Issue 30476
+function_type/function_type65_test: RuntimeError # Issue 30476
+function_type/function_type66_test: RuntimeError # Issue 30476
+function_type/function_type6_test: RuntimeError # Issue 30476
+function_type/function_type7_test: RuntimeError # Issue 30476
+function_type/function_type80_test: RuntimeError # Issue 30476
+function_type/function_type81_test: RuntimeError # Issue 30476
+function_type/function_type82_test: RuntimeError # Issue 30476
+function_type/function_type83_test: RuntimeError # Issue 30476
+function_type/function_type84_test: RuntimeError # Issue 30476
+function_type/function_type85_test: RuntimeError # Issue 30476
+function_type/function_type86_test: RuntimeError # Issue 30476
+function_type/function_type87_test: RuntimeError # Issue 30476
+function_type/function_type88_test: RuntimeError # Issue 30476
+function_type/function_type89_test: RuntimeError # Issue 30476
+function_type/function_type8_test: RuntimeError # Issue 30476
+function_type/function_type90_test: RuntimeError # Issue 30476
+function_type/function_type96_test: RuntimeError # Issue 30476
+function_type/function_type9_test: RuntimeError # Issue 30476
+syncstar_covariant_type_test: RuntimeError # dart2js misplaces check in Iterator, not Iterable.
+syncstar_dcall_type_test: RuntimeError # dart2js misplaces check in Iterator, not Iterable.
+
+[ $compiler == dart2js && $runtime == safari ]
+field_override_optimization_test: RuntimeError
+field_type_check2_test/01: MissingRuntimeError
+round_test: Fail, OK # Common JavaScript engine Math.round bug.
+
+[ $compiler == dart2js && $runtime == safari && $strong ]
+async_throw_in_catch_test/none: Pass, RuntimeError
+stacktrace_test: RuntimeError
+
+[ $compiler == dart2js && $system == windows ]
+string_literals_test: Pass, RuntimeError # Failures on dart2js-win7-chrome-4-4-be and dart2js-win7-ie11ff-4-4-be
+
+[ $compiler == dart2js && $browser ]
+library_env_test/has_io_support: RuntimeError, OK # dart2js doesn't support io when compiling on --categories=Client
+
+[ $compiler == dart2js && $browser && $csp && !$fast_startup ]
+conditional_import_string_test: Fail # Issue 30615
+conditional_import_test: Fail # Issue 30615
+
+[ $compiler == dart2js && !$browser ]
+library_env_test/has_no_io_support: RuntimeError, OK # dart2js supports io when using '--categories=all'.
+
+[ $compiler == dart2js && $checked ]
+covariant_subtyping_test: CompileTimeError
+
+[ $compiler == dart2js && $checked && $fasta && $minified && $strong ]
+inline_super_field_test: Crash
+typedef_is_test: Crash
+
+[ $compiler == dart2js && $checked && $fasta && $strong ]
+assign_instance_method_test: RuntimeError
+async_await_foreign_test: RuntimeError
+async_star_cancel_while_paused_test: RuntimeError
+async_star_pause_test: RuntimeError
+async_star_regression_23116_test: RuntimeError
+async_star_test/02: RuntimeError
+await_test: RuntimeError
+bit_operations_test/03: RuntimeError
+bit_operations_test/04: RuntimeError
+bit_operations_test/none: RuntimeError
+branch_canonicalization_test: RuntimeError
+canonical_const2_test: RuntimeError, OK # non JS number semantics
+checked_method_error_order_test: RuntimeError
+class_cycle_test/02: MissingCompileTimeError
+class_cycle_test/03: MissingCompileTimeError
+compile_time_constant_o_test/01: MissingCompileTimeError
+compile_time_constant_o_test/02: MissingCompileTimeError
+conditional_method_invocation_test/05: MissingCompileTimeError
+conditional_method_invocation_test/06: MissingCompileTimeError
+conditional_method_invocation_test/07: MissingCompileTimeError
+conditional_method_invocation_test/08: MissingCompileTimeError
+conditional_method_invocation_test/12: MissingCompileTimeError
+conditional_method_invocation_test/13: MissingCompileTimeError
+conditional_method_invocation_test/18: MissingCompileTimeError
+conditional_method_invocation_test/19: MissingCompileTimeError
+conditional_property_access_test/04: MissingCompileTimeError
+conditional_property_access_test/05: MissingCompileTimeError
+conditional_property_access_test/06: MissingCompileTimeError
+conditional_property_access_test/10: MissingCompileTimeError
+conditional_property_access_test/11: MissingCompileTimeError
+conditional_property_access_test/16: MissingCompileTimeError
+conditional_property_access_test/17: MissingCompileTimeError
+conditional_property_assignment_test/04: MissingCompileTimeError
+conditional_property_assignment_test/05: MissingCompileTimeError
+conditional_property_assignment_test/06: MissingCompileTimeError
+conditional_property_assignment_test/10: MissingCompileTimeError
+conditional_property_assignment_test/11: MissingCompileTimeError
+conditional_property_assignment_test/12: MissingCompileTimeError
+conditional_property_assignment_test/13: MissingCompileTimeError
+conditional_property_assignment_test/27: MissingCompileTimeError
+conditional_property_assignment_test/28: MissingCompileTimeError
+conditional_property_assignment_test/32: MissingCompileTimeError
+conditional_property_assignment_test/33: MissingCompileTimeError
+conditional_property_assignment_test/34: MissingCompileTimeError
+conditional_property_assignment_test/35: MissingCompileTimeError
+conditional_property_increment_decrement_test/04: MissingCompileTimeError
+conditional_property_increment_decrement_test/08: MissingCompileTimeError
+conditional_property_increment_decrement_test/12: MissingCompileTimeError
+conditional_property_increment_decrement_test/16: MissingCompileTimeError
+conditional_property_increment_decrement_test/21: MissingCompileTimeError
+conditional_property_increment_decrement_test/22: MissingCompileTimeError
+conditional_property_increment_decrement_test/27: MissingCompileTimeError
+conditional_property_increment_decrement_test/28: MissingCompileTimeError
+conditional_property_increment_decrement_test/33: MissingCompileTimeError
+conditional_property_increment_decrement_test/34: MissingCompileTimeError
+conditional_property_increment_decrement_test/39: MissingCompileTimeError
+conditional_property_increment_decrement_test/40: MissingCompileTimeError
+config_import_test: RuntimeError
+const_constructor2_test/05: MissingCompileTimeError
+const_constructor2_test/06: MissingCompileTimeError
+const_constructor2_test/13: MissingCompileTimeError
+const_constructor2_test/14: MissingCompileTimeError
+const_constructor2_test/15: MissingCompileTimeError
+const_constructor2_test/16: MissingCompileTimeError
+const_constructor2_test/17: MissingCompileTimeError
+const_constructor2_test/18: MissingCompileTimeError
+const_constructor2_test/20: MissingCompileTimeError
+const_constructor2_test/22: MissingCompileTimeError
+const_constructor2_test/24: MissingCompileTimeError
+const_dynamic_type_literal_test/02: MissingCompileTimeError
+const_error_multiply_initialized_test/02: MissingCompileTimeError
+const_error_multiply_initialized_test/04: MissingCompileTimeError
+const_evaluation_test/01: RuntimeError
+const_init2_test/02: MissingCompileTimeError
+const_instance_field_test/01: MissingCompileTimeError
+const_map2_test/00: MissingCompileTimeError
+const_map3_test/00: MissingCompileTimeError
+const_switch2_test/01: MissingCompileTimeError
+const_switch_test/02: RuntimeError, OK # constant identity based on JS constants
+const_switch_test/04: RuntimeError, OK # constant identity based on JS constants
+const_types_test/01: MissingCompileTimeError
+const_types_test/02: MissingCompileTimeError
+const_types_test/03: MissingCompileTimeError
+const_types_test/04: MissingCompileTimeError
+const_types_test/05: MissingCompileTimeError
+const_types_test/06: MissingCompileTimeError
+const_types_test/13: MissingCompileTimeError
+const_types_test/34: MissingCompileTimeError
+const_types_test/35: MissingCompileTimeError
+const_types_test/39: MissingCompileTimeError
+const_types_test/40: MissingCompileTimeError
+constructor_duplicate_final_test/01: MissingCompileTimeError
+constructor_duplicate_final_test/02: MissingCompileTimeError
+constructor_named_arguments_test/01: MissingCompileTimeError
+constructor_named_arguments_test/none: RuntimeError
+constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
+covariance_type_parameter_test/02: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+covariant_override/runtime_check_test: RuntimeError
+covariant_subtyping_test: RuntimeError
+deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
+deferred_constraints_type_annotation_test/catch_check: MissingCompileTimeError
+deferred_constraints_type_annotation_test/is_check: MissingCompileTimeError
+deferred_constraints_type_annotation_test/new_before_load: MissingCompileTimeError
+deferred_constraints_type_annotation_test/new_generic2: MissingCompileTimeError
+deferred_constraints_type_annotation_test/new_generic3: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation1: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_generic1: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_generic2: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_generic3: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_generic4: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_null: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_top_level: MissingCompileTimeError
+deferred_inheritance_constraints_test/extends: MissingCompileTimeError
+deferred_inheritance_constraints_test/implements: MissingCompileTimeError
+deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
+deferred_load_library_wrong_args_test/01: MissingRuntimeError
+deferred_not_loaded_check_test: RuntimeError # Test out of date. Issue 31933
+deferred_redirecting_factory_test: RuntimeError
+double_int_to_string_test: RuntimeError, OK # non JS number semantics
+duplicate_implements_test/01: MissingCompileTimeError
+duplicate_implements_test/02: MissingCompileTimeError
+duplicate_implements_test/03: MissingCompileTimeError
+duplicate_implements_test/04: MissingCompileTimeError
+dynamic_prefix_core_test/none: RuntimeError
+enum_mirror_test: RuntimeError
+expect_test: RuntimeError, OK # Issue 13080
+external_test/10: MissingRuntimeError
+external_test/13: MissingRuntimeError
+external_test/20: MissingRuntimeError
+factory_redirection_test/07: MissingCompileTimeError
+final_attempt_reinitialization_test/01: MissingCompileTimeError
+final_attempt_reinitialization_test/02: MissingCompileTimeError
+full_stacktrace1_test: RuntimeError # Issue 12698
+full_stacktrace2_test: RuntimeError # Issue 12698
+full_stacktrace3_test: RuntimeError # Issue 12698
+generalized_void_syntax_test: CompileTimeError # Issue #30176.
+generic_function_dcall_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_typedef_test: RuntimeError
+identical_closure2_test: RuntimeError # non JS number semantics
+implicit_downcast_during_assert_initializer_test: RuntimeError
+infinity_test: RuntimeError # non JS number semantics - Issue 4984
+instance_creation_in_function_annotation_test: RuntimeError
+instanceof2_test: RuntimeError
+instanceof4_test/01: RuntimeError
+instanceof4_test/none: RuntimeError
+integer_division_by_zero_test: RuntimeError # Issue 8301
+invocation_mirror2_test: RuntimeError # mirrors not supported
+issue21079_test: RuntimeError
+issue23244_test: RuntimeError
+left_shift_test: RuntimeError # non JS number semantics
+library_env_test/has_mirror_support: RuntimeError
+list_literal1_test/01: MissingCompileTimeError
+list_literal4_test/00: MissingCompileTimeError
+list_literal4_test/01: MissingCompileTimeError
+list_literal4_test/03: MissingCompileTimeError
+list_literal4_test/04: MissingCompileTimeError
+list_literal4_test/05: MissingCompileTimeError
+list_literal_syntax_test/01: MissingCompileTimeError
+list_literal_syntax_test/02: MissingCompileTimeError
+list_literal_syntax_test/03: MissingCompileTimeError
+malformed2_test/00: MissingCompileTimeError
+map_literal1_test/01: MissingCompileTimeError
+map_literal8_test: RuntimeError
+mint_arithmetic_test: RuntimeError # non JS number semantics
+mixin_forwarding_constructor4_test/01: MissingCompileTimeError
+mixin_forwarding_constructor4_test/02: MissingCompileTimeError
+mixin_forwarding_constructor4_test/03: MissingCompileTimeError
+mixin_illegal_super_use_test/01: MissingCompileTimeError
+mixin_illegal_super_use_test/02: MissingCompileTimeError
+mixin_illegal_super_use_test/03: MissingCompileTimeError
+mixin_illegal_super_use_test/04: MissingCompileTimeError
+mixin_illegal_super_use_test/05: MissingCompileTimeError
+mixin_illegal_super_use_test/06: MissingCompileTimeError
+mixin_illegal_super_use_test/07: MissingCompileTimeError
+mixin_illegal_super_use_test/08: MissingCompileTimeError
+mixin_illegal_super_use_test/09: MissingCompileTimeError
+mixin_illegal_super_use_test/10: MissingCompileTimeError
+mixin_illegal_super_use_test/11: MissingCompileTimeError
+mixin_illegal_superclass_test/01: MissingCompileTimeError
+mixin_illegal_superclass_test/02: MissingCompileTimeError
+mixin_illegal_superclass_test/03: MissingCompileTimeError
+mixin_illegal_superclass_test/04: MissingCompileTimeError
+mixin_illegal_superclass_test/05: MissingCompileTimeError
+mixin_illegal_superclass_test/06: MissingCompileTimeError
+mixin_illegal_superclass_test/07: MissingCompileTimeError
+mixin_illegal_superclass_test/08: MissingCompileTimeError
+mixin_illegal_superclass_test/09: MissingCompileTimeError
+mixin_illegal_superclass_test/10: MissingCompileTimeError
+mixin_illegal_superclass_test/11: MissingCompileTimeError
+mixin_illegal_superclass_test/12: MissingCompileTimeError
+mixin_illegal_superclass_test/13: MissingCompileTimeError
+mixin_illegal_superclass_test/14: MissingCompileTimeError
+mixin_illegal_superclass_test/15: MissingCompileTimeError
+mixin_illegal_superclass_test/16: MissingCompileTimeError
+mixin_illegal_superclass_test/17: MissingCompileTimeError
+mixin_illegal_superclass_test/18: MissingCompileTimeError
+mixin_illegal_superclass_test/19: MissingCompileTimeError
+mixin_illegal_superclass_test/20: MissingCompileTimeError
+mixin_illegal_superclass_test/21: MissingCompileTimeError
+mixin_illegal_superclass_test/22: MissingCompileTimeError
+mixin_illegal_superclass_test/23: MissingCompileTimeError
+mixin_illegal_superclass_test/24: MissingCompileTimeError
+mixin_illegal_superclass_test/25: MissingCompileTimeError
+mixin_illegal_superclass_test/26: MissingCompileTimeError
+mixin_illegal_superclass_test/27: MissingCompileTimeError
+mixin_illegal_superclass_test/28: MissingCompileTimeError
+mixin_illegal_superclass_test/29: MissingCompileTimeError
+mixin_illegal_superclass_test/30: MissingCompileTimeError
+mixin_issue10216_2_test: RuntimeError
+mixin_mixin4_test: RuntimeError
+mixin_mixin5_test: RuntimeError
+mixin_mixin7_test: RuntimeError
+mixin_mixin_bound2_test: RuntimeError
+mixin_mixin_bound_test: RuntimeError
+mixin_mixin_test: RuntimeError
+mixin_of_mixin_test/none: CompileTimeError
+mixin_super_2_test/none: CompileTimeError
+mixin_super_constructor_named_test/01: MissingCompileTimeError
+mixin_super_constructor_positionals_test/01: MissingCompileTimeError
+mixin_super_test: CompileTimeError
+mixin_super_use_test: CompileTimeError
+mixin_superclass_test: CompileTimeError
+mixin_supertype_subclass2_test/01: CompileTimeError
+mixin_supertype_subclass2_test/02: CompileTimeError
+mixin_supertype_subclass2_test/03: CompileTimeError
+mixin_supertype_subclass2_test/04: CompileTimeError
+mixin_supertype_subclass2_test/05: CompileTimeError
+mixin_supertype_subclass2_test/none: CompileTimeError
+mixin_supertype_subclass3_test/01: CompileTimeError
+mixin_supertype_subclass3_test/02: CompileTimeError
+mixin_supertype_subclass3_test/03: CompileTimeError
+mixin_supertype_subclass3_test/04: CompileTimeError
+mixin_supertype_subclass3_test/05: CompileTimeError
+mixin_supertype_subclass3_test/none: CompileTimeError
+mixin_supertype_subclass4_test/01: CompileTimeError
+mixin_supertype_subclass4_test/02: CompileTimeError
+mixin_supertype_subclass4_test/03: CompileTimeError
+mixin_supertype_subclass4_test/04: CompileTimeError
+mixin_supertype_subclass4_test/05: CompileTimeError
+mixin_supertype_subclass4_test/none: CompileTimeError
+mixin_type_parameters_super_test: RuntimeError
+mock_writable_final_field_test: RuntimeError # Issue 30847
+mock_writable_final_private_field_test: RuntimeError # Issue 17526, 30847
+modulo_test: RuntimeError # non JS number semantics
+named_parameters_default_eq_test/02: MissingCompileTimeError
+nan_identical_test: RuntimeError # Issue 11551
+nested_generic_closure_test: Crash # Unsupported operation: Unsupported type parameter type node F.
+no_main_test/01: CompileTimeError
+not_enough_positional_arguments_test/00: MissingCompileTimeError
+not_enough_positional_arguments_test/01: MissingCompileTimeError
+not_enough_positional_arguments_test/02: MissingCompileTimeError
+not_enough_positional_arguments_test/03: MissingCompileTimeError
+not_enough_positional_arguments_test/05: MissingCompileTimeError
+not_enough_positional_arguments_test/06: MissingCompileTimeError
+not_enough_positional_arguments_test/07: MissingCompileTimeError
+number_identity2_test: RuntimeError
+numbers_test: RuntimeError, OK # non JS number semantics
+positional_parameters_type_test/01: MissingCompileTimeError
+positional_parameters_type_test/02: MissingCompileTimeError
+private_super_constructor_test/01: MissingCompileTimeError
+redirecting_factory_default_values_test/01: MissingCompileTimeError
+redirecting_factory_default_values_test/02: MissingCompileTimeError
+redirecting_factory_long_test: RuntimeError
+redirecting_factory_reflection_test: RuntimeError
+regress_20394_test/01: MissingCompileTimeError
+regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
+regress_28217_test/01: MissingCompileTimeError
+regress_28217_test/none: MissingCompileTimeError
+regress_28255_test: RuntimeError
+regress_28341_test: RuntimeError
+regress_29405_test: RuntimeError
+regress_29784_test/02: MissingCompileTimeError # Issue 29784
+regress_30339_test: RuntimeError # Issue 26429
+regress_31057_test: Crash # Unsupported operation: Unsupported type parameter type node B.
+stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
+stacktrace_rethrow_error_test/none: RuntimeError # Issue 12698
+stacktrace_rethrow_error_test/withtraceparameter: RuntimeError # Issue 12698
+stacktrace_rethrow_nonerror_test: RuntimeError # Issue 12698
+stacktrace_test: RuntimeError # Issue 12698
+switch_bad_case_test/01: MissingCompileTimeError
+switch_bad_case_test/02: MissingCompileTimeError
+switch_case_test/00: MissingCompileTimeError
+switch_case_test/01: MissingCompileTimeError
+switch_case_test/02: MissingCompileTimeError
+symbol_literal_test/01: MissingCompileTimeError
+syntax_test/28: MissingCompileTimeError # Issue 29763
+syntax_test/29: MissingCompileTimeError # Issue 29763
+syntax_test/30: MissingCompileTimeError # Issue 29763
+syntax_test/31: MissingCompileTimeError # Issue 29763
+syntax_test/32: MissingCompileTimeError # Issue 29763
+syntax_test/33: MissingCompileTimeError # Issue 29763
+tearoff_dynamic_test: RuntimeError
+truncdiv_test: RuntimeError # non JS number semantics - Issue 15246
+type_check_const_function_typedef2_test: MissingCompileTimeError
+type_literal_test: RuntimeError
+type_parameter_test/06: Crash # Internal Error: Unexpected type variable in static context.
+type_parameter_test/09: Crash # Internal Error: Unexpected type variable in static context.
+type_variable_scope_test/03: Crash # Internal Error: Unexpected type variable in static context.
+
+[ $compiler == dart2js && !$checked ]
+covariance_field_test/01: RuntimeError
+covariance_field_test/02: RuntimeError
+covariance_field_test/03: RuntimeError
+covariance_field_test/04: RuntimeError
+covariance_field_test/05: RuntimeError
+
+[ $compiler == dart2js && !$checked && !$enable_asserts ]
+assertion_test: RuntimeError, OK
+
+[ $compiler == dart2js && !$checked && $fasta ]
+bool_check_test: RuntimeError
+bool_condition_check_test: RuntimeError
+issue31596_super_test/02: MissingCompileTimeError
+issue31596_super_test/04: MissingCompileTimeError
+issue31596_super_test/05: RuntimeError
+
+[ $compiler == dart2js && $fast_startup ]
+library_env_test/has_mirror_support: Fail # mirrors not supported
+library_env_test/has_no_mirror_support: Pass # fails for the wrong reason.
+vm/reflect_core_vm_test: Fail # mirrors not supported
+
+[ $compiler == dart2js && $fast_startup && $fasta && $strong ]
+async_star_cancel_while_paused_test: RuntimeError
+covariant_subtyping_test: Crash # Unsupported operation: Unsupported type parameter type node E.
+issue23244_test: RuntimeError
+
+[ $compiler == dart2js && $fasta ]
+arithmetic_int64_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+bit_operations_test/03: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+bit_operations_test/04: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+bit_operations_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+call_method_as_cast_test/06: RuntimeError
+call_method_implicit_tear_off_implements_function_test/05: RuntimeError
+call_method_implicit_tear_off_implements_function_test/06: RuntimeError
+call_method_is_check_test/06: RuntimeError
+call_method_must_not_be_field_test/03: RuntimeError # Issue 32155
+call_method_must_not_be_getter_test/03: RuntimeError # Issue 32155
+checked_setter2_test: RuntimeError # Issue 31128
+checked_setter_test: RuntimeError # Issue 31128
+const_constructor_nonconst_param_test/01: MissingCompileTimeError
+const_dynamic_type_literal_test/03: Pass # but it shouldn't until we fix issue 17207
+deopt_inlined_function_lazy_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+deopt_smi_op_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+duplicate_interface_implements_test/01: MissingCompileTimeError
+function_propagation_test: RuntimeError
+generic_test/01: MissingCompileTimeError # front end does not validate `extends`
+guess_cid_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+identical_closure2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+instantiate_tearoff_of_call_test: RuntimeError
+int2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int64_literal_test/01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int64_literal_test/02: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int64_literal_test/04: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int64_literal_test/05: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int64_literal_test/10: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int64_literal_test/20: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int64_literal_test/40: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+int64_literal_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+list_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+mint_arithmetic_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+mint_compares_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+mint_identical_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+mixin_type_parameter_inference_error_test/none: CompileTimeError
+mixin_type_parameter_inference_previous_mixin_test/01: CompileTimeError
+mixin_type_parameter_inference_previous_mixin_test/02: CompileTimeError
+mixin_type_parameter_inference_previous_mixin_test/05: CompileTimeError
+mixin_type_parameter_inference_previous_mixin_test/none: CompileTimeError
+mixin_type_parameter_inference_test/01: CompileTimeError
+mixin_type_parameter_inference_test/02: CompileTimeError
+mixin_type_parameter_inference_test/03: CompileTimeError
+mixin_type_parameter_inference_test/08: CompileTimeError
+mixin_type_parameter_inference_test/09: CompileTimeError
+mixin_type_parameter_inference_test/10: CompileTimeError
+mixin_type_parameter_inference_test/12: CompileTimeError
+mixin_type_parameter_inference_test/13: CompileTimeError
+mixin_type_parameter_inference_test/16: CompileTimeError
+mixin_type_parameter_inference_test/none: CompileTimeError
+number_identity_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+partial_tearoff_instantiation_test/05: Pass # for the wrong reason.
+partial_tearoff_instantiation_test/06: Pass # for the wrong reason.
+partial_tearoff_instantiation_test/07: Pass # for the wrong reason.
+partial_tearoff_instantiation_test/08: Pass # for the wrong reason.
+type_alias_equality_test/02: RuntimeError # Issue 32784
+
+[ $compiler == dart2js && $fasta && $host_checked && $strong ]
+abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
+abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError
+additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
+additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
+async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
+async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
+async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
+async_return_types_test/nestedFuture: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
+async_return_types_test/wrongReturnType: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
+async_star_cancel_while_paused_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
+await_not_started_immediately_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+call_non_method_field_test/01: MissingCompileTimeError
+call_non_method_field_test/02: MissingCompileTimeError
+class_literal_static_test/01: MissingCompileTimeError
+class_literal_static_test/03: MissingCompileTimeError
+class_literal_static_test/07: MissingCompileTimeError
+closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/nodes.dart': Failed assertion: line 641 pos 12: 'isClosed()': is not true.
+compile_time_constant_k_test/01: MissingCompileTimeError
+compile_time_constant_k_test/02: MissingCompileTimeError
+compile_time_constant_k_test/03: MissingCompileTimeError
+config_import_corelib_test: CompileTimeError
+covariant_subtyping_test: RuntimeError
+cyclic_type_variable_test/01: MissingCompileTimeError
+cyclic_type_variable_test/02: MissingCompileTimeError
+cyclic_type_variable_test/03: MissingCompileTimeError
+cyclic_type_variable_test/04: MissingCompileTimeError
+default_factory2_test/01: MissingCompileTimeError
+default_factory_test/01: MissingCompileTimeError
+deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError
+f_bounded_quantification_test/01: MissingCompileTimeError
+f_bounded_quantification_test/02: MissingCompileTimeError
+factory4_test/00: MissingCompileTimeError
+field3_test/01: MissingCompileTimeError
+generic_methods_bounds_test/01: MissingCompileTimeError
+generic_methods_recursive_bound_test/02: MissingCompileTimeError
+generic_methods_unused_parameter_test: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
+identical_const_test/01: MissingCompileTimeError
+identical_const_test/02: MissingCompileTimeError
+identical_const_test/03: MissingCompileTimeError
+identical_const_test/04: MissingCompileTimeError
+issue18628_2_test/01: MissingCompileTimeError
+issue23244_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
+library_env_test/has_no_html_support: RuntimeError
+library_env_test/has_no_io_support: RuntimeError
+malbounded_instantiation_test/01: MissingCompileTimeError
+malbounded_instantiation_test/02: MissingCompileTimeError
+malbounded_instantiation_test/03: MissingCompileTimeError
+malbounded_redirecting_factory_test/02: MissingCompileTimeError
+malbounded_redirecting_factory_test/03: MissingCompileTimeError
+malbounded_redirecting_factory_test/04: MissingCompileTimeError
+malbounded_redirecting_factory_test/05: MissingCompileTimeError
+malbounded_type_cast2_test: MissingCompileTimeError
+malbounded_type_cast_test/00: MissingCompileTimeError
+malbounded_type_cast_test/01: MissingCompileTimeError
+malbounded_type_cast_test/02: MissingCompileTimeError
+malbounded_type_literal_test/00: MissingCompileTimeError
+malbounded_type_test2_test/00: MissingCompileTimeError
+malbounded_type_test_test/00: MissingCompileTimeError
+malbounded_type_test_test/01: MissingCompileTimeError
+malbounded_type_test_test/02: MissingCompileTimeError
+map_literal3_test/01: MissingCompileTimeError
+map_literal3_test/02: MissingCompileTimeError
+map_literal3_test/03: MissingCompileTimeError
+mixin_invalid_bound2_test/02: MissingCompileTimeError
+mixin_invalid_bound2_test/03: MissingCompileTimeError
+mixin_invalid_bound2_test/04: MissingCompileTimeError
+mixin_invalid_bound2_test/05: MissingCompileTimeError
+mixin_invalid_bound2_test/06: MissingCompileTimeError
+mixin_invalid_bound2_test/07: MissingCompileTimeError
+mixin_invalid_bound2_test/08: MissingCompileTimeError
+mixin_invalid_bound2_test/09: MissingCompileTimeError
+mixin_invalid_bound2_test/10: MissingCompileTimeError
+mixin_invalid_bound2_test/11: MissingCompileTimeError
+mixin_invalid_bound2_test/12: MissingCompileTimeError
+mixin_invalid_bound2_test/13: MissingCompileTimeError
+mixin_invalid_bound2_test/14: MissingCompileTimeError
+mixin_invalid_bound2_test/15: MissingCompileTimeError
+mixin_invalid_bound_test/02: MissingCompileTimeError
+mixin_invalid_bound_test/03: MissingCompileTimeError
+mixin_invalid_bound_test/04: MissingCompileTimeError
+mixin_invalid_bound_test/05: MissingCompileTimeError
+mixin_invalid_bound_test/06: MissingCompileTimeError
+mixin_invalid_bound_test/07: MissingCompileTimeError
+mixin_invalid_bound_test/08: MissingCompileTimeError
+mixin_invalid_bound_test/09: MissingCompileTimeError
+mixin_invalid_bound_test/10: MissingCompileTimeError
+mixin_super_bound_test/01: MissingCompileTimeError
+mixin_super_bound_test/02: MissingCompileTimeError
+mixin_type_parameters_errors_test/03: MissingCompileTimeError
+mixin_type_parameters_errors_test/04: MissingCompileTimeError
+named_constructor_test/01: MissingCompileTimeError
+override_field_test/02: MissingCompileTimeError
+override_field_test/03: MissingCompileTimeError
+partial_tearoff_instantiation_test/05: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
+partial_tearoff_instantiation_test/06: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
+partial_tearoff_instantiation_test/07: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
+partial_tearoff_instantiation_test/08: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
+redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
+redirecting_factory_malbounded_test/01: MissingCompileTimeError
+regress_13462_1_test: RuntimeError
+regress_18535_test: RuntimeError
+sync_generator2_test/41: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map_impl.dart': Failed assertion: line 939 pos 18: 'asyncMarker == AsyncMarker.SYNC': is not true.
+sync_generator2_test/52: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map_impl.dart': Failed assertion: line 939 pos 18: 'asyncMarker == AsyncMarker.SYNC': is not true.
+type_literal_prefix_call_test/00: MissingCompileTimeError
+type_promotion_logical_and_test/01: MissingCompileTimeError
+type_variable_bounds2_test: MissingCompileTimeError
+type_variable_bounds3_test/00: MissingCompileTimeError
+type_variable_bounds4_test/01: MissingCompileTimeError
+type_variable_bounds_test/01: MissingCompileTimeError
+type_variable_bounds_test/02: Crash # NoSuchMethodError: The method 'accept' was called on null.
+type_variable_bounds_test/03: MissingCompileTimeError
+type_variable_bounds_test/04: MissingCompileTimeError
+type_variable_bounds_test/05: MissingCompileTimeError
+type_variable_bounds_test/06: MissingCompileTimeError
+type_variable_bounds_test/08: MissingCompileTimeError
+type_variable_bounds_test/11: MissingCompileTimeError
+vm/async_await_catch_stacktrace_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+vm/await_synchronous_future_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+vm/causal_async_exception_stack2_test: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic method: selector=Selector(operator, *, arity=1), mask=[subclass=JSUInt32], HTypeInfoReadVariable(ListQueue.E)].
+vm/causal_async_exception_stack_test: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic method: selector=Selector(operator, *, arity=1), mask=[subclass=JSUInt32], HTypeInfoReadVariable(ListQueue.E)].
+vm/debug_break_enabled_vm_test/01: CompileTimeError
+vm/debug_break_enabled_vm_test/none: CompileTimeError
+vm/integer_type_propagation_test: RuntimeError
+vm/load_to_load_forwarding_vm_test: RuntimeError
+vm/load_to_load_unaligned_forwarding_vm_test: RuntimeError
+vm/math_vm_test: RuntimeError
+vm/no_such_args_error_message_vm_test: RuntimeError
+vm/no_such_method_error_message_callable_vm_test: RuntimeError
+vm/no_such_method_error_message_vm_test: RuntimeError
+vm/optimization_test: RuntimeError
+vm/optimized_await_regress_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
+vm/optimized_guarded_field_isolates_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+vm/optimized_list_constructor_test: RuntimeError
+vm/reflect_core_vm_test: RuntimeError
+vm/regress_22480_test: RuntimeError
+vm/regress_23238_test: RuntimeError
+vm/regress_27201_test: CompileTimeError
+vm/regress_28325_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
+vm/regress_29145_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
+vm/store_to_load_forwarding_phis_vm_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+vm/type_cast_vm_test: RuntimeError
+vm/type_vm_test/28: MissingRuntimeError
+vm/uint32_right_shift_test: RuntimeError
+vm/uint32_shift_test: RuntimeError
+vm/unaligned_integer_access_literal_index_test: RuntimeError
+vm/unaligned_integer_access_register_index_test: RuntimeError
+void_block_return_test/00: MissingCompileTimeError
+void_type_usage_test/conditional2_argument: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional2_conditional: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional2_dynamic_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional2_for: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional2_literal_list_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional2_literal_map_value_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional2_literal_map_value_init2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional2_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional2_parens: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional2_return: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional2_return_to_void: MissingCompileTimeError
+void_type_usage_test/conditional2_stmt: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional2_throw: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional2_void_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional2do_while: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional2for_in: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional2while: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional3_argument: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional3_conditional: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional3_dynamic_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional3_for: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional3_literal_list_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional3_literal_map_value_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional3_literal_map_value_init2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional3_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional3_parens: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional3_return: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional3_return_to_void: MissingCompileTimeError
+void_type_usage_test/conditional3_stmt: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional3_throw: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional3_void_init: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional_do_while: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional_for_in: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/conditional_return_to_void: MissingCompileTimeError
+void_type_usage_test/conditional_while: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/global_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/local_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/param_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+void_type_usage_test/paren_null_equals2: Crash # 'package:front_end/src/fasta/type_inference/type_schema_environment.dart': Failed assertion: line 214 pos 12: 'false': is not true.
+wrong_number_type_arguments_test/01: MissingCompileTimeError
+wrong_number_type_arguments_test/none: Pass
+
+[ $compiler == dart2js && $fasta && $minified && $strong ]
+abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
+abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError
+additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
+additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
+async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
+async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
+async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
+async_return_types_test/nestedFuture: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+async_return_types_test/wrongReturnType: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+async_star_cancel_while_paused_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+await_not_started_immediately_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+call_non_method_field_test/01: MissingCompileTimeError
+call_non_method_field_test/02: MissingCompileTimeError
+call_with_no_such_method_test: RuntimeError
+class_literal_static_test/01: MissingCompileTimeError
+class_literal_static_test/03: MissingCompileTimeError
+class_literal_static_test/07: MissingCompileTimeError
+compile_time_constant_k_test/01: MissingCompileTimeError
+compile_time_constant_k_test/02: MissingCompileTimeError
+compile_time_constant_k_test/03: MissingCompileTimeError
+config_import_corelib_test: CompileTimeError
+covariant_subtyping_test: RuntimeError
+cyclic_type_variable_test/01: MissingCompileTimeError
+cyclic_type_variable_test/02: MissingCompileTimeError
+cyclic_type_variable_test/03: MissingCompileTimeError
+cyclic_type_variable_test/04: MissingCompileTimeError
+default_factory2_test/01: MissingCompileTimeError
+default_factory_test/01: MissingCompileTimeError
+deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError
+f_bounded_quantification_test/01: MissingCompileTimeError
+f_bounded_quantification_test/02: MissingCompileTimeError
+factory4_test/00: MissingCompileTimeError
+field3_test/01: MissingCompileTimeError
+generic_methods_bounds_test/01: MissingCompileTimeError
+generic_methods_recursive_bound_test/02: MissingCompileTimeError
+identical_const_test/01: MissingCompileTimeError
+identical_const_test/02: MissingCompileTimeError
+identical_const_test/03: MissingCompileTimeError
+identical_const_test/04: MissingCompileTimeError
+invocation_mirror2_test: RuntimeError # mirrors not supported
+invocation_mirror_test: RuntimeError
+issue18628_2_test/01: MissingCompileTimeError
+issue23244_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+library_env_test/has_no_html_support: RuntimeError
+library_env_test/has_no_io_support: RuntimeError
+malbounded_instantiation_test/01: MissingCompileTimeError
+malbounded_instantiation_test/02: MissingCompileTimeError
+malbounded_instantiation_test/03: MissingCompileTimeError
+malbounded_redirecting_factory_test/02: MissingCompileTimeError
+malbounded_redirecting_factory_test/03: MissingCompileTimeError
+malbounded_redirecting_factory_test/04: MissingCompileTimeError
+malbounded_redirecting_factory_test/05: MissingCompileTimeError
+malbounded_type_cast2_test: MissingCompileTimeError
+malbounded_type_cast_test/00: MissingCompileTimeError
+malbounded_type_cast_test/01: MissingCompileTimeError
+malbounded_type_cast_test/02: MissingCompileTimeError
+malbounded_type_literal_test/00: MissingCompileTimeError
+malbounded_type_test2_test/00: MissingCompileTimeError
+malbounded_type_test_test/00: MissingCompileTimeError
+malbounded_type_test_test/01: MissingCompileTimeError
+malbounded_type_test_test/02: MissingCompileTimeError
+many_overridden_no_such_method_test: RuntimeError
+map_literal3_test/01: MissingCompileTimeError
+map_literal3_test/02: MissingCompileTimeError
+map_literal3_test/03: MissingCompileTimeError
+mixin_generic_test: RuntimeError # Issue 12605
+mixin_invalid_bound2_test/02: MissingCompileTimeError
+mixin_invalid_bound2_test/03: MissingCompileTimeError
+mixin_invalid_bound2_test/04: MissingCompileTimeError
+mixin_invalid_bound2_test/05: MissingCompileTimeError
+mixin_invalid_bound2_test/06: MissingCompileTimeError
+mixin_invalid_bound2_test/07: MissingCompileTimeError
+mixin_invalid_bound2_test/08: MissingCompileTimeError
+mixin_invalid_bound2_test/09: MissingCompileTimeError
+mixin_invalid_bound2_test/10: MissingCompileTimeError
+mixin_invalid_bound2_test/11: MissingCompileTimeError
+mixin_invalid_bound2_test/12: MissingCompileTimeError
+mixin_invalid_bound2_test/13: MissingCompileTimeError
+mixin_invalid_bound2_test/14: MissingCompileTimeError
+mixin_invalid_bound2_test/15: MissingCompileTimeError
+mixin_invalid_bound_test/02: MissingCompileTimeError
+mixin_invalid_bound_test/03: MissingCompileTimeError
+mixin_invalid_bound_test/04: MissingCompileTimeError
+mixin_invalid_bound_test/05: MissingCompileTimeError
+mixin_invalid_bound_test/06: MissingCompileTimeError
+mixin_invalid_bound_test/07: MissingCompileTimeError
+mixin_invalid_bound_test/08: MissingCompileTimeError
+mixin_invalid_bound_test/09: MissingCompileTimeError
+mixin_invalid_bound_test/10: MissingCompileTimeError
+mixin_mixin_type_arguments_test: RuntimeError
+mixin_super_bound_test/01: MissingCompileTimeError
+mixin_super_bound_test/02: MissingCompileTimeError
+mixin_type_parameters_errors_test/03: MissingCompileTimeError
+mixin_type_parameters_errors_test/04: MissingCompileTimeError
+named_constructor_test/01: MissingCompileTimeError
+no_such_method_native_test: RuntimeError
+no_such_method_test: RuntimeError
+overridden_no_such_method_test: RuntimeError
+override_field_test/02: MissingCompileTimeError
+override_field_test/03: MissingCompileTimeError
+recursive_generic_test: RuntimeError
+redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
+redirecting_factory_malbounded_test/01: MissingCompileTimeError
+regress_13462_1_test: RuntimeError
+regress_18535_test: RuntimeError
+regress_21795_test: RuntimeError # Issue 12605
+stack_trace_test: RuntimeError, OK # Stack trace not preserved in minified code.
+symbol_conflict_test: RuntimeError # Issue 23857
+type_literal_prefix_call_test/00: MissingCompileTimeError
+type_promotion_logical_and_test/01: MissingCompileTimeError
+type_variable_bounds2_test: MissingCompileTimeError
+type_variable_bounds3_test/00: MissingCompileTimeError
+type_variable_bounds4_test/01: MissingCompileTimeError
+type_variable_bounds_test/01: MissingCompileTimeError
+type_variable_bounds_test/02: Crash # NoSuchMethodError: The method 'accept' was called on null.
+type_variable_bounds_test/03: MissingCompileTimeError
+type_variable_bounds_test/04: MissingCompileTimeError
+type_variable_bounds_test/05: MissingCompileTimeError
+type_variable_bounds_test/06: MissingCompileTimeError
+type_variable_bounds_test/08: MissingCompileTimeError
+type_variable_bounds_test/11: MissingCompileTimeError
+vm/async_await_catch_stacktrace_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+vm/await_synchronous_future_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+vm/causal_async_exception_stack2_test: Crash # Wrong number of template arguments, given 2, expected 1
+vm/causal_async_exception_stack_test: Crash # Wrong number of template arguments, given 2, expected 1
+vm/debug_break_enabled_vm_test/01: CompileTimeError
+vm/debug_break_enabled_vm_test/none: CompileTimeError
+vm/integer_type_propagation_test: RuntimeError
+vm/load_to_load_forwarding_vm_test: RuntimeError
+vm/load_to_load_unaligned_forwarding_vm_test: RuntimeError
+vm/math_vm_test: RuntimeError
+vm/no_such_args_error_message_vm_test: RuntimeError
+vm/no_such_method_error_message_callable_vm_test: RuntimeError
+vm/no_such_method_error_message_vm_test: RuntimeError
+vm/optimization_test: RuntimeError
+vm/optimized_await_regress_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+vm/optimized_guarded_field_isolates_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+vm/optimized_list_constructor_test: RuntimeError
+vm/reflect_core_vm_test: RuntimeError
+vm/regress_22480_test: RuntimeError
+vm/regress_23238_test: RuntimeError
+vm/regress_27201_test: CompileTimeError
+vm/regress_28325_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+vm/regress_29145_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
+vm/store_to_load_forwarding_phis_vm_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
+vm/type_cast_vm_test: RuntimeError
+vm/type_vm_test/28: MissingRuntimeError
+vm/uint32_right_shift_test: RuntimeError
+vm/uint32_shift_test: RuntimeError
+vm/unaligned_integer_access_literal_index_test: RuntimeError
+vm/unaligned_integer_access_register_index_test: RuntimeError
+void_block_return_test/00: MissingCompileTimeError
+void_type_usage_test/conditional2_return_to_void: MissingCompileTimeError
+void_type_usage_test/conditional3_return_to_void: MissingCompileTimeError
+void_type_usage_test/conditional_return_to_void: MissingCompileTimeError
+wrong_number_type_arguments_test/01: MissingCompileTimeError
+wrong_number_type_arguments_test/none: Pass
+
+[ $compiler == dart2js && $fasta && !$strong ]
+*: SkipByDesign
+
+[ $compiler == dart2js && !$fasta ]
+*: SkipByDesign
+
+[ $compiler == dart2js && $minified ]
+cyclic_type2_test: RuntimeError # Issue 31054
+cyclic_type_test/0*: RuntimeError # Issue 31054
+f_bounded_quantification4_test: RuntimeError # Issue 31054
+f_bounded_quantification5_test: RuntimeError # Issue 31054
+generic_closure_test/01: RuntimeError # Uses runtimeType.toString()
+mixin_mixin2_test: RuntimeError # Issue 31054
+mixin_mixin3_test: RuntimeError # Issue 31054
+mixin_mixin4_test: RuntimeError # Issue 31054
+mixin_mixin5_test: RuntimeError # Issue 31054
+mixin_mixin6_test: RuntimeError # Issue 31054
+mixin_mixin_bound2_test: RuntimeError # Issue 31054
+mixin_mixin_bound_test: RuntimeError # Issue 31054
+mixin_mixin_type_arguments_test: RuntimeError # Issue 31054
+runtime_type_function_test: RuntimeError # Uses runtimeType.toString()
+
+[ $compiler == dart2js && $strong ]
+assertion_test: RuntimeError
+async_await_test/02: RuntimeError
+async_await_test/03: RuntimeError
+async_await_test/none: RuntimeError
+async_star_test/02: RuntimeError
+bit_operations_test: RuntimeError
+branch_canonicalization_test: RuntimeError
+canonical_const2_test: RuntimeError, OK # non JS number semantics
+class_cycle_test/02: MissingCompileTimeError
+class_cycle_test/03: MissingCompileTimeError
+compile_time_constant_o_test/01: MissingCompileTimeError
+compile_time_constant_o_test/02: MissingCompileTimeError
+compile_time_constant_static5_test/11: CompileTimeError
+compile_time_constant_static5_test/16: CompileTimeError
+compile_time_constant_static5_test/21: CompileTimeError
+compile_time_constant_static5_test/23: CompileTimeError
+conditional_rewrite_test: RuntimeError
+config_import_test: RuntimeError
+const_constructor3_test/04: MissingCompileTimeError # OK - Subtype check uses JS number semantics.
+const_dynamic_type_literal_test/02: MissingCompileTimeError
+const_evaluation_test/01: RuntimeError
+const_instance_field_test/01: MissingCompileTimeError
+const_list_test: RuntimeError
+const_map2_test/00: MissingCompileTimeError
+const_map3_test/00: MissingCompileTimeError
+const_map4_test: RuntimeError
+const_switch2_test/01: MissingCompileTimeError
+const_switch_test/02: RuntimeError, OK # constant identity based on JS constants
+const_switch_test/04: RuntimeError, OK # constant identity based on JS constants
+const_types_test/34: MissingCompileTimeError
+const_types_test/39: MissingCompileTimeError
+constructor12_test: RuntimeError
+constructor_named_arguments_test/none: RuntimeError
+constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
+covariance_type_parameter_test/02: RuntimeError
+covariant_subtyping_test: Crash
+ct_const_test: RuntimeError
+deferred_inheritance_constraints_test/extends: MissingCompileTimeError
+deferred_inheritance_constraints_test/implements: MissingCompileTimeError
+deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
+deferred_load_library_wrong_args_test/01: CompileTimeError
+deferred_not_loaded_check_test: RuntimeError # Test out of date. Issue 31933
+deferred_redirecting_factory_test: RuntimeError
+double_int_to_string_test: RuntimeError, OK # non JS number semantics
+duplicate_implements_test/01: MissingCompileTimeError
+duplicate_implements_test/02: MissingCompileTimeError
+dynamic_prefix_core_test/none: CompileTimeError
+emit_const_fields_test: CompileTimeError
+enum_mirror_test: RuntimeError
+example_constructor_test: RuntimeError
+expect_test: RuntimeError, OK # Issue 13080
+external_test/10: MissingRuntimeError
+external_test/13: MissingRuntimeError
+external_test/20: MissingRuntimeError
+external_test/21: CompileTimeError
+external_test/24: CompileTimeError
+field_initialization_order_test/01: MissingCompileTimeError
+field_initialization_order_test/none: RuntimeError
+flatten_test/05: MissingRuntimeError
+flatten_test/08: MissingRuntimeError
+flatten_test/09: MissingRuntimeError
+flatten_test/12: MissingRuntimeError
+full_stacktrace1_test: RuntimeError # Issue 12698
+full_stacktrace2_test: RuntimeError # Issue 12698
+full_stacktrace3_test: RuntimeError # Issue 12698
+function_subtype_inline2_test: RuntimeError
+function_subtype_setter0_test: RuntimeError
+generic_function_bounds_test: RuntimeError
+generic_function_dcall_test: RuntimeError
+generic_function_type_as_type_argument_test/01: MissingCompileTimeError
+generic_function_type_as_type_argument_test/02: MissingCompileTimeError
+generic_instanceof2_test: RuntimeError
+generic_is_check_test: RuntimeError
+generic_methods_bounds_test/02: MissingRuntimeError
+generic_methods_generic_function_result_test/01: MissingCompileTimeError
+generic_methods_unused_parameter_test: RuntimeError
+generic_no_such_method_dispatcher_simple_test: CompileTimeError
+generic_no_such_method_dispatcher_test: CompileTimeError
+generic_tearoff_test: CompileTimeError
+identical_closure2_test: RuntimeError # non JS number semantics
+if_null_precedence_test/none: RuntimeError
+infinity_test: RuntimeError # non JS number semantics - Issue 4984
+instance_creation_in_function_annotation_test: RuntimeError
+instantiate_tearoff_of_call_test: CompileTimeError
+int64_literal_test/01: RuntimeError
+int64_literal_test/02: RuntimeError
+int64_literal_test/04: RuntimeError
+int64_literal_test/05: RuntimeError
+int64_literal_test/10: RuntimeError
+int64_literal_test/20: RuntimeError
+int64_literal_test/40: RuntimeError
+int64_literal_test/none: RuntimeError
+integer_division_by_zero_test: RuntimeError # Issue 8301
+internal_library_test/02: Crash
+invocation_mirror_invoke_on2_test: RuntimeError
+invocation_mirror_invoke_on_test: RuntimeError
+issue21079_test: RuntimeError
+issue31596_super_test/01: CompileTimeError
+issue31596_super_test/03: CompileTimeError
+left_shift_test: RuntimeError # non JS number semantics
+library_env_test/has_mirror_support: RuntimeError
+local_function2_test/none: RuntimeError
+local_function3_test/none: RuntimeError
+local_function_test/none: RuntimeError
+method_override_test: CompileTimeError
+minify_closure_variable_collision_test: CompileTimeError
+mint_arithmetic_test: RuntimeError # non JS number semantics
+mixin_forwarding_constructor4_test/01: MissingCompileTimeError
+mixin_forwarding_constructor4_test/02: MissingCompileTimeError
+mixin_forwarding_constructor4_test/03: MissingCompileTimeError
+mixin_illegal_super_use_test/01: MissingCompileTimeError
+mixin_illegal_super_use_test/04: MissingCompileTimeError
+mixin_illegal_super_use_test/07: MissingCompileTimeError
+mixin_illegal_super_use_test/10: MissingCompileTimeError
+mixin_illegal_super_use_test/11: MissingCompileTimeError
+mixin_illegal_superclass_test/01: MissingCompileTimeError
+mixin_illegal_superclass_test/02: MissingCompileTimeError
+mixin_illegal_superclass_test/03: MissingCompileTimeError
+mixin_illegal_superclass_test/04: MissingCompileTimeError
+mixin_illegal_superclass_test/05: MissingCompileTimeError
+mixin_illegal_superclass_test/06: MissingCompileTimeError
+mixin_illegal_superclass_test/07: MissingCompileTimeError
+mixin_illegal_superclass_test/08: MissingCompileTimeError
+mixin_illegal_superclass_test/09: MissingCompileTimeError
+mixin_illegal_superclass_test/10: MissingCompileTimeError
+mixin_illegal_superclass_test/11: MissingCompileTimeError
+mixin_illegal_superclass_test/12: MissingCompileTimeError
+mixin_illegal_superclass_test/13: MissingCompileTimeError
+mixin_illegal_superclass_test/14: MissingCompileTimeError
+mixin_illegal_superclass_test/15: MissingCompileTimeError
+mixin_illegal_superclass_test/16: MissingCompileTimeError
+mixin_illegal_superclass_test/17: MissingCompileTimeError
+mixin_illegal_superclass_test/18: MissingCompileTimeError
+mixin_illegal_superclass_test/19: MissingCompileTimeError
+mixin_illegal_superclass_test/20: MissingCompileTimeError
+mixin_illegal_superclass_test/21: MissingCompileTimeError
+mixin_illegal_superclass_test/22: MissingCompileTimeError
+mixin_illegal_superclass_test/23: MissingCompileTimeError
+mixin_illegal_superclass_test/24: MissingCompileTimeError
+mixin_illegal_superclass_test/25: MissingCompileTimeError
+mixin_illegal_superclass_test/26: MissingCompileTimeError
+mixin_illegal_superclass_test/27: MissingCompileTimeError
+mixin_illegal_superclass_test/28: MissingCompileTimeError
+mixin_illegal_superclass_test/29: MissingCompileTimeError
+mixin_illegal_superclass_test/30: MissingCompileTimeError
+mixin_of_mixin_test/none: CompileTimeError
+mixin_super_2_test/none: CompileTimeError
+mixin_super_constructor_named_test/01: MissingCompileTimeError
+mixin_super_constructor_positionals_test/01: MissingCompileTimeError
+mixin_super_test: CompileTimeError
+mixin_super_use_test: CompileTimeError
+mixin_superclass_test: CompileTimeError
+mixin_supertype_subclass2_test/01: CompileTimeError
+mixin_supertype_subclass2_test/02: CompileTimeError
+mixin_supertype_subclass2_test/03: CompileTimeError
+mixin_supertype_subclass2_test/04: CompileTimeError
+mixin_supertype_subclass2_test/05: CompileTimeError
+mixin_supertype_subclass2_test/none: CompileTimeError
+mixin_supertype_subclass3_test/01: CompileTimeError
+mixin_supertype_subclass3_test/02: CompileTimeError
+mixin_supertype_subclass3_test/03: CompileTimeError
+mixin_supertype_subclass3_test/04: CompileTimeError
+mixin_supertype_subclass3_test/05: CompileTimeError
+mixin_supertype_subclass3_test/none: CompileTimeError
+mixin_supertype_subclass4_test/01: CompileTimeError
+mixin_supertype_subclass4_test/02: CompileTimeError
+mixin_supertype_subclass4_test/03: CompileTimeError
+mixin_supertype_subclass4_test/04: CompileTimeError
+mixin_supertype_subclass4_test/05: CompileTimeError
+mixin_supertype_subclass4_test/none: CompileTimeError
+mixin_supertype_subclass_test/01: CompileTimeError
+mixin_supertype_subclass_test/03: CompileTimeError
+mixin_supertype_subclass_test/04: CompileTimeError
+mixin_supertype_subclass_test/none: CompileTimeError
+mock_writable_final_field_test: RuntimeError # Issue 30847
+mock_writable_final_private_field_test: RuntimeError # Issue 17526, 30847
+modulo_test: RuntimeError # non JS number semantics
+named_parameters_default_eq_test/02: MissingCompileTimeError
+named_parameters_default_eq_test/none: RuntimeError
+nan_identical_test: RuntimeError # Issue 11551
+nested_generic_closure_test: RuntimeError
+no_main_test/01: CompileTimeError
+no_such_method_mock_test: RuntimeError
+null_no_such_method_test: CompileTimeError
+number_identity2_test: RuntimeError
+numbers_test: RuntimeError, OK # non JS number semantics
+override_inheritance_field_test/04: CompileTimeError
+override_inheritance_field_test/06: CompileTimeError
+override_inheritance_field_test/26: CompileTimeError
+override_inheritance_field_test/29: CompileTimeError
+override_inheritance_generic_test/02: CompileTimeError
+override_inheritance_method_test/28: CompileTimeError
+override_inheritance_method_test/29: CompileTimeError
+parser_quirks_test: CompileTimeError
+redirecting_factory_default_values_test/01: MissingCompileTimeError
+redirecting_factory_default_values_test/02: MissingCompileTimeError
+redirecting_factory_reflection_test: RuntimeError
+regress_23408_test: CompileTimeError
+regress_24283_test: RuntimeError, OK # non JS number semantics
+regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
+regress_28255_test: RuntimeError
+regress_29025_test: CompileTimeError
+regress_29405_test: CompileTimeError
+regress_29784_test/01: Crash
+regress_29784_test/02: MissingCompileTimeError # Issue 29784
+regress_30339_test: CompileTimeError
+setter_no_getter_test/01: CompileTimeError
+stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
+stacktrace_rethrow_error_test/none: RuntimeError # Issue 12698
+stacktrace_rethrow_error_test/withtraceparameter: RuntimeError # Issue 12698
+stacktrace_rethrow_nonerror_test: RuntimeError # Issue 12698
+string_interpolation_and_buffer_test: RuntimeError
+string_split_test: CompileTimeError
+string_supertype_checked_test: CompileTimeError
+super_bound_closure_test/none: CompileTimeError
+super_call4_test/01: MissingCompileTimeError
+super_test: RuntimeError
+switch_bad_case_test/01: MissingCompileTimeError
+switch_bad_case_test/02: MissingCompileTimeError
+switch_case_test/00: MissingCompileTimeError
+switch_case_test/01: MissingCompileTimeError
+switch_case_test/02: MissingCompileTimeError
+syntax_test/28: MissingCompileTimeError # Issue 29763
+syntax_test/29: MissingCompileTimeError # Issue 29763
+syntax_test/30: MissingCompileTimeError # Issue 29763
+syntax_test/31: MissingCompileTimeError # Issue 29763
+syntax_test/32: MissingCompileTimeError # Issue 29763
+syntax_test/33: MissingCompileTimeError # Issue 29763
+tearoff_dynamic_test: RuntimeError
+truncdiv_test: RuntimeError # non JS number semantics - Issue 15246
+type_error_test: RuntimeError
+type_literal_test: RuntimeError
+type_promotion_functions_test/02: CompileTimeError
+type_promotion_functions_test/03: CompileTimeError
+type_promotion_functions_test/04: CompileTimeError
+type_promotion_functions_test/09: CompileTimeError
+type_promotion_functions_test/11: CompileTimeError
+type_promotion_functions_test/12: CompileTimeError
+type_promotion_functions_test/13: CompileTimeError
+type_promotion_functions_test/14: CompileTimeError
+type_promotion_functions_test/none: CompileTimeError
+type_promotion_more_specific_test/04: CompileTimeError
+type_variable_promotion_test: RuntimeError

@@ -34,7 +34,6 @@ class Utf : AllStatic {
   }
 };
 
-
 class Utf8 : AllStatic {
  public:
   enum Type {
@@ -106,7 +105,6 @@ class Utf8 : AllStatic {
   static const uint32_t kOverlongMinimum[];
 };
 
-
 class Utf16 : AllStatic {
  public:
   // Returns the length of the code point in UTF-16 code units.
@@ -157,7 +155,6 @@ class Utf16 : AllStatic {
 
   static const int32_t kSurrogateOffset = (0x10000 - (0xD800 << 10) - 0xDC00);
 };
-
 
 class CaseMapping : AllStatic {
  public:

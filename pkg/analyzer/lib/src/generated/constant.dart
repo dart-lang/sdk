@@ -4,7 +4,7 @@
 
 library analyzer.src.generated.constant;
 
-import 'package:analyzer/context/declared_variables.dart';
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
@@ -16,7 +16,7 @@ import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/type_system.dart'
     show TypeSystem, TypeSystemImpl;
 
-export 'package:analyzer/context/declared_variables.dart';
+export 'package:analyzer/dart/analysis/declared_variables.dart';
 export 'package:analyzer/dart/constant/value.dart';
 export 'package:analyzer/src/dart/constant/evaluation.dart';
 export 'package:analyzer/src/dart/constant/utilities.dart';

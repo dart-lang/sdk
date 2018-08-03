@@ -12,13 +12,13 @@
 namespace dart {
 
 DEFINE_NATIVE_ENTRY(AsyncStarMoveNext_debuggerStepCheck, 1) {
+#if !defined(PRODUCT)
   GET_NON_NULL_NATIVE_ARGUMENT(Closure, async_op, arguments->NativeArgAt(0));
-  if (FLAG_support_debugger) {
-    Debugger* debugger = isolate->debugger();
-    if (debugger != NULL) {
-      debugger->MaybeAsyncStepInto(async_op);
-    }
+  Debugger* debugger = isolate->debugger();
+  if (debugger != NULL) {
+    debugger->MaybeAsyncStepInto(async_op);
   }
+#endif
   return Object::null();
 }
 

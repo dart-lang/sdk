@@ -19,7 +19,6 @@ inline int Utils::CountLeadingZeros(uword x) {
 #endif
 }
 
-
 inline int Utils::CountTrailingZeros(uword x) {
 #if defined(ARCH_IS_32_BIT)
   return __builtin_ctzl(x);
@@ -30,31 +29,25 @@ inline int Utils::CountTrailingZeros(uword x) {
 #endif
 }
 
-
 inline uint16_t Utils::HostToBigEndian16(uint16_t value) {
   return OSSwapHostToBigInt16(value);
 }
-
 
 inline uint32_t Utils::HostToBigEndian32(uint32_t value) {
   return OSSwapHostToBigInt32(value);
 }
 
-
 inline uint64_t Utils::HostToBigEndian64(uint64_t value) {
   return OSSwapHostToBigInt64(value);
 }
-
 
 inline uint16_t Utils::HostToLittleEndian16(uint16_t value) {
   return OSSwapHostToLittleInt16(value);
 }
 
-
 inline uint32_t Utils::HostToLittleEndian32(uint32_t value) {
   return OSSwapHostToLittleInt32(value);
 }
-
 
 inline uint64_t Utils::HostToLittleEndian64(uint64_t value) {
   return OSSwapHostToLittleInt64(value);

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.context.cache;
-
 import 'dart:async';
 import 'dart:collection';
 
@@ -12,8 +10,8 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/model.dart';
-import 'package:analyzer/task/model.dart';
 
 /**
  * The cache results visiting function type.
@@ -196,8 +194,7 @@ class AnalysisCache {
    * It does not update the cache, if the corresponding [CacheEntry] does not
    * exist, then the default value is returned.
    */
-  Object/*=V*/ getValue/*<V>*/(
-      AnalysisTarget target, ResultDescriptor/*<V>*/ result) {
+  V getValue<V>(AnalysisTarget target, ResultDescriptor<V> result) {
     CacheEntry entry = get(target);
     if (entry == null) {
       return result.defaultValue;
@@ -445,7 +442,7 @@ class CacheEntry {
    * Return the value of the result represented by the given [descriptor], or
    * the default value for the result if this entry does not have a valid value.
    */
-  dynamic/*=V*/ getValue/*<V>*/(ResultDescriptor/*<V>*/ descriptor) {
+  V getValue<V>(ResultDescriptor<V> descriptor) {
     ResultData data = _resultMap[descriptor];
     if (data == null) {
       return descriptor.defaultValue;
@@ -453,7 +450,7 @@ class CacheEntry {
     if (_partition != null) {
       _partition.resultAccessed(target, descriptor);
     }
-    return data.value as Object/*=V*/;
+    return data.value as V;
   }
 
   /**
@@ -548,7 +545,7 @@ class CacheEntry {
    * Set the value of the result represented by the given [descriptor] to the
    * given [value].
    */
-  void setValue/*<V>*/(ResultDescriptor/*<V>*/ descriptor, dynamic/*=V*/ value,
+  void setValue<V>(ResultDescriptor<V> descriptor, V value,
       List<TargetedResult> dependedOn) {
 //    {
 //      String valueStr = '$value';
@@ -906,7 +903,7 @@ class CacheEntry {
  */
 class CacheFlushManager<T> {
   final IsPriorityAnalysisTarget isPriorityAnalysisTarget;
-  final ResultCachingPolicy<T> policy;
+  final ResultCachingPolicy policy;
   final int maxActiveSize;
   final int maxIdleSize;
 
@@ -935,8 +932,7 @@ class CacheFlushManager<T> {
    */
   int maxSize;
 
-  CacheFlushManager(
-      ResultCachingPolicy<T> policy, this.isPriorityAnalysisTarget)
+  CacheFlushManager(ResultCachingPolicy policy, this.isPriorityAnalysisTarget)
       : policy = policy,
         maxActiveSize = policy.maxActiveSize,
         maxIdleSize = policy.maxIdleSize,

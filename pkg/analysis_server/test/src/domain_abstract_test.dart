@@ -100,6 +100,5 @@ class TestAbstractRequestHandler extends AbstractRequestHandler {
   @override
   Response handleRequest(Request request) {
     fail('Unexpected invocation of handleRequest');
-    return null;
   }
 }

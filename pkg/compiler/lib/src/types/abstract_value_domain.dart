@@ -4,166 +4,456 @@
 
 library dart2js.abstract_value_domain;
 
-import '../constants/values.dart';
-import '../elements/resolution_types.dart';
-import '../elements/elements.dart';
-import '../universe/selector.dart' show Selector;
+import '../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
+import '../elements/entities.dart';
+import '../universe/selector.dart';
+import '../universe/world_builder.dart';
+import '../world.dart';
 
-enum AbstractBool { True, False, Maybe, Nothing }
+enum AbstractBool { True, False, Maybe }
+
+/// Strategy for the abstraction of runtime values used by the global type
+/// inference.
+abstract class AbstractValueStrategy {
+  /// Creates the abstract value domain for [closedWorld].
+  AbstractValueDomain createDomain(JClosedWorld closedWorld);
+
+  /// Creates the [SelectorConstraintsStrategy] used by the backend enqueuer.
+  SelectorConstraintsStrategy createSelectorStrategy();
+}
 
 /// A value in an abstraction of runtime values.
 abstract class AbstractValue {}
 
-/// A system that implements an abstraction over runtime values and provides
-/// access to interprocedural analysis results.
-// TODO(johnniwinther): Consider extracting the inference result access from
-// this interface.
+/// A system that implements an abstraction over runtime values.
 abstract class AbstractValueDomain {
+  /// The [AbstractValue] that represents an unknown runtime value.
   AbstractValue get dynamicType;
+
+  /// The [AbstractValue] that represents a non-null subtype of `Type` at
+  /// runtime.
   AbstractValue get typeType;
+
+  /// The [AbstractValue] that represents a non-null subtype of `Function` at
+  /// runtime.
   AbstractValue get functionType;
+
+  /// The [AbstractValue] that represents a non-null subtype of `bool` at
+  /// runtime.
   AbstractValue get boolType;
+
+  /// The [AbstractValue] that represents a non-null subtype of `int` at
+  /// runtime.
   AbstractValue get intType;
+
+  /// The [AbstractValue] that represents a non-null subtype of `double` at
+  /// runtime.
   AbstractValue get doubleType;
+
+  /// The [AbstractValue] that represents a non-null subtype of `num` at
+  /// runtime.
   AbstractValue get numType;
+
+  /// The [AbstractValue] that represents a non-null subtype of `String` at
+  /// runtime.
   AbstractValue get stringType;
+
+  /// The [AbstractValue] that represents a non-null subtype of `List` at
+  /// runtime.
   AbstractValue get listType;
+
+  /// The [AbstractValue] that represents a non-null subtype of `Map` at
+  /// runtime.
   AbstractValue get mapType;
+
+  /// The [AbstractValue] that represents a non-null value at runtime.
   AbstractValue get nonNullType;
+
+  /// The [AbstractValue] that represents the `null` at runtime.
   AbstractValue get nullType;
-  AbstractValue get extendableArrayType;
-  AbstractValue get fixedArrayType;
-  AbstractValue get arrayType;
+
+  /// The [AbstractValue] that represents a non-null growable JavaScript array
+  /// at runtime.
+  AbstractValue get growableListType;
+
+  /// The [AbstractValue] that represents a non-null fixed size JavaScript array
+  /// at runtime.
+  AbstractValue get fixedListType;
+
+  /// The [AbstractValue] that represents a non-null 31-bit unsigned integer at
+  /// runtime.
   AbstractValue get uint31Type;
+
+  /// The [AbstractValue] that represents a non-null 32-bit unsigned integer at
+  /// runtime.
   AbstractValue get uint32Type;
-  AbstractValue get uintType;
 
-  AbstractValue get numStringBoolType;
+  /// The [AbstractValue] that represents a non-null unsigned integer at
+  /// runtime.
+  AbstractValue get positiveIntType;
 
-  AbstractValue get fixedLengthType;
+  /// The [AbstractValue] that represents a non-null constant list literal at
+  /// runtime.
+  AbstractValue get constListType;
 
-  AbstractValue get interceptorType;
+  /// The [AbstractValue] that represents a non-null constant map literal at
+  /// runtime.
+  AbstractValue get constMapType;
 
-  AbstractValue get interceptedTypes;
+  /// The [AbstractValue] that represents the empty set of runtime values.
+  AbstractValue get emptyType;
 
-  /// If true, [function] ignores its explicit receiver argument and will use
-  /// its `this` value instead.
-  bool methodIgnoresReceiverArgument(FunctionElement function);
+  /// The [AbstractValue] that represents a non-null instance at runtime of the
+  /// `Iterable` class used for the `sync*` implementation.
+  AbstractValue get syncStarIterableType;
 
-  /// If true, the explicit receiver argument can be ignored when invoking
-  /// [selector] on a value of [type].
-  bool targetIgnoresReceiverArgument(AbstractValue type, Selector selector);
+  /// The [AbstractValue] that represents a non-null instance at runtime of the
+  /// `Future` class used for the `async` implementation.
+  AbstractValue get asyncFutureType;
 
-  Element locateSingleElement(AbstractValue mask, Selector selector);
+  /// The [AbstractValue] that represents a non-null instance at runtime of the
+  /// `Stream` class used for the `async*` implementation.
+  AbstractValue get asyncStarStreamType;
 
-  ClassElement singleClass(AbstractValue mask);
+  /// Creates an [AbstractValue] for a non-null exact instance of [cls].
+  AbstractValue createNonNullExact(ClassEntity cls);
 
-  bool needsNoSuchMethodHandling(AbstractValue mask, Selector selector);
+  /// Creates an [AbstractValue] for a potentially null exact instance of [cls].
+  AbstractValue createNullableExact(ClassEntity cls);
 
-  AbstractValue getReceiverType(MethodElement method);
+  /// Creates an [AbstractValue] for a non-null instance that extends [cls].
+  AbstractValue createNonNullSubclass(ClassEntity cls);
 
-  AbstractValue getParameterType(ParameterElement parameter);
+  /// Creates an [AbstractValue] for a non-null instance that implements [cls].
+  AbstractValue createNonNullSubtype(ClassEntity cls);
 
-  AbstractValue getReturnType(FunctionElement function);
+  /// Creates an [AbstractValue] for a potentially null instance that implements
+  /// [cls].
+  AbstractValue createNullableSubtype(ClassEntity cls);
 
-  AbstractValue getInvokeReturnType(Selector selector, AbstractValue mask);
+  /// Returns `true` if [value] is a native typed array or `null` at runtime.
+  bool isTypedArray(covariant AbstractValue value);
 
-  AbstractValue getFieldType(FieldElement field);
+  /// Returns `true` if [value] could be a native typed array at runtime.
+  bool couldBeTypedArray(covariant AbstractValue value);
 
-  AbstractValue join(AbstractValue a, AbstractValue b);
+  /// Returns the version of the abstract [value] that excludes `null`.
+  AbstractValue excludeNull(covariant AbstractValue value);
 
-  AbstractValue intersection(AbstractValue a, AbstractValue b);
+  /// Returns the version of the abstract [value] that includes `null`.
+  AbstractValue includeNull(covariant AbstractValue value);
 
-  AbstractValue getTypeOf(ConstantValue constant);
+  /// Returns `true` if [value] contains instances of [cls] at runtime.
+  bool containsType(covariant AbstractValue value, ClassEntity cls);
 
-  /// Returns the constant value if the [AbstractValue] represents a single
-  /// constant value. Returns `null` if [value] is not a constant.
-  ConstantValue getConstantOf(AbstractValue value);
+  /// Returns `true` if [value] only contains subtypes of [cls] or `null` at
+  /// runtime.
+  bool containsOnlyType(covariant AbstractValue value, ClassEntity cls);
 
-  AbstractValue nonNullExact(ClassElement element);
+  /// Returns `true` if [value] is an instance of [cls] or `null` at runtime.
+  // TODO(johnniwinther): Merge this with [isInstanceOf].
+  bool isInstanceOfOrNull(covariant AbstractValue value, ClassEntity cls);
 
-  AbstractValue nonNullSubclass(ClassElement element);
-
-  AbstractValue nonNullSubtype(ClassElement element);
-
-  bool isDefinitelyBool(AbstractValue t, {bool allowNull: false});
-
-  bool isDefinitelyNum(AbstractValue t, {bool allowNull: false});
-
-  bool isDefinitelyString(AbstractValue t, {bool allowNull: false});
-
-  bool isDefinitelyNumStringBool(AbstractValue t, {bool allowNull: false});
-
-  bool isDefinitelyNotNumStringBool(AbstractValue t);
-
-  /// True if all values of [t] are either integers or not numbers at all.
+  /// Returns an [AbstractBool] that describes how [value] is known to be an
+  /// instance of [cls] at runtime.
   ///
-  /// This does not imply that the value is an integer, since most other values
-  /// such as null are also not a non-integer double.
-  bool isDefinitelyNotNonIntegerDouble(AbstractValue t);
+  /// If the returned value is `Abstract.True`, [value] is known _always_ to be
+  /// an instance of [cls]. If the returned value is `Abstract.False`, [value]
+  /// is known _never_ to be an instance of [cls]. If the returned value is
+  /// `Abstract.Maybe` [value] might or might not be an instance of [cls] at
+  /// runtime.
+  AbstractBool isInstanceOf(AbstractValue value, ClassEntity cls);
 
-  bool isDefinitelyNonNegativeInt(AbstractValue t, {bool allowNull: false});
+  /// Returns `true` if [value] is empty set of runtime values.
+  bool isEmpty(covariant AbstractValue value);
 
-  bool isDefinitelyInt(AbstractValue t, {bool allowNull: false});
+  /// Returns `true` if [value] is a non-null exact class at runtime.
+  bool isExact(covariant AbstractValue value);
 
-  bool isDefinitelyUint31(AbstractValue t, {bool allowNull: false});
+  /// Returns `true` if [value] is an exact class or `null` at runtime.
+  bool isExactOrNull(covariant AbstractValue value);
 
-  bool isDefinitelyUint32(AbstractValue t, {bool allowNull: false});
+  /// Returns the [ClassEntity] if this [value] is a non-null instance of an
+  /// exact class at runtime, and `null` otherwise.
+  ClassEntity getExactClass(covariant AbstractValue value);
 
-  bool isDefinitelyUint(AbstractValue t, {bool allowNull: false});
+  /// Returns `true` if [value] can be `null` at runtime.
+  bool canBeNull(covariant AbstractValue value);
 
-  bool isDefinitelyArray(AbstractValue t, {bool allowNull: false});
+  /// Returns `true` if [value] is `null` at runtime.
+  bool isNull(covariant AbstractValue value);
 
-  bool isDefinitelyMutableArray(AbstractValue t, {bool allowNull: false});
+  /// Returns `true` if [value] could be a JavaScript bool, number, string,
+  /// array or `null` at runtime.
+  bool canBePrimitive(covariant AbstractValue value);
 
-  bool isDefinitelyFixedArray(AbstractValue t, {bool allowNull: false});
+  /// Returns `true` if [value] could be a JavaScript number at runtime.
+  bool canBePrimitiveNumber(covariant AbstractValue value);
 
-  bool isDefinitelyExtendableArray(AbstractValue t, {bool allowNull: false});
+  /// Returns `true` if [value] could be a JavaScript bool at runtime.
+  bool canBePrimitiveBoolean(covariant AbstractValue value);
 
-  bool isDefinitelyIndexable(AbstractValue t, {bool allowNull: false});
+  /// Returns `true` if [value] could be a JavaScript array at runtime.
+  bool canBePrimitiveArray(covariant AbstractValue value);
 
-  bool isDefinitelyMutableIndexable(AbstractValue t, {bool allowNull: false});
+  /// Returns `true` if [value] is a JavaScript string, array, native HTML list
+  /// or `null` at runtime.
+  bool isIndexablePrimitive(covariant AbstractValue value);
 
-  bool isDefinitelyFixedLengthIndexable(AbstractValue t,
-      {bool allowNull: false});
+  /// Returns `true` if [value] is a fixed-size or constant JavaScript array or
+  /// `null` at
+  /// runtime.
+  bool isFixedArray(covariant AbstractValue value);
 
-  bool isDefinitelyIntercepted(AbstractValue t, {bool allowNull});
+  /// Returns `true` if [value] is a growable JavaScript array or `null` at
+  /// runtime.
+  bool isExtendableArray(covariant AbstractValue value);
 
-  bool isDefinitelySelfInterceptor(AbstractValue t, {bool allowNull: false});
+  /// Returns `true` if [value] is a mutable JavaScript array or `null` at
+  /// runtime.
+  bool isMutableArray(covariant AbstractValue value);
 
-  /// Given a class from the interceptor hierarchy, returns an [AbstractValue]
-  /// matching all values with that interceptor (or a subtype thereof).
-  AbstractValue getInterceptorSubtypes(ClassElement class_);
+  /// Returns `true` if [value] is a mutable JavaScript array, native HTML list
+  /// or `null` at runtime.
+  bool isMutableIndexable(covariant AbstractValue value);
 
-  bool areDisjoint(AbstractValue leftType, AbstractValue rightType);
+  /// Returns `true` if [value] is a JavaScript array or `null` at runtime.
+  bool isArray(covariant AbstractValue value);
 
-  bool isMorePreciseOrEqual(AbstractValue t1, AbstractValue t2);
+  /// Returns `true` if [value] could be a JavaScript string at runtime.
+  bool canBePrimitiveString(covariant AbstractValue value);
 
-  AbstractBool isSubtypeOf(AbstractValue value, ResolutionDartType type,
-      {bool allowNull});
+  /// Return `true` if [value] could be an interceptor at runtime.
+  bool canBeInterceptor(covariant AbstractValue value);
 
-  /// Returns whether [value] is one of the falsy values: false, 0, -0, NaN,
-  /// the empty string, or null.
-  AbstractBool boolify(AbstractValue value);
+  /// Returns `true` if [value] is a non-null integer value at runtime.
+  bool isInteger(covariant AbstractValue value);
 
-  AbstractBool strictBoolify(AbstractValue type);
+  /// Returns `true` if [value] is a non-null 32 bit unsigned integer value at
+  /// runtime.
+  bool isUInt32(covariant AbstractValue value);
 
-  /// Create a type mask containing at least all subtypes of [type].
-  AbstractValue subtypesOf(ResolutionDartType type);
+  /// Returns `true` if [value] is a non-null 31 bit unsigned integer value at
+  /// runtime.
+  bool isUInt31(covariant AbstractValue value);
 
-  /// Returns a subset of [receiver] containing at least the types
-  /// that can respond to [selector] without throwing.
-  AbstractValue receiverTypeFor(Selector selector, AbstractValue receiver);
+  /// Returns `true` if [value] is a non-null unsigned integer value at runtime.
+  bool isPositiveInteger(covariant AbstractValue value);
 
-  /// The result of an index operation on [value], or the dynamic type if
-  /// unknown.
-  AbstractValue elementTypeOfIndexable(AbstractValue value);
+  /// Returns `true` if [value] is an unsigned integer value or `null` at
+  /// runtime.
+  bool isPositiveIntegerOrNull(covariant AbstractValue value);
 
-  /// The length property of [value], or `null` if unknown.
+  /// Returns `true` if [value] is an integer value or `null` at runtime.
+  bool isIntegerOrNull(covariant AbstractValue value);
+
+  /// Returns `true` if [value] is a non-null JavaScript number at runtime.
+  bool isNumber(covariant AbstractValue value);
+
+  /// Returns `true` if [value] is a JavaScript number or `null` at runtime.
+  bool isNumberOrNull(covariant AbstractValue value);
+
+  /// Returns `true` if [value] is a non-integer number at runtime.
+  bool isDouble(covariant AbstractValue value);
+
+  /// Returns `true` if [value] is a non-integer number or `null` at runtime.
+  bool isDoubleOrNull(covariant AbstractValue value);
+
+  /// Returns `true` if [value] is a JavaScript bool at runtime.
+  bool isBoolean(covariant AbstractValue value);
+
+  /// Returns `true` if [value] is a JavaScript bool or `null` at runtime.
+  bool isBooleanOrNull(covariant AbstractValue value);
+
+  /// Returns `true` if [value] is a JavaScript string at runtime.
+  bool isString(covariant AbstractValue value);
+
+  /// Returns `true` if [value] is a JavaScript string or `null` at runtime.
+  bool isStringOrNull(covariant AbstractValue value);
+
+  /// Returns `true` if [value] a non-null JavaScript primitive or `null`?
+  // TODO(johnniwinther): This should probably not return true on `null`,
+  // investigate.
+  bool isPrimitive(covariant AbstractValue value);
+
+  /// Returns `true` if [value] a JavaScript primitive, possible `null`.
+  bool isPrimitiveOrNull(covariant AbstractValue value);
+
+  /// Returns [AbstractValue] for the runtime values contained in either [a] or
+  /// [b].
+  AbstractValue union(covariant AbstractValue a, covariant AbstractValue b);
+
+  /// Returns [AbstractValue] for the runtime values contained in at least one
+  /// of [values].
+  AbstractValue unionOfMany(Iterable<AbstractValue> values);
+
+  /// Returns [AbstractValue] for the runtime values that [a] and [b] have in
+  /// common.
+  AbstractValue intersection(
+      covariant AbstractValue a, covariant AbstractValue b);
+
+  /// Returns `true` if [a] and [b] have no runtime values in common.
+  bool areDisjoint(covariant AbstractValue a, covariant AbstractValue b);
+
+  /// Returns `true` if [a] contains all non-null runtime values.
+  bool containsAll(covariant AbstractValue a);
+
+  /// Computes the [AbstractValue] corresponding to the constant [value].
+  AbstractValue computeAbstractValueForConstant(ConstantValue value);
+
+  /// Returns `true` if [value] represents a container value at runtime.
+  bool isContainer(covariant AbstractValue value);
+
+  /// Creates a container value specialization of [originalValue] with the
+  /// inferred [element] runtime value and inferred runtime [length].
+  ///
+  /// The [allocationNode] is used to identify this particular map allocation.
+  /// The [allocationElement] is used only for debugging.
+  AbstractValue createContainerValue(
+      AbstractValue originalValue,
+      Object allocationNode,
+      MemberEntity allocationElement,
+      AbstractValue elementType,
+      int length);
+
+  /// Returns the element type of [value] if it represents a container value
+  /// at runtime. Returns [dynamicType] otherwise.
+  AbstractValue getContainerElementType(AbstractValue value);
+
+  /// Return the known length of [value] if it represents a container value
+  /// at runtime. Returns `null` if the length is unknown or if [value] doesn't
+  /// represent a container value at runtime.
   int getContainerLength(AbstractValue value);
 
-  /// Returns the type of the entry of [container] at a given index.
-  /// Returns `null` if unknown.
-  AbstractValue indexWithConstant(
-      AbstractValue container, ConstantValue indexValue);
+  /// Returns `true` if [value] represents a map value at runtime.
+  bool isMap(covariant AbstractValue value);
+
+  /// Creates a map value specialization of [originalValue] with the inferred
+  /// [key] and [value] runtime values.
+  ///
+  /// The [allocationNode] is used to identify this particular map allocation.
+  /// The [allocationElement] is used only for debugging.
+  AbstractValue createMapValue(
+      AbstractValue originalValue,
+      Object allocationNode,
+      MemberEntity allocationElement,
+      AbstractValue key,
+      AbstractValue value);
+
+  /// Returns the key type of [value] if it represents a map value at runtime.
+  /// Returns [dynamicType] otherwise.
+  AbstractValue getMapKeyType(AbstractValue value);
+
+  /// Returns the value type of [value] if it represents a map value at runtime.
+  /// Returns [dynamicType] otherwise.
+  AbstractValue getMapValueType(AbstractValue value);
+
+  /// Returns `true` if [value] represents a dictionary value, that is, a map
+  /// with strings as keys, at runtime.
+  bool isDictionary(covariant AbstractValue value);
+
+  /// Creates a dictionary value specialization of [originalValue] with the
+  /// inferred [key] and [value] runtime values.
+  ///
+  /// The [allocationNode] is used to identify this particular map allocation.
+  /// The [allocationElement] is used only for debugging.
+  AbstractValue createDictionaryValue(
+      AbstractValue originalValue,
+      Object allocationNode,
+      MemberEntity allocationElement,
+      AbstractValue key,
+      AbstractValue value,
+      Map<String, AbstractValue> mappings);
+
+  /// Returns `true` if [value] is a dictionary value which contains [key] as
+  /// a key.
+  bool containsDictionaryKey(AbstractValue value, String key);
+
+  /// Returns the value type for [key] in [value] if it represents a dictionary
+  /// value at runtime. Returns [dynamicType] otherwise.
+  AbstractValue getDictionaryValueForKey(AbstractValue value, String key);
+
+  /// Returns `true` if [specialization] is a specialization of
+  /// [generalization].
+  ///
+  /// Specializations are created through [createPrimitiveValue],
+  /// [createMapValue], [createDictionaryValue] and [createContainerValue].
+  bool isSpecializationOf(
+      AbstractValue specialization, AbstractValue generalization);
+
+  /// Returns the value of which [value] is a specialization. Return `null` if
+  /// [value] is not a specialization.
+  ///
+  /// Specializations are created through [createPrimitiveValue],
+  /// [createMapValue], [createDictionaryValue] and [createContainerValue].
+  AbstractValue getGeneralization(AbstractValue value);
+
+  /// Return the object identifying the allocation of [value] if it is an
+  /// allocation based specialization. Otherwise returns `null`.
+  ///
+  /// Allocation based specializations are created through [createMapValue],
+  /// [createDictionaryValue] and [createContainerValue]
+  Object getAllocationNode(AbstractValue value);
+
+  /// Return the allocation element of [value] if it is an allocation based
+  /// specialization. Otherwise returns `null`.
+  ///
+  /// Allocation based specializations are created through [createMapValue],
+  /// [createDictionaryValue] and [createContainerValue]
+  MemberEntity getAllocationElement(AbstractValue value);
+
+  /// Returns `true` if [value] a known primitive JavaScript value at runtime.
+  bool isPrimitiveValue(covariant AbstractValue value);
+
+  /// Creates a primitive value specialization of [originalValue] with the
+  /// inferred primitive constant [value].
+  AbstractValue createPrimitiveValue(
+      AbstractValue originalValue, PrimitiveConstantValue value);
+
+  /// Returns the primitive JavaScript value of [value] if it represents a
+  /// primitive JavaScript value at runtime, value at runtime. Returns `null`
+  /// otherwise.
+  PrimitiveConstantValue getPrimitiveValue(covariant AbstractValue value);
+
+  /// Compute the type of all potential receivers of the set of live [members].
+  AbstractValue computeReceiver(Iterable<MemberEntity> members);
+
+  /// Returns whether [member] is a potential target when being
+  /// invoked on a [receiver]. [selector] is used to ensure library privacy is
+  /// taken into account.
+  bool canHit(AbstractValue receiver, MemberEntity member, Selector selector);
+
+  /// Returns whether [selector] invoked on a [receiver] can hit a
+  /// [noSuchMethod].
+  bool needsNoSuchMethodHandling(AbstractValue receiver, Selector selector);
+
+  /// Returns `true` if the set of runtime values of [subset] are all in the set
+  /// of runtime values of [superset].
+  bool contains(AbstractValue superset, AbstractValue subset);
+
+  /// Returns `true` if the set of runtime values of [subset] are all in the set
+  /// of runtime values of [superset].
+  bool isIn(AbstractValue subset, AbstractValue superset);
+
+  /// Returns the [MemberEntity] that is known to always be hit at runtime
+  /// [receiver].
+  ///
+  /// Returns `null` if 0 or more than 1 member can be hit at runtime.
+  MemberEntity locateSingleMember(AbstractValue receiver, Selector selector);
+
+  /// Returns `true` if [value] is an indexable JavaScript value at runtime.
+  bool isJsIndexable(covariant AbstractValue value);
+
+  /// Returns `true` if [value] is an indexable and iterable JavaScript value at
+  /// runtime.
+  ///
+  /// JavaScript arrays are both indexable and iterable whereas JavaScript
+  /// strings are indexable but not iterable.
+  bool isJsIndexableAndIterable(AbstractValue value);
+
+  /// Returns `true` if [value] is an JavaScript indexable of fixed length.
+  bool isFixedLengthJsIndexable(AbstractValue value);
+
+  /// Returns compact a textual representation for [value] used for debugging.
+  String getCompactText(AbstractValue value);
 }

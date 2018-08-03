@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.generated.utilities_test;
-
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
@@ -50,7 +49,6 @@ class AstCloneComparator extends AstComparator {
   bool isEqualNodes(AstNode first, AstNode second) {
     if (first != null && identical(first, second)) {
       fail('Failed to copy node: $first (${first.offset})');
-      return false;
     }
     return super.isEqualNodes(first, second);
   }
@@ -59,9 +57,8 @@ class AstCloneComparator extends AstComparator {
   bool isEqualTokens(Token first, Token second) {
     if (expectTokensCopied && first != null && identical(first, second)) {
       fail('Failed to copy token: ${first.lexeme} (${first.offset})');
-      return false;
     }
-    if (first is TokenWithComment) {
+    if (first?.precedingComments != null) {
       CommentToken comment = first.precedingComments;
       if (comment.parent != first) {
         fail('Failed to link the comment "$comment" with the token "$first".');
@@ -392,7 +389,7 @@ library l;''');
   }
 
   void test_visitDefaultFormalParameter_named_value() {
-    _assertCloneUnitMember('main({p : 0}) {}');
+    _assertCloneUnitMember('main({p: 0}) {}');
   }
 
   void test_visitDefaultFormalParameter_positional_noValue() {
@@ -1187,7 +1184,7 @@ library l;''');
     CharSequenceReader reader = new CharSequenceReader(code);
     Scanner scanner = new Scanner(null, reader, listener);
     Token token = scanner.tokenize();
-    Parser parser = new Parser(null, listener);
+    Parser parser = new Parser(NonExistingSource.unknown, listener);
     CompilationUnit unit = parser.parseCompilationUnit(token);
     expect(unit, isNotNull);
     listener.assertNoErrors();
@@ -1239,7 +1236,7 @@ library l;''');
       }
       // next tokens
       if (original is CommentToken) {
-        expect(clone, new isInstanceOf<CommentToken>());
+        expect(clone, new TypeMatcher<CommentToken>());
         skipOriginalComment = original;
         skipCloneComment = clone;
         original = (original as CommentToken).parent;
@@ -2549,25 +2546,42 @@ class LineInfoTest {
     }, throwsArgumentError);
   }
 
-  void test_firstLine() {
+  void test_getLocation_firstLine() {
     LineInfo info = new LineInfo(<int>[0, 12, 34]);
-    LineInfo_Location location = info.getLocation(4);
+    CharacterLocation location = info.getLocation(4);
     expect(location.lineNumber, 1);
     expect(location.columnNumber, 5);
   }
 
-  void test_lastLine() {
+  void test_getLocation_lastLine() {
     LineInfo info = new LineInfo(<int>[0, 12, 34]);
-    LineInfo_Location location = info.getLocation(36);
+    CharacterLocation location = info.getLocation(36);
     expect(location.lineNumber, 3);
     expect(location.columnNumber, 3);
   }
 
-  void test_middleLine() {
+  void test_getLocation_middleLine() {
     LineInfo info = new LineInfo(<int>[0, 12, 34]);
-    LineInfo_Location location = info.getLocation(12);
+    CharacterLocation location = info.getLocation(12);
     expect(location.lineNumber, 2);
     expect(location.columnNumber, 1);
+  }
+
+  void test_getOffsetOfLine() {
+    LineInfo info = new LineInfo(<int>[0, 12, 34]);
+    expect(0, info.getOffsetOfLine(0));
+    expect(12, info.getOffsetOfLine(1));
+    expect(34, info.getOffsetOfLine(2));
+  }
+
+  void test_getOffsetOfLineAfter() {
+    LineInfo info = new LineInfo(<int>[0, 12, 34]);
+
+    expect(info.getOffsetOfLineAfter(0), 12);
+    expect(info.getOffsetOfLineAfter(11), 12);
+
+    expect(info.getOffsetOfLineAfter(12), 34);
+    expect(info.getOffsetOfLineAfter(33), 34);
   }
 }
 
@@ -2905,7 +2919,7 @@ class MultipleMapIteratorTest extends EngineTestCase {
 
   void test_singleMap_empty() {
     Map<String, String> map = new HashMap<String, String>();
-    MultipleMapIterator<String, String> iterator = _iterator(<Map>[map]);
+    MultipleMapIterator<String, String> iterator = _iterator([map]);
     expect(iterator.moveNext(), isFalse);
     expect(() => iterator.key, throwsStateError);
     expect(() => iterator.value, throwsStateError);
@@ -2941,7 +2955,8 @@ class MultipleMapIteratorTest extends EngineTestCase {
     expect(iterator.moveNext(), isFalse);
   }
 
-  MultipleMapIterator<String, String> _iterator(List<Map> maps) {
+  MultipleMapIterator<String, String> _iterator(
+      List<Map<String, String>> maps) {
     return new MultipleMapIterator<String, String>(maps);
   }
 }

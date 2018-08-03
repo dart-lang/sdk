@@ -11,6 +11,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UpdateOptionsTest);
+    defineReflectiveTests(UpdateOptionsTest_UseCFE);
   });
 }
 
@@ -21,9 +22,7 @@ class UpdateOptionsTest extends AbstractAnalysisServerIntegrationTest {
     // We fail after the first analysis.updateOptions - we should not see a hint
     // for the unused import (#28800).
     String pathname = sourcePath('test.dart');
-    writeFile(
-        pathname,
-        '''
+    writeFile(pathname, '''
 import 'dart:async'; // unused
 
 class Foo {
@@ -46,4 +45,10 @@ class Foo {
     await analysisFinished;
     expect(getErrors(pathname), hasLength(1));
   }
+}
+
+@reflectiveTest
+class UpdateOptionsTest_UseCFE extends UpdateOptionsTest {
+  @override
+  bool get useCFE => true;
 }

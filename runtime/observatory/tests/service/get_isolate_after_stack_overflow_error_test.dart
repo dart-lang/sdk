@@ -17,7 +17,7 @@ void nonTailableRecursion() {
   factorialGrowth();
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtExit,
   (Isolate isolate) async {
     await isolate.reload();

@@ -9,7 +9,7 @@
 library js_ast.printer.callback_test;
 
 import 'package:js_ast/js_ast.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 enum TestMode {
   INPUT,
@@ -40,7 +40,7 @@ function(a, b) {
 }""",
     TestMode.DELIMITER: """
 function(a, b) {
-  return null;
+  return null@4;
 @0}""",
     TestMode.EXIT: """
 function(a@1, b@2) {
@@ -246,5 +246,7 @@ class Context extends SimpleJavaScriptPrintingContext {
 }
 
 void main() {
-  DATA.forEach(check);
+  test('printer callback test', () {
+    DATA.forEach(check);
+  });
 }

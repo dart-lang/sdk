@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field dynamic foo;
+  synthetic constructor •() → void
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → void
+    ;
+  method foo() → dynamic
+    ;
+}
+static method main() → dynamic
+  ;

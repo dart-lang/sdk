@@ -29,7 +29,8 @@ class ThreadRegistry {
         mutator_thread_(NULL) {}
   ~ThreadRegistry();
 
-  void VisitObjectPointers(ObjectPointerVisitor* visitor, bool validate_frames);
+  void VisitObjectPointers(ObjectPointerVisitor* visitor,
+                           ValidationPolicy validate_frames);
   void PrepareForGC();
   Thread* mutator_thread() const { return mutator_thread_; }
 
@@ -67,7 +68,6 @@ class ThreadRegistry {
   // zones/handles in the API scope :
   // - Dart_RunLoop()
   // - IsolateSaver in Dart_NewNativePort
-  // - Isolate spawn (function/uri) under FLAG_i_like_slow_isolate_spawn
   // Similarly, tracking async_stack_trace requires that we always reschedule
   // on the same thread.
   // We probably need a mechanism to return to the specific thread only

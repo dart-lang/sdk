@@ -9,8 +9,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 void addDartOccurrences(OccurrencesCollector collector, CompilationUnit unit) {
   _DartUnitOccurrencesComputerVisitor visitor =
@@ -23,24 +21,6 @@ void addDartOccurrences(OccurrencesCollector collector, CompilationUnit unit) {
         new protocol.Occurrences(serverElement, offsets, length);
     collector.addOccurrences(occurrences);
   });
-}
-
-/**
- * A computer for occurrences in a Dart [CompilationUnit].
- */
-class DartOccurrencesComputer implements OccurrencesContributor {
-  @override
-  void computeOccurrences(
-      OccurrencesCollector collector, AnalysisContext context, Source source) {
-    List<Source> libraries = context.getLibrariesContaining(source);
-    if (libraries.isNotEmpty) {
-      CompilationUnit unit =
-          context.getResolvedCompilationUnit2(source, libraries.first);
-      if (unit != null) {
-        addDartOccurrences(collector, unit);
-      }
-    }
-  }
 }
 
 class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor {

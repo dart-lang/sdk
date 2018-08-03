@@ -25,6 +25,7 @@ class ClassAllocationProfileElement extends HtmlElement implements Renderable {
   Stream<RenderedEvent<ClassAllocationProfileElement>> get onRendered =>
       _r.onRendered;
 
+  M.VM _vm;
   M.IsolateRef _isolate;
   M.Class _cls;
   M.ClassSampleProfileRepository _profiles;
@@ -37,14 +38,17 @@ class ClassAllocationProfileElement extends HtmlElement implements Renderable {
   M.IsolateRef get isolate => _isolate;
   M.Class get cls => _cls;
 
-  factory ClassAllocationProfileElement(M.IsolateRef isolate, M.Class cls,
-      M.ClassSampleProfileRepository profiles,
+  factory ClassAllocationProfileElement(M.VM vm, M.IsolateRef isolate,
+      M.Class cls, M.ClassSampleProfileRepository profiles,
       {RenderingQueue queue}) {
+    assert(vm != null);
     assert(isolate != null);
     assert(cls != null);
     assert(profiles != null);
     ClassAllocationProfileElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r =
+        new RenderingScheduler<ClassAllocationProfileElement>(e, queue: queue);
+    e._vm = vm;
     e._isolate = isolate;
     e._cls = cls;
     e._profiles = profiles;
@@ -63,7 +67,7 @@ class ClassAllocationProfileElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
@@ -72,12 +76,12 @@ class ClassAllocationProfileElement extends HtmlElement implements Renderable {
       children = const [];
       return;
     }
-    final content = [
-      new SampleBufferControlElement(_progress, _progressStream,
+    final content = <HtmlElement>[
+      new SampleBufferControlElement(_vm, _progress, _progressStream,
           selectedTag: _tag, queue: _r.queue)
         ..onTagChange.listen((e) {
           _tag = e.element.selectedTag;
-          _request();
+          _request(forceFetch: true);
         })
     ];
     if (_progress.status == M.SampleProfileLoadingStatus.loaded) {
@@ -103,9 +107,10 @@ class ClassAllocationProfileElement extends HtmlElement implements Renderable {
     children = content;
   }
 
-  Future _request() async {
+  Future _request({bool forceFetch: false}) async {
     _progress = null;
-    _progressStream = _profiles.get(_isolate, _cls, _tag);
+    _progressStream =
+        _profiles.get(_isolate, _cls, _tag, forceFetch: forceFetch);
     _r.dirty();
     _progress = (await _progressStream.first).progress;
     _r.dirty();

@@ -14,7 +14,7 @@ class Analytics {
     // We only send screen views. This is allowed without user permission.
     // Note, before flipping this to be true we need a UI to allow users to
     // control this.
-    _googleAnalytics.optIn = false;
+    _googleAnalytics.analyticsOpt = AnalyticsOpt.optOut;
   }
 
   /// Called whenever an Observatory page is viewed.

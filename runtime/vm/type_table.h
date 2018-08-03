@@ -22,7 +22,6 @@ class CanonicalTypeKey {
   DISALLOW_ALLOCATION();
 };
 
-
 // Traits for looking up Canonical Type based on it's hash.
 class CanonicalTypeTraits {
  public:
@@ -51,7 +50,6 @@ class CanonicalTypeTraits {
 };
 typedef UnorderedHashSet<CanonicalTypeTraits> CanonicalTypeSet;
 
-
 class CanonicalTypeArgumentsKey {
  public:
   explicit CanonicalTypeArgumentsKey(const TypeArguments& key) : key_(key) {}
@@ -64,7 +62,6 @@ class CanonicalTypeArgumentsKey {
  private:
   DISALLOW_ALLOCATION();
 };
-
 
 // Traits for looking up Canonical TypeArguments based on its hash.
 class CanonicalTypeArgumentsTraits {

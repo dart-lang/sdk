@@ -17,11 +17,14 @@ class NativeClass {
 
 makeNativeClass() native;
 
-setup() native """
-function NativeClass() {}
-makeNativeClass = function() { return new NativeClass; }
-self.nativeConstructor(NativeClass);
-""";
+setup() {
+  JS('', r"""
+(function(){
+  function NativeClass() {}
+  makeNativeClass = function() { return new NativeClass(); };
+  self.nativeConstructor(NativeClass);
+})()""");
+}
 
 main() {
   nativeTesting();

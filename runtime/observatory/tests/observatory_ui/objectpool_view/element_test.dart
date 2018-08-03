@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:html';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/object_common.dart';
 import 'package:observatory/src/elements/objectpool_view.dart';
@@ -35,7 +35,7 @@ main() {
   });
   test('elements created after attachment', () async {
     final pools = new ObjectPoolRepositoryMock(
-        getter: expectAsync((i, id) async {
+        getter: expectAsync2((i, id) async {
       expect(i, equals(isolate));
       expect(id, equals(pool.id));
       return pool;

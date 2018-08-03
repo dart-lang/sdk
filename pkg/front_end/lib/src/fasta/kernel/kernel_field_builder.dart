@@ -4,59 +4,83 @@
 
 library fasta.kernel_field_builder;
 
-import 'package:front_end/src/fasta/kernel/body_builder.dart' show BodyBuilder;
+import 'package:kernel/ast.dart'
+    show DartType, Expression, Field, Name, NullLiteral;
 
-import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
-    show KernelField;
+import '../../base/instrumentation.dart'
+    show Instrumentation, InstrumentationValueForType;
 
-import 'package:front_end/src/fasta/parser/parser.dart' show Parser;
+import '../../scanner/token.dart' show Token;
 
-import 'package:front_end/src/scanner/token.dart' show Token;
+import '../fasta_codes.dart' show messageInternalProblemAlreadyInitialized;
 
-import 'package:front_end/src/fasta/builder/class_builder.dart'
-    show ClassBuilder;
+import '../problems.dart' show internalProblem;
 
-import 'package:front_end/src/fasta/source/source_library_builder.dart'
-    show SourceLibraryBuilder;
+import '../type_inference/type_inference_listener.dart'
+    show KernelTypeInferenceListener;
 
-import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart'
-    show TypeInferenceListener;
-
-import 'package:kernel/ast.dart' show Expression, Field, Name;
+import 'kernel_body_builder.dart' show KernelBodyBuilder;
 
 import 'kernel_builder.dart'
-    show Builder, FieldBuilder, KernelTypeBuilder, MetadataBuilder;
+    show
+        Declaration,
+        FieldBuilder,
+        KernelTypeBuilder,
+        LibraryBuilder,
+        MetadataBuilder;
+
+import 'kernel_shadow_ast.dart' show ShadowField;
 
 class KernelFieldBuilder extends FieldBuilder<Expression> {
-  final Field field;
+  final ShadowField field;
   final List<MetadataBuilder> metadata;
   final KernelTypeBuilder type;
-  final Token initializerToken;
+  final Token initializerTokenForInference;
+  final bool hasInitializer;
 
-  KernelFieldBuilder(this.metadata, this.type, String name, int modifiers,
-      Builder compilationUnit, int charOffset, this.initializerToken)
-      : field = new KernelField(null, fileUri: compilationUnit?.relativeFileUri)
+  KernelFieldBuilder(
+      this.metadata,
+      this.type,
+      String name,
+      int modifiers,
+      Declaration compilationUnit,
+      int charOffset,
+      this.initializerTokenForInference,
+      this.hasInitializer)
+      : field = new ShadowField(null, type == null,
+            fileUri: compilationUnit?.fileUri)
           ..fileOffset = charOffset,
         super(name, modifiers, compilationUnit, charOffset);
 
   void set initializer(Expression value) {
+    if (!hasInitializer && value is! NullLiteral && !isConst && !isFinal) {
+      internalProblem(
+          messageInternalProblemAlreadyInitialized, charOffset, fileUri);
+    }
     field.initializer = value..parent = field;
   }
 
-  Field build(SourceLibraryBuilder library) {
+  bool get isEligibleForInference =>
+      type == null && (hasInitializer || isInstanceMember);
+
+  Field build(LibraryBuilder library) {
     field.name ??= new Name(name, library.target);
     if (type != null) {
       field.type = type.build(library);
     }
     bool isInstanceMember = !isStatic && !isTopLevel;
     field
+      ..isCovariant = isCovariant
       ..isFinal = isFinal
       ..isConst = isConst
       ..hasImplicitGetter = isInstanceMember
       ..hasImplicitSetter = isInstanceMember && !isConst && !isFinal
       ..isStatic = !isInstanceMember;
-    if (initializerToken != null) {
-      library.loader.typeInferenceEngine.recordField(field);
+    if (!library.disableTypeInference &&
+        isEligibleForInference &&
+        !isInstanceMember) {
+      library.loader.typeInferenceEngine
+          .recordStaticFieldInferenceCandidate(field, library);
     }
     return field;
   }
@@ -64,36 +88,30 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   Field get target => field;
 
   @override
-  void prepareInitializerInference(
-      SourceLibraryBuilder library, ClassBuilder currentClass) {
-    if (initializerToken != null) {
-      var memberScope =
-          currentClass == null ? library.scope : currentClass.scope;
-      // TODO(paulberry): Is it correct to pass library.uri into BodyBuilder, or
-      // should it be the part URI?
-      var typeInferenceEngine = library.loader.typeInferenceEngine;
-      var astFactory = library.loader.astFactory;
-      var listener = new TypeInferenceListener();
-      var typeInferrer =
-          typeInferenceEngine.createTopLevelTypeInferrer(field, listener);
-      var bodyBuilder = new BodyBuilder(
-          library,
-          this,
-          memberScope,
-          null,
-          typeInferenceEngine.classHierarchy,
-          typeInferenceEngine.coreTypes,
-          currentClass,
-          isInstanceMember,
-          library.uri,
-          typeInferrer,
-          astFactory,
-          fieldDependencies: typeInferenceEngine.getFieldDependencies(field));
-      Parser parser = new Parser(bodyBuilder);
-      Token token = parser.parseExpression(initializerToken);
-      Expression expression = bodyBuilder.popForValue();
-      bodyBuilder.checkEmpty(token.charOffset);
-      initializer = expression;
+  void prepareTopLevelInference() {
+    if (!isEligibleForInference) return;
+    var listener = new KernelTypeInferenceListener();
+    var typeInferrer = library.loader.typeInferenceEngine
+        .createTopLevelTypeInferrer(
+            listener, field.enclosingClass?.thisType, field);
+    if (hasInitializer) {
+      initializer = new KernelBodyBuilder.forField(this, typeInferrer)
+          .parseFieldInitializer(initializerTokenForInference);
     }
   }
+
+  @override
+  void instrumentTopLevelInference(Instrumentation instrumentation) {
+    if (isEligibleForInference) {
+      instrumentation.record(field.fileUri, field.fileOffset, 'topType',
+          new InstrumentationValueForType(field.type));
+    }
+  }
+
+  @override
+  DartType get builtType => field.type;
+
+  @override
+  bool get hasTypeInferredFromInitializer =>
+      ShadowField.hasTypeInferredFromInitializer(field);
 }

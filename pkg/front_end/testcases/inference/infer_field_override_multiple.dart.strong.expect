@@ -1,0 +1,100 @@
+// Errors:
+//
+// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:32:163: Error: Can't infer the type of 'x': overridden members must all have the same type.
+// Specify the type explicitly.
+//   var /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ x;
+//                                                                                                                                                                   ^
+//
+// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:36:163: Error: Can't infer the type of 'x': overridden members must all have the same type.
+// Specify the type explicitly.
+//   var /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ x;
+//                                                                                                                                                                   ^
+//
+// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:40:163: Error: Can't infer the type of 'x': overridden members must all have the same type.
+// Specify the type explicitly.
+//   var /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ x;
+//                                                                                                                                                                   ^
+//
+// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:32:163: Error: The return type of the method 'F::x' is dynamic, which does not match the return type of the overridden method (dart.core::int).
+// Change to a subtype of dart.core::int.
+//   var /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ x;
+//                                                                                                                                                                   ^
+//
+// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:32:163: Error: The return type of the method 'F::x' is dynamic, which does not match the return type of the overridden method (dart.core::num).
+// Change to a subtype of dart.core::num.
+//   var /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ x;
+//                                                                                                                                                                   ^
+//
+// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:36:163: Error: The return type of the method 'G::x' is dynamic, which does not match the return type of the overridden method (dart.core::int).
+// Change to a subtype of dart.core::int.
+//   var /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ x;
+//                                                                                                                                                                   ^
+//
+// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:36:163: Error: The return type of the method 'G::x' is dynamic, which does not match the return type of the overridden method (dart.core::double).
+// Change to a subtype of dart.core::double.
+//   var /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ x;
+//                                                                                                                                                                   ^
+//
+// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:40:163: Error: The return type of the method 'H::x' is dynamic, which does not match the return type of the overridden method (dart.core::num).
+// Change to a subtype of dart.core::num.
+//   var /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ x;
+//                                                                                                                                                                   ^
+//
+// pkg/front_end/testcases/inference/infer_field_override_multiple.dart:40:163: Error: The return type of the method 'H::x' is dynamic, which does not match the return type of the overridden method (dart.core::double).
+// Change to a subtype of dart.core::double.
+//   var /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ /*@error=OverrideTypeMismatchReturnType*/ /*@error=OverrideTypeMismatchReturnType*/ x;
+//                                                                                                                                                                   ^
+
+library test;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract get x() → core::int;
+}
+abstract class B extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract get x() → core::int;
+}
+abstract class C extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract get x() → core::num;
+}
+abstract class D extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract get x() → core::double;
+}
+class E extends self::A implements self::B {
+  field core::int x = null;
+  synthetic constructor •() → void
+    : super self::A::•()
+    ;
+}
+class F extends self::A implements self::C {
+  field dynamic x = null;
+  synthetic constructor •() → void
+    : super self::A::•()
+    ;
+}
+class G extends self::A implements self::D {
+  field dynamic x = null;
+  synthetic constructor •() → void
+    : super self::A::•()
+    ;
+}
+class H extends self::C implements self::D {
+  field dynamic x = null;
+  synthetic constructor •() → void
+    : super self::C::•()
+    ;
+}
+static method main() → dynamic {}

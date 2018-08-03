@@ -1,0 +1,23 @@
+// Errors:
+//
+// pkg/front_end/testcases/regress/issue_33452.dart:8:29: Error: Method not found: 'ExistingClass.nonExistingConstructor'.
+//   var x = new ExistingClass.nonExistingConstructor();
+//                             ^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/regress/issue_33452.dart:9:11: Error: Method not found: 'NonExistingClass'.
+//   x = new NonExistingClass();
+//           ^^^^^^^^^^^^^^^^
+
+library;
+import self as self;
+import "dart:core" as core;
+
+class ExistingClass extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  dynamic x = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#ExistingClass.nonExistingConstructor, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  x = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#NonExistingClass, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+}

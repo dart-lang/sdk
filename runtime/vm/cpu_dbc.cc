@@ -16,11 +16,9 @@ void CPU::FlushICache(uword start, uword size) {
   // Nothing to do.
 }
 
-
 const char* CPU::Id() {
   return "dbc";
 }
-
 
 const char* HostCPUFeatures::hardware_ = NULL;
 #if defined(DEBUG)
@@ -34,7 +32,6 @@ void HostCPUFeatures::InitOnce() {
   initialized_ = true;
 #endif
 }
-
 
 void HostCPUFeatures::Cleanup() {
   DEBUG_ASSERT(initialized_);

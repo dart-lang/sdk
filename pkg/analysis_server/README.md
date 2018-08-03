@@ -18,5 +18,5 @@ protocol is specified in the file [`analysis_server/doc/api.html`][api].
 
 Please file feature requests and bugs at the [issue tracker][tracker].
 
-[tracker]: https://code.google.com/p/dart/issues
+[tracker]: https://github.com/dart-lang/sdk/issues
 [api]: https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/doc/api.html

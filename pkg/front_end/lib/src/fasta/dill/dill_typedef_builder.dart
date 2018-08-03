@@ -4,43 +4,62 @@
 
 library fasta.dill_typedef_builder;
 
-import 'package:front_end/src/fasta/builder/library_builder.dart';
-import 'package:front_end/src/fasta/errors.dart';
 import 'package:kernel/ast.dart' show DartType, Typedef;
 
 import '../kernel/kernel_builder.dart'
     show
-        FormalParameterBuilder,
         KernelFunctionTypeAliasBuilder,
+        KernelFunctionTypeBuilder,
         KernelTypeBuilder,
-        MetadataBuilder,
-        TypeVariableBuilder;
+        LibraryBuilder,
+        MetadataBuilder;
+
+import '../problems.dart' show unimplemented;
+
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 
 class DillFunctionTypeAliasBuilder extends KernelFunctionTypeAliasBuilder {
   DillFunctionTypeAliasBuilder(Typedef typedef, DillLibraryBuilder parent)
-      : super(null, null, typedef.name, null, null, parent, typedef.fileOffset,
+      : super(null, typedef.name, null, null, parent, typedef.fileOffset,
             typedef);
 
-  @override
-  List<FormalParameterBuilder> get formals {
-    return internalError('Not implemented.');
-  }
-
   List<MetadataBuilder> get metadata {
-    return internalError('Not implemented.');
+    return unimplemented("metadata", -1, null);
   }
 
   @override
-  KernelTypeBuilder get returnType {
-    return internalError('Not implemented.');
-  }
+  int get typeVariablesCount => target.typeParameters.length;
 
   @override
-  List<TypeVariableBuilder> get typeVariables {
-    return internalError('Not implemented.');
+  KernelFunctionTypeBuilder get type {
+    return unimplemented("type", -1, null);
   }
 
   @override
   DartType buildThisType(LibraryBuilder library) => thisType ??= target.type;
+
+  @override
+  List<DartType> buildTypeArguments(
+      LibraryBuilder library, List<KernelTypeBuilder> arguments) {
+    // For performance reasons, [typeVariables] aren't restored from [target].
+    // So, if [arguments] is null, the default types should be retrieved from
+    // [cls.typeParameters].
+    if (arguments == null) {
+      List<DartType> result = new List<DartType>.filled(
+          target.typeParameters.length, null,
+          growable: true);
+      for (int i = 0; i < result.length; ++i) {
+        result[i] = target.typeParameters[i].defaultType;
+      }
+      return result;
+    }
+
+    // [arguments] != null
+    List<DartType> result =
+        new List<DartType>.filled(arguments.length, null, growable: true);
+    for (int i = 0; i < result.length; ++i) {
+      result[i] = arguments[i].build(library);
+    }
+    return result;
+  }
 }

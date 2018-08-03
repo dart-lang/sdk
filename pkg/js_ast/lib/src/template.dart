@@ -103,7 +103,8 @@ class Template {
     if (arguments is List) {
       if (arguments.length != positionalArgumentCount) {
         throw 'Wrong number of template arguments, given ${arguments.length}, '
-            'expected $positionalArgumentCount';
+            'expected $positionalArgumentCount'
+            ', source: "$source"';
       }
       return instantiator(arguments);
     }
@@ -129,7 +130,7 @@ class Template {
  * trees. [arguments] is a List for positional templates, or Map for
  * named templates.
  */
-typedef Node Instantiator(var arguments);
+typedef /*Node|Iterable<Node>*/ Instantiator(var arguments);
 
 /**
  * InstantiatorGeneratorVisitor compiles a template.  This class compiles a tree
@@ -180,15 +181,15 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     throw 'Unimplemented InstantiatorGeneratorVisitor for $node';
   }
 
-  static RegExp identiferRE = new RegExp(r'^[A-Za-z_$][A-Za-z_$0-9]*$');
+  static RegExp identifierRE = new RegExp(r'^[A-Za-z_$][A-Za-z_$0-9]*$');
 
   static Expression convertStringToVariableUse(String value) {
-    assert(identiferRE.hasMatch(value));
+    assert(identifierRE.hasMatch(value));
     return new VariableUse(value);
   }
 
   static Expression convertStringToVariableDeclaration(String value) {
-    assert(identiferRE.hasMatch(value));
+    assert(identifierRE.hasMatch(value));
     return new VariableDeclaration(value);
   }
 
@@ -287,7 +288,6 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         Statement toStatement(item) {
           if (item is Statement) return item;
           if (item is Expression) return item.toStatement();
-          ;
           return error('Interpolated value #$nameOrPosition is not '
               'a Statement or List of Statements: $value');
         }
@@ -300,7 +300,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   }
 
   Instantiator visitProgram(Program node) {
-    List instantiators = node.body.map(visitSplayableStatement).toList();
+    List<Instantiator> instantiators =
+        node.body.map(visitSplayableStatement).toList();
     return (arguments) {
       List<Statement> statements = <Statement>[];
       void add(node) {
@@ -320,7 +321,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   }
 
   Instantiator visitBlock(Block node) {
-    List instantiators = node.statements.map(visitSplayableStatement).toList();
+    List<Instantiator> instantiators =
+        node.statements.map(visitSplayableStatement).toList();
     return (arguments) {
       List<Statement> statements = <Statement>[];
       void add(node) {
@@ -368,7 +370,6 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         if (value is bool) return value;
         if (value is Expression) return value;
         if (value is String) return convertStringToVariableUse(value);
-        ;
         error('Interpolated value #$nameOrPosition '
             'is not an Expression: $value');
       };
@@ -485,7 +486,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       return new Switch(
           makeKey(arguments),
           makeCases
-              .map((Instantiator makeCase) => makeCase(arguments))
+              .map<SwitchClause>((Instantiator makeCase) => makeCase(arguments))
               .toList());
     };
   }
@@ -691,7 +692,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         node.elements.map(visit).toList(growable: false);
     return (arguments) {
       List<Expression> elements = elementMakers
-          .map((Instantiator instantiator) => instantiator(arguments))
+          .map<Expression>(
+              (Instantiator instantiator) => instantiator(arguments))
           .toList(growable: false);
       return new ArrayInitializer(elements);
     };

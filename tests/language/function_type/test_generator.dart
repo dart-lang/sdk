@@ -541,9 +541,6 @@ import 'package:expect/expect.dart';
 @NoInline()
 @AssumeDynamic()
 confuse(f) => f;
-
-final bool inCheckedMode =
-    (() { bool result = false; assert(result = true); return result; })();
 """;
 
 class Unit {
@@ -642,7 +639,7 @@ final TYPEDEF_T_TESTS_TEMPLATE = """
       Expect.equals(tIsDynamic, #methodFunName is #typeName<bool>);
       Expect.equals(tIsDynamic, confuse(#methodFunName) is #typeName<bool>);
     } else {
-      if (inCheckedMode) {
+      if (typeAssertionsEnabled) {
         Expect.throws(() { #fieldName = (#staticFunName as dynamic); });
         Expect.throws(() { #fieldName = confuse(#staticFunName); });
         #typeCode #localName;

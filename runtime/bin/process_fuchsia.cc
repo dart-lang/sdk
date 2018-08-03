@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_IO_DISABLED)
-
 #include "platform/globals.h"
 #if defined(HOST_OS_FUCHSIA)
 
@@ -11,25 +9,32 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <launchpad/launchpad.h>
-#include <launchpad/vmo.h>
-#include <magenta/process.h>
-#include <magenta/status.h>
-#include <magenta/syscalls.h>
-#include <magenta/syscalls/object.h>
-#include <mxio/util.h>
+#include <lib/fdio/io.h>
+#include <lib/fdio/namespace.h>
+#include <lib/fdio/private.h>
+#include <lib/fdio/spawn.h>
+#include <lib/fdio/util.h>
+#include <poll.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/epoll.h>
 #include <unistd.h>
+#include <zircon/process.h>
+#include <zircon/processargs.h>
+#include <zircon/status.h>
+#include <zircon/syscalls.h>
+#include <zircon/syscalls/object.h>
+#include <zircon/types.h>
 
 #include "bin/dartutils.h"
+#include "bin/eventhandler.h"
 #include "bin/fdutils.h"
+#include "bin/file.h"
 #include "bin/lockers.h"
 #include "bin/log.h"
+#include "bin/namespace.h"
 #include "platform/signal_blocker.h"
 #include "platform/utils.h"
 
@@ -55,41 +60,40 @@ Process::ExitHook Process::exit_hook_ = NULL;
 // ProcessInfoList.
 class ProcessInfo {
  public:
-  ProcessInfo(mx_handle_t process, intptr_t fd)
+  ProcessInfo(zx_handle_t process, intptr_t fd)
       : process_(process), exit_pipe_fd_(fd) {}
   ~ProcessInfo() {
     int closed = NO_RETRY_EXPECTED(close(exit_pipe_fd_));
     if (closed != 0) {
-      FATAL("Failed to close process exit code pipe");
+      LOG_ERR("Failed to close process exit code pipe");
     }
-    mx_handle_close(process_);
+    zx_handle_close(process_);
   }
-  mx_handle_t process() const { return process_; }
+  zx_handle_t process() const { return process_; }
   intptr_t exit_pipe_fd() const { return exit_pipe_fd_; }
   ProcessInfo* next() const { return next_; }
   void set_next(ProcessInfo* info) { next_ = info; }
 
  private:
-  mx_handle_t process_;
+  zx_handle_t process_;
   intptr_t exit_pipe_fd_;
   ProcessInfo* next_;
 
   DISALLOW_COPY_AND_ASSIGN(ProcessInfo);
 };
 
-
 // Singly-linked list of ProcessInfo objects for all active processes
 // started from Dart.
 class ProcessInfoList {
  public:
-  static void AddProcess(mx_handle_t process, intptr_t fd) {
+  static void AddProcess(zx_handle_t process, intptr_t fd) {
     MutexLocker locker(mutex_);
     ProcessInfo* info = new ProcessInfo(process, fd);
     info->set_next(active_processes_);
     active_processes_ = info;
   }
 
-  static intptr_t LookupProcessExitFd(mx_handle_t process) {
+  static intptr_t LookupProcessExitFd(zx_handle_t process) {
     MutexLocker locker(mutex_);
     ProcessInfo* current = active_processes_;
     while (current != NULL) {
@@ -101,11 +105,11 @@ class ProcessInfoList {
     return 0;
   }
 
-  static bool Exists(mx_handle_t process) {
+  static bool Exists(zx_handle_t process) {
     return LookupProcessExitFd(process) != 0;
   }
 
-  static void RemoveProcess(mx_handle_t process) {
+  static void RemoveProcess(zx_handle_t process) {
     MutexLocker locker(mutex_);
     ProcessInfo* prev = NULL;
     ProcessInfo* current = active_processes_;
@@ -153,18 +157,17 @@ class ExitCodeHandler {
     if (running_) {
       return;
     }
-
     LOG_INFO("ExitCodeHandler Starting\n");
 
-    mx_status_t status = mx_socket_create(0, &interrupt_in_, &interrupt_out_);
-    if (status < 0) {
-      FATAL1("Failed to create exit code handler interrupt socket: %s\n",
-             mx_status_get_string(status));
+    zx_status_t status = zx_port_create(0, &port_);
+    if (status != ZX_OK) {
+      FATAL1("ExitCodeHandler: zx_port_create failed: %s\n",
+             zx_status_get_string(status));
+      return;
     }
 
     // Start thread that handles process exits when wait returns.
-    intptr_t result =
-        Thread::Start(ExitCodeHandlerEntry, static_cast<uword>(interrupt_out_));
+    intptr_t result = Thread::Start(ExitCodeHandlerEntry, 0);
     if (result != 0) {
       FATAL1("Failed to start exit code handler worker thread %ld", result);
     }
@@ -172,10 +175,11 @@ class ExitCodeHandler {
     running_ = true;
   }
 
-  static void Add(mx_handle_t process) {
+  static zx_status_t Add(zx_handle_t process) {
     MonitorLocker locker(monitor_);
     LOG_INFO("ExitCodeHandler Adding Process: %ld\n", process);
-    SendMessage(Message::kAdd, process);
+    return zx_object_wait_async(process, port_, static_cast<uint64_t>(process),
+                                ZX_TASK_TERMINATED, ZX_WAIT_ASYNC_ONCE);
   }
 
   static void Terminate() {
@@ -186,121 +190,71 @@ class ExitCodeHandler {
     running_ = false;
 
     LOG_INFO("ExitCodeHandler Terminating\n");
-    SendMessage(Message::kShutdown, MX_HANDLE_INVALID);
+    SendShutdownMessage();
 
     while (!terminate_done_) {
       monitor_->Wait(Monitor::kNoTimeout);
     }
-    mx_handle_close(interrupt_in_);
+    zx_handle_close(port_);
     LOG_INFO("ExitCodeHandler Terminated\n");
   }
 
  private:
-  class Message {
-   public:
-    enum Command {
-      kAdd,
-      kShutdown,
-    };
-    Command command;
-    mx_handle_t handle;
-  };
+  static const uint64_t kShutdownPacketKey = 1;
 
-  static void SendMessage(Message::Command command, mx_handle_t handle) {
-    Message msg;
-    msg.command = command;
-    msg.handle = handle;
-    size_t actual;
-    mx_status_t status =
-        mx_socket_write(interrupt_in_, 0, &msg, sizeof(msg), &actual);
-    if (status < 0) {
-      FATAL1("Write to exit handler interrupt handle failed: %s\n",
-             mx_status_get_string(status));
+  static void SendShutdownMessage() {
+    zx_port_packet_t pkt;
+    pkt.key = kShutdownPacketKey;
+    zx_status_t status = zx_port_queue(port_, &pkt);
+    if (status != ZX_OK) {
+      Log::PrintErr("ExitCodeHandler: zx_port_queue failed: %s\n",
+                    zx_status_get_string(status));
     }
-    ASSERT(actual == sizeof(msg));
   }
 
   // Entry point for the separate exit code handler thread started by
   // the ExitCodeHandler.
   static void ExitCodeHandlerEntry(uword param) {
     LOG_INFO("ExitCodeHandler Entering ExitCodeHandler thread\n");
-    item_capacity_ = 16;
-    items_ = reinterpret_cast<mx_wait_item_t*>(
-        malloc(item_capacity_ * sizeof(*items_)));
-    items_to_remove_ = reinterpret_cast<intptr_t*>(
-        malloc(item_capacity_ * sizeof(*items_to_remove_)));
 
-    // The interrupt handle is fixed to the first entry.
-    items_[0].handle = interrupt_out_;
-    items_[0].waitfor = MX_SOCKET_READABLE | MX_SOCKET_PEER_CLOSED;
-    items_[0].pending = MX_SIGNAL_NONE;
-    item_count_ = 1;
-
-    while (!do_shutdown_) {
-      LOG_INFO("ExitCodeHandler Calling mx_object_wait_many: %ld items\n",
-               item_count_);
-      mx_status_t status =
-          mx_object_wait_many(items_, item_count_, MX_TIME_INFINITE);
-      if (status < 0) {
-        FATAL1("Exit code handler handle wait failed: %s\n",
-               mx_status_get_string(status));
+    zx_port_packet_t pkt;
+    while (true) {
+      zx_status_t status = zx_port_wait(port_, ZX_TIME_INFINITE, &pkt);
+      if (status != ZX_OK) {
+        FATAL1("ExitCodeHandler: zx_port_wait failed: %s\n",
+               zx_status_get_string(status));
       }
-      LOG_INFO("ExitCodeHandler mx_object_wait_many returned\n");
-
-      bool have_interrupt = false;
-      intptr_t remove_count = 0;
-      for (intptr_t i = 0; i < item_count_; i++) {
-        if (items_[i].pending == MX_SIGNAL_NONE) {
-          continue;
-        }
-        if (i == 0) {
-          LOG_INFO("ExitCodeHandler thread saw interrupt\n");
-          have_interrupt = true;
-          continue;
-        }
-        ASSERT(items_[i].waitfor == MX_TASK_TERMINATED);
-        ASSERT((items_[i].pending & MX_TASK_TERMINATED) != 0);
-        LOG_INFO("ExitCodeHandler signal for %ld\n", items_[i].handle);
-        SendProcessStatus(items_[i].handle);
-        items_to_remove_[remove_count++] = i;
+      if (pkt.type == ZX_PKT_TYPE_USER) {
+        ASSERT(pkt.key == kShutdownPacketKey);
+        break;
       }
-      for (intptr_t i = 0; i < remove_count; i++) {
-        RemoveItem(items_to_remove_[i]);
+      zx_handle_t process = static_cast<zx_handle_t>(pkt.key);
+      zx_signals_t observed = pkt.signal.observed;
+      if ((observed & ZX_TASK_TERMINATED) == ZX_SIGNAL_NONE) {
+        LOG_ERR("ExitCodeHandler: Unexpected signals, process %ld: %lx\n",
+                process, observed);
       }
-      if (have_interrupt) {
-        HandleInterruptMsg();
-      }
+      SendProcessStatus(process);
     }
 
     LOG_INFO("ExitCodeHandler thread shutting down\n");
-    mx_handle_close(interrupt_out_);
-    free(items_);
-    items_ = NULL;
-    free(items_to_remove_);
-    items_to_remove_ = NULL;
-    item_count_ = 0;
-    item_capacity_ = 0;
-
     terminate_done_ = true;
     monitor_->Notify();
   }
 
-  static void SendProcessStatus(mx_handle_t process) {
+  static void SendProcessStatus(zx_handle_t process) {
     LOG_INFO("ExitCodeHandler thread getting process status: %ld\n", process);
-    mx_info_process_t proc_info;
-    mx_status_t status = mx_object_get_info(
-        process, MX_INFO_PROCESS, &proc_info, sizeof(proc_info), NULL, NULL);
-    if (status < 0) {
-      FATAL1("mx_object_get_info failed on process handle: %s\n",
-             mx_status_get_string(status));
+    int return_code = -1;
+    zx_info_process_t proc_info;
+    zx_status_t status = zx_object_get_info(
+        process, ZX_INFO_PROCESS, &proc_info, sizeof(proc_info), NULL, NULL);
+    if (status != ZX_OK) {
+      Log::PrintErr("ExitCodeHandler: zx_object_get_info failed: %s\n",
+                    zx_status_get_string(status));
+    } else {
+      return_code = proc_info.return_code;
     }
-
-    const int return_code = proc_info.return_code;
-    status = mx_handle_close(process);
-    if (status < 0) {
-      FATAL1("Failed to close process handle: %s\n",
-             mx_status_get_string(status));
-    }
+    zx_handle_close(process);
     LOG_INFO("ExitCodeHandler thread process %ld exited with %d\n", process,
              return_code);
 
@@ -316,91 +270,22 @@ class ExitCodeHandler {
       ASSERT((result == -1) || (result == sizeof(exit_code_fd)));
       if ((result == -1) && (errno != EPIPE)) {
         int err = errno;
-        FATAL1("Failed to write exit code to pipe: %d\n", err);
+        Log::PrintErr("Failed to write exit code for process %d: errno=%d\n",
+                      process, err);
       }
       LOG_INFO("ExitCodeHandler thread wrote %ld bytes to fd %ld\n", result,
                exit_code_fd);
       LOG_INFO("ExitCodeHandler thread removing process %ld from list\n",
                process);
       ProcessInfoList::RemoveProcess(process);
+    } else {
+      LOG_ERR("ExitCodeHandler: Process %ld not found\n", process);
     }
   }
 
-  static void HandleInterruptMsg() {
-    ASSERT(items_[0].handle == interrupt_out_);
-    ASSERT(items_[0].waitfor == MX_SOCKET_READABLE);
-    ASSERT((items_[0].pending & MX_SOCKET_READABLE) != 0);
-    while (true) {
-      Message msg;
-      size_t actual = 0;
-      LOG_INFO("ExitCodeHandler thread reading interrupt message\n");
-      mx_status_t status =
-          mx_socket_read(interrupt_out_, 0, &msg, sizeof(msg), &actual);
-      if (status == ERR_SHOULD_WAIT) {
-        LOG_INFO("ExitCodeHandler thread done reading interrupt messages\n");
-        return;
-      }
-      if (status < 0) {
-        FATAL1("Failed to read exit handler interrupt handle: %s\n",
-               mx_status_get_string(status));
-      }
-      if (actual < sizeof(msg)) {
-        FATAL1("Short read from exit handler interrupt handle: %ld\n", actual);
-      }
-      switch (msg.command) {
-        case Message::kShutdown:
-          LOG_INFO("ExitCodeHandler thread got shutdown message\n");
-          do_shutdown_ = true;
-          break;
-        case Message::kAdd:
-          LOG_INFO("ExitCodeHandler thread got add message: %ld\n", msg.handle);
-          AddItem(msg.handle);
-          break;
-      }
-    }
-  }
-
-  static void AddItem(mx_handle_t h) {
-    if (item_count_ == item_capacity_) {
-      item_capacity_ = item_capacity_ + (item_capacity_ >> 1);
-      items_ =
-          reinterpret_cast<mx_wait_item_t*>(realloc(items_, item_capacity_));
-      items_to_remove_ = reinterpret_cast<intptr_t*>(
-          realloc(items_to_remove_, item_capacity_));
-    }
-    LOG_INFO("ExitCodeHandler thread adding item %ld at %ld\n", h, item_count_);
-    items_[item_count_].handle = h;
-    items_[item_count_].waitfor = MX_TASK_TERMINATED;
-    items_[item_count_].pending = MX_SIGNAL_NONE;
-    item_count_++;
-  }
-
-  static void RemoveItem(intptr_t idx) {
-    LOG_INFO("ExitCodeHandler thread removing item %ld at %ld\n",
-             items_[idx].handle, idx);
-    ASSERT(idx != 0);
-    const intptr_t last = item_count_ - 1;
-    items_[idx].handle = MX_HANDLE_INVALID;
-    items_[idx].waitfor = MX_SIGNAL_NONE;
-    items_[idx].pending = MX_SIGNAL_NONE;
-    if (idx != last) {
-      items_[idx] = items_[last];
-    }
-    item_count_--;
-  }
-
-  // Interrupt channel.
-  static mx_handle_t interrupt_in_;
-  static mx_handle_t interrupt_out_;
-
-  // Accessed only by the ExitCodeHandler thread.
-  static mx_wait_item_t* items_;
-  static intptr_t* items_to_remove_;
-  static intptr_t item_count_;
-  static intptr_t item_capacity_;
+  static zx_handle_t port_;
 
   // Protected by monitor_.
-  static bool do_shutdown_;
   static bool terminate_done_;
   static bool running_;
   static Monitor* monitor_;
@@ -409,14 +294,7 @@ class ExitCodeHandler {
   DISALLOW_IMPLICIT_CONSTRUCTORS(ExitCodeHandler);
 };
 
-mx_handle_t ExitCodeHandler::interrupt_in_ = MX_HANDLE_INVALID;
-mx_handle_t ExitCodeHandler::interrupt_out_ = MX_HANDLE_INVALID;
-mx_wait_item_t* ExitCodeHandler::items_ = NULL;
-intptr_t* ExitCodeHandler::items_to_remove_ = NULL;
-intptr_t ExitCodeHandler::item_count_ = 0;
-intptr_t ExitCodeHandler::item_capacity_ = 0;
-
-bool ExitCodeHandler::do_shutdown_ = false;
+zx_handle_t ExitCodeHandler::port_ = ZX_HANDLE_INVALID;
 bool ExitCodeHandler::running_ = false;
 bool ExitCodeHandler::terminate_done_ = false;
 Monitor* ExitCodeHandler::monitor_ = new Monitor();
@@ -425,25 +303,22 @@ void Process::TerminateExitCodeHandler() {
   ExitCodeHandler::Terminate();
 }
 
-
 intptr_t Process::CurrentProcessId() {
   return static_cast<intptr_t>(getpid());
 }
 
-
 int64_t Process::CurrentRSS() {
-  mx_info_task_stats_t task_stats;
-  mx_handle_t process = mx_process_self();
-  mx_status_t status = mx_object_get_info(
-      process, MX_INFO_TASK_STATS, &task_stats, sizeof(task_stats), NULL, NULL);
-  if (status != NO_ERROR) {
+  zx_info_task_stats_t task_stats;
+  zx_handle_t process = zx_process_self();
+  zx_status_t status = zx_object_get_info(
+      process, ZX_INFO_TASK_STATS, &task_stats, sizeof(task_stats), NULL, NULL);
+  if (status != ZX_OK) {
     // TODO(zra): Translate this to a Unix errno.
     errno = status;
     return -1;
   }
-  return task_stats.mem_committed_bytes;
+  return task_stats.mem_private_bytes + task_stats.mem_shared_bytes;
 }
-
 
 int64_t Process::MaxRSS() {
   // There is currently no way to get the high watermark value on Fuchsia, so
@@ -451,20 +326,20 @@ int64_t Process::MaxRSS() {
   return CurrentRSS();
 }
 
+class IOHandleScope {
+ public:
+  explicit IOHandleScope(IOHandle* io_handle) : io_handle_(io_handle) {}
+  ~IOHandleScope() {
+    io_handle_->Close();
+    io_handle_->Release();
+  }
 
-static bool ProcessWaitCleanup(intptr_t out,
-                               intptr_t err,
-                               intptr_t exit_event,
-                               intptr_t epoll_fd) {
-  int e = errno;
-  VOID_NO_RETRY_EXPECTED(close(out));
-  VOID_NO_RETRY_EXPECTED(close(err));
-  VOID_NO_RETRY_EXPECTED(close(exit_event));
-  VOID_NO_RETRY_EXPECTED(close(epoll_fd));
-  errno = e;
-  return false;
-}
+ private:
+  IOHandle* io_handle_;
 
+  DISALLOW_ALLOCATION();
+  DISALLOW_COPY_AND_ASSIGN(IOHandleScope);
+};
 
 bool Process::Wait(intptr_t pid,
                    intptr_t in,
@@ -472,7 +347,18 @@ bool Process::Wait(intptr_t pid,
                    intptr_t err,
                    intptr_t exit_event,
                    ProcessResult* result) {
-  VOID_NO_RETRY_EXPECTED(close(in));
+  // input not needed.
+  IOHandle* in_iohandle = reinterpret_cast<IOHandle*>(in);
+  in_iohandle->Close();
+  in_iohandle->Release();
+  in_iohandle = NULL;
+
+  IOHandle* out_iohandle = reinterpret_cast<IOHandle*>(out);
+  IOHandle* err_iohandle = reinterpret_cast<IOHandle*>(err);
+  IOHandle* exit_iohandle = reinterpret_cast<IOHandle*>(exit_event);
+  IOHandleScope out_ioscope(out_iohandle);
+  IOHandleScope err_ioscope(err_iohandle);
+  IOHandleScope exit_ioscope(exit_iohandle);
 
   // There is no return from this function using Dart_PropagateError
   // as memory used by the buffer lists is freed through their
@@ -484,83 +370,97 @@ bool Process::Wait(intptr_t pid,
     int32_t ints[2];
   } exit_code_data;
 
-  // The initial size passed to epoll_create is ignore on newer (>=
-  // 2.6.8) Linux versions
-  static const int kEpollInitialSize = 64;
-  int epoll_fd = NO_RETRY_EXPECTED(epoll_create(kEpollInitialSize));
-  if (epoll_fd == -1) {
-    return ProcessWaitCleanup(out, err, exit_event, epoll_fd);
-  }
-  if (!FDUtils::SetCloseOnExec(epoll_fd)) {
-    return ProcessWaitCleanup(out, err, exit_event, epoll_fd);
+  // Create a port, which is like an epoll() fd on Linux.
+  zx_handle_t port;
+  zx_status_t status = zx_port_create(0, &port);
+  if (status != ZX_OK) {
+    Log::PrintErr("Process::Wait: zx_port_create failed: %s\n",
+                  zx_status_get_string(status));
+    return false;
   }
 
-  struct epoll_event event;
-  event.events = EPOLLRDHUP | EPOLLIN;
-  event.data.fd = out;
-  int status = NO_RETRY_EXPECTED(
-      epoll_ctl(epoll_fd, EPOLL_CTL_ADD, out, &event));
-  if (status == -1) {
-    return ProcessWaitCleanup(out, err, exit_event, epoll_fd);
+  IOHandle* out_tmp = out_iohandle;
+  IOHandle* err_tmp = err_iohandle;
+  IOHandle* exit_tmp = exit_iohandle;
+  const uint64_t out_key = reinterpret_cast<uint64_t>(out_tmp);
+  const uint64_t err_key = reinterpret_cast<uint64_t>(err_tmp);
+  const uint64_t exit_key = reinterpret_cast<uint64_t>(exit_tmp);
+  const uint32_t events = POLLRDHUP | POLLIN;
+  if (!out_tmp->AsyncWait(port, events, out_key)) {
+    return false;
   }
-  event.data.fd = err;
-  status = NO_RETRY_EXPECTED(
-      epoll_ctl(epoll_fd, EPOLL_CTL_ADD, err, &event));
-  if (status == -1) {
-    return ProcessWaitCleanup(out, err, exit_event, epoll_fd);
+  if (!err_tmp->AsyncWait(port, events, err_key)) {
+    return false;
   }
-  event.data.fd = exit_event;
-  status = NO_RETRY_EXPECTED(
-      epoll_ctl(epoll_fd, EPOLL_CTL_ADD, exit_event, &event));
-  if (status == -1) {
-    return ProcessWaitCleanup(out, err, exit_event, epoll_fd);
+  if (!exit_tmp->AsyncWait(port, events, exit_key)) {
+    return false;
   }
-  intptr_t active = 3;
-
-  static const intptr_t kMaxEvents = 16;
-  struct epoll_event events[kMaxEvents];
-  while (active > 0) {
-    // TODO(US-109): When the epoll implementation is properly edge-triggered,
-    // remove this sleep, which prevents the message queue from being
-    // overwhelmed and leading to memory exhaustion.
-    usleep(5000);
-    intptr_t result = NO_RETRY_EXPECTED(
-        epoll_wait(epoll_fd, events, kMaxEvents, -1));
-    if ((result < 0) && (errno != EWOULDBLOCK)) {
-      return ProcessWaitCleanup(out, err, exit_event, epoll_fd);
+  while ((out_tmp != NULL) || (err_tmp != NULL) || (exit_tmp != NULL)) {
+    zx_port_packet_t pkt;
+    status = zx_port_wait(port, ZX_TIME_INFINITE, &pkt);
+    if (status != ZX_OK) {
+      Log::PrintErr("Process::Wait: zx_port_wait failed: %s\n",
+                    zx_status_get_string(status));
+      return false;
     }
-    for (intptr_t i = 0; i < result; i++) {
-      if ((events[i].events & EPOLLIN) != 0) {
-        const intptr_t avail = FDUtils::AvailableBytes(events[i].data.fd);
-        if (events[i].data.fd == out) {
-          if (!out_data.Read(out, avail)) {
-            return ProcessWaitCleanup(out, err, exit_event, epoll_fd);
-          }
-        } else if (events[i].data.fd == err) {
-          if (!err_data.Read(err, avail)) {
-            return ProcessWaitCleanup(out, err, exit_event, epoll_fd);
-          }
-        } else if (events[i].data.fd == exit_event) {
-          if (avail == 8) {
-            intptr_t b =
-                NO_RETRY_EXPECTED(read(exit_event, exit_code_data.bytes, 8));
-            if (b != 8) {
-              return ProcessWaitCleanup(out, err, exit_event, epoll_fd);
-            }
-          }
-        } else {
-          UNREACHABLE();
+    IOHandle* event_handle = reinterpret_cast<IOHandle*>(pkt.key);
+    const intptr_t event_mask = event_handle->WaitEnd(pkt.signal.observed);
+    if (event_handle == out_tmp) {
+      if ((event_mask & POLLIN) != 0) {
+        const intptr_t avail = FDUtils::AvailableBytes(out_tmp->fd());
+        if (!out_data.Read(out_tmp->fd(), avail)) {
+          return false;
         }
       }
-      if ((events[i].events & (EPOLLHUP | EPOLLRDHUP)) != 0) {
-        NO_RETRY_EXPECTED(close(events[i].data.fd));
-        active--;
-        VOID_NO_RETRY_EXPECTED(
-            epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[i].data.fd, NULL));
+      if ((event_mask & POLLRDHUP) != 0) {
+        out_tmp->CancelWait(port, out_key);
+        out_tmp = NULL;
+      }
+    } else if (event_handle == err_tmp) {
+      if ((event_mask & POLLIN) != 0) {
+        const intptr_t avail = FDUtils::AvailableBytes(err_tmp->fd());
+        if (!err_data.Read(err_tmp->fd(), avail)) {
+          return false;
+        }
+      }
+      if ((event_mask & POLLRDHUP) != 0) {
+        err_tmp->CancelWait(port, err_key);
+        err_tmp = NULL;
+      }
+    } else if (event_handle == exit_tmp) {
+      if ((event_mask & POLLIN) != 0) {
+        const intptr_t avail = FDUtils::AvailableBytes(exit_tmp->fd());
+        if (avail == 8) {
+          intptr_t b =
+              NO_RETRY_EXPECTED(read(exit_tmp->fd(), exit_code_data.bytes, 8));
+          if (b != 8) {
+            return false;
+          }
+        }
+      }
+      if ((event_mask & POLLRDHUP) != 0) {
+        exit_tmp->CancelWait(port, exit_key);
+        exit_tmp = NULL;
+      }
+    } else {
+      Log::PrintErr("Process::Wait: Unexpected wait key: %p\n", event_handle);
+    }
+    if (out_tmp != NULL) {
+      if (!out_tmp->AsyncWait(port, events, out_key)) {
+        return false;
+      }
+    }
+    if (err_tmp != NULL) {
+      if (!err_tmp->AsyncWait(port, events, err_key)) {
+        return false;
+      }
+    }
+    if (exit_tmp != NULL) {
+      if (!exit_tmp->AsyncWait(port, events, exit_key)) {
+        return false;
       }
     }
   }
-  VOID_NO_RETRY_EXPECTED(close(epoll_fd));
 
   // All handles closed and all data read.
   result->set_stdout_data(out_data.GetData());
@@ -577,31 +477,30 @@ bool Process::Wait(intptr_t pid,
   result->set_exit_code(exit_code);
 
   // Close the process handle.
-  mx_handle_t process = static_cast<mx_handle_t>(pid);
-  mx_handle_close(process);
+  zx_handle_t process = static_cast<zx_handle_t>(pid);
+  zx_handle_close(process);
   return true;
 }
 
-
 bool Process::Kill(intptr_t id, int signal) {
   LOG_INFO("Sending signal %d to process with id %ld\n", signal, id);
-  // mx_task_kill is definitely going to kill the process.
+  // zx_task_kill is definitely going to kill the process.
   if ((signal != SIGTERM) && (signal != SIGKILL)) {
     LOG_ERR("Signal %d not supported\n", signal);
     errno = ENOSYS;
     return false;
   }
-  // We can only use mx_task_kill if we know id is a process handle, and we only
+  // We can only use zx_task_kill if we know id is a process handle, and we only
   // know that for sure if it's in our list.
-  mx_handle_t process = static_cast<mx_handle_t>(id);
+  zx_handle_t process = static_cast<zx_handle_t>(id);
   if (!ProcessInfoList::Exists(process)) {
     LOG_ERR("Process %ld wasn't in the ProcessInfoList\n", id);
     errno = ESRCH;  // No such process.
     return false;
   }
-  mx_status_t status = mx_task_kill(process);
-  if (status != NO_ERROR) {
-    LOG_ERR("mx_task_kill failed: %s\n", mx_status_get_string(status));
+  zx_status_t status = zx_task_kill(process);
+  if (status != ZX_OK) {
+    LOG_ERR("zx_task_kill failed: %s\n", zx_status_get_string(status));
     errno = EPERM;  // TODO(zra): Figure out what it really should be.
     return false;
   }
@@ -609,10 +508,10 @@ bool Process::Kill(intptr_t id, int signal) {
   return true;
 }
 
-
 class ProcessStarter {
  public:
-  ProcessStarter(const char* path,
+  ProcessStarter(Namespace* namespc,
+                 const char* path,
                  char* arguments[],
                  intptr_t arguments_length,
                  const char* working_directory,
@@ -625,7 +524,8 @@ class ProcessStarter {
                  intptr_t* id,
                  intptr_t* exit_event,
                  char** os_error_message)
-      : path_(path),
+      : namespc_(namespc),
+        path_(path),
         working_directory_(working_directory),
         mode_(mode),
         in_(in),
@@ -648,7 +548,6 @@ class ProcessStarter {
       program_arguments_[i + 1] = arguments[i];
     }
     program_arguments_[arguments_length + 1] = NULL;
-    program_arguments_count_ = arguments_length + 1;
 
     program_environment_ = NULL;
     if (environment != NULL) {
@@ -685,31 +584,46 @@ class ProcessStarter {
     LOG_INFO("ProcessStarter: Start() set up exit_pipe_fds (%d, %d)\n",
              exit_pipe_fds[0], exit_pipe_fds[1]);
 
-    // Set up a launchpad.
-    launchpad_t* lp = NULL;
-    mx_status_t status = SetupLaunchpad(&lp);
-    if (status != NO_ERROR) {
+    NamespaceScope ns(namespc_, path_);
+    const int pathfd =
+        TEMP_FAILURE_RETRY(openat(ns.fd(), ns.path(), O_RDONLY));
+    zx_handle_t vmo = ZX_HANDLE_INVALID;
+    zx_status_t status = fdio_get_vmo_clone(pathfd, &vmo);
+    VOID_TEMP_FAILURE_RETRY(close(pathfd));
+    if (status != ZX_OK) {
       close(exit_pipe_fds[0]);
       close(exit_pipe_fds[1]);
+      *os_error_message_ = DartUtils::ScopedCopyCString(
+          "Failed to load executable for process start.");
       return status;
     }
-    ASSERT(lp != NULL);
 
-    // Launch it.
-    LOG_INFO("ProcessStarter: Start() Calling launchpad_start\n");
-    mx_handle_t process = MX_HANDLE_INVALID;
-    const char* errormsg = NULL;
-    status = launchpad_go(lp, &process, &errormsg);
-    lp = NULL;  // launchpad_go() calls launchpad_destroy() on the launchpad.
-    if (status < 0) {
-      LOG_INFO("ProcessStarter: Start() launchpad_start failed\n");
-      const intptr_t kMaxMessageSize = 256;
+    fdio_spawn_action_t actions[4];
+    memset(actions, 0, sizeof(actions));
+    AddPipe(0, &write_out_, &actions[0]);
+    AddPipe(1, &read_in_, &actions[1]);
+    AddPipe(2, &read_err_, &actions[2]);
+    actions[3] = {
+      .action = FDIO_SPAWN_ACTION_SET_NAME,
+      .name.data = program_arguments_[0],
+    };
+
+    // TODO(zra): Use the supplied working directory when fdio_spawn_vmo adds an
+    // API to set it.
+
+    LOG_INFO("ProcessStarter: Start() Calling fdio_spawn_vmo\n");
+    zx_handle_t process = ZX_HANDLE_INVALID;
+    char err_msg[FDIO_SPAWN_ERR_MSG_MAX_LENGTH];
+    uint32_t flags = FDIO_SPAWN_CLONE_JOB | FDIO_SPAWN_CLONE_LDSVC |
+        FDIO_SPAWN_CLONE_NAMESPACE;
+    status = fdio_spawn_vmo(ZX_HANDLE_INVALID, flags, vmo, program_arguments_,
+                            program_environment_, 4, actions, &process, err_msg);
+
+    if (status != ZX_OK) {
+      LOG_ERR("ProcessStarter: Start() fdio_spawn_vmo failed\n");
       close(exit_pipe_fds[0]);
       close(exit_pipe_fds[1]);
-      char* message = DartUtils::ScopedCString(kMaxMessageSize);
-      snprintf(message, kMaxMessageSize, "%s:%d: launchpad_start failed: %s\n",
-               __FILE__, __LINE__, errormsg);
-      *os_error_message_ = message;
+      ReportStartError(err_msg);
       return status;
     }
 
@@ -717,77 +631,64 @@ class ProcessStarter {
              process, exit_pipe_fds[1]);
     ProcessInfoList::AddProcess(process, exit_pipe_fds[1]);
     ExitCodeHandler::Start();
-    ExitCodeHandler::Add(process);
+    status = ExitCodeHandler::Add(process);
+    if (status != ZX_OK) {
+      LOG_ERR("ProcessStarter: ExitCodeHandler: Add failed: %s\n",
+              zx_status_get_string(status));
+      close(exit_pipe_fds[0]);
+      close(exit_pipe_fds[1]);
+      zx_task_kill(process);
+      ProcessInfoList::RemoveProcess(process);
+      ReportStartError(zx_status_get_string(status));
+      return status;
+    }
 
+    // The IOHandles allocated below are returned to Dart code. The Dart code
+    // calls into the runtime again to allocate a C++ Socket object, which
+    // becomes the native field of a Dart _NativeSocket object. The C++ Socket
+    // object and the EventHandler manage the lifetime of these IOHandles.
     *id_ = process;
     FDUtils::SetNonBlocking(read_in_);
-    *in_ = read_in_;
+    *in_ = reinterpret_cast<intptr_t>(new IOHandle(read_in_));
     read_in_ = -1;
     FDUtils::SetNonBlocking(read_err_);
-    *err_ = read_err_;
+    *err_ = reinterpret_cast<intptr_t>(new IOHandle(read_err_));
     read_err_ = -1;
     FDUtils::SetNonBlocking(write_out_);
-    *out_ = write_out_;
+    *out_ = reinterpret_cast<intptr_t>(new IOHandle(write_out_));
     write_out_ = -1;
     FDUtils::SetNonBlocking(exit_pipe_fds[0]);
-    *exit_event_ = exit_pipe_fds[0];
+    *exit_event_ = reinterpret_cast<intptr_t>(new IOHandle(exit_pipe_fds[0]));
     return 0;
   }
 
  private:
-#define CHECK_FOR_ERROR(status, msg)                                           \
-  if (status < 0) {                                                            \
-    const intptr_t kMaxMessageSize = 256;                                      \
-    char* message = DartUtils::ScopedCString(kMaxMessageSize);                 \
-    snprintf(message, kMaxMessageSize, "%s:%d: %s: %s\n", __FILE__, __LINE__,  \
-             msg, mx_status_get_string(status));                               \
-    *os_error_message_ = message;                                              \
-    return status;                                                             \
+  void ReportStartError(const char* errormsg) {
+    const intptr_t kMaxMessageSize = 256;
+    char* message = DartUtils::ScopedCString(kMaxMessageSize);
+    snprintf(message, kMaxMessageSize, "Process start failed: %s\n", errormsg);
+    *os_error_message_ = message;
   }
 
-  mx_status_t SetupLaunchpad(launchpad_t** launchpad) {
-    // Set up a vmo for the binary.
-    mx_handle_t binary_vmo = launchpad_vmo_from_file(path_);
-    CHECK_FOR_ERROR(binary_vmo, "launchpad_vmo_from_file");
-
-    // Run the child process in the same "job".
-    mx_handle_t job = MX_HANDLE_INVALID;
-    mx_status_t status =
-        mx_handle_duplicate(mx_job_default(), MX_RIGHT_SAME_RIGHTS, &job);
-    if (status != NO_ERROR) {
-      mx_handle_close(binary_vmo);
-    }
-    CHECK_FOR_ERROR(status, "mx_handle_duplicate");
-
-    // Set up the launchpad.
-    launchpad_t* lp = NULL;
-    launchpad_create(job, program_arguments_[0], &lp);
-    launchpad_set_args(lp, program_arguments_count_, program_arguments_);
-    launchpad_set_environ(lp, program_environment_);
-    launchpad_clone(lp, LP_CLONE_MXIO_ROOT);
-    // TODO(zra): Use the supplied working directory when launchpad adds an
-    // API to set it.
-    launchpad_clone(lp, LP_CLONE_MXIO_CWD);
-    launchpad_add_pipe(lp, &write_out_, 0);
-    launchpad_add_pipe(lp, &read_in_, 1);
-    launchpad_add_pipe(lp, &read_err_, 2);
-    launchpad_add_vdso_vmo(lp);
-    launchpad_elf_load(lp, binary_vmo);
-    launchpad_load_vdso(lp, MX_HANDLE_INVALID);
-    *launchpad = lp;
-    return NO_ERROR;
+  zx_status_t AddPipe(int target_fd, int* local_fd,
+                      fdio_spawn_action_t* action) {
+    zx_status_t status = fdio_pipe_half(&action->h.handle, &action->h.id);
+    if (status < 0)
+      return status;
+    *local_fd = status;
+    action->action = FDIO_SPAWN_ACTION_ADD_HANDLE;
+    action->h.id = PA_HND(PA_HND_TYPE(action->h.id), target_fd);
+    return ZX_OK;
   }
-
-#undef CHECK_FOR_ERROR
 
   int read_in_;    // Pipe for stdout to child process.
   int read_err_;   // Pipe for stderr to child process.
   int write_out_;  // Pipe for stdin to child process.
 
   char** program_arguments_;
-  intptr_t program_arguments_count_;
   char** program_environment_;
 
+  Namespace* namespc_;
   const char* path_;
   const char* working_directory_;
   ProcessStartMode mode_;
@@ -802,8 +703,8 @@ class ProcessStarter {
   DISALLOW_IMPLICIT_CONSTRUCTORS(ProcessStarter);
 };
 
-
-int Process::Start(const char* path,
+int Process::Start(Namespace* namespc,
+                   const char* path,
                    char* arguments[],
                    intptr_t arguments_length,
                    const char* working_directory,
@@ -821,25 +722,20 @@ int Process::Start(const char* path,
         "Only ProcessStartMode.NORMAL is supported on this platform");
     return -1;
   }
-  ProcessStarter starter(path, arguments, arguments_length, working_directory,
-                         environment, environment_length, mode, in, out, err,
-                         id, exit_event, os_error_message);
+  ProcessStarter starter(namespc, path, arguments, arguments_length,
+                         working_directory, environment, environment_length,
+                         mode, in, out, err, id, exit_event, os_error_message);
   return starter.Start();
 }
-
 
 intptr_t Process::SetSignalHandler(intptr_t signal) {
   errno = ENOSYS;
   return -1;
 }
 
-
-void Process::ClearSignalHandler(intptr_t signal) {
-}
+void Process::ClearSignalHandler(intptr_t signal, Dart_Port port) {}
 
 }  // namespace bin
 }  // namespace dart
 
 #endif  // defined(HOST_OS_FUCHSIA)
-
-#endif  // !defined(DART_IO_DISABLED)

@@ -14,7 +14,7 @@ export 'package:compiler/src/apiimpl.dart' show CompilerImpl;
 export 'package:compiler/src/filenames.dart' show currentDirectory;
 
 import 'package:compiler/src/io/source_file.dart'
-    show Binary, StringSourceFile, SourceFile, Utf8BytesSourceFile;
+    show Binary, StringSourceFile, Utf8BytesSourceFile;
 
 import 'package:compiler/src/source_file_provider.dart' show SourceFileProvider;
 
@@ -28,54 +28,45 @@ class MemorySourceFileProvider extends SourceFileProvider {
   /// file names to binary contents.
   MemorySourceFileProvider(Map<String, dynamic> this.memorySourceFiles);
 
-  Future<Input> readBytesFromUri(Uri resourceUri, InputKind inputKind) {
+  @override
+  Future<Input<List<int>>> readBytesFromUri(
+      Uri resourceUri, InputKind inputKind) {
     if (resourceUri.scheme != 'memory') {
       return super.readBytesFromUri(resourceUri, inputKind);
     }
+    // TODO(johnniwinther): We should use inputs already in the cache. Some
+    // tests currently require that we always create a fresh input.
+
     var source = memorySourceFiles[resourceUri.path];
     if (source == null) {
       return new Future.error(new Exception(
           'No such memory file $resourceUri in ${memorySourceFiles.keys}'));
     }
-    Input input;
+    Input<List<int>> input;
     switch (inputKind) {
-      case InputKind.utf8:
+      case InputKind.UTF8:
         if (source is String) {
           input = new StringSourceFile.fromUri(resourceUri, source);
         } else {
           input = new Utf8BytesSourceFile(resourceUri, source);
         }
+        utf8SourceFiles[resourceUri] = input;
         break;
       case InputKind.binary:
         if (source is String) {
+          utf8SourceFiles[resourceUri] =
+              new StringSourceFile.fromUri(resourceUri, source);
           source = source.codeUnits;
         }
-        input = new Binary(resourceUri, source);
+        input =
+            binarySourceFiles[resourceUri] = new Binary(resourceUri, source);
         break;
     }
-    this.sourceFiles[resourceUri] = input;
     return new Future.value(input);
-  }
-
-  //Future<List<int>> call(Uri resourceUri) => readBytesFromUri(resourceUri, InputKind.utf8);
-
-  SourceFile getSourceFile(Uri resourceUri) {
-    if (resourceUri.scheme != 'memory') {
-      return super.getSourceFile(resourceUri);
-    }
-    var source = memorySourceFiles[resourceUri.path];
-    if (source == null) {
-      throw new Exception(
-          'No such memory file $resourceUri in ${memorySourceFiles.keys}');
-    }
-    if (source is String) {
-      return new StringSourceFile.fromUri(resourceUri, source);
-    }
-    return new Utf8BytesSourceFile(resourceUri, source);
   }
 
   @override
   Future<Input> readFromUri(Uri resourceUri,
-          {InputKind inputKind: InputKind.utf8}) =>
+          {InputKind inputKind: InputKind.UTF8}) =>
       readBytesFromUri(resourceUri, inputKind);
 }

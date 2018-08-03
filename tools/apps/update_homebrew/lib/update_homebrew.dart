@@ -11,7 +11,10 @@ const GITHUB_REPO = 'dart-lang/homebrew-dart';
 
 const CHANNELS = const ['dev', 'stable'];
 
-const FILES = const [x64File, ia32File, dartiumFile, contentShellFile];
+const FILES = const {
+  'dev': const [x64File, ia32File],
+  'stable': const [x64File, ia32File, dartiumFile, contentShellFile]
+};
 
 const urlBase = 'https://storage.googleapis.com/dart-archive/channels';
 const x64File = 'sdk/dartsdk-macos-x64-release.zip';
@@ -20,6 +23,7 @@ const dartiumFile = 'dartium/dartium-macos-x64-release.zip';
 const contentShellFile = 'dartium/content_shell-macos-x64-release.zip';
 
 const dartRbFileName = 'dart.rb';
+const dart2RbFileName = 'dart@2.rb';
 
 Future<String> getHash256(
     String channel, String revision, String download) async {
@@ -30,7 +34,7 @@ Future<String> getHash256(
         'channels/$channel/release/$revision/$download.sha256sum',
         downloadOptions: DownloadOptions.FullMedia);
 
-    var hashLine = await ASCII.decodeStream(media.stream);
+    var hashLine = await ascii.decodeStream(media.stream);
     return new RegExp('[0-9a-fA-F]*').stringMatch(hashLine);
   } finally {
     client.close();
@@ -46,7 +50,8 @@ Future<String> getVersion(String channel, String revision) async {
         'dart-archive', 'channels/$channel/release/$revision/VERSION',
         downloadOptions: DownloadOptions.FullMedia);
 
-    var versionObject = await JSON.fuse(ASCII).decoder.bind(media.stream).first;
+    var versionObject =
+        await json.fuse(ascii).decoder.bind(media.stream).first as Map;
     return versionObject['version'];
   } finally {
     client.close();
@@ -79,7 +84,7 @@ Future<Map> getHashes(Map revisions) async {
   var hashes = <String, Map>{};
   for (var channel in CHANNELS) {
     hashes[channel] = {};
-    for (var file in FILES) {
+    for (var file in FILES[channel]) {
       var hash = await getHash256(channel, revisions[channel], file);
       hashes[channel][file] = hash;
     }
@@ -103,6 +108,9 @@ Future writeHomebrewInfo(
 
   await new File(p.join(repository, dartRbFileName)).writeAsString(
       createDartFormula(revisions, hashes, devVersion, stableVersion),
+      flush: true);
+  await new File(p.join(repository, dart2RbFileName)).writeAsString(
+      createDart2Formula(revisions, hashes, devVersion, stableVersion),
       flush: true);
 }
 
@@ -131,22 +139,10 @@ class Dart < Formula
       url "$urlBase/dev/release/${revisions['dev']}/$ia32File"
       sha256 "${hashes['dev'][ia32File]}"
     end
-
-    resource "content_shell" do
-      version "$devVersion"
-      url "$urlBase/dev/release/${revisions['dev']}/$contentShellFile"
-      sha256 "${hashes['dev'][contentShellFile]}"
-    end
-
-    resource "dartium" do
-      version "$devVersion"
-      url "$urlBase/dev/release/${revisions['dev']}/$dartiumFile"
-      sha256 "${hashes['dev'][dartiumFile]}"
-    end
   end
 
   option "with-content-shell", "Download and install content_shell -- headless Dartium for testing"
-  option "with-dartium", "Download and install Dartium -- Chromium with Dar"
+  option "with-dartium", "Download and install Dartium -- Chromium with Dart"
 
   resource "content_shell" do
     version "$stableVersion"
@@ -166,12 +162,18 @@ class Dart < Formula
     bin.write_exec_script Dir["#{libexec}/bin/{pub,dart?*}"]
 
     if build.with? "dartium"
+      if build.devel?
+        odie "dartium is no longer supported with --devel builds. Remove --with-dartium and try again."
+      end
       dartium_binary = "Chromium.app/Contents/MacOS/Chromium"
       prefix.install resource("dartium")
       (bin+"dartium").write shim_script dartium_binary
     end
 
     if build.with? "content-shell"
+      if build.devel?
+        odie "content-shell is no longer supported with --devel builds. Remove --with-content-shell and try again."
+      end
       content_shell_binary = "Content Shell.app/Contents/MacOS/Content Shell"
       prefix.install resource("content_shell")
       (bin+"content_shell").write shim_script content_shell_binary
@@ -179,30 +181,80 @@ class Dart < Formula
   end
 
   def shim_script(target)
-    <<-EOS.undent
+    <<~EOS
       #!/usr/bin/env bash
       exec "#{prefix}/#{target}" "\$@"
     EOS
   end
 
-  def caveats; <<-EOS.undent
+  def caveats; <<~EOS
     Please note the path to the Dart SDK:
       #{opt_libexec}
-
-    --with-dartium:
-      To use with IntelliJ, set the Dartium execute home to:
-        #{opt_prefix}/Chromium.app
     EOS
   end
 
   test do
-    (testpath/"sample.dart").write <<-EOS.undent
+    (testpath/"sample.dart").write <<~EOS
       void main() {
         print(r"test message");
       }
     EOS
 
     assert_equal "test message\\n", shell_output("#{bin}/dart sample.dart")
+  end
+end
+''';
+
+/// TODO: Remove this formula after Dart 2 is released as stable.
+/// This is a transitional mechanism to support developers migrating
+/// from Dart 1 to Dart 2 while it's in pre-release.
+String createDart2Formula(
+        Map revisions, Map hashes, String devVersion, String stableVersion) =>
+    '''
+class DartAT2 < Formula
+  desc "The Dart 2 SDK"
+  homepage "https://www.dartlang.org/"
+  version "$devVersion"
+
+  keg_only :versioned_formula
+
+  if MacOS.prefer_64_bit?
+    url "$urlBase/dev/release/${revisions['dev']}/$x64File"
+    sha256 "${hashes['dev'][x64File]}"
+  else
+    url "$urlBase/dev/release/${revisions['dev']}/$ia32File"
+    sha256 "${hashes['dev'][ia32File]}"
+  end
+
+  def install
+    libexec.install Dir["*"]
+    bin.install_symlink "#{libexec}/bin/dart"
+    bin.write_exec_script Dir["#{libexec}/bin/{pub,dart?*}"]
+  end
+
+  def shim_script(target)
+    <<~EOS
+      #!/usr/bin/env bash
+      exec "#{prefix}/#{target}" "\$@"
+    EOS
+  end
+
+  def caveats; <<~EOS
+    Note that this is a prerelease version of Dart.
+
+    Please note the path to the Dart SDK:
+      #{opt_libexec}
+    EOS
+  end
+
+  test do
+    (testpath/"sample.dart").write <<~EOS
+      void main() {
+        print(r"test message");
+      }
+    EOS
+
+    assert_equal "test message\n", shell_output("#{bin}/dart sample.dart")
   end
 end
 ''';

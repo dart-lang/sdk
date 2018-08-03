@@ -56,7 +56,7 @@ void _buildSummary(String sdkPath, String outPath, bool strong) {
   print('Generating $modeName mode summary.');
   Stopwatch sw = new Stopwatch()..start();
   List<int> bytes = new SummaryBuilder.forSdk(sdkPath, strong).build();
-  new File(outPath).writeAsBytesSync(bytes, mode: FileMode.WRITE_ONLY);
+  new File(outPath).writeAsBytesSync(bytes, mode: FileMode.writeOnly);
   print('\tDone in ${sw.elapsedMilliseconds} ms.');
 }
 

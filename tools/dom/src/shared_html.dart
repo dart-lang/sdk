@@ -4,41 +4,19 @@
 
 part of dart.dom.html;
 
-// TODO(jacobr): remove these typedefs when dart:async supports generic types.
-typedef R _wrapZoneCallback<A, R>(A a);
-typedef R _wrapZoneBinaryCallback<A, B, R>(A a, B b);
-
-_wrapZoneCallback/*<A, R>*/ _wrapZone/*<A, R>*/(
-    _wrapZoneCallback/*<A, R>*/ callback) {
+void Function(T) _wrapZone<T>(void Function(T) callback) {
   // For performance reasons avoid wrapping if we are in the root zone.
-  if (Zone.current == Zone.ROOT) return callback;
+  if (Zone.current == Zone.root) return callback;
   if (callback == null) return null;
-  return Zone.current.bindUnaryCallback/*<R, A>*/(callback, runGuarded: true);
+  return Zone.current.bindUnaryCallbackGuarded(callback);
 }
 
-_wrapZoneBinaryCallback/*<A, B, R>*/ _wrapBinaryZone/*<A, B, R>*/(
-    _wrapZoneBinaryCallback/*<A, B, R>*/ callback) {
-  if (Zone.current == Zone.ROOT) return callback;
+void Function(T1, T2) _wrapBinaryZone<T1, T2>(void Function(T1, T2) callback) {
+  // For performance reasons avoid wrapping if we are in the root zone.
+  if (Zone.current == Zone.root) return callback;
   if (callback == null) return null;
-  return Zone.current
-      .bindBinaryCallback/*<R, A, B>*/(callback, runGuarded: true);
+  return Zone.current.bindBinaryCallbackGuarded(callback);
 }
-
-/**
- * Alias for [querySelector]. Note this function is deprecated because its
- * semantics will be changing in the future.
- */
-@deprecated
-@Experimental()
-Element query(String relativeSelectors) => document.query(relativeSelectors);
-/**
- * Alias for [querySelectorAll]. Note this function is deprecated because its
- * semantics will be changing in the future.
- */
-@deprecated
-@Experimental()
-ElementList<Element> queryAll(String relativeSelectors) =>
-    document.queryAll(relativeSelectors);
 
 /**
  * Finds the first descendant element of this document that matches the
@@ -75,7 +53,7 @@ Element querySelector(String selectors) => document.querySelector(selectors);
  * For details about CSS selector syntax, see the
  * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
  */
-ElementList<Element> querySelectorAll(String selectors) =>
+ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
     document.querySelectorAll(selectors);
 
 /// A utility for changing the Dart wrapper type for elements.

@@ -5,6 +5,8 @@
 #ifndef RUNTIME_BIN_EMBEDDED_DART_IO_H_
 #define RUNTIME_BIN_EMBEDDED_DART_IO_H_
 
+#include "include/dart_tools_api.h"
+
 namespace dart {
 namespace bin {
 
@@ -32,6 +34,14 @@ void SetExecutableName(const char* executable_name);
 
 // Set the arguments used by Platform.executableArguments.
 void SetExecutableArguments(int script_index, char** argv);
+
+// Set dart:io implementation specific fields of Dart_EmbedderInformation.
+void GetIOEmbedderInformation(Dart_EmbedderInformation* info);
+
+// Generates 'length' random bytes into 'buffer'. Returns true on success
+// and false on failure. This is appropriate to assign to
+// Dart_InitializeParams.entropy_source.
+bool GetEntropy(uint8_t* buffer, intptr_t length);
 
 }  // namespace bin
 }  // namespace dart

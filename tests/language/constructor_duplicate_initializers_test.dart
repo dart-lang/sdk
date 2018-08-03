@@ -5,7 +5,7 @@
 
 class Class {
   Class(var v) : field_ = v
-  // Test against duplicate final field initializaion in initializing list.
+  // Test against duplicate final field initialization in initializing list.
     , field_ = 2 // //# 01: compile-time error
   ;
   Class.field(this.field_)

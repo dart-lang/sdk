@@ -76,7 +76,6 @@ class VMTag : public AllStatic {
   static TagEntry entries_[];
 };
 
-
 class VMTagScope : StackResource {
  public:
   VMTagScope(Thread* thread, uword tag, bool conditional_set = true);
@@ -88,7 +87,6 @@ class VMTagScope : StackResource {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(VMTagScope);
 };
-
 
 class VMTagCounters {
  public:
@@ -106,7 +104,6 @@ class VMTagCounters {
   int64_t counters_[VMTag::kNumVMTags];
 };
 
-
 class UserTags : public AllStatic {
  public:
   // UserTag id space: [kUserTagIdOffset, kUserTagIdOffset + kMaxUserTags).
@@ -119,7 +116,6 @@ class UserTags : public AllStatic {
            (tag_id < kUserTagIdOffset + kMaxUserTags);
   }
 };
-
 
 }  // namespace dart
 

@@ -12,6 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LintIntegrationTest);
+    defineReflectiveTests(LintIntegrationTest_UseCFE);
   });
 }
 
@@ -19,9 +20,7 @@ main() {
 class LintIntegrationTest extends AbstractAnalysisServerIntegrationTest {
   test_no_lints_when_not_specified() async {
     String source = sourcePath('test.dart');
-    writeFile(
-        source,
-        '''
+    writeFile(source, '''
 class abc { // lint: not CamelCase (should get ignored though)
 }''');
     standardAnalysisSetup();
@@ -34,18 +33,14 @@ class abc { // lint: not CamelCase (should get ignored though)
   }
 
   test_simple_lint_newOptionsFile() async {
-    writeFile(
-        sourcePath(AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE),
-        '''
+    writeFile(sourcePath(AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE), '''
 linter:
   rules:
     - camel_case_types
 ''');
 
     String source = sourcePath('test.dart');
-    writeFile(
-        source,
-        '''
+    writeFile(source, '''
 class a { // lint: not CamelCase
 }''');
 
@@ -63,18 +58,14 @@ class a { // lint: not CamelCase
   }
 
   test_simple_lint_oldOptionsFile() async {
-    writeFile(
-        sourcePath(AnalysisEngine.ANALYSIS_OPTIONS_FILE),
-        '''
+    writeFile(sourcePath(AnalysisEngine.ANALYSIS_OPTIONS_FILE), '''
 linter:
   rules:
     - camel_case_types
 ''');
 
     String source = sourcePath('test.dart');
-    writeFile(
-        source,
-        '''
+    writeFile(source, '''
 class a { // lint: not CamelCase
 }''');
 
@@ -90,4 +81,10 @@ class a { // lint: not CamelCase
     expect(error.severity, AnalysisErrorSeverity.INFO);
     expect(error.type, AnalysisErrorType.LINT);
   }
+}
+
+@reflectiveTest
+class LintIntegrationTest_UseCFE extends LintIntegrationTest {
+  @override
+  bool get useCFE => true;
 }

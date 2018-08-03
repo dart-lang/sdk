@@ -214,8 +214,7 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
   void visitGraph(HGraph graph) {
     visitPostDominatorTree(graph);
     if (!liveInstructions[graph.entry].isEmpty) {
-      throw new SpannableAssertionFailure(
-          CURRENT_ELEMENT_SPANNABLE, 'LiveIntervalBuilder.');
+      failedAt(CURRENT_ELEMENT_SPANNABLE, 'LiveIntervalBuilder.');
     }
   }
 
@@ -243,7 +242,7 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
   // When looking for the checkedInstructionOrNonGenerateAtUseSite of t3 we must
   // return t2.
   HInstruction checkedInstructionOrNonGenerateAtUseSite(HCheck check) {
-    var checked = check.checkedInput;
+    dynamic checked = check.checkedInput;
     while (checked is HCheck) {
       HInstruction next = checked.checkedInput;
       if (generateAtUseSite.contains(next)) break;
@@ -390,10 +389,12 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
  * also uses this class to represent a copy from one variable to
  * another.
  */
-class Copy {
-  final source;
-  final destination;
+class Copy<T> {
+  final T source;
+  final T destination;
+
   Copy(this.source, this.destination);
+
   String toString() => '$destination <- $source';
 }
 
@@ -405,27 +406,28 @@ class CopyHandler {
   /**
    * The copies from an instruction to a phi of the successor.
    */
-  final List<Copy> copies;
+  final List<Copy<HInstruction>> copies;
 
   /**
    * Assignments from an instruction that does not need a name (e.g. a
    * constant) to the phi of a successor.
    */
-  final List<Copy> assignments;
+  final List<Copy<HInstruction>> assignments;
 
   CopyHandler()
-      : copies = new List<Copy>(),
-        assignments = new List<Copy>();
+      : copies = new List<Copy<HInstruction>>(),
+        assignments = new List<Copy<HInstruction>>();
 
   void addCopy(HInstruction source, HInstruction destination) {
-    copies.add(new Copy(source, destination));
+    copies.add(new Copy<HInstruction>(source, destination));
   }
 
   void addAssignment(HInstruction source, HInstruction destination) {
-    assignments.add(new Copy(source, destination));
+    assignments.add(new Copy<HInstruction>(source, destination));
   }
 
   String toString() => 'Copies: $copies, assignments: $assignments';
+
   bool get isEmpty => copies.isEmpty && assignments.isEmpty;
 }
 
@@ -548,16 +550,21 @@ class VariableNamer {
     if (instruction is HCheck) {
       // Special case this instruction to use the name of its
       // input if it has one.
-      var temp = instruction;
+      HInstruction temp = instruction;
       do {
-        temp = temp.checkedInput;
+        temp = (temp as HCheck).checkedInput;
         name = names.ownName[temp];
       } while (name == null && temp is HCheck);
       if (name != null) return addAllocatedName(instruction, name);
     }
 
     if (instruction.sourceElement != null) {
-      name = allocateWithHint(instruction.sourceElement.name);
+      if (instruction.sourceElement.name != null) {
+        name = allocateWithHint(instruction.sourceElement.name);
+      } else {
+        // Source element is synthesized and has no name.
+        name = allocateTemporary();
+      }
     } else {
       // We could not find an element for the instruction. If the
       // instruction is used by a phi, try to use the name of the phi.

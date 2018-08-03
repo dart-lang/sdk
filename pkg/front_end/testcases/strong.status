@@ -1,0 +1,222 @@
+# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Status file for the strong_test.dart test suite. This is testing generating
+# Kernel ASTs directly, that is, code in pkg/fasta/lib/src/kernel/ with
+# strong-mode enabled.
+
+DeltaBlue: Fail
+accessors: Fail
+argument_mismatch: Fail # Test assumes Dart 1.0 semantics
+async_function: Fail
+await: Fail
+bug21938: TypeCheckError
+bug30695: TypeCheckError
+bug31124: RuntimeError # Test has an intentional error
+bug32629: Fail # Test has an intentional error
+call: Fail
+cascade: Fail
+casts: Fail
+classes: Fail
+closure: Fail
+covariant_generic: Fail
+cycles: Fail
+default_values: Fail
+dynamic_and_void: Fail # Test assumes Dart 1.0 semantics
+escape: Fail
+external: Fail
+fallthrough: Fail
+fibonacci: Fail
+for_in_scope: Fail
+function_in_field: Fail
+function_type_recovery: Fail
+functions: Fail
+hello: Fail
+implicit_this: Fail
+invocations: Fail
+literals: Fail
+map: Fail
+micro: Fail
+named_parameters: Fail
+null_aware: Fail
+operators: Fail
+optional: Fail
+override_check_accessor_after_inference: TypeCheckError # Issue #31620
+override_check_accessor_basic: TypeCheckError # Issue #31620
+override_check_accessor_with_covariant_modifier: TypeCheckError # Issue #31620
+override_check_after_inference: TypeCheckError # Issue #31620
+override_check_basic: TypeCheckError # Issue #31620
+override_check_with_covariant_modifier: TypeCheckError # Issue #31620
+platform: Fail
+prefer_baseclass: Fail
+redirecting_constructor: Fail
+redirecting_factory: Fail
+redirecting_factory_chain_test: Fail # Missing support for RedirectingFactoryConstructor.
+redirecting_factory_simple_test: Fail # Missing support for RedirectingFactoryConstructor.
+redirecting_factory_typeargs_test: Fail # Missing support for RedirectingFactoryConstructor.
+redirecting_factory_typeparam_test: Fail # Missing support for RedirectingFactoryConstructor.
+redirecting_factory_typeparambounds_test: Fail # Missing support for RedirectingFactoryConstructor.
+statements: Fail
+stringliteral: Fail
+super_rasta_copy: TypeCheckError
+top_level_accessors: Fail
+type_variable_as_super: Fail
+type_variable_prefix: RuntimeError
+typedef: Fail
+uninitialized_fields: Fail
+unused_methods: Fail
+void_methods: Fail
+warn_unresolved_sends: Fail # Test assumes Dart 1.0 semantics
+
+inference/abstract_class_instantiation: Fail # Issue #30040
+inference/conflicts_can_happen: TypeCheckError
+inference/conflicts_can_happen2: TypeCheckError
+inference/constructors_infer_from_arguments_argument_not_assignable: TypeCheckError
+inference/constructors_too_many_positional_arguments: Fail # Issue #30040
+inference/do_not_infer_overridden_fields_that_explicitly_say_dynamic_infer: TypeCheckError
+inference/downwards_inference_annotations_type_variable: Fail # Issue 28981
+inference/downwards_inference_on_function_of_t_using_the_t: Fail # Issue #29798
+inference/downwards_inference_on_list_literals_infer_downwards: RuntimeError
+inference/downwards_inference_yield_yield_star: TypeCheckError
+inference/future_then_explicit_future: Fail # Issue #30040
+inference/future_then_upwards: RuntimeError
+inference/future_then_upwards_2: RuntimeError
+inference/generic_functions_return_typedef: Fail # Issue #29798
+inference/generic_methods_correctly_recognize_generic_upper_bound: TypeCheckError
+inference/generic_methods_do_not_infer_invalid_override_of_generic_method: TypeCheckError
+inference/generic_methods_handle_override_of_non_generic_with_generic: TypeCheckError
+inference/generic_methods_infer_js_builtin: Fail # Issue #30029
+inference/infer_field_override_multiple: TypeCheckError
+inference/infer_method_missing_params: TypeCheckError
+inference/infer_type_regardless_of_declaration_order_or_cycles: RuntimeError
+inference/infer_types_on_generic_instantiations_4: RuntimeError
+inference/infer_types_on_generic_instantiations_infer: TypeCheckError
+inference/instantiate_tearoff_of_call: Fail # Issue #31746
+inference/instantiate_to_bounds_generic_has_bound_defined_after transform: RuntimeError
+inference/mixin_inference_outwards_3: TypeCheckError
+inference/mixin_inference_outwards_4: TypeCheckError
+inference/mixin_inference_unification_1: TypeCheckError
+inference/mixin_inference_unification_2: TypeCheckError
+inference/override_equals: RuntimeError
+inference/unresolved_super: TypeCheckError
+inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: Fail # Issue #25824
+inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: Fail # Issue #25824
+inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: Fail # Issue #25824
+inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: Fail # Issue #25824
+inference_new/infer_assign_to_index_super_upwards: TypeCheckError
+inference_new/infer_assign_to_index_this_upwards: TypeCheckError
+inference_new/infer_assign_to_index_upwards: TypeCheckError
+inference_new/infer_field_getter_setter_mismatch: TypeCheckError
+inference_new/infer_field_override_getter_overrides_setter: TypeCheckError
+
+instantiate_to_bound/body_typedef_super_bounded_type: Fail # Issue 33444
+instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: Crash # Issue 33479
+instantiate_to_bound/typedef_super_bounded_type: Fail # Issue 33444
+
+rasta/abstract_constructor: Fail
+rasta/bad_constructor_redirection: Fail
+rasta/bad_continue: Fail
+rasta/bad_default_constructor: Fail
+rasta/bad_explicit_super_constructor: Fail
+rasta/bad_implicit_super_constructor: Fail
+rasta/bad_interpolation: Fail
+rasta/bad_redirection: Fail
+rasta/bad_setter_initializer: Fail
+rasta/bad_unicode: Fail
+rasta/breaking_bad: Fail
+rasta/cascades: Fail
+rasta/class_hierarchy: Fail
+rasta/class_member: Fail
+rasta/constant_get_and_invoke: Fail
+rasta/deferred_lib: Fail
+rasta/deferred_load: Fail
+rasta/enum: Fail
+rasta/external_factory_redirection: Fail
+rasta/for_loop: Fail
+rasta/generic_factory: Fail
+rasta/hello: Fail
+rasta/issue_000001: Fail
+rasta/issue_000002: Fail
+rasta/issue_000004: Fail
+rasta/issue_000006: Fail
+rasta/issue_000008: Fail
+rasta/issue_000011: Fail
+rasta/issue_000012: Fail
+rasta/issue_000025: Fail
+rasta/issue_000026: Fail
+rasta/issue_000031: Fail
+rasta/issue_000032: Fail
+rasta/issue_000033: Fail
+rasta/issue_000034: Fail
+rasta/issue_000035: Fail
+rasta/issue_000035a: Fail
+rasta/issue_000036: Fail
+rasta/issue_000039: Fail
+rasta/issue_000041: Fail
+rasta/issue_000042: Fail
+rasta/issue_000043: Fail
+rasta/issue_000044: Fail
+rasta/issue_000045: Fail
+rasta/issue_000046: Fail
+rasta/issue_000047: Fail
+rasta/issue_000048: Fail
+rasta/issue_000052: Fail
+rasta/issue_000053: Fail
+rasta/issue_000067: Fail
+rasta/issue_000068: Fail
+rasta/issue_000069: Fail
+rasta/issue_000070: Fail
+rasta/issue_000081: Fail
+rasta/malformed_const_constructor: Fail
+rasta/malformed_function: Fail
+rasta/malformed_function_type: Fail
+rasta/mandatory_parameter_initializer: Fail
+rasta/mixin_library: TypeCheckError
+rasta/native_is_illegal: Fail
+rasta/parser_error: Fail
+rasta/static: Fail
+rasta/super: TypeCheckError
+rasta/super_initializer: Fail
+rasta/super_mixin: TypeCheckError
+rasta/super_operator: Fail
+rasta/switch_execution_case_t02: Fail
+rasta/switch_fall_through: Fail
+rasta/this_invoke: Fail
+rasta/try_label: Fail
+rasta/type_literals: Fail
+rasta/type_with_parse_error: Fail
+rasta/typedef: Fail
+rasta/unresolved: Fail
+rasta/unresolved_constructor: Fail
+rasta/unresolved_for_in: Fail
+rasta/unresolved_recovery: Fail
+rasta/unsupported_platform_library: Fail
+
+regress/issue_29975: Fail # Issue 29975.
+regress/issue_29976: TypeCheckError # Issue 29976.
+regress/issue_29982: Fail # Issue 29982.
+regress/issue_30836: RuntimeError # Issue 30836.
+regress/issue_31184: TypeCheckError
+regress/issue_31299: TypeCheckError
+regress/issue_33452: RuntimeError # Test has an intentional error
+
+runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError
+runtime_checks_new/mixin_forwarding_stub_field: TypeCheckError
+runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError
+runtime_checks_new/mixin_forwarding_stub_setter: TypeCheckError
+runtime_checks_new/stub_from_interface_contravariant_from_class: TypeCheckError
+runtime_checks_new/stub_from_interface_covariantImpl_from_super: TypeCheckError
+runtime_checks_new/stub_from_interface_covariantInterface_from_class: TypeCheckError
+runtime_checks_new/stub_from_interface_covariant_from_super: TypeCheckError
+
+ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
+rasta/duplicated_mixin: RuntimeError # Expected, this file has no main method.
+rasta/export: RuntimeError # Expected, this file has no main method.
+rasta/foo: RuntimeError # Expected, this file has no main method.
+
+incomplete_field_formal_parameter: Fail # Fasta doesn't recover well
+
+co19_language_metadata_syntax_t04: RuntimeError # Fasta doesn't recover well
+
+external_import: RuntimeError # The native extension to import doesn't exist. This is ok.

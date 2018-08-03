@@ -1,0 +1,29 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method test() → dynamic async {
+  core::String s;
+  for (final dynamic #t1 in let dynamic _ = null in let final dynamic #t2 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:10:53: Error: The type 'dart.core::String' used in the 'for' loop must implement 'dart.core::Iterable<dynamic>'.
+  for (int x in /*@error=ForInLoopTypeNotIterable*/ s) {}
+                                                    ^" in let final dynamic #t3 = s in null) {
+    core::int x = #t1 as{TypeError} core::int;
+  }
+  await for (final dynamic #t4 in let dynamic _ = null in let final dynamic #t5 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:11:59: Error: The type 'dart.core::String' used in the 'for' loop must implement 'dart.async::Stream<dynamic>'.
+  await for (int x in /*@error=ForInLoopTypeNotIterable*/ s) {}
+                                                          ^" in let final dynamic #t6 = s in null) {
+    core::int x = #t4 as{TypeError} core::int;
+  }
+  core::int y;
+  for (final dynamic #t7 in let dynamic _ = null in let final dynamic #t8 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:13:49: Error: The type 'dart.core::String' used in the 'for' loop must implement 'dart.core::Iterable<dynamic>'.
+  for (y in /*@error=ForInLoopTypeNotIterable*/ s) {}
+                                                ^" in let final dynamic #t9 = s in null) {
+    y = #t7 as{TypeError} core::int;
+  }
+  await for (final dynamic #t10 in let dynamic _ = null in let final dynamic #t11 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:14:55: Error: The type 'dart.core::String' used in the 'for' loop must implement 'dart.async::Stream<dynamic>'.
+  await for (y in /*@error=ForInLoopTypeNotIterable*/ s) {}
+                                                      ^" in let final dynamic #t12 = s in null) {
+    y = #t10 as{TypeError} core::int;
+  }
+}
+static method main() → dynamic {}

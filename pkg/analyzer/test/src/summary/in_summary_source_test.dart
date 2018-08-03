@@ -19,7 +19,7 @@ main() {
 }
 
 @reflectiveTest
-class InSummarySourceTest extends ReflectiveTest {
+class InSummarySourceTest {
   test_InSummarySource() {
     var sourceFactory = new SourceFactory([
       new InSummaryUriResolver(

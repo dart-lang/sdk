@@ -6,11 +6,11 @@
 #define RUNTIME_BIN_LOADER_H_
 
 #include "bin/isolate_data.h"
+#include "bin/thread.h"
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
-#include "bin/thread.h"
 
 namespace dart {
 namespace bin {
@@ -100,9 +100,6 @@ class Loader {
   static Dart_Handle ResolveAsFilePath(Dart_Handle url,
                                        uint8_t** payload,
                                        intptr_t* payload_length);
-
-  // Send a request from the tag handler to the kernel isolate.
-  void SendKernelRequest(Dart_LibraryTag tag, Dart_Handle url);
 
   /// Queue |message| and notify the loader that a message is available.
   void QueueMessage(Dart_CObject* message);

@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Hest<TypeX extends core::Map<self::Hest<dynamic>, self::Hest<dynamic>> = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    ;
+}
+static method main() → dynamic
+  ;

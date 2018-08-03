@@ -53,8 +53,12 @@ class DartUnitHoverComputer {
         }
         // description
         hover.elementDescription = element.toString();
+        if (node is InstanceCreationExpression && node.keyword == null) {
+          String prefix = node.isConst ? '(const) ' : '(new) ';
+          hover.elementDescription = prefix + hover.elementDescription;
+        }
         hover.elementKind = element.kind.displayName;
-        hover.isDeprecated = element.isDeprecated;
+        hover.isDeprecated = element.hasDeprecated;
         // not local element
         if (element.enclosingElement is! ExecutableElement) {
           // containing class
@@ -136,5 +140,5 @@ class DartUnitHoverComputer {
     return null;
   }
 
-  static _safeToString(obj) => obj?.toString();
+  static String _safeToString(obj) => obj?.toString();
 }

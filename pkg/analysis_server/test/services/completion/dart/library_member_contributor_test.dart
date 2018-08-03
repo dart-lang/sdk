@@ -88,12 +88,10 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
   test_libraryPrefix_deferred_inPart() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     var libFile = '${testFile.substring(0, testFile.length - 5)}A.dart';
-    addSource(
-        libFile,
-        '''
+    addSource(libFile, '''
         library testA;
         import "dart:async" deferred as bar;
-        part "$testFile";''');
+        part "${convertPathForImport(testFile)}";''');
     addTestSource('part of testA; foo() {bar.^}');
     // Assume that libraries containing has been computed for part files
     await computeLibrariesContaining();
@@ -105,14 +103,13 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
 
   test_libraryPrefix_with_exports() async {
     addSource('/libA.dart', 'library libA; class A { }');
-    addSource(
-        '/libB.dart',
-        '''
+    addSource('/libB.dart', '''
         library libB;
-        export "/libA.dart";
+        export "${convertPathForImport("/libA.dart")}";
         class B { }
         @deprecated class B1 { }''');
-    addTestSource('import "/libB.dart" as foo; main() {foo.^} class C { }');
+    addTestSource(
+        'import "${convertPathForImport("/libB.dart")}" as foo; main() {foo.^} class C { }');
     await computeSuggestions();
     assertSuggestClass('B');
     assertSuggestClass('B1', relevance: DART_RELEVANCE_LOW, isDeprecated: true);
@@ -122,15 +119,13 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
 
   test_PrefixedIdentifier_library() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource(
-        '/testB.dart',
-        '''
+    addSource('/testB.dart', '''
         lib B;
         var T1;
         class X { }
         class Y { }''');
     addTestSource('''
-        import "/testB.dart" as b;
+        import "${convertPathForImport("/testB.dart")}" as b;
         var T2;
         class A { }
         main() {b.^}''');
@@ -147,22 +142,53 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('==');
   }
 
+  test_PrefixedIdentifier_library_export_withShow() async {
+    addSource('/a.dart', r'''
+class A {}
+class B {}
+''');
+    addSource('/b.dart', r'''
+export 'a.dart' show A;
+''');
+    addTestSource(r'''
+import 'b.dart' as p;
+main() {
+  p.^
+}
+''');
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertNotSuggested('B');
+  }
+
+  test_PrefixedIdentifier_library_import_withShow() async {
+    addSource('/a.dart', r'''
+class A {}
+class B {}
+''');
+    addTestSource(r'''
+import 'a.dart' as p show A;
+main() {
+  p.^
+}
+''');
+    await computeSuggestions();
+    assertSuggestClass('A');
+    assertNotSuggested('B');
+  }
+
   test_PrefixedIdentifier_library_inPart() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     var libFile = '${testFile.substring(0, testFile.length - 5)}A.dart';
-    addSource(
-        '/testB.dart',
-        '''
+    addSource('/testB.dart', '''
         lib B;
         var T1;
         class X { }
         class Y { }''');
-    addSource(
-        libFile,
-        '''
+    addSource(libFile, '''
         library testA;
-        import "/testB.dart" as b;
-        part "$testFile";
+        import "${convertPathForImport("/testB.dart")}" as b;
+        part "${convertPathForImport(testFile)}";
         var T2;
         class A { }''');
     addTestSource('''
@@ -185,15 +211,13 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
 
   test_PrefixedIdentifier_library_typesOnly() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName
-    addSource(
-        '/testB.dart',
-        '''
+    addSource('/testB.dart', '''
         lib B;
         var T1;
         class X { }
         class Y { }''');
     addTestSource('''
-        import "/testB.dart" as b;
+        import "${convertPathForImport("/testB.dart")}" as b;
         var T2;
         class A { }
         foo(b.^ f) {}''');
@@ -212,15 +236,13 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
 
   test_PrefixedIdentifier_library_typesOnly2() async {
     // SimpleIdentifier  PrefixedIdentifier  TypeName
-    addSource(
-        '/testB.dart',
-        '''
+    addSource('/testB.dart', '''
         lib B;
         var T1;
         class X { }
         class Y { }''');
     addTestSource('''
-        import "/testB.dart" as b;
+        import "${convertPathForImport("/testB.dart")}" as b;
         var T2;
         class A { }
         foo(b.^) {}''');
@@ -239,15 +261,13 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
 
   test_PrefixedIdentifier_parameter() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource(
-        '/testB.dart',
-        '''
+    addSource('/testB.dart', '''
         lib B;
         class _W {M y; var _z;}
         class X extends _W {}
         class M{}''');
     addTestSource('''
-        import "/testB.dart";
+        import "${convertPathForImport("/testB.dart")}";
         foo(X x) {x.^}''');
     await computeSuggestions();
     assertNoSuggestions();
@@ -255,13 +275,11 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
 
   test_PrefixedIdentifier_prefix() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource(
-        '/testA.dart',
-        '''
+    addSource('/testA.dart', '''
         class A {static int bar = 10;}
         _B() {}''');
     addTestSource('''
-        import "/testA.dart";
+        import "${convertPathForImport("/testA.dart")}";
         class X {foo(){A^.bar}}''');
     await computeSuggestions();
     assertNoSuggestions();

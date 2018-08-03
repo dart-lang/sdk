@@ -6,8 +6,10 @@ library _js_helper;
 
 import 'dart:_js_embedded_names'
     show
-        DEFERRED_LIBRARY_URIS,
-        DEFERRED_LIBRARY_HASHES,
+        CURRENT_SCRIPT,
+        DEFERRED_LIBRARY_PARTS,
+        DEFERRED_PART_URIS,
+        DEFERRED_PART_HASHES,
         GET_TYPE_FROM_NAME,
         GET_ISOLATE_TAG,
         INITIALIZE_LOADED_HUNK,
@@ -23,28 +25,14 @@ import 'dart:_js_embedded_names'
 
 import 'dart:collection';
 
-import 'dart:_isolate_helper'
-    show IsolateNatives, enterJsAsync, isWorker, leaveJsAsync;
-
-import 'dart:async'
-    show
-        Completer,
-        DeferredLoadException,
-        Future,
-        StreamController,
-        Stream,
-        StreamSubscription,
-        scheduleMicrotask,
-        Zone;
+import 'dart:async' show Completer, DeferredLoadException, Future;
 
 import 'dart:_foreign_helper'
     show
         DART_CLOSURE_TO_JS,
         JS,
         JS_BUILTIN,
-        JS_CALL_IN_ISOLATE,
         JS_CONST,
-        JS_CURRENT_ISOLATE_CONTEXT,
         JS_EFFECT,
         JS_EMBEDDED_GLOBAL,
         JS_GET_FLAG,
@@ -61,11 +49,7 @@ import 'dart:_internal'
 import 'dart:_native_typed_data';
 
 import 'dart:_js_names'
-    show
-        extractKeys,
-        mangledNames,
-        unmangleGlobalNameIfPreservedAnyways,
-        unmangleAllIdentifiersIfPreservedAnyways;
+    show extractKeys, mangledNames, unmangleAllIdentifiersIfPreservedAnyways;
 
 part 'annotations.dart';
 part 'constant_map.dart';
@@ -91,16 +75,28 @@ String isCheckPropertyToJsConstructorName(String isCheckProperty) {
 // TODO(floitsch): move this to foreign_helper.dart or similar.
 @ForceInline()
 bool isDartFunctionType(Object type) {
+  // Function type test is using the `in` operator which doesn't work on
+  // primitive types.
+  assert(!(type == null || type is num || type is String));
   return JS_BUILTIN(
       'returns:bool;effects:none;depends:none', JsBuiltin.isFunctionType, type);
 }
 
-/// Creates a function type object.
+/// Returns true if the given [type] is a FutureOr type object.
 // TODO(floitsch): move this to foreign_helper.dart or similar.
 @ForceInline()
-createDartFunctionTypeRti() {
-  return JS_BUILTIN('returns:=Object;effects:none;depends:none',
-      JsBuiltin.createFunctionTypeRti);
+bool isDartFutureOrType(Object type) {
+  // FutureOr test is using the `in` operator which doesn't work on primitive
+  // types.
+  assert(!(type == null || type is num || type is String));
+  return JS_BUILTIN(
+      'returns:bool;effects:none;depends:none', JsBuiltin.isFutureOrType, type);
+}
+
+@ForceInline()
+bool isDartVoidTypeRti(Object type) {
+  return JS_BUILTIN(
+      'returns:bool;effects:none;depends:none', JsBuiltin.isVoidType, type);
 }
 
 /// Retrieves the class name from type information stored on the constructor of
@@ -161,6 +157,20 @@ bool isNullType(Object type) {
       JS_GET_NAME(JsGetName.NULL_CLASS_TYPE_NAME));
 }
 
+/// Returns whether the given type is the dynamic type.
+// TODO(floitsch): move this to foreign_helper.dart or similar.
+@ForceInline()
+bool isDartDynamicTypeRti(type) {
+  return JS_BUILTIN(
+      'returns:bool;effects:none;depends:none', JsBuiltin.isDynamicType, type);
+}
+
+@ForceInline()
+bool isDartJsInteropTypeArgumentRti(type) {
+  return JS_BUILTIN('returns:bool;effects:none;depends:none',
+      JsBuiltin.isJsInteropTypeArgument, type);
+}
+
 /// Returns whether the given type is _the_ Dart Object type.
 // TODO(floitsch): move this to foreign_helper.dart or similar.
 @ForceInline()
@@ -199,16 +209,6 @@ getType(int index) {
       'returns:var;effects:none;depends:none', JsBuiltin.getType, index);
 }
 
-/// Returns a Dart closure for the global function with the given [name].
-///
-/// The [name] is the globally unique (minified) JavaScript name of the
-/// function. The name must be in correspondence with the propertyName that is
-/// used when creating a tear-off (see [fromTearOff]).
-Function createDartClosureFromNameOfStaticFunction(String name) {
-  return JS_BUILTIN('returns:Function',
-      JsBuiltin.createDartClosureFromNameOfStaticFunction, name);
-}
-
 /// No-op method that is called to inform the compiler that preambles might
 /// be needed when executing the resulting JS file in a command-line
 /// JS engine.
@@ -241,16 +241,19 @@ String S(value) {
   return res;
 }
 
+// Called from generated code.
 createInvocationMirror(
-    String name, internalName, kind, arguments, argumentNames) {
+    String name, internalName, kind, arguments, argumentNames, types) {
+  // TODO(sra): [types] (the number of type arguments) could be omitted in the
+  // generated stub code to save an argument. Then we would use `types ?? 0`.
   return new JSInvocationMirror(
-      name, internalName, kind, arguments, argumentNames);
+      name, internalName, kind, arguments, argumentNames, types);
 }
 
 createUnmangledInvocationMirror(
-    Symbol symbol, internalName, kind, arguments, argumentNames) {
+    Symbol symbol, internalName, kind, arguments, argumentNames, types) {
   return new JSInvocationMirror(
-      symbol, internalName, kind, arguments, argumentNames);
+      symbol, internalName, kind, arguments, argumentNames, types);
 }
 
 void throwInvalidReflectionError(String memberName) {
@@ -309,13 +312,15 @@ class JSInvocationMirror implements Invocation {
   var /* String or Symbol */ _memberName;
   final String _internalName;
   final int _kind;
+  final List<Type> _typeArguments;
   final List _arguments;
   final List _namedArgumentNames;
+  final int _typeArgumentCount;
   /** Map from argument name to index in _arguments. */
   Map<String, dynamic> _namedIndices = null;
 
   JSInvocationMirror(this._memberName, this._internalName, this._kind,
-      this._arguments, this._namedArgumentNames);
+      this._arguments, this._namedArgumentNames, this._typeArgumentCount);
 
   Symbol get memberName {
     if (_memberName is Symbol) return _memberName;
@@ -338,9 +343,20 @@ class JSInvocationMirror implements Invocation {
   bool get isSetter => _kind == SETTER;
   bool get isAccessor => _kind != METHOD;
 
+  List<Type> get typeArguments {
+    if (_typeArgumentCount == 0) return const <Type>[];
+    int start = _arguments.length - _typeArgumentCount;
+    var list = <Type>[];
+    for (int index = 0; index < _typeArgumentCount; index++) {
+      list.add(createRuntimeType(_arguments[start + index]));
+    }
+    return list;
+  }
+
   List get positionalArguments {
     if (isGetter) return const [];
-    var argumentCount = _arguments.length - _namedArgumentNames.length;
+    var argumentCount =
+        _arguments.length - _namedArgumentNames.length - _typeArgumentCount;
     if (argumentCount == 0) return const [];
     var list = [];
     for (var index = 0; index < argumentCount; index++) {
@@ -352,7 +368,8 @@ class JSInvocationMirror implements Invocation {
   Map<Symbol, dynamic> get namedArguments {
     if (isAccessor) return const <Symbol, dynamic>{};
     int namedArgumentCount = _namedArgumentNames.length;
-    int namedArgumentsStartIndex = _arguments.length - namedArgumentCount;
+    int namedArgumentsStartIndex =
+        _arguments.length - namedArgumentCount - _typeArgumentCount;
     if (namedArgumentCount == 0) return const <Symbol, dynamic>{};
     var map = new Map<Symbol, dynamic>();
     for (int i = 0; i < namedArgumentCount; i++) {
@@ -368,7 +385,7 @@ class JSInvocationMirror implements Invocation {
     var name = _internalName;
     var arguments = _arguments;
     var interceptedNames = JS_EMBEDDED_GLOBAL('', INTERCEPTED_NAMES);
-    bool isIntercepted = JS("bool",
+    bool isIntercepted = JS('bool',
         'Object.prototype.hasOwnProperty.call(#, #)', interceptedNames, name);
     if (isIntercepted) {
       receiver = interceptor;
@@ -443,7 +460,7 @@ class CachedInvocation {
       this.cachedInterceptor);
 
   bool get isNoSuchMethod => false;
-  bool get isGetterStub => JS("bool", "!!#.\$getterStub", jsFunction);
+  bool get isGetterStub => JS('bool', '!!#.\$getterStub', jsFunction);
 
   /// Applies [jsFunction] to [victim] with [arguments].
   /// Users of this class must take care to check the arguments first.
@@ -455,7 +472,7 @@ class CachedInvocation {
       arguments = [victim]..addAll(arguments);
       if (cachedInterceptor != null) receiver = cachedInterceptor;
     }
-    return JS("var", "#.apply(#, #)", jsFunction, receiver, arguments);
+    return JS('var', '#.apply(#, #)', jsFunction, receiver, arguments);
   }
 }
 
@@ -508,7 +525,7 @@ class CachedCatchAllInvocation extends CachedInvocation {
     for (int i = providedArgumentCount; i < fullParameterCount; i++) {
       arguments.add(getMetadata(info.defaultValue(i)));
     }
-    return JS("var", "#.apply(#, #)", jsFunction, receiver, arguments);
+    return JS('var', '#.apply(#, #)', jsFunction, receiver, arguments);
   }
 }
 
@@ -575,8 +592,8 @@ class ReflectionInfo {
 
     int requiredParametersInfo =
         JS('int', '#[#]', data, REQUIRED_PARAMETERS_INFO);
-    int requiredParameterCount = JS('int', '# >> 1', requiredParametersInfo);
-    bool isAccessor = (requiredParametersInfo & 1) == 1;
+    int requiredParameterCount = JS('int', '# >> 2', requiredParametersInfo);
+    bool isAccessor = (requiredParametersInfo & 2) == 2;
 
     int optionalParametersInfo =
         JS('int', '#[#]', data, OPTIONAL_PARAMETERS_INFO);
@@ -690,26 +707,6 @@ class ReflectionInfo {
 }
 
 class Primitives {
-  /// Isolate-unique ID for caching [JsClosureMirror.function].
-  /// Note the initial value is used by the first isolate (or if there are no
-  /// isolates), new isolates will update this value to avoid conflicts by
-  /// calling [initializeStatics].
-  static String mirrorFunctionCacheName = '\$cachedFunction';
-
-  /// Isolate-unique ID for caching [JsInstanceMirror._invoke].
-  static String mirrorInvokeCacheName = '\$cachedInvocation';
-
-  /// Called when creating a new isolate (see _IsolateContext constructor in
-  /// isolate_helper.dart).
-  /// Please don't add complicated code to this method, as it will impact
-  /// start-up performance.
-  static void initializeStatics(int id) {
-    // Benchmarking shows significant performance improvements if this is a
-    // fixed value.
-    mirrorFunctionCacheName += '_$id';
-    mirrorInvokeCacheName += '_$id';
-  }
-
   static int objectHashCode(object) {
     int hash = JS('int|Null', r'#.$identityHash', object);
     if (hash == null) {
@@ -719,14 +716,7 @@ class Primitives {
     return JS('int', '#', hash);
   }
 
-  @NoInline()
-  static int _parseIntError(String source, int handleError(String source)) {
-    if (handleError == null) throw new FormatException(source);
-    return handleError(source);
-  }
-
-  static int parseInt(
-      String source, int radix, int handleError(String source)) {
+  static int parseInt(String source, int radix) {
     checkString(source);
     var re = JS('', r'/^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i');
     var match = JS('JSExtendableArray|Null', '#.exec(#)', re, source);
@@ -738,7 +728,7 @@ class Primitives {
       // TODO(sra): It might be that the match failed due to unrecognized U+0085
       // spaces.  We could replace them with U+0020 spaces and try matching
       // again.
-      return _parseIntError(source, handleError);
+      return null;
     }
     String decimalMatch = match[decimalIndex];
     if (radix == null) {
@@ -750,7 +740,7 @@ class Primitives {
         // Cannot fail because we know that the digits are all hex.
         return JS('int', r'parseInt(#, 16)', source);
       }
-      return _parseIntError(source, handleError);
+      return null;
     }
 
     if (radix is! int) {
@@ -789,7 +779,7 @@ class Primitives {
       for (int i = 0; i < digitsPart.length; i++) {
         int characterCode = digitsPart.codeUnitAt(i) | 0x20;
         if (characterCode > maxCharCode) {
-          return _parseIntError(source, handleError);
+          return null;
         }
       }
     }
@@ -798,16 +788,7 @@ class Primitives {
     return JS('int', r'parseInt(#, #)', source, radix);
   }
 
-  @NoInline()
-  static double _parseDoubleError(
-      String source, double handleError(String source)) {
-    if (handleError == null) {
-      throw new FormatException('Invalid double', source);
-    }
-    return handleError(source);
-  }
-
-  static double parseDouble(String source, double handleError(String source)) {
+  static double parseDouble(String source) {
     checkString(source);
     // Notice that JS parseFloat accepts garbage at the end of the string.
     // Accept only:
@@ -820,7 +801,7 @@ class Primitives {
         r'/^\s*[+-]?(?:Infinity|NaN|'
         r'(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(#)',
         source)) {
-      return _parseDoubleError(source, handleError);
+      return null;
     }
     var result = JS('num', r'parseFloat(#)', source);
     if (result.isNaN) {
@@ -828,7 +809,7 @@ class Primitives {
       if (trimmed == 'NaN' || trimmed == '+NaN' || trimmed == '-NaN') {
         return result;
       }
-      return _parseDoubleError(source, handleError);
+      return null;
     }
     return result;
   }
@@ -959,9 +940,12 @@ class Primitives {
     return null;
   }
 
-  // This is to avoid stack overflows due to very large argument arrays in
-  // apply().  It fixes http://dartbug.com/6919
-  static String _fromCharCodeApply(List<int> array) {
+  /// Version of `String.fromCharCode.apply` that chunks the conversion to avoid
+  /// stack overflows due to very large argument arrays.
+  ///
+  /// [array] is pre-validated as a JSArray of int values but is not typed as
+  /// <int> so it can be called with any JSArray.
+  static String _fromCharCodeApply(List array) {
     const kMaxApply = 500;
     int end = array.length;
     if (end <= kMaxApply) {
@@ -1050,7 +1034,7 @@ class Primitives {
 
   static String flattenString(String str) {
     return JS('returns:String;depends:none;effects:none;throws:never;gvn:true',
-        "#.charCodeAt(0) == 0 ? # : #", str, str, str);
+        '#.charCodeAt(0) == 0 ? # : #', str, str, str);
   }
 
   static String getTimeZoneName(DateTime receiver) {
@@ -1085,7 +1069,7 @@ class Primitives {
     //       (Opera): Wed Nov 20 2013 11:03:38 GMT+0100
     match = JS('JSArray|Null', r'/(?:GMT|UTC)[+-]\d{4}/.exec(#.toString())', d);
     if (match != null) return match[0];
-    return "";
+    return '';
   }
 
   static int getTimeZoneOffsetInMinutes(DateTime receiver) {
@@ -1273,8 +1257,13 @@ class Primitives {
     String selectorName =
         '${JS_GET_NAME(JsGetName.CALL_PREFIX)}\$$argumentCount$names';
 
-    return function.noSuchMethod(createUnmangledInvocationMirror(#call,
-        selectorName, JSInvocationMirror.METHOD, arguments, namedArgumentList));
+    return function.noSuchMethod(createUnmangledInvocationMirror(
+        #call,
+        selectorName,
+        JSInvocationMirror.METHOD,
+        arguments,
+        namedArgumentList,
+        0));
   }
 
   /**
@@ -1436,7 +1425,7 @@ class Primitives {
         return functionNoSuchMethod(function, arguments, namedArguments);
       }
 
-      int defaultsLength = JS('int', "#.length", defaultValues);
+      int defaultsLength = JS('int', '#.length', defaultValues);
       int maxArguments = requiredParameterCount + defaultsLength;
       if (argumentCount > maxArguments) {
         // The function expects fewer arguments.
@@ -1722,7 +1711,7 @@ Error diagnoseRangeError(start, end, length) {
     }
   }
   // The above should always match, but if it does not, use the following.
-  return new ArgumentError.value(end, "end");
+  return new ArgumentError.value(end, 'end');
 }
 
 stringLastIndexOfUnchecked(receiver, element, start) =>
@@ -1809,6 +1798,10 @@ throwExpression(ex) {
 
 throwRuntimeError(message) {
   throw new RuntimeError(message);
+}
+
+throwUnsupportedError(message) {
+  throw new UnsupportedError(message);
 }
 
 throwAbstractClassInstantiationError(className) {
@@ -2009,7 +2002,7 @@ class TypeErrorDecoder {
     // have been escaped already), as we will soon be inserting
     // regular expression syntax that we want interpreted by RegExp.
     List<String> match =
-        JS('JSExtendableArray|Null', r"#.match(/\\\$[a-zA-Z]+\\\$/g)", message);
+        JS('JSExtendableArray|Null', r'#.match(/\\\$[a-zA-Z]+\\\$/g)', message);
     if (match == null) match = [];
 
     // Find the positions within the substring matches of the error message
@@ -2087,9 +2080,7 @@ class TypeErrorDecoder {
     //
     // "(.*)\\.(.*) is not a function"
 
-    var function = JS(
-        '',
-        r"""function($expr$) {
+    var function = JS('', r"""function($expr$) {
   var $argumentsExpr$ = '$arguments$';
   try {
     $expr$.$method$($argumentsExpr$);
@@ -2104,9 +2095,7 @@ class TypeErrorDecoder {
   /// literal "null" expression.
   static String provokeCallErrorOnNull() {
     // See [provokeCallErrorOn] for a detailed explanation.
-    var function = JS(
-        '',
-        r"""function() {
+    var function = JS('', r"""function() {
   var $argumentsExpr$ = '$arguments$';
   try {
     null.$method$($argumentsExpr$);
@@ -2121,9 +2110,7 @@ class TypeErrorDecoder {
   /// (void 0), that is, "undefined".
   static String provokeCallErrorOnUndefined() {
     // See [provokeCallErrorOn] for a detailed explanation.
-    var function = JS(
-        '',
-        r"""function() {
+    var function = JS('', r"""function() {
   var $argumentsExpr$ = '$arguments$';
   try {
     (void 0).$method$($argumentsExpr$);
@@ -2138,9 +2125,7 @@ class TypeErrorDecoder {
   /// error.
   static String provokePropertyErrorOn(expression) {
     // See [provokeCallErrorOn] for a detailed explanation.
-    var function = JS(
-        '',
-        r"""function($expr$) {
+    var function = JS('', r"""function($expr$) {
   try {
     $expr$.$method$;
   } catch (e) {
@@ -2154,9 +2139,7 @@ class TypeErrorDecoder {
   /// error directly on literal "null" expression.
   static String provokePropertyErrorOnNull() {
     // See [provokeCallErrorOn] for a detailed explanation.
-    var function = JS(
-        '',
-        r"""function() {
+    var function = JS('', r"""function() {
   try {
     null.$method$;
   } catch (e) {
@@ -2170,9 +2153,7 @@ class TypeErrorDecoder {
   /// error directly on (void 0), that is, "undefined".
   static String provokePropertyErrorOnUndefined() {
     // See [provokeCallErrorOn] for a detailed explanation.
-    var function = JS(
-        '',
-        r"""function() {
+    var function = JS('', r"""function() {
   try {
     (void 0).$method$;
   } catch (e) {
@@ -2243,7 +2224,7 @@ class ExceptionAndStackTrace {
  */
 unwrapException(ex) {
   /// If error implements Error, save [ex] in [error.$thrownJsError].
-  /// Otherwise, do nothing. Later, the stack trace can then be extraced from
+  /// Otherwise, do nothing. Later, the stack trace can then be extracted from
   /// [ex].
   saveStackTrace(error) {
     if (error is Error) {
@@ -2416,7 +2397,7 @@ class _StackTrace implements StackTrace {
     String trace;
     if (JS('bool', '# !== null', _exception) &&
         JS('bool', 'typeof # === "object"', _exception)) {
-      trace = JS("String|Null", r"#.stack", _exception);
+      trace = JS('String|Null', r'#.stack', _exception);
     }
     return _trace = (trace == null) ? '' : trace;
   }
@@ -2447,19 +2428,19 @@ fillLiteralMap(keyValuePairs, Map result) {
   return result;
 }
 
-invokeClosure(Function closure, var isolate, int numberOfArguments, var arg1,
-    var arg2, var arg3, var arg4) {
+invokeClosure(Function closure, int numberOfArguments, var arg1, var arg2,
+    var arg3, var arg4) {
   switch (numberOfArguments) {
     case 0:
-      return JS_CALL_IN_ISOLATE(isolate, () => closure());
+      return closure();
     case 1:
-      return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1));
+      return closure(arg1);
     case 2:
-      return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1, arg2));
+      return closure(arg1, arg2);
     case 3:
-      return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1, arg2, arg3));
+      return closure(arg1, arg2, arg3);
     case 4:
-      return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1, arg2, arg3, arg4));
+      return closure(arg1, arg2, arg3, arg4);
   }
   throw new Exception('Unsupported number of arguments for wrapped closure');
 }
@@ -2476,14 +2457,13 @@ convertDartClosureToJS(closure, int arity) {
   function = JS(
       'var',
       r'''
-        (function(closure, arity, context, invoke) {
+        (function(closure, arity, invoke) {
           return function(a1, a2, a3, a4) {
-            return invoke(closure, context, arity, a1, a2, a3, a4);
+            return invoke(closure, arity, a1, a2, a3, a4);
           };
-        })(#,#,#,#)''',
+        })(#,#,#)''',
       closure,
       arity,
-      JS_CURRENT_ISOLATE_CONTEXT(),
       DART_CLOSURE_TO_JS(invokeClosure));
 
   JS('void', r'#.$identity = #', closure, function);
@@ -2524,9 +2504,6 @@ abstract class Closure implements Function {
    *
    * In other words, creates a tear-off closure.
    *
-   * The [propertyName] argument is used by
-   * [JsBuiltin.createDartClosureFromNameOfStaticFunction].
-   *
    * Called from [closureFromTearOff] as well as from reflection when tearing
    * of a method via `getField`.
    *
@@ -2542,8 +2519,15 @@ abstract class Closure implements Function {
    * Caution: this function may be called when building constants.
    * TODO(ahe): Don't call this function when building constants.
    */
-  static fromTearOff(receiver, List functions, var reflectionInfo,
-      bool isStatic, jsArguments, String propertyName) {
+  static fromTearOff(
+    receiver,
+    List functions,
+    int applyTrampolineIndex,
+    var reflectionInfo,
+    bool isStatic,
+    jsArguments,
+    String propertyName,
+  ) {
     JS_EFFECT(() {
       // The functions are called here to model the calls from JS forms below.
       // The types in the JS forms in the arguments are propagated in type
@@ -2675,20 +2659,24 @@ abstract class Closure implements Function {
 
     JS('', '#[#] = #', prototype, JS_GET_NAME(JsGetName.SIGNATURE_NAME),
         signatureFunction);
-
+    var applyTrampoline = trampoline;
     JS('', '#[#] = #', prototype, callName, trampoline);
     for (int i = 1; i < functions.length; i++) {
       var stub = functions[i];
       var stubCallName = JS('String|Null', '#[#]', stub,
           JS_GET_NAME(JsGetName.CALL_NAME_PROPERTY));
       if (stubCallName != null) {
-        JS('', '#[#] = #', prototype, stubCallName,
-            isStatic ? stub : forwardCallTo(receiver, stub, isIntercepted));
+        stub = isStatic ? stub : forwardCallTo(receiver, stub, isIntercepted);
+        JS('', '#[#] = #', prototype, stubCallName, stub);
+      }
+      if (i == applyTrampolineIndex) {
+        applyTrampoline = stub;
+        JS('', '#.\$reflectionInfo = #', applyTrampoline, reflectionInfo);
       }
     }
 
     JS('', '#[#] = #', prototype, JS_GET_NAME(JsGetName.CALL_CATCH_ALL),
-        trampoline);
+        applyTrampoline);
     String reqArgProperty = JS_GET_NAME(JsGetName.REQUIRED_PARAMETER_PROPERTY);
     String defValProperty = JS_GET_NAME(JsGetName.DEFAULT_VALUES_PROPERTY);
     JS('', '#.# = #.#', prototype, reqArgProperty, function, reqArgProperty);
@@ -2776,13 +2764,13 @@ abstract class Closure implements Function {
     }
   }
 
-  static bool get isCsp => JS_GET_FLAG("USE_CONTENT_SECURITY_POLICY");
+  static bool get isCsp => JS_GET_FLAG('USE_CONTENT_SECURITY_POLICY');
 
   static forwardCallTo(receiver, function, bool isIntercepted) {
     if (isIntercepted) return forwardInterceptedCallTo(receiver, function);
     String stubName = JS('String|Null', '#.\$stubName', function);
     int arity = JS('int', '#.length', function);
-    var lookedUpFunction = JS("", "#[#]", receiver, stubName);
+    var lookedUpFunction = JS('', '#[#]', receiver, stubName);
     // The receiver[stubName] may not be equal to the function if we try to
     // forward to a super-method. Especially when we create a bound closure
     // of a super-call we need to make sure that we don't forward back to the
@@ -2914,8 +2902,8 @@ abstract class Closure implements Function {
     String receiverField = BoundClosure.receiverFieldName();
     String stubName = JS('String|Null', '#.\$stubName', function);
     int arity = JS('int', '#.length', function);
-    bool isCsp = JS_GET_FLAG("USE_CONTENT_SECURITY_POLICY");
-    var lookedUpFunction = JS("", "#[#]", receiver, stubName);
+    bool isCsp = JS_GET_FLAG('USE_CONTENT_SECURITY_POLICY');
+    var lookedUpFunction = JS('', '#[#]', receiver, stubName);
     // The receiver[stubName] may not be equal to the function if we try to
     // forward to a super-method. Especially when we create a bound closure
     // of a super-call we need to make sure that we don't forward back to the
@@ -2965,11 +2953,12 @@ abstract class Closure implements Function {
 }
 
 /// Called from implicit method getter (aka tear-off).
-closureFromTearOff(
-    receiver, functions, reflectionInfo, isStatic, jsArguments, name) {
+closureFromTearOff(receiver, functions, applyTrampolineIndex, reflectionInfo,
+    isStatic, jsArguments, name) {
   return Closure.fromTearOff(
       receiver,
       JSArray.markFixedList(functions),
+      applyTrampolineIndex,
       reflectionInfo is List
           ? JSArray.markFixedList(reflectionInfo)
           : reflectionInfo,
@@ -2985,7 +2974,7 @@ class StaticClosure extends TearOffClosure {
   String toString() {
     String name =
         JS('String|Null', '#[#]', this, STATIC_FUNCTION_NAME_PROPERTY_NAME);
-    if (name == null) return "Closure of unknown static method";
+    if (name == null) return 'Closure of unknown static method';
     return "Closure '$name'";
   }
 }
@@ -3037,7 +3026,8 @@ class BoundClosure extends TearOffClosure {
 
   toString() {
     var receiver = _receiver == null ? _self : _receiver;
-    return "Closure '$_name' of ${Primitives.objectToHumanReadableString(receiver)}";
+    return "Closure '$_name' of "
+        "${Primitives.objectToHumanReadableString(receiver)}";
   }
 
   @NoInline()
@@ -3072,8 +3062,8 @@ class BoundClosure extends TearOffClosure {
   @NoSideEffects()
   static String computeFieldNamed(String fieldName) {
     var template = new BoundClosure('self', 'target', 'receiver', 'name');
-    var names = JSArray
-        .markFixedList(JS('', 'Object.getOwnPropertyNames(#)', template));
+    var names = JSArray.markFixedList(
+        JS('', 'Object.getOwnPropertyNames(#)', template));
     for (int i = 0; i < names.length; i++) {
       var name = names[i];
       if (JS('bool', '#[#] === #', template, name, fieldName)) {
@@ -3081,6 +3071,331 @@ class BoundClosure extends TearOffClosure {
       }
     }
   }
+}
+
+/// Support class for generic function type instantiation (binding of types).
+///
+abstract class Instantiation extends Closure {
+  final Closure _genericClosure;
+  Instantiation(this._genericClosure) {
+    // TODO(sra): Copy some metadata used by Function.apply.
+
+    // Mark support code as used.  The JS condition is inscrutable to dart2js,
+    // so the 'if (false)' is in the final program.
+    // TODO(sra): Find a better way to do this. Generating the signature methods
+    // earlier as SSA on the instantiation closures should achieve this.
+    if (JS('bool', 'false')) {
+      // [instantiatedGenericFunctionType] is called from injected $signature
+      // methods with runtime type representations.
+      instantiatedGenericFunctionType(JS('', '0'), JS('', '0'));
+    }
+  }
+
+  /// Returns a list of the bound types.
+  List get _types;
+
+  String toString() {
+    var types = "<${_types.join(', ')}>";
+    // TODO(sra): Refactor Closure formatting to place type arguments inside,
+    // e.g. "Closure 'map<String>' of Instance of 'JSArray<int>'".
+    return '$_genericClosure with $types';
+  }
+}
+
+/// Instantiation classes are subclasses of [Instantiation]. For now we have a
+/// fixed number of subclasses. Later we might generate the classes on demand.
+class Instantiation1<T1> extends Instantiation {
+  Instantiation1(Closure f) : super(f);
+  List get _types => [T1];
+}
+
+class Instantiation2<T1, T2> extends Instantiation {
+  Instantiation2(Closure f) : super(f);
+  List get _types => [T1, T2];
+}
+
+class Instantiation3<T1, T2, T3> extends Instantiation {
+  Instantiation3(Closure f) : super(f);
+  List get _types => [T1, T2, T3];
+}
+
+class Instantiation4<T1, T2, T3, T4> extends Instantiation {
+  Instantiation4(Closure f) : super(f);
+  List get _types => [T1, T2, T3, T4];
+}
+
+class Instantiation5<T1, T2, T3, T4, T5> extends Instantiation {
+  Instantiation5(Closure f) : super(f);
+  List get _types => [T1, T2, T3, T4, T5];
+}
+
+class Instantiation6<T1, T2, T3, T4, T5, T6> extends Instantiation {
+  Instantiation6(Closure f) : super(f);
+  List get _types => [T1, T2, T3, T4, T5, T6];
+}
+
+class Instantiation7<T1, T2, T3, T4, T5, T6, T7> extends Instantiation {
+  Instantiation7(Closure f) : super(f);
+  List get _types => [T1, T2, T3, T4, T5, T6, T7];
+}
+
+class Instantiation8<T1, T2, T3, T4, T5, T6, T7, T8> extends Instantiation {
+  Instantiation8(Closure f) : super(f);
+  List get _types => [T1, T2, T3, T4, T5, T6, T7, T8];
+}
+
+class Instantiation9<T1, T2, T3, T4, T5, T6, T7, T8, T9> extends Instantiation {
+  Instantiation9(Closure f) : super(f);
+  List get _types => [T1, T2, T3, T4, T5, T6, T7, T8, T9];
+}
+
+class Instantiation10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>
+    extends Instantiation {
+  Instantiation10(Closure f) : super(f);
+  List get _types => [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10];
+}
+
+class Instantiation11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>
+    extends Instantiation {
+  Instantiation11(Closure f) : super(f);
+  List get _types => [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11];
+}
+
+class Instantiation12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>
+    extends Instantiation {
+  Instantiation12(Closure f) : super(f);
+  List get _types => [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12];
+}
+
+class Instantiation13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>
+    extends Instantiation {
+  Instantiation13(Closure f) : super(f);
+  List get _types => [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13];
+}
+
+class Instantiation14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
+    T14> extends Instantiation {
+  Instantiation14(Closure f) : super(f);
+  List get _types =>
+      [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14];
+}
+
+class Instantiation15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
+    T14, T15> extends Instantiation {
+  Instantiation15(Closure f) : super(f);
+  List get _types =>
+      [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15];
+}
+
+class Instantiation16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
+    T14, T15, T16> extends Instantiation {
+  Instantiation16(Closure f) : super(f);
+  List get _types =>
+      [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16];
+}
+
+class Instantiation17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
+    T14, T15, T16, T17> extends Instantiation {
+  Instantiation17(Closure f) : super(f);
+  List get _types => [
+        T1,
+        T2,
+        T3,
+        T4,
+        T5,
+        T6,
+        T7,
+        T8,
+        T9,
+        T10,
+        T11,
+        T12,
+        T13,
+        T14,
+        T15,
+        T16,
+        T17
+      ];
+}
+
+class Instantiation18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
+    T14, T15, T16, T17, T18> extends Instantiation {
+  Instantiation18(Closure f) : super(f);
+  List get _types => [
+        T1,
+        T2,
+        T3,
+        T4,
+        T5,
+        T6,
+        T7,
+        T8,
+        T9,
+        T10,
+        T11,
+        T12,
+        T13,
+        T14,
+        T15,
+        T16,
+        T17,
+        T18
+      ];
+}
+
+class Instantiation19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
+    T14, T15, T16, T17, T18, T19> extends Instantiation {
+  Instantiation19(Closure f) : super(f);
+  List get _types => [
+        T1,
+        T2,
+        T3,
+        T4,
+        T5,
+        T6,
+        T7,
+        T8,
+        T9,
+        T10,
+        T11,
+        T12,
+        T13,
+        T14,
+        T15,
+        T16,
+        T17,
+        T18,
+        T19
+      ];
+}
+
+class Instantiation20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
+    T14, T15, T16, T17, T18, T19, T20> extends Instantiation {
+  Instantiation20(Closure f) : super(f);
+  List get _types => [
+        T1,
+        T2,
+        T3,
+        T4,
+        T5,
+        T6,
+        T7,
+        T8,
+        T9,
+        T10,
+        T11,
+        T12,
+        T13,
+        T14,
+        T15,
+        T16,
+        T17,
+        T18,
+        T19,
+        T20
+      ];
+}
+
+Instantiation instantiate1<T1>(Closure f) {
+  return new Instantiation1<T1>(f);
+}
+
+Instantiation instantiate2<T1, T2>(Closure f) {
+  return new Instantiation2<T1, T2>(f);
+}
+
+Instantiation instantiate3<T1, T2, T3>(Closure f) {
+  return new Instantiation3<T1, T2, T3>(f);
+}
+
+Instantiation instantiate4<T1, T2, T3, T4>(Closure f) {
+  return new Instantiation4<T1, T2, T3, T4>(f);
+}
+
+Instantiation instantiate5<T1, T2, T3, T4, T5>(Closure f) {
+  return new Instantiation5<T1, T2, T3, T4, T5>(f);
+}
+
+Instantiation instantiate6<T1, T2, T3, T4, T5, T6>(Closure f) {
+  return new Instantiation6<T1, T2, T3, T4, T5, T6>(f);
+}
+
+Instantiation instantiate7<T1, T2, T3, T4, T5, T6, T7>(Closure f) {
+  return new Instantiation7<T1, T2, T3, T4, T5, T6, T7>(f);
+}
+
+Instantiation instantiate8<T1, T2, T3, T4, T5, T6, T7, T8>(Closure f) {
+  return new Instantiation8<T1, T2, T3, T4, T5, T6, T7, T8>(f);
+}
+
+Instantiation instantiate9<T1, T2, T3, T4, T5, T6, T7, T8, T9>(Closure f) {
+  return new Instantiation9<T1, T2, T3, T4, T5, T6, T7, T8, T9>(f);
+}
+
+Instantiation instantiate10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(
+    Closure f) {
+  return new Instantiation10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(f);
+}
+
+Instantiation instantiate11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(
+    Closure f) {
+  return new Instantiation11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(f);
+}
+
+Instantiation instantiate12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(
+    Closure f) {
+  return new Instantiation12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(
+      f);
+}
+
+Instantiation
+    instantiate13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(
+        Closure f) {
+  return new Instantiation13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
+      T13>(f);
+}
+
+Instantiation
+    instantiate14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(
+        Closure f) {
+  return new Instantiation14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
+      T13, T14>(f);
+}
+
+Instantiation instantiate15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
+    T13, T14, T15>(Closure f) {
+  return new Instantiation15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
+      T13, T14, T15>(f);
+}
+
+Instantiation instantiate16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
+    T13, T14, T15, T16>(Closure f) {
+  return new Instantiation16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
+      T13, T14, T15, T16>(f);
+}
+
+Instantiation instantiate17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
+    T13, T14, T15, T16, T17>(Closure f) {
+  return new Instantiation17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
+      T13, T14, T15, T16, T17>(f);
+}
+
+Instantiation instantiate18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
+    T13, T14, T15, T16, T17, T18>(Closure f) {
+  return new Instantiation18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
+      T13, T14, T15, T16, T17, T18>(f);
+}
+
+Instantiation instantiate19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
+    T13, T14, T15, T16, T17, T18, T19>(Closure f) {
+  return new Instantiation19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
+      T13, T14, T15, T16, T17, T18, T19>(f);
+}
+
+Instantiation instantiate20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
+    T13, T14, T15, T16, T17, T18, T19, T20>(Closure f) {
+  return new Instantiation20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
+      T13, T14, T15, T16, T17, T18, T19, T20>(f);
 }
 
 bool jsHasOwnProperty(var jsObject, String property) {
@@ -3202,8 +3517,7 @@ stringTypeCheck(value) {
 
 stringTypeCast(value) {
   if (value is String || value == null) return value;
-  // TODO(lrn): When reified types are available, pass value.class and String.
-  throw new CastErrorImplementation(Primitives.objectTypeName(value), 'String');
+  throw new CastErrorImplementation(value, 'String');
 }
 
 doubleTypeCheck(value) {
@@ -3214,7 +3528,7 @@ doubleTypeCheck(value) {
 
 doubleTypeCast(value) {
   if (value is double || value == null) return value;
-  throw new CastErrorImplementation(Primitives.objectTypeName(value), 'double');
+  throw new CastErrorImplementation(value, 'double');
 }
 
 numTypeCheck(value) {
@@ -3225,7 +3539,7 @@ numTypeCheck(value) {
 
 numTypeCast(value) {
   if (value is num || value == null) return value;
-  throw new CastErrorImplementation(Primitives.objectTypeName(value), 'num');
+  throw new CastErrorImplementation(value, 'num');
 }
 
 boolTypeCheck(value) {
@@ -3236,7 +3550,7 @@ boolTypeCheck(value) {
 
 boolTypeCast(value) {
   if (value is bool || value == null) return value;
-  throw new CastErrorImplementation(Primitives.objectTypeName(value), 'bool');
+  throw new CastErrorImplementation(value, 'bool');
 }
 
 intTypeCheck(value) {
@@ -3247,7 +3561,7 @@ intTypeCheck(value) {
 
 intTypeCast(value) {
   if (value is int || value == null) return value;
-  throw new CastErrorImplementation(Primitives.objectTypeName(value), 'int');
+  throw new CastErrorImplementation(value, 'int');
 }
 
 void propertyTypeError(value, property) {
@@ -3257,9 +3571,8 @@ void propertyTypeError(value, property) {
 
 void propertyTypeCastError(value, property) {
   // Cuts the property name to the class name.
-  String actualType = Primitives.objectTypeName(value);
   String expectedType = property.substring(3, property.length);
-  throw new CastErrorImplementation(actualType, expectedType);
+  throw new CastErrorImplementation(value, expectedType);
 }
 
 /**
@@ -3388,7 +3701,7 @@ listTypeCheck(value) {
 
 listTypeCast(value) {
   if (value is List || value == null) return value;
-  throw new CastErrorImplementation(Primitives.objectTypeName(value), 'List');
+  throw new CastErrorImplementation(value, 'List');
 }
 
 listSuperTypeCheck(value, property) {
@@ -3418,18 +3731,37 @@ listSuperNativeTypeCast(value, property) {
 
 extractFunctionTypeObjectFrom(o) {
   var interceptor = getInterceptor(o);
+  return extractFunctionTypeObjectFromInternal(interceptor);
+}
+
+extractFunctionTypeObjectFromInternal(o) {
   var signatureName = JS_GET_NAME(JsGetName.SIGNATURE_NAME);
-  return JS('bool', '# in #', signatureName, interceptor)
-      ? JS('', '#[#]()', interceptor, signatureName)
-      : null;
+  if (JS('bool', '# in #', signatureName, o)) {
+    var signature = JS('', '#[#]', o, signatureName);
+    if (JS('bool', 'typeof # == "number"', signature)) {
+      return getType(signature);
+    } else {
+      return JS('', '#[#]()', o, signatureName);
+    }
+  }
+  return null;
 }
 
 functionTypeTest(value, functionTypeRti) {
   if (value == null) return false;
+  if (JS('bool', 'typeof # == "function"', value)) {
+    // JavaScript functions do not have an attached type, but for convenient
+    // JS-interop, we pretend they can be any function type.
+    // TODO(sra): Tighten this up to disallow matching function types with
+    // features inaccessible from JavaScript, i.e.  optional named parameters
+    // and type parameters functions.
+    // TODO(sra): If the JavaScript function was the output of `dart:js`'s
+    // `allowInterop` then we have access to the wrapped function.
+    return true;
+  }
   var functionTypeObject = extractFunctionTypeObjectFrom(value);
-  return functionTypeObject == null
-      ? false
-      : isFunctionSubtype(functionTypeObject, functionTypeRti);
+  if (functionTypeObject == null) return false;
+  return isFunctionSubtype(functionTypeObject, functionTypeRti);
 }
 
 // Declared as 'var' to avoid assignment checks.
@@ -3459,20 +3791,14 @@ functionTypeCast(value, functionTypeRti) {
   if (functionTypeTest(value, functionTypeRti)) return value;
 
   var self = runtimeTypeToString(functionTypeRti);
-  var functionTypeObject = extractFunctionTypeObjectFrom(value);
-  var pretty;
-  if (functionTypeObject != null) {
-    pretty = runtimeTypeToString(functionTypeObject);
-  } else {
-    pretty = Primitives.objectTypeName(value);
-  }
-  throw new CastErrorImplementation(pretty, self);
+  throw new CastErrorImplementation(value, self);
 }
 
-checkMalformedType(value, message) {
-  if (value == null) return value;
-  throw new TypeErrorImplementation.fromMessage(message);
-}
+futureOrTest(o, futureOrRti) => checkSubtypeOfRuntimeType(o, futureOrRti);
+
+futureOrCheck(o, futureOrRti) => assertSubtypeOfRuntimeType(o, futureOrRti);
+
+futureOrCast(o, futureOrRti) => subtypeOfRuntimeTypeCast(o, futureOrRti);
 
 @NoInline()
 void checkDeferredIsLoaded(String loadId, String uri) {
@@ -3495,12 +3821,10 @@ abstract class JavaScriptIndexingBehavior<E> extends JSMutableIndexable<E> {}
 class TypeErrorImplementation extends Error implements TypeError {
   final String message;
 
-  /**
-   * Normal type error caused by a failed subtype test.
-   */
+  /// Normal type error caused by a failed subtype test.
   TypeErrorImplementation(Object value, String type)
-      : message = "type '${Primitives.objectTypeName(value)}' is not a subtype "
-            "of type '$type'";
+      : message = "TypeError: ${Error.safeToString(value)}: type "
+            "'${_typeDescription(value)}' is not a subtype of type '$type'";
 
   TypeErrorImplementation.fromMessage(String this.message);
 
@@ -3512,19 +3836,28 @@ class CastErrorImplementation extends Error implements CastError {
   // TODO(lrn): Rename to CastError (and move implementation into core).
   final String message;
 
-  /**
-   * Normal cast error caused by a failed type cast.
-   */
-  CastErrorImplementation(Object actualType, Object expectedType)
-      : message = "CastError: Casting value of type '$actualType' to"
-            " incompatible type '$expectedType'";
+  /// Normal cast error caused by a failed type cast.
+  CastErrorImplementation(Object value, Object type)
+      : message = "CastError: ${Error.safeToString(value)}: type "
+            "'${_typeDescription(value)}' is not a subtype of type '$type'";
 
   String toString() => message;
 }
 
+String _typeDescription(value) {
+  if (value is Closure) {
+    var functionTypeObject = extractFunctionTypeObjectFrom(value);
+    if (functionTypeObject != null) {
+      return runtimeTypeToString(functionTypeObject);
+    }
+    return 'Closure';
+  }
+  return Primitives.objectTypeName(value);
+}
+
 class FallThroughErrorImplementation extends FallThroughError {
   FallThroughErrorImplementation();
-  String toString() => "Switch case fall-through.";
+  String toString() => 'Switch case fall-through.';
 }
 
 /**
@@ -3582,7 +3915,7 @@ void throwCyclicInit(String staticName) {
 class RuntimeError extends Error {
   final message;
   RuntimeError(this.message);
-  String toString() => "RuntimeError: $message";
+  String toString() => 'RuntimeError: $message';
 }
 
 class DeferredNotLoadedError extends Error implements NoSuchMethodError {
@@ -3591,7 +3924,7 @@ class DeferredNotLoadedError extends Error implements NoSuchMethodError {
   DeferredNotLoadedError(this.libraryName);
 
   String toString() {
-    return "Deferred library $libraryName was not loaded.";
+    return 'Deferred library $libraryName was not loaded.';
   }
 }
 
@@ -3602,7 +3935,7 @@ class UnimplementedNoSuchMethodError extends Error
 
   UnimplementedNoSuchMethodError(this._message);
 
-  String toString() => "Unsupported operation: $_message";
+  String toString() => 'Unsupported operation: $_message';
 }
 
 /**
@@ -3612,13 +3945,13 @@ class UnimplementedNoSuchMethodError extends Error
  */
 int random64() {
   // TODO(lrn): Use a secure random source.
-  int int32a = JS("int", "(Math.random() * 0x100000000) >>> 0");
-  int int32b = JS("int", "(Math.random() * 0x100000000) >>> 0");
+  int int32a = JS('int', '(Math.random() * 0x100000000) >>> 0');
+  int int32b = JS('int', '(Math.random() * 0x100000000) >>> 0');
   return int32a + int32b * 0x100000000;
 }
 
 String jsonEncodeNative(String string) {
-  return JS("String", "JSON.stringify(#)", string);
+  return JS('String', 'JSON.stringify(#)', string);
 }
 
 /**
@@ -3643,43 +3976,88 @@ LoadLibraryFunctionType _loadLibraryWrapper(String loadId) {
 final Map<String, Future<Null>> _loadingLibraries = <String, Future<Null>>{};
 final Set<String> _loadedLibraries = new Set<String>();
 
+/// Events used to diagnose failures from deferred loading requests.
+final List<String> _eventLog = <String>[];
+
 typedef void DeferredLoadCallback();
 
 // Function that will be called every time a new deferred import is loaded.
 DeferredLoadCallback deferredLoadHook;
 
 Future<Null> loadDeferredLibrary(String loadId) {
-  // For each loadId there is a list of hunk-uris to load, and a corresponding
-  // list of hashes. These are stored in the app-global scope.
-  var urisMap = JS_EMBEDDED_GLOBAL('', DEFERRED_LIBRARY_URIS);
-  List<String> uris = JS('JSExtendableArray|Null', '#[#]', urisMap, loadId);
-  if (uris == null) return new Future.value(null);
-
-  var hashesMap = JS_EMBEDDED_GLOBAL('', DEFERRED_LIBRARY_HASHES);
-  List<String> hashes = JS('JSExtendableArray|Null', '#[#]', hashesMap, loadId);
-
-  List<String> urisToLoad = <String>[];
-
-  var isHunkLoaded = JS_EMBEDDED_GLOBAL('', IS_HUNK_LOADED);
-  for (int i = 0; i < uris.length; ++i) {
-    if (JS('bool', '#(#)', isHunkLoaded, hashes[i])) continue;
-    urisToLoad.add(uris[i]);
+  // For each loadId there is a list of parts to load. The parts are represented
+  // by an index. There are two arrays, one that maps the index into a Uri and
+  // another that maps the index to a hash.
+  var partsMap = JS_EMBEDDED_GLOBAL('', DEFERRED_LIBRARY_PARTS);
+  List indexes = JS('JSExtendableArray|Null', '#[#]', partsMap, loadId);
+  if (indexes == null) return new Future.value(null);
+  List<String> uris = <String>[];
+  List<String> hashes = <String>[];
+  List index2uri = JS_EMBEDDED_GLOBAL('JSArray', DEFERRED_PART_URIS);
+  List index2hash = JS_EMBEDDED_GLOBAL('JSArray', DEFERRED_PART_HASHES);
+  for (int i = 0; i < indexes.length; i++) {
+    int index = JS('int', '#[#]', indexes, i);
+    uris.add(JS('String', '#[#]', index2uri, index));
+    hashes.add(JS('String', '#[#]', index2hash, index));
   }
 
-  return Future.wait(urisToLoad.map(_loadHunk)).then((_) {
-    // Now all hunks have been loaded, we run the needed initializers.
-    var isHunkInitialized = JS_EMBEDDED_GLOBAL('', IS_HUNK_INITIALIZED);
-    var initializer = JS_EMBEDDED_GLOBAL('', INITIALIZE_LOADED_HUNK);
-    for (String hash in hashes) {
+  int total = hashes.length;
+  assert(total == uris.length);
+  List<bool> waitingForLoad = new List.filled(total, true);
+  int nextHunkToInitialize = 0;
+  var isHunkLoaded = JS_EMBEDDED_GLOBAL('', IS_HUNK_LOADED);
+  var isHunkInitialized = JS_EMBEDDED_GLOBAL('', IS_HUNK_INITIALIZED);
+  var initializer = JS_EMBEDDED_GLOBAL('', INITIALIZE_LOADED_HUNK);
+
+  void initializeSomeLoadedHunks() {
+    for (int i = nextHunkToInitialize; i < total; ++i) {
+      // A hunk is initialized only if all the preceeding hunks have been
+      // initialized.
+      if (waitingForLoad[i]) return;
+      nextHunkToInitialize++;
+
       // It is possible for a hash to be repeated. This happens when two
       // different parts both end up empty. Checking in the loop rather than
       // pre-filtering prevents duplicate hashes leading to duplicated
       // initializations.
       // TODO(29572): Merge small parts.
       // TODO(29635): Remove duplicate parts from tables and output files.
-      if (JS('bool', '#(#)', isHunkInitialized, hash)) continue;
-      JS('void', '#(#)', initializer, hash);
+      var uri = uris[i];
+      var hash = hashes[i];
+      if (JS('bool', '#(#)', isHunkInitialized, hash)) {
+        _eventLog.add(' - already initialized: $uri ($hash)');
+        continue;
+      }
+      // On strange scenarios, e.g. if js encounters parse errors, we might get
+      // an "success" callback on the script load but the hunk will be null.
+      if (JS('bool', '#(#)', isHunkLoaded, hash)) {
+        _eventLog.add(' - initialize: $uri ($hash)');
+        JS('void', '#(#)', initializer, hash);
+      } else {
+        _eventLog.add(' - missing hunk: $uri ($hash)');
+        throw new DeferredLoadException("Loading ${uris[i]} failed: "
+            "the code with hash '${hash}' was not loaded.\n"
+            "event log:\n${_eventLog.join("\n")}\n");
+      }
     }
+  }
+
+  Future loadAndInitialize(int i) {
+    if (JS('bool', '#(#)', isHunkLoaded, hashes[i])) {
+      waitingForLoad[i] = false;
+      return new Future.value();
+    }
+    return _loadHunk(uris[i]).then((_) {
+      waitingForLoad[i] = false;
+      initializeSomeLoadedHunks();
+    });
+  }
+
+  return Future.wait(new List.generate(total, loadAndInitialize)).then((_) {
+    initializeSomeLoadedHunks();
+    // At this point all hunks have been loaded, so there should be no pending
+    // initializations to do.
+    assert(nextHunkToInitialize == total);
     bool updated = _loadedLibraries.add(loadId);
     if (updated && deferredLoadHook != null) {
       deferredLoadHook();
@@ -3687,33 +4065,109 @@ Future<Null> loadDeferredLibrary(String loadId) {
   });
 }
 
+/// The `nonce` value on the current script used for strict-CSP, if any.
+String _cspNonce = _computeCspNonce();
+
+String _computeCspNonce() {
+  var currentScript = JS_EMBEDDED_GLOBAL('', CURRENT_SCRIPT);
+  if (currentScript == null) return null;
+  return JS('String', 'String(#.nonce)', currentScript);
+}
+
+/// Returns true if we are currently in a worker context.
+bool _isWorker() {
+  requiresPreamble();
+  return JS('', '!self.window && !!self.postMessage');
+}
+
+/// The src url for the script tag that loaded this code.
+String thisScript = _computeThisScript();
+
+/// The src url for the script tag that loaded this function.
+///
+/// Used to create JavaScript workers and load deferred libraries.
+String _computeThisScript() {
+  var currentScript = JS_EMBEDDED_GLOBAL('', CURRENT_SCRIPT);
+  if (currentScript != null) {
+    return JS('String', 'String(#.src)', currentScript);
+  }
+  // A worker has no script tag - so get an url from a stack-trace.
+  if (_isWorker()) return _computeThisScriptFromTrace();
+  // An isolate that doesn't support workers, but doesn't have a
+  // currentScript either. This is most likely a Chrome extension.
+  return null;
+}
+
+String _computeThisScriptFromTrace() {
+  var stack = JS('String|Null', 'new Error().stack');
+  if (stack == null) {
+    // According to Internet Explorer documentation, the stack
+    // property is not set until the exception is thrown. The stack
+    // property was not provided until IE10.
+    stack = JS(
+        'String|Null',
+        '(function() {'
+        'try { throw new Error() } catch(e) { return e.stack }'
+        '})()');
+    if (stack == null) throw new UnsupportedError('No stack trace');
+  }
+  var pattern, matches;
+
+  // This pattern matches V8, Chrome, and Internet Explorer stack
+  // traces that look like this:
+  // Error
+  //     at methodName (URI:LINE:COLUMN)
+  pattern = JS('', r'new RegExp("^ *at [^(]*\\((.*):[0-9]*:[0-9]*\\)$", "m")');
+
+  matches = JS('JSExtendableArray|Null', '#.match(#)', stack, pattern);
+  if (matches != null) return JS('String', '#[1]', matches);
+
+  // This pattern matches Firefox stack traces that look like this:
+  // methodName@URI:LINE
+  pattern = JS('', r'new RegExp("^[^@]*@(.*):[0-9]*$", "m")');
+
+  matches = JS('JSExtendableArray|Null', '#.match(#)', stack, pattern);
+  if (matches != null) return JS('String', '#[1]', matches);
+
+  throw new UnsupportedError('Cannot extract URI from "$stack"');
+}
+
 Future<Null> _loadHunk(String hunkName) {
   Future<Null> future = _loadingLibraries[hunkName];
+  _eventLog.add(' - _loadHunk: $hunkName');
   if (future != null) {
+    _eventLog.add('reuse: $hunkName');
     return future.then((_) => null);
   }
 
-  String uri = IsolateNatives.thisScript;
+  String uri = thisScript;
 
   int index = uri.lastIndexOf('/');
   uri = '${uri.substring(0, index + 1)}$hunkName';
+  _eventLog.add(' - download: $hunkName from $uri');
 
   var deferredLibraryLoader = JS('', 'self.dartDeferredLibraryLoader');
   Completer<Null> completer = new Completer<Null>();
 
   void success() {
+    _eventLog.add(' - download success: $hunkName');
     completer.complete(null);
   }
 
-  void failure([error, StackTrace stackTrace]) {
+  void failure(error, String context, StackTrace stackTrace) {
+    _eventLog.add(' - download failed: $hunkName (context: $context)');
     _loadingLibraries[hunkName] = null;
+    stackTrace ??= StackTrace.current;
     completer.completeError(
-        new DeferredLoadException("Loading $uri failed: $error"), stackTrace);
+        new DeferredLoadException('Loading $uri failed: $error\n'
+            'event log:\n${_eventLog.join("\n")}\n'),
+        stackTrace);
   }
 
   var jsSuccess = convertDartClosureToJS(success, 0);
   var jsFailure = convertDartClosureToJS((error) {
-    failure(unwrapException(error), getTraceFromException(error));
+    failure(unwrapException(error), 'js-failure-wrapper',
+        getTraceFromException(error));
   }, 1);
 
   if (JS('bool', 'typeof # === "function"', deferredLibraryLoader)) {
@@ -3721,15 +4175,10 @@ Future<Null> _loadHunk(String hunkName) {
       JS('void', '#(#, #, #)', deferredLibraryLoader, uri, jsSuccess,
           jsFailure);
     } catch (error, stackTrace) {
-      failure(error, stackTrace);
+      failure(error, "invoking dartDeferredLibraryLoader hook", stackTrace);
     }
-  } else if (isWorker()) {
+  } else if (_isWorker()) {
     // We are in a web worker. Load the code with an XMLHttpRequest.
-    enterJsAsync();
-    Future<Null> leavingFuture = completer.future.whenComplete(() {
-      leaveJsAsync();
-    });
-
     int index = uri.lastIndexOf('/');
     uri = '${uri.substring(0, index + 1)}$hunkName';
     var xhr = JS('var', 'new XMLHttpRequest()');
@@ -3739,8 +4188,9 @@ Future<Null> _loadHunk(String hunkName) {
         '#.addEventListener("load", #, false)',
         xhr,
         convertDartClosureToJS((event) {
-          if (JS('int', '#.status', xhr) != 200) {
-            failure("");
+          int status = JS('int', '#.status', xhr);
+          if (status != 200) {
+            failure('Request status: $status', 'worker xhr', null);
           }
           String code = JS('String', '#.responseText', xhr);
           try {
@@ -3749,12 +4199,16 @@ Future<Null> _loadHunk(String hunkName) {
             JS('void', '(new Function(#))()', code);
             success();
           } catch (error, stackTrace) {
-            failure(error, stackTrace);
+            failure(error, 'evaluating the code in worker xhr', stackTrace);
           }
         }, 1));
 
-    JS('void', '#.addEventListener("error", #, false)', xhr, failure);
-    JS('void', '#.addEventListener("abort", #, false)', xhr, failure);
+    JS('void', '#.addEventListener("error", #, false)', xhr, (e) {
+      failure(e, 'xhr error handler', null);
+    });
+    JS('void', '#.addEventListener("abort", #, false)', xhr, (e) {
+      failure(e, 'xhr abort handler', null);
+    });
     JS('void', '#.send()', xhr);
   } else {
     // We are in a dom-context.
@@ -3762,6 +4216,9 @@ Future<Null> _loadHunk(String hunkName) {
     var script = JS('', 'document.createElement("script")');
     JS('', '#.type = "text/javascript"', script);
     JS('', '#.src = #', script, uri);
+    if (_cspNonce != null && _cspNonce != '') {
+      JS('', '#.nonce = #', script, _cspNonce);
+    }
     JS('', '#.addEventListener("load", #, false)', script, jsSuccess);
     JS('', '#.addEventListener("error", #, false)', script, jsFailure);
     JS('', 'document.body.appendChild(#)', script);
@@ -3801,10 +4258,18 @@ class _AssertionError extends AssertionError {
 // unneeded code.
 class _UnreachableError extends AssertionError {
   _UnreachableError();
-  String toString() => "Assertion failed: Reached dead code";
+  String toString() => 'Assertion failed: Reached dead code';
 }
 
 @NoInline()
 void assertUnreachable() {
   throw new _UnreachableError();
 }
+
+// Hook to register new global object if necessary.
+// This is currently a no-op in dart2js.
+void registerGlobalObject(object) {}
+
+// Hook to register new browser classes.
+// This is currently a no-op in dart2js.
+void applyExtension(name, nativeObject) {}

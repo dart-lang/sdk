@@ -1,0 +1,18 @@
+// Errors:
+//
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_many_libs_same_name_cycle.dart:11:7: Error: Generic type 'Hest' can't be used without type arguments in the bounds of its own type variables. It is referenced indirectly through 'Hest'.
+// Try providing type arguments to 'Hest' here or to some other raw types in the bounds along the reference chain.
+// class Hest<TypeX extends lib.Hest> {}
+//       ^^^^
+
+library;
+import self as self;
+import "./non_simple_many_libs_same_name_cycle_lib.dart" as non;
+import "dart:core" as core;
+
+class Hest<TypeX extends non::Hest<self::Hest<dynamic>> = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

@@ -2,23 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.context.cache_test;
-
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/model.dart';
-import 'package:analyzer/task/model.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:typed_mock/typed_mock.dart';
 
 import '../../generated/test_support.dart';
 
@@ -39,14 +36,14 @@ AnalysisCache createCache({AnalysisContext context}) {
 }
 
 class AbstractCacheTest {
-  InternalAnalysisContext context;
+  _InternalAnalysisContextMock context;
   AnalysisCache cache;
 
   void setUp() {
     context = new _InternalAnalysisContextMock();
-    when(context.prioritySources).thenReturn([]);
+    context.prioritySources = [];
     cache = createCache(context: context);
-    when(context.analysisCache).thenReturn(cache);
+    context.analysisCache = cache;
   }
 }
 
@@ -362,8 +359,7 @@ class CacheEntryTest extends AbstractCacheTest {
   }
 
   test_getValue_flushResults() {
-    ResultCachingPolicy<int> cachingPolicy =
-        new SimpleResultCachingPolicy<int>(2, 2);
+    ResultCachingPolicy cachingPolicy = new SimpleResultCachingPolicy(2, 2);
     ResultDescriptor<int> descriptor1 = new ResultDescriptor<int>(
         'result1', null,
         cachingPolicy: cachingPolicy);
@@ -753,8 +749,7 @@ class CacheEntryTest extends AbstractCacheTest {
   }
 
   test_setValue_flushResults() {
-    ResultCachingPolicy<int> cachingPolicy =
-        new SimpleResultCachingPolicy<int>(2, 2);
+    ResultCachingPolicy cachingPolicy = new SimpleResultCachingPolicy(2, 2);
     ResultDescriptor<int> descriptor1 = new ResultDescriptor<int>(
         'result1', null,
         cachingPolicy: cachingPolicy);
@@ -785,8 +780,7 @@ class CacheEntryTest extends AbstractCacheTest {
   }
 
   test_setValue_flushResults_keepForPrioritySources() {
-    ResultCachingPolicy<int> cachingPolicy =
-        new SimpleResultCachingPolicy<int>(2, 2);
+    ResultCachingPolicy cachingPolicy = new SimpleResultCachingPolicy(2, 2);
     ResultDescriptor<int> newResult(String name) =>
         new ResultDescriptor<int>(name, null, cachingPolicy: cachingPolicy);
     ResultDescriptor<int> descriptor1 = newResult('result1');
@@ -815,7 +809,7 @@ class CacheEntryTest extends AbstractCacheTest {
     expect(entry2.getState(descriptor2), CacheState.VALID);
 
     // Make source1 priority, so result2 is flushed instead.
-    when(context.prioritySources).thenReturn([source1]);
+    context.prioritySources = <Source>[source1];
     entry3.setValue(descriptor3, 3, TargetedResult.EMPTY_LIST);
     expect(entry1.getState(descriptor1), CacheState.VALID);
     expect(entry2.getState(descriptor2), CacheState.FLUSHED);
@@ -1253,11 +1247,11 @@ class UniversalCachePartitionTest extends CachePartitionTest {
   }
 
   test_dispose() {
-    InternalAnalysisContext context = new _InternalAnalysisContextMock();
+    _InternalAnalysisContextMock context = new _InternalAnalysisContextMock();
     CachePartition partition1 = new UniversalCachePartition(context);
     CachePartition partition2 = new UniversalCachePartition(context);
     AnalysisCache cache = new AnalysisCache([partition1, partition2]);
-    when(context.analysisCache).thenReturn(cache);
+    context.analysisCache = cache;
     // configure
     // prepare entries
     ResultDescriptor<int> descriptor1 =
@@ -1286,10 +1280,20 @@ class UniversalCachePartitionTest extends CachePartitionTest {
   }
 }
 
-class _InternalAnalysisContextMock extends TypedMock
-    implements InternalAnalysisContext {
+class _InternalAnalysisContextMock implements InternalAnalysisContext {
   @override
   final AnalysisOptions analysisOptions = new AnalysisOptionsImpl();
+
+  @override
+  AnalysisCache analysisCache;
+
+  @override
+  List<Source> prioritySources = <Source>[];
+
+  @override
+  noSuchMethod(Invocation invocation) {
+    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+  }
 }
 
 /**

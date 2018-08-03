@@ -1,0 +1,89 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:math" as math;
+
+class C extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method m<T extends core::num = core::num>(self::C::m::T x, self::C::m::T y) → self::C::m::T
+    return null;
+}
+static method test() → dynamic {
+  self::takeIII(math::max<core::int>);
+  self::takeDDD(math::max<core::double>);
+  self::takeNNN(math::max<core::num>);
+  self::takeIDN(math::max<core::num>);
+  self::takeDIN(math::max<core::num>);
+  self::takeIIN(math::max<core::int>);
+  self::takeDDN(math::max<core::double>);
+  self::takeIIO(math::max<core::int>);
+  self::takeDDO(math::max<core::double>);
+  self::takeOOI((math::max<core::Object>) as{TypeError} (core::Object, core::Object) → core::int);
+  self::takeIDI(let<BottomType> _ = null in let final dynamic #t1 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:28:73: Error: The argument type '(dart.core::num, dart.core::num) \u8594 dart.core::num' can't be assigned to the parameter type '(dart.core::double, dart.core::int) \u8594 dart.core::int'.
+Try changing the type of the parameter, or casting the argument to '(dart.core::double, dart.core::int) \u8594 dart.core::int'.
+      /*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ math.max);
+                                                                        ^" in let final (core::num, core::num) → core::num #t2 = math::max<core::num> in null);
+  self::takeDID(let<BottomType> _ = null in let final dynamic #t3 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:30:73: Error: The argument type '(dart.core::num, dart.core::num) \u8594 dart.core::num' can't be assigned to the parameter type '(dart.core::int, dart.core::double) \u8594 dart.core::double'.
+Try changing the type of the parameter, or casting the argument to '(dart.core::int, dart.core::double) \u8594 dart.core::double'.
+      /*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ math.max);
+                                                                        ^" in let final (core::num, core::num) → core::num #t4 = math::max<core::num> in null);
+  self::takeOON((math::max<core::Object>) as{TypeError} (core::Object, core::Object) → core::num);
+  self::takeOOO((math::max<core::Object>) as{TypeError} (core::Object, core::Object) → core::num);
+  self::takeIII(math::min<core::int>);
+  self::takeDDD(math::min<core::double>);
+  self::takeNNN(math::min<core::num>);
+  self::takeIDN(math::min<core::num>);
+  self::takeDIN(math::min<core::num>);
+  self::takeIIN(math::min<core::int>);
+  self::takeDDN(math::min<core::double>);
+  self::takeIIO(math::min<core::int>);
+  self::takeDDO(math::min<core::double>);
+  self::takeOOI((math::min<core::Object>) as{TypeError} (core::Object, core::Object) → core::int);
+  self::takeIDI(let<BottomType> _ = null in let final dynamic #t5 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:46:72: Error: The argument type '(dart.core::num, dart.core::num) \u8594 dart.core::num' can't be assigned to the parameter type '(dart.core::double, dart.core::int) \u8594 dart.core::int'.
+Try changing the type of the parameter, or casting the argument to '(dart.core::double, dart.core::int) \u8594 dart.core::int'.
+  takeIDI(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ min);
+                                                                       ^" in let final (core::num, core::num) → core::num #t6 = math::min<core::num> in null);
+  self::takeDID(let<BottomType> _ = null in let final dynamic #t7 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:47:72: Error: The argument type '(dart.core::num, dart.core::num) \u8594 dart.core::num' can't be assigned to the parameter type '(dart.core::int, dart.core::double) \u8594 dart.core::double'.
+Try changing the type of the parameter, or casting the argument to '(dart.core::int, dart.core::double) \u8594 dart.core::double'.
+  takeDID(/*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ min);
+                                                                       ^" in let final (core::num, core::num) → core::num #t8 = math::min<core::num> in null);
+  self::takeOON((math::min<core::Object>) as{TypeError} (core::Object, core::Object) → core::num);
+  self::takeOOO((math::min<core::Object>) as{TypeError} (core::Object, core::Object) → core::num);
+  self::takeIII(new self::C::•().{self::C::m}<core::int>);
+  self::takeDDD(new self::C::•().{self::C::m}<core::double>);
+  self::takeNNN(new self::C::•().{self::C::m}<core::num>);
+  self::takeIDN(new self::C::•().{self::C::m}<core::num>);
+  self::takeDIN(new self::C::•().{self::C::m}<core::num>);
+  self::takeIIN(new self::C::•().{self::C::m}<core::int>);
+  self::takeDDN(new self::C::•().{self::C::m}<core::double>);
+  self::takeIIO(new self::C::•().{self::C::m}<core::int>);
+  self::takeDDO(new self::C::•().{self::C::m}<core::double>);
+  self::takeOON((new self::C::•().{self::C::m}<core::Object>) as{TypeError} (core::Object, core::Object) → core::num);
+  self::takeOOO((new self::C::•().{self::C::m}<core::Object>) as{TypeError} (core::Object, core::Object) → core::num);
+  self::takeOOI((new self::C::•().{self::C::m}<core::Object>) as{TypeError} (core::Object, core::Object) → core::int);
+  self::takeIDI(let<BottomType> _ = null in let final dynamic #t9 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:86:30: Error: The argument type '(dart.core::num, dart.core::num) \u8594 dart.core::num' can't be assigned to the parameter type '(dart.core::double, dart.core::int) \u8594 dart.core::int'.
+Try changing the type of the parameter, or casting the argument to '(dart.core::double, dart.core::int) \u8594 dart.core::int'.
+          . /*@target=C::m*/ m);
+                             ^" in let final (core::num, core::num) → core::num #t10 = new self::C::•().{self::C::m}<core::num> in null);
+  self::takeDID(let<BottomType> _ = null in let final dynamic #t11 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_infer_generic_instantiation.dart:89:30: Error: The argument type '(dart.core::num, dart.core::num) \u8594 dart.core::num' can't be assigned to the parameter type '(dart.core::int, dart.core::double) \u8594 dart.core::double'.
+Try changing the type of the parameter, or casting the argument to '(dart.core::int, dart.core::double) \u8594 dart.core::double'.
+          . /*@target=C::m*/ m);
+                             ^" in let final (core::num, core::num) → core::num #t12 = new self::C::•().{self::C::m}<core::num> in null);
+}
+static method takeIII((core::int, core::int) → core::int fn) → void {}
+static method takeDDD((core::double, core::double) → core::double fn) → void {}
+static method takeIDI((core::double, core::int) → core::int fn) → void {}
+static method takeDID((core::int, core::double) → core::double fn) → void {}
+static method takeIDN((core::double, core::int) → core::num fn) → void {}
+static method takeDIN((core::int, core::double) → core::num fn) → void {}
+static method takeIIN((core::int, core::int) → core::num fn) → void {}
+static method takeDDN((core::double, core::double) → core::num fn) → void {}
+static method takeNNN((core::num, core::num) → core::num fn) → void {}
+static method takeOON((core::Object, core::Object) → core::num fn) → void {}
+static method takeOOO((core::Object, core::Object) → core::num fn) → void {}
+static method takeOOI((core::Object, core::Object) → core::int fn) → void {}
+static method takeIIO((core::int, core::int) → core::Object fn) → void {}
+static method takeDDO((core::double, core::double) → core::Object fn) → void {}
+static method main() → dynamic {}

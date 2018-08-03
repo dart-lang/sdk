@@ -8,7 +8,6 @@ import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 /**
@@ -16,8 +15,8 @@ import 'package:analyzer/dart/element/element.dart';
  */
 class RenameLibraryRefactoringImpl extends RenameRefactoringImpl {
   RenameLibraryRefactoringImpl(
-      SearchEngine searchEngine, LibraryElement element)
-      : super(searchEngine, element);
+      RefactoringWorkspace workspace, LibraryElement element)
+      : super(workspace, element);
 
   @override
   LibraryElement get element => super.element as LibraryElement;

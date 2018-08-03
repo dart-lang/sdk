@@ -1,0 +1,27 @@
+// Errors:
+//
+// pkg/front_end/testcases/regress/issue_29983.dart:7:10: Error: Getter not found: 'missing'.
+//   return missing;
+//          ^^^^^^^
+//
+// pkg/front_end/testcases/regress/issue_29983.dart:11:14: Error: Getter not found: 'dummy'.
+// g() sync* => dummy;
+//              ^^^^^
+
+library;
+import self as self;
+import "dart:core" as core;
+
+static method f() → dynamic sync* {
+  invalid-expression "pkg/front_end/testcases/regress/issue_29983.dart:7:3: Error: 'sync*' and 'async*' can't return a value.
+  return missing;
+  ^";
+}
+static method g() → dynamic sync* 
+  invalid-expression "pkg/front_end/testcases/regress/issue_29983.dart:11:14: Error: 'sync*' and 'async*' can't return a value.
+g() sync* => dummy;
+             ^";
+static method h() → dynamic sync* {
+  (() → core::String => "return").call();
+}
+static method main() → dynamic {}

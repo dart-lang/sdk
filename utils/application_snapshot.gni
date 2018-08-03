@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-import("../build/compiled_action.gni")
+import("../build/dart/dart_action.gni")
 
 _dart_root = get_path_info("..", "abspath")
 
@@ -10,11 +10,49 @@ declare_args() {
   # Default to building app-jit snapshots. The simulator and cross builds
   # override this to script snapshots to cut down on build time.
   dart_snapshot_kind = "app-jit"
+  if (target_cpu != host_cpu) {
+    dart_snapshot_kind = "script"
+  }
 }
 
+# Creates an app-jit snapshot for a Dart program based on a training run.
+#
+# Parameters:
+#  main_dart (required):
+#    The entrypoint to the Dart application.
+#
+#  training_args (required):
+#    Arguments to pass to the Dart application for the training run.
+#
+#  dart_version (optional):
+#    Must be 1 or 2. Defaults to 1.
+#
+#  vm_args (optional):
+#    Additional arguments to the Dart VM. Do not put --preview-dart-2 here.
+#    Instead set dart_version = 2.
+#
+#  name (optional):
+#    The name of the snapshot if different from the target name. The output
+#    will be in $root_gen_dir/$name.dart.snapshot.
+#
+#  extra_deps (optional):
+#    Any additional build dependencies.
+#
+#  extra_inputs (optional):
+#    Any extra build inputs.
+#
+#  dot_packages (optional):
+#    The .packages file for the app. Defaults to the $_dart_root/.packages.
+#
+#  output (optional):
+#    Overrides the full output path.
 template("application_snapshot") {
   assert(defined(invoker.main_dart), "Must specify 'main_dart'")
   assert(defined(invoker.training_args), "Must specify 'training_args'")
+  snapshot_vm_args = []
+  if (defined(invoker.vm_args)) {
+    snapshot_vm_args = invoker.vm_args
+  }
   main_dart = invoker.main_dart
   training_args = invoker.training_args
   name = target_name
@@ -25,40 +63,128 @@ template("application_snapshot") {
   if (defined(invoker.deps)) {
     extra_deps += invoker.deps
   }
-  extra_inputs = []
+  extra_inputs = [ main_dart ]
   if (defined(invoker.inputs)) {
     extra_inputs += invoker.inputs
   }
-  compiled_action(target_name) {
-    tool = "$_dart_root/runtime/bin:dart"
-    deps = extra_deps + [ "$_dart_root/pkg:pkg_files_stamp" ]
+  if (defined(invoker.dot_packages)) {
+    dot_packages = invoker.dot_packages
+  } else {
+    dot_packages = rebase_path("$_dart_root/.packages")
+  }
+  output = "$root_gen_dir/$name.dart.snapshot"
+  if (defined(invoker.output)) {
+    output = invoker.output
+  }
+  # TODO(asiva), flip default once the VM is dart2 by default.
+  dart_version = 1
+  if (defined(invoker.dart_version)) {
+    dart_version = invoker.dart_version
+  }
+  assert(dart_version == 1 || dart_version == 2,
+      "For $target_name, dart_version must be 1 or 2")
+  dart_action(target_name) {
+    deps = extra_deps
 
-    inputs = extra_inputs + [
-               "$_dart_root/sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart",
-               "$root_gen_dir/pkg_files.stamp",
-             ]
+    if (dart_version == 1) {
+      snapshot_vm_args += [ "--no-preview-dart-2" ]
+    } else {
+      # HACK: When creating app-jit snapshots for Dart 2 apps, the standalone
+      # Dart VM binary requires the app-jit snapshot for the kernel service to
+      # be adjacent to it. This deps ensures that it is there, but a different
+      # approach will be needed when the kernel service itself switches to
+      # Dart 2 to avoid creating a circular dependence.
+      deps += [ "$_dart_root/utils/kernel-service:copy_kernel_service_snapshot"]
+    }
 
-    output = "$root_gen_dir/$name.dart.snapshot"
+    depfile = "$output.d"
+
+    script = main_dart
+
+    inputs = extra_inputs
+
     outputs = [
       output,
     ]
 
-    dot_packages = rebase_path("$_dart_root/.packages")
-    abs_output = rebase_path(output)
-    main_file = rebase_path(main_dart)
+    abs_depfile = rebase_path(depfile)
+    abs_output = rebase_path(output, root_build_dir)
 
-    args = [ "--packages=$dot_packages",
-             "--snapshot=$abs_output" ]
+    vm_args = [
+      "--deterministic",
+      "--packages=$dot_packages",
+      "--snapshot=$abs_output",
+      "--snapshot-depfile=$abs_depfile",
+    ] + snapshot_vm_args
 
     if (dart_snapshot_kind == "script") {
-      args += ["--snapshot-kind=script",
-               main_file ]
+      vm_args += [
+        "--snapshot-kind=script",
+      ]
       assert(training_args != "", "Ignoring unused argument")
+      args = []
     } else if (dart_snapshot_kind == "app-jit") {
-      args += ["--snapshot-kind=app-jit",
-               main_file ] + training_args
+      vm_args += [ "--snapshot-kind=app-jit" ]
+      args = training_args
     } else {
       assert(false, "Bad dart_snapshot_kind: $dart_snapshot_kind")
     }
+  }
+}
+
+template("aot_assembly") {
+  assert(defined(invoker.main_dart), "Must specify 'main_dart'")
+  aot_vm_args = []
+  if (defined(invoker.vm_args)) {
+    aot_vm_args = invoker.vm_args
+  }
+  main_dart = invoker.main_dart
+  name = target_name
+  if (defined(invoker.name)) {
+    name = invoker.name
+  }
+  extra_deps = []
+  if (defined(invoker.deps)) {
+    extra_deps += invoker.deps
+  }
+  extra_inputs = [ main_dart ]
+  if (defined(invoker.inputs)) {
+    extra_inputs += invoker.inputs
+  }
+  if (defined(invoker.dot_packages)) {
+    dot_packages = invoker.dot_packages
+  } else {
+    dot_packages = rebase_path("$_dart_root/.packages")
+  }
+  output = "$root_gen_dir/$name.dart.S"
+  if (defined(invoker.output)) {
+    output = invoker.output
+  }
+  dart_bootstrap_action(target_name) {
+    deps = extra_deps
+    depfile = "$output.d"
+
+    script = main_dart
+    inputs = extra_inputs
+
+    outputs = [
+      output,
+    ]
+
+    abs_depfile = rebase_path(depfile)
+    abs_output = rebase_path(output, root_build_dir)
+
+    vm_args = [
+      # TODO(asiva): For not use --no-preview-dart-2, need to flip this to use
+      # gen_kernel to generate a kernel file before creating an app snapshot.
+      "--no-preview-dart-2",
+      "--deterministic",
+      "--packages=$dot_packages",
+      "--snapshot-kind=app-aot",
+      "--snapshot=$abs_output",
+      "--snapshot-depfile=$abs_depfile",
+    ] + aot_vm_args
+
+    args = []
   }
 }

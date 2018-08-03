@@ -15,13 +15,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
       'oldURL': oldUrl,
       'newURL': newUrl,
     };
-$if DART2JS
     return JS('HashChangeEvent', 'new HashChangeEvent(#, #)',
         type, convertDartToNative_Dictionary(options));
-$else
-    return _blink.BlinkHashChangeEvent.instance
-        .constructorCallback_2_(type, convertDartToNative_Dictionary(options));
-$endif
   }
 
 $!MEMBERS

@@ -5,11 +5,12 @@
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_X64.
 #if defined(TARGET_ARCH_X64)
 
+#include "vm/code_patcher.h"
 #include "vm/instructions.h"
 #include "vm/instructions_x64.h"
 
-#include "vm/cpu.h"
 #include "vm/constants_x64.h"
+#include "vm/cpu.h"
 #include "vm/object.h"
 
 namespace dart {
@@ -25,7 +26,7 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
       if ((bytes[2] & 0xc7) == (0x80 | (PP & 7))) {  // [r15+disp32]
         intptr_t index = IndexFromPPLoad(pc + 3);
         const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
-        if (pool.InfoAt(index) == ObjectPool::kTaggedObject) {
+        if (pool.TypeAt(index) == ObjectPool::kTaggedObject) {
           *obj = pool.ObjectAt(index);
           return true;
         }
@@ -33,7 +34,7 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
       if ((bytes[2] & 0xc7) == (0x40 | (PP & 7))) {  // [r15+disp8]
         intptr_t index = IndexFromPPLoadDisp8(pc + 3);
         const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
-        if (pool.InfoAt(index) == ObjectPool::kTaggedObject) {
+        if (pool.TypeAt(index) == ObjectPool::kTaggedObject) {
           *obj = pool.ObjectAt(index);
           return true;
         }
@@ -61,6 +62,18 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
   }
 
   return false;
+}
+
+intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {
+  const intptr_t kCallPatternSize = 10;
+  static int16_t pattern[kCallPatternSize] = {
+      0x4d, 0x8b, 0x8f, -1, -1, -1, -1,  // movq R9, [PP + offs]
+      0xff, 0x53, 0x07                   // callq [RBX+ 0x7]
+  };
+  const uword start = pc_ - kCallPatternSize;
+  ASSERT(MatchesPattern(start, pattern, kCallPatternSize));
+
+  return IndexFromPPLoad(start + 3);
 }
 
 }  // namespace dart

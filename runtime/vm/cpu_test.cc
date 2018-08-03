@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "platform/assert.h"
 #include "vm/cpu.h"
+#include "platform/assert.h"
 #include "vm/globals.h"
 #include "vm/unit_test.h"
 
@@ -26,12 +26,6 @@ VM_UNIT_TEST_CASE(Id) {
 #else   // defined(HOST_ARCH_ARM64)
   EXPECT_STREQ("simarm64", CPU::Id());
 #endif  // defined(HOST_ARCH_ARM64)
-#elif defined(TARGET_ARCH_MIPS)
-#if defined(HOST_ARCH_MIPS)
-  EXPECT_STREQ("mips", CPU::Id());
-#else   // defined(HOST_ARCH_MIPS)
-  EXPECT_STREQ("simmips", CPU::Id());
-#endif  // defined(HOST_ARCH_MIPS)
 #elif defined(TARGET_ARCH_DBC)
   EXPECT_STREQ("dbc", CPU::Id());
 #else

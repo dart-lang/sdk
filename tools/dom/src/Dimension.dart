@@ -5,7 +5,6 @@ part of html;
  * [length measurement](https://developer.mozilla.org/en-US/docs/Web/CSS/length)
  * in CSS.
  */
-@Experimental()
 class Dimension {
   num _value;
   String _unit;

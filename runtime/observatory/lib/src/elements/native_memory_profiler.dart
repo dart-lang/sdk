@@ -51,8 +51,6 @@ class NativeMemoryProfileElement extends HtmlElement implements Renderable {
 
   M.NotificationRepository get notifications => _notifications;
   M.NativeMemorySampleProfileRepository get profiles => _profiles;
-  // With non-isolate version.
-  M.VMRef get vm => _vm;
 
   factory NativeMemoryProfileElement(
       M.VM vm,
@@ -65,7 +63,7 @@ class NativeMemoryProfileElement extends HtmlElement implements Renderable {
     assert(notifications != null);
     assert(profiles != null);
     NativeMemoryProfileElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<NativeMemoryProfileElement>(e, queue: queue);
     e._vm = vm;
     e._events = events;
     e._notifications = notifications;
@@ -86,12 +84,12 @@ class NativeMemoryProfileElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    var content = [
-      navBar([
+    var content = <Element>[
+      navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue),
         new NavVMMenuElement(_vm, _events, queue: _r.queue),
         navMenu('native memory profile', link: Uris.nativeMemory()),
@@ -103,11 +101,11 @@ class NativeMemoryProfileElement extends HtmlElement implements Renderable {
       children = content;
       return;
     }
-    content.add(new SampleBufferControlElement(_progress, _progressStream,
+    content.add(new SampleBufferControlElement(_vm, _progress, _progressStream,
         selectedTag: _tag, queue: _r.queue)
       ..onTagChange.listen((e) {
         _tag = e.element.selectedTag;
-        _request();
+        _request(forceFetch: true);
       }));
     if (_progress.status == M.SampleProfileLoadingStatus.loaded) {
       CpuProfileVirtualTreeElement tree;
@@ -135,7 +133,7 @@ class NativeMemoryProfileElement extends HtmlElement implements Renderable {
             _direction = tree.direction = e.element.direction;
           }),
         new BRElement(),
-        tree = new CpuProfileVirtualTreeElement(_vm, _progress.profile,
+        tree = new CpuProfileVirtualTreeElement(null, _progress.profile,
             queue: _r.queue, type: M.SampleProfileType.memory)
       ]);
     }
@@ -143,8 +141,8 @@ class NativeMemoryProfileElement extends HtmlElement implements Renderable {
   }
 
   Future _request({bool forceFetch: false}) async {
-    for (Isolate isolate in vm.isolates) {
-      await isolate.invokeRpc("_collectAllGarbage", {});
+    for (M.Isolate isolate in _vm.isolates) {
+      await isolate.collectAllGarbage();
     }
     _progress = null;
     _progressStream = _profiles.get(_vm, _tag, forceFetch: forceFetch);

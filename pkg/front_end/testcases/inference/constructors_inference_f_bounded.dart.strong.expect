@@ -1,0 +1,31 @@
+// Errors:
+//
+// pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:22:110: Error: Can't use a super-bounded type for instance creation. Got 'test::Pair<test::Clonable<dynamic>, test::Clonable<dynamic>>'.
+// Specify a regular-bounded type instead of the super-bounded type. Note that the latter may be due to type inference.
+//       new /*error:COULD_NOT_INFER,error:COULD_NOT_INFER*/ /*@typeArgs=Clonable<dynamic>, Clonable<dynamic>*/ Pair
+//                                                                                                              ^
+
+library test;
+import self as self;
+import "dart:core" as core;
+
+class Clonable<T extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class Pair<T extends self::Clonable<self::Pair::T> = self::Clonable<dynamic>, U extends self::Clonable<self::Pair::U> = self::Clonable<dynamic>> extends core::Object {
+  generic-covariant-impl field self::Pair::T t;
+  generic-covariant-impl field self::Pair::U u;
+  constructor •(self::Pair::T t, self::Pair::U u) → void
+    : self::Pair::t = t, self::Pair::u = u, super core::Object::•()
+    ;
+  constructor _() → void
+    : self::Pair::u = null, self::Pair::t = null, super core::Object::•()
+    ;
+  get reversed() → self::Pair<self::Pair::U, self::Pair::T>
+    return new self::Pair::•<self::Pair::U, self::Pair::T>(this.{self::Pair::u}, this.{self::Pair::t});
+}
+static method main() → dynamic {
+  final self::Pair<self::Clonable<dynamic>, self::Clonable<dynamic>> x = new self::Pair::_<self::Clonable<dynamic>, self::Clonable<dynamic>>();
+}

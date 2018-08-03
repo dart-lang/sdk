@@ -2,18 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// The _GrowableArrayMarker class is used to signal to the List() factory
-// whether a parameter was passed.
-class _GrowableArrayMarker implements int {
-  const _GrowableArrayMarker();
-}
-
-const _GROWABLE_ARRAY_MARKER = const _GrowableArrayMarker();
+// part of "core_patch.dart";
 
 @patch
 class List<E> {
   @patch
-  factory List([int length]) = List<E>._internal;
+  factory List([int length]) native "List_new";
 
   @patch
   factory List.filled(int length, E fill, {bool growable: false}) {
@@ -47,28 +41,13 @@ class List<E> {
       list.add(e);
     }
     if (growable) return list;
-    if (list.length == 0) {
-      // Avoid getting an immutable list from makeListFixedLength.
-      return new _List<E>(0);
-    }
     return makeListFixedLength(list);
   }
 
   @patch
   factory List.unmodifiable(Iterable elements) {
-    List result = new List<E>.from(elements, growable: false);
+    final result = new List<E>.from(elements, growable: false);
     return makeFixedListUnmodifiable(result);
-  }
-
-  // The List factory constructor redirects to this one so that we can change
-  // length's default value from the one in the SDK's implementation.
-  factory List._internal([int length = _GROWABLE_ARRAY_MARKER]) {
-    if (identical(length, _GROWABLE_ARRAY_MARKER)) {
-      return new _GrowableList<E>(0);
-    }
-    // All error handling on the length parameter is done at the implementation
-    // of new _List.
-    return new _List<E>(length);
   }
 
   // Factory constructing a mutable List from a parser generated List literal.

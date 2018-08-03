@@ -1,0 +1,31 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A<T extends core::Object = dynamic> extends core::Object {
+  final field self::A::T x = null;
+  final field self::A::T w = null;
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B extends core::Object implements self::A<core::int> {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  get x() → core::int
+    return 3;
+  get w() → core::int
+    return let<BottomType> _ = null in let final dynamic #t1 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_3.dart:15:62: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+  get /*@topType=int*/ w => /*error:RETURN_OF_INVALID_TYPE*/ \"hello\";
+                                                             ^" in let final core::String #t2 = "hello" in null;
+}
+static method foo() → dynamic {
+  core::String y = let<BottomType> _ = null in let final dynamic #t3 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_3.dart:19:69: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+  String y = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::x*/ x;
+                                                                    ^" in let final core::int #t4 = new self::B::•().{self::B::x} in null;
+  core::int z = new self::B::•().{self::B::x};
+}
+static method main() → dynamic {}

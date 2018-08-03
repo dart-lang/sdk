@@ -10,7 +10,7 @@ import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
   MyFuture.value([x]) {}
-  dynamic noSuchMethod(invocation);
+  dynamic noSuchMethod(/*@topType=Invocation*/ invocation) => null;
   MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
 }
 
@@ -34,3 +34,5 @@ Future<List<int>> g3() async {
   return new /*@typeArgs=List<int>*/ MyFuture.value(
       /*@typeArgs=int*/ [3]);
 }
+
+main() {}

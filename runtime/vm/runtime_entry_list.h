@@ -21,6 +21,7 @@ namespace dart {
   V(StaticCallMissHandlerOneArg)                                               \
   V(StaticCallMissHandlerTwoArgs)                                              \
   V(Instanceof)                                                                \
+  V(SubtypeCheck)                                                              \
   V(TypeCheck)                                                                 \
   V(BadTypeError)                                                              \
   V(NonBoolTypeError)                                                          \
@@ -33,6 +34,8 @@ namespace dart {
   V(TraceICCall)                                                               \
   V(PatchStaticCall)                                                           \
   V(RangeError)                                                                \
+  V(NullError)                                                                 \
+  V(ArgumentErrorUnboxedInt64)                                                 \
   V(ReThrow)                                                                   \
   V(StackOverflow)                                                             \
   V(Throw)                                                                     \
@@ -42,7 +45,6 @@ namespace dart {
   V(RewindPostDeopt)                                                           \
   V(UpdateFieldCid)                                                            \
   V(InitStaticField)                                                           \
-  V(GrowRegExpStack)                                                           \
   V(CompileFunction)                                                           \
   V(MonomorphicMiss)                                                           \
   V(SingleTargetMiss)                                                          \
@@ -53,7 +55,6 @@ namespace dart {
   V(intptr_t, DeoptimizeCopyFrame, uword, uword)                               \
   V(void, DeoptimizeFillFrame, uword)                                          \
   V(void, StoreBufferBlockProcess, Thread*)                                    \
-  V(intptr_t, BigintCompare, RawBigint*, RawBigint*)                           \
   V(double, LibcPow, double, double)                                           \
   V(double, DartModulo, double, double)                                        \
   V(double, LibcFloor, double)                                                 \

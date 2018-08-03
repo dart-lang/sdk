@@ -6,7 +6,6 @@
 
 library output_collector;
 
-import 'dart:async';
 import 'package:compiler/compiler_new.dart';
 
 class BufferedOutputSink implements OutputSink {
@@ -20,6 +19,10 @@ class BufferedOutputSink implements OutputSink {
   void close() {
     text = sb.toString();
     sb = null;
+  }
+
+  String toString() {
+    return text ?? sb.toString();
   }
 }
 

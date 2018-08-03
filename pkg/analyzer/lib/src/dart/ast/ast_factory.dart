@@ -736,9 +736,8 @@ class AstFactoryImpl extends AstFactory {
       new NativeFunctionBodyImpl(nativeKeyword, stringLiteral, semicolon);
 
   @override
-  NodeList/*<E>*/ nodeList/*<E extends AstNode>*/(AstNode owner,
-          [List/*<E>*/ elements]) =>
-      new NodeListImpl/*<E>*/(owner as AstNodeImpl, elements);
+  NodeList<E> nodeList<E extends AstNode>(AstNode owner, [List<E> elements]) =>
+      new NodeListImpl<E>(owner as AstNodeImpl, elements);
 
   @override
   NullLiteral nullLiteral(Token literal) => new NullLiteralImpl(literal);

@@ -12,61 +12,85 @@ part of dart.io;
 abstract class ZLibOption {
   /// Minimal value for [ZLibCodec.windowBits], [ZLibEncoder.windowBits]
   /// and [ZLibDecoder.windowBits].
+  static const int minWindowBits = 8;
+  @Deprecated("Use minWindowBits instead")
   static const int MIN_WINDOW_BITS = 8;
 
   /// Maximal value for [ZLibCodec.windowBits], [ZLibEncoder.windowBits]
   /// and [ZLibDecoder.windowBits].
+  static const int maxWindowBits = 15;
+  @Deprecated("Use maxWindowBits instead")
   static const int MAX_WINDOW_BITS = 15;
 
   /// Default value for [ZLibCodec.windowBits], [ZLibEncoder.windowBits]
   /// and [ZLibDecoder.windowBits].
+  static const int defaultWindowBits = 15;
+  @Deprecated("Use defaultWindowBits instead")
   static const int DEFAULT_WINDOW_BITS = 15;
 
-  /// Minimal value for [ZLibCodec.level], [ZLibEncoder.level]
-  /// and [ZLibDecoder.level].
+  /// Minimal value for [ZLibCodec.level] and [ZLibEncoder.level].
+  static const int minLevel = -1;
+  @Deprecated("Use minLevel instead")
   static const int MIN_LEVEL = -1;
 
-  /// Maximal value for [ZLibCodec.level], [ZLibEncoder.level]
-  /// and [ZLibDecoder.level].
+  /// Maximal value for [ZLibCodec.level] and [ZLibEncoder.level]
+  static const int maxLevel = 9;
+  @Deprecated("Use maxLevel instead")
   static const int MAX_LEVEL = 9;
 
-  /// Default value for [ZLibCodec.level], [ZLibEncoder.level]
-  /// and [ZLibDecoder.level].
+  /// Default value for [ZLibCodec.level] and [ZLibEncoder.level].
+  static const int defaultLevel = 6;
+  @Deprecated("Use defaultLevel instead")
   static const int DEFAULT_LEVEL = 6;
 
-  /// Minimal value for [ZLibCodec.memLevel], [ZLibEncoder.memLevel]
-  /// and [ZLibDecoder.memLevel].
+  /// Minimal value for [ZLibCodec.memLevel] and [ZLibEncoder.memLevel].
+  static const int minMemLevel = 1;
+  @Deprecated("Use minMemLevel instead")
   static const int MIN_MEM_LEVEL = 1;
 
-  /// Maximal value for [ZLibCodec.memLevel], [ZLibEncoder.memLevel]
-  /// and [ZLibDecoder.memLevel].
+  /// Maximal value for [ZLibCodec.memLevel] and [ZLibEncoder.memLevel].
+  static const int maxMemLevel = 9;
+  @Deprecated("Use maxMemLevel instead")
   static const int MAX_MEM_LEVEL = 9;
 
-  /// Default value for [ZLibCodec.memLevel], [ZLibEncoder.memLevel]
-  /// and [ZLibDecoder.memLevel].
+  /// Default value for [ZLibCodec.memLevel] and [ZLibEncoder.memLevel].
+  static const int defaultMemLevel = 8;
+  @Deprecated("Use defaultMemLevel instead")
   static const int DEFAULT_MEM_LEVEL = 8;
 
   /// Recommended strategy for data produced by a filter (or predictor)
+  static const int strategyFiltered = 1;
+  @Deprecated("Use strategyFiltered instead")
   static const int STRATEGY_FILTERED = 1;
 
   /// Use this strategy to force Huffman encoding only (no string match)
+  static const int strategyHuffmanOnly = 2;
+  @Deprecated("Use strategyHuffmanOnly instead")
   static const int STRATEGY_HUFFMAN_ONLY = 2;
 
   /// Use this strategy to limit match distances to one (run-length encoding)
+  static const int strategyRle = 3;
+  @Deprecated("Use strategyRle instead")
   static const int STRATEGY_RLE = 3;
 
   /// This strategy prevents the use of dynamic Huffman codes, allowing for a
   /// simpler decoder
+  static const int strategyFixed = 4;
+  @Deprecated("Use strategyFixed instead")
   static const int STRATEGY_FIXED = 4;
 
   /// Recommended strategy for normal data
+  static const int strategyDefault = 0;
+  @Deprecated("Use strategyDefault instead")
   static const int STRATEGY_DEFAULT = 0;
 }
 
 /**
  * An instance of the default implementation of the [ZLibCodec].
  */
-const ZLibCodec ZLIB = const ZLibCodec._default();
+const ZLibCodec zlib = const ZLibCodec._default();
+@Deprecated("Use zlib instead")
+const ZLibCodec ZLIB = zlib;
 
 /**
  * The [ZLibCodec] encodes raw bytes to ZLib compressed bytes and decodes ZLib
@@ -99,10 +123,10 @@ class ZLibCodec extends Codec<List<int>, List<int>> {
   final int memLevel;
 
   /**
-   * Tunes the compression algorithm. Use the value STRATEGY_DEFAULT for normal
-   * data, STRATEGY_FILTERED for data produced by a filter (or predictor),
-   * STRATEGY_HUFFMAN_ONLY to force Huffman encoding only (no string match), or
-   * STRATEGY_RLE to limit match distances to one (run-length encoding).
+   * Tunes the compression algorithm. Use the value strategyDefault for normal
+   * data, strategyFiltered for data produced by a filter (or predictor),
+   * strategyHuffmanOnly to force Huffman encoding only (no string match), or
+   * strategyRle to limit match distances to one (run-length encoding).
    */
   final int strategy;
 
@@ -132,10 +156,10 @@ class ZLibCodec extends Codec<List<int>, List<int>> {
   final List<int> dictionary;
 
   ZLibCodec(
-      {this.level: ZLibOption.DEFAULT_LEVEL,
-      this.windowBits: ZLibOption.DEFAULT_WINDOW_BITS,
-      this.memLevel: ZLibOption.DEFAULT_MEM_LEVEL,
-      this.strategy: ZLibOption.STRATEGY_DEFAULT,
+      {this.level: ZLibOption.defaultLevel,
+      this.windowBits: ZLibOption.defaultWindowBits,
+      this.memLevel: ZLibOption.defaultMemLevel,
+      this.strategy: ZLibOption.strategyDefault,
       this.dictionary: null,
       this.raw: false,
       this.gzip: false}) {
@@ -146,10 +170,10 @@ class ZLibCodec extends Codec<List<int>, List<int>> {
   }
 
   const ZLibCodec._default()
-      : level = ZLibOption.DEFAULT_LEVEL,
-        windowBits = ZLibOption.DEFAULT_WINDOW_BITS,
-        memLevel = ZLibOption.DEFAULT_MEM_LEVEL,
-        strategy = ZLibOption.STRATEGY_DEFAULT,
+      : level = ZLibOption.defaultLevel,
+        windowBits = ZLibOption.defaultWindowBits,
+        memLevel = ZLibOption.defaultMemLevel,
+        strategy = ZLibOption.strategyDefault,
         raw = false,
         gzip = false,
         dictionary = null;
@@ -176,7 +200,9 @@ class ZLibCodec extends Codec<List<int>, List<int>> {
 /**
  * An instance of the default implementation of the [GZipCodec].
  */
-const GZipCodec GZIP = const GZipCodec._default();
+const GZipCodec gzip = const GZipCodec._default();
+@Deprecated("Use gzip instead")
+const GZipCodec GZIP = gzip;
 
 /**
  * The [GZipCodec] encodes raw bytes to GZip compressed bytes and decodes GZip
@@ -213,10 +239,10 @@ class GZipCodec extends Codec<List<int>, List<int>> {
 
   /**
    * Tunes the compression algorithm. Use the value
-   * [ZLibOption.STRATEGY_DEFAULT] for normal data,
-   * [ZLibOption.STRATEGY_FILTERED] for data produced by a filter
-   * (or predictor), [ZLibOption.STRATEGY_HUFFMAN_ONLY] to force Huffman
-   * encoding only (no string match), or [ZLibOption.STRATEGY_RLE] to limit
+   * [ZLibOption.strategyDefault] for normal data,
+   * [ZLibOption.strategyFiltered] for data produced by a filter
+   * (or predictor), [ZLibOption.strategyHuffmanOnly] to force Huffman
+   * encoding only (no string match), or [ZLibOption.strategyRle] to limit
    * match distances to one (run-length encoding).
    */
   final int strategy;
@@ -247,10 +273,10 @@ class GZipCodec extends Codec<List<int>, List<int>> {
   final bool raw;
 
   GZipCodec(
-      {this.level: ZLibOption.DEFAULT_LEVEL,
-      this.windowBits: ZLibOption.DEFAULT_WINDOW_BITS,
-      this.memLevel: ZLibOption.DEFAULT_MEM_LEVEL,
-      this.strategy: ZLibOption.STRATEGY_DEFAULT,
+      {this.level: ZLibOption.defaultLevel,
+      this.windowBits: ZLibOption.defaultWindowBits,
+      this.memLevel: ZLibOption.defaultMemLevel,
+      this.strategy: ZLibOption.strategyDefault,
       this.dictionary: null,
       this.raw: false,
       this.gzip: true}) {
@@ -261,10 +287,10 @@ class GZipCodec extends Codec<List<int>, List<int>> {
   }
 
   const GZipCodec._default()
-      : level = ZLibOption.DEFAULT_LEVEL,
-        windowBits = ZLibOption.DEFAULT_WINDOW_BITS,
-        memLevel = ZLibOption.DEFAULT_MEM_LEVEL,
-        strategy = ZLibOption.STRATEGY_DEFAULT,
+      : level = ZLibOption.defaultLevel,
+        windowBits = ZLibOption.defaultWindowBits,
+        memLevel = ZLibOption.defaultMemLevel,
+        strategy = ZLibOption.strategyDefault,
         raw = false,
         gzip = true,
         dictionary = null;
@@ -320,10 +346,10 @@ class ZLibEncoder extends Converter<List<int>, List<int>> {
 
   /**
    * Tunes the compression algorithm. Use the value
-   * [ZLibOption.STRATEGY_DEFAULT] for normal data,
-   * [ZLibOption.STRATEGY_FILTERED] for data produced by a filter
-   * (or predictor), [ZLibOption.STRATEGY_HUFFMAN_ONLY] to force Huffman
-   * encoding only (no string match), or [ZLibOption.STRATEGY_RLE] to limit
+   * [ZLibOption.strategyDefault] for normal data,
+   * [ZLibOption.strategyFiltered] for data produced by a filter
+   * (or predictor), [ZLibOption.strategyHuffmanOnly] to force Huffman
+   * encoding only (no string match), or [ZLibOption.strategyRle] to limit
    * match distances to one (run-length encoding).
    */
   final int strategy;
@@ -355,10 +381,10 @@ class ZLibEncoder extends Converter<List<int>, List<int>> {
 
   ZLibEncoder(
       {this.gzip: false,
-      this.level: ZLibOption.DEFAULT_LEVEL,
-      this.windowBits: ZLibOption.DEFAULT_WINDOW_BITS,
-      this.memLevel: ZLibOption.DEFAULT_MEM_LEVEL,
-      this.strategy: ZLibOption.STRATEGY_DEFAULT,
+      this.level: ZLibOption.defaultLevel,
+      this.windowBits: ZLibOption.defaultWindowBits,
+      this.memLevel: ZLibOption.defaultMemLevel,
+      this.strategy: ZLibOption.strategyDefault,
       this.dictionary: null,
       this.raw: false}) {
     _validateZLibeLevel(level);
@@ -423,7 +449,7 @@ class ZLibDecoder extends Converter<List<int>, List<int>> {
   final bool raw;
 
   ZLibDecoder(
-      {this.windowBits: ZLibOption.DEFAULT_WINDOW_BITS,
+      {this.windowBits: ZLibOption.defaultWindowBits,
       this.dictionary: null,
       this.raw: false}) {
     _validateZLibWindowBits(windowBits);
@@ -452,6 +478,68 @@ class ZLibDecoder extends Converter<List<int>, List<int>> {
     }
     return new _ZLibDecoderSink(sink, windowBits, dictionary, raw);
   }
+}
+
+/**
+ * The [RawZLibFilter] class provides a low-level interface to zlib.
+ */
+abstract class RawZLibFilter {
+  /**
+   * Returns a a [RawZLibFilter] whose [process] and [processed] methods
+   * compress data.
+   */
+  factory RawZLibFilter.deflateFilter({
+    bool gzip: false,
+    int level: ZLibOption.defaultLevel,
+    int windowBits: ZLibOption.defaultWindowBits,
+    int memLevel: ZLibOption.defaultMemLevel,
+    int strategy: ZLibOption.strategyDefault,
+    List<int> dictionary,
+    bool raw: false,
+  }) {
+    return _makeZLibDeflateFilter(
+        gzip, level, windowBits, memLevel, strategy, dictionary, raw);
+  }
+
+  /**
+   * Returns a a [RawZLibFilter] whose [process] and [processed] methods
+   * decompress data.
+   */
+  factory RawZLibFilter.inflateFilter({
+    int windowBits: ZLibOption.defaultWindowBits,
+    List<int> dictionary,
+    bool raw: false,
+  }) {
+    return _makeZLibInflateFilter(windowBits, dictionary, raw);
+  }
+
+  /**
+   * Call to process a chunk of data. A call to [process] should only be made
+   * when [processed] returns [:null:].
+   */
+  void process(List<int> data, int start, int end);
+
+  /**
+   * Get a chunk of processed data. When there are no more data available,
+   * [processed] will return [:null:]. Set [flush] to [:false:] for non-final
+   * calls to improve performance of some filters.
+   *
+   * The last call to [processed] should have [end] set to [:true:]. This will
+   * make sure an 'end' packet is written on the stream.
+   */
+  List<int> processed({bool flush: true, bool end: false});
+
+  external static RawZLibFilter _makeZLibDeflateFilter(
+      bool gzip,
+      int level,
+      int windowBits,
+      int memLevel,
+      int strategy,
+      List<int> dictionary,
+      bool raw);
+
+  external static RawZLibFilter _makeZLibInflateFilter(
+      int windowBits, List<int> dictionary, bool raw);
 }
 
 class _BufferSink extends ByteConversionSink {
@@ -485,18 +573,19 @@ class _ZLibEncoderSink extends _FilterSink {
       bool raw)
       : super(
             sink,
-            _Filter._newZLibDeflateFilter(
+            RawZLibFilter._makeZLibDeflateFilter(
                 gzip, level, windowBits, memLevel, strategy, dictionary, raw));
 }
 
 class _ZLibDecoderSink extends _FilterSink {
   _ZLibDecoderSink(
       ByteConversionSink sink, int windowBits, List<int> dictionary, bool raw)
-      : super(sink, _Filter._newZLibInflateFilter(windowBits, dictionary, raw));
+      : super(sink,
+            RawZLibFilter._makeZLibInflateFilter(windowBits, dictionary, raw));
 }
 
 class _FilterSink extends ByteConversionSink {
-  final _Filter _filter;
+  final RawZLibFilter _filter;
   final ByteConversionSink _sink;
   bool _closed = false;
   bool _empty = true;
@@ -548,69 +637,34 @@ class _FilterSink extends ByteConversionSink {
   }
 }
 
-/**
- * Private helper-class to handle native filters.
- */
-abstract class _Filter {
-  /**
-   * Call to process a chunk of data. A call to [process] should only be made
-   * when [processed] returns [:null:].
-   */
-  void process(List<int> data, int start, int end);
-
-  /**
-   * Get a chunk of processed data. When there are no more data available,
-   * [processed] will return [:null:]. Set [flush] to [:false:] for non-final
-   * calls to improve performance of some filters.
-   *
-   * The last call to [processed] should have [end] set to [:true:]. This will
-   * make sure an 'end' packet is written on the stream.
-   */
-  List<int> processed({bool flush: true, bool end: false});
-
-  external static _Filter _newZLibDeflateFilter(
-      bool gzip,
-      int level,
-      int windowBits,
-      int memLevel,
-      int strategy,
-      List<int> dictionary,
-      bool raw);
-
-  external static _Filter _newZLibInflateFilter(
-      int windowBits, List<int> dictionary, bool raw);
-}
-
 void _validateZLibWindowBits(int windowBits) {
-  if (ZLibOption.MIN_WINDOW_BITS > windowBits ||
-      ZLibOption.MAX_WINDOW_BITS < windowBits) {
+  if (ZLibOption.minWindowBits > windowBits ||
+      ZLibOption.maxWindowBits < windowBits) {
     throw new RangeError.range(
-        windowBits, ZLibOption.MIN_WINDOW_BITS, ZLibOption.MAX_WINDOW_BITS);
+        windowBits, ZLibOption.minWindowBits, ZLibOption.maxWindowBits);
   }
 }
 
 void _validateZLibeLevel(int level) {
-  if (ZLibOption.MIN_LEVEL > level || ZLibOption.MAX_LEVEL < level) {
-    throw new RangeError.range(
-        level, ZLibOption.MIN_LEVEL, ZLibOption.MAX_LEVEL);
+  if (ZLibOption.minLevel > level || ZLibOption.maxLevel < level) {
+    throw new RangeError.range(level, ZLibOption.minLevel, ZLibOption.maxLevel);
   }
 }
 
 void _validateZLibMemLevel(int memLevel) {
-  if (ZLibOption.MIN_MEM_LEVEL > memLevel ||
-      ZLibOption.MAX_MEM_LEVEL < memLevel) {
+  if (ZLibOption.minMemLevel > memLevel || ZLibOption.maxMemLevel < memLevel) {
     throw new RangeError.range(
-        memLevel, ZLibOption.MIN_MEM_LEVEL, ZLibOption.MAX_MEM_LEVEL);
+        memLevel, ZLibOption.minMemLevel, ZLibOption.maxMemLevel);
   }
 }
 
 void _validateZLibStrategy(int strategy) {
   const strategies = const <int>[
-    ZLibOption.STRATEGY_FILTERED,
-    ZLibOption.STRATEGY_HUFFMAN_ONLY,
-    ZLibOption.STRATEGY_RLE,
-    ZLibOption.STRATEGY_FIXED,
-    ZLibOption.STRATEGY_DEFAULT
+    ZLibOption.strategyFiltered,
+    ZLibOption.strategyHuffmanOnly,
+    ZLibOption.strategyRle,
+    ZLibOption.strategyFixed,
+    ZLibOption.strategyDefault
   ];
   if (strategies.indexOf(strategy) == -1) {
     throw new ArgumentError("Unsupported 'strategy'");

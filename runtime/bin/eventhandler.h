@@ -111,7 +111,6 @@ class TimeoutQueue {
   DISALLOW_COPY_AND_ASSIGN(TimeoutQueue);
 };
 
-
 class InterruptMessage {
  public:
   intptr_t id;
@@ -119,12 +118,10 @@ class InterruptMessage {
   int64_t data;
 };
 
-
 static const int kInterruptMessageSize = sizeof(InterruptMessage);
 static const int kInfinityTimeout = -1;
 static const int kTimerId = -1;
 static const int kShutdownId = -2;
-
 
 template <typename T>
 class CircularLinkedList {
@@ -229,7 +226,6 @@ class CircularLinkedList {
   DISALLOW_COPY_AND_ASSIGN(CircularLinkedList);
 };
 
-
 class DescriptorInfoBase {
  public:
   explicit DescriptorInfoBase(intptr_t fd) : fd_(fd) { ASSERT(fd_ != -1); }
@@ -276,7 +272,6 @@ class DescriptorInfoBase {
  private:
   DISALLOW_COPY_AND_ASSIGN(DescriptorInfoBase);
 };
-
 
 // Describes a OS descriptor (e.g. file descriptor on linux or HANDLE on
 // windows) which is connected to a single Dart_Port.
@@ -366,7 +361,6 @@ class DescriptorInfoSingleMixin : public DI {
 
   DISALLOW_COPY_AND_ASSIGN(DescriptorInfoSingleMixin);
 };
-
 
 // Describes a OS descriptor (e.g. file descriptor on linux or HANDLE on
 // windows) which is connected to multiple Dart_Port's.

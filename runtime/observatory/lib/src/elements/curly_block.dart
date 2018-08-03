@@ -49,10 +49,9 @@ class CurlyBlockElement extends HtmlElement implements Renderable {
     assert(expanded != null);
     assert(disabled != null);
     CurlyBlockElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<CurlyBlockElement>(e, queue: queue);
     e._expanded = expanded;
     e._disabled = disabled;
-    e._r.enable();
     return e;
   }
 
@@ -68,7 +67,7 @@ class CurlyBlockElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void toggle() {
@@ -80,7 +79,7 @@ class CurlyBlockElement extends HtmlElement implements Renderable {
   }
 
   void render() {
-    List<Element> content = [new SpanElement()..text = '{'];
+    List<Element> content = <Element>[new SpanElement()..text = '{'];
     SpanElement label = new SpanElement()
       ..classes = disabled ? ['curly-block', 'disabled'] : ['curly-block']
       ..innerHtml = expanded
@@ -93,7 +92,7 @@ class CurlyBlockElement extends HtmlElement implements Renderable {
         ..onClick.listen((_) {
           toggle();
         })
-        ..children = [label]);
+        ..children = <Element>[label]);
     }
     if (expanded) {
       content.add(new BRElement());

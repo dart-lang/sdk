@@ -42,7 +42,7 @@ class ErrorUpgradeFailsCli {
   test_once() async {
     String testDir =
         path.join(testDirectory, 'data', 'error_upgrade_fails_cli');
-    Driver driver = new Driver();
+    Driver driver = new Driver(isTesting: true);
     await driver.start([path.join(testDir, 'foo.dart')]);
 
     expect(exitCode, 3);

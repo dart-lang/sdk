@@ -8,12 +8,12 @@
 #include "platform/memory_sanitizer.h"
 
 #include "vm/allocation.h"
-#include "vm/assembler.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/exceptions.h"
+#include "vm/heap/verifier.h"
 #include "vm/log.h"
 #include "vm/native_arguments.h"
 #include "vm/runtime_entry.h"
-#include "vm/verifier.h"
 
 #include "include/dart_api.h"
 
@@ -36,6 +36,8 @@ class String;
 //    scope.
 
 typedef void (*NativeFunction)(NativeArguments* arguments);
+typedef void (*NativeFunctionWrapper)(Dart_NativeArguments args,
+                                      Dart_NativeFunction func);
 
 #ifndef PRODUCT
 #define TRACE_NATIVE_CALL(format, name)                                        \
@@ -86,7 +88,6 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
   static RawObject* DN_Helper##name(Isolate* isolate, Thread* thread,          \
                                     Zone* zone, NativeArguments* arguments)
 
-
 // Helper that throws an argument exception.
 void DartNativeThrowArgumentException(const Instance& instance);
 
@@ -100,7 +101,6 @@ void DartNativeThrowArgumentException(const Instance& instance);
   }                                                                            \
   const type& name = type::Cast(__##name##_instance__);
 
-
 // Natives should throw an exception if an illegal argument is passed.
 // type name = value.
 #define GET_NATIVE_ARGUMENT(type, name, value)                                 \
@@ -113,7 +113,6 @@ void DartNativeThrowArgumentException(const Instance& instance);
     }                                                                          \
   }                                                                            \
   name ^= value;
-
 
 // Helper class for resolving and handling native functions.
 class NativeEntry : public AllStatic {
@@ -130,6 +129,12 @@ class NativeEntry : public AllStatic {
                                                uword pc);
   static const uint8_t* ResolveSymbol(uword pc);
 
+#if defined(TARGET_ARCH_DBC) || defined(DART_USE_INTERPRETER)
+  static uword BootstrapNativeCallWrapperEntry();
+  static void BootstrapNativeCallWrapper(Dart_NativeArguments args,
+                                         Dart_NativeFunction func);
+#endif
+
   static uword NoScopeNativeCallWrapperEntry();
   static void NoScopeNativeCallWrapper(Dart_NativeArguments args,
                                        Dart_NativeFunction func);
@@ -138,11 +143,8 @@ class NativeEntry : public AllStatic {
   static void AutoScopeNativeCallWrapper(Dart_NativeArguments args,
                                          Dart_NativeFunction func);
 
-// DBC does not support lazy native call linking.
-#if !defined(TARGET_ARCH_DBC)
   static uword LinkNativeCallEntry();
   static void LinkNativeCall(Dart_NativeArguments args);
-#endif
 
  private:
   static void NoScopeNativeCallWrapperNoStackCheck(Dart_NativeArguments args,

@@ -139,7 +139,7 @@ main() {
           treeSanitizer: new NullTreeSanitizer());
       upgradeCustomElements(element);
       document.body.nodes.add(element);
-      var queried = query(tag);
+      var queried = querySelector(tag);
 
       expect(queried, isNotNull);
       expect(queried is CustomType, isTrue);
@@ -154,7 +154,7 @@ main() {
           treeSanitizer: new NullTreeSanitizer());
       upgradeCustomElements(element);
       document.body.nodes.add(element);
-      var queried = query('#someid');
+      var queried = querySelector('#someid');
 
       expect(queried, isNotNull);
       expect(queried is CustomType, isTrue);

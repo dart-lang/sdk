@@ -42,6 +42,8 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     // check Element type
     if (element is FunctionElement) {
       if (element.enclosingElement is! CompilationUnitElement) {
@@ -68,6 +70,8 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
 
   @override
   Future<SourceChange> createChange() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     change = new SourceChange(refactoringName);
     // FunctionElement
     if (element is FunctionElement) {
@@ -80,6 +84,8 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
       Set<ClassMemberElement> elements =
           await getHierarchyMembers(searchEngine, method);
       await Future.forEach(elements, (Element element) async {
+        // TODO(brianwilkerson) Determine whether this await is necessary.
+        await null;
         await _updateElementDeclaration(element);
         return _updateElementReferences(element);
       });
@@ -92,6 +98,8 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
   bool requiresPreview() => false;
 
   Future<Null> _updateElementDeclaration(Element element) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     // prepare parameters
     FormalParameterList parameters;
     {
@@ -118,6 +126,8 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
   }
 
   Future<Null> _updateElementReferences(Element element) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     List<SearchMatch> matches = await searchEngine.searchReferences(element);
     List<SourceReference> references = getSourceReferences(matches);
     for (SourceReference reference in references) {

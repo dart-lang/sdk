@@ -24,7 +24,6 @@ class RawICData;
 class RawObject;
 class String;
 
-
 // Stack-allocated class to create a scope where the specified region
 // [address, address + size] has write access enabled. This is used
 // when patching generated code. Access is reset to read-execute in
@@ -38,7 +37,6 @@ class WritableInstructionsScope : public ValueObject {
   const uword address_;
   const intptr_t size_;
 };
-
 
 class CodePatcher : public AllStatic {
  public:
@@ -83,15 +81,36 @@ class CodePatcher : public AllStatic {
   static RawCode* GetSwitchableCallTargetAt(uword return_address,
                                             const Code& caller_code);
 
+#if defined(TARGET_ARCH_DBC)
+  static NativeFunctionWrapper GetNativeCallAt(uword return_address,
+                                               const Code& code,
+                                               NativeFunction* target);
+#else
   static RawCode* GetNativeCallAt(uword return_address,
                                   const Code& code,
                                   NativeFunction* target);
+#endif
 
+#if defined(TARGET_ARCH_DBC)
+  static void PatchNativeCallAt(uword return_address,
+                                const Code& code,
+                                NativeFunction target,
+                                NativeFunctionWrapper trampoline);
+#else
   static void PatchNativeCallAt(uword return_address,
                                 const Code& code,
                                 NativeFunction target,
                                 const Code& trampoline);
+#endif
+
+  static intptr_t GetSubtypeTestCachePoolIndex(uword return_address);
 };
+
+// Beginning from [addr] we compare [size] bytes with [pattern].  All [0..255]
+// values in [pattern] have to match, negative values are skipped.
+//
+// Example pattern: `[0x3d, 0x8b, -1, -1]`.
+bool MatchesPattern(uword addr, int16_t* pattern, intptr_t size);
 
 }  // namespace dart
 

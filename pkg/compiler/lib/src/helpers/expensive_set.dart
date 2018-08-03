@@ -9,7 +9,7 @@ import 'dart:collection';
  * excessive memory usage due to large sets. It acts as an ordinary
  * hash set, but it uses 10 times more memory (by default).
  */
-class ExpensiveSet<E> extends IterableBase<E> implements Set<E> {
+class ExpensiveSet<E> extends SetBase<E> {
   final List _sets;
 
   ExpensiveSet([int copies = 10]) : _sets = new List(copies) {

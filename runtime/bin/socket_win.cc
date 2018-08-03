@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_IO_DISABLED)
-
 #include "platform/globals.h"
 #if defined(HOST_OS_WINDOWS)
 
@@ -21,12 +19,16 @@
 namespace dart {
 namespace bin {
 
-Socket::Socket(intptr_t fd) : ReferenceCounted(), fd_(fd), port_(ILLEGAL_PORT) {
+Socket::Socket(intptr_t fd)
+    : ReferenceCounted(),
+      fd_(fd),
+      isolate_port_(Dart_GetMainPortId()),
+      port_(ILLEGAL_PORT),
+      udp_receive_buffer_(NULL) {
   ASSERT(fd_ != kClosedFd);
   Handle* handle = reinterpret_cast<Handle*>(fd_);
   ASSERT(handle != NULL);
 }
-
 
 void Socket::SetClosedFd() {
   ASSERT(fd_ != kClosedFd);
@@ -35,7 +37,6 @@ void Socket::SetClosedFd() {
   handle->Release();
   fd_ = kClosedFd;
 }
-
 
 static intptr_t Create(const RawAddr& addr) {
   SOCKET s = socket(addr.ss.ss_family, SOCK_STREAM, 0);
@@ -55,7 +56,6 @@ static intptr_t Create(const RawAddr& addr) {
   ClientSocket* client_socket = new ClientSocket(s);
   return reinterpret_cast<intptr_t>(client_socket);
 }
-
 
 static intptr_t Connect(intptr_t fd,
                         const RawAddr& addr,
@@ -90,7 +90,6 @@ static intptr_t Connect(intptr_t fd,
     status = connectEx(s, &addr.addr, SocketAddress::GetAddrLength(addr), NULL,
                        0, NULL, overlapped->GetCleanOverlapped());
 
-
     if (status == TRUE) {
       handle->ConnectComplete(overlapped);
       return fd;
@@ -110,7 +109,6 @@ static intptr_t Connect(intptr_t fd,
   return -1;
 }
 
-
 intptr_t Socket::CreateConnect(const RawAddr& addr) {
   intptr_t fd = Create(addr);
   if (fd < 0) {
@@ -129,7 +127,6 @@ intptr_t Socket::CreateConnect(const RawAddr& addr) {
   return Connect(fd, addr, bind_addr);
 }
 
-
 intptr_t Socket::CreateBindConnect(const RawAddr& addr,
                                    const RawAddr& source_addr) {
   intptr_t fd = Create(addr);
@@ -140,7 +137,6 @@ intptr_t Socket::CreateBindConnect(const RawAddr& addr,
   return Connect(fd, addr, source_addr);
 }
 
-
 intptr_t ServerSocket::Accept(intptr_t fd) {
   ListenSocket* listen_socket = reinterpret_cast<ListenSocket*>(fd);
   ClientSocket* client_socket = listen_socket->Accept();
@@ -150,7 +146,6 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
     return -1;
   }
 }
-
 
 intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
   SOCKET s = socket(addr.ss.ss_family, SOCK_DGRAM, IPPROTO_UDP);
@@ -183,7 +178,6 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
   datagram_socket->EnsureInitialized(EventHandler::delegate());
   return reinterpret_cast<intptr_t>(datagram_socket);
 }
-
 
 intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
                                         intptr_t backlog,
@@ -246,7 +240,6 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
   return reinterpret_cast<intptr_t>(listen_socket);
 }
 
-
 bool ServerSocket::StartAccept(intptr_t fd) {
   ListenSocket* listen_socket = reinterpret_cast<ListenSocket*>(fd);
   listen_socket->EnsureInitialized(EventHandler::delegate());
@@ -271,5 +264,3 @@ bool ServerSocket::StartAccept(intptr_t fd) {
 }  // namespace dart
 
 #endif  // defined(HOST_OS_WINDOWS)
-
-#endif  // !defined(DART_IO_DISABLED)

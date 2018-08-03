@@ -1,0 +1,21 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+class A<T extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    ;
+}
+class C extends core::Object {
+  synthetic constructor •() → void
+    ;
+  method foo() → self::A<dynamic>
+    ;
+  method baz() → col::DoubleLinkedQueue<dynamic>
+    ;
+}
+static field self::A<dynamic> a;
+static field col::DoubleLinkedQueue<dynamic> c;
+static method main() → dynamic
+  ;

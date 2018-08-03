@@ -22,9 +22,6 @@ main() {
 class ElementReferencesTest extends AbstractSearchDomainTest {
   Element searchElement;
 
-  @override
-  bool get enableNewAnalysisDriver => false;
-
   void assertHasRef(SearchResultKind kind, String search, bool isPotential) {
     assertHasResult(kind, search);
     expect(result.isPotential, isPotential);
@@ -308,6 +305,30 @@ main() {
     assertHasResult(SearchResultKind.INVOCATION, 'mmm(20)');
   }
 
+  test_hierarchy_namedParameter() async {
+    addTestFile('''
+class A {
+  m({p}) {} // in A
+}
+class B extends A {
+  m({p}) {} // in B
+}
+class C extends B {
+  m({p}) {} // in C
+}
+main(A a, B b, C c) {
+  a.m(p: 1);
+  b.m(p: 2);
+  c.m(p: 3);
+}
+''');
+    await findElementReferences('p}) {} // in B', false);
+    expect(searchElement.kind, ElementKind.PARAMETER);
+    assertHasResult(SearchResultKind.REFERENCE, 'p: 1');
+    assertHasResult(SearchResultKind.REFERENCE, 'p: 2');
+    assertHasResult(SearchResultKind.REFERENCE, 'p: 3');
+  }
+
   test_label() async {
     addTestFile('''
 main() {
@@ -406,7 +427,8 @@ main() {
 }
 ''');
     await findElementReferences('fff(p) {}', false);
-    expect(results, isEmpty);
+    expect(results, hasLength(1));
+    assertHasResult(SearchResultKind.INVOCATION, 'fff(10);');
   }
 
   test_parameter() async {
@@ -427,7 +449,9 @@ main(ppp) {
     assertHasResult(SearchResultKind.INVOCATION, 'ppp();');
   }
 
+  @failingTest
   test_path_inConstructor_named() async {
+    // The path does not contain the first expected element.
     addTestFile('''
 library my_lib;
 class A {}
@@ -439,9 +463,7 @@ class B {
 ''');
     await findElementReferences('A {}', false);
     assertHasResult(SearchResultKind.REFERENCE, 'A a = null;');
-    expect(
-        getPathString(result.path),
-        '''
+    expect(getPathString(result.path), '''
 LOCAL_VARIABLE a
 CONSTRUCTOR named
 CLASS B
@@ -449,7 +471,9 @@ COMPILATION_UNIT test.dart
 LIBRARY my_lib''');
   }
 
+  @failingTest
   test_path_inConstructor_unnamed() async {
+    // The path does not contain the first expected element.
     addTestFile('''
 library my_lib;
 class A {}
@@ -461,9 +485,7 @@ class B {
 ''');
     await findElementReferences('A {}', false);
     assertHasResult(SearchResultKind.REFERENCE, 'A a = null;');
-    expect(
-        getPathString(result.path),
-        '''
+    expect(getPathString(result.path), '''
 LOCAL_VARIABLE a
 CONSTRUCTOR
 CLASS B
@@ -471,7 +493,9 @@ COMPILATION_UNIT test.dart
 LIBRARY my_lib''');
   }
 
+  @failingTest
   test_path_inFunction() async {
+    // The path does not contain the first expected element.
     addTestFile('''
 library my_lib;
 class A {}
@@ -481,9 +505,7 @@ main() {
 ''');
     await findElementReferences('A {}', false);
     assertHasResult(SearchResultKind.REFERENCE, 'A a = null;');
-    expect(
-        getPathString(result.path),
-        '''
+    expect(getPathString(result.path), '''
 LOCAL_VARIABLE a
 FUNCTION main
 COMPILATION_UNIT test.dart

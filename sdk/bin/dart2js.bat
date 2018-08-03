@@ -23,7 +23,7 @@ set EXTRA_OPTIONS=
 set EXTRA_VM_OPTIONS=
 
 if _%DART2JS_DEVELOPER_MODE%_ == _1_ (
-  set EXTRA_VM_OPTIONS=%EXTRA_VM_OPTIONS% --checked
+  set EXTRA_VM_OPTIONS=%EXTRA_VM_OPTIONS% --enable-asserts
 )
 
 rem We allow extra vm options to be passed in through an environment variable.

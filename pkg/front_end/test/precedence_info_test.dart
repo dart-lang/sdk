@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/fasta/scanner/abstract_scanner.dart'
+    show AbstractScanner;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
 import 'package:front_end/src/scanner/token.dart';
@@ -17,8 +19,7 @@ main() {
 /// Assert that fasta PrecedenceInfo implements analyzer TokenType.
 @reflectiveTest
 class PrecedenceInfoTest {
-  void assertInfo(check(String source, Token token),
-      {bool includeLazyAssignmentOperators: true}) {
+  void assertInfo(check(String source, Token token)) {
     void assertLexeme(String source) {
       if (source == null || source.isEmpty) return;
       var scanner = new StringScanner(source, includeComments: true);
@@ -36,7 +37,7 @@ class PrecedenceInfoTest {
     assertLexeme('#!/'); // SCRIPT_TAG
     assertLexeme('"foo"'); // STRING
     assertLexeme('bar'); // IDENTIFIER
-    if (includeLazyAssignmentOperators) {
+    if (AbstractScanner.LAZY_ASSIGNMENT_ENABLED) {
       assertLexeme('&&=');
       assertLexeme('||=');
     }
@@ -112,7 +113,9 @@ class PrecedenceInfoTest {
   void test_isAssignmentOperator() {
     const assignmentLexemes = const [
       '&=',
+      '&&=',
       '|=',
+      '||=',
       '^=',
       '=',
       '>>=',
@@ -146,7 +149,7 @@ class PrecedenceInfoTest {
       expect(
           token.type.isAssociativeOperator, associativeLexemes.contains(source),
           reason: source);
-    }, includeLazyAssignmentOperators: false);
+    });
   }
 
   void test_isEqualityOperator() {
@@ -213,11 +216,7 @@ class PrecedenceInfoTest {
   void test_isUnaryPostfixOperator() {
     const unaryPostfixLexemes = const [
       '--',
-      '(',
-      '[',
-      '.',
       '++',
-      '?.',
     ];
     assertInfo((String source, Token token) {
       expect(token.type.isUnaryPostfixOperator,
@@ -229,6 +228,7 @@ class PrecedenceInfoTest {
   void test_isUnaryPrefixOperator() {
     const unaryPrefixLexemes = const [
       '!',
+      '-',
       '--',
       '++',
       '~',
@@ -236,6 +236,20 @@ class PrecedenceInfoTest {
     assertInfo((String source, Token token) {
       expect(
           token.type.isUnaryPrefixOperator, unaryPrefixLexemes.contains(source),
+          reason: source);
+    });
+  }
+
+  void test_isSelectorOperator() {
+    const selectorLexemes = const [
+      '(',
+      '[',
+      '.',
+      '?.',
+      '[]',
+    ];
+    assertInfo((String source, Token token) {
+      expect(token.type.isSelectorOperator, selectorLexemes.contains(source),
           reason: source);
     });
   }
@@ -353,7 +367,8 @@ class PrecedenceInfoTest {
   /// because it is interpreted as a minus token (precedence 13).
   void test_precedence() {
     const precedenceTable = const <int, List<String>>{
-      16: const <String>['.', '?.', '++', '--', '[', '('],
+      17: const <String>['.', '?.', '[', '('],
+      16: const <String>['++', '--'],
       15: const <String>['!', '~'], // excluded '-', '++', '--'
       14: const <String>['*', '/', '~/', '%'],
       13: const <String>['+', '-'],

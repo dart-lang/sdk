@@ -11,5 +11,5 @@ main() {
   };
   Iterable y = f();
   Iterable<String> z = f();
-  String s = f().first;
+  String s = f(). /*@target=Iterable::first*/ first;
 }

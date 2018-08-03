@@ -2,9 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:typed_data";
+/// Note: the VM concatenates all patch files into a single patch file. This
+/// file is the first patch in "dart:math" which contains all the imports used
+/// by patches of that library. We plan to change this when we have a shared
+/// front end and simply use parts.
 
-// A VM patch of the dart:math library.
+import "dart:_internal" show patch;
+
+import "dart:typed_data" show Uint32List;
+
+/// There are no parts of this patch library.
 
 @patch
 T min<T extends num>(T a, T b) {
@@ -24,7 +31,8 @@ T min<T extends num>(T a, T b) {
         // a is either 0.0 or -0.0. b is either 0.0, -0.0 or NaN.
         // The following returns -0.0 if either a or b is -0.0, and it
         // returns NaN if b is NaN.
-        return (a + b) * a * b;
+        num n = (a + b) * a * b;
+        return n;
       }
     }
     // Check for NaN and b == -0.0.
@@ -52,7 +60,8 @@ T max<T extends num>(T a, T b) {
         // a is either 0.0 or -0.0. b is either 0.0, -0.0, or NaN.
         // The following returns 0.0 if either a or b is 0.0, and it
         // returns NaN if b is NaN.
-        return a + b;
+        num n = a + b;
+        return n;
       }
     }
     // Check for NaN.
@@ -86,9 +95,9 @@ double _doublePow(double base, double exponent) {
   if (base == 1.0) return 1.0;
 
   if (base.isNaN || exponent.isNaN) {
-    return double.NAN;
+    return double.nan;
   }
-  if ((base != -double.INFINITY) && (exponent == 0.5)) {
+  if ((base != -double.infinity) && (exponent == 0.5)) {
     if (base == 0.0) {
       return 0.0;
     }
@@ -107,7 +116,7 @@ int _intPow(int base, int exponent) {
       result *= base;
     }
     exponent >>= 1;
-    // Skip unnecessary operation (can overflow to Mint or Bigint).
+    // Skip unnecessary operation (can overflow to Mint).
     if (exponent != 0) {
       base *= base;
     }
@@ -180,6 +189,7 @@ class _Random implements Random {
   // The constant A is selected from "Numerical Recipes 3rd Edition" p.348 B1.
 
   // Implements:
+  //   const _A = 0xffffda61;
   //   var state =
   //       ((_A * (_state[_kSTATE_LO])) + _state[_kSTATE_HI]) & ((1 << 64) - 1);
   //   _state[_kSTATE_LO] = state & ((1 << 32) - 1);
@@ -223,8 +233,6 @@ class _Random implements Random {
   static const _POW2_32 = 1 << 32;
   static const _POW2_53_D = 1.0 * (1 << 53);
   static const _POW2_27_D = 1.0 * (1 << 27);
-
-  static const _A = 0xffffda61;
 
   // Use a singleton Random object to get a new seed if no seed was passed.
   static var _prng = new _Random._withState(_initialSeed());

@@ -6,7 +6,7 @@
 library test;
 
 class C<T> extends D<T> {
-  f<U>(x) {}
+  /*@topType=(C::f::U) -> void*/ f<U>(/*@topType=C::f::U*/ x) {}
 }
 
 class D<T> {

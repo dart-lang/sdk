@@ -106,7 +106,7 @@ library dart._foreign_helper;
  */
 // Add additional optional arguments if needed. The method is treated internally
 // as a variable argument method.
-JS(String typeDescription, String codeTemplate,
+T JS<T>(String typeDescription, String codeTemplate,
     [arg0,
     arg1,
     arg2,
@@ -136,32 +136,6 @@ class JSExportName {
   final String name;
   const JSExportName(this.name);
 }
-
-/**
- * Returns the isolate in which this code is running.
- */
-IsolateContext JS_CURRENT_ISOLATE_CONTEXT() {}
-
-abstract class IsolateContext {
-  /// Holds a (native) JavaScript instance of Isolate, see
-  /// finishIsolateConstructorFunction in emitter.dart.
-  get isolateStatics;
-}
-
-/**
- * Invokes [function] in the context of [isolate].
- */
-JS_CALL_IN_ISOLATE(isolate, Function function) {}
-
-/**
- * Sets the current isolate to [isolate].
- */
-void JS_SET_CURRENT_ISOLATE(isolate) {}
-
-/**
- * Creates an isolate and returns it.
- */
-JS_CREATE_ISOLATE() {}
 
 /**
  * Returns the JavaScript constructor function for Dart's Object class.
@@ -205,11 +179,6 @@ String JS_FUNCTION_CLASS_NAME() {}
  */
 String JS_IS_INDEXABLE_FIELD_NAME() {}
 
-/**
- * Returns the object corresponding to Namer.CURRENT_ISOLATE.
- */
-JS_CURRENT_ISOLATE() {}
-
 /// Returns the name used for generated function types on classes and methods.
 String JS_SIGNATURE_NAME() {}
 
@@ -251,11 +220,6 @@ String JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG() {}
 
 /// Returns the JS name for [name] from the Namer.
 String JS_GET_NAME(String name) {}
-
-/// Reads an embedded global.
-///
-/// The [name] should be a constant defined in the `_embedded_names` library.
-JS_EMBEDDED_GLOBAL(String typeDescription, String name) {}
 
 /// Returns the state of a flag that is determined by the state of the compiler
 /// when the program has been analyzed.
@@ -311,9 +275,9 @@ class _Rest {
   const _Rest();
 }
 
-const _Rest rest = const _Rest();
+const _Rest rest = _Rest();
 
 dynamic spread(args) {
-  throw new StateError('The spread function cannot be called, '
+  throw StateError('The spread function cannot be called, '
       'it should be compiled away.');
 }

@@ -4,15 +4,14 @@
 
 library ordered_typeset;
 
-import 'common.dart';
-import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
-import 'elements/elements.dart' show ClassElement;
-import 'elements/entities.dart';
-import 'elements/resolution_types.dart';
-import 'elements/types.dart';
-import 'util/util.dart' show Link, LinkBuilder;
+import 'package:front_end/src/fasta/util/link.dart' show Link, LinkBuilder;
 import 'package:front_end/src/fasta/util/link_implementation.dart'
     show LinkEntry;
+
+import 'common.dart';
+import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
+import 'elements/entities.dart';
+import 'elements/types.dart';
 
 /**
  * An ordered set of the supertypes of a class. The supertypes of a class are
@@ -36,8 +35,7 @@ class OrderedTypeSet {
   final Link<InterfaceType> types;
   final Link<InterfaceType> _supertypes;
 
-  OrderedTypeSet.internal(List<Link<InterfaceType>> this._levels,
-      Link<InterfaceType> this.types, Link<InterfaceType> this._supertypes);
+  OrderedTypeSet.internal(this._levels, this.types, this._supertypes);
 
   factory OrderedTypeSet.singleton(InterfaceType type) {
     Link<InterfaceType> types =
@@ -52,8 +50,11 @@ class OrderedTypeSet {
   /// class which this set represents. This is for instance used to create the
   /// type set for [ClosureClassElement] which extends [Closure].
   OrderedTypeSet extendClass(InterfaceType type) {
-    assert(invariant(type.element, types.head.treatAsRaw,
-        message: 'Cannot extend generic class ${types.head} using '
+    assert(
+        types.head.treatAsRaw,
+        failedAt(
+            type.element,
+            'Cannot extend generic class ${types.head} using '
             'OrderedTypeSet.extendClass'));
     Link<InterfaceType> extendedTypes =
         new LinkEntry<InterfaceType>(type, types);
@@ -161,17 +162,15 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
 
   final DiagnosticReporter reporter;
   final ClassEntity cls;
-  InterfaceType _objectType;
+  final InterfaceType _objectType;
 
-  // TODO(johnniwinther): Provide access to `Object` in deserialization and
-  // make [objectType] mandatory.
-  OrderedTypeSetBuilderBase(this.cls, {this.reporter, InterfaceType objectType})
-      : this._objectType = objectType;
+  OrderedTypeSetBuilderBase(this.cls, this._objectType, {this.reporter});
 
-  InterfaceType getThisType(ClassEntity cls);
-  InterfaceType substByContext(InterfaceType type, InterfaceType context);
-  int getHierarchyDepth(ClassEntity cls);
-  OrderedTypeSet getOrderedTypeSet(ClassEntity cls);
+  InterfaceType getThisType(covariant ClassEntity cls);
+  InterfaceType substByContext(
+      covariant InterfaceType type, covariant InterfaceType context);
+  int getHierarchyDepth(covariant ClassEntity cls);
+  OrderedTypeSet getOrderedTypeSet(covariant ClassEntity cls);
 
   OrderedTypeSet createOrderedTypeSet(
       InterfaceType supertype, Link<DartType> interfaces) {
@@ -197,8 +196,11 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
   void _addAllSupertypes(InterfaceType type) {
     ClassEntity classElement = type.element;
     Link<InterfaceType> supertypes = getOrderedTypeSet(classElement).supertypes;
-    assert(invariant(cls, supertypes != null,
-        message: "Supertypes not computed on $classElement "
+    assert(
+        supertypes != null,
+        failedAt(
+            cls,
+            "Supertypes not computed on $classElement "
             "during resolution of $cls"));
     while (!supertypes.isEmpty) {
       InterfaceType supertype = supertypes.head;
@@ -221,6 +223,9 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
     }
   }
 
+  // TODO(sigmund): delete once Issue #31118 is fixed.
+  bool get reportMultiInheritanceIssue => true;
+
   void _addAtDepth(InterfaceType type, int depth) {
     LinkEntry<InterfaceType> prev = null;
     LinkEntry<InterfaceType> link = map[depth];
@@ -229,14 +234,15 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
       if (existingType == type) return;
       if (existingType.element == type.element) {
         if (reporter != null) {
-          reporter.reportErrorMessage(cls, MessageKind.MULTI_INHERITANCE, {
-            'thisType': getThisType(cls),
-            'firstType': existingType,
-            'secondType': type
-          });
+          if (reportMultiInheritanceIssue) {
+            reporter.reportErrorMessage(cls, MessageKind.MULTI_INHERITANCE, {
+              'thisType': getThisType(cls),
+              'firstType': existingType,
+              'secondType': type
+            });
+          }
         } else {
-          assert(invariant(cls, false,
-              message: 'Invalid ordered typeset for $cls'));
+          assert(false, failedAt(cls, 'Invalid ordered typeset for $cls'));
         }
         return;
       }
@@ -278,7 +284,7 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
       }
     }
     return new OrderedTypeSet.internal(
-        levels, levels.last, allSupertypes.toLink());
+        levels, levels.last, allSupertypes.toLink(const Link<InterfaceType>()));
   }
 
   String toString() {
@@ -286,47 +292,9 @@ abstract class OrderedTypeSetBuilderBase implements OrderedTypeSetBuilder {
     for (int depth = 0; depth <= maxDepth; depth++) {
       sb.write('$depth: ');
       LinkEntry<InterfaceType> first = map[depth];
-      if (first.isNotEmpty) {
-        sb.write('${first.head}');
-        while (first.tail.isNotEmpty) {
-          sb.write(', ${first.tail.head}');
-          first = first.tail;
-        }
-      }
+      first.printOn(sb, ", ");
       sb.write('\n');
     }
     return sb.toString();
-  }
-}
-
-class ResolutionOrderedTypeSetBuilder extends OrderedTypeSetBuilderBase {
-  ResolutionOrderedTypeSetBuilder(ClassElement cls,
-      {DiagnosticReporter reporter, InterfaceType objectType})
-      : super(cls, reporter: reporter, objectType: objectType);
-
-  InterfaceType getThisType(ClassElement cls) => cls.thisType;
-
-  ResolutionInterfaceType substByContext(
-      ResolutionInterfaceType type, ResolutionInterfaceType context) {
-    return type.substByContext(context);
-  }
-
-  int getHierarchyDepth(ClassElement cls) => cls.hierarchyDepth;
-
-  OrderedTypeSet getOrderedTypeSet(ClassElement cls) =>
-      cls.allSupertypesAndSelf;
-
-  OrderedTypeSet createOrderedTypeSet(
-      InterfaceType supertype, Link<DartType> interfaces) {
-    if (_objectType == null) {
-      // Find `Object` through in hierarchy. This is used for serialization
-      // where it is assumed that the hierarchy is valid.
-      ResolutionInterfaceType objectType = supertype;
-      while (!objectType.isObject) {
-        objectType = objectType.element.supertype;
-      }
-      _objectType = objectType;
-    }
-    return super.createOrderedTypeSet(supertype, interfaces);
   }
 }

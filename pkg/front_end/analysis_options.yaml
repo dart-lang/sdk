@@ -3,9 +3,8 @@
 # BSD-style license that can be found in the LICENSE file.
 
 analyzer:
-  strong-mode: true
   language:
-    enableSuperMixins: true
+    enableSuperMixins: false
   exclude:
     - testcases/**
   errors:

@@ -6,8 +6,8 @@
 #if defined(HOST_OS_FUCHSIA)
 
 #include <errno.h>
-#include <magenta/syscalls.h>
-#include <magenta/types.h>
+#include <zircon/syscalls.h>
+#include <zircon/types.h>
 
 #include "bin/utils.h"
 #include "platform/assert.h"
@@ -17,13 +17,12 @@ namespace dart {
 namespace bin {
 
 OSError::OSError() : sub_system_(kSystem), code_(0), message_(NULL) {
-  set_sub_system(kSystem);
-  set_code(errno);
-  const int kBufferSize = 1024;
-  char error_buf[kBufferSize];
-  SetMessage(Utils::StrError(errno, error_buf, kBufferSize));
+  Reload();
 }
 
+void OSError::Reload() {
+  SetCodeAndMessage(kSystem, errno);
+}
 
 void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
   set_sub_system(sub_system);
@@ -39,14 +38,12 @@ void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
   }
 }
 
-
 const char* StringUtils::ConsoleStringToUtf8(const char* str,
                                              intptr_t len,
                                              intptr_t* result_len) {
   UNIMPLEMENTED();
   return NULL;
 }
-
 
 const char* StringUtils::Utf8ToConsoleString(const char* utf8,
                                              intptr_t len,
@@ -55,14 +52,12 @@ const char* StringUtils::Utf8ToConsoleString(const char* utf8,
   return NULL;
 }
 
-
 char* StringUtils::ConsoleStringToUtf8(char* str,
                                        intptr_t len,
                                        intptr_t* result_len) {
   UNIMPLEMENTED();
   return NULL;
 }
-
 
 char* StringUtils::Utf8ToConsoleString(char* utf8,
                                        intptr_t len,
@@ -71,33 +66,23 @@ char* StringUtils::Utf8ToConsoleString(char* utf8,
   return NULL;
 }
 
-
-char* StringUtils::StrNDup(const char* s, intptr_t n) {
-  return strndup(s, n);
-}
-
-
 bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
   return false;
 }
 
-
 void TimerUtils::InitOnce() {}
-
 
 int64_t TimerUtils::GetCurrentMonotonicMillis() {
   return GetCurrentMonotonicMicros() / 1000;
 }
 
-
 int64_t TimerUtils::GetCurrentMonotonicMicros() {
-  int64_t ticks = mx_time_get(MX_CLOCK_MONOTONIC);
+  int64_t ticks = zx_clock_get(ZX_CLOCK_MONOTONIC);
   return ticks / kNanosecondsPerMicrosecond;
 }
 
-
 void TimerUtils::Sleep(int64_t millis) {
-  mx_nanosleep(mx_deadline_after(millis * kMicrosecondsPerMillisecond *
+  zx_nanosleep(zx_deadline_after(millis * kMicrosecondsPerMillisecond *
                                  kNanosecondsPerMicrosecond));
 }
 

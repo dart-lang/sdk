@@ -1,0 +1,21 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  field core::List<dynamic> list = <dynamic>[1, 2, 3];
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  set first(dynamic x) → void
+    this.list.[]=(0, x);
+  operator []=(dynamic x, dynamic y) → void
+    this.list.[]=(x, y);
+  method clear() → void
+    return this.{self::Foo::list}.{core::List::clear}();
+}
+static method main() → dynamic {
+  new self::Foo::•().{self::Foo::first} = 4;
+  new self::Foo::•().{self::Foo::[]=}(3, 4);
+  new self::Foo::•().{self::Foo::clear}();
+}

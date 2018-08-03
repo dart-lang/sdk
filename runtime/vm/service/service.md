@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.5
+# Dart VM Service Protocol 3.9
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.5_ of the Dart VM Service Protocol. This
+This document describes of _version 3.9_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -24,73 +24,75 @@ The Service Protocol uses [JSON-RPC 2.0][].
 - [Versioning](#versioning)
 - [Private RPCs, Types, and Properties](#private-rpcs-types-and-properties)
 - [Public RPCs](#public-rpcs)
-	- [addBreakpoint](#addbreakpoint)
-	- [addBreakpointWithScriptUri](#addbreakpointwithscripturi)
-	- [addBreakpointAtEntry](#addbreakpointatentry)
-	- [evaluate](#evaluate)
-	- [evaluateInFrame](#evaluateinframe)
-	- [getFlagList](#getflaglist)
-	- [getIsolate](#getisolate)
-	- [getObject](#getobject)
-	- [getSourceReport](#getsourcereport)
-	- [getStack](#getstack)
-	- [getVersion](#getversion)
-	- [getVM](#getvm)
-	- [pause](#pause)
-	- [reloadSources](#reloadsources)
-	- [removeBreakpoint](#removebreakpoint)
-	- [resume](#resume)
-	- [setExceptionPauseMode](#setexceptionpausemode)
-	- [setLibraryDebuggable](#setlibrarydebuggable)
-	- [setName](#setname)
-	- [setVMName](#setvmname)
-	- [streamCancel](#streamcancel)
-	- [streamListen](#streamlisten)
+  - [addBreakpoint](#addbreakpoint)
+  - [addBreakpointWithScriptUri](#addbreakpointwithscripturi)
+  - [addBreakpointAtEntry](#addbreakpointatentry)
+  - [evaluate](#evaluate)
+  - [evaluateInFrame](#evaluateinframe)
+  - [getFlagList](#getflaglist)
+  - [getIsolate](#getisolate)
+  - [getObject](#getobject)
+  - [getSourceReport](#getsourcereport)
+  - [getStack](#getstack)
+  - [getVersion](#getversion)
+  - [getVM](#getvm)
+  - [pause](#pause)
+  - [kill](#kill)
+  - [reloadSources](#reloadsources)
+  - [removeBreakpoint](#removebreakpoint)
+  - [resume](#resume)
+  - [setExceptionPauseMode](#setexceptionpausemode)
+  - [setFlag](#setflag)
+  - [setLibraryDebuggable](#setlibrarydebuggable)
+  - [setName](#setname)
+  - [setVMName](#setvmname)
+  - [streamCancel](#streamcancel)
+  - [streamListen](#streamlisten)
 - [Public Types](#public-types)
-	- [BoundField](#boundfield)
-	- [BoundVariable](#boundvariable)
-	- [Breakpoint](#breakpoint)
-	- [Class](#class)
-	- [ClassList](#classlist)
-	- [Code](#code)
-	- [CodeKind](#codekind)
-	- [Context](#context)
-	- [ContextElement](#contextelement)
-	- [Error](#error)
-	- [ErrorKind](#errorkind)
-	- [Event](#event)
-	- [EventKind](#eventkind)
-	- [ExtensionData](#extensiondata)
-	- [Field](#field)
-	- [Flag](#flag)
-	- [FlagList](#flaglist)
-	- [Frame](#frame)
-	- [Function](#function)
-	- [Instance](#instance)
-	- [Isolate](#isolate)
-	- [Library](#library)
-	- [LibraryDependency](#librarydependency)
-	- [MapAssociation](#mapassociation)
-	- [Message](#message)
-	- [Null](#null)
-	- [Object](#object)
-	- [ReloadReport](#reloadreport)
-	- [Response](#response)
-	- [Sentinel](#sentinel)
-	- [SentinelKind](#sentinelkind)
-	- [Script](#script)
-	- [SourceLocation](#sourcelocation)
-	- [SourceReport](#sourcereport)
-	- [SourceReportCoverage](#sourcereportcoverage)
-	- [SourceReportKind](#sourcereportkind)
-	- [SourceReportRange](#sourcereportrange)
-	- [Stack](#stack)
-	- [StepOption](#stepoption)
-	- [Success](#success)
-	- [TypeArguments](#typearguments)
-	- [UresolvedSourceLocation](#unresolvedsourcelocation)
-	- [Version](#version)
-	- [VM](#vm)
+  - [BoundField](#boundfield)
+  - [BoundVariable](#boundvariable)
+  - [Breakpoint](#breakpoint)
+  - [Class](#class)
+  - [ClassList](#classlist)
+  - [Code](#code)
+  - [CodeKind](#codekind)
+  - [Context](#context)
+  - [ContextElement](#contextelement)
+  - [Error](#error)
+  - [ErrorKind](#errorkind)
+  - [Event](#event)
+  - [EventKind](#eventkind)
+  - [ExtensionData](#extensiondata)
+  - [Field](#field)
+  - [Flag](#flag)
+  - [FlagList](#flaglist)
+  - [Frame](#frame)
+  - [Function](#function)
+  - [Instance](#instance)
+  - [Isolate](#isolate)
+  - [Library](#library)
+  - [LibraryDependency](#librarydependency)
+  - [MapAssociation](#mapassociation)
+  - [Message](#message)
+  - [Null](#null)
+  - [Object](#object)
+  - [ReloadReport](#reloadreport)
+  - [Response](#response)
+  - [Sentinel](#sentinel)
+  - [SentinelKind](#sentinelkind)
+  - [Script](#script)
+  - [SourceLocation](#sourcelocation)
+  - [SourceReport](#sourcereport)
+  - [SourceReportCoverage](#sourcereportcoverage)
+  - [SourceReportKind](#sourcereportkind)
+  - [SourceReportRange](#sourcereportrange)
+  - [Stack](#stack)
+  - [StepOption](#stepoption)
+  - [Success](#success)
+  - [TypeArguments](#typearguments)
+  - [UresolvedSourceLocation](#unresolvedsourcelocation)
+  - [Version](#version)
+  - [VM](#vm)
 - [Revision History](#revision-history)
 
 ## RPCs, Requests, and Responses
@@ -188,6 +190,10 @@ code | message | meaning
 107 | Cannot resume execution | The isolate could not be resumed
 108 | Isolate is reloading | The isolate is currently processing another reload request
 109 | Isolate cannot be reloaded | The isolate has an unhandled exception and can no longer be reloaded
+110 | Isolate must have reloaded | Failed to find differences in last hot reload request
+111 | Service already registered | Service with such name has already been registered by this client
+112 | Service disappeared | Failed to fulfill service request, likely service handler is no longer available
+113 | Expression compilation error | Request to compile expression failed
 
 
 
@@ -240,7 +246,7 @@ information about a Dart function is returned using the [Function](#function) ty
 
 If the type of a response begins with the _@_ character, then that
 response is a _reference_. If the type name of a response does not
-begin with the _@_ character, it is the an _object_. A reference is
+begin with the _@_ character, it is an _object_. A reference is
 intended to be a subset of an object which provides enough information
 to generate a reasonable looking reference to the object.
 
@@ -354,7 +360,7 @@ An RPC is described using the following format:
 
 ```
 ReturnType methodName(parameterType1 parameterName1,
-                      parameterType2, parameterName2,
+                      parameterType2 parameterName2,
                       ...)
 ```
 
@@ -376,7 +382,7 @@ Some parameters are optional. This is indicated by the text
 _[optional]_ following the parameter name:
 
 ```
-ReturnType methodName(parameterType parameterName [optional)
+ReturnType methodName(parameterType parameterName [optional])
 ```
 
 A description of the return types and parameter types is provided
@@ -469,7 +475,8 @@ Note that breakpoints are added and removed on a per-isolate basis.
 ```
 @Instance|@Error|Sentinel evaluate(string isolateId,
                                    string targetId,
-                                   string expression)
+                                   string expression,
+                                   map<string,string> scope [optional])
 ```
 
 The _evaluate_ RPC is used to evaluate an expression in the context of
@@ -485,6 +492,15 @@ If _targetId_ refers to an object which has been collected by the VM's
 garbage collector, then the _Collected_ [Sentinel](#sentinel) is
 returned.
 
+If _scope_ is provided, it should be a map from identifiers to object ids.
+These bindings will be added to the scope in which the expression is evaluated,
+which is a child scope of the class or library for instance/class or library
+targets respectively. This means bindings provided in _scope_ may shadow
+instance members, class members and top-level members.
+
+If expression is failed to parse and compile, then [rpc error](#rpc-error) 113
+"Expression compilation error" is returned.
+
 If an error occurs while evaluating the expression, an [@Error](#error)
 reference will be returned.
 
@@ -494,15 +510,25 @@ reference will be returned.
 ### evaluateInFrame
 
 ```
-@Instance|@Error evaluateInFrame(string isolateId,
-                                 int frameIndex,
-                                 string expression)
+@Instance|@Error|Sentinel evaluateInFrame(string isolateId,
+                                          int frameIndex,
+                                          string expression,
+                                          map<string,string> scope [optional])
 ```
 
 The _evaluateInFrame_ RPC is used to evaluate an expression in the
 context of a particular stack frame. _frameIndex_ is the index of the
 desired [Frame](#frame), with an index of _0_ indicating the top (most
 recent) frame.
+
+If _scope_ is provided, it should be a map from identifiers to object ids.
+These bindings will be added to the scope in which the expression is evaluated,
+which is a child scope of the frame's current scope. This means bindings
+provided in _scope_ may shadow instance members, class members, top-level
+members, parameters and locals.
+
+If expression is failed to parse and compile, then [rpc error](#rpc-error) 113
+"Expression compilation error" is returned.
 
 If an error occurs while evaluating the expression, an [@Error](#error)
 reference will be returned.
@@ -655,6 +681,18 @@ When the isolate is paused an event will be sent on the _Debug_ stream.
 
 See [Success](#success).
 
+### kill
+
+```
+Success kill(string isolateId)
+```
+
+The _kill_ RPC is used to kill an isolate as if by dart:isolate's `Isolate.kill(IMMEDIATE)`.
+
+The isolate is killed regardless of whether it is paused or running.
+
+See [Success](#success).
+
 ### reloadSources
 
 
@@ -740,6 +778,24 @@ None | Do not pause isolate on thrown exceptions
 Unhandled | Pause isolate on unhandled exceptions
 All  | Pause isolate on all thrown exceptions
 
+### setFlag
+
+```
+Success setFlag(string name,
+                string value)
+```
+
+The _setFlag_ RPC is used to set a VM flag at runtime. Returns an error if the
+named flag does not exist, the flag may not be set at runtime, or the value is
+of the wrong type for the flag.
+
+The following flags may be set at runtime:
+
+ * pause_isolates_on_start
+ * pause_isolates_on_exit
+ * pause_isolates_on_unhandled_exceptions
+
+See [Success](#success).
 
 ### setLibraryDebuggable
 
@@ -1488,10 +1544,11 @@ A _FlagList_ represents the complete set of VM command line flags.
 ```
 class Frame extends Response {
   int index;
-  @Function function;
-  @Code code;
-  SourceLocation location;
-  BoundVariable[] vars;
+  @Function function [optional];
+  @Code code [optional];
+  SourceLocation location [optional];
+  BoundVariable[] vars [optional];
+  FrameKind kind [optional];
 }
 ```
 
@@ -2248,6 +2305,19 @@ A _SentinelKind_ is used to distinguish different kinds of _Sentinel_ objects.
 Adding new values to _SentinelKind_ is considered a backwards
 compatible change. Clients must handle this gracefully.
 
+
+### FrameKind
+```
+enum FrameKind {
+  Regular,
+  AsyncCausal,
+  AsyncSuspensionMarker,
+  AsyncActivation
+}
+```
+
+A _FrameKind_ is used to distinguish different kinds of _Frame_ objects.
+
 ### Script
 
 ```
@@ -2417,6 +2487,8 @@ and therefore will not contain a _type_ property.
 ```
 class Stack extends Response {
   Frame[] frames;
+  Frame[] asyncCausalFrames [optional];
+  Frame[] awaiterFrames [optional];
   Message[] messages;
 }
 ```
@@ -2596,6 +2668,7 @@ version | comments
 3.3 | Pause event now indicates if the isolate is paused at an await, yield, or yield* suspension point via the 'atAsyncSuspension' field. Resume command now supports the step parameter 'OverAsyncSuspension'. A Breakpoint added synthetically by an 'OverAsyncSuspension' resume command identifies itself as such via the 'isSyntheticAsyncContinuation' field.
 3.4 | Add the superType and mixin fields to Class. Added new pause event 'None'.
 3.5 | Add the error field to SourceReportRange.  Clarify definition of token position.  Add "Isolate must be paused" error code.
-3.6 (unreleased) | Add 'scopeStartTokenPos', 'scopeEndTokenPos', and 'declarationTokenPos' to BoundVariable. Add 'PausePostRequest' event kind. Add 'Rewind' StepOption. Add error code 107 (isolate cannot resume). Add 'reloadSources' RPC and related error codes.
+3.6 | Add 'scopeStartTokenPos', 'scopeEndTokenPos', and 'declarationTokenPos' to BoundVariable. Add 'PausePostRequest' event kind. Add 'Rewind' StepOption. Add error code 107 (isolate cannot resume). Add 'reloadSources' RPC and related error codes. Add optional parameter 'scope' to 'evaluate' and 'evaluateInFrame'.
+3.7 | Add 'setFlag'.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

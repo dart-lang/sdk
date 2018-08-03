@@ -5,13 +5,20 @@
 import 'package:front_end/src/base/errors.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:front_end/src/fasta/scanner/error_token.dart';
-import 'package:front_end/src/scanner/token.dart' show Token;
+import 'package:front_end/src/scanner/token.dart' show Token, TokenType;
 import 'package:front_end/src/fasta/scanner/token_constants.dart';
 
 /**
  * The error codes used for errors detected by the scanner.
  */
 class ScannerErrorCode extends ErrorCode {
+  /**
+   * Parameters:
+   * 0: the token that was expected but not found
+   */
+  static const ScannerErrorCode EXPECTED_TOKEN =
+      const ScannerErrorCode('EXPECTED_TOKEN', "Expected to find '{0}'.");
+
   /**
    * Parameters:
    * 0: the illegal character
@@ -25,6 +32,9 @@ class ScannerErrorCode extends ErrorCode {
   static const ScannerErrorCode MISSING_HEX_DIGIT = const ScannerErrorCode(
       'MISSING_HEX_DIGIT', "Hexidecimal digit expected.");
 
+  static const ScannerErrorCode MISSING_IDENTIFIER =
+      const ScannerErrorCode('MISSING_IDENTIFIER', "Expected an identifier.");
+
   static const ScannerErrorCode MISSING_QUOTE =
       const ScannerErrorCode('MISSING_QUOTE', "Expected quote (' or \").");
 
@@ -35,12 +45,19 @@ class ScannerErrorCode extends ErrorCode {
   static const ScannerErrorCode UNABLE_GET_CONTENT = const ScannerErrorCode(
       'UNABLE_GET_CONTENT', "Unable to get content of '{0}'.");
 
+  static const ScannerErrorCode UNEXPECTED_DOLLAR_IN_STRING =
+      const ScannerErrorCode(
+          'UNEXPECTED_DOLLAR_IN_STRING',
+          "A '\$' has special meaning inside a string, and must be followed by "
+          "an identifier or an expression in curly braces ({}).",
+          correction: "Try adding a backslash (\\) to escape the '\$'.");
+
   static const ScannerErrorCode UNTERMINATED_MULTI_LINE_COMMENT =
       const ScannerErrorCode(
-          'UNTERMINATED_MULTI_LINE_COMMENT',
-          "Unterminated multi-line comment.",
-          "Try terminating the comment with '*/', or "
-          "removing any unbalanced occurances of '/*' (because comments nest in Dart).");
+          'UNTERMINATED_MULTI_LINE_COMMENT', "Unterminated multi-line comment.",
+          correction: "Try terminating the comment with '*/', or "
+              "removing any unbalanced occurances of '/*'"
+              " (because comments nest in Dart).");
 
   static const ScannerErrorCode UNTERMINATED_STRING_LITERAL =
       const ScannerErrorCode(
@@ -52,8 +69,8 @@ class ScannerErrorCode extends ErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const ScannerErrorCode(String name, String message, [String correction])
-      : super(name, message, correction);
+  const ScannerErrorCode(String name, String message, {String correction})
+      : super.temporary(name, message, correction: correction);
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
@@ -94,7 +111,7 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
     case "UNTERMINATED_STRING_LITERAL":
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
       // string; analyzer expects the end of the string.
-      charOffset = endOffset;
+      charOffset = endOffset - 1;
       return _makeError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, null);
 
     case "UNTERMINATED_MULTI_LINE_COMMENT":
@@ -119,9 +136,24 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
       return _makeError(ScannerErrorCode.ILLEGAL_CHARACTER, [token.character]);
 
     default:
-      if (errorCode == codeUnmatchedToken ||
-          errorCode == codeUnexpectedDollarInString) {
-        return null;
+      if (errorCode == codeUnmatchedToken) {
+        charOffset = token.begin.endToken.charOffset;
+        TokenType type = token.begin?.type;
+        if (type == TokenType.OPEN_CURLY_BRACKET ||
+            type == TokenType.STRING_INTERPOLATION_EXPRESSION) {
+          return _makeError(ScannerErrorCode.EXPECTED_TOKEN, ['}']);
+        }
+        if (type == TokenType.OPEN_SQUARE_BRACKET) {
+          return _makeError(ScannerErrorCode.EXPECTED_TOKEN, [']']);
+        }
+        if (type == TokenType.OPEN_PAREN) {
+          return _makeError(ScannerErrorCode.EXPECTED_TOKEN, [')']);
+        }
+        if (type == TokenType.LT) {
+          return _makeError(ScannerErrorCode.EXPECTED_TOKEN, ['>']);
+        }
+      } else if (errorCode == codeUnexpectedDollarInString) {
+        return _makeError(ScannerErrorCode.MISSING_IDENTIFIER, null);
       }
       throw new UnimplementedError('$errorCode');
   }

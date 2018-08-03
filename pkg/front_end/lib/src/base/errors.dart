@@ -26,12 +26,27 @@ abstract class ErrorCode {
   final String correction;
 
   /**
+   * Whether this error is caused by an unresolved identifier.
+   */
+  final bool isUnresolvedIdentifier;
+
+  /**
    * Initialize a newly created error code to have the given [name]. The message
    * associated with the error will be created from the given [message]
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const ErrorCode(this.name, this.message, [this.correction]);
+  const ErrorCode(this.name, this.message, [this.correction])
+      : isUnresolvedIdentifier = false;
+
+  /**
+   * Initialize a newly created error code to have the given [name]. The message
+   * associated with the error will be created from the given [message]
+   * template. The correction associated with the error will be created from the
+   * given [correction] template.
+   */
+  const ErrorCode.temporary(this.name, this.message,
+      {this.correction, this.isUnresolvedIdentifier: false});
 
   /**
    * The severity of the error.
@@ -68,8 +83,8 @@ class ErrorSeverity implements Comparable<ErrorSeverity> {
   static const ErrorSeverity INFO = const ErrorSeverity('INFO', 1, "I", "info");
 
   /**
-   * The severity representing a warning. Warnings can become errors if the `-Werror` command
-   * line flag is specified.
+   * The severity representing a warning. Warnings can become errors if the
+   * `-Werror` command line flag is specified.
    */
   static const ErrorSeverity WARNING =
       const ErrorSeverity('WARNING', 2, "W", "warning");

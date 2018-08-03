@@ -1,0 +1,131 @@
+# Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Status file for the compile_test.dart (notice c, not k) test suite. This is
+# testing generating Kernel ASTs directly, that is, code in
+# pkg/fasta/lib/src/kernel/.
+
+rasta/unsupported_platform_library: RuntimeError # OK, this must report an error at runtime.
+
+DeltaBlue: Fail # Fasta and dartk disagree on static initializers
+bug31124: RuntimeError # Test has an intentional error
+call: Fail # Test can't run.
+fallthrough: Fail # Missing FallThroughError.
+function_type_recovery: Fail
+invocations: Fail
+micro: Fail # External method marked abstract.
+named_parameters: Fail # Missing types and unnecessary default values.
+optional: Fail # Unnecessary default values.
+redirecting_factory: Fail # Missing types on constructor parameters.
+redirecting_factory_chain_test: Fail # Missing support for RedirectingFactoryConstructor.
+redirecting_factory_simple_test: Fail # Missing support for RedirectingFactoryConstructor.
+redirecting_factory_typeargs_test: Fail # Missing support for RedirectingFactoryConstructor.
+redirecting_factory_typeparam_test: Fail # Missing support for RedirectingFactoryConstructor.
+redirecting_factory_typeparambounds_test: Fail # Missing support for RedirectingFactoryConstructor.
+statements: Fail # Make async tranformer optional for golden file testing.
+type_variable_as_super: Fail
+uninitialized_fields: Fail # Fasta and dartk disagree on static initializers
+void_methods: Fail # Bad return from setters.
+
+inference/bug31436: RuntimeError # Test exercises Dart 2.0 semantics
+inference/constructors_too_many_positional_arguments: Fail
+inference/downwards_inference_annotations_locals: Fail # Issue #30031
+inference/future_then_explicit_future: Fail
+inference/generic_methods_infer_js_builtin: Fail
+inference/infer_assign_to_index: Fail
+inference/infer_assign_to_property: Fail
+inference/infer_assign_to_property_custom: Fail
+inference/infer_type_cast: Fail
+inference/infer_typed_list_literal: Fail
+inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: Fail
+inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: Fail
+inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: RuntimeError
+
+instantiate_to_bound/body_typedef_super_bounded_type: Fail # Issue 33444
+instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: RuntimeError # May be related to Issue 33479
+instantiate_to_bound/typedef_super_bounded_type: Fail # Issue 33444
+
+rasta/abstract_constructor: Fail
+rasta/bad_constructor_redirection: Fail
+rasta/bad_continue: Fail
+rasta/bad_default_constructor: Fail # Compile-time error destroys program.
+rasta/bad_explicit_super_constructor: Fail
+rasta/bad_implicit_super_constructor: Fail
+rasta/bad_interpolation: Fail
+rasta/bad_redirection: Fail
+rasta/bad_setter_initializer: Fail
+rasta/bad_unicode: Fail
+rasta/breaking_bad: Fail
+rasta/class_hierarchy: Fail
+rasta/class_member: Fail
+rasta/constant_get_and_invoke: Fail
+rasta/deferred_lib: Fail
+rasta/deferred_load: Fail
+rasta/external_factory_redirection: Fail
+rasta/for_loop: Fail
+rasta/generic_factory: Fail
+rasta/issue_000001: Fail
+rasta/issue_000031: Fail
+rasta/issue_000032: Fail
+rasta/issue_000034: Fail
+rasta/issue_000035: Fail
+rasta/issue_000035a: Fail
+rasta/issue_000036: Fail
+rasta/issue_000039: Fail
+rasta/issue_000041: Fail
+rasta/issue_000042: Fail
+rasta/issue_000043: Fail
+rasta/issue_000044: Fail
+rasta/issue_000045: Fail
+rasta/issue_000046: Fail
+rasta/issue_000047: Fail
+rasta/issue_000081: Fail
+rasta/malformed_const_constructor: Fail
+rasta/malformed_function: Fail
+rasta/mandatory_parameter_initializer: Fail
+rasta/mixin_library: Fail
+rasta/native_is_illegal: Fail
+rasta/parser_error: Fail
+rasta/super: Fail
+rasta/super_initializer: Fail
+rasta/super_operator: Fail
+rasta/try_label: Fail
+rasta/type_literals: Fail
+rasta/type_with_parse_error: Fail
+rasta/typedef: Fail
+rasta/unresolved: Fail
+rasta/unresolved_constructor: Fail
+rasta/unresolved_for_in: RuntimeError # Test contains a compile-time error, signaled at run time in the JIT VM
+rasta/unresolved_recovery: Fail
+
+regress/issue_29975: Fail # Issue 29975.
+regress/issue_29976: RuntimeError # Issue 29976.
+regress/issue_29982: Fail # Issue 29982.
+regress/issue_30836: RuntimeError # Issue 30836.
+regress/issue_33452: RuntimeError # Test has an intentional error
+
+runtime_checks/implicit_downcast_constructor_initializer: RuntimeError # Test exercises strong mode semantics
+runtime_checks/implicit_downcast_do: RuntimeError # Test exercises strong mode semantics
+runtime_checks/implicit_downcast_for_condition: RuntimeError # Test exercises strong mode semantics
+runtime_checks/implicit_downcast_if: RuntimeError # Test exercises strong mode semantics
+runtime_checks/implicit_downcast_not: RuntimeError # Test exercises strong mode semantics
+runtime_checks/implicit_downcast_while: RuntimeError # Test exercises strong mode semantics
+runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError # Test exercises strong mode semantics
+runtime_checks_new/implicit_downcast_field: RuntimeError # Test exercises strong mode semantics
+runtime_checks_new/mixin_forwarding_stub_field: RuntimeError # Test exercises strong mode semantics
+runtime_checks_new/mixin_forwarding_stub_getter: RuntimeError # Test exercises strong mode semantics
+runtime_checks_new/mixin_forwarding_stub_setter: RuntimeError # Test exercises strong mode semantics
+runtime_checks_new/stub_checked_via_target: RuntimeError # Test exercises strong mode semantics
+constructor_const_inference: RuntimeError # Test exercises strong mode semantics.  See also Issue #33813.
+redirecting_factory_const_inference: RuntimeError # Test exercises strong mode semantics.  See also Issue #33813.
+
+ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
+rasta/duplicated_mixin: RuntimeError # Expected, this file has no main method.
+rasta/export: RuntimeError # Expected, this file has no main method.
+rasta/foo: RuntimeError # Expected, this file has no main method.
+
+incomplete_field_formal_parameter: Fail # Fasta doesn't recover well
+
+co19_language_metadata_syntax_t04: RuntimeError # Fasta doesn't recover well
+external_import: RuntimeError # Expected -- test uses import which doesn't exist.

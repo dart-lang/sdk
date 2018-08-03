@@ -14,6 +14,7 @@ import 'package:analyzer/dart/element/type.dart' as engine;
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart' as engine;
 import 'package:analyzer/src/error/codes.dart' as engine;
 import 'package:analyzer/src/generated/engine.dart' as engine;
@@ -107,7 +108,7 @@ AnalysisError newAnalysisError_fromEngine(
     int startLine = -1;
     int startColumn = -1;
     if (lineInfo != null) {
-      engine.LineInfo_Location lineLocation = lineInfo.getLocation(offset);
+      CharacterLocation lineLocation = lineInfo.getLocation(offset);
       if (lineLocation != null) {
         startLine = lineLocation.lineNumber;
         startColumn = lineLocation.columnNumber;
@@ -272,8 +273,7 @@ Location _locationForArgs(
   try {
     engine.LineInfo lineInfo = unitElement.lineInfo;
     if (lineInfo != null) {
-      engine.LineInfo_Location offsetLocation =
-          lineInfo.getLocation(range.offset);
+      CharacterLocation offsetLocation = lineInfo.getLocation(range.offset);
       startLine = offsetLocation.lineNumber;
       startColumn = offsetLocation.columnNumber;
     }

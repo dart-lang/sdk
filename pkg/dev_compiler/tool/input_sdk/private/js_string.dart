@@ -14,97 +14,106 @@ part of dart._interceptors;
 class JSString extends Interceptor implements String, JSIndexable<String> {
   const JSString();
 
-  int codeUnitAt(int index) {
-    if (index is! int) throw diagnoseIndexError(this, index);
-    if (index < 0) throw diagnoseIndexError(this, index);
-    if (index >= length) throw diagnoseIndexError(this, index);
+  @notNull
+  int codeUnitAt(@nullCheck int index) {
+    // Suppress 2nd null check on index and null check on length
+    // (JS String.length cannot be null).
+    final len = this.length;
+    if (index < 0 || index >= len) {
+      throw RangeError.index(index, this, 'index', null, len);
+    }
     return JS('int', r'#.charCodeAt(#)', this, index);
   }
 
-  Iterable<Match> allMatches(String string, [int start = 0]) {
-    checkString(string);
-    checkInt(start);
-    if (0 > start || start > string.length) {
-      throw new RangeError.range(start, 0, string.length);
+  @notNull
+  Iterable<Match> allMatches(@nullCheck String string,
+      [@nullCheck int start = 0]) {
+    final len = string.length;
+    if (0 > start || start > len) {
+      throw RangeError.range(start, 0, len);
     }
     return allMatchesInStringUnchecked(this, string, start);
   }
 
-  Match matchAsPrefix(String string, [int start = 0]) {
-    if (start < 0 || start > string.length) {
-      throw new RangeError.range(start, 0, string.length);
+  Match matchAsPrefix(@nullCheck String string, [@nullCheck int start = 0]) {
+    int stringLength = JS('!', '#.length', string);
+    if (start < 0 || start > stringLength) {
+      throw RangeError.range(start, 0, stringLength);
     }
-    if (start + this.length > string.length) return null;
-    // TODO(lrn): See if this can be optimized.
-    for (int i = 0; i < this.length; i++) {
+    int thisLength = JS('!', '#.length', this);
+    if (start + thisLength > stringLength) return null;
+    for (int i = 0; i < thisLength; i++) {
       if (string.codeUnitAt(start + i) != this.codeUnitAt(i)) {
         return null;
       }
     }
-    return new StringMatch(start, string, this);
+    return StringMatch(start, string, this);
   }
 
-  String operator +(String other) {
-    if (other is! String) throw new ArgumentError.value(other);
+  @notNull
+  String operator +(@nullCheck String other) {
     return JS('String', r'# + #', this, other);
   }
 
-  bool endsWith(String other) {
-    checkString(other);
-    int otherLength = other.length;
-    if (otherLength > length) return false;
-    return other == substring(length - otherLength);
+  @notNull
+  bool endsWith(@nullCheck String other) {
+    var otherLength = other.length;
+    var thisLength = this.length;
+    if (otherLength > thisLength) return false;
+    return other == substring(thisLength - otherLength);
   }
 
-  String replaceAll(Pattern from, String to) {
-    checkString(to);
+  @notNull
+  String replaceAll(Pattern from, @nullCheck String to) {
     return stringReplaceAllUnchecked(this, from, to);
   }
 
+  @notNull
   String replaceAllMapped(Pattern from, String convert(Match match)) {
     return this.splitMapJoin(from, onMatch: convert);
   }
 
+  @notNull
   String splitMapJoin(Pattern from,
       {String onMatch(Match match), String onNonMatch(String nonMatch)}) {
     return stringReplaceAllFuncUnchecked(this, from, onMatch, onNonMatch);
   }
 
-  String replaceFirst(Pattern from, String to, [int startIndex = 0]) {
-    checkString(to);
-    checkInt(startIndex);
+  @notNull
+  String replaceFirst(Pattern from, @nullCheck String to,
+      [@nullCheck int startIndex = 0]) {
     RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
     return stringReplaceFirstUnchecked(this, from, to, startIndex);
   }
 
-  String replaceFirstMapped(Pattern from, String replace(Match match),
-      [int startIndex = 0]) {
-    checkNull(replace);
-    checkInt(startIndex);
+  @notNull
+  String replaceFirstMapped(
+      Pattern from, @nullCheck String replace(Match match),
+      [@nullCheck int startIndex = 0]) {
     RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
     return stringReplaceFirstMappedUnchecked(this, from, replace, startIndex);
   }
 
-  List<String> split(Pattern pattern) {
-    checkNull(pattern);
+  @notNull
+  List<String> split(@nullCheck Pattern pattern) {
     if (pattern is String) {
-      return JS('JSExtendableArray', r'#.split(#)', this, pattern);
+      return JSArray.of(JS('', r'#.split(#)', this, pattern));
     } else if (pattern is JSSyntaxRegExp && regExpCaptureCount(pattern) == 0) {
       var re = regExpGetNative(pattern);
-      return JS('JSExtendableArray', r'#.split(#)', this, re);
+      return JSArray.of(JS('', r'#.split(#)', this, re));
     } else {
       return _defaultSplit(pattern);
     }
   }
 
-  String replaceRange(int start, int end, String replacement) {
-    checkString(replacement);
-    checkInt(start);
+  @notNull
+  String replaceRange(
+      @nullCheck int start, int end, @nullCheck String replacement) {
     end = RangeError.checkValidRange(start, end, this.length);
-    checkInt(end);
     return stringReplaceRangeUnchecked(this, start, end, replacement);
   }
 
+  @notNull
   List<String> _defaultSplit(Pattern pattern) {
     List<String> result = <String>[];
     // End of most recent match. That is, start of next part to add to result.
@@ -113,7 +122,9 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
     // Set >0, so no match on the empty string causes the result to be [""].
     int length = 1;
     for (var match in pattern.allMatches(this)) {
+      @notNull
       int matchStart = match.start;
+      @notNull
       int matchEnd = match.end;
       length = matchEnd - matchStart;
       if (length == 0 && start == matchStart) {
@@ -133,14 +144,17 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
     return result;
   }
 
-  bool startsWith(Pattern pattern, [int index = 0]) {
-    checkInt(index);
-    if (index < 0 || index > this.length) {
-      throw new RangeError.range(index, 0, this.length);
+  @notNull
+  bool startsWith(Pattern pattern, [@nullCheck int index = 0]) {
+    // Suppress null check on length and all but the first
+    // reference to index.
+    int length = JS('int', '#.length', this);
+    if (index < 0 || JS('int', '#', index) > length) {
+      throw RangeError.range(index, 0, this.length);
     }
     if (pattern is String) {
       String other = pattern;
-      int otherLength = other.length;
+      int otherLength = JS('int', '#.length', other);
       int endIndex = index + otherLength;
       if (endIndex > length) return false;
       return other == JS('String', r'#.substring(#, #)', this, index, endIndex);
@@ -148,31 +162,32 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
     return pattern.matchAsPrefix(this, index) != null;
   }
 
-  String substring(int startIndex, [int endIndex]) {
-    checkInt(startIndex);
-    if (endIndex == null) endIndex = length;
-    checkInt(endIndex);
-    if (startIndex < 0) throw new RangeError.value(startIndex);
-    if (startIndex > endIndex) throw new RangeError.value(startIndex);
-    if (endIndex > length) throw new RangeError.value(endIndex);
+  @notNull
+  String substring(@nullCheck int startIndex, [int _endIndex]) {
+    var length = this.length;
+    final endIndex = _endIndex ?? length;
+    if (startIndex < 0) throw RangeError.value(startIndex);
+    if (startIndex > endIndex) throw RangeError.value(startIndex);
+    if (endIndex > length) throw RangeError.value(endIndex);
     return JS('String', r'#.substring(#, #)', this, startIndex, endIndex);
   }
 
+  @notNull
   String toLowerCase() {
     return JS('String', r'#.toLowerCase()', this);
   }
 
+  @notNull
   String toUpperCase() {
     return JS('String', r'#.toUpperCase()', this);
   }
 
-  // Characters with Whitespace property (Unicode 6.2).
+  // Characters with Whitespace property (Unicode 6.3).
   // 0009..000D    ; White_Space # Cc       <control-0009>..<control-000D>
   // 0020          ; White_Space # Zs       SPACE
   // 0085          ; White_Space # Cc       <control-0085>
   // 00A0          ; White_Space # Zs       NO-BREAK SPACE
   // 1680          ; White_Space # Zs       OGHAM SPACE MARK
-  // 180E          ; White_Space # Zs       MONGOLIAN VOWEL SEPARATOR
   // 2000..200A    ; White_Space # Zs       EN QUAD..HAIR SPACE
   // 2028          ; White_Space # Zl       LINE SEPARATOR
   // 2029          ; White_Space # Zp       PARAGRAPH SEPARATOR
@@ -181,7 +196,8 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
   // 3000          ; White_Space # Zs       IDEOGRAPHIC SPACE
   //
   // BOM: 0xFEFF
-  static bool _isWhitespace(int codeUnit) {
+  @notNull
+  static bool _isWhitespace(@notNull int codeUnit) {
     // Most codeUnits should be less than 256. Special case with a smaller
     // switch.
     if (codeUnit < 256) {
@@ -201,7 +217,6 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
     }
     switch (codeUnit) {
       case 0x1680:
-      case 0x180E:
       case 0x2000:
       case 0x2001:
       case 0x2002:
@@ -227,10 +242,12 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
 
   /// Finds the index of the first non-whitespace character, or the
   /// end of the string. Start looking at position [index].
-  static int _skipLeadingWhitespace(String string, int index) {
+  @notNull
+  static int _skipLeadingWhitespace(String string, @nullCheck int index) {
     const int SPACE = 0x20;
     const int CARRIAGE_RETURN = 0x0D;
-    while (index < string.length) {
+    var stringLength = string.length;
+    while (index < stringLength) {
       int codeUnit = string.codeUnitAt(index);
       if (codeUnit != SPACE &&
           codeUnit != CARRIAGE_RETURN &&
@@ -244,7 +261,8 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
 
   /// Finds the index after the last non-whitespace character, or 0.
   /// Start looking at position [index - 1].
-  static int _skipTrailingWhitespace(String string, int index) {
+  @notNull
+  static int _skipTrailingWhitespace(String string, @nullCheck int index) {
     const int SPACE = 0x20;
     const int CARRIAGE_RETURN = 0x0D;
     while (index > 0) {
@@ -262,34 +280,37 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
   // Dart2js can't use JavaScript trim directly,
   // because JavaScript does not trim
   // the NEXT LINE (NEL) character (0x85).
+  @notNull
   String trim() {
     const int NEL = 0x85;
 
     // Start by doing JS trim. Then check if it leaves a NEL at
     // either end of the string.
-    String result = JS('String', '#.trim()', this);
-    if (result.length == 0) return result;
+    String result = JS('!', '#.trim()', this);
+    final length = result.length;
+    if (length == 0) return result;
     int firstCode = result.codeUnitAt(0);
     int startIndex = 0;
     if (firstCode == NEL) {
       startIndex = _skipLeadingWhitespace(result, 1);
-      if (startIndex == result.length) return "";
+      if (startIndex == length) return "";
     }
 
-    int endIndex = result.length;
+    int endIndex = length;
     // We know that there is at least one character that is non-whitespace.
     // Therefore we don't need to verify that endIndex > startIndex.
     int lastCode = result.codeUnitAt(endIndex - 1);
     if (lastCode == NEL) {
       endIndex = _skipTrailingWhitespace(result, endIndex - 1);
     }
-    if (startIndex == 0 && endIndex == result.length) return result;
+    if (startIndex == 0 && endIndex == length) return result;
     return JS('String', r'#.substring(#, #)', result, startIndex, endIndex);
   }
 
   // Dart2js can't use JavaScript trimLeft directly,
   // because it is not in ES5, so not every browser implements it,
   // and because those that do will not trim the NEXT LINE character (0x85).
+  @notNull
   String trimLeft() {
     const int NEL = 0x85;
 
@@ -316,13 +337,15 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
   // Dart2js can't use JavaScript trimRight directly,
   // because it is not in ES5 and because JavaScript does not trim
   // the NEXT LINE character (0x85).
+  @notNull
   String trimRight() {
     const int NEL = 0x85;
 
     // Start by doing JS trim. Then check if it leaves a NEL or BOM at
     // the end of the string.
     String result;
-    int endIndex;
+    @notNull
+    int endIndex = 0;
     // trimRight is implemented by Firefox and Chrome/Blink,
     // so use it if it is there.
     if (JS('bool', 'typeof #.trimRight != "undefined"', this)) {
@@ -343,8 +366,9 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
     return JS('String', r'#.substring(#, #)', result, 0, endIndex);
   }
 
-  String operator *(int times) {
-    if (0 >= times) return ''; // Unnecessary but hoists argument type check.
+  @notNull
+  String operator *(@nullCheck int times) {
+    if (0 >= times) return '';
     if (times == 1 || this.length == 0) return this;
     if (times != JS('int', '# >>> 0', times)) {
       // times >= 2^32. We can't create a string that big.
@@ -361,27 +385,30 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
     return result;
   }
 
-  String padLeft(int width, [String padding = ' ']) {
+  @notNull
+  String padLeft(@nullCheck int width, [String padding = ' ']) {
     int delta = width - this.length;
     if (delta <= 0) return this;
     return padding * delta + this;
   }
 
-  String padRight(int width, [String padding = ' ']) {
+  @notNull
+  String padRight(@nullCheck int width, [String padding = ' ']) {
     int delta = width - this.length;
     if (delta <= 0) return this;
     return this + padding * delta;
   }
 
-  List<int> get codeUnits => new CodeUnits(this);
+  @notNull
+  List<int> get codeUnits => CodeUnits(this);
 
-  Runes get runes => new Runes(this);
+  @notNull
+  Runes get runes => Runes(this);
 
-  int indexOf(Pattern pattern, [int start = 0]) {
-    checkNull(pattern);
-    if (start is! int) throw argumentErrorValue(start);
+  @notNull
+  int indexOf(@nullCheck Pattern pattern, [@nullCheck int start = 0]) {
     if (start < 0 || start > this.length) {
-      throw new RangeError.range(start, 0, this.length);
+      throw RangeError.range(start, 0, this.length);
     }
     if (pattern is String) {
       return stringIndexOfStringUnchecked(this, pattern, start);
@@ -391,25 +418,24 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
       Match match = firstMatchAfter(re, this, start);
       return (match == null) ? -1 : match.start;
     }
-    for (int i = start; i <= this.length; i++) {
+    var length = this.length;
+    for (int i = start; i <= length; i++) {
       if (pattern.matchAsPrefix(this, i) != null) return i;
     }
     return -1;
   }
 
-  int lastIndexOf(Pattern pattern, [int start]) {
-    checkNull(pattern);
-    if (start == null) {
-      start = length;
-    } else if (start is! int) {
-      throw argumentErrorValue(start);
-    } else if (start < 0 || start > this.length) {
-      throw new RangeError.range(start, 0, this.length);
+  @notNull
+  int lastIndexOf(@nullCheck Pattern pattern, [int _start]) {
+    var length = this.length;
+    var start = _start ?? length;
+    if (start < 0 || start > length) {
+      throw RangeError.range(start, 0, length);
     }
     if (pattern is String) {
       String other = pattern;
-      if (start + other.length > this.length) {
-        start = this.length - other.length;
+      if (start + other.length > length) {
+        start = length - other.length;
       }
       return stringLastIndexOfUnchecked(this, other, start);
     }
@@ -419,24 +445,27 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
     return -1;
   }
 
-  bool contains(Pattern other, [int startIndex = 0]) {
-    checkNull(other);
+  @notNull
+  bool contains(@nullCheck Pattern other, [@nullCheck int startIndex = 0]) {
     if (startIndex < 0 || startIndex > this.length) {
-      throw new RangeError.range(startIndex, 0, this.length);
+      throw RangeError.range(startIndex, 0, this.length);
     }
     return stringContainsUnchecked(this, other, startIndex);
   }
 
-  bool get isEmpty => length == 0;
+  @notNull
+  bool get isEmpty => JS<int>('!', '#.length', this) == 0;
 
+  @notNull
   bool get isNotEmpty => !isEmpty;
 
-  int compareTo(String other) {
-    if (other is! String) throw argumentErrorValue(other);
+  @notNull
+  int compareTo(@nullCheck String other) {
     return this == other ? 0 : JS('bool', r'# < #', this, other) ? -1 : 1;
   }
 
   // Note: if you change this, also change the function [S].
+  @notNull
   String toString() => this;
 
   /**
@@ -445,12 +474,14 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
    *
    * [1]: http://en.wikipedia.org/wiki/Jenkins_hash_function
    */
+  @notNull
   int get hashCode {
     // TODO(ahe): This method shouldn't have to use JS. Update when our
     // optimizations are smarter.
     int hash = 0;
+    int length = JS('!', '#.length', this);
     for (int i = 0; i < length; i++) {
-      hash = 0x1fffffff & (hash + JS('int', r'#.charCodeAt(#)', this, i));
+      hash = 0x1fffffff & (hash + JS<int>('!', r'#.charCodeAt(#)', this, i));
       hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
       hash = JS('int', '# ^ (# >> 6)', hash, hash);
     }
@@ -459,13 +490,17 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
     return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
   }
 
+  @notNull
   Type get runtimeType => String;
 
-  int get length => JS('int', r'#.length', this);
+  @notNull
+  final int length;
 
-  String operator [](int index) {
-    if (index is! int) throw diagnoseIndexError(this, index);
-    if (index >= length || index < 0) throw diagnoseIndexError(this, index);
+  @notNull
+  String operator [](@nullCheck int index) {
+    if (index >= JS('int', '#.length', this) || index < 0) {
+      throw diagnoseIndexError(this, index);
+    }
     return JS('String', '#[#]', this, index);
   }
 }

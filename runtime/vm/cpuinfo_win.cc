@@ -5,8 +5,8 @@
 #include "vm/globals.h"
 #if defined(HOST_OS_WINDOWS)
 
-#include "vm/cpuinfo.h"
 #include "vm/cpuid.h"
+#include "vm/cpuinfo.h"
 
 // __cpuid()
 #include <intrin.h>  // NOLINT
@@ -32,23 +32,19 @@ void CpuInfo::InitOnce() {
   fields_[kCpuInfoArchitecture] = NULL;
 }
 
-
 void CpuInfo::Cleanup() {
   CpuId::Cleanup();
 }
-
 
 bool CpuInfo::FieldContains(CpuInfoIndices idx, const char* search_string) {
   ASSERT(method_ != kCpuInfoDefault);
   return strstr(CpuId::field(idx), search_string);
 }
 
-
 const char* CpuInfo::ExtractField(CpuInfoIndices idx) {
   ASSERT(method_ != kCpuInfoDefault);
   return CpuId::field(idx);
 }
-
 
 bool CpuInfo::HasField(const char* field) {
   ASSERT(method_ != kCpuInfoDefault);

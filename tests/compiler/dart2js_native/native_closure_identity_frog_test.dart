@@ -15,15 +15,18 @@ class A {
 
 makeA() native;
 
-void setup() native """
-function A() {}
-A.prototype.setClosure = function(f) { this.f = f; };
-A.prototype.check = function(f) { return this.f === f; };
-A.prototype.invoke = function() { return this.f(); };
-makeA = function(){return new A;};
+void setup() {
+  JS('', r"""
+(function(){
+  function A() {}
+  A.prototype.setClosure = function(f) { this.f = f; };
+  A.prototype.check = function(f) { return this.f === f; };
+  A.prototype.invoke = function() { return this.f(); };
+  makeA = function(){return new A()};
 
-self.nativeConstructor(A);
-""";
+  self.nativeConstructor(A);
+})()""");
+}
 
 var staticClosure;
 staticMethod() => 42;

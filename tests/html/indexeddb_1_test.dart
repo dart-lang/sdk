@@ -165,12 +165,6 @@ main() {
     });
   });
 
-  group('supportsDatabaseNames', () {
-    test('supported', () {
-      expect(html.window.indexedDB.supportsDatabaseNames, isTrue);
-    });
-  });
-
   group('functional', () {
     test('throws when unsupported', () {
       var expectation = idb.IdbFactory.supported ? returnsNormally : throws;

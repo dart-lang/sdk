@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:html';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:observatory/src/elements/nav/class_menu.dart';
 import '../../mocks.dart';
 
@@ -20,7 +20,7 @@ main() {
   });
   test('elements created after attachment', () async {
     final e = new NavClassMenuElement(i_ref, c_ref);
-    e.content = [document.createElement('content')];
+    e.content = <Element>[document.createElement('content')];
     document.body.append(e);
     await e.onRendered.first;
     expect(e.children.length, isNonZero, reason: 'has elements');

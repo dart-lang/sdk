@@ -1,0 +1,40 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method noSuchMethod(core::Invocation i) → dynamic {
+    if(i.{core::Invocation::memberName}.{core::Symbol::==}(#foo)) {
+      return i.{core::Invocation::namedArguments}.{core::Map::[]}(#bar);
+    }
+    else
+      if(i.{core::Invocation::memberName}.{core::Symbol::==}(#hest)) {
+        return i.{core::Invocation::positionalArguments}.{core::List::[]}(0);
+      }
+    return null;
+  }
+  abstract method foo({core::String bar = "baz"}) → core::String;
+  abstract method hest([core::int fisk = 42]) → core::int;
+}
+class B extends self::A {
+  synthetic constructor •() → void
+    : super self::A::•()
+    ;
+  no-such-method-forwarder method foo({core::String bar = "baz"}) → core::String
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withoutType("foo", const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(<core::Symbol, dynamic>{#bar: bar}), false)) as{TypeError} core::String;
+  no-such-method-forwarder method hest([core::int fisk = 42]) → core::int
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withoutType("hest", const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[fisk]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}), false)) as{TypeError} core::int;
+}
+static method main() → dynamic {
+  self::B b = new self::B::•();
+  dynamic value;
+  if(!(value = b.{self::B::foo}()).{core::String::==}("baz")) {
+    throw "Unexpected value: '${value}'; expected 'baz'.";
+  }
+  if(!(value = b.{self::B::hest}()).{core::num::==}(42)) {
+    throw "Unexpected value: '${value}'; expected '42'.";
+  }
+}

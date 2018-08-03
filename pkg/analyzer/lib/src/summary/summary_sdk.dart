@@ -60,8 +60,7 @@ class SummaryBasedDartSdk implements DartSdk {
   @override
   AnalysisContext get context {
     if (_analysisContext == null) {
-      AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl()
-        ..strongMode = strongMode;
+      AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
       _analysisContext = new SdkAnalysisContext(analysisOptions);
       SourceFactory factory = new SourceFactory(
           [new DartUriResolver(this)], null, resourceProvider);

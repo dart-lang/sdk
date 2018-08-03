@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+import 'logdog.dart';
 import 'buildbot_structures.dart';
 
 /// Data describing the steps of the buildbots.
@@ -94,18 +96,6 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
         'checked vm tests',
       ]),
       const BuildSubgroup(shardNames: const <String>[
-        'vm-linux-debug-simmips-be',
-      ], testSteps: const <String>[
-        'vm tests',
-        'checked vm tests',
-      ]),
-      const BuildSubgroup(shardNames: const <String>[
-        'vm-linux-release-simmips-be',
-      ], testSteps: const <String>[
-        'vm tests',
-        'checked vm tests',
-      ]),
-      const BuildSubgroup(shardNames: const <String>[
         'vm-linux-debug-simarm-be',
       ], testSteps: const <String>[
         'vm tests',
@@ -160,6 +150,18 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
         'front-end tests',
         'vm tests',
       ]),
+      const BuildSubgroup(shardNames: const <String>[
+        'vm-kernel-mac-release-x64-be',
+      ], testSteps: const <String>[
+        'front-end tests',
+        'vm tests',
+      ]),
+      const BuildSubgroup(shardNames: const <String>[
+        'vm-kernel-mac-debug-x64-be',
+      ], testSteps: const <String>[
+        'front-end tests',
+        'vm tests',
+      ]),
     ],
   ),
   const BuildGroup(
@@ -172,9 +174,9 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
         'checked vm tests',
       ]),
       const BuildSubgroup(shardNames: const <String>[
-        'cross-arm-vm-linux-release-be',
+        'cross-arm64-vm-linux-release-be',
       ], testSteps: const <String>[
-        '', // This subgroup triggers other tests.
+        // This subgroup triggers other tests.
       ]),
       const BuildSubgroup(shardNames: const <String>[
         'vm-linux-release-ia32-asan-be',
@@ -196,6 +198,12 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
       ]),
       const BuildSubgroup(shardNames: const <String>[
         'vm-linux-release-x64-optcounter-threshold-be',
+      ], testSteps: const <String>[
+        'vm tests',
+        'checked vm tests',
+      ]),
+      const BuildSubgroup(shardNames: const <String>[
+        'target-arm64-vm-linux-release-be',
       ], testSteps: const <String>[
         'vm tests',
         'checked vm tests',
@@ -308,24 +316,23 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
     groupName: 'dart2js-d8-hostchecked',
     subgroups: const <BuildSubgroup>[
       const BuildSubgroup(shardNames: const <String>[
-        'dart2js-linux-d8-hostchecked-1-5-be',
-        'dart2js-linux-d8-hostchecked-2-5-be',
-        'dart2js-linux-d8-hostchecked-3-5-be',
-        'dart2js-linux-d8-hostchecked-4-5-be',
-        'dart2js-linux-d8-hostchecked-5-5-be',
+        'dart2js-linux-d8-hostchecked-unittest-1-5-be',
+        'dart2js-linux-d8-hostchecked-unittest-2-5-be',
+        'dart2js-linux-d8-hostchecked-unittest-3-5-be',
+        'dart2js-linux-d8-hostchecked-unittest-4-5-be',
+        'dart2js-linux-d8-hostchecked-unittest-5-5-be',
       ], testSteps: const <String>[
-        'dart2js d8 tests',
-        'dart2js d8 package tests',
-        'dart2js d8 observatory_ui tests',
-        'dart2js d8 co19 tests',
-        'dart2js d8 extra tests',
-        'dart2js d8 try tests',
-        'dart2js d8 checked tests',
-        'dart2js d8 package checked tests',
-        'dart2js d8 observatory_ui checked tests',
-        'dart2js d8 co19 checked tests',
-        'dart2js d8 extra checked tests',
-        'dart2js d8 try checked tests',
+        'dart2js-d8 tests',
+        'dart2js-d8-package tests',
+        'dart2js-d8-observatory-ui tests',
+        'dart2js-d8-co19 tests',
+        'dart2js-d8-extra tests',
+        'dart2js-d8-checked tests',
+        'dart2js-d8-package-checked tests',
+        'dart2js-d8-observatory-ui-checked tests',
+        'dart2js-d8-co19-checked tests',
+        'dart2js-d8-extra-checked tests',
+        'dart2js-unit tests',
       ]),
     ],
   ),
@@ -339,21 +346,22 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
         'dart2js-linux-d8-minified-4-5-be',
         'dart2js-linux-d8-minified-5-5-be',
       ], testSteps: const <String>[
-        'dart2js d8 tests',
-        'dart2js d8 observatory_ui tests',
-        'dart2js d8 package tests',
-        'dart2js d8 co19 tests',
-        'dart2js d8 extra tests',
-        'dart2js d8 fast-startup tests',
-        'dart2js d8 observatory_ui fast-startup tests',
-        'dart2js d8 package fast-startup tests',
-        'dart2js d8 co19 fast-startup tests',
-        'dart2js d8 extra fast-startup tests',
-        'dart2js d8 fast-startup checked tests',
-        'dart2js d8 observatory_ui fast-startup checked tests',
-        'dart2js d8 package fast-startup checked tests',
-        'dart2js d8 co19 fast-startup checked tests',
-        'dart2js d8 extra fast-startup checked tests',
+        'dart2js-d8 tests',
+        'dart2js-d8-observatory_ui tests',
+        'dart2js-d8-package tests',
+        'dart2js-d8-co19 tests',
+        'dart2js-d8-extra tests',
+        'dart2js-with-kernel-d8 tests',
+        'dart2js-d8-fast-startup tests',
+        'dart2js-d8-observatory_ui-fast-startup tests',
+        'dart2js-d8-package-fast-startup tests',
+        'dart2js-d8-co19-fast-startup tests',
+        'dart2js-d8-extra-fast-startup tests',
+        'dart2js-d8-fast-startup-checked tests',
+        'dart2js-d8-observatory_ui-fast-startup-checked tests',
+        'dart2js-d8-package-fast-startup-checked tests',
+        'dart2js-d8-co19-fast-startup-checked tests',
+        'dart2js-d8-extra-fast-startup-checked tests',
       ])
     ],
   ),
@@ -366,17 +374,16 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
         'dart2js-linux-jsshell-3-4-be',
         'dart2js-linux-jsshell-4-4-be',
       ], testSteps: const <String>[
-        'dart2js unit tests',
-        'dart2js jsshell tests',
-        'dart2js jsshell observatory_ui tests',
-        'dart2js jsshell package tests',
-        'dart2js jsshell co19 tests',
-        'dart2js jsshell extra tests',
-        'dart2js jsshell fast-startup tests',
-        'dart2js jsshell observatory_ui fast-startup tests',
-        'dart2js jsshell package fast-startup tests',
-        'dart2js jsshell co19 fast-startup tests',
-        'dart2js jsshell extra fast-startup tests',
+        'dart2js-jsshell tests',
+        'dart2js-jsshell-observatory_ui tests',
+        'dart2js-jsshell-package tests',
+        'dart2js-jsshell-co19 tests',
+        'dart2js-jsshell-extra tests',
+        'dart2js-jsshell-fast-startup tests',
+        'dart2js-jsshell-observatory_ui-fast-startup tests',
+        'dart2js-jsshell-package-fast-startup tests',
+        'dart2js-jsshell-co19-fast-startup tests',
+        'dart2js-jsshell-extra-fast-startup tests',
       ])
     ],
   ),
@@ -387,12 +394,15 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
         'dart2js-dump-info-be',
       ], testSteps: const <String>[
         'annotated_steps',
-      ])
+      ], isActive: false),
     ],
   ),
   const BuildGroup(
     groupName: 'analyzer',
     subgroups: const <BuildSubgroup>[
+      const BuildSubgroup(shardNames: const <String>[
+        'analyze-linux-be',
+      ], testSteps: const <String>[]),
       const BuildSubgroup(shardNames: const <String>[
         'analyzer-mac10.11-release-be',
       ], testSteps: const <String>[
@@ -478,23 +488,27 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
     subgroups: const <BuildSubgroup>[
       const BuildSubgroup(shardNames: const <String>[
         'dart-sdk-linux-be',
-      ], testSteps: const <String>[
-        'annotated_steps',
-      ]),
-      const BuildSubgroup(shardNames: const <String>[
         'dart-sdk-windows-be',
-      ], testSteps: const <String>[
-        'annotated_steps',
-      ]),
-      const BuildSubgroup(shardNames: const <String>[
         'dart-sdk-mac-be',
       ], testSteps: const <String>[
-        'annotated_steps',
+        // This subgroup triggers other tests.
       ]),
       const BuildSubgroup(shardNames: const <String>[
         'sdk-trigger-be',
       ], testSteps: const <String>[
-        '', // This subgroup triggers other tests.
+        // This subgroup triggers other tests.
+      ], isActive: false),
+    ],
+  ),
+  const BuildGroup(
+    groupName: 'ddc',
+    subgroups: const <BuildSubgroup>[
+      const BuildSubgroup(shardNames: const <String>[
+        'ddc-linux-release-be',
+        'ddc-mac-release-be',
+        'ddc-win-release-be',
+      ], testSteps: const <String>[
+        'ddc tests',
       ]),
     ],
   ),
@@ -503,19 +517,14 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
     subgroups: const <BuildSubgroup>[
       const BuildSubgroup(shardNames: const <String>[
         'dartium-linux-x64-inc-be',
-      ], testSteps: const <String>[
-        'annotated steps',
-      ]),
-      const BuildSubgroup(shardNames: const <String>[
         'dartium-mac-x64-inc-be',
-      ], testSteps: const <String>[
-        'annotated steps',
-      ]),
-      const BuildSubgroup(shardNames: const <String>[
         'dartium-win-ia32-inc-be',
       ], testSteps: const <String>[
-        'annotated steps',
-      ]),
+        'drt_layout_unchecked_tests',
+        'drt_layout_checked_tests',
+        'dartium_core_unchecked_tests',
+        'dartium_core_checked_tests',
+      ], isActive: false),
     ],
   ),
   const BuildGroup(
@@ -527,26 +536,26 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
         'dart2js-linux-chromeff-3-4-be',
         'dart2js-linux-chromeff-4-4-be'
       ], testSteps: const <String>[
-        'dart2js chrome tests',
-        'dart2js chrome observatory_ui tests',
-        'dart2js chrome package tests',
-        'dart2js chrome co19 tests',
-        'dart2js chrome extra tests',
-        'dart2js chrome fast-startup tests',
-        'dart2js chrome observatory_ui fast-startup tests',
-        'dart2js chrome package fast-startup tests',
-        'dart2js chrome co19 fast-startup tests',
-        'dart2js chrome extra fast-startup tests',
-        'dart2js ff tests',
-        'dart2js ff observatory_ui tests',
-        'dart2js ff package tests',
-        'dart2js ff co19 tests',
-        'dart2js ff extra tests',
-        'dart2js ff fast-startup tests',
-        'dart2js ff observatory_ui fast-startup tests',
-        'dart2js ff package fast-startup tests',
-        'dart2js ff co19 fast-startup tests',
-        'dart2js ff extra fast-startup tests',
+        'dart2js-chrome tests',
+        'dart2js-chrome-observatory_ui tests',
+        'dart2js-chrome-package tests',
+        'dart2js-chrome-co19 tests',
+        'dart2js-chrome-extra tests',
+        'dart2js-chrome-fast-startup tests',
+        'dart2js-chrome-observatory_ui-fast-startup tests',
+        'dart2js-chrome-package-fast-startup tests',
+        'dart2js-chrome-co19-fast-startup tests',
+        'dart2js-chrome-extra-fast-startup tests',
+        'dart2js-ff tests',
+        'dart2js-ff-observatory_ui tests',
+        'dart2js-ff-package tests',
+        'dart2js-ff-co19 tests',
+        'dart2js-ff-extra tests',
+        'dart2js-ff-fast-startup tests',
+        'dart2js-ff-observatory_ui-fast-startup tests',
+        'dart2js-ff-package-fast-startup tests',
+        'dart2js-ff-co19-fast-startup tests',
+        'dart2js-ff-extra-fast-startup tests',
       ]),
     ],
   ),
@@ -554,39 +563,57 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
     groupName: 'chrome',
     subgroups: const <BuildSubgroup>[
       const BuildSubgroup(shardNames: const <String>[
-        'dart2js-linux-drt-1-2-be',
-        'dart2js-linux-drt-2-2-be',
         'dart2js-linux-drt-csp-minified-be'
       ], testSteps: const <String>[
-        'dart2js drt tests',
-        'dart2js drt observatory_ui tests',
-        'dart2js drt package tests',
-        'dart2js drt co19 tests',
-        'dart2js drt extra tests',
-        'dart2js drt fast-startup tests',
-        'dart2js drt observatory_ui fast-startup tests',
-        'dart2js drt package fast-startup tests',
-        'dart2js drt co19 fast-startup tests',
-        'dart2js drt extra fast-startup tests',
-        'dart2js drt fast-startup checked tests',
-        'dart2js drt observatory_ui fast-startup checked tests',
-        'dart2js drt package fast-startup checked tests',
-        'dart2js drt co19 fast-startup checked tests',
-        'dart2js drt extra fast-startup checked tests',
+        'dart2js-drt tests',
+        'dart2js-drt-observatory_ui tests',
+        'dart2js-drt-package tests',
+        'dart2js-drt-co19 tests',
+        'dart2js-drt-extra tests',
+        'dart2js-drt-fast-startup tests',
+        'dart2js-drt-observatory_ui-fast-startup tests',
+        'dart2js-drt-package-fast-startup tests',
+        'dart2js-drt-co19-fast-startup tests',
+        'dart2js-drt-extra-fast-startup tests',
+        'dart2js-drt-fast-startup-checked tests',
+        'dart2js-drt-observatory_ui-fast-startup-checked tests',
+        'dart2js-drt-package-fast-startup-checked tests',
+        'dart2js-drt-co19-fast-startup-checked tests',
+        'dart2js-drt-extra-fast-startup-checked tests',
+      ], isActive: false),
+      const BuildSubgroup(shardNames: const <String>[
+        'dart2js-linux-drt-1-2-be',
+        'dart2js-linux-drt-2-2-be',
+      ], testSteps: const <String>[
+        'dart2js-drt tests',
+        'dart2js-drt-observatory_ui tests',
+        'dart2js-drt-package tests',
+        'dart2js-drt-co19 tests',
+        'dart2js-drt-extra tests',
+        'dart2js-drt-fast-startup tests',
+        'dart2js-drt-observatory_ui-fast-startup tests',
+        'dart2js-drt-package-fast-startup tests',
+        'dart2js-drt-co19-fast-startup tests',
+        'dart2js-drt-extra-fast-startup tests',
+        'dart2js-drt-fast-startup-checked tests',
+        'dart2js-drt-observatory_ui-fast-startup-checked tests',
+        'dart2js-drt-package-fast-startup-checked tests',
+        'dart2js-drt-co19-fast-startup-checked tests',
+        'dart2js-drt-extra-fast-startup-checked tests',
       ]),
       const BuildSubgroup(shardNames: const <String>[
         'dart2js-mac10.11-chrome-be'
       ], testSteps: const <String>[
-        'dart2js chrome tests',
-        'dart2js chrome observatory_ui tests',
-        'dart2js chrome package tests',
-        'dart2js chrome co19 tests',
-        'dart2js chrome extra tests',
-        'dart2js chrome fast-startup tests',
-        'dart2js chrome observatory_ui fast-startup tests',
-        'dart2js chrome package fast-startup tests',
-        'dart2js chrome co19 fast-startup tests',
-        'dart2js chrome extra fast-startup tests',
+        'dart2js-chrome tests',
+        'dart2js-chrome-observatory_ui tests',
+        'dart2js-chrome-package tests',
+        'dart2js-chrome-co19 tests',
+        'dart2js-chrome-extra tests',
+        'dart2js-chrome-fast-startup tests',
+        'dart2js-chrome-observatory_ui-fast-startup tests',
+        'dart2js-chrome-package-fast-startup tests',
+        'dart2js-chrome-co19-fast-startup tests',
+        'dart2js-chrome-extra-fast-startup tests',
       ]),
     ],
   ),
@@ -598,16 +625,16 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
         'dart2js-mac10.11-safari-2-3-be',
         'dart2js-mac10.11-safari-3-3-be'
       ], testSteps: const <String>[
-        'dart2js safari tests',
-        'dart2js safari observatory_ui tests',
-        'dart2js safari package tests',
-        'dart2js safari co19 tests',
-        'dart2js safari extra tests',
-        'dart2js safari fast-startup tests',
-        'dart2js safari observatory_ui fast-startup tests',
-        'dart2js safari package fast-startup tests',
-        'dart2js safari co19 fast-startup tests',
-        'dart2js safari extra fast-startup tests',
+        'dart2js-safari tests',
+        'dart2js-safari-observatory_ui tests',
+        'dart2js-safari-package tests',
+        'dart2js-safari-co19 tests',
+        'dart2js-safari-extra tests',
+        'dart2js-safari-fast-startup tests',
+        'dart2js-safari-observatory_ui-fast-startup tests',
+        'dart2js-safari-package-fast-startup tests',
+        'dart2js-safari-co19-fast-startup tests',
+        'dart2js-safari-extra-fast-startup tests',
       ]),
     ],
   ),
@@ -619,17 +646,17 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
       ], testSteps: const <String>[
         'dart2js ie10 tests',
         'dart2js ie10 co19 tests',
-        'dart2js ie10 fast-startup tests',
-        'dart2js ie10 co19 fast-startup tests',
-      ]),
+        'dart2js ie10-fast-startup tests',
+        'dart2js ie10 co19-fast-startup tests',
+      ], isActive: false),
       const BuildSubgroup(shardNames: const <String>[
         'dart2js-win8-ie11-be'
       ], testSteps: const <String>[
         'dart2js ie11 tests',
         'dart2js ie11 co19 tests',
-        'dart2js ie11 fast-startup tests',
-        'dart2js ie11 co19 fast-startup tests',
-      ]),
+        'dart2js ie11-fast-startup tests',
+        'dart2js ie11 co19-fast-startup tests',
+      ], isActive: false),
     ],
   ),
   const BuildGroup(
@@ -659,8 +686,8 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
       ], testSteps: const <String>[
         'dart2js ie11 tests',
         'dart2js ie11 co19 tests',
-        'dart2js ie11 fast-startup tests',
-        'dart2js ie11 co19 fast-startup tests',
+        'dart2js ie11-fast-startup tests',
+        'dart2js ie11 co19-fast-startup tests',
       ]),
       const BuildSubgroup(shardNames: const <String>[
         'dart2js-win7-chrome-1-4-be',
@@ -668,16 +695,16 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
         'dart2js-win7-chrome-3-4-be',
         'dart2js-win7-chrome-4-4-be'
       ], testSteps: const <String>[
-        'dart2js chrome tests',
-        'dart2js chrome observatory_ui tests',
-        'dart2js chrome package tests',
-        'dart2js chrome co19 tests',
-        'dart2js chrome extra tests',
-        'dart2js chrome fast-startup tests',
-        'dart2js chrome observatory_ui fast-startup tests',
-        'dart2js chrome package fast-startup tests',
-        'dart2js chrome co19 fast-startup tests',
-        'dart2js chrome extra fast-startup tests',
+        'dart2js-chrome tests',
+        'dart2js-chrome-observatory_ui tests',
+        'dart2js-chrome-package tests',
+        'dart2js-chrome-co19 tests',
+        'dart2js-chrome-extra tests',
+        'dart2js-chrome-fast-startup tests',
+        'dart2js-chrome-observatory_ui-fast-startup tests',
+        'dart2js-chrome-package-fast-startup tests',
+        'dart2js-chrome-co19-fast-startup tests',
+        'dart2js-chrome-extra-fast-startup tests',
       ]),
       const BuildSubgroup(shardNames: const <String>[
         'dart2js-win7-ie11ff-1-4-be',
@@ -687,18 +714,18 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
       ], testSteps: const <String>[
         'dart2js ie11 tests',
         'dart2js ie11 co19 tests',
-        'dart2js ie11 fast-startup tests',
-        'dart2js ie11 co19 fast-startup tests',
-        'dart2js ff tests',
-        'dart2js ff observatory_ui tests',
-        'dart2js ff package tests',
-        'dart2js ff co19 tests',
-        'dart2js ff extra tests',
-        'dart2js ff fast-startup tests',
-        'dart2js ff observatory_ui fast-startup tests',
-        'dart2js ff package fast-startup tests',
-        'dart2js ff co19 fast-startup tests',
-        'dart2js ff extra fast-startup tests',
+        'dart2js ie11-fast-startup tests',
+        'dart2js ie11 co19-fast-startup tests',
+        'dart2js-ff tests',
+        'dart2js-ff-observatory_ui tests',
+        'dart2js-ff-package tests',
+        'dart2js-ff-co19 tests',
+        'dart2js-ff-extra tests',
+        'dart2js-ff-fast-startup tests',
+        'dart2js-ff-observatory_ui-fast-startup tests',
+        'dart2js-ff-package-fast-startup tests',
+        'dart2js-ff-co19-fast-startup tests',
+        'dart2js-ff-extra-fast-startup tests',
       ]),
     ],
   ),
@@ -709,12 +736,12 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
         'pub-mac-be',
       ], testSteps: const <String>[
         'annotated_steps',
-      ]),
+      ], isActive: false),
       const BuildSubgroup(shardNames: const <String>[
         'pub-linux-be',
       ], testSteps: const <String>[
         'annotated_steps',
-      ]),
+      ], isActive: false),
       const BuildSubgroup(shardNames: const <String>[
         'pkg-mac10.11-release-be',
       ], testSteps: const <String>[
@@ -742,32 +769,28 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
         'dartium-linux-x64-be',
       ], testSteps: const <String>[
         'annotated steps',
-      ]),
+      ], isActive: false),
       const BuildSubgroup(shardNames: const <String>[
         'dartium-mac-x64-be',
       ], testSteps: const <String>[
         'annotated steps',
-      ]),
+      ], isActive: false),
       const BuildSubgroup(shardNames: const <String>[
         'dartium-win-ia32-be',
       ], testSteps: const <String>[
         'annotated steps',
-      ]),
+      ], isActive: false),
     ],
   ),
   const BuildGroup(
     groupName: 'misc',
     subgroups: const <BuildSubgroup>[
       const BuildSubgroup(shardNames: const <String>[
-        'version-checker-be',
-      ], testSteps: const <String>[
-        'annotated_steps',
-      ]),
+        'versionchecker-linux-be',
+      ], testSteps: const <String>[]),
       const BuildSubgroup(shardNames: const <String>[
-        'linux-distribution-support-debian_wheezy-be',
-      ], testSteps: const <String>[
-        'annotated_steps',
-      ]),
+        'debianpackage-linux-be',
+      ], testSteps: const <String>[]),
     ],
   ),
   const BuildGroup(
@@ -777,17 +800,17 @@ const List<BuildGroup> buildGroups = const <BuildGroup>[
         'app-linux-debug-x64-dev',
       ], testSteps: const <String>[
         'vm tests',
-      ]),
+      ], isActive: false),
       const BuildSubgroup(shardNames: const <String>[
         'app-linux-release-x64-dev',
       ], testSteps: const <String>[
         'vm tests',
-      ]),
+      ], isActive: false),
       const BuildSubgroup(shardNames: const <String>[
         'app-linux-product-x64-dev',
       ], testSteps: const <String>[
         'vm tests',
-      ]),
+      ], isActive: false),
     ],
   ),
 ];
@@ -813,6 +836,8 @@ class BuildGroup {
     }
     return uriList;
   }
+
+  String toString() => groupName;
 }
 
 /// A group of buildbot subgroups, often shards, that share their test steps,
@@ -837,7 +862,7 @@ class BuildSubgroup {
   Map<String, String> get logDogPaths {
     Map<String, String> paths = <String, String>{};
     for (String shardName in shardNames) {
-      paths[shardName] = 'chromium/bb/client.dart/$shardName';
+      paths[shardName] = getLogDogPath(shardName);
     }
     return paths;
   }
@@ -859,4 +884,96 @@ class BuildSubgroup {
     }
     return uriList;
   }
+}
+
+/// Computes the logdog path for a build bot with the given [botName].
+String getLogDogPath(String botName) {
+  return 'bb/client.dart/$botName';
+}
+
+/// Pulls the list of the build numbers (in decreasing order) of the available
+/// builds for [botName] using logdog.
+Future<List<int>> lookupBotBuildNumbers(String botName, {int count = 20}) {
+  return latestBuildNumbersForBuilder(botName, count);
+}
+
+/// Returns the index of [buildNumber] in the decreasing list of
+/// [absoluteBuildNumbers].
+///
+/// If [buildNumber] is negative it is interpreted as a relative number; -1
+/// is the last build number (the largest), -2 is the second-to-last build
+/// number etc.
+///
+/// If [buildNumber] is non-negative and not in [absoluteBuildNumbers], the
+/// index of the next available build number: looking up 3 in [5, 4, 2, 1]
+/// returns index 2 (the index of 2).
+///
+/// If no index is found, `null` is returned.
+int getBuildNumberIndex(List<int> absoluteBuildNumbers, int buildNumber) {
+  if (buildNumber < 0) {
+    int buildNumberIndex = -buildNumber - 1;
+    if (buildNumberIndex < absoluteBuildNumbers.length) {
+      return buildNumberIndex;
+    } else {
+      return null;
+    }
+  } else {
+    for (int i = 0; i < absoluteBuildNumbers.length; i++) {
+      if (absoluteBuildNumbers[i] <= buildNumber) return i;
+    }
+    return null;
+  }
+}
+
+Future<int> lookupAbsoluteBuildNumber(
+    String botName, int relativeBuildNumber) async {
+  if (relativeBuildNumber >= 0) return relativeBuildNumber;
+  List<int> absoluteBuildNumbers = await lookupBotBuildNumbers(botName);
+  int buildNumberIndex =
+      getBuildNumberIndex(absoluteBuildNumbers, relativeBuildNumber);
+  return buildNumberIndex != null
+      ? absoluteBuildNumbers[buildNumberIndex]
+      : null;
+}
+
+Map<BuildSubgroup, List<String>> findSubgroupsByName(String name) {
+  Map<BuildSubgroup, List<String>> subgroups = <BuildSubgroup, List<String>>{};
+  for (BuildGroup group in buildGroups) {
+    if (group.groupName == name) {
+      for (BuildSubgroup subgroup in group.subgroups) {
+        subgroups[subgroup] = subgroup.shardNames;
+      }
+    } else {
+      for (BuildSubgroup subgroup in group.subgroups) {
+        List<String> shardNames = <String>[];
+        for (String shardName in subgroup.shardNames) {
+          if (shardName.contains(name)) {
+            shardNames.add(shardName);
+          }
+        }
+        if (shardNames.isNotEmpty) {
+          subgroups[subgroup] = shardNames;
+        }
+      }
+    }
+  }
+  return subgroups;
+}
+
+Map<BuildSubgroup, List<String>> findSubgroupsByStep(String stepName) {
+  Map<BuildSubgroup, List<String>> subgroups = <BuildSubgroup, List<String>>{};
+  for (BuildGroup group in buildGroups) {
+    for (BuildSubgroup subgroup in group.subgroups) {
+      List<String> stepNames = <String>[];
+      for (String step in subgroup.testSteps) {
+        if (step.contains(stepName)) {
+          stepNames.add(step);
+        }
+      }
+      if (stepNames.isNotEmpty) {
+        subgroups[subgroup] = stepNames;
+      }
+    }
+  }
+  return subgroups;
 }

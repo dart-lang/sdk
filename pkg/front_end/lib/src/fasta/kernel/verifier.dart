@@ -4,53 +4,121 @@
 
 library fasta.verifier;
 
-import 'package:front_end/src/fasta/type_inference/type_schema.dart'
-    show TypeSchemaVisitor, UnknownType;
-
 import 'package:kernel/ast.dart'
     show
-        InvalidExpression,
-        InvalidStatement,
-        InvalidInitializer,
+        AsExpression,
         Class,
         ExpressionStatement,
         Field,
+        InvalidInitializer,
         Library,
+        Member,
         Procedure,
-        Program,
+        Component,
+        StaticInvocation,
+        SuperMethodInvocation,
+        SuperPropertyGet,
+        SuperPropertySet,
         TreeNode;
 
-import 'package:kernel/verifier.dart' show VerificationError, VerifyingVisitor;
+import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 
-import '../errors.dart' show printUnexpected;
+import 'package:kernel/verifier.dart' show VerifyingVisitor;
 
-import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
+import '../compiler_context.dart' show CompilerContext;
 
-List<VerificationError> verifyProgram(Program program,
-    {bool isOutline: false}) {
-  FastaVerifyingVisitor verifier = new FastaVerifyingVisitor(isOutline);
-  program.accept(verifier);
+import '../fasta_codes.dart'
+    show LocatedMessage, noLength, templateInternalProblemVerificationError;
+
+import '../severity.dart' show Severity;
+
+import '../type_inference/type_schema.dart' show TypeSchemaVisitor, UnknownType;
+
+import 'redirecting_factory_body.dart'
+    show RedirectingFactoryBody, getRedirectingFactoryBody;
+
+List<LocatedMessage> verifyComponent(Component component,
+    {bool isOutline: false, bool skipPlatform: false}) {
+  FastaVerifyingVisitor verifier =
+      new FastaVerifyingVisitor(isOutline, skipPlatform);
+  component.accept(verifier);
   return verifier.errors;
 }
 
 class FastaVerifyingVisitor extends VerifyingVisitor
     implements TypeSchemaVisitor {
-  final List<VerificationError> errors = <VerificationError>[];
+  final List<LocatedMessage> errors = <LocatedMessage>[];
 
-  String fileUri;
+  Uri fileUri;
+  final bool skipPlatform;
 
-  FastaVerifyingVisitor(bool isOutline) {
+  FastaVerifyingVisitor(bool isOutline, this.skipPlatform) {
     this.isOutline = isOutline;
+  }
+
+  Uri checkLocation(TreeNode node, String name, Uri fileUri) {
+    if (name == null || name.contains("#")) {
+      // TODO(ahe): Investigate if these checks can be enabled:
+      // if (node.fileUri != null && node is! Library) {
+      //   problem(node, "A synthetic node shouldn't have a fileUri",
+      //       context: node);
+      // }
+      // if (node.fileOffset != -1) {
+      //   problem(node, "A synthetic node shouldn't have a fileOffset",
+      //       context: node);
+      // }
+      return fileUri;
+    } else {
+      if (fileUri == null) {
+        problem(node, "'$name' has no fileUri", context: node);
+        return fileUri;
+      }
+      if (node.fileOffset == -1 && node is! Library) {
+        problem(node, "'$name' has no fileOffset", context: node);
+      }
+      return fileUri;
+    }
+  }
+
+  void checkSuperInvocation(TreeNode node) {
+    var containingMember = getContainingMember(node);
+    if (containingMember == null) {
+      problem(node, 'Super call outside of any member');
+    } else {
+      if (containingMember.transformerFlags & TransformerFlag.superCalls == 0) {
+        problem(
+            node, 'Super call in a member lacking TransformerFlag.superCalls');
+      }
+    }
+  }
+
+  Member getContainingMember(TreeNode node) {
+    while (node != null) {
+      if (node is Member) return node;
+      node = node.parent;
+    }
+    return null;
   }
 
   @override
   problem(TreeNode node, String details, {TreeNode context}) {
-    context ??= this.context;
-    VerificationError error = new VerificationError(context, node, details);
-    var uri = fileUri != null ? Uri.parse(fileUri) : null;
-    var offset = (uri != null && node != null) ? node.fileOffset : -1;
-    printUnexpected(uri, offset, "$error");
-    errors.add(error);
+    node ??= (context ?? this.context);
+    int offset = node?.fileOffset ?? -1;
+    Uri file = node?.location?.file ?? fileUri;
+    Uri uri = file == null ? null : file;
+    LocatedMessage message = templateInternalProblemVerificationError
+        .withArguments(details)
+        .withLocation(uri, offset, noLength);
+    CompilerContext.current.report(message, Severity.error);
+    errors.add(message);
+  }
+
+  @override
+  visitAsExpression(AsExpression node) {
+    super.visitAsExpression(node);
+    if (node.fileOffset == -1) {
+      problem(node, "No offset for $node");
+    }
   }
 
   @override
@@ -64,36 +132,30 @@ class FastaVerifyingVisitor extends VerifyingVisitor
 
   @override
   visitLibrary(Library node) {
-    fileUri = node.fileUri;
+    // Issue(http://dartbug.com/32530)
+    if (skipPlatform && node.importUri.scheme == 'dart') {
+      return;
+    }
+    fileUri = checkLocation(node, node.name, node.fileUri);
     super.visitLibrary(node);
   }
 
   @override
   visitClass(Class node) {
-    fileUri = node.fileUri;
+    fileUri = checkLocation(node, node.name, node.fileUri);
     super.visitClass(node);
   }
 
   @override
   visitField(Field node) {
-    fileUri = node.fileUri;
+    fileUri = checkLocation(node, node.name.name, node.fileUri);
     super.visitField(node);
   }
 
   @override
   visitProcedure(Procedure node) {
-    fileUri = node.fileUri;
+    fileUri = checkLocation(node, node.name.name, node.fileUri);
     super.visitProcedure(node);
-  }
-
-  @override
-  visitInvalidExpression(InvalidExpression node) {
-    problem(node, "Invalid expression.");
-  }
-
-  @override
-  visitInvalidStatement(InvalidStatement node) {
-    problem(node, "Invalid statement.");
   }
 
   @override
@@ -105,5 +167,32 @@ class FastaVerifyingVisitor extends VerifyingVisitor
   visitUnknownType(UnknownType node) {
     // Note: we can't pass [node] to [problem] because it's not a [TreeNode].
     problem(null, "Unexpected appearance of the unknown type.");
+  }
+
+  @override
+  visitSuperMethodInvocation(SuperMethodInvocation node) {
+    checkSuperInvocation(node);
+    super.visitSuperMethodInvocation(node);
+  }
+
+  @override
+  visitSuperPropertyGet(SuperPropertyGet node) {
+    checkSuperInvocation(node);
+    super.visitSuperPropertyGet(node);
+  }
+
+  @override
+  visitSuperPropertySet(SuperPropertySet node) {
+    checkSuperInvocation(node);
+    super.visitSuperPropertySet(node);
+  }
+
+  @override
+  visitStaticInvocation(StaticInvocation node) {
+    super.visitStaticInvocation(node);
+    RedirectingFactoryBody body = getRedirectingFactoryBody(node.target);
+    if (body != null) {
+      problem(node, "Attempt to invoke redirecting factory.");
+    }
   }
 }

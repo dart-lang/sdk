@@ -43,7 +43,8 @@ class TopRetainingInstancesElement extends HtmlElement implements Renderable {
     assert(topRetainingInstances != null);
     assert(objects != null);
     TopRetainingInstancesElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r =
+        new RenderingScheduler<TopRetainingInstancesElement>(e, queue: queue);
     e._isolate = isolate;
     e._cls = cls;
     e._topRetainingInstances = topRetainingInstances;
@@ -62,14 +63,14 @@ class TopRetainingInstancesElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
   void render() {
-    children = [
+    children = <Element>[
       new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
-        ..content = [
+        ..content = <Element>[
           new DivElement()
             ..classes = ['memberList']
             ..children = _createContent()
@@ -96,15 +97,15 @@ class TopRetainingInstancesElement extends HtmlElement implements Renderable {
       return [new SpanElement()..text = 'Loading...'];
     }
     return _topRetaining
-        .map((r) => new DivElement()
+        .map<Element>((r) => new DivElement()
           ..classes = ['memberItem']
-          ..children = [
+          ..children = <Element>[
             new DivElement()
               ..classes = ['memberName']
               ..text = '${Utils.formatSize(r.retainedSize)} ',
             new DivElement()
               ..classes = ['memberValue']
-              ..children = [
+              ..children = <Element>[
                 anyRef(_isolate, r.object, _objects, queue: _r.queue)
               ]
           ])

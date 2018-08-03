@@ -4,6 +4,8 @@
 library kernel.treeshaker_dump;
 
 import 'dart:io';
+import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/transformations/treeshaker.dart';
 import 'package:args/args.dart';
@@ -30,7 +32,7 @@ ArgParser parser = new ArgParser(allowTrailingOptions: true)
 String usage = '''
 Usage: treeshaker_dump [options] FILE.dill
 
-Runs tree shaking on the given program and prints information about the results.
+Runs tree shaking on the given component and prints information about the results.
 
 Example:
   treeshaker_dump --instantiated foo.dill
@@ -63,8 +65,11 @@ main(List<String> args) {
 
   bool strong = options['strong'];
 
-  Program program = loadProgramFromBinary(filename);
-  TreeShaker shaker = new TreeShaker(program, strongMode: strong);
+  Component component = loadComponentFromBinary(filename);
+  CoreTypes coreTypes = new CoreTypes(component);
+  ClassHierarchy hierarchy = new ClassHierarchy(component);
+  TreeShaker shaker =
+      new TreeShaker(coreTypes, hierarchy, component, strongMode: strong);
   int totalClasses = 0;
   int totalInstantiationCandidates = 0;
   int totalMembers = 0;
@@ -87,7 +92,7 @@ main(List<String> args) {
     }
   }
 
-  for (var library in program.libraries) {
+  for (var library in component.libraries) {
     library.members.forEach(visitMember);
     for (Class classNode in library.classes) {
       ++totalClasses;
@@ -125,11 +130,12 @@ main(List<String> args) {
     String afterFile = pathlib.join(outputDir, '$name.after.txt');
     NameSystem names = new NameSystem();
     StringBuffer before = new StringBuffer();
-    new Printer(before, syntheticNames: names).writeProgramFile(program);
+    new Printer(before, syntheticNames: names).writeComponentFile(component);
     new File(beforeFile).writeAsStringSync('$before');
-    new TreeShaker(program, strongMode: strong).transform(program);
+    new TreeShaker(coreTypes, hierarchy, component, strongMode: strong)
+        .transform(component);
     StringBuffer after = new StringBuffer();
-    new Printer(after, syntheticNames: names).writeProgramFile(program);
+    new Printer(after, syntheticNames: names).writeComponentFile(component);
     new File(afterFile).writeAsStringSync('$after');
     print('Text written to $beforeFile and $afterFile');
   }

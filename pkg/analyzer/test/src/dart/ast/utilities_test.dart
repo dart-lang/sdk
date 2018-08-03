@@ -1209,6 +1209,16 @@ class ToSourceVisitor2Test extends EngineTestCase {
             TokenType.PLUS, AstTestFactory.identifier3("b")));
   }
 
+  void test_visitBinaryExpression_precedence() {
+    var a = AstTestFactory.identifier3('a');
+    var b = AstTestFactory.identifier3('b');
+    var c = AstTestFactory.identifier3('c');
+    _assertSource(
+        'a * (b + c)',
+        AstTestFactory.binaryExpression(a, TokenType.STAR,
+            AstTestFactory.binaryExpression(b, TokenType.PLUS, c)));
+  }
+
   void test_visitBlock_empty() {
     _assertSource("{}", AstTestFactory.block());
   }
@@ -1828,7 +1838,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
 
   void test_visitDefaultFormalParameter_named_value() {
     _assertSource(
-        "p : 0",
+        "p: 0",
         AstTestFactory.namedFormalParameter(
             AstTestFactory.simpleFormalParameter3("p"),
             AstTestFactory.integer(0)));
@@ -2050,7 +2060,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
 
   void test_visitFormalParameterList_n() {
     _assertSource(
-        "({a : 0})",
+        "({a: 0})",
         AstTestFactory.formalParameterList([
           AstTestFactory.namedFormalParameter(
               AstTestFactory.simpleFormalParameter3("a"),
@@ -2060,7 +2070,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
 
   void test_visitFormalParameterList_nn() {
     _assertSource(
-        "({a : 0, b : 1})",
+        "({a: 0, b: 1})",
         AstTestFactory.formalParameterList([
           AstTestFactory.namedFormalParameter(
               AstTestFactory.simpleFormalParameter3("a"),
@@ -2103,7 +2113,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
 
   void test_visitFormalParameterList_rn() {
     _assertSource(
-        "(a, {b : 1})",
+        "(a, {b: 1})",
         AstTestFactory.formalParameterList([
           AstTestFactory.simpleFormalParameter3("a"),
           AstTestFactory.namedFormalParameter(
@@ -2114,7 +2124,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
 
   void test_visitFormalParameterList_rnn() {
     _assertSource(
-        "(a, {b : 1, c : 2})",
+        "(a, {b: 1, c: 2})",
         AstTestFactory.formalParameterList([
           AstTestFactory.simpleFormalParameter3("a"),
           AstTestFactory.namedFormalParameter(
@@ -2162,7 +2172,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
 
   void test_visitFormalParameterList_rrn() {
     _assertSource(
-        "(a, b, {c : 3})",
+        "(a, b, {c: 3})",
         AstTestFactory.formalParameterList([
           AstTestFactory.simpleFormalParameter3("a"),
           AstTestFactory.simpleFormalParameter3("b"),
@@ -2174,7 +2184,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
 
   void test_visitFormalParameterList_rrnn() {
     _assertSource(
-        "(a, b, {c : 3, d : 4})",
+        "(a, b, {c: 3, d: 4})",
         AstTestFactory.formalParameterList([
           AstTestFactory.simpleFormalParameter3("a"),
           AstTestFactory.simpleFormalParameter3("b"),
@@ -3023,7 +3033,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
 
   void test_visitNamedFormalParameter() {
     _assertSource(
-        "var a : 0",
+        "var a: 0",
         AstTestFactory.namedFormalParameter(
             AstTestFactory.simpleFormalParameter(Keyword.VAR, "a"),
             AstTestFactory.integer(0)));
@@ -3098,6 +3108,15 @@ class ToSourceVisitor2Test extends EngineTestCase {
         "-a",
         AstTestFactory.prefixExpression(
             TokenType.MINUS, AstTestFactory.identifier3("a")));
+  }
+
+  void test_visitPrefixExpression_precedence() {
+    var a = AstTestFactory.identifier3('a');
+    var b = AstTestFactory.identifier3('b');
+    _assertSource(
+        '!(a == b)',
+        AstTestFactory.prefixExpression(TokenType.BANG,
+            AstTestFactory.binaryExpression(a, TokenType.EQ_EQ, b)));
   }
 
   void test_visitPropertyAccess() {
@@ -4204,7 +4223,7 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitDefaultFormalParameter_named_value() {
     _assertSource(
-        "p : 0",
+        "p: 0",
         AstTestFactory.namedFormalParameter(
             AstTestFactory.simpleFormalParameter3("p"),
             AstTestFactory.integer(0)));
@@ -4426,7 +4445,7 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitFormalParameterList_n() {
     _assertSource(
-        "({a : 0})",
+        "({a: 0})",
         AstTestFactory.formalParameterList([
           AstTestFactory.namedFormalParameter(
               AstTestFactory.simpleFormalParameter3("a"),
@@ -4436,7 +4455,7 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitFormalParameterList_nn() {
     _assertSource(
-        "({a : 0, b : 1})",
+        "({a: 0, b: 1})",
         AstTestFactory.formalParameterList([
           AstTestFactory.namedFormalParameter(
               AstTestFactory.simpleFormalParameter3("a"),
@@ -4479,7 +4498,7 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitFormalParameterList_rn() {
     _assertSource(
-        "(a, {b : 1})",
+        "(a, {b: 1})",
         AstTestFactory.formalParameterList([
           AstTestFactory.simpleFormalParameter3("a"),
           AstTestFactory.namedFormalParameter(
@@ -4490,7 +4509,7 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitFormalParameterList_rnn() {
     _assertSource(
-        "(a, {b : 1, c : 2})",
+        "(a, {b: 1, c: 2})",
         AstTestFactory.formalParameterList([
           AstTestFactory.simpleFormalParameter3("a"),
           AstTestFactory.namedFormalParameter(
@@ -4538,7 +4557,7 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitFormalParameterList_rrn() {
     _assertSource(
-        "(a, b, {c : 3})",
+        "(a, b, {c: 3})",
         AstTestFactory.formalParameterList([
           AstTestFactory.simpleFormalParameter3("a"),
           AstTestFactory.simpleFormalParameter3("b"),
@@ -4550,7 +4569,7 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitFormalParameterList_rrnn() {
     _assertSource(
-        "(a, b, {c : 3, d : 4})",
+        "(a, b, {c: 3, d: 4})",
         AstTestFactory.formalParameterList([
           AstTestFactory.simpleFormalParameter3("a"),
           AstTestFactory.simpleFormalParameter3("b"),
@@ -5399,7 +5418,7 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitNamedFormalParameter() {
     _assertSource(
-        "var a : 0",
+        "var a: 0",
         AstTestFactory.namedFormalParameter(
             AstTestFactory.simpleFormalParameter(Keyword.VAR, "a"),
             AstTestFactory.integer(0)));

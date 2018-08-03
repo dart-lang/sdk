@@ -24,7 +24,9 @@ makeA() native;
 makeB() native;
 makeQ() native;
 
-void setup() native r"""
+void setup() {
+  JS('', r"""
+(function(){
 makeA = function(){return {hello: 123};};
 
 function BB(){}
@@ -34,7 +36,8 @@ function QQ(){}
 makeQ = function(){return new QQ();};
 
 self.nativeConstructor(QQ);
-""";
+})()""");
+}
 
 class Is<T> {
   bool check(x) => x is T;

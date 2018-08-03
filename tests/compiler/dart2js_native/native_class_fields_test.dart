@@ -13,7 +13,9 @@ class A {
   int method(int z) => myLongPropertyName;
 }
 
-void setup() native r"""
+void setup() {
+  JS('', r"""
+(function(){
 function getter() {
   return ++this.getValue;
 }
@@ -35,9 +37,10 @@ function A(){
   return a;
 }
 
-makeA = function(){return new A;};
+makeA = function(){return new A()};
 self.nativeConstructor(A);
-""";
+})()""");
+}
 
 A makeA() native;
 

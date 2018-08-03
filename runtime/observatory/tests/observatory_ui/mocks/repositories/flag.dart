@@ -9,6 +9,7 @@ class FlagsRepositoryMock implements M.FlagsRepository {
   bool isListInvoked = false;
 
   Future<Iterable<M.Flag>> list() async {
+    await null;
     isListInvoked = true;
     return _list;
   }

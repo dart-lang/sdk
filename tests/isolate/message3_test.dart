@@ -42,7 +42,7 @@ class B extends A {
 }
 
 class C extends B {
-  var field = 33;
+  dynamic field = 33;
 
   get superField => super.field;
   get superField2 => super.field2;
@@ -459,7 +459,8 @@ void main() {
   Isolate
       .spawn(echoMain, [initialReplyPort.sendPort, testPort.sendPort])
       .then((_) => initialReplyPort.first)
-      .then((SendPort ping) {
+      .then((arg) {
+        SendPort ping = arg as SendPort;
         runTests(ping, checks);
         Expect.isTrue(checks.length > 0);
         completer.future.then((_) => ping.send("halt")).then((_) => asyncEnd());

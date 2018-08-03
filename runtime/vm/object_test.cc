@@ -2,13 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "include/dart_api.h"
+
 #include "platform/globals.h"
 
-#include "vm/assembler.h"
 #include "vm/class_finalizer.h"
+#include "vm/code_descriptors.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
+#include "vm/debugger_api_impl_test.h"
 #include "vm/isolate.h"
 #include "vm/malloc_hooks.h"
 #include "vm/object.h"
@@ -16,12 +20,10 @@
 #include "vm/simulator.h"
 #include "vm/symbols.h"
 #include "vm/unit_test.h"
-#include "vm/code_descriptors.h"
 
 namespace dart {
 
 DECLARE_FLAG(bool, write_protect_code);
-
 
 static RawClass* CreateDummyClass(const String& class_name,
                                   const Script& script) {
@@ -30,7 +32,6 @@ static RawClass* CreateDummyClass(const String& class_name,
   cls.set_is_synthesized_class();  // Dummy class for testing.
   return cls.raw();
 }
-
 
 ISOLATE_UNIT_TEST_CASE(Class) {
   // Allocate the class first.
@@ -139,7 +140,6 @@ ISOLATE_UNIT_TEST_CASE(Class) {
   EXPECT_EQ(kNumOptionalParameters, function.NumOptionalParameters());
 }
 
-
 ISOLATE_UNIT_TEST_CASE(TypeArguments) {
   const Type& type1 = Type::Handle(Type::Double());
   const Type& type2 = Type::Handle(Type::StringType());
@@ -152,15 +152,14 @@ ISOLATE_UNIT_TEST_CASE(TypeArguments) {
   type_arguments2.SetTypeAt(0, type1);
   type_arguments2.SetTypeAt(1, type2);
   EXPECT_NE(type_arguments1.raw(), type_arguments2.raw());
-  OS::Print("1: %s\n", type_arguments1.ToCString());
-  OS::Print("2: %s\n", type_arguments2.ToCString());
+  OS::PrintErr("1: %s\n", type_arguments1.ToCString());
+  OS::PrintErr("2: %s\n", type_arguments2.ToCString());
   EXPECT(type_arguments1.Equals(type_arguments2));
   TypeArguments& type_arguments3 = TypeArguments::Handle();
   type_arguments1.Canonicalize();
   type_arguments3 ^= type_arguments2.Canonicalize();
   EXPECT_EQ(type_arguments1.raw(), type_arguments3.raw());
 }
-
 
 ISOLATE_UNIT_TEST_CASE(TokenStream) {
   Zone* zone = Thread::Current()->zone();
@@ -178,7 +177,6 @@ ISOLATE_UNIT_TEST_CASE(TokenStream) {
   iterator.Advance();  // Advance to end of stream.
   EXPECT_EQ(Token::kEOS, iterator.CurrentTokenKind());
 }
-
 
 ISOLATE_UNIT_TEST_CASE(GenerateExactSource) {
   // Verify the exact formatting of generated sources.
@@ -218,7 +216,6 @@ ISOLATE_UNIT_TEST_CASE(GenerateExactSource) {
   EXPECT_STREQ(source.ToCString(), gen_source.ToCString());
 }
 
-
 TEST_CASE(Class_ComputeEndTokenPos) {
   const char* kScript =
       "\n"
@@ -246,7 +243,6 @@ TEST_CASE(Class_ComputeEndTokenPos) {
   scr.GetTokenLocation(end_token_pos, &line, &col);
   EXPECT(line == 10 && col == 1);
 }
-
 
 ISOLATE_UNIT_TEST_CASE(InstanceClass) {
   // Allocate the class first.
@@ -280,7 +276,8 @@ ISOLATE_UNIT_TEST_CASE(InstanceClass) {
   const String& field_name = String::Handle(Symbols::New(thread, "the_field"));
   const Field& field = Field::Handle(
       Field::New(field_name, false, false, false, true, one_field_class,
-                 Object::dynamic_type(), TokenPosition::kMinSource));
+                 Object::dynamic_type(), TokenPosition::kMinSource,
+                 TokenPosition::kMinSource));
   one_fields.SetAt(0, field);
   one_field_class.SetFields(one_fields);
   one_field_class.Finalize();
@@ -292,7 +289,6 @@ ISOLATE_UNIT_TEST_CASE(InstanceClass) {
   one_field_class.set_is_implemented();
   EXPECT(one_field_class.is_implemented());
 }
-
 
 ISOLATE_UNIT_TEST_CASE(Smi) {
   const Smi& smi = Smi::Handle(Smi::New(5));
@@ -344,16 +340,7 @@ ISOLATE_UNIT_TEST_CASE(Smi) {
   EXPECT_EQ(1, a.CompareWith(mint2));
   EXPECT_EQ(-1, c.CompareWith(mint1));
   EXPECT_EQ(1, c.CompareWith(mint2));
-
-  Bigint& big1 = Bigint::Handle(Bigint::NewFromCString("10000000000000000000"));
-  Bigint& big2 =
-      Bigint::Handle(Bigint::NewFromCString("-10000000000000000000"));
-  EXPECT_EQ(-1, a.CompareWith(big1));
-  EXPECT_EQ(1, a.CompareWith(big2));
-  EXPECT_EQ(-1, c.CompareWith(big1));
-  EXPECT_EQ(1, c.CompareWith(big2));
 }
-
 
 ISOLATE_UNIT_TEST_CASE(StringCompareTo) {
   const String& abcd = String::Handle(String::New("abcd"));
@@ -397,7 +384,6 @@ ISOLATE_UNIT_TEST_CASE(StringCompareTo) {
   EXPECT(monkey_face.CompareTo(abce) > 0);
 }
 
-
 ISOLATE_UNIT_TEST_CASE(StringEncodeIRI) {
   const char* kInput =
       "file:///usr/local/johnmccutchan/workspace/dart-repo/dart/test.dart";
@@ -408,7 +394,6 @@ ISOLATE_UNIT_TEST_CASE(StringEncodeIRI) {
   const char* encoded = String::EncodeIRI(input);
   EXPECT(strcmp(encoded, kOutput) == 0);
 }
-
 
 ISOLATE_UNIT_TEST_CASE(StringDecodeIRI) {
   const char* kOutput =
@@ -421,7 +406,6 @@ ISOLATE_UNIT_TEST_CASE(StringDecodeIRI) {
   const String& decoded = String::Handle(String::DecodeIRI(input));
   EXPECT(output.Equals(decoded));
 }
-
 
 ISOLATE_UNIT_TEST_CASE(StringDecodeIRIInvalid) {
   String& input = String::Handle();
@@ -437,7 +421,6 @@ ISOLATE_UNIT_TEST_CASE(StringDecodeIRIInvalid) {
   EXPECT(decoded.IsNull());
 }
 
-
 ISOLATE_UNIT_TEST_CASE(StringIRITwoByte) {
   const intptr_t kInputLen = 3;
   const uint16_t kInput[kInputLen] = {'x', '/', 256};
@@ -451,7 +434,6 @@ ISOLATE_UNIT_TEST_CASE(StringIRITwoByte) {
   const String& decoded = String::Handle(String::DecodeIRI(output));
   EXPECT(input.Equals(decoded));
 }
-
 
 ISOLATE_UNIT_TEST_CASE(Mint) {
 // On 64-bit architectures a Smi is stored in a 64 bit word. A Midint cannot
@@ -506,14 +488,6 @@ ISOLATE_UNIT_TEST_CASE(Mint) {
   EXPECT_EQ(-1, c.CompareWith(smi1));
   EXPECT_EQ(-1, c.CompareWith(smi2));
 
-  Bigint& big1 = Bigint::Handle(Bigint::NewFromCString("10000000000000000000"));
-  Bigint& big2 =
-      Bigint::Handle(Bigint::NewFromCString("-10000000000000000000"));
-  EXPECT_EQ(-1, a.CompareWith(big1));
-  EXPECT_EQ(1, a.CompareWith(big2));
-  EXPECT_EQ(-1, c.CompareWith(big1));
-  EXPECT_EQ(1, c.CompareWith(big2));
-
   int64_t mint_value = DART_2PART_UINT64_C(0x7FFFFFFF, 64);
   const String& mint_string = String::Handle(String::New("0x7FFFFFFF00000064"));
   Mint& mint1 = Mint::Handle();
@@ -525,7 +499,6 @@ ISOLATE_UNIT_TEST_CASE(Mint) {
   EXPECT_EQ(mint1.raw(), mint2.raw());
 #endif
 }
-
 
 ISOLATE_UNIT_TEST_CASE(Double) {
   {
@@ -610,46 +583,6 @@ ISOLATE_UNIT_TEST_CASE(Double) {
   }
 }
 
-
-ISOLATE_UNIT_TEST_CASE(Bigint) {
-  Bigint& b = Bigint::Handle();
-  EXPECT(b.IsNull());
-  const char* cstr = "18446744073709551615000";
-  const String& test = String::Handle(String::New(cstr));
-  b ^= Integer::NewCanonical(test);
-  const char* str = b.ToCString();
-  EXPECT_STREQ(cstr, str);
-
-  int64_t t64 = DART_2PART_UINT64_C(1, 0);
-  Bigint& big = Bigint::Handle(Bigint::NewFromInt64(t64));
-  EXPECT_EQ(t64, big.AsInt64Value());
-  big = Bigint::NewFromCString("10000000000000000000");
-  EXPECT_EQ(1e19, big.AsDoubleValue());
-
-  Bigint& big1 =
-      Bigint::Handle(Bigint::NewFromCString("100000000000000000000"));
-  Bigint& big2 =
-      Bigint::Handle(Bigint::NewFromCString("100000000000000000010"));
-  Bigint& big3 =
-      Bigint::Handle(Bigint::NewFromCString("-10000000000000000000"));
-
-  EXPECT_EQ(0, big1.CompareWith(big1));
-  EXPECT_EQ(-1, big1.CompareWith(big2));
-  EXPECT_EQ(1, big2.CompareWith(big1));
-  EXPECT_EQ(1, big1.CompareWith(big3));
-  EXPECT_EQ(-1, big3.CompareWith(big1));
-
-  Smi& smi1 = Smi::Handle(Smi::New(5));
-  Smi& smi2 = Smi::Handle(Smi::New(-2));
-
-  EXPECT_EQ(-1, smi1.CompareWith(big1));
-  EXPECT_EQ(-1, smi2.CompareWith(big1));
-
-  EXPECT_EQ(1, smi1.CompareWith(big3));
-  EXPECT_EQ(1, smi2.CompareWith(big3));
-}
-
-
 ISOLATE_UNIT_TEST_CASE(Integer) {
   Integer& i = Integer::Handle();
   i = Integer::NewCanonical(String::Handle(String::New("12")));
@@ -660,12 +593,11 @@ ISOLATE_UNIT_TEST_CASE(Integer) {
   EXPECT(i.IsSmi());
   i = Integer::NewCanonical(
       String::Handle(String::New("12345678901234567890")));
-  EXPECT(i.IsBigint());
+  EXPECT(i.IsNull());
   i = Integer::NewCanonical(
       String::Handle(String::New("-12345678901234567890111222")));
-  EXPECT(i.IsBigint());
+  EXPECT(i.IsNull());
 }
-
 
 ISOLATE_UNIT_TEST_CASE(String) {
   const char* kHello = "Hello World!";
@@ -813,7 +745,6 @@ ISOLATE_UNIT_TEST_CASE(String) {
   }
 }
 
-
 ISOLATE_UNIT_TEST_CASE(StringFormat) {
   const char* hello_str = "Hello World!";
   const String& str =
@@ -825,7 +756,6 @@ ISOLATE_UNIT_TEST_CASE(StringFormat) {
   EXPECT(!str.IsNumber());
   EXPECT(str.Equals(hello_str));
 }
-
 
 ISOLATE_UNIT_TEST_CASE(StringConcat) {
   // Create strings from concatenated 1-byte empty strings.
@@ -1142,7 +1072,7 @@ ISOLATE_UNIT_TEST_CASE(StringConcat) {
     EXPECT(str6.Equals(two_one_two, two_one_two_len));
   }
 
-  // Concatenated emtpy and non-empty strings built from 4-byte elements.
+  // Concatenated empty and non-empty strings built from 4-byte elements.
   {
     const String& str1 = String::Handle(String::New(""));
     EXPECT(str1.IsOneByteString());
@@ -1357,7 +1287,6 @@ ISOLATE_UNIT_TEST_CASE(StringConcat) {
   }
 }
 
-
 ISOLATE_UNIT_TEST_CASE(StringHashConcat) {
   EXPECT_EQ(String::Handle(String::New("onebyte")).Hash(),
             String::HashConcat(String::Handle(String::New("one")),
@@ -1372,7 +1301,6 @@ ISOLATE_UNIT_TEST_CASE(StringHashConcat) {
                         String::Handle(String::FromUTF16(clef_utf16, 1)),
                         String::Handle(String::FromUTF16(clef_utf16 + 1, 1))));
 }
-
 
 ISOLATE_UNIT_TEST_CASE(StringSubStringDifferentWidth) {
   // Create 1-byte substring from a 1-byte source string.
@@ -1433,7 +1361,6 @@ ISOLATE_UNIT_TEST_CASE(StringSubStringDifferentWidth) {
   EXPECT(!foursub4.IsNull());
   EXPECT(foursub4.IsTwoByteString());
 }
-
 
 ISOLATE_UNIT_TEST_CASE(StringFromUtf8Literal) {
   // Create a 1-byte string from a UTF-8 encoded string literal.
@@ -1594,7 +1521,6 @@ ISOLATE_UNIT_TEST_CASE(StringFromUtf8Literal) {
   }
 }
 
-
 ISOLATE_UNIT_TEST_CASE(StringEqualsUtf8) {
   const char* onesrc = "abc";
   const String& onestr = String::Handle(String::New(onesrc));
@@ -1626,7 +1552,6 @@ ISOLATE_UNIT_TEST_CASE(StringEqualsUtf8) {
                       "\xF0\x90\x8E\xA2\xF0\x90\x8E\xA3"));
 }
 
-
 ISOLATE_UNIT_TEST_CASE(StringEqualsUTF32) {
   const String& empty = String::Handle(String::New(""));
   const String& t_str = String::Handle(String::New("t"));
@@ -1643,13 +1568,16 @@ ISOLATE_UNIT_TEST_CASE(StringEqualsUTF32) {
   EXPECT(!th_str.Equals(chars, 3));
 }
 
+static void NoopFinalizer(void* isolate_callback_data,
+                          Dart_WeakPersistentHandle handle,
+                          void* peer) {}
 
 ISOLATE_UNIT_TEST_CASE(ExternalOneByteString) {
   uint8_t characters[] = {0xF6, 0xF1, 0xE9};
   intptr_t len = ARRAY_SIZE(characters);
 
-  const String& str = String::Handle(
-      ExternalOneByteString::New(characters, len, NULL, NULL, Heap::kNew));
+  const String& str = String::Handle(ExternalOneByteString::New(
+      characters, len, NULL, 0, NoopFinalizer, Heap::kNew));
   EXPECT(!str.IsOneByteString());
   EXPECT(str.IsExternalOneByteString());
   EXPECT_EQ(str.Length(), len);
@@ -1674,7 +1602,6 @@ ISOLATE_UNIT_TEST_CASE(ExternalOneByteString) {
   EXPECT(substr.Equals("\xC3\xB1"));
 }
 
-
 ISOLATE_UNIT_TEST_CASE(EscapeSpecialCharactersOneByteString) {
   uint8_t characters[] = {'a',  '\n', '\f', '\b', '\t',
                           '\v', '\r', '\\', '$',  'z'};
@@ -1694,14 +1621,13 @@ ISOLATE_UNIT_TEST_CASE(EscapeSpecialCharactersOneByteString) {
   EXPECT_EQ(escaped_empty_str.Length(), 0);
 }
 
-
 ISOLATE_UNIT_TEST_CASE(EscapeSpecialCharactersExternalOneByteString) {
   uint8_t characters[] = {'a',  '\n', '\f', '\b', '\t',
                           '\v', '\r', '\\', '$',  'z'};
   intptr_t len = ARRAY_SIZE(characters);
 
-  const String& str = String::Handle(
-      ExternalOneByteString::New(characters, len, NULL, NULL, Heap::kNew));
+  const String& str = String::Handle(ExternalOneByteString::New(
+      characters, len, NULL, 0, NoopFinalizer, Heap::kNew));
   EXPECT(!str.IsOneByteString());
   EXPECT(str.IsExternalOneByteString());
   EXPECT_EQ(str.Length(), len);
@@ -1710,8 +1636,8 @@ ISOLATE_UNIT_TEST_CASE(EscapeSpecialCharactersExternalOneByteString) {
       String::Handle(String::EscapeSpecialCharacters(str));
   EXPECT(escaped_str.Equals("a\\n\\f\\b\\t\\v\\r\\\\\\$z"));
 
-  const String& empty_str = String::Handle(
-      ExternalOneByteString::New(characters, 0, NULL, NULL, Heap::kNew));
+  const String& empty_str = String::Handle(ExternalOneByteString::New(
+      characters, 0, NULL, 0, NoopFinalizer, Heap::kNew));
   const String& escaped_empty_str =
       String::Handle(String::EscapeSpecialCharacters(empty_str));
   EXPECT_EQ(empty_str.Length(), 0);
@@ -1740,14 +1666,13 @@ ISOLATE_UNIT_TEST_CASE(EscapeSpecialCharactersTwoByteString) {
   EXPECT_EQ(escaped_empty_str.Length(), 0);
 }
 
-
 ISOLATE_UNIT_TEST_CASE(EscapeSpecialCharactersExternalTwoByteString) {
   uint16_t characters[] = {'a',  '\n', '\f', '\b', '\t',
                            '\v', '\r', '\\', '$',  'z'};
   intptr_t len = ARRAY_SIZE(characters);
 
-  const String& str = String::Handle(
-      ExternalTwoByteString::New(characters, len, NULL, NULL, Heap::kNew));
+  const String& str = String::Handle(ExternalTwoByteString::New(
+      characters, len, NULL, 0, NoopFinalizer, Heap::kNew));
   EXPECT(str.IsExternalTwoByteString());
   EXPECT_EQ(str.Length(), len);
   EXPECT(str.Equals("a\n\f\b\t\v\r\\$z"));
@@ -1755,21 +1680,20 @@ ISOLATE_UNIT_TEST_CASE(EscapeSpecialCharactersExternalTwoByteString) {
       String::Handle(String::EscapeSpecialCharacters(str));
   EXPECT(escaped_str.Equals("a\\n\\f\\b\\t\\v\\r\\\\\\$z"));
 
-  const String& empty_str = String::Handle(
-      ExternalTwoByteString::New(characters, 0, NULL, NULL, Heap::kNew));
+  const String& empty_str = String::Handle(ExternalTwoByteString::New(
+      characters, 0, NULL, 0, NoopFinalizer, Heap::kNew));
   const String& escaped_empty_str =
       String::Handle(String::EscapeSpecialCharacters(empty_str));
   EXPECT_EQ(empty_str.Length(), 0);
   EXPECT_EQ(escaped_empty_str.Length(), 0);
 }
 
-
 ISOLATE_UNIT_TEST_CASE(ExternalTwoByteString) {
   uint16_t characters[] = {0x1E6B, 0x1E85, 0x1E53};
   intptr_t len = ARRAY_SIZE(characters);
 
-  const String& str = String::Handle(
-      ExternalTwoByteString::New(characters, len, NULL, NULL, Heap::kNew));
+  const String& str = String::Handle(ExternalTwoByteString::New(
+      characters, len, NULL, 0, NoopFinalizer, Heap::kNew));
   EXPECT(!str.IsTwoByteString());
   EXPECT(str.IsExternalTwoByteString());
   EXPECT_EQ(str.Length(), len);
@@ -1795,7 +1719,6 @@ ISOLATE_UNIT_TEST_CASE(ExternalTwoByteString) {
   EXPECT_EQ(1, substr.Length());
   EXPECT(substr.Equals("\xE1\xBA\x85"));
 }
-
 
 ISOLATE_UNIT_TEST_CASE(Symbol) {
   const String& one = String::Handle(Symbols::New(thread, "Eins"));
@@ -1826,7 +1749,7 @@ ISOLATE_UNIT_TEST_CASE(Symbol) {
   // Make sure to cause symbol table overflow.
   for (int i = 0; i < 1024; i++) {
     char buf[256];
-    OS::SNPrint(buf, sizeof(buf), "%d", i);
+    Utils::SNPrint(buf, sizeof(buf), "%d", i);
     Symbols::New(thread, buf);
   }
   eins = Symbols::New(thread, "Eins");
@@ -1858,7 +1781,6 @@ ISOLATE_UNIT_TEST_CASE(Symbol) {
   EXPECT_EQ(elf2.raw(), Symbols::New(thread, "Elf"));
 }
 
-
 ISOLATE_UNIT_TEST_CASE(SymbolUnicode) {
   uint16_t monkey_utf16[] = {0xd83d, 0xdc35};  // Unicode Monkey Face.
   String& monkey = String::Handle(Symbols::FromUTF16(thread, monkey_utf16, 2));
@@ -1881,12 +1803,10 @@ ISOLATE_UNIT_TEST_CASE(SymbolUnicode) {
   EXPECT_EQ(cat2.raw(), cat.raw());
 }
 
-
 ISOLATE_UNIT_TEST_CASE(Bool) {
   EXPECT(Bool::True().value());
   EXPECT(!Bool::False().value());
 }
-
 
 ISOLATE_UNIT_TEST_CASE(Array) {
   const int kArrayLen = 5;
@@ -1931,26 +1851,24 @@ ISOLATE_UNIT_TEST_CASE(Array) {
   EXPECT(obj.IsArray());
 }
 
-
 static void TestIllegalArrayLength(intptr_t length) {
   char buffer[1024];
-  OS::SNPrint(buffer, sizeof(buffer),
-              "main() {\n"
-              "  new List(%" Pd
-              ");\n"
-              "}\n",
-              length);
+  Utils::SNPrint(buffer, sizeof(buffer),
+                 "main() {\n"
+                 "  new List(%" Pd
+                 ");\n"
+                 "}\n",
+                 length);
   Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
   EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  OS::SNPrint(buffer, sizeof(buffer),
-              "Unhandled exception:\n"
-              "RangeError (length): Invalid value: "
-              "Not in range 0..%" Pd ", inclusive: %" Pd,
-              Array::kMaxElements, length);
+  Utils::SNPrint(buffer, sizeof(buffer),
+                 "Unhandled exception:\n"
+                 "RangeError (length): Invalid value: "
+                 "Not in range 0..%" Pd ", inclusive: %" Pd,
+                 Array::kMaxElements, length);
   EXPECT_ERROR(result, buffer);
 }
-
 
 TEST_CASE(ArrayLengthNegativeOne) {
   TestIllegalArrayLength(-1);
@@ -1964,15 +1882,14 @@ TEST_CASE(ArrayLengthOneTooMany) {
   TestIllegalArrayLength(kOneTooMany);
 }
 
-
 TEST_CASE(ArrayLengthMaxElements) {
   char buffer[1024];
-  OS::SNPrint(buffer, sizeof(buffer),
-              "main() {\n"
-              "  return new List(%" Pd
-              ");\n"
-              "}\n",
-              Array::kMaxElements);
+  Utils::SNPrint(buffer, sizeof(buffer),
+                 "main() {\n"
+                 "  return new List(%" Pd
+                 ");\n"
+                 "}\n",
+                 Array::kMaxElements);
   Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
   EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
@@ -1986,25 +1903,23 @@ TEST_CASE(ArrayLengthMaxElements) {
   }
 }
 
-
 static void TestIllegalTypedDataLength(const char* class_name,
                                        intptr_t length) {
   char buffer[1024];
-  OS::SNPrint(buffer, sizeof(buffer),
-              "import 'dart:typed_data';\n"
-              "main() {\n"
-              "  new %s(%" Pd
-              ");\n"
-              "}\n",
-              class_name, length);
+  Utils::SNPrint(buffer, sizeof(buffer),
+                 "import 'dart:typed_data';\n"
+                 "main() {\n"
+                 "  new %s(%" Pd
+                 ");\n"
+                 "}\n",
+                 class_name, length);
   Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
   EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  OS::SNPrint(buffer, sizeof(buffer), "%" Pd, length);
+  Utils::SNPrint(buffer, sizeof(buffer), "%" Pd, length);
   EXPECT_ERROR(result, "Invalid argument(s)");
   EXPECT_ERROR(result, buffer);
 }
-
 
 TEST_CASE(Int8ListLengthNegativeOne) {
   TestIllegalTypedDataLength("Int8List", -1);
@@ -2019,17 +1934,16 @@ TEST_CASE(Int8ListLengthOneTooMany) {
   TestIllegalTypedDataLength("Int8List", kOneTooMany);
 }
 
-
 TEST_CASE(Int8ListLengthMaxElements) {
   const intptr_t max_elements = TypedData::MaxElements(kTypedDataInt8ArrayCid);
   char buffer[1024];
-  OS::SNPrint(buffer, sizeof(buffer),
-              "import 'dart:typed_data';\n"
-              "main() {\n"
-              "  return new Int8List(%" Pd
-              ");\n"
-              "}\n",
-              max_elements);
+  Utils::SNPrint(buffer, sizeof(buffer),
+                 "import 'dart:typed_data';\n"
+                 "main() {\n"
+                 "  return new Int8List(%" Pd
+                 ");\n"
+                 "}\n",
+                 max_elements);
   Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
   EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
@@ -2041,7 +1955,6 @@ TEST_CASE(Int8ListLengthMaxElements) {
     EXPECT_EQ(max_elements, actual);
   }
 }
-
 
 ISOLATE_UNIT_TEST_CASE(StringCodePointIterator) {
   const String& str0 = String::Handle(String::New(""));
@@ -2099,7 +2012,6 @@ ISOLATE_UNIT_TEST_CASE(StringCodePointIterator) {
   EXPECT(!it3.Next());
 }
 
-
 ISOLATE_UNIT_TEST_CASE(StringCodePointIteratorRange) {
   const String& str = String::Handle(String::New("foo bar baz"));
 
@@ -2115,7 +2027,6 @@ ISOLATE_UNIT_TEST_CASE(StringCodePointIteratorRange) {
   EXPECT_EQ('r', it1.Current());
   EXPECT(!it1.Next());
 }
-
 
 ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
   const int kArrayLen = 5;
@@ -2148,7 +2059,7 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
     EXPECT(value.Equals(expected_value));
   }
 
-  // Test the MakeArray functionality to make sure the resulting array
+  // Test the MakeFixedLength functionality to make sure the resulting array
   // object is properly setup.
   // 1. Should produce an array of length 2 and a left over int8 array.
   Array& new_array = Array::Handle();
@@ -2165,7 +2076,7 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
     array.Add(value);
   }
   used_size = Array::InstanceSize(array.Length());
-  new_array = Array::MakeArray(array);
+  new_array = Array::MakeFixedLength(array);
   addr = RawObject::ToAddr(new_array.raw());
   obj = RawObject::FromAddr(addr);
   EXPECT(obj.IsArray());
@@ -2186,7 +2097,7 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
     array.Add(value);
   }
   used_size = Array::InstanceSize(array.Length());
-  new_array = Array::MakeArray(array);
+  new_array = Array::MakeFixedLength(array);
   addr = RawObject::ToAddr(new_array.raw());
   obj = RawObject::FromAddr(addr);
   EXPECT(obj.IsArray());
@@ -2207,7 +2118,7 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
     array.Add(value);
   }
   used_size = Array::InstanceSize(array.Length());
-  new_array = Array::MakeArray(array);
+  new_array = Array::MakeFixedLength(array);
   addr = RawObject::ToAddr(new_array.raw());
   obj = RawObject::FromAddr(addr);
   EXPECT(obj.IsArray());
@@ -2229,7 +2140,7 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
   Heap* heap = Isolate::Current()->heap();
   heap->CollectAllGarbage();
   intptr_t capacity_before = heap->CapacityInWords(Heap::kOld);
-  new_array = Array::MakeArray(array);
+  new_array = Array::MakeFixedLength(array);
   EXPECT_EQ(1, new_array.Length());
   heap->CollectAllGarbage();
   intptr_t capacity_after = heap->CapacityInWords(Heap::kOld);
@@ -2237,7 +2148,6 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
   EXPECT_LT(capacity_after, capacity_before);
   EXPECT_EQ(1, new_array.Length());
 }
-
 
 ISOLATE_UNIT_TEST_CASE(InternalTypedData) {
   uint8_t data[] = {253, 254, 255, 0, 1, 2, 3, 4};
@@ -2293,7 +2203,6 @@ ISOLATE_UNIT_TEST_CASE(InternalTypedData) {
     EXPECT(int8_array.GetInt8(i) != int8_array2.GetInt8(i));
   }
 }
-
 
 ISOLATE_UNIT_TEST_CASE(ExternalTypedData) {
   uint8_t data[] = {253, 254, 255, 0, 1, 2, 3, 4};
@@ -2357,7 +2266,6 @@ ISOLATE_UNIT_TEST_CASE(ExternalTypedData) {
   }
 }
 
-
 TEST_CASE(Script) {
   const char* url_chars = "builtin:test-case";
   const char* source_chars = "This will not compile.";
@@ -2387,7 +2295,6 @@ TEST_CASE(Script) {
   Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
 }
-
 
 ISOLATE_UNIT_TEST_CASE(EmbeddedScript) {
   const char* url_chars = "builtin:test-case";
@@ -2490,7 +2397,6 @@ ISOLATE_UNIT_TEST_CASE(EmbeddedScript) {
   free(src_chars);
 }
 
-
 ISOLATE_UNIT_TEST_CASE(Context) {
   const int kNumVariables = 5;
   const Context& parent_context = Context::Handle(Context::New(0));
@@ -2513,7 +2419,6 @@ ISOLATE_UNIT_TEST_CASE(Context) {
   EXPECT_EQ(3, smi.Value());
 }
 
-
 ISOLATE_UNIT_TEST_CASE(ContextScope) {
   const intptr_t parent_scope_function_level = 0;
   LocalScope* parent_scope =
@@ -2524,6 +2429,11 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
       new LocalScope(parent_scope, local_scope_function_level, 0);
 
   const Type& dynamic_type = Type::ZoneHandle(Type::DynamicType());
+  const String& ta = Symbols::FunctionTypeArgumentsVar();
+  LocalVariable* var_ta = new LocalVariable(
+      TokenPosition::kNoSource, TokenPosition::kNoSource, ta, dynamic_type);
+  parent_scope->AddVariable(var_ta);
+
   const String& a = String::ZoneHandle(Symbols::New(thread, "a"));
   LocalVariable* var_a = new LocalVariable(
       TokenPosition::kNoSource, TokenPosition::kNoSource, a, dynamic_type);
@@ -2540,6 +2450,11 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
   parent_scope->AddVariable(var_c);
 
   bool test_only = false;  // Please, insert alias.
+  var_ta = local_scope->LookupVariable(ta, test_only);
+  EXPECT(var_ta->is_captured());
+  EXPECT_EQ(parent_scope_function_level, var_ta->owner()->function_level());
+  EXPECT(local_scope->LocalLookupVariable(ta) == var_ta);  // Alias.
+
   var_a = local_scope->LookupVariable(a, test_only);
   EXPECT(var_a->is_captured());
   EXPECT_EQ(parent_scope_function_level, var_a->owner()->function_level());
@@ -2561,17 +2476,20 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
   var_c = local_scope->LookupVariable(c, test_only);
   EXPECT(var_c->is_captured());
 
-  EXPECT_EQ(3, local_scope->num_variables());         // a, b, and c alias.
-  EXPECT_EQ(2, local_scope->NumCapturedVariables());  // a, c alias.
+  EXPECT_EQ(4, local_scope->num_variables());         // ta, a, b, c.
+  EXPECT_EQ(3, local_scope->NumCapturedVariables());  // ta, a, c.
 
-  const int first_parameter_index = 0;
+  const VariableIndex first_parameter_index(0);
   const int num_parameters = 0;
-  const int first_frame_index = -1;
+  const VariableIndex first_local_index(-1);
   bool found_captured_vars = false;
-  int next_frame_index = parent_scope->AllocateVariables(
-      first_parameter_index, num_parameters, first_frame_index, NULL,
+  VariableIndex next_index = parent_scope->AllocateVariables(
+      first_parameter_index, num_parameters, first_local_index, NULL,
       &found_captured_vars);
-  EXPECT_EQ(first_frame_index, next_frame_index);  // a and c not in frame.
+  // Variables a, c and var_ta are captured, therefore are not allocated in
+  // frame.
+  EXPECT_EQ(0, next_index.value() -
+                   first_local_index.value());  // Indices in frame < 0.
   const intptr_t parent_scope_context_level = 1;
   EXPECT_EQ(parent_scope_context_level, parent_scope->context_level());
   EXPECT(found_captured_vars);
@@ -2580,11 +2498,17 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
   const ContextScope& context_scope = ContextScope::Handle(
       local_scope->PreserveOuterScope(local_scope_context_level));
   LocalScope* outer_scope = LocalScope::RestoreOuterScope(context_scope);
-  EXPECT_EQ(2, outer_scope->num_variables());
+  EXPECT_EQ(3, outer_scope->num_variables());
+
+  var_ta = outer_scope->LocalLookupVariable(ta);
+  EXPECT(var_ta->is_captured());
+  EXPECT_EQ(0, var_ta->index().value());  // First index.
+  EXPECT_EQ(parent_scope_context_level - local_scope_context_level,
+            var_ta->owner()->context_level());  // Adjusted context level.
 
   var_a = outer_scope->LocalLookupVariable(a);
   EXPECT(var_a->is_captured());
-  EXPECT_EQ(0, var_a->index());  // First index.
+  EXPECT_EQ(1, var_a->index().value());  // First index.
   EXPECT_EQ(parent_scope_context_level - local_scope_context_level,
             var_a->owner()->context_level());  // Adjusted context level.
 
@@ -2593,11 +2517,10 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
 
   var_c = outer_scope->LocalLookupVariable(c);
   EXPECT(var_c->is_captured());
-  EXPECT_EQ(1, var_c->index());
+  EXPECT_EQ(2, var_c->index().value());
   EXPECT_EQ(parent_scope_context_level - local_scope_context_level,
             var_c->owner()->context_level());  // Adjusted context level.
 }
-
 
 ISOLATE_UNIT_TEST_CASE(Closure) {
   // Allocate the class first.
@@ -2630,7 +2553,6 @@ ISOLATE_UNIT_TEST_CASE(Closure) {
   EXPECT_EQ(closure_context.raw(), context.raw());
 }
 
-
 ISOLATE_UNIT_TEST_CASE(ObjectPrinting) {
   // Simple Smis.
   EXPECT_STREQ("2", Smi::Handle(Smi::New(2)).ToCString());
@@ -2647,7 +2569,6 @@ ISOLATE_UNIT_TEST_CASE(ObjectPrinting) {
   EXPECT_STREQ("Sugarbowl",
                String::Handle(String::New("Sugarbowl")).ToCString());
 }
-
 
 ISOLATE_UNIT_TEST_CASE(CheckedHandle) {
   // Ensure that null handles have the correct C++ vtable setup.
@@ -2670,11 +2591,9 @@ ISOLATE_UNIT_TEST_CASE(CheckedHandle) {
   EXPECT(!str3.IsOneByteString());
 }
 
-
 static RawLibrary* CreateDummyLibrary(const String& library_name) {
   return Library::New(library_name);
 }
-
 
 static RawFunction* CreateFunction(const char* name) {
   Thread* thread = Thread::Current();
@@ -2691,7 +2610,6 @@ static RawFunction* CreateFunction(const char* name) {
                        TokenPosition::kMinSource);
 }
 
-
 // Test for Code and Instruction object creation.
 ISOLATE_UNIT_TEST_CASE(Code) {
   extern void GenerateIncrement(Assembler * assembler);
@@ -2707,7 +2625,6 @@ ISOLATE_UNIT_TEST_CASE(Code) {
       Object::Handle(DartEntry::InvokeFunction(function, Array::empty_array()));
   EXPECT_EQ(1, Smi::Cast(result).Value());
 }
-
 
 // Test for immutability of generated instructions. The test crashes with a
 // segmentation fault when writing into it.
@@ -2736,7 +2653,6 @@ ISOLATE_UNIT_TEST_CASE(CodeImmutability) {
       stack_trace_collection_enabled);
 }
 
-
 // Test for Embedded String object in the instructions.
 ISOLATE_UNIT_TEST_CASE(EmbedStringInCode) {
   extern void GenerateEmbedStringInCode(Assembler * assembler, const char* str);
@@ -2759,7 +2675,6 @@ ISOLATE_UNIT_TEST_CASE(EmbedStringInCode) {
   }
 }
 
-
 // Test for Embedded Smi object in the instructions.
 ISOLATE_UNIT_TEST_CASE(EmbedSmiInCode) {
   extern void GenerateEmbedSmiInCode(Assembler * assembler, intptr_t value);
@@ -2774,7 +2689,6 @@ ISOLATE_UNIT_TEST_CASE(EmbedSmiInCode) {
       Object::Handle(DartEntry::InvokeFunction(function, Array::empty_array()));
   EXPECT(Smi::Cast(result).Value() == kSmiTestValue);
 }
-
 
 #if defined(ARCH_IS_64_BIT)
 // Test for Embedded Smi object in the instructions.
@@ -2792,7 +2706,6 @@ ISOLATE_UNIT_TEST_CASE(EmbedSmiIn64BitCode) {
   EXPECT(Smi::Cast(result).Value() == kSmiTestValue);
 }
 #endif  // ARCH_IS_64_BIT
-
 
 ISOLATE_UNIT_TEST_CASE(ExceptionHandlers) {
   const int kNumEntries = 4;
@@ -2834,7 +2747,6 @@ ISOLATE_UNIT_TEST_CASE(ExceptionHandlers) {
   EXPECT(!handlers.NeedsStackTrace(3));
   EXPECT(handlers.HasCatchAll(3));
 }
-
 
 ISOLATE_UNIT_TEST_CASE(PcDescriptors) {
   DescriptorList* builder = new DescriptorList(0);
@@ -2892,7 +2804,6 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptors) {
 
   EXPECT_EQ(false, iter.MoveNext());
 }
-
 
 ISOLATE_UNIT_TEST_CASE(PcDescriptorsLargeDeltas) {
   DescriptorList* builder = new DescriptorList(0);
@@ -2955,7 +2866,6 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptorsLargeDeltas) {
   EXPECT_EQ(false, iter.MoveNext());
 }
 
-
 static RawClass* CreateTestClass(const char* name) {
   const String& class_name =
       String::Handle(Symbols::New(Thread::Current(), name));
@@ -2964,17 +2874,15 @@ static RawClass* CreateTestClass(const char* name) {
   return cls.raw();
 }
 
-
 static RawField* CreateTestField(const char* name) {
   const Class& cls = Class::Handle(CreateTestClass("global:"));
   const String& field_name =
       String::Handle(Symbols::New(Thread::Current(), name));
-  const Field& field = Field::Handle(
-      Field::New(field_name, true, false, false, true, cls,
-                 Object::dynamic_type(), TokenPosition::kMinSource));
+  const Field& field = Field::Handle(Field::New(
+      field_name, true, false, false, true, cls, Object::dynamic_type(),
+      TokenPosition::kMinSource, TokenPosition::kMinSource));
   return field.raw();
 }
-
 
 ISOLATE_UNIT_TEST_CASE(ClassDictionaryIterator) {
   Class& ae66 = Class::ZoneHandle(CreateTestClass("Ae6/6"));
@@ -2998,7 +2906,6 @@ ISOLATE_UNIT_TEST_CASE(ClassDictionaryIterator) {
   EXPECT(count == 2);
 }
 
-
 static RawFunction* GetDummyTarget(const char* name) {
   const String& function_name =
       String::Handle(Symbols::New(Thread::Current(), name));
@@ -3014,7 +2921,6 @@ static RawFunction* GetDummyTarget(const char* name) {
                        TokenPosition::kMinSource);
 }
 
-
 ISOLATE_UNIT_TEST_CASE(ICData) {
   Function& function = Function::Handle(GetDummyTarget("Bern"));
   const intptr_t id = 12;
@@ -3026,7 +2932,7 @@ ISOLATE_UNIT_TEST_CASE(ICData) {
       ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs, Object::null_array()));
   ICData& o1 = ICData::Handle();
   o1 = ICData::New(function, target_name, args_descriptor, id, num_args_tested,
-                   false);
+                   ICData::kInstance);
   EXPECT_EQ(1, o1.NumArgsTested());
   EXPECT_EQ(id, o1.deopt_id());
   EXPECT_EQ(function.raw(), o1.Owner());
@@ -3065,7 +2971,8 @@ ISOLATE_UNIT_TEST_CASE(ICData) {
   EXPECT_EQ(2, o1.NumberOfUsedChecks());
 
   ICData& o2 = ICData::Handle();
-  o2 = ICData::New(function, target_name, args_descriptor, 57, 2, false);
+  o2 = ICData::New(function, target_name, args_descriptor, 57, 2,
+                   ICData::kInstance);
   EXPECT_EQ(2, o2.NumArgsTested());
   EXPECT_EQ(57, o2.deopt_id());
   EXPECT_EQ(function.raw(), o2.Owner());
@@ -3083,12 +2990,12 @@ ISOLATE_UNIT_TEST_CASE(ICData) {
 
   // Check ICData for unoptimized static calls.
   const intptr_t kNumArgsChecked = 0;
-  const ICData& scall_icdata = ICData::Handle(ICData::New(
-      function, target_name, args_descriptor, 57, kNumArgsChecked, false));
+  const ICData& scall_icdata =
+      ICData::Handle(ICData::New(function, target_name, args_descriptor, 57,
+                                 kNumArgsChecked, ICData::kInstance));
   scall_icdata.AddTarget(target1);
   EXPECT_EQ(target1.raw(), scall_icdata.GetTargetAt(0));
 }
-
 
 ISOLATE_UNIT_TEST_CASE(SubtypeTestCache) {
   String& class_name = String::Handle(Symbols::New(thread, "EmptyClass"));
@@ -3118,7 +3025,6 @@ ISOLATE_UNIT_TEST_CASE(SubtypeTestCache) {
   EXPECT_EQ(Bool::True().raw(), test_result.raw());
 }
 
-
 ISOLATE_UNIT_TEST_CASE(FieldTests) {
   const String& f = String::Handle(String::New("oneField"));
   const String& getter_f = String::Handle(Field::GetterName(f));
@@ -3135,10 +3041,8 @@ ISOLATE_UNIT_TEST_CASE(FieldTests) {
                String::Handle(Field::NameFromSetter(setter_f)).ToCString());
 }
 
-
 // Expose helper function from object.cc for testing.
 bool EqualsIgnoringPrivate(const String& name, const String& private_name);
-
 
 ISOLATE_UNIT_TEST_CASE(EqualsIgnoringPrivate) {
   String& mangled_name = String::Handle();
@@ -3258,15 +3162,15 @@ ISOLATE_UNIT_TEST_CASE(EqualsIgnoringPrivate) {
   mangled_name = OneByteString::New("foo@12345.name@12345");
   ext_mangled_name = ExternalOneByteString::New(
       reinterpret_cast<const uint8_t*>(ext_mangled_str),
-      strlen(ext_mangled_str), NULL, NULL, Heap::kNew);
+      strlen(ext_mangled_str), NULL, 0, NoopFinalizer, Heap::kNew);
   EXPECT(ext_mangled_name.IsExternalOneByteString());
-  ext_bare_name =
-      ExternalOneByteString::New(reinterpret_cast<const uint8_t*>(ext_bare_str),
-                                 strlen(ext_bare_str), NULL, NULL, Heap::kNew);
+  ext_bare_name = ExternalOneByteString::New(
+      reinterpret_cast<const uint8_t*>(ext_bare_str), strlen(ext_bare_str),
+      NULL, 0, NoopFinalizer, Heap::kNew);
   EXPECT(ext_bare_name.IsExternalOneByteString());
   ext_bad_bare_name = ExternalOneByteString::New(
       reinterpret_cast<const uint8_t*>(ext_bad_bare_str),
-      strlen(ext_bad_bare_str), NULL, NULL, Heap::kNew);
+      strlen(ext_bad_bare_str), NULL, 0, NoopFinalizer, Heap::kNew);
   EXPECT(ext_bad_bare_name.IsExternalOneByteString());
 
   // str1 - OneByteString, str2 - ExternalOneByteString.
@@ -3282,13 +3186,12 @@ ISOLATE_UNIT_TEST_CASE(EqualsIgnoringPrivate) {
       !String::EqualsIgnoringPrivateKey(ext_mangled_name, ext_bad_bare_name));
 }
 
-
 ISOLATE_UNIT_TEST_CASE(ArrayNew_Overflow_Crash) {
   Array::Handle(Array::New(Array::kMaxElements + 1));
 }
 
-
 TEST_CASE(StackTraceFormat) {
+  Isolate* isolate = Isolate::Current();
   const char* kScriptChars =
       "void baz() {\n"
       "  throw 'MyException';\n"
@@ -3331,22 +3234,29 @@ TEST_CASE(StackTraceFormat) {
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_ERROR(result,
-               "Unhandled exception:\n"
-               "MyException\n"
-               "#0      baz (test-lib:2:3)\n"
-               "#1      new _OtherClass._named (test-lib:7:5)\n"
-               "#2      globalVar= (test-lib:12:7)\n"
-               "#3      _bar (test-lib:16:3)\n"
-               "#4      MyClass.field (test-lib:25:5)\n"
-               "#5      MyClass.foo.fooHelper (test-lib:30:7)\n"
-               "#6      MyClass.foo (test-lib:32:14)\n"
-               "#7      new MyClass.<anonymous closure> (test-lib:21:12)\n"
-               "#8      new MyClass (test-lib:21:18)\n"
-               "#9      main.<anonymous closure> (test-lib:37:14)\n"
-               "#10     main (test-lib:37:24)");
-}
 
+  const char* lib_url =
+      isolate->use_dart_frontend() ? "file:///test-lib" : "test-lib";
+  const size_t kBufferSize = 1024;
+  char expected[kBufferSize];
+  snprintf(expected, kBufferSize,
+           "Unhandled exception:\n"
+           "MyException\n"
+           "#0      baz (%1$s:2:3)\n"
+           "#1      new _OtherClass._named (%1$s:7:5)\n"
+           "#2      globalVar= (%1$s:12:7)\n"
+           "#3      _bar (%1$s:16:3)\n"
+           "#4      MyClass.field (%1$s:25:5)\n"
+           "#5      MyClass.foo.fooHelper (%1$s:30:7)\n"
+           "#6      MyClass.foo (%1$s:32:14)\n"
+           "#7      new MyClass.<anonymous closure> (%1$s:21:12)\n"
+           "#8      new MyClass (%1$s:21:18)\n"
+           "#9      main.<anonymous closure> (%1$s:37:14)\n"
+           "#10     main (%1$s:37:24)",
+           lib_url);
+
+  EXPECT_ERROR(result, expected);
+}
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveCrossGen) {
   Isolate* isolate = Isolate::Current();
@@ -3364,7 +3274,8 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveCrossGen) {
     key ^= OneByteString::null();
     value ^= OneByteString::null();
   }
-  isolate->heap()->CollectAllGarbage();
+  isolate->heap()->CollectGarbage(Heap::kNew);
+  isolate->heap()->CollectGarbage(Heap::kOld);
   // Weak property key and value should survive due to cross-generation
   // pointers.
   EXPECT(weak.key() != Object::null());
@@ -3382,7 +3293,8 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveCrossGen) {
     key ^= OneByteString::null();
     value ^= OneByteString::null();
   }
-  isolate->heap()->CollectAllGarbage();
+  isolate->heap()->CollectGarbage(Heap::kNew);
+  isolate->heap()->CollectGarbage(Heap::kOld);
   // Weak property key and value should survive due to cross-generation
   // pointers.
   EXPECT(weak.key() != Object::null());
@@ -3435,7 +3347,8 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveCrossGen) {
     key ^= OneByteString::null();
     value ^= OneByteString::null();
   }
-  isolate->heap()->CollectAllGarbage();
+  isolate->heap()->CollectGarbage(Heap::kNew);
+  isolate->heap()->CollectGarbage(Heap::kOld);
   // Weak property key and value should survive due to cross-generation
   // pointers.
   EXPECT(weak.key() != Object::null());
@@ -3452,13 +3365,13 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveCrossGen) {
     key ^= OneByteString::null();
     value ^= OneByteString::null();
   }
-  isolate->heap()->CollectAllGarbage();
+  isolate->heap()->CollectGarbage(Heap::kNew);
+  isolate->heap()->CollectGarbage(Heap::kOld);
   // Weak property key and value should survive due to cross-generation
   // pointers.
   EXPECT(weak.key() != Object::null());
   EXPECT(weak.value() != Object::null());
 }
-
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveRecurse) {
   // This used to end in an infinite recursion. Caused by scavenging the weak
@@ -3482,7 +3395,6 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveRecurse) {
   EXPECT(weak.value() != Object::null());
 }
 
-
 ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveOne_NewSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
@@ -3500,7 +3412,6 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveOne_NewSpace) {
   EXPECT(weak.key() != Object::null());
   EXPECT(weak.value() != Object::null());
 }
-
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwo_NewSpace) {
   Isolate* isolate = Isolate::Current();
@@ -3530,7 +3441,6 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwo_NewSpace) {
   EXPECT(weak2.value() != Object::null());
 }
 
-
 ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwoShared_NewSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
@@ -3557,7 +3467,6 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwoShared_NewSpace) {
   EXPECT(weak2.value() != Object::null());
 }
 
-
 ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveOne_OldSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
@@ -3575,7 +3484,6 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveOne_OldSpace) {
   EXPECT(weak.key() != Object::null());
   EXPECT(weak.value() != Object::null());
 }
-
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwo_OldSpace) {
   Isolate* isolate = Isolate::Current();
@@ -3605,7 +3513,6 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwo_OldSpace) {
   EXPECT(weak2.value() != Object::null());
 }
 
-
 ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwoShared_OldSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak1 = WeakProperty::Handle();
@@ -3632,7 +3539,6 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveTwoShared_OldSpace) {
   EXPECT(weak2.value() != Object::null());
 }
 
-
 ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearOne_NewSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
@@ -3652,7 +3558,6 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearOne_NewSpace) {
   EXPECT(weak.key() == Object::null());
   EXPECT(weak.value() == Object::null());
 }
-
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearTwoShared_NewSpace) {
   Isolate* isolate = Isolate::Current();
@@ -3680,7 +3585,6 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearTwoShared_NewSpace) {
   EXPECT(weak2.value() == Object::null());
 }
 
-
 ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearOne_OldSpace) {
   Isolate* isolate = Isolate::Current();
   WeakProperty& weak = WeakProperty::Handle();
@@ -3700,7 +3604,6 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearOne_OldSpace) {
   EXPECT(weak.key() == Object::null());
   EXPECT(weak.value() == Object::null());
 }
-
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearTwoShared_OldSpace) {
   Isolate* isolate = Isolate::Current();
@@ -3728,7 +3631,6 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_ClearTwoShared_OldSpace) {
   EXPECT(weak2.value() == Object::null());
 }
 
-
 ISOLATE_UNIT_TEST_CASE(MirrorReference) {
   const MirrorReference& reference =
       MirrorReference::Handle(MirrorReference::New(Object::Handle()));
@@ -3754,14 +3656,12 @@ ISOLATE_UNIT_TEST_CASE(MirrorReference) {
   EXPECT(obj.IsMirrorReference());
 }
 
-
 static RawFunction* GetFunction(const Class& cls, const char* name) {
   const Function& result = Function::Handle(
       cls.LookupDynamicFunction(String::Handle(String::New(name))));
   EXPECT(!result.IsNull());
   return result.raw();
 }
-
 
 static RawFunction* GetStaticFunction(const Class& cls, const char* name) {
   const Function& result = Function::Handle(
@@ -3770,7 +3670,6 @@ static RawFunction* GetStaticFunction(const Class& cls, const char* name) {
   return result.raw();
 }
 
-
 static RawField* GetField(const Class& cls, const char* name) {
   const Field& field =
       Field::Handle(cls.LookupField(String::Handle(String::New(name))));
@@ -3778,14 +3677,12 @@ static RawField* GetField(const Class& cls, const char* name) {
   return field.raw();
 }
 
-
 static RawClass* GetClass(const Library& lib, const char* name) {
   const Class& cls = Class::Handle(
       lib.LookupClass(String::Handle(Symbols::New(Thread::Current(), name))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
   return cls.raw();
 }
-
 
 ISOLATE_UNIT_TEST_CASE(FindClosureIndex) {
   // Allocate the class first.
@@ -3823,7 +3720,6 @@ ISOLATE_UNIT_TEST_CASE(FindClosureIndex) {
   // Same closure function.
   EXPECT_EQ(func_from_index.raw(), function.raw());
 }
-
 
 ISOLATE_UNIT_TEST_CASE(FindInvocationDispatcherFunctionIndex) {
   const String& class_name = String::Handle(Symbols::New(thread, "MyClass"));
@@ -3869,22 +3765,21 @@ ISOLATE_UNIT_TEST_CASE(FindInvocationDispatcherFunctionIndex) {
   EXPECT_EQ(bad_invocation_dispatcher_index, -1);
 }
 
-
 static void PrintMetadata(const char* name, const Object& data) {
   if (data.IsError()) {
-    OS::Print("Error in metadata evaluation for %s: '%s'\n", name,
-              Error::Cast(data).ToErrorCString());
+    OS::PrintErr("Error in metadata evaluation for %s: '%s'\n", name,
+                 Error::Cast(data).ToErrorCString());
   }
   EXPECT(data.IsArray());
   const Array& metadata = Array::Cast(data);
-  OS::Print("Metadata for %s has %" Pd " values:\n", name, metadata.Length());
+  OS::PrintErr("Metadata for %s has %" Pd " values:\n", name,
+               metadata.Length());
   Object& elem = Object::Handle();
   for (int i = 0; i < metadata.Length(); i++) {
     elem = metadata.At(i);
-    OS::Print("  %d: %s\n", i, elem.ToCString());
+    OS::PrintErr("  %d: %s\n", i, elem.ToCString());
   }
 }
-
 
 TEST_CASE(Metadata) {
   const char* kScriptChars =
@@ -3958,7 +3853,6 @@ TEST_CASE(Metadata) {
   res = lib.GetMetadata(field);
   PrintMetadata("gVar", res);
 }
-
 
 TEST_CASE(FunctionSourceFingerprint) {
   const char* kScriptChars =
@@ -4038,11 +3932,9 @@ TEST_CASE(FunctionSourceFingerprint) {
   EXPECT_EQ(a_test6.SourceFingerprint(), b_test6.SourceFingerprint());
 }
 
+#ifndef PRODUCT
 
 TEST_CASE(FunctionWithBreakpointNotInlined) {
-  if (!FLAG_support_debugger) {
-    return;
-  }
   const char* kScriptChars =
       "class A {\n"
       "  a() {\n"
@@ -4077,7 +3969,6 @@ TEST_CASE(FunctionWithBreakpointNotInlined) {
   EXPECT(!func_b.CanBeInlined());
 }
 
-
 ISOLATE_UNIT_TEST_CASE(SpecialClassesHaveEmptyArrays) {
   ObjectStore* object_store = Isolate::Current()->object_store();
   Class& cls = Class::Handle();
@@ -4108,10 +3999,6 @@ ISOLATE_UNIT_TEST_CASE(SpecialClassesHaveEmptyArrays) {
   EXPECT(array.IsArray());
 }
 
-
-#ifndef PRODUCT
-
-
 class ObjectAccumulator : public ObjectVisitor {
  public:
   explicit ObjectAccumulator(GrowableArray<Object*>* objects)
@@ -4133,20 +4020,21 @@ class ObjectAccumulator : public ObjectVisitor {
   GrowableArray<Object*>* objects_;
 };
 
-
 ISOLATE_UNIT_TEST_CASE(PrintJSON) {
   Heap* heap = Isolate::Current()->heap();
   heap->CollectAllGarbage();
   GrowableArray<Object*> objects;
-  ObjectAccumulator acc(&objects);
-  heap->IterateObjects(&acc);
+  {
+    HeapIterationScope iteration(Thread::Current());
+    ObjectAccumulator acc(&objects);
+    iteration.IterateObjects(&acc);
+  }
   for (intptr_t i = 0; i < objects.length(); ++i) {
     JSONStream js;
     objects[i]->PrintJSON(&js, false);
     EXPECT_SUBSTRING("\"type\":", js.ToCString());
   }
 }
-
 
 ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   char buffer[1024];
@@ -4240,25 +4128,6 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"name\":\"_Mint\",\"_vmName\":\"\"},"
         "\"kind\":\"Int\","
         "\"id\":\"\",\"valueAsString\":\"-9223372036854775808\"}",
-        buffer);
-  }
-  // Bigint reference
-  {
-    JSONStream js;
-    const String& bigint_str =
-        String::Handle(String::New("44444444444444444444444444444444"));
-    const Integer& bigint = Integer::Handle(Integer::New(bigint_str));
-    bigint.PrintJSON(&js, true);
-    ElideJSONSubstring("classes", js.ToCString(), buffer);
-    ElideJSONSubstring("objects", buffer, buffer);
-    ElideJSONSubstring("_Bigint@", buffer, buffer);
-    EXPECT_STREQ(
-        "{\"type\":\"@Instance\","
-        "\"_vmType\":\"Bigint\","
-        "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-        "\"name\":\"_Bigint\",\"_vmName\":\"\"},"
-        "\"kind\":\"Int\","
-        "\"id\":\"\",\"valueAsString\":\"44444444444444444444444444444444\"}",
         buffer);
   }
   // Double reference
@@ -4437,9 +4306,7 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
   }
 }
 
-
 #endif  // !PRODUCT
-
 
 TEST_CASE(InstanceEquality) {
   // Test that Instance::OperatorEquals can call a user-defined operator==.
@@ -4469,7 +4336,6 @@ TEST_CASE(InstanceEquality) {
   EXPECT(!a0.IsIdenticalTo(a1));
 }
 
-
 TEST_CASE(HashCode) {
   // Ensure C++ overrides of Instance::HashCode match the Dart implementations.
   const char* kScript =
@@ -4492,8 +4358,9 @@ TEST_CASE(HashCode) {
   EXPECT(result.IsIdenticalTo(expected));
 }
 
-
-static void CheckIdenticalHashStructure(const Instance& a, const Instance& b) {
+static void CheckIdenticalHashStructure(Thread* T,
+                                        const Instance& a,
+                                        const Instance& b) {
   const char* kScript =
       "(a, b) {\n"
       "  if (a._usedData != b._usedData ||\n"
@@ -4528,9 +4395,9 @@ static void CheckIdenticalHashStructure(const Instance& a, const Instance& b) {
   param_values.SetAt(1, b);
   name = String::New(kScript);
   Library& lib = Library::Handle(Library::CollectionLibrary());
-  EXPECT(lib.Evaluate(name, param_names, param_values) == Bool::True().raw());
+  EXPECT(Api::UnwrapHandle(TestCase::EvaluateExpression(
+             lib, name, param_names, param_values)) == Bool::True().raw());
 }
-
 
 TEST_CASE(LinkedHashMap) {
   // Check that initial index size and hash mask match in Dart vs. C++.
@@ -4556,9 +4423,9 @@ TEST_CASE(LinkedHashMap) {
   LinkedHashMap& cc_map = LinkedHashMap::Handle(LinkedHashMap::NewDefault());
 
   // 3. Expect them to have identical structure.
-  CheckIdenticalHashStructure(dart_map, cc_map);
+  TransitionNativeToVM transition(thread);
+  CheckIdenticalHashStructure(thread, dart_map, cc_map);
 }
-
 
 TEST_CASE(LinkedHashMap_iteration) {
   const char* kScript =
@@ -4601,7 +4468,6 @@ TEST_CASE(LinkedHashMap_iteration) {
   EXPECT(!iterator.MoveNext());
 }
 
-
 static void CheckConcatAll(const String* data[], intptr_t n) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -4616,7 +4482,6 @@ static void CheckConcatAll(const String* data[], intptr_t n) {
   const String& res2 = String::Handle(zone, String::ConcatAll(array));
   EXPECT(res1.Equals(res2));
 }
-
 
 ISOLATE_UNIT_TEST_CASE(Symbols_FromConcatAll) {
   {
@@ -4639,8 +4504,8 @@ ISOLATE_UNIT_TEST_CASE(Symbols_FromConcatAll) {
     uint8_t characters[] = {0xF6, 0xF1, 0xE9};
     intptr_t len = ARRAY_SIZE(characters);
 
-    const String& str = String::Handle(
-        ExternalOneByteString::New(characters, len, NULL, NULL, Heap::kNew));
+    const String& str = String::Handle(ExternalOneByteString::New(
+        characters, len, NULL, 0, NoopFinalizer, Heap::kNew));
     const String* data[3] = {&str, &Symbols::Dot(), &str};
     CheckConcatAll(data, 3);
   }
@@ -4650,8 +4515,8 @@ ISOLATE_UNIT_TEST_CASE(Symbols_FromConcatAll) {
                              '\v', '\r', '\\', '$',  'z'};
     intptr_t len = ARRAY_SIZE(characters);
 
-    const String& str = String::Handle(
-        ExternalTwoByteString::New(characters, len, NULL, NULL, Heap::kNew));
+    const String& str = String::Handle(ExternalTwoByteString::New(
+        characters, len, NULL, 0, NoopFinalizer, Heap::kNew));
     const String* data[3] = {&str, &Symbols::Dot(), &str};
     CheckConcatAll(data, 3);
   }
@@ -4660,15 +4525,15 @@ ISOLATE_UNIT_TEST_CASE(Symbols_FromConcatAll) {
     uint8_t characters1[] = {0xF6, 0xF1, 0xE9};
     intptr_t len1 = ARRAY_SIZE(characters1);
 
-    const String& str1 = String::Handle(
-        ExternalOneByteString::New(characters1, len1, NULL, NULL, Heap::kNew));
+    const String& str1 = String::Handle(ExternalOneByteString::New(
+        characters1, len1, NULL, 0, NoopFinalizer, Heap::kNew));
 
     uint16_t characters2[] = {'a',  '\n', '\f', '\b', '\t',
                               '\v', '\r', '\\', '$',  'z'};
     intptr_t len2 = ARRAY_SIZE(characters2);
 
-    const String& str2 = String::Handle(
-        ExternalTwoByteString::New(characters2, len2, NULL, NULL, Heap::kNew));
+    const String& str2 = String::Handle(ExternalTwoByteString::New(
+        characters2, len2, NULL, 0, NoopFinalizer, Heap::kNew));
     const String* data[3] = {&str1, &Symbols::Dot(), &str2};
     CheckConcatAll(data, 3);
   }
@@ -4681,12 +4546,10 @@ ISOLATE_UNIT_TEST_CASE(Symbols_FromConcatAll) {
   }
 }
 
-
 struct TestResult {
   const char* in;
   const char* out;
 };
-
 
 ISOLATE_UNIT_TEST_CASE(String_ScrubName) {
   TestResult tests[] = {
@@ -4713,7 +4576,6 @@ ISOLATE_UNIT_TEST_CASE(String_ScrubName) {
     EXPECT_STREQ(tests[i].out, result.ToCString());
   }
 }
-
 
 ISOLATE_UNIT_TEST_CASE(String_EqualsUTF32) {
   // Regression test for Issue 27433. Checks that comparisons between Strings

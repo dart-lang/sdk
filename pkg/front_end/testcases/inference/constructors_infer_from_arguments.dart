@@ -10,7 +10,7 @@ class C<T> {
   C(this.t);
 }
 
-main() {
+test() {
   var /*@type=C<int>*/ x = new /*@typeArgs=int*/ C(42);
 
   num y;
@@ -19,9 +19,11 @@ main() {
 
   // These hints are not reported because we resolve with a null error listener.
   C<num> c_num = new /*@typeArgs=num*/ C(123);
-  C<num> c_num2 = (new /*@typeArgs=num*/ C(456))..t = 1.0;
+  C<num> c_num2 = (new /*@typeArgs=num*/ C(456)).. /*@target=C::t*/ t = 1.0;
 
   // Down't infer from explicit dynamic.
   var /*@type=C<dynamic>*/ c_dynamic = new C<dynamic>(42);
-  x.t = /*error:INVALID_ASSIGNMENT*/ 'hello';
+  x. /*@target=C::t*/ t = /*error:INVALID_ASSIGNMENT*/ 'hello';
 }
+
+main() {}

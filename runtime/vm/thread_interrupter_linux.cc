@@ -15,6 +15,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 DECLARE_FLAG(bool, thread_interrupter);
 DECLARE_FLAG(bool, trace_thread_interrupter);
 
@@ -43,11 +45,9 @@ class ThreadInterrupterLinux : public AllStatic {
   }
 };
 
-
 bool ThreadInterrupter::IsDebuggerAttached() {
   return false;
 }
-
 
 void ThreadInterrupter::InterruptThread(OSThread* thread) {
   if (FLAG_trace_thread_interrupter) {
@@ -58,17 +58,16 @@ void ThreadInterrupter::InterruptThread(OSThread* thread) {
   ASSERT((result == 0) || (result == ESRCH));
 }
 
-
 void ThreadInterrupter::InstallSignalHandler() {
   SignalHandler::Install<
       ThreadInterrupterLinux::ThreadInterruptSignalHandler>();
 }
 
-
 void ThreadInterrupter::RemoveSignalHandler() {
   SignalHandler::Remove();
 }
 
+#endif  // !PRODUCT
 
 }  // namespace dart
 

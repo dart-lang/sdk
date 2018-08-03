@@ -1,0 +1,7 @@
+library;
+import self as self;
+
+typedef F = () → void;
+typedef F = () → void;
+static method main() → void
+  ;

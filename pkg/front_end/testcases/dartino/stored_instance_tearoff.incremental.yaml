@@ -1,0 +1,24 @@
+# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+main.dart.patch: |
+  // Test that a stored instance tearoff changes behavior when updated
+
+  class C {
+    m() {
+  <<<< ["closure is null","v1"]
+    print('v1');
+  ==== "v2"
+    print('v2');
+  >>>>
+    }
+  }
+  var closure;
+  main() {
+    if (closure == null) {
+      print('closure is null');
+      closure = new C().m;
+    }
+    closure();
+  }

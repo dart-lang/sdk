@@ -12,8 +12,8 @@
 #include <psapi.h>    // NOLINT
 #include <time.h>     // NOLINT
 
-#include "platform/utils.h"
 #include "platform/assert.h"
+#include "platform/utils.h"
 #include "vm/os_thread.h"
 #include "vm/zone.h"
 
@@ -26,11 +26,9 @@ const char* OS::Name() {
   return "windows";
 }
 
-
 intptr_t OS::ProcessId() {
   return static_cast<intptr_t>(GetCurrentProcessId());
 }
-
 
 // As a side-effect sets the globals _timezone, _daylight and _tzname.
 static bool LocalTime(int64_t seconds_since_epoch, tm* tm_result) {
@@ -43,7 +41,6 @@ static bool LocalTime(int64_t seconds_since_epoch, tm* tm_result) {
   return error_code == 0;
 }
 
-
 static int GetDaylightSavingBiasInSeconds() {
   TIME_ZONE_INFORMATION zone_information;
   memset(&zone_information, 0, sizeof(zone_information));
@@ -54,7 +51,6 @@ static int GetDaylightSavingBiasInSeconds() {
     return static_cast<int>(zone_information.DaylightBias * 60);
   }
 }
-
 
 const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
   TIME_ZONE_INFORMATION zone_information;
@@ -89,7 +85,6 @@ const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
   return name;
 }
 
-
 int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
   tm decomposed;
   // LocalTime will set _timezone.
@@ -111,7 +106,6 @@ int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
   }
 }
 
-
 int OS::GetLocalTimeZoneAdjustmentInSeconds() {
   // TODO(floitsch): avoid excessive calls to _tzset?
   _tzset();
@@ -119,11 +113,9 @@ int OS::GetLocalTimeZoneAdjustmentInSeconds() {
   return static_cast<int>(-_timezone);
 }
 
-
 int64_t OS::GetCurrentTimeMillis() {
   return GetCurrentTimeMicros() / 1000;
 }
-
 
 int64_t OS::GetCurrentTimeMicros() {
   static const int64_t kTimeEpoc = 116444736000000000LL;
@@ -144,9 +136,7 @@ int64_t OS::GetCurrentTimeMicros() {
   return (time.t_ - kTimeEpoc) / kTimeScaler;
 }
 
-
 static int64_t qpc_ticks_per_second = 0;
-
 
 int64_t OS::GetCurrentMonotonicTicks() {
   if (qpc_ticks_per_second == 0) {
@@ -159,7 +149,6 @@ int64_t OS::GetCurrentMonotonicTicks() {
   return static_cast<int64_t>(now.QuadPart);
 }
 
-
 int64_t OS::GetCurrentMonotonicFrequency() {
   if (qpc_ticks_per_second == 0) {
     // QueryPerformanceCounter not supported, fallback.
@@ -167,7 +156,6 @@ int64_t OS::GetCurrentMonotonicFrequency() {
   }
   return qpc_ticks_per_second;
 }
-
 
 int64_t OS::GetCurrentMonotonicMicros() {
   int64_t ticks = GetCurrentMonotonicTicks();
@@ -181,17 +169,15 @@ int64_t OS::GetCurrentMonotonicMicros() {
   return result;
 }
 
-
 int64_t OS::GetCurrentThreadCPUMicros() {
   // TODO(johnmccutchan): Implement. See base/time_win.cc for details.
   return -1;
 }
 
-
 intptr_t OS::ActivationFrameAlignment() {
 #if defined(TARGET_ARCH_ARM64)
   return 16;
-#elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
+#elif defined(TARGET_ARCH_ARM)
   return 8;
 #elif defined(_WIN64)
   // Windows 64-bit ABI requires the stack to be 16-byte aligned.
@@ -202,19 +188,17 @@ intptr_t OS::ActivationFrameAlignment() {
 #endif
 }
 
-
 intptr_t OS::PreferredCodeAlignment() {
   ASSERT(32 <= OS::kMaxPreferredCodeAlignment);
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
     defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_DBC)
   return 32;
-#elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
+#elif defined(TARGET_ARCH_ARM)
   return 16;
 #else
 #error Unsupported architecture.
 #endif
 }
-
 
 int OS::NumberOfAvailableProcessors() {
   SYSTEM_INFO info;
@@ -222,18 +206,9 @@ int OS::NumberOfAvailableProcessors() {
   return info.dwNumberOfProcessors;
 }
 
-
-uintptr_t OS::MaxRSS() {
-  PROCESS_MEMORY_COUNTERS pmc;
-  GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc));
-  return pmc.PeakWorkingSetSize;
-}
-
-
 void OS::Sleep(int64_t millis) {
   ::Sleep(millis);
 }
-
 
 void OS::SleepMicros(int64_t micros) {
   // Windows only supports millisecond sleeps.
@@ -243,7 +218,6 @@ void OS::SleepMicros(int64_t micros) {
   }
   OS::Sleep(micros / kMicrosecondsPerMillisecond);
 }
-
 
 void OS::DebugBreak() {
 #if defined(_MSC_VER)
@@ -259,33 +233,9 @@ void OS::DebugBreak() {
 #endif
 }
 
-
 DART_NOINLINE uintptr_t OS::GetProgramCounter() {
   return reinterpret_cast<uintptr_t>(_ReturnAddress());
 }
-
-
-char* OS::StrNDup(const char* s, intptr_t n) {
-  intptr_t len = strlen(s);
-  if ((n < 0) || (len < 0)) {
-    return NULL;
-  }
-  if (n < len) {
-    len = n;
-  }
-  char* result = reinterpret_cast<char*>(malloc(len + 1));
-  if (result == NULL) {
-    return NULL;
-  }
-  result[len] = '\0';
-  return reinterpret_cast<char*>(memmove(result, s, len));
-}
-
-
-intptr_t OS::StrNLen(const char* s, intptr_t n) {
-  return strnlen(s, n);
-}
-
 
 void OS::Print(const char* format, ...) {
   va_list args;
@@ -294,56 +244,10 @@ void OS::Print(const char* format, ...) {
   va_end(args);
 }
 
-
 void OS::VFPrint(FILE* stream, const char* format, va_list args) {
   vfprintf(stream, format, args);
   fflush(stream);
 }
-
-
-int OS::SNPrint(char* str, size_t size, const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  int retval = VSNPrint(str, size, format, args);
-  va_end(args);
-  return retval;
-}
-
-
-int OS::VSNPrint(char* str, size_t size, const char* format, va_list args) {
-  if (str == NULL || size == 0) {
-    int retval = _vscprintf(format, args);
-    if (retval < 0) {
-      FATAL1("Fatal error in OS::VSNPrint with format '%s'", format);
-    }
-    return retval;
-  }
-  va_list args_copy;
-  va_copy(args_copy, args);
-  int written = _vsnprintf(str, size, format, args_copy);
-  va_end(args_copy);
-  if (written < 0) {
-    // _vsnprintf returns -1 if the number of characters to be written is
-    // larger than 'size', so we call _vscprintf which returns the number
-    // of characters that would have been written.
-    va_list args_retry;
-    va_copy(args_retry, args);
-    written = _vscprintf(format, args_retry);
-    if (written < 0) {
-      FATAL1("Fatal error in OS::VSNPrint with format '%s'", format);
-    }
-    va_end(args_retry);
-  }
-  // Make sure to zero-terminate the string if the output was
-  // truncated or if there was an error.
-  // The static cast is safe here as we have already determined that 'written'
-  // is >= 0.
-  if (static_cast<size_t>(written) >= size) {
-    str[size - 1] = '\0';
-  }
-  return written;
-}
-
 
 char* OS::SCreate(Zone* zone, const char* format, ...) {
   va_list args;
@@ -353,12 +257,11 @@ char* OS::SCreate(Zone* zone, const char* format, ...) {
   return buffer;
 }
 
-
 char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   // Measure.
   va_list measure_args;
   va_copy(measure_args, args);
-  intptr_t len = VSNPrint(NULL, 0, format, measure_args);
+  intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
   va_end(measure_args);
 
   char* buffer;
@@ -372,11 +275,10 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   // Print.
   va_list print_args;
   va_copy(print_args, args);
-  VSNPrint(buffer, len + 1, format, print_args);
+  Utils::VSNPrint(buffer, len + 1, format, print_args);
   va_end(print_args);
   return buffer;
 }
-
 
 bool OS::StringToInt64(const char* str, int64_t* value) {
   ASSERT(str != NULL && strlen(str) > 0 && value != NULL);
@@ -391,13 +293,17 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
     base = 16;
   }
   errno = 0;
-  *value = _strtoi64(str, &endptr, base);
+  if (base == 16) {
+    // Unsigned 64-bit hexadecimal integer literals are allowed but
+    // immediately interpreted as signed 64-bit integers.
+    *value = static_cast<int64_t>(_strtoui64(str, &endptr, base));
+  } else {
+    *value = _strtoi64(str, &endptr, base);
+  }
   return ((errno == 0) && (endptr != str) && (*endptr == 0));
 }
 
-
 void OS::RegisterCodeObservers() {}
-
 
 void OS::PrintErr(const char* format, ...) {
   va_list args;
@@ -405,7 +311,6 @@ void OS::PrintErr(const char* format, ...) {
   VFPrint(stderr, format, args);
   va_end(args);
 }
-
 
 void OS::InitOnce() {
   // TODO(5411554): For now we check that initonce is called only once,
@@ -427,19 +332,16 @@ void OS::InitOnce() {
   }
 }
 
-
 void OS::Shutdown() {
   // TODO(zra): Enable once VM can shutdown cleanly.
   // ThreadLocalData::Shutdown();
 }
-
 
 void OS::Abort() {
   // TODO(zra): Remove once VM shuts down cleanly.
   private_flag_windows_run_tls_destructors = false;
   abort();
 }
-
 
 void OS::Exit(int code) {
   // TODO(zra): Remove once VM shuts down cleanly.

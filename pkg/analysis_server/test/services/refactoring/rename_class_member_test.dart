@@ -126,15 +126,38 @@ class C extends A {
     assertRefactoringStatusOK(status);
   }
 
+  test_checkFinalConditions_OK_noShadow_nullVisibleRange() async {
+    await indexTestUnit('''
+class A {
+  int foo;
+
+  A(this.foo);
+}
+
+class B {
+  int bar; // declaration
+
+  B(this.bar);
+
+  void referenceField() {
+    bar;
+  }
+}
+''');
+    createRenameRefactoringAtString('bar; // declaration');
+    // check status
+    refactoring.newName = 'foo';
+    RefactoringStatus status = await refactoring.checkFinalConditions();
+    assertRefactoringStatusOK(status);
+  }
+
   test_checkFinalConditions_publicToPrivate_usedInOtherLibrary() async {
     await indexTestUnit('''
 class A {
   test() {}
 }
 ''');
-    await indexUnit(
-        '/lib.dart',
-        '''
+    await indexUnit('/project/lib.dart', '''
 library my.lib;
 import 'test.dart';
 
@@ -150,7 +173,6 @@ main(A a) {
         expectedMessage: "Renamed method will be invisible in 'my.lib'.");
   }
 
-  @failingTest
   test_checkFinalConditions_shadowed_byLocalFunction_inSameClass() async {
     await indexTestUnit('''
 class A {
@@ -171,7 +193,6 @@ class A {
         expectedContextSearch: 'test(); // marker');
   }
 
-  @failingTest
   test_checkFinalConditions_shadowed_byLocalVariable_inSameClass() async {
     await indexTestUnit('''
 class A {
@@ -192,7 +213,6 @@ class A {
         expectedContextSearch: 'test(); // marker');
   }
 
-  @failingTest
   test_checkFinalConditions_shadowed_byLocalVariable_inSubClass() async {
     await indexTestUnit('''
 class A {
@@ -336,7 +356,7 @@ class A {
   newName() {} // marker
 }
 ''';
-    await indexUnit('/lib.dart', libCode);
+    await indexUnit('/project/lib.dart', libCode);
     await indexTestUnit('''
 import 'lib.dart';
 class B extends A {
@@ -696,15 +716,13 @@ main(var a) {
 
   test_createChange_MethodElement_potential_inPubCache() async {
     String pkgLib = '/.pub-cache/lib.dart';
-    await indexUnit(
-        pkgLib,
-        r'''
+    await indexUnit(pkgLib, r'''
 processObj(p) {
   p.test();
 }
 ''');
     await indexTestUnit('''
-import '$pkgLib';
+import '${convertPathForImport(pkgLib)}';
 class A {
   test() {}
 }
@@ -719,7 +737,7 @@ main(var a) {
     refactoring.newName = 'newName';
     // validate change
     await assertSuccessfulRefactoring('''
-import '/.pub-cache/lib.dart';
+import '${convertPathForImport('/.pub-cache/lib.dart')}';
 class A {
   newName() {}
 }
@@ -732,9 +750,7 @@ main(var a) {
   }
 
   test_createChange_MethodElement_potential_private_otherLibrary() async {
-    await indexUnit(
-        '/lib.dart',
-        '''
+    await indexUnit('/lib.dart', '''
 library lib;
 main(p) {
   p._test();

@@ -8,9 +8,9 @@ import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 import 'dart:async';
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
-    expect(isolate.name, equals('set_name_rpc_test.dart\$main'));
+    expect(isolate.name, equals('set_name_rpc_test.dart:main()'));
 
     Completer completer = new Completer();
     var stream = await isolate.vm.getEventStream(VM.kIsolateStream);

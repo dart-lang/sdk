@@ -30,7 +30,7 @@ void run() {
   Logger.root.info('YES');
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   resumeIsolateAndAwaitEvent(Isolate.kLoggingStream, (ServiceEvent event) {
     expect(event.kind, equals(ServiceEvent.kLogging));

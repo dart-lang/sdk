@@ -9,9 +9,6 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
     show DartCompletionRequestImpl;
-import 'package:analysis_server/src/services/completion/dart/local_declaration_visitor.dart'
-    show LocalDeclarationVisitor;
-import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -19,6 +16,9 @@ import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
     show Element, ElementKind;
+import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
+import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart'
+    show LocalDeclarationVisitor;
 
 /**
  * A contributor for calculating constructor suggestions
@@ -28,6 +28,8 @@ class LocalConstructorContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     OpType optype = (request as DartCompletionRequestImpl).opType;
 
     // Collect suggestions from the specific child [AstNode] that contains
@@ -106,40 +108,35 @@ class _Visitor extends LocalDeclarationVisitor {
   void _addSuggestion(
       ClassDeclaration classDecl, ConstructorDeclaration constructorDecl) {
     String completion = classDecl.name.name;
-    SimpleIdentifier elemId;
 
     ClassElement classElement =
         resolutionMap.elementDeclaredByClassDeclaration(classDecl);
-    int relevance = optype.constructorSuggestionsFilter(
+    int relevance = optype.returnValueSuggestionsFilter(
         classElement?.type, DART_RELEVANCE_DEFAULT);
-    if (relevance == null) {
-      return;
-    }
-
-    // Build a suggestion for explicitly declared constructor
     if (constructorDecl != null) {
-      elemId = constructorDecl.name;
-      ConstructorElement elem = constructorDecl.element;
-      if (elemId != null) {
-        String name = elemId.name;
-        if (name != null && name.length > 0) {
-          completion = '$completion.$name';
-        }
+      // Build a suggestion for explicitly declared constructor
+      ConstructorElement element = constructorDecl.element;
+      if (element == null) {
+        return;
       }
-      if (elem != null) {
-        CompletionSuggestion suggestion = createSuggestion(
-            elem, request.ideOptions,
-            completion: completion, relevance: relevance);
-        if (suggestion != null) {
-          suggestions.add(suggestion);
-        }
+      if (classElement.isAbstract && !element.isFactory) {
+        return;
       }
-    }
 
-    // Build a suggestion for an implicit constructor
-    else {
+      String name = constructorDecl.name?.name;
+      if (name != null && name.length > 0) {
+        completion = '$completion.$name';
+      }
+
+      CompletionSuggestion suggestion = createSuggestion(element,
+          completion: completion, relevance: relevance);
+      if (suggestion != null) {
+        suggestions.add(suggestion);
+      }
+    } else if (!classElement.isAbstract) {
+      // Build a suggestion for an implicit constructor
       protocol.Element element = createLocalElement(
-          request.source, protocol.ElementKind.CONSTRUCTOR, elemId,
+          request.source, protocol.ElementKind.CONSTRUCTOR, null,
           parameters: '()');
       element.returnType = classDecl.name.name;
       CompletionSuggestion suggestion = new CompletionSuggestion(

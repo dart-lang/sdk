@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.context.context;
-
 import 'dart:async';
 import 'dart:collection';
 
@@ -11,8 +9,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
-import 'package:analyzer/plugin/resolver_provider.dart';
-import 'package:analyzer/plugin/task.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/context/cache.dart';
@@ -23,14 +19,16 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
+import 'package:analyzer/src/plugin/resolver_provider.dart';
+import 'package:analyzer/src/plugin/task.dart';
+import 'package:analyzer/src/task/api/dart.dart';
+import 'package:analyzer/src/task/api/general.dart';
+import 'package:analyzer/src/task/api/html.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/dart_work_manager.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/manager.dart';
-import 'package:analyzer/task/dart.dart';
-import 'package:analyzer/task/general.dart';
-import 'package:analyzer/task/html.dart';
-import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart' show Document;
 
 /**
@@ -153,14 +151,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * the corresponding PendingFuture objects.  These sources will be analyzed
    * in the same way as priority sources, except with higher priority.
    */
-  HashMap<AnalysisTarget, List<PendingFuture>> _pendingFutureTargets =
+  Map<AnalysisTarget, List<PendingFuture>> _pendingFutureTargets =
       new HashMap<AnalysisTarget, List<PendingFuture>>();
 
   /**
    * A table mapping sources to the change notices that are waiting to be
    * returned related to that source.
    */
-  HashMap<Source, ChangeNoticeImpl> _pendingNotices =
+  Map<Source, ChangeNoticeImpl> _pendingNotices =
       new HashMap<Source, ChangeNoticeImpl>();
 
   /**
@@ -270,6 +268,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             options.generateImplicitErrors ||
         this._options.generateSdkErrors != options.generateSdkErrors ||
         this._options.dart2jsHint != options.dart2jsHint ||
+        _notEqual(
+            this._options.enabledPluginNames, options.enabledPluginNames) ||
         _notEqual(this._options.errorProcessors, options.errorProcessors) ||
         _notEqual(this._options.excludePatterns, options.excludePatterns) ||
         (this._options.hint && !options.hint) ||
@@ -277,12 +277,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _notEqual(this._options.lintRules, options.lintRules) ||
         this._options.preserveComments != options.preserveComments ||
         this._options.strongMode != options.strongMode ||
-        this._options.enableAssertInitializer !=
-            options.enableAssertInitializer ||
+        this._options.useFastaParser != options.useFastaParser ||
         this._options.enableLazyAssignmentOperators !=
             options.enableLazyAssignmentOperators ||
         ((options is AnalysisOptionsImpl)
             ? this._options.strongModeHints != options.strongModeHints
+            : false) ||
+        ((options is AnalysisOptionsImpl)
+            ? this._options.declarationCasts != options.declarationCasts
             : false) ||
         ((options is AnalysisOptionsImpl)
             ? this._options.implicitCasts != options.implicitCasts
@@ -293,8 +295,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         ((options is AnalysisOptionsImpl)
             ? this._options.implicitDynamic != options.implicitDynamic
             : false) ||
-        this._options.enableStrictCallChecks !=
-            options.enableStrictCallChecks ||
         this._options.enableSuperMixins != options.enableSuperMixins ||
         !_samePatchPaths(this._options.patchPaths, options.patchPaths);
     this._options.analyzeFunctionBodiesPredicate =
@@ -302,30 +302,28 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.generateImplicitErrors = options.generateImplicitErrors;
     this._options.generateSdkErrors = options.generateSdkErrors;
     this._options.dart2jsHint = options.dart2jsHint;
-    this._options.enableAssertInitializer = options.enableAssertInitializer;
-    this._options.enableStrictCallChecks = options.enableStrictCallChecks;
     this._options.enableLazyAssignmentOperators =
         options.enableLazyAssignmentOperators;
     this._options.enableSuperMixins = options.enableSuperMixins;
     this._options.enableTiming = options.enableTiming;
+    this._options.enabledPluginNames = options.enabledPluginNames;
     this._options.errorProcessors = options.errorProcessors;
     this._options.excludePatterns = options.excludePatterns;
     this._options.hint = options.hint;
-    this._options.incremental = options.incremental;
-    this._options.incrementalApi = options.incrementalApi;
-    this._options.incrementalValidation = options.incrementalValidation;
     this._options.lint = options.lint;
     this._options.lintRules = options.lintRules;
     this._options.preserveComments = options.preserveComments;
     if (this._options.strongMode != options.strongMode) {
       _typeSystem = null;
     }
-    this._options.strongMode = options.strongMode;
+    this._options.useFastaParser = options.useFastaParser;
+    this._options.previewDart2 = options.previewDart2;
     this._options.trackCacheDependencies = options.trackCacheDependencies;
     this._options.disableCacheFlushing = options.disableCacheFlushing;
     this._options.patchPaths = options.patchPaths;
     if (options is AnalysisOptionsImpl) {
       this._options.strongModeHints = options.strongModeHints;
+      this._options.declarationCasts = options.declarationCasts;
       this._options.implicitCasts = options.implicitCasts;
       this._options.nonnullableTypes = options.nonnullableTypes;
       this._options.implicitDynamic = options.implicitDynamic;
@@ -367,6 +365,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   DeclaredVariables get declaredVariables => _declaredVariables;
+
+  /**
+   * Set the declared variables to the give collection of declared [variables].
+   */
+  void set declaredVariables(DeclaredVariables variables) {
+    _declaredVariables = variables;
+  }
 
   @deprecated
   @override
@@ -443,7 +448,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   /**
    * Make _pendingFutureSources available to unit tests.
    */
-  HashMap<AnalysisTarget, List<PendingFuture>>
+  Map<AnalysisTarget, List<PendingFuture>>
       get pendingFutureSources_forTesting => _pendingFutureTargets;
 
   @override
@@ -700,8 +705,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  Object/*=V*/ computeResult/*<V>*/(
-      AnalysisTarget target, ResultDescriptor/*<V>*/ descriptor) {
+  V computeResult<V>(AnalysisTarget target, ResultDescriptor<V> descriptor) {
     // Make sure we are not trying to invoke the task model in a reentrant
     // fashion.
     assert(!driver.isTaskRunning);
@@ -841,8 +845,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @deprecated
   @override
-  Object/*=V*/ getConfigurationData/*<V>*/(ResultDescriptor/*<V>*/ key) =>
-      (_configurationData[key] ?? key?.defaultValue) as Object/*=V*/;
+  V getConfigurationData<V>(ResultDescriptor<V> key) =>
+      (_configurationData[key] ?? key?.defaultValue) as V;
 
   @override
   TimestampedData<String> getContents(Source source) {
@@ -1026,8 +1030,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  Object/*=V*/ getResult/*<V>*/(
-      AnalysisTarget target, ResultDescriptor/*<V>*/ result) {
+  V getResult<V>(AnalysisTarget target, ResultDescriptor<V> result) {
     return _cache.getValue(target, result);
   }
 
@@ -1174,7 +1177,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   AnalysisResult performAnalysisTask() {
-    return PerformanceStatistics.performAnalysis.makeCurrentWhile(() {
+    return PerformanceStatistics.analysis.makeCurrentWhile(() {
       _evaluatePendingFutures();
       bool done = !driver.performAnalysisTask();
       List<ChangeNotice> notices = _getChangeNotices(done);
@@ -1662,7 +1665,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     AnalysisEngine.instance.logger.logInformation(message);
   }
 
-  bool _notEqual/*<T>*/(List/*<T>*/ first, List/*<T>*/ second) {
+  bool _notEqual<T>(List<T> first, List<T> second) {
     int length = first.length;
     if (length != second.length) {
       return true;
@@ -1953,7 +1956,7 @@ class PartitionManager {
   /**
    * A table mapping SDK's to the partitions used for those SDK's.
    */
-  HashMap<DartSdk, SdkCachePartition> _sdkPartitions =
+  Map<DartSdk, SdkCachePartition> _sdkPartitions =
       new HashMap<DartSdk, SdkCachePartition>();
 
   /**

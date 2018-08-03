@@ -6,3 +6,4 @@ main() {
 class SomethingInOther {}
 
 // Note: This test relies on LF line endings in the source file.
+// It requires an entry in the .gitattributes file.

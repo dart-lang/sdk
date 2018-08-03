@@ -2,15 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:core' hide Symbol;
+/// Note: the VM concatenates all patch files into a single patch file. This
+/// file is the first patch in "dart:_internal" which contains all the imports
+/// used by patches of that library. We plan to change this when we have a
+/// shared front end and simply use parts.
+
+import "dart:core" hide Symbol;
+
+import "dart:typed_data" show Int32List;
+
+/// These are the additional parts of this patch library:
+// part "class_id_fasta.dart";
+// part "print_patch.dart";
+// part "symbol_patch.dart";
 
 @patch
-List makeListFixedLength(List growableList)
+List<T> makeListFixedLength<T>(List<T> growableList)
     native "Internal_makeListFixedLength";
 
 @patch
-List makeFixedListUnmodifiable(List fixedLengthList)
+List<T> makeFixedListUnmodifiable<T>(List<T> fixedLengthList)
     native "Internal_makeFixedListUnmodifiable";
+
+@patch
+Object extractTypeArguments<T>(T instance, Function extract)
+    native "Internal_extractTypeArguments";
 
 class VMLibraryHooks {
   // Example: "dart:isolate _Timer._factory"
@@ -33,7 +49,19 @@ class VMLibraryHooks {
   static var packageConfigUriFuture;
   static var resolvePackageUriFuture;
 
-  static var platformScript;
+  static var _computeScriptUri;
+  static var _cachedScript;
+  static set platformScript(var f) {
+    _computeScriptUri = f;
+    _cachedScript = null;
+  }
+
+  static get platformScript {
+    if (_cachedScript == null && _computeScriptUri != null) {
+      _cachedScript = _computeScriptUri();
+    }
+    return _cachedScript;
+  }
 }
 
 final bool is64Bit = _inquireIs64Bit();
@@ -63,4 +91,20 @@ class Lists {
       }
     }
   }
+}
+
+// Prepend the parent type arguments (maybe null) of length 'parentLen' to the
+// function type arguments (may be null). The result is null if both input
+// vectors are null or is a newly allocated and canonicalized vector of length
+// 'totalLen'.
+_prependTypeArguments(functionTypeArguments, parentTypeArguments, parentLen,
+    totalLen) native "Internal_prependTypeArguments";
+
+// Called by IRRegExpMacroAssembler::GrowStack.
+Int32List _growRegExpStack(Int32List stack) {
+  final newStack = new Int32List(stack.length * 2);
+  for (int i = 0; i < stack.length; i++) {
+    newStack[i] = stack[i];
+  }
+  return newStack;
 }

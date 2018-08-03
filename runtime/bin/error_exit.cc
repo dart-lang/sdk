@@ -4,10 +4,10 @@
 
 #include "bin/error_exit.h"
 
+#include "bin/eventhandler.h"
 #include "bin/log.h"
 #include "bin/platform.h"
 #include "bin/process.h"
-#include "bin/eventhandler.h"
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
@@ -21,7 +21,6 @@ void ErrorExit(int exit_code, const char* format, ...) {
   Log::VPrintErr(format, arguments);
   va_end(arguments);
 
-  Dart_ExitScope();
   Dart_ShutdownIsolate();
 
   // Terminate process exit-code handler.

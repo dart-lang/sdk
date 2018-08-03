@@ -1,0 +1,20 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object = dynamic> extends core::Object {
+  field self::C::T t = null;
+  constructor _() → void
+    : super core::Object::•()
+    ;
+  static factory •<T extends core::Object = dynamic>(self::C::•::T t) → self::C<self::C::•::T> {
+    dynamic x = new self::C::_<self::C::•::T>();
+    x.t = t;
+    return x;
+  }
+}
+static method test() → dynamic {
+  dynamic x = self::C::•<dynamic>(42);
+  x.t = "hello";
+}
+static method main() → dynamic {}

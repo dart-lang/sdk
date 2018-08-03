@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef A<T extends core::Object = dynamic> = (T) → dynamic;
+class C extends core::Object {
+  synthetic constructor •() → void
+    ;
+  method foo() → dynamic
+    ;
+}
+static method main() → dynamic
+  ;

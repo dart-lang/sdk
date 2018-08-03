@@ -10,11 +10,14 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol
     hide CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /**
  * A completion contributor used to suggest replacing partial identifiers inside
@@ -24,6 +27,8 @@ class OverrideContributor implements DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     SimpleIdentifier targetId = _getTargetId(request.target);
     if (targetId == null) {
       return EMPTY_LIST;
@@ -48,7 +53,7 @@ class OverrideContributor implements DartCompletionContributor {
       // Gracefully degrade if the overridden element has not been resolved.
       if (element.returnType != null) {
         CompletionSuggestion suggestion =
-            _buildSuggestion(request, targetId, element);
+            await _buildSuggestion(request, targetId, element);
         if (suggestion != null) {
           suggestions.add(suggestion);
         }
@@ -58,44 +63,65 @@ class OverrideContributor implements DartCompletionContributor {
   }
 
   /**
-   * Return a template for an override of the given [element] in the given
-   * [source]. If selected, the template will replace [targetId].
+   * Return a template for an override of the given [element]. If selected, the
+   * template will replace [targetId].
    */
-  String _buildRepacementText(Source source, SimpleIdentifier targetId,
-      CompilationUnit unit, ExecutableElement element) {
-    // AnalysisContext context = element.context;
-    // Inject partially resolved unit for use by change builder
-    // DartChangeBuilder builder = new DartChangeBuilder(context, unit);
-    // builder.addFileEdit(source, context.getModificationStamp(source),
-    //     (DartFileEditBuilder builder) {
-    //   builder.addReplacement(targetId.offset, targetId.length,
-    //       (DartEditBuilder builder) {
-    //     builder.writeOverrideOfInheritedMember(element);
-    //   });
-    // });
-    // return builder.sourceChange.edits[0].edits[0].replacement.trim();
-    return '';
+  Future<DartChangeBuilder> _buildReplacementText(
+      AnalysisResult result,
+      SimpleIdentifier targetId,
+      ExecutableElement element,
+      StringBuffer displayTextBuffer) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    DartChangeBuilder builder =
+        new DartChangeBuilder(result.driver.currentSession);
+    await builder.addFileEdit(result.path, (DartFileEditBuilder builder) {
+      builder.addReplacement(range.node(targetId), (DartEditBuilder builder) {
+        builder.writeOverrideOfInheritedMember(element,
+            displayTextBuffer: displayTextBuffer);
+      });
+    });
+    return builder;
   }
 
   /**
    * Build a suggestion to replace [targetId] in the given [unit]
    * with an override of the given [element].
    */
-  CompletionSuggestion _buildSuggestion(DartCompletionRequest request,
-      SimpleIdentifier targetId, ExecutableElement element) {
-    String completion = _buildRepacementText(
-        request.source, targetId, request.target.unit, element);
-    if (completion == null || completion.length == 0) {
+  Future<CompletionSuggestion> _buildSuggestion(DartCompletionRequest request,
+      SimpleIdentifier targetId, ExecutableElement element) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    StringBuffer displayTextBuffer = new StringBuffer();
+    DartChangeBuilder builder = await _buildReplacementText(
+        request.result, targetId, element, displayTextBuffer);
+    String replacement = builder.sourceChange.edits[0].edits[0].replacement;
+    String completion = replacement.trim();
+    String overrideAnnotation = '@override';
+    if (_hasOverride(request.target.containingNode) &&
+        completion.startsWith(overrideAnnotation)) {
+      completion = completion.substring(overrideAnnotation.length).trim();
+    }
+    if (completion.length == 0) {
       return null;
     }
+
+    SourceRange selectionRange = builder.selectionRange;
+    if (selectionRange == null) {
+      return null;
+    }
+    int offsetDelta = targetId.offset + replacement.indexOf(completion);
+    String displayText =
+        displayTextBuffer.isNotEmpty ? displayTextBuffer.toString() : null;
     CompletionSuggestion suggestion = new CompletionSuggestion(
-        CompletionSuggestionKind.IDENTIFIER,
+        CompletionSuggestionKind.OVERRIDE,
         DART_RELEVANCE_HIGH,
         completion,
-        targetId.offset,
-        0,
-        element.isDeprecated,
-        false);
+        selectionRange.offset - offsetDelta,
+        selectionRange.length,
+        element.hasDeprecated,
+        false,
+        displayText: displayText);
     suggestion.element = protocol.convertElement(element);
     return suggestion;
   }
@@ -125,13 +151,33 @@ class OverrideContributor implements DartCompletionContributor {
     if (node is ClassDeclaration) {
       Object entity = target.entity;
       if (entity is FieldDeclaration) {
-        NodeList<VariableDeclaration> variables = entity.fields.variables;
-        if (variables.length == 1) {
-          SimpleIdentifier targetId = variables[0].name;
-          if (targetId.name.isEmpty) {
-            return targetId;
-          }
-        }
+        return _getTargetIdFromVarList(entity.fields);
+      }
+    } else if (node is FieldDeclaration) {
+      Object entity = target.entity;
+      if (entity is VariableDeclarationList) {
+        return _getTargetIdFromVarList(entity);
+      }
+    }
+    return null;
+  }
+
+  SimpleIdentifier _getTargetIdFromVarList(VariableDeclarationList fields) {
+    NodeList<VariableDeclaration> variables = fields.variables;
+    if (variables.length == 1) {
+      VariableDeclaration variable = variables[0];
+      SimpleIdentifier targetId = variable.name;
+      if (targetId.name.isEmpty) {
+        // analyzer parser
+        // Actual: class C { foo^ }
+        // Parsed: class C { foo^ _s_ }
+        //   where _s_ is a synthetic id inserted by the analyzer parser
+        return targetId;
+      } else if (fields.keyword == null &&
+          fields.type == null &&
+          variable.initializer == null) {
+        // fasta parser does not insert a synthetic identifier
+        return targetId;
       }
     }
     return null;
@@ -146,5 +192,21 @@ class OverrideContributor implements DartCompletionContributor {
         classElement.getGetter(memberName) != null ||
         classElement.getMethod(memberName) != null ||
         classElement.getSetter(memberName) != null;
+  }
+
+  /**
+   * Return `true` if the given [node] has an `override` annotation.
+   */
+  bool _hasOverride(AstNode node) {
+    if (node is AnnotatedNode) {
+      NodeList<Annotation> metadata = node.metadata;
+      for (Annotation annotation in metadata) {
+        if (annotation.name.name == 'override' &&
+            annotation.arguments == null) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }

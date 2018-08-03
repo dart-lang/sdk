@@ -18,7 +18,7 @@ bool isClosureFunctionsList(NamedField field) {
   return field.name == 'closure_functions_';
 }
 
-var tests = [
+var tests = <IsolateTest>[
 // Initial data fetch and verify we've hit the breakpoint.
   (Isolate isolate) async {
     await isolate.rootLibrary.load();
@@ -36,9 +36,10 @@ var tests = [
     // Sanity check.
     expect(object_store.fields.length, greaterThanOrEqualTo(1));
     // Checking Closures.
-    expect(object_store.fields.singleWhere(isClosureFunctionsList), isNotNull);
-    expect(object_store.fields.singleWhere(isClosureFunctionsList).value.isList,
-        isTrue);
+    var single = object_store.fields.singleWhere(isClosureFunctionsList);
+    expect(single, isNotNull);
+    var value = single.value as Instance;
+    expect(value.isList, isTrue);
   }
 ];
 

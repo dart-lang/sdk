@@ -4,6 +4,7 @@
 
 library analyzer.test.generated.package_test;
 
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/package.dart';
@@ -35,21 +36,15 @@ class DependencyFinderTest extends ResolverTestCase {
     String packageA = resourceProvider.convertPath('/pub-cache/a-1.0');
     String packageB = resourceProvider.convertPath('/pub-cache/b-1.0');
     String packageC = resourceProvider.convertPath('/pub-cache/c-1.0');
-    resourceProvider.newFile(
-        '$packageA/$pubspecName',
-        '''
+    resourceProvider.newFile('$packageA/$pubspecName', '''
     dependencies:
       b: any
     ''');
-    resourceProvider.newFile(
-        '$packageB/$pubspecName',
-        '''
+    resourceProvider.newFile('$packageB/$pubspecName', '''
     dependencies:
       c: any
     ''');
-    resourceProvider.newFile(
-        '$packageC/$pubspecName',
-        '''
+    resourceProvider.newFile('$packageC/$pubspecName', '''
     dependencies:
       a: any
     ''');
@@ -73,7 +68,7 @@ class DependencyFinderTest extends ResolverTestCase {
 
     DependencyFinder finder = new DependencyFinder(resourceProvider);
     expect(() => finder.transitiveDependenciesFor(packageMap, packagePath),
-        throws);
+        throwsA(new TypeMatcher<AnalysisException>()));
   }
 
   void test_transitiveDependenciesFor_noDependencies() {
@@ -94,22 +89,16 @@ class DependencyFinderTest extends ResolverTestCase {
     String packageB = resourceProvider.convertPath('/pub-cache/b-1.0');
     String packageC = resourceProvider.convertPath('/pub-cache/c-1.0');
     String packageD = resourceProvider.convertPath('/pub-cache/d-1.0');
-    resourceProvider.newFile(
-        '$packageA/$pubspecName',
-        '''
+    resourceProvider.newFile('$packageA/$pubspecName', '''
     dependencies:
       b: any
       c: any
     ''');
-    resourceProvider.newFile(
-        '$packageB/$pubspecName',
-        '''
+    resourceProvider.newFile('$packageB/$pubspecName', '''
     dependencies:
       d: any
     ''');
-    resourceProvider.newFile(
-        '$packageC/$pubspecName',
-        '''
+    resourceProvider.newFile('$packageC/$pubspecName', '''
     dependencies:
       d: any
     ''');
@@ -131,9 +120,7 @@ class DependencyFinderTest extends ResolverTestCase {
     String packageA = resourceProvider.convertPath('/pub-cache/a-1.0');
     String packageB = resourceProvider.convertPath('/pub-cache/b-1.0');
     String packageC = resourceProvider.convertPath('/pub-cache/c-1.0');
-    resourceProvider.newFile(
-        '$packageA/$pubspecName',
-        '''
+    resourceProvider.newFile('$packageA/$pubspecName', '''
     dependencies:
       b: any
       c: any
@@ -207,9 +194,7 @@ class PackageManagerTest extends ResolverTestCase {
     String packageB1 = resourceProvider.convertPath('/pub-cache/b-1.0');
     String packageB2 = resourceProvider.convertPath('/pub-cache/b-2.0');
     String packageC = resourceProvider.convertPath('/pub-cache/c-1.0');
-    resourceProvider.newFile(
-        '$packageA/$pubspecName',
-        '''
+    resourceProvider.newFile('$packageA/$pubspecName', '''
     dependencies:
       b: any
       c: any
@@ -269,6 +254,5 @@ class _MockPackages implements Packages {
   @override
   Uri resolve(Uri packageUri, {Uri notFound(Uri packageUri)}) {
     fail('Unexpected invocation of resolve');
-    return null;
   }
 }

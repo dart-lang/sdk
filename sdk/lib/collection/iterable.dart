@@ -15,12 +15,25 @@ abstract class IterableMixin<E> implements Iterable<E> {
   // - SetMixin
   // If changing a method here, also change the other copies.
 
+  Iterable<R> cast<R>() => Iterable.castFrom<E, R>(this);
   Iterable<T> map<T>(T f(E element)) => new MappedIterable<E, T>(this, f);
 
   Iterable<E> where(bool f(E element)) => new WhereIterable<E>(this, f);
 
+  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
+
   Iterable<T> expand<T>(Iterable<T> f(E element)) =>
       new ExpandIterable<E, T>(this, f);
+
+  Iterable<E> followedBy(Iterable<E> other) {
+    // Type workaround because IterableMixin<E> doesn't promote
+    // to EfficientLengthIterable<E>.
+    Iterable<E> self = this;
+    if (self is EfficientLengthIterable<E>) {
+      return new FollowedByIterable<E>.firstEfficient(self, other);
+    }
+    return new FollowedByIterable<E>(this, other);
+  }
 
   bool contains(Object element) {
     for (E e in this) {
@@ -76,9 +89,9 @@ abstract class IterableMixin<E> implements Iterable<E> {
     return buffer.toString();
   }
 
-  bool any(bool f(E element)) {
+  bool any(bool test(E element)) {
     for (E element in this) {
-      if (f(element)) return true;
+      if (test(element)) return true;
     }
     return false;
   }
@@ -168,7 +181,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
     throw IterableElementError.noElement();
   }
 
-  E singleWhere(bool test(E value)) {
+  E singleWhere(bool test(E element), {E orElse()}) {
     E result = null;
     bool foundMatching = false;
     for (E element in this) {
@@ -181,6 +194,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
       }
     }
     if (foundMatching) return result;
+    if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
 
@@ -201,7 +215,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
 /**
  * Base class for implementing [Iterable].
  *
- * This class implements all methods of [Iterable] except [Iterable.iterator]
+ * This class implements all methods of [Iterable], except [Iterable.iterator],
  * in terms of `iterator`.
  */
 abstract class IterableBase<E> extends Iterable<E> {
@@ -268,7 +282,7 @@ abstract class IterableBase<E> extends Iterable<E> {
   }
 }
 
-/** A set used to identify cyclic lists during toString() calls. */
+/** A collection used to identify cyclic lists during toString() calls. */
 final List _toStringVisiting = [];
 
 /** Check if we are currently visiting `o` in a toString call. */
@@ -280,7 +294,7 @@ bool _isToStringVisiting(Object o) {
 }
 
 /**
- * Convert elments of [iterable] to strings and store them in [parts].
+ * Convert elements of [iterable] to strings and store them in [parts].
  */
 void _iterablePartsToStrings(Iterable iterable, List parts) {
   /*
@@ -289,32 +303,32 @@ void _iterablePartsToStrings(Iterable iterable, List parts) {
    * inside the try/finally.
    */
   /// Try to stay below this many characters.
-  const int LENGTH_LIMIT = 80;
+  const int lengthLimit = 80;
 
   /// Always at least this many elements at the start.
-  const int HEAD_COUNT = 3;
+  const int headCount = 3;
 
   /// Always at least this many elements at the end.
-  const int TAIL_COUNT = 2;
+  const int tailCount = 2;
 
   /// Stop iterating after this many elements. Iterables can be infinite.
-  const int MAX_COUNT = 100;
+  const int maxCount = 100;
   // Per entry length overhead. It's for ", " for all after the first entry,
   // and for "(" and ")" for the initial entry. By pure luck, that's the same
   // number.
-  const int OVERHEAD = 2;
-  const int ELLIPSIS_SIZE = 3; // "...".length.
+  const int overhead = 2;
+  const int ellipsisSize = 3; // "...".length.
 
   int length = 0;
   int count = 0;
   Iterator it = iterable.iterator;
-  // Initial run of elements, at least HEAD_COUNT, and then continue until
-  // passing at most LENGTH_LIMIT characters.
-  while (length < LENGTH_LIMIT || count < HEAD_COUNT) {
+  // Initial run of elements, at least headCount, and then continue until
+  // passing at most lengthLimit characters.
+  while (length < lengthLimit || count < headCount) {
     if (!it.moveNext()) return;
     String next = "${it.current}";
     parts.add(next);
-    length += next.length + OVERHEAD;
+    length += next.length + overhead;
     count++;
   }
 
@@ -326,40 +340,40 @@ void _iterablePartsToStrings(Iterable iterable, List parts) {
   var penultimate = null;
   var ultimate = null;
   if (!it.moveNext()) {
-    if (count <= HEAD_COUNT + TAIL_COUNT) return;
+    if (count <= headCount + tailCount) return;
     ultimateString = parts.removeLast();
     penultimateString = parts.removeLast();
   } else {
     penultimate = it.current;
     count++;
     if (!it.moveNext()) {
-      if (count <= HEAD_COUNT + 1) {
+      if (count <= headCount + 1) {
         parts.add("$penultimate");
         return;
       }
       ultimateString = "$penultimate";
       penultimateString = parts.removeLast();
-      length += ultimateString.length + OVERHEAD;
+      length += ultimateString.length + overhead;
     } else {
       ultimate = it.current;
       count++;
       // Then keep looping, keeping the last two elements in variables.
-      assert(count < MAX_COUNT);
+      assert(count < maxCount);
       while (it.moveNext()) {
         penultimate = ultimate;
         ultimate = it.current;
         count++;
-        if (count > MAX_COUNT) {
-          // If we haven't found the end before MAX_COUNT, give up.
+        if (count > maxCount) {
+          // If we haven't found the end before maxCount, give up.
           // This cannot happen in the code above because each entry
           // increases length by at least two, so there is no way to
           // visit more than ~40 elements before this loop.
 
           // Remove any surplus elements until length, including ", ...)",
-          // is at most LENGTH_LIMIT.
-          while (length > LENGTH_LIMIT - ELLIPSIS_SIZE - OVERHEAD &&
-              count > HEAD_COUNT) {
-            length -= parts.removeLast().length + OVERHEAD;
+          // is at most lengthLimit.
+          while (length > lengthLimit - ellipsisSize - overhead &&
+              count > headCount) {
+            length -= parts.removeLast().length + overhead;
             count--;
           }
           parts.add("...");
@@ -368,26 +382,26 @@ void _iterablePartsToStrings(Iterable iterable, List parts) {
       }
       penultimateString = "$penultimate";
       ultimateString = "$ultimate";
-      length += ultimateString.length + penultimateString.length + 2 * OVERHEAD;
+      length += ultimateString.length + penultimateString.length + 2 * overhead;
     }
   }
 
   // If there is a gap between the initial run and the last two,
   // prepare to add an ellipsis.
   String elision = null;
-  if (count > parts.length + TAIL_COUNT) {
+  if (count > parts.length + tailCount) {
     elision = "...";
-    length += ELLIPSIS_SIZE + OVERHEAD;
+    length += ellipsisSize + overhead;
   }
 
   // If the last two elements were very long, and we have more than
-  // HEAD_COUNT elements in the initial run, drop some to make room for
+  // headCount elements in the initial run, drop some to make room for
   // the last two.
-  while (length > LENGTH_LIMIT && parts.length > HEAD_COUNT) {
-    length -= parts.removeLast().length + OVERHEAD;
+  while (length > lengthLimit && parts.length > headCount) {
+    length -= parts.removeLast().length + overhead;
     if (elision == null) {
       elision = "...";
-      length += ELLIPSIS_SIZE + OVERHEAD;
+      length += ellipsisSize + overhead;
     }
   }
   if (elision != null) {

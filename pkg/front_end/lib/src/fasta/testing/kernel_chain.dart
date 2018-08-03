@@ -13,33 +13,46 @@ import 'dart:io' show Directory, File, IOSink;
 
 import 'dart:typed_data' show Uint8List;
 
-import 'package:kernel/kernel.dart' show loadProgramFromBinary;
-
-import 'package:kernel/text/ast_to_text.dart' show Printer;
-
-import 'package:testing/testing.dart' show Result, StdioProcess, Step;
-
-import 'package:kernel/ast.dart' show Library, Program;
-
-import '../kernel/verifier.dart' show verifyProgram;
+import 'package:kernel/ast.dart'
+    show Component, Field, Library, ListLiteral, StringLiteral;
 
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
+import 'package:kernel/error_formatter.dart' show ErrorFormatter;
+
+import 'package:kernel/kernel.dart' show loadComponentFromBinary;
+
+import 'package:kernel/naive_type_checker.dart' show StrongModeTypeChecker;
+
+import 'package:kernel/target/targets.dart' show Target;
+
+import 'package:kernel/text/ast_to_text.dart' show Printer;
+
 import 'package:testing/testing.dart'
-    show ChainContext, Result, StdioProcess, Step;
+    show ChainContext, Result, StdioProcess, Step, TestDescription;
 
-import 'package:kernel/ast.dart' show Program;
+import 'package:front_end/src/api_prototype/front_end.dart';
 
-class Print extends Step<Program, Program, ChainContext> {
+import 'package:front_end/src/base/processed_options.dart'
+    show ProcessedOptions;
+
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
+
+import '../compiler_context.dart';
+
+import '../kernel/verifier.dart' show verifyComponent;
+
+class Print extends Step<Component, Component, ChainContext> {
   const Print();
 
   String get name => "print";
 
-  Future<Result<Program>> run(Program program, _) async {
+  Future<Result<Component>> run(Component component, _) async {
     StringBuffer sb = new StringBuffer();
-    for (Library library in program.libraries) {
+    for (Library library in component.libraries) {
       Printer printer = new Printer(sb);
       if (library.importUri.scheme != "dart" &&
           library.importUri.scheme != "package") {
@@ -47,29 +60,59 @@ class Print extends Step<Program, Program, ChainContext> {
       }
     }
     print("$sb");
-    return pass(program);
+    return pass(component);
   }
 }
 
-class Verify extends Step<Program, Program, ChainContext> {
+class Verify extends Step<Component, Component, ChainContext> {
   final bool fullCompile;
 
   const Verify(this.fullCompile);
 
   String get name => "verify";
 
-  Future<Result<Program>> run(Program program, ChainContext context) async {
-    var errors = verifyProgram(program, isOutline: !fullCompile);
-    if (errors.isEmpty) {
-      return pass(program);
+  Future<Result<Component>> run(
+      Component component, ChainContext context) async {
+    var options = new ProcessedOptions(new CompilerOptions());
+    return await CompilerContext.runWithOptions(options, (_) async {
+      var errors = verifyComponent(component,
+          isOutline: !fullCompile, skipPlatform: true);
+      if (errors.isEmpty) {
+        return pass(component);
+      } else {
+        return new Result<Component>(
+            null, context.expectationSet["VerificationError"], errors, null);
+      }
+    });
+  }
+}
+
+class TypeCheck extends Step<Component, Component, ChainContext> {
+  const TypeCheck();
+
+  String get name => "typeCheck";
+
+  Future<Result<Component>> run(
+      Component component, ChainContext context) async {
+    var errorFormatter = new ErrorFormatter();
+    var checker =
+        new StrongModeTypeChecker(errorFormatter, component, ignoreSdk: true);
+    checker.checkComponent(component);
+    if (errorFormatter.numberOfFailures == 0) {
+      return pass(component);
     } else {
-      return new Result<Program>(
-          null, context.expectationSet["VerificationError"], errors, null);
+      errorFormatter.failures.forEach(print);
+      print('------- Found ${errorFormatter.numberOfFailures} errors -------');
+      return new Result<Component>(
+          null,
+          context.expectationSet["TypeCheckError"],
+          '${errorFormatter.numberOfFailures} type errors',
+          null);
     }
   }
 }
 
-class MatchExpectation extends Step<Program, Program, ChainContext> {
+class MatchExpectation extends Step<Component, Component, ChainContext> {
   final String suffix;
 
   // TODO(ahe): This is true by default which doesn't match well with the class
@@ -80,55 +123,69 @@ class MatchExpectation extends Step<Program, Program, ChainContext> {
 
   String get name => "match expectations";
 
-  Future<Result<Program>> run(Program program, _) async {
-    Library library = program.libraries
+  Future<Result<Component>> run(Component component, _) async {
+    Library library = component.libraries
         .firstWhere((Library library) => library.importUri.scheme != "dart");
     Uri uri = library.importUri;
+    Uri base = uri.resolve(".");
+    Uri dartBase = Uri.base;
     StringBuffer buffer = new StringBuffer();
-    new Printer(buffer).writeLibraryFile(library);
-
+    for (Field field in library.fields) {
+      if (field.name.name != "#errors") continue;
+      ListLiteral list = field.initializer;
+      buffer.write("// Errors:");
+      for (StringLiteral string in list.expressions) {
+        buffer.write("\n//");
+        for (String line in string.value.split("\n")) {
+          buffer.write("\n// $line");
+        }
+      }
+      buffer.write("\n\n");
+    }
+    new ErrorPrinter(buffer).writeLibraryFile(library);
+    String actual = "$buffer".replaceAll("$base", "org-dartlang-testcase:///");
+    actual = actual.replaceAll("$dartBase", "org-dartlang-testcase-sdk:///");
+    actual = actual.replaceAll("\\n", "\n");
     File expectedFile = new File("${uri.toFilePath()}$suffix");
     if (await expectedFile.exists()) {
       String expected = await expectedFile.readAsString();
-      if (expected.trim() != "$buffer".trim()) {
+      if (expected.trim() != actual.trim()) {
         if (!updateExpectations) {
-          String diff = await runDiff(expectedFile.uri, "$buffer");
+          String diff = await runDiff(expectedFile.uri, actual);
           return fail(null, "$uri doesn't match ${expectedFile.uri}\n$diff");
         }
       } else {
-        return pass(program);
+        return pass(component);
       }
     }
     if (updateExpectations) {
       await openWrite(expectedFile.uri, (IOSink sink) {
-        sink.writeln("$buffer".trim());
+        sink.writeln(actual.trim());
       });
-      return pass(program);
+      return pass(component);
     } else {
-      return fail(
-          program,
-          """
+      return fail(component, """
 Please create file ${expectedFile.path} with this content:
-$buffer""");
+$actual""");
     }
   }
 }
 
-class WriteDill extends Step<Program, Uri, ChainContext> {
+class WriteDill extends Step<Component, Uri, ChainContext> {
   const WriteDill();
 
   String get name => "write .dill";
 
-  Future<Result<Uri>> run(Program program, _) async {
+  Future<Result<Uri>> run(Component component, _) async {
     Directory tmp = await Directory.systemTemp.createTemp();
     Uri uri = tmp.uri.resolve("generated.dill");
     File generated = new File.fromUri(uri);
     IOSink sink = generated.openWrite();
     try {
       try {
-        new BinaryPrinter(sink).writeProgramFile(program);
+        new BinaryPrinter(sink).writeComponentFile(component);
       } finally {
-        program.unbindCanonicalNames();
+        component.unbindCanonicalNames();
       }
     } catch (e, s) {
       return fail(uri, e, s);
@@ -147,7 +204,7 @@ class ReadDill extends Step<Uri, Uri, ChainContext> {
 
   Future<Result<Uri>> run(Uri uri, _) async {
     try {
-      loadProgramFromBinary(uri.toFilePath());
+      loadComponentFromBinary(uri.toFilePath());
     } catch (e, s) {
       return fail(uri, e, s);
     }
@@ -155,19 +212,63 @@ class ReadDill extends Step<Uri, Uri, ChainContext> {
   }
 }
 
-class Copy extends Step<Program, Program, ChainContext> {
+class Copy extends Step<Component, Component, ChainContext> {
   const Copy();
 
-  String get name => "copy program";
+  String get name => "copy component";
 
-  Future<Result<Program>> run(Program program, _) async {
+  Future<Result<Component>> run(Component component, _) async {
     BytesCollector sink = new BytesCollector();
-    new BinaryPrinter(sink).writeProgramFile(program);
-    program.unbindCanonicalNames();
+    new BinaryPrinter(sink).writeComponentFile(component);
+    component.unbindCanonicalNames();
     Uint8List bytes = sink.collect();
-    new BinaryBuilder(bytes).readProgram(program);
-    return pass(program);
+    new BinaryBuilder(bytes).readComponent(component);
+    return pass(component);
   }
+}
+
+/// A `package:testing` step that runs the `package:front_end` compiler to
+/// generate a kernel component for an individual file.
+///
+/// Most options are hard-coded, but if necessary they could be moved to the
+/// [CompileContext] object in the future.
+class Compile extends Step<TestDescription, Component, CompileContext> {
+  const Compile();
+
+  String get name => "fasta compilation";
+
+  Future<Result<Component>> run(
+      TestDescription description, CompileContext context) async {
+    Result<Component> result;
+    reportError(CompilationMessage error) {
+      result ??= fail(null, error.message);
+    }
+
+    Uri sdk = Uri.base.resolve("sdk/");
+    var options = new CompilerOptions()
+      ..sdkRoot = sdk
+      ..compileSdk = true
+      ..packagesFileUri = Uri.base.resolve('.packages')
+      ..strongMode = context.strongMode
+      ..onError = reportError;
+    if (context.target != null) {
+      options.target = context.target;
+      // Do not link platform.dill, but recompile the platform libraries. This
+      // ensures that if target defines extra libraries that those get included
+      // too.
+    } else {
+      options.linkedDependencies = [
+        computePlatformBinariesLocation().resolve("vm_platform.dill"),
+      ];
+    }
+    Component p = await kernelForProgram(description.uri, options);
+    return result ??= pass(p);
+  }
+}
+
+abstract class CompileContext implements ChainContext {
+  bool get strongMode;
+  Target get target;
 }
 
 class BytesCollector implements Sink<List<int>> {
@@ -195,13 +296,13 @@ class BytesCollector implements Sink<List<int>> {
 }
 
 Future<String> runDiff(Uri expected, String actual) async {
-  // TODO(ahe): Implement this for Windows.
-  StdioProcess process = await StdioProcess
-      .run("diff", <String>["-u", expected.toFilePath(), "-"], input: actual);
+  StdioProcess process = await StdioProcess.run(
+      "git", <String>["diff", "--no-index", "-u", expected.toFilePath(), "-"],
+      input: actual, runInShell: true);
   return process.output;
 }
 
-Future openWrite(Uri uri, f(IOSink sink)) async {
+Future<void> openWrite(Uri uri, f(IOSink sink)) async {
   IOSink sink = new File.fromUri(uri).openWrite();
   try {
     await f(sink);
@@ -209,4 +310,31 @@ Future openWrite(Uri uri, f(IOSink sink)) async {
     await sink.close();
   }
   print("Wrote $uri");
+}
+
+class ErrorPrinter extends Printer {
+  ErrorPrinter(StringSink sink, {Object importTable, Object metadata})
+      : super(sink, importTable: importTable, metadata: metadata);
+
+  ErrorPrinter._inner(ErrorPrinter parent, Object importTable, Object metadata)
+      : super(parent.sink,
+            importTable: importTable,
+            metadata: metadata,
+            syntheticNames: parent.syntheticNames,
+            annotator: parent.annotator,
+            showExternal: parent.showExternal,
+            showOffsets: parent.showOffsets,
+            showMetadata: parent.showMetadata);
+
+  @override
+  ErrorPrinter createInner(importTable, metadata) {
+    return new ErrorPrinter._inner(this, importTable, metadata);
+  }
+
+  @override
+  visitField(Field node) {
+    if (node.name.name != "#errors") {
+      super.visitField(node);
+    }
+  }
 }

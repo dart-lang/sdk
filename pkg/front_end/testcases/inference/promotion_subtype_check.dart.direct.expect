@@ -1,0 +1,17 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method f(core::Object x) → void {
+  if(x is core::int) {
+    if(x{core::int} is core::String) {
+      dynamic y = x{core::int};
+    }
+  }
+}
+static method g(core::int x) → void {
+  if(x is core::String) {
+    dynamic y = x;
+  }
+}
+static method main() → dynamic {}

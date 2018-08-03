@@ -28,7 +28,6 @@ static void RangeCheck(intptr_t offset_in_bytes,
   }
 }
 
-
 // Checks to see if a length will not result in an OOM error.
 static void LengthCheck(intptr_t len, intptr_t max) {
   if (len < 0 || len > max) {
@@ -37,7 +36,6 @@ static void LengthCheck(intptr_t len, intptr_t max) {
     Exceptions::ThrowArgumentError(error);
   }
 }
-
 
 DEFINE_NATIVE_ENTRY(TypedData_length, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0));
@@ -54,7 +52,6 @@ DEFINE_NATIVE_ENTRY(TypedData_length, 1) {
   Exceptions::ThrowArgumentError(error);
   return Integer::null();
 }
-
 
 template <typename DstType, typename SrcType>
 static RawBool* CopyData(const Instance& dst,
@@ -83,7 +80,6 @@ static RawBool* CopyData(const Instance& dst,
   return Bool::True().raw();
 }
 
-
 static bool IsClamped(intptr_t cid) {
   switch (cid) {
     case kTypedDataUint8ClampedArrayCid:
@@ -94,7 +90,6 @@ static bool IsClamped(intptr_t cid) {
       return false;
   }
 }
-
 
 static bool IsUint8(intptr_t cid) {
   switch (cid) {
@@ -109,7 +104,6 @@ static bool IsUint8(intptr_t cid) {
       return false;
   }
 }
-
 
 DEFINE_NATIVE_ENTRY(TypedData_setRange, 7) {
   const Instance& dst = Instance::CheckedHandle(arguments->NativeArgAt(0));
@@ -150,7 +144,6 @@ DEFINE_NATIVE_ENTRY(TypedData_setRange, 7) {
   return Bool::False().raw();
 }
 
-
 // We check the length parameter against a possible maximum length for the
 // array based on available physical addressable memory on the system. The
 // maximum possible length is a scaled value of kSmiMax which is set up based
@@ -166,9 +159,7 @@ DEFINE_NATIVE_ENTRY(TypedData_setRange, 7) {
     return TypedData::New(cid, len);                                           \
   }
 
-
 #define TYPED_DATA_NEW_NATIVE(name) TYPED_DATA_NEW(name)
-
 
 CLASS_LIST_TYPED_DATA(TYPED_DATA_NEW_NATIVE)
 
@@ -195,7 +186,6 @@ CLASS_LIST_TYPED_DATA(TYPED_DATA_NEW_NATIVE)
     Exceptions::ThrowArgumentError(error);                                     \
     return object::null();                                                     \
   }
-
 
 #define TYPED_DATA_SETTER(setter, object, get_object_value, access_size,       \
                           access_type)                                         \
@@ -249,122 +239,5 @@ TYPED_DATA_NATIVES(Float64, Double, New, value, 8, double)
 TYPED_DATA_NATIVES(Float32x4, Float32x4, New, value, 16, simd128_value_t)
 TYPED_DATA_NATIVES(Int32x4, Int32x4, New, value, 16, simd128_value_t)
 TYPED_DATA_NATIVES(Float64x2, Float64x2, New, value, 16, simd128_value_t)
-
-
-DEFINE_NATIVE_ENTRY(ByteData_ToEndianInt16, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, host_value, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Bool, little_endian, arguments->NativeArgAt(1));
-  int16_t value = host_value.Value();
-  if (little_endian.value()) {
-    value = Utils::HostToLittleEndian16(value);
-  } else {
-    value = Utils::HostToBigEndian16(value);
-  }
-  return Smi::New(value);
-}
-
-
-DEFINE_NATIVE_ENTRY(ByteData_ToEndianUint16, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, host_value, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Bool, little_endian, arguments->NativeArgAt(1));
-  uint16_t value = host_value.Value();
-  if (little_endian.value()) {
-    return Smi::New(Utils::HostToLittleEndian16(value));
-  }
-  return Smi::New(Utils::HostToBigEndian16(value));
-}
-
-
-DEFINE_NATIVE_ENTRY(ByteData_ToEndianInt32, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, host_value, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Bool, little_endian, arguments->NativeArgAt(1));
-  ASSERT((host_value.AsInt64Value() >= kMinInt32) ||
-         (host_value.AsInt64Value() <= kMaxInt32));
-  int32_t value = static_cast<int32_t>(host_value.AsInt64Value());
-  if (little_endian.value()) {
-    value = Utils::HostToLittleEndian32(value);
-  } else {
-    value = Utils::HostToBigEndian32(value);
-  }
-  return Integer::New(value);
-}
-
-
-DEFINE_NATIVE_ENTRY(ByteData_ToEndianUint32, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, host_value, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Bool, little_endian, arguments->NativeArgAt(1));
-  ASSERT(host_value.AsInt64Value() <= kMaxUint32);
-  uint32_t value = static_cast<uint32_t>(host_value.AsInt64Value());
-  if (little_endian.value()) {
-    value = Utils::HostToLittleEndian32(value);
-  } else {
-    value = Utils::HostToBigEndian32(value);
-  }
-  return Integer::New(value);
-}
-
-
-DEFINE_NATIVE_ENTRY(ByteData_ToEndianInt64, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, host_value, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Bool, little_endian, arguments->NativeArgAt(1));
-  int64_t value = host_value.AsInt64Value();
-  if (little_endian.value()) {
-    value = Utils::HostToLittleEndian64(value);
-  } else {
-    value = Utils::HostToBigEndian64(value);
-  }
-  return Integer::New(value);
-}
-
-
-DEFINE_NATIVE_ENTRY(ByteData_ToEndianUint64, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, host_value, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Bool, little_endian, arguments->NativeArgAt(1));
-  uint64_t value;
-  if (host_value.IsBigint()) {
-    const Bigint& bigint = Bigint::Cast(host_value);
-    ASSERT(bigint.FitsIntoUint64());
-    value = bigint.AsUint64Value();
-  } else {
-    ASSERT(host_value.IsMint() || host_value.IsSmi());
-    value = host_value.AsInt64Value();
-  }
-  if (little_endian.value()) {
-    value = Utils::HostToLittleEndian64(value);
-  } else {
-    value = Utils::HostToBigEndian64(value);
-  }
-  return Integer::NewFromUint64(value);
-}
-
-
-DEFINE_NATIVE_ENTRY(ByteData_ToEndianFloat32, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Double, host_value, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Bool, little_endian, arguments->NativeArgAt(1));
-  float value = host_value.value();
-  if (little_endian.value()) {
-    value =
-        bit_cast<float>(Utils::HostToLittleEndian32(bit_cast<uint32_t>(value)));
-  } else {
-    value =
-        bit_cast<float>(Utils::HostToBigEndian32(bit_cast<uint32_t>(value)));
-  }
-  return Double::New(value);
-}
-
-
-DEFINE_NATIVE_ENTRY(ByteData_ToEndianFloat64, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Double, host_value, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Bool, little_endian, arguments->NativeArgAt(1));
-  double value = host_value.value();
-  if (little_endian.value()) {
-    value = bit_cast<double>(
-        Utils::HostToLittleEndian64(bit_cast<uint64_t>(value)));
-  } else {
-    value =
-        bit_cast<double>(Utils::HostToBigEndian64(bit_cast<uint64_t>(value)));
-  }
-  return Double::New(value);
-}
 
 }  // namespace dart

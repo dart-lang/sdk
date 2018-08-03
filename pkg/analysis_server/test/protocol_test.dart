@@ -6,10 +6,11 @@ import 'dart:convert';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import 'constants.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -19,8 +20,6 @@ main() {
     defineReflectiveTests(ResponseTest);
   });
 }
-
-Matcher _throwsRequestFailure = throwsA(new isInstanceOf<RequestFailure>());
 
 @reflectiveTest
 class InvalidParameterResponseMatcher extends Matcher {
@@ -124,8 +123,8 @@ class RequestErrorTest {
 class RequestTest {
   void test_fromJson() {
     Request original = new Request('one', 'aMethod');
-    String json = JSON.encode(original.toJson());
-    Request request = new Request.fromString(json);
+    String jsonData = json.encode(original.toJson());
+    Request request = new Request.fromString(jsonData);
     expect(request.id, equals('one'));
     expect(request.method, equals('aMethod'));
     expect(request.clientRequestTime, isNull);
@@ -156,15 +155,15 @@ class RequestTest {
     Map<String, Object> map = original.toJson();
     // Insert bad value - should be int but client sent string instead
     map[Request.CLIENT_REQUEST_TIME] = '347';
-    String json = JSON.encode(map);
-    Request request = new Request.fromString(json);
+    String jsonData = json.encode(map);
+    Request request = new Request.fromString(jsonData);
     expect(request, isNull);
   }
 
   void test_fromJson_withClientTime() {
     Request original = new Request('one', 'aMethod', null, 347);
-    String json = JSON.encode(original.toJson());
-    Request request = new Request.fromString(json);
+    String jsonData = json.encode(original.toJson());
+    Request request = new Request.fromString(jsonData);
     expect(request.id, equals('one'));
     expect(request.method, equals('aMethod'));
     expect(request.clientRequestTime, 347);
@@ -172,8 +171,8 @@ class RequestTest {
 
   void test_fromJson_withParams() {
     Request original = new Request('one', 'aMethod', {'foo': 'bar'});
-    String json = JSON.encode(original.toJson());
-    Request request = new Request.fromString(json);
+    String jsonData = json.encode(original.toJson());
+    Request request = new Request.fromString(jsonData);
     expect(request.id, equals('one'));
     expect(request.method, equals('aMethod'));
     expect(request.toJson()['params'], equals({'foo': 'bar'}));

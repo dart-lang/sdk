@@ -14,8 +14,12 @@ main() async {
     'scan',
     'kernel_gen_e2e',
   ];
-  var inputFile = Platform.script.resolve('../lib/file_system.dart').path;
+  var inputFile =
+      Platform.script.resolve('../lib/src/api_prototype/file_system.dart').path;
   for (var id in benchIds) {
+    print('=== legacy for $id $inputFile');
+    await m.main(['--legacy', id, inputFile]);
+    print('=== strong for $id $inputFile');
     await m.main([id, inputFile]);
   }
 }

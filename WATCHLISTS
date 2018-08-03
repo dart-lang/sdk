@@ -7,18 +7,28 @@
 
 {
   'WATCHLIST_DEFINITIONS': {
-    'runtime': {
-      'filepath': '^runtime/',
-    },
-    'observatory': {
-      'filepath': 'runtime/bin/vmservice/' \
-                  '|runtime/bin/vmservice*' \
-                  '|runtime/observatory/' \
-                  '|runtime/vm/service/' \
-                  '|runtime/vm/service*'
+    'build': {
+      'filepath': (
+        '.*gyp$|'
+        '.*gypi$|'
+        '.*gn$|'
+        '.*gni$|'
+        '^tools/.*py$|'
+        '^build/|'
+        '^tools/buildtools/'
+      )
     },
     'front_end': {
       'filepath': '^pkg/front_end',
+    },
+    'http': {
+      'filepath': '^sdk/lib/_http',
+    },
+    'kernel': {
+      'filepath': '^pkg/kernel',
+    },
+    'package_vm': {
+      'filepath': '^pkg/vm',
     },
     'messages_review': {
       'filepath': (
@@ -34,12 +44,33 @@
         ')$'
       )
     },
+    'mirrors' : {
+      'filepath': '.*mirrors.*',
+    },
+    'observatory': {
+      'filepath': (
+        '^runtime/bin/vmservice/|'
+        '^runtime/bin/vmservice*|'
+        '^runtime/observatory/|'
+        '^runtime/vm/service/|'
+        '^runtime/vm/service*'
+      )
+    },
+    'runtime': {
+      'filepath': '^runtime/',
+    },
   },
 
   'WATCHLISTS': {
-    'runtime': ['vm-dev@dartlang.org'],
-    'observatory': ['turnidge@google.com', 'rmacnak@google.com'],
-    'front_end': ['dart-fe-team+reviews@google.com'],
+    'build': [ 'zra@google.com', 'keertip@google.com' ],
+    'front_end': [ 'dart-fe-team+reviews@google.com' ],
+    'http': [ 'zra@google.com' ],
+    'kernel': [ 'karlklose@google.com', 'jensj@google.com', 'kmillikin@google.com',
+                'alexmarkov@google.com' ],
     'messages_review': [ 'dart-uxr+reviews@google.com' ],
+    'mirrors' : [ 'rmacnak@google.com' ],
+    'observatory': [ 'rmacnak@google.com' ],
+    'package_vm': [ 'alexmarkov@google.com' ],
+    'runtime': [ 'vm-dev@dartlang.org' ],
   },
 }

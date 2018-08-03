@@ -2,18 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include <stdio.h>
-
+#include "bin/console.h"
 #include "bin/dartutils.h"
+#include "bin/dfe.h"
+#include "bin/eventhandler.h"
 #include "bin/file.h"
 #include "bin/loader.h"
 #include "bin/platform.h"
 #include "bin/snapshot_utils.h"
+#include "bin/thread.h"
+#include "bin/utils.h"
 #include "platform/assert.h"
 #include "vm/benchmark_test.h"
 #include "vm/dart.h"
 #include "vm/unit_test.h"
 
+extern "C" {
+extern const uint8_t kDartVmSnapshotData[];
+extern const uint8_t kDartVmSnapshotInstructions[];
+extern const uint8_t kDartCoreIsolateSnapshotData[];
+extern const uint8_t kDartCoreIsolateSnapshotInstructions[];
+}
 
 // TODO(iposva, asiva): This is a placeholder for the real unittest framework.
 namespace dart {
@@ -21,10 +30,16 @@ namespace dart {
 // Defined in vm/os_thread_win.cc
 extern bool private_flag_windows_run_tls_destructors;
 
-// vm_snapshot_data_buffer points to a snapshot for the vm isolate if we
-// link in a snapshot otherwise it is initialized to NULL.
-extern const uint8_t* bin::vm_snapshot_data;
-extern const uint8_t* bin::vm_snapshot_instructions;
+// Snapshot pieces when we link in a snapshot.
+#if defined(DART_NO_SNAPSHOT)
+#error "run_vm_tests must be built with a snapshot"
+#else
+const uint8_t* bin::vm_snapshot_data = kDartVmSnapshotData;
+const uint8_t* bin::vm_snapshot_instructions = kDartVmSnapshotInstructions;
+const uint8_t* bin::core_isolate_snapshot_data = kDartCoreIsolateSnapshotData;
+const uint8_t* bin::core_isolate_snapshot_instructions =
+    kDartCoreIsolateSnapshotInstructions;
+#endif
 
 // Only run tests that match the filter string. The default does not match any
 // tests.
@@ -36,48 +51,43 @@ static const char* kernel_snapshot = NULL;
 
 static int run_matches = 0;
 
-
 void TestCase::Run() {
-  OS::Print("Running test: %s\n", name());
+  bin::Log::Print("Running test: %s\n", name());
   (*run_)();
-  OS::Print("Done: %s\n", name());
+  bin::Log::Print("Done: %s\n", name());
 }
-
 
 void RawTestCase::Run() {
-  OS::Print("Running test: %s\n", name());
+  bin::Log::Print("Running raw test: %s\n", name());
   (*run_)();
-  OS::Print("Done: %s\n", name());
+  bin::Log::Print("Done: %s\n", name());
 }
-
 
 void TestCaseBase::RunTest() {
   if (strcmp(run_filter, this->name()) == 0) {
     this->Run();
     run_matches++;
   } else if (run_filter == kList) {
-    OS::Print("%s\n", this->name());
+    bin::Log::Print("%s\n", this->name());
     run_matches++;
   }
 }
-
 
 void Benchmark::RunBenchmark() {
   if ((run_filter == kAllBenchmarks) ||
       (strcmp(run_filter, this->name()) == 0)) {
     this->Run();
-    OS::Print("%s(%s): %" Pd64 "\n", this->name(), this->score_kind(),
-              this->score());
+    bin::Log::Print("%s(%s): %" Pd64 "\n", this->name(), this->score_kind(),
+                    this->score());
     run_matches++;
   } else if (run_filter == kList) {
-    OS::Print("%s\n", this->name());
+    bin::Log::Print("%s\n", this->name());
     run_matches++;
   }
 }
 
-
 static void PrintUsage() {
-  OS::PrintErr(
+  bin::Log::PrintErr(
       "Usage: one of the following\n"
       "  run_vm_tests --list\n"
       "  run_vm_tests [--dfe=<snapshot file name>] --benchmarks\n"
@@ -93,7 +103,6 @@ static void PrintUsage() {
     Dart_ShutdownIsolate();                                                    \
     return NULL;                                                               \
   }
-
 
 static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
                                           const char* main,
@@ -123,35 +132,53 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
   }
   script_uri = kernel_snapshot;
 
-  bin::AppSnapshot* app_snapshot =
-      bin::Snapshot::TryReadAppSnapshot(script_uri);
-  if (app_snapshot == NULL) {
-    *error = strdup("Failed to read kernel service app snapshot");
-    return NULL;
-  }
-
+  // Kernel isolate uses an app snapshot or the core libraries snapshot.
+  bool isolate_run_script_snapshot = false;
   const uint8_t* isolate_snapshot_data = bin::core_isolate_snapshot_data;
   const uint8_t* isolate_snapshot_instructions =
       bin::core_isolate_snapshot_instructions;
+  bin::AppSnapshot* app_snapshot = NULL;
+  switch (bin::DartUtils::SniffForMagicNumber(script_uri)) {
+    case bin::DartUtils::kAppJITMagicNumber: {
+      app_snapshot = bin::Snapshot::TryReadAppSnapshot(script_uri);
+      ASSERT(app_snapshot != NULL);
 
-  const uint8_t* ignore_vm_snapshot_data;
-  const uint8_t* ignore_vm_snapshot_instructions;
-  app_snapshot->SetBuffers(
-      &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
-      &isolate_snapshot_data, &isolate_snapshot_instructions);
-
+      const uint8_t* ignore_vm_snapshot_data;
+      const uint8_t* ignore_vm_snapshot_instructions;
+      app_snapshot->SetBuffers(
+          &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
+          &isolate_snapshot_data, &isolate_snapshot_instructions);
+      break;
+    }
+    case bin::DartUtils::kSnapshotMagicNumber: {
+      isolate_run_script_snapshot = true;
+      break;
+    }
+    default:
+      return NULL;
+  }
   bin::IsolateData* isolate_data = new bin::IsolateData(
-      script_uri, package_root, packages_config, NULL /* app_snapshot */);
+      script_uri, package_root, packages_config, app_snapshot);
   Dart_Isolate isolate = Dart_CreateIsolate(
-      script_uri, main, isolate_snapshot_data, isolate_snapshot_instructions,
-      flags, isolate_data, error);
+      DART_KERNEL_ISOLATE_NAME, main, isolate_snapshot_data,
+      isolate_snapshot_instructions, NULL, NULL, flags, isolate_data, error);
   if (isolate == NULL) {
-    *error = strdup("Failed to create isolate");
     delete isolate_data;
     return NULL;
   }
 
   Dart_EnterScope();
+
+  if (isolate_run_script_snapshot) {
+    uint8_t* payload;
+    intptr_t payload_length;
+    void* file = bin::DartUtils::OpenFile(script_uri, false);
+    bin::DartUtils::ReadFile(&payload, &payload_length, file);
+    bin::DartUtils::CloseFile(file);
+
+    Dart_Handle result = Dart_LoadScriptFromSnapshot(payload, payload_length);
+    CHECK_RESULT(result);
+  }
 
   bin::DartUtils::SetOriginalWorkingDirectory();
   Dart_Handle result = bin::DartUtils::PrepareForScriptLoading(
@@ -160,15 +187,20 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
 
   Dart_ExitScope();
   Dart_ExitIsolate();
-  bool retval = Dart_IsolateMakeRunnable(isolate);
-  if (!retval) {
-    *error = strdup("Invalid isolate state - Unable to make it runnable");
+  *error = Dart_IsolateMakeRunnable(isolate);
+  if (*error != NULL) {
     Dart_EnterIsolate(isolate);
     Dart_ShutdownIsolate();
     return NULL;
   }
 
   return isolate;
+}
+
+static void CleanupIsolate(void* callback_data) {
+  bin::IsolateData* isolate_data =
+      reinterpret_cast<bin::IsolateData*>(callback_data);
+  delete isolate_data;
 }
 
 static int Main(int argc, const char** argv) {
@@ -178,8 +210,12 @@ static int Main(int argc, const char** argv) {
 
   // Perform platform specific initialization.
   if (!dart::bin::Platform::Initialize()) {
-    OS::PrintErr("Initialization failed\n");
+    bin::Log::PrintErr("Initialization failed\n");
+    return 1;
   }
+
+  // Save the console state so we can restore it later.
+  dart::bin::Console::SaveConfig();
 
   if (argc < 2) {
     // Bad parameter count.
@@ -198,10 +234,11 @@ static int Main(int argc, const char** argv) {
   }
 
   int arg_pos = 1;
+  bool start_kernel_isolate = false;
   if (strstr(argv[arg_pos], "--dfe") == argv[arg_pos]) {
     const char* delim = strstr(argv[1], "=");
     if (delim == NULL || strlen(delim + 1) == 0) {
-      OS::PrintErr("Invalid value for the option: %s\n", argv[1]);
+      bin::Log::PrintErr("Invalid value for the option: %s\n", argv[1]);
       PrintUsage();
       return 1;
     }
@@ -209,6 +246,7 @@ static int Main(int argc, const char** argv) {
     // VM needs '--use-dart-frontend' option, which we will insert in place
     // of '--dfe' option.
     argv[arg_pos] = strdup("--use-dart-frontend");
+    start_kernel_isolate = true;
     ++arg_pos;
   }
 
@@ -224,40 +262,46 @@ static int Main(int argc, const char** argv) {
     dart_argv = &argv[1];
   }
 
-  bool set_vm_flags_success =
-      Flags::ProcessCommandLineFlags(dart_argc, dart_argv);
-  ASSERT(set_vm_flags_success);
-  const char* err_msg = Dart::InitOnce(
+  bin::Thread::InitOnce();
+  bin::TimerUtils::InitOnce();
+  bin::EventHandler::Start();
+
+  const char* error = Flags::ProcessCommandLineFlags(dart_argc, dart_argv);
+  ASSERT(error == NULL);
+
+  error = Dart::InitOnce(
       dart::bin::vm_snapshot_data, dart::bin::vm_snapshot_instructions,
       CreateIsolateAndSetup /* create */, NULL /* shutdown */,
-      NULL /* cleanup */, NULL /* thread_exit */,
+      CleanupIsolate /* cleanup */, NULL /* thread_exit */,
       dart::bin::DartUtils::OpenFile, dart::bin::DartUtils::ReadFile,
       dart::bin::DartUtils::WriteFile, dart::bin::DartUtils::CloseFile,
-      NULL /* entropy_source */, NULL /* get_service_assets */);
+      NULL /* entropy_source */, NULL /* get_service_assets */,
+      start_kernel_isolate);
+  ASSERT(error == NULL);
 
-  ASSERT(err_msg == NULL);
   // Apply the filter to all registered tests.
   TestCaseBase::RunAll();
   // Apply the filter to all registered benchmarks.
   Benchmark::RunAll(argv[0]);
 
-  err_msg = Dart::Cleanup();
-  ASSERT(err_msg == NULL);
+  error = Dart::Cleanup();
+  ASSERT(error == NULL);
+
+  bin::EventHandler::Stop();
 
   TestCaseBase::RunAllRaw();
   // Print a warning message if no tests or benchmarks were matched.
   if (run_matches == 0) {
-    OS::PrintErr("No tests matched: %s\n", run_filter);
+    bin::Log::PrintErr("No tests matched: %s\n", run_filter);
     return 1;
   }
-  if (DynamicAssertionHelper::failed()) {
+  if (Expect::failed()) {
     return 255;
   }
   return 0;
 }
 
 }  // namespace dart
-
 
 int main(int argc, const char** argv) {
   dart::bin::Platform::Exit(dart::Main(argc, argv));

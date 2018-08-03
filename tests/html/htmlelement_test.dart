@@ -13,7 +13,7 @@ main() {
     element.innerHtml = 'Hello World';
     document.body.append(element);
 
-    element = document.query('#test');
+    element = document.querySelector('#test');
     expect(element.innerHtml, 'Hello World');
     element.remove();
   });

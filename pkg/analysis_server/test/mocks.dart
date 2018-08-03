@@ -9,17 +9,13 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
-import 'package:analysis_server/src/operation/operation.dart';
-import 'package:analysis_server/src/operation/operation_analysis.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart' as resource;
 import 'package:analyzer/file_system/memory_file_system.dart' as resource;
-import 'package:analyzer/source/package_map_provider.dart';
-import 'package:analyzer/source/pub_package_map_provider.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/source/package_map_provider.dart';
+import 'package:analyzer/src/source/pub_package_map_provider.dart';
+import 'package:front_end/src/base/timestamped_data.dart';
 import 'package:test/test.dart';
-import 'package:typed_mock/typed_mock.dart';
 
 /**
  * Answer the absolute path the SDK relative to the currently running
@@ -49,82 +45,6 @@ Matcher isResponseFailure(String id, [RequestErrorCode code]) =>
  * and no error.
  */
 Matcher isResponseSuccess(String id) => new _IsResponseSuccess(id);
-
-/**
- * Returns a [Future] that completes after pumping the event queue [times]
- * times. By default, this should pump the event queue enough times to allow
- * any code to run, as long as it's not waiting on some external event.
- */
-Future pumpEventQueue([int times = 5000]) {
-  if (times == 0) return new Future.value();
-  // We use a delayed future to allow microtask events to finish. The
-  // Future.value or Future() constructors use scheduleMicrotask themselves and
-  // would therefore not wait for microtask callbacks that are scheduled after
-  // invoking this method.
-  return new Future.delayed(Duration.ZERO, () => pumpEventQueue(times - 1));
-}
-
-typedef void MockServerOperationPerformFunction(AnalysisServer server);
-
-class MockAnalysisContext extends StringTypedMock implements AnalysisContext {
-  MockAnalysisContext(String name) : super(name);
-}
-
-class MockClassElement extends TypedMock implements ClassElement {
-  final ElementKind kind = ElementKind.CLASS;
-}
-
-class MockCompilationUnitElement extends TypedMock
-    implements CompilationUnitElement {
-  final ElementKind kind = ElementKind.COMPILATION_UNIT;
-}
-
-class MockConstructorElement extends TypedMock implements ConstructorElement {
-  final kind = ElementKind.CONSTRUCTOR;
-}
-
-class MockElement extends StringTypedMock implements Element {
-  MockElement([String name = '<element>']) : super(name);
-
-  @override
-  String get displayName => _toString;
-
-  @override
-  String get name => _toString;
-}
-
-class MockFieldElement extends TypedMock implements FieldElement {
-  final ElementKind kind = ElementKind.FIELD;
-}
-
-class MockFunctionElement extends TypedMock implements FunctionElement {
-  final ElementKind kind = ElementKind.FUNCTION;
-}
-
-class MockFunctionTypeAliasElement extends TypedMock
-    implements FunctionTypeAliasElement {
-  final ElementKind kind = ElementKind.FUNCTION_TYPE_ALIAS;
-}
-
-class MockImportElement extends TypedMock implements ImportElement {
-  final ElementKind kind = ElementKind.IMPORT;
-}
-
-class MockLibraryElement extends TypedMock implements LibraryElement {
-  final ElementKind kind = ElementKind.LIBRARY;
-}
-
-class MockLocalVariableElement extends TypedMock
-    implements LocalVariableElement {
-  final ElementKind kind = ElementKind.LOCAL_VARIABLE;
-}
-
-class MockLogger extends TypedMock implements Logger {}
-
-class MockMethodElement extends StringTypedMock implements MethodElement {
-  final kind = ElementKind.METHOD;
-  MockMethodElement([String name = 'method']) : super(name);
-}
 
 /**
  * A mock [PackageMapProvider].
@@ -164,16 +84,6 @@ class MockPackageMapProvider implements PubPackageMapProvider {
     // No other methods should be called.
     return super.noSuchMethod(invocation);
   }
-}
-
-class MockParameterElement extends TypedMock implements ParameterElement {
-  final ElementKind kind = ElementKind.PARAMETER;
-}
-
-class MockPropertyAccessorElement extends TypedMock
-    implements PropertyAccessorElement {
-  final ElementKind kind;
-  MockPropertyAccessorElement(this.kind);
 }
 
 /**
@@ -247,28 +157,9 @@ class MockServerChannel implements ServerCommunicationChannel {
 
   Future<Response> waitForResponse(Request request) {
     String id = request.id;
-    return new Future<Response>(() => responseController.stream
-        .firstWhere((response) => response.id == id) as Future<Response>);
+    return responseController.stream
+        .firstWhere((response) => response.id == id);
   }
-}
-
-/**
- * A mock [ServerOperation] for testing [AnalysisServer].
- */
-class MockServerOperation implements PerformAnalysisOperation {
-  final ServerOperationPriority priority;
-  final MockServerOperationPerformFunction _perform;
-
-  MockServerOperation(this.priority, this._perform);
-
-  @override
-  AnalysisContext get context => null;
-
-  @override
-  bool get isContinue => false;
-
-  @override
-  void perform(AnalysisServer server) => this._perform(server);
 }
 
 /**
@@ -311,33 +202,43 @@ class MockSocket<T> implements WebSocket {
 }
 
 class MockSource extends StringTypedMock implements Source {
+  @override
+  TimestampedData<String> contents = null;
+
+  @override
+  String encoding = null;
+
+  @override
+  String fullName = null;
+
+  @override
+  bool isInSystemLibrary = null;
+
+  @override
+  Source librarySource = null;
+
+  @override
+  int modificationStamp = null;
+
+  @override
+  String shortName = null;
+
+  @override
+  Source source = null;
+
+  @override
+  Uri uri = null;
+
+  @override
+  UriKind uriKind = null;
+
   MockSource([String name = 'mocked.dart']) : super(name);
+
+  @override
+  bool exists() => null;
 }
 
-class MockTopLevelVariableElement extends TypedMock
-    implements TopLevelVariableElement {
-  final ElementKind kind = ElementKind.TOP_LEVEL_VARIABLE;
-}
-
-class MockTypeParameterElement extends TypedMock
-    implements TypeParameterElement {
-  final ElementKind kind = ElementKind.TYPE_PARAMETER;
-}
-
-class NoResponseException implements Exception {
-  /**
-   * The request that was not responded to.
-   */
-  final Request request;
-
-  NoResponseException(this.request);
-
-  String toString() {
-    return "NoResponseException after request ${request.toJson()}";
-  }
-}
-
-class StringTypedMock extends TypedMock {
+class StringTypedMock {
   String _toString;
 
   StringTypedMock(this._toString);

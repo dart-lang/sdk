@@ -96,12 +96,6 @@ class LinkedSummarizeAstSpecTest extends LinkedSummarizeAstTest {
 
   @override
   @failingTest
-  test_initializer_executable_with_return_type_from_closure_local() {
-    super.test_initializer_executable_with_return_type_from_closure_local();
-  }
-
-  @override
-  @failingTest
   test_initializer_executable_with_unimported_return_type() {
     super.test_initializer_executable_with_unimported_return_type();
   }
@@ -110,12 +104,6 @@ class LinkedSummarizeAstSpecTest extends LinkedSummarizeAstTest {
   @failingTest
   test_syntheticFunctionType_inGenericClass() {
     super.test_syntheticFunctionType_inGenericClass();
-  }
-
-  @override
-  @failingTest
-  test_syntheticFunctionType_inGenericFunction() {
-    super.test_syntheticFunctionType_inGenericFunction();
   }
 }
 
@@ -302,7 +290,6 @@ abstract class SummaryLinkerTest {
   PackageBundleBuilder createPackageBundle(String text,
       {String path: '/test.dart', String uri}) {
     PackageBundleAssembler assembler = new PackageBundleAssembler();
-    assembler.recordDependencies(_filesToLink.summaryDataStore);
     LinkerInputs linkerInputs = createLinkerInputs(text, path: path, uri: uri);
     Map<String, LinkedLibraryBuilder> linkedLibraries = link(
         linkerInputs.linkedLibraries,
@@ -327,8 +314,8 @@ abstract class SummaryLinkerTest {
     Scanner scanner =
         new Scanner(null, reader, AnalysisErrorListener.NULL_LISTENER);
     Token token = scanner.tokenize();
-    Parser parser = new Parser(null, AnalysisErrorListener.NULL_LISTENER);
-    parser.enableAssertInitializer = true;
+    Parser parser = new Parser(
+        NonExistingSource.unknown, AnalysisErrorListener.NULL_LISTENER);
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = new LineInfo(scanner.lineStarts);
     return unit;
@@ -350,6 +337,5 @@ class _FilesToLink {
   /**
    * Information about summaries to be included in the link process.
    */
-  SummaryDataStore summaryDataStore =
-      new SummaryDataStore([], recordDependencyInfo: true);
+  SummaryDataStore summaryDataStore = new SummaryDataStore([]);
 }

@@ -19,11 +19,11 @@ void main() {
   test('', () {
     if (!TrackElement.supported) return;
     document.body.append(new TrackElement()..defaultValue = true);
-    if (!document.query('track').defaultValue) {
+    if (!document.querySelector('track').defaultValue) {
       throw 'Expected default value to be true';
     }
-    document.query('track').defaultValue = false;
-    if (document.query('track').defaultValue) {
+    document.querySelector('track').defaultValue = false;
+    if (document.querySelector('track').defaultValue) {
       throw 'Expected default value to be false';
     }
   });

@@ -17,15 +17,25 @@ import 'package:path/path.dart' show posix;
 import 'package:path/src/context.dart';
 
 /**
- * A contributor for calculating uri suggestions
- * for import and part directives.
+ * A contributor for calculating uri suggestions for import and part directives.
  */
 class UriContributor extends DartCompletionContributor {
+  /**
+   * A flag indicating whether file: and package: URI suggestions should
+   * be included in the list of completion suggestions.
+   */
+  // TODO(danrubel): remove this flag and related functionality
+  // once the UriContributor limits file: and package: URI suggestions
+  // to only those paths within context roots.
+  static bool suggestFilePaths = true;
+
   _UriSuggestionBuilder builder;
 
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     builder = new _UriSuggestionBuilder(request);
     request.target.containingNode.accept(builder);
     return builder.suggestions;
@@ -95,13 +105,17 @@ class _UriSuggestionBuilder extends SimpleAstVisitor {
       String partialUri = _extractPartialUri(node);
       if (partialUri != null) {
         _addDartSuggestions();
-        _addPackageSuggestions(partialUri);
-        _addFileSuggestions(partialUri);
+        if (UriContributor.suggestFilePaths) {
+          _addPackageSuggestions(partialUri);
+          _addFileSuggestions(partialUri);
+        }
       }
     } else if (parent is PartDirective && parent.uri == node) {
       String partialUri = _extractPartialUri(node);
       if (partialUri != null) {
-        _addFileSuggestions(partialUri);
+        if (UriContributor.suggestFilePaths) {
+          _addFileSuggestions(partialUri);
+        }
       }
     }
   }
@@ -137,7 +151,15 @@ class _UriSuggestionBuilder extends SimpleAstVisitor {
     }
     String uriPrefix = parentUri == '.' ? '' : parentUri;
 
-    String dirPath = resContext.normalize(parentUri);
+    // Only handle file uris in the format file:///xxx or /xxx
+    String parentUriScheme = Uri.parse(parentUri).scheme;
+    if (!parentUri.startsWith('file://') && parentUriScheme != '') {
+      return;
+    }
+
+    String dirPath = resProvider.pathContext.fromUri(parentUri);
+    dirPath = resContext.normalize(dirPath);
+
     if (resContext.isRelative(dirPath)) {
       String sourceDirPath = resContext.dirname(source.fullName);
       if (resContext.isAbsolute(sourceDirPath)) {
@@ -162,11 +184,15 @@ class _UriSuggestionBuilder extends SimpleAstVisitor {
         for (Resource child in dir.getChildren()) {
           String completion;
           if (child is Folder) {
-            completion = '$uriPrefix${child.shortName}/';
-          } else {
-            completion = '$uriPrefix${child.shortName}';
+            if (!child.shortName.startsWith('.')) {
+              completion = '$uriPrefix${child.shortName}/';
+            }
+          } else if (child is File) {
+            if (child.shortName.endsWith('.dart')) {
+              completion = '$uriPrefix${child.shortName}';
+            }
           }
-          if (completion != source.shortName) {
+          if (completion != null && completion != source.shortName) {
             _addSuggestion(completion);
           }
         }

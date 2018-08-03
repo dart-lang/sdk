@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_IO_DISABLED)
-
 #include "platform/globals.h"
 #if defined(HOST_OS_FUCHSIA)
 
@@ -17,34 +15,29 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
   return DartUtils::NewDartOSError();
 }
 
-
 intptr_t FileSystemWatcher::GetSocketId(intptr_t id, intptr_t path_id) {
   UNIMPLEMENTED();
   return -1;
 }
 
-
 bool FileSystemWatcher::IsSupported() {
   return false;
 }
-
 
 void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {
   UNIMPLEMENTED();
 }
 
-
 intptr_t FileSystemWatcher::Init() {
   return 0;
 }
-
 
 void FileSystemWatcher::Close(intptr_t id) {
   UNIMPLEMENTED();
 }
 
-
 intptr_t FileSystemWatcher::WatchPath(intptr_t id,
+                                      Namespace* namespc,
                                       const char* path,
                                       int events,
                                       bool recursive) {
@@ -56,5 +49,3 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
 }  // namespace dart
 
 #endif  // defined(HOST_OS_FUCHSIA)
-
-#endif  // !defined(DART_IO_DISABLED)

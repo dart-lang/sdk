@@ -8,10 +8,10 @@ import 'package:expect/expect.dart';
 import 'package:compiler/compiler_new.dart';
 import 'memory_compiler.dart';
 
-final EXCEPTION = 'Crash';
+final EXCEPTION = 'Crash-marker';
 
 main() {
-  asyncTest(() async {
+  runTests() async {
     test('Empty program', await run());
     test('Crash diagnostics', await run(diagnostics: new CrashingDiagnostics()),
         expectedLines: [
@@ -38,13 +38,18 @@ main() {
         await run(
             packagesDiscoveryProvider: (_) => new Future.error(EXCEPTION)),
         expectedExceptions: [EXCEPTION]);
+
+    List<String> expectedLines = [
+      'Error: Input file not found: memory:main.dart.'
+    ];
     test('Throw in input provider',
         await run(memorySourceFiles: new CrashingMap()),
-        expectedLines: [
-          'Uncaught exception in input provider: $EXCEPTION',
-          null, // Stack trace
-          'memory:main.dart:\nError: $EXCEPTION' /* READ_SELF_ERROR */
-        ]);
+        expectedLines: expectedLines);
+  }
+
+  asyncTest(() async {
+    print('--test from kernel------------------------------------------------');
+    await runTests();
   });
 }
 

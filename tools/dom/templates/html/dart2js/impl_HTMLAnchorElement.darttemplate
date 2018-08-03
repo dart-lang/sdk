@@ -4,11 +4,8 @@
 
 part of $LIBRARYNAME;
 
-@DocsEditable()
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$MIXINS$IMPLEMENTS {
 $!MEMBERS
 
-  @DomName('HTMLAnchorElement.toString')
-  @DocsEditable()
   String toString() => JS('String', 'String(#)', this);
 }

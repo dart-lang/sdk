@@ -30,10 +30,8 @@ const Map<String, LibraryInfo> libraries = const {
 
 const String sdkRoot = '/sdk';
 
-const _MockSdkLibrary _LIB_ASYNC = const _MockSdkLibrary(
-    'dart:async',
-    '$sdkRoot/lib/async/async.dart',
-    '''
+const _MockSdkLibrary _LIB_ASYNC =
+    const _MockSdkLibrary('dart:async', '$sdkRoot/lib/async/async.dart', '''
 library dart.async;
 
 import 'dart:math';
@@ -43,11 +41,12 @@ part 'stream.dart';
 class Future<T> {
   factory Future(computation()) => null;
   factory Future.delayed(Duration duration, [T computation()]) => null;
-  factory Future.value([value]) => null;
+  factory Future.microtask(FutureOr<T> computation()) => null;
+  factory Future.value([FutureOr<T> result]) => null;
 
-  static Future<List/*<T>*/> wait/*<T>*/(
-      Iterable<Future/*<T>*/> futures) => null;
-  Future/*<R>*/ then/*<R>*/(FutureOr/*<R>*/ onValue(T value)) => null;
+  static Future<List<T>> wait<T>(
+      Iterable<Future<T>> futures) => null;
+  Future<R> then<R>(FutureOr<R> onValue(T value)) => null;
 
   Future<T> whenComplete(action());
 }
@@ -55,16 +54,22 @@ class Future<T> {
 class FutureOr<T> {}
 
 abstract class Completer<T> {
-  factory Completer() => new _AsyncCompleter<T>();
-  factory Completer.sync() => new _SyncCompleter<T>();
+  factory Completer() => null;
+  factory Completer.sync() => null;
   Future<T> get future;
   void complete([value]);
   void completeError(Object error, [StackTrace stackTrace]);
   bool get isCompleted;
 }
-''',
-    const <String, String>{
-      '$sdkRoot/lib/async/stream.dart': r'''
+
+class _StreamIterator<T> implements StreamIterator<T> {}
+class _AsyncStarStreamController {}
+Function _asyncThenWrapperHelper(continuation) {}
+Function _asyncErrorWrapperHelper(continuation) {}
+Future _awaitHelper(
+    object, Function thenCallback, Function errorCallback, var awaiter) {}
+''', const <String, String>{
+  '$sdkRoot/lib/async/stream.dart': r'''
 part of dart.async;
 abstract class Stream<T> {
   Future<T> get first;
@@ -72,7 +77,11 @@ abstract class Stream<T> {
                                { Function onError,
                                  void onDone(),
                                  bool cancelOnError});
+  Stream();
+  factory Stream.fromIterable(Iterable<T> data) => null;
 }
+
+abstract class StreamIterator<T> {}
 
 abstract class StreamSubscription<T> {
   Future cancel();
@@ -87,21 +96,17 @@ abstract class StreamSubscription<T> {
 
 abstract class StreamTransformer<S, T> {}
 '''
-    });
+});
 
 const _MockSdkLibrary _LIB_COLLECTION = const _MockSdkLibrary(
-    'dart:collection',
-    '$sdkRoot/lib/collection/collection.dart',
-    '''
+    'dart:collection', '$sdkRoot/lib/collection/collection.dart', '''
 library dart.collection;
 
 abstract class HashMap<K, V> implements Map<K, V> {}
 ''');
 
 const _MockSdkLibrary _LIB_CONVERT = const _MockSdkLibrary(
-    'dart:convert',
-    '$sdkRoot/lib/convert/convert.dart',
-    '''
+    'dart:convert', '$sdkRoot/lib/convert/convert.dart', '''
 library dart.convert;
 
 import 'dart:async';
@@ -110,16 +115,15 @@ abstract class Converter<S, T> implements StreamTransformer {}
 class JsonDecoder extends Converter<String, Object> {}
 ''');
 
-const _MockSdkLibrary _LIB_CORE = const _MockSdkLibrary(
-    'dart:core',
-    '$sdkRoot/lib/core/core.dart',
-    '''
+const _MockSdkLibrary _LIB_CORE =
+    const _MockSdkLibrary('dart:core', '$sdkRoot/lib/core/core.dart', '''
 library dart.core;
 
 import 'dart:async';
+import 'dart:_internal';
 
 class Object {
-  const Object() {}
+  const Object();
   bool operator ==(other) => identical(this, other);
   String toString() => 'a string';
   int get hashCode => 0;
@@ -131,9 +135,11 @@ class Function {}
 class StackTrace {}
 
 class Symbol {
-  const factory Symbol(String name) {
-    return null;
-  }
+  const factory Symbol(String name) = _SymbolImpl;
+}
+
+class _SymbolImpl {
+  const _SymbolImpl(String name);
 }
 
 class Type {}
@@ -147,9 +153,11 @@ abstract class String implements Comparable<String>, Pattern {
   external factory String.fromCharCodes(Iterable<int> charCodes,
                                         [int start = 0, int end]);
   String operator +(String other) => null;
+  bool operator ==(Object other);
   bool get isEmpty => false;
   bool get isNotEmpty => false;
   int get length => 0;
+  int codeUnitAt(int index);
   String substring(int len) => null;
   String toLowerCase();
   String toUpperCase();
@@ -175,7 +183,7 @@ abstract class num implements Comparable<num> {
   num operator +(num other);
   num operator -(num other);
   num operator *(num other);
-  num operator /(num other);
+  double operator /(num other);
   int operator ^(int other);
   int operator |(int other);
   int operator <<(int other);
@@ -207,6 +215,8 @@ abstract class int extends num {
   external static int parse(String source,
                             { int radix,
                               int onError(String source) });
+
+  String toString();
 }
 
 abstract class double extends num {
@@ -241,9 +251,7 @@ abstract class double extends num {
 class DateTime extends Object {}
 
 class Null extends Object {
-  factory Null._uninstantiable() {
-    throw new UnsupportedError('class Null cannot be instantiated');
-  }
+  factory Null._uninstantiable() => null;
 }
 
 class Deprecated extends Object {
@@ -261,23 +269,25 @@ abstract class Iterable<E> {
   Iterator<E> get iterator;
   bool get isEmpty;
   E get first;
+  int get length;
 
-  Iterable/*<R>*/ map/*<R>*/(/*=R*/ f(E e));
+  Iterable<R> map<R>(R f(E e));
 
-  /*=R*/ fold/*<R>*/(/*=R*/ initialValue,
-      /*=R*/ combine(/*=R*/ previousValue, E element));
+  R fold<R>(R initialValue,
+      R combine(R previousValue, E element)) => null;
 
-  Iterable/*<T>*/ expand/*<T>*/(Iterable/*<T>*/ f(E element));
+  Iterable<T> expand<T>(Iterable<T> f(E element));
 
   Iterable<E> where(bool test(E element));
-  
+
   void forEach(void f(E element));
 
   List<E> toList();
 }
 
 class List<E> implements Iterable<E> {
-  List();
+  List([int length]);
+  factory List.from(Iterable elements, {bool growable: true}) => null;
   void add(E value) {}
   void addAll(Iterable<E> iterable) {}
   E operator [](int index) => null;
@@ -289,9 +299,6 @@ class List<E> implements Iterable<E> {
   E get first => null;
   E get last => null;
 
-  /*=R*/ fold/*<R>*/(/*=R*/ initialValue,
-      /*=R*/ combine(/*=R*/ previousValue, E element)) => null;
-
 }
 
 class Map<K, V> extends Object {
@@ -300,6 +307,12 @@ class Map<K, V> extends Object {
   Iterable<K> get keys => null;
   int get length;
   Iterable<V> get values;
+}
+
+class Duration implements Comparable<Duration> {}
+
+class Exception {
+  factory Exception([var message]);
 }
 
 external bool identical(Object a, Object b);
@@ -311,12 +324,38 @@ const Object proxy = const _Proxy();
 
 class _Override { const _Override(); }
 const Object override = const _Override();
+
+class _CompileTimeError {
+  final String _errorMsg;
+  _CompileTimeError(this._errorMsg);
+}
+
+class _ConstantExpressionError {
+  const _ConstantExpressionError();
+  external _throw(error);
+}
+
+class AbstractClassInstantiationError {
+  AbstractClassInstantiationError(String className);
+}
+
+class FallThroughError {
+  FallThroughError();
+  FallThroughError._create(String url, int line);
+}
+
+abstract class _SyncIterable implements Iterable {}
+class _InvocationMirror {
+  _InvocationMirror._withoutType(
+      String _functionName, List<Type> _typeArguments,
+      List _positionalArguments, Map<Symbol, dynamic>_namedArguments,
+      bool _isSuperInvocation);
+}
 ''');
 
 const _MockSdkLibrary _LIB_FOREIGN_HELPER = const _MockSdkLibrary(
     'dart:_foreign_helper',
-    '$sdkRoot/lib/_foreign_helper/_foreign_helper.dart',
-    '''
+    '$sdkRoot/lib/_foreign_helper/_foreign_helper.dart', '''
 library dart._foreign_helper;
 
 JS(String typeDescription, String codeTemplate,
@@ -325,17 +364,13 @@ JS(String typeDescription, String codeTemplate,
 ''');
 
 const _MockSdkLibrary _LIB_HTML_DART2JS = const _MockSdkLibrary(
-    'dart:html',
-    '$sdkRoot/lib/html/dart2js/html_dart2js.dart',
-    '''
+    'dart:html', '$sdkRoot/lib/html/dart2js/html_dart2js.dart', '''
 library dart.html;
 class HtmlElement {}
 ''');
 
 const _MockSdkLibrary _LIB_HTML_DARTIUM = const _MockSdkLibrary(
-    'dart:html',
-    '$sdkRoot/lib/html/dartium/html_dartium.dart',
-    '''
+    'dart:html', '$sdkRoot/lib/html/dartium/html_dartium.dart', '''
 library dart.dom.html;
 
 final HtmlDocument document;
@@ -361,22 +396,29 @@ abstract class CanvasElement extends HtmlElement {
   CanvasRenderingContext2D get context2D;
 }
 
-abstract class class CanvasRenderingContext2D {}
+abstract class CanvasRenderingContext2D {}
 
 Element query(String relativeSelectors) => null;
 ''');
 
 const _MockSdkLibrary _LIB_INTERCEPTORS = const _MockSdkLibrary(
     'dart:_interceptors',
-    '$sdkRoot/lib/_internal/js_runtime/lib/interceptors.dart',
-    '''
+    '$sdkRoot/lib/_internal/js_runtime/lib/interceptors.dart', '''
 library dart._interceptors;
 ''');
 
-const _MockSdkLibrary _LIB_MATH = const _MockSdkLibrary(
-    'dart:math',
-    '$sdkRoot/lib/math/math.dart',
-    '''
+const _MockSdkLibrary _LIB_INTERNAL = const _MockSdkLibrary(
+    'dart:_internal', '$sdkRoot/lib/_internal/internal.dart', '''
+library dart._internal;
+class Symbol {}
+class ExternalName {
+  final String name;
+  const ExternalName(this.name);
+}
+''');
+
+const _MockSdkLibrary _LIB_MATH =
+    const _MockSdkLibrary('dart:math', '$sdkRoot/lib/math/math.dart', '''
 library dart.math;
 
 const double E = 2.718281828459045;
@@ -406,10 +448,11 @@ const List<SdkLibrary> _LIBRARIES = const [
   _LIB_HTML_DART2JS,
   _LIB_HTML_DARTIUM,
   _LIB_INTERCEPTORS,
+  _LIB_INTERNAL,
 ];
 
 class MockSdk implements DartSdk {
-  static const Map<String, String> FULL_URI_MAP = const {
+  static const Map<String, String> _URI_MAP = const {
     "dart:core": "$sdkRoot/lib/core/core.dart",
     "dart:html": "$sdkRoot/lib/html/dartium/html_dartium.dart",
     "dart:async": "$sdkRoot/lib/async/async.dart",
@@ -419,16 +462,13 @@ class MockSdk implements DartSdk {
     "dart:_foreign_helper": "$sdkRoot/lib/_foreign_helper/_foreign_helper.dart",
     "dart:_interceptors":
         "$sdkRoot/lib/_internal/js_runtime/lib/interceptors.dart",
+    "dart:_internal": "$sdkRoot/lib/_internal/internal.dart",
     "dart:math": "$sdkRoot/lib/math/math.dart"
-  };
-
-  static const Map<String, String> NO_ASYNC_URI_MAP = const {
-    "dart:core": "$sdkRoot/lib/core/core.dart",
   };
 
   final resource.MemoryResourceProvider provider;
 
-  final Map<String, String> uriMap;
+  final Map<String, String> uriMap = {};
 
   /**
    * The [AnalysisContextImpl] which is used for all of the sources.
@@ -436,7 +476,7 @@ class MockSdk implements DartSdk {
   AnalysisContextImpl _analysisContext;
 
   @override
-  final List<SdkLibrary> sdkLibraries;
+  final List<SdkLibrary> sdkLibraries = [];
 
   /**
    * The cached linked bundle of the SDK.
@@ -445,15 +485,21 @@ class MockSdk implements DartSdk {
 
   MockSdk(
       {bool generateSummaryFiles: false,
-      bool dartAsync: true,
       resource.MemoryResourceProvider resourceProvider})
-      : provider = resourceProvider ?? new resource.MemoryResourceProvider(),
-        sdkLibraries = dartAsync ? _LIBRARIES : [_LIB_CORE],
-        uriMap = dartAsync ? FULL_URI_MAP : NO_ASYNC_URI_MAP {
+      : provider = resourceProvider ?? new resource.MemoryResourceProvider() {
+    _URI_MAP.forEach((uri, path) {
+      uriMap[uri] = provider.convertPath(path);
+    });
+
+    for (_MockSdkLibrary library in _LIBRARIES) {
+      var convertedLibrary = library._toProvider(provider);
+      sdkLibraries.add(convertedLibrary);
+    }
+
     for (_MockSdkLibrary library in sdkLibraries) {
-      provider.newFile(provider.convertPath(library.path), library.content);
+      provider.newFile(library.path, library.content);
       library.parts.forEach((String path, String content) {
-        provider.newFile(provider.convertPath(path), content);
+        provider.newFile(path, content);
       });
     }
     provider.newFile(
@@ -493,7 +539,7 @@ class MockSdk implements DartSdk {
       return null;
     }
     for (SdkLibrary library in sdkLibraries) {
-      String libraryPath = provider.convertPath(library.path);
+      String libraryPath = library.path;
       if (filePath == libraryPath) {
         try {
           resource.File file = provider.getResource(filePath);
@@ -550,27 +596,13 @@ class MockSdk implements DartSdk {
   Source mapDartUri(String dartUri) {
     String path = uriMap[dartUri];
     if (path != null) {
-      resource.File file = provider.getResource(provider.convertPath(path));
+      resource.File file = provider.getResource(path);
       Uri uri = new Uri(scheme: 'dart', path: dartUri.substring(5));
       return file.createSource(uri);
     }
     // If we reach here then we tried to use a dartUri that's not in the
     // table above.
     return null;
-  }
-
-  /**
-   * This method is used to apply patches to [MockSdk].  It may be called only
-   * before analysis, i.e. before the analysis context was created.
-   */
-  void updateUriFile(String uri, String updateContent(String content)) {
-    assert(_analysisContext == null);
-    String path = FULL_URI_MAP[uri];
-    assert(path != null);
-    path = provider.convertPath(path);
-    String content = provider.getFile(path).readAsStringSync();
-    String newContent = updateContent(content);
-    provider.updateFile(path, newContent);
   }
 
   /**
@@ -615,6 +647,18 @@ class _MockSdkLibrary implements SdkLibrary {
 
   @override
   bool get isVmLibrary => throw new UnimplementedError();
+
+  _MockSdkLibrary _toProvider(resource.MemoryResourceProvider provider) {
+    return new _MockSdkLibrary(
+      shortName,
+      provider.convertPath(path),
+      content,
+      parts.map((path, content) {
+        var convertedPath = provider.convertPath(path);
+        return new MapEntry(convertedPath, content);
+      }),
+    );
+  }
 }
 
 /**

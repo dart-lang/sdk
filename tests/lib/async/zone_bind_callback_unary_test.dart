@@ -15,7 +15,7 @@ main() {
   Expect.identical(Zone.ROOT, Zone.current);
   Zone forked = Zone.current.fork(specification: new ZoneSpecification(
       registerUnaryCallback:
-          (Zone self, ZoneDelegate parent, Zone origin, f(arg)) {
+          <R, T>(Zone self, ZoneDelegate parent, Zone origin, R f(T arg)) {
     // The zone is still the same as when origin.run was invoked, which
     // is the root zone. (The origin zone hasn't been set yet).
     Expect.identical(Zone.current, Zone.ROOT);
@@ -32,11 +32,11 @@ main() {
     Expect.identical(forked, Zone.current);
     return x + 99;
   };
-  var bound = forked.bindUnaryCallback(fun, runGuarded: false);
+  var bound = forked.bindUnaryCallback(fun);
   Expect.isFalse(identical(fun, bound));
 
   // It is legal to invoke the callback in a different zone. This is, of course,
-  // etremely discouraged.
+  // extremely discouraged.
   var result = bound(399);
   Expect.equals(498, result);
   Expect.equals(499, restoredValue);

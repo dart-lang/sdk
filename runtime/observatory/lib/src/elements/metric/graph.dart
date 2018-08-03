@@ -31,7 +31,7 @@ class MetricGraphElement extends HtmlElement implements Renderable {
     assert(metric != null);
     assert(metrics != null);
     MetricGraphElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<MetricGraphElement>(e, queue: queue);
     e._isolate = isolate;
     e._metric = metric;
     e._metrics = metrics;
@@ -51,7 +51,7 @@ class MetricGraphElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
     _timer.cancel();
   }
 
@@ -71,17 +71,17 @@ class MetricGraphElement extends HtmlElement implements Renderable {
 
     var message = 'current: $current';
     if (min != null) {
-      message = 'min: $min, ' + message;
+      message = 'min: $min, $message';
     }
     if (max != null) {
       message = message + ', max: $max';
     }
 
     final host = new DivElement();
-    children = [
+    children = <Element>[
       new DivElement()
         ..classes = ['memberList']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberItem']
             ..children = min == null
@@ -96,7 +96,7 @@ class MetricGraphElement extends HtmlElement implements Renderable {
                   ],
           new DivElement()
             ..classes = ['memberItem']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberName']
                 ..text = 'current',
@@ -119,7 +119,7 @@ class MetricGraphElement extends HtmlElement implements Renderable {
         ],
       new DivElement()
         ..classes = ['graph']
-        ..children = [host]
+        ..children = <Element>[host]
     ];
     if (rows.length <= 1) {
       return;

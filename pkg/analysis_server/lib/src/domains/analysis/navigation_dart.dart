@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/plugin/analysis/navigation/navigation_core.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -11,8 +10,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer_plugin/utilities/navigation/navigation.dart';
 
 NavigationCollector computeDartNavigation(NavigationCollector collector,
     CompilationUnit unit, int offset, int length) {
@@ -37,24 +36,6 @@ AstNode _getNodeForRange(CompilationUnit unit, int offset, int length) {
     }
   }
   return node;
-}
-
-/**
- * A computer for navigation regions in a Dart [CompilationUnit].
- */
-class DartNavigationComputer implements NavigationContributor {
-  @override
-  void computeNavigation(NavigationCollector collector, AnalysisContext context,
-      Source source, int offset, int length) {
-    List<Source> libraries = context.getLibrariesContaining(source);
-    if (libraries.isNotEmpty) {
-      CompilationUnit unit =
-          context.getResolvedCompilationUnit2(source, libraries.first);
-      if (unit != null) {
-        computeDartNavigation(collector, unit, offset, length);
-      }
-    }
-  }
 }
 
 /**

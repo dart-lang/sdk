@@ -6,7 +6,7 @@ library fasta.builtin_type_builder;
 
 import 'builder.dart' show LibraryBuilder, TypeBuilder, TypeDeclarationBuilder;
 
-class BuiltinTypeBuilder<T extends TypeBuilder, R>
+abstract class BuiltinTypeBuilder<T extends TypeBuilder, R>
     extends TypeDeclarationBuilder<T, R> {
   final R type;
 
@@ -19,4 +19,6 @@ class BuiltinTypeBuilder<T extends TypeBuilder, R>
   R buildTypesWithBuiltArguments(LibraryBuilder library, List<R> arguments) {
     return type;
   }
+
+  String get debugName => "BuiltinTypeBuilder";
 }

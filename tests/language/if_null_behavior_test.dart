@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Evaluation of an if-null expresion e of the form e1 ?? e2 is equivalent to
+// Evaluation of an if-null expression e of the form e1 ?? e2 is equivalent to
 // the evaluation of the expression ((x) => x == null ? e2 : x)(e1).  The
 // static type of e is the least upper bound of the static type of e1 and the
 // static type of e2.

@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static field dynamic x = () → dynamic {
+  dynamic y = 42;
+  return y;
+};
+static method main() → dynamic {
+  core::print(self::x.call());
+}

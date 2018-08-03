@@ -13,7 +13,7 @@ import 'package:bazel_worker/testing.dart';
 import 'package:path/path.dart' show join, joinAll;
 import 'package:test/test.dart';
 
-File file(String path) => new File(joinAll(path.split('/'))).absolute;
+File file(String path) => File(joinAll(path.split('/'))).absolute;
 
 main() {
   var dartdevc = join('bin', 'dartdevc.dart');
@@ -21,7 +21,7 @@ main() {
     final argsFile = file('test/worker/hello_world.args');
     final inputDartFile = file('test/worker/hello_world.dart');
     final outputJsFile = file('test/worker/out/hello_world.js');
-    final dartSdkSummary = file('lib/sdk/ddc_sdk.sum');
+    final dartSdkSummary = file('gen/sdk/ddc_sdk.sum');
     final executableArgs = [dartdevc];
     final compilerArgs = [
       '--no-source-map',
@@ -49,9 +49,9 @@ main() {
     test('can compile in worker mode', () async {
       var args = executableArgs.toList()..add('--persistent_worker');
       var process = await Process.start(Platform.executable, args);
-      var messageGrouper = new AsyncMessageGrouper(process.stdout);
+      var messageGrouper = AsyncMessageGrouper(process.stdout);
 
-      var request = new WorkRequest();
+      var request = WorkRequest();
       request.arguments.addAll(compilerArgs);
       process.stdin.add(protoToDelimitedBuffer(request));
 
@@ -89,7 +89,7 @@ main() {
     });
 
     test('unknown options', () {
-      var args = new List<String>.from(executableArgs)
+      var args = List<String>.from(executableArgs)
         ..add('--does-not-exist')
         ..addAll(compilerArgs);
       var result = Process.runSync(Platform.executable, args);
@@ -102,7 +102,7 @@ main() {
     });
 
     test('unknown options ignored', () {
-      var args = new List<String>.from(executableArgs)
+      var args = List<String>.from(executableArgs)
         ..add('--does-not-exist')
         ..add('--ignore-unrecognized-flags')
         ..addAll(compilerArgs);
@@ -120,7 +120,7 @@ main() {
       var args = executableArgs.toList()..add('@${argsFile.path}');
       var process = await Process.start(Platform.executable, args);
       stderr.addStream(process.stderr);
-      var futureProcessOutput = process.stdout.map(UTF8.decode).toList();
+      var futureProcessOutput = process.stdout.map(utf8.decode).toList();
 
       expect(await process.exitCode, EXIT_CODE_OK);
       expect((await futureProcessOutput).join(), isEmpty);
@@ -156,7 +156,7 @@ main() {
     });
 
     test('can compile in basic mode', () {
-      final dartSdkSummary = file('lib/sdk/ddc_sdk.sum');
+      final dartSdkSummary = file('gen/sdk/ddc_sdk.sum');
       var result = Process.runSync(Platform.executable, [
         dartdevc,
         '--summary-extension=api.ds',
@@ -193,7 +193,7 @@ main() {
     });
 
     test('reports error on overlapping summaries', () {
-      final dartSdkSummary = file('lib/sdk/ddc_sdk.sum');
+      final dartSdkSummary = file('gen/sdk/ddc_sdk.sum');
       var result = Process.runSync(Platform.executable, [
         dartdevc,
         '--summary-extension=api.ds',
@@ -251,7 +251,7 @@ main() {
   });
 
   group('Error handling', () {
-    final dartSdkSummary = file('lib/sdk/ddc_sdk.sum');
+    final dartSdkSummary = file('gen/sdk/ddc_sdk.sum');
     final badFileDart = file('test/worker/bad.dart');
     final badFileJs = file('test/worker/bad.js');
 
@@ -290,7 +290,7 @@ main() {
   });
 
   group('Parts', () {
-    final dartSdkSummary = file('lib/sdk/ddc_sdk.sum');
+    final dartSdkSummary = file('gen/sdk/ddc_sdk.sum');
     final partFile = file('test/worker/greeting.dart');
     final libraryFile = file('test/worker/hello.dart');
 
@@ -367,10 +367,10 @@ main() {
 Future<WorkResponse> _readResponse(MessageGrouper messageGrouper) async {
   var buffer = (await messageGrouper.next) as List<int>;
   try {
-    return new WorkResponse.fromBuffer(buffer);
+    return WorkResponse.fromBuffer(buffer);
   } catch (_) {
     var bufferAsString =
-        buffer == null ? '' : 'String: ${UTF8.decode(buffer)}\n';
+        buffer == null ? '' : 'String: ${utf8.decode(buffer)}\n';
     throw 'Failed to parse response:\nbytes: $buffer\n$bufferAsString';
   }
 }

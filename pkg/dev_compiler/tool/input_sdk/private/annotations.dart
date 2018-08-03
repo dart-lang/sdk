@@ -9,6 +9,48 @@ class ForceInline {
   const ForceInline();
 }
 
+class _NotNull {
+  const _NotNull();
+}
+
+/// Marks a variable or API to be non-nullable.
+/// ****CAUTION******
+/// This is currently unchecked, and hence should never be used
+/// on any public interface where user code could subclass, implement,
+/// or otherwise cause the contract to be violated.
+/// TODO(leafp): Consider adding static checking and exposing
+/// this to user code.
+const notNull = _NotNull();
+
+/// Marks a generic function or static method API to be not reified.
+/// ****CAUTION******
+/// This is currently unchecked, and hence should be used very carefully for
+/// internal SDK APIs only.
+class NoReifyGeneric {
+  const NoReifyGeneric();
+}
+
+/// Enables/disables reificiation of functions within the body of this function.
+/// ****CAUTION******
+/// This is currently unchecked, and hence should be used very carefully for
+/// internal SDK APIs only.
+class ReifyFunctionTypes {
+  final bool value;
+  const ReifyFunctionTypes(this.value);
+}
+
+class _NullCheck {
+  const _NullCheck();
+}
+
+/// Tells the development compiler to check a variable for null at its
+/// declaration point, and then to assume that the variable is non-null
+/// from that point forward.
+/// ****CAUTION******
+/// This is currently unchecked, and hence will not catch re-assignments
+/// of a variable with null
+const nullCheck = _NullCheck();
+
 /// Tells the optimizing compiler that the annotated method cannot throw.
 /// Requires @NoInline() to function correctly.
 class NoThrows {

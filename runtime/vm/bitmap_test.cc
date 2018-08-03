@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "platform/assert.h"
 #include "vm/bitmap.h"
+#include "platform/assert.h"
 #include "vm/object.h"
 #include "vm/unit_test.h"
 
@@ -39,7 +39,7 @@ TEST_CASE(BitmapBuilder) {
   // Create a StackMap object from the builder and verify its contents.
   const StackMap& stackmap1 = StackMap::Handle(StackMap::New(0, builder1, 0));
   EXPECT_EQ(1024, stackmap1.Length());
-  OS::Print("%s\n", stackmap1.ToCString());
+  OS::PrintErr("%s\n", stackmap1.ToCString());
   value = true;
   for (int32_t i = 0; i < 1024; i++) {
     EXPECT_EQ(value, stackmap1.IsObject(i));

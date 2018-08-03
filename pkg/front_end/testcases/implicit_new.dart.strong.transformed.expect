@@ -1,0 +1,69 @@
+// Errors:
+//
+// pkg/front_end/testcases/implicit_new.dart:18:18: Error: Method not found: 'Bar'.
+//   var y = prefix.Bar();
+//                  ^^^
+//
+// pkg/front_end/testcases/implicit_new.dart:19:10: Error: Method not found: 'Bar'.
+//   prefix.Bar();
+//          ^^^
+
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  operator +(dynamic other) → dynamic
+    return null;
+}
+class Bar extends core::Object {
+  constructor named() → void
+    : super core::Object::•()
+    ;
+  operator +(dynamic other) → dynamic
+    return null;
+}
+class IndexTester extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  operator [](dynamic _) → dynamic
+    return null;
+  operator []=(dynamic _a, dynamic _b) → void {}
+}
+static method testNSM() → dynamic {
+  dynamic y = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Bar, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Bar, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+}
+static method f(dynamic x) → dynamic
+  return x;
+static method main() → dynamic {
+  self::Foo x = new self::Foo::•();
+  x = new self::Foo::•();
+  self::Bar z = new self::Bar::named();
+  z = new self::Bar::named();
+  self::f(new self::Foo::•());
+  self::f(new self::Foo::•());
+  self::f(new self::Bar::named());
+  self::f(new self::Bar::named());
+  core::List<core::Object> l = <core::Object>[new self::Foo::•(), new self::Bar::named()];
+  l = <core::Object>[new self::Foo::•(), new self::Bar::named()];
+  core::Map<core::String, core::Object> m = <core::String, core::Object>{"foo": new self::Foo::•(), "bar": new self::Bar::named()};
+  m = <core::String, core::Object>{"foo": new self::Foo::•(), "bar": new self::Bar::named()};
+  self::IndexTester i = new self::IndexTester::•();
+  i.{self::IndexTester::[]}(new self::Foo::•());
+  i.{self::IndexTester::[]}(new self::Foo::•());
+  i.{self::IndexTester::[]}(new self::Bar::named());
+  i.{self::IndexTester::[]}(new self::Bar::named());
+  i.{self::IndexTester::[]=}(new self::Foo::•(), null);
+  i.{self::IndexTester::[]=}(new self::Foo::•(), null);
+  i.{self::IndexTester::[]=}(new self::Bar::named(), null);
+  i.{self::IndexTester::[]=}(new self::Bar::named(), null);
+  new self::Foo::•().{self::Foo::+}(new self::Bar::named());
+  new self::Foo::•().{self::Foo::+}(new self::Bar::named());
+  new self::Bar::named().{self::Bar::+}(new self::Foo::•());
+  new self::Bar::named().{self::Bar::+}(new self::Foo::•());
+}

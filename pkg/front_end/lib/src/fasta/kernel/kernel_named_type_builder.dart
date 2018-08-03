@@ -4,9 +4,12 @@
 
 library fasta.kernel_interface_type_builder;
 
-import 'package:kernel/ast.dart' show DartType, DynamicType, Supertype;
+import 'package:kernel/ast.dart' show DartType, Supertype;
 
-import '../messages.dart' show warning;
+import '../fasta_codes.dart' show Message;
+
+import '../messages.dart'
+    show noLength, templateSupertypeIsIllegal, templateSupertypeIsTypeVariable;
 
 import 'kernel_builder.dart'
     show
@@ -16,59 +19,74 @@ import 'kernel_builder.dart'
         LibraryBuilder,
         NamedTypeBuilder,
         TypeBuilder,
+        TypeDeclarationBuilder,
         TypeVariableBuilder;
 
 class KernelNamedTypeBuilder
     extends NamedTypeBuilder<KernelTypeBuilder, DartType>
     implements KernelTypeBuilder {
-  KernelNamedTypeBuilder(String name, List<KernelTypeBuilder> arguments,
-      int charOffset, Uri fileUri)
-      : super(name, arguments, charOffset, fileUri);
+  KernelNamedTypeBuilder(Object name, List<KernelTypeBuilder> arguments)
+      : super(name, arguments);
 
-  KernelInvalidTypeBuilder buildInvalidType(String name) {
-    // TODO(ahe): Record error instead of printing.
-    warning(fileUri, charOffset, "Type not found: '$name'.");
-    return new KernelInvalidTypeBuilder(name, charOffset, fileUri);
+  KernelInvalidTypeBuilder buildInvalidType(int charOffset, Uri fileUri,
+      [Message message]) {
+    // TODO(ahe): Consider if it makes sense to pass a QualifiedName to
+    // KernelInvalidTypeBuilder?
+    return new KernelInvalidTypeBuilder("$name", charOffset, fileUri, message);
   }
 
-  DartType handleMissingType() {
-    // TODO(ahe): Record error instead of printing.
-    warning(fileUri, charOffset, "No type for: '$name'.");
-    return const DynamicType();
-  }
-
-  Supertype handleMissingSupertype() {
-    warning(fileUri, charOffset, "No type for: '$name'.");
-    return null;
-  }
-
-  Supertype handleInvalidSupertype(LibraryBuilder library) {
-    String message = builder.isTypeVariable
-        ? "The type variable '$name' can't be used as supertype."
-        : "The type '$name' can't be used as supertype.";
-    library.addCompileTimeError(charOffset, message, fileUri: fileUri);
+  Supertype handleInvalidSupertype(
+      LibraryBuilder library, int charOffset, Uri fileUri) {
+    var template = declaration.isTypeVariable
+        ? templateSupertypeIsTypeVariable
+        : templateSupertypeIsIllegal;
+    library.addCompileTimeError(
+        template.withArguments("$name"), charOffset, noLength, fileUri);
     return null;
   }
 
   DartType build(LibraryBuilder library) {
-    if (builder == null) return handleMissingType();
-    return builder.buildType(library, arguments);
+    return declaration.buildType(library, arguments);
   }
 
-  Supertype buildSupertype(LibraryBuilder library) {
-    if (builder == null) return handleMissingSupertype();
-    if (builder is KernelClassBuilder) {
-      KernelClassBuilder builder = this.builder;
-      return builder.buildSupertype(library, arguments);
+  Supertype buildSupertype(
+      LibraryBuilder library, int charOffset, Uri fileUri) {
+    TypeDeclarationBuilder declaration = this.declaration;
+    if (declaration is KernelClassBuilder) {
+      return declaration.buildSupertype(library, arguments);
+    } else if (declaration is KernelInvalidTypeBuilder) {
+      library.addCompileTimeError(
+          declaration.message.messageObject,
+          declaration.message.charOffset,
+          declaration.message.length,
+          declaration.message.uri);
+      return null;
     } else {
-      return handleInvalidSupertype(library);
+      return handleInvalidSupertype(library, charOffset, fileUri);
+    }
+  }
+
+  Supertype buildMixedInType(
+      LibraryBuilder library, int charOffset, Uri fileUri) {
+    TypeDeclarationBuilder declaration = this.declaration;
+    if (declaration is KernelClassBuilder) {
+      return declaration.buildMixedInType(library, arguments);
+    } else if (declaration is KernelInvalidTypeBuilder) {
+      library.addCompileTimeError(
+          declaration.message.messageObject,
+          declaration.message.charOffset,
+          declaration.message.length,
+          declaration.message.uri);
+      return null;
+    } else {
+      return handleInvalidSupertype(library, charOffset, fileUri);
     }
   }
 
   TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution) {
-    TypeBuilder result = substitution[builder];
+    TypeBuilder result = substitution[declaration];
     if (result != null) {
-      assert(builder is TypeVariableBuilder);
+      assert(declaration is TypeVariableBuilder);
       return result;
     } else if (arguments != null) {
       List<KernelTypeBuilder> arguments;
@@ -82,10 +100,23 @@ class KernelNamedTypeBuilder
         i++;
       }
       if (arguments != null) {
-        return new KernelNamedTypeBuilder(name, arguments, charOffset, fileUri)
-          ..builder = builder;
+        return new KernelNamedTypeBuilder(name, arguments)..bind(declaration);
       }
     }
     return this;
+  }
+
+  KernelNamedTypeBuilder clone(List<TypeBuilder> newTypes) {
+    List<KernelTypeBuilder> clonedArguments;
+    if (arguments != null) {
+      clonedArguments = new List<KernelTypeBuilder>(arguments.length);
+      for (int i = 0; i < clonedArguments.length; i++) {
+        clonedArguments[i] = arguments[i].clone(newTypes);
+      }
+    }
+    KernelNamedTypeBuilder newType =
+        new KernelNamedTypeBuilder(name, clonedArguments);
+    newTypes.add(newType);
+    return newType;
   }
 }

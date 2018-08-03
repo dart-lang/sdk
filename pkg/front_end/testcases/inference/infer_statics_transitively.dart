@@ -7,10 +7,12 @@ library test;
 
 import 'infer_statics_transitively_a.dart';
 
-final /*@topType=dynamic*/ m1 = a1;
-final /*@topType=dynamic*/ m2 = A.a2;
+final /*@topType=int*/ m1 = a1;
+final /*@topType=int*/ m2 = A.a2;
 
 foo() {
   int i;
   i = m1;
 }
+
+main() {}

@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test() → void {
+  dynamic a = 5;
+  core::String b = a.{core::Object::toString}();
+  b = let dynamic _ = null in let final dynamic #t1 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/bug32414a.dart:10:7: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+  b = 42;
+      ^" in let final dynamic #t2 = 42 in null;
+}
+static method main() → void {}

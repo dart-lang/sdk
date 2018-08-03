@@ -2,21 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.constant_test;
+library analyzer.test.evaluation_test;
 
 import 'dart:async';
 
-import 'package:analyzer/context/declared_variables.dart';
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -316,16 +318,12 @@ const int a = 0;''');
   }
 
   test_computeValues_multipleSources() async {
-    Source librarySource = addNamedSource(
-        "/lib.dart",
-        r'''
+    Source librarySource = addNamedSource("/lib.dart", r'''
 library lib;
 part 'part.dart';
 const int c = b;
 const int a = 0;''');
-    Source partSource = addNamedSource(
-        "/part.dart",
-        r'''
+    Source partSource = addNamedSource("/part.dart", r'''
 part of lib;
 const int b = a;
 const int d = c;''');
@@ -405,8 +403,7 @@ const A y = const A(x);''');
 
   test_dependencyOnConstructorArgument_unresolvedConstructor() async {
     // "const A.a(x)" depends on x even if the constructor A.a can't be found.
-    await _assertProperDependencies(
-        r'''
+    await _assertProperDependencies(r'''
 class A {
 }
 const int x = 1;
@@ -453,18 +450,22 @@ const int i = 5;''');
 
   test_dependencyOnFactoryRedirect() async {
     // a depends on A.foo() depends on A.bar()
-    await _assertProperDependencies(r'''
+    await _assertProperDependencies(
+        r'''
 const A a = const A.foo();
 class A {
   factory const A.foo() = A.bar;
   const A.bar();
-}''');
+}''',
+        Parser.useFasta
+            ? const <ErrorCode>[ParserErrorCode.CONST_AFTER_FACTORY]
+            : const <ErrorCode>[]);
   }
 
   test_dependencyOnFactoryRedirectWithTypeParams() async {
     await _assertProperDependencies(r'''
 class A {
-  const factory A(var a) = B<int>;
+  const factory A(int a) = B<int>;
 }
 
 class B<T> implements A {
@@ -503,15 +504,13 @@ const A a = const A();
     // Even though non-static consts are not allowed by the language, we need
     // to handle them for error recovery purposes.
     // a depends on A() depends on A.x
-    await _assertProperDependencies(
-        '''
+    await _assertProperDependencies('''
 class A {
   const A();
   const int x = 1;
 }
 const A a = const A();
-''',
-        [CompileTimeErrorCode.CONST_INSTANCE_FIELD]);
+''', [CompileTimeErrorCode.CONST_INSTANCE_FIELD]);
   }
 
   test_dependencyOnNonFactoryRedirect() async {
@@ -551,13 +550,11 @@ class A {
   test_dependencyOnNonFactoryRedirect_toMissing() async {
     // a depends on A.foo() which depends on nothing, since A.bar() is
     // missing.
-    await _assertProperDependencies(
-        r'''
+    await _assertProperDependencies(r'''
 const A a = const A.foo();
 class A {
   const A.foo() : this.bar();
-}''',
-        [CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR]);
+}''', [CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR]);
   }
 
   test_dependencyOnNonFactoryRedirect_toNonConst() async {
@@ -1339,10 +1336,11 @@ const A a = const A();
     String varName = "foo";
     if (valueInEnvironment != null) {
       if (enableNewAnalysisDriver) {
-        driver.declaredVariables.define(envVarName, valueInEnvironment);
+        driver.declaredVariables =
+            new DeclaredVariables.fromMap({envVarName: valueInEnvironment});
       } else {
-        analysisContext2.declaredVariables
-            .define(envVarName, valueInEnvironment);
+        (analysisContext2 as AnalysisContextImpl).declaredVariables =
+            new DeclaredVariables.fromMap({envVarName: valueInEnvironment});
       }
     }
     String defaultArg =
@@ -1358,10 +1356,11 @@ const A a = const A();
     String varName = "foo";
     if (valueInEnvironment != null) {
       if (enableNewAnalysisDriver) {
-        driver.declaredVariables.define(envVarName, valueInEnvironment);
+        driver.declaredVariables =
+            new DeclaredVariables.fromMap({envVarName: valueInEnvironment});
       } else {
-        analysisContext2.declaredVariables
-            .define(envVarName, valueInEnvironment);
+        (analysisContext2 as AnalysisContextImpl).declaredVariables =
+            new DeclaredVariables.fromMap({envVarName: valueInEnvironment});
       }
     }
     String defaultArg =
@@ -1377,10 +1376,11 @@ const A a = const A();
     String varName = "foo";
     if (valueInEnvironment != null) {
       if (enableNewAnalysisDriver) {
-        driver.declaredVariables.define(envVarName, valueInEnvironment);
+        driver.declaredVariables =
+            new DeclaredVariables.fromMap({envVarName: valueInEnvironment});
       } else {
-        analysisContext2.declaredVariables
-            .define(envVarName, valueInEnvironment);
+        (analysisContext2 as AnalysisContextImpl).declaredVariables =
+            new DeclaredVariables.fromMap({envVarName: valueInEnvironment});
       }
     }
     String defaultArg =
@@ -1465,7 +1465,6 @@ class A {
       }
     }
     fail('Class member not found');
-    return null;
   }
 
   EvaluationResultImpl _evaluateTopLevelVariable(
@@ -1706,6 +1705,6 @@ const b = 3;''');
 class StrongConstantValueComputerTest extends ConstantValueComputerTest {
   void setUp() {
     super.setUp();
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
+    reset();
   }
 }

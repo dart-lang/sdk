@@ -18,32 +18,35 @@ class Foo {
 
 Foo makeFoo() native;
 
-void setup() native """
-function Foo() { this.i = 0; }
+void setup() {
+  JS('', r"""
+(function(){
+  function Foo() { this.i = 0; }
 
-Object.defineProperty(Foo.prototype, 'a', {
-  get: function () { return (this._a || '') + ++this.i; },
-  set: function (v) { this._a = v.toLowerCase(); }
-});
+  Object.defineProperty(Foo.prototype, 'a', {
+    get: function () { return (this._a || '') + ++this.i; },
+    set: function (v) { this._a = v.toLowerCase(); }
+  });
 
-Object.defineProperty(Foo.prototype, 'b', {
-  get: function () { return this._b || ''; },
-  set: function (v) { this._b = v.toLowerCase(); }
-});
+  Object.defineProperty(Foo.prototype, 'b', {
+    get: function () { return this._b || ''; },
+    set: function (v) { this._b = v.toLowerCase(); }
+  });
 
-Object.defineProperty(Foo.prototype, 'ab', {
-  get: function () { return this.a + ' ' + this.b; },
-  set: function (v) {
-    var s = v.split(' ');
-    this.a = s[0];
-    this.b = s[1];
-  }
-});
+  Object.defineProperty(Foo.prototype, 'ab', {
+    get: function () { return this.a + ' ' + this.b; },
+    set: function (v) {
+      var s = v.split(' ');
+      this.a = s[0];
+      this.b = s[1];
+    }
+  });
 
-makeFoo = function() { return new Foo() }
+  makeFoo = function() { return new Foo() };
 
-self.nativeConstructor(Foo);
-""";
+  self.nativeConstructor(Foo);
+})()""");
+}
 
 test1() {
   var f = makeFoo();

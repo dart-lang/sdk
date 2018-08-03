@@ -27,9 +27,9 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   final AstProvider astProvider;
 
-  RenameConstructorRefactoringImpl(
-      SearchEngine searchEngine, this.astProvider, ConstructorElement element)
-      : super(searchEngine, element);
+  RenameConstructorRefactoringImpl(RefactoringWorkspace workspace,
+      this.astProvider, ConstructorElement element)
+      : super(workspace, element);
 
   @override
   ConstructorElement get element => super.element as ConstructorElement;
@@ -57,6 +57,8 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future fillChange() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     // prepare references
     List<SearchMatch> matches = await searchEngine.searchReferences(element);
     List<SourceReference> references = getSourceReferences(matches);
@@ -100,16 +102,20 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
       sourceRange = new SourceRange(element.nameEnd, 0);
     }
     return new SourceReference(new SearchMatchImpl(
-        element.context,
-        element.library.source.uri.toString(),
-        element.source.uri.toString(),
-        MatchKind.DECLARATION,
-        sourceRange,
+        element.source.fullName,
+        element.library.source,
+        element.source,
+        element.library,
+        element,
         true,
-        true));
+        true,
+        MatchKind.DECLARATION,
+        sourceRange));
   }
 
   Future<Null> _replaceSynthetic() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     ClassElement classElement = element.enclosingElement;
     AstNode name = await astProvider.getResolvedNameForElement(classElement);
     ClassDeclaration classNode = name.parent as ClassDeclaration;

@@ -4,7 +4,7 @@
 
 library compiler.src.inferrer.list_tracer;
 
-import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../universe/selector.dart' show Selector;
 import '../util/util.dart' show Setlet;
@@ -164,10 +164,10 @@ class ListTracerVisitor extends TracerVisitor {
 
   visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
     super.visitStaticCallSiteTypeInformation(info);
-    Element called = info.calledElement;
-    if (compiler.backend.isForeign(called) &&
+    MemberEntity called = info.calledElement;
+    if (inferrer.closedWorld.commonElements.isForeign(called) &&
         called.name == JavaScriptBackend.JS) {
-      bailout('Used in JS ${info.call}');
+      bailout('Used in JS ${info.debugName}');
     }
   }
 
@@ -206,7 +206,8 @@ class ListTracerVisitor extends TracerVisitor {
         assignments.add(inferrer.types.nullType);
       }
     } else if (selector.isCall &&
-        !info.targets.every((element) => element.isFunction)) {
+        (info.hasClosureCallTargets ||
+            info.concreteTargets.any((element) => !element.isFunction))) {
       bailout('Passed to a closure');
       return;
     }

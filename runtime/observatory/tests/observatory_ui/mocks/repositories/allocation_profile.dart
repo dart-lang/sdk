@@ -7,7 +7,7 @@ part of mocks;
 typedef Future<
     M
         .AllocationProfile> AllocationProfileRepositoryMockGetterCallback(
-    M.Isolate id, bool gc, bool force);
+    M.Isolate id, bool gc, bool force, bool combine);
 
 class AllocationProfileRepositoryMock implements M.AllocationProfileRepository {
   final AllocationProfileRepositoryMockGetterCallback _get;
@@ -17,9 +17,9 @@ class AllocationProfileRepositoryMock implements M.AllocationProfileRepository {
       : _get = getter;
 
   Future<M.AllocationProfile> get(M.IsolateRef id,
-      {bool gc: false, bool reset: false}) {
+      {bool gc: false, bool reset: false, bool combine: false}) {
     if (_get != null) {
-      return _get(id, gc, reset);
+      return _get(id, gc, reset, combine);
     }
     return new Future.value(null);
   }

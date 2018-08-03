@@ -27,7 +27,8 @@ String format(String pattern,
  */
 String formatList(String pattern, List<Object> arguments) {
   if (arguments == null || arguments.isEmpty) {
-    assert(!pattern.contains(new RegExp(r'\{(\d+)\}')));
+    assert(!pattern.contains(new RegExp(r'\{(\d+)\}')),
+        'Message requires arguments, but none were provided.');
     return pattern;
   }
   return pattern.replaceAllMapped(new RegExp(r'\{(\d+)\}'), (match) {

@@ -25,7 +25,6 @@ class RegExpLookahead;
 class RegExpQuantifier;
 class RegExpText;
 
-
 class RegExpVisitor : public ValueObject {
  public:
   virtual ~RegExpVisitor() {}
@@ -34,7 +33,6 @@ class RegExpVisitor : public ValueObject {
   FOR_EACH_REG_EXP_TREE_TYPE(MAKE_CASE)
 #undef MAKE_CASE
 };
-
 
 class RegExpTree : public ZoneAllocated {
  public:
@@ -60,7 +58,6 @@ class RegExpTree : public ZoneAllocated {
 #undef MAKE_ASTYPE
 };
 
-
 class RegExpDisjunction : public RegExpTree {
  public:
   explicit RegExpDisjunction(ZoneGrowableArray<RegExpTree*>* alternatives);
@@ -81,7 +78,6 @@ class RegExpDisjunction : public RegExpTree {
   intptr_t max_match_;
 };
 
-
 class RegExpAlternative : public RegExpTree {
  public:
   explicit RegExpAlternative(ZoneGrowableArray<RegExpTree*>* nodes);
@@ -101,7 +97,6 @@ class RegExpAlternative : public RegExpTree {
   intptr_t min_match_;
   intptr_t max_match_;
 };
-
 
 class RegExpAssertion : public RegExpTree {
  public:
@@ -128,7 +123,6 @@ class RegExpAssertion : public RegExpTree {
   AssertionType assertion_type_;
 };
 
-
 class CharacterSet : public ValueObject {
  public:
   explicit CharacterSet(uint16_t standard_set_type)
@@ -153,7 +147,6 @@ class CharacterSet : public ValueObject {
   // characters) without having to expand the ranges.
   uint16_t standard_set_type_;
 };
-
 
 class RegExpCharacterClass : public RegExpTree {
  public:
@@ -194,7 +187,6 @@ class RegExpCharacterClass : public RegExpTree {
   bool is_negated_;
 };
 
-
 class RegExpAtom : public RegExpTree {
  public:
   explicit RegExpAtom(ZoneGrowableArray<uint16_t>* data) : data_(data) {}
@@ -212,7 +204,6 @@ class RegExpAtom : public RegExpTree {
  private:
   ZoneGrowableArray<uint16_t>* data_;
 };
-
 
 class RegExpText : public RegExpTree {
  public:
@@ -235,7 +226,6 @@ class RegExpText : public RegExpTree {
   GrowableArray<TextElement> elements_;
   intptr_t length_;
 };
-
 
 class RegExpQuantifier : public RegExpTree {
  public:
@@ -285,7 +275,6 @@ class RegExpQuantifier : public RegExpTree {
   QuantifierType quantifier_type_;
 };
 
-
 class RegExpCapture : public RegExpTree {
  public:
   explicit RegExpCapture(RegExpTree* body, intptr_t index)
@@ -312,7 +301,6 @@ class RegExpCapture : public RegExpTree {
   RegExpTree* body_;
   intptr_t index_;
 };
-
 
 class RegExpLookahead : public RegExpTree {
  public:
@@ -345,7 +333,6 @@ class RegExpLookahead : public RegExpTree {
   intptr_t capture_from_;
 };
 
-
 class RegExpBackReference : public RegExpTree {
  public:
   explicit RegExpBackReference(RegExpCapture* capture) : capture_(capture) {}
@@ -361,7 +348,6 @@ class RegExpBackReference : public RegExpTree {
  private:
   RegExpCapture* capture_;
 };
-
 
 class RegExpEmpty : public RegExpTree {
  public:

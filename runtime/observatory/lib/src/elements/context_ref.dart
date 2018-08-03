@@ -23,6 +23,7 @@ class ContextRefElement extends HtmlElement implements Renderable {
   M.ContextRef _context;
   M.ObjectRepository _objects;
   M.Context _loadedContext;
+  bool _expandable;
   bool _expanded = false;
 
   M.IsolateRef get isolate => _isolate;
@@ -30,15 +31,16 @@ class ContextRefElement extends HtmlElement implements Renderable {
 
   factory ContextRefElement(
       M.IsolateRef isolate, M.ContextRef context, M.ObjectRepository objects,
-      {RenderingQueue queue}) {
+      {RenderingQueue queue, bool expandable: true}) {
     assert(isolate != null);
     assert(context != null);
     assert(objects != null);
     ContextRefElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<ContextRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._context = context;
     e._objects = objects;
+    e._expandable = expandable;
     return e;
   }
 
@@ -54,7 +56,7 @@ class ContextRefElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   Future _refresh() async {
@@ -63,30 +65,35 @@ class ContextRefElement extends HtmlElement implements Renderable {
   }
 
   void render() {
-    children = [
+    var children = <HtmlElement>[
       new AnchorElement(href: Uris.inspect(_isolate, object: _context))
-        ..children = [
+        ..children = <Element>[
           new SpanElement()
             ..classes = ['emphasize']
             ..text = 'Context',
           new SpanElement()..text = ' (${_context.length})',
         ],
-      new SpanElement()..text = ' ',
-      new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
-        ..content = [
-          new DivElement()
-            ..classes = ['indent']
-            ..children = _createValue()
-        ]
-        ..onToggle.listen((e) async {
-          _expanded = e.control.expanded;
-          if (_expanded) {
-            e.control.disabled = true;
-            await _refresh();
-            e.control.disabled = false;
-          }
-        })
     ];
+    if (_expandable) {
+      children.addAll([
+        new SpanElement()..text = ' ',
+        new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
+          ..content = <Element>[
+            new DivElement()
+              ..classes = ['indent']
+              ..children = _createValue()
+          ]
+          ..onToggle.listen((e) async {
+            _expanded = e.control.expanded;
+            if (_expanded) {
+              e.control.disabled = true;
+              await _refresh();
+              e.control.disabled = false;
+            }
+          })
+      ]);
+    }
+    this.children = children;
   }
 
   List<Element> _createValue() {
@@ -97,13 +104,13 @@ class ContextRefElement extends HtmlElement implements Renderable {
     if (_loadedContext.parentContext != null) {
       members.add(new DivElement()
         ..classes = ['memberItem']
-        ..children = [
+        ..children = <Element>[
           new DivElement()
             ..classes = ['memberName']
             ..text = 'parent context',
           new DivElement()
             ..classes = ['memberName']
-            ..children = [
+            ..children = <Element>[
               new ContextRefElement(
                   _isolate, _loadedContext.parentContext, _objects,
                   queue: _r.queue)
@@ -116,13 +123,13 @@ class ContextRefElement extends HtmlElement implements Renderable {
         var variable = variables[index];
         members.add(new DivElement()
           ..classes = ['memberItem']
-          ..children = [
+          ..children = <Element>[
             new DivElement()
               ..classes = ['memberName']
               ..text = '[ $index ]',
             new DivElement()
               ..classes = ['memberName']
-              ..children = [
+              ..children = <Element>[
                 anyRef(_isolate, variable.value, _objects, queue: _r.queue)
               ]
           ]);

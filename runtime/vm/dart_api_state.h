@@ -13,13 +13,13 @@
 #include "vm/flags.h"
 #include "vm/growable_array.h"
 #include "vm/handles.h"
+#include "vm/heap/weak_table.h"
 #include "vm/object.h"
 #include "vm/os.h"
 #include "vm/os_thread.h"
 #include "vm/raw_object.h"
 #include "vm/thread_pool.h"
 #include "vm/visitor.h"
-#include "vm/weak_table.h"
 
 #include "vm/handles_impl.h"
 
@@ -121,7 +121,6 @@ class ApiZone {
   DISALLOW_COPY_AND_ASSIGN(ApiZone);
 };
 
-
 // Implementation of local handles which are handed out from every
 // dart API call, these handles are valid only in the present scope
 // and are destroyed when a Dart_ExitScope() is called.
@@ -143,11 +142,9 @@ class LocalHandle {
   DISALLOW_COPY_AND_ASSIGN(LocalHandle);
 };
 
-
 // A distinguished callback which indicates that a persistent handle
 // should not be deleted from the dart api.
 void ProtectedHandleCallback(void* peer);
-
 
 // Implementation of persistent handles which are handed out through the
 // dart API.
@@ -187,7 +184,6 @@ class PersistentHandle {
   DISALLOW_COPY_AND_ASSIGN(PersistentHandle);
 };
 
-
 // Implementation of persistent handles which are handed out through the
 // dart API.
 class FinalizablePersistentHandle {
@@ -221,7 +217,8 @@ class FinalizablePersistentHandle {
     if (SpaceForExternal() == Heap::kNew) {
       SetExternalNewSpaceBit();
     }
-    isolate->heap()->AllocateExternal(external_size(), SpaceForExternal());
+    isolate->heap()->AllocateExternal(raw()->GetClassIdMayBeSmi(),
+                                      external_size(), SpaceForExternal());
   }
 
   // Called when the referent becomes unreachable.
@@ -233,7 +230,8 @@ class FinalizablePersistentHandle {
   // Called when the referent has moved, potentially between generations.
   void UpdateRelocated(Isolate* isolate) {
     if (IsSetNewSpaceBit() && (SpaceForExternal() == Heap::kOld)) {
-      isolate->heap()->PromoteExternal(external_size());
+      isolate->heap()->PromoteExternal(raw()->GetClassIdMayBeSmi(),
+                                       external_size());
       ClearExternalNewSpaceBit();
     }
   }
@@ -325,8 +323,7 @@ class FinalizablePersistentHandle {
   // Returns the space to charge for the external size.
   Heap::Space SpaceForExternal() const {
     // Non-heap and VM-heap objects count as old space here.
-    return (raw_->IsHeapObject() && raw_->IsNewObject()) ? Heap::kNew
-                                                         : Heap::kOld;
+    return raw_->IsSmiOrOldObject() ? Heap::kOld : Heap::kNew;
   }
 
   RawObject* raw_;
@@ -337,7 +334,6 @@ class FinalizablePersistentHandle {
   DISALLOW_ALLOCATION();  // Allocated through AllocateHandle methods.
   DISALLOW_COPY_AND_ASSIGN(FinalizablePersistentHandle);
 };
-
 
 // Local handles repository structure.
 static const int kLocalHandleSizeInWords = sizeof(LocalHandle) / kWordSize;
@@ -364,7 +360,6 @@ class LocalHandles : Handles<kLocalHandleSizeInWords,
                    reinterpret_cast<intptr_t>(this));
     }
   }
-
 
   // Visit all object pointers stored in the various handles.
   void VisitObjectPointers(ObjectPointerVisitor* visitor) {
@@ -396,7 +391,6 @@ class LocalHandles : Handles<kLocalHandleSizeInWords,
  private:
   DISALLOW_COPY_AND_ASSIGN(LocalHandles);
 };
-
 
 // Persistent handles repository structure.
 static const int kPersistentHandleSizeInWords =
@@ -486,7 +480,6 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
   DISALLOW_COPY_AND_ASSIGN(PersistentHandles);
 };
 
-
 // Finalizable persistent handles repository structure.
 static const int kFinalizablePersistentHandleSizeInWords =
     sizeof(FinalizablePersistentHandle) / kWordSize;
@@ -502,9 +495,7 @@ class FinalizablePersistentHandles
                 kFinalizablePersistentHandlesPerChunk,
                 kOffsetOfRawPtrInFinalizablePersistentHandle>(),
         free_list_(NULL) {}
-  ~FinalizablePersistentHandles() {
-    free_list_ = NULL;
-  }
+  ~FinalizablePersistentHandles() { free_list_ = NULL; }
 
   // Accessors.
   FinalizablePersistentHandle* free_list() const { return free_list_; }
@@ -571,7 +562,6 @@ class FinalizablePersistentHandles
   DISALLOW_COPY_AND_ASSIGN(FinalizablePersistentHandles);
 };
 
-
 // Structure used for the implementation of local scopes used in dart_api.
 // These local scopes manage handles and memory allocated in the scope.
 class ApiLocalScope {
@@ -610,7 +600,6 @@ class ApiLocalScope {
 
   DISALLOW_COPY_AND_ASSIGN(ApiLocalScope);
 };
-
 
 class ApiNativeScope {
  public:
@@ -662,7 +651,6 @@ class ApiNativeScope {
   ApiZone zone_;
 };
 
-
 // Api growable arrays use a zone for allocation. The constructor
 // picks the zone from the current isolate if in an isolate
 // environment. When outside an isolate environment it picks the zone
@@ -680,7 +668,6 @@ class ApiGrowableArray : public BaseGrowableArray<T, ValueObject, Zone> {
   ApiGrowableArray(intptr_t initial_capacity, Zone* zone)
       : BaseGrowableArray<T, ValueObject, Zone>(initial_capacity, zone) {}
 };
-
 
 // Implementation of the API State used in dart api for maintaining
 // local scopes, persistent handles etc. These are setup on a per isolate
@@ -791,7 +778,6 @@ class ApiState {
 
   DISALLOW_COPY_AND_ASSIGN(ApiState);
 };
-
 
 inline FinalizablePersistentHandle* FinalizablePersistentHandle::New(
     Isolate* isolate,

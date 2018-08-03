@@ -28,8 +28,7 @@ void testRecordElement() {
     stats.recordElement('foo', 'b');
     stats.recordElement('bar', 'a', data: 'third-a-data');
     stats.recordElement('bar', 'c');
-  },
-      r'''
+  }, r'''
 foo: 2
  value=a data=second-a-data
  b
@@ -46,8 +45,7 @@ void testRecordFrequency() {
     stats.recordFrequency('bar', 'b', 'first-b-data');
     stats.recordFrequency('foo', 'c');
     stats.recordFrequency('bar', 'b');
-  },
-      r'''
+  }, r'''
 foo:
  a: 2
   first-a-data
@@ -70,8 +68,7 @@ void testRecordCounter() {
     stats.recordCounter('bar', 'd');
     stats.recordCounter('baz');
     stats.recordCounter('baz');
-  },
-      r'''
+  }, r'''
 foo: 3
  count=2 example=a
  count=1 example=b

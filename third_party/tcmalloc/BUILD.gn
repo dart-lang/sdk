@@ -2,11 +2,14 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("tcmalloc_sources.gni")
+
 config("internal_config") {
   visibility = [ ":*" ]  # Only targets in this file can depend on this.
   cflags = [
     "-Wall",
     "-Wextra",
+    "-Wno-format",
     "-Wno-missing-field-initializers",
     "-Wno-sign-compare",
     "-Wno-type-limits",
@@ -28,6 +31,8 @@ config("internal_config") {
     "-fno-builtin-posix_memalign",
     "-fno-builtin-valloc",
     "-fno-builtin-pvalloc",
+    "-fsized-deallocation",
+    "-faligned-new",
   ]
   if (is_clang) {
     cflags += [ "-Wno-unused-const-variable" ]
@@ -47,7 +52,10 @@ config("link_config") {
 }
 
 source_set("dynamic_annotations") {
-  configs -= [ "//build/config/compiler:chromium_code" ]
+  configs -= [
+    "//build/config/compiler:chromium_code",
+    "//build/config/compiler:clang_stackrealign",
+  ]
   configs += [ ":internal_config" ]
 
   include_dirs = [
@@ -62,13 +70,12 @@ source_set("dynamic_annotations") {
   ]
 }
 
-tcmalloc_sources_list = exec_script("../../tools/gypi_to_gn.py",
-                                    [ rebase_path("tcmalloc_sources.gypi") ],
-                                    "scope",
-                                    [ "tcmalloc_sources.gypi" ])
-
 source_set("tcmalloc") {
-  configs -= [ "//build/config/compiler:chromium_code" ]
+  configs -= [
+    "//build/config/compiler:chromium_code",
+    "//build/config/compiler:clang_stackrealign",
+    "//build/config/compiler:compiler_arm_thumb",
+  ]
   configs += [ ":internal_config" ]
 
   public_configs = [ ":link_config" ]
@@ -92,9 +99,12 @@ source_set("tcmalloc") {
     "NDEBUG",
   ]
 
-  # Disable stack sampling for heap profiling in Product builds.
   if (is_product) {
+    # Disable stack sampling for heap profiling in Product builds.
     defines += [ "NO_TCMALLOC_SAMPLES" ]
+
+    # To override the C library functions, we can't hide symbols.
+    configs -= [ "//build/config/gcc:symbol_visibility_hidden" ]
   }
 
   cflags = [
@@ -125,5 +135,5 @@ source_set("tcmalloc") {
                                   "gperftools/src/profiler.cc",
                                 ])
 
-  sources = tcmalloc_sources_list.sources
+  sources = tcmalloc_sources
 }

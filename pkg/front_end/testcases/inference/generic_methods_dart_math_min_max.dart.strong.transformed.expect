@@ -1,0 +1,43 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:math" as math;
+
+static method printInt(core::int x) → void
+  return core::print(x);
+static method printDouble(core::double x) → void
+  return core::print(x);
+static method myMax(core::num x, core::num y) → core::num
+  return math::max<core::num>(x, y);
+static method f() → dynamic {
+  self::printInt(math::max<core::int>(1, 2));
+  self::printInt(math::min<core::int>(1, 2));
+  self::printDouble(math::max<core::double>(1.0, 2.0));
+  self::printDouble(math::min<core::double>(1.0, 2.0));
+  self::printInt(self::myMax(1, 2) as{TypeError} core::int);
+  self::printInt(self::myMax(1, 2) as core::int);
+  self::printInt(math::max<core::int>(1, let<BottomType> _ = null in let final dynamic #t1 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_dart_math_min_max.dart:29:71: Error: The argument type 'dart.core::double' can't be assigned to the parameter type 'dart.core::int'.
+Try changing the type of the parameter, or casting the argument to 'dart.core::int'.
+      /*@typeArgs=int*/ max(1, /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 2.0));
+                                                                      ^" in let final core::double #t2 = 2.0 in null));
+  self::printInt(math::min<core::int>(1, let<BottomType> _ = null in let final dynamic #t3 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_dart_math_min_max.dart:31:71: Error: The argument type 'dart.core::double' can't be assigned to the parameter type 'dart.core::int'.
+Try changing the type of the parameter, or casting the argument to 'dart.core::int'.
+      /*@typeArgs=int*/ min(1, /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 2.0));
+                                                                      ^" in let final core::double #t4 = 2.0 in null));
+  self::printDouble(math::max<core::double>(let<BottomType> _ = null in let final dynamic #t5 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_dart_math_min_max.dart:33:71: Error: The argument type 'dart.core::int' can't be assigned to the parameter type 'dart.core::double'.
+Try changing the type of the parameter, or casting the argument to 'dart.core::double'.
+      /*@typeArgs=double*/ max(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 1, 2.0));
+                                                                      ^" in let final core::int #t6 = 1 in null, 2.0));
+  self::printDouble(math::min<core::double>(let<BottomType> _ = null in let final dynamic #t7 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_dart_math_min_max.dart:35:71: Error: The argument type 'dart.core::int' can't be assigned to the parameter type 'dart.core::double'.
+Try changing the type of the parameter, or casting the argument to 'dart.core::double'.
+      /*@typeArgs=double*/ min(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 1, 2.0));
+                                                                      ^" in let final core::int #t8 = 1 in null, 2.0));
+  self::printInt(math::min<core::int>(let<BottomType> _ = null in let final dynamic #t9 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_dart_math_min_max.dart:39:46: Error: The argument type 'dart.core::String' can't be assigned to the parameter type 'dart.core::int'.
+Try changing the type of the parameter, or casting the argument to 'dart.core::int'.
+      /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ \"hi\",
+                                             ^" in let final core::String #t10 = "hi" in null, let<BottomType> _ = null in let final dynamic #t11 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_dart_math_min_max.dart:40:46: Error: The argument type 'dart.core::String' can't be assigned to the parameter type 'dart.core::int'.
+Try changing the type of the parameter, or casting the argument to 'dart.core::int'.
+      /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ \"there\"));
+                                             ^" in let final core::String #t12 = "there" in null));
+}
+static method main() → dynamic {}

@@ -11,14 +11,10 @@
 
 import 'dart:io';
 
-import 'package:dev_compiler/src/compiler/command.dart';
+import 'package:dev_compiler/src/analyzer/command.dart';
 
 main(List<String> arguments) {
-  var args = [
-    '--unsafe-force-compile',
-    '--no-source-map',
-    '--no-emit-metadata'
-  ];
+  var args = ['--no-source-map', '--no-emit-metadata'];
   args.addAll(arguments);
   args.addAll([
     'dart:_runtime',
@@ -27,7 +23,6 @@ main(List<String> arguments) {
     'dart:_interceptors',
     'dart:_internal',
     'dart:_isolate_helper',
-    'dart:_js_embedded_names',
     'dart:_js_helper',
     'dart:_js_mirrors',
     'dart:_js_primitives',

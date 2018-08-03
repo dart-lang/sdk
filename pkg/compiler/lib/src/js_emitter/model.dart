@@ -8,6 +8,7 @@ import '../constants/values.dart' show ConstantValue;
 import '../deferred_load.dart' show OutputUnit;
 import '../elements/entities.dart';
 import '../js/js.dart' as js show Expression, Name, Statement, TokenFinalizer;
+import '../js/js_debug.dart' as js show nodeToString;
 import 'js_emitter.dart' show MetadataCollector;
 
 class Program {
@@ -15,16 +16,10 @@ class Program {
   final List<Holder> holders;
   final bool outputContainsConstantList;
   final bool needsNativeSupport;
-  final bool hasIsolateSupport;
   final bool hasSoftDeferredClasses;
 
   /// A map from load id to the list of fragments that need to be loaded.
   final Map<String, List<Fragment>> loadMap;
-
-  /// A map from names to strings.
-  ///
-  /// This map is needed to support `const Symbol` expressions;
-  final Map<js.Name, String> symbolsMap;
 
   // If this field is not `null` then its value must be emitted in the embedded
   // global `TYPE_TO_INTERCEPTOR_MAP`. The map references constants and classes.
@@ -35,20 +30,19 @@ class Program {
   final MetadataCollector _metadataCollector;
   final Iterable<js.TokenFinalizer> finalizers;
 
-  Program(this.fragments, this.holders, this.loadMap, this.symbolsMap,
-      this.typeToInterceptorMap, this._metadataCollector, this.finalizers,
+  Program(this.fragments, this.holders, this.loadMap, this.typeToInterceptorMap,
+      this._metadataCollector, this.finalizers,
       {this.needsNativeSupport,
       this.outputContainsConstantList,
-      this.hasIsolateSupport,
       this.hasSoftDeferredClasses}) {
     assert(needsNativeSupport != null);
     assert(outputContainsConstantList != null);
-    assert(hasIsolateSupport != null);
   }
 
-  /// A list of metadata expressions.
+  /// Accessor for the list of metadata entries for a given [OutputUnit].
   ///
-  /// This list must be emitted in the `METADATA` embedded global.
+  /// There is one list for each output unit. The list belonging to the main
+  /// unit must be emitted in the `METADATA` embedded global.
   /// The list references constants and must hence be emitted after constants
   /// have been initialized.
   ///
@@ -56,9 +50,11 @@ class Program {
   /// list must not be emitted before all operations on it are done. For
   /// example, the old emitter generates metadata when emitting reflection
   /// data.
-  js.Expression get metadata => _metadataCollector.globalMetadata;
+  js.Expression metadataForOutputUnit(OutputUnit unit) {
+    return _metadataCollector.getMetadataForOutputUnit(unit);
+  }
 
-  /// Accessor for the list of metadata entries for a given [OutputUnit].
+  /// Accessor for the list of type entries for a given [OutputUnit].
   ///
   /// There is one list for each output unit. The list belonging to the main
   /// unit must be emitted in the `TYPES` embedded global. The list references
@@ -88,6 +84,10 @@ class Holder {
 
   Holder(this.name, this.index,
       {this.isStaticStateHolder: false, this.isConstantsHolder: false});
+
+  String toString() {
+    return 'Holder(name=${name})';
+  }
 }
 
 /**
@@ -143,6 +143,10 @@ class MainFragment extends Fragment {
             staticLazilyInitializedFields, constants);
 
   bool get isMainFragment => true;
+
+  String toString() {
+    return 'MainFragment()';
+  }
 }
 
 /**
@@ -163,6 +167,10 @@ class DeferredFragment extends Fragment {
             staticLazilyInitializedFields, constants);
 
   bool get isMainFragment => false;
+
+  String toString() {
+    return 'DeferredFragment(name=${name})';
+  }
 }
 
 class Constant {
@@ -171,6 +179,10 @@ class Constant {
   final ConstantValue value;
 
   Constant(this.name, this.holder, this.value);
+
+  String toString() {
+    return 'Constant(name=${name.key},value=${value.toStructuredText()})';
+  }
 }
 
 abstract class FieldContainer {
@@ -190,6 +202,10 @@ class Library implements FieldContainer {
 
   Library(this.element, this.uri, this.statics, this.classes,
       this.staticFieldsForReflection);
+
+  String toString() {
+    return 'Library(uri=${uri},element=${element})';
+  }
 }
 
 class StaticField {
@@ -207,6 +223,10 @@ class StaticField {
 
   StaticField(this.element, this.name, this.holder, this.code, this.isFinal,
       this.isLazy);
+
+  String toString() {
+    return 'StaticField(name=${name.key},element=${element})';
+  }
 }
 
 class Class implements FieldContainer {
@@ -291,7 +311,7 @@ class Class implements FieldContainer {
   int get superclassHolderIndex =>
       (superclass == null) ? 0 : superclass.holder.index;
 
-  String toString() => 'Class(${element.name})';
+  String toString() => 'Class(name=${name.key},element=$element)';
 }
 
 class MixinApplication extends Class {
@@ -334,6 +354,8 @@ class MixinApplication extends Class {
   void setMixinClass(Class mixinClass) {
     _mixinClass = mixinClass;
   }
+
+  String toString() => 'Mixin(name=${name.key},element=$element)';
 }
 
 /// A field.
@@ -362,9 +384,17 @@ class Field {
 
   final bool needsCheckedSetter;
 
+  final bool nullInitializerInAllocator; // TODO(sra): Generalize.
+
   // TODO(floitsch): support renamed fields.
-  Field(this.element, this.name, this.accessorName, this.getterFlags,
-      this.setterFlags, this.needsCheckedSetter);
+  Field(
+      this.element,
+      this.name,
+      this.accessorName,
+      this.getterFlags,
+      this.setterFlags,
+      this.needsCheckedSetter,
+      this.nullInitializerInAllocator);
 
   bool get needsGetter => getterFlags != 0;
   bool get needsUncheckedSetter => setterFlags != 0;
@@ -377,6 +407,10 @@ class Field {
 
   bool get needsInterceptedGetterOnThis => getterFlags == 3;
   bool get needsInterceptedSetterOnThis => setterFlags == 3;
+
+  String toString() {
+    return 'Field(name=${name.key},element=${element})';
+  }
 }
 
 abstract class Method {
@@ -399,9 +433,9 @@ abstract class DartMethod extends Method {
   final js.Name tearOffName;
   final List<ParameterStubMethod> parameterStubs;
   final bool canBeApplied;
-  final bool canBeReflected;
+  final int applyIndex;
 
-  // Is non-null if [needsTearOff] or [canBeReflected].
+  // Is non-null if [needsTearOff].
   //
   // If the type is encoded in the metadata table this field contains an index
   // into the table. Otherwise the type contains type variables in which case
@@ -409,7 +443,7 @@ abstract class DartMethod extends Method {
   final js.Expression functionType;
 
   // Signature information for this method. This is only required and stored
-  // here if the method [canBeApplied] or [canBeReflected]
+  // here if the method [canBeApplied].
   final int requiredParameterCount;
   final /* Map | List */ optionalParameterDefaultValues;
 
@@ -423,16 +457,15 @@ abstract class DartMethod extends Method {
       {this.needsTearOff,
       this.tearOffName,
       this.canBeApplied,
-      this.canBeReflected,
       this.requiredParameterCount,
       this.optionalParameterDefaultValues,
-      this.functionType})
+      this.functionType,
+      this.applyIndex})
       : super(element, name, code) {
     assert(needsTearOff != null);
     assert(!needsTearOff || tearOffName != null);
     assert(canBeApplied != null);
-    assert(canBeReflected != null);
-    assert((!canBeReflected && !canBeApplied) ||
+    assert(!canBeApplied ||
         (requiredParameterCount != null &&
             optionalParameterDefaultValues != null));
   }
@@ -452,29 +485,41 @@ class InstanceMethod extends DartMethod {
   /// functions that can be torn off.
   final bool isClosureCallMethod;
 
+  /// True if the interceptor calling convention is used for this method.
+  final bool isIntercepted;
+
+  /// Name called via the general 'catch all' path of Function.apply.
+  ///final js.Name applyName;
+
   InstanceMethod(FunctionEntity element, js.Name name, js.Expression code,
       List<ParameterStubMethod> parameterStubs, js.Name callName,
       {bool needsTearOff,
       js.Name tearOffName,
       this.aliasName,
       bool canBeApplied,
-      bool canBeReflected,
       int requiredParameterCount,
       /* List | Map */ optionalParameterDefaultValues,
       this.isClosureCallMethod,
-      js.Expression functionType})
+      this.isIntercepted,
+      js.Expression functionType,
+      int applyIndex})
       : super(element, name, code, parameterStubs, callName,
             needsTearOff: needsTearOff,
             tearOffName: tearOffName,
             canBeApplied: canBeApplied,
-            canBeReflected: canBeReflected,
             requiredParameterCount: requiredParameterCount,
             optionalParameterDefaultValues: optionalParameterDefaultValues,
-            functionType: functionType) {
+            functionType: functionType,
+            applyIndex: applyIndex) {
     assert(isClosureCallMethod != null);
   }
 
   bool get isStatic => false;
+
+  String toString() {
+    return 'InstanceMethod(name=${name.key},element=${element}'
+        ',code=${js.nodeToString(code)})';
+  }
 }
 
 /// A method that is generated by the backend and has not direct correspondence
@@ -483,6 +528,11 @@ class InstanceMethod extends DartMethod {
 class StubMethod extends Method {
   StubMethod(js.Name name, js.Expression code, {MemberEntity element})
       : super(element, name, code);
+
+  String toString() {
+    return 'StubMethod(name=${name.key},element=${element}'
+        ',code=${js.nodeToString(code)})';
+  }
 }
 
 /// A stub that adapts and redirects to the main method (the one containing)
@@ -504,6 +554,12 @@ class ParameterStubMethod extends StubMethod {
 
   ParameterStubMethod(js.Name name, this.callName, js.Expression code)
       : super(name, code);
+
+  String toString() {
+    return 'ParameterStubMethod(name=${name.key}, callName=${callName?.key}'
+        ', element=${element}'
+        ', code=${js.nodeToString(code)})';
+  }
 }
 
 abstract class StaticMethod implements Method {
@@ -523,24 +579,34 @@ class StaticDartMethod extends DartMethod implements StaticMethod {
       {bool needsTearOff,
       js.Name tearOffName,
       bool canBeApplied,
-      bool canBeReflected,
       int requiredParameterCount,
       /* List | Map */ optionalParameterDefaultValues,
-      js.Expression functionType})
+      js.Expression functionType,
+      int applyIndex})
       : super(element, name, code, parameterStubs, callName,
             needsTearOff: needsTearOff,
             tearOffName: tearOffName,
             canBeApplied: canBeApplied,
-            canBeReflected: canBeReflected,
             requiredParameterCount: requiredParameterCount,
             optionalParameterDefaultValues: optionalParameterDefaultValues,
-            functionType: functionType);
+            functionType: functionType,
+            applyIndex: applyIndex);
 
   bool get isStatic => true;
+
+  String toString() {
+    return 'StaticDartMethod(name=${name.key},element=${element}'
+        ',code=${js.nodeToString(code)})';
+  }
 }
 
 class StaticStubMethod extends StubMethod implements StaticMethod {
   Holder holder;
   StaticStubMethod(js.Name name, this.holder, js.Expression code)
       : super(name, code);
+
+  String toString() {
+    return 'StaticStubMethod(name=${name.key},element=${element}}'
+        ',code=${js.nodeToString(code)})';
+  }
 }

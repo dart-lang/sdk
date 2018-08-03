@@ -35,5 +35,5 @@ void main() {
   var NaN = called ? 52 : 54;
   Expect.isFalse(JS('bool', 'isNaN(#)', isNaN));
   Expect.isFalse(JS('bool', 'isNaN(#)', NaN));
-  Expect.isTrue(JS('bool', 'isNaN(#)', double.NAN));
+  Expect.isTrue(JS('bool', 'isNaN(#)', double.nan));
 }

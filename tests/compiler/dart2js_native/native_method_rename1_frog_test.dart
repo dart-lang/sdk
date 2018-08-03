@@ -26,17 +26,20 @@ class B {
   int baz() => 900;
 }
 
-void setup() native """
-// This code is all inside 'setup' and so not accessible from the global scope.
-function A(){}
-A.prototype.fooA = function(){return 100;};
-A.prototype.barA = function(){return 200;};
-A.prototype.bazA = function(){return 300;};
+void setup() {
+  JS('', r"""
+(function(){
+  // This code is inside 'setup' and so not accessible from the global scope.
+  function A(){}
+  A.prototype.fooA = function(){return 100;};
+  A.prototype.barA = function(){return 200;};
+  A.prototype.bazA = function(){return 300;};
 
-makeA = function(){return new A};
+  makeA = function(){return new A()};
 
-self.nativeConstructor(A);
-""";
+  self.nativeConstructor(A);
+})()""");
+}
 
 testDynamic() {
   var a = confuse(makeA());

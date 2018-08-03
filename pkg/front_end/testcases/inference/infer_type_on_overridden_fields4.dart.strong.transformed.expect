@@ -1,0 +1,25 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  final field core::int x = 2;
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B extends core::Object implements self::A {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  get x() → core::int
+    return 3;
+}
+static method foo() → dynamic {
+  core::String y = let<BottomType> _ = null in let final dynamic #t1 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_type_on_overridden_fields4.dart:17:69: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+  String y = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::x*/ x;
+                                                                    ^" in let final core::int #t2 = new self::B::•().{self::B::x} in null;
+  core::int z = new self::B::•().{self::B::x};
+}
+static method main() → dynamic {}

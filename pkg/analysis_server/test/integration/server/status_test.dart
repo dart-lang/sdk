@@ -13,6 +13,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StatusTest);
+    defineReflectiveTests(StatusTest_UseCFE);
   });
 }
 
@@ -35,9 +36,7 @@ class StatusTest extends AbstractAnalysisServerIntegrationTest {
         }
       }
     });
-    writeFile(
-        sourcePath('test.dart'),
-        '''
+    writeFile(sourcePath('test.dart'), '''
 main() {
   var x;
 }''');
@@ -49,4 +48,10 @@ main() {
       return analysisFinished.future;
     });
   }
+}
+
+@reflectiveTest
+class StatusTest_UseCFE extends StatusTest {
+  @override
+  bool get useCFE => true;
 }

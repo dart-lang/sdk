@@ -53,9 +53,7 @@ class FixedCache {
     pairs_[i].value = value;
   }
 
-  void Clear() {
-    length_ = 0;
-  }
+  void Clear() { length_ = 0; }
 
  private:
   intptr_t LowerBound(K key) {

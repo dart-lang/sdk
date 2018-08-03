@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_IO_DISABLED)
-
 #include "platform/globals.h"
 #if defined(HOST_OS_WINDOWS)
 
@@ -22,7 +20,7 @@
 namespace dart {
 namespace bin {
 
-bool Stdin::ReadByte(int* byte) {
+bool Stdin::ReadByte(intptr_t fd, int* byte) {
   HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
   uint8_t buffer[1];
   DWORD read = 0;
@@ -34,8 +32,7 @@ bool Stdin::ReadByte(int* byte) {
   return true;
 }
 
-
-bool Stdin::GetEchoMode(bool* enabled) {
+bool Stdin::GetEchoMode(intptr_t fd, bool* enabled) {
   HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
   DWORD mode;
   if (!GetConsoleMode(h, &mode)) {
@@ -45,8 +42,7 @@ bool Stdin::GetEchoMode(bool* enabled) {
   return true;
 }
 
-
-bool Stdin::SetEchoMode(bool enabled) {
+bool Stdin::SetEchoMode(intptr_t fd, bool enabled) {
   HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
   DWORD mode;
   if (!GetConsoleMode(h, &mode)) {
@@ -60,8 +56,7 @@ bool Stdin::SetEchoMode(bool enabled) {
   return SetConsoleMode(h, mode);
 }
 
-
-bool Stdin::GetLineMode(bool* enabled) {
+bool Stdin::GetLineMode(intptr_t fd, bool* enabled) {
   HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
   DWORD mode;
   if (!GetConsoleMode(h, &mode)) {
@@ -71,8 +66,7 @@ bool Stdin::GetLineMode(bool* enabled) {
   return true;
 }
 
-
-bool Stdin::SetLineMode(bool enabled) {
+bool Stdin::SetLineMode(intptr_t fd, bool enabled) {
   HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
   DWORD mode;
   if (!GetConsoleMode(h, &mode)) {
@@ -86,8 +80,7 @@ bool Stdin::SetLineMode(bool enabled) {
   return SetConsoleMode(h, mode);
 }
 
-
-bool Stdin::AnsiSupported(bool* supported) {
+bool Stdin::AnsiSupported(intptr_t fd, bool* supported) {
   ASSERT(supported != NULL);
   HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
   if (h == INVALID_HANDLE_VALUE) {
@@ -102,7 +95,6 @@ bool Stdin::AnsiSupported(bool* supported) {
   *supported = (mode & ENABLE_VIRTUAL_TERMINAL_INPUT) != 0;
   return true;
 }
-
 
 bool Stdout::GetTerminalSize(intptr_t fd, int size[2]) {
   HANDLE h;
@@ -119,7 +111,6 @@ bool Stdout::GetTerminalSize(intptr_t fd, int size[2]) {
   size[1] = info.srWindow.Bottom - info.srWindow.Top + 1;
   return true;
 }
-
 
 bool Stdout::AnsiSupported(intptr_t fd, bool* supported) {
   ASSERT(supported != NULL);
@@ -146,5 +137,3 @@ bool Stdout::AnsiSupported(intptr_t fd, bool* supported) {
 }  // namespace dart
 
 #endif  // defined(HOST_OS_WINDOWS)
-
-#endif  // !defined(DART_IO_DISABLED)

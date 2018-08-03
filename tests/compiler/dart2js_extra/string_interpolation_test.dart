@@ -56,9 +56,9 @@ void testMultiLine() {
       "\n",
       """${''}
 """);
-  Expect.equals("\r", """${''}""");
+  Expect.equals("\n", """${''}""");
   Expect.equals(
-      "\r\n",
+      "\n",
       """${''}
 """);
   Expect.equals("\n", """${'\n'}""");

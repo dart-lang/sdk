@@ -10,6 +10,7 @@
  */
 import 'dart:async';
 
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
@@ -17,11 +18,13 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReanalyzeTest);
+    defineReflectiveTests(ReanalyzeTest_UseCFE);
   });
 }
 
 @reflectiveTest
 class ReanalyzeTest extends AbstractAnalysisServerIntegrationTest {
+  @TestTimeout(const Timeout.factor(2))
   test_reanalyze_concurrent() {
     String pathname = sourcePath('test.dart');
     String text = '''
@@ -45,5 +48,17 @@ main() {}''';
         });
       });
     });
+  }
+}
+
+@reflectiveTest
+class ReanalyzeTest_UseCFE extends ReanalyzeTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_reanalyze_concurrent() {
+    fail('Test fails with CFE');
   }
 }

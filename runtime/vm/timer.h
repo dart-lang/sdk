@@ -5,9 +5,9 @@
 #ifndef RUNTIME_VM_TIMER_H_
 #define RUNTIME_VM_TIMER_H_
 
+#include "platform/atomic.h"
 #include "platform/utils.h"
 #include "vm/allocation.h"
-#include "vm/atomic.h"
 #include "vm/flags.h"
 #include "vm/os.h"
 
@@ -87,17 +87,16 @@ class Timer : public ValueObject {
     return stop_ - start_;
   }
 
-  int64_t start_;
-  int64_t stop_;
-  int64_t total_;
-  int64_t max_contiguous_;
+  ALIGN8 int64_t start_;
+  ALIGN8 int64_t stop_;
+  ALIGN8 int64_t total_;
+  ALIGN8 int64_t max_contiguous_;
   bool report_;
   bool running_;
   const char* message_;
 
   DISALLOW_COPY_AND_ASSIGN(Timer);
 };
-
 
 // The class TimerScope is used to start and stop a timer within a scope.
 // It is used as follows:
@@ -139,7 +138,6 @@ class TimerScope : public StackResource {
   DISALLOW_COPY_AND_ASSIGN(TimerScope);
 };
 
-
 class PauseTimerScope : public StackResource {
  public:
   PauseTimerScope(bool flag, Timer* timer, Thread* thread = NULL)
@@ -167,7 +165,6 @@ class PauseTimerScope : public StackResource {
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(PauseTimerScope);
 };
-
 
 }  // namespace dart
 

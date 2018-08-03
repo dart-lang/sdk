@@ -11,8 +11,8 @@
 #include <vector>
 
 #include "platform/assert.h"
-#include "vm/unit_test.h"
 #include "vm/hash_table.h"
+#include "vm/unit_test.h"
 
 namespace dart {
 
@@ -35,7 +35,6 @@ class TestTraits {
   static RawObject* NewKey(const char* key) { return String::New(key); }
 };
 
-
 template <typename Table>
 void Validate(const Table& table) {
   // Verify consistency of entry state tracking.
@@ -53,7 +52,6 @@ void Validate(const Table& table) {
   EXPECT_EQ(0, num_occupied);
   EXPECT_EQ(0, num_deleted);
 }
-
 
 TEST_CASE(HashTable) {
   typedef HashTable<TestTraits, 2, 1> Table;
@@ -115,7 +113,6 @@ TEST_CASE(HashTable) {
   table.Release();
 }
 
-
 std::string ToStdString(const String& str) {
   EXPECT(str.IsOneByteString());
   std::string result;
@@ -124,7 +121,6 @@ std::string ToStdString(const String& str) {
   }
   return result;
 }
-
 
 // Checks that 'expected' and 'actual' are equal sets. If 'ordered' is true,
 // it also verifies that their iteration orders match, i.e., that actual's
@@ -155,7 +151,6 @@ void VerifyStringSetsEqual(const std::set<std::string>& expected,
   EXPECT(
       std::equal(actual_vec.begin(), actual_vec.end(), expected_vec.begin()));
 }
-
 
 // Checks that 'expected' and 'actual' are equal maps. If 'ordered' is true,
 // it also verifies that their iteration orders match, i.e., that actual's
@@ -193,7 +188,6 @@ void VerifyStringMapsEqual(const std::map<std::string, int>& expected,
   }
 }
 
-
 template <typename Set>
 void TestSet(intptr_t initial_capacity, bool ordered) {
   std::set<std::string> expected;
@@ -218,7 +212,6 @@ void TestSet(intptr_t initial_capacity, bool ordered) {
   EXPECT_EQ(0, actual.NumOccupied());
   actual.Release();
 }
-
 
 template <typename Map>
 void TestMap(intptr_t initial_capacity, bool ordered) {
@@ -250,14 +243,12 @@ void TestMap(intptr_t initial_capacity, bool ordered) {
   actual.Release();
 }
 
-
 TEST_CASE(Sets) {
   for (intptr_t initial_capacity = 0; initial_capacity < 32;
        ++initial_capacity) {
     TestSet<UnorderedHashSet<TestTraits> >(initial_capacity, false);
   }
 }
-
 
 TEST_CASE(Maps) {
   for (intptr_t initial_capacity = 0; initial_capacity < 32;

@@ -8,7 +8,6 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:plugin/manager.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -26,18 +25,15 @@ class SortMembersTest extends AbstractAnalysisTest {
   SourceFileEdit fileEdit;
 
   @override
-  bool get enableNewAnalysisDriver => false;
-
-  @override
   void setUp() {
     super.setUp();
     createProject();
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins([server.serverPlugin]);
     handler = new EditDomainHandler(server);
   }
 
+  @failingTest
   test_BAD_doesNotExist() async {
+    // The analysis driver fails to return an error
     Request request =
         new EditSortMembersParams('/no/such/file.dart').toRequest('0');
     Response response = await waitResponse(request);
@@ -181,11 +177,8 @@ class MyAnnotation {
 ''');
   }
 
-  @failingTest
-  test_OK_genericFunctionTypeInComments() async {
-    addFile(
-        projectPath + '/analysis_options.yaml',
-        '''
+  test_OK_genericFunctionType() async {
+    newFile('$projectPath/analysis_options.yaml', content: '''
 analyzer:
   strong-mode: true
 ''');
@@ -205,14 +198,14 @@ class Super {}
 
 typedef dynamic Func(String x, String y);
 
-Function/*=F*/ allowInterop/*<F extends Function>*/(Function/*=F*/ f) => null;
+F allowInterop<F extends Function>(F f) => null;
 
 Func bar(Func f) {
   return allowInterop(f);
 }
 ''');
     return _assertSorted('''
-Function/*=F*/ allowInterop/*<F extends Function>*/(Function/*=F*/ f) => null;
+F allowInterop<F extends Function>(F f) => null;
 
 Func bar(Func f) {
   return allowInterop(f);

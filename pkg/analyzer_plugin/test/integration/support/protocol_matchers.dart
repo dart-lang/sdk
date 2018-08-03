@@ -133,6 +133,7 @@ final Matcher isChangeContentOverlay = new LazyMatcher(() =>
  *   "kind": CompletionSuggestionKind
  *   "relevance": int
  *   "completion": String
+ *   "displayText": optional String
  *   "selectionOffset": int
  *   "selectionLength": int
  *   "isDeprecated": bool
@@ -163,6 +164,7 @@ final Matcher isCompletionSuggestion =
           "isDeprecated": isBool,
           "isPotential": isBool
         }, optionalFields: {
+          "displayText": isString,
           "docSummary": isString,
           "docComplete": isString,
           "declaringType": isString,
@@ -190,6 +192,7 @@ final Matcher isCompletionSuggestion =
  *   KEYWORD
  *   NAMED_ARGUMENT
  *   OPTIONAL_ARGUMENT
+ *   OVERRIDE
  *   PARAMETER
  * }
  */
@@ -202,39 +205,22 @@ final Matcher isCompletionSuggestionKind =
   "KEYWORD",
   "NAMED_ARGUMENT",
   "OPTIONAL_ARGUMENT",
+  "OVERRIDE",
   "PARAMETER"
 ]);
-
-/**
- * ContextBuilderOptions
- *
- * {
- *   "dartSdkSummaryPath": optional String
- *   "defaultAnalysisOptionsFilePath": optional List<String>
- *   "declaredVariables": optional Map<String, String>
- *   "defaultPackageFilePath": optional List<String>
- *   "defaultPackagesDirectoryPath": optional List<String>
- * }
- */
-final Matcher isContextBuilderOptions = new LazyMatcher(
-    () => new MatchesJsonObject("ContextBuilderOptions", null, optionalFields: {
-          "dartSdkSummaryPath": isString,
-          "defaultAnalysisOptionsFilePath": isListOf(isString),
-          "declaredVariables": isMapOf(isString, isString),
-          "defaultPackageFilePath": isListOf(isString),
-          "defaultPackagesDirectoryPath": isListOf(isString)
-        }));
 
 /**
  * ContextRoot
  *
  * {
- *   "root": String
- *   "exclude": List<String>
+ *   "root": FilePath
+ *   "exclude": List<FilePath>
+ *   "optionsFile": optional FilePath
  * }
  */
 final Matcher isContextRoot = new LazyMatcher(() => new MatchesJsonObject(
-    "ContextRoot", {"root": isString, "exclude": isListOf(isString)}));
+    "ContextRoot", {"root": isFilePath, "exclude": isListOf(isFilePath)},
+    optionalFields: {"optionsFile": isFilePath}));
 
 /**
  * Element
@@ -269,11 +255,13 @@ final Matcher isElement =
  *   CLASS_TYPE_ALIAS
  *   COMPILATION_UNIT
  *   CONSTRUCTOR
+ *   CONSTRUCTOR_INVOCATION
  *   ENUM
  *   ENUM_CONSTANT
  *   FIELD
  *   FILE
  *   FUNCTION
+ *   FUNCTION_INVOCATION
  *   FUNCTION_TYPE_ALIAS
  *   GETTER
  *   LABEL
@@ -295,11 +283,13 @@ final Matcher isElementKind = new MatchesEnum("ElementKind", [
   "CLASS_TYPE_ALIAS",
   "COMPILATION_UNIT",
   "CONSTRUCTOR",
+  "CONSTRUCTOR_INVOCATION",
   "ENUM",
   "ENUM_CONSTANT",
   "FIELD",
   "FILE",
   "FUNCTION",
+  "FUNCTION_INVOCATION",
   "FUNCTION_TYPE_ALIAS",
   "GETTER",
   "LABEL",
@@ -327,19 +317,25 @@ final Matcher isFilePath = isString;
  * FoldingKind
  *
  * enum {
- *   COMMENT
- *   CLASS_MEMBER
+ *   ANNOTATIONS
+ *   CLASS_BODY
  *   DIRECTIVES
  *   DOCUMENTATION_COMMENT
- *   TOP_LEVEL_DECLARATION
+ *   FILE_HEADER
+ *   FUNCTION_BODY
+ *   INVOCATION
+ *   LITERAL
  * }
  */
 final Matcher isFoldingKind = new MatchesEnum("FoldingKind", [
-  "COMMENT",
-  "CLASS_MEMBER",
+  "ANNOTATIONS",
+  "CLASS_BODY",
   "DIRECTIVES",
   "DOCUMENTATION_COMMENT",
-  "TOP_LEVEL_DECLARATION"
+  "FILE_HEADER",
+  "FUNCTION_BODY",
+  "INVOCATION",
+  "LITERAL"
 ]);
 
 /**
@@ -524,6 +520,47 @@ final Matcher isHighlightRegionType = new MatchesEnum("HighlightRegionType", [
 ]);
 
 /**
+ * KytheEntry
+ *
+ * {
+ *   "source": KytheVName
+ *   "kind": optional String
+ *   "target": optional KytheVName
+ *   "fact": String
+ *   "value": optional List<int>
+ * }
+ */
+final Matcher isKytheEntry = new LazyMatcher(() => new MatchesJsonObject(
+        "KytheEntry", {
+      "source": isKytheVName,
+      "fact": isString
+    }, optionalFields: {
+      "kind": isString,
+      "target": isKytheVName,
+      "value": isListOf(isInt)
+    }));
+
+/**
+ * KytheVName
+ *
+ * {
+ *   "signature": String
+ *   "corpus": String
+ *   "root": String
+ *   "path": String
+ *   "language": String
+ * }
+ */
+final Matcher isKytheVName =
+    new LazyMatcher(() => new MatchesJsonObject("KytheVName", {
+          "signature": isString,
+          "corpus": isString,
+          "root": isString,
+          "path": isString,
+          "language": isString
+        }));
+
+/**
  * LinkedEditGroup
  *
  * {
@@ -639,12 +676,21 @@ final Matcher isOccurrences = new LazyMatcher(() => new MatchesJsonObject(
  *   "element": Element
  *   "offset": int
  *   "length": int
+ *   "codeOffset": int
+ *   "codeLength": int
  *   "children": optional List<Outline>
  * }
  */
-final Matcher isOutline = new LazyMatcher(() => new MatchesJsonObject(
-    "Outline", {"element": isElement, "offset": isInt, "length": isInt},
-    optionalFields: {"children": isListOf(isOutline)}));
+final Matcher isOutline =
+    new LazyMatcher(() => new MatchesJsonObject("Outline", {
+          "element": isElement,
+          "offset": isInt,
+          "length": isInt,
+          "codeOffset": isInt,
+          "codeLength": isInt
+        }, optionalFields: {
+          "children": isListOf(isOutline)
+        }));
 
 /**
  * Position
@@ -686,11 +732,11 @@ final Matcher isRefactoringFeedback =
  *   CONVERT_METHOD_TO_GETTER
  *   EXTRACT_LOCAL_VARIABLE
  *   EXTRACT_METHOD
+ *   EXTRACT_WIDGET
  *   INLINE_LOCAL_VARIABLE
  *   INLINE_METHOD
  *   MOVE_FILE
  *   RENAME
- *   SORT_MEMBERS
  * }
  */
 final Matcher isRefactoringKind = new MatchesEnum("RefactoringKind", [
@@ -698,11 +744,11 @@ final Matcher isRefactoringKind = new MatchesEnum("RefactoringKind", [
   "CONVERT_METHOD_TO_GETTER",
   "EXTRACT_LOCAL_VARIABLE",
   "EXTRACT_METHOD",
+  "EXTRACT_WIDGET",
   "INLINE_LOCAL_VARIABLE",
   "INLINE_METHOD",
   "MOVE_FILE",
-  "RENAME",
-  "SORT_MEMBERS"
+  "RENAME"
 ]);
 
 /**
@@ -822,6 +868,7 @@ final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
  *   "edits": List<SourceFileEdit>
  *   "linkedEditGroups": List<LinkedEditGroup>
  *   "selection": optional Position
+ *   "id": optional String
  * }
  */
 final Matcher isSourceChange =
@@ -830,7 +877,8 @@ final Matcher isSourceChange =
           "edits": isListOf(isSourceFileEdit),
           "linkedEditGroups": isListOf(isLinkedEditGroup)
         }, optionalFields: {
-          "selection": isPosition
+          "selection": isPosition,
+          "id": isString
         }));
 
 /**
@@ -865,11 +913,11 @@ final Matcher isSourceFileEdit = new LazyMatcher(() => new MatchesJsonObject(
  *
  * {
  *   "type": WatchEventType
- *   "path": String
+ *   "path": FilePath
  * }
  */
 final Matcher isWatchEvent = new LazyMatcher(() => new MatchesJsonObject(
-    "WatchEvent", {"type": isWatchEventType, "path": isString}));
+    "WatchEvent", {"type": isWatchEventType, "path": isFilePath}));
 
 /**
  * WatchEventType
@@ -906,6 +954,35 @@ final Matcher isAnalysisErrorsParams = new LazyMatcher(() =>
 final Matcher isAnalysisFoldingParams = new LazyMatcher(() =>
     new MatchesJsonObject("analysis.folding params",
         {"file": isFilePath, "regions": isListOf(isFoldingRegion)}));
+
+/**
+ * analysis.getNavigation params
+ *
+ * {
+ *   "file": FilePath
+ *   "offset": int
+ *   "length": int
+ * }
+ */
+final Matcher isAnalysisGetNavigationParams = new LazyMatcher(() =>
+    new MatchesJsonObject("analysis.getNavigation params",
+        {"file": isFilePath, "offset": isInt, "length": isInt}));
+
+/**
+ * analysis.getNavigation result
+ *
+ * {
+ *   "files": List<FilePath>
+ *   "targets": List<NavigationTarget>
+ *   "regions": List<NavigationRegion>
+ * }
+ */
+final Matcher isAnalysisGetNavigationResult = new LazyMatcher(
+    () => new MatchesJsonObject("analysis.getNavigation result", {
+          "files": isListOf(isFilePath),
+          "targets": isListOf(isNavigationTarget),
+          "regions": isListOf(isNavigationRegion)
+        }));
 
 /**
  * analysis.handleWatchEvents params
@@ -976,38 +1053,6 @@ final Matcher isAnalysisOccurrencesParams = new LazyMatcher(() =>
 final Matcher isAnalysisOutlineParams = new LazyMatcher(() =>
     new MatchesJsonObject("analysis.outline params",
         {"file": isFilePath, "outline": isListOf(isOutline)}));
-
-/**
- * analysis.reanalyze params
- *
- * {
- *   "roots": optional List<FilePath>
- * }
- */
-final Matcher isAnalysisReanalyzeParams = new LazyMatcher(() =>
-    new MatchesJsonObject("analysis.reanalyze params", null,
-        optionalFields: {"roots": isListOf(isFilePath)}));
-
-/**
- * analysis.reanalyze result
- */
-final Matcher isAnalysisReanalyzeResult = isNull;
-
-/**
- * analysis.setContextBuilderOptions params
- *
- * {
- *   "options": ContextBuilderOptions
- * }
- */
-final Matcher isAnalysisSetContextBuilderOptionsParams = new LazyMatcher(() =>
-    new MatchesJsonObject("analysis.setContextBuilderOptions params",
-        {"options": isContextBuilderOptions}));
-
-/**
- * analysis.setContextBuilderOptions result
- */
-final Matcher isAnalysisSetContextBuilderOptionsResult = isNull;
 
 /**
  * analysis.setContextRoots params
@@ -1368,6 +1413,29 @@ final Matcher isInlineMethodOptions = new LazyMatcher(() =>
         "inlineMethod options", {"deleteSource": isBool, "inlineAll": isBool}));
 
 /**
+ * kythe.getKytheEntries params
+ *
+ * {
+ *   "file": FilePath
+ * }
+ */
+final Matcher isKytheGetKytheEntriesParams = new LazyMatcher(() =>
+    new MatchesJsonObject(
+        "kythe.getKytheEntries params", {"file": isFilePath}));
+
+/**
+ * kythe.getKytheEntries result
+ *
+ * {
+ *   "entries": List<KytheEntry>
+ *   "files": List<FilePath>
+ * }
+ */
+final Matcher isKytheGetKytheEntriesResult = new LazyMatcher(() =>
+    new MatchesJsonObject("kythe.getKytheEntries result",
+        {"entries": isListOf(isKytheEntry), "files": isListOf(isFilePath)}));
+
+/**
  * moveFile feedback
  */
 final Matcher isMoveFileFeedback = isNull;
@@ -1409,14 +1477,17 @@ final Matcher isPluginShutdownResult = isNull;
  * plugin.versionCheck params
  *
  * {
- *   "byteStorePath": String
- *   "sdkPath": String
+ *   "byteStorePath": FilePath
+ *   "sdkPath": FilePath
  *   "version": String
  * }
  */
 final Matcher isPluginVersionCheckParams = new LazyMatcher(() =>
-    new MatchesJsonObject("plugin.versionCheck params",
-        {"byteStorePath": isString, "sdkPath": isString, "version": isString}));
+    new MatchesJsonObject("plugin.versionCheck params", {
+      "byteStorePath": isFilePath,
+      "sdkPath": isFilePath,
+      "version": isString
+    }));
 
 /**
  * plugin.versionCheck result

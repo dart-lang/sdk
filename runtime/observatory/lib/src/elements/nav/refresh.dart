@@ -37,7 +37,7 @@ class NavRefreshElement extends HtmlElement implements Renderable {
     assert(label != null);
     assert(disabled != null);
     NavRefreshElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<NavRefreshElement>(e, queue: queue);
     e._label = label;
     e._disabled = disabled;
     return e;
@@ -54,14 +54,14 @@ class NavRefreshElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
   void render() {
-    children = [
+    children = <Element>[
       new LIElement()
-        ..children = [
+        ..children = <Element>[
           new ButtonElement()
             ..text = label
             ..disabled = disabled

@@ -19,71 +19,76 @@ namespace bin {
 // Some classes, like File and Directory, list their implementations in
 // builtin_natives.cc instead.
 #define IO_NATIVE_LIST(V)                                                      \
+  V(CLI_WaitForEvent, 1)                                                       \
   V(Crypto_GetRandomBytes, 1)                                                  \
-  V(Directory_Exists, 1)                                                       \
-  V(Directory_Create, 1)                                                       \
-  V(Directory_Current, 0)                                                      \
-  V(Directory_SetCurrent, 1)                                                   \
-  V(Directory_SystemTemp, 0)                                                   \
-  V(Directory_CreateTemp, 1)                                                   \
-  V(Directory_Delete, 2)                                                       \
-  V(Directory_Rename, 2)                                                       \
-  V(Directory_FillWithDirectoryListing, 4)                                     \
+  V(Directory_Create, 2)                                                       \
+  V(Directory_CreateTemp, 2)                                                   \
+  V(Directory_Current, 1)                                                      \
+  V(Directory_Delete, 3)                                                       \
+  V(Directory_Exists, 2)                                                       \
+  V(Directory_FillWithDirectoryListing, 5)                                     \
   V(Directory_GetAsyncDirectoryListerPointer, 1)                               \
+  V(Directory_Rename, 3)                                                       \
   V(Directory_SetAsyncDirectoryListerPointer, 2)                               \
+  V(Directory_SetCurrent, 2)                                                   \
+  V(Directory_SystemTemp, 1)                                                   \
   V(EventHandler_SendData, 3)                                                  \
   V(EventHandler_TimerMillisecondClock, 0)                                     \
-  V(File_GetPointer, 1)                                                        \
-  V(File_SetPointer, 2)                                                        \
-  V(File_Open, 2)                                                              \
-  V(File_Exists, 1)                                                            \
+  V(File_AreIdentical, 3)                                                      \
   V(File_Close, 1)                                                             \
-  V(File_ReadByte, 1)                                                          \
-  V(File_WriteByte, 2)                                                         \
-  V(File_Read, 2)                                                              \
-  V(File_ReadInto, 4)                                                          \
-  V(File_WriteFrom, 4)                                                         \
-  V(File_Position, 1)                                                          \
-  V(File_SetPosition, 2)                                                       \
-  V(File_Truncate, 2)                                                          \
-  V(File_Length, 1)                                                            \
-  V(File_LengthFromPath, 1)                                                    \
-  V(File_Stat, 1)                                                              \
-  V(File_LastModified, 1)                                                      \
-  V(File_SetLastModified, 2)                                                   \
-  V(File_LastAccessed, 1)                                                      \
-  V(File_SetLastAccessed, 2)                                                   \
+  V(File_Copy, 3)                                                              \
+  V(File_Create, 2)                                                            \
+  V(File_CreateLink, 3)                                                        \
+  V(File_Delete, 2)                                                            \
+  V(File_DeleteLink, 2)                                                        \
+  V(File_Exists, 2)                                                            \
   V(File_Flush, 1)                                                             \
-  V(File_Lock, 4)                                                              \
-  V(File_Create, 1)                                                            \
-  V(File_CreateLink, 2)                                                        \
-  V(File_LinkTarget, 1)                                                        \
-  V(File_Delete, 1)                                                            \
-  V(File_DeleteLink, 1)                                                        \
-  V(File_Rename, 2)                                                            \
-  V(File_Copy, 2)                                                              \
-  V(File_RenameLink, 2)                                                        \
-  V(File_ResolveSymbolicLinks, 1)                                              \
-  V(File_OpenStdio, 1)                                                         \
+  V(File_GetPointer, 1)                                                        \
   V(File_GetStdioHandleType, 1)                                                \
-  V(File_GetType, 2)                                                           \
-  V(File_AreIdentical, 2)                                                      \
+  V(File_GetType, 3)                                                           \
+  V(File_LastAccessed, 2)                                                      \
+  V(File_LastModified, 2)                                                      \
+  V(File_Length, 1)                                                            \
+  V(File_LengthFromPath, 2)                                                    \
+  V(File_LinkTarget, 2)                                                        \
+  V(File_Lock, 4)                                                              \
+  V(File_Open, 3)                                                              \
+  V(File_OpenStdio, 1)                                                         \
+  V(File_Position, 1)                                                          \
+  V(File_Read, 2)                                                              \
+  V(File_ReadByte, 1)                                                          \
+  V(File_ReadInto, 4)                                                          \
+  V(File_Rename, 3)                                                            \
+  V(File_RenameLink, 3)                                                        \
+  V(File_ResolveSymbolicLinks, 2)                                              \
+  V(File_SetLastAccessed, 3)                                                   \
+  V(File_SetLastModified, 3)                                                   \
+  V(File_SetPointer, 2)                                                        \
+  V(File_SetPosition, 2)                                                       \
+  V(File_Stat, 2)                                                              \
+  V(File_Truncate, 2)                                                          \
+  V(File_WriteByte, 2)                                                         \
+  V(File_WriteFrom, 4)                                                         \
   V(FileSystemWatcher_CloseWatcher, 1)                                         \
   V(FileSystemWatcher_GetSocketId, 2)                                          \
   V(FileSystemWatcher_InitWatcher, 0)                                          \
   V(FileSystemWatcher_IsSupported, 0)                                          \
   V(FileSystemWatcher_ReadEvents, 2)                                           \
   V(FileSystemWatcher_UnwatchPath, 2)                                          \
-  V(FileSystemWatcher_WatchPath, 4)                                            \
+  V(FileSystemWatcher_WatchPath, 5)                                            \
   V(Filter_CreateZLibDeflate, 8)                                               \
   V(Filter_CreateZLibInflate, 4)                                               \
   V(Filter_Process, 4)                                                         \
   V(Filter_Processed, 3)                                                       \
   V(InternetAddress_Parse, 1)                                                  \
   V(IOService_NewServicePort, 0)                                               \
+  V(Namespace_Create, 2)                                                       \
+  V(Namespace_GetDefault, 0)                                                   \
+  V(Namespace_GetPointer, 1)                                                   \
   V(NetworkInterface_ListSupported, 0)                                         \
   V(Platform_NumberOfProcessors, 0)                                            \
   V(Platform_OperatingSystem, 0)                                               \
+  V(Platform_OperatingSystemVersion, 0)                                        \
   V(Platform_PathSeparator, 0)                                                 \
   V(Platform_LocalHostname, 0)                                                 \
   V(Platform_ExecutableName, 0)                                                \
@@ -92,7 +97,7 @@ namespace bin {
   V(Platform_ExecutableArguments, 0)                                           \
   V(Platform_GetVersion, 0)                                                    \
   V(Platform_LocaleName, 0)                                                    \
-  V(Process_Start, 11)                                                         \
+  V(Process_Start, 12)                                                         \
   V(Process_Wait, 5)                                                           \
   V(Process_KillPid, 2)                                                        \
   V(Process_SetExitCode, 1)                                                    \
@@ -116,7 +121,6 @@ namespace bin {
   V(SecureSocket_Renegotiate, 4)                                               \
   V(SecurityContext_Allocate, 1)                                               \
   V(SecurityContext_UsePrivateKeyBytes, 3)                                     \
-  V(SecurityContext_AlpnSupported, 0)                                          \
   V(SecurityContext_SetAlpnProtocols, 3)                                       \
   V(SecurityContext_SetClientAuthoritiesBytes, 3)                              \
   V(SecurityContext_SetTrustedCertificatesBytes, 3)                            \
@@ -142,14 +146,14 @@ namespace bin {
   V(Socket_RecvFrom, 1)                                                        \
   V(Socket_SendTo, 6)                                                          \
   V(Socket_SetOption, 4)                                                       \
-  V(Socket_SetSocketId, 2)                                                     \
+  V(Socket_SetSocketId, 3)                                                     \
   V(Socket_WriteList, 4)                                                       \
-  V(Stdin_ReadByte, 0)                                                         \
-  V(Stdin_GetEchoMode, 0)                                                      \
-  V(Stdin_SetEchoMode, 1)                                                      \
-  V(Stdin_GetLineMode, 0)                                                      \
-  V(Stdin_SetLineMode, 1)                                                      \
-  V(Stdin_AnsiSupported, 0)                                                    \
+  V(Stdin_ReadByte, 1)                                                         \
+  V(Stdin_GetEchoMode, 1)                                                      \
+  V(Stdin_SetEchoMode, 2)                                                      \
+  V(Stdin_GetLineMode, 1)                                                      \
+  V(Stdin_SetLineMode, 2)                                                      \
+  V(Stdin_AnsiSupported, 1)                                                    \
   V(Stdout_GetTerminalSize, 1)                                                 \
   V(Stdout_AnsiSupported, 1)                                                   \
   V(StringToSystemEncoding, 1)                                                 \
@@ -165,6 +169,9 @@ namespace bin {
   V(SynchronousSocket_ReadList, 4)                                             \
   V(SynchronousSocket_WriteList, 4)                                            \
   V(SystemEncodingToString, 1)                                                 \
+  V(X509_Der, 1)                                                               \
+  V(X509_Pem, 1)                                                               \
+  V(X509_Sha1, 1)                                                              \
   V(X509_Subject, 1)                                                           \
   V(X509_Issuer, 1)                                                            \
   V(X509_StartValidity, 1)                                                     \
@@ -177,7 +184,6 @@ static struct NativeEntries {
   Dart_NativeFunction function_;
   int argument_count_;
 } IOEntries[] = {IO_NATIVE_LIST(REGISTER_FUNCTION)};
-
 
 Dart_NativeFunction IONativeLookup(Dart_Handle name,
                                    int argument_count,
@@ -198,7 +204,6 @@ Dart_NativeFunction IONativeLookup(Dart_Handle name,
   }
   return NULL;
 }
-
 
 const uint8_t* IONativeSymbol(Dart_NativeFunction nf) {
   int num_entries = sizeof(IOEntries) / sizeof(struct NativeEntries);

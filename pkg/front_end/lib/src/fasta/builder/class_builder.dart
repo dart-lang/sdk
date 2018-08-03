@@ -4,12 +4,12 @@
 
 library fasta.class_builder;
 
-import '../errors.dart' show internalError;
+import '../problems.dart' show internalProblem;
 
 import 'builder.dart'
     show
-        Builder,
         ConstructorReferenceBuilder,
+        Declaration,
         LibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
@@ -20,6 +20,13 @@ import 'builder.dart'
         TypeBuilder,
         TypeDeclarationBuilder,
         TypeVariableBuilder;
+
+import '../fasta_codes.dart'
+    show
+        LocatedMessage,
+        Message,
+        templateInternalProblemNotFoundIn,
+        templateInternalProblemSuperclassNotFound;
 
 abstract class ClassBuilder<T extends TypeBuilder, R>
     extends TypeDeclarationBuilder<T, R> {
@@ -37,6 +44,8 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
 
   final ScopeBuilder constructorScopeBuilder;
 
+  Map<String, ConstructorRedirection> redirectingConstructors;
+
   ClassBuilder(
       List<MetadataBuilder> metadata,
       int modifiers,
@@ -51,6 +60,8 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
       : scopeBuilder = new ScopeBuilder(scope),
         constructorScopeBuilder = new ScopeBuilder(constructors),
         super(metadata, modifiers, name, parent, charOffset);
+
+  String get debugName => "ClassBuilder";
 
   /// Returns true if this class is the result of applying a mixin to its
   /// superclass.
@@ -71,25 +82,50 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
     return library.partOfLibrary ?? library;
   }
 
+  /// Registers a constructor redirection for this class and returns true if
+  /// this redirection gives rise to a cycle that has not been reported before.
+  bool checkConstructorCyclic(String source, String target) {
+    ConstructorRedirection redirect = new ConstructorRedirection(target);
+    redirectingConstructors ??= <String, ConstructorRedirection>{};
+    redirectingConstructors[source] = redirect;
+    while (redirect != null) {
+      if (redirect.cycleReported) return false;
+      if (redirect.target == source) {
+        redirect.cycleReported = true;
+        return true;
+      }
+      redirect = redirectingConstructors[redirect.target];
+    }
+    return false;
+  }
+
   @override
   int resolveConstructors(LibraryBuilder library) {
     if (constructorReferences == null) return 0;
     for (ConstructorReferenceBuilder ref in constructorReferences) {
-      ref.resolveIn(scope);
+      ref.resolveIn(scope, library);
     }
     return constructorReferences.length;
   }
 
   /// Used to lookup a static member of this class.
-  Builder findStaticBuilder(String name, int charOffset, Uri fileUri,
+  Declaration findStaticBuilder(
+      String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
       {bool isSetter: false}) {
-    Builder builder = isSetter
+    if (accessingLibrary.origin != library.origin && name.startsWith("_")) {
+      return null;
+    }
+    Declaration declaration = isSetter
         ? scope.lookupSetter(name, charOffset, fileUri, isInstanceScope: false)
         : scope.lookup(name, charOffset, fileUri, isInstanceScope: false);
-    return builder;
+    return declaration;
   }
 
-  Builder findConstructorOrFactory(String name, int charOffset, Uri uri) {
+  Declaration findConstructorOrFactory(
+      String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary) {
+    if (accessingLibrary.origin != library.origin && name.startsWith("_")) {
+      return null;
+    }
     return constructors.lookup(name, charOffset, uri);
   }
 
@@ -120,14 +156,14 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
     Map<TypeVariableBuilder, TypeBuilder> substitutionMap;
     List arguments;
     List variables;
-    Builder builder;
+    Declaration declaration;
 
     /// If [application] is mixing in [superclass] directly or via other named
     /// mixin applications, return it.
     NamedTypeBuilder findSuperclass(MixinApplicationBuilder application) {
       for (TypeBuilder t in application.mixins) {
         if (t is NamedTypeBuilder) {
-          if (t.builder == superclass) return t;
+          if (t.declaration == superclass) return t;
         } else if (t is MixinApplicationBuilder) {
           NamedTypeBuilder s = findSuperclass(t);
           if (s != null) return s;
@@ -137,16 +173,16 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
     }
 
     void handleNamedTypeBuilder(NamedTypeBuilder t) {
-      builder = t.builder;
+      declaration = t.declaration;
       arguments = t.arguments ?? const [];
-      if (builder is ClassBuilder) {
-        ClassBuilder cls = builder;
+      if (declaration is ClassBuilder) {
+        ClassBuilder cls = declaration;
         variables = cls.typeVariables;
         supertype = cls.supertype;
       }
     }
 
-    while (builder != superclass) {
+    while (declaration != superclass) {
       variables = null;
       if (supertype is NamedTypeBuilder) {
         handleNamedTypeBuilder(supertype);
@@ -158,8 +194,11 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
         }
         supertype = t.supertype;
       } else {
-        internalError("Superclass not found '${superclass.fullNameForErrors}'.",
-            fileUri, charOffset);
+        internalProblem(
+            templateInternalProblemSuperclassNotFound
+                .withArguments(superclass.fullNameForErrors),
+            charOffset,
+            fileUri);
       }
       if (variables != null) {
         Map<TypeVariableBuilder, TypeBuilder> directSubstitutionMap =
@@ -186,18 +225,31 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
   /// (and isn't a setter).
   MemberBuilder operator [](String name) {
     // TODO(ahe): Rename this to getLocalMember.
-    return scope.local[name] ?? internalError("Not found: '$name'.");
+    return scope.local[name] ??
+        internalProblem(
+            templateInternalProblemNotFoundIn.withArguments(
+                name, fullNameForErrors),
+            -1,
+            null);
   }
 
-  void addCompileTimeError(int charOffset, String message) {
-    library.addCompileTimeError(charOffset, message, fileUri: fileUri);
+  void addCompileTimeError(Message message, int charOffset, int length,
+      {List<LocatedMessage> context}) {
+    library.addCompileTimeError(message, charOffset, length, fileUri,
+        context: context);
   }
 
-  void addWarning(int charOffset, String message) {
-    library.addWarning(charOffset, message, fileUri: fileUri);
+  void addProblem(Message message, int charOffset, int length,
+      {List<LocatedMessage> context}) {
+    library.addProblem(message, charOffset, length, fileUri, context: context);
   }
 
-  void addNit(int charOffset, String message) {
-    library.addNit(charOffset, message, fileUri: fileUri);
-  }
+  void prepareTopLevelInference() {}
+}
+
+class ConstructorRedirection {
+  String target;
+  bool cycleReported;
+
+  ConstructorRedirection(this.target) : cycleReported = false;
 }

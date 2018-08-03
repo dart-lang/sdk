@@ -7,8 +7,8 @@
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
 #include "vm/native_entry.h"
-#include "vm/runtime_entry.h"
 #include "vm/object.h"
+#include "vm/runtime_entry.h"
 
 namespace dart {
 
@@ -31,25 +31,20 @@ const char* VMTag::TagName(uword tag) {
   return entry.name;
 }
 
-
 bool VMTag::IsNativeEntryTag(uword tag) {
   return (tag > kLastTagId) && !IsRuntimeEntryTag(tag);
 }
 
-
 bool VMTag::IsDartTag(uword id) {
   return id == kDartTagId;
 }
-
 
 bool VMTag::IsExitFrameTag(uword id) {
   return (id != 0) && !IsDartTag(id) && (id != kIdleTagId) &&
          (id != kVMTagId) && (id != kEmbedderTagId);
 }
 
-
 static RuntimeEntry* runtime_entry_list = NULL;
-
 
 bool VMTag::IsRuntimeEntryTag(uword id) {
   const RuntimeEntry* current = runtime_entry_list;
@@ -62,7 +57,6 @@ bool VMTag::IsRuntimeEntryTag(uword id) {
   return false;
 }
 
-
 const char* VMTag::RuntimeEntryTagName(uword id) {
   const RuntimeEntry* current = runtime_entry_list;
   while (current != NULL) {
@@ -74,13 +68,11 @@ const char* VMTag::RuntimeEntryTagName(uword id) {
   return NULL;
 }
 
-
 void VMTag::RegisterRuntimeEntry(RuntimeEntry* runtime_entry) {
   ASSERT(runtime_entry != NULL);
   runtime_entry->set_next(runtime_entry_list);
   runtime_entry_list = runtime_entry;
 }
-
 
 VMTag::TagEntry VMTag::entries_[] = {
     {
@@ -92,7 +84,6 @@ VMTag::TagEntry VMTag::entries_[] = {
         {"kNumVMTags", kNumVMTags},
 };
 
-
 VMTagScope::VMTagScope(Thread* thread, uword tag, bool conditional_set)
     : StackResource(thread) {
   ASSERT(isolate() != NULL);
@@ -102,19 +93,16 @@ VMTagScope::VMTagScope(Thread* thread, uword tag, bool conditional_set)
   }
 }
 
-
 VMTagScope::~VMTagScope() {
   ASSERT(isolate() != NULL);
   thread()->set_vm_tag(previous_tag_);
 }
-
 
 VMTagCounters::VMTagCounters() {
   for (intptr_t i = 0; i < VMTag::kNumVMTags; i++) {
     counters_[i] = 0;
   }
 }
-
 
 void VMTagCounters::Increment(uword tag) {
   if (VMTag::IsRuntimeEntryTag(tag)) {
@@ -130,13 +118,11 @@ void VMTagCounters::Increment(uword tag) {
   counters_[tag]++;
 }
 
-
 int64_t VMTagCounters::count(uword tag) {
   ASSERT(tag != VMTag::kInvalidTagId);
   ASSERT(tag < VMTag::kNumVMTags);
   return counters_[tag];
 }
-
 
 #ifndef PRODUCT
 void VMTagCounters::PrintToJSONObject(JSONObject* obj) {
@@ -158,7 +144,6 @@ void VMTagCounters::PrintToJSONObject(JSONObject* obj) {
 }
 #endif  // !PRODUCT
 
-
 const char* UserTags::TagName(uword tag_id) {
   ASSERT(tag_id >= kUserTagIdOffset);
   ASSERT(tag_id < kUserTagIdOffset + kMaxUserTags);
@@ -168,6 +153,5 @@ const char* UserTags::TagName(uword tag_id) {
   const String& label = String::Handle(zone, tag.label());
   return label.ToCString();
 }
-
 
 }  // namespace dart

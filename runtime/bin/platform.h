@@ -24,8 +24,13 @@ class Platform {
   // deallocated by the caller.
   static const char* OperatingSystem();
 
+  // Returns a string representing the version of the operating system. The
+  // format of the string is determined by the platform. The returned string
+  // should not be deallocated by the caller.
+  static const char* OperatingSystemVersion();
+
   // Returns the architecture name of the processor the VM is running on
-  // (ia32, x64, arm, arm64, or mips).
+  // (ia32, x64, arm, or arm64).
   static const char* HostArchitecture() {
 #if defined(HOST_ARCH_ARM)
     return "arm";
@@ -33,8 +38,6 @@ class Platform {
     return "arm64";
 #elif defined(HOST_ARCH_IA32)
     return "ia32";
-#elif defined(HOST_ARCH_MIPS)
-    return "mips";
 #elif defined(HOST_ARCH_X64)
     return "x64";
 #else
@@ -65,7 +68,7 @@ class Platform {
   static void SetExecutableName(const char* executable_name) {
     executable_name_ = executable_name;
   }
-  static const char* GetExecutableName() { return executable_name_; }
+  static const char* GetExecutableName();
   static const char* GetResolvedExecutableName() {
     if (resolved_executable_name_ == NULL) {
       // Try to resolve the executable path using platform specific APIs.

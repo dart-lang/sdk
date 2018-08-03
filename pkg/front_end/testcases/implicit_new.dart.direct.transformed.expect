@@ -1,0 +1,59 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  operator +(dynamic other) → dynamic
+    return null;
+}
+class Bar extends core::Object {
+  constructor named() → void
+    : super core::Object::•()
+    ;
+  operator +(dynamic other) → dynamic
+    return null;
+}
+class IndexTester extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  operator [](dynamic _) → dynamic
+    return null;
+  operator []=(dynamic _a, dynamic _b) → void {}
+}
+static method testNSM() → dynamic {
+  dynamic y = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Bar, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Bar, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+}
+static method f(dynamic x) → dynamic
+  return x;
+static method main() → dynamic {
+  dynamic x = new self::Foo::•();
+  x = new self::Foo::•();
+  dynamic z = new self::Bar::named();
+  z = new self::Bar::named();
+  self::f(new self::Foo::•());
+  self::f(new self::Foo::•());
+  self::f(new self::Bar::named());
+  self::f(new self::Bar::named());
+  dynamic l = <dynamic>[new self::Foo::•(), new self::Bar::named()];
+  l = <dynamic>[new self::Foo::•(), new self::Bar::named()];
+  dynamic m = <dynamic, dynamic>{"foo": new self::Foo::•(), "bar": new self::Bar::named()};
+  m = <dynamic, dynamic>{"foo": new self::Foo::•(), "bar": new self::Bar::named()};
+  dynamic i = new self::IndexTester::•();
+  i.[](new self::Foo::•());
+  i.[](new self::Foo::•());
+  i.[](new self::Bar::named());
+  i.[](new self::Bar::named());
+  i.[]=(new self::Foo::•(), null);
+  i.[]=(new self::Foo::•(), null);
+  i.[]=(new self::Bar::named(), null);
+  i.[]=(new self::Bar::named(), null);
+  new self::Foo::•().+(new self::Bar::named());
+  new self::Foo::•().+(new self::Bar::named());
+  new self::Bar::named().+(new self::Foo::•());
+  new self::Bar::named().+(new self::Foo::•());
+}

@@ -53,9 +53,7 @@ class ClassElementImplTest extends EngineTestCase {
   void test_computeNode_ClassDeclaration() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 class A {}
 @deprecated class B {}
 enum C {C1, C2, C3}
@@ -66,7 +64,7 @@ enum C {C1, C2, C3}
     // A
     {
       ClassElement elementA = unitElement.getType("A");
-      expect(elementA.isDeprecated, isFalse);
+      expect(elementA.hasDeprecated, isFalse);
       expect(elementA.isEnum, isFalse);
       ClassDeclaration nodeA = elementA.computeNode();
       expect(nodeA, isNotNull);
@@ -76,7 +74,7 @@ enum C {C1, C2, C3}
     // B
     {
       ClassElement elementB = unitElement.getType("B");
-      expect(elementB.isDeprecated, isTrue);
+      expect(elementB.hasDeprecated, isTrue);
       expect(elementB.isEnum, isFalse);
       ClassDeclaration nodeB = elementB.computeNode();
       expect(nodeB, isNotNull);
@@ -86,7 +84,7 @@ enum C {C1, C2, C3}
     // C
     {
       ClassElement elementC = unitElement.getEnum("C");
-      expect(elementC.isDeprecated, isFalse);
+      expect(elementC.hasDeprecated, isFalse);
       expect(elementC.isEnum, isTrue);
       EnumDeclaration nodeC = elementC.computeNode();
       expect(nodeC, isNotNull);
@@ -96,7 +94,7 @@ enum C {C1, C2, C3}
     // D
     {
       ClassElement elementD = unitElement.getEnum("D");
-      expect(elementD.isDeprecated, isTrue);
+      expect(elementD.hasDeprecated, isTrue);
       expect(elementD.isEnum, isTrue);
       EnumDeclaration nodeC = elementD.computeNode();
       expect(nodeC, isNotNull);
@@ -108,9 +106,7 @@ enum C {C1, C2, C3}
   void test_computeNode_ClassTypeAlias() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 abstract class A<K, V> = Object with MapMixin<K, V>;
 ''');
     // prepare CompilationUnitElement
@@ -174,7 +170,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     List<InterfaceType> supers = classC.allSupertypes;
     List<InterfaceType> types = new List<InterfaceType>();
     types.addAll(supers);
-    expect(types.contains(typeA), isFalse);
+    expect(types.contains(typeA), isTrue);
     expect(types.contains(typeB), isTrue);
     expect(types.contains(typeObject), isTrue);
     expect(types.contains(typeC), isFalse);
@@ -964,96 +960,6 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
 
 @reflectiveTest
 class CompilationUnitElementImplTest extends EngineTestCase {
-  void test_getElementAt() {
-    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-    AnalysisContext context = contextHelper.context;
-    String code = r'''
-class A {
-  int field;
-}
-main() {
-  int localVar = 42;
-}
-''';
-    Source libSource = contextHelper.addSource("/my_lib.dart", code);
-    // prepare library/unit elements
-    LibraryElement libraryElement = context.computeLibraryElement(libSource);
-    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
-    // A
-    ClassElement elementA;
-    {
-      int offset = code.indexOf('A {');
-      elementA = unitElement.getElementAt(offset);
-      expect(elementA, isNotNull);
-      expect(elementA.enclosingElement, unitElement);
-      expect(elementA.name, 'A');
-    }
-    // A.field
-    {
-      int offset = code.indexOf('field;');
-      FieldElement element = unitElement.getElementAt(offset);
-      expect(element, isNotNull);
-      expect(element.enclosingElement, elementA);
-      expect(element.name, 'field');
-    }
-    // main
-    FunctionElement mainElement;
-    {
-      int offset = code.indexOf('main() {');
-      mainElement = unitElement.getElementAt(offset);
-      expect(mainElement, isNotNull);
-      expect(mainElement.enclosingElement, unitElement);
-      expect(mainElement.name, 'main');
-    }
-    // main.localVar
-    {
-      int offset = code.indexOf('localVar');
-      LocalVariableElement element = unitElement.getElementAt(offset);
-      expect(element, isNotNull);
-      expect(element.enclosingElement, mainElement);
-      expect(element.name, 'localVar');
-    }
-    // null
-    expect(unitElement.getElementAt(1000), isNull);
-  }
-
-  void test_getElementAt_multipleUnitsInLibrary() {
-    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-    AnalysisContext context = contextHelper.context;
-    Source libSource = contextHelper.addSource(
-        "/my_lib.dart",
-        r'''
-library my_lib;
-part 'unit_a.dart';
-part 'unit_b.dart';
-''');
-    Source unitSourceA =
-        contextHelper.addSource("/unit_a.dart", 'part of my_lib;class A {}');
-    Source unitSourceB =
-        contextHelper.addSource("/unit_b.dart", 'part of my_lib;class B {}');
-    int offset = 'part of my_lib;class A {}'.indexOf('A {}');
-    // prepare library/unit elements
-    context.computeLibraryElement(libSource);
-    CompilationUnitElement unitElementA =
-        context.getCompilationUnitElement(unitSourceA, libSource);
-    CompilationUnitElement unitElementB =
-        context.getCompilationUnitElement(unitSourceB, libSource);
-    // A
-    {
-      ClassElement element = unitElementA.getElementAt(offset);
-      expect(element, isNotNull);
-      expect(element.enclosingElement, unitElementA);
-      expect(element.name, 'A');
-    }
-    // B
-    {
-      ClassElement element = unitElementB.getElementAt(offset);
-      expect(element, isNotNull);
-      expect(element.enclosingElement, unitElementB);
-      expect(element.name, 'B');
-    }
-  }
-
   void test_getEnum_declared() {
     TestTypeProvider typeProvider = new TestTypeProvider();
     CompilationUnitElementImpl unit =
@@ -1098,9 +1004,7 @@ part 'unit_b.dart';
 @reflectiveTest
 class ElementAnnotationImplTest extends ResolverTestCase {
   void test_computeConstantValue() {
-    addNamedSource(
-        '/a.dart',
-        r'''
+    addNamedSource('/a.dart', r'''
 class A {
   final String f;
   const A(this.f);
@@ -1296,9 +1200,7 @@ class FieldElementImplTest extends EngineTestCase {
   void test_computeNode() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 class A {
   int a;
 }
@@ -1327,9 +1229,7 @@ enum B {B1, B2, B3}''');
   void test_isEnumConstant() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 enum B {B1, B2, B3}
 ''');
     // prepare CompilationUnitElement
@@ -1354,21 +1254,17 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
 
   void test_equality_recursive() {
-    FunctionTypeAliasElementImpl s =
-        ElementFactory.functionTypeAliasElement('s');
-    FunctionTypeAliasElementImpl t =
-        ElementFactory.functionTypeAliasElement('t');
-    FunctionTypeAliasElementImpl u =
-        ElementFactory.functionTypeAliasElement('u');
-    FunctionTypeAliasElementImpl v =
-        ElementFactory.functionTypeAliasElement('v');
-    s.returnType = t.type;
-    t.returnType = s.type;
-    u.returnType = v.type;
-    v.returnType = u.type;
+    var s = ElementFactory.genericTypeAliasElement('s');
+    var t = ElementFactory.genericTypeAliasElement('t');
+    var u = ElementFactory.genericTypeAliasElement('u');
+    var v = ElementFactory.genericTypeAliasElement('v');
+    s.function.returnType = t.type;
+    t.function.returnType = s.type;
+    u.function.returnType = v.type;
+    v.function.returnType = u.type;
     // We don't care whether the types compare equal or not.  We just need the
     // computation to terminate.
-    expect(s.type == u.type, new isInstanceOf<bool>());
+    expect(s.type == u.type, new TypeMatcher<bool>());
   }
 
   void test_getElement() {
@@ -1511,15 +1407,13 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
 
   void test_hashCode_recursive() {
-    FunctionTypeAliasElementImpl s =
-        ElementFactory.functionTypeAliasElement('s');
-    FunctionTypeAliasElementImpl t =
-        ElementFactory.functionTypeAliasElement('t');
-    s.returnType = t.type;
-    t.returnType = s.type;
+    var s = ElementFactory.genericTypeAliasElement('s');
+    var t = ElementFactory.genericTypeAliasElement('t');
+    s.function.returnType = t.type;
+    t.function.returnType = s.type;
     // We don't care what the hash code is.  We just need its computation to
     // terminate.
-    expect(t.type.hashCode, new isInstanceOf<int>());
+    expect(t.type.hashCode, new TypeMatcher<int>());
   }
 
   void test_isAssignableTo_normalAndPositionalArgs() {
@@ -1915,31 +1809,26 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
 
   void test_namedParameterTypes_pruned_no_type_arguments() {
-    FunctionTypeAliasElementImpl f =
-        ElementFactory.functionTypeAliasElement('f');
-    FunctionTypeAliasElementImpl g =
-        ElementFactory.functionTypeAliasElement('g');
-    f.parameters = [ElementFactory.namedParameter2('x', g.type)];
+    var f = ElementFactory.genericTypeAliasElement('f');
+    var g = ElementFactory.genericTypeAliasElement('g');
+    f.function.parameters = [ElementFactory.namedParameter2('x', g.type)];
     FunctionTypeImpl paramType = f.type.namedParameterTypes['x'];
     expect(paramType.prunedTypedefs, hasLength(1));
     expect(paramType.prunedTypedefs[0], same(f));
   }
 
   void test_namedParameterTypes_pruned_with_type_arguments() {
-    FunctionTypeAliasElementImpl f =
-        ElementFactory.functionTypeAliasElement('f');
-    FunctionTypeAliasElementImpl g =
-        ElementFactory.functionTypeAliasElement('g');
+    var f = ElementFactory.genericTypeAliasElement('f');
+    var g = ElementFactory.genericTypeAliasElement('g');
     f.typeParameters = [ElementFactory.typeParameterElement('T')];
-    f.parameters = [ElementFactory.namedParameter2('x', g.type)];
+    f.function.parameters = [ElementFactory.namedParameter2('x', g.type)];
     FunctionTypeImpl paramType = f.type.namedParameterTypes['x'];
     expect(paramType.prunedTypedefs, hasLength(1));
     expect(paramType.prunedTypedefs[0], same(f));
   }
 
   void test_newPrune_no_previous_prune() {
-    FunctionTypeAliasElementImpl f =
-        ElementFactory.functionTypeAliasElement('f');
+    var f = ElementFactory.genericTypeAliasElement('f');
     FunctionTypeImpl type = f.type;
     List<FunctionTypeAliasElement> pruneList = type.newPrune;
     expect(pruneList, hasLength(1));
@@ -1960,18 +1849,15 @@ class FunctionTypeImplTest extends EngineTestCase {
     // synthetic typedefs because those types are only created for
     // function-typed formal parameters, which can't be directly referred to by
     // the user (and hence can't participate in circularities).
-    FunctionTypeAliasElementImpl f =
-        ElementFactory.functionTypeAliasElement('f');
+    var f = ElementFactory.genericTypeAliasElement('f');
     f.isSynthetic = true;
     FunctionTypeImpl type = f.type;
     expect(type.newPrune, isNull);
   }
 
   void test_newPrune_with_previous_prune() {
-    FunctionTypeAliasElementImpl f =
-        ElementFactory.functionTypeAliasElement('f');
-    FunctionTypeAliasElementImpl g =
-        ElementFactory.functionTypeAliasElement('g');
+    var f = ElementFactory.genericTypeAliasElement('f');
+    var g = ElementFactory.genericTypeAliasElement('g');
     FunctionTypeImpl type = f.type;
     FunctionTypeImpl prunedType = type.pruned([g]);
     List<FunctionTypeAliasElement> pruneList = prunedType.newPrune;
@@ -1981,46 +1867,38 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
 
   void test_normalParameterTypes_pruned_no_type_arguments() {
-    FunctionTypeAliasElementImpl f =
-        ElementFactory.functionTypeAliasElement('f');
-    FunctionTypeAliasElementImpl g =
-        ElementFactory.functionTypeAliasElement('g');
-    f.parameters = [ElementFactory.requiredParameter2('x', g.type)];
+    var f = ElementFactory.genericTypeAliasElement('f');
+    var g = ElementFactory.genericTypeAliasElement('g');
+    f.function.parameters = [ElementFactory.requiredParameter2('x', g.type)];
     FunctionTypeImpl paramType = f.type.normalParameterTypes[0];
     expect(paramType.prunedTypedefs, hasLength(1));
     expect(paramType.prunedTypedefs[0], same(f));
   }
 
   void test_normalParameterTypes_pruned_with_type_arguments() {
-    FunctionTypeAliasElementImpl f =
-        ElementFactory.functionTypeAliasElement('f');
-    FunctionTypeAliasElementImpl g =
-        ElementFactory.functionTypeAliasElement('g');
+    var f = ElementFactory.genericTypeAliasElement('f');
+    var g = ElementFactory.genericTypeAliasElement('g');
     f.typeParameters = [ElementFactory.typeParameterElement('T')];
-    f.parameters = [ElementFactory.requiredParameter2('x', g.type)];
+    f.function.parameters = [ElementFactory.requiredParameter2('x', g.type)];
     FunctionTypeImpl paramType = f.type.normalParameterTypes[0];
     expect(paramType.prunedTypedefs, hasLength(1));
     expect(paramType.prunedTypedefs[0], same(f));
   }
 
   void test_optionalParameterTypes_pruned_no_type_arguments() {
-    FunctionTypeAliasElementImpl f =
-        ElementFactory.functionTypeAliasElement('f');
-    FunctionTypeAliasElementImpl g =
-        ElementFactory.functionTypeAliasElement('g');
-    f.parameters = [ElementFactory.positionalParameter2('x', g.type)];
+    var f = ElementFactory.genericTypeAliasElement('f');
+    var g = ElementFactory.genericTypeAliasElement('g');
+    f.function.parameters = [ElementFactory.positionalParameter2('x', g.type)];
     FunctionTypeImpl paramType = f.type.optionalParameterTypes[0];
     expect(paramType.prunedTypedefs, hasLength(1));
     expect(paramType.prunedTypedefs[0], same(f));
   }
 
   void test_optionalParameterTypes_pruned_with_type_arguments() {
-    FunctionTypeAliasElementImpl f =
-        ElementFactory.functionTypeAliasElement('f');
-    FunctionTypeAliasElementImpl g =
-        ElementFactory.functionTypeAliasElement('g');
+    var f = ElementFactory.genericTypeAliasElement('f');
+    var g = ElementFactory.genericTypeAliasElement('g');
     f.typeParameters = [ElementFactory.typeParameterElement('T')];
-    f.parameters = [ElementFactory.positionalParameter2('x', g.type)];
+    f.function.parameters = [ElementFactory.positionalParameter2('x', g.type)];
     FunctionTypeImpl paramType = f.type.optionalParameterTypes[0];
     expect(paramType.prunedTypedefs, hasLength(1));
     expect(paramType.prunedTypedefs[0], same(f));
@@ -2035,23 +1913,19 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
 
   void test_returnType_pruned_no_type_arguments() {
-    FunctionTypeAliasElementImpl f =
-        ElementFactory.functionTypeAliasElement('f');
-    FunctionTypeAliasElementImpl g =
-        ElementFactory.functionTypeAliasElement('g');
-    f.returnType = g.type;
+    var f = ElementFactory.genericTypeAliasElement('f');
+    var g = ElementFactory.genericTypeAliasElement('g');
+    f.function.returnType = g.type;
     FunctionTypeImpl paramType = f.type.returnType;
     expect(paramType.prunedTypedefs, hasLength(1));
     expect(paramType.prunedTypedefs[0], same(f));
   }
 
   void test_returnType_pruned_with_type_arguments() {
-    FunctionTypeAliasElementImpl f =
-        ElementFactory.functionTypeAliasElement('f');
-    FunctionTypeAliasElementImpl g =
-        ElementFactory.functionTypeAliasElement('g');
+    var f = ElementFactory.genericTypeAliasElement('f');
+    var g = ElementFactory.genericTypeAliasElement('g');
     f.typeParameters = [ElementFactory.typeParameterElement('T')];
-    f.returnType = g.type;
+    f.function.returnType = g.type;
     FunctionTypeImpl paramType = f.type.returnType;
     expect(paramType.prunedTypedefs, hasLength(1));
     expect(paramType.prunedTypedefs[0], same(f));
@@ -2125,20 +1999,17 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
 
   void test_toString_recursive() {
-    FunctionTypeAliasElementImpl t =
-        ElementFactory.functionTypeAliasElement("t");
-    FunctionTypeAliasElementImpl s =
-        ElementFactory.functionTypeAliasElement("s");
-    t.returnType = s.type;
-    s.returnType = t.type;
+    var t = ElementFactory.genericTypeAliasElement("t");
+    var s = ElementFactory.genericTypeAliasElement("s");
+    t.function.returnType = s.type;
+    s.function.returnType = t.type;
     expect(t.type.toString(), '() \u2192 () \u2192 ...');
   }
 
   void test_toString_recursive_via_interface_type() {
-    FunctionTypeAliasElementImpl f =
-        ElementFactory.functionTypeAliasElement('f');
+    var f = ElementFactory.genericTypeAliasElement('f');
     ClassElementImpl c = ElementFactory.classElement2('C', ['T']);
-    f.returnType = c.type.instantiate([f.type]);
+    f.function.returnType = c.type.instantiate([f.type]);
     expect(f.type.toString(), '() \u2192 C<...>');
   }
 
@@ -3926,52 +3797,14 @@ class LibraryElementImplTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class LocalVariableElementImplTest extends EngineTestCase {
-  void test_computeNode_declaredIdentifier() {
-    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-    AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
-main() {
-  for (int v in <int>[1, 2, 3]) {}
-}''');
-    LibraryElement libraryElement = context.computeLibraryElement(source);
-    FunctionElement mainElement = libraryElement.units[0].functions[0];
-    LocalVariableElement element = mainElement.localVariables[0];
-    DeclaredIdentifier node = element.computeNode() as DeclaredIdentifier;
-    expect(node, isNotNull);
-    expect(node.identifier.name, 'v');
-    expect(node.element, same(element));
-  }
-
-  void test_computeNode_variableDeclaration() {
-    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
-    AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
-main() {
-  int v = 0;
-}''');
-    LibraryElement libraryElement = context.computeLibraryElement(source);
-    FunctionElement mainElement = libraryElement.units[0].functions[0];
-    LocalVariableElement element = mainElement.localVariables[0];
-    VariableDeclaration node = element.computeNode() as VariableDeclaration;
-    expect(node, isNotNull);
-    expect(node.name.name, 'v');
-    expect(node.element, same(element));
-  }
-}
+class LocalVariableElementImplTest extends EngineTestCase {}
 
 @reflectiveTest
 class MethodElementImplTest extends EngineTestCase {
   void test_computeNode() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 abstract class A {
   String m1() => null;
   m2();
@@ -4003,9 +3836,7 @@ abstract class A {
     options.analyzeFunctionBodies = false;
     AnalysisContextHelper contextHelper = new AnalysisContextHelper(options);
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 abstract class A {
   String m1() => null;
   m2();
@@ -4051,9 +3882,7 @@ class MethodMemberTest extends EngineTestCase {
     options.analyzeFunctionBodies = false;
     AnalysisContextHelper contextHelper = new AnalysisContextHelper(options);
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 class A<T> {
   T f(T x) => x;
 }
@@ -4071,8 +3900,10 @@ class B<S> extends A<S> {
         .lookUpInheritedMethod("f", library: libraryElement, thisType: true);
     MethodElement AfElement = elementB.type
         .lookUpInheritedMethod("f", library: libraryElement, thisType: false);
-    expect(BfElement.getReifiedType(objectType),
-        equals(AfElement.getReifiedType(objectType)));
+    expect(
+        BfElement.getReifiedType(objectType), // ignore: deprecated_member_use
+        equals(AfElement
+            .getReifiedType(objectType))); // ignore: deprecated_member_use
   }
 }
 
@@ -4143,9 +3974,7 @@ class ParameterElementImplTest extends EngineTestCase {
   void test_computeNode_DefaultFormalParameter() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 main([int p = 42]) {
 }''');
     // prepare CompilationUnitElement
@@ -4164,9 +3993,7 @@ main([int p = 42]) {
   void test_computeNode_FieldFormalParameter() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 class A {
   int p;
   A(this.p) {
@@ -4190,9 +4017,7 @@ class A {
   void test_computeNode_FunctionTypedFormalParameter() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 main(p(int a, int b)) {
 }''');
     // prepare CompilationUnitElement
@@ -4211,9 +4036,7 @@ main(p(int a, int b)) {
   void test_computeNode_SimpleFormalParameter() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
     AnalysisContext context = contextHelper.context;
-    Source source = contextHelper.addSource(
-        "/test.dart",
-        r'''
+    Source source = contextHelper.addSource("/test.dart", r'''
 main(int p) {
 }''');
     // prepare CompilationUnitElement
@@ -4278,9 +4101,7 @@ class TestElementResynthesizer extends ElementResynthesizer {
 @reflectiveTest
 class TopLevelVariableElementImplTest extends ResolverTestCase {
   void test_computeConstantValue() {
-    addNamedSource(
-        '/a.dart',
-        r'''
+    addNamedSource('/a.dart', r'''
 const int C = 42;
 ''');
     Source source = addSource(r'''

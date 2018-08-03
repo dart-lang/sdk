@@ -3,10 +3,10 @@ import self as self;
 import "dart:core" as core;
 
 abstract class C extends core::Object {
-  constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
 static method main() → dynamic {
-  throw new core::NoSuchMethodError::•(null, #C, <dynamic>[], <dynamic, dynamic>{}, null);
+  throw new core::AbstractClassInstantiationError::•("C");
 }

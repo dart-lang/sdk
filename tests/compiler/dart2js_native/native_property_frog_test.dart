@@ -8,36 +8,41 @@ import 'native_testing.dart';
 
 @Native("A")
 class A {
-
   // Setters and getters should be similar to these methods:
   int getX() => JS('int', '#._x', this);
-  void setX(int value) { JS('void', '#._x = #', this, value); }
+  void setX(int value) {
+    JS('void', '#._x = #', this, value);
+  }
 
-  int get X() native;
+  int get X native;
   set X(int value) native;
 
-  int get Y() native;
+  int get Y native;
   set Y(int value) native;
 
   int get Z => JS('int', '#._z', this);
-  set Z(int value) { JS('void', '#._z = #', this, value); }
+  set Z(int value) {
+    JS('void', '#._z = #', this, value);
+  }
 }
 
 A makeA() native;
 
-void setup() native """
-function A() {}
+void setup() {
+  JS('', r"""
+(function(){
+  function A() {}
 
-Object.defineProperty(A.prototype, "X", {
-  get: function () { return this._x; },
-  set: function (v) { this._x = v; }
-});
+  Object.defineProperty(A.prototype, "X", {
+    get: function () { return this._x; },
+    set: function (v) { this._x = v; }
+  });
 
-makeA = function(){return new A;};
+  makeA = function(){return new A()};
 
-self.nativeConstructor(A);
-""";
-
+  self.nativeConstructor(A);
+})()""");
+}
 
 main() {
   nativeTesting();

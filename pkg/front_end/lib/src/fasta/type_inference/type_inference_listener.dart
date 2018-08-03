@@ -1,49 +1,26 @@
-// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart'
+    show Catch, DartType, FunctionType, Node, TypeParameter;
 
-/// Base class for [TypeInferenceListener] that defines the API for debugging.
-///
-/// By default no debug info is printed.  To enable debug printing, mix in
-/// [TypeInferenceDebugging].
-class TypeInferenceBase {
-  bool debugExpressionEnter(
-      String expressionType, Expression expression, DartType typeContext) {
-    return false;
-  }
+import 'package:kernel/ast.dart' show Catch, DartType, FunctionType, Node;
 
-  void debugExpressionExit(
-      String expressionType, Expression expression, DartType inferredType) {}
+import 'package:kernel/type_algebra.dart' show Substitution;
 
-  void debugStatementEnter(String statementType, Statement statement) {}
+import '../../scanner/token.dart' show Token;
+import '../kernel/kernel_shadow_ast.dart'
+    show
+        ExpressionJudgment,
+        InitializerJudgment,
+        LoadLibraryJudgment,
+        LoadLibraryTearOffJudgment,
+        StatementJudgment,
+        SwitchCaseJudgment;
 
-  void debugStatementExit(String statementType, Statement statement) {}
-}
-
-/// Mixin which can be applied to [TypeInferenceListener] to cause debug info to
-/// be printed.
-class TypeInferenceDebugging implements TypeInferenceBase {
-  bool debugExpressionEnter(
-      String expressionType, Expression expression, DartType typeContext) {
-    print('Enter $expressionType($expression) (context=$typeContext)');
-    return true;
-  }
-
-  void debugExpressionExit(
-      String expressionType, Expression expression, DartType inferredType) {
-    print('Exit $expressionType($expression) (type=$inferredType)');
-  }
-
-  void debugStatementEnter(String statementType, Statement statement) {
-    print('Enter $statementType($statement)');
-  }
-
-  void debugStatementExit(String statementType, Statement statement) {
-    print('Exit $statementType($statement)');
-  }
-}
+import '../kernel/kernel_type_variable_builder.dart'
+    show KernelTypeVariableBuilder;
 
 /// Callback interface used by [TypeInferrer] to report the results of type
 /// inference to a client.
@@ -51,174 +28,957 @@ class TypeInferenceDebugging implements TypeInferenceBase {
 /// The interface is structured as a set of enter/exit methods.  The enter
 /// methods are called as the inferrer recurses down through the AST, and the
 /// exit methods are called on the way back up.  The enter methods take a
-/// [DartType] argument representing the downwards inference context, and return
-/// a bool indicating whether the TypeInferenceListener needs to know the final
-/// inferred type; the exit methods take [DartType] argument representing the
-/// final inferred type.
+/// [DartType] argument representing the downwards inference context; the exit
+/// methods take [DartType] argument representing the final inferred type.
 ///
 /// The default implementation (in this base class) does nothing, however it can
 /// be used to debug type inference by uncommenting the
 /// "with TypeInferenceDebugging" clause below.
-class TypeInferenceListener
-    extends TypeInferenceBase // with TypeInferenceDebugging
-{
-  bool asExpressionEnter(AsExpression expression, DartType typeContext) =>
-      debugExpressionEnter("asExpression", expression, typeContext);
+abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
+  void asExpression(
+      ExpressionJudgment judgment,
+      Location location,
+      void expression,
+      Token asOperator,
+      void literalType,
+      DartType inferredType);
 
-  void asExpressionExit(AsExpression expression, DartType inferredType) =>
-      debugExpressionExit("asExpression", expression, inferredType);
+  void assertInitializer(
+      InitializerJudgment judgment,
+      Location location,
+      Token assertKeyword,
+      Token leftParenthesis,
+      void condition,
+      Token comma,
+      void message,
+      Token rightParenthesis);
 
-  void blockEnter(Block statement) => debugStatementEnter('block', statement);
+  void assertStatement(
+      StatementJudgment judgment,
+      Location location,
+      Token assertKeyword,
+      Token leftParenthesis,
+      void condition,
+      Token comma,
+      void message,
+      Token rightParenthesis,
+      Token semicolon);
 
-  void blockExit(Block statement) => debugStatementExit('block', statement);
+  void awaitExpression(ExpressionJudgment judgment, Location location,
+      Token awaitKeyword, void expression, DartType inferredType);
 
-  bool boolLiteralEnter(BoolLiteral expression, DartType typeContext) =>
-      debugExpressionEnter("boolLiteral", expression, typeContext);
+  Object binderForFunctionDeclaration(
+      StatementJudgment judgment, Location location, String name);
 
-  void boolLiteralExit(BoolLiteral expression, DartType inferredType) =>
-      debugExpressionExit("boolLiteral", expression, inferredType);
+  Object binderForStatementLabel(
+      StatementJudgment judgment, int fileOffset, String name);
 
-  bool conditionalExpressionEnter(
-          ConditionalExpression expression, DartType typeContext) =>
-      debugExpressionEnter("conditionalExpression", expression, typeContext);
+  Object binderForSwitchLabel(
+      SwitchCaseJudgment judgment, int fileOffset, String name);
 
-  void conditionalExpressionExit(
-          ConditionalExpression expression, DartType inferredType) =>
-      debugExpressionExit("conditionalExpression", expression, inferredType);
+  Object binderForTypeVariable(
+      KernelTypeVariableBuilder builder, int fileOffset, String name);
 
-  bool constructorInvocationEnter(
-          InvocationExpression expression, DartType typeContext) =>
-      debugExpressionEnter("constructorInvocation", expression, typeContext);
+  Object binderForVariableDeclaration(
+      StatementJudgment judgment, int fileOffset, String name);
 
-  void constructorInvocationExit(
-          InvocationExpression expression, DartType inferredType) =>
-      debugExpressionExit("constructorInvocation", expression, inferredType);
+  void block(StatementJudgment judgment, Location location, Token leftBracket,
+      List<void> statements, Token rightBracket);
 
-  bool doubleLiteralEnter(DoubleLiteral expression, DartType typeContext) =>
-      debugExpressionEnter("doubleLiteral", expression, typeContext);
+  void boolLiteral(ExpressionJudgment judgment, Location location,
+      Token literal, bool value, DartType inferredType);
 
-  void doubleLiteralExit(DoubleLiteral expression, DartType inferredType) =>
-      debugExpressionExit("doubleLiteral", expression, inferredType);
+  void breakStatement(
+      StatementJudgment judgment,
+      Location location,
+      Token breakKeyword,
+      void label,
+      Token semicolon,
+      covariant Object labelBinder);
 
-  void expressionStatementEnter(ExpressionStatement statement) =>
-      debugStatementEnter('expressionStatement', statement);
+  void cascadeExpression(
+      ExpressionJudgment judgment, Location location, DartType inferredType);
 
-  void expressionStatementExit(ExpressionStatement statement) =>
-      debugStatementExit('expressionStatement', statement);
+  void catchStatement(
+      Catch judgment,
+      Location location,
+      Token onKeyword,
+      void type,
+      Token catchKeyword,
+      Token leftParenthesis,
+      Token exceptionParameter,
+      Token comma,
+      Token stackTraceParameter,
+      Token rightParenthesis,
+      void body,
+      DartType guardType,
+      covariant Object exceptionBinder,
+      DartType exceptionType,
+      covariant Object stackTraceBinder,
+      DartType stackTraceType);
 
-  void functionDeclarationEnter(FunctionDeclaration statement) =>
-      debugStatementEnter('functionDeclaration', statement);
+  void conditionalExpression(
+      ExpressionJudgment judgment,
+      Location location,
+      void condition,
+      Token question,
+      void thenExpression,
+      Token colon,
+      void elseExpression,
+      DartType inferredType);
 
-  void functionDeclarationExit(FunctionDeclaration statement) =>
-      debugStatementExit('functionDeclaration', statement);
+  void constructorInvocation(ExpressionJudgment judgment, Location location,
+      Reference expressionTarget, DartType inferredType);
 
-  bool functionExpressionEnter(
-          FunctionExpression expression, DartType typeContext) =>
-      debugExpressionEnter("functionExpression", expression, typeContext);
+  void continueStatement(
+      StatementJudgment judgment,
+      Location location,
+      Token continueKeyword,
+      void label,
+      Token semicolon,
+      covariant Object labelBinder);
 
-  void functionExpressionExit(
-          FunctionExpression expression, DartType inferredType) =>
-      debugExpressionExit("functionExpression", expression, inferredType);
+  void continueSwitchStatement(
+      StatementJudgment judgment,
+      Location location,
+      Token continueKeyword,
+      void label,
+      Token semicolon,
+      covariant Object labelBinder);
 
-  void ifStatementEnter(IfStatement statement) =>
-      debugStatementEnter('ifStatement', statement);
+  void deferredCheck(
+      ExpressionJudgment judgment, Location location, DartType inferredType);
 
-  void ifStatementExit(IfStatement statement) =>
-      debugStatementExit('ifStatement', statement);
+  void doStatement(
+      StatementJudgment judgment,
+      Location location,
+      Token doKeyword,
+      void body,
+      Token whileKeyword,
+      Token leftParenthesis,
+      void condition,
+      Token rightParenthesis,
+      Token semicolon);
 
-  bool intLiteralEnter(IntLiteral expression, DartType typeContext) =>
-      debugExpressionEnter("intLiteral", expression, typeContext);
+  void doubleLiteral(ExpressionJudgment judgment, Location location,
+      Token literal, double value, DartType inferredType);
 
-  void intLiteralExit(IntLiteral expression, DartType inferredType) =>
-      debugExpressionExit("intLiteral", expression, inferredType);
+  void emptyStatement(Token semicolon);
 
-  bool isExpressionEnter(IsExpression expression, DartType typeContext) =>
-      debugExpressionEnter("isExpression", expression, typeContext);
+  void expressionStatement(StatementJudgment judgment, Location location,
+      void expression, Token semicolon);
 
-  void isExpressionExit(IsExpression expression, DartType inferredType) =>
-      debugExpressionExit("isExpression", expression, inferredType);
+  void fieldInitializer(
+      InitializerJudgment judgment,
+      Location location,
+      Token thisKeyword,
+      Token period,
+      Token fieldName,
+      Token equals,
+      void expression,
+      Reference initializerField);
 
-  bool isNotExpressionEnter(Not expression, DartType typeContext) =>
-      debugExpressionEnter("isNotExpression", expression, typeContext);
+  void forInStatement(
+      StatementJudgment judgment,
+      Location location,
+      Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      Object loopVariable,
+      Token identifier,
+      Token inKeyword,
+      void iterator,
+      Token rightParenthesis,
+      void body,
+      covariant Object loopVariableBinder,
+      DartType loopVariableType,
+      Location writeLocation,
+      DartType writeVariableType,
+      covariant Object writeVariableBinder,
+      Reference writeTarget);
 
-  void isNotExpressionExit(Not expression, DartType inferredType) =>
-      debugExpressionExit("isNotExpression", expression, inferredType);
+  void forStatement(
+      StatementJudgment judgment,
+      Location location,
+      Token forKeyword,
+      Token leftParenthesis,
+      List<Object> variableList,
+      void initialization,
+      Token leftSeparator,
+      void condition,
+      Token rightSeparator,
+      void updaters,
+      Token rightParenthesis,
+      void body);
 
-  bool listLiteralEnter(ListLiteral expression, DartType typeContext) =>
-      debugExpressionEnter("listLiteral", expression, typeContext);
+  void functionDeclaration(covariant Object binder, FunctionType inferredType);
 
-  void listLiteralExit(ListLiteral expression, DartType inferredType) =>
-      debugExpressionExit("listLiteral", expression, inferredType);
+  void functionExpression(
+      ExpressionJudgment judgment, Location location, DartType inferredType);
 
-  bool methodInvocationEnter(
-          MethodInvocation expression, DartType typeContext) =>
-      debugExpressionEnter("methodInvocation", expression, typeContext);
+  void functionType(Location location, DartType type);
 
-  void methodInvocationExit(
-          MethodInvocation expression, DartType inferredType) =>
-      debugExpressionExit("methodInvocation", expression, inferredType);
+  void functionTypedFormalParameter(Location location, DartType type);
 
-  bool nullLiteralEnter(NullLiteral expression, DartType typeContext) =>
-      debugExpressionEnter("nullLiteral", expression, typeContext);
+  void ifNull(ExpressionJudgment judgment, Location location, void leftOperand,
+      Token operator, void rightOperand, DartType inferredType);
 
-  void nullLiteralExit(NullLiteral expression, DartType inferredType) =>
-      debugExpressionExit("nullLiteral", expression, inferredType);
+  void ifStatement(
+      StatementJudgment judgment,
+      Location location,
+      Token ifKeyword,
+      Token leftParenthesis,
+      void condition,
+      Token rightParenthesis,
+      void thenStatement,
+      Token elseKeyword,
+      void elseStatement);
 
-  void returnStatementEnter(ReturnStatement statement) =>
-      debugStatementEnter('returnStatement', statement);
+  void indexAssign(ExpressionJudgment judgment, Location location,
+      Reference writeMember, Reference combiner, DartType inferredType);
 
-  void returnStatementExit(ReturnStatement statement) =>
-      debugStatementExit('returnStatement', statement);
+  void intLiteral(ExpressionJudgment judgment, Location location, Token literal,
+      num value, DartType inferredType);
 
-  bool staticGetEnter(StaticGet expression, DartType typeContext) =>
-      debugExpressionEnter("staticGet", expression, typeContext);
+  void invalidInitializer(InitializerJudgment judgment, Location location);
 
-  void staticGetExit(StaticGet expression, DartType inferredType) =>
-      debugExpressionExit("staticGet", expression, inferredType);
+  void isExpression(
+      ExpressionJudgment judgment,
+      Location location,
+      void expression,
+      Token isOperator,
+      void literalType,
+      DartType testedType,
+      DartType inferredType);
 
-  bool staticInvocationEnter(
-          StaticInvocation expression, DartType typeContext) =>
-      debugExpressionEnter("staticInvocation", expression, typeContext);
+  void isNotExpression(
+      ExpressionJudgment judgment,
+      Location location,
+      void expression,
+      Token isOperator,
+      Token notOperator,
+      void literalType,
+      DartType type,
+      DartType inferredType);
 
-  void staticInvocationExit(
-          StaticInvocation expression, DartType inferredType) =>
-      debugExpressionExit("staticInvocation", expression, inferredType);
+  void labeledStatement(List<Object> labels, void statement);
 
-  bool stringConcatenationEnter(
-          StringConcatenation expression, DartType typeContext) =>
-      debugExpressionEnter("stringConcatenation", expression, typeContext);
+  void listLiteral(
+      ExpressionJudgment judgment,
+      Location location,
+      Token constKeyword,
+      covariant Object typeArguments,
+      Token leftBracket,
+      void elements,
+      Token rightBracket,
+      DartType inferredType);
 
-  void stringConcatenationExit(
-          StringConcatenation expression, DartType inferredType) =>
-      debugExpressionExit("stringConcatenation", expression, inferredType);
+  void loadLibrary(LoadLibraryJudgment judgment, Location location,
+      Reference library, FunctionType calleeType, DartType inferredType);
 
-  bool stringLiteralEnter(StringLiteral expression, DartType typeContext) =>
-      debugExpressionEnter("StringLiteral", expression, typeContext);
+  void loadLibraryTearOff(LoadLibraryTearOffJudgment judgment,
+      Location location, Reference library, DartType inferredType);
 
-  void stringLiteralExit(StringLiteral expression, DartType inferredType) =>
-      debugExpressionExit("StringLiteral", expression, inferredType);
+  void logicalExpression(
+      ExpressionJudgment judgment,
+      Location location,
+      void leftOperand,
+      Token operator,
+      void rightOperand,
+      DartType inferredType);
 
-  void variableDeclarationEnter(VariableDeclaration statement) =>
-      debugStatementEnter('variableDeclaration', statement);
+  void mapLiteral(
+      ExpressionJudgment judgment,
+      Location location,
+      Token constKeyword,
+      covariant Object typeArguments,
+      Token leftBracket,
+      List<Object> entries,
+      Token rightBracket,
+      DartType inferredType);
 
-  void variableDeclarationExit(VariableDeclaration statement) =>
-      debugStatementExit('variableDeclaration', statement);
+  void mapLiteralEntry(
+      Object judgment, int fileOffset, void key, Token separator, void value);
 
-  bool variableGetEnter(VariableGet expression, DartType typeContext) =>
-      debugExpressionEnter("variableGet", expression, typeContext);
+  void methodInvocation(
+      ExpressionJudgment judgment,
+      Location resultOffset,
+      List<DartType> argumentsTypes,
+      bool isImplicitCall,
+      Reference interfaceMember,
+      FunctionType calleeType,
+      Substitution substitution,
+      DartType inferredType);
 
-  void variableGetExit(VariableGet expression, DartType inferredType) =>
-      debugExpressionExit("variableGet", expression, inferredType);
+  void methodInvocationCall(
+      ExpressionJudgment judgment,
+      Location resultOffset,
+      List<DartType> argumentsTypes,
+      bool isImplicitCall,
+      FunctionType calleeType,
+      Substitution substitution,
+      DartType inferredType);
 
-  bool variableSetEnter(VariableSet expression, DartType typeContext) =>
-      debugExpressionEnter("variableSet", expression, typeContext);
+  void namedFunctionExpression(ExpressionJudgment judgment,
+      covariant Object binder, DartType inferredType);
 
-  void variableSetExit(VariableSet expression, DartType inferredType) =>
-      debugExpressionExit("variableSet", expression, inferredType);
+  void not(ExpressionJudgment judgment, Location location, Token operator,
+      void operand, DartType inferredType);
 
-  void yieldStatementEnter(YieldStatement statement) =>
-      debugStatementEnter('yieldStatement', statement);
+  void nullLiteral(ExpressionJudgment judgment, Location location,
+      Token literal, bool isSynthetic, DartType inferredType);
 
-  void yieldStatementExit(YieldStatement statement) =>
-      debugStatementExit('yieldStatement', statement);
+  void propertyAssign(
+      ExpressionJudgment judgment,
+      Location location,
+      Reference writeMember,
+      DartType writeContext,
+      Reference combiner,
+      DartType inferredType);
+
+  void propertyGet(ExpressionJudgment judgment, Location location,
+      Reference member, DartType inferredType);
+
+  void propertyGetCall(
+      ExpressionJudgment judgment, Location location, DartType inferredType);
+
+  void propertySet(
+      ExpressionJudgment judgment, Location location, DartType inferredType);
+
+  void redirectingInitializer(
+      InitializerJudgment judgment,
+      Location location,
+      Token thisKeyword,
+      Token period,
+      Token constructorName,
+      covariant Object argumentList,
+      Reference initializerTarget);
+
+  void rethrow_(ExpressionJudgment judgment, Location location,
+      Token rethrowKeyword, DartType inferredType);
+
+  void returnStatement(StatementJudgment judgment, Location location,
+      Token returnKeyword, void expression, Token semicolon);
+
+  Object statementLabel(covariant Object binder, Token label, Token colon);
+
+  void staticAssign(
+      ExpressionJudgment judgment,
+      Location location,
+      Reference writeMember,
+      DartType writeContext,
+      Reference combiner,
+      DartType inferredType);
+
+  void staticGet(ExpressionJudgment judgment, Location location,
+      Reference expressionTarget, DartType inferredType);
+
+  void staticInvocation(
+      ExpressionJudgment judgment,
+      Location location,
+      Reference expressionTarget,
+      List<DartType> expressionArgumentsTypes,
+      FunctionType calleeType,
+      Substitution substitution,
+      DartType inferredType);
+
+  void storeClassReference(
+      Location location, Reference reference, DartType rawType);
+
+  void storePrefixInfo(Location location, PrefixInfo prefixInfo);
+
+  void stringConcatenation(
+      ExpressionJudgment judgment, Location location, DartType inferredType);
+
+  void stringLiteral(ExpressionJudgment judgment, Location location,
+      Token literal, String value, DartType inferredType);
+
+  void superInitializer(
+      InitializerJudgment judgment,
+      Location location,
+      Token superKeyword,
+      Token period,
+      Token constructorName,
+      covariant Object argumentList);
+
+  Object switchCase(SwitchCaseJudgment switchCase, List<Object> labels,
+      Token keyword, void expression, Token colon, List<void> statements);
+
+  Object switchLabel(covariant Object binder, Token label, Token colon);
+
+  void switchStatement(
+      StatementJudgment judgment,
+      Location location,
+      Token switchKeyword,
+      Token leftParenthesis,
+      void expression,
+      Token rightParenthesis,
+      Token leftBracket,
+      void members,
+      Token rightBracket);
+
+  void symbolLiteral(
+      ExpressionJudgment judgment,
+      Location location,
+      Token poundSign,
+      List<Token> components,
+      String value,
+      DartType inferredType);
+
+  void thisExpression(ExpressionJudgment judgment, Location location,
+      Token thisKeyword, DartType inferredType);
+
+  void throw_(ExpressionJudgment judgment, Location location,
+      Token throwKeyword, void expression, DartType inferredType);
+
+  void tryCatch(StatementJudgment judgment, Location location);
+
+  void tryFinally(
+      StatementJudgment judgment,
+      Location location,
+      Token tryKeyword,
+      void body,
+      void catchClauses,
+      Token finallyKeyword,
+      void finallyBlock);
+
+  void typeLiteral(ExpressionJudgment judgment, Location location,
+      Reference expressionType, DartType inferredType);
+
+  void typeReference(
+      Location location,
+      Token leftBracket,
+      List<void> typeArguments,
+      Token rightBracket,
+      Reference reference,
+      covariant Object binder,
+      DartType type);
+
+  void typeVariableDeclaration(
+      Location location, covariant Object binder, TypeParameter typeParameter);
+
+  void variableAssign(
+      ExpressionJudgment judgment,
+      Location location,
+      DartType writeContext,
+      covariant Object writeVariableBinder,
+      Reference combiner,
+      DartType inferredType);
+
+  void variableDeclaration(
+      covariant Object binder, DartType statementType, DartType inferredType);
+
+  void variableGet(ExpressionJudgment judgment, Location location,
+      bool isInCascade, covariant Object variableBinder, DartType inferredType);
+
+  void voidType(Location location, Token token, DartType type);
+
+  void whileStatement(
+      StatementJudgment judgment,
+      Location location,
+      Token whileKeyword,
+      Token leftParenthesis,
+      void condition,
+      Token rightParenthesis,
+      void body);
+
+  void yieldStatement(StatementJudgment judgment, Location location,
+      Token yieldKeyword, Token star, void expression, Token semicolon);
+}
+
+/// Kernel implementation of TypeInferenceListener; does nothing.
+///
+/// TODO(paulberry): fuse this with KernelFactory.
+class KernelTypeInferenceListener
+    implements TypeInferenceListener<int, Node, int> {
+  @override
+  void asExpression(ExpressionJudgment judgment, location, void expression,
+      Token asOperator, void literalType, DartType inferredType) {}
+
+  @override
+  void assertInitializer(
+      InitializerJudgment judgment,
+      location,
+      Token assertKeyword,
+      Token leftParenthesis,
+      void condition,
+      Token comma,
+      void message,
+      Token rightParenthesis) {}
+
+  @override
+  void assertStatement(
+      StatementJudgment judgment,
+      location,
+      Token assertKeyword,
+      Token leftParenthesis,
+      void condition,
+      Token comma,
+      void message,
+      Token rightParenthesis,
+      Token semicolon) {}
+
+  @override
+  void awaitExpression(ExpressionJudgment judgment, location,
+      Token awaitKeyword, void expression, DartType inferredType) {}
+
+  @override
+  void binderForFunctionDeclaration(
+      StatementJudgment judgment, location, String name) {}
+
+  @override
+  void binderForStatementLabel(
+      StatementJudgment judgment, int fileOffset, String name) {}
+
+  @override
+  void binderForSwitchLabel(
+      SwitchCaseJudgment judgment, int fileOffset, String name) {}
+
+  @override
+  void binderForTypeVariable(
+      KernelTypeVariableBuilder builder, int fileOffset, String name) {}
+
+  @override
+  void binderForVariableDeclaration(
+      StatementJudgment judgment, int fileOffset, String name) {}
+
+  @override
+  void block(StatementJudgment judgment, location, Token leftBracket,
+      List<void> statements, Token rightBracket) {}
+
+  @override
+  void boolLiteral(ExpressionJudgment judgment, location, Token literal,
+      bool value, DartType inferredType) {}
+
+  @override
+  void breakStatement(StatementJudgment judgment, location, Token breakKeyword,
+      void label, Token semicolon, covariant void labelBinder) {}
+
+  @override
+  void cascadeExpression(
+      ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  @override
+  void catchStatement(
+      Catch judgment,
+      location,
+      Token onKeyword,
+      void type,
+      Token catchKeyword,
+      Token leftParenthesis,
+      Token exceptionParameter,
+      Token comma,
+      Token stackTraceParameter,
+      Token rightParenthesis,
+      void body,
+      DartType guardType,
+      covariant void exceptionBinder,
+      DartType exceptionType,
+      covariant void stackTraceBinder,
+      DartType stackTraceType) {}
+
+  @override
+  void conditionalExpression(
+      ExpressionJudgment judgment,
+      location,
+      void condition,
+      Token question,
+      void thenExpression,
+      Token colon,
+      void elseExpression,
+      DartType inferredType) {}
+
+  @override
+  void constructorInvocation(ExpressionJudgment judgment, location,
+      expressionTarget, DartType inferredType) {}
+
+  @override
+  void continueStatement(
+      StatementJudgment judgment,
+      location,
+      Token continueKeyword,
+      void label,
+      Token semicolon,
+      covariant void labelBinder) {}
+
+  @override
+  void continueSwitchStatement(
+      StatementJudgment judgment,
+      location,
+      Token continueKeyword,
+      void label,
+      Token semicolon,
+      covariant void labelBinder) {}
+
+  @override
+  void deferredCheck(
+      ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  @override
+  void doStatement(
+      StatementJudgment judgment,
+      location,
+      Token doKeyword,
+      void body,
+      Token whileKeyword,
+      Token leftParenthesis,
+      void condition,
+      Token rightParenthesis,
+      Token semicolon) {}
+
+  @override
+  void doubleLiteral(ExpressionJudgment judgment, location, Token literal,
+      double value, DartType inferredType) {}
+
+  @override
+  void emptyStatement(Token semicolon) {}
+
+  @override
+  void expressionStatement(
+      StatementJudgment judgment, location, void expression, Token semicolon) {}
+
+  @override
+  void fieldInitializer(
+      InitializerJudgment judgment,
+      location,
+      Token thisKeyword,
+      Token period,
+      Token fieldName,
+      Token equals,
+      void expression,
+      initializerField) {}
+
+  @override
+  void forInStatement(
+      StatementJudgment judgment,
+      location,
+      Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      covariant Object loopVariable,
+      Token identifier,
+      Token inKeyword,
+      void iterator,
+      Token rightParenthesis,
+      void body,
+      covariant void loopVariableBinder,
+      DartType loopVariableType,
+      writeLocation,
+      DartType writeVariableType,
+      covariant void writeVariableBinder,
+      writeTarget) {}
+
+  @override
+  void forStatement(
+      StatementJudgment judgment,
+      location,
+      Token forKeyword,
+      Token leftParenthesis,
+      Object variableDeclarationList,
+      void initialization,
+      Token leftSeparator,
+      void condition,
+      Token rightSeparator,
+      void updaters,
+      Token rightParenthesis,
+      void body) {}
+
+  @override
+  void functionDeclaration(covariant void binder, FunctionType inferredType) {}
+
+  @override
+  void functionExpression(
+      ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  void functionType(int location, DartType type) {}
+
+  void functionTypedFormalParameter(int location, DartType type) {}
+
+  @override
+  void ifNull(ExpressionJudgment judgment, location, void leftOperand,
+      Token operator, void rightOperand, DartType inferredType) {}
+
+  @override
+  void ifStatement(
+      StatementJudgment judgment,
+      location,
+      Token ifKeyword,
+      Token leftParenthesis,
+      void condition,
+      Token rightParenthesis,
+      void thenStatement,
+      Token elseKeyword,
+      void elseStatement) {}
+
+  @override
+  void indexAssign(ExpressionJudgment judgment, location, writeMember, combiner,
+      DartType inferredType) {}
+
+  @override
+  void intLiteral(ExpressionJudgment judgment, location, Token literal,
+      num value, DartType inferredType) {}
+
+  @override
+  void invalidInitializer(InitializerJudgment judgment, location) {}
+
+  @override
+  void isExpression(
+      ExpressionJudgment judgment,
+      location,
+      void expression,
+      Token isOperator,
+      void literalType,
+      DartType testedType,
+      DartType inferredType) {}
+
+  @override
+  void isNotExpression(
+      ExpressionJudgment judgment,
+      location,
+      void expression,
+      Token isOperator,
+      Token notOperator,
+      void literalType,
+      DartType type,
+      DartType inferredType) {}
+
+  @override
+  void labeledStatement(List<Object> labels, void statement) {}
+
+  @override
+  void listLiteral(
+      ExpressionJudgment judgment,
+      location,
+      Token constKeyword,
+      covariant Object typeArguments,
+      Token leftBracket,
+      void elements,
+      Token rightBracket,
+      DartType inferredType) {}
+
+  @override
+  void loadLibrary(LoadLibraryJudgment judgment, location, library,
+      FunctionType calleeType, DartType inferredType) {}
+
+  @override
+  void loadLibraryTearOff(LoadLibraryTearOffJudgment judgment, location,
+      library, DartType inferredType) {}
+
+  @override
+  void logicalExpression(
+      ExpressionJudgment judgment,
+      location,
+      void leftOperand,
+      Token operator,
+      void rightOperand,
+      DartType inferredType) {}
+
+  @override
+  void mapLiteral(
+      ExpressionJudgment judgment,
+      location,
+      Token constKeyword,
+      Object typeArguments,
+      Token leftBracket,
+      List<Object> entries,
+      Token rightBracket,
+      DartType inferredType) {}
+
+  void mapLiteralEntry(
+      Object judgment, int fileOffset, void key, Token separator, void value) {}
+
+  @override
+  void methodInvocation(
+      ExpressionJudgment judgment,
+      resultOffset,
+      List<DartType> argumentsTypes,
+      bool isImplicitCall,
+      interfaceMember,
+      FunctionType calleeType,
+      Substitution substitution,
+      DartType inferredType) {}
+
+  @override
+  void methodInvocationCall(
+      ExpressionJudgment judgment,
+      resultOffset,
+      List<DartType> argumentsTypes,
+      bool isImplicitCall,
+      FunctionType calleeType,
+      Substitution substitution,
+      DartType inferredType) {}
+
+  @override
+  void namedFunctionExpression(ExpressionJudgment judgment,
+      covariant void binder, DartType inferredType) {}
+
+  @override
+  void not(ExpressionJudgment judgment, location, Token operator, void operand,
+      DartType inferredType) {}
+
+  @override
+  void nullLiteral(ExpressionJudgment judgment, location, Token literal,
+      bool isSynthetic, DartType inferredType) {}
+
+  @override
+  void propertyAssign(ExpressionJudgment judgment, location, writeMember,
+      DartType writeContext, combiner, DartType inferredType) {}
+
+  @override
+  void propertyGet(
+      ExpressionJudgment judgment, location, member, DartType inferredType) {}
+
+  @override
+  void propertyGetCall(
+      ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  @override
+  void propertySet(
+      ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  @override
+  void redirectingInitializer(
+      InitializerJudgment judgment,
+      location,
+      Token thisKeyword,
+      Token period,
+      Token constructorName,
+      covariant Object argumentList,
+      initializerTarget) {}
+
+  @override
+  void rethrow_(ExpressionJudgment judgment, location, Token rethrowKeyword,
+      DartType inferredType) {}
+
+  @override
+  void returnStatement(StatementJudgment judgment, location,
+      Token returnKeyword, void expression, Token semicolon) {}
+
+  @override
+  void statementLabel(covariant void binder, Token label, Token colon) {}
+
+  @override
+  void staticAssign(ExpressionJudgment judgment, location, writeMember,
+      DartType writeContext, combiner, DartType inferredType) {}
+
+  @override
+  void staticGet(ExpressionJudgment judgment, location, expressionTarget,
+      DartType inferredType) {}
+
+  @override
+  void staticInvocation(
+      ExpressionJudgment judgment,
+      location,
+      expressionTarget,
+      List<DartType> expressionArgumentsTypes,
+      FunctionType calleeType,
+      Substitution substitution,
+      DartType inferredType) {}
+
+  @override
+  void storeClassReference(location, reference, DartType rawType) {}
+
+  @override
+  void storePrefixInfo(location, prefixInfo) {}
+
+  @override
+  void stringConcatenation(
+      ExpressionJudgment judgment, location, DartType inferredType) {}
+
+  @override
+  void stringLiteral(ExpressionJudgment judgment, location, Token literal,
+      String value, DartType inferredType) {}
+
+  @override
+  void superInitializer(
+      InitializerJudgment judgment,
+      location,
+      Token superKeyword,
+      Token period,
+      Token constructorName,
+      covariant Object argumentList) {}
+
+  @override
+  void switchCase(SwitchCaseJudgment switchCase, covariant List<Object> labels,
+      Token keyword, void expression, Token colon, List<void> statements) {}
+
+  @override
+  void switchLabel(covariant void binder, Token label, Token colon) {}
+
+  @override
+  void switchStatement(
+      StatementJudgment judgment,
+      location,
+      Token switchKeyword,
+      Token leftParenthesis,
+      void expression,
+      Token rightParenthesis,
+      Token leftBracket,
+      void members,
+      Token rightBracket) {}
+
+  @override
+  void symbolLiteral(ExpressionJudgment judgment, location, Token poundSign,
+      List<Token> components, String value, DartType inferredType) {}
+
+  @override
+  void thisExpression(ExpressionJudgment judgment, location, Token thisKeyword,
+      DartType inferredType) {}
+
+  @override
+  void throw_(ExpressionJudgment judgment, location, Token throwKeyword,
+      void expression, DartType inferredType) {}
+
+  @override
+  void tryCatch(StatementJudgment judgment, location) {}
+
+  @override
+  void tryFinally(StatementJudgment judgment, location, Token tryKeyword,
+      void body, void catchClauses, Token finallyKeyword, void finallyBlock) {}
+
+  @override
+  void typeLiteral(ExpressionJudgment judgment, location, expressionType,
+      DartType inferredType) {}
+
+  @override
+  void typeReference(location, Token leftBracket, List<void> typeArguments,
+      Token rightBracket, reference, covariant void binder, DartType type) {}
+
+  @override
+  void typeVariableDeclaration(
+      location, covariant void binder, TypeParameter typeParameter) {}
+
+  @override
+  void variableAssign(
+      ExpressionJudgment judgment,
+      location,
+      DartType writeContext,
+      covariant void writeVariableBinder,
+      combiner,
+      DartType inferredType) {}
+
+  @override
+  void variableDeclaration(
+      covariant void binder, DartType statementType, DartType inferredType) {}
+
+  @override
+  void variableGet(ExpressionJudgment judgment, location, bool isInCascade,
+      expressionVariable, DartType inferredType) {}
+
+  @override
+  void voidType(location, Token token, DartType type) {}
+
+  @override
+  void whileStatement(
+      StatementJudgment judgment,
+      location,
+      Token whileKeyword,
+      Token leftParenthesis,
+      void condition,
+      Token rightParenthesis,
+      void body) {}
+
+  @override
+  void yieldStatement(StatementJudgment judgment, location, Token yieldKeyword,
+      Token star, void expression, Token semicolon) {}
 }

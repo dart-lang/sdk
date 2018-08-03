@@ -35,7 +35,7 @@ class NavClassMenuElement extends HtmlElement implements Renderable {
     assert(isolate != null);
     assert(cls != null);
     NavClassMenuElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<NavClassMenuElement>(e, queue: queue);
     e._isolate = isolate;
     e._cls = cls;
     return e;
@@ -52,12 +52,12 @@ class NavClassMenuElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
   void render() {
-    children = [
+    children = <Element>[
       navMenu(cls.name,
           content: _content, link: Uris.inspect(isolate, object: cls))
     ];

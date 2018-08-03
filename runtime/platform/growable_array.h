@@ -59,6 +59,27 @@ class BaseGrowableArray : public B {
     return data_[index];
   }
 
+  void FillWith(const T& value, intptr_t start, intptr_t length) {
+    ASSERT(start >= 0);
+    ASSERT(length >= 0);
+    ASSERT(start <= length_);
+
+    Resize(start + length);
+    for (intptr_t i = 0; i < length; ++i) {
+      data_[start + i] = value;
+    }
+  }
+
+  void EnsureLength(intptr_t new_length, const T& default_value) {
+    const intptr_t old_length = length_;
+    if (old_length < new_length) {
+      Resize(new_length);
+      for (intptr_t i = old_length; i < new_length; ++i) {
+        (*this)[i] = default_value;
+      }
+    }
+  }
+
   const T& At(intptr_t index) const { return operator[](index); }
 
   T& Last() const {
@@ -119,6 +140,14 @@ class BaseGrowableArray : public B {
   // Sort the array in place.
   inline void Sort(int compare(const T*, const T*));
 
+  void StealBuffer(T** buffer, intptr_t* length) {
+    *buffer = data_;
+    *length = length_;
+    data_ = NULL;
+    length_ = 0;
+    capacity_ = 0;
+  }
+
  private:
   intptr_t length_;
   intptr_t capacity_;
@@ -131,14 +160,12 @@ class BaseGrowableArray : public B {
   DISALLOW_COPY_AND_ASSIGN(BaseGrowableArray);
 };
 
-
 template <typename T, typename B, typename Allocator>
 inline void BaseGrowableArray<T, B, Allocator>::Sort(int compare(const T*,
                                                                  const T*)) {
   typedef int (*CompareFunction)(const void*, const void*);
   qsort(data_, length_, sizeof(T), reinterpret_cast<CompareFunction>(compare));
 }
-
 
 template <typename T, typename B, typename Allocator>
 void BaseGrowableArray<T, B, Allocator>::Resize(intptr_t new_length) {
@@ -153,7 +180,6 @@ void BaseGrowableArray<T, B, Allocator>::Resize(intptr_t new_length) {
   length_ = new_length;
 }
 
-
 template <typename T, typename B, typename Allocator>
 void BaseGrowableArray<T, B, Allocator>::SetLength(intptr_t new_length) {
   if (new_length > capacity_) {
@@ -164,7 +190,6 @@ void BaseGrowableArray<T, B, Allocator>::SetLength(intptr_t new_length) {
   }
   length_ = new_length;
 }
-
 
 class Malloc : public AllStatic {
  public:
@@ -184,9 +209,7 @@ class Malloc : public AllStatic {
   }
 };
 
-
 class EmptyBase {};
-
 
 template <typename T>
 class MallocGrowableArray : public BaseGrowableArray<T, EmptyBase, Malloc> {

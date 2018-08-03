@@ -15,23 +15,26 @@ class Element {
 makeE() native;
 makeF() native;
 
-void setup() native """
-// A novel HTML element.
-function HTMLGoofyElement(){}
-HTMLGoofyElement.prototype.nativeMethod = function(a) {
-  return 'Goofy.nativeMethod(' + a  + ')';
-};
-makeE = function(){return new HTMLGoofyElement};
+void setup() {
+  JS('', r"""
+(function(){
+  // A novel HTML element.
+  function HTMLGoofyElement(){}
+  HTMLGoofyElement.prototype.nativeMethod = function(a) {
+    return 'Goofy.nativeMethod(' + a  + ')';
+  };
+  makeE = function(){return new HTMLGoofyElement()};
 
-// A non-HTML element with a misleading name.
-function HTMLFakeyElement(){}
-HTMLFakeyElement.prototype.nativeMethod = function(a) {
-  return 'Fakey.nativeMethod(' + a  + ')';
-};
-makeF = function(){return new HTMLFakeyElement};
+  // A non-HTML element with a misleading name.
+  function HTMLFakeyElement(){}
+  HTMLFakeyElement.prototype.nativeMethod = function(a) {
+    return 'Fakey.nativeMethod(' + a  + ')';
+  };
+  makeF = function(){return new HTMLFakeyElement()};
 
-self.nativeConstructor(HTMLGoofyElement);
-""";
+  self.nativeConstructor(HTMLGoofyElement);
+})()""");
+}
 
 main() {
   nativeTesting();

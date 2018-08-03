@@ -32,12 +32,15 @@ class RenderingScheduler<T extends Renderable> implements RenderingTask {
   bool _dirty = false;
   bool _renderingScheduled = false;
   bool _notificationScheduled = false;
+  bool _waitForBarrier = false;
 
   /// Element managed by this scheduler.
   final T element;
 
   /// Queue used for rendering operations.
   final RenderingQueue queue;
+
+  final List<Future> _wait = <Future>[];
 
   /// Does the element need a new rendering cycle.
   bool get isDirty => _dirty;
@@ -89,7 +92,7 @@ class RenderingScheduler<T extends Renderable> implements RenderingTask {
   /// Checks for modification during attribute set.
   /// If value changes a new rendering is scheduled.
   /// set attr(T v) => _attr = _r.checkAndReact(_attr, v);
-  dynamic checkAndReact(dynamic oldValue, dynamic newValue) {
+  T checkAndReact<T>(T oldValue, T newValue) {
     if (oldValue != newValue)
       dirty();
     else
@@ -101,17 +104,19 @@ class RenderingScheduler<T extends Renderable> implements RenderingTask {
   void scheduleRendering() {
     if (_renderingScheduled) return;
     if (!_enabled) return;
-    queue.enqueue(this);
+    queue.enqueue(this, waitForBarrier: _waitForBarrier);
+    _waitForBarrier = true;
     _renderingScheduled = true;
   }
 
   /// Renders the element (if the scheduler is enabled).
   /// It will clear the dirty flag.
   void render() {
+    _renderingScheduled = false;
     if (!_enabled) return;
     _dirty = false;
+    _wait.clear();
     element.render();
-    _renderingScheduled = false;
     scheduleNotification();
     if (_dirty) scheduleRendering();
   }
@@ -123,7 +128,13 @@ class RenderingScheduler<T extends Renderable> implements RenderingTask {
     _notificationScheduled = true;
   }
 
+  void waitFor(Iterable<Future> it) {
+    _wait.addAll(it);
+  }
+
   Future _notify() async {
+    await Future.wait(_wait);
+    _wait.clear();
     _onRendered.add(new RenderedEvent<T>(element, _dirty));
     _notificationScheduled = false;
   }

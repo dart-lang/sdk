@@ -5,8 +5,8 @@
 #include "platform/globals.h"
 #if defined(HOST_OS_ANDROID)
 
-#include <sys/syscall.h>  // NOLINT
 #include <errno.h>        // NOLINT
+#include <sys/syscall.h>  // NOLINT
 
 #include "vm/flags.h"
 #include "vm/os.h"
@@ -46,11 +46,9 @@ class ThreadInterrupterAndroid : public AllStatic {
   }
 };
 
-
 bool ThreadInterrupter::IsDebuggerAttached() {
   return false;
 }
-
 
 void ThreadInterrupter::InterruptThread(OSThread* thread) {
   if (FLAG_trace_thread_interrupter) {
@@ -61,12 +59,10 @@ void ThreadInterrupter::InterruptThread(OSThread* thread) {
   ASSERT((result == 0) || (result == ESRCH));
 }
 
-
 void ThreadInterrupter::InstallSignalHandler() {
   SignalHandler::Install<
       ThreadInterrupterAndroid::ThreadInterruptSignalHandler>();
 }
-
 
 void ThreadInterrupter::RemoveSignalHandler() {
   SignalHandler::Remove();

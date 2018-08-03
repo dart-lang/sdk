@@ -8,7 +8,7 @@ import 'package:unittest/unittest.dart';
 
 import 'test_helper.dart';
 
-var tests = [
+var tests = <VMTest>[
   (VM vm) async {
     isInstanceOf<int> isInt = new isInstanceOf<int>();
     // Just iterate over all the isolates to confirm they have

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_IO_DISABLED)
-
 #include "bin/eventhandler.h"
 
 #include "bin/builtin.h"
@@ -57,10 +55,8 @@ void TimeoutQueue::UpdateTimeout(Dart_Port port, int64_t timeout) {
   }
 }
 
-
 static EventHandler* event_handler = NULL;
 static Monitor* shutdown_monitor = NULL;
-
 
 void EventHandler::Start() {
   // Initialize global socket registry.
@@ -72,12 +68,10 @@ void EventHandler::Start() {
   event_handler->delegate_.Start(event_handler);
 }
 
-
 void EventHandler::NotifyShutdownDone() {
   MonitorLocker ml(shutdown_monitor);
   ml.Notify();
 }
-
 
 void EventHandler::Stop() {
   if (event_handler == NULL) {
@@ -103,7 +97,6 @@ void EventHandler::Stop() {
   ListeningSocketRegistry::Cleanup();
 }
 
-
 EventHandlerImplementation* EventHandler::delegate() {
   if (event_handler == NULL) {
     return NULL;
@@ -111,11 +104,9 @@ EventHandlerImplementation* EventHandler::delegate() {
   return &event_handler->delegate_;
 }
 
-
 void EventHandler::SendFromNative(intptr_t id, Dart_Port port, int64_t data) {
   event_handler->SendData(id, port, data);
 }
-
 
 /*
  * Send data to the EventHandler thread to register for a given instance
@@ -146,7 +137,6 @@ void FUNCTION_NAME(EventHandler_SendData)(Dart_NativeArguments args) {
   event_handler->SendData(id, dart_port, data);
 }
 
-
 void FUNCTION_NAME(EventHandler_TimerMillisecondClock)(
     Dart_NativeArguments args) {
   int64_t now = TimerUtils::GetCurrentMonotonicMillis();
@@ -155,5 +145,3 @@ void FUNCTION_NAME(EventHandler_TimerMillisecondClock)(
 
 }  // namespace bin
 }  // namespace dart
-
-#endif  // !defined(DART_IO_DISABLED)

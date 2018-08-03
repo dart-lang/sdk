@@ -2,17 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library http_server;
-
 import 'dart:async';
+import 'dart:convert' show HtmlEscape;
 import 'dart:io';
 
-import 'dart:convert' show HtmlEscape;
+import 'package:package_resolver/package_resolver.dart';
 
-import 'test_suite.dart'; // For TestUtils.
+import 'configuration.dart';
+import 'repository.dart';
 import 'vendored_pkg/args/args.dart';
 import 'utils.dart';
-import 'package:package_resolver/package_resolver.dart';
 
 class DispatchingServer {
   HttpServer server;
@@ -63,8 +62,6 @@ const PREFIX_BUILDDIR = 'root_build';
 const PREFIX_DARTDIR = 'root_dart';
 
 void main(List<String> arguments) {
-  // This script is in [dart]/tools/testing/dart.
-  TestUtils.setDartDirUri(Platform.script.resolve('../../..'));
   /** Convenience method for local testing. */
   var parser = new ArgParser();
   parser.addOption('port',
@@ -88,15 +85,20 @@ void main(List<String> arguments) {
       help: 'The runtime we are using (for csp flags).', defaultsTo: 'none');
 
   var args = parser.parse(arguments);
-  if (args['help']) {
+  if (args['help'] as bool) {
     print(parser.getUsage());
   } else {
-    var servers = new TestingServers(args['build-directory'], args['csp'],
-        args['runtime'], null, args['package-root'], args['packages']);
-    var port = int.parse(args['port']);
-    var crossOriginPort = int.parse(args['crossOriginPort']);
+    var servers = new TestingServers(
+        args['build-directory'] as String,
+        args['csp'] as bool,
+        Runtime.find(args['runtime'] as String),
+        null,
+        args['package-root'] as String,
+        args['packages'] as String);
+    var port = int.parse(args['port'] as String);
+    var crossOriginPort = int.parse(args['crossOriginPort'] as String);
     servers
-        .startServers(args['network'],
+        .startServers(args['network'] as String,
             port: port, crossOriginPort: crossOriginPort)
         .then((_) {
       DebugLogger.info('Server listening on port ${servers.port}');
@@ -127,18 +129,18 @@ class TestingServers {
   Uri _packageRoot;
   Uri _packages;
   final bool useContentSecurityPolicy;
-  final String runtime;
+  final Runtime runtime;
   DispatchingServer _server;
   SyncPackageResolver _resolver;
 
   TestingServers(String buildDirectory, this.useContentSecurityPolicy,
-      [String this.runtime = 'none',
+      [this.runtime = Runtime.none,
       String dartDirectory,
       String packageRoot,
       String packages]) {
     _buildDirectory = Uri.base.resolveUri(new Uri.directory(buildDirectory));
     if (dartDirectory == null) {
-      _dartDirectory = TestUtils.dartDirUri;
+      _dartDirectory = Repository.uri;
     } else {
       _dartDirectory = Uri.base.resolveUri(new Uri.directory(dartDirectory));
     }
@@ -153,6 +155,7 @@ class TestingServers {
     }
   }
 
+  String get network => _serverList[0].address.address;
   int get port => _serverList[0].port;
   int get crossOriginPort => _serverList[1].port;
   DispatchingServer get server => _server;
@@ -177,10 +180,12 @@ class TestingServers {
         port: crossOriginPort, allowedPort: _serverList[0].port);
   }
 
-  String httpServerCommandLine() {
+  /// Gets the command line string to spawn the server.
+  String get commandLine {
     var dart = Platform.resolvedExecutable;
     var script = _dartDirectory.resolve('tools/testing/dart/http_server.dart');
     var buildDirectory = _buildDirectory.toFilePath();
+
     var command = [
       dart,
       script.toFilePath(),
@@ -188,17 +193,22 @@ class TestingServers {
       port,
       '-c',
       crossOriginPort,
+      '--network',
+      network,
       '--build-directory=$buildDirectory',
-      '--runtime=$runtime'
+      '--runtime=${runtime.name}'
     ];
+
     if (useContentSecurityPolicy) {
       command.add('--csp');
     }
+
     if (_packages != null) {
       command.add('--packages=${_packages.toFilePath()}');
     } else if (_packageRoot != null) {
       command.add('--package-root=${_packageRoot.toFilePath()}');
     }
+
     return command.join(' ');
   }
 
@@ -212,7 +222,8 @@ class TestingServers {
     DebugLogger.error('HttpServer: an error occured', e);
   }
 
-  Future _startHttpServer(String host, {int port: 0, int allowedPort: -1}) {
+  Future<DispatchingServer> _startHttpServer(String host,
+      {int port: 0, int allowedPort: -1}) {
     return HttpServer.bind(host, port).then((HttpServer httpServer) {
       var server = new DispatchingServer(httpServer, _onError, _sendNotFound);
       server.addHandler('/echo', _handleEchoRequest);
@@ -279,7 +290,7 @@ class TestingServers {
         if (data == 'close-with-error') {
           // Note: according to the web-sockets spec, a reason longer than 123
           // bytes will produce a SyntaxError on the client.
-          websocket.close(WebSocketStatus.UNSUPPORTED_DATA, 'X' * 124);
+          websocket.close(WebSocketStatus.unsupportedData, 'X' * 124);
         } else {
           websocket.close();
         }
@@ -431,14 +442,14 @@ class TestingServers {
           '"${request.uri.path}"');
     }
     var response = request.response;
-    response.statusCode = HttpStatus.NOT_FOUND;
+    response.statusCode = HttpStatus.notFound;
 
     // Send a nice HTML page detailing the error message.  Most browsers expect
     // this, for example, Chrome will simply display a blank page if you don't
     // provide any information.  A nice side effect of this is to work around
     // Firefox bug 1016313
     // (https://bugzilla.mozilla.org/show_bug.cgi?id=1016313).
-    response.headers.set(HttpHeaders.CONTENT_TYPE, 'text/html');
+    response.headers.set(HttpHeaders.contentTypeHeader, 'text/html');
     String escapedPath = const HtmlEscape().convert(request.uri.path);
     response.write("""
 <!DOCTYPE html>

@@ -20,9 +20,7 @@ typedef DWORD ThreadLocalKey;
 typedef DWORD ThreadId;
 typedef HANDLE ThreadJoinId;
 
-
 static const ThreadLocalKey kUnsetThreadLocalKey = TLS_OUT_OF_INDEXES;
-
 
 class ThreadInlineImpl {
  private:
@@ -41,7 +39,6 @@ class ThreadInlineImpl {
   DISALLOW_COPY_AND_ASSIGN(ThreadInlineImpl);
 };
 
-
 class MutexData {
  private:
   MutexData() {}
@@ -54,7 +51,6 @@ class MutexData {
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(MutexData);
 };
-
 
 class MonitorWaitData {
  public:
@@ -80,10 +76,8 @@ class MonitorWaitData {
   friend class MonitorData;
   friend class OS;
 
-
   DISALLOW_COPY_AND_ASSIGN(MonitorWaitData);
 };
-
 
 class MonitorData {
  private:
@@ -121,9 +115,7 @@ class MonitorData {
   DISALLOW_COPY_AND_ASSIGN(MonitorData);
 };
 
-
 typedef void (*ThreadDestructor)(void* parameter);
-
 
 class ThreadLocalEntry {
  public:
@@ -131,7 +123,6 @@ class ThreadLocalEntry {
       : key_(key), destructor_(destructor) {}
 
   ThreadLocalKey key() const { return key_; }
-
 
   ThreadDestructor destructor() const { return destructor_; }
 
@@ -142,10 +133,8 @@ class ThreadLocalEntry {
   DISALLOW_ALLOCATION();
 };
 
-
 template <typename T>
 class MallocGrowableArray;
-
 
 class ThreadLocalData : public AllStatic {
  public:

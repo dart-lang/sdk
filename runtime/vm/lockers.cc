@@ -2,29 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "platform/assert.h"
 #include "vm/lockers.h"
-#include "vm/safepoint.h"
+#include "platform/assert.h"
+#include "vm/heap/safepoint.h"
 
 namespace dart {
-
-
-static void updateThreadState(Thread* thread) {
-  // First try a fast update of the thread state to indicate it is not at a
-  // safepoint anymore.
-  uint32_t old_state = Thread::SetAtSafepoint(true, 0);
-  uword addr =
-      reinterpret_cast<uword>(thread) + Thread::safepoint_state_offset();
-  if (AtomicOperations::CompareAndSwapUint32(reinterpret_cast<uint32_t*>(addr),
-                                             old_state, 0) != old_state) {
-    // Fast update failed which means we could potentially be in the middle
-    // of a safepoint operation and need to block for it.
-    SafepointHandler* handler = thread->isolate()->safepoint_handler();
-    handler->ExitSafepointUsingLock(thread);
-  }
-  thread->set_execution_state(Thread::kThreadInVM);
-}
-
 
 Monitor::WaitResult MonitorLocker::WaitWithSafepointCheck(Thread* thread,
                                                           int64_t millis) {
@@ -35,11 +17,7 @@ Monitor::WaitResult MonitorLocker::WaitWithSafepointCheck(Thread* thread,
   Monitor::WaitResult result = monitor_->Wait(millis);
   // First try a fast update of the thread state to indicate it is not at a
   // safepoint anymore.
-  uint32_t old_state = Thread::SetAtSafepoint(true, 0);
-  uword addr =
-      reinterpret_cast<uword>(thread) + Thread::safepoint_state_offset();
-  if (AtomicOperations::CompareAndSwapUint32(reinterpret_cast<uint32_t*>(addr),
-                                             old_state, 0) != old_state) {
+  if (!thread->TryExitSafepoint()) {
     // Fast update failed which means we could potentially be in the middle
     // of a safepoint operation and need to block for it.
     monitor_->Exit();
@@ -50,7 +28,6 @@ Monitor::WaitResult MonitorLocker::WaitWithSafepointCheck(Thread* thread,
   thread->set_execution_state(Thread::kThreadInVM);
   return result;
 }
-
 
 SafepointMutexLocker::SafepointMutexLocker(Mutex* mutex) : mutex_(mutex) {
   ASSERT(mutex != NULL);
@@ -63,13 +40,13 @@ SafepointMutexLocker::SafepointMutexLocker(Mutex* mutex) : mutex_(mutex) {
       thread->EnterSafepoint();
       mutex->Lock();
       // Update thread state and block if a safepoint operation is in progress.
-      updateThreadState(thread);
+      thread->ExitSafepoint();
+      thread->set_execution_state(Thread::kThreadInVM);
     } else {
       mutex->Lock();
     }
   }
 }
-
 
 SafepointMonitorLocker::SafepointMonitorLocker(Monitor* monitor)
     : monitor_(monitor) {
@@ -83,13 +60,13 @@ SafepointMonitorLocker::SafepointMonitorLocker(Monitor* monitor)
       thread->EnterSafepoint();
       monitor_->Enter();
       // Update thread state and block if a safepoint operation is in progress.
-      updateThreadState(thread);
+      thread->ExitSafepoint();
+      thread->set_execution_state(Thread::kThreadInVM);
     } else {
       monitor_->Enter();
     }
   }
 }
-
 
 Monitor::WaitResult SafepointMonitorLocker::Wait(int64_t millis) {
   Thread* thread = Thread::Current();
@@ -99,11 +76,7 @@ Monitor::WaitResult SafepointMonitorLocker::Wait(int64_t millis) {
     Monitor::WaitResult result = monitor_->Wait(millis);
     // First try a fast update of the thread state to indicate it is not at a
     // safepoint anymore.
-    uint32_t old_state = Thread::SetAtSafepoint(true, 0);
-    uword addr =
-        reinterpret_cast<uword>(thread) + Thread::safepoint_state_offset();
-    if (AtomicOperations::CompareAndSwapUint32(
-            reinterpret_cast<uint32_t*>(addr), old_state, 0) != old_state) {
+    if (!thread->TryExitSafepoint()) {
       // Fast update failed which means we could potentially be in the middle
       // of a safepoint operation and need to block for it.
       monitor_->Exit();

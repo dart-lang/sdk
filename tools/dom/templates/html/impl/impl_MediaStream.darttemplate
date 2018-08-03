@@ -14,7 +14,6 @@ $!MEMBERS
    *
    * * [Navigator.getUserMedia]
    */
-$if DART2JS
   static bool get supported =>
     JS('bool', '''!!(#.getUserMedia || #.webkitGetUserMedia ||
         #.mozGetUserMedia || #.msGetUserMedia)''',
@@ -22,7 +21,4 @@ $if DART2JS
         window.navigator,
         window.navigator,
         window.navigator);
-$else
-  static bool get supported => true;
-$endif
 }

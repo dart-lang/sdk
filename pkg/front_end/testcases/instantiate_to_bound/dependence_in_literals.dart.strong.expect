@@ -1,0 +1,24 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class C<X extends core::Object = dynamic, Y extends (self::C::X) → self::C::X = (core::Null) → dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class D<X extends core::num = core::num, Y extends (self::D::X) → self::D::X = (core::Null) → core::num> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static field core::List<self::C<dynamic, (core::Null) → dynamic>> lc = <self::C<dynamic, (core::Null) → dynamic>>[];
+static field core::Map<self::C<dynamic, (core::Null) → dynamic>, self::C<dynamic, (core::Null) → dynamic>> mc = <self::C<dynamic, (core::Null) → dynamic>, self::C<dynamic, (core::Null) → dynamic>>{};
+static field core::List<self::D<core::num, (core::Null) → core::num>> ld = <self::D<core::num, (core::Null) → core::num>>[];
+static field core::Map<self::D<core::num, (core::Null) → core::num>, self::D<core::num, (core::Null) → core::num>> md = <self::D<core::num, (core::Null) → core::num>, self::D<core::num, (core::Null) → core::num>>{};
+static method main() → dynamic {}

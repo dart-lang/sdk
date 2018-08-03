@@ -5,8 +5,8 @@
 #ifndef RUNTIME_VM_CODE_OBSERVERS_H_
 #define RUNTIME_VM_CODE_OBSERVERS_H_
 
-#include "vm/globals.h"
 #include "vm/allocation.h"
+#include "vm/globals.h"
 
 namespace dart {
 
@@ -37,7 +37,6 @@ class CodeObserver {
  private:
   DISALLOW_COPY_AND_ASSIGN(CodeObserver);
 };
-
 
 class CodeObservers : public AllStatic {
  public:

@@ -84,7 +84,7 @@ SourceFileEdit getChangeFileEdit(SourceChange change, String file) {
  * Compare the lists [listA] and [listB], using [itemEqual] to compare
  * list elements.
  */
-bool listEqual(List listA, List listB, bool itemEqual(a, b)) {
+bool listEqual<T>(List<T> listA, List<T> listB, bool itemEqual(T a, T b)) {
   if (listA == null) {
     return listB == null;
   }
@@ -106,7 +106,7 @@ bool listEqual(List listA, List listB, bool itemEqual(a, b)) {
  * Compare the maps [mapA] and [mapB], using [valueEqual] to compare map
  * values.
  */
-bool mapEqual(Map mapA, Map mapB, bool valueEqual(a, b)) {
+bool mapEqual<K, V>(Map<K, V> mapA, Map<K, V> mapB, bool valueEqual(V a, V b)) {
   if (mapA == null) {
     return mapB == null;
   }
@@ -131,22 +131,21 @@ bool mapEqual(Map mapA, Map mapB, bool valueEqual(a, b)) {
  * Translate the input [map], applying [keyCallback] to all its keys, and
  * [valueCallback] to all its values.
  */
-Map/*<KR, VR>*/ mapMap/*<KP, VP, KR, VR>*/(Map/*<KP, VP>*/ map,
-    {dynamic/*=KR*/ keyCallback(/*<KP>*/ key),
-    dynamic/*=VR*/ valueCallback(/*<VP>*/ value)}) {
-  Map/*<KR, VR>*/ result = new HashMap/*<KR, VR>*/();
+Map<KR, VR> mapMap<KP, VP, KR, VR>(Map<KP, VP> map,
+    {KR keyCallback(KP key), VR valueCallback(VP value)}) {
+  Map<KR, VR> result = new HashMap<KR, VR>();
   map.forEach((key, value) {
-    Object/*=KR*/ resultKey;
-    Object/*=VR*/ resultValue;
+    KR resultKey;
+    VR resultValue;
     if (keyCallback != null) {
       resultKey = keyCallback(key);
     } else {
-      resultKey = key as Object/*=KR*/;
+      resultKey = key as KR;
     }
     if (valueCallback != null) {
       resultValue = valueCallback(value);
     } else {
-      resultValue = value as Object/*=VR*/;
+      resultValue = value as VR;
     }
     result[resultKey] = resultValue;
   });
@@ -225,56 +224,6 @@ RefactoringOptions refactoringOptionsFromJson(JsonDecoder jsonDecoder,
   return null;
 }
 
-///**
-// * Create a [RefactoringFeedback] corresponding the given [kind].
-// */
-//RefactoringFeedback refactoringFeedbackFromJson(
-//    JsonDecoder jsonDecoder, String jsonPath, Object json, Map feedbackJson) {
-//  RefactoringKind kind = jsonDecoder.refactoringKind;
-//  if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
-//    return new ExtractLocalVariableFeedback.fromJson(
-//        jsonDecoder, jsonPath, json);
-//  }
-//  if (kind == RefactoringKind.EXTRACT_METHOD) {
-//    return new ExtractMethodFeedback.fromJson(jsonDecoder, jsonPath, json);
-//  }
-//  if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
-//    return new InlineLocalVariableFeedback.fromJson(
-//        jsonDecoder, jsonPath, json);
-//  }
-//  if (kind == RefactoringKind.INLINE_METHOD) {
-//    return new InlineMethodFeedback.fromJson(jsonDecoder, jsonPath, json);
-//  }
-//  if (kind == RefactoringKind.RENAME) {
-//    return new RenameFeedback.fromJson(jsonDecoder, jsonPath, json);
-//  }
-//  return null;
-//}
-//
-///**
-// * Create a [RefactoringOptions] corresponding the given [kind].
-// */
-//RefactoringOptions refactoringOptionsFromJson(JsonDecoder jsonDecoder,
-//    String jsonPath, Object json, RefactoringKind kind) {
-//  if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
-//    return new ExtractLocalVariableOptions.fromJson(
-//        jsonDecoder, jsonPath, json);
-//  }
-//  if (kind == RefactoringKind.EXTRACT_METHOD) {
-//    return new ExtractMethodOptions.fromJson(jsonDecoder, jsonPath, json);
-//  }
-//  if (kind == RefactoringKind.INLINE_METHOD) {
-//    return new InlineMethodOptions.fromJson(jsonDecoder, jsonPath, json);
-//  }
-//  if (kind == RefactoringKind.MOVE_FILE) {
-//    return new MoveFileOptions.fromJson(jsonDecoder, jsonPath, json);
-//  }
-//  if (kind == RefactoringKind.RENAME) {
-//    return new RenameOptions.fromJson(jsonDecoder, jsonPath, json);
-//  }
-//  return null;
-//}
-
 /**
  * Type of callbacks used to decode parts of JSON objects.  [jsonPath] is a
  * string describing the part of the JSON object being decoded, and [value] is
@@ -328,9 +277,11 @@ abstract class JsonDecoder {
     if (json is int) {
       return json;
     } else if (json is String) {
-      return int.parse(json, onError: (String value) {
+      int value = int.tryParse(json);
+      if (value == null) {
         throw mismatch(jsonPath, 'int', json);
-      });
+      }
+      return value;
     }
     throw mismatch(jsonPath, 'int', json);
   }
@@ -341,12 +292,12 @@ abstract class JsonDecoder {
    *
    * The type parameter [E] is the expected type of the elements in the list.
    */
-  List/*<E>*/ decodeList/*<E>*/(String jsonPath, Object json,
-      [JsonDecoderCallback/*<E>*/ decoder]) {
+  List<E> decodeList<E>(String jsonPath, Object json,
+      [JsonDecoderCallback<E> decoder]) {
     if (json == null) {
-      return/*<E>*/ [];
+      return <E>[];
     } else if (json is List) {
-      List/*<E>*/ result = /*<E>*/ [];
+      List<E> result = <E>[];
       for (int i = 0; i < json.length; i++) {
         result.add(decoder('$jsonPath[$i]', json[i]));
       }
@@ -360,28 +311,28 @@ abstract class JsonDecoder {
    * Decode a JSON object that is expected to be a Map.  [keyDecoder] is used
    * to decode the keys, and [valueDecoder] is used to decode the values.
    */
-  Map/*<K, V>*/ decodeMap/*<K, V>*/(String jsonPath, Object json,
-      {JsonDecoderCallback/*<K>*/ keyDecoder,
-      JsonDecoderCallback/*<V>*/ valueDecoder}) {
-    if (json == null) {
+  Map<K, V> decodeMap<K, V>(String jsonPath, Object jsonData,
+      {JsonDecoderCallback<K> keyDecoder,
+      JsonDecoderCallback<V> valueDecoder}) {
+    if (jsonData == null) {
       return {};
-    } else if (json is Map) {
-      Map/*<K, V>*/ result = /*<K, V>*/ {};
-      json.forEach((String key, value) {
-        Object/*=K*/ decodedKey;
+    } else if (jsonData is Map) {
+      Map<K, V> result = <K, V>{};
+      jsonData.forEach((key, value) {
+        K decodedKey;
         if (keyDecoder != null) {
           decodedKey = keyDecoder('$jsonPath.key', key);
         } else {
-          decodedKey = key as Object/*=K*/;
+          decodedKey = key as K;
         }
         if (valueDecoder != null) {
-          value = valueDecoder('$jsonPath[${JSON.encode(key)}]', value);
+          value = valueDecoder('$jsonPath[${json.encode(key)}]', value);
         }
-        result[decodedKey] = value as Object/*=V*/;
+        result[decodedKey] = value as V;
       });
       return result;
     } else {
-      throw mismatch(jsonPath, 'Map', json);
+      throw mismatch(jsonPath, 'Map', jsonData);
     }
   }
 
@@ -402,21 +353,21 @@ abstract class JsonDecoder {
    * [decoders] is a map from each possible string in the field to the decoder
    * that should be used to decode the JSON object.
    */
-  Object decodeUnion(String jsonPath, Map json, String field,
+  Object decodeUnion(String jsonPath, Map jsonData, String field,
       Map<String, JsonDecoderCallback> decoders) {
-    if (json is Map) {
-      if (!json.containsKey(field)) {
+    if (jsonData is Map) {
+      if (!jsonData.containsKey(field)) {
         throw missingKey(jsonPath, field);
       }
-      var disambiguatorPath = '$jsonPath[${JSON.encode(field)}]';
-      String disambiguator = decodeString(disambiguatorPath, json[field]);
+      var disambiguatorPath = '$jsonPath[${json.encode(field)}]';
+      String disambiguator = decodeString(disambiguatorPath, jsonData[field]);
       if (!decoders.containsKey(disambiguator)) {
         throw mismatch(
-            disambiguatorPath, 'One of: ${decoders.keys.toList()}', json);
+            disambiguatorPath, 'One of: ${decoders.keys.toList()}', jsonData);
       }
-      return decoders[disambiguator](jsonPath, json);
+      return decoders[disambiguator](jsonPath, jsonData);
     } else {
-      throw mismatch(jsonPath, 'Map', json);
+      throw mismatch(jsonPath, 'Map', jsonData);
     }
   }
 
@@ -458,7 +409,7 @@ class RequestDecoder extends JsonDecoder {
     buffer.write(expected);
     if (actual != null) {
       buffer.write('; found "');
-      buffer.write(JSON.encode(actual));
+      buffer.write(json.encode(actual));
       buffer.write('"');
     }
     return new RequestFailure(
@@ -468,7 +419,7 @@ class RequestDecoder extends JsonDecoder {
   @override
   dynamic missingKey(String jsonPath, String key) {
     return new RequestFailure(RequestErrorFactory.invalidParameter(
-        jsonPath, 'Expected to contain key ${JSON.encode(key)}'));
+        jsonPath, 'Expected to contain key ${json.encode(key)}'));
   }
 }
 
@@ -497,7 +448,7 @@ class ResponseDecoder extends JsonDecoder {
     buffer.write(expected);
     if (actual != null) {
       buffer.write(' found "');
-      buffer.write(JSON.encode(actual));
+      buffer.write(json.encode(actual));
       buffer.write('"');
     }
     buffer.write(' at ');

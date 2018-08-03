@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../constants/values.dart';
-import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../js_backend/js_backend.dart';
 import '../js_backend/interceptor_data.dart';
 import '../options.dart';
-import '../types/types.dart';
+import '../types/abstract_value_domain.dart';
 import '../universe/selector.dart' show Selector;
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 import 'nodes.dart';
 
 /**
@@ -17,11 +17,14 @@ import 'nodes.dart';
  * Caches codegen information on nodes.
  */
 class SsaInstructionSelection extends HBaseVisitor {
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   final InterceptorData _interceptorData;
   HGraph graph;
 
   SsaInstructionSelection(this._closedWorld, this._interceptorData);
+
+  AbstractValueDomain get _abstractValueDomain =>
+      _closedWorld.abstractValueDomain;
 
   void visitGraph(HGraph graph) {
     this.graph = graph;
@@ -67,8 +70,8 @@ class SsaInstructionSelection extends HBaseVisitor {
     if (node.kind == HIs.RAW_CHECK) {
       HInstruction interceptor = node.interceptor;
       if (interceptor != null) {
-        return new HIsViaInterceptor(node.typeExpression, interceptor,
-            _closedWorld.commonMasks.boolType);
+        return new HIsViaInterceptor(
+            node.typeExpression, interceptor, _abstractValueDomain.boolType);
       }
     }
     return node;
@@ -82,12 +85,13 @@ class SsaInstructionSelection extends HBaseVisitor {
   String simpleOp(HInstruction left, HInstruction right) {
     // Returns the single identity comparison (== or ===) or null if a more
     // complex expression is required.
-    TypeMask leftType = left.instructionType;
-    TypeMask rightType = right.instructionType;
-    if (leftType.isNullable && rightType.isNullable) {
+    AbstractValue leftType = left.instructionType;
+    AbstractValue rightType = right.instructionType;
+    if (_abstractValueDomain.canBeNull(leftType) &&
+        _abstractValueDomain.canBeNull(rightType)) {
       if (left.isConstantNull() ||
           right.isConstantNull() ||
-          (left.isPrimitive(_closedWorld) && leftType == rightType)) {
+          (left.isPrimitive(_abstractValueDomain) && leftType == rightType)) {
         return '==';
       }
       return null;
@@ -104,14 +108,14 @@ class SsaInstructionSelection extends HBaseVisitor {
 
   HInstruction visitInvokeSuper(HInvokeSuper node) {
     if (node.isInterceptedCall) {
-      TypeMask mask = node.getDartReceiver(_closedWorld).instructionType;
+      AbstractValue mask = node.getDartReceiver(_closedWorld).instructionType;
       tryReplaceInterceptorWithDummy(node, node.selector, mask);
     }
     return node;
   }
 
   void tryReplaceInterceptorWithDummy(
-      HInvoke node, Selector selector, TypeMask mask) {
+      HInvoke node, Selector selector, AbstractValue mask) {
     // Calls of the form
     //
     //     a.foo$1(a, x)
@@ -244,7 +248,7 @@ class SsaInstructionSelection extends HBaseVisitor {
     HInstruction bitop(String assignOp) {
       // HBitAnd, HBitOr etc. are more difficult because HBitAnd(a.x, y)
       // sometimes needs to be forced to unsigned: a.x = (a.x & y) >>> 0.
-      if (op.isUInt31(_closedWorld)) return simpleBinary(assignOp);
+      if (op.isUInt31(_abstractValueDomain)) return simpleBinary(assignOp);
       return noMatchingRead();
     }
 
@@ -335,6 +339,7 @@ class SsaTrustedCheckRemover extends HBaseVisitor {
  *   t2 = add(4, 3);
  */
 class SsaInstructionMerger extends HBaseVisitor {
+  final AbstractValueDomain _abstractValueDomain;
   final SuperMemberData _superMemberData;
   /**
    * List of [HInstruction] that the instruction merger expects in
@@ -354,7 +359,8 @@ class SsaInstructionMerger extends HBaseVisitor {
     generateAtUseSite.add(instruction);
   }
 
-  SsaInstructionMerger(this.generateAtUseSite, this._superMemberData);
+  SsaInstructionMerger(
+      this._abstractValueDomain, this.generateAtUseSite, this._superMemberData);
 
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
@@ -404,7 +410,7 @@ class SsaInstructionMerger extends HBaseVisitor {
   // construction always precede a use.
   bool isEffectivelyPure(HInstruction instruction) {
     if (instruction is HLocalGet) return !isAssignedLocal(instruction.local);
-    return instruction.isPure();
+    return instruction.isPure(_abstractValueDomain);
   }
 
   bool isAssignedLocal(HLocalValue local) {
@@ -425,7 +431,7 @@ class SsaInstructionMerger extends HBaseVisitor {
   }
 
   void visitInvokeSuper(HInvokeSuper instruction) {
-    MemberElement superMethod = instruction.element;
+    MemberEntity superMethod = instruction.element;
     Selector selector = instruction.selector;
     // If aliased super members cannot be used, we will generate code like
     //

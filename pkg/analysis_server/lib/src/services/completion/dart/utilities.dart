@@ -5,11 +5,9 @@
 /**
  * A collection of utility methods used by completion contributors.
  */
-import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind, Location;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/correction/flutter_util.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -40,8 +38,7 @@ void addDefaultArgDetails(
     CompletionSuggestion suggestion,
     Element element,
     Iterable<ParameterElement> requiredParams,
-    Iterable<ParameterElement> namedParams,
-    IdeOptions options) {
+    Iterable<ParameterElement> namedParams) {
   StringBuffer sb = new StringBuffer();
   List<int> ranges = <int>[];
 
@@ -58,7 +55,7 @@ void addDefaultArgDetails(
   }
 
   for (ParameterElement param in namedParams) {
-    if (param.isRequired) {
+    if (param.hasRequired) {
       if (sb.isNotEmpty) {
         sb.write(', ');
       }
@@ -68,25 +65,6 @@ void addDefaultArgDetails(
       String defaultValue = _getDefaultValue(param);
       sb.write(defaultValue);
       ranges.addAll([offset, defaultValue.length]);
-    }
-  }
-
-  if (options?.generateFlutterWidgetChildrenBoilerPlate == true) {
-    if (element is ConstructorElement) {
-      if (isFlutterWidget(element.enclosingElement)) {
-        for (ParameterElement param in element.parameters) {
-          if (param.name == 'children') {
-            String defaultValue = getDefaultStringParameterValue(param) ?? '';
-            if (sb.isNotEmpty) {
-              sb.write(', ');
-            }
-            sb.write('children: ');
-            offset = sb.length;
-            sb.write(defaultValue);
-            ranges.addAll([offset, defaultValue.length]);
-          }
-        }
-      }
     }
   }
 
@@ -120,7 +98,7 @@ protocol.Element createLocalElement(
   return new protocol.Element(kind, name, flags,
       location: location,
       parameters: parameters,
-      returnType: nameForType(returnType));
+      returnType: nameForType(id, returnType));
 }
 
 /**
@@ -163,7 +141,7 @@ CompletionSuggestion createLocalSuggestion(SimpleIdentifier id,
       0,
       isDeprecated,
       false,
-      returnType: nameForType(returnType),
+      returnType: nameForType(id, returnType),
       element: element);
   if (classDecl != null) {
     SimpleIdentifier classId = classDecl.name;
@@ -226,33 +204,45 @@ bool isDeprecated(AnnotatedNode node) {
 }
 
 /**
- * Return the name for the given [type].
+ * Return name of the type of the given [identifier], or, if it unresolved, the
+ * name of its declared [declaredType].
  */
-String nameForType(TypeAnnotation type) {
-  if (type == NO_RETURN_TYPE) {
+String nameForType(SimpleIdentifier identifier, TypeAnnotation declaredType) {
+  if (identifier == null) {
     return null;
   }
+
+  // Get the type from the identifier element.
+  DartType type;
+  Element element = identifier.staticElement;
+  if (element == null) {
+    return DYNAMIC;
+  } else if (element is FunctionTypedElement) {
+    if (element is PropertyAccessorElement && element.isSetter) {
+      return null;
+    }
+    type = element.returnType;
+  } else if (element is VariableElement) {
+    type = identifier.bestType;
+  } else {
+    return null;
+  }
+
+  // If the type is unresolved, use the declared type.
+  if (type != null && type.isUndefined) {
+    if (declaredType is TypeName) {
+      Identifier id = declaredType.name;
+      if (id != null) {
+        return id.name;
+      }
+    }
+    return DYNAMIC;
+  }
+
   if (type == null) {
     return DYNAMIC;
   }
-  if (type is TypeName) {
-    Identifier id = type.name;
-    if (id == null) {
-      return DYNAMIC;
-    }
-    String name = id.name;
-    if (name == null || name.length <= 0) {
-      return DYNAMIC;
-    }
-    TypeArgumentList typeArgs = type.typeArguments;
-    if (typeArgs != null) {
-      //TODO (danrubel) include type arguments
-    }
-    return name;
-  } else if (type is GenericFunctionType) {
-    // TODO(brianwilkerson) Implement this.
-  }
-  return DYNAMIC;
+  return type.toString();
 }
 
 //TODO(pq): fix to use getDefaultStringParameterValue()

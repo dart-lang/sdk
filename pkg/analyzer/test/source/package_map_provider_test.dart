@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.source.package_map_provider_test;
-
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/source/package_map_provider.dart';
-import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/source/package_map_provider.dart';
+import 'package:analyzer/src/source/pub_package_map_provider.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -63,7 +61,7 @@ class PubPackageMapProviderTest {
     expect(result, hasLength(1));
     expect(result.keys, contains(packageName));
     expect(result[packageName], hasLength(1));
-    expect(result[packageName][0], new isInstanceOf<Folder>());
+    expect(result[packageName][0], new TypeMatcher<Folder>());
     expect(result[packageName][0].path, equals(folderPath));
   }
 
@@ -93,7 +91,7 @@ class PubPackageMapProviderTest {
     expect(result, hasLength(1));
     expect(result.keys, contains(packageName));
     expect(result[packageName], hasLength(1));
-    expect(result[packageName][0], new isInstanceOf<Folder>());
+    expect(result[packageName][0], new TypeMatcher<Folder>());
     expect(result[packageName][0].path, equals(folderPath));
   }
 
@@ -112,7 +110,7 @@ class PubPackageMapProviderTest {
     expect(result.keys, contains(packageName));
     expect(result[packageName], hasLength(2));
     for (int i = 0; i < 2; i++) {
-      expect(result[packageName][i], new isInstanceOf<Folder>());
+      expect(result[packageName][i], new TypeMatcher<Folder>());
       expect(result[packageName][i].path, isIn([folderPath1, folderPath2]));
     }
   }

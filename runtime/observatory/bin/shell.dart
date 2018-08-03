@@ -29,7 +29,8 @@ void repl(VM vm, Isolate isolate, String lastResult) {
 
 void main() {
   String addr = 'ws://localhost:8181/ws';
-  new WebSocketVM(new WebSocketVMTarget(addr)).load().then((VM vm) {
+  new WebSocketVM(new WebSocketVMTarget(addr)).load().then((serviceObject) {
+    VM vm = serviceObject;
     Isolate isolate = vm.isolates.first;
     repl(vm, isolate, 'isolate ${isolate.id}');
   });

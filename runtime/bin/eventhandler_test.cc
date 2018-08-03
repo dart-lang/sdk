@@ -18,13 +18,11 @@ VM_UNIT_TEST_CASE(CircularLinkedList) {
   EXPECT(list.HasHead());
   EXPECT(list.head() == 1);
 
-
   // Test: Inserts don't move head.
   for (int i = 2; i <= 100; i++) {
     list.Add(i);
     EXPECT(list.head() == 1);
   }
-
 
   // Test: Rotate cycle through all elements in insertion order.
   for (int i = 1; i <= 100; i++) {
@@ -32,7 +30,6 @@ VM_UNIT_TEST_CASE(CircularLinkedList) {
     EXPECT(list.head() == i);
     list.Rotate();
   }
-
 
   // Test: Removing head results in next element to be head.
   for (int i = 1; i <= 100; i++) {
@@ -47,14 +44,12 @@ VM_UNIT_TEST_CASE(CircularLinkedList) {
   // Test: Removing all items individually make list empty.
   EXPECT(!list.HasHead());
 
-
   // Test: Removing all items at once makes list empty.
   for (int i = 1; i <= 100; i++) {
     list.Add(i);
   }
   list.RemoveAll();
   EXPECT(!list.HasHead());
-
 
   // Test: Remove individual items just deletes them without modifying head.
   for (int i = 1; i <= 10; i++) {
@@ -69,11 +64,9 @@ VM_UNIT_TEST_CASE(CircularLinkedList) {
   list.Rotate();
   EXPECT(list.head() == 1);
 
-
   // Test: Remove non-existent element leaves list un-changed.
   list.Remove(4242);
   EXPECT(list.head() == 1);
-
 
   // Test: Remove head element individually moves head to next element.
   list.Remove(1);
@@ -81,7 +74,6 @@ VM_UNIT_TEST_CASE(CircularLinkedList) {
   EXPECT(list.head() == 10);
   list.Remove(10);
   EXPECT(!list.HasHead());
-
 
   // Test: Remove non-existent element from empty list works.
   list.Remove(4242);

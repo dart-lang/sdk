@@ -1,0 +1,78 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  JumpIfNoAsserts      L1
+  Push                 FP[-5]
+  AssertBoolean        0
+  PushConstant         CP#0
+  IfEqStrictTOS
+  Jump                 L1
+  PushConstant         CP#1
+  PushConstant         CP#1
+  PushConstant         CP#2
+  PushConstant         CP#4
+  IndirectStaticCall   3, CP#3
+L1:
+  PushConstant         CP#2
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Bool true
+  [1] = Int 0
+  [2] = Null
+  [3] = ArgDesc num-args 3, num-type-args 0, names []
+  [4] = StaticICData target 'dart.core::_AssertionError::_throwNew', arg-desc CP#3
+}
+]static method test1(core::bool condition) → void {
+  assert(condition);
+}
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  JumpIfNoAsserts      L1
+  Push                 FP[-6]
+  InstanceCall1        1, CP#1
+  AssertBoolean        0
+  PushConstant         CP#2
+  IfEqStrictTOS
+  Jump                 L1
+  PushConstant         CP#3
+  PushConstant         CP#3
+  Push                 FP[-5]
+  InstanceCall1        1, CP#4
+  PushConstant         CP#6
+  IndirectStaticCall   3, CP#5
+L1:
+  PushConstant         CP#7
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ArgDesc num-args 1, num-type-args 0, names []
+  [1] = ICData target-name 'call', arg-desc CP#0
+  [2] = Bool true
+  [3] = Int 0
+  [4] = ICData target-name 'call', arg-desc CP#0
+  [5] = ArgDesc num-args 3, num-type-args 0, names []
+  [6] = StaticICData target 'dart.core::_AssertionError::_throwNew', arg-desc CP#5
+  [7] = Null
+}
+]static method test2(() → core::bool condition, () → core::String message) → void {
+  assert(condition.call(), message.call());
+}
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  PushConstant         CP#0
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Null
+}
+]static method main() → dynamic {}

@@ -10,11 +10,11 @@ import 'dart:async';
 class MyFuture<T> implements Future<T> {
   MyFuture() {}
   MyFuture.value(T x) {}
-  dynamic noSuchMethod(invocation);
+  dynamic noSuchMethod(/*@topType=Invocation*/ invocation) => null;
   MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
 }
 
-void main() {
+void test() {
   MyFuture<bool> f;
   MyFuture<int> t1 = f. /*@typeArgs=int*/ /*@target=MyFuture::then*/ then(
       /*@returnType=Future<int>*/ (/*@type=bool*/ x) async =>
@@ -25,10 +25,12 @@ void main() {
   });
   MyFuture<int> t5 = f. /*@typeArgs=int*/ /*@target=MyFuture::then*/ then(
       /*info:INFERRED_TYPE_CLOSURE,error:INVALID_CAST_FUNCTION_EXPR*/
-      /*@returnType=Object*/ (/*@type=bool*/ x) =>
+      /*@returnType=FutureOr<int>*/ (/*@type=bool*/ x) =>
           x ? 2 : new Future<int>.value(3));
   MyFuture<int> t6 = f. /*@typeArgs=int*/ /*@target=MyFuture::then*/ then(
       /*@returnType=FutureOr<int>*/ (/*@type=bool*/ x) {
     return /*info:DOWN_CAST_COMPOSITE*/ x ? 2 : new Future<int>.value(3);
   });
 }
+
+main() {}

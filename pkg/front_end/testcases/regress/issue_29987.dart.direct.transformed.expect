@@ -1,0 +1,11 @@
+// Errors:
+//
+// pkg/front_end/testcases/regress/issue_29987.dart:5:13: Error: Couldn't parse URI 'dart_:core':
+//   Illegal scheme character.
+// import "dart_:core";
+//             ^
+
+library;
+import self as self;
+
+static method main() → dynamic {}

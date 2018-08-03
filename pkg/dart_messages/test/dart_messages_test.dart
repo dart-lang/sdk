@@ -4,7 +4,7 @@
 
 import 'dart:io' as io;
 
-import '../lib/shared_messages.dart';
+import 'package:dart_messages/shared_messages.dart';
 
 void testJsonIsUpdated() {
   var packageRoot = io.Platform.packageRoot;

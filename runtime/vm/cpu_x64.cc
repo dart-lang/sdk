@@ -8,10 +8,10 @@
 #include "vm/cpu.h"
 #include "vm/cpu_x64.h"
 
-#include "vm/assembler.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/constants_x64.h"
 #include "vm/cpuinfo.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 
@@ -19,16 +19,13 @@ namespace dart {
 
 DEFINE_FLAG(bool, use_sse41, true, "Use SSE 4.1 if available");
 
-
 void CPU::FlushICache(uword start, uword size) {
   // Nothing to be done here.
 }
 
-
 const char* CPU::Id() {
   return "x64";
 }
-
 
 bool HostCPUFeatures::sse2_supported_ = true;
 bool HostCPUFeatures::sse4_1_supported_ = false;
@@ -47,7 +44,6 @@ void HostCPUFeatures::InitOnce() {
   initialized_ = true;
 #endif
 }
-
 
 void HostCPUFeatures::Cleanup() {
   DEBUG_ASSERT(initialized_);

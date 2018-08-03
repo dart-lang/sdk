@@ -48,6 +48,8 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
 
   @override
   Future<SourceChange> createChange() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     change = new SourceChange(refactoringName);
     // function
     if (element.enclosingElement is CompilationUnitElement) {
@@ -60,6 +62,8 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
       Set<ClassMemberElement> elements =
           await getHierarchyMembers(searchEngine, field);
       await Future.forEach(elements, (ClassMemberElement member) async {
+        // TODO(brianwilkerson) Determine whether this await is necessary.
+        await null;
         if (member is FieldElement) {
           PropertyAccessorElement getter = member.getter;
           if (!getter.isSynthetic) {
@@ -86,6 +90,8 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
 
   Future<Null> _updateElementDeclaration(
       PropertyAccessorElement element) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     // prepare "get" keyword
     Token getKeyword = null;
     {
@@ -114,6 +120,8 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
   }
 
   Future _updateElementReferences(Element element) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     List<SearchMatch> matches = await searchEngine.searchReferences(element);
     List<SourceReference> references = getSourceReferences(matches);
     for (SourceReference reference in references) {

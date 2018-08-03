@@ -12,6 +12,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart' as engine;
 import 'package:analyzer/src/dart/element/element.dart' as engine;
 import 'package:analyzer/src/error/codes.dart' as engine;
 import 'package:analyzer/src/generated/source.dart' as engine;
+import 'package:analyzer/src/generated/testing/element_search.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -83,7 +84,7 @@ class ElementKindTest {
     expect(new ElementKind(ElementKind.UNKNOWN.name), ElementKind.UNKNOWN);
     expect(() {
       new ElementKind('no-such-kind');
-    }, throws);
+    }, throwsException);
   }
 
   void test_toString() {
@@ -97,13 +98,13 @@ class ElementKindTest {
 class ElementTest extends AbstractContextTest {
   engine.Element findElementInUnit(engine.CompilationUnit unit, String name,
       [engine.ElementKind kind]) {
-    return findChildElement(unit.element, name, kind);
+    return findElementsByName(unit, name)
+        .where((e) => kind == null || e.kind == kind)
+        .single;
   }
 
   test_fromElement_CLASS() async {
-    engine.Source source = addSource(
-        '/test.dart',
-        '''
+    engine.Source source = addSource('/test.dart', '''
 @deprecated
 abstract class _A {}
 class B<K, V> {}''');
@@ -117,7 +118,7 @@ class B<K, V> {}''');
       expect(element.typeParameters, isNull);
       {
         Location location = element.location;
-        expect(location.file, '/test.dart');
+        expect(location.file, convertPath('/test.dart'));
         expect(location.offset, 27);
         expect(location.length, '_A'.length);
         expect(location.startLine, 2);
@@ -142,9 +143,7 @@ class B<K, V> {}''');
   }
 
   test_fromElement_CONSTRUCTOR() async {
-    engine.Source source = addSource(
-        '/test.dart',
-        '''
+    engine.Source source = addSource('/test.dart', '''
 class A {
   const A.myConstructor(int a, [String b]);
 }''');
@@ -158,7 +157,7 @@ class A {
     expect(element.typeParameters, isNull);
     {
       Location location = element.location;
-      expect(location.file, '/test.dart');
+      expect(location.file, convertPath('/test.dart'));
       expect(location.offset, 20);
       expect(location.length, 'myConstructor'.length);
       expect(location.startLine, 2);
@@ -167,6 +166,58 @@ class A {
     expect(element.parameters, '(int a, [String b])');
     expect(element.returnType, 'A');
     expect(element.flags, Element.FLAG_CONST);
+  }
+
+  test_fromElement_CONSTRUCTOR_required_parameters_1() async {
+    addMetaPackageSource();
+    engine.Source source = addSource('/test.dart', '''
+import 'package:meta/meta.dart';    
+class A {
+  const A.myConstructor(int a, {int b, @required int c});
+}''');
+
+    engine.CompilationUnit unit = await resolveLibraryUnit(source);
+    engine.ConstructorElement engineElement =
+        findElementInUnit(unit, 'myConstructor');
+    // create notification Element
+    Element element = convertElement(engineElement);
+    expect(element.parameters, '(int a, {@required int c, int b})');
+  }
+
+  // Verify parameter re-ordering for required params
+  test_fromElement_CONSTRUCTOR_required_parameters_2() async {
+    addMetaPackageSource();
+    engine.Source source = addSource('/test.dart', '''
+import 'package:meta/meta.dart';    
+class A {
+  const A.myConstructor(int a, {int b, @required int d, @required int c});
+}''');
+
+    engine.CompilationUnit unit = await resolveLibraryUnit(source);
+    engine.ConstructorElement engineElement =
+        findElementInUnit(unit, 'myConstructor');
+    // create notification Element
+    Element element = convertElement(engineElement);
+    expect(element.parameters,
+        '(int a, {@required int d, @required int c, int b})');
+  }
+
+  // Verify parameter re-ordering for required params
+  test_fromElement_CONSTRUCTOR_required_parameters_3() async {
+    addMetaPackageSource();
+    engine.Source source = addSource('/test.dart', '''
+import 'package:meta/meta.dart';    
+class A {
+  const A.myConstructor(int a, {int b, @required int d, @required int c, int a});
+}''');
+
+    engine.CompilationUnit unit = await resolveLibraryUnit(source);
+    engine.ConstructorElement engineElement =
+        findElementInUnit(unit, 'myConstructor');
+    // create notification Element
+    Element element = convertElement(engineElement);
+    expect(element.parameters,
+        '(int a, {@required int d, @required int c, int b, int a})');
   }
 
   void test_fromElement_dynamic() {
@@ -182,16 +233,14 @@ class A {
   }
 
   test_fromElement_ENUM() async {
-    engine.Source source = addSource(
-        '/test.dart',
-        '''
+    engine.Source source = addSource('/test.dart', '''
 @deprecated
 enum _E1 { one, two }
 enum E2 { three, four }''');
     engine.CompilationUnit unit = await resolveLibraryUnit(source);
     {
       engine.ClassElement engineElement = findElementInUnit(unit, '_E1');
-      expect(engineElement.isDeprecated, isTrue);
+      expect(engineElement.hasDeprecated, isTrue);
       // create notification Element
       Element element = convertElement(engineElement);
       expect(element.kind, ElementKind.ENUM);
@@ -199,7 +248,7 @@ enum E2 { three, four }''');
       expect(element.typeParameters, isNull);
       {
         Location location = element.location;
-        expect(location.file, '/test.dart');
+        expect(location.file, convertPath('/test.dart'));
         expect(location.offset, 17);
         expect(location.length, '_E1'.length);
         expect(location.startLine, 2);
@@ -208,7 +257,7 @@ enum E2 { three, four }''');
       expect(element.parameters, isNull);
       expect(
           element.flags,
-          (engineElement.isDeprecated ? Element.FLAG_DEPRECATED : 0) |
+          (engineElement.hasDeprecated ? Element.FLAG_DEPRECATED : 0) |
               Element.FLAG_PRIVATE);
     }
     {
@@ -223,9 +272,7 @@ enum E2 { three, four }''');
   }
 
   test_fromElement_ENUM_CONSTANT() async {
-    engine.Source source = addSource(
-        '/test.dart',
-        '''
+    engine.Source source = addSource('/test.dart', '''
 @deprecated
 enum _E1 { one, two }
 enum E2 { three, four }''');
@@ -238,7 +285,7 @@ enum E2 { three, four }''');
       expect(element.name, 'one');
       {
         Location location = element.location;
-        expect(location.file, '/test.dart');
+        expect(location.file, convertPath('/test.dart'));
         expect(location.offset, 23);
         expect(location.length, 'one'.length);
         expect(location.startLine, 2);
@@ -262,7 +309,7 @@ enum E2 { three, four }''');
       expect(element.name, 'three');
       {
         Location location = element.location;
-        expect(location.file, '/test.dart');
+        expect(location.file, convertPath('/test.dart'));
         expect(location.offset, 44);
         expect(location.length, 'three'.length);
         expect(location.startLine, 3);
@@ -273,14 +320,15 @@ enum E2 { three, four }''');
       expect(element.flags, Element.FLAG_CONST | Element.FLAG_STATIC);
     }
     {
-      engine.FieldElement engineElement = findElementInUnit(unit, 'index');
+      engine.FieldElement engineElement =
+          unit.element.enums[1].getField('index');
       // create notification Element
       Element element = convertElement(engineElement);
       expect(element.kind, ElementKind.FIELD);
       expect(element.name, 'index');
       {
         Location location = element.location;
-        expect(location.file, '/test.dart');
+        expect(location.file, convertPath('/test.dart'));
         expect(location.offset, -1);
         expect(location.length, 'index'.length);
         expect(location.startLine, 1);
@@ -291,14 +339,15 @@ enum E2 { three, four }''');
       expect(element.flags, Element.FLAG_FINAL);
     }
     {
-      engine.FieldElement engineElement = findElementInUnit(unit, 'values');
+      engine.FieldElement engineElement =
+          unit.element.enums[1].getField('values');
       // create notification Element
       Element element = convertElement(engineElement);
       expect(element.kind, ElementKind.FIELD);
       expect(element.name, 'values');
       {
         Location location = element.location;
-        expect(location.file, '/test.dart');
+        expect(location.file, convertPath('/test.dart'));
         expect(location.offset, -1);
         expect(location.length, 'values'.length);
         expect(location.startLine, 1);
@@ -311,9 +360,7 @@ enum E2 { three, four }''');
   }
 
   test_fromElement_FIELD() async {
-    engine.Source source = addSource(
-        '/test.dart',
-        '''
+    engine.Source source = addSource('/test.dart', '''
 class A {
   static const myField = 42;
 }''');
@@ -325,7 +372,7 @@ class A {
     expect(element.name, 'myField');
     {
       Location location = element.location;
-      expect(location.file, '/test.dart');
+      expect(location.file, convertPath('/test.dart'));
       expect(location.offset, 25);
       expect(location.length, 'myField'.length);
       expect(location.startLine, 2);
@@ -337,9 +384,7 @@ class A {
   }
 
   test_fromElement_FUNCTION_TYPE_ALIAS() async {
-    engine.Source source = addSource(
-        '/test.dart',
-        '''
+    engine.Source source = addSource('/test.dart', '''
 typedef int F<T>(String x);
 ''');
     engine.CompilationUnit unit = await resolveLibraryUnit(source);
@@ -352,7 +397,7 @@ typedef int F<T>(String x);
     expect(element.typeParameters, '<T>');
     {
       Location location = element.location;
-      expect(location.file, '/test.dart');
+      expect(location.file, convertPath('/test.dart'));
       expect(location.offset, 12);
       expect(location.length, 'F'.length);
       expect(location.startLine, 1);
@@ -364,9 +409,7 @@ typedef int F<T>(String x);
   }
 
   test_fromElement_GETTER() async {
-    engine.Source source = addSource(
-        '/test.dart',
-        '''
+    engine.Source source = addSource('/test.dart', '''
 class A {
   String get myGetter => 42;
 }''');
@@ -379,7 +422,7 @@ class A {
     expect(element.name, 'myGetter');
     {
       Location location = element.location;
-      expect(location.file, '/test.dart');
+      expect(location.file, convertPath('/test.dart'));
       expect(location.offset, 23);
       expect(location.length, 'myGetter'.length);
       expect(location.startLine, 2);
@@ -391,9 +434,7 @@ class A {
   }
 
   test_fromElement_LABEL() async {
-    engine.Source source = addSource(
-        '/test.dart',
-        '''
+    engine.Source source = addSource('/test.dart', '''
 main() {
 myLabel:
   while (true) {
@@ -408,7 +449,7 @@ myLabel:
     expect(element.name, 'myLabel');
     {
       Location location = element.location;
-      expect(location.file, '/test.dart');
+      expect(location.file, convertPath('/test.dart'));
       expect(location.offset, 9);
       expect(location.length, 'myLabel'.length);
       expect(location.startLine, 2);
@@ -420,9 +461,7 @@ myLabel:
   }
 
   test_fromElement_METHOD() async {
-    engine.Source source = addSource(
-        '/test.dart',
-        '''
+    engine.Source source = addSource('/test.dart', '''
 class A {
   static List<String> myMethod(int a, {String b, int c}) {
     return null;
@@ -436,7 +475,7 @@ class A {
     expect(element.name, 'myMethod');
     {
       Location location = element.location;
-      expect(location.file, '/test.dart');
+      expect(location.file, convertPath('/test.dart'));
       expect(location.offset, 32);
       expect(location.length, 'myGetter'.length);
       expect(location.startLine, 2);
@@ -448,23 +487,20 @@ class A {
   }
 
   test_fromElement_SETTER() async {
-    engine.Source source = addSource(
-        '/test.dart',
-        '''
+    engine.Source source = addSource('/test.dart', '''
 class A {
   set mySetter(String x) {}
 }''');
     engine.CompilationUnit unit = await resolveLibraryUnit(source);
-    engine.FieldElement engineFieldElement =
-        findElementInUnit(unit, 'mySetter', engine.ElementKind.FIELD);
-    engine.PropertyAccessorElement engineElement = engineFieldElement.setter;
+    engine.PropertyAccessorElement engineElement =
+        findElementInUnit(unit, 'mySetter', engine.ElementKind.SETTER);
     // create notification Element
     Element element = convertElement(engineElement);
     expect(element.kind, ElementKind.SETTER);
     expect(element.name, 'mySetter');
     {
       Location location = element.location;
-      expect(location.file, '/test.dart');
+      expect(location.file, convertPath('/test.dart'));
       expect(location.offset, 16);
       expect(location.length, 'mySetter'.length);
       expect(location.startLine, 2);

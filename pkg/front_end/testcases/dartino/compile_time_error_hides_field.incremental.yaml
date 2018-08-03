@@ -1,0 +1,35 @@
+# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+main.dart.patch: |
+  // Regression test for what happens when the parser doesn't recover.
+  class A {
+  <<<< {"messages":[],"hasCompileTimeError":1}
+    // TODO(ahe): should just expect "null"
+    bool operator ===(A other) { return true; }
+  ==== {"messages":[],"hasCompileTimeError":1}
+    // TODO(ahe): Should expect just: ["getter ok", "null", "setter ok"], not a
+    // compile-time error.
+  >>>>
+
+    int field;
+  }
+
+  main() {
+    var a = new A();
+    var value;
+    try {
+      value = a.field;
+      print("getter ok");
+    } catch (e) {
+      print("getter threw");
+    }
+    print(value);
+    try {
+      a.field = "fisk"
+      print("setter ok");
+    } catch (e) {
+      print("setter threw");
+    }
+  }

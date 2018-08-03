@@ -10,3 +10,5 @@ test1() {
   x /*@target=Map::[]=*/ [
       /*error:INVALID_CAST_LITERAL*/ 3] = /*error:INVALID_CAST_LITERAL*/ 'z';
 }
+
+main() {}

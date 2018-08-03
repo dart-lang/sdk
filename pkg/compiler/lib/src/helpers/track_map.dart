@@ -14,7 +14,7 @@
  * is printed but only when running in verbose mode.
  */
 class TrackMap<K, V> implements Map<K, V> {
-  final Map _map;
+  final Map<K, V> _map;
   final List _counts;
   static final Map<String, List<int>> _countsMap = {};
 
@@ -57,10 +57,10 @@ class TrackMap<K, V> implements Map<K, V> {
   Iterable<K> get keys => _map.keys;
   Iterable<V> get values => _map.values;
 
-  bool containsKey(K key) => _map.containsKey(key);
-  bool containsValue(V value) => _map.containsValue(value);
+  bool containsKey(Object key) => _map.containsKey(key);
+  bool containsValue(Object value) => _map.containsValue(value);
 
-  V operator [](K key) => _map[key];
+  V operator [](Object key) => _map[key];
   String toString() => _map.toString();
 
   void forEach(void action(K key, V value)) {
@@ -95,6 +95,29 @@ class TrackMap<K, V> implements Map<K, V> {
   void clear() {
     _notifyLengthChanged(-_map.length);
     _map.clear();
+  }
+
+  Map<KR, VR> cast<KR, VR>() => _map.cast<KR, VR>();
+  Iterable<MapEntry<K, V>> get entries => _map.entries;
+
+  void addEntries(Iterable<MapEntry<K, V>> entries) {
+    for (var entry in entries) this[entry.key] = entry.value;
+  }
+
+  Map<KR, VR> map<KR, VR>(MapEntry<KR, VR> transform(K key, V value)) =>
+      _map.map(transform);
+
+  V update(K key, V update(V value), {V ifAbsent()}) =>
+      _map.update(key, update, ifAbsent: ifAbsent);
+
+  void updateAll(V update(K key, V value)) {
+    _map.updateAll(update);
+  }
+
+  void removeWhere(bool test(K key, V value)) {
+    int before = _map.length;
+    _map.removeWhere(test);
+    _notifyLengthChanged(_map.length - before);
   }
 
   void _notifyLengthChanged(int delta) {

@@ -33,9 +33,12 @@ wrap(cb) {
 
 nativeId(x) native;
 
-void setup() native """
+void setup() {
+  JS('', r"""
+(function(){
 nativeId = function(x) { return x; }
-""";
+})()""");
+}
 
 main() {
   setup();

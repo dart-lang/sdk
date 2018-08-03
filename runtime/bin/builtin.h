@@ -21,7 +21,6 @@ namespace bin {
 #define DECLARE_FUNCTION(name, count)                                          \
   extern void FUNCTION_NAME(name)(Dart_NativeArguments args);
 
-
 class Builtin {
  public:
   // Note: Changes to this enum should be accompanied with changes to
@@ -29,7 +28,9 @@ class Builtin {
   enum BuiltinLibraryId {
     kInvalidLibrary = -1,
     kBuiltinLibrary = 0,
-    kIOLibrary
+    kIOLibrary,
+    kHttpLibrary,
+    kCLILibrary,
   };
 
   // Get source corresponding to built in library specified in 'id'.
@@ -68,18 +69,19 @@ class Builtin {
   static const uint8_t* NativeSymbol(Dart_NativeFunction nf);
 
   static const char* _builtin_source_paths_[];
+  static const char* _http_source_paths_[];
   static const char* io_source_paths_[];
   static const char* io_patch_paths_[];
   static const char* html_source_paths_[];
   static const char* html_common_source_paths_[];
   static const char* js_source_paths_[];
   static const char* js_util_source_paths_[];
-  static const char* _blink_source_paths_[];
   static const char* indexed_db_source_paths_[];
-  static const char* cached_patches_source_paths_[];
   static const char* web_gl_source_paths_[];
   static const char* metadata_source_paths_[];
   static const char* web_sql_source_paths_[];
+  static const char* cli_source_paths_[];
+  static const char* cli_patch_paths_[];
   static const char* svg_source_paths_[];
   static const char* web_audio_source_paths_[];
 

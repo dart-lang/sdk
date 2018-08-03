@@ -613,9 +613,6 @@ class Server {
    * If [diagnosticPort] is not `null`, the server will serve status pages to
    * the specified port.
    *
-   * If [enableNewAnalysisDriver] is `true`, the server will use the new
-   * analysis driver.
-   *
    * If [profileServer] is `true`, the server will be started with "--observe"
    * and "--pause-isolates-on-exit", allowing the observatory to be used.
    *
@@ -650,9 +647,6 @@ class Server {
       arguments.add('--pause-isolates-on-exit');
     } else if (servicesPort != null) {
       arguments.add('--enable-vm-service=$servicesPort');
-    }
-    if (Platform.packageRoot != null) {
-      arguments.add('--package-root=${Platform.packageRoot}');
     }
     if (Platform.packageConfig != null) {
       arguments.add('--packages=${Platform.packageConfig}');
@@ -890,7 +884,7 @@ class Server {
       return;
     }
     logger?.log(fromServer, '$trimmedLine');
-    Map message = asMap(JSON.decoder.convert(trimmedLine));
+    Map message = asMap(json.decoder.convert(trimmedLine));
     if (message.containsKey('id')) {
       // The message is a response.
       Response response = new Response.fromJson(message);
@@ -938,8 +932,8 @@ class Server {
     if (params != null) {
       command['params'] = params;
     }
-    String line = JSON.encode(command);
-    _process.stdin.add(UTF8.encoder.convert('$line\n'));
+    String line = json.encode(command);
+    _process.stdin.add(utf8.encoder.convert('$line\n'));
     logger?.log(fromClient, '$line');
     return requestData;
   }

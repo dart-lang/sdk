@@ -21,30 +21,33 @@ class B extends A {
 makeA() native;
 makeB() native;
 
-void setup() native """
-// This code is all inside 'setup' and so not accessible from the global scope.
-function inherits(child, parent) {
-  if (child.prototype.__proto__) {
-    child.prototype.__proto__ = parent.prototype;
-  } else {
-    function tmp() {};
-    tmp.prototype = parent.prototype;
-    child.prototype = new tmp();
-    child.prototype.constructor = child;
+void setup() {
+  JS('', r"""
+(function(){
+  // This code is inside 'setup' and so not accessible from the global scope.
+  function inherits(child, parent) {
+    if (child.prototype.__proto__) {
+      child.prototype.__proto__ = parent.prototype;
+    } else {
+      function tmp() {};
+      tmp.prototype = parent.prototype;
+      child.prototype = new tmp();
+      child.prototype.constructor = child;
+    }
   }
+  function A(){}
+  A.prototype.fooA = function(){return 100;};
+  function B(){}
+  inherits(B, A);
+  B.prototype.fooB = function(){return 200;};
+
+  makeA = function(){return new A()};
+  makeB = function(){return new B()};
+
+  self.nativeConstructor(A);
+  self.nativeConstructor(B);
+})()""");
 }
-function A(){}
-A.prototype.fooA = function(){return 100;};
-function B(){}
-inherits(B, A);
-B.prototype.fooB = function(){return 200;};
-
-makeA = function(){return new A};
-makeB = function(){return new B};
-
-self.nativeConstructor(A);
-self.nativeConstructor(B);
-""";
 
 testDynamic() {
   var things = [makeA(), makeB()];

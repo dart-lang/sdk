@@ -20,6 +20,11 @@ stringContainsStringUnchecked(receiver, other, startIndex) {
   return stringIndexOfStringUnchecked(receiver, other, startIndex) >= 0;
 }
 
+List<String> stringSplitUnchecked(String receiver, pattern) {
+  return new JSArray<String>.markGrowable(JS(
+      'returns:JSExtendableArray;new:true', '#.split(#)', receiver, pattern));
+}
+
 class StringMatch implements Match {
   const StringMatch(int this.start, String this.input, String this.pattern);
 
@@ -175,7 +180,7 @@ stringReplaceAllFuncUnchecked(receiver, pattern, onMatch, onNonMatch) {
     return stringReplaceAllStringFuncUnchecked(
         receiver, pattern, onMatch, onNonMatch);
   }
-  // Placing the Pattern test here is indistingishable from placing it at the
+  // Placing the Pattern test here is indistinguishable from placing it at the
   // top of the method but it saves an extra check on the `pattern is String`
   // path.
   if (pattern is! Pattern) {

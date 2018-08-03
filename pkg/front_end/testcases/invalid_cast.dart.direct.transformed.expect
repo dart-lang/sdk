@@ -1,0 +1,56 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  static field dynamic _redirecting# = <dynamic>[self::C::fact2];
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  constructor nonFact() → void
+    : super core::Object::•()
+    ;
+  constructor nonFact2() → void
+    : this self::C::nonFact()
+    ;
+  static factory fact() → self::C
+    return null;
+  static factory fact2() → self::C
+    let dynamic #redirecting_factory = self::D::• in invalid-expression;
+  static method staticFunction(core::int i) → void {}
+}
+class D extends self::C {
+  synthetic constructor •() → void
+    : super self::C::•()
+    ;
+}
+static method topLevelFunction(core::int i) → void {}
+static method bad() → dynamic {
+  function localFunction(core::int i) → void {}
+  core::List<core::int> a = <core::Object>[];
+  core::Map<core::int, core::String> b = <core::Object, core::String>{};
+  core::Map<core::int, core::String> c = <core::int, core::Object>{};
+  (core::Object) → core::int d = (core::int i) → dynamic => i;
+  self::D e = self::C::fact();
+  self::D f = new self::D::•();
+  self::D g = new self::C::nonFact();
+  self::D h = new self::C::nonFact2();
+  (core::Object) → void i = self::C::staticFunction;
+  (core::Object) → void j = self::topLevelFunction;
+  (core::Object) → void k = localFunction;
+}
+static method ok() → dynamic {
+  function localFunction(core::int i) → void {}
+  core::List<core::int> a = <core::int>[];
+  core::Map<core::int, core::String> b = <core::int, core::String>{};
+  core::Map<core::int, core::String> c = <core::int, core::String>{};
+  (core::int) → core::int d = (core::int i) → dynamic => i;
+  self::D e = self::C::fact();
+  self::D f = new self::D::•();
+  self::C g = new self::C::nonFact();
+  self::C h = new self::C::nonFact2();
+  (core::int) → void i = self::C::staticFunction;
+  (core::int) → void j = self::topLevelFunction;
+  (core::int) → void k = localFunction;
+}
+static method main() → dynamic {}

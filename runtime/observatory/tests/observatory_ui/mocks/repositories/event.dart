@@ -6,121 +6,147 @@ part of mocks;
 
 class EventRepositoryMock implements M.EventRepository {
   final _onEvent = new StreamController<M.Event>.broadcast();
-  get onEvent => _onEvent.stream;
+  Stream<M.Event> get onEvent => _onEvent.stream;
   get onEventHasListener => _onEvent.hasListener;
 
   final _onVMEvent = new StreamController<M.VMEvent>.broadcast();
-  get onVMEvent => _onVMEvent.stream;
+  Stream<M.VMEvent> get onVMEvent => _onVMEvent.stream;
   get onVMEventHasListener => _onVMEvent.hasListener;
 
-  final _onVMUpdate = new StreamController<M.Event>.broadcast();
-  get onVMUpdate => _onVMUpdate.stream;
+  final _onVMUpdate = new StreamController<M.VMUpdateEvent>.broadcast();
+  Stream<M.VMUpdateEvent> get onVMUpdate => _onVMUpdate.stream;
   get onVMUpdateHasListener => _onVMUpdate.hasListener;
 
   final _onIsolateEvent = new StreamController<M.IsolateEvent>.broadcast();
-  get onIsolateEvent => _onIsolateEvent.stream;
+  Stream<M.IsolateEvent> get onIsolateEvent => _onIsolateEvent.stream;
   get onIsolateEventHasListener => _onIsolateEvent.hasListener;
 
   final _onIsolateStart = new StreamController<M.IsolateStartEvent>.broadcast();
-  get onIsolateStart => _onIsolateStart.stream;
+  Stream<M.IsolateStartEvent> get onIsolateStart => _onIsolateStart.stream;
   get onIsolateStartHasListener => _onIsolateStart.hasListener;
 
   final _onIsolateRunnable =
       new StreamController<M.IsolateRunnableEvent>.broadcast();
-  get onIsolateRunnable => _onIsolateRunnable.stream;
+  Stream<M.IsolateRunnableEvent> get onIsolateRunnable =>
+      _onIsolateRunnable.stream;
   get onIsolateRunnableHasListener => _onIsolateRunnable.hasListener;
 
   final _onIsolateExit = new StreamController<M.IsolateExitEvent>.broadcast();
-  get onIsolateExit => _onIsolateExit.stream;
+  Stream<M.IsolateExitEvent> get onIsolateExit => _onIsolateExit.stream;
   get onIsolateExitHasListener => _onIsolateExit.hasListener;
 
   final _onIsolateUpdate =
       new StreamController<M.IsolateUpdateEvent>.broadcast();
-  get onIsolateUpdate => _onIsolateUpdate.stream;
+  Stream<M.IsolateUpdateEvent> get onIsolateUpdate => _onIsolateUpdate.stream;
   get onIsolateUpdateHasListener => _onIsolateUpdate.hasListener;
 
   final _onIsolateReload =
       new StreamController<M.IsolateReloadEvent>.broadcast();
-  get onIsolateReload => _onIsolateReload.stream;
+  Stream<M.IsolateReloadEvent> get onIsolateReload => _onIsolateReload.stream;
   get onIsolateReloadHasListener => _onIsolateReload.hasListener;
 
   final _onServiceExtensionAdded =
       new StreamController<M.ServiceExtensionAddedEvent>.broadcast();
-  get onServiceExtensionAdded => _onServiceExtensionAdded.stream;
+  Stream<M.ServiceExtensionAddedEvent> get onServiceExtensionAdded =>
+      _onServiceExtensionAdded.stream;
   get onServiceExtensionAddedHasListener =>
       _onServiceExtensionAdded.hasListener;
 
   final _onDebugEvent = new StreamController<M.DebugEvent>.broadcast();
-  get onDebugEvent => _onDebugEvent.stream;
+  Stream<M.DebugEvent> get onDebugEvent => _onDebugEvent.stream;
   get onDebugEventHasListener => _onDebugEvent.hasListener;
 
   final _onPauseStart = new StreamController<M.PauseStartEvent>.broadcast();
-  get onPauseStart => _onPauseStart.stream;
+  Stream<M.PauseStartEvent> get onPauseStart => _onPauseStart.stream;
   get onPauseStartHasListener => _onPauseStart.hasListener;
 
   final _onPauseExit = new StreamController<M.PauseExitEvent>.broadcast();
-  get onPauseExit => _onPauseExit.stream;
+  Stream<M.PauseExitEvent> get onPauseExit => _onPauseExit.stream;
   get onPauseExitHasListener => _onPauseExit.hasListener;
 
   final _onPauseBreakpoint =
       new StreamController<M.PauseBreakpointEvent>.broadcast();
-  get onPauseBreakpoint => _onPauseBreakpoint.stream;
+  Stream<M.PauseBreakpointEvent> get onPauseBreakpoint =>
+      _onPauseBreakpoint.stream;
   get onPauseBreakpointHasListener => _onPauseBreakpoint.hasListener;
 
   final _onPauseInterrupted =
       new StreamController<M.PauseInterruptedEvent>.broadcast();
-  get onPauseInterrupted => _onPauseInterrupted.stream;
+  Stream<M.PauseInterruptedEvent> get onPauseInterrupted =>
+      _onPauseInterrupted.stream;
   get onPauseInterruptedHasListener => _onPauseInterrupted.hasListener;
 
   final _onPauseException =
       new StreamController<M.PauseExceptionEvent>.broadcast();
-  get onPauseException => _onPauseException.stream;
+  Stream<M.PauseExceptionEvent> get onPauseException =>
+      _onPauseException.stream;
   get onPauseExceptionHasListener => _onPauseException.hasListener;
 
   final _onResume = new StreamController<M.ResumeEvent>.broadcast();
-  get onResume => _onResume.stream;
+  Stream<M.ResumeEvent> get onResume => _onResume.stream;
   get onResumeHasListener => _onResume.hasListener;
 
   final _onBreakpointAdded =
       new StreamController<M.BreakpointAddedEvent>.broadcast();
-  get onBreakpointAdded => _onBreakpointAdded.stream;
+  Stream<M.BreakpointAddedEvent> get onBreakpointAdded =>
+      _onBreakpointAdded.stream;
   get onBreakpointAddedHasListener => _onBreakpointAdded.hasListener;
 
   final _onBreakpointResolved =
       new StreamController<M.BreakpointResolvedEvent>.broadcast();
-  get onBreakpointResolved => _onBreakpointResolved.stream;
+  Stream<M.BreakpointResolvedEvent> get onBreakpointResolved =>
+      _onBreakpointResolved.stream;
   get onBreakpointResolvedHasListener => _onBreakpointResolved.hasListener;
 
   final _onBreakpointRemoved =
       new StreamController<M.BreakpointRemovedEvent>.broadcast();
-  get onBreakpointRemoved => _onBreakpointRemoved.stream;
+  Stream<M.BreakpointRemovedEvent> get onBreakpointRemoved =>
+      _onBreakpointRemoved.stream;
   get onBreakpointRemovedHasListener => _onBreakpointRemoved.hasListener;
 
   final _onInspect = new StreamController<M.InspectEvent>.broadcast();
-  get onInspect => _onInspect.stream;
+  Stream<M.InspectEvent> get onInspect => _onInspect.stream;
   get onInspectHasListener => _onInspect.hasListener;
 
   final _onGCEvent = new StreamController<M.GCEvent>.broadcast();
-  get onGCEvent => _onGCEvent.stream;
+  Stream<M.GCEvent> get onGCEvent => _onGCEvent.stream;
   get onGCEventHasListener => _onGCEvent.hasListener;
 
   final _onLoggingEvent = new StreamController<M.LoggingEvent>.broadcast();
-  get onLoggingEvent => _onLoggingEvent.stream;
+  Stream<M.LoggingEvent> get onLoggingEvent => _onLoggingEvent.stream;
   get onLoggingEventHasListener => _onLoggingEvent.hasListener;
 
   final _onExtensionEvent = new StreamController<M.ExtensionEvent>.broadcast();
-  get onExtensionEvent => _onExtensionEvent.stream;
+  Stream<M.ExtensionEvent> get onExtensionEvent => _onExtensionEvent.stream;
   get onExtensionEventHasListener => _onExtensionEvent.hasListener;
 
   final _onTimelineEvents =
       new StreamController<M.TimelineEventsEvent>.broadcast();
-  get onTimelineEvents => _onTimelineEvents.stream;
+  Stream<M.TimelineEventsEvent> get onTimelineEvents =>
+      _onTimelineEvents.stream;
   get onTimelineEventsEventHasListener => _onTimelineEvents.hasListener;
 
   final _onConnectionClosed =
       new StreamController<M.ConnectionClosedEvent>.broadcast();
-  get onConnectionClosed => _onConnectionClosed.stream;
+  Stream<M.ConnectionClosedEvent> get onConnectionClosed =>
+      _onConnectionClosed.stream;
   get onConnectionClosedHasListener => _onConnectionClosed.hasListener;
+
+  final _onServiceEvent = new StreamController<M.ServiceEvent>.broadcast();
+  Stream<M.ServiceEvent> get onServiceEvent => _onServiceEvent.stream;
+  get onServiceEventHasListener => _onServiceEvent.hasListener;
+
+  final _onServiceRegistered =
+      new StreamController<M.ServiceRegisteredEvent>.broadcast();
+  Stream<M.ServiceRegisteredEvent> get onServiceRegistered =>
+      _onServiceRegistered.stream;
+  get onServiceRegisteredHasListener => _onServiceRegistered.hasListener;
+
+  final _onServiceUnregistered =
+      new StreamController<M.ServiceUnregisteredEvent>.broadcast();
+  Stream<M.ServiceUnregisteredEvent> get onServiceUnregistered =>
+      _onServiceUnregistered.stream;
+  get onServiceUnregisteredHasListener => _onServiceUnregistered.hasListener;
 
   void add(M.Event event) {
     _onEvent.add(event);
@@ -171,6 +197,13 @@ class EventRepositoryMock implements M.EventRepository {
       _onExtensionEvent.add(event);
     } else if (event is M.TimelineEventsEvent) {
       _onTimelineEvents.add(event);
+    } else if (event is M.ServiceEvent) {
+      _onServiceEvent.add(event);
+      if (event is M.ServiceRegisteredEvent) {
+        _onServiceRegistered.add(event);
+      } else if (event is M.ServiceUnregisteredEvent) {
+        _onServiceUnregistered.add(event);
+      }
     }
   }
 }

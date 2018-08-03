@@ -14,6 +14,7 @@ abstract class HeapSnapshot {
   HeapSnapshotDominatorNode get dominatorTree;
   HeapSnapshotMergedDominatorNode get mergedDominatorTree;
   Iterable<HeapSnapshotClassReferences> get classReferences;
+  Iterable<HeapSnapshotOwnershipClass> get ownershipClasses;
 }
 
 abstract class HeapSnapshotDominatorNode {
@@ -54,4 +55,9 @@ abstract class HeapSnapshotClassOutbound {
   int get count;
   int get shallowSize;
   int get retainedSize;
+}
+
+abstract class HeapSnapshotOwnershipClass {
+  ClassRef get clazz;
+  int get size;
 }

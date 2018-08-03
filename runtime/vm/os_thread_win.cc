@@ -11,7 +11,9 @@
 
 #include <process.h>  // NOLINT
 
+#include "platform/address_sanitizer.h"
 #include "platform/assert.h"
+#include "platform/safe_stack.h"
 
 namespace dart {
 
@@ -37,7 +39,6 @@ class ThreadStartData {
 
   DISALLOW_COPY_AND_ASSIGN(ThreadStartData);
 };
-
 
 // Dispatch to the thread start function provided by the caller. This trampoline
 // is used to ensure that the thread is properly destroyed if the thread just
@@ -68,7 +69,6 @@ static unsigned int __stdcall ThreadEntry(void* data_ptr) {
   return 0;
 }
 
-
 int OSThread::Start(const char* name,
                     ThreadStartFunction function,
                     uword parameter) {
@@ -89,10 +89,8 @@ int OSThread::Start(const char* name,
   return 0;
 }
 
-
 const ThreadId OSThread::kInvalidThreadId = 0;
 const ThreadJoinId OSThread::kInvalidThreadJoinId = NULL;
-
 
 ThreadLocalKey OSThread::CreateThreadLocal(ThreadDestructor destructor) {
   ThreadLocalKey key = TlsAlloc();
@@ -103,7 +101,6 @@ ThreadLocalKey OSThread::CreateThreadLocal(ThreadDestructor destructor) {
   return key;
 }
 
-
 void OSThread::DeleteThreadLocal(ThreadLocalKey key) {
   ASSERT(key != kUnsetThreadLocalKey);
   BOOL result = TlsFree(key);
@@ -113,24 +110,20 @@ void OSThread::DeleteThreadLocal(ThreadLocalKey key) {
   ThreadLocalData::RemoveThreadLocal(key);
 }
 
-
 intptr_t OSThread::GetMaxStackSize() {
   const int kStackSize = (128 * kWordSize * KB);
   return kStackSize;
 }
 
-
 ThreadId OSThread::GetCurrentThreadId() {
   return ::GetCurrentThreadId();
 }
-
 
 #ifndef PRODUCT
 ThreadId OSThread::GetCurrentThreadTraceId() {
   return ::GetCurrentThreadId();
 }
 #endif  // PRODUCT
-
 
 ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
   ASSERT(thread != NULL);
@@ -147,7 +140,6 @@ ThreadJoinId OSThread::GetCurrentThreadJoinId(OSThread* thread) {
   return handle;
 }
 
-
 void OSThread::Join(ThreadJoinId id) {
   HANDLE handle = static_cast<HANDLE>(id);
   ASSERT(handle != NULL);
@@ -156,22 +148,18 @@ void OSThread::Join(ThreadJoinId id) {
   ASSERT(res == WAIT_OBJECT_0);
 }
 
-
 intptr_t OSThread::ThreadIdToIntPtr(ThreadId id) {
   ASSERT(sizeof(id) <= sizeof(intptr_t));
   return static_cast<intptr_t>(id);
 }
 
-
 ThreadId OSThread::ThreadIdFromIntPtr(intptr_t id) {
   return static_cast<ThreadId>(id);
 }
 
-
 bool OSThread::Compare(ThreadId a, ThreadId b) {
   return a == b;
 }
-
 
 bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
 // On Windows stack limits for the current thread are available in
@@ -179,14 +167,45 @@ bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
 // FS segment register on x86 and GS segment register on x86_64.
 #ifdef _WIN64
   *upper = static_cast<uword>(__readgsqword(offsetof(NT_TIB64, StackBase)));
-  *lower = static_cast<uword>(__readgsqword(offsetof(NT_TIB64, StackLimit)));
 #else
   *upper = static_cast<uword>(__readfsdword(offsetof(NT_TIB, StackBase)));
-  *lower = static_cast<uword>(__readfsdword(offsetof(NT_TIB, StackLimit)));
 #endif
+  // Notice that we cannot use the TIB's StackLimit for the stack end, as it
+  // tracks the end of the committed range. We're after the end of the reserved
+  // stack area (most of which will be uncommitted, most times).
+  MEMORY_BASIC_INFORMATION stack_info;
+  memset(&stack_info, 0, sizeof(MEMORY_BASIC_INFORMATION));
+  size_t result_size =
+      VirtualQuery(&stack_info, &stack_info, sizeof(MEMORY_BASIC_INFORMATION));
+  ASSERT(result_size >= sizeof(MEMORY_BASIC_INFORMATION));
+  *lower = reinterpret_cast<uword>(stack_info.AllocationBase);
+  ASSERT(*upper > *lower);
+  // When the third last page of the reserved stack is accessed as a
+  // guard page, the second last page will be committed (along with removing
+  // the guard bit on the third last) _and_ a stack overflow exception
+  // is raised.
+  //
+  // http://blogs.msdn.com/b/satyem/archive/2012/08/13/thread-s-stack-memory-management.aspx
+  // explains the details.
+  ASSERT((*upper - *lower) >= (4u * 0x1000));
+  *lower += 4 * 0x1000;
   return true;
 }
 
+#if defined(USING_SAFE_STACK)
+NO_SANITIZE_ADDRESS
+NO_SANITIZE_SAFE_STACK
+uword OSThread::GetCurrentSafestackPointer() {
+#error "SAFE_STACK is unsupported on this platform"
+  return 0;
+}
+
+NO_SANITIZE_ADDRESS
+NO_SANITIZE_SAFE_STACK
+void OSThread::SetCurrentSafestackPointer(uword ssp) {
+#error "SAFE_STACK is unsupported on this platform"
+}
+#endif
 
 void OSThread::SetThreadLocal(ThreadLocalKey key, uword value) {
   ASSERT(key != kUnsetThreadLocalKey);
@@ -196,19 +215,25 @@ void OSThread::SetThreadLocal(ThreadLocalKey key, uword value) {
   }
 }
 
-
-Mutex::Mutex() {
+Mutex::Mutex(NOT_IN_PRODUCT(const char* name))
+#if !defined(PRODUCT)
+    : name_(name)
+#endif
+{
   // Allocate unnamed semaphore with initial count 1 and max count 1.
   data_.semaphore_ = CreateSemaphore(NULL, 1, 1, NULL);
   if (data_.semaphore_ == NULL) {
+#if defined(PRODUCT)
     FATAL1("Mutex allocation failed %d", GetLastError());
+#else
+    FATAL2("[%s] Mutex allocation failed %d", name_, GetLastError());
+#endif
   }
 #if defined(DEBUG)
   // When running with assertions enabled we do track the owner.
   owner_ = OSThread::kInvalidThreadId;
 #endif  // defined(DEBUG)
 }
-
 
 Mutex::~Mutex() {
   CloseHandle(data_.semaphore_);
@@ -217,7 +242,6 @@ Mutex::~Mutex() {
   ASSERT(owner_ == OSThread::kInvalidThreadId);
 #endif  // defined(DEBUG)
 }
-
 
 void Mutex::Lock() {
   DWORD result = WaitForSingleObject(data_.semaphore_, INFINITE);
@@ -229,7 +253,6 @@ void Mutex::Lock() {
   owner_ = OSThread::GetCurrentThreadId();
 #endif  // defined(DEBUG)
 }
-
 
 bool Mutex::TryLock() {
   // Attempt to pass the semaphore but return immediately.
@@ -248,7 +271,6 @@ bool Mutex::TryLock() {
   return false;
 }
 
-
 void Mutex::Unlock() {
 #if defined(DEBUG)
   // When running with assertions enabled we do track the owner.
@@ -261,9 +283,7 @@ void Mutex::Unlock() {
   }
 }
 
-
 ThreadLocalKey MonitorWaitData::monitor_wait_data_key_ = kUnsetThreadLocalKey;
-
 
 Monitor::Monitor() {
   InitializeCriticalSection(&data_.cs_);
@@ -277,7 +297,6 @@ Monitor::Monitor() {
 #endif  // defined(DEBUG)
 }
 
-
 Monitor::~Monitor() {
 #if defined(DEBUG)
   // When running with assertions enabled we track the owner.
@@ -287,7 +306,6 @@ Monitor::~Monitor() {
   DeleteCriticalSection(&data_.cs_);
   DeleteCriticalSection(&data_.waiters_cs_);
 }
-
 
 bool Monitor::TryEnter() {
   // Attempt to pass the semaphore but return immediately.
@@ -303,7 +321,6 @@ bool Monitor::TryEnter() {
   return true;
 }
 
-
 void Monitor::Enter() {
   EnterCriticalSection(&data_.cs_);
 
@@ -314,7 +331,6 @@ void Monitor::Enter() {
 #endif  // defined(DEBUG)
 }
 
-
 void Monitor::Exit() {
 #if defined(DEBUG)
   // When running with assertions enabled we track the owner.
@@ -324,7 +340,6 @@ void Monitor::Exit() {
 
   LeaveCriticalSection(&data_.cs_);
 }
-
 
 void MonitorWaitData::ThreadExit() {
   if (MonitorWaitData::monitor_wait_data_key_ != kUnsetThreadLocalKey) {
@@ -340,7 +355,6 @@ void MonitorWaitData::ThreadExit() {
   }
 }
 
-
 void MonitorData::AddWaiter(MonitorWaitData* wait_data) {
   // Add the MonitorWaitData object to the list of objects waiting for
   // this monitor.
@@ -354,7 +368,6 @@ void MonitorData::AddWaiter(MonitorWaitData* wait_data) {
   }
   LeaveCriticalSection(&waiters_cs_);
 }
-
 
 void MonitorData::RemoveWaiter(MonitorWaitData* wait_data) {
   // Remove the MonitorWaitData object from the list of objects
@@ -386,7 +399,6 @@ void MonitorData::RemoveWaiter(MonitorWaitData* wait_data) {
   LeaveCriticalSection(&waiters_cs_);
 }
 
-
 void MonitorData::SignalAndRemoveFirstWaiter() {
   EnterCriticalSection(&waiters_cs_);
   MonitorWaitData* first = waiters_head_;
@@ -407,7 +419,6 @@ void MonitorData::SignalAndRemoveFirstWaiter() {
   }
   LeaveCriticalSection(&waiters_cs_);
 }
-
 
 void MonitorData::SignalAndRemoveAllWaiters() {
   EnterCriticalSection(&waiters_cs_);
@@ -431,7 +442,6 @@ void MonitorData::SignalAndRemoveAllWaiters() {
   LeaveCriticalSection(&waiters_cs_);
 }
 
-
 MonitorWaitData* MonitorData::GetMonitorWaitDataForThread() {
   // Ensure that the thread local key for monitor wait data objects is
   // initialized.
@@ -449,11 +459,10 @@ MonitorWaitData* MonitorData::GetMonitorWaitDataForThread() {
                              reinterpret_cast<uword>(wait_data));
   } else {
     wait_data = reinterpret_cast<MonitorWaitData*>(raw_wait_data);
-    wait_data->next_ = NULL;
+    ASSERT(wait_data->next_ == NULL);
   }
   return wait_data;
 }
-
 
 Monitor::WaitResult Monitor::Wait(int64_t millis) {
 #if defined(DEBUG)
@@ -493,6 +502,24 @@ Monitor::WaitResult Monitor::Wait(int64_t millis) {
     if (result == WAIT_TIMEOUT) {
       // No longer waiting. Remove from the list of waiters.
       data_.RemoveWaiter(wait_data);
+      // Caveat: wait_data->event_ might have been signaled between
+      // WaitForSingleObject and RemoveWaiter because we are not in any critical
+      // section here. Leaving it in a signaled state would break invariants
+      // that Monitor::Wait code relies on. We assume that when
+      // WaitForSingleObject(wait_data->event_, ...) returns successfully then
+      // corresponding wait_data is not on the waiters list anymore.
+      // This is guaranteed because we only signal these events from
+      // SignalAndRemoveAllWaiters/SignalAndRemoveFirstWaiter which
+      // simultaneously remove MonitorWaitData from the list.
+      // Now imagine that wait_data->event_ is left signaled here. In this case
+      // the next WaitForSingleObject(wait_data->event_, ...) will immediately
+      // return while wait_data is still on the waiters list. This would
+      // leave waiters list in the inconsistent state.
+      // To prevent this from happening simply reset the event.
+      // Note: wait_data is no longer on the waiters list so it can't be
+      // signaled anymore at this point so there is no race possible from
+      // this point onward.
+      ResetEvent(wait_data->event_);
       retval = kTimedOut;
     }
   }
@@ -509,7 +536,6 @@ Monitor::WaitResult Monitor::Wait(int64_t millis) {
   return retval;
 }
 
-
 Monitor::WaitResult Monitor::WaitMicros(int64_t micros) {
   // TODO(johnmccutchan): Investigate sub-millisecond sleep times on Windows.
   int64_t millis = micros / kMicrosecondsPerMillisecond;
@@ -522,13 +548,11 @@ Monitor::WaitResult Monitor::WaitMicros(int64_t micros) {
   return Wait(millis);
 }
 
-
 void Monitor::Notify() {
   // When running with assertions enabled we track the owner.
   ASSERT(IsOwnedByCurrentThread());
   data_.SignalAndRemoveFirstWaiter();
 }
-
 
 void Monitor::NotifyAll() {
   // When running with assertions enabled we track the owner.
@@ -540,7 +564,6 @@ void Monitor::NotifyAll() {
   // Wait.
   data_.SignalAndRemoveAllWaiters();
 }
-
 
 void ThreadLocalData::AddThreadLocal(ThreadLocalKey key,
                                      ThreadDestructor destructor) {
@@ -561,7 +584,6 @@ void ThreadLocalData::AddThreadLocal(ThreadLocalKey key,
   thread_locals_->Add(ThreadLocalEntry(key, destructor));
 }
 
-
 void ThreadLocalData::RemoveThreadLocal(ThreadLocalKey key) {
   ASSERT(thread_locals_ != NULL);
   MutexLocker ml(mutex_, false);
@@ -579,11 +601,15 @@ void ThreadLocalData::RemoveThreadLocal(ThreadLocalKey key) {
   thread_locals_->RemoveAt(i);
 }
 
-
 // This function is executed on the thread that is exiting. It is invoked
 // by |OnDartThreadExit| (see below for notes on TLS destructors on Windows).
 void ThreadLocalData::RunDestructors() {
-  ASSERT(thread_locals_ != NULL);
+  // If an OS thread is created but ThreadLocalData::InitOnce has not yet been
+  // called, this method still runs. If this happens, there's nothing to clean
+  // up here. See issue 33826.
+  if (thread_locals_ == NULL) {
+    return;
+  }
   ASSERT(mutex_ != NULL);
   MutexLocker ml(mutex_, false);
   for (intptr_t i = 0; i < thread_locals_->length(); i++) {
@@ -595,16 +621,13 @@ void ThreadLocalData::RunDestructors() {
   }
 }
 
-
 Mutex* ThreadLocalData::mutex_ = NULL;
 MallocGrowableArray<ThreadLocalEntry>* ThreadLocalData::thread_locals_ = NULL;
-
 
 void ThreadLocalData::InitOnce() {
   mutex_ = new Mutex();
   thread_locals_ = new MallocGrowableArray<ThreadLocalEntry>();
 }
-
 
 void ThreadLocalData::Shutdown() {
   if (mutex_ != NULL) {
@@ -616,7 +639,6 @@ void ThreadLocalData::Shutdown() {
     thread_locals_ = NULL;
   }
 }
-
 
 }  // namespace dart
 

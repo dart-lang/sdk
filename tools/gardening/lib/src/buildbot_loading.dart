@@ -4,13 +4,15 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'cache_new.dart';
+import 'logdog_rpc.dart';
 import 'util.dart';
 
 import 'buildbot_structures.dart';
 import 'cache.dart';
-import 'logdog.dart';
 
 const String BUILDBOT_BUILDNUMBER = ' BUILDBOT_BUILDNUMBER: ';
+const String BUILDBOT_REVISION = ' BUILDBOT_REVISION: ';
 
 /// Read the build result for [buildUri].
 ///
@@ -32,12 +34,13 @@ Future<BuildResult> _readBuildResult(
 }
 
 /// Fetches test data for [buildUri] through the buildbot stdio.
-Future<BuildResult> readBuildResult(
-    HttpClient client, BuildUri buildUri) async {
+Future<BuildResult> readBuildResultFromHttp(
+    HttpClient client, BuildUri buildUri,
+    [Duration timeout]) {
   Future<String> read() async {
     Uri uri = buildUri.toUri();
     log('Reading buildbot results: $uri');
-    return await readUriAsText(client, uri);
+    return readUriAsText(client, uri, timeout);
   }
 
   return _readBuildResult(buildUri, read);
@@ -46,10 +49,11 @@ Future<BuildResult> readBuildResult(
 /// Fetches test data for [buildUri] through logdog.
 ///
 /// The build number of [buildUri] most be non-negative.
-Future<BuildResult> readLogDogResult(BuildUri buildUri) {
-  Future<String> read() async {
+Future<BuildResult> readBuildResultFromLogDog(BuildUri buildUri) {
+  LogdogRpc logdog = new LogdogRpc();
+  Future<String> read() {
     log('Reading logdog results: $buildUri');
-    return cat(buildUri.logdogPath);
+    return logdog.get(BUILDER_PROJECT, buildUri.logdogPath, noCache()());
   }
 
   return _readBuildResult(buildUri, read);
@@ -77,16 +81,22 @@ TestStatus parseTestStatus(String line) {
 BuildResult parseTestStepResult(BuildUri buildUri, String text) {
   log('Parsing results: $buildUri (${text.length} bytes)');
   int buildNumber;
+  String buildRevision;
   List<String> currentFailure;
   bool parsingTimingBlock = false;
 
   List<TestStatus> results = <TestStatus>[];
   List<TestFailure> failures = <TestFailure>[];
   List<Timing> timings = <Timing>[];
-  for (String line in text.split('\n')) {
+  List<String> strings = text.split('\n');
+  for (String line in strings) {
     if (line.startsWith(BUILDBOT_BUILDNUMBER)) {
       buildNumber =
           int.parse(line.substring(BUILDBOT_BUILDNUMBER.length).trim());
+      buildUri = buildUri.withBuildNumber(buildNumber);
+    }
+    if (line.startsWith(BUILDBOT_REVISION)) {
+      buildRevision = line.substring(BUILDBOT_REVISION.length).trim();
     }
     if (currentFailure != null) {
       if (line.startsWith('Done ')) {
@@ -102,6 +112,11 @@ BuildResult parseTestStepResult(BuildUri buildUri, String text) {
     } else if (line.startsWith('FAILED:')) {
       currentFailure = <String>[];
       currentFailure.add(line);
+    } else if (line.startsWith('Done ')) {
+      TestStatus status = parseTestStatus(line);
+      if (status != null) {
+        results.add(status);
+      }
     }
     if (line.startsWith('--- Total time:')) {
       parsingTimingBlock = true;
@@ -113,7 +128,8 @@ BuildResult parseTestStepResult(BuildUri buildUri, String text) {
       }
     }
   }
-  return new BuildResult(buildUri, buildNumber, results, failures, timings);
+  return new BuildResult(buildUri, buildNumber ?? buildUri.absoluteBuildNumber,
+      buildRevision, results, failures, timings);
 }
 
 /// Create the [Timing]s for the [line] as found in the top-20 timings of a

@@ -7,7 +7,7 @@ library test;
 
 import 'dart:async';
 
-main() {
+test() {
   Future<int> base;
   var /*@type=Future<bool>*/ f =
       base. /*@typeArgs=bool*/ /*@target=Future::then*/ then(
@@ -20,3 +20,5 @@ main() {
   Future<bool> b = f;
   b = g;
 }
+
+main() {}

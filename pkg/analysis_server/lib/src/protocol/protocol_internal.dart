@@ -89,7 +89,8 @@ SourceFileEdit getChangeFileEdit(SourceChange change, String file) {
  * Compare the lists [listA] and [listB], using [itemEqual] to compare
  * list elements.
  */
-bool listEqual(List listA, List listB, bool itemEqual(a, b)) {
+bool listEqual<T1, T2>(
+    List<T1> listA, List<T2> listB, bool itemEqual(T1 a, T2 b)) {
   if (listA == null) {
     return listB == null;
   }
@@ -111,7 +112,7 @@ bool listEqual(List listA, List listB, bool itemEqual(a, b)) {
  * Compare the maps [mapA] and [mapB], using [valueEqual] to compare map
  * values.
  */
-bool mapEqual(Map mapA, Map mapB, bool valueEqual(a, b)) {
+bool mapEqual<K, V>(Map<K, V> mapA, Map<K, V> mapB, bool valueEqual(V a, V b)) {
   if (mapA == null) {
     return mapB == null;
   }
@@ -136,22 +137,21 @@ bool mapEqual(Map mapA, Map mapB, bool valueEqual(a, b)) {
  * Translate the input [map], applying [keyCallback] to all its keys, and
  * [valueCallback] to all its values.
  */
-Map/*<KR, VR>*/ mapMap/*<KP, VP, KR, VR>*/(Map/*<KP, VP>*/ map,
-    {dynamic/*=KR*/ keyCallback(/*<KP>*/ key),
-    dynamic/*=VR*/ valueCallback(/*<VP>*/ value)}) {
-  Map/*<KR, VR>*/ result = new HashMap/*<KR, VR>*/();
+Map<KR, VR> mapMap<KP, VP, KR, VR>(Map<KP, VP> map,
+    {KR keyCallback(KP key), VR valueCallback(VP value)}) {
+  Map<KR, VR> result = new HashMap<KR, VR>();
   map.forEach((key, value) {
-    Object/*=KR*/ resultKey;
-    Object/*=VR*/ resultValue;
+    KR resultKey;
+    VR resultValue;
     if (keyCallback != null) {
       resultKey = keyCallback(key);
     } else {
-      resultKey = key as Object/*=KR*/;
+      resultKey = key as KR;
     }
     if (valueCallback != null) {
       resultValue = valueCallback(value);
     } else {
-      resultValue = value as Object/*=VR*/;
+      resultValue = value as VR;
     }
     result[resultKey] = resultValue;
   });
@@ -193,6 +193,9 @@ RefactoringFeedback refactoringFeedbackFromJson(
   if (kind == RefactoringKind.EXTRACT_METHOD) {
     return new ExtractMethodFeedback.fromJson(jsonDecoder, jsonPath, json);
   }
+  if (kind == RefactoringKind.EXTRACT_WIDGET) {
+    return new ExtractWidgetFeedback.fromJson(jsonDecoder, jsonPath, json);
+  }
   if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
     return new InlineLocalVariableFeedback.fromJson(
         jsonDecoder, jsonPath, json);
@@ -217,6 +220,9 @@ RefactoringOptions refactoringOptionsFromJson(JsonDecoder jsonDecoder,
   }
   if (kind == RefactoringKind.EXTRACT_METHOD) {
     return new ExtractMethodOptions.fromJson(jsonDecoder, jsonPath, json);
+  }
+  if (kind == RefactoringKind.EXTRACT_WIDGET) {
+    return new ExtractWidgetOptions.fromJson(jsonDecoder, jsonPath, json);
   }
   if (kind == RefactoringKind.INLINE_METHOD) {
     return new InlineMethodOptions.fromJson(jsonDecoder, jsonPath, json);
@@ -272,7 +278,7 @@ class RequestDecoder extends JsonDecoder {
     buffer.write(expected);
     if (actual != null) {
       buffer.write('; found "');
-      buffer.write(JSON.encode(actual));
+      buffer.write(json.encode(actual));
       buffer.write('"');
     }
     return new RequestFailure(
@@ -282,7 +288,7 @@ class RequestDecoder extends JsonDecoder {
   @override
   dynamic missingKey(String jsonPath, String key) {
     return new RequestFailure(new Response.invalidParameter(
-        _request, jsonPath, 'Expected to contain key ${JSON.encode(key)}'));
+        _request, jsonPath, 'Expected to contain key ${json.encode(key)}'));
   }
 }
 
@@ -310,7 +316,7 @@ class ResponseDecoder extends JsonDecoder {
     buffer.write(expected);
     if (actual != null) {
       buffer.write(' found "');
-      buffer.write(JSON.encode(actual));
+      buffer.write(json.encode(actual));
       buffer.write('"');
     }
     buffer.write(' at ');

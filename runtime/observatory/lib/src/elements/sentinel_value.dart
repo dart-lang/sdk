@@ -22,7 +22,7 @@ class SentinelValueElement extends HtmlElement implements Renderable {
   factory SentinelValueElement(M.Sentinel sentinel, {RenderingQueue queue}) {
     assert(sentinel != null);
     SentinelValueElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<SentinelValueElement>(e, queue: queue);
     e._sentinel = sentinel;
     return e;
   }

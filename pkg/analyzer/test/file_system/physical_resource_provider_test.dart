@@ -26,9 +26,9 @@ main() {
   }
 }
 
-var _isFile = new isInstanceOf<File>();
-var _isFileSystemException = new isInstanceOf<FileSystemException>();
-var _isFolder = new isInstanceOf<Folder>();
+final _isFile = new TypeMatcher<File>();
+final _isFileSystemException = new TypeMatcher<FileSystemException>();
+final _isFolder = new TypeMatcher<Folder>();
 
 String join(String part1, [String part2, String part3]) =>
     pathos.join(part1, part2, part3);
@@ -137,7 +137,7 @@ class FileTest extends _BaseTest {
 
   void test_parent() {
     Resource parent = file.parent;
-    expect(parent, new isInstanceOf<Folder>());
+    expect(parent, _isFolder);
     expect(parent.path, equals(tempPath));
   }
 
@@ -168,8 +168,9 @@ class FileTest extends _BaseTest {
   }
 
   void test_renameSync_newDoesNotExist() {
-    String oldPath = '$tempPath/file.txt';
-    String newPath = '$tempPath/new-file.txt';
+    pathos.Context pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
+    String oldPath = pathContext.join(tempPath, 'file.txt');
+    String newPath = pathContext.join(tempPath, 'new-file.txt');
     new io.File(oldPath).writeAsStringSync('text');
     File file = PhysicalResourceProvider.INSTANCE.getResource(oldPath);
     File newFile = file.renameSync(newPath);
@@ -181,8 +182,9 @@ class FileTest extends _BaseTest {
   }
 
   test_renameSync_newExists_file() async {
-    String oldPath = '$tempPath/file.txt';
-    String newPath = '$tempPath/new-file.txt';
+    pathos.Context pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
+    String oldPath = pathContext.join(tempPath, 'file.txt');
+    String newPath = pathContext.join(tempPath, 'new-file.txt');
     new io.File(oldPath).writeAsStringSync('text');
     new io.File(newPath).writeAsStringSync('new text');
     File file = PhysicalResourceProvider.INSTANCE.getResource(oldPath);
@@ -195,8 +197,9 @@ class FileTest extends _BaseTest {
   }
 
   void test_renameSync_newExists_folder() {
-    String oldPath = '$tempPath/file.txt';
-    String newPath = '$tempPath/foo';
+    pathos.Context pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
+    String oldPath = pathContext.join(tempPath, 'file.txt');
+    String newPath = pathContext.join(tempPath, 'foo');
     new io.File(oldPath).writeAsStringSync('text');
     new io.Directory(newPath).createSync();
     File file = PhysicalResourceProvider.INSTANCE.getResource(oldPath);
@@ -253,7 +256,7 @@ class FileTest extends _BaseTest {
   }
 
   void test_toUri() {
-    String path = '/foo/file.txt';
+    String path = io.Platform.isWindows ? r'C:\foo\file.txt' : '/foo/file.txt';
     File file = PhysicalResourceProvider.INSTANCE.getFile(path);
     expect(file.toUri(), new Uri.file(path));
   }
@@ -454,7 +457,7 @@ class FolderTest extends _BaseTest {
 
   void test_parent() {
     Resource parent = folder.parent;
-    expect(parent, new isInstanceOf<Folder>());
+    expect(parent, _isFolder);
     expect(parent.path, equals(tempPath));
 
     // Since the OS is in control of where tempPath is, we don't know how
@@ -466,14 +469,15 @@ class FolderTest extends _BaseTest {
       if (grandParent == null) {
         break;
       }
-      expect(grandParent, new isInstanceOf<Folder>());
+      expect(grandParent, _isFolder);
       expect(grandParent.path.length, lessThan(parent.path.length));
       parent = grandParent;
     }
   }
 
   void test_toUri() {
-    String path = '/foo/directory';
+    String path =
+        io.Platform.isWindows ? r'C:\foo\directory' : '/foo/directory';
     Folder folder = PhysicalResourceProvider.INSTANCE.getFolder(path);
     expect(folder.toUri(), new Uri.directory(path));
   }
@@ -654,7 +658,7 @@ class PhysicalResourceProviderTest extends _BaseTest {
       expect(changesReceived, hasLength(0));
       file.writeAsStringSync('contents 2');
       return _delayed(() {
-        expect(changesReceived, hasLength(1));
+        expect(changesReceived, anyOf(hasLength(1), hasLength(2)));
         expect(changesReceived[0].type, equals(ChangeType.MODIFY));
         expect(changesReceived[0].path, equals(path));
       });

@@ -231,6 +231,7 @@ def RunTest(name, build_info, targets, flags=None, swallow_error=False):
       '--runtime=' + build_info.runtime,
       '--arch=' + build_info.arch,
       '--progress=buildbot',
+      '--write-result-log',
       '-v', '--time', '--use-sdk', '--report'
     ]
 

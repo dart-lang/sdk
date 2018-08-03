@@ -131,7 +131,7 @@ class ResponseOperation extends Operation {
   bool _equal(expectedResult, actualResult) {
     if (expectedResult is Map && actualResult is Map) {
       if (expectedResult.length == actualResult.length) {
-        return expectedResult.keys.every((String key) {
+        return expectedResult.keys.every((key) {
           return key ==
                   'fileStamp' || // fileStamp values will not be the same across runs
               _equal(expectedResult[key], actualResult[key]);

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_internal' hide Symbol;
+// part of "isolate_patch.dart";
 
 // Timer heap implemented as a array-based binary heap[0].
 // This allows for O(1) `first`, O(log(n)) `remove`/`removeFirst` and O(log(n))
@@ -61,7 +61,7 @@ class _TimerHeap {
   }
 
   void _resize() {
-    var newList = new List(_list.length * 2 + 1);
+    var newList = new List<_Timer>(_list.length * 2 + 1);
     newList.setRange(0, _used, _list);
     _list = newList;
   }
@@ -146,6 +146,8 @@ class _Timer implements Timer {
   var _indexOrNext; // Index if part of the TimerHeap, link otherwise.
   int _id; // Incrementing id to enable sorting of timers with same expiry.
 
+  int _tick = 0; // Backing for [tick],
+
   // Get the next available id. We accept collisions and reordering when the
   // _idCount overflows and the timers expire at the same millisecond.
   static int _nextId() {
@@ -197,6 +199,8 @@ class _Timer implements Timer {
 
   bool get isActive => _callback != null;
 
+  int get tick => _tick;
+
   // Cancels a set timer. The timer is removed from the timer heap if it is a
   // non-zero timer. Zero timers are kept in the list as they need to consume
   // the corresponding pending message.
@@ -244,7 +248,7 @@ class _Timer implements Timer {
     }
   }
 
-  // Enqeue one message for each zero timer. To be able to distinguish from
+  // Enqueue one message for each zero timer. To be able to distinguish from
   // EventHandler messages we send a _ZERO_EVENT instead of a _TIMEOUT_EVENT.
   static void _notifyZeroHandler() {
     if (_sendPort == null) {
@@ -348,8 +352,9 @@ class _Timer implements Timer {
     // callbacks will be enqueued now and notified in the next spin at the
     // earliest.
     _handlingCallbacks = true;
+    var i = 0;
     try {
-      for (var i = 0; i < pendingTimers.length; i++) {
+      for (; i < pendingTimers.length; i++) {
         // Next pending timer.
         var timer = pendingTimers[i];
         timer._indexOrNext = null;
@@ -362,7 +367,18 @@ class _Timer implements Timer {
           if (!timer._repeating) {
             // Mark timer as inactive.
             timer._callback = null;
+          } else if (timer._milliSeconds > 0) {
+            var ms = timer._milliSeconds;
+            int overdue =
+                VMLibraryHooks.timerMillisecondClock() - timer._wakeupTime;
+            if (overdue > ms) {
+              int missedTicks = overdue ~/ ms;
+              timer._wakeupTime += missedTicks * ms;
+              timer._tick += missedTicks;
+            }
           }
+          timer._tick += 1;
+
           callback(timer);
           // Re-insert repeating timer if not canceled.
           if (timer._repeating && (timer._callback != null)) {
@@ -378,6 +394,12 @@ class _Timer implements Timer {
       }
     } finally {
       _handlingCallbacks = false;
+      // Re-queue timers we didn't get to.
+      for (i++; i < pendingTimers.length; i++) {
+        var timer = pendingTimers[i];
+        timer._enqueue();
+      }
+      _notifyEventHandler();
     }
   }
 

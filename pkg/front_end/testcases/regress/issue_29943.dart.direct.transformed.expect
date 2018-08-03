@@ -1,0 +1,9 @@
+library;
+import self as self;
+
+static method bad() → dynamic {
+  invalid-expression "pkg/front_end/testcases/regress/issue_29943.dart:6:5: Error: Expected an identifier, but got '('.
+  x.(null);
+    ^";
+}
+static method main() → dynamic {}

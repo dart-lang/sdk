@@ -1,0 +1,36 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+class MyFuture<T extends core::Object = dynamic> extends core::Object implements asy::Future<self::MyFuture::T> {
+  constructor •() → void
+    : super core::Object::•() {}
+  constructor value([dynamic x = null]) → void
+    : super core::Object::•() {}
+  method noSuchMethod(core::Invocation invocation) → dynamic
+    return null;
+  method then<S extends core::Object = dynamic>((self::MyFuture::T) → asy::FutureOr<self::MyFuture::then::S> f, {core::Function onError = null}) → self::MyFuture<self::MyFuture::then::S>
+    return null;
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/async/future.dart */ catchError(core::Function onError, {(core::Object) → core::bool test = null}) → asy::Future<self::MyFuture::T>
+    return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withoutType("catchError", const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[onError]), core::Map::unmodifiable<core::Symbol, dynamic>(<core::Symbol, dynamic>{#test: test}), false)) as{TypeError} asy::Future<self::MyFuture::T>;
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/async/future.dart */ whenComplete(() → asy::FutureOr<dynamic> action) → asy::Future<self::MyFuture::T>
+    return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withoutType("whenComplete", const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[action]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}), false)) as{TypeError} asy::Future<self::MyFuture::T>;
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/async/future.dart */ timeout(core::Duration timeLimit, {generic-covariant-impl () → asy::FutureOr<self::MyFuture::T> onTimeout = null}) → asy::Future<self::MyFuture::T>
+    return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withoutType("timeout", const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[timeLimit]), core::Map::unmodifiable<core::Symbol, dynamic>(<core::Symbol, dynamic>{#onTimeout: onTimeout}), false)) as{TypeError} asy::Future<self::MyFuture::T>;
+  no-such-method-forwarder method /* from org-dartlang-sdk:///sdk/lib/async/future.dart */ asStream() → asy::Stream<self::MyFuture::T>
+    return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withoutType("asStream", const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}), false)) as{TypeError} asy::Stream<self::MyFuture::T>;
+}
+static field asy::Future<dynamic> f;
+static field asy::Future<core::int> t1 = self::f.{asy::Future::then}<core::int>((dynamic _) → asy::Future<core::int> => asy::Future::value<core::int>(let dynamic _ = null in let final dynamic #t1 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/future_union_downwards_3.dart:21:44: Error: The argument type 'dart.core::String' can't be assigned to the parameter type 'dart.async::FutureOr<dart.core::int>'.
+Try changing the type of the parameter, or casting the argument to 'dart.async::FutureOr<dart.core::int>'.
+        new /*@typeArgs=int*/ Future.value('hi'));
+                                           ^" in let final dynamic #t2 = "hi" in null));
+static field asy::Future<core::List<core::int>> t2 = self::f.{asy::Future::then}<core::List<core::int>>((dynamic _) → core::List<core::int> => <core::int>[3]);
+static method g2() → asy::Future<core::List<core::int>> async {
+  return <core::int>[3];
+}
+static method g3() → asy::Future<core::List<core::int>> async {
+  return asy::Future::value<core::List<core::int>>(<core::int>[3]);
+}
+static method main() → dynamic {}

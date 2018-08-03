@@ -4,16 +4,11 @@
 
 part of $LIBRARYNAME;
 
-@DocsEditable()
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$MIXINS$IMPLEMENTS {
 $!MEMBERS
 
     /// Checks if HTML imports are supported on the current platform.
   bool get supportsImport {
-$if DART2JS
     return JS('bool', '("import" in #)', this);
-$else
-    return true;
-$endif
   }
 }

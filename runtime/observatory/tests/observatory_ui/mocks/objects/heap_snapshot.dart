@@ -12,6 +12,7 @@ class HeapSnapshotMock implements M.HeapSnapshot {
   final M.HeapSnapshotDominatorNode dominatorTree;
   final M.HeapSnapshotMergedDominatorNode mergedDominatorTree = null;
   final Iterable<M.HeapSnapshotClassReferences> classReferences;
+  final Iterable<M.HeapSnapshotOwnershipClass> ownershipClasses;
 
   const HeapSnapshotMock(
       {this.timestamp,
@@ -19,7 +20,8 @@ class HeapSnapshotMock implements M.HeapSnapshot {
       this.references: 0,
       this.size: 0,
       this.dominatorTree: const HeapSnapshotDominatorNodeMock(),
-      this.classReferences: const []});
+      this.classReferences: const [],
+      this.ownershipClasses: const []});
 }
 
 class HeapSnapshotDominatorNodeMock implements M.HeapSnapshotDominatorNode {

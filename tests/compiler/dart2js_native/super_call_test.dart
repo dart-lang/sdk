@@ -36,37 +36,40 @@ makeB() native;
 makeC() native;
 makeD() native;
 
-void setup() native """
-// This code is all inside 'setup' and so not accessible from the global scope.
-function inherits(child, parent) {
-  if (child.prototype.__proto__) {
-    child.prototype.__proto__ = parent.prototype;
-  } else {
-    function tmp() {};
-    tmp.prototype = parent.prototype;
-    child.prototype = new tmp();
-    child.prototype.constructor = child;
+void setup() {
+  JS('', r"""
+(function(){
+  // This code is inside 'setup' and so not accessible from the global scope.
+  function inherits(child, parent) {
+    if (child.prototype.__proto__) {
+      child.prototype.__proto__ = parent.prototype;
+    } else {
+      function tmp() {};
+      tmp.prototype = parent.prototype;
+      child.prototype = new tmp();
+      child.prototype.constructor = child;
+    }
   }
+
+  function A(){}
+  function B(){}
+  inherits(B, A);
+  function C(){}
+  inherits(C, B);
+  function D(){}
+  inherits(D, C);
+
+  makeA = function(){return new A()};
+  makeB = function(){return new B()};
+  makeC = function(){return new C()};
+  makeD = function(){return new D()};
+
+  self.nativeConstructor(A);
+  self.nativeConstructor(B);
+  self.nativeConstructor(C);
+  self.nativeConstructor(D);
+})()""");
 }
-
-function A(){}
-function B(){}
-inherits(B, A);
-function C(){}
-inherits(C, B);
-function D(){}
-inherits(D, C);
-
-makeA = function(){return new A};
-makeB = function(){return new B};
-makeC = function(){return new C};
-makeD = function(){return new D};
-
-self.nativeConstructor(A);
-self.nativeConstructor(B);
-self.nativeConstructor(C);
-self.nativeConstructor(D);
-""";
 
 main() {
   nativeTesting();

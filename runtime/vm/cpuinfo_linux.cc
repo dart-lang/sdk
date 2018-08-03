@@ -5,14 +5,14 @@
 #include "vm/globals.h"
 #if defined(HOST_OS_LINUX)
 
-#include "vm/cpuinfo.h"
 #include "vm/cpuid.h"
+#include "vm/cpuinfo.h"
 #include "vm/proccpuinfo.h"
 
 #include "platform/assert.h"
 
 // As with Windows, on IA32 and X64, we use the cpuid instruction.
-// The analogous instruction is privileged on ARM and MIPS, so we resort to
+// The analogous instruction is privileged on ARM, so we resort to
 // reading from /proc/cpuinfo.
 
 namespace dart {
@@ -45,19 +45,10 @@ void CpuInfo::InitOnce() {
   fields_[kCpuInfoArchitecture] = "CPU architecture";
   method_ = kCpuInfoSystem;
   ProcCpuInfo::InitOnce();
-#elif defined(HOST_ARCH_MIPS)
-  fields_[kCpuInfoProcessor] = "system type";
-  fields_[kCpuInfoModel] = "cpu model";
-  fields_[kCpuInfoHardware] = "cpu model";
-  fields_[kCpuInfoFeatures] = "ASEs implemented";
-  fields_[kCpuInfoArchitecture] = "CPU architecture";
-  method_ = kCpuInfoSystem;
-  ProcCpuInfo::InitOnce();
 #else
 #error Unrecognized target architecture
 #endif
 }
-
 
 void CpuInfo::Cleanup() {
   if (method_ == kCpuInfoCpuId) {
@@ -67,7 +58,6 @@ void CpuInfo::Cleanup() {
     ProcCpuInfo::Cleanup();
   }
 }
-
 
 bool CpuInfo::FieldContains(CpuInfoIndices idx, const char* search_string) {
   if (method_ == kCpuInfoCpuId) {
@@ -81,7 +71,6 @@ bool CpuInfo::FieldContains(CpuInfoIndices idx, const char* search_string) {
   }
 }
 
-
 const char* CpuInfo::ExtractField(CpuInfoIndices idx) {
   if (method_ == kCpuInfoCpuId) {
     return CpuId::field(idx);
@@ -90,7 +79,6 @@ const char* CpuInfo::ExtractField(CpuInfoIndices idx) {
     return ProcCpuInfo::ExtractField(FieldName(idx));
   }
 }
-
 
 bool CpuInfo::HasField(const char* field) {
   if (method_ == kCpuInfoCpuId) {

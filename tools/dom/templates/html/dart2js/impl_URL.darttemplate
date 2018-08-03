@@ -24,8 +24,6 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
       JS('void',
          '(self.URL || self.webkitURL).revokeObjectURL(#)', url);
 
-  @DomName('URL.toString')
-  @DocsEditable()
   String toString() => JS('String', 'String(#)', this);
 
 $!MEMBERS

@@ -1,0 +1,12 @@
+// Errors:
+//
+// pkg/front_end/testcases/regress/issue_29980.dart:6:3: Error: 'x.y' can't be used as a type because 'x' isn't defined.
+//   x.y z;
+//   ^^^
+
+library;
+import self as self;
+
+static method main() → dynamic {
+  invalid-type z;
+}

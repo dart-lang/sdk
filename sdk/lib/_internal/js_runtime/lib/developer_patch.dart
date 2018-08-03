@@ -6,6 +6,8 @@
 
 import 'dart:_js_helper' show patch, ForceInline;
 import 'dart:_foreign_helper' show JS;
+import 'dart:async' show Zone;
+import 'dart:isolate';
 
 @patch
 @ForceInline()
@@ -75,6 +77,12 @@ void _reportCompleteEvent(int start, int startCpu, String category, String name,
 }
 
 @patch
+void _reportFlowEvent(int start, int startCpu, String category, String name,
+    int type, int id, String argumentsAsJson) {
+  // TODO.
+}
+
+@patch
 void _reportInstantEvent(
     int start, String category, String name, String argumentsAsJson) {
   // TODO.
@@ -82,11 +90,6 @@ void _reportInstantEvent(
 
 @patch
 int _getNextAsyncId() {
-  return 0;
-}
-
-@patch
-int _getIsolateNum() {
   return 0;
 }
 

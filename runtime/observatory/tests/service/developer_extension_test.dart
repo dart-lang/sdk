@@ -7,7 +7,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'package:observatory/service_io.dart';
-import 'package:observatory/cpu_profile.dart';
+import 'package:observatory/sample_profile.dart';
 import 'package:unittest/unittest.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
@@ -19,7 +19,7 @@ Future<ServiceExtensionResponse> Handler(String method,
     case 'ext..delay':
       Completer c = new Completer();
       new Timer(new Duration(seconds: 1), () {
-        c.complete(new ServiceExtensionResponse.result(JSON.encode({
+        c.complete(new ServiceExtensionResponse.result(jsonEncode({
             'type': '_delayedType',
             'method': method,
             'parameters': paremeters,
@@ -35,7 +35,7 @@ Future<ServiceExtensionResponse> Handler(String method,
       throw "I always throw!";
     case 'ext..success':
       return new Future.value(
-          new ServiceExtensionResponse.result(JSON.encode({
+          new ServiceExtensionResponse.result(jsonEncode({
               'type': '_extensionType',
               'method': method,
               'parameters': paremeters,
@@ -75,7 +75,7 @@ void test() {
   registerExtension('ext..languageError', LanguageErrorHandler);
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   (Isolate isolate) async {
     await isolate.load();

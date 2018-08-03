@@ -7,22 +7,19 @@
 
 #include "vm/runtime_entry.h"
 
-#include "vm/assembler.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/simulator.h"
 #include "vm/stub_code.h"
 
 namespace dart {
 
-
 uword RuntimeEntry::GetEntryPoint() const {
   return reinterpret_cast<uword>(function());
 }
 
-
 void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
   UNIMPLEMENTED();
 }
-
 
 }  // namespace dart
 

@@ -8,9 +8,9 @@
 #include "vm/cpu.h"
 #include "vm/cpu_arm.h"
 
-#include "vm/assembler.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/cpuinfo.h"
-#include "vm/heap.h"
+#include "vm/heap/heap.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/simulator.h"
@@ -82,7 +82,8 @@ DEFINE_FLAG(bool,
 #endif
 
 #if defined(USING_SIMULATOR)
-#if defined(TARGET_ARCH_ARM_5TE) || defined(TARGET_OS_ANDROID)
+#if defined(TARGET_ARCH_ARM_5TE) || defined(TARGET_OS_ANDROID) \
+    || defined(TARGET_OS_IOS)
 DEFINE_FLAG(bool, sim_use_hardfp, false, "Use the hardfp ABI.");
 #else
 DEFINE_FLAG(bool, sim_use_hardfp, true, "Use the hardfp ABI.");
@@ -117,7 +118,6 @@ void CPU::FlushICache(uword start, uword size) {
 #endif
 }
 
-
 const char* CPU::Id() {
   return
 #if defined(USING_SIMULATOR)
@@ -125,7 +125,6 @@ const char* CPU::Id() {
 #endif  // defined(USING_SIMULATOR)
       "arm";
 }
-
 
 bool HostCPUFeatures::integer_division_supported_ = false;
 bool HostCPUFeatures::vfp_supported_ = false;
@@ -137,7 +136,6 @@ intptr_t HostCPUFeatures::store_pc_read_offset_ = 8;
 #if defined(DEBUG)
 bool HostCPUFeatures::initialized_ = false;
 #endif
-
 
 #if !defined(USING_SIMULATOR)
 #if HOST_OS_IOS
@@ -153,7 +151,7 @@ void HostCPUFeatures::InitOnce() {
   vfp_supported_ = FLAG_use_vfp;
   integer_division_supported_ = FLAG_use_integer_division;
   neon_supported_ = FLAG_use_neon;
-  hardfp_supported_ = true;
+  hardfp_supported_ = false;
 #if defined(DEBUG)
   initialized_ = true;
 #endif
@@ -283,7 +281,6 @@ void HostCPUFeatures::InitOnce() {
   initialized_ = true;
 #endif
 }
-
 
 void HostCPUFeatures::Cleanup() {
   DEBUG_ASSERT(initialized_);

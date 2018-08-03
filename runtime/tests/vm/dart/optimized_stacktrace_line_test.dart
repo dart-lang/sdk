@@ -21,7 +21,9 @@ test1() {
     String s = stacktrace.toString();
     print(s);
     Expect.isFalse(s.contains("-1:-1"), "A");
-    Expect.isTrue(s.contains("optimized_stacktrace_line_test.dart:11"), "B");
+    RegExp regex =
+        new RegExp("optimized_stacktrace_line_test(_none|_01)*\.dart:11");
+    Expect.isTrue(regex.hasMatch(s), "B");
   }
 
   // Optimized.
@@ -33,7 +35,9 @@ test1() {
     String s = stacktrace.toString();
     print(s);
     Expect.isFalse(s.contains("-1:-1"), "C");
-    Expect.isTrue(s.contains("optimized_stacktrace_line_test.dart:11"), "D");
+    RegExp regex =
+        new RegExp("optimized_stacktrace_line_test(_none|_01)*\.dart:11");
+    Expect.isTrue(regex.hasMatch(s), "D");
   }
 }
 
@@ -41,9 +45,9 @@ test1() {
 maximus(x) => moritz(x);
 
 moritz(x) {
-  if (x == 333) return 42 ? 0 : 1; // Throws in checked mode.
+  if (x == 333) return (42 as bool) ? 0 : 1;
   if (x == 777) {
-    bool b = x; // Throws in checked mode.
+    bool b = x;
     return b;
   }
 

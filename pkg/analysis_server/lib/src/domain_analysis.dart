@@ -5,51 +5,48 @@
 import 'dart:async';
 import 'dart:core';
 
-import 'package:analysis_server/plugin/analysis/analysis_domain.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
-import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/context_manager.dart';
-import 'package:analysis_server/src/domains/analysis/navigation.dart';
+import 'package:analysis_server/src/computer/imported_elements_computer.dart';
+import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
-import 'package:analysis_server/src/operation/operation_analysis.dart'
-    show NavigationOperation, OccurrencesOperation;
+import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/request_converter.dart';
+import 'package:analysis_server/src/plugin/result_merger.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';
-import 'package:analysis_server/src/services/dependencies/reachable_source_collector.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart' as engine;
-import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/task/model.dart' show ResultDescriptor;
+import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
+import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
+
+// TODO(devoncarew): See #31456 for the tracking issue to remove this flag.
+final bool disableManageImportsOnPaste = true;
 
 /**
  * Instances of the class [AnalysisDomainHandler] implement a [RequestHandler]
  * that handles requests in the `analysis` domain.
  */
-class AnalysisDomainHandler implements RequestHandler {
-  /**
-   * The analysis server that is using this handler to process requests.
-   */
-  final AnalysisServer server;
-
+class AnalysisDomainHandler extends AbstractRequestHandler {
   /**
    * Initialize a newly created handler to handle requests for the given [server].
    */
-  AnalysisDomainHandler(this.server) {
-    _callAnalysisDomainReceivers();
-  }
+  AnalysisDomainHandler(AnalysisServer server) : super(server);
 
   /**
    * Implement the `analysis.getErrors` request.
    */
   Future<Null> getErrors(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     String file = new AnalysisGetErrorsParams.fromRequest(request).file;
 
     void send(engine.AnalysisOptions analysisOptions, LineInfo lineInfo,
@@ -64,60 +61,31 @@ class AnalysisDomainHandler implements RequestHandler {
       }
     }
 
-    if (server.options.enableNewAnalysisDriver) {
-      var result = await server.getAnalysisResult(file);
+    AnalysisResult result = await server.getAnalysisResult(file);
 
-      if (server.onResultErrorSupplementor != null) {
-        if (result != null) {
-          await server.onResultErrorSupplementor(file, result.errors);
-        } else {
-          server.onNoAnalysisResult(file, send);
-          return;
-        }
+    if (server.onResultErrorSupplementor != null) {
+      if (result != null) {
+        await server.onResultErrorSupplementor(file, result.errors);
+      } else {
+        server.onNoAnalysisResult(file, send);
+        return;
       }
-
-      send(result?.driver?.analysisOptions, result?.lineInfo, result?.errors);
-      return;
     }
 
-    Future<AnalysisDoneReason> completionFuture =
-        server.onFileAnalysisComplete(file);
-    if (completionFuture == null) {
-      server.sendResponse(new Response.getErrorsInvalidFile(request));
-    }
-    completionFuture.then((AnalysisDoneReason reason) async {
-      switch (reason) {
-        case AnalysisDoneReason.COMPLETE:
-          engine.AnalysisErrorInfo errorInfo = server.getErrors(file);
-          if (errorInfo == null) {
-            server.sendResponse(new Response.getErrorsInvalidFile(request));
-          } else {
-            engine.AnalysisContext context = server.getAnalysisContext(file);
-            send(context.analysisOptions, errorInfo.lineInfo, errorInfo.errors);
-          }
-          break;
-        case AnalysisDoneReason.CONTEXT_REMOVED:
-          // The active contexts have changed, so try again.
-          await getErrors(request);
-          break;
-      }
-    });
+    send(result?.driver?.analysisOptions, result?.lineInfo, result?.errors);
   }
 
   /**
    * Implement the `analysis.getHover` request.
    */
   Future<Null> getHover(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     var params = new AnalysisGetHoverParams.fromRequest(request);
 
     // Prepare the resolved units.
-    CompilationUnit unit;
-    if (server.options.enableNewAnalysisDriver) {
-      AnalysisResult result = await server.getAnalysisResult(params.file);
-      unit = result?.unit;
-    } else {
-      unit = await server.getResolvedCompilationUnit(params.file);
-    }
+    AnalysisResult result = await server.getAnalysisResult(params.file);
+    CompilationUnit unit = result?.unit;
 
     // Prepare the hovers.
     List<HoverInformation> hovers = <HoverInformation>[];
@@ -134,132 +102,184 @@ class AnalysisDomainHandler implements RequestHandler {
         new AnalysisGetHoverResult(hovers).toResponse(request.id));
   }
 
-  /// Implement the `analysis.getLibraryDependencies` request.
+  /**
+   * Implement the `analysis.getImportedElements` request.
+   */
+  Future<Null> getImportedElements(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    AnalysisGetImportedElementsParams params =
+        new AnalysisGetImportedElementsParams.fromRequest(request);
+    //
+    // Prepare the resolved unit.
+    //
+    AnalysisResult result = await server.getAnalysisResult(params.file);
+    if (result == null) {
+      server.sendResponse(new Response.getImportedElementsInvalidFile(request));
+    }
+
+    List<ImportedElements> elements;
+
+    //
+    // Compute the list of imported elements.
+    //
+    if (disableManageImportsOnPaste) {
+      elements = <ImportedElements>[];
+    } else {
+      elements = new ImportedElementsComputer(
+              result.unit, params.offset, params.length)
+          .compute();
+    }
+
+    //
+    // Send the response.
+    //
+    server.sendResponse(
+        new AnalysisGetImportedElementsResult(elements).toResponse(request.id));
+  }
+
+  /**
+   * Implement the `analysis.getLibraryDependencies` request.
+   */
   Response getLibraryDependencies(Request request) {
-    server.onAnalysisComplete.then((_) {
-      LibraryDependencyCollector collector =
-          new LibraryDependencyCollector(server.analysisContexts);
-      Set<String> libraries = collector.collectLibraryDependencies();
-      Map<String, Map<String, List<String>>> packageMap =
-          collector.calculatePackageMap(server.folderMap);
-      server.sendResponse(new AnalysisGetLibraryDependenciesResult(
-              libraries.toList(growable: false), packageMap)
-          .toResponse(request.id));
-    }).catchError((error, st) {
-      server.sendResponse(new Response.serverError(request, error, st));
-    });
-    // delay response
-    return Response.DELAYED_RESPONSE;
+    return new Response.unsupportedFeature(request.id,
+        'Please contact the Dart analyzer team if you need this request.');
+//    server.onAnalysisComplete.then((_) {
+//      LibraryDependencyCollector collector =
+//          new LibraryDependencyCollector(server.analysisContexts);
+//      Set<String> libraries = collector.collectLibraryDependencies();
+//      Map<String, Map<String, List<String>>> packageMap =
+//          collector.calculatePackageMap(server.folderMap);
+//      server.sendResponse(new AnalysisGetLibraryDependenciesResult(
+//              libraries.toList(growable: false), packageMap)
+//          .toResponse(request.id));
+//    }).catchError((error, st) {
+//      server.sendResponse(new Response.serverError(request, error, st));
+//    });
+//    // delay response
+//    return Response.DELAYED_RESPONSE;
   }
 
   /**
    * Implement the `analysis.getNavigation` request.
    */
   Future<Null> getNavigation(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     var params = new AnalysisGetNavigationParams.fromRequest(request);
     String file = params.file;
+    int offset = params.offset;
+    int length = params.length;
 
-    if (server.options.enableNewAnalysisDriver) {
-      AnalysisDriver driver = server.getAnalysisDriver(file);
-      if (driver == null) {
-        server.sendResponse(new Response.getNavigationInvalidFile(request));
-      } else {
-        AnalysisResult result = await server.getAnalysisResult(file);
-        CompilationUnit unit = result?.unit;
-        if (unit == null || !result.exists) {
-          server.sendResponse(new Response.getNavigationInvalidFile(request));
-        } else {
-          NavigationCollectorImpl collector = new NavigationCollectorImpl();
-          computeDartNavigation(collector, unit, params.offset, params.length);
-          collector.createRegions();
-          server.sendResponse(new AnalysisGetNavigationResult(
-                  collector.files, collector.targets, collector.regions)
-              .toResponse(request.id));
+    AnalysisDriver driver = server.getAnalysisDriver(file);
+    if (driver == null) {
+      server.sendResponse(new Response.getNavigationInvalidFile(request));
+    } else {
+      //
+      // Allow plugins to start computing navigation data.
+      //
+      plugin.AnalysisGetNavigationParams requestParams =
+          new plugin.AnalysisGetNavigationParams(file, offset, length);
+      Map<PluginInfo, Future<plugin.Response>> pluginFutures = server
+          .pluginManager
+          .broadcastRequest(requestParams, contextRoot: driver.contextRoot);
+      //
+      // Compute navigation data generated by server.
+      //
+      List<AnalysisNavigationParams> allResults = <AnalysisNavigationParams>[];
+      AnalysisResult result = await server.getAnalysisResult(file);
+      CompilationUnit unit = result?.unit;
+      if (unit != null && result.exists) {
+        NavigationCollectorImpl collector = new NavigationCollectorImpl();
+        computeDartNavigation(collector, unit, offset, length);
+        collector.createRegions();
+        allResults.add(new AnalysisNavigationParams(
+            file, collector.regions, collector.targets, collector.files));
+      }
+      //
+      // Add the navigation data produced by plugins to the server-generated
+      // navigation data.
+      //
+      if (pluginFutures != null) {
+        List<plugin.Response> responses = await waitForResponses(pluginFutures,
+            requestParameters: requestParams);
+        for (plugin.Response response in responses) {
+          plugin.AnalysisGetNavigationResult result =
+              new plugin.AnalysisGetNavigationResult.fromResponse(response);
+          allResults.add(new AnalysisNavigationParams(
+              file, result.regions, result.targets, result.files));
         }
       }
-      return;
-    }
-
-    Future<AnalysisDoneReason> analysisFuture =
-        server.onFileAnalysisComplete(file);
-    if (analysisFuture == null) {
-      server.sendResponse(new Response.getNavigationInvalidFile(request));
-      return;
-    }
-    analysisFuture.then((AnalysisDoneReason reason) async {
-      switch (reason) {
-        case AnalysisDoneReason.COMPLETE:
-          CompilationUnit unit = await server.getResolvedCompilationUnit(file);
-          if (unit == null) {
-            server.sendResponse(new Response.getNavigationInvalidFile(request));
-          } else {
-            CompilationUnitElement unitElement = unit.element;
-            NavigationCollectorImpl collector = computeNavigation(
-                server,
-                unitElement.context,
-                unitElement.source,
-                params.offset,
-                params.length);
-            server.sendResponse(new AnalysisGetNavigationResult(
-                    collector.files, collector.targets, collector.regions)
-                .toResponse(request.id));
-          }
-          break;
-        case AnalysisDoneReason.CONTEXT_REMOVED:
-          // The active contexts have changed, so try again.
-          await getNavigation(request);
-          break;
+      //
+      // Return the result.
+      //
+      ResultMerger merger = new ResultMerger();
+      AnalysisNavigationParams mergedResults =
+          merger.mergeNavigation(allResults);
+      if (mergedResults == null) {
+        server.sendResponse(new AnalysisGetNavigationResult(
+                <String>[], <NavigationTarget>[], <NavigationRegion>[])
+            .toResponse(request.id));
+      } else {
+        server.sendResponse(new AnalysisGetNavigationResult(mergedResults.files,
+                mergedResults.targets, mergedResults.regions)
+            .toResponse(request.id));
       }
-    });
+    }
   }
 
   /**
    * Implement the `analysis.getReachableSources` request.
    */
   Response getReachableSources(Request request) {
-    AnalysisGetReachableSourcesParams params =
-        new AnalysisGetReachableSourcesParams.fromRequest(request);
-    ContextSourcePair pair = server.getContextSourcePair(params.file);
-    if (pair.context == null || pair.source == null) {
-      return new Response.getReachableSourcesInvalidFile(request);
-    }
-    Map<String, List<String>> sources =
-        new ReachableSourceCollector(pair.source, pair.context)
-            .collectSources();
-    return new AnalysisGetReachableSourcesResult(sources)
-        .toResponse(request.id);
+    return new Response.unsupportedFeature(request.id,
+        'Please contact the Dart analyzer team if you need this request.');
+//    AnalysisGetReachableSourcesParams params =
+//        new AnalysisGetReachableSourcesParams.fromRequest(request);
+//    ContextSourcePair pair = server.getContextSourcePair(params.file);
+//    if (pair.context == null || pair.source == null) {
+//      return new Response.getReachableSourcesInvalidFile(request);
+//    }
+//    Map<String, List<String>> sources =
+//        new ReachableSourceCollector(pair.source, pair.context)
+//            .collectSources();
+//    return new AnalysisGetReachableSourcesResult(sources)
+//        .toResponse(request.id);
   }
 
   @override
   Response handleRequest(Request request) {
     try {
       String requestName = request.method;
-      if (requestName == ANALYSIS_GET_ERRORS) {
+      if (requestName == ANALYSIS_REQUEST_GET_ERRORS) {
         getErrors(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == ANALYSIS_GET_HOVER) {
+      } else if (requestName == ANALYSIS_REQUEST_GET_HOVER) {
         getHover(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == ANALYSIS_GET_LIBRARY_DEPENDENCIES) {
+      } else if (requestName == ANALYSIS_REQUEST_GET_IMPORTED_ELEMENTS) {
+        getImportedElements(request);
+        return Response.DELAYED_RESPONSE;
+      } else if (requestName == ANALYSIS_REQUEST_GET_LIBRARY_DEPENDENCIES) {
         return getLibraryDependencies(request);
-      } else if (requestName == ANALYSIS_GET_NAVIGATION) {
+      } else if (requestName == ANALYSIS_REQUEST_GET_NAVIGATION) {
         getNavigation(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == ANALYSIS_GET_REACHABLE_SOURCES) {
+      } else if (requestName == ANALYSIS_REQUEST_GET_REACHABLE_SOURCES) {
         return getReachableSources(request);
-      } else if (requestName == ANALYSIS_REANALYZE) {
+      } else if (requestName == ANALYSIS_REQUEST_REANALYZE) {
         return reanalyze(request);
-      } else if (requestName == ANALYSIS_SET_ANALYSIS_ROOTS) {
+      } else if (requestName == ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS) {
         return setAnalysisRoots(request);
-      } else if (requestName == ANALYSIS_SET_GENERAL_SUBSCRIPTIONS) {
+      } else if (requestName == ANALYSIS_REQUEST_SET_GENERAL_SUBSCRIPTIONS) {
         return setGeneralSubscriptions(request);
-      } else if (requestName == ANALYSIS_SET_PRIORITY_FILES) {
+      } else if (requestName == ANALYSIS_REQUEST_SET_PRIORITY_FILES) {
         return setPriorityFiles(request);
-      } else if (requestName == ANALYSIS_SET_SUBSCRIPTIONS) {
+      } else if (requestName == ANALYSIS_REQUEST_SET_SUBSCRIPTIONS) {
         return setSubscriptions(request);
-      } else if (requestName == ANALYSIS_UPDATE_CONTENT) {
+      } else if (requestName == ANALYSIS_REQUEST_UPDATE_CONTENT) {
         return updateContent(request);
-      } else if (requestName == ANALYSIS_UPDATE_OPTIONS) {
+      } else if (requestName == ANALYSIS_REQUEST_UPDATE_OPTIONS) {
         return updateOptions(request);
       }
     } on RequestFailure catch (exception) {
@@ -272,6 +292,8 @@ class AnalysisDomainHandler implements RequestHandler {
    * Implement the 'analysis.reanalyze' request.
    */
   Response reanalyze(Request request) {
+    server.options.analytics?.sendEvent('analysis', 'reanalyze');
+
     AnalysisReanalyzeParams params =
         new AnalysisReanalyzeParams.fromRequest(request);
     List<String> roots = params.roots;
@@ -290,11 +312,10 @@ class AnalysisDomainHandler implements RequestHandler {
       server.reanalyze(rootResources);
     }
     //
-    // Forward the request to the plugins.
+    // Restart all of the plugins. This is an async operation that will happen
+    // in the background.
     //
-    RequestConverter converter = new RequestConverter();
-    server.pluginManager
-        .broadcastRequest(converter.convertAnalysisReanalyzeParams(params));
+    server.pluginManager.restartPlugins();
     //
     // Send the response.
     //
@@ -308,6 +329,10 @@ class AnalysisDomainHandler implements RequestHandler {
     var params = new AnalysisSetAnalysisRootsParams.fromRequest(request);
     List<String> includedPathList = params.included;
     List<String> excludedPathList = params.excluded;
+
+    server.options.analytics?.sendEvent('analysis', 'setAnalysisRoots',
+        value: includedPathList.length);
+
     // validate
     for (String path in includedPathList) {
       if (!server.isValidFilePath(path)) {
@@ -422,76 +447,5 @@ class AnalysisDomainHandler implements RequestHandler {
     }
     server.updateOptions(updaters);
     return new AnalysisUpdateOptionsResult().toResponse(request.id);
-  }
-
-  /**
-   * Call all the registered [SetAnalysisDomain] functions.
-   */
-  void _callAnalysisDomainReceivers() {
-    AnalysisDomain analysisDomain = new AnalysisDomainImpl(server);
-    for (SetAnalysisDomain function
-        in server.serverPlugin.setAnalysisDomainFunctions) {
-      try {
-        function(analysisDomain);
-      } catch (exception, stackTrace) {
-        engine.AnalysisEngine.instance.logger.logError(
-            'Exception from analysis domain receiver: ${function.runtimeType}',
-            new CaughtException(exception, stackTrace));
-      }
-    }
-  }
-}
-
-/**
- * An implementation of [AnalysisDomain] for [AnalysisServer].
- */
-class AnalysisDomainImpl implements AnalysisDomain {
-  final AnalysisServer server;
-
-  final Map<ResultDescriptor, StreamController<engine.ResultChangedEvent>>
-      controllers =
-      <ResultDescriptor, StreamController<engine.ResultChangedEvent>>{};
-
-  AnalysisDomainImpl(this.server) {
-    server.onContextsChanged.listen((ContextsChangedEvent event) {
-      event.added.forEach(_subscribeForContext);
-    });
-  }
-
-  @override
-  Stream<engine.ResultChangedEvent> onResultChanged(
-      ResultDescriptor descriptor) {
-    Stream<engine.ResultChangedEvent> stream =
-        controllers.putIfAbsent(descriptor, () {
-      return new StreamController<engine.ResultChangedEvent>.broadcast();
-    }).stream;
-    server.analysisContexts.forEach(_subscribeForContext);
-    return stream;
-  }
-
-  @override
-  void scheduleNotification(
-      engine.AnalysisContext context, Source source, AnalysisService service) {
-    String file = source.fullName;
-    if (server.hasAnalysisSubscription(service, file)) {
-      if (service == AnalysisService.NAVIGATION) {
-        server.scheduleOperation(new NavigationOperation(context, source));
-      }
-      if (service == AnalysisService.OCCURRENCES) {
-        server.scheduleOperation(new OccurrencesOperation(context, source));
-      }
-    }
-  }
-
-  void _subscribeForContext(engine.AnalysisContext context) {
-    for (ResultDescriptor descriptor in controllers.keys) {
-      context.onResultChanged(descriptor).listen((result) {
-        StreamController<engine.ResultChangedEvent> controller =
-            controllers[result.descriptor];
-        if (controller != null) {
-          controller.add(result);
-        }
-      });
-    }
   }
 }

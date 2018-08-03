@@ -8,23 +8,17 @@
 
 #include "vm/bootstrap_natives.h"
 #include "vm/class_finalizer.h"
-#include "vm/compiler.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_impl.h"
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/kernel.h"
-#include "vm/kernel_reader.h"
+#include "vm/kernel_loader.h"
 #endif
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/symbols.h"
 
 namespace dart {
-
-DEFINE_FLAG(bool,
-            use_corelib_source_files,
-            false,
-            "Attempt to use source files directly when loading in the core "
-            "libraries during the bootstrap process");
 
 struct BootstrapLibProps {
   ObjectStore::BootstrapLibraryId index;
@@ -34,17 +28,9 @@ struct BootstrapLibProps {
   const char** patch_paths;
 };
 
-
-enum {
-  kPathsUriOffset = 0,
-  kPathsFileOffset = 1,
-  kPathsSourceOffset = 2,
-  kPathsEntryLength = 3
-};
-
+enum { kPathsUriOffset = 0, kPathsSourceOffset = 1, kPathsEntryLength = 2 };
 
 const char** Bootstrap::profiler_patch_paths_ = NULL;
-
 
 #define MAKE_PROPERTIES(CamelName, name)                                       \
   {ObjectStore::k##CamelName, "dart:" #name, Bootstrap::name##_source_paths_,  \
@@ -55,9 +41,7 @@ static const BootstrapLibProps bootstrap_libraries[] = {
 
 #undef MAKE_PROPERTIES
 
-
 static const intptr_t kBootstrapLibraryCount = ARRAY_SIZE(bootstrap_libraries);
-
 
 static RawString* GetLibrarySourceByIndex(intptr_t index,
                                           const String& uri,
@@ -70,53 +54,33 @@ static RawString* GetLibrarySourceByIndex(intptr_t index,
   if (source_paths == NULL) {
     return String::null();  // No path mapping information exists for library.
   }
-  const char* source_path = NULL;
   const char* source_data = NULL;
   for (intptr_t i = 0; source_paths[i] != NULL; i += kPathsEntryLength) {
     if (uri.Equals(source_paths[i + kPathsUriOffset])) {
-      source_path = source_paths[i + kPathsFileOffset];
       source_data = source_paths[i + kPathsSourceOffset];
       break;
     }
   }
-  if ((source_path == NULL) && (source_data == NULL)) {
+  if (source_data == NULL) {
     return String::null();  // Uri does not exist in path mapping information.
   }
 
   const uint8_t* utf8_array = NULL;
   intptr_t file_length = -1;
 
-  // If flag to use the core library files directly is specified then try
-  // to read the file and extract it's contents otherwise just use the
-  // source data that has been backed into the binary.
-  if (FLAG_use_corelib_source_files) {
-    Dart_FileOpenCallback file_open = Dart::file_open_callback();
-    Dart_FileReadCallback file_read = Dart::file_read_callback();
-    Dart_FileCloseCallback file_close = Dart::file_close_callback();
-    if ((file_open != NULL) && (file_read != NULL) && (file_close != NULL)) {
-      // Try to open and read the file.
-      void* stream = (*file_open)(source_path, false);
-      if (stream != NULL) {
-        (*file_read)(&utf8_array, &file_length, stream);
-        (*file_close)(stream);
-      }
-    }
-  }
-  if (file_length == -1) {
-    if (source_data != NULL) {
-      file_length = strlen(source_data);
-      utf8_array = reinterpret_cast<const uint8_t*>(source_data);
-    } else {
-      return String::null();
-    }
+  if (source_data != NULL) {
+    file_length = strlen(source_data);
+    utf8_array = reinterpret_cast<const uint8_t*>(source_data);
+  } else {
+    return String::null();
   }
   ASSERT(utf8_array != NULL);
   ASSERT(file_length >= 0);
   return String::FromUTF8(utf8_array, file_length);
 }
 
-
-static RawString* GetLibrarySource(const Library& lib,
+static RawString* GetLibrarySource(Zone* zone,
+                                   const Library& lib,
                                    const String& uri,
                                    bool patch) {
   // First check if this is a valid bootstrap library and find its index in
@@ -132,9 +96,14 @@ static RawString* GetLibrarySource(const Library& lib,
     return String::null();  // The library is not a bootstrap library.
   }
 
-  return GetLibrarySourceByIndex(index, uri, patch);
-}
+  const Array& strings = Array::Handle(zone, Array::New(3));
+  strings.SetAt(0, lib_uri);
+  strings.SetAt(1, Symbols::Slash());
+  strings.SetAt(2, uri);
+  const String& part_uri = String::Handle(zone, String::ConcatAll(strings));
 
+  return GetLibrarySourceByIndex(index, part_uri, patch);
+}
 
 static RawError* Compile(const Library& library, const Script& script) {
   bool update_lib_status = (script.kind() == RawScript::kScriptTag ||
@@ -155,13 +124,12 @@ static RawError* Compile(const Library& library, const Script& script) {
   return error.raw();
 }
 
-
 static Dart_Handle LoadPartSource(Thread* thread,
                                   const Library& lib,
                                   const String& uri) {
   Zone* zone = thread->zone();
   const String& part_source =
-      String::Handle(zone, GetLibrarySource(lib, uri, false));
+      String::Handle(zone, GetLibrarySource(zone, lib, uri, false));
   const String& lib_uri = String::Handle(zone, lib.url());
   if (part_source.IsNull()) {
     return Api::NewError("Unable to read part file '%s' of library '%s'",
@@ -181,7 +149,6 @@ static Dart_Handle LoadPartSource(Thread* thread,
   const Error& error = Error::Handle(zone, Compile(lib, part_script));
   return Api::NewHandle(thread, error.raw());
 }
-
 
 static Dart_Handle BootstrapLibraryTagHandler(Dart_LibraryTag tag,
                                               Dart_Handle library,
@@ -217,7 +184,6 @@ static Dart_Handle BootstrapLibraryTagHandler(Dart_LibraryTag tag,
   ASSERT(!lib.IsNull());
   return LoadPartSource(thread, lib, uri_str);
 }
-
 
 static RawError* LoadPatchFiles(Thread* thread,
                                 const Library& lib,
@@ -256,10 +222,9 @@ static RawError* LoadPatchFiles(Thread* thread,
   return Error::null();
 }
 
-
-static void Finish(Thread* thread, bool from_kernel) {
+static void Finish(Thread* thread) {
   Bootstrap::SetupNativeResolver();
-  if (!ClassFinalizer::ProcessPendingClasses(from_kernel)) {
+  if (!ClassFinalizer::ProcessPendingClasses()) {
     FATAL("Error in class finalization during bootstrapping.");
   }
 
@@ -274,23 +239,26 @@ static void Finish(Thread* thread, bool from_kernel) {
 #if defined(DEBUG)
   // Verify that closure field offsets are identical in Dart and C++.
   const Array& fields = Array::Handle(zone, cls.fields());
-  ASSERT(fields.Length() == 4);
+  ASSERT(fields.Length() == 6);
   Field& field = Field::Handle(zone);
   field ^= fields.At(0);
   ASSERT(field.Offset() == Closure::instantiator_type_arguments_offset());
   field ^= fields.At(1);
   ASSERT(field.Offset() == Closure::function_type_arguments_offset());
   field ^= fields.At(2);
-  ASSERT(field.Offset() == Closure::function_offset());
+  ASSERT(field.Offset() == Closure::delayed_type_arguments_offset());
   field ^= fields.At(3);
+  ASSERT(field.Offset() == Closure::function_offset());
+  field ^= fields.At(4);
   ASSERT(field.Offset() == Closure::context_offset());
+  field ^= fields.At(5);
+  ASSERT(field.Offset() == Closure::hash_offset());
 #endif  // defined(DEBUG)
 
   // Eagerly compile Bool class, bool constants are used from within compiler.
   cls = object_store->bool_class();
   Compiler::CompileClass(cls);
 }
-
 
 static RawError* BootstrapFromSource(Thread* thread) {
   Isolate* isolate = thread->isolate();
@@ -333,7 +301,7 @@ static RawError* BootstrapFromSource(Thread* thread) {
   }
 
   if (error.IsNull()) {
-    Finish(thread, /*from_kernel=*/false);
+    Finish(thread);
   }
   // Restore the library tag handler for the isolate.
   isolate->set_library_tag_handler(saved_tag_handler);
@@ -341,22 +309,24 @@ static RawError* BootstrapFromSource(Thread* thread) {
   return error.raw();
 }
 
-
 #if !defined(DART_PRECOMPILED_RUNTIME)
-static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
+static RawError* BootstrapFromKernel(Thread* thread,
+                                     const uint8_t* kernel_buffer,
+                                     intptr_t kernel_buffer_size) {
   Zone* zone = thread->zone();
-  kernel::KernelReader reader(program);
-
-  Isolate* isolate = thread->isolate();
-  // Mark the already-pending classes.  This mark bit will be used to avoid
-  // adding classes to the list more than once.
-  GrowableObjectArray& pending_classes = GrowableObjectArray::Handle(
-      zone, isolate->object_store()->pending_classes());
-  dart::Class& pending = dart::Class::Handle(zone);
-  for (intptr_t i = 0; i < pending_classes.Length(); ++i) {
-    pending ^= pending_classes.At(i);
-    pending.set_is_marked_for_parsing();
+  const char* error = nullptr;
+  kernel::Program* program = kernel::Program::ReadFromBuffer(
+      kernel_buffer, kernel_buffer_size, &error);
+  if (program == nullptr) {
+    const intptr_t kMessageBufferSize = 512;
+    char message_buffer[kMessageBufferSize];
+    Utils::SNPrint(message_buffer, kMessageBufferSize,
+                   "Can't load Kernel binary: %s.", error);
+    const String& msg = String::Handle(String::New(message_buffer, Heap::kOld));
+    return ApiError::New(msg, Heap::kOld);
   }
+  kernel::KernelLoader loader(program);
+  Isolate* isolate = thread->isolate();
 
   // Load the bootstrap libraries in order (see object_store.h).
   Library& library = Library::Handle(zone);
@@ -365,24 +335,25 @@ static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
     ObjectStore::BootstrapLibraryId id = bootstrap_libraries[i].index;
     library = isolate->object_store()->bootstrap_library(id);
     dart_name = library.url();
-    for (intptr_t j = 0; j < program->libraries().length(); ++j) {
-      kernel::Library* kernel_library = program->libraries()[j];
-      kernel::StringIndex uri_index = kernel_library->import_uri();
-      const String& kernel_name = reader.DartSymbol(uri_index);
+    for (intptr_t j = 0; j < program->library_count(); ++j) {
+      const String& kernel_name = loader.LibraryUri(j);
       if (kernel_name.Equals(dart_name)) {
-        reader.ReadLibrary(kernel_library);
-        library.SetLoaded();
+        loader.LoadLibrary(j);
         break;
       }
     }
   }
 
   // Finish bootstrapping, including class finalization.
-  Finish(thread, /*from_kernel=*/true);
+  Finish(thread);
 
   // The platform binary may contain other libraries (e.g., dart:_builtin or
   // dart:io) that will not be bundled with application.  Load them now.
-  reader.ReadProgram();
+  const Object& result = Object::Handle(zone, loader.LoadProgram());
+  delete program;
+  if (result.IsError()) {
+    return Error::Cast(result).raw();
+  }
 
   // The builtin library should be registered with the VM.
   dart_name = String::New("dart:_builtin");
@@ -392,14 +363,16 @@ static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
   return Error::null();
 }
 #else
-static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
+static RawError* BootstrapFromKernel(Thread* thread,
+                                     const uint8_t* kernel_buffer,
+                                     intptr_t kernel_buffer_size) {
   UNREACHABLE();
   return Error::null();
 }
 #endif
 
-
-RawError* Bootstrap::DoBootstrapping(kernel::Program* kernel_program) {
+RawError* Bootstrap::DoBootstrapping(const uint8_t* kernel_buffer,
+                                     intptr_t kernel_buffer_size) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
@@ -422,8 +395,9 @@ RawError* Bootstrap::DoBootstrapping(kernel::Program* kernel_program) {
     }
   }
 
-  return (kernel_program == NULL) ? BootstrapFromSource(thread)
-                                  : BootstrapFromKernel(thread, kernel_program);
+  return (kernel_buffer == NULL)
+             ? BootstrapFromSource(thread)
+             : BootstrapFromKernel(thread, kernel_buffer, kernel_buffer_size);
 }
 
 }  // namespace dart

@@ -25,9 +25,7 @@ abstract class EmbedderRelatedTest {
     pathTranslator = new TestPathTranslator(rawProvider)
       ..newFolder('/home/.pub-cache/empty')
       ..newFolder('/home/.pub-cache/fox/lib')
-      ..newFile(
-          '/home/.pub-cache/fox/lib/_embedder.yaml',
-          r'''
+      ..newFile('/home/.pub-cache/fox/lib/_embedder.yaml', r'''
 embedded_libs:
   "dart:core" : "core.dart"
   "dart:fox": "slippy.dart"

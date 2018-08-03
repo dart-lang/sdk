@@ -47,11 +47,17 @@ class Scanner extends fe.Scanner {
    */
   factory Scanner(Source source, CharacterReader reader,
           AnalysisErrorListener errorListener) =>
-      fe.Scanner.useFasta
-          ? new _Scanner2(source, reader.getContents(), errorListener)
-          : new Scanner._(source, reader, errorListener);
+      new Scanner.fasta(source, errorListener,
+          contents: reader.getContents(), offset: reader.offset);
 
-  Scanner._(this.source, CharacterReader reader, this._errorListener)
+  factory Scanner.fasta(Source source, AnalysisErrorListener errorListener,
+      {String contents, int offset: -1}) {
+    return new _Scanner2(
+        source, contents ?? source.contents.data, offset, errorListener);
+  }
+
+  // Deprecated
+  Scanner.old(this.source, CharacterReader reader, this._errorListener)
       : super.create(reader);
 
   @override
@@ -73,6 +79,11 @@ class _Scanner2 implements Scanner {
    * The text to be scanned.
    */
   final String _contents;
+
+  /**
+   * The offset of the first character from the reader.
+   */
+  final int _readerOffset;
 
   /**
    * The error listener that will be informed of any errors that are found
@@ -97,8 +108,24 @@ class _Scanner2 implements Scanner {
   @override
   bool scanLazyAssignmentOperators = false;
 
-  _Scanner2(this.source, this._contents, this._errorListener) {
+  _Scanner2(
+      this.source, this._contents, this._readerOffset, this._errorListener) {
     lineStarts.add(0);
+  }
+
+  @override
+  bool get hasUnmatchedGroups {
+    throw 'unsupported operation';
+  }
+
+  @override
+  set preserveComments(bool preserveComments) {
+    this._preserveComments = preserveComments;
+  }
+
+  @override
+  Token get tail {
+    throw 'unsupported operation';
   }
 
   @override
@@ -108,11 +135,6 @@ class _Scanner2 implements Scanner {
 
   @override
   int bigSwitch(int next) {
-    throw 'unsupported operation';
-  }
-
-  @override
-  bool get hasUnmatchedGroups {
     throw 'unsupported operation';
   }
 
@@ -130,29 +152,31 @@ class _Scanner2 implements Scanner {
 
   @override
   void setSourceStart(int line, int column) {
-    throw 'unsupported operation';
-  }
-
-  @override
-  Token get tail {
-    throw 'unsupported operation';
+    int offset = _readerOffset;
+    if (line < 1 || column < 1 || offset < 0 || (line + column - 2) >= offset) {
+      return;
+    }
+    lineStarts.removeAt(0);
+    for (int i = 2; i < line; i++) {
+      lineStarts.add(1);
+    }
+    lineStarts.add(offset - column + 1);
   }
 
   @override
   Token tokenize() {
-    // Note: Fasta always supports lazy assignment operators (`&&=` and `||=`),
-    // so we can ignore the `scanLazyAssignmentOperators` flag.
-    if (scanGenericMethodComments) {
-      // Fasta doesn't support generic method comments.
-      // TODO(danrubel): remove this once fasts support has been added.
-      throw 'No generic method comment support in Fasta';
-    }
     fasta.ScannerResult result = fasta.scanString(_contents,
         includeComments: _preserveComments,
+        scanGenericMethodComments: scanGenericMethodComments,
         scanLazyAssignmentOperators: scanLazyAssignmentOperators);
+
     // fasta pretends there is an additional line at EOF
-    lineStarts
-        .addAll(result.lineStarts.sublist(1, result.lineStarts.length - 1));
+    result.lineStarts.removeLast();
+
+    // for compatibility, there is already a first entry in lineStarts
+    result.lineStarts.removeAt(0);
+
+    lineStarts.addAll(result.lineStarts);
     fasta.Token token = result.tokens;
     // The default recovery strategy used by scanString
     // places all error tokens at the head of the stream.
@@ -161,11 +185,14 @@ class _Scanner2 implements Scanner {
       token = token.next;
     }
     firstToken = token;
+    // Update all token offsets based upon the reader's starting offset
+    if (_readerOffset != -1) {
+      final int delta = _readerOffset + 1;
+      do {
+        token.offset += delta;
+        token = token.next;
+      } while (!token.isEof);
+    }
     return firstToken;
-  }
-
-  @override
-  set preserveComments(bool preserveComments) {
-    this._preserveComments = preserveComments;
   }
 }

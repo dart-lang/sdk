@@ -42,7 +42,7 @@ class RegExpBuilder : public ZoneAllocated {
   GrowableArray<RegExpTree*> text_;
   GrowableArray<RegExpTree*> alternatives_;
 #ifdef DEBUG
-  enum { ADD_NONE, ADD_CHAR, ADD_TERM, ADD_ASSERT, ADD_ATOM } last_added_;
+  enum {ADD_NONE, ADD_CHAR, ADD_TERM, ADD_ASSERT, ADD_ATOM} last_added_;
 #define LAST(x) last_added_ = x;
 #else
 #define LAST(x)
@@ -52,8 +52,6 @@ class RegExpBuilder : public ZoneAllocated {
 class RegExpParser : public ValueObject {
  public:
   RegExpParser(const String& in, String* error, bool multiline_mode);
-
-  static bool ParseFunction(ParsedFunction* parsed_function);
 
   static bool ParseRegExp(const String& input,
                           bool multiline,

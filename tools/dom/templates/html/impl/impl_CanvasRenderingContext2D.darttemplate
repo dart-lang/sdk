@@ -11,14 +11,8 @@ abstract class CanvasRenderingContext {
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements CanvasRenderingContext {
 $!MEMBERS
 
-  @DomName('CanvasRenderingContext2D.createImageDataFromImageData')
-  @DocsEditable()
   ImageData createImageDataFromImageData(ImageData imagedata) =>
-$if DART2JS
     JS('ImageData', '#.createImageData(#)', this, imagedata);
-$else
-    this.createImageData(imagedata);
-$endif
 
   /**
    * Sets the color used inside shapes.
@@ -56,25 +50,15 @@ $endif
     this.strokeStyle = 'hsla($h, $s%, $l%, $a)';
   }
 
-  @DomName('CanvasRenderingContext2D.arc')
   void arc(num x,  num y,  num radius,  num startAngle, num endAngle,
       [bool anticlockwise = false]) {
     // TODO(terry): This should not be needed: dartbug.com/20939.
-$if DART2JS
     JS('void', '#.arc(#, #, #, #, #, #)', this, x, y, radius, startAngle,
        endAngle, anticlockwise);
-$else
-    _arc(x, y, radius, startAngle, endAngle, anticlockwise);
-$endif
   }
 
-  @DomName('CanvasRenderingContext2D.createPatternFromImage')
   CanvasPattern createPatternFromImage(ImageElement image, String repetitionType) =>
-$if DART2JS
     JS('CanvasPattern', '#.createPattern(#, #)', this, image, repetitionType);
-$else
-    createPattern(image, repetitionType);
-$endif
 
   /**
    * Draws an image from a CanvasImageSource to an area of this canvas.
@@ -116,10 +100,8 @@ $endif
    *   * [drawImage](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
    * from the WHATWG.
    */
-  @DomName('CanvasRenderingContext2D.drawImage')
   void drawImageToRect(CanvasImageSource source, Rectangle destRect,
       {Rectangle sourceRect}) {
-$if DART2JS
     if (sourceRect == null) {
       drawImageScaled(source,
           destRect.left,
@@ -137,25 +119,6 @@ $if DART2JS
           destRect.width,
           destRect.height);
     }
-$else
-    if (sourceRect == null) {
-      _drawImage(source,
-          destRect.left,
-          destRect.top,
-          destRect.width,
-          destRect.height);
-    } else {
-      _drawImage(source,
-          sourceRect.left,
-          sourceRect.top,
-          sourceRect.width,
-          sourceRect.height,
-          destRect.left,
-          destRect.top,
-          destRect.width,
-          destRect.height);
-    }
-$endif
   }
 
   /**
@@ -187,15 +150,8 @@ $endif
    *   * [drawImage](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
    * from the WHATWG.
    */
-  @DomName('CanvasRenderingContext2D.drawImage')
-$if DART2JS
   @JSName('drawImage')
   void drawImage(CanvasImageSource source, num destX, num destY) native;
-$else
-  void drawImage(CanvasImageSource source, num destX, num destY) {
-    _drawImage(source, destX, destY);
-  }
-$endif
 
   /**
    * Draws an image from a CanvasImageSource to an area of this canvas.
@@ -223,17 +179,9 @@ $endif
    *   * [drawImage](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
    * from the WHATWG.
    */
-  @DomName('CanvasRenderingContext2D.drawImage')
-$if DART2JS
   @JSName('drawImage')
   void drawImageScaled(CanvasImageSource source,
       num destX, num destY, num destWidth, num destHeight) native;
-$else
-  void drawImageScaled(CanvasImageSource source,
-      num destX, num destY, num destWidth, num destHeight) {
-    _drawImage(source, destX, destY, destWidth, destHeight);
-  }
-$endif
 
   /**
    * Draws an image from a CanvasImageSource to an area of this canvas.
@@ -264,27 +212,15 @@ $endif
    *   * [drawImage](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
    * from the WHATWG.
    */
-  @DomName('CanvasRenderingContext2D.drawImage')
-$if DART2JS
   @JSName('drawImage')
   void drawImageScaledFromSource(CanvasImageSource source,
       num sourceX, num sourceY, num sourceWidth, num sourceHeight,
       num destX, num destY, num destWidth, num destHeight) native;
-$else
-  void drawImageScaledFromSource(CanvasImageSource source,
-      num sourceX, num sourceY, num sourceWidth, num sourceHeight,
-      num destX, num destY, num destWidth, num destHeight) {
-    _drawImage(source, sourceX, sourceY, sourceWidth, sourceHeight,
-        destX, destY, destWidth, destHeight);
-  }
-$endif
 
-$if DART2JS
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @SupportedBrowser(SupportedBrowser.IE, '11')
   @Unstable()
-  @DomName('CanvasRenderingContext2D.lineDashOffset')
   // TODO(14316): Firefox has this functionality with mozDashOffset, but it
   // needs to be polyfilled.
   num get lineDashOffset => JS('num',
@@ -294,7 +230,6 @@ $if DART2JS
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @SupportedBrowser(SupportedBrowser.IE, '11')
   @Unstable()
-  @DomName('CanvasRenderingContext2D.lineDashOffset')
   // TODO(14316): Firefox has this functionality with mozDashOffset, but it
   // needs to be polyfilled.
   set lineDashOffset(num value) {
@@ -302,40 +237,25 @@ $if DART2JS
        'typeof #.lineDashOffset != "undefined" ? #.lineDashOffset = # : '
        '#.webkitLineDashOffset = #', this, this, value, this, value);
   }
-$else
-  // TODO(amouravski): Add Dartium native methods for drawImage once we figure
-  // out how to not break native bindings.
-$endif
 
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @SupportedBrowser(SupportedBrowser.IE, '11')
   @Unstable()
-  @DomName('CanvasRenderingContext2D.getLineDash')
   List<num> getLineDash() {
     // TODO(14316): Firefox has this functionality with mozDash, but it's a bit
     // different.
-$if DART2JS
     if (JS('bool', '!!#.getLineDash', this)) {
       return JS('List<num>', '#.getLineDash()', this);
     } else if (JS('bool', '!!#.webkitLineDash', this)) {
       return JS('List<num>', '#.webkitLineDash', this);
     } 
-$else
-    var result = _getLineDash();
-    if (result == null) {
-      result = [];
-    }
-    return result;
-$endif
   }
 
-$if DART2JS
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @SupportedBrowser(SupportedBrowser.IE, '11')
   @Unstable()
-  @DomName('CanvasRenderingContext2D.setLineDash')
   void setLineDash(List<num> dash) {
     // TODO(14316): Firefox has this functionality with mozDash, but it's a bit
     // different.
@@ -345,9 +265,7 @@ $if DART2JS
       JS('void', '#.webkitLineDash = #', this, dash);
     }
   }
-$endif
 
-$if DART2JS
 
   /**
    * Draws text to the canvas.
@@ -363,7 +281,6 @@ $if DART2JS
    * [CanvasRenderingContext2D.textBaseLine] properties are also applied to the
    * drawn text.
    */
-  @DomName('CanvasRenderingContext2D.fillText')
   void fillText(String text, num x, num y, [num maxWidth]) {
     if (maxWidth != null) {
       JS('void', '#.fillText(#, #, #, #)', this, text, x, y, maxWidth);
@@ -372,15 +289,7 @@ $if DART2JS
     }
   }
 
-  @DomName('CanvasRenderingContext2D.fill')
-  void fill([String winding = 'nonzero']) {
-    JS('void', '#.fill(#)', this, winding);
-  }
-$endif
-
   /** Deprecated always returns 1.0 */
-  @DomName('CanvasRenderingContext2D.webkitBackingStorePixelRation')
-  @Experimental()
   @deprecated
   double get backingStorePixelRatio => 1.0;
 }

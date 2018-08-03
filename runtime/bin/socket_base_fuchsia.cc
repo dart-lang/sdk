@@ -2,15 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_IO_DISABLED)
-
 #include "platform/globals.h"
 #if defined(HOST_OS_FUCHSIA)
 
 #include "bin/socket_base.h"
 
-#include <errno.h>        // NOLINT
-#include <fcntl.h>        // NOLINT
+// TODO(ZX-766): If/when Fuchsia adds getifaddrs(), use that instead of the
+// ioctl in netconfig.h.
+#include <errno.h>  // NOLINT
+#include <fcntl.h>  // NOLINT
+#include <lib/netstack/c/netconfig.h>
 #include <ifaddrs.h>      // NOLINT
 #include <net/if.h>       // NOLINT
 #include <netinet/tcp.h>  // NOLINT
@@ -21,6 +22,7 @@
 #include <sys/stat.h>     // NOLINT
 #include <unistd.h>       // NOLINT
 
+#include "bin/eventhandler.h"
 #include "bin/fdutils.h"
 #include "bin/file.h"
 #include "bin/socket_base_fuchsia.h"
@@ -63,12 +65,10 @@ SocketAddress::SocketAddress(struct sockaddr* sa) {
   memmove(reinterpret_cast<void*>(&addr_), sa, salen);
 }
 
-
 bool SocketBase::Initialize() {
   // Nothing to do on Fuchsia.
   return true;
 }
-
 
 bool SocketBase::FormatNumericAddress(const RawAddr& addr,
                                       char* address,
@@ -79,43 +79,42 @@ bool SocketBase::FormatNumericAddress(const RawAddr& addr,
                                         0, NI_NUMERICHOST) == 0));
 }
 
-
 bool SocketBase::IsBindError(intptr_t error_number) {
   return error_number == EADDRINUSE || error_number == EADDRNOTAVAIL ||
          error_number == EINVAL;
 }
 
-
 intptr_t SocketBase::Available(intptr_t fd) {
-  intptr_t available = FDUtils::AvailableBytes(fd);
-  LOG_INFO("SocketBase::Available(%ld) = %ld\n", fd, available);
+  IOHandle* handle = reinterpret_cast<IOHandle*>(fd);
+  ASSERT(handle->fd() >= 0);
+  intptr_t available = FDUtils::AvailableBytes(handle->fd());
+  LOG_INFO("SocketBase::Available(%ld) = %ld\n", handle->fd(), available);
   return available;
 }
-
 
 intptr_t SocketBase::Read(intptr_t fd,
                           void* buffer,
                           intptr_t num_bytes,
                           SocketOpKind sync) {
-  ASSERT(fd >= 0);
-  LOG_INFO("SocketBase::Read: calling read(%ld, %p, %ld)\n", fd, buffer,
-           num_bytes);
-  ssize_t read_bytes = NO_RETRY_EXPECTED(read(fd, buffer, num_bytes));
+  IOHandle* handle = reinterpret_cast<IOHandle*>(fd);
+  ASSERT(handle->fd() >= 0);
+  LOG_INFO("SocketBase::Read: calling read(%ld, %p, %ld)\n", handle->fd(),
+           buffer, num_bytes);
+  intptr_t read_bytes = handle->Read(buffer, num_bytes);
   ASSERT(EAGAIN == EWOULDBLOCK);
   if ((sync == kAsync) && (read_bytes == -1) && (errno == EWOULDBLOCK)) {
     // If the read would block we need to retry and therefore return 0
     // as the number of bytes written.
     read_bytes = 0;
   } else if (read_bytes == -1) {
-    LOG_ERR("SocketBase::Read: read(%ld, %p, %ld) failed\n", fd, buffer,
-            num_bytes);
+    LOG_ERR("SocketBase::Read: read(%ld, %p, %ld) failed\n", handle->fd(),
+            buffer, num_bytes);
   } else {
-    LOG_INFO("SocketBase::Read: read(%ld, %p, %ld) succeeded\n", fd, buffer,
-             num_bytes);
+    LOG_INFO("SocketBase::Read: read(%ld, %p, %ld) succeeded\n", handle->fd(),
+             buffer, num_bytes);
   }
   return read_bytes;
 }
-
 
 intptr_t SocketBase::RecvFrom(intptr_t fd,
                               void* buffer,
@@ -127,30 +126,29 @@ intptr_t SocketBase::RecvFrom(intptr_t fd,
   return -1;
 }
 
-
 intptr_t SocketBase::Write(intptr_t fd,
                            const void* buffer,
                            intptr_t num_bytes,
                            SocketOpKind sync) {
-  ASSERT(fd >= 0);
-  LOG_INFO("SocketBase::Write: calling write(%ld, %p, %ld)\n", fd, buffer,
-           num_bytes);
-  ssize_t written_bytes = NO_RETRY_EXPECTED(write(fd, buffer, num_bytes));
+  IOHandle* handle = reinterpret_cast<IOHandle*>(fd);
+  ASSERT(handle->fd() >= 0);
+  LOG_INFO("SocketBase::Write: calling write(%ld, %p, %ld)\n", handle->fd(),
+           buffer, num_bytes);
+  intptr_t written_bytes = handle->Write(buffer, num_bytes);
   ASSERT(EAGAIN == EWOULDBLOCK);
   if ((sync == kAsync) && (written_bytes == -1) && (errno == EWOULDBLOCK)) {
     // If the would block we need to retry and therefore return 0 as
     // the number of bytes written.
     written_bytes = 0;
   } else if (written_bytes == -1) {
-    LOG_ERR("SocketBase::Write: write(%ld, %p, %ld) failed\n", fd, buffer,
-            num_bytes);
+    LOG_ERR("SocketBase::Write: write(%ld, %p, %ld) failed\n", handle->fd(),
+            buffer, num_bytes);
   } else {
-    LOG_INFO("SocketBase::Write: write(%ld, %p, %ld) succeeded\n", fd, buffer,
-             num_bytes);
+    LOG_INFO("SocketBase::Write: write(%ld, %p, %ld) succeeded\n", handle->fd(),
+             buffer, num_bytes);
   }
   return written_bytes;
 }
-
 
 intptr_t SocketBase::SendTo(intptr_t fd,
                             const void* buffer,
@@ -162,36 +160,34 @@ intptr_t SocketBase::SendTo(intptr_t fd,
   return -1;
 }
 
-
 intptr_t SocketBase::GetPort(intptr_t fd) {
-  ASSERT(fd >= 0);
+  IOHandle* handle = reinterpret_cast<IOHandle*>(fd);
+  ASSERT(handle->fd() >= 0);
   RawAddr raw;
   socklen_t size = sizeof(raw);
-  LOG_INFO("SocketBase::GetPort: calling getsockname(%ld)\n", fd);
-  if (NO_RETRY_EXPECTED(getsockname(fd, &raw.addr, &size))) {
+  LOG_INFO("SocketBase::GetPort: calling getsockname(%ld)\n", handle->fd());
+  if (NO_RETRY_EXPECTED(getsockname(handle->fd(), &raw.addr, &size))) {
     return 0;
   }
   return SocketAddress::GetAddrPort(raw);
 }
 
-
 SocketAddress* SocketBase::GetRemotePeer(intptr_t fd, intptr_t* port) {
-  ASSERT(fd >= 0);
+  IOHandle* handle = reinterpret_cast<IOHandle*>(fd);
+  ASSERT(handle->fd() >= 0);
   RawAddr raw;
   socklen_t size = sizeof(raw);
-  if (NO_RETRY_EXPECTED(getpeername(fd, &raw.addr, &size))) {
+  if (NO_RETRY_EXPECTED(getpeername(handle->fd(), &raw.addr, &size))) {
     return NULL;
   }
   *port = SocketAddress::GetAddrPort(raw);
   return new SocketAddress(&raw.addr);
 }
 
-
 void SocketBase::GetError(intptr_t fd, OSError* os_error) {
   LOG_ERR("SocketBase::GetError is unimplemented\n");
   UNIMPLEMENTED();
 }
-
 
 int SocketBase::GetType(intptr_t fd) {
   LOG_ERR("SocketBase::GetType is unimplemented\n");
@@ -199,13 +195,11 @@ int SocketBase::GetType(intptr_t fd) {
   return File::kOther;
 }
 
-
 intptr_t SocketBase::GetStdioHandle(intptr_t num) {
   LOG_ERR("SocketBase::GetStdioHandle is unimplemented\n");
   UNIMPLEMENTED();
   return num;
 }
-
 
 AddressList<SocketAddress>* SocketBase::LookupAddress(const char* host,
                                                       int type,
@@ -251,7 +245,6 @@ AddressList<SocketAddress>* SocketBase::LookupAddress(const char* host,
   return addresses;
 }
 
-
 bool SocketBase::ReverseLookup(const RawAddr& addr,
                                char* host,
                                intptr_t host_len,
@@ -260,7 +253,6 @@ bool SocketBase::ReverseLookup(const RawAddr& addr,
   UNIMPLEMENTED();
   return false;
 }
-
 
 bool SocketBase::ParseAddress(int type, const char* address, RawAddr* addr) {
   int result;
@@ -274,25 +266,76 @@ bool SocketBase::ParseAddress(int type, const char* address, RawAddr* addr) {
   return (result == 1);
 }
 
-
-bool SocketBase::ListInterfacesSupported() {
-  return false;
+static bool ShouldIncludeIfaAddrs(netc_if_info_t* if_info, int lookup_family) {
+  const int family = if_info->addr.ss_family;
+  return ((lookup_family == family) ||
+          (((lookup_family == AF_UNSPEC) &&
+            ((family == AF_INET) || (family == AF_INET6)))));
 }
 
+bool SocketBase::ListInterfacesSupported() {
+  return true;
+}
 
 AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
     int type,
     OSError** os_error) {
-  UNIMPLEMENTED();
-  return NULL;
-}
+  // We need a dummy socket.
+  const int fd = socket(AF_INET6, SOCK_STREAM, 0);
+  if (fd < 0) {
+    LOG_ERR("ListInterfaces: socket(AF_INET, SOCK_DGRAM, 0) failed\n");
+    return NULL;
+  }
 
+  // Call the ioctls.
+  netc_get_if_info_t get_if_info;
+  const ssize_t size = ioctl_netc_get_num_ifs(fd, &get_if_info.n_info);
+  if (size < 0) {
+    LOG_ERR("ListInterfaces: ioctl_netc_get_num_ifs() failed");
+    close(fd);
+    return NULL;
+  }
+  for (uint32_t i = 0; i < get_if_info.n_info; i++) {
+    const ssize_t size =
+        ioctl_netc_get_if_info_at(fd, &i, &get_if_info.info[i]);
+    if (size < 0) {
+      LOG_ERR("ListInterfaces: ioctl_netc_get_if_info_at() failed");
+      close(fd);
+      return NULL;
+    }
+  }
+
+  // Process the results.
+  const int lookup_family = SocketAddress::FromType(type);
+  intptr_t count = 0;
+  for (intptr_t i = 0; i < get_if_info.n_info; i++) {
+    if (ShouldIncludeIfaAddrs(&get_if_info.info[i], lookup_family)) {
+      count++;
+    }
+  }
+
+  AddressList<InterfaceSocketAddress>* addresses =
+      new AddressList<InterfaceSocketAddress>(count);
+  int addresses_idx = 0;
+  for (intptr_t i = 0; i < get_if_info.n_info; i++) {
+    if (ShouldIncludeIfaAddrs(&get_if_info.info[i], lookup_family)) {
+      char* ifa_name = DartUtils::ScopedCopyCString(get_if_info.info[i].name);
+      InterfaceSocketAddress* isa = new InterfaceSocketAddress(
+          reinterpret_cast<struct sockaddr*>(&get_if_info.info[i].addr),
+          ifa_name, if_nametoindex(get_if_info.info[i].name));
+      addresses->SetAt(addresses_idx, isa);
+      addresses_idx++;
+    }
+  }
+  close(fd);
+  return addresses;
+}
 
 void SocketBase::Close(intptr_t fd) {
-  ASSERT(fd >= 0);
-  NO_RETRY_EXPECTED(close(fd));
+  IOHandle* handle = reinterpret_cast<IOHandle*>(fd);
+  ASSERT(handle->fd() >= 0);
+  NO_RETRY_EXPECTED(close(handle->fd()));
 }
-
 
 bool SocketBase::GetNoDelay(intptr_t fd, bool* enabled) {
   LOG_ERR("SocketBase::GetNoDelay is unimplemented\n");
@@ -300,14 +343,13 @@ bool SocketBase::GetNoDelay(intptr_t fd, bool* enabled) {
   return false;
 }
 
-
 bool SocketBase::SetNoDelay(intptr_t fd, bool enabled) {
+  IOHandle* handle = reinterpret_cast<IOHandle*>(fd);
   int on = enabled ? 1 : 0;
-  return NO_RETRY_EXPECTED(setsockopt(fd, IPPROTO_TCP, TCP_NODELAY,
+  return NO_RETRY_EXPECTED(setsockopt(handle->fd(), IPPROTO_TCP, TCP_NODELAY,
                                       reinterpret_cast<char*>(&on),
                                       sizeof(on))) == 0;
 }
-
 
 bool SocketBase::GetMulticastLoop(intptr_t fd,
                                   intptr_t protocol,
@@ -317,7 +359,6 @@ bool SocketBase::GetMulticastLoop(intptr_t fd,
   return false;
 }
 
-
 bool SocketBase::SetMulticastLoop(intptr_t fd,
                                   intptr_t protocol,
                                   bool enabled) {
@@ -326,13 +367,11 @@ bool SocketBase::SetMulticastLoop(intptr_t fd,
   return false;
 }
 
-
 bool SocketBase::GetMulticastHops(intptr_t fd, intptr_t protocol, int* value) {
   LOG_ERR("SocketBase::GetMulticastHops is unimplemented\n");
   UNIMPLEMENTED();
   return false;
 }
-
 
 bool SocketBase::SetMulticastHops(intptr_t fd, intptr_t protocol, int value) {
   LOG_ERR("SocketBase::SetMulticastHops is unimplemented\n");
@@ -340,20 +379,17 @@ bool SocketBase::SetMulticastHops(intptr_t fd, intptr_t protocol, int value) {
   return false;
 }
 
-
 bool SocketBase::GetBroadcast(intptr_t fd, bool* enabled) {
   LOG_ERR("SocketBase::GetBroadcast is unimplemented\n");
   UNIMPLEMENTED();
   return false;
 }
 
-
 bool SocketBase::SetBroadcast(intptr_t fd, bool enabled) {
   LOG_ERR("SocketBase::SetBroadcast is unimplemented\n");
   UNIMPLEMENTED();
   return false;
 }
-
 
 bool SocketBase::JoinMulticast(intptr_t fd,
                                const RawAddr& addr,
@@ -363,7 +399,6 @@ bool SocketBase::JoinMulticast(intptr_t fd,
   UNIMPLEMENTED();
   return false;
 }
-
 
 bool SocketBase::LeaveMulticast(intptr_t fd,
                                 const RawAddr& addr,
@@ -378,5 +413,3 @@ bool SocketBase::LeaveMulticast(intptr_t fd,
 }  // namespace dart
 
 #endif  // defined(HOST_OS_FUCHSIA)
-
-#endif  // !defined(DART_IO_DISABLED)

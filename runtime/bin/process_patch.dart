@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// part of "common_patch.dart";
+
 @patch
 class _WindowsCodePageDecoder {
   @patch
@@ -22,7 +24,7 @@ class Process {
       Map<String, String> environment,
       bool includeParentEnvironment: true,
       bool runInShell: false,
-      ProcessStartMode mode: ProcessStartMode.NORMAL}) {
+      ProcessStartMode mode: ProcessStartMode.normal}) {
     _ProcessImpl process = new _ProcessImpl(
         executable,
         arguments,
@@ -40,8 +42,8 @@ class Process {
       Map<String, String> environment,
       bool includeParentEnvironment: true,
       bool runInShell: false,
-      Encoding stdoutEncoding: SYSTEM_ENCODING,
-      Encoding stderrEncoding: SYSTEM_ENCODING}) {
+      Encoding stdoutEncoding: systemEncoding,
+      Encoding stderrEncoding: systemEncoding}) {
     return _runNonInteractiveProcess(
         executable,
         arguments,
@@ -59,8 +61,8 @@ class Process {
       Map<String, String> environment,
       bool includeParentEnvironment: true,
       bool runInShell: false,
-      Encoding stdoutEncoding: SYSTEM_ENCODING,
-      Encoding stderrEncoding: SYSTEM_ENCODING}) {
+      Encoding stdoutEncoding: systemEncoding,
+      Encoding stderrEncoding: systemEncoding}) {
     return _runNonInteractiveProcessSync(
         executable,
         arguments,
@@ -73,7 +75,7 @@ class Process {
   }
 
   @patch
-  static bool killPid(int pid, [ProcessSignal signal = ProcessSignal.SIGTERM]) {
+  static bool killPid(int pid, [ProcessSignal signal = ProcessSignal.sigterm]) {
     if (signal is! ProcessSignal) {
       throw new ArgumentError("Argument 'signal' must be a ProcessSignal");
     }
@@ -86,12 +88,12 @@ List<_SignalController> _signalControllers = new List(32);
 class _SignalController {
   final ProcessSignal signal;
 
-  StreamController _controller;
+  StreamController<ProcessSignal> _controller;
   var _id;
 
   _SignalController(this.signal) {
-    _controller =
-        new StreamController.broadcast(onListen: _listen, onCancel: _cancel);
+    _controller = new StreamController<ProcessSignal>.broadcast(
+        onListen: _listen, onCancel: _cancel);
   }
 
   Stream<ProcessSignal> get stream => _controller.stream;
@@ -104,9 +106,9 @@ class _SignalController {
       return;
     }
     _id = id;
-    var socket = new _RawSocket(new _NativeSocket.watch(id));
+    var socket = new _RawSocket(new _NativeSocket.watchSignal(id));
     socket.listen((event) {
-      if (event == RawSocketEvent.READ) {
+      if (event == RawSocketEvent.read) {
         var bytes = socket.read();
         for (int i = 0; i < bytes.length; i++) {
           _controller.add(signal);
@@ -144,13 +146,13 @@ class _ProcessUtils {
   static bool _killPid(int pid, int signal) native "Process_KillPid";
   @patch
   static Stream<ProcessSignal> _watchSignal(ProcessSignal signal) {
-    if (signal != ProcessSignal.SIGHUP &&
-        signal != ProcessSignal.SIGINT &&
-        signal != ProcessSignal.SIGTERM &&
+    if (signal != ProcessSignal.sighup &&
+        signal != ProcessSignal.sigint &&
+        signal != ProcessSignal.sigterm &&
         (Platform.isWindows ||
-            (signal != ProcessSignal.SIGUSR1 &&
-                signal != ProcessSignal.SIGUSR2 &&
-                signal != ProcessSignal.SIGWINCH))) {
+            (signal != ProcessSignal.sigusr1 &&
+                signal != ProcessSignal.sigusr2 &&
+                signal != ProcessSignal.sigwinch))) {
       throw new SignalException(
           "Listening for signal $signal is not supported");
     }
@@ -279,22 +281,36 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
     }
     _mode = mode;
 
-    if (mode != ProcessStartMode.DETACHED) {
+    if (_modeHasStdio(mode)) {
       // stdin going to process.
-      _stdin = new _StdSink(new _Socket._writePipe());
-      _stdin._sink._owner = this;
+      _stdin = new _StdSink(new _Socket._writePipe().._owner = this);
       // stdout coming from process.
-      _stdout = new _StdStream(new _Socket._readPipe());
-      _stdout._stream._owner = this;
+      _stdout = new _StdStream(new _Socket._readPipe().._owner = this);
       // stderr coming from process.
-      _stderr = new _StdStream(new _Socket._readPipe());
-      _stderr._stream._owner = this;
+      _stderr = new _StdStream(new _Socket._readPipe().._owner = this);
     }
-    if (mode == ProcessStartMode.NORMAL) {
+    if (_modeIsAttached(mode)) {
       _exitHandler = new _Socket._readPipe();
     }
     _ended = false;
     _started = false;
+  }
+
+  _NativeSocket get _stdinNativeSocket =>
+      (_stdin._sink as _Socket)._nativeSocket;
+  _NativeSocket get _stdoutNativeSocket =>
+      (_stdout._stream as _Socket)._nativeSocket;
+  _NativeSocket get _stderrNativeSocket =>
+      (_stderr._stream as _Socket)._nativeSocket;
+
+  static bool _modeIsAttached(ProcessStartMode mode) {
+    return (mode == ProcessStartMode.normal) ||
+        (mode == ProcessStartMode.inheritStdio);
+  }
+
+  static bool _modeHasStdio(ProcessStartMode mode) {
+    return (mode == ProcessStartMode.normal) ||
+        (mode == ProcessStartMode.detachedWithStdio);
   }
 
   static String _getShellCommand() {
@@ -383,8 +399,8 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
   }
 
   Future<Process> _start() {
-    var completer = new Completer();
-    if (_mode == ProcessStartMode.NORMAL) {
+    var completer = new Completer<Process>();
+    if (_modeIsAttached(_mode)) {
       _exitCode = new Completer<int>();
     }
     // TODO(ager): Make the actual process starting really async instead of
@@ -392,21 +408,16 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
     Timer.run(() {
       var status = new _ProcessStartStatus();
       bool success = _startNative(
+          _Namespace._namespace,
           _path,
           _arguments,
           _workingDirectory,
           _environment,
-          _mode.index,
-          _mode == ProcessStartMode.DETACHED
-              ? null
-              : _stdin._sink._nativeSocket,
-          _mode == ProcessStartMode.DETACHED
-              ? null
-              : _stdout._stream._nativeSocket,
-          _mode == ProcessStartMode.DETACHED
-              ? null
-              : _stderr._stream._nativeSocket,
-          _mode != ProcessStartMode.NORMAL ? null : _exitHandler._nativeSocket,
+          _mode._mode,
+          _modeHasStdio(_mode) ? _stdinNativeSocket : null,
+          _modeHasStdio(_mode) ? _stdoutNativeSocket : null,
+          _modeHasStdio(_mode) ? _stderrNativeSocket : null,
+          _modeIsAttached(_mode) ? _exitHandler._nativeSocket : null,
           status);
       if (!success) {
         completer.completeError(new ProcessException(
@@ -419,7 +430,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
 
       // Setup an exit handler to handle internal cleanup and possible
       // callback when a process terminates.
-      if (_mode == ProcessStartMode.NORMAL) {
+      if (_modeIsAttached(_mode)) {
         int exitDataRead = 0;
         final int EXIT_DATA_SIZE = 8;
         List<int> exitDataBuffer = new List<int>(EXIT_DATA_SIZE);
@@ -435,7 +446,9 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
             _ended = true;
             _exitCode.complete(exitCode(exitDataBuffer));
             // Kill stdin, helping hand if the user forgot to do it.
-            _stdin._sink.destroy();
+            if (_modeHasStdio(_mode)) {
+              (_stdin._sink as _Socket).destroy();
+            }
             _resourceInfo.stopped();
           }
 
@@ -457,14 +470,15 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
     var status = new _ProcessStartStatus();
     _exitCode = new Completer<int>();
     bool success = _startNative(
+        _Namespace._namespace,
         _path,
         _arguments,
         _workingDirectory,
         _environment,
-        ProcessStartMode.NORMAL.index,
-        _stdin._sink._nativeSocket,
-        _stdout._stream._nativeSocket,
-        _stderr._stream._nativeSocket,
+        ProcessStartMode.normal._mode,
+        _stdinNativeSocket,
+        _stdoutNativeSocket,
+        _stderrNativeSocket,
         _exitHandler._nativeSocket,
         status);
     if (!success) {
@@ -474,11 +488,8 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
 
     _resourceInfo = new _ProcessResourceInfo(this);
 
-    var result = _wait(
-        _stdin._sink._nativeSocket,
-        _stdout._stream._nativeSocket,
-        _stderr._stream._nativeSocket,
-        _exitHandler._nativeSocket);
+    var result = _wait(_stdinNativeSocket, _stdoutNativeSocket,
+        _stderrNativeSocket, _exitHandler._nativeSocket);
 
     getOutput(output, encoding) {
       if (encoding == null) return output;
@@ -495,6 +506,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
   }
 
   bool _startNative(
+      _Namespace namespace,
       String path,
       List<String> arguments,
       String workingDirectory,
@@ -523,7 +535,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
 
   Future<int> get exitCode => _exitCode != null ? _exitCode.future : null;
 
-  bool kill([ProcessSignal signal = ProcessSignal.SIGTERM]) {
+  bool kill([ProcessSignal signal = ProcessSignal.sigterm]) {
     if (signal is! ProcessSignal) {
       throw new ArgumentError("Argument 'signal' must be a ProcessSignal");
     }
@@ -543,7 +555,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
   _StdSink _stdin;
   _StdStream _stdout;
   _StdStream _stderr;
-  Socket _exitHandler;
+  _Socket _exitHandler;
   bool _ended;
   bool _started;
   Completer<int> _exitCode;
@@ -615,6 +627,6 @@ ProcessResult _runNonInteractiveProcessSync(
       environment,
       includeParentEnvironment,
       runInShell,
-      ProcessStartMode.NORMAL);
+      ProcessStartMode.normal);
   return process._runAndWait(stdoutEncoding, stderrEncoding);
 }

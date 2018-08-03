@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// part of "core_patch.dart";
+
 @patch
 class Map<K, V> {
   // Factory constructing a Map from a parser generated Map literal.
@@ -20,9 +22,9 @@ class Map<K, V> {
 
   @patch
   factory Map.unmodifiable(Map other) {
-    return new UnmodifiableMapView<K, V>(new Map.from(other));
+    return new UnmodifiableMapView<K, V>(new Map<K, V>.from(other));
   }
 
   @patch
-  factory Map() = LinkedHashMap<K, V>;
+  factory Map() => new LinkedHashMap<K, V>();
 }

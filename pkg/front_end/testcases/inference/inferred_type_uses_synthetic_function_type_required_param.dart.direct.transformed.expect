@@ -1,0 +1,12 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field dynamic v = <dynamic>[self::f, self::g];
+static method f(core::int x) → core::int
+  return null;
+static method g(core::int x) → core::String
+  return null;
+static method main() → dynamic {
+  self::v;
+}

@@ -13,16 +13,16 @@ abstract class _MinifiedFieldNamer implements Namer {
   // The inheritance scope based naming might not yield a name. For instance,
   // this could be because the field belongs to a mixin. In such a case this
   // will return `null` and a normal field name has to be used.
-  jsAst.Name _minifiedInstanceFieldPropertyName(FieldElement element) {
+  jsAst.Name _minifiedInstanceFieldPropertyName(FieldEntity element) {
     if (_nativeData.hasFixedBackendName(element)) {
       return new StringBackedName(_nativeData.getFixedBackendName(element));
     }
 
     _FieldNamingScope names;
-    if (element is BoxFieldElement) {
+    if (element is JRecordField) {
       names = new _FieldNamingScope.forBox(element.box, fieldRegistry);
     } else {
-      ClassElement cls = element.enclosingClass;
+      ClassEntity cls = element.enclosingClass;
       names = new _FieldNamingScope.forClass(cls, _closedWorld, fieldRegistry);
     }
 
@@ -97,7 +97,7 @@ class _FieldNamingRegistry {
 class _FieldNamingScope {
   final _FieldNamingScope superScope;
   final Entity container;
-  final Map<Element, jsAst.Name> names = new Maplet<Element, jsAst.Name>();
+  final Map<Entity, jsAst.Name> names = new Maplet<Entity, jsAst.Name>();
   final _FieldNamingRegistry registry;
 
   /// Naming counter used for fields of ordinary classes.
@@ -116,19 +116,20 @@ class _FieldNamingScope {
   }
 
   factory _FieldNamingScope.forClass(
-      ClassElement cls, ClosedWorld world, _FieldNamingRegistry registry) {
+      ClassEntity cls, JClosedWorld world, _FieldNamingRegistry registry) {
     _FieldNamingScope result = registry.scopes[cls];
     if (result != null) return result;
 
     if (world.isUsedAsMixin(cls)) {
       result = new _MixinFieldNamingScope.mixin(cls, registry);
     } else {
-      if (cls.superclass == null) {
+      var superclass = world.elementEnvironment.getSuperClass(cls);
+      if (superclass == null) {
         result = new _FieldNamingScope.rootScope(cls, registry);
       } else {
         _FieldNamingScope superScope =
-            new _FieldNamingScope.forClass(cls.superclass, world, registry);
-        if (cls.isMixinApplication) {
+            new _FieldNamingScope.forClass(superclass, world, registry);
+        if (world.elementEnvironment.isMixinApplication(cls)) {
           result =
               new _MixinFieldNamingScope.mixedIn(cls, superScope, registry);
         } else {
@@ -137,7 +138,10 @@ class _FieldNamingScope {
       }
     }
 
-    cls.forEachInstanceField((cls, field) => result.add(field));
+    world.elementEnvironment.forEachClassMember(cls,
+        (ClassEntity declarer, MemberEntity member) {
+      if (member.isField && member.isInstanceMember) result.add(member);
+    });
 
     registry.scopes[cls] = result;
     return result;
@@ -166,21 +170,21 @@ class _FieldNamingScope {
 
   jsAst.Name _nextName() => registry.getName(_localFieldNameCounter++);
 
-  jsAst.Name operator [](Element field) {
+  jsAst.Name operator [](Entity field) {
     jsAst.Name name = names[field];
     if (name == null && superScope != null) return superScope[field];
     return name;
   }
 
-  void add(Element field) {
+  void add(Entity field) {
     if (names.containsKey(field)) return;
 
     jsAst.Name value = _nextName();
-    assert(invariant(field, _isNameUnused(value)));
+    assert(_isNameUnused(value), failedAt(field));
     names[field] = value;
   }
 
-  bool containsField(Element field) => names.containsKey(field);
+  bool containsField(Entity field) => names.containsKey(field);
 }
 
 /**
@@ -201,10 +205,10 @@ class _MixinFieldNamingScope extends _FieldNamingScope {
   @override
   Map<Entity, jsAst.Name> get names => registry.globalNames;
 
-  _MixinFieldNamingScope.mixin(ClassElement cls, _FieldNamingRegistry registry)
+  _MixinFieldNamingScope.mixin(ClassEntity cls, _FieldNamingRegistry registry)
       : super.rootScope(cls, registry);
 
-  _MixinFieldNamingScope.mixedIn(MixinApplicationElement container,
+  _MixinFieldNamingScope.mixedIn(ClassEntity container,
       _FieldNamingScope superScope, _FieldNamingRegistry registry)
       : super.inherit(container, superScope, registry);
 
@@ -227,7 +231,7 @@ class _BoxFieldNamingScope extends _FieldNamingScope {
   @override
   bool containsField(_) => true;
 
-  jsAst.Name operator [](Element field) {
+  jsAst.Name operator [](Entity field) {
     if (!names.containsKey(field)) add(field);
     return names[field];
   }

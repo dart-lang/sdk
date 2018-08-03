@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.generated.analysis_context_factory;
-
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -17,6 +15,7 @@ import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -100,8 +99,6 @@ class AnalysisContextFactory {
     SourceFactory sourceFactory = new SourceFactory(resolvers);
     context.sourceFactory = sourceFactory;
     AnalysisContext coreContext = sdk.context;
-    (coreContext.analysisOptions as AnalysisOptionsImpl).strongMode =
-        context.analysisOptions.strongMode;
     //
     // dart:core
     //
@@ -303,6 +300,7 @@ class AnalysisContextFactory {
     ];
     canvasElement.fields = canvasElement.accessors
         .map((PropertyAccessorElement accessor) => accessor.variable)
+        .cast<FieldElement>()
         .toList();
     ClassElementImpl documentElement =
         ElementFactory.classElement("Document", elementType);
@@ -409,7 +407,7 @@ class AnalysisContextFactory {
     //
     // Record the elements.
     //
-    HashMap<Source, LibraryElement> elementMap =
+    Map<Source, LibraryElement> elementMap =
         new HashMap<Source, LibraryElement>();
     elementMap[coreSource] = coreLibrary;
     if (asyncSource != null) {
@@ -451,8 +449,7 @@ class AnalysisContextForTests extends AnalysisContextImpl {
         currentOptions.generateSdkErrors != options.generateSdkErrors ||
         currentOptions.dart2jsHint != options.dart2jsHint ||
         (currentOptions.hint && !options.hint) ||
-        currentOptions.preserveComments != options.preserveComments ||
-        currentOptions.enableStrictCallChecks != options.enableStrictCallChecks;
+        currentOptions.preserveComments != options.preserveComments;
     if (needsRecompute) {
       fail(
           "Cannot set options that cause the sources to be reanalyzed in a test context");

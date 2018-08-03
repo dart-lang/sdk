@@ -1,0 +1,31 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method foo(core::int x) → core::int
+    return x;
+}
+static method test() → dynamic {
+  dynamic d = new self::Foo::•();
+  core::int get_hashCode = d.{core::Object::hashCode};
+  dynamic call_hashCode = d.{core::Object::hashCode}();
+  core::String call_toString = d.{core::Object::toString}();
+  dynamic call_toStringArg = d.toString(color: "pink");
+  dynamic call_foo0 = d.foo();
+  dynamic call_foo1 = d.foo(1);
+  dynamic call_foo2 = d.foo(1, 2);
+  dynamic call_nsm0 = d.noSuchMethod();
+  dynamic call_nsm1 = d.{core::Object::noSuchMethod}(null);
+  dynamic call_nsm2 = d.noSuchMethod(null, null);
+  core::bool equals_self = d.{core::Object::==}(d);
+  core::bool equals_null = d.{core::Object::==}(null);
+  core::bool null_equals = null.{core::Object::==}(d);
+  core::bool not_equals_self = !d.{core::Object::==}(d);
+  core::bool not_equals_null = !d.{core::Object::==}(null);
+  core::bool null_not_equals = !null.{core::Object::==}(d);
+}
+static method main() → dynamic {}

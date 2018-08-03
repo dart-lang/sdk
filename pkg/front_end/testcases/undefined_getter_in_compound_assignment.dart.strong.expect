@@ -1,0 +1,22 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  set x(dynamic value) → void {}
+}
+static method test(self::C c) → void {
+  c.{self::C::x} = 1;
+  let final self::C #t1 = c in #t1.{self::C::x} = (let final dynamic #t2 = #t1 in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/undefined_getter_in_compound_assignment.dart:13:33: Error: The getter 'x' isn't defined for the class '#lib1::C'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'x'.
+  c. /*@error=UndefinedGetter*/ x += 1;
+                                ^").+(1);
+  let final self::C #t3 = c in (let final dynamic #t4 = #t3 in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/undefined_getter_in_compound_assignment.dart:14:33: Error: The getter 'x' isn't defined for the class '#lib1::C'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'x'.
+  c. /*@error=UndefinedGetter*/ x ??= 1;
+                                ^").{core::Object::==}(null) ?{dynamic} #t3.{self::C::x} = 1 : null;
+}
+static method main() → dynamic {}

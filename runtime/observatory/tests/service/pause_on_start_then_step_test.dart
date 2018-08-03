@@ -13,7 +13,7 @@ void testMain() {
   print('Hello');
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     print('Getting stream...');
     Completer completer = new Completer();

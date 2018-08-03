@@ -1,0 +1,64 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class B<X extends core::Object = dynamic, Y extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    ;
+}
+class C1<X extends (self::C1::Y) → self::C1::X = dynamic, Y extends (self::C1::Y) → self::C1::X = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    ;
+}
+class C2<X extends (self::C2::Y) → self::C2::X = dynamic, Y extends (self::C2::X) → self::C2::Y = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    ;
+}
+class C3<X extends (self::C3::X, self::C3::Y) → self::C3::X = dynamic, Y extends (self::C3::X, self::C3::Y) → self::C3::X = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    ;
+}
+class C4<X extends (self::C4::X, self::C4::Y) → self::C4::X = dynamic, Y extends (self::C4::X, self::C4::Y) → self::C4::Y = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    ;
+}
+class D1<X extends self::B<self::D1::X, self::D1::Y> = dynamic, Y extends (self::D1::Y) → self::D1::X = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    ;
+}
+class D2<X extends self::B<self::D2::X, self::D2::Y> = dynamic, Y extends (self::D2::X) → self::D2::Y = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    ;
+}
+class D3<X extends self::B<self::D3::X, self::D3::Y> = dynamic, Y extends (self::D3::X, self::D3::Y) → self::D3::X = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    ;
+}
+class D4<X extends self::B<self::D4::X, self::D4::Y> = dynamic, Y extends (self::D4::X, self::D4::Y) → self::D4::Y = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    ;
+}
+class E<X extends (self::E::X) → self::E::X = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    ;
+}
+static field dynamic lc1;
+static field dynamic mc1;
+static field dynamic lc2;
+static field dynamic mc2;
+static field dynamic lc3;
+static field dynamic mc3;
+static field dynamic lc4;
+static field dynamic mc4;
+static field dynamic ld1;
+static field dynamic md1;
+static field dynamic ld2;
+static field dynamic md2;
+static field dynamic ld3;
+static field dynamic md3;
+static field dynamic ld4;
+static field dynamic md4;
+static field dynamic le;
+static field dynamic me;
+static method main() → dynamic
+  ;

@@ -1,0 +1,14 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  field core::int x = 1;
+  constructor •([core::int x = let<BottomType> _ = null in let final dynamic #t1 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/inferred_initializing_formal_checks_default_value.dart:10:46: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+  Foo([this.x = /*error:INVALID_ASSIGNMENT*/ \"1\"]);
+                                             ^" in let final core::String #t2 = "1" in null]) → void
+    : self::Foo::x = x, super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

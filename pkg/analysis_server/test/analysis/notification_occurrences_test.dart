@@ -5,8 +5,8 @@
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -24,8 +24,7 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
   List<Occurrences> occurrencesList;
   Occurrences testOccurrences;
 
-  @override
-  bool get enableNewAnalysisDriver => false;
+  Completer _resultsAvailable = new Completer();
 
   /**
    * Asserts that there is an offset of [search] in [testOccurrences].
@@ -80,14 +79,15 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
 
   Future prepareOccurrences() {
     addAnalysisSubscription(AnalysisService.OCCURRENCES, testFile);
-    return waitForTasksFinished();
+    return _resultsAvailable.future;
   }
 
   void processNotification(Notification notification) {
-    if (notification.event == ANALYSIS_OCCURRENCES) {
+    if (notification.event == ANALYSIS_NOTIFICATION_OCCURRENCES) {
       var params = new AnalysisOccurrencesParams.fromNotification(notification);
       if (params.file == testFile) {
         occurrencesList = params.occurrences;
+        _resultsAvailable.complete(null);
       }
     }
   }

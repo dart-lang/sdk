@@ -5,7 +5,7 @@
 #ifndef RUNTIME_BIN_IO_SERVICE_NO_SSL_H_
 #define RUNTIME_BIN_IO_SERVICE_NO_SSL_H_
 
-#if defined(DART_IO_DISABLED) || !defined(DART_IO_SECURE_SOCKET_DISABLED)
+#if !defined(DART_IO_SECURE_SOCKET_DISABLED)
 #error "io_service_no_ssl.h can only be included on builds with IO enabled"
 #endif
 

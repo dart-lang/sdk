@@ -5,6 +5,7 @@
 #ifndef RUNTIME_VM_BOOLFIELD_H_
 #define RUNTIME_VM_BOOLFIELD_H_
 
+#include "platform/assert.h"
 #include "vm/globals.h"
 
 namespace dart {

@@ -21,17 +21,18 @@ namespace dart {
 // Native implementations for the dart:developer library.
 DEFINE_NATIVE_ENTRY(Developer_debugger, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, when, arguments->NativeArgAt(0));
+#if !defined(PRODUCT)
   GET_NATIVE_ARGUMENT(String, msg, arguments->NativeArgAt(1));
   Debugger* debugger = isolate->debugger();
-  if (!FLAG_support_debugger || !debugger) {
+  if (!debugger) {
     return when.raw();
   }
   if (when.value()) {
     debugger->PauseDeveloper(msg);
   }
+#endif
   return when.raw();
 }
-
 
 DEFINE_NATIVE_ENTRY(Developer_inspect, 1) {
   GET_NATIVE_ARGUMENT(Instance, inspectee, arguments->NativeArgAt(0));
@@ -42,7 +43,6 @@ DEFINE_NATIVE_ENTRY(Developer_inspect, 1) {
 #endif  // !PRODUCT
   return inspectee.raw();
 }
-
 
 DEFINE_NATIVE_ENTRY(Developer_log, 8) {
 #if defined(PRODUCT)
@@ -66,7 +66,6 @@ DEFINE_NATIVE_ENTRY(Developer_log, 8) {
 #endif  // PRODUCT
 }
 
-
 DEFINE_NATIVE_ENTRY(Developer_postEvent, 2) {
 #if defined(PRODUCT)
   return Object::null();
@@ -81,7 +80,6 @@ DEFINE_NATIVE_ENTRY(Developer_postEvent, 2) {
 #endif  // PRODUCT
 }
 
-
 DEFINE_NATIVE_ENTRY(Developer_lookupExtension, 1) {
 #if defined(PRODUCT)
   return Object::null();
@@ -93,7 +91,6 @@ DEFINE_NATIVE_ENTRY(Developer_lookupExtension, 1) {
   return isolate->LookupServiceExtensionHandler(name);
 #endif  // PRODUCT
 }
-
 
 DEFINE_NATIVE_ENTRY(Developer_registerExtension, 2) {
 #if defined(PRODUCT)
@@ -123,7 +120,6 @@ DEFINE_NATIVE_ENTRY(Developer_getServiceMajorVersion, 0) {
 #endif
 }
 
-
 DEFINE_NATIVE_ENTRY(Developer_getServiceMinorVersion, 0) {
 #if defined(PRODUCT)
   return Smi::New(0);
@@ -132,13 +128,11 @@ DEFINE_NATIVE_ENTRY(Developer_getServiceMinorVersion, 0) {
 #endif
 }
 
-
 static void SendNull(const SendPort& port) {
   const Dart_Port destination_port_id = port.Id();
   PortMap::PostMessage(new Message(destination_port_id, Object::null(),
                                    Message::kNormalPriority));
 }
-
 
 DEFINE_NATIVE_ENTRY(Developer_getServerInfo, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
@@ -154,7 +148,6 @@ DEFINE_NATIVE_ENTRY(Developer_getServerInfo, 1) {
   return Object::null();
 #endif
 }
-
 
 DEFINE_NATIVE_ENTRY(Developer_webServerControl, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
@@ -172,7 +165,6 @@ DEFINE_NATIVE_ENTRY(Developer_webServerControl, 2) {
 #endif
 }
 
-
 DEFINE_NATIVE_ENTRY(Developer_getIsolateIDFromSendPort, 1) {
 #if defined(PRODUCT)
   return Object::null();
@@ -182,6 +174,5 @@ DEFINE_NATIVE_ENTRY(Developer_getIsolateIDFromSendPort, 1) {
   return String::NewFormatted(ISOLATE_SERVICE_ID_FORMAT_STRING, port_id);
 #endif
 }
-
 
 }  // namespace dart

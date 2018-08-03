@@ -6,41 +6,37 @@ library dart2js.js_emitter.full_emitter.class_emitter;
 
 import '../../common.dart';
 import '../../common/names.dart' show Names;
-import '../../elements/resolution_types.dart' show ResolutionDartType;
+import '../../common_elements.dart';
 import '../../deferred_load.dart' show OutputUnit;
-import '../../elements/elements.dart'
-    show ClassElement, FieldElement, MemberElement;
-import '../../elements/names.dart';
+import '../../elements/entities.dart';
 import '../../js/js.dart' as jsAst;
 import '../../js/js.dart' show js;
 import '../../js_backend/js_backend.dart' show CompoundName, Namer;
-import '../../universe/selector.dart' show Selector;
-import '../../util/util.dart' show equalElements;
-import '../../world.dart' show ClosedWorld;
+import '../../world.dart' show JClosedWorld;
 import '../js_emitter.dart' hide Emitter, EmitterFactory;
 import '../model.dart';
 import 'emitter.dart';
 
 class ClassEmitter extends CodeEmitterHelper {
-  final ClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
 
   ClassEmitter(this.closedWorld);
 
   ClassStubGenerator get _stubGenerator => new ClassStubGenerator(task.emitter,
-      compiler.commonElements, namer, codegenWorldBuilder, closedWorld,
+      closedWorld.commonElements, namer, codegenWorldBuilder, closedWorld,
       enableMinification: compiler.options.enableMinification);
+
+  ElementEnvironment get _elementEnvironment => closedWorld.elementEnvironment;
 
   /**
    * Documentation wanted -- johnniwinther
    */
   void emitClass(Class cls, ClassBuilder enclosingBuilder, Fragment fragment) {
-    ClassElement classElement = cls.element;
-
-    assert(classElement.isDeclaration, failedAt(classElement));
+    ClassEntity classElement = cls.element;
 
     emitter.needsClassSupport = true;
 
-    ClassElement superclass = classElement.superclass;
+    ClassEntity superclass = _elementEnvironment.getSuperClass(classElement);
     jsAst.Name superName;
     if (superclass != null) {
       superName = namer.className(superclass);
@@ -67,7 +63,7 @@ class ClassEmitter extends CodeEmitterHelper {
     emitRuntimeTypeInformation(cls, builder);
     emitNativeInfo(cls, builder);
 
-    if (classElement == backend.commonElements.closureClass) {
+    if (classElement == closedWorld.commonElements.closureClass) {
       // We add a special getter here to allow for tearing off a closure from
       // itself.
       jsAst.Fun function = js('function() { return this; }');
@@ -83,22 +79,21 @@ class ClassEmitter extends CodeEmitterHelper {
   * Emits the precompiled constructor when in CSP mode.
   */
   void emitConstructorsForCSP(Class cls) {
-    List<jsAst.Name> fieldNames = <jsAst.Name>[];
-
     if (!compiler.options.useContentSecurityPolicy) return;
 
+    List<jsAst.Name> fieldNames = <jsAst.Name>[];
     if (!cls.onlyForRti && !cls.isNative) {
       fieldNames = cls.fields.map((Field field) => field.name).toList();
     }
 
-    ClassElement classElement = cls.element;
+    ClassEntity classElement = cls.element;
 
     jsAst.Expression constructorAst = _stubGenerator.generateClassConstructor(
         classElement, fieldNames, cls.hasRtiField);
 
     jsAst.Name constructorName = namer.className(classElement);
     OutputUnit outputUnit =
-        compiler.deferredLoadTask.outputUnitForElement(classElement);
+        compiler.backend.outputUnitData.outputUnitForClass(classElement);
     emitter.assemblePrecompiledConstructor(
         outputUnit, constructorName, constructorAst, fieldNames);
   }
@@ -121,12 +116,10 @@ class ClassEmitter extends CodeEmitterHelper {
       fields = container.staticFieldsForReflection;
     }
 
-    var fieldMetadata = [];
-    bool hasMetadata = false;
     bool fieldsAdded = false;
 
     for (Field field in fields) {
-      FieldElement fieldElement = field.element;
+      FieldEntity fieldElement = field.element;
       jsAst.Name name = field.name;
       jsAst.Name accessorName = field.accessorName;
       bool needsGetter = field.needsGetter;
@@ -140,17 +133,10 @@ class ClassEmitter extends CodeEmitterHelper {
       // accessors at runtime.
       bool needsFieldsForConstructor = !emitStatics && !classIsNative;
       if (needsFieldsForConstructor || needsAccessor) {
-        var metadata =
-            task.metadataCollector.buildFieldMetadataFunction(fieldElement);
-        if (metadata != null) {
-          hasMetadata = true;
-        } else {
-          metadata = new jsAst.LiteralNull();
-        }
-        fieldMetadata.add(metadata);
-        recordMangledField(fieldElement, accessorName,
-            namer.privateName(fieldElement.memberName));
         List<jsAst.Literal> fieldNameParts = <jsAst.Literal>[];
+        if (field.nullInitializerInAllocator) {
+          fieldNameParts.add(js.stringPart('0'));
+        }
         if (!needsAccessor) {
           // Emit field for constructor generation.
           assert(!classIsNative);
@@ -172,7 +158,7 @@ class ClassEmitter extends CodeEmitterHelper {
           // currently still need to add the additional argument.
           if (field.needsInterceptedGetter || field.needsInterceptedSetter) {
             emitter.interceptorEmitter.interceptorInvocationNames
-                .add(namer.setterForElement(fieldElement));
+                .add(namer.setterForMember(fieldElement));
           }
 
           int code = field.getterFlags + (field.setterFlags << 2);
@@ -183,31 +169,14 @@ class ClassEmitter extends CodeEmitterHelper {
           fieldNameParts.add(
               js.stringPart(FIELD_CODE_CHARACTERS[code - FIRST_FIELD_CODE]));
         }
-        // Fields can only be reflected if their declaring class is reflectable
-        // (as they are only accessible via [ClassMirror.declarations]).
-        // However, set/get operations can be performed on them, so they are
-        // reflectable in some sense, which leads to [isAccessibleByReflection]
-        // reporting `true`.
-        if (backend.mirrorsData.isMemberAccessibleByReflection(fieldElement)) {
-          fieldNameParts.add(new jsAst.LiteralString('-'));
-          if (fieldElement.isTopLevel ||
-              backend.mirrorsData
-                  .isClassAccessibleByReflection(fieldElement.enclosingClass)) {
-            ResolutionDartType type = fieldElement.type;
-            fieldNameParts.add(task.metadataCollector.reifyType(type));
-          }
-        }
         jsAst.Literal fieldNameAst = js.concatenateStrings(fieldNameParts);
         builder.addField(fieldNameAst);
         // Add 1 because adding a field to the class also requires a comma
-        compiler.dumpInfoTask.registerElementAst(fieldElement, fieldNameAst);
+        compiler.dumpInfoTask.registerEntityAst(fieldElement, fieldNameAst);
         fieldsAdded = true;
       }
     }
 
-    if (hasMetadata) {
-      builder.fieldMetadata = fieldMetadata;
-    }
     return fieldsAdded;
   }
 
@@ -216,14 +185,12 @@ class ClassEmitter extends CodeEmitterHelper {
     if (cls.onlyForRti) return;
 
     for (StubMethod method in cls.checkedSetters) {
-      MemberElement member = method.element;
+      MemberEntity member = method.element;
       assert(member != null);
       jsAst.Expression code = method.code;
       jsAst.Name setterName = method.name;
       compiler.dumpInfoTask
-          .registerElementAst(member, builder.addProperty(setterName, code));
-      generateReflectionDataForFieldGetterOrSetter(member, setterName, builder,
-          isGetter: false);
+          .registerEntityAst(member, builder.addProperty(setterName, code));
     }
   }
 
@@ -232,7 +199,7 @@ class ClassEmitter extends CodeEmitterHelper {
     if (!compiler.options.useContentSecurityPolicy || cls.onlyForRti) return;
 
     for (Field field in cls.fields) {
-      FieldElement member = field.element;
+      FieldEntity member = field.element;
       reporter.withCurrentElement(member, () {
         if (field.needsGetter) {
           emitGetterForCSP(member, field.name, field.accessorName, builder);
@@ -247,7 +214,7 @@ class ClassEmitter extends CodeEmitterHelper {
   void emitStubs(Iterable<StubMethod> stubs, ClassBuilder builder) {
     for (Method method in stubs) {
       jsAst.Property property = builder.addProperty(method.name, method.code);
-      compiler.dumpInfoTask.registerElementAst(method.element, property);
+      compiler.dumpInfoTask.registerEntityAst(method.element, property);
     }
   }
 
@@ -257,8 +224,7 @@ class ClassEmitter extends CodeEmitterHelper {
    * Invariant: [classElement] must be a declaration element.
    */
   void emitInstanceMembers(Class cls, ClassBuilder builder) {
-    ClassElement classElement = cls.element;
-    assert(classElement.isDeclaration, failedAt(classElement));
+    ClassEntity classElement = cls.element;
 
     if (cls.onlyForRti || cls.isMixinApplication) return;
 
@@ -272,7 +238,8 @@ class ClassEmitter extends CodeEmitterHelper {
       emitter.containerBuilder.addMemberMethod(method, builder);
     }
 
-    if (classElement.isObject && closedWorld.backendUsage.isNoSuchMethodUsed) {
+    if (classElement == closedWorld.commonElements.objectClass &&
+        closedWorld.backendUsage.isNoSuchMethodUsed) {
       // Emit the noSuchMethod handlers on the Object prototype now,
       // so that the code in the dynamicFunction helper can find
       // them. Note that this helper is invoked before analyzing the
@@ -302,44 +269,24 @@ class ClassEmitter extends CodeEmitterHelper {
 
   void emitClassBuilderWithReflectionData(Class cls, ClassBuilder classBuilder,
       ClassBuilder enclosingBuilder, Fragment fragment) {
-    ClassElement classElement = cls.element;
+    ClassEntity classEntity = cls.element;
     jsAst.Name className = cls.name;
-
-    var metadata =
-        task.metadataCollector.buildClassMetadataFunction(classElement);
-    if (metadata != null) {
-      classBuilder.addPropertyByName("@", metadata);
-    }
-
-    if (backend.mirrorsData.isClassAccessibleByReflection(classElement)) {
-      List<ResolutionDartType> typeVars = classElement.typeVariables;
-      Iterable typeVariableProperties =
-          emitter.typeVariableCodegenAnalysis.typeVariablesOf(classElement);
-
-      ClassElement superclass = classElement.superclass;
-      bool hasSuper = superclass != null;
-      if ((!typeVariableProperties.isEmpty && !hasSuper) ||
-          (hasSuper && !equalElements(superclass.typeVariables, typeVars))) {
-        classBuilder.addPropertyByName(
-            '<>', new jsAst.ArrayInitializer(typeVariableProperties.toList()));
-      }
-    }
 
     List<jsAst.Property> statics = new List<jsAst.Property>();
     ClassBuilder staticsBuilder =
-        new ClassBuilder.forStatics(classElement, namer);
+        new ClassBuilder.forStatics(classEntity, namer);
     if (emitFields(cls, staticsBuilder, emitStatics: true)) {
       jsAst.ObjectInitializer initializer =
           staticsBuilder.toObjectInitializer();
-      compiler.dumpInfoTask.registerElementAst(classElement, initializer);
+      compiler.dumpInfoTask.registerEntityAst(classEntity, initializer);
       jsAst.Node property = initializer.properties.single;
-      compiler.dumpInfoTask.registerElementAst(classElement, property);
+      compiler.dumpInfoTask.registerEntityAst(classEntity, property);
       statics.add(property);
     }
 
     // TODO(herhut): Do not grab statics out of the properties.
     ClassBuilder classProperties =
-        emitter.elementDescriptors[fragment].remove(classElement);
+        emitter.classDescriptors[fragment]?.remove(classEntity);
     if (classProperties != null) {
       statics.addAll(classProperties.properties);
     }
@@ -353,99 +300,44 @@ class ClassEmitter extends CodeEmitterHelper {
     // TODO(ahe): This method (generateClass) should return a jsAst.Expression.
     jsAst.ObjectInitializer propertyValue = classBuilder.toObjectInitializer();
     compiler.dumpInfoTask
-        .registerElementAst(classBuilder.element, propertyValue);
+        .registerEntityAst(classBuilder.element, propertyValue);
     enclosingBuilder.addProperty(className, propertyValue);
 
-    String reflectionName = emitter.getReflectionName(classElement, className);
+    String reflectionName =
+        emitter.getReflectionClassName(classEntity, className);
     if (reflectionName != null) {
-      if (!backend.mirrorsData.isClassAccessibleByReflection(classElement) ||
-          cls.onlyForRti) {
-        // TODO(herhut): Fix use of reflection name here.
-        enclosingBuilder.addPropertyByName("+$reflectionName", js.number(0));
-      } else {
-        List<jsAst.Expression> types = <jsAst.Expression>[];
-        if (classElement.supertype != null) {
-          types.add(task.metadataCollector.reifyType(classElement.supertype));
-        }
-        for (ResolutionDartType interface in classElement.interfaces) {
-          types.add(task.metadataCollector.reifyType(interface));
-        }
-        // TODO(herhut): Fix use of reflection name here.
-        enclosingBuilder.addPropertyByName(
-            "+$reflectionName", new jsAst.ArrayInitializer(types));
-      }
+      // TODO(herhut): Fix use of reflection name here.
+      enclosingBuilder.addPropertyByName("+$reflectionName", js.number(0));
     }
   }
 
-  void recordMangledField(
-      FieldElement member, jsAst.Name accessorName, String memberName) {
-    if (!backend.mirrorsData.shouldRetainGetter(member)) return;
-    String previousName;
-    if (member.isInstanceMember) {
-      previousName = emitter.mangledFieldNames
-          .putIfAbsent(namer.deriveGetterName(accessorName), () => memberName);
-    } else {
-      previousName = emitter.mangledGlobalFieldNames
-          .putIfAbsent(accessorName, () => memberName);
-    }
-    assert(previousName == memberName,
-        failedAt(member, '$previousName != ${memberName}'));
-  }
-
-  void emitGetterForCSP(FieldElement member, jsAst.Name fieldName,
+  void emitGetterForCSP(FieldEntity member, jsAst.Name fieldName,
       jsAst.Name accessorName, ClassBuilder builder) {
     jsAst.Expression function =
         _stubGenerator.generateGetter(member, fieldName);
 
     jsAst.Name getterName = namer.deriveGetterName(accessorName);
-    ClassElement cls = member.enclosingClass;
+    ClassEntity cls = member.enclosingClass;
     jsAst.Name className = namer.className(cls);
     OutputUnit outputUnit =
-        compiler.deferredLoadTask.outputUnitForElement(member);
+        compiler.backend.outputUnitData.outputUnitForMember(member);
     emitter
         .cspPrecompiledFunctionFor(outputUnit)
         .add(js('#.prototype.# = #', [className, getterName, function]));
-    if (backend.mirrorsData.isMemberAccessibleByReflection(member)) {
-      emitter.cspPrecompiledFunctionFor(outputUnit).add(js(
-          '#.prototype.#.${namer.reflectableField} = 1',
-          [className, getterName]));
-    }
   }
 
-  void emitSetterForCSP(FieldElement member, jsAst.Name fieldName,
+  void emitSetterForCSP(FieldEntity member, jsAst.Name fieldName,
       jsAst.Name accessorName, ClassBuilder builder) {
     jsAst.Expression function =
         _stubGenerator.generateSetter(member, fieldName);
 
     jsAst.Name setterName = namer.deriveSetterName(accessorName);
-    ClassElement cls = member.enclosingClass;
+    ClassEntity cls = member.enclosingClass;
     jsAst.Name className = namer.className(cls);
     OutputUnit outputUnit =
-        compiler.deferredLoadTask.outputUnitForElement(member);
+        compiler.backend.outputUnitData.outputUnitForMember(member);
     emitter
         .cspPrecompiledFunctionFor(outputUnit)
         .add(js('#.prototype.# = #', [className, setterName, function]));
-    if (backend.mirrorsData.isMemberAccessibleByReflection(member)) {
-      emitter.cspPrecompiledFunctionFor(outputUnit).add(js(
-          '#.prototype.#.${namer.reflectableField} = 1',
-          [className, setterName]));
-    }
-  }
-
-  void generateReflectionDataForFieldGetterOrSetter(
-      MemberElement member, jsAst.Name name, ClassBuilder builder,
-      {bool isGetter}) {
-    Selector selector = isGetter
-        ? new Selector.getter(new Name(member.name, member.library))
-        : new Selector.setter(
-            new Name(member.name, member.library, isSetter: true));
-    String reflectionName = emitter.getReflectionName(selector, name);
-    if (reflectionName != null) {
-      var reflectable = js(
-          backend.mirrorsData.isMemberAccessibleByReflection(member)
-              ? '1'
-              : '0');
-      builder.addPropertyByName('+$reflectionName', reflectable);
-    }
   }
 }

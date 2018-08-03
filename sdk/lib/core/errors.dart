@@ -411,6 +411,7 @@ class IndexError extends ArgumentError implements RangeError {
  */
 class FallThroughError extends Error {
   FallThroughError();
+  external FallThroughError._create(String url, int line);
 
   external String toString();
 }
@@ -429,12 +430,19 @@ class AbstractClassInstantiationError extends Error {
  * Error thrown by the default implementation of [:noSuchMethod:] on [Object].
  */
 class NoSuchMethodError extends Error {
-  final Object _receiver;
-  final Symbol _memberName;
-  final List _arguments;
-  final Map<Symbol, dynamic> _namedArguments;
-  final List _existingArgumentNames;
+  /**
+   * Create a [NoSuchMethodError] corresponding to a failed method call.
+   *
+   * The [receiver] is the receiver of the method call.
+   * That is, the object on which the method was attempted called.
+   *
+   * The [invocation] represents the method call that failed. It
+   * should not be `null`.
+   */
+  external NoSuchMethodError.withInvocation(
+      Object receiver, Invocation invocation);
 
+  // Deprecated constructor to be removed after dart2js updates to the above.
   /**
    * Create a [NoSuchMethodError] corresponding to a failed method call.
    *
@@ -453,14 +461,14 @@ class NoSuchMethodError extends Error {
    * The [namedArguments] is a map from [Symbol]s to the values of named
    * arguments that the method was called with.
    *
-   * The optional [existingArgumentNames] is the expected parameters of a
-   * method with the same name on the receiver, if available. This is
-   * the signature of the method that would have been called if the parameters
-   * had matched.
+   * This constructor does not handle type arguments.
+   * To include type variables, create an [Invocation] and use
+   * [NoSuchMethodError.withInvocation].
    */
+  @Deprecated("Use NoSuchMethod.withInvocation instead")
   external NoSuchMethodError(Object receiver, Symbol memberName,
       List positionalArguments, Map<Symbol, dynamic> namedArguments,
-      [List existingArgumentNames = null]);
+      [@deprecated List existingArgumentNames = null]);
 
   external String toString();
 }
@@ -556,4 +564,199 @@ class CyclicInitializationError extends Error {
   String toString() => variableName == null
       ? "Reading static variable during its initialization"
       : "Reading static variable '$variableName' during its initialization";
+}
+
+/// Used by Fasta to throw a compile-time error in a way that is compatible
+/// with compile-time constant evaluation.
+class _ConstantExpressionError {
+  const _ConstantExpressionError();
+
+  external _throw(error);
+}
+
+/// Used by Fasta to wrap constant expressions so an illegal constant expression
+/// will throw an error.
+class _ConstantHelper {
+  _isNumStringBoolOrNull(Object e) {
+    return e is num || e is String || e is bool || e == null;
+  }
+
+  _isNumStringOrNull(Object e) {
+    return e is num || e is String || e == null;
+  }
+
+  _isNumOrNull(Object e) {
+    return e is num || e == null;
+  }
+
+  _isIntOrNull(Object e) {
+    return e is int || e == null;
+  }
+
+  ////////////////////////////////////////
+
+  // An expression of one of the forms e1 == e2 or e1 != e2 where e1 and e2 are
+  // constant expressions that evaluate to a numeric, string or boolean value or
+  // to null.
+
+  equals(Object e1, Object e2, Function onError) {
+    if (!_isNumStringBoolOrNull((e1)) || !_isNumStringBoolOrNull(e2)) onError();
+    return e1 == e2;
+  }
+
+  notEquals(Object e1, Object e2, Function onError) {
+    if (!_isNumStringBoolOrNull((e1)) || !_isNumStringBoolOrNull(e2)) onError();
+    return e1 != e2;
+  }
+
+  ////////////////////////////////////////
+
+  // An expression of one of the forms !e, e1 && e2 or e1 || e2 , where e, e1
+  // and e2 are constant expressions that evaluate to a boolean value.
+
+  not(Object e, Function onError) {
+    if (e is! bool) onError();
+    return !e;
+  }
+
+  logicalAnd(Object e1, Object e2, Function onError) {
+    if (e1 is! bool || e2 is! bool) onError();
+    return e1 && e2;
+  }
+
+  logicalOr(Object e1, Object e2, Function onError) {
+    if (e1 is! bool || e2 is! bool) onError();
+    return e1 || e2;
+  }
+
+  ////////////////////////////////////////
+
+  // An expression of one of the forms  ~e, e1 ˆ e2, e1 & e2, e1 | e2, e1 >> e2
+  // or e1 << e2, where e, e1 and e2 are constant expressions that evaluate to
+  // an integer value or to null.
+
+  bitwiseNot(dynamic e, Function onError) {
+    if (!_isIntOrNull(e)) onError();
+    return ~e;
+  }
+
+  bitwiseXor(dynamic e1, dynamic e2, Function onError) {
+    if (!_isIntOrNull(e1) || !_isIntOrNull(e2)) onError();
+    return e1 ^ e2;
+  }
+
+  bitwiseAnd(dynamic e1, dynamic e2, Function onError) {
+    if (!_isIntOrNull(e1) || !_isIntOrNull(e2)) onError();
+    return e1 & e2;
+  }
+
+  bitwiseOr(dynamic e1, dynamic e2, Function onError) {
+    if (!_isIntOrNull(e1) || !_isIntOrNull(e2)) onError();
+    return e1 | e2;
+  }
+
+  rightShift(dynamic e1, dynamic e2, Function onError) {
+    if (!_isIntOrNull(e1) || !_isIntOrNull(e2)) onError();
+    return e1 >> e2;
+  }
+
+  leftShift(dynamic e1, dynamic e2, Function onError) {
+    if (!_isIntOrNull(e1) || !_isIntOrNull(e2)) onError();
+    return e1 << e2;
+  }
+
+  ////////////////////////////////////////
+
+  // An expression of the form e1 + e2 where e1 and e2 are constant expressions
+  // that evaluate to a numeric or string value or to null.
+
+  plus(dynamic e1, dynamic e2, Function onError) {
+    if (!_isNumStringOrNull(e1) || !_isNumStringOrNull(e2)) onError();
+    return e1 + e2;
+  }
+
+  ////////////////////////////////////////
+
+  // An expression of one of the forms -e, e1 - e2, e1 * e2, e1 / e2, e1 ~/ e2,
+  // e1 > e2, e1 < e2, e1 >= e2, e1 <= e2 or e1 % e2, where e, e1 and e2 are
+  // constant expressions that evaluate to a numeric value or to null.
+
+  unary_minus(dynamic e, Function onError) {
+    if (!_isNumOrNull(e)) onError();
+    return -e;
+  }
+
+  minus(dynamic e1, dynamic e2, Function onError) {
+    if (!_isNumOrNull(e1) || !_isNumOrNull(e2)) onError();
+    return e1 - e2;
+  }
+
+  times(dynamic e1, dynamic e2, Function onError) {
+    if (!_isNumOrNull(e1) || !_isNumOrNull(e2)) onError();
+    return e1 * e2;
+  }
+
+  div(dynamic e1, dynamic e2, Function onError) {
+    if (!_isNumOrNull(e1) || !_isNumOrNull(e2)) onError();
+    return e1 / e2;
+  }
+
+  integerDiv(dynamic e1, dynamic e2, Function onError) {
+    if (!_isNumOrNull(e1) || !_isNumOrNull(e2)) onError();
+    return e1 ~/ e2;
+  }
+
+  greater(dynamic e1, dynamic e2, Function onError) {
+    if (!_isNumOrNull(e1) || !_isNumOrNull(e2)) onError();
+    return e1 > e2;
+  }
+
+  less(dynamic e1, dynamic e2, Function onError) {
+    if (!_isNumOrNull(e1) || !_isNumOrNull(e2)) onError();
+    return e1 < e2;
+  }
+
+  greaterEqual(dynamic e1, dynamic e2, Function onError) {
+    if (!_isNumOrNull(e1) || !_isNumOrNull(e2)) onError();
+    return e1 >= e2;
+  }
+
+  lessEqual(dynamic e1, dynamic e2, Function onError) {
+    if (!_isNumOrNull(e1) || !_isNumOrNull(e2)) onError();
+    return e1 <= e2;
+  }
+
+  mod(dynamic e1, dynamic e2, Function onError) {
+    if (!_isNumOrNull(e1) || !_isNumOrNull(e2)) onError();
+    return e1 % e2;
+  }
+
+  ////////////////////////////////////////
+
+  // An expression of the form e1 ? e2 : e3 where e1, e2 and e3 are constant
+  // expressions and e1 evaluates to a boolean value.
+
+  conditional(Object e1, Object e2, Object e3, Function onError) {
+    if (e1 is! bool) onError();
+    return e1 ? e2 : e3;
+  }
+
+  ////////////////////////////////////////
+
+  // An expression of the form e1 ?? e2 where e1 and e2 are constant expressions.
+
+  ifNull(Object e1, Object e2, Object e3, Function onError) {
+    if (e1 is! bool) onError();
+    return e1 ?? e2;
+  }
+
+  ////////////////////////////////////////
+
+  // An expression of the form e.length where e is a constant expression that
+  // evaluates to a string value.
+
+  dotLength(dynamic e, Function onError) {
+    if (e is! String) onError();
+    return e.length();
+  }
 }

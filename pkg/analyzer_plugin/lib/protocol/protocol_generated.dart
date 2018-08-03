@@ -104,7 +104,7 @@ class AnalysisErrorFixes implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -218,7 +218,7 @@ class AnalysisErrorsParams implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -332,7 +332,7 @@ class AnalysisFoldingParams implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -348,6 +348,302 @@ class AnalysisFoldingParams implements HasToJson {
   int get hashCode {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, regions.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * analysis.getNavigation params
+ *
+ * {
+ *   "file": FilePath
+ *   "offset": int
+ *   "length": int
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class AnalysisGetNavigationParams implements RequestParams {
+  String _file;
+
+  int _offset;
+
+  int _length;
+
+  /**
+   * The file in which navigation information is being requested.
+   */
+  String get file => _file;
+
+  /**
+   * The file in which navigation information is being requested.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
+
+  /**
+   * The offset of the region for which navigation information is being
+   * requested.
+   */
+  int get offset => _offset;
+
+  /**
+   * The offset of the region for which navigation information is being
+   * requested.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
+
+  /**
+   * The length of the region for which navigation information is being
+   * requested.
+   */
+  int get length => _length;
+
+  /**
+   * The length of the region for which navigation information is being
+   * requested.
+   */
+  void set length(int value) {
+    assert(value != null);
+    this._length = value;
+  }
+
+  AnalysisGetNavigationParams(String file, int offset, int length) {
+    this.file = file;
+    this.offset = offset;
+    this.length = length;
+  }
+
+  factory AnalysisGetNavigationParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "file");
+      }
+      int offset;
+      if (json.containsKey("offset")) {
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "offset");
+      }
+      int length;
+      if (json.containsKey("length")) {
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "length");
+      }
+      return new AnalysisGetNavigationParams(file, offset, length);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "analysis.getNavigation params", json);
+    }
+  }
+
+  factory AnalysisGetNavigationParams.fromRequest(Request request) {
+    return new AnalysisGetNavigationParams.fromJson(
+        new RequestDecoder(request), "params", request.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    result["offset"] = offset;
+    result["length"] = length;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return new Request(id, "analysis.getNavigation", toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is AnalysisGetNavigationParams) {
+      return file == other.file &&
+          offset == other.offset &&
+          length == other.length;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * analysis.getNavigation result
+ *
+ * {
+ *   "files": List<FilePath>
+ *   "targets": List<NavigationTarget>
+ *   "regions": List<NavigationRegion>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class AnalysisGetNavigationResult implements ResponseResult {
+  List<String> _files;
+
+  List<NavigationTarget> _targets;
+
+  List<NavigationRegion> _regions;
+
+  /**
+   * A list of the paths of files that are referenced by the navigation
+   * targets.
+   */
+  List<String> get files => _files;
+
+  /**
+   * A list of the paths of files that are referenced by the navigation
+   * targets.
+   */
+  void set files(List<String> value) {
+    assert(value != null);
+    this._files = value;
+  }
+
+  /**
+   * A list of the navigation targets that are referenced by the navigation
+   * regions.
+   */
+  List<NavigationTarget> get targets => _targets;
+
+  /**
+   * A list of the navigation targets that are referenced by the navigation
+   * regions.
+   */
+  void set targets(List<NavigationTarget> value) {
+    assert(value != null);
+    this._targets = value;
+  }
+
+  /**
+   * A list of the navigation regions within the requested region of the file.
+   */
+  List<NavigationRegion> get regions => _regions;
+
+  /**
+   * A list of the navigation regions within the requested region of the file.
+   */
+  void set regions(List<NavigationRegion> value) {
+    assert(value != null);
+    this._regions = value;
+  }
+
+  AnalysisGetNavigationResult(List<String> files,
+      List<NavigationTarget> targets, List<NavigationRegion> regions) {
+    this.files = files;
+    this.targets = targets;
+    this.regions = regions;
+  }
+
+  factory AnalysisGetNavigationResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      List<String> files;
+      if (json.containsKey("files")) {
+        files = jsonDecoder.decodeList(
+            jsonPath + ".files", json["files"], jsonDecoder.decodeString);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "files");
+      }
+      List<NavigationTarget> targets;
+      if (json.containsKey("targets")) {
+        targets = jsonDecoder.decodeList(
+            jsonPath + ".targets",
+            json["targets"],
+            (String jsonPath, Object json) =>
+                new NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "targets");
+      }
+      List<NavigationRegion> regions;
+      if (json.containsKey("regions")) {
+        regions = jsonDecoder.decodeList(
+            jsonPath + ".regions",
+            json["regions"],
+            (String jsonPath, Object json) =>
+                new NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "regions");
+      }
+      return new AnalysisGetNavigationResult(files, targets, regions);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "analysis.getNavigation result", json);
+    }
+  }
+
+  factory AnalysisGetNavigationResult.fromResponse(Response response) {
+    return new AnalysisGetNavigationResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        "result",
+        response.result);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["files"] = files;
+    result["targets"] =
+        targets.map((NavigationTarget value) => value.toJson()).toList();
+    result["regions"] =
+        regions.map((NavigationRegion value) => value.toJson()).toList();
+    return result;
+  }
+
+  @override
+  Response toResponse(String id, int requestTime) {
+    return new Response(id, requestTime, result: toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is AnalysisGetNavigationResult) {
+      return listEqual(files, other.files, (String a, String b) => a == b) &&
+          listEqual(targets, other.targets,
+              (NavigationTarget a, NavigationTarget b) => a == b) &&
+          listEqual(regions, other.regions,
+              (NavigationRegion a, NavigationRegion b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, files.hashCode);
+    hash = JenkinsSmiHash.combine(hash, targets.hashCode);
     hash = JenkinsSmiHash.combine(hash, regions.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -424,7 +720,7 @@ class AnalysisHandleWatchEventsParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -564,7 +860,7 @@ class AnalysisHighlightsParams implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -737,7 +1033,7 @@ class AnalysisNavigationParams implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -857,7 +1153,7 @@ class AnalysisOccurrencesParams implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -970,7 +1266,7 @@ class AnalysisOutlineParams implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -987,123 +1283,6 @@ class AnalysisOutlineParams implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, file.hashCode);
     hash = JenkinsSmiHash.combine(hash, outline.hashCode);
     return JenkinsSmiHash.finish(hash);
-  }
-}
-
-/**
- * analysis.reanalyze params
- *
- * {
- *   "roots": optional List<FilePath>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
-class AnalysisReanalyzeParams implements RequestParams {
-  List<String> _roots;
-
-  /**
-   * A list of the context roots that are to be re-analyzed.
-   *
-   * If no context roots are provided, then all current context roots should be
-   * re-analyzed.
-   */
-  List<String> get roots => _roots;
-
-  /**
-   * A list of the context roots that are to be re-analyzed.
-   *
-   * If no context roots are provided, then all current context roots should be
-   * re-analyzed.
-   */
-  void set roots(List<String> value) {
-    this._roots = value;
-  }
-
-  AnalysisReanalyzeParams({List<String> roots}) {
-    this.roots = roots;
-  }
-
-  factory AnalysisReanalyzeParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
-    if (json is Map) {
-      List<String> roots;
-      if (json.containsKey("roots")) {
-        roots = jsonDecoder.decodeList(
-            jsonPath + ".roots", json["roots"], jsonDecoder.decodeString);
-      }
-      return new AnalysisReanalyzeParams(roots: roots);
-    } else {
-      throw jsonDecoder.mismatch(jsonPath, "analysis.reanalyze params", json);
-    }
-  }
-
-  factory AnalysisReanalyzeParams.fromRequest(Request request) {
-    return new AnalysisReanalyzeParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
-    if (roots != null) {
-      result["roots"] = roots;
-    }
-    return result;
-  }
-
-  @override
-  Request toRequest(String id) {
-    return new Request(id, "analysis.reanalyze", toJson());
-  }
-
-  @override
-  String toString() => JSON.encode(toJson());
-
-  @override
-  bool operator ==(other) {
-    if (other is AnalysisReanalyzeParams) {
-      return listEqual(roots, other.roots, (String a, String b) => a == b);
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode {
-    int hash = 0;
-    hash = JenkinsSmiHash.combine(hash, roots.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
-}
-
-/**
- * analysis.reanalyze result
- *
- * Clients may not extend, implement or mix-in this class.
- */
-class AnalysisReanalyzeResult implements ResponseResult {
-  @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
-
-  @override
-  Response toResponse(String id, int requestTime) {
-    return new Response(id, requestTime, result: null);
-  }
-
-  @override
-  bool operator ==(other) {
-    if (other is AnalysisReanalyzeResult) {
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode {
-    return 846803925;
   }
 }
 
@@ -1185,119 +1364,6 @@ class AnalysisService implements Enum {
 }
 
 /**
- * analysis.setContextBuilderOptions params
- *
- * {
- *   "options": ContextBuilderOptions
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
-class AnalysisSetContextBuilderOptionsParams implements RequestParams {
-  ContextBuilderOptions _options;
-
-  /**
-   * The options used to build the analysis contexts.
-   */
-  ContextBuilderOptions get options => _options;
-
-  /**
-   * The options used to build the analysis contexts.
-   */
-  void set options(ContextBuilderOptions value) {
-    assert(value != null);
-    this._options = value;
-  }
-
-  AnalysisSetContextBuilderOptionsParams(ContextBuilderOptions options) {
-    this.options = options;
-  }
-
-  factory AnalysisSetContextBuilderOptionsParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
-    if (json is Map) {
-      ContextBuilderOptions options;
-      if (json.containsKey("options")) {
-        options = new ContextBuilderOptions.fromJson(
-            jsonDecoder, jsonPath + ".options", json["options"]);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, "options");
-      }
-      return new AnalysisSetContextBuilderOptionsParams(options);
-    } else {
-      throw jsonDecoder.mismatch(
-          jsonPath, "analysis.setContextBuilderOptions params", json);
-    }
-  }
-
-  factory AnalysisSetContextBuilderOptionsParams.fromRequest(Request request) {
-    return new AnalysisSetContextBuilderOptionsParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
-    result["options"] = options.toJson();
-    return result;
-  }
-
-  @override
-  Request toRequest(String id) {
-    return new Request(id, "analysis.setContextBuilderOptions", toJson());
-  }
-
-  @override
-  String toString() => JSON.encode(toJson());
-
-  @override
-  bool operator ==(other) {
-    if (other is AnalysisSetContextBuilderOptionsParams) {
-      return options == other.options;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode {
-    int hash = 0;
-    hash = JenkinsSmiHash.combine(hash, options.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
-}
-
-/**
- * analysis.setContextBuilderOptions result
- *
- * Clients may not extend, implement or mix-in this class.
- */
-class AnalysisSetContextBuilderOptionsResult implements ResponseResult {
-  @override
-  Map<String, dynamic> toJson() => <String, dynamic>{};
-
-  @override
-  Response toResponse(String id, int requestTime) {
-    return new Response(id, requestTime, result: null);
-  }
-
-  @override
-  bool operator ==(other) {
-    if (other is AnalysisSetContextBuilderOptionsResult) {
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode {
-    return 645412314;
-  }
-}
-
-/**
  * analysis.setContextRoots params
  *
  * {
@@ -1367,7 +1433,7 @@ class AnalysisSetContextRootsParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -1481,7 +1547,7 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -1602,7 +1668,7 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -1733,7 +1799,7 @@ class AnalysisUpdateContentParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -1869,7 +1935,7 @@ class CompletionGetSuggestionsParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -2031,7 +2097,7 @@ class CompletionGetSuggestionsResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -2055,236 +2121,12 @@ class CompletionGetSuggestionsResult implements ResponseResult {
 }
 
 /**
- * ContextBuilderOptions
- *
- * {
- *   "dartSdkSummaryPath": optional String
- *   "defaultAnalysisOptionsFilePath": optional List<String>
- *   "declaredVariables": optional Map<String, String>
- *   "defaultPackageFilePath": optional List<String>
- *   "defaultPackagesDirectoryPath": optional List<String>
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
-class ContextBuilderOptions implements HasToJson {
-  String _dartSdkSummaryPath;
-
-  List<String> _defaultAnalysisOptionsFilePath;
-
-  Map<String, String> _declaredVariables;
-
-  List<String> _defaultPackageFilePath;
-
-  List<String> _defaultPackagesDirectoryPath;
-
-  /**
-   * The file path of the file containing the summary of the SDK that should be
-   * used to "analyze" the SDK. The field will be omitted if the summary should
-   * be found in the SDK.
-   */
-  String get dartSdkSummaryPath => _dartSdkSummaryPath;
-
-  /**
-   * The file path of the file containing the summary of the SDK that should be
-   * used to "analyze" the SDK. The field will be omitted if the summary should
-   * be found in the SDK.
-   */
-  void set dartSdkSummaryPath(String value) {
-    this._dartSdkSummaryPath = value;
-  }
-
-  /**
-   * The file path of the analysis options file that should be used in place of
-   * any file in the root directory or a parent of the root directory. The
-   * field will be omitted if the normal lookup mechanism should be used.
-   */
-  List<String> get defaultAnalysisOptionsFilePath =>
-      _defaultAnalysisOptionsFilePath;
-
-  /**
-   * The file path of the analysis options file that should be used in place of
-   * any file in the root directory or a parent of the root directory. The
-   * field will be omitted if the normal lookup mechanism should be used.
-   */
-  void set defaultAnalysisOptionsFilePath(List<String> value) {
-    this._defaultAnalysisOptionsFilePath = value;
-  }
-
-  /**
-   * A table mapping variable names to values for the declared variables. The
-   * field will be omitted if no additional variables need to be declared.
-   */
-  Map<String, String> get declaredVariables => _declaredVariables;
-
-  /**
-   * A table mapping variable names to values for the declared variables. The
-   * field will be omitted if no additional variables need to be declared.
-   */
-  void set declaredVariables(Map<String, String> value) {
-    this._declaredVariables = value;
-  }
-
-  /**
-   * The file path of the .packages file that should be used in place of any
-   * file found using the normal (Package Specification DEP) lookup mechanism.
-   * The field will be omitted if the normal lookup mechanism should be used.
-   */
-  List<String> get defaultPackageFilePath => _defaultPackageFilePath;
-
-  /**
-   * The file path of the .packages file that should be used in place of any
-   * file found using the normal (Package Specification DEP) lookup mechanism.
-   * The field will be omitted if the normal lookup mechanism should be used.
-   */
-  void set defaultPackageFilePath(List<String> value) {
-    this._defaultPackageFilePath = value;
-  }
-
-  /**
-   * The file path of the packages directory that should be used in place of
-   * any file found using the normal (Package Specification DEP) lookup
-   * mechanism. The field will be omitted if the normal lookup mechanism should
-   * be used.
-   */
-  List<String> get defaultPackagesDirectoryPath =>
-      _defaultPackagesDirectoryPath;
-
-  /**
-   * The file path of the packages directory that should be used in place of
-   * any file found using the normal (Package Specification DEP) lookup
-   * mechanism. The field will be omitted if the normal lookup mechanism should
-   * be used.
-   */
-  void set defaultPackagesDirectoryPath(List<String> value) {
-    this._defaultPackagesDirectoryPath = value;
-  }
-
-  ContextBuilderOptions(
-      {String dartSdkSummaryPath,
-      List<String> defaultAnalysisOptionsFilePath,
-      Map<String, String> declaredVariables,
-      List<String> defaultPackageFilePath,
-      List<String> defaultPackagesDirectoryPath}) {
-    this.dartSdkSummaryPath = dartSdkSummaryPath;
-    this.defaultAnalysisOptionsFilePath = defaultAnalysisOptionsFilePath;
-    this.declaredVariables = declaredVariables;
-    this.defaultPackageFilePath = defaultPackageFilePath;
-    this.defaultPackagesDirectoryPath = defaultPackagesDirectoryPath;
-  }
-
-  factory ContextBuilderOptions.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
-    if (json is Map) {
-      String dartSdkSummaryPath;
-      if (json.containsKey("dartSdkSummaryPath")) {
-        dartSdkSummaryPath = jsonDecoder.decodeString(
-            jsonPath + ".dartSdkSummaryPath", json["dartSdkSummaryPath"]);
-      }
-      List<String> defaultAnalysisOptionsFilePath;
-      if (json.containsKey("defaultAnalysisOptionsFilePath")) {
-        defaultAnalysisOptionsFilePath = jsonDecoder.decodeList(
-            jsonPath + ".defaultAnalysisOptionsFilePath",
-            json["defaultAnalysisOptionsFilePath"],
-            jsonDecoder.decodeString);
-      }
-      Map<String, String> declaredVariables;
-      if (json.containsKey("declaredVariables")) {
-        declaredVariables = jsonDecoder.decodeMap(
-            jsonPath + ".declaredVariables", json["declaredVariables"],
-            valueDecoder: jsonDecoder.decodeString);
-      }
-      List<String> defaultPackageFilePath;
-      if (json.containsKey("defaultPackageFilePath")) {
-        defaultPackageFilePath = jsonDecoder.decodeList(
-            jsonPath + ".defaultPackageFilePath",
-            json["defaultPackageFilePath"],
-            jsonDecoder.decodeString);
-      }
-      List<String> defaultPackagesDirectoryPath;
-      if (json.containsKey("defaultPackagesDirectoryPath")) {
-        defaultPackagesDirectoryPath = jsonDecoder.decodeList(
-            jsonPath + ".defaultPackagesDirectoryPath",
-            json["defaultPackagesDirectoryPath"],
-            jsonDecoder.decodeString);
-      }
-      return new ContextBuilderOptions(
-          dartSdkSummaryPath: dartSdkSummaryPath,
-          defaultAnalysisOptionsFilePath: defaultAnalysisOptionsFilePath,
-          declaredVariables: declaredVariables,
-          defaultPackageFilePath: defaultPackageFilePath,
-          defaultPackagesDirectoryPath: defaultPackagesDirectoryPath);
-    } else {
-      throw jsonDecoder.mismatch(jsonPath, "ContextBuilderOptions", json);
-    }
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
-    if (dartSdkSummaryPath != null) {
-      result["dartSdkSummaryPath"] = dartSdkSummaryPath;
-    }
-    if (defaultAnalysisOptionsFilePath != null) {
-      result["defaultAnalysisOptionsFilePath"] = defaultAnalysisOptionsFilePath;
-    }
-    if (declaredVariables != null) {
-      result["declaredVariables"] = declaredVariables;
-    }
-    if (defaultPackageFilePath != null) {
-      result["defaultPackageFilePath"] = defaultPackageFilePath;
-    }
-    if (defaultPackagesDirectoryPath != null) {
-      result["defaultPackagesDirectoryPath"] = defaultPackagesDirectoryPath;
-    }
-    return result;
-  }
-
-  @override
-  String toString() => JSON.encode(toJson());
-
-  @override
-  bool operator ==(other) {
-    if (other is ContextBuilderOptions) {
-      return dartSdkSummaryPath == other.dartSdkSummaryPath &&
-          listEqual(
-              defaultAnalysisOptionsFilePath,
-              other.defaultAnalysisOptionsFilePath,
-              (String a, String b) => a == b) &&
-          mapEqual(declaredVariables, other.declaredVariables,
-              (String a, String b) => a == b) &&
-          listEqual(defaultPackageFilePath, other.defaultPackageFilePath,
-              (String a, String b) => a == b) &&
-          listEqual(
-              defaultPackagesDirectoryPath,
-              other.defaultPackagesDirectoryPath,
-              (String a, String b) => a == b);
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode {
-    int hash = 0;
-    hash = JenkinsSmiHash.combine(hash, dartSdkSummaryPath.hashCode);
-    hash =
-        JenkinsSmiHash.combine(hash, defaultAnalysisOptionsFilePath.hashCode);
-    hash = JenkinsSmiHash.combine(hash, declaredVariables.hashCode);
-    hash = JenkinsSmiHash.combine(hash, defaultPackageFilePath.hashCode);
-    hash = JenkinsSmiHash.combine(hash, defaultPackagesDirectoryPath.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
-}
-
-/**
  * ContextRoot
  *
  * {
- *   "root": String
- *   "exclude": List<String>
+ *   "root": FilePath
+ *   "exclude": List<FilePath>
+ *   "optionsFile": optional FilePath
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -2293,6 +2135,8 @@ class ContextRoot implements HasToJson {
   String _root;
 
   List<String> _exclude;
+
+  String _optionsFile;
 
   /**
    * The absolute path of the root directory containing the files to be
@@ -2324,9 +2168,24 @@ class ContextRoot implements HasToJson {
     this._exclude = value;
   }
 
-  ContextRoot(String root, List<String> exclude) {
+  /**
+   * The absolute path of the analysis options file that should be used to
+   * control the analysis of the files in the context.
+   */
+  String get optionsFile => _optionsFile;
+
+  /**
+   * The absolute path of the analysis options file that should be used to
+   * control the analysis of the files in the context.
+   */
+  void set optionsFile(String value) {
+    this._optionsFile = value;
+  }
+
+  ContextRoot(String root, List<String> exclude, {String optionsFile}) {
     this.root = root;
     this.exclude = exclude;
+    this.optionsFile = optionsFile;
   }
 
   factory ContextRoot.fromJson(
@@ -2348,7 +2207,12 @@ class ContextRoot implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "exclude");
       }
-      return new ContextRoot(root, exclude);
+      String optionsFile;
+      if (json.containsKey("optionsFile")) {
+        optionsFile = jsonDecoder.decodeString(
+            jsonPath + ".optionsFile", json["optionsFile"]);
+      }
+      return new ContextRoot(root, exclude, optionsFile: optionsFile);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ContextRoot", json);
     }
@@ -2359,17 +2223,21 @@ class ContextRoot implements HasToJson {
     Map<String, dynamic> result = {};
     result["root"] = root;
     result["exclude"] = exclude;
+    if (optionsFile != null) {
+      result["optionsFile"] = optionsFile;
+    }
     return result;
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
     if (other is ContextRoot) {
       return root == other.root &&
-          listEqual(exclude, other.exclude, (String a, String b) => a == b);
+          listEqual(exclude, other.exclude, (String a, String b) => a == b) &&
+          optionsFile == other.optionsFile;
     }
     return false;
   }
@@ -2379,6 +2247,7 @@ class ContextRoot implements HasToJson {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, root.hashCode);
     hash = JenkinsSmiHash.combine(hash, exclude.hashCode);
+    hash = JenkinsSmiHash.combine(hash, optionsFile.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -2580,7 +2449,7 @@ class EditGetAssistsParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -2675,7 +2544,7 @@ class EditGetAssistsResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -2808,7 +2677,7 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -2913,7 +2782,7 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3021,7 +2890,7 @@ class EditGetFixesParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3112,7 +2981,7 @@ class EditGetFixesResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3334,7 +3203,7 @@ class EditGetRefactoringParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3609,7 +3478,7 @@ class EditGetRefactoringResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3817,7 +3686,7 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3938,7 +3807,7 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4215,7 +4084,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4444,7 +4313,7 @@ class ExtractMethodOptions extends RefactoringOptions {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4555,7 +4424,7 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4706,7 +4575,7 @@ class InlineMethodFeedback extends RefactoringFeedback {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4819,7 +4688,7 @@ class InlineMethodOptions extends RefactoringOptions {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4834,6 +4703,217 @@ class InlineMethodOptions extends RefactoringOptions {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, deleteSource.hashCode);
     hash = JenkinsSmiHash.combine(hash, inlineAll.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * kythe.getKytheEntries params
+ *
+ * {
+ *   "file": FilePath
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class KytheGetKytheEntriesParams implements RequestParams {
+  String _file;
+
+  /**
+   * The file containing the code for which the Kythe Entry objects are being
+   * requested.
+   */
+  String get file => _file;
+
+  /**
+   * The file containing the code for which the Kythe Entry objects are being
+   * requested.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
+
+  KytheGetKytheEntriesParams(String file) {
+    this.file = file;
+  }
+
+  factory KytheGetKytheEntriesParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "file");
+      }
+      return new KytheGetKytheEntriesParams(file);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "kythe.getKytheEntries params", json);
+    }
+  }
+
+  factory KytheGetKytheEntriesParams.fromRequest(Request request) {
+    return new KytheGetKytheEntriesParams.fromJson(
+        new RequestDecoder(request), "params", request.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return new Request(id, "kythe.getKytheEntries", toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is KytheGetKytheEntriesParams) {
+      return file == other.file;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * kythe.getKytheEntries result
+ *
+ * {
+ *   "entries": List<KytheEntry>
+ *   "files": List<FilePath>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class KytheGetKytheEntriesResult implements ResponseResult {
+  List<KytheEntry> _entries;
+
+  List<String> _files;
+
+  /**
+   * The list of KytheEntry objects for the queried file.
+   */
+  List<KytheEntry> get entries => _entries;
+
+  /**
+   * The list of KytheEntry objects for the queried file.
+   */
+  void set entries(List<KytheEntry> value) {
+    assert(value != null);
+    this._entries = value;
+  }
+
+  /**
+   * The set of files paths that were required, but not in the file system, to
+   * give a complete and accurate Kythe graph for the file. This could be due
+   * to a referenced file that does not exist or generated files not being
+   * generated or passed before the call to "getKytheEntries".
+   */
+  List<String> get files => _files;
+
+  /**
+   * The set of files paths that were required, but not in the file system, to
+   * give a complete and accurate Kythe graph for the file. This could be due
+   * to a referenced file that does not exist or generated files not being
+   * generated or passed before the call to "getKytheEntries".
+   */
+  void set files(List<String> value) {
+    assert(value != null);
+    this._files = value;
+  }
+
+  KytheGetKytheEntriesResult(List<KytheEntry> entries, List<String> files) {
+    this.entries = entries;
+    this.files = files;
+  }
+
+  factory KytheGetKytheEntriesResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      List<KytheEntry> entries;
+      if (json.containsKey("entries")) {
+        entries = jsonDecoder.decodeList(
+            jsonPath + ".entries",
+            json["entries"],
+            (String jsonPath, Object json) =>
+                new KytheEntry.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "entries");
+      }
+      List<String> files;
+      if (json.containsKey("files")) {
+        files = jsonDecoder.decodeList(
+            jsonPath + ".files", json["files"], jsonDecoder.decodeString);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "files");
+      }
+      return new KytheGetKytheEntriesResult(entries, files);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "kythe.getKytheEntries result", json);
+    }
+  }
+
+  factory KytheGetKytheEntriesResult.fromResponse(Response response) {
+    return new KytheGetKytheEntriesResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        "result",
+        response.result);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["entries"] =
+        entries.map((KytheEntry value) => value.toJson()).toList();
+    result["files"] = files;
+    return result;
+  }
+
+  @override
+  Response toResponse(String id, int requestTime) {
+    return new Response(id, requestTime, result: toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is KytheGetKytheEntriesResult) {
+      return listEqual(
+              entries, other.entries, (KytheEntry a, KytheEntry b) => a == b) &&
+          listEqual(files, other.files, (String a, String b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, entries.hashCode);
+    hash = JenkinsSmiHash.combine(hash, files.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -4920,7 +5000,7 @@ class MoveFileOptions extends RefactoringOptions {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -5061,7 +5141,7 @@ class PluginErrorParams implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -5143,8 +5223,8 @@ class PluginShutdownResult implements ResponseResult {
  * plugin.versionCheck params
  *
  * {
- *   "byteStorePath": String
- *   "sdkPath": String
+ *   "byteStorePath": FilePath
+ *   "sdkPath": FilePath
  *   "version": String
  * }
  *
@@ -5262,7 +5342,7 @@ class PluginVersionCheckParams implements RequestParams {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -5472,7 +5552,7 @@ class PluginVersionCheckResult implements ResponseResult {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -5582,7 +5662,7 @@ class PrioritizedSourceChange implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -5625,7 +5705,7 @@ class RefactoringFeedback implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -5665,7 +5745,7 @@ class RefactoringOptions implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -5814,7 +5894,7 @@ class RenameFeedback extends RefactoringFeedback {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -5900,7 +5980,7 @@ class RenameOptions extends RefactoringOptions {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -6025,7 +6105,7 @@ class RequestError implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -6145,7 +6225,7 @@ class RequestErrorCode implements Enum {
  *
  * {
  *   "type": WatchEventType
- *   "path": String
+ *   "path": FilePath
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -6220,7 +6300,7 @@ class WatchEvent implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {

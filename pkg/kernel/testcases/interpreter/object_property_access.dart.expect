@@ -1,0 +1,9 @@
+print(Null: null)
+print(int: 42)
+return
+print(int: 6)
+print(int: 1)
+print(int: 2)
+return
+print(int: 2)
+print(int: 42)

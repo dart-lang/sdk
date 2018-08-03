@@ -10,9 +10,13 @@ import '../core_types.dart';
 import '../type_environment.dart';
 import '../library_index.dart';
 
-Program transformProgram(Program program, {List<ProgramRoot> programRoots}) {
-  new TreeShaker(program, programRoots: programRoots).transform(program);
-  return program;
+Component transformComponent(
+    CoreTypes coreTypes, ClassHierarchy hierarchy, Component component,
+    {List<ProgramRoot> programRoots, bool strongMode: false}) {
+  new TreeShaker(coreTypes, hierarchy, component,
+          programRoots: programRoots, strongMode: strongMode)
+      .transform(component);
+  return component;
 }
 
 enum ProgramRootKind {
@@ -88,9 +92,12 @@ class ProgramRoot {
 //
 // TODO(asgerf): Tree shake unused instance fields.
 class TreeShaker {
-  final Program program;
-  final ClassHierarchy hierarchy;
   final CoreTypes coreTypes;
+  final ClosedWorldClassHierarchy hierarchy;
+  final ClassHierarchySubtypes hierarchySubtypes;
+  final Map<Class, int> numberedClasses;
+  final List<Class> classes;
+  final Component component;
   final bool strongMode;
   final List<ProgramRoot> programRoots;
 
@@ -124,7 +131,7 @@ class TreeShaker {
   /// Map from used members (regardless of host) to a summary object describing
   /// how the member invokes other members on `this`.
   ///
-  /// The summary object is a heterogenous list containing the [Member]s that
+  /// The summary object is a heterogeneous list containing the [Member]s that
   /// are invoked using `super` and the [Name]s that are dispatched on `this`.
   ///
   /// Names that are dispatched as a setter are preceded by the
@@ -148,6 +155,10 @@ class TreeShaker {
   /// for typed calls.
   final Set<Member> _overriddenMembers = new Set<Member>();
 
+  final Set<Member> _usedInterfaceMembers = new Set<Member>();
+
+  final Set<Typedef> _usedTypedefs = new Set<Typedef>();
+
   final List<Expression> _typedCalls = <Expression>[];
 
   /// AST visitor for finding static uses and dynamic dispatches in code.
@@ -167,13 +178,10 @@ class TreeShaker {
   /// the mirrors library.
   bool get forceShaking => programRoots != null && programRoots.isNotEmpty;
 
-  TreeShaker(Program program,
-      {ClassHierarchy hierarchy,
-      CoreTypes coreTypes,
-      bool strongMode: false,
-      List<ProgramRoot> programRoots})
-      : this._internal(program, hierarchy ?? new ClassHierarchy(program),
-            coreTypes ?? new CoreTypes(program), strongMode, programRoots);
+  TreeShaker(CoreTypes coreTypes, ClassHierarchy hierarchy, Component component,
+      {bool strongMode: false, List<ProgramRoot> programRoots})
+      : this._internal(
+            coreTypes, hierarchy, component, strongMode, programRoots);
 
   bool isMemberBodyUsed(Member member) {
     return _usedMembers.containsKey(member);
@@ -181,6 +189,14 @@ class TreeShaker {
 
   bool isMemberOverridden(Member member) {
     return _overriddenMembers.contains(member);
+  }
+
+  bool isMemberUsedInInterfaceTarget(Member member) {
+    return _usedInterfaceMembers.contains(member);
+  }
+
+  bool isTypedefUsed(Typedef node) {
+    return _usedTypedefs.contains(node);
   }
 
   bool isMemberUsed(Member member) {
@@ -195,27 +211,33 @@ class TreeShaker {
     return getClassRetention(classNode).index >= ClassRetention.Hierarchy.index;
   }
 
+  bool isNamespaceUsed(Class classNode) {
+    return getClassRetention(classNode).index >= ClassRetention.Namespace.index;
+  }
+
   ClassRetention getClassRetention(Class classNode) {
-    int index = hierarchy.getClassIndex(classNode);
+    int index = numberedClasses[classNode];
     return _classRetention[index];
   }
 
-  /// Applies the tree shaking results to the program.
+  /// Applies the tree shaking results to the component.
   ///
   /// This removes unused classes, members, and hierarchy data.
-  void transform(Program program) {
+  void transform(Component component) {
     if (isUsingMirrors) return; // Give up if using mirrors.
-    new _TreeShakingTransformer(this).transform(program);
+    new _TreeShakingTransformer(this).transform(component);
   }
 
-  TreeShaker._internal(this.program, ClassHierarchy hierarchy, this.coreTypes,
+  TreeShaker._internal(this.coreTypes, this.hierarchy, this.component,
       this.strongMode, this.programRoots)
-      : this.hierarchy = hierarchy,
-        this._dispatchedNames = new List<Set<Name>>(hierarchy.classes.length),
+      : this._dispatchedNames = new List<Set<Name>>(hierarchy.numberOfClasses),
         this._usedMembersWithHost =
-            new List<Set<Member>>(hierarchy.classes.length),
+            new List<Set<Member>>(hierarchy.numberOfClasses),
         this._classRetention = new List<ClassRetention>.filled(
-            hierarchy.classes.length, ClassRetention.None) {
+            hierarchy.numberOfClasses, ClassRetention.None),
+        this.hierarchySubtypes = hierarchy.computeSubtypesInformation(),
+        this.numberedClasses = createMapNumberIndex(hierarchy.classes),
+        this.classes = new List<Class>.from(hierarchy.classes) {
     _visitor = new _TreeShakerVisitor(this);
     _covariantVisitor = new _ExternalTypeVisitor(this, isCovariant: true);
     _contravariantVisitor =
@@ -230,20 +252,29 @@ class TreeShaker {
     }
   }
 
-  void _build() {
-    if (program.mainMethod == null) {
-      throw 'Cannot perform tree shaking on a program without a main method';
+  static Map<Class, int> createMapNumberIndex(Iterable<Class> classes) {
+    Map<Class, int> result = new Map<Class, int>();
+    for (Class class_ in classes) {
+      result[class_] = result.length;
     }
-    if (program.mainMethod.function.positionalParameters.length > 0) {
+    return result;
+  }
+
+  void _build() {
+    if (component.mainMethod == null) {
+      throw 'Cannot perform tree shaking on a component without a main method';
+    }
+    if (component.mainMethod.function.positionalParameters.length > 0) {
       // The main method takes a List<String> as argument.
       _addInstantiatedExternalSubclass(coreTypes.listClass);
       _addInstantiatedExternalSubclass(coreTypes.stringClass);
     }
-    _addDispatchedName(hierarchy.rootClass, new Name('noSuchMethod'));
+    _addDispatchedName(coreTypes.objectClass, new Name('noSuchMethod'));
     _addPervasiveUses();
-    _addUsedMember(null, program.mainMethod);
+    _addUsedMember(null, component.mainMethod);
     if (programRoots != null) {
-      var table = new LibraryIndex(program, programRoots.map((r) => r.library));
+      var table =
+          new LibraryIndex(component, programRoots.map((r) => r.library));
       for (var root in programRoots) {
         _addUsedRoot(root, table);
       }
@@ -254,8 +285,8 @@ class TreeShaker {
     // Mark overridden members in order to preserve abstract members as
     // necessary.
     if (strongMode) {
-      for (int i = hierarchy.classes.length - 1; i >= 0; --i) {
-        Class class_ = hierarchy.classes[i];
+      for (int i = classes.length - 1; i >= 0; --i) {
+        Class class_ = classes[i];
         if (isHierarchyUsed(class_)) {
           hierarchy.forEachOverridePair(class_,
               (Member ownMember, Member superMember, bool isSetter) {
@@ -288,7 +319,7 @@ class TreeShaker {
   /// Registers the given name as seen in a dynamic dispatch, and discovers used
   /// instance members accordingly.
   void _addDispatchedName(Class receiver, Name name) {
-    int index = hierarchy.getClassIndex(receiver);
+    int index = numberedClasses[receiver];
     Set<Name> receiverNames = _dispatchedNames[index] ??= new Set<Name>();
     // TODO(asgerf): make use of selector arity and getter/setter kind
     if (receiverNames.add(name)) {
@@ -315,7 +346,7 @@ class TreeShaker {
           }
         }
       }
-      var subtypes = hierarchy.getSubtypesOf(receiver);
+      var subtypes = hierarchySubtypes.getSubtypesOf(receiver);
       var receiverSet = _receiversOfName[name];
       _receiversOfName[name] = receiverSet == null
           ? subtypes
@@ -341,7 +372,7 @@ class TreeShaker {
   /// Registers the given class as instantiated and discovers new dispatch
   /// target candidates accordingly.
   void _addInstantiatedClass(Class classNode) {
-    int index = hierarchy.getClassIndex(classNode);
+    int index = numberedClasses[classNode];
     ClassRetention retention = _classRetention[index];
     if (retention.index < ClassRetention.Instance.index) {
       _classRetention[index] = ClassRetention.Instance;
@@ -351,7 +382,7 @@ class TreeShaker {
 
   /// Register that an external subclass of the given class may be instantiated.
   void _addInstantiatedExternalSubclass(Class classNode) {
-    int index = hierarchy.getClassIndex(classNode);
+    int index = numberedClasses[classNode];
     ClassRetention retention = _classRetention[index];
     if (retention.index < ClassRetention.ExternalInstance.index) {
       _classRetention[index] = ClassRetention.ExternalInstance;
@@ -474,7 +505,7 @@ class TreeShaker {
 
   /// Registers the given class as being used in a type annotation.
   void _addClassUsedInType(Class classNode) {
-    int index = hierarchy.getClassIndex(classNode);
+    int index = numberedClasses[classNode];
     ClassRetention retention = _classRetention[index];
     if (retention.index < ClassRetention.Hierarchy.index) {
       _classRetention[index] = ClassRetention.Hierarchy;
@@ -482,11 +513,24 @@ class TreeShaker {
     }
   }
 
+  /// Registers the given member as being used in an interface target.
+  void _addUsedInterfaceMember(Member member) {
+    _usedInterfaceMembers.add(member);
+  }
+
+  /// Registers the given typedef as being used.
+  void addUsedTypedef(Typedef node) {
+    if (_usedTypedefs.add(node)) {
+      visitList(node.annotations, _visitor);
+      node.type.accept(_visitor);
+    }
+  }
+
   /// Registers the given class or library as containing static members.
   void _addStaticNamespace(TreeNode container) {
     assert(container is Class || container is Library);
     if (container is Class) {
-      int index = hierarchy.getClassIndex(container);
+      int index = numberedClasses[container];
       var oldRetention = _classRetention[index];
       if (oldRetention == ClassRetention.None) {
         _classRetention[index] = ClassRetention.Namespace;
@@ -507,7 +551,7 @@ class TreeShaker {
     }
     if (host != null) {
       // Check if the member has been seen with this host before.
-      int index = hierarchy.getClassIndex(host);
+      int index = numberedClasses[host];
       Set<Member> members = _usedMembersWithHost[index] ??= new Set<Member>();
       if (!members.add(member)) return;
       _usedMembers.putIfAbsent(member, _makeIncompleteSummary);
@@ -614,6 +658,8 @@ final Node _setterSentinel = const InvalidType();
 
 /// Searches the AST for static references and dynamically dispatched names.
 class _TreeShakerVisitor extends RecursiveVisitor {
+  final Set<Constant> visitedConstants = new Set<Constant>();
+
   final TreeShaker shaker;
   final CoreTypes coreTypes;
   final TypeEnvironment types;
@@ -759,9 +805,10 @@ class _TreeShakerVisitor extends RecursiveVisitor {
       addSelfDispatch(node.name);
     } else {
       shaker._addDispatchedName(getStaticType(node.receiver), node.name);
-      if (node.interfaceTarget != null) {
-        shaker._typedCalls.add(node);
-      }
+    }
+    if (node.interfaceTarget != null) {
+      shaker._addUsedInterfaceMember(node.interfaceTarget);
+      shaker._typedCalls.add(node);
     }
     node.visitChildren(this);
   }
@@ -804,9 +851,10 @@ class _TreeShakerVisitor extends RecursiveVisitor {
       addSelfDispatch(node.name);
     } else {
       shaker._addDispatchedName(getStaticType(node.receiver), node.name);
-      if (node.interfaceTarget != null) {
-        shaker._typedCalls.add(node);
-      }
+    }
+    if (node.interfaceTarget != null) {
+      shaker._addUsedInterfaceMember(node.interfaceTarget);
+      shaker._typedCalls.add(node);
     }
     node.visitChildren(this);
   }
@@ -817,9 +865,10 @@ class _TreeShakerVisitor extends RecursiveVisitor {
       addSelfDispatch(node.name, setter: true);
     } else {
       shaker._addDispatchedName(getStaticType(node.receiver), node.name);
-      if (node.interfaceTarget != null) {
-        shaker._typedCalls.add(node);
-      }
+    }
+    if (node.interfaceTarget != null) {
+      shaker._addUsedInterfaceMember(node.interfaceTarget);
+      shaker._typedCalls.add(node);
     }
     node.visitChildren(this);
   }
@@ -873,6 +922,92 @@ class _TreeShakerVisitor extends RecursiveVisitor {
     shaker._addInstantiatedExternalSubclass(coreTypes.typeClass);
     node.visitChildren(this);
   }
+
+  @override
+  visitConstantExpression(ConstantExpression node) {
+    if (visitedConstants.add(node.constant)) {
+      node.constant.accept(this);
+    }
+  }
+
+  @override
+  defaultConstant(Constant node) {
+    // This will visit all members of the [Constant], including any
+    // [DartType]s and [Reference]s to other constants.
+    node.visitChildren(this);
+  }
+
+  @override
+  visitNullConstant(NullConstant node) {
+    shaker._addInstantiatedExternalSubclass(shaker.coreTypes.nullClass);
+  }
+
+  @override
+  visitBoolConstant(BoolConstant node) {
+    shaker._addInstantiatedExternalSubclass(shaker.coreTypes.boolClass);
+  }
+
+  @override
+  visitIntConstant(IntConstant node) {
+    shaker._addInstantiatedExternalSubclass(shaker.coreTypes.intClass);
+  }
+
+  @override
+  visitDoubleConstant(DoubleConstant node) {
+    shaker._addInstantiatedExternalSubclass(shaker.coreTypes.doubleClass);
+  }
+
+  @override
+  visitStringConstant(StringConstant node) {
+    shaker._addInstantiatedExternalSubclass(shaker.coreTypes.stringClass);
+  }
+
+  @override
+  visitMapConstant(MapConstant node) {
+    shaker._addInstantiatedExternalSubclass(shaker.coreTypes.mapClass);
+    super.visitMapConstant(node);
+  }
+
+  @override
+  visitListConstant(ListConstant node) {
+    shaker._addInstantiatedExternalSubclass(shaker.coreTypes.listClass);
+    super.visitListConstant(node);
+  }
+
+  @override
+  visitInstanceConstant(InstanceConstant node) {
+    shaker._addInstantiatedClass(node.klass);
+    super.visitInstanceConstant(node);
+  }
+
+  @override
+  visitTearOffConstant(TearOffConstant node) {
+    addStaticUse(node.procedure);
+    super.visitTearOffConstant(node);
+  }
+
+  @override
+  defaultConstantReference(Constant node) {
+    // Recurse into referenced constants.
+    if (visitedConstants.add(node)) {
+      node.accept(this);
+    }
+  }
+
+  @override
+  visitSuperPropertyGet(SuperPropertyGet node) {
+    throw 'The treeshaker assumes mixins have been desugared.';
+  }
+
+  @override
+  visitSuperPropertySet(SuperPropertySet node) {
+    throw 'The treeshaker assumes mixins have been desugared.';
+  }
+
+  @override
+  visitSuperMethodInvocation(SuperMethodInvocation node) {
+    throw 'The treeshaker assumes mixins have been desugared.';
+  }
 }
 
 /// The degree to which a class is needed in a program.
@@ -905,10 +1040,13 @@ class _TreeShakingTransformer extends Transformer {
   _TreeShakingTransformer(this.shaker);
 
   Member _translateInterfaceTarget(Member target) {
-    return target != null && shaker.isMemberUsed(target) ? target : null;
+    final isUsed = target != null &&
+        (shaker.isMemberUsed(target) ||
+            shaker.isMemberUsedInInterfaceTarget(target));
+    return isUsed ? target : null;
   }
 
-  void transform(Program program) {
+  void transform(Component component) {
     for (Expression node in shaker._typedCalls) {
       // We should not leave dangling references, so if the target of a typed
       // call has been removed, we must remove the reference.  The receiver of
@@ -922,7 +1060,7 @@ class _TreeShakingTransformer extends Transformer {
         node.interfaceTarget = _translateInterfaceTarget(node.interfaceTarget);
       }
     }
-    for (var library in program.libraries) {
+    for (var library in component.libraries) {
       if (!shaker.forceShaking && library.importUri.scheme == 'dart') {
         // The backend expects certain things to be present in the core
         // libraries, so we currently don't shake off anything there.
@@ -931,7 +1069,25 @@ class _TreeShakingTransformer extends Transformer {
       library.transformChildren(this);
       // Note: we can't shake off empty libraries yet since we don't check if
       // there are private names that use the library.
+
+      // The transformer API does not iterate over `Library.additionalExports`,
+      // so we manually delete the references to shaken nodes.
+      library.additionalExports.removeWhere((Reference reference) {
+        final node = reference.node;
+        if (node is Class) {
+          return !shaker.isNamespaceUsed(node);
+        } else if (node is Typedef) {
+          return !shaker.isTypedefUsed(node);
+        } else {
+          return !shaker.isMemberUsed(node as Member);
+        }
+      });
     }
+  }
+
+  Typedef visitTypedef(Typedef node) {
+    if (shaker.isTypedefUsed(node)) return node;
+    return null;
   }
 
   Class visitClass(Class node) {
@@ -967,7 +1123,8 @@ class _TreeShakingTransformer extends Transformer {
 
   Member defaultMember(Member node) {
     if (!shaker.isMemberBodyUsed(node)) {
-      if (!shaker.isMemberOverridden(node)) {
+      if (!shaker.isMemberOverridden(node) &&
+          !shaker.isMemberUsedInInterfaceTarget(node)) {
         node.canonicalName?.unbind();
         return null;
       }
@@ -1020,22 +1177,22 @@ class _ExternalTypeVisitor extends DartTypeVisitor {
     }
   }
 
-  visitCovariant(DartType type) => type?.accept(this);
+  void visitCovariant(DartType type) => type?.accept(this);
 
-  visitInvariant(DartType type) => shaker._invariantVisitor.visit(type);
+  void visitInvariant(DartType type) => shaker._invariantVisitor.visit(type);
 
-  visitInvalidType(InvalidType node) {}
+  void visitInvalidType(InvalidType node) {}
 
-  visitDynamicType(DynamicType node) {
+  void visitDynamicType(DynamicType node) {
     // TODO(asgerf): Find a suitable model for untyped externals, e.g. track
     // them to the first type boundary.
   }
 
-  visitVoidType(VoidType node) {}
+  void visitVoidType(VoidType node) {}
 
-  visitVectorType(VectorType node) {}
+  void visitVectorType(VectorType node) {}
 
-  visitInterfaceType(InterfaceType node) {
+  void visitInterfaceType(InterfaceType node) {
     if (isCovariant) {
       shaker._addInstantiatedExternalSubclass(node.classNode);
     }
@@ -1056,11 +1213,11 @@ class _ExternalTypeVisitor extends DartTypeVisitor {
     }
   }
 
-  visitTypedefType(TypedefType node) {
-    throw 'TypedefType is not implemented in tree shaker';
+  void visitTypedefType(TypedefType node) {
+    shaker.addUsedTypedef(node.typedefNode);
   }
 
-  visitFunctionType(FunctionType node) {
+  void visitFunctionType(FunctionType node) {
     visit(node.returnType);
     for (int i = 0; i < node.positionalParameters.length; ++i) {
       visitContravariant(node.positionalParameters[i]);
@@ -1070,7 +1227,7 @@ class _ExternalTypeVisitor extends DartTypeVisitor {
     }
   }
 
-  visitTypeParameterType(TypeParameterType node) {}
+  void visitTypeParameterType(TypeParameterType node) {}
 
   /// Just treat a couple of whitelisted classes as having covariant type
   /// parameters.

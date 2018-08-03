@@ -1,0 +1,96 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method foo([core::Map<core::int, core::String> m1 = const <core::int, core::String>{1: "hello"}, core::Map<core::int, core::String> m2 = const <core::int, core::String>{let<BottomType> _ = null in let final dynamic #t1 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:12:79: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+      /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE,error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/ \"hello\":
+                                                                              ^" in let final core::String #t2 = "hello" in null: "world"}]) → void {}
+static method test() → void {
+  {
+    core::Map<core::int, core::String> l0 = <core::int, core::String>{};
+    core::Map<core::int, core::String> l1 = <core::int, core::String>{3: "hello"};
+    core::Map<core::int, core::String> l2 = <core::int, core::String>{let<BottomType> _ = null in let final dynamic #t3 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:20:45: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+      /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/ \"hello\": \"hello\"
+                                            ^" in let final core::String #t4 = "hello" in null: "hello"};
+    core::Map<core::int, core::String> l3 = <core::int, core::String>{3: let<BottomType> _ = null in let final dynamic #t5 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:23:50: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+      3: /*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/ 3
+                                                 ^" in let final core::int #t6 = 3 in null};
+    core::Map<core::int, core::String> l4 = <core::int, core::String>{3: "hello", let<BottomType> _ = null in let final dynamic #t7 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:27:45: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+      /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/ \"hello\":
+                                            ^" in let final core::String #t8 = "hello" in null: let<BottomType> _ = null in let final dynamic #t9 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:28:51: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+          /*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/ 3
+                                                  ^" in let final core::int #t10 = 3 in null};
+  }
+  {
+    core::Map<dynamic, dynamic> l0 = <dynamic, dynamic>{};
+    core::Map<dynamic, dynamic> l1 = <dynamic, dynamic>{3: "hello"};
+    core::Map<dynamic, dynamic> l2 = <dynamic, dynamic>{"hello": "hello"};
+    core::Map<dynamic, dynamic> l3 = <dynamic, dynamic>{3: 3};
+    core::Map<dynamic, dynamic> l4 = <dynamic, dynamic>{3: "hello", "hello": 3};
+  }
+  {
+    core::Map<dynamic, core::String> l0 = <dynamic, core::String>{};
+    core::Map<dynamic, core::String> l1 = <dynamic, core::String>{3: "hello"};
+    core::Map<dynamic, core::String> l2 = <dynamic, core::String>{"hello": "hello"};
+    core::Map<dynamic, core::String> l3 = <dynamic, core::String>{3: let<BottomType> _ = null in let final dynamic #t11 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:48:50: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+      3: /*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/ 3
+                                                 ^" in let final core::int #t12 = 3 in null};
+    core::Map<dynamic, core::String> l4 = <dynamic, core::String>{3: "hello", "hello": let<BottomType> _ = null in let final dynamic #t13 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:52:56: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+      \"hello\": /*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/ 3
+                                                       ^" in let final core::int #t14 = 3 in null};
+  }
+  {
+    core::Map<core::int, dynamic> l0 = <core::int, dynamic>{};
+    core::Map<core::int, dynamic> l1 = <core::int, dynamic>{3: "hello"};
+    core::Map<core::int, dynamic> l2 = <core::int, dynamic>{let<BottomType> _ = null in let final dynamic #t15 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:59:45: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+      /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/ \"hello\": \"hello\"
+                                            ^" in let final core::String #t16 = "hello" in null: "hello"};
+    core::Map<core::int, dynamic> l3 = <core::int, dynamic>{3: 3};
+    core::Map<core::int, dynamic> l4 = <core::int, dynamic>{3: "hello", let<BottomType> _ = null in let final dynamic #t17 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:64:45: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+      /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/ \"hello\": 3
+                                            ^" in let final core::String #t18 = "hello" in null: 3};
+  }
+  {
+    core::Map<core::int, core::String> l0 = let<BottomType> _ = null in let final dynamic #t19 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:68:76: Error: The map literal type 'dart.core::Map<dart.core::num, dynamic>' isn't of expected type 'dart.core::Map<dart.core::int, dart.core::String>'.
+Change the type of the map literal or the context in which it is used.
+    Map<int, String> l0 = /*error:INVALID_CAST_LITERAL_MAP*/ <num, dynamic>{};
+                                                                           ^" in let final core::Map<core::num, dynamic> #t20 = <core::num, dynamic>{} in null;
+    core::Map<core::int, core::String> l1 = let<BottomType> _ = null in let final dynamic #t21 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:69:76: Error: The map literal type 'dart.core::Map<dart.core::num, dynamic>' isn't of expected type 'dart.core::Map<dart.core::int, dart.core::String>'.
+Change the type of the map literal or the context in which it is used.
+    Map<int, String> l1 = /*error:INVALID_CAST_LITERAL_MAP*/ <num, dynamic>{
+                                                                           ^" in let final core::Map<core::num, dynamic> #t22 = <core::num, dynamic>{3: "hello"} in null;
+    core::Map<core::int, core::String> l3 = let<BottomType> _ = null in let final dynamic #t23 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:72:76: Error: The map literal type 'dart.core::Map<dart.core::num, dynamic>' isn't of expected type 'dart.core::Map<dart.core::int, dart.core::String>'.
+Change the type of the map literal or the context in which it is used.
+    Map<int, String> l3 = /*error:INVALID_CAST_LITERAL_MAP*/ <num, dynamic>{
+                                                                           ^" in let final core::Map<core::num, dynamic> #t24 = <core::num, dynamic>{3: 3} in null;
+  }
+  {
+    const core::Map<core::int, core::String> l0 = const <core::int, core::String>{};
+    const core::Map<core::int, core::String> l1 = const <core::int, core::String>{3: "hello"};
+    const core::Map<core::int, core::String> l2 = const <core::int, core::String>{let<BottomType> _ = null in let final dynamic #t25 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:80:79: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+      /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE,error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/ \"hello\":
+                                                                              ^" in let final core::String #t26 = "hello" in null: "hello"};
+    const core::Map<core::int, core::String> l3 = const <core::int, core::String>{3: let<BottomType> _ = null in let final dynamic #t27 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:84:86: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+      3: /*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE,error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/ 3
+                                                                                     ^" in let final core::int #t28 = 3 in null};
+    const core::Map<core::int, core::String> l4 = const <core::int, core::String>{3: "hello", let<BottomType> _ = null in let final dynamic #t29 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:88:79: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+      /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE,error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/ \"hello\":
+                                                                              ^" in let final core::String #t30 = "hello" in null: let<BottomType> _ = null in let final dynamic #t31 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:89:87: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+          /*error:MAP_VALUE_TYPE_NOT_ASSIGNABLE,error:MAP_VALUE_TYPE_NOT_ASSIGNABLE*/ 3
+                                                                                      ^" in let final core::int #t32 = 3 in null};
+  }
+}
+static method main() → dynamic {}

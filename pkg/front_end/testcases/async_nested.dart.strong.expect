@@ -1,0 +1,26 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+class Node extends core::Object {
+  final field core::List<self::Node> nested;
+  final field core::String name;
+  constructor •(core::String name, [core::List<self::Node> nested = null]) → void
+    : self::Node::name = name, self::Node::nested = nested, super core::Object::•() {}
+  method toString() → core::String
+    return "<${this.{self::Node::name}}:[${let final core::List<self::Node> #t1 = this.{self::Node::nested} in #t1.==(null) ?{core::String} null : #t1.{core::Iterable::join}(", ")}]>";
+  method toSimpleString() → dynamic {
+    core::Iterable<dynamic> tmp = let final core::List<self::Node> #t2 = this.{self::Node::nested} in #t2.==(null) ?{core::Iterable<dynamic>} null : #t2.{core::Iterable::map}<dynamic>((self::Node child) → dynamic => child.{self::Node::toSimpleString}());
+    return "${this.{self::Node::name}} ${let final core::Iterable<dynamic> #t3 = tmp in #t3.==(null) ?{core::String} null : #t3.{core::Iterable::join}(" ")}".{core::String::trim}();
+  }
+}
+static method main() → void async {
+  core::String expected = "1 2 3 4 5 6 7 8 9 10";
+  self::Node node = new self::Node::•("1", <self::Node>[new self::Node::•("2", <self::Node>[]), await asy::Future::value<self::Node>(new self::Node::•("3", <self::Node>[await asy::Future::value<self::Node>(new self::Node::•("4", <self::Node>[new self::Node::•("5", <self::Node>[await asy::Future::value<self::Node>(new self::Node::•("6", <self::Node>[await asy::Future::value<self::Node>(new self::Node::•("7", <self::Node>[]))])), await asy::Future::value<self::Node>(new self::Node::•("8", <self::Node>[])), await asy::Future::value<self::Node>(new self::Node::•("9", <self::Node>[]))])]))])), await asy::Future::value<self::Node>(new self::Node::•("10", <self::Node>[]))]);
+  core::String actual = node.{self::Node::toSimpleString}() as{TypeError} core::String;
+  core::print(actual);
+  if(!actual.{core::String::==}(expected)) {
+    throw "Expected '${expected}' but got '${actual}'";
+  }
+}

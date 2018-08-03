@@ -1,0 +1,6 @@
+print(String: Create instance of A)
+print(String: foo1)
+print(String: foo2)
+print(String: foo3)
+print(String: Read staticFoo)
+print(String: staticFoo)

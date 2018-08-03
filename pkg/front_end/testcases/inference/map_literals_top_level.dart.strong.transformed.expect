@@ -1,0 +1,38 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field core::Map<core::int, core::String> x1 = <core::int, core::String>{1: "x", 2: "y"};
+static field core::Map<core::num, core::Pattern> x2 = <core::num, core::Pattern>{1: "x", 2: "y", 3.0: core::RegExp::•(".")};
+static method test1() → dynamic {
+  self::x1.{core::Map::[]=}(3, "z");
+  self::x1.{core::Map::[]=}(let<BottomType> _ = null in let final dynamic #t1 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/map_literals_top_level.dart:14:67: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+  x1 /*@target=Map::[]=*/ [/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi'] = 'w';
+                                                                  ^" in let final core::String #t2 = "hi" in null, "w");
+  self::x1.{core::Map::[]=}(let<BottomType> _ = null in let final dynamic #t3 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/map_literals_top_level.dart:15:67: Error: A value of type 'dart.core::double' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+  x1 /*@target=Map::[]=*/ [/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 4.0] = 'u';
+                                                                  ^" in let final core::double #t4 = 4.0 in null, "u");
+  self::x1.{core::Map::[]=}(3, let<BottomType> _ = null in let final dynamic #t5 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/map_literals_top_level.dart:16:62: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+  x1 /*@target=Map::[]=*/ [3] = /*error:INVALID_ASSIGNMENT*/ 42;
+                                                             ^" in let final core::int #t6 = 42 in null);
+  core::Map<core::num, core::String> y = self::x1;
+}
+static method test2() → dynamic {
+  self::x2.{core::Map::[]=}(3, "z");
+  self::x2.{core::Map::[]=}(let<BottomType> _ = null in let final dynamic #t7 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/map_literals_top_level.dart:27:67: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::num'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::num'.
+  x2 /*@target=Map::[]=*/ [/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi'] = 'w';
+                                                                  ^" in let final core::String #t8 = "hi" in null, "w");
+  self::x2.{core::Map::[]=}(4.0, "u");
+  self::x2.{core::Map::[]=}(3, let<BottomType> _ = null in let final dynamic #t9 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/map_literals_top_level.dart:29:62: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::Pattern'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::Pattern'.
+  x2 /*@target=Map::[]=*/ [3] = /*error:INVALID_ASSIGNMENT*/ 42;
+                                                             ^" in let final core::int #t10 = 42 in null);
+  core::Pattern p = null;
+  self::x2.{core::Map::[]=}(2, p);
+  core::Map<core::int, core::String> y = self::x2 as{TypeError} core::Map<core::int, core::String>;
+}
+static method main() → dynamic {}

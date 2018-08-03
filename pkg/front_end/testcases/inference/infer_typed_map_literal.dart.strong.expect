@@ -1,0 +1,18 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field core::Map<core::int, core::String> a = <core::int, core::String>{0: "aaa", 1: "bbb"};
+static field core::Map<core::double, core::int> b = <core::double, core::int>{1.1: 1, 2.2: 2};
+static field core::Map<core::List<core::int>, core::Map<core::String, core::double>> c = <core::List<core::int>, core::Map<core::String, core::double>>{};
+static field core::Map<core::int, dynamic> d = <core::int, dynamic>{};
+static field core::Map<dynamic, core::int> e = <dynamic, core::int>{};
+static field core::Map<dynamic, dynamic> f = <dynamic, dynamic>{};
+static method main() → dynamic {
+  self::a;
+  self::b;
+  self::c;
+  self::d;
+  self::e;
+  self::f;
+}

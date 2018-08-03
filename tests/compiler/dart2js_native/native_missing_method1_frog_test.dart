@@ -9,12 +9,15 @@ class A {}
 
 A makeA() native;
 
-void setup() native """
-function A() {};
-A.prototype.foo = function() { return  99; }
-makeA = function() { return new A; }
-self.nativeConstructor(A);
-""";
+void setup() {
+  JS('', r"""
+(function(){
+  function A() {};
+  A.prototype.foo = function() { return  99; };
+  makeA = function() { return new A(); };
+  self.nativeConstructor(A);
+})()""");
+}
 
 class B {
   // We need to define a foo method so that dart2js sees it. Because the
@@ -30,7 +33,7 @@ class B {
 
 typedContext() {
   confuse(new B()).foo();
-  A a = makeA();
+  dynamic a = makeA();
   Expect.throws(() => a.foo(), (e) => e is NoSuchMethodError);
   Expect.throws(() => a.foo, (e) => e is NoSuchMethodError);
   Expect.throws(() => a.foo = 4, (e) => e is NoSuchMethodError);

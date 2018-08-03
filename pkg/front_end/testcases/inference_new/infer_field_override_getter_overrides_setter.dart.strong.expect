@@ -1,0 +1,30 @@
+// Errors:
+//
+// pkg/front_end/testcases/inference_new/infer_field_override_getter_overrides_setter.dart:19:24: Error: The return type of the method 'C::x' is dart.core::int, which does not match the return type of the overridden method (dart.core::num).
+// Change to a subtype of dart.core::num.
+//   var /*@topType=int*/ x;
+//                        ^
+
+library test;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract set x(core::num value) → void;
+}
+abstract class B extends self::A {
+  synthetic constructor •() → void
+    : super self::A::•()
+    ;
+  abstract get x() → core::int;
+}
+class C extends self::B {
+  field core::int x = null;
+  synthetic constructor •() → void
+    : super self::B::•()
+    ;
+}
+static method main() → dynamic {}

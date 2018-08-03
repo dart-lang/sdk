@@ -8,16 +8,13 @@
 
 namespace dart {
 
-
 TokenPosition TokenPosition::SnapshotDecode(int32_t value) {
   return TokenPosition(static_cast<intptr_t>(value));
 }
 
-
 int32_t TokenPosition::SnapshotEncode() {
   return static_cast<int32_t>(value_);
 }
-
 
 bool TokenPosition::IsSynthetic() const {
   if (value_ >= kMinSourcePos) {
@@ -29,7 +26,6 @@ bool TokenPosition::IsSynthetic() const {
   return false;
 }
 
-
 #define DEFINE_VALUES(name, value)                                             \
   const TokenPosition TokenPosition::k##name = TokenPosition(value);
 SENTINEL_TOKEN_DESCRIPTORS(DEFINE_VALUES);
@@ -37,7 +33,6 @@ SENTINEL_TOKEN_DESCRIPTORS(DEFINE_VALUES);
 const TokenPosition TokenPosition::kMinSource = TokenPosition(kMinSourcePos);
 
 const TokenPosition TokenPosition::kMaxSource = TokenPosition(kMaxSourcePos);
-
 
 const char* TokenPosition::ToCString() const {
   switch (value_) {

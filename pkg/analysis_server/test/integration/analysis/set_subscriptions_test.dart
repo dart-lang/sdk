@@ -10,6 +10,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetSubscriptionsTest);
+    defineReflectiveTests(SetSubscriptionsTest_UseCFE);
   });
 }
 
@@ -17,9 +18,7 @@ main() {
 class SetSubscriptionsTest extends AbstractAnalysisServerIntegrationTest {
   test_subscriptions() async {
     String pathname = sourcePath('test.dart');
-    writeFile(
-        pathname,
-        '''
+    writeFile(pathname, '''
 class Foo {
   void bar() {}
 }
@@ -31,4 +30,10 @@ class Foo {
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isEmpty);
   }
+}
+
+@reflectiveTest
+class SetSubscriptionsTest_UseCFE extends SetSubscriptionsTest {
+  @override
+  bool get useCFE => true;
 }

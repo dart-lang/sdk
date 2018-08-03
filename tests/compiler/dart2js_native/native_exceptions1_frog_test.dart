@@ -40,13 +40,18 @@ class B {
 
 makeA() native;
 
-void setup1() native """
-// Ensure we are not relying on global names 'A' and 'E'.
-A = null;
-E = null;
-""";
+void setup1() {
+  JS('', r"""
+(function(){
+  // Ensure we are not relying on global names 'A' and 'E'.
+  A = null;
+  E = null;
+})()""");
+}
 
-void setup2() native """
+void setup2() {
+  JS('', r"""
+(function(){
 // This code is all inside 'setup2' and so not accessible from the global scope.
 function E(x){ this.code = x; }
 
@@ -55,11 +60,12 @@ A.prototype.op = function (x) {
   if (x & 1) throw new E(100);
   return  x / 2;
 };
-makeA = function(){return new A};
+makeA = function(){return new A()};
 
 self.nativeConstructor(E);
 self.nativeConstructor(A);
-""";
+})()""");
+}
 
 int inscrutable(int x) => x == 0 ? 0 : x | inscrutable(x & (x - 1));
 

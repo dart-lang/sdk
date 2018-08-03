@@ -39,7 +39,7 @@ List<Token> _getTokens(String text) {
 class StatementAnalyzer extends SelectionAnalyzer {
   final CompilationUnit unit;
 
-  RefactoringStatus _status = new RefactoringStatus();
+  final RefactoringStatus _status = new RefactoringStatus();
 
   StatementAnalyzer(this.unit, SourceRange selection) : super(selection);
 

@@ -28,7 +28,7 @@ class TypeArgumentsRefElement extends HtmlElement implements Renderable {
     assert(isolate != null);
     assert(args != null);
     TypeArgumentsRefElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<TypeArgumentsRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._arguments = args;
     return e;
@@ -46,14 +46,14 @@ class TypeArgumentsRefElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
     final text = (_arguments.name == null || _arguments.name == '')
         ? 'TypeArguments'
         : _arguments.name;
-    children = [
+    children = <Element>[
       new AnchorElement(href: Uris.inspect(_isolate, object: _arguments))
         ..text = text
     ];

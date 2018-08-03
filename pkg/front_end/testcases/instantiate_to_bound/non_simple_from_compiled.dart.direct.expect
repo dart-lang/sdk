@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "dart:collection" as col;
+import "dart:core" as core;
+
+class Hest<X extends col::LinkedListEntry<dynamic> = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

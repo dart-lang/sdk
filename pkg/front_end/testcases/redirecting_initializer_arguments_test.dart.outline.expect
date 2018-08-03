@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo<T extends core::Object = dynamic> extends core::Object {
+  field self::Foo::T x;
+  constructor from(core::String _init) → void
+    ;
+  constructor _internal({self::Foo::T x}) → void
+    ;
+}
+static method main() → void
+  ;

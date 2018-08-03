@@ -6,16 +6,15 @@ library dart2js.test.uri_retention_test;
 
 import 'dart:async';
 
-import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
+import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_new.dart';
-
+import 'package:compiler/src/commandline_options.dart';
+import 'package:expect/expect.dart';
 import 'memory_compiler.dart' show runCompiler, OutputCollector;
 
-Future<String> compileSources(sources, {bool minify, bool preserveUri}) async {
-  var options = [];
-  if (minify) options.add("--minify");
-  if (preserveUri) options.add("--preserve-uris");
+Future<String> compileSources(sources, {bool minify}) async {
+  var options = <String>[];
+  if (minify) options.add(Flags.minify);
   OutputCollector outputCollector = new OutputCollector();
   await runCompiler(
       memorySourceFiles: sources,
@@ -25,32 +24,27 @@ Future<String> compileSources(sources, {bool minify, bool preserveUri}) async {
 }
 
 Future test(sources, {bool libName, bool fileName}) {
-  return compileSources(sources, minify: false, preserveUri: false)
-      .then((output) {
+  return compileSources(sources, minify: false).then((output) {
     // Unminified the sources should always contain the library name and the
     // file name.
     Expect.isTrue(output.contains("main_lib"));
     Expect.isTrue(output.contains("main.dart"));
   }).then((_) {
-    compileSources(sources, minify: true, preserveUri: false).then((output) {
+    compileSources(sources, minify: true).then((output) {
       Expect.equals(libName, output.contains("main_lib"));
       Expect.isFalse(output.contains("main.dart"));
-    });
-  }).then((_) {
-    compileSources(sources, minify: true, preserveUri: true).then((output) {
-      Expect.equals(libName, output.contains("main_lib"));
-      Expect.equals(fileName, output.contains("main.dart"));
     });
   });
 }
 
 void main() {
-  asyncTest(() {
-    return new Future.value()
-        .then(
-            (_) => test(MEMORY_SOURCE_FILES1, libName: false, fileName: false))
-        .then((_) => test(MEMORY_SOURCE_FILES2, libName: true, fileName: false))
-        .then((_) => test(MEMORY_SOURCE_FILES3, libName: true, fileName: true));
+  runTests() async {
+    await test(MEMORY_SOURCE_FILES1, libName: false, fileName: false);
+  }
+
+  asyncTest(() async {
+    print('--test from kernel------------------------------------------------');
+    await runTests();
   });
 }
 
@@ -65,49 +59,6 @@ class A {
 main() {
   print(Uri.base);
   print(new A().uri);
-}
-""",
-};
-
-// Requires the library name, but not the URIs.
-const MEMORY_SOURCE_FILES2 = const <String, String>{
-  'main.dart': """
-library main_lib;
-
-@MirrorsUsed(targets: 'main_lib')
-import 'dart:mirrors';
-import 'file2.dart';
-
-class A {
-}
-
-main() {
-  print(Uri.base);
-  // Unfortunately we can't use new B().uri yet, because that would require
-  // some type-feedback to know that the '.uri' is not the one from the library.
-  print(new B());
-  print(reflectClass(A).declarations.length);
-}
-""",
-  'file2.dart': """
-library other_lib;
-
-class B {
-  final uri = "xyz";
-}
-""",
-};
-
-// Requires the uri (and will contain the library-name, too).
-const MEMORY_SOURCE_FILES3 = const <String, String>{
-  'main.dart': """
-library main_lib;
-
-@MirrorsUsed(targets: 'main_lib')
-import 'dart:mirrors';
-
-main() {
-  print(currentMirrorSystem().findLibrary(#main_lib).uri);
 }
 """,
 };

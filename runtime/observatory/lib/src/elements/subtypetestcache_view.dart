@@ -80,7 +80,7 @@ class SubtypeTestCacheViewElement extends HtmlElement implements Renderable {
     assert(retainingPaths != null);
     assert(objects != null);
     SubtypeTestCacheViewElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<SubtypeTestCacheViewElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
     e._events = events;
@@ -107,12 +107,12 @@ class SubtypeTestCacheViewElement extends HtmlElement implements Renderable {
   detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    children = [
-      navBar([
+    children = <Element>[
+      navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue),
         new NavVMMenuElement(_vm, _events, queue: _r.queue),
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
@@ -128,7 +128,7 @@ class SubtypeTestCacheViewElement extends HtmlElement implements Renderable {
       ]),
       new DivElement()
         ..classes = ['content-centered-big']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h2()..text = 'SubtypeTestCache',
           new HRElement(),
           new ObjectCommonElement(_isolate, _subtypeTestCache, _retainedSizes,
@@ -136,16 +136,16 @@ class SubtypeTestCacheViewElement extends HtmlElement implements Renderable {
               queue: _r.queue),
           new DivElement()
             ..classes = ['memberList']
-            ..children = [
+            ..children = <Element>[
               new DivElement()
                 ..classes = ['memberItem']
-                ..children = [
+                ..children = <Element>[
                   new DivElement()
                     ..classes = ['memberName']
                     ..text = 'cache',
                   new DivElement()
                     ..classes = ['memberName']
-                    ..children = [
+                    ..children = <Element>[
                       anyRef(_isolate, _subtypeTestCache.cache, _objects,
                           queue: _r.queue)
                     ]

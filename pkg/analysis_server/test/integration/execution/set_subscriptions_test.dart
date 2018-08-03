@@ -10,6 +10,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetSubscriptionsTest);
+    defineReflectiveTests(SetSubscriptionsTest_UseCFE);
   });
 }
 
@@ -20,4 +21,10 @@ class SetSubscriptionsTest extends AbstractAnalysisServerIntegrationTest {
     // ignore: deprecated_member_use
     await sendExecutionSetSubscriptions([ExecutionService.LAUNCH_DATA]);
   }
+}
+
+@reflectiveTest
+class SetSubscriptionsTest_UseCFE extends SetSubscriptionsTest {
+  @override
+  bool get useCFE => true;
 }

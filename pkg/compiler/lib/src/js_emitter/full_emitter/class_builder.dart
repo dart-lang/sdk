@@ -18,13 +18,15 @@ class ClassBuilder {
 
   jsAst.Name superName;
   jsAst.Node functionType;
-  List<jsAst.Node> fieldMetadata;
+  List<jsAst.Expression> fieldMetadata;
 
   final Entity element;
   final Namer namer;
   final bool isForActualClass;
 
-  ClassBuilder(this.element, this.namer, this.isForActualClass);
+  ClassBuilder.forLibrary(LibraryEntity library, this.namer)
+      : isForActualClass = false,
+        element = library;
 
   ClassBuilder.forClass(ClassEntity cls, this.namer)
       : isForActualClass = true,
@@ -73,7 +75,7 @@ class ClassBuilder {
     }
     // See [fieldEncodingDescription] above.
     parts.addAll(js.joinLiterals(fields, js.stringPart(',')));
-    var classData = js.concatenateStrings(parts, addQuotes: true);
+    dynamic classData = js.concatenateStrings(parts, addQuotes: true);
     if (fieldMetadata != null) {
       // If we need to store fieldMetadata, classData is turned into an array,
       // and the field metadata is appended. So if classData is just a string,

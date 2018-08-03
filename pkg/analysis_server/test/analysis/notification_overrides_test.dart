@@ -5,8 +5,8 @@
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -23,7 +23,7 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
   List<Override> overridesList;
   Override override;
 
-  bool get enableNewAnalysisDriver => false;
+  Completer _resultsAvailable = new Completer();
 
   /**
    * Asserts that there is an overridden interface [OverriddenMember] at the
@@ -119,14 +119,15 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
 
   Future prepareOverrides() {
     addAnalysisSubscription(AnalysisService.OVERRIDES, testFile);
-    return waitForTasksFinished();
+    return _resultsAvailable.future;
   }
 
   void processNotification(Notification notification) {
-    if (notification.event == ANALYSIS_OVERRIDES) {
+    if (notification.event == ANALYSIS_NOTIFICATION_OVERRIDES) {
       var params = new AnalysisOverridesParams.fromNotification(notification);
       if (params.file == testFile) {
         overridesList = params.overrides;
+        _resultsAvailable.complete(null);
       }
     }
   }
@@ -231,9 +232,7 @@ class B extends A {
   }
 
   test_BAD_privateByPrivate_inDifferentLib() async {
-    addFile(
-        '$testFolder/lib.dart',
-        r'''
+    newFile(join(testFolder, 'lib.dart'), content: r'''
 class A {
   void _m() {}
 }
@@ -404,6 +403,55 @@ class C extends A implements A {
     assertHasOverride('hashCode => 42;');
     expect(override.superclassMember, isNotNull);
     expect(override.interfaceMembers, isNull);
+  }
+
+  test_mixin_method_direct() async {
+    addTestFile('''
+class A {
+  m() {} // in A
+}
+class B extends Object with A {
+  m() {} // in B
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('m() {} // in B');
+    assertHasSuperElement('m() {} // in A');
+    assertNoInterfaceMembers();
+  }
+
+  test_mixin_method_indirect() async {
+    addTestFile('''
+class A {
+  m() {} // in A
+}
+class B extends A {
+}
+class C extends Object with B {
+  m() {} // in C
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('m() {} // in C');
+    assertHasSuperElement('m() {} // in A');
+    assertNoInterfaceMembers();
+  }
+
+  test_mixin_method_indirect2() async {
+    addTestFile('''
+class A {
+  m() {} // in A
+}
+class B extends Object with A {
+}
+class C extends B {
+  m() {} // in C
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('m() {} // in C');
+    assertHasSuperElement('m() {} // in A');
+    assertNoInterfaceMembers();
   }
 
   test_staticMembers() async {

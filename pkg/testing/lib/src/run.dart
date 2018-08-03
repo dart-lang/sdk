@@ -6,7 +6,7 @@ library testing.run;
 
 import 'dart:async' show Future, Stream;
 
-import 'dart:convert' show JSON;
+import 'dart:convert' show json;
 
 import 'dart:io' show Platform;
 
@@ -14,13 +14,12 @@ import 'dart:isolate' show Isolate, ReceivePort;
 
 import 'test_root.dart' show TestRoot;
 
-import 'test_description.dart' show TestDescription;
-
 import 'error_handling.dart' show withErrorHandling;
 
 import 'chain.dart' show CreateContext;
 
-import '../testing.dart' show Chain, ChainContext, TestDescription, listTests;
+import '../testing.dart'
+    show Chain, ChainContext, FileBasedTestDescription, listTests;
 
 import 'analyze.dart' show Analyze;
 
@@ -31,6 +30,8 @@ import 'suite.dart' show Dart, Suite;
 import 'test_dart.dart' show TestDart;
 
 import 'zone_helper.dart' show acknowledgeControlMessages;
+
+import 'run_tests.dart' show CommandLine;
 
 Future<TestRoot> computeTestRoot(String configurationPath, Uri base) {
   Uri configuration = configurationPath == null
@@ -52,11 +53,12 @@ Future<Null> runMe(List<String> arguments, CreateContext f,
   return withErrorHandling(() async {
     TestRoot testRoot =
         await computeTestRoot(configurationPath, Platform.script);
+    CommandLine cl = CommandLine.parse(arguments);
     for (Chain suite in testRoot.toolChains) {
       if (Platform.script == suite.source) {
         print("Running suite ${suite.name}...");
-        ChainContext context = await f(suite, <String, String>{});
-        await context.run(suite, new Set<String>());
+        ChainContext context = await f(suite, cl.environment);
+        await context.run(suite, new Set<String>.from(cl.selectors));
       }
     }
   });
@@ -96,8 +98,8 @@ Future<Null> run(List<String> arguments, List<String> suiteNames,
     List<Suite> suites = root.suites
         .where((Suite suite) => suiteNames.contains(suite.name))
         .toList();
-    SuiteRunner runner = new SuiteRunner(
-        suites, <String, String>{}, null, new Set<String>(), new Set<String>());
+    SuiteRunner runner = new SuiteRunner(suites, <String, String>{},
+        const <String>[], new Set<String>(), new Set<String>());
     String program = await runner.generateDartProgram();
     await runner.analyze(root.packages);
     if (program != null) {
@@ -161,7 +163,7 @@ class SuiteRunner {
     StringBuffer chain = new StringBuffer();
     bool hasRunnableTests = false;
 
-    await for (TestDescription description in listDescriptions()) {
+    await for (FileBasedTestDescription description in listDescriptions()) {
       hasRunnableTests = true;
       description.writeImportOn(imports);
       description.writeClosureOn(dart);
@@ -192,7 +194,7 @@ library testing.generated;
 
 import 'dart:async' show Future;
 
-import 'dart:convert' show JSON;
+import 'dart:convert' show json;
 
 import 'package:testing/src/run_tests.dart' show runTests;
 
@@ -204,8 +206,10 @@ ${imports.toString().trim()}
 
 Future<Null> main() async {
   if ($isVerbose) enableVerboseOutput();
-  Map<String, String> environment = JSON.decode('${JSON.encode(environment)}');
-  Set<String> selectors = JSON.decode('${JSON.encode(selectors)}').toSet();
+  Map<String, String> environment =
+      new Map<String, String>.from(json.decode('${json.encode(environment)}'));
+  Set<String> selectors =
+      new Set<String>.from(json.decode('${json.encode(selectors)}'));
   await runTests(<String, Function> {
       ${splitLines(dart.toString().trim()).join('      ')}
   });
@@ -225,9 +229,9 @@ Future<Null> main() async {
     return hasAnalyzerSuites;
   }
 
-  Stream<TestDescription> listDescriptions() async* {
+  Stream<FileBasedTestDescription> listDescriptions() async* {
     for (Dart suite in suites.where((Suite suite) => suite is Dart)) {
-      await for (TestDescription description
+      await for (FileBasedTestDescription description
           in listTests(<Uri>[suite.uri], pattern: "")) {
         testUris.add(await Isolate.resolvePackageUri(description.uri));
         if (shouldRunSuite(suite)) {

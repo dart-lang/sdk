@@ -1,0 +1,10 @@
+# LICENSE
+
+# Implicit section comment
+
+# Comment
+[ $browser ]
+test1: Fail
+
+[ $compiler == dart2js ]
+test2: Crash

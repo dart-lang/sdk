@@ -1,0 +1,16 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef F<T extends core::Object = dynamic> = (T) → void;
+class C<T extends core::Object = dynamic> extends core::Object {
+  field (self::C::T) → void y;
+  synthetic constructor •() → void
+    ;
+  method f() → void
+    ;
+}
+static method g(self::C<core::num> c) → void
+  ;
+static method main() → void
+  ;

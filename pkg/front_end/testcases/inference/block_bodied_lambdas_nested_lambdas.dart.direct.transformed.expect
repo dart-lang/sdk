@@ -1,0 +1,11 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  dynamic f = () → dynamic {
+    return (core::int x) → dynamic {
+      return 2.0.*(x);
+    };
+  };
+}

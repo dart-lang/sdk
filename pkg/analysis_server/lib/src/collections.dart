@@ -3,23 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * Returns the concatenation of the input [iterables].
- *
- * The returned iterable is a lazily-evaluated view on the input iterables.
- */
-Iterable/*<E>*/ concat/*<E>*/(Iterable<Iterable/*<E>*/ > iterables) =>
-    iterables.expand((x) => x);
-
-/**
- * Returns the concatenation of the input [iterables] as a [List].
- */
-List/*<E>*/ concatToList/*<E>*/(Iterable<Iterable/*<E>*/ > iterables) =>
-    concat(iterables).toList();
-
-/**
  * Returns the given [list] if it is not empty, or `null` otherwise.
  */
-List/*<E>*/ nullIfEmpty/*<E>*/(List/*<E>*/ list) {
+List<E> nullIfEmpty<E>(List<E> list) {
   if (list == null) {
     return null;
   }
@@ -29,19 +15,26 @@ List/*<E>*/ nullIfEmpty/*<E>*/(List/*<E>*/ list) {
   return list;
 }
 
-/// A pair of values.
-class Pair<E, F> {
-  final E first;
-  final F last;
+/**
+ * A container that remembers the last `n` items added to it.
+ *
+ * It will never grow larger than [capacity]. It's a LIFO queue - the last item
+ * added will be the first one returned from [items].
+ */
+class RecentBuffer<T> {
+  final int capacity;
 
-  Pair(this.first, this.last);
+  List<T> _buffer = [];
 
-  int get hashCode => first.hashCode ^ last.hashCode;
+  RecentBuffer(this.capacity);
 
-  bool operator ==(other) {
-    if (other is! Pair) return false;
-    return other.first == first && other.last == last;
+  Iterable<T> get items => _buffer.reversed;
+
+  void add(T item) {
+    _buffer.add(item);
+
+    if (_buffer.length > capacity) {
+      _buffer.removeAt(0);
+    }
   }
-
-  String toString() => '($first, $last)';
 }

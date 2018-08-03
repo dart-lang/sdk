@@ -23,14 +23,7 @@
 
 library async_helper;
 
-// TODO(kustermann): This is problematic because we rely on a working
-// 'dart:isolate' (i.e. it is in particular problematic with dart2js).
-// It would be nice if we could use a different mechanism for different
-// runtimes.
-import 'dart:isolate';
-
 bool _initialized = false;
-ReceivePort _port = null;
 int _asyncLevel = 0;
 
 Exception _buildException(String msg) {
@@ -38,7 +31,10 @@ Exception _buildException(String msg) {
 }
 
 /// Call this method before an asynchronous test is created.
-void asyncStart() {
+///
+/// If [count] is provided, expect [count] [asyncEnd] calls instead of just one.
+void asyncStart([int count = 1]) {
+  if (count <= 0) return;
   if (_initialized && _asyncLevel == 0) {
     throw _buildException('asyncStart() was called even though we are done '
         'with testing.');
@@ -46,9 +42,8 @@ void asyncStart() {
   if (!_initialized) {
     print('unittest-suite-wait-for-done');
     _initialized = true;
-    _port = new ReceivePort();
   }
-  _asyncLevel++;
+  _asyncLevel += count;
 }
 
 /// Call this after an asynchronous test has ended successfully.
@@ -63,8 +58,6 @@ void asyncEnd() {
   }
   _asyncLevel--;
   if (_asyncLevel == 0) {
-    _port.close();
-    _port = null;
     print('unittest-suite-success');
   }
 }

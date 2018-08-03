@@ -24,3 +24,5 @@ Iterable<Map<int, int>> bar() sync* {
   yield* /*error:YIELD_OF_INVALID_TYPE*/ /*@typeArgs=dynamic, dynamic*/ {};
   yield* new /*@typeArgs=Map<int, int>*/ List();
 }
+
+main() {}

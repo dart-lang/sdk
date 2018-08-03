@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.18.1</version>
+  <version>1.20.4</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -431,49 +431,48 @@
       </field>
     </result>
   </request>
-  <request method="getReachableSources">
+  <request method="getImportedElements" experimental="true">
     <p>
-      Return the transitive closure of reachable sources for a given file.
+      Return a description of all of the elements referenced in a given region
+      of a given file that come from imported libraries.
     </p>
     <p>
-      If a request is made for a file which does not exist, or
-      which is not currently subject to analysis (e.g. because it
-      is not associated with any analysis root specified to
-      analysis.setAnalysisRoots), an error of type
-      <tt>GET_REACHABLE_SOURCES_INVALID_FILE</tt> will be generated.
+      If a request is made for a file that does not exist, or that is not
+      currently subject to analysis (e.g. because it is not associated with any
+      analysis root specified via analysis.setAnalysisRoots), an error of type
+      <tt>GET_IMPORTED_ELEMENTS_INVALID_FILE</tt> will be generated.
     </p>
     <params>
       <field name="file">
         <ref>FilePath</ref>
         <p>
-          The file for which reachable source information is being requested.
+          The file in which import information is being requested.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the region for which import information is being
+          requested.
+        </p>
+      </field>
+      <field name="length">
+        <ref>int</ref>
+        <p>
+          The length of the region for which import information is being
+          requested.
         </p>
       </field>
     </params>
     <result>
-      <field name="sources">
-        <map>
-          <key>
-            <ref>String</ref>
-          </key>
-          <value>
-            <list>
-              <ref>String</ref>
-            </list>
-          </value>
-        </map>
+      <field name="elements">
+        <list>
+          <ref>ImportedElements</ref>
+        </list>
         <p>
-          A mapping from source URIs to directly reachable source URIs. For
-          example,
-          a file "foo.dart" that imports "bar.dart" would have the corresponding
-          mapping
-          { "file:///foo.dart" : ["file:///bar.dart"] }. If "bar.dart" has
-          further imports
-          (or exports) there will be a mapping from the URI "file:///bar.dart"
-          to them.
-          To check if a specific URI is reachable from a given file, clients can
-          check
-          for its presence in the resulting key set.
+          The information about the elements that are referenced in the
+          specified region of the specified file that come from imported
+          libraries.
         </p>
       </field>
     </result>
@@ -597,6 +596,53 @@
         <p>
           A list of the navigation regions within the requested region of
           the file.
+        </p>
+      </field>
+    </result>
+  </request>
+  <request method="getReachableSources">
+    <p>
+      Return the transitive closure of reachable sources for a given file.
+    </p>
+    <p>
+      If a request is made for a file which does not exist, or
+      which is not currently subject to analysis (e.g. because it
+      is not associated with any analysis root specified to
+      analysis.setAnalysisRoots), an error of type
+      <tt>GET_REACHABLE_SOURCES_INVALID_FILE</tt> will be generated.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file for which reachable source information is being requested.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="sources">
+        <map>
+          <key>
+            <ref>String</ref>
+          </key>
+          <value>
+            <list>
+              <ref>String</ref>
+            </list>
+          </value>
+        </map>
+        <p>
+          A mapping from source URIs to directly reachable source URIs. For
+          example,
+          a file "foo.dart" that imports "bar.dart" would have the corresponding
+          mapping
+          { "file:///foo.dart" : ["file:///bar.dart"] }. If "bar.dart" has
+          further imports
+          (or exports) there will be a mapping from the URI "file:///bar.dart"
+          to them.
+          To check if a specific URI is reachable from a given file, clients can
+          check
+          for its presence in the resulting key set.
         </p>
       </field>
     </result>
@@ -898,6 +944,41 @@
         </list>
         <p>
           A list of the paths of the files that are being analyzed.
+        </p>
+      </field>
+    </params>
+  </notification>
+  <notification event="closingLabels" experimental="true">
+    <p>
+      Reports closing labels relevant to a given file.
+    </p>
+    <p>
+      This notification is not subscribed to by default. Clients
+      can subscribe by including the value <tt>"CLOSING_LABELS"</tt>
+      in the list of services passed in an
+      analysis.setSubscriptions request.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file the closing labels relate to.
+        </p>
+      </field>
+      <field name="labels">
+        <list>
+          <ref>ClosingLabel</ref>
+        </list>
+        <p>
+          Closing labels relevant to the file. Each item
+          represents a useful label associated with some range
+          with may be useful to display to the user within the editor
+          at the end of the range to indicate what construct is closed
+          at that location. Closing labels include constructor/method
+          calls and List arguments that span multiple lines.
+          Note that the ranges that are returned can overlap
+          each other because they may be associated with
+          constructs that can be nested.
         </p>
       </field>
     </params>
@@ -1493,6 +1574,52 @@
       </field>
     </result>
   </request>
+  <request method="getElementDeclarations" experimental="true">
+    <p>
+      Return top-level and class member declarations.
+    </p>
+    <params>
+      <field name="file" optional="true">
+        <ref>FilePath</ref>
+        <p>
+          If this field is provided, return only declarations in this file.
+          If this field is missing, return declarations in all files.
+        </p>
+      </field>
+      <field name="pattern" optional="true">
+        <ref>String</ref>
+        <p>
+          The regular expression used to match the names of declarations.
+          If this field is missing, return all declarations.
+        </p>
+      </field>
+      <field name="maxResults" optional="true">
+        <ref>int</ref>
+        <p>
+          The maximum number of declarations to return.
+          If this field is missing, return all matching declarations.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="declarations">
+        <list>
+          <ref>ElementDeclaration</ref>
+        </list>
+        <p>
+          The list of declarations.
+        </p>
+      </field>
+      <field name="files">
+        <list>
+          <ref>FilePath</ref>
+        </list>
+        <p>
+          The list of the paths of files with declarations.
+        </p>
+      </field>
+    </result>
+  </request>
   <request method="getTypeHierarchy">
     <p>
       Return the type hierarchy of the class declared or
@@ -1772,6 +1899,41 @@
       </field>
     </result>
   </request>
+  <request method="getPostfixCompletion" experimental="true">
+    <p>
+      Get the changes required to convert the postfix template at the given
+      location into the template's expanded form.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file containing the postfix template to be expanded.
+        </p>
+      </field>
+      <field name="key">
+        <ref>String</ref>
+        <p>
+          The unique name that identifies the template in use.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset used to identify the code to which the template will be
+          applied.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="change">
+        <ref>SourceChange</ref>
+        <p>
+          The change to be applied in order to complete the statement.
+        </p>
+      </field>
+    </result>
+  </request>
   <request method="getRefactoring">
     <p>
       Get the changes required to perform a refactoring.
@@ -1939,6 +2101,97 @@
       </field>
     </result>
   </request>
+  <request method="isPostfixCompletionApplicable" experimental="true">
+    <p>
+      Determine if the request postfix completion template is applicable at
+      the given location in the given file.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file containing the postfix template to be expanded.
+        </p>
+      </field>
+      <field name="key">
+        <ref>String</ref>
+        <p>
+          The unique name that identifies the template in use.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset used to identify the code to which the template will be
+          applied.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="value">
+        <ref>bool</ref>
+        <p>
+          True if the template can be expanded at the given location.
+        </p>
+      </field>
+    </result>
+  </request>
+  <request method="listPostfixCompletionTemplates" experimental="true">
+    <p>
+      Return a list of all postfix templates currently available.
+    </p>
+    <result>
+      <field name="templates">
+        <list>
+          <ref>PostfixTemplateDescriptor</ref>
+        </list>
+        <p>
+          The list of available templates.
+        </p>
+      </field>
+    </result>
+  </request>
+  <request method="importElements" experimental="true">
+    <p>
+      Return a list of edits that would need to be applied in order to ensure
+      that all of the elements in the specified list of imported elements are
+      accessible within the library.
+    </p>
+    <p>
+      If a request is made for a file that does not exist, or that is not
+      currently subject to analysis (e.g. because it is not associated with any
+      analysis root specified via analysis.setAnalysisRoots), an error of type
+      <tt>IMPORT_ELEMENTS_INVALID_FILE</tt> will be generated.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file in which the specified elements are to be made accessible.
+        </p>
+      </field>
+      <field name="elements">
+        <list>
+          <ref>ImportedElements</ref>
+        </list>
+        <p>
+          The elements to be made accessible in the specified file.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="edit">
+        <ref>SourceFileEdit</ref>
+        <p>
+          The edits to be applied in order to make the specified elements
+          accessible. The file to be edited will be the defining compilation
+          unit of the library containing the file specified in the request,
+          which can be different than the file specified in the request if the
+          specified file is a part file.
+        </p>
+      </field>
+    </result>
+  </request>
   <request method="sortMembers">
     <p>
       Sort all of the directives, unit and class members
@@ -2053,6 +2306,111 @@
         </p>
       </field>
     </params>
+  </request>
+  <request method="getSuggestions">
+    <p>
+      Request completion suggestions for the given runtime context.
+    </p>
+    <p>
+      It might take one or two requests of this type to get completion
+      suggestions. The first request should have only "code", "offset",
+      and "variables", but not "expressions". If there are sub-expressions that
+      can have different runtime types, and are considered to be safe to
+      evaluate at runtime (e.g. getters), so using their actual runtime types
+      can improve completion results, the server will not include the
+      "suggestions" field in the response, and instead will return the
+      "expressions" field. The client will use debug API to get current runtime
+      types for these sub-expressions and send another request, this time with
+      "expressions". If there are no interesting sub-expressions to get
+      runtime types for, or when the "expressions" field is provided by the
+      client, the server will return "suggestions" in the response.
+    </p>
+    <params>
+      <field name="code">
+        <ref>String</ref>
+        <p>
+          The code to get suggestions in.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset within the code to get suggestions at.
+        </p>
+      </field>
+      <field name="contextFile">
+        <ref>FilePath</ref>
+        <p>
+          The path of the context file, e.g. the file of the current debugger
+          frame. The combination of the context file and context offset can
+          be used to ensure that all variables of the context are available
+          for completion (with their static types).
+        </p>
+      </field>
+      <field name="contextOffset">
+        <ref>int</ref>
+        <p>
+          The offset in the context file, e.g. the line offset in the current
+          debugger frame.
+        </p>
+      </field>
+      <field name="variables">
+        <list>
+          <ref>RuntimeCompletionVariable</ref>
+        </list>
+        <p>
+          The runtime context variables that are potentially referenced in the
+          code.
+        </p>
+      </field>
+      <field name="expressions" optional="true">
+        <list>
+          <ref>RuntimeCompletionExpression</ref>
+        </list>
+        <p>
+          The list of sub-expressions in the code for which the client wants
+          to provide runtime types. It does not have to be the full list of
+          expressions requested by the server, for missing expressions their
+          static types will be used.
+        </p>
+        <p>
+          When this field is omitted, the server will return completion
+          suggestions only when there are no interesting sub-expressions in the
+          given code. The client may provide an empty list, in this case the
+          server will return completion suggestions.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="suggestions" optional="true">
+        <list>
+          <ref>CompletionSuggestion</ref>
+        </list>
+        <p>
+          The completion suggestions. In contrast to usual completion request,
+          suggestions for private elements also will be provided.
+        </p>
+        <p>
+          If there are sub-expressions that can have different runtime types,
+          and are considered to be safe to evaluate at runtime (e.g. getters),
+          so using their actual runtime types can improve completion results,
+          the server omits this field in the response, and instead will return
+          the "expressions" field.
+        </p>
+      </field>
+      <field name="expressions" optional="true">
+        <list>
+          <ref>RuntimeCompletionExpression</ref>
+        </list>
+        <p>
+          The list of sub-expressions in the code for which the server would
+          like to know runtime types to provide better completion suggestions.
+        </p>
+        <p>
+          This field is omitted the field "suggestions" is returned.
+        </p>
+      </field>
+    </result>
   </request>
   <request method="mapUri">
     <p>
@@ -2212,6 +2570,288 @@
     </result>
   </request>
 </domain>
+<domain name="analytics" experimental="true">
+  <p>
+    The analytics domain contains APIs related to reporting analytics.
+  </p>
+  <p>
+    This API allows clients to expose a UI option to enable and disable the
+    analysis server's reporting of analytics. This value is shared with other
+    tools and can change outside of this API; because of this, clients should
+    use the analysis server's flag as the system of record. Clients can choose
+    to send in additional analytics (see <tt>sendEvent</tt> and
+    <tt>sendTiming</tt>) if they so choose. Dart command-line tools provide a
+    disclaimer similar to:
+    <tt>
+      Dart SDK tools anonymously report feature usage statistics and basic crash
+      reports to help improve Dart tools over time. See Google's privacy policy:
+      https://www.google.com/intl/en/policies/privacy/.
+    </tt>
+  </p>
+  <p>
+    The analysis server will send it's own analytics data (for example,
+    operations performed, operating system type, SDK version). No data (from the
+    analysis server or from clients) will be sent if analytics is disabled.
+  </p>
+  <request method="isEnabled">
+    <p>Query whether analytics is enabled.</p>
+    <p>
+      This flag controls whether the analysis server sends any analytics data to
+      the cloud. If disabled, the analysis server does not send any analytics
+      data, and any data sent to it by clients (from <tt>sendEvent</tt> and
+      <tt>sendTiming</tt>) will be ignored.
+    </p>
+    <p>
+      The value of this flag can be changed by other tools outside of the
+      analysis server's process. When you query the flag, you get the value of
+      the flag at a given moment. Clients should not use the value returned to
+      decide whether or not to send the <tt>sendEvent</tt> and
+      <tt>sendTiming</tt> requests. Those requests should be used
+      unconditionally and server will determine whether or not it is appropriate
+      to forward the information to the cloud at the time each request is
+      received.
+    </p>
+    <result>
+      <field name="enabled">
+        <ref>bool</ref>
+        <p>Whether sending analytics is enabled or not.</p>
+      </field>
+    </result>
+  </request>
+  <request method="enable">
+    <p>
+      Enable or disable the sending of analytics data. Note that there are other
+      ways for users to change this setting, so clients cannot assume that they
+      have complete control over this setting. In particular, there is no
+      guarantee that the result returned by the <tt>isEnabled</tt> request will
+      match the last value set via this request.
+    </p>
+    <params>
+      <field name="value">
+        <ref>bool</ref>
+        <p>Enable or disable analytics.</p>
+      </field>
+    </params>
+  </request>
+  <request method="sendEvent">
+    <p>Send information about client events.</p>
+    <p>
+      Ask the analysis server to include the fact that an action was performed
+      in the client as part of the analytics data being sent. The data will only
+      be included if the sending of analytics data is enabled at the time the
+      request is processed. The action that was performed is indicated by the
+      value of the <tt>action</tt> field.
+    </p>
+    <p>
+      The value of the action field should not include the identity of the
+      client. The analytics data sent by server will include the client id
+      passed in using the <tt>--client-id</tt> command-line argument. The
+      request will be ignored if the client id was not provided when server was
+      started.
+    </p>
+    <params>
+      <field name="action">
+        <ref>String</ref>
+        <p>The value used to indicate which action was performed.</p>
+      </field>
+    </params>
+  </request>
+  <request method="sendTiming">
+    <p>Send timing information for client events (e.g. code completions).</p>
+    <p>
+      Ask the analysis server to include the fact that a timed event occurred as
+      part of the analytics data being sent. The data will only be included if
+      the sending of analytics data is enabled at the time the request is
+      processed.
+    </p>
+    <p>
+      The value of the event field should not include the identity of the
+      client. The analytics data sent by server will include the client id
+      passed in using the <tt>--client-id</tt> command-line argument. The
+      request will be ignored if the client id was not provided when server was
+      started.
+    </p>
+    <params>
+      <field name="event">
+        <ref>String</ref>
+        <p>The name of the event.</p>
+      </field>
+      <field name="millis">
+        <ref>int</ref>
+        <p>The duration of the event in milliseconds.</p>
+      </field>
+    </params>
+  </request>
+</domain>
+<domain name="kythe" experimental="true">
+  <p>
+    The kythe domain contains APIs related to generating Dart content in the
+    <a href="http://kythe.io/">Kythe</a> format.
+  </p>
+  <request method="getKytheEntries">
+    <p>
+      Return the list of <tt>KytheEntry</tt> objects for some file, given the
+      current state of the file system populated by "analysis.updateContent".
+    </p>
+    <p>
+      If a request is made for a file that does not exist, or that is not
+      currently subject to analysis (e.g. because it is not associated with any
+      analysis root specified to analysis.setAnalysisRoots), an error of type
+      <tt>GET_KYTHE_ENTRIES_INVALID_FILE</tt> will be generated.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file containing the code for which the Kythe Entry objects are
+          being requested.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="entries">
+        <list>
+          <ref>KytheEntry</ref>
+        </list>
+        <p>
+          The list of <tt>KytheEntry</tt> objects for the queried file.
+        </p>
+      </field>
+      <field name="files">
+        <list>
+          <ref>FilePath</ref>
+        </list>
+        <p>
+          The set of files paths that were required, but not in the file system,
+          to give a complete and accurate Kythe graph for the file. This could
+          be due to a referenced file that does not exist or generated files not
+          being generated or passed before the call to "getKytheEntries".
+        </p>
+      </field>
+    </result>
+  </request>
+</domain>
+<domain name="flutter" experimental="true">
+  <p>
+    The analysis domain contains API’s related to Flutter support.
+  </p>
+  <request method="getChangeAddForDesignTimeConstructor">
+    <p>
+      Return the change that adds the forDesignTime() constructor for the
+      widget class at the given offset.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file containing the code of the class.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the class in the code.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="change">
+        <ref>SourceChange</ref>
+        <p>
+          The change that adds the forDesignTime() constructor.
+          If the change cannot be produced, an error is returned.
+        </p>
+      </field>
+    </result>
+  </request>
+  <request method="setSubscriptions">
+    <p>
+      Subscribe for services that are specific to individual files.
+      All previous subscriptions are replaced by the current set of
+      subscriptions. If a given service is not included as a key in the map
+      then no files will be subscribed to the service, exactly as if the
+      service had been included in the map with an explicit empty list of
+      files.
+    </p>
+    <p>
+      Note that this request determines the set of requested
+      subscriptions. The actual set of subscriptions at any given
+      time is the intersection of this set with the set of files
+      currently subject to analysis. The files currently subject
+      to analysis are the set of files contained within an actual
+      analysis root but not excluded, plus all of the files
+      transitively reachable from those files via import, export
+      and part directives. (See analysis.setAnalysisRoots for an
+      explanation of how the actual analysis roots are
+      determined.) When the actual analysis roots change, the
+      actual set of subscriptions is automatically updated, but
+      the set of requested subscriptions is unchanged.
+    </p>
+    <p>
+      If a requested subscription is a directory it is ignored,
+      but remains in the set of requested subscriptions so that if
+      it later becomes a file it can be included in the set of
+      actual subscriptions.
+    </p>
+    <p>
+      It is an error if any of the keys in the map are not valid
+      services. If there is an error, then the existing
+      subscriptions will remain unchanged.
+    </p>
+    <params>
+      <field name="subscriptions">
+        <map>
+          <key>
+            <ref>FlutterService</ref>
+          </key>
+          <value>
+            <list>
+              <ref>FilePath</ref>
+            </list>
+          </value>
+        </map>
+        <p>
+          A table mapping services to a list of the files being
+          subscribed to the service.
+        </p>
+      </field>
+    </params>
+  </request>
+  <notification event="outline" experimental="true">
+    <p>
+      Reports the Flutter outline associated with a single file.
+    </p>
+    <p>
+      This notification is not subscribed to by default. Clients
+      can subscribe by including the value <tt>"OUTLINE"</tt> in
+      the list of services passed in an flutter.setSubscriptions
+      request.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file with which the outline is associated.
+        </p>
+      </field>
+      <field name="outline">
+        <ref>FlutterOutline</ref>
+        <p>
+          The outline associated with the file.
+        </p>
+      </field>
+      <field name="instrumentedCode" optional="true">
+        <ref>String</ref>
+        <p>
+          If the file has Flutter widgets that can be rendered, this field
+          has the instrumented content of the file, that allows associating
+          widgets with corresponding outline nodes. If there are no widgets
+          to render, this field is absent.
+        </p>
+      </field>
+    </params>
+  </notification>
+</domain>
 <types>
   <h2 class="domain"><a name="types">Types</a></h2>
   <p>
@@ -2318,6 +2958,7 @@
       are related to a specific list of files.
     </p>
     <enum>
+      <value><code>CLOSING_LABELS</code></value>
       <value><code>FOLDING</code></value>
       <value><code>HIGHLIGHTS</code></value>
       <value><code>IMPLEMENTED</code></value>
@@ -2348,6 +2989,36 @@
         <p>
           The name of the current target of analysis. This field is
           omitted if analyzing is false.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="ClosingLabel">
+    <p>
+      A label that is associated with a range of code that may be useful to
+      render at the end of the range to aid code readability. For example, a
+      constructor call that spans multiple lines may result in a closing label
+      to allow the constructor type/name to be rendered alongside the closing
+      parenthesis.
+    </p>
+    <object>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the construct being labelled.
+        </p>
+      </field>
+      <field name="length">
+        <ref>int</ref>
+        <p>
+          The length of the whole construct to be labelled.
+        </p>
+      </field>
+      <field name="label">
+        <ref>String</ref>
+        <p>
+          The label associated with this range that should be displayed to the
+          user.
         </p>
       </field>
     </object>
@@ -2398,6 +3069,81 @@
       </field>
     </object>
   </type>
+  <type name="ElementDeclaration">
+    <p>
+      A declaration - top-level (class, field, etc) or a class member (method,
+      field, etc).
+    </p>
+    <object>
+      <field name="name">
+        <ref>String</ref>
+        <p>
+          The name of the declaration.
+        </p>
+      </field>
+      <field name="kind">
+        <ref>ElementKind</ref>
+        <p>
+          The kind of the element that corresponds to the declaration.
+        </p>
+      </field>
+      <field name="fileIndex">
+        <ref>int</ref>
+        <p>
+          The index of the file (in the enclosing response).
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the declaration name in the file.
+        </p>
+      </field>
+      <field name="line">
+        <ref>int</ref>
+        <p>
+          The one-based index of the line containing the declaration name.
+        </p>
+      </field>
+      <field name="column">
+        <ref>int</ref>
+        <p>
+          The one-based index of the column containing the declaration name.
+        </p>
+      </field>
+      <field name="codeOffset">
+        <ref>int</ref>
+        <p>
+          The offset of the first character of the declaration code in the file.
+        </p>
+      </field>
+      <field name="codeLength">
+        <ref>int</ref>
+        <p>
+          The length of the declaration code in the file.
+        </p>
+      </field>
+      <field name="className" optional="true">
+        <ref>String</ref>
+        <p>
+          The name of the class enclosing this declaration. If the declaration
+          is not a class member, this field will be absent.
+        </p>
+      </field>
+      <field name="parameters" optional="true">
+        <ref>String</ref>
+        <p>
+          The parameter list for the element. If the element is not a method or
+          function this field will not be defined. If the element doesn't have
+          parameters (e.g. getter), this field will not be defined. If the
+          element has zero parameters, this field will have a value of "()".
+
+          The value should not be treated as exact presentation of parameters,
+          it is just approximation of parameters to give the user general idea.
+        </p>
+      </field>
+    </object>
+  </type>
   <type name="ExecutableFile">
     <p>
       A description of an executable file.
@@ -2434,6 +3180,132 @@
       The identifier for a execution context.
     </p>
   </type>
+  <type name="RuntimeCompletionExpression">
+    <p>
+      An expression for which we want to know its runtime type.
+      In expressions like `a.b.c.where((e) => e.^)` we want to know the
+      runtime type of `a.b.c` to enforce it statically at the time when we
+      compute completion suggestions, and get better type for `e`.
+    </p>
+    <object>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the expression in the code for completion.
+        </p>
+      </field>
+      <field name="length">
+        <ref>int</ref>
+        <p>
+          The length of the expression in the code for completion.
+        </p>
+      </field>
+      <field name="type" optional="true">
+        <ref>RuntimeCompletionExpressionType</ref>
+        <p>
+          When the expression is sent from the server to the client, the
+          type is omitted. The client should fill the type when it sends the
+          request to the server again.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="RuntimeCompletionVariable">
+    <p>
+      A variable in a runtime context.
+    </p>
+    <object>
+      <field name="name">
+        <ref>String</ref>
+        <p>
+          The name of the variable.
+          The name "this" has a special meaning and is used as an implicit
+          target for runtime completion, and in explicit "this" references.
+        </p>
+      </field>
+      <field name="type">
+        <ref>RuntimeCompletionExpressionType</ref>
+        <p>
+          The type of the variable.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="RuntimeCompletionExpressionType">
+    <p>
+      A type at runtime.
+    </p>
+    <object>
+      <field name="libraryPath" optional="true">
+        <ref>FilePath</ref>
+        <p>
+          The path of the library that has this type.
+          Omitted if the type is not declared in any library, e.g. "dynamic",
+          or "void".
+        </p>
+      </field>
+      <field name="kind">
+        <ref>RuntimeCompletionExpressionTypeKind</ref>
+        <p>
+          The kind of the type.
+        </p>
+      </field>
+      <field name="name" optional="true">
+        <ref>String</ref>
+        <p>
+          The name of the type. Omitted if the type does not have a name, e.g.
+          an inline function type.
+        </p>
+      </field>
+      <field name="typeArguments" optional="true">
+        <list>
+          <ref>RuntimeCompletionExpressionType</ref>
+        </list>
+        <p>
+          The type arguments of the type.
+          Omitted if the type does not have type parameters.
+        </p>
+      </field>
+      <field name="returnType" optional="true">
+        <ref>RuntimeCompletionExpressionType</ref>
+        <p>
+          If the type is a function type, the return type of the function.
+          Omitted if the type is not a function type.
+        </p>
+      </field>
+      <field name="parameterTypes" optional="true">
+        <list>
+          <ref>RuntimeCompletionExpressionType</ref>
+        </list>
+        <p>
+          If the type is a function type, the types of the function parameters
+          of all kinds - required, optional positional, and optional named.
+          Omitted if the type is not a function type.
+        </p>
+      </field>
+      <field name="parameterNames" optional="true">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          If the type is a function type, the names of the function parameters
+          of all kinds - required, optional positional, and optional named.
+          The names of positional parameters are empty strings.
+          Omitted if the type is not a function type.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="RuntimeCompletionExpressionTypeKind">
+    <p>
+      An enumeration of the kinds of runtime expression types.
+    </p>
+    <enum>
+      <value><code>DYNAMIC</code></value>
+      <value><code>FUNCTION</code></value>
+      <value><code>INTERFACE</code></value>
+    </enum>
+  </type>
   <type name="ExecutionService">
     <p>
       An enumeration of the services provided by the execution
@@ -2450,6 +3322,232 @@
     <enum>
       <value><code>LIBRARY</code></value>
       <value><code>PART</code></value>
+    </enum>
+  </type>
+  <type name="FlutterService" experimental="true">
+    <p>
+      An enumeration of the services provided by the flutter domain that
+      are related to a specific list of files.
+    </p>
+    <enum>
+      <value><code>OUTLINE</code></value>
+    </enum>
+  </type>
+  <type name="FlutterOutline" experimental="true">
+    <p>
+      An node in the Flutter specific outline structure of a file.
+    </p>
+    <object>
+      <field name="kind">
+        <ref>FlutterOutlineKind</ref>
+        <p>The kind of the node.</p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset of the first character of the element. This is different
+          than the offset in the Element, which is the offset of the name of the
+          element. It can be used, for example, to map locations in the file
+          back to an outline.
+        </p>
+      </field>
+      <field name="length">
+        <ref>int</ref>
+        <p>
+          The length of the element.
+        </p>
+      </field>
+      <field name="codeOffset">
+        <ref>int</ref>
+        <p>
+          The offset of the first character of the element code, which is
+          neither documentation, nor annotation.
+        </p>
+      </field>
+      <field name="codeLength">
+        <ref>int</ref>
+        <p>
+          The length of the element code.
+        </p>
+      </field>
+      <field name="label" optional="true">
+        <ref>String</ref>
+        <p>
+          The text label of the node children of the node.
+          It is provided for any FlutterOutlineKind.GENERIC node,
+          where better information is not available.
+        </p>
+      </field>
+      <field name="dartElement" optional="true">
+        <ref>Element</ref>
+        <p>
+          If this node is a Dart element, the description of it; omitted
+          otherwise.
+        </p>
+      </field>
+      <field name="attributes" optional="true">
+        <list>
+          <ref>FlutterOutlineAttribute</ref>
+        </list>
+        <p>
+          Additional attributes for this node, which might be interesting
+          to display on the client. These attributes are usually arguments
+          for the instance creation or the invocation that created the widget.
+        </p>
+      </field>
+      <field name="className" optional="true">
+        <ref>String</ref>
+        <p>
+          If the node creates a new class instance, or a reference to an
+          instance, this field has the name of the class.
+        </p>
+      </field>
+      <field name="parentAssociationLabel" optional="true">
+        <ref>String</ref>
+        <p>
+          A short text description how this node is associated with the parent
+          node. For example "appBar" or "body" in Scaffold.
+        </p>
+      </field>
+      <field name="variableName" optional="true">
+        <ref>String</ref>
+        <p>
+          If FlutterOutlineKind.VARIABLE, the name of the variable.
+        </p>
+      </field>
+      <field name="children" optional="true">
+        <list>
+          <ref>FlutterOutline</ref>
+        </list>
+        <p>
+          The children of the node. The field will be omitted if the node has no
+          children.
+        </p>
+      </field>
+      <field name="id" optional="true">
+        <ref>int</ref>
+        <p>
+          If the node is a widget, and it is instrumented, the unique identifier
+          of this widget, that can be used to associate rendering information
+          with this node.
+        </p>
+      </field>
+      <field name="isWidgetClass" optional="true">
+        <ref>bool</ref>
+        <p>
+          True if the node is a widget class, so it can potentially be
+          rendered, even if it does not yet have the rendering constructor.
+          This field is omitted if the node is not a widget class.
+        </p>
+      </field>
+      <field name="renderConstructor" optional="true">
+        <ref>String</ref>
+        <p>
+          If the node is a widget class that can be rendered for IDE, the name
+          of the constructor that should be used to instantiate the widget.
+          Empty string for default constructor. Absent if the node is not a
+          widget class that can be rendered.
+        </p>
+      </field>
+      <field name="stateClassName" optional="true">
+        <ref>String</ref>
+        <p>
+          If the node is a StatefulWidget, and its state class is defined in
+          the same file, the name of the state class.
+        </p>
+      </field>
+      <field name="stateOffset" optional="true">
+        <ref>int</ref>
+        <p>
+          If the node is a StatefulWidget that can be rendered, and its state
+          class is defined in the same file, the offset of the state class code
+          in the file.
+        </p>
+      </field>
+      <field name="stateLength" optional="true">
+        <ref>int</ref>
+        <p>
+          If the node is a StatefulWidget that can be rendered, and its state
+          class is defined in the same file, the length of the state class code
+          in the file.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="FlutterOutlineAttribute" experimental="true">
+    <p>
+      An attribute for a FlutterOutline.
+    </p>
+    <object>
+      <field name="name">
+        <ref>String</ref>
+        <p>
+          The name of the attribute.
+        </p>
+      </field>
+      <field name="label">
+        <ref>String</ref>
+        <p>
+          The label of the attribute value, usually the Dart code.
+          It might be quite long, the client should abbreviate as needed.
+        </p>
+      </field>
+      <field name="literalValueBoolean" optional="true">
+        <ref>bool</ref>
+        <p>
+          The boolean literal value of the attribute.
+          This field is absent if the value is not a boolean literal.
+        </p>
+      </field>
+      <field name="literalValueInteger" optional="true">
+        <ref>int</ref>
+        <p>
+          The integer literal value of the attribute.
+          This field is absent if the value is not an integer literal.
+        </p>
+      </field>
+      <field name="literalValueString" optional="true">
+        <ref>String</ref>
+        <p>
+          The string literal value of the attribute.
+          This field is absent if the value is not a string literal.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="FlutterOutlineKind" experimental="true">
+    <p>
+      An enumeration of the kinds of FlutterOutline elements. The list of kinds
+      might be expanded with time, clients must be able to handle new kinds
+      in some general way.
+    </p>
+    <enum>
+      <value>
+        <code>DART_ELEMENT</code>
+        <p>A dart element declaration.</p>
+      </value>
+      <value>
+        <code>GENERIC</code>
+        <p>A generic Flutter element, without additional information.</p>
+      </value>
+      <value>
+        <code>NEW_INSTANCE</code>
+        <p>A new instance creation.</p>
+      </value>
+      <value>
+        <code>INVOCATION</code>
+        <p>An invocation of a method, a top-level function, a function
+          expression, etc.</p>
+      </value>
+      <value>
+        <code>VARIABLE</code>
+        <p>A reference to a local variable, or a field.</p>
+      </value>
+      <value>
+        <code>PLACEHOLDER</code>
+        <p>The parent node has a required Widget. The node works as a
+          placeholder child to drop a new Widget to.</p>
+      </value>
     </enum>
   </type>
   <type name="GeneralAnalysisService">
@@ -2607,6 +3705,35 @@
       </field>
     </object>
   </type>
+  <type name="ImportedElements">
+    <p>
+      A description of the elements that are referenced in a region of a file
+      that come from a single imported library.
+    </p>
+    <object>
+      <field name="path">
+        <ref>FilePath</ref>
+        <p>
+          The absolute and normalized path of the file containing the library.
+        </p>
+      </field>
+      <field name="prefix">
+        <ref>String</ref>
+        <p>
+          The prefix that was used when importing the library into the original
+          source.
+        </p>
+      </field>
+      <field name="elements">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          The names of the elements imported from the library.
+        </p>
+      </field>
+    </object>
+  </type>
   <type name="Override">
     <p>
       A description of a member that overrides an inherited member.
@@ -2661,6 +3788,32 @@
         <ref>String</ref>
         <p>
           The name of the class in which the member is defined.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="PostfixTemplateDescriptor">
+    <p>
+      The description of a postfix completion template.
+    </p>
+    <object>
+      <field name="name">
+        <ref>String</ref>
+        <p>
+          The template name, shown in the UI.
+        </p>
+      </field>
+      <field name="key">
+        <ref>String</ref>
+        <p>
+          The unique template key, not shown in the UI.
+        </p>
+      </field>
+      <field name="example">
+        <ref>String</ref>
+        <p>
+          A short example of the transformation performed when the template is
+          applied.
         </p>
       </field>
     </object>
@@ -2771,6 +3924,20 @@
         </p>
       </value>
       <value>
+        <code>GET_IMPORTED_ELEMENTS_INVALID_FILE</code>
+        <p>
+          An "analysis.getImportedElements" request specified a FilePath that
+          does not match a file currently subject to analysis.
+        </p>
+      </value>
+      <value>
+        <code>GET_KYTHE_ENTRIES_INVALID_FILE</code>
+        <p>
+          An "analysis.getKytheEntries" request specified a FilePath that does
+          not match a file that is currently subject to analysis.
+        </p>
+      </value>
+      <value>
         <code>GET_NAVIGATION_INVALID_FILE</code>
         <p>
           An "analysis.getNavigation" request specified a FilePath
@@ -2784,6 +3951,13 @@
           An "analysis.getReachableSources" request specified a FilePath
           which does not match a file currently subject to
           analysis.
+        </p>
+      </value>
+      <value>
+        <code>IMPORT_ELEMENTS_INVALID_FILE</code>
+        <p>
+          An "edit.importElements" request specified a FilePath that does not
+          match a file currently subject to analysis.
         </p>
       </value>
       <value>
@@ -3338,6 +4512,23 @@
       </field>
     </options>
   </refactoring>
+  <refactoring kind="EXTRACT_WIDGET">
+    <p>
+      Create a new class that extends StatelessWidget, whose build() method is
+      the widget creation expression, or a method returning a Flutter widget,
+      at the specified offset.
+    </p>
+    <feedback>
+    </feedback>
+    <options>
+      <field name="name">
+        <ref>String</ref>
+        <p>
+          The name that the widget class should be given.
+        </p>
+      </field>
+    </options>
+  </refactoring>
   <refactoring kind="INLINE_LOCAL_VARIABLE">
     <p>
       Inline the initializer expression of a local variable in
@@ -3451,7 +4642,7 @@
         <ref>int</ref>
         <p>
           The offset to the beginning of the name selected to be
-          renamed.
+          renamed, or -1 if the name does not exist yet.
         </p>
       </field>
       <field name="length">

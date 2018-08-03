@@ -32,7 +32,12 @@ class ApiElementBuilder extends _BaseElementBuilder {
    * A table mapping field names to field elements for the fields defined in the current class, or
    * `null` if we are not in the scope of a class.
    */
-  HashMap<String, FieldElement> _fieldMap;
+  Map<String, FieldElement> _fieldMap;
+
+  /**
+   * Whether the class being built has a constant constructor.
+   */
+  bool _enclosingClassHasConstConstructor = false;
 
   /**
    * Initialize a newly created element builder to build the elements for a
@@ -68,6 +73,15 @@ class ApiElementBuilder extends _BaseElementBuilder {
 
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
+    _enclosingClassHasConstConstructor = false;
+    for (var constructor in node.members) {
+      if (constructor is ConstructorDeclaration &&
+          constructor.constKeyword != null) {
+        _enclosingClassHasConstConstructor = true;
+        break;
+      }
+    }
+
     ElementHolder holder = new ElementHolder();
     //
     // Process field declarations before constructors and methods so that field
@@ -152,9 +166,9 @@ class ApiElementBuilder extends _BaseElementBuilder {
     if (node.factoryKeyword != null) {
       element.factory = true;
     }
-    element.functions = holder.functions;
-    element.labels = holder.labels;
-    element.localVariables = holder.localVariables;
+    element.encloseElements(holder.functions);
+    element.encloseElements(holder.labels);
+    element.encloseElements(holder.localVariables);
     element.parameters = holder.parameters;
     element.isConst = node.constKeyword != null;
     element.isCycleFree = element.isConst;
@@ -203,12 +217,14 @@ class ApiElementBuilder extends _BaseElementBuilder {
       constantField.isStatic = true;
       constantField.isConst = true;
       constantField.type = enumType;
+      constantField.metadata = _createElementAnnotations(constant.metadata);
       setElementDocumentationComment(constantField, constant);
       fields.add(constantField);
       new PropertyAccessorElementImpl_ImplicitGetter(constantField);
       constantName.staticElement = constantField;
     }
     enumElement.fields = fields;
+    enumElement.createToStringMethodElement();
 
     _currentHolder.addEnum(enumElement);
     enumName.staticElement = enumElement;
@@ -246,9 +262,9 @@ class ApiElementBuilder extends _BaseElementBuilder {
         if (node.externalKeyword != null || body is NativeFunctionBody) {
           element.external = true;
         }
-        element.functions = holder.functions;
-        element.labels = holder.labels;
-        element.localVariables = holder.localVariables;
+        element.encloseElements(holder.functions);
+        element.encloseElements(holder.labels);
+        element.encloseElements(holder.localVariables);
         element.parameters = holder.parameters;
         element.typeParameters = holder.typeParameters;
         if (body.isAsynchronous) {
@@ -287,9 +303,9 @@ class ApiElementBuilder extends _BaseElementBuilder {
           if (node.externalKeyword != null || body is NativeFunctionBody) {
             getter.external = true;
           }
-          getter.functions = holder.functions;
-          getter.labels = holder.labels;
-          getter.localVariables = holder.localVariables;
+          getter.encloseElements(holder.functions);
+          getter.encloseElements(holder.labels);
+          getter.encloseElements(holder.localVariables);
           if (body.isAsynchronous) {
             getter.asynchronous = true;
           }
@@ -315,9 +331,9 @@ class ApiElementBuilder extends _BaseElementBuilder {
           if (node.externalKeyword != null || body is NativeFunctionBody) {
             setter.external = true;
           }
-          setter.functions = holder.functions;
-          setter.labels = holder.labels;
-          setter.localVariables = holder.localVariables;
+          setter.encloseElements(holder.functions);
+          setter.encloseElements(holder.labels);
+          setter.encloseElements(holder.localVariables);
           setter.parameters = holder.parameters;
           if (body.isAsynchronous) {
             setter.asynchronous = true;
@@ -356,9 +372,9 @@ class ApiElementBuilder extends _BaseElementBuilder {
     FunctionElementImpl element =
         new FunctionElementImpl.forOffset(node.beginToken.offset);
     _setCodeRange(element, node);
-    element.functions = holder.functions;
-    element.labels = holder.labels;
-    element.localVariables = holder.localVariables;
+    element.encloseElements(holder.functions);
+    element.encloseElements(holder.labels);
+    element.encloseElements(holder.localVariables);
     element.parameters = holder.parameters;
     element.typeParameters = holder.typeParameters;
     if (body.isAsynchronous) {
@@ -382,12 +398,13 @@ class ApiElementBuilder extends _BaseElementBuilder {
     SimpleIdentifier aliasName = node.name;
     List<ParameterElement> parameters = holder.parameters;
     List<TypeParameterElement> typeParameters = holder.typeParameters;
-    FunctionTypeAliasElementImpl element =
-        new FunctionTypeAliasElementImpl.forNode(aliasName);
+    GenericTypeAliasElementImpl element =
+        new GenericTypeAliasElementImpl.forNode(aliasName);
     _setCodeRange(element, node);
     element.metadata = _createElementAnnotations(node.metadata);
     setElementDocumentationComment(element, node);
-    element.parameters = parameters;
+    element.function = new GenericFunctionTypeElementImpl.forOffset(-1)
+      ..parameters = parameters;
     element.typeParameters = typeParameters;
     _createTypeParameterTypes(typeParameters);
     element.type = new FunctionTypeImpl.forTypedef(element);
@@ -458,9 +475,9 @@ class ApiElementBuilder extends _BaseElementBuilder {
         if (node.externalKeyword != null || body is NativeFunctionBody) {
           element.external = true;
         }
-        element.functions = holder.functions;
-        element.labels = holder.labels;
-        element.localVariables = holder.localVariables;
+        element.encloseElements(holder.functions);
+        element.encloseElements(holder.labels);
+        element.encloseElements(holder.localVariables);
         element.parameters = holder.parameters;
         element.isStatic = isStatic;
         element.typeParameters = holder.typeParameters;
@@ -496,9 +513,9 @@ class ApiElementBuilder extends _BaseElementBuilder {
           if (node.externalKeyword != null || body is NativeFunctionBody) {
             getter.external = true;
           }
-          getter.functions = holder.functions;
-          getter.labels = holder.labels;
-          getter.localVariables = holder.localVariables;
+          getter.encloseElements(holder.functions);
+          getter.encloseElements(holder.labels);
+          getter.encloseElements(holder.localVariables);
           if (body.isAsynchronous) {
             getter.asynchronous = true;
           }
@@ -524,9 +541,9 @@ class ApiElementBuilder extends _BaseElementBuilder {
           if (node.externalKeyword != null || body is NativeFunctionBody) {
             setter.external = true;
           }
-          setter.functions = holder.functions;
-          setter.labels = holder.labels;
-          setter.localVariables = holder.localVariables;
+          setter.encloseElements(holder.functions);
+          setter.encloseElements(holder.labels);
+          setter.encloseElements(holder.localVariables);
           setter.parameters = holder.parameters;
           if (body.isAsynchronous) {
             setter.asynchronous = true;
@@ -606,7 +623,11 @@ class ApiElementBuilder extends _BaseElementBuilder {
     if (fieldNode != null) {
       SimpleIdentifier fieldName = node.name;
       FieldElementImpl field;
-      if ((isConst || isFinal && !fieldNode.isStatic) && hasInitializer) {
+      if ((isConst ||
+              isFinal &&
+                  !fieldNode.isStatic &&
+                  _enclosingClassHasConstConstructor) &&
+          hasInitializer) {
         field = new ConstFieldElementImpl.forNode(fieldName);
       } else {
         field = new FieldElementImpl.forNode(fieldName);
@@ -886,35 +907,29 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
     // The exported source will be null if the URI in the export
     // directive was invalid.
     LibraryElement exportedLibrary = exportLibraryMap[exportedSource];
-    if (exportedLibrary != null) {
-      ExportElementImpl exportElement = new ExportElementImpl(node.offset);
-      exportElement.metadata = _getElementAnnotations(node.metadata);
-      StringLiteral uriLiteral = node.uri;
+    ExportElementImpl exportElement = new ExportElementImpl(node.offset);
+    exportElement.metadata = _getElementAnnotations(node.metadata);
+    StringLiteral uriLiteral = node.uri;
+    if (uriLiteral != null) {
+      exportElement.uriOffset = uriLiteral.offset;
+      exportElement.uriEnd = uriLiteral.end;
+    }
+    exportElement.uri = node.selectedUriContent;
+    exportElement.combinators = _buildCombinators(node);
+    exportElement.exportedLibrary = exportedLibrary;
+    setElementDocumentationComment(exportElement, node);
+    node.element = exportElement;
+    exports.add(exportElement);
+    if (exportedTime >= 0 &&
+        exportSourceKindMap[exportedSource] != SourceKind.LIBRARY) {
+      int offset = node.offset;
+      int length = node.length;
       if (uriLiteral != null) {
-        exportElement.uriOffset = uriLiteral.offset;
-        exportElement.uriEnd = uriLiteral.end;
+        offset = uriLiteral.offset;
+        length = uriLiteral.length;
       }
-      exportElement.uri = node.selectedUriContent;
-      exportElement.combinators = _buildCombinators(node);
-      exportElement.exportedLibrary = exportedLibrary;
-      setElementDocumentationComment(exportElement, node);
-      node.element = exportElement;
-      exports.add(exportElement);
-      if (exportedTime >= 0 &&
-          exportSourceKindMap[exportedSource] != SourceKind.LIBRARY) {
-        int offset = node.offset;
-        int length = node.length;
-        if (uriLiteral != null) {
-          offset = uriLiteral.offset;
-          length = uriLiteral.length;
-        }
-        errors.add(new AnalysisError(
-            libraryElement.source,
-            offset,
-            length,
-            CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
-            [uriLiteral.toSource()]));
-      }
+      errors.add(new AnalysisError(libraryElement.source, offset, length,
+          CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, [uriLiteral.toSource()]));
     }
     return null;
   }
@@ -928,50 +943,48 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
     // The imported source will be null if the URI in the import
     // directive was invalid.
     LibraryElement importedLibrary = importLibraryMap[importedSource];
-    if (importedLibrary != null) {
-      if (importedLibrary.isDartCore) {
-        explicitlyImportsCore = true;
+    if (importedLibrary != null && importedLibrary.isDartCore) {
+      explicitlyImportsCore = true;
+    }
+    ImportElementImpl importElement = new ImportElementImpl(node.offset);
+    importElement.metadata = _getElementAnnotations(node.metadata);
+    StringLiteral uriLiteral = node.uri;
+    if (uriLiteral != null) {
+      importElement.uriOffset = uriLiteral.offset;
+      importElement.uriEnd = uriLiteral.end;
+    }
+    importElement.uri = node.selectedUriContent;
+    importElement.deferred = node.deferredKeyword != null;
+    importElement.combinators = _buildCombinators(node);
+    importElement.importedLibrary = importedLibrary;
+    setElementDocumentationComment(importElement, node);
+    SimpleIdentifier prefixNode = node.prefix;
+    if (prefixNode != null) {
+      importElement.prefixOffset = prefixNode.offset;
+      String prefixName = prefixNode.name;
+      PrefixElementImpl prefix = nameToPrefixMap[prefixName];
+      if (prefix == null) {
+        prefix = new PrefixElementImpl.forNode(prefixNode);
+        nameToPrefixMap[prefixName] = prefix;
       }
-      ImportElementImpl importElement = new ImportElementImpl(node.offset);
-      importElement.metadata = _getElementAnnotations(node.metadata);
-      StringLiteral uriLiteral = node.uri;
+      importElement.prefix = prefix;
+      prefixNode.staticElement = prefix;
+    }
+    node.element = importElement;
+    imports.add(importElement);
+    if (importedTime >= 0 &&
+        importSourceKindMap[importedSource] != SourceKind.LIBRARY) {
+      int offset = node.offset;
+      int length = node.length;
       if (uriLiteral != null) {
-        importElement.uriOffset = uriLiteral.offset;
-        importElement.uriEnd = uriLiteral.end;
+        offset = uriLiteral.offset;
+        length = uriLiteral.length;
       }
-      importElement.uri = node.selectedUriContent;
-      importElement.deferred = node.deferredKeyword != null;
-      importElement.combinators = _buildCombinators(node);
-      importElement.importedLibrary = importedLibrary;
-      setElementDocumentationComment(importElement, node);
-      SimpleIdentifier prefixNode = node.prefix;
-      if (prefixNode != null) {
-        importElement.prefixOffset = prefixNode.offset;
-        String prefixName = prefixNode.name;
-        PrefixElementImpl prefix = nameToPrefixMap[prefixName];
-        if (prefix == null) {
-          prefix = new PrefixElementImpl.forNode(prefixNode);
-          nameToPrefixMap[prefixName] = prefix;
-        }
-        importElement.prefix = prefix;
-        prefixNode.staticElement = prefix;
-      }
-      node.element = importElement;
-      imports.add(importElement);
-      if (importedTime >= 0 &&
-          importSourceKindMap[importedSource] != SourceKind.LIBRARY) {
-        int offset = node.offset;
-        int length = node.length;
-        if (uriLiteral != null) {
-          offset = uriLiteral.offset;
-          length = uriLiteral.length;
-        }
-        ErrorCode errorCode = importElement.isDeferred
-            ? StaticWarningCode.IMPORT_OF_NON_LIBRARY
-            : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY;
-        errors.add(new AnalysisError(libraryElement.source, offset, length,
-            errorCode, [uriLiteral.toSource()]));
-      }
+      ErrorCode errorCode = importElement.isDeferred
+          ? StaticWarningCode.IMPORT_OF_NON_LIBRARY
+          : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY;
+      errors.add(new AnalysisError(libraryElement.source, offset, length,
+          errorCode, [uriLiteral.toSource()]));
     }
     return null;
   }
@@ -1140,6 +1153,10 @@ class LocalElementBuilder extends _BaseElementBuilder {
     element.isFinal = node.isFinal;
     if (node.type == null) {
       element.hasImplicitType = true;
+    } else {
+      // Note: this is a noop most of the time, however, not for
+      // [GenericFunctionType] and perhaps others in the future.
+      node.type.accept(this);
     }
     _currentHolder.addLocalVariable(element);
     variableName.staticElement = element;
@@ -1165,6 +1182,7 @@ class LocalElementBuilder extends _BaseElementBuilder {
     _visitChildren(holder, node);
 
     FunctionElementImpl element = new FunctionElementImpl.forNode(node.name);
+    element.type = new FunctionTypeImpl(element);
     _setCodeRange(element, node);
     setElementDocumentationComment(element, node);
     element.metadata = _createElementAnnotations(node.metadata);
@@ -1172,9 +1190,9 @@ class LocalElementBuilder extends _BaseElementBuilder {
     if (node.externalKeyword != null || body is NativeFunctionBody) {
       element.external = true;
     }
-    element.functions = holder.functions;
-    element.labels = holder.labels;
-    element.localVariables = holder.localVariables;
+    element.encloseElements(holder.functions);
+    element.encloseElements(holder.labels);
+    element.encloseElements(holder.localVariables);
     element.parameters = holder.parameters;
     element.typeParameters = holder.typeParameters;
 
@@ -1216,9 +1234,9 @@ class LocalElementBuilder extends _BaseElementBuilder {
     FunctionElementImpl element =
         new FunctionElementImpl.forOffset(node.beginToken.offset);
     _setCodeRange(element, node);
-    element.functions = holder.functions;
-    element.labels = holder.labels;
-    element.localVariables = holder.localVariables;
+    element.encloseElements(holder.functions);
+    element.encloseElements(holder.labels);
+    element.encloseElements(holder.localVariables);
     element.parameters = holder.parameters;
     element.typeParameters = holder.typeParameters;
 
@@ -1339,9 +1357,9 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
       FunctionElementImpl initializer =
           new FunctionElementImpl.forOffset(defaultValue.beginToken.offset);
       initializer.hasImplicitReturnType = true;
-      initializer.functions = holder.functions;
-      initializer.labels = holder.labels;
-      initializer.localVariables = holder.localVariables;
+      initializer.encloseElements(holder.functions);
+      initializer.encloseElements(holder.labels);
+      initializer.encloseElements(holder.localVariables);
       initializer.parameters = holder.parameters;
       initializer.isSynthetic = true;
       initializer.type = new FunctionTypeImpl(initializer);
@@ -1363,9 +1381,9 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
       FunctionElementImpl initializerElement =
           new FunctionElementImpl.forOffset(initializer.beginToken.offset);
       initializerElement.hasImplicitReturnType = true;
-      initializerElement.functions = holder.functions;
-      initializerElement.labels = holder.labels;
-      initializerElement.localVariables = holder.localVariables;
+      initializerElement.encloseElements(holder.functions);
+      initializerElement.encloseElements(holder.labels);
+      initializerElement.encloseElements(holder.localVariables);
       initializerElement.isSynthetic = true;
       initializerElement.type = new FunctionTypeImpl(initializerElement);
       variable.initializer = initializerElement;
@@ -1390,6 +1408,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     parameter.isConst = node.isConst;
     parameter.isExplicitlyCovariant = node.parameter.covariantKeyword != null;
     parameter.isFinal = node.isFinal;
+    // ignore: deprecated_member_use
     parameter.parameterKind = node.kind;
     // visible range
     _setParameterVisibleRange(node, parameter);
@@ -1417,6 +1436,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
       parameter.isConst = node.isConst;
       parameter.isExplicitlyCovariant = node.covariantKeyword != null;
       parameter.isFinal = node.isFinal;
+      // ignore: deprecated_member_use
       parameter.parameterKind = node.kind;
       _currentHolder.addParameter(parameter);
       parameterName.staticElement = parameter;
@@ -1429,8 +1449,9 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     _visitChildren(holder, node);
     ParameterElementImpl element = node.element;
     element.metadata = _createElementAnnotations(node.metadata);
-    element.parameters = holder.parameters;
-    element.typeParameters = holder.typeParameters;
+    if (node.parameters != null) {
+      _createGenericFunctionType(element, holder);
+    }
     holder.validate();
     return null;
   }
@@ -1445,6 +1466,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
       parameter.isConst = node.isConst;
       parameter.isExplicitlyCovariant = node.covariantKeyword != null;
       parameter.isFinal = node.isFinal;
+      // ignore: deprecated_member_use
       parameter.parameterKind = node.kind;
       _setParameterVisibleRange(node, parameter);
       _currentHolder.addParameter(parameter);
@@ -1458,8 +1480,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     _visitChildren(holder, node);
     ParameterElementImpl element = node.element;
     element.metadata = _createElementAnnotations(node.metadata);
-    element.parameters = holder.parameters;
-    element.typeParameters = holder.typeParameters;
+    _createGenericFunctionType(element, holder);
     holder.validate();
     return null;
   }
@@ -1490,6 +1511,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
       parameter.isConst = node.isConst;
       parameter.isExplicitlyCovariant = node.covariantKeyword != null;
       parameter.isFinal = node.isFinal;
+      // ignore: deprecated_member_use
       parameter.parameterKind = node.kind;
       _setParameterVisibleRange(node, parameter);
       if (node.type == null) {
@@ -1535,6 +1557,22 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
       a.elementAnnotation = elementAnnotation;
       return elementAnnotation;
     }).toList();
+  }
+
+  /**
+   * If the [holder] has type parameters or formal parameters for the
+   * given [parameter], wrap them into a new [GenericFunctionTypeElementImpl]
+   * and set [FunctionTypeImpl] for the [parameter].
+   */
+  void _createGenericFunctionType(
+      ParameterElementImpl parameter, ElementHolder holder) {
+    var typeElement = new GenericFunctionTypeElementImpl.forOffset(-1);
+    typeElement.enclosingElement = parameter;
+    typeElement.typeParameters = holder.typeParameters;
+    typeElement.parameters = holder.parameters;
+    var type = new FunctionTypeImpl(typeElement);
+    typeElement.type = type;
+    parameter.type = type;
   }
 
   /**

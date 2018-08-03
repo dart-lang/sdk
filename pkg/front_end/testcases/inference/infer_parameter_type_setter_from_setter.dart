@@ -6,11 +6,11 @@
 library test;
 
 class C extends D {
-  set foo(x) {}
+  set /*@topType=void*/ foo(/*@topType=int*/ x) {}
 }
 
 class D {
-  set foo(int x) {}
+  set /*@topType=void*/ foo(int x) {}
 }
 
 main() {}

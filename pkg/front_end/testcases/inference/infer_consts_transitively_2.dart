@@ -7,10 +7,12 @@ library test;
 
 import 'infer_consts_transitively_2_a.dart';
 
-const /*@topType=dynamic*/ m1 = a1;
-const /*@topType=dynamic*/ m2 = a2;
+const /*@topType=int*/ m1 = a1;
+const /*@topType=int*/ m2 = a2;
 
 foo() {
   int i;
   i = m1;
 }
+
+main() {}

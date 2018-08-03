@@ -25,10 +25,6 @@
 #define NOKERNEL
 #endif
 
-#if !defined(NOUSER)
-#define NOUSER
-#endif
-
 #if !defined(NOSERVICE)
 #define NOSERVICE
 #endif
@@ -46,11 +42,12 @@
 #define UNICODE
 #endif
 
+#include <Rpc.h>
+#include <VersionHelpers.h>
+#include <intrin.h>
+#include <shellapi.h>
 #include <windows.h>
 #include <winsock2.h>
-#include <Rpc.h>
-#include <shellapi.h>
-#include <VersionHelpers.h>
 #endif  // defined(_WIN32)
 
 #if !defined(_WIN32)
@@ -71,8 +68,8 @@
 
 #if defined(_WIN32)
 #include "platform/c99_support_win.h"
-#include "platform/inttypes_support_win.h"
 #include "platform/floating_point_win.h"
+#include "platform/inttypes_support_win.h"
 #endif  // defined(_WIN32)
 
 #include "platform/math.h"
@@ -118,7 +115,6 @@
 #error Automatic target os detection failed.
 #endif
 
-
 // Setup product, release or debug build related macros.
 #if defined(PRODUCT) && defined(DEBUG)
 #error Both PRODUCT and DEBUG defined.
@@ -143,6 +139,11 @@
 #if defined(DART_PRECOMPILED_RUNTIME) && defined(DART_NOSNAPSHOT)
 #error DART_PRECOMPILED_RUNTIME and DART_NOSNAPSHOT are mutually exclusive
 #endif  // defined(DART_PRECOMPILED_RUNTIME) && defined(DART_NOSNAPSHOT)
+
+#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
+// TODO(zra): Fix GN build file not to define DART_USE_INTERPRETER in this case.
+#undef DART_USE_INTERPRETER
+#endif  // defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
 
 #if defined(DART_PRECOMPILED_RUNTIME)
 #define NOT_IN_PRECOMPILED(code)
@@ -212,13 +213,8 @@ typedef simd128_value_t fpu_register_t;
 #elif defined(_M_IX86) || defined(__i386__)
 #define HOST_ARCH_IA32 1
 #define ARCH_IS_32_BIT 1
-#if defined(TARGET_ARCH_MIPS)
-#define kFpuRegisterSize 8
-typedef double fpu_register_t;
-#else
 #define kFpuRegisterSize 16
 typedef simd128_value_t fpu_register_t;
-#endif
 #elif defined(__ARMEL__)
 #define HOST_ARCH_ARM 1
 #define ARCH_IS_32_BIT 1
@@ -241,14 +237,6 @@ typedef simd_value_t fpu_register_t;
     reinterpret_cast<simd_value_t*>(addr)->data_[3] = value.data_[3];          \
   } while (0)
 
-#elif defined(__MIPSEL__)
-#define HOST_ARCH_MIPS 1
-#define ARCH_IS_32_BIT 1
-#define kFpuRegisterSize 8
-typedef double fpu_register_t;
-#elif defined(__MIPSEB__)
-#error Big-endian MIPS is not supported by Dart. Try passing -EL to your      \
- compiler.
 #elif defined(__aarch64__)
 #define HOST_ARCH_ARM64 1
 #define ARCH_IS_64_BIT 1
@@ -280,12 +268,20 @@ typedef simd128_value_t fpu_register_t;
 #error Automatic compiler detection failed.
 #endif
 
-// DART_UNUSED inidicates to the compiler that a variable/typedef is expected
+// DART_UNUSED indicates to the compiler that a variable or typedef is expected
 // to be unused and disables the related warning.
 #ifdef __GNUC__
 #define DART_UNUSED __attribute__((unused))
 #else
 #define DART_UNUSED
+#endif
+
+// DART_USED indicates to the compiler that a global variable or typedef is used
+// disables e.g. the gcc warning "unused-variable"
+#ifdef __GNUC__
+#define DART_USED __attribute__((used))
+#else
+#define DART_USED
 #endif
 
 // DART_NORETURN indicates to the compiler that a function does not return.
@@ -308,13 +304,11 @@ typedef simd128_value_t fpu_register_t;
 #error Automatic compiler detection failed.
 #endif
 
-#if !defined(TARGET_ARCH_MIPS) && !defined(TARGET_ARCH_ARM) &&                 \
-    !defined(TARGET_ARCH_X64) && !defined(TARGET_ARCH_IA32) &&                 \
-    !defined(TARGET_ARCH_ARM64) && !defined(TARGET_ARCH_DBC)
+#if !defined(TARGET_ARCH_ARM) && !defined(TARGET_ARCH_X64) &&                  \
+    !defined(TARGET_ARCH_IA32) && !defined(TARGET_ARCH_ARM64) &&               \
+    !defined(TARGET_ARCH_DBC)
 // No target architecture specified pick the one matching the host architecture.
-#if defined(HOST_ARCH_MIPS)
-#define TARGET_ARCH_MIPS 1
-#elif defined(HOST_ARCH_ARM)
+#if defined(HOST_ARCH_ARM)
 #define TARGET_ARCH_ARM 1
 #elif defined(HOST_ARCH_X64)
 #define TARGET_ARCH_X64 1
@@ -333,8 +327,7 @@ typedef simd128_value_t fpu_register_t;
 #if !defined(ARCH_IS_64_BIT)
 #error Mismatched Host/Target architectures.
 #endif
-#elif defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM) ||                 \
-    defined(TARGET_ARCH_MIPS)
+#elif defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
 #if !defined(ARCH_IS_32_BIT)
 #error Mismatched Host/Target architectures.
 #endif
@@ -355,11 +348,6 @@ typedef simd128_value_t fpu_register_t;
 #define USING_SIMULATOR 1
 #endif
 
-#elif defined(TARGET_ARCH_MIPS)
-#if !defined(HOST_ARCH_MIPS)
-#define USING_SIMULATOR 1
-#endif
-
 #elif defined(TARGET_ARCH_DBC)
 #define USING_SIMULATOR 1
 
@@ -372,7 +360,6 @@ typedef simd128_value_t fpu_register_t;
 #if !defined(TARGET_ARCH_ARM_5TE)
 #define ARCH_IS_MULTI_CORE 1
 #endif
-
 
 #if !defined(TARGET_OS_ANDROID) && !defined(TARGET_OS_FUCHSIA) &&              \
     !defined(TARGET_OS_MACOS_IOS) && !defined(TARGET_OS_LINUX) &&              \
@@ -396,14 +383,19 @@ typedef simd128_value_t fpu_register_t;
 #endif
 #endif
 
-
 // Short form printf format specifiers
 #define Pd PRIdPTR
 #define Pu PRIuPTR
 #define Px PRIxPTR
+#define PX PRIXPTR
+#define Pd32 PRId32
+#define Pu32 PRIu32
+#define Px32 PRIx32
+#define PX32 PRIX32
 #define Pd64 PRId64
 #define Pu64 PRIu64
 #define Px64 PRIx64
+#define PX64 PRIX64
 
 // Zero-padded pointer
 #if defined(ARCH_IS_32_BIT)
@@ -411,7 +403,6 @@ typedef simd128_value_t fpu_register_t;
 #else
 #define Pp "016" PRIxPTR
 #endif
-
 
 // Suffixes for 64-bit integer literals.
 #ifdef _MSC_VER
@@ -434,6 +425,12 @@ typedef simd128_value_t fpu_register_t;
   (((static_cast<uint64_t>(a) << 32) + 0x##b##u))
 
 // Integer constants.
+const int8_t kMinInt8 = 0x80;
+const int8_t kMaxInt8 = 0x7F;
+const uint8_t kMaxUint8 = 0xFF;
+const int16_t kMinInt16 = 0x8000;
+const int16_t kMaxInt16 = 0x7FFF;
+const uint16_t kMaxUint16 = 0xFFFF;
 const int32_t kMinInt32 = 0x80000000;
 const int32_t kMaxInt32 = 0x7FFFFFFF;
 const uint32_t kMaxUint32 = 0xFFFFFFFF;
@@ -471,6 +468,7 @@ const uword kUwordMax = kMaxUint64;
 const int kBitsPerByte = 8;
 const int kBitsPerByteLog2 = 3;
 const int kBitsPerInt32 = kInt32Size * kBitsPerByte;
+const int kBitsPerInt64 = kInt64Size * kBitsPerByte;
 const int kBitsPerWord = kWordSize * kBitsPerByte;
 const int kBitsPerWordLog2 = kWordSizeLog2 + kBitsPerByteLog2;
 
@@ -565,7 +563,6 @@ inline double MicrosecondsToMilliseconds(int64_t micros) {
 template <typename T>
 static inline void USE(T) {}
 
-
 // Use implicit_cast as a safe version of static_cast or const_cast
 // for upcasting in the type hierarchy (i.e. casting a pointer to Foo
 // to a pointer to SuperclassOfFoo or casting a pointer to Foo to
@@ -588,7 +585,6 @@ inline To implicit_cast(From const& f) {
   return f;
 }
 
-
 // Use like this: down_cast<T*>(foo);
 template <typename To, typename From>  // use like this: down_cast<T*>(foo);
 inline To down_cast(From* f) {         // so we only accept pointers
@@ -600,7 +596,6 @@ inline To down_cast(From* f) {         // so we only accept pointers
   }
   return static_cast<To>(f);
 }
-
 
 // The type-based aliasing rule allows the compiler to assume that
 // pointers of different types (for some definition of different)
@@ -639,7 +634,6 @@ inline D bit_cast(const S& source) {
   return destination;
 }
 
-
 // Similar to bit_cast, but allows copying from types of unrelated
 // sizes. This method was introduced to enable the strict aliasing
 // optimizations of GCC 4.4. Basically, GCC mindlessly relies on
@@ -654,20 +648,40 @@ inline D bit_copy(const S& source) {
   return destination;
 }
 
-
+#if defined(HOST_ARCH_ARM) || defined(HOST_ARCH_ARM64)
 // Similar to bit_copy and bit_cast, but does take the type from the argument.
 template <typename T>
 static inline T ReadUnaligned(const T* ptr) {
   T value;
-  memcpy(&value, ptr, sizeof(value));
+  memcpy(reinterpret_cast<void*>(&value), reinterpret_cast<const void*>(ptr),
+         sizeof(value));
   return value;
 }
 
+// Similar to bit_copy and bit_cast, but does take the type from the argument.
+template <typename T>
+static inline void StoreUnaligned(T* ptr, T value) {
+  memcpy(reinterpret_cast<void*>(ptr), reinterpret_cast<const void*>(&value),
+         sizeof(value));
+}
+#else   // !(HOST_ARCH_ARM || HOST_ARCH_ARM64)
+// Similar to bit_copy and bit_cast, but does take the type from the argument.
+template <typename T>
+static inline T ReadUnaligned(const T* ptr) {
+  return *ptr;
+}
+
+// Similar to bit_copy and bit_cast, but does take the type from the argument.
+template <typename T>
+static inline void StoreUnaligned(T* ptr, T value) {
+  *ptr = value;
+}
+#endif  // !(HOST_ARCH_ARM || HOST_ARCH_ARM64)
 
 // On Windows the reentrent version of strtok is called
 // strtok_s. Unify on the posix name strtok_r.
 #if defined(HOST_OS_WINDOWS)
-#define snprintf _snprintf
+#define snprintf _sprintf_p
 #define strtok_r strtok_s
 #endif
 
@@ -680,7 +694,7 @@ static inline T ReadUnaligned(const T* ptr) {
 #endif  // defined(TEMP_FAILURE_RETRY)
 #endif  // !defined(HOST_OS_WINDOWS)
 
-#if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS)
+#if __GNUC__
 // Tell the compiler to do printf format string checking if the
 // compiler supports it; see the 'format' attribute in
 // <http://gcc.gnu.org/onlinedocs/gcc-4.3.0/gcc/Function-Attributes.html>.

@@ -4,10 +4,10 @@
 
 library dart2js.common.codegen;
 
-import '../elements/elements.dart'
-    show AsyncMarker, ClassElement, LocalFunctionElement;
+import '../common_elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart' show DartType, InterfaceType;
+import '../universe/feature.dart';
 import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilderImpl, WorldImpactVisitor;
@@ -30,7 +30,10 @@ class CodegenImpact extends WorldImpact {
 
   bool get usesInterceptor => false;
 
-  Iterable<AsyncMarker> get asyncMarkers => <AsyncMarker>[];
+  Iterable<AsyncMarker> get asyncMarkers => const <AsyncMarker>[];
+
+  Iterable<GenericInstantiation> get genericInstantiations =>
+      const <GenericInstantiation>[];
 }
 
 class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
@@ -39,6 +42,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   List<Set<ClassEntity>> _specializedGetInterceptors;
   bool _usesInterceptor = false;
   EnumSet<AsyncMarker> _asyncMarkers;
+  Set<GenericInstantiation> _genericInstantiations;
 
   _CodegenImpact();
 
@@ -50,9 +54,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
 
   void registerTypeVariableBoundsSubtypeCheck(
       DartType subtype, DartType supertype) {
-    if (_typeVariableBoundsSubtypeChecks == null) {
-      _typeVariableBoundsSubtypeChecks = new Setlet<Pair<DartType, DartType>>();
-    }
+    _typeVariableBoundsSubtypeChecks ??= new Setlet<Pair<DartType, DartType>>();
     _typeVariableBoundsSubtypeChecks
         .add(new Pair<DartType, DartType>(subtype, supertype));
   }
@@ -64,9 +66,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   }
 
   void registerConstSymbol(String name) {
-    if (_constSymbols == null) {
-      _constSymbols = new Setlet<String>();
-    }
+    _constSymbols ??= new Setlet<String>();
     _constSymbols.add(name);
   }
 
@@ -75,9 +75,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   }
 
   void registerSpecializedGetInterceptor(Set<ClassEntity> classes) {
-    if (_specializedGetInterceptors == null) {
-      _specializedGetInterceptors = <Set<ClassEntity>>[];
-    }
+    _specializedGetInterceptors ??= <Set<ClassEntity>>[];
     _specializedGetInterceptors.add(classes);
   }
 
@@ -94,9 +92,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   bool get usesInterceptor => _usesInterceptor;
 
   void registerAsyncMarker(AsyncMarker asyncMarker) {
-    if (_asyncMarkers == null) {
-      _asyncMarkers = new EnumSet<AsyncMarker>();
-    }
+    _asyncMarkers ??= new EnumSet<AsyncMarker>();
     _asyncMarkers.add(asyncMarker);
   }
 
@@ -105,15 +101,26 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
         ? _asyncMarkers.iterable(AsyncMarker.values)
         : const <AsyncMarker>[];
   }
+
+  void registerGenericInstantiation(GenericInstantiation instantiation) {
+    _genericInstantiations ??= new Set<GenericInstantiation>();
+    _genericInstantiations.add(instantiation);
+  }
+
+  @override
+  Iterable<GenericInstantiation> get genericInstantiations {
+    return _genericInstantiations ?? const <GenericInstantiation>[];
+  }
 }
 
 // TODO(johnniwinther): Split this class into interface and implementation.
 // TODO(johnniwinther): Move this implementation to the JS backend.
 class CodegenRegistry {
+  final ElementEnvironment _elementEnvironment;
   final MemberEntity currentElement;
   final _CodegenImpact worldImpact;
 
-  CodegenRegistry(this.currentElement)
+  CodegenRegistry(this._elementEnvironment, this.currentElement)
       : this.worldImpact = new _CodegenImpact();
 
   bool get isForResolution => false;
@@ -121,8 +128,8 @@ class CodegenRegistry {
   String toString() => 'CodegenRegistry for $currentElement';
 
   @deprecated
-  void registerInstantiatedClass(ClassElement element) {
-    registerInstantiation(element.rawType);
+  void registerInstantiatedClass(ClassEntity element) {
+    registerInstantiation(_elementEnvironment.getRawType(element));
   }
 
   void registerStaticUse(StaticUse staticUse) {
@@ -146,8 +153,8 @@ class CodegenRegistry {
     worldImpact.registerTypeVariableBoundsSubtypeCheck(subtype, supertype);
   }
 
-  void registerInstantiatedClosure(LocalFunctionElement element) {
-    worldImpact.registerStaticUse(new StaticUse.closure(element));
+  void registerInstantiatedClosure(FunctionEntity element) {
+    worldImpact.registerStaticUse(new StaticUse.callMethod(element));
   }
 
   void registerConstSymbol(String name) {
@@ -168,6 +175,10 @@ class CodegenRegistry {
 
   void registerAsyncMarker(AsyncMarker asyncMarker) {
     worldImpact.registerAsyncMarker(asyncMarker);
+  }
+
+  void registerGenericInstantiation(GenericInstantiation instantiation) {
+    worldImpact.registerGenericInstantiation(instantiation);
   }
 }
 

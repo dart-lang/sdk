@@ -12,28 +12,26 @@
  * - Preparing tests, including copying files and frameworks to temporary
  *   directories, and computing the command line and arguments to be run.
  */
-library test_suite;
+import 'dart:async';
+import 'dart:io';
 
-import "dart:async";
-import "dart:io";
-import "dart:math";
-import "drt_updater.dart";
-import "html_test.dart" as htmlTest;
-import "path.dart";
-import "multitest.dart";
-import "expectation.dart";
-import "expectation_set.dart";
-import "summary_report.dart";
-import "test_runner.dart";
-import "utils.dart";
-import "http_server.dart" show PREFIX_BUILDDIR, PREFIX_DARTDIR;
-
-import "compiler_configuration.dart"
-    show CommandArtifact, CompilerConfiguration;
-
-import "runtime_configuration.dart" show RuntimeConfiguration;
+import "package:status_file/expectation.dart";
 
 import 'browser_test.dart';
+import 'command.dart';
+import 'compiler_configuration.dart';
+import 'configuration.dart';
+import 'expectation_set.dart';
+import 'html_test.dart' as html_test;
+import 'http_server.dart';
+import 'multitest.dart';
+import 'path.dart';
+import 'repository.dart';
+import 'runtime_updater.dart';
+import 'summary_report.dart';
+import 'test_configurations.dart';
+import 'test_runner.dart';
+import 'utils.dart';
 
 RegExp multiHtmlTestGroupRegExp = new RegExp(r"\s*[^/]\s*group\('[^,']*");
 RegExp multiHtmlTestRegExp = new RegExp(r"useHtmlIndividualConfiguration()");
@@ -48,8 +46,10 @@ RegExp dartExtension = new RegExp(r'\.dart$');
 typedef bool Predicate<T>(T arg);
 
 typedef void CreateTest(Path filePath, Path originTestPath,
-    bool hasCompileError, bool hasRuntimeError,
-    {bool isNegativeIfChecked,
+    {bool hasSyntaxError,
+    bool hasCompileError,
+    bool hasRuntimeError,
+    bool isNegativeIfChecked,
     bool hasCompileErrorIfChecked,
     bool hasStaticWarning,
     String multitestKey});
@@ -61,10 +61,10 @@ typedef void VoidFunction();
  * result of the function. If the function is `null`, returns a future that
  * completes immediately with `null`.
  */
-Future asynchronously(function()) {
-  if (function == null) return new Future.value(null);
+Future asynchronously<T>(T function()) {
+  if (function == null) return new Future<T>.value(null);
 
-  var completer = new Completer();
+  var completer = new Completer<T>();
   Timer.run(() => completer.complete(function()));
 
   return completer.future;
@@ -90,9 +90,9 @@ class FutureGroup {
       throw new Exception("FutureFutureAlreadyCompleteException");
     }
     _pending++;
-    var handledTaskFuture = task.catchError((e) {
+    var handledTaskFuture = task.catchError((e, StackTrace s) {
       if (!wasCompleted) {
-        _completer.completeError(e);
+        _completer.completeError(e, s);
         wasCompleted = true;
       }
     }).then((_) {
@@ -119,21 +119,17 @@ class FutureGroup {
  * and a status file containing the expected results when these tests are run.
  */
 abstract class TestSuite {
-  final Map<String, dynamic> configuration;
+  final Configuration configuration;
   final String suiteName;
+  final List<String> statusFilePaths;
   // This function is set by subclasses before enqueueing starts.
   Function doTest;
   Map<String, String> _environmentOverrides;
-  RuntimeConfiguration runtimeConfiguration;
 
-  TestSuite(this.configuration, this.suiteName) {
-    TestUtils.buildDir(configuration); // Sets configuration_directory.
-    if (configuration['configuration_directory'] != null) {
-      _environmentOverrides = {
-        'DART_CONFIGURATION': configuration['configuration_directory']
-      };
-    }
-    runtimeConfiguration = new RuntimeConfiguration(configuration);
+  TestSuite(this.configuration, this.suiteName, this.statusFilePaths) {
+    _environmentOverrides = {
+      'DART_CONFIGURATION': configuration.configurationDirectory,
+    };
   }
 
   Map<String, String> get environmentOverrides => _environmentOverrides;
@@ -142,53 +138,23 @@ abstract class TestSuite {
    * Whether or not binaries should be found in the root build directory or
    * in the built SDK.
    */
-  bool get useSdk {
-    // The pub suite always uses the SDK.
-    // TODO(rnystrom): Eventually, all test suites should run out of the SDK
-    // and this check should go away.
-    // TODO(ahe): This check is broken for several reasons:
-    // First, it is not true that all tests should be running out of the
-    // SDK. It is absolutely critical to VM development that you can test the
-    // VM without building the SDK.
-    // Second, it is convenient for dart2js developers to run tests without
-    // rebuilding the SDK, and similarly, it should be convenient for pub
-    // developers.
-    // Third, even if pub can only run from the SDK directory, this is the
-    // wrong place to work around that problem. Instead, test_options.dart
-    // should have been modified so that configuration['use_sdk'] is always
-    // true when testing pub. Attempting to override the value here is brittle
-    // because we read configuration['use_sdk'] directly in many places without
-    // using this getter.
-    if (suiteName == 'pub') return true;
-
-    return configuration['use_sdk'];
-  }
+  bool get useSdk => configuration.useSdk;
 
   /**
    * The output directory for this suite's configuration.
    */
-  String get buildDir => TestUtils.buildDir(configuration);
+  String get buildDir => configuration.buildDirectory;
 
   /**
    * The path to the compiler for this suite's configuration. Returns `null` if
    * no compiler should be used.
    */
   String get compilerPath {
-    var compilerConfiguration = new CompilerConfiguration(configuration);
+    var compilerConfiguration = configuration.compilerConfiguration;
     if (!compilerConfiguration.hasCompiler) return null;
-    String name = compilerConfiguration.computeCompilerPath(buildDir);
-    // TODO(ahe): Only validate this once, in test_options.dart.
-    TestUtils.ensureExists(name, configuration);
-    return name;
-  }
+    var name = compilerConfiguration.computeCompilerPath();
 
-  String get pubPath {
-    var prefix = 'sdk/bin/';
-    if (configuration['use_sdk']) {
-      prefix = '$buildDir/dart-sdk/bin/';
-    }
-    String suffix = getExecutableSuffix('pub');
-    var name = '${prefix}pub$suffix';
+    // TODO(ahe): Only validate this once, in test_options.dart.
     TestUtils.ensureExists(name, configuration);
     return name;
   }
@@ -196,33 +162,36 @@ abstract class TestSuite {
   /// Returns the name of the Dart VM executable.
   String get dartVmBinaryFileName {
     // Controlled by user with the option "--dart".
-    String dartExecutable = configuration['dart'];
+    var dartExecutable = configuration.dartPath;
 
-    if (dartExecutable == '') {
-      String suffix = executableBinarySuffix;
-      dartExecutable = useSdk
-          ? '$buildDir/dart-sdk/bin/dart$suffix'
-          : '$buildDir/dart$suffix';
+    if (dartExecutable == null) {
+      dartExecutable = dartVmExecutableFileName;
     }
 
     TestUtils.ensureExists(dartExecutable, configuration);
     return dartExecutable;
   }
 
+  String get dartVmExecutableFileName {
+    return useSdk
+        ? '$buildDir/dart-sdk/bin/dart$executableBinarySuffix'
+        : '$buildDir/dart$executableBinarySuffix';
+  }
+
   /// Returns the name of the flutter engine executable.
   String get flutterEngineBinaryFileName {
     // Controlled by user with the option "--flutter".
-    String flutterExecutable = configuration['flutter'];
+    var flutterExecutable = configuration.flutterPath;
     TestUtils.ensureExists(flutterExecutable, configuration);
     return flutterExecutable;
   }
 
   String get dartPrecompiledBinaryFileName {
     // Controlled by user with the option "--dart_precompiled".
-    String dartExecutable = configuration['dart_precompiled'];
+    var dartExecutable = configuration.dartPrecompiledPath;
 
     if (dartExecutable == null || dartExecutable == '') {
-      String suffix = executableBinarySuffix;
+      var suffix = executableBinarySuffix;
       dartExecutable = '$buildDir/dart_precompiled_runtime$suffix';
     }
 
@@ -231,15 +200,15 @@ abstract class TestSuite {
   }
 
   String get processTestBinaryFileName {
-    String suffix = executableBinarySuffix;
-    String processTestExecutable = '$buildDir/process_test$suffix';
+    var suffix = executableBinarySuffix;
+    var processTestExecutable = '$buildDir/process_test$suffix';
     TestUtils.ensureExists(processTestExecutable, configuration);
     return processTestExecutable;
   }
 
   String get d8FileName {
     var suffix = getExecutableSuffix('d8');
-    var d8Dir = TestUtils.dartDir.append('third_party/d8');
+    var d8Dir = Repository.dir.append('third_party/d8');
     var d8Path = d8Dir.append('${Platform.operatingSystem}/d8$suffix');
     var d8 = d8Path.toNativePath();
     TestUtils.ensureExists(d8, configuration);
@@ -249,7 +218,7 @@ abstract class TestSuite {
   String get jsShellFileName {
     var executableSuffix = getExecutableSuffix('jsshell');
     var executable = 'jsshell$executableSuffix';
-    var jsshellDir = '${TestUtils.dartDir.toNativePath()}/tools/testing/bin';
+    var jsshellDir = '${Repository.dir.toNativePath()}/tools/testing/bin';
     return '$jsshellDir/$executable';
   }
 
@@ -270,6 +239,7 @@ abstract class TestSuite {
   }
 
   String get executableBinarySuffix => Platform.isWindows ? '.exe' : '';
+  String get executableScriptSuffix => Platform.isWindows ? '.bat' : '';
 
   /**
    * Call the callback function onTest with a [TestCase] argument for each
@@ -279,7 +249,9 @@ abstract class TestSuite {
    * cache information about the test suite, so that directories do not need
    * to be listed each time.
    */
-  void forEachTest(TestCaseEvent onTest, Map testCache, [VoidFunction onDone]);
+  Future forEachTest(
+      TestCaseEvent onTest, Map<String, List<TestInformation>> testCache,
+      [VoidFunction onDone]);
 
   // This function will be called for every TestCase of this test suite.
   // It will
@@ -288,25 +260,47 @@ abstract class TestSuite {
   //  - handle SKIP/SKIP_BY_DESIGN markers
   //  - test if the selector matches
   // and will enqueue the test (if necessary).
-  void enqueueNewTestCase(TestCase testCase) {
-    if (testCase.isNegative && runtimeConfiguration.shouldSkipNegativeTests) {
+  void enqueueNewTestCase(
+      String testName, List<Command> commands, Set<Expectation> expectations,
+      [TestInformation info]) {
+    var displayName = '$suiteName/$testName';
+
+    // If the test is not going to be run at all, then a RuntimeError,
+    // MissingRuntimeError or Timeout will never occur.
+    // Instead, treat that as Pass.
+    if (configuration.runtime == Runtime.none) {
+      expectations = expectations.toSet();
+      expectations.remove(Expectation.runtimeError);
+      expectations.remove(Expectation.ok);
+      expectations.remove(Expectation.missingRuntimeError);
+      expectations.remove(Expectation.timeout);
+      if (expectations.isEmpty) expectations.add(Expectation.pass);
+    }
+
+    var negative = info != null ? isNegative(info) : false;
+    var testCase = new TestCase(
+        displayName, commands, configuration, expectations,
+        isNegative: negative, info: info);
+
+    if (negative &&
+        configuration.runtimeConfiguration.shouldSkipNegativeTests) {
       return;
     }
-    var expectations = testCase.expectedOutcomes;
 
     // Handle sharding based on the original test path (i.e. all multitests
     // of a given original test belong to the same shard)
-    int shards = configuration['shards'];
-    if (shards > 1 && testCase.hash % shards != configuration['shard'] - 1) {
-      return;
-    }
-    // Test if the selector includes this test.
-    RegExp pattern = configuration['selectors'][suiteName];
-    if (!pattern.hasMatch(testCase.displayName)) {
+    if (configuration.shardCount > 1 &&
+        testCase.hash % configuration.shardCount != configuration.shard - 1) {
       return;
     }
 
-    if (configuration['hot_reload'] || configuration['hot_reload_rollback']) {
+    // Test if the selector includes this test.
+    var pattern = configuration.selectors[suiteName];
+    if (!pattern.hasMatch(displayName)) {
+      return;
+    }
+
+    if (configuration.hotReload || configuration.hotReloadRollback) {
       // Handle reload special cases.
       if (expectations.contains(Expectation.compileTimeError) ||
           testCase.hasCompileError ||
@@ -318,15 +312,8 @@ abstract class TestSuite {
     }
 
     // Update Summary report
-    if (configuration['report']) {
-      if (testCase.expectCompileError &&
-          TestUtils.isBrowserRuntime(configuration['runtime']) &&
-          new CompilerConfiguration(configuration).hasCompiler) {
-        summaryReport.addCompileErrorSkipTest();
-        return;
-      } else {
-        summaryReport.add(testCase);
-      }
+    if (configuration.printReport) {
+      summaryReport.add(testCase);
     }
 
     // Handle skipped tests
@@ -336,17 +323,39 @@ abstract class TestSuite {
       return;
     }
 
+    if (configuration.fastTestsOnly &&
+        (expectations.contains(Expectation.slow) ||
+            expectations.contains(Expectation.skipSlow) ||
+            expectations.contains(Expectation.timeout) ||
+            expectations.contains(Expectation.dartkTimeout))) {
+      return;
+    }
+
     doTest(testCase);
   }
 
+  bool expectCompileError(TestInformation info) {
+    return info.hasCompileError ||
+        (configuration.isChecked && info.hasCompileErrorIfChecked);
+  }
+
+  bool isNegative(TestInformation info) {
+    if (info.hasRuntimeError && configuration.runtime != Runtime.none) {
+      return true;
+    }
+
+    if (info.isNegativeIfChecked && configuration.isChecked) {
+      return true;
+    }
+
+    return expectCompileError(info);
+  }
+
   String createGeneratedTestDirectoryHelper(
-      String name, String dirname, Path testPath, String optionsName) {
-    Path relative = testPath.relativeTo(TestUtils.dartDir);
+      String name, String dirname, Path testPath) {
+    Path relative = testPath.relativeTo(Repository.dir);
     relative = relative.directoryPath.append(relative.filenameWithoutExtension);
     String testUniqueName = TestUtils.getShortName(relative.toString());
-    if (!optionsName.isEmpty) {
-      testUniqueName = '$testUniqueName-$optionsName';
-    }
 
     Path generatedTestPath = new Path(buildDir)
         .append('generated_$name')
@@ -383,76 +392,56 @@ abstract class TestSuite {
    * pubspec checkouts ...).
    */
 
-  String createOutputDirectory(Path testPath, String optionsName) {
-    var checked = configuration['checked'] ? '-checked' : '';
-    var strong = configuration['strong'] ? '-strong' : '';
-    var minified = configuration['minified'] ? '-minified' : '';
-    var sdk = configuration['use_sdk'] ? '-sdk' : '';
-    var dirName = "${configuration['compiler']}-${configuration['runtime']}"
-        "$checked$strong$minified$sdk";
-    return createGeneratedTestDirectoryHelper(
-        "tests", dirName, testPath, optionsName);
+  String createOutputDirectory(Path testPath) {
+    var checked = configuration.isChecked ? '-checked' : '';
+    var legacy = configuration.noPreviewDart2 ? '-legacy' : '';
+    var minified = configuration.isMinified ? '-minified' : '';
+    var sdk = configuration.useSdk ? '-sdk' : '';
+    var dirName = "${configuration.compiler.name}-${configuration.runtime.name}"
+        "$checked$legacy$minified$sdk";
+    return createGeneratedTestDirectoryHelper("tests", dirName, testPath);
   }
 
   String createCompilationOutputDirectory(Path testPath) {
-    var checked = configuration['checked'] ? '-checked' : '';
-    var strong = configuration['strong'] ? '-strong' : '';
-    var minified = configuration['minified'] ? '-minified' : '';
-    var csp = configuration['csp'] ? '-csp' : '';
-    var sdk = configuration['use_sdk'] ? '-sdk' : '';
-    var dirName = "${configuration['compiler']}"
-        "$checked$strong$minified$csp$sdk";
+    var checked = configuration.isChecked ? '-checked' : '';
+    var legacy = configuration.noPreviewDart2 ? '-legacy' : '';
+    var minified = configuration.isMinified ? '-minified' : '';
+    var csp = configuration.isCsp ? '-csp' : '';
+    var sdk = configuration.useSdk ? '-sdk' : '';
+    var dirName = "${configuration.compiler.name}"
+        "$checked$legacy$minified$csp$sdk";
     return createGeneratedTestDirectoryHelper(
-        "compilations", dirName, testPath, "");
+        "compilations", dirName, testPath);
   }
 
   String createPubspecCheckoutDirectory(Path directoryOfPubspecYaml) {
-    var sdk = configuration['use_sdk'] ? 'sdk' : '';
+    var sdk = configuration.useSdk ? 'sdk' : '';
     return createGeneratedTestDirectoryHelper(
-        "pubspec_checkouts", sdk, directoryOfPubspecYaml, "");
+        "pubspec_checkouts", sdk, directoryOfPubspecYaml);
   }
 
   String createPubPackageBuildsDirectory(Path directoryOfPubspecYaml) {
     return createGeneratedTestDirectoryHelper(
-        "pub_package_builds", 'public_packages', directoryOfPubspecYaml, "");
+        "pub_package_builds", 'public_packages', directoryOfPubspecYaml);
   }
 }
 
-Future<Iterable<String>> ccTestLister(String runnerPath) {
-  return Process.run(runnerPath, ["--list"]).then((ProcessResult result) {
-    if (result.exitCode != 0) {
-      throw "Failed to list tests: '$runnerPath --list'. "
-          "Process exited with ${result.exitCode}";
-    }
-    return result.stdout
-        .split('\n')
-        .map((line) => line.trim())
-        .where((name) => name.isNotEmpty);
-  });
-}
-
-/**
- * A specialized [TestSuite] that runs tests written in C to unit test
- * the Dart virtual machine and its API.
- *
- * The tests are compiled into a monolithic executable by the build step.
- * The executable lists its tests when run with the --list command line flag.
- * Individual tests are run by specifying them on the command line.
- */
-class CCTestSuite extends TestSuite {
-  final String testPrefix;
+/// A specialized [TestSuite] that runs tests written in C to unit test
+/// the Dart virtual machine and its API.
+///
+/// The tests are compiled into a monolithic executable by the build step.
+/// The executable lists its tests when run with the --list command line flag.
+/// Individual tests are run by specifying them on the command line.
+class VMTestSuite extends TestSuite {
   String targetRunnerPath;
   String hostRunnerPath;
   final String dartDir;
-  List<String> statusFilePaths;
 
-  CCTestSuite(Map<String, dynamic> configuration, String suiteName,
-      String runnerName, this.statusFilePaths,
-      {this.testPrefix: ''})
-      : dartDir = TestUtils.dartDir.toNativePath(),
-        super(configuration, suiteName) {
+  VMTestSuite(Configuration configuration)
+      : dartDir = Repository.dir.toNativePath(),
+        super(configuration, "vm", ["runtime/tests/vm/vm.status"]) {
     // For running the tests we use the given '$runnerName' binary
-    targetRunnerPath = '$buildDir/$runnerName';
+    targetRunnerPath = '$buildDir/run_vm_tests';
 
     // For listing the tests we use the '$runnerName.host' binary if it exists
     // and use '$runnerName' if it doesn't.
@@ -465,34 +454,17 @@ class CCTestSuite extends TestSuite {
     }
   }
 
-  void testNameHandler(ExpectationSet testExpectations, String testName) {
-    // Only run the tests that match the pattern. Use the name
-    // "suiteName/testName" for cc tests.
-    String constructedName = '$suiteName/$testPrefix$testName';
-
-    var expectations = testExpectations.expectations('$testPrefix$testName');
-
-    var args = TestUtils.standardOptions(configuration);
-    args.add(testName);
-
-    var command = CommandBuilder.instance.getProcessCommand(
-        'run_vm_unittest', targetRunnerPath, args, environmentOverrides);
-    enqueueNewTestCase(
-        new TestCase(constructedName, [command], configuration, expectations));
-  }
-
   Future<Null> forEachTest(Function onTest, Map testCache,
       [VoidFunction onDone]) async {
     doTest = onTest;
+
     var statusFiles =
         statusFilePaths.map((statusFile) => "$dartDir/$statusFile").toList();
-
-    var expectations = ExpectationSet.read(statusFiles, configuration);
+    var expectations = new ExpectationSet.read(statusFiles, configuration);
 
     try {
-      var names = await ccTestLister(hostRunnerPath);
-      for (var name in names) {
-        testNameHandler(expectations, name);
+      for (var name in await _listTests(hostRunnerPath)) {
+        _addTest(expectations, name);
       }
 
       doTest = null;
@@ -502,12 +474,44 @@ class CCTestSuite extends TestSuite {
       exit(1);
     }
   }
+
+  void _addTest(ExpectationSet testExpectations, String testName) {
+    var args = configuration.standardOptions.toList();
+    if (configuration.compilerConfiguration.previewDart2) {
+      args.add('--use-dart-frontend');
+      // '--dfe' has to be the first argument for run_vm_test to pick it up.
+      args.insert(0, '--dfe=$buildDir/gen/kernel-service.dart.snapshot');
+      args.add('--strong');
+    }
+
+    args.add(testName);
+
+    var command = Command.process(
+        'run_vm_unittest', targetRunnerPath, args, environmentOverrides);
+    var fullName = 'cc/$testName';
+    var expectations = testExpectations.expectations(fullName);
+    enqueueNewTestCase(fullName, [command], expectations);
+  }
+
+  Future<Iterable<String>> _listTests(String runnerPath) async {
+    var result = await Process.run(runnerPath, ["--list"]);
+    if (result.exitCode != 0) {
+      throw "Failed to list tests: '$runnerPath --list'. "
+          "Process exited with ${result.exitCode}";
+    }
+
+    return (result.stdout as String)
+        .split('\n')
+        .map((line) => line.trim())
+        .where((name) => name.isNotEmpty);
+  }
 }
 
 class TestInformation {
   Path filePath;
   Path originTestPath;
-  Map optionsFromFile;
+  Map<String, dynamic> optionsFromFile;
+  bool hasSyntaxError;
   bool hasCompileError;
   bool hasRuntimeError;
   bool isNegativeIfChecked;
@@ -519,6 +523,7 @@ class TestInformation {
       this.filePath,
       this.originTestPath,
       this.optionsFromFile,
+      this.hasSyntaxError,
       this.hasCompileError,
       this.hasRuntimeError,
       this.isNegativeIfChecked,
@@ -542,6 +547,7 @@ class HtmlTestInformation extends TestInformation {
             false,
             false,
             false,
+            false,
             false) {}
 }
 
@@ -551,7 +557,6 @@ class HtmlTestInformation extends TestInformation {
  */
 class StandardTestSuite extends TestSuite {
   final Path suiteDir;
-  final List<String> statusFilePaths;
   ExpectationSet testExpectations;
   List<TestInformation> cachedTests;
   final Path dartDir;
@@ -560,24 +565,25 @@ class StandardTestSuite extends TestSuite {
   final List<String> extraVmOptions;
   List<Uri> _dart2JsBootstrapDependencies;
 
-  StandardTestSuite(Map<String, dynamic> configuration, String suiteName,
-      Path suiteDirectory, this.statusFilePaths,
+  static final Uri co19SuiteLocation = Repository.uri.resolve("tests/co19_2/");
+  static final Uri legacyCo19SuiteLocation =
+      Repository.uri.resolve("tests/co19/");
+
+  StandardTestSuite(Configuration configuration, String suiteName,
+      Path suiteDirectory, List<String> statusFilePaths,
       {this.isTestFilePredicate, bool recursive: false})
-      : dartDir = TestUtils.dartDir,
+      : dartDir = Repository.dir,
         listRecursively = recursive,
-        suiteDir = TestUtils.dartDir.join(suiteDirectory),
-        extraVmOptions = TestUtils.getExtraVmOptions(configuration),
-        super(configuration, suiteName) {
+        suiteDir = Repository.dir.join(suiteDirectory),
+        extraVmOptions = configuration.vmOptions,
+        super(configuration, suiteName, statusFilePaths) {
     if (!useSdk) {
       _dart2JsBootstrapDependencies = [];
     } else {
-      var snapshotPath = TestUtils
-          .absolutePath(
-              new Path(buildDir).join(new Path('dart-sdk/bin/snapshots/'
-                  'utils_wrapper.dart.snapshot')))
-          .toString();
       _dart2JsBootstrapDependencies = [
-        new Uri(scheme: 'file', path: snapshotPath)
+        Uri.base
+            .resolveUri(new Uri.directory(buildDir))
+            .resolve('dart-sdk/bin/snapshots/dart2js.dart.snapshot')
       ];
     }
   }
@@ -609,14 +615,21 @@ class StandardTestSuite extends TestSuite {
    * particular, if you add 'path/to/mytestsuite' to [TEST_SUITE_DIRECTORIES]
    * in test.dart, this will all be set up for you.
    */
-  factory StandardTestSuite.forDirectory(Map configuration, Path directory) {
+  factory StandardTestSuite.forDirectory(
+      Configuration configuration, Path directory) {
     var name = directory.filename;
     var status_paths = [
       '$directory/$name.status',
       '$directory/.status',
-      '$directory/${name}_dart2js.status',
+      '$directory/${name}_app_jit.status',
+      '$directory/${name}_analyzer.status',
       '$directory/${name}_analyzer2.status',
-      '$directory/${name}_kernel.status'
+      '$directory/${name}_dart2js.status',
+      '$directory/${name}_dartdevc.status',
+      '$directory/${name}_kernel.status',
+      '$directory/${name}_precompiled.status',
+      '$directory/${name}_spec_parser.status',
+      '$directory/${name}_vm.status',
     ];
 
     return new StandardTestSuite(configuration, name, directory, status_paths,
@@ -640,8 +653,13 @@ class StandardTestSuite extends TestSuite {
 
   List<String> additionalOptions(Path filePath) => [];
 
-  forEachTest(Function onTest, Map testCache, [VoidFunction onDone]) async {
-    await updateDartium();
+  Future forEachTest(
+      Function onTest, Map<String, List<TestInformation>> testCache,
+      [VoidFunction onDone]) async {
+    if (configuration.runtime == Runtime.drt && !configuration.listTests) {
+      await updateContentShell(configuration.drtPath);
+    }
+
     doTest = onTest;
     testExpectations = readExpectations();
 
@@ -661,23 +679,6 @@ class StandardTestSuite extends TestSuite {
   }
 
   /**
-   * If Content shell/Dartium is required, and not yet updated, waits for
-   * the update then completes. Otherwise completes immediately.
-   */
-  Future updateDartium() {
-    var completer = new Completer();
-    var updater = runtimeUpdater(configuration);
-    if (updater == null || updater.updated) {
-      return new Future.value(null);
-    }
-
-    assert(updater.isActive);
-    updater.onUpdated.add(() => completer.complete(null));
-
-    return completer.future;
-  }
-
-  /**
    * Reads the status files and completes with the parsed expectations.
    */
   ExpectationSet readExpectations() {
@@ -688,7 +689,7 @@ class StandardTestSuite extends TestSuite {
       return dartDir.append(statusFilePath).toNativePath();
     }).toList();
 
-    return ExpectationSet.read(statusFiles, configuration);
+    return new ExpectationSet.read(statusFiles, configuration);
   }
 
   Future enqueueTests() {
@@ -716,8 +717,26 @@ class StandardTestSuite extends TestSuite {
   }
 
   void enqueueFile(String filename, FutureGroup group) {
+    bool match = false;
+    for (var regex in configuration.selectors.values) {
+      String pattern = regex.pattern;
+      if (pattern.contains("/")) {
+        String lastPart = pattern.substring(pattern.lastIndexOf("/") + 1);
+        if (int.tryParse(lastPart) != null ||
+            lastPart.toLowerCase() == "none") {
+          pattern = pattern.substring(0, pattern.lastIndexOf("/"));
+        }
+      }
+      if (pattern != regex.pattern) {
+        regex = new RegExp(pattern);
+      }
+      if (regex.hasMatch(filename)) match = true;
+      if (match) break;
+    }
+    if (!match) return;
+
     if (isHtmlTestFile(filename)) {
-      var info = htmlTest.getInformation(filename);
+      var info = html_test.getInformation(filename);
       if (info == null) {
         DebugLogger
             .error("HtmlTest $filename does not contain required annotations");
@@ -730,105 +749,90 @@ class StandardTestSuite extends TestSuite {
     if (!isTestFile(filename)) return;
     Path filePath = new Path(filename);
 
-    var optionsFromFile = readOptionsFromFile(filePath);
+    var optionsFromFile = readOptionsFromFile(new Uri.file(filename));
     CreateTest createTestCase = makeTestCaseCreator(optionsFromFile);
 
-    if (optionsFromFile['isMultitest']) {
-      group.add(doMultitest(
-          filePath,
-          buildDir,
-          suiteDir,
-          createTestCase,
-          (configuration['hot_reload'] ||
-              configuration['hot_reload_rollback'])));
+    if (optionsFromFile['isMultitest'] as bool) {
+      group.add(doMultitest(filePath, buildDir, suiteDir, createTestCase,
+          configuration.hotReload || configuration.hotReloadRollback));
     } else {
-      createTestCase(filePath, filePath, optionsFromFile['hasCompileError'],
-          optionsFromFile['hasRuntimeError'],
-          hasStaticWarning: optionsFromFile['hasStaticWarning']);
+      createTestCase(filePath, filePath,
+          hasSyntaxError: optionsFromFile['hasSyntaxError'] as bool,
+          hasCompileError: optionsFromFile['hasCompileError'] as bool,
+          hasRuntimeError: optionsFromFile['hasRuntimeError'] as bool,
+          hasStaticWarning: optionsFromFile['hasStaticWarning'] as bool);
     }
-  }
-
-  static Path _findPubspecYamlFile(Path filePath) {
-    final existsCache = TestUtils.existsCache;
-
-    Path root = TestUtils.dartDir;
-    assert("$filePath".startsWith("$root"));
-
-    // We start with the parent directory of [filePath] and go up until
-    // the root directory (excluding the root).
-    List<String> segments = filePath.directoryPath.relativeTo(root).segments();
-    while (segments.length > 0) {
-      var pubspecYamlPath = new Path(segments.join('/')).append('pubspec.yaml');
-      if (existsCache.doesFileExist(pubspecYamlPath.toNativePath())) {
-        return root.join(pubspecYamlPath);
-      }
-      segments.removeLast();
-    }
-    return null;
   }
 
   void enqueueTestCaseFromTestInformation(TestInformation info) {
     String testName = buildTestCaseDisplayName(suiteDir, info.originTestPath,
-        multitestName:
-            info.optionsFromFile['isMultitest'] ? info.multitestKey : "");
-    Set<Expectation> expectations = testExpectations.expectations(testName);
+        multitestName: info.optionsFromFile['isMultitest'] as bool
+            ? info.multitestKey
+            : "");
     if (info is HtmlTestInformation) {
-      enqueueHtmlTest(info, testName, expectations);
+      _enqueueHtmlTest(info, testName);
       return;
     }
+
     var optionsFromFile = info.optionsFromFile;
 
     // If this test is inside a package, we will check if there is a
     // pubspec.yaml file and if so, create a custom package root for it.
-    List<Command> baseCommands = <Command>[];
     Path packageRoot;
     Path packages;
 
     if (optionsFromFile['packageRoot'] == null &&
         optionsFromFile['packages'] == null) {
-      if (configuration['package_root'] != null) {
-        packageRoot = new Path(configuration['package_root']);
+      if (configuration.packageRoot != null) {
+        packageRoot = new Path(configuration.packageRoot);
         optionsFromFile['packageRoot'] = packageRoot.toNativePath();
       }
-      if (configuration['packages'] != null) {
-        Path packages = new Path(configuration['packages']);
+      if (configuration.packages != null) {
+        Path packages = new Path(configuration.packages);
         optionsFromFile['packages'] = packages.toNativePath();
       }
     }
-    if (new CompilerConfiguration(configuration).hasCompiler &&
+    if (configuration.compilerConfiguration.hasCompiler &&
         expectCompileError(info)) {
       // If a compile-time error is expected, and we're testing a
       // compiler, we never need to attempt to run the program (in a
       // browser or otherwise).
-      enqueueStandardTest(baseCommands, info, testName, expectations);
-    } else if (TestUtils.isBrowserRuntime(configuration['runtime'])) {
-      if (info.optionsFromFile['isMultiHtmlTest']) {
+      enqueueStandardTest(info, testName);
+    } else if (configuration.runtime.isBrowser) {
+      var expectationsMap = <String, Set<Expectation>>{};
+
+      if (info.optionsFromFile['isMultiHtmlTest'] as bool) {
         // A browser multi-test has multiple expectations for one test file.
-        // Find all the different sub-test expecations for one entire test file.
-        List<String> subtestNames = info.optionsFromFile['subtestNames'];
-        Map<String, Set<Expectation>> multiHtmlTestExpectations = {};
-        for (String name in subtestNames) {
-          String fullTestName = '$testName/$name';
-          multiHtmlTestExpectations[fullTestName] =
-              testExpectations.expectations(fullTestName);
+        // Find all the different sub-test expectations for one entire test
+        // file.
+        var subtestNames = info.optionsFromFile['subtestNames'] as List<String>;
+        expectationsMap = <String, Set<Expectation>>{};
+        for (var subtest in subtestNames) {
+          expectationsMap[subtest] =
+              testExpectations.expectations('$testName/$subtest');
         }
-        enqueueBrowserTest(baseCommands, packageRoot, packages, info, testName,
-            multiHtmlTestExpectations);
       } else {
-        enqueueBrowserTest(
-            baseCommands, packageRoot, packages, info, testName, expectations);
+        expectationsMap[testName] = testExpectations.expectations(testName);
       }
+
+      _enqueueBrowserTest(
+          packageRoot, packages, info, testName, expectationsMap);
     } else {
-      enqueueStandardTest(baseCommands, info, testName, expectations);
+      enqueueStandardTest(info, testName);
     }
   }
 
-  void enqueueStandardTest(List<Command> baseCommands, TestInformation info,
-      String testName, Set<Expectation> expectations) {
+  void enqueueStandardTest(TestInformation info, String testName) {
     var commonArguments =
         commonArgumentsFromFile(info.filePath, info.optionsFromFile);
 
-    List<List<String>> vmOptionsList = getVmOptions(info.optionsFromFile);
+    // TODO(floitsch): Hack. When running the 2.0 tests always start
+    // async functions synchronously.
+    if (suiteName.endsWith("_2")) {
+      commonArguments.insert(0, "--sync-async");
+    }
+
+    var vmOptionsList = getVmOptions(info.optionsFromFile);
     assert(!vmOptionsList.isEmpty);
 
     for (var vmOptionsVariant = 0;
@@ -837,52 +841,39 @@ class StandardTestSuite extends TestSuite {
       var vmOptions = vmOptionsList[vmOptionsVariant];
       var allVmOptions = vmOptions;
       if (!extraVmOptions.isEmpty) {
-        allVmOptions = new List.from(vmOptions)..addAll(extraVmOptions);
+        allVmOptions = vmOptions.toList()..addAll(extraVmOptions);
       }
 
-      var commands = baseCommands.toList();
-      commands.addAll(
-          makeCommands(info, vmOptionsVariant, allVmOptions, commonArguments));
-      enqueueNewTestCase(new TestCase(
-          '$suiteName/$testName', commands, configuration, expectations,
-          isNegative: isNegative(info), info: info));
+      var commands =
+          makeCommands(info, vmOptionsVariant, allVmOptions, commonArguments);
+      var expectations = testExpectations.expectations(testName);
+      enqueueNewTestCase(testName, commands, expectations, info);
     }
   }
 
-  bool expectCompileError(TestInformation info) {
-    return info.hasCompileError ||
-        (configuration['checked'] && info.hasCompileErrorIfChecked);
-  }
-
-  bool isNegative(TestInformation info) {
-    bool negative = expectCompileError(info) ||
-        (configuration['checked'] && info.isNegativeIfChecked);
-    if (info.hasRuntimeError && hasRuntime) {
-      negative = true;
-    }
-    return negative;
-  }
-
-  List<Command> makeCommands(TestInformation info, int vmOptionsVarient,
+  List<Command> makeCommands(TestInformation info, int vmOptionsVariant,
       List<String> vmOptions, List<String> args) {
     var commands = <Command>[];
-    var compilerConfiguration = new CompilerConfiguration(configuration);
-    List<String> sharedOptions = info.optionsFromFile['sharedOptions'];
+    var compilerConfiguration = configuration.compilerConfiguration;
+    var sharedOptions = info.optionsFromFile['sharedOptions'] as List<String>;
+    var dart2jsOptions = info.optionsFromFile['dart2jsOptions'] as List<String>;
+    var ddcOptions = info.optionsFromFile['ddcOptions'] as List<String>;
 
     var compileTimeArguments = <String>[];
     String tempDir;
     if (compilerConfiguration.hasCompiler) {
       compileTimeArguments = compilerConfiguration.computeCompilerArguments(
-          vmOptions, sharedOptions, args);
+          vmOptions, sharedOptions, dart2jsOptions, ddcOptions, args);
       // Avoid doing this for analyzer.
       var path = info.filePath;
-      if (vmOptionsVarient != 0) {
+      if (vmOptionsVariant != 0) {
         // Ensure a unique directory for each test case.
-        path = path.join(new Path(vmOptionsVarient.toString()));
+        path = path.join(new Path(vmOptionsVariant.toString()));
       }
       tempDir = createCompilationOutputDirectory(path);
 
-      List<String> otherResources = info.optionsFromFile['otherResources'];
+      var otherResources =
+          info.optionsFromFile['otherResources'] as List<String>;
       for (var name in otherResources) {
         var namePath = new Path(name);
         var fromPath = info.filePath.directoryPath.join(namePath);
@@ -893,16 +884,14 @@ class StandardTestSuite extends TestSuite {
 
     CommandArtifact compilationArtifact =
         compilerConfiguration.computeCompilationArtifact(
-            buildDir,
-            tempDir,
-            CommandBuilder.instance,
-            compileTimeArguments,
-            environmentOverrides);
-    if (!configuration['skip-compilation']) {
+            tempDir, compileTimeArguments, environmentOverrides);
+    if (!configuration.skipCompilation) {
       commands.addAll(compilationArtifact.commands);
     }
 
-    if (expectCompileError(info) && compilerConfiguration.hasCompiler) {
+    if (expectCompileError(info) &&
+        compilerConfiguration.hasCompiler &&
+        !compilerConfiguration.runRuntimeDespiteMissingCompileTimeError) {
       // Do not attempt to run the compiled result. A compilation
       // error should be reported by the compilation command.
       return commands;
@@ -910,27 +899,30 @@ class StandardTestSuite extends TestSuite {
 
     List<String> runtimeArguments =
         compilerConfiguration.computeRuntimeArguments(
-            runtimeConfiguration,
-            buildDir,
+            configuration.runtimeConfiguration,
             info,
             vmOptions,
             sharedOptions,
             args,
             compilationArtifact);
 
+    Map<String, String> environment = environmentOverrides;
+    Map<String, String> extraEnv = info.optionsFromFile['environment'];
+    if (extraEnv != null) {
+      environment = new Map.from(environment)..addAll(extraEnv);
+    }
+
     return commands
-      ..addAll(runtimeConfiguration.computeRuntimeCommands(
-          this,
-          CommandBuilder.instance,
-          compilationArtifact,
-          runtimeArguments,
-          environmentOverrides));
+      ..addAll(configuration.runtimeConfiguration.computeRuntimeCommands(
+          this, compilationArtifact, runtimeArguments, environment));
   }
 
-  CreateTest makeTestCaseCreator(Map optionsFromFile) {
-    return (Path filePath, Path originTestPath, bool hasCompileError,
+  CreateTest makeTestCaseCreator(Map<String, dynamic> optionsFromFile) {
+    return (Path filePath, Path originTestPath,
+        {bool hasSyntaxError,
+        bool hasCompileError,
         bool hasRuntimeError,
-        {bool isNegativeIfChecked: false,
+        bool isNegativeIfChecked: false,
         bool hasCompileErrorIfChecked: false,
         bool hasStaticWarning: false,
         String multitestKey}) {
@@ -939,6 +931,7 @@ class StandardTestSuite extends TestSuite {
           filePath,
           originTestPath,
           optionsFromFile,
+          hasSyntaxError,
           hasCompileError,
           hasRuntimeError,
           isNegativeIfChecked,
@@ -959,11 +952,11 @@ class StandardTestSuite extends TestSuite {
    * dart/build directories).
    */
   String _createUrlPathFromFile(Path file) {
-    file = TestUtils.absolutePath(file);
+    file = file.absolute;
 
-    var relativeBuildDir = new Path(TestUtils.buildDir(configuration));
-    var buildDir = TestUtils.absolutePath(relativeBuildDir);
-    var dartDir = TestUtils.absolutePath(TestUtils.dartDir);
+    var relativeBuildDir = new Path(configuration.buildDirectory);
+    var buildDir = relativeBuildDir.absolute;
+    var dartDir = Repository.dir.absolute;
 
     var fileString = file.toString();
     if (fileString.startsWith(buildDir.toString())) {
@@ -979,295 +972,238 @@ class StandardTestSuite extends TestSuite {
     return null;
   }
 
-  Uri _getUriForBrowserTest(String pathComponent, String subtestName) {
+  String _uriForBrowserTest(String pathComponent, [String subtestName]) {
     // Note: If we run test.py with the "--list" option, no http servers
     // will be started. So we return a dummy url instead.
-    if (configuration['list']) {
-      return Uri.parse('http://listing_the_tests_only');
+    if (configuration.listTests) {
+      return Uri.parse('http://listing_the_tests_only').toString();
     }
-    assert(configuration.containsKey('_servers_'));
-    int serverPort = configuration['_servers_'].port;
-    int crossOriginPort = configuration['_servers_'].crossOriginPort;
+
+    var serverPort = configuration.servers.port;
+    var crossOriginPort = configuration.servers.crossOriginPort;
     var parameters = {'crossOriginPort': crossOriginPort.toString()};
     if (subtestName != null) {
       parameters['group'] = subtestName;
     }
     return new Uri(
-        scheme: 'http',
-        host: configuration['local_ip'],
-        port: serverPort,
-        path: pathComponent,
-        queryParameters: parameters);
+            scheme: 'http',
+            host: configuration.localIP,
+            port: serverPort,
+            path: pathComponent,
+            queryParameters: parameters)
+        .toString();
   }
 
-  void _createWrapperFile(
-      String dartWrapperFilename, Path localDartLibraryFilename) {
-    File file = new File(dartWrapperFilename);
-    RandomAccessFile dartWrapper = file.openSync(mode: FileMode.WRITE);
-
-    var libraryPathComponent = _createUrlPathFromFile(localDartLibraryFilename);
-    var generatedSource = dartTestWrapper(libraryPathComponent);
-    dartWrapper.writeStringSync(generatedSource);
-    dartWrapper.closeSync();
-  }
-
-  /**
-   * The [StandardTestSuite] has support for tests that
-   * compile a test from Dart to JavaScript, and then run the resulting
-   * JavaScript.  This function creates a working directory to hold the
-   * JavaScript version of the test, and copies the appropriate framework
-   * files to that directory.  It creates a [BrowserTestCase], which has
-   * two sequential steps to be run by the [ProcessQueue] when the test is
-   * executed: a compilation step and an execution step, both with the
-   * appropriate executable and arguments. The [expectations] object can be
-   * either a Set<String> if the test is a regular test, or a Map<String
-   * subTestName, Set<String>> if we are running a browser multi-test (one
-   * compilation and many browser runs).
-   */
-  void enqueueBrowserTest(
-      List<Command> baseCommands,
+  /// Enqueues a test that runs in a browser.
+  ///
+  /// Creates a [Command] that compiles the test to JavaScript and writes that
+  /// in a generated output directory. Any additional framework and HTML files
+  /// are put there too. Then adds another [Command] the spawn the browser and
+  /// run the test.
+  ///
+  /// In order to handle browser multitests, [expectations] is a map of subtest
+  /// names to expectation sets. If the test is not a multitest, the map has
+  /// a single key, [testName].
+  void _enqueueBrowserTest(
       Path packageRoot,
       Path packages,
       TestInformation info,
       String testName,
-      /* Set<Expectation> | Map<String, Set<Expectation>> */ dynamic
-          expectations) {
-    RegExp badChars = new RegExp('[-=/]');
-    List VmOptionsList = getVmOptions(info.optionsFromFile);
-    bool multipleOptions = VmOptionsList.length > 1;
-    for (var vmOptions in VmOptionsList) {
-      String optionsName =
-          multipleOptions ? vmOptions.join('-').replaceAll(badChars, '') : '';
-      String tempDir = createOutputDirectory(info.filePath, optionsName);
-      enqueueBrowserTestWithOptions(baseCommands, packageRoot, packages, info,
-          testName, expectations, vmOptions, tempDir);
+      Map<String, Set<Expectation>> expectations) {
+    var tempDir = createOutputDirectory(info.filePath);
+    var fileName = info.filePath.toNativePath();
+    var optionsFromFile = info.optionsFromFile;
+    var compilationTempDir = createCompilationOutputDirectory(info.filePath);
+    var jsWrapperFileName = '$compilationTempDir/test.js';
+    var nameNoExt = info.filePath.filenameWithoutExtension;
+
+    // Use existing HTML document if available.
+    String content;
+    var customHtml = new File(
+        info.filePath.directoryPath.append('$nameNoExt.html').toNativePath());
+    if (customHtml.existsSync()) {
+      jsWrapperFileName = '$tempDir/$nameNoExt.js';
+      content = customHtml.readAsStringSync().replaceAll(
+          '%TEST_SCRIPTS%', '<script src="$nameNoExt.js"></script>');
+    } else {
+      // Synthesize an HTML file for the test.
+      if (configuration.compiler == Compiler.dart2js) {
+        var scriptPath = _createUrlPathFromFile(new Path(jsWrapperFileName));
+        content = dart2jsHtml(fileName, scriptPath);
+      } else {
+        var jsDir =
+            new Path(compilationTempDir).relativeTo(Repository.dir).toString();
+        jsWrapperFileName =
+            new Path('$compilationTempDir/$nameNoExt.js').toNativePath();
+        // Always run with synchronous starts of `async` functions.
+        // If we want to make this dependent on other parameters or flags,
+        // this flag could be become conditional.
+        content = dartdevcHtml(nameNoExt, jsDir, configuration.compiler);
+      }
     }
-  }
 
-  void enqueueBrowserTestWithOptions(
-      List<Command> baseCommands,
-      Path packageRoot,
-      Path packages,
-      TestInformation info,
-      String testName,
-      /* Set<Expectation> | Map<String, Set<Expectation>> */ expectations,
-      List<String> vmOptions,
-      String tempDir) {
-    // TODO(Issue 14651): If we're on dartium, we need to pass [packageRoot]
-    // on to the browser (it may be test specific).
+    var htmlPath = '$tempDir/test.html';
+    new File(htmlPath).writeAsStringSync(content);
 
-    Path filePath = info.filePath;
-    String filename = filePath.toString();
-
-    final String compiler = configuration['compiler'];
-    final String runtime = configuration['runtime'];
-    final Map optionsFromFile = info.optionsFromFile;
-
-    final String compilationTempDir =
-        createCompilationOutputDirectory(info.filePath);
-
-    String dartWrapperFilename = '$tempDir/test.dart';
-    String compiledDartWrapperFilename = '$compilationTempDir/test.js';
-
-    String content = null;
-    Path dir = filePath.directoryPath;
-    String nameNoExt = filePath.filenameWithoutExtension;
-
-    String customHtmlPath = dir.append('$nameNoExt.html').toNativePath();
-    File customHtml = new File(customHtmlPath);
+    // TODO(floitsch): Hack. When running the 2.0 tests always start
+    // async functions synchronously.
+    if (suiteName.endsWith("_2") &&
+        configuration.compiler == Compiler.dart2js) {
+      if (optionsFromFile == null) {
+        optionsFromFile = const <String, dynamic>{
+          'sharedOptions': const ['--sync-async']
+        };
+      } else {
+        optionsFromFile = new Map<String, dynamic>.from(optionsFromFile);
+        var sharedOptions = optionsFromFile['sharedOptions'];
+        if (sharedOptions == null) {
+          sharedOptions = const <String>['--sync-async'];
+        } else {
+          sharedOptions = sharedOptions.toList();
+          sharedOptions.insert(0, "--sync-async");
+        }
+        optionsFromFile['sharedOptions'] = sharedOptions;
+      }
+    }
 
     // Construct the command(s) that compile all the inputs needed by the
     // browser test. For running Dart in DRT, this will be noop commands.
-    List<Command> commands = []..addAll(baseCommands);
+    var commands = <Command>[];
 
-    // Use existing HTML document if available.
-    String htmlPath;
-    if (customHtml.existsSync()) {
-      // If necessary, run the Polymer deploy steps.
-      // TODO(jmesserly): this should be generalized for any tests that
-      // require Pub deploy, not just polymer.
-      if (customHtml.readAsStringSync().contains('<!--polymer-test')) {
-        if (compiler != 'none') {
-          commands.add(
-              _polymerDeployCommand(customHtmlPath, tempDir, optionsFromFile));
+    void addCompileCommand(String fileName, String toPath) {
+      switch (configuration.compiler) {
+        case Compiler.dart2js:
+          commands.add(_dart2jsCompileCommand(
+              fileName, toPath, tempDir, optionsFromFile));
+          break;
 
-          Path pubspecYamlFile = _findPubspecYamlFile(filePath);
-          Path homeDir =
-              (pubspecYamlFile == null) ? dir : pubspecYamlFile.directoryPath;
-          htmlPath = '$tempDir/${dir.relativeTo(homeDir)}/$nameNoExt.html';
-          dartWrapperFilename = '${htmlPath}_bootstrap.dart';
-          compiledDartWrapperFilename = '$dartWrapperFilename.js';
-        } else {
-          htmlPath = customHtmlPath;
-        }
-      } else {
-        htmlPath = '$tempDir/test.html';
-        dartWrapperFilename = filePath.toNativePath();
+        case Compiler.dartdevc:
+        case Compiler.dartdevk:
+          var ddcOptions = optionsFromFile["sharedOptions"] as List<String>;
+          ddcOptions.addAll(optionsFromFile["ddcOptions"] as List<String>);
+          commands.add(configuration.compilerConfiguration.createCommand(
+              fileName, toPath, ddcOptions, environmentOverrides));
+          break;
 
-        var htmlContents = customHtml.readAsStringSync();
-        if (compiler == 'none') {
-          var dartUrl = _createUrlPathFromFile(filePath);
-          var dartScript =
-              '<script type="application/dart" src="$dartUrl"></script>';
-          var jsUrl = '/packages/browser/dart.js';
-          var jsScript =
-              '<script type="text/javascript" src="$jsUrl"></script>';
-          htmlContents = htmlContents.replaceAll(
-              '%TEST_SCRIPTS%', '$dartScript\n$jsScript');
-        } else {
-          compiledDartWrapperFilename = '$tempDir/$nameNoExt.js';
-          var jsUrl = '$nameNoExt.js';
-          htmlContents = htmlContents.replaceAll(
-              '%TEST_SCRIPTS%', '<script src="$jsUrl"></script>');
-        }
-        new File(htmlPath).writeAsStringSync(htmlContents);
+        default:
+          assert(false);
+      }
+    }
+
+    addCompileCommand(fileName, jsWrapperFileName);
+
+    // Some tests require compiling multiple input scripts.
+    for (var name in optionsFromFile['otherScripts'] as List<String>) {
+      var namePath = new Path(name);
+      var fromPath = info.filePath.directoryPath.join(namePath).toNativePath();
+      var toPath = new Path('$tempDir/${namePath.filename}.js').toNativePath();
+      addCompileCommand(fromPath, toPath);
+    }
+
+    if (info.optionsFromFile['isMultiHtmlTest'] as bool) {
+      // Variables for browser multi-tests.
+      var subtestNames = info.optionsFromFile['subtestNames'] as List<String>;
+      for (var subtestName in subtestNames) {
+        _enqueueSingleBrowserTest(commands, info, '$testName/$subtestName',
+            subtestName, expectations[subtestName], htmlPath);
       }
     } else {
-      htmlPath = '$tempDir/test.html';
-      if (configuration['compiler'] != 'dart2js') {
-        // test.dart will import the dart test.
-        _createWrapperFile(dartWrapperFilename, filePath);
-      } else {
-        dartWrapperFilename = filename;
-      }
-
-      // Create the HTML file for the test.
-      RandomAccessFile htmlTest =
-          new File(htmlPath).openSync(mode: FileMode.WRITE);
-
-      String scriptPath = dartWrapperFilename;
-      if (compiler != 'none') {
-        scriptPath = compiledDartWrapperFilename;
-      }
-      scriptPath = _createUrlPathFromFile(new Path(scriptPath));
-
-      content = getHtmlContents(filename, scriptType, new Path("$scriptPath"));
-      htmlTest.writeStringSync(content);
-      htmlTest.closeSync();
-    }
-
-    if (compiler != 'none') {
-      commands.add(_compileCommand(dartWrapperFilename,
-          compiledDartWrapperFilename, compiler, tempDir, optionsFromFile));
-    }
-
-    // some tests require compiling multiple input scripts.
-    List<String> otherScripts = optionsFromFile['otherScripts'];
-    for (String name in otherScripts) {
-      Path namePath = new Path(name);
-      String fileName = namePath.filename;
-      Path fromPath = filePath.directoryPath.join(namePath);
-      if (compiler != 'none') {
-        assert(namePath.extension == 'dart');
-        commands.add(_compileCommand(fromPath.toNativePath(),
-            '$tempDir/$fileName.js', compiler, tempDir, optionsFromFile));
-      }
-      if (compiler == 'none') {
-        // For the tests that require multiple input scripts but are not
-        // compiled, move the input scripts over with the script so they can
-        // be accessed.
-        String result = new File(fromPath.toNativePath()).readAsStringSync();
-        new File('$tempDir/$fileName').writeAsStringSync(result);
-      }
-    }
-
-    // Variables for browser multi-tests.
-    bool multitest = info.optionsFromFile['isMultiHtmlTest'];
-    List<String> subtestNames =
-        multitest ? info.optionsFromFile['subtestNames'] : [null];
-    for (String subtestName in subtestNames) {
-      // Construct the command that executes the browser test
-      List<Command> commandSet = new List<Command>.from(commands);
-
-      var htmlPath_subtest = _createUrlPathFromFile(new Path(htmlPath));
-      var fullHtmlPath =
-          _getUriForBrowserTest(htmlPath_subtest, subtestName).toString();
-
-      if (runtime == "drt") {
-        var dartFlags = <String>[];
-        var contentShellOptions = ['--no-timeout', '--run-layout-test'];
-
-        // Disable the GPU under Linux and Dartium. If the GPU is enabled,
-        // Chrome may send a termination signal to a test.  The test will be
-        // terminated if a machine (bot) doesn't have a GPU or if a test is
-        // still running after a certain period of time.
-        if (configuration['system'] == 'linux' &&
-            configuration['runtime'] == 'drt') {
-          contentShellOptions.add('--disable-gpu');
-          // TODO(terry): Roll 50 need this in conjection with disable-gpu.
-          contentShellOptions.add('--disable-gpu-early-init');
-        }
-        if (compiler == 'none') {
-          dartFlags.add('--ignore-unrecognized-flags');
-          if (configuration["checked"]) {
-            dartFlags.add('--enable_asserts');
-            dartFlags.add("--enable_type_checks");
-          }
-          dartFlags.addAll(vmOptions);
-        }
-
-        commandSet.add(CommandBuilder.instance.getContentShellCommand(
-            contentShellFilename,
-            fullHtmlPath,
-            contentShellOptions,
-            dartFlags,
-            environmentOverrides));
-      } else {
-        commandSet.add(CommandBuilder.instance.getBrowserTestCommand(
-            runtime, fullHtmlPath, configuration, !isNegative(info)));
-      }
-
-      // Create BrowserTestCase and queue it.
-      var fullTestName = multitest ? '$testName/$subtestName' : testName;
-      var expectation = multitest ? expectations[fullTestName] : expectations;
-      var testCase = new BrowserTestCase('$suiteName/$fullTestName', commandSet,
-          configuration, expectation, info, isNegative(info), fullHtmlPath);
-
-      enqueueNewTestCase(testCase);
+      _enqueueSingleBrowserTest(
+          commands, info, testName, null, expectations[testName], htmlPath);
     }
   }
 
-  void enqueueHtmlTest(HtmlTestInformation info, String testName,
-      Set<Expectation> expectations) {
-    final String compiler = configuration['compiler'];
-    final String runtime = configuration['runtime'];
-    // Html tests work only with the browser controller.
-    if (!TestUtils.isBrowserRuntime(runtime) || runtime == 'drt') {
+  /// Enqueues a single browser test, or a single subtest of an HTML multitest.
+  void _enqueueSingleBrowserTest(
+      List<Command> commands,
+      TestInformation info,
+      String testName,
+      String subtestName,
+      Set<Expectation> expectations,
+      String htmlPath) {
+    // Construct the command that executes the browser test.
+    commands = commands.toList();
+
+    var htmlPathSubtest = _createUrlPathFromFile(new Path(htmlPath));
+    var fullHtmlPath = _uriForBrowserTest(htmlPathSubtest, subtestName);
+
+    if (configuration.runtime == Runtime.drt) {
+      var dartFlags = <String>[];
+      var contentShellOptions = ['--no-timeout', '--run-layout-test'];
+
+      // Disable the GPU under Linux and Dartium. If the GPU is enabled,
+      // Chrome may send a termination signal to a test.  The test will be
+      // terminated if a machine (bot) doesn't have a GPU or if a test is
+      // still running after a certain period of time.
+      if (configuration.system == System.linux &&
+          configuration.runtime == Runtime.drt) {
+        contentShellOptions.add('--disable-gpu');
+        // TODO(terry): Roll 50 need this in conjection with disable-gpu.
+        contentShellOptions.add('--disable-gpu-early-init');
+      }
+
+      commands.add(Command.contentShell(contentShellFilename, fullHtmlPath,
+          contentShellOptions, dartFlags, environmentOverrides));
+    } else {
+      commands.add(Command.browserTest(fullHtmlPath, configuration,
+          retry: !isNegative(info)));
+    }
+
+    var fullName = testName;
+    if (subtestName != null) fullName += "/$subtestName";
+    enqueueNewTestCase(fullName, commands, expectations, info);
+  }
+
+  void _enqueueHtmlTest(HtmlTestInformation info, String testName) {
+    var compiler = configuration.compiler;
+    var runtime = configuration.runtime;
+
+    if (compiler == Compiler.dartdevc || compiler == Compiler.dartdevk) {
+      // TODO(rnystrom): Support this for dartdevc (#29919).
+      print("Ignoring $testName on ${compiler.name} since HTML tests are not "
+          "implemented for that compiler yet.");
       return;
     }
-    bool compileToJS = (compiler == 'dart2js');
 
-    final Path filePath = info.filePath;
-    final String tempDir = createOutputDirectory(filePath, '');
-    final Uri tempUri = new Uri.file('$tempDir/');
-    String contents = htmlTest.getContents(info, compileToJS);
-    final commands = <Command>[];
+    // HTML tests work only with the browser controller.
+    if (!runtime.isBrowser || runtime == Runtime.drt) return;
 
-    void Fail(String message) {
+    var compileToJS = compiler == Compiler.dart2js;
+
+    var filePath = info.filePath;
+    var tempDir = createOutputDirectory(filePath);
+    var tempUri = new Uri.file('$tempDir/');
+    var contents = html_test.getContents(info, compileToJS);
+    var commands = <Command>[];
+
+    void fail(String message) {
       var msg = "$message: ${info.filePath}";
       DebugLogger.warning(msg);
-      contents = htmlTest.makeFailingHtmlFile(msg);
+      contents = html_test.makeFailingHtmlFile(msg);
     }
 
     if (info.scripts.length > 0) {
-      Uri testUri = new Uri.file(filePath.toNativePath());
-      for (String scriptPath in info.scripts) {
+      var testUri = new Uri.file(filePath.toNativePath());
+      for (var scriptPath in info.scripts) {
         if (!scriptPath.endsWith('.dart') && !scriptPath.endsWith('.js')) {
-          Fail('HTML test scripts must be dart or javascript: $scriptPath');
+          fail('HTML test scripts must be dart or javascript: $scriptPath');
           break;
         }
-        Uri uri = Uri.parse(scriptPath);
+
+        var uri = Uri.parse(scriptPath);
         if (uri.isAbsolute) {
-          Fail('HTML test scripts must have relative paths: $scriptPath');
+          fail('HTML test scripts must have relative paths: $scriptPath');
           break;
         }
+
         if (uri.pathSegments.length > 1) {
-          Fail('HTML test scripts must be in test directory: $scriptPath');
+          fail('HTML test scripts must be in test directory: $scriptPath');
           break;
         }
-        Uri script = testUri.resolveUri(uri);
-        Uri copiedScript = tempUri.resolveUri(uri);
-        if (compiler == 'none' || scriptPath.endsWith('.js')) {
+
+        var script = testUri.resolveUri(uri);
+        var copiedScript = tempUri.resolveUri(uri);
+        if (compiler == Compiler.none || scriptPath.endsWith('.js')) {
           new File.fromUri(copiedScript)
               .writeAsStringSync(new File.fromUri(script).readAsStringSync());
         } else {
@@ -1275,103 +1211,67 @@ class StandardTestSuite extends TestSuite {
           if (compileToJS) {
             destination = destination.replaceFirst(dartExtension, '.js');
           }
-          commands.add(_compileCommand(script.toFilePath(), destination,
-              compiler, tempDir, info.optionsFromFile));
+
+          assert(compiler == Compiler.dart2js);
+
+          commands.add(_dart2jsCompileCommand(
+              script.toFilePath(), destination, tempDir, info.optionsFromFile));
         }
       }
     }
-    final Uri htmlFile = tempUri.resolve(filePath.filename);
+
+    var htmlFile = tempUri.resolve(filePath.filename);
     new File.fromUri(htmlFile).writeAsStringSync(contents);
 
     var htmlPath = _createUrlPathFromFile(new Path(htmlFile.toFilePath()));
-    var fullHtmlPath = _getUriForBrowserTest(htmlPath, null).toString();
-    commands.add(CommandBuilder.instance.getBrowserHtmlTestCommand(runtime,
-        fullHtmlPath, configuration, info.expectedMessages, !isNegative(info)));
-    String testDisplayName = '$suiteName/$testName';
-    var testCase = new BrowserTestCase(testDisplayName, commands, configuration,
-        expectations, info, isNegative(info), fullHtmlPath);
-    enqueueNewTestCase(testCase);
-    return;
+    var fullHtmlPath = _uriForBrowserTest(htmlPath);
+    commands.add(Command.browserHtmlTest(
+        fullHtmlPath, configuration, info.expectedMessages,
+        retry: !isNegative(info)));
+    enqueueNewTestCase(
+        testName, commands, testExpectations.expectations(testName), info);
   }
 
-  /** Helper to create a compilation command for a single input file. */
-  Command _compileCommand(String inputFile, String outputFile, String compiler,
-      String dir, Map optionsFromFile) {
-    assert(compiler == 'dart2js');
-    List<String> args;
+  /// Creates a [Command] to compile a single .dart file using dart2js.
+  Command _dart2jsCompileCommand(String inputFile, String outputFile,
+      String dir, Map<String, dynamic> optionsFromFile) {
+    var args = <String>[];
+
     if (compilerPath.endsWith('.dart')) {
       // Run the compiler script via the Dart VM.
-      args = [compilerPath];
-    } else {
-      args = [];
+      args.add(compilerPath);
     }
-    args.addAll(TestUtils.standardOptions(configuration));
-    String packages = packagesArgument(
-        optionsFromFile['packageRoot'], optionsFromFile['packages']);
+
+    args.addAll(configuration.standardOptions);
+    args.addAll(configuration.dart2jsOptions);
+
+    var packages = packagesArgument(optionsFromFile['packageRoot'] as String,
+        optionsFromFile['packages'] as String);
     if (packages != null) args.add(packages);
+
     args.add('--out=$outputFile');
     args.add(inputFile);
-    List<String> options = optionsFromFile['sharedOptions'];
+
+    var options = optionsFromFile['sharedOptions'] as List<String>;
     if (options != null) args.addAll(options);
-    return CommandBuilder.instance.getCompilationCommand(
-        compiler,
-        outputFile,
-        !useSdk,
-        dart2JsBootstrapDependencies,
-        compilerPath,
-        args,
-        environmentOverrides);
-  }
-
-  /** Helper to create a Polymer deploy command for a single HTML file. */
-  Command _polymerDeployCommand(
-      String inputFile, String outputDir, Map optionsFromFile) {
-    List<String> args = [];
-    String packages = packagesArgument(
-        optionsFromFile['packageRoot'], optionsFromFile['packages']);
-    if (packages != null) args.add(packages);
-    args
-      ..add('package:polymer/deploy.dart')
-      ..add('--test')
-      ..add(inputFile)
-      ..add('--out')
-      ..add(outputDir)
-      ..add('--file-filter')
-      ..add('.svn');
-    if (configuration['csp']) args.add('--csp');
-
-    return CommandBuilder.instance.getProcessCommand(
-        'polymer_deploy', dartVmBinaryFileName, args, environmentOverrides);
-  }
-
-  String get scriptType {
-    switch (configuration['compiler']) {
-      case 'none':
-        return 'application/dart';
-      case 'dart2js':
-      case 'dart2analyzer':
-        return 'text/javascript';
-      default:
-        print('Non-web runtime, so no scriptType for: '
-            '${configuration["compiler"]}');
-        exit(1);
-        return null;
+    options = optionsFromFile['dart2jsOptions'] as List<String>;
+    if (options != null) args.addAll(options);
+    if (configuration.compiler == Compiler.dart2js) {
+      if (configuration.noPreviewDart2) {
+        args.add("--no-preview-dart-2");
+      } else {
+        args.add("--preview-dart-2");
+      }
     }
-  }
 
-  bool get hasRuntime {
-    switch (configuration['runtime']) {
-      case 'none':
-        return false;
-      default:
-        return true;
-    }
+    return Command.compilation(Compiler.dart2js.name, outputFile,
+        dart2JsBootstrapDependencies, compilerPath, args, environmentOverrides,
+        alwaysCompile: !useSdk);
   }
 
   String get contentShellFilename {
-    if (configuration['drt'] != '') {
-      return configuration['drt'];
-    }
+    if (configuration.drtPath != null) return configuration.drtPath;
+
     if (Platform.operatingSystem == 'macos') {
       final path = dartDir.append(
           '/client/tests/drt/Content Shell.app/Contents/MacOS/Content Shell');
@@ -1380,28 +1280,36 @@ class StandardTestSuite extends TestSuite {
     return dartDir.append('client/tests/drt/content_shell').toNativePath();
   }
 
-  List<String> commonArgumentsFromFile(Path filePath, Map optionsFromFile) {
-    var args = TestUtils.standardOptions(configuration);
+  List<String> commonArgumentsFromFile(
+      Path filePath, Map<String, dynamic> optionsFromFile) {
+    var args = configuration.standardOptions.toList();
 
-    String packages = packagesArgument(
-        optionsFromFile['packageRoot'], optionsFromFile['packages']);
+    String packages = packagesArgument(optionsFromFile['packageRoot'] as String,
+        optionsFromFile['packages'] as String);
     if (packages != null) {
       args.add(packages);
     }
     args.addAll(additionalOptions(filePath));
-    if (configuration['analyzer']) {
+    if (configuration.compiler == Compiler.dart2analyzer) {
       args.add('--format=machine');
       args.add('--no-hints');
+
+      if (filePath.filename.contains("dart2js") ||
+          filePath.directoryPath.segments().last.contains('html_common')) {
+        args.add("--use-dart2js-libraries");
+      }
     }
 
-    if (configuration["compiler"] == "dart2analyzer" &&
-        (filePath.filename.contains("dart2js") ||
-            filePath.directoryPath.segments().last.contains('html_common'))) {
-      args.add("--use-dart2js-libraries");
+    if (configuration.compiler == Compiler.dart2js) {
+      if (configuration.noPreviewDart2) {
+        args.add("--no-preview-dart-2");
+      } else {
+        args.add("--preview-dart-2");
+      }
     }
 
-    bool isMultitest = optionsFromFile["isMultitest"];
-    List<String> dartOptions = optionsFromFile["dartOptions"];
+    var isMultitest = optionsFromFile["isMultitest"] as bool;
+    var dartOptions = optionsFromFile["dartOptions"] as List<String>;
 
     assert(!isMultitest || dartOptions == null);
     args.add(filePath.toNativePath());
@@ -1430,20 +1338,30 @@ class StandardTestSuite extends TestSuite {
    * creating additional files in the test directories.
    *
    * Here is a list of options that are used by 'test.dart' today:
-   *   - Flags can be passed to the vm or dartium process that runs the test by
-   *   adding a comment to the test file:
+   *   - Flags can be passed to the vm process that runs the test by adding a
+   *   comment to the test file:
    *
    *     // VMOptions=--flag1 --flag2
    *
-   *   - Flags can be passed to dart2js or vm by adding a comment
-   *   to the test file:
+   *   - Flags can be passed to dart2js, vm or dartdevc by adding a comment to
+   *   the test file:
    *
    *     // SharedOptions=--flag1 --flag2
+   *
+   *   - Flags can be passed to dart2js by adding a comment to the test file:
+   *
+   *     // dart2jsOptions=--flag1 --flag2
    *
    *   - Flags can be passed to the dart script that contains the test also
    *   using comments, as follows:
    *
    *     // DartOptions=--flag1 --flag2
+   *
+   *   - Extra environment variables can be passed to the process that runs
+   *   the test by adding comment(s) to the test file:
+   *
+   *     // Environment=ENV_VAR1=foo bar
+   *     // Environment=ENV_VAR2=bazz
    *
    *   - For tests that depend on compiling other files with dart2js (e.g.
    *   isolate tests that use multiple source scripts), you can specify
@@ -1489,15 +1407,15 @@ class StandardTestSuite extends TestSuite {
    * This method is static as the map is cached and shared amongst
    * configurations, so it may not use [configuration].
    */
-  Map readOptionsFromFile(Path filePath) {
-    if (filePath.filename.endsWith('.dill')) {
+  Map<String, dynamic> readOptionsFromFile(Uri uri) {
+    if (uri.path.endsWith('.dill')) {
       return optionsFromKernelFile();
-    } else if (filePath.segments().contains('co19')) {
-      return readOptionsFromCo19File(filePath);
+    } else if ("$uri".startsWith("$co19SuiteLocation") ||
+        "$uri".startsWith("$legacyCo19SuiteLocation")) {
+      return readOptionsFromCo19File(uri);
     }
     RegExp testOptionsRegExp = new RegExp(r"// VMOptions=(.*)");
-    RegExp sharedOptionsRegExp = new RegExp(r"// SharedOptions=(.*)");
-    RegExp dartOptionsRegExp = new RegExp(r"// DartOptions=(.*)");
+    RegExp environmentRegExp = new RegExp(r"// Environment=(.*)");
     RegExp otherScriptsRegExp = new RegExp(r"// OtherScripts=(.*)");
     RegExp otherResourcesRegExp = new RegExp(r"// OtherResources=(.*)");
     RegExp packageRootRegExp = new RegExp(r"// PackageRoot=(.*)");
@@ -1508,7 +1426,7 @@ class StandardTestSuite extends TestSuite {
         r"^[#]?import.*dart:(html|web_audio|indexed_db|svg|web_sql)",
         multiLine: true);
 
-    var bytes = new File(filePath.toNativePath()).readAsBytesSync();
+    var bytes = new File.fromUri(uri).readAsBytesSync();
     String contents = decodeUtf8(bytes);
     bytes = null;
 
@@ -1516,45 +1434,62 @@ class StandardTestSuite extends TestSuite {
     var result = <List<String>>[];
     List<String> dartOptions;
     List<String> sharedOptions;
+    List<String> dart2jsOptions;
+    List<String> ddcOptions;
+    Map<String, String> environment;
     String packageRoot;
     String packages;
 
-    Iterable<Match> matches = testOptionsRegExp.allMatches(contents);
-    for (var match in matches) {
-      result.add(match[1].split(' ').where((e) => e != '').toList());
-    }
-    if (result.isEmpty) result.add([]);
+    List<String> wordSplit(String s) =>
+        s.split(' ').where((e) => e != '').toList();
 
-    matches = dartOptionsRegExp.allMatches(contents);
-    for (var match in matches) {
-      if (dartOptions != null) {
-        throw new Exception(
-            'More than one "// DartOptions=" line in test $filePath');
+    List<String> singleListOfOptions(String name) {
+      var matches = new RegExp('// $name=(.*)').allMatches(contents);
+      List<String> options;
+      for (var match in matches) {
+        if (options != null) {
+          throw new Exception(
+              'More than one "// $name=" line in test ${uri.toFilePath()}');
+        }
+        options = wordSplit(match[1]);
       }
-      dartOptions = match[1].split(' ').where((e) => e != '').toList();
+      return options;
     }
 
-    matches = sharedOptionsRegExp.allMatches(contents);
+    var matches = testOptionsRegExp.allMatches(contents);
     for (var match in matches) {
-      if (sharedOptions != null) {
-        throw new Exception(
-            'More than one "// SharedOptions=" line in test $filePath');
-      }
-      sharedOptions = match[1].split(' ').where((e) => e != '').toList();
+      result.add(wordSplit(match[1]));
+    }
+    if (result.isEmpty) result.add(<String>[]);
+
+    dartOptions = singleListOfOptions('DartOptions');
+    sharedOptions = singleListOfOptions('SharedOptions');
+    dart2jsOptions = singleListOfOptions('dart2jsOptions');
+    ddcOptions = singleListOfOptions('dartdevcOptions');
+
+    matches = environmentRegExp.allMatches(contents);
+    for (var match in matches) {
+      final String envDef = match[1];
+      final int pos = envDef.indexOf('=');
+      final String name = (pos < 0) ? envDef : envDef.substring(0, pos);
+      final String value = (pos < 0) ? '' : envDef.substring(pos + 1);
+      environment ??= <String, String>{};
+      environment[name] = value;
     }
 
     matches = packageRootRegExp.allMatches(contents);
     for (var match in matches) {
       if (packageRoot != null || packages != null) {
         throw new Exception(
-            'More than one "// Package... line in test $filePath');
+            'More than one "// Package... line in test ${uri.toFilePath()}');
       }
       packageRoot = match[1];
       if (packageRoot != 'none') {
         // PackageRoot=none means that no packages or package-root option
         // should be given. Any other value overrides package-root and
         // removes any packages option.  Don't use with // Packages=.
-        packageRoot = '${filePath.directoryPath.join(new Path(packageRoot))}';
+        packageRoot =
+            uri.resolveUri(new Uri.directory(packageRoot)).toFilePath();
       }
     }
 
@@ -1562,50 +1497,80 @@ class StandardTestSuite extends TestSuite {
     for (var match in matches) {
       if (packages != null || packageRoot != null) {
         throw new Exception(
-            'More than one "// Package..." line in test $filePath');
+            'More than one "// Package..." line in test ${uri.toFilePath()}');
       }
       packages = match[1];
       if (packages != 'none') {
         // Packages=none means that no packages or package-root option
         // should be given. Any other value overrides packages and removes
         // any package-root option. Don't use with // PackageRoot=.
-        packages = '${filePath.directoryPath.join(new Path(packages))}';
+        packages = uri.resolveUri(new Uri.file(packages)).toFilePath();
       }
     }
 
-    List<String> otherScripts = new List<String>();
+    var otherScripts = <String>[];
     matches = otherScriptsRegExp.allMatches(contents);
     for (var match in matches) {
-      otherScripts.addAll(match[1].split(' ').where((e) => e != '').toList());
+      otherScripts.addAll(wordSplit(match[1]));
     }
 
-    List<String> otherResources = new List<String>();
+    var otherResources = <String>[];
     matches = otherResourcesRegExp.allMatches(contents);
     for (var match in matches) {
-      otherResources.addAll(match[1].split(' ').where((e) => e != '').toList());
+      otherResources.addAll(wordSplit(match[1]));
     }
 
-    bool isMultitest = multiTestRegExp.hasMatch(contents);
-    bool isMultiHtmlTest = multiHtmlTestRegExp.hasMatch(contents);
-    Match isolateMatch = isolateStubsRegExp.firstMatch(contents);
-    String isolateStubs = isolateMatch != null ? isolateMatch[1] : '';
-    bool containsDomImport = domImportRegExp.hasMatch(contents);
+    var isMultitest = multiTestRegExp.hasMatch(contents);
+    var isMultiHtmlTest = multiHtmlTestRegExp.hasMatch(contents);
+    var isolateMatch = isolateStubsRegExp.firstMatch(contents);
+    var isolateStubs = isolateMatch != null ? isolateMatch[1] : '';
+    var containsDomImport = domImportRegExp.hasMatch(contents);
 
-    List<String> subtestNames = [];
-    Iterator matchesIter =
-        multiHtmlTestGroupRegExp.allMatches(contents).iterator;
+    var subtestNames = <String>[];
+    var matchesIter = multiHtmlTestGroupRegExp.allMatches(contents).iterator;
     while (matchesIter.moveNext() && isMultiHtmlTest) {
-      String fullMatch = matchesIter.current.group(0);
+      var fullMatch = matchesIter.current.group(0);
       subtestNames.add(fullMatch.substring(fullMatch.indexOf("'") + 1));
     }
 
+    // TODO(rnystrom): During the migration of the existing tests to Dart 2.0,
+    // we have a number of tests that used to both generate static type warnings
+    // and also validate some runtime behavior in an implementation that
+    // ignores those warnings. Those warnings are now errors. The test code
+    // validates the runtime behavior can and should be removed, but the code
+    // that causes the static warning should still be preserved since that is
+    // part of our coverage of the static type system.
+    //
+    // The test needs to indicate that it should have a static error. We could
+    // put that in the status file, but that makes it confusing because it
+    // would look like implementations that *don't* report the error are more
+    // correct. Eventually, we want to have a notation similar to what front_end
+    // is using for the inference tests where we can put a comment inside the
+    // test that says "This specific static error should be reported right by
+    // this token."
+    //
+    // That system isn't in place yet, so we do a crude approximation here in
+    // test.dart. If a test contains `/*@compile-error=`, which matches the
+    // beginning of the tag syntax that front_end uses, then we assume that
+    // this test must have a static error somewhere in it.
+    //
+    // Redo this code once we have a more precise test framework for detecting
+    // and locating these errors.
+    var hasSyntaxError = contents.contains("/*@syntax-error=");
+    var hasCompileError =
+        hasSyntaxError || contents.contains("/*@compile-error=");
+
     return {
       "vmOptions": result,
-      "sharedOptions": sharedOptions == null ? [] : sharedOptions,
+      "sharedOptions": sharedOptions ?? <String>[],
+      "dart2jsOptions": dart2jsOptions ?? <String>[],
+      "ddcOptions": ddcOptions ?? <String>[],
       "dartOptions": dartOptions,
+      "environment": environment,
       "packageRoot": packageRoot,
       "packages": packages,
-      "hasCompileError": false,
+      "hasSyntaxError": hasSyntaxError,
+      "hasCompileError": hasCompileError,
       "hasRuntimeError": false,
       "hasStaticWarning": false,
       "otherScripts": otherScripts,
@@ -1618,13 +1583,15 @@ class StandardTestSuite extends TestSuite {
     };
   }
 
-  Map optionsFromKernelFile() {
+  Map<String, dynamic> optionsFromKernelFile() {
     return const {
-      "vmOptions": const [const []],
-      "sharedOptions": const [],
+      "vmOptions": const [const <String>[]],
+      "sharedOptions": const <String>[],
+      "dart2jsOptions": const <String>[],
       "dartOptions": null,
       "packageRoot": null,
       "packages": null,
+      "hasSyntaxError": false,
       "hasCompileError": false,
       "hasRuntimeError": false,
       "hasStaticWarning": false,
@@ -1637,21 +1604,27 @@ class StandardTestSuite extends TestSuite {
     };
   }
 
-  List<List<String>> getVmOptions(Map optionsFromFile) {
-    var COMPILERS = const ['none', 'dartk', 'dartkp', 'precompiler', 'app_jit'];
-    var RUNTIMES = const [
-      'none',
-      'dart_precompiled',
-      'vm',
-      'drt',
-      'dartium',
-      'ContentShellOnAndroid',
-      'DartiumOnAndroid'
+  List<List<String>> getVmOptions(Map<String, dynamic> optionsFromFile) {
+    const compilers = const [
+      Compiler.none,
+      Compiler.dartk,
+      Compiler.dartkp,
+      Compiler.precompiler,
+      Compiler.appJit
     ];
-    var needsVmOptions = COMPILERS.contains(configuration['compiler']) &&
-        RUNTIMES.contains(configuration['runtime']);
+
+    const runtimes = const [
+      Runtime.none,
+      Runtime.dartPrecompiled,
+      Runtime.vm,
+      Runtime.drt,
+      Runtime.contentShellOnAndroid
+    ];
+
+    var needsVmOptions = compilers.contains(configuration.compiler) &&
+        runtimes.contains(configuration.runtime);
     if (!needsVmOptions) return [[]];
-    return optionsFromFile['vmOptions'];
+    return optionsFromFile['vmOptions'] as List<List<String>>;
   }
 
   /**
@@ -1668,20 +1641,23 @@ class StandardTestSuite extends TestSuite {
    * pass the co19 test suite as is, and not require extra flags,
    * environment variables, configuration files, etc.
    */
-  Map readOptionsFromCo19File(Path filePath) {
-    String contents =
-        decodeUtf8(new File(filePath.toNativePath()).readAsBytesSync());
+  Map<String, dynamic> readOptionsFromCo19File(Uri uri) {
+    String contents = decodeUtf8(new File.fromUri(uri).readAsBytesSync());
 
-    bool hasCompileError = contents.contains("@compile-error");
+    bool hasSyntaxError = contents.contains("@syntax-error");
+    bool hasCompileError =
+        hasSyntaxError || contents.contains("@compile-error");
     bool hasRuntimeError = contents.contains("@runtime-error");
     bool hasStaticWarning = contents.contains("@static-warning");
     bool isMultitest = multiTestRegExp.hasMatch(contents);
 
     return {
-      "vmOptions": <List>[[]],
+      "vmOptions": <List<String>>[[]],
       "sharedOptions": <String>[],
+      "dart2jsOptions": <String>[],
       "dartOptions": null,
       "packageRoot": null,
+      "hasSyntaxError": hasSyntaxError,
       "hasCompileError": hasCompileError,
       "hasRuntimeError": hasRuntimeError,
       "hasStaticWarning": hasStaticWarning,
@@ -1699,95 +1675,55 @@ class StandardTestSuite extends TestSuite {
 /// Used for testing packages in on off settings, i.e., we pass in the actual
 /// directory that we want to test.
 class PKGTestSuite extends StandardTestSuite {
-  PKGTestSuite(Map configuration, Path directoryPath)
+  PKGTestSuite(Configuration configuration, Path directoryPath)
       : super(configuration, directoryPath.filename, directoryPath,
             ["$directoryPath/.status"],
             isTestFilePredicate: (f) => f.endsWith('_test.dart'),
             recursive: true);
 
-  void enqueueBrowserTest(
-      List<Command> baseCommands,
-      Path packageRoot,
-      packages,
-      TestInformation info,
-      String testName,
-      /* Set<Expectation> | Map<String, Set<Expectation>> */ dynamic
-          expectations) {
-    String runtime = configuration['runtime'];
-    Path filePath = info.filePath;
-    Path dir = filePath.directoryPath;
-    String nameNoExt = filePath.filenameWithoutExtension;
-    Path customHtmlPath = dir.append('$nameNoExt.html');
-    File customHtml = new File(customHtmlPath.toNativePath());
+  void _enqueueBrowserTest(Path packageRoot, packages, TestInformation info,
+      String testName, Map<String, Set<Expectation>> expectations) {
+    var filePath = info.filePath;
+    var dir = filePath.directoryPath;
+    var nameNoExt = filePath.filenameWithoutExtension;
+    var customHtmlPath = dir.append('$nameNoExt.html');
+    var customHtml = new File(customHtmlPath.toNativePath());
     if (!customHtml.existsSync()) {
-      super.enqueueBrowserTest(
-          baseCommands, packageRoot, packages, info, testName, expectations);
+      super._enqueueBrowserTest(
+          packageRoot, packages, info, testName, expectations);
     } else {
-      Path relativeHtml = customHtmlPath.relativeTo(TestUtils.dartDir);
-      var commands = baseCommands.toList();
       var fullPath = _createUrlPathFromFile(customHtmlPath);
-
-      commands.add(CommandBuilder.instance.getBrowserTestCommand(
-          runtime, fullPath, configuration, !isNegative(info)));
-      String testDisplayName = '$suiteName/$testName';
-      enqueueNewTestCase(new BrowserTestCase(
-          testDisplayName,
-          commands,
-          configuration,
-          expectations,
-          info,
-          isNegative(info),
-          relativeHtml.toNativePath()));
+      var command = Command.browserTest(fullPath, configuration,
+          retry: !isNegative(info));
+      enqueueNewTestCase(testName, [command], expectations[testName], info);
     }
   }
 }
 
-/// A DartcCompilationTestSuite will run dartc on all of the tests.
-///
-/// Usually, the result of a dartc run is determined by the output of
-/// dartc in connection with annotations in the test file.
-class DartcCompilationTestSuite extends StandardTestSuite {
-  List<String> _testDirs;
+class AnalyzeLibraryTestSuite extends StandardTestSuite {
+  static Path _libraryPath(Configuration configuration) =>
+      new Path(configuration.useSdk
+          ? '${configuration.buildDirectory}/dart-sdk'
+          : 'sdk');
 
-  DartcCompilationTestSuite(
-      Map configuration,
-      String suiteName,
-      String directoryPath,
-      List<String> this._testDirs,
-      List<String> expectations)
-      : super(configuration, suiteName, new Path(directoryPath), expectations);
+  bool get listRecursively => true;
 
-  List<String> additionalOptions(Path filePath) {
-    return ['--fatal-warnings', '--fatal-type-errors'];
-  }
+  AnalyzeLibraryTestSuite(Configuration configuration)
+      : super(configuration, 'analyze_library', _libraryPath(configuration),
+            ['tests/lib/analyzer/analyze_library.status']);
+
+  List<String> additionalOptions(Path filePath, {bool showSdkWarnings}) =>
+      const ['--fatal-warnings', '--fatal-type-errors', '--sdk-warnings'];
 
   Future enqueueTests() {
     var group = new FutureGroup();
 
-    for (String testDir in _testDirs) {
-      Directory dir = new Directory(suiteDir.append(testDir).toNativePath());
-      if (dir.existsSync()) {
-        enqueueDirectory(dir, group);
-      }
+    var dir = new Directory(suiteDir.append('lib').toNativePath());
+    if (dir.existsSync()) {
+      enqueueDirectory(dir, group);
     }
 
     return group.future;
-  }
-}
-
-class AnalyzeLibraryTestSuite extends DartcCompilationTestSuite {
-  static String libraryPath(Map configuration) => configuration['use_sdk']
-      ? '${TestUtils.buildDir(configuration)}/dart-sdk'
-      : 'sdk';
-
-  AnalyzeLibraryTestSuite(Map configuration)
-      : super(configuration, 'analyze_library', libraryPath(configuration),
-            ['lib'], ['tests/lib/analyzer/analyze_library.status']);
-
-  List<String> additionalOptions(Path filePath, {bool showSdkWarnings}) {
-    var options = super.additionalOptions(filePath);
-    options.add('--sdk-warnings');
-    return options;
   }
 
   bool isTestFile(String filename) {
@@ -1795,435 +1731,5 @@ class AnalyzeLibraryTestSuite extends DartcCompilationTestSuite {
     return filename.endsWith(".dart") &&
         !filename.endsWith("_test.dart") &&
         !filename.contains("_internal/js_runtime/lib");
-  }
-
-  bool get listRecursively => true;
-}
-
-class LastModifiedCache {
-  Map<String, DateTime> _cache = <String, DateTime>{};
-
-  /**
-   * Returns the last modified date of the given [uri].
-   *
-   * The return value will be cached for future queries. If [uri] is a local
-   * file, it's last modified [Date] will be returned. If the file does not
-   * exist, null will be returned instead.
-   * In case [uri] is not a local file, this method will always return
-   * the current date.
-   */
-  DateTime getLastModified(Uri uri) {
-    if (uri.scheme == "file") {
-      if (_cache.containsKey(uri.path)) {
-        return _cache[uri.path];
-      }
-      var file = new File(new Path(uri.path).toNativePath());
-      _cache[uri.path] = file.existsSync() ? file.lastModifiedSync() : null;
-      return _cache[uri.path];
-    }
-    return new DateTime.now();
-  }
-}
-
-class ExistsCache {
-  Map<String, bool> _cache = <String, bool>{};
-
-  /**
-   * Returns true if the file in [path] exists, false otherwise.
-   *
-   * The information will be cached.
-   */
-  bool doesFileExist(String path) {
-    if (!_cache.containsKey(path)) {
-      _cache[path] = new File(path).existsSync();
-    }
-    return _cache[path];
-  }
-}
-
-class TestUtils {
-  /**
-   * Any script using TestUtils must set dartDirUri to a file:// URI
-   * pointing to the root of the Dart checkout.
-   */
-  static void setDartDirUri(Uri uri) {
-    dartDirUri = uri;
-    dartDir = new Path(uri.toFilePath());
-  }
-
-  static Random rand = new Random.secure();
-  static Uri dartDirUri;
-  static Path dartDir;
-  static LastModifiedCache lastModifiedCache = new LastModifiedCache();
-  static ExistsCache existsCache = new ExistsCache();
-  static Path currentWorkingDirectory = new Path(Directory.current.path);
-
-  /**
-   * Generates a random number.
-   */
-  static int getRandomNumber() {
-    return rand.nextInt(0xffffffff);
-  }
-
-  /**
-   * Creates a directory using a [relativePath] to an existing
-   * [base] directory if that [relativePath] does not already exist.
-   */
-  static Directory mkdirRecursive(Path base, Path relativePath) {
-    if (relativePath.isAbsolute) {
-      base = new Path('/');
-    }
-    Directory dir = new Directory(base.toNativePath());
-    assert(dir.existsSync());
-    var segments = relativePath.segments();
-    for (String segment in segments) {
-      base = base.append(segment);
-      if (base.toString() == "/$segment" &&
-          segment.length == 2 &&
-          segment.endsWith(':')) {
-        // Skip the directory creation for a path like "/E:".
-        continue;
-      }
-      dir = new Directory(base.toNativePath());
-      if (!dir.existsSync()) {
-        dir.createSync();
-      }
-      assert(dir.existsSync());
-    }
-    return dir;
-  }
-
-  /**
-   * Copy a [source] file to a new place.
-   * Assumes that the directory for [dest] already exists.
-   */
-  static Future copyFile(Path source, Path dest) {
-    return new File(source.toNativePath())
-        .openRead()
-        .pipe(new File(dest.toNativePath()).openWrite());
-  }
-
-  static Future copyDirectory(String source, String dest) {
-    source = new Path(source).toNativePath();
-    dest = new Path(dest).toNativePath();
-
-    var executable = 'cp';
-    var args = ['-Rp', source, dest];
-    if (Platform.operatingSystem == 'windows') {
-      executable = 'xcopy';
-      args = [source, dest, '/e', '/i'];
-    }
-    return Process.run(executable, args).then((ProcessResult result) {
-      if (result.exitCode != 0) {
-        throw new Exception("Failed to execute '$executable "
-            "${args.join(' ')}'.");
-      }
-    });
-  }
-
-  static Future deleteDirectory(String path) {
-    // We are seeing issues with long path names on windows when
-    // deleting them. Use the system tools to delete our long paths.
-    // See issue 16264.
-    if (Platform.operatingSystem == 'windows') {
-      var native_path = new Path(path).toNativePath();
-      // Running this in a shell sucks, but rmdir is not part of the standard
-      // path.
-      return Process
-          .run('rmdir', ['/s', '/q', native_path], runInShell: true)
-          .then((ProcessResult result) {
-        if (result.exitCode != 0) {
-          throw new Exception('Can\'t delete path $native_path. '
-              'This path might be too long');
-        }
-      });
-    } else {
-      var dir = new Directory(path);
-      return dir.delete(recursive: true);
-    }
-  }
-
-  static void deleteTempSnapshotDirectory(Map configuration) {
-    if (configuration['compiler'] == 'dart2app' ||
-        configuration['compiler'] == 'dart2appjit' ||
-        configuration['compiler'] == 'precompiler') {
-      var checked = configuration['checked'] ? '-checked' : '';
-      var strong = configuration['strong'] ? '-strong' : '';
-      var minified = configuration['minified'] ? '-minified' : '';
-      var csp = configuration['csp'] ? '-csp' : '';
-      var sdk = configuration['use_sdk'] ? '-sdk' : '';
-      var dirName = "${configuration['compiler']}"
-          "$checked$strong$minified$csp$sdk";
-      String generatedPath = "${TestUtils.buildDir(configuration)}"
-          "/generated_compilations/$dirName";
-      TestUtils.deleteDirectory(generatedPath);
-    }
-  }
-
-  static final debugLogFilePath = new Path(".debug.log");
-
-  /// If a flaky test did fail, infos about it (i.e. test name, stdin, stdout)
-  /// will be written to this file.
-  ///
-  /// This is useful for debugging flaky tests. When running on a buildbot, the
-  /// file can be made visible in the waterfall UI.
-  static const flakyFileName = ".flaky.log";
-
-  /// If test.py was invoked with '--write-test-outcome-log it will write
-  /// test outcomes to this file.
-  static const testOutcomeFileName = ".test-outcome.log";
-
-  static void ensureExists(String filename, Map configuration) {
-    if (!configuration['list'] && !existsCache.doesFileExist(filename)) {
-      throw "'$filename' does not exist";
-    }
-  }
-
-  static Path absolutePath(Path path) {
-    if (!path.isAbsolute) {
-      return currentWorkingDirectory.join(path);
-    }
-    return path;
-  }
-
-  static String outputDir(Map configuration) {
-    var result = '';
-    var system = configuration['system'];
-    if (system == 'fuchsia' ||
-        system == 'linux' ||
-        system == 'android' ||
-        system == 'windows') {
-      result = 'out/';
-    } else if (system == 'macos') {
-      result = 'xcodebuild/';
-    } else {
-      throw new Exception('Unknown operating system: "$system"');
-    }
-    return result;
-  }
-
-  static List<String> standardOptions(Map configuration) {
-    var args = ["--ignore-unrecognized-flags"];
-    String compiler = configuration["compiler"];
-    if (compiler == "dart2js") {
-      args = ['--generate-code-with-compile-time-errors', '--test-mode'];
-      if (configuration["checked"]) {
-        args.add('--enable-checked-mode');
-      }
-      // args.add("--verbose");
-      if (!isBrowserRuntime(configuration['runtime'])) {
-        args.add("--allow-mock-compilation");
-        args.add("--categories=all");
-      }
-    }
-    if ((compiler == "dart2js") && configuration["minified"]) {
-      args.add("--minify");
-    }
-    if (compiler == "dart2js" && configuration["csp"]) {
-      args.add("--csp");
-    }
-    if (compiler == "dart2js" && configuration["cps_ir"]) {
-      args.add("--use-cps-ir");
-    }
-    if (compiler == "dart2js" && configuration["fast_startup"]) {
-      args.add("--fast-startup");
-    }
-    if (compiler == "dart2js" && configuration["dart2js_with_kernel"]) {
-      args.add("--use-kernel");
-    }
-    return args;
-  }
-
-  static bool isBrowserRuntime(String runtime) {
-    const BROWSERS = const [
-      'drt',
-      'dartium',
-      'ie9',
-      'ie10',
-      'ie11',
-      'safari',
-      'opera',
-      'chrome',
-      'ff',
-      'chromeOnAndroid',
-      'safarimobilesim',
-      'ContentShellOnAndroid',
-      'DartiumOnAndroid'
-    ];
-    return BROWSERS.contains(runtime);
-  }
-
-  static bool isJsCommandLineRuntime(String runtime) =>
-      const ['d8', 'jsshell'].contains(runtime);
-
-  static bool isCommandLineAnalyzer(String compiler) =>
-      compiler == 'dart2analyzer';
-
-  static String buildDir(Map configuration) {
-    // FIXME(kustermann,ricow): Our code assumes that the returned 'buildDir'
-    // is relative to the current working directory.
-    // Thus, if we pass in an absolute path (e.g. '--build-directory=/tmp/out')
-    // we get into trouble.
-    if (configuration['build_directory'] == '') {
-      configuration['configuration_directory'] =
-          configurationDir(configuration);
-      configuration['build_directory'] =
-          outputDir(configuration) + configuration['configuration_directory'];
-    }
-    return configuration['build_directory'];
-  }
-
-  static String configurationDir(Map configuration) {
-    // This returns the correct configuration directory (the last component
-    // of the output directory path) for regular dart checkouts.
-    // Dartium checkouts use the --build-directory option to pass in the
-    // correct build directory explicitly.
-    // We allow our code to have been cross compiled, i.e., that there
-    // is an X in front of the arch. We don't allow both a cross compiled
-    // and a normal version to be present (except if you specifically pass
-    // in the build_directory).
-    String mode;
-    switch (configuration['mode']) {
-      case 'debug':
-        mode = 'Debug';
-        break;
-      case 'release':
-        mode = 'Release';
-        break;
-      case 'product':
-        mode = 'Product';
-        break;
-      default:
-        throw 'Unrecognized mode configuration: ${configuration['mode']}';
-    }
-    String os;
-    switch (configuration['system']) {
-      case 'android':
-        os = 'Android';
-        break;
-      case 'fuchsia':
-      case 'linux':
-      case 'macos':
-      case 'windows':
-        os = '';
-        break;
-      default:
-        throw 'Unrecognized operating system: ${configuration['system']}';
-    }
-    var arch = configuration['arch'].toUpperCase();
-    var normal = '$mode$os$arch';
-    var cross = '$mode${os}X$arch';
-    var outDir = outputDir(configuration);
-    var normalDir = new Directory(new Path('$outDir$normal').toNativePath());
-    var crossDir = new Directory(new Path('$outDir$cross').toNativePath());
-    if (normalDir.existsSync() && crossDir.existsSync()) {
-      throw "You can't have both $normalDir and $crossDir, we don't know which"
-          " binary to use";
-    }
-    if (crossDir.existsSync()) {
-      return cross;
-    }
-    return normal;
-  }
-
-  /**
-   * Gets extra options under [key] passed to the testing script.
-   */
-  static List<String> getExtraOptions(Map configuration, String key) {
-    if (configuration[key] == null) return <String>[];
-    return configuration[key]
-        .split(" ")
-        .map((s) => s.trim())
-        .where((s) => s.isNotEmpty)
-        .toList();
-  }
-
-  /**
-   * Gets extra vm options passed to the testing script.
-   */
-  static List<String> getExtraVmOptions(Map configuration) =>
-      getExtraOptions(configuration, 'vm_options');
-
-  static int shortNameCounter = 0; // Make unique short file names on Windows.
-
-  static String getShortName(String path) {
-    final PATH_REPLACEMENTS = const {
-      "pkg_polymer_e2e_test_bad_import_test": "polymer_bi",
-      "pkg_polymer_e2e_test_canonicalization_test": "polymer_c16n",
-      "pkg_polymer_e2e_test_experimental_boot_test": "polymer_boot",
-      "pkg_polymer_e2e_test_good_import_test": "polymer_gi",
-      "tests_co19_src_Language_12_Expressions_14_Function_Invocation_":
-          "co19_fn_invoke_",
-      "tests_co19_src_LayoutTests_fast_css_getComputedStyle_getComputedStyle-":
-          "co19_css_getComputedStyle_",
-      "tests_co19_src_LayoutTests_fast_dom_Document_CaretRangeFromPoint_"
-          "caretRangeFromPoint-": "co19_caretrangefrompoint_",
-      "tests_co19_src_LayoutTests_fast_dom_Document_CaretRangeFromPoint_"
-          "hittest-relative-to-viewport_": "co19_caretrange_hittest_",
-      "tests_co19_src_LayoutTests_fast_dom_HTMLLinkElement_link-onerror-"
-          "stylesheet-with-": "co19_dom_link-",
-      "tests_co19_src_LayoutTests_fast_dom_": "co19_dom",
-      "tests_co19_src_LayoutTests_fast_canvas_webgl": "co19_canvas_webgl",
-      "tests_co19_src_LibTest_core_AbstractClassInstantiationError_"
-          "AbstractClassInstantiationError_": "co19_abstract_class_",
-      "tests_co19_src_LibTest_core_IntegerDivisionByZeroException_"
-          "IntegerDivisionByZeroException_": "co19_division_by_zero",
-      "tests_co19_src_WebPlatformTest_html_dom_documents_dom-tree-accessors_":
-          "co19_dom_accessors_",
-      "tests_co19_src_WebPlatformTest_html_semantics_embedded-content_"
-          "media-elements_": "co19_media_elements",
-      "tests_co19_src_WebPlatformTest_html_semantics_": "co19_semantics_",
-      "tests_co19_src_WebPlatformTest_html-templates_additions-to-"
-          "the-steps-to-clone-a-node_": "co19_htmltemplates_clone_",
-      "tests_co19_src_WebPlatformTest_html-templates_definitions_"
-          "template-contents-owner": "co19_htmltemplates_contents",
-      "tests_co19_src_WebPlatformTest_html-templates_parsing-html-"
-          "templates_additions-to-": "co19_htmltemplates_add_",
-      "tests_co19_src_WebPlatformTest_html-templates_parsing-html-"
-          "templates_appending-to-a-template_": "co19_htmltemplates_append_",
-      "tests_co19_src_WebPlatformTest_html-templates_parsing-html-"
-          "templates_clearing-the-stack-back-to-a-given-context_":
-          "co19_htmltemplates_clearstack_",
-      "tests_co19_src_WebPlatformTest_html-templates_parsing-html-"
-          "templates_creating-an-element-for-the-token_":
-          "co19_htmltemplates_create_",
-      "tests_co19_src_WebPlatformTest_html-templates_template-element"
-          "_template-": "co19_htmltemplates_element-",
-      "tests_co19_src_WebPlatformTest_html-templates_": "co19_htmltemplate_",
-      "tests_co19_src_WebPlatformTest_shadow-dom_shadow-trees_":
-          "co19_shadow-trees_",
-      "tests_co19_src_WebPlatformTest_shadow-dom_elements-and-dom-objects_":
-          "co19_shadowdom_",
-      "tests_co19_src_WebPlatformTest_shadow-dom_html-elements-in-"
-          "shadow-trees_": "co19_shadow_html_",
-      "tests_co19_src_WebPlatformTest_html_webappapis_system-state-and-"
-          "capabilities_the-navigator-object": "co19_webappapis_navigator_",
-      "tests_co19_src_WebPlatformTest_DOMEvents_approved_": "co19_dom_approved_"
-    };
-
-    // Some tests are already in [build_dir]/generated_tests.
-    String GEN_TESTS = 'generated_tests/';
-    if (path.contains(GEN_TESTS)) {
-      int index = path.indexOf(GEN_TESTS) + GEN_TESTS.length;
-      path = 'multitest/${path.substring(index)}';
-    }
-    path = path.replaceAll('/', '_');
-    final int WINDOWS_SHORTEN_PATH_LIMIT = 58;
-    final int WINDOWS_PATH_END_LENGTH = 30;
-    if (Platform.operatingSystem == 'windows' &&
-        path.length > WINDOWS_SHORTEN_PATH_LIMIT) {
-      for (var key in PATH_REPLACEMENTS.keys) {
-        if (path.startsWith(key)) {
-          path = path.replaceFirst(key, PATH_REPLACEMENTS[key]);
-          break;
-        }
-      }
-      if (path.length > WINDOWS_SHORTEN_PATH_LIMIT) {
-        ++shortNameCounter;
-        var pathEnd = path.substring(path.length - WINDOWS_PATH_END_LENGTH);
-        path = "short${shortNameCounter}_$pathEnd";
-      }
-    }
-    return path;
   }
 }

@@ -22,11 +22,12 @@ GN = os.path.join(DART_ROOT, 'buildtools', 'gn')
 DART_USE_ASAN = "DART_USE_ASAN"  # Use instead of --asan
 DART_USE_MSAN = "DART_USE_MSAN"  # Use instead of --msan
 DART_USE_TSAN = "DART_USE_TSAN"  # Use instead of --tsan
-DART_USE_WHEEZY = "DART_USE_WHEEZY"  # Use instread of --wheezy
 DART_USE_TOOLCHAIN = "DART_USE_TOOLCHAIN"  # Use instread of --toolchain-prefix
 DART_USE_SYSROOT = "DART_USE_SYSROOT"  # Use instead of --target-sysroot
 # use instead of --platform-sdk
 DART_MAKE_PLATFORM_SDK = "DART_MAKE_PLATFORM_SDK"
+
+DART_GN_ARGS = "DART_GN_ARGS"
 
 def UseASAN():
   return DART_USE_ASAN in os.environ
@@ -38,10 +39,6 @@ def UseMSAN():
 
 def UseTSAN():
   return DART_USE_TSAN in os.environ
-
-
-def UseWheezy():
-  return DART_USE_WHEEZY in os.environ
 
 
 def ToolchainPrefix(args):
@@ -60,6 +57,13 @@ def MakePlatformSDK():
   return DART_MAKE_PLATFORM_SDK in os.environ
 
 
+def GetGNArgs(args):
+  if args.gn_args != None:
+    return args.gn_args
+  args = os.environ.get(DART_GN_ARGS) or ""
+  return args.split()
+
+
 def GetOutDir(mode, arch, target_os):
   return utils.GetBuildRoot(HOST_OS, mode, arch, target_os)
 
@@ -75,21 +79,20 @@ def ToCommandLine(gn_args):
 
 
 def HostCpuForArch(arch):
-  if arch in ['ia32', 'arm', 'armv6', 'armv5te', 'mips',
-              'simarm', 'simarmv6', 'simarmv5te', 'simmips', 'simdbc',
+  if arch in ['ia32', 'arm', 'armv6', 'armv5te',
+              'simarm', 'simarmv6', 'simarmv5te', 'simdbc',
               'armsimdbc']:
     return 'x86'
   if arch in ['x64', 'arm64', 'simarm64', 'simdbc64', 'armsimdbc64']:
     return 'x64'
 
 
+# The C compiler's target.
 def TargetCpuForArch(arch, target_os):
-  if arch in ['ia32', 'simarm', 'simarmv6', 'simarmv5te', 'simmips']:
+  if arch in ['ia32', 'simarm', 'simarmv6', 'simarmv5te']:
     return 'x86'
-  if arch in ['simarm64']:
+  if arch in ['x64', 'simarm64']:
     return 'x64'
-  if arch == 'mips':
-    return 'mipsel'
   if arch == 'simdbc':
     return 'arm' if target_os == 'android' else 'x86'
   if arch == 'simdbc64':
@@ -98,6 +101,25 @@ def TargetCpuForArch(arch, target_os):
     return 'arm'
   if arch == 'armsimdbc64':
     return 'arm64'
+  return arch
+
+
+# The Dart compiler's target.
+def DartTargetCpuForArch(arch):
+  if arch in ['ia32']:
+    return 'ia32'
+  if arch in ['x64']:
+    return 'x64'
+  if arch in ['arm', 'simarm']:
+    return 'arm'
+  if arch in ['armv6', 'simarmv6']:
+    return 'armv6'
+  if arch in ['armv5te', 'simarmv5te']:
+    return 'armv5te'
+  if arch in ['arm64', 'simarm64']:
+    return 'arm64'
+  if arch in ['simdbc', 'simdbc64', 'armsimdbc', 'armsimdbc64']:
+    return 'dbc'
   return arch
 
 
@@ -125,16 +147,18 @@ def UseSanitizer(args):
 
 def DontUseClang(args, target_os, host_cpu, target_cpu):
   # We don't have clang on Windows.
-  return (target_os == 'win'
-         # TODO(zra): Experiment with using clang for the arm cross-builds.
-         or (target_os == 'linux'
-             and (target_cpu.startswith('arm') or
-                  target_cpu.startswith('mips'))
-         # TODO(zra): Only use clang when a sanitizer build is specified until
-         # clang bugs in tcmalloc inline assembly for ia32 are fixed.
-         or (target_os == 'linux'
-             and host_cpu == 'x86'
-             and not UseSanitizer(args))))
+  return target_os == 'win'
+
+
+def UseSysroot(args, gn_args):
+  # Don't try to use a Linux sysroot if we aren't on Linux.
+  if gn_args['target_os'] != 'linux':
+    return False
+  # Don't use the sysroot if we're given another sysroot.
+  if TargetSysroot(args):
+    return False
+  # Otherwise use the sysroot.
+  return True
 
 
 def ToGnArgs(args, mode, arch, target_os):
@@ -146,23 +170,9 @@ def ToGnArgs(args, mode, arch, target_os):
   else:
     gn_args['target_os'] = target_os
 
-  if arch.startswith('mips'):
-    bold  = '\033[1m'
-    reset = '\033[0m'
-    print(bold + "Warning: MIPS architectures are unlikely to be supported in "
-          "upcoming releases. Please consider using another architecture "
-          "and/or file an issue explaining your specific use of and need for "
-          "MIPS support." + reset)
-
-  gn_args['dart_target_arch'] = arch
-  gn_args['target_cpu'] = TargetCpuForArch(arch, target_os)
   gn_args['host_cpu'] = HostCpuForArch(arch)
-  crossbuild = gn_args['target_cpu'] != gn_args['host_cpu']
-
-  # See: runtime/observatory/BUILD.gn.
-  # This allows the standalone build of the observatory to fall back on
-  # dart_bootstrap if the prebuilt SDK doesn't work.
-  gn_args['dart_host_pub_exe'] = ""
+  gn_args['target_cpu'] = TargetCpuForArch(arch, target_os)
+  gn_args['dart_target_arch'] = DartTargetCpuForArch(arch)
 
   if arch != HostCpuForArch(arch):
     # Training an app-jit snapshot under a simulator is slow. Use script
@@ -206,7 +216,12 @@ def ToGnArgs(args, mode, arch, target_os):
   # This setting is only meaningful for Flutter. Standalone builds of the VM
   # should leave this set to 'develop', which causes the build to defer to
   # 'is_debug', 'is_release' and 'is_product'.
-  gn_args['dart_runtime_mode'] = 'develop'
+  if mode == 'product':
+    gn_args['dart_runtime_mode'] = 'release'
+  else:
+    gn_args['dart_runtime_mode'] = 'develop'
+
+  gn_args['exclude_kernel_service'] = args.exclude_kernel_service
 
   dont_use_clang = DontUseClang(args, gn_args['target_os'],
                                       gn_args['host_cpu'],
@@ -217,10 +232,12 @@ def ToGnArgs(args, mode, arch, target_os):
   gn_args['is_msan'] = args.msan and gn_args['is_clang']
   gn_args['is_tsan'] = args.tsan and gn_args['is_clang']
 
-  gn_args['dart_platform_sdk'] = args.platform_sdk
+  if not args.platform_sdk and not gn_args['target_cpu'].startswith('arm'):
+    gn_args['dart_platform_sdk'] = args.platform_sdk
+  gn_args['dart_stripped_binary'] = 'exe.stripped/dart'
 
   # Setup the user-defined sysroot.
-  if gn_args['target_os'] == 'linux' and args.wheezy and not crossbuild:
+  if UseSysroot(args, gn_args):
     gn_args['dart_use_wheezy_sysroot'] = True
   else:
     sysroot = TargetSysroot(args)
@@ -272,7 +289,7 @@ def ProcessOptions(args):
       return False
   for arch in args.arch:
     archs = ['ia32', 'x64', 'simarm', 'arm', 'simarmv6', 'armv6',
-             'simarmv5te', 'armv5te', 'simmips', 'mips', 'simarm64', 'arm64',
+             'simarmv5te', 'armv5te', 'simarm64', 'arm64',
              'simdbc', 'simdbc64', 'armsimdbc', 'armsimdbc64']
     if not arch in archs:
       print "Unknown arch %s" % arch
@@ -290,7 +307,7 @@ def ProcessOptions(args):
         print ("Cross-compilation to %s is not supported on host os %s."
                % (os_name, HOST_OS))
         return False
-      if not arch in ['ia32', 'x64', 'arm', 'armv6', 'armv5te', 'arm64', 'mips',
+      if not arch in ['ia32', 'x64', 'arm', 'armv6', 'armv5te', 'arm64',
                       'simdbc', 'simdbc64']:
         print ("Cross-compilation to %s is not supported for architecture %s."
                % (os_name, arch))
@@ -323,7 +340,7 @@ def parse_args(args):
       type=str,
       help='Target architectures (comma-separated).',
       metavar='[all,ia32,x64,simarm,arm,simarmv6,armv6,simarmv5te,armv5te,'
-              'simmips,mips,simarm64,arm64,simdbc,armsimdbc]',
+              'simarm64,arm64,simdbc,armsimdbc]',
       default='x64')
   common_group.add_argument('--mode', '-m',
       type=str,
@@ -377,6 +394,11 @@ def parse_args(args):
       help='Generate an IDE file.',
       default=os_has_ide(HOST_OS),
       action='store_true')
+  other_group.add_argument('--exclude-kernel-service',
+      help='Exclude the kernel service.',
+      default=False,
+      dest='exclude_kernel_service',
+      action='store_true')
   other_group.add_argument('--msan',
       help='Build with MSAN',
       default=UseMSAN(),
@@ -385,6 +407,10 @@ def parse_args(args):
       help='Disable MSAN',
       dest='msan',
       action='store_false')
+  other_group.add_argument('--gn-args',
+      help='Set extra GN args',
+      dest='gn_args',
+      action='append')
   other_group.add_argument('--platform-sdk',
       help='Directs the create_sdk target to create a smaller "Platform" SDK',
       default=MakePlatformSDK(),
@@ -404,11 +430,11 @@ def parse_args(args):
       dest='tsan',
       action='store_false')
   other_group.add_argument('--wheezy',
-      help='Use the Debian wheezy sysroot on Linux',
-      default=UseWheezy(),
+      help='This flag is deprecated.',
+      default=True,
       action='store_true')
   other_group.add_argument('--no-wheezy',
-      help='Disable the Debian wheezy sysroot on Linux',
+      help='This flag is deprecated',
       dest='wheezy',
       action='store_false')
   other_group.add_argument('--workers', '-w',
@@ -443,9 +469,9 @@ def Main(argv):
   if sys.platform.startswith(('cygwin', 'win')):
     subdir = 'win'
   elif sys.platform == 'darwin':
-    subdir = 'mac'
+    subdir = 'mac-x64'
   elif sys.platform.startswith('linux'):
-    subdir = 'linux64'
+    subdir = 'linux-x64'
   else:
     print 'Unknown platform: ' + sys.platform
     return 1
@@ -456,8 +482,12 @@ def Main(argv):
     for mode in args.mode:
       for arch in args.arch:
         out_dir = GetOutDir(mode, arch, target_os)
-        command = [gn, 'gen', out_dir, '--check']
+        # TODO(infra): Re-enable --check. Many targets fail to use
+        # public_deps to re-expose header files to their dependents.
+        # See dartbug.com/32364
+        command = [gn, 'gen', out_dir]
         gn_args = ToCommandLine(ToGnArgs(args, mode, arch, target_os))
+        gn_args += GetGNArgs(args)
         if args.verbose:
           print "gn gen --check in %s" % out_dir
         if args.ide:

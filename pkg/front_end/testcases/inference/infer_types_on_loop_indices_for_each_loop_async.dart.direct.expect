@@ -1,0 +1,66 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+class Foo extends core::Object {
+  field core::int bar = 42;
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class Bar<T extends asy::Stream<core::String> = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method foo(self::Bar::T t) → dynamic async {
+    await for (dynamic i in t) {
+      core::int x = i;
+    }
+  }
+}
+class Baz<T extends core::Object = dynamic, E extends asy::Stream<self::Baz::T> = dynamic, S extends self::Baz::E = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method foo(self::Baz::S t) → dynamic async {
+    await for (dynamic i in t) {
+      core::int x = i;
+      self::Baz::T y = i;
+    }
+  }
+}
+abstract class MyStream<T extends core::Object = dynamic> extends asy::Stream<self::MyStream::T> {
+  static factory •<T extends core::Object = dynamic>() → self::MyStream<self::MyStream::•::T>
+    return null;
+}
+static method test() → dynamic async {
+  dynamic myStream = self::MyStream::•<self::Foo>();
+  await for (dynamic x in myStream) {
+    core::String y = x;
+  }
+  await for (dynamic x in myStream) {
+    core::String y = x;
+  }
+  await for (core::String x in myStream) {
+    core::String y = x;
+  }
+  dynamic z;
+  await for (final dynamic #t1 in myStream) {
+    z = #t1;
+    core::String y = z;
+  }
+  asy::Stream<dynamic> stream = myStream;
+  await for (self::Foo x in stream) {
+    dynamic y = x;
+  }
+  dynamic stream2 = myStream;
+  await for (self::Foo x in stream2) {
+    dynamic y = x;
+  }
+  dynamic map = <core::String, self::Foo>{};
+  await for (dynamic x in map) {
+    core::String y = x;
+  }
+}
+static method main() → dynamic {}

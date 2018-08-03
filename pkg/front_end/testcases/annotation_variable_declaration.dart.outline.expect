@@ -1,0 +1,24 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef hest_t = ({named: dynamic}) → dynamic;
+class Bar extends core::Object {
+  const constructor •() → void
+    ;
+  const constructor named(dynamic x) → void
+    ;
+}
+class Baz extends core::Object {
+  constructor •(dynamic constructorFormal) → void
+    ;
+  static factory bazFactory(dynamic factoryFormal) → self::Baz
+    ;
+  method fisk(dynamic formal1, dynamic formal2, dynamic formal3, dynamic formal4, [dynamic optional]) → dynamic
+    ;
+  method hest({dynamic named}) → dynamic
+    ;
+}
+static const field core::int foo;
+static method main() → dynamic
+  ;

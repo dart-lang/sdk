@@ -15,27 +15,30 @@ class B extends A {
 makeA() native;
 makeB() native;
 
-setup() native """
-function inherits(child, parent) {
-  if (child.prototype.__proto__) {
-    child.prototype.__proto__ = parent.prototype;
-  } else {
-    function tmp() {};
-    tmp.prototype = parent.prototype;
-    child.prototype = new tmp();
-    child.prototype.constructor = child;
+setup() {
+  JS('', r"""
+(function(){
+  function inherits(child, parent) {
+    if (child.prototype.__proto__) {
+      child.prototype.__proto__ = parent.prototype;
+    } else {
+      function tmp() {};
+      tmp.prototype = parent.prototype;
+      child.prototype = new tmp();
+      child.prototype.constructor = child;
+    }
   }
-}
-  function A() {}
-  function B() {}
-  inherits(B, A);
-  makeA = function() { return new A; }
-  makeB = function() { return new B; }
-  B.prototype.foo = function() { return 42; }
+    function A() {}
+    function B() {}
+    inherits(B, A);
+    makeA = function() { return new A() };
+    makeB = function() { return new B() };
+    B.prototype.foo = function() { return 42; };
 
-  self.nativeConstructor(A);
-  self.nativeConstructor(B);
-""";
+    self.nativeConstructor(A);
+    self.nativeConstructor(B);
+})()""");
+}
 
 main() {
   nativeTesting();

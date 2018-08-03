@@ -5,8 +5,8 @@
 #ifndef RUNTIME_VM_REGEXP_ASSEMBLER_IR_H_
 #define RUNTIME_VM_REGEXP_ASSEMBLER_IR_H_
 
-#include "vm/assembler.h"
-#include "vm/intermediate_language.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/il.h"
 #include "vm/object.h"
 #include "vm/regexp_assembler.h"
 
@@ -32,6 +32,7 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
                          intptr_t capture_count,
                          const ParsedFunction* parsed_function,
                          const ZoneGrowableArray<const ICData*>& ic_data_array,
+                         intptr_t osr_id,
                          Zone* zone);
   virtual ~IRRegExpMacroAssembler();
 
@@ -132,6 +133,8 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   void FinalizeRegistersArray();
 
  private:
+  intptr_t GetNextDeoptId() const { return thread_->GetNextDeoptId(); }
+
   // Generate the contents of preset blocks. The entry block is the entry point
   // of the generated code.
   void GenerateEntryBlock();
@@ -240,15 +243,18 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
       const InstanceCallDescriptor& desc,
       ZoneGrowableArray<PushArgumentInstr*>* arguments) const;
 
-  StaticCallInstr* StaticCall(const Function& function) const;
   StaticCallInstr* StaticCall(const Function& function,
-                              PushArgumentInstr* arg1) const;
+                              ICData::RebindRule rebind_rule) const;
   StaticCallInstr* StaticCall(const Function& function,
                               PushArgumentInstr* arg1,
-                              PushArgumentInstr* arg2) const;
-  StaticCallInstr* StaticCall(
-      const Function& function,
-      ZoneGrowableArray<PushArgumentInstr*>* arguments) const;
+                              ICData::RebindRule rebind_rule) const;
+  StaticCallInstr* StaticCall(const Function& function,
+                              PushArgumentInstr* arg1,
+                              PushArgumentInstr* arg2,
+                              ICData::RebindRule rebind_rule) const;
+  StaticCallInstr* StaticCall(const Function& function,
+                              ZoneGrowableArray<PushArgumentInstr*>* arguments,
+                              ICData::RebindRule rebind_rule) const;
 
   // Creates a new block consisting simply of a goto to dst.
   TargetEntryInstr* TargetWithJoinGoto(JoinEntryInstr* dst);
@@ -282,8 +288,8 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   // Load a number of characters starting from index in the pattern string.
   Value* LoadCodeUnitsAt(LocalVariable* index, intptr_t character_count);
 
-  // Check whether preemption has been requested.
-  void CheckPreemption();
+  // Check whether preemption has been requested. Also serves as an OSR entry.
+  void CheckPreemption(bool is_backtrack);
 
   // Byte size of chars in the string to match (decided by the Mode argument)
   inline intptr_t char_size() { return static_cast<int>(mode_); }
@@ -341,7 +347,7 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   // A utility class tracking ids of various objects such as blocks, temps, etc.
   class IdAllocator : public ValueObject {
    public:
-    IdAllocator() : next_id(0) {}
+    explicit IdAllocator(intptr_t first_id = 0) : next_id(first_id) {}
 
     intptr_t Count() const { return next_id; }
     intptr_t Alloc(intptr_t count = 1) {
@@ -358,6 +364,8 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
    private:
     intptr_t next_id;
   };
+
+  Thread* thread_;
 
   // Which mode to generate code for (ASCII or UC16).
   Mode mode_;
@@ -433,7 +441,6 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
   IdAllocator local_id_;
   IdAllocator indirect_id_;
 };
-
 
 }  // namespace dart
 

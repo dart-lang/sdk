@@ -17,11 +17,9 @@ void MallocHooks::InitOnce() {
   // Do nothing.
 }
 
-
 void MallocHooks::TearDown() {
   // Do nothing.
 }
-
 
 void MallocHooks::PrintToJSONObject(JSONObject* jsobj) {
   // Here, we ignore the value of FLAG_profiler_native_memory because we can
@@ -31,7 +29,6 @@ void MallocHooks::PrintToJSONObject(JSONObject* jsobj) {
                      heap_allocated_memory_in_bytes());
   jsobj->AddProperty("_heapAllocationCount", allocation_count());
 }
-
 
 intptr_t MallocHooks::heap_allocated_memory_in_bytes() {
   uint64_t epoch = 1;
@@ -50,36 +47,29 @@ intptr_t MallocHooks::heap_allocated_memory_in_bytes() {
   return allocated;
 }
 
-
 intptr_t MallocHooks::allocation_count() {
   return 0;
 }
-
 
 bool MallocHooks::ProfilingEnabled() {
   return false;
 }
 
-
 bool MallocHooks::stack_trace_collection_enabled() {
   return false;
 }
-
 
 void MallocHooks::set_stack_trace_collection_enabled(bool enabled) {
   // Do nothing.
 }
 
-
 void MallocHooks::ResetStats() {
   // Do nothing.
 }
 
-
 bool MallocHooks::Active() {
   return false;
 }
-
 
 Sample* MallocHooks::GetSample(const void* ptr) {
   return NULL;

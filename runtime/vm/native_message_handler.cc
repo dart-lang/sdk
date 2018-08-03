@@ -15,18 +15,15 @@ NativeMessageHandler::NativeMessageHandler(const char* name,
                                            Dart_NativeMessageHandler func)
     : name_(strdup(name)), func_(func) {}
 
-
 NativeMessageHandler::~NativeMessageHandler() {
   free(name_);
 }
-
 
 #if defined(DEBUG)
 void NativeMessageHandler::CheckAccess() {
   ASSERT(Isolate::Current() == NULL);
 }
 #endif
-
 
 MessageHandler::MessageStatus NativeMessageHandler::HandleMessage(
     Message* message) {

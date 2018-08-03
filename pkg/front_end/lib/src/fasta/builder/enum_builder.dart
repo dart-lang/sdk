@@ -8,5 +8,5 @@ import 'builder.dart' show ClassBuilder, TypeBuilder;
 
 abstract class EnumBuilder<T extends TypeBuilder, R>
     implements ClassBuilder<T, R> {
-  List<Object> get constantNamesAndOffsets;
+  List<Object> get constantNamesAndOffsetsAndDocs;
 }

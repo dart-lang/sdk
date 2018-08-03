@@ -4,52 +4,88 @@
 
 library fasta.named_type_builder;
 
+import '../fasta_codes.dart'
+    show
+        Message,
+        templateMissingExplicitTypeArguments,
+        templateTypeArgumentMismatch;
+
 import 'builder.dart'
     show
-        Builder,
+        Declaration,
         InvalidTypeBuilder,
+        LibraryBuilder,
         PrefixBuilder,
+        QualifiedName,
         Scope,
         TypeBuilder,
         TypeDeclarationBuilder;
 
 abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
-  final String name;
+  final Object name;
 
-  final List<T> arguments;
+  List<T> arguments;
 
-  TypeDeclarationBuilder<T, R> builder;
+  TypeDeclarationBuilder<T, R> declaration;
 
-  NamedTypeBuilder(this.name, this.arguments, int charOffset, Uri fileUri)
-      : super(charOffset, fileUri);
+  NamedTypeBuilder(this.name, this.arguments);
 
-  InvalidTypeBuilder<T, R> buildInvalidType(String name);
+  InvalidTypeBuilder<T, R> buildInvalidType(int charOffset, Uri fileUri,
+      [Message message]);
 
-  void bind(TypeDeclarationBuilder builder) {
-    this.builder = builder;
+  @override
+  void bind(TypeDeclarationBuilder declaration) {
+    this.declaration = declaration?.origin;
   }
 
-  void resolveIn(Scope scope) {
-    if (builder != null) return;
-    Builder member = scope.lookup(name, charOffset, fileUri);
+  @override
+  void resolveIn(
+      Scope scope, int charOffset, Uri fileUri, LibraryBuilder library) {
+    if (declaration != null) return;
+    final name = this.name;
+    Declaration member;
+    if (name is QualifiedName) {
+      Declaration prefix = scope.lookup(name.prefix, charOffset, fileUri);
+      if (prefix is PrefixBuilder) {
+        member = prefix.lookup(name.suffix, name.charOffset, fileUri);
+      }
+    } else {
+      member = scope.lookup(name, charOffset, fileUri);
+    }
     if (member is TypeDeclarationBuilder) {
-      builder = member;
+      declaration = member.origin;
+      if (arguments == null && declaration.typeVariablesCount != 0) {
+        library.addProblem(
+            templateMissingExplicitTypeArguments
+                .withArguments(declaration.typeVariablesCount),
+            charOffset,
+            "$name".length,
+            fileUri);
+      }
       return;
     }
-    if (name.contains(".")) {
-      int index = name.lastIndexOf(".");
-      String first = name.substring(0, index);
-      String last = name.substring(name.lastIndexOf(".") + 1);
-      var prefix = scope.lookup(first, charOffset, fileUri);
-      if (prefix is PrefixBuilder) {
-        member = prefix.lookup(last, charOffset, fileUri);
-      }
-      if (member is TypeDeclarationBuilder) {
-        builder = member;
-        return;
-      }
+    declaration = buildInvalidType(charOffset, fileUri);
+  }
+
+  @override
+  void check(int charOffset, Uri fileUri) {
+    if (arguments != null &&
+        arguments.length != declaration.typeVariablesCount) {
+      declaration = buildInvalidType(
+          charOffset,
+          fileUri,
+          templateTypeArgumentMismatch.withArguments(
+              name, declaration.typeVariablesCount));
     }
-    builder = buildInvalidType(name);
+  }
+
+  @override
+  void normalize(int charOffset, Uri fileUri) {
+    if (arguments != null &&
+        arguments.length != declaration.typeVariablesCount) {
+      // [arguments] will be normalized later if they are null.
+      arguments = null;
+    }
   }
 
   String get debugName => "NamedTypeBuilder";

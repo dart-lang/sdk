@@ -283,6 +283,38 @@ main(A a) {
     expect(hover.parameter, isNull);
   }
 
+  test_expression_method_invocation_genericMethod() async {
+    addTestFile('''
+library my.library;
+
+abstract class Stream<T> {
+  Stream<S> transform<S>(StreamTransformer<T, S> streamTransformer);
+}
+abstract class StreamTransformer<T, S> {}
+
+f(Stream<int> s) {
+  s.transform(null);
+}
+''');
+    HoverInformation hover = await prepareHover('nsform(n');
+    // range
+    expect(hover.offset, findOffset('transform(n'));
+    expect(hover.length, 'transform'.length);
+    // element
+    expect(hover.containingLibraryName, 'my.library');
+    expect(hover.containingLibraryPath, testFile);
+    expect(hover.elementDescription,
+        'Stream.transform<S>(StreamTransformer<int, S> streamTransformer) → Stream<S>');
+    expect(hover.elementKind, 'method');
+    expect(hover.isDeprecated, isFalse);
+    // types
+    expect(hover.staticType,
+        '(StreamTransformer<int, dynamic>) → Stream<dynamic>');
+    expect(hover.propagatedType, isNull);
+    // no parameter
+    expect(hover.parameter, isNull);
+  }
+
   test_expression_parameter() async {
     addTestFile('''
 library my.library;
@@ -388,11 +420,11 @@ main() {
     expect(hover.containingLibraryPath, isNull);
     expect(hover.containingClassDescription, isNull);
     expect(hover.dartdoc, isNull);
-    expect(hover.elementDescription, 'dynamic vvv');
+    expect(hover.elementDescription, 'int vvv');
     expect(hover.elementKind, 'local variable');
     // types
-    expect(hover.staticType, 'dynamic');
-    expect(hover.propagatedType, 'int');
+    expect(hover.staticType, 'int');
+    expect(hover.propagatedType, null);
   }
 
   test_expression_variable_inMethod() async {
@@ -414,7 +446,7 @@ class A {
     expect(hover.elementKind, 'local variable');
     // types
     expect(hover.staticType, 'num');
-    expect(hover.propagatedType, 'int');
+    expect(hover.propagatedType, null);
     // no parameter
     expect(hover.parameter, isNull);
   }
@@ -515,6 +547,58 @@ main() {
       HoverInformation hover = await prepareHover('named();');
       onConstructor(hover);
     }
+  }
+
+  test_instanceCreation_noKeyword_const() async {
+    addTestFile('''
+library my.library;
+class A {
+  const A(int i);
+}
+main() {
+  const a = A(0);
+}
+''');
+    HoverInformation hover = await prepareHover('A(0)');
+    // range
+    expect(hover.offset, findOffset('A(0)'));
+    expect(hover.length, 'A(0)'.length);
+    // element
+    expect(hover.containingLibraryName, 'my.library');
+    expect(hover.containingLibraryPath, testFile);
+    expect(hover.dartdoc, isNull);
+    expect(hover.elementDescription, '(const) A(int i) → A');
+    expect(hover.elementKind, 'constructor');
+    // types
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+    // no parameter
+    expect(hover.parameter, isNull);
+  }
+
+  test_instanceCreation_noKeyword_new() async {
+    addTestFile('''
+library my.library;
+class A {}
+main() {
+  var a = A();
+}
+''');
+    HoverInformation hover = await prepareHover('A()');
+    // range
+    expect(hover.offset, findOffset('A()'));
+    expect(hover.length, 'A()'.length);
+    // element
+    expect(hover.containingLibraryName, 'my.library');
+    expect(hover.containingLibraryPath, testFile);
+    expect(hover.dartdoc, isNull);
+    expect(hover.elementDescription, '(new) A() → A');
+    expect(hover.elementKind, 'constructor');
+    // types
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+    // no parameter
+    expect(hover.parameter, isNull);
   }
 
   test_noHoverInfo() async {

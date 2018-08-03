@@ -1,23 +1,30 @@
+// Errors:
+//
+// pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_infer.dart:13:49: Error: The return type of the method 'B::x' is dynamic, which does not match the return type of the overridden method (dart.core::int).
+// Change to a subtype of dart.core::int.
+//   /*error:INVALID_METHOD_OVERRIDE*/ dynamic get x => 3;
+//                                                 ^
+
 library test;
 import self as self;
 import "dart:core" as core;
 
-class A<T extends core::Object> extends core::Object {
+class A<T extends core::Object = dynamic> extends core::Object {
   final field self::A::T x = null;
-  constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
 }
 class B extends core::Object implements self::A<core::int> {
-  constructor •() → void
+  synthetic constructor •() → void
     : super core::Object::•()
     ;
   get x() → dynamic
     return 3;
 }
 static method foo() → dynamic {
-  core::String y = new self::B::•().x;
-  core::int z = new self::B::•().x;
+  core::String y = new self::B::•().{self::B::x} as{TypeError} core::String;
+  core::int z = new self::B::•().{self::B::x} as{TypeError} core::int;
 }
 static method main() → dynamic {
   self::foo();

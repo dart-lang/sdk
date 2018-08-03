@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:path/path.dart' show join;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -11,6 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetGeneralSubscriptionsTest);
+    defineReflectiveTests(SetGeneralSubscriptionsTest_UseCFE);
   });
 }
 
@@ -19,9 +21,7 @@ class SetGeneralSubscriptionsTest
     extends AbstractAnalysisServerIntegrationTest {
   test_options() async {
     String pathname = sourcePath('test.dart');
-    writeFile(
-        pathname,
-        '''
+    writeFile(pathname, '''
 class Foo {
   void bar() {}
 }
@@ -36,7 +36,20 @@ class Foo {
     expect(lastAnalyzedFiles, isNotEmpty);
     expect(lastAnalyzedFiles, contains(pathname));
     expect(
-        lastAnalyzedFiles.any((String file) => file.endsWith('core/core.dart')),
+        lastAnalyzedFiles
+            .any((String file) => file.endsWith(join('core', 'core.dart'))),
         true);
+  }
+}
+
+@reflectiveTest
+class SetGeneralSubscriptionsTest_UseCFE extends SetGeneralSubscriptionsTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_options() {
+    fail('Test fails with CFE');
   }
 }

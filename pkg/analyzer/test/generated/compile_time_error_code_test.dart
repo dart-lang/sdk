@@ -6,7 +6,9 @@ library analyzer.test.generated.compile_time_error_code_test;
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
@@ -19,172 +21,110 @@ import 'resolver_test_case.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompileTimeErrorCodeTest);
+    defineReflectiveTests(CompileTimeErrorCodeSpecTest);
   });
 }
 
 @reflectiveTest
+class CompileTimeErrorCodeSpecTest extends ResolverTestCase {
+  test_constWithTypeParameters_direct() async {
+    Source source = addSource(r'''
+class A<T> {
+  static const V = const A<T>();
+  const A();
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
+      StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC
+    ]);
+    verify([source]);
+  }
+
+  test_constWithTypeParameters_indirect() async {
+    Source source = addSource(r'''
+class A<T> {
+  static const V = const A<List<T>>();
+  const A();
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
+      StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC
+    ]);
+    verify([source]);
+  }
+
+  test_invalidTypeArgumentInConstList() async {
+    Source source = addSource(r'''
+class A<E> {
+  m() {
+    return const <E>[];
+  }
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST]);
+    verify([source]);
+  }
+
+  test_invalidTypeArgumentInConstMap() async {
+    Source source = addSource(r'''
+class A<E> {
+  m() {
+    return const <String, E>{};
+  }
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP]);
+    verify([source]);
+  }
+
+  test_mixinOfDisallowedClass_classTypeAlias_String_num() async {
+    Source source = addSource(r'''
+class A {}
+class C = A with String, num;''');
+    await computeAnalysisResult(source);
+    if (previewDart2) {
+      assertErrors(source, [
+        StrongModeCode.INVALID_METHOD_OVERRIDE_FROM_MIXIN,
+        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
+        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
+      ]);
+    } else if (useCFE) {
+      assertErrors(source, [
+        CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+        CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+      ]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
+        CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
+      ]);
+    }
+    verify([source]);
+  }
+}
+
+@reflectiveTest
 class CompileTimeErrorCodeTest extends ResolverTestCase {
-  fail_awaitInWrongContext_sync() async {
-    // This test requires better error recovery than we currently have. In
-    // particular, we need to be able to distinguish between an await expression
-    // in the wrong context, and the use of 'await' as an identifier.
-    Source source = addSource(r'''
-f(x) {
-  return await x;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT]);
-    verify([source]);
-  }
+  @override
+  AnalysisOptions get defaultAnalysisOptions => new AnalysisOptionsImpl();
 
-  fail_awaitInWrongContext_syncStar() async {
-    // This test requires better error recovery than we currently have. In
-    // particular, we need to be able to distinguish between an await expression
-    // in the wrong context, and the use of 'await' as an identifier.
-    Source source = addSource(r'''
-f(x) sync* {
-  yield await x;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT]);
-    verify([source]);
-  }
+  disabled_test_conflictingGenericInterfaces_hierarchyLoop_infinite() async {
+    // There is an interface conflict here due to a loop in the class
+    // hierarchy leading to an infinite set of implemented types; this loop
+    // shouldn't cause non-termination.
 
-  fail_constEvalThrowsException() async {
-    Source source = addSource(r'''
-class C {
-  const C();
-}
-f() { return const C(); }''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION]);
-    verify([source]);
-  }
-
-  fail_invalidIdentifierInAsync_async() async {
-    // TODO(brianwilkerson) Report this error.
-    Source source = addSource(r'''
-class A {
-  m() async {
-    int async;
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_IDENTIFIER_IN_ASYNC]);
-    verify([source]);
-  }
-
-  fail_invalidIdentifierInAsync_await() async {
-    // TODO(brianwilkerson) Report this error.
-    Source source = addSource(r'''
-class A {
-  m() async {
-    int await;
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_IDENTIFIER_IN_ASYNC]);
-    verify([source]);
-  }
-
-  fail_invalidIdentifierInAsync_yield() async {
-    // TODO(brianwilkerson) Report this error.
-    Source source = addSource(r'''
-class A {
-  m() async {
-    int yield;
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_IDENTIFIER_IN_ASYNC]);
-    verify([source]);
-  }
-
-  fail_mixinDeclaresConstructor() async {
-    Source source = addSource(r'''
-class A {
-  A() {}
-}
-class B extends Object mixin A {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR]);
-    verify([source]);
-  }
-
-  fail_mixinOfNonClass() async {
-    // TODO(brianwilkerson) Compare with MIXIN_WITH_NON_CLASS_SUPERCLASS.
-    Source source = addSource(r'''
-var A;
-class B extends Object mixin A {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_NON_CLASS]);
-    verify([source]);
-  }
-
-  fail_objectCannotExtendAnotherClass() async {
-    Source source = addSource(r'''
+    // TODO(paulberry): this test is currently disabled due to non-termination
+    // bugs elsewhere in the analyzer.
+    Source source = addSource('''
+class A<T> implements B<List<T>> {}
+class B<T> implements A<List<T>> {}
 ''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.OBJECT_CANNOT_EXTEND_ANOTHER_CLASS]);
-    verify([source]);
-  }
-
-  fail_superInitializerInObject() async {
-    Source source = addSource(r'''
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT]);
-    verify([source]);
-  }
-
-  fail_yieldEachInNonGenerator_async() async {
-    // TODO(brianwilkerson) We are currently parsing the yield statement as a
-    // binary expression.
-    Source source = addSource(r'''
-f() async {
-  yield* 0;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR]);
-    verify([source]);
-  }
-
-  fail_yieldEachInNonGenerator_sync() async {
-    // TODO(brianwilkerson) We are currently parsing the yield statement as a
-    // binary expression.
-    Source source = addSource(r'''
-f() {
-  yield* 0;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.YIELD_IN_NON_GENERATOR]);
-    verify([source]);
-  }
-
-  fail_yieldInNonGenerator_async() async {
-    // TODO(brianwilkerson) We are currently trying to parse the yield statement
-    // as a binary expression.
-    Source source = addSource(r'''
-f() async {
-  yield 0;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.YIELD_IN_NON_GENERATOR]);
-    verify([source]);
-  }
-
-  fail_yieldInNonGenerator_sync() async {
-    // TODO(brianwilkerson) We are currently trying to parse the yield statement
-    // as a binary expression.
-    Source source = addSource(r'''
-f() {
-  yield 0;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR]);
-    verify([source]);
+    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
   }
 
   test_accessPrivateEnumField() async {
@@ -203,14 +143,10 @@ String name(E e) {
 library L;
 export 'lib1.dart';
 export 'lib2.dart';''');
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 class N {}''');
-    addNamedSource(
-        "/lib2.dart",
-        r'''
+    addNamedSource("/lib2.dart", r'''
 library lib2;
 class N {}''');
     await computeAnalysisResult(source);
@@ -237,9 +173,7 @@ main() {
   }
 
   test_annotationWithNotClass_prefixed() async {
-    addNamedSource(
-        "/annotations.dart",
-        r'''
+    addNamedSource("/annotations.dart", r'''
 class Property {
   final int value;
   const Property(this.value);
@@ -273,16 +207,13 @@ f() async {
 
   test_async_used_as_identifier_in_argument_label() async {
     Source source = addSource('''
-@proxy
-class C {}
-f() async {
-  new C().g(async: 0);
+f(c) async {
+  c.g(async: 0);
 }
 ''');
     await computeAnalysisResult(source);
     assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
-    // Note: we don't call verify([source]) because verify() doesn't understand
-    // about @proxy.
+    verify([source]);
   }
 
   test_async_used_as_identifier_in_async_method() async {
@@ -494,7 +425,10 @@ f() async {
 g() {}
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    assertErrors(source, [
+      ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
+      HintCode.UNUSED_LABEL
+    ]);
     verify([source]);
   }
 
@@ -511,9 +445,7 @@ f() async {
   }
 
   test_async_used_as_identifier_in_suffix() async {
-    addNamedSource(
-        "/lib1.dart",
-        r'''
+    addNamedSource("/lib1.dart", r'''
 library lib1;
 int async;
 ''');
@@ -537,7 +469,10 @@ f() async {
 }
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    assertErrors(source, [
+      ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
+      HintCode.UNUSED_LABEL
+    ]);
     verify([source]);
   }
 
@@ -596,6 +531,35 @@ f() sync* {
     verify([source]);
   }
 
+  @failingTest
+  test_awaitInWrongContext_sync() async {
+    // This test requires better error recovery than we currently have. In
+    // particular, we need to be able to distinguish between an await expression
+    // in the wrong context, and the use of 'await' as an identifier.
+    Source source = addSource(r'''
+f(x) {
+  return await x;
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT]);
+    verify([source]);
+  }
+
+  test_awaitInWrongContext_syncStar() async {
+    // This test requires better error recovery than we currently have. In
+    // particular, we need to be able to distinguish between an await expression
+    // in the wrong context, and the use of 'await' as an identifier.
+    Source source = addSource(r'''
+f(x) sync* {
+  yield await x;
+}''');
+    await computeAnalysisResult(source);
+    if (usingFastaParser || useCFE) {
+      assertErrors(source, [CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT]);
+    }
+    verify([source]);
+  }
+
   test_bug_23176() async {
     Source source = addSource('''
 class A {
@@ -606,10 +570,18 @@ class B {
 }
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      ParserErrorCode.EXPECTED_CLASS_MEMBER,
-      ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE
-    ]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [
+                ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE,
+                ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE,
+                ParserErrorCode.EXPECTED_TOKEN
+              ]
+            : [
+                ParserErrorCode.EXPECTED_CLASS_MEMBER,
+                ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE
+              ]);
     verify([source]);
   }
 
@@ -619,8 +591,11 @@ class A {}
 class B {}
 class as = A with B;''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.BUILT_IN_IDENTIFIER_IN_DECLARATION
+          : CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME
+    ]);
     verify([source]);
   }
 
@@ -628,10 +603,22 @@ class as = A with B;''');
     Source source = addSource("import 'dart:async' as abstract;");
     await computeAnalysisResult(source);
     assertErrors(source, [
-      CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME,
+      useCFE
+          ? CompileTimeErrorCode.BUILT_IN_IDENTIFIER_IN_DECLARATION
+          : CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME,
       HintCode.UNUSED_IMPORT
     ]);
     verify([source]);
+  }
+
+  test_builtInIdentifierAsType_dynamicMissingPrefix() async {
+    Source source = addSource(r"""
+import 'dart:core' as core;
+
+dynamic x;
+""");
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
   }
 
   test_builtInIdentifierAsType_formalParameter_field() async {
@@ -641,7 +628,11 @@ class A {
   A(static this.x);
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [ParserErrorCode.EXTRANEOUS_MODIFIER]
+            : [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
     verify([source]);
   }
 
@@ -650,7 +641,11 @@ class A {
 f(static x) {
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [ParserErrorCode.EXTRANEOUS_MODIFIER]
+            : [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
     verify([source]);
   }
 
@@ -660,31 +655,48 @@ f() {
   typedef x;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [
+                StaticWarningCode.UNDEFINED_IDENTIFIER,
+                StaticWarningCode.UNDEFINED_IDENTIFIER,
+                ParserErrorCode.EXPECTED_TOKEN
+              ]
+            : [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
     verify([source]);
   }
 
   test_builtInIdentifierAsTypedefName_functionTypeAlias() async {
     Source source = addSource("typedef bool as();");
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.BUILT_IN_IDENTIFIER_IN_DECLARATION
+          : CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME
+    ]);
     verify([source]);
   }
 
   test_builtInIdentifierAsTypeName() async {
     Source source = addSource("class as {}");
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.BUILT_IN_IDENTIFIER_IN_DECLARATION
+          : CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME
+    ]);
     verify([source]);
   }
 
   test_builtInIdentifierAsTypeParameterName() async {
     Source source = addSource("class A<as> {}");
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.BUILT_IN_IDENTIFIER_IN_DECLARATION
+          : CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME
+    ]);
     verify([source]);
   }
 
@@ -693,8 +705,8 @@ f() {
 class IntWrapper {
   final int value;
   const IntWrapper(this.value);
-  bool operator ==(IntWrapper x) {
-    return value == x.value;
+  bool operator ==(Object x) {
+    return x is IntWrapper && x.value == value;
   }
   get hashCode => value;
 }
@@ -719,7 +731,13 @@ class A {
 }''');
     await computeAnalysisResult(source);
     assertErrors(
-        source, [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD]);
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.CONFLICTS_WITH_CONSTRUCTOR,
+                CompileTimeErrorCode.CONFLICTS_WITH_MEMBER
+              ]
+            : [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD]);
     verify([source]);
   }
 
@@ -731,7 +749,13 @@ class A {
 }''');
     await computeAnalysisResult(source);
     assertErrors(
-        source, [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD]);
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.CONFLICTS_WITH_CONSTRUCTOR,
+                CompileTimeErrorCode.CONFLICTS_WITH_MEMBER
+              ]
+            : [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD]);
     verify([source]);
   }
 
@@ -743,8 +767,64 @@ class A {
 }''');
     await computeAnalysisResult(source);
     assertErrors(
-        source, [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD]);
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.CONFLICTS_WITH_CONSTRUCTOR,
+                CompileTimeErrorCode.CONFLICTS_WITH_MEMBER
+              ]
+            : [CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD]);
     verify([source]);
+  }
+
+  test_conflictingGenericInterfaces_hierarchyLoop() async {
+    // There is no interface conflict here, but there is a loop in the class
+    // hierarchy leading to a finite set of implemented types; this loop
+    // shouldn't cause non-termination.
+    Source source = addSource('''
+class A<T> implements B<T> {}
+class B<T> implements A<T> {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
+    ]);
+  }
+
+  test_conflictingGenericInterfaces_noConflict() async {
+    Source source = addSource('''
+class I<T> {}
+class A implements I<int> {}
+class B implements I<int> {}
+class C extends A implements B {}
+    ''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  @failingTest // Does not work with old task model
+  test_conflictingGenericInterfaces_simple() async {
+    Source source = addSource('''
+class I<T> {}
+class A implements I<int> {}
+class B implements I<String> {}
+class C extends A implements B {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
+  }
+
+  @failingTest // Does not work with old task model
+  test_conflictingGenericInterfaces_viaMixin() async {
+    Source source = addSource('''
+class I<T> {}
+class A implements I<int> {}
+class B implements I<String> {}
+class C extends A with B {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
   }
 
   test_conflictingGetterAndMethod_field_method() async {
@@ -756,7 +836,11 @@ class B extends A {
   m() {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.DECLARED_MEMBER_CONFLICTS_WITH_INHERITED]
+            : [CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD]);
     verify([source]);
   }
 
@@ -769,7 +853,11 @@ class B extends A {
   m() {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.DECLARED_MEMBER_CONFLICTS_WITH_INHERITED]
+            : [CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD]);
     verify([source]);
   }
 
@@ -782,7 +870,11 @@ class B extends A {
   int m;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.DECLARED_MEMBER_CONFLICTS_WITH_INHERITED]
+            : [CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER]);
     verify([source]);
   }
 
@@ -795,7 +887,11 @@ class B extends A {
   get m => 0;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.DECLARED_MEMBER_CONFLICTS_WITH_INHERITED]
+            : [CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER]);
     verify([source]);
   }
 
@@ -889,6 +985,21 @@ foo(var p) {
     verify([source]);
   }
 
+  test_const_invalid_constructorFieldInitializer_fromLibrary() async {
+    addNamedSource('/lib.dart', r'''
+class A<T> {
+  final int f;
+  const A() : f = T.foo;
+}
+''');
+    Source source = addSource(r'''
+import 'lib.dart';
+const a = const A();
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+  }
+
   test_constConstructor_redirect_generic() async {
     Source source = addSource(r'''
 class A<T> {
@@ -940,15 +1051,33 @@ int f() {
     verify([source]);
   }
 
-  test_constConstructorWithMixin() async {
+  test_constConstructorWithMixinWithField() async {
     Source source = addSource(r'''
-class M {
+class A {
+  var a;
 }
-class A extends Object with M {
-  const A();
+class B extends Object with A {
+  const B();
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN]);
+    assertErrors(source, [
+      CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
+      CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD
+    ]);
+    verify([source]);
+  }
+
+  test_constConstructorWithMixinWithField_final() async {
+    Source source = addSource(r'''
+class A {
+  final int a = 0;
+}
+class B extends Object with A {
+  const B();
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD]);
     verify([source]);
   }
 
@@ -990,7 +1119,7 @@ class B extends Object with A {
 }''');
     await computeAnalysisResult(source);
     assertErrors(source, [
-      CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN,
+      CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
       CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD
     ]);
     verify([source]);
@@ -1077,7 +1206,7 @@ const a = new A();''');
     // the code is correct--we shouldn't report an error.
     Source source = addSource(r'''
 class A {
-  external factory const A();
+  external const factory A();
 }
 const x = const A();''');
     await computeAnalysisResult(source);
@@ -1103,13 +1232,26 @@ const x = const C().t;''');
     Source source = addSource(r'''
 class A {
   const A();
-  m() {}
+  int m() => 0;
 }
 final a = const A();
 const C = a.m;''');
     await computeAnalysisResult(source);
     assertErrors(source,
         [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_constEvalThrowsException() async {
+    Source source = addSource(r'''
+class C {
+  const C();
+}
+f() { return const C(); }''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION]);
     verify([source]);
   }
 
@@ -1200,11 +1342,21 @@ var x = const C(2);
   test_constEvalTypeBool_binary_leftTrue() async {
     Source source = addSource("const C = (true || 0);");
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
-      StaticTypeWarningCode.NON_BOOL_OPERAND,
-      HintCode.DEAD_CODE
-    ]);
+    assertErrors(
+        source, [StaticTypeWarningCode.NON_BOOL_OPERAND, HintCode.DEAD_CODE]);
+    verify([source]);
+  }
+
+  test_constEvalTypeBool_logicalOr_trueLeftOperand() async {
+    Source source = addSource(r'''
+class C {
+  final int x;
+  const C({this.x}) : assert(x == null || x >= 0);
+}
+const c = const C();
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -1266,14 +1418,28 @@ class A {
   A(const this.x) {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_FORMAL_PARAMETER]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [
+                CompileTimeErrorCode.CONST_FORMAL_PARAMETER,
+                ParserErrorCode.EXTRANEOUS_MODIFIER
+              ]
+            : [CompileTimeErrorCode.CONST_FORMAL_PARAMETER]);
     verify([source]);
   }
 
   test_constFormalParameter_simpleFormalParameter() async {
     Source source = addSource("f(const x) {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_FORMAL_PARAMETER]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [
+                CompileTimeErrorCode.CONST_FORMAL_PARAMETER,
+                ParserErrorCode.EXTRANEOUS_MODIFIER
+              ]
+            : [CompileTimeErrorCode.CONST_FORMAL_PARAMETER]);
     verify([source]);
   }
 
@@ -1293,7 +1459,7 @@ f(p) {
     // caused two errors to be reported.
     Source source = addSource(r'''
 class Foo {
-  final field = [];
+  final field = 0;
   foo([int x = field]) {}
 }
 ''');
@@ -1305,16 +1471,26 @@ class Foo {
   test_constInitializedWithNonConstValue_missingConstInListLiteral() async {
     Source source = addSource("const List L = [0];");
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    if ((analysisContext?.analysisOptions ?? driver.analysisOptions)
+        .previewDart2) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source,
+          [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    }
     verify([source]);
   }
 
   test_constInitializedWithNonConstValue_missingConstInMapLiteral() async {
     Source source = addSource("const Map M = {'a' : 0};");
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    if ((analysisContext?.analysisOptions ?? driver.analysisOptions)
+        .previewDart2) {
+      assertNoErrors(source);
+    } else {
+      assertErrors(source,
+          [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    }
     verify([source]);
   }
 
@@ -1484,6 +1660,27 @@ f() { return const T(0, 1, c: 2, d: 3); }''');
     verify([source]);
   }
 
+  test_constWithNonConst_in_const_context() async {
+    Source source = addSource(r'''
+class A {
+  const A(x);
+}
+class B {
+}
+main() {
+  const A(B());
+}
+''');
+    await computeAnalysisResult(source);
+    // TODO(a14n): the error CONST_WITH_NON_CONSTANT_ARGUMENT is redundant and
+    // ought to be suppressed.
+    assertErrors(source, [
+      CompileTimeErrorCode.CONST_WITH_NON_CONST,
+      CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT
+    ]);
+    verify([source]);
+  }
+
   test_constWithNonConst_with() async {
     Source source = addSource(r'''
 class B {
@@ -1497,7 +1694,12 @@ main() {
 }
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_WITH_NON_CONST]);
+    // TODO(a14n): the error CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE is
+    // redundant and ought to be suppressed.
+    assertErrors(source, [
+      CompileTimeErrorCode.CONST_WITH_NON_CONST,
+      CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+    ]);
     verify([source]);
   }
 
@@ -1545,9 +1747,7 @@ f() {
 
   test_constWithNonType_fromLibrary() async {
     Source source1 = addNamedSource("/lib.dart", "");
-    Source source2 = addNamedSource(
-        "/lib2.dart",
-        r'''
+    Source source2 = addNamedSource("/lib2.dart", r'''
 import 'lib.dart' as lib;
 void f() {
   const lib.A();
@@ -1556,34 +1756,6 @@ void f() {
     await computeAnalysisResult(source2);
     assertErrors(source2, [CompileTimeErrorCode.CONST_WITH_NON_TYPE]);
     verify([source1]);
-  }
-
-  test_constWithTypeParameters_direct() async {
-    Source source = addSource(r'''
-class A<T> {
-  static const V = const A<T>();
-  const A();
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
-      StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC
-    ]);
-    verify([source]);
-  }
-
-  test_constWithTypeParameters_indirect() async {
-    Source source = addSource(r'''
-class A<T> {
-  static const V = const A<List<T>>();
-  const A();
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
-      StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC
-    ]);
-    verify([source]);
   }
 
   test_constWithUndefinedConstructor() async {
@@ -1614,27 +1786,83 @@ f() {
     verify([source]);
   }
 
-  test_defaultValueInFunctionTypeAlias() async {
+  test_defaultValueInFunctionTypeAlias_new_named() async {
+    Source source = addSource('''
+typedef F = int Function({Map<String, String> m: const {}});
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE,
+      StrongModeCode.INVALID_CAST_LITERAL_MAP
+    ]);
+    verify([source]);
+  }
+
+  test_defaultValueInFunctionTypeAlias_new_positional() async {
+    Source source = addSource('''
+typedef F = int Function([Map<String, String> m = const {}]);
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE,
+      StrongModeCode.INVALID_CAST_LITERAL_MAP
+    ]);
+    verify([source]);
+  }
+
+  test_defaultValueInFunctionTypeAlias_old_named() async {
     Source source = addSource("typedef F([x = 0]);");
     await computeAnalysisResult(source);
     assertErrors(
-        source, [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS]);
+        source,
+        usingFastaParser
+            ? [
+                CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS,
+                ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE
+              ]
+            : [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS]);
+    verify([source]);
+  }
+
+  test_defaultValueInFunctionTypeAlias_old_positional() async {
+    Source source = addSource("typedef F([x = 0]);");
+    await computeAnalysisResult(source);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [
+                CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS,
+                ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE
+              ]
+            : [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS]);
     verify([source]);
   }
 
   test_defaultValueInFunctionTypedParameter_named() async {
     Source source = addSource("f(g({p: null})) {}");
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [
+                CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER,
+                ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE
+              ]
+            : [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER]);
     verify([source]);
   }
 
   test_defaultValueInFunctionTypedParameter_optional() async {
     Source source = addSource("f(g([p = null])) {}");
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [
+                CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER,
+                ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE
+              ]
+            : [CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER]);
     verify([source]);
   }
 
@@ -1652,6 +1880,16 @@ class B implements A {
       CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR
     ]);
     verify([source]);
+  }
+
+  test_deferredImportWithInvalidUri() async {
+    Source source = addSource(r'''
+import '[invalid uri]' deferred as p;
+main() {
+  p.loadLibrary();
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
   }
 
   test_duplicateConstructorName_named() async {
@@ -1683,22 +1921,16 @@ class A {
   }
 
   test_duplicateDefinition_acrossLibraries() async {
-    Source librarySource = addNamedSource(
-        "/lib.dart",
-        r'''
+    Source librarySource = addNamedSource("/lib.dart", r'''
 library lib;
 
 part 'a.dart';
 part 'b.dart';''');
-    Source sourceA = addNamedSource(
-        "/a.dart",
-        r'''
+    Source sourceA = addNamedSource("/a.dart", r'''
 part of lib;
 
 class A {}''');
-    Source sourceB = addNamedSource(
-        "/b.dart",
-        r'''
+    Source sourceB = addNamedSource("/b.dart", r'''
 part of lib;
 
 class A {}''');
@@ -1754,15 +1986,11 @@ class A {
   }
 
   test_duplicateDefinition_inPart() async {
-    Source librarySource = addNamedSource(
-        "/lib.dart",
-        r'''
+    Source librarySource = addNamedSource("/lib.dart", r'''
 library test;
 part 'a.dart';
 class A {}''');
-    Source sourceA = addNamedSource(
-        "/a.dart",
-        r'''
+    Source sourceA = addNamedSource("/a.dart", r'''
 part of test;
 class A {}''');
     await computeAnalysisResult(librarySource);
@@ -2061,17 +2289,32 @@ class C = a.A with M;'''
   test_extendsDisallowedClass_class_double() async {
     Source source = addSource("class A extends double {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
   test_extendsDisallowedClass_class_int() async {
     Source source = addSource("class A extends int {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
-      CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
-    ]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
+              ]);
     verify([source]);
   }
 
@@ -2088,17 +2331,32 @@ class C = a.A with M;'''
   test_extendsDisallowedClass_class_num() async {
     Source source = addSource("class A extends num {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
   test_extendsDisallowedClass_class_String() async {
     Source source = addSource("class A extends String {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
-      CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
-    ]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
+              ]);
     verify([source]);
   }
 
@@ -2107,7 +2365,14 @@ class C = a.A with M;'''
 class M {}
 class C = bool with M;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
+              ]
+            : [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -2116,7 +2381,14 @@ class C = bool with M;''');
 class M {}
 class C = double with M;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -2125,7 +2397,15 @@ class C = double with M;''');
 class M {}
 class C = int with M;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -2143,7 +2423,14 @@ class C = Null with M;''');
 class M {}
 class C = num with M;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -2152,7 +2439,15 @@ class C = num with M;''');
 class M {}
 class C = String with M;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -2254,8 +2549,13 @@ class A {
   A() : x = 0, x = 1 {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES]
+            : [
+                CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS
+              ]);
     verify([source]);
   }
 
@@ -2266,10 +2566,17 @@ class A {
   A() : x = 0, x = 1, x = 2 {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
-      CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS
-    ]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES,
+                CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES
+              ]
+            : [
+                CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
+                CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS
+              ]);
     verify([source]);
   }
 
@@ -2281,10 +2588,17 @@ class A {
   A() : x = 0, x = 1, y = 0, y = 1 {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
-      CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS
-    ]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES,
+                CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES
+              ]
+            : [
+                CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
+                CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS
+              ]);
     verify([source]);
   }
 
@@ -2295,8 +2609,14 @@ class A {
   A(this.x) : x = 1 {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES]
+            : [
+                CompileTimeErrorCode
+                    .FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER
+              ]);
     verify([source]);
   }
 
@@ -2397,8 +2717,13 @@ class A {
   A() : x = 0, x = 0 {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES]
+            : [
+                CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS
+              ]);
     verify([source]);
   }
 
@@ -2417,8 +2742,14 @@ class A {
   A(this.x) : x = 0 {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source,
-        [CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES]
+            : [
+                CompileTimeErrorCode
+                    .FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER
+              ]);
     verify([source]);
   }
 
@@ -2482,9 +2813,10 @@ var b2 = const bool.fromEnvironment('x', defaultValue: 1);''');
     // The type of the defaultValue needs to be correct even when the default
     // value isn't used (because the variable is defined in the environment).
     if (enableNewAnalysisDriver) {
-      driver.declaredVariables.define("x", "true");
+      driver.declaredVariables = new DeclaredVariables.fromMap({'x': 'true'});
     } else {
-      analysisContext2.declaredVariables.define("x", "true");
+      (analysisContext2 as AnalysisContextImpl).declaredVariables =
+          new DeclaredVariables.fromMap({'x': 'true'});
     }
     Source source =
         addSource("var b = const bool.fromEnvironment('x', defaultValue: 1);");
@@ -2493,6 +2825,138 @@ var b2 = const bool.fromEnvironment('x', defaultValue: 1);''');
       CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
       StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
     ]);
+    verify([source]);
+  }
+
+  test_genericFunctionTypeArgument_class() async {
+    Source source = addSource(r'''
+class C<T> {}
+C<T Function<T>(T)> c;''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT]);
+    verify([source]);
+  }
+
+  test_genericFunctionTypeArgument_function() async {
+    Source source = addSource(r'''
+T f<T>(T) => null;
+main() { f<S Function<S>(S)>(null); }''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT]);
+    verify([source]);
+  }
+
+  test_genericFunctionTypeArgument_functionType() async {
+    Source source = addSource(r'''
+T Function<T>(T) f;
+main() { f<S Function<S>(S)>(null); }''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT]);
+    verify([source]);
+  }
+
+  test_genericFunctionTypeArgument_inference_function() async {
+    Source source = addSource(r'''
+T f<T>(T t) => null;
+main() { f(<S>(S s) => s); }''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StrongModeCode.COULD_NOT_INFER]);
+    verify([source]);
+  }
+
+  test_genericFunctionTypeArgument_inference_functionType() async {
+    Source source = addSource(r'''
+T Function<T>(T) f;
+main() { f(<S>(S s) => s); }''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StrongModeCode.COULD_NOT_INFER]);
+    verify([source]);
+  }
+
+  test_genericFunctionTypeArgument_inference_method() async {
+    Source source = addSource(r'''
+class C {
+  T f<T>(T t) => null;
+}
+main() { new C().f(<S>(S s) => s); }''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [StrongModeCode.COULD_NOT_INFER]);
+    verify([source]);
+  }
+
+  test_genericFunctionTypeArgument_method() async {
+    Source source = addSource(r'''
+class C {
+  T f<T>(T) => null;
+}
+main() { new C().f<S Function<S>(S)>(null); }''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_genericFunctionTypeArgument_typedef() async {
+    // TODO(mfairhurst) diagnose these parse errors to give the correct error
+    Source source = addSource(r'''
+typedef T f<T>(T t);
+final T<Function<S>(int)> x = null;''');
+    await computeAnalysisResult(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT]);
+    verify([source]);
+  }
+
+  test_genericFunctionTypeAsBound_class() async {
+    Source source = addSource(r'''
+class C<T extends S Function<S>(S)> {
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND]);
+    verify([source]);
+  }
+
+  test_genericFunctionTypeAsBound_genericFunction() async {
+    Source source = addSource(r'''
+T Function<T extends S Function<S>(S)>(T) fun;
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND]);
+    verify([source]);
+  }
+
+  test_genericFunctionTypeAsBound_genericFunctionTypedef() async {
+    Source source = addSource(r'''
+typedef foo = T Function<T extends S Function<S>(S)>(T t);
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND]);
+    verify([source]);
+  }
+
+  test_genericFunctionTypeAsBound_parameterOfFunction() async {
+    Source source = addSource(r'''
+class C<T extends void Function(S Function<S>(S))> {
+}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_genericFunctionTypeAsBound_typedef() async {
+    Source source = addSource(r'''
+typedef T foo<T extends S Function<S>(S)>(T t);
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND]);
     verify([source]);
   }
 
@@ -2506,30 +2970,7 @@ var b2 = const bool.fromEnvironment('x', defaultValue: 1);''');
     var expectedErrorCodes = <ErrorCode>[
       CompileTimeErrorCode.GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED
     ];
-    if (enableNewAnalysisDriver) {
-      // Due to dartbug.com/28515, some additional errors appear when using the
-      // new analysis driver.
-      expectedErrorCodes.addAll([
-        StaticWarningCode.UNDEFINED_CLASS,
-        StaticWarningCode.UNDEFINED_CLASS
-      ]);
-    }
-    assertErrors(source, expectedErrorCodes);
-    verify([source]);
-  }
-
-  test_genericFunctionTypedParameter_commentSyntax() async {
-    // Once dartbug.com/28515 is fixed, this syntax should no longer generate an
-    // error.
-    // TODO(paulberry): When dartbug.com/28515 is fixed, convert this into a
-    // NonErrorResolverTest.
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
-    Source source = addSource('void g(/*=T*/ f/*<T>*/(/*=T*/ x)) {}');
-    await computeAnalysisResult(source);
-    var expectedErrorCodes = <ErrorCode>[
-      CompileTimeErrorCode.GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED
-    ];
-    if (enableNewAnalysisDriver) {
+    if (enableNewAnalysisDriver && !enableKernelDriver) {
       // Due to dartbug.com/28515, some additional errors appear when using the
       // new analysis driver.
       expectedErrorCodes.addAll([
@@ -2586,42 +3027,78 @@ class C = B with M implements a.A;'''
   test_implementsDisallowedClass_class_bool() async {
     Source source = addSource("class A implements bool {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
   test_implementsDisallowedClass_class_double() async {
     Source source = addSource("class A implements double {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
   test_implementsDisallowedClass_class_int() async {
     Source source = addSource("class A implements int {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
   test_implementsDisallowedClass_class_Null() async {
     Source source = addSource("class A implements Null {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
   test_implementsDisallowedClass_class_num() async {
     Source source = addSource("class A implements num {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
   test_implementsDisallowedClass_class_String() async {
     Source source = addSource("class A implements String {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -2629,8 +3106,12 @@ class C = B with M implements a.A;'''
     Source source = addSource("class A implements String, num {}");
     await computeAnalysisResult(source);
     assertErrors(source, [
-      CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
-      CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
     ]);
     verify([source]);
   }
@@ -2641,7 +3122,11 @@ class A {}
 class M {}
 class C = A with M implements bool;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
@@ -2651,7 +3136,14 @@ class A {}
 class M {}
 class C = A with M implements double;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -2661,7 +3153,14 @@ class A {}
 class M {}
 class C = A with M implements int;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -2671,7 +3170,11 @@ class A {}
 class M {}
 class C = A with M implements Null;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
@@ -2681,7 +3184,14 @@ class A {}
 class M {}
 class C = A with M implements num;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -2691,7 +3201,14 @@ class A {}
 class M {}
 class C = A with M implements String;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -2702,8 +3219,12 @@ class M {}
 class C = A with M implements String, num;''');
     await computeAnalysisResult(source);
     assertErrors(source, [
-      CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
-      CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS
     ]);
     verify([source]);
   }
@@ -2782,21 +3303,21 @@ class B extends A implements A {}''');
     verify([source]);
   }
 
-  test_implementsSuperClass_typeAlias() async {
-    Source source = addSource(r'''
-class A {}
-class M {}
-class B = A with M implements A;''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS]);
-    verify([source]);
-  }
-
   test_implementsSuperClass_Object_typeAlias() async {
     Source source = addSource(r'''
 class M {}
 class A = Object with M implements Object;
     ''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS]);
+    verify([source]);
+  }
+
+  test_implementsSuperClass_typeAlias() async {
+    Source source = addSource(r'''
+class A {}
+class M {}
+class B = A with M implements A;''');
     await computeAnalysisResult(source);
     assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS]);
     verify([source]);
@@ -2822,8 +3343,15 @@ class A {
   final y = x;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER]);
+    if (enableKernelDriver) {
+      assertErrors(source,
+          [CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
+        StrongModeCode.TOP_LEVEL_INSTANCE_GETTER
+      ]);
+    }
     verify([source]);
   }
 
@@ -2844,7 +3372,7 @@ class A {
     Source source = addSource(r'''
 class A {
   static var F = m();
-  m() {}
+  int m() => 0;
 }''');
     await computeAnalysisResult(source);
     assertErrors(
@@ -2898,9 +3426,7 @@ class B extends A {
 library lib;
 import 'part.dart';
 A a;''');
-    addNamedSource(
-        "/part.dart",
-        r'''
+    addNamedSource("/part.dart", r'''
 part of lib;
 class A{}''');
     await computeAnalysisResult(source);
@@ -3162,37 +3688,20 @@ E e(String name) {
     verify([source]);
   }
 
-  test_invalidAnnotation_getter() async {
-    Source source = addSource(r'''
-get V => 0;
-@V
-main() {
-}''');
+  test_integerLiteralOutOfRange_negative() async {
+    Source source = addSource('int x = -9223372036854775809;');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION]);
-    verify([source]);
+    assertErrors(source, [CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE]);
   }
 
-  test_invalidAnnotation_importWithPrefix_getter() async {
-    addNamedSource(
-        "/lib.dart",
-        r'''
-library lib;
-get V => 0;''');
-    Source source = addSource(r'''
-import 'lib.dart' as p;
-@p.V
-main() {
-}''');
+  test_integerLiteralOutOfRange_positive() async {
+    Source source = addSource('int x = 9223372036854775808;');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION]);
-    verify([source]);
+    assertErrors(source, [CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE]);
   }
 
   test_invalidAnnotation_importWithPrefix_notConstantVariable() async {
-    addNamedSource(
-        "/lib.dart",
-        r'''
+    addNamedSource("/lib.dart", r'''
 library lib;
 final V = 0;''');
     Source source = addSource(r'''
@@ -3206,9 +3715,7 @@ main() {
   }
 
   test_invalidAnnotation_importWithPrefix_notVariableOrConstructorInvocation() async {
-    addNamedSource(
-        "/lib.dart",
-        r'''
+    addNamedSource("/lib.dart", r'''
 library lib;
 typedef V();''');
     Source source = addSource(r'''
@@ -3254,44 +3761,6 @@ main() {
     await computeAnalysisResult(source);
     assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION]);
     verify([source]);
-  }
-
-  test_invalidAnnotation_unresolved_identifier() async {
-    Source source = addSource(r'''
-@unresolved
-main() {
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION]);
-  }
-
-  test_invalidAnnotation_unresolved_invocation() async {
-    Source source = addSource(r'''
-@Unresolved()
-main() {
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION]);
-  }
-
-  test_invalidAnnotation_unresolved_prefixedIdentifier() async {
-    Source source = addSource(r'''
-import 'dart:math' as p;
-@p.unresolved
-main() {
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION]);
-  }
-
-  test_invalidAnnotation_useLibraryScope() async {
-    Source source = addSource(r'''
-@foo
-class A {
-  static const foo = null;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION]);
   }
 
   test_invalidAnnotationFromDeferredLibrary() async {
@@ -3340,6 +3809,31 @@ import 'lib1.dart' deferred as a;
     ]);
   }
 
+  test_invalidAnnotationGetter_getter() async {
+    Source source = addSource(r'''
+get V => 0;
+@V
+main() {
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION_GETTER]);
+    verify([source]);
+  }
+
+  test_invalidAnnotationGetter_importWithPrefix_getter() async {
+    addNamedSource("/lib.dart", r'''
+library lib;
+get V => 0;''');
+    Source source = addSource(r'''
+import 'lib.dart' as p;
+@p.V
+main() {
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_ANNOTATION_GETTER]);
+    verify([source]);
+  }
+
   test_invalidConstructorName_notEnclosingClassName_defined() async {
     Source source = addSource(r'''
 class A {
@@ -3384,6 +3878,48 @@ class A {
     // no verify() call, "B" is not resolved
   }
 
+  @failingTest
+  test_invalidIdentifierInAsync_async() async {
+    // TODO(brianwilkerson) Report this error.
+    Source source = addSource(r'''
+class A {
+  m() async {
+    int async;
+  }
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_IDENTIFIER_IN_ASYNC]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_invalidIdentifierInAsync_await() async {
+    // TODO(brianwilkerson) Report this error.
+    Source source = addSource(r'''
+class A {
+  m() async {
+    int await;
+  }
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_IDENTIFIER_IN_ASYNC]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_invalidIdentifierInAsync_yield() async {
+    // TODO(brianwilkerson) Report this error.
+    Source source = addSource(r'''
+class A {
+  m() async {
+    int yield;
+  }
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_IDENTIFIER_IN_ASYNC]);
+    verify([source]);
+  }
+
   test_invalidModifierOnConstructor_async() async {
     Source source = addSource(r'''
 class A {
@@ -3423,7 +3959,16 @@ class A {
   set x(v) async {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
+    // TODO(danrubel): Investigate why error message is duplicated when
+    // using fasta parser.
+    assertErrors(
+        source,
+        usingFastaParser && !useCFE
+            ? [
+                CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
+                CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER
+              ]
+            : [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
     verify([source]);
   }
 
@@ -3433,7 +3978,14 @@ class A {
   set x(v) async* {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
+    assertErrors(
+        source,
+        usingFastaParser && !useCFE
+            ? [
+                CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
+                CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER
+              ]
+            : [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
     verify([source]);
   }
 
@@ -3443,28 +3995,56 @@ class A {
   set x(v) sync* {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
+    assertErrors(
+        source,
+        usingFastaParser && !useCFE
+            ? [
+                CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
+                CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER
+              ]
+            : [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
     verify([source]);
   }
 
   test_invalidModifierOnSetter_topLevel_async() async {
     Source source = addSource("set x(v) async {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
+    assertErrors(
+        source,
+        usingFastaParser && !useCFE
+            ? [
+                CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
+                CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER
+              ]
+            : [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
     verify([source]);
   }
 
   test_invalidModifierOnSetter_topLevel_asyncStar() async {
     Source source = addSource("set x(v) async* {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
+    assertErrors(
+        source,
+        usingFastaParser && !useCFE
+            ? [
+                CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
+                CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER
+              ]
+            : [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
     verify([source]);
   }
 
   test_invalidModifierOnSetter_topLevel_syncStar() async {
     Source source = addSource("set x(v) sync* {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
+    assertErrors(
+        source,
+        usingFastaParser && !useCFE
+            ? [
+                CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
+                CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER
+              ]
+            : [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
     verify([source]);
   }
 
@@ -3543,32 +4123,6 @@ class B extends A {
     Source source = addSource("int x = this;");
     await computeAnalysisResult(source);
     assertErrors(source, [CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS]);
-    verify([source]);
-  }
-
-  test_invalidTypeArgumentInConstList() async {
-    Source source = addSource(r'''
-class A<E> {
-  m() {
-    return const <E>[];
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST]);
-    verify([source]);
-  }
-
-  test_invalidTypeArgumentInConstMap() async {
-    Source source = addSource(r'''
-class A<E> {
-  m() {
-    return const <String, E>{};
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP]);
     verify([source]);
   }
 
@@ -3655,7 +4209,8 @@ f() {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.LABEL_UNDEFINED]);
+    assertErrors(
+        source, [CompileTimeErrorCode.LABEL_UNDEFINED, HintCode.UNUSED_LABEL]);
     // We cannot verify resolution with undefined labels
   }
 
@@ -3667,7 +4222,8 @@ f() {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.LABEL_UNDEFINED]);
+    assertErrors(
+        source, [CompileTimeErrorCode.LABEL_UNDEFINED, HintCode.UNUSED_LABEL]);
     // We cannot verify resolution with undefined labels
   }
 
@@ -3727,6 +4283,18 @@ class A {
     await computeAnalysisResult(source);
     assertErrors(
         source, [CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_mixinDeclaresConstructor() async {
+    Source source = addSource(r'''
+class A {
+  A() {}
+}
+class B extends Object mixin A {}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR]);
     verify([source]);
   }
 
@@ -3868,6 +4436,199 @@ class C extends B with M {
     verify([source]);
   }
 
+  @failingTest // Does not work with old task model
+  test_mixinInference_conflictingSubstitution() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+class M<T> extends A<Map<T, T>> {}
+class C extends A<Map<int, String>> with M {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION,
+      CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES
+    ]);
+  }
+
+  @failingTest // Does not work with old task model
+  test_mixinInference_doNotIgnorePreviousExplicitMixins() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWith(options: options);
+    Source source = addSource('''
+class A extends Object with B<String>, C {}
+class B<T> {}
+class C<T> extends B<T> {}
+''');
+    var analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    var mixins = analysisResult.unit.element.getType('A').mixins;
+    expect(mixins[1].toString(), 'C<String>');
+  }
+
+  @failingTest // Does not work with old task model
+  test_mixinInference_impossibleSubstitution() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+class M<T> extends A<Map<T, T>> {}
+class C extends A<List<int>> with M {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION,
+      CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES
+    ]);
+  }
+
+  test_mixinInference_matchingClass() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+class M<T> extends A<T> {}
+class C extends A<int> with M {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_mixinInference_matchingClass_inPreviousMixin() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+class M1 implements A<B> {}
+class M2<T> extends A<T> {}
+class C extends Object with M1, M2 {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_mixinInference_noMatchingClass() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+class M<T> extends A<T> {}
+class C extends Object with M {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS]);
+  }
+
+  @failingTest // Does not work with old task model
+  test_mixinInference_noMatchingClass_constraintSatisfiedByImplementsClause() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+class M<T> extends A<T> {}
+class C extends Object with M implements A<B> {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS,
+      CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES
+    ]);
+  }
+
+  test_mixinInference_noMatchingClass_namedMixinApplication() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+class M<T> extends A<T> {}
+class C = Object with M;
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS]);
+  }
+
+  test_mixinInference_noMatchingClass_noSuperclassConstraint() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+class M<T> {}
+class C extends Object with M {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_mixinInference_noMatchingClass_typeParametersSupplied() async {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWith(options: options);
+    Source source = addSource('''
+abstract class A<T> {}
+class B {}
+class M<T> extends A<T> {}
+class C extends Object with M<int> {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  @failingTest // Does not work with old task model
+  test_mixinInference_recursiveSubtypeCheck() async {
+    // See dartbug.com/32353 for a detailed explanation.
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableSuperMixins = true;
+    resetWith(options: options);
+    Source source = addSource('''
+class ioDirectory implements ioFileSystemEntity {}
+
+class ioFileSystemEntity {}
+
+abstract class _LocalDirectory
+    extends _LocalFileSystemEntity<_LocalDirectory, ioDirectory>
+    with ForwardingDirectory, DirectoryAddOnsMixin {}
+
+abstract class _LocalFileSystemEntity<T extends FileSystemEntity,
+  D extends ioFileSystemEntity> extends ForwardingFileSystemEntity<T, D> {}
+
+abstract class FileSystemEntity implements ioFileSystemEntity {}
+
+abstract class ForwardingFileSystemEntity<T extends FileSystemEntity,
+  D extends ioFileSystemEntity> implements FileSystemEntity {}
+
+
+abstract class ForwardingDirectory<T extends Directory>
+    extends ForwardingFileSystemEntity<T, ioDirectory>
+    implements Directory {}
+
+abstract class Directory implements FileSystemEntity, ioDirectory {}
+
+abstract class DirectoryAddOnsMixin implements Directory {}
+''');
+    var analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    var mixins = analysisResult.unit.element.getType('_LocalDirectory').mixins;
+    expect(mixins[0].toString(), 'ForwardingDirectory<_LocalDirectory>');
+  }
+
   test_mixinInheritsFromNotObject_classDeclaration_extends() async {
     Source source = addSource(r'''
 class A {}
@@ -3911,42 +4672,78 @@ class C = Object with B;''');
   test_mixinOfDisallowedClass_class_bool() async {
     Source source = addSource("class A extends Object with bool {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
   test_mixinOfDisallowedClass_class_double() async {
     Source source = addSource("class A extends Object with double {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
     verify([source]);
   }
 
   test_mixinOfDisallowedClass_class_int() async {
     Source source = addSource("class A extends Object with int {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
     verify([source]);
   }
 
   test_mixinOfDisallowedClass_class_Null() async {
     Source source = addSource("class A extends Object with Null {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
   test_mixinOfDisallowedClass_class_num() async {
     Source source = addSource("class A extends Object with num {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
     verify([source]);
   }
 
   test_mixinOfDisallowedClass_class_String() async {
     Source source = addSource("class A extends Object with String {}");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -3955,7 +4752,11 @@ class C = Object with B;''');
 class A {}
 class C = A with bool;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
@@ -3964,7 +4765,14 @@ class C = A with bool;''');
 class A {}
 class C = A with double;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -3973,7 +4781,14 @@ class C = A with double;''');
 class A {}
 class C = A with int;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -3982,7 +4797,11 @@ class C = A with int;''');
 class A {}
 class C = A with Null;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    assertErrors(source, [
+      useCFE
+          ? CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
+          : CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
+    ]);
     verify([source]);
   }
 
@@ -3991,7 +4810,14 @@ class C = A with Null;''');
 class A {}
 class C = A with num;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -4000,19 +4826,14 @@ class C = A with num;''');
 class A {}
 class C = A with String;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
-    verify([source]);
-  }
-
-  test_mixinOfDisallowedClass_classTypeAlias_String_num() async {
-    Source source = addSource(r'''
-class A {}
-class C = A with String, num;''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
-      CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS
-    ]);
+    assertErrors(
+        source,
+        useCFE
+            ? [
+                CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+                StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
+              ]
+            : [CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -4022,6 +4843,17 @@ enum E { ONE }
 class A extends Object with E {}''');
     await computeAnalysisResult(source);
     assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_ENUM]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_mixinOfNonClass() async {
+    // TODO(brianwilkerson) Compare with MIXIN_WITH_NON_CLASS_SUPERCLASS.
+    Source source = addSource(r'''
+var A;
+class B extends Object mixin A {}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_NON_CLASS]);
     verify([source]);
   }
 
@@ -4097,7 +4929,10 @@ class B extends A {
   B() : super(), super() {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS]);
+    assertErrors(source, [
+      CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS,
+      StrongModeCode.INVALID_SUPER_INVOCATION
+    ]);
     verify([source]);
   }
 
@@ -4607,7 +5442,23 @@ f() {
 }''');
     await computeAnalysisResult(source);
     assertErrors(
-        source, [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT]);
+        source,
+        usingFastaParser
+            ? [
+                // TODO(danrubel): Consider improving recovery
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.UNEXPECTED_TOKEN,
+                ParserErrorCode.UNEXPECTED_TOKEN,
+                ParserErrorCode.UNEXPECTED_TOKEN,
+              ]
+            : [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT]);
     verify([source]);
   }
 
@@ -4618,7 +5469,21 @@ f() {
 }''');
     await computeAnalysisResult(source);
     assertErrors(
-        source, [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT]);
+        source,
+        usingFastaParser
+            ? [
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.UNEXPECTED_TOKEN,
+                ParserErrorCode.UNEXPECTED_TOKEN,
+                ParserErrorCode.UNEXPECTED_TOKEN,
+              ]
+            : [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT]);
     verify([source]);
   }
 
@@ -4707,8 +5572,6 @@ f() {
   }
 
   test_nonConstValueInInitializer_assert_condition() async {
-    resetWith(
-        options: new AnalysisOptionsImpl()..enableAssertInitializer = true);
     Source source = addSource(r'''
 class A {
   const A(int i) : assert(i.isNegative);
@@ -4720,8 +5583,6 @@ class A {
   }
 
   test_nonConstValueInInitializer_assert_message() async {
-    resetWith(
-        options: new AnalysisOptionsImpl()..enableAssertInitializer = true);
     Source source = addSource(r'''
 class A {
   const A(int i) : assert(i < 0, 'isNegative = ${i.isNegative}');
@@ -4822,22 +5683,22 @@ var b = const B();''');
   }
 
   test_nonConstValueInInitializer_instanceCreation_inDifferentFile() async {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
-    Source source = addNamedSource(
-        '/a.dart',
-        r'''
+    Source sourceA = addNamedSource('/a.dart', r'''
 import 'b.dart';
 const v = const MyClass();
 ''');
-    addNamedSource(
-        '/b.dart',
-        r'''
+    Source sourceB = addNamedSource('/b.dart', r'''
 class MyClass {
   const MyClass([p = foo]);
 }
 ''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+    await computeAnalysisResult(sourceA);
+    assertNoErrors(sourceA);
+    await computeAnalysisResult(sourceB);
+    assertErrors(sourceB, [
+      CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE,
+      StaticWarningCode.UNDEFINED_IDENTIFIER
+    ]);
   }
 
   test_nonConstValueInInitializer_redirecting() async {
@@ -5006,6 +5867,16 @@ class B extends A {
     verify([source]);
   }
 
+  @failingTest
+  test_objectCannotExtendAnotherClass() async {
+    Source source = addSource(r'''
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.OBJECT_CANNOT_EXTEND_ANOTHER_CLASS]);
+    verify([source]);
+  }
+
   test_optionalParameterInOperator_named() async {
     Source source = addSource(r'''
 class A {
@@ -5106,9 +5977,7 @@ f() {
   }
 
   test_prefix_conditionalPropertyAccess_call() async {
-    addNamedSource(
-        '/lib.dart',
-        '''
+    addNamedSource('/lib.dart', '''
 library lib;
 g() {}
 ''');
@@ -5125,9 +5994,7 @@ f() {
   }
 
   test_prefix_conditionalPropertyAccess_call_loadLibrary() async {
-    addNamedSource(
-        '/lib.dart',
-        '''
+    addNamedSource('/lib.dart', '''
 library lib;
 ''');
     Source source = addSource('''
@@ -5143,9 +6010,7 @@ f() {
   }
 
   test_prefix_conditionalPropertyAccess_get() async {
-    addNamedSource(
-        '/lib.dart',
-        '''
+    addNamedSource('/lib.dart', '''
 library lib;
 var x;
 ''');
@@ -5162,9 +6027,7 @@ f() {
   }
 
   test_prefix_conditionalPropertyAccess_get_loadLibrary() async {
-    addNamedSource(
-        '/lib.dart',
-        '''
+    addNamedSource('/lib.dart', '''
 library lib;
 ''');
     Source source = addSource('''
@@ -5180,9 +6043,7 @@ f() {
   }
 
   test_prefix_conditionalPropertyAccess_set() async {
-    addNamedSource(
-        '/lib.dart',
-        '''
+    addNamedSource('/lib.dart', '''
 library lib;
 var x;
 ''');
@@ -5199,9 +6060,7 @@ f() {
   }
 
   test_prefix_conditionalPropertyAccess_set_loadLibrary() async {
-    addNamedSource(
-        '/lib.dart',
-        '''
+    addNamedSource('/lib.dart', '''
 library lib;
 ''');
     Source source = addSource('''
@@ -5247,9 +6106,7 @@ f() {
   }
 
   test_prefixCollidesWithTopLevelMembers_functionTypeAlias() async {
-    addNamedSource(
-        "/lib.dart",
-        r'''
+    addNamedSource("/lib.dart", r'''
 library lib;
 class A{}''');
     Source source = addSource(r'''
@@ -5263,9 +6120,7 @@ p.A a;''');
   }
 
   test_prefixCollidesWithTopLevelMembers_topLevelFunction() async {
-    addNamedSource(
-        "/lib.dart",
-        r'''
+    addNamedSource("/lib.dart", r'''
 library lib;
 class A{}''');
     Source source = addSource(r'''
@@ -5279,9 +6134,7 @@ p.A a;''');
   }
 
   test_prefixCollidesWithTopLevelMembers_topLevelVariable() async {
-    addNamedSource(
-        "/lib.dart",
-        r'''
+    addNamedSource("/lib.dart", r'''
 library lib;
 class A{}''');
     Source source = addSource(r'''
@@ -5295,9 +6148,7 @@ p.A a;''');
   }
 
   test_prefixCollidesWithTopLevelMembers_type() async {
-    addNamedSource(
-        "/lib.dart",
-        r'''
+    addNamedSource("/lib.dart", r'''
 library lib;
 class A{}''');
     Source source = addSource(r'''
@@ -5339,9 +6190,7 @@ f() {
   }
 
   test_prefixNotFollowedByDot_conditionalMethodInvocation() async {
-    addNamedSource(
-        '/lib.dart',
-        '''
+    addNamedSource('/lib.dart', '''
 library lib;
 g() {}
 ''');
@@ -5355,35 +6204,6 @@ f() {
     assertErrors(
         source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
     verify([source]);
-  }
-
-  test_privateCollisionInMixinApplication_mixinAndMixin() {
-    return _privateCollisionInMixinApplicationTest('''
-import 'lib1.dart';
-class C extends Object with A, B {}
-''');
-  }
-
-  test_privateCollisionInMixinApplication_mixinAndMixin_indirect() {
-    return _privateCollisionInMixinApplicationTest('''
-import 'lib1.dart';
-class C extends Object with A {}
-class D extends C with B {}
-''');
-  }
-
-  test_privateCollisionInMixinApplication_superclassAndMixin() {
-    return _privateCollisionInMixinApplicationTest('''
-import 'lib1.dart';
-class C extends A with B {}
-''');
-  }
-
-  test_privateCollisionInMixinApplication_superclassAndMixin_same() {
-    return _privateCollisionInMixinApplicationTest('''
-import 'lib1.dart';
-class C extends A with A {}
-''');
   }
 
   test_privateCollisionInClassTypeAlias_mixinAndMixin() {
@@ -5412,6 +6232,35 @@ class C = A with B;
     return _privateCollisionInMixinApplicationTest('''
 import 'lib1.dart';
 class C = A with A;
+''');
+  }
+
+  test_privateCollisionInMixinApplication_mixinAndMixin() {
+    return _privateCollisionInMixinApplicationTest('''
+import 'lib1.dart';
+class C extends Object with A, B {}
+''');
+  }
+
+  test_privateCollisionInMixinApplication_mixinAndMixin_indirect() {
+    return _privateCollisionInMixinApplicationTest('''
+import 'lib1.dart';
+class C extends Object with A {}
+class D extends C with B {}
+''');
+  }
+
+  test_privateCollisionInMixinApplication_superclassAndMixin() {
+    return _privateCollisionInMixinApplicationTest('''
+import 'lib1.dart';
+class C extends A with B {}
+''');
+  }
+
+  test_privateCollisionInMixinApplication_superclassAndMixin_same() {
+    return _privateCollisionInMixinApplicationTest('''
+import 'lib1.dart';
+class C extends A with A {}
 ''');
   }
 
@@ -5457,10 +6306,19 @@ class A {
 const x = y + 1;
 const y = x + 1;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
-      CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT
-    ]);
+    if (!enableNewAnalysisDriver || enableKernelDriver) {
+      assertErrors(source, [
+        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
+        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT
+      ]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
+        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
+        StrongModeCode.TOP_LEVEL_CYCLE,
+        StrongModeCode.TOP_LEVEL_CYCLE,
+      ]);
+    }
     verify([source]);
   }
 
@@ -5483,8 +6341,16 @@ class C {
 const x = x;
 ''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT]);
+    if (!enableNewAnalysisDriver || enableKernelDriver) {
+      assertErrors(source, [
+        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
+      ]);
+    } else {
+      assertErrors(source, [
+        CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
+        StrongModeCode.TOP_LEVEL_CYCLE
+      ]);
+    }
     verify([source]);
   }
 
@@ -5872,6 +6738,17 @@ class A {
     verify([source]);
   }
 
+  test_referencedBeforeDeclaration_hideInBlock_comment() async {
+    Source source = addSource(r'''
+main() {
+  /// [v] is a variable.
+  var v = 2;
+}
+print(x) {}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
   test_referencedBeforeDeclaration_hideInBlock_function() async {
     Source source = addSource(r'''
 var v = 1;
@@ -5988,7 +6865,14 @@ f() async* {
   return 0;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.RETURN_IN_GENERATOR]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [
+                CompileTimeErrorCode.RETURN_IN_GENERATOR,
+                CompileTimeErrorCode.RETURN_IN_GENERATOR
+              ]
+            : [CompileTimeErrorCode.RETURN_IN_GENERATOR]);
     verify([source]);
   }
 
@@ -5998,7 +6882,14 @@ f() sync* {
   return 0;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.RETURN_IN_GENERATOR]);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [
+                CompileTimeErrorCode.RETURN_IN_GENERATOR,
+                CompileTimeErrorCode.RETURN_IN_GENERATOR
+              ]
+            : [CompileTimeErrorCode.RETURN_IN_GENERATOR]);
     verify([source]);
   }
 
@@ -6113,6 +7004,15 @@ f() {
     // no verify(), 'super.y' is not resolved
   }
 
+  @failingTest
+  test_superInitializerInObject() async {
+    Source source = addSource(r'''
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT]);
+    verify([source]);
+  }
+
   test_superInRedirectingConstructor_redirectionSuper() async {
     Source source = addSource(r'''
 class A {}
@@ -6134,8 +7034,10 @@ class B {
   B.name() {}
 }''');
     await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR]);
+    assertErrors(source, [
+      CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
+      StrongModeCode.INVALID_SUPER_INVOCATION
+    ]);
     verify([source]);
   }
 
@@ -6155,6 +7057,22 @@ var s5 = const Symbol('x', foo: 'x');''');
       CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS,
       CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER
     ]);
+    verify([source]);
+  }
+
+  test_test_fieldInitializerOutsideConstructor_topLevelFunction() async {
+    Source source = addSource(r'''
+f(this.x(y)) {}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source,
+        usingFastaParser
+            ? [CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR]
+            : [
+                ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
+                CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
+              ]);
     verify([source]);
   }
 
@@ -6186,6 +7104,30 @@ typedef D F();
 ''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_typeAliasCannotReferenceItself_functionTypedParameter_returnType() async {
+    Source source = addSource("typedef A(A b());");
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
+    verify([source]);
+  }
+
+  test_typeAliasCannotReferenceItself_generic() async {
+    Source source = addSource(r'''
+typedef F = void Function(List<G> l);
+typedef G = void Function(List<F> l);
+main() {
+  F foo(G g) => g;
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
+      CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF
+    ]);
     verify([source]);
   }
 
@@ -6255,7 +7197,7 @@ typedef A B();''');
   }
 
   test_typeAliasCannotReferenceItself_typeVariableBounds() async {
-    Source source = addSource("typedef A<T extends A>();");
+    Source source = addSource("typedef A<T extends A<int>>();");
     await computeAnalysisResult(source);
     assertErrors(
         source, [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF]);
@@ -6274,6 +7216,44 @@ f() { return const G<B>(); }''');
     assertErrors(
         source, [CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
     verify([source]);
+  }
+
+  test_undefinedAnnotation_unresolved_identifier() async {
+    Source source = addSource(r'''
+@unresolved
+main() {
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.UNDEFINED_ANNOTATION]);
+  }
+
+  test_undefinedAnnotation_unresolved_invocation() async {
+    Source source = addSource(r'''
+@Unresolved()
+main() {
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.UNDEFINED_ANNOTATION]);
+  }
+
+  test_undefinedAnnotation_unresolved_prefixedIdentifier() async {
+    Source source = addSource(r'''
+import 'dart:math' as p;
+@p.unresolved
+main() {
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.UNDEFINED_ANNOTATION]);
+  }
+
+  test_undefinedAnnotation_useLibraryScope() async {
+    Source source = addSource(r'''
+@foo
+class A {
+  static const foo = null;
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.UNDEFINED_ANNOTATION]);
   }
 
   test_undefinedClass_const() async {
@@ -6452,7 +7432,6 @@ class A {
     assertErrors(source,
         [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS]);
     verify([source]);
-    reset();
   }
 
   test_wrongNumberOfParametersForOperator_tilde() async {
@@ -6569,6 +7548,58 @@ f() sync* {
     verify([source]);
   }
 
+  @failingTest
+  test_yieldEachInNonGenerator_async() async {
+    // TODO(brianwilkerson) We are currently parsing the yield statement as a
+    // binary expression.
+    Source source = addSource(r'''
+f() async {
+  yield* 0;
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_yieldEachInNonGenerator_sync() async {
+    // TODO(brianwilkerson) We are currently parsing the yield statement as a
+    // binary expression.
+    Source source = addSource(r'''
+f() {
+  yield* 0;
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.YIELD_IN_NON_GENERATOR]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_yieldInNonGenerator_async() async {
+    // TODO(brianwilkerson) We are currently trying to parse the yield statement
+    // as a binary expression.
+    Source source = addSource(r'''
+f() async {
+  yield 0;
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.YIELD_IN_NON_GENERATOR]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_yieldInNonGenerator_sync() async {
+    // TODO(brianwilkerson) We are currently trying to parse the yield statement
+    // as a binary expression.
+    Source source = addSource(r'''
+f() {
+  yield 0;
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR]);
+    verify([source]);
+  }
+
   Future<Null> _check_constEvalThrowsException_binary_null(
       String expr, bool resolved) async {
     Source source = addSource("const C = $expr;");
@@ -6581,7 +7612,6 @@ f() sync* {
       assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
       // no verify(), 'null x' is not resolved
     }
-    reset();
   }
 
   Future<Null> _check_constEvalTypeBool_withParameter_binary(
@@ -6597,7 +7627,6 @@ class A {
       StaticTypeWarningCode.NON_BOOL_OPERAND
     ]);
     verify([source]);
-    reset();
   }
 
   Future<Null> _check_constEvalTypeInt_withParameter_binary(String expr) async {
@@ -6612,7 +7641,6 @@ class A {
       StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
     ]);
     verify([source]);
-    reset();
   }
 
   Future<Null> _check_constEvalTypeNum_withParameter_binary(String expr) async {
@@ -6627,7 +7655,6 @@ class A {
       StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
     ]);
     verify([source]);
-    reset();
   }
 
   Future<Null> _check_wrongNumberOfParametersForOperator(
@@ -6640,7 +7667,6 @@ class A {
     assertErrors(
         source, [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR]);
     verify([source]);
-    reset();
   }
 
   Future<Null> _check_wrongNumberOfParametersForOperator1(String name) async {
@@ -6649,10 +7675,7 @@ class A {
   }
 
   Future<Null> _privateCollisionInMixinApplicationTest(String testCode) async {
-    resetWith(options: new AnalysisOptionsImpl()..strongMode = true);
-    addNamedSource(
-        '/lib1.dart',
-        '''
+    addNamedSource('/lib1.dart', '''
 class A {
   int _x;
 }

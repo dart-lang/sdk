@@ -38,7 +38,8 @@ class BuiltInServerIsolateChannel extends ServerIsolateChannel {
 
   @override
   Future<Isolate> _spawnIsolate() {
-    return Isolate.spawn(entryPoint, _receivePort.sendPort,
+    return Isolate.spawn(
+        (message) => entryPoint(message as SendPort), _receivePort.sendPort,
         onError: _errorPort?.sendPort, onExit: _exitPort?.sendPort);
   }
 }
@@ -121,7 +122,6 @@ class PluginIsolateChannel implements PluginCommunicationChannel {
       {Function onError, void onDone()}) {
     void onData(data) {
       Map<String, Object> requestMap = data;
-//      print('[plugin] Received request: ${JSON.encode(requestMap)}');
       Request request = new Request.fromJson(requestMap);
       if (request != null) {
         onRequest(request);
@@ -138,14 +138,12 @@ class PluginIsolateChannel implements PluginCommunicationChannel {
   @override
   void sendNotification(Notification notification) {
     Map<String, Object> json = notification.toJson();
-//    print('[plugin] Send notification: ${JSON.encode(json)}');
     _sendPort.send(json);
   }
 
   @override
   void sendResponse(Response response) {
     Map<String, Object> json = response.toJson();
-//    print('[plugin] Send response: ${JSON.encode(json)}');
     _sendPort.send(json);
   }
 }
@@ -224,13 +222,15 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
 
   @override
   void kill() {
-    _isolate.kill(priority: Isolate.IMMEDIATE);
+    _isolate?.kill(priority: Isolate.immediate);
   }
 
   @override
   Future<Null> listen(void onResponse(Response response),
       void onNotification(Notification notification),
-      {Function onError, void onDone()}) async {
+      {void onError(dynamic error), void onDone()}) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     if (_isolate != null) {
       throw new StateError('Cannot listen to the same channel more than once.');
     }
@@ -255,6 +255,9 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
           RequestErrorCode.PLUGIN_ERROR.toString(),
           exception.toString(),
           stackTrace.toString());
+      if (onError != null) {
+        onError([exception.toString(), stackTrace.toString()]);
+      }
       if (onDone != null) {
         onDone();
       }
@@ -268,11 +271,11 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
         channelReady.complete(null);
       } else if (input is Map) {
         if (input.containsKey('id')) {
-          String encodedInput = JSON.encode(input);
+          String encodedInput = json.encode(input);
           instrumentationService.logPluginResponse(pluginId, encodedInput);
           onResponse(new Response.fromJson(input));
         } else if (input.containsKey('event')) {
-          String encodedInput = JSON.encode(input);
+          String encodedInput = json.encode(input);
           instrumentationService.logPluginNotification(pluginId, encodedInput);
           onNotification(new Notification.fromJson(input));
         }
@@ -283,10 +286,12 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
 
   @override
   void sendRequest(Request request) {
-    Map<String, Object> json = request.toJson();
-    String encodedRequest = JSON.encode(json);
-    instrumentationService.logPluginRequest(pluginId, encodedRequest);
-    _sendPort.send(json);
+    if (_sendPort != null) {
+      Map<String, Object> jsonData = request.toJson();
+      String encodedRequest = json.encode(jsonData);
+      instrumentationService.logPluginRequest(pluginId, encodedRequest);
+      _sendPort.send(jsonData);
+    }
   }
 
   /**

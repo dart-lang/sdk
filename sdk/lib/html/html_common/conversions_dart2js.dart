@@ -2,9 +2,9 @@ part of html_common;
 
 /// Converts a JavaScript object with properties into a Dart Map.
 /// Not suitable for nested objects.
-Map convertNativeToDart_Dictionary(object) {
+Map<String, dynamic> convertNativeToDart_Dictionary(object) {
   if (object == null) return null;
-  var dict = {};
+  var dict = <String, dynamic>{};
   var keys = JS('JSExtendableArray', 'Object.getOwnPropertyNames(#)', object);
   for (final key in keys) {
     dict[key] = JS('var', '#[#]', object, key);
@@ -13,13 +13,13 @@ Map convertNativeToDart_Dictionary(object) {
 }
 
 /// Converts a flat Dart map into a JavaScript object with properties.
-convertDartToNative_Dictionary(Map dict, [void postCreate(dynamic)]) {
+convertDartToNative_Dictionary(Map dict, [void postCreate(Object f)]) {
   if (dict == null) return null;
   var object = JS('var', '{}');
   if (postCreate != null) {
     postCreate(object);
   }
-  dict.forEach((String key, value) {
+  dict.forEach((key, value) {
     JS('void', '#[#] = #', object, key, value);
   });
   return object;
@@ -60,11 +60,11 @@ class _StructuredCloneDart2Js extends _StructuredClone {
 }
 
 class _AcceptStructuredCloneDart2Js extends _AcceptStructuredClone {
-  newJsList(length) => JS('JSExtendableArray', 'new Array(#)', length);
-  newDartList(length) => newJsList(length);
-  identicalInJs(a, b) => identical(a, b);
+  List newJsList(length) => JS('JSExtendableArray', 'new Array(#)', length);
+  List newDartList(length) => newJsList(length);
+  bool identicalInJs(a, b) => identical(a, b);
 
-  void forEachJsField(object, action) {
+  void forEachJsField(object, action(key, value)) {
     for (final key in JS('JSExtendableArray', 'Object.keys(#)', object)) {
       action(key, JS('var', '#[#]', object, key));
     }

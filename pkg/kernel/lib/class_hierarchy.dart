@@ -3,80 +3,479 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.class_hierarchy;
 
-import 'ast.dart';
+import 'dart:collection';
 import 'dart:math';
 import 'dart:typed_data';
+
+import 'ast.dart';
 import 'src/heap.dart';
 import 'type_algebra.dart';
 
-/// Data structure for answering various subclassing queries.
-class ClassHierarchy {
-  /// All classes in the program.
+typedef HandleAmbiguousSupertypes = void Function(Class, Supertype, Supertype);
+
+abstract class MixinInferrer {
+  void infer(ClassHierarchy hierarchy, Class classNode);
+}
+
+/// Interface for answering various subclassing queries.
+abstract class ClassHierarchy {
+  factory ClassHierarchy(Component component,
+      {HandleAmbiguousSupertypes onAmbiguousSupertypes,
+      MixinInferrer mixinInferrer}) {
+    onAmbiguousSupertypes ??= (Class cls, Supertype a, Supertype b) {
+      if (!cls.isAnonymousMixin) {
+        // See https://github.com/dart-lang/sdk/issues/32091
+        throw "$cls can't implement both $a and $b";
+      }
+    };
+    return new ClosedWorldClassHierarchy._internal(
+        onAmbiguousSupertypes, mixinInferrer)
+      .._initialize(component.libraries);
+  }
+
+  void set onAmbiguousSupertypes(
+      HandleAmbiguousSupertypes onAmbiguousSupertypes);
+
+  /// Given the [unordered] classes, return them in such order that classes
+  /// occur after their superclasses.  If some superclasses are not in
+  /// [unordered], they are not included.
+  Iterable<Class> getOrderedClasses(Iterable<Class> unordered);
+
+  /// True if the component contains another class that is a subtype of given one.
+  bool hasProperSubtypes(Class class_);
+
+  /// Returns the least upper bound of two interface types, as defined by Dart
+  /// 1.0.
   ///
-  /// The list is ordered so that classes occur after their super classes.
-  final List<Class> classes;
+  /// Given two interfaces I and J, let S_I be the set of superinterfaces of I,
+  /// let S_J be the set of superinterfaces of J, and let
+  /// S = (I union S_I) intersect (J union S_J).  Furthermore, we define
+  /// S_n = {T | T in S and depth(T) = n} for any finite n where depth(T) is
+  /// the number of steps in the longest inheritance path from T to Object.  Let
+  /// q be the largest number such that S_q has cardinality one.  The least
+  /// upper bound of I and J is the sole element of S_q.
+  ///
+  /// This is called the "classic" least upper bound to distinguish it from the
+  /// strong mode least upper bound, which has special behaviors in the case
+  /// where one type is a subtype of the other, or where both types are based on
+  /// the same class.
+  InterfaceType getClassicLeastUpperBound(
+      InterfaceType type1, InterfaceType type2);
 
-  final Map<Class, _ClassInfo> _infoFor = <Class, _ClassInfo>{};
+  /// Returns the instantiation of [superclass] that is implemented by [class_],
+  /// or `null` if [class_] does not implement [superclass] at all.
+  Supertype getClassAsInstanceOf(Class class_, Class superclass);
 
-  ClassHierarchy(Program program)
-      : this._internal(program, _countClasses(program));
+  /// Returns the instantiation of [superclass] that is implemented by [type],
+  /// or `null` if [type] does not implement [superclass] at all.
+  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass);
 
-  Class get rootClass => classes[0];
+  /// Returns the instantiation of [superclass] that is implemented by [type],
+  /// or `null` if [type] does not implement [superclass].  [superclass] must
+  /// be a generic class.
+  Supertype asInstantiationOf(Supertype type, Class superclass);
 
-  /// Returns the index of [class_] in the [classes] list.
-  int getClassIndex(Class class_) => _infoFor[class_].topologicalIndex;
+  /// Returns the instance member that would respond to a dynamic dispatch of
+  /// [name] to an instance of [class_], or `null` if no such member exists.
+  ///
+  /// If [setter] is `false`, the name is dispatched as a getter or call,
+  /// and will return a field, getter, method, or operator (or null).
+  ///
+  /// If [setter] is `true`, the name is dispatched as a setter, roughly
+  /// corresponding to `name=` in the Dart specification, but note that the
+  /// returned member will not have a name ending with `=`.  In this case,
+  /// a non-final field or setter (or null) will be returned.
+  ///
+  /// If the class is abstract, abstract members are ignored and the dispatch
+  /// is resolved if the class was not abstract.
+  Member getDispatchTarget(Class class_, Name name, {bool setter: false});
+
+  /// Returns the list of potential targets of dynamic dispatch to an instance
+  /// of [class_].
+  ///
+  /// If [setters] is `false`, only potential targets of a getter or call
+  /// dispatch are returned.  If [setters] is `true`, only potential targets
+  /// of a setter dispatch are returned.
+  ///
+  /// See [getDispatchTarget] for more details.
+  ///
+  /// The returned list should not be modified.
+  List<Member> getDispatchTargets(Class class_, {bool setters: false});
+
+  /// Returns the possibly abstract interface member of [class_] with the given
+  /// [name].
+  ///
+  /// If [setter] is `false`, only fields, methods, and getters with that name
+  /// will be found.  If [setter] is `true`, only non-final fields and setters
+  /// will be found.
+  ///
+  /// If multiple members with that name are inherited and not overridden, the
+  /// member from the first declared supertype is returned.
+  Member getInterfaceMember(Class class_, Name name, {bool setter: false});
+
+  /// Returns the list of members denoting the interface for [class_], which
+  /// may include abstract members.
+  ///
+  /// The list may contain multiple members with a given name.  This happens
+  /// when members are inherited through different supertypes and not overridden
+  /// in the class.
+  ///
+  /// Also see [getInterfaceMember].
+  List<Member> getInterfaceMembers(Class class_, {bool setters: false});
+
+  /// Returns the list of members declared in [class_], including abstract
+  /// members.
+  ///
+  /// Members are sorted by name so that they may be efficiently compared across
+  /// classes.
+  List<Member> getDeclaredMembers(Class class_, {bool setters: false});
 
   /// True if [subclass] inherits from [superclass] though zero or more
   /// `extends` relationships.
+  bool isSubclassOf(Class subclass, Class superclass);
+
+  /// True if [subtype] inherits from [superclass] though zero or more
+  /// `extends`, `with`, and `implements` relationships.
+  bool isSubtypeOf(Class subtype, Class superclass);
+
+  /// True if the given class is used as the right-hand operand to a
+  /// mixin application (i.e. [Class.mixedInType]).
+  bool isUsedAsMixin(Class class_);
+
+  /// Invokes [callback] for every member declared in or inherited by [class_]
+  /// that overrides or implements a member in a supertype of [class_]
+  /// (or in rare cases, overrides a member declared in [class_]).
+  ///
+  /// We use the term "inheritable" for members that are candidates for
+  /// inheritance but may have been overridden.  The "declared" members of a
+  /// mixin application are those declared in the mixed-in type. The callback is
+  /// invoked in the following cases:
+  ///
+  /// 1. A member declared in the class overrides a member inheritable through
+  /// one of the supertypes of the class.
+  ///
+  /// 2. A non-abstract member is inherited from a superclass, and in the
+  /// context of this class, it overrides an abstract member inheritable through
+  /// one of its superinterfaces.
+  ///
+  /// 3. A non-abstract member is inherited from a superclass, and it overrides
+  /// an abstract member declared in this class.
+  ///
+  /// This method will not report that a member overrides itself. A given pair
+  /// may be reported multiple times when there are multiple inheritance paths
+  /// to the overridden member.
+  ///
+  /// It is possible for two methods to override one another in both directions.
+  ///
+  /// By default getters and setters are overridden separately.  The [isSetter]
+  /// callback parameter determines which type of access is being overridden.
+  void forEachOverridePair(Class class_,
+      callback(Member declaredMember, Member interfaceMember, bool isSetter));
+
+  /// This method is invoked by the client after a change: removal, addition,
+  /// or modification of classes.
+  ///
+  /// For modified classes specify a class as both removed and added: Some of
+  /// the information that this hierarchy might have cached, is not valid
+  /// anymore.
+  ///
+  /// Note, that it is the clients responsibility to mark all subclasses as
+  /// changed too.
+  ClassHierarchy applyTreeChanges(
+      Iterable<Class> removedClasses, Iterable<Class> addedClasses,
+      {Component reissueAmbiguousSupertypesFor});
+
+  /// This method is invoked by the client after a member change on classes:
+  /// Some of the information that this hierarchy might have cached,
+  /// is not valid anymore.
+  /// Note, that it is the clients responsibility to mark all subclasses as
+  /// changed too, or - if [findDescendants] is true, the ClassHierarchy will
+  /// spend the time to find them for the caller.
+  ClassHierarchy applyMemberChanges(Iterable<Class> classes,
+      {bool findDescendants: false});
+
+  /// Merges two sorted lists.
+  ///
+  /// If a given member occurs in both lists, the merge will attempt to exclude
+  /// the duplicate member, but is not strictly guaranteed to do so.
+  ///
+  /// The sort has the following stability properties:
+  ///
+  /// - If both x and y came from the same input list, and x preceded y in the
+  ///   input list, x will precede y in the output list.  This holds even if x
+  ///   and y have matching names.
+  ///
+  /// - If m is a contiguous subsequence of the output list containing at least
+  ///   one element from each input list, and all elements of m have matching
+  ///   names, then the elements of m from [first] will precede the elements of
+  ///   m from [second].
+  static List<Member> mergeSortedLists(
+      List<Member> first, List<Member> second) {
+    if (first.isEmpty) return second;
+    if (second.isEmpty) return first;
+    List<Member> result = <Member>[]..length = first.length + second.length;
+    int storeIndex = 0;
+    int i = 0, j = 0;
+    while (i < first.length && j < second.length) {
+      Member firstMember = first[i];
+      Member secondMember = second[j];
+      int compare = ClassHierarchy.compareMembers(firstMember, secondMember);
+      if (compare <= 0) {
+        result[storeIndex++] = firstMember;
+        ++i;
+        // If the same member occurs in both lists, skip the duplicate.
+        if (identical(firstMember, secondMember)) {
+          ++j;
+        }
+      } else {
+        result[storeIndex++] = secondMember;
+        ++j;
+      }
+    }
+    while (i < first.length) {
+      result[storeIndex++] = first[i++];
+    }
+    while (j < second.length) {
+      result[storeIndex++] = second[j++];
+    }
+    result.length = storeIndex;
+    return result;
+  }
+
+  /// Compares members by name, using the same sort order as
+  /// [getDeclaredMembers] and [getInterfaceMembers].
+  static int compareMembers(Member first, Member second) {
+    return _compareNames(first.name, second.name);
+  }
+
+  /// Compares names, using the same sort order as [getDeclaredMembers] and
+  /// [getInterfaceMembers].
+  ///
+  /// This is an arbitrary as-fast-as-possible sorting criterion.
+  static int _compareNames(Name firstName, Name secondName) {
+    int firstHash = firstName.hashCode;
+    int secondHash = secondName.hashCode;
+    if (firstHash != secondHash) return firstHash - secondHash;
+    String firstString = firstName.name;
+    String secondString = secondName.name;
+    int firstLength = firstString.length;
+    int secondLength = secondString.length;
+    if (firstLength != secondLength) {
+      return firstLength - secondLength;
+    }
+    Library firstLibrary = firstName.library;
+    Library secondLibrary = secondName.library;
+    if (firstLibrary != secondLibrary) {
+      if (firstLibrary == null) return -1;
+      if (secondLibrary == null) return 1;
+      return firstLibrary.compareTo(secondLibrary);
+    }
+    for (int i = 0; i < firstLength; ++i) {
+      int firstUnit = firstString.codeUnitAt(i);
+      int secondUnit = secondString.codeUnitAt(i);
+      int delta = firstUnit - secondUnit;
+      if (delta != 0) return delta;
+    }
+    return 0;
+  }
+
+  /// Returns the member with the given name, or `null` if no member has the
+  /// name.  In case the list contains multiple members with the given name,
+  /// the one that occurs first in the list is returned.
+  ///
+  /// The list is assumed to be sorted according to [compareMembers].
+  static Member findMemberByName(List<Member> members, Name name) {
+    int low = 0, high = members.length - 1;
+    while (low <= high) {
+      int mid = low + ((high - low) >> 1);
+      Member pivot = members[mid];
+      int comparison = _compareNames(name, pivot.name);
+      if (comparison < 0) {
+        high = mid - 1;
+      } else if (comparison > 0) {
+        low = mid + 1;
+      } else if (high != mid) {
+        // Ensure we find the first element of the given name.
+        high = mid;
+      } else {
+        return pivot;
+      }
+    }
+    return null;
+  }
+}
+
+abstract class ClassHierarchySubtypes {
+  /// Returns the subtypes of [class_] as an interval list.
+  ClassSet getSubtypesOf(Class class_);
+
+  /// Returns the single concrete target for invocation of the given interface
+  /// target, or `null` if it could not be resolved or there are multiple
+  /// possible targets.
+  Member getSingleTargetForInterfaceInvocation(Member interfaceTarget,
+      {bool setter: false});
+}
+
+class _ClassInfoSubtype {
+  final _ClassInfo classInfo;
+  int topDownIndex = -1;
+
+  /// Top-down indices of all subclasses of this class, represented as
+  /// interleaved begin/end interval end points.
+  Uint32List subtypeIntervalList;
+
+  _ClassInfoSubtype(this.classInfo);
+}
+
+class _ClosedWorldClassHierarchySubtypes implements ClassHierarchySubtypes {
+  final ClosedWorldClassHierarchy hierarchy;
+  final List<Class> _classesByTopDownIndex;
+  final Map<Class, _ClassInfoSubtype> _infoFor = <Class, _ClassInfoSubtype>{};
+  bool invalidated = false;
+
+  _ClosedWorldClassHierarchySubtypes(this.hierarchy)
+      : _classesByTopDownIndex = new List<Class>(hierarchy._infoFor.length) {
+    if (hierarchy._infoFor.isNotEmpty) {
+      for (Class class_ in hierarchy._infoFor.keys) {
+        _infoFor[class_] = new _ClassInfoSubtype(hierarchy._infoFor[class_]);
+      }
+
+      _topDownSortVisit(_infoFor[hierarchy._infoFor.keys.first]);
+    }
+  }
+
+  /// Downwards traversal of the class hierarchy that orders classes so local
+  /// hierarchies have contiguous indices.
+  int _topDownSortIndex = 0;
+  void _topDownSortVisit(_ClassInfoSubtype subInfo) {
+    if (subInfo.topDownIndex != -1) return;
+    int index = _topDownSortIndex++;
+    subInfo.topDownIndex = index;
+    _classesByTopDownIndex[index] = subInfo.classInfo.classNode;
+    var subtypeSetBuilder = new _IntervalListBuilder()..addSingleton(index);
+    for (_ClassInfo subtype in subInfo.classInfo.directExtenders) {
+      _ClassInfoSubtype subtypeInfo = _infoFor[subtype.classNode];
+      _topDownSortVisit(subtypeInfo);
+      subtypeSetBuilder.addIntervalList(subtypeInfo.subtypeIntervalList);
+    }
+    for (_ClassInfo subtype in subInfo.classInfo.directMixers) {
+      _ClassInfoSubtype subtypeInfo = _infoFor[subtype.classNode];
+      _topDownSortVisit(subtypeInfo);
+      subtypeSetBuilder.addIntervalList(subtypeInfo.subtypeIntervalList);
+    }
+    for (_ClassInfo subtype in subInfo.classInfo.directImplementers) {
+      _ClassInfoSubtype subtypeInfo = _infoFor[subtype.classNode];
+      _topDownSortVisit(subtypeInfo);
+      subtypeSetBuilder.addIntervalList(subtypeInfo.subtypeIntervalList);
+    }
+    subInfo.subtypeIntervalList = subtypeSetBuilder.buildIntervalList();
+  }
+
+  @override
+  Member getSingleTargetForInterfaceInvocation(Member interfaceTarget,
+      {bool setter: false}) {
+    if (invalidated) throw "This datastructure has been invalidated";
+    Name name = interfaceTarget.name;
+    Member target = null;
+    ClassSet subtypes = getSubtypesOf(interfaceTarget.enclosingClass);
+    for (Class c in subtypes) {
+      if (!c.isAbstract) {
+        Member candidate = hierarchy.getDispatchTarget(c, name, setter: setter);
+        if ((candidate != null) && !candidate.isAbstract) {
+          if (target == null) {
+            target = candidate;
+          } else if (target != candidate) {
+            return null;
+          }
+        }
+      }
+    }
+    return target;
+  }
+
+  @override
+  ClassSet getSubtypesOf(Class class_) {
+    if (invalidated) throw "This datastructure has been invalidated";
+    Set<Class> result = new Set<Class>();
+    Uint32List list = _infoFor[class_].subtypeIntervalList;
+    for (int i = 0; i < list.length; i += 2) {
+      int from = list[i];
+      int to = list[i + 1];
+      for (int j = from; j < to; j++) {
+        result.add(_classesByTopDownIndex[j]);
+      }
+    }
+    return new ClassSet(result);
+  }
+}
+
+/// Implementation of [ClassHierarchy] for closed world.
+class ClosedWorldClassHierarchy implements ClassHierarchy {
+  HandleAmbiguousSupertypes _onAmbiguousSupertypes;
+  HandleAmbiguousSupertypes _onAmbiguousSupertypesNotWrapped;
+  MixinInferrer mixinInferrer;
+
+  void set onAmbiguousSupertypes(
+      HandleAmbiguousSupertypes onAmbiguousSupertypes) {
+    _onAmbiguousSupertypesNotWrapped = onAmbiguousSupertypes;
+    _onAmbiguousSupertypes = (Class class_, Supertype a, Supertype b) {
+      onAmbiguousSupertypes(class_, a, b);
+      List<Supertype> recorded = _recordedAmbiguousSupertypes[class_];
+      if (recorded == null) {
+        recorded = new List<Supertype>();
+        _recordedAmbiguousSupertypes[class_] = recorded;
+      }
+      recorded.add(a);
+      recorded.add(b);
+    };
+  }
+
+  /// The insert order is important.
+  final Map<Class, _ClassInfo> _infoFor =
+      new LinkedHashMap<Class, _ClassInfo>();
+
+  /// Recorded errors for classes we have already calculated the class hierarchy
+  /// for, but will have to be reissued when re-using the calculation.
+  final Map<Class, List<Supertype>> _recordedAmbiguousSupertypes =
+      new LinkedHashMap<Class, List<Supertype>>();
+
+  Iterable<Class> get classes => _infoFor.keys;
+  int get numberOfClasses => _infoFor.length;
+
+  _ClosedWorldClassHierarchySubtypes _cachedClassHierarchySubtypes;
+
+  ClosedWorldClassHierarchy._internal(
+      HandleAmbiguousSupertypes onAmbiguousSupertypes, this.mixinInferrer) {
+    this.onAmbiguousSupertypes = onAmbiguousSupertypes;
+  }
+
+  ClassHierarchySubtypes computeSubtypesInformation() {
+    _cachedClassHierarchySubtypes ??=
+        new _ClosedWorldClassHierarchySubtypes(this);
+    return _cachedClassHierarchySubtypes;
+  }
+
+  @override
+  Iterable<Class> getOrderedClasses(Iterable<Class> unordered) {
+    var unorderedSet = unordered.toSet();
+    return _infoFor.keys.where(unorderedSet.contains);
+  }
+
+  @override
   bool isSubclassOf(Class subclass, Class superclass) {
     if (identical(subclass, superclass)) return true;
     return _infoFor[subclass].isSubclassOf(_infoFor[superclass]);
   }
 
-  /// True if [submixture] inherits from [superclass] though zero or more
-  /// `extends` and `with` relationships.
-  bool isSubmixtureOf(Class submixture, Class superclass) {
-    if (identical(submixture, superclass)) return true;
-    return _infoFor[submixture].isSubmixtureOf(_infoFor[superclass]);
-  }
-
-  /// True if [subtype] inherits from [superclass] though zero or more
-  /// `extends`, `with`, and `implements` relationships.
+  @override
   bool isSubtypeOf(Class subtype, Class superclass) {
     if (identical(subtype, superclass)) return true;
     return _infoFor[subtype].isSubtypeOf(_infoFor[superclass]);
   }
 
-  /// True if the given class is the direct super class of another class.
-  bool isUsedAsSuperClass(Class class_) {
-    return _infoFor[class_].directExtenders.isNotEmpty;
-  }
-
-  /// True if the given class is used as the right-hand operand to a
-  /// mixin application (i.e. [Class.mixedInType]).
+  @override
   bool isUsedAsMixin(Class class_) {
     return _infoFor[class_].directMixers.isNotEmpty;
-  }
-
-  /// True if the given class is used in an `implements` clause.
-  bool isUsedAsSuperInterface(Class class_) {
-    return _infoFor[class_].directImplementers.isNotEmpty;
-  }
-
-  /// Returns the number of steps in the longest inheritance path from [class_]
-  /// to [rootClass].
-  int getClassDepth(Class class_) => _infoFor[class_].depth;
-
-  /// Returns a list of classes appropriate for use in calculating a least upper
-  /// bound.
-  ///
-  /// The returned list is a list of all classes that [class_] is a subtype of
-  /// (including itself), sorted first by depth (deepest first) and then by
-  /// class index.
-  List<Class> getRankedSuperclasses(Class class_) {
-    return _getRankedSuperclassInfos(_infoFor[class_])
-        .map((info) => info.classNode)
-        .toList();
   }
 
   List<_ClassInfo> _getRankedSuperclassInfos(_ClassInfo info) {
@@ -102,21 +501,7 @@ class ClassHierarchy {
     return chain;
   }
 
-  /// Returns the least upper bound of two interface types, as defined by Dart
-  /// 1.0.
-  ///
-  /// Given two interfaces I and J, let S_I be the set of superinterfaces of I,
-  /// let S_J be the set of superinterfaces of J, and let
-  /// S = (I union S_I) intersect (J union S_J).  Furthermore, we define
-  /// S_n = {T | T in S and depth(T) = n} for any finite n where depth(T) is
-  /// the number of steps in the longest inheritance path from T to Object.  Let
-  /// q be the largest number such that S_q has cardinality one.  The least
-  /// upper bound of I and J is the sole element of S_q.
-  ///
-  /// This is called the "classic" least upper bound to distinguish it from the
-  /// strong mode least upper bound, which has special behaviors in the case
-  /// where one type is a subtype of the other, or where both types are based on
-  /// the same class.
+  @override
   InterfaceType getClassicLeastUpperBound(
       InterfaceType type1, InterfaceType type2) {
     // The algorithm is: first we compute a list of superclasses for both types,
@@ -199,11 +584,11 @@ class ClassHierarchy {
         var superType1 = identical(info1, next)
             ? type1
             : Substitution.fromInterfaceType(type1).substituteType(
-                info1.genericSuperTypes[next.classNode].asInterfaceType);
+                info1.genericSuperTypes[next.classNode].first.asInterfaceType);
         var superType2 = identical(info2, next)
             ? type2
             : Substitution.fromInterfaceType(type2).substituteType(
-                info2.genericSuperTypes[next.classNode].asInterfaceType);
+                info2.genericSuperTypes[next.classNode].first.asInterfaceType);
         if (superType1 == superType2) {
           candidate = superType1;
           ++numCandidatesAtThisDepth;
@@ -212,19 +597,23 @@ class ClassHierarchy {
     }
   }
 
-  /// Returns the instantiation of [superclass] that is implemented by [class_],
-  /// or `null` if [class_] does not implement [superclass] at all.
+  @override
   Supertype getClassAsInstanceOf(Class class_, Class superclass) {
     if (identical(class_, superclass)) return class_.asThisSupertype;
     _ClassInfo info = _infoFor[class_];
+    if (info == null) {
+      throw "${class_.fileUri}: No class info for ${class_.name}";
+    }
     _ClassInfo superInfo = _infoFor[superclass];
+    if (info == null) {
+      throw "${superclass.fileUri}: No class info for ${superclass.name}";
+    }
     if (!info.isSubtypeOf(superInfo)) return null;
     if (superclass.typeParameters.isEmpty) return superclass.asRawSupertype;
-    return info.genericSuperTypes[superclass];
+    return info.genericSuperTypes[superclass]?.first;
   }
 
-  /// Returns the instantiation of [superclass] that is implemented by [type],
-  /// or `null` if [type] does not implement [superclass] at all.
+  @override
   InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass) {
     Supertype castedType = getClassAsInstanceOf(type.classNode, superclass);
     if (castedType == null) return null;
@@ -233,96 +622,41 @@ class ClassHierarchy {
         .substituteType(castedType.asInterfaceType);
   }
 
-  /// Returns the instance member that would respond to a dynamic dispatch of
-  /// [name] to an instance of [class_], or `null` if no such member exists.
-  ///
-  /// If [setter] is `false`, the name is dispatched as a getter or call,
-  /// and will return a field, getter, method, or operator (or null).
-  ///
-  /// If [setter] is `true`, the name is dispatched as a setter, roughly
-  /// corresponding to `name=` in the Dart specification, but note that the
-  /// returned member will not have a name ending with `=`.  In this case,
-  /// a non-final field or setter (or null) will be returned.
-  ///
-  /// If the class is abstract, abstract members are ignored and the dispatch
-  /// is resolved if the class was not abstract.
+  @override
   Member getDispatchTarget(Class class_, Name name, {bool setter: false}) {
     _ClassInfo info = _infoFor[class_];
     List<Member> list =
         setter ? info.implementedSetters : info.implementedGettersAndCalls;
-    return _findMemberByName(list, name);
+    return ClassHierarchy.findMemberByName(list, name);
   }
 
-  /// Returns the list of potential targets of dynamic dispatch to an instance
-  /// of [class_].
-  ///
-  /// If [setters] is `false`, only potential targets of a getter or call
-  /// dispatch are returned.  If [setters] is `true`, only potential targets
-  /// of a setter dispatch are returned.
-  ///
-  /// See [getDispatchTarget] for more details.
-  ///
-  /// The returned list should not be modified.
+  @override
   List<Member> getDispatchTargets(Class class_, {bool setters: false}) {
     _ClassInfo info = _infoFor[class_];
     return setters ? info.implementedSetters : info.implementedGettersAndCalls;
   }
 
-  /// Returns the possibly abstract interface member of [class_] with the given
-  /// [name].
-  ///
-  /// If [setters] is `false`, only fields, methods, and getters with that name
-  /// will be found.  If [setters] is `true`, only non-final fields and setters
-  /// will be found.
-  ///
-  /// If multiple members with that name are inherited and not overidden, the
-  /// member from the first declared supertype is returned.
+  @override
   Member getInterfaceMember(Class class_, Name name, {bool setter: false}) {
     List<Member> list = getInterfaceMembers(class_, setters: setter);
-    return _findMemberByName(list, name);
+    return ClassHierarchy.findMemberByName(list, name);
   }
 
-  /// Returns the list of members denoting the interface for [class_], which
-  /// may include abstract members.
-  ///
-  /// The list may contain multiple members with a given name.  This happens
-  /// when members are inherited through different supertypes and not overridden
-  /// in the class.
-  ///
-  /// Also see [getInterfaceMember].
+  @override
   List<Member> getInterfaceMembers(Class class_, {bool setters: false}) {
     return _buildInterfaceMembers(class_, _infoFor[class_], setters: setters);
   }
 
-  /// Invokes [callback] for every member declared in or inherited by [class_]
-  /// that overrides or implements a member in a supertype of [class_]
-  /// (or in rare cases, overrides a member declared in [class_]).
-  ///
-  /// We use the term "inheritable" for members that are candidates for
-  /// inheritance but may have been overridden.  The "declared" members of a
-  /// mixin application are those declared in the mixed-in type. The callback is
-  /// invoked in the following cases:
-  ///
-  /// 1. A member declared in the class overrides a member inheritable through
-  /// one of the supertypes of the class.
-  ///
-  /// 2. A non-abstract member is inherited from a superclass, and in the
-  /// context of this class, it overrides an abstract member inheritable through
-  /// one of its superinterfaces.
-  ///
-  /// 3. A non-abstract member is inherited from a superclass, and it overrides
-  /// an abstract member declared in this class.
-  ///
-  /// This method will not report that a member overrides itself. A given pair
-  /// may be reported multiple times when there are multiple inheritance paths
-  /// to the overridden member.
-  ///
-  /// It is possible for two methods to override one another in both directions.
-  ///
-  /// Getters and setters are overridden separately.  The [isSetter] callback
-  /// parameter determines which type of access is being overridden.
+  @override
+  List<Member> getDeclaredMembers(Class class_, {bool setters: false}) {
+    var info = _infoFor[class_];
+    return setters ? info.declaredSetters : info.declaredGettersAndCalls;
+  }
+
+  @override
   void forEachOverridePair(Class class_,
-      callback(Member declaredMember, Member interfaceMember, bool isSetter)) {
+      callback(Member declaredMember, Member interfaceMember, bool isSetter),
+      {bool crossGettersSetters: false}) {
     _ClassInfo info = _infoFor[class_];
     for (var supertype in class_.supers) {
       var superclass = supertype.classNode;
@@ -366,7 +700,7 @@ class ClassHierarchy {
         continue;
       }
       Member inherited = inheritedList[j];
-      int comparison = _compareMembers(declared, inherited);
+      int comparison = ClassHierarchy.compareMembers(declared, inherited);
       if (comparison < 0) {
         ++i;
       } else if (comparison > 0) {
@@ -382,36 +716,152 @@ class ClassHierarchy {
     }
   }
 
-  /// True if the program contains another class that is a subtype of given one.
+  @override
   bool hasProperSubtypes(Class class_) {
-    // If there are no subtypes then the subtype set contains the class itself.
-    return !getSubtypesOf(class_).isSingleton;
+    _ClassInfo info = _infoFor[class_];
+    return info.directExtenders.isNotEmpty ||
+        info.directImplementers.isNotEmpty ||
+        info.directMixers.isNotEmpty;
   }
 
-  /// Returns the subtypes of [class_] as an interval list.
-  ClassSet getSubtypesOf(Class class_) {
-    return new ClassSet(this, _infoFor[class_].subtypeIntervalList);
-  }
+  @override
+  ClassHierarchy applyTreeChanges(
+      Iterable<Class> removedClasses, Iterable<Class> addedClasses,
+      {Component reissueAmbiguousSupertypesFor}) {
+    // Remove all references to the removed classes.
+    for (Class class_ in removedClasses) {
+      _ClassInfo info = _infoFor[class_];
+      if (class_.supertype != null) {
+        _infoFor[class_.supertype.classNode]?.directExtenders?.remove(info);
+      }
+      if (class_.mixedInType != null) {
+        _infoFor[class_.mixedInType.classNode]?.directMixers?.remove(info);
+      }
+      for (var supertype in class_.implementedTypes) {
+        _infoFor[supertype.classNode]?.directImplementers?.remove(info);
+      }
 
-  /// Returns the subclasses of [class_] as an interval list.
-  ClassSet getSubclassesOf(Class class_) {
-    return new ClassSet(this, _infoFor[class_].subclassIntervalList);
-  }
+      _infoFor.remove(class_);
+      _recordedAmbiguousSupertypes.remove(class_);
+    }
 
-  ClassHierarchy._internal(Program program, int numberOfClasses)
-      : classes = new List<Class>(numberOfClasses) {
-    // Build the class ordering based on a topological sort.
-    for (var library in program.libraries) {
-      for (var classNode in library.classes) {
-        _topologicalSortVisit(classNode);
+    // If we have a cached computation of subtypes, invalidate it and stop
+    // caching it.
+    if (_cachedClassHierarchySubtypes != null) {
+      _cachedClassHierarchySubtypes.invalidated = true;
+    }
+
+    if (_recordedAmbiguousSupertypes.isNotEmpty &&
+        reissueAmbiguousSupertypesFor != null) {
+      Set<Library> libs =
+          new Set<Library>.from(reissueAmbiguousSupertypesFor.libraries);
+      for (Class class_ in _recordedAmbiguousSupertypes.keys) {
+        if (!libs.contains(class_.enclosingLibrary)) continue;
+        List<Supertype> recorded = _recordedAmbiguousSupertypes[class_];
+        for (int i = 0; i < recorded.length; i += 2) {
+          _onAmbiguousSupertypesNotWrapped(
+              class_, recorded[i], recorded[i + 1]);
+        }
       }
     }
 
-    // Build index of direct children.  Do this after the topological sort so
-    // that super types always occur before subtypes.
-    for (int i = 0; i < classes.length; ++i) {
-      var class_ = classes[i];
-      var info = _infoFor[class_];
+    // Add the new classes.
+    List<Class> addedClassesSorted = new List<Class>();
+    int expectedStartIndex = _topSortIndex;
+    for (Class class_ in addedClasses) {
+      _topologicalSortVisit(class_, new Set<Class>(),
+          orderedList: addedClassesSorted);
+    }
+    _initializeTopologicallySortedClasses(
+        addedClassesSorted, expectedStartIndex);
+
+    return this;
+  }
+
+  @override
+  ClassHierarchy applyMemberChanges(Iterable<Class> classes,
+      {bool findDescendants: false}) {
+    if (classes.isEmpty) return this;
+
+    List<_ClassInfo> infos = new List<_ClassInfo>();
+    if (findDescendants) {
+      Set<_ClassInfo> processedClasses = new Set<_ClassInfo>();
+      List<_ClassInfo> worklist = <_ClassInfo>[];
+      for (Class class_ in classes) {
+        _ClassInfo info = _infoFor[class_];
+        worklist.add(info);
+      }
+
+      while (worklist.isNotEmpty) {
+        _ClassInfo info = worklist.removeLast();
+        if (processedClasses.add(info)) {
+          worklist.addAll(info.directExtenders);
+          worklist.addAll(info.directImplementers);
+          worklist.addAll(info.directMixers);
+        }
+      }
+      infos.addAll(processedClasses);
+    } else {
+      for (Class class_ in classes) {
+        _ClassInfo info = _infoFor[class_];
+        infos.add(info);
+      }
+    }
+
+    infos.sort((_ClassInfo a, _ClassInfo b) {
+      return a.topologicalIndex - b.topologicalIndex;
+    });
+
+    for (_ClassInfo info in infos) {
+      Class class_ = info.classNode;
+      _buildDeclaredMembers(class_, info);
+      _buildImplementedMembers(class_, info);
+      info.interfaceSetters = null;
+      info.interfaceGettersAndCalls = null;
+      _buildInterfaceMembers(class_, info, setters: true);
+      _buildInterfaceMembers(class_, info, setters: false);
+    }
+
+    return this;
+  }
+
+  @override
+  Supertype asInstantiationOf(Supertype type, Class superclass) {
+    // This is similar to getTypeAsInstanceOf, except that it assumes that
+    // superclass is a generic class.  It thus does not rely on being able
+    // to answer isSubtypeOf queries and so can be used before we have built
+    // the intervals needed for those queries.
+    assert(superclass.typeParameters.isNotEmpty);
+    if (type.classNode == superclass) {
+      return superclass.asThisSupertype;
+    }
+    var map = _infoFor[type.classNode]?.genericSuperTypes;
+    return map == null ? null : map[superclass]?.first;
+  }
+
+  void _initialize(List<Library> libraries) {
+    // Build the class ordering based on a topological sort.
+    for (var library in libraries) {
+      for (var classNode in library.classes) {
+        _topologicalSortVisit(classNode, new Set<Class>());
+      }
+    }
+
+    _initializeTopologicallySortedClasses(_infoFor.keys, 0);
+  }
+
+  /// - Build index of direct children.
+  /// - Build list of super classes and super types.
+  /// - Infer and record supertypes for the classes.
+  /// - Record interface members.
+  /// - Perform some sanity checking.
+  /// Do this after the topological sort so that super types always occur
+  /// before subtypes.
+  void _initializeTopologicallySortedClasses(
+      Iterable<Class> classes, int expectedStartingTopologicalIndex) {
+    int i = expectedStartingTopologicalIndex;
+    for (Class class_ in classes) {
+      _ClassInfo info = _infoFor[class_];
       if (class_.supertype != null) {
         _infoFor[class_.supertype.classNode].directExtenders.add(info);
       }
@@ -421,16 +871,30 @@ class ClassHierarchy {
       for (var supertype in class_.implementedTypes) {
         _infoFor[supertype.classNode].directImplementers.add(info);
       }
-    }
+      _collectSupersForClass(class_);
 
-    // Run a downward traversal from the root, compute preorder numbers for
-    // each class, and build their subtype sets as interval lists.
-    _topDownSortVisit(_infoFor[rootClass]);
+      if (class_.supertype != null) {
+        _recordSuperTypes(info, class_.supertype);
+      }
+      if (class_.mixedInType != null) {
+        mixinInferrer?.infer(this, class_);
+        _recordSuperTypes(info, class_.mixedInType);
+      }
+      for (Supertype supertype in class_.implementedTypes) {
+        _recordSuperTypes(info, supertype);
+      }
 
-    for (int i = 0; i < classes.length; ++i) {
-      var class_ = classes[i];
-      _buildInterfaceMembers(class_, _infoFor[class_], setters: true);
-      _buildInterfaceMembers(class_, _infoFor[class_], setters: false);
+      _buildInterfaceMembers(class_, info, setters: true);
+      _buildInterfaceMembers(class_, info, setters: false);
+
+      if (info == null) {
+        throw "No info for ${class_.name} from ${class_.fileUri}.";
+      }
+      if (info.topologicalIndex != i) {
+        throw "Unexpected topologicalIndex (${info.topologicalIndex} != $i) "
+            "for ${class_.name} from ${class_.fileUri}.";
+      }
+      i++;
     }
   }
 
@@ -440,45 +904,72 @@ class ClassHierarchy {
   /// Returns the depth of the visited class (the number of steps in the longest
   /// inheritance path to the root class).
   int _topSortIndex = 0;
-  int _topologicalSortVisit(Class classNode) {
+  int _topologicalSortVisit(Class classNode, Set<Class> beingVisited,
+      {List<Class> orderedList}) {
     var info = _infoFor[classNode];
     if (info != null) {
-      if (info.isBeingVisited) {
-        throw 'Cyclic inheritance involving ${info.classNode.name}';
-      }
-      return info.depth; // Already built.
+      return info.depth;
     }
+
+    if (!beingVisited.add(classNode)) {
+      throw 'Cyclic inheritance involving ${classNode.name}';
+    }
+
+    info = new _ClassInfo(classNode);
+
     int superDepth = -1;
-    _infoFor[classNode] = info = new _ClassInfo(classNode);
-    info.isBeingVisited = true;
     if (classNode.supertype != null) {
-      superDepth =
-          max(superDepth, _topologicalSortVisit(classNode.supertype.classNode));
-      _recordSuperTypes(info, classNode.supertype);
+      superDepth = max(
+          superDepth,
+          _topologicalSortVisit(classNode.supertype.classNode, beingVisited,
+              orderedList: orderedList));
     }
     if (classNode.mixedInType != null) {
       superDepth = max(
-          superDepth, _topologicalSortVisit(classNode.mixedInType.classNode));
-      _recordSuperTypes(info, classNode.mixedInType);
+          superDepth,
+          _topologicalSortVisit(classNode.mixedInType.classNode, beingVisited,
+              orderedList: orderedList));
     }
     for (var supertype in classNode.implementedTypes) {
-      superDepth = max(superDepth, _topologicalSortVisit(supertype.classNode));
-      _recordSuperTypes(info, supertype);
+      superDepth = max(
+          superDepth,
+          _topologicalSortVisit(supertype.classNode, beingVisited,
+              orderedList: orderedList));
     }
     _buildDeclaredMembers(classNode, info);
     _buildImplementedMembers(classNode, info);
-    int id = _topSortIndex++;
-    info.topologicalIndex = id;
-    classes[id] = info.classNode;
-    info.isBeingVisited = false;
+    info.topologicalIndex = _topSortIndex++;
+
+    _infoFor[classNode] = info;
+    orderedList?.add(classNode);
+    beingVisited.remove(classNode);
     return info.depth = superDepth + 1;
   }
 
   void _buildDeclaredMembers(Class classNode, _ClassInfo info) {
     if (classNode.mixedInType != null) {
       _ClassInfo mixedInfo = _infoFor[classNode.mixedInType.classNode];
-      info.declaredGettersAndCalls = mixedInfo.declaredGettersAndCalls;
-      info.declaredSetters = mixedInfo.declaredSetters;
+
+      List<Member> declaredGettersAndCalls = <Member>[];
+      for (Member mixinMember in mixedInfo.declaredGettersAndCalls) {
+        if (mixinMember is! Procedure ||
+            (mixinMember is Procedure &&
+                !mixinMember.isNoSuchMethodForwarder)) {
+          declaredGettersAndCalls.add(mixinMember);
+        }
+      }
+
+      List<Member> declaredSetters = <Member>[];
+      for (Member mixinMember in mixedInfo.declaredSetters) {
+        if (mixinMember is! Procedure ||
+            (mixinMember is Procedure &&
+                !mixinMember.isNoSuchMethodForwarder)) {
+          declaredSetters.add(mixinMember);
+        }
+      }
+
+      info.declaredGettersAndCalls = declaredGettersAndCalls;
+      info.declaredSetters = declaredSetters;
     } else {
       var members = info.declaredGettersAndCalls = <Member>[];
       var setters = info.declaredSetters = <Member>[];
@@ -499,8 +990,8 @@ class ClassHierarchy {
           setters.add(field);
         }
       }
-      members.sort(_compareMembers);
-      setters.sort(_compareMembers);
+      members.sort(ClassHierarchy.compareMembers);
+      setters.sort(ClassHierarchy.compareMembers);
     }
   }
 
@@ -524,6 +1015,9 @@ class ClassHierarchy {
 
   List<Member> _buildInterfaceMembers(Class classNode, _ClassInfo info,
       {bool setters}) {
+    if (info == null) {
+      throw "${classNode.fileUri}: No class info for ${classNode.name}";
+    }
     List<Member> members =
         setters ? info.interfaceSetters : info.interfaceGettersAndCalls;
     if (members != null) return members;
@@ -536,7 +1030,8 @@ class ClassHierarchy {
           type.classNode, _infoFor[type.classNode],
           setters: setters);
       inherited = _getUnshadowedInheritedMembers(declared, inherited);
-      allInheritedMembers = _merge(allInheritedMembers, inherited);
+      allInheritedMembers =
+          ClassHierarchy.mergeSortedLists(allInheritedMembers, inherited);
     }
 
     inheritFrom(classNode.supertype);
@@ -574,7 +1069,8 @@ class ClassHierarchy {
         ++j;
         continue;
       }
-      int comparison = _compareMembers(declaredMember, inheritedMember);
+      int comparison =
+          ClassHierarchy.compareMembers(declaredMember, inheritedMember);
       if (comparison < 0) {
         result[storeIndex++] = declaredMember;
         ++i;
@@ -614,7 +1110,8 @@ class ClassHierarchy {
     while (i < declared.length && j < inherited.length) {
       Member declaredMember = declared[i];
       Member inheritedMember = inherited[j];
-      int comparison = _compareMembers(declaredMember, inheritedMember);
+      int comparison =
+          ClassHierarchy.compareMembers(declaredMember, inheritedMember);
       if (comparison < 0) {
         ++i;
       } else if (comparison > 0) {
@@ -635,131 +1132,79 @@ class ClassHierarchy {
     return result;
   }
 
-  /// Merges two sorted lists.
-  ///
-  /// If a given member occurs in both lists, the merge will attempt to exclude
-  /// the duplicate member, but is not strictly guaranteed to do so.
-  static List<Member> _merge(List<Member> first, List<Member> second) {
-    if (first.isEmpty) return second;
-    if (second.isEmpty) return first;
-    List<Member> result = <Member>[]..length = first.length + second.length;
-    int storeIndex = 0;
-    int i = 0, j = 0;
-    while (i < first.length && j < second.length) {
-      Member firstMember = first[i];
-      Member secondMember = second[j];
-      int compare = _compareMembers(firstMember, secondMember);
-      if (compare <= 0) {
-        result[storeIndex++] = firstMember;
-        ++i;
-        // If the same member occurs in both lists, skip the duplicate.
-        if (identical(firstMember, secondMember)) {
-          ++j;
-        }
-      } else {
-        result[storeIndex++] = secondMember;
-        ++j;
-      }
-    }
-    while (i < first.length) {
-      result[storeIndex++] = first[i++];
-    }
-    while (j < second.length) {
-      result[storeIndex++] = second[j++];
-    }
-    result.length = storeIndex;
-    return result;
-  }
-
   void _recordSuperTypes(_ClassInfo subInfo, Supertype supertype) {
     _ClassInfo superInfo = _infoFor[supertype.classNode];
     if (supertype.typeArguments.isEmpty) {
       if (superInfo.genericSuperTypes == null) return;
-      // Since the immediate super type is not generic, all entries in its
-      // super type map are also valid entries for this class.
-      if (subInfo.genericSuperTypes == null &&
-          superInfo.ownsGenericSuperTypeMap) {
-        // Instead of copying the map, take ownership of the map object.
-        // This may result in more entries being added to the map later. Those
-        // are not valid for the super type, but it works out because all
-        // lookups in the map are guarded by a subtype check, so the super type
-        // will not be bothered by the extra entries.
-        subInfo.genericSuperTypes = superInfo.genericSuperTypes;
-        superInfo.ownsGenericSuperTypeMap = false;
-      } else {
-        // Copy over the super type entries.
-        subInfo.genericSuperTypes ??= <Class, Supertype>{};
-        subInfo.genericSuperTypes.addAll(superInfo.genericSuperTypes);
-      }
+      // Copy over the super type entries.
+      subInfo.genericSuperTypes ??= <Class, List<Supertype>>{};
+      superInfo.genericSuperTypes?.forEach((Class key, List<Supertype> types) {
+        for (Supertype type in types) {
+          subInfo.recordGenericSuperType(key, type, _onAmbiguousSupertypes);
+        }
+      });
     } else {
       // Copy over all transitive generic super types, and substitute the
       // free variables with those provided in [supertype].
       Class superclass = supertype.classNode;
       var substitution = Substitution.fromPairs(
           superclass.typeParameters, supertype.typeArguments);
-      subInfo.genericSuperTypes ??= <Class, Supertype>{};
-      superInfo.genericSuperTypes?.forEach((Class key, Supertype type) {
-        subInfo.genericSuperTypes[key] = substitution.substituteSupertype(type);
+      subInfo.genericSuperTypes ??= <Class, List<Supertype>>{};
+      superInfo.genericSuperTypes?.forEach((Class key, List<Supertype> types) {
+        for (Supertype type in types) {
+          subInfo.recordGenericSuperType(key,
+              substitution.substituteSupertype(type), _onAmbiguousSupertypes);
+        }
       });
-      subInfo.genericSuperTypes[superclass] = supertype;
+
+      subInfo.recordGenericSuperType(
+          superclass, supertype, _onAmbiguousSupertypes);
     }
   }
 
-  /// Downwards traversal of the class hierarchy that orders classes so local
-  /// hierarchies have contiguous indices.
-  int _topDownSortIndex = 0;
-  void _topDownSortVisit(_ClassInfo info) {
-    if (info.topDownIndex != -1) return;
-    bool isMixedIn = info.directMixers.isNotEmpty;
-    int index = _topDownSortIndex++;
-    info.topDownIndex = index;
-    var subclassSetBuilder = new _IntervalListBuilder()..addSingleton(index);
-    var submixtureSetBuilder =
-        isMixedIn ? (new _IntervalListBuilder()..addSingleton(index)) : null;
-    var subtypeSetBuilder = new _IntervalListBuilder()..addSingleton(index);
-    for (var subtype in info.directExtenders) {
-      _topDownSortVisit(subtype);
-      subclassSetBuilder.addIntervalList(subtype.subclassIntervalList);
-      submixtureSetBuilder?.addIntervalList(subtype.submixtureIntervalList);
-      subtypeSetBuilder.addIntervalList(subtype.subtypeIntervalList);
-    }
-    for (var subtype in info.directMixers) {
-      _topDownSortVisit(subtype);
-      submixtureSetBuilder.addIntervalList(subtype.submixtureIntervalList);
-      subtypeSetBuilder.addIntervalList(subtype.subtypeIntervalList);
-    }
-    for (var subtype in info.directImplementers) {
-      _topDownSortVisit(subtype);
-      subtypeSetBuilder.addIntervalList(subtype.subtypeIntervalList);
-    }
-    info.subclassIntervalList = subclassSetBuilder.buildIntervalList();
-    info.submixtureIntervalList = isMixedIn
-        ? submixtureSetBuilder.buildIntervalList()
-        : info.subclassIntervalList;
-    info.subtypeIntervalList = subtypeSetBuilder.buildIntervalList();
-  }
+  /// Build lists of super types and super classes.
+  /// Note that the super class and super types of the class must already have
+  /// had their supers collected.
+  void _collectSupersForClass(Class class_) {
+    _ClassInfo info = _infoFor[class_];
 
-  static int _countClasses(Program program) {
-    int count = 0;
-    for (var library in program.libraries) {
-      count += library.classes.length;
+    var superclassSetBuilder = new _IntervalListBuilder()
+      ..addSingleton(info.topologicalIndex);
+    var supertypeSetBuilder = new _IntervalListBuilder()
+      ..addSingleton(info.topologicalIndex);
+
+    if (class_.supertype != null) {
+      _ClassInfo supertypeInfo = _infoFor[class_.supertype.classNode];
+      superclassSetBuilder
+          .addIntervalList(supertypeInfo.superclassIntervalList);
+      supertypeSetBuilder.addIntervalList(supertypeInfo.supertypeIntervalList);
     }
-    return count;
+
+    if (class_.mixedInType != null) {
+      _ClassInfo mixedInTypeInfo = _infoFor[class_.mixedInType.classNode];
+      supertypeSetBuilder
+          .addIntervalList(mixedInTypeInfo.supertypeIntervalList);
+    }
+
+    for (Supertype supertype in class_.implementedTypes) {
+      _ClassInfo supertypeInfo = _infoFor[supertype.classNode];
+      supertypeSetBuilder.addIntervalList(supertypeInfo.supertypeIntervalList);
+    }
+
+    info.superclassIntervalList = superclassSetBuilder.buildIntervalList();
+    info.supertypeIntervalList = supertypeSetBuilder.buildIntervalList();
   }
 
   /// Creates a histogram such that index `N` contains the number of classes
-  /// that have `N` intervals in its subclass or subtype set (whichever is
-  /// larger).
+  /// that have `N` intervals in its supertype set.
   ///
   /// The more numbers are condensed near the beginning, the more efficient the
   /// internal data structure is.
   List<int> getExpenseHistogram() {
     var result = <int>[];
-    for (Class class_ in classes) {
+    for (Class class_ in _infoFor.keys) {
       var info = _infoFor[class_];
-      int intervals = max(info.subclassIntervalList.length,
-              info.subtypeIntervalList.length) ~/
-          2;
+      int intervals = info.supertypeIntervalList.length ~/ 2;
       if (intervals >= result.length) {
         int oldLength = result.length;
         result.length = intervals + 1;
@@ -770,33 +1215,31 @@ class ClassHierarchy {
     return result;
   }
 
-  /// Returns the average number of intervals per subtype relation (less
+  /// Returns the average number of intervals per supertype relation (less
   /// is better, 1.0 is bad).
   ///
   /// This is an estimate of the memory use compared to a data structure that
-  /// enumerates all subclass/subtype pairs.
+  /// enumerates all superclass/supertype pairs.
   double getCompressionRatio() {
     int intervals = 0;
     int sizes = 0;
-    for (Class class_ in classes) {
+    for (Class class_ in _infoFor.keys) {
       var info = _infoFor[class_];
-      intervals += (info.subclassIntervalList.length +
-              info.subtypeIntervalList.length) ~/
+      intervals += (info.superclassIntervalList.length +
+              info.supertypeIntervalList.length) ~/
           2;
-      sizes += _intervalListSize(info.subclassIntervalList) +
-          _intervalListSize(info.subtypeIntervalList);
+      sizes += _intervalListSize(info.superclassIntervalList) +
+          _intervalListSize(info.supertypeIntervalList);
     }
+
     return sizes == 0 ? 1.0 : intervals / sizes;
   }
 
   /// Returns the number of entries in hash tables storing hierarchy data.
   int getSuperTypeHashTableSize() {
     int sum = 0;
-    for (Class class_ in classes) {
-      _ClassInfo info = _infoFor[class_];
-      if (info.ownsGenericSuperTypeMap) {
-        sum += _infoFor[class_].genericSuperTypes?.length ?? 0;
-      }
+    for (Class class_ in _infoFor.keys) {
+      sum += _infoFor[class_].genericSuperTypes?.length ?? 0;
     }
     return sum;
   }
@@ -887,67 +1330,9 @@ int _intervalListSize(Uint32List intervalList) {
   return size;
 }
 
-/// Returns the member with the given name, or `null` if no member has the
-/// name.  In case the list contains multiple members with the given name,
-/// the one that occurs first in the list is returned.
-Member _findMemberByName(List<Member> members, Name name) {
-  int low = 0, high = members.length - 1;
-  while (low <= high) {
-    int mid = low + ((high - low) >> 1);
-    Member pivot = members[mid];
-    int comparison = _compareNames(name, pivot.name);
-    if (comparison < 0) {
-      high = mid - 1;
-    } else if (comparison > 0) {
-      low = mid + 1;
-    } else if (high != mid) {
-      // Ensure we find the first element of the given name.
-      high = mid;
-    } else {
-      return pivot;
-    }
-  }
-  return null;
-}
-
-/// Compares members by name.
-int _compareMembers(Member first, Member second) {
-  return _compareNames(first.name, second.name);
-}
-
-/// Compares names using an arbitrary as-fast-as-possible sorting criterion.
-int _compareNames(Name firstName, Name secondName) {
-  int firstHash = firstName.hashCode;
-  int secondHash = secondName.hashCode;
-  if (firstHash != secondHash) return firstHash - secondHash;
-  String firstString = firstName.name;
-  String secondString = secondName.name;
-  int firstLength = firstString.length;
-  int secondLength = secondString.length;
-  if (firstLength != secondLength) {
-    return firstLength - secondLength;
-  }
-  Library firstLibrary = firstName.library;
-  Library secondLibrary = secondName.library;
-  if (firstLibrary != secondLibrary) {
-    if (firstLibrary == null) return -1;
-    if (secondLibrary == null) return 1;
-    return firstLibrary.compareTo(secondLibrary);
-  }
-  for (int i = 0; i < firstLength; ++i) {
-    int firstUnit = firstString.codeUnitAt(i);
-    int secondUnit = secondString.codeUnitAt(i);
-    int delta = firstUnit - secondUnit;
-    if (delta != 0) return delta;
-  }
-  return 0;
-}
-
 class _ClassInfo {
   final Class classNode;
   int topologicalIndex = 0;
-  int topDownIndex = -1;
-  bool isBeingVisited = false;
   int depth = 0;
 
   // Super types must always occur before subtypes in these lists.
@@ -958,57 +1343,21 @@ class _ClassInfo {
   //
   // Here `A` must occur before `B` in the list of direct extenders of Object,
   // because `B` is a subtype of `A`.
-  final List<_ClassInfo> directExtenders = <_ClassInfo>[];
-  final List<_ClassInfo> directMixers = <_ClassInfo>[];
-  final List<_ClassInfo> directImplementers = <_ClassInfo>[];
+  final Set<_ClassInfo> directExtenders = new LinkedHashSet<_ClassInfo>();
+  final Set<_ClassInfo> directMixers = new LinkedHashSet<_ClassInfo>();
+  final Set<_ClassInfo> directImplementers = new LinkedHashSet<_ClassInfo>();
 
-  /// Top-down indices of all subclasses of this class, represented as
-  /// interleaved begin/end interval end points.
-  Uint32List subclassIntervalList;
-  Uint32List submixtureIntervalList;
-  Uint32List subtypeIntervalList;
+  Uint32List superclassIntervalList;
+  Uint32List supertypeIntervalList;
 
   List<_ClassInfo> leastUpperBoundInfos;
-
-  bool isSubclassOf(_ClassInfo other) {
-    return _intervalListContains(other.subclassIntervalList, topDownIndex);
-  }
-
-  bool isSubmixtureOf(_ClassInfo other) {
-    return _intervalListContains(other.submixtureIntervalList, topDownIndex);
-  }
-
-  bool isSubtypeOf(_ClassInfo other) {
-    return _intervalListContains(other.subtypeIntervalList, topDownIndex);
-  }
 
   /// Maps generic supertype classes to the instantiation implemented by this
   /// class.
   ///
   /// E.g. `List` maps to `List<String>` for a class that directly of indirectly
   /// implements `List<String>`.
-  ///
-  /// However, the map may contain additional entries for classes that are not
-  /// supertypes of this class, so that a single map object can be shared
-  /// between different classes.  Lookups into the map should therefore be
-  /// guarded by a subtype check.
-  ///
-  /// For example:
-  ///
-  ///     class Q<T>
-  ///     class A<T>
-  ///
-  ///     class B extends A<String>
-  ///     class C extends B implements Q<int>
-  ///
-  /// In this case, a single map object `{A: A<String>, Q: Q<int>}` may be
-  /// shared by the classes `B` and `C`.
-  Map<Class, Supertype> genericSuperTypes;
-
-  /// If true, this is the current "owner" of [genericSuperTypes], meaning
-  /// we may add additional entries to the map or transfer ownership to another
-  /// class.
-  bool ownsGenericSuperTypeMap = true;
+  Map<Class, List<Supertype>> genericSuperTypes;
 
   /// Instance fields, getters, methods, and operators declared in this class
   /// or its mixed-in class, sorted according to [_compareMembers].
@@ -1030,35 +1379,45 @@ class _ClassInfo {
   List<Member> interfaceSetters;
 
   _ClassInfo(this.classNode);
-}
 
-/// An immutable set of classes, internally represented as an interval list.
-class ClassSet {
-  final ClassHierarchy _hierarchy;
-  final Uint32List _intervalList;
-
-  ClassSet(this._hierarchy, this._intervalList);
-
-  bool get isEmpty => _intervalList.isEmpty;
-
-  bool get isSingleton {
-    var list = _intervalList;
-    return list.length == 2 && list[0] + 1 == list[1];
+  bool isSubclassOf(_ClassInfo other) {
+    return _intervalListContains(
+        superclassIntervalList, other.topologicalIndex);
   }
 
-  bool contains(Class class_) {
-    return _intervalListContains(
-        _intervalList, _hierarchy._infoFor[class_].topDownIndex);
+  bool isSubtypeOf(_ClassInfo other) {
+    return _intervalListContains(supertypeIntervalList, other.topologicalIndex);
+  }
+
+  void recordGenericSuperType(Class cls, Supertype type,
+      HandleAmbiguousSupertypes onAmbiguousSupertypes) {
+    List<Supertype> existing = genericSuperTypes[cls];
+    if (existing == null) {
+      genericSuperTypes[cls] = <Supertype>[type];
+    } else if (type != existing.first) {
+      existing.add(type);
+      onAmbiguousSupertypes(classNode, existing.first, type);
+    }
+  }
+}
+
+/// An immutable set of classes.
+class ClassSet extends IterableBase<Class> {
+  final Set<Class> _classes;
+  ClassSet(this._classes);
+
+  bool contains(Object class_) {
+    return _classes.contains(_classes);
   }
 
   ClassSet union(ClassSet other) {
-    assert(_hierarchy == other._hierarchy);
-    if (identical(_intervalList, other._intervalList)) return this;
-    _IntervalListBuilder builder = new _IntervalListBuilder();
-    builder.addIntervalList(_intervalList);
-    builder.addIntervalList(other._intervalList);
-    return new ClassSet(_hierarchy, builder.buildIntervalList());
+    Set<Class> result = new Set<Class>.from(_classes);
+    result.addAll(other._classes);
+    return new ClassSet(result);
   }
+
+  @override
+  Iterator<Class> get iterator => _classes.iterator;
 }
 
 /// Heap for use in computing least upper bounds.

@@ -7,9 +7,11 @@ library test;
 
 import 'infer_from_variables_in_non_cycle_imports_with_flag_a.dart';
 
-var /*@topType=dynamic*/ y = x;
+var /*@topType=int*/ y = x;
 
 test1() {
   x = /*error:INVALID_ASSIGNMENT*/ "hi";
   y = /*error:INVALID_ASSIGNMENT*/ "hi";
 }
+
+main() {}

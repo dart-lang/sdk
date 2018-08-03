@@ -9,10 +9,12 @@ import 'dart:async';
 
 void add(int x) {}
 add2(int y) {}
-main() {
+test() {
   Future<int> f;
   var /*@type=Future<void>*/ a =
       f. /*@typeArgs=void*/ /*@target=Future::then*/ then(add);
   var /*@type=Future<dynamic>*/ b =
       f. /*@typeArgs=dynamic*/ /*@target=Future::then*/ then(add2);
 }
+
+main() {}

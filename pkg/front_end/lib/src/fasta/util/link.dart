@@ -61,7 +61,7 @@ class Link<T> implements Iterable<T> {
   bool get isEmpty => true;
   bool get isNotEmpty => false;
 
-  Link<T> reverse() => this;
+  Link<T> reverse(Link<T> tail) => this;
 
   Link<T> reversePrependAll(Link<T> from) {
     if (from.isEmpty) return this;
@@ -114,19 +114,18 @@ class Link<T> implements Iterable<T> {
   /// Returns true if f returns true for all elements of this list.
   ///
   /// Returns true for the empty list.
-  bool every(bool f(T)) {
+  bool every(bool f(T e)) {
     for (Link<T> link = this; !link.isEmpty; link = link.tail) {
       if (!f(link.head)) return false;
     }
     return true;
   }
 
-  Link copyWithout(e) => this;
-
   //
   // Unsupported Iterable<T> methods.
   //
   bool any(bool f(T e)) => _unsupported('any');
+  Iterable<T> cast<T>() => _unsupported('cast');
   T elementAt(int i) => _unsupported('elementAt');
   Iterable<K> expand<K>(Iterable<K> f(T e)) => _unsupported('expand');
   T firstWhere(bool f(T e), {T orElse()}) => _unsupported('firstWhere');
@@ -134,15 +133,18 @@ class Link<T> implements Iterable<T> {
     return _unsupported('fold');
   }
 
+  Iterable<T> followedBy(Iterable<T> other) => _unsupported('followedBy');
   T get last => _unsupported('get:last');
   T lastWhere(bool f(T e), {T orElse()}) => _unsupported('lastWhere');
   String join([separator = '']) => _unsupported('join');
   T reduce(T combine(T a, T b)) => _unsupported('reduce');
-  T singleWhere(bool f(T e)) => _unsupported('singleWhere');
+  Iterable<T> retype<T>() => _unsupported('retype');
+  T singleWhere(bool f(T e), {T orElse()}) => _unsupported('singleWhere');
   Iterable<T> skipWhile(bool f(T e)) => _unsupported('skipWhile');
   Iterable<T> take(int n) => _unsupported('take');
   Iterable<T> takeWhile(bool f(T e)) => _unsupported('takeWhile');
   Set<T> toSet() => _unsupported('toSet');
+  Iterable<T> whereType<T>() => _unsupported('whereType');
   Iterable<T> where(bool f(T e)) => _unsupported('where');
 
   _unsupported(String method) => throw new UnsupportedError(method);
@@ -155,7 +157,7 @@ abstract class LinkBuilder<T> {
 
   /// Prepends all elements added to the builder to [tail]. The resulting list
   /// is returned and the builder is cleared.
-  Link<T> toLink([Link<T> tail = const Link()]);
+  Link<T> toLink(Link<T> tail);
 
   /// Creates a new fixed length containing all added elements. The
   /// resulting list is returned and the builder is cleared.

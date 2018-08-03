@@ -4,8 +4,8 @@
 
 #include "vm/object_store.h"
 
-#include "vm/exceptions.h"
 #include "vm/dart_entry.h"
+#include "vm/exceptions.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
@@ -15,118 +15,28 @@
 
 namespace dart {
 
-ObjectStore::ObjectStore()
-    : object_class_(Class::null()),
-      object_type_(Type::null()),
-      null_class_(Class::null()),
-      null_type_(Type::null()),
-      function_type_(Type::null()),
-      closure_class_(Class::null()),
-      number_type_(Type::null()),
-      int_type_(Type::null()),
-      integer_implementation_class_(Class::null()),
-      int64_type_(Type::null()),
-      smi_class_(Class::null()),
-      smi_type_(Type::null()),
-      mint_class_(Class::null()),
-      mint_type_(Type::null()),
-      bigint_class_(Class::null()),
-      double_class_(Class::null()),
-      double_type_(Type::null()),
-      float32x4_type_(Type::null()),
-      int32x4_type_(Type::null()),
-      float64x2_type_(Type::null()),
-      string_type_(Type::null()),
-      compiletime_error_class_(Class::null()),
-      future_class_(Class::null()),
-      completer_class_(Class::null()),
-      stream_iterator_class_(Class::null()),
-      symbol_class_(Class::null()),
-      one_byte_string_class_(Class::null()),
-      two_byte_string_class_(Class::null()),
-      external_one_byte_string_class_(Class::null()),
-      external_two_byte_string_class_(Class::null()),
-      bool_type_(Type::null()),
-      bool_class_(Class::null()),
-      array_class_(Class::null()),
-      array_type_(Type::null()),
-      immutable_array_class_(Class::null()),
-      growable_object_array_class_(Class::null()),
-      linked_hash_map_class_(Class::null()),
-      float32x4_class_(Class::null()),
-      int32x4_class_(Class::null()),
-      float64x2_class_(Class::null()),
-      error_class_(Class::null()),
-      weak_property_class_(Class::null()),
-      symbol_table_(Array::null()),
-      canonical_types_(Array::null()),
-      canonical_type_arguments_(Array::null()),
-      async_library_(Library::null()),
-      builtin_library_(Library::null()),
-      core_library_(Library::null()),
-      collection_library_(Library::null()),
-      convert_library_(Library::null()),
-      developer_library_(Library::null()),
-      _internal_library_(Library::null()),
-      isolate_library_(Library::null()),
-      math_library_(Library::null()),
-      mirrors_library_(Library::null()),
-      native_wrappers_library_(Library::null()),
-      profiler_library_(Library::null()),
-      root_library_(Library::null()),
-      typed_data_library_(Library::null()),
-      _vmservice_library_(Library::null()),
-      libraries_(GrowableObjectArray::null()),
-      libraries_map_(Array::null()),
-      closure_functions_(GrowableObjectArray::null()),
-      pending_classes_(GrowableObjectArray::null()),
-      pending_deferred_loads_(GrowableObjectArray::null()),
-      resume_capabilities_(GrowableObjectArray::null()),
-      exit_listeners_(GrowableObjectArray::null()),
-      error_listeners_(GrowableObjectArray::null()),
-      stack_overflow_(Instance::null()),
-      out_of_memory_(Instance::null()),
-      preallocated_unhandled_exception_(UnhandledException::null()),
-      preallocated_stack_trace_(StackTrace::null()),
-      lookup_port_handler_(Function::null()),
-      empty_uint32_array_(TypedData::null()),
-      handle_message_function_(Function::null()),
-      simple_instance_of_function_(Function::null()),
-      simple_instance_of_true_function_(Function::null()),
-      simple_instance_of_false_function_(Function::null()),
-      async_clear_thread_stack_trace_(Function::null()),
-      async_set_thread_stack_trace_(Function::null()),
-      async_star_move_next_helper_(Function::null()),
-      complete_on_async_return_(Function::null()),
-      async_star_stream_controller_(Class::null()),
-      library_load_error_table_(Array::null()),
-      unique_dynamic_targets_(Array::null()),
-      token_objects_(GrowableObjectArray::null()),
-      token_objects_map_(Array::null()),
-      megamorphic_cache_table_(GrowableObjectArray::null()),
-      megamorphic_miss_code_(Code::null()),
-      megamorphic_miss_function_(Function::null()) {
+ObjectStore::ObjectStore() {
+#define INIT_FIELD(Type, name) name##_ = Type::null();
+  OBJECT_STORE_FIELD_LIST(INIT_FIELD, INIT_FIELD)
+#undef INIT_FIELD
+
   for (RawObject** current = from(); current <= to(); current++) {
     ASSERT(*current == Object::null());
   }
 }
 
-
 ObjectStore::~ObjectStore() {}
-
 
 void ObjectStore::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
   visitor->VisitPointers(from(), to());
 }
 
-
 void ObjectStore::Init(Isolate* isolate) {
   ASSERT(isolate->object_store() == NULL);
   ObjectStore* store = new ObjectStore();
   isolate->set_object_store(store);
 }
-
 
 #ifndef PRODUCT
 void ObjectStore::PrintToJSONObject(JSONObject* jsobj) {
@@ -139,14 +49,20 @@ void ObjectStore::PrintToJSONObject(JSONObject* jsobj) {
     JSONObject fields(jsobj, "fields");
     Object& value = Object::Handle();
 #define PRINT_OBJECT_STORE_FIELD(type, name)                                   \
-  value = name;                                                                \
-  fields.AddProperty(#name, value);
-    OBJECT_STORE_FIELD_LIST(PRINT_OBJECT_STORE_FIELD);
+  value = name##_;                                                             \
+  fields.AddProperty(#name "_", value);
+    OBJECT_STORE_FIELD_LIST(PRINT_OBJECT_STORE_FIELD, PRINT_OBJECT_STORE_FIELD);
 #undef PRINT_OBJECT_STORE_FIELD
   }
 }
 #endif  // !PRODUCT
 
+static RawInstance* AllocateObjectByClassName(const Library& library,
+                                              const String& class_name) {
+  const Class& cls = Class::Handle(library.LookupClassAllowPrivate(class_name));
+  ASSERT(!cls.IsNull());
+  return Instance::New(cls);
+}
 
 RawError* ObjectStore::PreallocateObjects() {
   Thread* thread = Thread::Current();
@@ -172,17 +88,13 @@ RawError* ObjectStore::PreallocateObjects() {
   Object& result = Object::Handle();
   const Library& library = Library::Handle(Library::CoreLibrary());
 
-  result =
-      DartLibraryCalls::InstanceCreate(library, Symbols::StackOverflowError(),
-                                       Symbols::Dot(), Object::empty_array());
+  result = AllocateObjectByClassName(library, Symbols::StackOverflowError());
   if (result.IsError()) {
     return Error::Cast(result).raw();
   }
   set_stack_overflow(Instance::Cast(result));
 
-  result =
-      DartLibraryCalls::InstanceCreate(library, Symbols::OutOfMemoryError(),
-                                       Symbols::Dot(), Object::empty_array());
+  result = AllocateObjectByClassName(library, Symbols::OutOfMemoryError());
   if (result.IsError()) {
     return Error::Cast(result).raw();
   }
@@ -209,7 +121,6 @@ RawError* ObjectStore::PreallocateObjects() {
   return Error::null();
 }
 
-
 RawFunction* ObjectStore::PrivateObjectLookup(const String& name) {
   const Library& core_lib = Library::Handle(core_library());
   const String& mangled = String::ZoneHandle(core_lib.PrivateName(name));
@@ -218,7 +129,6 @@ RawFunction* ObjectStore::PrivateObjectLookup(const String& name) {
   ASSERT(!result.IsNull());
   return result.raw();
 }
-
 
 void ObjectStore::InitKnownObjects() {
 #ifdef DART_PRECOMPILED_RUNTIME
@@ -239,9 +149,6 @@ void ObjectStore::InitKnownObjects() {
   cls = async_lib.LookupClass(Symbols::Completer());
   ASSERT(!cls.IsNull());
   set_completer_class(cls);
-  cls = async_lib.LookupClass(Symbols::StreamIterator());
-  ASSERT(!cls.IsNull());
-  set_stream_iterator_class(cls);
 
   String& function_name = String::Handle(zone);
   Function& function = Function::Handle(zone);
@@ -260,7 +167,6 @@ void ObjectStore::InitKnownObjects() {
                               0, 0, Object::null_array());
   ASSERT(!function.IsNull());
   set_async_clear_thread_stack_trace(function);
-
 
   function_name ^= async_lib.PrivateName(Symbols::AsyncStarMoveNextHelper());
   ASSERT(!function_name.IsNull());
@@ -310,6 +216,16 @@ void ObjectStore::InitKnownObjects() {
   cls = core_lib.LookupClassAllowPrivate(Symbols::_CompileTimeError());
   ASSERT(!cls.IsNull());
   set_compiletime_error_class(cls);
+
+  cls = core_lib.LookupClassAllowPrivate(Symbols::Pragma());
+  ASSERT(!cls.IsNull());
+  set_pragma_class(cls);
+
+  cls = core_lib.LookupClassAllowPrivate(Symbols::_GrowableList());
+  ASSERT(!cls.IsNull());
+  growable_list_factory_ =
+      cls.LookupFactoryAllowPrivate(Symbols::_GrowableListFactory());
+  ASSERT(growable_list_factory_ != Function::null());
 
   // Cache the core private functions used for fast instance of checks.
   simple_instance_of_function_ =

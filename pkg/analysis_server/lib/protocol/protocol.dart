@@ -14,26 +14,6 @@ import 'package:analysis_server/src/protocol/protocol_internal.dart';
 export 'package:analyzer_plugin/protocol/protocol.dart' show Enum;
 
 /**
- * A [RequestHandler] that supports [startup] and [shutdown] methods.
- *
- * Clients may not extend, implement or mix-in this class.
- */
-abstract class DomainHandler implements RequestHandler {
-  /**
-   * Perform any operations associated with the shutdown of the domain. It is
-   * not guaranteed that this method will be called. If it is, it will be
-   * called after the last [Request] has been made.
-   */
-  void shutdown() {}
-
-  /**
-   * Perform any operations associated with the startup of the domain. This
-   * will be called before the first [Request].
-   */
-  void startup() {}
-}
-
-/**
  * A notification that can be sent from the server about an event that occurred.
  *
  * Clients may not extend, implement or mix-in this class.
@@ -207,7 +187,7 @@ class Request {
    */
   factory Request.fromString(String data) {
     try {
-      var result = JSON.decode(data);
+      var result = json.decode(data);
       if (result is Map) {
         return new Request.fromJson(result as Map<String, dynamic>);
       }
@@ -470,6 +450,26 @@ class Response {
 
   /**
    * Initialize a newly created instance to represent the
+   * GET_IMPORTED_ELEMENTS_INVALID_FILE error condition.
+   */
+  Response.getImportedElementsInvalidFile(Request request)
+      : this(request.id,
+            error: new RequestError(
+                RequestErrorCode.GET_IMPORTED_ELEMENTS_INVALID_FILE,
+                'Error during `analysis.getImportedElements`: invalid file.'));
+
+  /**
+   * Initialize a newly created instance to represent the
+   * GET_KYTHE_ENTRIES_INVALID_FILE error condition.
+   */
+  Response.getKytheEntriesInvalidFile(Request request)
+      : this(request.id,
+            error: new RequestError(
+                RequestErrorCode.GET_KYTHE_ENTRIES_INVALID_FILE,
+                'Error during `analysis.getKytheEntries`: invalid file.'));
+
+  /**
+   * Initialize a newly created instance to represent the
    * GET_NAVIGATION_INVALID_FILE error condition.
    */
   Response.getNavigationInvalidFile(Request request)
@@ -487,6 +487,16 @@ class Response {
             error: new RequestError(
                 RequestErrorCode.GET_REACHABLE_SOURCES_INVALID_FILE,
                 'Error during `analysis.getReachableSources`: invalid file.'));
+
+  /**
+   * Initialize a newly created instance to represent the
+   * IMPORT_ELEMENTS_INVALID_FILE error condition.
+   */
+  Response.importElementsInvalidFile(Request request)
+      : this(request.id,
+            error: new RequestError(
+                RequestErrorCode.IMPORT_ELEMENTS_INVALID_FILE,
+                'Error during `edit.importElements`: invalid file.'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused

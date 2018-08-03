@@ -17,13 +17,13 @@
 namespace dart {
 
 DECLARE_FLAG(bool, trace_shutdown);
+DECLARE_FLAG(bool, use_dart_frontend);
 
 static void native_echo(Dart_NativeArguments args);
 static void CustomIsolateImpl_start(Dart_NativeArguments args);
 static Dart_NativeFunction NativeLookup(Dart_Handle name,
                                         int argc,
                                         bool* auto_setup_scope);
-
 
 static const char* kCustomIsolateScriptChars =
     "import 'dart:isolate';\n"
@@ -77,7 +77,6 @@ static const char* kCustomIsolateScriptChars =
     "  return 'success';\n"
     "}\n";
 
-
 // An entry in our event queue.
 class Event {
  protected:
@@ -94,7 +93,6 @@ class Event {
   Dart_Isolate isolate_;
   Event* next_;
 };
-
 
 // A simple event queue for our test.
 class EventQueue {
@@ -153,7 +151,6 @@ class EventQueue {
 };
 EventQueue* event_queue;
 
-
 // Start an isolate.
 class StartEvent : public Event {
  public:
@@ -166,9 +163,8 @@ class StartEvent : public Event {
   const char* main_;
 };
 
-
 void StartEvent::Process() {
-  OS::Print(">> StartEvent with isolate(%p)--\n", isolate());
+  OS::PrintErr(">> StartEvent with isolate(%p)--\n", isolate());
   Dart_EnterIsolate(isolate());
   Dart_EnterScope();
   Dart_Handle result;
@@ -186,7 +182,6 @@ void StartEvent::Process() {
   Dart_ExitIsolate();
 }
 
-
 // Notify an isolate of a pending message.
 class MessageEvent : public Event {
  public:
@@ -197,9 +192,8 @@ class MessageEvent : public Event {
   virtual void Process();
 };
 
-
 void MessageEvent::Process() {
-  OS::Print("$$ MessageEvent with isolate(%p)\n", isolate());
+  OS::PrintErr("$$ MessageEvent with isolate(%p)\n", isolate());
   Dart_EnterIsolate(isolate());
   Dart_EnterScope();
 
@@ -207,7 +201,7 @@ void MessageEvent::Process() {
   EXPECT_VALID(result);
 
   if (!Dart_HasLivePorts()) {
-    OS::Print("<< Shutting down isolate(%p)\n", isolate());
+    OS::PrintErr("<< Shutting down isolate(%p)\n", isolate());
     event_queue->RemoveEventsForIsolate(isolate());
     Dart_SetMessageNotifyCallback(NULL);
     Dart_ExitScope();
@@ -219,13 +213,11 @@ void MessageEvent::Process() {
   ASSERT(Dart_CurrentIsolate() == NULL);
 }
 
-
 static void NotifyMessage(Dart_Isolate dest_isolate) {
-  OS::Print("-- Notify isolate(%p) of pending message --\n", dest_isolate);
-  OS::Print("-- Adding MessageEvent to queue --\n");
+  OS::PrintErr("-- Notify isolate(%p) of pending message --\n", dest_isolate);
+  OS::PrintErr("-- Adding MessageEvent to queue --\n");
   event_queue->Add(new MessageEvent(dest_isolate));
 }
-
 
 static Dart_NativeFunction NativeLookup(Dart_Handle name,
                                         int argc,
@@ -243,7 +235,6 @@ static Dart_NativeFunction NativeLookup(Dart_Handle name,
   return NULL;
 }
 
-
 char* saved_echo = NULL;
 static void native_echo(Dart_NativeArguments args) {
   Dart_EnterScope();
@@ -256,13 +247,12 @@ static void native_echo(Dart_NativeArguments args) {
     free(saved_echo);
   }
   saved_echo = strdup(c_str);
-  OS::Print("-- (isolate=%p) %s\n", Dart_CurrentIsolate(), c_str);
+  OS::PrintErr("-- (isolate=%p) %s\n", Dart_CurrentIsolate(), c_str);
   Dart_ExitScope();
 }
 
-
 static void CustomIsolateImpl_start(Dart_NativeArguments args) {
-  OS::Print("-- Enter: CustomIsolateImpl_start --\n");
+  OS::PrintErr("-- Enter: CustomIsolateImpl_start --\n");
 
   // We would probably want to pass in the this pointer too, so we
   // could associate the CustomIsolateImpl instance with the
@@ -297,7 +287,7 @@ static void CustomIsolateImpl_start(Dart_NativeArguments args) {
   Dart_Handle err = Dart_SendPortGetId(main_send_port, &main_port_id);
   EXPECT_VALID(err);
 
-  OS::Print("-- Adding StartEvent to queue --\n");
+  OS::PrintErr("-- Adding StartEvent to queue --\n");
   event_queue->Add(new StartEvent(new_isolate, isolate_main));
 
   // Restore the original isolate.
@@ -310,17 +300,16 @@ static void CustomIsolateImpl_start(Dart_NativeArguments args) {
   EXPECT_VALID(send_port);
   Dart_SetReturnValue(args, send_port);
 
-  OS::Print("-- Exit: CustomIsolateImpl_start --\n");
+  OS::PrintErr("-- Exit: CustomIsolateImpl_start --\n");
   Dart_ExitScope();
 }
-
 
 VM_UNIT_TEST_CASE(CustomIsolates) {
   bool saved_flag = FLAG_trace_shutdown;
   FLAG_trace_shutdown = true;
   FLAG_verify_handles = true;
 #ifdef DEBUG
-  FLAG_verify_on_transition = true;
+  FLAG_verify_on_transition = FLAG_use_dart_frontend ? false : true;
 #endif
   event_queue = new EventQueue();
 
@@ -346,14 +335,14 @@ VM_UNIT_TEST_CASE(CustomIsolates) {
   Dart_ExitScope();
   Dart_ExitIsolate();
 
-  OS::Print("-- Starting event loop --\n");
+  OS::PrintErr("-- Starting event loop --\n");
   Event* event = event_queue->Get();
   while (event) {
     event->Process();
     delete event;
     event = event_queue->Get();
   }
-  OS::Print("-- Finished event loop --\n");
+  OS::PrintErr("-- Finished event loop --\n");
   EXPECT_STREQ("Received: 43", saved_echo);
   free(saved_echo);
 

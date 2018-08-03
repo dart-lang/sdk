@@ -2,12 +2,12 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-class A<T extends core::Object> extends core::Object {
-  constructor •() → void
+class A<T extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → void
     ;
 }
-class B<T extends core::Object> extends self::A<self::B::T> {
-  constructor •() → void
+class B<T extends core::Object = dynamic> extends self::A<self::B::T> {
+  synthetic constructor •() → void
     ;
 }
 static method main() → dynamic

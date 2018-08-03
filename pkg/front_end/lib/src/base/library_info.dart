@@ -36,7 +36,7 @@ enum Category {
   /// Indicates that a library can be used in a browser context.
   client,
 
-  /// Indicates that a lbirary can be used in a command line context.
+  /// Indicates that a library can be used in a command line context.
   server,
 
   /// Indicates that a library can be used from embedded devices.

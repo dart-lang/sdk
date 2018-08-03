@@ -14,15 +14,15 @@ namespace dart {
 // Scan the stack until we hit the first function in the _AssertionError
 // class. We then return the next frame's script taking inlining into account.
 static RawScript* FindScript(DartFrameIterator* iterator) {
-  if (FLAG_precompiled_runtime) {
-    // The precompiled runtime faces two issues in recovering the correct
-    // assertion text. First, the precompiled runtime does not include
-    // the inlining meta-data so we cannot walk the inline-aware stack trace.
-    // Second, the script text itself is missing so whatever script is returned
-    // from here will be missing the assertion expression text.
-    iterator->NextFrame();  // Skip _AssertionError._evaluateAssertion frame
-    return Exceptions::GetCallerScript(iterator);
-  }
+#if defined(DART_PRECOMPILED_RUNTIME)
+  // The precompiled runtime faces two issues in recovering the correct
+  // assertion text. First, the precompiled runtime does not include
+  // the inlining meta-data so we cannot walk the inline-aware stack trace.
+  // Second, the script text itself is missing so whatever script is returned
+  // from here will be missing the assertion expression text.
+  iterator->NextFrame();  // Skip _AssertionError._evaluateAssertion frame
+  return Exceptions::GetCallerScript(iterator);
+#else
   StackFrame* stack_frame = iterator->NextFrame();
   Code& code = Code::Handle();
   Function& func = Function::Handle();
@@ -56,8 +56,8 @@ static RawScript* FindScript(DartFrameIterator* iterator) {
   }
   UNREACHABLE();
   return Script::null();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
-
 
 // Allocate and throw a new AssertionError.
 // Arg0: index of the first token of the failed assertion.
@@ -102,7 +102,6 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 3) {
   return Object::null();
 }
 
-
 // Allocate and throw a new TypeError or CastError.
 // Arg0: index of the token of the failed type check.
 // Arg1: src value.
@@ -129,7 +128,6 @@ DEFINE_NATIVE_ENTRY(TypeError_throwNew, 5) {
   return Object::null();
 }
 
-
 // Allocate and throw a new FallThroughError.
 // Arg0: index of the case clause token into which we fall through.
 // Return value: none, throws an exception.
@@ -153,7 +151,6 @@ DEFINE_NATIVE_ENTRY(FallThroughError_throwNew, 1) {
   UNREACHABLE();
   return Object::null();
 }
-
 
 // Allocate and throw a new AbstractClassInstantiationError.
 // Arg0: Token position of allocation statement.

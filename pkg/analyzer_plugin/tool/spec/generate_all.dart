@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:front_end/src/codegen/tools.dart';
+import 'package:analyzer/src/codegen/tools.dart';
 import 'package:path/path.dart';
 
 import 'codegen_dart_protocol.dart' as codegen_dart_protocol;
@@ -17,10 +17,10 @@ import 'to_html.dart' as to_html;
 /**
  * Generate all targets.
  */
-main() {
+main() async {
   String script = Platform.script.toFilePath(windows: Platform.isWindows);
   String pkgPath = normalize(join(dirname(script), '..', '..'));
-  GeneratedContent.generateAll(pkgPath, allTargets);
+  await GeneratedContent.generateAll(pkgPath, allTargets);
 }
 
 /**

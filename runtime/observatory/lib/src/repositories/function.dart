@@ -5,7 +5,7 @@
 part of repositories;
 
 class FunctionRepository extends M.FunctionRepository {
-  Future<M.Function> get(M.IsolateRef i, String id) async {
+  Future<M.ServiceFunction> get(M.IsolateRef i, String id) async {
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);
     return (await isolate.getObject(id)) as S.ServiceFunction;

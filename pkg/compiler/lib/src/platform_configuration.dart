@@ -135,7 +135,7 @@ final Set<String> allowedSections =
 Future<Map<String, Uri>> load(Uri location, api.CompilerInput provider) {
   return provider
       .readFromUri(location, inputKind: api.InputKind.binary)
-      .then((api.Input<List<int>> input) {
+      .then((api.Input input) {
     return libraryMappings(
         parseIni(input.data,
             allowedSections: allowedSections, sourceUri: location),

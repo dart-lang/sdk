@@ -1,2 +1,4 @@
 library export;
 import self as self;
+import "./foo.dart" as foo;
+additionalExports = (foo::foo)

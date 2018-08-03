@@ -24,11 +24,14 @@ class Bar {
   }
 }
 
-void setup() native r"""
-function A(){}
-makeA = function() { return new A; };
-self.nativeConstructor(A);
-""";
+void setup() {
+  JS('', r"""
+(function(){
+  function A(){}
+  makeA = function() { return new A() };
+  self.nativeConstructor(A);
+})()""");
+}
 
 makeA() native;
 

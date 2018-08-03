@@ -32,6 +32,12 @@ const intptr_t kSmiBits32 = kBitsPerInt32 - 2;
 const intptr_t kSmiMax32 = (static_cast<intptr_t>(1) << kSmiBits32) - 1;
 const intptr_t kSmiMin32 = -(static_cast<intptr_t>(1) << kSmiBits32);
 
+// Number of bytes per BigInt digit.
+const intptr_t kBytesPerBigIntDigit = 4;
+
+// The default old gen heap size in MB, where 0 == unlimited.
+const intptr_t kDefaultMaxOldGenHeapSize = (kWordSize <= 4) ? 1536 : 0;
+
 #define kPosInfinity bit_cast<double>(DART_UINT64_C(0x7ff0000000000000))
 #define kNegInfinity bit_cast<double>(DART_UINT64_C(0xfff0000000000000))
 
@@ -42,7 +48,6 @@ const intptr_t kSmiMin32 = -(static_cast<intptr_t>(1) << kSmiBits32);
 #define ARRAY_SIZE(array)                                                      \
   ((sizeof(array) / sizeof(*(array))) /                                        \
    static_cast<intptr_t>(!(sizeof(array) % sizeof(*(array)))))  // NOLINT
-
 
 #if defined(ARCH_IS_64_BIT)
 #define HASH_IN_OBJECT_HEADER 1
@@ -69,6 +74,12 @@ const intptr_t kOffsetOfPtr = 32;
        (reinterpret_cast<type*>(kOffsetOfPtr)->accessor())) -                  \
    kOffsetOfPtr)  // NOLINT
 
+#define SIZE_OF_RETURNED_VALUE(type, method)                                   \
+  sizeof(reinterpret_cast<type*>(kOffsetOfPtr)->method())
+
+#define SIZE_OF_DEREFERENCED_RETURNED_VALUE(type, method)                      \
+  sizeof(*(reinterpret_cast<type*>(kOffsetOfPtr))->method())
+
 #define OPEN_ARRAY_START(type, align)                                          \
   do {                                                                         \
     const uword result = reinterpret_cast<uword>(this) + sizeof(*this);        \
@@ -76,11 +87,9 @@ const intptr_t kOffsetOfPtr = 32;
     return reinterpret_cast<type*>(result);                                    \
   } while (0)
 
-
 // A type large enough to contain the value of the C++ vtable. This is needed
 // to support the handle operations.
 typedef uword cpp_vtable;
-
 
 // When using GCC we can use GCC attributes to ensure that certain
 // constants are 8 or 16 byte aligned.
@@ -92,14 +101,12 @@ typedef uword cpp_vtable;
 #define ALIGN16 __attribute__((aligned(16)))
 #endif
 
-
 // Zap value used to indicate uninitialized handle area (debug purposes).
 #if defined(ARCH_IS_32_BIT)
 static const uword kZapUninitializedWord = 0xabababab;
 #else
 static const uword kZapUninitializedWord = 0xabababababababab;
 #endif
-
 
 // Macros to get the contents of the fp register.
 #if defined(HOST_OS_WINDOWS)
@@ -113,7 +120,7 @@ static const uword kZapUninitializedWord = 0xabababababababab;
 #elif defined(HOST_ARCH_X64)
 // We don't have the asm equivalent to get at the frame pointer on
 // windows x64, return the stack pointer instead.
-#define COPY_FP_REGISTER(fp) fp = Thread::GetCurrentStackPointer();
+#define COPY_FP_REGISTER(fp) fp = OSThread::GetCurrentStackPointer();
 #else
 #error Unknown host architecture.
 #endif

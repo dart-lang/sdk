@@ -7,6 +7,7 @@
 #include "include/dart_api.h"
 
 #include "vm/dart_api_impl.h"
+#include "vm/interpreter.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -21,12 +22,16 @@ jmp_buf* LongJumpScope::Set() {
   return &environment_;
 }
 
-
 bool LongJumpScope::IsSafeToJump() {
   // We do not want to jump past Dart frames.  Note that this code
   // assumes the stack grows from high to low.
   Thread* thread = Thread::Current();
-  uword jumpbuf_addr = Thread::GetCurrentStackPointer();
+  uword jumpbuf_addr = OSThread::GetCurrentStackPointer();
+
+#if defined(USING_SIMULATOR) && defined(DART_USE_INTERPRETER)
+#error "Simultaneous usage of simulator and interpreter not yet supported."
+#endif  // defined(USING_SIMULATOR) && defined(DART_USE_INTERPRETER)
+
 #if defined(USING_SIMULATOR)
   Simulator* sim = Simulator::Current();
   // When using simulator, only mutator thread should refer to Simulator
@@ -43,7 +48,6 @@ bool LongJumpScope::IsSafeToJump() {
   }
   return ((top_exit_frame_info == 0) || (jumpbuf_addr < top_exit_frame_info));
 }
-
 
 void LongJumpScope::Jump(int value, const Error& error) {
   // A zero is the default return value from setting up a LongJumpScope

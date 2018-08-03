@@ -18,7 +18,7 @@ testMain() {
   print(foo);
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasPausedAtStart,
 
   // Add breakpoints at line 11 and line 12.

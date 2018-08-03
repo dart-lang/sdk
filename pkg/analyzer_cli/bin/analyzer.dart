@@ -6,7 +6,9 @@
 import 'package:analyzer_cli/starter.dart';
 
 /// The entry point for the command-line analyzer.
-void main(List<String> args) {
+main(List<String> args) async {
   CommandLineStarter starter = new CommandLineStarter();
-  starter.start(args);
+
+  // Wait for the starter to complete.
+  await starter.start(args);
 }

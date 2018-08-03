@@ -338,62 +338,11 @@ testSimpleReadWriteShutdown({bool dropReads}) async {
   }
 }
 
-Future testGoogleHttp(SecurityContext context, String outcome) async {
-  var client = new HttpClient(context: context);
-  try {
-    // First, check if the lookup works.
-    var address = await InternetAddress.lookup('www.google.com');
-    print(address);
-    var request = await client.getUrl(Uri.parse('http://www.google.com/'));
-    request.followRedirects = false;
-    var response = await request.close();
-    assert('pass' == outcome);
-    try {
-      await response.drain();
-    } catch (e) {
-      print('drain failed: $e');
-    }
-  } catch (e) {
-    // Lookup failed or connection failed.  Don't report a failure.
-    print("SocketException: $e");
-  } finally {
-    client.close();
-  }
-}
-
-Future testGoogleHttps(SecurityContext context, String outcome) async {
-  // If this isn't reasonable, the certificate will be rejected.
-  print(new DateTime.now());
-
-  var client = new HttpClient(context: context);
-  // We need to use an external server that is backed by a
-  // built-in root certificate authority.
-  try {
-    // First, check if the lookup works.
-    var address = await InternetAddress.lookup('www.google.com');
-    print(address);
-    var request = await client.getUrl(Uri.parse('https://www.google.com/'));
-    request.followRedirects = false;
-    var response = await request.close();
-    assert('pass' == outcome);
-    try {
-      await response.drain();
-    } catch (e) {
-      print('drain failed: $e');
-    }
-  } catch (e) {
-    // Lookup failed or connection failed.  Don't report a failure.
-    print("SocketException: $e");
-  } finally {
-    client.close();
-  }
-}
-
 Future testProcess() async {
   String exe = Platform.resolvedExecutable;
   print("Running $exe --version");
   Process p = await Process.start(exe, ["--version"]);
-  p.stderr.transform(UTF8.decoder).listen(print);
+  p.stderr.transform(utf8.decoder).listen(print);
   int code = await p.exitCode;
   print("$exe --version exited with code $code");
 }
@@ -486,6 +435,15 @@ bool testFileOpenDirectoryFails() {
   }
 }
 
+
+Future testListInterfaces() async {
+  List<NetworkInterface> interfaces = await NetworkInterface.list();
+  print('Found ${interfaces.length} interfaces:');
+  for (var iface in interfaces) {
+    print('\t$iface');
+  }
+}
+
 main(List<String> args) async {
   if (args.length >= 1) {
     if (args[0] == "infinite-loop") {
@@ -514,14 +472,6 @@ main(List<String> args) async {
   print("testSimpleReadWriteShutdown");
   await testSimpleReadWriteShutdown(dropReads: false);
   print("testSimpleReadWriteShutdown done");
-
-  print("testGoogleHttp");
-  await testGoogleHttp(null, 'pass');
-  print("testGoogleHttp done");
-
-  print("testGoogleHttps");
-  await testGoogleHttps(null, 'pass');
-  print("testGoogleHttps done");
 
   print("lsTest");
   await testLs("/");
@@ -558,6 +508,10 @@ main(List<String> args) async {
   } else {
     print("testFileOpenDirectoryFails FAILED");
   }
+
+  print('testListInterfaces');
+  await testListInterfaces();
+  print('testListInterfaces done');
 
   print("Goodbyte, Fuchsia!");
 }

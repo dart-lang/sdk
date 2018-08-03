@@ -26,6 +26,9 @@ def run_command(command):
   except subprocess.CalledProcessError as e:
     return ("Command failed: " + ' '.join(command) + "\n" +
             "output: " + e.output)
+  except OSError as e:
+    return ("Command failed: " + ' '.join(command) + "\n" +
+            "output: " + e.strerror)
 
 def main(argv):
   error_exit = 0

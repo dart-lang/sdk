@@ -14,18 +14,22 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisHighlightsTest);
+    defineReflectiveTests(AnalysisHighlightsTest_UseCFE);
   });
 }
 
 @reflectiveTest
 class AnalysisHighlightsTest extends AbstractAnalysisServerIntegrationTest {
-  Future startServer(
-      {bool checked: true, int diagnosticPort, int servicesPort}) {
+  Future startServer({
+    int diagnosticPort,
+    int servicesPort,
+    bool cfe: false,
+  }) {
     return server.start(
-        checked: checked,
         diagnosticPort: diagnosticPort,
         servicesPort: servicesPort,
-        useAnalysisHighlight2: true);
+        useAnalysisHighlight2: true,
+        useCFE: cfe);
   }
 
   test_highlights() {
@@ -141,8 +145,8 @@ int topLevelVariable;
       check(HighlightRegionType.LITERAL_MAP,
           ['{1.0: [].toList()}', '{2: local}']);
       check(HighlightRegionType.LITERAL_STRING, ["'dart:async'", "'string'"]);
-      check(HighlightRegionType.LOCAL_VARIABLE_DECLARATION, ['local']);
-      check(HighlightRegionType.LOCAL_VARIABLE_REFERENCE, ['local']);
+      check(HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION, ['local']);
+      check(HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_REFERENCE, ['local']);
       check(HighlightRegionType.INSTANCE_METHOD_REFERENCE, ['toList']);
       check(HighlightRegionType.INSTANCE_METHOD_DECLARATION, ['method']);
       check(HighlightRegionType.STATIC_METHOD_DECLARATION, ['staticMethod']);
@@ -158,4 +162,10 @@ int topLevelVariable;
       expect(highlights, isEmpty);
     });
   }
+}
+
+@reflectiveTest
+class AnalysisHighlightsTest_UseCFE extends AnalysisHighlightsTest {
+  @override
+  bool get useCFE => true;
 }

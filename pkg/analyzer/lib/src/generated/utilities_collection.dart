@@ -98,7 +98,7 @@ class DirectedGraph<N> {
    * to a set of tails. Nodes that are not the head of any edge are represented by an entry mapping
    * the node to an empty set of tails.
    */
-  HashMap<N, HashSet<N>> _edges = new HashMap<N, HashSet<N>>();
+  Map<N, HashSet<N>> _edges = new HashMap<N, HashSet<N>>();
 
   /**
    * Return `true` if this graph is empty.
@@ -359,7 +359,7 @@ class DirectedGraph_SccFinder<N> {
   /**
    * A table mapping nodes to information about the nodes that is used by this algorithm.
    */
-  HashMap<N, DirectedGraph_NodeInfo<N>> _nodeMap =
+  Map<N, DirectedGraph_NodeInfo<N>> _nodeMap =
       new HashMap<N, DirectedGraph_NodeInfo<N>>();
 
   /**
@@ -704,7 +704,7 @@ class TokenMap {
    * One possibility is a pair of parallel arrays, with keys being sorted by their offset and a
    * cursor indicating where to start searching.
    */
-  HashMap<Token, Token> _map = new HashMap<Token, Token>();
+  Map<Token, Token> _map = new HashMap<Token, Token>();
 
   /**
    * Return the token that is mapped to the given token, or `null` if there is no token

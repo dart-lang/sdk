@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.generated.all_the_rest_test;
-
 import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -20,12 +18,13 @@ import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart' hide SdkLibrariesReader;
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart'; // ignore: deprecated_member_use
+import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
@@ -33,12 +32,10 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/source/source_resource.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:typed_mock/typed_mock.dart' show TypedMock, when;
 
 import 'parser_test.dart';
 import 'resolver_test_case.dart';
@@ -50,10 +47,6 @@ main() {
     // ignore: deprecated_member_use
     defineReflectiveTests(CustomUriResolverTest);
     defineReflectiveTests(DartUriResolverTest);
-    // ignore: deprecated_member_use
-    defineReflectiveTests(DirectoryBasedDartSdkTest);
-    // ignore: deprecated_member_use
-    defineReflectiveTests(DirectoryBasedSourceContainerTest);
     defineReflectiveTests(ElementLocatorTest);
     defineReflectiveTests(EnumMemberBuilderTest);
     defineReflectiveTests(ErrorReporterTest);
@@ -156,195 +149,19 @@ class DartUriResolverTest extends _SimpleDartSdkTest {
   }
 
   void test_restoreAbsolute_library() {
-    Source source = new _SourceMock();
+    _SourceMock source = new _SourceMock();
     Uri fileUri = resourceProvider.pathContext.toUri(coreCorePath);
-    when(source.uri).thenReturn(fileUri);
+    source.uri = fileUri;
     Uri dartUri = resolver.restoreAbsolute(source);
     expect(dartUri.toString(), 'dart:core');
   }
 
   void test_restoreAbsolute_part() {
-    Source source = new _SourceMock();
+    _SourceMock source = new _SourceMock();
     Uri fileUri = resourceProvider.pathContext.toUri(coreIntPath);
-    when(source.uri).thenReturn(fileUri);
+    source.uri = fileUri;
     Uri dartUri = resolver.restoreAbsolute(source);
     expect(dartUri.toString(), 'dart:core/int.dart');
-  }
-}
-
-@deprecated
-@reflectiveTest
-class DirectoryBasedDartSdkTest {
-  void fail_getDocFileFor() {
-    DirectoryBasedDartSdk sdk = _createDartSdk();
-    JavaFile docFile = sdk.getDocFileFor("html");
-    expect(docFile, isNotNull);
-  }
-
-  void test_analysisOptions_afterContextCreation() {
-    DirectoryBasedDartSdk sdk = _createDartSdk();
-    sdk.context;
-    expect(() {
-      sdk.analysisOptions = new AnalysisOptionsImpl();
-    }, throwsStateError);
-  }
-
-  void test_analysisOptions_beforeContextCreation() {
-    DirectoryBasedDartSdk sdk = _createDartSdk();
-    sdk.analysisOptions = new AnalysisOptionsImpl();
-    sdk.context;
-    // cannot change "analysisOptions" in the context
-    expect(() {
-      sdk.context.analysisOptions = new AnalysisOptionsImpl();
-    }, throwsStateError);
-  }
-
-  void test_creation() {
-    DirectoryBasedDartSdk sdk = _createDartSdk();
-    expect(sdk, isNotNull);
-  }
-
-  void test_fromFile_invalid() {
-    DirectoryBasedDartSdk sdk = _createDartSdk();
-    expect(
-        sdk.fromFileUri(new JavaFile("/not/in/the/sdk.dart").toURI()), isNull);
-  }
-
-  void test_fromFile_library() {
-    DirectoryBasedDartSdk sdk = _createDartSdk();
-    Source source = sdk.fromFileUri(new JavaFile.relative(
-            new JavaFile.relative(sdk.libraryDirectory, "core"), "core.dart")
-        .toURI());
-    expect(source, isNotNull);
-    expect(source.isInSystemLibrary, isTrue);
-    expect(source.uri.toString(), "dart:core");
-  }
-
-  void test_fromFile_library_firstExact() {
-    DirectoryBasedDartSdk sdk = _createDartSdk();
-    JavaFile dirHtml = new JavaFile.relative(sdk.libraryDirectory, "html");
-    JavaFile dirDartium = new JavaFile.relative(dirHtml, "dartium");
-    JavaFile file = new JavaFile.relative(dirDartium, "html_dartium.dart");
-    expect(file.isFile(), isTrue);
-    Source source = sdk.fromFileUri(file.toURI());
-    expect(source, isNotNull);
-    expect(source.isInSystemLibrary, isTrue);
-    expect(source.uri.toString(), "dart:html");
-  }
-
-  void test_fromFile_library_html_common_dart2js() {
-    DirectoryBasedDartSdk sdk = _createDartSdk();
-    JavaFile dirHtml = new JavaFile.relative(sdk.libraryDirectory, "html");
-    JavaFile dirCommon = new JavaFile.relative(dirHtml, "html_common");
-    JavaFile file =
-        new JavaFile.relative(dirCommon, "html_common_dart2js.dart");
-    expect(file.isFile(), isTrue);
-    Source source = sdk.fromFileUri(file.toURI());
-    expect(source, isNotNull);
-    expect(source.isInSystemLibrary, isTrue);
-    expect(source.uri.toString(), "dart:html_common/html_common_dart2js.dart");
-  }
-
-  void test_fromFile_part() {
-    DirectoryBasedDartSdk sdk = _createDartSdk();
-    Source source = sdk.fromFileUri(new JavaFile.relative(
-            new JavaFile.relative(sdk.libraryDirectory, "core"), "num.dart")
-        .toURI());
-    expect(source, isNotNull);
-    expect(source.isInSystemLibrary, isTrue);
-    expect(source.uri.toString(), "dart:core/num.dart");
-  }
-
-  void test_getDart2JsExecutable() {
-    DirectoryBasedDartSdk sdk = _createDartSdk();
-    JavaFile executable = sdk.dart2JsExecutable;
-    expect(executable, isNotNull);
-    expect(executable.exists(), isTrue);
-    expect(executable.isExecutable(), isTrue);
-  }
-
-  void test_getDirectory() {
-    DirectoryBasedDartSdk sdk = _createDartSdk();
-    JavaFile directory = sdk.directory;
-    expect(directory, isNotNull);
-    expect(directory.exists(), isTrue);
-  }
-
-  void test_getDocDirectory() {
-    DirectoryBasedDartSdk sdk = _createDartSdk();
-    JavaFile directory = sdk.docDirectory;
-    expect(directory, isNotNull);
-  }
-
-  void test_getLibraryDirectory() {
-    DirectoryBasedDartSdk sdk = _createDartSdk();
-    JavaFile directory = sdk.libraryDirectory;
-    expect(directory, isNotNull);
-    expect(directory.exists(), isTrue);
-  }
-
-  void test_getPubExecutable() {
-    DirectoryBasedDartSdk sdk = _createDartSdk();
-    JavaFile executable = sdk.pubExecutable;
-    expect(executable, isNotNull);
-    expect(executable.exists(), isTrue);
-    expect(executable.isExecutable(), isTrue);
-  }
-
-  void test_getSdkVersion() {
-    DirectoryBasedDartSdk sdk = _createDartSdk();
-    String version = sdk.sdkVersion;
-    expect(version, isNotNull);
-    expect(version.length > 0, isTrue);
-  }
-
-  void test_getVmExecutable() {
-    DirectoryBasedDartSdk sdk = _createDartSdk();
-    JavaFile executable = sdk.vmExecutable;
-    expect(executable, isNotNull);
-    expect(executable.exists(), isTrue);
-    expect(executable.isExecutable(), isTrue);
-  }
-
-  void test_useSummary_afterContextCreation() {
-    DirectoryBasedDartSdk sdk = _createDartSdk();
-    sdk.context;
-    expect(() {
-      sdk.useSummary = true;
-    }, throwsStateError);
-  }
-
-  void test_useSummary_beforeContextCreation() {
-    DirectoryBasedDartSdk sdk = _createDartSdk();
-    sdk.useSummary = true;
-    sdk.context;
-  }
-
-  DirectoryBasedDartSdk _createDartSdk() {
-    JavaFile sdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
-    expect(sdkDirectory, isNotNull,
-        reason:
-            "No SDK configured; set the property 'com.google.dart.sdk' on the command line");
-    return new DirectoryBasedDartSdk(sdkDirectory);
-  }
-}
-
-@deprecated
-@reflectiveTest
-class DirectoryBasedSourceContainerTest {
-  void test_contains() {
-    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
-    File file1 = resourceProvider.getFile('/does/not/exist/some.dart');
-    File file2 = resourceProvider.getFile('/does/not/exist/folder/some2.dart');
-    File file3 = resourceProvider.getFile('/does/not/exist3/some3.dart');
-    Source source1 = new FileSource(file1);
-    Source source2 = new FileSource(file2);
-    Source source3 = new FileSource(file3);
-    DirectoryBasedSourceContainer container =
-        new DirectoryBasedSourceContainer.con2('/does/not/exist');
-    expect(container.contains(source1), isTrue);
-    expect(container.contains(source2), isTrue);
-    expect(container.contains(source3), isFalse);
   }
 }
 
@@ -366,9 +183,7 @@ class ElementLocatorTest extends ResolverTestCase {
   }
 
   test_locate_AssignmentExpression() async {
-    AstNode id = await _findNodeIn(
-        "+=",
-        r'''
+    AstNode id = await _findNodeIn("+=", r'''
 int x = 0;
 void main() {
   x += 1;
@@ -400,10 +215,7 @@ void main() {
   }
 
   test_locate_ConstructorDeclaration() async {
-    AstNode id = await _findNodeIndexedIn(
-        "bar",
-        0,
-        r'''
+    AstNode id = await _findNodeIndexedIn("bar", 0, r'''
 class A {
   A.bar() {}
 }''');
@@ -431,10 +243,7 @@ class A {
   }
 
   test_locate_Identifier_annotationClass_namedConstructor_forSimpleFormalParameter() async {
-    AstNode id = await _findNodeIndexedIn(
-        "Class",
-        2,
-        r'''
+    AstNode id = await _findNodeIndexedIn("Class", 2, r'''
 class Class {
   const Class.name();
 }
@@ -446,10 +255,7 @@ void main(@Class.name() parameter) {
   }
 
   test_locate_Identifier_annotationClass_unnamedConstructor_forSimpleFormalParameter() async {
-    AstNode id = await _findNodeIndexedIn(
-        "Class",
-        2,
-        r'''
+    AstNode id = await _findNodeIndexedIn("Class", 2, r'''
 class Class {
   const Class();
 }
@@ -468,10 +274,7 @@ void main(@Class() parameter) {
   }
 
   test_locate_Identifier_constructor_named() async {
-    AstNode id = await _findNodeIndexedIn(
-        "bar",
-        0,
-        r'''
+    AstNode id = await _findNodeIndexedIn("bar", 0, r'''
 class A {
   A.bar() {}
 }''');
@@ -481,10 +284,7 @@ class A {
   }
 
   test_locate_Identifier_constructor_unnamed() async {
-    AstNode id = await _findNodeIndexedIn(
-        "A",
-        1,
-        r'''
+    AstNode id = await _findNodeIndexedIn("A", 1, r'''
 class A {
   A() {}
 }''');
@@ -508,9 +308,7 @@ class A {
   }
 
   test_locate_Identifier_propertyAccess() async {
-    AstNode id = await _findNodeIn(
-        "length",
-        r'''
+    AstNode id = await _findNodeIn("length", r'''
 void main() {
  int x = 'foo'.length;
 }''');
@@ -527,10 +325,7 @@ void main() {
   }
 
   test_locate_IndexExpression() async {
-    AstNode id = await _findNodeIndexedIn(
-        "\\[",
-        1,
-        r'''
+    AstNode id = await _findNodeIndexedIn("\\[", 1, r'''
 void main() {
   List x = [1, 2];
   var y = x[0];
@@ -541,10 +336,7 @@ void main() {
   }
 
   test_locate_InstanceCreationExpression() async {
-    AstNode node = await _findNodeIndexedIn(
-        "A(",
-        0,
-        r'''
+    AstNode node = await _findNodeIndexedIn("A(", 0, r'''
 class A {}
 void main() {
  new A();
@@ -600,9 +392,7 @@ void main() {
   }
 
   test_locate_MethodDeclaration() async {
-    AstNode id = await _findNodeIn(
-        "m",
-        r'''
+    AstNode id = await _findNodeIn("m", r'''
 class A {
   void m() {}
 }''');
@@ -614,10 +404,7 @@ class A {
   }
 
   test_locate_MethodInvocation_method() async {
-    AstNode id = await _findNodeIndexedIn(
-        "bar",
-        1,
-        r'''
+    AstNode id = await _findNodeIndexedIn("bar", 1, r'''
 class A {
   int bar() => 42;
 }
@@ -646,15 +433,11 @@ void main() {
   }
 
   test_locate_PartOfDirective() async {
-    Source librarySource = addNamedSource(
-        '/lib.dart',
-        '''
+    Source librarySource = addNamedSource('/lib.dart', '''
 library my.lib;
 part 'part.dart';
 ''');
-    Source unitSource = addNamedSource(
-        '/part.dart',
-        '''
+    Source unitSource = addNamedSource('/part.dart', '''
 part of my.lib;
 ''');
     CompilationUnit unit =
@@ -673,9 +456,7 @@ part of my.lib;
   }
 
   test_locate_PrefixedIdentifier() async {
-    AstNode id = await _findNodeIn(
-        "int",
-        r'''
+    AstNode id = await _findNodeIn("int", r'''
 import 'dart:core' as core;
 core.int value;''');
     PrefixedIdentifier identifier =
@@ -948,7 +729,8 @@ zap: baz
     int offset = src.indexOf('baz');
     int length = 'baz'.length;
 
-    SourceSpan span = new SourceFile(src).span(offset, offset + length);
+    SourceSpan span = new SourceSpanBase(
+        new SourceLocation(offset), new SourceLocation(offset + length), 'baz');
 
     reporter.reportErrorForSpan(
         AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE,
@@ -1742,7 +1524,8 @@ on String catch (e, s) { return 1; }''');
   }
 
   void _assertHasReturn(bool expectedResult, String source) {
-    Statement statement = parseStatement(source, enableLazyAssignmentOperators);
+    Statement statement = parseStatement(source,
+        enableLazyAssignmentOperators: enableLazyAssignmentOperators);
     expect(ExitDetector.exits(statement), expectedResult);
   }
 
@@ -2188,9 +1971,8 @@ class ResolveRelativeUriTest {
 @reflectiveTest
 class SDKLibrariesReaderTest extends EngineTestCase {
   test_readFrom_dart2js() async {
-    LibraryMap libraryMap = new SdkLibrariesReader(true).readFromFile(
-        FileUtilities2.createFile("/libs.dart"),
-        r'''
+    LibraryMap libraryMap = new SdkLibrariesReader(true)
+        .readFromFile(FileUtilities2.createFile("/libs.dart"), r'''
 final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
   'first' : const LibraryInfo(
     'first/first.dart',
@@ -2220,9 +2002,8 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
   }
 
   test_readFrom_normal() async {
-    LibraryMap libraryMap = new SdkLibrariesReader(false).readFromFile(
-        FileUtilities2.createFile("/libs.dart"),
-        r'''
+    LibraryMap libraryMap = new SdkLibrariesReader(false)
+        .readFromFile(FileUtilities2.createFile("/libs.dart"), r'''
 final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
   'first' : const LibraryInfo(
     'first/first.dart',
@@ -2294,20 +2075,24 @@ const Map<String, LibraryInfo> libraries = const {
 };
 ''');
     coreCorePath = resourceProvider.convertPath('/sdk/lib/core/core.dart');
-    resourceProvider.newFile(
-        coreCorePath,
-        '''
+    resourceProvider.newFile(coreCorePath, '''
 library dart.core;
 part 'int.dart';
 ''');
     coreIntPath = resourceProvider.convertPath('/sdk/lib/core/int.dart');
-    resourceProvider.newFile(
-        coreIntPath,
-        '''
+    resourceProvider.newFile(coreIntPath, '''
 part of dart.core;
 ''');
     sdk = new FolderBasedDartSdk(resourceProvider, sdkFolder);
   }
 }
 
-class _SourceMock extends TypedMock implements Source {}
+class _SourceMock implements Source {
+  @override
+  Uri uri;
+
+  @override
+  noSuchMethod(Invocation invocation) {
+    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+  }
+}

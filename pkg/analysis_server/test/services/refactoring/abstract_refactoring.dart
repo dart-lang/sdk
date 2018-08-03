@@ -5,15 +5,12 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/services/correction/status.dart';
-import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
-import 'package:analysis_server/src/services/search/search_engine_internal2.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart' show Element;
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/ast_provider_context.dart';
 import 'package:analyzer/src/dart/analysis/ast_provider_driver.dart';
 import 'package:analyzer/src/dart/element/ast_provider.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -46,7 +43,6 @@ int findIdentifierLength(String search) {
  * The base class for all [Refactoring] tests.
  */
 abstract class RefactoringTest extends AbstractSingleUnitTest {
-  Index index;
   SearchEngine searchEngine;
   AstProvider astProvider;
 
@@ -60,10 +56,10 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
    */
   void assertFileChangeResult(String path, String expectedCode) {
     // prepare FileEdit
-    SourceFileEdit fileEdit = refactoringChange.getFileEdit(path);
+    SourceFileEdit fileEdit = refactoringChange.getFileEdit(convertPath(path));
     expect(fileEdit, isNotNull, reason: 'No file edit for $path');
     // validate resulting code
-    File file = provider.getResource(path);
+    File file = getFile(path);
     String ini = file.readAsStringSync();
     String actualCode = SourceEdit.applySequence(ini, fileEdit.edits);
     expect(actualCode, expectedCode);
@@ -165,29 +161,15 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
 
   Future<Null> indexTestUnit(String code) async {
     await resolveTestUnit(code);
-    if (!enableNewAnalysisDriver) {
-      index.indexUnit(testUnit);
-    }
   }
 
   Future<Null> indexUnit(String file, String code) async {
-    Source source = addSource(file, code);
-    if (!enableNewAnalysisDriver) {
-      CompilationUnit unit = await resolveLibraryUnit(source);
-      index.indexUnit(unit);
-    }
+    addSource(file, code);
   }
 
   void setUp() {
     super.setUp();
-    if (enableNewAnalysisDriver) {
-      searchEngine = new SearchEngineImpl2([driver]);
-      astProvider = new AstProviderForDriver(driver);
-    } else {
-      index = createMemoryIndex();
-      searchEngine = new SearchEngineImpl(
-          index, (_) => new AstProviderForContext(context));
-      astProvider = new AstProviderForContext(context);
-    }
+    searchEngine = new SearchEngineImpl([driver]);
+    astProvider = new AstProviderForDriver(driver);
   }
 }

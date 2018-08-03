@@ -51,7 +51,7 @@ void testSend(i2l, l2i) {
 void testSpawnReturnVsCurrent(bool asList) {
   asyncStart();
   Function transform = asList ? l2i : id;
-  Completer response = new Completer();
+  Completer<Isolate> response = new Completer<Isolate>();
   var p = new RawReceivePort();
   p.handler = (v) {
     response.complete(transform(v));
@@ -81,7 +81,7 @@ void testSpawnReturnVsCurrent2(bool asList) {
   asyncStart();
   Function transform = asList ? i2l : id;
 
-  Completer response = new Completer();
+  Completer<SendPort> response = new Completer<SendPort>();
   var p = new RawReceivePort();
   int state = 0;
   p.handler = (v) {

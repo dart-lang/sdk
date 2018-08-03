@@ -1,0 +1,33 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int x = 0;
+  field core::int y = null;
+  final field core::int z = 42;
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method test1() → dynamic {
+    core::int a = this.{self::A::x};
+    a = let dynamic _ = null in let final dynamic #t1 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_type_on_var_from_field.dart:13:38: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+    a = /*error:INVALID_ASSIGNMENT*/ \"hi\";
+                                     ^" in let final dynamic #t2 = "hi" in null;
+    a = 3;
+    core::int b = this.{self::A::y};
+    b = let dynamic _ = null in let final dynamic #t3 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_type_on_var_from_field.dart:16:38: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+    b = /*error:INVALID_ASSIGNMENT*/ \"hi\";
+                                     ^" in let final dynamic #t4 = "hi" in null;
+    b = 4;
+    core::int c = this.{self::A::z};
+    c = let dynamic _ = null in let final dynamic #t5 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/infer_type_on_var_from_field.dart:19:38: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+    c = /*error:INVALID_ASSIGNMENT*/ \"hi\";
+                                     ^" in let final dynamic #t6 = "hi" in null;
+    c = 4;
+  }
+}
+static method main() → dynamic {}

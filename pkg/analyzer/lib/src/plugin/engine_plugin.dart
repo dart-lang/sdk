@@ -2,18 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.plugin.engine_plugin;
-
 import 'package:analyzer/error/error.dart' show AnalysisError;
-import 'package:analyzer/plugin/task.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show InternalAnalysisContext;
+import 'package:analyzer/src/plugin/task.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/dart_work_manager.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/html_work_manager.dart';
 import 'package:analyzer/src/task/options_work_manager.dart';
-import 'package:analyzer/task/model.dart';
 import 'package:plugin/plugin.dart';
 
 /**
@@ -90,7 +88,7 @@ class EnginePlugin implements Plugin {
    * descriptors for Dart sources.
    */
   @ExtensionPointId('DART_ERRORS_FOR_SOURCE_EXTENSION_POINT_ID')
-  List<ResultDescriptor> get dartErrorsForSource =>
+  List<ListResultDescriptor<AnalysisError>> get dartErrorsForSource =>
       dartErrorsForSourceExtensionPoint.extensions;
 
   /**
@@ -98,7 +96,7 @@ class EnginePlugin implements Plugin {
    * descriptors for Dart library specific units.
    */
   @ExtensionPointId('DART_ERRORS_FOR_UNIT_EXTENSION_POINT_ID')
-  List<ResultDescriptor> get dartErrorsForUnit =>
+  List<ListResultDescriptor<AnalysisError>> get dartErrorsForUnit =>
       dartErrorsForUnitExtensionPoint.extensions;
 
   /**
@@ -106,7 +104,8 @@ class EnginePlugin implements Plugin {
    * descriptors for HTML sources.
    */
   @ExtensionPointId('HTML_ERRORS_EXTENSION_POINT_ID')
-  List<ResultDescriptor> get htmlErrors => htmlErrorsExtensionPoint.extensions;
+  List<ListResultDescriptor<AnalysisError>> get htmlErrors =>
+      htmlErrorsExtensionPoint.extensions;
 
   @override
   String get uniqueIdentifier => UNIQUE_IDENTIFIER;
@@ -173,8 +172,8 @@ class EnginePlugin implements Plugin {
 
 /**
  * Annotation describing the relationship between a getter in [EnginePlugin]
- * and the associated identifier (in '../../plugin/task.dart') which can be
- * passed to the extension manager to populate it.
+ * and the associated identifier (in 'task.dart') which can be passed to the
+ * extension manager to populate it.
  *
  * This annotation is not used at runtime; it is used to aid in static analysis
  * of the task model during development.

@@ -1,0 +1,13 @@
+library redirecting_factory_constructors.simple_test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  redirecting_factory redir() = self::A::•;
+}
+static method main() → dynamic {
+  new self::A::•();
+}

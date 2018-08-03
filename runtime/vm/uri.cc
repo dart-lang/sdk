@@ -14,7 +14,6 @@ static bool IsUnreservedChar(intptr_t value) {
           value == '_' || value == '~');
 }
 
-
 static bool IsDelimiter(intptr_t value) {
   switch (value) {
     case ':':
@@ -41,12 +40,10 @@ static bool IsDelimiter(intptr_t value) {
   }
 }
 
-
 static bool IsHexDigit(char value) {
   return ((value >= '0' && value <= '9') || (value >= 'A' && value <= 'F') ||
           (value >= 'a' && value <= 'f'));
 }
-
 
 static int HexValue(char digit) {
   if ((digit >= '0' && digit <= '9')) {
@@ -61,7 +58,6 @@ static int HexValue(char digit) {
   UNREACHABLE();
   return 0;
 }
-
 
 static int GetEscapedValue(const char* str, intptr_t pos, intptr_t len) {
   if (pos + 2 >= len) {
@@ -81,7 +77,6 @@ static int GetEscapedValue(const char* str, intptr_t pos, intptr_t len) {
   }
   return HexValue(digit1) * 16 + HexValue(digit2);
 }
-
 
 static char* NormalizeEscapes(const char* str, intptr_t len) {
   // Allocate the buffer.
@@ -105,7 +100,7 @@ static char* NormalizeEscapes(const char* str, intptr_t len) {
         buffer[buffer_pos] = escaped_value;
         buffer_pos++;
       } else {
-        OS::SNPrint(buffer + buffer_pos, 4, "%%%02X", escaped_value);
+        Utils::SNPrint(buffer + buffer_pos, 4, "%%%02X", escaped_value);
         buffer_pos += 3;
       }
       pos += 3;
@@ -119,7 +114,7 @@ static char* NormalizeEscapes(const char* str, intptr_t len) {
         buffer_pos++;
       } else {
         // Escape funky characters.
-        OS::SNPrint(buffer + buffer_pos, 4, "%%%02X", c);
+        Utils::SNPrint(buffer + buffer_pos, 4, "%%%02X", c);
         buffer_pos += 3;
       }
       pos++;
@@ -128,7 +123,6 @@ static char* NormalizeEscapes(const char* str, intptr_t len) {
   buffer[buffer_pos] = '\0';
   return buffer;
 }
-
 
 // Lower-case a string in place.
 static void StringLower(char* str) {
@@ -151,7 +145,6 @@ static void StringLower(char* str) {
   }
 }
 
-
 static void ClearParsedUri(ParsedUri* parsed_uri) {
   parsed_uri->scheme = NULL;
   parsed_uri->userinfo = NULL;
@@ -161,7 +154,6 @@ static void ClearParsedUri(ParsedUri* parsed_uri) {
   parsed_uri->query = NULL;
   parsed_uri->fragment = NULL;
 }
-
 
 static intptr_t ParseAuthority(const char* authority, ParsedUri* parsed_uri) {
   Zone* zone = Thread::Current()->zone();
@@ -195,7 +187,6 @@ static intptr_t ParseAuthority(const char* authority, ParsedUri* parsed_uri) {
   }
   return len;
 }
-
 
 // Performs a simple parse of a uri into its components.
 // See RFC 3986 Section 3: Syntax.
@@ -259,7 +250,6 @@ bool ParseUri(const char* uri, ParsedUri* parsed_uri) {
   return true;
 }
 
-
 static char* RemoveLastSegment(char* current, char* base) {
   if (current == base) {
     return current;
@@ -275,7 +265,6 @@ static char* RemoveLastSegment(char* current, char* base) {
   return current;
 }
 
-
 static intptr_t SegmentLength(const char* input) {
   const char* cp = input;
 
@@ -288,7 +277,6 @@ static intptr_t SegmentLength(const char* input) {
   cp += strcspn(cp, "/");
   return cp - input;
 }
-
 
 // See RFC 3986 Section 5.2.4: Remove Dot Segments.
 static const char* RemoveDotSegments(const char* path) {
@@ -352,7 +340,6 @@ static const char* RemoveDotSegments(const char* path) {
   return buffer;
 }
 
-
 // See RFC 3986 Section 5.2.3: Merge Paths.
 static const char* MergePaths(const char* base_path, const char* ref_path) {
   Zone* zone = Thread::Current()->zone();
@@ -389,7 +376,6 @@ static const char* MergePaths(const char* base_path, const char* ref_path) {
 
   return buffer;
 }
-
 
 static char* BuildUri(const ParsedUri& uri) {
   Zone* zone = Thread::Current()->zone();
@@ -435,7 +421,6 @@ static char* BuildUri(const ParsedUri& uri) {
       path_separator, uri.path, query_separator, query, fragment_separator,
       fragment);
 }
-
 
 // See RFC 3986 Section 5: Reference Resolution
 bool ResolveUri(const char* ref_uri,

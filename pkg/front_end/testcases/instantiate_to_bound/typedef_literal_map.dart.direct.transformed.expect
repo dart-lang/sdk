@@ -1,0 +1,7 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef A<T extends core::num = dynamic> = (T) → dynamic;
+static field dynamic a = <(dynamic) → dynamic, (dynamic) → dynamic>{};
+static method main() → dynamic {}

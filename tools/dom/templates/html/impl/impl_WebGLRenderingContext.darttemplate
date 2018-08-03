@@ -7,6 +7,11 @@ part of $LIBRARYNAME;
 $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS implements CanvasRenderingContext {
 $!MEMBERS
 
+  void readPixels(int x, int y, int width, int height, int format, int type,
+          TypedData pixels) {
+      _readPixels(x, y, width, height, format, type, pixels);
+  }
+
   /**
    * Sets the currently bound texture to [data].
    *

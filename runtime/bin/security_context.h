@@ -47,6 +47,15 @@ class SSLCertContext : public ReferenceCounted<SSLCertContext> {
                                   SSLCertContext* context,
                                   bool is_server);
 
+  static const char* root_certs_file() { return root_certs_file_; }
+  static void set_root_certs_file(const char* root_certs_file) {
+    root_certs_file_ = root_certs_file;
+  }
+  static const char* root_certs_cache() { return root_certs_cache_; }
+  static void set_root_certs_cache(const char* root_certs_cache) {
+    root_certs_cache_ = root_certs_cache;
+  }
+
   void SetTrustedCertificatesBytes(Dart_Handle cert_bytes,
                                    const char* password);
 
@@ -80,6 +89,9 @@ class SSLCertContext : public ReferenceCounted<SSLCertContext> {
   void LoadRootCertFile(const char* file);
   void LoadRootCertCache(const char* cache);
 
+  static const char* root_certs_file_;
+  static const char* root_certs_cache_;
+
   SSL_CTX* context_;
   uint8_t* alpn_protocol_string_;
 
@@ -88,9 +100,11 @@ class SSLCertContext : public ReferenceCounted<SSLCertContext> {
   DISALLOW_COPY_AND_ASSIGN(SSLCertContext);
 };
 
-
 class X509Helper : public AllStatic {
  public:
+  static Dart_Handle GetDer(Dart_NativeArguments args);
+  static Dart_Handle GetPem(Dart_NativeArguments args);
+  static Dart_Handle GetSha1(Dart_NativeArguments args);
   static Dart_Handle GetSubject(Dart_NativeArguments args);
   static Dart_Handle GetIssuer(Dart_NativeArguments args);
   static Dart_Handle GetStartValidity(Dart_NativeArguments args);

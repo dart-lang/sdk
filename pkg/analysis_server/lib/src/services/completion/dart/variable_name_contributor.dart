@@ -9,9 +9,9 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
     show DartCompletionRequestImpl;
-import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
 CompletionSuggestion _createNameSuggestion(String name) {
   if (name == null || name.isEmpty) {
@@ -40,6 +40,8 @@ class VariableNameContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     OpType optype = (request as DartCompletionRequestImpl).opType;
 
     // Collect suggestions from the specific child [AstNode] that contains

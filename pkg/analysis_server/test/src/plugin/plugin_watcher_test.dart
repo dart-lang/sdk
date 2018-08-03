@@ -5,17 +5,21 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
-import 'package:analyzer/context/context_root.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:front_end/src/base/performace_logger.dart';
-import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:front_end/src/api_prototype/byte_store.dart';
+import 'package:front_end/src/base/performance_logger.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -29,44 +33,40 @@ main() {
 }
 
 @reflectiveTest
-class PluginWatcherTest {
-  MemoryResourceProvider resourceProvider;
+class PluginWatcherTest extends Object with ResourceProviderMixin {
   TestPluginManager manager;
   PluginWatcher watcher;
 
   void setUp() {
-    resourceProvider = new MemoryResourceProvider();
     manager = new TestPluginManager();
     watcher = new PluginWatcher(resourceProvider, manager);
   }
 
   test_addedDriver() async {
-    String pkg1Path = resourceProvider.convertPath('/pkg1');
-    ContextRoot contextRoot = new ContextRoot(pkg1Path, []);
+    String pkg1Path = newFolder('/pkg1').path;
+    newFile('/pkg1/lib/test1.dart');
+    newFile('/pkg2/lib/pkg2.dart');
+    newFile('/pkg2/pubspec.yaml', content: 'name: pkg2');
+    newFile(
+        '/pkg2/${PluginLocator.toolsFolderName}/${PluginLocator.defaultPluginFolderName}/bin/plugin.dart');
+
+    ContextRoot contextRoot = new ContextRoot(pkg1Path, [],
+        pathContext: resourceProvider.pathContext);
     TestDriver driver = new TestDriver(resourceProvider, contextRoot);
-    watcher.addedDriver(driver, contextRoot);
+    driver.analysisOptions.enabledPluginNames = ['pkg2'];
     expect(manager.addedContextRoots, isEmpty);
+    watcher.addedDriver(driver, contextRoot);
     //
     // Test to see whether the listener was configured correctly.
     //
     // Use a file in the package being analyzed.
     //
-    resourceProvider.newFile(
-        resourceProvider.convertPath('/pkg1/lib/test1.dart'), '');
-    await driver.computeResult('package:pkg1/test1.dart');
-    expect(manager.addedContextRoots, isEmpty);
+//    await driver.computeResult('package:pkg1/test1.dart');
+//    expect(manager.addedContextRoots, isEmpty);
     //
     // Use a file that imports a package with a plugin.
     //
-    resourceProvider.newFile(
-        resourceProvider.convertPath('/pkg2/lib/pkg2.dart'), '');
-    resourceProvider.newFile(
-        resourceProvider.convertPath('/pkg2/pubspec.yaml'), 'name: pkg2');
-    resourceProvider.newFile(
-        resourceProvider
-            .convertPath('/pkg2/tools/analysis_plugin/bin/plugin.dart'),
-        '');
-    await driver.computeResult('package:pkg2/pk2.dart');
+//    await driver.computeResult('package:pkg2/pk2.dart');
     //
     // Wait until the timer associated with the driver's FileSystemState is
     // guaranteed to have expired and the list of changed files will have been
@@ -76,14 +76,34 @@ class PluginWatcherTest {
     expect(manager.addedContextRoots, hasLength(1));
   }
 
+  test_addedDriver_missingPackage() async {
+    String pkg1Path = newFolder('/pkg1').path;
+    newFile('/pkg1/lib/test1.dart');
+
+    ContextRoot contextRoot = new ContextRoot(pkg1Path, [],
+        pathContext: resourceProvider.pathContext);
+    TestDriver driver = new TestDriver(resourceProvider, contextRoot);
+    driver.analysisOptions.enabledPluginNames = ['pkg3'];
+    watcher.addedDriver(driver, contextRoot);
+    expect(manager.addedContextRoots, isEmpty);
+    //
+    // Wait until the timer associated with the driver's FileSystemState is
+    // guaranteed to have expired and the list of changed files will have been
+    // delivered.
+    //
+    await new Future.delayed(new Duration(seconds: 1));
+    expect(manager.addedContextRoots, isEmpty);
+  }
+
   void test_creation() {
     expect(watcher.resourceProvider, resourceProvider);
     expect(watcher.manager, manager);
   }
 
   test_removedDriver() {
-    String pkg1Path = resourceProvider.convertPath('/pkg1');
-    ContextRoot contextRoot = new ContextRoot(pkg1Path, []);
+    String pkg1Path = newFolder('/pkg1').path;
+    ContextRoot contextRoot = new ContextRoot(pkg1Path, [],
+        pathContext: resourceProvider.pathContext);
     TestDriver driver = new TestDriver(resourceProvider, contextRoot);
     watcher.addedDriver(driver, contextRoot);
     watcher.removedDriver(driver);
@@ -96,6 +116,8 @@ class TestDriver implements AnalysisDriver {
 
   SourceFactory sourceFactory;
   FileSystemState fsState;
+  AnalysisSession currentSession;
+  AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
 
   final _resultController = new StreamController<AnalysisResult>();
 
@@ -116,19 +138,20 @@ class TestDriver implements AnalysisDriver {
     fsState = new FileSystemState(
         new PerformanceLog(null),
         new MemoryByteStore(),
-        null,
+        new FileContentOverlay(),
         resourceProvider,
         sourceFactory,
         new AnalysisOptionsImpl(),
         new Uint32List(0));
+    currentSession = new AnalysisSessionImpl(this);
   }
 
   Stream<AnalysisResult> get results => _resultController.stream;
 
   Future<Null> computeResult(String uri) {
     FileState file = fsState.getFileForUri(Uri.parse(uri));
-    AnalysisResult result = new AnalysisResult(
-        this, null, file.path, null, true, null, null, null, null, null, null);
+    AnalysisResult result = new AnalysisResult(this, null, file.path, null,
+        true, null, null, false, null, null, null, null);
     _resultController.add(result);
     return new Future.delayed(new Duration(milliseconds: 1));
   }
@@ -149,6 +172,9 @@ class TestPluginManager implements PluginManager {
   }
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  void recordPluginFailure(String hostPackageName, String message) {}
 
   @override
   void removedContextRoot(ContextRoot contextRoot) {

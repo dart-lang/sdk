@@ -7,9 +7,12 @@
 
 #include "include/dart_tools_api.h"
 
+#include "vm/kernel_isolate.h"
 #include "vm/object.h"
 #include "vm/port.h"
+#include "vm/scopes.h"
 #include "vm/service_event.h"
+#include "vm/simulator.h"
 
 DECLARE_FLAG(bool, verbose_debug);
 
@@ -21,7 +24,6 @@ DECLARE_FLAG(bool, verbose_debug);
 #define TD_Print(format, ...)                                                  \
   if (FLAG_verbose_debug) Log::Current()->Print(format, ##__VA_ARGS__)
 #endif
-
 
 namespace dart {
 
@@ -102,7 +104,6 @@ class Breakpoint {
   friend class BreakpointLocation;
   DISALLOW_COPY_AND_ASSIGN(Breakpoint);
 };
-
 
 // BreakpointLocation represents a collection of breakpoint conditions at the
 // same token position in Dart source. There may be more than one CodeBreakpoint
@@ -189,7 +190,6 @@ class BreakpointLocation {
   DISALLOW_COPY_AND_ASSIGN(BreakpointLocation);
 };
 
-
 // CodeBreakpoint represents a location in compiled code. There may be
 // more than one CodeBreakpoint for one BreakpointLocation, e.g. when a
 // function gets compiled as a regular function and as a closure.
@@ -250,7 +250,6 @@ class CodeBreakpoint {
   friend class Debugger;
   DISALLOW_COPY_AND_ASSIGN(CodeBreakpoint);
 };
-
 
 // ActivationFrame represents one dart function activation frame
 // on the call stack.
@@ -328,9 +327,20 @@ class ActivationFrame : public ZoneAllocated {
   const Context& GetSavedCurrentContext();
   RawObject* GetAsyncOperation();
 
+  RawTypeArguments* BuildParameters(
+      const GrowableObjectArray& param_names,
+      const GrowableObjectArray& param_values,
+      const GrowableObjectArray& type_params_names);
+
   RawObject* Evaluate(const String& expr,
                       const GrowableObjectArray& names,
                       const GrowableObjectArray& values);
+
+  RawObject* EvaluateCompiledExpression(const uint8_t* kernel_bytes,
+                                        intptr_t kernel_length,
+                                        const Array& arguments,
+                                        const Array& type_definitions,
+                                        const TypeArguments& type_arguments);
 
   // Print the activation frame into |jsobj|. if |full| is false, script
   // and local variable objects are only references. if |full| is true,
@@ -350,8 +360,10 @@ class ActivationFrame : public ZoneAllocated {
   void PrintContextMismatchError(intptr_t ctx_slot,
                                  intptr_t frame_ctx_level,
                                  intptr_t var_ctx_level);
+  void PrintDescriptorsError(const char* message);
 
   intptr_t TryIndex();
+  intptr_t DeoptId();
   void GetPcDescriptors();
   void GetVarDescriptors();
   void GetDescIndices();
@@ -381,7 +393,7 @@ class ActivationFrame : public ZoneAllocated {
     }
   }
 
-  RawObject* GetStackVar(intptr_t slot_index);
+  RawObject* GetStackVar(VariableIndex var_index);
   RawObject* GetContextVar(intptr_t ctxt_level, intptr_t slot_index);
 
   uword pc_;
@@ -396,6 +408,7 @@ class ActivationFrame : public ZoneAllocated {
   bool token_pos_initialized_;
   TokenPosition token_pos_;
   intptr_t try_index_;
+  intptr_t deopt_id_;
 
   intptr_t line_number_;
   intptr_t column_number_;
@@ -416,7 +429,6 @@ class ActivationFrame : public ZoneAllocated {
   friend class DebuggerStackTrace;
   DISALLOW_COPY_AND_ASSIGN(ActivationFrame);
 };
-
 
 // Array of function activations on the call stack.
 class DebuggerStackTrace : public ZoneAllocated {
@@ -440,6 +452,13 @@ class DebuggerStackTrace : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(DebuggerStackTrace);
 };
 
+// On which exceptions to pause.
+typedef enum {
+  kNoPauseOnExceptions = 1,
+  kPauseOnUnhandledExceptions,
+  kPauseOnAllExceptions,
+  kInvalidExceptionPauseInfo
+} Dart_ExceptionPauseInfo;
 
 class Debugger {
  public:
@@ -483,7 +502,6 @@ class Debugger {
   Breakpoint* SetBreakpointAtLineCol(const String& script_url,
                                      intptr_t line_number,
                                      intptr_t column_number);
-  RawError* OneTimeBreakAtEntry(const Function& target_function);
 
   BreakpointLocation* BreakpointLocationAtLineCol(const String& script_url,
                                                   intptr_t line_number,
@@ -631,7 +649,10 @@ class Debugger {
                              TokenPosition start_pos,
                              TokenPosition end_pos,
                              GrowableObjectArray* function_list);
-  RawFunction* FindBestFit(const Script& script, TokenPosition token_pos);
+  bool FindBestFit(const Script& script,
+                   TokenPosition token_pos,
+                   TokenPosition last_token_pos,
+                   Function* best_fit);
   RawFunction* FindInnermostClosure(const Function& function,
                                     TokenPosition token_pos);
   TokenPosition ResolveBreakpointPos(const Function& func,
@@ -643,7 +664,8 @@ class Debugger {
                                     TokenPosition token_pos,
                                     TokenPosition last_token_pos,
                                     intptr_t requested_line,
-                                    intptr_t requested_column);
+                                    intptr_t requested_column,
+                                    const Function& function);
   bool RemoveBreakpointFromTheList(intptr_t bp_id, BreakpointLocation** list);
   Breakpoint* GetBreakpointByIdInTheList(intptr_t id, BreakpointLocation* list);
   void RemoveUnlinkedCodeBreakpoints();
@@ -673,9 +695,11 @@ class Debugger {
       const Array& deopt_frame,
       intptr_t deopt_frame_offset,
       ActivationFrame::Kind kind = ActivationFrame::kRegular);
+#if !defined(DART_PRECOMPILED_RUNTIME)
   static RawArray* DeoptimizeToArray(Thread* thread,
                                      StackFrame* frame,
                                      const Code& code);
+#endif
   // Appends at least one stack frame. Multiple frames will be appended
   // if |code| at the frame's pc contains inlined functions.
   static void AppendCodeFrames(Thread* thread,
@@ -711,7 +735,6 @@ class Debugger {
                         DebuggerStackTrace* async_causal_stack_trace,
                         DebuggerStackTrace* awaiter_stack_trace);
   void ClearCachedStackTraces();
-
 
   // Can we rewind to the indicated frame?
   bool CanRewindFrame(intptr_t frame_index, const char** error) const;
@@ -791,7 +814,6 @@ class Debugger {
   friend class BreakpointLocation;
   DISALLOW_COPY_AND_ASSIGN(Debugger);
 };
-
 
 }  // namespace dart
 

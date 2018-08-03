@@ -8,12 +8,11 @@ import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
-import 'package:analysis_server/src/services/correction/flutter_util.dart';
 import 'package:analysis_server/src/utilities/documentation.dart';
+import 'package:analysis_server/src/utilities/flutter.dart' as flutter;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
  * Determine the number of arguments.
@@ -23,7 +22,7 @@ int _argCount(DartCompletionRequest request) {
   if (node is ArgumentList) {
     if (request.target.entity == node.rightParenthesis) {
       // Parser ignores trailing commas
-      if (node.rightParenthesis.previous?.lexeme == ',') {
+      if (node.findPrevious(node.rightParenthesis)?.lexeme == ',') {
         return node.arguments.length + 1;
       }
     }
@@ -180,6 +179,8 @@ class ArgListContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     this.request = request;
     this.suggestions = <CompletionSuggestion>[];
 
@@ -219,7 +220,7 @@ class ArgListContributor extends DartCompletionContributor {
     bool appendColon = !_isInNamedExpression(request);
     Iterable<String> namedArgs = _namedArgs(request);
     for (ParameterElement parameter in parameters) {
-      if (parameter.parameterKind == ParameterKind.NAMED) {
+      if (parameter.isNamed) {
         _addNamedParameterSuggestion(
             namedArgs, parameter, appendColon, appendComma);
       }
@@ -240,12 +241,10 @@ class ArgListContributor extends DartCompletionContributor {
       // Optionally add Flutter child widget details.
       Element element = parameter.enclosingElement;
       if (element is ConstructorElement) {
-        if (isFlutterWidget(element.enclosingElement) &&
-            parameter.name == 'children') {
+        if (flutter.isWidget(element.enclosingElement)) {
           String value = getDefaultStringParameterValue(parameter);
-          if (value != null) {
+          if (value == '<Widget>[]') {
             completion += value;
-            // children: <Widget>[]
             selectionOffset = completion.length - 1; // before closing ']'
           }
         }
@@ -254,9 +253,14 @@ class ArgListContributor extends DartCompletionContributor {
       if (appendComma) {
         completion += ',';
       }
+
+      final int relevance = parameter.hasRequired
+          ? DART_RELEVANCE_NAMED_PARAMETER_REQUIRED
+          : DART_RELEVANCE_NAMED_PARAMETER;
+
       CompletionSuggestion suggestion = new CompletionSuggestion(
           CompletionSuggestionKind.NAMED_ARGUMENT,
-          DART_RELEVANCE_NAMED_PARAMETER,
+          relevance,
           completion,
           selectionOffset,
           0,
@@ -277,8 +281,8 @@ class ArgListContributor extends DartCompletionContributor {
     if (parameters == null || parameters.length == 0) {
       return;
     }
-    Iterable<ParameterElement> requiredParam = parameters.where(
-        (ParameterElement p) => p.parameterKind == ParameterKind.REQUIRED);
+    Iterable<ParameterElement> requiredParam =
+        parameters.where((ParameterElement p) => p.isNotOptional);
     int requiredCount = requiredParam.length;
     // TODO (jwren) _isAppendingToArgList can be split into two cases (with and
     // without preceded), then _isAppendingToArgList,
@@ -309,15 +313,16 @@ class ArgListContributor extends DartCompletionContributor {
     Token token =
         entity is AstNode ? entity.endToken : entity is Token ? entity : null;
     return (token != containingNode?.endToken) &&
-        token?.next?.type == TokenType.COMMA;
+        token?.next?.type == TokenType.COMMA &&
+        !token.next.isSynthetic;
   }
 
   bool _isInFlutterCreation(DartCompletionRequest request) {
     AstNode containingNode = request?.target?.containingNode;
     InstanceCreationExpression newExpr = containingNode != null
-        ? identifyNewExpression(containingNode.parent)
+        ? flutter.identifyNewExpression(containingNode.parent)
         : null;
-    return newExpr != null && isFlutterInstanceCreationExpression(newExpr);
+    return newExpr != null && flutter.isWidgetCreation(newExpr);
   }
 
   /**

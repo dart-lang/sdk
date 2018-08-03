@@ -50,6 +50,10 @@ class MessageHandler {
            EndCallback end_callback,
            CallbackData data);
 
+  // Starts a task for the message handler if it runs on the thread pool and a
+  // task is not already running.
+  void EnsureTaskForIdleCheck();
+
   // Handles the next message for this message handler.  Should only
   // be used when not running the handler on the thread pool (via Run
   // or RunBlocking).
@@ -57,18 +61,15 @@ class MessageHandler {
   // Returns true on success.
   MessageStatus HandleNextMessage();
 
-  // Handles all messages for this message handler.  Should only
-  // be used when not running the handler on the thread pool (via Run
-  // or RunBlocking).
-  //
-  // Returns true on success.
-  MessageStatus HandleAllMessages();
-
   // Handles any OOB messages for this message handler.  Can be used
   // even if the message handler is running on the thread pool.
   //
   // Returns true on success.
   MessageStatus HandleOOBMessages();
+
+  // Blocks the thread on a condition variable until a message arrives, and then
+  // handles all messages.
+  MessageStatus PauseAndHandleAllMessages(int64_t timeout_millis);
 
   // Returns true if there are pending OOB messages for this message
   // handler.
@@ -79,8 +80,6 @@ class MessageHandler {
 
   intptr_t live_ports() const { return live_ports_; }
 
-  void DebugDump();
-
   bool paused() const { return paused_ > 0; }
 
   void increment_paused() { paused_++; }
@@ -89,7 +88,9 @@ class MessageHandler {
     paused_--;
   }
 
-  bool ShouldPauseOnStart(MessageStatus status) const;
+#if !defined(PRODUCT)
+  void DebugDump();
+
   bool should_pause_on_start() const { return should_pause_on_start_; }
 
   void set_should_pause_on_start(bool should_pause_on_start) {
@@ -98,7 +99,6 @@ class MessageHandler {
 
   bool is_paused_on_start() const { return is_paused_on_start_; }
 
-  bool ShouldPauseOnExit(MessageStatus status) const;
   bool should_pause_on_exit() const { return should_pause_on_exit_; }
 
   void set_should_pause_on_exit(bool should_pause_on_exit) {
@@ -110,8 +110,11 @@ class MessageHandler {
   // Timestamp of the paused on start or paused on exit.
   int64_t paused_timestamp() const { return paused_timestamp_; }
 
+  bool ShouldPauseOnStart(MessageStatus status) const;
+  bool ShouldPauseOnExit(MessageStatus status) const;
   void PausedOnStart(bool paused);
   void PausedOnExit(bool paused);
+#endif
 
   // Gives temporary ownership of |queue| and |oob_queue|. Using this object
   // has the side effect that no OOB messages will be handled if a stack
@@ -208,6 +211,10 @@ class MessageHandler {
   // Called by MessageHandlerTask to process our task queue.
   void TaskCallback();
 
+  // Returns true if the monitor was exited and there may be new OOB messages
+  // to process.
+  bool CheckAndRunIdleLocked(MonitorLocker* ml);
+
   // NOTE: These two functions release and reacquire the monitor, you may
   // need to call HandleMessages to ensure all pending messages are handled.
   void PausedOnStartLocked(MonitorLocker* ml, bool paused);
@@ -230,21 +237,47 @@ class MessageHandler {
   // This flag is not thread safe and can only reliably be accessed on a single
   // thread.
   bool oob_message_handling_allowed_;
+  bool paused_for_messages_;
   intptr_t live_ports_;  // The number of open ports, including control ports.
   intptr_t paused_;      // The number of pause messages received.
+#if !defined(PRODUCT)
   bool should_pause_on_start_;
   bool should_pause_on_exit_;
   bool is_paused_on_start_;
   bool is_paused_on_exit_;
-  bool delete_me_;
   int64_t paused_timestamp_;
+#endif
+  bool delete_me_;
   ThreadPool* pool_;
   ThreadPool::Task* task_;
+  int64_t idle_start_time_;
   StartCallback start_callback_;
   EndCallback end_callback_;
   CallbackData callback_data_;
 
   DISALLOW_COPY_AND_ASSIGN(MessageHandler);
+};
+
+class IdleNotifier : public AllStatic {
+ public:
+  static void InitOnce();
+  static void Stop();
+  static void Cleanup();
+  static void Update(MessageHandler* handler, int64_t expirary);
+  static void Remove(MessageHandler* handler) { Update(handler, 0); }
+
+ private:
+  class Task;
+
+  struct Timer {
+    MessageHandler* handler;
+    int64_t expirary;
+    Timer* next;
+  };
+
+  static Monitor* monitor_;
+  static bool task_running_;
+  static Timer* queue_;
 };
 
 }  // namespace dart

@@ -8,7 +8,6 @@ pkg/dev_compiler/test/codegen/corelib/from_environment_const_type_undefined_test
 pkg/dev_compiler/test/codegen/corelib/symbol_reserved_word_test: Fail
 pkg/dev_compiler/test/codegen/destructuring: Fail
 pkg/dev_compiler/test/codegen/language/abstract_syntax_test: Fail
-pkg/dev_compiler/test/codegen/language/application_negative_test: Fail
 pkg/dev_compiler/test/codegen/language/argument_definition_test: Fail
 pkg/dev_compiler/test/codegen/language/assign_instance_method_negative_test: Fail
 pkg/dev_compiler/test/codegen/language/async_await_syntax_test: Fail
@@ -126,8 +125,6 @@ pkg/dev_compiler/test/codegen/language/private_member3_negative_test: Fail
 pkg/dev_compiler/test/codegen/language/regress_23051_test: Fail
 pkg/dev_compiler/test/codegen/language/script1_negative_test: Fail
 pkg/dev_compiler/test/codegen/language/script2_negative_test: Fail
-pkg/dev_compiler/test/codegen/language/setter_declaration2_negative_test: Fail
-pkg/dev_compiler/test/codegen/language/setter_declaration_negative_test: Fail
 pkg/dev_compiler/test/codegen/language/source_self_negative_test: Fail
 pkg/dev_compiler/test/codegen/language/static_call_wrong_argument_count_negative_test: Fail
 pkg/dev_compiler/test/codegen/language/static_parameter_test: Fail
@@ -1806,9 +1803,6 @@ tests/corelib/symbol_reserved_word_test: Fail
 tests/corelib_strong/from_environment_const_type_test: Fail
 tests/corelib_strong/from_environment_const_type_undefined_test: Fail
 tests/corelib_strong/symbol_reserved_word_test: Fail
-tests/language/abstract_syntax_test: Fail
-tests/language/application_negative_test: Fail
-tests/language/arg_param_trailing_comma_test: Fail
 tests/language/argument_definition_test: Fail
 tests/language/assert_initializer_test: Fail
 tests/language/assign_instance_method_negative_test: Fail
@@ -1933,8 +1927,6 @@ tests/language/private_member3_negative_test: Fail
 tests/language/regress_23051_test: Fail
 tests/language/script1_negative_test: Fail
 tests/language/script2_negative_test: Fail
-tests/language/setter_declaration2_negative_test: Fail
-tests/language/setter_declaration_negative_test: Fail
 tests/language/source_self_negative_test: Fail
 tests/language/static_call_wrong_argument_count_negative_test: Fail
 tests/language/static_parameter_test: Fail
@@ -1971,8 +1963,8 @@ tests/language/unsigned_right_shift_test: Fail
 tests/language/variable_declaration_metadata_test: Fail
 tests/language/vm/debug_break_enabled_vm_test: Fail
 tests/language/vm/debug_break_vm_test: Fail
-tests/language_strong/abstract_syntax_test: Fail
-tests/language_strong/application_negative_test: Fail
+tests/language_2/abstract_syntax_test: Fail
+tests/language_2/arg_param_trailing_comma_test: Fail
 tests/language_strong/argument_definition_test: Fail
 tests/language_strong/assign_instance_method_negative_test: Fail
 tests/language_strong/async_await_syntax_test: Fail
@@ -2089,8 +2081,6 @@ tests/language_strong/private_member3_negative_test: Fail
 tests/language_strong/regress_23051_test: Fail
 tests/language_strong/script1_negative_test: Fail
 tests/language_strong/script2_negative_test: Fail
-tests/language_strong/setter_declaration2_negative_test: Fail
-tests/language_strong/setter_declaration_negative_test: Fail
 tests/language_strong/source_self_negative_test: Fail
 tests/language_strong/static_call_wrong_argument_count_negative_test: Fail
 tests/language_strong/static_parameter_test: Fail

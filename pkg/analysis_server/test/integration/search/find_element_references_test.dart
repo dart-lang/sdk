@@ -13,6 +13,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FindElementReferencesTest);
+    defineReflectiveTests(FindElementReferencesTest_UseCFE);
   });
 }
 
@@ -69,4 +70,14 @@ main() {
     expect(searchParams.isLast, isTrue);
     return searchParams.results;
   }
+}
+
+@reflectiveTest
+class FindElementReferencesTest_UseCFE extends FindElementReferencesTest {
+  @override
+  bool get useCFE => true;
+
+  @override
+  @failingTest
+  Future test_findReferences() => fail('Test fails with CFE');
 }

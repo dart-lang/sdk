@@ -9,12 +9,14 @@
  * For details about the features and syntax of SVG, a W3C standard,
  * refer to the
  * [Scalable Vector Graphics Specification](http://www.w3.org/TR/SVG/).
+ *
+ * {@category Web}
  */
 library dart.dom.svg;
 
 import 'dart:async';
-import 'dart:collection';
-import 'dart:_internal';
+import 'dart:collection' hide LinkedList, LinkedListEntry;
+import 'dart:_internal' show FixedLengthListMixin;
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:_js_helper' show Creates, Returns, JSName, Native;

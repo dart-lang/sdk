@@ -1,21 +1,98 @@
 #!/bin/bash
 #
-# Compiles code with DDC and runs the resulting code in node.js with devtool,
-# an Electron-based debugger and browser environment.
+# Compiles code with DDC and runs the resulting code in node.js.
 #
 # The first script supplied should be the one with `main()`.
 #
 # Saves the output in the same directory as the sources for convenient
 # inspection, modification or rerunning the code.
-#
 set -e
-DDC_PATH=$( cd $( dirname "${BASH_SOURCE[0]}" )/.. && pwd )
+
+function follow_links() {
+  file="$1"
+  while [ -h "$file" ]; do
+    file="$(readlink "$file")"
+  done
+  echo "$file"
+}
+PROG_NAME="$(follow_links "$BASH_SOURCE")"
+SDK_DIR="$( cd "${PROG_NAME%/*}/../../.."; pwd -P)"
+
+if [[ `uname` == 'Darwin' ]];
+then
+  OUT_DIR="$SDK_DIR"/xcodebuild
+else
+  OUT_DIR="$SDK_DIR"/out
+fi
+
+if [ -z "$DART_CONFIGURATION" ];
+then
+  DIRS=$( ls "$OUT_DIR" )
+  # list of possible configurations in decreasing desirability
+  CONFIGS=("ReleaseX64" "ReleaseIA32" "DebugX64" "DebugIA32"
+    "ReleaseARM"    "ReleaseARM64"    "ReleaseARMV5TE"
+    "DebugARM"      "DebugARM64"      "DebugARMV5TE")
+  DART_CONFIGURATION="None"
+  for CONFIG in ${CONFIGS[*]}
+  do
+    for DIR in $DIRS;
+    do
+      if [ "$CONFIG" = "$DIR" ];
+      then
+        # choose most desirable configuration that is available and break
+        DART_CONFIGURATION="$DIR"
+        break 2
+      fi
+    done
+  done
+  if [ "$DART_CONFIGURATION" = "None" ]
+  then
+    echo "No valid dart configuration found in $OUT_DIR"
+    exit 1
+  fi
+fi
+
+GEN_DIR="$OUT_DIR"/"$DART_CONFIGURATION"/gen/utils/dartdevc
+
+KERNEL=false
+if [ "$1" = "-k" ]; then
+  KERNEL=true
+  shift
+fi
+
 BASENAME=$( basename "${1%.*}")
 LIBROOT=$(cd $( dirname "${1%.*}") && pwd)
-export NODE_PATH=$DDC_PATH/lib/js/common:$LIBROOT:$NODE_PATH
-dart -c $DDC_PATH/bin/dartdevc.dart --modules=node --library-root=$LIBROOT \
-    --dart-sdk-summary=$DDC_PATH/lib/sdk/ddc_sdk.sum \
-    -o $LIBROOT/$BASENAME.js $*
+
+if [ "$KERNEL" = true ]; then
+
+  if [ ! -e $GEN_DIR/kernel/ddc_sdk.dill ]; then
+    echo "DDC SDK must be built first, please run:"
+    echo "    pushd $SDKDIR"
+    echo "    ./tools/build.py -m release dartdevk_sdk"
+    exit 1
+  fi
+
+  NODE_PATH=$GEN_DIR/kernel/common:$LIBROOT:$NODE_PATH
+
+  dart -c $SDK_DIR/pkg/dev_compiler/bin/dartdevk.dart --modules=node \
+      --dart-sdk-summary=$GEN_DIR/kernel/ddc_sdk.dill \
+      -o $LIBROOT/$BASENAME.js $*
+else
+
+  if [ ! -e $GEN_DIR/ddc_sdk.sum ]; then
+    echo "DDC SDK must be built first, please run:"
+    echo "    pushd $SDKDIR"
+    echo "    ./tools/build.py -m release dartdevc_sdk"
+    exit 1
+  fi
+
+  NODE_PATH=$GEN_DIR/js/common:$LIBROOT:$NODE_PATH
+
+  dart -c $SDK_DIR/pkg/dev_compiler/bin/dartdevc.dart --modules=node \
+      --library-root=$LIBROOT --dart-sdk-summary=$GEN_DIR/ddc_sdk.sum \
+      -o $LIBROOT/$BASENAME.js $*
+fi
+
 pushd $LIBROOT > /dev/null
 echo "
     // Fix the node.js search paths that Electron cleared out.
@@ -23,7 +100,7 @@ echo "
     const originalResolveFilename = Module._resolveFilename;
     Module._resolveFilename = function (request, parent, isMain) {
       let paths = parent.paths;
-      const ddcPath = \"$DDC_PATH/lib/js/common\";
+      const ddcPath = \"$GEN_DIR/js/common\";
       if (paths[0] != ddcPath) {
         paths.splice(0, 0, ddcPath, \"$LIBROOT\");
       }
@@ -31,6 +108,7 @@ echo "
     };
     let sdk = require(\"dart_sdk\");
     let main = require(\"$BASENAME\").$BASENAME.main;
+    sdk.dart.ignoreWhitelistedErrors(false);
     sdk._isolate_helper.startRootIsolate(main, []);" \
     > $LIBROOT/$BASENAME.run.js
 devtool $LIBROOT/$BASENAME.run.js

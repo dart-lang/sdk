@@ -73,7 +73,7 @@ class AddContentOverlay implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -317,7 +317,7 @@ class AnalysisError implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -570,7 +570,7 @@ class ChangeContentOverlay implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -597,6 +597,7 @@ class ChangeContentOverlay implements HasToJson {
  *   "kind": CompletionSuggestionKind
  *   "relevance": int
  *   "completion": String
+ *   "displayText": optional String
  *   "selectionOffset": int
  *   "selectionLength": int
  *   "isDeprecated": bool
@@ -625,6 +626,8 @@ class CompletionSuggestion implements HasToJson {
   int _relevance;
 
   String _completion;
+
+  String _displayText;
 
   int _selectionOffset;
 
@@ -710,6 +713,22 @@ class CompletionSuggestion implements HasToJson {
   }
 
   /**
+   * Text to be displayed in, for example, a completion pop-up. This field is
+   * only defined if the displayed text should be different than the
+   * completion. Otherwise it is omitted.
+   */
+  String get displayText => _displayText;
+
+  /**
+   * Text to be displayed in, for example, a completion pop-up. This field is
+   * only defined if the displayed text should be different than the
+   * completion. Otherwise it is omitted.
+   */
+  void set displayText(String value) {
+    this._displayText = value;
+  }
+
+  /**
    * The offset, relative to the beginning of the completion, of where the
    * selection should be placed after insertion.
    */
@@ -767,14 +786,14 @@ class CompletionSuggestion implements HasToJson {
 
   /**
    * An abbreviated version of the Dartdoc associated with the element being
-   * suggested, This field is omitted if there is no Dartdoc associated with
+   * suggested. This field is omitted if there is no Dartdoc associated with
    * the element.
    */
   String get docSummary => _docSummary;
 
   /**
    * An abbreviated version of the Dartdoc associated with the element being
-   * suggested, This field is omitted if there is no Dartdoc associated with
+   * suggested. This field is omitted if there is no Dartdoc associated with
    * the element.
    */
   void set docSummary(String value) {
@@ -983,7 +1002,8 @@ class CompletionSuggestion implements HasToJson {
       int selectionLength,
       bool isDeprecated,
       bool isPotential,
-      {String docSummary,
+      {String displayText,
+      String docSummary,
       String docComplete,
       String declaringType,
       String defaultArgumentListString,
@@ -1000,6 +1020,7 @@ class CompletionSuggestion implements HasToJson {
     this.kind = kind;
     this.relevance = relevance;
     this.completion = completion;
+    this.displayText = displayText;
     this.selectionOffset = selectionOffset;
     this.selectionLength = selectionLength;
     this.isDeprecated = isDeprecated;
@@ -1046,6 +1067,11 @@ class CompletionSuggestion implements HasToJson {
             jsonPath + ".completion", json["completion"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "completion");
+      }
+      String displayText;
+      if (json.containsKey("displayText")) {
+        displayText = jsonDecoder.decodeString(
+            jsonPath + ".displayText", json["displayText"]);
       }
       int selectionOffset;
       if (json.containsKey("selectionOffset")) {
@@ -1151,6 +1177,7 @@ class CompletionSuggestion implements HasToJson {
       }
       return new CompletionSuggestion(kind, relevance, completion,
           selectionOffset, selectionLength, isDeprecated, isPotential,
+          displayText: displayText,
           docSummary: docSummary,
           docComplete: docComplete,
           declaringType: declaringType,
@@ -1176,6 +1203,9 @@ class CompletionSuggestion implements HasToJson {
     result["kind"] = kind.toJson();
     result["relevance"] = relevance;
     result["completion"] = completion;
+    if (displayText != null) {
+      result["displayText"] = displayText;
+    }
     result["selectionOffset"] = selectionOffset;
     result["selectionLength"] = selectionLength;
     result["isDeprecated"] = isDeprecated;
@@ -1226,7 +1256,7 @@ class CompletionSuggestion implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -1234,6 +1264,7 @@ class CompletionSuggestion implements HasToJson {
       return kind == other.kind &&
           relevance == other.relevance &&
           completion == other.completion &&
+          displayText == other.displayText &&
           selectionOffset == other.selectionOffset &&
           selectionLength == other.selectionLength &&
           isDeprecated == other.isDeprecated &&
@@ -1265,6 +1296,7 @@ class CompletionSuggestion implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
     hash = JenkinsSmiHash.combine(hash, relevance.hashCode);
     hash = JenkinsSmiHash.combine(hash, completion.hashCode);
+    hash = JenkinsSmiHash.combine(hash, displayText.hashCode);
     hash = JenkinsSmiHash.combine(hash, selectionOffset.hashCode);
     hash = JenkinsSmiHash.combine(hash, selectionLength.hashCode);
     hash = JenkinsSmiHash.combine(hash, isDeprecated.hashCode);
@@ -1298,6 +1330,7 @@ class CompletionSuggestion implements HasToJson {
  *   KEYWORD
  *   NAMED_ARGUMENT
  *   OPTIONAL_ARGUMENT
+ *   OVERRIDE
  *   PARAMETER
  * }
  *
@@ -1351,6 +1384,12 @@ class CompletionSuggestionKind implements Enum {
   static const CompletionSuggestionKind OPTIONAL_ARGUMENT =
       const CompletionSuggestionKind._("OPTIONAL_ARGUMENT");
 
+  /**
+   * An overriding implementation of a class member is being suggested.
+   */
+  static const CompletionSuggestionKind OVERRIDE =
+      const CompletionSuggestionKind._("OVERRIDE");
+
   static const CompletionSuggestionKind PARAMETER =
       const CompletionSuggestionKind._("PARAMETER");
 
@@ -1366,6 +1405,7 @@ class CompletionSuggestionKind implements Enum {
     KEYWORD,
     NAMED_ARGUMENT,
     OPTIONAL_ARGUMENT,
+    OVERRIDE,
     PARAMETER
   ];
 
@@ -1390,6 +1430,8 @@ class CompletionSuggestionKind implements Enum {
         return NAMED_ARGUMENT;
       case "OPTIONAL_ARGUMENT":
         return OPTIONAL_ARGUMENT;
+      case "OVERRIDE":
+        return OVERRIDE;
       case "PARAMETER":
         return PARAMETER;
     }
@@ -1438,12 +1480,12 @@ class Element implements HasToJson {
   static const int FLAG_DEPRECATED = 0x20;
 
   static int makeFlags(
-      {isAbstract: false,
-      isConst: false,
-      isFinal: false,
-      isStatic: false,
-      isPrivate: false,
-      isDeprecated: false}) {
+      {bool isAbstract: false,
+      bool isConst: false,
+      bool isFinal: false,
+      bool isStatic: false,
+      bool isPrivate: false,
+      bool isDeprecated: false}) {
     int flags = 0;
     if (isAbstract) flags |= FLAG_ABSTRACT;
     if (isConst) flags |= FLAG_CONST;
@@ -1655,10 +1697,15 @@ class Element implements HasToJson {
   }
 
   bool get isAbstract => (flags & FLAG_ABSTRACT) != 0;
+
   bool get isConst => (flags & FLAG_CONST) != 0;
+
   bool get isFinal => (flags & FLAG_FINAL) != 0;
+
   bool get isStatic => (flags & FLAG_STATIC) != 0;
+
   bool get isPrivate => (flags & FLAG_PRIVATE) != 0;
+
   bool get isDeprecated => (flags & FLAG_DEPRECATED) != 0;
 
   @override
@@ -1683,7 +1730,7 @@ class Element implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -1721,11 +1768,13 @@ class Element implements HasToJson {
  *   CLASS_TYPE_ALIAS
  *   COMPILATION_UNIT
  *   CONSTRUCTOR
+ *   CONSTRUCTOR_INVOCATION
  *   ENUM
  *   ENUM_CONSTANT
  *   FIELD
  *   FILE
  *   FUNCTION
+ *   FUNCTION_INVOCATION
  *   FUNCTION_TYPE_ALIAS
  *   GETTER
  *   LABEL
@@ -1755,6 +1804,9 @@ class ElementKind implements Enum {
 
   static const ElementKind CONSTRUCTOR = const ElementKind._("CONSTRUCTOR");
 
+  static const ElementKind CONSTRUCTOR_INVOCATION =
+      const ElementKind._("CONSTRUCTOR_INVOCATION");
+
   static const ElementKind ENUM = const ElementKind._("ENUM");
 
   static const ElementKind ENUM_CONSTANT = const ElementKind._("ENUM_CONSTANT");
@@ -1764,6 +1816,9 @@ class ElementKind implements Enum {
   static const ElementKind FILE = const ElementKind._("FILE");
 
   static const ElementKind FUNCTION = const ElementKind._("FUNCTION");
+
+  static const ElementKind FUNCTION_INVOCATION =
+      const ElementKind._("FUNCTION_INVOCATION");
 
   static const ElementKind FUNCTION_TYPE_ALIAS =
       const ElementKind._("FUNCTION_TYPE_ALIAS");
@@ -1791,15 +1846,9 @@ class ElementKind implements Enum {
   static const ElementKind TYPE_PARAMETER =
       const ElementKind._("TYPE_PARAMETER");
 
-  /**
-   * Deprecated: support for tests was removed.
-   */
   static const ElementKind UNIT_TEST_GROUP =
       const ElementKind._("UNIT_TEST_GROUP");
 
-  /**
-   * Deprecated: support for tests was removed.
-   */
   static const ElementKind UNIT_TEST_TEST =
       const ElementKind._("UNIT_TEST_TEST");
 
@@ -1813,11 +1862,13 @@ class ElementKind implements Enum {
     CLASS_TYPE_ALIAS,
     COMPILATION_UNIT,
     CONSTRUCTOR,
+    CONSTRUCTOR_INVOCATION,
     ENUM,
     ENUM_CONSTANT,
     FIELD,
     FILE,
     FUNCTION,
+    FUNCTION_INVOCATION,
     FUNCTION_TYPE_ALIAS,
     GETTER,
     LABEL,
@@ -1849,6 +1900,8 @@ class ElementKind implements Enum {
         return COMPILATION_UNIT;
       case "CONSTRUCTOR":
         return CONSTRUCTOR;
+      case "CONSTRUCTOR_INVOCATION":
+        return CONSTRUCTOR_INVOCATION;
       case "ENUM":
         return ENUM;
       case "ENUM_CONSTANT":
@@ -1859,6 +1912,8 @@ class ElementKind implements Enum {
         return FILE;
       case "FUNCTION":
         return FUNCTION;
+      case "FUNCTION_INVOCATION":
+        return FUNCTION_INVOCATION;
       case "FUNCTION_TYPE_ALIAS":
         return FUNCTION_TYPE_ALIAS;
       case "GETTER":
@@ -1913,37 +1968,48 @@ class ElementKind implements Enum {
  * FoldingKind
  *
  * enum {
- *   COMMENT
- *   CLASS_MEMBER
+ *   ANNOTATIONS
+ *   CLASS_BODY
  *   DIRECTIVES
  *   DOCUMENTATION_COMMENT
- *   TOP_LEVEL_DECLARATION
+ *   FILE_HEADER
+ *   FUNCTION_BODY
+ *   INVOCATION
+ *   LITERAL
  * }
  *
  * Clients may not extend, implement or mix-in this class.
  */
 class FoldingKind implements Enum {
-  static const FoldingKind COMMENT = const FoldingKind._("COMMENT");
+  static const FoldingKind ANNOTATIONS = const FoldingKind._("ANNOTATIONS");
 
-  static const FoldingKind CLASS_MEMBER = const FoldingKind._("CLASS_MEMBER");
+  static const FoldingKind CLASS_BODY = const FoldingKind._("CLASS_BODY");
 
   static const FoldingKind DIRECTIVES = const FoldingKind._("DIRECTIVES");
 
   static const FoldingKind DOCUMENTATION_COMMENT =
       const FoldingKind._("DOCUMENTATION_COMMENT");
 
-  static const FoldingKind TOP_LEVEL_DECLARATION =
-      const FoldingKind._("TOP_LEVEL_DECLARATION");
+  static const FoldingKind FILE_HEADER = const FoldingKind._("FILE_HEADER");
+
+  static const FoldingKind FUNCTION_BODY = const FoldingKind._("FUNCTION_BODY");
+
+  static const FoldingKind INVOCATION = const FoldingKind._("INVOCATION");
+
+  static const FoldingKind LITERAL = const FoldingKind._("LITERAL");
 
   /**
    * A list containing all of the enum values that are defined.
    */
   static const List<FoldingKind> VALUES = const <FoldingKind>[
-    COMMENT,
-    CLASS_MEMBER,
+    ANNOTATIONS,
+    CLASS_BODY,
     DIRECTIVES,
     DOCUMENTATION_COMMENT,
-    TOP_LEVEL_DECLARATION
+    FILE_HEADER,
+    FUNCTION_BODY,
+    INVOCATION,
+    LITERAL
   ];
 
   @override
@@ -1953,16 +2019,22 @@ class FoldingKind implements Enum {
 
   factory FoldingKind(String name) {
     switch (name) {
-      case "COMMENT":
-        return COMMENT;
-      case "CLASS_MEMBER":
-        return CLASS_MEMBER;
+      case "ANNOTATIONS":
+        return ANNOTATIONS;
+      case "CLASS_BODY":
+        return CLASS_BODY;
       case "DIRECTIVES":
         return DIRECTIVES;
       case "DOCUMENTATION_COMMENT":
         return DOCUMENTATION_COMMENT;
-      case "TOP_LEVEL_DECLARATION":
-        return TOP_LEVEL_DECLARATION;
+      case "FILE_HEADER":
+        return FILE_HEADER;
+      case "FUNCTION_BODY":
+        return FUNCTION_BODY;
+      case "INVOCATION":
+        return INVOCATION;
+      case "LITERAL":
+        return LITERAL;
     }
     throw new Exception('Illegal enum value: $name');
   }
@@ -2089,7 +2161,7 @@ class FoldingRegion implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -2215,7 +2287,7 @@ class HighlightRegion implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -2936,6 +3008,375 @@ class HighlightRegionType implements Enum {
 }
 
 /**
+ * KytheEntry
+ *
+ * {
+ *   "source": KytheVName
+ *   "kind": optional String
+ *   "target": optional KytheVName
+ *   "fact": String
+ *   "value": optional List<int>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class KytheEntry implements HasToJson {
+  KytheVName _source;
+
+  String _kind;
+
+  KytheVName _target;
+
+  String _fact;
+
+  List<int> _value;
+
+  /**
+   * The ticket of the source node.
+   */
+  KytheVName get source => _source;
+
+  /**
+   * The ticket of the source node.
+   */
+  void set source(KytheVName value) {
+    assert(value != null);
+    this._source = value;
+  }
+
+  /**
+   * An edge label. The schema defines which labels are meaningful.
+   */
+  String get kind => _kind;
+
+  /**
+   * An edge label. The schema defines which labels are meaningful.
+   */
+  void set kind(String value) {
+    this._kind = value;
+  }
+
+  /**
+   * The ticket of the target node.
+   */
+  KytheVName get target => _target;
+
+  /**
+   * The ticket of the target node.
+   */
+  void set target(KytheVName value) {
+    this._target = value;
+  }
+
+  /**
+   * A fact label. The schema defines which fact labels are meaningful.
+   */
+  String get fact => _fact;
+
+  /**
+   * A fact label. The schema defines which fact labels are meaningful.
+   */
+  void set fact(String value) {
+    assert(value != null);
+    this._fact = value;
+  }
+
+  /**
+   * The String value of the fact.
+   */
+  List<int> get value => _value;
+
+  /**
+   * The String value of the fact.
+   */
+  void set value(List<int> value) {
+    this._value = value;
+  }
+
+  KytheEntry(KytheVName source, String fact,
+      {String kind, KytheVName target, List<int> value}) {
+    this.source = source;
+    this.kind = kind;
+    this.target = target;
+    this.fact = fact;
+    this.value = value;
+  }
+
+  factory KytheEntry.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      KytheVName source;
+      if (json.containsKey("source")) {
+        source = new KytheVName.fromJson(
+            jsonDecoder, jsonPath + ".source", json["source"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "source");
+      }
+      String kind;
+      if (json.containsKey("kind")) {
+        kind = jsonDecoder.decodeString(jsonPath + ".kind", json["kind"]);
+      }
+      KytheVName target;
+      if (json.containsKey("target")) {
+        target = new KytheVName.fromJson(
+            jsonDecoder, jsonPath + ".target", json["target"]);
+      }
+      String fact;
+      if (json.containsKey("fact")) {
+        fact = jsonDecoder.decodeString(jsonPath + ".fact", json["fact"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "fact");
+      }
+      List<int> value;
+      if (json.containsKey("value")) {
+        value = jsonDecoder.decodeList(
+            jsonPath + ".value", json["value"], jsonDecoder.decodeInt);
+      }
+      return new KytheEntry(source, fact,
+          kind: kind, target: target, value: value);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "KytheEntry", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["source"] = source.toJson();
+    if (kind != null) {
+      result["kind"] = kind;
+    }
+    if (target != null) {
+      result["target"] = target.toJson();
+    }
+    result["fact"] = fact;
+    if (value != null) {
+      result["value"] = value;
+    }
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is KytheEntry) {
+      return source == other.source &&
+          kind == other.kind &&
+          target == other.target &&
+          fact == other.fact &&
+          listEqual(value, other.value, (int a, int b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, source.hashCode);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, target.hashCode);
+    hash = JenkinsSmiHash.combine(hash, fact.hashCode);
+    hash = JenkinsSmiHash.combine(hash, value.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * KytheVName
+ *
+ * {
+ *   "signature": String
+ *   "corpus": String
+ *   "root": String
+ *   "path": String
+ *   "language": String
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class KytheVName implements HasToJson {
+  String _signature;
+
+  String _corpus;
+
+  String _root;
+
+  String _path;
+
+  String _language;
+
+  /**
+   * An opaque signature generated by the analyzer.
+   */
+  String get signature => _signature;
+
+  /**
+   * An opaque signature generated by the analyzer.
+   */
+  void set signature(String value) {
+    assert(value != null);
+    this._signature = value;
+  }
+
+  /**
+   * The corpus of source code this KytheVName belongs to. Loosely, a corpus is
+   * a collection of related files, such as the contents of a given source
+   * repository.
+   */
+  String get corpus => _corpus;
+
+  /**
+   * The corpus of source code this KytheVName belongs to. Loosely, a corpus is
+   * a collection of related files, such as the contents of a given source
+   * repository.
+   */
+  void set corpus(String value) {
+    assert(value != null);
+    this._corpus = value;
+  }
+
+  /**
+   * A corpus-specific root label, typically a directory path or project
+   * identifier, denoting a distinct subset of the corpus. This may also be
+   * used to designate virtual collections like generated files.
+   */
+  String get root => _root;
+
+  /**
+   * A corpus-specific root label, typically a directory path or project
+   * identifier, denoting a distinct subset of the corpus. This may also be
+   * used to designate virtual collections like generated files.
+   */
+  void set root(String value) {
+    assert(value != null);
+    this._root = value;
+  }
+
+  /**
+   * A path-structured label describing the “location” of the named object
+   * relative to the corpus and the root.
+   */
+  String get path => _path;
+
+  /**
+   * A path-structured label describing the “location” of the named object
+   * relative to the corpus and the root.
+   */
+  void set path(String value) {
+    assert(value != null);
+    this._path = value;
+  }
+
+  /**
+   * The language this name belongs to.
+   */
+  String get language => _language;
+
+  /**
+   * The language this name belongs to.
+   */
+  void set language(String value) {
+    assert(value != null);
+    this._language = value;
+  }
+
+  KytheVName(String signature, String corpus, String root, String path,
+      String language) {
+    this.signature = signature;
+    this.corpus = corpus;
+    this.root = root;
+    this.path = path;
+    this.language = language;
+  }
+
+  factory KytheVName.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String signature;
+      if (json.containsKey("signature")) {
+        signature = jsonDecoder.decodeString(
+            jsonPath + ".signature", json["signature"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "signature");
+      }
+      String corpus;
+      if (json.containsKey("corpus")) {
+        corpus = jsonDecoder.decodeString(jsonPath + ".corpus", json["corpus"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "corpus");
+      }
+      String root;
+      if (json.containsKey("root")) {
+        root = jsonDecoder.decodeString(jsonPath + ".root", json["root"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "root");
+      }
+      String path;
+      if (json.containsKey("path")) {
+        path = jsonDecoder.decodeString(jsonPath + ".path", json["path"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "path");
+      }
+      String language;
+      if (json.containsKey("language")) {
+        language =
+            jsonDecoder.decodeString(jsonPath + ".language", json["language"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "language");
+      }
+      return new KytheVName(signature, corpus, root, path, language);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "KytheVName", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["signature"] = signature;
+    result["corpus"] = corpus;
+    result["root"] = root;
+    result["path"] = path;
+    result["language"] = language;
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is KytheVName) {
+      return signature == other.signature &&
+          corpus == other.corpus &&
+          root == other.root &&
+          path == other.path &&
+          language == other.language;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, signature.hashCode);
+    hash = JenkinsSmiHash.combine(hash, corpus.hashCode);
+    hash = JenkinsSmiHash.combine(hash, root.hashCode);
+    hash = JenkinsSmiHash.combine(hash, path.hashCode);
+    hash = JenkinsSmiHash.combine(hash, language.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * LinkedEditGroup
  *
  * {
@@ -3072,7 +3513,7 @@ class LinkedEditGroup implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3176,7 +3617,7 @@ class LinkedEditSuggestion implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3421,7 +3862,7 @@ class Location implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3555,7 +3996,7 @@ class NavigationRegion implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3764,7 +4205,7 @@ class NavigationTarget implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3897,7 +4338,7 @@ class Occurrences implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -3926,6 +4367,8 @@ class Occurrences implements HasToJson {
  *   "element": Element
  *   "offset": int
  *   "length": int
+ *   "codeOffset": int
+ *   "codeLength": int
  *   "children": optional List<Outline>
  * }
  *
@@ -3937,6 +4380,10 @@ class Outline implements HasToJson {
   int _offset;
 
   int _length;
+
+  int _codeOffset;
+
+  int _codeLength;
 
   List<Outline> _children;
 
@@ -3986,23 +4433,55 @@ class Outline implements HasToJson {
   }
 
   /**
+   * The offset of the first character of the element code, which is neither
+   * documentation, nor annotation.
+   */
+  int get codeOffset => _codeOffset;
+
+  /**
+   * The offset of the first character of the element code, which is neither
+   * documentation, nor annotation.
+   */
+  void set codeOffset(int value) {
+    assert(value != null);
+    this._codeOffset = value;
+  }
+
+  /**
+   * The length of the element code.
+   */
+  int get codeLength => _codeLength;
+
+  /**
+   * The length of the element code.
+   */
+  void set codeLength(int value) {
+    assert(value != null);
+    this._codeLength = value;
+  }
+
+  /**
    * The children of the node. The field will be omitted if the node has no
-   * children.
+   * children. Children are sorted by offset.
    */
   List<Outline> get children => _children;
 
   /**
    * The children of the node. The field will be omitted if the node has no
-   * children.
+   * children. Children are sorted by offset.
    */
   void set children(List<Outline> value) {
     this._children = value;
   }
 
-  Outline(Element element, int offset, int length, {List<Outline> children}) {
+  Outline(
+      Element element, int offset, int length, int codeOffset, int codeLength,
+      {List<Outline> children}) {
     this.element = element;
     this.offset = offset;
     this.length = length;
+    this.codeOffset = codeOffset;
+    this.codeLength = codeLength;
     this.children = children;
   }
 
@@ -4031,6 +4510,20 @@ class Outline implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "length");
       }
+      int codeOffset;
+      if (json.containsKey("codeOffset")) {
+        codeOffset =
+            jsonDecoder.decodeInt(jsonPath + ".codeOffset", json["codeOffset"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "codeOffset");
+      }
+      int codeLength;
+      if (json.containsKey("codeLength")) {
+        codeLength =
+            jsonDecoder.decodeInt(jsonPath + ".codeLength", json["codeLength"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "codeLength");
+      }
       List<Outline> children;
       if (json.containsKey("children")) {
         children = jsonDecoder.decodeList(
@@ -4039,7 +4532,8 @@ class Outline implements HasToJson {
             (String jsonPath, Object json) =>
                 new Outline.fromJson(jsonDecoder, jsonPath, json));
       }
-      return new Outline(element, offset, length, children: children);
+      return new Outline(element, offset, length, codeOffset, codeLength,
+          children: children);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "Outline", json);
     }
@@ -4051,6 +4545,8 @@ class Outline implements HasToJson {
     result["element"] = element.toJson();
     result["offset"] = offset;
     result["length"] = length;
+    result["codeOffset"] = codeOffset;
+    result["codeLength"] = codeLength;
     if (children != null) {
       result["children"] =
           children.map((Outline value) => value.toJson()).toList();
@@ -4059,7 +4555,7 @@ class Outline implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4067,6 +4563,8 @@ class Outline implements HasToJson {
       return element == other.element &&
           offset == other.offset &&
           length == other.length &&
+          codeOffset == other.codeOffset &&
+          codeLength == other.codeLength &&
           listEqual(children, other.children, (Outline a, Outline b) => a == b);
     }
     return false;
@@ -4078,6 +4576,8 @@ class Outline implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, element.hashCode);
     hash = JenkinsSmiHash.combine(hash, offset.hashCode);
     hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, codeOffset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, codeLength.hashCode);
     hash = JenkinsSmiHash.combine(hash, children.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -4162,7 +4662,7 @@ class Position implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4189,11 +4689,11 @@ class Position implements HasToJson {
  *   CONVERT_METHOD_TO_GETTER
  *   EXTRACT_LOCAL_VARIABLE
  *   EXTRACT_METHOD
+ *   EXTRACT_WIDGET
  *   INLINE_LOCAL_VARIABLE
  *   INLINE_METHOD
  *   MOVE_FILE
  *   RENAME
- *   SORT_MEMBERS
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -4211,6 +4711,9 @@ class RefactoringKind implements Enum {
   static const RefactoringKind EXTRACT_METHOD =
       const RefactoringKind._("EXTRACT_METHOD");
 
+  static const RefactoringKind EXTRACT_WIDGET =
+      const RefactoringKind._("EXTRACT_WIDGET");
+
   static const RefactoringKind INLINE_LOCAL_VARIABLE =
       const RefactoringKind._("INLINE_LOCAL_VARIABLE");
 
@@ -4221,9 +4724,6 @@ class RefactoringKind implements Enum {
 
   static const RefactoringKind RENAME = const RefactoringKind._("RENAME");
 
-  static const RefactoringKind SORT_MEMBERS =
-      const RefactoringKind._("SORT_MEMBERS");
-
   /**
    * A list containing all of the enum values that are defined.
    */
@@ -4232,11 +4732,11 @@ class RefactoringKind implements Enum {
     CONVERT_METHOD_TO_GETTER,
     EXTRACT_LOCAL_VARIABLE,
     EXTRACT_METHOD,
+    EXTRACT_WIDGET,
     INLINE_LOCAL_VARIABLE,
     INLINE_METHOD,
     MOVE_FILE,
-    RENAME,
-    SORT_MEMBERS
+    RENAME
   ];
 
   @override
@@ -4254,6 +4754,8 @@ class RefactoringKind implements Enum {
         return EXTRACT_LOCAL_VARIABLE;
       case "EXTRACT_METHOD":
         return EXTRACT_METHOD;
+      case "EXTRACT_WIDGET":
+        return EXTRACT_WIDGET;
       case "INLINE_LOCAL_VARIABLE":
         return INLINE_LOCAL_VARIABLE;
       case "INLINE_METHOD":
@@ -4262,8 +4764,6 @@ class RefactoringKind implements Enum {
         return MOVE_FILE;
       case "RENAME":
         return RENAME;
-      case "SORT_MEMBERS":
-        return SORT_MEMBERS;
     }
     throw new Exception('Illegal enum value: $name');
   }
@@ -4448,7 +4948,7 @@ class RefactoringMethodParameter implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4647,7 +5147,7 @@ class RefactoringProblem implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4804,7 +5304,7 @@ class RemoveContentOverlay implements HasToJson {
   }
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -4830,6 +5330,7 @@ class RemoveContentOverlay implements HasToJson {
  *   "edits": List<SourceFileEdit>
  *   "linkedEditGroups": List<LinkedEditGroup>
  *   "selection": optional Position
+ *   "id": optional String
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -4842,6 +5343,8 @@ class SourceChange implements HasToJson {
   List<LinkedEditGroup> _linkedEditGroups;
 
   Position _selection;
+
+  String _id;
 
   /**
    * A human-readable description of the change to be applied.
@@ -4896,10 +5399,25 @@ class SourceChange implements HasToJson {
     this._selection = value;
   }
 
+  /**
+   * The optional identifier of the change kind. The identifier remains stable
+   * even if the message changes, or is parameterized.
+   */
+  String get id => _id;
+
+  /**
+   * The optional identifier of the change kind. The identifier remains stable
+   * even if the message changes, or is parameterized.
+   */
+  void set id(String value) {
+    this._id = value;
+  }
+
   SourceChange(String message,
       {List<SourceFileEdit> edits,
       List<LinkedEditGroup> linkedEditGroups,
-      Position selection}) {
+      Position selection,
+      String id}) {
     this.message = message;
     if (edits == null) {
       this.edits = <SourceFileEdit>[];
@@ -4912,6 +5430,7 @@ class SourceChange implements HasToJson {
       this.linkedEditGroups = linkedEditGroups;
     }
     this.selection = selection;
+    this.id = id;
   }
 
   factory SourceChange.fromJson(
@@ -4952,10 +5471,15 @@ class SourceChange implements HasToJson {
         selection = new Position.fromJson(
             jsonDecoder, jsonPath + ".selection", json["selection"]);
       }
+      String id;
+      if (json.containsKey("id")) {
+        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
+      }
       return new SourceChange(message,
           edits: edits,
           linkedEditGroups: linkedEditGroups,
-          selection: selection);
+          selection: selection,
+          id: id);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "SourceChange", json);
     }
@@ -4972,6 +5496,9 @@ class SourceChange implements HasToJson {
         .toList();
     if (selection != null) {
       result["selection"] = selection.toJson();
+    }
+    if (id != null) {
+      result["id"] = id;
     }
     return result;
   }
@@ -5002,7 +5529,7 @@ class SourceChange implements HasToJson {
   SourceFileEdit getFileEdit(String file) => getChangeFileEdit(this, file);
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -5012,7 +5539,8 @@ class SourceChange implements HasToJson {
               (SourceFileEdit a, SourceFileEdit b) => a == b) &&
           listEqual(linkedEditGroups, other.linkedEditGroups,
               (LinkedEditGroup a, LinkedEditGroup b) => a == b) &&
-          selection == other.selection;
+          selection == other.selection &&
+          id == other.id;
     }
     return false;
   }
@@ -5024,6 +5552,7 @@ class SourceChange implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, edits.hashCode);
     hash = JenkinsSmiHash.combine(hash, linkedEditGroups.hashCode);
     hash = JenkinsSmiHash.combine(hash, selection.hashCode);
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -5186,7 +5715,7 @@ class SourceEdit implements HasToJson {
   String apply(String code) => applyEdit(code, this);
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {
@@ -5340,7 +5869,7 @@ class SourceFileEdit implements HasToJson {
   void addAll(Iterable<SourceEdit> edits) => addAllEditsForSource(this, edits);
 
   @override
-  String toString() => JSON.encode(toJson());
+  String toString() => json.encode(toJson());
 
   @override
   bool operator ==(other) {

@@ -8,7 +8,7 @@
 #include "vm/instructions.h"
 #include "vm/instructions_arm64.h"
 
-#include "vm/assembler.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/constants_arm64.h"
 #include "vm/cpu.h"
 #include "vm/object.h"
@@ -31,7 +31,6 @@ CallPattern::CallPattern(uword pc, const Code& code)
   ASSERT(reg == CODE_REG);
 }
 
-
 NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
     : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
       end_(pc),
@@ -50,35 +49,25 @@ NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
   ASSERT(reg == R5);
 }
 
-
 RawCode* NativeCallPattern::target() const {
   return reinterpret_cast<RawCode*>(
       object_pool_.ObjectAt(target_code_pool_index_));
 }
-
 
 void NativeCallPattern::set_target(const Code& target) const {
   object_pool_.SetObjectAt(target_code_pool_index_, target);
   // No need to flush the instruction cache, since the code is not modified.
 }
 
-
 NativeFunction NativeCallPattern::native_function() const {
   return reinterpret_cast<NativeFunction>(
       object_pool_.RawValueAt(native_function_pool_index_));
 }
 
-
 void NativeCallPattern::set_native_function(NativeFunction func) const {
   object_pool_.SetRawValueAt(native_function_pool_index_,
                              reinterpret_cast<uword>(func));
 }
-
-
-intptr_t InstructionPattern::OffsetFromPPIndex(intptr_t index) {
-  return Array::element_offset(index);
-}
-
 
 // Decodes a load sequence ending at 'end' (the last instruction of the load
 // sequence is the instruction before the one at end).  Returns a pointer to
@@ -107,7 +96,6 @@ uword InstructionPattern::DecodeLoadObject(uword end,
   }
   return start;
 }
-
 
 // Decodes a load sequence ending at 'end' (the last instruction of the load
 // sequence is the instruction before the one at end).  Returns a pointer to
@@ -182,7 +170,6 @@ uword InstructionPattern::DecodeLoadWordImmediate(uword end,
   return start;
 }
 
-
 // Decodes a load sequence ending at 'end' (the last instruction of the load
 // sequence is the instruction before the one at end).  Returns a pointer to
 // the first instruction in the sequence.  Returns the register being loaded
@@ -255,7 +242,6 @@ uword InstructionPattern::DecodeLoadWordFromPool(uword end,
   return start;
 }
 
-
 bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
   ASSERT(code.ContainsInstructionAt(pc));
 
@@ -268,7 +254,7 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
       ASSERT(Utils::IsAligned(offset, 8));
       intptr_t index = ObjectPool::IndexFromOffset(offset - kHeapObjectTag);
       const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
-      if (pool.InfoAt(index) == ObjectPool::kTaggedObject) {
+      if (pool.TypeAt(index) == ObjectPool::kTaggedObject) {
         *obj = pool.ObjectAt(index);
         return true;
       }
@@ -280,7 +266,6 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
 
   return false;
 }
-
 
 // Encodes a load sequence ending at 'end'. Encodes a fixed length two
 // instruction load from the pool pointer in PP using the destination
@@ -302,7 +287,6 @@ void InstructionPattern::EncodeLoadWordFromPoolFixed(uword end,
   instr->SetInstructionBits(instr->InstructionBits() | B22);
 }
 
-
 RawICData* CallPattern::IcData() {
   if (ic_data_.IsNull()) {
     Register reg;
@@ -313,18 +297,15 @@ RawICData* CallPattern::IcData() {
   return ic_data_.raw();
 }
 
-
 RawCode* CallPattern::TargetCode() const {
   return reinterpret_cast<RawCode*>(
       object_pool_.ObjectAt(target_code_pool_index_));
 }
 
-
 void CallPattern::SetTargetCode(const Code& target) const {
   object_pool_.SetObjectAt(target_code_pool_index_, target);
   // No need to flush the instruction cache, since the code is not modified.
 }
-
 
 SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
     : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
@@ -343,37 +324,48 @@ SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
   ASSERT(reg == CODE_REG);
 }
 
-
 RawObject* SwitchableCallPattern::data() const {
   return object_pool_.ObjectAt(data_pool_index_);
 }
 
-
 RawCode* SwitchableCallPattern::target() const {
   return reinterpret_cast<RawCode*>(object_pool_.ObjectAt(target_pool_index_));
 }
-
 
 void SwitchableCallPattern::SetData(const Object& data) const {
   ASSERT(!Object::Handle(object_pool_.ObjectAt(data_pool_index_)).IsCode());
   object_pool_.SetObjectAt(data_pool_index_, data);
 }
 
-
 void SwitchableCallPattern::SetTarget(const Code& target) const {
   ASSERT(Object::Handle(object_pool_.ObjectAt(target_pool_index_)).IsCode());
   object_pool_.SetObjectAt(target_pool_index_, target);
 }
 
-
 ReturnPattern::ReturnPattern(uword pc) : pc_(pc) {}
-
 
 bool ReturnPattern::IsValid() const {
   Instr* bx_lr = Instr::At(pc_);
   const Register crn = ConcreteRegister(LR);
   const int32_t instruction = RET | (static_cast<int32_t>(crn) << kRnShift);
   return bx_lr->InstructionBits() == instruction;
+}
+
+intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {
+  // Calls to the type testing stubs look like:
+  //   ldr R3, [PP+idx]
+  //   blr R9
+
+  // Ensure the caller of the type testing stub (whose return address is [pc_])
+  // branched via the `blr R9` instruction.
+  ASSERT(*reinterpret_cast<uint32_t*>(pc_ - Instr::kInstrSize) == 0xd63f0120);
+  const uword load_instr_end = pc_ - Instr::kInstrSize;
+
+  Register reg;
+  intptr_t pool_index = -1;
+  InstructionPattern::DecodeLoadWordFromPool(load_instr_end, &reg, &pool_index);
+  ASSERT(reg == R3);
+  return pool_index;
 }
 
 }  // namespace dart

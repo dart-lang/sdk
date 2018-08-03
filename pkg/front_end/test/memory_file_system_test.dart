@@ -7,9 +7,11 @@ library front_end.test.memory_file_system_test;
 
 import 'dart:convert';
 import 'dart:io' as io;
+import 'dart:typed_data';
 
-import 'package:front_end/file_system.dart' show FileSystemException;
-import 'package:front_end/memory_file_system.dart';
+import 'package:front_end/src/api_prototype/file_system.dart'
+    show FileSystemException;
+import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -32,9 +34,25 @@ class FileTest extends _BaseTestNative {
   MemoryFileSystemEntity file;
 
   setUp() {
-    super.setUp();
+    _baseSetUp();
     path = join(tempPath, 'file.txt');
     file = entityForPath(path);
+  }
+
+  test_createDirectory_doesNotExist() async {
+    file.createDirectory();
+    expect(await file.exists(), true);
+  }
+
+  test_createDirectory_exists_asDirectory() async {
+    file.createDirectory();
+    file.createDirectory();
+    expect(await file.exists(), true);
+  }
+
+  test_createDirectory_exists_asFile() async {
+    file.writeAsStringSync('');
+    expect(() => file.createDirectory(), _throwsFileSystemException);
   }
 
   test_equals_differentPaths() {
@@ -45,34 +63,22 @@ class FileTest extends _BaseTestNative {
     expect(file == entityForPath(join(tempPath, 'file.txt')), isTrue);
   }
 
+  test_exists_directory_exists() async {
+    file.createDirectory();
+    expect(await file.exists(), true);
+  }
+
   test_exists_doesNotExist() async {
     expect(await file.exists(), false);
   }
 
-  test_exists_exists() async {
+  test_exists_file_exists() async {
     file.writeAsStringSync('x');
     expect(await file.exists(), true);
   }
 
   test_hashCode_samePath() {
     expect(file.hashCode, entityForPath(join(tempPath, 'file.txt')).hashCode);
-  }
-
-  test_lastModified_doesNotExist() async {
-    expect(file.lastModified(), _throwsFileSystemException);
-  }
-
-  test_lastModified_increasesOnEachChange() async {
-    file.writeAsStringSync('x');
-    var mod1 = await file.lastModified();
-    file.writeAsStringSync('y');
-    var mod2 = await file.lastModified();
-    expect(mod2.isAfter(mod1), isTrue);
-
-    var file2 = entityForPath(join(tempPath, 'file2.txt'));
-    file2.writeAsStringSync('z');
-    var mod3 = await file2.lastModified();
-    expect(mod3.isAfter(mod2), isTrue);
   }
 
   test_path() {
@@ -93,7 +99,7 @@ class FileTest extends _BaseTestNative {
   test_readAsBytes_exists() async {
     var s = 'contents';
     file.writeAsStringSync(s);
-    expect(await file.readAsBytes(), UTF8.encode(s));
+    expect(await file.readAsBytes(), utf8.encode(s));
   }
 
   test_readAsString_badUtf8() {
@@ -116,13 +122,30 @@ class FileTest extends _BaseTestNative {
     expect(await file.readAsString(), '\u20ac');
   }
 
+  test_writeAsBytesSync_directory() async {
+    file.createDirectory();
+    expect(() => file.writeAsBytesSync([0]), _throwsFileSystemException);
+  }
+
   test_writeAsBytesSync_modifyAfterRead() async {
+    // For effeciency we do not make defensive copies.
     file.writeAsBytesSync([1]);
     (await file.readAsBytes())[0] = 2;
-    expect(await file.readAsBytes(), [1]);
+    expect(await file.readAsBytes(), [2]);
+  }
+
+  test_writeAsBytesSync_modifyAfterWrite_Uint8List() async {
+    // For effeciency we do not make defensive copies.
+    var bytes = new Uint8List.fromList([1]);
+    file.writeAsBytesSync(bytes);
+    bytes[0] = 2;
+    expect(await file.readAsBytes(), [2]);
   }
 
   test_writeAsBytesSync_modifyAfterWrite() async {
+    // For effeciency we generally do not make defensive copies, but on the
+    // other hrand we keep everything as `Uint8List`s internally, so in this
+    // case a copy is actually made.
     var bytes = [1];
     file.writeAsBytesSync(bytes);
     bytes[0] = 2;
@@ -133,6 +156,11 @@ class FileTest extends _BaseTestNative {
     file.writeAsBytesSync([1]);
     file.writeAsBytesSync([2]);
     expect(await file.readAsBytes(), [2]);
+  }
+
+  test_writeAsStringSync_directory() async {
+    file.createDirectory();
+    expect(() => file.writeAsStringSync(''), _throwsFileSystemException);
   }
 
   test_writeAsStringSync_overwrite() async {
@@ -147,11 +175,11 @@ class FileTest extends _BaseTestNative {
   }
 }
 
-abstract class MemoryFileSystemTestMixin extends _BaseTest {
+abstract class MemoryFileSystemTestMixin implements _BaseTest {
   Uri tempUri;
 
   setUp() {
-    super.setUp();
+    _baseSetUp();
     tempUri = context.toUri(tempPath);
   }
 
@@ -249,7 +277,7 @@ abstract class _BaseTest {
 
   String join(String path1, String path2, [String path3, String path4]);
 
-  void setUp();
+  void _baseSetUp();
 }
 
 class _BaseTestNative extends _BaseTest {
@@ -260,7 +288,7 @@ class _BaseTestNative extends _BaseTest {
   String join(String path1, String path2, [String path3, String path4]) =>
       pathos.join(path1, path2, path3, path4);
 
-  setUp() {
+  _baseSetUp() {
     tempPath = pathos.join(io.Directory.systemTemp.path, 'test_file_system');
     fileSystem = new MemoryFileSystem(pathos.toUri(io.Directory.current.path));
   }
@@ -274,7 +302,7 @@ class _BaseTestPosix extends _BaseTest {
   String join(String path1, String path2, [String path3, String path4]) =>
       pathos.posix.join(path1, path2, path3, path4);
 
-  void setUp() {
+  void _baseSetUp() {
     tempPath = '/test_file_system';
     fileSystem = new MemoryFileSystem(Uri.parse('file:///cwd'));
   }
@@ -288,7 +316,7 @@ class _BaseTestWindows extends _BaseTest {
   String join(String path1, String path2, [String path3, String path4]) =>
       pathos.windows.join(path1, path2, path3, path4);
 
-  void setUp() {
+  void _baseSetUp() {
     tempPath = r'c:\test_file_system';
     fileSystem = new MemoryFileSystem(Uri.parse('file:///c:/cwd'));
   }

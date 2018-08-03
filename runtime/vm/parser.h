@@ -7,15 +7,15 @@
 
 #include "include/dart_api.h"
 
+#include "lib/invocation_mirror.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
-#include "lib/invocation_mirror.h"
 #include "vm/allocation.h"
 #include "vm/ast.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler_stats.h"
-#include "vm/kernel.h"
 #include "vm/hash_table.h"
+#include "vm/kernel.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
 #include "vm/token.h"
@@ -28,7 +28,7 @@ namespace kernel {
 
 class ScopeBuildingResult;
 
-}  // kernel
+}  // namespace kernel
 
 class ArgumentsDescriptor;
 class Isolate;
@@ -89,35 +89,7 @@ typedef UnorderedHashMap<ConstMapKeyEqualsTraits> ConstantsMap;
 // The class ParsedFunction holds the result of parsing a function.
 class ParsedFunction : public ZoneAllocated {
  public:
-  ParsedFunction(Thread* thread, const Function& function)
-      : thread_(thread),
-        function_(function),
-        code_(Code::Handle(zone(), function.unoptimized_code())),
-        node_sequence_(NULL),
-        regexp_compile_data_(NULL),
-        instantiator_(NULL),
-        function_type_arguments_(NULL),
-        parent_type_arguments_(NULL),
-        current_context_var_(NULL),
-        expression_temp_var_(NULL),
-        finally_return_temp_var_(NULL),
-        deferred_prefixes_(new ZoneGrowableArray<const LibraryPrefix*>()),
-        guarded_fields_(new ZoneGrowableArray<const Field*>()),
-        default_parameter_values_(NULL),
-        first_parameter_index_(0),
-        first_stack_local_index_(0),
-        num_copied_params_(0),
-        num_stack_locals_(0),
-        have_seen_await_expr_(false),
-        kernel_scopes_(NULL) {
-    ASSERT(function.IsZoneHandle());
-    // Every function has a local variable for the current context.
-    LocalVariable* temp = new (zone())
-        LocalVariable(function.token_pos(), function.token_pos(),
-                      Symbols::CurrentContextVar(), Object::dynamic_type());
-    ASSERT(temp != NULL);
-    current_context_var_ = temp;
-  }
+  ParsedFunction(Thread* thread, const Function& function);
 
   const Function& function() const { return function_; }
   const Code& code() const { return code_; }
@@ -135,6 +107,7 @@ class ParsedFunction : public ZoneAllocated {
     ASSERT(instantiator != NULL);
     instantiator_ = instantiator;
   }
+
   LocalVariable* function_type_arguments() const {
     return function_type_arguments_;
   }
@@ -160,7 +133,6 @@ class ParsedFunction : public ZoneAllocated {
 #endif
   }
 
-
   const Instance& DefaultParameterValueAt(intptr_t i) const {
     ASSERT(default_parameter_values_ != NULL);
     return *default_parameter_values_->At(i);
@@ -171,6 +143,9 @@ class ParsedFunction : public ZoneAllocated {
   }
 
   LocalVariable* current_context_var() const { return current_context_var_; }
+
+  bool has_arg_desc_var() const { return arg_desc_var_ != NULL; }
+  LocalVariable* arg_desc_var() const { return arg_desc_var_; }
 
   LocalVariable* expression_temp_var() const {
     ASSERT(has_expression_temp_var());
@@ -207,19 +182,23 @@ class ParsedFunction : public ZoneAllocated {
     return guarded_fields_;
   }
 
-  int first_parameter_index() const { return first_parameter_index_; }
-  int first_stack_local_index() const { return first_stack_local_index_; }
-  int num_copied_params() const { return num_copied_params_; }
+  VariableIndex first_parameter_index() const { return first_parameter_index_; }
   int num_stack_locals() const { return num_stack_locals_; }
-  int num_non_copied_params() const {
-    return (num_copied_params_ == 0) ? function().num_fixed_parameters() : 0;
-  }
 
   void AllocateVariables();
   void AllocateIrregexpVariables(intptr_t num_stack_locals);
 
   void record_await() { have_seen_await_expr_ = true; }
   bool have_seen_await() const { return have_seen_await_expr_; }
+  bool is_forwarding_stub() const {
+    return forwarding_stub_super_target_ != -1;
+  }
+  kernel::NameIndex forwarding_stub_super_target() const {
+    return forwarding_stub_super_target_;
+  }
+  void MarkForwardingStub(kernel::NameIndex target) {
+    forwarding_stub_super_target_ = target;
+  }
 
   Thread* thread() const { return thread_; }
   Isolate* isolate() const { return thread_->isolate(); }
@@ -233,6 +212,14 @@ class ParsedFunction : public ZoneAllocated {
 
   kernel::ScopeBuildingResult* EnsureKernelScopes();
 
+  LocalVariable* RawTypeArgumentsVariable() const {
+    return raw_type_arguments_var_;
+  }
+
+  LocalVariable* RawParameterVariable(intptr_t i) const {
+    return raw_parameters_[i];
+  }
+
  private:
   Thread* thread_;
   const Function& function_;
@@ -243,24 +230,26 @@ class ParsedFunction : public ZoneAllocated {
   LocalVariable* function_type_arguments_;
   LocalVariable* parent_type_arguments_;
   LocalVariable* current_context_var_;
+  LocalVariable* arg_desc_var_;
   LocalVariable* expression_temp_var_;
   LocalVariable* finally_return_temp_var_;
   ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes_;
   ZoneGrowableArray<const Field*>* guarded_fields_;
   ZoneGrowableArray<const Instance*>* default_parameter_values_;
 
-  int first_parameter_index_;
-  int first_stack_local_index_;
-  int num_copied_params_;
+  LocalVariable* raw_type_arguments_var_;
+  ZoneGrowableArray<LocalVariable*> raw_parameters_;
+
+  VariableIndex first_parameter_index_;
   int num_stack_locals_;
   bool have_seen_await_expr_;
 
+  kernel::NameIndex forwarding_stub_super_target_;
   kernel::ScopeBuildingResult* kernel_scopes_;
 
   friend class Parser;
   DISALLOW_COPY_AND_ASSIGN(ParsedFunction);
 };
-
 
 class Parser : public ValueObject {
  public:
@@ -273,6 +262,13 @@ class Parser : public ValueObject {
   static void ParseClass(const Class& cls);
 
   static void ParseFunction(ParsedFunction* parsed_function);
+
+  // Return true if |field| has a function literal initializer.
+  // When true is returned, |start| and |end| will hold the token
+  // range of the function literal.
+  static bool FieldHasFunctionLiteralInitializer(const Field& field,
+                                                 TokenPosition* start,
+                                                 TokenPosition* end);
 
   // Parse and evaluate the metadata expressions at token_pos in the
   // class namespace of class cls (which can be the implicit toplevel
@@ -288,12 +284,11 @@ class Parser : public ValueObject {
                                         const Instance& value);
 
   // Parse a function to retrieve parameter information that is not retained in
-  // the dart::Function object. Returns either an error if the parse fails
-  // (which could be the case for local functions), or a flat array of entries
-  // for each parameter. Each parameter entry contains:
-  // * a Dart bool indicating whether the parameter was declared final
-  // * its default value (or null if none was declared)
-  // * an array of metadata (or null if no metadata was declared).
+  // the Function object. Returns either an error if the parse fails (which
+  // could be the case for local functions), or a flat array of entries for each
+  // parameter. Each parameter entry contains: * a Dart bool indicating whether
+  // the parameter was declared final * its default value (or null if none was
+  // declared) * an array of metadata (or null if no metadata was declared).
   enum {
     kParameterIsFinalOffset,
     kParameterDefaultValueOffset,
@@ -419,7 +414,9 @@ class Parser : public ValueObject {
   void SkipBlock();
   TokenPosition SkipMetadata();
   bool IsPatchAnnotation(TokenPosition pos);
+  bool IsPragmaAnnotation(TokenPosition pos);
   void SkipTypeArguments();
+  void SkipTypeParameters();
   void SkipType(bool allow_void);
   void SkipTypeOrFunctionType(bool allow_void);
   void SkipInitializers();
@@ -447,9 +444,6 @@ class Parser : public ValueObject {
   void CheckConstructorCallTypeArguments(TokenPosition pos,
                                          const Function& constructor,
                                          const TypeArguments& type_arguments);
-
-  // Report error if parsed code is too deeply nested; avoid stack overflow.
-  void CheckStack();
 
   // Report already formatted error.
   static void ReportError(const Error& error);
@@ -482,10 +476,12 @@ class Parser : public ValueObject {
   const Instance& EvaluateConstExpr(TokenPosition expr_pos, AstNode* expr);
   StaticGetterNode* RunStaticFieldInitializer(const Field& field,
                                               TokenPosition field_ref_pos);
-  RawObject* EvaluateConstConstructorCall(const Class& type_class,
-                                          const TypeArguments& type_arguments,
-                                          const Function& constructor,
-                                          ArgumentListNode* arguments);
+  RawObject* EvaluateConstConstructorCall(
+      const Class& type_class,
+      const TypeArguments& type_arguments,
+      const Function& constructor,
+      ArgumentListNode* arguments,
+      bool obfuscate_symbol_instances = true);
   LiteralNode* FoldConstExpr(TokenPosition expr_pos, AstNode* expr);
 
   // Support for parsing of scripts.
@@ -532,8 +528,8 @@ class Parser : public ValueObject {
   void ParseLibraryImportObsoleteSyntax();
   void ParseLibraryIncludeObsoleteSyntax();
 
-  void ResolveSignature(const Function& signature);
-  void ResolveType(AbstractType* type);
+  void ResolveSignatureTypeParameters(const Function& signature);
+  void ResolveTypeParameters(AbstractType* type);
   RawAbstractType* CanonicalizeType(const AbstractType& type);
   RawAbstractType* ParseType(ClassFinalizer::FinalizationKind finalization,
                              bool allow_deferred_type = false,
@@ -555,6 +551,8 @@ class Parser : public ValueObject {
   void CheckMemberNameConflict(ClassDesc* members, MemberDesc* member);
   void ParseClassMemberDefinition(ClassDesc* members,
                                   TokenPosition metadata_pos);
+  void CheckFinalInitializationConflicts(const ClassDesc* class_desc,
+                                         const MemberDesc* member);
   void ParseParameterType(ParamList* params);
   void ParseFormalParameter(bool allow_explicit_default_value,
                             bool evaluate_metadata,
@@ -646,7 +644,6 @@ class Parser : public ValueObject {
   SequenceNode* ParseNoSuchMethodDispatcher(const Function& func);
   SequenceNode* ParseInvokeFieldDispatcher(const Function& func);
   SequenceNode* ParseImplicitClosure(const Function& func);
-  SequenceNode* ParseConstructorClosure(const Function& func);
 
   void BuildDispatcherScope(const Function& func,
                             const ArgumentsDescriptor& desc);
@@ -812,7 +809,6 @@ class Parser : public ValueObject {
   AstNode* ParseUnaryExpr();
   AstNode* ParsePostfixExpr();
   AstNode* ParseSelectors(AstNode* primary, bool is_cascade);
-  AstNode* ParseClosurization(AstNode* primary);
   AstNode* ParseCascades(AstNode* expr);
   AstNode* ParsePrimary();
   AstNode* ParseStringLiteral(bool allow_interpolation);
@@ -826,11 +822,7 @@ class Parser : public ValueObject {
                            bool is_const,
                            const TypeArguments& type_arguments);
 
-  RawFunction* BuildConstructorClosureFunction(const Function& ctr,
-                                               TokenPosition token_pos);
   AstNode* ParseNewOperator(Token::Kind op_kind);
-  void ParseConstructorClosurization(Function* constructor,
-                                     TypeArguments* type_arguments);
 
   // An implicit argument, if non-null, is prepended to the returned list.
   ArgumentListNode* ParseActualParameters(ArgumentListNode* implicit_arguments,
@@ -858,6 +850,9 @@ class Parser : public ValueObject {
   void CheckInstanceFieldAccess(TokenPosition field_pos,
                                 const String& field_name);
   bool ParsingStaticMember() const;
+  bool GetFunctionLiteralInitializerRange(const Field& field,
+                                          TokenPosition* start,
+                                          TokenPosition* end);
   const AbstractType* ReceiverType(const Class& cls);
   bool IsInstantiatorRequired() const;
   bool InGenericFunctionScope() const;
@@ -908,8 +903,8 @@ class Parser : public ValueObject {
                                   const Class& cls,
                                   const String& function_name,
                                   ArgumentListNode* function_arguments,
-                                  InvocationMirror::Call call,
-                                  InvocationMirror::Type type,
+                                  InvocationMirror::Level level,
+                                  InvocationMirror::Kind kind,
                                   const Function* func,
                                   const LibraryPrefix* prefix = NULL);
 
@@ -933,6 +928,8 @@ class Parser : public ValueObject {
 
   void AddEqualityNullCheck();
 
+  AstNode* AddAsyncResultTypeCheck(TokenPosition expr_pos, AstNode* expr);
+
   AstNode* BuildClosureCall(TokenPosition token_pos,
                             AstNode* closure,
                             ArgumentListNode* arguments);
@@ -948,6 +945,10 @@ class Parser : public ValueObject {
 
   Thread* thread_;    // Cached current thread.
   Isolate* isolate_;  // Cached current isolate.
+
+  // It is Heap::kNew for mutator thread and Heap::kOld for other threads (e.g.
+  // background compiler).
+  Heap::Space allocation_space_;
 
   Script& script_;
   TokenStream::Iterator tokens_iterator_;

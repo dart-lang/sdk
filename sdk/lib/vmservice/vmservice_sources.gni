@@ -1,0 +1,19 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Sources that make up the library "dart:_vmservice".
+vmservice_sdk_sources = [
+  "vmservice.dart",
+
+  # The above file needs to be first as it imports required libraries.
+  "asset.dart",
+  "client.dart",
+  "constants.dart",
+  "devfs.dart",
+  "running_isolate.dart",
+  "running_isolates.dart",
+  "message.dart",
+  "message_router.dart",
+  "named_lookup.dart",
+]

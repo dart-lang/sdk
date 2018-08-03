@@ -11,13 +11,13 @@ import '../../js_backend/js_backend.dart' show GetterName, SetterName;
 import '../../universe/selector.dart' show Selector;
 import 'package:front_end/src/fasta/scanner/characters.dart'
     show $$, $A, $HASH, $Z, $a, $z;
-import '../../world.dart' show ClosedWorld;
+import '../../world.dart' show JClosedWorld;
 import '../js_emitter.dart' hide Emitter, EmitterFactory;
 import '../model.dart';
 import 'emitter.dart';
 
 class NsmEmitter extends CodeEmitterHelper {
-  final ClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
   final List<Selector> trivialNsmHandlers = <Selector>[];
 
   NsmEmitter(this.closedWorld);
@@ -35,7 +35,7 @@ class NsmEmitter extends CodeEmitterHelper {
 
   void emitNoSuchMethodHandlers(AddPropertyFunction addProperty) {
     ClassStubGenerator generator = new ClassStubGenerator(task.emitter,
-        compiler.commonElements, namer, codegenWorldBuilder, closedWorld,
+        closedWorld.commonElements, namer, codegenWorldBuilder, closedWorld,
         enableMinification: compiler.options.enableMinification);
 
     // Keep track of the JavaScript names we've already added so we
@@ -51,32 +51,18 @@ class NsmEmitter extends CodeEmitterHelper {
     List<jsAst.Name> names = addedJsNames.keys.toList()..sort();
     for (jsAst.Name jsName in names) {
       Selector selector = addedJsNames[jsName];
-      String reflectionName = emitter.getReflectionName(selector, jsName);
-
-      if (reflectionName != null) {
-        emitter.mangledFieldNames[jsName] = reflectionName;
-      }
-
       List<jsAst.Expression> argNames = selector.callStructure
           .getOrderedNamedArguments()
           .map((String name) => js.string(name))
           .toList();
       int type = selector.invocationMirrorKind;
       if (!haveVeryFewNoSuchMemberHandlers &&
-          isTrivialNsmHandler(type, argNames, selector, jsName) &&
-          reflectionName == null) {
+          isTrivialNsmHandler(type, argNames, selector, jsName)) {
         trivialNsmHandlers.add(selector);
       } else {
         StubMethod method =
             generator.generateStubForNoSuchMethod(jsName, selector);
         addProperty(method.name, method.code);
-        if (reflectionName != null) {
-          bool accessible = closedWorld
-              .locateMembers(selector, null)
-              .any(backend.mirrorsData.isMemberAccessibleByReflection);
-          addProperty(
-              namer.asName('+$reflectionName'), js(accessible ? '2' : '0'));
-        }
       }
     }
   }
@@ -88,6 +74,7 @@ class NsmEmitter extends CodeEmitterHelper {
     if (!generateTrivialNsmHandlers) return false;
     // Check for named arguments.
     if (argNames.length != 0) return false;
+    if (selector.typeArgumentCount > 0) return false;
     // Check for unexpected name (this doesn't really happen).
     if (internalName is GetterName) return type == 1;
     if (internalName is SetterName) return type == 2;
@@ -174,12 +161,12 @@ class NsmEmitter extends CodeEmitterHelper {
     }
     // Startup code that loops over the method names and puts handlers on the
     // Object class to catch noSuchMethod invocations.
-    ClassEntity objectClass = compiler.commonElements.objectClass;
+    ClassEntity objectClass = closedWorld.commonElements.objectClass;
     jsAst.Expression createInvocationMirror = backend.emitter
-        .staticFunctionAccess(compiler.commonElements.createInvocationMirror);
+        .staticFunctionAccess(
+            closedWorld.commonElements.createInvocationMirror);
     if (useDiffEncoding) {
-      statements.add(js.statement(
-          '''{
+      statements.add(js.statement('''{
           var objectClassObject = processedClasses.collected[#objectClass],
               nameSequences = #diffEncoding.split("."),
               shortNames = [];
@@ -219,11 +206,10 @@ class NsmEmitter extends CodeEmitterHelper {
               Array.prototype.push.apply(shortNames, sequence.shift());
             }
           }
-        }''',
-          {
-            'objectClass': js.quoteName(namer.className(objectClass)),
-            'diffEncoding': sortedShorts
-          }));
+        }''', {
+        'objectClass': js.quoteName(namer.className(objectClass)),
+        'diffEncoding': sortedShorts
+      }));
     } else {
       // No useDiffEncoding version.
       statements.add(js.statement(
@@ -248,8 +234,7 @@ class NsmEmitter extends CodeEmitterHelper {
                 ? true
                 : js('j < #', js.number(interceptedSelectors.length));
 
-    statements.add(js.statement(
-        '''
+    statements.add(js.statement('''
       // If we are loading a deferred library the object class will not be in
       // the collectedClasses so objectClassObject is undefined, and we skip
       // setting up the names.
@@ -262,7 +247,7 @@ class NsmEmitter extends CodeEmitterHelper {
           // Generate call to:
           //
           //     createInvocationMirror(String name, internalName, type,
-          //         arguments, argumentNames)
+          //         arguments, argumentNames, typeArgumentCount)
           //
 
           // This 'if' is either a static choice or dynamic choice depending on
@@ -277,7 +262,8 @@ class NsmEmitter extends CodeEmitterHelper {
                           // Create proper Array with all arguments except first
                           // (receiver).
                           Array.prototype.slice.call(arguments, 1),
-                          []));
+                          [],
+                          0));
                   }
                  })(#names[j], shortName, type);
           } else {
@@ -291,18 +277,18 @@ class NsmEmitter extends CodeEmitterHelper {
                       #createInvocationMirror(name, shortName, type,
                           // Create proper Array with all arguments.
                           Array.prototype.slice.call(arguments, 0),
-                          []));
+                          [],
+                          0));
                   }
                  })(#names[j], shortName, type);
           }
         }
-      }''',
-        {
-          'noSuchMethodName': namer.noSuchMethodName,
-          'createInvocationMirror': createInvocationMirror,
-          'names': minify ? 'shortNames' : 'longNames',
-          'isIntercepted': isIntercepted
-        }));
+      }''', {
+      'noSuchMethodName': namer.noSuchMethodName,
+      'createInvocationMirror': createInvocationMirror,
+      'names': minify ? 'shortNames' : 'longNames',
+      'isIntercepted': isIntercepted
+    }));
 
     return statements;
   }

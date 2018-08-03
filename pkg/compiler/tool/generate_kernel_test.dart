@@ -6,7 +6,8 @@ library compiler.tool.generate_kernel_test;
 
 import 'dart:io';
 import 'generate_kernel.dart' as m;
-import 'package:front_end/src/fasta/testing/patched_sdk_location.dart';
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
 
 main() async {
   Directory dir;
@@ -14,8 +15,8 @@ main() async {
     dir = Directory.systemTemp.createTempSync('generate_kernel_test');
     var file = dir.absolute.uri.resolve('hi.dart');
     new File.fromUri(file).writeAsStringSync("main() => print('hello world');");
-    var vmSdk = await computePatchedSdk();
-    var platformUri = vmSdk.resolve('../patched_dart2js_sdk/platform.dill');
+    var platformUri =
+        computePlatformBinariesLocation().resolve('dart2js_platform.dill');
     await m.main(['--platform=${platformUri.toFilePath()}', file.toFilePath()]);
   } finally {
     dir.deleteSync(recursive: true);

@@ -28,7 +28,6 @@ enum Register {
   kNoRegister = -1,  // Signals an illegal register.
 };
 
-
 enum ByteRegister {
   AL = 0,
   CL = 1,
@@ -38,9 +37,28 @@ enum ByteRegister {
   CH = 5,
   DH = 6,
   BH = 7,
+  SPL = 4 | 0x10,
+  BPL = 5 | 0x10,
+  SIL = 6 | 0x10,
+  DIL = 7 | 0x10,
+  R8B = 8,
+  R9B = 9,
+  R10B = 10,
+  R11B = 11,
+  R12B = 12,
+  R13B = 13,
+  R14B = 14,
+  R15B = 15,
   kNoByteRegister = -1  // Signals an illegal register.
 };
 
+inline ByteRegister ByteRegisterOf(Register reg) {
+  if (RSP <= reg && reg <= RDI) {
+    return static_cast<ByteRegister>(reg | 0x10);
+  } else {
+    return static_cast<ByteRegister>(reg);
+  }
+}
 
 enum XmmRegister {
   XMM0 = 0,
@@ -63,13 +81,11 @@ enum XmmRegister {
   kNoXmmRegister = -1  // Signals an illegal register.
 };
 
-
 // Architecture independent aliases.
 typedef XmmRegister FpuRegister;
 const FpuRegister FpuTMP = XMM0;
 const int kNumberOfFpuRegisters = kNumberOfXmmRegisters;
 const FpuRegister kNoFpuRegister = kNoXmmRegister;
-
 
 enum RexBits {
   REX_NONE = 0,
@@ -80,16 +96,13 @@ enum RexBits {
   REX_PREFIX = 1 << 6
 };
 
-
 // Register aliases.
 const Register TMP = R11;  // Used as scratch register by the assembler.
 const Register TMP2 = kNoRegister;  // No second assembler scratch register.
-const Register CTX = R12;  // Location of current context at method entry.
 // Caches object pool pointer in generated code.
 const Register PP = R15;
 const Register SPREG = RSP;          // Stack pointer register.
 const Register FPREG = RBP;          // Frame pointer register.
-const Register ICREG = RBX;          // IC data register.
 const Register ARGS_DESC_REG = R10;  // Arguments descriptor register.
 const Register CODE_REG = R12;
 const Register THR = R14;  // Caches current thread in generated code.
@@ -103,16 +116,15 @@ const Register kExceptionObjectReg = RAX;
 // an exception is thrown.
 const Register kStackTraceObjectReg = RDX;
 
-
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFFFF;
+const RegList kAllFpuRegistersList = 0xFFFF;
 
 const RegList kReservedCpuRegisters =
     (1 << SPREG) | (1 << FPREG) | (1 << TMP) | (1 << PP) | (1 << THR);
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
-
 
 enum ScaleFactor {
   TIMES_1 = 0,
@@ -121,33 +133,6 @@ enum ScaleFactor {
   TIMES_8 = 3,
   TIMES_16 = 4,
   TIMES_HALF_WORD_SIZE = kWordSizeLog2 - 1
-};
-
-
-enum Condition {
-  OVERFLOW = 0,
-  NO_OVERFLOW = 1,
-  BELOW = 2,
-  ABOVE_EQUAL = 3,
-  EQUAL = 4,
-  NOT_EQUAL = 5,
-  BELOW_EQUAL = 6,
-  ABOVE = 7,
-  SIGN = 8,
-  NOT_SIGN = 9,
-  PARITY_EVEN = 10,
-  PARITY_ODD = 11,
-  LESS = 12,
-  GREATER_EQUAL = 13,
-  LESS_EQUAL = 14,
-  GREATER = 15,
-
-  ZERO = EQUAL,
-  NOT_ZERO = NOT_EQUAL,
-  NEGATIVE = SIGN,
-  POSITIVE = NOT_SIGN,
-  CARRY = BELOW,
-  NOT_CARRY = ABOVE_EQUAL
 };
 
 #define R(reg) (1 << (reg))
@@ -230,7 +215,6 @@ class Instr {
   // We need to prevent the creation of instances of class Instr.
   DISALLOW_IMPLICIT_CONSTRUCTORS(Instr);
 };
-
 
 // The largest multibyte nop we will emit.  This could go up to 15 if it
 // becomes important to us.

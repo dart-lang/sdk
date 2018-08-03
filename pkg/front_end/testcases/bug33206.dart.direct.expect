@@ -1,0 +1,34 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+class X extends core::Object {
+  final field dynamic x;
+  final field dynamic y;
+  constructor •(dynamic x, dynamic y) → void
+    : self::X::x = x, self::X::y = y, super core::Object::•()
+    ;
+  method toString() → dynamic
+    return "X(${this.{self::X::x}}, ${this.{self::X::y}})";
+}
+class Y extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method f(dynamic _) → dynamic {}
+}
+static method f1() → asy::Future<core::List<core::Object>> async {
+  return <dynamic>[1];
+}
+static method f2() → core::List<core::Object>
+  return <dynamic>[2];
+static method f3() → asy::Future<core::Object> async {
+  return 3;
+}
+static method foo() → asy::Future<self::X> async {
+  return new self::X::•(let final dynamic #t1 = new self::Y::•() in let final dynamic #t2 = #t1.f(await self::f1()) in let final dynamic #t3 = #t1.f(self::f2()) in #t1, await self::f3());
+}
+static method main() → asy::Future<void> async {
+  core::print(await self::foo());
+}

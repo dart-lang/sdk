@@ -29,15 +29,31 @@ List<String> getCamelWordCombinations(String name) {
  * Returns possible names for a variable with the given expected type and
  * expression assigned.
  */
-List<String> getVariableNameSuggestionsForExpression(DartType expectedType,
-    Expression assignedExpression, Set<String> excluded) {
+List<String> getVariableNameSuggestionsForExpression(
+    DartType expectedType, Expression assignedExpression, Set<String> excluded,
+    {bool isMethod: false}) {
+  String prefix;
+
+  if (isMethod) {
+    // If we're in a build() method, use 'build' as the name prefix.
+    MethodDeclaration method =
+        assignedExpression.getAncestor((n) => n is MethodDeclaration);
+    if (method != null) {
+      String enclosingName = method.name?.name;
+      if (enclosingName != null && enclosingName.startsWith('build')) {
+        prefix = 'build';
+      }
+    }
+  }
+
   Set<String> res = new Set();
   // use expression
   if (assignedExpression != null) {
     String nameFromExpression = _getBaseNameFromExpression(assignedExpression);
     if (nameFromExpression != null) {
       nameFromExpression = removeStart(nameFromExpression, '_');
-      _addAll(excluded, res, getCamelWordCombinations(nameFromExpression));
+      _addAll(excluded, res, getCamelWordCombinations(nameFromExpression),
+          prefix: prefix);
     }
     String nameFromParent =
         _getBaseNameFromLocationInParent(assignedExpression);
@@ -101,7 +117,8 @@ List<String> getVariableNameSuggestionsForText(
 /**
  * Adds [toAdd] items which are not excluded.
  */
-void _addAll(Set<String> excluded, Set<String> result, Iterable<String> toAdd) {
+void _addAll(Set<String> excluded, Set<String> result, Iterable<String> toAdd,
+    {String prefix}) {
   for (String item in toAdd) {
     // add name based on "item", but not "excluded"
     for (int suffix = 1;; suffix++) {
@@ -112,7 +129,7 @@ void _addAll(Set<String> excluded, Set<String> result, Iterable<String> toAdd) {
       }
       // add once found not excluded
       if (!excluded.contains(name)) {
-        result.add(name);
+        result.add(prefix == null ? name : '$prefix${capitalize(name)}');
         break;
       }
     }
@@ -136,61 +153,12 @@ void _addSingleCharacterName(Set<String> excluded, Set<String> result, int c) {
 }
 
 String _getBaseNameFromExpression(Expression expression) {
-  String name = null;
-  // e as Type
   if (expression is AsExpression) {
-    AsExpression asExpression = expression as AsExpression;
-    expression = asExpression.expression;
+    return _getBaseNameFromExpression(expression.expression);
+  } else if (expression is ParenthesizedExpression) {
+    return _getBaseNameFromExpression(expression.expression);
   }
-  // analyze expressions
-  if (expression is SimpleIdentifier) {
-    SimpleIdentifier node = expression;
-    return node.name;
-  } else if (expression is PrefixedIdentifier) {
-    PrefixedIdentifier node = expression;
-    return node.identifier.name;
-  } else if (expression is PropertyAccess) {
-    PropertyAccess node = expression;
-    return node.propertyName.name;
-  } else if (expression is MethodInvocation) {
-    name = expression.methodName.name;
-  } else if (expression is InstanceCreationExpression) {
-    InstanceCreationExpression creation = expression;
-    ConstructorName constructorName = creation.constructorName;
-    TypeName typeName = constructorName.type;
-    if (typeName != null) {
-      Identifier typeNameIdentifier = typeName.name;
-      // new ClassName()
-      if (typeNameIdentifier is SimpleIdentifier) {
-        return typeNameIdentifier.name;
-      }
-      // new prefix.name();
-      if (typeNameIdentifier is PrefixedIdentifier) {
-        PrefixedIdentifier prefixed = typeNameIdentifier;
-        // new prefix.ClassName()
-        if (prefixed.prefix.staticElement is PrefixElement) {
-          return prefixed.identifier.name;
-        }
-        // new ClassName.constructorName()
-        return prefixed.prefix.name;
-      }
-    }
-  }
-  // strip known prefixes
-  if (name != null) {
-    for (int i = 0; i < _KNOWN_METHOD_NAME_PREFIXES.length; i++) {
-      String curr = _KNOWN_METHOD_NAME_PREFIXES[i];
-      if (name.startsWith(curr)) {
-        if (name == curr) {
-          return null;
-        } else if (isUpperCase(name.codeUnitAt(curr.length))) {
-          return name.substring(curr.length);
-        }
-      }
-    }
-  }
-  // done
-  return name;
+  return _getBaseNameFromUnwrappedExpression(expression);
 }
 
 String _getBaseNameFromLocationInParent(Expression expression) {
@@ -213,4 +181,58 @@ String _getBaseNameFromLocationInParent(Expression expression) {
   }
   // unknown
   return null;
+}
+
+String _getBaseNameFromUnwrappedExpression(Expression expression) {
+  String name = null;
+  // analyze expressions
+  if (expression is SimpleIdentifier) {
+    return expression.name;
+  } else if (expression is PrefixedIdentifier) {
+    return expression.identifier.name;
+  } else if (expression is PropertyAccess) {
+    return expression.propertyName.name;
+  } else if (expression is MethodInvocation) {
+    name = expression.methodName.name;
+  } else if (expression is InstanceCreationExpression) {
+    ConstructorName constructorName = expression.constructorName;
+    TypeName typeName = constructorName.type;
+    if (typeName != null) {
+      Identifier typeNameIdentifier = typeName.name;
+      // new ClassName()
+      if (typeNameIdentifier is SimpleIdentifier) {
+        return typeNameIdentifier.name;
+      }
+      // new prefix.name();
+      if (typeNameIdentifier is PrefixedIdentifier) {
+        PrefixedIdentifier prefixed = typeNameIdentifier;
+        // new prefix.ClassName()
+        if (prefixed.prefix.staticElement is PrefixElement) {
+          return prefixed.identifier.name;
+        }
+        // new ClassName.constructorName()
+        return prefixed.prefix.name;
+      }
+    }
+  } else if (expression is IndexExpression) {
+    name = _getBaseNameFromExpression(expression.realTarget);
+    if (name.endsWith('s')) {
+      name = name.substring(0, name.length - 1);
+    }
+  }
+  // strip known prefixes
+  if (name != null) {
+    for (int i = 0; i < _KNOWN_METHOD_NAME_PREFIXES.length; i++) {
+      String curr = _KNOWN_METHOD_NAME_PREFIXES[i];
+      if (name.startsWith(curr)) {
+        if (name == curr) {
+          return null;
+        } else if (isUpperCase(name.codeUnitAt(curr.length))) {
+          return name.substring(curr.length);
+        }
+      }
+    }
+  }
+  // done
+  return name;
 }

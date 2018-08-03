@@ -5,7 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/services/search/hierarchy.dart';
-import 'package:analysis_server/src/services/search/search_engine_internal2.dart';
+import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -20,11 +20,11 @@ main() {
 
 @reflectiveTest
 class HierarchyTest extends AbstractSingleUnitTest {
-  SearchEngineImpl2 searchEngine;
+  SearchEngineImpl searchEngine;
 
   void setUp() {
     super.setUp();
-    searchEngine = new SearchEngineImpl2([driver]);
+    searchEngine = new SearchEngineImpl([driver]);
   }
 
   test_getClassMembers() async {
@@ -252,6 +252,95 @@ class E {
       expect(members, unorderedEquals([memberA, memberB, memberD]));
     });
     return Future.wait([futureA, futureB, futureD]);
+  }
+
+  test_getHierarchyNamedParameters() async {
+    await _indexTestUnit('''
+class A {
+  foo({p}) {}
+}
+class B extends A {
+  foo({p}) {}
+}
+class C extends B {
+  foo({p}) {}
+}
+class D {
+  foo({p}) {}
+}
+class E extends D {
+  foo({p}) {}
+}
+''');
+    ClassElement classA = findElement('A');
+    ClassElement classB = findElement('B');
+    ClassElement classC = findElement('C');
+    ClassElement classD = findElement('D');
+    ClassElement classE = findElement('E');
+    ParameterElement parameterA = classA.methods[0].parameters[0];
+    ParameterElement parameterB = classB.methods[0].parameters[0];
+    ParameterElement parameterC = classC.methods[0].parameters[0];
+    ParameterElement parameterD = classD.methods[0].parameters[0];
+    ParameterElement parameterE = classE.methods[0].parameters[0];
+
+    {
+      var result = await getHierarchyNamedParameters(searchEngine, parameterA);
+      expect(result, unorderedEquals([parameterA, parameterB, parameterC]));
+    }
+
+    {
+      var result = await getHierarchyNamedParameters(searchEngine, parameterB);
+      expect(result, unorderedEquals([parameterA, parameterB, parameterC]));
+    }
+
+    {
+      var result = await getHierarchyNamedParameters(searchEngine, parameterC);
+      expect(result, unorderedEquals([parameterA, parameterB, parameterC]));
+    }
+
+    {
+      var result = await getHierarchyNamedParameters(searchEngine, parameterD);
+      expect(result, unorderedEquals([parameterD, parameterE]));
+    }
+
+    {
+      var result = await getHierarchyNamedParameters(searchEngine, parameterE);
+      expect(result, unorderedEquals([parameterD, parameterE]));
+    }
+  }
+
+  test_getHierarchyNamedParameters_invalid_missing() async {
+    verifyNoTestUnitErrors = false;
+    await _indexTestUnit('''
+class A {
+  foo({p}) {}
+}
+class B extends A {
+  foo() {}
+}
+''');
+    ClassElement classA = findElement('A');
+    ParameterElement parameterA = classA.methods[0].parameters[0];
+
+    var result = await getHierarchyNamedParameters(searchEngine, parameterA);
+    expect(result, unorderedEquals([parameterA]));
+  }
+
+  test_getHierarchyNamedParameters_invalid_notNamed() async {
+    verifyNoTestUnitErrors = false;
+    await _indexTestUnit('''
+class A {
+  foo({p}) {}
+}
+class B extends A {
+  foo(p) {}
+}
+''');
+    ClassElement classA = findElement('A');
+    ParameterElement parameterA = classA.methods[0].parameters[0];
+
+    var result = await getHierarchyNamedParameters(searchEngine, parameterA);
+    expect(result, unorderedEquals([parameterA]));
   }
 
   test_getMembers() async {

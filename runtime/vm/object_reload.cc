@@ -12,12 +12,11 @@
 
 namespace dart {
 
-#ifndef PRODUCT
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 DECLARE_FLAG(bool, trace_reload);
 DECLARE_FLAG(bool, trace_reload_verbose);
 DECLARE_FLAG(bool, two_args_smi_icd);
-
 
 class ObjectReloadUtils : public AllStatic {
   static void DumpLibraryDictionary(const Library& lib) {
@@ -33,11 +32,9 @@ class ObjectReloadUtils : public AllStatic {
   }
 };
 
-
 void Function::Reparent(const Class& new_cls) const {
   set_owner(new_cls);
 }
-
 
 void Function::ZeroEdgeCounters() const {
   const Array& saved_ic_data = Array::Handle(ic_data_array());
@@ -55,7 +52,6 @@ void Function::ZeroEdgeCounters() const {
     edge_counters_array.SetAt(i, zero);
   }
 }
-
 
 void Code::ResetICDatas(Zone* zone) const {
 // Iterate over the Code's object pool and reset all ICDatas.
@@ -89,7 +85,7 @@ void Code::ResetICDatas(Zone* zone) const {
   Object& object = Object::Handle(zone);
   ASSERT(!pool.IsNull());
   for (intptr_t i = 0; i < pool.Length(); i++) {
-    ObjectPool::EntryType entry_type = pool.InfoAt(i);
+    ObjectPool::EntryType entry_type = pool.TypeAt(i);
     if (entry_type != ObjectPool::kTaggedObject) {
       continue;
     }
@@ -100,7 +96,6 @@ void Code::ResetICDatas(Zone* zone) const {
   }
 #endif
 }
-
 
 void Class::CopyStaticFieldValues(const Class& old_cls) const {
   // We only update values for non-enum classes.
@@ -141,7 +136,6 @@ void Class::CopyStaticFieldValues(const Class& old_cls) const {
   }
 }
 
-
 void Class::CopyCanonicalConstants(const Class& old_cls) const {
   if (is_enum_class()) {
     // We do not copy enum classes's canonical constants because we explicitly
@@ -165,7 +159,6 @@ void Class::CopyCanonicalConstants(const Class& old_cls) const {
   set_constants(old_constants);
 }
 
-
 void Class::CopyCanonicalType(const Class& old_cls) const {
   const Type& old_canonical_type = Type::Handle(old_cls.canonical_type());
   if (old_canonical_type.IsNull()) {
@@ -173,7 +166,6 @@ void Class::CopyCanonicalType(const Class& old_cls) const {
   }
   set_canonical_type(old_canonical_type);
 }
-
 
 class EnumMapTraits {
  public:
@@ -189,7 +181,6 @@ class EnumMapTraits {
     return String::Cast(obj).Hash();
   }
 };
-
 
 // Given an old enum class, add become mappings from old values to new values.
 // Some notes about how we reload enums below:
@@ -347,13 +338,15 @@ void Class::ReplaceEnum(const Class& old_enum) const {
   }
 }
 
-
 void Class::PatchFieldsAndFunctions() const {
   // Move all old functions and fields to a patch class so that they
   // still refer to their original script.
   const PatchClass& patch =
       PatchClass::Handle(PatchClass::New(*this, Script::Handle(script())));
   ASSERT(!patch.IsNull());
+  const Library& lib = Library::Handle(library());
+  patch.set_library_kernel_data(ExternalTypedData::Handle(lib.kernel_data()));
+  patch.set_library_kernel_offset(lib.kernel_offset());
 
   const Array& funcs = Array::Handle(functions());
   Function& func = Function::Handle();
@@ -392,7 +385,6 @@ void Class::PatchFieldsAndFunctions() const {
   }
 }
 
-
 void Class::MigrateImplicitStaticClosures(IsolateReloadContext* irc,
                                           const Class& new_cls) const {
   const Array& funcs = Array::Handle(functions());
@@ -420,7 +412,6 @@ void Class::MigrateImplicitStaticClosures(IsolateReloadContext* irc,
   }
 }
 
-
 class EnumClassConflict : public ClassReasonForCancelling {
  public:
   EnumClassConflict(Zone* zone, const Class& from, const Class& to)
@@ -435,6 +426,19 @@ class EnumClassConflict : public ClassReasonForCancelling {
   }
 };
 
+class TypedefClassConflict : public ClassReasonForCancelling {
+ public:
+  TypedefClassConflict(Zone* zone, const Class& from, const Class& to)
+      : ClassReasonForCancelling(zone, from, to) {}
+
+  RawString* ToString() {
+    return String::NewFormatted(
+        from_.IsTypedefClass()
+            ? "Typedef class cannot be redefined to be a non-typedef class: %s"
+            : "Class cannot be redefined to be a typedef class: %s",
+        from_.ToCString());
+  }
+};
 
 class EnsureFinalizedError : public ClassReasonForCancelling {
  public:
@@ -452,7 +456,6 @@ class EnsureFinalizedError : public ClassReasonForCancelling {
   RawString* ToString() { return String::New(error_.ToErrorCString()); }
 };
 
-
 class NativeFieldsConflict : public ClassReasonForCancelling {
  public:
   NativeFieldsConflict(Zone* zone, const Class& from, const Class& to)
@@ -464,7 +467,6 @@ class NativeFieldsConflict : public ClassReasonForCancelling {
                                 from_.ToCString());
   }
 };
-
 
 class TypeParametersChanged : public ClassReasonForCancelling {
  public:
@@ -487,7 +489,6 @@ class TypeParametersChanged : public ClassReasonForCancelling {
   }
 };
 
-
 class PreFinalizedConflict : public ClassReasonForCancelling {
  public:
   PreFinalizedConflict(Zone* zone, const Class& from, const Class& to)
@@ -501,7 +502,6 @@ class PreFinalizedConflict : public ClassReasonForCancelling {
         from_.ToCString(), to_.ToCString());
   }
 };
-
 
 class InstanceSizeConflict : public ClassReasonForCancelling {
  public:
@@ -517,7 +517,6 @@ class InstanceSizeConflict : public ClassReasonForCancelling {
                                 to_.ToCString(), to_.instance_size());
   }
 };
-
 
 class UnimplementedDeferredLibrary : public ReasonForCancelling {
  public:
@@ -542,7 +541,6 @@ class UnimplementedDeferredLibrary : public ReasonForCancelling {
   }
 };
 
-
 // This is executed before iterating over the instances.
 void Class::CheckReload(const Class& replacement,
                         IsolateReloadContext* context) const {
@@ -551,6 +549,13 @@ void Class::CheckReload(const Class& replacement,
   // Class cannot change enum property.
   if (is_enum_class() != replacement.is_enum_class()) {
     context->AddReasonForCancelling(new (context->zone()) EnumClassConflict(
+        context->zone(), *this, replacement));
+    return;
+  }
+
+  // Class cannot change typedef property.
+  if (IsTypedefClass() != replacement.IsTypedefClass()) {
+    context->AddReasonForCancelling(new (context->zone()) TypedefClassConflict(
         context->zone(), *this, replacement));
     return;
   }
@@ -591,7 +596,6 @@ void Class::CheckReload(const Class& replacement,
             id(), replacement.id());
 }
 
-
 bool Class::RequiresInstanceMorphing(const Class& replacement) const {
   // Get the field maps for both classes. These field maps walk the class
   // hierarchy.
@@ -628,16 +632,11 @@ bool Class::RequiresInstanceMorphing(const Class& replacement) const {
   return false;
 }
 
-
 bool Class::CanReloadFinalized(const Class& replacement,
                                IsolateReloadContext* context) const {
-  // Make sure the declaration types matches for the two classes.
+  // Make sure the declaration types argument count matches for the two classes.
   // ex. class A<int,B> {} cannot be replace with class A<B> {}.
-
-  const AbstractType& dt = AbstractType::Handle(DeclarationType());
-  const AbstractType& replacement_dt =
-      AbstractType::Handle(replacement.DeclarationType());
-  if (!dt.Equals(replacement_dt)) {
+  if (NumTypeArguments() != replacement.NumTypeArguments()) {
     context->AddReasonForCancelling(new (context->zone()) TypeParametersChanged(
         context->zone(), *this, replacement));
     return false;
@@ -648,7 +647,6 @@ bool Class::CanReloadFinalized(const Class& replacement,
   }
   return true;
 }
-
 
 bool Class::CanReloadPreFinalized(const Class& replacement,
                                   IsolateReloadContext* context) const {
@@ -666,7 +664,6 @@ bool Class::CanReloadPreFinalized(const Class& replacement,
   }
   return true;
 }
-
 
 void Library::CheckReload(const Library& replacement,
                           IsolateReloadContext* context) const {
@@ -686,12 +683,25 @@ void Library::CheckReload(const Library& replacement,
   }
 }
 
-
 static const Function* static_call_target = NULL;
 
-
 void ICData::Reset(Zone* zone) const {
-  if (is_static_call()) {
+  RebindRule rule = rebind_rule();
+  if (rule == kInstance) {
+    intptr_t num_args = NumArgsTested();
+    if (num_args == 2) {
+      ClearWithSentinel();
+    } else {
+      const Array& data_array =
+          Array::Handle(zone, CachedEmptyICDataArray(num_args));
+      set_ic_data_array(data_array);
+    }
+    return;
+  } else if (rule == kNoRebind || rule == kNSMDispatch) {
+    // TODO(30877) we should account for addition/removal of NSM.
+    // Don't rebind dispatchers.
+    return;
+  } else if (rule == kStatic || rule == kSuper) {
     const Function& old_target = Function::Handle(zone, GetTargetAt(0));
     if (old_target.IsNull()) {
       FATAL("old_target is NULL.\n");
@@ -700,34 +710,19 @@ void ICData::Reset(Zone* zone) const {
 
     const String& selector = String::Handle(zone, old_target.name());
     Function& new_target = Function::Handle(zone);
-    if (!old_target.is_static()) {
-      if (old_target.kind() == RawFunction::kConstructor) {
-        return;  // Super constructor call.
-      }
+
+    if (rule == kStatic) {
+      ASSERT(old_target.is_static() ||
+             old_target.kind() == RawFunction::kConstructor);
+      // This can be incorrect if the call site was an unqualified invocation.
+      const Class& cls = Class::Handle(zone, old_target.Owner());
+      new_target = cls.LookupStaticFunction(selector);
+    } else {
+      // Super call.
       Function& caller = Function::Handle(zone);
       caller ^= Owner();
       ASSERT(!caller.is_static());
       Class& cls = Class::Handle(zone, caller.Owner());
-      if (cls.raw() == old_target.Owner()) {
-        // Dispatcher.
-        if (caller.IsImplicitClosureFunction()) {
-          return;  // Tear-off.
-        }
-        if (caller.kind() == RawFunction::kNoSuchMethodDispatcher) {
-          // TODO(rmacnak): noSuchMethod might have been redefined.
-          return;
-        }
-        const Function& caller_parent =
-            Function::Handle(zone, caller.parent_function());
-        if (!caller_parent.IsNull()) {
-          if (caller_parent.kind() == RawFunction::kInvokeFieldDispatcher) {
-            return;  // Call-through-getter.
-          }
-        }
-        FATAL2("Unexpected dispatcher-like call site: %s from %s\n",
-               selector.ToCString(), caller.ToQualifiedCString());
-      }
-      // Super call.
       cls = cls.SuperClass();
       while (!cls.IsNull()) {
         // TODO(rmacnak): Should use Resolver::ResolveDynamicAnyArgs to handle
@@ -739,12 +734,7 @@ void ICData::Reset(Zone* zone) const {
         }
         cls = cls.SuperClass();
       }
-    } else {
-      // This can be incorrect if the call site was an unqualified invocation.
-      const Class& cls = Class::Handle(zone, old_target.Owner());
-      new_target = cls.LookupStaticFunction(selector);
     }
-
     const Array& args_desc_array = Array::Handle(zone, arguments_descriptor());
     ArgumentsDescriptor args_desc(args_desc_array);
     if (new_target.IsNull() || !new_target.AreValidArguments(args_desc, NULL)) {
@@ -756,17 +746,10 @@ void ICData::Reset(Zone* zone) const {
     }
     ClearAndSetStaticTarget(new_target);
   } else {
-    intptr_t num_args = NumArgsTested();
-    if (num_args == 2) {
-      ClearWithSentinel();
-    } else {
-      const Array& data_array =
-          Array::Handle(zone, CachedEmptyICDataArray(num_args));
-      set_ic_data_array(data_array);
-    }
+    FATAL("Unexpected rebind rule.");
   }
 }
 
-#endif  // !PRODUCT
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart.

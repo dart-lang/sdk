@@ -2,7 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_internal" show POWERS_OF_TEN;
+/// Note: the VM concatenates all patch files into a single patch file. This
+/// file is the first patch in "dart:convert" which contains all the imports
+/// used by patches of that library. We plan to change this when we have a
+/// shared front end and simply use parts.
+
+import "dart:_internal" show POWERS_OF_TEN, patch;
+
+import "dart:typed_data" show Uint8List, Uint16List;
+
+/// This patch library has no additional parts.
 
 // JSON conversion.
 
@@ -27,11 +36,12 @@ class Utf8Decoder {
   @patch
   Converter<List<int>, T> fuse<T>(Converter<String, T> next) {
     if (next is JsonDecoder) {
-      return new _JsonUtf8Decoder(next._reviver, this._allowMalformed)
+      return new _JsonUtf8Decoder(
+              (next as JsonDecoder)._reviver, this._allowMalformed)
           as dynamic/*=Converter<List<int>, T>*/;
     }
     // TODO(lrn): Recognize a fused decoder where the next step is JsonDecoder.
-    return super.fuse/*<T>*/(next);
+    return super.fuse<T>(next);
   }
 
   // Allow intercepting of UTF-8 decoding when built-in lists are passed.
@@ -53,6 +63,7 @@ class _JsonUtf8Decoder extends Converter<List<int>, Object> {
     parser.chunk = input;
     parser.chunkEnd = input.length;
     parser.parse(0);
+    parser.close();
     return parser.result;
   }
 
@@ -184,7 +195,7 @@ class _BuildJsonListener extends _JsonListener {
 
 class _ReviverJsonListener extends _BuildJsonListener {
   final _Reviver reviver;
-  _ReviverJsonListener(reviver(key, value)) : this.reviver = reviver;
+  _ReviverJsonListener(this.reviver);
 
   void arrayElement() {
     List list = currentContainer;
@@ -263,7 +274,7 @@ class _NumberBuffer {
  *
  * Implementations include [String] and UTF-8 parsers.
  */
-abstract class _ChunkedJsonParser {
+abstract class _ChunkedJsonParser<T> {
   // A simple non-recursive state-based parser for JSON.
   //
   // Literal values accepted in states ARRAY_EMPTY, ARRAY_COMMA, OBJECT_COLON
@@ -388,6 +399,7 @@ abstract class _ChunkedJsonParser {
   static const int KWD_NULL = 0; // Prefix of "null" seen.
   static const int KWD_TRUE = 4; // Prefix of "true" seen.
   static const int KWD_FALSE = 8; // Prefix of "false" seen.
+  static const int KWD_BOM = 12; // Prefix of BOM seen.
   static const int KWD_COUNT_SHIFT = 4; // Prefix length in bits 4+.
 
   // Mask used to mask off two lower bits.
@@ -429,8 +441,11 @@ abstract class _ChunkedJsonParser {
    *      ..0ddd0011 : Partial 'null' keyword.
    *      ..0ddd0111 : Partial 'true' keyword.
    *      ..0ddd1011 : Partial 'false' keyword.
-   *                   For all three keywords, the `ddd` bits encode the number
+   *      ..0ddd1111 : Partial UTF-8 BOM byte seqeuence ("\xEF\xBB\xBF").
+   *                   For all keywords, the `ddd` bits encode the number
    *                   of letters seen.
+   *                   The BOM byte sequence is only used by [_JsonUtf8Parser],
+   *                   and only at the very beginning of input.
    */
   int partialState = NO_PARTIAL;
 
@@ -508,7 +523,7 @@ abstract class _ChunkedJsonParser {
   }
 
   /** Sets the current source chunk. */
-  void set chunk(var source);
+  void set chunk(T source);
 
   /**
    * Length of current chunk.
@@ -522,7 +537,7 @@ abstract class _ChunkedJsonParser {
    *
    * Only used by [fail] to include the chunk in the thrown [FormatException].
    */
-  get chunk;
+  T get chunk;
 
   /**
    * Get charcacter/code unit of current chunk.
@@ -779,7 +794,8 @@ abstract class _ChunkedJsonParser {
     int keywordType = partialState & KWD_TYPE_MASK;
     int count = partialState >> KWD_COUNT_SHIFT;
     int keywordTypeIndex = keywordType >> KWD_TYPE_SHIFT;
-    String keyword = const ["null", "true", "false"][keywordTypeIndex];
+    String keyword =
+        const ["null", "true", "false", "\xEF\xBB\xBF"][keywordTypeIndex];
     assert(count < keyword.length);
     do {
       if (position == chunkEnd) {
@@ -788,13 +804,19 @@ abstract class _ChunkedJsonParser {
         return chunkEnd;
       }
       int expectedChar = keyword.codeUnitAt(count);
-      if (getChar(position) != expectedChar) return fail(position);
+      if (getChar(position) != expectedChar) {
+        if (count == 0) {
+          assert(keywordType == KWD_BOM);
+          return position;
+        }
+        return fail(position);
+      }
       position++;
       count++;
     } while (count < keyword.length);
     if (keywordType == KWD_NULL) {
       listener.handleNull();
-    } else {
+    } else if (keywordType != KWD_BOM) {
       listener.handleBool(keywordType == KWD_TRUE);
     }
     return position;
@@ -1245,7 +1267,7 @@ abstract class _ChunkedJsonParser {
         fail(position, "Missing expected digit");
       } else {
         // If it doesn't even start out as a numeral.
-        fail(position, "Unexpected character");
+        fail(position);
       }
     }
     if (digit == 0) {
@@ -1356,7 +1378,7 @@ abstract class _ChunkedJsonParser {
 /**
  * Chunked JSON parser that parses [String] chunks.
  */
-class _JsonStringParser extends _ChunkedJsonParser {
+class _JsonStringParser extends _ChunkedJsonParser<String> {
   String chunk;
   int chunkEnd;
 
@@ -1415,15 +1437,14 @@ class JsonDecoder {
  * The sink only creates one object, but its input can be chunked.
  */
 class _JsonStringDecoderSink extends StringConversionSinkBase {
-  _ChunkedJsonParser _parser;
-  Function _reviver;
+  _JsonStringParser _parser;
+  final Function _reviver;
   final Sink<Object> _sink;
 
-  _JsonStringDecoderSink(reviver, this._sink)
-      : _reviver = reviver,
-        _parser = _createParser(reviver);
+  _JsonStringDecoderSink(this._reviver, this._sink)
+      : _parser = _createParser(_reviver);
 
-  static _ChunkedJsonParser _createParser(reviver) {
+  static _JsonStringParser _createParser(reviver) {
     _BuildJsonListener listener;
     if (reviver == null) {
       listener = new _BuildJsonListener();
@@ -1567,7 +1588,7 @@ class _Utf8StringBuffer {
         partialState = NO_PARTIAL;
         addCharCode(0xFFFD);
       } else {
-        throw new FormatException("Incomplete UTF-8 sequence", utf8);
+        throw new FormatException("Incomplete UTF-8 sequence");
       }
     }
     if (isLatin1 && char > 0xff) {
@@ -1592,7 +1613,7 @@ class _Utf8StringBuffer {
     Uint16List newBuffer;
     if ((length + INITIAL_CAPACITY) * 2 <= buffer.length) {
       // Reuse existing buffer if it's big enough.
-      newBuffer = new Uint16List.view(buffer.buffer);
+      newBuffer = new Uint16List.view((buffer as Uint8List).buffer);
     } else {
       int newCapacity = buffer.length;
       if (newCapacity - length < INITIAL_CAPACITY) {
@@ -1651,7 +1672,7 @@ class _Utf8StringBuffer {
           position++;
         } else {
           throw new FormatException(
-              "Unexepected UTF-8 continuation byte", utf8, position);
+              "Unexpected UTF-8 continuation byte", utf8, position);
         }
       } else if (char < 0xE0) {
         // C0-DF
@@ -1711,13 +1732,17 @@ class _Utf8StringBuffer {
 /**
  * Chunked JSON parser that parses UTF-8 chunks.
  */
-class _JsonUtf8Parser extends _ChunkedJsonParser {
+class _JsonUtf8Parser extends _ChunkedJsonParser<List<int>> {
   final bool allowMalformed;
   List<int> chunk;
   int chunkEnd;
 
   _JsonUtf8Parser(_JsonListener listener, this.allowMalformed)
-      : super(listener);
+      : super(listener) {
+    // Starts out checking for an optional BOM (KWD_BOM, count = 0).
+    partialState =
+        _ChunkedJsonParser.PARTIAL_KEYWORD | _ChunkedJsonParser.KWD_BOM;
+  }
 
   int getChar(int position) => chunk[position];
 
@@ -1770,13 +1795,13 @@ double _parseDouble(String source, int start, int end) native "Double_parse";
  * to its corresponding object.
  */
 class _JsonUtf8DecoderSink extends ByteConversionSinkBase {
-  _JsonUtf8Parser _parser;
+  final _JsonUtf8Parser _parser;
   final Sink<Object> _sink;
 
   _JsonUtf8DecoderSink(reviver, this._sink, bool allowMalformed)
       : _parser = _createParser(reviver, allowMalformed);
 
-  static _ChunkedJsonParser _createParser(reviver, bool allowMalformed) {
+  static _JsonUtf8Parser _createParser(reviver, bool allowMalformed) {
     _BuildJsonListener listener;
     if (reviver == null) {
       listener = new _BuildJsonListener();

@@ -8,7 +8,8 @@ import 'dart:_js_helper' show argumentErrorValue, patch;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show JSExtendableArray;
 import 'dart:_internal' show MappedIterable, ListIterable;
-import 'dart:collection' show Maps, LinkedHashMap;
+import 'dart:collection' show Maps, LinkedHashMap, MapBase;
+import 'dart:_native_typed_data' show NativeUint8List;
 
 /**
  * Parses [json] and builds the corresponding parsed JSON value.
@@ -27,7 +28,7 @@ import 'dart:collection' show Maps, LinkedHashMap;
  * Throws [FormatException] if the input is not valid JSON text.
  */
 @patch
-_parseJson(String source, reviver(key, value)) {
+_parseJson(String source, reviver(Object key, Object value)) {
   if (source is! String) throw argumentErrorValue(source);
 
   var parsed;
@@ -35,7 +36,7 @@ _parseJson(String source, reviver(key, value)) {
     parsed = JS('=Object|JSExtendableArray|Null|bool|num|String',
         'JSON.parse(#)', source);
   } catch (e) {
-    throw new FormatException(JS('String', 'String(#)', e));
+    throw FormatException(JS('String', 'String(#)', e));
   }
 
   if (reviver == null) {
@@ -50,7 +51,7 @@ _parseJson(String source, reviver(key, value)) {
  * Maps. [json] is expected to be freshly allocated so elements can be replaced
  * in-place.
  */
-_convertJsonToDart(json, reviver(key, value)) {
+_convertJsonToDart(json, reviver(Object key, Object value)) {
   assert(reviver != null);
   walk(e) {
     // JavaScript null, string, number, bool are in the correct representation.
@@ -58,7 +59,7 @@ _convertJsonToDart(json, reviver(key, value)) {
       return e;
     }
 
-    // This test is needed to avoid identifing '{"__proto__":[]}' as an Array.
+    // This test is needed to avoid identifying '{"__proto__":[]}' as an Array.
     // TODO(sra): Replace this test with cheaper '#.constructor === Array' when
     // bug 621 below is fixed.
     if (JS('bool', 'Object.getPrototypeOf(#) === Array.prototype', e)) {
@@ -77,7 +78,7 @@ _convertJsonToDart(json, reviver(key, value)) {
 
     // Otherwise it is a plain object, so copy to a JSON map, so we process
     // and revive all entries recursively.
-    _JsonMap map = new _JsonMap(e);
+    _JsonMap map = _JsonMap(e);
     var processed = map._processed;
     List<String> keys = map._computeKeys();
     for (int i = 0; i < keys.length; i++) {
@@ -103,11 +104,11 @@ _convertJsonToDartLazy(object) {
     return object;
   }
 
-  // This test is needed to avoid identifing '{"__proto__":[]}' as an array.
+  // This test is needed to avoid identifying '{"__proto__":[]}' as an array.
   // TODO(sra): Replace this test with cheaper '#.constructor === Array' when
   // bug https://code.google.com/p/v8/issues/detail?id=621 is fixed.
   if (JS('bool', 'Object.getPrototypeOf(#) !== Array.prototype', object)) {
-    return new _JsonMap(object);
+    return _JsonMap(object);
   }
 
   // Update the elements in place since JS arrays are Dart lists.
@@ -123,7 +124,7 @@ _convertJsonToDartLazy(object) {
   return object;
 }
 
-class _JsonMap implements Map<String, dynamic> {
+class _JsonMap extends MapBase<String, dynamic> {
   // The original JavaScript object remains unchanged until
   // the map is eventually upgraded, in which case we null it
   // out to reclaim the memory used by it.
@@ -158,12 +159,12 @@ class _JsonMap implements Map<String, dynamic> {
 
   Iterable<String> get keys {
     if (_isUpgraded) return _upgradedMap.keys;
-    return new _JsonMapKeyIterable(this);
+    return _JsonMapKeyIterable(this);
   }
 
   Iterable get values {
     if (_isUpgraded) return _upgradedMap.values;
-    return new MappedIterable(_computeKeys(), (each) => this[each]);
+    return MappedIterable(_computeKeys(), (each) => this[each]);
   }
 
   operator []=(key, value) {
@@ -250,12 +251,10 @@ class _JsonMap implements Map<String, dynamic> {
       // Check if invoking the callback function changed
       // the key set. If so, throw an exception.
       if (!identical(keys, _data)) {
-        throw new ConcurrentModificationError(this);
+        throw ConcurrentModificationError(this);
       }
     }
   }
-
-  String toString() => Maps.mapToString(this);
 
   // ------------------------------------------
   // Private helper methods.
@@ -362,7 +361,7 @@ class _JsonMapKeyIterable extends ListIterable<String> {
 class JsonDecoder {
   @patch
   StringConversionSink startChunkedConversion(Sink<Object> sink) {
-    return new _JsonDecoderSink(_reviver, sink);
+    return _JsonDecoderSink(_reviver, sink);
   }
 }
 
@@ -377,7 +376,7 @@ class _JsonDecoderSink extends _StringSinkConversionSink {
   final _Reviver _reviver;
   final Sink<Object> _sink;
 
-  _JsonDecoderSink(this._reviver, this._sink) : super(new StringBuffer(''));
+  _JsonDecoderSink(this._reviver, this._sink) : super(StringBuffer(''));
 
   void close() {
     super.close();
@@ -401,6 +400,98 @@ class Utf8Decoder {
   @patch
   static String _convertIntercepted(
       bool allowMalformed, List<int> codeUnits, int start, int end) {
-    return null; // This call was not intercepted.
+    // Test `codeUnits is NativeUint8List`. Dart's NativeUint8List is
+    // implemented by JavaScript's Uint8Array.
+    if (JS('bool', '# instanceof Uint8Array', codeUnits)) {
+      // JS 'cast' to avoid a downcast equivalent to the is-check we hand-coded.
+      NativeUint8List casted = JS('NativeUint8List', '#', codeUnits);
+      return _convertInterceptedUint8List(allowMalformed, casted, start, end);
+    }
   }
+
+  static String _convertInterceptedUint8List(
+      bool allowMalformed, NativeUint8List codeUnits, int start, int end) {
+    if (allowMalformed) {
+      // TextDecoder with option {fatal: false} does not produce the same result
+      // as [Utf8Decoder]. It disagrees on the number of `U+FFFD` (REPLACEMENT
+      // CHARACTER) generated for some malformed sequences. We could use
+      // TextDecoder with option {fatal: true}, catch the error, and re-try
+      // without acceleration. That turns out to be extremely slow (the Error
+      // captures a stack trace).
+      // TODO(31370): Bring Utf8Decoder into alignment with TextDecoder.
+      // TODO(sra): If we can't do that, can we detect valid input fast enough
+      // to use a check like the [_unsafe] check below?
+      return null;
+    }
+
+    var decoder = _decoder;
+    if (decoder == null) return null;
+    if (0 == start && end == null) {
+      return _useTextDecoderChecked(decoder, codeUnits);
+    }
+
+    int length = codeUnits.length;
+    end = RangeError.checkValidRange(start, end, length);
+
+    if (0 == start && end == codeUnits.length) {
+      return _useTextDecoderChecked(decoder, codeUnits);
+    }
+
+    return _useTextDecoderChecked(decoder,
+        JS('NativeUint8List', '#.subarray(#, #)', codeUnits, start, end));
+  }
+
+  static String _useTextDecoderChecked(decoder, NativeUint8List codeUnits) {
+    if (_unsafe(codeUnits)) return null;
+    return _useTextDecoderUnchecked(decoder, codeUnits);
+  }
+
+  static String _useTextDecoderUnchecked(decoder, NativeUint8List codeUnits) {
+    // If the input is malformed, catch the exception and return `null` to fall
+    // back on unintercepted decoder. The fallback will either succeed in
+    // decoding, or report the problem better than TextDecoder.
+    try {
+      return JS('String', '#.decode(#)', decoder, codeUnits);
+    } catch (e) {}
+    return null;
+  }
+
+  /// Returns `true` if [codeUnits] contains problematic encodings.
+  ///
+  /// TextDecoder behaves differently to [Utf8Encoder] when the input encodes a
+  /// surrogate (U+D800 through U+DFFF). TextDecoder considers the surrogate to
+  /// be an encoding error and, depending on the `fatal` option, either throws
+  /// and Error or encodes the surrogate as U+FFFD. [Utf8Decoder] does not
+  /// consider the surrogate to be an error and returns the code unit encoded by
+  /// the surrogate.
+  ///
+  /// Throwing an `Error` captures the stack, whoch makes it so expensive that
+  /// it is worth checking the input for surrogates and avoiding TextDecoder in
+  /// this case.
+  static bool _unsafe(NativeUint8List codeUnits) {
+    // Surrogates encode as (hex) ED Ax xx or ED Bx xx.
+    int limit = codeUnits.length - 2;
+    for (int i = 0; i < limit; i++) {
+      int unit1 = codeUnits[i];
+      if (unit1 == 0xED) {
+        int unit2 = JS('!', '#', codeUnits[i + 1]);
+        if ((unit2 & 0xE0) == 0xA0) return true;
+      }
+    }
+    return false;
+  }
+
+  //// TextDecoder is not defined on some browsers and on the stand-alone d8 and
+  /// jsshell engines. Use a lazy initializer to do feature detection once.
+  static final _decoder = () {
+    try {
+      // Use `{fatal: true}`. 'fatal' does not correspond exactly to
+      // `!allowMalformed`: TextDecoder rejects unpaired surrogates which
+      // [Utf8Decoder] accepts.  In non-fatal mode, TextDecoder translates
+      // unpaired surrogates to REPLACEMENT CHARACTER (U+FFFD) whereas
+      // [Utf8Decoder] leaves the surrogate intact.
+      return JS('', 'new TextDecoder("utf-8", {fatal: true})');
+    } catch (e) {}
+    return null;
+  }();
 }

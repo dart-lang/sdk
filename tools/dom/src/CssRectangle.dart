@@ -28,7 +28,8 @@ class _ContentCssRect extends CssRect {
    */
   set height(dynamic newHeight) {
     if (newHeight is Dimension) {
-      if (newHeight.value < 0) newHeight = new Dimension.px(0);
+      Dimension newHeightAsDimension = newHeight;
+      if (newHeightAsDimension.value < 0) newHeight = new Dimension.px(0);
       _element.style.height = newHeight.toString();
     } else if (newHeight is num) {
       if (newHeight < 0) newHeight = 0;
@@ -48,7 +49,8 @@ class _ContentCssRect extends CssRect {
    */
   set width(dynamic newWidth) {
     if (newWidth is Dimension) {
-      if (newWidth.value < 0) newWidth = new Dimension.px(0);
+      Dimension newWidthAsDimension = newWidth;
+      if (newWidthAsDimension.value < 0) newWidth = new Dimension.px(0);
       _element.style.width = newWidth.toString();
     } else if (newWidth is num) {
       if (newWidth < 0) newWidth = 0;

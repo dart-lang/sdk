@@ -1,0 +1,49 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:mirrors" as mir;
+
+class _FailingTest extends core::Object {
+  const constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class MyTest extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  @self::failingTest
+  method foo() → void {}
+}
+abstract class _MyTest2&Object&MyTest extends core::Object implements self::MyTest {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  @self::failingTest
+  method foo() → void {}
+}
+class MyTest2 extends self::_MyTest2&Object&MyTest {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static const field self::_FailingTest failingTest = const self::_FailingTest::•();
+static method main() → dynamic {
+  mir::ClassMirror classMirror = mir::reflectClass(self::MyTest2);
+  classMirror.{mir::ClassMirror::instanceMembers}.{core::Map::forEach}((core::Symbol symbol, mir::MethodMirror memberMirror) → core::Null {
+    if(memberMirror.{mir::DeclarationMirror::simpleName}.{core::Symbol::==}(#foo)) {
+      core::print(memberMirror);
+      core::print(self::_hasFailingTestAnnotation(memberMirror));
+    }
+  });
+}
+static method _hasFailingTestAnnotation(mir::MethodMirror method) → core::bool {
+  core::bool r = self::_hasAnnotationInstance(method, self::failingTest);
+  core::print("[_hasFailingTestAnnotation] ${method} ${r}");
+  return r;
+}
+static method _hasAnnotationInstance(mir::DeclarationMirror declaration, dynamic instance) → core::bool
+  return declaration.{mir::DeclarationMirror::metadata}.{core::Iterable::any}((mir::InstanceMirror annotation) → core::bool {
+    core::print("annotation: ${annotation.{mir::InstanceMirror::reflectee}}");
+    return core::identical(annotation.{mir::InstanceMirror::reflectee}, instance);
+  });

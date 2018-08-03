@@ -747,10 +747,6 @@ class OptimizedByteArrayTest {
     }
     Expect.listEquals([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], array);
     for (int i = 0; i < array.length; ++i) {
-      array[i] = 0x10000000000000000 + i;
-    }
-    Expect.listEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], array);
-    for (int i = 0; i < array.length; ++i) {
       array[i] = -10 + i;
     }
     Expect.listEquals([-10, -9, -8, -7, -6, -5, -4, -3, -2, -1], array);
@@ -875,10 +871,6 @@ class OptimizedByteArrayTest {
     }
     Expect.listEquals([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], array);
     for (int i = 0; i < array.length; ++i) {
-      array[i] = 0x10000000000000000 + i;
-    }
-    Expect.listEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], array);
-    for (int i = 0; i < array.length; ++i) {
       array[i] = 0xFFFFFFFFFFFFFFFF - i;
     }
     Expect.listEquals([
@@ -907,8 +899,10 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Uint64List);
     Expect.equals(4, region.length);
     Expect.listEquals([3, 4, 5, 6], region);
-    array.setRange(3, 7, [0x10000000000000001, 0, 1, 0xFFFFFFFFFFFFFFFF]);
-    Expect.listEquals([0, 1, 2, 1, 0, 1, 0xFFFFFFFFFFFFFFFF, 7, 8, 9], array);
+    array.setRange(3, 7, [-0x8000000000000001, 0, 1, 0xFFFFFFFFFFFFFFFF]);
+    Expect.listEquals(
+        [0, 1, 2, -0x8000000000000001, 0, 1, 0xFFFFFFFFFFFFFFFF, 7, 8, 9],
+        array);
   }
 
   static testUint64List() {
@@ -954,7 +948,7 @@ class OptimizedByteArrayTest {
       return e is UnsupportedError;
     });
     Expect.throws(() {
-      array.addAll([0]);
+      array.addAll([0.0]);
     }, (e) {
       return e is UnsupportedError;
     });
@@ -998,15 +992,15 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Float32List);
     Expect.equals(4, region.length);
     Expect.listEquals([3.0, 4.0, 5.0, 6.0], region);
-    array.setRange(3, 7, [double.NEGATIVE_INFINITY, 0.0, 1.0, double.INFINITY]);
+    array.setRange(3, 7, [double.negativeInfinity, 0.0, 1.0, double.infinity]);
     Expect.listEquals([
       0.0,
       1.0,
       2.0,
-      double.NEGATIVE_INFINITY,
+      double.negativeInfinity,
       0.0,
       1.0,
-      double.INFINITY,
+      double.infinity,
       7.0,
       8.0,
       9.0
@@ -1056,7 +1050,7 @@ class OptimizedByteArrayTest {
       return e is UnsupportedError;
     });
     Expect.throws(() {
-      array.addAll([0]);
+      array.addAll([0.0]);
     }, (e) {
       return e is UnsupportedError;
     });
@@ -1100,15 +1094,15 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Float64List);
     Expect.equals(4, region.length);
     Expect.listEquals([3.0, 4.0, 5.0, 6.0], region);
-    array.setRange(3, 7, [double.NEGATIVE_INFINITY, 0.0, 1.0, double.INFINITY]);
+    array.setRange(3, 7, [double.negativeInfinity, 0.0, 1.0, double.infinity]);
     Expect.listEquals([
       0.0,
       1.0,
       2.0,
-      double.NEGATIVE_INFINITY,
+      double.negativeInfinity,
       0.0,
       1.0,
-      double.INFINITY,
+      double.infinity,
       7.0,
       8.0,
       9.0
@@ -3015,108 +3009,6 @@ class OptimizedByteArrayTest {
       0xFF
     ], array);
     for (int i = 0; i < view.length; ++i) {
-      view[i] = 0x10000000000000000 + i;
-    }
-    Expect.listEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], view);
-    Expect.listEquals([
-      0xFF,
-      0xFF,
-      0xFF,
-      0xFF,
-      0xFF,
-      0xFF,
-      0xFF,
-      0xFF,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x01,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x02,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x03,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x04,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x05,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x06,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x07,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x08,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x09,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0xFF,
-      0xFF,
-      0xFF,
-      0xFF,
-      0xFF,
-      0xFF,
-      0xFF,
-      0xFF
-    ], array);
-    for (int i = 0; i < view.length; ++i) {
       view[i] = -10 + i;
     }
     Expect.listEquals([-10, -9, -8, -7, -6, -5, -4, -3, -2, -1], view);
@@ -3777,108 +3669,6 @@ class OptimizedByteArrayTest {
       -1
     ], array);
     for (int i = 0; i < view.length; ++i) {
-      view[i] = 0x10000000000000000 + i;
-    }
-    Expect.listEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], view);
-    Expect.listEquals([
-      -1,
-      -1,
-      -1,
-      -1,
-      -1,
-      -1,
-      -1,
-      -1,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      2,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      3,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      4,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      5,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      6,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      7,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      8,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      9,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      -1,
-      -1,
-      -1,
-      -1,
-      -1,
-      -1,
-      -1,
-      -1
-    ], array);
-    for (int i = 0; i < view.length; ++i) {
       view[i] = 0xFFFFFFFFFFFFFFFF - i;
     }
     Expect.listEquals([
@@ -4003,8 +3793,9 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Uint64List);
     Expect.equals(4, region.length);
     Expect.listEquals([3, 4, 5, 6], region);
-    view.setRange(3, 7, [0x10000000000000001, 0, 1, 0xFFFFFFFFFFFFFFFF]);
-    Expect.listEquals([0, 1, 2, 1, 0, 1, 0xFFFFFFFFFFFFFFFF, 7, 8, 9], view);
+    view.setRange(3, 7, [0x8000000000000001, 0, 1, 0xFFFFFFFFFFFFFFFF]);
+    Expect.listEquals(
+        [0, 1, 2, 0x8000000000000001, 0, 1, 0xFFFFFFFFFFFFFFFF, 7, 8, 9], view);
     Expect.listEquals([
       -1,
       -1,
@@ -4045,7 +3836,7 @@ class OptimizedByteArrayTest {
       0,
       0,
       0,
-      0,
+      -128,
       0,
       0,
       0,
@@ -4180,32 +3971,32 @@ class OptimizedByteArrayTest {
       return e is RangeError;
     });
     Expect.throws(() {
-      array.add(0.0);
+      view.add(0.0);
     }, (e) {
       return e is UnsupportedError;
     });
     Expect.throws(() {
-      array.addAll([0]);
+      view.addAll([0.0]);
     }, (e) {
       return e is UnsupportedError;
     });
     Expect.throws(() {
-      array.clear();
+      view.clear();
     }, (e) {
       return e is UnsupportedError;
     });
     Expect.throws(() {
-      array.length = 0;
+      view.length = 0;
     }, (e) {
       return e is UnsupportedError;
     });
     Expect.throws(() {
-      array.removeLast();
+      view.removeLast();
     }, (e) {
       return e is UnsupportedError;
     });
     Expect.throws(() {
-      array.removeRange(0, array.length - 1);
+      view.removeRange(0, array.length - 1);
     }, (e) {
       return e is UnsupportedError;
     });
@@ -4241,15 +4032,15 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Float32List);
     Expect.equals(4, region.length);
     Expect.listEquals([3.0, 4.0, 5.0, 6.0], region);
-    view.setRange(3, 7, [double.NEGATIVE_INFINITY, 0.0, 1.0, double.INFINITY]);
+    view.setRange(3, 7, [double.negativeInfinity, 0.0, 1.0, double.infinity]);
     Expect.listEquals([
       0.0,
       1.0,
       2.0,
-      double.NEGATIVE_INFINITY,
+      double.negativeInfinity,
       0.0,
       1.0,
-      double.INFINITY,
+      double.infinity,
       7.0,
       8.0,
       9.0
@@ -4345,32 +4136,32 @@ class OptimizedByteArrayTest {
       return e is RangeError;
     });
     Expect.throws(() {
-      array.add(0.0);
+      view.add(0.0);
     }, (e) {
       return e is UnsupportedError;
     });
     Expect.throws(() {
-      array.addAll([0]);
+      view.addAll([0.0]);
     }, (e) {
       return e is UnsupportedError;
     });
     Expect.throws(() {
-      array.clear();
+      view.clear();
     }, (e) {
       return e is UnsupportedError;
     });
     Expect.throws(() {
-      array.length = 0;
+      view.length = 0;
     }, (e) {
       return e is UnsupportedError;
     });
     Expect.throws(() {
-      array.removeLast();
+      view.removeLast();
     }, (e) {
       return e is UnsupportedError;
     });
     Expect.throws(() {
-      array.removeRange(0, array.length - 1);
+      view.removeRange(0, array.length - 1);
     }, (e) {
       return e is UnsupportedError;
     });
@@ -4406,15 +4197,15 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Float64List);
     Expect.equals(4, region.length);
     Expect.listEquals([3.0, 4.0, 5.0, 6.0], region);
-    view.setRange(3, 7, [double.NEGATIVE_INFINITY, 0.0, 1.0, double.INFINITY]);
+    view.setRange(3, 7, [double.negativeInfinity, 0.0, 1.0, double.infinity]);
     Expect.listEquals([
       0.0,
       1.0,
       2.0,
-      double.NEGATIVE_INFINITY,
+      double.negativeInfinity,
       0.0,
       1.0,
-      double.INFINITY,
+      double.infinity,
       7.0,
       8.0,
       9.0

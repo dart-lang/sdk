@@ -1,0 +1,9 @@
+library;
+import self as self;
+
+static method test() → void {
+  dynamic a = 5;
+  dynamic b = a.toString();
+  b = 42;
+}
+static method main() → void {}

@@ -29,12 +29,15 @@ B makeB() native;
 @Creates('=Object')
 getBPrototype() native;
 
-void setup() native r"""
-function B() {}
-makeB = function(){return new B;};
+void setup() {
+  JS('', r"""
+(function(){
+  function B() {}
+  makeB = function(){return new B()};
 
-getBPrototype = function(){return B.prototype;};
-""";
+  getBPrototype = function(){return B.prototype;};
+})()""");
+}
 
 A gA;
 B gB;

@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+class A extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method foo() → dynamic {
+    col::LinkedListEntry<col::LinkedListEntry<dynamic>> bar;
+  }
+}
+static method main() → dynamic {
+  col::LinkedListEntry<col::LinkedListEntry<dynamic>> bar;
+}

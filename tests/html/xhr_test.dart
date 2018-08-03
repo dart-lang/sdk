@@ -21,7 +21,7 @@ main() {
 
   void validate200Response(xhr) {
     expect(xhr.status, equals(200));
-    var data = JSON.decode(xhr.responseText);
+    var data = json.decode(xhr.responseText);
     expect(data, contains('feed'));
     expect(data['feed'], contains('entry'));
     expect(data, isMap);
@@ -233,7 +233,7 @@ main() {
 
       HttpRequest
           .request(url,
-              method: 'POST', sendData: JSON.encode(data), responseType: 'json')
+              method: 'POST', sendData: json.encode(data), responseType: 'json')
           .then(expectAsync((xhr) {
         expect(xhr.status, equals(200));
         var json = xhr.response;

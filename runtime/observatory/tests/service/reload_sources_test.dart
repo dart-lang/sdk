@@ -13,7 +13,7 @@ testMain() {
   while (true) {}
 }
 
-var tests = [
+var tests = <IsolateTest>[
   // Stopped at 'debugger' statement.
   hasStoppedAtBreakpoint,
   // Reload sources and request to pause post reload. The pause request will be

@@ -1,0 +1,24 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class B extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method f(core::num x) → void {}
+}
+abstract class I<T extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract method f(generic-covariant-impl self::I::T x) → void;
+}
+class C extends self::B implements self::I<core::num> {
+  synthetic constructor •() → void
+    : super self::B::•()
+    ;
+  forwarding-stub forwarding-semi-stub method f(generic-covariant-impl core::num x) → void
+    return super.{self::B::f}(x);
+}
+static method main() → dynamic {}

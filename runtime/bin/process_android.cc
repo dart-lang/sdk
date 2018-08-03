@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_IO_DISABLED)
-
 #include "platform/globals.h"
 #if defined(HOST_OS_ANDROID)
 
@@ -19,10 +17,12 @@
 #include <unistd.h>    // NOLINT
 
 #include "bin/dartutils.h"
+#include "bin/directory.h"
 #include "bin/fdutils.h"
 #include "bin/file.h"
 #include "bin/lockers.h"
 #include "bin/log.h"
+#include "bin/namespace.h"
 #include "bin/reference_counting.h"
 #include "bin/thread.h"
 
@@ -64,7 +64,6 @@ class ProcessInfo {
   DISALLOW_COPY_AND_ASSIGN(ProcessInfo);
 };
 
-
 // Singly-linked list of ProcessInfo objects for all active processes
 // started from Dart.
 class ProcessInfoList {
@@ -75,7 +74,6 @@ class ProcessInfoList {
     info->set_next(active_processes_);
     active_processes_ = info;
   }
-
 
   static intptr_t LookupProcessExitFd(pid_t pid) {
     MutexLocker locker(mutex_);
@@ -88,7 +86,6 @@ class ProcessInfoList {
     }
     return 0;
   }
-
 
   static void RemoveProcess(pid_t pid) {
     MutexLocker locker(mutex_);
@@ -121,10 +118,8 @@ class ProcessInfoList {
   DISALLOW_IMPLICIT_CONSTRUCTORS(ProcessInfoList);
 };
 
-
 ProcessInfo* ProcessInfoList::active_processes_ = NULL;
 Mutex* ProcessInfoList::mutex_ = new Mutex();
-
 
 // The exit code handler sets up a separate thread which waits for child
 // processes to terminate. That separate thread can then get the exit code from
@@ -242,16 +237,15 @@ class ExitCodeHandler {
   DISALLOW_IMPLICIT_CONSTRUCTORS(ExitCodeHandler);
 };
 
-
 bool ExitCodeHandler::running_ = false;
 int ExitCodeHandler::process_count_ = 0;
 bool ExitCodeHandler::terminate_done_ = false;
 Monitor* ExitCodeHandler::monitor_ = new Monitor();
 
-
 class ProcessStarter {
  public:
-  ProcessStarter(const char* path,
+  ProcessStarter(Namespace* namespc,
+                 const char* path,
                  char* arguments[],
                  intptr_t arguments_length,
                  const char* working_directory,
@@ -264,7 +258,8 @@ class ProcessStarter {
                  intptr_t* id,
                  intptr_t* exit_event,
                  char** os_error_message)
-      : path_(path),
+      : namespc_(namespc),
+        path_(path),
         working_directory_(working_directory),
         mode_(mode),
         in_(in),
@@ -301,7 +296,6 @@ class ProcessStarter {
     }
   }
 
-
   int Start() {
     // Create pipes required.
     int err = CreatePipes();
@@ -325,7 +319,7 @@ class ProcessStarter {
     ExitCodeHandler::ProcessStarted();
 
     // Register the child process if not detached.
-    if (mode_ == kNormal) {
+    if (Process::ModeIsAttached(mode_)) {
       err = RegisterProcess(pid);
       if (err != 0) {
         return err;
@@ -345,7 +339,7 @@ class ProcessStarter {
     // Read the result of executing the child process.
     VOID_TEMP_FAILURE_RETRY(close(exec_control_[1]));
     exec_control_[1] = -1;
-    if (mode_ == kNormal) {
+    if (Process::ModeIsAttached(mode_)) {
       err = ReadExecResult();
     } else {
       err = ReadDetachedExecResult(&pid);
@@ -355,7 +349,7 @@ class ProcessStarter {
 
     // Return error code if any failures.
     if (err != 0) {
-      if (mode_ == kNormal) {
+      if (Process::ModeIsAttached(mode_)) {
         // Since exec() failed, we're not interested in the exit code.
         // We close the reading side of the exit code pipe here.
         // GetProcessExitCodes will get a broken pipe error when it
@@ -368,7 +362,7 @@ class ProcessStarter {
       return err;
     }
 
-    if (mode_ != kDetached) {
+    if (Process::ModeHasStdio(mode_)) {
       // Connect stdio, stdout and stderr.
       FDUtils::SetNonBlocking(read_in_[0]);
       *in_ = read_in_[0];
@@ -411,7 +405,7 @@ class ProcessStarter {
     }
 
     // For detached processes the pipe to connect stderr and stdin are not used.
-    if (mode_ != kDetached) {
+    if (Process::ModeHasStdio(mode_)) {
       result = TEMP_FAILURE_RETRY(pipe2(read_err_, O_CLOEXEC));
       if (result < 0) {
         return CleanupAndReturnError();
@@ -426,7 +420,6 @@ class ProcessStarter {
     return 0;
   }
 
-
   void NewProcess() {
     // Wait for parent process before setting up the child process.
     char msg;
@@ -435,29 +428,65 @@ class ProcessStarter {
       perror("Failed receiving notification message");
       exit(1);
     }
-    if (mode_ == kNormal) {
+    if (Process::ModeIsAttached(mode_)) {
       ExecProcess();
     } else {
       ExecDetachedProcess();
     }
   }
 
+  // Tries to find path_ relative to the current namespace.
+  // The path that should be passed to exec is returned in realpath.
+  // Returns true on success, and false if there was an error that should
+  // be reported to the parent.
+  bool FindPathInNamespace(char* realpath, intptr_t realpath_size) {
+    NamespaceScope ns(namespc_, path_);
+    const int fd =
+        TEMP_FAILURE_RETRY(openat(ns.fd(), ns.path(), O_RDONLY | O_CLOEXEC));
+    if (fd == -1) {
+      if ((errno == ENOENT) && (strchr(path_, '/') == NULL)) {
+        // path_ was not found relative to the namespace, but since it didn't
+        // contain a '/', we can pass it directly to execvp, which will do a
+        // lookup in PATH.
+        // TODO(zra): If there is a non-default namespace, the entries in PATH
+        // should be treated as relative to the namespace.
+        strncpy(realpath, path_, realpath_size);
+        return true;
+      }
+      return false;
+    }
+    char procpath[PATH_MAX];
+    snprintf(procpath, PATH_MAX, "/proc/self/fd/%d", fd);
+    const intptr_t length =
+        TEMP_FAILURE_RETRY(readlink(procpath, realpath, realpath_size));
+    if (length < 0) {
+      FDUtils::SaveErrorAndClose(fd);
+      return false;
+    }
+    realpath[length] = '\0';
+    FDUtils::SaveErrorAndClose(fd);
+    return true;
+  }
 
   void ExecProcess() {
-    if (TEMP_FAILURE_RETRY(dup2(write_out_[0], STDIN_FILENO)) == -1) {
-      ReportChildError();
-    }
+    if (mode_ == kNormal) {
+      if (TEMP_FAILURE_RETRY(dup2(write_out_[0], STDIN_FILENO)) == -1) {
+        ReportChildError();
+      }
 
-    if (TEMP_FAILURE_RETRY(dup2(read_in_[1], STDOUT_FILENO)) == -1) {
-      ReportChildError();
-    }
+      if (TEMP_FAILURE_RETRY(dup2(read_in_[1], STDOUT_FILENO)) == -1) {
+        ReportChildError();
+      }
 
-    if (TEMP_FAILURE_RETRY(dup2(read_err_[1], STDERR_FILENO)) == -1) {
-      ReportChildError();
+      if (TEMP_FAILURE_RETRY(dup2(read_err_[1], STDERR_FILENO)) == -1) {
+        ReportChildError();
+      }
+    } else {
+      ASSERT(mode_ == kInheritStdio);
     }
 
     if (working_directory_ != NULL &&
-        TEMP_FAILURE_RETRY(chdir(working_directory_)) == -1) {
+        !Directory::SetCurrent(namespc_, working_directory_)) {
       ReportChildError();
     }
 
@@ -465,12 +494,16 @@ class ProcessStarter {
       environ = program_environment_;
     }
 
+    char realpath[PATH_MAX];
+    if (!FindPathInNamespace(realpath, PATH_MAX)) {
+      ReportChildError();
+    }
+    // TODO(dart:io) Test for the existence of execveat, and use it instead.
     VOID_TEMP_FAILURE_RETRY(
-        execvp(path_, const_cast<char* const*>(program_arguments_)));
+        execvp(realpath, const_cast<char* const*>(program_arguments_)));
 
     ReportChildError();
   }
-
 
   void ExecDetachedProcess() {
     if (mode_ == kDetached) {
@@ -509,26 +542,31 @@ class ProcessStarter {
           }
 
           if ((working_directory_ != NULL) &&
-              (TEMP_FAILURE_RETRY(chdir(working_directory_)) == -1)) {
+              !Directory::SetCurrent(namespc_, working_directory_)) {
             ReportChildError();
           }
 
           // Report the final PID and do the exec.
           ReportPid(getpid());  // getpid cannot fail.
+          char realpath[PATH_MAX];
+          if (!FindPathInNamespace(realpath, PATH_MAX)) {
+            ReportChildError();
+          }
+          // TODO(dart:io) Test for the existence of execveat, and use it
+          // instead.
           VOID_TEMP_FAILURE_RETRY(
-              execvp(path_, const_cast<char* const*>(program_arguments_)));
+              execvp(realpath, const_cast<char* const*>(program_arguments_)));
           ReportChildError();
         } else {
-          // Exit the intermeiate process.
+          // Exit the intermediate process.
           exit(0);
         }
       }
     } else {
-      // Exit the intermeiate process.
+      // Exit the intermediate process.
       exit(0);
     }
   }
-
 
   int RegisterProcess(pid_t pid) {
     int result;
@@ -543,7 +581,6 @@ class ProcessStarter {
     FDUtils::SetNonBlocking(event_fds[0]);
     return 0;
   }
-
 
   int ReadExecResult() {
     int child_errno;
@@ -561,7 +598,6 @@ class ProcessStarter {
     }
     return 0;
   }
-
 
   int ReadDetachedExecResult(pid_t* pid) {
     int child_errno;
@@ -584,7 +620,6 @@ class ProcessStarter {
     }
     return 0;
   }
-
 
   void SetupDetached() {
     ASSERT(mode_ == kDetached);
@@ -648,7 +683,6 @@ class ProcessStarter {
     VOID_TEMP_FAILURE_RETRY(close(read_err_[1]));
   }
 
-
   int CleanupAndReturnError() {
     int actual_errno = errno;
     // If CleanupAndReturnError is called without an actual errno make
@@ -661,7 +695,6 @@ class ProcessStarter {
     return actual_errno;
   }
 
-
   void SetChildOsErrorMessage() {
     const int kBufferSize = 1024;
     char* error_message = DartUtils::ScopedCString(kBufferSize);
@@ -669,14 +702,13 @@ class ProcessStarter {
     *os_error_message_ = error_message;
   }
 
-
   void ReportChildError() {
     // In the case of failure in the child process write the errno and
     // the OS error message to the exec control pipe and exit.
     int child_errno = errno;
     const int kBufferSize = 1024;
-    char os_error_message[kBufferSize];
-    Utils::StrError(errno, os_error_message, kBufferSize);
+    char error_buf[kBufferSize];
+    char* os_error_message = Utils::StrError(errno, error_buf, kBufferSize);
     int bytes_written = FDUtils::WriteToBlocking(exec_control_[1], &child_errno,
                                                  sizeof(child_errno));
     if (bytes_written == sizeof(child_errno)) {
@@ -690,7 +722,6 @@ class ProcessStarter {
     _exit(1);
   }
 
-
   void ReportPid(int pid) {
     // In the case of starting a detached process the actual pid of that process
     // is communicated using the exec control pipe.
@@ -699,7 +730,6 @@ class ProcessStarter {
     ASSERT(bytes_written == sizeof(int));
     USE(bytes_written);
   }
-
 
   void ReadChildError() {
     const int kMaxMessageSize = 256;
@@ -714,7 +744,6 @@ class ProcessStarter {
     }
   }
 
-
   void ClosePipe(int* fds) {
     for (int i = 0; i < 2; i++) {
       if (fds[i] != -1) {
@@ -724,14 +753,12 @@ class ProcessStarter {
     }
   }
 
-
   void CloseAllPipes() {
     ClosePipe(exec_control_);
     ClosePipe(read_in_);
     ClosePipe(read_err_);
     ClosePipe(write_out_);
   }
-
 
   int read_in_[2];       // Pipe for stdout to child process.
   int read_err_[2];      // Pipe for stderr to child process.
@@ -741,6 +768,7 @@ class ProcessStarter {
   char** program_arguments_;
   char** program_environment_;
 
+  Namespace* namespc_;
   const char* path_;
   const char* working_directory_;
   ProcessStartMode mode_;
@@ -755,8 +783,8 @@ class ProcessStarter {
   DISALLOW_IMPLICIT_CONSTRUCTORS(ProcessStarter);
 };
 
-
-int Process::Start(const char* path,
+int Process::Start(Namespace* namespc,
+                   const char* path,
                    char* arguments[],
                    intptr_t arguments_length,
                    const char* working_directory,
@@ -769,12 +797,11 @@ int Process::Start(const char* path,
                    intptr_t* id,
                    intptr_t* exit_event,
                    char** os_error_message) {
-  ProcessStarter starter(path, arguments, arguments_length, working_directory,
-                         environment, environment_length, mode, in, out, err,
-                         id, exit_event, os_error_message);
+  ProcessStarter starter(namespc, path, arguments, arguments_length,
+                         working_directory, environment, environment_length,
+                         mode, in, out, err, id, exit_event, os_error_message);
   return starter.Start();
 }
-
 
 static bool CloseProcessBuffers(struct pollfd fds[3]) {
   int e = errno;
@@ -784,7 +811,6 @@ static bool CloseProcessBuffers(struct pollfd fds[3]) {
   errno = e;
   return false;
 }
-
 
 bool Process::Wait(intptr_t pid,
                    intptr_t in,
@@ -873,44 +899,41 @@ bool Process::Wait(intptr_t pid,
   return true;
 }
 
-
 bool Process::Kill(intptr_t id, int signal) {
   return (TEMP_FAILURE_RETRY(kill(id, signal)) != -1);
 }
-
 
 void Process::TerminateExitCodeHandler() {
   ExitCodeHandler::TerminateExitCodeThread();
 }
 
-
 intptr_t Process::CurrentProcessId() {
   return static_cast<intptr_t>(getpid());
 }
 
+static void SaveErrorAndClose(FILE* file) {
+  int actual_errno = errno;
+  fclose(file);
+  errno = actual_errno;
+}
 
 int64_t Process::CurrentRSS() {
   // The second value in /proc/self/statm is the current RSS in pages.
-  File* statm = File::Open("/proc/self/statm", File::kRead);
+  // It is not possible to use getrusage() because the interested fields are not
+  // implemented by the linux kernel.
+  FILE* statm = fopen("/proc/self/statm", "r");
   if (statm == NULL) {
     return -1;
   }
-  RefCntReleaseScope<File> releaser(statm);
-  const intptr_t statm_length = 1 * KB;
-  void* buffer = reinterpret_cast<void*>(Dart_ScopeAllocate(statm_length));
-  const intptr_t statm_read = statm->Read(buffer, statm_length);
-  if (statm_read <= 0) {
-    return -1;
-  }
   int64_t current_rss_pages = 0;
-  int matches = sscanf(reinterpret_cast<char*>(buffer), "%*s%" Pd64 "",
-                       &current_rss_pages);
+  int matches = fscanf(statm, "%*s%" Pd64 "", &current_rss_pages);
   if (matches != 1) {
+    SaveErrorAndClose(statm);
     return -1;
   }
+  fclose(statm);
   return current_rss_pages * getpagesize();
 }
-
 
 int64_t Process::MaxRSS() {
   struct rusage usage;
@@ -922,7 +945,6 @@ int64_t Process::MaxRSS() {
   return usage.ru_maxrss * KB;
 }
 
-
 static Mutex* signal_mutex = new Mutex();
 static SignalInfo* signal_handlers = NULL;
 static const int kSignalsCount = 7;
@@ -931,11 +953,9 @@ static const int kSignals[kSignalsCount] = {
     SIGQUIT  // Allow VMService to listen on SIGQUIT.
 };
 
-
 SignalInfo::~SignalInfo() {
   VOID_TEMP_FAILURE_RETRY(close(fd_));
 }
-
 
 static void SignalHandler(int signal) {
   MutexLocker lock(signal_mutex);
@@ -948,7 +968,6 @@ static void SignalHandler(int signal) {
     handler = handler->next();
   }
 }
-
 
 intptr_t Process::SetSignalHandler(intptr_t signal) {
   bool found = false;
@@ -1000,8 +1019,10 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
   return fds[0];
 }
 
-
-void Process::ClearSignalHandler(intptr_t signal) {
+void Process::ClearSignalHandler(intptr_t signal, Dart_Port port) {
+  // Either the port is illegal or there is no current isolate, but not both.
+  ASSERT((port != ILLEGAL_PORT) || (Dart_CurrentIsolate() == NULL));
+  ASSERT((port == ILLEGAL_PORT) || (Dart_CurrentIsolate() != NULL));
   ThreadSignalBlocker blocker(kSignalsCount, kSignals);
   MutexLocker lock(signal_mutex);
   SignalInfo* handler = signal_handlers;
@@ -1009,7 +1030,7 @@ void Process::ClearSignalHandler(intptr_t signal) {
   while (handler != NULL) {
     bool remove = false;
     if (handler->signal() == signal) {
-      if (handler->port() == Dart_GetMainPortId()) {
+      if ((port == ILLEGAL_PORT) || (handler->port() == port)) {
         if (signal_handlers == handler) {
           signal_handlers = handler->next();
         }
@@ -1037,5 +1058,3 @@ void Process::ClearSignalHandler(intptr_t signal) {
 }  // namespace dart
 
 #endif  // defined(HOST_OS_ANDROID)
-
-#endif  // !defined(DART_IO_DISABLED)

@@ -8,5 +8,5 @@ library test;
 T f<S, T>(S s) => null;
 main() {
   String x = /*@typeArgs=int, String*/ f(42);
-  String y = (f)(42);
+  String y = (f) /*@typeArgs=int, String*/ (42);
 }

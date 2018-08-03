@@ -8,29 +8,49 @@
 // command line.
 library compiler.tool.generate_kernel;
 
-import 'dart:io' show exitCode;
+import 'dart:io';
 
-import 'package:front_end/src/fasta/compiler_command_line.dart'
-    show CompilerCommandLine;
-import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-import 'package:front_end/src/fasta/errors.dart' show InputError;
-import 'package:front_end/src/fasta/ticker.dart' show Ticker;
-import 'package:compiler/src/kernel/fasta_support.dart' show Dart2jsCompileTask;
+import 'package:args/args.dart';
+import 'package:compiler/src/kernel/dart2js_target.dart';
+import 'package:compiler/src/filenames.dart';
+import 'package:front_end/src/api_prototype/front_end.dart';
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
+import 'package:front_end/src/fasta/util/relativize.dart';
+import 'package:kernel/kernel.dart';
+import 'package:kernel/target/targets.dart';
 
-main(List<String> arguments) async {
-  try {
-    await CompilerCommandLine.withGlobalOptions("generate_kernel", arguments,
-        (CompilerContext c) async {
-      if (c.options.verbose) {
-        print("Compiling directly to Kernel: ${arguments.join(' ')}");
-      }
-      var task =
-          new Dart2jsCompileTask(c, new Ticker(isVerbose: c.options.verbose));
-      await task.compile();
-    });
-  } on InputError catch (e) {
-    exitCode = 1;
-    print(e.format());
-    return null;
+main(List<String> args) async {
+  ArgResults flags = _argParser.parse(args);
+  var options = new CompilerOptions()
+    ..target = new Dart2jsTarget("dart2js", new TargetFlags())
+    ..packagesFileUri = Uri.base.resolve('.packages')
+    ..setExitCodeOnProblem = true
+    ..linkedDependencies = [
+      Uri.base.resolve(nativeToUriPath(flags['platform']))
+    ];
+
+  if (flags.rest.isEmpty) {
+    var script = relativizeUri(Platform.script);
+    var platform =
+        relativizeUri(Uri.base.resolve(nativeToUriPath(flags['platform'])));
+    print('usage: ${Platform.executable} $script '
+        '[--platform=$platform] [--out=out.dill] program.dart');
+    exit(1);
   }
+
+  Uri entry = Uri.base.resolve(nativeToUriPath(flags.rest.first));
+  var component = await kernelForProgram(entry, options);
+  await writeComponentToBinary(component, flags['out']);
 }
+
+ArgParser _argParser = new ArgParser()
+  ..addOption('platform',
+      help: 'location of the precompiled dart2js sdk',
+      defaultsTo: _defaultPlatform)
+  ..addOption('out',
+      abbr: 'o', help: 'output location', defaultsTo: 'out.dill');
+
+String _defaultPlatform = computePlatformBinariesLocation()
+    .resolve('dart2js_platform.dill')
+    .toFilePath();

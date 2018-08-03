@@ -11,17 +11,9 @@ $!MEMBERS
    * platform.
    */
   static bool get supported {
-$if DARTIUM
-    return true;
-$else
     return JS('bool',
         '!!(window.MutationObserver || window.WebKitMutationObserver)');
-$endif
   }
-$if DARTIUM
-  @DocsEditable()
-  static MutationObserver _create(callback) => _blink.BlinkMutationObserver.instance.constructorCallback_1_(callback);
-$endif
 
   /**
    * Observes the target for the specified changes.
@@ -72,17 +64,7 @@ $endif
            'attributeOldValue': true,
            'characterDataOldValue': true };
 
-$if DARTIUM
-  static _createDict() => {};
-  static _add(m, String key, value) { m[key] = value; }
-  static _fixupList(list) => list;
 
-  void _call(Node target, options) {
-    _observe(target, options);
-  }
-$endif
-
-$if DART2JS
   static _createDict() => JS('var', '{}');
   static _add(m, String key, value) { JS('void', '#[#] = #', m, key, value); }
   static _fixupList(list) => list;  // TODO: Ensure is a JavaScript Array.
@@ -100,8 +82,4 @@ $if DART2JS
         'window.MozMutationObserver)(#)',
         convertDartClosureToJS(_wrapBinaryZone(callback), 2));
   }
-$else
-  factory MutationObserver(MutationCallback callback) =>
-      new MutationObserver._(_wrapBinaryZone(callback));
-$endif
 }

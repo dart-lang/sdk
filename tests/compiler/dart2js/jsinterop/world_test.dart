@@ -6,27 +6,36 @@ library jsinterop.world_test;
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/common.dart';
-import 'package:compiler/src/elements/elements.dart' show ClassElement;
+import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/common_elements.dart';
+import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/elements/entities.dart' show ClassEntity;
 import 'package:compiler/src/elements/names.dart';
-import 'package:compiler/src/js_backend/js_backend.dart';
+import 'package:compiler/src/universe/class_hierarchy.dart';
 import 'package:compiler/src/universe/selector.dart';
 import 'package:compiler/src/world.dart';
-import '../type_test_helper.dart';
+import '../helpers/element_lookup.dart';
+import '../memory_compiler.dart';
 
 void main() {
   asyncTest(() async {
-    await testClasses();
+    print('--test from kernel------------------------------------------------');
+    await testClasses([Flags.noPreviewDart2]);
+    print('--test from kernel (strong mode)----------------------------------');
+    // TODO(johnniwinther): Update the test to be strong mode compliant.
+    //await testClasses([Flags.strongMode]);
   });
 }
 
-testClasses() async {
+testClasses(List<String> options) async {
   test(String mainSource,
       {List<String> directlyInstantiated: const <String>[],
       List<String> abstractlyInstantiated: const <String>[],
       List<String> indirectlyInstantiated: const <String>[]}) async {
-    TypeEnvironment env = await TypeEnvironment.create(
-        r"""
+    CompilationResult result = await runCompiler(memorySourceFiles: {
+      'main.dart': """
+import 'package:js/js.dart';
+
 @JS()
 class A {
   get foo;
@@ -75,46 +84,44 @@ newC() => new C(foo: 2);
 newD() => new D(foo: 3);
 newE() => new E(4);
 newF() => new F(5);
-""",
-        mainSource: """
-import 'package:js/js.dart';
 
 $mainSource
-""",
-        useMockCompiler: false);
-    Map<String, ClassElement> classEnvironment = <String, ClassElement>{};
+"""
+    }, options: options);
+    Compiler compiler = result.compiler;
+    Map<String, ClassEntity> classEnvironment = <String, ClassEntity>{};
 
-    ClassElement registerClass(ClassElement cls) {
+    ClassEntity registerClass(ClassEntity cls) {
       classEnvironment[cls.name] = cls;
       return cls;
     }
 
-    ClosedWorld world = env.closedWorld;
-    JavaScriptBackend backend = env.compiler.backend;
-    ClassElement Object_ =
-        registerClass(env.compiler.commonElements.objectClass);
-    ClassElement Interceptor =
-        registerClass(env.compiler.commonElements.jsInterceptorClass);
-    ClassElement JavaScriptObject =
-        registerClass(env.compiler.commonElements.jsJavaScriptObjectClass);
-    ClassElement A = registerClass(env.getElement('A'));
-    ClassElement B = registerClass(env.getElement('B'));
-    ClassElement C = registerClass(env.getElement('C'));
-    ClassElement D = registerClass(env.getElement('D'));
-    ClassElement E = registerClass(env.getElement('E'));
-    ClassElement F = registerClass(env.getElement('F'));
+    JClosedWorld world = compiler.backendClosedWorldForTesting;
+    ElementEnvironment elementEnvironment = world.elementEnvironment;
+    ClassEntity Object_ = registerClass(world.commonElements.objectClass);
+    ClassEntity Interceptor =
+        registerClass(world.commonElements.jsInterceptorClass);
+    ClassEntity JavaScriptObject =
+        registerClass(world.commonElements.jsJavaScriptObjectClass);
+    ClassEntity A = registerClass(findClass(world, 'A'));
+    ClassEntity B = registerClass(findClass(world, 'B'));
+    ClassEntity C = registerClass(findClass(world, 'C'));
+    ClassEntity D = registerClass(findClass(world, 'D'));
+    ClassEntity E = registerClass(findClass(world, 'E'));
+    ClassEntity F = registerClass(findClass(world, 'F'));
 
     Selector nonExisting = new Selector.getter(const PublicName('nonExisting'));
 
-    Expect.equals(Interceptor.superclass, Object_);
-    Expect.equals(JavaScriptObject.superclass, Interceptor);
+    Expect.equals(elementEnvironment.getSuperClass(Interceptor), Object_);
+    Expect.equals(
+        elementEnvironment.getSuperClass(JavaScriptObject), Interceptor);
 
-    Expect.equals(A.superclass, JavaScriptObject);
-    Expect.equals(B.superclass, JavaScriptObject);
-    Expect.equals(C.superclass, JavaScriptObject);
-    Expect.equals(D.superclass, JavaScriptObject);
-    Expect.equals(E.superclass, Object_);
-    Expect.equals(F.superclass, Object_);
+    Expect.equals(elementEnvironment.getSuperClass(A), JavaScriptObject);
+    Expect.equals(elementEnvironment.getSuperClass(B), JavaScriptObject);
+    Expect.equals(elementEnvironment.getSuperClass(C), JavaScriptObject);
+    Expect.equals(elementEnvironment.getSuperClass(D), JavaScriptObject);
+    Expect.equals(elementEnvironment.getSuperClass(E), Object_);
+    Expect.equals(elementEnvironment.getSuperClass(F), Object_);
 
     Expect.isFalse(world.nativeData.isJsInteropClass(Object_));
     Expect.isTrue(world.nativeData.isJsInteropClass(A));
@@ -138,21 +145,21 @@ $mainSource
     Expect.equals('', world.nativeData.getJsInteropClassName(D));
 
     for (String name in classEnvironment.keys) {
-      ClassElement cls = classEnvironment[name];
+      ClassEntity cls = classEnvironment[name];
       bool isInstantiated = false;
       if (directlyInstantiated.contains(name)) {
         isInstantiated = true;
         Expect.isTrue(
-            world.isDirectlyInstantiated(cls),
+            world.classHierarchy.isDirectlyInstantiated(cls),
             "Expected $name to be directly instantiated in `${mainSource}`:"
-            "\n${world.dump(cls)}");
+            "\n${world.classHierarchy.dump(cls)}");
       }
       if (abstractlyInstantiated.contains(name)) {
         isInstantiated = true;
         Expect.isTrue(
-            world.isAbstractlyInstantiated(cls),
+            world.classHierarchy.isAbstractlyInstantiated(cls),
             "Expected $name to be abstractly instantiated in `${mainSource}`:"
-            "\n${world.dump(cls)}");
+            "\n${world.classHierarchy.dump(cls)}");
         Expect.isTrue(
             world.needsNoSuchMethod(cls, nonExisting, ClassQuery.EXACT),
             "Expected $name to need noSuchMethod for $nonExisting.");
@@ -166,15 +173,15 @@ $mainSource
       if (indirectlyInstantiated.contains(name)) {
         isInstantiated = true;
         Expect.isTrue(
-            world.isIndirectlyInstantiated(cls),
+            world.classHierarchy.isIndirectlyInstantiated(cls),
             "Expected $name to be indirectly instantiated in `${mainSource}`:"
-            "\n${world.dump(cls)}");
+            "\n${world.classHierarchy.dump(cls)}");
       }
       if (!isInstantiated && (name != 'Object' && name != 'Interceptor')) {
         Expect.isFalse(
-            world.isInstantiated(cls),
+            world.classHierarchy.isInstantiated(cls),
             "Expected $name to be uninstantiated in `${mainSource}`:"
-            "\n${world.dump(cls)}");
+            "\n${world.classHierarchy.dump(cls)}");
       }
     }
   }

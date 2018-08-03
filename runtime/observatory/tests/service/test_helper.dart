@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:observatory/service_io.dart';
 import 'service_test_common.dart';
+export 'service_test_common.dart' show IsolateTest, VMTest;
 
 /// Will be set to the http address of the VM's service protocol before
 /// any tests are invoked.
@@ -124,7 +125,7 @@ class _ServiceTesteeLauncher {
 
     String dartExecutable = Platform.executable;
 
-    var fullArgs = [];
+    var fullArgs = <String>[];
     if (pause_on_start) {
       fullArgs.add('--pause-isolates-on-start');
     }
@@ -134,6 +135,7 @@ class _ServiceTesteeLauncher {
     if (pause_on_unhandled_exceptions) {
       fullArgs.add('--pause-isolates-on-unhandled-exceptions');
     }
+    fullArgs.add('--profiler');
     if (extraArgs != null) {
       fullArgs.addAll(extraArgs);
     }
@@ -158,8 +160,8 @@ class _ServiceTesteeLauncher {
 
     String dartExecutable = _skyShellPath();
 
-    var dartFlags = [];
-    var fullArgs = [];
+    var dartFlags = <String>[];
+    var fullArgs = <String>[];
     if (pause_on_start) {
       dartFlags.add('--pause_isolates_on_start');
       fullArgs.add('--start-paused');
@@ -170,6 +172,7 @@ class _ServiceTesteeLauncher {
     if (pause_on_unhandled_exceptions) {
       dartFlags.add('--pause_isolates_on_unhandled_exceptions');
     }
+    dartFlags.add('--profiler');
     // Override mirrors.
     dartFlags.add('--enable_mirrors=true');
     if (extraArgs != null) {
@@ -220,7 +223,7 @@ class _ServiceTesteeLauncher {
       var blank;
       var first = true;
       process.stdout
-          .transform(UTF8.decoder)
+          .transform(utf8.decoder)
           .transform(new LineSplitter())
           .listen((line) {
         const kObservatoryListening = 'Observatory listening on ';
@@ -240,7 +243,7 @@ class _ServiceTesteeLauncher {
         print('>testee>out> $line');
       });
       process.stderr
-          .transform(UTF8.decoder)
+          .transform(utf8.decoder)
           .transform(new LineSplitter())
           .listen((line) {
         print('>testee>err> $line');
@@ -256,9 +259,11 @@ class _ServiceTesteeLauncher {
   }
 
   void requestExit() {
-    print('** Killing script');
-    if (process.kill()) {
-      killedByTester = true;
+    if (process != null) {
+      print('** Killing script');
+      if (process.kill()) {
+        killedByTester = true;
+      }
     }
   }
 }
@@ -331,12 +336,12 @@ class _ServiceTesterRunner {
         testsDone = true;
         await process.requestExit();
       });
-    }, onError: (error, stackTrace) async {
+    }, onError: (error, stackTrace) {
       if (testsDone) {
         print('Ignoring late exception during process exit:\n'
             '$error\n#stackTrace');
       } else {
-        await process.requestExit();
+        process.requestExit();
         print('Unexpected exception in service tests: $error\n$stackTrace');
         throw error;
       }
@@ -389,7 +394,7 @@ class _ServiceTesterRunner {
 /// Runs [tests] in sequence, each of which should take an [Isolate] and
 /// return a [Future]. Code for setting up state can run before and/or
 /// concurrently with the tests. Uses [mainArgs] to determine whether
-/// to run tests or testee in this invokation of the script.
+/// to run tests or testee in this invocation of the script.
 Future runIsolateTests(List<String> mainArgs, List<IsolateTest> tests,
     {testeeBefore(),
     testeeConcurrent(),
@@ -424,7 +429,7 @@ Future runIsolateTests(List<String> mainArgs, List<IsolateTest> tests,
 /// Runs [tests] in sequence, each of which should take an [Isolate] and
 /// return a [Future]. Code for setting up state can run before and/or
 /// concurrently with the tests. Uses [mainArgs] to determine whether
-/// to run tests or testee in this invokation of the script.
+/// to run tests or testee in this invocation of the script.
 ///
 /// This is a special version of this test harness specifically for the
 /// pause_on_unhandled_exceptions_test, which cannot properly function
@@ -460,7 +465,7 @@ void runIsolateTestsSynchronous(List<String> mainArgs, List<IsolateTest> tests,
 /// Runs [tests] in sequence, each of which should take an [Isolate] and
 /// return a [Future]. Code for setting up state can run before and/or
 /// concurrently with the tests. Uses [mainArgs] to determine whether
-/// to run tests or testee in this invokation of the script.
+/// to run tests or testee in this invocation of the script.
 Future runVMTests(List<String> mainArgs, List<VMTest> tests,
     {testeeBefore(),
     testeeConcurrent(),

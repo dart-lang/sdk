@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// dart2jsOptions=--omit-implicit-checks
+
 import "package:expect/expect.dart";
 
 // Test that optimized '-' and slow path '-' produce the same error.
@@ -90,21 +92,8 @@ class IntMinusString {
     return (confuse(1) as int) - confuse('a');
   }
 
-  static f5() {
-    return (confuse(1) as int) - 'a';
-  }
-
-  static f6() {
-    var a = confuse(true) ? 1 : 2; // Small int with unknown value.
-    return a - 'a';
-  }
-
-  static f7() {
-    return 1 - 'a';
-  }
-
   static test() {
-    check('IntMinusString', f1, f2, f3, f4, f5, f6, f7);
+    check('IntMinusString', f1, f2, f3, f4);
   }
 }
 

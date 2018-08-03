@@ -6,10 +6,12 @@
 
 import 'dart:_js_helper' show patch, ForceInline;
 import 'dart:_foreign_helper' show JS;
+import 'dart:async';
+import 'dart:isolate';
 
 @patch
 @ForceInline()
-bool debugger({bool when: true, String message}) {
+bool debugger({bool when = true, String message}) {
   if (when) {
     JS('', 'debugger');
   }
@@ -25,15 +27,15 @@ Object inspect(Object object) {
 void log(String message,
     {DateTime time,
     int sequenceNumber,
-    int level: 0,
-    String name: '',
+    int level = 0,
+    String name = '',
     Zone zone,
     Object error,
     StackTrace stackTrace}) {
   // TODO.
 }
 
-final _extensions = new Map<String, ServiceExtensionHandler>();
+final _extensions = Map<String, ServiceExtensionHandler>();
 
 @patch
 ServiceExtensionHandler _lookupExtension(String method) {
@@ -75,6 +77,12 @@ void _reportCompleteEvent(int start, int startCpu, String category, String name,
 }
 
 @patch
+void _reportFlowEvent(int start, int startCpu, String category, String name,
+    int type, int id, String argumentsAsJson) {
+  // TODO.
+}
+
+@patch
 void _reportInstantEvent(
     int start, String category, String name, String argumentsAsJson) {
   // TODO.
@@ -82,11 +90,6 @@ void _reportInstantEvent(
 
 @patch
 int _getNextAsyncId() {
-  return 0;
-}
-
-@patch
-int _getIsolateNum() {
   return 0;
 }
 
@@ -143,11 +146,11 @@ class _FakeUserTag implements UserTag {
     }
     // Throw an exception if we've reached the maximum number of user tags.
     if (_instances.length == UserTag.MAX_USER_TAGS) {
-      throw new UnsupportedError(
+      throw UnsupportedError(
           'UserTag instance limit (${UserTag.MAX_USER_TAGS}) reached.');
     }
     // Create a new instance and add it to the instance map.
-    var instance = new _FakeUserTag.real(label);
+    var instance = _FakeUserTag.real(label);
     _instances[label] = instance;
     return instance;
   }
@@ -160,7 +163,7 @@ class _FakeUserTag implements UserTag {
     return old;
   }
 
-  static final UserTag _defaultTag = new _FakeUserTag('Default');
+  static final UserTag _defaultTag = _FakeUserTag('Default');
 }
 
 var _currentTag = _FakeUserTag._defaultTag;

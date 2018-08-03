@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/codegen/tools.dart';
-import 'package:front_end/src/codegen/tools.dart';
 import 'package:path/path.dart' as path;
 
 import 'api.dart';
@@ -12,7 +11,8 @@ import 'from_html.dart';
 import 'implied_types.dart';
 
 GeneratedFile target(bool responseRequiresRequestTime) =>
-    new GeneratedFile('lib/protocol/protocol_common.dart', (String pkgPath) {
+    new GeneratedFile('lib/protocol/protocol_common.dart',
+        (String pkgPath) async {
       CodegenCommonVisitor visitor = new CodegenCommonVisitor(
           path.basename(pkgPath),
           responseRequiresRequestTime,

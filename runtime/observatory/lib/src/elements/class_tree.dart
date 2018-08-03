@@ -55,7 +55,7 @@ class ClassTreeElement extends HtmlElement implements Renderable {
     assert(notifications != null);
     assert(classes != null);
     ClassTreeElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<ClassTreeElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
     e._events = events;
@@ -76,15 +76,15 @@ class ClassTreeElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
   VirtualTreeElement _tree;
 
   void render() {
-    children = [
-      navBar([
+    children = <Element>[
+      navBar(<Element>[
         new NavTopMenuElement(queue: _r.queue),
         new NavVMMenuElement(_vm, _events, queue: _r.queue),
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
@@ -93,7 +93,7 @@ class ClassTreeElement extends HtmlElement implements Renderable {
       ]),
       new DivElement()
         ..classes = ['content-centered']
-        ..children = [
+        ..children = <Element>[
           new HeadingElement.h1()
             ..text = 'Class Hierarchy (${_subclasses.length})',
           new BRElement(),
@@ -107,7 +107,7 @@ class ClassTreeElement extends HtmlElement implements Renderable {
 
   Element _createTree() {
     _tree = new VirtualTreeElement(_create, _update, _children,
-        items: [_object], queue: _r.queue);
+        items: [_object], search: _search, queue: _r.queue);
     _tree.expand(_object, autoExpandSingleChildNodes: true);
     return _tree;
   }
@@ -143,10 +143,10 @@ class ClassTreeElement extends HtmlElement implements Renderable {
           });
   }
 
-  static Element _create(toggle) {
+  static HtmlElement _create(toggle) {
     return new DivElement()
       ..classes = ['class-tree-item']
-      ..children = [
+      ..children = <Element>[
         new SpanElement()..classes = ['lines'],
         new ButtonElement()
           ..classes = ['expander']
@@ -155,14 +155,15 @@ class ClassTreeElement extends HtmlElement implements Renderable {
       ];
   }
 
-  void _update(HtmlElement el, M.Class cls, int index) {
+  void _update(HtmlElement el, classDynamic, int index) {
+    M.Class cls = classDynamic;
     virtualTreeUpdateLines(el.children[0], index);
     if (cls.subclasses.isEmpty) {
       el.children[1].text = '';
     } else {
       el.children[1].text = _tree.isExpanded(cls) ? '▼' : '►';
     }
-    el.children[2].children = [
+    el.children[2].children = <Element>[
       new ClassRefElement(_isolate, cls, queue: _r.queue)
     ];
     if (_mixins[cls.id] != null) {
@@ -170,9 +171,14 @@ class ClassTreeElement extends HtmlElement implements Renderable {
     }
   }
 
+  bool _search(Pattern pattern, classDynamic) {
+    M.Class cls = classDynamic;
+    return cls.name.contains(pattern);
+  }
+
   List<Element> _createMixins(List<M.Instance> types) {
     final children = types
-        .expand((type) => [
+        .expand((type) => <Element>[
               new SpanElement()..text = ', ',
               type.typeClass == null
                   ? (new SpanElement()..text = type.name.split('<').first)
@@ -184,7 +190,8 @@ class ClassTreeElement extends HtmlElement implements Renderable {
     return children;
   }
 
-  Iterable<M.Class> _children(M.Class cls) {
+  Iterable<M.Class> _children(classDynamic) {
+    M.Class cls = classDynamic;
     return _subclasses[cls.id];
   }
 }

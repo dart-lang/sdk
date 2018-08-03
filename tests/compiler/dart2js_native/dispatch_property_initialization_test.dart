@@ -13,14 +13,17 @@ class Foo {
 
 makeFoo() native;
 
-void setup() native r"""
-function Foo() {}
-Foo.prototype.method = function(x) { return 'Foo ' + x; }
+void setup() {
+  JS('', r"""
+(function(){
+  function Foo() {}
+  Foo.prototype.method = function(x) { return 'Foo ' + x; };
 
-self.makeFoo = function() { return new Foo(); }
+  self.makeFoo = function() { return new Foo(); };
 
-self.nativeConstructor(Foo);
-""";
+  self.nativeConstructor(Foo);
+})()""");
+}
 
 main() {
   nativeTesting();

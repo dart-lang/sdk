@@ -105,10 +105,13 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Creates('NodeList')",
       "@Returns('NodeList')",
     ],
-
     'Element.getBoundingClientRect': [
-        "@Creates('_ClientRect')",
-        "@Returns('_ClientRect|Null')", # TODO(sra): Verify and remove Null.
+        "@Creates('_DomRect')",
+        "@Returns('_DomRect|Null')", # TODO(sra): Verify and remove Null.
+    ],
+    'Element.getClientRects': [
+        "@Creates('DomRectList')",
+        "@Returns('DomRectList|Null')",
     ],
 
     # Methods returning Window can return a local window, or a cross-frame
@@ -174,8 +177,8 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
     # TODO(sra): We could determine the following by parsing the compound IDL
     # type.
     'ExtendableMessageEvent.source': [
-      "@Creates('Client|_ServiceWorker|MessagePort')",
-      "@Returns('Client|_ServiceWorker|MessagePort|Null')",
+      "@Creates('Client|ServiceWorker|MessagePort')",
+      "@Returns('Client|ServiceWorker|MessagePort|Null')",
     ],
 
     'File.lastModifiedDate': [
@@ -350,7 +353,7 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
 
     'ServiceWorkerMessageEvent.source': [
       "@Creates('Null')",
-      "@Returns('_ServiceWorker|MessagePort')",
+      "@Returns('ServiceWorker|MessagePort')",
      ],
 
     'ShadowRoot.getElementsByClassName': [
@@ -453,19 +456,16 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
 
 _blink_experimental_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",
-  "@Experimental()",
 ]
 
 _indexed_db_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",
   "@SupportedBrowser(SupportedBrowser.FIREFOX, '15')",
   "@SupportedBrowser(SupportedBrowser.IE, '10')",
-  "@Experimental()",
 ]
 
 _file_system_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",
-  "@Experimental()",
 ]
 
 _all_but_ie9_annotations = [
@@ -491,17 +491,14 @@ _performance_annotations = [
 
 _rtc_annotations = [ # Note: Firefox nightly builds also support this.
   "@SupportedBrowser(SupportedBrowser.CHROME)",
-  "@Experimental()",
 ]
 
 _shadow_dom_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME, '26')",
-  "@Experimental()",
 ]
 
 _speech_recognition_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
-  "@Experimental()",
 ]
 
 _svg_annotations = _all_but_ie9_annotations;
@@ -509,13 +506,11 @@ _svg_annotations = _all_but_ie9_annotations;
 _web_sql_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",
   "@SupportedBrowser(SupportedBrowser.SAFARI)",
-  "@Experimental()",
 ]
 
 _webgl_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",
   "@SupportedBrowser(SupportedBrowser.FIREFOX)",
-  "@Experimental()",
 ]
 
 _web_audio_annotations = _webgl_annotations
@@ -523,7 +518,6 @@ _web_audio_annotations = _webgl_annotations
 _webkit_experimental_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",
   "@SupportedBrowser(SupportedBrowser.SAFARI)",
-  "@Experimental()",
 ]
 
 # Annotations to be placed on generated members.
@@ -555,17 +549,15 @@ _annotations = monitored.Dict('dartmetadata._annotations', {
   'Window.webkitResolveLocalFileSystemURL': _file_system_annotations,
   'Element.createShadowRoot': [
     "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
-    "@Experimental()",
   ],
   'Element.ontransitionend': _all_but_ie9_annotations,
   # Placeholder to add experimental flag, implementation for this is
   # pending in a separate CL.
-  'Element.webkitMatchesSelector': ['@Experimental()'],
+  'Element.webkitMatchesSelector': [],
   'Event.clipboardData': [
     "@SupportedBrowser(SupportedBrowser.CHROME)",
     "@SupportedBrowser(SupportedBrowser.FIREFOX)",
     "@SupportedBrowser(SupportedBrowser.SAFARI)",
-    "@Experimental()",
   ],
   'FormData': _all_but_ie9_annotations,
   'HashChangeEvent': [
@@ -616,7 +608,6 @@ _annotations = monitored.Dict('dartmetadata._annotations', {
     "@SupportedBrowser(SupportedBrowser.CHROME)",
     "@SupportedBrowser(SupportedBrowser.FIREFOX)",
     "@SupportedBrowser(SupportedBrowser.SAFARI)",
-    "@Experimental()",
   ],
   'Performance': _performance_annotations,
   'PopStateEvent': _history_annotations,
@@ -757,12 +748,7 @@ class DartMetadata(object):
       key = interface.id
       dom_name = interface.javascript_binding_name
 
-    annotations = ["@DomName('" + dom_name + "')"]
-
-    # Only add this for members, so we don't add DocsEditable to templated
-    # classes (they get it from the default class template)
-    if member_name:
-      annotations.append('@DocsEditable()');
+    annotations = []
 
     if key in _annotations:
       annotations.extend(_annotations[key])
@@ -890,10 +876,6 @@ class DartMetadata(object):
     if dart_action:
       if dart_action == 'unstable':
         annotations.append('@Unstable()')
-      elif dart_action == 'experimental':
-        if comment:
-          annotations.append('// %s' % comment)
-        annotations.append('@Experimental() // %s' % support_level)
       elif dart_action == 'suppress':
         if comment:
           annotations.append('// %s' % comment)
@@ -906,16 +888,6 @@ class DartMetadata(object):
         pass
       else:
         _logger.warn('Unknown dart_action - %s:%s' % (interface_id, member_id))
-    elif support_level == 'untriaged':
-      annotations.append('@Experimental() // untriaged')
-    elif support_level == 'experimental':
-      if comment:
-        annotations.append('// %s' % comment)
-      annotations.append('@Experimental()')
-    elif support_level == 'nonstandard':
-      if comment:
-        annotations.append('// %s' % comment)
-      annotations.append('@Experimental() // non-standard')
     elif support_level == 'stable':
       pass
     elif support_level == 'deprecated':

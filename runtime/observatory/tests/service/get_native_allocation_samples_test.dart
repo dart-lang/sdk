@@ -3,12 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--error_on_bad_type --error_on_bad_override
 
-import 'dart:developer';
+import 'package:observatory/sample_profile.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_io.dart';
-import 'package:observatory/cpu_profile.dart';
 import 'package:unittest/unittest.dart';
-import 'service_test_common.dart';
 import 'test_helper.dart';
 
 void verifyHelper(var root, bool exclusive) {
@@ -54,12 +52,12 @@ void verify(var tree, bool exclusive) {
   }
 }
 
-var tests = [
+var tests = <VMTest>[
   // Verify inclusive tries.
   (VM vm) async {
     var response =
         await vm.invokeRpc('_getNativeAllocationSamples', {'tags': 'None'});
-    CpuProfile cpuProfile = new CpuProfile();
+    SampleProfile cpuProfile = new SampleProfile();
     await cpuProfile.load(vm, response);
     var codeTree = cpuProfile.loadCodeTree(M.ProfileTreeDirection.inclusive);
     var functionTree =
@@ -71,7 +69,7 @@ var tests = [
   (VM vm) async {
     var response =
         await vm.invokeRpc('_getNativeAllocationSamples', {'tags': 'None'});
-    CpuProfile cpuProfile = new CpuProfile();
+    SampleProfile cpuProfile = new SampleProfile();
     await cpuProfile.load(vm, response);
     var codeTreeExclusive =
         cpuProfile.loadCodeTree(M.ProfileTreeDirection.exclusive);

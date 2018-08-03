@@ -144,7 +144,7 @@ class StreamProtocolTest {
     _latestSubscription = null;
   }
 
-  // End the test now. There must be no open expectations, and no furter
+  // End the test now. There must be no open expectations, and no further
   // expectations will be allowed.
   // Called automatically by an onCancel event on a non-broadcast stream.
   void terminate() {

@@ -1,7 +1,6 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// SharedOptions=--assert-message
 
 import "package:expect/expect.dart";
 
@@ -27,20 +26,8 @@ test1() {
 }
 
 test2() {
-  testFalse('constant function', () {
-    assert(() => false, 'Mumble');
-  });
-}
-
-test3() {
   testFalse('variable false', () {
     assert(confuse(false), 'Mumble');
-  });
-}
-
-test4() {
-  testFalse('variable function', () {
-    assert(confuse(() => false), 'Mumble');
   });
 }
 
@@ -102,19 +89,17 @@ testMessageEffect3() {
   Expect.fail('Expected assert to throw');
 }
 
-bool get checkedMode {
+bool get assertionsEnabled {
   bool b = false;
   assert((b = true));
   return b;
 }
 
 main() {
-  if (!checkedMode) return;
+  if (!assertionsEnabled) return;
 
   test1();
   test2();
-  test3();
-  test4();
   testTypeErrors();
   testMessageEffect1();
   testMessageEffect2();

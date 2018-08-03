@@ -8,30 +8,16 @@ import 'package:js_ast/src/precedence.dart' as js_precedence;
 
 import '../common.dart';
 import '../constants/values.dart';
-import '../elements/resolution_types.dart'
-    show ResolutionDartType, ResolutionTypedefType;
-import '../deferred_load.dart' show DeferredLoadTask, OutputUnit;
-import '../elements/elements.dart'
-    show
-        ClassElement,
-        ConstructorElement,
-        Element,
-        FieldElement,
-        FunctionElement,
-        FunctionSignature,
-        LibraryElement,
-        MemberElement,
-        MethodElement,
-        MetadataAnnotation,
-        ParameterElement;
+import '../deferred_load.dart' show OutputUnit;
+import '../elements/entities.dart' show FunctionEntity;
+
+import '../elements/entities.dart';
+import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import '../js_backend/constant_handler_javascript.dart';
-import '../js_backend/mirrors_data.dart';
 import '../js_backend/runtime_types.dart' show RuntimeTypesEncoder;
-import '../js_backend/type_variable_handler.dart'
-    show TypeVariableCodegenAnalysis;
 import '../options.dart';
+import '../universe/world_builder.dart' show CodegenWorldBuilder;
 
 import 'code_emitter_task.dart' show Emitter;
 
@@ -78,46 +64,9 @@ class _BoundMetadataEntry extends _MetadataEntry {
     if (_rc == 1) entry.accept(visitor);
   }
 
-  int compareTo(_MetadataEntry other) => other._rc - this._rc;
-}
+  int compareTo(covariant _MetadataEntry other) => other._rc - this._rc;
 
-abstract class Placeholder implements jsAst.DeferredNumber {
-  bind(_MetadataEntry entry);
-}
-
-class _ForwardingMetadataEntry extends _MetadataEntry implements Placeholder {
-  _MetadataEntry _forwardTo;
-  var debug;
-
-  bool get isBound => _forwardTo != null;
-
-  _ForwardingMetadataEntry([this.debug]);
-
-  _MetadataEntry get forwardTo {
-    assert(isBound);
-    return _forwardTo;
-  }
-
-  jsAst.Expression get entry {
-    assert(isBound);
-    return forwardTo.entry;
-  }
-
-  int get value {
-    assert(isBound);
-    return forwardTo.value;
-  }
-
-  int get _rc => forwardTo._rc;
-
-  markSeen(jsAst.BaseVisitor visitor) => forwardTo.markSeen(visitor);
-
-  int compareTo(other) => forwardTo.compareTo(other);
-
-  bind(_MetadataEntry entry) {
-    assert(!isBound);
-    _forwardTo = entry;
-  }
+  String toString() => '_BoundMetadataEntry($hashCode,rc=$_rc,_value=$_value)';
 }
 
 class _MetadataList extends jsAst.DeferredExpression {
@@ -140,20 +89,22 @@ class _MetadataList extends jsAst.DeferredExpression {
 class MetadataCollector implements jsAst.TokenFinalizer {
   final CompilerOptions _options;
   final DiagnosticReporter reporter;
-  final DeferredLoadTask _deferredLoadTask;
   final Emitter _emitter;
-  final JavaScriptConstantCompiler _constants;
-  final TypeVariableCodegenAnalysis _typeVariableCodegenAnalysis;
-  final MirrorsData _mirrorsData;
   final RuntimeTypesEncoder _rtiEncoder;
+  final CodegenWorldBuilder _codegenWorldBuilder;
 
-  /// A token for a list of expressions that represent metadata, parameter names
-  /// and type variable types.
-  final _MetadataList _globalMetadata = new _MetadataList();
-  jsAst.Expression get globalMetadata => _globalMetadata;
+  /// A map with a token per output unit for a list of expressions that
+  /// represent metadata, parameter names and type variable types.
+  Map<OutputUnit, _MetadataList> _metadataTokens =
+      new Map<OutputUnit, _MetadataList>();
 
-  /// A map used to canonicalize the entries of globalMetadata.
-  Map<String, _BoundMetadataEntry> _globalMetadataMap;
+  jsAst.Expression getMetadataForOutputUnit(OutputUnit outputUnit) {
+    return _metadataTokens.putIfAbsent(outputUnit, () => new _MetadataList());
+  }
+
+  /// A map used to canonicalize the entries of metadata.
+  Map<OutputUnit, Map<String, _BoundMetadataEntry>> _metadataMap =
+      <OutputUnit, Map<String, _BoundMetadataEntry>>{};
 
   /// A map with a token for a lists of JS expressions, one token for each
   /// output unit. Once finalized, the entries represent types including
@@ -166,201 +117,59 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   }
 
   /// A map used to canonicalize the entries of types.
-  Map<OutputUnit, Map<ResolutionDartType, _BoundMetadataEntry>> _typesMap =
-      <OutputUnit, Map<ResolutionDartType, _BoundMetadataEntry>>{};
+  Map<OutputUnit, Map<DartType, _BoundMetadataEntry>> _typesMap =
+      <OutputUnit, Map<DartType, _BoundMetadataEntry>>{};
 
-  MetadataCollector(
-      this._options,
-      this.reporter,
-      this._deferredLoadTask,
-      this._emitter,
-      this._constants,
-      this._typeVariableCodegenAnalysis,
-      this._mirrorsData,
-      this._rtiEncoder) {
-    _globalMetadataMap = new Map<String, _BoundMetadataEntry>();
-  }
+  MetadataCollector(this._options, this.reporter, this._emitter,
+      this._rtiEncoder, this._codegenWorldBuilder);
 
-  jsAst.Fun buildLibraryMetadataFunction(LibraryElement element) {
-    if (!_mirrorsData.mustRetainMetadata ||
-        !_mirrorsData.isLibraryReferencedFromMirrorSystem(element)) {
-      return null;
-    }
-    return _buildMetadataFunction(element);
-  }
-
-  jsAst.Fun buildClassMetadataFunction(ClassElement element) {
-    if (!_mirrorsData.mustRetainMetadata ||
-        !_mirrorsData.isClassReferencedFromMirrorSystem(element)) {
-      return null;
-    }
-    return _buildMetadataFunction(element);
-  }
-
-  bool _mustEmitMetadataForMember(MemberElement element) {
-    return _mirrorsData.mustRetainMetadata &&
-        _mirrorsData.isMemberReferencedFromMirrorSystem(element);
-  }
-
-  jsAst.Fun buildFieldMetadataFunction(FieldElement element) {
-    if (!_mustEmitMetadataForMember(element)) return null;
-    return _buildMetadataFunction(element);
-  }
-
-  /// The metadata function returns the metadata associated with
-  /// [element] in generated code.  The metadata needs to be wrapped
-  /// in a function as it refers to constants that may not have been
-  /// constructed yet.  For example, a class is allowed to be
-  /// annotated with itself.  The metadata function is used by
-  /// mirrors_patch to implement DeclarationMirror.metadata.
-  jsAst.Fun _buildMetadataFunction(Element element) {
-    return reporter.withCurrentElement(element, () {
-      List<jsAst.Expression> metadata = <jsAst.Expression>[];
-      for (MetadataAnnotation annotation in element.metadata) {
-        ConstantValue constant =
-            _constants.getConstantValueForMetadata(annotation);
-        if (constant == null) {
-          reporter.internalError(annotation, 'Annotation value is null.');
-        } else {
-          metadata.add(_emitter.constantReference(constant));
-        }
-      }
-      if (metadata.isEmpty) return null;
-      return js(
-          'function() { return # }', new jsAst.ArrayInitializer(metadata));
-    });
-  }
-
-  List<jsAst.DeferredNumber> reifyDefaultArguments(FunctionElement function) {
-    function = function.implementation;
-    FunctionSignature signature = function.functionSignature;
-    if (signature.optionalParameterCount == 0) return const [];
-
-    // Optional parameters of redirecting factory constructors take their
-    // defaults from the corresponding parameters of the redirection target.
-    Map<ParameterElement, ParameterElement> targetParameterMap;
-    if (function is ConstructorElement) {
-      // TODO(sra): dart2js generates a redirecting factory constructor body
-      // that has the signature of the redirecting constructor that calls the
-      // redirection target. This is wrong - it should have the signature of the
-      // target. This would make the reified default arguments trivial.
-
-      ConstructorElement constructor = function;
-      while (constructor.isRedirectingFactory &&
-          !constructor.isCyclicRedirection) {
-        // TODO(sra): Remove the loop once effectiveTarget forwards to patches.
-        constructor = constructor.effectiveTarget.implementation;
-      }
-
-      if (constructor != function) {
-        if (signature.hasOptionalParameters) {
-          targetParameterMap =
-              mapRedirectingFactoryConstructorOptionalParameters(
-                  signature, constructor.functionSignature);
-        }
-      }
-    }
-
+  List<jsAst.DeferredNumber> reifyDefaultArguments(
+      FunctionEntity function, OutputUnit outputUnit) {
+    // TODO(sra): These are stored on the InstanceMethod or StaticDartMethod.
     List<jsAst.DeferredNumber> defaultValues = <jsAst.DeferredNumber>[];
-    for (ParameterElement element in signature.optionalParameters) {
-      ParameterElement parameter =
-          (targetParameterMap == null) ? element : targetParameterMap[element];
-      ConstantValue constant = (parameter == null)
-          ? null
-          : _constants.getConstantValue(parameter.constant);
-      jsAst.Expression expression = (constant == null)
-          ? new jsAst.LiteralNull()
-          : _emitter.constantReference(constant);
-      defaultValues.add(_addGlobalMetadata(expression));
-    }
+    _codegenWorldBuilder.forEachParameter(function,
+        (_, String name, ConstantValue constant) {
+      if (constant == null) return;
+      jsAst.Expression expression = _emitter.constantReference(constant);
+      defaultValues.add(_addGlobalMetadata(expression, outputUnit));
+    });
     return defaultValues;
   }
 
-  Map<ParameterElement, ParameterElement>
-      mapRedirectingFactoryConstructorOptionalParameters(
-          FunctionSignature source, FunctionSignature target) {
-    var map = <ParameterElement, ParameterElement>{};
-
-    if (source.optionalParametersAreNamed !=
-        target.optionalParametersAreNamed) {
-      // No legal optional arguments due to mismatch between named vs positional
-      // optional arguments.
-      return map;
-    }
-
-    if (source.optionalParametersAreNamed) {
-      for (ParameterElement element in source.optionalParameters) {
-        for (ParameterElement redirectedElement in target.optionalParameters) {
-          if (element.name == redirectedElement.name) {
-            map[element] = redirectedElement;
-            break;
-          }
-        }
-      }
-    } else {
-      int i = source.requiredParameterCount;
-      for (ParameterElement element in source.orderedOptionalParameters) {
-        if (i >= target.requiredParameterCount && i < target.parameterCount) {
-          map[element] = target
-              .orderedOptionalParameters[i - target.requiredParameterCount];
-        }
-        ++i;
-      }
-    }
-    return map;
+  jsAst.Expression reifyType(DartType type, OutputUnit outputUnit) {
+    return addTypeInOutputUnit(type, outputUnit);
   }
 
-  jsAst.Expression reifyMetadata(MetadataAnnotation annotation) {
-    ConstantValue constant = _constants.getConstantValueForMetadata(annotation);
-    if (constant == null) {
-      reporter.internalError(annotation, 'Annotation value is null.');
-      return null;
-    }
-    return _addGlobalMetadata(_emitter.constantReference(constant));
+  jsAst.Expression reifyName(String name, OutputUnit outputUnit) {
+    return _addGlobalMetadata(js.string(name), outputUnit);
   }
 
-  jsAst.Expression reifyType(ResolutionDartType type,
-      {ignoreTypeVariables: false}) {
-    return reifyTypeForOutputUnit(type, _deferredLoadTask.mainOutputUnit,
-        ignoreTypeVariables: ignoreTypeVariables);
+  jsAst.Expression reifyExpression(
+      jsAst.Expression expression, OutputUnit outputUnit) {
+    return _addGlobalMetadata(expression, outputUnit);
   }
 
-  jsAst.Expression reifyTypeForOutputUnit(
-      ResolutionDartType type, OutputUnit outputUnit,
-      {ignoreTypeVariables: false}) {
-    return addTypeInOutputUnit(type, outputUnit,
-        ignoreTypeVariables: ignoreTypeVariables);
-  }
-
-  jsAst.Expression reifyName(String name) {
-    return _addGlobalMetadata(js.string(name));
-  }
-
-  jsAst.Expression reifyExpression(jsAst.Expression expression) {
-    return _addGlobalMetadata(expression);
-  }
-
-  Placeholder getMetadataPlaceholder([debug]) {
-    return new _ForwardingMetadataEntry(debug);
-  }
-
-  _MetadataEntry _addGlobalMetadata(jsAst.Node node) {
+  _MetadataEntry _addGlobalMetadata(jsAst.Node node, OutputUnit outputUnit) {
     String nameToKey(jsAst.Name name) => "${name.key}";
-    String printed =
-        jsAst.prettyPrint(node, _options, renamerForNames: nameToKey);
-    return _globalMetadataMap.putIfAbsent(printed, () {
+    String printed = jsAst.prettyPrint(node,
+        enableMinification: _options.enableMinification,
+        renamerForNames: nameToKey);
+    _metadataMap[outputUnit] ??= new Map<String, _BoundMetadataEntry>();
+    return _metadataMap[outputUnit].putIfAbsent(printed, () {
       return new _BoundMetadataEntry(node);
     });
   }
 
-  jsAst.Expression _computeTypeRepresentation(ResolutionDartType type,
-      {ignoreTypeVariables: false}) {
+  jsAst.Expression _computeTypeRepresentation(DartType type) {
     jsAst.Expression representation =
         _rtiEncoder.getTypeRepresentation(_emitter, type, (variable) {
-      if (ignoreTypeVariables) return new jsAst.LiteralNull();
-      return _typeVariableCodegenAnalysis.reifyTypeVariable(variable.element);
-    }, (ResolutionTypedefType typedef) {
-      return _mirrorsData.isTypedefAccessibleByReflection(typedef.element);
+      failedAt(
+          NO_LOCATION_SPANNABLE,
+          "Type representation for type variable $variable in "
+          "$type is not supported.");
+      return jsAst.LiteralNull();
+    }, (TypedefType typedef) {
+      return false;
     });
 
     if (representation is jsAst.LiteralString) {
@@ -373,44 +182,15 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     return representation;
   }
 
-  jsAst.Expression addTypeInOutputUnit(
-      ResolutionDartType type, OutputUnit outputUnit,
-      {ignoreTypeVariables: false}) {
-    if (_typesMap[outputUnit] == null) {
-      _typesMap[outputUnit] =
-          new Map<ResolutionDartType, _BoundMetadataEntry>();
-    }
+  jsAst.Expression addTypeInOutputUnit(DartType type, OutputUnit outputUnit) {
+    _typesMap[outputUnit] ??= new Map<DartType, _BoundMetadataEntry>();
     return _typesMap[outputUnit].putIfAbsent(type, () {
-      return new _BoundMetadataEntry(_computeTypeRepresentation(type,
-          ignoreTypeVariables: ignoreTypeVariables));
-    });
-  }
-
-  List<jsAst.DeferredNumber> computeMetadata(MethodElement element) {
-    return reporter.withCurrentElement(element, () {
-      if (!_mustEmitMetadataForMember(element))
-        return const <jsAst.DeferredNumber>[];
-      List<jsAst.DeferredNumber> metadata = <jsAst.DeferredNumber>[];
-      for (MetadataAnnotation annotation in element.metadata) {
-        metadata.add(reifyMetadata(annotation));
-      }
-      return metadata;
+      return new _BoundMetadataEntry(_computeTypeRepresentation(type));
     });
   }
 
   @override
   void finalizeTokens() {
-    bool checkTokensInTypes(OutputUnit outputUnit, entries) {
-      UnBoundDebugger debugger = new UnBoundDebugger(outputUnit);
-      for (_BoundMetadataEntry entry in entries) {
-        if (!entry.isUsed) continue;
-        if (debugger.findUnboundPlaceholders(entry.entry)) {
-          return false;
-        }
-      }
-      return true;
-    }
-
     void countTokensInTypes(Iterable<_BoundMetadataEntry> entries) {
       jsAst.TokenCounter counter = new jsAst.TokenCounter();
       entries
@@ -437,36 +217,23 @@ class MetadataCollector implements jsAst.TokenFinalizer {
       return new jsAst.ArrayInitializer(values);
     }
 
-    _globalMetadata.setExpression(finalizeMap(_globalMetadataMap));
+    _metadataTokens.forEach((OutputUnit outputUnit, _MetadataList token) {
+      Map metadataMap = _metadataMap[outputUnit];
+      if (metadataMap != null) {
+        token.setExpression(finalizeMap(metadataMap));
+      } else {
+        token.setExpression(new jsAst.ArrayInitializer([]));
+      }
+    });
 
     _typesTokens.forEach((OutputUnit outputUnit, _MetadataList token) {
       Map typesMap = _typesMap[outputUnit];
       if (typesMap != null) {
-        assert(checkTokensInTypes(outputUnit, typesMap.values));
         countTokensInTypes(typesMap.values);
         token.setExpression(finalizeMap(typesMap));
       } else {
         token.setExpression(new jsAst.ArrayInitializer([]));
       }
     });
-  }
-}
-
-class UnBoundDebugger extends jsAst.BaseVisitor {
-  OutputUnit outputUnit;
-  bool _foundUnboundToken = false;
-
-  UnBoundDebugger(this.outputUnit);
-
-  @override
-  visitDeferredNumber(jsAst.DeferredNumber token) {
-    if (token is _ForwardingMetadataEntry && !token.isBound) {
-      _foundUnboundToken = true;
-    }
-  }
-
-  bool findUnboundPlaceholders(jsAst.Node node) {
-    node.accept(this);
-    return _foundUnboundToken;
   }
 }

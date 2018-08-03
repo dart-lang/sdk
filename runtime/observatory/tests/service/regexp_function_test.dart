@@ -20,7 +20,7 @@ void script() {
   expect(matches.length, equals(3));
 }
 
-var tests = [
+var tests = <IsolateTest>[
   (Isolate isolate) async {
     Library lib = isolate.rootLibrary;
     await lib.load();

@@ -4,9 +4,8 @@
 
 library analyzer.tool.task_dependency_graph.check_test;
 
-import 'dart:io';
-
 import 'package:front_end/src/codegen/tools.dart';
+import 'package:front_end/src/testing/package_root.dart' as package_root;
 import 'package:path/path.dart';
 
 import 'generate.dart';
@@ -15,9 +14,8 @@ import 'generate.dart';
  * Check that the target file has been code generated.  If it hasn't tell the
  * user to run generate.dart.
  */
-main() {
-  String script = Platform.script.toFilePath(windows: Platform.isWindows);
-  String pkgPath = normalize(join(dirname(script), '..', '..'));
-  GeneratedContent.checkAll(pkgPath, 'tool/task_dependency_graph/generate.dart',
-      <GeneratedContent>[target]);
+main() async {
+  String pkgPath = normalize(join(package_root.packageRoot, 'analyzer'));
+  await GeneratedContent.checkAll(pkgPath,
+      'tool/task_dependency_graph/generate.dart', <GeneratedContent>[target]);
 }

@@ -80,7 +80,7 @@ class ClassFinalizer : public AllStatic {
   // failed. The function returns true if the processing was successful.
   // If processing fails, an error message is set in the sticky error field
   // in the object store.
-  static bool ProcessPendingClasses(bool from_kernel = false);
+  static bool ProcessPendingClasses();
 
   // Finalize the types appearing in the declaration of class 'cls', i.e. its
   // type parameters and their upper bounds, its super type and interfaces.

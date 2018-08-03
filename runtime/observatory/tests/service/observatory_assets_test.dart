@@ -8,7 +8,7 @@ import 'package:unittest/unittest.dart';
 
 import 'test_helper.dart';
 
-var tests = [
+var tests = <VMTest>[
   (VM vm) async {
     // Simple heartbeat test to ensure we can fetch Observatory resources.
     var heartBeatUrl =

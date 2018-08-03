@@ -38,7 +38,7 @@ class InboundReferencesElement extends HtmlElement implements Renderable {
     assert(references != null);
     assert(objects != null);
     InboundReferencesElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<InboundReferencesElement>(e, queue: queue);
     e._isolate = isolate;
     e._object = object;
     e._references = references;
@@ -57,23 +57,24 @@ class InboundReferencesElement extends HtmlElement implements Renderable {
   @override
   void detached() {
     super.detached();
-    children = [];
+    children = <Element>[];
     _r.disable(notify: true);
   }
 
   void render() {
-    children = [
-      new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
-        ..content = _createContent()
-        ..onToggle.listen((e) async {
-          _expanded = e.control.expanded;
-          if (_expanded) {
-            e.control.disabled = true;
-            await _refresh();
-            e.control.disabled = false;
-          }
-        })
-    ];
+    final curlyBlock =
+        new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
+          ..content = _createContent()
+          ..onToggle.listen((e) async {
+            _expanded = e.control.expanded;
+            if (_expanded) {
+              e.control.disabled = true;
+              await _refresh();
+              e.control.disabled = false;
+            }
+          });
+    children = <Element>[curlyBlock];
+    _r.waitFor([curlyBlock.onRendered.first]);
   }
 
   Future _refresh() async {
@@ -85,7 +86,7 @@ class InboundReferencesElement extends HtmlElement implements Renderable {
     if (_inbounds == null) {
       return const [];
     }
-    return _inbounds.elements.map(_createItem).toList();
+    return _inbounds.elements.map<Element>(_createItem).toList();
   }
 
   Element _createItem(M.InboundReference reference) {

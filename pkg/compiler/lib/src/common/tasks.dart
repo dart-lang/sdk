@@ -49,7 +49,7 @@ abstract class CompilerTask {
   }
 
   Duration get duration {
-    if (_isDisabled) return Duration.ZERO;
+    if (_isDisabled) return Duration.zero;
     Duration total = _watch.elapsed;
     for (GenericTask subtask in _subtasks.values) {
       total += subtask.duration;
@@ -60,7 +60,7 @@ abstract class CompilerTask {
   /// Perform [action] and measure its runtime (including any asynchronous
   /// callbacks, such as, [Future.then], but excluding code measured by other
   /// tasks).
-  measure(action()) => _isDisabled ? action() : _measureZoned(action);
+  T measure<T>(T action()) => _isDisabled ? action() : _measureZoned(action);
 
   /// Helper method that starts measuring with this [CompilerTask], that is,
   /// make this task the currently measured task.
@@ -91,7 +91,7 @@ abstract class CompilerTask {
     measurer.currentTask = previous;
   }
 
-  _measureZoned(action()) {
+  T _measureZoned<T>(T action()) {
     // Using zones, we're able to track asynchronous operations correctly, as
     // our zone will be asked to invoke `then` blocks. Then blocks (the closure
     // passed to runZoned, and other closures) are run via the `run` functions
@@ -115,7 +115,7 @@ abstract class CompilerTask {
   /// of other measuring zones, but we still need to call through the parent
   /// chain. Consequently, we use a zone value keyed by [measurer] to see if
   /// we should measure or not when delegating.
-  _run(Zone self, ZoneDelegate parent, Zone zone, f()) {
+  R _run<R>(Zone self, ZoneDelegate parent, Zone zone, R f()) {
     if (zone[measurer] != this) return parent.run(zone, f);
     CompilerTask previous = _start();
     try {
@@ -126,7 +126,8 @@ abstract class CompilerTask {
   }
 
   /// Same as [run] except that [f] takes one argument, [arg].
-  _runUnary(Zone self, ZoneDelegate parent, Zone zone, f(arg), arg) {
+  R _runUnary<R, T>(
+      Zone self, ZoneDelegate parent, Zone zone, R f(T arg), T arg) {
     if (zone[measurer] != this) return parent.runUnary(zone, f, arg);
     CompilerTask previous = _start();
     try {
@@ -137,7 +138,8 @@ abstract class CompilerTask {
   }
 
   /// Same as [run] except that [f] takes two arguments ([a1] and [a2]).
-  _runBinary(Zone self, ZoneDelegate parent, Zone zone, f(a1, a2), a1, a2) {
+  R _runBinary<R, T1, T2>(Zone self, ZoneDelegate parent, Zone zone,
+      R f(T1 a1, T2 a2), T1 a1, T2 a2) {
     if (zone[measurer] != this) return parent.runBinary(zone, f, a1, a2);
     CompilerTask previous = _start();
     try {

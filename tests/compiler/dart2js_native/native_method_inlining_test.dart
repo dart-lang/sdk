@@ -53,35 +53,28 @@ A makeA() native;
 
 String findMethodTextContaining(instance, string) native;
 
-void setup() native r"""
-function A() {}
-A.prototype.foo = function () { return arguments.length; };
-A.prototype.callFun = function (fn) { return fn ? fn(123) : 1; };
+void setup() {
+  JS('', r"""
+(function(){
+  function A() {}
+  A.prototype.foo = function () { return arguments.length; };
+  A.prototype.callFun = function (fn) { return fn ? fn(123) : 1; };
 
-makeA = function(){return new A;};
+  makeA = function(){return new A()};
 
-findMethodTextContaining = function (instance, string) {
-  var proto = Object.getPrototypeOf(instance);
-  var keys = Object.keys(proto);
-  for (var i = 0; i < keys.length; i++) {
-    var name = keys[i];
-    var member = proto[name];
-    var s = String(member);
-    if (s.indexOf(string)>0) return s;
-  }
-};
+  findMethodTextContaining = function (instance, string) {
+    var proto = Object.getPrototypeOf(instance);
+    var keys = Object.keys(proto);
+    for (var i = 0; i < keys.length; i++) {
+      var name = keys[i];
+      var member = proto[name];
+      var s = String(member);
+      if (s.indexOf(string)>0) return s;
+    }
+  };
 
-self.nativeConstructor(A);
-""";
-
-bool get isCheckedMode {
-  int i = 0;
-  try {
-    i = 'a';
-  } catch (e) {
-    return true;
-  }
-  return false;
+  self.nativeConstructor(A);
+})()""");
 }
 
 void match(String s, String pattern1) {
@@ -100,19 +93,11 @@ test1() {
   String method1 = findMethodTextContaining(new B(), '(Method1Tag)');
   Expect.isNotNull(method1, 'No method found containing "(Method1Tag)"');
 
-  if (isCheckedMode) {
-    match(method1, r'foo()');
-    // TODO: inlining in checked mode.
-    nomatch(method1, r'foo(1)');
-    //  t1.foo$3(x, 3, 10, 30)  or  y.EL(z,3,10,30)
-    match(method1, r', 3, 10, 30)');
-  } else {
-    // Direct (inlined) calls don't have $3 or minified names.
-    match(method1, r'.foo()');
-    match(method1, r'.foo(1)');
-    match(method1, r'.foo(2, 10)');
-    match(method1, r'.foo(3, 10, 30)');
-  }
+  // Direct (inlined) calls don't have $3 or minified names.
+  match(method1, r'.foo()');
+  match(method1, r'.foo(1)');
+  match(method1, r'.foo(2, 10)');
+  match(method1, r'.foo(3, 10, 30)');
 
   // Ensure the methods are compiled by calling them.
   var a = makeA();

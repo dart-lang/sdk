@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_IO_DISABLED)
-
 #include "bin/filter.h"
 
 #include "bin/dartutils.h"
@@ -33,7 +31,6 @@ static Dart_Handle GetFilter(Dart_Handle filter_obj, Filter** filter) {
   *filter = result;
   return Dart_Null();
 }
-
 
 static Dart_Handle CopyDictionary(Dart_Handle dictionary_obj,
                                   uint8_t** dictionary) {
@@ -68,7 +65,6 @@ static Dart_Handle CopyDictionary(Dart_Handle dictionary_obj,
   *dictionary = result;
   return Dart_Null();
 }
-
 
 void FUNCTION_NAME(Filter_CreateZLibInflate)(Dart_NativeArguments args) {
   Dart_Handle filter_obj = Dart_GetNativeArgument(args, 0);
@@ -114,7 +110,6 @@ void FUNCTION_NAME(Filter_CreateZLibInflate)(Dart_NativeArguments args) {
     Dart_PropagateError(err);
   }
 }
-
 
 void FUNCTION_NAME(Filter_CreateZLibDeflate)(Dart_NativeArguments args) {
   Dart_Handle filter_obj = Dart_GetNativeArgument(args, 0);
@@ -171,7 +166,6 @@ void FUNCTION_NAME(Filter_CreateZLibDeflate)(Dart_NativeArguments args) {
     Dart_PropagateError(result);
   }
 }
-
 
 void FUNCTION_NAME(Filter_Process)(Dart_NativeArguments args) {
   Dart_Handle filter_obj = Dart_GetNativeArgument(args, 0);
@@ -230,7 +224,6 @@ void FUNCTION_NAME(Filter_Process)(Dart_NativeArguments args) {
   }
 }
 
-
 void FUNCTION_NAME(Filter_Processed)(Dart_NativeArguments args) {
   Dart_Handle filter_obj = Dart_GetNativeArgument(args, 0);
   Dart_Handle flush_obj = Dart_GetNativeArgument(args, 1);
@@ -253,11 +246,14 @@ void FUNCTION_NAME(Filter_Processed)(Dart_NativeArguments args) {
   } else {
     uint8_t* io_buffer;
     Dart_Handle result = IOBuffer::Allocate(read, &io_buffer);
+    if (Dart_IsNull(result)) {
+      Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+      return;
+    }
     memmove(io_buffer, filter->processed_buffer(), read);
     Dart_SetReturnValue(args, result);
   }
 }
-
 
 static void DeleteFilter(void* isolate_data,
                          Dart_WeakPersistentHandle handle,
@@ -265,7 +261,6 @@ static void DeleteFilter(void* isolate_data,
   Filter* filter = reinterpret_cast<Filter*>(filter_pointer);
   delete filter;
 }
-
 
 Dart_Handle Filter::SetFilterAndCreateFinalizer(Dart_Handle filter,
                                                 Filter* filter_pointer,
@@ -281,14 +276,12 @@ Dart_Handle Filter::SetFilterAndCreateFinalizer(Dart_Handle filter,
   return err;
 }
 
-
 Dart_Handle Filter::GetFilterNativeField(Dart_Handle filter,
                                          Filter** filter_pointer) {
   return Dart_GetNativeInstanceField(
       filter, kFilterPointerNativeField,
       reinterpret_cast<intptr_t*>(filter_pointer));
 }
-
 
 ZLibDeflateFilter::~ZLibDeflateFilter() {
   delete[] dictionary_;
@@ -297,7 +290,6 @@ ZLibDeflateFilter::~ZLibDeflateFilter() {
     deflateEnd(&stream_);
   }
 }
-
 
 bool ZLibDeflateFilter::Init() {
   int window_bits = window_bits_;
@@ -326,7 +318,6 @@ bool ZLibDeflateFilter::Init() {
   set_initialized(true);
   return true;
 }
-
 
 bool ZLibDeflateFilter::Process(uint8_t* data, intptr_t length) {
   if (current_buffer_ != NULL) {
@@ -367,7 +358,6 @@ intptr_t ZLibDeflateFilter::Processed(uint8_t* buffer,
   return error ? -1 : 0;
 }
 
-
 ZLibInflateFilter::~ZLibInflateFilter() {
   delete[] dictionary_;
   delete[] current_buffer_;
@@ -375,7 +365,6 @@ ZLibInflateFilter::~ZLibInflateFilter() {
     inflateEnd(&stream_);
   }
 }
-
 
 bool ZLibInflateFilter::Init() {
   int window_bits =
@@ -394,7 +383,6 @@ bool ZLibInflateFilter::Init() {
   return true;
 }
 
-
 bool ZLibInflateFilter::Process(uint8_t* data, intptr_t length) {
   if (current_buffer_ != NULL) {
     return false;
@@ -403,7 +391,6 @@ bool ZLibInflateFilter::Process(uint8_t* data, intptr_t length) {
   stream_.next_in = current_buffer_ = data;
   return true;
 }
-
 
 intptr_t ZLibInflateFilter::Processed(uint8_t* buffer,
                                       intptr_t length,
@@ -456,5 +443,3 @@ intptr_t ZLibInflateFilter::Processed(uint8_t* buffer,
 
 }  // namespace bin
 }  // namespace dart
-
-#endif  // !defined(DART_IO_DISABLED)

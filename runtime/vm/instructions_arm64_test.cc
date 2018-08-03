@@ -5,7 +5,7 @@
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_ARM64)
 
-#include "vm/assembler.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/cpu.h"
 #include "vm/instructions.h"
 #include "vm/stub_code.h"
@@ -22,7 +22,6 @@ ASSEMBLER_TEST_GENERATE(Call, assembler) {
   __ ret();
 }
 
-
 ASSEMBLER_TEST_RUN(Call, test) {
   // The return address, which must be the address of an instruction contained
   // in the code, points to the Ret instruction above, i.e. one instruction
@@ -31,7 +30,6 @@ ASSEMBLER_TEST_RUN(Call, test) {
   CallPattern call(end - Instr::kInstrSize, test->code());
   EXPECT_EQ(StubCode::InvokeDartCode_entry()->code(), call.TargetCode());
 }
-
 
 }  // namespace dart
 

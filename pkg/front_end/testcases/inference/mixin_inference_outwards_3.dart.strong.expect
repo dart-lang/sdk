@@ -1,0 +1,35 @@
+// Errors:
+//
+// pkg/front_end/testcases/inference/mixin_inference_outwards_3.dart:15:38: Error: 'A' can't implement both '#lib1::I<dynamic>' and '#lib1::I<dart.core::int>'
+// class /*@error=AmbiguousSupertypes*/ A extends Object with M0, M1<int> {}
+//                                      ^
+
+library;
+import self as self;
+import "dart:core" as core;
+
+class I<X extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class M0<T extends core::Object = dynamic> extends core::Object implements self::I<self::M0::T> {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class M1<T extends core::Object = dynamic> extends self::I<self::M1::T> {
+  synthetic constructor •() → void
+    : super self::I::•()
+    ;
+}
+abstract class _A&Object&M0 = core::Object with self::M0<dynamic> {
+}
+abstract class _A&Object&M0&M1 = self::_A&Object&M0 with self::M1<core::int> {
+}
+class A extends self::_A&Object&M0&M1 {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

@@ -7,385 +7,246 @@
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
-#include <map>
-
 #include "vm/kernel.h"
-#include "vm/kernel_to_il.h"
 #include "vm/object.h"
 
 namespace dart {
 namespace kernel {
 
+// Keep in sync with package:kernel/lib/binary/tag.dart,
+// package:kernel/binary.md.
 
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
+static const uint32_t kBinaryFormatVersion = 9;
 
+// Keep in sync with package:kernel/lib/binary/tag.dart
+#define KERNEL_TAG_LIST(V)                                                     \
+  V(Nothing, 0)                                                                \
+  V(Something, 1)                                                              \
+  V(Class, 2)                                                                  \
+  V(FunctionNode, 3)                                                           \
+  V(Field, 4)                                                                  \
+  V(Constructor, 5)                                                            \
+  V(Procedure, 6)                                                              \
+  V(RedirectingFactoryConstructor, 108)                                        \
+  V(InvalidInitializer, 7)                                                     \
+  V(FieldInitializer, 8)                                                       \
+  V(SuperInitializer, 9)                                                       \
+  V(RedirectingInitializer, 10)                                                \
+  V(LocalInitializer, 11)                                                      \
+  V(AssertInitializer, 12)                                                     \
+  V(CheckLibraryIsLoaded, 13)                                                  \
+  V(LoadLibrary, 14)                                                           \
+  V(DirectPropertyGet, 15)                                                     \
+  V(DirectPropertySet, 16)                                                     \
+  V(DirectMethodInvocation, 17)                                                \
+  V(ConstStaticInvocation, 18)                                                 \
+  V(InvalidExpression, 19)                                                     \
+  V(VariableGet, 20)                                                           \
+  V(VariableSet, 21)                                                           \
+  V(PropertyGet, 22)                                                           \
+  V(PropertySet, 23)                                                           \
+  V(SuperPropertyGet, 24)                                                      \
+  V(SuperPropertySet, 25)                                                      \
+  V(StaticGet, 26)                                                             \
+  V(StaticSet, 27)                                                             \
+  V(MethodInvocation, 28)                                                      \
+  V(SuperMethodInvocation, 29)                                                 \
+  V(StaticInvocation, 30)                                                      \
+  V(ConstructorInvocation, 31)                                                 \
+  V(ConstConstructorInvocation, 32)                                            \
+  V(Not, 33)                                                                   \
+  V(LogicalExpression, 34)                                                     \
+  V(ConditionalExpression, 35)                                                 \
+  V(StringConcatenation, 36)                                                   \
+  V(IsExpression, 37)                                                          \
+  V(AsExpression, 38)                                                          \
+  V(StringLiteral, 39)                                                         \
+  V(DoubleLiteral, 40)                                                         \
+  V(TrueLiteral, 41)                                                           \
+  V(FalseLiteral, 42)                                                          \
+  V(NullLiteral, 43)                                                           \
+  V(SymbolLiteral, 44)                                                         \
+  V(TypeLiteral, 45)                                                           \
+  V(ThisExpression, 46)                                                        \
+  V(Rethrow, 47)                                                               \
+  V(Throw, 48)                                                                 \
+  V(ListLiteral, 49)                                                           \
+  V(MapLiteral, 50)                                                            \
+  V(AwaitExpression, 51)                                                       \
+  V(FunctionExpression, 52)                                                    \
+  V(Let, 53)                                                                   \
+  V(Instantiation, 54)                                                         \
+  V(PositiveIntLiteral, 55)                                                    \
+  V(NegativeIntLiteral, 56)                                                    \
+  V(BigIntLiteral, 57)                                                         \
+  V(ConstListLiteral, 58)                                                      \
+  V(ConstMapLiteral, 59)                                                       \
+  V(ExpressionStatement, 61)                                                   \
+  V(Block, 62)                                                                 \
+  V(EmptyStatement, 63)                                                        \
+  V(AssertStatement, 64)                                                       \
+  V(LabeledStatement, 65)                                                      \
+  V(BreakStatement, 66)                                                        \
+  V(WhileStatement, 67)                                                        \
+  V(DoStatement, 68)                                                           \
+  V(ForStatement, 69)                                                          \
+  V(ForInStatement, 70)                                                        \
+  V(SwitchStatement, 71)                                                       \
+  V(ContinueSwitchStatement, 72)                                               \
+  V(IfStatement, 73)                                                           \
+  V(ReturnStatement, 74)                                                       \
+  V(TryCatch, 75)                                                              \
+  V(TryFinally, 76)                                                            \
+  V(YieldStatement, 77)                                                        \
+  V(VariableDeclaration, 78)                                                   \
+  V(FunctionDeclaration, 79)                                                   \
+  V(AsyncForInStatement, 80)                                                   \
+  V(AssertBlock, 81)                                                           \
+  V(TypedefType, 87)                                                           \
+  V(VectorType, 88)                                                            \
+  V(BottomType, 89)                                                            \
+  V(InvalidType, 90)                                                           \
+  V(DynamicType, 91)                                                           \
+  V(VoidType, 92)                                                              \
+  V(InterfaceType, 93)                                                         \
+  V(FunctionType, 94)                                                          \
+  V(TypeParameterType, 95)                                                     \
+  V(SimpleInterfaceType, 96)                                                   \
+  V(SimpleFunctionType, 97)                                                    \
+  V(NullReference, 99)                                                         \
+  V(ClassReference, 100)                                                       \
+  V(MemberReference, 101)                                                      \
+  V(VectorCreation, 102)                                                       \
+  V(VectorGet, 103)                                                            \
+  V(VectorSet, 104)                                                            \
+  V(VectorCopy, 105)                                                           \
+  V(ClosureCreation, 106)                                                      \
+  V(ConstantExpression, 107)                                                   \
+  V(SpecializedVariableGet, 128)                                               \
+  V(SpecializedVariableSet, 136)                                               \
+  V(SpecializedIntLiteral, 144)
 
-// Keep in sync with package:dynamo/lib/binary/tag.dart
+static const intptr_t kSpecializedTagHighBit = 0x80;
+static const intptr_t kSpecializedTagMask = 0xf8;
+static const intptr_t kSpecializedPayloadMask = 0x7;
+
 enum Tag {
-  kNothing = 0,
-  kSomething = 1,
-
-  kClass = 2,
-
-  kField = 4,
-  kConstructor = 5,
-  kProcedure = 6,
-
-  kInvalidInitializer = 7,
-  kFieldInitializer = 8,
-  kSuperInitializer = 9,
-  kRedirectingInitializer = 10,
-  kLocalInitializer = 11,
-
-  kDirectPropertyGet = 15,
-  kDirectPropertySet = 16,
-  kDirectMethodInvocation = 17,
-  kConstStaticInvocation = 18,
-  kInvalidExpression = 19,
-  kVariableGet = 20,
-  kVariableSet = 21,
-  kPropertyGet = 22,
-  kPropertySet = 23,
-  kSuperPropertyGet = 24,
-  kSuperPropertySet = 25,
-  kStaticGet = 26,
-  kStaticSet = 27,
-  kMethodInvocation = 28,
-  kSuperMethodInvocation = 29,
-  kStaticInvocation = 30,
-  kConstructorInvocation = 31,
-  kConstConstructorInvocation = 32,
-  kNot = 33,
-  kLogicalExpression = 34,
-  kConditionalExpression = 35,
-  kStringConcatenation = 36,
-  kIsExpression = 37,
-  kAsExpression = 38,
-  kStringLiteral = 39,
-  kDoubleLiteral = 40,
-  kTrueLiteral = 41,
-  kFalseLiteral = 42,
-  kNullLiteral = 43,
-  kSymbolLiteral = 44,
-  kTypeLiteral = 45,
-  kThisExpression = 46,
-  kRethrow = 47,
-  kThrow = 48,
-  kListLiteral = 49,
-  kMapLiteral = 50,
-  kAwaitExpression = 51,
-  kFunctionExpression = 52,
-  kLet = 53,
-
-  kPositiveIntLiteral = 55,
-  kNegativeIntLiteral = 56,
-  kBigIntLiteral = 57,
-  kConstListLiteral = 58,
-  kConstMapLiteral = 59,
-
-  kInvalidStatement = 60,
-  kExpressionStatement = 61,
-  kBlock = 62,
-  kEmptyStatement = 63,
-  kAssertStatement = 64,
-  kLabeledStatement = 65,
-  kBreakStatement = 66,
-  kWhileStatement = 67,
-  kDoStatement = 68,
-  kForStatement = 69,
-  kForInStatement = 70,
-  kSwitchStatement = 71,
-  kContinueSwitchStatement = 72,
-  kIfStatement = 73,
-  kReturnStatement = 74,
-  kTryCatch = 75,
-  kTryFinally = 76,
-  kYieldStatement = 77,
-  kVariableDeclaration = 78,
-  kFunctionDeclaration = 79,
-  kAsyncForInStatement = 80,
-
-  kTypedefType = 87,
-  kVectorType = 88,
-  kBottomType = 89,
-  kInvalidType = 90,
-  kDynamicType = 91,
-  kVoidType = 92,
-  kInterfaceType = 93,
-  kFunctionType = 94,
-  kTypeParameterType = 95,
-  kSimpleInterfaceType = 96,
-  kSimpleFunctionType = 97,
-
-  kVectorCreation = 102,
-  kVectorGet = 103,
-  kVectorSet = 104,
-  kVectorCopy = 105,
-
-  kClosureCreation = 106,
-
-  kSpecializedTagHighBit = 0x80,  // 10000000
-  kSpecializedTagMask = 0xF8,     // 11111000
-  kSpecializedPayloadMask = 0x7,  // 00000111
-
-  kSpecializedVariableGet = 128,
-  kSpecializedVariableSet = 136,
-  kSpecialIntLiteral = 144,
+#define DECLARE(Name, value) k##Name = value,
+  KERNEL_TAG_LIST(DECLARE)
+#undef DECLARE
 };
 
+// Keep in sync with package:kernel/lib/binary/tag.dart
+enum ConstantTag {
+  kNullConstant = 0,
+  kBoolConstant = 1,
+  kIntConstant = 2,
+  kDoubleConstant = 3,
+  kStringConstant = 4,
+  kMapConstant = 5,
+  kListConstant = 6,
+  kInstanceConstant = 7,
+  kPartialInstantiationConstant = 8,
+  kTearOffConstant = 9,
+  kTypeLiteralConstant = 10,
+};
 
 static const int SpecializedIntLiteralBias = 3;
+static const int LibraryCountFieldCountFromEnd = 1;
+static const int SourceTableFieldCountFromFirstLibraryOffset = 6;
 
+static const int HeaderSize = 8;  // 'magic', 'formatVersion'.
 
-template <typename T>
-class BlockStack {
- public:
-  BlockStack() : current_count_(0) {}
-
-  void EnterScope() {
-    variable_count_.Add(current_count_);
-    current_count_ = 0;
-  }
-
-  void LeaveScope() {
-    variables_.TruncateTo(variables_.length() - current_count_);
-    current_count_ = variable_count_[variable_count_.length() - 1];
-    variable_count_.RemoveLast();
-  }
-
-  T* Lookup(int index) {
-    ASSERT(index < variables_.length());
-    return variables_[index];
-  }
-
-  void Push(T* v) {
-    variables_.Add(v);
-    current_count_++;
-  }
-
-  void Push(List<T>* decl) {
-    for (intptr_t i = 0; i < decl->length(); i++) {
-      variables_.Add(decl[i]);
-      current_count_++;
-    }
-  }
-
-  void Pop(T* decl) {
-    variables_.RemoveLast();
-    current_count_--;
-  }
-
-  void Pop(List<T>* decl) {
-    variables_.TruncateTo(variables_.length() - decl->length());
-    current_count_ -= decl->length();
-  }
-
- private:
-  int current_count_;
-  MallocGrowableArray<T*> variables_;
-  MallocGrowableArray<int> variable_count_;
-};
-
-
-template <typename T>
-class BlockMap {
- public:
-  BlockMap() : current_count_(0), stack_height_(0) {}
-
-  void EnterScope() {
-    variable_count_.Add(current_count_);
-    current_count_ = 0;
-  }
-
-  void LeaveScope() {
-    stack_height_ -= current_count_;
-    current_count_ = variable_count_[variable_count_.length() - 1];
-    variable_count_.RemoveLast();
-  }
-
-  int Lookup(T* object) {
-    typename MallocMap<T, int>::Pair* result = variables_.LookupPair(object);
-    ASSERT(result != NULL);
-    if (result == NULL) FATAL("lookup failure");
-    return RawPointerKeyValueTrait<T, int>::ValueOf(*result);
-  }
-
-  void Push(T* v) {
-    ASSERT(variables_.LookupPair(v) == NULL);
-    int index = stack_height_++;
-    variables_.Insert(v, index);
-    current_count_++;
-  }
-
-  void Set(T* v, int index) {
-    typename MallocMap<T, int>::Pair* entry = variables_.LookupPair(v);
-    ASSERT(entry != NULL);
-    entry->value = index;
-  }
-
-  void Push(List<T>* decl) {
-    for (intptr_t i = 0; i < decl->length(); i++) {
-      Push(decl[i]);
-    }
-  }
-
-  void Pop(T* v) {
-    current_count_--;
-    stack_height_--;
-  }
-
- private:
-  int current_count_;
-  int stack_height_;
-  MallocMap<T, int> variables_;
-  MallocGrowableArray<int> variable_count_;
-};
-
-
-template <typename T>
-class VariableScope {
- public:
-  explicit VariableScope(T* builder) : builder_(builder) {
-    builder_->variables().EnterScope();
-  }
-  ~VariableScope() { builder_->variables().LeaveScope(); }
-
- private:
-  T* builder_;
-};
-
-
-template <typename T>
-class TypeParameterScope {
- public:
-  explicit TypeParameterScope(T* builder) : builder_(builder) {
-    builder_->type_parameters().EnterScope();
-  }
-  ~TypeParameterScope() { builder_->type_parameters().LeaveScope(); }
-
- private:
-  T* builder_;
-};
-
-
-// Unlike other scopes, labels from enclosing functions are not visible in
-// nested functions.  The LabelScope class is used to hide outer labels.
-template <typename Builder, typename Block>
-class LabelScope {
- public:
-  explicit LabelScope(Builder* builder) : builder_(builder) {
-    outer_block_ = builder_->labels();
-    builder_->set_labels(&block_);
-  }
-  ~LabelScope() { builder_->set_labels(outer_block_); }
-
- private:
-  Builder* builder_;
-  Block block_;
-  Block* outer_block_;
-};
-
-
-class ReaderHelper {
- public:
-  ReaderHelper() : program_(NULL), labels_(NULL) {}
-
-  Program* program() { return program_; }
-  void set_program(Program* program) { program_ = program; }
-
-  BlockStack<VariableDeclaration>& variables() { return scope_; }
-  BlockStack<TypeParameter>& type_parameters() { return type_parameters_; }
-
-  BlockStack<LabeledStatement>* labels() { return labels_; }
-  void set_labels(BlockStack<LabeledStatement>* labels) { labels_ = labels; }
-
- private:
-  Program* program_;
-  BlockStack<VariableDeclaration> scope_;
-  BlockStack<TypeParameter> type_parameters_;
-  BlockStack<LabeledStatement>* labels_;
-};
-
-
-class Reader {
+class Reader : public ValueObject {
  public:
   Reader(const uint8_t* buffer, intptr_t size)
-      : buffer_(buffer),
+      : thread_(NULL),
+        raw_buffer_(buffer),
+        typed_data_(NULL),
         size_(size),
-        offset_(0),
-        string_data_offset_(-1),
-        string_offsets_(NULL),
-        canonical_name_parents_(NULL),
-        canonical_name_strings_(NULL) {}
+        offset_(0) {}
 
-  ~Reader();
+  explicit Reader(const ExternalTypedData& typed_data)
+      : thread_(Thread::Current()),
+        raw_buffer_(NULL),
+        typed_data_(&typed_data),
+        size_(typed_data.IsNull() ? 0 : typed_data.Length()),
+        offset_(0) {}
+
+  uint32_t ReadFromIndex(intptr_t end_offset,
+                         intptr_t fields_before,
+                         intptr_t list_size,
+                         intptr_t list_index) {
+    intptr_t org_offset = offset();
+    uint32_t result =
+        ReadFromIndexNoReset(end_offset, fields_before, list_size, list_index);
+    set_offset(org_offset);
+    return result;
+  }
+
+  uint32_t ReadUInt32At(intptr_t offset) const {
+    ASSERT((size_ >= 4) && (offset >= 0) && (offset <= size_ - 4));
+    uint32_t value;
+    if (raw_buffer_ != NULL) {
+      value = *reinterpret_cast<const uint32_t*>(raw_buffer_ + offset);
+    } else {
+      value = typed_data_->GetUint32(offset);
+    }
+    return Utils::BigEndianToHost32(value);
+  }
+
+  uint32_t ReadFromIndexNoReset(intptr_t end_offset,
+                                intptr_t fields_before,
+                                intptr_t list_size,
+                                intptr_t list_index) {
+    set_offset(end_offset - (fields_before + list_size - list_index) * 4);
+    return ReadUInt32();
+  }
 
   uint32_t ReadUInt32() {
-    ASSERT(offset_ + 4 <= size_);
-
-    uint32_t value = (buffer_[offset_ + 0] << 24) |
-                     (buffer_[offset_ + 1] << 16) |
-                     (buffer_[offset_ + 2] << 8) | (buffer_[offset_ + 3] << 0);
+    uint32_t value = ReadUInt32At(offset_);
     offset_ += 4;
     return value;
   }
 
+  double ReadDouble() {
+    ASSERT((size_ >= 8) && (offset_ >= 0) && (offset_ <= size_ - 8));
+    double value = ReadUnaligned(
+        reinterpret_cast<const double*>(&this->buffer()[offset_]));
+    offset_ += 8;
+    return value;
+  }
+
   uint32_t ReadUInt() {
-    ASSERT(offset_ + 1 <= size_);
-    uint8_t byte0 = buffer_[offset_];
+    ASSERT((size_ >= 1) && (offset_ >= 0) && (offset_ <= size_ - 1));
+
+    const uint8_t* buffer = this->buffer();
+    uint8_t byte0 = buffer[offset_];
     if ((byte0 & 0x80) == 0) {
       // 0...
       offset_++;
       return byte0;
     } else if ((byte0 & 0xc0) == 0x80) {
       // 10...
-      ASSERT(offset_ + 2 <= size_);
-      uint32_t value = ((byte0 & ~0x80) << 8) | (buffer_[offset_ + 1]);
+      ASSERT((size_ >= 2) && (offset_ >= 0) && (offset_ <= size_ - 2));
+      uint32_t value = ((byte0 & ~0x80) << 8) | (buffer[offset_ + 1]);
       offset_ += 2;
       return value;
     } else {
       // 11...
-      ASSERT(offset_ + 4 <= size_);
-      uint32_t value = ((byte0 & ~0xc0) << 24) | (buffer_[offset_ + 1] << 16) |
-                       (buffer_[offset_ + 2] << 8) |
-                       (buffer_[offset_ + 3] << 0);
+      ASSERT((size_ >= 4) && (offset_ >= 0) && (offset_ <= size_ - 4));
+      uint32_t value = ((byte0 & ~0xc0) << 24) | (buffer[offset_ + 1] << 16) |
+                       (buffer[offset_ + 2] << 8) | (buffer[offset_ + 3] << 0);
       offset_ += 4;
       return value;
     }
   }
 
-  void add_token_position(
-      MallocGrowableArray<MallocGrowableArray<intptr_t>*>* list,
-      TokenPosition position) {
-    intptr_t size = list->length();
-    while (size <= current_script_id_) {
-      MallocGrowableArray<intptr_t>* tmp = new MallocGrowableArray<intptr_t>();
-      list->Add(tmp);
-      size = list->length();
-    }
-    list->At(current_script_id_)->Add(position.value());
-  }
-
-  void record_token_position(TokenPosition position) {
-    if (position.IsReal() && helper()->program() != NULL) {
-      add_token_position(&helper()->program()->valid_token_positions, position);
-    }
-  }
-
-  void record_yield_token_position(TokenPosition position) {
-    if (helper()->program() != NULL) {
-      add_token_position(&helper()->program()->yield_token_positions, position);
-    }
-  }
-
   /**
    * Read and return a TokenPosition from this reader.
-   * @param record specifies whether or not the read position is saved as a
-   * valid token position in the current script.
-   * If not be sure to record it later by calling record_token_position (after
-   * setting the correct current_script_id).
    */
-  TokenPosition ReadPosition(bool record = true) {
+  TokenPosition ReadPosition() {
     // Position is saved as unsigned,
     // but actually ranges from -1 and up (thus the -1)
     intptr_t value = ReadUInt() - 1;
@@ -397,21 +258,20 @@ class Reader {
       min_position_ = Utils::Minimum(min_position_, result);
     }
 
-    if (record) {
-      record_token_position(result);
-    }
     return result;
   }
 
   intptr_t ReadListLength() { return ReadUInt(); }
 
-  uint8_t ReadByte() { return buffer_[offset_++]; }
+  uint8_t ReadByte() { return buffer()[offset_++]; }
 
-  uint8_t PeekByte() { return buffer_[offset_]; }
+  uint8_t PeekByte() { return buffer()[offset_]; }
 
   bool ReadBool() { return (ReadByte() & 1) == 1; }
 
-  word ReadFlags() { return ReadByte(); }
+  uint8_t ReadFlags() { return ReadByte(); }
+
+  static const char* TagName(Tag tag);
 
   Tag ReadTag(uint8_t* payload = NULL) {
     uint8_t byte = ReadByte();
@@ -439,13 +299,6 @@ class Reader {
     }
   }
 
-  const uint8_t* Consume(int count) {
-    ASSERT(offset_ + count <= size_);
-    const uint8_t* old = buffer_ + offset_;
-    offset_ += count;
-    return old;
-  }
-
   void EnsureEnd() {
     if (offset_ != size_) {
       FATAL2(
@@ -453,10 +306,6 @@ class Reader {
           "(offset: %" Pd ", size: %" Pd ")",
           offset_, size_);
     }
-  }
-
-  void DumpOffset(const char* str) {
-    OS::PrintErr("@%" Pd " %s\n", offset_, str);
   }
 
   // The largest position read yet (since last reset).
@@ -467,92 +316,110 @@ class Reader {
   // This is automatically updated when calling ReadPosition,
   // but can be overwritten (e.g. via the PositionScope class).
   TokenPosition min_position() { return min_position_; }
-  // The current script id for what we are currently processing.
-  // Note though that this is only a convenience helper and has to be set
-  // manually.
-  intptr_t current_script_id() { return current_script_id_; }
-  void set_current_script_id(intptr_t script_id) {
-    current_script_id_ = script_id;
-  }
-
-  template <typename T, typename RT>
-  T* ReadOptional() {
-    Tag tag = ReadTag();
-    if (tag == kNothing) {
-      return NULL;
-    }
-    ASSERT(tag == kSomething);
-    return RT::ReadFrom(this);
-  }
-
-  template <typename T>
-  T* ReadOptional() {
-    return ReadOptional<T, T>();
-  }
-
-  ReaderHelper* helper() { return &builder_; }
 
   // A canonical name reference of -1 indicates none (for optional names), not
   // the root name as in the canonical name table.
   NameIndex ReadCanonicalNameReference() { return NameIndex(ReadUInt() - 1); }
 
-  intptr_t offset() { return offset_; }
+  intptr_t offset() const { return offset_; }
   void set_offset(intptr_t offset) { offset_ = offset; }
-  intptr_t size() { return size_; }
 
-  const uint8_t* buffer() { return buffer_; }
+  intptr_t size() const { return size_; }
+  void set_size(intptr_t size) { size_ = size; }
 
-  intptr_t string_data_offset() { return string_data_offset_; }
-  void MarkStringDataOffset() {
-    ASSERT(string_data_offset_ == -1);
-    string_data_offset_ = offset_;
+  const ExternalTypedData* typed_data() const { return typed_data_; }
+  void set_typed_data(const ExternalTypedData* typed_data) {
+    typed_data_ = typed_data;
   }
 
-  intptr_t StringLength(StringIndex index) {
-    return string_offsets_[index + 1] - string_offsets_[index];
+  const uint8_t* raw_buffer() const { return raw_buffer_; }
+  void set_raw_buffer(const uint8_t* raw_buffer) { raw_buffer_ = raw_buffer; }
+
+  RawExternalTypedData* ExternalDataFromTo(intptr_t start, intptr_t end) {
+    return ExternalTypedData::New(kExternalTypedDataUint8ArrayCid,
+                                  const_cast<uint8_t*>(buffer() + start),
+                                  end - start, Heap::kOld);
   }
 
-  uint8_t CharacterAt(StringIndex string_index, intptr_t index) {
-    ASSERT(index < StringLength(string_index));
-    return buffer_[string_data_offset_ + string_offsets_[string_index] + index];
-  }
-
-  // The canonical name index of a canonical name's parent (-1 indicates that
-  // the parent is the root name).
-  NameIndex CanonicalNameParent(NameIndex index) {
-    return canonical_name_parents_[index];
-  }
-
-  // The string index of a canonical name's name string.
-  StringIndex CanonicalNameString(NameIndex index) {
-    return canonical_name_strings_[index];
+  const uint8_t* BufferAt(intptr_t offset) {
+    ASSERT((offset >= 0) && (offset < size_));
+    return &buffer()[offset];
   }
 
  private:
-  const uint8_t* buffer_;
+  const uint8_t* buffer() const {
+    if (raw_buffer_ != NULL) {
+      return raw_buffer_;
+    }
+    NoSafepointScope no_safepoint(thread_);
+    return reinterpret_cast<uint8_t*>(typed_data_->DataAddr(0));
+  }
+
+  Thread* thread_;
+  const uint8_t* raw_buffer_;
+  const ExternalTypedData* typed_data_;
   intptr_t size_;
   intptr_t offset_;
-  ReaderHelper builder_;
   TokenPosition max_position_;
   TokenPosition min_position_;
   intptr_t current_script_id_;
-
-  // The offset of the start of the string data is recorded to allow access to
-  // the strings during deserialization.
-  intptr_t string_data_offset_;
-
-  // The string offsets are decoded to support efficient access to string UTF-8
-  // encodings.
-  intptr_t* string_offsets_;
-
-  // The canonical names are decoded.
-  NameIndex* canonical_name_parents_;
-  StringIndex* canonical_name_strings_;
 
   friend class PositionScope;
   friend class Program;
 };
 
+// A helper class that saves the current reader position, goes to another reader
+// position, and upon destruction, resets to the original reader position.
+class AlternativeReadingScope {
+ public:
+  AlternativeReadingScope(Reader* reader, intptr_t new_position)
+      : reader_(reader),
+        saved_size_(reader_->size()),
+        saved_raw_buffer_(reader_->raw_buffer()),
+        saved_typed_data_(reader_->typed_data()),
+        saved_offset_(reader_->offset()) {
+    reader_->set_offset(new_position);
+  }
+
+  AlternativeReadingScope(Reader* reader,
+                          const ExternalTypedData* new_typed_data,
+                          intptr_t new_position)
+      : reader_(reader),
+        saved_size_(reader_->size()),
+        saved_raw_buffer_(reader_->raw_buffer()),
+        saved_typed_data_(reader_->typed_data()),
+        saved_offset_(reader_->offset()) {
+    reader_->set_raw_buffer(NULL);
+    reader_->set_typed_data(new_typed_data);
+    reader_->set_size(new_typed_data->Length());
+    reader_->set_offset(new_position);
+  }
+
+  explicit AlternativeReadingScope(Reader* reader)
+      : reader_(reader),
+        saved_size_(reader_->size()),
+        saved_raw_buffer_(reader_->raw_buffer()),
+        saved_typed_data_(reader_->typed_data()),
+        saved_offset_(reader_->offset()) {}
+
+  ~AlternativeReadingScope() {
+    reader_->set_raw_buffer(saved_raw_buffer_);
+    reader_->set_typed_data(saved_typed_data_);
+    reader_->set_size(saved_size_);
+    reader_->set_offset(saved_offset_);
+  }
+
+  intptr_t saved_offset() { return saved_offset_; }
+
+ private:
+  Reader* reader_;
+  intptr_t saved_size_;
+  const uint8_t* saved_raw_buffer_;
+  const ExternalTypedData* saved_typed_data_;
+  intptr_t saved_offset_;
+
+  DISALLOW_COPY_AND_ASSIGN(AlternativeReadingScope);
+};
 
 // A helper class that resets the readers min and max positions both upon
 // initialization and upon destruction, i.e. when created the min an max
@@ -581,6 +448,8 @@ class PositionScope {
   Reader* reader_;
   TokenPosition min_;
   TokenPosition max_;
+
+  DISALLOW_COPY_AND_ASSIGN(PositionScope);
 };
 
 }  // namespace kernel

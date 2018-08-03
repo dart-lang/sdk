@@ -40,15 +40,18 @@ class D extends C with M {
 makeA() native;
 makeB() native;
 
-void setup() native """
-function A() {this.aa = 'aa'}
-function B() {this.aa = 'bb'}
-makeA = function(){return new A;};
-makeB = function(){return new B;};
+void setup() {
+  JS('', r"""
+(function(){
+  function A() {this.aa = 'aa'}
+  function B() {this.aa = 'bb'}
+  makeA = function(){return new A()};
+  makeB = function(){return new B()};
 
-self.nativeConstructor(A);
-self.nativeConstructor(B);
-""";
+  self.nativeConstructor(A);
+  self.nativeConstructor(B);
+})()""");
+}
 
 main() {
   nativeTesting();

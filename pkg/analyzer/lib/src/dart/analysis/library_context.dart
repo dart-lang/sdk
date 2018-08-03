@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/context/declared_variables.dart';
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/element/element.dart'
     show CompilationUnitElement, LibraryElement;
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, AnalysisOptions;
 import 'package:analyzer/src/generated/source.dart';
@@ -17,10 +17,8 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/task/dart.dart' show COMPILATION_UNIT_ELEMENT;
-import 'package:analyzer/task/dart.dart' show LibrarySpecificUnit;
-import 'package:front_end/src/base/performace_logger.dart';
-import 'package:front_end/src/incremental/byte_store.dart';
+import 'package:front_end/src/api_prototype/byte_store.dart';
+import 'package:front_end/src/base/performance_logger.dart';
 
 /**
  * Context information necessary to analyze one or more libraries within an
@@ -35,7 +33,12 @@ class LibraryContext {
   /**
    * The [AnalysisContext] which is used to do the analysis.
    */
-  final AnalysisContext _analysisContext;
+  final AnalysisContext analysisContext;
+
+  /**
+   * The resynthesizer that resynthesizes elements in [analysisContext].
+   */
+  final ElementResynthesizer resynthesizer;
 
   /**
    * Create a [LibraryContext] which is prepared to analyze [targetLibrary].
@@ -132,24 +135,27 @@ class LibraryContext {
         byteStore.put(key, bytes);
       });
 
-      AnalysisContextImpl analysisContext = _createAnalysisContext(
+      var resynthesizingContext = _createResynthesizingContext(
           options, declaredVariables, sourceFactory, store);
-      analysisContext.contentCache = new _ContentCacheWrapper(fsState);
+      resynthesizingContext.context.contentCache =
+          new _ContentCacheWrapper(fsState);
 
-      return new LibraryContext._(store, analysisContext);
+      return new LibraryContext._(store, resynthesizingContext.context,
+          resynthesizingContext.resynthesizer);
     });
   }
 
-  LibraryContext._(this.store, this._analysisContext);
+  LibraryContext._(this.store, this.analysisContext, this.resynthesizer);
 
   /**
    * Computes a [CompilationUnitElement] for the given library/unit pair.
    */
   CompilationUnitElement computeUnitElement(
       Source librarySource, Source unitSource) {
-    return _analysisContext.computeResult(
-        new LibrarySpecificUnit(librarySource, unitSource),
-        COMPILATION_UNIT_ELEMENT);
+    String libraryUri = librarySource.uri.toString();
+    String unitUri = unitSource.uri.toString();
+    return resynthesizer.getElement(
+        new ElementLocationImpl.con3(<String>[libraryUri, unitUri]));
   }
 
   /**
@@ -158,18 +164,15 @@ class LibraryContext {
    * Should be called once the [LibraryContext] is no longer needed.
    */
   void dispose() {
-    _analysisContext.dispose();
+    analysisContext.dispose();
   }
 
   /**
-   * Computes a resolved [CompilationUnit] and a list of [AnalysisError]s for
-   * the given library/unit pair.
+   * Return `true` if the given [uri] is known to be a library.
    */
-  ResolutionResult resolveUnit(Source librarySource, Source unitSource) {
-    CompilationUnit resolvedUnit =
-        _analysisContext.resolveCompilationUnit2(unitSource, librarySource);
-    List<AnalysisError> errors = _analysisContext.computeErrors(unitSource);
-    return new ResolutionResult(resolvedUnit, errors);
+  bool isLibraryUri(Uri uri) {
+    String uriStr = uri.toString();
+    return store.unlinkedMap[uriStr]?.isPartOf == false;
   }
 
   /**
@@ -181,18 +184,17 @@ class LibraryContext {
       SourceFactory sourceFactory,
       SummaryDataStore store,
       String uri) {
-    AnalysisContextImpl analysisContext = _createAnalysisContext(
+    var resynthesizingContext = _createResynthesizingContext(
         analysisOptions, declaredVariables, sourceFactory, store);
     try {
-      return new StoreBasedSummaryResynthesizer(
-              analysisContext, sourceFactory, analysisOptions.strongMode, store)
-          .getLibraryElement(uri);
+      return resynthesizingContext.resynthesizer
+          .getElement(new ElementLocationImpl.con3([uri]));
     } finally {
-      analysisContext.dispose();
+      resynthesizingContext.context.dispose();
     }
   }
 
-  static AnalysisContextImpl _createAnalysisContext(
+  static _ResynthesizingAnalysisContext _createResynthesizingContext(
       AnalysisOptions analysisOptions,
       DeclaredVariables declaredVariables,
       SourceFactory sourceFactory,
@@ -201,23 +203,13 @@ class LibraryContext {
         AnalysisEngine.instance.createAnalysisContext();
     analysisContext.useSdkCachePartition = false;
     analysisContext.analysisOptions = analysisOptions;
-    analysisContext.declaredVariables.addAll(declaredVariables);
+    analysisContext.declaredVariables = declaredVariables;
     analysisContext.sourceFactory = sourceFactory.clone();
-    analysisContext.resultProvider =
-        new InputPackagesResultProvider(analysisContext, store);
-    return analysisContext;
+    var provider = new InputPackagesResultProvider(analysisContext, store);
+    analysisContext.resultProvider = provider;
+    return new _ResynthesizingAnalysisContext(
+        analysisContext, provider.resynthesizer);
   }
-}
-
-/**
- * Container object holding the result of a call to
- * [LibraryContext.resolveUnit].
- */
-class ResolutionResult {
-  final CompilationUnit resolvedUnit;
-  final List<AnalysisError> errors;
-
-  ResolutionResult(this.resolvedUnit, this.errors);
 }
 
 /**
@@ -244,7 +236,8 @@ class _ContentCacheWrapper implements ContentCache {
       return true;
     }
     String uriStr = source.uri.toString();
-    if (fsState.externalSummaries.hasUnlinkedUnit(uriStr)) {
+    if (fsState.externalSummaries != null &&
+        fsState.externalSummaries.hasUnlinkedUnit(uriStr)) {
       return true;
     }
     return _getFileForSource(source).exists;
@@ -267,4 +260,14 @@ class _ContentCacheWrapper implements ContentCache {
     String path = source.fullName;
     return fsState.getFileForPath(path);
   }
+}
+
+/**
+ * Container with analysis context and the corresponding resynthesizer.
+ */
+class _ResynthesizingAnalysisContext {
+  final AnalysisContextImpl context;
+  final ElementResynthesizer resynthesizer;
+
+  _ResynthesizingAnalysisContext(this.context, this.resynthesizer);
 }

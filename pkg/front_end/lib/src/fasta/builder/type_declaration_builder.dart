@@ -5,9 +5,12 @@
 library fasta.type_declaration_builder;
 
 import 'builder.dart'
-    show Builder, LibraryBuilder, MetadataBuilder, ModifierBuilder, TypeBuilder;
-
-import '../util/relativize.dart' show relativizeUri;
+    show
+        Declaration,
+        LibraryBuilder,
+        MetadataBuilder,
+        ModifierBuilder,
+        TypeBuilder;
 
 abstract class TypeDeclarationBuilder<T extends TypeBuilder, R>
     extends ModifierBuilder {
@@ -17,28 +20,24 @@ abstract class TypeDeclarationBuilder<T extends TypeBuilder, R>
 
   final String name;
 
-  Builder parent;
-
-  final Uri fileUri;
-  final String relativeFileUri;
+  Declaration parent;
 
   TypeDeclarationBuilder(
       this.metadata, this.modifiers, this.name, this.parent, int charOffset,
       [Uri fileUri])
-      : fileUri = fileUri ?? parent?.fileUri,
-        relativeFileUri =
-            fileUri != null ? relativizeUri(fileUri) : parent?.relativeFileUri,
-        super(parent, charOffset, fileUri ?? parent?.fileUri);
+      : super(parent, charOffset, fileUri);
 
   bool get isTypeDeclaration => true;
 
   bool get isMixinApplication => false;
 
+  @override
+  String get fullNameForErrors => name;
+
+  int get typeVariablesCount => 0;
+
   R buildType(LibraryBuilder library, List<T> arguments);
 
   /// [arguments] have already been built.
   R buildTypesWithBuiltArguments(LibraryBuilder library, List<R> arguments);
-
-  @override
-  String get fullNameForErrors => name;
 }

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:html';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:observatory/src/elements/curly_block.dart';
 import 'package:observatory/src/elements/inbound_references.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
@@ -32,7 +32,7 @@ main() {
         elements: const [const InboundReferenceMock(source: source)]);
     bool invoked = false;
     final inbounds = new InboundReferencesRepositoryMock(
-        getter: expectAsync((i, id) async {
+        getter: expectAsync2((i, id) async {
       expect(i, equals(isolate));
       expect(id, equals(object.id));
       invoked = true;
@@ -43,7 +43,7 @@ main() {
     document.body.append(e);
     await e.onRendered.first;
     expect(invoked, isFalse);
-    expect(e.children.length, isNonZero, reason: 'has elements');
+    expect(e.children, isNotEmpty, reason: 'has elements');
     expect(e.querySelectorAll(iTag).length, isZero);
     (e.querySelector(cTag) as CurlyBlockElement).toggle();
     await e.onRendered.first;
@@ -52,6 +52,6 @@ main() {
     expect(e.querySelectorAll(rTag).length, equals(1));
     e.remove();
     await e.onRendered.first;
-    expect(e.children.length, isZero, reason: 'is empty');
+    expect(e.children, isEmpty, reason: 'is empty');
   });
 }

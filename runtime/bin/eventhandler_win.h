@@ -291,7 +291,6 @@ class Handle : public ReferenceCounted<Handle>, public DescriptorInfoBase {
   DISALLOW_COPY_AND_ASSIGN(Handle);
 };
 
-
 class FileHandle : public DescriptorInfoSingleMixin<Handle> {
  public:
   explicit FileHandle(HANDLE handle)
@@ -305,7 +304,6 @@ class FileHandle : public DescriptorInfoSingleMixin<Handle> {
  private:
   DISALLOW_COPY_AND_ASSIGN(FileHandle);
 };
-
 
 class StdHandle : public FileHandle {
  public:
@@ -344,7 +342,6 @@ class StdHandle : public FileHandle {
   DISALLOW_COPY_AND_ASSIGN(StdHandle);
 };
 
-
 class DirectoryWatchHandle : public DescriptorInfoSingleMixin<Handle> {
  public:
   DirectoryWatchHandle(HANDLE handle, int events, bool recursive)
@@ -368,7 +365,6 @@ class DirectoryWatchHandle : public DescriptorInfoSingleMixin<Handle> {
   DISALLOW_COPY_AND_ASSIGN(DirectoryWatchHandle);
 };
 
-
 class SocketHandle : public Handle {
  public:
   SOCKET socket() const { return socket_; }
@@ -383,7 +379,6 @@ class SocketHandle : public Handle {
 
   DISALLOW_COPY_AND_ASSIGN(SocketHandle);
 };
-
 
 // Information on listen sockets.
 class ListenSocket : public DescriptorInfoMultipleMixin<SocketHandle> {
@@ -440,7 +435,6 @@ class ListenSocket : public DescriptorInfoMultipleMixin<SocketHandle> {
 
   DISALLOW_COPY_AND_ASSIGN(ListenSocket);
 };
-
 
 // Information on connected sockets.
 class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
@@ -504,7 +498,6 @@ class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
   DISALLOW_COPY_AND_ASSIGN(ClientSocket);
 };
 
-
 class DatagramSocket : public DescriptorInfoSingleMixin<SocketHandle> {
  public:
   explicit DatagramSocket(intptr_t s) : DescriptorInfoSingleMixin(s, true) {
@@ -528,7 +521,6 @@ class DatagramSocket : public DescriptorInfoSingleMixin<SocketHandle> {
  private:
   DISALLOW_COPY_AND_ASSIGN(DatagramSocket);
 };
-
 
 // Event handler.
 class EventHandlerImplementation {

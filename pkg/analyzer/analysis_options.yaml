@@ -1,8 +1,6 @@
-analyzer:
-  strong-mode: true
 linter:
   rules:
-    # TODO(pq): re-enable once we have a bulk edit tool
-    # - annotate_overrides
     - empty_constructor_bodies
-    - unnecessary_brace_in_string_interp
+    - empty_statements
+    - unnecessary_brace_in_string_interps
+    - valid_regexps

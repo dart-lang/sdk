@@ -27,6 +27,9 @@ class OSError {
   }
   virtual ~OSError() { free(message_); }
 
+  // Reload this OSError with the current OS error, discarding the previous.
+  void Reload();
+
   SubSystem sub_system() { return sub_system_; }
   int code() { return code_; }
   char* message() { return message_; }
@@ -50,7 +53,6 @@ class OSError {
 
   DISALLOW_COPY_AND_ASSIGN(OSError);
 };
-
 
 class StringUtils {
  public:
@@ -79,14 +81,10 @@ class StringUtils {
                                    intptr_t len = -1,
                                    intptr_t* result_len = NULL);
 
-  // Not all platforms support strndup.
-  static char* StrNDup(const char* s, intptr_t n);
-
  private:
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(StringUtils);
 };
-
 
 class ShellUtils {
  public:
@@ -101,7 +99,6 @@ class ShellUtils {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(ShellUtils);
 };
-
 
 class TimerUtils {
  public:

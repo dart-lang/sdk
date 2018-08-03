@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/compiler/jit/compiler.h"
 #include "platform/assert.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_patcher.h"
-#include "vm/compiler.h"
 #include "vm/dart_api_impl.h"
+#include "vm/heap/safepoint.h"
+#include "vm/kernel_isolate.h"
 #include "vm/object.h"
-#include "vm/safepoint.h"
 #include "vm/symbols.h"
 #include "vm/thread_pool.h"
 #include "vm/unit_test.h"
@@ -27,7 +28,6 @@ ISOLATE_UNIT_TEST_CASE(CompileScript) {
   Library& lib = Library::Handle(Library::CoreLibrary());
   EXPECT(CompilerTest::TestCompileScript(lib, script));
 }
-
 
 ISOLATE_UNIT_TEST_CASE(CompileFunction) {
   const char* kScriptChars =
@@ -68,7 +68,6 @@ ISOLATE_UNIT_TEST_CASE(CompileFunction) {
                function_source.ToCString());
 }
 
-
 ISOLATE_UNIT_TEST_CASE(CompileFunctionOnHelperThread) {
   // Create a simple function and compile it without optimization.
   const char* kScriptChars =
@@ -97,9 +96,8 @@ ISOLATE_UNIT_TEST_CASE(CompileFunctionOnHelperThread) {
   // Constant in product mode.
   FLAG_background_compilation = true;
 #endif
-  BackgroundCompiler::EnsureInit(thread);
   Isolate* isolate = thread->isolate();
-  ASSERT(isolate->background_compiler() != NULL);
+  BackgroundCompiler::Start(isolate);
   isolate->background_compiler()->CompileOptimized(func);
   Monitor* m = new Monitor();
   {
@@ -111,7 +109,6 @@ ISOLATE_UNIT_TEST_CASE(CompileFunctionOnHelperThread) {
   delete m;
   BackgroundCompiler::Stop(isolate);
 }
-
 
 TEST_CASE(RegenerateAllocStubs) {
   const char* kScriptChars =
@@ -150,7 +147,6 @@ TEST_CASE(RegenerateAllocStubs) {
   EXPECT_VALID(result);
 }
 
-
 TEST_CASE(EvalExpression) {
   const char* kScriptChars =
       "int ten = 2 * 5;              \n"
@@ -175,22 +171,50 @@ TEST_CASE(EvalExpression) {
   expr_text = String::New("apa + ' ${calc(10)}' + dot");
   Object& val = Object::Handle();
   const Class& receiver_cls = Class::Handle(obj.clazz());
-  val = Instance::Cast(obj).Evaluate(
-      receiver_cls, expr_text, Array::empty_array(), Array::empty_array());
+
+  if (!KernelIsolate::IsRunning()) {
+    val = Instance::Cast(obj).Evaluate(
+        receiver_cls, expr_text, Array::empty_array(), Array::empty_array());
+  } else {
+    RawLibrary* raw_library = Library::RawCast(Api::UnwrapHandle(lib));
+    Library& lib_handle = Library::ZoneHandle(raw_library);
+
+    Dart_KernelCompilationResult compilation_result;
+    {
+      TransitionVMToNative transition(thread);
+      compilation_result = KernelIsolate::CompileExpressionToKernel(
+          expr_text.ToCString(), Array::empty_array(), Array::empty_array(),
+          String::Handle(lib_handle.url()).ToCString(), "A",
+          /* is_static= */ false);
+    }
+    EXPECT_EQ(Dart_KernelCompilationStatus_Ok, compilation_result.status);
+
+    const uint8_t* kernel_bytes = compilation_result.kernel;
+    intptr_t kernel_length = compilation_result.kernel_size;
+
+    val = Instance::Cast(obj).EvaluateCompiledExpression(
+        receiver_cls, kernel_bytes, kernel_length, Array::empty_array(),
+        Array::empty_array(), TypeArguments::null_type_arguments());
+  }
   EXPECT(!val.IsNull());
   EXPECT(!val.IsError());
   EXPECT(val.IsString());
   EXPECT_STREQ("Herr Nilsson 100.", val.ToCString());
 }
 
-
 ISOLATE_UNIT_TEST_CASE(EvalExpressionWithLazyCompile) {
+  {  // Initialize an incremental compiler in DFE mode.
+    TransitionVMToNative transition(thread);
+    TestCase::LoadTestScript("", NULL);
+  }
   Library& lib = Library::Handle(Library::CoreLibrary());
-
   const String& expression = String::Handle(
       String::New("(){ return (){ return (){ return 3 + 4; }(); }(); }()"));
   Object& val = Object::Handle();
-  val = lib.Evaluate(expression, Array::empty_array(), Array::empty_array());
+  val = Api::UnwrapHandle(
+      TestCase::EvaluateExpression(lib, expression,
+                                   /* param_names= */ Array::empty_array(),
+                                   /* param_values= */ Array::empty_array()));
 
   EXPECT(!val.IsNull());
   EXPECT(!val.IsError());
@@ -198,15 +222,19 @@ ISOLATE_UNIT_TEST_CASE(EvalExpressionWithLazyCompile) {
   EXPECT_EQ(7, Integer::Cast(val).AsInt64Value());
 }
 
-
 ISOLATE_UNIT_TEST_CASE(EvalExpressionExhaustCIDs) {
+  {  // Initialize an incremental compiler in DFE mode.
+    TransitionVMToNative transition(thread);
+    TestCase::LoadTestScript("", NULL);
+  }
   Library& lib = Library::Handle(Library::CoreLibrary());
-
   const String& expression = String::Handle(String::New("3 + 4"));
   Object& val = Object::Handle();
+  val = Api::UnwrapHandle(
+      TestCase::EvaluateExpression(lib, expression,
+                                   /* param_names= */ Array::empty_array(),
+                                   /* param_values= */ Array::empty_array()));
 
-  // Run once to ensure everything we touch is compiled.
-  val = lib.Evaluate(expression, Array::empty_array(), Array::empty_array());
   EXPECT(!val.IsNull());
   EXPECT(!val.IsError());
   EXPECT(val.IsInteger());
@@ -215,7 +243,10 @@ ISOLATE_UNIT_TEST_CASE(EvalExpressionExhaustCIDs) {
   intptr_t initial_class_table_size =
       Isolate::Current()->class_table()->NumCids();
 
-  val = lib.Evaluate(expression, Array::empty_array(), Array::empty_array());
+  val = Api::UnwrapHandle(
+      TestCase::EvaluateExpression(lib, expression,
+                                   /* param_names= */ Array::empty_array(),
+                                   /* param_values= */ Array::empty_array()));
   EXPECT(!val.IsNull());
   EXPECT(!val.IsError());
   EXPECT(val.IsInteger());

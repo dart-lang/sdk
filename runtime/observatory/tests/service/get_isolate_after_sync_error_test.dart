@@ -12,7 +12,7 @@ doThrow() {
   throw "oh no"; // Line 13.
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtExit,
   (Isolate isolate) async {
     await isolate.reload();

@@ -22,12 +22,10 @@ DEFINE_FLAG(charp,
 Log::Log(LogPrinter printer)
     : printer_(printer), manual_flush_(0), buffer_(0) {}
 
-
 Log::~Log() {
   // Did someone enable manual flushing and then forgot to Flush?
   ASSERT(cursor() == 0);
 }
-
 
 Log* Log::Current() {
   Thread* thread = Thread::Current();
@@ -46,7 +44,6 @@ Log* Log::Current() {
   }
 }
 
-
 void Log::Print(const char* format, ...) {
   if (this == NoOpLog()) {
     return;
@@ -58,7 +55,6 @@ void Log::Print(const char* format, ...) {
   va_end(args);
 }
 
-
 void Log::VPrint(const char* format, va_list args) {
   if (this == NoOpLog()) {
     return;
@@ -67,14 +63,14 @@ void Log::VPrint(const char* format, va_list args) {
   // Measure.
   va_list measure_args;
   va_copy(measure_args, args);
-  intptr_t len = OS::VSNPrint(NULL, 0, format, measure_args);
+  intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
   va_end(measure_args);
 
   // Print.
   char* buffer = reinterpret_cast<char*>(malloc(len + 1));
   va_list print_args;
   va_copy(print_args, args);
-  OS::VSNPrint(buffer, (len + 1), format, print_args);
+  Utils::VSNPrint(buffer, (len + 1), format, print_args);
   va_end(print_args);
 
   // Append.
@@ -88,7 +84,6 @@ void Log::VPrint(const char* format, va_list args) {
     Flush();
   }
 }
-
 
 void Log::Flush(const intptr_t cursor) {
   if (this == NoOpLog()) {
@@ -107,7 +102,6 @@ void Log::Flush(const intptr_t cursor) {
   buffer_.TruncateTo(cursor);
 }
 
-
 void Log::Clear() {
   if (this == NoOpLog()) {
     return;
@@ -115,15 +109,13 @@ void Log::Clear() {
   buffer_.TruncateTo(0);
 }
 
-
 intptr_t Log::cursor() const {
   return buffer_.length();
 }
 
-
 bool Log::ShouldLogForIsolate(const Isolate* isolate) {
   if (FLAG_isolate_log_filter == NULL) {
-    if (isolate->is_service_isolate()) {
+    if (isolate->is_service_isolate() || isolate->is_kernel_isolate()) {
       // By default, do not log for the service isolate.
       return false;
     }
@@ -138,12 +130,10 @@ bool Log::ShouldLogForIsolate(const Isolate* isolate) {
   return true;
 }
 
-
 Log Log::noop_log_;
 Log* Log::NoOpLog() {
   return &noop_log_;
 }
-
 
 void Log::TerminateString() {
   if (this == NoOpLog()) {
@@ -152,7 +142,6 @@ void Log::TerminateString() {
   buffer_.Add('\0');
 }
 
-
 void Log::EnableManualFlush() {
   if (this == NoOpLog()) {
     return;
@@ -160,8 +149,7 @@ void Log::EnableManualFlush() {
   manual_flush_++;
 }
 
-
-void Log::DisableManualFlush() {
+void Log::DisableManualFlush(const intptr_t cursor) {
   if (this == NoOpLog()) {
     return;
   }
@@ -169,19 +157,16 @@ void Log::DisableManualFlush() {
   manual_flush_--;
   ASSERT(manual_flush_ >= 0);
   if (manual_flush_ == 0) {
-    Flush();
+    Flush(cursor);
   }
 }
-
 
 void LogBlock::Initialize() {
   log_->EnableManualFlush();
 }
 
-
 LogBlock::~LogBlock() {
-  log_->Flush(cursor_);
-  log_->DisableManualFlush();
+  log_->DisableManualFlush(cursor_);
 }
 
 }  // namespace dart

@@ -29,7 +29,7 @@ Future testMain() async {
   deferredLib.deferredTest();
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasPausedAtStart,
 
   // Test future breakpoints.
@@ -62,7 +62,7 @@ var tests = [
       }
       if (event.kind == ServiceEvent.kPauseBreakpoint) {
         subscription.cancel();
-        completer.complete(null);
+        completer.complete();
       }
     });
     await isolate.resume();
@@ -78,21 +78,23 @@ var tests = [
     expect(await futureBpt2.location.getColumn(), equals(3));
 
     // The first breakpoint hits before value is modified.
-    expect((await rootLib.evaluate('value')).valueAsString, equals('0'));
+    expect(((await rootLib.evaluate('value')) as Instance).valueAsString,
+        equals('0'));
 
     stream = await isolate.vm.getEventStream(VM.kDebugStream);
     completer = new Completer();
     subscription = stream.listen((ServiceEvent event) async {
       if (event.kind == ServiceEvent.kPauseBreakpoint) {
         subscription.cancel();
-        completer.complete(null);
+        completer.complete();
       }
     });
     await isolate.resume();
     await completer.future;
 
     // The second breakpoint hits after value has been modified once.
-    expect((await rootLib.evaluate('value')).valueAsString, equals('1'));
+    expect(((await rootLib.evaluate('value')) as Instance).valueAsString,
+        equals('1'));
 
     // Remove the breakpoints.
     expect(
@@ -132,7 +134,7 @@ var tests = [
       }
       if (event.kind == ServiceEvent.kPauseBreakpoint) {
         subscription.cancel();
-        completer.complete(null);
+        completer.complete();
       }
     });
     await isolate.resume();
@@ -148,7 +150,9 @@ var tests = [
     expect(await latentBpt2.location.getColumn(), equals(3));
 
     // The first breakpoint hits before value is modified.
-    expect((await rootLib.evaluate('deferredLib.value')).valueAsString,
+    expect(
+        ((await rootLib.evaluate('deferredLib.value')) as Instance)
+            .valueAsString,
         equals('0'));
 
     stream = await isolate.vm.getEventStream(VM.kDebugStream);
@@ -156,14 +160,16 @@ var tests = [
     subscription = stream.listen((ServiceEvent event) async {
       if (event.kind == ServiceEvent.kPauseBreakpoint) {
         subscription.cancel();
-        completer.complete(null);
+        completer.complete();
       }
     });
     await isolate.resume();
     await completer.future;
 
     // The second breakpoint hits after value has been modified once.
-    expect((await rootLib.evaluate('deferredLib.value')).valueAsString,
+    expect(
+        ((await rootLib.evaluate('deferredLib.value')) as Instance)
+            .valueAsString,
         equals('-1'));
 
     // Remove the breakpoints.

@@ -74,7 +74,7 @@ final GeneratedDirectory targetDir =
         if (_typeRenames.containsKey(typeNameInSpec)) {
           typeNameInJava = _typeRenames[typeNameInSpec];
         }
-        map['$typeNameInJava.java'] = (String pkgPath) {
+        map['$typeNameInJava.java'] = (String pkgPath) async {
           String superclassName = null;
           if (isRefactoringFeedback) {
             superclassName = 'RefactoringFeedback';

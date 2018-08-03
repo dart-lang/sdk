@@ -12,8 +12,9 @@ from generator import AnalyzeOperation, ConstantOutputOrder, \
     TypeOrNothing, ConvertToFuture, GetCallbackInfo
 from copy import deepcopy
 from htmlrenamer import convert_to_future_members, custom_html_constructors, \
-    keep_overloaded_members, overloaded_and_renamed, private_html_members, \
-    renamed_html_members, renamed_overloads, removed_html_members
+    GetDDC_Extension, keep_overloaded_members, overloaded_and_renamed,\
+    private_html_members, renamed_html_members, renamed_overloads, \
+    removed_html_members
 from generator import TypeOrVar
 import logging
 import monitored
@@ -63,16 +64,20 @@ class HtmlDartGenerator(object):
 
   def EmitEventGetter(self, events_class_name):
     self._members_emitter.Emit(
-        "\n  @DocsEditable()"
-        "\n  @DomName('EventTarget.addEventListener, "
         "EventTarget.removeEventListener, EventTarget.dispatchEvent')"
         "\n  @deprecated"
         "\n  $TYPE get on =>\n    new $TYPE(this);\n",
         TYPE=events_class_name)
 
   def AddMembers(self, interface, declare_only=False, dart_js_interop=False):
-    for const in sorted(interface.constants, ConstantOutputOrder):
-      self.AddConstant(const)
+    if self._interface.id == 'WebGLRenderingContextBase' or self._interface.id == 'WebGL2RenderingContextBase' or \
+        self._interface.id == 'WebGLDrawBuffers':
+      # Constants in classes WebGLRenderingContextBase, WebGL2RenderingContext, WebGLDrawBuffers are consolidated into
+      # one synthesized class (WebGL).
+      self._gl_constants.extend(interface.constants);
+    else:
+      for const in sorted(interface.constants, ConstantOutputOrder):
+        self.AddConstant(const)
 
     for attr in sorted(interface.attributes, ConstantOutputOrder):
       if attr.type.id != 'EventHandler' and attr.type.id != 'EventListener':
@@ -110,28 +115,7 @@ class HtmlDartGenerator(object):
           convert_to_future_members):
         self.AddOperation(ConvertToFuture(info), declare_only)
 
-  def _HoistableConstants(self, interface):
-    consts = []
-    if interface.parents:
-      for parent in interface.parents:
-        parent_interface = self._database.GetInterface(parent.type.id)
-        # TODO(vsm): This should be a general check.  E.g., on private
-        # interfaces?
-        if parent.type.id == 'WebGLRenderingContextBase':
-          consts = consts + parent_interface.constants
-    return consts
-
   def AddSecondaryMembers(self, interface):
-    # With multiple inheritance, attributes and operations of non-first
-    # interfaces need to be added.  Sometimes the attribute or operation is
-    # defined in the current interface as well as a parent.  In that case we
-    # avoid making a duplicate definition and pray that the signatures match.
-    if not self._renamer.ShouldSuppressInterface(interface):
-      secondary_constants = sorted(self._HoistableConstants(interface),
-                                     ConstantOutputOrder)
-      for const in secondary_constants:
-        self.AddConstant(const)
-
     secondary_parents = self._database.TransitiveSecondaryParents(interface,
                           not self._dart_use_blink)
     remove_duplicate_parents = list(set(secondary_parents))
@@ -544,7 +528,6 @@ class HtmlDartGenerator(object):
     # Hack to ignore the constructor used by JavaScript.
     if ((self._interface.id == 'HTMLImageElement' or
          self._interface.id == 'Blob' or
-         self._interface.id == 'TouchEvent' or
          self._interface.id == 'DOMException')
       and not constructor_info.pure_dart_constructor):
       return
@@ -603,8 +586,14 @@ class HtmlDartGenerator(object):
             inits.Emit('    if ($E != null) e.$E = $E;\n', E=param_info.name)
     else:
       custom_factory_ctr = self._interface.id in _custom_factories
-      constructor_full_name = constructor_info._ConstructorFullName(
+      if self._interface_type_info.has_generated_interface():
+        constructor_full_name = constructor_info._ConstructorFullName(
           self._DartType)
+      else:
+        # The interface is suppress_interface so use the implementation_name not
+        # the dart_type.
+        constructor_full_name = self._interface_type_info.implementation_name()
+        factory_name = constructor_full_name
 
       def GenerateCall(
           stmts_emitter, call_emitter,
@@ -671,7 +660,55 @@ class HtmlDartGenerator(object):
     callback_info = GetCallbackInfo(
         self._database.GetInterface(info.callback_args[0].type_id))
 
-    param_list = info.ParametersAsArgumentList()
+    # Generated private members never have named arguments.
+    ignore_named_parameters = True if html_name.startswith('_') else False
+
+    # If more than one callback then the second argument is the error callback.
+    # Some error callbacks have 2 args (e.g., executeSql) where the second arg
+    # is the error - this is the argument we want.
+    error_callback = ""
+    if len(info.callback_args) > 1:
+      error_callback_info = GetCallbackInfo(
+            self._database.GetInterface(info.callback_args[1].type_id))
+      error_callbackNames = []
+      for paramInfo in error_callback_info.param_infos:
+          error_callbackNames.append(paramInfo.name)
+      errorCallbackVariables = ", ".join(error_callbackNames)
+      errorName = error_callback_info.param_infos[-1].name
+      error_callback = (',\n        %s(%s) { completer.completeError(%s); }' %
+                        (('%s : ' % info.callback_args[1].name
+                          if info.requires_named_arguments and
+                             info.callback_args[1].is_optional and not(ignore_named_parameters) else ''),
+                         errorCallbackVariables, errorName))
+
+    extensions = GetDDC_Extension(self._interface, info.declared_name)
+    if extensions:
+      ddc_extensions = "\n".join(extensions);
+    else:
+      ddc_extensions = ''
+
+    # Some callbacks have more than one parameters.  If so use all of
+    # those parameters.  However, if more than one argument use the
+    # type of the last argument to be returned e.g., executeSql the callback
+    # is (transaction, resultSet) and only the resultSet is returned SqlResultSet.
+    callbackArgsLen = len(callback_info.param_infos)
+    future_generic = ''
+    callbackVariables = ''
+    completerVariable = ''
+    if callbackArgsLen == 1:
+      callbackVariables = 'value'
+      completerVariable = callbackVariables
+      if callback_info.param_infos[0].type_id:
+        future_generic = '<%s>' % self._DartType(callback_info.param_infos[0].type_id)
+    elif callbackArgsLen > 1:
+      callbackNames = []
+      for paramInfo in callback_info.param_infos:
+        callbackNames.append(paramInfo.name)
+      callbackVariables = ",".join(callbackNames)
+      completerVariable = callbackNames[-1]
+      future_generic = '<%s>' % self._DartType(callback_info.param_infos[-1].type_id)
+
+    param_list = info.ParametersAsArgumentList(None, ignore_named_parameters)
     metadata = ''
     if '_RenamingAnnotation' in dir(self):
       metadata = (self._RenamingAnnotation(info.declared_name, html_name) +
@@ -682,7 +719,8 @@ class HtmlDartGenerator(object):
         '    var completer = new Completer$(FUTURE_GENERIC)();\n'
         '    $ORIGINAL_FUNCTION($PARAMS_LIST\n'
         '        $NAMED_PARAM($VARIABLE_NAME) { '
-        'completer.complete($VARIABLE_NAME); }'
+        '$DDC_EXTENSION\n'
+        'completer.complete($COMPLETER_NAME); }'
         '$ERROR_CALLBACK);\n'
         '    return completer.future;\n'
         '  }\n',
@@ -695,17 +733,13 @@ class HtmlDartGenerator(object):
         PARAMS_LIST='' if param_list == '' else param_list + ',',
         NAMED_PARAM=('%s : ' % info.callback_args[0].name
             if info.requires_named_arguments and
-              info.callback_args[0].is_optional else ''),
-        VARIABLE_NAME= '' if len(callback_info.param_infos) == 0 else 'value',
-        ERROR_CALLBACK=('' if len(info.callback_args) == 1 else
-            (',\n        %s(error) { completer.completeError(error); }' %
-            ('%s : ' % info.callback_args[1].name
-            if info.requires_named_arguments and
-                info.callback_args[1].is_optional else ''))),
-        FUTURE_GENERIC = ('' if len(callback_info.param_infos) == 0 or
-            not callback_info.param_infos[0].type_id else
-            '<%s>' % self._DartType(callback_info.param_infos[0].type_id)),
-        ORIGINAL_FUNCTION = html_name)
+              info.callback_args[0].is_optional and not(ignore_named_parameters) else ''),
+        VARIABLE_NAME=callbackVariables,
+        COMPLETER_NAME=completerVariable,
+        DDC_EXTENSION=ddc_extensions,
+        ERROR_CALLBACK=error_callback,
+        FUTURE_GENERIC=future_generic,
+        ORIGINAL_FUNCTION=html_name)
 
   def EmitHelpers(self, base_class):
     if not self._members_emitter:

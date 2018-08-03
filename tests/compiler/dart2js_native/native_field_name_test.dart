@@ -17,32 +17,35 @@ class A {
 // This code is inside the setup function, so the function names are not
 // accessible, but the makeA variable is global through the magic of JS scoping.
 // The contents of this are of course not analyzable by the compiler.
-void setup() native r"""
-function getter() {
-  return ++this.getValue;
+void setup() {
+  JS('', r"""
+(function(){
+  function getter() {
+    return ++this.getValue;
+  }
+
+  function setter(x) {
+    this.getValue += 10;
+  }
+
+  function A(){
+    var a = Object.create(
+        { constructor: A },
+        { myLongPropertyName: { get: getter,
+                                set: setter,
+                                configurable: false,
+                                writeable: false
+                              }
+        });
+    a.getValue = 0;
+    return a;
+  }
+
+  makeA = function(){return new A()};
+
+  self.nativeConstructor(A);
+})()""");
 }
-
-function setter(x) {
-  this.getValue += 10;
-}
-
-function A(){
-  var a = Object.create(
-      { constructor: A },
-      { myLongPropertyName: { get: getter,
-                              set: setter,
-                              configurable: false,
-                              writeable: false
-                            }
-      });
-  a.getValue = 0;
-  return a;
-}
-
-makeA = function(){return new A;};
-
-self.nativeConstructor(A);
-""";
 
 /*A*/ makeA() native;
 

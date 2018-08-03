@@ -5,41 +5,26 @@
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_X64.
 #if defined(TARGET_ARCH_X64)
 
-#include "vm/assembler.h"
 #include "vm/code_patcher.h"
+#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
-#include "vm/flow_graph_compiler.h"
 #include "vm/instructions.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
 
 namespace dart {
 
-
-static bool MatchesPattern(uword addr, int16_t* pattern, intptr_t size) {
-  uint8_t* bytes = reinterpret_cast<uint8_t*>(addr);
-  for (intptr_t i = 0; i < size; i++) {
-    int16_t val = pattern[i];
-    if ((val >= 0) && (val != bytes[i])) {
-      return false;
-    }
-  }
-  return true;
-}
-
-
 intptr_t IndexFromPPLoad(uword start) {
   int32_t offset = *reinterpret_cast<int32_t*>(start);
   return ObjectPool::IndexFromOffset(offset);
 }
 
-
 intptr_t IndexFromPPLoadDisp8(uword start) {
   int8_t offset = *reinterpret_cast<int8_t*>(start);
   return ObjectPool::IndexFromOffset(offset);
 }
-
 
 class UnoptimizedCall : public ValueObject {
  public:
@@ -87,7 +72,6 @@ class UnoptimizedCall : public ValueObject {
   DISALLOW_IMPLICIT_CONSTRUCTORS(UnoptimizedCall);
 };
 
-
 class NativeCall : public UnoptimizedCall {
  public:
   NativeCall(uword return_address, const Code& code)
@@ -106,7 +90,6 @@ class NativeCall : public UnoptimizedCall {
   DISALLOW_IMPLICIT_CONSTRUCTORS(NativeCall);
 };
 
-
 class InstanceCall : public UnoptimizedCall {
  public:
   InstanceCall(uword return_address, const Code& code)
@@ -122,7 +105,6 @@ class InstanceCall : public UnoptimizedCall {
   DISALLOW_IMPLICIT_CONSTRUCTORS(InstanceCall);
 };
 
-
 class UnoptimizedStaticCall : public UnoptimizedCall {
  public:
   UnoptimizedStaticCall(uword return_address, const Code& code)
@@ -137,7 +119,6 @@ class UnoptimizedStaticCall : public UnoptimizedCall {
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(UnoptimizedStaticCall);
 };
-
 
 // The expected pattern of a call where the target is loaded from
 // the object pool.
@@ -180,7 +161,6 @@ class PoolPointerCall : public ValueObject {
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(PoolPointerCall);
 };
-
 
 // Instance call that can switch between a direct monomorphic call, an IC call,
 // and a megamorphic call.
@@ -236,7 +216,6 @@ class SwitchableCall : public ValueObject {
   DISALLOW_IMPLICIT_CONSTRUCTORS(SwitchableCall);
 };
 
-
 RawCode* CodePatcher::GetStaticCallTargetAt(uword return_address,
                                             const Code& code) {
   ASSERT(code.ContainsInstructionAt(return_address));
@@ -244,13 +223,11 @@ RawCode* CodePatcher::GetStaticCallTargetAt(uword return_address,
   return call.Target();
 }
 
-
 void CodePatcher::PatchStaticCallAt(uword return_address,
                                     const Code& code,
                                     const Code& new_target) {
   PatchPoolPointerCallAt(return_address, code, new_target);
 }
-
 
 void CodePatcher::PatchPoolPointerCallAt(uword return_address,
                                          const Code& code,
@@ -259,7 +236,6 @@ void CodePatcher::PatchPoolPointerCallAt(uword return_address,
   PoolPointerCall call(return_address, code);
   call.SetTarget(new_target);
 }
-
 
 RawCode* CodePatcher::GetInstanceCallAt(uword return_address,
                                         const Code& code,
@@ -272,16 +248,13 @@ RawCode* CodePatcher::GetInstanceCallAt(uword return_address,
   return call.target();
 }
 
-
 intptr_t CodePatcher::InstanceCallSizeInBytes() {
   return InstanceCall::kCallPatternSize;
 }
 
-
 void CodePatcher::InsertDeoptimizationCallAt(uword start) {
   UNREACHABLE();
 }
-
 
 RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
                                                      const Code& code,
@@ -296,7 +269,6 @@ RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
   return ic_data.GetTargetAt(0);
 }
 
-
 void CodePatcher::PatchSwitchableCallAt(uword return_address,
                                         const Code& caller_code,
                                         const Object& data,
@@ -307,7 +279,6 @@ void CodePatcher::PatchSwitchableCallAt(uword return_address,
   call.SetTarget(target);
 }
 
-
 RawCode* CodePatcher::GetSwitchableCallTargetAt(uword return_address,
                                                 const Code& caller_code) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
@@ -315,14 +286,12 @@ RawCode* CodePatcher::GetSwitchableCallTargetAt(uword return_address,
   return call.target();
 }
 
-
 RawObject* CodePatcher::GetSwitchableCallDataAt(uword return_address,
                                                 const Code& caller_code) {
   ASSERT(caller_code.ContainsInstructionAt(return_address));
   SwitchableCall call(return_address, caller_code);
   return call.data();
 }
-
 
 void CodePatcher::PatchNativeCallAt(uword return_address,
                                     const Code& code,
@@ -333,7 +302,6 @@ void CodePatcher::PatchNativeCallAt(uword return_address,
   call.set_target(trampoline);
   call.set_native_function(target);
 }
-
 
 RawCode* CodePatcher::GetNativeCallAt(uword return_address,
                                       const Code& code,

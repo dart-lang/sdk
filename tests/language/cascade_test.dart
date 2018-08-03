@@ -82,7 +82,7 @@ main() {
     ..["swap"]()()()
     ..check(7, 4);
   a.check(7, 4);
-  a..(42); // //# 01: compile-time error
-  a..37; // //# 02: compile-time error
-  a.."foo"; // //# 03: compile-time error
+  a..(42); // //# 01: syntax error
+  a..37; // //# 02: syntax error
+  a.."foo"; // //# 03: syntax error
 }

@@ -5,10 +5,6 @@
 #ifndef RUNTIME_BIN_STDIO_H_
 #define RUNTIME_BIN_STDIO_H_
 
-#if defined(DART_IO_DISABLED)
-#error "stdio.h can only be included on builds with IO enabled"
-#endif
-
 #include "bin/builtin.h"
 #include "bin/utils.h"
 
@@ -19,21 +15,20 @@ namespace bin {
 
 class Stdin {
  public:
-  static bool ReadByte(int* byte);
+  static bool ReadByte(intptr_t fd, int* byte);
 
-  static bool GetEchoMode(bool* enabled);
-  static bool SetEchoMode(bool enabled);
+  static bool GetEchoMode(intptr_t fd, bool* enabled);
+  static bool SetEchoMode(intptr_t fd, bool enabled);
 
-  static bool GetLineMode(bool* enabled);
-  static bool SetLineMode(bool enabled);
+  static bool GetLineMode(intptr_t fd, bool* enabled);
+  static bool SetLineMode(intptr_t fd, bool enabled);
 
-  static bool AnsiSupported(bool* supported);
+  static bool AnsiSupported(intptr_t fd, bool* supported);
 
  private:
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Stdin);
 };
-
 
 class Stdout {
  public:

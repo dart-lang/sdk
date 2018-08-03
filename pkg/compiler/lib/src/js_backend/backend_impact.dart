@@ -8,7 +8,7 @@ import '../common/names.dart';
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/types.dart' show InterfaceType;
 import '../elements/entities.dart';
-import '../options.dart';
+import '../options.dart' show CompilerOptions;
 import '../universe/selector.dart';
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilder, WorldImpactBuilderImpl;
@@ -67,7 +67,7 @@ class BackendImpact {
     }
     for (Selector selector in dynamicUses) {
       assert(selector != null);
-      worldImpactBuilder.registerDynamicUse(new DynamicUse(selector, null));
+      worldImpactBuilder.registerDynamicUse(new DynamicUse(selector));
     }
     for (InterfaceType instantiatedType in instantiatedTypes) {
       worldImpactBuilder
@@ -98,6 +98,7 @@ class BackendImpacts {
 
   BackendImpact get getRuntimeTypeArgument {
     return _getRuntimeTypeArgument ??= new BackendImpact(globalUses: [
+      _commonElements.getRuntimeTypeArgumentIntercepted,
       _commonElements.getRuntimeTypeArgument,
       _commonElements.getTypeArgumentByIndex,
     ]);
@@ -127,28 +128,29 @@ class BackendImpacts {
 
   BackendImpact _asyncBody;
 
-  BackendImpact get asyncBody {
-    return _asyncBody ??= new BackendImpact(staticUses: [
-      _commonElements.asyncHelperStart,
-      _commonElements.asyncHelperAwait,
-      _commonElements.asyncHelperReturn,
-      _commonElements.asyncHelperRethrow,
-      _commonElements.syncCompleterConstructor,
-      _commonElements.streamIteratorConstructor,
-      _commonElements.wrapBody
-    ]);
-  }
+  BackendImpact get asyncBody => _asyncBody ??= () {
+        var staticUses = [
+          _commonElements.asyncHelperAwait,
+          _commonElements.asyncHelperReturn,
+          _commonElements.asyncHelperRethrow,
+          _commonElements.streamIteratorConstructor,
+          _commonElements.wrapBody
+        ];
+        if (_options.startAsyncSynchronously) {
+          staticUses.add(_commonElements.asyncHelperStartSync);
+        } else {
+          staticUses.add(_commonElements.asyncHelperStart);
+        }
+        return new BackendImpact(staticUses: staticUses);
+      }();
 
   BackendImpact _syncStarBody;
 
   BackendImpact get syncStarBody {
     return _syncStarBody ??= new BackendImpact(staticUses: [
-      _commonElements.syncStarIterableConstructor,
       _commonElements.endOfIteration,
       _commonElements.yieldStar,
-      _commonElements.syncStarUncaughtError
-    ], instantiatedClasses: [
-      _commonElements.syncStarIterable
+      _commonElements.syncStarUncaughtError,
     ]);
   }
 
@@ -160,11 +162,8 @@ class BackendImpacts {
       _commonElements.streamOfController,
       _commonElements.yieldSingle,
       _commonElements.yieldStar,
-      _commonElements.asyncStarControllerConstructor,
       _commonElements.streamIteratorConstructor,
-      _commonElements.wrapBody
-    ], instantiatedClasses: [
-      _commonElements.asyncStarController
+      _commonElements.wrapBody,
     ]);
   }
 
@@ -202,35 +201,14 @@ class BackendImpacts {
   BackendImpact _throwNoSuchMethod;
 
   BackendImpact get throwNoSuchMethod {
-    return _throwNoSuchMethod ??= new BackendImpact(
-        instantiatedClasses: _options.useKernel
-            ? [
-                _commonElements.symbolImplementationClass,
-              ]
-            : [],
-        staticUses: _options.useKernel
-            ? [
-                _commonElements.genericNoSuchMethod,
-                _commonElements.unresolvedConstructorError,
-                _commonElements.unresolvedStaticMethodError,
-                _commonElements.unresolvedStaticGetterError,
-                _commonElements.unresolvedStaticSetterError,
-                _commonElements.unresolvedTopLevelMethodError,
-                _commonElements.unresolvedTopLevelGetterError,
-                _commonElements.unresolvedTopLevelSetterError,
-                _commonElements.symbolConstructorTarget,
-              ]
-            : [
-                _commonElements.throwNoSuchMethod,
-              ],
-        otherImpacts: [
-          // Also register the types of the arguments passed to this method.
-          _needsList(
-              'Needed to encode the arguments for throw NoSuchMethodError.'),
-          _needsString(
-              'Needed to encode the name for throw NoSuchMethodError.'),
-          mapLiteralClass, // noSuchMethod helpers are passed a Map.
-        ]);
+    return _throwNoSuchMethod ??= new BackendImpact(staticUses: [
+      _commonElements.throwNoSuchMethod,
+    ], otherImpacts: [
+      // Also register the types of the arguments passed to this method.
+      _needsList('Needed to encode the arguments for throw NoSuchMethodError.'),
+      _needsString('Needed to encode the name for throw NoSuchMethodError.'),
+      mapLiteralClass, // noSuchMethod helpers are passed a Map.
+    ]);
   }
 
   BackendImpact _stringValues;
@@ -286,21 +264,23 @@ class BackendImpacts {
   BackendImpact _throwRuntimeError;
 
   BackendImpact get throwRuntimeError {
-    return _throwRuntimeError ??= new BackendImpact(
-        staticUses: _options.useKernel
-            ? [
-                // TODO(sra): Refactor impacts so that we know which of these
-                // are called.
-                _commonElements.malformedTypeError,
-                _commonElements.throwRuntimeError,
-              ]
-            : [
-                _commonElements.throwRuntimeError,
-              ],
-        otherImpacts: [
-          // Also register the types of the arguments passed to this method.
-          stringValues
-        ]);
+    return _throwRuntimeError ??= new BackendImpact(staticUses: [
+      _commonElements.throwRuntimeError,
+    ], otherImpacts: [
+      // Also register the types of the arguments passed to this method.
+      stringValues
+    ]);
+  }
+
+  BackendImpact _throwUnsupportedError;
+
+  BackendImpact get throwUnsupportedError {
+    return _throwUnsupportedError ??= new BackendImpact(staticUses: [
+      _commonElements.throwUnsupportedError
+    ], otherImpacts: [
+      // Also register the types of the arguments passed to this method.
+      stringValues
+    ]);
   }
 
   BackendImpact _superNoSuchMethod;
@@ -468,7 +448,6 @@ class BackendImpacts {
     return _typeVariableExpression ??= new BackendImpact(staticUses: [
       _commonElements.setRuntimeTypeInfo,
       _commonElements.getRuntimeTypeInfo,
-      _commonElements.runtimeTypeToString,
       _commonElements.createRuntimeType
     ], otherImpacts: [
       listValues,
@@ -493,14 +472,9 @@ class BackendImpacts {
   BackendImpact _malformedTypeCheck;
 
   BackendImpact get malformedTypeCheck {
-    return _malformedTypeCheck ??= new BackendImpact(
-        staticUses: _options.useKernel
-            ? [
-                _commonElements.malformedTypeError,
-              ]
-            : [
-                _commonElements.throwTypeError,
-              ]);
+    return _malformedTypeCheck ??= new BackendImpact(staticUses: [
+      _commonElements.throwTypeError,
+    ]);
   }
 
   BackendImpact _genericTypeCheck;
@@ -549,6 +523,13 @@ class BackendImpacts {
   BackendImpact get functionTypeCheck {
     return _functionTypeCheck ??=
         new BackendImpact(staticUses: [/*helpers.functionTypeTestMetaHelper*/]);
+  }
+
+  BackendImpact _futureOrTypeCheck;
+
+  BackendImpact get futureOrTypeCheck {
+    return _futureOrTypeCheck ??=
+        new BackendImpact(staticUses: [_commonElements.futureOrTest]);
   }
 
   BackendImpact _nativeTypeCheck;
@@ -738,26 +719,11 @@ class BackendImpacts {
   BackendImpact _noSuchMethodSupport;
 
   BackendImpact get noSuchMethodSupport {
-    return _noSuchMethodSupport ??= new BackendImpact(
-        staticUses: [_commonElements.createInvocationMirror],
-        dynamicUses: [Selectors.noSuchMethod_]);
-  }
-
-  BackendImpact _isolateSupport;
-
-  /// Backend impact for isolate support.
-  BackendImpact get isolateSupport {
-    return _isolateSupport ??=
-        new BackendImpact(globalUses: [_commonElements.startRootIsolate]);
-  }
-
-  BackendImpact _isolateSupportForResolution;
-
-  /// Additional backend impact for isolate support in resolution.
-  BackendImpact get isolateSupportForResolution {
-    return _isolateSupportForResolution ??= new BackendImpact(globalUses: [
-      _commonElements.currentIsolate,
-      _commonElements.callInIsolate
+    return _noSuchMethodSupport ??= new BackendImpact(staticUses: [
+      _commonElements.createInvocationMirror,
+      _commonElements.createUnmangledInvocationMirror
+    ], dynamicUses: [
+      Selectors.noSuchMethod_
     ]);
   }
 
@@ -766,8 +732,11 @@ class BackendImpacts {
   /// Backend impact for accessing a `loadLibrary` function on a deferred
   /// prefix.
   BackendImpact get loadLibrary {
-    return _loadLibrary ??=
-        new BackendImpact(globalUses: [_commonElements.loadLibraryWrapper]);
+    return _loadLibrary ??= new BackendImpact(globalUses: [
+      // TODO(redemption): delete wrapper when we sunset the old frontend.
+      _commonElements.loadLibraryWrapper,
+      _commonElements.loadDeferredLibrary,
+    ]);
   }
 
   BackendImpact _memberClosure;
@@ -798,4 +767,16 @@ class BackendImpacts {
       _commonElements.typeVariableClass
     ]);
   }
+
+  Map<int, BackendImpact> _genericInstantiation = <int, BackendImpact>{};
+
+  BackendImpact getGenericInstantiation(int typeArgumentCount) =>
+      _genericInstantiation[typeArgumentCount] ??=
+          new BackendImpact(staticUses: [
+        _commonElements.getInstantiateFunction(typeArgumentCount),
+        _commonElements.instantiatedGenericFunctionType,
+        _commonElements.extractFunctionTypeObjectFromInternal,
+      ], instantiatedClasses: [
+        _commonElements.getInstantiationClass(typeArgumentCount),
+      ]);
 }

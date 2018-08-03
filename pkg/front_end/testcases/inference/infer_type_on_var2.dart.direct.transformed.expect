@@ -1,0 +1,8 @@
+library test;
+import self as self;
+
+static method test2() → dynamic {
+  dynamic x = 3;
+  x = "hi";
+}
+static method main() → dynamic {}

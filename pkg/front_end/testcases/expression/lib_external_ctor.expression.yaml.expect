@@ -1,0 +1,8 @@
+Errors: {
+  The class 'Process' is abstract and can't be instantiated. (@9)
+}
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
+  return () → dart.core::Null {
+    throw new dart.core::AbstractClassInstantiationError::•("Process");
+    dart.io::File::fromUri(dart.core::Uri::parse("file://test.dart"));
+  };

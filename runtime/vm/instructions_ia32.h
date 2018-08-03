@@ -60,7 +60,6 @@ class InstructionPattern : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(InstructionPattern);
 };
 
-
 class CallPattern : public InstructionPattern<CallPattern> {
  public:
   explicit CallPattern(uword pc) : InstructionPattern(pc) {}
@@ -83,12 +82,10 @@ class CallPattern : public InstructionPattern<CallPattern> {
     return kCallPattern;
   }
 
-
  private:
   static const int kLengthInBytes = 5;
   DISALLOW_COPY_AND_ASSIGN(CallPattern);
 };
-
 
 class ReturnPattern : public InstructionPattern<ReturnPattern> {
  public:
@@ -103,7 +100,6 @@ class ReturnPattern : public InstructionPattern<ReturnPattern> {
  private:
   static const int kLengthInBytes = 1;
 };
-
 
 // push ebp
 // mov ebp, esp
@@ -121,7 +117,6 @@ class ProloguePattern : public InstructionPattern<ProloguePattern> {
  private:
   static const int kLengthInBytes = 3;
 };
-
 
 // mov ebp, esp
 class SetFramePointerPattern

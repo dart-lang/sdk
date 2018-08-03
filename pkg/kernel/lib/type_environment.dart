@@ -13,6 +13,7 @@ typedef void ErrorHandler(TreeNode node, String message);
 class TypeEnvironment extends SubtypeTester {
   final CoreTypes coreTypes;
   final ClassHierarchy hierarchy;
+  final bool strongMode;
   InterfaceType thisType;
 
   DartType returnType;
@@ -23,7 +24,7 @@ class TypeEnvironment extends SubtypeTester {
   /// be tolerated.  See [typeError].
   ErrorHandler errorHandler;
 
-  TypeEnvironment(this.coreTypes, this.hierarchy);
+  TypeEnvironment(this.coreTypes, this.hierarchy, {this.strongMode: false});
 
   InterfaceType get objectType => coreTypes.objectClass.rawType;
   InterfaceType get nullType => coreTypes.nullClass.rawType;
@@ -38,6 +39,7 @@ class TypeEnvironment extends SubtypeTester {
 
   Class get intClass => coreTypes.intClass;
   Class get numClass => coreTypes.numClass;
+  Class get futureOrClass => coreTypes.futureOrClass;
 
   InterfaceType literalListType(DartType elementType) {
     return new InterfaceType(coreTypes.listClass, <DartType>[elementType]);
@@ -59,11 +61,27 @@ class TypeEnvironment extends SubtypeTester {
     return new InterfaceType(coreTypes.futureClass, <DartType>[type]);
   }
 
-  /// Removes any number of `Future<>` types wrapping a type.
+  /// Removes a level of `Future<>` types wrapping a type.
+  ///
+  /// This implements the function `flatten` from the spec, which unwraps a
+  /// layer of Future or FutureOr from a type.
   DartType unfutureType(DartType type) {
-    return type is InterfaceType && type.classNode == coreTypes.futureClass
-        ? unfutureType(type.typeArguments[0])
-        : type;
+    if (type is InterfaceType) {
+      if (type.classNode == coreTypes.futureOrClass ||
+          type.classNode == coreTypes.futureClass) {
+        return type.typeArguments[0];
+      }
+      // It is a compile-time error to implement, extend, or mixin FutureOr so
+      // we aren't concerned with it.  If a class implements multiple
+      // instantiations of Future, getTypeAsInstanceOf is responsible for
+      // picking the least one in the sense required by the spec.
+      InterfaceType future =
+          hierarchy.getTypeAsInstanceOf(type, coreTypes.futureClass);
+      if (future != null) {
+        return future.typeArguments[0];
+      }
+    }
+    return type;
   }
 
   /// Called if the computation of a static type failed due to a type error.
@@ -133,6 +151,131 @@ class TypeEnvironment extends SubtypeTester {
     }
     return !hierarchy.hasProperSubtypes(class_);
   }
+
+  /// Replaces all covariant occurrences of `dynamic`, `Object`, and `void` with
+  /// `Null` and all contravariant occurrences of `Null` with `Object`.
+  DartType replaceTopAndBottom(DartType type, {bool isCovariant = true}) {
+    if (type is DynamicType && isCovariant) {
+      return const BottomType();
+    } else if (type is InterfaceType &&
+        type.classNode == objectType.classNode &&
+        isCovariant) {
+      return const BottomType();
+    } else if (type is InterfaceType && type.classNode.typeParameters != null) {
+      List<DartType> typeArguments = type.typeArguments ??
+          calculateBounds(type.classNode.typeParameters, objectType.classNode);
+      List<DartType> replacedTypeArguments =
+          new List<DartType>(typeArguments.length);
+      for (int i = 0; i < replacedTypeArguments.length; i++) {
+        replacedTypeArguments[i] =
+            replaceTopAndBottom(typeArguments[i], isCovariant: true);
+      }
+      return new InterfaceType(type.classNode, replacedTypeArguments);
+    } else if (type is TypedefType && type.typedefNode.typeParameters != null) {
+      List<DartType> typeArguments = type.typeArguments ??
+          calculateBounds(
+              type.typedefNode.typeParameters, objectType.classNode);
+      List<DartType> replacedTypeArguments =
+          new List<DartType>(typeArguments.length);
+      for (int i = 0; i < replacedTypeArguments.length; i++) {
+        replacedTypeArguments[i] =
+            replaceTopAndBottom(typeArguments[i], isCovariant: true);
+      }
+      return new TypedefType(type.typedefNode, replacedTypeArguments);
+    } else if (type is FunctionType) {
+      var replacedReturnType =
+          replaceTopAndBottom(type.returnType, isCovariant: true);
+      var replacedPositionalParameters =
+          new List<DartType>(type.positionalParameters.length);
+      for (int i = 0; i < replacedPositionalParameters.length; i++) {
+        replacedPositionalParameters[i] = replaceTopAndBottom(
+            type.positionalParameters[i],
+            isCovariant: false);
+      }
+      var replacedNamedParameters =
+          new List<NamedType>(type.namedParameters.length);
+      for (int i = 0; i < replacedNamedParameters.length; i++) {
+        replacedNamedParameters[i] = new NamedType(
+            type.namedParameters[i].name,
+            replaceTopAndBottom(type.namedParameters[i].type,
+                isCovariant: false));
+      }
+      return new FunctionType(replacedPositionalParameters, replacedReturnType,
+          namedParameters: replacedNamedParameters,
+          typeParameters: type.typeParameters,
+          requiredParameterCount: type.requiredParameterCount,
+          positionalParameterNames: type.positionalParameterNames,
+          typedefReference: type.typedefReference);
+    }
+    return type;
+  }
+
+  bool isSuperBounded(DartType type) {
+    List<TypeParameter> typeParameters;
+    List<DartType> typeArguments;
+
+    if (type is InterfaceType && type.classNode.typeParameters != null) {
+      typeParameters = type.classNode.typeParameters;
+      typeArguments = type.typeArguments;
+    } else if (type is TypedefType && type.typedefNode.typeParameters != null) {
+      typeParameters = type.typedefNode.typeParameters;
+      typeArguments = type.typeArguments;
+    }
+
+    if (typeParameters == null) {
+      return false;
+    }
+
+    typeArguments =
+        typeArguments ?? calculateBounds(typeParameters, objectType.classNode);
+
+    var substitution = <TypeParameter, DartType>{};
+    for (int i = 0; i < typeParameters.length; i++) {
+      substitution[typeParameters[i]] = typeArguments[i];
+    }
+    var substitutedBounds = new List<DartType>(typeParameters.length);
+    for (int i = 0; i < typeParameters.length; i++) {
+      substitutedBounds[i] = substitute(typeParameters[i].bound, substitution);
+    }
+
+    bool isViolated = false;
+    for (int i = 0; i < typeArguments.length; i++) {
+      if (!isSubtypeOf(typeArguments[i], substitutedBounds[i])) {
+        isViolated = true;
+      }
+    }
+    if (!isViolated) {
+      return false;
+    }
+
+    var replaced = replaceTopAndBottom(type);
+    List<DartType> replacedArguments;
+    if (replaced is InterfaceType) {
+      replacedArguments = replaced.typeArguments;
+    } else if (replaced is TypedefType) {
+      replacedArguments = replaced.typeArguments;
+    }
+
+    if (replacedArguments == null) {
+      return false;
+    }
+
+    var replacedSubstitution = <TypeParameter, DartType>{};
+    for (int i = 0; i < typeParameters.length; i++) {
+      replacedSubstitution[typeParameters[i]] = replacedArguments[i];
+    }
+    var replacedBounds = new List<DartType>(typeParameters.length);
+    for (int i = 0; i < typeParameters.length; i++) {
+      replacedBounds[i] =
+          substitute(typeParameters[i].bound, replacedSubstitution);
+    }
+    for (int i = 0; i < replacedArguments.length; i++) {
+      if (!isSubtypeOf(replacedArguments[i], replacedBounds[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
 
 /// The part of [TypeEnvironment] that deals with subtype tests.
@@ -140,12 +283,17 @@ class TypeEnvironment extends SubtypeTester {
 /// This lives in a separate class so it can be tested independently of the SDK.
 abstract class SubtypeTester {
   InterfaceType get objectType;
+  InterfaceType get nullType;
   InterfaceType get rawFunctionType;
   ClassHierarchy get hierarchy;
+  Class get futureOrClass;
+  InterfaceType futureType(DartType type);
+  bool get strongMode;
 
   /// Determines if the given type is at the bottom of the type hierarchy.  May
   /// be overridden in subclasses.
-  bool isBottom(DartType type) => type is BottomType;
+  bool isBottom(DartType type) =>
+      type is BottomType || (strongMode && type == nullType);
 
   /// Determines if the given type is at the top of the type hierarchy.  May be
   /// overridden in subclasses.
@@ -159,6 +307,37 @@ abstract class SubtypeTester {
     if (identical(subtype, supertype)) return true;
     if (isBottom(subtype)) return true;
     if (isTop(supertype)) return true;
+
+    // Handle FutureOr<T> union type.
+    if (strongMode &&
+        subtype is InterfaceType &&
+        identical(subtype.classNode, futureOrClass)) {
+      var subtypeArg = subtype.typeArguments[0];
+      if (supertype is InterfaceType &&
+          identical(supertype.classNode, futureOrClass)) {
+        var supertypeArg = supertype.typeArguments[0];
+        // FutureOr<A> <: FutureOr<B> iff A <: B
+        return isSubtypeOf(subtypeArg, supertypeArg);
+      }
+
+      // given t1 is Future<A> | A, then:
+      // (Future<A> | A) <: t2 iff Future<A> <: t2 and A <: t2.
+      var subtypeFuture = futureType(subtypeArg);
+      return isSubtypeOf(subtypeFuture, supertype) &&
+          isSubtypeOf(subtypeArg, supertype);
+    }
+
+    if (strongMode &&
+        supertype is InterfaceType &&
+        identical(supertype.classNode, futureOrClass)) {
+      // given t2 is Future<A> | A, then:
+      // t1 <: (Future<A> | A) iff t1 <: Future<A> or t1 <: A
+      var supertypeArg = supertype.typeArguments[0];
+      var supertypeFuture = futureType(supertypeArg);
+      return isSubtypeOf(subtype, supertypeFuture) ||
+          isSubtypeOf(subtype, supertypeArg);
+    }
+
     if (subtype is InterfaceType && supertype is InterfaceType) {
       var upcastType =
           hierarchy.getTypeAsInstanceOf(subtype, supertype.classNode);
@@ -175,12 +354,19 @@ abstract class SubtypeTester {
     if (subtype is TypeParameterType) {
       if (supertype is TypeParameterType &&
           subtype.parameter == supertype.parameter) {
-        return true;
+        if (supertype.promotedBound != null) {
+          return isSubtypeOf(subtype.bound, supertype.bound);
+        } else {
+          // Promoted bound should always be a subtype of the declared bound.
+          assert(subtype.promotedBound == null ||
+              isSubtypeOf(subtype.bound, supertype.bound));
+          return true;
+        }
       }
       // Termination: if there are no cyclically bound type parameters, this
       // recursive call can only occur a finite number of times, before reaching
       // a shrinking recursive call (or terminating).
-      return isSubtypeOf(subtype.parameter.bound, supertype);
+      return isSubtypeOf(subtype.bound, supertype);
     }
     if (subtype is FunctionType) {
       if (supertype == rawFunctionType) return true;

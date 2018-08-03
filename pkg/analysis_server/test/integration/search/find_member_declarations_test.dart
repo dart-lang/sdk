@@ -11,6 +11,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FindMemberDeclarationsTest);
+    defineReflectiveTests(FindMemberDeclarationsTest_UseCFE);
   });
 }
 
@@ -48,4 +49,10 @@ class Foo {
     expect(result.kind.name, SearchResultKind.DECLARATION.name);
     expect(result.path.first.name, 'bar');
   }
+}
+
+@reflectiveTest
+class FindMemberDeclarationsTest_UseCFE extends FindMemberDeclarationsTest {
+  @override
+  bool get useCFE => true;
 }

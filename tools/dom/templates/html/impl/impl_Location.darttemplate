@@ -4,23 +4,15 @@
 
 part of $LIBRARYNAME;
 
-@DocsEditable()
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 $!MEMBERS
 
-$if DART2JS
-  @DomName('Location.origin')
   String get origin {
     if (JS('bool', '("origin" in #)', this)) {
       return JS('String', '#.origin', this);
     }
     return '${this.protocol}//${this.host}';
   }
-$endif
 
-$if DART2JS
-  @DomName('Location.toString')
-  @DocsEditable()
   String toString() => JS('String', 'String(#)', this);
-$endif
 }

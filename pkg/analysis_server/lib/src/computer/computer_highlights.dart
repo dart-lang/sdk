@@ -118,7 +118,12 @@ class DartUnitHighlightsComputer {
     ClassElement classElement = element;
     // prepare type
     HighlightRegionType type;
-    if (classElement.isEnum) {
+    if (node.parent is TypeName &&
+        node.parent.parent is ConstructorName &&
+        node.parent.parent.parent is InstanceCreationExpression) {
+      // new Class()
+      type = HighlightRegionType.CONSTRUCTOR;
+    } else if (classElement.isEnum) {
       type = HighlightRegionType.ENUM;
     } else {
       type = HighlightRegionType.CLASS;
@@ -541,7 +546,9 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
-    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
+    if (node.keyword != null) {
+      computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
+    }
     return super.visitInstanceCreationExpression(node);
   }
 

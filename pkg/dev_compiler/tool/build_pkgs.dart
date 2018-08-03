@@ -1,104 +1,161 @@
 #!/usr/bin/env dart
+import 'dart:async';
 import 'dart:io';
 
-import 'package:dev_compiler/src/compiler/command.dart';
+import 'package:args/args.dart';
+import 'package:path/path.dart' as p;
 
-/// Compiles the packages that the DDC tests use to JS into:
-///
-/// gen/codegen_output/pkg/...
-///
-/// Assumes the working directory is pkg/dev_compiler.
-///
-/// If no arguments are passed, builds the all of the modules tested on Travis.
-/// If "test" is passed, only builds the modules needed by the tests.
-void main(List<String> arguments) {
-  var test = arguments.length == 1 && arguments[0] == 'test';
+import 'package:dev_compiler/src/analyzer/command.dart' as dartdevc;
+import 'package:dev_compiler/src/kernel/command.dart' as dartdevk;
 
-  new Directory("gen/codegen_output/pkg").createSync(recursive: true);
+final String scriptDirectory = p.dirname(p.fromUri(Platform.script));
+
+final String repoDirectory = p.normalize(p.join(scriptDirectory, "../../../"));
+
+/// Path to the SDK analyzer summary file, "ddc_sdk.sum".
+String analyzerSummary;
+
+/// Path to the SDK kernel summary file, "ddc_sdk.dill".
+String kernelSummary;
+
+/// The directory that output is written to.
+///
+/// The DDC kernel SDK should be directly in this directory. The resulting
+/// packages will be placed in a "pkg" subdirectory of this.
+String outputDirectory;
+
+/// Compiles the packages that the DDC tests use to JS into the given output
+/// directory.
+///
+/// If "--travis" is passed, builds the all of the modules tested on Travis.
+/// Otherwise, only builds the modules needed by the tests.
+///
+/// If "--analyzer-sdk" is provided, uses that summary file and compiles the
+/// packages to JS and analyzer summaries against that SDK summary. Otherwise,
+/// it skips generating analyzer summaries and compiling to JS.
+///
+/// If "--kernel-sdk" is provided, uses that summary file and generates kernel
+/// summaries for the test packages against that SDK summary. Otherwise, skips
+/// generating kernel summaries.
+Future main(List<String> arguments) async {
+  var argParser = ArgParser();
+  argParser.addOption("analyzer-sdk",
+      help: "Path to SDK analyzer summary '.sum' file");
+  argParser.addOption("kernel-sdk",
+      help: "Path to SDK Kernel summary '.dill' file");
+  argParser.addOption("output",
+      abbr: "o", help: "Directory to write output to.");
+  argParser.addFlag("travis",
+      help: "Build the additional packages tested on Travis.");
+
+  ArgResults argResults;
+  try {
+    argResults = argParser.parse(arguments);
+  } on ArgParserException catch (ex) {
+    _usageError(argParser, ex.message);
+  }
+
+  if (argResults.rest.isNotEmpty) {
+    _usageError(
+        argParser, 'Unexpected arguments "${argResults.rest.join(' ')}".');
+  }
+
+  var isTravis = argResults["travis"] as bool;
+  analyzerSummary = argResults["analyzer-sdk"] as String;
+  kernelSummary = argResults["kernel-sdk"] as String;
+  outputDirectory = argResults["output"] as String;
 
   // Build leaf packages. These have no other package dependencies.
 
   // Under pkg.
-  compileModule('async_helper');
-  compileModule('expect', libs: ['minitest']);
-  compileModule('js', libs: ['js_util']);
-  compileModule('meta');
-  if (!test) {
-    compileModule('lookup_map');
-    compileModule('microlytics', libs: ['html_channels']);
-    compileModule('typed_mock');
+  await compileModule('async_helper');
+  await compileModule('expect', libs: ['minitest']);
+  await compileModule('js', libs: ['js_util']);
+  await compileModule('meta');
+  if (isTravis) {
+    await compileModule('microlytics', libs: ['html_channels']);
   }
 
   // Under third_party/pkg.
-  compileModule('collection');
-  compileModule('matcher');
-  compileModule('path');
-  if (!test) {
-    compileModule('args', libs: ['command_runner']);
-    compileModule('charcode');
-    compileModule('fixnum');
-    compileModule('logging');
-    compileModule('markdown');
-    compileModule('mime');
-    compileModule('plugin', libs: ['manager']);
-    compileModule('typed_data');
-    compileModule('usage');
-    compileModule('utf');
-    compileModule('when');
+  await compileModule('collection');
+  await compileModule('path');
+  if (isTravis) {
+    await compileModule('args', libs: ['command_runner']);
+    await compileModule('charcode');
+    await compileModule('fixnum');
+    await compileModule('logging');
+    await compileModule('markdown');
+    await compileModule('mime');
+    await compileModule('plugin', libs: ['manager']);
+    await compileModule('typed_data');
+    await compileModule('usage');
+    await compileModule('utf');
   }
 
   // Composite packages with dependencies.
-  compileModule('stack_trace', deps: ['path']);
-  if (!test) {
-    compileModule('async', deps: ['collection']);
+  await compileModule('stack_trace', deps: ['path']);
+  await compileModule('matcher', deps: ['stack_trace']);
+  if (isTravis) {
+    await compileModule('async', deps: ['collection']);
   }
 
-  if (test) {
-    compileModule('unittest',
-        deps: ['matcher', 'path', 'stack_trace'],
-        libs: ['html_config', 'html_individual_config', 'html_enhanced_config'],
-        unsafeForceCompile: true);
+  if (!isTravis) {
+    await compileModule('unittest', deps: [
+      'path',
+      'stack_trace'
+    ], libs: [
+      'html_config',
+      'html_individual_config',
+      'html_enhanced_config'
+    ]);
   }
+}
+
+void _usageError(ArgParser parser, [String message]) {
+  if (message != null) {
+    stderr.writeln(message);
+    stderr.writeln();
+  }
+
+  stderr.writeln("Usage: dart build_pkgs.dart ...");
+  stderr.writeln();
+  stderr.writeln(parser.usage);
+  exit(1);
 }
 
 /// Compiles a [module] with a single matching ".dart" library and additional
 /// [libs] and [deps] on other modules.
-void compileModule(String module,
-    {List<String> libs, List<String> deps, bool unsafeForceCompile: false}) {
-  var args = [
-    '--dart-sdk-summary=lib/sdk/ddc_sdk.sum',
-    '-ogen/codegen_output/pkg/$module.js'
-  ];
+Future compileModule(String module,
+    {List<String> libs = const [], List<String> deps = const []}) async {
+  makeArgs(bool kernel) {
+    var pkgDirectory = p.join(outputDirectory, kernel ? 'pkg_kernel' : 'pkg');
+    Directory(pkgDirectory).createSync(recursive: true);
 
-  // There is always a library that matches the module.
-  args.add('package:$module/$module.dart');
-
-  // Add any additional libraries.
-  if (libs != null) {
+    var args = [
+      '--dart-sdk-summary=${kernel ? kernelSummary : analyzerSummary}',
+      '-o${pkgDirectory}/$module.js',
+      'package:$module/$module.dart'
+    ];
     for (var lib in libs) {
       args.add('package:$module/$lib.dart');
     }
-  }
-
-  // Add summaries for any modules this depends on.
-  if (deps != null) {
     for (var dep in deps) {
-      args.add('-sgen/codegen_output/pkg/$dep.sum');
+      args.add('-s${pkgDirectory}/$dep.${kernel ? "dill" : "sum"}');
     }
+    if (kernel) {
+      args.add('--summary-input-dir=$pkgDirectory');
+    }
+    return args;
   }
 
-  if (unsafeForceCompile) {
-    args.add('--unsafe-force-compile');
+  if (analyzerSummary != null) {
+    var args = makeArgs(false);
+    var exitCode = dartdevc.compile(args);
+    if (exitCode != 0) exit(exitCode);
   }
-
-  // TODO(rnystrom): Hack. DDC has its own forked copy of async_helper that
-  // has a couple of differences from pkg/async_helper. We should unfork them,
-  // but I'm not sure how they'll affect the other non-DDC tests. For now, just
-  // use ours.
-  if (module == 'async_helper') {
-    args.add('--url-mapping=package:async_helper/async_helper.dart,'
-        'test/codegen/async_helper.dart');
+  if (kernelSummary != null) {
+    var args = makeArgs(true);
+    var result = await dartdevk.compile(args);
+    if (!result.success) exit(1);
   }
-
-  compile(args);
 }

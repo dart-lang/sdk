@@ -1,0 +1,27 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method call(core::int x) → core::int
+    return x.{core::num::*}(2);
+}
+class B extends self::A {
+  synthetic constructor •() → void
+    : super self::A::•()
+    ;
+  method call(core::int x) → core::int
+    return x.{core::num::*}(3);
+  method call_super() → core::int {
+    return invalid-expression "pkg/front_end/testcases/super_call.dart:14:12: Error: Can't use 'super' as an expression.
+To delegate a constructor to a super constructor, put the super call as an initializer.
+    return super(5);
+           ^" as{TypeError} core::int;
+  }
+}
+static method main() → dynamic {
+  assert(new self::B::•().{self::B::call_super}().{core::num::==}(10));
+}

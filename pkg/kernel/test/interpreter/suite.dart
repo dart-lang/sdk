@@ -8,106 +8,54 @@ import 'dart:async' show Future;
 
 import 'dart:io' show File;
 
-import 'package:front_end/physical_file_system.dart';
 import 'package:testing/testing.dart'
-    show Chain, ChainContext, Result, Step, TestDescription, runMe;
+    show Chain, ChainContext, Result, Step, runMe;
 
-import 'package:kernel/ast.dart' show Program, Library;
+import 'package:kernel/ast.dart' show Component, Library;
 
-import 'package:front_end/src/fasta/testing/kernel_chain.dart' show runDiff;
+import 'package:kernel/target/targets.dart' show Target;
 
-import 'package:front_end/src/fasta/ticker.dart' show Ticker;
-
-import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
-
-import 'package:front_end/src/fasta/kernel/kernel_target.dart'
-    show KernelTarget;
-
-import 'package:front_end/src/fasta/translate_uri.dart' show TranslateUri;
-
-import 'package:front_end/src/fasta/errors.dart' show InputError;
-
-import 'package:front_end/src/fasta/testing/patched_sdk_location.dart';
-
-import 'package:kernel/kernel.dart' show loadProgramFromBinary;
+import 'package:front_end/src/fasta/testing/kernel_chain.dart'
+    show runDiff, Compile, CompileContext;
 
 import 'package:kernel/interpreter/interpreter.dart';
 
 const String STRONG_MODE = " strong mode ";
 
-class InterpreterContext extends ChainContext {
+class InterpreterContext extends ChainContext implements CompileContext {
   final bool strongMode;
-
-  final TranslateUri uriTranslator;
+  Target get target => null;
 
   final List<Step> steps;
 
-  Future<Program> platform;
-
-  InterpreterContext(this.strongMode, this.uriTranslator)
+  InterpreterContext(this.strongMode)
       : steps = <Step>[
-          const FastaCompile(),
+          const Compile(),
           const Interpret(),
           const MatchLogExpectation(".expect"),
         ];
 
-  Future<Program> loadPlatform() async {
-    Uri sdk = await computePatchedSdk();
-    return loadProgramFromBinary(sdk.resolve('platform.dill').toFilePath());
-  }
-
   static Future<InterpreterContext> create(
       Chain suite, Map<String, String> environment) async {
-    Uri packages = Uri.base.resolve(".packages");
     bool strongMode = environment.containsKey(STRONG_MODE);
-    TranslateUri uriTranslator =
-        await TranslateUri.parse(PhysicalFileSystem.instance, packages);
-    return new InterpreterContext(strongMode, uriTranslator);
+    return new InterpreterContext(strongMode);
   }
 }
 
-class FastaCompile extends Step<TestDescription, Program, InterpreterContext> {
-  const FastaCompile();
-
-  String get name => "fasta compile";
-
-  Future<Result<Program>> run(
-      TestDescription description, InterpreterContext context) async {
-    Program platform = await context.loadPlatform();
-    Ticker ticker = new Ticker();
-    DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator, "vm");
-    platform.unbindCanonicalNames();
-    dillTarget.loader.appendLibraries(platform);
-    KernelTarget sourceTarget = new KernelTarget(PhysicalFileSystem.instance,
-        dillTarget, context.uriTranslator, context.strongMode);
-
-    Program p;
-    try {
-      sourceTarget.read(description.uri);
-      await dillTarget.buildOutlines();
-      await sourceTarget.buildOutlines();
-      p = await sourceTarget.buildProgram();
-    } on InputError catch (e, s) {
-      return fail(null, e.error, s);
-    }
-    return pass(p);
-  }
-}
-
-class Interpret extends Step<Program, EvaluationLog, InterpreterContext> {
+class Interpret extends Step<Component, EvaluationLog, InterpreterContext> {
   const Interpret();
 
   String get name => "interpret";
 
-  Future<Result<EvaluationLog>> run(Program program, _) async {
-    Library library = program.libraries
+  Future<Result<EvaluationLog>> run(Component component, _) async {
+    Library library = component.libraries
         .firstWhere((Library library) => library.importUri.scheme != "dart");
     Uri uri = library.importUri;
 
     StringBuffer buffer = new StringBuffer();
     log.onRecord.listen((LogRecord rec) => buffer.write(rec.message));
     try {
-      new Interpreter(program).run();
+      new Interpreter(component).run();
     } catch (e, s) {
       return crash(e, s);
     }
@@ -137,8 +85,7 @@ class MatchLogExpectation extends Step<EvaluationLog, int, InterpreterContext> {
       }
     }
     return fail(
-        null,
-        """Please create file ${expectedFile.path} with this content:
+        null, """Please create file ${expectedFile.path} with this content:
         ${result.log}""");
   }
 }

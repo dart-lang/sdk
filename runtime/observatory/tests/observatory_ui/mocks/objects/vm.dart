@@ -17,8 +17,10 @@ class VMMock implements M.VM {
   final String targetCPU;
   final String hostCPU;
   final String version;
+  final String embedder;
   final int pid;
   final int maxRSS;
+  final int currentRSS;
   final DateTime startTime;
   final Iterable<M.IsolateRef> isolates;
   final int nativeZoneMemoryUsage = 0;
@@ -29,6 +31,10 @@ class VMMock implements M.VM {
     return null;
   }
 
+  Future enableProfiler() {
+    return null;
+  }
+
   const VMMock(
       {this.name: 'vm-name',
       this.displayName: 'vm-display-name',
@@ -36,8 +42,10 @@ class VMMock implements M.VM {
       this.targetCPU,
       this.hostCPU,
       this.version,
+      this.embedder,
       this.pid: 0,
       this.maxRSS: 0,
+      this.currentRSS: 0,
       this.startTime,
       this.isolates: const []});
 }

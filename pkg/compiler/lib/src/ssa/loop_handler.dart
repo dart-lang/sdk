@@ -4,20 +4,18 @@
 
 import 'package:kernel/ast.dart' as ir;
 
-import '../elements/elements.dart' show JumpTarget, LabelDefinition;
+import '../closure.dart' show CapturedLoopScope;
+import '../elements/jumps.dart';
 import '../io/source_information.dart';
-import '../tree/tree.dart' as ast;
 
-import 'builder.dart';
 import 'builder_kernel.dart';
 import 'graph_builder.dart';
 import 'jump_handler.dart';
-import 'kernel_ast_adapter.dart';
 import 'locals_handler.dart';
 import 'nodes.dart';
 
 /// Builds the SSA graph for loop nodes.
-abstract class LoopHandler<T> {
+abstract class LoopHandler {
   final GraphBuilder builder;
 
   LoopHandler(this.builder);
@@ -27,8 +25,15 @@ abstract class LoopHandler<T> {
   /// For while loops, [initialize] and [update] are null.
   /// The [condition] function must return a boolean result.
   /// None of the functions must leave anything on the stack.
-  void handleLoop(T loop, void initialize(), HInstruction condition(),
-      void update(), void body()) {
+  void handleLoop(
+      ir.Node loop,
+      CapturedLoopScope loopClosureInfo,
+      JumpTarget jumpTarget,
+      void initialize(),
+      HInstruction condition(),
+      void update(),
+      void body(),
+      SourceInformation sourceInformation) {
     // Generate:
     //  <initializer>
     //  loop-entry:
@@ -38,7 +43,7 @@ abstract class LoopHandler<T> {
     //    goto loop-entry;
     //  loop-exit:
 
-    builder.localsHandler.startLoop(getNode(loop));
+    builder.localsHandler.startLoop(loopClosureInfo, sourceInformation);
 
     // The initializer.
     SubExpression initializerGraph = null;
@@ -52,14 +57,14 @@ abstract class LoopHandler<T> {
     }
 
     builder.loopDepth++;
-    JumpHandler jumpHandler = beginLoopHeader(loop);
+    JumpHandler jumpHandler = beginLoopHeader(loop, jumpTarget);
     HLoopInformation loopInfo = builder.current.loopInformation;
     HBasicBlock conditionBlock = builder.current;
     if (startBlock == null) startBlock = conditionBlock;
 
     HInstruction conditionInstruction = condition();
-    HBasicBlock conditionEndBlock =
-        builder.close(new HLoopBranch(conditionInstruction));
+    HBasicBlock conditionEndBlock = builder.close(
+        new HLoopBranch(builder.abstractValueDomain, conditionInstruction));
     SubExpression conditionExpression =
         new SubExpression(conditionBlock, conditionEndBlock);
 
@@ -73,12 +78,13 @@ abstract class LoopHandler<T> {
     conditionEndBlock.addSuccessor(beginBodyBlock);
     builder.open(beginBodyBlock);
 
-    builder.localsHandler.enterLoopBody(getNode(loop));
+    builder.localsHandler.enterLoopBody(loopClosureInfo, sourceInformation);
     body();
 
     SubGraph bodyGraph = new SubGraph(beginBodyBlock, builder.lastOpenedBlock);
     HBasicBlock bodyBlock = builder.current;
-    if (builder.current != null) builder.close(new HGoto());
+    if (builder.current != null)
+      builder.close(new HGoto(builder.abstractValueDomain));
 
     SubExpression updateGraph;
 
@@ -107,26 +113,27 @@ abstract class LoopHandler<T> {
           continueHandlers[0].mergeMultiple(continueHandlers, updateBlock);
 
       List<LabelDefinition> labels = jumpHandler.labels;
-      JumpTarget target = getTargetDefinition(loop);
       if (labels.isNotEmpty) {
         beginBodyBlock.setBlockFlow(
             new HLabeledBlockInformation(
                 new HSubGraphBlockInformation(bodyGraph), jumpHandler.labels,
                 isContinue: true),
             updateBlock);
-      } else if (target != null && target.isContinueTarget) {
+      } else if (jumpTarget != null && jumpTarget.isContinueTarget) {
         beginBodyBlock.setBlockFlow(
             new HLabeledBlockInformation.implicit(
-                new HSubGraphBlockInformation(bodyGraph), target,
+                new HSubGraphBlockInformation(bodyGraph), jumpTarget,
                 isContinue: true),
             updateBlock);
       }
 
-      builder.localsHandler.enterLoopUpdates(getNode(loop));
+      builder.localsHandler
+          .enterLoopUpdates(loopClosureInfo, sourceInformation);
 
       update();
 
-      HBasicBlock updateEndBlock = builder.close(new HGoto());
+      HBasicBlock updateEndBlock =
+          builder.close(new HGoto(builder.abstractValueDomain));
       // The back-edge completing the cycle.
       updateEndBlock.addSuccessor(conditionBlock);
       updateGraph = new SubExpression(updateBlock, updateEndBlock);
@@ -134,7 +141,7 @@ abstract class LoopHandler<T> {
       // Avoid a critical edge from the condition to the loop-exit body.
       HBasicBlock conditionExitBlock = builder.addNewBlock();
       builder.open(conditionExitBlock);
-      builder.close(new HGoto());
+      builder.close(new HGoto(builder.abstractValueDomain));
       conditionEndBlock.addSuccessor(conditionExitBlock);
 
       endLoop(conditionBlock, conditionExitBlock, jumpHandler, savedLocals);
@@ -148,7 +155,7 @@ abstract class LoopHandler<T> {
           builder.wrapExpressionGraph(updateGraph),
           conditionBlock.loopInformation.target,
           conditionBlock.loopInformation.labels,
-          loopSourceInformation(loop));
+          sourceInformation);
 
       startBlock.setBlockFlow(info, builder.current);
       loopInfo.loopBlockInformation = info;
@@ -165,7 +172,7 @@ abstract class LoopHandler<T> {
       // label to the if.
       HBasicBlock elseBlock = builder.addNewBlock();
       builder.open(elseBlock);
-      builder.close(new HGoto());
+      builder.close(new HGoto(builder.abstractValueDomain));
       // Pass the elseBlock as the branchBlock, because that's the block we go
       // to just before leaving the 'loop'.
       endLoop(conditionBlock, elseBlock, jumpHandler, savedLocals);
@@ -177,7 +184,8 @@ abstract class LoopHandler<T> {
       // Remove the [HLoopBranch] instruction and replace it with
       // [HIf].
       HInstruction condition = conditionEndBlock.last.inputs[0];
-      conditionEndBlock.addAtExit(new HIf(condition));
+      conditionEndBlock
+          .addAtExit(new HIf(builder.abstractValueDomain, condition));
       conditionEndBlock.addSuccessor(elseBlock);
       conditionEndBlock.remove(conditionEndBlock.last);
       HIfBlockInformation info = new HIfBlockInformation(
@@ -192,9 +200,8 @@ abstract class LoopHandler<T> {
       // If the body has any break, attach a synthesized label to the
       // if block.
       if (jumpHandler.hasAnyBreak()) {
-        JumpTarget target = getTargetDefinition(loop);
-        LabelDefinition label = target.addLabel(null, 'loop');
-        label.setBreakTarget();
+        LabelDefinition label =
+            jumpTarget.addLabel('loop', isBreakTarget: true);
         SubGraph labelGraph = new SubGraph(conditionBlock, builder.current);
         HLabeledBlockInformation labelInfo = new HLabeledBlockInformation(
             new HSubGraphBlockInformation(labelGraph),
@@ -204,7 +211,8 @@ abstract class LoopHandler<T> {
 
         jumpHandler.forEachBreak((HBreak breakInstruction, _) {
           HBasicBlock block = breakInstruction.block;
-          block.addAtExit(new HBreak.toLabel(label));
+          block.addAtExit(new HBreak.toLabel(
+              builder.abstractValueDomain, label, sourceInformation));
           block.remove(breakInstruction);
         });
       }
@@ -216,11 +224,13 @@ abstract class LoopHandler<T> {
   /// Creates a new loop-header block. The previous [current] block
   /// is closed with an [HGoto] and replaced by the newly created block.
   /// Also notifies the locals handler that we're entering a loop.
-  JumpHandler beginLoopHeader(T node) {
+  JumpHandler beginLoopHeader(ir.TreeNode node, JumpTarget jumpTarget) {
     assert(!builder.isAborted());
-    HBasicBlock previousBlock = builder.close(new HGoto());
+    HBasicBlock previousBlock =
+        builder.close(new HGoto(builder.abstractValueDomain));
 
-    JumpHandler jumpHandler = createJumpHandler(node, isLoopJump: true);
+    JumpHandler jumpHandler =
+        createJumpHandler(node, jumpTarget, isLoopJump: true);
     HBasicBlock loopEntry = builder.graph
         .addNewLoopHeaderBlock(jumpHandler.target, jumpHandler.labels);
     previousBlock.addSuccessor(loopEntry);
@@ -284,19 +294,10 @@ abstract class LoopHandler<T> {
     }
   }
 
-  /// Returns the jump target defined by [node].
-  JumpTarget getTargetDefinition(T node);
-
-  /// Returns the corresponding AST node for [node].
-  ast.Node getNode(T node);
-
   /// Determine what kind of loop [node] represents.
   ///
   /// The result is one of the kinds defined in [HLoopBlockInformation].
-  int loopKind(T node);
-
-  /// Returns the source information for the loop [node].
-  SourceInformation loopSourceInformation(T node);
+  int loopKind(ir.TreeNode node);
 
   /// Creates a [JumpHandler] for a statement. The node must be a jump
   /// target. If there are no breaks or continues targeting the statement,
@@ -305,77 +306,26 @@ abstract class LoopHandler<T> {
   /// [isLoopJump] is [:true:] when the jump handler is for a loop. This is used
   /// to distinguish the synthesized loop created for a switch statement with
   /// continue statements from simple switch statements.
-  JumpHandler createJumpHandler(T node, {bool isLoopJump});
-}
-
-/// A loop handler for the builder that just uses AST nodes directly.
-class SsaLoopHandler extends LoopHandler<ast.Node> {
-  final SsaBuilder builder;
-
-  SsaLoopHandler(SsaBuilder builder)
-      : this.builder = builder,
-        super(builder);
-
-  @override
-  JumpTarget getTargetDefinition(ast.Node node) {
-    return builder.elements.getTargetDefinition(node);
-  }
-
-  @override
-  ast.Node getNode(ast.Node node) => node;
-
-  @override
-  int loopKind(ast.Node node) => node.accept(const _SsaLoopTypeVisitor());
-
-  @override
-  SourceInformation loopSourceInformation(ast.Node node) =>
-      builder.sourceInformationBuilder.buildLoop(node);
-
-  @override
-  JumpHandler createJumpHandler(ast.Node node, {bool isLoopJump}) =>
-      builder.createJumpHandler(node, isLoopJump: isLoopJump);
-}
-
-class _SsaLoopTypeVisitor extends ast.Visitor {
-  const _SsaLoopTypeVisitor();
-  int visitNode(ast.Node node) => HLoopBlockInformation.NOT_A_LOOP;
-  int visitWhile(ast.While node) => HLoopBlockInformation.WHILE_LOOP;
-  int visitFor(ast.For node) => HLoopBlockInformation.FOR_LOOP;
-  int visitDoWhile(ast.DoWhile node) => HLoopBlockInformation.DO_WHILE_LOOP;
-  int visitAsyncForIn(ast.AsyncForIn node) => HLoopBlockInformation.FOR_IN_LOOP;
-  int visitSyncForIn(ast.SyncForIn node) => HLoopBlockInformation.FOR_IN_LOOP;
-  int visitSwitchStatement(ast.SwitchStatement node) =>
-      HLoopBlockInformation.SWITCH_CONTINUE_LOOP;
+  JumpHandler createJumpHandler(ir.TreeNode node, JumpTarget jumpTarget,
+      {bool isLoopJump});
 }
 
 // TODO(het): Since kernel simplifies loop breaks and continues, we should
 // rewrite the loop handler from scratch to account for the simplified structure
-class KernelLoopHandler extends LoopHandler<ir.TreeNode> {
-  final KernelSsaBuilder builder;
+class KernelLoopHandler extends LoopHandler {
+  final KernelSsaGraphBuilder builder;
 
-  KernelAstAdapter get astAdapter => builder.astAdapter;
-
-  KernelLoopHandler(KernelSsaBuilder builder)
+  KernelLoopHandler(KernelSsaGraphBuilder builder)
       : this.builder = builder,
         super(builder);
 
   @override
-  JumpHandler createJumpHandler(ir.TreeNode node, {bool isLoopJump}) =>
-      builder.createJumpHandler(node, isLoopJump: isLoopJump);
-
-  @override
-  ast.Node getNode(ir.TreeNode node) => astAdapter.getNode(node);
-
-  @override
-  JumpTarget getTargetDefinition(ir.TreeNode node) =>
-      astAdapter.getJumpTarget(node);
+  JumpHandler createJumpHandler(ir.TreeNode node, JumpTarget jumpTarget,
+          {bool isLoopJump}) =>
+      builder.createJumpHandler(node, jumpTarget, isLoopJump: isLoopJump);
 
   @override
   int loopKind(ir.TreeNode node) => node.accept(new _KernelLoopTypeVisitor());
-
-  // TODO(het): return the actual source information
-  @override
-  SourceInformation loopSourceInformation(ir.TreeNode node) => null;
 }
 
 class _KernelLoopTypeVisitor extends ir.Visitor<int> {

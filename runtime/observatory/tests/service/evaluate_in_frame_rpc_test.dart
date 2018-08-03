@@ -22,7 +22,7 @@ void testFunction() {
   }
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
 
 // Evaluate against library, class, and instance.

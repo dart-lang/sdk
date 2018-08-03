@@ -10,6 +10,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:path/path.dart' as path;
 
@@ -18,39 +19,41 @@ void main(List<String> argv) {
   if (argv.length < 3) {
     var toolDir = path.relative(path.dirname(path.fromUri(Platform.script)));
 
-    var inputExample = path.join(toolDir, '..', '..', '..');
+    var repoExample = path.join(toolDir, '..', '..', '..');
     var patchExample = path.join(toolDir, 'input_sdk');
     var outExample =
         path.relative(path.normalize(path.join('gen', 'patched_sdk')));
 
-    print('Usage: $self INPUT_SDK_DIR PATCH_DIR OUTPUT_DIR');
+    print('Usage: $self DART_REPO_DIR PATCH_DIR OUTPUT_DIR');
     print('For example:');
-    print('\$ $self $inputExample $patchExample $outExample');
+    print('\$ $self $repoExample $patchExample $outExample');
     exit(1);
   }
 
-  var selfModifyTime = new File(self).lastModifiedSync().millisecondsSinceEpoch;
+  var selfModifyTime = File(self).lastModifiedSync().millisecondsSinceEpoch;
 
-  var inputDir = argv[0];
+  var repoDir = argv[0];
   var patchDir = argv[1];
-  var sdkLibIn = path.join(inputDir, 'sdk', 'lib');
+  var sdkLibIn = path.join(repoDir, 'sdk', 'lib');
   var patchIn = path.join(patchDir, 'patch');
   var privateIn = path.join(patchDir, 'private');
   var sdkOut = path.join(argv[2], 'lib');
 
   var INTERNAL_PATH = '_internal/js_runtime/lib/';
 
-  // Copy libraries.dart and version
+  // Copy libraries.dart, libraries.json and version
   var librariesDart = path.join(patchDir, 'libraries.dart');
-  var libContents = new File(librariesDart).readAsStringSync();
+  var libContents = File(librariesDart).readAsStringSync();
   // TODO(jmesserly): can we remove this?
   _writeSync(path.join(sdkOut, '_internal', 'libraries.dart'), libContents);
+  _writeSync(path.join(sdkOut, 'libraries.json'),
+      File(path.join(patchDir, 'libraries.json')).readAsStringSync());
   _writeSync(
       path.join(
           sdkOut, '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart'),
       libContents);
   _writeSync(path.join(sdkOut, '..', 'version'),
-      new File(path.join(inputDir, 'tools', 'VERSION')).readAsStringSync());
+      File(path.join(repoDir, 'tools', 'VERSION')).readAsStringSync());
 
   // Parse libraries.dart
   var sdkLibraries = _getSdkLibraries(libContents);
@@ -64,17 +67,17 @@ void main(List<String> argv) {
 
     var libraryOut = path.join(sdkLibIn, library.path);
     var libraryOverride = path.join(patchDir, 'lib', library.path);
-    var libraryIn;
+    String libraryIn;
     if (library.path.contains(INTERNAL_PATH)) {
       libraryIn =
           path.join(privateIn, library.path.replaceAll(INTERNAL_PATH, ''));
-    } else if (new File(libraryOverride).existsSync()) {
+    } else if (File(libraryOverride).existsSync()) {
       libraryIn = libraryOverride;
     } else {
       libraryIn = libraryOut;
     }
 
-    var libraryFile = new File(libraryIn);
+    var libraryFile = File(libraryIn);
     if (libraryFile.existsSync()) {
       var outPaths = <String>[libraryOut];
       var libraryContents = libraryFile.readAsStringSync();
@@ -87,7 +90,7 @@ void main(List<String> argv) {
           var partPath = part.uri.stringValue;
           outPaths.add(path.join(path.dirname(libraryOut), partPath));
 
-          var partFile = new File(path.join(path.dirname(libraryIn), partPath));
+          var partFile = File(path.join(path.dirname(libraryIn), partPath));
           partFiles.add(partFile);
           inputModifyTime = math.max(inputModifyTime,
               partFile.lastModifiedSync().millisecondsSinceEpoch);
@@ -98,7 +101,7 @@ void main(List<String> argv) {
       var patchPath = path.join(
           patchIn, path.basenameWithoutExtension(libraryIn) + '_patch.dart');
 
-      var patchFile = new File(patchPath);
+      var patchFile = File(patchPath);
       bool patchExists = patchFile.existsSync();
       if (patchExists) {
         inputModifyTime = math.max(inputModifyTime,
@@ -113,7 +116,7 @@ void main(List<String> argv) {
       // Compare output modify time with input modify time.
       bool needsUpdate = false;
       for (var outPath in outPaths) {
-        var outFile = new File(outPath);
+        var outFile = File(outPath);
         if (!outFile.existsSync() ||
             outFile.lastModifiedSync().millisecondsSinceEpoch <
                 inputModifyTime) {
@@ -144,10 +147,10 @@ void main(List<String> argv) {
 
 /// Writes a file, creating the directory if needed.
 void _writeSync(String filePath, String contents) {
-  var outDir = new Directory(path.dirname(filePath));
+  var outDir = Directory(path.dirname(filePath));
   if (!outDir.existsSync()) outDir.createSync(recursive: true);
 
-  new File(filePath).writeAsStringSync(contents);
+  File(filePath).writeAsStringSync(contents);
 }
 
 /// Merges dart:* library code with code from *_patch.dart file.
@@ -174,20 +177,20 @@ List<String> _patchLibrary(List<String> partsContents, String patchContents) {
 
   // Parse the patch first. We'll need to extract bits of this as we go through
   // the other files.
-  var patchFinder = new PatchFinder.parseAndVisit(patchContents);
+  var patchFinder = PatchFinder.parseAndVisit(patchContents);
 
   // Merge `external` declarations with the corresponding `@patch` code.
   bool failed = false;
   for (var partContent in partsContents) {
-    var partEdits = new StringEditBuffer(partContent);
+    var partEdits = StringEditBuffer(partContent);
     var partUnit = parseCompilationUnit(partContent);
-    var patcher = new PatchApplier(partEdits, patchFinder);
+    var patcher = PatchApplier(partEdits, patchFinder);
     partUnit.accept(patcher);
     if (!failed) failed = patcher.patchWasMissing;
     results.add(partEdits);
   }
   if (failed) return null;
-  return new List<String>.from(results.map((e) => e.toString()));
+  return List<String>.from(results.map((e) => e.toString()));
 }
 
 /// Merge `@patch` declarations into `external` declarations.
@@ -263,10 +266,10 @@ class PatchApplier extends GeneralizingAstVisitor {
     }
   }
 
-  void _maybePatch(AstNode node) {
+  void _maybePatch(Declaration node) {
     if (node is FieldDeclaration) return;
 
-    var externalKeyword = (node as dynamic).externalKeyword;
+    Token externalKeyword = (node as dynamic).externalKeyword;
     if (externalKeyword == null) return;
 
     var name = _qualifiedName(node);
@@ -301,9 +304,9 @@ class PatchFinder extends GeneralizingAstVisitor {
   final String contents;
   final CompilationUnit unit;
 
-  final Map patches = <String, Declaration>{};
-  final Map mergeMembers = <String, List<ClassMember>>{};
-  final List mergeDeclarations = <CompilationUnitMember>[];
+  final patches = <String, Declaration>{};
+  final mergeMembers = <String, List<ClassMember>>{};
+  final mergeDeclarations = <CompilationUnitMember>[];
 
   PatchFinder.parseAndVisit(String contents)
       : contents = contents,
@@ -356,12 +359,12 @@ String _qualifiedName(Declaration node) {
     result = "${parent.name.name}.";
   }
 
-  var name = (node as dynamic).name;
+  SimpleIdentifier name = (node as dynamic).name;
   if (name != null) result += name.name;
 
   // Make sure setters and getters don't collide.
-  if ((node is FunctionDeclaration || node is MethodDeclaration) &&
-      (node as dynamic).isSetter) {
+  if (node is FunctionDeclaration && node.isSetter ||
+      node is MethodDeclaration && node.isSetter) {
     result += "=";
   }
 
@@ -392,7 +395,7 @@ class StringEditBuffer {
   /// Edit the original text, replacing text on the range [begin] and
   /// exclusive [end] with the [replacement] string.
   void replace(int begin, int end, String replacement) {
-    _edits.add(new _StringEdit(begin, end, replacement));
+    _edits.add(_StringEdit(begin, end, replacement));
   }
 
   /// Insert [string] at [offset].
@@ -412,7 +415,7 @@ class StringEditBuffer {
   /// Throws [UnsupportedError] if the edits were overlapping. If no edits were
   /// made, the original string will be returned.
   String toString() {
-    var sb = new StringBuffer();
+    var sb = StringBuffer();
     if (_edits.length == 0) return original;
 
     // Sort edits by start location.
@@ -421,7 +424,7 @@ class StringEditBuffer {
     int consumed = 0;
     for (var edit in _edits) {
       if (consumed > edit.begin) {
-        sb = new StringBuffer();
+        sb = StringBuffer();
         sb.write('overlapping edits. Insert at offset ');
         sb.write(edit.begin);
         sb.write(' but have consumed ');
@@ -431,7 +434,7 @@ class StringEditBuffer {
           sb.write('\n    ');
           sb.write(e);
         }
-        throw new UnsupportedError(sb.toString());
+        throw UnsupportedError(sb.toString());
       }
 
       // Add characters from the original string between this edit and the last
@@ -467,7 +470,10 @@ class _StringEdit implements Comparable<_StringEdit> {
 }
 
 List<SdkLibrary> _getSdkLibraries(String contents) {
-  var libraryBuilder = new SdkLibrariesReader_LibraryBuilder(true);
+  // TODO(jmesserly): fix SdkLibrariesReader_LibraryBuilder in Analyzer.
+  // It doesn't understand optional new/const in Dart 2. For now, we keep
+  // redundant `const` in tool/input_sdk/libraries.dart as a workaround.
+  var libraryBuilder = SdkLibrariesReader_LibraryBuilder(true);
   parseCompilationUnit(contents).accept(libraryBuilder);
   return libraryBuilder.librariesMap.sdkLibraries;
 }

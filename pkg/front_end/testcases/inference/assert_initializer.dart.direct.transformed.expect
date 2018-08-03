@@ -1,0 +1,18 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  constructor expressionOnly() → void
+    : assert(self::f<dynamic>()), super core::Object::•()
+    ;
+  constructor expressionAndMessage() → void
+    : assert(self::f<dynamic>(), self::f<dynamic>()), super core::Object::•()
+    ;
+}
+static method f<T extends core::Object = dynamic>() → self::f::T
+  return null;
+static method main() → dynamic {
+  assert(self::f<dynamic>());
+  assert(self::f<dynamic>(), self::f<dynamic>());
+}

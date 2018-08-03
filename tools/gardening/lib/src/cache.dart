@@ -23,6 +23,9 @@ class Cache {
       log('Found $path in memory cache');
       return memoryCache[path];
     }
+    if (base == null) {
+      return ifAbsent();
+    }
     File file = new File.fromUri(base.resolve(path));
     String text;
     if (file.existsSync()) {
@@ -39,6 +42,7 @@ class Cache {
 
   /// Store [text] as the cache data for [path].
   void write(String path, String text) {
+    if (base == null) return;
     log('Creating $path in file cache');
     File file = new File.fromUri(base.resolve(path));
     file.createSync(recursive: true);

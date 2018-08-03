@@ -1,0 +1,14 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method f<T extends core::Object = dynamic>(core::List<self::f::T> s) → self::f::T
+  return null;
+static method test() → dynamic {
+  core::String x = self::f<core::String>(<core::String>["hi"]);
+  core::String y = self::f<core::String>(<core::String>[let<BottomType> _ = null in let final dynamic #t1 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/generic_methods_downwards_inference_affects_arguments.dart:13:76: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+          /*@typeArgs=String*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ 42]);
+                                                                           ^" in let final core::int #t2 = 42 in null]);
+}
+static method main() → dynamic {}

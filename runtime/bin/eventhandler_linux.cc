@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_IO_DISABLED)
-
 #include "platform/globals.h"
 #if defined(HOST_OS_LINUX)
 
@@ -22,8 +20,8 @@
 
 #include "bin/dartutils.h"
 #include "bin/fdutils.h"
-#include "bin/log.h"
 #include "bin/lockers.h"
+#include "bin/log.h"
 #include "bin/socket.h"
 #include "bin/thread.h"
 #include "platform/utils.h"
@@ -44,13 +42,11 @@ intptr_t DescriptorInfo::GetPollEvents() {
   return events;
 }
 
-
 // Unregister the file descriptor for a DescriptorInfo structure with
 // epoll.
 static void RemoveFromEpollInstance(intptr_t epoll_fd_, DescriptorInfo* di) {
   VOID_NO_RETRY_EXPECTED(epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, di->fd(), NULL));
 }
-
 
 static void AddToEpollInstance(intptr_t epoll_fd_, DescriptorInfo* di) {
   struct epoll_event event;
@@ -71,7 +67,6 @@ static void AddToEpollInstance(intptr_t epoll_fd_, DescriptorInfo* di) {
     di->NotifyAllDartPorts(1 << kCloseEvent);
   }
 }
-
 
 EventHandlerImplementation::EventHandlerImplementation()
     : socket_map_(&HashMap::SamePointerValue, 16) {
@@ -124,13 +119,11 @@ EventHandlerImplementation::EventHandlerImplementation()
   }
 }
 
-
 static void DeleteDescriptorInfo(void* info) {
   DescriptorInfo* di = reinterpret_cast<DescriptorInfo*>(info);
   di->Close();
   delete di;
 }
-
 
 EventHandlerImplementation::~EventHandlerImplementation() {
   socket_map_.Clear(DeleteDescriptorInfo);
@@ -139,7 +132,6 @@ EventHandlerImplementation::~EventHandlerImplementation() {
   VOID_TEMP_FAILURE_RETRY(close(interrupt_fds_[0]));
   VOID_TEMP_FAILURE_RETRY(close(interrupt_fds_[1]));
 }
-
 
 void EventHandlerImplementation::UpdateEpollInstance(intptr_t old_mask,
                                                      DescriptorInfo* di) {
@@ -154,7 +146,6 @@ void EventHandlerImplementation::UpdateEpollInstance(intptr_t old_mask,
     AddToEpollInstance(epoll_fd_, di);
   }
 }
-
 
 DescriptorInfo* EventHandlerImplementation::GetDescriptorInfo(
     intptr_t fd,
@@ -178,7 +169,6 @@ DescriptorInfo* EventHandlerImplementation::GetDescriptorInfo(
   return di;
 }
 
-
 void EventHandlerImplementation::WakeupHandler(intptr_t id,
                                                Dart_Port dart_port,
                                                int64_t data) {
@@ -200,7 +190,6 @@ void EventHandlerImplementation::WakeupHandler(intptr_t id,
   }
 }
 
-
 void EventHandlerImplementation::HandleInterruptFd() {
   const intptr_t MAX_MESSAGES = kInterruptMessageSize;
   InterruptMessage msg[MAX_MESSAGES];
@@ -209,15 +198,7 @@ void EventHandlerImplementation::HandleInterruptFd() {
   for (ssize_t i = 0; i < bytes / kInterruptMessageSize; i++) {
     if (msg[i].id == kTimerId) {
       timeout_queue_.UpdateTimeout(msg[i].dart_port, msg[i].data);
-      struct itimerspec it;
-      memset(&it, 0, sizeof(it));
-      if (timeout_queue_.HasTimeout()) {
-        int64_t millis = timeout_queue_.CurrentTimeout();
-        it.it_value.tv_sec = millis / 1000;
-        it.it_value.tv_nsec = (millis % 1000) * 1000000;
-      }
-      VOID_NO_RETRY_EXPECTED(
-          timerfd_settime(timer_fd_, TFD_TIMER_ABSTIME, &it, NULL));
+      UpdateTimerFd();
     } else if (msg[i].id == kShutdownId) {
       shutdown_ = true;
     } else {
@@ -242,11 +223,14 @@ void EventHandlerImplementation::HandleInterruptFd() {
         // message.
         intptr_t old_mask = di->Mask();
         Dart_Port port = msg[i].dart_port;
-        di->RemovePort(port);
+        if (port != ILLEGAL_PORT) {
+          di->RemovePort(port);
+        }
         intptr_t new_mask = di->Mask();
         UpdateEpollInstance(old_mask, di);
 
         intptr_t fd = di->fd();
+        ASSERT(fd == socket->fd());
         if (di->IsListeningSocket()) {
           // We only close the socket file descriptor from the operating
           // system if there are no other dart socket objects which
@@ -292,6 +276,17 @@ void EventHandlerImplementation::HandleInterruptFd() {
   }
 }
 
+void EventHandlerImplementation::UpdateTimerFd() {
+  struct itimerspec it;
+  memset(&it, 0, sizeof(it));
+  if (timeout_queue_.HasTimeout()) {
+    int64_t millis = timeout_queue_.CurrentTimeout();
+    it.it_value.tv_sec = millis / 1000;
+    it.it_value.tv_nsec = (millis % 1000) * 1000000;
+  }
+  VOID_NO_RETRY_EXPECTED(
+      timerfd_settime(timer_fd_, TFD_TIMER_ABSTIME, &it, NULL));
+}
 
 #ifdef DEBUG_POLL
 static void PrintEventMask(intptr_t fd, intptr_t events) {
@@ -325,7 +320,6 @@ static void PrintEventMask(intptr_t fd, intptr_t events) {
 }
 #endif
 
-
 intptr_t EventHandlerImplementation::GetPollEvents(intptr_t events,
                                                    DescriptorInfo* di) {
 #ifdef DEBUG_POLL
@@ -348,7 +342,6 @@ intptr_t EventHandlerImplementation::GetPollEvents(intptr_t events,
   return event_mask;
 }
 
-
 void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
                                               int size) {
   bool interrupt_seen = false;
@@ -363,6 +356,7 @@ void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
         DartUtils::PostNull(timeout_queue_.CurrentPort());
         timeout_queue_.RemoveCurrent();
       }
+      UpdateTimerFd();
     } else {
       DescriptorInfo* di =
           reinterpret_cast<DescriptorInfo*>(events[i].data.ptr);
@@ -385,7 +379,6 @@ void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
     HandleInterruptFd();
   }
 }
-
 
 void EventHandlerImplementation::Poll(uword args) {
   ThreadSignalBlocker signal_blocker(SIGPROF);
@@ -411,7 +404,6 @@ void EventHandlerImplementation::Poll(uword args) {
   handler->NotifyShutdownDone();
 }
 
-
 void EventHandlerImplementation::Start(EventHandler* handler) {
   int result = Thread::Start(&EventHandlerImplementation::Poll,
                              reinterpret_cast<uword>(handler));
@@ -420,11 +412,9 @@ void EventHandlerImplementation::Start(EventHandler* handler) {
   }
 }
 
-
 void EventHandlerImplementation::Shutdown() {
   SendData(kShutdownId, 0, 0);
 }
-
 
 void EventHandlerImplementation::SendData(intptr_t id,
                                           Dart_Port dart_port,
@@ -432,12 +422,10 @@ void EventHandlerImplementation::SendData(intptr_t id,
   WakeupHandler(id, dart_port, data);
 }
 
-
 void* EventHandlerImplementation::GetHashmapKeyFromFd(intptr_t fd) {
   // The hashmap does not support keys with value 0.
   return reinterpret_cast<void*>(fd + 1);
 }
-
 
 uint32_t EventHandlerImplementation::GetHashmapHashFromFd(intptr_t fd) {
   // The hashmap does not support keys with value 0.
@@ -448,5 +436,3 @@ uint32_t EventHandlerImplementation::GetHashmapHashFromFd(intptr_t fd) {
 }  // namespace dart
 
 #endif  // defined(HOST_OS_LINUX)
-
-#endif  // !defined(DART_IO_DISABLED)

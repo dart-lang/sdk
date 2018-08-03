@@ -31,7 +31,7 @@ class SubtypeTestCacheRefElement extends HtmlElement implements Renderable {
     assert(isolate != null);
     assert(subtypeTestCache != null);
     SubtypeTestCacheRefElement e = document.createElement(tag.name);
-    e._r = new RenderingScheduler(e, queue: queue);
+    e._r = new RenderingScheduler<SubtypeTestCacheRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._subtypeTestCache = subtypeTestCache;
     return e;
@@ -49,13 +49,13 @@ class SubtypeTestCacheRefElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    children = [];
+    children = <Element>[];
   }
 
   void render() {
-    children = [
+    children = <Element>[
       new AnchorElement(href: Uris.inspect(_isolate, object: _subtypeTestCache))
-        ..children = [
+        ..children = <Element>[
           new SpanElement()
             ..classes = ['emphasize']
             ..text = 'SubtypeTestCache',

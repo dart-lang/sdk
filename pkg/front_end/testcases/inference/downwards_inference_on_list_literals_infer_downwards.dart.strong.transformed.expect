@@ -1,0 +1,76 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method foo([core::List<core::String> list1 = const <core::String>[], core::List<core::String> list2 = const <core::String>[let<BottomType> _ = null in let final dynamic #t1 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:11:89: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.
+      /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ 42
+                                                                                        ^" in let final core::int #t2 = 42 in null]]) → void {}
+static method main() → void {
+  {
+    core::List<core::int> l0 = <core::int>[];
+    core::List<core::int> l1 = <core::int>[3];
+    core::List<core::int> l2 = <core::int>[let<BottomType> _ = null in let final dynamic #t3 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:19:50: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+      /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"
+                                                 ^" in let final core::String #t4 = "hello" in null];
+    core::List<core::int> l3 = <core::int>[let<BottomType> _ = null in let final dynamic #t5 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:22:50: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+      /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\",
+                                                 ^" in let final core::String #t6 = "hello" in null, 3];
+  }
+  {
+    core::List<dynamic> l0 = <dynamic>[];
+    core::List<dynamic> l1 = <dynamic>[3];
+    core::List<dynamic> l2 = <dynamic>["hello"];
+    core::List<dynamic> l3 = <dynamic>["hello", 3];
+  }
+  {
+    core::List<core::int> l0 = let<BottomType> _ = null in let final dynamic #t7 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:33:61: Error: The list literal type 'dart.core::List<dart.core::num>' isn't of expected type 'dart.core::List<dart.core::int>'.
+Change the type of the list literal or the context in which it is used.
+    List<int> l0 = /*error:INVALID_CAST_LITERAL_LIST*/ <num>[];
+                                                            ^" in let final core::List<core::num> #t8 = <core::num>[] in null;
+    core::List<core::int> l1 = let<BottomType> _ = null in let final dynamic #t9 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:34:61: Error: The list literal type 'dart.core::List<dart.core::num>' isn't of expected type 'dart.core::List<dart.core::int>'.
+Change the type of the list literal or the context in which it is used.
+    List<int> l1 = /*error:INVALID_CAST_LITERAL_LIST*/ <num>[3];
+                                                            ^" in let final core::List<core::num> #t10 = <core::num>[3] in null;
+    core::List<core::int> l2 = let<BottomType> _ = null in let final dynamic #t11 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:35:61: Error: The list literal type 'dart.core::List<dart.core::num>' isn't of expected type 'dart.core::List<dart.core::int>'.
+Change the type of the list literal or the context in which it is used.
+    List<int> l2 = /*error:INVALID_CAST_LITERAL_LIST*/ <num>[
+                                                            ^" in let final core::List<core::num> #t12 = <core::num>[let<BottomType> _ = null in let final dynamic #t13 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:36:50: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::num'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::num'.
+      /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"
+                                                 ^" in let final core::String #t14 = "hello" in null] in null;
+    core::List<core::int> l3 = let<BottomType> _ = null in let final dynamic #t15 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:38:61: Error: The list literal type 'dart.core::List<dart.core::num>' isn't of expected type 'dart.core::List<dart.core::int>'.
+Change the type of the list literal or the context in which it is used.
+    List<int> l3 = /*error:INVALID_CAST_LITERAL_LIST*/ <num>[
+                                                            ^" in let final core::List<core::num> #t16 = <core::num>[let<BottomType> _ = null in let final dynamic #t17 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:39:50: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::num'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::num'.
+      /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\",
+                                                 ^" in let final core::String #t18 = "hello" in null, 3] in null;
+  }
+  {
+    core::Iterable<core::int> i0 = <core::int>[];
+    core::Iterable<core::int> i1 = <core::int>[3];
+    core::Iterable<core::int> i2 = <core::int>[let<BottomType> _ = null in let final dynamic #t19 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:47:50: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+      /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"
+                                                 ^" in let final core::String #t20 = "hello" in null];
+    core::Iterable<core::int> i3 = <core::int>[let<BottomType> _ = null in let final dynamic #t21 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:50:50: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+      /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\",
+                                                 ^" in let final core::String #t22 = "hello" in null, 3];
+  }
+  {
+    const core::List<core::int> c0 = const <core::int>[];
+    const core::List<core::int> c1 = const <core::int>[3];
+    const core::List<core::int> c2 = const <core::int>[let<BottomType> _ = null in let final dynamic #t23 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:58:89: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+      /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"
+                                                                                        ^" in let final core::String #t24 = "hello" in null];
+    const core::List<core::int> c3 = const <core::int>[let<BottomType> _ = null in let final dynamic #t25 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:61:89: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+      /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\",
+                                                                                        ^" in let final core::String #t26 = "hello" in null, 3];
+  }
+}

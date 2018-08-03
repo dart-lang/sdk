@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:unittest/unittest.dart';
-import 'lax_json.dart';
+import 'helpers/lax_json.dart';
 
 void main() {
   test('primitives', () {

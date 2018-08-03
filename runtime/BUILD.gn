@@ -2,36 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("../build/dart/dart_host_sdk_toolchain.gni")
+import("configs.gni")
 import("runtime_args.gni")
-
-declare_args() {
-  # Instead of using is_debug, we introduce a different flag for specifying a
-  # Debug build of Dart so that clients can still use a Release build of Dart
-  # while themselves doing a Debug build.
-  dart_debug = false
-
-  # Set the runtime mode. This affects how the runtime is built and what
-  # features it has. Valid values are:
-  # 'develop' (the default) - VM is built to run as a JIT with all development
-  # features enabled.
-  # 'profile' - The VM is built to run with AOT compiled code with only the
-  # CPU profiling features enabled.
-  # 'release' - The VM is built to run with AOT compiled code with no developer
-  # features enabled.
-  #
-  # These settings are only used for Flutter, at the moment. A standalone build
-  # of the Dart VM should leave this set to "develop", and should set
-  # 'is_debug', 'is_release', or 'is_product'.
-  dart_runtime_mode = "develop"
-
-  # Explicitly set the target architecture in case of precompilation. Leaving
-  # this unspecified results in automatic target architecture detection.
-  # Available options are: arm, arm64, mips, x64 and ia32
-  dart_target_arch = ""
-
-  # The optimization level to use for debug builds.
-  dart_debug_optimization_level = "2"
-}
 
 config("dart_public_config") {
   include_dirs = [ "." ]
@@ -56,9 +29,21 @@ config("dart_maybe_product_config") {
   }
 }
 
+# This is a config to use to build PRODUCT mode artifacts in a RELEASE build.
+# If a DEBUG build has been specified it will be ignored.
+config("dart_product_config") {
+  defines = []
+  if (!dart_debug) {
+    defines += [ "PRODUCT" ]
+  }
+}
+
 config("dart_precompiled_runtime_config") {
   defines = []
-  defines += [ "DART_PRECOMPILED_RUNTIME" ]
+  defines += [
+    "DART_PRECOMPILED_RUNTIME",
+    "EXCLUDE_CFE_AND_KERNEL_PLATFORM",
+  ]
 }
 
 # Controls DART_PRECOMPILER #define.
@@ -67,54 +52,69 @@ config("dart_precompiler_config") {
   defines += [ "DART_PRECOMPILER" ]
 }
 
-config("dart_no_snapshot_config") {
+config("dart_nosnapshot_config") {
   defines = []
   defines += [ "DART_NO_SNAPSHOT" ]
 }
 
-config("dart_config") {
+config("dart_os_config") {
   defines = []
 
-  if (target_os == "android") {
-    defines += [ "TARGET_OS_ANDROID" ]
-  } else if (target_os == "fuchsia") {
-    defines += [ "TARGET_OS_FUCHSIA" ]
-  } else if (target_os == "ios") {
-    defines += [ "TARGET_OS_MACOS" ]
-    defines += [ "TARGET_OS_MACOS_IOS" ]
-  } else if (target_os == "linux") {
-    defines += [ "TARGET_OS_LINUX" ]
-  } else if (target_os == "mac") {
-    defines += [ "TARGET_OS_MACOS" ]
-  } else if (target_os == "win") {
-    defines += [ "TARGET_OS_WINDOWS" ]
-  } else {
-    print("Unknown target_os: $target_os")
-    assert(false)
+  # If dart_host_toolchain is the current toolchain, and it is different from
+  # host_toolchain, then we are building the SDK for the host, and should not
+  # hardcode these defines.
+  if (current_toolchain != dart_host_toolchain ||
+      host_toolchain == dart_host_toolchain) {
+    if (target_os == "android") {
+      defines += [ "TARGET_OS_ANDROID" ]
+    } else if (target_os == "fuchsia") {
+      defines += [ "TARGET_OS_FUCHSIA" ]
+    } else if (target_os == "ios") {
+      defines += [ "TARGET_OS_MACOS" ]
+      defines += [ "TARGET_OS_MACOS_IOS" ]
+    } else if (target_os == "linux") {
+      defines += [ "TARGET_OS_LINUX" ]
+    } else if (target_os == "mac") {
+      defines += [ "TARGET_OS_MACOS" ]
+    } else if (target_os == "win") {
+      defines += [ "TARGET_OS_WINDOWS" ]
+    } else {
+      print("Unknown target_os: $target_os")
+      assert(false)
+    }
   }
+}
 
-  if (dart_target_arch != "") {
-    if (dart_target_arch == "arm" || dart_target_arch == "simarm") {
+# We need to build gen_snapshot targeting Fuchsia during a build of the SDK
+# targeting Mac and Linux. This configuration is used to unconditionally target
+# Fuchsia. It should not be combined with dart_os_config.
+config("dart_os_fuchsia_config") {
+  defines = [ "TARGET_OS_FUCHSIA" ]
+}
+
+config("dart_arch_config") {
+  defines = []
+
+  # If dart_host_toolchain is the current toolchain, and it is different from
+  # host_toolchain, then we are building the SDK for the host, and should not
+  # hardcode these defines.
+  if (current_toolchain != dart_host_toolchain ||
+      host_toolchain == dart_host_toolchain) {
+    if (dart_target_arch == "arm") {
       defines += [ "TARGET_ARCH_ARM" ]
-    } else if (dart_target_arch == "armv6" || dart_target_arch == "simarmv6") {
+    } else if (dart_target_arch == "armv6") {
       defines += [ "TARGET_ARCH_ARM" ]
       defines += [ "TARGET_ARCH_ARM_6" ]
-    } else if (dart_target_arch == "armv5te" ||
-               dart_target_arch == "simarmv5te") {
+    } else if (dart_target_arch == "armv5te") {
       defines += [ "TARGET_ARCH_ARM" ]
       defines += [ "TARGET_ARCH_ARM_5TE" ]
-    } else if (dart_target_arch == "arm64" || dart_target_arch == "simarm64") {
+    } else if (dart_target_arch == "arm64") {
       defines += [ "TARGET_ARCH_ARM64" ]
-    } else if (dart_target_arch == "mips" || dart_target_arch == "simmips") {
-      defines += [ "TARGET_ARCH_MIPS" ]
     } else if (dart_target_arch == "x64") {
       defines += [ "TARGET_ARCH_X64" ]
-    } else if (dart_target_arch == "ia32") {
+    } else if (dart_target_arch == "ia32" || dart_target_arch == "x86") {
       defines += [ "TARGET_ARCH_IA32" ]
-    } else if (dart_target_arch == "dbc" || dart_target_arch == "simdbc" ||
-               dart_target_arch == "simdbc64" ||
-               dart_target_arch == "armsimdbc" ||
-               dart_target_arch == "armsimdbc64") {
+    } else if (dart_target_arch == "dbc") {
       defines += [ "TARGET_ARCH_DBC" ]
       defines += [ "USING_SIMULATOR" ]
     } else {
@@ -122,6 +122,21 @@ config("dart_config") {
       assert(false)
     }
   }
+}
+
+config("dart_interpreter_config") {
+  defines = [ "DART_USE_INTERPRETER" ]
+}
+
+config("dart_maybe_interpreter_config") {
+  defines = []
+  if (dart_use_interpreter) {
+    defines += [ "DART_USE_INTERPRETER" ]
+  }
+}
+
+config("dart_config") {
+  defines = []
 
   if (dart_debug) {
     defines += [ "DEBUG" ]
@@ -136,8 +151,12 @@ config("dart_config") {
   }
 
   if (is_fuchsia) {
-    defines += [ "DART_USE_JEMALLOC" ]
-    include_dirs += [ "//magenta/third_party/ulib/jemalloc/include" ]
+    import("//build/config/scudo/scudo.gni")
+    include_dirs += [ "//zircon/system/ulib/zx/include" ]
+    if (!use_scudo) {
+      defines += [ "DART_USE_JEMALLOC" ]
+      include_dirs += [ "//zircon/third_party/ulib/jemalloc/include" ]
+    }
   }
 
   if (!is_win) {
@@ -179,93 +198,45 @@ source_set("dart_api") {
   public_configs = [ ":dart_public_config" ]
   sources = [
     "include/dart_api.h",
-    "include/dart_mirrors_api.h",
     "include/dart_native_api.h",
     "include/dart_tools_api.h",
   ]
 }
 
-template("libdart_library") {
-  extra_configs = []
-  if (defined(invoker.extra_configs)) {
-    extra_configs += invoker.extra_configs
-  }
-  extra_deps = []
-  if (defined(invoker.extra_deps)) {
-    extra_deps += invoker.extra_deps
-  }
-  static_library(target_name) {
-    configs += [
-                 ":dart_config",
-                 ":dart_maybe_product_config",
-               ] + extra_configs
-    deps = [
-             "vm:libdart_platform",
-             "third_party/double-conversion/src:libdouble_conversion",
-             ":generate_version_cc_file",
-           ] + extra_deps
-    include_dirs = [ "." ]
-    public_configs = [ ":dart_public_config" ]
-    sources = [
-      "$target_gen_dir/version.cc",
-      "include/dart_api.h",
-      "include/dart_mirrors_api.h",
-      "include/dart_native_api.h",
-      "include/dart_tools_api.h",
-      "vm/dart_api_impl.cc",
-      "vm/debugger_api_impl.cc",
-      "vm/mirrors_api_impl.cc",
-      "vm/native_api_impl.cc",
-      "vm/version.h",
-    ]
-    defines = [ "DART_SHARED_LIB" ]
-  }
-}
-
-libdart_library("libdart_jit") {
+library_for_all_configs("libdart") {
+  target_type = dart_component_kind
   extra_deps = [
-    "vm:libdart_lib_jit",
-    "vm:libdart_vm_jit",
+    "third_party/double-conversion/src:libdouble_conversion",
+    ":generate_version_cc_file",
   ]
-}
-
-libdart_library("libdart_precompiled_runtime") {
-  extra_configs = [ ":dart_precompiled_runtime_config" ]
-  extra_deps = [
-    "vm:libdart_lib_precompiled_runtime",
-    "vm:libdart_vm_precompiled_runtime",
+  configurable_deps = [
+    "platform:libdart_platform",
+    "vm:libdart_lib",
+    "vm:libdart_vm",
   ]
-}
-
-libdart_library("libdart_nosnapshot_with_precompiler") {
-  extra_configs = [
-    ":dart_no_snapshot_config",
-    ":dart_precompiler_config",
+  include_dirs = [ "." ]
+  public_configs = [ ":dart_public_config" ]
+  sources = [
+    "$target_gen_dir/version.cc",
+    "include/dart_api.h",
+    "include/dart_native_api.h",
+    "include/dart_tools_api.h",
+    "vm/dart_api_impl.cc",
+    "vm/native_api_impl.cc",
+    "vm/version.h",
   ]
-  extra_deps = [
-    "vm:libdart_lib_nosnapshot_with_precompiler",
-    "vm:libdart_vm_nosnapshot_with_precompiler",
-  ]
-}
-
-libdart_library("libdart_with_precompiler") {
-  extra_configs = [ ":dart_precompiler_config" ]
-  extra_deps = [
-    "vm:libdart_lib_with_precompiler",
-    "vm:libdart_vm_with_precompiler",
-  ]
+  defines = [ "DART_SHARED_LIB" ]
 }
 
 action("generate_version_cc_file") {
-  deps = [
-    ":libdart_dependency_helper",
-  ]
   inputs = [
     "../tools/utils.py",
-    "../tools/print_version.py",
     "../tools/VERSION",
     "vm/version_in.cc",
   ]
+  if (dart_version_git_info) {
+    inputs += [ "../.git/logs/HEAD" ]
+  }
   output = "$target_gen_dir/version.cc"
   outputs = [
     output,
@@ -279,21 +250,13 @@ action("generate_version_cc_file") {
     "--input",
     rebase_path("vm/version_in.cc", root_build_dir),
   ]
-}
-
-executable("libdart_dependency_helper") {
-  configs += [
-    ":dart_config",
-    ":dart_maybe_product_config",
-  ]
-  deps = [
-    "third_party/double-conversion/src:libdouble_conversion",
-    "vm:libdart_lib_jit",
-    "vm:libdart_lib_nosnapshot_with_precompiler",
-    "vm:libdart_vm_jit",
-    "vm:libdart_vm_nosnapshot_with_precompiler",
-  ]
-  sources = [
-    "vm/libdart_dependency_helper.cc",
-  ]
+  if (!dart_version_git_info) {
+    args += [ "--no_git_hash" ]
+  }
+  if (dart_custom_version_for_pub != "") {
+    args += [
+      "--custom_for_pub",
+      dart_custom_version_for_pub,
+    ]
+  }
 }

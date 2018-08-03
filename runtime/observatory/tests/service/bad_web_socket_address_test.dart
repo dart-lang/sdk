@@ -9,7 +9,7 @@ import 'package:unittest/unittest.dart';
 
 void testBadWebSocket() {
   var vm = new WebSocketVM(new WebSocketVMTarget('ws://karatekid/ws'));
-  vm.load().catchError(expectAsync((error) {
+  vm.load().then<dynamic>((_) => null).catchError(expectAsync((error) {
     expect(error, new isInstanceOf<NetworkRpcException>());
   }));
 }

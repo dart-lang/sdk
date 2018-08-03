@@ -48,7 +48,6 @@ class SecureSocketUtils : public AllStatic {
   static void FetchErrorString(const SSL* ssl, TextBuffer* text_buffer);
 };
 
-
 // Where the argument to the constructor is the handle for an object
 // implementing List<int>, this class creates a scope in which a memory-backed
 // BIO is allocated. Leaving the scope cleans up the BIO and the buffer that
@@ -168,7 +167,6 @@ class ScopedSSLStackType {
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(ScopedSSLStackType);
 };
-
 
 typedef ScopedSSLType<PKCS12, PKCS12_free> ScopedPKCS12;
 typedef ScopedSSLType<X509, X509_free> ScopedX509;

@@ -6,7 +6,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io' as io;
-import 'package:observatory/service_io.dart';
+import 'package:observatory/service_io.dart' as S;
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
@@ -24,15 +24,15 @@ Future<Null> testeeBefore() async {
   var url = Uri.parse('http://localhost:$port');
   var httpClient = new io.HttpClient();
   try {
-    var request = await httpClient.getUrl(url);
+    await httpClient.getUrl(url);
     expect(true, true);
   } catch (e) {
     expect(true, false);
   }
 }
 
-var tests = [
-  (Isolate isolate) async {
+var tests = <IsolateTest>[
+  (S.Isolate isolate) async {
     await isolate.reload();
     // Just getting here means that the testee enabled the service protocol
     // web server.

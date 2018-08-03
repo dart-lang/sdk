@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/type.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart' as analyzer;
 import 'package:analyzer/source/error_processor.dart' as analyzer;
+import 'package:analyzer/source/line_info.dart' as analyzer;
 import 'package:analyzer/src/generated/engine.dart' as analyzer;
 import 'package:analyzer/src/generated/source.dart' as analyzer;
 import 'package:analyzer/src/generated/utilities_dart.dart' as analyzer;
@@ -35,7 +36,7 @@ class AnalyzerConverter {
     int startLine = -1;
     int startColumn = -1;
     if (lineInfo != null) {
-      analyzer.LineInfo_Location lineLocation = lineInfo.getLocation(offset);
+      analyzer.CharacterLocation lineLocation = lineInfo.getLocation(offset);
       if (lineLocation != null) {
         startLine = lineLocation.lineNumber;
         startColumn = lineLocation.columnNumber;
@@ -93,7 +94,7 @@ class AnalyzerConverter {
         element.displayName,
         plugin.Element.makeFlags(
             isPrivate: element.isPrivate,
-            isDeprecated: element.isDeprecated,
+            isDeprecated: element.hasDeprecated,
             isAbstract: _isAbstract(element),
             isConst: _isConst(element),
             isFinal: _isFinal(element),
@@ -216,12 +217,10 @@ class AnalyzerConverter {
         buffer.write(', ');
       }
       if (closeOptionalString.isEmpty) {
-        analyzer.ParameterKind kind = parameter.parameterKind;
-        if (kind == analyzer.ParameterKind.NAMED) {
+        if (parameter.isNamed) {
           buffer.write('{');
           closeOptionalString = '}';
-        }
-        if (kind == analyzer.ParameterKind.POSITIONAL) {
+        } else if (parameter.isOptionalPositional) {
           buffer.write('[');
           closeOptionalString = ']';
         }
@@ -340,7 +339,7 @@ class AnalyzerConverter {
     try {
       analyzer.LineInfo lineInfo = unitElement.lineInfo;
       if (lineInfo != null) {
-        analyzer.LineInfo_Location offsetLocation =
+        analyzer.CharacterLocation offsetLocation =
             lineInfo.getLocation(range.offset);
         startLine = offsetLocation.lineNumber;
         startColumn = offsetLocation.columnNumber;

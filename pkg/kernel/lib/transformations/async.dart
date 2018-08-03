@@ -48,7 +48,7 @@ class ExpressionLifter extends Transformer {
   ///
   /// If an expression should be named it is named before visiting its children
   /// so the naming assignment appears in the list before all statements
-  /// implementating the translation of the children.
+  /// implementing the translation of the children.
   ///
   /// Children that are conditionally evaluated, such as some parts of logical
   /// and conditional expressions, must be delimited so that they do not emit
@@ -181,8 +181,12 @@ class ExpressionLifter extends Transformer {
 
     // 4. If the expression was named then the variables used for children are
     // no longer live but the variable used for the expression is.
+    // On the other hand, a sibling to the left (yet to be processed) cannot
+    // reuse any of the variables used here, as the assignments in the children
+    // (here) would overwrite assignments in the siblings to the left,
+    // possibly before the use of the overwritten values.
     if (shouldName) {
-      nameIndex = index + 1;
+      if (index + 1 > nameIndex) nameIndex = index + 1;
       seenAwait = true;
     }
     return result;
@@ -413,22 +417,37 @@ class ExpressionLifter extends Transformer {
     // The statements are in reverse order, so name the result first if
     // necessary and then add the two other statements in reverse.
     if (shouldName) result = name(result);
-    statements.add(R.createContinuationPoint()..fileOffset = expr.fileOffset);
     Arguments arguments = new Arguments(<Expression>[
       expr.operand,
       new VariableGet(R.thenContinuationVariable),
       new VariableGet(R.catchErrorContinuationVariable),
       new VariableGet(R.nestedClosureVariable),
     ]);
-    statements.add(new ExpressionStatement(
-        new StaticInvocation(R.helper.awaitHelper, arguments)
-          ..fileOffset = expr.fileOffset));
+
+    // We are building
+    //
+    //     [yield] (let _ = _awaitHelper(...) in null)
+    //
+    // to ensure that :await_jump_var and :await_jump_ctx are updated
+    // before _awaitHelper is invoked (see BuildYieldStatement in
+    // StreamingFlowGraphBuilder for details of how [yield] is translated to
+    // IL). This guarantees that recursive invocation of the current function
+    // would continue from the correct "jump" position. Recursive invocations
+    // arise if future we are awaiting completes synchronously. Builtin Future
+    // implementation don't complete synchronously, but Flutter's
+    // SynchronousFuture do (see bug http://dartbug.com/32098 for more details).
+    statements.add(R.createContinuationPoint(new Let(
+        new VariableDeclaration(null,
+            initializer: new StaticInvocation(R.helper.awaitHelper, arguments)
+              ..fileOffset = expr.fileOffset),
+        new NullLiteral()))
+      ..fileOffset = expr.fileOffset);
 
     seenAwait = false;
     var index = nameIndex;
     arguments.positional[0] = expr.operand.accept(this)..parent = arguments;
 
-    if (shouldName) nameIndex = index + 1;
+    if (shouldName && index + 1 > nameIndex) nameIndex = index + 1;
     seenAwait = true;
     return result;
   }
@@ -439,15 +458,12 @@ class ExpressionLifter extends Transformer {
   }
 
   TreeNode visitLet(Let expr) {
-    var shouldName = seenAwait;
-
-    seenAwait = false;
     var body = expr.body.accept(this);
 
     VariableDeclaration variable = expr.variable;
     if (seenAwait) {
-      // The body in `let var x = initializer in body` contained an await.  We
-      // will produce the sequence of statements:
+      // There is an await in the body of `let var x = initializer in body` or
+      // to its right.  We will produce the sequence of statements:
       //
       // <initializer's statements>
       // var x = <initializer's value>
@@ -467,13 +483,12 @@ class ExpressionLifter extends Transformer {
         ..parent = variable;
       // Temporaries used in the initializer or the body are not live but the
       // temporary used for the body is.
-      nameIndex = index + 1;
+      if (index + 1 > nameIndex) nameIndex = index + 1;
       seenAwait = true;
       return body;
     } else {
       // The body in `let x = initializer in body` did not contain an await.  We
       // can leave a let expression.
-      seenAwait = shouldName;
       return transform(expr, () {
         // The body has already been translated.
         expr.body = body..parent = expr;
@@ -484,8 +499,8 @@ class ExpressionLifter extends Transformer {
   }
 
   visitFunctionNode(FunctionNode node) {
-    var nestedRewriter =
-        new RecursiveContinuationRewriter(continuationRewriter.helper);
+    var nestedRewriter = new RecursiveContinuationRewriter(
+        continuationRewriter.helper, continuationRewriter.syncAsync);
     return node.accept(nestedRewriter);
   }
 }

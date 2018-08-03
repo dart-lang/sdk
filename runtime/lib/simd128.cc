@@ -18,7 +18,6 @@ static void ThrowMaskRangeException(int64_t m) {
   }
 }
 
-
 DEFINE_NATIVE_ENTRY(Float32x4_fromDoubles, 5) {
   ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(Double, x, arguments->NativeArgAt(1));
@@ -32,7 +31,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_fromDoubles, 5) {
   return Float32x4::New(_x, _y, _z, _w);
 }
 
-
 DEFINE_NATIVE_ENTRY(Float32x4_splat, 2) {
   ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(Double, v, arguments->NativeArgAt(1));
@@ -40,18 +38,15 @@ DEFINE_NATIVE_ENTRY(Float32x4_splat, 2) {
   return Float32x4::New(_v, _v, _v, _v);
 }
 
-
 DEFINE_NATIVE_ENTRY(Float32x4_zero, 1) {
   ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
   return Float32x4::New(0.0f, 0.0f, 0.0f, 0.0f);
 }
 
-
 DEFINE_NATIVE_ENTRY(Float32x4_fromInt32x4Bits, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, v, arguments->NativeArgAt(1));
   return Float32x4::New(v.value());
 }
-
 
 DEFINE_NATIVE_ENTRY(Float32x4_fromFloat64x2, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, v, arguments->NativeArgAt(1));
@@ -59,7 +54,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_fromFloat64x2, 2) {
   float _y = static_cast<float>(v.y());
   return Float32x4::New(_x, _y, 0.0f, 0.0f);
 }
-
 
 DEFINE_NATIVE_ENTRY(Float32x4_add, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
@@ -71,7 +65,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_add, 2) {
   return Float32x4::New(_x, _y, _z, _w);
 }
 
-
 DEFINE_NATIVE_ENTRY(Float32x4_negate, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   float _x = -self.x();
@@ -80,7 +73,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_negate, 1) {
   float _w = -self.w();
   return Float32x4::New(_x, _y, _z, _w);
 }
-
 
 DEFINE_NATIVE_ENTRY(Float32x4_sub, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
@@ -92,7 +84,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_sub, 2) {
   return Float32x4::New(_x, _y, _z, _w);
 }
 
-
 DEFINE_NATIVE_ENTRY(Float32x4_mul, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, other, arguments->NativeArgAt(1));
@@ -102,7 +93,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_mul, 2) {
   float _w = self.w() * other.w();
   return Float32x4::New(_x, _y, _z, _w);
 }
-
 
 DEFINE_NATIVE_ENTRY(Float32x4_div, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
@@ -114,7 +104,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_div, 2) {
   return Float32x4::New(_x, _y, _z, _w);
 }
 
-
 DEFINE_NATIVE_ENTRY(Float32x4_cmplt, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, a, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, b, arguments->NativeArgAt(1));
@@ -124,7 +113,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_cmplt, 2) {
   uint32_t _w = a.w() < b.w() ? 0xFFFFFFFF : 0x0;
   return Int32x4::New(_x, _y, _z, _w);
 }
-
 
 DEFINE_NATIVE_ENTRY(Float32x4_cmplte, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, a, arguments->NativeArgAt(0));
@@ -136,7 +124,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_cmplte, 2) {
   return Int32x4::New(_x, _y, _z, _w);
 }
 
-
 DEFINE_NATIVE_ENTRY(Float32x4_cmpgt, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, a, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, b, arguments->NativeArgAt(1));
@@ -146,7 +133,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_cmpgt, 2) {
   uint32_t _w = a.w() > b.w() ? 0xFFFFFFFF : 0x0;
   return Int32x4::New(_x, _y, _z, _w);
 }
-
 
 DEFINE_NATIVE_ENTRY(Float32x4_cmpgte, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, a, arguments->NativeArgAt(0));
@@ -158,7 +144,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_cmpgte, 2) {
   return Int32x4::New(_x, _y, _z, _w);
 }
 
-
 DEFINE_NATIVE_ENTRY(Float32x4_cmpequal, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, a, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, b, arguments->NativeArgAt(1));
@@ -169,7 +154,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_cmpequal, 2) {
   return Int32x4::New(_x, _y, _z, _w);
 }
 
-
 DEFINE_NATIVE_ENTRY(Float32x4_cmpnequal, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, a, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, b, arguments->NativeArgAt(1));
@@ -179,7 +163,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_cmpnequal, 2) {
   uint32_t _w = a.w() != b.w() ? 0xFFFFFFFF : 0x0;
   return Int32x4::New(_x, _y, _z, _w);
 }
-
 
 DEFINE_NATIVE_ENTRY(Float32x4_scale, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
@@ -192,7 +175,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_scale, 2) {
   return Float32x4::New(_x, _y, _z, _w);
 }
 
-
 DEFINE_NATIVE_ENTRY(Float32x4_abs, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   float _x = fabsf(self.x());
@@ -201,7 +183,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_abs, 1) {
   float _w = fabsf(self.w());
   return Float32x4::New(_x, _y, _z, _w);
 }
-
 
 DEFINE_NATIVE_ENTRY(Float32x4_clamp, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
@@ -220,13 +201,11 @@ DEFINE_NATIVE_ENTRY(Float32x4_clamp, 3) {
   return Float32x4::New(_x, _y, _z, _w);
 }
 
-
 DEFINE_NATIVE_ENTRY(Float32x4_getX, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   double value = static_cast<double>(self.x());
   return Double::New(value);
 }
-
 
 DEFINE_NATIVE_ENTRY(Float32x4_getY, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
@@ -234,20 +213,17 @@ DEFINE_NATIVE_ENTRY(Float32x4_getY, 1) {
   return Double::New(value);
 }
 
-
 DEFINE_NATIVE_ENTRY(Float32x4_getZ, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   double value = static_cast<double>(self.z());
   return Double::New(value);
 }
 
-
 DEFINE_NATIVE_ENTRY(Float32x4_getW, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   double value = static_cast<double>(self.w());
   return Double::New(value);
 }
-
 
 DEFINE_NATIVE_ENTRY(Float32x4_getSignMask, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
@@ -259,7 +235,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_getSignMask, 1) {
   return Integer::New(value);
 }
 
-
 DEFINE_NATIVE_ENTRY(Int32x4_getSignMask, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
   uint32_t mx = (self.x() & 0x80000000) >> 31;
@@ -269,7 +244,6 @@ DEFINE_NATIVE_ENTRY(Int32x4_getSignMask, 1) {
   uint32_t value = mx | (my << 1) | (mz << 2) | (mw << 3);
   return Integer::New(value);
 }
-
 
 DEFINE_NATIVE_ENTRY(Float32x4_shuffle, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
@@ -283,7 +257,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_shuffle, 2) {
   float _w = data[(m >> 6) & 0x3];
   return Float32x4::New(_x, _y, _z, _w);
 }
-
 
 DEFINE_NATIVE_ENTRY(Float32x4_shuffleMix, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
@@ -300,7 +273,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_shuffleMix, 3) {
   return Float32x4::New(_x, _y, _z, _w);
 }
 
-
 DEFINE_NATIVE_ENTRY(Float32x4_setX, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Double, x, arguments->NativeArgAt(1));
@@ -310,7 +282,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_setX, 2) {
   float _w = self.w();
   return Float32x4::New(_x, _y, _z, _w);
 }
-
 
 DEFINE_NATIVE_ENTRY(Float32x4_setY, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
@@ -322,7 +293,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_setY, 2) {
   return Float32x4::New(_x, _y, _z, _w);
 }
 
-
 DEFINE_NATIVE_ENTRY(Float32x4_setZ, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Double, z, arguments->NativeArgAt(1));
@@ -332,7 +302,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_setZ, 2) {
   float _w = self.w();
   return Float32x4::New(_x, _y, _z, _w);
 }
-
 
 DEFINE_NATIVE_ENTRY(Float32x4_setW, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
@@ -344,7 +313,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_setW, 2) {
   return Float32x4::New(_x, _y, _z, _w);
 }
 
-
 DEFINE_NATIVE_ENTRY(Float32x4_min, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, other, arguments->NativeArgAt(1));
@@ -354,7 +322,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_min, 2) {
   float _w = self.w() < other.w() ? self.w() : other.w();
   return Float32x4::New(_x, _y, _z, _w);
 }
-
 
 DEFINE_NATIVE_ENTRY(Float32x4_max, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
@@ -366,7 +333,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_max, 2) {
   return Float32x4::New(_x, _y, _z, _w);
 }
 
-
 DEFINE_NATIVE_ENTRY(Float32x4_sqrt, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   float _x = sqrtf(self.x());
@@ -375,7 +341,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_sqrt, 1) {
   float _w = sqrtf(self.w());
   return Float32x4::New(_x, _y, _z, _w);
 }
-
 
 DEFINE_NATIVE_ENTRY(Float32x4_reciprocal, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
@@ -386,7 +351,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_reciprocal, 1) {
   return Float32x4::New(_x, _y, _z, _w);
 }
 
-
 DEFINE_NATIVE_ENTRY(Float32x4_reciprocalSqrt, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   float _x = sqrtf(1.0f / self.x());
@@ -395,7 +359,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_reciprocalSqrt, 1) {
   float _w = sqrtf(1.0f / self.w());
   return Float32x4::New(_x, _y, _z, _w);
 }
-
 
 DEFINE_NATIVE_ENTRY(Int32x4_fromInts, 5) {
   ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
@@ -410,7 +373,6 @@ DEFINE_NATIVE_ENTRY(Int32x4_fromInts, 5) {
   return Int32x4::New(_x, _y, _z, _w);
 }
 
-
 DEFINE_NATIVE_ENTRY(Int32x4_fromBools, 5) {
   ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, x, arguments->NativeArgAt(1));
@@ -424,12 +386,10 @@ DEFINE_NATIVE_ENTRY(Int32x4_fromBools, 5) {
   return Int32x4::New(_x, _y, _z, _w);
 }
 
-
 DEFINE_NATIVE_ENTRY(Int32x4_fromFloat32x4Bits, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, v, arguments->NativeArgAt(1));
   return Int32x4::New(v.value());
 }
-
 
 DEFINE_NATIVE_ENTRY(Int32x4_or, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
@@ -441,7 +401,6 @@ DEFINE_NATIVE_ENTRY(Int32x4_or, 2) {
   return Int32x4::New(_x, _y, _z, _w);
 }
 
-
 DEFINE_NATIVE_ENTRY(Int32x4_and, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, other, arguments->NativeArgAt(1));
@@ -451,7 +410,6 @@ DEFINE_NATIVE_ENTRY(Int32x4_and, 2) {
   int32_t _w = self.w() & other.w();
   return Int32x4::New(_x, _y, _z, _w);
 }
-
 
 DEFINE_NATIVE_ENTRY(Int32x4_xor, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
@@ -463,7 +421,6 @@ DEFINE_NATIVE_ENTRY(Int32x4_xor, 2) {
   return Int32x4::New(_x, _y, _z, _w);
 }
 
-
 DEFINE_NATIVE_ENTRY(Int32x4_add, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, other, arguments->NativeArgAt(1));
@@ -473,7 +430,6 @@ DEFINE_NATIVE_ENTRY(Int32x4_add, 2) {
   int32_t _w = self.w() + other.w();
   return Int32x4::New(_x, _y, _z, _w);
 }
-
 
 DEFINE_NATIVE_ENTRY(Int32x4_sub, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
@@ -485,13 +441,11 @@ DEFINE_NATIVE_ENTRY(Int32x4_sub, 2) {
   return Int32x4::New(_x, _y, _z, _w);
 }
 
-
 DEFINE_NATIVE_ENTRY(Int32x4_getX, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
   int32_t value = self.x();
   return Integer::New(value);
 }
-
 
 DEFINE_NATIVE_ENTRY(Int32x4_getY, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
@@ -499,20 +453,17 @@ DEFINE_NATIVE_ENTRY(Int32x4_getY, 1) {
   return Integer::New(value);
 }
 
-
 DEFINE_NATIVE_ENTRY(Int32x4_getZ, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
   int32_t value = self.z();
   return Integer::New(value);
 }
 
-
 DEFINE_NATIVE_ENTRY(Int32x4_getW, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
   int32_t value = self.w();
   return Integer::New(value);
 }
-
 
 DEFINE_NATIVE_ENTRY(Int32x4_shuffle, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
@@ -526,7 +477,6 @@ DEFINE_NATIVE_ENTRY(Int32x4_shuffle, 2) {
   int32_t _w = data[(m >> 6) & 0x3];
   return Int32x4::New(_x, _y, _z, _w);
 }
-
 
 DEFINE_NATIVE_ENTRY(Int32x4_shuffleMix, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
@@ -543,7 +493,6 @@ DEFINE_NATIVE_ENTRY(Int32x4_shuffleMix, 3) {
   return Int32x4::New(_x, _y, _z, _w);
 }
 
-
 DEFINE_NATIVE_ENTRY(Int32x4_setX, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, x, arguments->NativeArgAt(1));
@@ -553,7 +502,6 @@ DEFINE_NATIVE_ENTRY(Int32x4_setX, 2) {
   int32_t _w = self.w();
   return Int32x4::New(_x, _y, _z, _w);
 }
-
 
 DEFINE_NATIVE_ENTRY(Int32x4_setY, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
@@ -565,7 +513,6 @@ DEFINE_NATIVE_ENTRY(Int32x4_setY, 2) {
   return Int32x4::New(_x, _y, _z, _w);
 }
 
-
 DEFINE_NATIVE_ENTRY(Int32x4_setZ, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, z, arguments->NativeArgAt(1));
@@ -575,7 +522,6 @@ DEFINE_NATIVE_ENTRY(Int32x4_setZ, 2) {
   int32_t _w = self.w();
   return Int32x4::New(_x, _y, _z, _w);
 }
-
 
 DEFINE_NATIVE_ENTRY(Int32x4_setW, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
@@ -587,13 +533,11 @@ DEFINE_NATIVE_ENTRY(Int32x4_setW, 2) {
   return Int32x4::New(_x, _y, _z, _w);
 }
 
-
 DEFINE_NATIVE_ENTRY(Int32x4_getFlagX, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
   int32_t value = self.x();
   return Bool::Get(value != 0).raw();
 }
-
 
 DEFINE_NATIVE_ENTRY(Int32x4_getFlagY, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
@@ -601,20 +545,17 @@ DEFINE_NATIVE_ENTRY(Int32x4_getFlagY, 1) {
   return Bool::Get(value != 0).raw();
 }
 
-
 DEFINE_NATIVE_ENTRY(Int32x4_getFlagZ, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
   int32_t value = self.z();
   return Bool::Get(value != 0).raw();
 }
 
-
 DEFINE_NATIVE_ENTRY(Int32x4_getFlagW, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
   int32_t value = self.w();
   return Bool::Get(value != 0).raw();
 }
-
 
 DEFINE_NATIVE_ENTRY(Int32x4_setFlagX, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
@@ -627,7 +568,6 @@ DEFINE_NATIVE_ENTRY(Int32x4_setFlagX, 2) {
   return Int32x4::New(_x, _y, _z, _w);
 }
 
-
 DEFINE_NATIVE_ENTRY(Int32x4_setFlagY, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, flagY, arguments->NativeArgAt(1));
@@ -638,7 +578,6 @@ DEFINE_NATIVE_ENTRY(Int32x4_setFlagY, 2) {
   _y = flagY.raw() == Bool::True().raw() ? 0xFFFFFFFF : 0x0;
   return Int32x4::New(_x, _y, _z, _w);
 }
-
 
 DEFINE_NATIVE_ENTRY(Int32x4_setFlagZ, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
@@ -651,7 +590,6 @@ DEFINE_NATIVE_ENTRY(Int32x4_setFlagZ, 2) {
   return Int32x4::New(_x, _y, _z, _w);
 }
 
-
 DEFINE_NATIVE_ENTRY(Int32x4_setFlagW, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, flagW, arguments->NativeArgAt(1));
@@ -663,7 +601,6 @@ DEFINE_NATIVE_ENTRY(Int32x4_setFlagW, 2) {
   return Int32x4::New(_x, _y, _z, _w);
 }
 
-
 // Used to convert between int32_t and float32 without breaking strict
 // aliasing rules.
 union float32_int32 {
@@ -672,7 +609,6 @@ union float32_int32 {
   float32_int32(float v) { f = v; }
   float32_int32(int32_t v) { u = v; }
 };
-
 
 DEFINE_NATIVE_ENTRY(Int32x4_select, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
@@ -699,7 +635,6 @@ DEFINE_NATIVE_ENTRY(Int32x4_select, 3) {
   return Float32x4::New(tempX.f, tempY.f, tempZ.f, tempW.f);
 }
 
-
 DEFINE_NATIVE_ENTRY(Float64x2_fromDoubles, 3) {
   ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(Double, x, arguments->NativeArgAt(1));
@@ -707,19 +642,16 @@ DEFINE_NATIVE_ENTRY(Float64x2_fromDoubles, 3) {
   return Float64x2::New(x.value(), y.value());
 }
 
-
 DEFINE_NATIVE_ENTRY(Float64x2_splat, 2) {
   ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(Double, v, arguments->NativeArgAt(1));
   return Float64x2::New(v.value(), v.value());
 }
 
-
 DEFINE_NATIVE_ENTRY(Float64x2_zero, 1) {
   ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
   return Float64x2::New(0.0, 0.0);
 }
-
 
 DEFINE_NATIVE_ENTRY(Float64x2_fromFloat32x4, 2) {
   ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
@@ -729,7 +661,6 @@ DEFINE_NATIVE_ENTRY(Float64x2_fromFloat32x4, 2) {
   return Float64x2::New(_x, _y);
 }
 
-
 DEFINE_NATIVE_ENTRY(Float64x2_add, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, other, arguments->NativeArgAt(1));
@@ -738,14 +669,12 @@ DEFINE_NATIVE_ENTRY(Float64x2_add, 2) {
   return Float64x2::New(_x, _y);
 }
 
-
 DEFINE_NATIVE_ENTRY(Float64x2_negate, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, self, arguments->NativeArgAt(0));
   double _x = -self.x();
   double _y = -self.y();
   return Float64x2::New(_x, _y);
 }
-
 
 DEFINE_NATIVE_ENTRY(Float64x2_sub, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, self, arguments->NativeArgAt(0));
@@ -755,7 +684,6 @@ DEFINE_NATIVE_ENTRY(Float64x2_sub, 2) {
   return Float64x2::New(_x, _y);
 }
 
-
 DEFINE_NATIVE_ENTRY(Float64x2_mul, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, other, arguments->NativeArgAt(1));
@@ -764,7 +692,6 @@ DEFINE_NATIVE_ENTRY(Float64x2_mul, 2) {
   return Float64x2::New(_x, _y);
 }
 
-
 DEFINE_NATIVE_ENTRY(Float64x2_div, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, other, arguments->NativeArgAt(1));
@@ -772,7 +699,6 @@ DEFINE_NATIVE_ENTRY(Float64x2_div, 2) {
   double _y = self.y() / other.y();
   return Float64x2::New(_x, _y);
 }
-
 
 DEFINE_NATIVE_ENTRY(Float64x2_scale, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, self, arguments->NativeArgAt(0));
@@ -783,14 +709,12 @@ DEFINE_NATIVE_ENTRY(Float64x2_scale, 2) {
   return Float64x2::New(_x, _y);
 }
 
-
 DEFINE_NATIVE_ENTRY(Float64x2_abs, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, self, arguments->NativeArgAt(0));
   double _x = fabs(self.x());
   double _y = fabs(self.y());
   return Float64x2::New(_x, _y);
 }
-
 
 DEFINE_NATIVE_ENTRY(Float64x2_clamp, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, self, arguments->NativeArgAt(0));
@@ -805,18 +729,15 @@ DEFINE_NATIVE_ENTRY(Float64x2_clamp, 3) {
   return Float64x2::New(_x, _y);
 }
 
-
 DEFINE_NATIVE_ENTRY(Float64x2_getX, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, self, arguments->NativeArgAt(0));
   return Double::New(self.x());
 }
 
-
 DEFINE_NATIVE_ENTRY(Float64x2_getY, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, self, arguments->NativeArgAt(0));
   return Double::New(self.y());
 }
-
 
 DEFINE_NATIVE_ENTRY(Float64x2_getSignMask, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, self, arguments->NativeArgAt(0));
@@ -826,7 +747,6 @@ DEFINE_NATIVE_ENTRY(Float64x2_getSignMask, 1) {
   return Integer::New(value);
 }
 
-
 DEFINE_NATIVE_ENTRY(Float64x2_setX, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Double, x, arguments->NativeArgAt(1));
@@ -834,7 +754,6 @@ DEFINE_NATIVE_ENTRY(Float64x2_setX, 2) {
   double _y = self.y();
   return Float64x2::New(_x, _y);
 }
-
 
 DEFINE_NATIVE_ENTRY(Float64x2_setY, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, self, arguments->NativeArgAt(0));
@@ -844,7 +763,6 @@ DEFINE_NATIVE_ENTRY(Float64x2_setY, 2) {
   return Float64x2::New(_x, _y);
 }
 
-
 DEFINE_NATIVE_ENTRY(Float64x2_min, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, other, arguments->NativeArgAt(1));
@@ -853,7 +771,6 @@ DEFINE_NATIVE_ENTRY(Float64x2_min, 2) {
   return Float64x2::New(_x, _y);
 }
 
-
 DEFINE_NATIVE_ENTRY(Float64x2_max, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, other, arguments->NativeArgAt(1));
@@ -861,7 +778,6 @@ DEFINE_NATIVE_ENTRY(Float64x2_max, 2) {
   double _y = self.y() > other.y() ? self.y() : other.y();
   return Float64x2::New(_x, _y);
 }
-
 
 DEFINE_NATIVE_ENTRY(Float64x2_sqrt, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, self, arguments->NativeArgAt(0));

@@ -21,14 +21,16 @@ class B<E> extends A<E> implements M {
   const B();
   int get y => 0;
 
-  m(a, f(v, int e)) {}
+  /*@topType=A<B::E>*/ m(/*@topType=dynamic*/ a, f(v, int e)) {}
 }
 
 foo() {
   int y = /*error:INVALID_ASSIGNMENT*/ new B<String>()
       . /*@target=B::m*/ m(null, null)
-      .value;
-  String z = new B<String>(). /*@target=B::m*/ m(null, null).value;
+      . /*@target=A::value*/ value;
+  String z = new B<String>()
+      . /*@target=B::m*/ m(null, null)
+      . /*@target=A::value*/ value;
 }
 
 main() {}

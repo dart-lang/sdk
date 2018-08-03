@@ -1,0 +1,25 @@
+# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+main.dart.patch: |
+  // Test that a stored closure changes behavior when updated
+
+  var closure;
+
+  foo(a, [b = 'b']) {
+  <<<< ["[closure] is null.","a b","a c"]
+    print('$a $b');
+  ==== ["b a","c a"]
+    print('$b $a');
+  >>>>
+  }
+
+  main() {
+    if (closure == null) {
+      print('[closure] is null.');
+      closure = foo;
+    }
+    closure('a');
+    closure('a', 'c');
+  }

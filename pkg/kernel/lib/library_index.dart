@@ -20,9 +20,9 @@ class LibraryIndex {
   final Map<String, _ClassTable> _libraries = <String, _ClassTable>{};
 
   /// Indexes the libraries with the URIs given in [libraryUris].
-  LibraryIndex(Program program, Iterable<String> libraryUris) {
+  LibraryIndex(Component component, Iterable<String> libraryUris) {
     var libraryUriSet = libraryUris.toSet();
-    for (var library in program.libraries) {
+    for (var library in component.libraries) {
       var uri = '${library.importUri}';
       if (libraryUriSet.contains(uri)) {
         _libraries[uri] = new _ClassTable(library);
@@ -31,24 +31,24 @@ class LibraryIndex {
   }
 
   /// Indexes the libraries with the URIs given in [libraryUris].
-  LibraryIndex.byUri(Program program, Iterable<Uri> libraryUris)
-      : this(program, libraryUris.map((uri) => '$uri'));
+  LibraryIndex.byUri(Component component, Iterable<Uri> libraryUris)
+      : this(component, libraryUris.map((uri) => '$uri'));
 
   /// Indexes `dart:` libraries.
-  LibraryIndex.coreLibraries(Program program) {
-    for (var library in program.libraries) {
+  LibraryIndex.coreLibraries(Component component) {
+    for (var library in component.libraries) {
       if (library.importUri.scheme == 'dart') {
         _libraries['${library.importUri}'] = new _ClassTable(library);
       }
     }
   }
 
-  /// Indexes the entire program.
+  /// Indexes the entire component.
   ///
   /// Consider using another constructor to only index the libraries that
   /// are needed.
-  LibraryIndex.all(Program program) {
-    for (var library in program.libraries) {
+  LibraryIndex.all(Component component) {
+    for (var library in component.libraries) {
       _libraries['${library.importUri}'] = new _ClassTable(library);
     }
   }

@@ -21,19 +21,6 @@ uintptr_t Utils::RoundUpToPowerOfTwo(uintptr_t x) {
   return x + 1;
 }
 
-
-// Implementation is from "Hacker's Delight" by Henry S. Warren, Jr.,
-// figure 5-2, page 66, where the function is called pop.
-int Utils::CountOneBits(uint32_t x) {
-  x = x - ((x >> 1) & 0x55555555);
-  x = (x & 0x33333333) + ((x >> 2) & 0x33333333);
-  x = (x + (x >> 4)) & 0x0F0F0F0F;
-  x = x + (x >> 8);
-  x = x + (x >> 16);
-  return static_cast<int>(x & 0x0000003F);
-}
-
-
 // TODO(koda): Compare to flsll call/intrinsic.
 int Utils::HighestBit(int64_t v) {
   uint64_t x = static_cast<uint64_t>((v > 0) ? v : -v);
@@ -63,7 +50,6 @@ int Utils::HighestBit(int64_t v) {
   return r;
 }
 
-
 uint32_t Utils::StringHash(const char* data, int length) {
   // This implementation is based on the public domain MurmurHash
   // version 2.0. It assumes that the underlying CPU can read from
@@ -92,8 +78,10 @@ uint32_t Utils::StringHash(const char* data, int length) {
   switch (size) {
     case 3:
       hash ^= cursor[2] << 16;
+      /* Falls through. */
     case 2:
       hash ^= cursor[1] << 8;
+      /* Falls through. */
     case 1:
       hash ^= cursor[0];
       hash *= M;
@@ -107,7 +95,6 @@ uint32_t Utils::StringHash(const char* data, int length) {
   return hash;
 }
 
-
 uint32_t Utils::WordHash(intptr_t key) {
   // TODO(iposva): Need to check hash spreading.
   // This example is from http://www.concentric.net/~Ttwang/tech/inthash.htm
@@ -120,6 +107,5 @@ uint32_t Utils::WordHash(intptr_t key) {
   a = (a ^ 0xb55a4f09) ^ (a >> 16);
   return static_cast<uint32_t>(a);
 }
-
 
 }  // namespace dart

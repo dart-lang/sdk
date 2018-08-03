@@ -18,17 +18,20 @@ make1() native;
 make2() native;
 make3() native;
 
-void setup() native r"""
-function A() {}
-A.prototype.$isThing = true;
-make1 = function(){return new A;};
-make2 = function(){return {$isThing: true}};
-function NT() {}
-NT.prototype.$isThing = true;
-make3 = function(){return new NT;};
+void setup() {
+  JS('', r"""
+(function(){
+  function A() {}
+  A.prototype.$isThing = true;
+  make1 = function(){return new A()};
+  make2 = function(){return {$isThing: true}};
+  function NT() {}
+  NT.prototype.$isThing = true;
+  make3 = function(){return new NT()};
 
-self.nativeConstructor(NT);
-""";
+  self.nativeConstructor(NT);
+})()""");
+}
 
 main() {
   nativeTesting();

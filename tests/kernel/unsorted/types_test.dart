@@ -45,13 +45,14 @@ class C {}
 testConstantLiteralTypes() {
   Expect.isTrue(const [1] is List);
   Expect.isTrue(const [1] is List<int>);
-  Expect.isTrue(const [1] is List<String>);
+  Expect.isTrue(const ["1"] is List<String>);
+  Expect.isTrue(!(const [1] is List<String>));
   Expect.isTrue(const <int>[1] is List);
   Expect.isTrue(const <int>[1] is List<int>);
   Expect.isTrue(!(const <int>[1] is List<String>));
   Expect.isTrue(const {"a": 1} is Map);
   Expect.isTrue(const {"a": 1} is Map<String, int>);
-  Expect.isTrue(const {"a": 1} is Map<int, String>);
+  Expect.isTrue(const {1: "a"} is Map<int, String>);
   Expect.isTrue(const <String, int>{"a": 1} is Map);
   Expect.isTrue(const <String, int>{"a": 1} is Map<String, int>);
   Expect.isTrue(!(const <String, int>{"a": 1} is Map<int, String>));
@@ -60,7 +61,8 @@ testConstantLiteralTypes() {
 testNonConstantLiteralTypes() {
   Expect.isTrue([1] is List);
   Expect.isTrue([1] is List<int>);
-  Expect.isTrue([1] is List<String>);
+  Expect.isTrue(["1"] is List<String>);
+  Expect.isTrue(!([1] is List<String>));
   Expect.isTrue(<int>[1] is List);
   Expect.isTrue(<int>[1] is List<int>);
   Expect.isTrue(!(<int>[1] is List<String>));
@@ -163,12 +165,19 @@ testSubtypeChecker() {
 
 testFunctionTypes() {
   fun(int x, String y) => "${x}${y}";
-  Expect.isTrue(fun is FunctionType);
-  Expect.isTrue(nan is FunctionType);
+  Expect.isTrue(!(fun is FunctionType));
+
+  fun1(num x, Pattern y) => 123;
+  Expect.isTrue(fun1 is FunctionType);
+
+  fun2(num x, String y) => 123;
+  Expect.isTrue(!(fun2 is FunctionType));
+
+  Expect.isTrue(!(nan is FunctionType));
   Expect.isTrue(nan is Function);
 }
 
-num nan(double d, Pattern p) => double.NAN;
+num nan(double d, Pattern p) => double.nan;
 
 typedef int FunctionType(num _, Pattern __);
 

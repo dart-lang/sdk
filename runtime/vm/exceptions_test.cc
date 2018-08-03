@@ -9,22 +9,19 @@
 
 namespace dart {
 
-
 #define FUNCTION_NAME(name) UnhandledExcp_##name
 #define REGISTER_FUNCTION(name, count) {"" #name, FUNCTION_NAME(name), count},
-
 
 void FUNCTION_NAME(Unhandled_equals)(Dart_NativeArguments args) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   const Instance& expected = Instance::CheckedHandle(arguments->NativeArgAt(0));
   const Instance& actual = Instance::CheckedHandle(arguments->NativeArgAt(1));
   if (!expected.CanonicalizeEquals(actual)) {
-    OS::Print("expected: '%s' actual: '%s'\n", expected.ToCString(),
-              actual.ToCString());
+    OS::PrintErr("expected: '%s' actual: '%s'\n", expected.ToCString(),
+                 actual.ToCString());
     FATAL("Unhandled_equals fails.\n");
   }
 }
-
 
 void FUNCTION_NAME(Unhandled_invoke)(Dart_NativeArguments args) {
   // Invoke the specified entry point.
@@ -34,7 +31,6 @@ void FUNCTION_NAME(Unhandled_invoke)(Dart_NativeArguments args) {
   ASSERT(Dart_ErrorHasException(result));
   return;
 }
-
 
 void FUNCTION_NAME(Unhandled_invoke2)(Dart_NativeArguments args) {
   // Invoke the specified entry point.
@@ -49,7 +45,6 @@ void FUNCTION_NAME(Unhandled_invoke2)(Dart_NativeArguments args) {
   return;
 }
 
-
 // List all native functions implemented in the vm or core boot strap dart
 // libraries so that we can resolve the native function to it's entry
 // point.
@@ -58,13 +53,11 @@ void FUNCTION_NAME(Unhandled_invoke2)(Dart_NativeArguments args) {
   V(Unhandled_invoke, 0)                                                       \
   V(Unhandled_invoke2, 0)
 
-
 static struct NativeEntries {
   const char* name_;
   Dart_NativeFunction function_;
   int argument_count_;
 } BuiltinEntries[] = {UNHANDLED_NATIVE_LIST(REGISTER_FUNCTION)};
-
 
 static Dart_NativeFunction native_lookup(Dart_Handle name,
                                          int argument_count,
@@ -85,7 +78,6 @@ static Dart_NativeFunction native_lookup(Dart_Handle name,
   }
   return NULL;
 }
-
 
 // Unit test case to verify unhandled exceptions.
 TEST_CASE(UnhandledExceptions) {

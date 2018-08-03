@@ -1,0 +1,32 @@
+// Errors:
+//
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_many.dart:12:15: Error: Generic type 'Hest' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'Hest' here.
+// class Naebdyr<TypeZ extends Map<Hest, Fisk>> {}
+//               ^^^^^
+//
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_many.dart:12:15: Error: Generic type 'Fisk' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'Fisk' here.
+// class Naebdyr<TypeZ extends Map<Hest, Fisk>> {}
+//               ^^^^^
+
+library;
+import self as self;
+import "dart:core" as core;
+
+class Hest<TypeX extends self::Hest<self::Hest::TypeX> = self::Hest<dynamic>> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class Fisk<TypeY extends self::Fisk<self::Fisk::TypeY> = self::Fisk<dynamic>> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class Naebdyr<TypeZ extends core::Map<self::Hest<self::Hest<dynamic>>, self::Fisk<self::Fisk<dynamic>>> = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

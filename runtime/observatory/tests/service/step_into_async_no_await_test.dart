@@ -20,7 +20,7 @@ testMain() {
   asyncWithoutAwait(); // Line A.
 }
 
-var tests = [
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   (isolate) => isolate.stepInto(),

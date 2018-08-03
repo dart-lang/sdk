@@ -38,7 +38,7 @@ part of dart.core;
  *     }
  *
  * The [List] and [Set] classes are both `Iterable`,
- * as are most classes in the [dart:collection](#dart-collection) library.
+ * as are most classes in the `dart:collection` library.
  *
  * Some [Iterable] collections can be modified.
  * Adding an element to a `List` or `Set` will change which elements it
@@ -80,6 +80,8 @@ part of dart.core;
  * have side effects.
  */
 abstract class Iterable<E> {
+  // TODO(lrn): When we allow forwarding const constructors through
+  // mixin applications, make this class implement [IterableMixin].
   const Iterable();
 
   /**
@@ -109,6 +111,17 @@ abstract class Iterable<E> {
    * immediately.
    */
   const factory Iterable.empty() = EmptyIterable<E>;
+
+  /**
+   * Adapts [source] to be an `Iterable<T>`.
+   *
+   * Any time the iterable would produce an element that is not a [T],
+   * the element access will throw. If all elements of [source] are actually
+   * instances of [T], or if only elements that are actually instances of [T]
+   * are accessed, then the resulting iterable can be used as an `Iterable<T>`.
+   */
+  static Iterable<T> castFrom<S, T>(Iterable<S> source) =>
+      new CastIterable<S, T>(source);
 
   /**
    * Returns a new `Iterator` that allows iterating the elements of this
@@ -141,6 +154,31 @@ abstract class Iterable<E> {
   Iterator<E> get iterator;
 
   /**
+   * Provides a view of this iterable as an iterable of [R] instances.
+   *
+   * If this iterable only contains instances of [R], all operations
+   * will work correctly. If any operation tries to access an element
+   * that is not an instance of [R], the access will throw instead.
+   *
+   * When the returned iterable creates a new object that depends on
+   * the type [R], e.g., from [toList], it will have exactly the type [R].
+   */
+  Iterable<R> cast<R>() => Iterable.castFrom<E, R>(this);
+  /**
+   * Returns the lazy concatentation of this iterable and [other].
+   *
+   * The returned iterable will provide the same elements as this iterable,
+   * and, after that, the elements of [other], in the same order as in the
+   * original iterables.
+   */
+  Iterable<E> followedBy(Iterable<E> other) {
+    if (this is EfficientLengthIterable<E>) {
+      return new FollowedByIterable<E>.firstEfficient(this, other);
+    }
+    return new FollowedByIterable<E>(this, other);
+  }
+
+  /**
    * Returns a new lazy [Iterable] with elements that are created by
    * calling `f` on each element of this `Iterable` in iteration order.
    *
@@ -171,6 +209,19 @@ abstract class Iterable<E> {
    * function [test] multiple times on the same element.
    */
   Iterable<E> where(bool test(E element)) => new WhereIterable<E>(this, test);
+
+  /**
+   * Returns a new lazy [Iterable] with all elements that have type [T].
+   *
+   * The matching elements have the same order in the returned iterable
+   * as they have in [iterator].
+   *
+   * This method returns a view of the mapped elements.
+   * Iterating will not cache results, and thus iterating multiple times over
+   * the returned [Iterable] may yield different results,
+   * if the underlying elements change between iterations.
+   */
+  Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
 
   /**
    * Expands each element of this [Iterable] into zero or more elements.
@@ -291,9 +342,9 @@ abstract class Iterable<E> {
    * Checks every element in iteration order, and returns `false` if
    * any of them make [test] return `false`, otherwise returns `true`.
    */
-  bool every(bool f(E element)) {
+  bool every(bool test(E element)) {
     for (E element in this) {
-      if (!f(element)) return false;
+      if (!test(element)) return false;
     }
     return true;
   }
@@ -330,9 +381,9 @@ abstract class Iterable<E> {
    * Checks every element in iteration order, and returns `true` if
    * any of them make [test] return `true`, otherwise returns false.
    */
-  bool any(bool f(E element)) {
+  bool any(bool test(E element)) {
     for (E element in this) {
-      if (f(element)) return true;
+      if (test(element)) return true;
     }
     return false;
   }
@@ -552,12 +603,14 @@ abstract class Iterable<E> {
   /**
    * Returns the single element that satisfies [test].
    *
-   * Checks all elements to see if `test(element)` returns true.
+   * Checks elements to see if `test(element)` returns true.
    * If exactly one element satisfies [test], that element is returned.
    * Otherwise, if there are no matching elements, or if there is more than
-   * one matching element, a [StateError] is thrown.
+   * one matching element, the result of invoking the [orElse]
+   * function is returned.
+   * If [orElse] is omitted, it defaults to throwing a [StateError].
    */
-  E singleWhere(bool test(E element)) {
+  E singleWhere(bool test(E element), {E orElse()}) {
     E result = null;
     bool foundMatching = false;
     for (E element in this) {
@@ -570,6 +623,7 @@ abstract class Iterable<E> {
       }
     }
     if (foundMatching) return result;
+    if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
 
@@ -580,9 +634,9 @@ abstract class Iterable<E> {
    * Index zero represents the first element (so `iterable.elementAt(0)` is
    * equivalent to `iterable.first`).
    *
-   * May iterate through the elements in iteration order, skipping the
-   * first `index` elements and returning the next.
-   * Some iterable may have more efficient ways to find the element.
+   * May iterate through the elements in iteration order, ignoring the
+   * first [index] elements and then returning the next.
+   * Some iterables may have more a efficient way to find the element.
    */
   E elementAt(int index) {
     if (index is! int) throw new ArgumentError.notNull("index");

@@ -29,18 +29,21 @@ getBPrototype() native;
 @Creates('=Object')
 getCPrototype() native;
 
-void setup() native r"""
-function A() {}
-function B() {}
-function C() {}
-makeA = function(){return new A;};
-makeB1 = function(){return new B;};
-makeB2 = function(){return new B;};
-makeC = function(){return new C;};
+void setup() {
+  JS('', r"""
+(function(){
+  function A() {}
+  function B() {}
+  function C() {}
+  makeA = function(){return new A()};
+  makeB1 = function(){return new B()};
+  makeB2 = function(){return new B()};
+  makeC = function(){return new C()};
 
-getBPrototype = function(){return B.prototype;};
-getCPrototype = function(){return C.prototype;};
-""";
+  getBPrototype = function(){return B.prototype;};
+  getCPrototype = function(){return C.prototype;};
+})()""");
+}
 
 main() {
   nativeTesting();

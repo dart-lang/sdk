@@ -1,0 +1,8 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field dynamic v = core::print;
+static method main() → dynamic {
+  self::v;
+}

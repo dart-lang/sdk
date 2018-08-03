@@ -4,30 +4,31 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart' as analyzer;
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/fasta/ast_builder.dart';
-import 'package:analyzer/src/fasta/element_store.dart';
+import 'package:analyzer/error/listener.dart' show ErrorReporter;
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
-import 'package:front_end/src/fasta/kernel/kernel_library_builder.dart';
-import 'package:front_end/src/fasta/parser/identifier_context.dart'
-    show IdentifierContext;
-import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
+import 'package:analyzer/src/string_source.dart';
+import 'package:front_end/src/fasta/scanner/error_token.dart' show ErrorToken;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
-import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'parser_fasta_listener.dart';
 import 'parser_test.dart';
+import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ClassMemberParserTest_Fasta);
     defineReflectiveTests(ComplexParserTest_Fasta);
+    defineReflectiveTests(ErrorParserTest_Fasta);
     defineReflectiveTests(ExpressionParserTest_Fasta);
     defineReflectiveTests(FormalParameterParserTest_Fasta);
+    defineReflectiveTests(RecoveryParserTest_Fasta);
+    defineReflectiveTests(SimpleParserTest_Fasta);
     defineReflectiveTests(StatementParserTest_Fasta);
     defineReflectiveTests(TopLevelParserTest_Fasta);
   });
@@ -38,24 +39,42 @@ main() {
  */
 typedef analyzer.Token ParseFunction(analyzer.Token token);
 
-/**
- * Proxy implementation of [Builder] used by Fasta parser tests.
- *
- * All undeclared identifiers are presumed to resolve via an instance of this
- * class.
- */
-class BuilderProxy implements Builder {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
 @reflectiveTest
 class ClassMemberParserTest_Fasta extends FastaParserTestCase
     with ClassMemberParserTestMixin {
   @override
-  @failingTest
-  void test_parseConstructor_assert() {
-    // TODO(paulberry): Fasta doesn't support asserts in initializers
-    super.test_parseConstructor_assert();
+  void test_parseClassMember_method_generic_comment_noReturnType() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseClassMember_method_generic_comment_parameterType() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseClassMember_method_generic_comment_returnType() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseClassMember_method_generic_comment_returnType_bound() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseClassMember_method_generic_comment_returnType_complex() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseClassMember_method_generic_comment_void() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseClassMember_method_static_generic_comment_returnType() {
+    // Ignored: Fasta does not support the generic comment syntax.
   }
 }
 
@@ -66,91 +85,56 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
 class ComplexParserTest_Fasta extends FastaParserTestCase
     with ComplexParserTestMixin {
   @override
-  @failingTest
   void test_assignableExpression_arguments_normal_chain_typeArgumentComments() {
-    // TODO(paulberry,ahe): Fasta doesn't support generic method comment syntax.
-    super
-        .test_assignableExpression_arguments_normal_chain_typeArgumentComments();
-  }
-
-  @override
-  @failingTest
-  void test_assignableExpression_arguments_normal_chain_typeArguments() {
-    // TODO(paulberry,ahe): AstBuilder doesn't implement
-    // endTypeArguments().
-    super.test_assignableExpression_arguments_normal_chain_typeArguments();
-  }
-
-  @override
-  @failingTest
-  void test_conditionalExpression_precedence_nullableType_as() {
-    // TODO(paulberry,ahe): Fasta doesn't support NNBD syntax yet.
-    super.test_conditionalExpression_precedence_nullableType_as();
-  }
-
-  @override
-  @failingTest
-  void test_conditionalExpression_precedence_nullableType_is() {
-    // TODO(paulberry,ahe): Fasta doesn't support NNBD syntax yet.
-    super.test_conditionalExpression_precedence_nullableType_is();
-  }
-
-  @override
-  @failingTest
-  void test_equalityExpression_normal() {
-    // TODO(scheglov) error checking is not implemented
-    super.test_equalityExpression_normal();
-  }
-
-  @override
-  @failingTest
-  void test_equalityExpression_super() {
-    // TODO(scheglov) error checking is not implemented
-    super.test_equalityExpression_super();
-  }
-
-  @override
-  @failingTest
-  void test_logicalAndExpression_precedence_nullableType() {
-    // TODO(paulberry,ahe): Fasta doesn't support NNBD syntax yet.
-    super.test_logicalAndExpression_precedence_nullableType();
-  }
-
-  @override
-  @failingTest
-  void test_logicalOrExpression_precedence_nullableType() {
-    // TODO(paulberry,ahe): Fasta doesn't support NNBD syntax yet.
-    super.test_logicalOrExpression_precedence_nullableType();
+    // Ignored: Fasta does not support the generic comment syntax.
   }
 }
 
 /**
- * Proxy implementation of [KernelClassElement] used by Fasta parser tests.
- *
- * All undeclared identifiers are presumed to resolve to an instance of this
- * class.
+ * Tests of the fasta parser based on [ErrorParserTest].
  */
-class ElementProxy implements KernelClassElement {
+@reflectiveTest
+class ErrorParserTest_Fasta extends FastaParserTestCase
+    with ErrorParserTestMixin {
   @override
-  final KernelInterfaceType rawType = new InterfaceTypeProxy();
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-/**
- * Proxy implementation of [KernelClassElement] used by Fasta parser tests.
- *
- * Any request for an element is satisfied by creating an instance of
- * [ElementProxy].
- */
-class ElementStoreProxy implements ElementStore {
-  final _elements = <Builder, Element>{};
+  void test_expectedListOrMapLiteral() {
+    // The fasta parser returns an 'IntegerLiteralImpl' when parsing '1'.
+    // This test is not expected to ever pass.
+    //super.test_expectedListOrMapLiteral();
+  }
 
   @override
-  Element operator [](Builder builder) =>
-      _elements.putIfAbsent(builder, () => new ElementProxy());
+  void test_expectedStringLiteral() {
+    // The fasta parser returns an 'IntegerLiteralImpl' when parsing '1'.
+    // This test is not expected to ever pass.
+    //super.test_expectedStringLiteral();
+  }
 
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  void test_getterNativeWithBody() {
+    createParser('String get m native "str" => 0;');
+    parser.parseClassMember('C') as MethodDeclaration;
+    if (!allowNativeClause) {
+      assertErrorsWithCodes([
+        ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION,
+        ParserErrorCode.EXTERNAL_METHOD_WITH_BODY,
+      ]);
+    } else {
+      assertErrorsWithCodes([
+        ParserErrorCode.EXTERNAL_METHOD_WITH_BODY,
+      ]);
+    }
+  }
+
+  @override
+  void test_method_invalidTypeParameterComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_method_invalidTypeParameterExtendsComment() {
+    // Fasta no longer supports type comment based syntax
+    // super.test_method_invalidTypeParameterExtendsComment();
+  }
 }
 
 /**
@@ -160,107 +144,127 @@ class ElementStoreProxy implements ElementStore {
 class ExpressionParserTest_Fasta extends FastaParserTestCase
     with ExpressionParserTestMixin {
   @override
-  @failingTest
   void
       test_parseAssignableExpression_expression_args_dot_typeArgumentComments() {
-    super
-        .test_parseAssignableExpression_expression_args_dot_typeArgumentComments();
+    // Ignored: Fasta does not support the generic comment syntax.
   }
 
   @override
-  @failingTest
-  void test_parseAssignableExpression_expression_args_dot_typeArguments() {
-    super.test_parseAssignableExpression_expression_args_dot_typeArguments();
+  void
+      test_parseAssignableExpression_identifier_args_dot_typeArgumentComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
   }
 
   @override
-  @failingTest
   void test_parseCascadeSection_ia_typeArgumentComments() {
-    super.test_parseCascadeSection_ia_typeArgumentComments();
+    // Ignored: Fasta does not support the generic comment syntax.
   }
 
   @override
-  @failingTest
-  void test_parseCascadeSection_ia_typeArguments() {
-    super.test_parseCascadeSection_ia_typeArguments();
+  void test_parseCascadeSection_ii_typeArgumentComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
   }
 
   @override
-  @failingTest
+  void test_parseCascadeSection_pa_typeArgumentComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
   void test_parseCascadeSection_paa_typeArgumentComments() {
-    super.test_parseCascadeSection_paa_typeArgumentComments();
+    // Ignored: Fasta does not support the generic comment syntax.
   }
 
   @override
-  @failingTest
-  void test_parseCascadeSection_paa_typeArguments() {
-    super.test_parseCascadeSection_paa_typeArguments();
-  }
-
-  @override
-  @failingTest
   void test_parseCascadeSection_paapaa_typeArgumentComments() {
-    super.test_parseCascadeSection_paapaa_typeArgumentComments();
+    // Ignored: Fasta does not support the generic comment syntax.
   }
 
   @override
-  @failingTest
-  void test_parseCascadeSection_paapaa_typeArguments() {
-    super.test_parseCascadeSection_paapaa_typeArguments();
+  void test_parseConstExpression_listLiteral_typed_genericComment() {
+    // Ignored: Fasta does not support the generic comment syntax.
   }
 
   @override
-  @failingTest
-  void test_parseExpression_assign_compound() {
-    super.test_parseExpression_assign_compound();
+  void test_parseConstExpression_mapLiteral_typed_genericComment() {
+    // Ignored: Fasta does not support the generic comment syntax.
   }
 
   @override
-  @failingTest
+  void test_parseExpression_superMethodInvocation_typeArgumentComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void
+      test_parseExpressionWithoutCascade_superMethodInvocation_typeArgumentComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void test_parseFunctionExpression_typeParameterComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void
+      test_parseInstanceCreationExpression_qualifiedType_named_typeArgumentComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
+  void
+      test_parseInstanceCreationExpression_qualifiedType_typeArgumentComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
+  }
+
+  @override
   void test_parseInstanceCreationExpression_type_named_typeArgumentComments() {
-    super
-        .test_parseInstanceCreationExpression_type_named_typeArgumentComments();
+    // Ignored: Fasta does not support the generic comment syntax.
   }
 
   @override
-  @failingTest
-  void test_parseInstanceCreationExpression_type_typeArguments_nullable() {
-    super.test_parseInstanceCreationExpression_type_typeArguments_nullable();
+  void test_parseInstanceCreationExpression_type_typeArgumentComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
   }
 
   @override
-  @failingTest
-  void test_parseListLiteral_empty_oneToken_withComment() {
-    super.test_parseListLiteral_empty_oneToken_withComment();
+  void
+      test_parsePostfixExpression_none_methodInvocation_question_dot_typeArgumentComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
   }
 
   @override
-  @failingTest
-  void test_parsePrimaryExpression_super() {
-    super.test_parsePrimaryExpression_super();
+  void
+      test_parsePostfixExpression_none_methodInvocation_typeArgumentComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
   }
 
   @override
-  @failingTest
-  void test_parseRelationalExpression_as_nullable() {
-    super.test_parseRelationalExpression_as_nullable();
+  void test_parsePrimaryExpression_listLiteral_typed_genericComment() {
+    // Ignored: Fasta does not support the generic comment syntax.
   }
 
   @override
-  @failingTest
-  void test_parseRelationalExpression_is_nullable() {
-    super.test_parseRelationalExpression_is_nullable();
+  void test_parsePrimaryExpression_mapLiteral_typed_genericComment() {
+    // Ignored: Fasta does not support the generic comment syntax.
   }
 
   @override
   @failingTest
   void test_parseUnaryExpression_decrement_super() {
+    // TODO(danrubel) Reports a different error and different token stream.
+    // Expected: TokenType:<MINUS>
+    //   Actual: TokenType:<MINUS_MINUS>
     super.test_parseUnaryExpression_decrement_super();
   }
 
   @override
   @failingTest
   void test_parseUnaryExpression_decrement_super_withComment() {
+    // TODO(danrubel) Reports a different error and different token stream.
+    // Expected: TokenType:<MINUS>
+    //   Actual: TokenType:<MINUS_MINUS>
     super.test_parseUnaryExpression_decrement_super_withComment();
   }
 }
@@ -272,28 +276,23 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 class FastaParserTestCase extends Object
     with ParserTestHelpers
     implements AbstractParserTestCase {
+  static final List<ErrorCode> NO_ERROR_COMPARISON = <ErrorCode>[];
   ParserProxy _parserProxy;
+
+  analyzer.Token _fastaTokens;
+
+  @override
+  bool allowNativeClause = false;
 
   /**
    * Whether generic method comments should be enabled for the test.
    */
-  bool enableGenericMethodComments = false;
-
-  @override
-  set enableAssertInitializer(bool value) {
-    if (value == true) {
-      // TODO(paulberry,ahe): it looks like asserts in initializer lists are not
-      // supported by Fasta.
-      throw new UnimplementedError();
-    }
-  }
+  bool get enableGenericMethodComments => false;
+  void set enableGenericMethodComments(bool enable) {}
 
   @override
   set enableLazyAssignmentOperators(bool value) {
-    // TODO: implement enableLazyAssignmentOperators
-    if (value == true) {
-      throw new UnimplementedError();
-    }
+    // Lazy assignment operators are always enabled
   }
 
   @override
@@ -305,35 +304,71 @@ class FastaParserTestCase extends Object
     }
   }
 
+  set enableOptionalNewAndConst(bool enable) {
+    // ignored
+  }
+
   @override
   set enableUriInPartOf(bool value) {
-    if (value == true) {
-      // TODO(paulberry,ahe): URIs in "part of" declarations are not supported
-      // by Fasta.
-      throw new UnimplementedError();
+    if (value == false) {
+      throw new UnimplementedError(
+          'URIs in "part of" declarations cannot be disabled in Fasta.');
     }
   }
+
+  @override
+  GatheringErrorListener get listener => _parserProxy._errorListener;
 
   @override
   analyzer.Parser get parser => _parserProxy;
 
   @override
+  bool get usingFastaParser => true;
+
+  void assertErrors({List<ErrorCode> codes, List<ExpectedError> errors}) {
+    if (codes != null) {
+      if (!identical(codes, NO_ERROR_COMPARISON)) {
+        assertErrorsWithCodes(codes);
+      }
+    } else if (errors != null) {
+      listener.assertErrors(errors);
+    } else {
+      assertNoErrors();
+    }
+  }
+
+  @override
   void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
-    // TODO(scheglov): implement assertErrorsWithCodes
-    fail('Not implemented');
+    _parserProxy._errorListener.assertErrorsWithCodes(
+        _toFastaGeneratedAnalyzerErrorCodes(expectedErrorCodes));
   }
 
   @override
   void assertNoErrors() {
-    // TODO(paulberry): implement assertNoErrors
+    _parserProxy._errorListener.assertNoErrors();
   }
 
   @override
-  void createParser(String content) {
+  void createParser(String content, {int expectedEndOffset}) {
     var scanner = new StringScanner(content, includeComments: true);
     scanner.scanGenericMethodComments = enableGenericMethodComments;
-    _parserProxy = new ParserProxy(scanner.tokenize(),
-        enableGenericMethodComments: enableGenericMethodComments);
+    _fastaTokens = scanner.tokenize();
+    _parserProxy = new ParserProxy(_fastaTokens,
+        allowNativeClause: allowNativeClause,
+        enableGenericMethodComments: enableGenericMethodComments,
+        expectedEndOffset: expectedEndOffset);
+  }
+
+  @override
+  ExpectedError expectedError(ErrorCode code, int offset, int length) =>
+      new ExpectedError(
+          _toFastaGeneratedAnalyzerErrorCode(code), offset, length);
+
+  @override
+  void expectNotNullIfNoErrors(Object result) {
+    if (!listener.hasErrors) {
+      expect(result, isNotNull);
+    }
   }
 
   @override
@@ -386,10 +421,39 @@ class FastaParserTestCase extends Object
   }
 
   @override
-  CompilationUnit parseCompilationUnit(String source,
-      [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
-    return _runParser(source, (parser) => parser.parseUnit, errorCodes)
-        as CompilationUnit;
+  CompilationUnit parseCompilationUnit(String content,
+      {List<ErrorCode> codes, List<ExpectedError> errors}) {
+    GatheringErrorListener listener =
+        new GatheringErrorListener(checkRanges: true);
+
+    CompilationUnit unit = parseCompilationUnit2(content, listener);
+
+    // Assert and return result
+    if (codes != null) {
+      listener
+          .assertErrorsWithCodes(_toFastaGeneratedAnalyzerErrorCodes(codes));
+    } else if (errors != null) {
+      listener.assertErrors(errors);
+    } else {
+      listener.assertNoErrors();
+    }
+    return unit;
+  }
+
+  CompilationUnit parseCompilationUnit2(
+      String content, GatheringErrorListener listener) {
+    // Scan tokens
+    var source = new StringSource(content, 'parser_test_StringSource.dart');
+    var scanner = new Scanner.fasta(source, listener);
+    scanner.scanGenericMethodComments = enableGenericMethodComments;
+    _fastaTokens = scanner.tokenize();
+
+    // Run parser
+    analyzer.Parser parser =
+        new analyzer.Parser(source, listener, useFasta: true);
+    CompilationUnit unit = parser.parseCompilationUnit(_fastaTokens);
+    expect(unit, isNotNull);
+    return unit;
   }
 
   @override
@@ -404,9 +468,9 @@ class FastaParserTestCase extends Object
 
   @override
   ConstructorInitializer parseConstructorInitializer(String code) {
-    String source = 'class __Test { __Test() : $code; }';
-    var unit =
-        _runParser(source, (parser) => parser.parseUnit) as CompilationUnit;
+    createParser('class __Test { __Test() : $code; }');
+    CompilationUnit unit = _parserProxy.parseCompilationUnit2();
+    assertNoErrors();
     var clazz = unit.declarations[0] as ClassDeclaration;
     var constructor = clazz.members[0] as ConstructorDeclaration;
     return constructor.initializers.single;
@@ -415,7 +479,13 @@ class FastaParserTestCase extends Object
   @override
   CompilationUnit parseDirectives(String source,
       [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
-    return _runParser(source, (parser) => parser.parseUnit, errorCodes);
+    createParser(source);
+    CompilationUnit unit =
+        _parserProxy.parseDirectives(_parserProxy.currentToken);
+    expect(unit, isNotNull);
+    expect(unit.declarations, hasLength(0));
+    listener.assertErrorsWithCodes(errorCodes);
+    return unit;
   }
 
   @override
@@ -425,9 +495,13 @@ class FastaParserTestCase extends Object
 
   @override
   Expression parseExpression(String source,
-      [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
-    return _runParser(source, (parser) => parser.parseExpression, errorCodes)
-        as Expression;
+      {List<ErrorCode> codes,
+      List<ExpectedError> errors,
+      int expectedEndOffset}) {
+    createParser(source, expectedEndOffset: expectedEndOffset);
+    Expression result = _parserProxy.parseExpression2();
+    assertErrors(codes: codes, errors: errors);
+    return result;
   }
 
   @override
@@ -461,29 +535,23 @@ class FastaParserTestCase extends Object
   @override
   FormalParameterList parseFormalParameterList(String code,
       {bool inFunctionType: false,
-      List<ErrorCode> errorCodes: const <ErrorCode>[]}) {
-    return _runParser(
-        code,
-        (parser) => (analyzer.Token token) {
-              return parser.parseFormalParameters(
-                  token,
-                  inFunctionType
-                      ? fasta.MemberKind.GeneralizedFunctionType
-                      : fasta.MemberKind.NonStaticMethod);
-            },
-        errorCodes) as FormalParameterList;
+      List<ErrorCode> errorCodes: const <ErrorCode>[],
+      List<ExpectedError> errors}) {
+    createParser(code);
+    FormalParameterList result =
+        _parserProxy.parseFormalParameterList(inFunctionType: inFunctionType);
+    assertErrors(codes: errors != null ? null : errorCodes, errors: errors);
+    return result;
   }
 
   @override
   CompilationUnitMember parseFullCompilationUnitMember() {
-    return _parserProxy._run((parser) => parser.parseTopLevelDeclaration)
-        as CompilationUnitMember;
+    return _parserProxy.parseTopLevelDeclaration(false);
   }
 
   @override
   Directive parseFullDirective() {
-    return _parserProxy._run((parser) => parser.parseTopLevelDeclaration)
-        as Directive;
+    return _parserProxy.parseTopLevelDeclaration(true);
   }
 
   @override
@@ -577,12 +645,12 @@ class FastaParserTestCase extends Object
   }
 
   @override
-  Expression parsePrimaryExpression(String code) {
-    return _runParser(
-        code,
-        (parser) =>
-            (token) => parser.parsePrimary(token, IdentifierContext.expression),
-        const <ErrorCode>[]) as Expression;
+  Expression parsePrimaryExpression(String code,
+      {int expectedEndOffset, List<ExpectedError> errors}) {
+    createParser(code, expectedEndOffset: expectedEndOffset);
+    Expression result = _parserProxy.parsePrimaryExpression();
+    assertErrors(codes: null, errors: errors);
+    return result;
   }
 
   @override
@@ -607,8 +675,11 @@ class FastaParserTestCase extends Object
 
   @override
   Statement parseStatement(String source,
-      [bool enableLazyAssignmentOperators]) {
-    return _runParser(source, (parser) => parser.parseStatement) as Statement;
+      {bool enableLazyAssignmentOperators, int expectedEndOffset}) {
+    createParser(source, expectedEndOffset: expectedEndOffset);
+    Statement statement = _parserProxy.parseStatement2();
+    assertErrors(codes: NO_ERROR_COMPARISON);
+    return statement;
   }
 
   @override
@@ -647,16 +718,25 @@ class FastaParserTestCase extends Object
     return statement.expression;
   }
 
-  Object _runParser(
-      String source, ParseFunction getParseFunction(fasta.Parser parser),
-      [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
-    if (errorCodes.isNotEmpty) {
-      // TODO(paulberry): Check that the parser generates the proper errors.
-      throw new UnimplementedError();
-    }
-    createParser(source);
-    return _parserProxy._run(getParseFunction);
+  ErrorCode _toFastaGeneratedAnalyzerErrorCode(ErrorCode code) {
+    if (code == ParserErrorCode.ABSTRACT_ENUM ||
+        code == ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION ||
+        code == ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE ||
+        code == ParserErrorCode.ABSTRACT_TYPEDEF ||
+        code == ParserErrorCode.CONST_ENUM ||
+        code == ParserErrorCode.CONST_TYPEDEF ||
+        code == ParserErrorCode.COVARIANT_TOP_LEVEL_DECLARATION ||
+        code == ParserErrorCode.FINAL_CLASS ||
+        code == ParserErrorCode.FINAL_ENUM ||
+        code == ParserErrorCode.FINAL_TYPEDEF ||
+        code == ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION)
+      return ParserErrorCode.EXTRANEOUS_MODIFIER;
+    return code;
   }
+
+  List<ErrorCode> _toFastaGeneratedAnalyzerErrorCodes(
+          List<ErrorCode> expectedErrorCodes) =>
+      expectedErrorCodes.map(_toFastaGeneratedAnalyzerErrorCode).toList();
 }
 
 /**
@@ -666,88 +746,19 @@ class FastaParserTestCase extends Object
 class FormalParameterParserTest_Fasta extends FastaParserTestCase
     with FormalParameterParserTestMixin {
   @override
-  @failingTest
-  void test_parseFormalParameterList_prefixedType_partial() {
-    // TODO(scheglov): Unimplemented: errors
-    super.test_parseFormalParameterList_prefixedType_partial();
+  void test_parseNormalFormalParameter_function_noType_typeParameterComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
   }
 
   @override
-  @failingTest
-  void test_parseFormalParameterList_prefixedType_partial2() {
-    // TODO(scheglov): Unimplemented: errors
-    super.test_parseFormalParameterList_prefixedType_partial2();
+  void test_parseNormalFormalParameter_function_type_typeParameterComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
   }
 
   @override
-  @failingTest
-  void test_parseNormalFormalParameter_function_noType_nullable() {
-    // TODO(scheglov): Not implemented: Nnbd
-    super.test_parseNormalFormalParameter_function_noType_nullable();
+  void test_parseNormalFormalParameter_function_void_typeParameterComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
   }
-
-  @override
-  @failingTest
-  void
-      test_parseNormalFormalParameter_function_noType_typeParameters_nullable() {
-    // TODO(scheglov): Not implemented: Nnbd
-    super
-        .test_parseNormalFormalParameter_function_noType_typeParameters_nullable();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_function_type_nullable() {
-    // TODO(scheglov): Not implemented: Nnbd
-    super.test_parseNormalFormalParameter_function_type_nullable();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_function_type_typeParameters_nullable() {
-    // TODO(scheglov): Not implemented: Nnbd
-    super
-        .test_parseNormalFormalParameter_function_type_typeParameters_nullable();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_function_void_nullable() {
-    // TODO(scheglov): Not implemented: Nnbd
-    super.test_parseNormalFormalParameter_function_void_nullable();
-  }
-
-  @override
-  @failingTest
-  void test_parseNormalFormalParameter_function_void_typeParameters_nullable() {
-    // TODO(scheglov): Not implemented: Nnbd
-    super
-        .test_parseNormalFormalParameter_function_void_typeParameters_nullable();
-  }
-}
-
-/**
- * Proxy implementation of [KernelClassElement] used by Fasta parser tests.
- *
- * Any element used as a type name is presumed to refer to an instance of this
- * class.
- */
-class InterfaceTypeProxy implements KernelInterfaceType {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-/**
- * Proxy implementation of [KernelLibraryBuilderProxy] used by Fasta parser
- * tests.
- */
-class KernelLibraryBuilderProxy implements KernelLibraryBuilder {
-  @override
-  final uri = Uri.parse('file:///test.dart');
-
-  @override
-  Uri get fileUri => uri;
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /**
@@ -757,95 +768,219 @@ class KernelLibraryBuilderProxy implements KernelLibraryBuilder {
  * This allows many of the analyzer parser tests to be run on Fasta, even if
  * they call into the analyzer parser class directly.
  */
-class ParserProxy implements analyzer.Parser {
+class ParserProxy extends analyzer.ParserAdapter {
   /**
-   * The token to parse next.
+   * The error listener to which scanner and parser errors will be reported.
    */
-  analyzer.Token _currentFastaToken;
+  final GatheringErrorListener _errorListener;
 
-  /**
-   * The fasta parser being wrapped.
-   */
-  final fasta.Parser _fastaParser;
+  ForwardingTestListener _eventListener;
 
-  /**
-   * The builder which creates the analyzer AST data structures expected by the
-   * analyzer parser tests.
-   */
-  final AstBuilder _astBuilder;
+  final int expectedEndOffset;
 
   /**
    * Creates a [ParserProxy] which is prepared to begin parsing at the given
    * Fasta token.
    */
-  factory ParserProxy(analyzer.Token startingToken,
-      {bool enableGenericMethodComments: false}) {
-    var library = new KernelLibraryBuilderProxy();
-    var member = new BuilderProxy();
-    var elementStore = new ElementStoreProxy();
-    var scope = new ScopeProxy();
-    var astBuilder = new AstBuilder(null, library, member, elementStore, scope);
-    astBuilder.parseGenericMethodComments = enableGenericMethodComments;
-    var fastaParser = new fasta.Parser(astBuilder);
-    astBuilder.parser = fastaParser;
-    return new ParserProxy._(startingToken, fastaParser, astBuilder);
+  factory ParserProxy(analyzer.Token firstToken,
+      {bool allowNativeClause: false,
+      bool enableGenericMethodComments: false,
+      int expectedEndOffset}) {
+    TestSource source = new TestSource();
+    var errorListener = new GatheringErrorListener(checkRanges: true);
+    var errorReporter = new ErrorReporter(errorListener, source);
+    return new ParserProxy._(firstToken, errorReporter, null, errorListener,
+        allowNativeClause: allowNativeClause,
+        enableGenericMethodComments: enableGenericMethodComments,
+        expectedEndOffset: expectedEndOffset);
   }
 
-  ParserProxy._(this._currentFastaToken, this._fastaParser, this._astBuilder);
+  ParserProxy._(analyzer.Token firstToken, ErrorReporter errorReporter,
+      Uri fileUri, this._errorListener,
+      {bool allowNativeClause: false,
+      bool enableGenericMethodComments: false,
+      this.expectedEndOffset})
+      : super(firstToken, errorReporter, fileUri,
+            allowNativeClause: allowNativeClause,
+            enableGenericMethodComments: enableGenericMethodComments) {
+    _eventListener = new ForwardingTestListener(astBuilder);
+    fastaParser.listener = _eventListener;
+  }
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
+  Annotation parseAnnotation() {
+    return _run('MetadataStar', () => super.parseAnnotation());
+  }
+
+  @override
+  ArgumentList parseArgumentList() {
+    return _run('unspecified', () => super.parseArgumentList());
+  }
+
+  @override
   ClassMember parseClassMember(String className) {
-    _astBuilder.className = className;
-    var result = _run((parser) => parser.parseMember) as ClassMember;
-    _astBuilder.className = null;
-    return result;
+    return _run('ClassBody', () => super.parseClassMember(className));
+  }
+
+  List<Combinator> parseCombinators() {
+    return _run('Import', () => super.parseCombinators());
   }
 
   @override
   CompilationUnit parseCompilationUnit2() {
-    return _run((parser) => parser.parseUnit) as CompilationUnit;
+    CompilationUnit result = super.parseCompilationUnit2();
+    expect(currentToken.isEof, isTrue, reason: currentToken.lexeme);
+    expect(astBuilder.stack, hasLength(0));
+    _eventListener.expectEmpty();
+    return result;
+  }
+
+  @override
+  Configuration parseConfiguration() {
+    return _run('ConditionalUris', () => super.parseConfiguration());
+  }
+
+  @override
+  DottedName parseDottedName() {
+    return _run('unspecified', () => super.parseDottedName());
+  }
+
+  @override
+  Expression parseExpression2() {
+    return _run('unspecified', () => super.parseExpression2());
+  }
+
+  @override
+  FormalParameterList parseFormalParameterList({bool inFunctionType: false}) {
+    return _run('unspecified',
+        () => super.parseFormalParameterList(inFunctionType: inFunctionType));
+  }
+
+  @override
+  FunctionBody parseFunctionBody(
+      bool mayBeEmpty, ParserErrorCode emptyErrorCode, bool inExpression) {
+    Token lastToken;
+    FunctionBody body = _run('unspecified', () {
+      FunctionBody body =
+          super.parseFunctionBody(mayBeEmpty, emptyErrorCode, inExpression);
+      lastToken = currentToken;
+      currentToken = currentToken.next;
+      return body;
+    });
+    if (!inExpression) {
+      if (![';', '}'].contains(lastToken.lexeme)) {
+        fail('Expected ";" or "}", but found: ${lastToken.lexeme}');
+      }
+    }
+    return body;
+  }
+
+  @override
+  Expression parsePrimaryExpression() {
+    return _run('unspecified', () => super.parsePrimaryExpression());
+  }
+
+  @override
+  Statement parseStatement(Token token) {
+    return _run('unspecified', () => super.parseStatement(token));
+  }
+
+  @override
+  Statement parseStatement2() {
+    return _run('unspecified', () => super.parseStatement2());
+  }
+
+  @override
+  AnnotatedNode parseTopLevelDeclaration(bool isDirective) {
+    return _run(
+        'CompilationUnit', () => super.parseTopLevelDeclaration(isDirective));
+  }
+
+  @override
+  TypeAnnotation parseTypeAnnotation(bool inExpression) {
+    return _run('unspecified', () => super.parseTypeAnnotation(inExpression));
+  }
+
+  @override
+  TypeArgumentList parseTypeArgumentList() {
+    return _run('unspecified', () => super.parseTypeArgumentList());
+  }
+
+  @override
+  TypeName parseTypeName(bool inExpression) {
+    return _run('unspecified', () => super.parseTypeName(inExpression));
+  }
+
+  @override
+  TypeParameter parseTypeParameter() {
+    return _run('unspecified', () => super.parseTypeParameter());
+  }
+
+  @override
+  TypeParameterList parseTypeParameterList() {
+    return _run('unspecified', () => super.parseTypeParameterList());
   }
 
   /**
-   * Runs a single parser function, and returns the result as an analyzer AST.
+   * Runs the specified function and returns the result.
+   * It checks the enclosing listener events,
+   * that the parse consumed all of the tokens,
+   * and that the result stack is empty.
    */
-  Object _run(ParseFunction getParseFunction(fasta.Parser parser)) {
-    var parseFunction = getParseFunction(_fastaParser);
-    _currentFastaToken = parseFunction(_currentFastaToken);
-    expect(_currentFastaToken.isEof, isTrue);
-    expect(_astBuilder.stack, hasLength(1));
-    return _astBuilder.pop();
+  _run(String enclosingEvent, f()) {
+    _eventListener.begin(enclosingEvent);
+    var result = f();
+    _eventListener.end(enclosingEvent);
+    String lexeme = currentToken is ErrorToken
+        ? currentToken.runtimeType.toString()
+        : currentToken.lexeme;
+    if (expectedEndOffset == null) {
+      expect(currentToken.isEof, isTrue, reason: lexeme);
+    } else {
+      expect(currentToken.offset, expectedEndOffset, reason: lexeme);
+    }
+    expect(astBuilder.stack, hasLength(0));
+    expect(astBuilder.directives, hasLength(0));
+    expect(astBuilder.declarations, hasLength(0));
+    return result;
   }
 }
 
-/**
- * Proxy implementation of [Scope] used by Fasta parser tests.
- *
- * Any name lookup request is satisfied by creating an instance of
- * [BuilderProxy].
- */
-class ScopeProxy implements Scope {
-  final _locals = <String, Builder>{};
-
+@reflectiveTest
+class RecoveryParserTest_Fasta extends FastaParserTestCase
+    with RecoveryParserTestMixin {
   @override
-  void operator []=(String name, Builder member) {
-    _locals[name] = member;
+  void test_equalityExpression_precedence_relational_right() {
+    parseExpression("== is", codes: [
+      ParserErrorCode.EXPECTED_TYPE_NAME,
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.MISSING_IDENTIFIER
+    ]);
   }
 
   @override
-  Scope createNestedScope({bool isModifiable: true}) {
-    return new Scope.nested(this, isModifiable: isModifiable);
+  void test_relationalExpression_missing_LHS_RHS() {
+    parseExpression("is", codes: [
+      ParserErrorCode.EXPECTED_TYPE_NAME,
+      ParserErrorCode.MISSING_IDENTIFIER
+    ]);
   }
 
   @override
-  Builder lookup(String name, int charOffset, Uri fileUri,
-          {bool isInstanceScope: true}) =>
-      _locals.putIfAbsent(name, () => new BuilderProxy());
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  void test_relationalExpression_precedence_shift_right() {
+    parseExpression("<< is", codes: [
+      ParserErrorCode.EXPECTED_TYPE_NAME,
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.MISSING_IDENTIFIER
+    ]);
+  }
 }
+
+@reflectiveTest
+class SimpleParserTest_Fasta extends FastaParserTestCase
+    with SimpleParserTestMixin {}
 
 /**
  * Tests of the fasta parser based on [StatementParserTestMixin].
@@ -854,45 +989,39 @@ class ScopeProxy implements Scope {
 class StatementParserTest_Fasta extends FastaParserTestCase
     with StatementParserTestMixin {
   @override
-  @failingTest
-  void test_parseBreakStatement_noLabel() {
-    super.test_parseBreakStatement_noLabel();
+  void test_parseFunctionDeclarationStatement_typeParameterComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
   }
 
   @override
-  @failingTest
-  void test_parseContinueStatement_label() {
-    super.test_parseContinueStatement_label();
+  void
+      test_parseStatement_functionDeclaration_noReturnType_typeParameterComments() {
+    // Ignored: Fasta does not support the generic comment syntax.
   }
 
   @override
-  @failingTest
-  void test_parseContinueStatement_noLabel() {
-    super.test_parseContinueStatement_noLabel();
+  void test_parseVariableDeclarationListAfterMetadata_const_typeComment() {
+    // Ignored: Fasta does not support the generic comment syntax.
   }
 
   @override
-  @failingTest
-  void test_parseStatement_emptyTypeArgumentList() {
-    super.test_parseStatement_emptyTypeArgumentList();
+  void test_parseVariableDeclarationListAfterMetadata_dynamic_typeComment() {
+    // Ignored: Fasta does not support the generic comment syntax.
   }
 
   @override
-  @failingTest
-  void test_parseTryStatement_catch_finally() {
-    super.test_parseTryStatement_catch_finally();
+  void test_parseVariableDeclarationListAfterMetadata_final_typeComment() {
+    // Ignored: Fasta does not support the generic comment syntax.
   }
 
   @override
-  @failingTest
-  void test_parseTryStatement_on_catch() {
-    super.test_parseTryStatement_on_catch();
+  void test_parseVariableDeclarationListAfterMetadata_type_typeComment() {
+    // Ignored: Fasta does not support the generic comment syntax.
   }
 
   @override
-  @failingTest
-  void test_parseTryStatement_on_catch_finally() {
-    super.test_parseTryStatement_on_catch_finally();
+  void test_parseVariableDeclarationListAfterMetadata_var_typeComment() {
+    // Ignored: Fasta does not support the generic comment syntax.
   }
 }
 
@@ -902,61 +1031,55 @@ class StatementParserTest_Fasta extends FastaParserTestCase
 @reflectiveTest
 class TopLevelParserTest_Fasta extends FastaParserTestCase
     with TopLevelParserTestMixin {
-  @override
-  @failingTest
-  void test_parseClassDeclaration_native() {
-    // TODO(paulberry): TODO(paulberry,ahe): Fasta parser doesn't appear to support "native" syntax yet.
-    super.test_parseClassDeclaration_native();
+  void test_parseClassDeclaration_native_allowed() {
+    allowNativeClause = true;
+    test_parseClassDeclaration_native();
   }
 
-  @override
-  @failingTest
-  void test_parseCompilationUnit_builtIn_asFunctionName() {
-    // TODO(paulberry,ahe): Fasta's parser is confused when one of the built-in
-    // identifiers `export`, `import`, `library`, `part`, or `typedef` appears
-    // as the name of a top level function with an implicit return type.
-    super.test_parseCompilationUnit_builtIn_asFunctionName();
+  void test_parseClassDeclaration_native_allowedWithFields() {
+    allowNativeClause = true;
+    createParser(r'''
+class A native 'something' {
+  final int x;
+  A() {}
+}
+''');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
   }
 
-  @override
-  @failingTest
-  void test_parseCompilationUnit_exportAsPrefix() {
-    // TODO(paulberry): As of commit 5de9108 this syntax is invalid.
-    super.test_parseCompilationUnit_exportAsPrefix();
+  void test_parseClassDeclaration_native_missing_literal() {
+    createParser('class A native {}');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    if (allowNativeClause) {
+      assertNoErrors();
+    } else {
+      assertErrorsWithCodes([
+        ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION,
+      ]);
+    }
+    expect(member, new TypeMatcher<ClassDeclaration>());
+    ClassDeclaration declaration = member;
+    expect(declaration.nativeClause, isNotNull);
+    expect(declaration.nativeClause.nativeKeyword, isNotNull);
+    expect(declaration.nativeClause.name, isNull);
+    expect(declaration.endToken.type, TokenType.CLOSE_CURLY_BRACKET);
   }
 
-  @override
-  @failingTest
-  void test_parseCompilationUnit_exportAsPrefix_parameterized() {
-    // TODO(paulberry): As of commit 5de9108 this syntax is invalid.
-    super.test_parseCompilationUnit_exportAsPrefix_parameterized();
+  void test_parseClassDeclaration_native_missing_literal_allowed() {
+    allowNativeClause = true;
+    test_parseClassDeclaration_native_missing_literal();
   }
 
-  @override
-  @failingTest
-  void test_parseDirectives_mixed() {
-    // TODO(paulberry,ahe): This test verifies the analyzer parser's ability to
-    // stop parsing as soon as the first non-directive is encountered; this is
-    // useful for quickly traversing an import graph.  Consider adding a similar
-    // ability to Fasta's parser.
-    super.test_parseDirectives_mixed();
+  void test_parseClassDeclaration_native_missing_literal_not_allowed() {
+    allowNativeClause = false;
+    test_parseClassDeclaration_native_missing_literal();
   }
 
-  @override
-  @failingTest
-  void test_parsePartOfDirective_name() {
-    // TODO(paulberry,ahe): Thes test verifies that even if URIs in "part of"
-    // declarations are enabled, a construct of the form "part of identifier;"
-    // is still properly handled.  URIs in "part of" declarations are not
-    // supported by Fasta yet.
-    super.test_parsePartOfDirective_name();
-  }
-
-  @override
-  @failingTest
-  void test_parsePartOfDirective_uri() {
-    // TODO(paulberry,ahe): URIs in "part of" declarations are not supported by
-    // Fasta.
-    super.test_parsePartOfDirective_uri();
+  void test_parseClassDeclaration_native_not_allowed() {
+    allowNativeClause = false;
+    test_parseClassDeclaration_native();
   }
 }

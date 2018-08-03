@@ -21,8 +21,7 @@ class DateUtils {
 
   static const YESTERDAY = 'Yesterday';
 
-  static const MS_IN_WEEK =
-      DateTime.DAYS_PER_WEEK * Duration.MILLISECONDS_PER_DAY;
+  static const MS_IN_WEEK = DateTime.daysPerWeek * Duration.millisecondsPerDay;
 
   // TODO(jmesserly): workaround for missing DateTime.fromDate in Dartium
   // Remove this once that is implemented. See b/5055106
@@ -153,7 +152,7 @@ class DateUtils {
 
     final today = new DateTime(now.year, now.month, now.day, 0, 0, 0, 0);
     Duration delta = today.difference(then);
-    if (delta.inMilliseconds < Duration.MILLISECONDS_PER_DAY) {
+    if (delta.inMilliseconds < Duration.millisecondsPerDay) {
       return YESTERDAY;
     } else if (delta.inMilliseconds < MS_IN_WEEK) {
       return WEEKDAYS[getWeekday(then)];
@@ -175,9 +174,9 @@ class DateUtils {
   static int getWeekday(DateTime dateTime) {
     final unixTimeStart = new DateTime(1970, 1, 1, 0, 0, 0, 0);
     int msSince1970 = dateTime.difference(unixTimeStart).inMilliseconds;
-    int daysSince1970 = msSince1970 ~/ Duration.MILLISECONDS_PER_DAY;
+    int daysSince1970 = msSince1970 ~/ Duration.millisecondsPerDay;
     // 1970-1-1 was Thursday
-    return ((daysSince1970 + DateTime.THURSDAY) % DateTime.DAYS_PER_WEEK);
+    return ((daysSince1970 + DateTime.thursday) % DateTime.daysPerWeek);
   }
 
   /** Formats a time in H:MM A format */
@@ -203,7 +202,7 @@ class DateUtils {
     }
 
     String mm =
-        twoDigits(duration.inMinutes.remainder(Duration.MINUTES_PER_HOUR));
+        twoDigits(duration.inMinutes.remainder(Duration.minutesPerHour));
     return "${hours}:${mm} ${a}";
   }
 }

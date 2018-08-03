@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "platform/assert.h"
 #include "vm/growable_array.h"
+#include "platform/assert.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -62,16 +62,13 @@ void TestGrowableArray() {
   EXPECT(h.is_empty());
 }
 
-
 TEST_CASE(GrowableArray) {
   TestGrowableArray<GrowableArray<int>, GrowableArray<int64_t> >();
 }
 
-
 TEST_CASE(MallocGrowableArray) {
   TestGrowableArray<MallocGrowableArray<int>, MallocGrowableArray<int64_t> >();
 }
-
 
 static int greatestFirst(const int* a, const int* b) {
   if (*a > *b) {
@@ -93,7 +90,6 @@ TEST_CASE(GrowableArraySort) {
   EXPECT_EQ(64, g[0]);
   EXPECT_EQ(4, g.Last());
 }
-
 
 TEST_CASE(GrowableHandlePtr) {
   Zone* zone = Thread::Current()->zone();

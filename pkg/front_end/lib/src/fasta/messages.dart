@@ -4,85 +4,48 @@
 
 library fasta.messages;
 
-import 'package:kernel/ast.dart' show Location;
-
-import 'util/relativize.dart' show relativizeUri;
+import 'package:kernel/ast.dart' show Library, Location, Component, TreeNode;
 
 import 'compiler_context.dart' show CompilerContext;
 
-import 'errors.dart' show InputError;
-
-import 'colors.dart' show cyan, magenta;
-
-const bool hideWarnings = false;
-
-bool get errorsAreFatal => CompilerContext.current.options.errorsAreFatal;
-
-bool get nitsAreFatal => CompilerContext.current.options.nitsAreFatal;
-
-bool get warningsAreFatal => CompilerContext.current.options.warningsAreFatal;
+export 'fasta_codes.dart';
 
 bool get isVerbose => CompilerContext.current.options.verbose;
 
-bool get hideNits => !isVerbose;
-
-void warning(Uri uri, int charOffset, String message) {
-  if (hideWarnings) return;
-  print(format(uri, charOffset, colorWarning("Warning: $message")));
-  if (warningsAreFatal) {
-    if (isVerbose) print(StackTrace.current);
-    throw new InputError(
-        uri, charOffset, "Compilation aborted due to fatal warnings.");
-  }
+Location getLocation(Uri uri, int charOffset) {
+  return CompilerContext.current.uriToSource[uri]?.getLocation(uri, charOffset);
 }
 
-void nit(Uri uri, int charOffset, String message) {
-  if (hideNits) return;
-  print(format(uri, charOffset, colorNit("Nit: $message")));
-  if (nitsAreFatal) {
-    if (isVerbose) print(StackTrace.current);
-    throw new InputError(
-        uri, charOffset, "Compilation aborted due to fatal nits.");
-  }
-}
-
-String colorWarning(String message) {
-  // TODO(ahe): Colors need to be optional. Doesn't work well in Emacs or on
-  // Windows.
-  return magenta(message);
-}
-
-String colorNit(String message) {
-  // TODO(ahe): Colors need to be optional. Doesn't work well in Emacs or on
-  // Windows.
-  return cyan(message);
-}
-
-String format(Uri uri, int charOffset, String message) {
-  if (uri != null) {
-    String path = relativizeUri(uri);
-    Location location = charOffset == -1 ? null : getLocation(path, charOffset);
-    String sourceLine = getSourceLine(location);
-    if (sourceLine == null) {
-      sourceLine = "";
-    } else {
-      sourceLine = "\n$sourceLine\n"
-          "${' ' * (location.column - 1)}^";
-    }
-    String position = location?.toString() ?? path;
-    return "$position: $message$sourceLine";
-  } else {
-    return message;
-  }
-}
-
-Location getLocation(String path, int charOffset) {
-  return CompilerContext.current.uriToSource[path]
-      ?.getLocation(path, charOffset);
+Location getLocationFromUri(Uri uri, int charOffset) {
+  if (charOffset == -1) return null;
+  return getLocation(uri, charOffset);
 }
 
 String getSourceLine(Location location) {
   if (location == null) return null;
   return CompilerContext.current.uriToSource[location.file]
       ?.getTextLine(location.line);
+}
+
+Location getLocationFromNode(TreeNode node) {
+  if (node.enclosingComponent == null) {
+    TreeNode parent = node;
+    while (parent != null && parent is! Library) {
+      parent = parent.parent;
+    }
+    if (parent is Library) {
+      Component component =
+          new Component(uriToSource: CompilerContext.current.uriToSource);
+      component.libraries.add(parent);
+      parent.parent = component;
+      Location result = node.location;
+      component.libraries.clear();
+      parent.parent = null;
+      return result;
+    } else {
+      return null;
+    }
+  } else {
+    return node.location;
+  }
 }

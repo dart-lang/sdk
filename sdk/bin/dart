@@ -30,8 +30,8 @@ then
   DIRS=$( ls "$OUT_DIR" )
   # list of possible configurations in decreasing desirability
   CONFIGS=("ReleaseX64" "ReleaseIA32" "DebugX64" "DebugIA32"
-    "ReleaseARM"    "ReleaseARM64"    "ReleaseARMV5TE"    "ReleaseMIPS"
-    "DebugARM"      "DebugARM64"      "DebugARMV5TE"      "DebugMIPS")
+    "ReleaseARM"    "ReleaseARM64"    "ReleaseARMV5TE"
+    "DebugARM"      "DebugARM64"      "DebugARMV5TE")
   DART_CONFIGURATION="None"
   for CONFIG in ${CONFIGS[*]}
   do

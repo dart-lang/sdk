@@ -23,13 +23,11 @@ class ChangeBuilderImplTest {
   test_createFileEditBuilder() async {
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
     String path = '/test.dart';
-    int timeStamp = 54;
     FileEditBuilderImpl fileEditBuilder =
-        await builder.createFileEditBuilder(path, timeStamp);
-    expect(fileEditBuilder, new isInstanceOf<FileEditBuilder>());
+        await builder.createFileEditBuilder(path);
+    expect(fileEditBuilder, const TypeMatcher<FileEditBuilder>());
     SourceFileEdit fileEdit = fileEditBuilder.fileEdit;
     expect(fileEdit.file, path);
-    expect(fileEdit.fileStamp, timeStamp);
   }
 
   void test_getLinkedEditGroup() {
@@ -59,7 +57,7 @@ class ChangeBuilderImplTest {
   test_sourceChange_oneChange() async {
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
     String path = '/test.dart';
-    await builder.addFileEdit(path, 0, (FileEditBuilder builder) {});
+    await builder.addFileEdit(path, (FileEditBuilder builder) {});
     builder.getLinkedEditGroup('a');
     SourceChange sourceChange = builder.sourceChange;
     expect(sourceChange, isNotNull);
@@ -78,7 +76,7 @@ class EditBuilderImplTest {
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
     int offset = 10;
     String text = 'content';
-    await builder.addFileEdit(path, 0, (FileEditBuilder builder) {
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(10, (EditBuilder builder) {
         builder.addLinkedEdit('a', (LinkedEditBuilder builder) {
           builder.write(text);
@@ -99,20 +97,43 @@ class EditBuilderImplTest {
     expect(positions[0].offset, offset);
   }
 
+  test_addSimpleLinkedEdit() async {
+    ChangeBuilderImpl builder = new ChangeBuilderImpl();
+    int offset = 10;
+    String text = 'content';
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
+      builder.addInsertion(10, (EditBuilder builder) {
+        builder.addSimpleLinkedEdit('a', text);
+        SourceEdit sourceEdit = (builder as EditBuilderImpl).sourceEdit;
+        expect(sourceEdit.replacement, text);
+      });
+    });
+    SourceChange sourceChange = builder.sourceChange;
+    expect(sourceChange, isNotNull);
+    List<LinkedEditGroup> groups = sourceChange.linkedEditGroups;
+    expect(groups, hasLength(1));
+    LinkedEditGroup group = groups[0];
+    expect(group, isNotNull);
+    expect(group.length, text.length);
+    List<Position> positions = group.positions;
+    expect(positions, hasLength(1));
+    expect(positions[0].offset, offset);
+  }
+
   test_createLinkedEditBuilder() async {
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
-    await builder.addFileEdit(path, 0, (FileEditBuilder builder) {
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(10, (EditBuilder builder) {
         LinkedEditBuilderImpl linkBuilder =
             (builder as EditBuilderImpl).createLinkedEditBuilder();
-        expect(linkBuilder, new isInstanceOf<LinkedEditBuilder>());
+        expect(linkBuilder, const TypeMatcher<LinkedEditBuilder>());
       });
     });
   }
 
   test_selectHere() async {
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
-    await builder.addFileEdit(path, 0, (FileEditBuilder builder) {
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(10, (EditBuilder builder) {
         builder.selectHere();
       });
@@ -122,10 +143,9 @@ class EditBuilderImplTest {
 
   test_write() async {
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
-    int timeStamp = 93;
     int offset = 10;
     String text = 'write';
-    await builder.addFileEdit(path, timeStamp, (FileEditBuilder builder) {
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(offset, (EditBuilder builder) {
         builder.write(text);
       });
@@ -139,7 +159,6 @@ class EditBuilderImplTest {
     SourceFileEdit fileEdit = fileEdits[0];
     expect(fileEdit, isNotNull);
     expect(fileEdit.file, path);
-    expect(fileEdit.fileStamp, timeStamp);
 
     List<SourceEdit> edits = fileEdit.edits;
     expect(edits, hasLength(1));
@@ -152,10 +171,9 @@ class EditBuilderImplTest {
 
   test_writeln_withoutText() async {
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
-    int timeStamp = 39;
     int offset = 52;
     int length = 12;
-    await builder.addFileEdit(path, timeStamp, (FileEditBuilder builder) {
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addReplacement(new SourceRange(offset, length),
           (EditBuilder builder) {
         builder.writeln();
@@ -170,7 +188,6 @@ class EditBuilderImplTest {
     SourceFileEdit fileEdit = fileEdits[0];
     expect(fileEdit, isNotNull);
     expect(fileEdit.file, path);
-    expect(fileEdit.fileStamp, timeStamp);
 
     List<SourceEdit> edits = fileEdit.edits;
     expect(edits, hasLength(1));
@@ -183,11 +200,10 @@ class EditBuilderImplTest {
 
   test_writeln_withText() async {
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
-    int timeStamp = 39;
     int offset = 52;
     int length = 12;
     String text = 'writeln';
-    await builder.addFileEdit(path, timeStamp, (FileEditBuilder builder) {
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addReplacement(new SourceRange(offset, length),
           (EditBuilder builder) {
         builder.writeln(text);
@@ -202,7 +218,6 @@ class EditBuilderImplTest {
     SourceFileEdit fileEdit = fileEdits[0];
     expect(fileEdit, isNotNull);
     expect(fileEdit.file, path);
-    expect(fileEdit.fileStamp, timeStamp);
 
     List<SourceEdit> edits = fileEdit.edits;
     expect(edits, hasLength(1));
@@ -223,7 +238,7 @@ class FileEditBuilderImplTest {
     int offset = 23;
     int length = 7;
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
-    await builder.addFileEdit(path, 0, (FileEditBuilder builder) {
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addDeletion(new SourceRange(offset, length));
     });
     List<SourceEdit> edits = builder.sourceChange.edits[0].edits;
@@ -235,7 +250,7 @@ class FileEditBuilderImplTest {
 
   test_addInsertion() async {
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
-    await builder.addFileEdit(path, 0, (FileEditBuilder builder) {
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(10, (EditBuilder builder) {
         expect(builder, isNotNull);
       });
@@ -245,7 +260,7 @@ class FileEditBuilderImplTest {
   test_addLinkedPosition() async {
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
     String groupName = 'a';
-    await builder.addFileEdit(path, 0, (FileEditBuilder builder) {
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addLinkedPosition(new SourceRange(3, 6), groupName);
     });
 
@@ -260,7 +275,7 @@ class FileEditBuilderImplTest {
 
   test_addReplacement() async {
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
-    await builder.addFileEdit(path, 0, (FileEditBuilder builder) {
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addReplacement(new SourceRange(4, 5), (EditBuilder builder) {
         expect(builder, isNotNull);
       });
@@ -271,7 +286,7 @@ class FileEditBuilderImplTest {
     int offset = 23;
     String text = 'xyz';
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
-    await builder.addFileEdit(path, 0, (FileEditBuilder builder) {
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addSimpleInsertion(offset, text);
     });
     List<SourceEdit> edits = builder.sourceChange.edits[0].edits;
@@ -286,7 +301,7 @@ class FileEditBuilderImplTest {
     int length = 7;
     String text = 'xyz';
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
-    await builder.addFileEdit(path, 0, (FileEditBuilder builder) {
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addSimpleReplacement(new SourceRange(offset, length), text);
     });
     List<SourceEdit> edits = builder.sourceChange.edits[0].edits;
@@ -298,12 +313,12 @@ class FileEditBuilderImplTest {
 
   test_createEditBuilder() async {
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
-    await builder.addFileEdit(path, 0, (FileEditBuilder builder) {
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
       int offset = 4;
       int length = 5;
       EditBuilderImpl editBuilder =
           (builder as FileEditBuilderImpl).createEditBuilder(offset, length);
-      expect(editBuilder, new isInstanceOf<EditBuilder>());
+      expect(editBuilder, const TypeMatcher<EditBuilder>());
       SourceEdit sourceEdit = editBuilder.sourceEdit;
       expect(sourceEdit.length, length);
       expect(sourceEdit.offset, offset);
@@ -319,10 +334,11 @@ class LinkedEditBuilderImplTest {
   test_addSuggestion() async {
     String groupName = 'a';
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
-    await builder.addFileEdit(path, 0, (FileEditBuilder builder) {
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(10, (EditBuilder builder) {
         builder.addLinkedEdit(groupName, (LinkedEditBuilder builder) {
-          builder.addSuggestion(LinkedEditSuggestionKind.TYPE, 'A');
+          builder.write('A');
+          builder.addSuggestion(LinkedEditSuggestionKind.TYPE, 'B');
         });
       });
     });
@@ -331,13 +347,28 @@ class LinkedEditBuilderImplTest {
     expect(group.suggestions, hasLength(1));
   }
 
+  test_addSuggestion_zeroLength() async {
+    String groupName = 'a';
+    ChangeBuilderImpl builder = new ChangeBuilderImpl();
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
+      builder.addInsertion(10, (EditBuilder builder) {
+        builder.addLinkedEdit(groupName, (LinkedEditBuilder builder) {
+          builder.addSuggestion(LinkedEditSuggestionKind.TYPE, 'A');
+        });
+      });
+    });
+
+    expect(builder.sourceChange.linkedEditGroups, isEmpty);
+  }
+
   test_addSuggestions() async {
     String groupName = 'a';
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
-    await builder.addFileEdit(path, 0, (FileEditBuilder builder) {
+    await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(10, (EditBuilder builder) {
         builder.addLinkedEdit(groupName, (LinkedEditBuilder builder) {
-          builder.addSuggestions(LinkedEditSuggestionKind.TYPE, ['A', 'B']);
+          builder.write('A');
+          builder.addSuggestions(LinkedEditSuggestionKind.TYPE, ['B', 'C']);
         });
       });
     });

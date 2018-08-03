@@ -40,6 +40,9 @@ class Identifiers {
 
   /// The name of the getter returning the size of containers and strings.
   static const String length = 'length';
+
+  /// The name of the signature function in closure classes.
+  static const String signature = ':signature';
 }
 
 /// [Name]s commonly used.
@@ -73,6 +76,11 @@ class Names {
   static const Name length = const PublicName(Identifiers.length);
 
   static const Name runtimeType_ = const PublicName(Identifiers.runtimeType_);
+
+  static const Name genericInstantiation = const PublicName('instantiate');
+
+  /// The name of the signature function in closure classes.
+  static const Name signature = const PublicName(Identifiers.signature);
 }
 
 /// [Selector]s commonly used.
@@ -214,20 +222,12 @@ class Uris {
   static final Uri dart__foreign_helper =
       new Uri(scheme: 'dart', path: '_foreign_helper');
 
-  /// The URI for 'dart:_js_mirrors'.
-  static final Uri dart__js_mirrors =
-      new Uri(scheme: 'dart', path: '_js_mirrors');
-
   /// The URI for 'dart:_js_names'.
   static final Uri dart__js_names = new Uri(scheme: 'dart', path: '_js_names');
 
   /// The URI for 'dart:_js_embedded_names'.
   static final Uri dart__js_embedded_names =
       new Uri(scheme: 'dart', path: '_js_embedded_names');
-
-  /// The URI for 'dart:_isolate_helper'.
-  static final Uri dart__isolate_helper =
-      new Uri(scheme: 'dart', path: '_isolate_helper');
 
   /// The URI for 'package:js'.
   static final Uri package_js = new Uri(scheme: 'package', path: 'js/js.dart');

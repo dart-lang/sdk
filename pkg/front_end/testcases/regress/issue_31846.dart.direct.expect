@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::print(self::main is () → dynamic);
+  core::print((<T extends core::Object = dynamic>(T x) → dynamic => x).runtimeType);
+  core::print((<T extends core::num = dynamic>(T x) → dynamic => x).runtimeType);
+  core::print((<T extends core::Comparable<T> = dynamic>(T x) → dynamic => x).runtimeType);
+  core::print((<T extends core::Comparable<S> = dynamic, S extends core::Object = dynamic>(T x) → dynamic => x).runtimeType);
+  core::print((<T extends (T) → dynamic = dynamic>(T x) → dynamic => x).runtimeType);
+  core::print((<T extends core::List<core::List<T>> = dynamic>(T x) → dynamic => x).runtimeType);
+}

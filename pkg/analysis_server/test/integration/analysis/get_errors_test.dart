@@ -12,6 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetErrorsTest);
+    defineReflectiveTests(GetErrorsTest_UseCFE);
   });
 }
 
@@ -33,4 +34,10 @@ main() {
 
     return analysisFinished.then((_) => finishTest());
   }
+}
+
+@reflectiveTest
+class GetErrorsTest_UseCFE extends GetErrorsTest {
+  @override
+  bool get useCFE => true;
 }

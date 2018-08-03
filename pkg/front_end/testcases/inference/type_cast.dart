@@ -8,7 +8,7 @@ library test;
 class A<T> {}
 
 class B<T> extends A<T> {
-  foo() {}
+  /*@topType=dynamic*/ foo() {}
 }
 
 A<num> a = new B<int>();

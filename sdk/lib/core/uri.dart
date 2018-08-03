@@ -277,7 +277,7 @@ abstract class Uri {
    *
    * Defaults to encoding using percent-encoding (any non-ASCII or non-URI-valid
    * bytes is replaced by a percent encoding). If [base64] is true, the bytes
-   * are instead encoded using [BASE64].
+   * are instead encoded using [base64].
    *
    * If [encoding] is not provided and [parameters] has a `charset` entry,
    * that name is looked up using [Encoding.getByName],
@@ -1014,6 +1014,23 @@ abstract class Uri {
   }
 
   /**
+   * Creates a new `Uri` object by parsing a URI string.
+   *
+   * If [start] and [end] are provided, only the substring from `start`
+   * to `end` is parsed as a URI.
+   *
+   * Returns `null` if the string is not valid as a URI or URI reference.
+   */
+  static Uri tryParse(String uri, [int start = 0, int end]) {
+    // TODO: Optimize to avoid throwing-and-recatching.
+    try {
+      return parse(uri, start, end);
+    } on FormatException {
+      return null;
+    }
+  }
+
+  /**
    * Encode the string [component] using percent-encoding to make it
    * safe for literal use as a URI component.
    *
@@ -1034,7 +1051,7 @@ abstract class Uri {
    * a [Uri].
    */
   static String encodeComponent(String component) {
-    return _Uri._uriEncode(_Uri._unreserved2396Table, component, UTF8, false);
+    return _Uri._uriEncode(_Uri._unreserved2396Table, component, utf8, false);
   }
 
   /**
@@ -1047,7 +1064,7 @@ abstract class Uri {
    * component.
 
    * The component is first encoded to bytes using [encoding].
-   * The default is to use [UTF8] encoding, which preserves all
+   * The default is to use [utf8] encoding, which preserves all
    * the characters that don't need encoding.
 
    * Then the resulting bytes are "percent-encoded". This transforms
@@ -1071,7 +1088,7 @@ abstract class Uri {
    * details.
    */
   static String encodeQueryComponent(String component,
-      {Encoding encoding: UTF8}) {
+      {Encoding encoding: utf8}) {
     return _Uri._uriEncode(_Uri._unreservedTable, component, encoding, true);
   }
 
@@ -1090,7 +1107,7 @@ abstract class Uri {
    */
   static String decodeComponent(String encodedComponent) {
     return _Uri._uriDecode(
-        encodedComponent, 0, encodedComponent.length, UTF8, false);
+        encodedComponent, 0, encodedComponent.length, utf8, false);
   }
 
   /**
@@ -1102,7 +1119,7 @@ abstract class Uri {
    * UTF-8.
    */
   static String decodeQueryComponent(String encodedComponent,
-      {Encoding encoding: UTF8}) {
+      {Encoding encoding: utf8}) {
     return _Uri._uriDecode(
         encodedComponent, 0, encodedComponent.length, encoding, true);
   }
@@ -1117,7 +1134,7 @@ abstract class Uri {
    * the encodeURI function .
    */
   static String encodeFull(String uri) {
-    return _Uri._uriEncode(_Uri._encodeFullTable, uri, UTF8, false);
+    return _Uri._uriEncode(_Uri._encodeFullTable, uri, utf8, false);
   }
 
   /**
@@ -1129,7 +1146,7 @@ abstract class Uri {
    * [Uri.parse] before decoding the separate components.
    */
   static String decodeFull(String uri) {
-    return _Uri._uriDecode(uri, 0, uri.length, UTF8, false);
+    return _Uri._uriDecode(uri, 0, uri.length, utf8, false);
   }
 
   /**
@@ -1146,7 +1163,7 @@ abstract class Uri {
    * is UTF-8.
    */
   static Map<String, String> splitQueryString(String query,
-      {Encoding encoding: UTF8}) {
+      {Encoding encoding: utf8}) {
     return query.split("&").fold({}, (map, element) {
       int index = element.indexOf("=");
       if (index == -1) {
@@ -1694,7 +1711,7 @@ class _Uri implements Uri {
         if (argumentError) {
           throw new ArgumentError("Illegal character in path");
         } else {
-          throw new UnsupportedError("Illegal character in path");
+          throw new UnsupportedError("Illegal character in path: $segment");
         }
       }
     }
@@ -2096,7 +2113,7 @@ class _Uri implements Uri {
       result = _normalizeOrSubstring(path, start, end, _pathCharOrSlashTable);
     } else {
       result = pathSegments
-          .map((s) => _uriEncode(_pathCharTable, s, UTF8, false))
+          .map((s) => _uriEncode(_pathCharTable, s, utf8, false))
           .join("/");
     }
     if (result.isEmpty) {
@@ -2689,7 +2706,7 @@ class _Uri implements Uri {
     return sb.toString();
   }
 
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is Uri) {
       Uri uri = other;
@@ -2713,7 +2730,7 @@ class _Uri implements Uri {
 
   static List _createList() => [];
 
-  static Map _splitQueryStringAll(String query, {Encoding encoding: UTF8}) {
+  static Map _splitQueryStringAll(String query, {Encoding encoding: utf8}) {
     Map result = {};
     int i = 0;
     int start = 0;
@@ -2805,7 +2822,7 @@ class _Uri implements Uri {
     }
     List<int> bytes;
     if (simple) {
-      if (UTF8 == encoding || LATIN1 == encoding || ASCII == encoding) {
+      if (utf8 == encoding || latin1 == encoding || ascii == encoding) {
         return text.substring(start, end);
       } else {
         bytes = text.substring(start, end).codeUnits;
@@ -2848,7 +2865,7 @@ class _Uri implements Uri {
   // be escaped or not.
 
   // The unreserved characters of RFC 3986.
-  static const _unreservedTable = const [
+  static const _unreservedTable = const <int>[
     //                     LSB            MSB
     //                      |              |
     0x0000, // 0x00 - 0x0f  0000000000000000
@@ -2868,7 +2885,7 @@ class _Uri implements Uri {
   ];
 
   // The unreserved characters of RFC 2396.
-  static const _unreserved2396Table = const [
+  static const _unreserved2396Table = const <int>[
     //                     LSB            MSB
     //                      |              |
     0x0000, // 0x00 - 0x0f  0000000000000000
@@ -2888,7 +2905,7 @@ class _Uri implements Uri {
   ];
 
   // Table of reserved characters specified by ECMAScript 5.
-  static const _encodeFullTable = const [
+  static const _encodeFullTable = const <int>[
     //                     LSB            MSB
     //                      |              |
     0x0000, // 0x00 - 0x0f  0000000000000000
@@ -2908,7 +2925,7 @@ class _Uri implements Uri {
   ];
 
   // Characters allowed in the scheme.
-  static const _schemeTable = const [
+  static const _schemeTable = const <int>[
     //                     LSB            MSB
     //                      |              |
     0x0000, // 0x00 - 0x0f  0000000000000000
@@ -2928,7 +2945,7 @@ class _Uri implements Uri {
   ];
 
   // Characters allowed in scheme except for upper case letters.
-  static const _schemeLowerTable = const [
+  static const _schemeLowerTable = const <int>[
     //                     LSB            MSB
     //                      |              |
     0x0000, // 0x00 - 0x0f  0000000000000000
@@ -2952,7 +2969,7 @@ class _Uri implements Uri {
   //         / "*" / "+" / "," / ";" / "="
   // RFC 3986 section 2.3.
   // unreserved  = ALPHA / DIGIT / "-" / "." / "_" / "~"
-  static const _subDelimitersTable = const [
+  static const _subDelimitersTable = const <int>[
     //                     LSB            MSB
     //                      |              |
     0x0000, // 0x00 - 0x0f  0000000000000000
@@ -2974,7 +2991,7 @@ class _Uri implements Uri {
   // General delimiter characters, RFC 3986 section 2.2.
   // gen-delims  = ":" / "/" / "?" / "#" / "[" / "]" / "@"
   //
-  static const _genDelimitersTable = const [
+  static const _genDelimitersTable = const <int>[
     //                     LSB            MSB
     //                      |              |
     0x0000, // 0x00 - 0x0f  0000000000000000
@@ -2996,7 +3013,7 @@ class _Uri implements Uri {
   // Characters allowed in the userinfo as of RFC 3986.
   // RFC 3986 Appendix A
   // userinfo = *( unreserved / pct-encoded / sub-delims / ':')
-  static const _userinfoTable = const [
+  static const _userinfoTable = const <int>[
     //                     LSB            MSB
     //                      |              |
     0x0000, // 0x00 - 0x0f  0000000000000000
@@ -3018,7 +3035,7 @@ class _Uri implements Uri {
   // Characters allowed in the reg-name as of RFC 3986.
   // RFC 3986 Appendix A
   // reg-name = *( unreserved / pct-encoded / sub-delims )
-  static const _regNameTable = const [
+  static const _regNameTable = const <int>[
     //                     LSB            MSB
     //                      |              |
     0x0000, // 0x00 - 0x0f  0000000000000000
@@ -3040,7 +3057,7 @@ class _Uri implements Uri {
   // Characters allowed in the path as of RFC 3986.
   // RFC 3986 section 3.3.
   // pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
-  static const _pathCharTable = const [
+  static const _pathCharTable = const <int>[
     //                     LSB            MSB
     //                      |              |
     0x0000, // 0x00 - 0x0f  0000000000000000
@@ -3158,6 +3175,9 @@ class UriData {
 
   UriData._(this._text, this._separatorIndices, this._uriCache);
 
+  // Avoid shadowing by argument.
+  static const Base64Codec _base64 = base64;
+
   /**
    * Creates a `data:` URI containing the [content] string.
    *
@@ -3182,13 +3202,13 @@ class UriData {
       // Non-null only if parameters does not contain "charset".
       encodingName = encoding.name;
     }
-    encoding ??= ASCII;
+    encoding ??= ascii;
     _writeUri(mimeType, encodingName, parameters, buffer, indices);
     indices.add(buffer.length);
     if (base64) {
       buffer.write(';base64,');
       indices.add(buffer.length - 1);
-      buffer.write(encoding.fuse(BASE64).encode(content));
+      buffer.write(encoding.fuse(_base64).encode(content));
     } else {
       buffer.write(',');
       _uriEncodeBytes(_uricTable, encoding.encode(content), buffer);
@@ -3216,7 +3236,7 @@ class UriData {
     } else {
       buffer.write(';base64,');
       indices.add(buffer.length - 1);
-      BASE64.encoder
+      _base64.encoder
           .startChunkedConversion(
               new StringConversionSink.fromStringSink(buffer))
           .addSlice(bytes, 0, bytes.length, true);
@@ -3273,17 +3293,17 @@ class UriData {
             mimeType, "mimeType", "Invalid MIME type");
       }
       buffer.write(_Uri._uriEncode(
-          _tokenCharTable, mimeType.substring(0, slashIndex), UTF8, false));
+          _tokenCharTable, mimeType.substring(0, slashIndex), utf8, false));
       buffer.write("/");
       buffer.write(_Uri._uriEncode(
-          _tokenCharTable, mimeType.substring(slashIndex + 1), UTF8, false));
+          _tokenCharTable, mimeType.substring(slashIndex + 1), utf8, false));
     }
     if (charsetName != null) {
       if (indices != null) {
         indices..add(buffer.length)..add(buffer.length + 8);
       }
       buffer.write(";charset=");
-      buffer.write(_Uri._uriEncode(_tokenCharTable, charsetName, UTF8, false));
+      buffer.write(_Uri._uriEncode(_tokenCharTable, charsetName, utf8, false));
     }
     parameters?.forEach((var key, var value) {
       if (key.isEmpty) {
@@ -3296,10 +3316,10 @@ class UriData {
       if (indices != null) indices.add(buffer.length);
       buffer.write(';');
       // Encode any non-RFC2045-token character and both '%' and '#'.
-      buffer.write(_Uri._uriEncode(_tokenCharTable, key, UTF8, false));
+      buffer.write(_Uri._uriEncode(_tokenCharTable, key, utf8, false));
       if (indices != null) indices.add(buffer.length);
       buffer.write('=');
-      buffer.write(_Uri._uriEncode(_tokenCharTable, value, UTF8, false));
+      buffer.write(_Uri._uriEncode(_tokenCharTable, value, utf8, false));
     });
   }
 
@@ -3416,7 +3436,7 @@ class UriData {
     int start = _separatorIndices[0] + 1;
     int end = _separatorIndices[1];
     if (start == end) return "text/plain";
-    return _Uri._uriDecode(_text, start, end, UTF8, false);
+    return _Uri._uriDecode(_text, start, end, utf8, false);
   }
 
   /**
@@ -3442,7 +3462,7 @@ class UriData {
       var keyEnd = _separatorIndices[i + 1];
       if (keyEnd == keyStart + 7 && _text.startsWith("charset", keyStart)) {
         return _Uri._uriDecode(
-            _text, keyEnd + 1, _separatorIndices[i + 2], UTF8, false);
+            _text, keyEnd + 1, _separatorIndices[i + 2], utf8, false);
       }
     }
     return "US-ASCII";
@@ -3469,11 +3489,11 @@ class UriData {
    * percent-escaped characters and returning byte values of each unescaped
    * character. The bytes will not be, e.g., UTF-8 decoded.
    */
-  List<int> contentAsBytes() {
+  Uint8List contentAsBytes() {
     String text = _text;
     int start = _separatorIndices.last + 1;
     if (isBase64) {
-      return BASE64.decoder.convert(text, start);
+      return base64.decoder.convert(text, start);
     }
 
     // Not base64, do percent-decoding and return the remaining bytes.
@@ -3521,7 +3541,7 @@ class UriData {
    * decoded to a string using [encoding].
    * If encoding is omitted, the value of a `charset` parameter is used
    * if it is recognized by [Encoding.getByName], otherwise it defaults to
-   * the [ASCII] encoding, which is the default encoding for data URIs
+   * the [ascii] encoding, which is the default encoding for data URIs
    * that do not specify an encoding.
    *
    * If the content is not Base64 encoded, it will first have percent-escapes
@@ -3539,7 +3559,7 @@ class UriData {
     String text = _text;
     int start = _separatorIndices.last + 1;
     if (isBase64) {
-      var converter = BASE64.decoder.fuse(encoding.decoder);
+      var converter = base64.decoder.fuse(encoding.decoder);
       return converter.convert(text.substring(start));
     }
     return _Uri._uriDecode(text, start, text.length, encoding, false);
@@ -3565,8 +3585,8 @@ class UriData {
       var start = _separatorIndices[i - 2] + 1;
       var equals = _separatorIndices[i - 1];
       var end = _separatorIndices[i];
-      String key = _Uri._uriDecode(_text, start, equals, UTF8, false);
-      String value = _Uri._uriDecode(_text, equals + 1, end, UTF8, false);
+      String key = _Uri._uriDecode(_text, start, equals, utf8, false);
+      String value = _Uri._uriDecode(_text, equals + 1, end, utf8, false);
       result[key] = value;
     }
     return result;
@@ -3630,7 +3650,7 @@ class UriData {
     indices.add(i);
     bool isBase64 = indices.length.isOdd;
     if (isBase64) {
-      text = BASE64.normalize(text, i + 1, text.length);
+      text = base64.normalize(text, i + 1, text.length);
     } else {
       // Validate "data" part, must only contain RFC 2396 'uric' characters
       // (reserved, unreserved, or escape sequences).
@@ -4106,7 +4126,7 @@ List<Uint8List> _createTables() {
 
 /// Scan a string using the [_scannerTables] state machine.
 ///
-/// Scans [uri] from [start] to [end], startig in state [state] and
+/// Scans [uri] from [start] to [end], starting in state [state] and
 /// writing output into [indices].
 ///
 /// Returns the final state.

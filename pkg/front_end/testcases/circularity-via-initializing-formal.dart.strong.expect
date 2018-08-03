@@ -1,0 +1,19 @@
+// Errors:
+//
+// pkg/front_end/testcases/circularity-via-initializing-formal.dart:15:3: Error: Can't infer the type of 'C._circular': circularity found during type inference.
+// Specify the type explicitly.
+//   C._circular(this.f);
+//   ^^^^^^^^^^^
+
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field self::C f = new self::C::_circular(null);
+  constructor _circular(self::C f) → void
+    : self::C::f = f, super core::Object::•()
+    ;
+}
+static field self::C x = new self::C::_circular(null);
+static method main() → dynamic {}

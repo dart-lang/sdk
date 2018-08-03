@@ -6,15 +6,15 @@
   "packages": "../../.packages",
 
   "analyze": {
+    "options": "analysis_options.yaml",
 
     "uris": [
-      "tool"
+      ".",
+      "../../tests/compiler/dart2js/"
     ],
 
     "exclude": [
-      "/pkg/front_end",
-      "/third_party/pkg/",
-      "/third_party/pkg_tested/"
+      "^tests/compiler/dart2js/inference/data/super_invoke\\.dart"
     ]
   }
 }

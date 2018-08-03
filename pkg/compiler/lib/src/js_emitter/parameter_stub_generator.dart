@@ -4,29 +4,21 @@
 
 library dart2js.js_emitter.parameter_stub_generator;
 
-import '../closure.dart' show ClosureClassElement;
-import '../common.dart';
-import '../common_elements.dart';
 import '../constants/values.dart';
-import '../elements/elements.dart'
-    show
-        ClassElement,
-        FunctionElement,
-        FunctionSignature,
-        MethodElement,
-        ParameterElement;
+import '../elements/entities.dart';
+import '../elements/types.dart';
+import '../io/source_information.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import '../js_backend/constant_handler_javascript.dart'
-    show JavaScriptConstantCompiler;
 import '../js_backend/namer.dart' show Namer;
 import '../js_backend/native_data.dart';
 import '../js_backend/interceptor_data.dart';
+import '../js_backend/runtime_types.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart'
     show CodegenWorldBuilder, SelectorConstraints;
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 
 import 'model.dart';
 
@@ -35,62 +27,74 @@ import 'code_emitter_task.dart' show CodeEmitterTask, Emitter;
 class ParameterStubGenerator {
   static final Set<Selector> emptySelectorSet = new Set<Selector>();
 
-  final CommonElements _commonElements;
   final CodeEmitterTask _emitterTask;
-  final JavaScriptConstantCompiler _constants;
   final Namer _namer;
+  final RuntimeTypesEncoder _rtiEncoder;
   final NativeData _nativeData;
   final InterceptorData _interceptorData;
   final CodegenWorldBuilder _codegenWorldBuilder;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
+  final SourceInformationStrategy _sourceInformationStrategy;
 
   ParameterStubGenerator(
-      this._commonElements,
       this._emitterTask,
-      this._constants,
       this._namer,
+      this._rtiEncoder,
       this._nativeData,
       this._interceptorData,
       this._codegenWorldBuilder,
-      this._closedWorld);
+      this._closedWorld,
+      this._sourceInformationStrategy);
 
   Emitter get _emitter => _emitterTask.emitter;
 
-  bool needsSuperGetter(FunctionElement element) =>
+  bool needsSuperGetter(FunctionEntity element) =>
       _codegenWorldBuilder.methodsNeedingSuperGetter.contains(element);
 
-  /**
-   * Generates stubs to handle invocation of methods with optional
-   * arguments.
-   *
-   * A method like `foo([x])` may be invoked by the following
-   * calls: `foo(), foo(1), foo(x: 1)`. This method generates the stub for the
-   * given [selector] and returns the generated [ParameterStubMethod].
-   *
-   * Returns null if no stub is needed.
-   *
-   * Members may be invoked in two ways: directly, or through a closure. In the
-   * latter case the caller invokes the closure's `call` method. This method
-   * accepts two selectors. The returned stub method has the corresponding
-   * name [ParameterStubMethod.name] and [ParameterStubMethod.callName] set if
-   * the input selector is non-null (and the member needs a stub).
-   */
+  /// Generates stubs to fill in missing optional named or positional arguments
+  /// and missing type arguments.  Returns `null` if no stub is needed.
+  ///
+  /// Methods like `foo([x])` and `bar({x})` may be invoked by the following
+  /// calls: `foo(), foo(1), bar(), bar(x: 1)`. This method generates the stub
+  /// for the given [selector] and returns the generated [ParameterStubMethod].
+  ///
+  /// Members may be invoked in two ways: directly, or through a closure. In the
+  /// latter case the caller invokes the tear-off closure's `call` method. This
+  /// method [generateParameterStub] accepts two selectors. The returned stub
+  /// method has the corresponding name [ParameterStubMethod.name] and
+  /// [ParameterStubMethod.callName] set if the input selector is non-null (and
+  /// the member needs a stub).
   ParameterStubMethod generateParameterStub(
-      MethodElement member, Selector selector, Selector callSelector) {
+      FunctionEntity member, Selector selector, Selector callSelector) {
+    // The naming here can be a bit confusing. There is a call site somewhere
+    // that calls the stub via the [selector], which has a [CallStructure], so
+    // the *Call*Structure determines the *parameters* of the stub. The body of
+    // the stub calls the member which has a [ParameterStructure], so the
+    // *Parameter*Structure determines the *arguments* of the forwarding call.
+
     CallStructure callStructure = selector.callStructure;
-    FunctionSignature parameters = member.functionSignature;
+    ParameterStructure parameterStructure = member.parameterStructure;
     int positionalArgumentCount = callStructure.positionalArgumentCount;
-    if (positionalArgumentCount == parameters.parameterCount) {
-      assert(callStructure.isUnnamed);
-      return null;
+    assert(callStructure.typeArgumentCount == 0 ||
+        callStructure.typeArgumentCount == parameterStructure.typeParameters);
+
+    // We don't need a stub if the arguments match the target parameters,
+    // i.e. there are no missing optional arguments or types. The selector
+    // applies to the member, so we can check using counts.
+    if (callStructure.typeArgumentCount == parameterStructure.typeParameters) {
+      if (positionalArgumentCount == parameterStructure.totalParameters) {
+        // Positional optional arguments are all provided.
+        assert(callStructure.isUnnamed);
+        return null;
+      }
+      if (parameterStructure.namedParameters.isNotEmpty &&
+          callStructure.namedArgumentCount ==
+              parameterStructure.namedParameters.length) {
+        // Named optional arguments are all provided.
+        return null;
+      }
     }
-    if (parameters.optionalParametersAreNamed &&
-        callStructure.namedArgumentCount == parameters.optionalParameterCount) {
-      // If the selector has the same number of named arguments as the element,
-      // we don't need to add a stub. The call site will hit the method
-      // directly.
-      return null;
-    }
+
     List<String> names = callStructure.getOrderedNamedArguments();
 
     bool isInterceptedMethod = _interceptorData.isInterceptedMethod(member);
@@ -103,42 +107,46 @@ class ParameterStubGenerator {
     String receiverArgumentName = r'$receiver';
 
     // The parameters that this stub takes.
-    List<jsAst.Parameter> parametersBuffer =
-        new List<jsAst.Parameter>(selector.argumentCount + extraArgumentCount);
+    List<jsAst.Parameter> stubParameters = new List<jsAst.Parameter>(
+        extraArgumentCount +
+            selector.argumentCount +
+            selector.typeArgumentCount);
     // The arguments that will be passed to the real method.
-    List<jsAst.Expression> argumentsBuffer = new List<jsAst.Expression>(
-        parameters.parameterCount + extraArgumentCount);
+    List<jsAst.Expression> targetArguments = new List<jsAst.Expression>(
+        extraArgumentCount +
+            parameterStructure.totalParameters +
+            parameterStructure.typeParameters);
 
     int count = 0;
     if (isInterceptedMethod) {
       count++;
-      parametersBuffer[0] = new jsAst.Parameter(receiverArgumentName);
-      argumentsBuffer[0] = js('#', receiverArgumentName);
+      stubParameters[0] = new jsAst.Parameter(receiverArgumentName);
+      targetArguments[0] = js('#', receiverArgumentName);
     }
 
     int optionalParameterStart = positionalArgumentCount + extraArgumentCount;
     // Includes extra receiver argument when using interceptor convention
     int indexOfLastOptionalArgumentInParameters = optionalParameterStart - 1;
 
-    parameters.orderedForEachParameter((ParameterElement element) {
-      String jsName = _namer.safeVariableName(element.name);
+    _codegenWorldBuilder.forEachParameter(member,
+        (_, String name, ConstantValue value) {
+      String jsName = _namer.safeVariableName(name);
       assert(jsName != receiverArgumentName);
       if (count < optionalParameterStart) {
-        parametersBuffer[count] = new jsAst.Parameter(jsName);
-        argumentsBuffer[count] = js('#', jsName);
+        stubParameters[count] = new jsAst.Parameter(jsName);
+        targetArguments[count] = js('#', jsName);
       } else {
-        int index = names.indexOf(element.name);
+        int index = names.indexOf(name);
         if (index != -1) {
           indexOfLastOptionalArgumentInParameters = count;
           // The order of the named arguments is not the same as the
           // one in the real method (which is in Dart source order).
-          argumentsBuffer[count] = js('#', jsName);
-          parametersBuffer[optionalParameterStart + index] =
+          targetArguments[count] = js('#', jsName);
+          stubParameters[optionalParameterStart + index] =
               new jsAst.Parameter(jsName);
         } else {
-          ConstantValue value = _constants.getConstantValue(element.constant);
           if (value == null) {
-            argumentsBuffer[count] =
+            targetArguments[count] =
                 _emitter.constantReference(new NullConstantValue());
           } else {
             if (!value.isNull) {
@@ -146,12 +154,35 @@ class ParameterStubGenerator {
               // down to the native method.
               indexOfLastOptionalArgumentInParameters = count;
             }
-            argumentsBuffer[count] = _emitter.constantReference(value);
+            targetArguments[count] = _emitter.constantReference(value);
           }
         }
       }
       count++;
     });
+
+    if (parameterStructure.typeParameters > 0) {
+      int parameterIndex =
+          stubParameters.length - parameterStructure.typeParameters;
+      for (TypeVariableType typeVariable
+          in _closedWorld.elementEnvironment.getFunctionTypeVariables(member)) {
+        if (selector.typeArgumentCount == 0) {
+          targetArguments[count++] = _rtiEncoder.getTypeRepresentation(
+              _emitter,
+              _closedWorld.elementEnvironment
+                  .getTypeVariableDefaultType(typeVariable.element),
+              (_) => _emitter.constantReference(
+                  // TODO(33422): Support type variables in default
+                  // types. Temporarily using the "any" type (encoded as -2) to
+                  // avoid failing on bounds checks.
+                  new IntConstantValue(new BigInt.from(-2))));
+        } else {
+          String jsName = '\$${typeVariable.element.name}';
+          stubParameters[parameterIndex++] = new jsAst.Parameter(jsName);
+          targetArguments[count++] = js('#', jsName);
+        }
+      }
+    }
 
     var body; // List or jsAst.Statement.
     if (_nativeData.hasFixedBackendName(member)) {
@@ -159,12 +190,12 @@ class ParameterStubGenerator {
           member,
           isInterceptedMethod,
           _namer.invocationName(selector),
-          parametersBuffer,
-          argumentsBuffer,
+          stubParameters,
+          targetArguments,
           indexOfLastOptionalArgumentInParameters);
     } else if (member.isInstanceMember) {
       if (needsSuperGetter(member)) {
-        ClassElement superClass = member.enclosingClass;
+        ClassEntity superClass = member.enclosingClass;
         jsAst.Name methodName = _namer.instanceMethodName(member);
         // When redirecting, we must ensure that we don't end up in a subclass.
         // We thus can't just invoke `this.foo$1.call(filledInArguments)`.
@@ -173,18 +204,24 @@ class ParameterStubGenerator {
         body = js.statement('return #.#.call(this, #);', [
           _emitterTask.prototypeAccess(superClass, hasBeenInstantiated: true),
           methodName,
-          argumentsBuffer
+          targetArguments
         ]);
       } else {
         body = js.statement('return this.#(#);',
-            [_namer.instanceMethodName(member), argumentsBuffer]);
+            [_namer.instanceMethodName(member), targetArguments]);
       }
     } else {
       body = js.statement('return #(#)',
-          [_emitter.staticFunctionAccess(member), argumentsBuffer]);
+          [_emitter.staticFunctionAccess(member), targetArguments]);
     }
 
-    jsAst.Fun function = js('function(#) { #; }', [parametersBuffer, body]);
+    SourceInformationBuilder sourceInformationBuilder =
+        _sourceInformationStrategy.createBuilderForContext(member);
+    SourceInformation sourceInformation =
+        sourceInformationBuilder.buildStub(member, callStructure);
+
+    jsAst.Fun function = js('function(#) { #; }', [stubParameters, body])
+        .withSourceInformation(sourceInformation);
 
     jsAst.Name name = member.isStatic ? null : _namer.invocationName(selector);
     jsAst.Name callName =
@@ -223,24 +260,14 @@ class ParameterStubGenerator {
   // (1) foo$2(a, b) => MyClass.foo$4$c$d.call(this, a, b, null, null)
   // (2) foo$3$c(a, b, c) => MyClass.foo$4$c$d(this, a, b, c, null);
   // (3) foo$3$d(a, b, d) => MyClass.foo$4$c$d(this, a, b, null, d);
-  List<ParameterStubMethod> generateParameterStubs(MethodElement member,
-      {bool canTearOff: true}) {
-    if (member.enclosingElement.isClosure) {
-      ClosureClassElement cls = member.enclosingElement;
-      if (cls.supertype.element == _commonElements.boundClosureClass) {
-        throw new SpannableAssertionFailure(
-            cls.methodElement, 'Bound closure1.');
-      }
-      if (cls.methodElement.isInstanceMember) {
-        throw new SpannableAssertionFailure(
-            cls.methodElement, 'Bound closure2.');
-      }
-    }
-
+  List<ParameterStubMethod> generateParameterStubs(FunctionEntity member,
+      {bool canTearOff, bool canBeApplied}) {
+    assert(canTearOff != null);
+    assert(canBeApplied != null);
     // The set of selectors that apply to `member`. For example, for
     // a member `foo(x, [y])` the following selectors may apply:
     // `foo(x)`, and `foo(x, y)`.
-    Map<Selector, SelectorConstraints> selectors;
+    Map<Selector, SelectorConstraints> liveSelectors;
     // The set of selectors that apply to `member` if it's name was `call`.
     // This happens when a member is torn off. In that case calls to the
     // function use the name `call`, and we must be able to handle every
@@ -249,9 +276,11 @@ class ParameterStubGenerator {
     // call-selectors: `call(x)`, and `call(x, y)`.
     Map<Selector, SelectorConstraints> callSelectors;
 
+    int memberTypeParameters = member.parameterStructure.typeParameters;
+
     // Only instance members (not static methods) need stubs.
     if (member.isInstanceMember) {
-      selectors = _codegenWorldBuilder.invocationsByName(member.name);
+      liveSelectors = _codegenWorldBuilder.invocationsByName(member.name);
     }
 
     if (canTearOff) {
@@ -260,13 +289,15 @@ class ParameterStubGenerator {
     }
 
     assert(emptySelectorSet.isEmpty);
-    if (selectors == null) selectors = const <Selector, SelectorConstraints>{};
-    if (callSelectors == null)
-      callSelectors = const <Selector, SelectorConstraints>{};
+    liveSelectors ??= const <Selector, SelectorConstraints>{};
+    callSelectors ??= const <Selector, SelectorConstraints>{};
 
     List<ParameterStubMethod> stubs = <ParameterStubMethod>[];
 
-    if (selectors.isEmpty && callSelectors.isEmpty) {
+    if (liveSelectors.isEmpty &&
+        callSelectors.isEmpty &&
+        // Function.apply might need a stub to default the type parameter.
+        !(canBeApplied && memberTypeParameters > 0)) {
       return stubs;
     }
 
@@ -275,13 +306,28 @@ class ParameterStubGenerator {
     //
     // For example, for the call-selector `call(x, y)` the renamed selector
     // for member `foo` would be `foo(x, y)`.
-    Set<Selector> renamedCallSelectors =
-        callSelectors.isEmpty ? emptySelectorSet : new Set<Selector>();
+    Set<Selector> renamedCallSelectors = new Set<Selector>();
 
-    Set<Selector> untypedSelectors = new Set<Selector>();
+    Set<Selector> stubSelectors = new Set<Selector>();
 
-    // Start with the callSelectors since they imply the generation of the
-    // non-call version.
+    // Start with closure-call selectors, since since they imply the generation
+    // of the non-call version.
+    if (canBeApplied && memberTypeParameters > 0) {
+      // Function.apply calls the function with no type arguments, so generic
+      // methods need the stub to default the type arguments.
+      // This has to be the first stub.
+      Selector namedSelector = new Selector.fromElement(member).toNonGeneric();
+      Selector closureSelector =
+          namedSelector.isClosureCall ? null : namedSelector.toCallSelector();
+
+      renamedCallSelectors.add(namedSelector);
+      stubSelectors.add(namedSelector);
+      ParameterStubMethod stub =
+          generateParameterStub(member, namedSelector, closureSelector);
+      assert(stub != null);
+      stubs.add(stub);
+    }
+
     for (Selector selector in callSelectors.keys) {
       Selector renamedSelector =
           new Selector.call(member.memberName, selector.callStructure);
@@ -291,26 +337,52 @@ class ParameterStubGenerator {
         continue;
       }
 
-      if (untypedSelectors.add(renamedSelector)) {
+      if (stubSelectors.add(renamedSelector)) {
         ParameterStubMethod stub =
             generateParameterStub(member, renamedSelector, selector);
         if (stub != null) {
           stubs.add(stub);
         }
       }
+
+      // A generic method might need to support `call<T>(x)` for a generic
+      // instantiation stub without `call<T>(x)` being in [callSelectors].
+      // [selector] will be `call(x)` (that already passes the appliesUnnamed
+      // check by defaulting type arguments), and the method will be generic.
+      //
+      // This is basically the same logic as above, but with type arguments.
+      if (selector.callStructure.typeArgumentCount == 0) {
+        if (memberTypeParameters > 0) {
+          Selector renamedSelectorWithTypeArguments = new Selector.call(
+              member.memberName,
+              selector.callStructure
+                  .withTypeArgumentCount(memberTypeParameters));
+          renamedCallSelectors.add(renamedSelectorWithTypeArguments);
+
+          if (stubSelectors.add(renamedSelectorWithTypeArguments)) {
+            Selector closureSelector =
+                new Selector.callClosureFrom(renamedSelectorWithTypeArguments);
+            ParameterStubMethod stub = generateParameterStub(
+                member, renamedSelectorWithTypeArguments, closureSelector);
+            if (stub != null) {
+              stubs.add(stub);
+            }
+          }
+        }
+      }
     }
 
     // Now run through the actual member selectors (eg. `foo$2(x, y)` and not
-    // `call$2(x, y)`. Some of them have already been generated because of the
-    // call-selectors (and they are in the renamedCallSelectors set.
-    for (Selector selector in selectors.keys) {
+    // `call$2(x, y)`). Some of them have already been generated because of the
+    // call-selectors and they are in the renamedCallSelectors set.
+    for (Selector selector in liveSelectors.keys) {
       if (renamedCallSelectors.contains(selector)) continue;
       if (!selector.appliesUnnamed(member)) continue;
-      if (!selectors[selector].applies(member, selector, _closedWorld)) {
+      if (!liveSelectors[selector].applies(member, selector, _closedWorld)) {
         continue;
       }
 
-      if (untypedSelectors.add(selector)) {
+      if (stubSelectors.add(selector)) {
         ParameterStubMethod stub =
             generateParameterStub(member, selector, null);
         if (stub != null) {

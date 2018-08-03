@@ -29,7 +29,6 @@ void NativeSymbolResolver::InitOnce() {
   }
 }
 
-
 void NativeSymbolResolver::ShutdownOnce() {
   MutexLocker lock(lock_);
   if (!running_) {
@@ -42,7 +41,6 @@ void NativeSymbolResolver::ShutdownOnce() {
     printf("Failed to shutdown NativeSymbolResolver (SymCleanup  %d)\n", error);
   }
 }
-
 
 char* NativeSymbolResolver::LookupSymbolName(uintptr_t pc, uintptr_t* start) {
   static const intptr_t kMaxNameLength = 2048;
@@ -73,11 +71,9 @@ char* NativeSymbolResolver::LookupSymbolName(uintptr_t pc, uintptr_t* start) {
   return strdup(pSymbol->Name);
 }
 
-
 void NativeSymbolResolver::FreeSymbolName(char* name) {
   free(name);
 }
-
 
 bool NativeSymbolResolver::LookupSharedObject(uword pc,
                                               uword* dso_base,

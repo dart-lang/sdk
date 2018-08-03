@@ -5,7 +5,7 @@
 library android;
 
 import "dart:async";
-import "dart:convert" show LineSplitter, UTF8;
+import "dart:convert" show LineSplitter, utf8;
 import "dart:core";
 import "dart:collection";
 import "dart:io";
@@ -46,7 +46,7 @@ Future<AdbCommandResult> _executeCommand(String executable, List<String> args,
     {String stdin, Duration timeout}) {
   Future<String> getOutput(Stream<List<int>> stream) {
     return stream
-        .transform(UTF8.decoder)
+        .transform(utf8.decoder)
         .toList()
         .then((data) => data.join(""));
   }
@@ -63,7 +63,7 @@ Future<AdbCommandResult> _executeCommand(String executable, List<String> args,
     if (timeout != null) {
       timer = new Timer(timeout, () {
         timedOut = true;
-        process.kill(ProcessSignal.SIGTERM);
+        process.kill(ProcessSignal.sigterm);
         timer = null;
       });
     }
@@ -76,8 +76,8 @@ Future<AdbCommandResult> _executeCommand(String executable, List<String> args,
     if (timer != null) timer.cancel();
 
     String command = "$executable ${args.join(' ')}";
-    return new AdbCommandResult(
-        command, results[0], results[1], results[2], timedOut);
+    return new AdbCommandResult(command, results[0] as String,
+        results[1] as String, results[2] as int, timedOut);
   });
 }
 
@@ -130,7 +130,7 @@ class AndroidEmulator {
 
   AndroidEmulator._private(this._port, this._adbDevice, this._emulatorProcess) {
     Stream<String> getLines(Stream s) {
-      return s.transform(UTF8.decoder).transform(new LineSplitter());
+      return s.transform(utf8.decoder).transform(new LineSplitter());
     }
 
     getLines(_emulatorProcess.stdout).listen((line) {
@@ -251,7 +251,7 @@ class AdbDevice {
    * Upload data to the device, unless [local] is the same as the most recently
    * used source for [remote].
    */
-  Future pushCachedData(String local, String remote) {
+  Future<AdbCommandResult> pushCachedData(String local, String remote) {
     if (_cachedData[remote] == local) {
       return new Future.value(
           new AdbCommandResult("Skipped cached push", "", "", 0, false));
@@ -353,6 +353,19 @@ class AdbDevice {
         }
       } else {
         // In case of timeouts, for example, we won't get the exitcode marker.
+        // TODO(mkroghj): Some times tests fail with the assert below. To better
+        // investigate, write out debug info.
+        DebugLogger.info("======= THIS IS DEBUG INFORMATION =======");
+        DebugLogger.info("arguments: $args");
+        DebugLogger.info("exitCode: ${result.exitCode}");
+        DebugLogger.info("timedOut: ${result.timedOut}");
+        DebugLogger.info("---- std out ----");
+        DebugLogger.info(result.stdout);
+        DebugLogger.info("---- std out end ----");
+        DebugLogger.info("---- std error  ----");
+        DebugLogger.info(result.stderr);
+        DebugLogger.info("---- std error end ----");
+        DebugLogger.info("======= THIS IS NO LONGER DEBUG INFORMATION =======");
         assert(result.exitCode != 0);
       }
     }
@@ -390,7 +403,7 @@ class AdbHelper {
             "stderr: ${result.stderr}]");
       }
       return _deviceLineRegexp
-          .allMatches(result.stdout)
+          .allMatches(result.stdout as String)
           .map((Match m) => m.group(1))
           .toList();
     });

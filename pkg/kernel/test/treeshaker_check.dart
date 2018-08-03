@@ -3,9 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.treeshaker_check;
 
+import 'dart:io';
+
+import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/transformations/treeshaker.dart';
-import 'dart:io';
 
 String usage = '''
 Usage: treeshaker_check FILE.dill
@@ -18,10 +21,12 @@ main(List<String> args) {
     print(usage);
     exit(1);
   }
-  var program = loadProgramFromBinary(args[0]);
-  var shaker = new TreeShaker(program);
-  shaker.transform(program);
-  new TreeShakingSanityCheck(shaker).visit(program);
+  var component = loadComponentFromBinary(args[0]);
+  var coreTypes = new CoreTypes(component);
+  var hierarchy = new ClassHierarchy(component);
+  var shaker = new TreeShaker(coreTypes, hierarchy, component);
+  shaker.transform(component);
+  new TreeShakingSanityCheck(shaker).visit(component);
 }
 
 class TreeShakingSanityCheck extends RecursiveVisitor {

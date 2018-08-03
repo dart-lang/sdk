@@ -1,0 +1,49 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class I extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method noSuchMethod(core::Invocation i) → dynamic
+    return null;
+  no-such-method-forwarder method foo() → void
+    return this.{self::I::noSuchMethod}(new core::_InvocationMirror::_withoutType("foo", const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}), false));
+}
+class M extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method noSuchMethod(core::Invocation i) → dynamic
+    return null;
+}
+abstract class _A&Object&M extends core::Object implements self::M {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method noSuchMethod(core::Invocation i) → dynamic
+    return null;
+}
+class A extends self::_A&Object&M implements self::I {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  no-such-method-forwarder method foo() → void
+    return this.{self::M::noSuchMethod}(new core::_InvocationMirror::_withoutType("foo", const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}), false));
+}
+abstract class _B&Object&M extends core::Object implements self::M {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method noSuchMethod(core::Invocation i) → dynamic
+    return null;
+}
+class B extends self::_B&Object&M implements self::I {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  no-such-method-forwarder method foo() → void
+    return this.{self::M::noSuchMethod}(new core::_InvocationMirror::_withoutType("foo", const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}), false));
+}
+static method main() → dynamic {}

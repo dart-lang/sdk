@@ -5,5 +5,5 @@
 part of models;
 
 abstract class FunctionRepository {
-  Future<Function> get(IsolateRef isolate, String id);
+  Future<ServiceFunction> get(IsolateRef isolate, String id);
 }

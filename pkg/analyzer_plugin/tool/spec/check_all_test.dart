@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:front_end/src/codegen/tools.dart';
+import 'package:analyzer/src/codegen/tools.dart';
 import 'package:path/path.dart';
 
 import 'generate_all.dart';
@@ -13,8 +13,11 @@ import 'generate_all.dart';
  * Check that all targets have been code generated.  If they haven't tell the
  * user to run generate_all.dart.
  */
-main() {
+main() async {
   String script = Platform.script.toFilePath(windows: Platform.isWindows);
-  String pkgPath = normalize(join(dirname(script), '..', '..'));
-  GeneratedContent.checkAll(pkgPath, 'tool/spec/generate_all.dart', allTargets);
+  List<String> components = split(script);
+  int index = components.indexOf('analyzer_plugin');
+  String pkgPath = joinAll(components.sublist(0, index + 1));
+  await GeneratedContent.checkAll(
+      pkgPath, join('tool', 'spec', 'generate_all.dart'), allTargets);
 }

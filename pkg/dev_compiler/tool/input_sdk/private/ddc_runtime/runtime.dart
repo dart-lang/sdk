@@ -2,118 +2,139 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+@ReifyFunctionTypes(false)
 library dart._runtime;
 
 import 'dart:async';
 import 'dart:collection';
 
-import 'dart:_debugger' show stackTraceMapper;
 import 'dart:_foreign_helper' show JS, JSExportName, rest, spread;
-import 'dart:_interceptors' show JSArray;
+import 'dart:_interceptors' show JSArray, jsNull, JSFunction;
+import 'dart:_internal' as internal show Symbol;
 import 'dart:_js_helper'
     show
-        AssertionErrorWithMessage,
+        AssertionErrorImpl,
         BooleanConversionAssertionError,
-        CastErrorImplementation,
+        CastErrorImpl,
+        DartIterator,
         getTraceFromException,
-        Primitives,
-        TypeErrorImplementation,
-        StrongModeCastError,
-        StrongModeErrorImplementation,
-        StrongModeTypeError,
-        SyncIterable;
-import 'dart:_internal' as _internal;
+        TypeErrorImpl,
+        JsLinkedHashMap,
+        ImmutableMap,
+        PrivateSymbol,
+        ReifyFunctionTypes,
+        NoReifyGeneric,
+        notNull;
+import 'dart:_debugger' show trackCall;
 
+export 'dart:_debugger' show getDynamicStats, clearDynamicStats, trackCall;
+
+part 'utils.dart';
 part 'classes.dart';
 part 'rtti.dart';
 part 'types.dart';
 part 'errors.dart';
-part 'generators.dart';
 part 'operations.dart';
-part 'profile.dart';
-part 'utils.dart';
 
 // TODO(vsm): Move polyfill code to dart:html.
 // Note, native extensions are registered onto types in dart.global.
 // This polyfill needs to run before the corresponding dart:html code is run.
-@JSExportName('global')
-final global_ = JS(
-    '',
-    '''
-  function () {
-    if (typeof NodeList !== "undefined") {
-      // TODO(vsm): Do we still need these?
-      NodeList.prototype.get = function(i) { return this[i]; };
-      NamedNodeMap.prototype.get = function(i) { return this[i]; };
-      DOMTokenList.prototype.get = function(i) { return this[i]; };
-      HTMLCollection.prototype.get = function(i) { return this[i]; };
+final _polyfilled = JS('', 'Symbol("_polyfilled")');
 
-      // Expose constructors for DOM types dart:html needs to assume are
-      // available on window.
-      if (typeof PannerNode == "undefined") {
-        let audioContext;
-        if (typeof AudioContext == "undefined" &&
-            (typeof webkitAudioContext != "undefined")) {
-          audioContext = new webkitAudioContext();
-        } else {
-          audioContext = new AudioContext();
-          window.StereoPannerNode =
-              audioContext.createStereoPanner().constructor;
-        }
-        window.PannerNode = audioContext.createPanner().constructor;
+bool polyfill(window) => JS('', '''(() => {
+  if ($window[$_polyfilled]) return false;
+  $window[$_polyfilled] = true;
+
+  if (typeof $window.NodeList !== "undefined") {
+    // TODO(vsm): Do we still need these?
+    $window.NodeList.prototype.get = function(i) { return this[i]; };
+    $window.NamedNodeMap.prototype.get = function(i) { return this[i]; };
+    $window.DOMTokenList.prototype.get = function(i) { return this[i]; };
+    $window.HTMLCollection.prototype.get = function(i) { return this[i]; };
+
+    // Expose constructors for DOM types dart:html needs to assume are
+    // available on window.
+    if (typeof $window.PannerNode == "undefined") {
+      let audioContext;
+      if (typeof $window.AudioContext == "undefined" &&
+          (typeof $window.webkitAudioContext != "undefined")) {
+        audioContext = new $window.webkitAudioContext();
+      } else {
+        audioContext = new $window.AudioContext();
+        $window.StereoPannerNode =
+            audioContext.createStereoPanner().constructor;
       }
-      if (typeof AudioSourceNode == "undefined") {
-        window.AudioSourceNode = MediaElementAudioSourceNode.__proto__;
-      }
-      if (typeof FontFaceSet == "undefined") {
-        // CSS Font Loading is not supported on Edge.
-        if (typeof document.fonts != "undefined") {
-          window.FontFaceSet = document.fonts.__proto__.constructor;
-        }
-      }
-      if (typeof MemoryInfo == "undefined") {
-        if (typeof window.performance.memory != "undefined") {
-          window.MemoryInfo = window.performance.memory.constructor;
-        }
-      }
-      if (typeof Geolocation == "undefined") {
-        navigator.geolocation.constructor;
-      }
-      if (typeof Animation == "undefined") {
-        let d = document.createElement('div');
-        if (typeof d.animate != "undefined") {
-          window.Animation = d.animate(d).constructor;
-        }
-      }
-      if (typeof SourceBufferList == "undefined") {
-        window.SourceBufferList = new MediaSource().sourceBuffers.constructor;
-      }
-      if (typeof SpeechRecognition == "undefined") {
-        window.SpeechRecognition = window.webkitSpeechRecognition;
-        window.SpeechRecognitionError = window.webkitSpeechRecognitionError;
-        window.SpeechRecognitionEvent = window.webkitSpeechRecognitionEvent;
+      $window.PannerNode = audioContext.createPanner().constructor;
+    }
+    if (typeof $window.AudioSourceNode == "undefined") {
+      $window.AudioSourceNode = MediaElementAudioSourceNode.__proto__;
+    }
+    if (typeof $window.FontFaceSet == "undefined") {
+      // CSS Font Loading is not supported on Edge.
+      if (typeof $window.document.fonts != "undefined") {
+        $window.FontFaceSet = $window.document.fonts.__proto__.constructor;
       }
     }
+    if (typeof $window.MemoryInfo == "undefined") {
+      if (typeof $window.performance.memory != "undefined") {
+        $window.MemoryInfo = $window.performance.memory.constructor;
+      }
+    }
+    if (typeof $window.Geolocation == "undefined") {
+      $window.Geolocation == $window.navigator.geolocation.constructor;
+    }
+    if (typeof $window.Animation == "undefined") {
+      let d = $window.document.createElement('div');
+      if (typeof d.animate != "undefined") {
+        $window.Animation = d.animate(d).constructor;
+      }
+    }
+    if (typeof $window.SourceBufferList == "undefined") {
+      $window.SourceBufferList =
+        new $window.MediaSource().sourceBuffers.constructor;
+    }
+    if (typeof $window.SpeechRecognition == "undefined") {
+      $window.SpeechRecognition = $window.webkitSpeechRecognition;
+      $window.SpeechRecognitionError = $window.webkitSpeechRecognitionError;
+      $window.SpeechRecognitionEvent = $window.webkitSpeechRecognitionEvent;
+    }
+  }
+  return true;
+})()''');
 
+@JSExportName('global')
+final global_ = JS('', '''
+  function () {
+    // Find global object.
     var globalState = (typeof window != "undefined") ? window
       : (typeof global != "undefined") ? global
-      : (typeof self != "undefined") ? self : {};
+      : (typeof self != "undefined") ? self : null;
+    if (!globalState) {
+      // Some platforms (e.g., d8) do not define any of the above.  The
+      // following is a non-CSP safe way to access the global object:
+      globalState = new Function('return this;')();
+    }
+
+    $polyfill(globalState);
+
+    // By default, stack traces cutoff at 10.  Set the limit to Infinity for
+    // better debugging.
+    if (globalState.Error) {
+      globalState.Error.stackTraceLimit = Infinity;
+    }
 
     // These settings must be configured before the application starts so that
     // user code runs with the correct configuration.
     let settings = 'ddcSettings' in globalState ? globalState.ddcSettings : {};
     $trapRuntimeErrors(
-        'trapRuntimeErrors' in settings ? settings.trapRuntimeErrors : true);
+        'trapRuntimeErrors' in settings ? settings.trapRuntimeErrors : false);
     $ignoreWhitelistedErrors(
         'ignoreWhitelistedErrors' in settings ?
-            settings.ignoreWhitelistedErrors : true);
+            settings.ignoreWhitelistedErrors : false);
 
     $ignoreAllErrors(
-        'ignoreAllErrors' in settings ?settings.ignoreAllErrors : false);
+        'ignoreAllErrors' in settings ? settings.ignoreAllErrors : false);
 
-    $failForWeakModeIsChecks(
-        'failForWeakModeIsChecks' in settings ?
-            settings.failForWeakModeIsChecks : true);
     $trackProfile(
         'trackProfile' in settings ? settings.trackProfile : false);
 
@@ -121,4 +142,15 @@ final global_ = JS(
   }()
 ''');
 
+void trackProfile(bool flag) {
+  JS('', 'dart.__trackProfile = #', flag);
+}
+
 final JsSymbol = JS('', 'Symbol');
+
+// TODO(vsm): Remove once this flag we've removed the ability to
+// whitelist / fallback on the old behavior.
+bool startAsyncSynchronously = true;
+void setStartAsyncSynchronously([bool value = true]) {
+  startAsyncSynchronously = value;
+}

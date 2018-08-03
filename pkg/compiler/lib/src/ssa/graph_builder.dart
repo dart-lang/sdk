@@ -2,31 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../closure.dart';
+import '../closure.dart' show ClosureDataLookup;
 import '../constants/constant_system.dart';
 import '../common/codegen.dart' show CodegenRegistry;
 import '../common_elements.dart';
 import '../compiler.dart';
 import '../deferred_load.dart';
 import '../diagnostics/diagnostic_listener.dart';
-import '../elements/elements.dart';
 import '../elements/entities.dart' show Entity, Local, MemberEntity;
-import '../elements/resolution_types.dart';
+import '../elements/jumps.dart';
 import '../elements/types.dart';
+import '../io/source_information.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/backend_usage.dart';
 import '../js_backend/constant_handler_javascript.dart';
+import '../js_backend/interceptor_data.dart';
+import '../js_backend/inferred_data.dart';
+import '../js_backend/js_interop_analysis.dart';
 import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
-import '../js_backend/js_interop_analysis.dart';
-import '../js_backend/interceptor_data.dart';
-import '../js_backend/mirrors_data.dart';
 import '../js_backend/runtime_types.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../options.dart';
-import '../resolution/tree_elements.dart';
+import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 import 'jump_handler.dart';
 import 'locals_handler.dart';
 import 'nodes.dart';
@@ -49,17 +49,15 @@ abstract class GraphBuilder {
   /// breaks.
   bool inTryStatement = false;
 
-  /// The tree elements for the element being built into an SSA graph.
-  TreeElements get elements;
-
   /// The JavaScript backend we are targeting in this compilation.
   JavaScriptBackend get backend;
 
   CodegenRegistry get registry;
 
-  ClosedWorld get closedWorld;
+  JClosedWorld get closedWorld;
 
-  CommonMasks get commonMasks => closedWorld.commonMasks;
+  AbstractValueDomain get abstractValueDomain =>
+      closedWorld.abstractValueDomain;
 
   DiagnosticReporter get reporter => backend.reporter;
 
@@ -69,10 +67,10 @@ abstract class GraphBuilder {
 
   CodeEmitterTask get emitter => backend.emitter;
 
-  GlobalTypeInferenceResults get globalInferenceResults =>
-      compiler.globalInference.results;
+  GlobalTypeInferenceResults get globalInferenceResults;
 
-  ClosureTask get closureToClassMapper => compiler.closureToClassMapper;
+  ClosureDataLookup get closureDataLookup =>
+      compiler.backendStrategy.closureDataLookup;
 
   NativeData get nativeData => closedWorld.nativeData;
 
@@ -82,7 +80,7 @@ abstract class GraphBuilder {
 
   Namer get namer => backend.namer;
 
-  RuntimeTypesNeed get rtiNeed => backend.rtiNeed;
+  RuntimeTypesNeed get rtiNeed => closedWorld.rtiNeed;
 
   JavaScriptConstantCompiler get constants => backend.constants;
 
@@ -92,13 +90,13 @@ abstract class GraphBuilder {
 
   FunctionInlineCache get inlineCache => backend.inlineCache;
 
-  MirrorsData get mirrorsData => backend.mirrorsData;
-
   JsInteropAnalysis get jsInteropAnalysis => backend.jsInteropAnalysis;
+
+  InferredData get inferredData => globalInferenceResults.inferredData;
 
   DeferredLoadTask get deferredLoadTask => compiler.deferredLoadTask;
 
-  Types get types => compiler.types;
+  DartTypes get types => closedWorld.dartTypes;
 
   /// Used to track the locals while building the graph.
   LocalsHandler localsHandler;
@@ -134,7 +132,7 @@ abstract class GraphBuilder {
   /// Pushes a boolean checking [expression] against null.
   pushCheckNull(HInstruction expression) {
     push(new HIdentity(expression, graph.addConstantNull(closedWorld), null,
-        closedWorld.commonMasks.boolType));
+        abstractValueDomain.boolType));
   }
 
   void dup() {
@@ -166,8 +164,7 @@ abstract class GraphBuilder {
 
   HParameterValue lastAddedParameter;
 
-  Map<ParameterElement, HInstruction> parameters =
-      <ParameterElement, HInstruction>{};
+  Map<Local, HInstruction> parameters = <Local, HInstruction>{};
 
   HBasicBlock addNewBlock() {
     HBasicBlock block = graph.addNewBlock();
@@ -198,7 +195,7 @@ abstract class GraphBuilder {
   }
 
   void goto(HBasicBlock from, HBasicBlock to) {
-    from.close(new HGoto());
+    from.close(new HGoto(abstractValueDomain));
     from.addSuccessor(to);
   }
 
@@ -219,7 +216,7 @@ abstract class GraphBuilder {
     current.add(instruction);
   }
 
-  HParameterValue addParameter(Entity parameter, TypeMask type) {
+  HParameterValue addParameter(Entity parameter, AbstractValue type) {
     HParameterValue result = new HParameterValue(parameter, type);
     if (lastAddedParameter == null) {
       graph.entry.addBefore(graph.entry.first, result);
@@ -243,43 +240,42 @@ abstract class GraphBuilder {
   /// Returns the current source element.
   ///
   /// The returned element is a declaration element.
-  Element get sourceElement;
+  MemberEntity get sourceElement;
 
-  // TODO(karlklose): this is needed to avoid a bug where the resolved type is
-  // not stored on a type annotation in the closure translator. Remove when
-  // fixed.
-  bool hasDirectLocal(Local local) {
-    return !localsHandler.isAccessedDirectly(local) ||
-        localsHandler.directLocals[local] != null;
+  HLiteralList buildLiteralList(List<HInstruction> inputs) {
+    return new HLiteralList(inputs, abstractValueDomain.growableListType);
   }
 
-  HInstruction callSetRuntimeTypeInfoWithTypeArguments(InterfaceType type,
-      List<HInstruction> rtiInputs, HInstruction newObject) {
-    if (!rtiNeed.classNeedsRti(type.element)) {
+  HInstruction callSetRuntimeTypeInfoWithTypeArguments(
+      InterfaceType type,
+      List<HInstruction> rtiInputs,
+      HInstruction newObject,
+      SourceInformation sourceInformation) {
+    if (!rtiNeed.classNeedsTypeArguments(type.element)) {
       return newObject;
     }
 
     HInstruction typeInfo = new HTypeInfoExpression(
         TypeInfoExpressionKind.INSTANCE,
-        (type.element as ClassElement).thisType,
+        closedWorld.elementEnvironment.getThisType(type.element),
         rtiInputs,
-        closedWorld.commonMasks.dynamicType);
+        abstractValueDomain.dynamicType);
     add(typeInfo);
-    return callSetRuntimeTypeInfo(typeInfo, newObject);
+    return callSetRuntimeTypeInfo(typeInfo, newObject, sourceInformation);
   }
 
   /// Called when control flow is about to change, in which case we need to
   /// specify special successors if we are already in a try/catch/finally block.
   void handleInTryStatement() {
     if (!inTryStatement) return;
-    HBasicBlock block = close(new HExitTry());
+    HBasicBlock block = close(new HExitTry(abstractValueDomain));
     HBasicBlock newBlock = graph.addNewBlock();
     block.addSuccessor(newBlock);
     open(newBlock);
   }
 
-  HInstruction callSetRuntimeTypeInfo(
-      HInstruction typeInfo, HInstruction newObject);
+  HInstruction callSetRuntimeTypeInfo(HInstruction typeInfo,
+      HInstruction newObject, SourceInformation sourceInformation);
 
   /// The element for which this SSA builder is being used.
   MemberEntity get targetElement;
@@ -295,11 +291,13 @@ abstract class GraphBuilder {
   bool getFlagValue(String flagName) {
     switch (flagName) {
       case 'MUST_RETAIN_METADATA':
-        return mirrorsData.mustRetainMetadata;
+        return false;
       case 'USE_CONTENT_SECURITY_POLICY':
         return options.useContentSecurityPolicy;
       case 'IS_FULL_EMITTER':
-        return !USE_LAZY_EMITTER && !options.useStartupEmitter;
+        return !options.useStartupEmitter;
+      case 'STRONG_MODE':
+        return options.strongMode;
       default:
         return null;
     }

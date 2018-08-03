@@ -31,7 +31,6 @@ class GrowableArray : public BaseGrowableArray<T, ValueObject, Zone> {
             ASSERT_NOTNULL(Thread::Current()->zone())) {}
 };
 
-
 template <typename T>
 class ZoneGrowableArray : public BaseGrowableArray<T, ZoneAllocated, Zone> {
  public:
@@ -46,7 +45,6 @@ class ZoneGrowableArray : public BaseGrowableArray<T, ZoneAllocated, Zone> {
       : BaseGrowableArray<T, ZoneAllocated, Zone>(
             ASSERT_NOTNULL(Thread::Current()->zone())) {}
 };
-
 
 // T must be a Handle type.
 template <typename T, typename B>
@@ -77,7 +75,6 @@ class BaseGrowableHandlePtrArray : public B {
   DISALLOW_COPY_AND_ASSIGN(BaseGrowableHandlePtrArray);
 };
 
-
 template <typename T>
 class GrowableHandlePtrArray
     : public BaseGrowableHandlePtrArray<T, ValueObject> {
@@ -85,7 +82,6 @@ class GrowableHandlePtrArray
   GrowableHandlePtrArray(Zone* zone, intptr_t initial_capacity)
       : BaseGrowableHandlePtrArray<T, ValueObject>(zone, initial_capacity) {}
 };
-
 
 template <typename T>
 class ZoneGrowableHandlePtrArray

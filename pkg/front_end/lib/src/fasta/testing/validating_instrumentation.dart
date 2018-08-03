@@ -1,15 +1,26 @@
 // Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 
-import 'package:front_end/src/base/instrumentation.dart';
-import 'package:front_end/src/fasta/messages.dart';
-import 'package:front_end/src/fasta/scanner.dart';
-import 'package:front_end/src/fasta/scanner/io.dart';
-import 'package:front_end/src/scanner/token.dart' as analyzer;
+import 'dart:async' show Future;
+
+import 'dart:convert' show utf8;
+
+import 'dart:io' show File;
+
+import '../../base/instrumentation.dart';
+
+import '../../scanner/token.dart' as analyzer;
+
+import '../compiler_context.dart' show CompilerContext;
+
+import '../messages.dart' show noLength, templateUnspecified;
+
+import '../scanner.dart' show ScannerResult, Token, scan;
+
+import '../scanner/io.dart' show readBytesFromFile;
+
+import '../severity.dart' show Severity;
 
 /// Implementation of [Instrumentation] which checks property/value pairs
 /// against expectations encoded in source files using "/*@...*/" comments.
@@ -27,6 +38,13 @@ class ValidatingInstrumentation implements Instrumentation {
       'returnType',
       'target',
     ],
+    'checks': const [
+      'covariance',
+      'checkGetterReturn',
+      'checkReturn',
+      'forwardingStub',
+      'genericContravariant',
+    ],
   };
 
   /// Map from file URI to the as-yet unsatisfied expectations from that file,
@@ -37,6 +55,9 @@ class ValidatingInstrumentation implements Instrumentation {
   /// file offset.  The inner map is guaranteed to be in ascending order of
   /// file offset.
   final _testedFeaturesState = <Uri, Map<int, Set<String>>>{};
+
+  /// Map from file URI to a sorted list of token offsets for that file.
+  final _tokenOffsets = <Uri, List<int>>{};
 
   /// String descriptions of the expectation mismatches found so far.
   final _problems = <String>[];
@@ -77,17 +98,26 @@ class ValidatingInstrumentation implements Instrumentation {
 
   /// Updates the source file at [uri] based on the actual property/value
   /// pairs that were observed.
-  Future<Null> fixSource(Uri uri) async {
+  Future<Null> fixSource(Uri uri, bool offsetsCountCharacters) async {
+    uri = Uri.base.resolveUri(uri);
     var fixes = _fixes[uri];
     if (fixes == null) return;
     File file = new File.fromUri(uri);
     var bytes = (await file.readAsBytes()).toList();
+    int convertOffset(int offset) {
+      if (offsetsCountCharacters) {
+        return utf8.encode(utf8.decode(bytes).substring(0, offset)).length;
+      } else {
+        return offset;
+      }
+    }
+
     // Apply the fixes in reverse order so that offsets don't need to be
     // adjusted after each fix.
-    fixes.sort((a, b) => b.offset.compareTo(a.offset));
-    for (var fix in fixes) {
-      bytes.replaceRange(
-          fix.offset, fix.offset + fix.length, UTF8.encode(fix.replacement));
+    fixes.sort((a, b) => a.offset.compareTo(b.offset));
+    for (var fix in fixes.reversed) {
+      bytes.replaceRange(convertOffset(fix.offset),
+          convertOffset(fix.offset + fix.length), utf8.encode(fix.replacement));
     }
     await file.writeAsBytes(bytes);
   }
@@ -96,11 +126,14 @@ class ValidatingInstrumentation implements Instrumentation {
   ///
   /// Should be called before [finish].
   Future<Null> loadExpectations(Uri uri) async {
+    uri = Uri.base.resolveUri(uri);
     var bytes = await readBytesFromFile(uri);
     var expectations = _unsatisfiedExpectations.putIfAbsent(uri, () => {});
     var testedFeaturesState = _testedFeaturesState.putIfAbsent(uri, () => {});
+    var tokenOffsets = _tokenOffsets.putIfAbsent(uri, () => []);
     ScannerResult result = scan(bytes, includeComments: true);
     for (Token token = result.tokens; !token.isEof; token = token.next) {
+      tokenOffsets.add(token.offset);
       for (analyzer.Token commentToken = token.precedingComments;
           commentToken != null;
           commentToken = commentToken.next) {
@@ -145,8 +178,13 @@ class ValidatingInstrumentation implements Instrumentation {
   @override
   void record(
       Uri uri, int offset, String property, InstrumentationValue value) {
+    uri = Uri.base.resolveUri(uri);
+    if (offset == -1) {
+      throw _formatProblem(uri, 0, 'No offset for $property=$value', null);
+    }
     var expectationsForUri = _unsatisfiedExpectations[uri];
     if (expectationsForUri == null) return;
+    offset = _normalizeOffset(offset, _tokenOffsets[uri]);
     var expectationsAtOffset = expectationsForUri[offset];
     if (expectationsAtOffset != null) {
       for (int i = 0; i < expectationsAtOffset.length; i++) {
@@ -186,12 +224,45 @@ class ValidatingInstrumentation implements Instrumentation {
 
   String _formatProblem(
       Uri uri, int offset, String desc, StackTrace stackTrace) {
-    return format(
-        uri, offset, '$desc${stackTrace == null ? '' : '\n$stackTrace'}');
+    return CompilerContext.current.format(
+        templateUnspecified
+            .withArguments('$desc${stackTrace == null ? '' : '\n$stackTrace'}')
+            .withLocation(uri, offset, noLength),
+        Severity.internalProblem);
   }
 
   String _makeExpectationComment(String property, InstrumentationValue value) {
     return '/*@$property=${_escape(value.toString())}*/';
+  }
+
+  /// If [offset] is not one of the token offsets in [tokenOffsets], increase it
+  /// until it is.
+  ///
+  /// Exception: if [offset] is past the last token offset in [tokenOffsets],
+  /// leave it alone.
+  int _normalizeOffset(int offset, List<int> tokenOffsets) {
+    int i = -1;
+    int j = tokenOffsets.length;
+    // Invariant: (i == -1 || tokenOffsets[i] < offset) &&
+    //     (j == tokenOffsets.length || offset <= tokenOffsets[j])
+    while (j - i > 1) {
+      int k = (i + j) ~/ 2;
+      if (tokenOffsets[k] < offset) {
+        i = k;
+      } else {
+        j = k;
+      }
+    }
+    // Now i == j - 1
+    if (j < tokenOffsets.length) {
+      // tokenOffsets[j-1] < offset <= tokenOffsets[j]
+      // Therefore the comment belongs with token j.
+      return tokenOffsets[j];
+    } else {
+      // j-1 is the last token, and tokenOffsets[j-1] < offset.  Since there's
+      // no later token, we can't normalize the offset.
+      return offset;
+    }
   }
 
   void _problem(Uri uri, int offset, String desc, _Fix fix) {

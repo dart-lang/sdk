@@ -20,7 +20,7 @@ class I8 extends TD with M implements JSIB {}
 use(x) {
   if (x is JSIB) {
     // Should be able to find M.foo since I8 is a subtype of both JSIB and M.
-    Expect.equals(123, x.foo());
+    Expect.equals(123, (x as dynamic).foo());
   }
 }
 

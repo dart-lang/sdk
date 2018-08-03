@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// part of "common_patch.dart";
+
 class _IOServicePorts {
   // We limit the number of IO Service ports per isolate so that we don't
   // spawn too many threads all at once, which can crash the VM on Windows.
   static const int maxPorts = 32;
   List<SendPort> _ports = <SendPort>[];
   List<SendPort> _freePorts = <SendPort>[];
-  HashMap<int, SendPort> _usedPorts = new HashMap<int, SendPort>();
+  Map<int, SendPort> _usedPorts = new HashMap<int, SendPort>();
 
   _IOServicePorts();
 

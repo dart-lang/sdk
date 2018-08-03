@@ -15,35 +15,40 @@
  *   of exactly one task.
  * - Convert this tool to use package_config to find the package map.
  */
-library analyzer.tool.task_dependency_graph.generate;
-
+import 'dart:async';
 import 'dart:io' hide File;
 import 'dart:io' as io;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
+import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:front_end/src/api_prototype/byte_store.dart';
+import 'package:front_end/src/base/performance_logger.dart';
 import 'package:front_end/src/codegen/tools.dart';
+import 'package:front_end/src/testing/package_root.dart' as package_root;
 import 'package:path/path.dart' as path;
 import 'package:path/path.dart';
 
 /**
  * Generate the target .dot file.
  */
-main() {
-  String script = Platform.script.toFilePath(windows: Platform.isWindows);
-  String pkgPath = normalize(join(dirname(script), '..', '..'));
-  GeneratedContent.generateAll(pkgPath, <GeneratedContent>[target, htmlTarget]);
+main() async {
+  String pkgPath = normalize(join(package_root.packageRoot, 'analyzer'));
+  await GeneratedContent
+      .generateAll(pkgPath, <GeneratedContent>[target, htmlTarget]);
 }
 
 final GeneratedFile htmlTarget = new GeneratedFile(
@@ -58,7 +63,7 @@ typedef void GetterFinderCallback(PropertyAccessorElement element);
 class Driver {
   static bool hasInitializedPlugins = false;
   PhysicalResourceProvider resourceProvider;
-  AnalysisContext context;
+  AnalysisDriver driver;
   InterfaceType resultDescriptorType;
   InterfaceType listOfResultDescriptorType;
   ClassElement enginePluginClass;
@@ -82,7 +87,7 @@ class Driver {
    * result descriptors.
    */
   void findExtensions(AstNode node, TopLevelVariableElement extensionIdVariable,
-      void callback(descriptorName)) {
+      void callback(String descriptorName)) {
     Set<PropertyAccessorElement> resultDescriptors =
         new Set<PropertyAccessorElement>();
     node.accept(new ExtensionFinder(
@@ -126,7 +131,8 @@ class Driver {
   /**
    * Generate the task dependency graph and return it as a [String].
    */
-  String generateFileContents() {
+  Future<String> generateFileContents() async {
+    String data = await generateGraphData();
     return '''
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -139,12 +145,12 @@ class Driver {
 // To render this graph using Graphviz (www.graphviz.org) use the command:
 // "dot tasks.dot -Tpdf -O".
 digraph G {
-${generateGraphData()}
+$data
 }
 ''';
   }
 
-  String generateGraphData() {
+  Future<String> generateGraphData() async {
     if (!hasInitializedPlugins) {
       AnalysisEngine.instance.processRequiredPlugins();
       hasInitializedPlugins = true;
@@ -153,48 +159,62 @@ ${generateGraphData()}
     resourceProvider = PhysicalResourceProvider.INSTANCE;
     DartSdk sdk = new FolderBasedDartSdk(resourceProvider,
         FolderBasedDartSdk.defaultSdkDirectory(resourceProvider));
-    context = AnalysisEngine.instance.createAnalysisContext();
+
     ContextBuilderOptions builderOptions = new ContextBuilderOptions();
-    if (Platform.packageRoot != null) {
-      builderOptions.defaultPackagesDirectoryPath =
-          Uri.parse(Platform.packageRoot).toFilePath();
-    } else if (Platform.packageConfig != null) {
+    if (Platform.packageConfig != null) {
       builderOptions.defaultPackageFilePath =
           Uri.parse(Platform.packageConfig).toFilePath();
     } else {
       // Let the context builder use the default algorithm for package
       // resolution.
     }
+
     ContextBuilder builder = new ContextBuilder(resourceProvider, null, null,
         options: builderOptions);
     List<UriResolver> uriResolvers = [
       new DartUriResolver(sdk),
       new PackageMapUriResolver(resourceProvider,
           builder.convertPackagesToMap(builder.createPackageMap(''))),
-      new ResourceUriResolver(PhysicalResourceProvider.INSTANCE)
+      new ResourceUriResolver(resourceProvider)
     ];
-    context.sourceFactory = new SourceFactory(uriResolvers);
-    Source dartDartSource =
-        setupSource(path.join('lib', 'src', 'task', 'dart.dart'));
-    Source taskSource = setupSource(path.join('lib', 'plugin', 'task.dart'));
-    Source modelSource = setupSource(path.join('lib', 'task', 'model.dart'));
-    Source enginePluginSource =
-        setupSource(path.join('lib', 'src', 'plugin', 'engine_plugin.dart'));
-    CompilationUnitElement modelElement = getUnit(modelSource).element;
+
+    var logger = new PerformanceLog(null);
+    var scheduler = new AnalysisDriverScheduler(logger);
+    driver = new AnalysisDriver(
+        scheduler,
+        logger,
+        resourceProvider,
+        new MemoryByteStore(),
+        new FileContentOverlay(),
+        null,
+        new SourceFactory(uriResolvers),
+        new AnalysisOptionsImpl());
+    scheduler.start();
+
+    TypeProvider typeProvider = await driver.currentSession.typeProvider;
+
+    String dartDartPath = path.join(rootDir, 'lib', 'src', 'task', 'dart.dart');
+    String taskPath = path.join(rootDir, 'lib', 'src', 'plugin', 'task.dart');
+    String modelPath =
+        path.join(rootDir, 'lib', 'src', 'task', 'api', 'model.dart');
+    String enginePluginPath =
+        path.join(rootDir, 'lib', 'src', 'plugin', 'engine_plugin.dart');
+
+    CompilationUnitElement modelElement = await getUnitElement(modelPath);
     InterfaceType analysisTaskType = modelElement.getType('AnalysisTask').type;
-    DartType dynamicType = context.typeProvider.dynamicType;
+    DartType dynamicType = typeProvider.dynamicType;
     resultDescriptorType = modelElement
         .getType('ResultDescriptor')
         .type
         .instantiate([dynamicType]);
     listOfResultDescriptorType =
-        context.typeProvider.listType.instantiate([resultDescriptorType]);
-    CompilationUnit enginePluginUnit = getUnit(enginePluginSource);
+        typeProvider.listType.instantiate([resultDescriptorType]);
+    CompilationUnit enginePluginUnit = await getUnit(enginePluginPath);
     enginePluginClass = enginePluginUnit.element.getType('EnginePlugin');
     extensionPointIdType =
         enginePluginUnit.element.getType('ExtensionPointId').type;
-    CompilationUnit dartDartUnit = getUnit(dartDartSource);
-    CompilationUnit taskUnit = getUnit(taskSource);
+    CompilationUnit dartDartUnit = await getUnit(dartDartPath);
+    CompilationUnit taskUnit = await getUnit(taskPath);
     taskUnitElement = taskUnit.element;
     Set<String> results = new Set<String>();
     Set<String> resultLists = new Set<String>();
@@ -251,7 +271,8 @@ ${generateGraphData()}
     return lines.join('\n');
   }
 
-  String generateHtml() {
+  Future<String> generateHtml() async {
+    var data = await generateGraphData();
     return '''
 <!DOCTYPE html>
 <html>
@@ -269,7 +290,7 @@ digraph G {
   tooltip="Analysis Task Dependency Graph";
   node [fontname=Helvetica];
   edge [fontname=Helvetica, fontcolor=gray];
-${generateGraphData()}
+$data
 }
 </script>
 </body>
@@ -277,21 +298,14 @@ ${generateGraphData()}
 ''';
   }
 
-  CompilationUnit getUnit(Source source) =>
-      context.resolveCompilationUnit2(source, source);
+  Future<CompilationUnit> getUnit(String path) async {
+    var result = await driver.getResult(path);
+    return result.unit;
+  }
 
-  Source setupSource(String filename) {
-    String filePath = path.join(rootDir, filename);
-    File file = resourceProvider.getResource(filePath);
-    Source source = file.createSource();
-    Uri restoredUri = context.sourceFactory.restoreUri(source);
-    if (restoredUri != null) {
-      source = file.createSource(restoredUri);
-    }
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.addedSource(source);
-    context.applyChanges(changeSet);
-    return source;
+  Future<CompilationUnitElement> getUnitElement(String path) async {
+    UnitElementResult result = await driver.getUnitElement(path);
+    return result.element;
   }
 
   /**

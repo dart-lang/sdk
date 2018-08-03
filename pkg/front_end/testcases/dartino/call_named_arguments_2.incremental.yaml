@@ -1,0 +1,26 @@
+# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+main.dart.patch: |
+  // Test that named arguments can be called
+
+  class C {
+    foo({a, named: 'v2', x}) {
+      print(named);
+    }
+  }
+
+  var instance;
+
+  main() {
+    if (instance == null) {
+      print('instance is null');
+      instance = new C();
+    }
+  <<<< ["instance is null","v1"]
+    instance.foo(named: 'v1');
+  ==== ["v2"]
+    instance.foo();
+  >>>>
+  }

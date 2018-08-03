@@ -1,0 +1,8 @@
+Errors: {
+  Can't find ')' to match '('. (@4)
+  Expected an identifier, but got '*'. (@0)
+  Method not found: 'foo'. (@1)
+  Getter not found: ''. (@0)
+}
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
+  return (throw new dart.core::NoSuchMethodError::withInvocation(null, new dart.core::_InvocationMirror::_withType(#, 33, const <dart.core::Type>[], const <dynamic>[], dart.core::Map::unmodifiable<dart.core::Symbol, dynamic>(const <dart.core::Symbol, dynamic>{})))).*(throw new dart.core::NoSuchMethodError::withInvocation(null, new dart.core::_InvocationMirror::_withType(#foo, 32, const <dart.core::Type>[], dart.core::List::unmodifiable<dynamic>(<dynamic>[3]), dart.core::Map::unmodifiable<dart.core::Symbol, dynamic>(const <dart.core::Symbol, dynamic>{}))));

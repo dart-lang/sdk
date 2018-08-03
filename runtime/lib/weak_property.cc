@@ -19,20 +19,17 @@ DEFINE_NATIVE_ENTRY(WeakProperty_new, 2) {
   return weak_property.raw();
 }
 
-
 DEFINE_NATIVE_ENTRY(WeakProperty_getKey, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(WeakProperty, weak_property,
                                arguments->NativeArgAt(0));
   return weak_property.key();
 }
 
-
 DEFINE_NATIVE_ENTRY(WeakProperty_getValue, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(WeakProperty, weak_property,
                                arguments->NativeArgAt(0));
   return weak_property.value();
 }
-
 
 DEFINE_NATIVE_ENTRY(WeakProperty_setValue, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(WeakProperty, weak_property,

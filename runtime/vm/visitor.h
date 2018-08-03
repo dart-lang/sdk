@@ -43,7 +43,6 @@ class ObjectPointerVisitor {
   DISALLOW_IMPLICIT_CONSTRUCTORS(ObjectPointerVisitor);
 };
 
-
 // An object visitor interface.
 class ObjectVisitor {
  public:
@@ -57,7 +56,6 @@ class ObjectVisitor {
  private:
   DISALLOW_COPY_AND_ASSIGN(ObjectVisitor);
 };
-
 
 // An object finder visitor interface.
 class FindObjectVisitor {

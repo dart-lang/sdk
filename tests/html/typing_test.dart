@@ -11,15 +11,15 @@ main() {
       predicate((x) => x is List<StyleSheet>, 'is a List<StyleSheet>');
 
   test('NodeList', () {
-    List<Node> asList = window.document.queryAll('body');
+    List<Node> asList = window.document.querySelectorAll('body');
     // Check it's Iterable
     int counter = 0;
-    for (Node node in window.document.queryAll('body')) {
+    for (Node node in window.document.querySelectorAll('body')) {
       counter++;
     }
     expect(counter, 1);
     counter = 0;
-    window.document.queryAll('body').forEach((e) {
+    window.document.querySelectorAll('body').forEach((e) {
       counter++;
     });
     expect(counter, 1);

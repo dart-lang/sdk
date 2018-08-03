@@ -12,6 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetFixesTest);
+    defineReflectiveTests(GetFixesTest_UseCFE);
   });
 }
 
@@ -37,17 +38,10 @@ Future f;
     expect(fix.error.code, 'undefined_class');
     expect(fix.fixes, isNotEmpty);
 
-    // apply the fix, expect that the new code has no errors
     SourceChange change = fix.fixes.singleWhere(
         (SourceChange change) => change.message.startsWith('Import '));
     expect(change.edits, hasLength(1));
     expect(change.edits.first.edits, hasLength(1));
-    SourceEdit edit = change.edits.first.edits.first;
-    text = text.replaceRange(edit.offset, edit.end, edit.replacement);
-    writeFile(pathname, text);
-
-    await analysisFinished;
-    expect(currentAnalysisErrors[pathname], isEmpty);
   }
 
   test_no_fixes() async {
@@ -64,4 +58,10 @@ Future f;
         await sendEditGetFixes(pathname, text.indexOf('Future f'));
     expect(result.fixes, isEmpty);
   }
+}
+
+@reflectiveTest
+class GetFixesTest_UseCFE extends GetFixesTest {
+  @override
+  bool get useCFE => true;
 }

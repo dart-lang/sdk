@@ -4,10 +4,10 @@
 
 part of world_builder;
 
-abstract class _AbstractUsage<T> {
+abstract class AbstractUsage<T> {
   final EnumSet<T> _pendingUse = new EnumSet<T>();
 
-  _AbstractUsage() {
+  AbstractUsage() {
     _pendingUse.addAll(_originalUse);
   }
 
@@ -21,12 +21,18 @@ abstract class _AbstractUsage<T> {
 
   /// `true` if the [appliedUse] is non-empty.
   bool get hasUse => appliedUse.isNotEmpty;
+
+  /// Returns `true` if [other] has the same original and pending usage as this.
+  bool hasSameUsage(AbstractUsage<T> other) {
+    if (identical(this, other)) return true;
+    return _originalUse.value == other._originalUse.value &&
+        _pendingUse.value == other._pendingUse.value;
+  }
 }
 
 /// Registry for the observed use of a member [entity] in the open world.
-abstract class _MemberUsage extends _AbstractUsage<MemberUse> {
-  // TODO(johnniwinther): Change [Entity] to [MemberEntity].
-  final Entity entity;
+abstract class _MemberUsage extends AbstractUsage<MemberUse> {
+  final MemberEntity entity;
 
   _MemberUsage.internal(this.entity);
 
@@ -41,8 +47,10 @@ abstract class _MemberUsage extends _AbstractUsage<MemberUse> {
       return new _GetterUsage(member);
     } else if (member.isSetter) {
       return new _SetterUsage(member);
+    } else if (member.isConstructor) {
+      return new _ConstructorUsage(member);
     } else {
-      assert(member.isFunction);
+      assert(member.isFunction, failedAt(member, "Unexpected member: $member"));
       return new _FunctionUsage(member);
     }
   }
@@ -61,6 +69,13 @@ abstract class _MemberUsage extends _AbstractUsage<MemberUse> {
 
   /// `true` if [entity] has been used in all the ways possible.
   bool get fullyUsed;
+
+  /// Registers the [entity] has been initialized and returns the new
+  /// [MemberUse]s that it caused.
+  ///
+  /// For a field this is the initial write access, for a function this is a
+  /// no-op.
+  EnumSet<MemberUse> init() => MemberUses.NONE;
 
   /// Registers a read of the value of [entity] and returns the new [MemberUse]s
   /// that it caused.
@@ -95,7 +110,7 @@ abstract class _MemberUsage extends _AbstractUsage<MemberUse> {
     return entity == other.entity;
   }
 
-  String toString() => entity.toString();
+  String toString() => '$entity:${appliedUse.iterable(MemberUse.values)}';
 }
 
 class _FieldUsage extends _MemberUsage {
@@ -114,6 +129,9 @@ class _FieldUsage extends _MemberUsage {
 
   @override
   bool get fullyUsed => hasRead && hasWrite;
+
+  @override
+  EnumSet<MemberUse> init() => read();
 
   @override
   EnumSet<MemberUse> read() {
@@ -163,6 +181,9 @@ class _FinalFieldUsage extends _MemberUsage {
   bool get fullyUsed => hasRead;
 
   @override
+  EnumSet<MemberUse> init() => read();
+
+  @override
   EnumSet<MemberUse> read() {
     if (hasRead) {
       return MemberUses.NONE;
@@ -182,9 +203,17 @@ class _FunctionUsage extends _MemberUsage {
   bool hasInvoke = false;
   bool hasRead = false;
 
-  _FunctionUsage(FunctionEntity function) : super.internal(function);
+  _FunctionUsage(FunctionEntity function) : super.internal(function) {
+    if (function is JSignatureMethod) {
+      // We mark signature methods as "always used" to prevent them from being
+      // optimized away.
+      // TODO(johnniwinther): Make this a part of the regular enqueueing.
+      invoke();
+    }
+  }
 
-  EnumSet<MemberUse> get _originalUse => MemberUses.ALL_INSTANCE;
+  EnumSet<MemberUse> get _originalUse =>
+      entity.isInstanceMember ? MemberUses.ALL_INSTANCE : MemberUses.ALL_STATIC;
 
   @override
   EnumSet<MemberUse> read() => fullyUse();
@@ -206,13 +235,17 @@ class _FunctionUsage extends _MemberUsage {
         return MemberUses.NONE;
       }
       hasRead = true;
-      return _pendingUse.removeAll(MemberUses.CLOSURIZE_INSTANCE_ONLY);
+      return _pendingUse.removeAll(entity.isInstanceMember
+          ? MemberUses.CLOSURIZE_INSTANCE_ONLY
+          : MemberUses.CLOSURIZE_STATIC_ONLY);
     } else if (hasRead) {
       hasInvoke = true;
       return _pendingUse.removeAll(MemberUses.NORMAL_ONLY);
     } else {
       hasRead = hasInvoke = true;
-      return _pendingUse.removeAll(MemberUses.ALL_INSTANCE);
+      return _pendingUse.removeAll(entity.isInstanceMember
+          ? MemberUses.ALL_INSTANCE
+          : MemberUses.ALL_STATIC);
     }
   }
 
@@ -265,6 +298,31 @@ class _SetterUsage extends _MemberUsage {
   EnumSet<MemberUse> fullyUse() => write();
 }
 
+class _ConstructorUsage extends _MemberUsage {
+  bool hasInvoke = false;
+
+  _ConstructorUsage(ConstructorEntity constructor)
+      : super.internal(constructor);
+
+  EnumSet<MemberUse> get _originalUse => MemberUses.NORMAL_ONLY;
+
+  @override
+  EnumSet<MemberUse> invoke() {
+    if (hasInvoke) {
+      return MemberUses.NONE;
+    }
+    hasInvoke = true;
+    return _pendingUse
+        .removeAll(hasRead ? MemberUses.NONE : MemberUses.NORMAL_ONLY);
+  }
+
+  @override
+  EnumSet<MemberUse> fullyUse() => invoke();
+
+  @override
+  bool get fullyUsed => hasInvoke;
+}
+
 /// Enum class for the possible kind of use of [MemberEntity] objects.
 enum MemberUse { NORMAL, CLOSURIZE_INSTANCE, CLOSURIZE_STATIC }
 
@@ -287,7 +345,7 @@ typedef void MemberUsedCallback(MemberEntity member, EnumSet<MemberUse> useSet);
 
 /// Registry for the observed use of a class [entity] in the open world.
 // TODO(johnniwinther): Merge this with [InstantiationInfo].
-class _ClassUsage extends _AbstractUsage<ClassUse> {
+class _ClassUsage extends AbstractUsage<ClassUse> {
   bool isInstantiated = false;
   bool isImplemented = false;
 
@@ -314,7 +372,7 @@ class _ClassUsage extends _AbstractUsage<ClassUse> {
   @override
   EnumSet<ClassUse> get _originalUse => ClassUses.ALL;
 
-  String toString() => cls.toString();
+  String toString() => '$cls:${appliedUse.iterable(ClassUse.values)}';
 }
 
 /// Enum class for the possible kind of use of [ClassEntity] objects.
@@ -333,8 +391,9 @@ class ClassUses {
 typedef void ClassUsedCallback(ClassEntity cls, EnumSet<ClassUse> useSet);
 
 // TODO(johnniwinther): Merge this with [_MemberUsage].
-abstract class _StaticMemberUsage extends _AbstractUsage<MemberUse> {
-  final Entity entity;
+abstract class _StaticMemberUsage extends AbstractUsage<MemberUse>
+    implements _MemberUsage {
+  final MemberEntity entity;
 
   bool hasNormalUse = false;
   bool get hasClosurization => false;
@@ -351,22 +410,44 @@ abstract class _StaticMemberUsage extends _AbstractUsage<MemberUse> {
 
   EnumSet<MemberUse> tearOff();
 
+  EnumSet<MemberUse> init() => normalUse();
+
+  EnumSet<MemberUse> read() => tearOff();
+
+  EnumSet<MemberUse> write() => normalUse();
+
+  EnumSet<MemberUse> invoke() => normalUse();
+
+  EnumSet<MemberUse> fullyUse() => normalUse();
+
   @override
   EnumSet<MemberUse> get _originalUse => MemberUses.NORMAL_ONLY;
 
-  String toString() => entity.toString();
+  String toString() => '$entity:${appliedUse.iterable(MemberUse.values)}';
 }
 
 class _GeneralStaticMemberUsage extends _StaticMemberUsage {
-  _GeneralStaticMemberUsage(Entity entity) : super.internal(entity);
+  _GeneralStaticMemberUsage(MemberEntity entity) : super.internal(entity);
 
   EnumSet<MemberUse> tearOff() => normalUse();
+
+  @override
+  bool get fullyUsed => hasNormalUse;
+
+  @override
+  bool get hasInvoke => hasNormalUse;
+
+  @override
+  bool get hasWrite => hasNormalUse;
+
+  @override
+  bool get hasRead => hasNormalUse;
 }
 
 class _StaticFunctionUsage extends _StaticMemberUsage {
   bool hasClosurization = false;
 
-  _StaticFunctionUsage(Entity entity) : super.internal(entity);
+  _StaticFunctionUsage(MemberEntity entity) : super.internal(entity);
 
   EnumSet<MemberUse> tearOff() {
     if (hasClosurization) {
@@ -378,4 +459,16 @@ class _StaticFunctionUsage extends _StaticMemberUsage {
 
   @override
   EnumSet<MemberUse> get _originalUse => MemberUses.ALL_STATIC;
+
+  @override
+  bool get fullyUsed => hasNormalUse && hasClosurization;
+
+  @override
+  bool get hasInvoke => hasNormalUse;
+
+  @override
+  bool get hasWrite => hasNormalUse;
+
+  @override
+  bool get hasRead => hasClosurization;
 }

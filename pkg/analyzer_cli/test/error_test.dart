@@ -8,6 +8,10 @@ import 'package:test/test.dart';
 
 import 'utils.dart';
 
+const badDeclaration = 'var int foo;';
+const badDeclarationMessage = 'Error in test.dart: '
+    'Variables can\'t be declared using both \'var\' and a type name.\n';
+
 void main() {
   group('error', () {
     test("a valid Dart file doesn't throw any errors", () {
@@ -19,47 +23,33 @@ void main() {
     });
 
     test("an error on the first line", () {
-      expect(
-          errorsForFile('void foo;\n'),
-          equals(
-              "Error in test.dart: Variables can't have a type of 'void'.\n"));
+      expect(errorsForFile('$badDeclaration\n'), equals(badDeclarationMessage));
     });
 
     test("an error on the last line", () {
-      expect(
-          errorsForFile('\nvoid foo;'),
-          equals(
-              "Error in test.dart: Variables can't have a type of 'void'.\n"));
+      expect(errorsForFile('\n$badDeclaration'), equals(badDeclarationMessage));
     });
 
     test("an error in the middle", () {
       expect(
-          errorsForFile('\nvoid foo;\n'),
-          equals(
-              "Error in test.dart: Variables can't have a type of 'void'.\n"));
+          errorsForFile('\n$badDeclaration\n'), equals(badDeclarationMessage));
     });
 
     var veryLongString = new List.filled(107, ' ').join('');
 
     test("an error at the end of a very long line", () {
-      expect(
-          errorsForFile('$veryLongString     void foo;'),
-          equals(
-              "Error in test.dart: Variables can't have a type of 'void'.\n"));
+      expect(errorsForFile('$veryLongString     $badDeclaration'),
+          equals(badDeclarationMessage));
     });
 
     test("an error at the beginning of a very long line", () {
-      expect(
-          errorsForFile('void foo;     $veryLongString'),
-          equals(
-              "Error in test.dart: Variables can't have a type of 'void'.\n"));
+      expect(errorsForFile('$badDeclaration     $veryLongString'),
+          equals(badDeclarationMessage));
     });
 
     test("an error in the middle of a very long line", () {
-      expect(
-          errorsForFile('$veryLongString void foo;$veryLongString'),
-          equals(
-              "Error in test.dart: Variables can't have a type of 'void'.\n"));
+      expect(errorsForFile('$veryLongString $badDeclaration$veryLongString'),
+          equals(badDeclarationMessage));
     });
   });
 }

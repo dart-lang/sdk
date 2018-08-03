@@ -1,0 +1,7 @@
+directories:
+  crm/greentea/fe3/service/search
+
+targets:
+  //crm/greentea/fe3/service/search/...:all
+additional_languages:
+  dart

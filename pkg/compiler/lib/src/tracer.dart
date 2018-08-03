@@ -5,12 +5,11 @@
 library tracer;
 
 import '../compiler_new.dart' as api;
-import 'compiler.dart' show Compiler;
 import 'js_backend/namer.dart' show Namer;
 import 'ssa/nodes.dart' as ssa show HGraph;
 import 'ssa/ssa_tracer.dart' show HTracer;
 import 'util/util.dart' show Indentation;
-import 'world.dart' show ClosedWorld;
+import 'world.dart' show JClosedWorld;
 
 /**
  * If non-null, we only trace methods whose name match the regexp defined by the
@@ -28,18 +27,19 @@ String TRACE_FILTER_PATTERN_FOR_TEST;
  * readable by IR Hydra.
  */
 class Tracer extends TracerUtil {
-  final ClosedWorld closedWorld;
+  final JClosedWorld closedWorld;
   final Namer namer;
   bool traceActive = false;
   final api.OutputSink output;
   final RegExp traceFilter;
 
-  Tracer(this.closedWorld, this.namer, Compiler compiler)
+  Tracer(this.closedWorld, this.namer, api.CompilerOutput compilerOutput)
       : traceFilter = TRACE_FILTER_PATTERN == null
             ? null
             : new RegExp(TRACE_FILTER_PATTERN),
         output = TRACE_FILTER_PATTERN != null
-            ? compiler.outputProvider('dart', 'cfg', api.OutputType.debug)
+            ? compilerOutput.createOutputSink(
+                'dart', 'cfg', api.OutputType.debug)
             : null;
 
   bool get isEnabled => traceFilter != null;

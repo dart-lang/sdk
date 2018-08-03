@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "platform/assert.h"
 #include "vm/allocation.h"
+#include "platform/assert.h"
 #include "vm/longjump.h"
 #include "vm/unit_test.h"
 
@@ -28,7 +28,6 @@ class TestValueObject : public ValueObject {
   int* ptr_;
 };
 
-
 class TestStackResource : public StackResource {
  public:
   explicit TestStackResource(int* ptr)
@@ -49,7 +48,6 @@ class TestStackResource : public StackResource {
   int* ptr_;
 };
 
-
 class TestStackedStackResource : public StackResource {
  public:
   explicit TestStackedStackResource(int* ptr)
@@ -69,20 +67,17 @@ class TestStackedStackResource : public StackResource {
   int* ptr_;
 };
 
-
 static void StackAllocatedDestructionHelper(int* ptr) {
   TestValueObject stacked(ptr);
   EXPECT_EQ(2, *ptr);
   *ptr = 3;
 }
 
-
 VM_UNIT_TEST_CASE(StackAllocatedDestruction) {
   int data = 1;
   StackAllocatedDestructionHelper(&data);
   EXPECT_EQ(4, data);
 }
-
 
 static void StackAllocatedLongJumpHelper(int* ptr, LongJumpScope* jump) {
   TestValueObject stacked(ptr);
@@ -94,7 +89,6 @@ static void StackAllocatedLongJumpHelper(int* ptr, LongJumpScope* jump) {
   UNREACHABLE();
 }
 
-
 TEST_CASE(StackAllocatedLongJump) {
   LongJumpScope jump;
   int data = 1;
@@ -105,13 +99,11 @@ TEST_CASE(StackAllocatedLongJump) {
   EXPECT_EQ(3, data);
 }
 
-
 static void StackedStackResourceDestructionHelper(int* ptr) {
   TestStackedStackResource stacked(ptr);
   EXPECT_EQ(4, *ptr);
   *ptr = 5;
 }
-
 
 static void StackResourceDestructionHelper(int* ptr) {
   TestStackResource stacked(ptr);
@@ -122,13 +114,11 @@ static void StackResourceDestructionHelper(int* ptr) {
   // Do not set data because the LongJump version does not return control here.
 }
 
-
 TEST_CASE(StackResourceDestruction) {
   int data = 1;
   StackResourceDestructionHelper(&data);
   EXPECT_EQ(7, data);
 }
-
 
 static void StackedStackResourceLongJumpHelper(int* ptr, LongJumpScope* jump) {
   TestStackedStackResource stacked(ptr);
@@ -140,7 +130,6 @@ static void StackedStackResourceLongJumpHelper(int* ptr, LongJumpScope* jump) {
   UNREACHABLE();
 }
 
-
 static void StackResourceLongJumpHelper(int* ptr, LongJumpScope* jump) {
   TestStackResource stacked(ptr);
   EXPECT_EQ(2, *ptr);
@@ -148,7 +137,6 @@ static void StackResourceLongJumpHelper(int* ptr, LongJumpScope* jump) {
   StackedStackResourceLongJumpHelper(ptr, jump);
   UNREACHABLE();
 }
-
 
 TEST_CASE(StackResourceLongJump) {
   LongJumpScope* base = Thread::Current()->long_jump_base();

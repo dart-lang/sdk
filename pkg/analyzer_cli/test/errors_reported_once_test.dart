@@ -41,7 +41,7 @@ class ErrorsReportedOnceTest {
 
   test_once() async {
     String testDir = path.join(testDirectory, 'data', 'errors_reported_once');
-    Driver driver = new Driver();
+    Driver driver = new Driver(isTesting: true);
     await driver.start(
         [path.join(testDir, 'foo.dart'), path.join(testDir, 'bar.dart')]);
 

@@ -1,0 +1,77 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class F0 extends core::Object {
+  constructor •(core::List<core::int> a) → void
+    : super core::Object::•() {}
+}
+class F1 extends core::Object {
+  constructor •({core::List<core::int> a = null}) → void
+    : super core::Object::•() {}
+}
+class F2 extends core::Object {
+  constructor •(core::Iterable<core::int> a) → void
+    : super core::Object::•() {}
+}
+class F3 extends core::Object {
+  constructor •(core::Iterable<core::Iterable<core::int>> a) → void
+    : super core::Object::•() {}
+}
+class F4 extends core::Object {
+  constructor •({core::Iterable<core::Iterable<core::int>> a = null}) → void
+    : super core::Object::•() {}
+}
+static method test() → void {
+  new self::F0::•(<core::int>[]);
+  new self::F0::•(<core::int>[3]);
+  new self::F0::•(<core::int>[let<BottomType> _ = null in let final dynamic #t1 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_constructor_arguments_infer_downwards.dart:32:69: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+      /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"]);
+                                                                    ^" in let final core::String #t2 = "hello" in null]);
+  new self::F0::•(<core::int>[let<BottomType> _ = null in let final dynamic #t3 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_constructor_arguments_infer_downwards.dart:34:48: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+    /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\",
+                                               ^" in let final core::String #t4 = "hello" in null, 3]);
+  new self::F1::•(a: <core::int>[]);
+  new self::F1::•(a: <core::int>[3]);
+  new self::F1::•(a: <core::int>[let<BottomType> _ = null in let final dynamic #t5 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_constructor_arguments_infer_downwards.dart:41:48: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+    /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"
+                                               ^" in let final core::String #t6 = "hello" in null]);
+  new self::F1::•(a: <core::int>[let<BottomType> _ = null in let final dynamic #t7 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_constructor_arguments_infer_downwards.dart:44:48: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+    /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\",
+                                               ^" in let final core::String #t8 = "hello" in null, 3]);
+  new self::F2::•(<core::int>[]);
+  new self::F2::•(<core::int>[3]);
+  new self::F2::•(<core::int>[let<BottomType> _ = null in let final dynamic #t9 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_constructor_arguments_infer_downwards.dart:51:69: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+      /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"]);
+                                                                    ^" in let final core::String #t10 = "hello" in null]);
+  new self::F2::•(<core::int>[let<BottomType> _ = null in let final dynamic #t11 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_constructor_arguments_infer_downwards.dart:53:48: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+    /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\",
+                                               ^" in let final core::String #t12 = "hello" in null, 3]);
+  new self::F3::•(<core::Iterable<core::int>>[]);
+  new self::F3::•(<core::Iterable<core::int>>[<core::int>[3]]);
+  new self::F3::•(<core::Iterable<core::int>>[<core::int>[let<BottomType> _ = null in let final dynamic #t13 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_constructor_arguments_infer_downwards.dart:62:67: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+    /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"]
+                                                                  ^" in let final core::String #t14 = "hello" in null]]);
+  new self::F3::•(<core::Iterable<core::int>>[<core::int>[let<BottomType> _ = null in let final dynamic #t15 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_constructor_arguments_infer_downwards.dart:65:67: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+    /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"],
+                                                                  ^" in let final core::String #t16 = "hello" in null], <core::int>[3]]);
+  new self::F4::•(a: <core::Iterable<core::int>>[]);
+  new self::F4::•(a: <core::Iterable<core::int>>[<core::int>[3]]);
+  new self::F4::•(a: <core::Iterable<core::int>>[<core::int>[let<BottomType> _ = null in let final dynamic #t17 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_constructor_arguments_infer_downwards.dart:74:67: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+    /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"]
+                                                                  ^" in let final core::String #t18 = "hello" in null]]);
+  new self::F4::•(a: <core::Iterable<core::int>>[<core::int>[let<BottomType> _ = null in let final dynamic #t19 = let<BottomType> _ = null in invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_constructor_arguments_infer_downwards.dart:77:67: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.
+    /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"],
+                                                                  ^" in let final core::String #t20 = "hello" in null], <core::int>[3]]);
+}
+static method main() → dynamic {}

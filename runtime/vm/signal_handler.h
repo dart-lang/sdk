@@ -38,7 +38,6 @@ struct sigset_t {};
 #include <ucontext.h>  // NOLINT
 #endif
 
-
 // Old linux kernels on ARM might require a trampoline to
 // work around incorrect Thumb -> ARM transitions. See SignalHandlerTrampoline
 // below for more details.
@@ -47,7 +46,6 @@ struct sigset_t {};
     !defined(__thumb__)
 #define USE_SIGNAL_HANDLER_TRAMPOLINE
 #endif
-
 
 namespace dart {
 
@@ -113,9 +111,7 @@ class SignalHandler : public AllStatic {
 #endif  // defined(USE_SIGNAL_HANDLER_TRAMPOLINE)
 };
 
-
 #undef USE_SIGNAL_HANDLER_TRAMPOLINE
-
 
 }  // namespace dart
 

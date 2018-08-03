@@ -1,0 +1,12 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "./deferred_lib.dart" as def;
+
+static method main() → dynamic {}
+static method test() → dynamic {
+  let final core::Object #t1 = CheckLibraryIsLoaded(lib) in def::x = self::m2() as{TypeError} core::int;
+  let final core::Object #t2 = CheckLibraryIsLoaded(lib) in def::m(self::m2());
+}
+static method m2() → dynamic
+  return 1;

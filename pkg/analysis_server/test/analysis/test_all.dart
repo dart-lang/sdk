@@ -7,11 +7,13 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'get_errors_test.dart' as get_errors_test;
 import 'get_hover_test.dart' as get_hover_test;
 import 'get_navigation_test.dart' as get_navigation_test;
-import 'navigation_collector_test.dart' as navigation_collector_test;
 import 'notification_analysis_options_test.dart'
     as notification_analysis_options_test;
 import 'notification_analyzedFiles_test.dart'
     as notification_analyzedFiles_test;
+import 'notification_closingLabels_test.dart'
+    as notification_closingLabels_test;
+import 'notification_folding_test.dart' as notification_folding_test;
 import 'notification_errors_test.dart' as notification_errors_test;
 import 'notification_highlights_test.dart' as notification_highlights_test;
 import 'notification_highlights_test2.dart' as notification_highlights_test2;
@@ -32,9 +34,10 @@ main() {
     get_errors_test.main();
     get_hover_test.main();
     get_navigation_test.main();
-    navigation_collector_test.main();
     notification_analysis_options_test.main();
     notification_analyzedFiles_test.main();
+    notification_closingLabels_test.main();
+    notification_folding_test.main();
     notification_errors_test.main();
     notification_highlights_test.main();
     notification_highlights_test2.main();

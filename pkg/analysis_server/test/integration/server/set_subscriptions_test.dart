@@ -13,7 +13,17 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetSubscriptionsTest);
+    defineReflectiveTests(SetSubscriptionsTest_UseCFE);
   });
+}
+
+/// Wrapper around the test package's `fail` function.
+///
+/// Unlike the test package's `fail` function, this function is not annotated
+/// with @alwaysThrows, so we can call it at the top of a test method without
+/// causing the rest of the method to be flagged as dead code.
+void _fail(String message) {
+  fail(message);
 }
 
 @reflectiveTest
@@ -23,7 +33,7 @@ class SetSubscriptionsTest extends AbstractAnalysisServerIntegrationTest {
     // This test times out on the bots and has been disabled to keep them green.
     // We need to discover the cause and re-enable it.
 
-    fail(
+    _fail(
         'This test times out on the bots and has been disabled to keep them green.'
         'We need to discover the cause and re-enable it.');
 
@@ -39,9 +49,7 @@ class SetSubscriptionsTest extends AbstractAnalysisServerIntegrationTest {
     });
     return sendServerSetSubscriptions([]).then((_) {
       String pathname = sourcePath('test.dart');
-      writeFile(
-          pathname,
-          '''
+      writeFile(pathname, '''
 main() {
   var x;
 }''');
@@ -52,9 +60,7 @@ main() {
         expect(statusReceived, isFalse);
         return sendServerSetSubscriptions([ServerService.STATUS]).then((_) {
           // Tickle test.dart just in case analysis has already completed.
-          writeFile(
-              pathname,
-              '''
+          writeFile(pathname, '''
 main() {
   var y;
 }''');
@@ -65,4 +71,10 @@ main() {
       });
     });
   }
+}
+
+@reflectiveTest
+class SetSubscriptionsTest_UseCFE extends SetSubscriptionsTest {
+  @override
+  bool get useCFE => true;
 }

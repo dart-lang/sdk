@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// part of "async_patch.dart";
+
 @patch
 class _AsyncRun {
   @patch
@@ -21,4 +23,8 @@ class _ScheduleImmediate {
 
 void _setScheduleImmediateClosure(_ScheduleImmediateClosure closure) {
   _ScheduleImmediate._closure = closure;
+}
+
+void _ensureScheduleImmediate() {
+  _AsyncRun._scheduleImmediate(_startMicrotaskLoop);
 }

@@ -121,9 +121,7 @@ void genericTypeTest() {
 
 // Test in checked mode with explicitly given types.
 void typedTest() {
-  bool isCheckedMode = false;
-  assert((isCheckedMode = true));
-  if (!isCheckedMode) return;
+  if (!typeAssertionsEnabled) return;
 
   // Assign functions to untyped function variables.
   Function key = (int v) => "$v";

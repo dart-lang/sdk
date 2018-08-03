@@ -301,7 +301,7 @@ void testLengthInvariantOperations(List list) {
   testArgumentError(() => list.setRange(-1, 5, [1, 2, 3, 4, 5, 6]));
   testArgumentError(() => list.setRange(2, 5, [1, 2, 3]));
   testArgumentError(() => list.setRange(4, 2, [1, 2]));
-  // for setAll, end is implictly start + values.length.
+  // for setAll, end is implicitly start + values.length.
   testArgumentError(() => list.setAll(-1, []));
   testArgumentError(() => list.setAll(5, []));
   testArgumentError(() => list.setAll(2, [1, 2, 3]));

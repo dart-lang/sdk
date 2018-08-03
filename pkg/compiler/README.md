@@ -16,10 +16,9 @@ The compiler will operate in these general phases:
       * Collect dart sources transtively
       * Convert to kernel AST  
   
-  (this is will handled by invoking the front-end package)
+  (this will be handled by invoking the front-end package)
   
-  Alternatively, the compiler can start compilation directly from a kernel
-  file(s).
+  Alternatively, the compiler can start compilation directly from kernel files.
 
   2. **model**: Create a Dart model of the program
      * The kernel ASTs could be used as a model, so this might be a no-op or just
@@ -206,7 +205,7 @@ are some of the legacy terminology we have:
       Dart programs, like "libraries", "classes", "methods", etc.
 
     * **entity model**: also describes elements seen in Dart programs, but it is
-      meant to be minimalistic and a super-hierarcy above the *element models*.
+      meant to be minimalistic and a super-hierarchy above the *element models*.
       This is a newer addition, is an added abstraction to make it possible to
       refactor our code from our old frontend to the kernel frontend.
 
@@ -228,7 +227,7 @@ are some of the legacy terminology we have:
 
 ### Code layout
 
-Here are some details of our current code layout and what's on each file. This
+Here are some details of our current code layout and what's in each file. This
 list also includes some action items (labeled AI below), which are mainly
 cleanup tasks that we have been discussing for a while:
 
@@ -241,12 +240,6 @@ revisited
 
   AI: change how we build the SDK to launch dart2js from here, most logic might
   remain inside `lib/src/dart2js.dart` for testing purposes.
-
-* `bin/resolver.dart`: an experiemntal binary we used to run the resolver and
-  serializer. As we are moving to work on top of kernel this is deprecated and
-  should be deleted.
-
-  AI: delete this file.
 
 **lib folder**: API to use dart2js as a library. This is used by our
 command-line tool to launch dart2js, but also by pub to invoke dart2js as a
@@ -268,7 +261,7 @@ library during `pub-build` and `pub-serve`.
   is another), and delete the legacy API.
 
 **lib/src folder**: most of the compiler lives here, as very little of its
-funtionality is publicly exposed.
+functionality is publicly exposed.
 
 
 * `lib/src/dart2js.dart`: the command-line script that runs dart2js. When
@@ -362,7 +355,7 @@ funtionality is publicly exposed.
     expressions may be folded. Different implementations of the constant system
     are used to target Dart or JavaScript.
 
-  * `lib/src/compile_time_constants.dart`: defines how constant expresions are
+  * `lib/src/compile_time_constants.dart`: defines how constant expressions are
     created from a parsed AST.
 
   * `lib/src/constant_system_dart.dart`: defines an implementation of a constant
@@ -396,11 +389,6 @@ funtionality is publicly exposed.
     elements of the Javascript backend, like our internal
     representation of JSInt31, JSArray, and other implementation-specific
     elements.
-
-* `lib/src/dart2js_resolver.dart`: a script to run the compiler up to resolution
-  and to generate a serialized json representation of the element model.
-
-  AI: delete.
 
 * `lib/src/deferred_load.dart`: general analysis for deferred loading. This is
   where we compute how to split the code in different JS chunks or fragments.
@@ -458,7 +446,7 @@ funtionality is publicly exposed.
   * `lib/src/compiler_new.dart`: defines the interface of these providers (see
     `CompilerInput` and `CompilerOutput`).
 
-  * `lib/src/null_compiler_output.dart`: an `CompilerOutput` that discards all
+  * `lib/src/null_compiler_output.dart`: a `CompilerOutput` that discards all
     data written to it (name derives from /dev/null).
 
   * `lib/src/source_file_provider.dart`: _TODO: add details_.
@@ -563,7 +551,7 @@ funtionality is publicly exposed.
 * `tool`: some helper scripts, some of these could be deleted
 
   * `tool/perf.dart`: used by our benchmark runners to measure performance of
-    some frontend pieces of dart2js. We shuld be able to delete it in the near
+    some frontend pieces of dart2js. We should be able to delete it in the near
     future once the front end code is moved into `fasta`.
 
   * `tool/perf_test.dart`: small test to ensure we don't break `perf.dart`.
@@ -615,11 +603,6 @@ funtionality is publicly exposed.
    * `lib/src/inferrer/map_tracer.dart`
    * `lib/src/inferrer/builder.dart`
 
-* Serialization (`lib/src/serialization/*`: the compiler had support to emit a
-  serialized form of the element model. This is likely going to be deleted in
-  the near future (it was created before we had the intent to use kernel as a
-  serialization format).
-
 ---------
 
 _TODO: complete the documentation for the following files_.
@@ -668,9 +651,6 @@ _TODO: complete the documentation for the following files_.
 `lib/src/js_emitter/type_test_registry.dart`
 `lib/src/js_emitter/js_emitter.dart.rej`
 `lib/src/js_emitter/class_stub_generator.dart`
-`lib/src/js_emitter/lazy_emitter`
-`lib/src/js_emitter/lazy_emitter/model_emitter.dart`
-`lib/src/js_emitter/lazy_emitter/emitter.dart`
 `lib/src/js_emitter/startup_emitter`
 `lib/src/js_emitter/startup_emitter/deferred_fragment_hash.dart`
 `lib/src/js_emitter/startup_emitter/model_emitter.dart`
@@ -787,13 +767,11 @@ _TODO: complete the documentation for the following files_.
 `lib/src/js_backend/js_interop_analysis.dart`
 `lib/src/js_backend/backend_impact.dart`
 `lib/src/js_backend/constant_emitter.dart`
-`lib/src/js_backend/lookup_map_analysis.dart`
 `lib/src/js_backend/namer_names.dart`
 `lib/src/js_backend/runtime_types.dart`
 `lib/src/js_backend/no_such_method_registry.dart`
 `lib/src/js_backend/constant_system_javascript.dart`
 `lib/src/js_backend/backend.dart`
-`lib/src/js_backend/backend_serialization.dart`
 `lib/src/js_backend/checked_mode_helpers.dart`
 `lib/src/js_backend/constant_handler_javascript.dart`
 

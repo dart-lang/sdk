@@ -7,12 +7,11 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:analyzer/src/task/api/dart.dart';
+import 'package:analyzer/src/task/api/general.dart';
 import 'package:analyzer/src/task/dart.dart';
-import 'package:analyzer/task/dart.dart';
-import 'package:analyzer/task/general.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:typed_mock/typed_mock.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -21,16 +20,20 @@ main() {
   });
 }
 
+/// A matcher for ConflictingSummaryException.
+const isConflictingSummaryException =
+    const TypeMatcher<ConflictingSummaryException>();
+
 UnlinkedPublicNamespace _namespaceWithParts(List<String> parts) {
-  UnlinkedPublicNamespace namespace = new _UnlinkedPublicNamespaceMock();
-  when(namespace.parts).thenReturn(parts);
+  _UnlinkedPublicNamespaceMock namespace = new _UnlinkedPublicNamespaceMock();
+  namespace.parts = parts;
   return namespace;
 }
 
 @reflectiveTest
 class ResynthesizerResultProviderTest {
-  SourceFactory sourceFactory = new _SourceFactoryMock();
-  InternalAnalysisContext context = new _InternalAnalysisContextMock();
+  _SourceFactoryMock sourceFactory = new _SourceFactoryMock();
+  _InternalAnalysisContextMock context = new _InternalAnalysisContextMock();
   UniversalCachePartition cachePartition;
 
   Source source1 = new _SourceMock('package:p1/u1.dart', '/p1/lib/u1.dart');
@@ -40,10 +43,10 @@ class ResynthesizerResultProviderTest {
   CacheEntry entry2;
   CacheEntry entry3;
 
-  PackageBundle bundle = new _PackageBundleMock();
-  UnlinkedUnit unlinkedUnit1 = new _UnlinkedUnitMock();
-  UnlinkedUnit unlinkedUnit2 = new _UnlinkedUnitMock();
-  LinkedLibrary linkedLibrary = new _LinkedLibraryMock();
+  _PackageBundleMock bundle = new _PackageBundleMock();
+  _UnlinkedUnitMock unlinkedUnit1 = new _UnlinkedUnitMock();
+  _UnlinkedUnitMock unlinkedUnit2 = new _UnlinkedUnitMock();
+  _LinkedLibraryMock linkedLibrary = new _LinkedLibraryMock();
 
   SummaryDataStore dataStore = new SummaryDataStore(<String>[]);
   _TestResynthesizerResultProvider provider;
@@ -57,26 +60,26 @@ class ResynthesizerResultProviderTest {
     cachePartition.put(entry2);
     cachePartition.put(entry3);
 
-    when(sourceFactory.resolveUri(anyObject, 'package:p1/u1.dart'))
-        .thenReturn(source1);
-    when(sourceFactory.resolveUri(anyObject, 'package:p1/u2.dart'))
-        .thenReturn(source2);
-    when(context.sourceFactory).thenReturn(sourceFactory);
+    sourceFactory.resolvedUriMap['package:p1/u1.dart'] = source1;
+    sourceFactory.resolvedUriMap['package:p1/u2.dart'] = source2;
+    context.sourceFactory = sourceFactory;
 
-    when(bundle.unlinkedUnitUris)
-        .thenReturn(<String>['package:p1/u1.dart', 'package:p1/u2.dart']);
-    when(bundle.unlinkedUnits)
-        .thenReturn(<UnlinkedUnit>[unlinkedUnit1, unlinkedUnit2]);
-    when(bundle.linkedLibraryUris).thenReturn(<String>['package:p1/u1.dart']);
-    when(bundle.linkedLibraries).thenReturn(<LinkedLibrary>[linkedLibrary]);
+    bundle.unlinkedUnitUris = <String>[
+      'package:p1/u1.dart',
+      'package:p1/u2.dart'
+    ];
+    bundle.unlinkedUnits = <UnlinkedUnit>[unlinkedUnit1, unlinkedUnit2];
+    bundle.linkedLibraryUris = <String>['package:p1/u1.dart'];
+    bundle.linkedLibraries = <LinkedLibrary>[linkedLibrary];
     dataStore.addBundle('/p1.ds', bundle);
 
-    when(unlinkedUnit1.isPartOf).thenReturn(false);
-    when(unlinkedUnit2.isPartOf).thenReturn(true);
+    unlinkedUnit1.isPartOf = false;
+    unlinkedUnit2.isPartOf = true;
 
-    when(unlinkedUnit1.publicNamespace)
-        .thenReturn(_namespaceWithParts(['package:p1/u2.dart']));
-    when(unlinkedUnit2.publicNamespace).thenReturn(_namespaceWithParts([]));
+    var namespace1 = _namespaceWithParts(['package:p1/u2.dart']);
+    var namespace2 = _namespaceWithParts([]);
+    unlinkedUnit1.publicNamespace = namespace1;
+    unlinkedUnit2.publicNamespace = namespace2;
 
     provider = new _TestResynthesizerResultProvider(context, dataStore);
     provider.sourcesWithResults.add(source1);
@@ -96,13 +99,13 @@ class ResynthesizerResultProviderTest {
   }
 
   test_compute_LINE_INFO_emptyLineStarts() {
-    when(unlinkedUnit1.lineStarts).thenReturn(<int>[]);
+    unlinkedUnit1.lineStarts = <int>[];
     bool success = provider.compute(entry1, LINE_INFO);
     expect(success, isFalse);
   }
 
   test_compute_LINE_INFO_hasLineStarts() {
-    when(unlinkedUnit1.lineStarts).thenReturn(<int>[10, 20, 30]);
+    unlinkedUnit1.lineStarts = <int>[10, 20, 30];
     bool success = provider.compute(entry1, LINE_INFO);
     expect(success, isTrue);
     expect(entry1.getValue(LINE_INFO).lineStarts, <int>[10, 20, 30]);
@@ -127,7 +130,7 @@ class ResynthesizerResultProviderTest {
   }
 
   test_compute_SOURCE_KIND_librarySource_isPartOf() {
-    when(unlinkedUnit1.isPartOf).thenReturn(true);
+    unlinkedUnit1.isPartOf = true;
     bool success = provider.compute(entry1, SOURCE_KIND);
     expect(success, isTrue);
     expect(entry1.getValue(SOURCE_KIND), SourceKind.PART);
@@ -148,39 +151,16 @@ class ResynthesizerResultProviderTest {
 
 @reflectiveTest
 class SummaryDataStoreTest {
-  SummaryDataStore dataStore = new SummaryDataStore(<String>[],
-      recordDependencyInfo: true, disallowOverlappingSummaries: true);
+  SummaryDataStore dataStore =
+      new SummaryDataStore(<String>[], disallowOverlappingSummaries: true);
 
-  PackageBundle bundle1 = new _PackageBundleMock();
-  PackageBundle bundle2 = new _PackageBundleMock();
-  UnlinkedUnit unlinkedUnit11 = new _UnlinkedUnitMock();
-  UnlinkedUnit unlinkedUnit12 = new _UnlinkedUnitMock();
-  UnlinkedUnit unlinkedUnit21 = new _UnlinkedUnitMock();
-  LinkedLibrary linkedLibrary1 = new _LinkedLibraryMock();
-  LinkedLibrary linkedLibrary2 = new _LinkedLibraryMock();
-
-  void _setupDataStore(SummaryDataStore store) {
-    // bundle1
-    when(unlinkedUnit11.publicNamespace)
-        .thenReturn(_namespaceWithParts(['package:p1/u2.dart']));
-    when(unlinkedUnit12.publicNamespace).thenReturn(_namespaceWithParts([]));
-    when(bundle1.unlinkedUnitUris)
-        .thenReturn(<String>['package:p1/u1.dart', 'package:p1/u2.dart']);
-    when(bundle1.unlinkedUnits)
-        .thenReturn(<UnlinkedUnit>[unlinkedUnit11, unlinkedUnit12]);
-    when(bundle1.linkedLibraryUris).thenReturn(<String>['package:p1/u1.dart']);
-    when(bundle1.linkedLibraries).thenReturn(<LinkedLibrary>[linkedLibrary1]);
-    when(bundle1.apiSignature).thenReturn('signature1');
-    store.addBundle('/p1.ds', bundle1);
-    // bundle2
-    when(unlinkedUnit21.publicNamespace).thenReturn(_namespaceWithParts([]));
-    when(bundle2.unlinkedUnitUris).thenReturn(<String>['package:p2/u1.dart']);
-    when(bundle2.unlinkedUnits).thenReturn(<UnlinkedUnit>[unlinkedUnit21]);
-    when(bundle2.linkedLibraryUris).thenReturn(<String>['package:p2/u1.dart']);
-    when(bundle2.linkedLibraries).thenReturn(<LinkedLibrary>[linkedLibrary2]);
-    when(bundle2.apiSignature).thenReturn('signature2');
-    store.addBundle('/p2.ds', bundle2);
-  }
+  _PackageBundleMock bundle1 = new _PackageBundleMock();
+  _PackageBundleMock bundle2 = new _PackageBundleMock();
+  _UnlinkedUnitMock unlinkedUnit11 = new _UnlinkedUnitMock();
+  _UnlinkedUnitMock unlinkedUnit12 = new _UnlinkedUnitMock();
+  _UnlinkedUnitMock unlinkedUnit21 = new _UnlinkedUnitMock();
+  _LinkedLibraryMock linkedLibrary1 = new _LinkedLibraryMock();
+  _LinkedLibraryMock linkedLibrary2 = new _LinkedLibraryMock();
 
   void setUp() {
     _setupDataStore(dataStore);
@@ -188,16 +168,6 @@ class SummaryDataStoreTest {
 
   test_addBundle() {
     expect(dataStore.bundles, unorderedEquals([bundle1, bundle2]));
-    expect(dataStore.dependencies[0].summaryPath, '/p1.ds');
-    expect(dataStore.dependencies[0].apiSignature, 'signature1');
-    expect(dataStore.dependencies[0].includedPackageNames, ['p1']);
-    expect(dataStore.dependencies[0].includesFileUris, false);
-    expect(dataStore.dependencies[0].includesDartUris, false);
-    expect(dataStore.dependencies[1].summaryPath, '/p2.ds');
-    expect(dataStore.dependencies[1].apiSignature, 'signature2');
-    expect(dataStore.dependencies[1].includedPackageNames, ['p2']);
-    expect(dataStore.dependencies[1].includesFileUris, false);
-    expect(dataStore.dependencies[1].includesDartUris, false);
     expect(dataStore.uriToSummaryPath,
         containsPair('package:p1/u1.dart', '/p1.ds'));
     // unlinkedMap
@@ -217,66 +187,62 @@ class SummaryDataStoreTest {
   }
 
   test_addBundle_dartUris() {
-    PackageBundle bundle = new _PackageBundleMock();
-    when(bundle.unlinkedUnitUris).thenReturn(<String>['dart:core']);
-    when(bundle.unlinkedUnits).thenReturn(<UnlinkedUnit>[unlinkedUnit11]);
-    when(bundle.linkedLibraryUris).thenReturn(<String>['dart:core']);
-    when(bundle.linkedLibraries).thenReturn(<LinkedLibrary>[linkedLibrary1]);
-    when(bundle.apiSignature).thenReturn('signature');
+    _PackageBundleMock bundle = new _PackageBundleMock();
+    bundle.unlinkedUnitUris = <String>['dart:core'];
+    bundle.unlinkedUnits = <UnlinkedUnit>[unlinkedUnit11];
+    bundle.linkedLibraryUris = <String>['dart:core'];
+    bundle.linkedLibraries = <LinkedLibrary>[linkedLibrary1];
+    bundle.apiSignature = 'signature';
     dataStore.addBundle('/p3.ds', bundle);
-    expect(dataStore.dependencies.last.includedPackageNames, []);
-    expect(dataStore.dependencies.last.includesFileUris, false);
-    expect(dataStore.dependencies.last.includesDartUris, true);
   }
 
   test_addBundle_fileUris() {
-    PackageBundle bundle = new _PackageBundleMock();
-    when(bundle.unlinkedUnitUris).thenReturn(<String>['file:/foo.dart']);
-    when(bundle.unlinkedUnits).thenReturn(<UnlinkedUnit>[unlinkedUnit11]);
-    when(bundle.linkedLibraryUris).thenReturn(<String>['file:/foo.dart']);
-    when(bundle.linkedLibraries).thenReturn(<LinkedLibrary>[linkedLibrary1]);
-    when(bundle.apiSignature).thenReturn('signature');
+    _PackageBundleMock bundle = new _PackageBundleMock();
+    bundle.unlinkedUnitUris = <String>['file:/foo.dart'];
+    bundle.unlinkedUnits = <UnlinkedUnit>[unlinkedUnit11];
+    bundle.linkedLibraryUris = <String>['file:/foo.dart'];
+    bundle.linkedLibraries = <LinkedLibrary>[linkedLibrary1];
+    bundle.apiSignature = 'signature';
     dataStore.addBundle('/p3.ds', bundle);
-    expect(dataStore.dependencies.last.includedPackageNames, []);
-    expect(dataStore.dependencies.last.includesFileUris, true);
-    expect(dataStore.dependencies.last.includesDartUris, false);
   }
 
   test_addBundle_multiProject() {
-    PackageBundle bundle = new _PackageBundleMock();
-    when(bundle.unlinkedUnitUris)
-        .thenReturn(<String>['package:p2/u1.dart', 'package:p1/u1.dart']);
-    when(bundle.unlinkedUnits)
-        .thenReturn(<UnlinkedUnit>[unlinkedUnit21, unlinkedUnit11]);
-    when(bundle.linkedLibraryUris)
-        .thenReturn(<String>['package:p2/u1.dart', 'package:p1/u1.dart']);
-    when(bundle.linkedLibraries)
-        .thenReturn(<LinkedLibrary>[linkedLibrary2, linkedLibrary1]);
-    when(bundle.apiSignature).thenReturn('signature');
+    _PackageBundleMock bundle = new _PackageBundleMock();
+    bundle.unlinkedUnitUris = <String>[
+      'package:p2/u1.dart',
+      'package:p1/u1.dart'
+    ];
+    bundle.unlinkedUnits = <UnlinkedUnit>[unlinkedUnit21, unlinkedUnit11];
+    bundle.linkedLibraryUris = <String>[
+      'package:p2/u1.dart',
+      'package:p1/u1.dart'
+    ];
+    bundle.linkedLibraries = <LinkedLibrary>[linkedLibrary2, linkedLibrary1];
+    bundle.apiSignature = 'signature';
     // p3 conflicts (overlaps) with existing summaries.
     expect(() => dataStore.addBundle('/p3.ds', bundle),
         throwsA(isConflictingSummaryException));
-    expect(dataStore.dependencies.last.includedPackageNames, ['p1', 'p2']);
   }
 
   test_addBundle_multiProjectOverlap() {
-    SummaryDataStore dataStore2 = new SummaryDataStore(<String>[],
-        recordDependencyInfo: true, disallowOverlappingSummaries: false);
+    SummaryDataStore dataStore2 =
+        new SummaryDataStore(<String>[], disallowOverlappingSummaries: false);
     _setupDataStore(dataStore2);
 
-    PackageBundle bundle = new _PackageBundleMock();
-    when(bundle.unlinkedUnitUris)
-        .thenReturn(<String>['package:p2/u1.dart', 'package:p1/u1.dart']);
-    when(bundle.unlinkedUnits)
-        .thenReturn(<UnlinkedUnit>[unlinkedUnit21, unlinkedUnit11]);
-    when(bundle.linkedLibraryUris)
-        .thenReturn(<String>['package:p2/u1.dart', 'package:p1/u1.dart']);
-    when(bundle.linkedLibraries)
-        .thenReturn(<LinkedLibrary>[linkedLibrary2, linkedLibrary1]);
-    when(bundle.apiSignature).thenReturn('signature');
+    _PackageBundleMock bundle = new _PackageBundleMock();
+    bundle.unlinkedUnitUris = <String>[
+      'package:p2/u1.dart',
+      'package:p1/u1.dart'
+    ];
+    bundle.unlinkedUnits = <UnlinkedUnit>[unlinkedUnit21, unlinkedUnit11];
+    bundle.linkedLibraryUris = <String>[
+      'package:p2/u1.dart',
+      'package:p1/u1.dart'
+    ];
+    bundle.linkedLibraries = <LinkedLibrary>[linkedLibrary2, linkedLibrary1];
+    bundle.apiSignature = 'signature';
     // p3 conflicts (overlaps) with existing summaries, but now allowed.
     dataStore2.addBundle('/p3.ds', bundle);
-    expect(dataStore2.dependencies.last.includedPackageNames, ['p1', 'p2']);
   }
 
   test_getContainingLibraryUris_libraryUri() {
@@ -296,19 +262,91 @@ class SummaryDataStoreTest {
     List<String> uris = dataStore.getContainingLibraryUris(partUri);
     expect(uris, isNull);
   }
+
+  void _setupDataStore(SummaryDataStore store) {
+    var namespace1 = _namespaceWithParts(['package:p1/u2.dart']);
+    var namespace2 = _namespaceWithParts([]);
+    // bundle1
+    unlinkedUnit11.publicNamespace = namespace1;
+    unlinkedUnit12.publicNamespace = namespace2;
+    bundle1.unlinkedUnitUris = <String>[
+      'package:p1/u1.dart',
+      'package:p1/u2.dart'
+    ];
+    bundle1.unlinkedUnits = <UnlinkedUnit>[unlinkedUnit11, unlinkedUnit12];
+    bundle1.linkedLibraryUris = <String>['package:p1/u1.dart'];
+    bundle1.linkedLibraries = <LinkedLibrary>[linkedLibrary1];
+    bundle1.apiSignature = 'signature1';
+    store.addBundle('/p1.ds', bundle1);
+    // bundle2
+    unlinkedUnit21.publicNamespace = namespace2;
+    bundle2.unlinkedUnitUris = <String>['package:p2/u1.dart'];
+    bundle2.unlinkedUnits = <UnlinkedUnit>[unlinkedUnit21];
+    bundle2.linkedLibraryUris = <String>['package:p2/u1.dart'];
+    bundle2.linkedLibraries = <LinkedLibrary>[linkedLibrary2];
+    bundle2.apiSignature = 'signature2';
+    store.addBundle('/p2.ds', bundle2);
+  }
 }
 
-class _InternalAnalysisContextMock extends TypedMock
-    implements InternalAnalysisContext {}
+class _InternalAnalysisContextMock implements InternalAnalysisContext {
+  @override
+  SourceFactory sourceFactory;
 
-class _LinkedLibraryMock extends TypedMock implements LinkedLibrary {}
+  @override
+  noSuchMethod(Invocation invocation) {
+    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+  }
+}
 
-class _PackageBundleMock extends TypedMock implements PackageBundle {}
+class _LinkedLibraryMock implements LinkedLibrary {
+  @override
+  noSuchMethod(Invocation invocation) {
+    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+  }
+}
 
-class _SourceFactoryMock extends TypedMock implements SourceFactory {}
+class _PackageBundleMock implements PackageBundle {
+  @override
+  String apiSignature;
+
+  @override
+  List<LinkedLibrary> linkedLibraries;
+
+  @override
+  List<String> linkedLibraryUris;
+
+  @override
+  List<UnlinkedUnit> unlinkedUnits;
+
+  @override
+  List<String> unlinkedUnitUris;
+
+  @override
+  noSuchMethod(Invocation invocation) {
+    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+  }
+}
+
+class _SourceFactoryMock implements SourceFactory {
+  Map<String, Source> resolvedUriMap = <String, Source>{};
+
+  @override
+  noSuchMethod(Invocation invocation) {
+    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+  }
+
+  @override
+  Source resolveUri(Source containingSource, String containedUri) {
+    return resolvedUriMap[containedUri];
+  }
+}
 
 class _SourceMock implements Source {
+  @override
   final Uri uri;
+
+  @override
   final String fullName;
 
   _SourceMock(String uriStr, this.fullName) : uri = Uri.parse(uriStr);
@@ -338,16 +376,28 @@ class _TestResynthesizerResultProvider extends ResynthesizerResultProvider {
   }
 }
 
-class _UnlinkedPublicNamespaceMock extends TypedMock
-    implements UnlinkedPublicNamespace {}
+class _UnlinkedPublicNamespaceMock implements UnlinkedPublicNamespace {
+  @override
+  List<String> parts;
 
-class _UnlinkedUnitMock extends TypedMock implements UnlinkedUnit {}
+  @override
+  noSuchMethod(Invocation invocation) {
+    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+  }
+}
 
-/// A matcher for ConflictingSummaryException.
-const Matcher isConflictingSummaryException =
-    const _ConflictingSummaryException();
+class _UnlinkedUnitMock implements UnlinkedUnit {
+  @override
+  bool isPartOf;
 
-class _ConflictingSummaryException extends TypeMatcher {
-  const _ConflictingSummaryException() : super("ConflictingSummaryException");
-  bool matches(item, Map matchState) => item is ConflictingSummaryException;
+  @override
+  List<int> lineStarts;
+
+  @override
+  UnlinkedPublicNamespace publicNamespace;
+
+  @override
+  noSuchMethod(Invocation invocation) {
+    throw new StateError('Unexpected invocation of ${invocation.memberName}');
+  }
 }

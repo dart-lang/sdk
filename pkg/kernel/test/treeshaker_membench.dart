@@ -23,7 +23,7 @@ Options:
 ${argParser.usage}
 """;
 
-/// Builds N copies of the tree shaker data structure for the given program.
+/// Builds N copies of the tree shaker data structure for the given component.
 /// Pass --print-metrics to the Dart VM to measure the memory use.
 main(List<String> args) {
   if (args.length == 0) {
@@ -38,15 +38,15 @@ main(List<String> args) {
   String filename = options.rest.single;
   bool strongMode = options['strong'];
 
-  Program program = loadProgramFromBinary(filename);
-  ClassHierarchy hierarchy = new ClassHierarchy(program);
-  CoreTypes coreTypes = new CoreTypes(program);
+  Component component = loadComponentFromBinary(filename);
+  ClassHierarchy hierarchy = new ClassHierarchy(component);
+  CoreTypes coreTypes = new CoreTypes(component);
 
   int copyCount = int.parse(options['count']);
 
   TreeShaker buildTreeShaker() {
-    return new TreeShaker(program,
-        hierarchy: hierarchy, coreTypes: coreTypes, strongMode: strongMode);
+    return new TreeShaker(coreTypes, hierarchy, component,
+        strongMode: strongMode);
   }
 
   List<TreeShaker> keepAlive = <TreeShaker>[];
@@ -59,7 +59,7 @@ main(List<String> args) {
   if (args.contains('-v')) {
     // Use of the list for something to avoid premature GC.
     for (var treeShaker in keepAlive) {
-      treeShaker.getClassRetention(hierarchy.rootClass);
+      treeShaker.getClassRetention(coreTypes.objectClass);
     }
   }
 }

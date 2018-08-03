@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.generated.engine;
-
 import 'dart:async';
 import 'dart:collection';
 import 'dart:typed_data';
@@ -14,7 +12,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
@@ -26,17 +23,19 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
+import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/task/api/dart.dart';
+import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/task/yaml.dart';
-import 'package:analyzer/task/dart.dart';
-import 'package:analyzer/task/model.dart';
 import 'package:front_end/src/base/api_signature.dart';
 import 'package:front_end/src/base/timestamped_data.dart';
+import 'package:front_end/src/fasta/scanner/token.dart';
 import 'package:html/dom.dart' show Document;
 import 'package:path/path.dart' as pathos;
 import 'package:plugin/manager.dart';
@@ -331,8 +330,7 @@ abstract class AnalysisContext {
    * Perform work until the given [result] has been computed for the given
    * [target]. Return the computed value.
    */
-  Object/*=V*/ computeResult/*<V>*/(
-      AnalysisTarget target, ResultDescriptor/*<V>*/ result);
+  V computeResult<V>(AnalysisTarget target, ResultDescriptor<V> result);
 
   /**
    * Notifies the context that the client is going to stop using this context.
@@ -365,7 +363,7 @@ abstract class AnalysisContext {
    * See [setConfigurationData].
    */
   @deprecated
-  Object/*=V*/ getConfigurationData/*<V>*/(ResultDescriptor/*<V>*/ key);
+  V getConfigurationData<V>(ResultDescriptor<V> key);
 
   /**
    * Return the contents and timestamp of the given [source].
@@ -494,8 +492,7 @@ abstract class AnalysisContext {
    * If the corresponding [target] does not exist, or the [result] is not
    * computed yet, then the default value is returned.
    */
-  Object/*=V*/ getResult/*<V>*/(
-      AnalysisTarget target, ResultDescriptor/*<V>*/ result);
+  V getResult<V>(AnalysisTarget target, ResultDescriptor<V> result);
 
   /**
    * Return a list of the sources being analyzed in this context whose full path
@@ -653,7 +650,7 @@ class AnalysisDelta {
    * A mapping from source to what type of analysis should be performed on that
    * source.
    */
-  HashMap<Source, AnalysisLevel> _analysisMap =
+  Map<Source, AnalysisLevel> _analysisMap =
       new HashMap<Source, AnalysisLevel>();
 
   /**
@@ -751,6 +748,11 @@ class AnalysisEngine {
   static const String ANALYSIS_OPTIONS_YAML_FILE = 'analysis_options.yaml';
 
   /**
+   * The file name used for pubspec files.
+   */
+  static const String PUBSPEC_YAML_FILE = 'pubspec.yaml';
+
+  /**
    * The unique instance of this class.
    */
   static final AnalysisEngine instance = new AnalysisEngine._();
@@ -842,6 +844,8 @@ class AnalysisEngine {
    */
   void clearCaches() {
     partitionManager.clearCache();
+    // See https://github.com/dart-lang/sdk/issues/30314.
+    StringToken.canonicalizer.clear();
   }
 
   /**
@@ -1170,6 +1174,7 @@ abstract class AnalysisOptions {
    * Return `true` if the parser is to parse asserts in the initializer list of
    * a constructor.
    */
+  @deprecated
   bool get enableAssertInitializer;
 
   /**
@@ -1191,6 +1196,12 @@ abstract class AnalysisOptions {
   bool get enableConditionalDirectives;
 
   /**
+   * Return a list of the names of the packages for which, if they define a
+   * plugin, the plugin should be enabled.
+   */
+  List<String> get enabledPluginNames;
+
+  /**
    * Return `true` to enable generic methods (DEP 22).
    */
   @deprecated
@@ -1210,12 +1221,6 @@ abstract class AnalysisOptions {
   bool get enableLazyAssignmentOperators;
 
   /**
-   * Return `true` to strictly follow the specification when generating
-   * warnings on "call" methods (fixes dartbug.com/21938).
-   */
-  bool get enableStrictCallChecks;
-
-  /**
    * Return `true` if mixins are allowed to inherit from types other than
    * Object, and are allowed to reference `super`.
    */
@@ -1229,6 +1234,7 @@ abstract class AnalysisOptions {
   /**
    * Return `true` to enable the use of URIs in part-of directives.
    */
+  @deprecated
   bool get enableUriInPartOf;
 
   /**
@@ -1262,23 +1268,6 @@ abstract class AnalysisOptions {
   bool get hint;
 
   /**
-   * Return `true` if incremental analysis should be used.
-   */
-  bool get incremental;
-
-  /**
-   * A flag indicating whether incremental analysis should be used for API
-   * changes.
-   */
-  bool get incrementalApi;
-
-  /**
-   * A flag indicating whether validation should be performed after incremental
-   * analysis.
-   */
-  bool get incrementalValidation;
-
-  /**
    * Return `true` if analysis is to generate lint warnings.
    */
   bool get lint;
@@ -1301,6 +1290,11 @@ abstract class AnalysisOptions {
   bool get preserveComments;
 
   /**
+   * Return `true` if analyzer should enable the use of Dart 2.0 features.
+   */
+  bool get previewDart2;
+
+  /**
    * Return the opaque signature of the options.
    *
    * The length of the list is guaranteed to equal [signatureLength].
@@ -1309,7 +1303,11 @@ abstract class AnalysisOptions {
 
   /**
    * Return `true` if strong mode analysis should be used.
+   *
+   * This field is deprecated, and is hard-coded to always return true.
    */
+  @Deprecated(
+      'This field is deprecated and is hard-coded to always return true.')
   bool get strongMode;
 
   /**
@@ -1319,6 +1317,11 @@ abstract class AnalysisOptions {
    * during the life time of the context.
    */
   bool get trackCacheDependencies;
+
+  /**
+   * Return `true` if analyzer should use the Dart 2.0 Front End parser.
+   */
+  bool get useFastaParser;
 
   /**
    * Reset the state of this set of analysis options to its original state.
@@ -1380,6 +1383,14 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    */
   Uint32List _signature;
 
+  /**
+   * A flag indicating whether declaration casts are allowed in [strongMode]
+   * (they are always allowed in Dart 1.0 mode).
+   *
+   * This option is deprecated and will be removed in a future release.
+   */
+  bool declarationCasts = true;
+
   @override
   @deprecated
   int cacheSize = 64;
@@ -1388,13 +1399,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool dart2jsHint = false;
 
   @override
-  bool enableAssertInitializer = false;
+  List<String> enabledPluginNames = const <String>[];
 
   @override
   bool enableLazyAssignmentOperators = false;
-
-  @override
-  bool enableStrictCallChecks = false;
 
   @override
   bool enableSuperMixins = false;
@@ -1414,9 +1422,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   List<String> _excludePatterns;
 
   @override
-  bool enableUriInPartOf = true;
-
-  @override
   bool generateImplicitErrors = true;
 
   @override
@@ -1424,15 +1429,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @override
   bool hint = true;
-
-  @override
-  bool incremental = false;
-
-  @override
-  bool incrementalApi = false;
-
-  @override
-  bool incrementalValidation = false;
 
   @override
   bool lint = false;
@@ -1449,7 +1445,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool preserveComments = true;
 
   @override
-  bool strongMode = false;
+  bool get strongMode => true;
+
+  @Deprecated(
+      "The strongMode field is deprecated, and shouldn't be assigned to")
+  set strongMode(bool value) {}
 
   /**
    * A flag indicating whether strong-mode inference hints should be
@@ -1461,6 +1461,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @override
   bool trackCacheDependencies = true;
+
+  @override
+  bool useFastaParser = false;
+
+  @override
+  bool previewDart2 = true;
 
   @override
   bool disableCacheFlushing = false;
@@ -1504,8 +1510,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   AnalysisOptionsImpl.from(AnalysisOptions options) {
     analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
     dart2jsHint = options.dart2jsHint;
-    enableAssertInitializer = options.enableAssertInitializer;
-    enableStrictCallChecks = options.enableStrictCallChecks;
+    enabledPluginNames = options.enabledPluginNames;
     enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
     enableSuperMixins = options.enableSuperMixins;
     enableTiming = options.enableTiming;
@@ -1514,14 +1519,13 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     generateImplicitErrors = options.generateImplicitErrors;
     generateSdkErrors = options.generateSdkErrors;
     hint = options.hint;
-    incremental = options.incremental;
-    incrementalApi = options.incrementalApi;
-    incrementalValidation = options.incrementalValidation;
     lint = options.lint;
     lintRules = options.lintRules;
     preserveComments = options.preserveComments;
-    strongMode = options.strongMode;
+    useFastaParser = options.useFastaParser;
+    previewDart2 = options.previewDart2;
     if (options is AnalysisOptionsImpl) {
+      declarationCasts = options.declarationCasts;
       strongModeHints = options.strongModeHints;
       implicitCasts = options.implicitCasts;
       nonnullableTypes = options.nonnullableTypes;
@@ -1562,6 +1566,13 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     _analyzeFunctionBodiesPredicate = value;
   }
 
+  @deprecated
+  @override
+  bool get enableAssertInitializer => true;
+
+  @deprecated
+  void set enableAssertInitializer(bool enable) {}
+
   @override
   @deprecated
   bool get enableAssertMessage => true;
@@ -1597,6 +1608,13 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @deprecated
   void set enableInitializingFormalAccess(bool enable) {}
+
+  @deprecated
+  @override
+  bool get enableUriInPartOf => true;
+
+  @deprecated
+  void set enableUriInPartOf(bool enable) {}
 
   @override
   List<ErrorProcessor> get errorProcessors =>
@@ -1638,15 +1656,14 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       ApiSignature buffer = new ApiSignature();
 
       // Append boolean flags.
-      buffer.addBool(enableAssertInitializer);
+      buffer.addBool(declarationCasts);
       buffer.addBool(enableLazyAssignmentOperators);
-      buffer.addBool(enableStrictCallChecks);
       buffer.addBool(enableSuperMixins);
-      buffer.addBool(enableUriInPartOf);
       buffer.addBool(implicitCasts);
       buffer.addBool(implicitDynamic);
-      buffer.addBool(strongMode);
       buffer.addBool(strongModeHints);
+      buffer.addBool(useFastaParser);
+      buffer.addBool(previewDart2);
 
       // Append error processors.
       buffer.addInt(errorProcessors.length);
@@ -1660,6 +1677,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
         buffer.addString(lintRule.lintCode.uniqueName);
       }
 
+      // Append plugin names.
+      buffer.addInt(enabledPluginNames.length);
+      for (String enabledPluginName in enabledPluginNames) {
+        buffer.addString(enabledPluginName);
+      }
+
       // Hash and convert to Uint32List.
       List<int> bytes = buffer.toByteList();
       _signature = new Uint8List.fromList(bytes).buffer.asUint32List();
@@ -1669,14 +1692,13 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @override
   void resetToDefaults() {
+    declarationCasts = true;
     dart2jsHint = false;
     disableCacheFlushing = false;
-    enableAssertInitializer = false;
+    enabledPluginNames = const <String>[];
     enableLazyAssignmentOperators = false;
-    enableStrictCallChecks = false;
     enableSuperMixins = false;
     enableTiming = false;
-    enableUriInPartOf = true;
     _errorProcessors = null;
     _excludePatterns = null;
     generateImplicitErrors = true;
@@ -1684,28 +1706,38 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     hint = true;
     implicitCasts = true;
     implicitDynamic = true;
-    incremental = false;
-    incrementalApi = false;
-    incrementalValidation = false;
     lint = false;
     _lintRules = null;
     nonnullableTypes = NONNULLABLE_TYPES;
     patchPaths = {};
     preserveComments = true;
-    strongMode = false;
     strongModeHints = false;
     trackCacheDependencies = true;
+    useFastaParser = false;
   }
 
   @override
   void setCrossContextOptionsFrom(AnalysisOptions options) {
     enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
-    enableStrictCallChecks = options.enableStrictCallChecks;
     enableSuperMixins = options.enableSuperMixins;
-    strongMode = options.strongMode;
     if (options is AnalysisOptionsImpl) {
       strongModeHints = options.strongModeHints;
     }
+  }
+
+  /**
+   * Return whether the given lists of lints are equal.
+   */
+  static bool compareLints(List<Linter> a, List<Linter> b) {
+    if (a.length != b.length) {
+      return false;
+    }
+    for (int i = 0; i < a.length; i++) {
+      if (a[i].lintCode != b[i].lintCode) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
@@ -2028,7 +2060,7 @@ class ChangeSet {
    * A table mapping the sources whose content has been changed to the current
    * content of those sources.
    */
-  HashMap<Source, String> _changedContent = new HashMap<Source, String>();
+  Map<Source, String> _changedContent = new HashMap<Source, String>();
 
   /**
    * A table mapping the sources whose content has been changed within a single
@@ -2182,7 +2214,7 @@ class ChangeSet {
    * [label] and a separator if [needsSeparator] is `true`. Return `true` if
    * future lists of sources will need a separator.
    */
-  bool _appendSources2(StringBuffer buffer, HashMap<Source, dynamic> sources,
+  bool _appendSources2(StringBuffer buffer, Map<Source, dynamic> sources,
       bool needsSeparator, String label) {
     if (sources.isEmpty) {
       return needsSeparator;
@@ -2552,19 +2584,29 @@ class ObsoleteSourceAnalysisException extends AnalysisException {
  */
 class PerformanceStatistics {
   /**
+   * The [PerformanceTag] for `package:analyzer`.
+   */
+  static PerformanceTag analyzer = new PerformanceTag('analyzer');
+
+  /**
    * The [PerformanceTag] for time spent in reading files.
    */
-  static PerformanceTag io = new PerformanceTag('io');
+  static PerformanceTag io = analyzer.createChild('io');
+
+  /**
+   * The [PerformanceTag] for general phases of analysis.
+   */
+  static PerformanceTag analysis = analyzer.createChild('analysis');
 
   /**
    * The [PerformanceTag] for time spent in scanning.
    */
-  static PerformanceTag scan = new PerformanceTag('scan');
+  static PerformanceTag scan = analyzer.createChild('scan');
 
   /**
    * The [PerformanceTag] for time spent in parsing.
    */
-  static PerformanceTag parse = new PerformanceTag('parse');
+  static PerformanceTag parse = analyzer.createChild('parse');
 
   /**
    * The [PerformanceTag] for time spent in resolving.
@@ -2574,17 +2616,17 @@ class PerformanceStatistics {
   /**
    * The [PerformanceTag] for time spent in error verifier.
    */
-  static PerformanceTag errors = new PerformanceTag('errors');
+  static PerformanceTag errors = analysis.createChild('errors');
 
   /**
    * The [PerformanceTag] for time spent in hints generator.
    */
-  static PerformanceTag hints = new PerformanceTag('hints');
+  static PerformanceTag hints = analysis.createChild('hints');
 
   /**
    * The [PerformanceTag] for time spent in linting.
    */
-  static PerformanceTag lint = new PerformanceTag('lint');
+  static PerformanceTag lints = analysis.createChild('lints');
 
   /**
    * The [PerformanceTag] for time spent computing cycles.
@@ -2592,34 +2634,9 @@ class PerformanceStatistics {
   static PerformanceTag cycles = new PerformanceTag('cycles');
 
   /**
-   * The [PerformanceTag] for time spent in other phases of analysis.
-   */
-  static PerformanceTag performAnalysis = new PerformanceTag('performAnalysis');
-
-  /**
-   * The [PerformanceTag] for time spent in the analysis task visitor after
-   * tasks are complete.
-   */
-  static PerformanceTag analysisTaskVisitor =
-      new PerformanceTag('analysisTaskVisitor');
-
-  /**
-   * The [PerformanceTag] for time spent in the getter
-   * AnalysisContextImpl.nextAnalysisTask.
-   */
-  static var nextTask = new PerformanceTag('nextAnalysisTask');
-
-  /**
-   * The [PerformanceTag] for time spent during otherwise not accounted parts
-   * incremental of analysis.
-   */
-  static PerformanceTag incrementalAnalysis =
-      new PerformanceTag('incrementalAnalysis');
-
-  /**
    * The [PerformanceTag] for time spent in summaries support.
    */
-  static PerformanceTag summary = new PerformanceTag('summary');
+  static PerformanceTag summary = analyzer.createChild('summary');
 
   /**
    * Statistics about cache consistency validation.

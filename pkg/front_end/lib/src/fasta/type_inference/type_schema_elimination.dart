@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-import 'package:front_end/src/fasta/type_inference/type_schema.dart';
-import 'package:kernel/ast.dart';
-import 'package:kernel/core_types.dart';
+import 'package:kernel/ast.dart'
+    show DartType, DynamicType, FunctionType, InterfaceType, NamedType;
+
+import 'package:kernel/core_types.dart' show CoreTypes;
+
+import 'type_schema.dart' show TypeSchemaVisitor, UnknownType;
 
 /// Returns the greatest closure of the given type [schema] with respect to `?`.
 ///
@@ -59,7 +62,7 @@ class _TypeSchemaEliminationVisitor extends TypeSchemaVisitor<DartType> {
     for (int i = 0; i < node.positionalParameters.length; i++) {
       DartType substitution = node.positionalParameters[i].accept(this);
       if (substitution != null) {
-        newPositionalParameters =
+        newPositionalParameters ??=
             node.positionalParameters.toList(growable: false);
         newPositionalParameters[i] = substitution;
       }
@@ -68,7 +71,7 @@ class _TypeSchemaEliminationVisitor extends TypeSchemaVisitor<DartType> {
     for (int i = 0; i < node.namedParameters.length; i++) {
       DartType substitution = node.namedParameters[i].type.accept(this);
       if (substitution != null) {
-        newNamedParameters = node.namedParameters.toList(growable: false);
+        newNamedParameters ??= node.namedParameters.toList(growable: false);
         newNamedParameters[i] =
             new NamedType(node.namedParameters[i].name, substitution);
       }
@@ -85,7 +88,8 @@ class _TypeSchemaEliminationVisitor extends TypeSchemaVisitor<DartType> {
           newReturnType ?? node.returnType,
           namedParameters: newNamedParameters ?? node.namedParameters,
           typeParameters: node.typeParameters,
-          requiredParameterCount: node.requiredParameterCount);
+          requiredParameterCount: node.requiredParameterCount,
+          typedefReference: node.typedefReference);
     }
   }
 

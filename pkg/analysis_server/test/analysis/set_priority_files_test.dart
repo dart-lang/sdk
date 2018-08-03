@@ -5,9 +5,7 @@
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show InternalAnalysisContext;
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -23,9 +21,6 @@ main() {
 
 @reflectiveTest
 class SetPriorityFilesTest extends AbstractAnalysisTest {
-  @override
-  bool get enableNewAnalysisDriver => false;
-
   @override
   void setUp() {
     super.setUp();
@@ -43,96 +38,75 @@ class SetPriorityFilesTest extends AbstractAnalysisTest {
 
   test_fileInAnalysisRoot() async {
     addTestFile('');
-    // wait for analysis to ensure that the file is known to the context
-    await server.onAnalysisComplete;
     // set priority files
     Response response = await _setPriorityFile(testFile);
     expect(response, isResponseSuccess('0'));
     // verify
-    InternalAnalysisContext context = server.getContainingContext(testFile);
-    List<Source> prioritySources = context.prioritySources;
-    expect(prioritySources, hasLength(1));
-    expect(prioritySources.first.fullName, testFile);
+    _verifyPriorityFiles(testFile);
   }
 
   test_fileInSdk() async {
     addTestFile('');
-    await server.onAnalysisComplete;
     // set priority files
     String filePath = '/lib/convert/convert.dart';
     Response response = await _setPriorityFile(filePath);
     expect(response, isResponseSuccess('0'));
     // verify
-    InternalAnalysisContext sdkContext = server.findSdk().context;
-    List<Source> prioritySources = sdkContext.prioritySources;
-    expect(prioritySources, hasLength(1));
-    expect(prioritySources.first.fullName, filePath);
+    _verifyPriorityFiles(filePath);
   }
 
   test_fileNotInAnalysisRoot() async {
     String path = '/other/file.dart';
-    addFile(path, '');
-    Response response = await _setPriorityFile(path);
-    expect(response.error, isNotNull);
-    expect(response.error.code, RequestErrorCode.UNANALYZED_PRIORITY_FILES);
+    newFile(path);
+    await _setPriorityFile(path);
+    _verifyPriorityFiles(path);
   }
 
   test_ignoredInAnalysisOptions() async {
     String sampleFile = '$projectPath/samples/sample.dart';
-    addFile(
-        '$projectPath/.analysis_options',
-        r'''
+    newFile('$projectPath/.analysis_options', content: r'''
 analyzer:
   exclude:
     - 'samples/**'
 ''');
-    addFile(sampleFile, '');
+    newFile(sampleFile);
     // attempt to set priority file
-    Response response = await _setPriorityFile(sampleFile);
-    expect(response.error, isNotNull);
-    expect(response.error.code, RequestErrorCode.UNANALYZED_PRIORITY_FILES);
+    await _setPriorityFile(sampleFile);
+    _verifyPriorityFiles(sampleFile);
   }
 
   test_ignoredInAnalysisOptions_inChildContext() async {
-    addFile('$projectPath/.packages', '');
-    addFile('$projectPath/child/.packages', '');
+    newFile('$projectPath/.packages');
+    newFile('$projectPath/child/.packages');
     String sampleFile = '$projectPath/child/samples/sample.dart';
-    addFile(
-        '$projectPath/child/.analysis_options',
-        r'''
+    newFile('$projectPath/child/.analysis_options', content: r'''
 analyzer:
   exclude:
     - 'samples/**'
 ''');
-    addFile(sampleFile, '');
+    newFile(sampleFile);
     // attempt to set priority file
-    Response response = await _setPriorityFile(sampleFile);
-    expect(response.error, isNotNull);
-    expect(response.error.code, RequestErrorCode.UNANALYZED_PRIORITY_FILES);
+    await _setPriorityFile(sampleFile);
+    _verifyPriorityFiles(sampleFile);
   }
 
   test_ignoredInAnalysisOptions_inRootContext() async {
-    addFile('$projectPath/.packages', '');
-    addFile('$projectPath/child/.packages', '');
+    newFile('$projectPath/.packages');
+    newFile('$projectPath/child/.packages');
     String sampleFile = '$projectPath/child/samples/sample.dart';
-    addFile(
-        '$projectPath/.analysis_options',
-        r'''
+    newFile('$projectPath/.analysis_options', content: r'''
 analyzer:
   exclude:
     - 'child/samples/**'
 ''');
-    addFile(sampleFile, '');
+    newFile(sampleFile);
     // attempt to set priority file
-    Response response = await _setPriorityFile(sampleFile);
-    expect(response.error, isNotNull);
-    expect(response.error.code, RequestErrorCode.UNANALYZED_PRIORITY_FILES);
+    await _setPriorityFile(sampleFile);
+    _verifyPriorityFiles(sampleFile);
   }
 
   test_sentToPlugins() async {
     addTestFile('');
-    // wait for analysis to ensure that the file is known to the context
-    await server.onAnalysisComplete;
     // set priority files
     Response response = await _setPriorityFile(testFile);
     expect(response, isResponseSuccess('0'));
@@ -147,5 +121,11 @@ analyzer:
     Request request =
         new AnalysisSetPriorityFilesParams(<String>[file]).toRequest('0');
     return await serverChannel.sendRequest(request);
+  }
+
+  void _verifyPriorityFiles(String path) {
+    AnalysisDriver driver = server.getAnalysisDriver(path);
+    List<String> prioritySources = driver.priorityFiles;
+    expect(prioritySources, [path]);
   }
 }

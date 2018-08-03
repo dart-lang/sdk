@@ -30,7 +30,7 @@ const Map<String, String> specialElementFlags = const {
 
 GeneratedFile target(bool responseRequiresRequestTime) {
   return new GeneratedFile('lib/protocol/protocol_generated.dart',
-      (String pkgPath) {
+      (String pkgPath) async {
     CodegenProtocolVisitor visitor = new CodegenProtocolVisitor(
         path.basename(pkgPath), responseRequiresRequestTime, readApi(pkgPath));
     return visitor.collectCode(visitor.visitApi);
@@ -504,7 +504,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         writeln();
       }
       writeln('@override');
-      writeln('String toString() => JSON.encode(toJson());');
+      writeln('String toString() => json.encode(toJson());');
       writeln();
       emitObjectEqualsMember(type, className);
       writeln();
@@ -1110,7 +1110,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
    * Create a string literal that evaluates to [s].
    */
   String literalString(String s) {
-    return JSON.encode(s);
+    return json.encode(s);
   }
 
   /**

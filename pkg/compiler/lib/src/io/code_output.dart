@@ -45,7 +45,8 @@ class _SourceLocationsImpl implements SourceLocations {
   }
 
   @override
-  void forEachSourceLocation(void f(int targetOffset, var sourceLocation)) {
+  void forEachSourceLocation(
+      void f(int targetOffset, SourceLocation sourceLocation)) {
     markers.forEach((int targetOffset, List<SourceLocation> sourceLocations) {
       for (SourceLocation sourceLocation in sourceLocations) {
         f(targetOffset, sourceLocation);

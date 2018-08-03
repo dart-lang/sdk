@@ -16,17 +16,17 @@ main(List<String> args) async {
     print(usage);
     exit(1);
   }
-  Program program = loadProgramFromBinary(args[0]);
+  Component component = loadComponentFromBinary(args[0]);
 
   String destination = args[1];
   var watch = new Stopwatch()..start();
-  await writeProgramToBinary(program, destination);
+  await writeComponentToBinary(component, destination);
   int coldTime = watch.elapsedMilliseconds;
 
   watch.reset();
   int numTrials = 10;
   for (int i = 0; i < numTrials; ++i) {
-    await writeProgramToBinary(program, destination);
+    await writeComponentToBinary(component, destination);
   }
   double hotTime = watch.elapsedMilliseconds / numTrials;
 

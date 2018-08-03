@@ -1,0 +1,12 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  function f() → core::String
+    return null;
+  dynamic g = f;
+  g = () → dynamic {
+    return 1;
+  };
+}

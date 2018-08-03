@@ -8,13 +8,15 @@ import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
+import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
-import 'package:analysis_server/src/constants.dart';
+import 'package:analysis_server/src/computer/import_elements_computer.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/result_converter.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
+import 'package:analysis_server/src/services/completion/postfix/postfix_completion.dart';
 import 'package:analysis_server/src/services/completion/statement/statement_completion.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
@@ -23,6 +25,7 @@ import 'package:analysis_server/src/services/correction/sort_members.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -36,7 +39,6 @@ import 'package:analyzer/src/error/codes.dart' as engine;
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/parser.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/task/dart.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -63,6 +65,11 @@ class EditDomainHandler extends AbstractRequestHandler {
   SearchEngine searchEngine;
 
   /**
+   * The workspace for rename refactorings.
+   */
+  RefactoringWorkspace refactoringWorkspace;
+
+  /**
    * The object used to manage uncompleted refactorings.
    */
   _RefactoringManager refactoringManager;
@@ -72,22 +79,22 @@ class EditDomainHandler extends AbstractRequestHandler {
    */
   EditDomainHandler(AnalysisServer server) : super(server) {
     searchEngine = server.searchEngine;
+    refactoringWorkspace =
+        new RefactoringWorkspace(server.driverMap.values, searchEngine);
     _newRefactoringManager();
   }
 
   Response format(Request request) {
+    server.options.analytics?.sendEvent('edit', 'format');
+
     EditFormatParams params = new EditFormatParams.fromRequest(request);
     String file = params.file;
 
     String unformattedSource;
     try {
       Source source = server.resourceProvider.getFile(file).createSource();
-      if (server.options.enableNewAnalysisDriver) {
-        unformattedSource = server.fileContentOverlay[file];
-      } else {
-        unformattedSource = server.overlayState.getContents(source);
-      }
-      unformattedSource ??= source.contents.data;
+      unformattedSource =
+          server.fileContentOverlay[file] ?? source.contents.data;
     } catch (e) {
       return new Response.formatInvalidFile(request);
     }
@@ -141,6 +148,8 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future getAssists(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     EditGetAssistsParams params = new EditGetAssistsParams.fromRequest(request);
     String file = params.file;
     int offset = params.offset;
@@ -169,15 +178,11 @@ class EditDomainHandler extends AbstractRequestHandler {
       CompilationUnitElement compilationUnitElement =
           resolutionMap.elementDeclaredByCompilationUnit(unit);
       DartAssistContext dartAssistContext = new _DartAssistContextForValues(
-          compilationUnitElement.source,
-          offset,
-          length,
-          driver,
-          new AstProviderForDriver(driver),
-          unit);
+          compilationUnitElement.source, offset, length, driver, unit);
       try {
         AssistProcessor processor = new AssistProcessor(dartAssistContext);
         List<Assist> assists = await processor.compute();
+        assists.sort(Assist.SORT_BY_RELEVANCE);
         for (Assist assist in assists) {
           changes.add(assist.change);
         }
@@ -207,11 +212,11 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future getFixes(Request request) async {
-    var params = new EditGetFixesParams.fromRequest(request);
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    EditGetFixesParams params = new EditGetFixesParams.fromRequest(request);
     String file = params.file;
     int offset = params.offset;
-
-    List<AnalysisErrorFixes> errorFixesList = <AnalysisErrorFixes>[];
     //
     // Allow plugins to start computing fixes.
     //
@@ -228,29 +233,12 @@ class EditDomainHandler extends AbstractRequestHandler {
     //
     // Compute fixes associated with server-generated errors.
     //
-    AnalysisResult result = await server.getAnalysisResult(file);
-    if (result != null) {
-      CompilationUnit unit = result.unit;
-      LineInfo lineInfo = result.lineInfo;
-      int requestLine = lineInfo.getLocation(offset).lineNumber;
-      for (engine.AnalysisError error in result.errors) {
-        int errorLine = lineInfo.getLocation(error.offset).lineNumber;
-        if (errorLine == requestLine) {
-          var context = new _DartFixContextImpl(server.resourceProvider,
-              result.driver, new AstProviderForDriver(driver), unit, error);
-          List<Fix> fixes =
-              await new DefaultFixContributor().internalComputeFixes(context);
-          if (fixes.isNotEmpty) {
-            fixes.sort(Fix.SORT_BY_RELEVANCE);
-            AnalysisError serverError =
-                newAnalysisError_fromEngine(lineInfo, error);
-            AnalysisErrorFixes errorFixes = new AnalysisErrorFixes(serverError);
-            errorFixesList.add(errorFixes);
-            fixes.forEach((fix) {
-              errorFixes.fixes.add(fix.change);
-            });
-          }
-        }
+    List<AnalysisErrorFixes> errorFixesList = null;
+    while (errorFixesList == null) {
+      try {
+        errorFixesList = await _computeServerErrorFixes(driver, file, offset);
+      } on InconsistentAnalysisException {
+        // Loop around to try again to compute the fixes.
       }
     }
     //
@@ -272,7 +260,47 @@ class EditDomainHandler extends AbstractRequestHandler {
         new EditGetFixesResult(errorFixesList).toResponse(request.id));
   }
 
+  Future getPostfixCompletion(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    server.options.analytics?.sendEvent('edit', 'getPostfixCompletion');
+
+    var params = new EditGetPostfixCompletionParams.fromRequest(request);
+    SourceChange change;
+
+    AnalysisResult result = await server.getAnalysisResult(params.file);
+    if (result != null) {
+      CompilationUnit unit = result.unit;
+      CompilationUnitElement unitElement =
+          resolutionMap.elementDeclaredByCompilationUnit(unit);
+      if (unitElement.context != null) {
+        PostfixCompletionContext context = new PostfixCompletionContext(
+            params.file,
+            result.lineInfo,
+            params.offset,
+            params.key,
+            result.driver,
+            unit,
+            unitElement,
+            result.errors);
+        PostfixCompletionProcessor processor =
+            new PostfixCompletionProcessor(context);
+        PostfixCompletion completion = await processor.compute();
+        change = completion?.change;
+      }
+    }
+    if (change == null) {
+      change = new SourceChange("", edits: []);
+    }
+
+    Response response =
+        new EditGetPostfixCompletionResult(change).toResponse(request.id);
+    server.sendResponse(response);
+  }
+
   Future getStatementCompletion(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     var params = new EditGetStatementCompletionParams.fromRequest(request);
     SourceChange change;
 
@@ -308,26 +336,39 @@ class EditDomainHandler extends AbstractRequestHandler {
   Response handleRequest(Request request) {
     try {
       String requestName = request.method;
-      if (requestName == EDIT_FORMAT) {
+      if (requestName == EDIT_REQUEST_FORMAT) {
         return format(request);
-      } else if (requestName == EDIT_GET_ASSISTS) {
+      } else if (requestName == EDIT_REQUEST_GET_ASSISTS) {
         getAssists(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_GET_AVAILABLE_REFACTORINGS) {
+      } else if (requestName == EDIT_REQUEST_GET_AVAILABLE_REFACTORINGS) {
         return _getAvailableRefactorings(request);
-      } else if (requestName == EDIT_GET_FIXES) {
+      } else if (requestName == EDIT_REQUEST_GET_FIXES) {
         getFixes(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_GET_REFACTORING) {
+      } else if (requestName == EDIT_REQUEST_GET_REFACTORING) {
         return _getRefactoring(request);
-      } else if (requestName == EDIT_ORGANIZE_DIRECTIVES) {
+      } else if (requestName == EDIT_REQUEST_IMPORT_ELEMENTS) {
+        importElements(request);
+        return Response.DELAYED_RESPONSE;
+      } else if (requestName == EDIT_REQUEST_ORGANIZE_DIRECTIVES) {
         organizeDirectives(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_SORT_MEMBERS) {
+      } else if (requestName == EDIT_REQUEST_SORT_MEMBERS) {
         sortMembers(request);
         return Response.DELAYED_RESPONSE;
-      } else if (requestName == EDIT_GET_STATEMENT_COMPLETION) {
+      } else if (requestName == EDIT_REQUEST_GET_STATEMENT_COMPLETION) {
         getStatementCompletion(request);
+        return Response.DELAYED_RESPONSE;
+      } else if (requestName == EDIT_REQUEST_IS_POSTFIX_COMPLETION_APPLICABLE) {
+        isPostfixCompletionApplicable(request);
+        return Response.DELAYED_RESPONSE;
+      } else if (requestName == EDIT_REQUEST_GET_POSTFIX_COMPLETION) {
+        getPostfixCompletion(request);
+        return Response.DELAYED_RESPONSE;
+      } else if (requestName ==
+          EDIT_REQUEST_LIST_POSTFIX_COMPLETION_TEMPLATES) {
+        listPostfixCompletionTemplates(request);
         return Response.DELAYED_RESPONSE;
       }
     } on RequestFailure catch (exception) {
@@ -336,7 +377,94 @@ class EditDomainHandler extends AbstractRequestHandler {
     return null;
   }
 
+  /**
+   * Implement the `edit.importElements` request.
+   */
+  Future<Null> importElements(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    EditImportElementsParams params =
+        new EditImportElementsParams.fromRequest(request);
+    //
+    // Prepare the resolved unit.
+    //
+    AnalysisResult result = await server.getAnalysisResult(params.file);
+    if (result == null) {
+      server.sendResponse(new Response.importElementsInvalidFile(request));
+    }
+    CompilationUnitElement libraryUnit =
+        result.libraryElement.definingCompilationUnit;
+    if (libraryUnit != result.unit.element) {
+      // The file in the request is a part of a library. We need to pass the
+      // defining compilation unit to the computer, not the part.
+      result = await server.getAnalysisResult(libraryUnit.source.fullName);
+      if (result == null) {
+        server.sendResponse(new Response.importElementsInvalidFile(request));
+      }
+    }
+    //
+    // Compute the edits required to import the required elements.
+    //
+    ImportElementsComputer computer =
+        new ImportElementsComputer(server.resourceProvider, result);
+    SourceChange change = await computer.createEdits(params.elements);
+    //
+    // Send the response.
+    //
+    server.sendResponse(
+        new EditImportElementsResult(change.edits[0]).toResponse(request.id));
+  }
+
+  Future isPostfixCompletionApplicable(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    var params = new EditGetPostfixCompletionParams.fromRequest(request);
+    bool value = false;
+
+    AnalysisResult result = await server.getAnalysisResult(params.file);
+    if (result != null) {
+      CompilationUnit unit = result.unit;
+      CompilationUnitElement unitElement =
+          resolutionMap.elementDeclaredByCompilationUnit(unit);
+      if (unitElement.context != null) {
+        PostfixCompletionContext context = new PostfixCompletionContext(
+            params.file,
+            result.lineInfo,
+            params.offset,
+            params.key,
+            result.driver,
+            unit,
+            unitElement,
+            result.errors);
+        PostfixCompletionProcessor processor =
+            new PostfixCompletionProcessor(context);
+        value = await processor.isApplicable();
+      }
+    }
+
+    Response response = new EditIsPostfixCompletionApplicableResult(value)
+        .toResponse(request.id);
+    server.sendResponse(response);
+  }
+
+  Future listPostfixCompletionTemplates(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    var templates = DartPostfixCompletion.ALL_TEMPLATES
+        .map((pfc) =>
+            new PostfixTemplateDescriptor(pfc.name, pfc.key, pfc.example))
+        .toList();
+
+    Response response = new EditListPostfixCompletionTemplatesResult(templates)
+        .toResponse(request.id);
+    server.sendResponse(response);
+  }
+
   Future<Null> organizeDirectives(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    server.options.analytics?.sendEvent('edit', 'organizeDirectives');
+
     var params = new EditOrganizeDirectivesParams.fromRequest(request);
     // prepare file
     String file = params.file;
@@ -345,37 +473,15 @@ class EditDomainHandler extends AbstractRequestHandler {
       return;
     }
     // Prepare the file information.
-    int fileStamp;
-    String code;
-    CompilationUnit unit;
-    List<engine.AnalysisError> errors;
-    if (server.options.enableNewAnalysisDriver) {
-      AnalysisResult result = await server.getAnalysisResult(file);
-      if (result == null) {
-        server.sendResponse(new Response.fileNotAnalyzed(request, file));
-        return;
-      }
-      fileStamp = -1;
-      code = result.content;
-      unit = result.unit;
-      errors = result.errors;
-    } else {
-      // prepare resolved unit
-      unit = await server.getResolvedCompilationUnit(file);
-      if (unit == null) {
-        server.sendResponse(new Response.fileNotAnalyzed(request, file));
-        return;
-      }
-      // prepare context
-      CompilationUnitElement compilationUnitElement =
-          resolutionMap.elementDeclaredByCompilationUnit(unit);
-      engine.AnalysisContext context = compilationUnitElement.context;
-      Source source = compilationUnitElement.source;
-      errors = context.computeErrors(source);
-      // prepare code
-      fileStamp = context.getModificationStamp(source);
-      code = context.getContents(source).data;
+    AnalysisResult result = await server.getAnalysisResult(file);
+    if (result == null) {
+      server.sendResponse(new Response.fileNotAnalyzed(request, file));
+      return;
     }
+    int fileStamp = -1;
+    String code = result.content;
+    CompilationUnit unit = result.unit;
+    List<engine.AnalysisError> errors = result.errors;
     // check if there are scan/parse errors in the file
     int numScanParseErrors = _getNumberOfScanParseErrors(errors);
     if (numScanParseErrors != 0) {
@@ -392,6 +498,8 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   Future<Null> sortMembers(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     var params = new EditSortMembersParams.fromRequest(request);
     // prepare file
     String file = params.file;
@@ -400,43 +508,16 @@ class EditDomainHandler extends AbstractRequestHandler {
       return;
     }
     // Prepare the file information.
-    int fileStamp;
-    String code;
-    CompilationUnit unit;
-    List<engine.AnalysisError> errors;
-    if (server.options.enableNewAnalysisDriver) {
-      AnalysisDriver driver = server.getAnalysisDriver(file);
-      ParseResult result = await driver?.parseFile(file);
-      if (result == null) {
-        server.sendResponse(new Response.fileNotAnalyzed(request, file));
-        return;
-      }
-      fileStamp = -1;
-      code = result.content;
-      unit = result.unit;
-      errors = result.errors;
-    } else {
-      // prepare location
-      ContextSourcePair contextSource = server.getContextSourcePair(file);
-      engine.AnalysisContext context = contextSource.context;
-      Source source = contextSource.source;
-      if (context == null || source == null) {
-        server.sendResponse(new Response.sortMembersInvalidFile(request));
-        return;
-      }
-      // prepare code
-      fileStamp = context.getModificationStamp(source);
-      code = context.getContents(source).data;
-      // prepare parsed unit
-      try {
-        unit = context.parseCompilationUnit(source);
-      } catch (e) {
-        server.sendResponse(new Response.sortMembersInvalidFile(request));
-        return;
-      }
-      // Get the errors.
-      errors = context.getErrors(source).errors;
+    AnalysisDriver driver = server.getAnalysisDriver(file);
+    ParseResult result = await driver?.parseFile(file);
+    if (result == null) {
+      server.sendResponse(new Response.fileNotAnalyzed(request, file));
+      return;
     }
+    int fileStamp = -1;
+    String code = result.content;
+    CompilationUnit unit = result.unit;
+    List<engine.AnalysisError> errors = result.errors;
     // Check if there are scan/parse errors in the file.
     int numScanParseErrors = _getNumberOfScanParseErrors(errors);
     if (numScanParseErrors != 0) {
@@ -452,12 +533,57 @@ class EditDomainHandler extends AbstractRequestHandler {
         new EditSortMembersResult(fileEdit).toResponse(request.id));
   }
 
+  /**
+   * Compute and return the fixes associated with server-generated errors.
+   */
+  Future<List<AnalysisErrorFixes>> _computeServerErrorFixes(
+      AnalysisDriver driver, String file, int offset) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    List<AnalysisErrorFixes> errorFixesList = <AnalysisErrorFixes>[];
+    AnalysisResult result = await server.getAnalysisResult(file);
+    if (result != null) {
+      CompilationUnit unit = result.unit;
+      LineInfo lineInfo = result.lineInfo;
+      int requestLine = lineInfo.getLocation(offset).lineNumber;
+      List<engine.AnalysisError> errorsCopy = new List.from(result.errors);
+      for (engine.AnalysisError error in result.errors) {
+        int errorLine = lineInfo.getLocation(error.offset).lineNumber;
+        if (errorLine == requestLine) {
+          AstProvider astProvider = new AstProviderForDriver(driver);
+          DartFixContext context = new _DartFixContextImpl(
+              server.resourceProvider,
+              result.driver,
+              astProvider,
+              unit,
+              error,
+              errorsCopy);
+          List<Fix> fixes =
+              await new DefaultFixContributor().internalComputeFixes(context);
+          if (fixes.isNotEmpty) {
+            fixes.sort(Fix.SORT_BY_RELEVANCE);
+            AnalysisError serverError =
+                newAnalysisError_fromEngine(lineInfo, error);
+            AnalysisErrorFixes errorFixes = new AnalysisErrorFixes(serverError);
+            errorFixesList.add(errorFixes);
+            fixes.forEach((fix) {
+              errorFixes.fixes.add(fix.change);
+            });
+          }
+        }
+      }
+    }
+    return errorFixesList;
+  }
+
   Response _getAvailableRefactorings(Request request) {
     _getAvailableRefactoringsImpl(request);
     return Response.DELAYED_RESPONSE;
   }
 
   Future _getAvailableRefactoringsImpl(Request request) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     // prepare parameters
     var params = new EditGetAvailableRefactoringsParams.fromRequest(request);
     String file = params.file;
@@ -465,10 +591,30 @@ class EditDomainHandler extends AbstractRequestHandler {
     int length = params.length;
     // add refactoring kinds
     List<RefactoringKind> kinds = <RefactoringKind>[];
-    // try EXTRACT_*
-    if (length != 0) {
-      kinds.add(RefactoringKind.EXTRACT_LOCAL_VARIABLE);
-      kinds.add(RefactoringKind.EXTRACT_METHOD);
+    // Check nodes.
+    {
+      var analysisResult = await server.getAnalysisResult(file);
+      if (analysisResult != null) {
+        // TODO(scheglov) Update other refactorings to use ResolveResult.
+        var unit = analysisResult.unit;
+        // Try EXTRACT_LOCAL_VARIABLE.
+        if (new ExtractLocalRefactoring(analysisResult, offset, length)
+            .isAvailable()) {
+          kinds.add(RefactoringKind.EXTRACT_LOCAL_VARIABLE);
+        }
+        // Try EXTRACT_METHOD.
+        if (new ExtractMethodRefactoring(
+                searchEngine, server.getAstProvider(file), unit, offset, length)
+            .isAvailable()) {
+          kinds.add(RefactoringKind.EXTRACT_METHOD);
+        }
+        // Try EXTRACT_WIDGETS.
+        if (new ExtractWidgetRefactoring(
+                searchEngine, analysisResult.session, unit, offset, length)
+            .isAvailable()) {
+          kinds.add(RefactoringKind.EXTRACT_WIDGET);
+        }
+      }
     }
     // check elements
     {
@@ -486,7 +632,7 @@ class EditDomainHandler extends AbstractRequestHandler {
         // try RENAME
         {
           RenameRefactoring renameRefactoring = new RenameRefactoring(
-              searchEngine, server.getAstProvider(file), element);
+              refactoringWorkspace, server.getAstProvider(file), element);
           if (renameRefactoring != null) {
             kinds.add(RefactoringKind.RENAME);
           }
@@ -511,7 +657,7 @@ class EditDomainHandler extends AbstractRequestHandler {
    * Initializes [refactoringManager] with a new instance.
    */
   void _newRefactoringManager() {
-    refactoringManager = new _RefactoringManager(server, searchEngine);
+    refactoringManager = new _RefactoringManager(server, refactoringWorkspace);
   }
 
   static int _getNumberOfScanParseErrors(List<engine.AnalysisError> errors) {
@@ -544,13 +690,10 @@ class _DartAssistContextForValues implements DartAssistContext {
   final AnalysisDriver analysisDriver;
 
   @override
-  final AstProvider astProvider;
-
-  @override
   final CompilationUnit unit;
 
   _DartAssistContextForValues(this.source, this.selectionOffset,
-      this.selectionLength, this.analysisDriver, this.astProvider, this.unit);
+      this.selectionLength, this.analysisDriver, this.unit);
 }
 
 /**
@@ -572,8 +715,11 @@ class _DartFixContextImpl implements DartFixContext {
   @override
   final engine.AnalysisError error;
 
+  @override
+  final List<engine.AnalysisError> errors;
+
   _DartFixContextImpl(this.resourceProvider, this.analysisDriver,
-      this.astProvider, this.unit, this.error);
+      this.astProvider, this.unit, this.error, this.errors);
 
   @override
   GetTopLevelDeclarations get getTopLevelDeclarations =>
@@ -595,6 +741,7 @@ class _RefactoringManager {
       const <RefactoringProblem>[];
 
   final AnalysisServer server;
+  final RefactoringWorkspace refactoringWorkspace;
   final SearchEngine searchEngine;
   StreamSubscription subscriptionToReset;
 
@@ -611,7 +758,8 @@ class _RefactoringManager {
   Request request;
   EditGetRefactoringResult result;
 
-  _RefactoringManager(this.server, this.searchEngine) {
+  _RefactoringManager(this.server, this.refactoringWorkspace)
+      : searchEngine = refactoringWorkspace.searchEngine {
     _reset();
   }
 
@@ -632,6 +780,7 @@ class _RefactoringManager {
   bool get _requiresOptions {
     return refactoring is ExtractLocalRefactoring ||
         refactoring is ExtractMethodRefactoring ||
+        refactoring is ExtractWidgetRefactoring ||
         refactoring is InlineMethodRefactoring ||
         refactoring is MoveFileRefactoring ||
         refactoring is RenameRefactoring;
@@ -655,7 +804,15 @@ class _RefactoringManager {
         EMPTY_PROBLEM_LIST, EMPTY_PROBLEM_LIST, EMPTY_PROBLEM_LIST);
     // process the request
     var params = new EditGetRefactoringParams.fromRequest(_request);
+
+    if (params.kind != null) {
+      server.options.analytics
+          ?.sendEvent('refactor', params.kind.name.toLowerCase());
+    }
+
     runZoned(() async {
+      // TODO(brianwilkerson) Determine whether this await is necessary.
+      await null;
       await _init(params.kind, params.file, params.offset, params.length);
       if (initStatus.hasFatalError) {
         feedback = null;
@@ -713,32 +870,6 @@ class _RefactoringManager {
     });
   }
 
-  /**
-   * Perform enough analysis to be able to perform refactoring of the given
-   * [kind] in the given [file].
-   */
-  Future<Null> _analyzeForRefactoring(String file, RefactoringKind kind) async {
-    if (server.options.enableNewAnalysisDriver) {
-      return;
-    }
-    // "Extract Local" and "Inline Local" refactorings need only local analysis.
-    if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE ||
-        kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
-      ContextSourcePair pair = server.getContextSourcePair(file);
-      engine.AnalysisContext context = pair.context;
-      Source source = pair.source;
-      if (context != null && source != null) {
-        if (context.computeResult(source, SOURCE_KIND) == SourceKind.LIBRARY) {
-          await context.computeResolvedCompilationUnitAsync(source, source);
-          return;
-        }
-      }
-    }
-    // A refactoring for which we cannot optimize analysis.
-    // So, wait for full analysis.
-    await server.onAnalysisComplete;
-  }
-
   void _checkForReset_afterCreateChange() {
     if (test_simulateRefactoringReset_afterCreateChange) {
       _reset();
@@ -772,7 +903,8 @@ class _RefactoringManager {
    */
   Future _init(
       RefactoringKind kind, String file, int offset, int length) async {
-    await _analyzeForRefactoring(file, kind);
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     // check if we can continue with the existing Refactoring instance
     if (this.kind == kind &&
         this.file == file &&
@@ -781,6 +913,7 @@ class _RefactoringManager {
       return;
     }
     _reset();
+    _resetOnAnalysisSetChanged();
     this.kind = kind;
     this.file = file;
     this.offset = offset;
@@ -794,7 +927,6 @@ class _RefactoringManager {
       Element element = await server.getElementAtOffset(file, offset);
       if (element != null) {
         if (element is ExecutableElement) {
-          _resetOnAnalysisStarted();
           refactoring = new ConvertGetterToMethodRefactoring(
               searchEngine, server.getAstProvider(file), element);
         }
@@ -804,17 +936,16 @@ class _RefactoringManager {
       Element element = await server.getElementAtOffset(file, offset);
       if (element != null) {
         if (element is ExecutableElement) {
-          _resetOnAnalysisStarted();
           refactoring = new ConvertMethodToGetterRefactoring(
               searchEngine, server.getAstProvider(file), element);
         }
       }
     }
     if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
-      CompilationUnit unit = await server.getResolvedCompilationUnit(file);
-      if (unit != null) {
-        _resetOnFileResolutionChanged(file);
-        refactoring = new ExtractLocalRefactoring(unit, offset, length);
+      var analysisResult = await server.getAnalysisResult(file);
+      if (analysisResult != null) {
+        refactoring =
+            new ExtractLocalRefactoring(analysisResult, offset, length);
         feedback = new ExtractLocalVariableFeedback(
             <String>[], <int>[], <int>[],
             coveringExpressionOffsets: <int>[],
@@ -824,17 +955,24 @@ class _RefactoringManager {
     if (kind == RefactoringKind.EXTRACT_METHOD) {
       CompilationUnit unit = await server.getResolvedCompilationUnit(file);
       if (unit != null) {
-        _resetOnAnalysisStarted();
-        refactoring =
-            new ExtractMethodRefactoring(searchEngine, unit, offset, length);
+        refactoring = new ExtractMethodRefactoring(
+            searchEngine, server.getAstProvider(file), unit, offset, length);
         feedback = new ExtractMethodFeedback(offset, length, '', <String>[],
             false, <RefactoringMethodParameter>[], <int>[], <int>[]);
+      }
+    }
+    if (kind == RefactoringKind.EXTRACT_WIDGET) {
+      CompilationUnit unit = await server.getResolvedCompilationUnit(file);
+      if (unit != null) {
+        var analysisSession = server.getAnalysisDriver(file).currentSession;
+        refactoring = new ExtractWidgetRefactoring(
+            searchEngine, analysisSession, unit, offset, length);
+        feedback = new ExtractWidgetFeedback();
       }
     }
     if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
       CompilationUnit unit = await server.getResolvedCompilationUnit(file);
       if (unit != null) {
-        _resetOnFileResolutionChanged(file);
         refactoring = new InlineLocalRefactoring(
             searchEngine, server.getAstProvider(file), unit, offset);
       }
@@ -842,38 +980,61 @@ class _RefactoringManager {
     if (kind == RefactoringKind.INLINE_METHOD) {
       CompilationUnit unit = await server.getResolvedCompilationUnit(file);
       if (unit != null) {
-        _resetOnAnalysisStarted();
         refactoring = new InlineMethodRefactoring(
             searchEngine, server.getAstProvider(file), unit, offset);
       }
     }
     if (kind == RefactoringKind.MOVE_FILE) {
-      _resetOnAnalysisStarted();
-      ContextSourcePair contextSource = server.getContextSourcePair(file);
-      engine.AnalysisContext context = contextSource.context;
-      Source source = contextSource.source;
-      refactoring = new MoveFileRefactoring(
-          server.resourceProvider, searchEngine, context, source, file);
+      // TODO(brianwilkerson) Re-implement this refactoring under the new analysis driver
+//      _resetOnAnalysisStarted();
+//      ContextSourcePair contextSource = server.getContextSourcePair(file);
+//      engine.AnalysisContext context = contextSource.context;
+//      Source source = contextSource.source;
+//      refactoring = new MoveFileRefactoring(
+//          server.resourceProvider, searchEngine, context, source, file);
     }
     if (kind == RefactoringKind.RENAME) {
       AstNode node = await server.getNodeAtOffset(file, offset);
       Element element = server.getElementOfNode(node);
       if (node != null && element != null) {
+        int feedbackOffset = node.offset;
+        int feedbackLength = node.length;
+
         if (element is FieldFormalParameterElement) {
           element = (element as FieldFormalParameterElement).field;
         }
-        // climb from "Class" in "new Class.named()" to "Class.named"
-        if (node.parent is TypeName && node.parent.parent is ConstructorName) {
-          ConstructorName constructor = node.parent.parent;
-          node = constructor;
-          element = constructor.staticElement;
+
+        // Use the prefix offset/length when renaming an import directive.
+        if (node is ImportDirective && element is ImportElement) {
+          if (node.prefix != null) {
+            feedbackOffset = node.prefix.offset;
+            feedbackLength = node.prefix.length;
+          } else {
+            feedbackOffset = -1;
+            feedbackLength = 0;
+          }
         }
+
+        // Canonicalize to ConstructorName.
+        var constructorName = _canonicalizeToConstructorName(node);
+        if (constructorName != null) {
+          node = constructorName;
+          element = constructorName.staticElement;
+          // Use the constructor name offset/length.
+          if (constructorName.name != null) {
+            feedbackOffset = constructorName.name.offset;
+            feedbackLength = constructorName.name.length;
+          } else {
+            feedbackOffset = -1;
+            feedbackLength = 0;
+          }
+        }
+
         // do create the refactoring
-        _resetOnAnalysisStarted();
         refactoring = new RenameRefactoring(
-            searchEngine, server.getAstProvider(file), element);
-        feedback =
-            new RenameFeedback(node.offset, node.length, 'kind', 'oldName');
+            refactoringWorkspace, server.getAstProvider(file), element);
+        feedback = new RenameFeedback(
+            feedbackOffset, feedbackLength, 'kind', 'oldName');
       }
     }
     if (refactoring == null) {
@@ -942,29 +1103,10 @@ class _RefactoringManager {
     subscriptionToReset = null;
   }
 
-  void _resetOnAnalysisStarted() {
+  void _resetOnAnalysisSetChanged() {
     subscriptionToReset?.cancel();
-    subscriptionToReset = server.onAnalysisStarted.listen((_) => _reset());
-  }
-
-  /**
-   * We're performing a refactoring that affects only the given [file].
-   * So, when the [file] resolution is changed, we need to reset refactoring.
-   * But when any other file is changed or analyzed, we can continue.
-   */
-  void _resetOnFileResolutionChanged(String file) {
-    if (server.options.enableNewAnalysisDriver) {
-      return;
-    }
-    subscriptionToReset?.cancel();
-    subscriptionToReset = server
-        .getAnalysisContext(file)
-        ?.onResultChanged(RESOLVED_UNIT)
-        ?.listen((event) {
-      Source targetSource = event.target.source;
-      if (targetSource?.fullName == file) {
-        _reset();
-      }
+    subscriptionToReset = server.onAnalysisSetChanged.listen((_) {
+      _reset();
     });
   }
 
@@ -1006,6 +1148,12 @@ class _RefactoringManager {
       extractRefactoring.returnType = extractOptions.returnType;
       return extractRefactoring.checkName();
     }
+    if (refactoring is ExtractWidgetRefactoring) {
+      ExtractWidgetRefactoring extractRefactoring = this.refactoring;
+      ExtractWidgetOptions extractOptions = params.options;
+      extractRefactoring.name = extractOptions.name;
+      return extractRefactoring.checkName();
+    }
     if (refactoring is InlineMethodRefactoring) {
       InlineMethodRefactoring inlineRefactoring = this.refactoring;
       InlineMethodOptions inlineOptions = params.options;
@@ -1026,6 +1174,32 @@ class _RefactoringManager {
       return renameRefactoring.checkNewName();
     }
     return new RefactoringStatus();
+  }
+
+  /**
+   * If the [node] is a constructor reference, return the corresponding
+   * [ConstructorName], or `null` otherwise.
+   */
+  static ConstructorName _canonicalizeToConstructorName(AstNode node) {
+    var parent = node.parent;
+    var parent2 = parent?.parent;
+
+    // "named" in "Class.named".
+    if (parent is ConstructorName) {
+      return parent;
+    }
+
+    // "Class" in "Class.named".
+    if (parent is TypeName && parent2 is ConstructorName) {
+      return parent2;
+    }
+
+    // Canonicalize "new Class.named()" to "Class.named".
+    if (node is InstanceCreationExpression) {
+      return node.constructorName;
+    }
+
+    return null;
   }
 }
 

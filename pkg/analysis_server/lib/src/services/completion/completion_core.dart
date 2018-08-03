@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/ide_options.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -17,13 +16,7 @@ class CompletionRequestImpl implements CompletionRequest {
   final AnalysisResult result;
 
   @override
-  final Source source;
-
-  @override
   final int offset;
-
-  @override
-  IdeOptions ideOptions;
 
   /**
    * The offset of the start of the text to be replaced.
@@ -43,9 +36,6 @@ class CompletionRequestImpl implements CompletionRequest {
    */
   int replacementLength;
 
-  @override
-  final ResourceProvider resourceProvider;
-
   bool _aborted = false;
 
   final CompletionPerformance performance;
@@ -53,15 +43,19 @@ class CompletionRequestImpl implements CompletionRequest {
   /**
    * Initialize a newly created completion request based on the given arguments.
    */
-  CompletionRequestImpl(this.result, this.resourceProvider, Source source,
-      int offset, this.performance, this.ideOptions)
-      : this.source = source,
-        this.offset = offset,
+  CompletionRequestImpl(this.result, int offset, this.performance)
+      : this.offset = offset,
         replacementOffset = offset,
         replacementLength = 0;
 
   @override
-  String get sourceContents => result.content;
+  ResourceProvider get resourceProvider => result.session.resourceProvider;
+
+  @override
+  Source get source => result.unit.element.source;
+
+  @override
+  String get sourceContents => result?.content;
 
   /**
    * Abort the current completion request.

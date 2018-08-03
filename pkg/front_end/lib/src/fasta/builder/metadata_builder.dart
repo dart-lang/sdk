@@ -4,25 +4,25 @@
 
 library fasta.metadata_builder;
 
-import 'builder.dart' show Builder, TypeBuilder;
+import 'builder.dart' show Declaration, TypeBuilder;
 
 import 'constructor_reference_builder.dart' show ConstructorReferenceBuilder;
 
-abstract class MetadataBuilder<T extends TypeBuilder> extends Builder {
-  MetadataBuilder(Builder parent, int charOffset)
-      : super(parent, -1, parent.fileUri);
+abstract class MetadataBuilder<T extends TypeBuilder> {
+  final int charOffset;
+  MetadataBuilder(Declaration parent, this.charOffset);
 
   factory MetadataBuilder.fromConstructor(
       ConstructorReferenceBuilder constructorReference,
       List arguments,
-      Builder parent,
+      Declaration parent,
       int charOffset) {
     return new ConstructorMetadataBuilder(
         constructorReference, arguments, parent, charOffset);
   }
 
   factory MetadataBuilder.fromExpression(
-      String expression, String postfix, Builder parent, int charOffset) {
+      Object expression, String postfix, Declaration parent, int charOffset) {
     return new ExpressionMetadataBuilder(
         expression, postfix, parent, charOffset);
   }
@@ -34,12 +34,9 @@ class ConstructorMetadataBuilder<T extends TypeBuilder>
 
   final List arguments;
 
-  ConstructorMetadataBuilder(
-      this.constructorReference, this.arguments, Builder parent, int charOffset)
+  ConstructorMetadataBuilder(this.constructorReference, this.arguments,
+      Declaration parent, int charOffset)
       : super(parent, charOffset);
-
-  @override
-  String get fullNameForErrors => constructorReference.fullNameForErrors;
 }
 
 /// Expression metadata (without arguments).
@@ -49,16 +46,11 @@ class ConstructorMetadataBuilder<T extends TypeBuilder>
 ///    '@' qualified (‘.’ identifier)?
 class ExpressionMetadataBuilder<T extends TypeBuilder>
     extends MetadataBuilder<T> {
-  final String qualified;
+  final Object qualified;
 
   final String identifier;
 
   ExpressionMetadataBuilder(
-      this.qualified, this.identifier, Builder parent, int charOffset)
+      this.qualified, this.identifier, Declaration parent, int charOffset)
       : super(parent, charOffset);
-
-  @override
-  String get fullNameForErrors {
-    return identifier == null ? qualified : "$qualified.$identifier";
-  }
 }

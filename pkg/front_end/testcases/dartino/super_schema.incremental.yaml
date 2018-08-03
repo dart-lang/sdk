@@ -1,0 +1,38 @@
+# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+main.dart.patch: |
+  // Test that schema changes work in the presence of fields in the superclass
+  class A {
+    var x;
+  }
+
+  class B extends A {
+  <<<< "instance is null"
+    var y;
+  ==== "x = 0"
+  ==== ["x = 3","y = null","z = 2"]
+    var y;
+  >>>>
+    var z;
+  }
+
+  var instance;
+
+  main() {
+    if (instance == null) {
+      print('instance is null');
+      instance = new B();
+      instance.x = 0;
+      instance.y = 1;
+      instance.z = 2;
+    } else {
+      print('x = ${instance.x}');
+      if (instance.x == 3) {
+        print('y = ${instance.y}');
+        print('z = ${instance.z}');
+      }
+      instance.x = 3;
+    }
+  }

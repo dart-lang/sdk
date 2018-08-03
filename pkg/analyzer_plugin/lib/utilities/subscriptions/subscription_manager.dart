@@ -21,6 +21,18 @@ class SubscriptionManager {
   SubscriptionManager();
 
   /**
+   * Return `true` if the file with the given [filePath] has a subscription for
+   * the given [service].
+   */
+  bool hasSubscriptionForFile(String filePath, AnalysisService service) {
+    if (_subscriptions == null) {
+      return false;
+    }
+    List<String> files = _subscriptions[service];
+    return files != null && files.contains(filePath);
+  }
+
+  /**
    * Return a list of the services for which the file with the given [filePath]
    * has been subscribed.
    */

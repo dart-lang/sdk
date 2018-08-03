@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/io.dart';
@@ -41,13 +42,15 @@ class DartProject {
   /// Project root.
   final Directory root;
 
-  /// Create a Dart project for the corresponding [context] and [sources].
+  /// Create a Dart project for the corresponding [driver] and [sources].
   /// If a [dir] is unspecified the current working directory will be
   /// used.
-  DartProject(AnalysisContext context, List<Source> sources, {Directory dir})
+  ///
+  /// Note: clients should call [create] which performs API model initialization.
+  DartProject._(AnalysisDriver driver, List<Source> sources, {Directory dir})
       : root = dir ?? Directory.current {
     _pubspec = _findAndParsePubspec(root);
-    _apiModel = new _ApiModel(context, sources, root);
+    _apiModel = new _ApiModel(driver, sources, root);
   }
 
   /// The project's name.
@@ -77,6 +80,19 @@ class DartProject {
     }
     return p.basename(root.path);
   }
+
+  /// Create an initialized Dart project for the corresponding [driver] and
+  /// [sources].
+  /// If a [dir] is unspecified the current working directory will be
+  /// used.
+  static Future<DartProject> create(AnalysisDriver driver, List<Source> sources,
+      {Directory dir}) async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
+    DartProject project = new DartProject._(driver, sources, dir: dir);
+    await project._apiModel._calculate();
+    return project;
+  }
 }
 
 /// An object that can be used to visit Dart project structure.
@@ -86,12 +102,12 @@ abstract class ProjectVisitor<T> {
 
 /// Captures the project's API as defined by pub package layout standards.
 class _ApiModel {
-  final AnalysisContext context;
+  final AnalysisDriver driver;
   final List<Source> sources;
   final Directory root;
   final Set<LibraryElement> elements = new Set();
 
-  _ApiModel(this.context, this.sources, this.root) {
+  _ApiModel(this.driver, this.sources, this.root) {
     _calculate();
   }
 
@@ -106,21 +122,27 @@ class _ApiModel {
     return false;
   }
 
-  _calculate() {
+  _calculate() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     if (sources == null || sources.isEmpty) {
       return;
     }
 
-    var libDir = root.path + '/lib';
-    var libSrcDir = libDir + '/src';
+    String libDir = root.path + '/lib';
+    String libSrcDir = libDir + '/src';
 
     for (Source source in sources) {
-      var path = source.uri.path;
+      String path = source.uri.path;
       if (path.startsWith(libDir) && !path.startsWith(libSrcDir)) {
-        var library = context.computeLibraryElement(source);
-        var namespaceBuilder = new NamespaceBuilder();
-        var exports = namespaceBuilder.createExportNamespaceForLibrary(library);
-        var public = namespaceBuilder.createPublicNamespaceForLibrary(library);
+        AnalysisResult result = await driver.getResult(source.fullName);
+        LibraryElement library = result.libraryElement;
+
+        NamespaceBuilder namespaceBuilder = new NamespaceBuilder();
+        Namespace exports =
+            namespaceBuilder.createExportNamespaceForLibrary(library);
+        Namespace public =
+            namespaceBuilder.createPublicNamespaceForLibrary(library);
         elements.addAll(exports.definedNames.values);
         elements.addAll(public.definedNames.values);
       }

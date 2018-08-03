@@ -7,8 +7,8 @@
 
 #include "vm/debugger.h"
 
-#include "vm/assembler.h"
 #include "vm/code_patcher.h"
+#include "vm/compiler/assembler/assembler.h"
 #include "vm/cpu.h"
 #include "vm/instructions.h"
 #include "vm/stub_code.h"
@@ -20,7 +20,6 @@ namespace dart {
 RawCode* CodeBreakpoint::OrigStubAddress() const {
   return saved_value_;
 }
-
 
 void CodeBreakpoint::PatchCode() {
   ASSERT(!is_enabled_);
@@ -41,7 +40,6 @@ void CodeBreakpoint::PatchCode() {
   CodePatcher::PatchPoolPointerCallAt(pc_, code, stub_target);
   is_enabled_ = true;
 }
-
 
 void CodeBreakpoint::RestoreCode() {
   ASSERT(is_enabled_);

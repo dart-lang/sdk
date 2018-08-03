@@ -8,6 +8,7 @@
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
+#include "vm/kernel_isolate.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
 #include "vm/native_entry.h"
@@ -16,24 +17,10 @@
 #include "vm/service_event.h"
 #include "vm/service_isolate.h"
 #include "vm/symbols.h"
-#include "vm/kernel_isolate.h"
 
 namespace dart {
 
 DECLARE_FLAG(bool, trace_service);
-DECLARE_FLAG(bool, show_kernel_isolate);
-
-static uint8_t* malloc_allocator(uint8_t* ptr,
-                                 intptr_t old_size,
-                                 intptr_t new_size) {
-  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
-  return reinterpret_cast<uint8_t*>(new_ptr);
-}
-
-static void malloc_deallocator(uint8_t* ptr) {
-  free(reinterpret_cast<void*>(ptr));
-}
-
 
 #ifndef PRODUCT
 class RegisterRunningIsolatesVisitor : public IsolateVisitor {
@@ -59,12 +46,7 @@ class RegisterRunningIsolatesVisitor : public IsolateVisitor {
 
   virtual void VisitIsolate(Isolate* isolate) {
     ASSERT(ServiceIsolate::IsServiceIsolate(Isolate::Current()));
-    bool is_kernel_isolate = false;
-#ifndef DART_PRECOMPILED_RUNTIME
-    is_kernel_isolate =
-        KernelIsolate::IsKernelIsolate(isolate) && !FLAG_show_kernel_isolate;
-#endif
-    if (IsVMInternalIsolate(isolate) || is_kernel_isolate) {
+    if (IsVMInternalIsolate(isolate)) {
       // We do not register the service (and descendants), the vm-isolate, or
       // the kernel isolate.
       return;
@@ -84,8 +66,8 @@ class RegisterRunningIsolatesVisitor : public IsolateVisitor {
     const Object& r =
         Object::Handle(DartEntry::InvokeFunction(register_function_, args));
     if (FLAG_trace_service) {
-      OS::Print("vm-service: Isolate %s %" Pd64 " registered.\n",
-                name.ToCString(), port_id);
+      OS::PrintErr("vm-service: Isolate %s %" Pd64 " registered.\n",
+                   name.ToCString(), port_id);
     }
     ASSERT(!r.IsError());
   }
@@ -108,16 +90,12 @@ DEFINE_NATIVE_ENTRY(VMService_SendIsolateServiceMessage, 2) {
                 Smi::Handle(thread->zone(), Smi::New(Message::kServiceOOBMsg)));
 
   // Serialize message.
-  uint8_t* data = NULL;
-  MessageWriter writer(&data, &malloc_allocator, &malloc_deallocator, false);
-  writer.WriteMessage(message);
-
+  MessageWriter writer(false);
   // TODO(turnidge): Throw an exception when the return value is false?
   bool result = PortMap::PostMessage(
-      new Message(sp.Id(), data, writer.BytesWritten(), Message::kOOBPriority));
+      writer.WriteMessage(message, sp.Id(), Message::kOOBPriority));
   return Bool::Get(result).raw();
 }
-
 
 DEFINE_NATIVE_ENTRY(VMService_SendRootServiceMessage, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(0));
@@ -127,7 +105,6 @@ DEFINE_NATIVE_ENTRY(VMService_SendRootServiceMessage, 1) {
   return Object::null();
 }
 
-
 DEFINE_NATIVE_ENTRY(VMService_SendObjectRootServiceMessage, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(0));
   if (FLAG_support_service) {
@@ -136,10 +113,9 @@ DEFINE_NATIVE_ENTRY(VMService_SendObjectRootServiceMessage, 1) {
   return Object::null();
 }
 
-
 DEFINE_NATIVE_ENTRY(VMService_OnStart, 0) {
   if (FLAG_trace_service) {
-    OS::Print("vm-service: Booting dart:vmservice library.\n");
+    OS::PrintErr("vm-service: Booting dart:vmservice library.\n");
   }
   // Boot the dart:vmservice library.
   ServiceIsolate::BootVmServiceLibrary();
@@ -150,24 +126,22 @@ DEFINE_NATIVE_ENTRY(VMService_OnStart, 0) {
   // Register running isolates with service.
   RegisterRunningIsolatesVisitor register_isolates(thread);
   if (FLAG_trace_service) {
-    OS::Print("vm-service: Registering running isolates.\n");
+    OS::PrintErr("vm-service: Registering running isolates.\n");
   }
   Isolate::VisitIsolates(&register_isolates);
 #endif
   return Object::null();
 }
 
-
 DEFINE_NATIVE_ENTRY(VMService_OnExit, 0) {
   if (FLAG_trace_service) {
-    OS::Print("vm-service: processed exit message.\n");
+    OS::PrintErr("vm-service: processed exit message.\n");
     MessageHandler* message_handler = isolate->message_handler();
-    OS::Print("vm-service: live ports = %" Pd "\n",
-              message_handler->live_ports());
+    OS::PrintErr("vm-service: live ports = %" Pd "\n",
+                 message_handler->live_ports());
   }
   return Object::null();
 }
-
 
 DEFINE_NATIVE_ENTRY(VMService_OnServerAddressChange, 1) {
   if (!FLAG_support_service) {
@@ -182,7 +156,6 @@ DEFINE_NATIVE_ENTRY(VMService_OnServerAddressChange, 1) {
   return Object::null();
 }
 
-
 DEFINE_NATIVE_ENTRY(VMService_ListenStream, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, stream_id, arguments->NativeArgAt(0));
   bool result = false;
@@ -192,7 +165,6 @@ DEFINE_NATIVE_ENTRY(VMService_ListenStream, 1) {
   return Bool::Get(result).raw();
 }
 
-
 DEFINE_NATIVE_ENTRY(VMService_CancelStream, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, stream_id, arguments->NativeArgAt(0));
   if (FLAG_support_service) {
@@ -201,14 +173,12 @@ DEFINE_NATIVE_ENTRY(VMService_CancelStream, 1) {
   return Object::null();
 }
 
-
 DEFINE_NATIVE_ENTRY(VMService_RequestAssets, 0) {
   if (!FLAG_support_service) {
     return Object::null();
   }
   return Service::RequestAssets();
 }
-
 
 #ifndef PRODUCT
 // TODO(25041): When reading, this class copies out the filenames and contents
@@ -373,7 +343,6 @@ class TarArchive {
   DISALLOW_COPY_AND_ASSIGN(TarArchive);
 };
 
-
 static void ContentsFinalizer(void* isolate_callback_data,
                               Dart_WeakPersistentHandle handle,
                               void* peer) {
@@ -381,15 +350,14 @@ static void ContentsFinalizer(void* isolate_callback_data,
   delete[] data;
 }
 
-
-static void FilenameFinalizer(void* peer) {
+static void FilenameFinalizer(void* isolate_callback_data,
+                              Dart_WeakPersistentHandle handle,
+                              void* peer) {
   char* filename = reinterpret_cast<char*>(peer);
   delete[] filename;
 }
 
-
 #endif
-
 
 DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 1) {
 #ifndef PRODUCT
@@ -423,19 +391,19 @@ DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 1) {
   intptr_t idx = 0;
   while (archive.HasMore()) {
     char* filename = archive.NextFilename();
+    intptr_t filename_length = strlen(filename);
     uint8_t* contents = archive.NextContent();
     intptr_t contents_length = archive.NextContentLength();
 
     Dart_Handle dart_filename = Dart_NewExternalLatin1String(
-        reinterpret_cast<uint8_t*>(filename), strlen(filename), filename,
-        FilenameFinalizer);
+        reinterpret_cast<uint8_t*>(filename), filename_length, filename,
+        filename_length, FilenameFinalizer);
     ASSERT(!Dart_IsError(dart_filename));
 
-    Dart_Handle dart_contents = Dart_NewExternalTypedData(
-        Dart_TypedData_kUint8, contents, contents_length);
+    Dart_Handle dart_contents = Dart_NewExternalTypedDataWithFinalizer(
+        Dart_TypedData_kUint8, contents, contents_length, contents,
+        contents_length, ContentsFinalizer);
     ASSERT(!Dart_IsError(dart_contents));
-    Dart_NewWeakPersistentHandle(dart_contents, contents, contents_length,
-                                 ContentsFinalizer);
 
     Dart_ListSetAt(result_list, idx, dart_filename);
     Dart_ListSetAt(result_list, (idx + 1), dart_contents);
@@ -446,7 +414,6 @@ DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 1) {
   return Object::null();
 #endif
 }
-
 
 DEFINE_NATIVE_ENTRY(VMService_spawnUriNotify, 2) {
 #ifndef PRODUCT

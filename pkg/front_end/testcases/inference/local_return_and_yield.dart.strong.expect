@@ -1,0 +1,29 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+typedef IntToInt = (core::int) → core::int;
+static method main() → dynamic {
+  function a() → (core::int) → core::int {
+    return (core::int x) → core::int => x;
+  }
+  function b() → asy::Future<(core::int) → core::int> async {
+    return let dynamic _ = null in let final dynamic #t1 = let dynamic _ = null in invalid-expression "pkg/front_end/testcases/inference/local_return_and_yield.dart:19:36: Error: A value of type '(dynamic) \u8594 dynamic' can't be assigned to a variable of type 'dart.async::FutureOr<(dart.core::int) \u8594 dart.core::int>'.
+Try changing the type of the left hand side, or casting the right hand side to 'dart.async::FutureOr<(dart.core::int) \u8594 dart.core::int>'.
+    return /*@returnType=dynamic*/ (/*@type=dynamic*/ x) => x;
+                                   ^" in let final dynamic #t2 = (dynamic x) → dynamic => x in null;
+  }
+  function c() → core::Iterable<(core::int) → core::int> sync* {
+    yield(core::int x) → core::int => x;
+  }
+  function d() → core::Iterable<(core::int) → core::int> sync* {
+    yield*<(core::int) → core::int>[(core::int x) → core::int => x];
+  }
+  function e() → asy::Stream<(core::int) → core::int> async* {
+    yield(core::int x) → core::int => x;
+  }
+  function f() → asy::Stream<(core::int) → core::int> async* {
+    yield* asy::Stream::fromIterable<(core::int) → core::int>(<(core::int) → core::int>[(core::int x) → core::int => x]);
+  }
+}

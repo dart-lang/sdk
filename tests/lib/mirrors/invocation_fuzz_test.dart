@@ -34,7 +34,7 @@ var blacklist = [
 
   // These prevent the test from exiting.
   'dart.io.sleep',
-  'dart.io.HttpServer.HttpServer.listenOn',
+  'dart._http.HttpServer.HttpServer.listenOn',
 
   // These either cause the VM to segfault or throw uncatchable API errors.
   // TODO(15274): Fix them and remove from blacklist.
@@ -207,8 +207,8 @@ main() {
   ];
   valueObjects.forEach((v) => checkInstance(reflect(v), 'value object'));
 
-  uncaughtErrorHandler(self, parent, zone, error, stack) {}
-  ;
+  void uncaughtErrorHandler(self, parent, zone, error, stack) {}
+
   var zoneSpec =
       new ZoneSpecification(handleUncaughtError: uncaughtErrorHandler);
   testZone = Zone.current.fork(specification: zoneSpec);

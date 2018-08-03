@@ -11,6 +11,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FindTopLevelDeclarationsTest);
+    defineReflectiveTests(FindTopLevelDeclarationsTest_UseCFE);
   });
 }
 
@@ -43,10 +44,20 @@ class Foo {
     expect(searchParams.isLast, isTrue);
     expect(searchParams.results, isNotEmpty);
 
-    SearchResult result = searchParams.results.first;
-    expect(result.location.file, pathname);
-    expect(result.isPotential, isFalse);
-    expect(result.kind.name, SearchResultKind.DECLARATION.name);
-    expect(result.path.first.name, 'qux');
+    for (SearchResult result in searchParams.results) {
+      if (result.location.file == pathname) {
+        expect(result.isPotential, isFalse);
+        expect(result.kind.name, SearchResultKind.DECLARATION.name);
+        expect(result.path.first.name, 'qux');
+        return;
+      }
+    }
+    fail('No result for $pathname');
   }
+}
+
+@reflectiveTest
+class FindTopLevelDeclarationsTest_UseCFE extends FindTopLevelDeclarationsTest {
+  @override
+  bool get useCFE => true;
 }

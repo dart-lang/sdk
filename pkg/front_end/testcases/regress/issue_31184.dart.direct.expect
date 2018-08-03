@@ -1,0 +1,21 @@
+// Errors:
+//
+// pkg/front_end/testcases/regress/issue_31184.dart:6:19: Error: Expected ';' after this.
+//   for (int i = 0, i > 10; i++) {}
+//                   ^
+//
+// pkg/front_end/testcases/regress/issue_31184.dart:6:21: Error: Expected an identifier, but got '>'.
+//   for (int i = 0, i > 10; i++) {}
+//                     ^
+
+library;
+import self as self;
+import "dart:core" as core;
+
+static method bad() → dynamic {
+  for (core::int i = 0, core::int i = invalid-expression "pkg/front_end/testcases/regress/issue_31184.dart:6:19: Error: 'i' is already declared in this scope.
+  for (int i = 0, i > 10; i++) {}
+                  ^"; (throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))).>(10); i = i.+(1)) {
+  }
+}
+static method main() → dynamic {}

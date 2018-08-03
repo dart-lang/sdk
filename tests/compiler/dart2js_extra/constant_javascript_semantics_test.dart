@@ -6,8 +6,8 @@ import "package:expect/expect.dart";
 
 // Make sure we use JavaScript semantics when compiling compile-time constants.
 
-const x = 12345678901234567891;
-const y = 12345678901234567890;
+const x = 1234567890123456789;
+const y = 1234567890123456788;
 const z = x - y;
 
 const a = 1.0;

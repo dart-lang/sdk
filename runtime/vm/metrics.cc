@@ -2,14 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(PRODUCT)
+
 #include "vm/metrics.h"
 
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
-#include "vm/native_entry.h"
-#include "vm/runtime_entry.h"
-#include "vm/object.h"
 #include "vm/log.h"
+#include "vm/native_entry.h"
+#include "vm/object.h"
+#include "vm/runtime_entry.h"
 
 namespace dart {
 
@@ -28,7 +30,6 @@ Metric::Metric()
       value_(0),
       next_(NULL) {}
 
-
 void Metric::Init(Isolate* isolate,
                   const char* name,
                   const char* description,
@@ -43,7 +44,6 @@ void Metric::Init(Isolate* isolate,
   RegisterWithIsolate();
 }
 
-
 void Metric::Init(const char* name, const char* description, Unit unit) {
   // Only called once.
   ASSERT(next_ == NULL);
@@ -53,7 +53,6 @@ void Metric::Init(const char* name, const char* description, Unit unit) {
   unit_ = unit;
   RegisterWithVM();
 }
-
 
 Metric::~Metric() {
   // Only deregister metrics which had been registered. Metrics without a name
@@ -66,7 +65,6 @@ Metric::~Metric() {
     }
   }
 }
-
 
 #ifndef PRODUCT
 static const char* UnitString(intptr_t unit) {
@@ -83,7 +81,6 @@ static const char* UnitString(intptr_t unit) {
   UNREACHABLE();
   return NULL;
 }
-
 
 void Metric::PrintJSON(JSONStream* stream) {
   if (!FLAG_support_service) {
@@ -104,7 +101,6 @@ void Metric::PrintJSON(JSONStream* stream) {
   obj.AddProperty("value", value_as_double);
 }
 #endif  // !PRODUCT
-
 
 char* Metric::ValueToString(int64_t value, Unit unit) {
   Thread* thread = Thread::Current();
@@ -149,7 +145,6 @@ char* Metric::ValueToString(int64_t value, Unit unit) {
   }
 }
 
-
 char* Metric::ToString() {
   Thread* thread = Thread::Current();
   ASSERT(thread != NULL);
@@ -157,7 +152,6 @@ char* Metric::ToString() {
   ASSERT(zone != NULL);
   return zone->PrintToString("%s %s", name(), ValueToString(Value(), unit()));
 }
-
 
 bool Metric::NameExists(Metric* head, const char* name) {
   ASSERT(name != NULL);
@@ -172,7 +166,6 @@ bool Metric::NameExists(Metric* head, const char* name) {
   return false;
 }
 
-
 void Metric::RegisterWithIsolate() {
   ASSERT(isolate_ != NULL);
   ASSERT(next_ == NULL);
@@ -184,7 +177,6 @@ void Metric::RegisterWithIsolate() {
   }
   isolate_->set_metrics_list_head(this);
 }
-
 
 void Metric::DeregisterWithIsolate() {
   Metric* head = isolate_->metrics_list_head();
@@ -214,7 +206,6 @@ void Metric::DeregisterWithIsolate() {
   UNREACHABLE();
 }
 
-
 void Metric::RegisterWithVM() {
   ASSERT(isolate_ == NULL);
   ASSERT(next_ == NULL);
@@ -226,7 +217,6 @@ void Metric::RegisterWithVM() {
   }
   vm_list_head_ = this;
 }
-
 
 void Metric::DeregisterWithVM() {
   ASSERT(isolate_ == NULL);
@@ -259,42 +249,35 @@ void Metric::DeregisterWithVM() {
   UNREACHABLE();
 }
 
-
 int64_t MetricHeapOldUsed::Value() const {
   ASSERT(isolate() == Isolate::Current());
   return isolate()->heap()->UsedInWords(Heap::kOld) * kWordSize;
 }
-
 
 int64_t MetricHeapOldCapacity::Value() const {
   ASSERT(isolate() == Isolate::Current());
   return isolate()->heap()->CapacityInWords(Heap::kOld) * kWordSize;
 }
 
-
 int64_t MetricHeapOldExternal::Value() const {
   ASSERT(isolate() == Isolate::Current());
   return isolate()->heap()->ExternalInWords(Heap::kOld) * kWordSize;
 }
-
 
 int64_t MetricHeapNewUsed::Value() const {
   ASSERT(isolate() == Isolate::Current());
   return isolate()->heap()->UsedInWords(Heap::kNew) * kWordSize;
 }
 
-
 int64_t MetricHeapNewCapacity::Value() const {
   ASSERT(isolate() == Isolate::Current());
   return isolate()->heap()->CapacityInWords(Heap::kNew) * kWordSize;
 }
 
-
 int64_t MetricHeapNewExternal::Value() const {
   ASSERT(isolate() == Isolate::Current());
   return isolate()->heap()->ExternalInWords(Heap::kNew) * kWordSize;
 }
-
 
 int64_t MetricHeapUsed::Value() const {
   ASSERT(isolate() == Isolate::Current());
@@ -306,16 +289,18 @@ int64_t MetricIsolateCount::Value() const {
   return Isolate::IsolateListLength();
 }
 
+int64_t MetricCurrentRSS::Value() const {
+  return Service::CurrentRSS();
+}
 
 int64_t MetricPeakRSS::Value() const {
-  return OS::MaxRSS();
+  return Service::MaxRSS();
 }
 
 #define VM_METRIC_VARIABLE(type, variable, name, unit)                         \
   static type vm_metric_##variable##_;
 VM_METRIC_LIST(VM_METRIC_VARIABLE);
 #undef VM_METRIC_VARIABLE
-
 
 void Metric::InitOnce() {
 #define VM_METRIC_INIT(type, variable, name, unit)                             \
@@ -338,11 +323,9 @@ void Metric::Cleanup() {
   }
 }
 
-
 MaxMetric::MaxMetric() : Metric() {
   set_value(kMinInt64);
 }
-
 
 void MaxMetric::SetValue(int64_t new_value) {
   if (new_value > value()) {
@@ -350,11 +333,9 @@ void MaxMetric::SetValue(int64_t new_value) {
   }
 }
 
-
 MinMetric::MinMetric() : Metric() {
   set_value(kMaxInt64);
 }
-
 
 void MinMetric::SetValue(int64_t new_value) {
   if (new_value < value()) {
@@ -363,3 +344,5 @@ void MinMetric::SetValue(int64_t new_value) {
 }
 
 }  // namespace dart
+
+#endif  // !defined(PRODUCT)

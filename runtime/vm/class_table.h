@@ -6,7 +6,7 @@
 #define RUNTIME_VM_CLASS_TABLE_H_
 
 #include "platform/assert.h"
-#include "vm/atomic.h"
+#include "platform/atomic.h"
 #include "vm/bitfield.h"
 #include "vm/globals.h"
 
@@ -14,6 +14,7 @@ namespace dart {
 
 class Class;
 class ClassStats;
+class ClassTable;
 class JSONArray;
 class JSONObject;
 class JSONStream;
@@ -22,18 +23,44 @@ class MallocGrowableArray;
 class ObjectPointerVisitor;
 class RawClass;
 
+class ClassAndSize {
+ public:
+  ClassAndSize() : class_(NULL), size_(0) {}
+  explicit ClassAndSize(RawClass* clazz);
+  ClassAndSize(RawClass* clazz, intptr_t size) : class_(clazz), size_(size) {}
+  RawClass* get_raw_class() const { return class_; }
+  intptr_t size() const { return size_; }
+
+ private:
+  RawClass* class_;
+  intptr_t size_;
+
+  friend class ClassTable;
+};
+
+#if defined(ARCH_IS_32_BIT)
+const int kSizeOfClassPairLog2 = 3;
+#else
+const int kSizeOfClassPairLog2 = 4;
+#endif
+
+COMPILE_ASSERT((1 << kSizeOfClassPairLog2) == sizeof(ClassAndSize));
+
 #ifndef PRODUCT
 template <typename T>
 class AllocStats {
  public:
   T new_count;
   T new_size;
+  T new_external_size;
   T old_count;
   T old_size;
+  T old_external_size;
 
   void ResetNew() {
     new_count = 0;
     new_size = 0;
+    new_external_size = 0;
   }
 
   void AddNew(T size) {
@@ -41,9 +68,14 @@ class AllocStats {
     AtomicOperations::IncrementBy(&new_size, size);
   }
 
+  void AddNewExternal(T size) {
+    AtomicOperations::IncrementBy(&new_external_size, size);
+  }
+
   void ResetOld() {
     old_count = 0;
     old_size = 0;
+    old_external_size = 0;
   }
 
   void AddOld(T size, T count = 1) {
@@ -51,11 +83,13 @@ class AllocStats {
     AtomicOperations::IncrementBy(&old_size, size);
   }
 
+  void AddOldExternal(T size) {
+    AtomicOperations::IncrementBy(&old_external_size, size);
+  }
+
   void Reset() {
-    new_count = 0;
-    new_size = 0;
-    old_count = 0;
-    old_size = 0;
+    ResetNew();
+    ResetOld();
   }
 
   // For classes with fixed instance size we do not emit code to update
@@ -69,8 +103,10 @@ class AllocStats {
   void Verify() {
     ASSERT(new_count >= 0);
     ASSERT(new_size >= 0);
+    ASSERT(new_external_size >= 0);
     ASSERT(old_count >= 0);
     ASSERT(old_size >= 0);
+    ASSERT(old_external_size >= 0);
   }
 };
 
@@ -153,10 +189,20 @@ class ClassTable {
   // Thread-safe.
   RawClass* At(intptr_t index) const {
     ASSERT(IsValidIndex(index));
+    return table_[index].class_;
+  }
+
+  intptr_t SizeAt(intptr_t index) const {
+    ASSERT(IsValidIndex(index));
+    return table_[index].size_;
+  }
+
+  ClassAndSize PairAt(intptr_t index) const {
+    ASSERT(IsValidIndex(index));
     return table_[index];
   }
 
-  void SetAt(intptr_t index, RawClass* raw_cls) { table_[index] = raw_cls; }
+  void SetAt(intptr_t index, RawClass* raw_cls);
 
   bool IsValidIndex(intptr_t index) const {
     return (index > 0) && (index < top_);
@@ -164,7 +210,7 @@ class ClassTable {
 
   bool HasValidClassAt(intptr_t index) const {
     ASSERT(IsValidIndex(index));
-    return table_[index] != NULL;
+    return table_[index].class_ != NULL;
   }
 
   intptr_t NumCids() const { return top_; }
@@ -179,8 +225,6 @@ class ClassTable {
 
   void AllocateIndex(intptr_t index);
 
-  void RegisterAt(intptr_t index, const Class& cls);
-
 #if defined(DEBUG)
   void Unregister(intptr_t index);
 #endif
@@ -188,6 +232,11 @@ class ClassTable {
   void Remap(intptr_t* old_to_new_cids);
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
+
+  // If a snapshot reader has populated the class table then the
+  // sizes in the class table are not correct. Iterates through the
+  // table, updating the sizes.
+  void CopySizesFromClassObjects();
 
   void Validate();
 
@@ -203,6 +252,9 @@ class ClassTable {
   // Called whenever a class is allocated in the runtime.
   void UpdateAllocatedNew(intptr_t cid, intptr_t size);
   void UpdateAllocatedOld(intptr_t cid, intptr_t size);
+
+  void UpdateAllocatedExternalNew(intptr_t cid, intptr_t size);
+  void UpdateAllocatedExternalOld(intptr_t cid, intptr_t size);
 
   // Called whenever a old GC occurs.
   void ResetCountersOld();
@@ -232,7 +284,7 @@ class ClassTable {
   void PrintToJSONObject(JSONObject* object);
 #endif  // !PRODUCT
 
-  void AddOldTable(RawClass** old_table);
+  void AddOldTable(ClassAndSize* old_table);
   // Deallocates table copies. Do not call during concurrent access to table.
   void FreeOldTables();
 
@@ -241,7 +293,9 @@ class ClassTable {
 
  private:
   friend class GCMarker;
+  friend class MarkingWeakVisitor;
   friend class ScavengerVisitor;
+  friend class ScavengerWeakVisitor;
   friend class ClassHeapStatsTestHelper;
   static const int initial_capacity_ = 512;
   static const int capacity_increment_ = 256;
@@ -252,8 +306,8 @@ class ClassTable {
   intptr_t capacity_;
 
   // Copy-on-write is used for table_, with old copies stored in old_tables_.
-  RawClass** table_;
-  MallocGrowableArray<RawClass**>* old_tables_;
+  ClassAndSize* table_;
+  MallocGrowableArray<ClassAndSize*>* old_tables_;
 
 #ifndef PRODUCT
   ClassHeapStats* class_heap_stats_table_;
@@ -263,6 +317,8 @@ class ClassTable {
   ClassHeapStats* PreliminaryStatsAt(intptr_t cid);
   void UpdateLiveOld(intptr_t cid, intptr_t size, intptr_t count = 1);
   void UpdateLiveNew(intptr_t cid, intptr_t size);
+  void UpdateLiveOldExternal(intptr_t cid, intptr_t size);
+  void UpdateLiveNewExternal(intptr_t cid, intptr_t size);
 #endif  // !PRODUCT
 
   DISALLOW_COPY_AND_ASSIGN(ClassTable);

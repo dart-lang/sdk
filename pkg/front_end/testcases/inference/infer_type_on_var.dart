@@ -10,6 +10,4 @@ test1() {
   x = /*error:INVALID_ASSIGNMENT*/ "hi";
 }
 
-main() {
-  test1();
-}
+main() {}

@@ -10,8 +10,20 @@ part of dart.convert;
  * It is recommended that implementations of `Converter` extend this class,
  * to inherit any further methods that may be added to the class.
  */
-abstract class Converter<S, T> implements StreamTransformer<S, T> {
+abstract class Converter<S, T> extends StreamTransformerBase<S, T> {
   const Converter();
+
+  /**
+   * Adapts [source] to be a `Converter<TS, TT>`.
+   *
+   * This allows [source] to be used at the new type, but at run-time it
+   * must satisfy the requirements of both the new type and its original type.
+   *
+   * Conversion input must be both [SS] and [TS] and the output created by
+   * [source] for those input must be both [ST] and [TT].
+   */
+  static Converter<TS, TT> castFrom<SS, ST, TS, TT>(Converter<SS, ST> source) =>
+      new CastConverter<SS, ST, TS, TT>(source);
 
   /**
    * Converts [input] and returns the result of the conversion.
@@ -34,7 +46,7 @@ abstract class Converter<S, T> implements StreamTransformer<S, T> {
    * The returned sink serves as input for the long-running conversion. The
    * given [sink] serves as output.
    */
-  Sink/*<S>*/ startChunkedConversion(Sink/*<T>*/ sink) {
+  Sink<S> startChunkedConversion(Sink<T> sink) {
     throw new UnsupportedError(
         "This converter does not support chunked conversions: $this");
   }
@@ -43,6 +55,16 @@ abstract class Converter<S, T> implements StreamTransformer<S, T> {
     return new Stream<T>.eventTransformed(
         stream, (EventSink sink) => new _ConverterStreamEventSink(this, sink));
   }
+
+  /**
+   * Provides a `Converter<RS, RT>` view of this stream transformer.
+   *
+   * The resulting transformer will check at run-time that all conversion
+   * inputs are actually instances of [S],
+   * and it will check that all conversion output produced by this converter
+   * are acually instances of [RT].
+   */
+  Converter<RS, RT> cast<RS, RT>() => Converter.castFrom<S, T, RS, RT>(this);
 }
 
 /**
@@ -58,7 +80,7 @@ class _FusedConverter<S, M, T> extends Converter<S, T> {
 
   T convert(S input) => _second.convert(_first.convert(input));
 
-  Sink/*<S>*/ startChunkedConversion(Sink/*<T>*/ sink) {
+  Sink<S> startChunkedConversion(Sink<T> sink) {
     return _first.startChunkedConversion(_second.startChunkedConversion(sink));
   }
 }

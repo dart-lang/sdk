@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.instrumentation.instrumentation;
-
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:analyzer/task/model.dart';
+import 'package:analyzer/src/task/api/model.dart';
 
 /**
  * A container with analysis performance constants.
@@ -213,9 +211,16 @@ class InstrumentationService {
    */
   void logPluginError(
       PluginData plugin, String code, String message, String stackTrace) {
-    List<String> fields = <String>[TAG_PLUGIN_ERROR, code, message, stackTrace];
-    plugin.addToFields(fields);
-    _instrumentationServer.log(_join(fields));
+    if (_instrumentationServer != null) {
+      List<String> fields = <String>[
+        TAG_PLUGIN_ERROR,
+        code,
+        message,
+        stackTrace
+      ];
+      plugin.addToFields(fields);
+      _instrumentationServer.log(_join(fields));
+    }
   }
 
   /**
@@ -308,8 +313,8 @@ class InstrumentationService {
         TAG_SUBPROCESS_RESULT,
         subprocessId.toString(),
         exitCode.toString(),
-        JSON.encode(stdout),
-        JSON.encode(stderr)
+        json.encode(stdout),
+        json.encode(stderr)
       ]));
     }
   }
@@ -328,7 +333,7 @@ class InstrumentationService {
         subprocessId.toString(),
         executablePath,
         workingDirectory,
-        JSON.encode(arguments)
+        json.encode(arguments)
       ]));
     }
     return subprocessId;
@@ -374,6 +379,8 @@ class InstrumentationService {
    * should be invoked on this instance after this method has been invoked.
    */
   Future shutdown() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     if (_instrumentationServer != null) {
       await _instrumentationServer.shutdown();
       _instrumentationServer = null;
@@ -468,6 +475,8 @@ class MulticastInstrumentationServer implements InstrumentationServer {
 
   @override
   Future shutdown() async {
+    // TODO(brianwilkerson) Determine whether this await is necessary.
+    await null;
     for (InstrumentationServer server in _servers) {
       await server.shutdown();
     }

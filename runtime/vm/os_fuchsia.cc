@@ -8,10 +8,15 @@
 #include "vm/os.h"
 
 #include <errno.h>
-#include <magenta/process.h>
-#include <magenta/syscalls.h>
-#include <magenta/syscalls/object.h>
-#include <magenta/types.h>
+#include <lib/fdio/util.h>
+#include <zircon/process.h>
+#include <zircon/syscalls.h>
+#include <zircon/syscalls/object.h>
+#include <zircon/types.h>
+
+#include <fuchsia/timezone/cpp/fidl.h>
+
+#include "lib/component/cpp/environment_services.h"
 
 #include "platform/assert.h"
 #include "vm/zone.h"
@@ -31,67 +36,66 @@ const char* OS::Name() {
   return "fuchsia";
 }
 
-
 intptr_t OS::ProcessId() {
   return static_cast<intptr_t>(getpid());
 }
 
-
-static bool LocalTime(int64_t seconds_since_epoch, tm* tm_result) {
-  time_t seconds = static_cast<time_t>(seconds_since_epoch);
-  if (seconds != seconds_since_epoch) {
-    return false;
+static zx_status_t GetLocalAndDstOffsetInSeconds(int64_t seconds_since_epoch,
+                                                 int32_t* local_offset,
+                                                 int32_t* dst_offset) {
+  fuchsia::timezone::TimezoneSyncPtr tz;
+  component::ConnectToEnvironmentService(tz.NewRequest());
+  zx_status_t status = tz->GetTimezoneOffsetMinutes(seconds_since_epoch * 1000,
+                                                    local_offset, dst_offset);
+  if (status != ZX_OK) {
+    return status;
   }
-  struct tm* error_code = localtime_r(&seconds, tm_result);
-  return error_code != NULL;
+  *local_offset *= 60;
+  *dst_offset *= 60;
+  return ZX_OK;
 }
-
 
 const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
-  tm decomposed;
-  bool succeeded = LocalTime(seconds_since_epoch, &decomposed);
-  // If unsuccessful, return an empty string like V8 does.
-  return (succeeded && (decomposed.tm_zone != NULL)) ? decomposed.tm_zone : "";
+  // TODO(abarth): Handle time zone changes.
+  static const auto* tz_name = new std::string([] {
+    fuchsia::timezone::TimezoneSyncPtr tz;
+    component::ConnectToEnvironmentService(tz.NewRequest());
+    fidl::StringPtr result;
+    tz->GetTimezoneId(&result);
+    return *result;
+  }());
+  return tz_name->c_str();
 }
-
 
 int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
-  tm decomposed;
-  bool succeeded = LocalTime(seconds_since_epoch, &decomposed);
-  // Even if the offset was 24 hours it would still easily fit into 32 bits.
-  // If unsuccessful, return zero like V8 does.
-  return succeeded ? static_cast<int>(decomposed.tm_gmtoff) : 0;
+  int32_t local_offset, dst_offset;
+  zx_status_t status = GetLocalAndDstOffsetInSeconds(
+      seconds_since_epoch, &local_offset, &dst_offset);
+  return status == ZX_OK ? local_offset + dst_offset : 0;
 }
-
 
 int OS::GetLocalTimeZoneAdjustmentInSeconds() {
-  // TODO(floitsch): avoid excessive calls to tzset?
-  tzset();
-  // Even if the offset was 24 hours it would still easily fit into 32 bits.
-  // Note that Unix and Dart disagree on the sign.
-  return static_cast<int>(-timezone);
+  int32_t local_offset, dst_offset;
+  zx_status_t status = GetLocalAndDstOffsetInSeconds(
+      zx_clock_get(ZX_CLOCK_UTC) / ZX_SEC(1), &local_offset, &dst_offset);
+  return status == ZX_OK ? local_offset : 0;
 }
-
 
 int64_t OS::GetCurrentTimeMillis() {
   return GetCurrentTimeMicros() / 1000;
 }
 
-
 int64_t OS::GetCurrentTimeMicros() {
-  return mx_time_get(MX_CLOCK_UTC) / kNanosecondsPerMicrosecond;
+  return zx_clock_get(ZX_CLOCK_UTC) / kNanosecondsPerMicrosecond;
 }
-
 
 int64_t OS::GetCurrentMonotonicTicks() {
-  return mx_time_get(MX_CLOCK_MONOTONIC);
+  return zx_clock_get(ZX_CLOCK_MONOTONIC);
 }
-
 
 int64_t OS::GetCurrentMonotonicFrequency() {
   return kNanosecondsPerSecond;
 }
-
 
 int64_t OS::GetCurrentMonotonicMicros() {
   int64_t ticks = GetCurrentMonotonicTicks();
@@ -99,11 +103,9 @@ int64_t OS::GetCurrentMonotonicMicros() {
   return ticks / kNanosecondsPerMicrosecond;
 }
 
-
 int64_t OS::GetCurrentThreadCPUMicros() {
-  return mx_time_get(MX_CLOCK_THREAD) / kNanosecondsPerMicrosecond;
+  return zx_clock_get(ZX_CLOCK_THREAD) / kNanosecondsPerMicrosecond;
 }
-
 
 // TODO(5411554):  May need to hoist these architecture dependent code
 // into a architecture specific file e.g: os_ia32_fuchsia.cc
@@ -125,12 +127,11 @@ intptr_t OS::ActivationFrameAlignment() {
   return alignment;
 }
 
-
 intptr_t OS::PreferredCodeAlignment() {
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
     defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_DBC)
   const int kMinimumAlignment = 32;
-#elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
+#elif defined(TARGET_ARCH_ARM)
   const int kMinimumAlignment = 16;
 #else
 #error Unsupported architecture.
@@ -145,51 +146,26 @@ intptr_t OS::PreferredCodeAlignment() {
   return alignment;
 }
 
-
 int OS::NumberOfAvailableProcessors() {
   return sysconf(_SC_NPROCESSORS_CONF);
 }
-
-
-uintptr_t OS::MaxRSS() {
-  mx_info_task_stats_t task_stats;
-  mx_handle_t process = mx_process_self();
-  mx_status_t status = mx_object_get_info(
-      process, MX_INFO_TASK_STATS, &task_stats, sizeof(task_stats), NULL, NULL);
-  return (status == NO_ERROR) ? task_stats.mem_committed_bytes : 0;
-}
-
 
 void OS::Sleep(int64_t millis) {
   SleepMicros(millis * kMicrosecondsPerMillisecond);
 }
 
-
 void OS::SleepMicros(int64_t micros) {
-  mx_nanosleep(mx_deadline_after(micros * kNanosecondsPerMicrosecond));
+  zx_nanosleep(zx_deadline_after(micros * kNanosecondsPerMicrosecond));
 }
-
 
 void OS::DebugBreak() {
   UNIMPLEMENTED();
 }
 
-
-uintptr_t DART_NOINLINE OS::GetProgramCounter() {
+DART_NOINLINE uintptr_t OS::GetProgramCounter() {
   return reinterpret_cast<uintptr_t>(
       __builtin_extract_return_addr(__builtin_return_address(0)));
 }
-
-
-char* OS::StrNDup(const char* s, intptr_t n) {
-  return strndup(s, n);
-}
-
-
-intptr_t OS::StrNLen(const char* s, intptr_t n) {
-  return strnlen(s, n);
-}
-
 
 void OS::Print(const char* format, ...) {
   va_list args;
@@ -198,30 +174,10 @@ void OS::Print(const char* format, ...) {
   va_end(args);
 }
 
-
 void OS::VFPrint(FILE* stream, const char* format, va_list args) {
   vfprintf(stream, format, args);
   fflush(stream);
 }
-
-
-int OS::SNPrint(char* str, size_t size, const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  int retval = VSNPrint(str, size, format, args);
-  va_end(args);
-  return retval;
-}
-
-
-int OS::VSNPrint(char* str, size_t size, const char* format, va_list args) {
-  int retval = vsnprintf(str, size, format, args);
-  if (retval < 0) {
-    FATAL1("Fatal error in OS::VSNPrint with format '%s'", format);
-  }
-  return retval;
-}
-
 
 char* OS::SCreate(Zone* zone, const char* format, ...) {
   va_list args;
@@ -231,12 +187,11 @@ char* OS::SCreate(Zone* zone, const char* format, ...) {
   return buffer;
 }
 
-
 char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   // Measure.
   va_list measure_args;
   va_copy(measure_args, args);
-  intptr_t len = VSNPrint(NULL, 0, format, measure_args);
+  intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
   va_end(measure_args);
 
   char* buffer;
@@ -250,11 +205,10 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   // Print.
   va_list print_args;
   va_copy(print_args, args);
-  VSNPrint(buffer, len + 1, format, print_args);
+  Utils::VSNPrint(buffer, len + 1, format, print_args);
   va_end(print_args);
   return buffer;
 }
-
 
 bool OS::StringToInt64(const char* str, int64_t* value) {
   ASSERT(str != NULL && strlen(str) > 0 && value != NULL);
@@ -269,10 +223,15 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
     base = 16;
   }
   errno = 0;
-  *value = strtoll(str, &endptr, base);
+  if (base == 16) {
+    // Unsigned 64-bit hexadecimal integer literals are allowed but
+    // immediately interpreted as signed 64-bit integers.
+    *value = static_cast<int64_t>(strtoull(str, &endptr, base));
+  } else {
+    *value = strtoll(str, &endptr, base);
+  }
   return ((errno == 0) && (endptr != str) && (*endptr == 0));
 }
-
 
 void OS::RegisterCodeObservers() {
 #ifndef PRODUCT
@@ -282,14 +241,12 @@ void OS::RegisterCodeObservers() {
 #endif  // !PRODUCT
 }
 
-
 void OS::PrintErr(const char* format, ...) {
   va_list args;
   va_start(args, format);
   VFPrint(stderr, format, args);
   va_end(args);
 }
-
 
 void OS::InitOnce() {
   // TODO(5411554): For now we check that initonce is called only once,
@@ -300,14 +257,11 @@ void OS::InitOnce() {
   init_once_called = true;
 }
 
-
 void OS::Shutdown() {}
-
 
 void OS::Abort() {
   abort();
 }
-
 
 void OS::Exit(int code) {
   UNIMPLEMENTED();

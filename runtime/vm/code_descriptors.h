@@ -43,7 +43,6 @@ class DescriptorList : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(DescriptorList);
 };
 
-
 class StackMapTableBuilder : public ZoneAllocated {
  public:
   StackMapTableBuilder()
@@ -68,7 +67,6 @@ class StackMapTableBuilder : public ZoneAllocated {
   GrowableObjectArray& list_;
   DISALLOW_COPY_AND_ASSIGN(StackMapTableBuilder);
 };
-
 
 class ExceptionHandlerList : public ZoneAllocated {
  public:
@@ -117,7 +115,6 @@ class ExceptionHandlerList : public ZoneAllocated {
     list_[try_index].needs_stacktrace |= needs_stacktrace;
   }
 
-
   // Called by rethrows, to mark their enclosing handlers.
   void SetNeedsStackTrace(intptr_t try_index) {
     // Rethrows can be generated outside a try by the compiler.
@@ -130,7 +127,6 @@ class ExceptionHandlerList : public ZoneAllocated {
     }
     list_[try_index].needs_stacktrace = true;
   }
-
 
   static bool ContainsDynamic(const Array& array) {
     for (intptr_t i = 0; i < array.Length(); i++) {
@@ -147,7 +143,6 @@ class ExceptionHandlerList : public ZoneAllocated {
   GrowableArray<struct HandlerDesc> list_;
   DISALLOW_COPY_AND_ASSIGN(ExceptionHandlerList);
 };
-
 
 // An encoded move from stack/constant to stack performed
 struct CatchEntryStatePair {
@@ -176,7 +171,6 @@ struct CatchEntryStatePair {
   }
 };
 
-
 // Used to construct CatchEntryState metadata for AoT mode of compilation.
 class CatchEntryStateMapBuilder : public ZoneAllocated {
  public:
@@ -200,7 +194,6 @@ class CatchEntryStateMapBuilder : public ZoneAllocated {
 
   DISALLOW_COPY_AND_ASSIGN(CatchEntryStateMapBuilder);
 };
-
 
 // A CodeSourceMap maps from pc offsets to a stack of inlined functions and
 // their positions. This is encoded as a little bytecode that pushes and pops
@@ -229,6 +222,7 @@ class CodeSourceMapBuilder : public ZoneAllocated {
   static const uint8_t kAdvancePC = 1;
   static const uint8_t kPushFunction = 2;
   static const uint8_t kPopFunction = 3;
+  static const uint8_t kNullCheck = 4;
 
   void StartInliningInterval(int32_t pc_offset, intptr_t inline_id);
   void BeginCodeSourceRange(int32_t pc_offset);
@@ -236,6 +230,7 @@ class CodeSourceMapBuilder : public ZoneAllocated {
   void NoteDescriptor(RawPcDescriptors::Kind kind,
                       int32_t pc_offset,
                       TokenPosition pos);
+  void NoteNullCheck(int32_t pc_offset, TokenPosition pos, intptr_t name_index);
 
   RawArray* InliningIdToFunction();
   RawCodeSourceMap* Finalize();
@@ -272,6 +267,10 @@ class CodeSourceMapBuilder : public ZoneAllocated {
     written_inline_id_stack_.RemoveLast();
     written_token_pos_stack_.RemoveLast();
   }
+  void WriteNullCheck(int32_t name_index) {
+    stream_.Write<uint8_t>(kNullCheck);
+    stream_.Write<int32_t>(name_index);
+  }
 
   void FlushBuffer();
   void FlushBufferStack();
@@ -307,7 +306,6 @@ class CodeSourceMapBuilder : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(CodeSourceMapBuilder);
 };
 
-
 class CodeSourceMapReader : public ValueObject {
  public:
   CodeSourceMapReader(const CodeSourceMap& map,
@@ -321,6 +319,8 @@ class CodeSourceMapReader : public ValueObject {
   NOT_IN_PRODUCT(void PrintJSONInlineIntervals(JSONObject* jsobj));
   void DumpInlineIntervals(uword start);
   void DumpSourcePositions(uword start);
+
+  intptr_t GetNullCheckNameIndexAt(int32_t pc_offset);
 
  private:
   const CodeSourceMap& map_;

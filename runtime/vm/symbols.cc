@@ -38,16 +38,13 @@ RawString* StringFrom(const uint8_t* data, intptr_t len, Heap::Space space) {
   return String::FromLatin1(data, len, space);
 }
 
-
 RawString* StringFrom(const uint16_t* data, intptr_t len, Heap::Space space) {
   return String::FromUTF16(data, len, space);
 }
 
-
 RawString* StringFrom(const int32_t* data, intptr_t len, Heap::Space space) {
   return String::FromUTF32(data, len, space);
 }
-
 
 template <typename CharType>
 class CharArray {
@@ -79,7 +76,6 @@ typedef CharArray<uint8_t> Latin1Array;
 typedef CharArray<uint16_t> UTF16Array;
 typedef CharArray<int32_t> UTF32Array;
 
-
 class StringSlice {
  public:
   StringSlice(const String& str, intptr_t begin_index, intptr_t length)
@@ -104,7 +100,6 @@ class StringSlice {
   intptr_t hash_;
 };
 
-
 RawString* StringSlice::ToSymbol() const {
   if (is_all() && str_.IsOld()) {
     str_.SetCanonical();
@@ -117,7 +112,6 @@ RawString* StringSlice::ToSymbol() const {
     return result.raw();
   }
 }
-
 
 class ConcatString {
  public:
@@ -139,14 +133,12 @@ class ConcatString {
   intptr_t hash_;
 };
 
-
 RawString* ConcatString::ToSymbol() const {
   String& result = String::Handle(String::Concat(str1_, str2_, Heap::kOld));
   result.SetCanonical();
   result.SetHash(hash_);
   return result.raw();
 }
-
 
 class SymbolTraits {
  public:
@@ -198,12 +190,10 @@ class SymbolTraits {
 };
 typedef UnorderedHashSet<SymbolTraits> SymbolTable;
 
-
 const char* Symbols::Name(SymbolId symbol) {
   ASSERT((symbol > kIllegal) && (symbol < kNullCharId));
   return names[symbol];
 }
-
 
 const String& Symbols::Token(Token::Kind token) {
   const int tok_index = token;
@@ -213,7 +203,6 @@ const String& Symbols::Token(Token::Kind token) {
   ASSERT(symbol_handles_[token_id] != NULL);
   return *symbol_handles_[token_id];
 }
-
 
 void Symbols::InitOnce(Isolate* vm_isolate) {
   // Should only be run by the vm isolate.
@@ -261,7 +250,6 @@ void Symbols::InitOnce(Isolate* vm_isolate) {
   vm_isolate->object_store()->set_symbol_table(table.Release());
 }
 
-
 void Symbols::InitOnceFromSnapshot(Isolate* vm_isolate) {
   // Should only be run by the vm isolate.
   ASSERT(Isolate::Current() == Dart::vm_isolate());
@@ -302,7 +290,6 @@ void Symbols::InitOnceFromSnapshot(Isolate* vm_isolate) {
   vm_isolate->object_store()->set_symbol_table(table.Release());
 }
 
-
 void Symbols::SetupSymbolTable(Isolate* isolate) {
   ASSERT(isolate != NULL);
 
@@ -315,14 +302,12 @@ void Symbols::SetupSymbolTable(Isolate* isolate) {
   isolate->object_store()->set_symbol_table(array);
 }
 
-
 RawArray* Symbols::UnifiedSymbolTable() {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
 
   ASSERT(thread->IsMutatorThread());
-  ASSERT(isolate->background_compiler() == NULL);
 
   SymbolTable vm_table(zone,
                        Dart::vm_isolate()->object_store()->symbol_table());
@@ -350,9 +335,14 @@ RawArray* Symbols::UnifiedSymbolTable() {
   }
   table.Release();
 
+  // TODO(30378): The default load factor of 0.75 / 2 burns ~100KB, but
+  // increasing the load factor regresses Flutter's hot restart time.
+  // const double kMinLoad = 0.90;
+  // const double kMaxLoad = 0.90;
+  // HashTables::EnsureLoadFactor(kMinLoad, kMaxLoad, unified_table);
+
   return unified_table.Release().raw();
 }
-
 
 void Symbols::Compact(Isolate* isolate) {
   ASSERT(isolate != Dart::vm_isolate());
@@ -380,8 +370,12 @@ void Symbols::Compact(Isolate* isolate) {
     Zone* zone_;
   };
 
-  SymbolCollector visitor(Thread::Current(), &symbols);
-  isolate->heap()->IterateObjects(&visitor);
+  {
+    Thread* thread = Thread::Current();
+    HeapIterationScope iteration(thread);
+    SymbolCollector visitor(thread, &symbols);
+    iteration.IterateObjects(&visitor);
+  }
 
   // 3. Build a new table from the surviving symbols.
   Array& array = Array::Handle(
@@ -397,7 +391,6 @@ void Symbols::Compact(Isolate* isolate) {
   isolate->object_store()->set_symbol_table(table.Release());
 }
 
-
 void Symbols::GetStats(Isolate* isolate, intptr_t* size, intptr_t* capacity) {
   ASSERT(isolate != NULL);
   SymbolTable table(isolate->object_store()->symbol_table());
@@ -406,13 +399,11 @@ void Symbols::GetStats(Isolate* isolate, intptr_t* size, intptr_t* capacity) {
   table.Release();
 }
 
-
 RawString* Symbols::New(Thread* thread, const char* cstr, intptr_t len) {
   ASSERT((cstr != NULL) && (len >= 0));
   const uint8_t* utf8_array = reinterpret_cast<const uint8_t*>(cstr);
   return Symbols::FromUTF8(thread, utf8_array, len);
 }
-
 
 RawString* Symbols::FromUTF8(Thread* thread,
                              const uint8_t* utf8_array,
@@ -435,13 +426,11 @@ RawString* Symbols::FromUTF8(Thread* thread,
   return FromUTF16(thread, characters, len);
 }
 
-
 RawString* Symbols::FromLatin1(Thread* thread,
                                const uint8_t* latin1_array,
                                intptr_t len) {
   return NewSymbol(thread, Latin1Array(latin1_array, len));
 }
-
 
 RawString* Symbols::FromUTF16(Thread* thread,
                               const uint16_t* utf16_array,
@@ -449,13 +438,11 @@ RawString* Symbols::FromUTF16(Thread* thread,
   return NewSymbol(thread, UTF16Array(utf16_array, len));
 }
 
-
 RawString* Symbols::FromUTF32(Thread* thread,
                               const int32_t* utf32_array,
                               intptr_t len) {
   return NewSymbol(thread, UTF32Array(utf32_array, len));
 }
-
 
 RawString* Symbols::FromConcat(Thread* thread,
                                const String& str1,
@@ -469,21 +456,17 @@ RawString* Symbols::FromConcat(Thread* thread,
   }
 }
 
-
 RawString* Symbols::FromGet(Thread* thread, const String& str) {
   return FromConcat(thread, GetterPrefix(), str);
 }
-
 
 RawString* Symbols::FromSet(Thread* thread, const String& str) {
   return FromConcat(thread, SetterPrefix(), str);
 }
 
-
 RawString* Symbols::FromDot(Thread* thread, const String& str) {
   return FromConcat(thread, str, Dot());
 }
-
 
 // TODO(srdjan): If this becomes performance critical code, consider looking
 // up symbol from hash of pieces instead of concatenating them first into
@@ -522,8 +505,8 @@ RawString* Symbols::FromConcatAll(
         const String& str = strs[i];
         ASSERT(str.IsOneByteString() || str.IsExternalOneByteString());
         const uint8_t* src_p = str.IsOneByteString()
-                                   ? OneByteString::CharAddr(str, 0)
-                                   : ExternalOneByteString::CharAddr(str, 0);
+                                   ? OneByteString::DataStart(str)
+                                   : ExternalOneByteString::DataStart(str);
         memmove(buffer, src_p, str_len);
         buffer += str_len;
       }
@@ -539,15 +522,15 @@ RawString* Symbols::FromConcatAll(
       if (str_len > 0) {
         const String& str = strs[i];
         if (str.IsTwoByteString()) {
-          memmove(buffer, TwoByteString::CharAddr(str, 0), str_len * 2);
+          memmove(buffer, TwoByteString::DataStart(str), str_len * 2);
         } else if (str.IsExternalTwoByteString()) {
-          memmove(buffer, ExternalTwoByteString::CharAddr(str, 0), str_len * 2);
+          memmove(buffer, ExternalTwoByteString::DataStart(str), str_len * 2);
         } else {
           // One-byte to two-byte string copy.
           ASSERT(str.IsOneByteString() || str.IsExternalOneByteString());
           const uint8_t* src_p = str.IsOneByteString()
-                                     ? OneByteString::CharAddr(str, 0)
-                                     : ExternalOneByteString::CharAddr(str, 0);
+                                     ? OneByteString::DataStart(str)
+                                     : ExternalOneByteString::DataStart(str);
           for (int n = 0; n < str_len; n++) {
             buffer[n] = src_p[n];
           }
@@ -559,7 +542,6 @@ RawString* Symbols::FromConcatAll(
     return Symbols::FromUTF16(thread, orig_buffer, len_sum);
   }
 }
-
 
 // StringType can be StringSlice, ConcatString, or {Latin1,UTF16,UTF32}Array.
 template <typename StringType>
@@ -591,7 +573,6 @@ RawString* Symbols::NewSymbol(Thread* thread, const StringType& str) {
   return symbol.raw();
 }
 
-
 template <typename StringType>
 RawString* Symbols::Lookup(Thread* thread, const StringType& str) {
   REUSABLE_OBJECT_HANDLESCOPE(thread);
@@ -621,7 +602,6 @@ RawString* Symbols::Lookup(Thread* thread, const StringType& str) {
   return symbol.raw();
 }
 
-
 RawString* Symbols::LookupFromConcat(Thread* thread,
                                      const String& str1,
                                      const String& str2) {
@@ -634,21 +614,17 @@ RawString* Symbols::LookupFromConcat(Thread* thread,
   }
 }
 
-
 RawString* Symbols::LookupFromGet(Thread* thread, const String& str) {
   return LookupFromConcat(thread, GetterPrefix(), str);
 }
-
 
 RawString* Symbols::LookupFromSet(Thread* thread, const String& str) {
   return LookupFromConcat(thread, SetterPrefix(), str);
 }
 
-
 RawString* Symbols::LookupFromDot(Thread* thread, const String& str) {
   return LookupFromConcat(thread, str, Dot());
 }
-
 
 RawString* Symbols::New(Thread* thread, const String& str) {
   if (str.IsSymbol()) {
@@ -657,14 +633,12 @@ RawString* Symbols::New(Thread* thread, const String& str) {
   return New(thread, str, 0, str.Length());
 }
 
-
 RawString* Symbols::New(Thread* thread,
                         const String& str,
                         intptr_t begin_index,
                         intptr_t len) {
   return NewSymbol(thread, StringSlice(str, begin_index, len));
 }
-
 
 RawString* Symbols::NewFormatted(Thread* thread, const char* format, ...) {
   va_list args;
@@ -675,22 +649,20 @@ RawString* Symbols::NewFormatted(Thread* thread, const char* format, ...) {
   return result;
 }
 
-
 RawString* Symbols::NewFormattedV(Thread* thread,
                                   const char* format,
                                   va_list args) {
   va_list args_copy;
   va_copy(args_copy, args);
-  intptr_t len = OS::VSNPrint(NULL, 0, format, args_copy);
+  intptr_t len = Utils::VSNPrint(NULL, 0, format, args_copy);
   va_end(args_copy);
 
   Zone* zone = Thread::Current()->zone();
   char* buffer = zone->Alloc<char>(len + 1);
-  OS::VSNPrint(buffer, (len + 1), format, args);
+  Utils::VSNPrint(buffer, (len + 1), format, args);
 
   return Symbols::New(thread, buffer);
 }
-
 
 RawString* Symbols::FromCharCode(Thread* thread, int32_t char_code) {
   if (char_code > kMaxOneCharCodeSymbol) {
@@ -699,22 +671,20 @@ RawString* Symbols::FromCharCode(Thread* thread, int32_t char_code) {
   return predefined_[char_code];
 }
 
-
 void Symbols::DumpStats(Isolate* isolate) {
   intptr_t size = -1;
   intptr_t capacity = -1;
   // First dump VM symbol table stats.
   GetStats(Dart::vm_isolate(), &size, &capacity);
-  OS::Print("VM Isolate: Number of symbols : %" Pd "\n", size);
-  OS::Print("VM Isolate: Symbol table capacity : %" Pd "\n", capacity);
+  OS::PrintErr("VM Isolate: Number of symbols : %" Pd "\n", size);
+  OS::PrintErr("VM Isolate: Symbol table capacity : %" Pd "\n", capacity);
   // Now dump regular isolate symbol table stats.
   GetStats(isolate, &size, &capacity);
-  OS::Print("Isolate: Number of symbols : %" Pd "\n", size);
-  OS::Print("Isolate: Symbol table capacity : %" Pd "\n", capacity);
+  OS::PrintErr("Isolate: Number of symbols : %" Pd "\n", size);
+  OS::PrintErr("Isolate: Symbol table capacity : %" Pd "\n", capacity);
   // TODO(koda): Consider recording growth and collision stats in HashTable,
   // in DEBUG mode.
 }
-
 
 intptr_t Symbols::LookupPredefinedSymbol(RawObject* obj) {
   for (intptr_t i = 1; i < Symbols::kMaxPredefinedId; i++) {
@@ -724,7 +694,6 @@ intptr_t Symbols::LookupPredefinedSymbol(RawObject* obj) {
   }
   return kInvalidIndex;
 }
-
 
 RawObject* Symbols::GetPredefinedSymbol(intptr_t object_id) {
   ASSERT(IsPredefinedSymbolId(object_id));

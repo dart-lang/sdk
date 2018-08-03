@@ -52,7 +52,8 @@ class DebugPrinter extends Visitor with Indentation, Tagging<Node> {
     openNode(node, '${node.runtimeType}', {
       'name': '${node.name ?? '--unnamed--'}',
       'isFinal': '${node.isFinal}',
-      'isConst': '${node.isConst}'
+      'isConst': '${node.isConst}',
+      'isFieldFormal': '${node.isFieldFormal}'
     });
     node.visitChildren(this);
     closeNode();

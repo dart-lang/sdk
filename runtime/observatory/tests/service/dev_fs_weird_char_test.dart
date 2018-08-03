@@ -8,12 +8,12 @@ import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
-var tests = [
+var tests = <VMTest>[
   // Write a file with the ? character in the filename.
   (VM vm) async {
     var fsId = 'test';
     var filePath = '/foo/bar?dat';
-    var fileContents = BASE64.encode(UTF8.encode('fileContents'));
+    var fileContents = base64Encode(utf8.encode('fileContents'));
 
     var result;
     // Create DevFS.

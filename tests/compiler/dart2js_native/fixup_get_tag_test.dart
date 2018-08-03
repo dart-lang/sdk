@@ -12,30 +12,33 @@ class Foo {
   token() native;
 }
 
-void setup() native r"""
+void setup() {
+  JS('', r"""
+(function(){
 
-dartExperimentalFixupGetTag = function (originalGetTag) {
-  function fixedGetTag(obj) {
-    // Local JS 'class' B is made to be another implementation of the native
-    // class with tag 'A'.
-    if (obj instanceof B) return 'A';
-    // Other classes behave as before.
-    return originalGetTag(obj);
-  }
-  return fixedGetTag;
-};
+  dartExperimentalFixupGetTag = function (originalGetTag) {
+    function fixedGetTag(obj) {
+      // Local JS 'class' B is made to be another implementation of the native
+      // class with tag 'A'.
+      if (obj instanceof B) return 'A';
+      // Other classes behave as before.
+      return originalGetTag(obj);
+    }
+    return fixedGetTag;
+  };
 
-function A(){ }
-A.prototype.token = function () { return 'isA'; }
+  function A(){ }
+  A.prototype.token = function () { return 'isA'; };
 
-function B(){ }
-B.prototype.token = function () { return 'isB'; }
+  function B(){ }
+  B.prototype.token = function () { return 'isB'; };
 
-makeA = function() { return new A; };
-makeB = function() { return new B; };
+  makeA = function() { return new A(); };
+  makeB = function() { return new B(); };
 
-self.nativeConstructor(A);
-""";
+  self.nativeConstructor(A);
+})()""");
+}
 
 makeA() native;
 makeB() native;

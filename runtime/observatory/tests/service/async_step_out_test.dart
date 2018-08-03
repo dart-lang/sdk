@@ -4,45 +4,47 @@
 // VMOptions=--error_on_bad_type --error_on_bad_override  --verbose_debug --async_debugger
 
 import 'dart:developer';
-import 'package:observatory/models.dart' as M;
-import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const LINE_A = 20;
-const LINE_B = 21;
-const LINE_C = 26;
-const LINE_D = 27;
-const LINE_E = 28;
+const LINE_A = 18;
+const LINE_B = 19;
+const LINE_C = 20;
+const LINE_D = 25;
+const LINE_E = 26;
+const LINE_F = 27;
 
 helper() async {
-  print('helper'); // LINE_A.
-  print('foobar'); // LINE_B.
+  await null; // LINE_A.
+  print('helper'); // LINE_B.
+  print('foobar'); // LINE_C.
 }
 
 testMain() async {
   debugger();
-  print('mmmmm'); // LINE_C.
-  await helper(); // LINE_D.
-  print('z'); // LINE_E.
+  print('mmmmm'); // LINE_D.
+  await helper(); // LINE_E.
+  print('z'); // LINE_F.
 }
 
-var tests = [
-  hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_C),
-  stepOver, // print.
+var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_D),
+  stepOver, // print.
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_E),
   stepInto,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
-  stepOver, // print.
+  asyncNext,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_B),
+  stepOver, // print.
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_C),
   stepOut, // out of helper to awaiter testMain.
   hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_E),
+  stoppedAtLine(LINE_F),
 ];
 
 main(args) => runIsolateTests(args, tests, testeeConcurrent: testMain);

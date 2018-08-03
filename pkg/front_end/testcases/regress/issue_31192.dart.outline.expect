@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Increment extends core::Object {
+  field core::int x;
+  constructor •() → void
+    ;
+}
+static method main() → dynamic
+  ;

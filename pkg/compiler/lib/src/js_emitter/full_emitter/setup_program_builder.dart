@@ -32,11 +32,9 @@ jsAst.Statement buildSetupProgram(
     JavaScriptBackend backend,
     Namer namer,
     Emitter emitter,
-    ClosedWorld closedWorld) {
+    JClosedWorld closedWorld) {
   jsAst.Expression typeInformationAccess =
       emitter.generateEmbeddedGlobalAccess(embeddedNames.TYPE_INFORMATION);
-  jsAst.Expression globalFunctionsAccess =
-      emitter.generateEmbeddedGlobalAccess(embeddedNames.GLOBAL_FUNCTIONS);
   jsAst.Expression staticsAccess =
       emitter.generateEmbeddedGlobalAccess(embeddedNames.STATICS);
   jsAst.Expression interceptedNamesAccess =
@@ -49,10 +47,6 @@ jsAst.Statement buildSetupProgram(
       emitter.generateEmbeddedGlobalAccess(embeddedNames.LIBRARIES);
   jsAst.Expression typesAccess =
       emitter.generateEmbeddedGlobalAccess(embeddedNames.TYPES);
-  jsAst.Expression createNewIsolateFunctionAccess =
-      emitter.generateEmbeddedGlobalAccess(embeddedNames.CREATE_NEW_ISOLATE);
-  jsAst.Expression classIdExtractorAccess =
-      emitter.generateEmbeddedGlobalAccess(embeddedNames.CLASS_ID_EXTRACTOR);
   jsAst.Expression allClassesAccess =
       emitter.generateEmbeddedGlobalAccess(embeddedNames.ALL_CLASSES);
   jsAst.Expression precompiledAccess =
@@ -63,12 +57,6 @@ jsAst.Statement buildSetupProgram(
       emitter.generateEmbeddedGlobalAccess(embeddedNames.INTERCEPTORS_BY_TAG);
   jsAst.Expression leafTagsAccess =
       emitter.generateEmbeddedGlobalAccess(embeddedNames.LEAF_TAGS);
-  jsAst.Expression initializeEmptyInstanceAccess = emitter
-      .generateEmbeddedGlobalAccess(embeddedNames.INITIALIZE_EMPTY_INSTANCE);
-  jsAst.Expression classFieldsExtractorAccess = emitter
-      .generateEmbeddedGlobalAccess(embeddedNames.CLASS_FIELDS_EXTRACTOR);
-  jsAst.Expression instanceFromClassIdAccess = emitter
-      .generateEmbeddedGlobalAccess(embeddedNames.INSTANCE_FROM_CLASS_ID);
 
   String reflectableField = namer.reflectableField;
   String reflectionInfoField = namer.reflectionInfoField;
@@ -77,9 +65,8 @@ jsAst.Statement buildSetupProgram(
   String defaultValuesField = namer.defaultValuesField;
   String methodsWithOptionalArgumentsField =
       namer.methodsWithOptionalArgumentsField;
-  String unmangledNameIndex = backend.mirrorsData.mustRetainMetadata
-      ? ' 3 * optionalParameterCount + 2 * requiredParameterCount + 3'
-      : ' 2 * optionalParameterCount + requiredParameterCount + 3';
+  String unmangledNameIndex =
+      ' 2 * optionalParameterCount + requiredParameterCount + 3';
   String receiverParamName =
       compiler.options.enableMinification ? "r" : "receiver";
   String valueParamName = compiler.options.enableMinification ? "v" : "value";
@@ -107,51 +94,39 @@ jsAst.Statement buildSetupProgram(
     'staticsPropertyName': namer.staticsPropertyName,
     'staticsPropertyNameString': js.quoteName(namer.staticsPropertyName),
     'typeInformation': typeInformationAccess,
-    'globalFunctions': globalFunctionsAccess,
     'enabledInvokeOn': closedWorld.backendUsage.isInvokeOnUsed,
     'interceptedNames': interceptedNamesAccess,
     'interceptedNamesSet': emitter.generateInterceptedNamesSet(),
     'notInCspMode': !compiler.options.useContentSecurityPolicy,
     'inCspMode': compiler.options.useContentSecurityPolicy,
     'deferredAction': namer.deferredAction,
-    'hasIsolateSupport': program.hasIsolateSupport,
-    'fieldNamesProperty': js.string(Emitter.FIELD_NAMES_PROPERTY_NAME),
-    'createNewIsolateFunction': createNewIsolateFunctionAccess,
-    'isolateName': namer.isolateName,
-    'classIdExtractor': classIdExtractorAccess,
-    'classFieldsExtractor': classFieldsExtractorAccess,
-    'instanceFromClassId': instanceFromClassIdAccess,
-    'initializeEmptyInstance': initializeEmptyInstanceAccess,
     'allClasses': allClassesAccess,
     'debugFastObjects': DEBUG_FAST_OBJECTS,
-    'isTreeShakingDisabled': backend.mirrorsData.isTreeShakingDisabled,
     'precompiled': precompiledAccess,
     'finishedClassesAccess': finishedClassesAccess,
     'needsMixinSupport': emitter.needsMixinSupport,
     'needsNativeSupport': program.needsNativeSupport,
-    'enabledJsInterop': backend.nativeBasicData.isJsInteropUsed,
+    'enabledJsInterop': closedWorld.nativeData.isJsInteropUsed,
     'jsInteropBoostrap': backend.jsInteropAnalysis.buildJsInteropBootstrap(),
     'isInterceptorClass':
-        namer.operatorIs(compiler.commonElements.jsInterceptorClass),
-    'isObject': namer.operatorIs(compiler.commonElements.objectClass),
+        namer.operatorIs(closedWorld.commonElements.jsInterceptorClass),
+    'isObject': namer.operatorIs(closedWorld.commonElements.objectClass),
     'specProperty': js.string(namer.nativeSpecProperty),
     'trivialNsmHandlers': emitter.buildTrivialNsmHandlers(),
-    'hasRetainedMetadata': backend.mirrorsData.hasRetainedMetadata,
     'types': typesAccess,
-    'objectClassName': js.quoteName(namer.runtimeTypeName(
-        // ignore: UNNECESSARY_CAST
-        compiler.commonElements.objectClass as Entity)),
+    'objectClassName': js.quoteName(
+        namer.runtimeTypeName(closedWorld.commonElements.objectClass)),
     'needsStructuredMemberInfo': emitter.needsStructuredMemberInfo,
-    'usesMangledNames': compiler.commonElements.mirrorsLibrary != null ||
+    'usesMangledNames': closedWorld.backendUsage.isMirrorsUsed ||
         closedWorld.backendUsage.isFunctionApplyUsed,
     'tearOffCode': buildTearOffCode(
-        compiler.options, emitter, namer, compiler.commonElements),
+        compiler.options, emitter, namer, closedWorld.commonElements),
     'nativeInfoHandler': nativeInfoHandler,
     'operatorIsPrefix': js.string(namer.operatorIsPrefix),
     'deferredActionString': js.string(namer.deferredAction)
   };
   String skeleton = '''
-function $setupProgramName(programData, typesOffset) {
+function $setupProgramName(programData, metadataOffset, typesOffset) {
   "use strict";
   if (#needsClassSupport) {
 
@@ -231,17 +206,23 @@ function $setupProgramName(programData, typesOffset) {
       var accessors = [];
 
       var str = "function " + name + "(";
-      var body = "";
-      if (#hasIsolateSupport) { var fieldNames = ""; }
+      var comma = "", body = "";
 
       for (var i = 0; i < fields.length; i++) {
-        if(i != 0) str += ", ";
-
-        var field = generateAccessor(fields[i], accessors, name);
-        if (#hasIsolateSupport) { fieldNames += "'" + field + "',"; }
-        var parameter = "p_" + field;
-        str += parameter;
-        body += ("this." + field + " = " + parameter + ";\\n");
+        var fieldDescriptor = fields[i];
+        if (fieldDescriptor.charCodeAt(0) == 48) {
+          // null-initialized field.
+          fieldDescriptor = fieldDescriptor.substring(1);
+          var field = generateAccessor(fieldDescriptor, accessors, name);
+          body += ("this." + field + " = null;\\n");
+        } else {
+          var field = generateAccessor(fieldDescriptor, accessors, name);
+          var parameter = "p_" + field;
+          str += comma;
+          comma = ", ";
+          str += parameter;
+          body += ("this." + field + " = " + parameter + ";\\n");
+        }
       }
       if (supportsDirectProtoAccess) {
         body += "this." + #deferredActionString + "();";
@@ -253,37 +234,9 @@ function $setupProgramName(programData, typesOffset) {
       if (typeof defineClass.name != "string") {
         str += name + ".name=\\"" + name + "\\";\\n";
       }
-      if (#hasIsolateSupport) {
-        str += name + "." + #fieldNamesProperty + "=[" + fieldNames
-               + "];\\n";
-      }
       str += accessors.join("");
 
       return str;
-    }
-
-    if (#hasIsolateSupport) {
-      #createNewIsolateFunction = function() { return new #isolateName(); };
-
-      #classIdExtractor = function(o) { return o.constructor.name; };
-
-      #classFieldsExtractor = function(o) {
-        var fieldNames = o.constructor.#fieldNamesProperty;
-        if (!fieldNames) return [];  // TODO(floitsch): do something else here.
-        var result = [];
-        result.length = fieldNames.length;
-        for (var i = 0; i < fieldNames.length; i++) {
-          result[i] = o[fieldNames[i]];
-        }
-        return result;
-      };
-
-      #instanceFromClassId = function(name) { return new #allClasses[name](); };
-
-      #initializeEmptyInstance = function(name, o, fields) {
-        #allClasses[name].apply(o, fields);
-        return o;
-      }
     }
 
     // If the browser supports changing the prototype via __proto__, we make
@@ -360,8 +313,6 @@ function $setupProgramName(programData, typesOffset) {
         var desc = processedClasses.collected[cls];
         var globalObject = desc[0];
         desc = desc[1];
-        if (#isTreeShakingDisabled)
-          constructor["${namer.metadataField}"] = desc;
         allClasses[cls] = constructor;
         globalObject[cls] = constructor;
       }
@@ -539,7 +490,7 @@ function $setupProgramName(programData, typesOffset) {
               descriptor[property];
           var optionalMethods = descriptor.$methodsWithOptionalArgumentsField;
           if (!optionalMethods) {
-            descriptor.$methodsWithOptionalArgumentsField = optionalMethods={}
+            descriptor.$methodsWithOptionalArgumentsField = optionalMethods = {}
           }
           optionalMethods[property] = previousProperty;
         } else {
@@ -571,11 +522,6 @@ function $setupProgramName(programData, typesOffset) {
       var classData = descriptor["${namer.classDescriptorProperty}"],
           split, supr, fields = classData;
 
-      if (#hasRetainedMetadata)
-        if (typeof classData == "object" &&
-            classData instanceof Array) {
-          classData = fields = classData[0];
-        }
       // ${ClassBuilder.fieldEncodingDescription}.
       var s = fields.split(";");
       fields = s[1] ? s[1].split(",") : [];
@@ -629,7 +575,6 @@ function $setupProgramName(programData, typesOffset) {
       } else if (typeof element === "function") {
         globalObject[previousProperty = property] = element;
         functions.push(property);
-        #globalFunctions[property] = element;
       } else if (element.constructor === Array) {
         if (#needsStructuredMemberInfo) {
           addStubs(globalObject, element, property, true, functions);
@@ -660,14 +605,19 @@ function $setupProgramName(programData, typesOffset) {
     // the information is thrown away at the call site. This is to avoid
     // conditionals.
     function addStubs(prototype, array, name, isStatic, functions) {
-      var index = $FUNCTION_INDEX, alias = array[index], f;
+      var index = $FUNCTION_INDEX, applyTrampolineIndex = index, alias = array[index], f;
       if (typeof alias == "string") {
         f = array[++index];
       } else {
         f = alias;
         alias = name;
       }
-      var funcs = [prototype[name] = prototype[alias] = f];
+      if (typeof f == "number") {
+        applyTrampolineIndex = f;
+        f = array[++index];
+      }
+      prototype[name] = prototype[alias] = f;
+      var funcs = [f];
       f.\$stubName = name;
       functions.push(name);
       for (index++; index < array.length; index++) {
@@ -689,6 +639,8 @@ function $setupProgramName(programData, typesOffset) {
       var getterStubName = ${readString("array", "index")};
       array = array.slice(++index);
       var requiredParameterInfo = ${readInt("array", "0")};
+      var isIntercepted = (requiredParameterInfo & 1) === 1;
+      requiredParameterInfo = requiredParameterInfo >> 1;
       var requiredParameterCount = requiredParameterInfo >> 1;
       var isAccessor = (requiredParameterInfo & 1) === 1;
       var isSetter = requiredParameterInfo === 3;
@@ -696,20 +648,33 @@ function $setupProgramName(programData, typesOffset) {
       var optionalParameterInfo = ${readInt("array", "1")};
       var optionalParameterCount = optionalParameterInfo >> 1;
       var optionalParametersAreNamed = (optionalParameterInfo & 1) === 1;
-      var isIntercepted =
-             requiredParameterCount + optionalParameterCount != funcs[0].length;
+      var totalParameterCount = requiredParameterCount + optionalParameterCount;
       var functionTypeIndex = ${readFunctionType("array", "2")};
       if (typeof functionTypeIndex == "number")
         ${readFunctionType("array", "2")} = functionTypeIndex + typesOffset;
+      if (metadataOffset > 0) {
+        var position = 3;
+        // Update index that refers to the parameter default value.
+        for (var i = 0; i < optionalParameterCount; i++) {
+          if (typeof ${readInt("array", "position")} == "number")
+          ${readInt("array", "position")} =
+              ${readInt("array", "position")} + metadataOffset;
+          position++;
+        }
+        for (var i = 0; i < totalParameterCount; i++) {
+          // Update index that refers to the parameter name.
+          ${readInt("array", "position")} =
+              ${readInt("array", "position")} + metadataOffset;
+          position++;
+        }
+      }
       var unmangledNameIndex = $unmangledNameIndex;
 
       if (getterStubName) {
-        f = tearOff(funcs, array, isStatic, name, isIntercepted);
+        f = tearOff(funcs, applyTrampolineIndex, array, isStatic, name, isIntercepted);
         prototype[name].\$getter = f;
         f.\$getterStub = true;
-        // Used to create an isolate using spawnFunction.
         if (isStatic) {
-          #globalFunctions[name] = f;
           functions.push(getterStubName);
         }
         prototype[getterStubName] = f;
@@ -746,10 +711,14 @@ function $setupProgramName(programData, typesOffset) {
           }
           mangledNames[name] = reflectionName;
           funcs[0].$reflectionNameField = reflectionName;
+          for (var i = unmangledNameIndex + 1; i < array.length; i++) {
+            ${readInt("array", "i")} =
+                ${readInt("array", "i")} + metadataOffset;
+          }
           funcs[0].$metadataIndexField = unmangledNameIndex + 1;
           // The following line installs the [${JsGetName.CALL_CATCH_ALL}]
           // property for closures.
-          if (optionalParameterCount) prototype[unmangledName + "*"] = funcs[0];
+          if (optionalParameterCount) prototype[unmangledName + "*"] = funcs[applyTrampolineIndex];
         }
       }
     }
@@ -766,7 +735,6 @@ function $setupProgramName(programData, typesOffset) {
   if (!#mangledGlobalNames) #mangledGlobalNames = map();
   if (!#statics) #statics = map();
   if (!#typeInformation) #typeInformation = map();
-  if (!#globalFunctions) #globalFunctions = map();
   if (#enabledInvokeOn)
     if (!#interceptedNames) #interceptedNames = #interceptedNamesSet;
   var libraries = #libraries;

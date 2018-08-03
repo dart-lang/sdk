@@ -17,8 +17,6 @@ dependencies:
     path: ../../sdk/lib/_internal/sdk_library_metadata
   dart2js_info:
     path: ../../third_party/pkg/dart2js_info
-  lookup_map:
-    path: ../lookup_map
   front_end:
     path: ../front_end
 dependency_overrides:

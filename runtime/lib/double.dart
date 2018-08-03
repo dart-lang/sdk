@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// part of "core_patch.dart";
+
 class _Double implements double {
   factory _Double.fromInteger(int value) native "Double_doubleFromInteger";
 
-  // TODO: Make a stared static method for hashCode and _identityHashCode
-  //       when semantics are corrected as described in:
-  //       https://github.com/dart-lang/sdk/issues/2884
-  int get hashCode => (isNaN || isInfinite) ? 0 : toInt();
-  int get _identityHashCode => (isNaN || isInfinite) ? 0 : toInt();
+  int get hashCode native "Double_hashCode";
+  int get _identityHashCode native "Double_hashCode";
 
   double operator +(num other) {
     return _add(other.toDouble());
@@ -55,9 +54,8 @@ class _Double implements double {
 
   double operator -() native "Double_flipSignBit";
 
-  bool operator ==(other) {
-    if (!(other is num)) return false;
-    return _equal(other.toDouble());
+  bool operator ==(Object other) {
+    return (other is num) && _equal(other.toDouble());
   }
 
   bool _equal(double other) native "Double_equal";
@@ -151,9 +149,6 @@ class _Double implements double {
   }
 
   int toInt() native "Double_toInt";
-  num _toBigintOrDouble() {
-    return this;
-  }
 
   double toDouble() {
     return this;
@@ -237,8 +232,8 @@ class _Double implements double {
     }
 
     if (isNaN) return "NaN";
-    if (this == double.INFINITY) return "Infinity";
-    if (this == -double.INFINITY) return "-Infinity";
+    if (this == double.infinity) return "Infinity";
+    if (this == -double.infinity) return "-Infinity";
 
     // The dart function prints the shortest representation when fractionDigits
     // equals null. The native function wants -1 instead.
@@ -266,8 +261,8 @@ class _Double implements double {
     }
 
     if (isNaN) return "NaN";
-    if (this == double.INFINITY) return "Infinity";
-    if (this == -double.INFINITY) return "-Infinity";
+    if (this == double.infinity) return "Infinity";
+    if (this == -double.infinity) return "-Infinity";
 
     return _toStringAsPrecision(precision);
   }
@@ -290,6 +285,30 @@ class _Double implements double {
           return EQUAL;
         }
         return thisIsNegative ? LESS : GREATER;
+      } else if (other is int) {
+        // Compare as integers as it is more precise if the integer value is
+        // outside of MIN_EXACT_INT_TO_DOUBLE..MAX_EXACT_INT_TO_DOUBLE range.
+        const int MAX_EXACT_INT_TO_DOUBLE = 9007199254740992; // 2^53.
+        const int MIN_EXACT_INT_TO_DOUBLE = -MAX_EXACT_INT_TO_DOUBLE;
+        if ((MIN_EXACT_INT_TO_DOUBLE <= other) &&
+            (other <= MAX_EXACT_INT_TO_DOUBLE)) {
+          return EQUAL;
+        }
+        const bool limitIntsTo64Bits = ((1 << 64) == 0);
+        if (limitIntsTo64Bits) {
+          // With integers limited to 64 bits, double.toInt() clamps
+          // double value to fit into the MIN_INT64..MAX_INT64 range.
+          // MAX_INT64 is not precisely representable as double, so
+          // integers near MAX_INT64 compare as equal to (MAX_INT64 + 1) when
+          // represented as doubles.
+          // There is no similar problem with MIN_INT64 as it is precisely
+          // representable as double.
+          const double maxInt64Plus1AsDouble = 9223372036854775808.0;
+          if (this >= maxInt64Plus1AsDouble) {
+            return GREATER;
+          }
+        }
+        return toInt().compareTo(other);
       } else {
         return EQUAL;
       }

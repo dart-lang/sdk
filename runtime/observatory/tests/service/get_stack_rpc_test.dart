@@ -32,7 +32,7 @@ void startTimer() {
   new Timer.periodic(const Duration(milliseconds: 10), periodicTask);
 }
 
-var tests = [
+var tests = <IsolateTest>[
 // Initial data fetch and verify we've hit the breakpoint.
   (Isolate isolate) async {
     await isolate.rootLibrary.load();
@@ -85,7 +85,7 @@ var tests = [
     expect(msgHandlerObjectId, isNotNull);
 
     // Get object.
-    var object = await isolate.getObject(msgHandlerObjectId);
+    Instance object = await isolate.getObject(msgHandlerObjectId);
     expect(object.valueAsString, equals('34'));
   }
 ];

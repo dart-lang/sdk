@@ -21,14 +21,14 @@ static void TestPrinter(const char* format, ...) {
   // Measure.
   va_list args;
   va_start(args, format);
-  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
+  intptr_t len = Utils::VSNPrint(NULL, 0, format, args);
   va_end(args);
 
   // Print string to buffer.
   char* buffer = reinterpret_cast<char*>(malloc(len + 1));
   va_list args2;
   va_start(args2, format);
-  OS::VSNPrint(buffer, (len + 1), format, args2);
+  Utils::VSNPrint(buffer, (len + 1), format, args2);
   va_end(args2);
 
   if (test_output_ != NULL) {
@@ -36,6 +36,9 @@ static void TestPrinter(const char* format, ...) {
     test_output_ = NULL;
   }
   test_output_ = buffer;
+
+  // Also print to stdout to see the overall result.
+  OS::PrintErr("%s", test_output_);
 }
 
 class LogTestHelper : public AllStatic {
@@ -54,7 +57,6 @@ class LogTestHelper : public AllStatic {
   }
 };
 
-
 TEST_CASE(Log_Macro) {
   test_output_ = NULL;
   Log* log = Log::Current();
@@ -67,7 +69,6 @@ TEST_CASE(Log_Macro) {
   LogTestHelper::FreeTestOutput();
 }
 
-
 TEST_CASE(Log_Basic) {
   test_output_ = NULL;
   Log* log = new Log(TestPrinter);
@@ -79,7 +80,6 @@ TEST_CASE(Log_Basic) {
   delete log;
   LogTestHelper::FreeTestOutput();
 }
-
 
 TEST_CASE(Log_Block) {
   test_output_ = NULL;
@@ -95,9 +95,15 @@ TEST_CASE(Log_Block) {
       log->Print("BANANA");
       EXPECT_EQ(reinterpret_cast<const char*>(NULL), test_output_);
     }
-    EXPECT_STREQ("BANANA", test_output_);
+    EXPECT_EQ(reinterpret_cast<const char*>(NULL), test_output_);
+    {
+      LogBlock ba(thread, log);
+      log->Print("PEAR");
+      EXPECT_EQ(reinterpret_cast<const char*>(NULL), test_output_);
+    }
+    EXPECT_EQ(reinterpret_cast<const char*>(NULL), test_output_);
   }
-  EXPECT_STREQ("APPLE", test_output_);
+  EXPECT_STREQ("APPLEBANANAPEAR", test_output_);
   delete log;
   LogTestHelper::FreeTestOutput();
 }

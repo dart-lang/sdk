@@ -15,7 +15,7 @@ import '../options.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart'
     show CodegenWorldBuilder, SelectorConstraints;
-import '../world.dart' show ClosedWorld;
+import '../world.dart' show JClosedWorld;
 
 import 'code_emitter_task.dart';
 import 'model.dart';
@@ -23,7 +23,7 @@ import 'model.dart';
 class ClassStubGenerator {
   final Namer _namer;
   final CodegenWorldBuilder _worldBuilder;
-  final ClosedWorld _closedWorld;
+  final JClosedWorld _closedWorld;
   final bool enableMinification;
   final Emitter _emitter;
   final CommonElements _commonElements;
@@ -35,7 +35,7 @@ class ClassStubGenerator {
   InterceptorData get _interceptorData => _closedWorld.interceptorData;
 
   jsAst.Expression generateClassConstructor(
-      ClassEntity classElement, Iterable<jsAst.Name> fields, bool hasRtiField) {
+      ClassEntity classElement, List<jsAst.Name> fields, bool hasRtiField) {
     // TODO(sra): Implement placeholders in VariableDeclaration position:
     //
     //     String constructorName = namer.getNameOfClass(classElement);
@@ -43,17 +43,23 @@ class ClassStubGenerator {
     //        [ constructorName, fields,
     //            fields.map(
     //                (name) => js('this.# = #', [name, name]))]));
-    var typeParameters = const <jsAst.Parameter>[];
-    var typeInits = const <jsAst.Expression>[];
+    dynamic typeParameters = const <jsAst.Parameter>[];
+    dynamic typeInits = const <jsAst.Expression>[];
     if (hasRtiField) {
-      var rtiName = _namer.rtiFieldJsName;
+      dynamic rtiName = _namer.rtiFieldJsName;
       typeParameters = rtiName;
       typeInits = js('this.# = #', [rtiName, rtiName]);
     }
+    List<jsAst.Parameter> parameters = new List<jsAst.Parameter>.generate(
+        fields.length, (i) => new jsAst.Parameter('t$i'));
+    List<jsAst.Expression> fieldInitializers =
+        new List<jsAst.Expression>.generate(fields.length, (i) {
+      return js('this.# = #', [fields[i], parameters[i]]);
+    });
     return js('function(#, #) { #; #; this.#();}', [
-      fields,
+      parameters,
       typeParameters,
-      fields.map((name) => js('this.# = #', [name, name])),
+      fieldInitializers,
       typeInits,
       _namer.deferredAction
     ]);
@@ -87,7 +93,7 @@ class ClassStubGenerator {
   Map<jsAst.Name, jsAst.Expression> generateCallStubsForGetter(
       MemberEntity member, Map<Selector, SelectorConstraints> selectors) {
     // If the method is intercepted, the stub gets the
-    // receiver explicitely and we need to pass it to the getter call.
+    // receiver explicitly and we need to pass it to the getter call.
     bool isInterceptedMethod = _interceptorData.isInterceptedMethod(member);
     bool isInterceptedClass =
         _interceptorData.isInterceptedClass(member.enclosingClass);
@@ -177,7 +183,8 @@ class ClassStubGenerator {
     // Values match JSInvocationMirror in js-helper library.
     int type = selector.invocationMirrorKind;
     List<String> parameterNames =
-        new List.generate(selector.argumentCount, (i) => '\$$i');
+        new List.generate(selector.argumentCount, (i) => '\$$i') +
+            new List.generate(selector.typeArgumentCount, (i) => '\$T${i + 1}');
 
     List<jsAst.Expression> argNames = selector.callStructure
         .getOrderedNamedArguments()
@@ -189,26 +196,26 @@ class ClassStubGenerator {
 
     assert(_interceptorData.isInterceptedName(Identifiers.noSuchMethod_));
     bool isIntercepted = _interceptorData.isInterceptedName(selector.name);
-    jsAst.Expression expression = js(
-        '''this.#noSuchMethodName(#receiver,
+    jsAst.Expression expression = js('''this.#noSuchMethodName(#receiver,
                     #createInvocationMirror(#methodName,
                                             #internalName,
                                             #type,
                                             #arguments,
-                                            #namedArguments))''',
-        {
-          'receiver': isIntercepted ? r'$receiver' : 'this',
-          'noSuchMethodName': _namer.noSuchMethodName,
-          'createInvocationMirror': _emitter
-              .staticFunctionAccess(_commonElements.createInvocationMirror),
-          'methodName':
-              js.quoteName(enableMinification ? internalName : methodName),
-          'internalName': js.quoteName(internalName),
-          'type': js.number(type),
-          'arguments':
-              new jsAst.ArrayInitializer(parameterNames.map(js).toList()),
-          'namedArguments': new jsAst.ArrayInitializer(argNames)
-        });
+                                            #namedArguments,
+                                            #typeArgumentCount))''', {
+      'receiver': isIntercepted ? r'$receiver' : 'this',
+      'noSuchMethodName': _namer.noSuchMethodName,
+      'createInvocationMirror':
+          _emitter.staticFunctionAccess(_commonElements.createInvocationMirror),
+      'methodName':
+          js.quoteName(enableMinification ? internalName : methodName),
+      'internalName': js.quoteName(internalName),
+      'type': js.number(type),
+      'arguments': new jsAst.ArrayInitializer(
+          parameterNames.map<jsAst.Expression>(js).toList()),
+      'namedArguments': new jsAst.ArrayInitializer(argNames),
+      'typeArgumentCount': js.number(selector.typeArgumentCount)
+    });
 
     jsAst.Expression function;
     if (isIntercepted) {
@@ -230,6 +237,7 @@ class ClassStubGenerator {
 ///    member that is torn off. There can be more than one, since a member
 ///    can have several stubs.
 ///    Each function must have the `$callName` property set.
+///   * `applyTrampolineIndex` is the index of the stub to be used for Function.apply
 ///   * `reflectionInfo`: contains reflective information, and the function
 ///    type. TODO(floitsch): point to where this is specified.
 ///   * `isStatic`.
@@ -244,9 +252,9 @@ List<jsAst.Statement> buildTearOffCode(CompilerOptions options, Emitter emitter,
   if (closureFromTearOff != null) {
     tearOffAccessExpression = emitter.staticFunctionAccess(closureFromTearOff);
     tearOffGlobalObject =
-        js.stringPart(namer.globalObjectForMethod(closureFromTearOff));
+        js.stringPart(namer.globalObjectForMember(closureFromTearOff));
     tearOffGlobalObjectString =
-        js.string(namer.globalObjectForMethod(closureFromTearOff));
+        js.string(namer.globalObjectForMember(closureFromTearOff));
   } else {
     // Default values for mocked-up test libraries.
     tearOffAccessExpression =
@@ -258,65 +266,62 @@ List<jsAst.Statement> buildTearOffCode(CompilerOptions options, Emitter emitter,
 
   jsAst.Statement tearOffGetter;
   if (!options.useContentSecurityPolicy) {
-    jsAst.Expression tearOffAccessText =
-        new jsAst.UnparsedNode(tearOffAccessExpression, options, false);
-    tearOffGetter = js.statement(
-        '''
-function tearOffGetter(funcs, reflectionInfo, name, isIntercepted) {
+    jsAst.Expression tearOffAccessText = new jsAst.UnparsedNode(
+        tearOffAccessExpression, options.enableMinification, false);
+    tearOffGetter = js.statement('''
+function tearOffGetter(funcs, applyTrampolineIndex, reflectionInfo, name, isIntercepted) {
   return isIntercepted
-      ? new Function("funcs", "reflectionInfo", "name",
+      ? new Function("funcs", "applyTrampolineIndex", "reflectionInfo", "name",
                      #tearOffGlobalObjectString, "c",
           "return function tearOff_" + name + (functionCounter++) + "(x) {" +
             "if (c === null) c = " + #tearOffAccessText + "(" +
-                "this, funcs, reflectionInfo, false, [x], name);" +
+                "this, funcs, applyTrampolineIndex, reflectionInfo, false, [x], name);" +
                 "return new c(this, funcs[0], x, name);" +
-                "}")(funcs, reflectionInfo, name, #tearOffGlobalObject, null)
-      : new Function("funcs", "reflectionInfo", "name",
+           "}")(funcs, applyTrampolineIndex, reflectionInfo, name, #tearOffGlobalObject, null)
+      : new Function("funcs", "applyTrampolineIndex", "reflectionInfo", "name",
                      #tearOffGlobalObjectString, "c",
           "return function tearOff_" + name + (functionCounter++)+ "() {" +
             "if (c === null) c = " + #tearOffAccessText + "(" +
-                "this, funcs, reflectionInfo, false, [], name);" +
+                "this, funcs, applyTrampolineIndex, reflectionInfo, false, [], name);" +
                 "return new c(this, funcs[0], null, name);" +
-                "}")(funcs, reflectionInfo, name, #tearOffGlobalObject, null);
-}''',
-        {
-          'tearOffAccessText': tearOffAccessText,
-          'tearOffGlobalObject': tearOffGlobalObject,
-          'tearOffGlobalObjectString': tearOffGlobalObjectString
-        });
+             "}")(funcs, applyTrampolineIndex, reflectionInfo, name, #tearOffGlobalObject, null);
+}''', {
+      'tearOffAccessText': tearOffAccessText,
+      'tearOffGlobalObject': tearOffGlobalObject,
+      'tearOffGlobalObjectString': tearOffGlobalObjectString
+    });
   } else {
-    tearOffGetter = js.statement(
-        '''
-      function tearOffGetter(funcs, reflectionInfo, name, isIntercepted) {
+    tearOffGetter = js.statement('''
+        function tearOffGetter(funcs, applyTrampolineIndex, reflectionInfo, name, isIntercepted) {
         var cache = null;
         return isIntercepted
             ? function(x) {
                 if (cache === null) cache = #(
-                    this, funcs, reflectionInfo, false, [x], name);
+                    this, funcs, applyTrampolineIndex, reflectionInfo, false, [x], name);
                 return new cache(this, funcs[0], x, name);
               }
             : function() {
                 if (cache === null) cache = #(
-                    this, funcs, reflectionInfo, false, [], name);
+                    this, funcs, applyTrampolineIndex, reflectionInfo, false, [], name);
                 return new cache(this, funcs[0], null, name);
               };
-      }''',
-        [tearOffAccessExpression, tearOffAccessExpression]);
+      }''', [tearOffAccessExpression, tearOffAccessExpression]);
   }
 
-  jsAst.Statement tearOff = js.statement(
-      '''
-    function tearOff(funcs, reflectionInfo, isStatic, name, isIntercepted) {
+  jsAst.Statement tearOff = js.statement('''
+      function tearOff(funcs, applyTrampolineIndex,
+          reflectionInfo, isStatic, name, isIntercepted) {
       var cache;
       return isStatic
           ? function() {
               if (cache === void 0) cache = #tearOff(
-                  this, funcs, reflectionInfo, true, [], name).prototype;
+                  this, funcs, applyTrampolineIndex,
+                  reflectionInfo, true, [], name).prototype;
               return cache;
             }
-          : tearOffGetter(funcs, reflectionInfo, name, isIntercepted);
-    }''',
-      {'tearOff': tearOffAccessExpression});
+          : tearOffGetter(funcs, applyTrampolineIndex,
+              reflectionInfo, name, isIntercepted);
+    }''', {'tearOff': tearOffAccessExpression});
 
   return <jsAst.Statement>[tearOffGetter, tearOff];
 }

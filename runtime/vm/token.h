@@ -27,7 +27,6 @@ namespace dart {
 //   2  assignment      = *= /= ~/= %= += -= <<= >>= &= ^= |= ??=
 //   1  comma           ,
 
-
 // Token definitions.
 // Some operator tokens appear in blocks, e.g. assignment operators.
 // There is code that depends on the values within a block to be
@@ -148,7 +147,7 @@ namespace dart {
 #define DART_KEYWORD_LIST(KW)                                                  \
   KW(kABSTRACT, "abstract", 0, kPseudoKeyword) /* == kFirstKeyword */          \
   KW(kAS, "as", 11, kPseudoKeyword)                                            \
-  KW(kASSERT, "assert", 11, kKeyword)                                          \
+  KW(kASSERT, "assert", 0, kKeyword)                                           \
   KW(kBREAK, "break", 0, kKeyword)                                             \
   KW(kCASE, "case", 0, kKeyword)                                               \
   KW(kCATCH, "catch", 0, kKeyword)                                             \
@@ -157,6 +156,7 @@ namespace dart {
   KW(kCONTINUE, "continue", 0, kKeyword)                                       \
   KW(kCOVARIANT, "covariant", 0, kPseudoKeyword)                               \
   KW(kDEFAULT, "default", 0, kKeyword)                                         \
+  KW(kDEFERRED, "deferred", 0, kPseudoKeyword)                                 \
   KW(kDO, "do", 0, kKeyword)                                                   \
   KW(kELSE, "else", 0, kKeyword)                                               \
   KW(kENUM, "enum", 0, kKeyword)                                               \

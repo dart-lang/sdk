@@ -4,7 +4,8 @@
 
 library summary_report;
 
-import "expectation.dart";
+import "package:status_file/expectation.dart";
+
 import "test_runner.dart";
 
 final summaryReport = new SummaryReport();
@@ -20,7 +21,6 @@ class SummaryReport {
   int _fail = 0;
   int _crash = 0;
   int _timeout = 0;
-  int _compileErrorSkip = 0;
 
   int get total => _total;
 
@@ -48,6 +48,10 @@ class SummaryReport {
     if (containsSkip) {
       ++_skipped;
     } else if (containsSkipByDesign) {
+      ++_skipped;
+      ++_skippedByDesign;
+    } else if (testCase.configuration.fastTestsOnly &&
+        (containsSlow || containsTimeout)) {
       ++_skipped;
       ++_skippedByDesign;
     } else {
@@ -93,11 +97,6 @@ class SummaryReport {
     }
   }
 
-  void addCompileErrorSkipTest() {
-    _total++;
-    _compileErrorSkip++;
-  }
-
   Map<String, int> get values => {
         'total': _total,
         'skippedOther': skippedOther,
@@ -109,7 +108,6 @@ class SummaryReport {
         'fail': _fail,
         'crash': _crash,
         'timeout': _timeout,
-        'compileErrorSkip': _compileErrorSkip,
         'bogus': bogus
       };
 
@@ -122,7 +120,6 @@ class SummaryReport {
  * $_fail tests are expected to fail that we should fix
  * $_crash tests are expected to crash that we should fix
  * $_timeout tests are allowed to timeout
- * $_compileErrorSkip tests are skipped on browsers due to compile-time error
  * $bogus could not be categorized or are in multiple categories
 """;
 

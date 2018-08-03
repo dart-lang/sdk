@@ -10,7 +10,6 @@ import 'package:front_end/src/fasta/util/link.dart';
 export 'emptyset.dart';
 export 'maplet.dart';
 export 'setlet.dart';
-export 'package:front_end/src/fasta/util/link.dart';
 
 part 'indentation.dart';
 
@@ -43,8 +42,11 @@ class Hashing {
   }
 
   /// Mix the bits of `.hashCode` all non-null objects.
-  static int objectsHash(Object obj1, [Object obj2, Object obj3]) {
+  static int objectsHash(Object obj1,
+      [Object obj2, Object obj3, Object obj4, Object obj5]) {
     int hash = 0;
+    if (obj5 != null) hash = objectHash(obj5, hash);
+    if (obj4 != null) hash = objectHash(obj4, hash);
     if (obj3 != null) hash = objectHash(obj3, hash);
     if (obj2 != null) hash = objectHash(obj2, hash);
     return objectHash(obj1, hash);
@@ -53,9 +55,11 @@ class Hashing {
   /// Mix the bits of the element hash codes of [list] with [existing].
   static int listHash(List list, [int existing = 0]) {
     int h = existing;
-    int length = list.length;
-    for (int i = 0; i < length; i++) {
-      h = mixHashCodeBits(h, list[i].hashCode);
+    if (list != null) {
+      int length = list.length;
+      for (int i = 0; i < length; i++) {
+        h = mixHashCodeBits(h, list[i].hashCode);
+      }
     }
     return h;
   }
@@ -81,7 +85,9 @@ class Hashing {
   }
 }
 
-bool equalElements(List a, List b) {
+bool equalElements<E>(List<E> a, List<E> b) {
+  if (identical(a, b)) return true;
+  if (a == null || b == null) return false;
   if (a.length != b.length) return false;
   for (int index = 0; index < a.length; index++) {
     if (a[index] != b[index]) {
@@ -203,7 +209,7 @@ String modifiersToString(
   if (isExternal) builder.addLast('external');
   if (isCovariant) builder.addLast('covariant');
   StringBuffer buffer = new StringBuffer();
-  builder.toLink().printOn(buffer, ', ');
+  builder.toLink(const Link<String>()).printOn(buffer, ', ');
   return buffer.toString();
 }
 
@@ -238,13 +244,14 @@ int longestCommonPrefixLength(List a, List b) {
 /// the smallest number that makes it not appear in [usedNames].
 ///
 /// Adds the result to [usedNames].
-String makeUnique(String suggestedName, Set<String> usedNames) {
+String makeUnique(String suggestedName, Set<String> usedNames,
+    [String separator = '']) {
   String result = suggestedName;
   if (usedNames.contains(suggestedName)) {
     int counter = 0;
     while (usedNames.contains(result)) {
       counter++;
-      result = "$suggestedName$counter";
+      result = "$suggestedName$separator$counter";
     }
   }
   usedNames.add(result);

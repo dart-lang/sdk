@@ -1,0 +1,24 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test() → dynamic {
+  core::Object x;
+  core::Function f;
+  let final dynamic #t1 = x in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/bug21938.dart:10:4: Error: The method 'call' isn't defined for the class 'dart.core::Object'.
+Try correcting the name to the name of an existing method, or defining a method named 'call'.
+  x /*@error=UndefinedMethod*/ ();
+   ^";
+  let final dynamic #t2 = x in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/bug21938.dart:11:4: Error: The method 'call' isn't defined for the class 'dart.core::Object'.
+Try correcting the name to the name of an existing method, or defining a method named 'call'.
+  x /*@error=UndefinedMethod*/ (3);
+   ^";
+  f.call(5, 2);
+  let final dynamic #t3 = x in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/bug21938.dart:13:33: Error: The method 'call' isn't defined for the class 'dart.core::Object'.
+Try correcting the name to the name of an existing method, or defining a method named 'call'.
+  x. /*@error=UndefinedMethod*/ call();
+                                ^";
+  f.call;
+  f.call(5, 2);
+}
+static method main() → dynamic {}

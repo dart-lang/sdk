@@ -1,0 +1,112 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "./mixin_library.dart" as mix;
+
+class Super<S extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method foo() → dynamic
+    return 40;
+  method f() → dynamic
+    return 3;
+}
+abstract class _C&Super&Mixin<V extends core::Object = dynamic> extends self::Super<self::_C&Super&Mixin::V> implements mix::Mixin<self::_C&Super&Mixin::V> {
+  field dynamic x = mix::f()/* from org-dartlang-testcase:///mixin_library.dart */;
+  field dynamic y = null /* from org-dartlang-testcase:///mixin_library.dart */;
+  field dynamic z = null /* from org-dartlang-testcase:///mixin_library.dart */;
+  field self::_C&Super&Mixin::V t = null /* from org-dartlang-testcase:///mixin_library.dart */;
+  synthetic constructor •() → void
+    : super self::Super::•()
+    ;
+  method /* from org-dartlang-testcase:///mixin_library.dart */ foo() → dynamic
+    return super.foo().+(mix::f());
+  method /* from org-dartlang-testcase:///mixin_library.dart */ g(self::_C&Super&Mixin::V a) → self::_C&Super&Mixin::V
+    return null;
+  method /* from org-dartlang-testcase:///mixin_library.dart */ h() → dynamic
+    return mix::V();
+  method /* from org-dartlang-testcase:///mixin_library.dart */ l() → dynamic
+    return mix::_private();
+  method /* from org-dartlang-testcase:///mixin_library.dart */ _privateMethod() → dynamic
+    return 49;
+  method /* from org-dartlang-testcase:///mixin_library.dart */ publicMethod() → dynamic
+    return this.{mix::Mixin::_privateMethod}();
+}
+class C<V extends core::Object = dynamic> extends self::_C&Super&Mixin<self::C::V> {
+  synthetic constructor •() → void
+    : super self::Super::•()
+    ;
+}
+abstract class _D&Super&Mixin extends self::Super<dynamic> implements mix::Mixin<dynamic> {
+  field dynamic x = mix::f()/* from org-dartlang-testcase:///mixin_library.dart */;
+  field dynamic y = null /* from org-dartlang-testcase:///mixin_library.dart */;
+  field dynamic z = null /* from org-dartlang-testcase:///mixin_library.dart */;
+  field dynamic t = null /* from org-dartlang-testcase:///mixin_library.dart */;
+  synthetic constructor •() → void
+    : super self::Super::•()
+    ;
+  method /* from org-dartlang-testcase:///mixin_library.dart */ foo() → dynamic
+    return super.foo().+(mix::f());
+  method /* from org-dartlang-testcase:///mixin_library.dart */ g(dynamic a) → dynamic
+    return null;
+  method /* from org-dartlang-testcase:///mixin_library.dart */ h() → dynamic
+    return mix::V();
+  method /* from org-dartlang-testcase:///mixin_library.dart */ l() → dynamic
+    return mix::_private();
+  method /* from org-dartlang-testcase:///mixin_library.dart */ _privateMethod() → dynamic
+    return 49;
+  method /* from org-dartlang-testcase:///mixin_library.dart */ publicMethod() → dynamic
+    return this.{mix::Mixin::_privateMethod}();
+}
+class D extends self::_D&Super&Mixin {
+  synthetic constructor •() → void
+    : super self::Super::•()
+    ;
+}
+class C2<V extends core::Object = dynamic> extends self::Super<self::C2::V> implements mix::Mixin<self::C2::V> {
+  field dynamic x = mix::f()/* from org-dartlang-testcase:///mixin_library.dart */;
+  field dynamic y = null /* from org-dartlang-testcase:///mixin_library.dart */;
+  field dynamic z = null /* from org-dartlang-testcase:///mixin_library.dart */;
+  field self::C2::V t = null /* from org-dartlang-testcase:///mixin_library.dart */;
+  synthetic constructor •() → void
+    : super self::Super::•()
+    ;
+  method /* from org-dartlang-testcase:///mixin_library.dart */ foo() → dynamic
+    return super.foo().+(mix::f());
+  method /* from org-dartlang-testcase:///mixin_library.dart */ g(self::C2::V a) → self::C2::V
+    return null;
+  method /* from org-dartlang-testcase:///mixin_library.dart */ h() → dynamic
+    return mix::V();
+  method /* from org-dartlang-testcase:///mixin_library.dart */ l() → dynamic
+    return mix::_private();
+  method /* from org-dartlang-testcase:///mixin_library.dart */ _privateMethod() → dynamic
+    return 49;
+  method /* from org-dartlang-testcase:///mixin_library.dart */ publicMethod() → dynamic
+    return this.{mix::Mixin::_privateMethod}();
+}
+class D2 extends self::Super<dynamic> implements mix::Mixin<dynamic> {
+  field dynamic x = mix::f()/* from org-dartlang-testcase:///mixin_library.dart */;
+  field dynamic y = null /* from org-dartlang-testcase:///mixin_library.dart */;
+  field dynamic z = null /* from org-dartlang-testcase:///mixin_library.dart */;
+  field dynamic t = null /* from org-dartlang-testcase:///mixin_library.dart */;
+  synthetic constructor •() → void
+    : super self::Super::•()
+    ;
+  method /* from org-dartlang-testcase:///mixin_library.dart */ foo() → dynamic
+    return super.foo().+(mix::f());
+  method /* from org-dartlang-testcase:///mixin_library.dart */ g(dynamic a) → dynamic
+    return null;
+  method /* from org-dartlang-testcase:///mixin_library.dart */ h() → dynamic
+    return mix::V();
+  method /* from org-dartlang-testcase:///mixin_library.dart */ l() → dynamic
+    return mix::_private();
+  method /* from org-dartlang-testcase:///mixin_library.dart */ _privateMethod() → dynamic
+    return 49;
+  method /* from org-dartlang-testcase:///mixin_library.dart */ publicMethod() → dynamic
+    return this.{mix::Mixin::_privateMethod}();
+}
+static method main() → dynamic {
+  core::print(new self::C::•<dynamic>().foo());
+  core::print(new self::C2::•<dynamic>().foo());
+}

@@ -26,21 +26,17 @@ void SetCaptureStdout(bool value) {
   capture_stdout = value;
 }
 
-
 void SetCaptureStderr(bool value) {
   capture_stderr = value;
 }
-
 
 bool ShouldCaptureStdout() {
   return capture_stdout;
 }
 
-
 bool ShouldCaptureStderr() {
   return capture_stderr;
 }
-
 
 bool File::ReadFully(void* buffer, int64_t num_bytes) {
   int64_t remaining = num_bytes;
@@ -55,7 +51,6 @@ bool File::ReadFully(void* buffer, int64_t num_bytes) {
   }
   return true;
 }
-
 
 bool File::WriteFully(const void* buffer, int64_t num_bytes) {
   int64_t remaining = num_bytes;
@@ -82,7 +77,6 @@ bool File::WriteFully(const void* buffer, int64_t num_bytes) {
   }
   return true;
 }
-
 
 File::FileOpenMode File::DartModeToFileMode(DartFileOpenMode mode) {
   ASSERT((mode == File::kDartRead) || (mode == File::kDartWrite) ||
