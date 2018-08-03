@@ -204,7 +204,6 @@ class TypeEnvironment extends SubtypeTester {
           namedParameters: replacedNamedParameters,
           typeParameters: type.typeParameters,
           requiredParameterCount: type.requiredParameterCount,
-          positionalParameterNames: type.positionalParameterNames,
           typedefReference: type.typedefReference);
     }
     return type;

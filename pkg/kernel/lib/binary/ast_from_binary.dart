@@ -867,7 +867,11 @@ class BinaryBuilder {
     node.annotations = readAnnotationList(node);
     readAndPushTypeParameterList(node.typeParameters, node);
     var type = readDartType();
+    readAndPushTypeParameterList(node.typeParametersOfFunctionType, node);
+    node.positionalParameters.addAll(readAndPushVariableDeclarationList());
+    node.namedParameters.addAll(readAndPushVariableDeclarationList());
     typeParameterStack.length = 0;
+    variableStack.length = 0;
     if (shouldWriteData) {
       node.fileOffset = fileOffset;
       node.name = name;
@@ -1828,7 +1832,6 @@ class BinaryBuilder {
         var totalParameterCount = readUInt();
         var positional = readDartTypeList();
         var named = readNamedTypeList();
-        var positionalNames = readStringReferenceList();
         var typedefReference = readTypedefReference();
         assert(positional.length + named.length == totalParameterCount);
         var returnType = readDartType();
@@ -1837,14 +1840,11 @@ class BinaryBuilder {
             typeParameters: typeParameters,
             requiredParameterCount: requiredParameterCount,
             namedParameters: named,
-            positionalParameterNames: positionalNames,
             typedefReference: typedefReference);
       case Tag.SimpleFunctionType:
         var positional = readDartTypeList();
-        var positionalNames = readStringReferenceList();
         var returnType = readDartType();
-        return new FunctionType(positional, returnType,
-            positionalParameterNames: positionalNames);
+        return new FunctionType(positional, returnType);
       case Tag.TypeParameterType:
         int index = readUInt();
         var bound = readDartTypeOption();

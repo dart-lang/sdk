@@ -131,7 +131,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 9;
+  UInt32 formatVersion = 10;
   Library[] libraries;
   UriSource sourceMap;
   List<CanonicalName> canonicalNames;
@@ -253,6 +253,9 @@ type Typedef {
   List<Expression> annotations;
   List<TypeParameter> typeParameters;
   DartType type;
+  List<TypeParameter> typeParametersOfFunctionType;
+  List<VariableDeclaration> positionalParameters;
+  List<VariableDeclaration> namedParameters;
 }
 
 type Combinator {
@@ -1167,7 +1170,6 @@ type FunctionType extends DartType {
   UInt totalParameterCount;
   List<DartType> positionalParameters;
   List<NamedDartType> namedParameters;
-  List<StringReference> positionalParameterNames;
   CanonicalNameReference typedefReference;
   DartType returnType;
 }

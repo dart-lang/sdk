@@ -581,9 +581,25 @@ class Typedef extends NamedNode implements FileUriNode {
   final List<TypeParameter> typeParameters;
   DartType type;
 
+  // The following two fields describe parameters of the underlying function
+  // type.  They are needed to keep such attributes as names and annotations.
+  final List<TypeParameter> typeParametersOfFunctionType;
+  final List<VariableDeclaration> positionalParameters;
+  final List<VariableDeclaration> namedParameters;
+
   Typedef(this.name, this.type,
-      {Reference reference, this.fileUri, List<TypeParameter> typeParameters})
+      {Reference reference,
+      this.fileUri,
+      List<TypeParameter> typeParameters,
+      List<TypeParameter> typeParametersOfFunctionType,
+      List<VariableDeclaration> positionalParameters,
+      List<VariableDeclaration> namedParameters})
       : this.typeParameters = typeParameters ?? <TypeParameter>[],
+        this.typeParametersOfFunctionType =
+            typeParametersOfFunctionType ?? <TypeParameter>[],
+        this.positionalParameters =
+            positionalParameters ?? <VariableDeclaration>[],
+        this.namedParameters = namedParameters ?? <VariableDeclaration>[],
         super(reference) {
     setParents(this.typeParameters, this);
   }
@@ -2224,8 +2240,7 @@ class PropertyGet extends Expression {
     if (interfaceTarget != null) {
       Class superclass = interfaceTarget.enclosingClass;
       var receiverType = receiver.getStaticTypeAsInstanceOf(superclass, types);
-      return Substitution
-          .fromInterfaceType(receiverType)
+      return Substitution.fromInterfaceType(receiverType)
           .substituteType(interfaceTarget.getterType);
     }
     // Treat the properties of Object specially.
@@ -2342,8 +2357,7 @@ class DirectPropertyGet extends Expression {
   DartType getStaticType(TypeEnvironment types) {
     Class superclass = target.enclosingClass;
     var receiverType = receiver.getStaticTypeAsInstanceOf(superclass, types);
-    return Substitution
-        .fromInterfaceType(receiverType)
+    return Substitution.fromInterfaceType(receiverType)
         .substituteType(target.getterType);
   }
 }
@@ -2446,11 +2460,10 @@ class DirectMethodInvocation extends InvocationExpression {
     }
     Class superclass = target.enclosingClass;
     var receiverType = receiver.getStaticTypeAsInstanceOf(superclass, types);
-    var returnType = Substitution
-        .fromInterfaceType(receiverType)
+    var returnType = Substitution.fromInterfaceType(receiverType)
         .substituteType(target.function.returnType);
-    return Substitution
-        .fromPairs(target.function.typeParameters, arguments.types)
+    return Substitution.fromPairs(
+            target.function.typeParameters, arguments.types)
         .substituteType(returnType);
   }
 }
@@ -2481,8 +2494,7 @@ class SuperPropertyGet extends Expression {
     }
     var receiver =
         types.hierarchy.getTypeAsInstanceOf(types.thisType, declaringClass);
-    return Substitution
-        .fromInterfaceType(receiver)
+    return Substitution.fromInterfaceType(receiver)
         .substituteType(interfaceTarget.getterType);
   }
 
@@ -2727,12 +2739,11 @@ class MethodInvocation extends InvocationExpression {
       }
       Class superclass = interfaceTarget.enclosingClass;
       var receiverType = receiver.getStaticTypeAsInstanceOf(superclass, types);
-      var getterType = Substitution
-          .fromInterfaceType(receiverType)
+      var getterType = Substitution.fromInterfaceType(receiverType)
           .substituteType(interfaceTarget.getterType);
       if (getterType is FunctionType) {
-        return Substitution
-            .fromPairs(getterType.typeParameters, arguments.types)
+        return Substitution.fromPairs(
+                getterType.typeParameters, arguments.types)
             .substituteType(getterType.returnType);
       } else {
         return const DynamicType();
@@ -2744,8 +2755,8 @@ class MethodInvocation extends InvocationExpression {
         if (receiverType.typeParameters.length != arguments.types.length) {
           return const BottomType();
         }
-        return Substitution
-            .fromPairs(receiverType.typeParameters, arguments.types)
+        return Substitution.fromPairs(
+                receiverType.typeParameters, arguments.types)
             .substituteType(receiverType.returnType);
       }
     }
@@ -2806,11 +2817,10 @@ class SuperMethodInvocation extends InvocationExpression {
     Class superclass = interfaceTarget.enclosingClass;
     var receiverType =
         types.hierarchy.getTypeAsInstanceOf(types.thisType, superclass);
-    var returnType = Substitution
-        .fromInterfaceType(receiverType)
+    var returnType = Substitution.fromInterfaceType(receiverType)
         .substituteType(interfaceTarget.function.returnType);
-    return Substitution
-        .fromPairs(interfaceTarget.function.typeParameters, arguments.types)
+    return Substitution.fromPairs(
+            interfaceTarget.function.typeParameters, arguments.types)
         .substituteType(returnType);
   }
 
@@ -2859,8 +2869,8 @@ class StaticInvocation extends InvocationExpression {
   }
 
   DartType getStaticType(TypeEnvironment types) {
-    return Substitution
-        .fromPairs(target.function.typeParameters, arguments.types)
+    return Substitution.fromPairs(
+            target.function.typeParameters, arguments.types)
         .substituteType(target.function.returnType);
   }
 
@@ -2951,8 +2961,7 @@ class Instantiation extends Expression {
 
   DartType getStaticType(TypeEnvironment types) {
     FunctionType type = expression.getStaticType(types);
-    return Substitution
-        .fromPairs(type.typeParameters, typeArguments)
+    return Substitution.fromPairs(type.typeParameters, typeArguments)
         .substituteType(type.withoutTypeParameters);
   }
 
@@ -4804,11 +4813,6 @@ class FunctionType extends DartType {
   final List<DartType> positionalParameters;
   final List<NamedType> namedParameters; // Must be sorted.
 
-  /// The optional names of [positionalParameters], not `null`, but might be
-  /// empty if information is not available.
-  @informative
-  final List<String> positionalParameterNames;
-
   /// The [Typedef] this function type is created for.
   @nocoq
   Reference typedefReference;
@@ -4820,7 +4824,6 @@ class FunctionType extends DartType {
       {this.namedParameters: const <NamedType>[],
       this.typeParameters: const <TypeParameter>[],
       int requiredParameterCount,
-      this.positionalParameterNames: const <String>[],
       this.typedefReference})
       : this.positionalParameters = positionalParameters,
         this.requiredParameterCount =

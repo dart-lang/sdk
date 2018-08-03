@@ -689,6 +689,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void visitTypedef(Typedef node) {
+    _variableIndexer ??= new VariableIndexer();
     writeCanonicalNameReference(getCanonicalNameOfTypedef(node));
 
     final Uri activeFileUriSaved = _activeFileUri;
@@ -697,10 +698,18 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeStringReference(node.name);
     writeAnnotationList(node.annotations);
-    enterScope(typeParameters: node.typeParameters);
+
+    enterScope(typeParameters: node.typeParameters, variableScope: true);
     writeNodeList(node.typeParameters);
     writeNode(node.type);
-    leaveScope(typeParameters: node.typeParameters);
+
+    enterScope(typeParameters: node.typeParametersOfFunctionType);
+    writeNodeList(node.typeParametersOfFunctionType);
+    writeVariableDeclarationList(node.positionalParameters);
+    writeVariableDeclarationList(node.namedParameters);
+
+    leaveScope(typeParameters: node.typeParametersOfFunctionType);
+    leaveScope(typeParameters: node.typeParameters, variableScope: true);
 
     _activeFileUri = activeFileUriSaved;
   }
@@ -1673,7 +1682,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
         node.typedefReference == null) {
       writeByte(Tag.SimpleFunctionType);
       writeNodeList(node.positionalParameters);
-      writeStringReferenceList(node.positionalParameterNames);
       writeNode(node.returnType);
     } else {
       writeByte(Tag.FunctionType);
@@ -1684,7 +1692,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
           node.positionalParameters.length + node.namedParameters.length);
       writeNodeList(node.positionalParameters);
       writeNodeList(node.namedParameters);
-      writeStringReferenceList(node.positionalParameterNames);
       writeReference(node.typedefReference);
       writeNode(node.returnType);
       leaveScope(typeParameters: node.typeParameters);

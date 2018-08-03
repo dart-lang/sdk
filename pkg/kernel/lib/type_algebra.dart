@@ -248,7 +248,6 @@ class FreshTypeParameters {
       namedParameters: type.namedParameters.map(substituteNamed).toList(),
       typeParameters: freshTypeParameters,
       requiredParameterCount: type.requiredParameterCount,
-      positionalParameterNames: type.positionalParameterNames,
       typedefReference: type.typedefReference);
 
   DartType substitute(DartType type) => substitution.substituteType(type);

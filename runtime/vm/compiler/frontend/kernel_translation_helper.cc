@@ -1887,8 +1887,6 @@ void KernelReaderHelper::SkipFunctionType(bool simple) {
     }
   }
 
-  SkipListOfStrings();  // read positional parameter names.
-
   if (!simple) {
     SkipCanonicalNameReference();  // read typedef reference.
   }
@@ -2377,13 +2375,16 @@ void KernelReaderHelper::SkipLibraryPart() {
 }
 
 void KernelReaderHelper::SkipLibraryTypedef() {
-  SkipCanonicalNameReference();  // read canonical name.
-  ReadUInt();                    // read source_uri_index.
-  ReadPosition();                // read position.
-  SkipStringReference();         // read name index.
-  SkipListOfExpressions();       // read annotations.
-  SkipTypeParametersList();      // read type parameters.
-  SkipDartType();                // read type.
+  SkipCanonicalNameReference();      // read canonical name.
+  ReadUInt();                        // read source_uri_index.
+  ReadPosition();                    // read position.
+  SkipStringReference();             // read name index.
+  SkipListOfExpressions();           // read annotations.
+  SkipTypeParametersList();          // read type parameters.
+  SkipDartType();                    // read type.
+  SkipTypeParametersList();          // read type parameters of function type.
+  SkipListOfVariableDeclarations();  // read positional parameters.
+  SkipListOfVariableDeclarations();  // read named parameters.
 }
 
 TokenPosition KernelReaderHelper::ReadPosition(bool record) {
@@ -2762,8 +2763,6 @@ void TypeTranslator::BuildFunctionType(bool simple) {
       parameter_names.SetAt(pos, name);
     }
   }
-
-  helper_->SkipListOfStrings();  // read positional parameter names.
 
   if (!simple) {
     helper_->SkipCanonicalNameReference();  // read typedef reference.

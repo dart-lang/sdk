@@ -1291,8 +1291,6 @@ void ScopeBuilder::VisitFunctionType(bool simple) {
     }
   }
 
-  helper_.SkipListOfStrings();  // read positional parameter names.
-
   if (!simple) {
     helper_.SkipCanonicalNameReference();  // read typedef reference.
   }

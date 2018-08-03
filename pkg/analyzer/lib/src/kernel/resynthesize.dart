@@ -413,9 +413,14 @@ class KernelResynthesizer implements ElementResynthesizer {
     int positionalCount = type.positionalParameters.length;
     var positionalParameters =
         new List<kernel.VariableDeclaration>(positionalCount);
+    var knownPositionalParameters = const <kernel.VariableDeclaration>[];
+    if (type.typedefReference != null) {
+      knownPositionalParameters =
+          type.typedefReference.asTypedef.positionalParameters;
+    }
     for (int i = 0; i < positionalCount; i++) {
-      String name = i < type.positionalParameterNames.length
-          ? type.positionalParameterNames[i]
+      String name = i < knownPositionalParameters.length
+          ? (knownPositionalParameters[i].name ?? '')
           : 'arg_$i';
       positionalParameters[i] = new kernel.VariableDeclaration(name,
           type: type.positionalParameters[i]);

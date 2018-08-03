@@ -47,7 +47,6 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
     DartType builtReturnType =
         returnType?.build(library) ?? const DynamicType();
     List<DartType> positionalParameters = <DartType>[];
-    List<String> positionalParameterNames = <String>[];
     List<NamedType> namedParameters;
     int requiredParameterCount = 0;
     if (formals != null) {
@@ -55,7 +54,6 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
         DartType type = formal.type?.build(library) ?? const DynamicType();
         if (formal.isPositional) {
           positionalParameters.add(type);
-          positionalParameterNames.add(formal.name ?? '');
           if (formal.isRequired) requiredParameterCount++;
         } else if (formal.isNamed) {
           namedParameters ??= <NamedType>[];
@@ -76,8 +74,7 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
     var type = new FunctionType(positionalParameters, builtReturnType,
         namedParameters: namedParameters ?? const <NamedType>[],
         typeParameters: typeParameters ?? const <TypeParameter>[],
-        requiredParameterCount: requiredParameterCount,
-        positionalParameterNames: positionalParameterNames);
+        requiredParameterCount: requiredParameterCount);
     outlineListener?.store(charOffset, false, type: type);
     return type;
   }
