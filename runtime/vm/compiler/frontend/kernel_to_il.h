@@ -63,8 +63,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   FlowGraph* BuildGraphOfNoSuchMethodDispatcher(const Function& function);
   FlowGraph* BuildGraphOfInvokeFieldDispatcher(const Function& function);
 
-  Fragment NativeFunctionBody(intptr_t first_positional_offset,
-                              const Function& function);
+  Fragment NativeFunctionBody(const Function& function,
+                              LocalVariable* first_parameter);
 
   Fragment EnterScope(intptr_t kernel_offset,
                       intptr_t* num_context_variables = NULL);

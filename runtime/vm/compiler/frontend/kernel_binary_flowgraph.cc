@@ -446,14 +446,14 @@ Fragment StreamingFlowGraphBuilder::BuildDefaultTypeHandling(
     default_types = default_types.Canonicalize();
 
     if (!default_types.IsNull()) {
-      // clang-format off
-      return B->TestAnyTypeArgs(/*then=*/{}, /*else=*/{
-          TranslateInstantiatedTypeArguments(default_types),
-          StoreLocal(TokenPosition::kNoSource,
-                     parsed_function()->function_type_arguments()),
-          Drop()
-        });
-      // clang-format on
+      Fragment then;
+      Fragment otherwise;
+
+      otherwise += TranslateInstantiatedTypeArguments(default_types);
+      otherwise += StoreLocal(TokenPosition::kNoSource,
+                              parsed_function()->function_type_arguments());
+      otherwise += Drop();
+      return B->TestAnyTypeArgs(then, otherwise);
     }
   }
   return Fragment();
@@ -645,13 +645,12 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
   body += StoreLocal(TokenPosition::kNoSource, argument_count_var);
   body += Drop();
   if (function.IsGeneric() && Isolate::Current()->reify_generic_functions()) {
-    // clang-format off
-    body += flow_graph_builder_->TestAnyTypeArgs(/*then=*/{
-        IntConstant(1),
-        StoreLocal(TokenPosition::kNoSource, argument_count_var),
-        Drop()
-      }, /*else=*/{});
-    // clang-format on
+    Fragment then;
+    Fragment otherwise;
+    otherwise += IntConstant(1);
+    otherwise += StoreLocal(TokenPosition::kNoSource, argument_count_var);
+    otherwise += Drop();
+    body += flow_graph_builder_->TestAnyTypeArgs(then, otherwise);
   }
 
   if (function.HasOptionalParameters()) {
@@ -695,19 +694,16 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
     //   i = 1;
     // }
     if (function.IsGeneric() && Isolate::Current()->reify_generic_functions()) {
-      // clang-format off
-      Fragment store_type_arguments = {
-            LoadLocal(arguments),
-            IntConstant(0),
-            LoadFunctionTypeArguments(),
-            StoreIndexed(kArrayCid),
-            Drop(),
-            IntConstant(1),
-            StoreLocal(TokenPosition::kNoSource, index),
-            Drop()
-          };
-      // clang-format on
-      body += B->TestAnyTypeArgs(store_type_arguments, {});
+      Fragment store;
+      store += LoadLocal(arguments);
+      store += IntConstant(0);
+      store += LoadFunctionTypeArguments();
+      store += StoreIndexed(kArrayCid);
+      store += Drop();
+      store += IntConstant(1);
+      store += StoreLocal(TokenPosition::kNoSource, index);
+      store += Drop();
+      body += B->TestAnyTypeArgs(store, Fragment());
     }
 
     TargetEntryInstr* body_entry;
@@ -822,14 +818,15 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
   if (function.IsClosureFunction()) {
     LocalVariable* closure =
         parsed_function()->node_sequence()->scope()->VariableAt(0);
-    body += B->TestDelayedTypeArgs(
-        closure,
-        Fragment({IntConstant(function.NumTypeParameters()),
-                  StoreLocal(TokenPosition::kNoSource, argument_count_var),
-                  Drop()}),
-        Fragment({IntConstant(0),
-                  StoreLocal(TokenPosition::kNoSource, argument_count_var),
-                  Drop()}));
+    Fragment then;
+    then += IntConstant(function.NumTypeParameters());
+    then += StoreLocal(TokenPosition::kNoSource, argument_count_var);
+    then += Drop();
+    Fragment otherwise;
+    otherwise += IntConstant(0);
+    otherwise += StoreLocal(TokenPosition::kNoSource, argument_count_var);
+    otherwise += Drop();
+    body += B->TestDelayedTypeArgs(closure, then, otherwise);
     body += LoadLocal(argument_count_var);
   } else {
     body += IntConstant(0);
@@ -1171,234 +1168,78 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder() {
                 flow_graph_builder_->last_used_block_id_, prologue_info);
 }
 
-FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
-  // The prologue builder needs the default parameter values.
-  SetupDefaultParameterValues();
-
-  const Function& dart_function = parsed_function()->function();
-  TargetEntryInstr* normal_entry = flow_graph_builder_->BuildTargetEntry();
-  PrologueInfo prologue_info(-1, -1);
-  BlockEntryInstr* instruction_cursor =
-      flow_graph_builder_->BuildPrologue(normal_entry, &prologue_info);
-
-  flow_graph_builder_->graph_entry_ = new (Z) GraphEntryInstr(
-      *parsed_function(), normal_entry, flow_graph_builder_->osr_id_);
-
-  Fragment body;
-
-  LocalVariable* closure = NULL;
-  if (dart_function.IsClosureFunction()) {
-    closure = parsed_function()->node_sequence()->scope()->VariableAt(0);
+Fragment StreamingFlowGraphBuilder::DebugStepCheckInPrologue(
+    const Function& dart_function,
+    TokenPosition position) {
+  if (!NeedsDebugStepCheck(dart_function, position)) {
+    return {};
   }
 
-  if (!dart_function.is_native()) {
-    body += flow_graph_builder_->CheckStackOverflowInPrologue(
-        dart_function.token_pos());
-  }
-  intptr_t context_size =
-      parsed_function()->node_sequence()->scope()->num_context_variables();
-  if (context_size > 0) {
-    body += flow_graph_builder_->PushContext(context_size);
-    LocalVariable* context = MakeTemporary();
-
-    // Copy captured parameters from the stack into the context.
+  // Place this check at the last parameter to ensure parameters
+  // are in scope in the debugger at method entry.
+  const int parameter_count = dart_function.NumParameters();
+  TokenPosition check_pos = TokenPosition::kNoSource;
+  if (parameter_count > 0) {
     LocalScope* scope = parsed_function()->node_sequence()->scope();
-    intptr_t parameter_count = dart_function.NumParameters();
-    const ParsedFunction& pf = *flow_graph_builder_->parsed_function_;
-    const Function& function = pf.function();
-
-    for (intptr_t i = 0; i < parameter_count; ++i) {
-      LocalVariable* variable = scope->VariableAt(i);
-      if (variable->is_captured()) {
-        LocalVariable& raw_parameter = *pf.RawParameterVariable(i);
-        ASSERT((function.HasOptionalParameters() &&
-                raw_parameter.owner() == scope) ||
-               (!function.HasOptionalParameters() &&
-                raw_parameter.owner() == NULL));
-        ASSERT(!raw_parameter.is_captured());
-
-        // Copy the parameter from the stack to the context.  Overwrite it
-        // with a null constant on the stack so the original value is
-        // eligible for garbage collection.
-        body += LoadLocal(context);
-        body += LoadLocal(&raw_parameter);
-        body += flow_graph_builder_->StoreInstanceField(
-            TokenPosition::kNoSource,
-            Context::variable_offset(variable->index().value()));
-        body += NullConstant();
-        body += StoreLocal(TokenPosition::kNoSource, &raw_parameter);
-        body += Drop();
-      }
-    }
-    body += Drop();  // The context.
+    const LocalVariable& parameter = *scope->VariableAt(parameter_count - 1);
+    check_pos = parameter.token_pos();
   }
-  if (constructor) {
-    // TODO(27590): Currently the [VariableDeclaration]s from the
-    // initializers will be visible inside the entire body of the constructor.
-    // We should make a separate scope for them.
-    body += BuildInitializers(Class::Handle(Z, dart_function.Owner()));
+  if (!check_pos.IsDebugPause()) {
+    // No parameters or synthetic parameters.
+    check_pos = position;
+    ASSERT(check_pos.IsDebugPause());
   }
 
-  FunctionNodeHelper function_node_helper(this);
-  function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
-  intptr_t type_parameters_offset = ReaderOffset();
-  function_node_helper.ReadUntilExcluding(
-      FunctionNodeHelper::kPositionalParameters);
-  intptr_t first_parameter_offset = -1;
-  {
-    AlternativeReadingScope alt(&reader_);
-    intptr_t list_length = ReadListLength();  // read number of positionals.
-    if (list_length > 0) {
-      first_parameter_offset = ReaderOffset() + data_program_offset_;
-    }
-  }
-  // Current position: About to read list of positionals.
+  return DebugStepCheck(check_pos);
+}
 
-  // The specification defines the result of `a == b` to be:
-  //
-  //   a) if either side is `null` then the result is `identical(a, b)`.
-  //   b) else the result is `a.operator==(b)`
-  //
-  // For user-defined implementations of `operator==` we need therefore
-  // implement the handling of a).
-  //
-  // The default `operator==` implementation in `Object` is implemented in terms
-  // of identical (which we assume here!) which means that case a) is actually
-  // included in b).  So we just use the normal implementation in the body.
-  if ((dart_function.NumParameters() == 2) &&
-      (dart_function.name() == Symbols::EqualOperator().raw()) &&
-      (dart_function.Owner() != I->object_store()->object_class())) {
-    LocalVariable* parameter = LookupVariable(first_parameter_offset);
-
-    TargetEntryInstr* null_entry;
-    TargetEntryInstr* non_null_entry;
-
-    body += LoadLocal(parameter);
-    body += BranchIfNull(&null_entry, &non_null_entry);
-
-    // The argument was `null` and the receiver is not the null class (we only
-    // go into this branch for user-defined == operators) so we can return
-    // false.
-    Fragment null_fragment(null_entry);
-    null_fragment += Constant(Bool::False());
-    null_fragment += Return(dart_function.end_token_pos());
-
-    body = Fragment(body.entry, non_null_entry);
+Fragment StreamingFlowGraphBuilder::SetAsyncStackTrace(
+    const Function& dart_function) {
+  if (!FLAG_causal_async_stacks ||
+      !(dart_function.IsAsyncClosure() || dart_function.IsAsyncGenClosure())) {
+    return {};
   }
 
-  // If we run in checked mode or strong mode, we have to check the type of
-  // the passed arguments.
-  if (dart_function.NeedsArgumentTypeChecks(I)) {
-    // Check if parent function was annotated with no-dynamic-invocations.
-    const ProcedureAttributesMetadata attrs =
-        procedure_attributes_metadata_helper_.GetProcedureAttributes(
-            dart_function.kernel_offset());
+  // The code we are building will be executed right after we enter
+  // the function and before any nested contexts are allocated.
+  ASSERT(B->context_depth_ ==
+         scopes()->yield_jump_variable->owner()->context_level());
 
-    AlternativeReadingScope _(&reader_);
-    SetOffset(type_parameters_offset);
-    body += BuildArgumentTypeChecks(
-        MethodCanSkipTypeChecksForNonCovariantArguments(dart_function, attrs)
-            ? kCheckCovariantTypeParameterBounds
-            : kCheckAllTypeParameterBounds);
-  }
+  Fragment instructions;
+  LocalScope* scope = parsed_function()->node_sequence()->scope();
 
-  function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kBody);
+  const Function& target = Function::ZoneHandle(
+      Z, I->object_store()->async_set_thread_stack_trace());
+  ASSERT(!target.IsNull());
 
-  const bool has_body = ReadTag() == kSomething;  // read first part of body.
+  // Fetch and load :async_stack_trace
+  LocalVariable* async_stack_trace_var =
+      scope->LookupVariable(Symbols::AsyncStackTraceVar(), false);
+  ASSERT((async_stack_trace_var != NULL) &&
+         async_stack_trace_var->is_captured());
 
-  if (dart_function.is_native()) {
-    body += flow_graph_builder_->NativeFunctionBody(first_parameter_offset,
-                                                    dart_function);
-  } else if (has_body) {
-    body += BuildStatement();  // read body.
-  }
-  if (body.is_open()) {
-    body += NullConstant();
-    body += Return(dart_function.end_token_pos());
-  }
+  Fragment code;
+  code += LoadLocal(async_stack_trace_var);
+  code += PushArgument();
+  // Call _asyncSetThreadStackTrace
+  code += StaticCall(TokenPosition::kNoSource, target,
+                     /* argument_count = */ 1, ICData::kStatic);
+  code += Drop();
+  return code;
+}
 
-  // If functions body contains any yield points build switch statement that
-  // selects a continuation point based on the value of :await_jump_var.
-  if (!yield_continuations().is_empty()) {
-    // The code we are building will be executed right after we enter
-    // the function and before any nested contexts are allocated.
-    // Reset current context_depth_ to match this.
-    const intptr_t current_context_depth = flow_graph_builder_->context_depth_;
-    flow_graph_builder_->context_depth_ =
-        scopes()->yield_jump_variable->owner()->context_level();
-
-    // Prepend an entry corresponding to normal entry to the function.
-    yield_continuations().InsertAt(
-        0, YieldContinuation(new (Z) DropTempsInstr(0, NULL),
-                             CatchClauseNode::kInvalidTryIndex));
-    yield_continuations()[0].entry->LinkTo(body.entry);
-
-    // Build a switch statement.
-    Fragment dispatch;
-
-    // Load :await_jump_var into a temporary.
-    dispatch += LoadLocal(scopes()->yield_jump_variable);
-    dispatch += StoreLocal(TokenPosition::kNoSource, scopes()->switch_variable);
-    dispatch += Drop();
-
-    BlockEntryInstr* block = NULL;
-    for (intptr_t i = 0; i < yield_continuations().length(); i++) {
-      if (i == 1) {
-        // This is not a normal entry but a resumption.  Restore
-        // :current_context_var from :await_ctx_var.
-        // Note: after this point context_depth_ does not match current context
-        // depth so we should not access any local variables anymore.
-        dispatch += LoadLocal(scopes()->yield_context_variable);
-        dispatch += StoreLocal(TokenPosition::kNoSource,
-                               parsed_function()->current_context_var());
-        dispatch += Drop();
-      }
-      if (i == (yield_continuations().length() - 1)) {
-        // We reached the last possibility, no need to build more ifs.
-        // Continue to the last continuation.
-        // Note: continuations start with nop DropTemps instruction
-        // which acts like an anchor, so we need to skip it.
-        block->set_try_index(yield_continuations()[i].try_index);
-        dispatch <<= yield_continuations()[i].entry->next();
-        break;
-      }
-
-      // Build comparison:
-      //
-      //   if (:await_ctx_var == i) {
-      //     -> yield_continuations()[i]
-      //   } else ...
-      //
-      TargetEntryInstr* then;
-      TargetEntryInstr* otherwise;
-      dispatch += LoadLocal(scopes()->switch_variable);
-      dispatch += IntConstant(i);
-      dispatch += flow_graph_builder_->BranchIfStrictEqual(&then, &otherwise);
-
-      // True branch is linked to appropriate continuation point.
-      // Note: continuations start with nop DropTemps instruction
-      // which acts like an anchor, so we need to skip it.
-      then->LinkTo(yield_continuations()[i].entry->next());
-      then->set_try_index(yield_continuations()[i].try_index);
-      // False branch will contain the next comparison.
-      dispatch = Fragment(dispatch.entry, otherwise);
-      block = otherwise;
-    }
-    body = dispatch;
-
-    flow_graph_builder_->context_depth_ = current_context_depth;
-  }
-
-  // :function_type_arguments_var handling is built here and prepended to the
-  // body because it needs to be executed everytime we enter the function -
-  // even if we are resuming from the yield.
-  Fragment prologue;
-
-  prologue += BuildDefaultTypeHandling(dart_function, type_parameters_offset);
+Fragment StreamingFlowGraphBuilder::TypeArgumentsHandling(
+    const Function& dart_function,
+    intptr_t type_parameters_offset) {
+  Fragment prologue =
+      BuildDefaultTypeHandling(dart_function, type_parameters_offset);
 
   if (dart_function.IsClosureFunction() &&
       dart_function.NumParentTypeParameters() > 0 &&
       I->reify_generic_functions()) {
+    LocalVariable* closure =
+        parsed_function()->node_sequence()->scope()->VariableAt(0);
+
     // Function with yield points can not be generic itself but the outer
     // function can be.
     ASSERT(yield_continuations().is_empty() || !dart_function.IsGeneric());
@@ -1437,73 +1278,294 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
     }
   }
 
-  body = prologue + body;
+  return prologue;
+}
 
-  if (FLAG_causal_async_stacks &&
-      (dart_function.IsAsyncClosure() || dart_function.IsAsyncGenClosure())) {
-    // The code we are building will be executed right after we enter
-    // the function and before any nested contexts are allocated.
-    // Reset current context_depth_ to match this.
-    const intptr_t current_context_depth = flow_graph_builder_->context_depth_;
-    flow_graph_builder_->context_depth_ =
-        scopes()->yield_jump_variable->owner()->context_level();
+Fragment StreamingFlowGraphBuilder::CompleteBodyWithYieldContinuations(
+    Fragment body) {
+  // The code we are building will be executed right after we enter
+  // the function and before any nested contexts are allocated.
+  // Reset current context_depth_ to match this.
+  const intptr_t current_context_depth = B->context_depth_;
+  B->context_depth_ = scopes()->yield_jump_variable->owner()->context_level();
 
-    Fragment instructions;
+  // Prepend an entry corresponding to normal entry to the function.
+  yield_continuations().InsertAt(
+      0, YieldContinuation(new (Z) DropTempsInstr(0, NULL),
+                           CatchClauseNode::kInvalidTryIndex));
+  yield_continuations()[0].entry->LinkTo(body.entry);
+
+  // Load :await_jump_var into a temporary.
+  Fragment dispatch;
+  dispatch += LoadLocal(scopes()->yield_jump_variable);
+  dispatch += StoreLocal(TokenPosition::kNoSource, scopes()->switch_variable);
+  dispatch += Drop();
+
+  BlockEntryInstr* block = NULL;
+  for (intptr_t i = 0; i < yield_continuations().length(); i++) {
+    if (i == 1) {
+      // This is not a normal entry but a resumption.  Restore
+      // :current_context_var from :await_ctx_var.
+      // Note: after this point context_depth_ does not match current context
+      // depth so we should not access any local variables anymore.
+      dispatch += LoadLocal(scopes()->yield_context_variable);
+      dispatch += StoreLocal(TokenPosition::kNoSource,
+                             parsed_function()->current_context_var());
+      dispatch += Drop();
+    }
+    if (i == (yield_continuations().length() - 1)) {
+      // We reached the last possibility, no need to build more ifs.
+      // Continue to the last continuation.
+      // Note: continuations start with nop DropTemps instruction
+      // which acts like an anchor, so we need to skip it.
+      block->set_try_index(yield_continuations()[i].try_index);
+      dispatch <<= yield_continuations()[i].entry->next();
+      break;
+    }
+
+    // Build comparison:
+    //
+    //   if (:await_jump_var == i) {
+    //     -> yield_continuations()[i]
+    //   } else ...
+    //
+    TargetEntryInstr* then;
+    TargetEntryInstr* otherwise;
+    dispatch += LoadLocal(scopes()->switch_variable);
+    dispatch += IntConstant(i);
+    dispatch += B->BranchIfStrictEqual(&then, &otherwise);
+
+    // True branch is linked to appropriate continuation point.
+    // Note: continuations start with nop DropTemps instruction
+    // which acts like an anchor, so we need to skip it.
+    then->LinkTo(yield_continuations()[i].entry->next());
+    then->set_try_index(yield_continuations()[i].try_index);
+    // False branch will contain the next comparison.
+    dispatch = Fragment(dispatch.entry, otherwise);
+    block = otherwise;
+  }
+  B->context_depth_ = current_context_depth;
+  return dispatch;
+}
+
+Fragment StreamingFlowGraphBuilder::CheckStackOverflowInPrologue(
+    const Function& dart_function) {
+  if (dart_function.is_native()) return {};
+  return B->CheckStackOverflowInPrologue(dart_function.token_pos());
+}
+
+Fragment StreamingFlowGraphBuilder::SetupCapturedParameters(
+    const Function& dart_function) {
+  Fragment body;
+  intptr_t context_size =
+      parsed_function()->node_sequence()->scope()->num_context_variables();
+  if (context_size > 0) {
+    body += flow_graph_builder_->PushContext(context_size);
+    LocalVariable* context = MakeTemporary();
+
+    // Copy captured parameters from the stack into the context.
     LocalScope* scope = parsed_function()->node_sequence()->scope();
+    intptr_t parameter_count = dart_function.NumParameters();
+    const ParsedFunction& pf = *flow_graph_builder_->parsed_function_;
+    const Function& function = pf.function();
 
-    const Function& target = Function::ZoneHandle(
-        Z, I->object_store()->async_set_thread_stack_trace());
-    ASSERT(!target.IsNull());
+    for (intptr_t i = 0; i < parameter_count; ++i) {
+      LocalVariable* variable = scope->VariableAt(i);
+      if (variable->is_captured()) {
+        LocalVariable& raw_parameter = *pf.RawParameterVariable(i);
+        ASSERT((function.HasOptionalParameters() &&
+                raw_parameter.owner() == scope) ||
+               (!function.HasOptionalParameters() &&
+                raw_parameter.owner() == NULL));
+        ASSERT(!raw_parameter.is_captured());
 
-    // Fetch and load :async_stack_trace
-    LocalVariable* async_stack_trace_var =
-        scope->LookupVariable(Symbols::AsyncStackTraceVar(), false);
-    ASSERT((async_stack_trace_var != NULL) &&
-           async_stack_trace_var->is_captured());
-    instructions += LoadLocal(async_stack_trace_var);
-    instructions += PushArgument();
+        // Copy the parameter from the stack to the context.  Overwrite it
+        // with a null constant on the stack so the original value is
+        // eligible for garbage collection.
+        body += LoadLocal(context);
+        body += LoadLocal(&raw_parameter);
+        body += flow_graph_builder_->StoreInstanceField(
+            TokenPosition::kNoSource,
+            Context::variable_offset(variable->index().value()));
+        body += NullConstant();
+        body += StoreLocal(TokenPosition::kNoSource, &raw_parameter);
+        body += Drop();
+      }
+    }
+    body += Drop();  // The context.
+  }
+  return body;
+}
 
-    // Call _asyncSetThreadStackTrace
-    instructions += StaticCall(TokenPosition::kNoSource, target,
-                               /* argument_count = */ 1, ICData::kStatic);
-    instructions += Drop();
+// If we run in checked mode or strong mode, we have to check the type of the
+// passed arguments.
+Fragment StreamingFlowGraphBuilder::CheckArgumentTypesAsNecessary(
+    const Function& dart_function,
+    intptr_t type_parameters_offset) {
+  if (!dart_function.NeedsArgumentTypeChecks(I)) return {};
 
-    // TODO(29737): This sequence should be generated in order.
-    body = instructions + body;
-    flow_graph_builder_->context_depth_ = current_context_depth;
+  // Check if parent function was annotated with no-dynamic-invocations.
+  const ProcedureAttributesMetadata attrs =
+      procedure_attributes_metadata_helper_.GetProcedureAttributes(
+          dart_function.kernel_offset());
+
+  AlternativeReadingScope _(&reader_);
+  SetOffset(type_parameters_offset);
+  return BuildArgumentTypeChecks(
+      MethodCanSkipTypeChecksForNonCovariantArguments(dart_function, attrs)
+          ? kCheckCovariantTypeParameterBounds
+          : kCheckAllTypeParameterBounds);
+}
+
+Fragment StreamingFlowGraphBuilder::ShortcutForUserDefinedEquals(
+    const Function& dart_function,
+    LocalVariable* first_parameter) {
+  // The specification defines the result of `a == b` to be:
+  //
+  //   a) if either side is `null` then the result is `identical(a, b)`.
+  //   b) else the result is `a.operator==(b)`
+  //
+  // For user-defined implementations of `operator==` we need therefore
+  // implement the handling of a).
+  //
+  // The default `operator==` implementation in `Object` is implemented in terms
+  // of identical (which we assume here!) which means that case a) is actually
+  // included in b).  So we just use the normal implementation in the body.
+  Fragment body;
+  if ((dart_function.NumParameters() == 2) &&
+      (dart_function.name() == Symbols::EqualOperator().raw()) &&
+      (dart_function.Owner() != I->object_store()->object_class())) {
+    TargetEntryInstr* null_entry;
+    TargetEntryInstr* non_null_entry;
+
+    body += LoadLocal(first_parameter);
+    body += BranchIfNull(&null_entry, &non_null_entry);
+
+    // The argument was `null` and the receiver is not the null class (we only
+    // go into this branch for user-defined == operators) so we can return
+    // false.
+    Fragment null_fragment(null_entry);
+    null_fragment += Constant(Bool::False());
+    null_fragment += Return(dart_function.end_token_pos());
+
+    body = Fragment(body.entry, non_null_entry);
+  }
+  return body;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildFunctionBody(
+    const Function& dart_function,
+    LocalVariable* first_parameter,
+    bool constructor) {
+  Fragment body;
+
+  // TODO(27590): Currently the [VariableDeclaration]s from the
+  // initializers will be visible inside the entire body of the constructor.
+  // We should make a separate scope for them.
+  if (constructor) {
+    body += BuildInitializers(Class::Handle(Z, dart_function.Owner()));
   }
 
-  if (NeedsDebugStepCheck(dart_function, function_node_helper.position_)) {
-    const intptr_t current_context_depth = flow_graph_builder_->context_depth_;
-    flow_graph_builder_->context_depth_ = 0;
-    // If a switch was added above: Start the switch by injecting a debuggable
-    // safepoint so stepping over an await works.
-    // If not, still start the body with a debuggable safepoint to ensure
-    // breaking on a method always happens, even if there are no
-    // assignments/calls/runtimecalls in the first basic block.
-    // Place this check at the last parameter to ensure parameters
-    // are in scope in the debugger at method entry.
-    const int parameter_count = dart_function.NumParameters();
-    TokenPosition check_pos = TokenPosition::kNoSource;
-    if (parameter_count > 0) {
-      LocalScope* scope = parsed_function()->node_sequence()->scope();
-      const LocalVariable& parameter = *scope->VariableAt(parameter_count - 1);
-      check_pos = parameter.token_pos();
-    }
-    if (!check_pos.IsDebugPause()) {
-      // No parameters or synthetic parameters.
-      check_pos = function_node_helper.position_;
-      ASSERT(check_pos.IsDebugPause());
-    }
+  if (body.is_closed()) return body;
 
-    // TODO(29737): This sequence should be generated in order.
-    body = DebugStepCheck(check_pos) + body;
-    flow_graph_builder_->context_depth_ = current_context_depth;
+  FunctionNodeHelper function_node_helper(this);
+  function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kBody);
+
+  const bool has_body = ReadTag() == kSomething;  // read first part of body.
+
+  if (dart_function.is_native()) {
+    body += B->NativeFunctionBody(dart_function, first_parameter);
+  } else if (has_body) {
+    body += BuildStatement();
   }
 
-  instruction_cursor->LinkTo(body.entry);
+  if (body.is_open()) {
+    body += NullConstant();
+    body += Return(dart_function.end_token_pos());
+  }
 
-  GraphEntryInstr* graph_entry = flow_graph_builder_->graph_entry_;
+  return body;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildEveryTimePrologue(
+    const Function& dart_function,
+    TokenPosition token_position,
+    intptr_t type_parameters_offset) {
+  Fragment F;
+  F += CheckStackOverflowInPrologue(dart_function);
+  F += DebugStepCheckInPrologue(dart_function, token_position);
+  F += SetAsyncStackTrace(dart_function);
+  F += TypeArgumentsHandling(dart_function, type_parameters_offset);
+  return F;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildFirstTimePrologue(
+    const Function& dart_function,
+    LocalVariable* first_parameter,
+    intptr_t type_parameters_offset) {
+  Fragment F;
+  F += SetupCapturedParameters(dart_function);
+  F += ShortcutForUserDefinedEquals(dart_function, first_parameter);
+  F += CheckArgumentTypesAsNecessary(dart_function, type_parameters_offset);
+  return F;
+}
+
+FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
+  // The prologue builder needs the default parameter values.
+  SetupDefaultParameterValues();
+
+  intptr_t type_parameters_offset = 0;
+  LocalVariable* first_parameter = nullptr;
+  TokenPosition token_position = TokenPosition::kNoSource;
+  {
+    AlternativeReadingScope alt(&reader_);
+    FunctionNodeHelper function_node_helper(this);
+    function_node_helper.ReadUntilExcluding(
+        FunctionNodeHelper::kTypeParameters);
+    type_parameters_offset = ReaderOffset();
+    function_node_helper.ReadUntilExcluding(
+        FunctionNodeHelper::kPositionalParameters);
+    intptr_t list_length = ReadListLength();  // read number of positionals.
+    if (list_length > 0) {
+      intptr_t first_parameter_offset = ReaderOffset() + data_program_offset_;
+      first_parameter = LookupVariable(first_parameter_offset);
+    }
+    token_position = function_node_helper.position_;
+  }
+
+  const Function& dart_function = parsed_function()->function();
+  TargetEntryInstr* normal_entry = flow_graph_builder_->BuildTargetEntry();
+  PrologueInfo prologue_info(-1, -1);
+  BlockEntryInstr* instruction_cursor =
+      flow_graph_builder_->BuildPrologue(normal_entry, &prologue_info);
+
+  GraphEntryInstr* graph_entry = flow_graph_builder_->graph_entry_ =
+      new (Z) GraphEntryInstr(*parsed_function(), normal_entry,
+                              flow_graph_builder_->osr_id_);
+
+  // The 'every_time_prologue' runs first and is run when resuming from yield
+  // points.
+  const Fragment every_time_prologue = BuildEveryTimePrologue(
+      dart_function, token_position, type_parameters_offset);
+
+  // The 'first_time_prologue' run after 'every_time_prologue' and is *not* run
+  // when resuming from yield points.
+  const Fragment first_time_prologue = BuildFirstTimePrologue(
+      dart_function, first_parameter, type_parameters_offset);
+
+  const Fragment body =
+      BuildFunctionBody(dart_function, first_parameter, constructor);
+
+  // If the function's body contains any yield points, build switch statement
+  // that selects a continuation point based on the value of :await_jump_var.
+  const Fragment function =
+      yield_continuations().is_empty()
+          ? every_time_prologue + first_time_prologue + body
+          : every_time_prologue +
+                CompleteBodyWithYieldContinuations(first_time_prologue + body);
+
+  instruction_cursor->LinkTo(function.entry);
+
   // When compiling for OSR, use a depth first search to find the OSR
   // entry and make graph entry jump to it instead of normal entry.
   // Catch entries are always considered reachable, even if they

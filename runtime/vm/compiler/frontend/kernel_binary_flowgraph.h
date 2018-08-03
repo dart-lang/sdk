@@ -74,6 +74,32 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildExpression(TokenPosition* position = NULL);
   Fragment BuildStatement();
 
+  // Kernel offset:
+  //   start of function expression -> end of function body statement
+  Fragment BuildFunctionBody(const Function& dart_function,
+                             LocalVariable* first_parameter,
+                             bool constructor);
+
+  // Pieces of the prologue. They are all agnostic to the current Kernel offset.
+  Fragment BuildEveryTimePrologue(const Function& dart_function,
+                                  TokenPosition token_position,
+                                  intptr_t type_parameters_offset);
+  Fragment BuildFirstTimePrologue(const Function& dart_function,
+                                  LocalVariable* first_parameter,
+                                  intptr_t type_parameters_offset);
+  Fragment DebugStepCheckInPrologue(const Function& dart_function,
+                                    TokenPosition position);
+  Fragment SetAsyncStackTrace(const Function& dart_function);
+  Fragment CheckStackOverflowInPrologue(const Function& dart_function);
+  Fragment SetupCapturedParameters(const Function& dart_function);
+  Fragment ShortcutForUserDefinedEquals(const Function& dart_function,
+                                        LocalVariable* first_parameter);
+  Fragment TypeArgumentsHandling(const Function& dart_function,
+                                 intptr_t type_parameters_offset);
+  Fragment CheckArgumentTypesAsNecessary(const Function& dart_function,
+                                         intptr_t type_parameters_offset);
+  Fragment CompleteBodyWithYieldContinuations(Fragment body);
+
   void loop_depth_inc();
   void loop_depth_dec();
   intptr_t for_in_depth();

@@ -29,12 +29,6 @@ class Fragment {
 
   Fragment() {}
 
-  Fragment(std::initializer_list<Fragment> list) {
-    for (Fragment i : list) {
-      *this += i;
-    }
-  }
-
   explicit Fragment(Instruction* instruction)
       : entry(instruction), current(instruction) {}
 

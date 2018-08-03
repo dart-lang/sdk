@@ -848,8 +848,8 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   return streaming_flow_graph_builder.BuildGraph();
 }
 
-Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
-                                              const Function& function) {
+Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
+                                              LocalVariable* first_parameter) {
   ASSERT(function.is_native());
   // We explicitly build the graph for native functions in the same way that the
   // from-source backend does.  We should find a way to have a single component
@@ -860,7 +860,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
   switch (kind) {
     case MethodRecognizer::kObjectEquals:
       body += LoadLocal(scopes_->this_variable);
-      body += LoadLocal(LookupVariable(first_positional_offset));
+      body += LoadLocal(first_parameter);
       body += StrictCompare(Token::kEQ_STRICT);
       break;
     case MethodRecognizer::kStringBaseLength:
@@ -886,7 +886,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
       body += LoadNativeField(NativeFieldDesc::TypedData_length());
       break;
     case MethodRecognizer::kClassIDgetID:
-      body += LoadLocal(LookupVariable(first_positional_offset));
+      body += LoadLocal(first_parameter);
       body += LoadClassId();
       break;
     case MethodRecognizer::kGrowableArrayCapacity:
@@ -923,7 +923,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
         Fragment allocate(allocate_non_growable);
         allocate += LoadLocal(scopes_->type_arguments_variable);
         allocate += PushArgument();
-        allocate += LoadLocal(LookupVariable(first_positional_offset));
+        allocate += LoadLocal(first_parameter);
         allocate += PushArgument();
         allocate +=
             StaticCall(TokenPosition::kNoSource, func, 2, ICData::kStatic);
@@ -961,7 +961,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
     }
     case MethodRecognizer::kObjectArrayAllocate:
       body += LoadLocal(scopes_->type_arguments_variable);
-      body += LoadLocal(LookupVariable(first_positional_offset));
+      body += LoadLocal(first_parameter);
       body += CreateArray();
       break;
     case MethodRecognizer::kLinkedHashMap_getIndex:
@@ -970,7 +970,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
       break;
     case MethodRecognizer::kLinkedHashMap_setIndex:
       body += LoadLocal(scopes_->this_variable);
-      body += LoadLocal(LookupVariable(first_positional_offset));
+      body += LoadLocal(first_parameter);
       body += StoreInstanceField(TokenPosition::kNoSource,
                                  LinkedHashMap::index_offset());
       body += NullConstant();
@@ -981,7 +981,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
       break;
     case MethodRecognizer::kLinkedHashMap_setData:
       body += LoadLocal(scopes_->this_variable);
-      body += LoadLocal(LookupVariable(first_positional_offset));
+      body += LoadLocal(first_parameter);
       body += StoreInstanceField(TokenPosition::kNoSource,
                                  LinkedHashMap::data_offset());
       body += NullConstant();
@@ -992,7 +992,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
       break;
     case MethodRecognizer::kLinkedHashMap_setHashMask:
       body += LoadLocal(scopes_->this_variable);
-      body += LoadLocal(LookupVariable(first_positional_offset));
+      body += LoadLocal(first_parameter);
       body += StoreInstanceField(TokenPosition::kNoSource,
                                  LinkedHashMap::hash_mask_offset(),
                                  kNoStoreBarrier);
@@ -1004,7 +1004,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
       break;
     case MethodRecognizer::kLinkedHashMap_setUsedData:
       body += LoadLocal(scopes_->this_variable);
-      body += LoadLocal(LookupVariable(first_positional_offset));
+      body += LoadLocal(first_parameter);
       body += StoreInstanceField(TokenPosition::kNoSource,
                                  LinkedHashMap::used_data_offset(),
                                  kNoStoreBarrier);
@@ -1016,7 +1016,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
       break;
     case MethodRecognizer::kLinkedHashMap_setDeletedKeys:
       body += LoadLocal(scopes_->this_variable);
-      body += LoadLocal(LookupVariable(first_positional_offset));
+      body += LoadLocal(first_parameter);
       body += StoreInstanceField(TokenPosition::kNoSource,
                                  LinkedHashMap::deleted_keys_offset(),
                                  kNoStoreBarrier);

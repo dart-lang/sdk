@@ -417,20 +417,18 @@ Fragment PrologueBuilder::BuildTypeArgumentsHandling(JoinEntryInstr* nsm) {
     // Currently, delayed type arguments can only be introduced through type
     // inference in the FE. So if they are present, we can assume they are
     // correct in number and bound.
-    // clang-format off
-    Fragment use_delayed_type_args = {
-      LoadLocal(closure),
-      LoadField(Closure::delayed_type_arguments_offset()),
-      StoreLocal(TokenPosition::kNoSource, type_args_var),
-      Drop()
-    };
+    Fragment use_delayed_type_args;
+    use_delayed_type_args += LoadLocal(closure);
+    use_delayed_type_args +=
+        LoadField(Closure::delayed_type_arguments_offset());
+    use_delayed_type_args +=
+        StoreLocal(TokenPosition::kNoSource, type_args_var);
+    use_delayed_type_args += Drop();
 
     handling += TestDelayedTypeArgs(
         closure,
-        /*present=*/TestTypeArgsLen(
-            use_delayed_type_args, Goto(nsm), 0),
+        /*present=*/TestTypeArgsLen(use_delayed_type_args, Goto(nsm), 0),
         /*absent=*/Fragment());
-    // clang-format on
   }
 
   return handling;
