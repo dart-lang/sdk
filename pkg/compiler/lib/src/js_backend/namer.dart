@@ -1481,20 +1481,19 @@ class Namer {
     return names.join();
   }
 
-  /// Property name used for `getInterceptor` or one of its specializations.
+  /// Property name used for a specialization of `getInterceptor`.
+  ///
+  /// js_runtime contains a top-level `getInterceptor` method. The
+  /// specializations have the same name, but with a suffix to avoid name
+  /// collisions.
   jsAst.Name nameForGetInterceptor(Iterable<ClassEntity> classes) {
-    FunctionEntity getInterceptor = _commonElements.getInterceptorMethod;
-    if (classes.contains(_commonElements.jsInterceptorClass)) {
-      // If the base Interceptor class is in the set of intercepted classes, we
-      // need to go through the generic getInterceptorMethod, since any subclass
-      // of the base Interceptor could match.
-      // The unspecialized getInterceptor method can also be accessed through
-      // its element, so we treat this as a user-space global instead of an
-      // internal global.
-      return _disambiguateGlobalMember(getInterceptor);
-    }
-    String suffix = suffixForGetInterceptor(classes);
-    return _disambiguateInternalGlobal("${getInterceptor.name}\$$suffix");
+    // If the base Interceptor class is in the set of intercepted classes, we
+    // need to go through the generic getInterceptor method (any subclass of the
+    // base Interceptor could match), which is encoded as an empty suffix.
+    String suffix = classes.contains(_commonElements.jsInterceptorClass)
+        ? ''
+        : suffixForGetInterceptor(classes);
+    return _disambiguateInternalGlobal('getInterceptor\$$suffix');
   }
 
   /// Property name used for the one-shot interceptor method for the given

@@ -843,10 +843,6 @@ class JavaScriptBackend {
   // [ElementEnvironment.getMemberMetadata] in [AnnotationProcessor].
   void processAnnotations(
       JClosedWorld closedWorld, InferredDataBuilder inferredDataBuilder) {
-    // These methods are overwritten with generated versions.
-    inlineCache.markAsNonInlinable(
-        closedWorld.commonElements.getInterceptorMethod,
-        insideLoop: true);
     for (MemberEntity entity in closedWorld.processedMembers) {
       _processMemberAnnotations(closedWorld, inferredDataBuilder, entity);
     }

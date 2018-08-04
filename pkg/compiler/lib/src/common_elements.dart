@@ -707,10 +707,6 @@ class CommonElements {
         member.library == interceptorsLibrary;
   }
 
-  FunctionEntity _getInterceptorMethod;
-  FunctionEntity get getInterceptorMethod =>
-      _getInterceptorMethod ??= _findInterceptorsFunction('getInterceptor');
-
   FunctionEntity _getNativeInterceptorMethod;
   FunctionEntity get getNativeInterceptorMethod =>
       _getNativeInterceptorMethod ??=

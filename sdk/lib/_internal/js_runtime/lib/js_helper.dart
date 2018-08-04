@@ -30,6 +30,7 @@ import 'dart:async' show Completer, DeferredLoadException, Future;
 import 'dart:_foreign_helper'
     show
         DART_CLOSURE_TO_JS,
+        getInterceptor,
         JS,
         JS_BUILTIN,
         JS_CONST,

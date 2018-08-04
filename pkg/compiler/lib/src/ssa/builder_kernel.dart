@@ -3596,6 +3596,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       stack.add(graph.addConstantNull(closedWorld));
     } else if (name == 'JS_INTERCEPTOR_CONSTANT') {
       handleJsInterceptorConstant(invocation);
+    } else if (name == 'getInterceptor') {
+      handleForeignGetInterceptor(invocation);
     } else if (name == 'JS_STRING_CONCAT') {
       handleJsStringConcat(invocation);
     } else if (name == '_createInvocationMirror') {
@@ -4022,6 +4024,25 @@ class KernelSsaGraphBuilder extends ir.Visitor
         _elementMap.getSpannable(targetElement, invocation),
         MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
     stack.add(graph.addConstantNull(closedWorld));
+  }
+
+  void handleForeignGetInterceptor(ir.StaticInvocation invocation) {
+    // Single argument is the intercepted object.
+    if (_unexpectedForeignArguments(invocation,
+        minPositional: 1, maxPositional: 1)) {
+      // Result expected on stack.
+      stack.add(graph.addConstantNull(closedWorld));
+      return;
+    }
+    ir.Expression argument = invocation.arguments.positional.single;
+    argument.accept(this);
+    HInstruction argumentInstruction = pop();
+
+    SourceInformation sourceInformation =
+        _sourceInformationBuilder.buildCall(invocation, invocation);
+    HInstruction instruction =
+        _interceptorFor(argumentInstruction, sourceInformation);
+    stack.add(instruction);
   }
 
   void handleForeignJs(ir.StaticInvocation invocation) {

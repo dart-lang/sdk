@@ -211,6 +211,11 @@ external void JS_SET_STATIC_STATE(staticState);
  */
 external JS_INTERCEPTOR_CONSTANT(Type type);
 
+/// Returns the interceptor for [object].
+///
+/// Calls are replaced with the [HInterceptor] SSA instruction.
+external getInterceptor(object);
+
 /**
  * Returns the object corresponding to Namer.staticStateHolder.
  */
