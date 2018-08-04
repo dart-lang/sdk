@@ -22,10 +22,6 @@ multiline_newline_test/04r: Pass
 multiline_newline_test/05: Pass
 multiline_newline_test/05r: Pass
 regress_29349_test: Pass
-unsupported_operators_test/01: MissingCompileTimeError
-unsupported_operators_test/02: MissingCompileTimeError
-unsupported_operators_test/03: MissingCompileTimeError
-unsupported_operators_test/04: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && !$analyzer_use_fasta_parser && !$fasta ]
 constructor_type_parameter_test/00: MissingCompileTimeError # Issue 33110
