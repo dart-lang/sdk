@@ -167,7 +167,7 @@
         "runtime": "vm",
         "mode": "release",
         "use-sdk": true,
-        "vm-options": "-DuserFastParser=true",
+        "vm-options": ["-DuserFastParser=true"],
         "builder-tag": "analyzer_use_fasta"
       }},
     "vm-legacy-(linux|mac|win)-(debug|release)-(ia32|x64)": {
@@ -227,14 +227,14 @@
       "options": {
         "preview-dart-2": false,
         "builder-tag": "optimization_counter_threshold",
-        "vm-options": "--optimization-counter-threshold=5"
+        "vm-options": ["--optimization-counter-threshold=5"]
       }},
     "vm-legacy-optcounter-checked-linux-release-(ia32|x64)": {
       "options": {
         "preview-dart-2": false,
         "checked": true,
         "builder-tag": "optimization_counter_threshold",
-        "vm-options": "--optimization-counter-threshold=5"
+        "vm-options": ["--optimization-counter-threshold=5"]
       }},
     "vm-legacy-reload-linux-(debug|release)-x64": {
       "options": {
@@ -346,7 +346,7 @@
     "dartkp-linux-release-x64": { },
     "dartkp-linux-debug-x64": {
       "options": {
-        "vm-options": "no-enable-malloc-hooks"
+        "vm-options": ["no-enable-malloc-hooks"]
     }},
     "dartk-(linux|mac)-(debug|release)-x64": { },
     "dartk-win-release-x64": { },
@@ -355,7 +355,7 @@
     "dartk-optcounter-linux-release-x64": {
       "options": {
         "builder-tag": "optimization_counter_threshold",
-        "vm-options": "--optimization-counter-threshold=5",
+        "vm-options": ["--optimization-counter-threshold=5"],
         "preview-dart-2": false
       }},
     "dartk-legacy-linux-release-x64": {

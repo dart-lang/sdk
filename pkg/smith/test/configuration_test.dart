@@ -221,7 +221,7 @@ void main() {
               Runtime.d8,
               System.host,
               builderTag: "the tag",
-              vmOptions: "vm stuff",
+              vmOptions: ["vm stuff", "more vm stuff"],
               enableAsserts: true,
               isChecked: true,
               isCsp: true,

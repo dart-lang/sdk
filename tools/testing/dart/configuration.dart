@@ -22,27 +22,17 @@ import 'runtime_configuration.dart';
 /// executed on, etc.
 class TestConfiguration {
   TestConfiguration(
-      {this.architecture,
-      this.compiler,
-      this.mode,
+      {this.configuration,
+      this.namedConfiguration,
       this.progress,
-      this.runtime,
-      this.system,
       this.selectors,
       this.appendLogs,
       this.batch,
       this.batchDart2JS,
       this.copyCoreDumps,
-      this.hotReload,
-      this.hotReloadRollback,
-      this.isChecked,
-      this.isHostChecked,
-      this.isCsp,
-      this.isMinified,
       this.isVerbose,
       this.listTests,
       this.listStatusFiles,
-      this.noPreviewDart2,
       this.printTiming,
       this.printReport,
       this.reportInJson,
@@ -50,17 +40,10 @@ class TestConfiguration {
       this.skipCompilation,
       this.useAnalyzerCfe,
       this.useAnalyzerFastaParser,
-      this.useBlobs,
-      this.useSdk,
-      this.useFastStartup,
-      this.useEnableAsserts,
-      this.useDart2JSWithKernel,
-      this.useDart2JSOldFrontend,
       this.useKernelBytecode,
       this.writeDebugLog,
       this.writeTestOutcomeLog,
       this.writeResultLog,
-      this.namedConfiguration,
       this.drtPath,
       this.chromePath,
       this.safariPath,
@@ -69,7 +52,6 @@ class TestConfiguration {
       this.dartPrecompiledPath,
       this.flutterPath,
       this.taskCount,
-      int timeout,
       this.shardCount,
       this.shard,
       this.stepName,
@@ -78,26 +60,23 @@ class TestConfiguration {
       this.testDriverErrorPort,
       this.localIP,
       this.dart2jsOptions,
-      this.vmOptions,
       String packages,
       this.packageRoot,
       this.suiteDirectory,
-      this.builderTag,
       this.outputDirectory,
       this.reproducingArguments,
       this.fastTestsOnly,
       this.printPassingStdout})
-      : _packages = packages,
-        _timeout = timeout;
-
-  final Architecture architecture;
-  final Compiler compiler;
-  final Mode mode;
-  final Progress progress;
-  final Runtime runtime;
-  final System system;
+      : _packages = packages;
 
   final Map<String, RegExp> selectors;
+  final Progress progress;
+  // The test configuration computed from the test options.
+  final Configuration configuration;
+  // The test configuration coming from the -n option.  Merging
+  // these two configurations into one will be the focus of some
+  // usability work.
+  final Configuration namedConfiguration;
 
   // Boolean flags.
 
@@ -106,16 +85,9 @@ class TestConfiguration {
   final bool batchDart2JS;
   final bool copyCoreDumps;
   final bool fastTestsOnly;
-  final bool hotReload;
-  final bool hotReloadRollback;
-  final bool isChecked;
-  final bool isHostChecked;
-  final bool isCsp;
-  final bool isMinified;
   final bool isVerbose;
   final bool listTests;
   final bool listStatusFiles;
-  final bool noPreviewDart2;
   final bool printTiming;
   final bool printReport;
   final bool reportInJson;
@@ -123,20 +95,32 @@ class TestConfiguration {
   final bool skipCompilation;
   final bool useAnalyzerCfe;
   final bool useAnalyzerFastaParser;
-  final bool useBlobs;
-  final bool useSdk;
-  final bool useFastStartup;
-  final bool useEnableAsserts;
-  final bool useDart2JSWithKernel;
-  final bool useDart2JSOldFrontend;
   final bool useKernelBytecode;
   final bool writeDebugLog;
   final bool writeTestOutcomeLog;
   final bool writeResultLog;
   final bool printPassingStdout;
 
-  final Configuration
-      namedConfiguration; // The test configuration containing all test options.
+  Architecture get architecture => configuration.architecture;
+  Compiler get compiler => configuration.compiler;
+  Mode get mode => configuration.mode;
+  Runtime get runtime => configuration.runtime;
+  System get system => configuration.system;
+
+  // Boolean getters
+  bool get hotReload => configuration.useHotReload;
+  bool get hotReloadRollback => configuration.useHotReloadRollback;
+  bool get isChecked => configuration.isChecked;
+  bool get isHostChecked => configuration.isHostChecked;
+  bool get isCsp => configuration.isCsp;
+  bool get isMinified => configuration.isMinified;
+  bool get noPreviewDart2 => !configuration.previewDart2;
+  bool get useBlobs => configuration.useBlobs;
+  bool get useSdk => configuration.useSdk;
+  bool get useFastStartup => configuration.useFastStartup;
+  bool get useEnableAsserts => configuration.enableAsserts;
+  bool get useDart2JSWithKernel => configuration.useDart2JSWithKernel;
+  bool get useDart2JSOldFrontend => configuration.useDart2JSOldFrontEnd;
 
   // Various file paths.
 
@@ -162,7 +146,7 @@ class TestConfiguration {
   final List<String> dart2jsOptions;
 
   /// Extra VM options passed to the testing script.
-  final List<String> vmOptions;
+  List<String> get vmOptions => configuration.vmOptions;
 
   String _packages;
 
@@ -178,7 +162,7 @@ class TestConfiguration {
   final String outputDirectory;
   final String packageRoot;
   final String suiteDirectory;
-  final String builderTag;
+  String get builderTag => configuration.builderTag;
   final List<String> reproducingArguments;
 
   TestingServers _servers;
@@ -226,10 +210,11 @@ class TestConfiguration {
   ///     build/none_vm_release_x64
   String get buildDirectory => system.outputDirectory + configurationDirectory;
 
-  int _timeout;
-
+  // TODO(whesse): Put non-default timeouts explicitly in configs, not this.
+  /// Calculates a default timeout based on the compiler and runtime used,
+  /// and the mode, architecture, etc.
   int get timeout {
-    if (_timeout == null) {
+    if (configuration.timeout == null) {
       var isReload = hotReload || hotReloadRollback;
 
       var compilerMulitiplier = compilerConfiguration.timeoutMultiplier;
@@ -239,10 +224,10 @@ class TestConfiguration {
           isReload: isReload,
           arch: architecture);
 
-      _timeout = 60 * compilerMulitiplier * runtimeMultiplier;
+      configuration.timeout = 60 * compilerMulitiplier * runtimeMultiplier;
     }
 
-    return _timeout;
+    return configuration.timeout;
   }
 
   List<String> get standardOptions {

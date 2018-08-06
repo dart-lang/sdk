@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:smith/smith.dart' as smith;
+import 'package:smith/smith.dart';
 
 import 'configuration.dart';
 import 'path.dart';
@@ -638,29 +638,42 @@ compiler.''',
                 mode,
                 architecture,
                 system);
-            print(namedConfiguration);
+            print(namedConfiguration); // TODO(whesse): remove
+            var innerConfiguration = new Configuration(
+                namedConfiguration?.name ?? "custom configuration",
+                architecture,
+                compiler,
+                mode,
+                runtime,
+                system,
+                timeout: data["timeout"] as int,
+                enableAsserts: data["enable_asserts"] as bool,
+                useBlobs: data["use_blobs"] as bool,
+                useSdk: data["use_sdk"] as bool,
+                useFastStartup: data["fast_startup"] as bool,
+                useDart2JSWithKernel: data["dart2js_with_kernel"] as bool,
+                useDart2JSOldFrontEnd: data["dart2js_old_frontend"] as bool,
+                useHotReload: data["hot_reload"] as bool,
+                useHotReloadRollback: data["hot_reload_rollback"] as bool,
+                isChecked: data["checked"] as bool,
+                isHostChecked: data["host_checked"] as bool,
+                isCsp: data["csp"] as bool,
+                isMinified: data["minified"] as bool,
+                vmOptions: vmOptions,
+                builderTag: data["builder_tag"] as String,
+                previewDart2: !(data["no_preview_dart_2"] as bool));
             var configuration = new TestConfiguration(
-                architecture: architecture,
-                compiler: compiler,
-                mode: mode,
+                configuration: innerConfiguration,
+                namedConfiguration: namedConfiguration,
                 progress: Progress.find(data["progress"] as String),
-                runtime: runtime,
-                system: System.find(data["system"] as String),
                 selectors: selectors,
                 appendLogs: data["append_logs"] as bool,
                 batch: !(data["noBatch"] as bool),
                 batchDart2JS: data["dart2js_batch"] as bool,
                 copyCoreDumps: data["copy_coredumps"] as bool,
-                hotReload: data["hot_reload"] as bool,
-                hotReloadRollback: data["hot_reload_rollback"] as bool,
-                isChecked: data["checked"] as bool,
-                isHostChecked: data["host_checked"] as bool,
-                isCsp: data["csp"] as bool,
-                isMinified: data["minified"] as bool,
                 isVerbose: data["verbose"] as bool,
                 listTests: data["list"] as bool,
                 listStatusFiles: data["list_status_files"] as bool,
-                noPreviewDart2: data["no_preview_dart_2"] as bool,
                 printTiming: data["time"] as bool,
                 printReport: data["report"] as bool,
                 reportInJson: data["report_in_json"] as bool,
@@ -669,17 +682,10 @@ compiler.''',
                 useAnalyzerCfe: data["use_cfe"] as bool,
                 useAnalyzerFastaParser:
                     data["analyzer_use_fasta_parser"] as bool,
-                useBlobs: data["use_blobs"] as bool,
-                useSdk: data["use_sdk"] as bool,
-                useFastStartup: data["fast_startup"] as bool,
-                useEnableAsserts: data["enable_asserts"] as bool,
-                useDart2JSWithKernel: data["dart2js_with_kernel"] as bool,
-                useDart2JSOldFrontend: data["dart2js_old_frontend"] as bool,
                 useKernelBytecode: compiler == Compiler.dartkb,
                 writeDebugLog: data["write_debug_log"] as bool,
                 writeTestOutcomeLog: data["write_test_outcome_log"] as bool,
                 writeResultLog: data["write_result_log"] as bool,
-                namedConfiguration: namedConfiguration,
                 drtPath: data["drt"] as String,
                 chromePath: data["chrome"] as String,
                 safariPath: data["safari"] as String,
@@ -688,7 +694,6 @@ compiler.''',
                 dartPrecompiledPath: data["dart_precompiled"] as String,
                 flutterPath: data["flutter"] as String,
                 taskCount: data["tasks"] as int,
-                timeout: data["timeout"] as int,
                 shardCount: data["shards"] as int,
                 shard: data["shard"] as int,
                 stepName: data["step_name"] as String,
@@ -698,11 +703,9 @@ compiler.''',
                 testDriverErrorPort: data["test_driver_error_port"] as int,
                 localIP: data["local_ip"] as String,
                 dart2jsOptions: dart2jsOptions,
-                vmOptions: vmOptions,
                 packages: data["packages"] as String,
                 packageRoot: data["package_root"] as String,
                 suiteDirectory: data["suite_dir"] as String,
-                builderTag: data["builder_tag"] as String,
                 outputDirectory: data["output_directory"] as String,
                 reproducingArguments: _reproducingCommand(data),
                 fastTestsOnly: data["fast_tests"] as bool,
@@ -859,7 +862,7 @@ Options:''');
   }
 }
 
-smith.Configuration getNamedConfiguration(String template, Runtime runtime,
+Configuration getNamedConfiguration(String template, Runtime runtime,
     Compiler compiler, Mode mode, Architecture architecture, System system) {
   print(template);
   if (template == null) return null;
@@ -880,8 +883,7 @@ smith.Configuration getNamedConfiguration(String template, Runtime runtime,
     template = template.replaceFirst(r"${system}", name);
   }
 
-  smith.TestMatrix testMatrix =
-      smith.TestMatrix.fromPath("tools/bots/test_matrix.json");
+  TestMatrix testMatrix = TestMatrix.fromPath("tools/bots/test_matrix.json");
   print("Expanded namedConfiguration name:$template");
   return testMatrix.configurations
       .singleWhere((c) => c.name == template, orElse: () => null);

@@ -201,6 +201,18 @@ class Configuration {
       return value as String;
     }
 
+    List<String> stringListOption(String option) {
+      if (!optionsCopy.containsKey(option)) return null;
+
+      var value = optionsCopy.remove(option);
+      if (value == null) throw FormatException('Option "$option" was null.');
+      if (value is! List) {
+        throw FormatException('Option "$option" had value "$value", which is '
+            'not a List.');
+      }
+      return new List<String>.from(value);
+    }
+
     // Extract options from the name and map.
     var architecture =
         enumOption("architecture", Architecture.names, Architecture.find);
@@ -236,14 +248,13 @@ class Configuration {
     var configuration = Configuration(
         name, architecture, compiler, mode, runtime, system,
         builderTag: stringOption("builder-tag"),
-        vmOptions: stringOption("vm-options"),
+        vmOptions: stringListOption("vm-options"),
         timeout: intOption("timeout"),
         enableAsserts: boolOption("enable-asserts"),
         isChecked: boolOption("checked"),
         isCsp: boolOption("csp"),
         isHostChecked: boolOption("host-checked"),
         isMinified: boolOption("minified"),
-        isStrong: boolOption("strong"),
         previewDart2: boolOption("preview-dart-2"),
         useBlobs: boolOption("use-blobs"),
         useDart2JSWithKernel: boolOption("dart2js-with-kernel"),
@@ -273,12 +284,11 @@ class Configuration {
 
   final System system;
 
-  // TODO(rnystrom): Is this still needed?
   final String builderTag;
 
-  final String vmOptions;
+  final List<String> vmOptions;
 
-  final int timeout;
+  int timeout;
 
   final bool enableAsserts;
 
@@ -291,9 +301,6 @@ class Configuration {
   final bool isHostChecked;
 
   final bool isMinified;
-
-  // TODO(rnystrom): Remove this when Dart 1.0 is no longer supported.
-  final bool isStrong;
 
   // TODO(rnystrom): Remove this when Dart 1.0 is no longer supported.
   final bool previewDart2;
@@ -315,14 +322,13 @@ class Configuration {
   Configuration(this.name, this.architecture, this.compiler, this.mode,
       this.runtime, this.system,
       {String builderTag,
-      String vmOptions,
+      List<String> vmOptions,
       int timeout,
       bool enableAsserts,
       bool isChecked,
       bool isCsp,
       bool isHostChecked,
       bool isMinified,
-      bool isStrong,
       bool previewDart2,
       bool useBlobs,
       bool useDart2JSWithKernel,
@@ -332,14 +338,13 @@ class Configuration {
       bool useHotReloadRollback,
       bool useSdk})
       : builderTag = builderTag ?? "",
-        vmOptions = vmOptions ?? "",
-        timeout = timeout ?? 0,
+        vmOptions = vmOptions ?? <String>[],
+        timeout = timeout,
         enableAsserts = enableAsserts ?? false,
         isChecked = isChecked ?? false,
         isCsp = isCsp ?? false,
         isHostChecked = isHostChecked ?? false,
         isMinified = isMinified ?? false,
-        isStrong = isStrong ?? false,
         previewDart2 = previewDart2 ?? true,
         useBlobs = useBlobs ?? false,
         useDart2JSWithKernel = useDart2JSWithKernel ?? false,
@@ -365,7 +370,6 @@ class Configuration {
       isCsp == other.isCsp &&
       isHostChecked == other.isHostChecked &&
       isMinified == other.isMinified &&
-      isStrong == other.isStrong &&
       previewDart2 == other.previewDart2 &&
       useBlobs == other.useBlobs &&
       useDart2JSWithKernel == other.useDart2JSWithKernel &&
@@ -393,15 +397,14 @@ class Configuration {
       (isCsp ? 4 : 0) ^
       (isHostChecked ? 8 : 0) ^
       (isMinified ? 16 : 0) ^
-      (isStrong ? 32 : 0) ^
-      (previewDart2 ? 64 : 0) ^
-      (useBlobs ? 128 : 0) ^
-      (useDart2JSWithKernel ? 256 : 0) ^
-      (useDart2JSOldFrontEnd ? 512 : 0) ^
-      (useFastStartup ? 1024 : 0) ^
-      (useHotReload ? 2048 : 0) ^
-      (useHotReloadRollback ? 4096 : 0) ^
-      (useSdk ? 8192 : 0);
+      (previewDart2 ? 32 : 0) ^
+      (useBlobs ? 64 : 0) ^
+      (useDart2JSWithKernel ? 128 : 0) ^
+      (useDart2JSOldFrontEnd ? 256 : 0) ^
+      (useFastStartup ? 512 : 0) ^
+      (useHotReload ? 1024 : 0) ^
+      (useHotReloadRollback ? 2048 : 0) ^
+      (useSdk ? 4096 : 0);
 
   String toString() {
     var buffer = new StringBuffer();
@@ -423,7 +426,6 @@ class Configuration {
     if (isCsp) fields.add("csp");
     if (isHostChecked) fields.add("host-checked");
     if (isMinified) fields.add("minified");
-    if (isStrong) fields.add("strong");
     if (previewDart2) fields.add("preview-dart-2");
     if (useBlobs) fields.add("use-blobs");
     if (useDart2JSWithKernel) fields.add("dart2js-with-kernel");
