@@ -58,8 +58,12 @@ class TypeImpl implements Type {
   String get _typeName => __typeName ??= runtimeTypeToString(_rti);
 
   String toString() {
-    return _unmangledName ??=
-        unmangleAllIdentifiersIfPreservedAnyways(_typeName);
+    if (JS_GET_FLAG('STRONG_MODE')) {
+      return _typeName;
+    } else {
+      return _unmangledName ??=
+          unmangleAllIdentifiersIfPreservedAnyways(_typeName);
+    }
   }
 
   // TODO(ahe): This is a poor hashCode as it collides with its name.
@@ -181,7 +185,7 @@ String _getRuntimeTypeAsStringV1(var rti) {
 
 String _getRuntimeTypeAsStringV2(var rti, List<String> genericContext) {
   assert(isJsArray(rti));
-  String className = rawRtiToJsConstructorName(getIndex(rti, 0));
+  String className = unminifyOrTag(rawRtiToJsConstructorName(getIndex(rti, 0)));
   return '$className${joinArgumentsV2(rti, 1, genericContext)}';
 }
 
@@ -239,7 +243,7 @@ String runtimeTypeToStringV2(var rti, List<String> genericContext) {
   }
   if (isJsFunction(rti)) {
     // A reference to the constructor.
-    return rawRtiToJsConstructorName(rti);
+    return unminifyOrTag(rawRtiToJsConstructorName(rti));
   }
   if (isDartJsInteropTypeArgumentRti(rti)) {
     return 'dynamic';
@@ -1054,7 +1058,7 @@ bool isSubtypeV2(var s, var sEnv, var t, var tEnv) {
   // Get the necessary substitution of the type arguments, if there is one.
   var substitution;
   if (isNotIdentical(typeOfT, typeOfS)) {
-    String typeOfTString = runtimeTypeToString(typeOfT);
+    String typeOfTString = rawRtiToJsConstructorName(typeOfT);
     if (!builtinIsSubtype(typeOfS, typeOfTString)) {
       return false;
     }
