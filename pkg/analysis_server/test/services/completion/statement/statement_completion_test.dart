@@ -13,16 +13,27 @@ import '../../../abstract_single_unit.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(_DeclarationCompletionTest);
+    defineReflectiveTests(_DeclarationCompletionTest_UseCfe);
     defineReflectiveTests(_ControlFlowCompletionTest);
+    defineReflectiveTests(_ControlFlowCompletionTest_UseCfe);
     defineReflectiveTests(_DoCompletionTest);
+    defineReflectiveTests(_DoCompletionTest_UseCfe);
     defineReflectiveTests(_ExpressionCompletionTest);
+    defineReflectiveTests(_ExpressionCompletionTest_UseCfe);
     defineReflectiveTests(_ForCompletionTest);
+    defineReflectiveTests(_ForCompletionTest_UseCfe);
     defineReflectiveTests(_ForEachCompletionTest);
+    defineReflectiveTests(_ForEachCompletionTest_UseCfe);
     defineReflectiveTests(_IfCompletionTest);
+    defineReflectiveTests(_IfCompletionTest_UseCfe);
     defineReflectiveTests(_SimpleCompletionTest);
+    defineReflectiveTests(_SimpleCompletionTest_UseCfe);
     defineReflectiveTests(_SwitchCompletionTest);
+    defineReflectiveTests(_SwitchCompletionTest_UseCfe);
     defineReflectiveTests(_TryCompletionTest);
+    defineReflectiveTests(_TryCompletionTest_UseCfe);
     defineReflectiveTests(_WhileCompletionTest);
+    defineReflectiveTests(_WhileCompletionTest_UseCfe);
   });
 }
 
@@ -286,6 +297,12 @@ ex(e) {
 }
 
 @reflectiveTest
+class _ControlFlowCompletionTest_UseCfe extends _ControlFlowCompletionTest {
+  @override
+  bool get useCFE => true;
+}
+
+@reflectiveTest
 class _DeclarationCompletionTest extends StatementCompletionTest {
   test_classNameNoBody() async {
     await _prepareCompletion(
@@ -453,6 +470,12 @@ class Sample extends Object with M {
 }
 
 @reflectiveTest
+class _DeclarationCompletionTest_UseCfe extends _DeclarationCompletionTest {
+  @override
+  bool get useCFE => true;
+}
+
+@reflectiveTest
 class _DoCompletionTest extends StatementCompletionTest {
   test_emptyCondition() async {
     await _prepareCompletion(
@@ -582,6 +605,16 @@ main() {
 ''',
         (s) => _after(s, 'while ('));
   }
+}
+
+@reflectiveTest
+class _DoCompletionTest_UseCfe extends _DoCompletionTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_keywordOnly() => super.test_keywordOnly();
 }
 
 @reflectiveTest
@@ -799,6 +832,12 @@ main() {
 """,
         (s) => _afterLast(s, '  '));
   }
+}
+
+@reflectiveTest
+class _ExpressionCompletionTest_UseCfe extends _ExpressionCompletionTest {
+  @override
+  bool get useCFE => true;
 }
 
 @reflectiveTest
@@ -1040,6 +1079,20 @@ main() {
 }
 
 @reflectiveTest
+class _ForCompletionTest_UseCfe extends _ForCompletionTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_emptyInitializers() => super.test_emptyInitializers();
+
+  @failingTest
+  @override
+  test_emptyInitializersAfterBody() => super.test_emptyInitializersAfterBody();
+}
+
+@reflectiveTest
 class _ForEachCompletionTest extends StatementCompletionTest {
   test_emptyIdentifier() async {
     await _prepareCompletion(
@@ -1130,6 +1183,12 @@ main() {
 ''',
         (s) => _after(s, '    '));
   }
+}
+
+@reflectiveTest
+class _ForEachCompletionTest_UseCfe extends _ForEachCompletionTest {
+  @override
+  bool get useCFE => true;
 }
 
 @reflectiveTest
@@ -1353,6 +1412,16 @@ main() {
 }
 
 @reflectiveTest
+class _IfCompletionTest_UseCfe extends _IfCompletionTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_keywordOnly() => super.test_keywordOnly();
+}
+
+@reflectiveTest
 class _SimpleCompletionTest extends StatementCompletionTest {
   test_enter() async {
     await _prepareCompletion(
@@ -1570,6 +1639,12 @@ main() {
 }
 
 @reflectiveTest
+class _SimpleCompletionTest_UseCfe extends _SimpleCompletionTest {
+  @override
+  bool get useCFE => true;
+}
+
+@reflectiveTest
 class _SwitchCompletionTest extends StatementCompletionTest {
   test_caseNoColon() async {
     await _prepareCompletion(
@@ -1679,6 +1754,12 @@ main() {
 ''',
         (s) => _after(s, 'switch ('));
   }
+}
+
+@reflectiveTest
+class _SwitchCompletionTest_UseCfe extends _SwitchCompletionTest {
+  @override
+  bool get useCFE => true;
 }
 
 @reflectiveTest
@@ -1938,6 +2019,12 @@ main() {
 }
 
 @reflectiveTest
+class _TryCompletionTest_UseCfe extends _TryCompletionTest {
+  @override
+  bool get useCFE => true;
+}
+
+@reflectiveTest
 class _WhileCompletionTest extends StatementCompletionTest {
   /*
      The implementation of completion for while-statements is shared with
@@ -1966,4 +2053,14 @@ main() {
 ''',
         (s) => _after(s, 'while ('));
   }
+}
+
+@reflectiveTest
+class _WhileCompletionTest_UseCfe extends _WhileCompletionTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_keywordOnly() => super.test_keywordOnly();
 }

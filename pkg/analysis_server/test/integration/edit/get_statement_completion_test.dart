@@ -61,5 +61,5 @@ class GetStatementCompletionTest_UseCFE extends GetStatementCompletionTest {
 
   @override
   @failingTest
-  Future test_statement_completion() => super.test_statement_completion();
+  test_statement_completion() => super.test_statement_completion();
 }

@@ -25,6 +25,7 @@ import '../../abstract_single_unit.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssistProcessorTest);
+    defineReflectiveTests(AssistProcessorTest_UseCFE);
   });
 }
 
@@ -6307,6 +6308,316 @@ main() {
     offset = findOffset('// start\n') + '// start\n'.length;
     length = findOffset('// end') - offset;
   }
+}
+
+@reflectiveTest
+class AssistProcessorTest_UseCFE extends AssistProcessorTest {
+  @override
+  bool get useCFE => true;
+
+  // Many of these tests are failing because the CFE is not able to find the
+  // flutter package. It seems likely that there is a problem with the way the
+  // tests (or some underlying layer) is passing package resolution to the CFE.
+
+  @failingTest
+  @override
+  test_addTypeAnnotation_parameter_BAD_hasExplicitType() =>
+      super.test_addTypeAnnotation_parameter_BAD_hasExplicitType();
+
+  @failingTest
+  @override
+  test_addTypeAnnotation_parameter_BAD_noPropagatedType() =>
+      super.test_addTypeAnnotation_parameter_BAD_noPropagatedType();
+
+  @failingTest
+  @override
+  test_addTypeAnnotation_parameter_OK() =>
+      super.test_addTypeAnnotation_parameter_OK();
+
+  @failingTest
+  @override
+  test_convertToFinalField_OK_hasOverride() =>
+      super.test_convertToFinalField_OK_hasOverride();
+
+  @failingTest
+  @override
+  test_convertToFunctionSyntax_BAD_functionTypedParameter_insideParameterList() =>
+      super
+          .test_convertToFunctionSyntax_BAD_functionTypedParameter_insideParameterList();
+
+  @failingTest
+  @override
+  test_convertToFunctionSyntax_BAD_functionTypedParameter_noParameterTypes() =>
+      super
+          .test_convertToFunctionSyntax_BAD_functionTypedParameter_noParameterTypes();
+
+  @failingTest
+  @override
+  test_convertToFunctionSyntax_OK_functionTypedParameter_noReturnType_noTypeParameters() =>
+      super
+          .test_convertToFunctionSyntax_OK_functionTypedParameter_noReturnType_noTypeParameters();
+
+  @failingTest
+  @override
+  test_convertToFunctionSyntax_OK_functionTypedParameter_returnType() =>
+      super.test_convertToFunctionSyntax_OK_functionTypedParameter_returnType();
+
+  @failingTest
+  @override
+  test_convertToGetter_OK() => super.test_convertToGetter_OK();
+
+  @failingTest
+  @override
+  test_flutterConvertToChildren_BAD_childUnresolved() =>
+      super.test_flutterConvertToChildren_BAD_childUnresolved();
+
+  @failingTest
+  @override
+  test_flutterConvertToChildren_BAD_notOnChild() =>
+      super.test_flutterConvertToChildren_BAD_notOnChild();
+
+  @failingTest
+  @override
+  test_flutterConvertToChildren_OK_multiLine() =>
+      super.test_flutterConvertToChildren_OK_multiLine();
+
+  @failingTest
+  @override
+  test_flutterConvertToChildren_OK_newlineChild() =>
+      super.test_flutterConvertToChildren_OK_newlineChild();
+
+  @failingTest
+  @override
+  test_flutterConvertToChildren_OK_singleLine() =>
+      super.test_flutterConvertToChildren_OK_singleLine();
+
+  @failingTest
+  @override
+  test_flutterConvertToStatefulWidget_BAD_notClass() =>
+      super.test_flutterConvertToStatefulWidget_BAD_notClass();
+
+  @failingTest
+  @override
+  test_flutterConvertToStatefulWidget_BAD_notStatelessWidget() =>
+      super.test_flutterConvertToStatefulWidget_BAD_notStatelessWidget();
+
+  @failingTest
+  @override
+  test_flutterConvertToStatefulWidget_BAD_notWidget() =>
+      super.test_flutterConvertToStatefulWidget_BAD_notWidget();
+
+  @failingTest
+  @override
+  test_flutterConvertToStatefulWidget_OK() =>
+      super.test_flutterConvertToStatefulWidget_OK();
+
+  @failingTest
+  @override
+  test_flutterConvertToStatefulWidget_OK_empty() =>
+      super.test_flutterConvertToStatefulWidget_OK_empty();
+
+  @failingTest
+  @override
+  test_flutterConvertToStatefulWidget_OK_fields() =>
+      super.test_flutterConvertToStatefulWidget_OK_fields();
+
+  @failingTest
+  @override
+  test_flutterConvertToStatefulWidget_OK_getters() =>
+      super.test_flutterConvertToStatefulWidget_OK_getters();
+
+  @failingTest
+  @override
+  test_flutterConvertToStatefulWidget_OK_methods() =>
+      super.test_flutterConvertToStatefulWidget_OK_methods();
+
+  @failingTest
+  @override
+  test_flutterConvertToStatefulWidget_OK_tail() =>
+      super.test_flutterConvertToStatefulWidget_OK_tail();
+
+  @failingTest
+  @override
+  test_flutterMoveWidgetDown_BAD_last() =>
+      super.test_flutterMoveWidgetDown_BAD_last();
+
+  @failingTest
+  @override
+  test_flutterMoveWidgetDown_BAD_notInList() =>
+      super.test_flutterMoveWidgetDown_BAD_notInList();
+
+  @failingTest
+  @override
+  test_flutterMoveWidgetDown_OK() => super.test_flutterMoveWidgetDown_OK();
+
+  @failingTest
+  @override
+  test_flutterMoveWidgetUp_BAD_first() =>
+      super.test_flutterMoveWidgetUp_BAD_first();
+
+  @failingTest
+  @override
+  test_flutterMoveWidgetUp_BAD_notInList() =>
+      super.test_flutterMoveWidgetUp_BAD_notInList();
+
+  @failingTest
+  @override
+  test_flutterMoveWidgetUp_OK() => super.test_flutterMoveWidgetUp_OK();
+
+  @failingTest
+  @override
+  test_flutterRemoveWidget_BAD_childrenMultipleIntoChild() =>
+      super.test_flutterRemoveWidget_BAD_childrenMultipleIntoChild();
+
+  @failingTest
+  @override
+  test_flutterRemoveWidget_OK_childIntoChild_multiLine() =>
+      super.test_flutterRemoveWidget_OK_childIntoChild_multiLine();
+
+  @failingTest
+  @override
+  test_flutterRemoveWidget_OK_childIntoChild_singleLine() =>
+      super.test_flutterRemoveWidget_OK_childIntoChild_singleLine();
+
+  @failingTest
+  @override
+  test_flutterRemoveWidget_OK_childIntoChildren() =>
+      super.test_flutterRemoveWidget_OK_childIntoChildren();
+
+  @failingTest
+  @override
+  test_flutterRemoveWidget_OK_childrenOneIntoChild() =>
+      super.test_flutterRemoveWidget_OK_childrenOneIntoChild();
+
+  @failingTest
+  @override
+  test_flutterRemoveWidget_OK_childrenOneIntoReturn() =>
+      super.test_flutterRemoveWidget_OK_childrenOneIntoReturn();
+
+  @failingTest
+  @override
+  test_flutterRemoveWidget_OK_intoChildren() =>
+      super.test_flutterRemoveWidget_OK_intoChildren();
+
+  @failingTest
+  @override
+  test_flutterSwapWithChild_OK() => super.test_flutterSwapWithChild_OK();
+
+  @failingTest
+  @override
+  test_flutterSwapWithChild_OK_notFormatted() =>
+      super.test_flutterSwapWithChild_OK_notFormatted();
+
+  @failingTest
+  @override
+  test_flutterSwapWithParent_OK() => super.test_flutterSwapWithParent_OK();
+
+  @failingTest
+  @override
+  test_flutterSwapWithParent_OK_notFormatted() =>
+      super.test_flutterSwapWithParent_OK_notFormatted();
+
+  @failingTest
+  @override
+  test_flutterSwapWithParent_OK_outerIsInChildren() =>
+      super.test_flutterSwapWithParent_OK_outerIsInChildren();
+
+  @failingTest
+  @override
+  test_flutterWrapCenter_BAD_onCenter() =>
+      super.test_flutterWrapCenter_BAD_onCenter();
+
+  @failingTest
+  @override
+  test_flutterWrapCenter_OK() => super.test_flutterWrapCenter_OK();
+
+  @failingTest
+  @override
+  test_flutterWrapCenter_OK_implicitNew() =>
+      super.test_flutterWrapCenter_OK_implicitNew();
+
+  @failingTest
+  @override
+  test_flutterWrapCenter_OK_namedConstructor() =>
+      super.test_flutterWrapCenter_OK_namedConstructor();
+
+  @failingTest
+  @override
+  test_flutterWrapColumn_OK_coveredByWidget() =>
+      super.test_flutterWrapColumn_OK_coveredByWidget();
+
+  @failingTest
+  @override
+  test_flutterWrapColumn_OK_coversWidgets() =>
+      super.test_flutterWrapColumn_OK_coversWidgets();
+
+  @failingTest
+  @override
+  test_flutterWrapColumn_OK_implicitNew() =>
+      super.test_flutterWrapColumn_OK_implicitNew();
+
+  @failingTest
+  @override
+  test_flutterWrapPadding_BAD_onPadding() =>
+      super.test_flutterWrapPadding_BAD_onPadding();
+
+  @failingTest
+  @override
+  test_flutterWrapPadding_OK() => super.test_flutterWrapPadding_OK();
+
+  @failingTest
+  @override
+  test_flutterWrapRow_OK() => super.test_flutterWrapRow_OK();
+
+  @failingTest
+  @override
+  test_flutterWrapWidget_BAD_multiLine() =>
+      super.test_flutterWrapWidget_BAD_multiLine();
+
+  @failingTest
+  @override
+  test_flutterWrapWidget_BAD_singleLine() =>
+      super.test_flutterWrapWidget_BAD_singleLine();
+
+  @failingTest
+  @override
+  test_flutterWrapWidget_OK_multiLine() =>
+      super.test_flutterWrapWidget_OK_multiLine();
+
+  @failingTest
+  @override
+  test_flutterWrapWidget_OK_multiLines() =>
+      super.test_flutterWrapWidget_OK_multiLines();
+
+  @failingTest
+  @override
+  test_flutterWrapWidget_OK_multiLines_eol2() =>
+      super.test_flutterWrapWidget_OK_multiLines_eol2();
+
+  @failingTest
+  @override
+  test_flutterWrapWidget_OK_singleLine1() =>
+      super.test_flutterWrapWidget_OK_singleLine1();
+
+  @failingTest
+  @override
+  test_flutterWrapWidget_OK_singleLine2() =>
+      super.test_flutterWrapWidget_OK_singleLine2();
+
+  @failingTest
+  @override
+  test_flutterWrapWidget_OK_variable() =>
+      super.test_flutterWrapWidget_OK_variable();
+
+  @failingTest
+  @override
+  test_importAddShow_BAD_unresolvedUri() =>
+      super.test_importAddShow_BAD_unresolvedUri();
+
+  @failingTest
+  @override
+  test_removeTypeAnnotation_topLevelVariable_BAD_syntheticName() =>
+      super.test_removeTypeAnnotation_topLevelVariable_BAD_syntheticName();
 }
 
 class _DartAssistContextForValues implements DartAssistContext {

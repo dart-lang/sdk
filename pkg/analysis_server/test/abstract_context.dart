@@ -60,6 +60,11 @@ class AbstractContextTest extends Object with ResourceProviderMixin {
 
   bool get previewDart2 => driver.analysisOptions.previewDart2;
 
+  /**
+   * Return `true` to enable the Dart 2.0 Common Front End.
+   */
+  bool get useCFE => false;
+
   void addFlutterPackage() {
     addMetaPackageSource();
     Folder libFolder = configureFlutterPackage(resourceProvider);
@@ -140,7 +145,8 @@ class _IsTestGroup {
         new ContextRoot(resourceProvider.convertPath('/project'), [],
             pathContext: resourceProvider.pathContext),
         sourceFactory,
-        new AnalysisOptionsImpl());
+        new AnalysisOptionsImpl(),
+        enableKernelDriver: useCFE);
     scheduler.start();
     AnalysisEngine.instance.logger = PrintLogger.instance;
   }
