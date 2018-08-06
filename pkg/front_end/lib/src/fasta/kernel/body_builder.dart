@@ -2280,14 +2280,15 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("AsOperator");
     DartType type = pop();
     Expression expression = popForValue();
+    Expression error;
     if (constantContext != ConstantContext.none) {
-      push(buildCompileTimeError(
+      error = buildCompileTimeError(
           fasta.templateNotConstantExpression.withArguments('As expression'),
           operator.charOffset,
-          operator.length));
-    } else {
-      push(forest.asExpression(expression, type, operator));
+          operator.length);
     }
+    push(
+        forest.asExpression(expression, type, operator, desugaredError: error));
   }
 
   @override

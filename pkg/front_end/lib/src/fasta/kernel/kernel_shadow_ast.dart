@@ -203,10 +203,12 @@ class ArgumentsJudgment extends Arguments {
 /// Shadow object for [AsExpression].
 class AsJudgment extends AsExpression implements ExpressionJudgment {
   final AsExpressionTokens tokens;
+  final Expression desugaredError;
 
   DartType inferredType;
 
-  AsJudgment(Expression operand, this.tokens, DartType type)
+  AsJudgment(Expression operand, this.tokens, DartType type,
+      {this.desugaredError})
       : super(operand, type);
 
   ExpressionJudgment get judgment => operand;
@@ -218,6 +220,10 @@ class AsJudgment extends AsExpression implements ExpressionJudgment {
     inferredType = type;
     inferrer.listener
         .asExpression(this, fileOffset, null, tokens, null, inferredType);
+    if (desugaredError != null) {
+      parent.replaceChild(this, desugaredError);
+      parent = null;
+    }
     return null;
   }
 }

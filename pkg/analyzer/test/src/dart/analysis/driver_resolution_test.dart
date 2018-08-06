@@ -3516,6 +3516,23 @@ main() {
         useCFE || Parser.useFasta ? 'StackTrace' : 'dynamic');
   }
 
+  test_invalid_const_as() async {
+    addTestFile(r'''
+class A {
+  final int a;
+  const A(num b) : a = b as int;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+
+    var bRef = findNode.simple('b as int');
+    assertElement(bRef, findElement.parameter('b'));
+    assertType(bRef, 'num');
+
+    assertTypeName(findNode.typeName('int;'), intElement, 'int');
+  }
+
   test_invalid_const_constructor_initializer_field_multiple() async {
     addTestFile(r'''
 var a = 0;
@@ -10212,20 +10229,17 @@ class FindElement {
     }
 
     for (var accessor in unitElement.accessors) {
-      for (var parameter in accessor.parameters) {
-        considerParameter(parameter);
-      }
+      accessor.parameters.forEach(considerParameter);
     }
     for (var function in unitElement.functions) {
-      for (var parameter in function.parameters) {
-        considerParameter(parameter);
-      }
+      function.parameters.forEach(considerParameter);
     }
     for (var class_ in unitElement.types) {
+      for (var constructor in class_.constructors) {
+        constructor.parameters.forEach(considerParameter);
+      }
       for (var method in class_.methods) {
-        for (var parameter in method.parameters) {
-          considerParameter(parameter);
-        }
+        method.parameters.forEach(considerParameter);
       }
     }
     if (parameterElement != null) {

@@ -162,8 +162,8 @@ abstract class Forest {
 
   Expression checkLibraryIsLoaded(covariant dependency);
 
-  Expression asExpression(
-      Expression expression, covariant type, Token location);
+  Expression asExpression(Expression expression, covariant type, Token location,
+      {Expression desugaredError});
 
   /// Return a representation of an assert that appears in a constructor's
   /// initializer list.

@@ -288,9 +288,11 @@ class Fangorn extends Forest {
   }
 
   @override
-  Expression asExpression(Expression expression, covariant type, Token token) {
+  Expression asExpression(Expression expression, covariant type, Token token,
+      {Expression desugaredError}) {
     return new AsJudgment(
-        expression, typeInferenceTokensSaver?.asExpressionTokens(token), type)
+        expression, typeInferenceTokensSaver?.asExpressionTokens(token), type,
+        desugaredError: desugaredError)
       ..fileOffset = offsetForToken(token);
   }
 
