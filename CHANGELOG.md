@@ -1,3 +1,5 @@
+* new lint: `prefer_void_to_null`
+
 # 0.1.58
 
 * roll-back to explicit uses of `new` and `const` to be compatible w/ VMs running `--no-preview-dart-2`
