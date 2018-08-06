@@ -99,6 +99,7 @@ class _UnnecessaryThisVisitor extends ScopedVisitor {
     if (lookUpElement == localElement || lookUpElement == null) {
       rule.reportLint(parent);
     }
+    return null;
   }
 }
 

@@ -130,6 +130,8 @@ class _AllowedLongLineVisitor extends RecursiveAstVisitor {
       final value = node.elements.map((e) {
         if (e is InterpolationString) return e.value;
         if (e is InterpolationExpression) return ' ' * e.length;
+        throw new ArgumentError(
+            'Unhandled string interpolation element: ${node.runtimeType}');
       }).join();
       _handleSingleLine(node, value);
     }
