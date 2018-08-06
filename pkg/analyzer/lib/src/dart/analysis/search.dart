@@ -21,7 +21,10 @@ import 'package:collection/collection.dart';
 Element _getEnclosingElement(CompilationUnitElement unitElement, int offset) {
   var finder = new _ContainingElementFinder(offset);
   unitElement.accept(finder);
-  return finder.containingElement;
+  Element element = finder.containingElement;
+  assert(element != null,
+      'No containing element in ${unitElement.source.fullName} at $offset');
+  return element;
 }
 
 /**
@@ -824,7 +827,8 @@ class SearchResult {
   final bool isQualified;
 
   SearchResult._(this.enclosingElement, this.kind, this.offset, this.length,
-      this.isResolved, this.isQualified);
+      this.isResolved, this.isQualified)
+      : assert(enclosingElement != null);
 
   @override
   String toString() {
