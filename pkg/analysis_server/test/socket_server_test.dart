@@ -92,19 +92,18 @@ class SocketServerTest {
     });
   }
 
-  static Future requestHandler_futureException() {
+  static Future requestHandler_futureException() async {
     SocketServer server = _createSocketServer();
     MockServerChannel channel = new MockServerChannel();
     server.createAnalysisServer(channel);
     _MockRequestHandler handler = new _MockRequestHandler(true);
     server.analysisServer.handlers = [handler];
     var request = new ServerGetVersionParams().toRequest('0');
-    return channel.sendRequest(request).then((Response response) {
-      expect(response.id, equals('0'));
-      expect(response.error, isNull);
-      channel.expectMsgCount(responseCount: 1, notificationCount: 2);
-      expect(channel.notificationsReceived[1].event, SERVER_NOTIFICATION_ERROR);
-    });
+    Response response = await channel.sendRequest(request, throwOnError: false);
+    expect(response.id, equals('0'));
+    expect(response.error, isNull);
+    channel.expectMsgCount(responseCount: 1, notificationCount: 2);
+    expect(channel.notificationsReceived[1].event, SERVER_NOTIFICATION_ERROR);
   }
 
   static SocketServer _createSocketServer() {

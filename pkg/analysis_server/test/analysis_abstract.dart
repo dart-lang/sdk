@@ -262,8 +262,9 @@ class AbstractAnalysisTest extends Object with ResourceProviderMixin {
    * Completes with a successful [Response] for the given [request].
    * Otherwise fails.
    */
-  Future<Response> waitResponse(Request request) async {
-    return serverChannel.sendRequest(request);
+  Future<Response> waitResponse(Request request,
+      {bool throwOnError = true}) async {
+    return serverChannel.sendRequest(request, throwOnError: throwOnError);
   }
 }
 

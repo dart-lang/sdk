@@ -157,12 +157,15 @@ class GetErrorsTest_UseCFE extends GetErrorsTest {
 
   @failingTest
   @override
-  test_errorInPart() async => super.test_errorInPart();
+  test_errorInPart() => super.test_errorInPart();
 
   @override
-  test_fileDoesNotExist() async => super.test_fileDoesNotExist();
+  test_fileDoesNotExist() => super.test_fileDoesNotExist();
+
+  @failingTest
+  @override
+  test_hasErrors() => super.test_hasErrors();
 
   @override
-  test_removeContextAfterRequest() async =>
-      super.test_removeContextAfterRequest();
+  test_removeContextAfterRequest() => super.test_removeContextAfterRequest();
 }

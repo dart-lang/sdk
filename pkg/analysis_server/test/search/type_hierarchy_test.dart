@@ -1086,8 +1086,7 @@ class GetTypeHierarchyTest_UseCFE extends GetTypeHierarchyTest {
   @failingTest
   @override
   test_class_extendsTypeB() {
-    fail('Timeout');
-//    return callFailingTest(super.test_class_extendsTypeB);
+    return callFailingTest(super.test_class_extendsTypeB);
   }
 
   @failingTest
