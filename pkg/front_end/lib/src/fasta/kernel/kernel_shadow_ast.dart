@@ -2797,9 +2797,13 @@ class InvalidPropertyGetJudgment extends SyntheticExpressionJudgment {
 /// These expressions are removed by type inference and replaced with their
 /// desugared equivalents.
 class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
+  /// The original expression that is wrapped by this synthetic expression.
+  /// Its type will be inferred.
+  final Expression original;
+
   DartType inferredType;
 
-  SyntheticExpressionJudgment(Expression desugared)
+  SyntheticExpressionJudgment(Expression desugared, {this.original})
       : super(new VariableDeclaration('_', initializer: new NullLiteral()),
             desugared);
 
@@ -2814,6 +2818,9 @@ class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
   @override
   Expression infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer, DartType typeContext) {
+    if (original != null) {
+      inferrer.inferExpression(original, typeContext, true);
+    }
     _replaceWithDesugared();
     inferredType = const DynamicType();
     return null;

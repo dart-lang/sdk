@@ -994,30 +994,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_prefix_conditionalPropertyAccess_call() async {
-    await super.test_prefix_conditionalPropertyAccess_call();
-  }
-
-  @override
-  @failingTest
-  test_prefix_conditionalPropertyAccess_call_loadLibrary() async {
-    await super.test_prefix_conditionalPropertyAccess_call_loadLibrary();
-  }
-
-  @override
-  @failingTest
-  test_prefix_conditionalPropertyAccess_get() async {
-    await super.test_prefix_conditionalPropertyAccess_get();
-  }
-
-  @override
-  @failingTest
-  test_prefix_conditionalPropertyAccess_get_loadLibrary() async {
-    return super.test_prefix_conditionalPropertyAccess_get_loadLibrary();
-  }
-
-  @override
-  @failingTest
   test_prefix_conditionalPropertyAccess_set() async {
     await super.test_prefix_conditionalPropertyAccess_set();
   }
@@ -1050,12 +1026,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @failingTest
   test_prefixCollidesWithTopLevelMembers_type() async {
     return super.test_prefixCollidesWithTopLevelMembers_type();
-  }
-
-  @override
-  @failingTest
-  test_prefixNotFollowedByDot_conditionalMethodInvocation() async {
-    await super.test_prefixNotFollowedByDot_conditionalMethodInvocation();
   }
 
   @override

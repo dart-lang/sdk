@@ -4018,19 +4018,21 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       {List<LocatedMessage> context}) {
     // TODO(askesc): Produce explicit error expression wrapping the original.
     // See [issue 29717](https://github.com/dart-lang/sdk/issues/29717)
-    return new SyntheticExpressionJudgment(new Let(
-        new VariableDeclaration.forValue(new SyntheticExpressionJudgment(
-            buildCompileTimeError(
-                message.messageObject, message.charOffset, message.length,
-                context: context)))
-          ..fileOffset = forest.readOffset(expression),
+    return new SyntheticExpressionJudgment(
         new Let(
-            new VariableDeclaration.forValue(expression)
+            new VariableDeclaration.forValue(new SyntheticExpressionJudgment(
+                buildCompileTimeError(
+                    message.messageObject, message.charOffset, message.length,
+                    context: context)))
               ..fileOffset = forest.readOffset(expression),
-            forest.literalNull(null)
+            new Let(
+                new VariableDeclaration.forValue(expression)
+                  ..fileOffset = forest.readOffset(expression),
+                forest.literalNull(null)
+                  ..fileOffset = forest.readOffset(expression))
               ..fileOffset = forest.readOffset(expression))
-          ..fileOffset = forest.readOffset(expression))
-      ..fileOffset = forest.readOffset(expression));
+          ..fileOffset = forest.readOffset(expression),
+        original: expression);
   }
 
   Expression buildFallThroughError(int charOffset) {
