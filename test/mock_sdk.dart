@@ -402,9 +402,7 @@ class HtmlElement {}
     List<Source> librarySources = sdkLibraries
         .map((SdkLibrary library) => mapDartUri(library.shortName))
         .toList();
-    return new SummaryBuilder(
-            librarySources, context, context.analysisOptions.strongMode)
-        .build();
+    return new SummaryBuilder(librarySources, context, true).build();
   }
 }
 

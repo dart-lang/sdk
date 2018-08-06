@@ -24,6 +24,7 @@ List<Element> getChildren(Element parent, [String name]) {
     if (name == null || element.displayName == name) {
       children.add(element);
     }
+    return false;
   });
   return children;
 }
