@@ -210,7 +210,7 @@ class Configuration {
         throw FormatException('Option "$option" had value "$value", which is '
             'not a List.');
       }
-      return new List<String>.from(value);
+      return new List<String>.from(value as List);
     }
 
     // Extract options from the name and map.
