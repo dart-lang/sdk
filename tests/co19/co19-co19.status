@@ -7,7 +7,40 @@
 #    https://github.com/dart-lang/co19/issues .
 
 # In order to qualify here these tests need to fail both on the VM and dart2js.
-### GENERAL FAILURES ###
+
+# Tests that produce compile-time errors even in legacy mode.
+[ $runtime == none ]
+Language/Variables/constant_initialization_t03: CompileTimeError # Uppercase constants removed
+Language/Variables/constant_variable_t09: CompileTimeError # Uppercase constants removed
+LibTest/core/double/operator_GE_A01_t03: CompileTimeError # Uppercase constants removed
+LibTest/core/double/operator_GE_A02_t01: CompileTimeError # Uppercase constants removed
+LibTest/core/double/operator_GT_A01_t03: CompileTimeError # Uppercase constants removed
+LibTest/core/double/operator_GT_A02_t01: CompileTimeError # Uppercase constants removed
+LibTest/core/double/operator_LE_A01_t03: CompileTimeError # Uppercase constants removed
+LibTest/core/double/operator_LE_A02_t01: CompileTimeError # Uppercase constants removed
+LibTest/core/double/operator_LT_A01_t03: CompileTimeError # Uppercase constants removed
+LibTest/core/double/operator_LT_A02_t01: CompileTimeError # Uppercase constants removed
+LibTest/core/double/operator_addition_A01_t01: CompileTimeError # Uppercase constants removed
+LibTest/core/double/operator_addition_A02_t01: CompileTimeError # Uppercase constants removed
+LibTest/core/double/operator_division_A01_t01: CompileTimeError # Uppercase constants removed
+LibTest/core/double/operator_division_A02_t01: CompileTimeError # Uppercase constants removed
+LibTest/core/double/operator_multiplication_A01_t01: CompileTimeError # Uppercase constants removed
+LibTest/core/double/operator_multiplication_A02_t01: CompileTimeError # Uppercase constants removed
+LibTest/core/double/operator_subtraction_A01_t01: CompileTimeError # Uppercase constants removed
+LibTest/core/double/operator_truncating_division_A01_t01: CompileTimeError # Uppercase constants removed
+LibTest/core/double/operator_truncating_division_A02_t01: CompileTimeError # Uppercase constants removed
+LibTest/isolate/SendPort/send_A01_t01: CompileTimeError # Uppercase constants removed
+LibTest/isolate/SendPort/send_A01_t02: CompileTimeError # Uppercase constants removed
+LibTest/isolate/SendPort/send_A01_t03: CompileTimeError # Uppercase constants removed
+LibTest/isolate/SendPort/send_A01_t04: CompileTimeError # Uppercase constants removed
+LibTest/math/MutableRectangle/operator_equality_A02_t01: CompileTimeError # Uppercase constants removed
+LibTest/math/MutableRectangle/operator_equality_A04_t01: CompileTimeError # Uppercase constants removed
+LibTest/math/Point/operator_equality_A02_t01: CompileTimeError # Uppercase constants removed
+LibTest/math/Point/operator_equality_A04_t01: CompileTimeError # Uppercase constants removed
+LibTest/math/Rectangle/operator_equality_A02_t01: CompileTimeError # Uppercase constants removed
+LibTest/math/Rectangle/operator_equality_A04_t01: CompileTimeError # Uppercase constants removed
+
+# Tests that fail either at compile-time or at runtime.
 [ $runtime != none ]
 Language/Expressions/Numbers/static_type_of_double_t01: RuntimeError # Uppercase constants removed
 Language/Expressions/Object_Identity/constant_objects_t01: RuntimeError # Uppercase constants removed

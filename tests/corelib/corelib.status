@@ -59,6 +59,10 @@ string_from_environment_test: Fail # Flutter Issue 9111
 string_case_test/01: RuntimeError # jsshell does not recognize character 223 aka \xdf
 unicode_test: RuntimeError # jsshell does not recognize character 223 aka \xdf
 
+[ $runtime == none ]
+iterable_contains_test: CompileTimeError # Uppercase constants removed.
+map_test: CompileTimeError # Uppercase constants removed.
+
 [ $runtime != none ]
 compare_to_test: RuntimeError # Uppercase constants removed.
 data_uri_test: RuntimeError # Uppercase constants removed.

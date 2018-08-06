@@ -144,6 +144,9 @@ async/stream_empty_test: Skip # Flutter Issue 9113
 async/stream_event_transformed_test: Skip # Flutter Issue 9113
 mirrors/*: Skip # Flutter does not support mirrors.
 
+[ $runtime == none ]
+convert/html_escape_test: CompileTimeError # Uppercase constants removed
+
 [ $runtime != none ]
 async/stream_controller_async_test: RuntimeError # Library changed.
 async/stream_empty_test: RuntimeError # Uppercase constants removed
