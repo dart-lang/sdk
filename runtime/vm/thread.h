@@ -13,7 +13,7 @@
 #include "vm/constants.h"
 #include "vm/globals.h"
 #include "vm/handles.h"
-#include "vm/heap/store_buffer.h"
+#include "vm/heap/pointer_block.h"
 #include "vm/os_thread.h"
 #include "vm/runtime_entry_list.h"
 

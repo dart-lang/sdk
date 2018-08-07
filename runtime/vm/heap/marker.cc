@@ -7,7 +7,7 @@
 #include "vm/allocation.h"
 #include "vm/dart_api_state.h"
 #include "vm/heap/pages.h"
-#include "vm/heap/store_buffer.h"
+#include "vm/heap/pointer_block.h"
 #include "vm/isolate.h"
 #include "vm/log.h"
 #include "vm/object_id_ring.h"

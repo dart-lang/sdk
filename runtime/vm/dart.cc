@@ -15,7 +15,7 @@
 #include "vm/heap/become.h"
 #include "vm/heap/freelist.h"
 #include "vm/heap/heap.h"
-#include "vm/heap/store_buffer.h"
+#include "vm/heap/pointer_block.h"
 #include "vm/isolate.h"
 #include "vm/kernel_isolate.h"
 #include "vm/malloc_hooks.h"
