@@ -100,6 +100,8 @@ step_over_await_test: RuntimeError
 step_through_arithmetic_test: RuntimeError
 step_through_constructor_calls_test: RuntimeError
 step_through_constructor_test: RuntimeError
+step_through_for_each_sync_star_2_test: RuntimeError
+step_through_for_each_sync_star_test: RuntimeError
 step_through_function_2_test: RuntimeError
 step_through_function_test: RuntimeError
 step_through_getter_test: RuntimeError
