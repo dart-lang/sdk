@@ -219,13 +219,18 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
         // First drain the marking stacks.
         VisitingOldObject(raw_obj);
         const intptr_t class_id = raw_obj->GetClassId();
+
+        intptr_t size;
         if (class_id != kWeakPropertyCid) {
-          marked_bytes_ += raw_obj->VisitPointersNonvirtual(this);
+          size = raw_obj->VisitPointersNonvirtual(this);
         } else {
           RawWeakProperty* raw_weak =
               reinterpret_cast<RawWeakProperty*>(raw_obj);
-          marked_bytes_ += ProcessWeakProperty(raw_weak);
+          size = ProcessWeakProperty(raw_weak);
         }
+        marked_bytes_ += size;
+        NOT_IN_PRODUCT(UpdateLiveOld(class_id, size));
+
         raw_obj = work_list_.Pop();
       } while (raw_obj != NULL);
 
@@ -353,14 +358,6 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       // Already marked.
       return;
     }
-
-#ifndef PRODUCT
-    if (RawObject::IsVariableSizeClassId(raw_obj->GetClassId())) {
-      UpdateLiveOld(raw_obj->GetClassId(), raw_obj->Size());
-    } else {
-      UpdateLiveOld(raw_obj->GetClassId(), 0);
-    }
-#endif  // !PRODUCT
 
     PushMarked(raw_obj);
   }
