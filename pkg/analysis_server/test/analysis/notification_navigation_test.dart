@@ -1040,10 +1040,6 @@ class AnalysisNotificationNavigationTest_UseCFE
 
   @failingTest
   @override
-  test_annotationField() async => super.test_annotationField();
-
-  @failingTest
-  @override
   test_inComment() async => super.test_inComment();
 
   @failingTest

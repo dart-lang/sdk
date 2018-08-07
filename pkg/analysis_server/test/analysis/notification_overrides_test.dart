@@ -634,18 +634,6 @@ class AnalysisNotificationOverridesTest_UseCFE
 
   @failingTest
   @override
-  test_super_fieldByField() async => super.test_super_fieldByField();
-
-  @failingTest
-  @override
-  test_super_fieldByGetter() async => super.test_super_fieldByGetter();
-
-  @failingTest
-  @override
-  test_super_fieldBySetter() async => super.test_super_fieldBySetter();
-
-  @failingTest
-  @override
   test_super_method_superTypeCycle() async {
     fail('Timeout');
 //    return callFailingTest(super.test_super_method_superTypeCycle);

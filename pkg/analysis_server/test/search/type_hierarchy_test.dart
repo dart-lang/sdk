@@ -1105,28 +1105,6 @@ class GetTypeHierarchyTest_UseCFE extends GetTypeHierarchyTest {
 
   @failingTest
   @override
-  test_member_fromField_toField() => super.test_member_fromField_toField();
-
-  @failingTest
-  @override
-  test_member_fromField_toGetter() => super.test_member_fromField_toGetter();
-
-  @failingTest
-  @override
-  test_member_fromField_toSetter() => super.test_member_fromField_toSetter();
-
-  @failingTest
-  @override
-  test_member_fromFinalField_toGetter() =>
-      super.test_member_fromFinalField_toGetter();
-
-  @failingTest
-  @override
-  test_member_fromFinalField_toSetter() =>
-      super.test_member_fromFinalField_toSetter();
-
-  @failingTest
-  @override
   test_member_getter() {
     fail('Timeout');
 //    return callFailingTest(super.test_member_getter);

@@ -9023,6 +9023,16 @@ class C {
 ''');
   }
 
+  test_parameter() async {
+    var library = await checkLibrary('void main(int p) {}');
+    checkElementText(
+        library,
+        r'''
+void main@5(int p@14) {}
+''',
+        withOffsets: true);
+  }
+
   test_parameter_checked() async {
     // Note: due to dartbug.com/27393, the keyword "checked" is identified by
     // its presence in a library called "meta".  If that bug is fixed, this test
@@ -10443,6 +10453,19 @@ C<int> c;
 dynamic v;
 ''');
     }
+  }
+
+  test_variable() async {
+    var library = await checkLibrary('int x = 0;');
+    checkElementText(
+        library,
+        r'''
+int x@4;
+synthetic int get x@4 {}
+synthetic void set x@4(int _x@4) {}
+''',
+        withOffsets: true,
+        withSyntheticAccessors: true);
   }
 
   test_variable_const() async {

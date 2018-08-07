@@ -8078,8 +8078,13 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   @override
   int get nameOffset {
     int offset = super.nameOffset;
-    if (offset == 0 && _unlinkedVariable != null) {
-      return _unlinkedVariable.nameOffset;
+    if (offset == 0) {
+      if (_kernel != null) {
+        return _kernel.fileOffset;
+      }
+      if (_unlinkedVariable != null) {
+        return _unlinkedVariable.nameOffset;
+      }
     }
     return offset;
   }
@@ -8446,14 +8451,19 @@ class ParameterElementImpl extends VariableElementImpl
   @override
   int get nameOffset {
     int offset = super.nameOffset;
-    if (offset == 0 && unlinkedParam != null) {
-      if (isSynthetic ||
-          (unlinkedParam.name.isEmpty &&
-              unlinkedParam.kind != UnlinkedParamKind.named &&
-              enclosingElement is GenericFunctionTypeElement)) {
-        return -1;
+    if (offset == 0) {
+      if (_kernel != null) {
+        return _kernel.fileOffset;
       }
-      return unlinkedParam.nameOffset;
+      if (unlinkedParam != null) {
+        if (isSynthetic ||
+            (unlinkedParam.name.isEmpty &&
+                unlinkedParam.kind != UnlinkedParamKind.named &&
+                enclosingElement is GenericFunctionTypeElement)) {
+          return -1;
+        }
+        return unlinkedParam.nameOffset;
+      }
     }
     return offset;
   }
