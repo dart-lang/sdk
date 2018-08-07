@@ -4,12 +4,10 @@
 
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_single_unit.dart';
-import 'flutter_util.dart';
 
 main() {
   defineReflectiveSuite(() {

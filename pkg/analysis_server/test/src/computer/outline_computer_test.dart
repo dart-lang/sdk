@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/computer/computer_outline.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
@@ -13,7 +12,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_context.dart';
-import '../utilities/flutter_util.dart';
 
 main() {
   defineReflectiveSuite(() {
