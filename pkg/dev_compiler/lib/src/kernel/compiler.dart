@@ -2450,9 +2450,6 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitVectorType(type) => defaultDartType(type);
-
-  @override
   visitFunctionType(type, {Member member, bool lazy = false}) {
     var requiredTypes =
         type.positionalParameters.take(type.requiredParameterCount).toList();
@@ -4883,21 +4880,6 @@ class ProgramCompiler extends Object
   // https://github.com/dart-lang/sdk/issues/27777
   @override
   visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) => js.boolean(true);
-
-  @override
-  visitVectorCreation(VectorCreation node) => defaultExpression(node);
-
-  @override
-  visitVectorGet(VectorGet node) => defaultExpression(node);
-
-  @override
-  visitVectorSet(VectorSet node) => defaultExpression(node);
-
-  @override
-  visitVectorCopy(VectorCopy node) => defaultExpression(node);
-
-  @override
-  visitClosureCreation(ClosureCreation node) => defaultExpression(node);
 
   bool _reifyFunctionType(FunctionNode f) {
     if (_currentLibrary.importUri.scheme != 'dart') return true;

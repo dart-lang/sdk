@@ -1529,28 +1529,6 @@ class BinaryBuilder {
         var expression = readExpression();
         var typeArguments = readDartTypeList();
         return new Instantiation(expression, typeArguments);
-      case Tag.VectorCreation:
-        var length = readUInt();
-        return new VectorCreation(length);
-      case Tag.VectorGet:
-        var vectorExpression = readExpression();
-        var index = readUInt();
-        return new VectorGet(vectorExpression, index);
-      case Tag.VectorSet:
-        var vectorExpression = readExpression();
-        var index = readUInt();
-        var value = readExpression();
-        return new VectorSet(vectorExpression, index, value);
-      case Tag.VectorCopy:
-        var vectorExpression = readExpression();
-        return new VectorCopy(vectorExpression);
-      case Tag.ClosureCreation:
-        var topLevelFunctionReference = readMemberReference();
-        var contextVector = readExpression();
-        var functionType = readDartType();
-        var typeArgs = readDartTypeList();
-        return new ClosureCreation.byReference(
-            topLevelFunctionReference, contextVector, functionType, typeArgs);
       case Tag.ConstantExpression:
         return new ConstantExpression(readConstantReference());
       default:
@@ -1809,8 +1787,6 @@ class BinaryBuilder {
       case Tag.TypedefType:
         return new TypedefType.byReference(
             readTypedefReference(), readDartTypeList());
-      case Tag.VectorType:
-        return const VectorType();
       case Tag.BottomType:
         return const BottomType();
       case Tag.InvalidType:

@@ -1190,8 +1190,6 @@ class _ExternalTypeVisitor extends DartTypeVisitor {
 
   void visitVoidType(VoidType node) {}
 
-  void visitVectorType(VectorType node) {}
-
   void visitInterfaceType(InterfaceType node) {
     if (isCovariant) {
       shaker._addInstantiatedExternalSubclass(node.classNode);

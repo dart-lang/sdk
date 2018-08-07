@@ -581,10 +581,6 @@ class Printer extends Visitor<Null> {
     }
   }
 
-  visitVectorType(VectorType type) {
-    writeWord('Vector');
-  }
-
   visitTypedefType(TypedefType type) {
     writeTypedefReference(type.typedefNode);
     if (type.typeArguments.isNotEmpty) {
@@ -1343,50 +1339,6 @@ class Printer extends Visitor<Null> {
     writeWord(node.import.name);
     writeSymbol(')');
     state = WORD;
-  }
-
-  visitVectorCreation(VectorCreation node) {
-    writeWord('MakeVector');
-    writeSymbol('(');
-    writeWord(node.length.toString());
-    writeSymbol(')');
-  }
-
-  visitVectorGet(VectorGet node) {
-    writeExpression(node.vectorExpression);
-    writeSymbol('[');
-    writeWord(node.index.toString());
-    writeSymbol(']');
-  }
-
-  visitVectorSet(VectorSet node) {
-    writeExpression(node.vectorExpression);
-    writeSymbol('[');
-    writeWord(node.index.toString());
-    writeSymbol(']');
-    writeSpaced('=');
-    writeExpression(node.value);
-  }
-
-  visitVectorCopy(VectorCopy node) {
-    writeWord('CopyVector');
-    writeSymbol('(');
-    writeExpression(node.vectorExpression);
-    writeSymbol(')');
-  }
-
-  visitClosureCreation(ClosureCreation node) {
-    writeWord('MakeClosure');
-    writeSymbol('<');
-    writeNode(node.functionType);
-    if (node.typeArguments.length > 0) writeSymbol(', ');
-    writeList(node.typeArguments, writeType);
-    writeSymbol('>');
-    writeSymbol('(');
-    writeMemberReferenceFromReference(node.topLevelFunctionReference);
-    writeComma();
-    writeExpression(node.contextVector);
-    writeSymbol(')');
   }
 
   visitLibraryDependency(LibraryDependency node) {

@@ -964,36 +964,6 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   }
 
   @override
-  TypeExpr visitVectorCreation(VectorCreation node) {
-    // TODO(alexmarkov): List<_Context>?
-    return _staticType(node);
-  }
-
-  @override
-  TypeExpr visitVectorGet(VectorGet node) {
-    _visit(node.vectorExpression);
-    return _staticType(node);
-  }
-
-  @override
-  TypeExpr visitVectorSet(VectorSet node) {
-    _visit(node.vectorExpression);
-    return _visit(node.value);
-  }
-
-  @override
-  TypeExpr visitVectorCopy(VectorCopy node) {
-    _visit(node.vectorExpression);
-    return _staticType(node);
-  }
-
-  @override
-  TypeExpr visitClosureCreation(ClosureCreation node) {
-    _visit(node.contextVector);
-    return _staticType(node);
-  }
-
-  @override
   TypeExpr visitAssertStatement(AssertStatement node) {
     if (!kRemoveAsserts) {
       _addUse(_visit(node.condition));

@@ -1353,42 +1353,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeLibraryDependencyReference(node.import);
   }
 
-  @override
-  void visitVectorCreation(VectorCreation node) {
-    writeByte(Tag.VectorCreation);
-    writeUInt30(node.length);
-  }
-
-  @override
-  void visitVectorGet(VectorGet node) {
-    writeByte(Tag.VectorGet);
-    writeNode(node.vectorExpression);
-    writeUInt30(node.index);
-  }
-
-  @override
-  void visitVectorSet(VectorSet node) {
-    writeByte(Tag.VectorSet);
-    writeNode(node.vectorExpression);
-    writeUInt30(node.index);
-    writeNode(node.value);
-  }
-
-  @override
-  void visitVectorCopy(VectorCopy node) {
-    writeByte(Tag.VectorCopy);
-    writeNode(node.vectorExpression);
-  }
-
-  @override
-  void visitClosureCreation(ClosureCreation node) {
-    writeByte(Tag.ClosureCreation);
-    writeReference(node.topLevelFunctionReference);
-    writeNode(node.contextVector);
-    writeNode(node.functionType);
-    writeNodeList(node.typeArguments);
-  }
-
   writeStatementOrEmpty(Statement node) {
     if (node == null) {
       writeByte(Tag.EmptyStatement);
@@ -1709,11 +1673,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.TypeParameterType);
     writeUInt30(_typeParameterIndexer[node.parameter]);
     writeOptionalNode(node.promotedBound);
-  }
-
-  @override
-  void visitVectorType(VectorType node) {
-    writeByte(Tag.VectorType);
   }
 
   @override
