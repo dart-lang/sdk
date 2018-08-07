@@ -348,7 +348,7 @@ vm/debug_break_enabled_vm_test/01: CompileTimeError # KernelVM bug: Bad test usi
 vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 
-[ $arch != simarm && $arch != simarm64 && $arch != simdbc64 && $runtime == vm && $strong && ($compiler == dartk || $compiler == dartkb) ]
+[ $arch != simarm && $arch != simarm64 && $arch != simdbc64 && $compiler == dartk && $runtime == vm && $strong ]
 export_ambiguous_main_test: Crash # Issue 32618
 
 [ $compiler == app_jitk && $mode == product ]
@@ -365,7 +365,7 @@ const_optional_args_test/01: MissingCompileTimeError
 # The precomilation configuration uses a kernel2kernel constants evaluator
 # which is is more correct than fasta/vm in JIT mode (i.e. it catches more
 # compile-time errors).
-[ $compiler != dart2analyzer && $compiler != dart2js && $compiler != dartkp && $fasta ]
+[ $compiler != dart2analyzer && $compiler != dart2js && $compiler != dartkb && $compiler != dartkp && $fasta ]
 compile_time_constant_c_test/02: MissingCompileTimeError
 const_constructor_nonconst_field_test/01: MissingCompileTimeError
 const_syntax_test/05: MissingCompileTimeError
@@ -622,6 +622,25 @@ mixin_supertype_subclass_test/05: MissingCompileTimeError
 
 [ $compiler != dart2js && $fasta && $strong ]
 super_call4_test/01: MissingCompileTimeError
+
+[ $compiler == dartk && $runtime == vm && !$checked && $strong ]
+assertion_initializer_const_error2_test/cc01: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc02: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc03: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc04: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc05: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc06: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc07: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc08: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc09: MissingCompileTimeError # Not reporting failed assert() at compile time.
+assertion_initializer_const_error2_test/cc10: MissingCompileTimeError # Not reporting failed assert() at compile time.
+
+[ $compiler == dartkb && $runtime == vm && $strong ]
+compile_time_constant_o_test/01: Pass
+compile_time_constant_o_test/02: Pass
+const_dynamic_type_literal_test/02: Pass
+map_literal3_test/01: Pass
+map_literal3_test/02: Pass
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
 const_instance_field_test/01: Crash # Issue 32326.
@@ -1352,17 +1371,6 @@ regress_30339_test: RuntimeError
 type_variable_bounds4_test/01: RuntimeError
 
 [ $runtime == vm && !$checked && $strong && ($compiler == dartk || $compiler == dartkb) ]
-assertion_initializer_const_error2_test/cc01: MissingCompileTimeError # Not reporting failed assert() at compile time.
-assertion_initializer_const_error2_test/cc02: MissingCompileTimeError # Not reporting failed assert() at compile time.
-assertion_initializer_const_error2_test/cc03: MissingCompileTimeError # Not reporting failed assert() at compile time.
-assertion_initializer_const_error2_test/cc04: MissingCompileTimeError # Not reporting failed assert() at compile time.
-assertion_initializer_const_error2_test/cc05: MissingCompileTimeError # Not reporting failed assert() at compile time.
-assertion_initializer_const_error2_test/cc06: MissingCompileTimeError # Not reporting failed assert() at compile time.
-assertion_initializer_const_error2_test/cc07: MissingCompileTimeError # Not reporting failed assert() at compile time.
-assertion_initializer_const_error2_test/cc08: MissingCompileTimeError # Not reporting failed assert() at compile time.
-assertion_initializer_const_error2_test/cc09: MissingCompileTimeError # Not reporting failed assert() at compile time.
-assertion_initializer_const_error2_test/cc10: MissingCompileTimeError # Not reporting failed assert() at compile time.
-assertion_initializer_const_error2_test/cc11: MissingCompileTimeError # Not reporting failed assert() at compile time.
 conditional_rewrite_test: RuntimeError # Issue 31402 (Not)
 type_error_test: RuntimeError # Issue 31402 (Variable declaration)
 
@@ -2330,7 +2338,7 @@ redirecting_factory_reflection_test: RuntimeError
 [ !$strong && ($compiler == dartk || $compiler == dartkb || $compiler == dartkp || $runtime == dart_precompiled || $runtime == vm) ]
 *: SkipByDesign # language_2 is only supported in strong mode.
 
-[ ($compiler == app_jitk || $compiler == dartk || $compiler == dartkb || $compiler == dartkp) && ($runtime == dart_precompiled || $runtime == vm) ]
+[ ($compiler == app_jitk || $compiler == dartk || $compiler == dartkp) && ($runtime == dart_precompiled || $runtime == vm) ]
 type_alias_equality_test/02: RuntimeError # Issue 31359
 type_alias_equality_test/03: RuntimeError # Issue 31359
 type_alias_equality_test/04: RuntimeError # Issue 31359

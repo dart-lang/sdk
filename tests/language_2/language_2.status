@@ -54,7 +54,7 @@ regress_29784_test/02: SkipByDesign # Requires checked mode.
 stacktrace_demangle_ctors_test: SkipByDesign # Names are not scrubbed.
 type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
 
-[ $compiler != app_jitk && $compiler != dartk && $compiler != dartkp && $mode == debug && $runtime == vm ]
+[ $compiler != app_jitk && $compiler != dartk && $compiler != dartkp && $compiler != dartkb && $mode == debug && $runtime == vm ]
 built_in_identifier_type_annotation_test/set: Crash # Not supported by legacy VM front-end.
 
 # Detection of compile-time errors that are related to constants can't be fully
