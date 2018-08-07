@@ -14,6 +14,7 @@ import 'test_helper.dart';
 
 class _DummyClass {
   static var dummyVar = 11;
+  final List<String> dummyList = new List<String>(20);
   void dummyFunction() {}
 }
 
@@ -882,6 +883,27 @@ var tests = <IsolateTest>[
     expect(result['_guardNullable'], isNotNull);
     expect(result['_guardClass'], isNotNull);
     expect(result['_guardLength'], isNotNull);
+  },
+
+  // field
+  (Isolate isolate) async {
+    // Call eval to get a class id.
+    var evalResult = await eval(isolate, 'new _DummyClass()');
+    var id = "${evalResult['class']['id']}/fields/dummyList";
+    var params = {
+      'objectId': id,
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
+    expect(result['type'], equals('Field'));
+    expect(result['id'], equals(id));
+    expect(result['name'], equals('dummyList'));
+    expect(result['const'], equals(false));
+    expect(result['static'], equals(false));
+    expect(result['final'], equals(true));
+    expect(result['location']['type'], equals('SourceLocation'));
+    expect(result['_guardNullable'], isNotNull);
+    expect(result['_guardClass'], isNotNull);
+    expect(result['_guardLength'], equals('20'));
   },
 
   // invalid field.
