@@ -791,8 +791,12 @@ class RawClass : public RawObject {
   int32_t next_field_offset_in_words_;  // Offset of the next instance field.
   classid_t id_;                // Class Id, also index in the class table.
   int16_t num_type_arguments_;  // Number of type arguments in flattened vector.
-  int16_t num_own_type_arguments_;  // Number of non-overlapping type arguments.
-  uint16_t num_native_fields_;      // Number of native fields in class.
+
+  // Bitfields with number of non-overlapping type arguments and 'has_pragma'
+  // bit.
+  uint16_t has_pragma_and_num_own_type_arguments_;
+
+  uint16_t num_native_fields_;
   uint16_t state_bits_;
   NOT_IN_PRECOMPILED(intptr_t kernel_offset_);
 

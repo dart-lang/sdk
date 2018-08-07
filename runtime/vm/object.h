@@ -1538,8 +1538,21 @@ class Class : public Object {
   // functions_hash_table is in use iff there are at least this many functions.
   static const intptr_t kFunctionLookupHashTreshold = 16;
 
+  enum HasPragmaAndNumOwnTypeArgumentsBits {
+    kHasPragmaBit = 0,
+    kNumOwnTypeArgumentsPos = 1,
+    kNumOwnTypeArgumentsSize = 15
+  };
+
+  class HasPragmaBit : public BitField<uint16_t, bool, kHasPragmaBit, 1> {};
+  class NumOwnTypeArguments : public BitField<uint16_t,
+                                              uint16_t,
+                                              kNumOwnTypeArgumentsPos,
+                                              kNumOwnTypeArgumentsSize> {};
+
   // Initial value for the cached number of type arguments.
-  static const intptr_t kUnknownNumTypeArguments = -1;
+  static const intptr_t kUnknownNumTypeArguments =
+      (1U << kNumOwnTypeArgumentsSize) - 1;
 
   int16_t num_type_arguments() const { return raw_ptr()->num_type_arguments_; }
   void set_num_type_arguments(intptr_t value) const;
@@ -1547,10 +1560,21 @@ class Class : public Object {
     return OFFSET_OF(RawClass, num_type_arguments_);
   }
 
-  int16_t num_own_type_arguments() const {
-    return raw_ptr()->num_own_type_arguments_;
+ public:
+  bool has_pragma() const {
+    return HasPragmaBit::decode(
+        raw_ptr()->has_pragma_and_num_own_type_arguments_);
+  }
+  void set_has_pragma(bool has_pragma) const;
+
+ private:
+  uint16_t num_own_type_arguments() const {
+    return NumOwnTypeArguments::decode(
+        raw_ptr()->has_pragma_and_num_own_type_arguments_);
   }
   void set_num_own_type_arguments(intptr_t value) const;
+
+  void set_has_pragma_and_num_own_type_arguments(uint16_t value) const;
 
   // Assigns empty array to all raw class array fields.
   void InitEmptyFields();

@@ -41,6 +41,7 @@ class Object {
   static String _toString(obj) native "Object_toString";
 
   @patch
+  @pragma("vm.entry-point")
   dynamic noSuchMethod(Invocation invocation) {
     // TODO(regis): Remove temp constructor identifier 'withInvocation'.
     throw new NoSuchMethodError.withInvocation(this, invocation);
@@ -49,16 +50,21 @@ class Object {
   @patch
   Type get runtimeType native "Object_runtimeType";
 
+  @pragma("vm.entry-point")
   static bool _haveSameRuntimeType(a, b) native "Object_haveSameRuntimeType";
 
   // Call this function instead of inlining instanceof, thus collecting
   // type feedback and reducing code size of unoptimized code.
+  @pragma("vm.entry-point")
   bool _instanceOf(instantiatorTypeArguments, functionTypeArguments, type)
       native "Object_instanceOf";
 
   // Group of functions for implementing fast simple instance of.
+  @pragma("vm.entry-point")
   bool _simpleInstanceOf(type) native "Object_simpleInstanceOf";
+  @pragma("vm.entry-point")
   bool _simpleInstanceOfTrue(type) => true;
+  @pragma("vm.entry-point")
   bool _simpleInstanceOfFalse(type) => false;
 
   // Call this function instead of inlining 'as', thus collecting type

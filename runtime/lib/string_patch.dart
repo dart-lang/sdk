@@ -795,6 +795,7 @@ abstract class _StringBase implements String {
   }
 
   // Convert single object to string.
+  @pragma("vm.entry-point")
   static String _interpolateSingle(Object o) {
     if (o is String) return o;
     final s = o.toString();
@@ -809,6 +810,7 @@ abstract class _StringBase implements String {
    * into a result string.
    * Modifies the input list if it contains non-`String` values.
    */
+  @pragma("vm.entry-point")
   static String _interpolate(final List values) {
     final numValues = values.length;
     int totalLength = 0;

@@ -491,48 +491,6 @@ void Precompiler::PrecompileConstructors() {
 }
 
 static Dart_QualifiedFunctionName vm_entry_points[] = {
-    // Functions
-    {"dart:async", "::", "_ensureScheduleImmediate"},
-    {"dart:core", "::", "_completeDeferredLoads"},
-    {"dart:core", "::", "identityHashCode"},
-    {"dart:core", "AbstractClassInstantiationError",
-     "AbstractClassInstantiationError._create"},
-    {"dart:core", "ArgumentError", "ArgumentError."},
-    {"dart:core", "ArgumentError", "ArgumentError.value"},
-    {"dart:core", "CyclicInitializationError", "CyclicInitializationError."},
-    {"dart:core", "FallThroughError", "FallThroughError._create"},
-    {"dart:core", "FormatException", "FormatException."},
-    {"dart:core", "IntegerDivisionByZeroException",
-     "IntegerDivisionByZeroException."},
-    {"dart:core", "NoSuchMethodError", "NoSuchMethodError._withType"},
-    {"dart:core", "NullThrownError", "NullThrownError."},
-    {"dart:core", "OutOfMemoryError", "OutOfMemoryError."},
-    {"dart:core", "RangeError", "RangeError."},
-    {"dart:core", "RangeError", "RangeError.range"},
-    {"dart:core", "StackOverflowError", "StackOverflowError."},
-    {"dart:core", "UnsupportedError", "UnsupportedError."},
-    {"dart:core", "_AssertionError", "_AssertionError._create"},
-    {"dart:core", "_CastError", "_CastError._create"},
-    {"dart:core", "_InternalError", "_InternalError."},
-    {"dart:core", "_InvocationMirror", "_allocateInvocationMirror"},
-    {"dart:core", "_InvocationMirror", "_allocateInvocationMirrorForClosure"},
-    {"dart:core", "_TypeError", "_TypeError._create"},
-    {"dart:collection", "::", "_rehashObjects"},
-    {"dart:isolate", "IsolateSpawnException", "IsolateSpawnException."},
-    {"dart:isolate", "::", "_runPendingImmediateCallback"},
-    {"dart:isolate", "::", "_startIsolate"},
-    {"dart:isolate", "_RawReceivePortImpl", "_handleMessage"},
-    {"dart:isolate", "_RawReceivePortImpl", "_lookupHandler"},
-    {"dart:isolate", "_SendPortImpl", "send"},
-    {"dart:typed_data", "ByteData", "ByteData."},
-    {"dart:typed_data", "ByteData", "ByteData._view"},
-    {"dart:typed_data", "_ByteBuffer", "_ByteBuffer._New"},
-    {"dart:_vmservice", "::", "boot"},
-#if !defined(PRODUCT)
-    {"dart:_vmservice", "::", "_registerIsolate"},
-    {"dart:developer", "Metrics", "_printMetrics"},
-    {"dart:developer", "::", "_runExtension"},
-#endif  // !PRODUCT
     // Fields
     {"dart:core", "Error", "_stackTrace"},
     {"dart:core", "::", "_uriBaseClosure"},
@@ -1510,7 +1468,7 @@ void Precompiler::AddInstantiatedClass(const Class& cls) {
   }
 }
 
-// Adds all values annotated with @pragma('vm.entry_point') as roots.
+// Adds all values annotated with @pragma('vm.entry-point') as roots.
 void Precompiler::AddAnnotatedRoots() {
   auto& lib = Library::Handle(Z);
   auto& cls = Class::Handle(isolate()->object_store()->pragma_class());
@@ -1523,38 +1481,48 @@ void Precompiler::AddAnnotatedRoots() {
   auto& pragma_options_field =
       Field::Handle(Z, cls.LookupField(Symbols::options()));
 
+  // Local function allows easy reuse of handles above.
+  auto metadata_defines_entrypoint = [&]() {
+    bool is_entry_point = false;
+    for (intptr_t i = 0; i < metadata.Length(); i++) {
+      pragma = metadata.At(i);
+      if (pragma.clazz() != isolate()->object_store()->pragma_class()) {
+        continue;
+      }
+      if (Instance::Cast(pragma).GetField(pragma_name_field) !=
+          Symbols::vm_entry_point().raw()) {
+        continue;
+      }
+      pragma_options = Instance::Cast(pragma).GetField(pragma_options_field);
+      if (pragma_options.raw() == Bool::null() ||
+          pragma_options.raw() == Bool::True().raw()) {
+        is_entry_point = true;
+        break;
+      }
+    }
+    return is_entry_point;
+  };
+
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
+
+      if (cls.has_pragma()) {
+        metadata ^= lib.GetMetadata(cls);
+        if (metadata_defines_entrypoint()) {
+          AddInstantiatedClass(cls);
+        }
+      }
+
       functions = cls.functions();
       for (intptr_t k = 0; k < functions.Length(); k++) {
         function ^= functions.At(k);
         if (!function.has_pragma()) continue;
         metadata ^= lib.GetMetadata(function);
         if (metadata.IsNull()) continue;
-
-        bool is_entry_point = false;
-        for (intptr_t i = 0; i < metadata.Length(); i++) {
-          pragma = metadata.At(i);
-          if (pragma.clazz() != isolate()->object_store()->pragma_class()) {
-            continue;
-          }
-          if (Instance::Cast(pragma).GetField(pragma_name_field) !=
-              Symbols::vm_entry_point().raw()) {
-            continue;
-          }
-          pragma_options =
-              Instance::Cast(pragma).GetField(pragma_options_field);
-          if (pragma_options.raw() == Bool::null() ||
-              pragma_options.raw() == Bool::True().raw()) {
-            is_entry_point = true;
-            break;
-          }
-        }
-
-        if (!is_entry_point) continue;
+        if (!metadata_defines_entrypoint()) continue;
 
         AddFunction(function);
         if (function.IsGenerativeConstructor()) {

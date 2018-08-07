@@ -20,6 +20,7 @@ class _SecureFilter {
 @patch
 class X509Certificate {
   @patch
+  @pragma("vm.entry-point")
   factory X509Certificate._() => new _X509CertificateImpl();
 }
 
