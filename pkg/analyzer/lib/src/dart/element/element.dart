@@ -8874,6 +8874,10 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   @override
   int get nameOffset {
     int offset = super.nameOffset;
+    if (_kernel != null) {
+      var metadata = AnalyzerMetadata.forNode(_kernel);
+      return metadata.importPrefixOffset;
+    }
     if (offset == 0 && _unlinkedImport != null) {
       return _unlinkedImport.prefixOffset;
     }

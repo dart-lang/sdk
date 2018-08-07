@@ -852,6 +852,7 @@ class KernelLibraryBuilder
     // This is required for the DietListener to correctly match up metadata.
     int importIndex = 0;
     int exportIndex = 0;
+    MetadataCollector metadataCollector = loader.target.metadataCollector;
     while (importIndex < imports.length || exportIndex < exports.length) {
       if (exportIndex >= exports.length ||
           (importIndex < imports.length &&
@@ -866,15 +867,18 @@ class KernelLibraryBuilder
           continue;
         }
 
+        LibraryDependency dependency;
         if (import.deferred && import.prefixBuilder?.dependency != null) {
-          library.addDependency(import.prefixBuilder.dependency);
+          dependency = import.prefixBuilder.dependency;
         } else {
-          library.addDependency(new LibraryDependency.import(
-              import.imported.target,
+          dependency = new LibraryDependency.import(import.imported.target,
               name: import.prefix,
               combinators: toKernelCombinators(import.combinators))
-            ..fileOffset = import.charOffset);
+            ..fileOffset = import.charOffset;
         }
+        library.addDependency(dependency);
+        metadataCollector?.setImportPrefixOffset(
+            dependency, import.prefixCharOffset);
       } else {
         // Add export
         Export export = exports[exportIndex++];

@@ -6655,6 +6655,10 @@ Future<dynamic> f;
   test_import_prefixed() async {
     addLibrarySource('/a.dart', 'library a; class C {}');
     var library = await checkLibrary('import "a.dart" as a; a.C c;');
+
+    expect(library.imports[0].prefix.nameOffset, 19);
+    expect(library.imports[0].prefix.nameLength, 1);
+
     checkElementText(library, r'''
 import 'a.dart' as a;
 C c;

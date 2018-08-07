@@ -1040,21 +1040,11 @@ class AnalysisNotificationNavigationTest_UseCFE
 
   @failingTest
   @override
-  test_annotationConstructor_importPrefix() async =>
-      super.test_annotationConstructor_importPrefix();
-
-  @failingTest
-  @override
   test_annotationField() async => super.test_annotationField();
 
   @failingTest
   @override
   test_inComment() async => super.test_inComment();
-
-  @failingTest
-  @override
-  test_instanceCreation_withImportPrefix_named() async =>
-      super.test_instanceCreation_withImportPrefix_named();
 
   @failingTest
   @override
