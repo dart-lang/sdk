@@ -2560,8 +2560,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleCommentReferenceText(
-      Token commentToken, String referenceSource, int referenceOffset) {
+  void handleCommentReferenceText(String referenceSource, int referenceOffset) {
     ScannerResult result = scanString(referenceSource);
     if (result.hasErrors) {
       handleNoCommentReference();
@@ -2571,7 +2570,7 @@ class AstBuilder extends StackListener {
         token.offset += referenceOffset;
         token = token.next;
       } while (!token.isEof);
-      parser.parseOneCommentReference(commentToken, result.tokens);
+      parser.parseOneCommentReference(result.tokens);
     }
   }
 

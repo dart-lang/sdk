@@ -929,10 +929,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleCommentReferenceText(
-      Token commentToken, String referenceSource, int referenceOffset) {
-    listener?.handleCommentReferenceText(
-        commentToken, referenceSource, referenceOffset);
+  void handleCommentReferenceText(String referenceSource, int referenceOffset) {
+    listener?.handleCommentReferenceText(referenceSource, referenceOffset);
   }
 
   @override

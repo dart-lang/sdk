@@ -15,7 +15,6 @@ import '../../scanner/token.dart'
         ASSIGNMENT_PRECEDENCE,
         BeginToken,
         CASCADE_PRECEDENCE,
-        DocumentationCommentToken,
         EQUALITY_PRECEDENCE,
         Keyword,
         POSTFIX_PRECEDENCE,
@@ -5954,7 +5953,6 @@ class Parser {
               // URI in the link text.
             } else {
               listener.handleCommentReferenceText(
-                  commentToken,
                   comment.substring(referenceStart, index),
                   commentToken.charOffset + referenceStart);
               ++count;
@@ -6006,8 +6004,7 @@ class Parser {
   ///
   /// This is typically called from the listener's
   /// `handleCommentReferenceText` method.
-  void parseOneCommentReference(
-      DocumentationCommentToken commentToken, Token token) {
+  void parseOneCommentReference(Token token) {
     Token begin = token;
     Token newKeyword = null;
     if (optional('new', token)) {

@@ -1238,7 +1238,7 @@ class Listener implements UnescapeErrorListener {
   /// parsed should be discarded, and a new type should be parsed instead.
   void discardTypeReplacedWithCommentTypeAssign() {}
 
-  /// A single comment reference in [commentToken] has been found where
+  /// A single comment reference has been found
   /// where [referenceSource] is the text between the `[` and `]`
   /// and [referenceOffset] is the character offset in the token stream.
   ///
@@ -1246,8 +1246,7 @@ class Listener implements UnescapeErrorListener {
   /// `parseCommentReferences` method is called. For further processing,
   /// a listener may scan the [referenceSource] and then pass the resulting
   /// token stream to the parser's `parseOneCommentReference` method.
-  void handleCommentReferenceText(
-      Token commentToken, String referenceSource, int referenceOffset) {
+  void handleCommentReferenceText(String referenceSource, int referenceOffset) {
     logEvent("CommentReferenceText");
   }
 
