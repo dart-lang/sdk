@@ -309,7 +309,6 @@
       "options": {
         "minified": true,
         "csp": true,
-        "preview-dart-2": false,
         "use-sdk": true
       }},
     "dart2js-minified-faststartup-csp-linux-chrome": {
@@ -317,7 +316,6 @@
         "minified": true,
         "csp": true,
         "fast-startup": true,
-        "preview-dart-2": false,
         "use-sdk": true
       }},
     "dart2js-minified-linux-d8": {

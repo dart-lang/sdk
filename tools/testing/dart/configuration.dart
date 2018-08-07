@@ -383,33 +383,6 @@ class TestConfiguration {
       print("-rflutter is applicable only for --arch=x64");
     }
 
-    if (namedConfiguration != null) {
-      if ( // namedConfiguration.builderTag != builderTag ||  # Null versus empty string
-          //   namedConfiguration.architecture != architecture ||  # smith.Architecture vs Architecture
-          //   namedConfiguration.compiler != compiler ||
-          namedConfiguration.isChecked != isChecked ||
-              namedConfiguration.isCsp != isCsp ||
-              namedConfiguration.isHostChecked != isHostChecked ||
-              namedConfiguration.isMinified != isMinified ||
-              //  namedConfiguration.mode != mode ||
-              namedConfiguration.previewDart2 == noPreviewDart2 ||
-              //   namedConfiguration.runtime != runtime ||
-              //   namedConfiguration.system != system ||
-              // namedConfiguration.timeout != _timeout || #? Null?
-              namedConfiguration.useBlobs != useBlobs ||
-              namedConfiguration.useFastStartup != useFastStartup ||
-              namedConfiguration.useHotReload != hotReload ||
-              namedConfiguration.useHotReloadRollback != hotReloadRollback ||
-              namedConfiguration.useSdk != useSdk
-          // namedConfiguration.vmOptions != vmOptions # String vs List<String>
-          ) {
-        print(
-            "Configuration and namedConfiguration differ: ${toSummaryMap()} $namedConfiguration"
-            "$builderTag ${namedConfiguration.builderTag}");
-        isValid = false;
-      }
-    }
-
     return isValid;
   }
 

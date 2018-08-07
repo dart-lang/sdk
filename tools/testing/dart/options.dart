@@ -638,7 +638,6 @@ compiler.''',
                 mode,
                 architecture,
                 system);
-            print(namedConfiguration); // TODO(whesse): remove
             var innerConfiguration = new Configuration(
                 namedConfiguration?.name ?? "custom configuration",
                 architecture,
@@ -864,7 +863,6 @@ Options:''');
 
 Configuration getNamedConfiguration(String template, Runtime runtime,
     Compiler compiler, Mode mode, Architecture architecture, System system) {
-  print(template);
   if (template == null) return null;
   if (template.contains(r"${runtime}")) {
     template = template.replaceFirst(r"${runtime}", runtime.name);
@@ -884,7 +882,6 @@ Configuration getNamedConfiguration(String template, Runtime runtime,
   }
 
   TestMatrix testMatrix = TestMatrix.fromPath("tools/bots/test_matrix.json");
-  print("Expanded namedConfiguration name:$template");
   return testMatrix.configurations
       .singleWhere((c) => c.name == template, orElse: () => null);
 }
