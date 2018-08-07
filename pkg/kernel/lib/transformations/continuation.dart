@@ -238,11 +238,12 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
     return new Block(<Statement>[
       enclosingFunction.body.accept(this),
       new ReturnStatement(new BoolLiteral(false))
+        ..fileOffset = enclosingFunction.fileEndOffset
     ]);
   }
 
   visitYieldStatement(YieldStatement node) {
-    var transformedExpression = node.expression.accept(this);
+    Expression transformedExpression = node.expression.accept(this);
 
     var statements = <Statement>[];
     if (node.isYieldStar) {
@@ -259,7 +260,8 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
           helper.syncIteratorCurrent)));
     }
 
-    statements.add(createContinuationPoint(new BoolLiteral(true)));
+    statements.add(createContinuationPoint(new BoolLiteral(true))
+      ..fileOffset = node.fileOffset);
     return new Block(statements);
   }
 

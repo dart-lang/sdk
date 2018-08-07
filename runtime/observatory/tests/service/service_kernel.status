@@ -119,7 +119,6 @@ add_breakpoint_rpc_test: SkipByDesign # non-kernel specific version of add_break
 evaluate_activation_in_method_class_test: RuntimeError
 evaluate_activation_test/instance: RuntimeError
 evaluate_activation_test/scope: RuntimeError
-evaluate_in_sync_star_activation_test: RuntimeError
 step_through_arithmetic_test: RuntimeError # probably constant evaluator pre-evaluating e.g. 1+2
 unused_changes_in_last_reload_test: RuntimeError
 
@@ -235,6 +234,7 @@ evaluate_in_async_activation_test: RuntimeError # Issue #33087
 evaluate_in_async_star_activation_test: RuntimeError # Issue #33087
 evaluate_in_frame_rpc_test: RuntimeError # Issue #33087
 evaluate_in_frame_with_scope_test: RuntimeError # Issue #33087
+evaluate_in_sync_star_activation_test: RuntimeError # "No incremental compiler available for this isolate"
 evaluate_with_scope_test: RuntimeError # Issue #33087
 get_instances_rpc_test: RuntimeError # Issue #33087
 get_object_rpc_test: RuntimeError # Please triage.
