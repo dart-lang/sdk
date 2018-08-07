@@ -14,10 +14,10 @@ import 'package:analyzer/src/lint/linter.dart' hide CamelCaseString;
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/string_source.dart' show StringSource;
 import 'package:cli_util/cli_util.dart' show getSdkPath;
+import 'package:linter/src/cli.dart' as cli;
 import 'package:linter/src/utils.dart';
 import 'package:test/test.dart';
 
-import '../bin/linter.dart' as dartlint;
 import 'mocks.dart';
 import 'rule_test.dart' show ruleDir;
 
@@ -146,37 +146,37 @@ void defineLinterEngineTests() {
       test('smoke', () async {
         FileSystemEntity firstRuleTest =
             new Directory(ruleDir).listSync().firstWhere(isDartFile);
-        await dartlint.main([firstRuleTest.path]);
-        expect(dartlint.isLinterErrorCode(exitCode), isFalse);
+        await cli.run([firstRuleTest.path]);
+        expect(cli.isLinterErrorCode(exitCode), isFalse);
       });
       test('no args', () async {
-        await dartlint.main([]);
-        expect(exitCode, dartlint.unableToProcessExitCode);
+        await cli.run([]);
+        expect(exitCode, cli.unableToProcessExitCode);
       });
       test('help', () async {
-        await dartlint.main(['-h']);
+        await cli.run(['-h']);
         // Help shouldn't generate an error code
-        expect(dartlint.isLinterErrorCode(exitCode), isFalse);
+        expect(cli.isLinterErrorCode(exitCode), isFalse);
       });
       test('unknown arg', () async {
-        await dartlint.main(['-XXXXX']);
-        expect(exitCode, dartlint.unableToProcessExitCode);
+        await cli.run(['-XXXXX']);
+        expect(exitCode, cli.unableToProcessExitCode);
       });
       test('custom sdk path', () async {
         // Smoke test to ensure a custom sdk path doesn't sink the ship
         FileSystemEntity firstRuleTest =
             new Directory(ruleDir).listSync().firstWhere(isDartFile);
         var sdk = getSdkPath();
-        await dartlint.main(['--dart-sdk', sdk, firstRuleTest.path]);
-        expect(dartlint.isLinterErrorCode(exitCode), isFalse);
+        await cli.run(['--dart-sdk', sdk, firstRuleTest.path]);
+        expect(cli.isLinterErrorCode(exitCode), isFalse);
       });
       test('custom package root', () async {
         // Smoke test to ensure a custom package root doesn't sink the ship
         FileSystemEntity firstRuleTest =
             new Directory(ruleDir).listSync().firstWhere(isDartFile);
         var packageDir = new Directory('.').path;
-        await dartlint.main(['--package-root', packageDir, firstRuleTest.path]);
-        expect(dartlint.isLinterErrorCode(exitCode), isFalse);
+        await cli.run(['--package-root', packageDir, firstRuleTest.path]);
+        expect(cli.isLinterErrorCode(exitCode), isFalse);
       });
     });
 
