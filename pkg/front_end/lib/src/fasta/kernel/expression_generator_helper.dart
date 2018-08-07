@@ -140,6 +140,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   Expression buildConstructorInvocation(
       TypeDeclarationBuilder<KernelTypeBuilder, DartType> type,
       Token nameToken,
+      Token nameLastToken,
       Arguments arguments,
       String name,
       List<DartType> typeArguments,

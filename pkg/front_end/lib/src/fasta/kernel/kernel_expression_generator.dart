@@ -1330,8 +1330,15 @@ class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
         if (send is IncompletePropertyAccessGenerator) {
           generator = new UnresolvedNameGenerator(helper, send.token, name);
         } else {
-          return helper.buildConstructorInvocation(declaration, send.token,
-              arguments, name.name, null, token.charOffset, Constness.implicit);
+          return helper.buildConstructorInvocation(
+              declaration,
+              send.token,
+              send.token,
+              arguments,
+              name.name,
+              null,
+              token.charOffset,
+              Constness.implicit);
         }
       } else {
         Declaration setter;
@@ -1358,8 +1365,8 @@ class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
 
   @override
   Expression doInvocation(int offset, Arguments arguments) {
-    return helper.buildConstructorInvocation(declaration, token, arguments, "",
-        null, token.charOffset, Constness.implicit);
+    return helper.buildConstructorInvocation(declaration, token, token,
+        arguments, "", null, token.charOffset, Constness.implicit);
   }
 }
 
@@ -1607,11 +1614,16 @@ class KernelUnexpectedQualifiedUseGenerator extends KernelGenerator
       Token token, this.prefixGenerator, this.isUnresolved)
       : super(helper, token);
 
-  Expression invokeConstructor(List<DartType> typeArguments, String name,
-      Arguments arguments, Token nameToken, Constness constness) {
+  Expression invokeConstructor(
+      List<DartType> typeArguments,
+      String name,
+      Arguments arguments,
+      Token nameToken,
+      Token nameStringToken,
+      Constness constness) {
     helper.storeTypeUse(offsetForToken(token), const InvalidType());
     return super.invokeConstructor(
-        typeArguments, name, arguments, nameToken, constness);
+        typeArguments, name, arguments, nameToken, nameStringToken, constness);
   }
 }
 

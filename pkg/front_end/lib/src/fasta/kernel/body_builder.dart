@@ -444,6 +444,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           beginToken.next, beginToken.offset, Constness.explicitConst);
       push(popForValue());
     } else {
+      pop(); // Name last identifier
       String name = pop();
       pop(); // Type arguments (ignored, already reported by parser).
       Object expression = pop();
@@ -2774,6 +2775,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     push(type);
     push(typeArguments ?? NullValue.TypeArguments);
     push(name);
+    push(suffix ?? identifier ?? NullValue.Identifier);
   }
 
   @override
@@ -2980,6 +2982,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void buildConstructorReferenceInvocation(
       Token nameToken, int offset, Constness constness) {
     Arguments arguments = pop();
+    Identifier nameLastIdentifier = pop(NullValue.Identifier);
+    Token nameLastToken = nameLastIdentifier?.token ?? nameToken;
     String name = pop();
     List<DartType> typeArguments = pop();
 
@@ -2988,7 +2992,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     ConstantContext savedConstantContext = pop();
     if (type is Generator) {
       push(type.invokeConstructor(
-          typeArguments, name, arguments, nameToken, constness));
+          typeArguments, name, arguments, nameToken, nameLastToken, constness));
     } else {
       push(new SyntheticExpressionJudgment(throwNoSuchMethodError(
           forest.literalNull(null)..fileOffset = offset,
@@ -3010,6 +3014,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   Expression buildConstructorInvocation(
       TypeDeclarationBuilder<TypeBuilder, Object> type,
       Token nameToken,
+      Token nameLastToken,
       Arguments arguments,
       String name,
       List<DartType> typeArguments,
@@ -3095,16 +3100,13 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       errorName = debugName(getNodeName(type), name);
     }
     errorName ??= name;
-    if (nameToken.lexeme == type.name && name.isNotEmpty) {
-      nameToken = nameToken.next.next;
-    }
 
     return new UnresolvedTargetInvocationJudgment(
         throwNoSuchMethodError(
             forest.literalNull(null)..fileOffset = charOffset,
             errorName,
             arguments,
-            nameToken.charOffset),
+            nameLastToken.charOffset),
         arguments)
       ..fileOffset = arguments.fileOffset;
   }

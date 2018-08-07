@@ -235,8 +235,13 @@ abstract class Generator implements ExpressionGenerator {
     return new UnexpectedQualifiedUseGenerator(helper, name, this, false);
   }
 
-  Expression invokeConstructor(List<DartType> typeArguments, String name,
-      Arguments arguments, Token nameToken, Constness constness) {
+  Expression invokeConstructor(
+      List<DartType> typeArguments,
+      String name,
+      Arguments arguments,
+      Token nameToken,
+      Token nameLastToken,
+      Constness constness) {
     if (typeArguments != null) {
       assert(forest.argumentsTypeArguments(arguments).isEmpty);
       forest.argumentsSetTypeArguments(arguments, typeArguments);
@@ -545,11 +550,16 @@ abstract class DeferredAccessGenerator implements Generator {
   }
 
   @override
-  Expression invokeConstructor(List<DartType> typeArguments, String name,
-      Arguments arguments, Token nameToken, Constness constness) {
+  Expression invokeConstructor(
+      List<DartType> typeArguments,
+      String name,
+      Arguments arguments,
+      Token nameToken,
+      Token nameLastToken,
+      Constness constness) {
     return helper.wrapInDeferredCheck(
-        suffixGenerator.invokeConstructor(
-            typeArguments, name, arguments, nameToken, constness),
+        suffixGenerator.invokeConstructor(typeArguments, name, arguments,
+            nameToken, nameLastToken, constness),
         prefixGenerator.prefix,
         offsetForToken(suffixGenerator.token));
   }
@@ -654,11 +664,23 @@ abstract class TypeUseGenerator implements Generator {
   }
 
   @override
-  Expression invokeConstructor(List<DartType> typeArguments, String name,
-      Arguments arguments, Token nameToken, Constness constness) {
+  Expression invokeConstructor(
+      List<DartType> typeArguments,
+      String name,
+      Arguments arguments,
+      Token nameToken,
+      Token nameLastToken,
+      Constness constness) {
     helper.storeTypeUse(offsetForToken(token), declaration.target);
-    return helper.buildConstructorInvocation(declaration, nameToken, arguments,
-        name, typeArguments, offsetForToken(nameToken ?? token), constness);
+    return helper.buildConstructorInvocation(
+        declaration,
+        nameToken,
+        nameLastToken,
+        arguments,
+        name,
+        typeArguments,
+        offsetForToken(nameToken ?? token),
+        constness);
   }
 
   @override
@@ -812,8 +834,13 @@ abstract class ErroneousExpressionGenerator implements Generator {
   }
 
   @override
-  Expression invokeConstructor(List<DartType> typeArguments, String name,
-      Arguments arguments, Token nameToken, Constness constness) {
+  Expression invokeConstructor(
+      List<DartType> typeArguments,
+      String name,
+      Arguments arguments,
+      Token nameToken,
+      Token nameLastToken,
+      Constness constness) {
     helper.storeTypeUse(offsetForToken(token), const InvalidType());
     if (typeArguments != null) {
       assert(forest.argumentsTypeArguments(arguments).isEmpty);
