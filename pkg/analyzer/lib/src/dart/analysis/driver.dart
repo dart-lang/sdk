@@ -105,7 +105,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * Whether kernel should be used to resynthesize elements.
    */
-  final bool enableKernelDriver;
+  final bool _useCFE;
 
   /**
    * The [Folder] with the `vm_platform.dill` file.
@@ -113,7 +113,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * We use `vm_platform.dill`, because loading patches is not yet implemented,
    * and patches are not a part of SDK distribution.
    */
-  final Folder kernelPlatformFolder;
+  final Folder _kernelPlatformFolder;
 
   /**
    * The scheduler that schedules analysis work in this, and possibly other
@@ -351,15 +351,17 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       this.contextRoot,
       SourceFactory sourceFactory,
       this._analysisOptions,
-      {this.enableKernelDriver: false,
-      this.kernelPlatformFolder,
+      {bool useCFE: false,
+      Folder kernelPlatformFolder,
       PackageBundle sdkBundle,
       this.disableChangesAndCacheAllResults: false,
       SummaryDataStore externalSummaries})
       : _logger = logger,
         _sourceFactory = sourceFactory.clone(),
         _sdkBundle = sdkBundle,
-        _externalSummaries = externalSummaries {
+        _externalSummaries = externalSummaries,
+        _useCFE = useCFE,
+        _kernelPlatformFolder = kernelPlatformFolder {
     _createNewSession();
     _onResults = _resultController.stream.asBroadcastStream();
     _testView = new AnalysisDriverTestView(this);
@@ -1246,7 +1248,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           _testView.numOfAnalyzedLibraries++;
 
           LibraryAnalyzer analyzer;
-          if (enableKernelDriver) {
+          if (_useCFE) {
             kernelContext = await _createKernelContext(library);
             analyzer = new LibraryAnalyzer(
                 _logger,
@@ -1257,8 +1259,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
                 kernelContext.analysisContext,
                 kernelContext.resynthesizer,
                 library,
-                enableKernelDriver: true,
-                useCFE: _analysisOptions.useFastaParser,
+                useCFE: true,
                 frontEndCompiler: _frontEndCompiler);
           } else {
             if (!_fsState.getFileForUri(Uri.parse('dart:core')).exists) {
@@ -1348,7 +1349,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       }
     }
 
-    if (enableKernelDriver) {
+    if (_useCFE) {
       var kernelContext = await _createKernelContext(library);
       try {
         CompilationUnitElement element =
@@ -1425,12 +1426,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * changes.
    */
   void _createKernelDriver() {
-    if (enableKernelDriver) {
+    if (_useCFE) {
       _frontEndCompiler = new FrontEndCompiler(
           _logger,
           _byteStore,
           analysisOptions,
-          kernelPlatformFolder,
+          _kernelPlatformFolder,
           sourceFactory,
           fsState,
           _resourceProvider.pathContext);

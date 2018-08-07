@@ -200,7 +200,7 @@ class ContextBuilder {
         contextRoot,
         sf,
         options,
-        enableKernelDriver: useCFE,
+        useCFE: useCFE,
         kernelPlatformFolder: kernelPlatformFolder);
     // temporary plugin support:
     if (onCreateAnalysisDriver != null) {

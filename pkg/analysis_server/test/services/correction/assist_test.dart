@@ -6317,46 +6317,8 @@ class AssistProcessorTest_UseCFE extends AssistProcessorTest {
 
   @failingTest
   @override
-  test_addTypeAnnotation_parameter_BAD_hasExplicitType() =>
-      super.test_addTypeAnnotation_parameter_BAD_hasExplicitType();
-
-  @failingTest
-  @override
-  test_addTypeAnnotation_parameter_BAD_noPropagatedType() =>
-      super.test_addTypeAnnotation_parameter_BAD_noPropagatedType();
-
-  @failingTest
-  @override
-  test_addTypeAnnotation_parameter_OK() =>
-      super.test_addTypeAnnotation_parameter_OK();
-
-  @failingTest
-  @override
   test_convertToFinalField_OK_hasOverride() =>
       super.test_convertToFinalField_OK_hasOverride();
-
-  @failingTest
-  @override
-  test_convertToFunctionSyntax_BAD_functionTypedParameter_insideParameterList() =>
-      super
-          .test_convertToFunctionSyntax_BAD_functionTypedParameter_insideParameterList();
-
-  @failingTest
-  @override
-  test_convertToFunctionSyntax_BAD_functionTypedParameter_noParameterTypes() =>
-      super
-          .test_convertToFunctionSyntax_BAD_functionTypedParameter_noParameterTypes();
-
-  @failingTest
-  @override
-  test_convertToFunctionSyntax_OK_functionTypedParameter_noReturnType_noTypeParameters() =>
-      super
-          .test_convertToFunctionSyntax_OK_functionTypedParameter_noReturnType_noTypeParameters();
-
-  @failingTest
-  @override
-  test_convertToFunctionSyntax_OK_functionTypedParameter_returnType() =>
-      super.test_convertToFunctionSyntax_OK_functionTypedParameter_returnType();
 
   @failingTest
   @override
@@ -6609,11 +6571,6 @@ class AssistProcessorTest_UseCFE extends AssistProcessorTest {
   @override
   test_importAddShow_BAD_unresolvedUri() =>
       super.test_importAddShow_BAD_unresolvedUri();
-
-  @failingTest
-  @override
-  test_removeTypeAnnotation_topLevelVariable_BAD_syntheticName() =>
-      super.test_removeTypeAnnotation_topLevelVariable_BAD_syntheticName();
 }
 
 class _DartAssistContextForValues implements DartAssistContext {

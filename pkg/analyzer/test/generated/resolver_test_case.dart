@@ -699,7 +699,7 @@ class ResolverTestCase extends EngineTestCase {
           null,
           sourceFactory,
           options,
-          enableKernelDriver: enableKernelDriver);
+          useCFE: enableKernelDriver);
       scheduler.start();
     } else {
       if (packages != null) {

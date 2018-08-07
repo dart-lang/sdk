@@ -52,7 +52,6 @@ class LibraryAnalyzer {
   final SourceFactory _sourceFactory;
   final FileState _library;
 
-  final bool _enableKernelDriver;
   final bool _useCFE;
   final FrontEndCompiler _frontEndCompiler;
 
@@ -82,11 +81,9 @@ class LibraryAnalyzer {
       this._context,
       this._resynthesizer,
       this._library,
-      {bool enableKernelDriver: false,
-      bool useCFE: false,
+      {bool useCFE: false,
       FrontEndCompiler frontEndCompiler})
       : _typeProvider = _context.typeProvider,
-        _enableKernelDriver = enableKernelDriver,
         _useCFE = useCFE,
         _frontEndCompiler = frontEndCompiler;
 
@@ -556,7 +553,7 @@ class LibraryAnalyzer {
     definingCompilationUnit.element = _libraryElement.definingCompilationUnit;
 
     bool matchNodeElement(Directive node, Element element) {
-      if (_enableKernelDriver) {
+      if (_useCFE) {
         return node.keyword.offset == element.nameOffset;
       } else {
         return node.offset == element.nameOffset;
@@ -567,7 +564,7 @@ class LibraryAnalyzer {
 
     void reportErrorReportedByFrontEnd(
         ErrorCode errorCode, AstNode node, List<Object> arguments) {
-      if (!_enableKernelDriver) {
+      if (!_useCFE) {
         libraryErrorReporter.reportErrorForNode(errorCode, node, arguments);
       }
     }
@@ -701,8 +698,7 @@ class LibraryAnalyzer {
       }
     }
 
-    new DeclarationResolver(enableKernelDriver: _enableKernelDriver)
-        .resolve(unit, unitElement);
+    new DeclarationResolver().resolve(unit, unitElement);
 
     if (_libraryElement.context.analysisOptions.previewDart2) {
       unit.accept(new AstRewriteVisitor(_context.typeSystem, _libraryElement,
@@ -737,8 +733,7 @@ class LibraryAnalyzer {
   void _resolveFile2(FileState file, CompilationUnitImpl unit,
       CollectedResolution resolution) {
     CompilationUnitElement unitElement = unit.declaredElement;
-    new DeclarationResolver(enableKernelDriver: true, applyKernelTypes: true)
-        .resolve(unit, unitElement);
+    new DeclarationResolver(useCFE: true).resolve(unit, unitElement);
 
     var applierContext = new _ResolutionApplierContext(_resynthesizer,
         _typeProvider, _libraryElement, resolution, unit.localDeclarations);

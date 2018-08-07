@@ -155,8 +155,8 @@ class _IsTestGroup {
         new ContextRoot(resourceProvider.convertPath('/project'), [],
             pathContext: resourceProvider.pathContext),
         sourceFactory,
-        new AnalysisOptionsImpl(),
-        enableKernelDriver: useCFE);
+        new AnalysisOptionsImpl()..useFastaParser = useCFE,
+        useCFE: useCFE);
     scheduler.start();
     AnalysisEngine.instance.logger = PrintLogger.instance;
   }

@@ -27,8 +27,7 @@ import 'package:analyzer/src/generated/resolver.dart';
  * any more complete than a [COMPILATION_UNIT_ELEMENT].
  */
 class DeclarationResolver extends RecursiveAstVisitor<Object> {
-  final bool _enableKernelDriver;
-  final bool _applyKernelTypes;
+  final bool _useCFE;
 
   /**
    * The compilation unit containing the AST nodes being visited.
@@ -51,10 +50,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
    */
   ElementWalker _walker;
 
-  DeclarationResolver(
-      {bool enableKernelDriver: false, bool applyKernelTypes: false})
-      : _enableKernelDriver = enableKernelDriver,
-        _applyKernelTypes = applyKernelTypes;
+  DeclarationResolver({bool useCFE: false}) : _useCFE = useCFE;
 
   /**
    * Resolve the declarations within the given compilation [unit] to the
@@ -107,7 +103,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
     ClassElement element = _match(node.name, _walker.getClass());
-    if (_applyKernelTypes) {
+    if (_useCFE) {
       node.name.staticType = _typeProvider.typeType;
     }
     _walk(new ElementWalker.forClass(element), () {
@@ -120,7 +116,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitClassTypeAlias(ClassTypeAlias node) {
     ClassElement element = _match(node.name, _walker.getClass());
-    if (_applyKernelTypes) {
+    if (_useCFE) {
       node.name.staticType = _typeProvider.typeType;
     }
     _walk(new ElementWalker.forClass(element), () {
@@ -139,7 +135,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       super.visitConstructorDeclaration(node);
     });
     resolveMetadata(node, node.metadata, element);
-    if (_applyKernelTypes) {
+    if (_useCFE) {
       _applyTypeToIdentifier(node.returnType, element.returnType);
       node.name?.staticType = element.type;
     }
@@ -189,7 +185,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitEnumDeclaration(EnumDeclaration node) {
     ClassElement element = _match(node.name, _walker.getEnum());
-    if (_applyKernelTypes) {
+    if (_useCFE) {
       node.name.staticType = _typeProvider.typeType;
       for (var constant in node.constants) {
         SimpleIdentifier name = constant.name;
@@ -266,7 +262,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitFormalParameterList(FormalParameterList node) {
-    if (_applyKernelTypes) {
+    if (_useCFE) {
       applyParameters(_enclosingLibrary, _walker._parameters, node);
       _walker.consumeParameters();
       return null;
@@ -293,7 +289,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
             elementName: functionName.name + '=');
       }
     }
-    if (_applyKernelTypes) {
+    if (_useCFE) {
       if (node.isGetter) {
         node.name.staticType = element.returnType;
       } else if (node.isSetter) {
@@ -438,7 +434,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
             elementName: nameOfMethod + '=');
       }
     }
-    if (_applyKernelTypes) {
+    if (_useCFE) {
       if (node.isGetter) {
         node.name.staticType = element.returnType;
       } else if (node.isSetter) {
@@ -517,8 +513,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitTypeParameter(TypeParameter node) {
-    if (node.parent.parent is FunctionTypedFormalParameter &&
-        !_enableKernelDriver) {
+    if (node.parent.parent is FunctionTypedFormalParameter && !_useCFE) {
       // Work around dartbug.com/28515.
       // TODO(paulberry): remove this once dartbug.com/28515 is fixed.
       var element = new TypeParameterElementImpl.forNode(node.name);
@@ -537,7 +532,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitVariableDeclaration(VariableDeclaration node) {
     VariableElement element = _match(node.name, _walker.getVariable());
-    if (_applyKernelTypes) {
+    if (_useCFE) {
       node.name.staticType = element.type;
     }
     Expression initializer = node.initializer;
