@@ -112,7 +112,7 @@ async_function() {
 
 inference() {
   f(void Function() f) {}
-  f(() //LINT
+  f(() // LINT
       {
     return 1; // OK
   });
@@ -146,6 +146,32 @@ function_ref_are_ok() {
   fB(f: a1.m5); // OK
   final a2 = new A<void>();
   fA(a2.m5); // OK
+}
+
+allow_functionWithReturnType_forFunctionWithout() {
+  takeVoidFn(void Function() f) {}
+  void Function() voidFn;
+
+  int nonVoidFn() => 1;
+
+  takeVoidFn(nonVoidFn); // OK
+  voidFn = nonVoidFn; // OK
+  void Function() returnsVoidFn() {
+    return nonVoidFn; // OK
+  }
+}
+
+allow_functionWithReturnType_forFunctionWithout_asComplexExpr() {
+  takeVoidFn(void Function() f) {}
+  void Function() voidFn;
+
+  List<int Function()> listNonVoidFn;
+
+  takeVoidFn(listNonVoidFn[0]); // OK
+  voidFn = listNonVoidFn[0]; // OK
+  void Function() returnsVoidFn() {
+    return listNonVoidFn[0]; // OK
+  }
 }
 
 allow_Null_for_void() {
