@@ -2660,10 +2660,14 @@ abstract class Closure implements Function {
             new BoundClosure(null, null, null, null));
 
     JS('', '#.\$initialize = #', prototype, JS('', '#.constructor', prototype));
+
+    // The constructor functions have names to prevent the JavaScript
+    // implementation from inventing a name that might have special meaning
+    // (e.g. clashing with minified 'Object' or 'Interceptor').
     var constructor = isStatic
-        ? JS('', 'function(){this.\$initialize()}')
+        ? JS('', 'function static_tear_off(){this.\$initialize()}')
         : isCsp
-            ? JS('', 'function(a,b,c,d) {this.\$initialize(a,b,c,d)}')
+            ? JS('', 'function tear_off(a,b,c,d) {this.\$initialize(a,b,c,d)}')
             : JS(
                 '',
                 'new Function("a,b,c,d" + #,'
