@@ -13506,7 +13506,10 @@ abstract class Foo {}
 @Annotation
 /// This dartdoc comment is [included].
 // a non dartdoc comment [inbetween]
-/// See [int] and [String]
+/// See [int] and [String] but `not [a]`
+/// ```
+/// This [code] block should be ignored
+/// ```
 /// and [Object].
 abstract class Foo {}
 ''');
@@ -13525,7 +13528,7 @@ abstract class Foo {}
     expectReference(0, 'included', 86);
     expectReference(1, 'int', 143);
     expectReference(2, 'String', 153);
-    expectReference(3, 'Object', 170);
+    expectReference(3, 'Object', 240);
   }
 
   void test_parseCommentReference_new_prefixed() {

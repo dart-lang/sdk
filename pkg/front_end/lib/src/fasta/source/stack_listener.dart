@@ -32,6 +32,7 @@ enum NullValue {
   BreakTarget,
   CascadeReceiver,
   Combinators,
+  CommentReference,
   Comments,
   ConditionalUris,
   ConditionallySelectedImport,

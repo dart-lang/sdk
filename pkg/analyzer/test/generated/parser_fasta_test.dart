@@ -857,8 +857,16 @@ class ParserProxy extends analyzer.ParserAdapter {
       }
     }
     expect(tokens[tokens.length - 1].next, isNull);
-    // TODO(danrubel): Implement this
-    return null;
+    int count = fastaParser.parseCommentReferences(tokens[0]);
+    if (count == null) {
+      return null;
+    }
+    List<CommentReference> references = new List<CommentReference>(count);
+    // Since parseCommentReferences(...) returned non-null, then this method
+    // should return non-null in indicating that dartdoc comments were parsed.
+    // popTypedList(...) returns `null` if count is zero.
+    astBuilder.popTypedList(count, references);
+    return references;
   }
 
   @override
@@ -1013,97 +1021,7 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
 @reflectiveTest
 class SimpleParserTest_Fasta extends FastaParserTestCase
-    with SimpleParserTestMixin {
-  @override
-  @failingTest
-  void test_parseCommentReferences_multiLine() {
-    super.test_parseCommentReferences_multiLine();
-  }
-
-  @override
-  @failingTest
-  void test_parseCommentReferences_notClosed_noIdentifier() {
-    super.test_parseCommentReferences_notClosed_noIdentifier();
-  }
-
-  @override
-  @failingTest
-  void test_parseCommentReferences_notClosed_withIdentifier() {
-    super.test_parseCommentReferences_notClosed_withIdentifier();
-  }
-
-  @override
-  @failingTest
-  void test_parseCommentReferences_singleLine() {
-    super.test_parseCommentReferences_singleLine();
-  }
-
-  @override
-  @failingTest
-  void test_parseCommentReferences_skipCodeBlock_4spaces_block() {
-    super.test_parseCommentReferences_skipCodeBlock_4spaces_block();
-  }
-
-  @override
-  @failingTest
-  void test_parseCommentReferences_skipCodeBlock_4spaces_lines() {
-    super.test_parseCommentReferences_skipCodeBlock_4spaces_lines();
-  }
-
-  @override
-  @failingTest
-  void test_parseCommentReferences_skipCodeBlock_bracketed() {
-    super.test_parseCommentReferences_skipCodeBlock_bracketed();
-  }
-
-  @override
-  @failingTest
-  void test_parseCommentReferences_skipCodeBlock_gitHub() {
-    super.test_parseCommentReferences_skipCodeBlock_gitHub();
-  }
-
-  @override
-  @failingTest
-  void test_parseCommentReferences_skipCodeBlock_gitHub_multiLine() {
-    super.test_parseCommentReferences_skipCodeBlock_gitHub_multiLine();
-  }
-
-  @override
-  @failingTest
-  void test_parseCommentReferences_skipCodeBlock_gitHub_multiLine_lines() {
-    super.test_parseCommentReferences_skipCodeBlock_gitHub_multiLine_lines();
-  }
-
-  @override
-  @failingTest
-  void test_parseCommentReferences_skipCodeBlock_gitHub_notTerminated() {
-    super.test_parseCommentReferences_skipCodeBlock_gitHub_notTerminated();
-  }
-
-  @override
-  @failingTest
-  void test_parseCommentReferences_skipCodeBlock_spaces() {
-    super.test_parseCommentReferences_skipCodeBlock_spaces();
-  }
-
-  @override
-  @failingTest
-  void test_parseCommentReferences_skipLinkDefinition() {
-    super.test_parseCommentReferences_skipLinkDefinition();
-  }
-
-  @override
-  @failingTest
-  void test_parseCommentReferences_skipLinked() {
-    super.test_parseCommentReferences_skipLinked();
-  }
-
-  @override
-  @failingTest
-  void test_parseCommentReferences_skipReferenceLink() {
-    super.test_parseCommentReferences_skipReferenceLink();
-  }
-}
+    with SimpleParserTestMixin {}
 
 /**
  * Tests of the fasta parser based on [StatementParserTestMixin].

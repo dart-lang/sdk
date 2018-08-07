@@ -62,6 +62,14 @@ int offsetForToken(Token token) {
   return token == null ? TreeNode.noOffset : token.offset;
 }
 
+bool isDigit(int c) => c >= 0x30 && c <= 0x39;
+
+bool isLetter(int c) => c >= 0x41 && c <= 0x5A || c >= 0x61 && c <= 0x7A;
+
+bool isLetterOrDigit(int c) => isLetter(c) || isDigit(c);
+
+bool isWhitespace(int c) => c == 0x20 || c == 0xA || c == 0xD || c == 0x9;
+
 /// Return true if the given token matches one of the given values.
 bool isOneOf(Token token, Iterable<String> values) {
   for (String tokenValue in values) {

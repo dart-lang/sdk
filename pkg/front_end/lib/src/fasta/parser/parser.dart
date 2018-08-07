@@ -15,6 +15,7 @@ import '../../scanner/token.dart'
         ASSIGNMENT_PRECEDENCE,
         BeginToken,
         CASCADE_PRECEDENCE,
+        DocumentationCommentToken,
         EQUALITY_PRECEDENCE,
         Keyword,
         POSTFIX_PRECEDENCE,
@@ -90,9 +91,12 @@ import 'type_info.dart'
 
 import 'util.dart'
     show
-        findPreviousNonZeroLengthToken,
         findNonZeroLengthToken,
+        findPreviousNonZeroLengthToken,
+        isLetter,
+        isLetterOrDigit,
         isOneOf,
+        isWhitespace,
         optional;
 
 /// An event generating parser of Dart programs. This parser expects all tokens
@@ -5827,6 +5831,268 @@ class Parser {
     Token before = new Token.eof(-1);
     before.next = token;
     return before;
+  }
+
+  /// Parse the comment references in a sequence of comment tokens
+  /// where [token] is the first in the sequence.
+  /// Return the number of comment references parsed
+  /// or `null` if there are no dartdoc comment tokens in the sequence.
+  int parseCommentReferences(Token token) {
+    if (token == null) {
+      return null;
+    }
+    Token singleLineDoc;
+    Token multiLineDoc;
+
+    // Find the first dartdoc token to parse
+    do {
+      String lexeme = token.lexeme;
+      if (lexeme.startsWith('/**')) {
+        singleLineDoc = null;
+        multiLineDoc = token;
+      } else if (lexeme.startsWith('///')) {
+        singleLineDoc ??= token;
+        multiLineDoc = null;
+      }
+      token = token.next;
+    } while (token != null);
+
+    // Parse the comment references
+    if (multiLineDoc != null) {
+      return parseReferencesInMultiLineComment(multiLineDoc);
+    } else if (singleLineDoc != null) {
+      return parseReferencesInSingleLineComments(singleLineDoc);
+    } else {
+      return null;
+    }
+  }
+
+  /// Parse the comment references in a multi-line comment token.
+  /// Return the number of comment references parsed.
+  int parseReferencesInMultiLineComment(Token multiLineDoc) {
+    String comment = multiLineDoc.lexeme;
+    assert(comment.startsWith('/**'));
+    int count = 0;
+    int length = comment.length;
+    int start = 3;
+    bool inCodeBlock = false;
+    int codeBlock = comment.indexOf('```', 3);
+    if (codeBlock == -1) {
+      codeBlock = length;
+    }
+    while (start < length) {
+      if (isWhitespace(comment.codeUnitAt(start))) {
+        ++start;
+        continue;
+      }
+      int end = comment.indexOf('\n', start);
+      if (end == -1) {
+        end = length;
+      }
+      if (codeBlock < end) {
+        inCodeBlock = !inCodeBlock;
+        codeBlock = comment.indexOf('```', end);
+        if (codeBlock == -1) {
+          codeBlock = length;
+        }
+      }
+      if (!inCodeBlock && !comment.startsWith('*     ', start)) {
+        count += parseCommentReferencesInText(multiLineDoc, start, end);
+      }
+      start = end + 1;
+    }
+    return count;
+  }
+
+  /// Parse the comment references in a sequence of single line comment tokens
+  /// where [token] is the first comment token in the sequence.
+  /// Return the number of comment references parsed.
+  int parseReferencesInSingleLineComments(Token token) {
+    int count = 0;
+    bool inCodeBlock = false;
+    while (token != null && !token.isEof) {
+      String comment = token.lexeme;
+      if (comment.startsWith('///')) {
+        if (comment.indexOf('```', 3) != -1) {
+          inCodeBlock = !inCodeBlock;
+        }
+        if (!inCodeBlock && !comment.startsWith('///    ')) {
+          count += parseCommentReferencesInText(token, 3, comment.length);
+        }
+      }
+      token = token.next;
+    }
+    return count;
+  }
+
+  /// Parse the comment references in the text between [start] inclusive
+  /// and [end] exclusive. Return a count indicating how many were parsed.
+  int parseCommentReferencesInText(Token commentToken, int start, int end) {
+    String comment = commentToken.lexeme;
+    int count = 0;
+    int index = start;
+    while (index < end) {
+      int ch = comment.codeUnitAt(index);
+      if (ch == 0x5B /* `[` */) {
+        ++index;
+        if (index < end && comment.codeUnitAt(index) == 0x3A /* `:` */) {
+          // Skip old-style code block.
+          index = comment.indexOf(':]', index + 1) + 1;
+          if (index == 0 || index > end) {
+            break;
+          }
+        } else {
+          int referenceStart = index;
+          index = comment.indexOf(']', index);
+          if (index == -1 || index >= end) {
+            // Recovery: terminating ']' is not typed yet.
+            index = findReferenceEnd(comment, referenceStart, end);
+          }
+          if (ch != 0x27 /* `'` */ && ch != 0x22 /* `"` */) {
+            if (isLinkText(comment, index)) {
+              // TODO(brianwilkerson) Handle the case where there's a library
+              // URI in the link text.
+            } else {
+              listener.handleCommentReferenceText(
+                  commentToken,
+                  comment.substring(referenceStart, index),
+                  commentToken.charOffset + referenceStart);
+              ++count;
+            }
+          }
+        }
+      } else if (ch == 0x60 /* '`' */) {
+        // Skip inline code block if there is both starting '`' and ending '`'
+        int endCodeBlock = comment.indexOf('`', index + 1);
+        if (endCodeBlock != -1 && endCodeBlock < end) {
+          index = endCodeBlock;
+        }
+      }
+      ++index;
+    }
+    return count;
+  }
+
+  /// Given a comment reference without a closing `]`,
+  /// search for a possible place where `]` should be.
+  int findReferenceEnd(String comment, int index, int end) {
+    // Find the end of the identifier if there is one
+    if (index >= end || !isLetter(comment.codeUnitAt(index))) {
+      return index;
+    }
+    while (index < end && isLetterOrDigit(comment.codeUnitAt(index))) {
+      ++index;
+    }
+
+    // Check for a trailing `.`
+    if (index >= end || comment.codeUnitAt(index) != 0x2E /* `.` */) {
+      return index;
+    }
+    ++index;
+
+    // Find end of the identifier after the `.`
+    if (index >= end || !isLetter(comment.codeUnitAt(index))) {
+      return index;
+    }
+    ++index;
+    while (index < end && isLetterOrDigit(comment.codeUnitAt(index))) {
+      ++index;
+    }
+    return index;
+  }
+
+  /// Parse the tokens in a single comment reference and generate either a
+  /// `handleCommentReference` or `handleNoCommentReference` event.
+  ///
+  /// This is typically called from the listener's
+  /// `handleCommentReferenceText` method.
+  void parseOneCommentReference(
+      DocumentationCommentToken commentToken, Token token) {
+    Token begin = token;
+    Token newKeyword = null;
+    if (optional('new', token)) {
+      newKeyword = token;
+      token = token.next;
+    }
+    Token prefix, period;
+    if (token.isIdentifier && optional('.', token.next)) {
+      prefix = token;
+      period = token.next;
+      token = period.next;
+    }
+    if (token.isEof) {
+      // Recovery: Insert a synthetic identifier for code completion
+      token = rewriter.insertSyntheticIdentifier(
+          period ?? newKeyword ?? syntheticPreviousToken(token));
+      if (begin == token.next) {
+        begin = token;
+      }
+    }
+    Token operatorKeyword = null;
+    if (optional('operator', token)) {
+      operatorKeyword = token;
+      token = token.next;
+    }
+    if (token.isUserDefinableOperator) {
+      if (token.next.isEof) {
+        listener.handleCommentReference(newKeyword, prefix, period, token);
+        commentToken.references.add(begin);
+        return;
+      }
+    } else {
+      token = operatorKeyword ?? token;
+      if (token.next.isEof) {
+        if (token.isIdentifier) {
+          listener.handleCommentReference(newKeyword, prefix, period, token);
+          commentToken.references.add(begin);
+          return;
+        }
+        Keyword keyword = token.keyword;
+        if (newKeyword == null &&
+            prefix == null &&
+            (keyword == Keyword.THIS ||
+                keyword == Keyword.NULL ||
+                keyword == Keyword.TRUE ||
+                keyword == Keyword.FALSE)) {
+          // TODO(brianwilkerson) If we want to support this we will need to
+          // extend the definition of CommentReference to take an expression
+          // rather than an identifier. For now we just ignore it to reduce the
+          // number of errors produced, but that's probably not a valid long
+          // term approach.
+        }
+      }
+    }
+    listener.handleNoCommentReference();
+  }
+
+  /// Given that we have just found bracketed text within the given [comment],
+  /// look to see whether that text is (a) followed by a parenthesized link
+  /// address, (b) followed by a colon, or (c) followed by optional whitespace
+  /// and another square bracket. The [rightIndex] is the index of the right
+  /// bracket. Return `true` if the bracketed text is followed by a link
+  /// address.
+  ///
+  /// This method uses the syntax described by the
+  /// <a href="http://daringfireball.net/projects/markdown/syntax">markdown</a>
+  /// project.
+  bool isLinkText(String comment, int rightIndex) {
+    int length = comment.length;
+    int index = rightIndex + 1;
+    if (index >= length) {
+      return false;
+    }
+    int ch = comment.codeUnitAt(index);
+    if (ch == 0x28 || ch == 0x3A) {
+      return true;
+    }
+    while (isWhitespace(ch)) {
+      index = index + 1;
+      if (index >= length) {
+        return false;
+      }
+      ch = comment.codeUnitAt(index);
+    }
+    return ch == 0x5B;
   }
 }
 
