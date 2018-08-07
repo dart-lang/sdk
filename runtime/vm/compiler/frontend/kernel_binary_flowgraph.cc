@@ -4019,8 +4019,7 @@ Fragment StreamingFlowGraphBuilder::BuildAsExpression(TokenPosition* p) {
   uint8_t flags = ReadFlags();  // read flags.
   const bool is_type_error = (flags & (1 << 0)) != 0;
 
-  TokenPosition value_position = TokenPosition::kNoSource;
-  Fragment instructions = BuildExpression(&value_position);  // read operand.
+  Fragment instructions = BuildExpression();  // read operand.
 
   const AbstractType& type = T.BuildType();  // read type.
 
@@ -4041,7 +4040,7 @@ Fragment StreamingFlowGraphBuilder::BuildAsExpression(TokenPosition* p) {
   } else if (is_type_error) {
     instructions += LoadLocal(MakeTemporary());
     instructions += flow_graph_builder_->AssertAssignable(
-        value_position, type, Symbols::Empty(),
+        position, type, Symbols::Empty(),
         AssertAssignableInstr::kInsertedByFrontend);
     instructions += Drop();
   } else {
