@@ -6,11 +6,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/lint/config.dart';
-import 'package:analyzer/src/lint/io.dart';
-import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/lint/config.dart'; //ignore: implementation_imports
+import 'package:analyzer/src/lint/io.dart'; //ignore: implementation_imports
+import 'package:analyzer/src/lint/linter.dart'; //ignore: implementation_imports
+import 'package:analyzer/src/lint/registry.dart'; //ignore: implementation_imports
 import 'package:args/args.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/formatter.dart';
