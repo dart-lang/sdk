@@ -531,7 +531,6 @@ issue31596_super_test/05: RuntimeError
 [ $compiler == dart2js && $fast_startup ]
 library_env_test/has_mirror_support: Fail # mirrors not supported
 library_env_test/has_no_mirror_support: Pass # fails for the wrong reason.
-vm/reflect_core_vm_test: Fail # mirrors not supported
 
 [ $compiler == dart2js && $fast_startup && $strong ]
 async_star_cancel_while_paused_test: RuntimeError
@@ -653,36 +652,6 @@ type_variable_bounds_test/05: MissingCompileTimeError
 type_variable_bounds_test/06: MissingCompileTimeError
 type_variable_bounds_test/08: MissingCompileTimeError
 type_variable_bounds_test/11: MissingCompileTimeError
-vm/async_await_catch_stacktrace_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-vm/await_synchronous_future_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-vm/causal_async_exception_stack2_test: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic method: selector=Selector(operator, *, arity=1), mask=[subclass=JSUInt32], HTypeInfoReadVariable(ListQueue.E)].
-vm/causal_async_exception_stack_test: Crash # Assertion failure: Unexpected arguments. Expected 1 argument, actual: [invoke dynamic method: selector=Selector(operator, *, arity=1), mask=[subclass=JSUInt32], HTypeInfoReadVariable(ListQueue.E)].
-vm/debug_break_enabled_vm_test/01: CompileTimeError
-vm/debug_break_enabled_vm_test/none: CompileTimeError
-vm/integer_type_propagation_test: RuntimeError
-vm/load_to_load_forwarding_vm_test: RuntimeError
-vm/load_to_load_unaligned_forwarding_vm_test: RuntimeError
-vm/math_vm_test: RuntimeError
-vm/no_such_args_error_message_vm_test: RuntimeError
-vm/no_such_method_error_message_callable_vm_test: RuntimeError
-vm/no_such_method_error_message_vm_test: RuntimeError
-vm/optimization_test: RuntimeError
-vm/optimized_await_regress_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-vm/optimized_guarded_field_isolates_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-vm/optimized_list_constructor_test: RuntimeError
-vm/reflect_core_vm_test: RuntimeError
-vm/regress_22480_test: RuntimeError
-vm/regress_23238_test: RuntimeError
-vm/regress_27201_test: CompileTimeError
-vm/regress_28325_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-vm/regress_29145_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-vm/store_to_load_forwarding_phis_vm_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-vm/type_cast_vm_test: RuntimeError
-vm/type_vm_test/28: MissingRuntimeError
-vm/uint32_right_shift_test: RuntimeError
-vm/uint32_shift_test: RuntimeError
-vm/unaligned_integer_access_literal_index_test: RuntimeError
-vm/unaligned_integer_access_register_index_test: RuntimeError
 wrong_number_type_arguments_test/01: MissingCompileTimeError
 wrong_number_type_arguments_test/none: Pass
 
@@ -821,36 +790,6 @@ type_variable_bounds_test/05: MissingCompileTimeError
 type_variable_bounds_test/06: MissingCompileTimeError
 type_variable_bounds_test/08: MissingCompileTimeError
 type_variable_bounds_test/11: MissingCompileTimeError
-vm/async_await_catch_stacktrace_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-vm/await_synchronous_future_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-vm/causal_async_exception_stack2_test: Crash # Wrong number of template arguments, given 2, expected 1
-vm/causal_async_exception_stack_test: Crash # Wrong number of template arguments, given 2, expected 1
-vm/debug_break_enabled_vm_test/01: CompileTimeError
-vm/debug_break_enabled_vm_test/none: CompileTimeError
-vm/integer_type_propagation_test: RuntimeError
-vm/load_to_load_forwarding_vm_test: RuntimeError
-vm/load_to_load_unaligned_forwarding_vm_test: RuntimeError
-vm/math_vm_test: RuntimeError
-vm/no_such_args_error_message_vm_test: RuntimeError
-vm/no_such_method_error_message_callable_vm_test: RuntimeError
-vm/no_such_method_error_message_vm_test: RuntimeError
-vm/optimization_test: RuntimeError
-vm/optimized_await_regress_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-vm/optimized_guarded_field_isolates_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-vm/optimized_list_constructor_test: RuntimeError
-vm/reflect_core_vm_test: RuntimeError
-vm/regress_22480_test: RuntimeError
-vm/regress_23238_test: RuntimeError
-vm/regress_27201_test: CompileTimeError
-vm/regress_28325_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-vm/regress_29145_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-vm/store_to_load_forwarding_phis_vm_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-vm/type_cast_vm_test: RuntimeError
-vm/type_vm_test/28: MissingRuntimeError
-vm/uint32_right_shift_test: RuntimeError
-vm/uint32_shift_test: RuntimeError
-vm/unaligned_integer_access_literal_index_test: RuntimeError
-vm/unaligned_integer_access_register_index_test: RuntimeError
 wrong_number_type_arguments_test/01: MissingCompileTimeError
 wrong_number_type_arguments_test/none: Pass
 
