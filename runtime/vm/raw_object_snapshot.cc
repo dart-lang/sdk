@@ -1334,7 +1334,8 @@ RawKernelProgramInfo* KernelProgramInfo::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &info, kIsDeserialized);
 
   // Set all the object fields.
-  READ_OBJECT_FIELDS(info, info.raw()->from(), info.raw()->to(), kAsReference);
+  READ_OBJECT_FIELDS(info, info.raw()->from(), info.raw()->to_snapshot(kind),
+                     kAsReference);
   return info.raw();
 }
 
@@ -1354,7 +1355,7 @@ void RawKernelProgramInfo::WriteTo(SnapshotWriter* writer,
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer, kAsReference);
-  visitor.VisitPointers(from(), to());
+  visitor.VisitPointers(from(), to_snapshot(kind));
 }
 
 RawCode* Code::ReadFrom(SnapshotReader* reader,

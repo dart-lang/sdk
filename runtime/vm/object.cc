@@ -12508,6 +12508,7 @@ RawKernelProgramInfo* KernelProgramInfo::New(
     const TypedData& canonical_names,
     const ExternalTypedData& metadata_payloads,
     const ExternalTypedData& metadata_mappings,
+    const ExternalTypedData& constants_table,
     const Array& scripts) {
   const KernelProgramInfo& info =
       KernelProgramInfo::Handle(KernelProgramInfo::New());
@@ -12519,6 +12520,7 @@ RawKernelProgramInfo* KernelProgramInfo::New(
   info.StorePointer(&info.raw_ptr()->metadata_mappings_,
                     metadata_mappings.raw());
   info.StorePointer(&info.raw_ptr()->scripts_, scripts.raw());
+  info.StorePointer(&info.raw_ptr()->constants_table_, constants_table.raw());
   return info.raw();
 }
 
@@ -12534,6 +12536,11 @@ RawScript* KernelProgramInfo::ScriptAt(intptr_t index) const {
 
 void KernelProgramInfo::set_constants(const Array& constants) const {
   StorePointer(&raw_ptr()->constants_, constants.raw());
+}
+
+void KernelProgramInfo::set_constants_table(
+    const ExternalTypedData& value) const {
+  StorePointer(&raw_ptr()->constants_table_, value.raw());
 }
 
 void KernelProgramInfo::set_potential_natives(

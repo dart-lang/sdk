@@ -4106,6 +4106,7 @@ class KernelProgramInfo : public Object {
                                    const TypedData& canonical_names,
                                    const ExternalTypedData& metadata_payload,
                                    const ExternalTypedData& metadata_mappings,
+                                   const ExternalTypedData& constants_table,
                                    const Array& scripts);
 
   static intptr_t InstanceSize() {
@@ -4125,6 +4126,12 @@ class KernelProgramInfo : public Object {
   RawExternalTypedData* metadata_mappings() const {
     return raw_ptr()->metadata_mappings_;
   }
+
+  RawExternalTypedData* constants_table() const {
+    return raw_ptr()->constants_table_;
+  }
+
+  void set_constants_table(const ExternalTypedData& value) const;
 
   RawArray* scripts() const { return raw_ptr()->scripts_; }
 

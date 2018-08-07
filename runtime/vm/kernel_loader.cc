@@ -182,7 +182,8 @@ KernelLoader::KernelLoader(Program* program)
       external_name_class_(Class::Handle(Z)),
       external_name_field_(Field::Handle(Z)),
       potential_natives_(GrowableObjectArray::Handle(Z)),
-      potential_extension_libraries_(GrowableObjectArray::Handle(Z)) {
+      potential_extension_libraries_(GrowableObjectArray::Handle(Z)),
+      pragma_class_(Class::Handle(Z)) {
   if (!program->is_single_program()) {
     FATAL(
         "Trying to load a concatenated dill file at a time where that is "
@@ -283,6 +284,12 @@ void KernelLoader::InitializeFields() {
       Z,
       reader.ExternalDataFromTo(reader.offset(), reader.offset() + end_offset));
 
+  // Create a view of the constants table. The trailing ComponentIndex is
+  // negligible in size.
+  const ExternalTypedData& constants_table = ExternalTypedData::Handle(
+      Z, reader.ExternalDataFromTo(program_->constant_table_offset(),
+                                   program_->kernel_data_size()));
+
   // Copy the canonical names into the VM's heap.  Encode them as unsigned, so
   // the parent indexes are adjusted when extracted.
   reader.set_offset(program_->name_table_offset());
@@ -303,8 +310,9 @@ void KernelLoader::InitializeFields() {
       Z, reader.ExternalDataFromTo(program_->metadata_mappings_offset(),
                                    program_->string_table_offset()));
 
-  kernel_program_info_ = KernelProgramInfo::New(
-      offsets, data, names, metadata_payloads, metadata_mappings, scripts);
+  kernel_program_info_ =
+      KernelProgramInfo::New(offsets, data, names, metadata_payloads,
+                             metadata_mappings, constants_table, scripts);
 
   H.InitFromKernelProgramInfo(kernel_program_info_);
 
@@ -335,7 +343,8 @@ KernelLoader::KernelLoader(const Script& script,
       external_name_class_(Class::Handle(Z)),
       external_name_field_(Field::Handle(Z)),
       potential_natives_(GrowableObjectArray::Handle(Z)),
-      potential_extension_libraries_(GrowableObjectArray::Handle(Z)) {
+      potential_extension_libraries_(GrowableObjectArray::Handle(Z)),
+      pragma_class_(Class::Handle(Z)) {
   ASSERT(T.active_class_ == &active_class_);
   T.finalize_ = false;
 
@@ -588,6 +597,7 @@ RawObject* KernelLoader::LoadProgram(bool process_pending_classes) {
     //     c) update all scripts with the constants array
     ASSERT(kernel_program_info_.constants() == Array::null());
     kernel_program_info_.set_constants(constants);
+    kernel_program_info_.set_constants_table(ExternalTypedData::Handle(Z));
 
     NameIndex main = program_->main_method();
     if (main == -1) {
@@ -1335,7 +1345,6 @@ void KernelLoader::ReadProcedureAnnotations(intptr_t annotation_count,
   *is_potential_native = false;
   *has_pragma_annotation = false;
   String& detected_name = String::Handle(Z);
-  Class& pragma_class = Class::Handle(Z, I->object_store()->pragma_class());
   for (intptr_t i = 0; i < annotation_count; ++i) {
     const intptr_t tag = helper_.PeekTag();
     if (tag == kConstructorInvocation || tag == kConstConstructorInvocation) {
@@ -1361,10 +1370,8 @@ void KernelLoader::ReadProcedureAnnotations(intptr_t annotation_count,
         // constants in the annotation list to later.
         *is_potential_native = true;
 
-        if (program_ == nullptr) {
-          helper_.SkipExpression();
-          continue;
-        }
+        ASSERT(kernel_program_info_.constants_table() !=
+               ExternalTypedData::null());
 
         // For pragma annotations, we seek into the constants table and peek
         // into the Kernel representation of the constant.
@@ -1376,13 +1383,16 @@ void KernelLoader::ReadProcedureAnnotations(intptr_t annotation_count,
 
         const intptr_t offset_in_constant_table = helper_.ReadUInt();
 
-        AlternativeReadingScope scope(&helper_.reader_,
-                                      program_->constant_table_offset());
+        AlternativeReadingScope scope(
+            &helper_.reader_,
+            &ExternalTypedData::Handle(Z,
+                                       kernel_program_info_.constants_table()),
+            0);
 
         // Seek into the position within the constant table where we can inspect
         // this constant's Kernel representation.
         helper_.ReadUInt();  // skip constant table size
-        helper_.SetOffset(helper_.ReaderOffset() + offset_in_constant_table);
+        helper_.SkipBytes(offset_in_constant_table);
         uint8_t tag = helper_.ReadTag();
         if (tag == kInstanceConstant) {
           *has_pragma_annotation =
@@ -1396,6 +1406,9 @@ void KernelLoader::ReadProcedureAnnotations(intptr_t annotation_count,
         // Obtain `dart:_internal::ExternalName.name`.
         EnsureExternalClassIsLookedUp();
 
+        // Obtain `dart:_internal::pragma`.
+        EnsurePragmaClassIsLookedUp();
+
         const intptr_t constant_table_index = helper_.ReadUInt();
         const Object& constant =
             Object::Handle(constant_table.GetOrDie(constant_table_index));
@@ -1404,7 +1417,7 @@ void KernelLoader::ReadProcedureAnnotations(intptr_t annotation_count,
               Instance::Handle(Instance::RawCast(constant.raw()));
           *native_name =
               String::RawCast(instance.GetField(external_name_field_));
-        } else if (constant.clazz() == pragma_class.raw()) {
+        } else if (constant.clazz() == pragma_class_.raw()) {
           *has_pragma_annotation = true;
         }
         ASSERT(constant_table.Release().raw() == constant_table_array.raw());

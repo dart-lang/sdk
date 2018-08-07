@@ -1239,7 +1239,12 @@ class RawKernelProgramInfo : public RawObject {
   RawArray* scripts_;
   RawArray* constants_;
   RawGrowableObjectArray* potential_natives_;
-  VISIT_TO(RawObject*, potential_natives_);
+  RawExternalTypedData* constants_table_;
+  VISIT_TO(RawObject*, constants_table_);
+
+  RawObject** to_snapshot(Snapshot::Kind kind) {
+    return reinterpret_cast<RawObject**>(&ptr()->potential_natives_);
+  }
 };
 
 class RawCode : public RawObject {

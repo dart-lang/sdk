@@ -1567,7 +1567,7 @@ class KernelProgramInfoSerializationCluster : public SerializationCluster {
     objects_.Add(info);
 
     RawObject** from = info->from();
-    RawObject** to = info->to();
+    RawObject** to = info->to_snapshot(s->kind());
     for (RawObject** p = from; p <= to; p++) {
       s->Push(*p);
     }
@@ -1588,7 +1588,7 @@ class KernelProgramInfoSerializationCluster : public SerializationCluster {
     for (intptr_t i = 0; i < count; i++) {
       RawKernelProgramInfo* info = objects_[i];
       RawObject** from = info->from();
-      RawObject** to = info->to();
+      RawObject** to = info->to_snapshot(s->kind());
       for (RawObject** p = from; p <= to; p++) {
         s->WriteRef(*p);
       }
@@ -1627,9 +1627,13 @@ class KernelProgramInfoDeserializationCluster : public DeserializationCluster {
                                      KernelProgramInfo::InstanceSize(),
                                      is_vm_object);
       RawObject** from = info->from();
-      RawObject** to = info->to();
+      RawObject** to = info->to_snapshot(d->kind());
+      RawObject** end = info->to();
       for (RawObject** p = from; p <= to; p++) {
         *p = d->ReadRef();
+      }
+      for (RawObject** p = to + 1; p <= end; p++) {
+        *p = Object::null();
       }
     }
   }

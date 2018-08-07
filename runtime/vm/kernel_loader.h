@@ -273,6 +273,15 @@ class KernelLoader : public ValueObject {
     }
   }
 
+  void EnsurePragmaClassIsLookedUp() {
+    if (pragma_class_.IsNull()) {
+      const Library& internal_lib =
+          Library::Handle(zone_, dart::Library::InternalLibrary());
+      pragma_class_ = internal_lib.LookupClass(Symbols::Pragma());
+      ASSERT(!pragma_class_.IsNull());
+    }
+  }
+
   void EnsurePotentialNatives() {
     potential_natives_ = kernel_program_info_.potential_natives();
     if (potential_natives_.IsNull()) {
@@ -316,6 +325,8 @@ class KernelLoader : public ValueObject {
   Field& external_name_field_;
   GrowableObjectArray& potential_natives_;
   GrowableObjectArray& potential_extension_libraries_;
+
+  Class& pragma_class_;
 
   Mapping<Library> libraries_;
   Mapping<Class> classes_;
