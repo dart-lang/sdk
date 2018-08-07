@@ -222,6 +222,8 @@ call_non_method_field_test/01: MissingCompileTimeError # Issue 32975
 call_non_method_field_test/02: MissingCompileTimeError # Issue 32975
 const_cast2_test/01: CompileTimeError # Issue 32517
 const_cast2_test/none: CompileTimeError # Issue 32517
+const_constructor_mixin3_test: CompileTimeError # Issue 33644.
+const_constructor_mixin_test: CompileTimeError # Issue 33644.
 const_instance_field_test/01: MissingCompileTimeError # Fasta bug: Const instance field. Issue 32326.
 const_types_test/34: MissingCompileTimeError # Issue 32988
 const_types_test/39: MissingCompileTimeError # Issue 32988
@@ -1385,6 +1387,8 @@ conditional_import_string_test: CompileTimeError # KernelVM bug: Deferred loadin
 conditional_import_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 30273.
 config_import_corelib_test: CompileTimeError # Issue 31533
 config_import_test: RuntimeError # KernelVM bug: Configurable imports.
+const_constructor_mixin3_test: CompileTimeError # Issue 33644.
+const_constructor_mixin_test: CompileTimeError # Issue 33644.
 const_dynamic_type_literal_test/02: RuntimeError # KernelVM bug: Constant map duplicated key.
 const_list_test: RuntimeError
 const_locals_test: RuntimeError
