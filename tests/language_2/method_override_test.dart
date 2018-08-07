@@ -9,13 +9,16 @@ import "package:expect/expect.dart";
 
 typedef V RemoveFunctionType<K, V>(K key);
 
-class MapBase<K, V> implements Map<K, V> {
+class MapBase<K, V> {
   K remove(K key) {
     throw 'Must be implemented';
   }
 
-  void Tests() {
+  void tests() {
     Expect.isTrue(this is MapBase<int, int>);
+
+    // `remove` takes an argument which is covariant-by-class, so
+    // the tear-off has dynamic type `int Function(Object)`.
 
     Expect.isTrue(remove is RemoveFunctionType);
     Expect.isTrue(remove is RemoveFunctionType<int, int>);
@@ -29,9 +32,13 @@ class MethodOverrideTest extends MapBase<String, String> {
     throw 'Must be implemented';
   }
 
-  void Tests() {
+  void tests() {
     Expect.isTrue(this is MethodOverrideTest);
     Expect.isTrue(this is MapBase<String, String>);
+
+    // `remove` takes an argument which is covariant-by-class because
+    // an overridden method does so, and hence the tear-off has dynamic
+    // type `String Function(Object)`; so does `super.remove`.
 
     Expect.isTrue(remove is RemoveFunctionType);
     Expect.isTrue(remove is RemoveFunctionType<String, String>);
@@ -43,17 +50,6 @@ class MethodOverrideTest extends MapBase<String, String> {
 }
 
 main() {
-  // Since method overriding is only checked statically, explicitly check
-  // the subtyping relation using a function type alias.
-  var x = new MethodOverrideTest();
-  Expect.isTrue(x.remove is RemoveFunctionType<String, String>);
-
-  // Perform a few more tests.
-  x.Tests();
-
-  var m = new MapBase<int, int>();
-  Expect.isTrue(m.remove is RemoveFunctionType<int, int>);
-
-  // Perform a few more tests.
-  m.Tests();
+  new MapBase<int, int>().tests();
+  new MethodOverrideTest().tests();
 }

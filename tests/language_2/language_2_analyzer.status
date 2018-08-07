@@ -73,8 +73,6 @@ invalid_type_argument_count_test/02: MissingCompileTimeError
 invalid_type_argument_count_test/03: MissingCompileTimeError
 invalid_type_argument_count_test/04: MissingCompileTimeError
 method_override7_test/03: Fail # Issue 11497
-method_override_test: CompileTimeError
-method_override_test: StaticWarning
 mixin_supertype_subclass2_test/02: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass2_test/05: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass3_test/02: MissingStaticWarning # Issue 25614

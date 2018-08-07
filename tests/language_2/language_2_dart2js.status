@@ -897,7 +897,6 @@ library_env_test/has_mirror_support: RuntimeError
 local_function2_test/none: RuntimeError
 local_function3_test/none: RuntimeError
 local_function_test/none: RuntimeError
-method_override_test: CompileTimeError
 minify_closure_variable_collision_test: CompileTimeError
 mint_arithmetic_test: RuntimeError # non JS number semantics
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError

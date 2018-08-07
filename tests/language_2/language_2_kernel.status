@@ -88,7 +88,6 @@ local_function2_test/none: RuntimeError
 local_function3_test/none: RuntimeError
 local_function_test/none: RuntimeError
 main_test/03: RuntimeError
-method_override_test: CompileTimeError # Issue 31616 --- note that this test cannot be expected to pass in its current state!
 mixin_illegal_super_use_test/01: MissingCompileTimeError
 mixin_illegal_super_use_test/04: MissingCompileTimeError
 mixin_illegal_super_use_test/07: MissingCompileTimeError
@@ -863,7 +862,6 @@ method_override5_test/03: MissingCompileTimeError
 method_override6_test/01: MissingCompileTimeError
 method_override6_test/02: MissingCompileTimeError
 method_override6_test/03: MissingCompileTimeError
-method_override_test: CompileTimeError # Issue 31616 --- note that this test cannot be expected to pass in its current state!
 mixin_illegal_super_use_test: Skip # Issues 24478 and 23773
 mixin_illegal_superclass_test: Skip # Issues 24478 and 23773
 named_parameters_default_eq_test/none: RuntimeError
@@ -983,7 +981,6 @@ generic_tearoff_test: CompileTimeError
 instantiate_tearoff_of_call_test: CompileTimeError
 issue31596_super_test/01: CompileTimeError
 issue31596_super_test/03: CompileTimeError
-method_override_test: CompileTimeError # Issue 31616 --- note that this test cannot be expected to pass in its current state!
 mixin_illegal_super_use_test/01: MissingCompileTimeError
 mixin_illegal_super_use_test/04: MissingCompileTimeError
 mixin_illegal_super_use_test/07: MissingCompileTimeError
@@ -1454,7 +1451,6 @@ method_override5_test/03: MissingCompileTimeError
 method_override6_test/01: MissingCompileTimeError
 method_override6_test/02: MissingCompileTimeError
 method_override6_test/03: MissingCompileTimeError
-method_override_test: CompileTimeError # Issue 31616 --- note that this test cannot be expected to pass in its current state!
 mixin_illegal_super_use_test: Skip # Issues 24478 and 23773
 mixin_illegal_superclass_test: Skip # Issues 24478 and 23773
 named_constructor_test/01: MissingRuntimeError # Fasta bug: Bad compilation of constructor reference.

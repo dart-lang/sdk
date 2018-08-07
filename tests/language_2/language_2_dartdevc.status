@@ -100,7 +100,6 @@ issue32353_test: RuntimeError
 label_test: RuntimeError
 left_shift_test: RuntimeError # Ints and doubles are unified.
 method_override7_test/03: MissingCompileTimeError
-method_override_test: CompileTimeError # Negative test
 mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError
 mixin_super_test: RuntimeError
@@ -325,7 +324,6 @@ malbounded_type_test_test/02: MissingCompileTimeError
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
-method_override_test: CompileTimeError # Issue 31616
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError
