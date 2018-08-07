@@ -14,5 +14,6 @@ install:
 build: off
 
 test_script:
-#  - pub run test -j1
-  - dart test\all.dart
+  - pub run test -j1
+# using pub run pending resolution of https://github.com/dart-lang/linter/issues/1104  
+#  - dart test\all.dart
