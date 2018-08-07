@@ -1761,11 +1761,15 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       bool hasExpression, Token beginToken, Token endToken) {
     debugEvent("ReturnStatement");
     Expression expression = hasExpression ? popForValue() : null;
+    var statement = forest.returnStatement(beginToken, expression, endToken);
     if (expression != null && inConstructor) {
-      push(buildCompileTimeErrorStatement(
-          fasta.messageConstructorWithReturnType, beginToken.charOffset));
+      Expression error = buildCompileTimeError(
+          fasta.messageConstructorWithReturnType,
+          beginToken.charOffset,
+          lengthForToken(beginToken));
+      push(new InvalidStatementJudgment(error, statement));
     } else {
-      push(forest.returnStatement(beginToken, expression, endToken));
+      push(statement);
     }
   }
 

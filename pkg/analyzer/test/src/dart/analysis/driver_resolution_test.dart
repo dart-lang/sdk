@@ -3831,6 +3831,32 @@ class A {
     assertType(aRef, 'int');
   }
 
+  test_invalid_constructor_return_blockBody() async {
+    addTestFile(r'''
+int a = 0;
+class C {
+  C() {
+    return a;
+  }
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    assertTopGetRef('a;', 'a');
+  }
+
+  test_invalid_constructor_return_expressionBody() async {
+    addTestFile(r'''
+int a = 0;
+class C {
+  C() => a;
+}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    assertTopGetRef('a;', 'a');
+  }
+
   test_invalid_deferred_type_localVariable() async {
     addTestFile(r'''
 import 'dart:async' deferred as a;
