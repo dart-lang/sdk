@@ -1543,7 +1543,7 @@ class AssistProcessor {
     var stateType = stateClass.type.instantiate([widgetClassElement.type]);
 
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) async {
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addReplacement(range.node(superclass), (builder) {
         builder.writeType(statefulWidgetClass.type);
       });
