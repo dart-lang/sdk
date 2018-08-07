@@ -125,7 +125,7 @@ initializer_super_last_test/cc30: MissingCompileTimeError # Was valid in Dart 1.
 initializer_super_last_test/cc31: MissingCompileTimeError # Was valid in Dart 1.
 initializer_super_last_test/cc32: MissingCompileTimeError # Was valid in Dart 1.
 
-[ $compiler != dartdevc && !$checked ]
+[ $compiler != dartdevc && $compiler != dart2js && !$checked ]
 function_type/*: Skip # Needs checked mode.
 
 [ $compiler != spec_parser && $runtime != none && !$checked && !$strong ]
