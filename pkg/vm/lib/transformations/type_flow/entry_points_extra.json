@@ -1,40 +1,4 @@
 {
   "roots": [
-    {
-      "library": "dart:core",
-      "class": "_Closure",
-      "name": "_instantiator_type_arguments",
-      "action": "get"
-    },
-    {
-      "library": "dart:core",
-      "class": "_Closure",
-      "name": "_function_type_arguments",
-      "action": "get"
-    },
-    {
-      "library": "dart:core",
-      "class": "_Closure",
-      "name": "_delayed_type_arguments",
-      "action": "get"
-    },
-    {
-      "library": "dart:core",
-      "class": "_Closure",
-      "name": "_function",
-      "action": "get"
-    },
-    {
-      "library": "dart:core",
-      "class": "_Closure",
-      "name": "_context",
-      "action": "get"
-    },
-    {
-      "library": "dart:core",
-      "class": "_Closure",
-      "name": "_hash",
-      "action": "get"
-    }
   ]
 }

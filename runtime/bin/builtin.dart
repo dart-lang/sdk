@@ -35,9 +35,11 @@ _getPrintClosure() => _print;
 // The embedder forwards loading requests to the service isolate.
 
 // A port for communicating with the service isolate for I/O.
+@pragma("vm.entry-point")
 SendPort _loadPort;
 
 // The isolateId used to communicate with the service isolate for I/O.
+@pragma("vm.entry-point")
 int _isolateId;
 
 // Requests made to the service isolate over the load port.

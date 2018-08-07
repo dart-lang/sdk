@@ -19,6 +19,7 @@ class Error {
   @patch
   StackTrace get stackTrace => _stackTrace;
 
+  @pragma("vm.entry-point")
   StackTrace _stackTrace;
 }
 

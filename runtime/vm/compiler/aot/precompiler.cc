@@ -492,9 +492,6 @@ void Precompiler::PrecompileConstructors() {
 
 static Dart_QualifiedFunctionName vm_entry_points[] = {
     // Fields
-    {"dart:core", "Error", "_stackTrace"},
-    {"dart:core", "::", "_uriBaseClosure"},
-    {"dart:math", "_Random", "_state"},
     {NULL, NULL, NULL}  // Must be terminated with NULL entries.
 };
 
@@ -1468,12 +1465,15 @@ void Precompiler::AddInstantiatedClass(const Class& cls) {
   }
 }
 
+enum class EntryPointPragma { kAlways, kNever, kGetterOnly, kSetterOnly };
+
 // Adds all values annotated with @pragma('vm.entry-point') as roots.
 void Precompiler::AddAnnotatedRoots() {
   auto& lib = Library::Handle(Z);
   auto& cls = Class::Handle(isolate()->object_store()->pragma_class());
-  auto& functions = Array::Handle(Z);
+  auto& members = Array::Handle(Z);
   auto& function = Function::Handle(Z);
+  auto& field = Field::Handle(Z);
   auto& metadata = Array::Handle(Z);
   auto& pragma = Object::Handle(Z);
   auto& pragma_options = Object::Handle(Z);
@@ -1481,9 +1481,14 @@ void Precompiler::AddAnnotatedRoots() {
   auto& pragma_options_field =
       Field::Handle(Z, cls.LookupField(Symbols::options()));
 
+  // Lists of fields which need implicit getter/setter/static final getter
+  // added.
+  auto& implicit_getters = GrowableObjectArray::Handle(Z);
+  auto& implicit_setters = GrowableObjectArray::Handle(Z);
+  auto& implicit_static_getters = GrowableObjectArray::Handle(Z);
+
   // Local function allows easy reuse of handles above.
   auto metadata_defines_entrypoint = [&]() {
-    bool is_entry_point = false;
     for (intptr_t i = 0; i < metadata.Length(); i++) {
       pragma = metadata.At(i);
       if (pragma.clazz() != isolate()->object_store()->pragma_class()) {
@@ -1496,11 +1501,17 @@ void Precompiler::AddAnnotatedRoots() {
       pragma_options = Instance::Cast(pragma).GetField(pragma_options_field);
       if (pragma_options.raw() == Bool::null() ||
           pragma_options.raw() == Bool::True().raw()) {
-        is_entry_point = true;
+        return EntryPointPragma::kAlways;
         break;
       }
+      if (pragma_options.raw() == Symbols::Get().raw()) {
+        return EntryPointPragma::kGetterOnly;
+      }
+      if (pragma_options.raw() == Symbols::Set().raw()) {
+        return EntryPointPragma::kSetterOnly;
+      }
     }
-    return is_entry_point;
+    return EntryPointPragma::kNever;
   };
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
@@ -1510,25 +1521,87 @@ void Precompiler::AddAnnotatedRoots() {
       cls = it.GetNextClass();
 
       if (cls.has_pragma()) {
+        // Check for @pragma on the class itself.
         metadata ^= lib.GetMetadata(cls);
-        if (metadata_defines_entrypoint()) {
+        if (metadata_defines_entrypoint() != EntryPointPragma::kAlways) {
           AddInstantiatedClass(cls);
+        }
+
+        // Check for @pragma on any fields in the class.
+        members = cls.fields();
+        implicit_getters = GrowableObjectArray::New(members.Length());
+        implicit_setters = GrowableObjectArray::New(members.Length());
+        implicit_static_getters = GrowableObjectArray::New(members.Length());
+        for (intptr_t k = 0; k < members.Length(); ++k) {
+          field ^= members.At(k);
+          metadata ^= lib.GetMetadata(field);
+          if (metadata.IsNull()) continue;
+          EntryPointPragma pragma = metadata_defines_entrypoint();
+          if (pragma == EntryPointPragma::kNever) continue;
+
+          AddField(field);
+
+          if (!field.is_static()) {
+            if (pragma != EntryPointPragma::kSetterOnly) {
+              implicit_getters.Add(field);
+            }
+            if (pragma != EntryPointPragma::kGetterOnly) {
+              implicit_setters.Add(field);
+            }
+          } else {
+            implicit_static_getters.Add(field);
+          }
         }
       }
 
-      functions = cls.functions();
-      for (intptr_t k = 0; k < functions.Length(); k++) {
-        function ^= functions.At(k);
-        if (!function.has_pragma()) continue;
-        metadata ^= lib.GetMetadata(function);
-        if (metadata.IsNull()) continue;
-        if (!metadata_defines_entrypoint()) continue;
+      // Check for @pragma on any functions in the class.
+      members = cls.functions();
+      for (intptr_t k = 0; k < members.Length(); k++) {
+        function ^= members.At(k);
+        if (function.has_pragma()) {
+          metadata ^= lib.GetMetadata(function);
+          if (metadata.IsNull()) continue;
+          if (metadata_defines_entrypoint() != EntryPointPragma::kAlways) {
+            continue;
+          }
 
-        AddFunction(function);
-        if (function.IsGenerativeConstructor()) {
-          AddInstantiatedClass(cls);
+          AddFunction(function);
+          if (function.IsGenerativeConstructor()) {
+            AddInstantiatedClass(cls);
+          }
+        }
+        if (function.kind() == RawFunction::kImplicitGetter &&
+            !implicit_getters.IsNull()) {
+          for (intptr_t i = 0; i < implicit_getters.Length(); ++i) {
+            field ^= implicit_getters.At(i);
+            if (function.accessor_field() == field.raw()) {
+              AddFunction(function);
+            }
+          }
+        }
+        if (function.kind() == RawFunction::kImplicitSetter &&
+            !implicit_setters.IsNull()) {
+          for (intptr_t i = 0; i < implicit_setters.Length(); ++i) {
+            field ^= implicit_setters.At(i);
+            if (function.accessor_field() == field.raw()) {
+              AddFunction(function);
+            }
+          }
+        }
+        if (function.kind() == RawFunction::kImplicitStaticFinalGetter &&
+            !implicit_static_getters.IsNull()) {
+          for (intptr_t i = 0; i < implicit_static_getters.Length(); ++i) {
+            field ^= implicit_static_getters.At(i);
+            if (function.accessor_field() == field.raw()) {
+              AddFunction(function);
+            }
+          }
         }
       }
+
+      implicit_getters = GrowableObjectArray::null();
+      implicit_setters = GrowableObjectArray::null();
+      implicit_static_getters = GrowableObjectArray::null();
     }
   }
 }

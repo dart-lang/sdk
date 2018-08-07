@@ -1108,9 +1108,15 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
  */
 class _ExternalBuffer {
   // This will be an ExternalByteArray, backed by C allocated data.
+  @pragma("vm.entry-point", "set")
   List<int> data;
+
+  @pragma("vm.entry-point")
   int start;
+
+  @pragma("vm.entry-point")
   int end;
+
   final size;
 
   _ExternalBuffer(this.size) {

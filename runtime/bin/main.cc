@@ -894,33 +894,6 @@ static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size) {
 }
 
 static Dart_QualifiedFunctionName standalone_entry_points[] = {
-    // Functions.
-    {"dart:io", "_ExternalBuffer", "get:end"},
-    {"dart:io", "_ExternalBuffer", "get:start"},
-    {"dart:io", "_ExternalBuffer", "set:data"},
-    {"dart:io", "_ExternalBuffer", "set:end"},
-    {"dart:io", "_ExternalBuffer", "set:start"},
-    {"dart:io", "_Platform", "set:_nativeScript"},
-    {"dart:io", "_ProcessStartStatus", "set:_errorCode"},
-    {"dart:io", "_ProcessStartStatus", "set:_errorMessage"},
-    {"dart:io", "_SecureFilterImpl", "get:buffers"},
-    {"dart:io", "_SecureFilterImpl", "get:ENCRYPTED_SIZE"},
-    {"dart:io", "_SecureFilterImpl", "get:SIZE"},
-    // Fields
-    {"dart:io", "_EmbedderConfig", "_mayExit"},
-    {"dart:cli", "::", "_waitForEventClosure"},
-    {"dart:_builtin", "::", "_isolateId"},
-    {"dart:_builtin", "::", "_loadPort"},
-    {"dart:_internal", "::", "_printClosure"},
-    {"dart:vmservice_io", "::", "_autoStart"},
-    {"dart:vmservice_io", "::", "_deterministic"},
-    {"dart:vmservice_io", "::", "_ip"},
-    {"dart:vmservice_io", "::", "_isFuchsia"},
-    {"dart:vmservice_io", "::", "_isWindows"},
-    {"dart:vmservice_io", "::", "_originCheckDisabled"},
-    {"dart:vmservice_io", "::", "_port"},
-    {"dart:vmservice_io", "::", "_signalWatch"},
-    {"dart:vmservice_io", "::", "_traceLoading"},
     {NULL, NULL, NULL}  // Must be terminated with NULL entries.
 };
 

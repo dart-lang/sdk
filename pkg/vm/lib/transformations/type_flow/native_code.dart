@@ -29,8 +29,10 @@ abstract class EntryPointsListener {
   ConcreteType addAllocatedClass(Class c);
 }
 
+enum PragmaEntryPointType { Always, GetterOnly, SetterOnly }
+
 abstract class EntryPointsAnnotationMatcher {
-  bool annotationsDefineRoot(List<Expression> annotations);
+  PragmaEntryPointType annotationsDefineRoot(List<Expression> annotations);
 }
 
 class ConstantEntryPointsAnnotationMatcher
@@ -39,46 +41,51 @@ class ConstantEntryPointsAnnotationMatcher
 
   ConstantEntryPointsAnnotationMatcher(this.coreTypes);
 
-  bool definesRoot(InstanceConstant constant) {
-    if (constant.classReference.node != coreTypes.pragmaClass) return false;
+  PragmaEntryPointType definesRoot(InstanceConstant constant) {
+    if (constant.classReference.node != coreTypes.pragmaClass) return null;
 
     Constant name = constant.fieldValues[coreTypes.pragmaName.reference];
     assertx(name != null);
     if (name is! StringConstant ||
         (name as StringConstant).value != "vm.entry-point") {
-      return false;
+      return null;
     }
 
     Constant options = constant.fieldValues[coreTypes.pragmaOptions.reference];
     assertx(options != null);
-    if (options is NullConstant) return true;
-    return options is BoolConstant && options.value;
+    if (options is NullConstant) return PragmaEntryPointType.Always;
+    if (options is BoolConstant && options.value == true) {
+      return PragmaEntryPointType.Always;
+    }
+    if (options is StringConstant) {
+      if (options.value == "get") {
+        return PragmaEntryPointType.GetterOnly;
+      } else if (options.value == "set") {
+        return PragmaEntryPointType.SetterOnly;
+      } else {
+        throw "Error: string directive to @pragma('vm.entry-point', ...) must be either 'get' or 'set'.";
+      }
+    }
+    return null;
   }
 
   @override
-  bool annotationsDefineRoot(List<Expression> annotations) {
+  PragmaEntryPointType annotationsDefineRoot(List<Expression> annotations) {
     for (var annotation in annotations) {
       if (annotation is ConstantExpression) {
         Constant constant = annotation.constant;
         if (constant is InstanceConstant) {
-          if (definesRoot(constant)) {
-            return true;
-          }
+          var type = definesRoot(constant);
+          if (type != null) return type;
         }
       } else {
         throw "All annotations must be constants!";
       }
     }
-    return false;
+    return null;
   }
 }
 
-/// Some entry points are not listed in any JSON file but are marked with the
-/// `@pragma('vm.entry-point', ...)` annotation instead.
-///
-/// Currently Procedure`s (action "call") can be annotated in this way.
-//
-// TODO(sjindel): Support all types of entry points.
 class PragmaEntryPointsVisitor extends RecursiveVisitor {
   final EntryPointsListener entryPoints;
   final NativeCodeOracle nativeCodeOracle;
@@ -90,7 +97,11 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
 
   @override
   visitClass(Class klass) {
-    if (matcher.annotationsDefineRoot(klass.annotations)) {
+    var type = matcher.annotationsDefineRoot(klass.annotations);
+    if (type != null) {
+      if (type != PragmaEntryPointType.Always) {
+        throw "Error: pragma entry-point definition on a class must evaluate to null, true or false. See entry_points_pragma.md.";
+      }
       entryPoints.addAllocatedClass(klass);
     }
     currentClass = klass;
@@ -99,23 +110,60 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
 
   @override
   visitProcedure(Procedure proc) {
-    if (matcher.annotationsDefineRoot(proc.annotations)) {
-      assertx(!proc.isGetter && !proc.isSetter);
+    var type = matcher.annotationsDefineRoot(proc.annotations);
+    if (type != null) {
+      if (type != PragmaEntryPointType.Always) {
+        throw "Error: pragma entry-point definition on a procedure (including getters and setters) must evaluate to null, true or false. See entry_points_pragma.md.";
+      }
+      var callKind = proc.isGetter
+          ? CallKind.PropertyGet
+          : (proc.isSetter ? CallKind.PropertySet : CallKind.Method);
       entryPoints.addRawCall(proc.isInstanceMember
-          ? new InterfaceSelector(proc, callKind: CallKind.Method)
-          : new DirectSelector(proc, callKind: CallKind.Method));
+          ? new InterfaceSelector(proc, callKind: callKind)
+          : new DirectSelector(proc, callKind: callKind));
       nativeCodeOracle.setMemberReferencedFromNativeCode(proc);
     }
   }
 
   @override
   visitConstructor(Constructor ctor) {
-    if (matcher.annotationsDefineRoot(ctor.annotations)) {
+    var type = matcher.annotationsDefineRoot(ctor.annotations);
+    if (type != null) {
+      if (type != PragmaEntryPointType.Always) {
+        throw "Error: pragma entry-point definition on a constructor must evaluate to null, true or false. See entry_points_pragma.md.";
+      }
       entryPoints
           .addRawCall(new DirectSelector(ctor, callKind: CallKind.Method));
       entryPoints.addAllocatedClass(currentClass);
       nativeCodeOracle.setMemberReferencedFromNativeCode(ctor);
     }
+  }
+
+  @override
+  visitField(Field field) {
+    var type = matcher.annotationsDefineRoot(field.annotations);
+    if (type == null) return;
+
+    void addSelector(CallKind ck) {
+      entryPoints.addRawCall(field.isInstanceMember
+          ? new InterfaceSelector(field, callKind: ck)
+          : new DirectSelector(field, callKind: ck));
+    }
+
+    switch (type) {
+      case PragmaEntryPointType.GetterOnly:
+        addSelector(CallKind.PropertyGet);
+        break;
+      case PragmaEntryPointType.SetterOnly:
+        addSelector(CallKind.PropertySet);
+        break;
+      case PragmaEntryPointType.Always:
+        addSelector(CallKind.PropertyGet);
+        addSelector(CallKind.PropertySet);
+        break;
+    }
+
+    nativeCodeOracle.setMemberReferencedFromNativeCode(field);
   }
 }
 
@@ -128,11 +176,12 @@ class NativeCodeOracle {
 
   NativeCodeOracle(this._libraryIndex);
 
+  void setMemberReferencedFromNativeCode(Member member) {
+    _membersReferencedFromNativeCode.add(member);
+  }
+
   bool isMemberReferencedFromNativeCode(Member member) =>
       _membersReferencedFromNativeCode.contains(member);
-
-  void setMemberReferencedFromNativeCode(Member member) =>
-      _membersReferencedFromNativeCode.add(member);
 
   /// Simulate the execution of a native method by adding its entry points
   /// using [entryPointsListener]. Returns result type of the native method.

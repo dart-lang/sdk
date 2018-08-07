@@ -459,7 +459,9 @@ class ObjectPointerVisitor;
   V(GrowRegExpStack, "_growRegExpStack")                                       \
   V(DebugProcedureName, ":Eval")                                               \
   V(DebugClassName, "#DebugClass")                                             \
-  V(vm_entry_point, "vm.entry-point")
+  V(vm_entry_point, "vm.entry-point")                                          \
+  V(Get, "get")                                                                \
+  V(Set, "set")
 
 // Contains a list of frequently used strings in a canonicalized form. This
 // list is kept in the vm_isolate in order to share the copy across isolates

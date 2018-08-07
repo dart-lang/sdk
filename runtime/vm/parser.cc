@@ -4409,6 +4409,9 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     class_field.set_has_initializer(has_initializer);
     members->AddField(class_field);
     field->field_ = &class_field;
+    if (IsPragmaAnnotation(field->metadata_pos)) {
+      current_class().set_has_pragma(true);
+    }
     if (is_patch_source() && IsPatchAnnotation(field->metadata_pos)) {
       // Currently, we just ignore the patch annotation on fields.
       // All fields in the patch class are added to the patched class.
@@ -5915,6 +5918,11 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
     library_.AddObject(field, var_name);
     if (metadata_pos.IsReal()) {
       library_.AddFieldMetadata(field, metadata_pos);
+    }
+    if (IsPragmaAnnotation(metadata_pos)) {
+      Class& toplevel = Class::Handle(library_.toplevel_class());
+      ASSERT(!toplevel.IsNull());
+      toplevel.set_has_pragma(true);
     }
 
     if (has_initializer) {

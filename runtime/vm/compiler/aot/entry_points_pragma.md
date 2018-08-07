@@ -51,3 +51,24 @@ If the second parameter is missing, `null` or `true`, the procedure will
 available for lookup and invocation directly from native or VM code. If the
 procedure is a *generative* constructor, the enclosing class will also be marked
 for allocation from native or VM code.
+
+## Fields
+
+Any one of the following forms may be attached to a non-static field. The first
+three forms may be attached to static fields.
+
+```dart
+@pragma("vm.entry-point")
+@pragma("vm.entry-point", null)
+@pragma("vm.entry-point", true/false)
+@pragma("vm.entry-point", !const bool.formEnvironment("dart.vm.product"))
+@pragma("vm.entry-point", "get"/"set")
+void foo() { ... }
+```
+
+If the second parameter is missing, `null` or `true, the field is marked for
+native access and for non-static fields the corresponding getter and setter in
+the interface of the enclosing class are marked for native invocation. If the
+'get'/'set' parameter is used, only the getter/setter is marked. For static
+fields, the implicit getter is always marked. The third form does not make sense
+for static fields because they do not belong to an interface.

@@ -43,14 +43,14 @@ class ExpressionEntryPointsAnnotationMatcher
   }
 
   @override
-  bool annotationsDefineRoot(List<Expression> annotations) {
+  PragmaEntryPointType annotationsDefineRoot(List<Expression> annotations) {
     for (var annotation in annotations) {
       assertx(annotation is! ConstantExpression);
       if (annotation is ConstructorInvocation && _looksLikePragma(annotation)) {
-        return true;
+        return PragmaEntryPointType.Always;
       }
     }
-    return false;
+    return null;
   }
 }
 

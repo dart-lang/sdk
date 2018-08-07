@@ -819,6 +819,21 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
 
     const String& name = helper_.ReadNameAsFieldName();
     field_helper.SetJustRead(FieldHelper::kName);
+
+    field_helper.ReadUntilExcluding(FieldHelper::kAnnotations);
+    intptr_t annotation_count = helper_.ReadListLength();
+    bool has_pragma_annotation;
+    {
+      String& native_name_unused = String::Handle();
+      bool is_potential_native_unused;
+      ReadVMAnnotations(annotation_count, &native_name_unused,
+                        &is_potential_native_unused, &has_pragma_annotation);
+    }
+    if (has_pragma_annotation) {
+      toplevel_class.set_has_pragma(true);
+    }
+    field_helper.SetJustRead(FieldHelper::kAnnotations);
+
     field_helper.ReadUntilExcluding(FieldHelper::kType);
     const Object& script_class =
         ClassForScriptAt(toplevel_class, field_helper.source_uri_index_);
@@ -842,7 +857,8 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
       AlternativeReadingScope alt(&helper_.reader_, field_initializer_offset);
       GenerateFieldAccessors(toplevel_class, field, &field_helper);
     }
-    if (FLAG_enable_mirrors && field_helper.annotation_count_ > 0) {
+    if ((FLAG_enable_mirrors || has_pragma_annotation) &&
+        annotation_count > 0) {
       library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset);
     }
     fields_.Add(&field);
@@ -1121,7 +1137,9 @@ Class& KernelLoader::LoadClass(const Library& library,
     ReadVMAnnotations(annotation_count, &native_name_unused,
                       &is_potential_native_unused, &has_pragma_annotation);
   }
-  klass.set_has_pragma(has_pragma_annotation);
+  if (has_pragma_annotation) {
+    klass.set_has_pragma(true);
+  }
   class_helper.SetJustRead(ClassHelper::kAnnotations);
   class_helper.ReadUntilExcluding(ClassHelper::kTypeParameters);
   intptr_t type_parameter_counts =
@@ -1183,6 +1201,21 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       field_helper.ReadUntilExcluding(FieldHelper::kName);
       const String& name = helper_.ReadNameAsFieldName();
       field_helper.SetJustRead(FieldHelper::kName);
+
+      field_helper.ReadUntilExcluding(FieldHelper::kAnnotations);
+      intptr_t annotation_count = helper_.ReadListLength();
+      bool has_pragma_annotation;
+      {
+        String& native_name_unused = String::Handle();
+        bool is_potential_native_unused;
+        ReadVMAnnotations(annotation_count, &native_name_unused,
+                          &is_potential_native_unused, &has_pragma_annotation);
+      }
+      if (has_pragma_annotation) {
+        klass.set_has_pragma(true);
+      }
+      field_helper.SetJustRead(FieldHelper::kAnnotations);
+
       field_helper.ReadUntilExcluding(FieldHelper::kType);
       const AbstractType& type =
           T.BuildTypeWithoutFinalization();  // read type.
@@ -1209,7 +1242,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
         AlternativeReadingScope alt(&helper_.reader_, field_initializer_offset);
         GenerateFieldAccessors(klass, field, &field_helper);
       }
-      if (FLAG_enable_mirrors && field_helper.annotation_count_ > 0) {
+      if ((FLAG_enable_mirrors || has_pragma_annotation) &&
+          annotation_count > 0) {
         library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset);
       }
       fields_.Add(&field);

@@ -193,7 +193,9 @@ class ProcessInfo {
 }
 
 class _ProcessStartStatus {
+  @pragma("vm.entry-point", "set")
   int _errorCode; // Set to OS error code if process start failed.
+  @pragma("vm.entry-point", "set")
   String _errorMessage; // Set to OS error message if process start failed.
 }
 
