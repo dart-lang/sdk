@@ -4551,6 +4551,7 @@ main() {
     testFile = '/project/lib/test.dart';
     packageMap['project'] = [newFolder('/project/lib')];
     addSource('/project/lib/src/lib.dart', 'class Test {}');
+    configureDriver();
     await resolveTestUnit('''
 main() {
   Test t;

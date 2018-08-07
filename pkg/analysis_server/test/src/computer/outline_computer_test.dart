@@ -48,8 +48,7 @@ class FlutterOutlineComputerTest extends AbstractOutlineComputerTest {
   @override
   void setUp() {
     super.setUp();
-    Folder libFolder = configureFlutterPackage(resourceProvider);
-    packageMap['flutter'] = [libFolder];
+    addFlutterPackage();
   }
 
   test_columnWithChildren() async {

@@ -31,7 +31,7 @@ class FlutterCorrectionTest extends AbstractSingleUnitTest {
   @override
   void setUp() {
     super.setUp();
-    packageMap['flutter'] = [configureFlutterPackage(resourceProvider)];
+    addFlutterPackage();
   }
 
   test_addForDesignTimeConstructor_BAD_notClass() async {

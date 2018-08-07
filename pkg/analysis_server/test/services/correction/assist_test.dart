@@ -6315,10 +6315,6 @@ class AssistProcessorTest_UseCFE extends AssistProcessorTest {
   @override
   bool get useCFE => true;
 
-  // Many of these tests are failing because the CFE is not able to find the
-  // flutter package. It seems likely that there is a problem with the way the
-  // tests (or some underlying layer) is passing package resolution to the CFE.
-
   @failingTest
   @override
   test_addTypeAnnotation_parameter_BAD_hasExplicitType() =>

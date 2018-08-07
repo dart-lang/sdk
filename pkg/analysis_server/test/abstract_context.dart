@@ -69,6 +69,7 @@ class AbstractContextTest extends Object with ResourceProviderMixin {
     addMetaPackageSource();
     Folder libFolder = configureFlutterPackage(resourceProvider);
     packageMap['flutter'] = [libFolder];
+    configureDriver();
   }
 
   Source addMetaPackageSource() => addPackageSource('meta', 'meta.dart', r'''
@@ -98,6 +99,7 @@ class _IsTestGroup {
     packageMap[packageName] = [newFolder('/pubcache/$packageName/lib')];
     File file =
         newFile('/pubcache/$packageName/lib/$filePath', content: content);
+    configureDriver();
     return file.createSource();
   }
 
@@ -108,6 +110,14 @@ class _IsTestGroup {
     driver.changeFile(file.path);
     fileContentOverlay[file.path] = content;
     return source;
+  }
+
+  /**
+   * Re-configure the driver. This is necessary, for example, after defining a
+   * new package that test code will reference.
+   */
+  void configureDriver() {
+    driver.configure();
   }
 
   void configurePreviewDart2() {

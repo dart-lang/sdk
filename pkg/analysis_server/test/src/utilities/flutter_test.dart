@@ -22,8 +22,7 @@ class FlutterTest extends AbstractSingleUnitTest {
   @override
   void setUp() {
     super.setUp();
-    Folder libFolder = configureFlutterPackage(resourceProvider);
-    packageMap['flutter'] = [libFolder];
+    addFlutterPackage();
   }
 
   test_getWidgetPresentationText_icon() async {
