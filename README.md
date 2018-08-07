@@ -32,7 +32,7 @@ you could lint your package like this:
 
     $ dartanalyzer --options analysis_options.yaml .
     
-and see any violations of the `annotate_overrides`, `hash_and_equals`, and `prefer_is_not_empty` rules in the console.  To help you choose the rules you want to enable for your package, we have provided both a [complete list of rules][lints] and a list of the [lints that are enforced internally at Google][google-lints].
+and see any violations of the `annotate_overrides`, `hash_and_equals`, and `prefer_is_not_empty` rules in the console.  To help you choose the rules you want to enable for your package, we have provided a [complete list of rules][lints], a growing list of [lints according to the Effective Dart guide][effective-dart-lints] and a list of the [lints that are enforced internally at Google][google-lints].
 
 If a specific lint warning should be ignored, it can be flagged with a comment.  For example, 
 
@@ -66,5 +66,6 @@ Please file feature requests and bugs at the [issue tracker][tracker].
 [tracker]: https://github.com/dart-lang/linter/issues
 [lints]: http://dart-lang.github.io/linter/lints/
 [google-lints]: /example/google.yaml
+[effective-dart-lints]: /example/effective-dart.yaml
 [options_file]: https://www.dartlang.org/guides/language/analysis-options#the-analysis-options-file
 
