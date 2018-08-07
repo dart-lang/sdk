@@ -22,7 +22,7 @@ import 'dart:async';
 import 'dart:_internal';
 
 class Object {
-  const Object() {}
+  const Object();
   bool operator ==(other) => identical(this, other);
   String toString() => 'a string';
   int get hashCode => 0;
