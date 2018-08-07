@@ -6036,7 +6036,6 @@ class Parser {
     if (token.isUserDefinableOperator) {
       if (token.next.isEof) {
         listener.handleCommentReference(newKeyword, prefix, period, token);
-        commentToken.references.add(begin);
         return;
       }
     } else {
@@ -6044,7 +6043,6 @@ class Parser {
       if (token.next.isEof) {
         if (token.isIdentifier) {
           listener.handleCommentReference(newKeyword, prefix, period, token);
-          commentToken.references.add(begin);
           return;
         }
         Keyword keyword = token.keyword;

@@ -259,9 +259,22 @@ class AstCloner implements AstVisitor<AstNode> {
   }
 
   @override
-  CommentReference visitCommentReference(CommentReference node) =>
-      astFactory.commentReference(
-          cloneToken(node.newKeyword), cloneNode(node.identifier));
+  CommentReference visitCommentReference(CommentReference node) {
+    Token token = node.beginToken;
+    Token lastCloned = new Token.eof(-1);
+    while (token != null) {
+      Token clone = token.copy();
+      _clonedTokens[token] = clone;
+      lastCloned.setNext(clone);
+      lastCloned = clone;
+      if (token.isEof) {
+        break;
+      }
+      token = token.next;
+    }
+    return astFactory.commentReference(
+        cloneToken(node.newKeyword), cloneNode(node.identifier));
+  }
 
   @override
   CompilationUnit visitCompilationUnit(CompilationUnit node) {
@@ -1001,12 +1014,6 @@ class AstCloner implements AstVisitor<AstNode> {
         CommentToken c2 = clone.precedingComments;
         while (c1 != null && c2 != null) {
           _clonedTokens[c1] = c2;
-          if (c1 is DocumentationCommentToken &&
-              c2 is DocumentationCommentToken) {
-            for (int i = 0; i < c1.references.length; i++) {
-              _clonedTokens[c1.references[i]] = c2.references[i];
-            }
-          }
           c1 = c1.next;
           c2 = c2.next;
         }

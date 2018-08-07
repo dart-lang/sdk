@@ -2206,7 +2206,7 @@ class CommentReferenceImpl extends AstNodeImpl implements CommentReference {
   }
 
   @override
-  Token get beginToken => _identifier.beginToken;
+  Token get beginToken => newKeyword ?? _identifier.beginToken;
 
   @override
   Iterable<SyntacticEntity> get childEntities =>

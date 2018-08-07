@@ -1901,7 +1901,6 @@ class Parser {
                     comment.substring(leftIndex + 1, rightIndex), nameOffset);
                 if (reference != null) {
                   references.add(reference);
-                  token.references.add(reference.beginToken);
                 }
               }
             }
@@ -1922,7 +1921,6 @@ class Parser {
             nameToken.setNext(new Token.eof(nameToken.end));
             references.add(astFactory.commentReference(
                 null, astFactory.simpleIdentifier(nameToken)));
-            token.references.add(nameToken);
             // next character
             rightIndex = leftIndex + 1;
           }

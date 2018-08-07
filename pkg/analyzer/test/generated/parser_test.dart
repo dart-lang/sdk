@@ -13694,16 +13694,13 @@ abstract class Foo {}
     List<CommentReference> references = parser.parseCommentReferences(tokens);
     expectNotNullIfNoErrors(references);
     assertNoErrors();
-    List<Token> tokenReferences = token.references;
     expect(references, hasLength(2));
-    expect(tokenReferences, hasLength(2));
     {
       CommentReference reference = references[0];
       expect(reference, isNotNull);
       expect(reference.identifier, isNotNull);
       expect(reference.offset, 12);
-      // the reference is recorded in the comment token
-      Token referenceToken = tokenReferences[0];
+      Token referenceToken = reference.identifier.beginToken;
       expect(referenceToken.offset, 12);
       expect(referenceToken.lexeme, 'a');
     }
@@ -13712,8 +13709,7 @@ abstract class Foo {}
       expect(reference, isNotNull);
       expect(reference.identifier, isNotNull);
       expect(reference.offset, 20);
-      // the reference is recorded in the comment token
-      Token referenceToken = tokenReferences[1];
+      Token referenceToken = reference.identifier.beginToken;
       expect(referenceToken.offset, 20);
       expect(referenceToken.lexeme, 'bb');
     }
@@ -13727,12 +13723,10 @@ abstract class Foo {}
         parser.parseCommentReferences(<DocumentationCommentToken>[docToken]);
     expectNotNullIfNoErrors(references);
     assertNoErrors();
-    expect(docToken.references, hasLength(1));
     expect(references, hasLength(1));
-    Token referenceToken = docToken.references[0];
     CommentReference reference = references[0];
+    Token referenceToken = reference.identifier.beginToken;
     expect(reference, isNotNull);
-    expect(docToken.references[0], same(reference.beginToken));
     expect(reference.identifier, isNotNull);
     expect(reference.identifier.isSynthetic, isTrue);
     expect(reference.identifier.name, "");
@@ -13750,10 +13744,9 @@ abstract class Foo {}
         parser.parseCommentReferences(<DocumentationCommentToken>[docToken]);
     expectNotNullIfNoErrors(references);
     assertNoErrors();
-    expect(docToken.references, hasLength(1));
     expect(references, hasLength(1));
-    Token referenceToken = docToken.references[0];
     CommentReference reference = references[0];
+    Token referenceToken = reference.identifier.beginToken;
     expect(reference, isNotNull);
     expect(referenceToken, same(reference.beginToken));
     expect(reference.identifier, isNotNull);

@@ -108,13 +108,6 @@ class CommentToken extends StringToken {
  */
 class DocumentationCommentToken extends CommentToken {
   /**
-   * The references embedded within the documentation comment.
-   * This list will be empty unless this is a documentation comment that has
-   * references embedded within it.
-   */
-  final List<Token> references = <Token>[];
-
-  /**
    * Initialize a newly created token to represent a token of the given [type]
    * with the given [value] at the given [offset].
    */
@@ -122,12 +115,7 @@ class DocumentationCommentToken extends CommentToken {
       : super(type, value, offset);
 
   @override
-  CommentToken copy() {
-    DocumentationCommentToken copy =
-        new DocumentationCommentToken(type, _value, offset);
-    references.forEach((ref) => copy.references.add(ref.copy()));
-    return copy;
-  }
+  CommentToken copy() => new DocumentationCommentToken(type, _value, offset);
 }
 
 /**
