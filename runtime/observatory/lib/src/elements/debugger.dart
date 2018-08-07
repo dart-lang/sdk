@@ -178,6 +178,8 @@ class PrintCommand extends DebuggerCommand {
         await debugger.isolate.evalFrame(debugger.currentFrame, expression);
     if (response is S.DartError) {
       debugger.console.print(response.message);
+    } else if (response is S.Sentinel) {
+      debugger.console.print(response.valueAsString);
     } else {
       debugger.console.print('= ', newline: false);
       debugger.console.printRef(debugger.isolate, response, debugger.objects);
