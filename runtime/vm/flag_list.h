@@ -12,6 +12,13 @@
 #define USING_DBC false
 #endif
 
+// Don't use USING_KBC outside of this file.
+#if defined(DART_USE_INTERPRETER)
+#define USING_KBC true
+#else
+#define USING_KBC false
+#endif
+
 // Don't use USING_MULTICORE outside of this file.
 #if defined(ARCH_IS_MULTI_CORE)
 #define USING_MULTICORE true
@@ -186,7 +193,7 @@ constexpr bool kDartPrecompiledRuntime = false;
   P(use_compactor, bool, false, "Compact the heap during old-space GC.")       \
   P(use_cha_deopt, bool, true,                                                 \
     "Use class hierarchy analysis even if it can cause deoptimization.")       \
-  P(use_field_guards, bool, !USING_DBC,                                        \
+  P(use_field_guards, bool, !USING_DBC && !USING_KBC,                          \
     "Use field guards and track field types")                                  \
   C(use_osr, false, true, bool, true, "Use OSR")                               \
   P(use_strong_mode_types, bool, true, "Optimize based on strong mode types.") \

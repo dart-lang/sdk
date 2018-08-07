@@ -1013,28 +1013,30 @@ DART_NOINLINE bool Interpreter::ProcessInvocation(bool* invoked,
           return false;
         }
       }
-      // Check value cid according to field.guarded_cid().
-      // The interpreter should never see a cloned field.
-      ASSERT(field->ptr()->owner_->GetClassId() != kFieldCid);
-      const classid_t field_guarded_cid = field->ptr()->guarded_cid_;
-      const classid_t field_nullability_cid = field->ptr()->is_nullable_;
-      const classid_t value_cid = InterpreterHelpers::GetClassId(value);
-      if (value_cid != field_guarded_cid &&
-          value_cid != field_nullability_cid) {
-        if (Smi::Value(field->ptr()->guarded_list_length_) <
-                Field::kUnknownFixedLength &&
-            field_guarded_cid == kIllegalCid) {
-          field->ptr()->guarded_cid_ = value_cid;
-          field->ptr()->is_nullable_ = value_cid;
-        } else if (field_guarded_cid != kDynamicCid) {
-          call_top[1] = 0;  // Unused result of runtime call.
-          call_top[2] = field;
-          call_top[3] = value;
-          Exit(thread, *FP, call_top + 4, *pc);
-          NativeArguments native_args(thread, 2, call_top + 2, call_top + 1);
-          if (!InvokeRuntime(thread, this, DRT_UpdateFieldCid, native_args)) {
-            *invoked = true;
-            return false;
+      if (thread->isolate()->use_field_guards()) {
+        // Check value cid according to field.guarded_cid().
+        // The interpreter should never see a cloned field.
+        ASSERT(field->ptr()->owner_->GetClassId() != kFieldCid);
+        const classid_t field_guarded_cid = field->ptr()->guarded_cid_;
+        const classid_t field_nullability_cid = field->ptr()->is_nullable_;
+        const classid_t value_cid = InterpreterHelpers::GetClassId(value);
+        if (value_cid != field_guarded_cid &&
+            value_cid != field_nullability_cid) {
+          if (Smi::Value(field->ptr()->guarded_list_length_) <
+                  Field::kUnknownFixedLength &&
+              field_guarded_cid == kIllegalCid) {
+            field->ptr()->guarded_cid_ = value_cid;
+            field->ptr()->is_nullable_ = value_cid;
+          } else if (field_guarded_cid != kDynamicCid) {
+            call_top[1] = 0;  // Unused result of runtime call.
+            call_top[2] = field;
+            call_top[3] = value;
+            Exit(thread, *FP, call_top + 4, *pc);
+            NativeArguments native_args(thread, 2, call_top + 2, call_top + 1);
+            if (!InvokeRuntime(thread, this, DRT_UpdateFieldCid, native_args)) {
+              *invoked = true;
+              return false;
+            }
           }
         }
       }
@@ -3480,6 +3482,9 @@ RawObject* Interpreter::Call(RawFunction* function,
     RawInstance* instance = reinterpret_cast<RawInstance*>(FP[rA]);
     RawObject* value = FP[value_reg];
 
+    // TODO(regis): Implement cid guard.
+    ASSERT(!thread->isolate()->use_field_guards());
+
     instance->StorePointer(
         reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
         value);
@@ -3492,6 +3497,8 @@ RawObject* Interpreter::Call(RawFunction* function,
     const uint16_t offset_in_words = KernelBytecode::DecodeD(*pc++);
     RawInstance* instance = reinterpret_cast<RawInstance*>(FP[rA]);
     RawObject* value = FP[rD];
+
+    UNREACHABLE();  // TODO(regis): unused, remove.
 
     instance->StorePointer(
         reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
@@ -3506,6 +3513,10 @@ RawObject* Interpreter::Call(RawFunction* function,
     RawInstance* instance = reinterpret_cast<RawInstance*>(SP[-1]);
     RawObject* value = reinterpret_cast<RawObject*>(SP[0]);
     SP -= 2;  // Drop instance and value.
+
+    // TODO(regis): Implement cid guard.
+    ASSERT(!thread->isolate()->use_field_guards());
+
     instance->StorePointer(
         reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
         value);
