@@ -5832,38 +5832,27 @@ class Parser {
     return before;
   }
 
-  /// Parse the comment references in a sequence of comment tokens
-  /// where [token] is the first in the sequence.
-  /// Return the number of comment references parsed
-  /// or `null` if there are no dartdoc comment tokens in the sequence.
-  int parseCommentReferences(Token token) {
-    if (token == null) {
-      return null;
-    }
-    Token singleLineDoc;
-    Token multiLineDoc;
-
-    // Find the first dartdoc token to parse
-    do {
-      String lexeme = token.lexeme;
-      if (lexeme.startsWith('/**')) {
-        singleLineDoc = null;
-        multiLineDoc = token;
-      } else if (lexeme.startsWith('///')) {
-        singleLineDoc ??= token;
-        multiLineDoc = null;
+  /// Return the first dartdoc comment token preceding the given token
+  /// or `null` if no dartdoc token is found.
+  Token findDartDoc(Token token) {
+    Token comments = token.precedingComments;
+    while (comments != null) {
+      String lexeme = comments.lexeme;
+      if (lexeme.startsWith('/**') || lexeme.startsWith('///')) {
+        break;
       }
-      token = token.next;
-    } while (token != null);
-
-    // Parse the comment references
-    if (multiLineDoc != null) {
-      return parseReferencesInMultiLineComment(multiLineDoc);
-    } else if (singleLineDoc != null) {
-      return parseReferencesInSingleLineComments(singleLineDoc);
-    } else {
-      return null;
+      comments = comments.next;
     }
+    return comments;
+  }
+
+  /// Parse the comment references in a sequence of comment tokens
+  /// where [dartdoc] (not null) is the first token in the sequence.
+  /// Return the number of comment references parsed.
+  int parseCommentReferences(Token dartdoc) {
+    return dartdoc.lexeme.startsWith('///')
+        ? parseReferencesInSingleLineComments(dartdoc)
+        : parseReferencesInMultiLineComment(dartdoc);
   }
 
   /// Parse the comment references in a multi-line comment token.
@@ -6001,10 +5990,8 @@ class Parser {
 
   /// Parse the tokens in a single comment reference and generate either a
   /// `handleCommentReference` or `handleNoCommentReference` event.
-  ///
-  /// This is typically called from the listener's
-  /// `handleCommentReferenceText` method.
-  void parseOneCommentReference(Token token) {
+  /// Return `true` if a comment reference was successfully parsed.
+  bool parseOneCommentReference(Token token, int referenceOffset) {
     Token begin = token;
     Token newKeyword = null;
     if (optional('new', token)) {
@@ -6032,15 +6019,17 @@ class Parser {
     }
     if (token.isUserDefinableOperator) {
       if (token.next.isEof) {
-        listener.handleCommentReference(newKeyword, prefix, period, token);
-        return;
+        parseOneCommentReferenceRest(
+            begin, referenceOffset, newKeyword, prefix, period, token);
+        return true;
       }
     } else {
       token = operatorKeyword ?? token;
       if (token.next.isEof) {
         if (token.isIdentifier) {
-          listener.handleCommentReference(newKeyword, prefix, period, token);
-          return;
+          parseOneCommentReferenceRest(
+              begin, referenceOffset, newKeyword, prefix, period, token);
+          return true;
         }
         Keyword keyword = token.keyword;
         if (newKeyword == null &&
@@ -6058,6 +6047,25 @@ class Parser {
       }
     }
     listener.handleNoCommentReference();
+    return false;
+  }
+
+  void parseOneCommentReferenceRest(
+      Token begin,
+      int referenceOffset,
+      Token newKeyword,
+      Token prefix,
+      Token period,
+      Token identifierOrOperator) {
+    // Adjust the token offsets to match the enclosing comment token.
+    Token token = begin;
+    do {
+      token.offset += referenceOffset;
+      token = token.next;
+    } while (!token.isEof);
+
+    listener.handleCommentReference(
+        newKeyword, prefix, period, identifierOrOperator);
   }
 
   /// Given that we have just found bracketed text within the given [comment],

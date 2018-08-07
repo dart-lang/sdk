@@ -260,6 +260,10 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   CommentReference visitCommentReference(CommentReference node) {
+    // Comment references have a token stream
+    // separate from the compilation unit's token stream.
+    // Clone the tokens in that stream here and add them to _clondedTokens
+    // for use when cloning the comment reference.
     Token token = node.beginToken;
     Token lastCloned = new Token.eof(-1);
     while (token != null) {

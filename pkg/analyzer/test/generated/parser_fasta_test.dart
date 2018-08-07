@@ -857,15 +857,12 @@ class ParserProxy extends analyzer.ParserAdapter {
       }
     }
     expect(tokens[tokens.length - 1].next, isNull);
-    int count = fastaParser.parseCommentReferences(tokens[0]);
-    if (count == null) {
-      return null;
+    List<CommentReference> references =
+        astBuilder.parseCommentReferences(tokens.first);
+    if (astBuilder.stack.isNotEmpty) {
+      throw 'Expected empty stack, but found:'
+          '\n  ${astBuilder.stack.values.join('\n  ')}';
     }
-    List<CommentReference> references = new List<CommentReference>(count);
-    // Since parseCommentReferences(...) returned non-null, then this method
-    // should return non-null in indicating that dartdoc comments were parsed.
-    // popTypedList(...) returns `null` if count is zero.
-    astBuilder.popTypedList(count, references);
     return references;
   }
 

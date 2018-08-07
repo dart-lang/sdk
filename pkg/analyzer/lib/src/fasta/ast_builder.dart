@@ -283,7 +283,7 @@ class AstBuilder extends StackListener {
       }
     } else if (context == IdentifierContext.enumValueDeclaration) {
       List<Annotation> metadata = pop();
-      Comment comment = _parseDocumentationCommentOpt(token.precedingComments);
+      Comment comment = _findComment(null, token);
       push(ast.enumConstantDeclaration(comment, metadata, identifier));
     } else {
       push(identifier);
@@ -2561,17 +2561,8 @@ class AstBuilder extends StackListener {
 
   @override
   void handleCommentReferenceText(String referenceSource, int referenceOffset) {
-    ScannerResult result = scanString(referenceSource);
-    if (result.hasErrors) {
-      handleNoCommentReference();
-    } else {
-      Token token = result.tokens;
-      do {
-        token.offset += referenceOffset;
-        token = token.next;
-      } while (!token.isEof);
-      parser.parseOneCommentReference(result.tokens);
-    }
+    push(referenceSource);
+    push(referenceOffset);
   }
 
   @override
@@ -2585,11 +2576,6 @@ class AstBuilder extends StackListener {
     push(ast.commentReference(newKeyword, identifier));
   }
 
-  @override
-  void handleNoCommentReference() {
-    push(NullValue.CommentReference);
-  }
-
   ParameterKind _toAnalyzerParameterKind(FormalParameterKind type) {
     if (type == FormalParameterKind.optionalPositional) {
       return ParameterKind.POSITIONAL;
@@ -2601,85 +2587,59 @@ class AstBuilder extends StackListener {
   }
 
   Comment _findComment(List<Annotation> metadata, Token tokenAfterMetadata) {
-    Token commentsOnNext = tokenAfterMetadata?.precedingComments;
-    if (commentsOnNext != null) {
-      Comment comment = _parseDocumentationCommentOpt(commentsOnNext);
-      if (comment != null) {
-        return comment;
+    // Find the dartdoc tokens
+    Token dartdoc = parser.findDartDoc(tokenAfterMetadata);
+    if (dartdoc == null) {
+      if (metadata == null) {
+        return null;
       }
-    }
-    if (metadata != null) {
-      for (Annotation annotation in metadata) {
-        Token commentsBeforeAnnotation =
-            annotation.beginToken.precedingComments;
-        if (commentsBeforeAnnotation != null) {
-          Comment comment =
-              _parseDocumentationCommentOpt(commentsBeforeAnnotation);
-          if (comment != null) {
-            return comment;
-          }
+      int index = metadata.length;
+      while (true) {
+        if (index == 0) {
+          return null;
+        }
+        --index;
+        dartdoc = parser.findDartDoc(metadata[index].beginToken);
+        if (dartdoc != null) {
+          break;
         }
       }
     }
-    return null;
-  }
 
-  /// Remove any substrings in the given [comment] that represent in-line code
-  /// in markdown.
-  String removeInlineCodeBlocks(String comment) {
-    int index = 0;
-    while (true) {
-      int beginIndex = comment.indexOf('`', index);
-      if (beginIndex == -1) {
-        break;
-      }
-      int endIndex = comment.indexOf('`', beginIndex + 1);
-      if (endIndex == -1) {
-        break;
-      }
-      comment = comment.substring(0, beginIndex + 1) +
-          ' ' * (endIndex - beginIndex - 1) +
-          comment.substring(endIndex);
-      index = endIndex + 1;
-    }
-    return comment;
-  }
-
-  /// Parse a documentation comment. Return the documentation comment that was
-  /// parsed, or `null` if there was no comment.
-  Comment _parseDocumentationCommentOpt(Token commentToken) {
+    // Build and return the comment
+    List<CommentReference> references = parseCommentReferences(dartdoc);
     List<Token> tokens = <Token>[];
-    while (commentToken != null) {
-      if (commentToken.lexeme.startsWith('/**') ||
-          commentToken.lexeme.startsWith('///')) {
-        if (tokens.isNotEmpty) {
-          if (commentToken.type == TokenType.SINGLE_LINE_COMMENT) {
-            if (tokens[0].type != TokenType.SINGLE_LINE_COMMENT) {
-              tokens.clear();
-            }
-          } else {
-            tokens.clear();
-          }
-        }
-        tokens.add(commentToken);
-      }
-      commentToken = commentToken.next;
+    while (dartdoc != null) {
+      tokens.add(dartdoc);
+      dartdoc = dartdoc.next;
     }
-    if (tokens.isEmpty) {
-      return null;
-    }
-    int count = parser.parseCommentReferences(tokens.first);
-    // TODO(danrubel): If nulls were not added to the list, then this could
-    // be a fixed length list.
-    List<CommentReference> references = new List<CommentReference>()
-      ..length = count;
-    // popTypedList(...) returns `null` if count is zero,
-    // but ast.documentationComment(...) expects a non-null references list.
-    popTypedList(count, references);
-    // TODO(danrubel): Investigate preventing nulls from being added
-    // but for now, just remove them.
-    references.removeWhere((ref) => ref == null);
     return ast.documentationComment(tokens, references);
+  }
+
+  List<CommentReference> parseCommentReferences(Token dartdoc) {
+    // Parse dartdoc into potential comment reference source/offset pairs
+    int count = parser.parseCommentReferences(dartdoc);
+    List sourcesAndOffsets = new List(count * 2);
+    popList(count * 2, sourcesAndOffsets);
+
+    // Parse each of the source/offset pairs into actual comment references
+    count = 0;
+    int index = 0;
+    while (index < sourcesAndOffsets.length) {
+      String referenceSource = sourcesAndOffsets[index++];
+      int referenceOffset = sourcesAndOffsets[index++];
+      ScannerResult result = scanString(referenceSource);
+      if (!result.hasErrors) {
+        Token token = result.tokens;
+        if (parser.parseOneCommentReference(token, referenceOffset)) {
+          ++count;
+        }
+      }
+    }
+
+    final references = new List<CommentReference>(count);
+    popTypedList(count, references);
+    return references;
   }
 
   @override
