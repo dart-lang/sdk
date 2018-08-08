@@ -119,7 +119,7 @@ void main() {new A().f^}''');
         bool hasLength(int expected) { }
         void baz() { }''');
     addTestSource('''
-        import '/libA.dart';
+        import 'libA.dart';
         class B { }
         String bar() => true;
         void main() {expect(^)}''');
@@ -145,7 +145,7 @@ void main() {new A().f^}''');
         expect(arg) { }
         void baz() { }''');
     addTestSource('''
-        import '/libA.dart'
+        import 'libA.dart'
         class B { }
         String bar() => true;
         void main() {expect(^)}''');
@@ -172,7 +172,7 @@ void main() {new A().f^}''');
         void baz() { }''');
     addTestSource('''
         import 'dart:async';
-        import '/libA.dart';
+        import 'libA.dart';
         class B { }
         String bar() => true;
         void main() {new A(^)}''');
@@ -201,7 +201,7 @@ void main() {new A().f^}''');
         void baz() { }''');
     addTestSource('''
         import 'dart:async';
-        import '/libA.dart';
+        import 'libA.dart';
         class B { }
         String bar() => true;
         void main() {new A(^)}''');
@@ -227,7 +227,7 @@ void main() {new A().f^}''');
         bool hasLength(int expected) { }
         void baz() { }''');
     addTestSource('''
-        import '/libA.dart'
+        import 'libA.dart'
         expect(arg) { }
         class B { }
         String bar() => true;
@@ -253,7 +253,7 @@ void main() {new A().f^}''');
         bool hasLength(int expected) { }
         void baz() { }''');
     addTestSource('''
-        import '/libA.dart'
+        import 'libA.dart'
         class B {
           expect(arg) { }
           void foo() {expect(^)}}
@@ -281,7 +281,7 @@ void main() {new A().f^}''');
         void baz() { }''');
     addTestSource('''
         import 'dart:async';
-        import '/libA.dart';
+        import 'libA.dart';
         class B { }
         String bar(f()) => true;
         void main() {bar(^);}''');
@@ -309,7 +309,7 @@ void main() {new A().f^}''');
         void baz() { }''');
     addTestSource('''
         import 'dart:async';
-        import '/libA.dart';
+        import 'libA.dart';
         class B { String bar(f()) => true; }
         void main() {new B().bar(^);}''');
     await computeSuggestions();
@@ -333,7 +333,7 @@ void main() {new A().f^}''');
         library A;
         bool hasLength(int expected) { }''');
     addTestSource('''
-        import '/libA.dart'
+        import 'libA.dart'
         String bar() => true;
         void main() {expect(foo: ^)}''');
     await computeSuggestions();
@@ -1377,7 +1377,7 @@ void main() {new A().f^}''');
     // SimpleIdentifier  HideCombinator  ImportDirective
     addSource('/testAB.dart', '''
         library libAB;
-        part '/partAB.dart';
+        part 'partAB.dart';
         class A { }
         class B { }''');
     addSource('/partAB.dart', '''
@@ -1400,7 +1400,7 @@ void main() {new A().f^}''');
     // SimpleIdentifier  HideCombinator  ImportDirective
     addSource('/testAB.dart', '''
         library libAB;
-        part '/partAB.dart';
+        part 'partAB.dart';
         class A { }
         class B { }''');
     addSource('/partAB.dart', '''
@@ -2457,7 +2457,7 @@ void f(C<int> c) {
 
   test_libraryPrefix_with_exports() async {
     addSource('/libA.dart', 'library libA; class A { }');
-    addSource('/libB.dart', 'library libB; export "/libA.dart"; class B { }');
+    addSource('/libB.dart', 'library libB; export "libA.dart"; class B { }');
     addTestSource('import "libB.dart" as foo; main() {foo.^} class C { }');
     await computeSuggestions();
     // Suggested by LibraryMemberContributor
@@ -3060,7 +3060,7 @@ void main() {C.^ print("something");}''');
     addSource('/testA.dart', '''
         library libA;
         import "testB.dart";
-        part "$testFile";
+        part "${resourceProvider.pathContext.basename(testFile)}";
         class A { }
         var m;''');
     addTestSource('''
@@ -3095,7 +3095,7 @@ void main() {C.^ print("something");}''');
     addTestSource('''
         library libA;
         import "testB.dart";
-        part "/testA.dart";
+        part "${convertPathForImport('/testA.dart')}";
         class A { A({String boo: 'hoo'}) { } }
         main() {new ^}
         var m;''');

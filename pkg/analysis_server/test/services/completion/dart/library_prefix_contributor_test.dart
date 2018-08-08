@@ -62,10 +62,10 @@ class H { }
 int T3;
 var _T4;'''); // not imported
     addTestSource('''
-import "/testAB.dart";
-import "/testCD.dart" hide D;
-import "/testEEF.dart" show EE;
-import "/testG.dart" as g;
+import "testAB.dart";
+import "testCD.dart" hide D;
+import "testEEF.dart" show EE;
+import "testG.dart" as g;
 int T5;
 var _T6;
 String get T7 => 'hello';
@@ -109,10 +109,10 @@ class H { }
 int T3;
 var _T4;'''); // not imported
     addTestSource('''
-import "/testAB.dart";
-import "/testCD.dart" hide D;
-import "/testEEF.dart" show EE;
-import "/testG.dart" as g;
+import "testAB.dart";
+import "testCD.dart" hide D;
+import "testEEF.dart" show EE;
+import "testG.dart" as g;
 int T5;
 var _T6;
 String get T7 => 'hello';
@@ -156,10 +156,10 @@ class H { }
 int T3;
 var _T4;'''); // not imported
     addTestSource('''
-import "/testAB.dart";
-import "/testCD.dart" hide D;
-import "/testEEF.dart" show EE;
-import "/testG.dart" as g;
+import "testAB.dart";
+import "testCD.dart" hide D;
+import "testEEF.dart" show EE;
+import "testG.dart" as g;
 int T5;
 var _T6;
 String get T7 => 'hello';
@@ -278,7 +278,7 @@ class A {foo(){var f; {var x;}}}
 class B {B(this.x, [String boo]) { } int x;}
 class C {C.bar({boo: 'hoo', int z: 0}) { } }''');
     addTestSource('''
-import "/testA.dart" as t;
+import "testA.dart" as t;
 import "dart:math" as math;
 main() {new ^ String x = "hello";}''');
     await computeSuggestions();
@@ -317,7 +317,7 @@ class B {B(this.x, [String boo]) { } int x;}
 class C {C.bar({boo: 'hoo', int z: 0}) { } }''');
     addSource('/testB.dart', '''
 library testB;
-import "/testA.dart" as t;
+import "testA.dart" as t;
 import "dart:math" as math;
 //part "$testFile"
 main() {new ^ String x = "hello";}''');
