@@ -40,8 +40,11 @@ import 'src/plugin/plugin_manager_test.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AbstractContextManagerTest);
+    defineReflectiveTests(AbstractContextManagerTest_UseCFE);
     defineReflectiveTests(ContextManagerWithNewOptionsTest);
+    defineReflectiveTests(ContextManagerWithNewOptionsTest_UseCFE);
     defineReflectiveTests(ContextManagerWithOldOptionsTest);
+    defineReflectiveTests(ContextManagerWithOldOptionsTest_UseCFE);
   });
 }
 
@@ -1644,6 +1647,12 @@ test_pack:lib/''');
   }
 }
 
+@reflectiveTest
+class AbstractContextManagerTest_UseCFE extends AbstractContextManagerTest {
+  @override
+  bool get useCFE => true;
+}
+
 abstract class ContextManagerTest extends Object with ResourceProviderMixin {
   /**
    * The name of the 'bin' directory.
@@ -1720,6 +1729,11 @@ abstract class ContextManagerTest extends Object with ResourceProviderMixin {
 
   SourceFactory get sourceFactory => callbacks.sourceFactory;
 
+  /**
+   * Return `true` to enable the Dart 2.0 Common Front End.
+   */
+  bool get useCFE => false;
+
   Map<String, List<Folder>> get _currentPackageMap => _packageMap(projPath);
 
   /**
@@ -1756,7 +1770,8 @@ abstract class ContextManagerTest extends Object with ResourceProviderMixin {
     PerformanceLog logger = new PerformanceLog(new NullStringSink());
     AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(logger);
     callbacks = new TestContextManagerCallbacks(
-        resourceProvider, sdkManager, logger, scheduler);
+        resourceProvider, sdkManager, logger, scheduler,
+        useCFE: useCFE);
     manager.callbacks = callbacks;
   }
 
@@ -1793,8 +1808,22 @@ class ContextManagerWithNewOptionsTest extends ContextManagerWithOptionsTest {
 }
 
 @reflectiveTest
+class ContextManagerWithNewOptionsTest_UseCFE
+    extends ContextManagerWithNewOptionsTest {
+  @override
+  bool get useCFE => true;
+}
+
+@reflectiveTest
 class ContextManagerWithOldOptionsTest extends ContextManagerWithOptionsTest {
   String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_FILE;
+}
+
+@reflectiveTest
+class ContextManagerWithOldOptionsTest_UseCFE
+    extends ContextManagerWithOldOptionsTest {
+  @override
+  bool get useCFE => true;
 }
 
 abstract class ContextManagerWithOptionsTest extends ContextManagerTest {
@@ -2477,6 +2506,11 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   final AnalysisDriverScheduler scheduler;
 
   /**
+   * A flag indicating whether to enable the Dart 2.0 Common Front End.
+   */
+  final bool useCFE;
+
+  /**
    * The list of `flushedFiles` in the last [removeContext] invocation.
    */
   List<String> lastFlushedFiles;
@@ -2490,7 +2524,8 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   NotificationManager notificationManager = new TestNotificationManager();
 
   TestContextManagerCallbacks(
-      this.resourceProvider, this.sdkManager, this.logger, this.scheduler);
+      this.resourceProvider, this.sdkManager, this.logger, this.scheduler,
+      {this.useCFE = false});
 
   /**
    * Return the current set of analysis options.
@@ -2543,7 +2578,8 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
         new FileContentOverlay(),
         contextRoot,
         sourceFactory,
-        analysisOptions);
+        analysisOptions,
+        useCFE: useCFE);
     driverMap[path] = currentDriver;
     currentDriver.exceptions.listen((ExceptionResult result) {
       AnalysisEngine.instance.logger

@@ -7,6 +7,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../test_utilities/utillities.dart';
 import 'abstract_rename.dart';
 
 main() {

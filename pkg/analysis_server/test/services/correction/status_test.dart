@@ -20,7 +20,6 @@ main() {
     defineReflectiveTests(RefactoringLocationTest);
     defineReflectiveTests(RefactoringLocationTest_UseCFE);
     defineReflectiveTests(RefactoringStatusTest);
-    defineReflectiveTests(RefactoringStatusTest_UseCFE);
   });
 }
 
@@ -240,10 +239,4 @@ class RefactoringStatusTest {
     expect(refactoringStatus.severity, RefactoringProblemSeverity.WARNING);
     expect(refactoringStatus.message, 'msg');
   }
-}
-
-@reflectiveTest
-class RefactoringStatusTest_UseCFE extends RefactoringStatusTest {
-  @override
-  bool get useCFE => true;
 }

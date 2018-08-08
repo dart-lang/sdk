@@ -8,6 +8,7 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../test_utilities/utillities.dart';
 import 'abstract_refactoring.dart';
 
 main() {
