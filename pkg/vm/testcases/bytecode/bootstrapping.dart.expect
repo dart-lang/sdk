@@ -109,7 +109,7 @@ ConstantPool {
   [2] = StaticICData target '#lib::_NamespaceImpl::_', arg-desc CP#1
   [3] = ArgDesc num-args 2, num-type-args 0, names []
   [4] = StaticICData target '#lib::_NamespaceImpl::_create', arg-desc CP#3
-  [5] = Field #lib::_NamespaceImpl::_cachedNamespace
+  [5] = StaticField #lib::_NamespaceImpl::_cachedNamespace
   [6] = Null
 }
 ]  static method _setupNamespace(dynamic namespace) → void {
@@ -146,7 +146,7 @@ L1:
   ReturnTOS
 }
 ConstantPool {
-  [0] = Field #lib::_NamespaceImpl::_cachedNamespace
+  [0] = StaticField #lib::_NamespaceImpl::_cachedNamespace
   [1] = Null
   [2] = ArgDesc num-args 2, num-type-args 0, names []
   [3] = ICData target-name '==', arg-desc CP#2
@@ -303,9 +303,9 @@ Bytecode {
   ReturnTOS
 }
 ConstantPool {
-  [0] = Field #lib::VMLibraryHooks::_computeScriptUri
+  [0] = StaticField #lib::VMLibraryHooks::_computeScriptUri
   [1] = Null
-  [2] = Field #lib::VMLibraryHooks::_cachedScript
+  [2] = StaticField #lib::VMLibraryHooks::_cachedScript
 }
 ]  static set platformScript(dynamic f) → void {
     self::VMLibraryHooks::_computeScriptUri = f;
@@ -352,12 +352,12 @@ L3:
   ReturnTOS
 }
 ConstantPool {
-  [0] = Field #lib::VMLibraryHooks::_cachedScript
+  [0] = StaticField #lib::VMLibraryHooks::_cachedScript
   [1] = Null
   [2] = ArgDesc num-args 2, num-type-args 0, names []
   [3] = ICData target-name '==', arg-desc CP#2
   [4] = Bool true
-  [5] = Field #lib::VMLibraryHooks::_computeScriptUri
+  [5] = StaticField #lib::VMLibraryHooks::_computeScriptUri
   [6] = ICData target-name '==', arg-desc CP#2
   [7] = Bool false
   [8] = ArgDesc num-args 1, num-type-args 0, names []
@@ -433,7 +433,7 @@ Bytecode {
   ReturnTOS
 }
 ConstantPool {
-  [0] = Field #lib::_ScheduleImmediate::_closure
+  [0] = StaticField #lib::_ScheduleImmediate::_closure
   [1] = Null
 }
 ]static method _setScheduleImmediateClosure((() → void) → void closure) → void {
@@ -453,9 +453,9 @@ Bytecode {
   ReturnTOS
 }
 ConstantPool {
-  [0] = Field #lib::_stdinFD
-  [1] = Field #lib::_stdoutFD
-  [2] = Field #lib::_stderrFD
+  [0] = StaticField #lib::_stdinFD
+  [1] = StaticField #lib::_stdoutFD
+  [2] = StaticField #lib::_stderrFD
   [3] = Null
 }
 ]static method _setStdioFDs(core::int stdin, core::int stdout, core::int stderr) → void {
@@ -528,7 +528,7 @@ L6:
   ReturnTOS
 }
 ConstantPool {
-  [0] = Field #lib::_rawScript
+  [0] = StaticField #lib::_rawScript
   [1] = String 'http:'
   [2] = ArgDesc num-args 2, num-type-args 0, names []
   [3] = ICData target-name 'startsWith', arg-desc CP#2

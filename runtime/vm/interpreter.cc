@@ -3525,6 +3525,36 @@ RawObject* Interpreter::Call(RawFunction* function,
   }
 
   {
+    BYTECODE(StoreContextParent, 0);
+    const uword offset_in_words =
+        static_cast<uword>(Context::parent_offset() / kWordSize);
+    RawContext* instance = reinterpret_cast<RawContext*>(SP[-1]);
+    RawContext* value = reinterpret_cast<RawContext*>(SP[0]);
+    SP -= 2;  // Drop instance and value.
+
+    instance->StorePointer(
+        reinterpret_cast<RawContext**>(instance->ptr()) + offset_in_words,
+        value);
+
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreContextVar, __D);
+    const uword offset_in_words =
+        static_cast<uword>(Context::variable_offset(rD) / kWordSize);
+    RawContext* instance = reinterpret_cast<RawContext*>(SP[-1]);
+    RawObject* value = reinterpret_cast<RawContext*>(SP[0]);
+    SP -= 2;  // Drop instance and value.
+
+    instance->StorePointer(
+        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
+        value);
+
+    DISPATCH();
+  }
+
+  {
     BYTECODE(LoadField, A_B_C);
     const uint16_t instance_reg = rB;
     const uint16_t offset_in_words = rC;
@@ -3557,6 +3587,33 @@ RawObject* Interpreter::Call(RawFunction* function,
     const uword offset_in_words =
         static_cast<uword>(Smi::Value(RAW_CAST(Smi, LOAD_CONSTANT(rD))));
     RawInstance* instance = static_cast<RawInstance*>(SP[0]);
+    SP[0] = reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadTypeArgumentsField, __D);
+    const uword offset_in_words =
+        static_cast<uword>(Smi::Value(RAW_CAST(Smi, LOAD_CONSTANT(rD))));
+    RawInstance* instance = static_cast<RawInstance*>(SP[0]);
+    SP[0] = reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadContextParent, 0);
+    const uword offset_in_words =
+        static_cast<uword>(Context::parent_offset() / kWordSize);
+    RawContext* instance = static_cast<RawContext*>(SP[0]);
+    SP[0] = reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadContextVar, __D);
+    const uword offset_in_words =
+        static_cast<uword>(Context::variable_offset(rD) / kWordSize);
+    RawContext* instance = static_cast<RawContext*>(SP[0]);
     SP[0] = reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
     DISPATCH();
   }

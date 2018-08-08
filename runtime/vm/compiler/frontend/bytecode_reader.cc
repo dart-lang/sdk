@@ -97,10 +97,10 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
     kArgDesc,
     kICData,
     kStaticICData,
-    kField,
-    kFieldOffset,
+    kStaticField,
+    kInstanceField,
     kClass,
-    kTypeArgumentsFieldOffset,
+    kTypeArgumentsField,
     kTearOff,
     kType,
     kTypeArguments,
@@ -108,7 +108,6 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
     kInstance,
     kSymbol,
     kTypeArgumentsForInstanceAllocation,
-    kContextOffset,
     kClosureFunction,
     kEndClosureFunctionScope,
     kNativeEntry,
@@ -242,20 +241,28 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         ICData::Cast(obj).set_tag(ICData::Tag::kStaticCall);
 #endif
       } break;
-      case ConstantPoolTag::kField:
+      case ConstantPoolTag::kStaticField:
         obj = H.LookupFieldByKernelField(helper_->ReadCanonicalNameReference());
         ASSERT(obj.IsField());
         break;
-      case ConstantPoolTag::kFieldOffset:
-        obj = H.LookupFieldByKernelField(helper_->ReadCanonicalNameReference());
-        ASSERT(obj.IsField());
-        obj = Smi::New(Field::Cast(obj).Offset() / kWordSize);
+      case ConstantPoolTag::kInstanceField:
+        field =
+            H.LookupFieldByKernelField(helper_->ReadCanonicalNameReference());
+        // InstanceField constant occupies 2 entries.
+        // The first entry is used for field offset.
+        obj = Smi::New(field.Offset() / kWordSize);
+        pool.SetTypeAt(i, ObjectPool::kTaggedObject);
+        pool.SetObjectAt(i, obj);
+        ++i;
+        ASSERT(i < obj_count);
+        // The second entry is used for field object.
+        obj = field.raw();
         break;
       case ConstantPoolTag::kClass:
         obj = H.LookupClassByKernelClass(helper_->ReadCanonicalNameReference());
         ASSERT(obj.IsClass());
         break;
-      case ConstantPoolTag::kTypeArgumentsFieldOffset:
+      case ConstantPoolTag::kTypeArgumentsField:
         cls = H.LookupClassByKernelClass(helper_->ReadCanonicalNameReference());
         obj = Smi::New(cls.type_arguments_field_offset() / kWordSize);
         break;
@@ -324,14 +331,6 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
                 .BuildInstantiatedTypeArguments(cls, helper_->ReadListLength())
                 .raw();
         ASSERT(obj.IsNull() || obj.IsTypeArguments());
-      } break;
-      case ConstantPoolTag::kContextOffset: {
-        intptr_t index = helper_->ReadUInt();
-        if (index == 0) {
-          obj = Smi::New(Context::parent_offset() / kWordSize);
-        } else {
-          obj = Smi::New(Context::variable_offset(index - 1) / kWordSize);
-        }
       } break;
       case ConstantPoolTag::kClosureFunction: {
         name = H.DartSymbolPlain(helper_->ReadStringReference()).raw();

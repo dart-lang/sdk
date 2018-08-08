@@ -77,12 +77,13 @@ type ConstantStaticICData extends ConstantPoolEntry {
   ConstantIndex argDesc;
 }
 
-type ConstantField extends ConstantPoolEntry {
+type ConstantStaticField extends ConstantPoolEntry {
   Byte tag = 9;
   CanonicalNameReference field;
 }
 
-type ConstantFieldOffset extends ConstantPoolEntry {
+// Occupies 2 entries in the constant pool.
+type ConstantInstanceField extends ConstantPoolEntry {
   Byte tag = 10;
   CanonicalNameReference field;
 }
@@ -92,7 +93,7 @@ type ConstantClass extends ConstantPoolEntry {
   CanonicalNameReference class;
 }
 
-type ConstantTypeArgumentsFieldOffset extends ConstantPoolEntry {
+type ConstantTypeArgumentsField extends ConstantPoolEntry {
   Byte tag = 12;
   CanonicalNameReference class;
 }
@@ -136,34 +137,27 @@ type ConstantTypeArgumentsForInstanceAllocation extends ConstantPoolEntry {
   List<DartType> types;
 }
 
-type ConstantContextOffset extends ConstantPoolEntry {
-  Byte tag = 20;
-  // 0 = Offset of 'parent' field in Context object.
-  // 1 + i = Offset of i-th variable in Context object.
-  UInt index;
-}
-
 type ConstantClosureFunction extends ConstantPoolEntry {
-  Byte tag = 21;
+  Byte tag = 20;
   StringReference name;
   FunctionNode function; // Doesn't have a body.
 }
 
 type ConstantEndClosureFunctionScope extends ConstantPoolEntry {
-  Byte tag = 22;
+  Byte tag = 21;
 }
 
 type ConstantNativeEntry extends ConstantPoolEntry {
-  Byte tag = 23;
+  Byte tag = 22;
   StringReference nativeName;
 }
 
 type ConstantSubtypeTestCache extends ConstantPoolEntry {
-  Byte tag = 24;
+  Byte tag = 23;
 }
 
 type ConstantPartialTearOffInstantiation extends ConstantPoolEntry {
-  Byte tag = 25;
+  Byte tag = 24;
   ConstantIndex tearOffConstant;
   ConstantIndex typeArguments;
 }
@@ -180,10 +174,10 @@ enum ConstantTag {
   kArgDesc,
   kICData,
   kStaticICData,
-  kField,
-  kFieldOffset,
+  kStaticField,
+  kInstanceField,
   kClass,
-  kTypeArgumentsFieldOffset,
+  kTypeArgumentsField,
   kTearOff,
   kType,
   kTypeArguments,
@@ -191,7 +185,6 @@ enum ConstantTag {
   kInstance,
   kSymbol,
   kTypeArgumentsForInstanceAllocation,
-  kContextOffset,
   kClosureFunction,
   kEndClosureFunctionScope,
   kNativeEntry,
@@ -203,6 +196,10 @@ abstract class ConstantPoolEntry {
   const ConstantPoolEntry();
 
   ConstantTag get tag;
+
+  // Returns number of extra reserved constant pool entries
+  // following this entry.
+  int get numReservedEntries => 0;
 
   void writeToBinary(BinarySink sink) {
     sink.writeUInt30(tag.index);
@@ -232,14 +229,14 @@ abstract class ConstantPoolEntry {
         return new ConstantStaticICData.readFromBinary(source);
       case ConstantTag.kArgDesc:
         return new ConstantArgDesc.readFromBinary(source);
-      case ConstantTag.kField:
-        return new ConstantField.readFromBinary(source);
-      case ConstantTag.kFieldOffset:
-        return new ConstantFieldOffset.readFromBinary(source);
+      case ConstantTag.kStaticField:
+        return new ConstantStaticField.readFromBinary(source);
+      case ConstantTag.kInstanceField:
+        return new ConstantInstanceField.readFromBinary(source);
       case ConstantTag.kClass:
         return new ConstantClass.readFromBinary(source);
-      case ConstantTag.kTypeArgumentsFieldOffset:
-        return new ConstantTypeArgumentsFieldOffset.readFromBinary(source);
+      case ConstantTag.kTypeArgumentsField:
+        return new ConstantTypeArgumentsField.readFromBinary(source);
       case ConstantTag.kTearOff:
         return new ConstantTearOff.readFromBinary(source);
       case ConstantTag.kType:
@@ -255,8 +252,6 @@ abstract class ConstantPoolEntry {
       case ConstantTag.kTypeArgumentsForInstanceAllocation:
         return new ConstantTypeArgumentsForInstanceAllocation.readFromBinary(
             source);
-      case ConstantTag.kContextOffset:
-        return new ConstantContextOffset.readFromBinary(source);
       case ConstantTag.kClosureFunction:
         return new ConstantClosureFunction.readFromBinary(source);
       case ConstantTag.kEndClosureFunctionScope:
@@ -572,64 +567,65 @@ class ConstantStaticICData extends ConstantPoolEntry {
   bool operator ==(other) => identical(this, other);
 }
 
-class ConstantField extends ConstantPoolEntry {
+class ConstantStaticField extends ConstantPoolEntry {
   final Reference _reference;
 
   Field get field => _reference.asField;
 
-  ConstantField(Field field) : this.byReference(field.reference);
-  ConstantField.byReference(this._reference);
+  ConstantStaticField(Field field) : this.byReference(field.reference);
+  ConstantStaticField.byReference(this._reference);
 
   @override
-  ConstantTag get tag => ConstantTag.kField;
+  ConstantTag get tag => ConstantTag.kStaticField;
 
   @override
   void writeValueToBinary(BinarySink sink) {
     sink.writeCanonicalNameReference(getCanonicalNameOfMember(field));
   }
 
-  ConstantField.readFromBinary(BinarySource source)
+  ConstantStaticField.readFromBinary(BinarySource source)
       : _reference = source.readCanonicalNameReference().getReference();
 
   @override
-  String toString() => 'Field $field';
+  String toString() => 'StaticField $field';
 
   @override
   int get hashCode => field.hashCode;
 
   @override
   bool operator ==(other) =>
-      other is ConstantField && this.field == other.field;
+      other is ConstantStaticField && this.field == other.field;
 }
 
-class ConstantFieldOffset extends ConstantPoolEntry {
+class ConstantInstanceField extends ConstantPoolEntry {
   final Reference _reference;
 
   Field get field => _reference.asField;
+  int get numReservedEntries => 1;
 
-  ConstantFieldOffset(Field field) : this.byReference(field.reference);
-  ConstantFieldOffset.byReference(this._reference);
+  ConstantInstanceField(Field field) : this.byReference(field.reference);
+  ConstantInstanceField.byReference(this._reference);
 
   @override
-  ConstantTag get tag => ConstantTag.kFieldOffset;
+  ConstantTag get tag => ConstantTag.kInstanceField;
 
   @override
   void writeValueToBinary(BinarySink sink) {
     sink.writeCanonicalNameReference(getCanonicalNameOfMember(field));
   }
 
-  ConstantFieldOffset.readFromBinary(BinarySource source)
+  ConstantInstanceField.readFromBinary(BinarySource source)
       : _reference = source.readCanonicalNameReference().getReference();
 
   @override
-  String toString() => 'FieldOffset $field';
+  String toString() => 'InstanceField $field';
 
   @override
   int get hashCode => field.hashCode;
 
   @override
   bool operator ==(other) =>
-      other is ConstantFieldOffset && this.field == other.field;
+      other is ConstantInstanceField && this.field == other.field;
 }
 
 class ConstantClass extends ConstantPoolEntry {
@@ -662,36 +658,34 @@ class ConstantClass extends ConstantPoolEntry {
       other is ConstantClass && this.classNode == other.classNode;
 }
 
-class ConstantTypeArgumentsFieldOffset extends ConstantPoolEntry {
+class ConstantTypeArgumentsField extends ConstantPoolEntry {
   final Reference _reference;
 
   Class get classNode => _reference.asClass;
 
-  ConstantTypeArgumentsFieldOffset(Class class_)
-      : this.byReference(class_.reference);
-  ConstantTypeArgumentsFieldOffset.byReference(this._reference);
+  ConstantTypeArgumentsField(Class class_) : this.byReference(class_.reference);
+  ConstantTypeArgumentsField.byReference(this._reference);
 
   @override
-  ConstantTag get tag => ConstantTag.kTypeArgumentsFieldOffset;
+  ConstantTag get tag => ConstantTag.kTypeArgumentsField;
 
   @override
   void writeValueToBinary(BinarySink sink) {
     sink.writeCanonicalNameReference(getCanonicalNameOfClass(classNode));
   }
 
-  ConstantTypeArgumentsFieldOffset.readFromBinary(BinarySource source)
+  ConstantTypeArgumentsField.readFromBinary(BinarySource source)
       : _reference = source.readCanonicalNameReference().getReference();
 
   @override
-  String toString() => 'TypeArgumentsFieldOffset $classNode';
+  String toString() => 'TypeArgumentsField $classNode';
 
   @override
   int get hashCode => classNode.hashCode;
 
   @override
   bool operator ==(other) =>
-      other is ConstantTypeArgumentsFieldOffset &&
-      this.classNode == other.classNode;
+      other is ConstantTypeArgumentsField && this.classNode == other.classNode;
 }
 
 class ConstantTearOff extends ConstantPoolEntry {
@@ -949,39 +943,6 @@ class ConstantTypeArgumentsForInstanceAllocation extends ConstantPoolEntry {
       listEquals(this.typeArgs, other.typeArgs);
 }
 
-class ConstantContextOffset extends ConstantPoolEntry {
-  static const int kParent = 0;
-  static const int kVariableBase = 1;
-
-  final int _index;
-
-  ConstantContextOffset._(this._index);
-  ConstantContextOffset.parent() : this._(kParent);
-  ConstantContextOffset.variable(int index) : this._(index + kVariableBase);
-
-  @override
-  ConstantTag get tag => ConstantTag.kContextOffset;
-
-  @override
-  void writeValueToBinary(BinarySink sink) {
-    sink.writeUInt30(_index);
-  }
-
-  ConstantContextOffset.readFromBinary(BinarySource source)
-      : _index = source.readUInt();
-
-  @override
-  String toString() =>
-      'ContextOffset ${_index == kParent ? 'parent' : 'var [${_index - kVariableBase}]'}';
-
-  @override
-  int get hashCode => _index;
-
-  @override
-  bool operator ==(other) =>
-      other is ConstantContextOffset && this._index == other._index;
-}
-
 class ConstantClosureFunction extends ConstantPoolEntry {
   final String name;
   final FunctionNode function;
@@ -1133,6 +1094,18 @@ class ConstantPartialTearOffInstantiation extends ConstantPoolEntry {
       this.typeArgumentsConstantIndex == other.typeArgumentsConstantIndex;
 }
 
+/// Reserved constant pool entry.
+class _ReservedConstantPoolEntry extends ConstantPoolEntry {
+  const _ReservedConstantPoolEntry();
+
+  ConstantTag get tag => throw 'This constant pool entry is reserved';
+  void writeValueToBinary(BinarySink sink) =>
+      throw 'This constant pool entry is reserved';
+
+  @override
+  String toString() => 'Reserved';
+}
+
 class ConstantPool {
   final List<ConstantPoolEntry> entries = <ConstantPoolEntry>[];
   final Map<ConstantPoolEntry, int> _canonicalizationCache =
@@ -1143,9 +1116,16 @@ class ConstantPool {
   int add(ConstantPoolEntry entry) {
     return _canonicalizationCache.putIfAbsent(entry, () {
       int index = entries.length;
-      entries.add(entry);
+      _addEntry(entry);
       return index;
     });
+  }
+
+  void _addEntry(ConstantPoolEntry entry) {
+    entries.add(entry);
+    for (int i = 0; i < entry.numReservedEntries; ++i) {
+      entries.add(const _ReservedConstantPoolEntry());
+    }
   }
 
   void writeToBinary(Node node, BinarySink sink) {
@@ -1157,6 +1137,10 @@ class ConstantPool {
 
     sink.writeUInt30(entries.length);
     entries.forEach((e) {
+      if (e is _ReservedConstantPoolEntry) {
+        return;
+      }
+
       e.writeToBinary(sink);
 
       if (e is ConstantClosureFunction) {
@@ -1185,7 +1169,8 @@ class ConstantPool {
     int len = source.readUInt();
     for (int i = 0; i < len; i++) {
       final e = new ConstantPoolEntry.readFromBinary(source);
-      entries.add(e);
+      _addEntry(e);
+      i += e.numReservedEntries;
 
       if (e is ConstantClosureFunction) {
         source.enterScope(typeParameters: e.function.typeParameters);

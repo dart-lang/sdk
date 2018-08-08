@@ -95,20 +95,22 @@ Bytecode {
   StoreFieldTOS        CP#0
   Push                 FP[-7]
   Push                 FP[-5]
-  StoreFieldTOS        CP#1
+  StoreFieldTOS        CP#2
   Push                 FP[-7]
-  PushConstant         CP#3
-  IndirectStaticCall   1, CP#2
+  PushConstant         CP#5
+  IndirectStaticCall   1, CP#4
   Drop1
-  PushConstant         CP#4
+  PushConstant         CP#6
   ReturnTOS
 }
 ConstantPool {
-  [0] = FieldOffset #lib::A::index
-  [1] = FieldOffset #lib::A::_name
-  [2] = ArgDesc num-args 1, num-type-args 0, names []
-  [3] = StaticICData target 'dart.core::Object::', arg-desc CP#2
-  [4] = Null
+  [0] = InstanceField #lib::A::index
+  [1] = Reserved
+  [2] = InstanceField #lib::A::_name
+  [3] = Reserved
+  [4] = ArgDesc num-args 1, num-type-args 0, names []
+  [5] = StaticICData target 'dart.core::Object::', arg-desc CP#4
+  [6] = Null
 }
 ]  const constructor •(core::int index, core::String _name) → void
     : self::A::index = index, self::A::_name = _name, super core::Object::•()
@@ -142,17 +144,18 @@ Bytecode {
   Push                 FP[-5]
   StoreFieldTOS        CP#0
   Push                 FP[-6]
-  PushConstant         CP#2
-  IndirectStaticCall   1, CP#1
-  Drop1
   PushConstant         CP#3
+  IndirectStaticCall   1, CP#2
+  Drop1
+  PushConstant         CP#4
   ReturnTOS
 }
 ConstantPool {
-  [0] = FieldOffset #lib::B::i
-  [1] = ArgDesc num-args 1, num-type-args 0, names []
-  [2] = StaticICData target 'dart.core::Object::', arg-desc CP#1
-  [3] = Null
+  [0] = InstanceField #lib::B::i
+  [1] = Reserved
+  [2] = ArgDesc num-args 1, num-type-args 0, names []
+  [3] = StaticICData target 'dart.core::Object::', arg-desc CP#2
+  [4] = Null
 }
 ]  const constructor •(core::int i) → void
     : self::B::i = i, super core::Object::•()
@@ -171,22 +174,23 @@ Bytecode {
   StoreFieldTOS        CP#2
   Push                 FP[-8]
   Push                 FP[-5]
-  PushConstant         CP#3
-  InstanceCall1        2, CP#4
-  PushConstant         CP#5
+  PushConstant         CP#4
+  InstanceCall1        2, CP#5
+  PushConstant         CP#6
   IndirectStaticCall   2, CP#0
   Drop1
-  PushConstant         CP#6
+  PushConstant         CP#7
   ReturnTOS
 }
 ConstantPool {
   [0] = ArgDesc num-args 2, num-type-args 0, names []
   [1] = ICData target-name '+', arg-desc CP#0
-  [2] = FieldOffset #lib::C::j
-  [3] = Int 5
-  [4] = ICData target-name '*', arg-desc CP#0
-  [5] = StaticICData target '#lib::B::', arg-desc CP#0
-  [6] = Null
+  [2] = InstanceField #lib::C::j
+  [3] = Reserved
+  [4] = Int 5
+  [5] = ICData target-name '*', arg-desc CP#0
+  [6] = StaticICData target '#lib::B::', arg-desc CP#0
+  [7] = Null
 }
 ]  const constructor •(core::int a, core::int b, core::int c) → void
     : self::C::j = a.{core::num::+}(b), super self::B::•(c.{core::num::*}(5))
@@ -206,20 +210,22 @@ Bytecode {
   StoreFieldTOS        CP#1
   Push                 r0
   Push                 r2
-  StoreFieldTOS        CP#2
+  StoreFieldTOS        CP#3
   Push                 r0
-  PushConstant         CP#4
-  IndirectStaticCall   1, CP#3
+  PushConstant         CP#6
+  IndirectStaticCall   1, CP#5
   Drop1
   PushConstant         CP#0
   ReturnTOS
 }
 ConstantPool {
   [0] = Null
-  [1] = FieldOffset #lib::D::x
-  [2] = FieldOffset #lib::D::y
-  [3] = ArgDesc num-args 1, num-type-args 0, names []
-  [4] = StaticICData target 'dart.core::Object::', arg-desc CP#3
+  [1] = InstanceField #lib::D::x
+  [2] = Reserved
+  [3] = InstanceField #lib::D::y
+  [4] = Reserved
+  [5] = ArgDesc num-args 1, num-type-args 0, names []
+  [6] = StaticICData target 'dart.core::Object::', arg-desc CP#5
 }
 ]  const constructor •(dynamic x, [dynamic y = null]) → void
     : self::D::x = x, self::D::y = y, super core::Object::•()
@@ -740,7 +746,7 @@ Bytecode {
   ReturnTOS
 }
 ConstantPool {
-  [0] = Field #lib::fieldWithDoubleLiteralInitializer
+  [0] = StaticField #lib::fieldWithDoubleLiteralInitializer
   [1] = Null
 }
 ]static method testFieldWithDoubleLiteralInitializer() → dynamic

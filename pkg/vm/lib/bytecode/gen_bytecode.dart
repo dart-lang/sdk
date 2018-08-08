@@ -277,7 +277,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     _genPushReceiver();
     initializer.accept(this);
 
-    final int cpIndex = cp.add(new ConstantFieldOffset(field));
+    final int cpIndex = cp.add(new ConstantInstanceField(field));
     asm.emitStoreFieldTOS(cpIndex);
   }
 
@@ -411,8 +411,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       } else {
         _genPushReceiver();
         final int cpIndex =
-            cp.add(new ConstantTypeArgumentsFieldOffset(enclosingClass));
-        asm.emitLoadFieldTOS(cpIndex);
+            cp.add(new ConstantTypeArgumentsField(enclosingClass));
+        asm.emitLoadTypeArgumentsField(cpIndex);
       }
     } else {
       _genPushNull();
@@ -477,9 +477,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     asm.emitPush(locals.contextVarIndexInFrame);
     if (depth > 0) {
-      int cpIndex = cp.add(new ConstantContextOffset.parent());
       for (; depth > 0; --depth) {
-        asm.emitLoadFieldTOS(cpIndex);
+        asm.emitLoadContextParent();
       }
     }
   }
@@ -493,9 +492,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   void _genLoadVar(VariableDeclaration v, {int currentContextLevel}) {
     if (locals.isCaptured(v)) {
       _genPushContextForVariable(v, currentContextLevel: currentContextLevel);
-      final int cpIndex = cp.add(
-          new ConstantContextOffset.variable(locals.getVarIndexInContext(v)));
-      asm.emitLoadFieldTOS(cpIndex);
+      asm.emitLoadContextVar(locals.getVarIndexInContext(v));
     } else {
       asm.emitPush(locals.getVarIndexInFrame(v));
     }
@@ -511,9 +508,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   // If variable is captured, context should be pushed before value.
   void _genStoreVar(VariableDeclaration variable) {
     if (locals.isCaptured(variable)) {
-      final int cpIndex = cp.add(new ConstantContextOffset.variable(
-          locals.getVarIndexInContext(variable)));
-      asm.emitStoreFieldTOS(cpIndex);
+      asm.emitStoreContextVar(locals.getVarIndexInContext(variable));
     } else {
       asm.emitPopLocal(locals.getVarIndexInFrame(variable));
     }
@@ -732,7 +727,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     if (isClosure) {
       asm.emitPush(locals.closureVarIndexInFrame);
-      asm.emitLoadFieldTOS(cp.add(new ConstantFieldOffset(closureContext)));
+      asm.emitLoadFieldTOS(cp.add(new ConstantInstanceField(closureContext)));
       asm.emitPopLocal(locals.contextVarIndexInFrame);
     }
 
@@ -749,7 +744,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
           asm.emitPush(locals.functionTypeArgsVarIndexInFrame);
           asm.emitPush(locals.closureVarIndexInFrame);
           asm.emitLoadFieldTOS(
-              cp.add(new ConstantFieldOffset(closureFunctionTypeArguments)));
+              cp.add(new ConstantInstanceField(closureFunctionTypeArguments)));
           _genPushInt(numParentTypeArgs);
           _genPushInt(numParentTypeArgs + function.typeParameters.length);
           _genStaticCall(prependTypeArguments, new ConstantArgDesc(4), 4);
@@ -757,7 +752,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         } else {
           asm.emitPush(locals.closureVarIndexInFrame);
           asm.emitLoadFieldTOS(
-              cp.add(new ConstantFieldOffset(closureFunctionTypeArguments)));
+              cp.add(new ConstantInstanceField(closureFunctionTypeArguments)));
           asm.emitPopLocal(locals.functionTypeArgsVarIndexInFrame);
         }
       }
@@ -962,23 +957,23 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     asm.emitPush(temp);
     _genPushInstantiatorTypeArguments();
     asm.emitStoreFieldTOS(
-        cp.add(new ConstantFieldOffset(closureInstantiatorTypeArguments)));
+        cp.add(new ConstantInstanceField(closureInstantiatorTypeArguments)));
 
     asm.emitPush(temp);
     _genPushFunctionTypeArguments();
     asm.emitStoreFieldTOS(
-        cp.add(new ConstantFieldOffset(closureFunctionTypeArguments)));
+        cp.add(new ConstantInstanceField(closureFunctionTypeArguments)));
 
     // TODO(alexmarkov): How to put Object::empty_type_arguments()
     // to _delayed_type_arguments?
 
     asm.emitPush(temp);
     asm.emitPushConstant(closureFunctionIndex);
-    asm.emitStoreFieldTOS(cp.add(new ConstantFieldOffset(closureFunction)));
+    asm.emitStoreFieldTOS(cp.add(new ConstantInstanceField(closureFunction)));
 
     asm.emitPush(temp);
     asm.emitPush(locals.contextVarIndexInFrame);
-    asm.emitStoreFieldTOS(cp.add(new ConstantFieldOffset(closureContext)));
+    asm.emitStoreFieldTOS(cp.add(new ConstantInstanceField(closureContext)));
   }
 
   void _genClosure(TreeNode node, String name, FunctionNode function) {
@@ -994,7 +989,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       if (locals.currentContextLevel > 0) {
         _genDupTOS(locals.scratchVarIndexInFrame);
         asm.emitPush(locals.contextVarIndexInFrame);
-        asm.emitStoreFieldTOS(cp.add(new ConstantContextOffset.parent()));
+        asm.emitStoreContextParent();
       }
 
       asm.emitPopLocal(locals.contextVarIndexInFrame);
@@ -1018,7 +1013,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     assert(currentContextLevel >= targetContextLevel);
     while (currentContextLevel > targetContextLevel) {
       asm.emitPush(locals.contextVarIndexInFrame);
-      asm.emitLoadFieldTOS(cp.add(new ConstantContextOffset.parent()));
+      asm.emitLoadContextParent();
       asm.emitPopLocal(locals.contextVarIndexInFrame);
       --currentContextLevel;
     }
@@ -1305,7 +1300,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     _genTypeArguments(node.typeArguments);
     asm.emitStoreFieldTOS(
-        cp.add(new ConstantFieldOffset(closureDelayedTypeArguments)));
+        cp.add(new ConstantInstanceField(closureDelayedTypeArguments)));
 
     // Copy the rest of the fields from old closure to a new closure.
     final fieldsToCopy = <Field>[
@@ -1316,7 +1311,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     ];
 
     for (Field field in fieldsToCopy) {
-      final fieldOffsetCpIndex = cp.add(new ConstantFieldOffset(field));
+      final fieldOffsetCpIndex = cp.add(new ConstantInstanceField(field));
       asm.emitPush(newClosure);
       asm.emitPush(oldClosure);
       asm.emitLoadFieldTOS(fieldOffsetCpIndex);
@@ -1604,7 +1599,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       if (target.isConst) {
         _genPushConstExpr(target.initializer);
       } else if (_hasTrivialInitializer(target)) {
-        final fieldIndex = cp.add(new ConstantField(target));
+        final fieldIndex = cp.add(new ConstantStaticField(target));
         asm.emitPushConstant(
             fieldIndex); // TODO(alexmarkov): do we really need this?
         asm.emitPushStatic(fieldIndex);
@@ -1656,7 +1651,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     final target = node.target;
     if (target is Field) {
-      int cpIndex = cp.add(new ConstantField(target));
+      int cpIndex = cp.add(new ConstantStaticField(target));
       asm.emitStoreStaticTOS(cpIndex);
     } else {
       _genStaticCall(target, new ConstantArgDesc(1), 1, isSet: true);
@@ -2124,7 +2119,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       // 1. Restore context from closure var.
       // This context has a context level at frame entry.
       asm.emitPush(locals.closureVarIndexInFrame);
-      asm.emitLoadFieldTOS(cp.add(new ConstantFieldOffset(closureContext)));
+      asm.emitLoadFieldTOS(cp.add(new ConstantInstanceField(closureContext)));
       asm.emitPopLocal(locals.contextVarIndexInFrame);
 
       // 2. Restore context from captured :saved_try_context_var${depth}.
@@ -2309,9 +2304,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         _genPushNull();
       }
       if (isCaptured) {
-        final int cpIndex = cp.add(new ConstantContextOffset.variable(
-            locals.getVarIndexInContext(node)));
-        asm.emitStoreFieldTOS(cpIndex);
+        asm.emitStoreContextVar(locals.getVarIndexInContext(node));
       } else {
         asm.emitPopLocal(locals.getVarIndexInFrame(node));
       }

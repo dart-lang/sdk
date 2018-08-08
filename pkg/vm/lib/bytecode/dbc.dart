@@ -7,8 +7,7 @@ library vm.bytecode.dbc;
 // List of changes from original DBC (described in runtime/vm/constants_dbc.h):
 //
 // 1. StoreFieldTOS, LoadFieldTOS instructions:
-//    D = index of constant pool entry with FieldOffset,
-//    TypeArgumentsFieldOffset or ConstantContextOffset tags
+//    D = index of constant pool entry with InstanceField tag.
 //    (instead of field offset in words).
 //
 // 2. EntryOptional instruction is revived in order to re-shuffle optional
@@ -21,6 +20,19 @@ library vm.bytecode.dbc;
 // 4. JumpIfNoAsserts instruction is added. This instruction jumps to the given
 //    target if assertions are not enabled. It has the same format as Jump
 //    instruction.
+//
+// 5. StoreContextParent stores context SP[0] into `parent` field of context SP[-1].
+//
+// 6. LoadContextParent loads parent from context SP[0].
+//
+// 7. StoreContextVar stores value SP[0] into context SP[-1] at index D.
+//
+// 8. LoadContextVar loads value from context SP[0] at index D.
+//
+// 9. LoadTypeArgumentsField loads instantiator type arguments from an
+//    instance SP[0].
+//    D = index of TypeArgumentsField constant pool entry corresponding
+//    to an instance's class.
 //
 
 enum Opcode {
@@ -183,10 +195,15 @@ enum Opcode {
   kStoreField,
   kStoreFieldExt,
   kStoreFieldTOS,
+  kStoreContextParent,
+  kStoreContextVar,
   kLoadField,
   kLoadFieldExt,
   kLoadUntagged,
   kLoadFieldTOS,
+  kLoadTypeArgumentsField,
+  kLoadContextParent,
+  kLoadContextVar,
   kBooleanNegateTOS,
   kBooleanNegate,
   kThrow,
@@ -571,6 +588,10 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.kAD, const [Operand.reg, Operand.reg, Operand.none]),
   Opcode.kStoreFieldTOS: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
+  Opcode.kStoreContextParent: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kStoreContextVar: const Format(
+      Encoding.kD, const [Operand.imm, Operand.none, Operand.none]),
   Opcode.kLoadField: const Format(
       Encoding.kABC, const [Operand.reg, Operand.reg, Operand.imm]),
   Opcode.kLoadFieldExt: const Format(
@@ -579,6 +600,12 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.kABC, const [Operand.reg, Operand.reg, Operand.imm]),
   Opcode.kLoadFieldTOS: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
+  Opcode.kLoadTypeArgumentsField: const Format(
+      Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
+  Opcode.kLoadContextParent: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kLoadContextVar: const Format(
+      Encoding.kD, const [Operand.imm, Operand.none, Operand.none]),
   Opcode.kBooleanNegateTOS: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kBooleanNegate: const Format(
