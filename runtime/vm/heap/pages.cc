@@ -979,6 +979,8 @@ void PageSpace::CollectGarbage(bool compact) {
         heap_->VerifyGC(kAllowMarked);
         OS::PrintErr(" done.\n");
       }
+
+      TIMELINE_FUNCTION_GC_DURATION(thread, "SweepLargeAndExecutablePages");
       GCSweeper sweeper;
 
       // During stop-the-world phases we should use bulk lock when adding
@@ -1075,6 +1077,8 @@ void PageSpace::CollectGarbage(bool compact) {
 }
 
 void PageSpace::BlockingSweep() {
+  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "Sweep");
+
   MutexLocker mld(freelist_[HeapPage::kData].mutex());
   MutexLocker mle(freelist_[HeapPage::kExecutable].mutex());
 

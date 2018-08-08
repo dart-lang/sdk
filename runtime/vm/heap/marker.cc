@@ -445,10 +445,12 @@ void GCMarker::IterateRoots(Isolate* isolate,
                             intptr_t num_slices) {
   ASSERT(0 <= slice_index && slice_index < num_slices);
   if ((slice_index == 0) || (num_slices <= 1)) {
+    TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ProcessRoots");
     isolate->VisitObjectPointers(visitor,
                                  ValidationPolicy::kDontValidateFrames);
   }
   if ((slice_index == 1) || (num_slices <= 1)) {
+    TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ProcessNewSpace");
     heap_->new_space()->VisitObjectPointers(visitor);
   }
 
@@ -666,6 +668,7 @@ void GCMarker::MarkObjects(Isolate* isolate,
     marked_bytes_ = 0;
     const int num_tasks = FLAG_marker_tasks;
     if (num_tasks == 0) {
+      TIMELINE_FUNCTION_GC_DURATION(thread, "Mark");
       // Mark everything on main thread.
       SkippedCodeFunctions* skipped_code_functions =
           collect_code ? new (zone) SkippedCodeFunctions() : NULL;
@@ -674,7 +677,7 @@ void GCMarker::MarkObjects(Isolate* isolate,
       IterateRoots(isolate, &mark, 0, 1);
       mark.DrainMarkingStack();
       {
-        TIMELINE_FUNCTION_GC_DURATION(thread, "WeakHandleProcessing");
+        TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessWeakHandles");
         MarkingWeakVisitor mark_weak(thread);
         IterateWeakRoots(isolate, &mark_weak);
       }
@@ -716,7 +719,7 @@ void GCMarker::MarkObjects(Isolate* isolate,
 
       // Phase 2: Weak processing on main thread.
       {
-        TIMELINE_FUNCTION_GC_DURATION(thread, "WeakHandleProcessing");
+        TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessWeakHandles");
         MarkingWeakVisitor mark_weak(thread);
         IterateWeakRoots(isolate, &mark_weak);
       }
