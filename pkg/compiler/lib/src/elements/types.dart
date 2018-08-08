@@ -707,8 +707,8 @@ class FunctionType extends DartType {
   }
 
   bool _equalsInternal(FunctionType other, _Assumptions assumptions) {
+    if (typeVariables.length != other.typeVariables.length) return false;
     if (typeVariables.isNotEmpty) {
-      if (typeVariables.length != other.typeVariables.length) return false;
       assumptions ??= new _Assumptions();
       for (int index = 0; index < typeVariables.length; index++) {
         assumptions.assume(typeVariables[index], other.typeVariables[index]);

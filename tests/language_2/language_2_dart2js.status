@@ -116,32 +116,10 @@ field_override_optimization_test: RuntimeError
 field_type_check2_test/01: MissingRuntimeError
 regress_23996_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
 
-[ $compiler == dart2js && $runtime != none ]
-function_type/function_type0_test: RuntimeError # Issue 30476
-function_type/function_type1_test: RuntimeError # Issue 30476
-function_type/function_type2_test: RuntimeError # Issue 30476
-function_type/function_type3_test: RuntimeError # Issue 30476
-function_type/function_type58_test: RuntimeError # Issue 30476
-function_type/function_type96_test: RuntimeError # Issue 30476
-function_type/function_type97_test: RuntimeError # Issue 30476
-function_type/function_type98_test: RuntimeError # Issue 30476
-function_type/function_type99_test: RuntimeError # Issue 30476
-
 [ $compiler == dart2js && $runtime != none && $checked ]
 assert_with_message_test: RuntimeError
 syncstar_covariant_type_test: RuntimeError # dart2js misplaces check in Iterator, not Iterable.
 syncstar_dcall_type_test: RuntimeError # dart2js misplaces check in Iterator, not Iterable.
-
-[ $compiler == dart2js && $runtime != none && $host_checked ]
-function_type/function_type0_test: RuntimeError # Issue 30476
-function_type/function_type1_test: RuntimeError # Issue 30476
-function_type/function_type2_test: RuntimeError # Issue 30476
-function_type/function_type3_test: RuntimeError # Issue 30476
-function_type/function_type58_test: Crash # Failed assertion: line 2259 pos 18: 'other.gvnEquals(instruction) && instruction.gvnEquals(other)': is not true.
-function_type/function_type96_test: Crash # Failed assertion: line 2259 pos 18: 'other.gvnEquals(instruction) && instruction.gvnEquals(other)': is not true.
-function_type/function_type97_test: Crash # Failed assertion: line 2259 pos 18: 'other.gvnEquals(instruction) && instruction.gvnEquals(other)': is not true.
-function_type/function_type98_test: Crash # Failed assertion: line 2259 pos 18: 'other.gvnEquals(instruction) && instruction.gvnEquals(other)': is not true.
-function_type/function_type99_test: Crash # Failed assertion: line 2259 pos 18: 'other.gvnEquals(instruction) && instruction.gvnEquals(other)': is not true.
 
 [ $compiler == dart2js && $runtime == safari ]
 field_override_optimization_test: RuntimeError
