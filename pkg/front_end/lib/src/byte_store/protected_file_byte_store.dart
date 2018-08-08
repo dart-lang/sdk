@@ -5,11 +5,12 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:front_end/src/byte_store/byte_store.dart';
-import 'package:front_end/src/byte_store/cache.dart';
-import 'package:front_end/src/byte_store/file_byte_store.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
+
+import 'byte_store.dart';
+import 'cache.dart';
+import 'file_byte_store.dart';
 
 /// The function that returns current time in milliseconds.
 typedef int GetCurrentTime();

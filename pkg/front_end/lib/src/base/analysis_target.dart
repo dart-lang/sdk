@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/base/source.dart';
+import 'source.dart';
 
 /**
  * An object with which an analysis result can be associated.

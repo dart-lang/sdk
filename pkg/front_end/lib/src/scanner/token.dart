@@ -8,9 +8,9 @@
  */
 import 'dart:collection';
 
-import 'package:front_end/src/base/syntactic_entity.dart';
-import 'package:front_end/src/fasta/scanner/token_constants.dart';
-import 'package:front_end/src/scanner/string_utilities.dart';
+import '../base/syntactic_entity.dart';
+import '../fasta/scanner/token_constants.dart';
+import 'string_utilities.dart';
 
 const int NO_PRECEDENCE = 0;
 const int ASSIGNMENT_PRECEDENCE = 1;

@@ -4,9 +4,10 @@
 
 library front_end.compiler_options;
 
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/base/performance_logger.dart';
 import 'package:kernel/target/targets.dart' show Target;
+
+import 'byte_store.dart';
+import '../base/performance_logger.dart';
 
 import '../fasta/fasta_codes.dart' show FormattedMessage;
 import '../fasta/severity.dart' show Severity;

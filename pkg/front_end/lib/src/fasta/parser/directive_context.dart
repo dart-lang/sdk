@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/fasta_codes.dart';
-import 'package:front_end/src/fasta/parser/parser.dart';
-import 'package:front_end/src/scanner/token.dart';
+import '../fasta_codes.dart';
+import 'parser.dart';
+import '../../scanner/token.dart';
 
 class DirectiveContext {
   DirectiveState state = DirectiveState.Unknown;

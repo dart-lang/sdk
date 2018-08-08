@@ -4,12 +4,13 @@
 
 import 'dart:async' show Future;
 
-import 'package:front_end/src/api_prototype/file_system.dart';
-import 'package:front_end/src/api_prototype/standard_file_system.dart';
-import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/kernel_generator_impl.dart';
 import 'package:kernel/kernel.dart' show Component;
 import 'package:kernel/target/targets.dart' show Target;
+
+import '../api_prototype/file_system.dart';
+import '../api_prototype/standard_file_system.dart';
+import '../base/processed_options.dart';
+import '../kernel_generator_impl.dart';
 
 import '../api_prototype/compiler_options.dart';
 import 'compiler_state.dart';

@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/scanner/error_token.dart'
-    show UnmatchedToken;
+import '../scanner/error_token.dart' show UnmatchedToken;
 
 import '../../scanner/token.dart'
     show

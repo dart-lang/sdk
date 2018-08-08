@@ -33,12 +33,11 @@ import 'package:kernel/text/ast_to_text.dart' show Printer;
 import 'package:testing/testing.dart'
     show ChainContext, Result, StdioProcess, Step, TestDescription;
 
-import 'package:front_end/src/api_prototype/front_end.dart';
+import '../../api_prototype/front_end.dart';
 
-import 'package:front_end/src/base/processed_options.dart'
-    show ProcessedOptions;
+import '../../base/processed_options.dart' show ProcessedOptions;
 
-import 'package:front_end/src/compute_platform_binaries_location.dart'
+import '../../compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
 import '../compiler_context.dart';

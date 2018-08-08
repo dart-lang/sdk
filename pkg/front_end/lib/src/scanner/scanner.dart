@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:charcode/ascii.dart';
-import 'package:front_end/src/scanner/errors.dart';
-import 'package:front_end/src/scanner/reader.dart';
-import 'package:front_end/src/scanner/string_utilities.dart';
-import 'package:front_end/src/scanner/token.dart';
+
+import 'errors.dart';
+import 'reader.dart';
+import 'string_utilities.dart';
+import 'token.dart';
 
 /**
  * A state in a state machine used to scan keywords.

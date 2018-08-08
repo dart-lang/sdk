@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/base/errors.dart';
-import 'package:front_end/src/fasta/fasta_codes.dart';
-import 'package:front_end/src/fasta/scanner/error_token.dart';
-import 'package:front_end/src/scanner/token.dart' show Token, TokenType;
-import 'package:front_end/src/fasta/scanner/token_constants.dart';
+import '../base/errors.dart';
+import '../fasta/fasta_codes.dart';
+import '../fasta/scanner/error_token.dart';
+import 'token.dart' show Token, TokenType;
+import '../fasta/scanner/token_constants.dart';
 
 /**
  * The error codes used for errors detected by the scanner.

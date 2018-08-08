@@ -4,9 +4,6 @@
 
 library fasta.kernel_enum_builder;
 
-import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
-    show ShadowClass;
-
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -28,6 +25,8 @@ import 'package:kernel/ast.dart'
         ThisExpression,
         TreeNode,
         VariableGet;
+
+import 'kernel_shadow_ast.dart' show ShadowClass;
 
 import '../fasta_codes.dart'
     show

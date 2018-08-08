@@ -4,26 +4,27 @@
 
 import 'dart:async';
 
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/api_prototype/compilation_message.dart';
-import 'package:front_end/src/api_prototype/file_system.dart';
-import 'package:front_end/src/base/api_signature.dart';
-import 'package:front_end/src/base/performance_logger.dart';
-import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/fasta/compiler_context.dart';
-import 'package:front_end/src/fasta/dill/dill_target.dart';
-import 'package:front_end/src/fasta/kernel/kernel_target.dart';
-import 'package:front_end/src/fasta/kernel/metadata_collector.dart';
-import 'package:front_end/src/fasta/kernel/utils.dart';
-import 'package:front_end/src/fasta/ticker.dart';
-import 'package:front_end/src/fasta/uri_translator.dart';
-import 'package:front_end/src/incremental/file_state.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:meta/meta.dart';
+
+import '../api_prototype/byte_store.dart';
+import '../api_prototype/compilation_message.dart';
+import '../api_prototype/file_system.dart';
+import '../base/api_signature.dart';
+import '../base/performance_logger.dart';
+import '../base/processed_options.dart';
+import '../fasta/compiler_context.dart';
+import '../fasta/dill/dill_target.dart';
+import '../fasta/kernel/kernel_target.dart';
+import '../fasta/kernel/metadata_collector.dart';
+import '../fasta/kernel/utils.dart';
+import '../fasta/ticker.dart';
+import '../fasta/uri_translator.dart';
+import 'file_state.dart';
 
 /// This function is invoked for each newly discovered file, and the returned
 /// [Future] is awaited before reading the file content.

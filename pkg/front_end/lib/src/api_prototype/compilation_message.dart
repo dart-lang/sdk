@@ -8,8 +8,8 @@ library front_end.compilation_message;
 
 import 'package:source_span/source_span.dart' show SourceSpan;
 
-import 'package:front_end/src/fasta/severity.dart' show Severity;
-export 'package:front_end/src/fasta/severity.dart' show Severity;
+import '../fasta/severity.dart' show Severity;
+export '../fasta/severity.dart' show Severity;
 
 /// A single message, typically an error, reported during compilation, and
 /// information about where it occurred and suggestions on how to fix it.
