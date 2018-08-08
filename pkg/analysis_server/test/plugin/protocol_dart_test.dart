@@ -22,6 +22,7 @@ import '../abstract_context.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ElementTest);
+    defineReflectiveTests(ElementTest_UseCFE);
     defineReflectiveTests(ElementKindTest);
   });
 }
@@ -510,4 +511,22 @@ class A {
     expect(element.returnType, isNull);
     expect(element.flags, 0);
   }
+}
+
+@reflectiveTest
+class ElementTest_UseCFE extends ElementTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_fromElement_ENUM() => super.test_fromElement_ENUM();
+
+  @failingTest
+  @override
+  test_fromElement_ENUM_CONSTANT() => super.test_fromElement_ENUM_CONSTANT();
+
+  @failingTest
+  @override
+  test_fromElement_LABEL() => super.test_fromElement_LABEL();
 }

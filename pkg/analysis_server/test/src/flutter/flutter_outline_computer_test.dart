@@ -15,6 +15,7 @@ import '../../abstract_context.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlutterOutlineComputerTest);
+    defineReflectiveTests(FlutterOutlineComputerTest_UseCFE);
   });
 }
 
@@ -697,4 +698,63 @@ class MyWidget extends StatelessWidget {
     }
     return buffer.toString();
   }
+}
+
+@reflectiveTest
+class FlutterOutlineComputerTest_UseCFE extends FlutterOutlineComputerTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_attribute_namedExpression() => super.test_attribute_namedExpression();
+
+  @failingTest
+  @override
+  test_attributes_bool() => super.test_attributes_bool();
+
+  @failingTest
+  @override
+  test_attributes_functionExpression_hasParameters_blockExpression() =>
+      super.test_attributes_functionExpression_hasParameters_blockExpression();
+
+  @failingTest
+  @override
+  test_attributes_functionExpression_hasParameters_bodyExpression() =>
+      super.test_attributes_functionExpression_hasParameters_bodyExpression();
+
+  @failingTest
+  @override
+  test_attributes_functionExpression_noParameters_blockExpression() =>
+      super.test_attributes_functionExpression_noParameters_blockExpression();
+
+  @failingTest
+  @override
+  test_attributes_functionExpression_noParameters_bodyExpression() =>
+      super.test_attributes_functionExpression_noParameters_bodyExpression();
+
+  @failingTest
+  @override
+  test_attributes_int() => super.test_attributes_int();
+
+  @failingTest
+  @override
+  test_attributes_listLiteral() => super.test_attributes_listLiteral();
+
+  @failingTest
+  @override
+  test_attributes_mapLiteral() => super.test_attributes_mapLiteral();
+
+  @failingTest
+  @override
+  test_attributes_multiLine() => super.test_attributes_multiLine();
+
+  @failingTest
+  @override
+  test_attributes_string_interpolation() =>
+      super.test_attributes_string_interpolation();
+
+  @failingTest
+  @override
+  test_attributes_string_literal() => super.test_attributes_string_literal();
 }
