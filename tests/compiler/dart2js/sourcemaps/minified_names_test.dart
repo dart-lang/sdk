@@ -108,6 +108,10 @@ checkExpectation(MinifiedNameTest test, bool minified) async {
   print('   obfuscated-name: $name');
   Expect.isNotNull(name, 'Error didn\'t contain a name\nerror: $error');
 
+  if (name.startsWith('minified:')) {
+    name = name.substring(9);
+  }
+
   var sourceMap = '${result.outputPath}.map';
   var json = jsonDecode(await new File(sourceMap).readAsString());
 
@@ -119,7 +123,7 @@ checkExpectation(MinifiedNameTest test, bool minified) async {
   var actualName;
   if (test.isGlobal) {
     var index = minifiedNames['global'][name];
-    Expect.isNotNull(index);
+    Expect.isNotNull(index, "'$name' not in global name map");
     actualName = json['names'][index];
   } else if (test.isInstance) {
     var index = minifiedNames['instance'][name];
