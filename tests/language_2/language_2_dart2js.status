@@ -243,7 +243,6 @@ constructor_duplicate_final_test/02: MissingCompileTimeError
 constructor_named_arguments_test/01: MissingCompileTimeError
 constructor_named_arguments_test/none: RuntimeError
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
-covariance_type_parameter_test/02: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 covariant_override/runtime_check_test: RuntimeError
 covariant_subtyping_test: RuntimeError
 deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
@@ -504,7 +503,6 @@ factory4_test/00: MissingCompileTimeError
 field3_test/01: MissingCompileTimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
-generic_methods_unused_parameter_test: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
 identical_const_test/01: MissingCompileTimeError
 identical_const_test/02: MissingCompileTimeError
 identical_const_test/03: MissingCompileTimeError
@@ -758,7 +756,6 @@ const_types_test/39: MissingCompileTimeError
 constructor12_test: RuntimeError
 constructor_named_arguments_test/none: RuntimeError
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
-covariance_type_parameter_test/02: RuntimeError
 covariant_subtyping_test: Crash
 ct_const_test: RuntimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
@@ -799,7 +796,6 @@ generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
 generic_methods_bounds_test/02: MissingRuntimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
-generic_methods_unused_parameter_test: RuntimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError
 generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
