@@ -4226,10 +4226,6 @@ class LocalConstructorContributorTest_UseCFE
 
   @failingTest
   @override
-  test_enum_deprecated() => super.test_enum_deprecated();
-
-  @failingTest
-  @override
   test_ForEachStatement_body_untyped() =>
       super.test_ForEachStatement_body_untyped();
 

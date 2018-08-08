@@ -185,25 +185,18 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitEnumDeclaration(EnumDeclaration node) {
     ClassElement element = _match(node.name, _walker.getEnum());
-    if (_useCFE) {
-      node.name.staticType = _typeProvider.typeType;
-      for (var constant in node.constants) {
-        SimpleIdentifier name = constant.name;
-        FieldElement field = element.getField(name.name);
-        name.staticElement = field;
-        name.staticType = element.type;
-      }
-      return null;
-    }
+    node.name.staticType = _typeProvider.typeType;
+    resolveMetadata(node, node.metadata, element);
     _walk(new ElementWalker.forClass(element), () {
       for (EnumConstantDeclaration constant in node.constants) {
-        VariableElement element = _match(constant.name, _walker.getVariable());
-        resolveMetadata(node, constant.metadata, element);
+        VariableElement field = _match(constant.name, _walker.getVariable());
+        resolveMetadata(node, constant.metadata, field);
+        constant.name.staticElement = field;
+        constant.name.staticType = field.type;
       }
       _walker.getFunction(); // toString()
       super.visitEnumDeclaration(node);
     });
-    resolveMetadata(node, node.metadata, element);
     return null;
   }
 

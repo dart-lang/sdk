@@ -4734,10 +4734,6 @@ class LocalReferenceContributorTest_UseCFE
 
   @failingTest
   @override
-  test_enum_deprecated() => super.test_enum_deprecated();
-
-  @failingTest
-  @override
   test_enum_filter() => super.test_enum_filter();
 
   @failingTest

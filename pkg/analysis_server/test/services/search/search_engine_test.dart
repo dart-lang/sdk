@@ -505,6 +505,7 @@ class SearchEngineImplTest_UseCFE extends SearchEngineImplTest {
 
   @failingTest
   @override
-  test_searchReferences_discover_owned() =>
-      super.test_searchReferences_discover_owned();
+  test_searchReferences_discover_owned() {
+    return callFailingTest(super.test_searchReferences_discover_owned);
+  }
 }

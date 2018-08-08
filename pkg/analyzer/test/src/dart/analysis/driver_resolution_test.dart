@@ -8051,9 +8051,7 @@ enum MyEnum {
 
     SimpleIdentifier dName = enumNode.name;
     expect(dName.staticElement, same(enumElement));
-    if (useCFE) {
-      expect(dName.staticType, typeProvider.typeType);
-    }
+    expect(dName.staticType, typeProvider.typeType);
 
     {
       var aElement = enumElement.getField('A');

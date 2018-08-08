@@ -520,13 +520,5 @@ class ElementTest_UseCFE extends ElementTest {
 
   @failingTest
   @override
-  test_fromElement_ENUM() => super.test_fromElement_ENUM();
-
-  @failingTest
-  @override
-  test_fromElement_ENUM_CONSTANT() => super.test_fromElement_ENUM_CONSTANT();
-
-  @failingTest
-  @override
   test_fromElement_LABEL() => super.test_fromElement_LABEL();
 }
