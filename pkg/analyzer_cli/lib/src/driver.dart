@@ -655,7 +655,7 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
 
   /// Return whether [a] and [b] options are equal for the purpose of
   /// command line analysis.
-  bool _equalAnalysisOptions(AnalysisOptionsImpl a, AnalysisOptions b) {
+  bool _equalAnalysisOptions(AnalysisOptions a, AnalysisOptions b) {
     return a.enableLazyAssignmentOperators == b.enableLazyAssignmentOperators &&
         a.enableSuperMixins == b.enableSuperMixins &&
         a.enableTiming == b.enableTiming &&

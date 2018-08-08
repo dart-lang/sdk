@@ -13,17 +13,6 @@ import 'package:analyzer_cli/src/options.dart' show CommandLineOptions;
 
 const _JSON = const JsonEncoder.withIndent("  ");
 
-bool _isCheckedMode = () {
-  bool x = true;
-  try {
-    // Trigger an exception if we're in checked mode.
-    x = "" as dynamic;
-    return x != ""; // return false; suppress unused variable warning
-  } catch (e) {
-    return true;
-  }
-}();
-
 String _osType = () {
   if (Platform.isLinux) {
     return "linux";
@@ -46,7 +35,6 @@ String makePerfReport(int startTime, int endTime, CommandLineOptions options,
   var platformJson = <String, dynamic>{
     'osType': _osType,
     'dartSdkVersion': Platform.version,
-    'checkedMode': _isCheckedMode,
   };
 
   var optionsJson = <String, dynamic>{
