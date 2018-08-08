@@ -13,6 +13,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LibraryPrefixContributorTest);
+    defineReflectiveTests(LibraryPrefixContributorTest_UseCFE);
   });
 }
 
@@ -326,4 +327,24 @@ main() {new ^ String x = "hello";}''');
     await computeSuggestions();
     assertNoSuggestions();
   }
+}
+
+@reflectiveTest
+class LibraryPrefixContributorTest_UseCFE extends LibraryPrefixContributorTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_InstanceCreationExpression() => super.test_InstanceCreationExpression();
+
+  @failingTest
+  @override
+  test_InstanceCreationExpression_inPart() =>
+      super.test_InstanceCreationExpression_inPart();
+
+  @failingTest
+  @override
+  test_InstanceCreationExpression_inPart_detached() =>
+      super.test_InstanceCreationExpression_inPart_detached();
 }

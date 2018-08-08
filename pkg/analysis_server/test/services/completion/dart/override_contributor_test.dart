@@ -12,6 +12,7 @@ import 'completion_contributor_util.dart';
 
 main() {
   defineReflectiveTests(OverrideContributorTest);
+  defineReflectiveTests(OverrideContributorTest_UseCFE);
 }
 
 @reflectiveTest
@@ -153,6 +154,29 @@ class C extends B {
         selectionLength: 27);
   }
 
+  @failingTest
+  test_insideBareClass() async {
+    addTestSource('''
+class A {
+  method() {}
+  int age;
+}
+
+class B extends A {
+  ^
+}
+''');
+    await computeSuggestions();
+    _assertOverride('''
+method() {
+    // TODO: implement method
+    return super.method();
+  }''',
+        displayText: 'method() { … }',
+        selectionOffset: 45,
+        selectionLength: 22);
+  }
+
   test_withExistingOverride() async {
     addTestSource('''
 class A {
@@ -200,29 +224,6 @@ method() {
         selectionLength: 22);
   }
 
-  @failingTest
-  test_insideBareClass() async {
-    addTestSource('''
-class A {
-  method() {}
-  int age;
-}
-
-class B extends A {
-  ^
-}
-''');
-    await computeSuggestions();
-    _assertOverride('''
-method() {
-    // TODO: implement method
-    return super.method();
-  }''',
-        displayText: 'method() { … }',
-        selectionOffset: 45,
-        selectionLength: 22);
-  }
-
   CompletionSuggestion _assertOverride(String completion,
       {String displayText, int selectionOffset, int selectionLength}) {
     CompletionSuggestion cs = getSuggest(
@@ -245,4 +246,10 @@ method() {
     expect(cs.displayText, displayText);
     return cs;
   }
+}
+
+@reflectiveTest
+class OverrideContributorTest_UseCFE extends OverrideContributorTest {
+  @override
+  bool get useCFE => true;
 }

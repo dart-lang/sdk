@@ -13,6 +13,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LocalReferenceContributorTest);
+    defineReflectiveTests(LocalReferenceContributorTest_UseCFE);
   });
 }
 
@@ -2908,6 +2909,12 @@ class C {foo(){var f; {var x;} f[T^]}}''');
     //assertNotSuggested('T1');
   }
 
+  test_inferredType() async {
+    addTestSource('main() { var v = 42; ^ }');
+    await computeSuggestions();
+    assertSuggestLocalVariable('v', 'int');
+  }
+
   test_InstanceCreationExpression() async {
     addTestSource('''
 class A {foo(){var f; {var x;}}}
@@ -4202,12 +4209,6 @@ class X {foo(){A^.bar}}''');
     assertSuggestLocalVariable('_ab', null);
   }
 
-  test_inferredType() async {
-    addTestSource('main() { var v = 42; ^ }');
-    await computeSuggestions();
-    assertSuggestLocalVariable('v', 'int');
-  }
-
   test_prioritization_public() async {
     addTestSource('main() {var ab; var _ab; a^}');
     await computeSuggestions();
@@ -4678,4 +4679,101 @@ class C {bar(){var f; {var x;} var e = ^ var g}}''');
     assertNotSuggested('x');
     assertNotSuggested('e');
   }
+}
+
+@reflectiveTest
+class LocalReferenceContributorTest_UseCFE
+    extends LocalReferenceContributorTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_ArgumentList_MethodInvocation_functionalArg2() =>
+      super.test_ArgumentList_MethodInvocation_functionalArg2();
+
+  @failingTest
+  @override
+  test_ArgumentList_namedParam_filter() =>
+      super.test_ArgumentList_namedParam_filter();
+
+  @failingTest
+  @override
+  test_AsExpression_type() => super.test_AsExpression_type();
+
+  @failingTest
+  @override
+  test_Block_inherited_imported() => super.test_Block_inherited_imported();
+
+  @failingTest
+  @override
+  test_Block_inherited_local() => super.test_Block_inherited_local();
+
+  @failingTest
+  @override
+  test_CatchClause_onType() => super.test_CatchClause_onType();
+
+  @failingTest
+  @override
+  test_CatchClause_onType_noBrackets() =>
+      super.test_CatchClause_onType_noBrackets();
+
+  @failingTest
+  @override
+  test_CatchClause_typed() => super.test_CatchClause_typed();
+
+  @failingTest
+  @override
+  test_ConditionalExpression_partial_thenExpression_empty() =>
+      super.test_ConditionalExpression_partial_thenExpression_empty();
+
+  @failingTest
+  @override
+  test_DefaultFormalParameter_named_expression() =>
+      super.test_DefaultFormalParameter_named_expression();
+
+  @failingTest
+  @override
+  test_enum_deprecated() => super.test_enum_deprecated();
+
+  @failingTest
+  @override
+  test_enum_filter() => super.test_enum_filter();
+
+  @failingTest
+  @override
+  test_ForEachStatement_body_untyped() =>
+      super.test_ForEachStatement_body_untyped();
+
+  @failingTest
+  @override
+  test_ForEachStatement_loopVariable_type() =>
+      super.test_ForEachStatement_loopVariable_type();
+
+  @failingTest
+  @override
+  test_ForStatement_initializer() => super.test_ForStatement_initializer();
+
+  @failingTest
+  @override
+  test_FunctionExpression_body_function() =>
+      super.test_FunctionExpression_body_function();
+
+  @failingTest
+  @override
+  test_ImportDirective_dart() => super.test_ImportDirective_dart();
+
+  @failingTest
+  @override
+  test_InstanceCreationExpression() => super.test_InstanceCreationExpression();
+
+  @failingTest
+  @override
+  test_InstanceCreationExpression_unimported() =>
+      super.test_InstanceCreationExpression_unimported();
+
+  @failingTest
+  @override
+  test_PrefixedIdentifier_class_const() =>
+      super.test_PrefixedIdentifier_class_const();
 }

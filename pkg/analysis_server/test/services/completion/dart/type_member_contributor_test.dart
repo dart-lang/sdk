@@ -15,6 +15,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeMemberContributorTest);
+    defineReflectiveTests(TypeMemberContributorTest_UseCFE);
   });
 }
 
@@ -4024,4 +4025,101 @@ class C1 extends C2 implements C3 {
     assertNotSuggested('x');
     assertNotSuggested('e');
   }
+}
+
+@reflectiveTest
+class TypeMemberContributorTest_UseCFE extends TypeMemberContributorTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_AsExpression() => super.test_AsExpression();
+
+  @failingTest
+  @override
+  test_Block_inherited_imported() => super.test_Block_inherited_imported();
+
+  @failingTest
+  @override
+  test_Block_inherited_local() => super.test_Block_inherited_local();
+
+  @failingTest
+  @override
+  test_CatchClause_onType() => super.test_CatchClause_onType();
+
+  @failingTest
+  @override
+  test_CatchClause_onType_noBrackets() =>
+      super.test_CatchClause_onType_noBrackets();
+
+  @failingTest
+  @override
+  test_CatchClause_typed() => super.test_CatchClause_typed();
+
+  @failingTest
+  @override
+  test_ConditionalExpression_partial_thenExpression_empty() =>
+      super.test_ConditionalExpression_partial_thenExpression_empty();
+
+  @failingTest
+  @override
+  test_DefaultFormalParameter_named_expression() =>
+      super.test_DefaultFormalParameter_named_expression();
+
+  @failingTest
+  @override
+  test_ForEachStatement_body_untyped() =>
+      super.test_ForEachStatement_body_untyped();
+
+  @failingTest
+  @override
+  test_ForEachStatement_loopVariable_type() =>
+      super.test_ForEachStatement_loopVariable_type();
+
+  @failingTest
+  @override
+  test_ForStatement_initializer() => super.test_ForStatement_initializer();
+
+  @failingTest
+  @override
+  test_ImportDirective_dart() => super.test_ImportDirective_dart();
+
+  @failingTest
+  @override
+  test_InstanceCreationExpression_unimported() =>
+      super.test_InstanceCreationExpression_unimported();
+
+  @failingTest
+  @override
+  test_libraryPrefix_deferred() => super.test_libraryPrefix_deferred();
+
+  @failingTest
+  @override
+  test_PrefixedIdentifier_class_const() =>
+      super.test_PrefixedIdentifier_class_const();
+
+  @failingTest
+  @override
+  test_PrefixedIdentifier_propertyAccess_newStmt() =>
+      super.test_PrefixedIdentifier_propertyAccess_newStmt();
+
+  @failingTest
+  @override
+  test_PrefixedIdentifier_trailingStmt_field() =>
+      super.test_PrefixedIdentifier_trailingStmt_field();
+
+  @failingTest
+  @override
+  test_PrefixedIdentifier_trailingStmt_param() =>
+      super.test_PrefixedIdentifier_trailingStmt_param();
+
+  @failingTest
+  @override
+  test_PrefixedIdentifier_trailingStmt_param2() =>
+      super.test_PrefixedIdentifier_trailingStmt_param2();
+
+  @failingTest
+  @override
+  test_super() => super.test_super();
 }

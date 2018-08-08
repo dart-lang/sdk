@@ -12,6 +12,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CombinatorContributorTest);
+    defineReflectiveTests(CombinatorContributorTest_UseCFE);
   });
 }
 
@@ -168,4 +169,14 @@ import "${convertPathForImport("/testB.dart")}" show ^;
         relevance: DART_RELEVANCE_DEFAULT,
         kind: CompletionSuggestionKind.IDENTIFIER);
   }
+}
+
+@reflectiveTest
+class CombinatorContributorTest_UseCFE extends CombinatorContributorTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_Block_inherited_local() => super.test_Block_inherited_local();
 }
