@@ -695,7 +695,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
     return;
   }
 
-  if (FLAG_precompiled_mode) {
+  if (ShouldUseTypeTestingStubFor(is_optimizing(), dst_type)) {
     GenerateAssertAssignableViaTypeTestingStub(token_pos, deopt_id, dst_type,
                                                dst_name, locs);
   } else {

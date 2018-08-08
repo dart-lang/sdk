@@ -2449,18 +2449,24 @@ void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
   const Register kTmp = R9;
 
   // If this is not a [Type] object, we'll go to the runtime.
-  Label is_simple, is_instantiated, is_uninstantiated;
+  Label is_simple_case, is_complex_case;
   __ LoadClassId(kTmp, kDstTypeReg);
   __ cmp(kTmp, Operand(kTypeCid));
-  __ BranchIf(NOT_EQUAL, &is_uninstantiated);
+  __ BranchIf(NOT_EQUAL, &is_complex_case);
 
   // Check whether this [Type] is instantiated/uninstantiated.
   __ ldr(kTmp, FieldAddress(kDstTypeReg, Type::type_state_offset()), kByte);
   __ cmp(kTmp, Operand(RawType::kFinalizedInstantiated));
-  __ BranchIf(NOT_EQUAL, &is_uninstantiated);
-  // Fall through to &is_instantiated
+  __ BranchIf(NOT_EQUAL, &is_complex_case);
 
-  __ Bind(&is_instantiated);
+  // Check whether this [Type] is a function type.
+  __ ldr(kTmp, FieldAddress(kDstTypeReg, Type::signature_offset()));
+  __ CompareObject(kTmp, Object::null_object());
+  __ BranchIf(NOT_EQUAL, &is_complex_case);
+
+  // Fall through to &is_simple_case
+
+  __ Bind(&is_simple_case);
   {
     __ PushPair(kInstantiatorTypeArgumentsReg, kSubtypeTestCacheReg);
     __ BranchLink(*StubCode::Subtype2TestCache_entry());
@@ -2470,10 +2476,10 @@ void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
     __ Jump(&call_runtime);
   }
 
-  __ Bind(&is_uninstantiated);
+  __ Bind(&is_complex_case);
   {
     __ PushPair(kInstantiatorTypeArgumentsReg, kSubtypeTestCacheReg);
-    __ BranchLink(*StubCode::Subtype4TestCache_entry());
+    __ BranchLink(*StubCode::Subtype6TestCache_entry());
     __ CompareObject(R1, Bool::True());
     __ PopPair(kInstantiatorTypeArgumentsReg, kSubtypeTestCacheReg);
     __ BranchIf(EQUAL, &done);  // Cache said: yes.
