@@ -662,6 +662,8 @@
       "builders": [
         "vm-kernel-precomp-linux-release-simarm",
         "vm-kernel-precomp-linux-release-simarm64",
+        "vm-kernel-precomp-mac-release-simarm64",
+        "vm-kernel-precomp-win-release-simarm64",
         "vm-kernel-precomp-win-release-x64"
       ],
       "meta": {
@@ -691,6 +693,7 @@
     },
     {
       "builders": [
+        "vm-kernel-precomp-linux-product-x64",
         "vm-kernel-precomp-linux-release-x64"
       ],
       "meta": {
