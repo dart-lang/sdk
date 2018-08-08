@@ -15,6 +15,9 @@ regexp/pcre_test: Pass, Slow # Issue 21593
 apply3_test: SkipByDesign # Imports dart:mirrors
 big_integer_huge_mul_vm_test: Pass, Timeout # --no_intrinsify
 big_integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify
+error_stack_trace1_test: Skip # Dart 1 AOT to be retired soon.
+error_stack_trace2_test: Skip # Dart 1 AOT to be retired soon.
+error_stack_trace_test: Skip # Dart 1 AOT to be retired soon.
 int_parse_radix_test: Pass, Timeout # --no_intrinsify
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
 

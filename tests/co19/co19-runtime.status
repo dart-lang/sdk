@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == precompiler ]
+Language/Expressions/Throw/stack_trace_t01: Skip # Dart 1 AOT to be retired soon.
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Timeout
 LibTest/core/Map/Map_class_A01_t04: Pass, Timeout

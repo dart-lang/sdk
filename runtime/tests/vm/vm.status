@@ -73,6 +73,7 @@ dart/data_uri_import_test/badencodeddate: CompileTimeError
 
 [ $compiler == precompiler ]
 dart/byte_array_test: Skip # Incompatible flag --disable_alloc_stubs_after_gc
+vm/dart/error_stacktrace_test: Skip # Dart 1 AOT to be retired soon.
 
 [ $mode == debug ]
 cc/CorelibIsolateStartup: SkipByDesign # This is a benchmark that is not informative in debug mode.

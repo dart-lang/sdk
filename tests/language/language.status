@@ -14,8 +14,11 @@ vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.
 [ $compiler == precompiler ]
 deferred_global_test: Skip # Deferred loading happens eagerly.
 deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
+error_stacktrace_test: Skip # Dart 1 AOT to be retired soon.
 implicit_closure_test: Skip # Incompatible flag: --use_slow_path
 regress_23408_test: RuntimeError
+stacktrace_rethrow_error_test/*: Skip # Dart 1 AOT to be retired soon.
+vm/optimized_guarded_field_test: Skip # Dart 1 AOT to be retired soon.
 vm/regress_27201_test: Skip # Deferred loading happens eagerly.
 
 [ $mode == debug ]
