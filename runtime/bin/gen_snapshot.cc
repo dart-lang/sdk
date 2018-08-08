@@ -154,8 +154,6 @@ static const char* kSnapshotKindNames[] = {
   V(save_obfuscation_map, obfuscation_map_filename)
 
 #define BOOL_OPTIONS_LIST(V)                                                   \
-  V(dependencies_only, dependencies_only)                                      \
-  V(print_dependencies, print_dependencies)                                    \
   V(obfuscate, obfuscate)                                                      \
   V(verbose, verbose)                                                          \
   V(version, version)                                                          \
@@ -206,10 +204,6 @@ static void PrintUsage() {
 "--dependencies=<output-file>                                                \n"
 "  Generates a Makefile with snapshot output files as targets and all        \n"
 "  transitive imports as sources.                                            \n"
-"--print_dependencies                                                        \n"
-"  Prints all transitive imports to stdout.                                  \n"
-"--dependencies_only                                                         \n"
-"  Don't create and output the snapshot.                                     \n"
 "--help                                                                      \n"
 "  Display this message (add --verbose for information about all VM options).\n"
 "--version                                                                   \n"
@@ -705,31 +699,10 @@ static void CreateAndWriteDependenciesFile() {
 
   Loader::ResolveDependenciesAsFilePaths();
 
-  ASSERT((dependencies_filename != NULL) || print_dependencies);
+  ASSERT(dependencies_filename != NULL);
   if (dependencies_filename != NULL) {
     DependenciesFileWriter writer;
     writer.WriteDependencies(dependencies);
-  }
-
-  if (print_dependencies) {
-    Log::Print("%s\n", vm_snapshot_data_filename);
-    if (snapshot_kind == kScript) {
-      if (vm_snapshot_data_filename != NULL) {
-        Log::Print("%s\n", vm_snapshot_data_filename);
-      }
-      if (vm_snapshot_instructions_filename != NULL) {
-        Log::Print("%s\n", vm_snapshot_instructions_filename);
-      }
-      if (isolate_snapshot_data_filename != NULL) {
-        Log::Print("%s\n", isolate_snapshot_data_filename);
-      }
-      if (isolate_snapshot_instructions_filename != NULL) {
-        Log::Print("%s\n", isolate_snapshot_instructions_filename);
-      }
-    }
-    for (intptr_t i = 0; i < dependencies->length(); i++) {
-      Log::Print("%s\n", dependencies->At(i));
-    }
   }
 
   for (intptr_t i = 0; i < dependencies->length(); i++) {
@@ -1422,7 +1395,7 @@ static int GenerateSnapshotFromKernel(const uint8_t* kernel_buffer,
   char* error = NULL;
   IsolateData* isolate_data = new IsolateData(NULL, commandline_package_root,
                                               commandline_packages_file, NULL);
-  if ((dependencies_filename != NULL) || print_dependencies) {
+  if (dependencies_filename != NULL) {
     isolate_data->set_dependencies(new MallocGrowableArray<char*>());
   }
 
@@ -1552,8 +1525,7 @@ int main(int argc, char** argv) {
           "Can only generate core or aot snapshots from a kernel file.\n");
       return kErrorExitCode;
     }
-    if ((dependencies_filename != NULL) || print_dependencies ||
-        dependencies_only) {
+    if (dependencies_filename != NULL) {
       Log::PrintErr("Depfiles are not supported in Dart 2.\n");
       return kErrorExitCode;
     }
@@ -1718,7 +1690,7 @@ int main(int argc, char** argv) {
     // be in the snapshot.
     isolate_data = new IsolateData(app_script_name, commandline_package_root,
                                    commandline_packages_file, NULL);
-    if ((dependencies_filename != NULL) || print_dependencies) {
+    if (dependencies_filename != NULL) {
       isolate_data->set_dependencies(new MallocGrowableArray<char*>());
     }
 
@@ -1768,24 +1740,22 @@ int main(int argc, char** argv) {
 
     LoadCompilationTrace();
 
-    if (!dependencies_only) {
-      switch (snapshot_kind) {
-        case kCore:
-          CreateAndWriteCoreSnapshot();
-          break;
-        case kCoreJIT:
-          CreateAndWriteCoreJITSnapshot();
-          break;
-        case kScript:
-          CreateAndWriteScriptSnapshot();
-          break;
-        case kAppAOTBlobs:
-        case kAppAOTAssembly:
-          CreateAndWritePrecompiledSnapshot(entry_points);
-          break;
-        default:
-          UNREACHABLE();
-      }
+    switch (snapshot_kind) {
+      case kCore:
+        CreateAndWriteCoreSnapshot();
+        break;
+      case kCoreJIT:
+        CreateAndWriteCoreJITSnapshot();
+        break;
+      case kScript:
+        CreateAndWriteScriptSnapshot();
+        break;
+      case kAppAOTBlobs:
+      case kAppAOTAssembly:
+        CreateAndWritePrecompiledSnapshot(entry_points);
+        break;
+      default:
+        UNREACHABLE();
     }
 
     CreateAndWriteDependenciesFile();
