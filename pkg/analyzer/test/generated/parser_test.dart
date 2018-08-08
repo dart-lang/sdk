@@ -13373,7 +13373,10 @@ class C<@Foo.bar(const [], const [1], const{"":r""}, 0xFF + 2, .3, 4.5) T> {}
     expectNotNullIfNoErrors(unit);
     assertNoErrors();
     ClassDeclaration declaration = unit.declarations[0];
-    expect(declaration.documentationComment, isNotNull);
+    Comment comment = declaration.documentationComment;
+    expect(comment.isDocumentation, isTrue);
+    expect(comment.tokens, hasLength(1));
+    expect(comment.tokens[0].lexeme, '/** 2 */');
     expect(declaration.metadata, hasLength(1));
   }
 
@@ -13436,6 +13439,103 @@ class C<@Foo.bar(const [], const [1], const{"":r""}, 0xFF + 2, .3, 4.5) T> {}
     ClassDeclaration declaration = unit.declarations[0];
     expect(declaration.documentationComment, isNull);
     expect(declaration.metadata, hasLength(2));
+  }
+
+  void test_parseCommentAndMetadata_mix1() {
+    createParser(r'''
+/**
+ * aaa
+ */
+/**
+ * bbb
+ */
+class A {}
+''');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expectNotNullIfNoErrors(unit);
+    assertNoErrors();
+    ClassDeclaration declaration = unit.declarations[0];
+    expect(declaration.metadata, hasLength(0));
+    List<Token> tokens = declaration.documentationComment.tokens;
+    expect(tokens, hasLength(1));
+    expect(tokens[0].lexeme, contains('bbb'));
+  }
+
+  void test_parseCommentAndMetadata_mix2() {
+    createParser(r'''
+/**
+ * aaa
+ */
+/// bbb
+/// ccc
+class B {}
+''');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expectNotNullIfNoErrors(unit);
+    assertNoErrors();
+    ClassDeclaration declaration = unit.declarations[0];
+    expect(declaration.metadata, hasLength(0));
+    List<Token> tokens = declaration.documentationComment.tokens;
+    expect(tokens, hasLength(2));
+    expect(tokens[0].lexeme, contains('bbb'));
+    expect(tokens[1].lexeme, contains('ccc'));
+  }
+
+  void test_parseCommentAndMetadata_mix3() {
+    createParser(r'''
+/// aaa
+/// bbb
+/**
+ * ccc
+ */
+class C {}
+''');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expectNotNullIfNoErrors(unit);
+    assertNoErrors();
+    ClassDeclaration declaration = unit.declarations[0];
+    expect(declaration.metadata, hasLength(0));
+    List<Token> tokens = declaration.documentationComment.tokens;
+    expect(tokens, hasLength(1));
+    expect(tokens[0].lexeme, contains('ccc'));
+  }
+
+  test_parseCommentAndMetadata_mix4() {
+    createParser(r'''
+/// aaa
+/// bbb
+/**
+ * ccc
+ */
+/// ddd
+class D {}
+''');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expectNotNullIfNoErrors(unit);
+    assertNoErrors();
+    ClassDeclaration declaration = unit.declarations[0];
+    expect(declaration.metadata, hasLength(0));
+    List<Token> tokens = declaration.documentationComment.tokens;
+    expect(tokens, hasLength(1));
+    expect(tokens[0].lexeme, contains('ddd'));
+  }
+
+  test_parseCommentAndMetadata_mix5() {
+    createParser(r'''
+/**
+ * aaa
+ */
+// bbb
+class E {}
+''');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expectNotNullIfNoErrors(unit);
+    assertNoErrors();
+    ClassDeclaration declaration = unit.declarations[0];
+    expect(declaration.metadata, hasLength(0));
+    List<Token> tokens = declaration.documentationComment.tokens;
+    expect(tokens, hasLength(1));
+    expect(tokens[0].lexeme, contains('aaa'));
   }
 
   void test_parseCommentAndMetadata_none() {

@@ -2608,10 +2608,15 @@ class AstBuilder extends StackListener {
 
     // Build and return the comment
     List<CommentReference> references = parseCommentReferences(dartdoc);
-    List<Token> tokens = <Token>[];
-    while (dartdoc != null) {
-      tokens.add(dartdoc);
+    List<Token> tokens = <Token>[dartdoc];
+    if (dartdoc.lexeme.startsWith('///')) {
       dartdoc = dartdoc.next;
+      while (dartdoc != null) {
+        if (dartdoc.lexeme.startsWith('///')) {
+          tokens.add(dartdoc);
+        }
+        dartdoc = dartdoc.next;
+      }
     }
     return ast.documentationComment(tokens, references);
   }

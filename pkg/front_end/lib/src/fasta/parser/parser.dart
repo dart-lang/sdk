@@ -5836,14 +5836,22 @@ class Parser {
   /// or `null` if no dartdoc token is found.
   Token findDartDoc(Token token) {
     Token comments = token.precedingComments;
+    Token dartdoc = null;
+    bool isMultiline = false;
     while (comments != null) {
       String lexeme = comments.lexeme;
-      if (lexeme.startsWith('/**') || lexeme.startsWith('///')) {
-        break;
+      if (lexeme.startsWith('///')) {
+        if (!isMultiline) {
+          dartdoc = comments;
+          isMultiline = true;
+        }
+      } else if (lexeme.startsWith('/**')) {
+        dartdoc = comments;
+        isMultiline = false;
       }
       comments = comments.next;
     }
-    return comments;
+    return dartdoc;
   }
 
   /// Parse the comment references in a sequence of comment tokens
