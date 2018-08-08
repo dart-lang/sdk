@@ -14,6 +14,7 @@ codegen/logical_expression_test: Fail # Issue 17027
 codegen/side_effect_tdiv_regression_test: Fail # Issue 33050
 codegen/simple_function_subtype_test: Fail # simple_function_subtype_test is temporarily(?) disabled due to new method for building function type tests.
 codegen/string_escapes_test: Fail # Issue 33060
+codegen/string_interpolation_test: RuntimeError # Issue 34095
 deferred_loading/deferred_loading_test: Slow, Pass
 equivalence/id_equivalence1_test: Pass, Slow
 equivalence/id_equivalence2_test: Pass, Slow
@@ -24,6 +25,7 @@ inference/simple_inferrer_const_closure2_test: Fail # Issue 16507
 inference/simple_inferrer_const_closure_test: Fail # Issue 16507
 inference/simple_inferrer_global_field_closure_test: Fail # Issue 16507
 inference/swarm_test: Slow, Pass, Fail #
+inference/type_mask2_test: RuntimeError # Issue 34095
 inlining/inlining_test: Slow, Pass
 kernel/*: Slow, Pass
 kernel/compile_from_dill_fast_startup_test: RuntimeError # Test must be updated to support FE with patching.
@@ -31,7 +33,7 @@ kernel/compile_from_dill_test: RuntimeError # Test must be updated to support FE
 model/subtype_test: Pass, Slow
 no_such_method_enabled_test: Pass, Slow
 packages/*: Skip # Skip packages folder
-rti/rti_emission_test: Pass, Slow
+rti/rti_emission_test: RuntimeError, Slow # Issue 34095
 rti/rti_need0_test: Pass, Slow
 rti/rti_need1_test: Pass, Slow
 show_package_warnings_test: RuntimeError # missing errors from the FE
