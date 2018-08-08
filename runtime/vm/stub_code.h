@@ -70,6 +70,7 @@ class SnapshotWriter;
   V(Subtype1TestCache)                                                         \
   V(Subtype2TestCache)                                                         \
   V(Subtype4TestCache)                                                         \
+  V(Subtype6TestCache)                                                         \
   V(DefaultTypeTest)                                                           \
   V(TopTypeTypeTest)                                                           \
   V(TypeRefTypeTest)                                                           \

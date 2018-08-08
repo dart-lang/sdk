@@ -815,6 +815,11 @@ class FlowGraphCompiler : public ValueObject {
       Label* is_instance_lbl,
       Label* is_not_instance_label);
 
+  RawSubtypeTestCache* GenerateFunctionTypeTest(TokenPosition token_pos,
+                                                const AbstractType& dst_type,
+                                                Label* is_instance_lbl,
+                                                Label* is_not_instance_label);
+
   RawSubtypeTestCache* GenerateSubtype1TestCacheLookup(
       TokenPosition token_pos,
       const Class& type_class,
@@ -825,6 +830,7 @@ class FlowGraphCompiler : public ValueObject {
     kTestTypeOneArg,
     kTestTypeTwoArgs,
     kTestTypeFourArgs,
+    kTestTypeSixArgs,
   };
 
   RawSubtypeTestCache* GenerateCallSubtypeTestStub(

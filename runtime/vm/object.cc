@@ -15746,6 +15746,8 @@ void SubtypeTestCache::AddCheck(
     const TypeArguments& instance_type_arguments,
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
+    const TypeArguments& instance_parent_function_type_arguments,
+    const TypeArguments& instance_delayed_type_arguments,
     const Bool& test_result) const {
   intptr_t old_num = NumberOfChecks();
   Array& data = Array::Handle(cache());
@@ -15759,15 +15761,22 @@ void SubtypeTestCache::AddCheck(
   data.SetAt(data_pos + kInstantiatorTypeArguments,
              instantiator_type_arguments);
   data.SetAt(data_pos + kFunctionTypeArguments, function_type_arguments);
+  data.SetAt(data_pos + kInstanceParentFunctionTypeArguments,
+             instance_parent_function_type_arguments);
+  data.SetAt(data_pos + kInstanceDelayedFunctionTypeArguments,
+             instance_delayed_type_arguments);
   data.SetAt(data_pos + kTestResult, test_result);
 }
 
-void SubtypeTestCache::GetCheck(intptr_t ix,
-                                Object* instance_class_id_or_function,
-                                TypeArguments* instance_type_arguments,
-                                TypeArguments* instantiator_type_arguments,
-                                TypeArguments* function_type_arguments,
-                                Bool* test_result) const {
+void SubtypeTestCache::GetCheck(
+    intptr_t ix,
+    Object* instance_class_id_or_function,
+    TypeArguments* instance_type_arguments,
+    TypeArguments* instantiator_type_arguments,
+    TypeArguments* function_type_arguments,
+    TypeArguments* instance_parent_function_type_arguments,
+    TypeArguments* instance_delayed_type_arguments,
+    Bool* test_result) const {
   Array& data = Array::Handle(cache());
   intptr_t data_pos = ix * kTestEntryLength;
   *instance_class_id_or_function =
@@ -15776,6 +15785,10 @@ void SubtypeTestCache::GetCheck(intptr_t ix,
   *instantiator_type_arguments ^=
       data.At(data_pos + kInstantiatorTypeArguments);
   *function_type_arguments ^= data.At(data_pos + kFunctionTypeArguments);
+  *instance_parent_function_type_arguments ^=
+      data.At(data_pos + kInstanceParentFunctionTypeArguments);
+  *instance_delayed_type_arguments ^=
+      data.At(data_pos + kInstanceDelayedFunctionTypeArguments);
   *test_result ^= data.At(data_pos + kTestResult);
 }
 

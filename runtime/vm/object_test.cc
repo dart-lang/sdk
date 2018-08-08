@@ -3014,15 +3014,20 @@ ISOLATE_UNIT_TEST_CASE(SubtypeTestCache) {
   const TypeArguments& targ_0 = TypeArguments::Handle(TypeArguments::New(2));
   const TypeArguments& targ_1 = TypeArguments::Handle(TypeArguments::New(3));
   const TypeArguments& targ_2 = TypeArguments::Handle(TypeArguments::New(4));
-  cache.AddCheck(class_id_or_fun, targ_0, targ_1, targ_2, Bool::True());
+  const TypeArguments& targ_3 = TypeArguments::Handle(TypeArguments::New(5));
+  const TypeArguments& targ_4 = TypeArguments::Handle(TypeArguments::New(6));
+  cache.AddCheck(class_id_or_fun, targ_0, targ_1, targ_2, targ_3, targ_4,
+                 Bool::True());
   EXPECT_EQ(1, cache.NumberOfChecks());
   Object& test_class_id_or_fun = Object::Handle();
   TypeArguments& test_targ_0 = TypeArguments::Handle();
   TypeArguments& test_targ_1 = TypeArguments::Handle();
   TypeArguments& test_targ_2 = TypeArguments::Handle();
+  TypeArguments& test_targ_3 = TypeArguments::Handle();
+  TypeArguments& test_targ_4 = TypeArguments::Handle();
   Bool& test_result = Bool::Handle();
   cache.GetCheck(0, &test_class_id_or_fun, &test_targ_0, &test_targ_1,
-                 &test_targ_2, &test_result);
+                 &test_targ_2, &test_targ_3, &test_targ_4, &test_result);
   EXPECT_EQ(class_id_or_fun.raw(), test_class_id_or_fun.raw());
   EXPECT_EQ(targ_0.raw(), test_targ_0.raw());
   EXPECT_EQ(targ_1.raw(), test_targ_1.raw());

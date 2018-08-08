@@ -2040,124 +2040,175 @@ void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
 //
 // Result in R8: null -> not found, otherwise result (true or false).
 static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
-  ASSERT((n == 1) || (n == 2) || (n == 4));
+  ASSERT(n == 1 || n == 2 || n == 4 || n == 6);
 
   const Register kCacheReg = R9;
   const Register kInstanceReg = RAX;
   const Register kInstantiatorTypeArgumentsReg = RDX;
   const Register kFunctionTypeArgumentsReg = RCX;
 
-  __ LoadObject(R8, Object::null_object());
-  if (n > 1) {
-    __ LoadClass(R10, kInstanceReg);
-    // Compute instance type arguments into R13.
-    Label has_no_type_arguments;
-    __ movq(R13, R8);
-    __ movl(RDI,
-            FieldAddress(R10,
-                         Class::type_arguments_field_offset_in_words_offset()));
-    __ cmpl(RDI, Immediate(Class::kNoTypeArguments));
-    __ j(EQUAL, &has_no_type_arguments, Assembler::kNearJump);
-    __ movq(R13, FieldAddress(kInstanceReg, RDI, TIMES_8, 0));
-    __ Bind(&has_no_type_arguments);
+  const Register kInstanceCidOrFunction = R10;
+  const Register kInstanceInstantiatorTypeArgumentsReg = R13;
+  const Register kInstanceParentFunctionTypeArgumentsReg = PP;
+  const Register kInstanceDelayedFunctionTypeArgumentsReg = CODE_REG;
+
+  const Register kNullReg = R8;
+
+  __ LoadObject(kNullReg, Object::null_object());
+
+  // Free up these 2 registers to be used for 6-value test.
+  if (n >= 6) {
+    __ pushq(kInstanceParentFunctionTypeArgumentsReg);
+    __ pushq(kInstanceDelayedFunctionTypeArgumentsReg);
   }
-  __ LoadClassId(R10, kInstanceReg);
-  // RAX: instance, R10: instance class id.
-  // R13: instance type arguments or null, used only if n > 1.
-  __ movq(RSI, kCacheReg);
-  // RSI: SubtypeTestCache.
-  __ movq(RSI, FieldAddress(RSI, SubtypeTestCache::cache_offset()));
+
+  // Loop initialization (moved up here to avoid having all dependent loads
+  // after each other).
+  __ movq(RSI, FieldAddress(kCacheReg, SubtypeTestCache::cache_offset()));
   __ addq(RSI, Immediate(Array::data_offset() - kHeapObjectTag));
-  // RSI: Entry start.
-  // R10: instance class id.
-  // R13: instance type arguments (still null if closure).
-  Label loop, found, not_found, next_iteration;
-  __ SmiTag(R10);
-  __ cmpq(R10, Immediate(Smi::RawValue(kClosureCid)));
-  __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
-  __ movq(R13, FieldAddress(kInstanceReg,
-                            Closure::function_type_arguments_offset()));
-  __ cmpq(R13, R8);  // Cache cannot be used for generic closures.
-  __ j(NOT_EQUAL, &not_found, Assembler::kNearJump);
-  __ movq(R13, FieldAddress(kInstanceReg,
-                            Closure::instantiator_type_arguments_offset()));
-  __ movq(R10, FieldAddress(kInstanceReg, Closure::function_offset()));
-  // R10: instance class id as Smi or function.
+
+  Label loop, not_closure;
+  __ LoadClassId(R10, kInstanceReg);
+  __ cmpq(R10, Immediate(kClosureCid));
+  __ j(NOT_EQUAL, &not_closure, Assembler::kNearJump);
+
+  // Closure handling.
+  {
+    __ movq(kInstanceCidOrFunction,
+            FieldAddress(kInstanceReg, Closure::function_offset()));
+    if (n >= 2) {
+      __ movq(kInstanceInstantiatorTypeArgumentsReg,
+              FieldAddress(kInstanceReg,
+                           Closure::instantiator_type_arguments_offset()));
+      if (n >= 6) {
+        ASSERT(n == 6);
+        __ movq(kInstanceParentFunctionTypeArgumentsReg,
+                FieldAddress(kInstanceReg,
+                             Closure::function_type_arguments_offset()));
+        __ movq(kInstanceDelayedFunctionTypeArgumentsReg,
+                FieldAddress(kInstanceReg,
+                             Closure::delayed_type_arguments_offset()));
+      }
+    }
+    __ jmp(&loop, Assembler::kNearJump);
+  }
+
+  // Non-Closure handling.
+  {
+    __ Bind(&not_closure);
+    if (n == 1) {
+      __ SmiTag(kInstanceCidOrFunction);
+    } else {
+      ASSERT(n >= 2);
+      Label has_no_type_arguments;
+      // [LoadClassById] also tags [kInstanceCidOrFunction] as a side-effect.
+      __ LoadClassById(RDI, kInstanceCidOrFunction);
+      __ movq(kInstanceInstantiatorTypeArgumentsReg, kNullReg);
+      __ movl(RDI,
+              FieldAddress(
+                  RDI, Class::type_arguments_field_offset_in_words_offset()));
+      __ cmpl(RDI, Immediate(Class::kNoTypeArguments));
+      __ j(EQUAL, &has_no_type_arguments, Assembler::kNearJump);
+      __ movq(kInstanceInstantiatorTypeArgumentsReg,
+              FieldAddress(kInstanceReg, RDI, TIMES_8, 0));
+      __ Bind(&has_no_type_arguments);
+
+      if (n >= 6) {
+        __ movq(kInstanceParentFunctionTypeArgumentsReg, kNullReg);
+        __ movq(kInstanceDelayedFunctionTypeArgumentsReg, kNullReg);
+      }
+    }
+  }
+
+  Label found, not_found, next_iteration;
+
+  // Loop header.
   __ Bind(&loop);
   __ movq(RDI, Address(RSI, kWordSize *
                                 SubtypeTestCache::kInstanceClassIdOrFunction));
-  __ cmpq(RDI, R8);
+  __ cmpq(RDI, kNullReg);
   __ j(EQUAL, &not_found, Assembler::kNearJump);
-  __ cmpq(RDI, R10);
+  __ cmpq(RDI, kInstanceCidOrFunction);
   if (n == 1) {
     __ j(EQUAL, &found, Assembler::kNearJump);
   } else {
     __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-    __ movq(RDI,
+    __ cmpq(kInstanceInstantiatorTypeArgumentsReg,
             Address(RSI, kWordSize * SubtypeTestCache::kInstanceTypeArguments));
-    __ cmpq(RDI, R13);
     if (n == 2) {
       __ j(EQUAL, &found, Assembler::kNearJump);
     } else {
       __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-      __ movq(RDI,
+      __ cmpq(kInstantiatorTypeArgumentsReg,
               Address(RSI, kWordSize *
                                SubtypeTestCache::kInstantiatorTypeArguments));
-      __ cmpq(RDI, kInstantiatorTypeArgumentsReg);
       __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-      __ movq(RDI, Address(RSI, kWordSize *
-                                    SubtypeTestCache::kFunctionTypeArguments));
-      __ cmpq(RDI, kFunctionTypeArgumentsReg);
-      __ j(EQUAL, &found, Assembler::kNearJump);
+      __ cmpq(
+          kFunctionTypeArgumentsReg,
+          Address(RSI, kWordSize * SubtypeTestCache::kFunctionTypeArguments));
+
+      if (n == 4) {
+        __ j(EQUAL, &found, Assembler::kNearJump);
+      } else {
+        ASSERT(n == 6);
+        __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
+
+        __ cmpq(
+            kInstanceParentFunctionTypeArgumentsReg,
+            Address(
+                RSI,
+                kWordSize *
+                    SubtypeTestCache::kInstanceParentFunctionTypeArguments));
+        __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
+        __ cmpq(
+            kInstanceDelayedFunctionTypeArgumentsReg,
+            Address(
+                RSI,
+                kWordSize *
+                    SubtypeTestCache::kInstanceDelayedFunctionTypeArguments));
+        __ j(EQUAL, &found, Assembler::kNearJump);
+      }
     }
   }
 
   __ Bind(&next_iteration);
   __ addq(RSI, Immediate(kWordSize * SubtypeTestCache::kTestEntryLength));
   __ jmp(&loop, Assembler::kNearJump);
-  // Fall through to not found.
-  __ Bind(&not_found);
-  __ ret();
 
   __ Bind(&found);
   __ movq(R8, Address(RSI, kWordSize * SubtypeTestCache::kTestResult));
+  if (n >= 6) {
+    __ popq(kInstanceDelayedFunctionTypeArgumentsReg);
+    __ popq(kInstanceParentFunctionTypeArgumentsReg);
+  }
+  __ ret();
+
+  __ Bind(&not_found);
+  if (n >= 6) {
+    __ popq(kInstanceDelayedFunctionTypeArgumentsReg);
+    __ popq(kInstanceParentFunctionTypeArgumentsReg);
+  }
   __ ret();
 }
 
-// Used to check class and type arguments. Arguments passed on stack:
-// TOS + 0: return address.
-// TOS + 1: raw_null.
-// TOS + 2: raw_null.
-// TOS + 3: instance.
-// TOS + 4: SubtypeTestCache.
-// Result in R8: null -> not found, otherwise result (true or false).
-// Preserves RCX/RDX.
+// See comment on [GenerateSubtypeNTestCacheStub].
 void StubCode::GenerateSubtype1TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 1);
 }
 
-// Used to check class and type arguments. Arguments passed on stack:
-// TOS + 0: return address.
-// TOS + 1: raw_null.
-// TOS + 2: raw_null.
-// TOS + 3: instance.
-// TOS + 4: SubtypeTestCache.
-// Result in R8: null -> not found, otherwise result (true or false).
-// Preserves RCX/RDX.
+// See comment on [GenerateSubtypeNTestCacheStub].
 void StubCode::GenerateSubtype2TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 2);
 }
 
-// Used to check class and type arguments. Arguments passed on stack:
-// TOS + 0: return address.
-// TOS + 1: function type arguments (can be raw_null).
-// TOS + 2: instantiator type arguments (can be raw_null).
-// TOS + 3: instance.
-// TOS + 4: SubtypeTestCache.
-// Result in R8: null -> not found, otherwise result (true or false).
-// Preserves RCX/RDX.
+// See comment on [GenerateSubtypeNTestCacheStub].
 void StubCode::GenerateSubtype4TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 4);
+}
+
+// See comment on [GenerateSubtypeNTestCacheStub].
+void StubCode::GenerateSubtype6TestCacheStub(Assembler* assembler) {
+  GenerateSubtypeNTestCacheStub(assembler, 6);
 }
 
 // Used to test whether a given value is of a given type (different variants,
@@ -2333,18 +2384,24 @@ void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
   const Register kTmp = RDI;
 
   // If this is not a [Type] object, we'll go to the runtime.
-  Label is_simple, is_instantiated, is_uninstantiated;
+  Label is_simple_case, is_complex_case;
   __ LoadClassId(kTmp, kDstTypeReg);
   __ cmpq(kTmp, Immediate(kTypeCid));
-  __ BranchIf(NOT_EQUAL, &is_uninstantiated);
+  __ BranchIf(NOT_EQUAL, &is_complex_case);
 
   // Check whether this [Type] is instantiated/uninstantiated.
   __ cmpb(FieldAddress(kDstTypeReg, Type::type_state_offset()),
           Immediate(RawType::kFinalizedInstantiated));
-  __ BranchIf(NOT_EQUAL, &is_uninstantiated);
-  // Fall through to &is_instantiated
+  __ BranchIf(NOT_EQUAL, &is_complex_case);
 
-  __ Bind(&is_instantiated);
+  // Check whether this [Type] is a function type.
+  __ movq(kTmp, FieldAddress(kDstTypeReg, Type::signature_offset()));
+  __ CompareObject(kTmp, Object::null_object());
+  __ BranchIf(NOT_EQUAL, &is_complex_case);
+
+  // Fall through to &is_simple_case
+
+  __ Bind(&is_simple_case);
   {
     __ Call(*StubCode::Subtype2TestCache_entry());
     __ CompareObject(R8, Bool::True());
@@ -2352,9 +2409,9 @@ void StubCode::GenerateSlowTypeTestStub(Assembler* assembler) {
     __ Jump(&call_runtime);
   }
 
-  __ Bind(&is_uninstantiated);
+  __ Bind(&is_complex_case);
   {
-    __ Call(*StubCode::Subtype4TestCache_entry());
+    __ Call(*StubCode::Subtype6TestCache_entry());
     __ CompareObject(R8, Bool::True());
     __ BranchIf(EQUAL, &done);  // Cache said: yes.
     // Fall through to runtime_call

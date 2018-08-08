@@ -1698,62 +1698,96 @@ void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
 // TOS + 4: SubtypeTestCache.
 // Result in ECX: null -> not found, otherwise result (true or false).
 static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
-  ASSERT((n == 1) || (n == 2) || (n == 4));
-  const intptr_t kFunctionTypeArgumentsInBytes = 1 * kWordSize;
-  const intptr_t kInstantiatorTypeArgumentsInBytes = 2 * kWordSize;
-  const intptr_t kInstanceOffsetInBytes = 3 * kWordSize;
-  const intptr_t kCacheOffsetInBytes = 4 * kWordSize;
+  ASSERT(n == 1 || n == 2 || n == 4 || n == 6);
+
+  static intptr_t kFunctionTypeArgumentsInBytes = 1 * kWordSize;
+  static intptr_t kInstantiatorTypeArgumentsInBytes = 2 * kWordSize;
+  static intptr_t kInstanceOffsetInBytes = 3 * kWordSize;
+  static intptr_t kCacheOffsetInBytes = 4 * kWordSize;
+
+  const Register kInstanceReg = EAX;
+
+  const Register kInstanceCidOrFunction = ECX;
+  const Register kInstanceInstantiatorTypeArgumentsReg = EBX;
+
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  __ movl(EAX, Address(ESP, kInstanceOffsetInBytes));
-  if (n > 1) {
-    __ LoadClass(ECX, EAX, EBX);
-    // Compute instance type arguments into EBX.
-    Label has_no_type_arguments;
-    __ movl(EBX, raw_null);
-    __ movl(EDI,
-            FieldAddress(ECX,
-                         Class::type_arguments_field_offset_in_words_offset()));
-    __ cmpl(EDI, Immediate(Class::kNoTypeArguments));
-    __ j(EQUAL, &has_no_type_arguments, Assembler::kNearJump);
-    __ movl(EBX, FieldAddress(EAX, EDI, TIMES_4, 0));
-    __ Bind(&has_no_type_arguments);
-  }
-  __ LoadClassId(ECX, EAX);
-  // EAX: instance, ECX: instance class id.
-  // EBX: instance type arguments (null if none), used only if n > 1.
+
+  __ movl(kInstanceReg, Address(ESP, kInstanceOffsetInBytes));
+
+  // Loop initialization (moved up here to avoid having all dependent loads
+  // after each other)
   __ movl(EDX, Address(ESP, kCacheOffsetInBytes));
-  // EDX: SubtypeTestCache.
   __ movl(EDX, FieldAddress(EDX, SubtypeTestCache::cache_offset()));
   __ addl(EDX, Immediate(Array::data_offset() - kHeapObjectTag));
 
-  Label loop, found, not_found, next_iteration;
-  // EDX: Entry start.
-  // ECX: instance class id.
-  // EBX: instance type arguments (still null if closure).
-  __ SmiTag(ECX);
-  __ cmpl(ECX, Immediate(Smi::RawValue(kClosureCid)));
-  __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
-  __ movl(EBX, FieldAddress(EAX, Closure::function_type_arguments_offset()));
-  __ cmpl(EBX, raw_null);  // Cache cannot be used for generic closures.
-  __ j(NOT_EQUAL, &not_found, Assembler::kNearJump);
-  __ movl(EBX,
-          FieldAddress(EAX, Closure::instantiator_type_arguments_offset()));
-  __ movl(ECX, FieldAddress(EAX, Closure::function_offset()));
-  // ECX: instance class id as Smi or function.
+  Label loop, not_closure;
+
+  __ LoadClassId(kInstanceCidOrFunction, kInstanceReg);
+  __ cmpl(kInstanceCidOrFunction, Immediate(kClosureCid));
+  __ j(NOT_EQUAL, &not_closure, Assembler::kNearJump);
+
+  // Closure handling.
+  {
+    __ movl(kInstanceCidOrFunction,
+            FieldAddress(kInstanceReg, Closure::function_offset()));
+    if (n >= 2) {
+      __ movl(kInstanceInstantiatorTypeArgumentsReg,
+              FieldAddress(kInstanceReg,
+                           Closure::instantiator_type_arguments_offset()));
+      if (n >= 6) {
+        __ pushl(FieldAddress(kInstanceReg,
+                              Closure::delayed_type_arguments_offset()));
+        __ pushl(FieldAddress(kInstanceReg,
+                              Closure::function_type_arguments_offset()));
+      }
+    }
+    __ jmp(&loop, Assembler::kNearJump);
+  }
+
+  // Non-Closure handling.
+  {
+    __ Bind(&not_closure);
+    if (n >= 2) {
+      Label has_no_type_arguments;
+      __ LoadClassById(EDI, kInstanceCidOrFunction);
+      __ movl(kInstanceInstantiatorTypeArgumentsReg, raw_null);
+      __ movl(EDI,
+              FieldAddress(
+                  EDI, Class::type_arguments_field_offset_in_words_offset()));
+      __ cmpl(EDI, Immediate(Class::kNoTypeArguments));
+      __ j(EQUAL, &has_no_type_arguments, Assembler::kNearJump);
+      __ movl(kInstanceInstantiatorTypeArgumentsReg,
+              FieldAddress(kInstanceReg, EDI, TIMES_4, 0));
+      __ Bind(&has_no_type_arguments);
+
+      if (n >= 6) {
+        __ pushl(raw_null);  // delayed.
+        __ pushl(raw_null);  // function.
+      }
+    }
+    __ SmiTag(kInstanceCidOrFunction);
+  }
+
+  const intptr_t kInstanceParentFunctionTypeArgumentsFromSp = 0;
+  const intptr_t kInstanceDelayedFunctionTypeArgumentsFromSp = kWordSize;
+  const intptr_t args_offset = n >= 6 ? 2 * kWordSize : 0;
+
+  Label found, not_found, next_iteration;
+
+  // Loop header.
   __ Bind(&loop);
   __ movl(EDI, Address(EDX, kWordSize *
                                 SubtypeTestCache::kInstanceClassIdOrFunction));
   __ cmpl(EDI, raw_null);
   __ j(EQUAL, &not_found, Assembler::kNearJump);
-  __ cmpl(EDI, ECX);
+  __ cmpl(EDI, kInstanceCidOrFunction);
   if (n == 1) {
     __ j(EQUAL, &found, Assembler::kNearJump);
   } else {
     __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-    __ movl(EDI,
+    __ cmpl(kInstanceInstantiatorTypeArgumentsReg,
             Address(EDX, kWordSize * SubtypeTestCache::kInstanceTypeArguments));
-    __ cmpl(EDI, EBX);
     if (n == 2) {
       __ j(EQUAL, &found, Assembler::kNearJump);
     } else {
@@ -1761,58 +1795,74 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
       __ movl(EDI,
               Address(EDX, kWordSize *
                                SubtypeTestCache::kInstantiatorTypeArguments));
-      __ cmpl(EDI, Address(ESP, kInstantiatorTypeArgumentsInBytes));
+      __ cmpl(EDI,
+              Address(ESP, args_offset + kInstantiatorTypeArgumentsInBytes));
       __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
       __ movl(EDI, Address(EDX, kWordSize *
                                     SubtypeTestCache::kFunctionTypeArguments));
-      __ cmpl(EDI, Address(ESP, kFunctionTypeArgumentsInBytes));
-      __ j(EQUAL, &found, Assembler::kNearJump);
+      __ cmpl(EDI, Address(ESP, args_offset + kFunctionTypeArgumentsInBytes));
+      if (n == 4) {
+        __ j(EQUAL, &found, Assembler::kNearJump);
+      } else {
+        ASSERT(n == 6);
+        __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
+
+        __ movl(
+            EDI,
+            Address(
+                EDX,
+                kWordSize *
+                    SubtypeTestCache::kInstanceParentFunctionTypeArguments));
+        __ cmpl(EDI, Address(ESP, kInstanceParentFunctionTypeArgumentsFromSp));
+        __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
+        __ movl(
+            EDI,
+            Address(
+                EDX,
+                kWordSize *
+                    SubtypeTestCache::kInstanceDelayedFunctionTypeArguments));
+        __ cmpl(EDI, Address(ESP, kInstanceDelayedFunctionTypeArgumentsFromSp));
+        __ j(EQUAL, &found, Assembler::kNearJump);
+      }
     }
   }
   __ Bind(&next_iteration);
   __ addl(EDX, Immediate(kWordSize * SubtypeTestCache::kTestEntryLength));
   __ jmp(&loop, Assembler::kNearJump);
-  // Fall through to not found.
-  __ Bind(&not_found);
-  __ movl(ECX, raw_null);
-  __ ret();
 
   __ Bind(&found);
   __ movl(ECX, Address(EDX, kWordSize * SubtypeTestCache::kTestResult));
+  if (n == 6) {
+    __ Drop(2);
+  }
+  __ ret();
+
+  __ Bind(&not_found);
+  __ movl(ECX, raw_null);
+  if (n == 6) {
+    __ Drop(2);
+  }
   __ ret();
 }
 
-// Used to check class and type arguments. Arguments passed on stack:
-// TOS + 0: return address.
-// TOS + 1: raw_null.
-// TOS + 2: raw_null.
-// TOS + 3: instance.
-// TOS + 4: SubtypeTestCache.
-// Result in ECX: null -> not found, otherwise result (true or false).
+// See comment on [GenerateSubtypeNTestCacheStub].
 void StubCode::GenerateSubtype1TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 1);
 }
 
-// Used to check class and type arguments. Arguments passed on stack:
-// TOS + 0: return address.
-// TOS + 1: raw_null.
-// TOS + 2: raw_null.
-// TOS + 3: instance.
-// TOS + 4: SubtypeTestCache.
-// Result in ECX: null -> not found, otherwise result (true or false).
+// See comment on [GenerateSubtypeNTestCacheStub].
 void StubCode::GenerateSubtype2TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 2);
 }
 
-// Used to check class and type arguments. Arguments passed on stack:
-// TOS + 0: return address.
-// TOS + 1: function type arguments (can be raw_null).
-// TOS + 2: instantiator type arguments (can be raw_null).
-// TOS + 3: instance.
-// TOS + 4: SubtypeTestCache.
-// Result in ECX: null -> not found, otherwise result (true or false).
+// See comment on [GenerateSubtypeNTestCacheStub].
 void StubCode::GenerateSubtype4TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 4);
+}
+
+// See comment on [GenerateSubtypeNTestCacheStub].
+void StubCode::GenerateSubtype6TestCacheStub(Assembler* assembler) {
+  GenerateSubtypeNTestCacheStub(assembler, 6);
 }
 
 void StubCode::GenerateDefaultTypeTestStub(Assembler* assembler) {

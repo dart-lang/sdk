@@ -958,6 +958,7 @@ class Class : public Object {
     ASSERT(is_valid_id(value));
     StoreNonPointer(&raw_ptr()->id_, value);
   }
+  static intptr_t id_offset() { return OFFSET_OF(RawClass, id_); }
 
   RawString* Name() const;
   RawString* ScrubbedName() const;
@@ -5413,12 +5414,14 @@ class MegamorphicCache : public Object {
 class SubtypeTestCache : public Object {
  public:
   enum Entries {
-    kInstanceClassIdOrFunction = 0,
-    kInstanceTypeArguments = 1,
-    kInstantiatorTypeArguments = 2,
-    kFunctionTypeArguments = 3,
-    kTestResult = 4,
-    kTestEntryLength = 5,
+    kTestResult = 0,
+    kInstanceClassIdOrFunction = 1,
+    kInstanceTypeArguments = 2,
+    kInstantiatorTypeArguments = 3,
+    kFunctionTypeArguments = 4,
+    kInstanceParentFunctionTypeArguments = 5,
+    kInstanceDelayedFunctionTypeArguments = 6,
+    kTestEntryLength = 7,
   };
 
   intptr_t NumberOfChecks() const;
@@ -5426,12 +5429,16 @@ class SubtypeTestCache : public Object {
                 const TypeArguments& instance_type_arguments,
                 const TypeArguments& instantiator_type_arguments,
                 const TypeArguments& function_type_arguments,
+                const TypeArguments& instance_parent_function_type_arguments,
+                const TypeArguments& instance_delayed_type_arguments,
                 const Bool& test_result) const;
   void GetCheck(intptr_t ix,
                 Object* instance_class_id_or_function,
                 TypeArguments* instance_type_arguments,
                 TypeArguments* instantiator_type_arguments,
                 TypeArguments* function_type_arguments,
+                TypeArguments* instance_parent_function_type_arguments,
+                TypeArguments* instance_delayed_type_arguments,
                 Bool* test_result) const;
 
   static RawSubtypeTestCache* New();
@@ -6396,6 +6403,8 @@ class Type : public AbstractType {
   // was parameterized to obtain the actual signature.
   RawFunction* signature() const;
   void set_signature(const Function& value) const;
+  static intptr_t signature_offset() { return OFFSET_OF(RawType, sig_or_err_); }
+
   virtual bool IsFunctionType() const {
     return signature() != Function::null();
   }
