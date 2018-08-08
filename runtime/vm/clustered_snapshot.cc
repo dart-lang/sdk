@@ -5357,7 +5357,7 @@ RawApiError* Deserializer::VerifyVersionAndFeatures(Isolate* isolate) {
     const intptr_t kMessageBufferSize = 1024;
     char message_buffer[kMessageBufferSize];
     char* actual_features =
-        Utils::StrNDup(features, buffer_len < 128 ? buffer_len : 128);
+        Utils::StrNDup(features, buffer_len < 1024 ? buffer_len : 1024);
     Utils::SNPrint(message_buffer, kMessageBufferSize,
                    "Snapshot not compatible with the current VM configuration: "
                    "the snapshot requires '%s' but the VM has '%s'",

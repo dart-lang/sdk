@@ -719,6 +719,11 @@ const char* Dart::FeaturesString(Isolate* isolate,
 #else
     buffer.AddString(" x64-sysv");
 #endif
+
+#if defined(DART_USE_INTERPRETER)
+    buffer.AddString(" kbc");
+#endif
+
 #elif defined(TARGET_ARCH_DBC)
 #if defined(ARCH_IS_32_BIT)
     buffer.AddString(" dbc32");
