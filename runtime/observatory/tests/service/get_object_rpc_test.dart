@@ -885,15 +885,27 @@ var tests = <IsolateTest>[
     expect(result['_guardLength'], isNotNull);
   },
 
-  // field
+  // field with guards
   (Isolate isolate) async {
+    var result = await isolate.vm.invokeRpcNoUpgrade('getFlagList', {});
+    var use_field_guards = false;
+    for (var flag in result['flags']) {
+      if (flag['name'] == 'use_field_guards') {
+        use_field_guards = flag['valueAsString'] == 'true';
+        break;
+      }
+    }
+    if (!use_field_guards) {
+      return; // skip the test if guards are not enabled(like on simdbc64)
+    }
+
     // Call eval to get a class id.
     var evalResult = await eval(isolate, 'new _DummyClass()');
     var id = "${evalResult['class']['id']}/fields/dummyList";
     var params = {
       'objectId': id,
     };
-    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
+    result = await isolate.invokeRpcNoUpgrade('getObject', params);
     expect(result['type'], equals('Field'));
     expect(result['id'], equals(id));
     expect(result['name'], equals('dummyList'));
