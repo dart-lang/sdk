@@ -137,9 +137,6 @@ void Options::PrintUsage() {
   if (!Options::verbose_option()) {
     Log::PrintErr(
 "Common options:\n"
-"--checked or -c\n"
-"  Insert runtime type checks and enable assertions (checked mode, not\n"
-"  compatible with --preview-dart-2).\n"
 "--enable-asserts\n"
 "  Enable assert statements.\n"
 "--help or -h\n"
@@ -171,9 +168,6 @@ void Options::PrintUsage() {
   } else {
     Log::PrintErr(
 "Supported options:\n"
-"--checked or -c\n"
-"  Insert runtime type checks and enable assertions (checked mode, not\n"
-"  compatible with --preview-dart-2).\n"
 "--enable-asserts\n"
 "  Enable assert statements.\n"
 "--help or -h\n"
