@@ -4448,7 +4448,10 @@ class _PrivateName extends Name {
   Library get library => libraryName.asLibrary;
 
   static int _computeHashCode(String name, Reference libraryName) {
-    return 131 * name.hashCode + 17 * libraryName.hashCode;
+    // TODO(dmitryas): Factor in [libraryName] in a non-deterministic way into
+    // the result.  Note, the previous code here was the following:
+    //     return 131 * name.hashCode + 17 * libraryName.asLibrary._libraryId;
+    return name.hashCode;
   }
 }
 
