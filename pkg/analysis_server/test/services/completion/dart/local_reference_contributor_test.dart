@@ -4689,16 +4689,6 @@ class LocalReferenceContributorTest_UseCFE
 
   @failingTest
   @override
-  test_ArgumentList_MethodInvocation_functionalArg2() =>
-      super.test_ArgumentList_MethodInvocation_functionalArg2();
-
-  @failingTest
-  @override
-  test_ArgumentList_namedParam_filter() =>
-      super.test_ArgumentList_namedParam_filter();
-
-  @failingTest
-  @override
   test_AsExpression_type() => super.test_AsExpression_type();
 
   @failingTest
@@ -4731,10 +4721,6 @@ class LocalReferenceContributorTest_UseCFE
   @override
   test_DefaultFormalParameter_named_expression() =>
       super.test_DefaultFormalParameter_named_expression();
-
-  @failingTest
-  @override
-  test_enum_filter() => super.test_enum_filter();
 
   @failingTest
   @override

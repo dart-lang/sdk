@@ -607,22 +607,8 @@ class ExtractLocalVariableTest_UseCFE extends ExtractLocalVariableTest {
 
   @failingTest
   @override
-  test_analysis_onlyOneFile() => super.test_analysis_onlyOneFile();
-
-  @failingTest
-  @override
   test_resetOnAnalysisSetChanged_overlay() =>
       super.test_resetOnAnalysisSetChanged_overlay();
-
-  @failingTest
-  @override
-  test_resetOnAnalysisSetChanged_watch_otherFile() =>
-      super.test_resetOnAnalysisSetChanged_watch_otherFile();
-
-  @failingTest
-  @override
-  test_resetOnAnalysisSetChanged_watch_thisFile() =>
-      super.test_resetOnAnalysisSetChanged_watch_thisFile();
 }
 
 @reflectiveTest

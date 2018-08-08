@@ -99,7 +99,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       }
 
       argumentList.accept(this);
-      _resolveNamedArguments(argumentList, element.parameters);
+      _resolveArgumentsToParameters(argumentList, element.parameters);
     }
   }
 
@@ -437,7 +437,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
     ArgumentList argumentList = node.argumentList;
     argumentList.accept(this);
-    _resolveNamedArguments(argumentList, constructor?.parameters);
+    _resolveArgumentsToParameters(argumentList, constructor?.parameters);
   }
 
   @override
@@ -526,10 +526,16 @@ class ResolutionApplier extends GeneralizingAstVisitor {
         PropertyAccessorElement accessor = elementForParameters;
         elementForParameters = accessor.returnType.element;
       }
+      List<ParameterElement> parameters;
       if (elementForParameters is FunctionTypedElement) {
-        List<ParameterElement> parameters = elementForParameters.parameters;
-        _resolveNamedArguments(argumentList, parameters);
+        parameters = elementForParameters.parameters;
+      } else if (elementForParameters is ParameterElement) {
+        var type = elementForParameters.type;
+        if (type is FunctionType) {
+          parameters = type.parameters;
+        }
       }
+      _resolveArgumentsToParameters(argumentList, parameters);
     }
 
     if (invokeElement is ConstructorElement) {
@@ -607,7 +613,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
     ArgumentList argumentList = node.argumentList;
     argumentList.accept(this);
-    _resolveNamedArguments(argumentList, element?.parameters);
+    _resolveArgumentsToParameters(argumentList, element?.parameters);
   }
 
   @override
@@ -653,7 +659,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
     ArgumentList argumentList = node.argumentList;
     argumentList.accept(this);
-    _resolveNamedArguments(argumentList, element?.parameters);
+    _resolveArgumentsToParameters(argumentList, element?.parameters);
   }
 
   @override
@@ -748,21 +754,44 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     }
   }
 
-  /// Apply resolution to named arguments of the [argumentList].
-  void _resolveNamedArguments(
+  /// Resolve arguments of the [argumentList] to corresponding [parameters].
+  void _resolveArgumentsToParameters(
       ArgumentList argumentList, List<ParameterElement> parameters) {
     if (parameters != null) {
-      for (var argument in argumentList.arguments) {
+      var numberOfPositionalParameters = 0;
+      for (var parameter in parameters) {
+        if (parameter.isPositional) {
+          numberOfPositionalParameters++;
+        }
+      }
+
+      var numberOfArguments = argumentList.arguments.length;
+      if (numberOfArguments == numberOfPositionalParameters &&
+          numberOfPositionalParameters == parameters.length) {
+        argumentList.correspondingStaticParameters = parameters;
+        return;
+      }
+
+      var resolvedParameters = new List<ParameterElement>(numberOfArguments);
+      for (var i = 0; i < numberOfArguments; i++) {
+        var argument = argumentList.arguments[i];
+        ParameterElement argumentParameter;
         if (argument is NamedExpression) {
           SimpleIdentifier identifier = argument.name.label;
           for (var parameter in parameters) {
             if (parameter.name == identifier.name) {
+              argumentParameter = parameter;
               identifier.staticElement = parameter;
               break;
             }
           }
+        } else if (i < parameters.length && parameters[i].isPositional) {
+          argumentParameter = parameters[i];
         }
+        resolvedParameters[i] = argumentParameter;
       }
+
+      argumentList.correspondingStaticParameters = resolvedParameters;
     }
   }
 

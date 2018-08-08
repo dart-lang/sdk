@@ -2947,18 +2947,6 @@ class ExtractMethodTest_UseCFE extends ExtractMethodTest {
 
   @failingTest
   @override
-  test_closure_atArgumentName() => super.test_closure_atArgumentName();
-
-  @failingTest
-  @override
-  test_closure_atParameters() => super.test_closure_atParameters();
-
-  @failingTest
-  @override
-  test_names_singleExpression() => super.test_names_singleExpression();
-
-  @failingTest
-  @override
   test_statements_parameters_localFunction() =>
       super.test_statements_parameters_localFunction();
 }

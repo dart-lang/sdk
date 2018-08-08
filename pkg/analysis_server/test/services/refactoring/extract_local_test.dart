@@ -1352,20 +1352,6 @@ class ExtractLocalTest_UseCFE extends ExtractLocalTest {
 
   @failingTest
   @override
-  test_guessNames_singleExpression() =>
-      super.test_guessNames_singleExpression();
-
-  @failingTest
-  @override
-  test_occurrences_differentVariable() =>
-      super.test_occurrences_differentVariable();
-
-  @failingTest
-  @override
   test_singleExpression_hasParseError_expectedSemicolon() =>
       super.test_singleExpression_hasParseError_expectedSemicolon();
-
-  @failingTest
-  @override
-  test_stringLiteral_whole() => super.test_stringLiteral_whole();
 }

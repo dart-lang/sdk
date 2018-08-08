@@ -4514,10 +4514,6 @@ class ImportedReferenceContributorTest_UseCFE
 
   @failingTest
   @override
-  test_enum_filter() => super.test_enum_filter();
-
-  @failingTest
-  @override
   test_ForEachStatement_body_untyped() =>
       super.test_ForEachStatement_body_untyped();
 

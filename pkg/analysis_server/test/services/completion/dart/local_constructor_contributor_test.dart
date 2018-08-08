@@ -4248,16 +4248,6 @@ class LocalConstructorContributorTest_UseCFE
 
   @failingTest
   @override
-  test_InstanceCreationExpression_invocationArgument() =>
-      super.test_InstanceCreationExpression_invocationArgument();
-
-  @failingTest
-  @override
-  test_InstanceCreationExpression_invocationArgument_named() =>
-      super.test_InstanceCreationExpression_invocationArgument_named();
-
-  @failingTest
-  @override
   test_InstanceCreationExpression_unimported() =>
       super.test_InstanceCreationExpression_unimported();
 

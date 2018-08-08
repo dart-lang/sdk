@@ -51,6 +51,12 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
 
   @override
   @failingTest
+  test_methodInvocation_topLevelFunction_generic() async {
+    await super.test_methodInvocation_topLevelFunction_generic();
+  }
+
+  @override
+  @failingTest
   test_unresolved_assignment_left_indexed1_simple() async {
     await super.test_unresolved_assignment_left_indexed1_simple();
   }

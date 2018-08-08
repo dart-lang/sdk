@@ -55,12 +55,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
 
   @failingTest
   @override
-  test_deprecatedAnnotationUse_positional() async {
-    return super.test_deprecatedAnnotationUse_positional();
-  }
-
-  @failingTest
-  @override
   test_deprecatedFunction_class() async {
     return super.test_deprecatedFunction_class();
   }

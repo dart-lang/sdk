@@ -618,9 +618,4 @@ main() {
 class AnalysisHoverTest_UseCFE extends AnalysisHoverTest {
   @override
   bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_expression_literal_noElement() async =>
-      super.test_expression_literal_noElement();
 }

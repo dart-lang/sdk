@@ -7709,11 +7709,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_creationFunction_forFunctionType_coreFunction() =>
-      super.test_creationFunction_forFunctionType_coreFunction();
-
-  @failingTest
-  @override
   test_creationFunction_forFunctionType_dynamicArgument() =>
       super.test_creationFunction_forFunctionType_dynamicArgument();
 

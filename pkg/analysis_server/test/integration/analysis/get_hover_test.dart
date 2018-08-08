@@ -198,8 +198,4 @@ class AnalysisGetHoverIntegrationTest_UseCFE
     extends AnalysisGetHoverIntegrationTest {
   @override
   bool get useCFE => true;
-
-  @override
-  @failingTest
-  test_getHover() => super.test_getHover();
 }

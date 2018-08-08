@@ -6710,9 +6710,9 @@ void f<T, U>(T a, U b) {}
       expect(invocation.staticInvokeType.toString(), fTypeString);
 
       _assertArgumentToParameter(arguments[0], fElement.parameters[0],
-          parameterMemberType: typeProvider.boolType);
+          memberType: typeProvider.boolType);
       _assertArgumentToParameter(arguments[1], fElement.parameters[1],
-          parameterMemberType: typeProvider.stringType);
+          memberType: typeProvider.stringType);
     }
 
     // f(1, 2.3);
@@ -6730,9 +6730,9 @@ void f<T, U>(T a, U b) {}
       expect(invocation.staticInvokeType.toString(), fTypeString);
 
       _assertArgumentToParameter(arguments[0], fElement.parameters[0],
-          parameterMemberType: typeProvider.intType);
+          memberType: typeProvider.intType);
       _assertArgumentToParameter(arguments[1], fElement.parameters[1],
-          parameterMemberType: typeProvider.doubleType);
+          memberType: typeProvider.doubleType);
     }
   }
 
@@ -10013,41 +10013,34 @@ class C {
     assertType(intRef, 'int');
   }
 
-  /// Assert that the [argument] is associated with the [expectedParameter],
+  /// Assert that the [argument] is associated with the [expected],
   /// if [useCFE] is `null`. If the [argument] is a [NamedExpression],
   /// the name must be resolved to the parameter in both cases.
   void _assertArgumentToParameter(
-      Expression argument, ParameterElement expectedParameter,
-      {DartType parameterMemberType}) {
-    ParameterElement actualParameter = argument.staticParameterElement;
-    if (useCFE) {
-      expect(actualParameter, isNull);
-      if (argument is NamedExpression) {
-        SimpleIdentifier name = argument.name.label;
-        expect(name.staticElement, same(expectedParameter));
+      Expression argument, ParameterElement expected,
+      {DartType memberType}) {
+    ParameterElement actual = argument.staticParameterElement;
+    if (memberType != null) {
+      expect(actual.type, memberType);
+    }
+
+    ParameterElement base = actual;
+    if (actual is ParameterMember) {
+      base = actual.baseElement;
+      // Unwrap ParameterMember one more time.
+      // By some reason we wrap in twice.
+      if (base is ParameterMember) {
+        ParameterMember member = base;
+        base = member.baseElement;
       }
-    } else {
-      ParameterElement baseActualParameter;
-      if (actualParameter is ParameterMember) {
-        if (parameterMemberType != null) {
-          expect(actualParameter.type, parameterMemberType);
-        }
-        baseActualParameter = actualParameter.baseElement;
-        // Unwrap ParameterMember one more time.
-        // By some reason we wrap in twice.
-        if (baseActualParameter is ParameterMember) {
-          ParameterMember member = baseActualParameter;
-          baseActualParameter = member.baseElement;
-        }
-      } else {
-        baseActualParameter = actualParameter;
-      }
-      expect(baseActualParameter, same(expectedParameter));
-      if (argument is NamedExpression) {
-        SimpleIdentifier name = argument.name.label;
-        expect(name.staticElement, same(actualParameter));
-        expect(name.staticType, isNull);
-      }
+    }
+    ParameterElement baseActual = base;
+    expect(baseActual, same(expected));
+
+    if (argument is NamedExpression) {
+      SimpleIdentifier name = argument.name.label;
+      expect(name.staticElement, same(actual));
+      expect(name.staticType, isNull);
     }
   }
 
@@ -10258,6 +10251,9 @@ class FindElement {
     for (var function in unitElement.functions) {
       function.parameters.forEach(considerParameter);
     }
+    for (var function in unitElement.functionTypeAliases) {
+      function.parameters.forEach(considerParameter);
+    }
     for (var class_ in unitElement.types) {
       for (var constructor in class_.constructors) {
         constructor.parameters.forEach(considerParameter);
@@ -10427,6 +10423,10 @@ class FindNode {
 
   SimpleFormalParameter simpleParameter(String search) {
     return _node(search).getAncestor((n) => n is SimpleFormalParameter);
+  }
+
+  StringLiteral stringLiteral(String search) {
+    return _node(search).getAncestor((n) => n is StringLiteral);
   }
 
   SuperExpression super_(String search) {

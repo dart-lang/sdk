@@ -171,8 +171,4 @@ main() {
 class CommonUsageSorterTest_UseCFE extends CommonUsageSorterTest {
   @override
   bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_namedArgument_enum() async => super.test_namedArgument_enum();
 }

@@ -376,21 +376,6 @@ class VariableNameSuggestionTest_UseCFE extends VariableNameSuggestionTest {
 
   @failingTest
   @override
-  test_forExpression_indexExpression_endsWithE() =>
-      super.test_forExpression_indexExpression_endsWithE();
-
-  @failingTest
-  @override
   test_forExpression_instanceCreation() =>
       super.test_forExpression_instanceCreation();
-
-  @failingTest
-  @override
-  test_forExpression_invocationArgument_optional() =>
-      super.test_forExpression_invocationArgument_optional();
-
-  @failingTest
-  @override
-  test_forExpression_invocationArgument_positional() =>
-      super.test_forExpression_invocationArgument_positional();
 }
