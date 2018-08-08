@@ -13,6 +13,7 @@ import '../../abstract_single_unit.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(VariableNameSuggestionTest);
+    defineReflectiveTests(VariableNameSuggestionTest_UseCFE);
   });
 }
 
@@ -100,6 +101,26 @@ main() {
         getVariableNameSuggestionsForExpression(
             expectedType, assignedExpression, new Set.from([])),
         unorderedEquals(['s']));
+  }
+
+  test_forExpression_inBuildMethod() async {
+    await resolveTestUnit('''
+class A {
+  void build() {
+    List l = new List();
+  }
+}
+''');
+    var excluded = new Set<String>.from([]);
+    var expr = findNodeAtString('new List');
+    expect(
+        getVariableNameSuggestionsForExpression(null, expr, excluded,
+            isMethod: false),
+        unorderedEquals(['list']));
+    expect(
+        getVariableNameSuggestionsForExpression(null, expr, excluded,
+            isMethod: true),
+        unorderedEquals(['buildList']));
   }
 
   test_forExpression_indexExpression_endsWithE() async {
@@ -226,26 +247,6 @@ main(p) {
         unorderedEquals(['sortedNodes', 'nodes']));
   }
 
-  test_forExpression_inBuildMethod() async {
-    await resolveTestUnit('''
-class A {
-  void build() {
-    List l = new List();
-  }
-}
-''');
-    var excluded = new Set<String>.from([]);
-    var expr = findNodeAtString('new List');
-    expect(
-        getVariableNameSuggestionsForExpression(null, expr, excluded,
-            isMethod: false),
-        unorderedEquals(['list']));
-    expect(
-        getVariableNameSuggestionsForExpression(null, expr, excluded,
-            isMethod: true),
-        unorderedEquals(['buildList']));
-  }
-
   test_forExpression_methodInvocation_noPrefix() async {
     await resolveTestUnit('''
 main(p) {
@@ -366,4 +367,30 @@ main(p) {
           unorderedEquals(['goodbyeCruelWorld', 'cruelWorld', 'world2']));
     }
   }
+}
+
+@reflectiveTest
+class VariableNameSuggestionTest_UseCFE extends VariableNameSuggestionTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_forExpression_indexExpression_endsWithE() =>
+      super.test_forExpression_indexExpression_endsWithE();
+
+  @failingTest
+  @override
+  test_forExpression_instanceCreation() =>
+      super.test_forExpression_instanceCreation();
+
+  @failingTest
+  @override
+  test_forExpression_invocationArgument_optional() =>
+      super.test_forExpression_invocationArgument_optional();
+
+  @failingTest
+  @override
+  test_forExpression_invocationArgument_positional() =>
+      super.test_forExpression_invocationArgument_positional();
 }

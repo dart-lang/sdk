@@ -12,6 +12,7 @@ import 'abstract_rename.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameUnitMemberTest);
+    defineReflectiveTests(RenameUnitMemberTest_UseCFE);
   });
 }
 
@@ -609,4 +610,130 @@ main() {
 }
 ''');
   }
+}
+
+@reflectiveTest
+class RenameUnitMemberTest_UseCFE extends RenameUnitMemberTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_checkFinalConditions_OK_qualifiedSuper_MethodElement() =>
+      super.test_checkFinalConditions_OK_qualifiedSuper_MethodElement();
+
+  @failingTest
+  @override
+  test_checkFinalConditions_publicToPrivate_usedInOtherLibrary() =>
+      super.test_checkFinalConditions_publicToPrivate_usedInOtherLibrary();
+
+  @failingTest
+  @override
+  test_checkFinalConditions_shadowedBy_MethodElement() =>
+      super.test_checkFinalConditions_shadowedBy_MethodElement();
+
+  @failingTest
+  @override
+  test_checkFinalConditions_shadowsInSubClass_importedLib() =>
+      super.test_checkFinalConditions_shadowsInSubClass_importedLib();
+
+  @failingTest
+  @override
+  test_checkFinalConditions_shadowsInSubClass_importedLib_hideCombinator() =>
+      callFailingTest(super
+          .test_checkFinalConditions_shadowsInSubClass_importedLib_hideCombinator());
+
+  @failingTest
+  @override
+  test_checkFinalConditions_shadowsInSubClass_MethodElement() =>
+      super.test_checkFinalConditions_shadowsInSubClass_MethodElement();
+
+  @failingTest
+  @override
+  test_checkFinalConditions_shadowsInSubClass_notImportedLib() =>
+      super.test_checkFinalConditions_shadowsInSubClass_notImportedLib();
+
+  @failingTest
+  @override
+  test_checkFinalConditions_shadowsInSubClass_notSubClass() =>
+      super.test_checkFinalConditions_shadowsInSubClass_notSubClass();
+
+  @failingTest
+  @override
+  test_createChange_ClassElement() => super.test_createChange_ClassElement();
+
+  @failingTest
+  @override
+  test_createChange_ClassElement_invocation() =>
+      super.test_createChange_ClassElement_invocation();
+
+  @failingTest
+  @override
+  test_createChange_ClassElement_parameterTypeNested() =>
+      super.test_createChange_ClassElement_parameterTypeNested();
+
+  @failingTest
+  @override
+  test_createChange_ClassElement_typeAlias() =>
+      super.test_createChange_ClassElement_typeAlias();
+
+  @failingTest
+  @override
+  test_createChange_FunctionElement() =>
+      super.test_createChange_FunctionElement();
+
+  @failingTest
+  @override
+  test_createChange_FunctionElement_imported() =>
+      super.test_createChange_FunctionElement_imported();
+
+  @failingTest
+  @override
+  test_createChange_FunctionTypeAliasElement() =>
+      super.test_createChange_FunctionTypeAliasElement();
+
+  @failingTest
+  @override
+  test_createChange_PropertyAccessorElement_getter_declaration() =>
+      super.test_createChange_PropertyAccessorElement_getter_declaration();
+
+  @failingTest
+  @override
+  test_createChange_PropertyAccessorElement_getter_usage() =>
+      super.test_createChange_PropertyAccessorElement_getter_usage();
+
+  @failingTest
+  @override
+  test_createChange_PropertyAccessorElement_mix() =>
+      super.test_createChange_PropertyAccessorElement_mix();
+
+  @failingTest
+  @override
+  test_createChange_PropertyAccessorElement_setter_declaration() =>
+      super.test_createChange_PropertyAccessorElement_setter_declaration();
+
+  @failingTest
+  @override
+  test_createChange_PropertyAccessorElement_setter_usage() =>
+      super.test_createChange_PropertyAccessorElement_setter_usage();
+
+  @failingTest
+  @override
+  test_createChange_TopLevelVariableElement_field() =>
+      super.test_createChange_TopLevelVariableElement_field();
+
+  @failingTest
+  @override
+  test_createChange_TopLevelVariableElement_getter() =>
+      super.test_createChange_TopLevelVariableElement_getter();
+
+  @failingTest
+  @override
+  test_createChange_TopLevelVariableElement_mix() =>
+      super.test_createChange_TopLevelVariableElement_mix();
+
+  @failingTest
+  @override
+  test_createChange_TopLevelVariableElement_setter() =>
+      super.test_createChange_TopLevelVariableElement_setter();
 }

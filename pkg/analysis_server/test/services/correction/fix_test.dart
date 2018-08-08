@@ -30,7 +30,9 @@ import '../../abstract_single_unit.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FixProcessorTest);
+    defineReflectiveTests(FixProcessorTest_UseCFE);
     defineReflectiveTests(LintFixTest);
+    defineReflectiveTests(LintFixTest_UseCFE);
   });
 }
 
@@ -7055,6 +7057,1107 @@ class Required {
 }
 
 @reflectiveTest
+class FixProcessorTest_UseCFE extends FixProcessorTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_addAsync_blockFunctionBody() => super.test_addAsync_blockFunctionBody();
+
+  @failingTest
+  @override
+  test_addAsync_closure() => super.test_addAsync_closure();
+
+  @failingTest
+  @override
+  test_addAsync_expressionFunctionBody() =>
+      super.test_addAsync_expressionFunctionBody();
+
+  @failingTest
+  @override
+  test_addAsync_returnFuture() => super.test_addAsync_returnFuture();
+
+  @failingTest
+  @override
+  test_addAsync_returnFuture_alreadyFuture() =>
+      super.test_addAsync_returnFuture_alreadyFuture();
+
+  @failingTest
+  @override
+  test_addAsync_returnFuture_dynamic() =>
+      super.test_addAsync_returnFuture_dynamic();
+
+  @failingTest
+  @override
+  test_addAsync_returnFuture_noType() =>
+      super.test_addAsync_returnFuture_noType();
+
+  @failingTest
+  @override
+  test_addExplicitCast_assignment_general() =>
+      super.test_addExplicitCast_assignment_general();
+
+  @failingTest
+  @override
+  test_addExplicitCast_assignment_general_all() =>
+      super.test_addExplicitCast_assignment_general_all();
+
+  @failingTest
+  @override
+  test_addExplicitCast_assignment_map() =>
+      super.test_addExplicitCast_assignment_map();
+
+  @failingTest
+  @override
+  test_addExplicitCast_assignment_map_all() =>
+      super.test_addExplicitCast_assignment_map_all();
+
+  @failingTest
+  @override
+  test_addExplicitCast_assignment_needsParens() =>
+      super.test_addExplicitCast_assignment_needsParens();
+
+  @failingTest
+  @override
+  test_addExplicitCast_assignment_needsParens_all() =>
+      super.test_addExplicitCast_assignment_needsParens_all();
+
+  @failingTest
+  @override
+  test_addExplicitCast_assignment_set() =>
+      super.test_addExplicitCast_assignment_set();
+
+  @failingTest
+  @override
+  test_addExplicitCast_assignment_set_all() =>
+      super.test_addExplicitCast_assignment_set_all();
+
+  @failingTest
+  @override
+  test_addExplicitCast_declaration_general() =>
+      super.test_addExplicitCast_declaration_general();
+
+  @failingTest
+  @override
+  test_addExplicitCast_declaration_general_all() =>
+      super.test_addExplicitCast_declaration_general_all();
+
+  @failingTest
+  @override
+  test_addExplicitCast_declaration_map() =>
+      super.test_addExplicitCast_declaration_map();
+
+  @failingTest
+  @override
+  test_addExplicitCast_declaration_map_all() =>
+      super.test_addExplicitCast_declaration_map_all();
+
+  @failingTest
+  @override
+  test_addExplicitCast_declaration_needsParens() =>
+      super.test_addExplicitCast_declaration_needsParens();
+
+  @failingTest
+  @override
+  test_addExplicitCast_declaration_needsParens_all() =>
+      super.test_addExplicitCast_declaration_needsParens_all();
+
+  @failingTest
+  @override
+  test_addExplicitCast_declaration_set() =>
+      super.test_addExplicitCast_declaration_set();
+
+  @failingTest
+  @override
+  test_addExplicitCast_declaration_set_all() =>
+      super.test_addExplicitCast_declaration_set_all();
+
+  @failingTest
+  @override
+  test_addFieldFormalParameters_flutter() =>
+      super.test_addFieldFormalParameters_flutter();
+
+  @failingTest
+  @override
+  test_addFieldFormalParameters_hasRequiredParameter() =>
+      super.test_addFieldFormalParameters_hasRequiredParameter();
+
+  @failingTest
+  @override
+  test_addFieldFormalParameters_noParameters() =>
+      super.test_addFieldFormalParameters_noParameters();
+
+  @failingTest
+  @override
+  test_addFieldFormalParameters_noRequiredParameter() =>
+      super.test_addFieldFormalParameters_noRequiredParameter();
+
+  @failingTest
+  @override
+  test_addFieldFormalParameters_notAllFinal() =>
+      super.test_addFieldFormalParameters_notAllFinal();
+
+  @failingTest
+  @override
+  test_addMissingParameter_function_positional_hasZero() =>
+      super.test_addMissingParameter_function_positional_hasZero();
+
+  @failingTest
+  @override
+  test_addMissingParameter_function_required_hasNamed() =>
+      super.test_addMissingParameter_function_required_hasNamed();
+
+  @failingTest
+  @override
+  test_addMissingParameter_function_required_hasOne() =>
+      super.test_addMissingParameter_function_required_hasOne();
+
+  @failingTest
+  @override
+  test_addMissingParameter_function_required_hasZero() =>
+      super.test_addMissingParameter_function_required_hasZero();
+
+  @failingTest
+  @override
+  test_addMissingParameter_method_positional_hasOne() =>
+      super.test_addMissingParameter_method_positional_hasOne();
+
+  @failingTest
+  @override
+  test_addMissingParameter_method_required_hasOne() =>
+      super.test_addMissingParameter_method_required_hasOne();
+
+  @failingTest
+  @override
+  test_addMissingParameter_method_required_hasZero() =>
+      super.test_addMissingParameter_method_required_hasZero();
+
+  @failingTest
+  @override
+  test_addMissingParameterNamed_constructor_hasNamed() =>
+      super.test_addMissingParameterNamed_constructor_hasNamed();
+
+  @failingTest
+  @override
+  test_addMissingParameterNamed_constructor_hasRequired() =>
+      super.test_addMissingParameterNamed_constructor_hasRequired();
+
+  @failingTest
+  @override
+  test_addMissingParameterNamed_constructor_noParameters() =>
+      super.test_addMissingParameterNamed_constructor_noParameters();
+
+  @failingTest
+  @override
+  test_addMissingParameterNamed_constructor_noParameters_named() =>
+      super.test_addMissingParameterNamed_constructor_noParameters_named();
+
+  @failingTest
+  @override
+  test_addMissingParameterNamed_function_hasNamed() =>
+      super.test_addMissingParameterNamed_function_hasNamed();
+
+  @failingTest
+  @override
+  test_addMissingParameterNamed_function_hasRequired() =>
+      super.test_addMissingParameterNamed_function_hasRequired();
+
+  @failingTest
+  @override
+  test_addMissingParameterNamed_function_noParameters() =>
+      super.test_addMissingParameterNamed_function_noParameters();
+
+  @failingTest
+  @override
+  test_addMissingParameterNamed_method_hasNamed() =>
+      super.test_addMissingParameterNamed_method_hasNamed();
+
+  @failingTest
+  @override
+  test_addMissingParameterNamed_method_hasRequired() =>
+      super.test_addMissingParameterNamed_method_hasRequired();
+
+  @failingTest
+  @override
+  test_addMissingParameterNamed_method_noParameters() =>
+      super.test_addMissingParameterNamed_method_noParameters();
+
+  @failingTest
+  @override
+  test_addMissingRequiredArg_multiple() =>
+      super.test_addMissingRequiredArg_multiple();
+
+  @failingTest
+  @override
+  test_addMissingRequiredArg_multiple_2() =>
+      super.test_addMissingRequiredArg_multiple_2();
+
+  @failingTest
+  @override
+  test_addMissingRequiredArg_single() =>
+      super.test_addMissingRequiredArg_single();
+
+  @failingTest
+  @override
+  test_addMissingRequiredArg_single_normal() =>
+      super.test_addMissingRequiredArg_single_normal();
+
+  @failingTest
+  @override
+  test_addMissingRequiredArg_single_with_details() =>
+      super.test_addMissingRequiredArg_single_with_details();
+
+  @failingTest
+  @override
+  test_addStatic_multipleFields() => super.test_addStatic_multipleFields();
+
+  @failingTest
+  @override
+  test_addStatic_oneField() => super.test_addStatic_oneField();
+
+  @failingTest
+  @override
+  test_boolean() => super.test_boolean();
+
+  @failingTest
+  @override
+  test_boolean_all() => super.test_boolean_all();
+
+  @failingTest
+  @override
+  test_changeToStaticAccess_method() =>
+      super.test_changeToStaticAccess_method();
+
+  @failingTest
+  @override
+  test_changeToStaticAccess_method_importType() =>
+      super.test_changeToStaticAccess_method_importType();
+
+  @failingTest
+  @override
+  test_changeToStaticAccess_method_prefixLibrary() =>
+      super.test_changeToStaticAccess_method_prefixLibrary();
+
+  @failingTest
+  @override
+  test_changeToStaticAccess_property() =>
+      super.test_changeToStaticAccess_property();
+
+  @failingTest
+  @override
+  test_changeToStaticAccess_property_importType() =>
+      super.test_changeToStaticAccess_property_importType();
+
+  @failingTest
+  @override
+  test_convertToNamedArguments_OK_instanceCreation() =>
+      super.test_convertToNamedArguments_OK_instanceCreation();
+
+  @failingTest
+  @override
+  test_convertToNamedArguments_OK_instanceCreation_hasPositional() =>
+      super.test_convertToNamedArguments_OK_instanceCreation_hasPositional();
+
+  @failingTest
+  @override
+  test_convertToNamedArguments_OK_methodInvocation() =>
+      super.test_convertToNamedArguments_OK_methodInvocation();
+
+  @failingTest
+  @override
+  test_createClass() => super.test_createClass();
+
+  @failingTest
+  @override
+  test_createClass_inLibraryOfPrefix() =>
+      super.test_createClass_inLibraryOfPrefix();
+
+  @failingTest
+  @override
+  test_createClass_innerLocalFunction() =>
+      super.test_createClass_innerLocalFunction();
+
+  @failingTest
+  @override
+  test_createClass_instanceCreation_withoutNew_fromFunction() =>
+      super.test_createClass_instanceCreation_withoutNew_fromFunction();
+
+  @failingTest
+  @override
+  test_createClass_instanceCreation_withoutNew_fromMethod() =>
+      super.test_createClass_instanceCreation_withoutNew_fromMethod();
+
+  @failingTest
+  @override
+  test_createClass_itemOfList() => super.test_createClass_itemOfList();
+
+  @failingTest
+  @override
+  test_createClass_itemOfList_inAnnotation() =>
+      super.test_createClass_itemOfList_inAnnotation();
+
+  @failingTest
+  @override
+  test_createConstructor_forFinalFields() =>
+      super.test_createConstructor_forFinalFields();
+
+  @failingTest
+  @override
+  test_createConstructor_forFinalFields_flutter() =>
+      super.test_createConstructor_forFinalFields_flutter();
+
+  @failingTest
+  @override
+  test_createConstructor_forFinalFields_flutter_childLast() =>
+      super.test_createConstructor_forFinalFields_flutter_childLast();
+
+  @failingTest
+  @override
+  test_createConstructor_forFinalFields_flutter_childrenLast() =>
+      super.test_createConstructor_forFinalFields_flutter_childrenLast();
+
+  @failingTest
+  @override
+  test_createConstructor_insteadOfSyntheticDefault() =>
+      super.test_createConstructor_insteadOfSyntheticDefault();
+
+  @failingTest
+  @override
+  test_createConstructor_named() => super.test_createConstructor_named();
+
+  @failingTest
+  @override
+  test_createConstructor_named_emptyClassBody() =>
+      super.test_createConstructor_named_emptyClassBody();
+
+  @failingTest
+  @override
+  test_createConstructorSuperExplicit() =>
+      super.test_createConstructorSuperExplicit();
+
+  @failingTest
+  @override
+  test_createConstructorSuperExplicit_hasInitializers() =>
+      super.test_createConstructorSuperExplicit_hasInitializers();
+
+  @failingTest
+  @override
+  test_createConstructorSuperExplicit_named() =>
+      super.test_createConstructorSuperExplicit_named();
+
+  @failingTest
+  @override
+  test_createConstructorSuperExplicit_named_private() =>
+      super.test_createConstructorSuperExplicit_named_private();
+
+  @failingTest
+  @override
+  test_createConstructorSuperExplicit_typeArgument() =>
+      super.test_createConstructorSuperExplicit_typeArgument();
+
+  @failingTest
+  @override
+  test_createConstructorSuperImplicit() =>
+      super.test_createConstructorSuperImplicit();
+
+  @failingTest
+  @override
+  test_createConstructorSuperImplicit_fieldInitializer() =>
+      super.test_createConstructorSuperImplicit_fieldInitializer();
+
+  @failingTest
+  @override
+  test_createConstructorSuperImplicit_importType() =>
+      super.test_createConstructorSuperImplicit_importType();
+
+  @failingTest
+  @override
+  test_createConstructorSuperImplicit_named() =>
+      super.test_createConstructorSuperImplicit_named();
+
+  @failingTest
+  @override
+  test_createConstructorSuperImplicit_private() =>
+      super.test_createConstructorSuperImplicit_private();
+
+  @failingTest
+  @override
+  test_createConstructorSuperImplicit_typeArgument() =>
+      super.test_createConstructorSuperImplicit_typeArgument();
+
+  @failingTest
+  @override
+  test_createField_getter_unqualified_instance_asInvocationArgument() =>
+      super.test_createField_getter_unqualified_instance_asInvocationArgument();
+
+  @failingTest
+  @override
+  test_createField_getter_unqualified_instance_assignmentRhs() =>
+      super.test_createField_getter_unqualified_instance_assignmentRhs();
+
+  @failingTest
+  @override
+  test_createField_getter_unqualified_instance_asStatement() =>
+      super.test_createField_getter_unqualified_instance_asStatement();
+
+  @failingTest
+  @override
+  test_createField_invalidInitializer_withoutType() =>
+      super.test_createField_invalidInitializer_withoutType();
+
+  @failingTest
+  @override
+  test_createField_invalidInitializer_withType() =>
+      super.test_createField_invalidInitializer_withType();
+
+  @failingTest
+  @override
+  test_createField_setter_generic_OK_local() =>
+      super.test_createField_setter_generic_OK_local();
+
+  @failingTest
+  @override
+  test_createField_setter_unqualified_instance() =>
+      super.test_createField_setter_unqualified_instance();
+
+  @failingTest
+  @override
+  test_createFile_forImport() => super.test_createFile_forImport();
+
+  @failingTest
+  @override
+  test_createFile_forImport_BAD_inPackage_lib_justLib() =>
+      super.test_createFile_forImport_BAD_inPackage_lib_justLib();
+
+  @failingTest
+  @override
+  test_createFile_forImport_BAD_notDart() =>
+      super.test_createFile_forImport_BAD_notDart();
+
+  @failingTest
+  @override
+  test_createFile_forImport_inPackage_lib() =>
+      super.test_createFile_forImport_inPackage_lib();
+
+  @failingTest
+  @override
+  test_createFile_forImport_inPackage_test() =>
+      super.test_createFile_forImport_inPackage_test();
+
+  @failingTest
+  @override
+  test_createFile_forPart() => super.test_createFile_forPart();
+
+  @failingTest
+  @override
+  test_createFile_forPart_inPackageLib() =>
+      super.test_createFile_forPart_inPackageLib();
+
+  @failingTest
+  @override
+  test_createGetter_unqualified_instance_asInvocationArgument() =>
+      super.test_createGetter_unqualified_instance_asInvocationArgument();
+
+  @failingTest
+  @override
+  test_createGetter_unqualified_instance_assignmentLhs() =>
+      super.test_createGetter_unqualified_instance_assignmentLhs();
+
+  @failingTest
+  @override
+  test_createGetter_unqualified_instance_assignmentRhs() =>
+      super.test_createGetter_unqualified_instance_assignmentRhs();
+
+  @failingTest
+  @override
+  test_createGetter_unqualified_instance_asStatement() =>
+      super.test_createGetter_unqualified_instance_asStatement();
+
+  @failingTest
+  @override
+  test_createLocalVariable_functionType_named() =>
+      super.test_createLocalVariable_functionType_named();
+
+  @failingTest
+  @override
+  test_createLocalVariable_functionType_named_generic() =>
+      super.test_createLocalVariable_functionType_named_generic();
+
+  @override
+  test_createLocalVariable_functionType_synthetic() =>
+      super.test_createLocalVariable_functionType_synthetic();
+
+  @failingTest
+  @override
+  test_createLocalVariable_read_typeAssignment() =>
+      super.test_createLocalVariable_read_typeAssignment();
+
+  @failingTest
+  @override
+  test_createLocalVariable_read_typeCondition() =>
+      super.test_createLocalVariable_read_typeCondition();
+
+  @failingTest
+  @override
+  test_createLocalVariable_read_typeInvocationArgument() =>
+      super.test_createLocalVariable_read_typeInvocationArgument();
+
+  @failingTest
+  @override
+  test_createLocalVariable_read_typeInvocationTarget() =>
+      super.test_createLocalVariable_read_typeInvocationTarget();
+
+  @failingTest
+  @override
+  test_createLocalVariable_withImport() =>
+      super.test_createLocalVariable_withImport();
+
+  @failingTest
+  @override
+  test_createLocalVariable_write_assignment() =>
+      super.test_createLocalVariable_write_assignment();
+
+  @failingTest
+  @override
+  test_createLocalVariable_write_assignment_compound() =>
+      super.test_createLocalVariable_write_assignment_compound();
+
+  @failingTest
+  @override
+  test_createMissingOverrides_field_untyped() =>
+      super.test_createMissingOverrides_field_untyped();
+
+  @failingTest
+  @override
+  test_createMissingOverrides_functionTypeAlias() =>
+      super.test_createMissingOverrides_functionTypeAlias();
+
+  @failingTest
+  @override
+  test_createMissingOverrides_functionTypedParameter() =>
+      super.test_createMissingOverrides_functionTypedParameter();
+
+  @failingTest
+  @override
+  test_createMissingOverrides_generics_typeArguments() =>
+      super.test_createMissingOverrides_generics_typeArguments();
+
+  @failingTest
+  @override
+  test_createMissingOverrides_generics_typeParameters() =>
+      super.test_createMissingOverrides_generics_typeParameters();
+
+  @failingTest
+  @override
+  test_createMissingOverrides_getter() =>
+      super.test_createMissingOverrides_getter();
+
+  @failingTest
+  @override
+  test_createMissingOverrides_importPrefix() =>
+      super.test_createMissingOverrides_importPrefix();
+
+  @failingTest
+  @override
+  test_createMissingOverrides_mergeToField_getterSetter() =>
+      super.test_createMissingOverrides_mergeToField_getterSetter();
+
+  @failingTest
+  @override
+  test_createMissingOverrides_method() =>
+      super.test_createMissingOverrides_method();
+
+  @failingTest
+  @override
+  test_createMissingOverrides_method_emptyClassBody() =>
+      super.test_createMissingOverrides_method_emptyClassBody();
+
+  @failingTest
+  @override
+  test_createMissingOverrides_method_generic() =>
+      super.test_createMissingOverrides_method_generic();
+
+  @failingTest
+  @override
+  test_createMissingOverrides_method_generic_withBounds() =>
+      super.test_createMissingOverrides_method_generic_withBounds();
+
+  @failingTest
+  @override
+  test_createMissingOverrides_method_notEmptyClassBody() =>
+      super.test_createMissingOverrides_method_notEmptyClassBody();
+
+  @failingTest
+  @override
+  test_createMissingOverrides_operator() =>
+      super.test_createMissingOverrides_operator();
+
+  @failingTest
+  @override
+  test_createMissingOverrides_setter() =>
+      super.test_createMissingOverrides_setter();
+
+  @failingTest
+  @override
+  test_createNoSuchMethod_OK() => super.test_createNoSuchMethod_OK();
+
+  @failingTest
+  @override
+  test_creationFunction_forFunctionType_cascadeSecond() =>
+      super.test_creationFunction_forFunctionType_cascadeSecond();
+
+  @failingTest
+  @override
+  test_creationFunction_forFunctionType_coreFunction() =>
+      super.test_creationFunction_forFunctionType_coreFunction();
+
+  @failingTest
+  @override
+  test_creationFunction_forFunctionType_dynamicArgument() =>
+      super.test_creationFunction_forFunctionType_dynamicArgument();
+
+  @failingTest
+  @override
+  test_creationFunction_forFunctionType_function() =>
+      super.test_creationFunction_forFunctionType_function();
+
+  @failingTest
+  @override
+  test_creationFunction_forFunctionType_function_namedArgument() =>
+      super.test_creationFunction_forFunctionType_function_namedArgument();
+
+  @failingTest
+  @override
+  test_creationFunction_forFunctionType_importType() =>
+      super.test_creationFunction_forFunctionType_importType();
+
+  @failingTest
+  @override
+  test_creationFunction_forFunctionType_method_enclosingClass_static() => super
+      .test_creationFunction_forFunctionType_method_enclosingClass_static();
+
+  @failingTest
+  @override
+  test_creationFunction_forFunctionType_method_enclosingClass_static2() => super
+      .test_creationFunction_forFunctionType_method_enclosingClass_static2();
+
+  @failingTest
+  @override
+  test_creationFunction_forFunctionType_method_targetClass() =>
+      super.test_creationFunction_forFunctionType_method_targetClass();
+
+  @failingTest
+  @override
+  test_creationFunction_forFunctionType_method_targetClass_hasOtherMember() => super
+      .test_creationFunction_forFunctionType_method_targetClass_hasOtherMember();
+
+  @failingTest
+  @override
+  test_expectedToken_semicolon() => super.test_expectedToken_semicolon();
+
+  @failingTest
+  @override
+  test_illegalAsyncReturnType_adjacentNodes() =>
+      super.test_illegalAsyncReturnType_adjacentNodes();
+
+  @failingTest
+  @override
+  test_illegalAsyncReturnType_asyncLibrary_import() =>
+      super.test_illegalAsyncReturnType_asyncLibrary_import();
+
+  @failingTest
+  @override
+  test_illegalAsyncReturnType_asyncLibrary_usePrefix() =>
+      super.test_illegalAsyncReturnType_asyncLibrary_usePrefix();
+
+  @failingTest
+  @override
+  test_illegalAsyncReturnType_complexTypeName() =>
+      super.test_illegalAsyncReturnType_complexTypeName();
+
+  @failingTest
+  @override
+  test_importLibraryPackage_preferDirectOverExport() =>
+      super.test_importLibraryPackage_preferDirectOverExport();
+
+  @failingTest
+  @override
+  test_importLibraryPackage_preferDirectOverExport_src() =>
+      super.test_importLibraryPackage_preferDirectOverExport_src();
+
+  @failingTest
+  @override
+  test_importLibraryProject_BAD_inLibSrc_differentContextRoot() =>
+      super.test_importLibraryProject_BAD_inLibSrc_differentContextRoot();
+
+  @failingTest
+  @override
+  test_importLibraryProject_OK_inLibSrc_thisContextRoot() =>
+      super.test_importLibraryProject_OK_inLibSrc_thisContextRoot();
+
+  @failingTest
+  @override
+  test_importLibraryProject_withClass_annotation() =>
+      super.test_importLibraryProject_withClass_annotation();
+
+  @failingTest
+  @override
+  test_importLibraryProject_withClass_inParentFolder() =>
+      super.test_importLibraryProject_withClass_inParentFolder();
+
+  @failingTest
+  @override
+  test_importLibraryProject_withClass_inRelativeFolder() =>
+      super.test_importLibraryProject_withClass_inRelativeFolder();
+
+  @failingTest
+  @override
+  test_importLibraryProject_withClass_inSameFolder() =>
+      super.test_importLibraryProject_withClass_inSameFolder();
+
+  @failingTest
+  @override
+  test_importLibraryProject_withClass_instanceCreation_implicit() =>
+      super.test_importLibraryProject_withClass_instanceCreation_implicit();
+
+  @failingTest
+  @override
+  test_importLibraryProject_withFunction() =>
+      super.test_importLibraryProject_withFunction();
+
+  @failingTest
+  @override
+  test_importLibraryProject_withFunction_unresolvedMethod() =>
+      super.test_importLibraryProject_withFunction_unresolvedMethod();
+
+  @failingTest
+  @override
+  test_importLibraryProject_withFunctionTypeAlias() =>
+      super.test_importLibraryProject_withFunctionTypeAlias();
+
+  @failingTest
+  @override
+  test_importLibraryProject_withTopLevelVariable() =>
+      super.test_importLibraryProject_withTopLevelVariable();
+
+  @failingTest
+  @override
+  test_importLibrarySdk_withClass_AsExpression() =>
+      super.test_importLibrarySdk_withClass_AsExpression();
+
+  @failingTest
+  @override
+  test_importLibrarySdk_withClass_instanceCreation_explicitNew() =>
+      super.test_importLibrarySdk_withClass_instanceCreation_explicitNew();
+
+  @failingTest
+  @override
+  test_importLibrarySdk_withClass_instanceCreation_explicitNew_namedConstructor() =>
+      super
+          .test_importLibrarySdk_withClass_instanceCreation_explicitNew_namedConstructor();
+
+  @failingTest
+  @override
+  test_importLibrarySdk_withClass_instanceCreation_implicitNew() =>
+      super.test_importLibrarySdk_withClass_instanceCreation_implicitNew();
+
+  @failingTest
+  @override
+  test_importLibrarySdk_withClass_instanceCreation_implicitNew_namedConstructor() =>
+      super
+          .test_importLibrarySdk_withClass_instanceCreation_implicitNew_namedConstructor();
+
+  @failingTest
+  @override
+  test_importLibrarySdk_withClass_invocationTarget() =>
+      super.test_importLibrarySdk_withClass_invocationTarget();
+
+  @failingTest
+  @override
+  test_importLibrarySdk_withClass_IsExpression() =>
+      super.test_importLibrarySdk_withClass_IsExpression();
+
+  @failingTest
+  @override
+  test_importLibrarySdk_withClass_itemOfList() =>
+      super.test_importLibrarySdk_withClass_itemOfList();
+
+  @failingTest
+  @override
+  test_importLibrarySdk_withClass_itemOfList_inAnnotation() =>
+      super.test_importLibrarySdk_withClass_itemOfList_inAnnotation();
+
+  @failingTest
+  @override
+  test_importLibrarySdk_withClass_typeAnnotation() =>
+      super.test_importLibrarySdk_withClass_typeAnnotation();
+
+  @failingTest
+  @override
+  test_importLibrarySdk_withClass_typeAnnotation_PrefixedIdentifier() =>
+      super.test_importLibrarySdk_withClass_typeAnnotation_PrefixedIdentifier();
+
+  @failingTest
+  @override
+  test_importLibrarySdk_withClass_typeArgument() =>
+      super.test_importLibrarySdk_withClass_typeArgument();
+
+  @failingTest
+  @override
+  test_importLibrarySdk_withTopLevelVariable() =>
+      super.test_importLibrarySdk_withTopLevelVariable();
+
+  @failingTest
+  @override
+  test_importLibrarySdk_withTopLevelVariable_annotation() =>
+      super.test_importLibrarySdk_withTopLevelVariable_annotation();
+
+  @failingTest
+  @override
+  test_importLibraryShow_project() => super.test_importLibraryShow_project();
+
+  @failingTest
+  @override
+  test_importLibraryShow_sdk() => super.test_importLibraryShow_sdk();
+
+  @failingTest
+  @override
+  test_makeFieldNotFinal_hasType() => super.test_makeFieldNotFinal_hasType();
+
+  @failingTest
+  @override
+  test_makeFieldNotFinal_noType() => super.test_makeFieldNotFinal_noType();
+
+  @failingTest
+  @override
+  test_noException_1() => super.test_noException_1();
+
+  @failingTest
+  @override
+  test_nonBoolCondition_addNotNull() =>
+      super.test_nonBoolCondition_addNotNull();
+
+  @failingTest
+  @override
+  test_nonBoolCondition_addNotNull_all() =>
+      super.test_nonBoolCondition_addNotNull_all();
+
+  @failingTest
+  @override
+  test_removeParentheses_inGetterDeclaration() =>
+      super.test_removeParentheses_inGetterDeclaration();
+
+  @failingTest
+  @override
+  test_removeParentheses_inGetterInvocation() =>
+      super.test_removeParentheses_inGetterInvocation();
+
+  @failingTest
+  @override
+  test_replaceVarWithDynamic() => super.test_replaceVarWithDynamic();
+
+  @failingTest
+  @override
+  test_replaceWithConstInstanceCreation_explicitNew() =>
+      super.test_replaceWithConstInstanceCreation_explicitNew();
+
+  @failingTest
+  @override
+  test_undefinedClass_useSimilar_BAD_prefixed() =>
+      super.test_undefinedClass_useSimilar_BAD_prefixed();
+
+  @failingTest
+  @override
+  test_undefinedClass_useSimilar_fromImport() =>
+      super.test_undefinedClass_useSimilar_fromImport();
+
+  @failingTest
+  @override
+  test_undefinedClass_useSimilar_fromThisLibrary() =>
+      super.test_undefinedClass_useSimilar_fromThisLibrary();
+
+  @failingTest
+  @override
+  test_undefinedFunction_create_bottomArgument() =>
+      super.test_undefinedFunction_create_bottomArgument();
+
+  @failingTest
+  @override
+  test_undefinedFunction_create_duplicateArgumentNames() =>
+      super.test_undefinedFunction_create_duplicateArgumentNames();
+
+  @failingTest
+  @override
+  test_undefinedFunction_create_dynamicArgument() =>
+      super.test_undefinedFunction_create_dynamicArgument();
+
+  @failingTest
+  @override
+  test_undefinedFunction_create_dynamicReturnType() =>
+      super.test_undefinedFunction_create_dynamicReturnType();
+
+  @failingTest
+  @override
+  test_undefinedFunction_create_fromFunction() =>
+      super.test_undefinedFunction_create_fromFunction();
+
+  @failingTest
+  @override
+  test_undefinedFunction_create_fromMethod() =>
+      super.test_undefinedFunction_create_fromMethod();
+
+  @failingTest
+  @override
+  test_undefinedFunction_create_generic_BAD() =>
+      super.test_undefinedFunction_create_generic_BAD();
+
+  @failingTest
+  @override
+  test_undefinedFunction_create_generic_OK() =>
+      super.test_undefinedFunction_create_generic_OK();
+
+  @failingTest
+  @override
+  test_undefinedFunction_create_importType() =>
+      super.test_undefinedFunction_create_importType();
+
+  @failingTest
+  @override
+  test_undefinedFunction_create_nullArgument() =>
+      super.test_undefinedFunction_create_nullArgument();
+
+  @failingTest
+  @override
+  test_undefinedFunction_create_returnType_bool_expressions() =>
+      super.test_undefinedFunction_create_returnType_bool_expressions();
+
+  @failingTest
+  @override
+  test_undefinedFunction_create_returnType_bool_statements() =>
+      super.test_undefinedFunction_create_returnType_bool_statements();
+
+  @failingTest
+  @override
+  test_undefinedFunction_create_returnType_fromAssignment_eq() =>
+      super.test_undefinedFunction_create_returnType_fromAssignment_eq();
+
+  @failingTest
+  @override
+  test_undefinedFunction_create_returnType_fromAssignment_plusEq() =>
+      super.test_undefinedFunction_create_returnType_fromAssignment_plusEq();
+
+  @failingTest
+  @override
+  test_undefinedFunction_create_returnType_fromBinary_right() =>
+      super.test_undefinedFunction_create_returnType_fromBinary_right();
+
+  @failingTest
+  @override
+  test_undefinedFunction_create_returnType_fromInitializer() =>
+      super.test_undefinedFunction_create_returnType_fromInitializer();
+
+  @failingTest
+  @override
+  test_undefinedFunction_create_returnType_fromInvocationArgument() =>
+      super.test_undefinedFunction_create_returnType_fromInvocationArgument();
+
+  @failingTest
+  @override
+  test_undefinedFunction_create_returnType_fromReturn() =>
+      super.test_undefinedFunction_create_returnType_fromReturn();
+
+  @failingTest
+  @override
+  test_undefinedFunction_create_returnType_void() =>
+      super.test_undefinedFunction_create_returnType_void();
+
+  @failingTest
+  @override
+  test_undefinedFunction_useSimilar_fromImport() =>
+      super.test_undefinedFunction_useSimilar_fromImport();
+
+  @failingTest
+  @override
+  test_undefinedFunction_useSimilar_prefixed_fromImport() =>
+      super.test_undefinedFunction_useSimilar_prefixed_fromImport();
+
+  @failingTest
+  @override
+  test_undefinedFunction_useSimilar_thisLibrary() =>
+      super.test_undefinedFunction_useSimilar_thisLibrary();
+
+  @failingTest
+  @override
+  test_undefinedGetter_useSimilar_unqualified() =>
+      super.test_undefinedGetter_useSimilar_unqualified();
+
+  @failingTest
+  @override
+  test_undefinedMethod_create_BAD_targetIsEnum() =>
+      super.test_undefinedMethod_create_BAD_targetIsEnum();
+
+  @failingTest
+  @override
+  test_undefinedMethod_create_generic_OK_local() =>
+      super.test_undefinedMethod_create_generic_OK_local();
+
+  @failingTest
+  @override
+  test_undefinedMethod_createUnqualified_duplicateArgumentNames() =>
+      super.test_undefinedMethod_createUnqualified_duplicateArgumentNames();
+
+  @failingTest
+  @override
+  test_undefinedMethod_createUnqualified_parameters() =>
+      super.test_undefinedMethod_createUnqualified_parameters();
+
+  @failingTest
+  @override
+  test_undefinedMethod_createUnqualified_parameters_named() =>
+      super.test_undefinedMethod_createUnqualified_parameters_named();
+
+  @failingTest
+  @override
+  test_undefinedMethod_createUnqualified_returnType() =>
+      super.test_undefinedMethod_createUnqualified_returnType();
+
+  @failingTest
+  @override
+  test_undefinedMethod_parameterType_differentPrefixInTargetUnit() =>
+      super.test_undefinedMethod_parameterType_differentPrefixInTargetUnit();
+
+  @failingTest
+  @override
+  test_undefinedMethod_parameterType_inTargetUnit() =>
+      super.test_undefinedMethod_parameterType_inTargetUnit();
+
+  @failingTest
+  @override
+  test_undefinedMethod_useSimilar_unqualified_superClass() =>
+      super.test_undefinedMethod_useSimilar_unqualified_superClass();
+
+  @failingTest
+  @override
+  test_undefinedMethod_useSimilar_unqualified_thisClass() =>
+      super.test_undefinedMethod_useSimilar_unqualified_thisClass();
+
+  @failingTest
+  @override
+  test_undefinedSetter_useSimilar_unqualified() =>
+      super.test_undefinedSetter_useSimilar_unqualified();
+
+  @failingTest
+  @override
+  test_useImportPrefix_withClass() => super.test_useImportPrefix_withClass();
+
+  @failingTest
+  @override
+  test_useImportPrefix_withTopLevelVariable() =>
+      super.test_useImportPrefix_withTopLevelVariable();
+}
+
+@reflectiveTest
 class LintFixTest extends BaseFixProcessorTest {
   AnalysisError error;
 
@@ -8400,6 +9503,47 @@ Function finalVar() {
   void verifyResult(String expectedResult) {
     expect(resultCode, expectedResult);
   }
+}
+
+@reflectiveTest
+class LintFixTest_UseCFE extends LintFixTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_lint_addMissingOverride_method_with_doc_comment_and_metadata() =>
+      super.test_lint_addMissingOverride_method_with_doc_comment_and_metadata();
+
+  @failingTest
+  @override
+  test_replaceWithLiteral_linkedHashMap_withCommentsInGeneric() =>
+      super.test_replaceWithLiteral_linkedHashMap_withCommentsInGeneric();
+
+  @failingTest
+  @override
+  test_replaceWithLiteral_linkedHashMap_withDynamicGenerics() =>
+      super.test_replaceWithLiteral_linkedHashMap_withDynamicGenerics();
+
+  @failingTest
+  @override
+  test_replaceWithLiteral_linkedHashMap_withGeneric() =>
+      super.test_replaceWithLiteral_linkedHashMap_withGeneric();
+
+  @failingTest
+  @override
+  test_replaceWithLiteral_linkedHashMap_withoutGeneric() =>
+      super.test_replaceWithLiteral_linkedHashMap_withoutGeneric();
+
+  @failingTest
+  @override
+  test_replaceWithLiteral_map_withGeneric() =>
+      super.test_replaceWithLiteral_map_withGeneric();
+
+  @failingTest
+  @override
+  test_replaceWithLiteral_map_withoutGeneric() =>
+      super.test_replaceWithLiteral_map_withoutGeneric();
 }
 
 class _DartFixContextImpl implements DartFixContext {

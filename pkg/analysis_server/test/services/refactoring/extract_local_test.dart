@@ -17,6 +17,7 @@ import 'abstract_refactoring.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtractLocalTest);
+    defineReflectiveTests(ExtractLocalTest_UseCFE);
   });
 }
 
@@ -1342,4 +1343,29 @@ main() {
     }
     return subExpressions;
   }
+}
+
+@reflectiveTest
+class ExtractLocalTest_UseCFE extends ExtractLocalTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_guessNames_singleExpression() =>
+      super.test_guessNames_singleExpression();
+
+  @failingTest
+  @override
+  test_occurrences_differentVariable() =>
+      super.test_occurrences_differentVariable();
+
+  @failingTest
+  @override
+  test_singleExpression_hasParseError_expectedSemicolon() =>
+      super.test_singleExpression_hasParseError_expectedSemicolon();
+
+  @failingTest
+  @override
+  test_stringLiteral_whole() => super.test_stringLiteral_whole();
 }

@@ -15,6 +15,7 @@ import '../../abstract_single_unit.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SortMembersTest);
+    defineReflectiveTests(SortMembersTest_UseCFE);
   });
 }
 
@@ -807,4 +808,10 @@ int c;
     ParseResult result = await driver.parseFile(testSource.fullName);
     testUnit = result.unit;
   }
+}
+
+@reflectiveTest
+class SortMembersTest_UseCFE extends SortMembersTest {
+  @override
+  bool get useCFE => true;
 }

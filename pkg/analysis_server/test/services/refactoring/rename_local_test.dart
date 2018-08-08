@@ -12,6 +12,7 @@ import 'abstract_rename.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameLocalTest);
+    defineReflectiveTests(RenameLocalTest_UseCFE);
   });
 }
 
@@ -571,4 +572,53 @@ main() {
     // old name
     expect(refactoring.oldName, 'test');
   }
+}
+
+@reflectiveTest
+class RenameLocalTest_UseCFE extends RenameLocalTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_checkFinalConditions_shadows_classMember_namedParameter() =>
+      super.test_checkFinalConditions_shadows_classMember_namedParameter();
+
+  @failingTest
+  @override
+  test_createChange_localFunction() => super.test_createChange_localFunction();
+
+  @failingTest
+  @override
+  test_createChange_localFunction_sameNameDifferenceScopes() =>
+      super.test_createChange_localFunction_sameNameDifferenceScopes();
+
+  @failingTest
+  @override
+  test_createChange_localVariable() => super.test_createChange_localVariable();
+
+  @failingTest
+  @override
+  test_createChange_localVariable_sameNameDifferenceScopes() =>
+      super.test_createChange_localVariable_sameNameDifferenceScopes();
+
+  @failingTest
+  @override
+  test_createChange_parameter_named() =>
+      super.test_createChange_parameter_named();
+
+  @failingTest
+  @override
+  test_createChange_parameter_named_inOtherFile() =>
+      super.test_createChange_parameter_named_inOtherFile();
+
+  @failingTest
+  @override
+  test_createChange_parameter_named_updateHierarchy() =>
+      super.test_createChange_parameter_named_updateHierarchy();
+
+  @failingTest
+  @override
+  test_createChange_parameter_optionalPositional() =>
+      super.test_createChange_parameter_optionalPositional();
 }

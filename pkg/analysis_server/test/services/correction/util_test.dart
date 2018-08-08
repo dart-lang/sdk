@@ -16,6 +16,7 @@ import '../../abstract_single_unit.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UtilTest);
+    defineReflectiveTests(UtilTest_UseCFE);
   });
 }
 
@@ -303,6 +304,12 @@ import 'package:ddd/ddd.dart';
   Source _getSource(String path, String uri) {
     return new _SourceMock(path, Uri.parse(uri));
   }
+}
+
+@reflectiveTest
+class UtilTest_UseCFE extends UtilTest {
+  @override
+  bool get useCFE => true;
 }
 
 class _SourceMock implements Source {

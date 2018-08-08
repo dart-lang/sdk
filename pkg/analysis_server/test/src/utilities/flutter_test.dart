@@ -12,6 +12,7 @@ import '../../abstract_single_unit.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlutterTest);
+    defineReflectiveTests(FlutterTest_UseCFE);
   });
 }
 
@@ -348,4 +349,10 @@ Text createEmptyText() => new Text('');
     return _getTopVariable(name, unit).initializer
         as InstanceCreationExpression;
   }
+}
+
+@reflectiveTest
+class FlutterTest_UseCFE extends FlutterTest {
+  @override
+  bool get useCFE => true;
 }

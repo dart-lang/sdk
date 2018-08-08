@@ -16,6 +16,7 @@ import 'abstract_refactoring.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtractWidgetTest);
+    defineReflectiveTests(ExtractWidgetTest_UseCFE);
   });
 }
 
@@ -1253,4 +1254,60 @@ void main() {
     int offset = findOffset(search);
     _createRefactoring(offset, 0);
   }
+}
+
+@reflectiveTest
+class ExtractWidgetTest_UseCFE extends ExtractWidgetTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_invocation_otherClass() => super.test_invocation_otherClass();
+
+  @failingTest
+  @override
+  test_method_parameters() => super.test_method_parameters();
+
+  @failingTest
+  @override
+  test_method_parameters_named() => super.test_method_parameters_named();
+
+  @failingTest
+  @override
+  test_parameters_field_read_enclosingClass() =>
+      super.test_parameters_field_read_enclosingClass();
+
+  @failingTest
+  @override
+  test_parameters_field_read_otherClass() =>
+      super.test_parameters_field_read_otherClass();
+
+  @failingTest
+  @override
+  test_parameters_field_write_otherClass() =>
+      super.test_parameters_field_write_otherClass();
+
+  @failingTest
+  @override
+  test_parameters_local_read_enclosingScope() =>
+      super.test_parameters_local_read_enclosingScope();
+
+  @failingTest
+  @override
+  test_parameters_private() => super.test_parameters_private();
+
+  @failingTest
+  @override
+  test_parameters_private_conflictWithPublic() =>
+      super.test_parameters_private_conflictWithPublic();
+
+  @failingTest
+  @override
+  test_parameters_readField_readLocal() =>
+      super.test_parameters_readField_readLocal();
+
+  @failingTest
+  @override
+  test_statements() => super.test_statements();
 }
