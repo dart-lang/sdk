@@ -23,6 +23,19 @@
 *   Pub will no longer delete directories named "packages".
 *   The `--packages-dir` flag is now ignored.
 
+#### dart2js
+
+*   Added `-O` flag to tune optimization levels.  For more details run `dart2js
+    -h -v`.
+
+    We recommend to enable optimizations using the `-O` flag instead of
+    individual flags for each optimization. This is because the `-O` flag is
+    intended to be stable and continue to work in future versions of dart2js,
+    while individual flags may come and go.
+
+    At this time we recommend to test and debug with `-O1` and to deploy with
+    `-O3`.
+
 ## 2.0.0 - 07-08-2018
 
 This is the first major version release of Dart since 1.0.0, so it contains many
