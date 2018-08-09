@@ -1979,6 +1979,72 @@ class C {
 ''');
   }
 
+  test_class_documented_withMetadata() async {
+    var library = await checkLibrary('''
+/// Comment 1
+/// Comment 2
+@Annotation()
+class BeforeMeta {}
+
+/// Comment 1
+/// Comment 2
+@Annotation.named()
+class BeforeMetaNamed {}
+
+@Annotation()
+/// Comment 1
+/// Comment 2
+class AfterMeta {}
+
+/// Comment 1
+@Annotation()
+/// Comment 2
+class AroundMeta {}
+
+/// Doc comment.
+@Annotation()
+// Not doc comment.
+class DocBeforeMetaNotDocAfter {}
+
+class Annotation {
+  const Annotation();
+  const Annotation.named();
+}
+''');
+    checkElementText(
+        library,
+        r'''
+/// Comment 1
+/// Comment 2
+@Annotation()
+class BeforeMeta {
+}
+/// Comment 1
+/// Comment 2
+@Annotation.named()
+class BeforeMetaNamed {
+}
+/// Comment 1
+/// Comment 2
+@Annotation()
+class AfterMeta {
+}
+/// Comment 2
+@Annotation()
+class AroundMeta {
+}
+/// Doc comment.
+@Annotation()
+class DocBeforeMetaNotDocAfter {
+}
+class Annotation {
+  const Annotation();
+  const Annotation.named();
+}
+''',
+        withConstElements: false);
+  }
+
   test_class_field_const() async {
     var library = await checkLibrary('class C { static const int i = 0; }');
     checkElementText(library, r'''

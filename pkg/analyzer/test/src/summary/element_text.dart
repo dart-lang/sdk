@@ -53,10 +53,12 @@ void applyCheckElementTextReplacements() {
  * actual text with the given [expected] one.
  */
 void checkElementText(LibraryElement library, String expected,
-    {bool withOffsets: false,
+    {bool withConstElements: true,
+    bool withOffsets: false,
     bool withSyntheticAccessors: false,
     bool withSyntheticFields: false}) {
   var writer = new _ElementWriter(
+      withConstElements: withConstElements,
       withOffsets: withOffsets,
       withSyntheticAccessors: withSyntheticAccessors,
       withSyntheticFields: withSyntheticFields);
@@ -127,9 +129,9 @@ class _ElementWriter {
   final StringBuffer buffer = new StringBuffer();
 
   _ElementWriter(
-      {this.withOffsets: false,
-      this.withConstElements: true,
-      this.withSyntheticAccessors,
+      {this.withConstElements: true,
+      this.withOffsets: false,
+      this.withSyntheticAccessors: false,
       this.withSyntheticFields: false});
 
   bool isDynamicType(DartType type) => type is DynamicTypeImpl;
