@@ -295,7 +295,7 @@ ConstantPool {
   [5] = Type dart.core::Map<#lib::D::P, #lib::D::Q>
   [6] = String ''
   [7] = SubtypeTestCache
-  [8] = ArgDesc num-args 1, num-type-args 1, names []
+  [8] = ArgDesc num-args 2, num-type-args 0, names []
   [9] = StaticICData target 'dart.core::List::_fromLiteral', arg-desc CP#8
   [10] = SubtypeTestCache
 }

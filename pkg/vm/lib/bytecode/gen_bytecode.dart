@@ -1359,7 +1359,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       asm.emitStoreIndexedTOS();
     }
 
-    _genStaticCall(listFromLiteral, new ConstantArgDesc(1, numTypeArgs: 1), 2);
+    // List._fromLiteral is a factory constructor.
+    // Type arguments passed to a factory constructor are counted as a normal
+    // argument and not counted in number of type arguments.
+    assert(listFromLiteral.isFactory);
+    _genStaticCall(listFromLiteral, new ConstantArgDesc(2, numTypeArgs: 0), 2);
   }
 
   @override
