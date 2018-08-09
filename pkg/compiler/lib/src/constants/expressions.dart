@@ -1051,22 +1051,26 @@ class BinaryConstantExpression extends ConstantExpression {
       case BinaryOperatorKind.EQ:
       case BinaryOperatorKind.NOT_EQ:
         if (!leftValue.isPrimitive) {
-          environment.reportError(
-              left, MessageKind.INVALID_CONSTANT_BINARY_PRIMITIVE_TYPE, {
-            'constant': left,
-            'type': leftValue.getType(environment.commonElements),
-            'operator': operator
-          });
-          isValid = false;
+          if (!rightValue.isNull) {
+            environment.reportError(
+                left, MessageKind.INVALID_CONSTANT_BINARY_PRIMITIVE_TYPE, {
+              'constant': left,
+              'type': leftValue.getType(environment.commonElements),
+              'operator': operator
+            });
+            isValid = false;
+          }
         }
         if (!rightValue.isPrimitive) {
-          environment.reportError(
-              right, MessageKind.INVALID_CONSTANT_BINARY_PRIMITIVE_TYPE, {
-            'constant': right,
-            'type': rightValue.getType(environment.commonElements),
-            'operator': operator
-          });
-          isValid = false;
+          if (!leftValue.isNull) {
+            environment.reportError(
+                right, MessageKind.INVALID_CONSTANT_BINARY_PRIMITIVE_TYPE, {
+              'constant': right,
+              'type': rightValue.getType(environment.commonElements),
+              'operator': operator
+            });
+            isValid = false;
+          }
         }
         break;
       case BinaryOperatorKind.ADD:
