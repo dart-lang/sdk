@@ -2295,7 +2295,7 @@ class A {
 }
 ''');
     Source source2 = addNamedSource('/lib1.template.dart', r'''
-import '../lib1.dart';
+import 'lib1.dart';
 
 class B {
   void b() => new A().a();
@@ -2406,7 +2406,7 @@ class A {
 }
 ''');
     Source source2 = addNamedSource('/lib1.template.dart', r'''
-import '../lib1.dart';
+import 'lib1.dart';
 
 void main() {
   new A().a();
