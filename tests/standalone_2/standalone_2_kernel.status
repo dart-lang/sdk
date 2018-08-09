@@ -68,6 +68,9 @@ io/socket_info_ipv4_test: Pass, Crash
 io/socket_info_ipv6_test: Pass, Crash
 io/socket_port_test: Pass, Crash
 
+[ $compiler == dartkp && $mode == product && $runtime == dart_precompiled && $strong ]
+io/compile_all_test: Pass
+
 # ===== dartkp + dart_precompiled status lines =====
 [ $compiler == dartkp && $runtime == dart_precompiled && $system != windows && $strong ]
 io/namespace_test: RuntimeError
