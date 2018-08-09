@@ -23,7 +23,7 @@
 *   Pub will no longer delete directories named "packages".
 *   The `--packages-dir` flag is now ignored.
 
-## 2.0.0
+## 2.0.0 - 07-08-2018
 
 This is the first major version release of Dart since 1.0.0, so it contains many
 significant changes across all areas of the platform. Large changes include:
