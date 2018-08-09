@@ -1404,7 +1404,8 @@ class Class : public Object {
   static RawClass* New(const Library& lib,
                        const String& name,
                        const Script& script,
-                       TokenPosition token_pos);
+                       TokenPosition token_pos,
+                       bool register_class = true);
   static RawClass* NewNativeWrapper(const Library& library,
                                     const String& name,
                                     int num_fields);

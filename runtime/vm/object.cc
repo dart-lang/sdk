@@ -3529,14 +3529,17 @@ RawClass* Class::New(intptr_t index) {
 RawClass* Class::New(const Library& lib,
                      const String& name,
                      const Script& script,
-                     TokenPosition token_pos) {
+                     TokenPosition token_pos,
+                     bool register_class) {
   Class& result = Class::Handle(NewCommon<Instance>(kIllegalCid));
   result.set_library(lib);
   result.set_name(name);
   result.set_script(script);
   result.set_token_pos(token_pos);
   result.set_kernel_offset(-1);
-  Isolate::Current()->RegisterClass(result);
+  if (register_class) {
+    Isolate::Current()->RegisterClass(result);
+  }
   return result.raw();
 }
 
@@ -11707,9 +11710,6 @@ static RawObject* EvaluateCompiledExpressionHelper(
       String::New("Expression evaluation not available in precompiled mode."));
   return ApiError::New(error_str);
 #else
-  Isolate* I = Isolate::Current();
-  Thread* T = Thread::Current();
-
   kernel::Program* kernel_pgm =
       kernel::Program::ReadFromBuffer(kernel_bytes, kernel_length);
 
@@ -11718,67 +11718,12 @@ static RawObject* EvaluateCompiledExpressionHelper(
         String::New("Kernel isolate returned ill-formed kernel.")));
   }
 
-  Function& callee = Function::Handle();
-  intptr_t num_cids = I->class_table()->NumCids();
-  GrowableObjectArray& libraries =
-      GrowableObjectArray::Handle(T->zone(), I->object_store()->libraries());
-  intptr_t num_libs = libraries.Length();
-
-  // Load the program with the debug procedure as a regular, independent
-  // program.
   kernel::KernelLoader loader(kernel_pgm);
-  const Object& result = Object::Handle(loader.LoadProgram());
+  const Object& result = Object::Handle(
+      loader.LoadExpressionEvaluationFunction(library_url, klass));
   if (result.IsError()) return result.raw();
-  ASSERT(I->class_table()->NumCids() > num_cids &&
-         libraries.Length() == num_libs + 1);
-  const Library& loaded =
-      Library::Handle(Library::LookupLibrary(T, Symbols::EvalSourceUri()));
-  ASSERT(!loaded.IsNull());
 
-  String& debug_name = String::Handle(
-      String::New(Symbols::Symbol(Symbols::kDebugProcedureNameId)));
-  Class& fake_class = Class::Handle();
-  if (!klass.IsNull()) {
-    fake_class = loaded.LookupClass(Symbols::DebugClassName());
-    ASSERT(!fake_class.IsNull());
-    callee = fake_class.LookupFunctionAllowPrivate(debug_name);
-  } else {
-    callee = loaded.LookupFunctionAllowPrivate(debug_name);
-  }
-  ASSERT(!callee.IsNull());
-
-  // Save the loaded library's kernel data to the generic "data" field of the
-  // callee, so it doesn't require access it's parent library during
-  // compilation.
-  callee.SetKernelDataAndScript(Script::Handle(callee.script()),
-                                ExternalTypedData::Handle(loaded.kernel_data()),
-                                loaded.kernel_offset());
-
-  // Reparent the callee to the real enclosing class so we can remove the fake
-  // class and library from the object store.
-  const Library& real_library =
-      Library::Handle(Library::LookupLibrary(T, library_url));
-  ASSERT(!real_library.IsNull());
-  Class& real_class = Class::Handle();
-  if (!klass.IsNull()) {
-    real_class = real_library.LookupClassAllowPrivate(klass);
-  } else {
-    real_class = real_library.toplevel_class();
-  }
-  ASSERT(!real_class.IsNull());
-
-  callee.set_owner(real_class);
-
-  // Unlink the fake library and class from the object store.
-  libraries.SetLength(num_libs);
-  I->class_table()->SetNumCids(num_cids);
-  if (!fake_class.IsNull()) {
-    fake_class.set_id(kIllegalCid);
-  }
-  LibraryLookupMap libraries_map(I->object_store()->libraries_map());
-  bool removed = libraries_map.Remove(Symbols::EvalSourceUri());
-  ASSERT(removed);
-  I->object_store()->set_libraries_map(libraries_map.Release());
+  const Function& callee = Function::Cast(result);
 
   if (type_definitions.Length() == 0) {
     return DartEntry::InvokeFunction(callee, arguments);

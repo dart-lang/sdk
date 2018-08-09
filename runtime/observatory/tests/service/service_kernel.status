@@ -227,6 +227,7 @@ complex_reload_test: Skip # Times out on sim architectures, also RuntimeError.
 debugger_inspect_test: RuntimeError, Timeout # Issue #33087
 developer_service_get_isolate_id_test: RuntimeError # Issue #33087
 eval_internal_class_test: RuntimeError # Issue #33087
+eval_regression_flutter20255_test: RuntimeError # "No incremental compiler available for this isolate"
 eval_test: RuntimeError # Issue #33087
 evaluate_activation_test/none: RuntimeError # Issue #33087
 evaluate_async_closure_test: RuntimeError # Issue #33087
