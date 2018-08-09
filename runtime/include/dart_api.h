@@ -9,10 +9,8 @@
 
 /** \mainpage Dart Embedding API Reference
  *
- * Dart is a class-based programming language for creating structured
- * web applications. This reference describes the Dart embedding api,
- * which is used to embed the Dart Virtual Machine within an
- * application.
+ * This reference describes the Dart Embedding API, which is used to embed the
+ * Dart Virtual Machine within C/C++ applications.
  *
  * This reference is generated from the header include/dart_api.h.
  */
@@ -1693,20 +1691,6 @@ DART_EXPORT Dart_Handle Dart_NewDouble(double value);
  * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle double_obj, double* value);
-
-/**
- * Returns a closure of top level function 'function_name' in the exported
- * namespace of specified 'library'. If a top level function 'function_name'
- * does not exist, looks for a top level getter 'function_name' and invokes
- * it and returns the object returned by the getter.
- *
- * \param library Library object
- * \param function_name Name of the top level function
- *
- * \return A valid Dart instance if no error occurs during the operation.
- */
-DART_EXPORT Dart_Handle Dart_GetClosure(Dart_Handle library,
-                                        Dart_Handle function_name);
 
 /**
  * Returns a closure of static function 'function_name' in the class 'class_name'

@@ -1036,7 +1036,7 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
       // namespace of the root library or invoke a getter of the same name
       // in the exported namespace and return the resulting closure.
       Dart_Handle main_closure =
-          Dart_GetClosure(root_lib, Dart_NewStringFromCString("main"));
+          Dart_GetField(root_lib, Dart_NewStringFromCString("main"));
       CHECK_RESULT(main_closure);
       if (!Dart_IsClosure(main_closure)) {
         ErrorExit(kErrorExitCode,

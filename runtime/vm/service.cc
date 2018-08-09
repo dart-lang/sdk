@@ -2249,6 +2249,132 @@ static bool GetReachableSize(Thread* thread, JSONStream* js) {
   return true;
 }
 
+static const MethodParameter* invoke_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
+};
+
+static bool Invoke(Thread* thread, JSONStream* js) {
+  if (CheckDebuggerDisabled(thread, js)) {
+    return true;
+  }
+
+  const char* receiver_id = js->LookupParam("receiverId");
+  if (receiver_id == NULL) {
+    PrintMissingParamError(js, "receiverId");
+    return true;
+  }
+  const char* selector_cstr = js->LookupParam("selector");
+  if (selector_cstr == NULL) {
+    PrintMissingParamError(js, "selector");
+    return true;
+  }
+  const char* argument_ids = js->LookupParam("argumentIds");
+  if (argument_ids == NULL) {
+    PrintMissingParamError(js, "argumentIds");
+    return true;
+  }
+
+  Zone* zone = thread->zone();
+  ObjectIdRing::LookupResult lookup_result;
+  Object& receiver = Object::Handle(
+      zone, LookupHeapObject(thread, receiver_id, &lookup_result));
+  if (receiver.raw() == Object::sentinel().raw()) {
+    if (lookup_result == ObjectIdRing::kCollected) {
+      PrintSentinel(js, kCollectedSentinel);
+    } else if (lookup_result == ObjectIdRing::kExpired) {
+      PrintSentinel(js, kExpiredSentinel);
+    } else {
+      PrintInvalidParamError(js, "receiverId");
+    }
+    return true;
+  }
+
+  const GrowableObjectArray& growable_args =
+      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+
+  bool is_instance = (receiver.IsInstance() || receiver.IsNull()) &&
+                     !ContainsNonInstance(receiver);
+  if (is_instance) {
+    growable_args.Add(receiver);
+  }
+
+  intptr_t n = strlen(argument_ids);
+  if ((n < 2) || (argument_ids[0] != '[') || (argument_ids[n - 1] != ']')) {
+    PrintInvalidParamError(js, "argumentIds");
+    return true;
+  }
+  if (n > 2) {
+    intptr_t start = 1;
+    while (start < n) {
+      intptr_t end = start;
+      while ((argument_ids[end + 1] != ',') && (argument_ids[end + 1] != ']')) {
+        end++;
+      }
+      if (end == start) {
+        // Empty element.
+        PrintInvalidParamError(js, "argumentIds");
+        return true;
+      }
+
+      const char* argument_id =
+          zone->MakeCopyOfStringN(&argument_ids[start], end - start + 1);
+
+      ObjectIdRing::LookupResult lookup_result;
+      Object& argument = Object::Handle(
+          zone, LookupHeapObject(thread, argument_id, &lookup_result));
+      if (argument.raw() == Object::sentinel().raw()) {
+        if (lookup_result == ObjectIdRing::kCollected) {
+          PrintSentinel(js, kCollectedSentinel);
+        } else if (lookup_result == ObjectIdRing::kExpired) {
+          PrintSentinel(js, kExpiredSentinel);
+        } else {
+          PrintInvalidParamError(js, "argumentIds");
+        }
+        return true;
+      }
+      growable_args.Add(argument);
+
+      start = end + 3;
+    }
+  }
+
+  const String& selector = String::Handle(zone, String::New(selector_cstr));
+  const Array& args =
+      Array::Handle(zone, Array::MakeFixedLength(growable_args));
+  const Array& arg_names = Object::empty_array();
+
+  if (receiver.IsLibrary()) {
+    const Library& lib = Library::Cast(receiver);
+    const Object& result =
+        Object::Handle(zone, lib.Invoke(selector, args, arg_names));
+    result.PrintJSON(js, true);
+    return true;
+  }
+  if (receiver.IsClass()) {
+    const Class& cls = Class::Cast(receiver);
+    const Object& result =
+        Object::Handle(zone, cls.Invoke(selector, args, arg_names));
+    result.PrintJSON(js, true);
+    return true;
+  }
+  if (is_instance) {
+    // We don't use Instance::Cast here because it doesn't allow null.
+    Instance& instance = Instance::Handle(zone);
+    instance ^= receiver.raw();
+
+    const Object& result =
+        Object::Handle(zone, instance.Invoke(selector, args, arg_names));
+    result.PrintJSON(js, true);
+    return true;
+  }
+  js->PrintError(kInvalidParams,
+                 "%s: invalid 'receiverId' parameter: "
+                 "Cannot invoke against a VM-internal object",
+                 js->method());
+  return true;
+}
+
 static const MethodParameter* evaluate_params[] = {
     RUNNABLE_ISOLATE_PARAMETER, NULL,
 };
@@ -4729,6 +4855,7 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_vm_timeline_params },
   { "_getVMTimelineFlags", GetVMTimelineFlags,
     get_vm_timeline_flags_params },
+  { "invoke", Invoke, invoke_params },
   { "kill", Kill, kill_params },
   { "pause", Pause,
     pause_params },

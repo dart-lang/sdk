@@ -470,6 +470,40 @@ See [Breakpoint](#breakpoint).
 
 Note that breakpoints are added and removed on a per-isolate basis.
 
+### invoke
+
+```
+@Instance|@Error|Sentinel invoke(string isolateId,
+                                 string targetId,
+                                 string selector,
+                                 string[] argumentIds)
+```
+
+The _invoke_ RPC is used to perform regular method invocation on some receiver,
+as if by dart:mirror's ObjectMirror.invoke. Note this does not provide a way to
+perform getter, setter or constructor invocation.
+
+_targetId_ may refer to a [Library](#library), [Class](#class), or
+[Instance](#instance).
+
+Each elements of _argumentId_ may refer to an [Instance](#instance).
+
+If _targetId_ or any element of _argumentIds_ is a temporary id which has
+expired, then the _Expired_ [Sentinel](#sentinel) is returned.
+
+If _targetId_ or any element of _argumentIds_ refers to an object which has been
+collected by the VM's garbage collector, then the _Collected_
+[Sentinel](#sentinel) is returned.
+
+If invocation triggers a failed compilation then [rpc error](#rpc-error) 113
+"Expression compilation error" is returned.
+
+If an runtime error occurs while evaluating the invocation, an [@Error](#error)
+reference will be returned.
+
+If the invocation is evaluated successfully, an [@Instance](#instance)
+reference will be returned.
+
 ### evaluate
 
 ```
@@ -2670,5 +2704,8 @@ version | comments
 3.5 | Add the error field to SourceReportRange.  Clarify definition of token position.  Add "Isolate must be paused" error code.
 3.6 | Add 'scopeStartTokenPos', 'scopeEndTokenPos', and 'declarationTokenPos' to BoundVariable. Add 'PausePostRequest' event kind. Add 'Rewind' StepOption. Add error code 107 (isolate cannot resume). Add 'reloadSources' RPC and related error codes. Add optional parameter 'scope' to 'evaluate' and 'evaluateInFrame'.
 3.7 | Add 'setFlag'.
+3.8 | Add 'kill'.
+3.9 | Changed numbers for errors related to service extensions.
+3.10 | Add 'invoke'.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

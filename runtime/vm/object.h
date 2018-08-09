@@ -1374,6 +1374,17 @@ class Class : public Object {
   // Return true on success, or false and error otherwise.
   bool ApplyPatch(const Class& patch, Error* error) const;
 
+  RawObject* Invoke(const String& selector,
+                    const Array& arguments,
+                    const Array& argument_names,
+                    bool respect_reflectable = true) const;
+  RawObject* InvokeGetter(const String& selector,
+                          bool throw_nsm_if_absent,
+                          bool respect_reflectable = true) const;
+  RawObject* InvokeSetter(const String& selector,
+                          const Instance& argument,
+                          bool respect_reflectable = true) const;
+
   // Evaluate the given expression as if it appeared in a static method of this
   // class and return the resulting value, or an error object if evaluating the
   // expression fails. The method has the formal (type) parameters given in
@@ -3808,6 +3819,17 @@ class Library : public Object {
 
   static RawLibrary* New(const String& url);
 
+  RawObject* Invoke(const String& selector,
+                    const Array& arguments,
+                    const Array& argument_names,
+                    bool respect_reflectable = true) const;
+  RawObject* InvokeGetter(const String& selector,
+                          bool throw_nsm_if_absent,
+                          bool respect_reflectable = true) const;
+  RawObject* InvokeSetter(const String& selector,
+                          const Instance& argument,
+                          bool respect_reflectable = true) const;
+
   // Evaluate the given expression as if it appeared in an top-level method of
   // this library and return the resulting value, or an error object if
   // evaluating the expression fails. The method has the formal (type)
@@ -3843,6 +3865,7 @@ class Library : public Object {
   RawObject* LookupObjectAllowPrivate(const String& name) const;
   RawObject* LookupLocalObjectAllowPrivate(const String& name) const;
   RawObject* LookupLocalObject(const String& name) const;
+  RawObject* LookupLocalOrReExportObject(const String& name) const;
   RawObject* LookupImportedObject(const String& name) const;
   RawClass* LookupClass(const String& name) const;
   RawClass* LookupClassAllowPrivate(const String& name) const;
@@ -5702,6 +5725,16 @@ class Instance : public Object {
   // class implementing a 'call' method, return true and set the function
   // (if not NULL) to call.
   bool IsCallable(Function* function) const;
+
+  RawObject* Invoke(const String& selector,
+                    const Array& arguments,
+                    const Array& argument_names,
+                    bool respect_reflectable = true) const;
+  RawObject* InvokeGetter(const String& selector,
+                          bool respect_reflectable = true) const;
+  RawObject* InvokeSetter(const String& selector,
+                          const Instance& argument,
+                          bool respect_reflectable = true) const;
 
   // Evaluate the given expression as if it appeared in an instance method of
   // this instance and return the resulting value, or an error object if
