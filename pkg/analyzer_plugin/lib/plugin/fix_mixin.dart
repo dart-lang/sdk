@@ -76,7 +76,8 @@ abstract class FixesMixin implements ServerPlugin {
     String path = parameters.file;
     FixesRequest request = await getFixesRequest(parameters);
     FixGenerator generator = new FixGenerator(getFixContributors(path));
-    GeneratorResult result = await generator.generateFixesResponse(request);
+    GeneratorResult<EditGetFixesResult> result =
+        await generator.generateFixesResponse(request);
     result.sendNotifications(channel);
     return result.result;
   }

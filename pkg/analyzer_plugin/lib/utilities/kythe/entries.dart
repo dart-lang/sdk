@@ -69,7 +69,8 @@ class EntryGenerator {
    * [request]. If any of the contributors throws an exception, also create a
    * non-fatal 'plugin.error' notification.
    */
-  GeneratorResult generateGetEntriesResponse(EntryRequest request) {
+  GeneratorResult<KytheGetKytheEntriesResult> generateGetEntriesResponse(
+      EntryRequest request) {
     List<Notification> notifications = <Notification>[];
     EntryCollectorImpl collector = new EntryCollectorImpl();
     for (EntryContributor contributor in contributors) {

@@ -276,7 +276,7 @@ const Map<String, LibraryInfo> libraries = const {
 
   MockSdk(
       {bool generateSummaryFiles: false,
-      resource.ResourceProvider resourceProvider})
+      resource.MemoryResourceProvider resourceProvider})
       : provider = resourceProvider ?? new resource.MemoryResourceProvider() {
     LIBRARIES.forEach((SdkLibrary library) {
       provider.newFile(library.path, (library as MockSdkLibrary).content);

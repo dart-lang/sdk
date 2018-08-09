@@ -100,12 +100,14 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       DartFileEditBuilderImpl sourceFileEditBuilder, int offset, int length)
       : super(sourceFileEditBuilder, offset, length);
 
-  DartFileEditBuilderImpl get dartFileEditBuilder => fileEditBuilder;
+  DartFileEditBuilderImpl get dartFileEditBuilder =>
+      fileEditBuilder as DartFileEditBuilderImpl;
 
   @override
   void addLinkedEdit(String groupName,
           void buildLinkedEdit(DartLinkedEditBuilder builder)) =>
-      super.addLinkedEdit(groupName, (builder) => buildLinkedEdit(builder));
+      super.addLinkedEdit(groupName,
+          (builder) => buildLinkedEdit(builder as DartLinkedEditBuilder));
 
   @override
   LinkedEditBuilderImpl createLinkedEditBuilder() {
@@ -1124,12 +1126,14 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   @override
   void addInsertion(int offset, void buildEdit(DartEditBuilder builder)) =>
-      super.addInsertion(offset, (builder) => buildEdit(builder));
+      super.addInsertion(
+          offset, (builder) => buildEdit(builder as DartEditBuilder));
 
   @override
   void addReplacement(
           SourceRange range, void buildEdit(DartEditBuilder builder)) =>
-      super.addReplacement(range, (builder) => buildEdit(builder));
+      super.addReplacement(
+          range, (builder) => buildEdit(builder as DartEditBuilder));
 
   @override
   void convertFunctionFromSyncToAsync(

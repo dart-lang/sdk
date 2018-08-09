@@ -1480,12 +1480,12 @@ class Element implements HasToJson {
   static const int FLAG_DEPRECATED = 0x20;
 
   static int makeFlags(
-      {isAbstract: false,
-      isConst: false,
-      isFinal: false,
-      isStatic: false,
-      isPrivate: false,
-      isDeprecated: false}) {
+      {bool isAbstract: false,
+      bool isConst: false,
+      bool isFinal: false,
+      bool isStatic: false,
+      bool isPrivate: false,
+      bool isDeprecated: false}) {
     int flags = 0;
     if (isAbstract) flags |= FLAG_ABSTRACT;
     if (isConst) flags |= FLAG_CONST;
@@ -1697,10 +1697,15 @@ class Element implements HasToJson {
   }
 
   bool get isAbstract => (flags & FLAG_ABSTRACT) != 0;
+
   bool get isConst => (flags & FLAG_CONST) != 0;
+
   bool get isFinal => (flags & FLAG_FINAL) != 0;
+
   bool get isStatic => (flags & FLAG_STATIC) != 0;
+
   bool get isPrivate => (flags & FLAG_PRIVATE) != 0;
+
   bool get isDeprecated => (flags & FLAG_DEPRECATED) != 0;
 
   @override

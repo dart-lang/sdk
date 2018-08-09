@@ -33,7 +33,7 @@ main() {
 }
 
 abstract class BuilderTestMixin {
-  SourceEdit getEdit(DartChangeBuilderImpl builder) {
+  SourceEdit getEdit(DartChangeBuilder builder) {
     SourceChange sourceChange = builder.sourceChange;
     expect(sourceChange, isNotNull);
     List<SourceFileEdit> fileEdits = sourceChange.edits;
@@ -45,7 +45,7 @@ abstract class BuilderTestMixin {
     return edits[0];
   }
 
-  List<SourceEdit> getEdits(DartChangeBuilderImpl builder) {
+  List<SourceEdit> getEdits(DartChangeBuilder builder) {
     SourceChange sourceChange = builder.sourceChange;
     expect(sourceChange, isNotNull);
     List<SourceFileEdit> fileEdits = sourceChange.edits;

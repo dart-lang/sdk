@@ -45,7 +45,7 @@ abstract class CompletionMixin implements ServerPlugin {
     CompletionRequest request = await getCompletionRequest(parameters);
     CompletionGenerator generator =
         new CompletionGenerator(getCompletionContributors(path));
-    GeneratorResult result =
+    GeneratorResult<CompletionGetSuggestionsResult> result =
         await generator.generateCompletionResponse(request);
     result.sendNotifications(channel);
     return result.result;

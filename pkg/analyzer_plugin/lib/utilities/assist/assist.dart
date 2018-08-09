@@ -57,7 +57,8 @@ class AssistGenerator {
    * by the given [request]. If any of the contributors throws an exception,
    * also create a non-fatal 'plugin.error' notification.
    */
-  GeneratorResult generateAssistsResponse(AssistRequest request) {
+  GeneratorResult<EditGetAssistsResult> generateAssistsResponse(
+      AssistRequest request) {
     List<Notification> notifications = <Notification>[];
     AssistCollectorImpl collector = new AssistCollectorImpl();
     for (AssistContributor contributor in contributors) {

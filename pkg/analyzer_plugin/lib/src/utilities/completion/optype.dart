@@ -319,7 +319,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
           index = node.arguments.length - 1;
         }
       } else {
-        index = node.arguments.indexOf(entity);
+        index = node.arguments.indexOf(entity as Expression);
       }
       if (0 <= index && index < parameters.length) {
         ParameterElement param = parameters[index];
