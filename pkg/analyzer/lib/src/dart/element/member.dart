@@ -458,9 +458,6 @@ abstract class Member implements Element {
   bool get isSynthetic => _baseElement.isSynthetic;
 
   @override
-  bool get isVisibleForTemplate => _baseElement.hasVisibleForTemplate;
-
-  @override
   bool get isVisibleForTesting => _baseElement.hasVisibleForTesting;
 
   @override
