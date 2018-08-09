@@ -226,9 +226,6 @@ status_file/test/status_expression_dnf_test: RuntimeError # not strong-clean
 async/test/stream_zip_test: SkipSlow # Times out. Issue 22050
 collection/test/unmodifiable_collection_test: SkipSlow # Times out. Issue 22050
 
-[ $compiler == none && !$preview_dart_2 ]
-analysis_server/test/analysis/get_errors_test: Fail
-
 [ $runtime == vm && $system == windows ]
 analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
 analysis_server/test/benchmarks_test: RuntimeError # Issue 32355
