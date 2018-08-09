@@ -5497,7 +5497,9 @@ LocationSummary* ShiftInt64OpInstr::MakeLocationSummary(Zone* zone,
       zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
   summary->set_in(0, Location::Pair(Location::RequiresRegister(),
                                     Location::RequiresRegister()));
-  if (ConstantInstr* constant = right()->definition()->AsConstant()) {
+  if (RangeUtils::IsPositive(shift_range()) &&
+      right()->definition()->IsConstant()) {
+    ConstantInstr* constant = right()->definition()->AsConstant();
     summary->set_in(1, Location::Constant(constant));
   } else {
     summary->set_in(1, Location::Pair(Location::RegisterLocation(ECX),
@@ -5522,7 +5524,7 @@ void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     EmitShiftInt64ByConstant(compiler, op_kind(), left_lo, left_hi,
                              locs()->in(1).constant());
   } else {
-    // Code for a variable shift amount.
+    // Code for a variable shift amount (or constant that throws).
     ASSERT(locs()->in(1).AsPairLocation()->At(0).reg() == ECX);
     Register right_hi = locs()->in(1).AsPairLocation()->At(1).reg();
 
@@ -5638,7 +5640,9 @@ LocationSummary* ShiftUint32OpInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
   summary->set_in(0, Location::RequiresRegister());
-  if (ConstantInstr* constant = right()->definition()->AsConstant()) {
+  if (RangeUtils::IsPositive(shift_range()) &&
+      right()->definition()->IsConstant()) {
+    ConstantInstr* constant = right()->definition()->AsConstant();
     summary->set_in(1, Location::Constant(constant));
   } else {
     summary->set_in(1, Location::Pair(Location::RegisterLocation(ECX),
@@ -5657,7 +5661,7 @@ void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     EmitShiftUint32ByConstant(compiler, op_kind(), left,
                               locs()->in(1).constant());
   } else {
-    // Code for a variable shift amount.
+    // Code for a variable shift amount (or constant that throws).
     ASSERT(locs()->in(1).AsPairLocation()->At(0).reg() == ECX);
     Register right_hi = locs()->in(1).AsPairLocation()->At(1).reg();
 
@@ -5745,7 +5749,6 @@ LocationSummary* UnaryInt64OpInstr::MakeLocationSummary(Zone* zone,
 }
 
 void UnaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(op_kind() == Token::kBIT_NOT);
   PairLocation* left_pair = locs()->in(0).AsPairLocation();
   Register left_lo = left_pair->At(0).reg();
   Register left_hi = left_pair->At(1).reg();
@@ -5754,8 +5757,19 @@ void UnaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register out_hi = out_pair->At(1).reg();
   ASSERT(out_lo == left_lo);
   ASSERT(out_hi == left_hi);
-  __ notl(left_lo);
-  __ notl(left_hi);
+  switch (op_kind()) {
+    case Token::kBIT_NOT:
+      __ notl(left_lo);
+      __ notl(left_hi);
+      break;
+    case Token::kNEGATE:
+      __ negl(left_lo);
+      __ adcl(left_hi, Immediate(0));
+      __ negl(left_hi);
+      break;
+    default:
+      UNREACHABLE();
+  }
 }
 
 CompileType BinaryUint32OpInstr::ComputeType() const {

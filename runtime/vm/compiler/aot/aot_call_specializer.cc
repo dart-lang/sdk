@@ -607,6 +607,16 @@ bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
         }
         break;
       }
+#ifndef TARGET_ARCH_DBC
+      case Token::kNEGATE: {
+        Value* left_value = instr->PushArgumentAt(receiver_index)->value();
+        left_value = PrepareReceiverOfDevirtualizedCall(left_value, kMintCid);
+        replacement = new (Z)
+            UnaryInt64OpInstr(Token::kNEGATE, left_value, Thread::kNoDeoptId,
+                              Instruction::kNotSpeculative);
+        break;
+      }
+#endif
       case Token::kSHL:
       case Token::kSHR: {
         Value* left_value = instr->PushArgumentAt(receiver_index)->value();

@@ -5587,7 +5587,9 @@ LocationSummary* ShiftInt64OpInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::FixedRegisterOrConstant(right(), RCX));
+  summary->set_in(1, RangeUtils::IsPositive(shift_range())
+                         ? Location::FixedRegisterOrConstant(right(), RCX)
+                         : Location::RegisterLocation(RCX));
   summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
@@ -5602,7 +5604,7 @@ void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     EmitShiftInt64ByConstant(compiler, op_kind(), left,
                              locs()->in(1).constant());
   } else {
-    // Code for a variable shift amount.
+    // Code for a variable shift amount (or constant that throws).
     ASSERT(locs()->in(1).reg() == RCX);
 
     // Jump to a slow path if shift count is > 63 or negative.
@@ -5705,7 +5707,9 @@ LocationSummary* ShiftUint32OpInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::FixedRegisterOrConstant(right(), RCX));
+  summary->set_in(1, RangeUtils::IsPositive(shift_range())
+                         ? Location::FixedRegisterOrConstant(right(), RCX)
+                         : Location::RegisterLocation(RCX));
   summary->set_out(0, Location::SameAsFirstInput());
   return summary;
 }
@@ -5719,6 +5723,7 @@ void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     EmitShiftUint32ByConstant(compiler, op_kind(), left,
                               locs()->in(1).constant());
   } else {
+    // Code for a variable shift amount (or constant that throws).
     ASSERT(locs()->in(1).reg() == RCX);
 
     // Jump to a slow path if shift count is > 31 or negative.

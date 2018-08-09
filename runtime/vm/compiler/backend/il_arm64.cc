@@ -5398,7 +5398,9 @@ LocationSummary* ShiftInt64OpInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RegisterOrConstant(right()));
+  summary->set_in(1, RangeUtils::IsPositive(shift_range())
+                         ? Location::RegisterOrConstant(right())
+                         : Location::RequiresRegister());
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
@@ -5412,7 +5414,7 @@ void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     EmitShiftInt64ByConstant(compiler, op_kind(), out, left,
                              locs()->in(1).constant());
   } else {
-    // Code for a variable shift amount.
+    // Code for a variable shift amount (or constant that throws).
     Register shift = locs()->in(1).reg();
 
     // Jump to a slow path if shift is larger than 63 or less than 0.
@@ -5507,7 +5509,9 @@ LocationSummary* ShiftUint32OpInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
   summary->set_in(0, Location::RequiresRegister());
-  summary->set_in(1, Location::RegisterOrConstant(right()));
+  summary->set_in(1, RangeUtils::IsPositive(shift_range())
+                         ? Location::RegisterOrConstant(right())
+                         : Location::RequiresRegister());
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
@@ -5520,6 +5524,7 @@ void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     EmitShiftUint32ByConstant(compiler, op_kind(), out, left,
                               locs()->in(1).constant());
   } else {
+    // Code for a variable shift amount (or constant that throws).
     const Register right = locs()->in(1).reg();
     const bool shift_count_in_range =
         IsShiftCountInRange(kUint32ShiftCountLimit);
