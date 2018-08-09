@@ -124,7 +124,7 @@ class OpType {
     // If a value should be suggested, suggest also constructors.
     if (optype.includeReturnValueSuggestions) {
       // Careful: in angular plugin, `target.unit` may be null!
-      CompilationUnitElement unitElement = target.unit?.element;
+      CompilationUnitElement unitElement = target.unit?.declaredElement;
       if (unitElement != null &&
           unitElement.context.analysisOptions.previewDart2) {
         optype.includeConstructorSuggestions = true;
@@ -198,7 +198,7 @@ class OpType {
         _requiredType = parent.expression?.staticType;
       }
     } else if (node is VariableDeclaration && node.initializer == entity) {
-      _requiredType = node.element?.type;
+      _requiredType = node.declaredElement?.type;
     } else if (entity is Expression && entity.staticParameterElement != null) {
       _requiredType = entity.staticParameterElement.type;
     }
@@ -279,9 +279,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       Element constructor;
       SimpleIdentifier name = parent.constructorName?.name;
       if (name != null) {
-        constructor = name.bestElement;
+        constructor = name.staticElement;
       } else {
-        var classElem = parent.constructorName?.type?.name?.bestElement;
+        var classElem = parent.constructorName?.type?.name?.staticElement;
         if (classElem is ClassElement) {
           constructor = classElem.unnamedConstructor;
         }
@@ -295,7 +295,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     } else if (parent is InvocationExpression) {
       Expression function = parent.function;
       if (function is SimpleIdentifier) {
-        var elem = function.bestElement;
+        var elem = function.staticElement;
         if (elem is FunctionTypedElement) {
           parameters = elem.parameters;
         } else if (elem == null) {
@@ -541,6 +541,13 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   void visitExtendsClause(ExtendsClause node) {
     if (identical(entity, node.superclass)) {
       optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
+  visitFieldDeclaration(FieldDeclaration node) {
+    if (offset <= node.semicolon.offset) {
+      optype.includeVarNameSuggestions = true;
     }
   }
 
@@ -826,6 +833,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
         (node.identifier != null &&
             node.identifier.isSynthetic &&
             identical(entity, node.findPrevious(node.identifier.beginToken)))) {
+      if (node.prefix.isSynthetic) {
+        // If the access has no target (empty string)
+        // then don't suggest anything
+        return;
+      }
       optype.isPrefixed = true;
       if (node.parent is TypeName && node.parent.parent is ConstructorName) {
         optype.includeConstructorSuggestions = true;
@@ -848,12 +860,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    bool isThis = node.target is ThisExpression;
     if (node.realTarget is SimpleIdentifier && node.realTarget.isSynthetic) {
       // If the access has no target (empty string)
       // then don't suggest anything
       return;
     }
+    bool isThis = node.target is ThisExpression;
     if (identical(entity, node.operator) && offset > node.operator.offset) {
       // The cursor is between the two dots of a ".." token, so we need to
       // generate the completions we would generate after a "." token.

@@ -35,14 +35,16 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:watcher/watcher.dart';
 
 import 'mock_sdk.dart';
-import 'mocks.dart';
 import 'src/plugin/plugin_manager_test.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AbstractContextManagerTest);
+    defineReflectiveTests(AbstractContextManagerTest_UseCFE);
     defineReflectiveTests(ContextManagerWithNewOptionsTest);
+    defineReflectiveTests(ContextManagerWithNewOptionsTest_UseCFE);
     defineReflectiveTests(ContextManagerWithOldOptionsTest);
+    defineReflectiveTests(ContextManagerWithOldOptionsTest_UseCFE);
   });
 }
 
@@ -445,10 +447,6 @@ test_pack:lib/''');
     newFile('$examplePath/${ContextManagerImpl.PACKAGE_SPEC_NAME}');
     newFile('$examplePath/example.dart');
 
-    packageMapProvider.packageMap['proj'] = <Folder>[
-      resourceProvider.getResource(libPath)
-    ];
-
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
 
     expect(callbacks.currentContextRoots, hasLength(2));
@@ -495,7 +493,6 @@ test_pack:lib/''');
   }
 
   void test_setRoots_addFolderWithoutPubspec() {
-    packageMapProvider.packageMap = null;
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // verify
     expect(callbacks.currentContextRoots, unorderedEquals([projPath]));
@@ -981,7 +978,6 @@ test_pack:lib/''');
   }
 
   void test_setRoots_removeFolderWithoutPubspec() {
-    packageMapProvider.packageMap = null;
     // add one root - there is a context
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     expect(callbacks.currentContextRoots, hasLength(1));
@@ -1442,7 +1438,7 @@ test_pack:lib/''');
     return pumpEventQueue().then((_) {
       expect(file.exists, isFalse);
       expect(projFolder.exists, isTrue);
-      return expect(callbacks.currentFilePaths, hasLength(0));
+      expect(callbacks.currentFilePaths, hasLength(0));
     });
   }
 
@@ -1463,7 +1459,7 @@ test_pack:lib/''');
     return pumpEventQueue().then((_) {
       expect(file.exists, isFalse);
       expect(projFolder.exists, isFalse);
-      return expect(callbacks.currentFilePaths, hasLength(0));
+      expect(callbacks.currentFilePaths, hasLength(0));
     });
   }
 
@@ -1613,26 +1609,6 @@ test_pack:lib/''');
     });
   }
 
-  test_watch_modifyPackageMapDependency_fail() async {
-    // create a dependency file
-    String dependencyPath = join(projPath, 'dep');
-    resourceProvider.newFile(dependencyPath, 'contents');
-    packageMapProvider.dependencies.add(dependencyPath);
-    // create a Dart file
-    String dartFilePath = join(projPath, 'main.dart');
-    resourceProvider.newFile(dartFilePath, 'contents');
-    // the created context has the expected empty package map
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
-    expect(_currentPackageMap, isEmpty);
-    // Change the package map dependency so that the packageMapProvider is
-    // re-run, and arrange for it to return null from computePackageMap().
-    packageMapProvider.packageMap = null;
-    resourceProvider.modifyFile(dependencyPath, 'new contents');
-    await pumpEventQueue();
-    // The package map should have been changed to null.
-    expect(_currentPackageMap, isEmpty);
-  }
-
   test_watch_modifyPackagespec() {
     String packagesPath = convertPath('$projPath/.packages');
     String filePath = convertPath('$projPath/bin/main.dart');
@@ -1671,6 +1647,12 @@ test_pack:lib/''');
   }
 }
 
+@reflectiveTest
+class AbstractContextManagerTest_UseCFE extends AbstractContextManagerTest {
+  @override
+  bool get useCFE => true;
+}
+
 abstract class ContextManagerTest extends Object with ResourceProviderMixin {
   /**
    * The name of the 'bin' directory.
@@ -1700,8 +1682,6 @@ abstract class ContextManagerTest extends Object with ResourceProviderMixin {
   ContextManagerImpl manager;
 
   TestContextManagerCallbacks callbacks;
-
-  MockPackageMapProvider packageMapProvider;
 
   UriResolver packageResolver = null;
 
@@ -1749,6 +1729,11 @@ abstract class ContextManagerTest extends Object with ResourceProviderMixin {
 
   SourceFactory get sourceFactory => callbacks.sourceFactory;
 
+  /**
+   * Return `true` to enable the Dart 2.0 Common Front End.
+   */
+  bool get useCFE => false;
+
   Map<String, List<Folder>> get _currentPackageMap => _packageMap(projPath);
 
   /**
@@ -1771,7 +1756,6 @@ abstract class ContextManagerTest extends Object with ResourceProviderMixin {
     processRequiredPlugins();
     projPath = convertPath('/my/proj');
     resourceProvider.newFolder(projPath);
-    packageMapProvider = new MockPackageMapProvider();
     // Create an SDK in the mock file system.
     new MockSdk(generateSummaryFiles: true, resourceProvider: resourceProvider);
     DartSdkManager sdkManager = new DartSdkManager(convertPath('/'), true);
@@ -1780,14 +1764,14 @@ abstract class ContextManagerTest extends Object with ResourceProviderMixin {
         new FileContentOverlay(),
         sdkManager,
         providePackageResolver,
-        packageMapProvider,
         analysisFilesGlobs,
         InstrumentationService.NULL_SERVICE,
         new AnalysisOptionsImpl());
     PerformanceLog logger = new PerformanceLog(new NullStringSink());
     AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(logger);
     callbacks = new TestContextManagerCallbacks(
-        resourceProvider, sdkManager, logger, scheduler);
+        resourceProvider, sdkManager, logger, scheduler,
+        useCFE: useCFE);
     manager.callbacks = callbacks;
   }
 
@@ -1824,8 +1808,22 @@ class ContextManagerWithNewOptionsTest extends ContextManagerWithOptionsTest {
 }
 
 @reflectiveTest
+class ContextManagerWithNewOptionsTest_UseCFE
+    extends ContextManagerWithNewOptionsTest {
+  @override
+  bool get useCFE => true;
+}
+
+@reflectiveTest
 class ContextManagerWithOldOptionsTest extends ContextManagerWithOptionsTest {
   String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_FILE;
+}
+
+@reflectiveTest
+class ContextManagerWithOldOptionsTest_UseCFE
+    extends ContextManagerWithOldOptionsTest {
+  @override
+  bool get useCFE => true;
 }
 
 abstract class ContextManagerWithOptionsTest extends ContextManagerTest {
@@ -1877,7 +1875,8 @@ linter:
     String libPath = '$projPath/${ContextManagerTest.LIB_NAME}';
     newFile('$libPath/_embedder.yaml', content: r'''
 analyzer:
-  strong-mode: true
+  language:
+    enablePreviewDart2: true
   errors:
     missing_return: false
 linter:
@@ -1907,7 +1906,7 @@ linter:
 
     // Verify options were set.
     expect(analysisOptions.enableSuperMixins, isTrue);
-    expect(analysisOptions.strongMode, isTrue);
+    expect(analysisOptions.previewDart2, isTrue);
     expect(errorProcessors, hasLength(2));
     expect(lints, hasLength(2));
 
@@ -2080,7 +2079,9 @@ linter:
 
     // Verify options.
     // * from `_embedder.yaml`:
-    expect(analysisOptions.strongMode, isTrue);
+    // TODO(brianwilkerson) Figure out what to use in place of 'strongMode' and
+    // why 'enableSuperMixins' is assumed to come from two different sources.
+//    expect(analysisOptions.strongMode, isTrue);
     expect(analysisOptions.enableSuperMixins, isTrue);
     // * from analysis options:
     expect(analysisOptions.enableSuperMixins, isTrue);
@@ -2224,9 +2225,11 @@ analyzer:
     AnalysisResult result = await callbacks.currentDriver.getResult(file.path);
 
     // Not strong mode - both in the context and the SDK context.
-    AnalysisContext sdkContext = sourceFactory.dartSdk.context;
-    expect(analysisOptions.strongMode, isFalse);
-    expect(sdkContext.analysisOptions.strongMode, isFalse);
+//    AnalysisContext sdkContext = sourceFactory.dartSdk.context;
+    // TODO(brianwilkerson) Figure out whether there is an option other than
+    // 'strongMode' that will apply to the SDK context.
+//    expect(analysisOptions.strongMode, isFalse);
+//    expect(sdkContext.analysisOptions.strongMode, isFalse);
     expect(result.errors, isEmpty);
 
     // Update the options file - turn on 'strong-mode'.
@@ -2240,9 +2243,11 @@ analyzer:
     result = await callbacks.currentDriver.getResult(file.path);
 
     // Not strong mode - both in the context and the SDK context.
-    sdkContext = sourceFactory.dartSdk.context;
-    expect(analysisOptions.strongMode, isTrue);
-    expect(sdkContext.analysisOptions.strongMode, isTrue);
+//    sdkContext = sourceFactory.dartSdk.context;
+    // TODO(brianwilkerson) Figure out whether there is an option other than
+    // 'strongMode' that will apply to the SDK context.
+//    expect(analysisOptions.strongMode, isTrue);
+//    expect(sdkContext.analysisOptions.strongMode, isTrue);
     // The code is strong-mode clean.
     // Verify that TypeSystem was reset.
     expect(result.errors, isEmpty);
@@ -2437,20 +2442,6 @@ analyzer:
     expect(callbacks.currentContextRoots, unorderedEquals([a, c]));
   }
 
-  test_strong_mode_analysis_option() async {
-    // Create files.
-    newFile('$projPath/$optionsFileName', content: r'''
-analyzer:
-  strong-mode: true
-''');
-    String libPath = '$projPath/${ContextManagerTest.LIB_NAME}';
-    newFile('$libPath/main.dart');
-    // Setup context.
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
-    // Verify that analysis options was parsed and strong-mode set.
-    expect(analysisOptions.strongMode, true);
-  }
-
   test_watchEvents() async {
     String libPath = newFolder('$projPath/${ContextManagerTest.LIB_NAME}').path;
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
@@ -2515,6 +2506,11 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   final AnalysisDriverScheduler scheduler;
 
   /**
+   * A flag indicating whether to enable the Dart 2.0 Common Front End.
+   */
+  final bool useCFE;
+
+  /**
    * The list of `flushedFiles` in the last [removeContext] invocation.
    */
   List<String> lastFlushedFiles;
@@ -2528,7 +2524,8 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   NotificationManager notificationManager = new TestNotificationManager();
 
   TestContextManagerCallbacks(
-      this.resourceProvider, this.sdkManager, this.logger, this.scheduler);
+      this.resourceProvider, this.sdkManager, this.logger, this.scheduler,
+      {this.useCFE = false});
 
   /**
    * Return the current set of analysis options.
@@ -2581,7 +2578,8 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
         new FileContentOverlay(),
         contextRoot,
         sourceFactory,
-        analysisOptions);
+        analysisOptions,
+        useCFE: useCFE);
     driverMap[path] = currentDriver;
     currentDriver.exceptions.listen((ExceptionResult result) {
       AnalysisEngine.instance.logger
@@ -2625,11 +2623,6 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   void broadcastWatchEvent(WatchEvent event) {
     watchEvents.add(event);
-  }
-
-  @override
-  void computingPackageMap(bool computing) {
-    // Do nothing.
   }
 
   @override

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:args/args.dart' show ArgParser, ArgResults;
+import 'package:args/command_runner.dart' show UsageException;
 import 'package:path/path.dart' as path;
 
 import '../js_ast/js_ast.dart';
@@ -16,11 +17,17 @@ enum ModuleFormat {
   /// CommonJS module (used in Node.js)
   common,
 
-  /// Asynchronous Module Definition (AMD, used in browsers)
+  /// Asynchronous Module Definition (AMD, used in browsers).
   amd,
 
   /// Dart Dev Compiler's legacy format (deprecated).
-  legacy
+  legacy,
+
+  /// Like [amd] but can be concatenated into a single file.
+  amdConcat,
+
+  /// Like [legacy] but can be concatenated into a single file.
+  legacyConcat
 }
 
 /// Parses a string into a [ModuleFormat].
@@ -39,14 +46,34 @@ List<ModuleFormat> parseModuleFormatOption(ArgResults argResults) {
   if (format is String) {
     return [parseModuleFormat(format)];
   }
-  return (format as List<String>).map(parseModuleFormat).toList();
+  var formats = (format as List<String>).map(parseModuleFormat).toList();
+
+  if (argResults['single-out-file'] as bool) {
+    for (int i = 0; i < formats.length; i++) {
+      var format = formats[i];
+      switch (formats[i]) {
+        case ModuleFormat.amd:
+          formats[i] = ModuleFormat.amdConcat;
+          break;
+        case ModuleFormat.legacy:
+          formats[i] = ModuleFormat.legacyConcat;
+          break;
+        default:
+          throw UsageException(
+              'Format $format cannot be combined with '
+              'single-out-file. Only amd and legacy modes are supported.',
+              '');
+      }
+    }
+  }
+  return formats;
 }
 
 /// Adds an option to the [argParser] for choosing the module format, optionally
 /// [allowMultiple] formats to be specified, with each emitted into a separate
 /// file.
 void addModuleFormatOptions(ArgParser argParser,
-    {bool allowMultiple = false, bool hide = true, bool singleOutFile = true}) {
+    {bool allowMultiple = false, bool hide = true}) {
   argParser.addMultiOption('modules', help: 'module pattern to emit', allowed: [
     'es6',
     'common',
@@ -62,13 +89,11 @@ void addModuleFormatOptions(ArgParser argParser,
     'amd'
   ]);
 
-  if (singleOutFile) {
-    argParser.addFlag('single-out-file',
-        help: 'emit modules that can be concatenated into one file.\n'
-            'Only compatible with legacy and amd module formats.',
-        defaultsTo: false,
-        hide: hide);
-  }
+  argParser.addFlag('single-out-file',
+      help: 'emit modules that can be concatenated into one file.\n'
+          'Only compatible with legacy and amd module formats.',
+      defaultsTo: false,
+      hide: hide);
 }
 
 /// Transforms an ES6 [module] into a given module [format].
@@ -79,24 +104,22 @@ void addModuleFormatOptions(ArgParser argParser,
 /// structure as possible with the original. The transformation is a shallow one
 /// that affects the top-level module items, especially [ImportDeclaration]s and
 /// [ExportDeclaration]s.
-Program transformModuleFormat(ModuleFormat format, Program module,
-    {bool singleOutFile = false}) {
+Program transformModuleFormat(ModuleFormat format, Program module) {
   switch (format) {
     case ModuleFormat.legacy:
+    case ModuleFormat.legacyConcat:
       // Legacy format always generates output compatible with single file mode.
       return LegacyModuleBuilder().build(module);
     case ModuleFormat.common:
-      assert(!singleOutFile);
       return CommonJSModuleBuilder().build(module);
     case ModuleFormat.amd:
-      // TODO(jmesserly): encode singleOutFile as a module format?
-      // Since it's irrelevant except for AMD.
-      return AmdModuleBuilder(singleOutFile: singleOutFile).build(module);
+      return AmdModuleBuilder().build(module);
+    case ModuleFormat.amdConcat:
+      return AmdModuleBuilder(singleOutFile: true).build(module);
     case ModuleFormat.es6:
-      assert(!singleOutFile);
+    default:
       return module;
   }
-  return null; // unreachable. suppresses a bogus analyzer message
 }
 
 /// Base class for compiling ES6 modules into various ES5 module patterns.

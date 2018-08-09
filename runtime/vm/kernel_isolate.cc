@@ -95,7 +95,8 @@ class RunKernelTask : public ThreadPool::Task {
     api_flags.reify_generic_functions = false;
     api_flags.strong = false;
     api_flags.sync_async = false;
-#if !defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC)
+#if !defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                 \
+    !defined(DART_USE_INTERPRETER)
     api_flags.use_field_guards = true;
 #endif
 #if !defined(DART_PRECOMPILER)

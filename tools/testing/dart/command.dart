@@ -26,13 +26,13 @@ class Command {
         executable, htmlFile, options, dartFlags, environment);
   }
 
-  static Command browserTest(String url, Configuration configuration,
+  static Command browserTest(String url, TestConfiguration configuration,
       {bool retry}) {
     return new BrowserTestCommand._(url, configuration, retry);
   }
 
-  static Command browserHtmlTest(
-      String url, Configuration configuration, List<String> expectedMessages,
+  static Command browserHtmlTest(String url, TestConfiguration configuration,
+      List<String> expectedMessages,
       {bool retry}) {
     return new BrowserHtmlTestCommand._(
         url, configuration, expectedMessages, retry);
@@ -446,7 +446,7 @@ class ContentShellCommand extends ProcessCommand {
 class BrowserTestCommand extends Command {
   Runtime get browser => configuration.runtime;
   final String url;
-  final Configuration configuration;
+  final TestConfiguration configuration;
   final bool retry;
 
   BrowserTestCommand._(this.url, this.configuration, this.retry)
@@ -482,7 +482,7 @@ class BrowserTestCommand extends Command {
 
 class BrowserHtmlTestCommand extends BrowserTestCommand {
   List<String> expectedMessages;
-  BrowserHtmlTestCommand._(String url, Configuration configuration,
+  BrowserHtmlTestCommand._(String url, TestConfiguration configuration,
       this.expectedMessages, bool retry)
       : super._(url, configuration, retry);
 
@@ -656,7 +656,7 @@ class MakeSymlinkCommand extends ScriptCommand {
       var link = new io.Link(_link);
 
       return link.exists().then((bool exists) {
-        if (exists) return link.delete();
+        if (exists) link.deleteSync();
       }).then((_) => link.create(_target));
     }).then((_) {
       return new ScriptCommandOutput(this, Expectation.pass, "", watch.elapsed);

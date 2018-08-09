@@ -14,6 +14,7 @@ import 'notification_navigation_test.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetNavigationTest);
+    defineReflectiveTests(GetNavigationTest_UseCFE);
   });
 }
 
@@ -41,6 +42,27 @@ main() {
     await _getNavigation(testFile, testCode.indexOf('test);'), 0);
     assertHasRegion('test);');
     assertHasTarget('test = 0');
+  }
+
+  test_fieldType() async {
+    // This test mirrors test_navigation() from
+    // test/integration/analysis/get_navigation_test.dart
+    String text = r'''
+class Foo {}
+
+class Bar {
+  Foo foo;
+}
+''';
+    addTestFile(text);
+    await _getNavigation(testFile, text.indexOf('Foo foo'), 0);
+    expect(targets, hasLength(1));
+    NavigationTarget target = targets.first;
+    expect(target.kind, ElementKind.CLASS);
+    expect(target.offset, text.indexOf('Foo {'));
+    expect(target.length, 3);
+    expect(target.startLine, 1);
+    expect(target.startColumn, 7);
   }
 
   test_fileDoesNotExist() async {
@@ -224,4 +246,10 @@ main() {
     targets = result.targets;
     regions = result.regions;
   }
+}
+
+@reflectiveTest
+class GetNavigationTest_UseCFE extends GetNavigationTest {
+  @override
+  bool get useCFE => true;
 }

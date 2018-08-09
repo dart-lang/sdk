@@ -20,6 +20,7 @@ import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/pending_error.dart';
 import 'package:analyzer/src/fasta/error_converter.dart';
@@ -51,7 +52,6 @@ class LibraryAnalyzer {
   final SourceFactory _sourceFactory;
   final FileState _library;
 
-  final bool _enableKernelDriver;
   final bool _useCFE;
   final FrontEndCompiler _frontEndCompiler;
 
@@ -81,11 +81,9 @@ class LibraryAnalyzer {
       this._context,
       this._resynthesizer,
       this._library,
-      {bool enableKernelDriver: false,
-      bool useCFE: false,
+      {bool useCFE: false,
       FrontEndCompiler frontEndCompiler})
       : _typeProvider = _context.typeProvider,
-        _enableKernelDriver = enableKernelDriver,
         _useCFE = useCFE,
         _frontEndCompiler = frontEndCompiler;
 
@@ -131,6 +129,7 @@ class LibraryAnalyzer {
         _computePendingMissingRequiredParameters(file, unit);
       });
 
+      units.values.forEach(_findConstants);
       _computeConstants();
 
       PerformanceStatistics.errors.makeCurrentWhile(() {
@@ -210,22 +209,31 @@ class LibraryAnalyzer {
 
         _logger.run('Apply resolution', () {
           units.forEach((file, unit) {
-            var resolutions = libraryResult.files[file.fileUri].resolutions;
-            var resolutionProvider = new _ResolutionProvider(resolutions);
+            var resolution = libraryResult.files[file.fileUri].resolution;
 
-            _resolveFile2(file, unit, resolutionProvider);
+            _resolveFile2(file, unit, resolution);
             _computePendingMissingRequiredParameters(file, unit);
 
             // Invalid part URIs can result in an element with a null source
-            if (unit.element.source != null) {
+            if (unit.declaredElement.source != null) {
               var reporter = new FastaErrorReporter(_getErrorReporter(file));
               var fileResult = libraryResult.files[file.fileUri];
-              fileResult?.errors?.forEach(reporter.reportCompilationMessage);
+              if (fileResult?.errors != null) {
+                for (var error in fileResult.errors) {
+                  reporter.reportCompilationMessage(error);
+                }
+              }
             }
           });
         });
 
+        units.values.forEach(_findConstants);
         _computeConstants();
+
+        units.forEach((file, unit) {
+          ErrorReporter errorReporter = _getErrorReporter(file);
+          _computeConstantErrors(errorReporter, unit);
+        });
 
         if (_analysisOptions.hint) {
           PerformanceStatistics.hints.makeCurrentWhile(() {
@@ -269,6 +277,13 @@ class LibraryAnalyzer {
       });
       return results;
     });
+  }
+
+  void _computeConstantErrors(
+      ErrorReporter errorReporter, CompilationUnit unit) {
+    ConstantVerifier constantVerifier = new ConstantVerifier(
+        errorReporter, _libraryElement, _typeProvider, _declaredVariables);
+    unit.accept(constantVerifier);
   }
 
   /**
@@ -403,18 +418,16 @@ class LibraryAnalyzer {
 
     RecordingErrorListener errorListener = _getErrorListener(file);
 
-    if (_analysisOptions.strongMode) {
-      AnalysisOptionsImpl options = _analysisOptions as AnalysisOptionsImpl;
-      CodeChecker checker = new CodeChecker(
-          _typeProvider,
-          new StrongTypeSystemImpl(_typeProvider,
-              implicitCasts: options.implicitCasts,
-              declarationCasts: options.declarationCasts,
-              nonnullableTypes: options.nonnullableTypes),
-          errorListener,
-          options);
-      checker.visitCompilationUnit(unit);
-    }
+    AnalysisOptionsImpl options = _analysisOptions as AnalysisOptionsImpl;
+    CodeChecker checker = new CodeChecker(
+        _typeProvider,
+        new StrongTypeSystemImpl(_typeProvider,
+            implicitCasts: options.implicitCasts,
+            declarationCasts: options.declarationCasts,
+            nonnullableTypes: options.nonnullableTypes),
+        errorListener,
+        options);
+    checker.visitCompilationUnit(unit);
 
     ErrorReporter errorReporter = _getErrorReporter(file);
 
@@ -426,9 +439,7 @@ class LibraryAnalyzer {
     //
     // Use the ConstantVerifier to compute errors.
     //
-    ConstantVerifier constantVerifier = new ConstantVerifier(
-        errorReporter, _libraryElement, _typeProvider, _declaredVariables);
-    unit.accept(constantVerifier);
+    _computeConstantErrors(errorReporter, unit);
 
     //
     // Use the ErrorVerifier to compute errors.
@@ -440,16 +451,6 @@ class LibraryAnalyzer {
         new InheritanceManager(_libraryElement),
         _analysisOptions.enableSuperMixins);
     unit.accept(errorVerifier);
-  }
-
-  /// Create a new [ResolutionApplier] for the given front-end [resolution].
-  /// The [context] element is used to associate synthetic elements and access
-  /// type parameters from the enclosing scopes.
-  ResolutionApplier _createResolutionApplier(ElementImpl context,
-      CollectedResolution resolution, Map<int, AstNode> localDeclarations) {
-    return new _ResolutionApplierContext(_resynthesizer, _typeProvider,
-            _libraryElement, resolution, context, localDeclarations)
-        .applier;
   }
 
   /**
@@ -476,6 +477,17 @@ class LibraryAnalyzer {
     }
 
     return errors.where((AnalysisError e) => !isIgnored(e)).toList();
+  }
+
+  /// Find constants to compute.
+  void _findConstants(CompilationUnit unit) {
+    ConstantFinder constantFinder = new ConstantFinder();
+    unit.accept(constantFinder);
+    _constants.addAll(constantFinder.constantsToCompute);
+
+    var dependenciesFinder = new ConstantExpressionsDependenciesFinder();
+    unit.accept(dependenciesFinder);
+    _constants.addAll(dependenciesFinder.dependencies);
   }
 
   RecordingErrorListener _getErrorListener(FileState file) =>
@@ -541,7 +553,7 @@ class LibraryAnalyzer {
     definingCompilationUnit.element = _libraryElement.definingCompilationUnit;
 
     bool matchNodeElement(Directive node, Element element) {
-      if (_enableKernelDriver) {
+      if (_useCFE) {
         return node.keyword.offset == element.nameOffset;
       } else {
         return node.offset == element.nameOffset;
@@ -552,7 +564,7 @@ class LibraryAnalyzer {
 
     void reportErrorReportedByFrontEnd(
         ErrorCode errorCode, AstNode node, List<Object> arguments) {
-      if (!_enableKernelDriver) {
+      if (!_useCFE) {
         libraryErrorReporter.reportErrorForNode(errorCode, node, arguments);
       }
     }
@@ -673,7 +685,7 @@ class LibraryAnalyzer {
 
     RecordingErrorListener errorListener = _getErrorListener(file);
 
-    CompilationUnitElement unitElement = unit.element;
+    CompilationUnitElement unitElement = unit.declaredElement;
 
     // TODO(scheglov) Hack: set types for top-level variables
     // Otherwise TypeResolverVisitor will set declared types, and because we
@@ -686,8 +698,7 @@ class LibraryAnalyzer {
       }
     }
 
-    new DeclarationResolver(enableKernelDriver: _enableKernelDriver)
-        .resolve(unit, unitElement);
+    new DeclarationResolver().resolve(unit, unitElement);
 
     if (_libraryElement.context.analysisOptions.previewDart2) {
       unit.accept(new AstRewriteVisitor(_context.typeSystem, _libraryElement,
@@ -717,94 +728,85 @@ class LibraryAnalyzer {
 
     unit.accept(new ResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener));
-
-    //
-    // Find constants to compute.
-    //
-    {
-      ConstantFinder constantFinder = new ConstantFinder();
-      unit.accept(constantFinder);
-      _constants.addAll(constantFinder.constantsToCompute);
-    }
-
-    //
-    // Find constant dependencies to compute.
-    //
-    {
-      var finder = new ConstantExpressionsDependenciesFinder();
-      unit.accept(finder);
-      _constants.addAll(finder.dependencies);
-    }
   }
 
   void _resolveFile2(FileState file, CompilationUnitImpl unit,
-      _ResolutionProvider resolutions) {
-    CompilationUnitElement unitElement = unit.element;
-    new DeclarationResolver(enableKernelDriver: true, applyKernelTypes: true)
-        .resolve(unit, unitElement);
+      CollectedResolution resolution) {
+    CompilationUnitElement unitElement = unit.declaredElement;
+    new DeclarationResolver(useCFE: true).resolve(unit, unitElement);
 
-    // TODO(paulberry): need to find a better way to do this.
-    // See dartbug.com/33506.
-//    if (_libraryElement.context.analysisOptions.previewDart2) {
-//      unit.accept(new AstRewriteVisitor(_context.typeSystem, _libraryElement,
-//          file.source, _typeProvider, AnalysisErrorListener.NULL_LISTENER));
-//    }
+    var applierContext = new _ResolutionApplierContext(_resynthesizer,
+        _typeProvider, _libraryElement, resolution, unit.localDeclarations);
+    var applier = applierContext.applier;
 
     for (var directive in unit.directives) {
       if (directive.metadata.isNotEmpty) {
-        var resolution = resolutions.next();
-        var applier =
-            _createResolutionApplier(null, resolution, unit.localDeclarations);
         applier.applyToAnnotations(directive);
       }
     }
     for (var declaration in unit.declarations) {
       if (declaration is ClassDeclaration) {
         if (declaration.metadata.isNotEmpty) {
-          var resolution = resolutions.next();
-          var applier = _createResolutionApplier(
-              null, resolution, unit.localDeclarations);
           applier.applyToAnnotations(declaration);
         }
+
+        var context = declaration.declaredElement as ClassElementImpl;
+        applierContext.setContext(context);
+        declaration.typeParameters?.accept(applier);
+        declaration.extendsClause?.accept(applier);
+        declaration.withClause?.accept(applier);
+        declaration.implementsClause?.accept(applier);
+
         for (var member in declaration.members) {
           if (member is ConstructorDeclaration) {
-            var context = member.element as ConstructorElementImpl;
+            var context = member.declaredElement as ConstructorElementImpl;
+            applierContext.setContext(context);
             ConstructorName redirectName = member.redirectedConstructor;
             if (redirectName != null) {
               var redirectedConstructor = context.redirectedConstructor;
               redirectName.staticElement = redirectedConstructor;
               // TODO(scheglov) Support for import prefix?
-              DeclarationResolver.applyConstructorElement(
-                  _libraryElement,
-                  null,
-                  redirectedConstructor,
-                  redirectedConstructor.returnType,
-                  redirectName);
+              if (redirectedConstructor != null) {
+                DeclarationResolver.applyConstructorElement(
+                    _libraryElement,
+                    null,
+                    redirectedConstructor,
+                    redirectedConstructor.returnType,
+                    redirectName);
+              }
               // TODO(scheglov) Add support for type parameterized redirects.
+              // Annotations are stored separately for each formal parameter.
+              for (var parameter in member.parameters.parameters) {
+                if (parameter.metadata.isNotEmpty) {
+                  parameter.metadata.accept(applier);
+                }
+              }
             } else {
-              var resolution = resolutions.next();
-              var applier = _createResolutionApplier(
-                  context, resolution, unit.localDeclarations);
               member.initializers.accept(applier);
               member.parameters.accept(applier);
               member.body.accept(applier);
               applier.applyToAnnotations(member);
             }
           } else if (member is FieldDeclaration) {
-            List<VariableDeclaration> fields = member.fields.variables;
-            var context = fields[0].element.initializer as ElementImpl;
-            var resolution = resolutions.next();
-            var applier = _createResolutionApplier(
-                context, resolution, unit.localDeclarations);
+            VariableDeclarationList fieldList = member.fields;
+            List<VariableDeclaration> fields = fieldList.variables;
+            var element = fields[0].declaredElement;
+            var context = (element.initializer ?? element) as ElementImpl;
+            applierContext.setContext(context);
+            fieldList.type?.accept(applier);
             for (var field in fields.reversed) {
               field.initializer?.accept(applier);
+              if (element is ConstVariableElement) {
+                (element as ConstVariableElement).constantInitializer =
+                    field.initializer;
+              }
             }
             applier.applyToAnnotations(member);
           } else if (member is MethodDeclaration) {
-            ExecutableElementImpl context = member.element;
-            var resolution = resolutions.next();
-            var applier = _createResolutionApplier(
-                context, resolution, unit.localDeclarations);
+            ExecutableElementImpl context = member.declaredElement;
+            applierContext.setContext(context);
+            member.typeParameters?.accept(applier);
+            member.returnType?.accept(applier);
             member.parameters?.accept(applier);
             member.body.accept(applier);
             applier.applyToAnnotations(member);
@@ -813,52 +815,52 @@ class LibraryAnalyzer {
           }
         }
       } else if (declaration is ClassTypeAlias) {
-        // No bodies to resolve.
+        applierContext.setContext(declaration.declaredElement);
+        declaration.typeParameters?.accept(applier);
+        declaration.superclass.accept(applier);
+        declaration.withClause?.accept(applier);
+        declaration.implementsClause?.accept(applier);
       } else if (declaration is EnumDeclaration) {
         // No bodies to resolve.
       } else if (declaration is FunctionDeclaration) {
-        var context = declaration.element as ExecutableElementImpl;
-        var resolution = resolutions.next();
-        var applier = _createResolutionApplier(
-            context, resolution, unit.localDeclarations);
+        var context = declaration.declaredElement as ExecutableElementImpl;
+        applierContext.setContext(context);
+        declaration.returnType?.accept(applier);
+        declaration.functionExpression.typeParameters?.accept(applier);
         declaration.functionExpression.parameters?.accept(applier);
         declaration.functionExpression.body.accept(applier);
         applier.applyToAnnotations(declaration);
       } else if (declaration is FunctionTypeAlias) {
-        // No bodies to resolve.
+        applierContext.setContext(declaration.declaredElement);
+        declaration.typeParameters?.accept(applier);
+        declaration.returnType?.accept(applier);
       } else if (declaration is GenericTypeAlias) {
-        // No bodies to resolve.
+        declaration.typeParameters?.accept(applier);
+        GenericFunctionType functionType = declaration.functionType;
+        if (functionType != null) {
+          applierContext.setContext(functionType.type.element);
+          functionType.typeParameters?.accept(applier);
+          functionType.returnType?.accept(applier);
+        }
       } else if (declaration is TopLevelVariableDeclaration) {
-        List<VariableDeclaration> variables = declaration.variables.variables;
-        var context = variables[0].element.initializer as ElementImpl;
-        var resolution = resolutions.next();
-        var applier = _createResolutionApplier(
-            context, resolution, unit.localDeclarations);
+        VariableDeclarationList variableList = declaration.variables;
+        List<VariableDeclaration> variables = variableList.variables;
+        var element = variables[0].declaredElement;
+        var context = (element.initializer ?? element) as ElementImpl;
+        applierContext.setContext(context);
+        variableList.type?.accept(applier);
         for (var variable in variables.reversed) {
           variable.initializer?.accept(applier);
+          var element = variable.declaredElement;
+          if (element is ConstVariableElement) {
+            (element as ConstVariableElement).constantInitializer =
+                variable.initializer;
+          }
         }
         applier.applyToAnnotations(declaration);
       } else {
         throw new StateError('(${declaration.runtimeType}) $declaration');
       }
-    }
-
-    //
-    // Find constants to compute.
-    //
-    {
-      ConstantFinder constantFinder = new ConstantFinder();
-      unit.accept(constantFinder);
-      _constants.addAll(constantFinder.constantsToCompute);
-    }
-
-    //
-    // Find constant dependencies to compute.
-    //
-    {
-      var finder = new ConstantExpressionsDependenciesFinder();
-      unit.accept(finder);
-      _constants.addAll(finder.dependencies);
     }
   }
 
@@ -1039,6 +1041,7 @@ class _ConstantWalker extends DependencyWalker<_ConstantNode> {
 class _NameOrSource {
   final String name;
   final Source source;
+
   _NameOrSource(this.name, this.source);
 }
 
@@ -1058,51 +1061,10 @@ class _ResolutionApplierContext implements TypeContext {
 
   ResolutionApplier applier;
 
-  _ResolutionApplierContext(
-      this.resynthesizer,
-      this.typeProvider,
-      this.libraryElement,
-      this.resolution,
-      this.context,
-      this.localDeclarations) {
-    for (Element element = context;
-        element != null;
-        element = element.enclosingElement) {
-      if (element is ClassElement) {
-        enclosingClassElement = element;
-        break;
-      }
-    }
-
-    // Convert referenced nodes into elements.
-    Map<int, kernel.ResolutionData<DartType, Element, Element, PrefixElement>>
-        convertedData = {};
-    for (var location in resolution.kernelData.keys) {
-      var data = resolution.kernelData[location];
-      convertedData[location] = new kernel.ResolutionData(
-          argumentTypes: data.argumentTypes == null
-              ? null
-              : data.argumentTypes.map(translateType).toList(),
-          combiner: _translateReference(data.combiner),
-          declaration: _translateDeclaration(data.declaration),
-          inferredType: translateType(data.inferredType),
-          invokeType: translateType(data.invokeType),
-          isExplicitCall: data.isExplicitCall,
-          isImplicitCall: data.isImplicitCall,
-          isPrefixReference: data.isPrefixReference,
-          isTypeReference: data.isTypeReference,
-          isWriteReference: data.isWriteReference,
-          literalType: translateType(data.literalType),
-          loadLibrary: _translateReference(data.loadLibrary),
-          prefixInfo: _translatePrefixInfo(data.prefixInfo),
-          reference: _translateReference(data.reference,
-              isWriteReference: data.isWriteReference,
-              isTypeReference: data.isTypeReference,
-              inferredType: data.inferredType),
-          writeContext: translateType(data.writeContext));
-    }
-
-    applier = new ResolutionApplier(libraryElement, this, convertedData);
+  _ResolutionApplierContext(this.resynthesizer, this.typeProvider,
+      this.libraryElement, this.resolution, this.localDeclarations) {
+    applier =
+        new ResolutionApplier(libraryElement, this, resolution.kernelData);
   }
 
   @override
@@ -1117,7 +1079,7 @@ class _ResolutionApplierContext implements TypeContext {
   }
 
   @override
-  void enterLocalFunction(FunctionElementImpl element) {
+  void enterLocalFunction(FunctionTypedElementImpl element) {
     context.encloseElement(element);
 
     // The function is the new resolution context.
@@ -1126,54 +1088,38 @@ class _ResolutionApplierContext implements TypeContext {
   }
 
   @override
-  void exitLocalFunction(FunctionElementImpl element) {
+  void exitLocalFunction(FunctionTypedElementImpl element) {
     assert(identical(context, element));
     context = contextStack.removeLast();
   }
 
-  @override
-  DartType translateType(kernel.DartType kernelType) {
-    if (kernelType == null) {
-      return null;
-    } else if (kernelType is kernel.TypeArgumentsDartType) {
-      // TODO(paulberry): get rid of this case
-      List<kernel.DartType> kernelTypes = kernelType.types;
-      var types = new List<DartType>(kernelTypes.length);
-      for (var i = 0; i < kernelTypes.length; i++) {
-        types[i] = translateType(kernelTypes[i]);
+  void setContext(ElementImpl context) {
+    this.context = context;
+    for (Element element = context;
+        element != null;
+        element = element.enclosingElement) {
+      if (element is ClassElement) {
+        enclosingClassElement = element;
+        break;
       }
-      return new TypeArgumentsDartType(types);
-    } else {
-      return resynthesizer.getType(context, kernelType,
-          getLocalTypeParameter: _getLocalTypeParameter);
     }
   }
 
-  TypeParameterElement _getLocalTypeParameter(
-      kernel.TypeParameter typeParameter) {
-    var declarationOffset = resolution.typeVariableDeclarations[typeParameter];
-    if (declarationOffset != null) {
-      TypeParameter typeParameter = localDeclarations[declarationOffset];
-      return typeParameter.element;
-    } else {
-      return null;
-    }
-  }
-
-  Element _translateDeclaration(int declarationOffset) {
+  @override
+  Element translateDeclaration(int declarationOffset) {
     if (declarationOffset == null) return null;
     var declaration = localDeclarations[declarationOffset];
     Element element;
     if (declaration is VariableDeclaration) {
-      element = declaration.element;
+      element = declaration.declaredElement;
     } else if (declaration is FormalParameter) {
-      element = declaration.element;
+      element = declaration.declaredElement;
     } else if (declaration is DeclaredSimpleIdentifier) {
       element = declaration.staticElement;
     } else if (declaration is FunctionDeclaration) {
-      element = declaration.element;
+      element = declaration.declaredElement;
     } else if (declaration is TypeParameter) {
-      element = declaration.element;
+      element = declaration.declaredElement;
     } else {
       throw new UnimplementedError('${declaration.runtimeType}');
     }
@@ -1181,15 +1127,18 @@ class _ResolutionApplierContext implements TypeContext {
     return element;
   }
 
-  PrefixElement _translatePrefixInfo(int importIndex) {
+  @override
+  PrefixElement translatePrefixInfo(int importIndex) {
     if (importIndex == null) return null;
     return libraryElement.imports[importIndex].prefix;
   }
 
-  Element _translateReference(kernel.Node referencedNode,
+  @override
+  Element translateReference(kernel.Node referencedNode,
       {bool isWriteReference = false,
       bool isTypeReference = false,
-      kernel.DartType inferredType}) {
+      kernel.DartType inferredType,
+      kernel.DartType receiverType}) {
     if (referencedNode == null) {
       if (isTypeReference && inferredType is kernel.DynamicType) {
         return typeProvider.dynamicType.element;
@@ -1209,15 +1158,13 @@ class _ResolutionApplierContext implements TypeContext {
           .getElementFromCanonicalName(referencedNode.classNode.canonicalName);
       assert(element != null);
     } else if (referencedNode is kernel.TypeParameterType) {
-      element = resynthesizer.getTypeParameter(
-          context, referencedNode.parameter,
-          getLocalTypeParameter: _getLocalTypeParameter);
+      element =
+          resynthesizer.getTypeParameter(context, referencedNode.parameter);
       assert(element != null);
     } else if (referencedNode is kernel.DynamicType) {
       element = DynamicElementImpl.instance;
     } else if (referencedNode is kernel.TypeParameter) {
-      element = resynthesizer.getTypeParameter(context, referencedNode,
-          getLocalTypeParameter: _getLocalTypeParameter);
+      element = resynthesizer.getTypeParameter(context, referencedNode);
     } else if (referencedNode is kernel.InvalidType) {
       element = DynamicElementImpl.instance;
     } else {
@@ -1225,19 +1172,42 @@ class _ResolutionApplierContext implements TypeContext {
           'TODO(paulberry): ${referencedNode.runtimeType}');
     }
     if (element is PropertyInducingElement) {
-      return isWriteReference ? element.setter : element.getter;
+      PropertyInducingElement property = element;
+      element = isWriteReference ? property.setter : property.getter;
+    }
+    if (element is ConstructorElement &&
+        inferredType is kernel.InterfaceType &&
+        inferredType.typeArguments.isNotEmpty) {
+      InterfaceType type = translateType(inferredType);
+      return ConstructorMember.from(element, type);
+    }
+    if (receiverType is kernel.InterfaceType &&
+        receiverType.typeArguments.isNotEmpty) {
+      InterfaceType type = translateType(receiverType);
+      if (element is MethodElement) {
+        return MethodMember.from(element, type);
+      }
+      if (element is PropertyAccessorElement) {
+        return PropertyAccessorMember.from(element, type);
+      }
+    }
+    return element;
+  }
+
+  @override
+  DartType translateType(kernel.DartType kernelType) {
+    if (kernelType == null) {
+      return null;
+    } else if (kernelType is kernel.TypeArgumentsDartType) {
+      // TODO(paulberry): get rid of this case
+      List<kernel.DartType> kernelTypes = kernelType.types;
+      var types = new List<DartType>(kernelTypes.length);
+      for (var i = 0; i < kernelTypes.length; i++) {
+        types[i] = translateType(kernelTypes[i]);
+      }
+      return new TypeArgumentsDartType(types);
     } else {
-      return element;
+      return resynthesizer.getType(context, kernelType);
     }
   }
-}
-
-/// [Iterator] like object that provides [CollectedResolution]s.
-class _ResolutionProvider {
-  final List<CollectedResolution> resolutions;
-  int index = 0;
-
-  _ResolutionProvider(this.resolutions);
-
-  CollectedResolution next() => resolutions[index++];
 }

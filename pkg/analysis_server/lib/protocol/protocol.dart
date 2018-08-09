@@ -490,6 +490,35 @@ class Response {
 
   /**
    * Initialize a newly created instance to represent the
+   * GET_SIGNATURE_INVALID_FILE error condition.
+   */
+  Response.getSignatureInvalidFile(Request request)
+      : this(request.id,
+            error: new RequestError(RequestErrorCode.GET_SIGNATURE_INVALID_FILE,
+                'Error during `analysis.getSignature`: invalid file.'));
+
+  /**
+   * Initialize a newly created instance to represent the
+   * GET_SIGNATURE_INVALID_OFFSET error condition.
+   */
+  Response.getSignatureInvalidOffset(Request request)
+      : this(request.id,
+            error: new RequestError(
+                RequestErrorCode.GET_SIGNATURE_INVALID_OFFSET,
+                'Error during `analysis.getSignature`: invalid offset.'));
+
+  /**
+   * Initialize a newly created instance to represent the
+   * GET_SIGNATURE_UNKNOWN_FUNCTION error condition.
+   */
+  Response.getSignatureUnknownFunction(Request request)
+      : this(request.id,
+            error: new RequestError(
+                RequestErrorCode.GET_SIGNATURE_UNKNOWN_FUNCTION,
+                'Error during `analysis.getSignature`: unknown function.'));
+
+  /**
+   * Initialize a newly created instance to represent the
    * IMPORT_ELEMENTS_INVALID_FILE error condition.
    */
   Response.importElementsInvalidFile(Request request)

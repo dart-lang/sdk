@@ -64,7 +64,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
-import 'package:analyzer/src/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
@@ -109,7 +108,7 @@ class AnalysisServer {
    * The version of the analysis server. The value should be replaced
    * automatically during the build.
    */
-  static final String VERSION = '1.20.3';
+  static final String VERSION = '1.20.5';
 
   /**
    * The options of this server instance.
@@ -353,13 +352,8 @@ class AnalysisServer {
    * exceptions to show up in unit tests, but it should be set to false when
    * running a full analysis server.
    */
-  AnalysisServer(
-      this.channel,
-      this.resourceProvider,
-      PubPackageMapProvider packageMapProvider,
-      this.options,
-      this.sdkManager,
-      this.instrumentationService,
+  AnalysisServer(this.channel, this.resourceProvider, this.options,
+      this.sdkManager, this.instrumentationService,
       {this.diagnosticServer,
       ResolverProvider fileResolverProvider: null,
       ResolverProvider packageResolverProvider: null})
@@ -406,7 +400,6 @@ class AnalysisServer {
         fileContentOverlay,
         sdkManager,
         packageResolverProvider,
-        packageMapProvider,
         analyzedFilesGlobs,
         instrumentationService,
         defaultContextOptions);
@@ -1111,14 +1104,6 @@ class AnalysisServer {
 //    });
   }
 
-  void _computingPackageMap(bool computing) {
-    if (serverServices.contains(ServerService.STATUS)) {
-      PubStatus pubStatus = new PubStatus(computing);
-      ServerStatusParams params = new ServerStatusParams(pub: pubStatus);
-      sendNotification(params.toNotification());
-    }
-  }
-
   /**
    * If the state location can be accessed, return the file byte store,
    * otherwise return the memory byte store.
@@ -1126,15 +1111,19 @@ class AnalysisServer {
   ByteStore _createByteStore() {
     const int M = 1024 * 1024 /*1 MiB*/;
     const int G = 1024 * 1024 * 1024 /*1 GiB*/;
+
+    const int memoryCacheSize = 128 * M;
+
     if (resourceProvider is PhysicalResourceProvider) {
       Folder stateLocation =
           resourceProvider.getStateLocation('.analysis-driver');
       if (stateLocation != null) {
         return new MemoryCachingByteStore(
-            new EvictingFileByteStore(stateLocation.path, G), 64 * M);
+            new EvictingFileByteStore(stateLocation.path, G), memoryCacheSize);
       }
     }
-    return new MemoryCachingByteStore(new NullByteStore(), 64 * M);
+
+    return new MemoryCachingByteStore(new NullByteStore(), memoryCacheSize);
   }
 
   /**
@@ -1408,10 +1397,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
-  void computingPackageMap(bool computing) =>
-      analysisServer._computingPackageMap(computing);
-
-  @override
   ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options) {
     String defaultPackageFilePath = null;
     String defaultPackagesDirectoryPath = null;
@@ -1640,11 +1625,6 @@ class ServerPerformanceStatistics {
    * PerformAnalysisOperation._sendNotices.
    */
   static PerformanceTag notices = server.createChild('notices');
-
-  /**
-   * The [PerformanceTag] for time spent running pub.
-   */
-  static PerformanceTag pub = server.createChild('pub');
 
   /**
    * The [PerformanceTag] for time spent in server communication channels.

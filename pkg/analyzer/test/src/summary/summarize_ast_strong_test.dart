@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.summary.summarize_ast_strong_test;
-
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'summarize_ast_test.dart';
@@ -19,9 +17,6 @@ main() {
  */
 @reflectiveTest
 class LinkedSummarizeAstStrongTest extends LinkedSummarizeAstTest {
-  @override
-  bool get strongMode => true;
-
   @override
   @failingTest
   test_bottom_reference_shared() {

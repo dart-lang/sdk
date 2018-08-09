@@ -179,12 +179,11 @@ class StatementCompletionProcessor {
         node = blockNode.statements.last;
       }
     }
-    if (_isEmptyStatement(node)) {
+    if (_isEmptyStatementOrEmptyBlock(node)) {
       node = node.parent;
     }
     for (engine.AnalysisError error in statementContext.errors) {
-      if (error.offset >= node.offset &&
-          error.offset <= node.offset + node.length) {
+      if (error.offset >= node.offset && error.offset <= node.end) {
         if (error.errorCode is! HintCode) {
           errors.add(error);
         }
@@ -453,7 +452,14 @@ class StatementCompletionProcessor {
     }
     DoStatement statement = node;
     SourceBuilder sb = _sourceBuilderAfterKeyword(statement.doKeyword);
-    bool hasWhileKeyword = statement.whileKeyword.lexeme == "while";
+    // I modified the code and ran the tests with both the old and new parser.
+    // Apparently the old parser sometimes sticks something other than 'while'
+    // into the whileKeyword field, which causes statement completion to throw
+    // an exception further downstream.
+    // TODO(danrubel): change `statement.whileKeyword?.lexeme == "while"`
+    // to `statement.whileKeyword != null` once the fasta parser is the default.
+    bool hasWhileKeyword = statement.whileKeyword?.lexeme == "while" &&
+        !statement.whileKeyword.isSynthetic;
     int exitDelta = 0;
     if (!_statementHasValidBody(statement.doKeyword, statement.body)) {
       String text = utils.getNodeText(statement.body);
@@ -531,40 +537,54 @@ class StatementCompletionProcessor {
       return false;
     }
     ForEachStatement forNode = node;
-    if (forNode.inKeyword.isSynthetic) {
+    return _complete_forEachStatementRest(
+        forNode.forKeyword,
+        forNode.leftParenthesis,
+        forNode.identifier ?? forNode.loopVariable,
+        forNode.inKeyword,
+        forNode.iterable,
+        forNode.rightParenthesis,
+        forNode.body);
+  }
+
+  bool _complete_forEachStatementRest(
+      Token forKeyword,
+      Token leftParenthesis,
+      AstNode name,
+      Token inKeyword,
+      Expression iterable,
+      Token rightParenthesis,
+      Statement body) {
+    if (inKeyword.isSynthetic) {
       return false; // Can't happen -- would be parsed as a for-statement.
     }
-    SourceBuilder sb =
-        new SourceBuilder(file, forNode.rightParenthesis.offset + 1);
-    AstNode name = forNode.identifier;
-    name ??= forNode.loopVariable;
-    String src = utils.getNodeText(forNode);
+    SourceBuilder sb = new SourceBuilder(file, rightParenthesis.offset + 1);
+    String src = utils.getNodeText(node);
     if (name == null) {
-      exitPosition = new Position(file, forNode.leftParenthesis.offset + 1);
-      src = src.substring(forNode.leftParenthesis.offset - forNode.offset);
+      exitPosition = new Position(file, leftParenthesis.offset + 1);
+      src = src.substring(leftParenthesis.offset - node.offset);
       if (src.startsWith(new RegExp(r'\(\s*in\s*\)'))) {
         _addReplaceEdit(
-            range.startOffsetEndOffset(forNode.leftParenthesis.offset + 1,
-                forNode.rightParenthesis.offset),
+            range.startOffsetEndOffset(
+                leftParenthesis.offset + 1, rightParenthesis.offset),
             ' in ');
       } else if (src.startsWith(new RegExp(r'\(\s*in'))) {
         _addReplaceEdit(
             range.startOffsetEndOffset(
-                forNode.leftParenthesis.offset + 1, forNode.inKeyword.offset),
+                leftParenthesis.offset + 1, inKeyword.offset),
             ' ');
       }
-    } else if (_isSyntheticExpression(forNode.iterable)) {
-      exitPosition = new Position(file, forNode.rightParenthesis.offset + 1);
-      src = src.substring(forNode.inKeyword.offset - forNode.offset);
+    } else if (iterable != null && _isSyntheticExpression(iterable)) {
+      exitPosition = new Position(file, rightParenthesis.offset + 1);
+      src = src.substring(inKeyword.offset - node.offset);
       if (src.startsWith(new RegExp(r'in\s*\)'))) {
         _addReplaceEdit(
             range.startOffsetEndOffset(
-                forNode.inKeyword.offset + forNode.inKeyword.length,
-                forNode.rightParenthesis.offset),
+                inKeyword.offset + inKeyword.length, rightParenthesis.offset),
             ' ');
       }
     }
-    if (!_statementHasValidBody(forNode.forKeyword, forNode.body)) {
+    if (!_statementHasValidBody(forKeyword, body)) {
       sb.append(' ');
       _appendEmptyBraces(sb, exitPosition == null);
     }
@@ -631,6 +651,17 @@ class StatementCompletionProcessor {
         // emptyInitializers
         exitPosition = _newPosition(forNode.rightParenthesis.offset);
         sb = new SourceBuilder(file, forNode.rightParenthesis.offset);
+      } else if (forNode.initialization is SimpleIdentifier &&
+          forNode.initialization.beginToken.lexeme == 'in') {
+        // looks like a for/each statement missing the loop variable
+        return _complete_forEachStatementRest(
+            forNode.forKeyword,
+            forNode.leftParenthesis,
+            null,
+            forNode.initialization.beginToken,
+            null,
+            forNode.rightParenthesis,
+            forNode.body);
       } else {
         int start = forNode.condition.offset + forNode.condition.length;
         String text =
@@ -765,7 +796,7 @@ class StatementCompletionProcessor {
     IfStatement ifNode = node;
     if (ifNode.elseKeyword != null) {
       if (selectionOffset >= ifNode.elseKeyword.end &&
-          ifNode.elseStatement is EmptyStatement) {
+          _isEmptyStatement(ifNode.elseStatement)) {
         SourceBuilder sb = new SourceBuilder(file, selectionOffset);
         String src = utils.getNodeText(ifNode);
         if (!src
@@ -1117,7 +1148,17 @@ class StatementCompletionProcessor {
   }
 
   bool _isEmptyStatement(AstNode stmt) {
-    return stmt is EmptyStatement || _isEmptyBlock(stmt);
+    if (stmt is ExpressionStatement) {
+      Expression expression = stmt.expression;
+      if (expression is SimpleIdentifier) {
+        return expression.token.isSynthetic;
+      }
+    }
+    return stmt is EmptyStatement;
+  }
+
+  bool _isEmptyStatementOrEmptyBlock(AstNode stmt) {
+    return _isEmptyStatement(stmt) || _isEmptyBlock(stmt);
   }
 
   bool _isNonStatementDeclaration(AstNode n) {

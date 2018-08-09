@@ -287,8 +287,6 @@ void KernelFingerprintHelper::CalculateFunctionTypeFingerprint(bool simple) {
     }
   }
 
-  CalculateListOfStringsFingerprint();  // read positional parameter names.
-
   if (!simple) {
     // TODO(bkonyi): include in hash.
     SkipCanonicalNameReference();  // read typedef reference.

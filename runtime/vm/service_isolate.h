@@ -29,6 +29,12 @@ class ServiceIsolate : public AllStatic {
   static Dart_Port WaitForLoadPort();
   static Dart_Port LoadPort();
 
+  // Returns `true` if the request was sucessfully sent.  If it was, the
+  // [reply_port] will receive a Dart_TypedData_kUint8 response json.
+  static bool SendServiceRpc(uint8_t* request_json,
+                             intptr_t request_json_length,
+                             Dart_Port reply_port);
+
   static void Run();
   static bool SendIsolateStartupMessage();
   static bool SendIsolateShutdownMessage();

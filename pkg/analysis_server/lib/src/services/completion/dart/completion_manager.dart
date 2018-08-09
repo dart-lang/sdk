@@ -230,7 +230,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     //TODO(danrubel) build the library element rather than all the declarations
     CompilationUnit unit = target.unit;
     if (unit != null) {
-      CompilationUnitElement elem = unit.element;
+      CompilationUnitElement elem = unit.declaredElement;
       if (elem != null) {
         return elem.library;
       }
@@ -303,7 +303,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     performance.logStartTime(BUILD_REQUEST_TAG);
 
     CompilationUnit unit = request.result.unit;
-    Source libSource = unit.element.library.source;
+    Source libSource = unit.declaredElement.library.source;
     InterfaceType objectType = request.result.typeProvider.objectType;
 
     DartCompletionRequestImpl dartRequest = new DartCompletionRequestImpl._(

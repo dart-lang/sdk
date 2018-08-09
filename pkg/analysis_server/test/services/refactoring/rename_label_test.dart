@@ -11,6 +11,7 @@ import 'abstract_rename.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameLabelTest);
+    defineReflectiveTests(RenameLabelTest_UseCFE);
   });
 }
 
@@ -80,4 +81,14 @@ test:
     // old name
     expect(refactoring.oldName, 'test');
   }
+}
+
+@reflectiveTest
+class RenameLabelTest_UseCFE extends RenameLabelTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_createChange() => super.test_createChange();
 }

@@ -12,6 +12,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(VariableNameContributorTest);
+    defineReflectiveTests(VariableNameContributorTest_UseCFE);
   });
 }
 
@@ -241,4 +242,10 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     expect(replacementLength, 0);
     assertSuggestName('a');
   }
+}
+
+@reflectiveTest
+class VariableNameContributorTest_UseCFE extends VariableNameContributorTest {
+  @override
+  bool get useCFE => true;
 }

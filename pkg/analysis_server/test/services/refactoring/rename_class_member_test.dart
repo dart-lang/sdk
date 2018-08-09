@@ -13,6 +13,7 @@ import 'abstract_rename.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameClassMemberTest);
+    defineReflectiveTests(RenameClassMemberTest_UseCFE);
   });
 }
 
@@ -916,4 +917,129 @@ class A<NewName> {
 }
 ''');
   }
+}
+
+@reflectiveTest
+class RenameClassMemberTest_UseCFE extends RenameClassMemberTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_checkFinalConditions_classNameConflict_subClass() =>
+      super.test_checkFinalConditions_classNameConflict_subClass();
+
+  @failingTest
+  @override
+  test_checkFinalConditions_classNameConflict_superClass() =>
+      super.test_checkFinalConditions_classNameConflict_superClass();
+
+  @failingTest
+  @override
+  test_checkFinalConditions_OK_dropSuffix() =>
+      super.test_checkFinalConditions_OK_dropSuffix();
+
+  @failingTest
+  @override
+  test_checkFinalConditions_OK_noShadow_nullVisibleRange() =>
+      super.test_checkFinalConditions_OK_noShadow_nullVisibleRange();
+
+  @failingTest
+  @override
+  test_checkFinalConditions_publicToPrivate_usedInOtherLibrary() =>
+      super.test_checkFinalConditions_publicToPrivate_usedInOtherLibrary();
+
+  @failingTest
+  @override
+  test_checkFinalConditions_shadowed_byLocalFunction_inSameClass() =>
+      super.test_checkFinalConditions_shadowed_byLocalFunction_inSameClass();
+
+  @failingTest
+  @override
+  test_checkFinalConditions_shadowed_byLocalVariable_inSameClass() =>
+      super.test_checkFinalConditions_shadowed_byLocalVariable_inSameClass();
+
+  @failingTest
+  @override
+  test_checkFinalConditions_shadowed_byLocalVariable_inSubClass() =>
+      super.test_checkFinalConditions_shadowed_byLocalVariable_inSubClass();
+
+  @failingTest
+  @override
+  test_checkFinalConditions_shadowed_byLocalVariable_OK_qualifiedReference() =>
+      super
+          .test_checkFinalConditions_shadowed_byLocalVariable_OK_qualifiedReference();
+
+  @failingTest
+  @override
+  test_checkFinalConditions_shadowed_byParameter_inSameClass() =>
+      super.test_checkFinalConditions_shadowed_byParameter_inSameClass();
+
+  @failingTest
+  @override
+  test_checkFinalConditions_shadowedBySub_MethodElement() =>
+      super.test_checkFinalConditions_shadowedBySub_MethodElement();
+
+  @failingTest
+  @override
+  test_checkFinalConditions_shadowsSuper_FieldElement() =>
+      super.test_checkFinalConditions_shadowsSuper_FieldElement();
+
+  @failingTest
+  @override
+  test_createChange_FieldElement() => super.test_createChange_FieldElement();
+
+  @failingTest
+  @override
+  test_createChange_FieldElement_constructorFieldInitializer() =>
+      super.test_createChange_FieldElement_constructorFieldInitializer();
+
+  @failingTest
+  @override
+  test_createChange_FieldElement_fieldFormalParameter() =>
+      super.test_createChange_FieldElement_fieldFormalParameter();
+
+  @failingTest
+  @override
+  test_createChange_FieldElement_fieldFormalParameter_named() =>
+      super.test_createChange_FieldElement_fieldFormalParameter_named();
+
+  @failingTest
+  @override
+  test_createChange_FieldElement_invocation() =>
+      super.test_createChange_FieldElement_invocation();
+
+  @failingTest
+  @override
+  test_createChange_MethodElement() => super.test_createChange_MethodElement();
+
+  @failingTest
+  @override
+  test_createChange_MethodElement_potential() =>
+      super.test_createChange_MethodElement_potential();
+
+  @failingTest
+  @override
+  test_createChange_MethodElement_potential_inPubCache() =>
+      super.test_createChange_MethodElement_potential_inPubCache();
+
+  @failingTest
+  @override
+  test_createChange_MethodElement_potential_private_otherLibrary() =>
+      super.test_createChange_MethodElement_potential_private_otherLibrary();
+
+  @failingTest
+  @override
+  test_createChange_PropertyAccessorElement_getter() =>
+      super.test_createChange_PropertyAccessorElement_getter();
+
+  @failingTest
+  @override
+  test_createChange_PropertyAccessorElement_setter() =>
+      super.test_createChange_PropertyAccessorElement_setter();
+
+  @failingTest
+  @override
+  test_createChange_TypeParameterElement() =>
+      super.test_createChange_TypeParameterElement();
 }

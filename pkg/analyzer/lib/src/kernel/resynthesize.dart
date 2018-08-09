@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
@@ -14,6 +15,7 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
+import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:front_end/src/base/resolve_relative_uri.dart';
@@ -30,7 +32,7 @@ import 'package:path/path.dart' as pathos;
  */
 class KernelResynthesizer implements ElementResynthesizer {
   final AnalysisContextImpl _analysisContext;
-  final kernel.TypeEnvironment _types;
+  final Map<String, LineInfo> _lineInfoMap;
   final Map<String, kernel.Library> _kernelMap;
   final Map<String, bool> _libraryExistMap;
   final Map<String, LibraryElementImpl> _libraryMap = {};
@@ -43,7 +45,7 @@ class KernelResynthesizer implements ElementResynthesizer {
   /// The type provider for this resynthesizer.
   SummaryTypeProvider _typeProvider;
 
-  KernelResynthesizer(this._analysisContext, this._types, this._kernelMap,
+  KernelResynthesizer(this._analysisContext, this._lineInfoMap, this._kernelMap,
       this._libraryExistMap) {
     _buildTypeProvider();
     _analysisContext.typeProvider = _typeProvider;
@@ -53,9 +55,9 @@ class KernelResynthesizer implements ElementResynthesizer {
   AnalysisContext get context => _analysisContext;
 
   /**
-   * Return `true` if strong mode analysis should be used.
+   * TODO(brianwilkerson) Remove this getter.
    */
-  bool get strongMode => _analysisContext.analysisOptions.strongMode;
+  bool get strongMode => true;
 
   /**
    * Return the `Type` type.
@@ -201,14 +203,18 @@ class KernelResynthesizer implements ElementResynthesizer {
 
       // Build the defining unit.
       var definingUnit = libraryContext._buildUnit(null).unit;
+      definingUnit.lineInfo = _lineInfoMap[uriStr];
       libraryElement.definingCompilationUnit = definingUnit;
 
       // Build units for parts.
       var parts = new List<CompilationUnitElementImpl>(kernel.parts.length);
       for (int i = 0; i < kernel.parts.length; i++) {
-        var fileUri = kernel.fileUri.resolve(kernel.parts[i].partUri);
-        var unitContext = libraryContext._buildUnit("$fileUri");
-        parts[i] = unitContext.unit;
+        var fileUriStr =
+            kernel.fileUri.resolve(kernel.parts[i].partUri).toString();
+        var unitContext = libraryContext._buildUnit(fileUriStr);
+        var partUnit = unitContext.unit;
+        partUnit.lineInfo = _lineInfoMap[fileUriStr];
+        parts[i] = partUnit;
       }
       libraryElement.parts = parts;
 
@@ -221,9 +227,7 @@ class KernelResynthesizer implements ElementResynthesizer {
     });
   }
 
-  DartType getType(ElementImpl context, kernel.DartType kernelType,
-      {TypeParameterElement Function(kernel.TypeParameter)
-          getLocalTypeParameter}) {
+  DartType getType(ElementImpl context, kernel.DartType kernelType) {
     if (kernelType is kernel.DynamicType) return DynamicTypeImpl.instance;
     if (kernelType is kernel.InvalidType) return UndefinedTypeImpl.instance;
     if (kernelType is kernel.BottomType) return BottomTypeImpl.instance;
@@ -236,20 +240,16 @@ class KernelResynthesizer implements ElementResynthesizer {
           name.parent.name == 'dart:async') {
         return DynamicTypeImpl.instance;
       }
-      return _getInterfaceType(context, name, kernelType.typeArguments,
-          getLocalTypeParameter: getLocalTypeParameter);
+      return _getInterfaceType(context, name, kernelType.typeArguments);
     }
 
     if (kernelType is kernel.TypeParameterType) {
       kernel.TypeParameter kTypeParameter = kernelType.parameter;
-      return getTypeParameter(context, kTypeParameter,
-              getLocalTypeParameter: getLocalTypeParameter)
-          .type;
+      return getTypeParameter(context, kTypeParameter).type;
     }
 
     if (kernelType is kernel.FunctionType) {
-      return _getFunctionType(context, kernelType,
-          getLocalTypeParameter: getLocalTypeParameter);
+      return _getFunctionType(context, kernelType);
     }
 
     // TODO(scheglov) Support other kernel types.
@@ -258,13 +258,7 @@ class KernelResynthesizer implements ElementResynthesizer {
 
   /// Return the [TypeParameterElement] for the given [kernelTypeParameter].
   TypeParameterElement getTypeParameter(
-      ElementImpl context, kernel.TypeParameter kernelTypeParameter,
-      {TypeParameterElement Function(kernel.TypeParameter)
-          getLocalTypeParameter}) {
-    if (getLocalTypeParameter != null) {
-      var translatedElement = getLocalTypeParameter(kernelTypeParameter);
-      if (translatedElement != null) return translatedElement;
-    }
+      ElementImpl context, kernel.TypeParameter kernelTypeParameter) {
     String name = kernelTypeParameter.name;
     for (var ctx = context; ctx != null; ctx = ctx.enclosingElement) {
       if (ctx is TypeParameterizedElementMixin) {
@@ -291,12 +285,9 @@ class KernelResynthesizer implements ElementResynthesizer {
 
   /// Return the [FunctionType] that corresponds to the given [kernelType].
   FunctionType _getFunctionType(
-      ElementImpl context, kernel.FunctionType kernelType,
-      {TypeParameterElement Function(kernel.TypeParameter)
-          getLocalTypeParameter}) {
+      ElementImpl context, kernel.FunctionType kernelType) {
     if (kernelType.typedef != null) {
-      var translatedType = _getTypedefType(context, kernelType,
-          getLocalTypeParameter: getLocalTypeParameter);
+      var translatedType = _getTypedefType(context, kernelType);
       if (translatedType != null) return translatedType;
     }
 
@@ -326,16 +317,13 @@ class KernelResynthesizer implements ElementResynthesizer {
         namedParameters);
     element.parameters = astParameters;
 
-    element.returnType = getType(element, kernelType.returnType,
-        getLocalTypeParameter: getLocalTypeParameter);
+    element.returnType = getType(element, kernelType.returnType);
 
     return new FunctionTypeImpl(element);
   }
 
   InterfaceType _getInterfaceType(ElementImpl context,
-      kernel.CanonicalName className, List<kernel.DartType> kernelArguments,
-      {TypeParameterElement Function(kernel.TypeParameter)
-          getLocalTypeParameter}) {
+      kernel.CanonicalName className, List<kernel.DartType> kernelArguments) {
     var libraryName = className.parent;
     var libraryElement = getLibrary(libraryName.name);
     ClassElement classElement = libraryElement.getType(className.name);
@@ -348,8 +336,7 @@ class KernelResynthesizer implements ElementResynthesizer {
     return new InterfaceTypeImpl.elementWithNameAndArgs(
         classElement, classElement.name, () {
       List<DartType> arguments = kernelArguments
-          .map((kernel.DartType k) =>
-              getType(context, k, getLocalTypeParameter: getLocalTypeParameter))
+          .map((kernel.DartType k) => getType(context, k))
           .toList(growable: false);
       return arguments;
     });
@@ -365,9 +352,7 @@ class KernelResynthesizer implements ElementResynthesizer {
 
   /// Return the [FunctionType] for the given typedef based [kernelType].
   FunctionType _getTypedefType(
-      ElementImpl context, kernel.FunctionType kernelType,
-      {TypeParameterElement Function(kernel.TypeParameter)
-          getLocalTypeParameter}) {
+      ElementImpl context, kernel.FunctionType kernelType) {
     kernel.Typedef typedef = kernelType.typedef;
 
     GenericTypeAliasElementImpl typedefElement =
@@ -397,8 +382,7 @@ class KernelResynthesizer implements ElementResynthesizer {
     // Convert kernel type arguments into Analyzer types.
     var typeArguments = typedef.typeParameters
         .map((t) => substitution.containsKey(t)
-            ? getType(context, substitution[t],
-                getLocalTypeParameter: getLocalTypeParameter)
+            ? getType(context, substitution[t])
             : _typeProvider.nullType)
         .toList();
     return typedefElement.instantiate(typeArguments);
@@ -429,9 +413,14 @@ class KernelResynthesizer implements ElementResynthesizer {
     int positionalCount = type.positionalParameters.length;
     var positionalParameters =
         new List<kernel.VariableDeclaration>(positionalCount);
+    var knownPositionalParameters = const <kernel.VariableDeclaration>[];
+    if (type.typedefReference != null) {
+      knownPositionalParameters =
+          type.typedefReference.asTypedef.positionalParameters;
+    }
     for (int i = 0; i < positionalCount; i++) {
-      String name = i < type.positionalParameterNames.length
-          ? type.positionalParameterNames[i]
+      String name = i < knownPositionalParameters.length
+          ? (knownPositionalParameters[i].name ?? '')
           : 'arg_$i';
       positionalParameters[i] = new kernel.VariableDeclaration(name,
           type: type.positionalParameters[i]);
@@ -453,6 +442,9 @@ class _ExprBuilder {
   final ElementImpl _contextElement;
 
   _ExprBuilder(this._context, this._contextElement);
+
+  TypeProvider get typeProvider =>
+      _context.libraryContext.resynthesizer._typeProvider;
 
   Expression build(kernel.Expression expr) {
     if (_hasInvalidExpression(expr)) {
@@ -512,7 +504,9 @@ class _ExprBuilder {
       return invocation;
     }
 
-    if (k is kernel.ShadowInvalidInitializer) {
+    if (k is kernel.ShadowInvalidFieldInitializer ||
+        k is kernel.ShadowInvalidInitializer ||
+        k is kernel.InvalidSuperInitializerJudgment) {
       return null;
     }
 
@@ -551,15 +545,17 @@ class _ExprBuilder {
 
     if (expr is kernel.ListLiteral) {
       Keyword keyword = expr.isConst ? Keyword.CONST : null;
-      var typeArguments = _buildTypeArgumentList([expr.typeArgument]);
+      var typeArguments = _getTypes([expr.typeArgument]);
+      var typeArgumentNodes = _buildTypeArgumentList(typeArguments);
       var elements = expr.expressions.map(_build).toList();
-      return AstTestFactory.listLiteral2(keyword, typeArguments, elements);
+      return AstTestFactory.listLiteral2(keyword, typeArgumentNodes, elements)
+        ..staticType = typeProvider.listType.instantiate(typeArguments);
     }
 
     if (expr is kernel.MapLiteral) {
       Keyword keyword = expr.isConst ? Keyword.CONST : null;
-      var typeArguments =
-          _buildTypeArgumentList([expr.keyType, expr.valueType]);
+      var typeArguments = _getTypes([expr.keyType, expr.valueType]);
+      var typeArgumentNodes = _buildTypeArgumentList(typeArguments);
 
       int numberOfEntries = expr.entries.length;
       var entries = new List<MapLiteralEntry>(numberOfEntries);
@@ -570,7 +566,7 @@ class _ExprBuilder {
         entries[i] = AstTestFactory.mapLiteralEntry2(key, value);
       }
 
-      return AstTestFactory.mapLiteral(keyword, typeArguments, entries);
+      return AstTestFactory.mapLiteral(keyword, typeArgumentNodes, entries);
     }
 
     if (expr is kernel.StaticGet) {
@@ -676,11 +672,12 @@ class _ExprBuilder {
     }
 
     if (expr is kernel.ConstructorInvocation) {
-      var element = _getElement(expr.targetReference);
+      ConstructorElementImpl element = _getElement(expr.targetReference);
 
-      var kernelType =
-          expr.getStaticType(_context.libraryContext.resynthesizer._types);
-      var type = _context.getType(_contextElement, kernelType);
+      // It's safe to pass null for the TypeEnvironment because it isn't
+      // needed to compute the type of a constructor invocation.
+      var kernelType = expr.getStaticType(null);
+      var type = _getType(kernelType);
       TypeName typeName = _buildType(type);
 
       var constructorName = AstTestFactory.constructorName(
@@ -689,8 +686,15 @@ class _ExprBuilder {
 
       var keyword = expr.isConst ? Keyword.CONST : Keyword.NEW;
       var arguments = _toArguments(expr.arguments);
-      return AstTestFactory.instanceCreationExpression(
+      var creation = AstTestFactory.instanceCreationExpression(
           keyword, constructorName, arguments);
+      creation.staticElement = ConstructorMember.from(element, type);
+      creation.staticType = type;
+      return creation;
+    }
+
+    if (expr is kernel.Instantiation) {
+      return _build(expr.expression);
     }
 
     if (expr is kernel.TypeLiteral) {
@@ -699,7 +703,7 @@ class _ExprBuilder {
       if (kernelType is kernel.FunctionType) {
         element = _getElement(kernelType.typedefReference);
       } else {
-        var type = _context.getType(_contextElement, kernelType);
+        var type = _getType(kernelType);
         element = type.element;
       }
       var identifier = AstTestFactory.identifier3(element.name);
@@ -749,15 +753,15 @@ class _ExprBuilder {
     return node;
   }
 
-  TypeArgumentList _buildTypeArgumentList(List<kernel.DartType> kernels) {
-    int length = kernels.length;
-    var types = new List<TypeAnnotation>(length);
+  TypeArgumentList _buildTypeArgumentList(List<DartType> types) {
+    int length = types.length;
+    var typeAnnotations = new List<TypeAnnotation>(length);
     for (int i = 0; i < length; i++) {
-      DartType type = _context.getType(_contextElement, kernels[i]);
+      DartType type = types[i];
       TypeAnnotation typeAnnotation = _buildType(type);
-      types[i] = typeAnnotation;
+      typeAnnotations[i] = typeAnnotation;
     }
-    return AstTestFactory.typeArgumentList(types);
+    return AstTestFactory.typeArgumentList(typeAnnotations);
   }
 
   List<TypeAnnotation> _buildTypeArguments(List<DartType> types) {
@@ -768,6 +772,20 @@ class _ExprBuilder {
   ElementImpl _getElement(kernel.Reference reference) {
     return _context.libraryContext.resynthesizer
         .getElementFromCanonicalName(reference?.canonicalName);
+  }
+
+  DartType _getType(kernel.DartType kernel) {
+    return _context.getType(_contextElement, kernel);
+  }
+
+  List<DartType> _getTypes(List<kernel.DartType> kernels) {
+    int length = kernels.length;
+    var types = new List<DartType>(length);
+    for (int i = 0; i < length; i++) {
+      DartType type = _getType(kernels[i]);
+      types[i] = type;
+    }
+    return types;
   }
 
   InterpolationElement _newInterpolationElement(Expression expr) {

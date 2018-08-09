@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.summary.summarize_ast_test;
-
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -23,89 +21,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'summary_common.dart';
 
-main() {
-  defineReflectiveSuite(() {
-    defineReflectiveTests(LinkedSummarizeAstSpecTest);
-  });
-}
-
-@reflectiveTest
-class LinkedSummarizeAstSpecTest extends LinkedSummarizeAstTest {
-  @override
-  bool get strongMode => false;
-
-  @override
-  @failingTest
-  test_bottom_reference_shared() {
-    super.test_bottom_reference_shared();
-  }
-
-  @override
-  @failingTest
-  test_closure_executable_with_bottom_return_type() {
-    super.test_closure_executable_with_bottom_return_type();
-  }
-
-  @override
-  @failingTest
-  test_closure_executable_with_imported_return_type() {
-    super.test_closure_executable_with_imported_return_type();
-  }
-
-  @override
-  @failingTest
-  test_closure_executable_with_return_type_from_closure() {
-    super.test_closure_executable_with_return_type_from_closure();
-  }
-
-  @override
-  @failingTest
-  test_closure_executable_with_unimported_return_type() {
-    super.test_closure_executable_with_unimported_return_type();
-  }
-
-  @override
-  @failingTest
-  test_implicit_dependencies_follow_other_dependencies() {
-    super.test_implicit_dependencies_follow_other_dependencies();
-  }
-
-  @override
-  @failingTest
-  test_initializer_executable_with_bottom_return_type() {
-    super.test_initializer_executable_with_bottom_return_type();
-  }
-
-  @override
-  @failingTest
-  test_initializer_executable_with_imported_return_type() {
-    super.test_initializer_executable_with_imported_return_type();
-  }
-
-  @override
-  @failingTest
-  test_initializer_executable_with_return_type_from_closure() {
-    super.test_initializer_executable_with_return_type_from_closure();
-  }
-
-  @override
-  @failingTest
-  test_initializer_executable_with_return_type_from_closure_field() {
-    super.test_initializer_executable_with_return_type_from_closure_field();
-  }
-
-  @override
-  @failingTest
-  test_initializer_executable_with_unimported_return_type() {
-    super.test_initializer_executable_with_unimported_return_type();
-  }
-
-  @override
-  @failingTest
-  test_syntheticFunctionType_inGenericClass() {
-    super.test_syntheticFunctionType_inGenericClass();
-  }
-}
+main() {}
 
 /**
  * Override of [SummaryTest] which creates linked summaries directly from the
@@ -137,7 +53,7 @@ abstract class LinkedSummarizeAstTest extends SummaryLinkerTest
         linkerInputs.getDependency,
         linkerInputs.getUnit,
         (name) => null,
-        strongMode)[linkerInputs.testDartUri.toString()];
+        true)[linkerInputs.testDartUri.toString()];
     expect(linked, isNotNull);
     validateLinkedLibrary(linked);
     unlinkedUnits = <UnlinkedUnit>[linkerInputs.unlinkedDefiningUnit];

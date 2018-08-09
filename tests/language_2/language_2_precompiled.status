@@ -68,7 +68,6 @@ async_star_cancel_while_paused_test: RuntimeError
 async_star_pause_test: Fail, OK
 async_star_regression_2238_test: CompileTimeError, RuntimeError
 async_star_test/01: CompileTimeError # Issue 2238.
-async_star_test/02: RuntimeError
 bad_named_parameters2_test/01: MissingCompileTimeError
 bad_named_parameters_test/01: MissingCompileTimeError
 bad_named_parameters_test/02: MissingCompileTimeError
@@ -1041,7 +1040,7 @@ vm/regress_29145_test: Skip # Issue 29145
 vm/type_cast_vm_test: RuntimeError # Expects line and column numbers
 vm/type_vm_test: RuntimeError, Pass # Expects line and column numbers
 vm/type_vm_test: RuntimeError # Expects line and column numbers
-void_block_return_test/00: MissingCompileTimeError
+void/void_block_return_test/00: MissingCompileTimeError
 wrong_number_type_arguments_test/*: MissingCompileTimeError
 
 [ $compiler == precompiler && $runtime == dart_precompiled && $checked ]

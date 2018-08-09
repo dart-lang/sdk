@@ -15,6 +15,7 @@ import '../analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNotificationOverridesTest);
+    defineReflectiveTests(AnalysisNotificationOverridesTest_UseCFE);
   });
 }
 
@@ -596,7 +597,7 @@ class B extends A {
     assertNoInterfaceMembers();
   }
 
-  test_super_method_superTypeCycle() async {
+  Future<void> test_super_method_superTypeCycle() async {
     addTestFile('''
 class A extends B {
   m() {} // in A
@@ -622,5 +623,19 @@ class B extends A {
     assertHasOverride('fff(x) {} // in B');
     assertHasSuperElement('fff(x) {} // in A');
     assertNoInterfaceMembers();
+  }
+}
+
+@reflectiveTest
+class AnalysisNotificationOverridesTest_UseCFE
+    extends AnalysisNotificationOverridesTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_super_method_superTypeCycle() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_super_method_superTypeCycle);
   }
 }

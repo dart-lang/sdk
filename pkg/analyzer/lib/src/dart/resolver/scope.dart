@@ -49,10 +49,10 @@ class BlockScope extends EnclosedScope {
         NodeList<VariableDeclaration> variables = statement.variables.variables;
         int variableCount = variables.length;
         for (int j = 0; j < variableCount; j++) {
-          yield variables[j].element;
+          yield variables[j].declaredElement;
         }
       } else if (statement is FunctionDeclarationStatement) {
-        yield statement.functionDeclaration.element;
+        yield statement.functionDeclaration.declaredElement;
       }
     }
   }
@@ -1070,7 +1070,7 @@ abstract class Scope {
     CompilationUnit unit =
         identifier.getAncestor((node) => node is CompilationUnit);
     if (unit != null) {
-      CompilationUnitElement unitElement = unit.element;
+      CompilationUnitElement unitElement = unit.declaredElement;
       if (unitElement != null) {
         return unitElement.source;
       }

@@ -26,9 +26,11 @@ import 'messages.dart'
 
 import 'problems.dart' show internalProblem;
 
-import 'rewrite_severity.dart' show rewriteSeverity;
+import 'rewrite_severity.dart' as rewrite_severity;
 
 import 'severity.dart' show Severity;
+
+import 'source/outline_listener.dart';
 
 import 'target_implementation.dart' show TargetImplementation;
 
@@ -179,6 +181,8 @@ abstract class Loader<L> {
     logSummary(outlineSummaryTemplate);
   }
 
+  OutlineListener createOutlineListener(Uri fileUri) => null;
+
   void logSummary(Template<SummaryTemplate> template) {
     ticker.log((Duration elapsed, Duration sinceStart) {
       int libraryCount = 0;
@@ -239,7 +243,7 @@ abstract class Loader<L> {
   bool addMessage(Message message, int charOffset, int length, Uri fileUri,
       Severity severity,
       {bool wasHandled: false, List<LocatedMessage> context}) {
-    severity = rewriteSeverity(severity, message.code, fileUri);
+    severity = rewriteSeverity(severity, message, fileUri);
     if (severity == Severity.ignored) return false;
     String trace = """
 message: ${message.message}
@@ -265,6 +269,10 @@ severity: $severity
           .add(message.withLocation(fileUri, charOffset, length));
     }
     return true;
+  }
+
+  Severity rewriteSeverity(Severity severity, Message message, Uri fileUri) {
+    return rewrite_severity.rewriteSeverity(severity, message.code, fileUri);
   }
 
   Declaration getAbstractClassInstantiationError() {

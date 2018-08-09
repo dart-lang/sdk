@@ -23,7 +23,10 @@ class PositionSourceInformation extends SourceInformation {
   @override
   final SourceLocation innerPosition;
 
-  PositionSourceInformation(this.startPosition, [this.innerPosition]);
+  final List<FrameContext> inliningContext;
+
+  PositionSourceInformation(
+      this.startPosition, this.innerPosition, this.inliningContext);
 
   @override
   List<SourceLocation> get sourceLocations {
@@ -275,14 +278,17 @@ class PositionSourceInformationProcessor extends SourceInformationProcessor {
   final SourceInformationReader reader;
   CodePositionMap codePositionMap;
   List<TraceListener> traceListeners;
+  InliningTraceListener inliningListener;
 
   PositionSourceInformationProcessor(SourceMapperProvider provider, this.reader,
       [Coverage coverage]) {
     codePositionMap = coverage != null
         ? new CodePositionCoverage(codePositionRecorder, coverage)
         : codePositionRecorder;
+    var sourceMapper = provider.createSourceMapper(id);
     traceListeners = [
-      new PositionTraceListener(provider.createSourceMapper(id), reader)
+      new PositionTraceListener(sourceMapper, reader),
+      inliningListener = new InliningTraceListener(sourceMapper, reader),
     ];
     if (coverage != null) {
       traceListeners.add(new CoverageListener(coverage, reader));
@@ -291,6 +297,7 @@ class PositionSourceInformationProcessor extends SourceInformationProcessor {
 
   void process(js.Node node, BufferedCodeOutput code) {
     new JavaScriptTracer(codePositionMap, reader, traceListeners).apply(node);
+    inliningListener?.finish();
   }
 
   @override
@@ -365,6 +372,86 @@ abstract class NodeToSourceInformationMixin {
 
   SourceInformation computeSourceInformation(js.Node node) {
     return new NodeSourceInformation(reader).visit(node);
+  }
+}
+
+/// [TraceListener] that register inlining context-data with a [SourceMapper].
+class InliningTraceListener extends TraceListener
+    with NodeToSourceInformationMixin {
+  final SourceMapper sourceMapper;
+  final SourceInformationReader reader;
+  final Map<int, List<FrameContext>> _frames = {};
+
+  InliningTraceListener(this.sourceMapper, this.reader);
+
+  @override
+  void onStep(js.Node node, Offset offset, StepKind kind) {
+    SourceInformation sourceInformation = computeSourceInformation(node);
+    if (sourceInformation == null) return;
+    // TODO(sigmund): enable this assertion.
+    // assert(offset.value != null, "Expected a valid offset: $node $offset");
+    if (offset.value == null) return;
+
+    // TODO(sigmund): enable this assertion
+    //assert(_frames[offset.value] == null,
+    //     "Expect a single entry per offset: $offset $node");
+    if (_frames[offset.value] != null) return;
+
+    // During tracing we only collect information per offset because the tracer
+    // visits nodes in tree order. We'll later sort the data by offset before
+    // registering the frame data with [SourceMapper].
+    if (kind == StepKind.FUN_EXIT) {
+      _frames[offset.value] = null;
+    } else {
+      _frames[offset.value] = sourceInformation.inliningContext;
+    }
+  }
+
+  /// Converts the inlining context data collected during tracing into push/pop
+  /// stack operations that will be emitted with the source-map files.
+  void finish() {
+    List<FrameContext> lastInliningContext;
+    for (var offset in _frames.keys.toList()..sort()) {
+      var newInliningContext = _frames[offset];
+
+      // Note: this relies on the invariant that, when we built the inlining
+      // context lists during SSA, we kept lists identical whenever there were
+      // no inlining changes.
+      if (lastInliningContext == newInliningContext) continue;
+
+      bool isEmpty = false;
+      int popCount = 0;
+      List<FrameContext> pushes = const [];
+      if (newInliningContext == null) {
+        popCount = lastInliningContext.length;
+        isEmpty = true;
+      } else if (lastInliningContext == null) {
+        pushes = newInliningContext;
+      } else {
+        int min = newInliningContext.length;
+        if (min > lastInliningContext.length) min = lastInliningContext.length;
+        // Determine the total number of common frames, to produce the minimal
+        // set of pop and push operations.
+        int i = 0;
+        for (i = 0; i < min; i++) {
+          if (!identical(newInliningContext[i], lastInliningContext[i])) break;
+        }
+        isEmpty = i == 0;
+        popCount = lastInliningContext.length - i;
+        if (i < newInliningContext.length) {
+          pushes = newInliningContext.sublist(i);
+        }
+      }
+      lastInliningContext = newInliningContext;
+
+      while (popCount-- > 0) {
+        sourceMapper.registerPop(offset, isEmpty: popCount == 0 && isEmpty);
+      }
+      for (FrameContext push in pushes) {
+        sourceMapper.registerPush(offset,
+            getSourceLocation(push.callInformation), push.inlinedMethodName);
+      }
+    }
   }
 }
 
@@ -907,7 +994,10 @@ class JavaScriptTracer extends js.BaseVisitor {
   @override
   visitNew(js.New node) {
     visit(node.target);
+    int oldPosition = offsetPosition;
+    offsetPosition = null;
     visitList(node.arguments);
+    offsetPosition = oldPosition;
     if (offsetPosition == null) {
       // Use the syntax offset if this is not the first subexpression.
       offsetPosition = getSyntaxOffset(node);

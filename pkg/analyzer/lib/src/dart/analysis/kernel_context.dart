@@ -90,6 +90,7 @@ class KernelContext {
       // Remember Kernel libraries produced by the compiler.
       // There might be more libraries than we actually need.
       // This is probably OK, because we consume them lazily.
+      var lineInfoMap = <String, LineInfo>{};
       var libraryMap = <String, kernel.Library>{};
       var libraryExistMap = <String, bool>{};
       bool coreFound = false;
@@ -98,8 +99,9 @@ class KernelContext {
         if (uriStr == 'dart:core') {
           coreFound = true;
         }
-        libraryMap[uriStr] = library;
         FileState file = fsState.getFileForUri(library.importUri);
+        lineInfoMap[uriStr] = file?.lineInfo ?? new LineInfo([0]);
+        libraryMap[uriStr] = library;
         libraryExistMap[uriStr] = file?.exists ?? false;
       }
       if (!coreFound) {
@@ -123,8 +125,8 @@ class KernelContext {
       analysisContext.contentCache = new _ContentCacheWrapper(fsState);
 
       // Create the resynthesizer bound to the analysis context.
-      var resynthesizer = new KernelResynthesizer(analysisContext,
-          compilationResult.types, libraryMap, libraryExistMap);
+      var resynthesizer = new KernelResynthesizer(
+          analysisContext, lineInfoMap, libraryMap, libraryExistMap);
 
       return new KernelContext._(analysisContext, resynthesizer);
     });

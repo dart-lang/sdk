@@ -387,6 +387,9 @@ class PageSpace {
   void FreeLargePage(HeapPage* page, HeapPage* previous_page);
   void FreePages(HeapPage* pages);
 
+  void CollectGarbageAtSafepoint(bool compact,
+                                 int64_t pre_wait_for_sweepers,
+                                 int64_t pre_safe_point);
   void BlockingSweep();
   void ConcurrentSweep(Isolate* isolate);
   void Compact(Thread* thread);

@@ -32,7 +32,7 @@ class CommandArtifact {
 }
 
 abstract class CompilerConfiguration {
-  final Configuration _configuration;
+  final TestConfiguration _configuration;
 
   bool get _isDebug => _configuration.mode.isDebug;
   bool get _isChecked => _configuration.isChecked;
@@ -46,7 +46,7 @@ abstract class CompilerConfiguration {
   /// expects a compile-time error and the compiler did not emit one.
   bool get runRuntimeDespiteMissingCompileTimeError => false;
 
-  factory CompilerConfiguration(Configuration configuration) {
+  factory CompilerConfiguration(TestConfiguration configuration) {
     switch (configuration.compiler) {
       case Compiler.dart2analyzer:
         return new AnalyzerCompilerConfiguration(configuration);
@@ -58,7 +58,7 @@ abstract class CompilerConfiguration {
         return new DevCompilerConfiguration(configuration);
 
       case Compiler.dartdevk:
-        return new DevKernelCompilerConfiguration(configuration);
+        return new DevCompilerConfiguration(configuration, useKernel: true);
 
       case Compiler.appJit:
         return new AppJitCompilerConfiguration(configuration,
@@ -78,6 +78,9 @@ abstract class CompilerConfiguration {
           return new VMKernelCompilerConfiguration(configuration);
         }
         return new NoneCompilerConfiguration(configuration);
+
+      case Compiler.dartkb:
+        return new VMKernelCompilerConfiguration(configuration);
 
       case Compiler.dartkp:
         return new PrecompilerCompilerConfiguration(configuration);
@@ -152,7 +155,7 @@ abstract class CompilerConfiguration {
 
 /// The "none" compiler.
 class NoneCompilerConfiguration extends CompilerConfiguration {
-  NoneCompilerConfiguration(Configuration configuration)
+  NoneCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
   bool get hasCompiler => false;
@@ -198,7 +201,7 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
 
 class VMKernelCompilerConfiguration extends CompilerConfiguration
     with VMKernelCompilerMixin {
-  VMKernelCompilerConfiguration(Configuration configuration)
+  VMKernelCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
   bool get _isAot => false;
@@ -298,7 +301,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
   final List<PipelineCommand> pipelineCommands;
 
   ComposedCompilerConfiguration(
-      Configuration configuration, this.pipelineCommands)
+      TestConfiguration configuration, this.pipelineCommands)
       : super._subclass(configuration);
 
   CommandArtifact computeCompilationArtifact(String tempDir,
@@ -359,7 +362,7 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
   final String moniker;
   static Map<String, List<Uri>> _bootstrapDependenciesCache = {};
 
-  Dart2xCompilerConfiguration(this.moniker, Configuration configuration)
+  Dart2xCompilerConfiguration(this.moniker, TestConfiguration configuration)
       : super._subclass(configuration);
 
   String computeCompilerPath() {
@@ -410,7 +413,7 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
 
 /// Configuration for dart2js.
 class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
-  Dart2jsCompilerConfiguration(Configuration configuration)
+  Dart2jsCompilerConfiguration(TestConfiguration configuration)
       : super('dart2js', configuration);
 
   int get timeoutMultiplier {
@@ -459,14 +462,19 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
   }
 }
 
-/// Configuration for dev-compiler.
+/// Configuration for `dartdevc` and `dartdevk`
 class DevCompilerConfiguration extends CompilerConfiguration {
-  DevCompilerConfiguration(Configuration configuration)
+  final bool useKernel;
+
+  DevCompilerConfiguration(TestConfiguration configuration,
+      {this.useKernel: false})
       : super._subclass(configuration);
+
+  String get compilerName => useKernel ? 'dartdevk' : 'dartdevc';
 
   String computeCompilerPath() {
     var dir = _useSdk ? "${_configuration.buildDirectory}/dart-sdk" : "sdk";
-    return "$dir/bin/dartdevc$executableScriptSuffix";
+    return "$dir/bin/$compilerName$executableScriptSuffix";
   }
 
   List<String> computeCompilerArguments(
@@ -484,11 +492,9 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
   Command createCommand(String inputFile, String outputFile,
       List<String> sharedOptions, Map<String, String> environment) {
-    var moduleRoot =
-        new Path(outputFile).directoryPath.directoryPath.toNativePath();
-
+    var sdkSummaryFile = useKernel ? 'kernel/ddc_sdk.dill' : 'ddc_sdk.sum';
     var sdkSummary = new Path(_configuration.buildDirectory)
-        .append("/gen/utils/dartdevc/ddc_sdk.sum")
+        .append("/gen/utils/dartdevc/$sdkSummaryFile")
         .absolute
         .toNativePath();
 
@@ -501,17 +507,19 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     // of computing `--dart-sdk` and passing it to DDC. For simplicitly that
     // script should be passing `--dart-sdk-summary`, that way DDC doesn't need
     // two options for the same thing.
-    var args = _useSdk
+    var args = _useSdk && !useKernel
         ? ["--dart-sdk", "${_configuration.buildDirectory}/dart-sdk"]
         : ["--dart-sdk-summary", sdkSummary];
 
     args.addAll(sharedOptions);
+    if (!useKernel) {
+      // TODO(jmesserly): library-root needs to be removed.
+      args.addAll(
+          ["--library-root", new Path(inputFile).directoryPath.toNativePath()]);
+    }
+
     args.addAll([
       "--ignore-unrecognized-flags",
-      "--library-root",
-      new Path(inputFile).directoryPath.toNativePath(),
-      "--module-root",
-      moduleRoot,
       "--no-summarize",
       "--no-source-map",
       "-o",
@@ -521,108 +529,25 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
     // Link to the summaries for the available packages, so that they don't
     // get recompiled into the test's own module.
+    var pkgDir = useKernel ? 'pkg_kernel' : 'pkg';
+    var pkgExtension = useKernel ? 'dill' : 'sum';
     for (var package in testPackages) {
       args.add("-s");
 
       // Since the summaries for the packages are not near the tests, we give
       // dartdevc explicit module paths for each one. When the test is run, we
       // will tell require.js where to find each package's compiled JS.
-      var summary = _configuration.buildDirectory +
-          "/gen/utils/dartdevc/pkg/$package.sum";
+      var summary = new Path(_configuration.buildDirectory)
+          .append("/gen/utils/dartdevc/$pkgDir/$package.$pkgExtension")
+          .absolute
+          .toNativePath();
       args.add("$summary=$package");
     }
 
-    return Command.compilation(Compiler.dartdevc.name, outputFile,
-        bootstrapDependencies(), computeCompilerPath(), args, environment);
-  }
-
-  CommandArtifact computeCompilationArtifact(
-      String tempDir, List<String> arguments, Map<String, String> environment) {
-    // The list of arguments comes from a call to our own
-    // computeCompilerArguments(). It contains the shared options followed by
-    // the input file path.
-    // TODO(rnystrom): Jamming these into a list in order to pipe them from
-    // computeCompilerArguments() to here seems hacky. Is there a cleaner way?
-    var sharedOptions = arguments.sublist(0, arguments.length - 1);
-    var inputFile = arguments.last;
-    var inputFilename = (new Uri.file(inputFile)).pathSegments.last;
-    var outputFile = "$tempDir/${inputFilename.replaceAll('.dart', '.js')}";
-
-    return new CommandArtifact(
-        [createCommand(inputFile, outputFile, sharedOptions, environment)],
-        outputFile,
-        "application/javascript");
-  }
-}
-
-/// Configuration for dev-compiler with the kernel front end.
-class DevKernelCompilerConfiguration extends CompilerConfiguration {
-  DevKernelCompilerConfiguration(Configuration configuration)
-      : super._subclass(configuration);
-
-  String computeCompilerPath() {
-    var dir = _useSdk ? "${_configuration.buildDirectory}/dart-sdk" : "sdk";
-    return "$dir/bin/dartdevk$executableScriptSuffix";
-  }
-
-  List<String> computeCompilerArguments(
-      List<String> vmOptions,
-      List<String> sharedOptions,
-      List<String> dart2jsOptions,
-      List<String> ddcOptions,
-      List<String> args) {
-    var result = sharedOptions.toList()..addAll(ddcOptions);
-
-    // The file being compiled is the last argument.
-    result.add(args.last);
-    return result;
-  }
-
-  Command createCommand(String inputFile, String outputFile,
-      List<String> sharedOptions, Map<String, String> environment) {
-    var args = sharedOptions.toList();
-
-    var sdkSummary = new Path(_configuration.buildDirectory)
-        .append("/gen/utils/dartdevc/kernel/ddc_sdk.dill")
-        .absolute
-        .toNativePath();
-
-    var summaryInputDir = new Path(_configuration.buildDirectory)
-        .append("/gen/utils/dartdevc/pkg_kernel")
-        .absolute
-        .toNativePath();
-
-    args.addAll([
-      "--dart-sdk-summary",
-      sdkSummary,
-      "--no-summarize",
-      "-o",
-      outputFile,
-      inputFile,
-      "--summary-input-dir=$summaryInputDir",
-    ]);
-
-    // Link to the summaries for the available packages, so that they don't
-    // get recompiled into the test's own module.
-    for (var package in testPackages) {
-      var summary = new Path(_configuration.buildDirectory)
-          .append("/gen/utils/dartdevc/pkg_kernel/$package.dill")
-          .absolute
-          .toNativePath();
-      args.add("-s");
-      args.add(summary);
-    }
-
-    // Use the directory containing the test as the working directory. This
-    // ensures dartdevk creates a short module named based on the test name
-    // (like "ackermann_test") and does not include any of the parent
-    // directories in the name (like "tests__language_2__ackermann_test").
     var inputDir =
         new Path(inputFile).append("..").canonicalize().toNativePath();
-    var compiler = Repository.dir.append(computeCompilerPath()).toNativePath();
-
-    return Command.compilation(Compiler.dartdevk.name, outputFile,
-        bootstrapDependencies(), compiler, args, environment,
+    return Command.compilation(compilerName, outputFile,
+        bootstrapDependencies(), computeCompilerPath(), args, environment,
         workingDirectory: inputDir);
   }
 
@@ -655,7 +580,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 
   bool get _isAot => true;
 
-  PrecompilerCompilerConfiguration(Configuration configuration,
+  PrecompilerCompilerConfiguration(TestConfiguration configuration,
       {this.previewDart2: true})
       : super._subclass(configuration);
 
@@ -902,14 +827,20 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 class AppJitCompilerConfiguration extends CompilerConfiguration {
   final bool previewDart2;
 
-  AppJitCompilerConfiguration(Configuration configuration,
+  AppJitCompilerConfiguration(TestConfiguration configuration,
       {this.previewDart2: true})
       : super._subclass(configuration);
 
   int get timeoutMultiplier {
     var multiplier = 1;
-    if (_isDebug) multiplier *= 2;
+    if (_isDebug) multiplier *= 4;
     if (_isChecked) multiplier *= 2;
+
+    // The CL in 396c92e disabled running the kernel-isolate from app-jit
+    // snapshots if the VM is run with --snapshot-kind=app-jit. This made our
+    // app-jit tests run slower.
+    if (previewDart2) multiplier *= 2;
+
     return multiplier;
   }
 
@@ -982,7 +913,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
 
 /// Configuration for dartanalyzer.
 class AnalyzerCompilerConfiguration extends CompilerConfiguration {
-  AnalyzerCompilerConfiguration(Configuration configuration)
+  AnalyzerCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
   int get timeoutMultiplier => 4;
@@ -1037,7 +968,7 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
 
 /// Configuration for spec_parser.
 class SpecParserCompilerConfiguration extends CompilerConfiguration {
-  SpecParserCompilerConfiguration(Configuration configuration)
+  SpecParserCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
   String computeCompilerPath() => 'tools/spec_parse.py';
@@ -1064,7 +995,7 @@ class SpecParserCompilerConfiguration extends CompilerConfiguration {
 }
 
 abstract class VMKernelCompilerMixin {
-  Configuration get _configuration;
+  TestConfiguration get _configuration;
   bool get _useSdk;
   bool get _isAot;
   bool get _isChecked;
@@ -1106,8 +1037,6 @@ abstract class VMKernelCompilerMixin {
         '${_configuration.buildDirectory}/gen/runtime/bin/precompiler_entry_points.json',
         '--entry-points',
         '${pkgVmDir}/lib/transformations/type_flow/entry_points_extra.json',
-        '--entry-points',
-        '${pkgVmDir}/lib/transformations/type_flow/entry_points_extra_standalone.json',
       ]);
     }
 
@@ -1115,6 +1044,10 @@ abstract class VMKernelCompilerMixin {
     args.addAll(arguments.where((name) => name.startsWith('-D')));
     if (_isChecked || _useEnableAsserts) {
       args.add('--enable_asserts');
+    }
+
+    if (_configuration.useKernelBytecode) {
+      args.add('--gen-bytecode');
     }
 
     return Command.vmKernelCompilation(dillFile, true, bootstrapDependencies(),
@@ -1132,7 +1065,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
 
   bool get _isLegacy => _configuration.noPreviewDart2;
 
-  factory FastaCompilerConfiguration(Configuration configuration) {
+  factory FastaCompilerConfiguration(TestConfiguration configuration) {
     var buildDirectory =
         Uri.base.resolveUri(new Uri.directory(configuration.buildDirectory));
 
@@ -1151,7 +1084,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
   }
 
   FastaCompilerConfiguration._(
-      this._platformDill, this._vmExecutable, Configuration configuration)
+      this._platformDill, this._vmExecutable, TestConfiguration configuration)
       : super._subclass(configuration);
 
   @override

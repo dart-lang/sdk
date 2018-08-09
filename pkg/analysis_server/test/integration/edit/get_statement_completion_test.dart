@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -61,5 +59,5 @@ class GetStatementCompletionTest_UseCFE extends GetStatementCompletionTest {
 
   @override
   @failingTest
-  Future test_statement_completion() => super.test_statement_completion();
+  test_statement_completion() => super.test_statement_completion();
 }

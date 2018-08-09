@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../test_utilities/utillities.dart';
 import '../support/integration_tests.dart';
 
 main() {
@@ -61,6 +60,7 @@ class FindMemberReferencesTest_UseCFE extends FindMemberReferencesTest {
 
   @override
   @failingTest
-  // TODO(devoncarew): 'NoSuchMethodError: The getter 'element' was called on null'
-  Future test_findMemberReferences() => new Future.error('failing test');
+  // TimeoutException
+  test_findMemberReferences() =>
+      callFailingTest(super.test_findMemberReferences());
 }

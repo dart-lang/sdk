@@ -17,6 +17,7 @@ import '../../abstract_context.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImportElementsComputerTest);
+    defineReflectiveTests(ImportElementsComputerTest_UseCFE);
   });
 }
 
@@ -34,16 +35,19 @@ class ImportElementsComputerTest extends AbstractContextTest {
   }
 
   void assertNoChanges() {
-    expect(sourceFileEdit.edits, isEmpty);
+    expect(sourceFileEdit, isNull);
   }
 
   Future<Null> computeChanges(List<ImportedElements> importedElements) async {
     SourceChange change = await computer.createEdits(importedElements);
     expect(change, isNotNull);
     List<SourceFileEdit> edits = change.edits;
-    expect(edits, hasLength(1));
-    sourceFileEdit = edits[0];
-    expect(sourceFileEdit, isNotNull);
+    if (edits.length == 1) {
+      sourceFileEdit = edits[0];
+      expect(sourceFileEdit, isNotNull);
+    } else {
+      sourceFileEdit = null;
+    }
   }
 
   Future<Null> createBuilder(String content) async {
@@ -354,4 +358,14 @@ import 'package:pkg/foo.dart' hide A, B;
 import 'package:pkg/foo.dart';
 ''');
   }
+}
+
+@reflectiveTest
+class ImportElementsComputerTest_UseCFE extends ImportElementsComputerTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_createEdits_invalidUri() => super.test_createEdits_invalidUri();
 }

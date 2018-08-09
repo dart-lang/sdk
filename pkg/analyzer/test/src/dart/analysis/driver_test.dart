@@ -457,9 +457,9 @@ part of 'lib.dart';
     CompilationUnit partUnit1 = partResult1.unit;
     CompilationUnit partUnit2 = partResult2.unit;
 
-    CompilationUnitElement unitElement = libUnit.element;
-    CompilationUnitElement partElement1 = partUnit1.element;
-    CompilationUnitElement partElement2 = partUnit2.element;
+    CompilationUnitElement unitElement = libUnit.declaredElement;
+    CompilationUnitElement partElement1 = partUnit1.declaredElement;
+    CompilationUnitElement partElement2 = partUnit2.declaredElement;
 
     LibraryElement libraryElement = unitElement.library;
     {
@@ -594,7 +594,7 @@ part 'part.dart';
     // We also request a new result, which must include the change.
     Future<AnalysisResult> future2;
     bool asyncWorkExecuted = false;
-    driver.test.workToWaitAfterComputingResult = (path) {
+    driver.test.workToWaitAfterComputingResult = (path) async {
       provider.updateFile(path, 'class B {}');
       driver.changeFile(path);
       future2 = driver.getResult(testFile);
@@ -622,7 +622,7 @@ part 'part.dart';
 
     // Simulate a change that happens during computing the result.
     bool asyncWorkExecuted = false;
-    driver.test.workToWaitAfterComputingResult = (p) {
+    driver.test.workToWaitAfterComputingResult = (p) async {
       if (p == path && !asyncWorkExecuted) {
         provider.updateFile(path, 'class B');
         driver.changeFile(path);
@@ -645,7 +645,7 @@ part 'part.dart';
 
     // Simulate a change that happens during computing the result.
     bool asyncWorkExecuted = false;
-    driver.test.workToWaitAfterComputingResult = (p) {
+    driver.test.workToWaitAfterComputingResult = (p) async {
       if (p == path && !asyncWorkExecuted) {
         provider.updateFile(path, 'class B {}');
         driver.changeFile(path);
@@ -1625,7 +1625,7 @@ main() {
 
     // The content that was set into the overlay for "b" should be visible
     // through the AnalysisContext that was used to analyze "a".
-    CompilationUnitElement unitA = result.unit.element;
+    CompilationUnitElement unitA = result.unit.declaredElement;
     Source sourceB = unitA.library.imports[0].importedLibrary.source;
     expect(unitA.context.getContents(sourceB).data, 'var v = 2;');
   }
@@ -1906,7 +1906,7 @@ main() {
 
     AnalysisResult result = await driver.getResult(path);
     expect(result, isNotNull);
-    expect(result.unit.element.types.map((e) => e.name), ['A']);
+    expect(result.unit.declaredElement.types.map((e) => e.name), ['A']);
   }
 
   test_getResult_recursiveFlatten() async {
@@ -2260,7 +2260,7 @@ class C {
 
     var result = await driver.getResult(b);
     var c = _getTopLevelVar(result.unit, 'c');
-    var typeC = c.element.type as InterfaceType;
+    var typeC = c.declaredElement.type as InterfaceType;
     // The class C has an old field 'foo', not the new 'bar'.
     expect(typeC.element.getField('foo'), isNotNull);
     expect(typeC.element.getField('bar'), isNull);
@@ -3320,9 +3320,9 @@ part 'part2.dart';
     expect(partResult2.unit, isNotNull);
 
     // The parts uses the same resynthesized library element.
-    var libLibrary = libResult.unit.element.library;
-    var partLibrary1 = partResult1.unit.element.library;
-    var partLibrary2 = partResult2.unit.element.library;
+    var libLibrary = libResult.unit.declaredElement.library;
+    var partLibrary1 = partResult1.unit.declaredElement.library;
+    var partLibrary2 = partResult2.unit.declaredElement.library;
     expect(partLibrary1, same(libLibrary));
     expect(partLibrary2, same(libLibrary));
   }
@@ -3335,7 +3335,7 @@ part 'part2.dart';
     AnalysisResult result1 = await driver.getResult(path);
     expect(driver.test.numOfAnalyzedLibraries, 1);
     var unit1 = result1.unit;
-    var unitElement1 = unit1.element;
+    var unitElement1 = unit1.declaredElement;
     expect(result1.path, path);
     expect(unit1, isNotNull);
     expect(unitElement1, isNotNull);
@@ -3344,7 +3344,7 @@ part 'part2.dart';
     expect(driver.test.numOfAnalyzedLibraries, 1);
     expect(result2.path, path);
     expect(result2.unit, same(unit1));
-    expect(result2.unit.element, same(unitElement1));
+    expect(result2.unit.declaredElement, same(unitElement1));
   }
 
   test_removeFile() async {

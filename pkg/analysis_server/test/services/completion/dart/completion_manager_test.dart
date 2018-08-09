@@ -19,6 +19,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompletionManagerTest);
+    defineReflectiveTests(CompletionManagerTest_UseCFE);
   });
 }
 
@@ -52,8 +53,8 @@ part '${convertPathForImport(testFile)}';
         new CompletionPerformance());
     Completer<DartCompletionRequest> requestCompleter =
         new Completer<DartCompletionRequest>();
-    DartCompletionRequestImpl
-        .from(baseRequest, resultDescriptor: RESOLVED_UNIT1)
+    DartCompletionRequestImpl.from(baseRequest,
+            resultDescriptor: RESOLVED_UNIT1)
         .then((DartCompletionRequest request) {
       requestCompleter.complete(request);
     });
@@ -85,4 +86,10 @@ part '${convertPathForImport(testFile)}';
     assertImportedLib('dart:core');
     assertImportedLib('libA.dart');
   }
+}
+
+@reflectiveTest
+class CompletionManagerTest_UseCFE extends CompletionManagerTest {
+  @override
+  bool get useCFE => true;
 }

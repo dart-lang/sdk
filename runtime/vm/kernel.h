@@ -66,6 +66,8 @@ class Program {
   static Program* ReadFromBuffer(const uint8_t* buffer,
                                  intptr_t buffer_length,
                                  const char** error = nullptr);
+  static Program* ReadFromTypedData(const ExternalTypedData& typed_data,
+                                    const char** error = nullptr);
 
   bool is_single_program() { return single_program_; }
   NameIndex main_method() { return main_method_reference_; }
@@ -180,15 +182,21 @@ class KernelLineStartsReader {
   DISALLOW_COPY_AND_ASSIGN(KernelLineStartsReader);
 };
 
-RawFunction* CreateFieldInitializerFunction(Thread* thread,
-                                            Zone* zone,
-                                            const Field& field);
-
-ParsedFunction* ParseStaticFieldInitializer(Zone* zone, const Field& field);
-
 bool FieldHasFunctionLiteralInitializer(const Field& field,
                                         TokenPosition* start,
                                         TokenPosition* end);
+
+void CollectTokenPositionsFor(const Script& script);
+
+RawObject* EvaluateMetadata(const Field& metadata_field,
+                            bool is_annotations_offset);
+RawObject* BuildParameterDescriptor(const Function& function);
+
+// Returns true if the given function needs dynamic invocation forwarder:
+// that is if any of the arguments require checking on the dynamic
+// call-site: if function has no parameters or has only covariant parameters
+// as such function already checks all of its parameters.
+bool NeedsDynamicInvocationForwarder(const Function& function);
 
 }  // namespace kernel
 }  // namespace dart

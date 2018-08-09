@@ -15,6 +15,9 @@ regexp/pcre_test: Pass, Slow # Issue 21593
 apply3_test: SkipByDesign # Imports dart:mirrors
 big_integer_huge_mul_vm_test: Pass, Timeout # --no_intrinsify
 big_integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify
+error_stack_trace1_test: Skip # Dart 1 AOT to be retired soon.
+error_stack_trace2_test: Skip # Dart 1 AOT to be retired soon.
+error_stack_trace_test: Skip # Dart 1 AOT to be retired soon.
 int_parse_radix_test: Pass, Timeout # --no_intrinsify
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
 
@@ -58,6 +61,10 @@ string_from_environment_test: Fail # Flutter Issue 9111
 [ $runtime == jsshell ]
 string_case_test/01: RuntimeError # jsshell does not recognize character 223 aka \xdf
 unicode_test: RuntimeError # jsshell does not recognize character 223 aka \xdf
+
+[ $runtime == none ]
+iterable_contains_test: CompileTimeError # Uppercase constants removed.
+map_test: CompileTimeError # Uppercase constants removed.
 
 [ $runtime != none ]
 compare_to_test: RuntimeError # Uppercase constants removed.
@@ -125,12 +132,6 @@ string_trimlr_test/unicode63: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
 [ $compiler == dart2js && $runtime != d8 ]
 main_test: RuntimeError
-
-[ $compiler == dart2js && $runtime == drt ]
-string_trimlr_test/unicode63: RuntimeError # Uses Unicode 6.2.0 or earlier.
-
-[ $compiler == dart2js && $runtime == drt && $csp && $minified ]
-core_runtime_types_test: Pass, Fail # Issue 27913
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
@@ -425,10 +426,6 @@ symbol_test/01: MissingCompileTimeError
 [ $runtime != d8 && $runtime != dart_precompiled && $runtime != vm ]
 regexp/*: Skip # The regexp tests are not verified to work on non d8/vm platforms yet.
 
-[ $runtime != drt && ($compiler == app_jit || $compiler == none || $compiler == precompiler) ]
-symbol_test/02: MissingCompileTimeError # bug 11669
-symbol_test/03: MissingCompileTimeError # bug 11669
-
 [ $arch == simdbc || $arch == simdbc64 ]
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
 
@@ -445,6 +442,8 @@ symbol_reserved_word_test/09: RuntimeError # bug 11669
 symbol_reserved_word_test/10: MissingCompileTimeError # bug 11669, 19972
 symbol_reserved_word_test/12: RuntimeError # bug 11669
 symbol_test/01: Fail, Pass # bug 11669
+symbol_test/02: MissingCompileTimeError # bug 11669
+symbol_test/03: MissingCompileTimeError # bug 11669
 symbol_test/none: Fail # bug 11669
 unicode_test: Fail # Bug 6706
 

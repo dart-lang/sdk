@@ -416,22 +416,22 @@ abstract class AbstractClassElementImpl extends ElementImpl
  */
 class AuxiliaryElements {
   /**
-   * The element based on propagated type information, or `null` if the AST
-   * structure has not been resolved or if the node could not be resolved.
-   */
-  final ExecutableElement propagatedElement;
-
-  /**
    * The element based on static type information, or `null` if the AST
    * structure has not been resolved or if the node could not be resolved.
    */
   final ExecutableElement staticElement;
 
   /**
-   * Initialize a newly created pair to have both the [staticElement] and the
-   * [propagatedElement].
+   * Initialize a newly created pair to have both the [staticElement] and
+   * `null`.
    */
-  AuxiliaryElements(this.staticElement, this.propagatedElement);
+  AuxiliaryElements(this.staticElement, ExecutableElement propagatedElement);
+
+  /**
+   * The element based on propagated type information, or `null` if the AST
+   * structure has not been resolved or if the node could not be resolved.
+   */
+  ExecutableElement get propagatedElement => null;
 }
 
 /**
@@ -712,10 +712,7 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   bool get hasBeenInferred {
-    if (_unlinkedClass != null) {
-      return context.analysisOptions.strongMode;
-    }
-    return _hasBeenInferred;
+    return _unlinkedClass != null || _hasBeenInferred;
   }
 
   void set hasBeenInferred(bool hasBeenInferred) {
@@ -765,10 +762,8 @@ class ClassElementImpl extends AbstractClassElementImpl
    * Specification (section 10.4).
    */
   bool get hasNoSuchMethod {
-    MethodElement method = context.analysisOptions.strongMode
-        ? lookUpConcreteMethod(
-            FunctionElement.NO_SUCH_METHOD_METHOD_NAME, library)
-        : lookUpMethod(FunctionElement.NO_SUCH_METHOD_METHOD_NAME, library);
+    MethodElement method = lookUpConcreteMethod(
+        FunctionElement.NO_SUCH_METHOD_METHOD_NAME, library);
     ClassElement definingClass = method?.enclosingElement;
     return definingClass != null && !definingClass.type.isObject;
   }
@@ -4422,8 +4417,7 @@ abstract class ExecutableElementImpl extends ElementImpl
           .resolveLinkedType(this, serializedExecutable.inferredReturnTypeSlot);
       _declaredReturnType = enclosingUnit.resynthesizerContext.resolveTypeRef(
           this, serializedExecutable.returnType,
-          defaultVoid: isSetter && context.analysisOptions.strongMode,
-          declaredType: true);
+          defaultVoid: isSetter, declaredType: true);
     }
     return _returnType ?? _declaredReturnType;
   }
@@ -4954,7 +4948,7 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
  * A concrete implementation of a [FunctionElement].
  */
 class FunctionElementImpl extends ExecutableElementImpl
-    implements FunctionElement {
+    implements FunctionElement, FunctionTypedElementImpl {
   /**
    * The offset to the beginning of the visible range for this element.
    */
@@ -5193,13 +5187,23 @@ class FunctionElementImpl_forLUB extends FunctionElementImpl {
 }
 
 /**
+ * Common internal interface shared by elements whose type is a function type.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class FunctionTypedElementImpl
+    implements ElementImpl, FunctionTypedElement {
+  void set returnType(DartType returnType);
+}
+
+/**
  * The element used for a generic function type.
  *
  * Clients may not extend, implement or mix-in this class.
  */
 class GenericFunctionTypeElementImpl extends ElementImpl
     with TypeParameterizedElementMixin
-    implements GenericFunctionTypeElement {
+    implements GenericFunctionTypeElement, FunctionTypedElementImpl {
   /**
    * The kernel type.
    */
@@ -6654,14 +6658,18 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
             }
           }
         }
+
         // Create import elements.
         var imports = new List<ImportElement>(numOfImports + (hasCore ? 0 : 1));
+        int importIndex = 0;
         for (int i = 0; i < numOfDependencies; i++) {
           kernel.LibraryDependency dependency = dependencies[i];
           if (dependency.isImport) {
-            imports[i] = new ImportElementImpl.forKernel(this, dependency);
+            imports[importIndex++] =
+                new ImportElementImpl.forKernel(this, dependency);
           }
         }
+
         // If dart:core is not imported explicitly, import it implicitly.
         if (!hasCore) {
           imports[numOfImports] = new ImportElementImpl.forKernel(this,
@@ -8070,8 +8078,13 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   @override
   int get nameOffset {
     int offset = super.nameOffset;
-    if (offset == 0 && _unlinkedVariable != null) {
-      return _unlinkedVariable.nameOffset;
+    if (offset == 0) {
+      if (_kernel != null) {
+        return _kernel.fileOffset;
+      }
+      if (_unlinkedVariable != null) {
+        return _unlinkedVariable.nameOffset;
+      }
     }
     return offset;
   }
@@ -8438,14 +8451,19 @@ class ParameterElementImpl extends VariableElementImpl
   @override
   int get nameOffset {
     int offset = super.nameOffset;
-    if (offset == 0 && unlinkedParam != null) {
-      if (isSynthetic ||
-          (unlinkedParam.name.isEmpty &&
-              unlinkedParam.kind != UnlinkedParamKind.named &&
-              enclosingElement is GenericFunctionTypeElement)) {
-        return -1;
+    if (offset == 0) {
+      if (_kernel != null) {
+        return _kernel.fileOffset;
       }
-      return unlinkedParam.nameOffset;
+      if (unlinkedParam != null) {
+        if (isSynthetic ||
+            (unlinkedParam.name.isEmpty &&
+                unlinkedParam.kind != UnlinkedParamKind.named &&
+                enclosingElement is GenericFunctionTypeElement)) {
+          return -1;
+        }
+        return unlinkedParam.nameOffset;
+      }
     }
     return offset;
   }
@@ -8866,6 +8884,10 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   @override
   int get nameOffset {
     int offset = super.nameOffset;
+    if (_kernel != null) {
+      var metadata = AnalyzerMetadata.forNode(_kernel);
+      return metadata.importPrefixOffset;
+    }
     if (offset == 0 && _unlinkedImport != null) {
       return _unlinkedImport.prefixOffset;
     }
@@ -9198,12 +9220,6 @@ abstract class PropertyInducingElementImpl
   PropertyAccessorElement setter;
 
   /**
-   * The propagated type of this variable, or `null` if type propagation has not
-   * been performed.
-   */
-  DartType _propagatedType;
-
-  /**
    * Initialize a newly created synthetic element to have the given [name] and
    * [offset].
    */
@@ -9233,19 +9249,12 @@ abstract class PropertyInducingElementImpl
       UnlinkedVariable unlinkedVariable, ElementImpl enclosingElement)
       : super.forSerialized(unlinkedVariable, enclosingElement);
 
+  @deprecated
   @override
-  DartType get propagatedType {
-    if (_unlinkedVariable != null && _propagatedType == null) {
-      _propagatedType = enclosingUnit.resynthesizerContext
-          .resolveLinkedType(this, _unlinkedVariable.propagatedTypeSlot);
-    }
-    return _propagatedType;
-  }
+  DartType get propagatedType => null;
 
-  void set propagatedType(DartType propagatedType) {
-    _assertNotResynthesized(_unlinkedVariable);
-    _propagatedType = _checkElementOfType(propagatedType);
-  }
+  @deprecated
+  void set propagatedType(DartType propagatedType) {}
 
   @override
   DartType get type {
@@ -9269,6 +9278,7 @@ abstract class PropertyInducingElementImpl
  * The context in which elements are resynthesized.
  */
 abstract class ResynthesizerContext {
+  @deprecated
   bool get isStrongMode;
 
   /**
@@ -9499,6 +9509,8 @@ class TypeParameterElementImpl extends ElementImpl
    * The number of type parameters whose scope overlaps this one, and which are
    * declared earlier in the file.
    *
+   * If the value is negative, then it represents negated De Bruijn index.
+   *
    * TODO(scheglov) make private?
    */
   final int nestingLevel;
@@ -9559,9 +9571,8 @@ class TypeParameterElementImpl extends ElementImpl
    * Initialize a newly created synthetic type parameter element to have the
    * given [name], and with [synthetic] set to true.
    */
-  TypeParameterElementImpl.synthetic(String name)
+  TypeParameterElementImpl.synthetic(String name, {this.nestingLevel})
       : _unlinkedTypeParam = null,
-        nestingLevel = null,
         _kernel = null,
         super(name, -1) {
     isSynthetic = true;

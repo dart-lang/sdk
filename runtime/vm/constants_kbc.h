@@ -499,6 +499,14 @@ namespace dart {
 //
 //    Store value SP[0] into object SP[-1] at offset (in words) PP[D].
 //
+//  - StoreContextParent
+//
+//    Store context SP[0] into `parent` field of context SP[-1].
+//
+//  - StoreContextVar D
+//
+//    Store value SP[0] into context SP[-1] at index D.
+//
 //  - LoadField rA, rB, C
 //
 //    Load value at offset (in words) C from object FP[rB] into FP[rA].
@@ -516,6 +524,20 @@ namespace dart {
 //  - LoadFieldTOS D
 //
 //    Push value at offset (in words) PP[D] from object SP[0].
+//
+//  - LoadTypeArgumentsField D
+//
+//    Load instantiator type arguments from an instance SP[0].
+//    PP[D] = offset (in words) of type arguments field corresponding
+//    to an instance's class.
+//
+//  - LoadContextParent
+//
+//    Load parent from context SP[0].
+//
+//  - LoadContextVar D
+//
+//    Load value from context SP[0] at index D.
 //
 //  - BooleanNegateTOS
 //
@@ -929,10 +951,15 @@ namespace dart {
   V(StoreField,                        A_B_C, reg, num, reg)                   \
   V(StoreFieldExt,                       A_D, reg, reg, ___)                   \
   V(StoreFieldTOS,                         D, lit, ___, ___)                   \
+  V(StoreContextParent,                    0, ___, ___, ___)                   \
+  V(StoreContextVar,                       D, num, ___, ___)                   \
   V(LoadField,                         A_B_C, reg, reg, num)                   \
   V(LoadFieldExt,                        A_D, reg, reg, ___)                   \
   V(LoadUntagged,                      A_B_C, reg, reg, num)                   \
   V(LoadFieldTOS,                          D, lit, ___, ___)                   \
+  V(LoadTypeArgumentsField,                D, lit, ___, ___)                   \
+  V(LoadContextParent,                     0, ___, ___, ___)                   \
+  V(LoadContextVar,                        D, num, ___, ___)                   \
   V(BooleanNegateTOS,                      0, ___, ___, ___)                   \
   V(BooleanNegate,                       A_D, reg, reg, ___)                   \
   V(Throw,                                 A, num, ___, ___)                   \

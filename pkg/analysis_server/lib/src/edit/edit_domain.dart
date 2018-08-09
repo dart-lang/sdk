@@ -394,7 +394,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     }
     CompilationUnitElement libraryUnit =
         result.libraryElement.definingCompilationUnit;
-    if (libraryUnit != result.unit.element) {
+    if (libraryUnit != result.unit.declaredElement) {
       // The file in the request is a part of a library. We need to pass the
       // defining compilation unit to the computer, not the part.
       result = await server.getAnalysisResult(libraryUnit.source.fullName);
@@ -408,11 +408,13 @@ class EditDomainHandler extends AbstractRequestHandler {
     ImportElementsComputer computer =
         new ImportElementsComputer(server.resourceProvider, result);
     SourceChange change = await computer.createEdits(params.elements);
+    List<SourceFileEdit> edits = change.edits;
+    SourceFileEdit edit = edits.isEmpty ? null : edits[0];
     //
     // Send the response.
     //
     server.sendResponse(
-        new EditImportElementsResult(change.edits[0]).toResponse(request.id));
+        new EditImportElementsResult(edit: edit).toResponse(request.id));
   }
 
   Future isPostfixCompletionApplicable(Request request) async {

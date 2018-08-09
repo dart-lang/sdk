@@ -38,8 +38,8 @@ import 'package:front_end/src/fasta/hybrid_file_system.dart';
 import 'package:kernel/kernel.dart' show Component, Procedure;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/target/vm.dart' show VmTarget;
-import '../lib/incremental_compiler.dart';
-import '../lib/http_filesystem.dart';
+import 'package:vm/incremental_compiler.dart';
+import 'package:vm/http_filesystem.dart';
 
 final bool verbose = new bool.fromEnvironment('DFE_VERBOSE');
 const String platformKernelFile = 'virtual_platform_kernel.dill';

@@ -57,8 +57,8 @@ class ConstantFinderTest {
         compilationUnitElement;
     ElementAnnotationImpl elementAnnotation =
         new ElementAnnotationImpl(compilationUnitElement);
-    _node = elementAnnotation.annotationAst = AstTestFactory
-        .annotation(AstTestFactory.identifier3('x'))
+    _node = elementAnnotation.annotationAst =
+        AstTestFactory.annotation(AstTestFactory.identifier3('x'))
           ..elementAnnotation = elementAnnotation;
     expect(_findAnnotations(), contains(_node));
   }
@@ -121,7 +121,7 @@ class ConstantFinderTest {
   void test_visitVariableDeclaration_final_inClassWithConstConstructor() {
     VariableDeclaration field = _setupFieldDeclaration('C', 'f', Keyword.FINAL,
         hasConstConstructor: true);
-    expect(_findConstants(), contains(field.element));
+    expect(_findConstants(), contains(field.declaredElement));
   }
 
   void test_visitVariableDeclaration_final_outsideClass() {
@@ -142,28 +142,28 @@ class ConstantFinderTest {
   void test_visitVariableDeclaration_static_const_inClass() {
     VariableDeclaration field =
         _setupFieldDeclaration('C', 'f', Keyword.CONST, isStatic: true);
-    expect(_findConstants(), contains(field.element));
+    expect(_findConstants(), contains(field.declaredElement));
   }
 
   void
       test_visitVariableDeclaration_static_const_inClassWithConstConstructor() {
     VariableDeclaration field = _setupFieldDeclaration('C', 'f', Keyword.CONST,
         isStatic: true, hasConstConstructor: true);
-    expect(_findConstants(), contains(field.element));
+    expect(_findConstants(), contains(field.declaredElement));
   }
 
   void
       test_visitVariableDeclaration_static_final_inClassWithConstConstructor() {
     VariableDeclaration field = _setupFieldDeclaration('C', 'f', Keyword.FINAL,
         isStatic: true, hasConstConstructor: true);
-    expect(_findConstants(), isNot(contains(field.element)));
+    expect(_findConstants(), isNot(contains(field.declaredElement)));
   }
 
   void
       test_visitVariableDeclaration_uninitialized_final_inClassWithConstConstructor() {
     VariableDeclaration field = _setupFieldDeclaration('C', 'f', Keyword.FINAL,
         isInitialized: false, hasConstConstructor: true);
-    expect(_findConstants(), isNot(contains(field.element)));
+    expect(_findConstants(), isNot(contains(field.declaredElement)));
   }
 
   void test_visitVariableDeclaration_uninitialized_static_const_inClass() {

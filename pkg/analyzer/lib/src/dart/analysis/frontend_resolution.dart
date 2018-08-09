@@ -16,12 +16,13 @@ import 'package:front_end/src/base/libraries_specification.dart';
 import 'package:front_end/src/base/performance_logger.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/builder/builder.dart';
-import 'package:front_end/src/fasta/builder/library_builder.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart';
+import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
 import 'package:front_end/src/fasta/kernel/metadata_collector.dart';
 import 'package:front_end/src/fasta/source/diet_listener.dart';
+import 'package:front_end/src/fasta/source/outline_listener.dart';
 import 'package:front_end/src/fasta/source/source_library_builder.dart';
 import 'package:front_end/src/fasta/source/source_loader.dart';
 import 'package:front_end/src/fasta/source/stack_listener.dart';
@@ -34,14 +35,13 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
-import 'package:kernel/type_environment.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/src/packages_impl.dart';
 import 'package:path/path.dart' as pathos;
 
 /// Resolution information in a single function body.
 class CollectedResolution {
-  final Map<int, ResolutionData<DartType, int, Node, int>> kernelData = {};
+  final Map<int, ResolutionData> kernelData = {};
 
   final Map<TypeParameter, int> typeVariableDeclarations =
       new Map<TypeParameter, int>.identity();
@@ -52,13 +52,13 @@ class FileCompilationResult {
   /// The file system URI of the file.
   final Uri fileUri;
 
-  /// The list of resolution for each code block, e.g function body.
-  final List<CollectedResolution> resolutions;
+  /// The collected resolution for the file.
+  final CollectedResolution resolution;
 
   /// The list of all FrontEnd errors in the file.
   final List<CompilationMessage> errors;
 
-  FileCompilationResult(this.fileUri, this.resolutions, this.errors);
+  FileCompilationResult(this.fileUri, this.resolution, this.errors);
 }
 
 /// The wrapper around FrontEnd compiler that can be used incrementally.
@@ -172,8 +172,8 @@ class FrontEndCompiler {
         new TargetLibrariesSpecification('none', dartLibraries), packages);
     var errorListener = new _ErrorListener();
     var compilerOptions = new CompilerOptions()
-      ..target = new _AnalyzerTarget(
-          new TargetFlags(strongMode: analysisOptions.strongMode))
+      ..target = new _AnalyzerTarget(new TargetFlags(strongMode: true),
+          enableSuperMixins: analysisOptions.enableSuperMixins)
       ..reportMessages = false
       ..logger = logger
       ..fileSystem = new _FileSystemAdaptor(fsState, pathContext)
@@ -247,17 +247,14 @@ class FrontEndCompiler {
 
         // TODO(scheglov) Only for new libraries?
         _component.computeCanonicalNames();
+        _component.accept(new _ShadowCleaner());
 
         _logger.run('Compute dependencies', _computeDependencies);
-
-        // Reuse CoreTypes and ClassHierarchy.
-        var types = new TypeEnvironment(
-            kernelTarget.loader.coreTypes, kernelTarget.loader.hierarchy);
 
         // Add results for new libraries.
         for (var library in _component.libraries) {
           if (!_results.containsKey(library.importUri)) {
-            Map<Uri, List<CollectedResolution>> libraryResolutions =
+            Map<Uri, CollectedResolution> libraryResolutions =
                 kernelTarget.resolutions[library.fileUri];
 
             var files = <Uri, FileCompilationResult>{};
@@ -266,7 +263,7 @@ class FrontEndCompiler {
               if (libraryResolutions != null) {
                 files[fileUri] = new FileCompilationResult(
                     fileUri,
-                    libraryResolutions[fileUri] ?? [],
+                    libraryResolutions[fileUri] ?? new CollectedResolution(),
                     _errorListener.fileUriToErrors[fileUri] ?? []);
               }
             }
@@ -277,7 +274,7 @@ class FrontEndCompiler {
             }
 
             var libraryResult = new LibraryCompilationResult(
-                _component, types, library.importUri, library, files);
+                _component, library.importUri, library, files);
             _results[library.importUri] = libraryResult;
           }
         }
@@ -368,9 +365,6 @@ class LibraryCompilationResult {
   /// The object is mutable, and is changed when files are invalidated.
   final Component component;
 
-  /// The [TypeEnvironment] for the [component].
-  final TypeEnvironment types;
-
   /// The absolute URI of the library.
   final Uri uri;
 
@@ -380,36 +374,32 @@ class LibraryCompilationResult {
   /// The map from file system URIs to results for the defining unit and parts.
   final Map<Uri, FileCompilationResult> files;
 
-  LibraryCompilationResult(
-      this.component, this.types, this.uri, this.kernel, this.files);
+  LibraryCompilationResult(this.component, this.uri, this.kernel, this.files);
 }
 
 /// The [DietListener] that record resolution information.
 class _AnalyzerDietListener extends DietListener {
-  final Map<Uri, List<CollectedResolution>> _resolutions;
+  final Map<Uri, ResolutionStorer> _storerMap = {};
 
   _AnalyzerDietListener(
       SourceLibraryBuilder library,
       ClassHierarchy hierarchy,
       CoreTypes coreTypes,
       TypeInferenceEngine typeInferenceEngine,
-      this._resolutions)
-      : super(library, hierarchy, coreTypes, typeInferenceEngine);
+      Map<Uri, CollectedResolution> resolutions)
+      : super(library, hierarchy, coreTypes, typeInferenceEngine) {
+    for (var fileUri in resolutions.keys) {
+      var resolution = resolutions[fileUri];
+      _storerMap[fileUri] = new ResolutionStorer(
+          resolution.kernelData, resolution.typeVariableDeclarations);
+    }
+  }
 
   StackListener createListener(
       ModifierBuilder builder, Scope memberScope, bool isInstanceMember,
       [Scope formalParameterScope,
       TypeInferenceListener<int, Node, int> listener]) {
-    ResolutionStorer storer;
-    var fileResolutions = _resolutions[builder.fileUri];
-    if (fileResolutions == null) {
-      fileResolutions = <CollectedResolution>[];
-      _resolutions[builder.fileUri] = fileResolutions;
-    }
-    var resolution = new CollectedResolution();
-    fileResolutions.add(resolution);
-    storer = new ResolutionStorer(
-        resolution.kernelData, resolution.typeVariableDeclarations);
+    ResolutionStorer storer = _storerMap[builder.fileUri];
     return super.createListener(
         builder, memberScope, isInstanceMember, formalParameterScope, storer);
   }
@@ -417,7 +407,7 @@ class _AnalyzerDietListener extends DietListener {
 
 /// The [KernelTarget] that records resolution information.
 class _AnalyzerKernelTarget extends KernelTarget {
-  final Map<Uri, Map<Uri, List<CollectedResolution>>> resolutions = {};
+  final Map<Uri, Map<Uri, CollectedResolution>> resolutions = {};
 
   _AnalyzerKernelTarget(front_end.FileSystem fileSystem, DillTarget dillTarget,
       UriTranslator uriTranslator, MetadataCollector metadataCollector)
@@ -435,20 +425,66 @@ class _AnalyzerKernelTarget extends KernelTarget {
   }
 }
 
+/// [OutlineListener] that records resolution.
+class _AnalyzerOutlineListener implements OutlineListener {
+  final Uri fileUri;
+  final CollectedResolution resolution;
+
+  _AnalyzerOutlineListener(this.fileUri, this.resolution);
+
+  @override
+  void store(int offset, bool isSynthetic,
+      {int importIndex, Node reference, DartType type}) {
+//    if (fileUri.toString().endsWith('test.dart')) {
+//      print('[store][offset: $offset][reference: $reference][type: $type]');
+//    }
+    var encodedLocation = 2 * offset + (isSynthetic ? 1 : 0);
+    resolution.kernelData[encodedLocation] = new ResolutionData(
+        isOutline: true,
+        prefixInfo: importIndex,
+        reference: reference,
+        inferredType: type);
+  }
+}
+
 /// The [SourceLoader] that record resolution information.
 class _AnalyzerSourceLoader<L> extends SourceLoader<L> {
-  final Map<Uri, Map<Uri, List<CollectedResolution>>> _resolutions;
+  final Map<Uri, CollectedResolution> _fileResolutions = {};
+  final Map<Uri, Map<Uri, CollectedResolution>> _resolutions;
 
   _AnalyzerSourceLoader(front_end.FileSystem fileSystem,
       TargetImplementation target, this._resolutions)
       : super(fileSystem, true, target);
 
   @override
-  _AnalyzerDietListener createDietListener(LibraryBuilder library) {
-    var libraryResolutions = <Uri, List<CollectedResolution>>{};
+  _AnalyzerDietListener createDietListener(SourceLibraryBuilder library) {
+    var libraryResolutions = <Uri, CollectedResolution>{};
+    libraryResolutions[library.fileUri] = _fileResolution(library.fileUri);
+    for (var part in library.parts) {
+      libraryResolutions[part.fileUri] = _fileResolution(part.fileUri);
+    }
     _resolutions[library.fileUri] = libraryResolutions;
+
     return new _AnalyzerDietListener(
         library, hierarchy, coreTypes, typeInferenceEngine, libraryResolutions);
+  }
+
+  @override
+  OutlineListener createOutlineListener(Uri fileUri) {
+    var resolution = _fileResolution(fileUri);
+    return new _AnalyzerOutlineListener(fileUri, resolution);
+  }
+
+  @override
+  Severity rewriteSeverity(severity, message, fileUri) => severity;
+
+  CollectedResolution _fileResolution(Uri fileUri) {
+    CollectedResolution resolution = _fileResolutions[fileUri];
+    if (resolution == null) {
+      resolution = new CollectedResolution();
+      _fileResolutions[fileUri] = resolution;
+    }
+    return resolution;
   }
 }
 
@@ -456,7 +492,11 @@ class _AnalyzerSourceLoader<L> extends SourceLoader<L> {
  * [Target] for static analysis, with all features enabled.
  */
 class _AnalyzerTarget extends NoneTarget {
-  _AnalyzerTarget(TargetFlags flags) : super(flags);
+  @override
+  bool enableSuperMixins;
+
+  _AnalyzerTarget(TargetFlags flags, {this.enableSuperMixins = false})
+      : super(flags);
 
   @override
   List<String> get extraRequiredLibraries => const <String>['dart:_internal'];
@@ -524,5 +564,26 @@ class _FileSystemEntityAdaptor implements front_end.FileSystemEntity {
     if (!file.exists) {
       throw new front_end.FileSystemException(uri, 'File not found');
     }
+  }
+}
+
+/// Visitor that removes from shadow AST information that is not needed once
+/// resolution is done, and causes memory leaks during incremental compilation.
+class _ShadowCleaner extends RecursiveVisitor {
+  @override
+  visitField(Field node) {
+    if (node is ShadowField) {
+      node.inferenceNode = null;
+      node.typeInferrer = null;
+    }
+    return super.visitField(node);
+  }
+
+  @override
+  visitProcedure(Procedure node) {
+    if (node is ShadowProcedure) {
+      node.inferenceNode = null;
+    }
+    return super.visitProcedure(node);
   }
 }

@@ -1250,7 +1250,7 @@ main() {
 
     AnalysisResult result = await driver.getResult(testFile);
     testUnit = result.unit;
-    testUnitElement = testUnit.element;
+    testUnitElement = testUnit.declaredElement;
     testLibraryElement = testUnitElement.library;
 
     AnalysisDriverUnitIndexBuilder indexBuilder = indexUnit(testUnit);

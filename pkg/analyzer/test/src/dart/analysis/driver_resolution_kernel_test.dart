@@ -12,10 +12,6 @@ main() {
   });
 }
 
-/// Tests marked with this annotations fail because we either have not triaged
-/// them, or know that this is an analyzer problem.
-const potentialAnalyzerProblem = const Object();
-
 @reflectiveTest
 class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
   @override
@@ -30,16 +26,20 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33800')
-  test_annotation_onFormalParameter_redirectingFactory() async {
-    await super.test_annotation_onFormalParameter_redirectingFactory();
+  test_generic_function_type() async {
+    await super.test_generic_function_type();
   }
 
   @override
   @failingTest
-  test_closure_generic() {
-    // Assertion error: 'element != null': is not true.
-    return super.test_closure_generic();
+  test_invalid_annotation_on_variable_declaration_for() async {
+    await super.test_invalid_annotation_on_variable_declaration_for();
+  }
+
+  @override
+  @failingTest
+  test_invalid_constructor_initializer_field_importPrefix() async {
+    await super.test_invalid_constructor_initializer_field_importPrefix();
   }
 
   @override
@@ -51,68 +51,44 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
 
   @override
   @failingTest
-  test_local_type_parameter_reference_function_named_parameter_type() {
-    // Stack overflow
-    return super
-        .test_local_type_parameter_reference_function_named_parameter_type();
+  test_methodInvocation_topLevelFunction_generic() async {
+    await super.test_methodInvocation_topLevelFunction_generic();
   }
 
   @override
   @failingTest
-  test_local_type_parameter_reference_function_normal_parameter_type() {
-    // Stack overflow
-    return super
-        .test_local_type_parameter_reference_function_normal_parameter_type();
-  }
-
-  @override
-  @failingTest
-  test_local_type_parameter_reference_function_optional_parameter_type() {
-    // Stack overflow
-    return super
-        .test_local_type_parameter_reference_function_optional_parameter_type();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_unresolved_assignment_left_indexed1_simple() async {
     await super.test_unresolved_assignment_left_indexed1_simple();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
   test_unresolved_assignment_left_indexed2_simple() async {
     await super.test_unresolved_assignment_left_indexed2_simple();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
   test_unresolved_assignment_left_indexed3_simple() async {
     await super.test_unresolved_assignment_left_indexed3_simple();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
   test_unresolved_assignment_left_indexed4_simple() async {
     await super.test_unresolved_assignment_left_indexed4_simple();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_unresolved_methodInvocation_noTarget() async {
-    await super.test_unresolved_methodInvocation_noTarget();
+  test_unresolved_methodInvocation_target_unresolved() async {
+    await super.test_unresolved_methodInvocation_target_unresolved();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_unresolved_methodInvocation_target_unresolved() async {
-    await super.test_unresolved_methodInvocation_target_unresolved();
+  test_unresolved_redirectingFactory_22() async {
+    await super.test_unresolved_redirectingFactory_22();
   }
 }
 

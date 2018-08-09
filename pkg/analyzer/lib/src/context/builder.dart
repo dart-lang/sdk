@@ -200,7 +200,7 @@ class ContextBuilder {
         contextRoot,
         sf,
         options,
-        enableKernelDriver: useCFE,
+        useCFE: useCFE,
         kernelPlatformFolder: kernelPlatformFolder);
     // temporary plugin support:
     if (onCreateAnalysisDriver != null) {
@@ -353,7 +353,7 @@ class ContextBuilder {
       Map<String, List<Folder>> packageMap, AnalysisOptions analysisOptions) {
     String summaryPath = builderOptions.dartSdkSummaryPath;
     if (summaryPath != null) {
-      return new SummaryBasedDartSdk(summaryPath, analysisOptions.strongMode,
+      return new SummaryBasedDartSdk(summaryPath, true,
           resourceProvider: resourceProvider);
     } else if (packageMap != null) {
       SdkExtensionFinder extFinder = new SdkExtensionFinder(packageMap);
@@ -408,8 +408,8 @@ class ContextBuilder {
     SdkDescription description =
         new SdkDescription(<String>[sdkPath], analysisOptions);
     return sdkManager.getSdk(description, () {
-      FolderBasedDartSdk sdk = new FolderBasedDartSdk(resourceProvider,
-          resourceProvider.getFolder(sdkPath), analysisOptions.strongMode);
+      FolderBasedDartSdk sdk = new FolderBasedDartSdk(
+          resourceProvider, resourceProvider.getFolder(sdkPath), true);
       sdk.analysisOptions = analysisOptions;
       sdk.useSummary = sdkManager.canUseSummaries;
       return sdk;
@@ -812,10 +812,6 @@ class _BasicWorkspace extends Workspace {
   Packages _packages;
 
   _BasicWorkspace._(this.provider, this.root, this._builder);
-
-  @override
-  // Alternately, we could check the pubspec for "sdk: flutter"
-  bool get hasFlutterDependency => packageMap.containsKey('flutter');
 
   @override
   Map<String, List<Folder>> get packageMap {

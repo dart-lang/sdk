@@ -86,7 +86,7 @@ Element _getKnownElement(Expression expression) {
   } else if (expression is NamedExpression) {
     return _getKnownElement(expression.expression);
   } else if (expression is FunctionExpression) {
-    return expression.element;
+    return expression.declaredElement;
   } else if (expression is PropertyAccess) {
     return expression.propertyName.staticElement;
   } else if (expression is Identifier) {
@@ -354,7 +354,7 @@ class CodeChecker extends RecursiveAstVisitor {
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     // Check that defaults have the proper subtype.
     var parameter = node.parameter;
-    var parameterType = _elementType(parameter.element);
+    var parameterType = _elementType(parameter.declaredElement);
     assert(parameterType != null);
     var defaultValue = node.defaultValue;
     if (defaultValue != null) {
@@ -378,7 +378,7 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
-    var element = node.element;
+    var element = node.declaredElement;
     var typeName = node.type;
     if (typeName != null) {
       var type = _elementType(element);
@@ -978,7 +978,7 @@ class CodeChecker extends RecursiveAstVisitor {
     FunctionType functionType;
     var parent = body.parent;
     if (parent is Declaration) {
-      functionType = _elementType(parent.element);
+      functionType = _elementType(parent.declaredElement);
     } else {
       assert(parent is FunctionExpression);
       functionType =
@@ -1708,7 +1708,7 @@ class _OverrideChecker {
           continue;
         }
         for (var variable in member.fields.variables) {
-          var element = variable.element as PropertyInducingElement;
+          var element = variable.declaredElement as PropertyInducingElement;
           checkMember(element.getter, member);
           if (!variable.isFinal && !variable.isConst) {
             checkMember(element.setter, member);
@@ -1718,7 +1718,7 @@ class _OverrideChecker {
         if (member.isStatic) {
           continue;
         }
-        checkMember(member.element, member);
+        checkMember(member.declaredElement, member);
       } else {
         assert(member is ConstructorDeclaration);
       }

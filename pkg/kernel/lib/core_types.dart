@@ -91,10 +91,13 @@ class CoreTypes {
   Constructor _syncIterableDefaultConstructor;
   Constructor _streamIteratorDefaultConstructor;
   Constructor _asyncStarStreamControllerDefaultConstructor;
+  Procedure _asyncStarListenHelperProcedure;
+  Procedure _asyncStarMoveNextHelperProcedure;
   Procedure _asyncStackTraceHelperProcedure;
   Procedure _asyncThenWrapperHelperProcedure;
   Procedure _asyncErrorWrapperHelperProcedure;
   Procedure _awaitHelperProcedure;
+  Procedure _boolFromEnvironment;
 
   /// The `dart:mirrors` library, or `null` if the component does not use it.
   Library _mirrorsLibrary;
@@ -145,6 +148,16 @@ class CoreTypes {
   Member get asyncStarStreamControllerStream {
     return index.getMember(
         'dart:async', '_AsyncStarStreamController', 'get:stream');
+  }
+
+  Procedure get asyncStarListenHelper {
+    return _asyncStarListenHelperProcedure ??=
+        index.getTopLevelMember('dart:async', '_asyncStarListenHelper');
+  }
+
+  Procedure get asyncStarMoveNextHelper {
+    return _asyncStarMoveNextHelperProcedure ??=
+        index.getTopLevelMember('dart:async', '_asyncStarMoveNextHelper');
   }
 
   Procedure get asyncStackTraceHelperProcedure {
@@ -429,5 +442,10 @@ class CoreTypes {
   Constructor get compileTimeErrorDefaultConstructor {
     return _compileTimeErrorDefaultConstructor ??=
         index.getMember('dart:core', '_CompileTimeError', '');
+  }
+
+  Procedure get boolFromEnvironment {
+    return _boolFromEnvironment ??=
+        index.getMember('dart:core', 'bool', 'fromEnvironment');
   }
 }

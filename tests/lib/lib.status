@@ -144,6 +144,9 @@ async/stream_empty_test: Skip # Flutter Issue 9113
 async/stream_event_transformed_test: Skip # Flutter Issue 9113
 mirrors/*: Skip # Flutter does not support mirrors.
 
+[ $runtime == none ]
+convert/html_escape_test: CompileTimeError # Uppercase constants removed
+
 [ $runtime != none ]
 async/stream_controller_async_test: RuntimeError # Library changed.
 async/stream_empty_test: RuntimeError # Uppercase constants removed
@@ -275,6 +278,10 @@ mirrors/*deferred*: Pass, RuntimeError # Issue 17458
 [ $compiler == dart2js && $runtime == d8 && $fasta ]
 js/null_test: RuntimeError
 
+[ $compiler == dart2js && $runtime == ie11 ]
+math/math2_test: RuntimeError
+math/math_test: RuntimeError
+
 [ $compiler == dart2js && $runtime == jsshell ]
 async/catch_errors12_test: Fail # Timer interface not supported: Issue 7728.
 async/catch_errors13_test: Fail # Timer interface not supported: Issue 7728.
@@ -359,16 +366,12 @@ mirrors/mirrors_used_get_name_test: RuntimeError
 [ $compiler == dart2js && ($runtime == d8 || $browser) ]
 async/timer_not_available_test: Fail, OK # only meant to test when there is no way to implement timer (currently only in jsshell)
 
-[ $compiler == dart2js && ($runtime == drt || $runtime == ie11) ]
-math/math2_test: RuntimeError
-math/math_test: RuntimeError
-
 [ $compiler != dart2js && $fasta ]
 convert/utf82_test: CompileTimeError # Note: dart2js passes for the wrong reason, it hasn't switched to run in 64-bits
 js/datetime_roundtrip_test: CompileTimeError
 js/null_test: CompileTimeError
 
-[ $compiler != dartk && $compiler != dartkp && ($runtime == dart_precompiled || $runtime == flutter || $runtime == vm) ]
+[ $compiler != dartk && $compiler != dartkb && $compiler != dartkp && ($runtime == dart_precompiled || $runtime == flutter || $runtime == vm) ]
 mirrors/initializing_formals_test/01: Fail # initializing formals are implicitly final as of Dart 1.21
 
 [ $compiler == none && $mode == product ]
@@ -438,7 +441,7 @@ mirrors/symbol_validation_test: RuntimeError # Issue 13596
 
 # All these tests have been migrated as strong mode compatible tests to
 # lib_2, so skipping these tests for dartk and dartkp
-[ $compiler == app_jitk || $compiler == dartk || $compiler == dartkp ]
+[ $compiler == app_jitk || $compiler == dartk || $compiler == dartkb || $compiler == dartkp ]
 *: SkipByDesign
 
 [ $runtime == chrome || $runtime == ff ]

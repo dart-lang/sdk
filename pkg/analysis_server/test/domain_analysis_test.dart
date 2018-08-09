@@ -26,8 +26,11 @@ import 'mocks.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisDomainTest);
+    defineReflectiveTests(AnalysisDomainTest_UseCFE);
     defineReflectiveTests(AnalysisDomainHandlerTest);
+    defineReflectiveTests(AnalysisDomainHandlerTest_UseCFE);
     defineReflectiveTests(SetSubscriptionsTest);
+    defineReflectiveTests(SetSubscriptionsTest_UseCFE);
   });
 }
 
@@ -302,6 +305,12 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
 }
 
 @reflectiveTest
+class AnalysisDomainHandlerTest_UseCFE extends AnalysisDomainHandlerTest {
+  @override
+  bool get useCFE => true;
+}
+
+@reflectiveTest
 class AnalysisDomainTest extends AbstractAnalysisTest {
   Map<String, List<AnalysisError>> filesErrors = {};
 
@@ -335,6 +344,12 @@ main(A a) {
   }
 }
 
+@reflectiveTest
+class AnalysisDomainTest_UseCFE extends AnalysisDomainTest {
+  @override
+  bool get useCFE => true;
+}
+
 /**
  * A helper to test 'analysis.*' requests.
  */
@@ -363,7 +378,6 @@ class AnalysisTestHelper extends Object with ResourceProviderMixin {
     server = new AnalysisServer(
         serverChannel,
         resourceProvider,
-        new MockPackageMapProvider(),
         new AnalysisServerOptions()..previewDart2 = true,
         new DartSdkManager(convertPath('/'), false),
         InstrumentationService.NULL_SERVICE);
@@ -575,7 +589,7 @@ class SetSubscriptionsTest extends AbstractAnalysisTest {
     expect(filesHighlights[testFile], isNotEmpty);
   }
 
-  test_afterAnalysis_noSuchFile() async {
+  Future<void> test_afterAnalysis_noSuchFile() async {
     String file = convertPath('/no-such-file.dart');
     addTestFile('// no matter');
     createProject();
@@ -626,9 +640,6 @@ main() {
   new A();
 }
 ''');
-    packageMapProvider.packageMap = {
-      'pkgA': [newFolder('$pkgA/lib'), newFolder('$pkgB/lib')]
-    };
     // add 'pkgA' and 'pkgB' as projects
     newFolder(projectPath);
     handleSuccessfulRequest(
@@ -703,5 +714,18 @@ class A {}
     expect(subscriptions, hasLength(1));
     List<String> files = subscriptions[plugin.AnalysisService.HIGHLIGHTS];
     expect(files, [testFile]);
+  }
+}
+
+@reflectiveTest
+class SetSubscriptionsTest_UseCFE extends SetSubscriptionsTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_afterAnalysis_noSuchFile() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_afterAnalysis_noSuchFile);
   }
 }

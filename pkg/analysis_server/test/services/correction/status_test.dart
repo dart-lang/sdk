@@ -18,6 +18,7 @@ import '../../abstract_single_unit.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RefactoringLocationTest);
+    defineReflectiveTests(RefactoringLocationTest_UseCFE);
     defineReflectiveTests(RefactoringStatusTest);
   });
 }
@@ -79,6 +80,12 @@ main() {
     expect(location.offset, sourceRange.offset);
     expect(location.length, sourceRange.length);
   }
+}
+
+@reflectiveTest
+class RefactoringLocationTest_UseCFE extends RefactoringLocationTest {
+  @override
+  bool get useCFE => true;
 }
 
 @reflectiveTest

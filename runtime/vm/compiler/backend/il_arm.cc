@@ -2191,7 +2191,8 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
                                                               bool opt) const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps =
-      (IsUnboxedStore() && opt) ? 2 : ((IsPotentialUnboxedStore()) ? 3 : 0);
+      ((IsUnboxedStore() && opt) ? 2 : ((IsPotentialUnboxedStore()) ? 3 : 0)) +
+      (ShouldEmitStoreBarrier() ? 1 : 0);  // block LR for the store barrier
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps,
                       ((IsUnboxedStore() && opt && is_initialization()) ||
@@ -2215,6 +2216,9 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
     summary->set_in(1, ShouldEmitStoreBarrier()
                            ? Location::WritableRegister()
                            : Location::RegisterOrConstant(value()));
+  }
+  if (ShouldEmitStoreBarrier()) {
+    summary->set_temp(kNumTemps - 1, Location::RegisterLocation(LR));
   }
   return summary;
 }
@@ -2371,8 +2375,13 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (ShouldEmitStoreBarrier()) {
     const Register value_reg = locs()->in(1).reg();
+    // In intrinsic mode, there is no stack frame and the function will return
+    // by executing 'ret LR' directly. Therefore we cannot overwrite LR. (see
+    // ReturnInstr::EmitNativeCode).
+    ASSERT(!locs()->live_registers()->Contains(Location::RegisterLocation(LR)));
     __ StoreIntoObjectOffset(instance_reg, offset_in_bytes_, value_reg,
-                             CanValueBeSmi());
+                             CanValueBeSmi(),
+                             /*lr_reserved=*/!compiler->intrinsic_mode());
   } else {
     if (locs()->in(1).IsConstant()) {
       __ StoreIntoObjectNoBarrierOffset(instance_reg, offset_in_bytes_,
@@ -5832,7 +5841,7 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = (op_kind() == Token::kMUL) ? 1 : 0;
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::Pair(Location::RequiresRegister(),
@@ -5841,6 +5850,9 @@ LocationSummary* BinaryInt64OpInstr::MakeLocationSummary(Zone* zone,
                                     Location::RequiresRegister()));
   summary->set_out(0, Location::Pair(Location::RequiresRegister(),
                                      Location::RequiresRegister()));
+  if (op_kind() == Token::kMUL) {
+    summary->set_temp(0, Location::RequiresRegister());
+  }
   return summary;
 }
 
@@ -5855,11 +5867,8 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register out_lo = out_pair->At(0).reg();
   Register out_hi = out_pair->At(1).reg();
   ASSERT(!can_overflow());
+  ASSERT(!CanDeoptimize());
 
-  Label* deopt = NULL;
-  if (CanDeoptimize()) {
-    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinaryInt64Op);
-  }
   switch (op_kind()) {
     case Token::kBIT_AND: {
       __ and_(out_lo, left_lo, Operand(right_lo));
@@ -5876,27 +5885,24 @@ void BinaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ eor(out_hi, left_hi, Operand(right_hi));
       break;
     }
-    case Token::kADD:
+    case Token::kADD: {
+      __ adds(out_lo, left_lo, Operand(right_lo));
+      __ adcs(out_hi, left_hi, Operand(right_hi));
+      break;
+    }
     case Token::kSUB: {
-      if (op_kind() == Token::kADD) {
-        __ adds(out_lo, left_lo, Operand(right_lo));
-        __ adcs(out_hi, left_hi, Operand(right_hi));
-      } else {
-        ASSERT(op_kind() == Token::kSUB);
-        __ subs(out_lo, left_lo, Operand(right_lo));
-        __ sbcs(out_hi, left_hi, Operand(right_hi));
-      }
+      __ subs(out_lo, left_lo, Operand(right_lo));
+      __ sbcs(out_hi, left_hi, Operand(right_hi));
       break;
     }
     case Token::kMUL: {
-      // The product of two signed 32-bit integers fits in a signed 64-bit
-      // result without causing overflow.
-      // We deopt on larger inputs.
-      // TODO(regis): Range analysis may eliminate the deopt check.
-      __ cmp(left_hi, Operand(left_lo, ASR, 31));
-      __ cmp(right_hi, Operand(right_lo, ASR, 31), EQ);
-      __ b(deopt, NE);
-      __ smull(out_lo, out_hi, left_lo, right_lo);
+      // Compute 64-bit a * b as:
+      //     a_l * b_l + (a_h * b_l + a_l * b_h) << 32
+      Register temp = locs()->temp(0).reg();
+      __ mul(temp, left_lo, right_hi);
+      __ mla(out_hi, left_hi, right_lo, temp);
+      __ umull(out_lo, temp, left_lo, right_lo);
+      __ add(out_hi, out_hi, Operand(temp));
       break;
     }
     default:

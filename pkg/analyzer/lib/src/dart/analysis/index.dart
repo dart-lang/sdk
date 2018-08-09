@@ -498,13 +498,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   visitAssignmentExpression(AssignmentExpression node) {
-    recordOperatorReference(node.operator, node.bestElement);
+    recordOperatorReference(node.operator, node.staticElement);
     super.visitAssignmentExpression(node);
   }
 
   @override
   visitBinaryExpression(BinaryExpression node) {
-    recordOperatorReference(node.operator, node.bestElement);
+    recordOperatorReference(node.operator, node.staticElement);
     super.visitBinaryExpression(node);
   }
 
@@ -519,14 +519,14 @@ class _IndexContributor extends GeneralizingAstVisitor {
       recordRelationOffset(objectElement, IndexRelationKind.IS_EXTENDED_BY,
           node.name.offset, 0, true);
     }
-    recordIsAncestorOf(node.element);
+    recordIsAncestorOf(node.declaredElement);
     super.visitClassDeclaration(node);
   }
 
   @override
   visitClassTypeAlias(ClassTypeAlias node) {
     _addSubtypeForClassTypeAlis(node);
-    recordIsAncestorOf(node.element);
+    recordIsAncestorOf(node.declaredElement);
     super.visitClassTypeAlias(node);
   }
 
@@ -559,6 +559,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitExportDirective(ExportDirective node) {
+    ExportElement element = node.element;
+    recordUriReference(element?.exportedLibrary, node);
+    super.visitExportDirective(node);
+  }
+
+  @override
   visitExpression(Expression node) {
     ParameterElement parameterElement = node.staticParameterElement;
     if (parameterElement != null && parameterElement.isOptionalPositional) {
@@ -566,13 +573,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
           node.offset, 0, true);
     }
     super.visitExpression(node);
-  }
-
-  @override
-  visitExportDirective(ExportDirective node) {
-    ExportElement element = node.element;
-    recordUriReference(element?.exportedLibrary, node);
-    super.visitExportDirective(node);
   }
 
   @override
@@ -596,7 +596,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   visitIndexExpression(IndexExpression node) {
-    MethodElement element = node.bestElement;
+    MethodElement element = node.staticElement;
     if (element is MethodElement) {
       Token operator = node.leftBracket;
       recordRelationToken(element, IndexRelationKind.IS_INVOKED_BY, operator);
@@ -610,7 +610,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier name = node.methodName;
-    Element element = name.bestElement;
+    Element element = name.staticElement;
     // unresolved name invocation
     bool isQualified = node.realTarget != null;
     if (element == null) {
@@ -637,13 +637,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   visitPostfixExpression(PostfixExpression node) {
-    recordOperatorReference(node.operator, node.bestElement);
+    recordOperatorReference(node.operator, node.staticElement);
     super.visitPostfixExpression(node);
   }
 
   @override
   visitPrefixExpression(PrefixExpression node) {
-    recordOperatorReference(node.operator, node.bestElement);
+    recordOperatorReference(node.operator, node.staticElement);
     super.visitPrefixExpression(node);
   }
 
@@ -669,7 +669,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     if (node.inDeclarationContext()) {
       return;
     }
-    Element element = node.bestElement;
+    Element element = node.staticElement;
     // record unresolved name reference
     bool isQualified = _isQualified(node);
     if (element == null) {

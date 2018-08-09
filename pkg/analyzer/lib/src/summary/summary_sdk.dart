@@ -25,7 +25,6 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
  * implement [sdkLibraries], [sdkVersion], [uris] and [fromFileUri].
  */
 class SummaryBasedDartSdk implements DartSdk {
-  final bool strongMode;
   SummaryDataStore _dataStore;
   InSummaryUriResolver _uriResolver;
   PackageBundle _bundle;
@@ -36,15 +35,14 @@ class SummaryBasedDartSdk implements DartSdk {
    */
   InternalAnalysisContext _analysisContext;
 
-  SummaryBasedDartSdk(String summaryPath, this.strongMode,
-      {this.resourceProvider}) {
+  SummaryBasedDartSdk(String summaryPath, bool _, {this.resourceProvider}) {
     _dataStore = new SummaryDataStore(<String>[summaryPath],
         resourceProvider: resourceProvider);
     _uriResolver = new InSummaryUriResolver(resourceProvider, _dataStore);
     _bundle = _dataStore.bundles.single;
   }
 
-  SummaryBasedDartSdk.fromBundle(this.strongMode, PackageBundle bundle,
+  SummaryBasedDartSdk.fromBundle(bool _, PackageBundle bundle,
       {this.resourceProvider}) {
     _dataStore = new SummaryDataStore([], resourceProvider: resourceProvider);
     _dataStore.addBundle('dart_sdk.sum', bundle);
@@ -83,6 +81,8 @@ class SummaryBasedDartSdk implements DartSdk {
   String get sdkVersion {
     throw new UnimplementedError();
   }
+
+  bool get strongMode => true;
 
   @override
   List<String> get uris {

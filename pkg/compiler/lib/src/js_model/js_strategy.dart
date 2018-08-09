@@ -21,7 +21,7 @@ import '../enqueue.dart';
 import '../io/kernel_source_information.dart'
     show KernelSourceInformationStrategy;
 import '../io/source_information.dart';
-import '../inferrer/kernel_inferrer_engine.dart';
+import '../inferrer/type_graph_inferrer.dart';
 import '../js_emitter/sorter.dart';
 import '../js/js_source_mapping.dart';
 import '../js_backend/allocator_analysis.dart';
@@ -223,7 +223,7 @@ class JsBackendStrategy implements KernelBackendStrategy {
   TypesInferrer createTypesInferrer(
       JClosedWorld closedWorld, InferredDataBuilder inferredDataBuilder,
       {bool disableTypeInference: false}) {
-    return new KernelTypeGraphInferrer(_compiler, _elementMap, _globalLocalsMap,
+    return new TypeGraphInferrer(_compiler, _elementMap, _globalLocalsMap,
         _closureDataLookup, closedWorld, inferredDataBuilder,
         disableTypeInference: disableTypeInference);
   }
@@ -295,6 +295,7 @@ class JsClosedWorldBuilder {
         .getClassHierarchyNode(closedWorld.commonElements.objectClass)
         .forEachSubclass((ClassEntity cls) {
       convertClassSet(closedWorld.classHierarchy.getClassSet(cls));
+      return null;
     }, ClassHierarchyNode.ALL);
 
     Set<MemberEntity> liveInstanceMembers =

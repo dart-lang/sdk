@@ -93,7 +93,7 @@ class LibraryContext {
       }
 
       logger.run('Append library files', () {
-        return appendLibraryFiles(targetLibrary);
+        appendLibraryFiles(targetLibrary);
       });
 
       Set<String> libraryUrisToLink = new Set<String>();
@@ -122,18 +122,19 @@ class LibraryContext {
         }, (String uri) {
           UnlinkedUnit unlinkedUnit = store.unlinkedMap[uri];
           return unlinkedUnit;
-        }, (_) => null, options.strongMode);
+        }, (_) => null, true);
         logger.writeln('Linked ${linkedLibraries.length} bundles.');
       });
 
-      linkedLibraries.forEach((uri, linkedBuilder) {
+      for (String uri in linkedLibraries.keys) {
+        LinkedLibraryBuilder linkedBuilder = linkedLibraries[uri];
         FileState library = libraries[uri];
         String key = '${library.transitiveSignature}.linked';
         List<int> bytes = linkedBuilder.toBuffer();
         LinkedLibrary linked = new LinkedLibrary.fromBuffer(bytes);
         store.addLinkedLibrary(uri, linked);
         byteStore.put(key, bytes);
-      });
+      }
 
       var resynthesizingContext = _createResynthesizingContext(
           options, declaredVariables, sourceFactory, store);

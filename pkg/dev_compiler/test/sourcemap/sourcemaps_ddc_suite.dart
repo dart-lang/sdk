@@ -52,8 +52,6 @@ class DevCompilerRunner implements CompilerRunner {
       "--dart-sdk-summary=${ddcSdkSummary.path}",
       "--library-root",
       outDir.toFilePath(),
-      "--module-root",
-      outDir.toFilePath(),
       "-o",
       outputFile.toFilePath(),
       inputFile.toFilePath()

@@ -13,6 +13,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LabelContributorTest);
+    defineReflectiveTests(LabelContributorTest_UseCFE);
   });
 }
 
@@ -317,4 +318,27 @@ void main() {
     await computeSuggestions();
     assertSuggestLabel('foo');
   }
+}
+
+@reflectiveTest
+class LabelContributorTest_UseCFE extends LabelContributorTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_continue_to_earlier_case() => super.test_continue_to_earlier_case();
+
+  @failingTest
+  @override
+  test_continue_to_enclosing_switch() =>
+      super.test_continue_to_enclosing_switch();
+
+  @failingTest
+  @override
+  test_continue_to_later_case() => super.test_continue_to_later_case();
+
+  @failingTest
+  @override
+  test_continue_to_same_case() => super.test_continue_to_same_case();
 }

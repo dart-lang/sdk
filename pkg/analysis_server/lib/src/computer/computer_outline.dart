@@ -343,7 +343,7 @@ class DartUnitOutlineComputer {
    * Returns `true` if the given [element] is not `null` and deprecated.
    */
   static bool _isDeprecated(Declaration declaration) {
-    engine.Element element = declaration.element;
+    engine.Element element = declaration.declaredElement;
     return element != null && element.hasDeprecated;
   }
 
@@ -414,7 +414,7 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor {
   visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier nameNode = node.methodName;
 
-    engine.Element nameElement = nameNode.bestElement;
+    engine.Element nameElement = nameNode.staticElement;
     if (nameElement is! engine.ExecutableElement) {
       return;
     }

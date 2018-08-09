@@ -4,7 +4,7 @@
 
 library front_end.byte_store;
 
-export 'package:front_end/src/byte_store/byte_store.dart'
+export '../byte_store/byte_store.dart'
     show ByteStore, MemoryByteStore, MemoryCachingByteStore, NullByteStore;
-export 'package:front_end/src/byte_store/file_byte_store.dart'
+export '../byte_store/file_byte_store.dart'
     show EvictingFileByteStore, FileByteStore;

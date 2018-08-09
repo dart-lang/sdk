@@ -12,6 +12,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LocalLibraryContributorTest);
+    defineReflectiveTests(LocalLibraryContributorTest_UseCFE);
   });
 }
 
@@ -289,4 +290,10 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('z');
     assertNotSuggested('m');
   }
+}
+
+@reflectiveTest
+class LocalLibraryContributorTest_UseCFE extends LocalLibraryContributorTest {
+  @override
+  bool get useCFE => true;
 }

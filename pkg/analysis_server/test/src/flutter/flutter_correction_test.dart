@@ -8,11 +8,11 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_single_unit.dart';
-import '../utilities/flutter_util.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlutterCorrectionTest);
+    defineReflectiveTests(FlutterCorrectionTest_UseCFE);
   });
 }
 
@@ -31,7 +31,7 @@ class FlutterCorrectionTest extends AbstractSingleUnitTest {
   @override
   void setUp() {
     super.setUp();
-    packageMap['flutter'] = [configureFlutterPackage(resourceProvider)];
+    addFlutterPackage();
   }
 
   test_addForDesignTimeConstructor_BAD_notClass() async {
@@ -133,4 +133,10 @@ class MyWidget extends StatelessWidget {
         session: testAnalysisResult.session,
         unit: testUnit);
   }
+}
+
+@reflectiveTest
+class FlutterCorrectionTest_UseCFE extends FlutterCorrectionTest {
+  @override
+  bool get useCFE => true;
 }

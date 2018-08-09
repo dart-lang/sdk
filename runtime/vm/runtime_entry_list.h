@@ -11,9 +11,13 @@ namespace dart {
   V(AllocateArray)                                                             \
   V(AllocateContext)                                                           \
   V(AllocateObject)                                                            \
+  V(AllocateSubtypeTestCache)                                                  \
   V(BreakpointRuntimeHandler)                                                  \
   V(SingleStepHandler)                                                         \
   V(CloneContext)                                                              \
+  V(ExtractMethod)                                                             \
+  V(GetFieldForDispatch)                                                       \
+  V(ResolveCallFunction)                                                       \
   V(FixCallersTarget)                                                          \
   V(FixAllocationStubTarget)                                                   \
   V(InlineCacheMissHandlerOneArg)                                              \
@@ -36,6 +40,7 @@ namespace dart {
   V(RangeError)                                                                \
   V(NullError)                                                                 \
   V(ArgumentErrorUnboxedInt64)                                                 \
+  V(IntegerDivisionByZeroException)                                            \
   V(ReThrow)                                                                   \
   V(StackOverflow)                                                             \
   V(Throw)                                                                     \

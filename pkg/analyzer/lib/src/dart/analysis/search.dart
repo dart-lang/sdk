@@ -21,7 +21,10 @@ import 'package:collection/collection.dart';
 Element _getEnclosingElement(CompilationUnitElement unitElement, int offset) {
   var finder = new _ContainingElementFinder(offset);
   unitElement.accept(finder);
-  return finder.containingElement;
+  Element element = finder.containingElement;
+  assert(element != null,
+      'No containing element in ${unitElement.source.fullName} at $offset');
+  return element;
 }
 
 /**
@@ -367,11 +370,7 @@ class Search {
     String id;
     if (type != null) {
       name = type.name;
-      id = type.librarySource.uri.toString() +
-          ';' +
-          type.source.uri.toString() +
-          ';' +
-          name;
+      id = '${type.librarySource.uri};${type.source.uri};$name';
     } else {
       name = subtype.name;
       id = subtype.id;
@@ -379,8 +378,11 @@ class Search {
 
     await _driver.discoverAvailableFiles();
 
-    List<SubtypeResult> results = [];
+    final List<SubtypeResult> results = [];
+
+    // Note, this is a defensive copy.
     List<FileState> knownFiles = _driver.fsState.knownFiles.toList();
+
     for (FileState file in knownFiles) {
       if (file.subtypedNames.contains(name)) {
         AnalysisDriverUnitIndex index = await _driver.getIndex(file.path);
@@ -389,10 +391,11 @@ class Search {
             if (subtype.supertypes.contains(id)) {
               FileState library = file.library ?? file;
               results.add(new SubtypeResult(
-                  library.uriStr,
-                  library.uriStr + ';' + file.uriStr + ';' + subtype.name,
-                  subtype.name,
-                  subtype.members));
+                library.uriStr,
+                '${library.uriStr};${file.uriStr};${subtype.name}',
+                subtype.name,
+                subtype.members,
+              ));
             }
           }
         }
@@ -674,7 +677,7 @@ class Search {
       for (Directive directive in unit.directives) {
         if (directive is PartOfDirective && directive.element == element) {
           results.add(new SearchResult._(
-              unit.element,
+              unit.declaredElement,
               SearchResultKind.REFERENCE,
               directive.libraryName.offset,
               directive.libraryName.length,
@@ -716,7 +719,7 @@ class Search {
 
     // Find the matches.
     _LocalReferencesVisitor visitor =
-        new _LocalReferencesVisitor(element, unit.element);
+        new _LocalReferencesVisitor(element, unit.declaredElement);
     enclosingNode.accept(visitor);
     return visitor.results;
   }
@@ -824,7 +827,8 @@ class SearchResult {
   final bool isQualified;
 
   SearchResult._(this.enclosingElement, this.kind, this.offset, this.length,
-      this.isResolved, this.isQualified);
+      this.isResolved, this.isQualified)
+      : assert(enclosingElement != null);
 
   @override
   String toString() {

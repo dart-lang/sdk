@@ -22,7 +22,7 @@ import 'package:analyzer/file_system/memory_file_system.dart'
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
-    show SummaryDataStore, InSummaryUriResolver, InSummarySource;
+    show SummaryDataStore;
 import 'package:analyzer/src/dart/resolver/scope.dart' show Scope;
 
 import 'package:args/command_runner.dart';
@@ -73,7 +73,6 @@ class WebCompileCommand extends Command {
   WebCompileCommand({MessageHandler messageHandler})
       : this.messageHandler = messageHandler ?? print {
     CompilerOptions.addArguments(argParser);
-    AnalyzerOptions.addArguments(argParser);
   }
 
   @override
@@ -139,40 +138,34 @@ class WebCompileCommand extends Command {
       List<String> moduleIds) {
     var dartSdkSummaryPath = '/dart-sdk/lib/_internal/web_sdk.sum';
 
-    var resourceProvider = MemoryResourceProvider()
+    var resources = MemoryResourceProvider()
       ..newFileWithBytes(dartSdkSummaryPath, sdkBytes);
-
-    var resourceUriResolver = ResourceUriResolver(resourceProvider);
 
     var options = AnalyzerOptions.basic(
         dartSdkPath: '/dart-sdk', dartSdkSummaryPath: dartSdkSummaryPath);
 
-    var summaryDataStore = SummaryDataStore(options.summaryPaths,
-        resourceProvider: resourceProvider);
+    var summaryData = SummaryDataStore([], resourceProvider: resources);
+    var compilerOptions = CompilerOptions.fromArguments(argResults);
+    compilerOptions.replCompile = true;
     for (var i = 0; i < summaryBytes.length; i++) {
       var bytes = summaryBytes[i];
 
       // Packages with no dart source files will have empty invalid summaries.
       if (bytes.length == 0) continue;
 
-      var url = '/${moduleIds[i]}.api.ds';
-      var summaryBundle = PackageBundle.fromBuffer(bytes);
-      summaryDataStore.addBundle(url, summaryBundle);
+      var moduleId = moduleIds[i];
+      var url = '/$moduleId.api.ds';
+      summaryData.addBundle(url, PackageBundle.fromBuffer(bytes));
+      compilerOptions.summaryModules[url] = moduleId;
     }
-    var summaryResolver =
-        InSummaryUriResolver(resourceProvider, summaryDataStore);
-
-    var fileResolvers = [summaryResolver, resourceUriResolver];
 
     var compiler = ModuleCompiler(options,
         analysisRoot: '/web-compile-root',
-        fileResolvers: fileResolvers,
-        resourceProvider: resourceProvider,
-        summaryData: summaryDataStore);
+        fileResolvers: [ResourceUriResolver(resources)],
+        resourceProvider: resources,
+        summaryData: summaryData);
 
     var context = compiler.context as AnalysisContextImpl;
-
-    var compilerOptions = CompilerOptions.fromArguments(argResults);
 
     var resolveFn = (String url) {
       var packagePrefix = 'package:';
@@ -181,7 +174,7 @@ class WebCompileCommand extends Command {
       var parts = uri.pathSegments;
       var match = null;
       int bestScore = 0;
-      for (var candidate in summaryDataStore.uriToSummaryPath.keys) {
+      for (var candidate in summaryData.uriToSummaryPath.keys) {
         if (path.basename(candidate) != base) continue;
         List<String> candidateParts = path.dirname(candidate).split('/');
         var first = candidateParts.first;
@@ -298,17 +291,16 @@ class WebCompileCommand extends Command {
         sb.write(body);
         sourceCode = sb.toString();
       }
-      resourceProvider.newFile(fileName, sourceCode);
+      resources.newFile(fileName, sourceCode);
 
-      var unit = BuildUnit(libraryName, "", [fileName], _moduleForLibrary);
+      var unit = BuildUnit(libraryName, "", [fileName]);
 
       JSModuleFile module = compiler.compile(unit, compilerOptions);
 
       var moduleCode = '';
       if (module.isValid) {
         moduleCode = module
-            .getCode(ModuleFormat.legacy, unit.name, unit.name + '.map',
-                singleOutFile: true)
+            .getCode(ModuleFormat.legacyConcat, unit.name, unit.name + '.map')
             .code;
       }
 
@@ -318,14 +310,6 @@ class WebCompileCommand extends Command {
 
     return [allowInterop(compileFn), allowInterop(resolveFn)];
   }
-}
-
-// Given path, determine corresponding dart library.
-String _moduleForLibrary(source) {
-  if (source is InSummarySource) {
-    return source.summaryPath.substring(1).replaceAll('.api.ds', '');
-  }
-  return source.toString().substring(1).replaceAll('.dart', '');
 }
 
 /// Thrown when the input source code has errors.

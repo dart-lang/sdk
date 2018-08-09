@@ -140,4 +140,20 @@ abstract class SharedCompiler<Library> {
       return id;
     });
   }
+
+  /// Emits an expression to set the property [name] on the class [className],
+  /// with [value].
+  ///
+  /// This will use `className.name = value` if possible, otherwise it will use
+  /// `dart.defineValue(className, name, value)`. This is required when
+  /// `Function.prototype` already defins a getters with the same name.
+  JS.Expression defineValueOnClass(
+      JS.Expression className, JS.Expression name, JS.Expression value) {
+    var args = [className, name, value];
+    if (name is JS.LiteralString &&
+        JS.isFunctionPrototypeGetter(name.valueWithoutQuotes)) {
+      return runtimeCall('defineValue(#, #, #)', args);
+    }
+    return js.call('#.# = #', args);
+  }
 }

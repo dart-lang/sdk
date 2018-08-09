@@ -139,8 +139,4 @@ part of foo;
 class AnalysisNavigationTest_UseCFE extends AnalysisNavigationTest {
   @override
   bool get useCFE => true;
-
-  @override
-  @failingTest
-  test_navigation() => super.test_navigation();
 }

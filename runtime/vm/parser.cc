@@ -4006,6 +4006,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
                     method->has_external,
                     method->has_native,  // May change.
                     current_class(), method->decl_begin_pos));
+  func.set_has_pragma(IsPragmaAnnotation(method->metadata_pos));
 
   ASSERT(innermost_function().IsNull());
   innermost_function_ = func.raw();
@@ -4408,6 +4409,9 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     class_field.set_has_initializer(has_initializer);
     members->AddField(class_field);
     field->field_ = &class_field;
+    if (IsPragmaAnnotation(field->metadata_pos)) {
+      current_class().set_has_pragma(true);
+    }
     if (is_patch_source() && IsPatchAnnotation(field->metadata_pos)) {
       // Currently, we just ignore the patch annotation on fields.
       // All fields in the patch class are added to the patched class.
@@ -4811,6 +4815,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
   bool is_abstract = false;
   TokenPosition declaration_pos =
       metadata_pos.IsReal() ? metadata_pos : TokenPos();
+  const bool is_pragma = IsPragmaAnnotation(metadata_pos);
   if (is_patch_source() && IsPatchAnnotation(metadata_pos)) {
     is_patch = true;
     metadata_pos = TokenPosition::kNoSource;
@@ -4858,6 +4863,9 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
       cls.set_script(script_);
       cls.set_token_pos(declaration_pos);
     }
+  }
+  if (is_pragma) {
+    cls.set_has_pragma(true);
   }
   ASSERT(!cls.IsNull());
   ASSERT(cls.functions() == Object::empty_array().raw());
@@ -5574,8 +5582,12 @@ bool Parser::IsPatchAnnotation(TokenPosition pos) {
   }
   TokenPosScope saved_pos(this);
   SetPosition(pos);
-  ExpectToken(Token::kAT);
-  return IsSymbol(Symbols::Patch());
+  while (CurrentToken() == Token::kAT) {
+    ConsumeToken();
+    if (IsSymbol(Symbols::Patch())) return true;
+    SkipOneMetadata();
+  }
+  return false;
 }
 
 bool Parser::IsPragmaAnnotation(TokenPosition pos) {
@@ -5584,8 +5596,27 @@ bool Parser::IsPragmaAnnotation(TokenPosition pos) {
   }
   TokenPosScope saved_pos(this);
   SetPosition(pos);
-  ExpectToken(Token::kAT);
-  return IsSymbol(Symbols::Pragma());
+  while (CurrentToken() == Token::kAT) {
+    ConsumeToken();
+    if (IsSymbol(Symbols::Pragma())) return true;
+    SkipOneMetadata();
+  }
+  return false;
+}
+
+void Parser::SkipOneMetadata() {
+  ExpectIdentifier("identifier expected");
+  if (CurrentToken() == Token::kPERIOD) {
+    ConsumeToken();
+    ExpectIdentifier("identifier expected");
+    if (CurrentToken() == Token::kPERIOD) {
+      ConsumeToken();
+      ExpectIdentifier("identifier expected");
+    }
+  }
+  if (CurrentToken() == Token::kLPAREN) {
+    SkipToMatchingParenthesis();
+  }
 }
 
 TokenPosition Parser::SkipMetadata() {
@@ -5595,18 +5626,7 @@ TokenPosition Parser::SkipMetadata() {
   TokenPosition metadata_pos = TokenPos();
   while (CurrentToken() == Token::kAT) {
     ConsumeToken();
-    ExpectIdentifier("identifier expected");
-    if (CurrentToken() == Token::kPERIOD) {
-      ConsumeToken();
-      ExpectIdentifier("identifier expected");
-      if (CurrentToken() == Token::kPERIOD) {
-        ConsumeToken();
-        ExpectIdentifier("identifier expected");
-      }
-    }
-    if (CurrentToken() == Token::kLPAREN) {
-      SkipToMatchingParenthesis();
-    }
+    SkipOneMetadata();
   }
   return metadata_pos;
 }
@@ -5898,6 +5918,11 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
     library_.AddObject(field, var_name);
     if (metadata_pos.IsReal()) {
       library_.AddFieldMetadata(field, metadata_pos);
+    }
+    if (IsPragmaAnnotation(metadata_pos)) {
+      Class& toplevel = Class::Handle(library_.toplevel_class());
+      ASSERT(!toplevel.IsNull());
+      toplevel.set_has_pragma(true);
     }
 
     if (has_initializer) {

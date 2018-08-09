@@ -13,6 +13,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ArgListContributorTest);
+    defineReflectiveTests(ArgListContributorTest_UseCFE);
   });
 }
 
@@ -1042,4 +1043,60 @@ main() { f("16", radix: ^);}''');
     await computeSuggestions();
     assertSuggestArgumentList(['arg', 'blat'], ['dynamic', 'int']);
   }
+}
+
+@reflectiveTest
+class ArgListContributorTest_UseCFE extends ArgListContributorTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_ArgumentList_Flutter_MethodExpression_children() =>
+      super.test_ArgumentList_Flutter_MethodExpression_children();
+
+  @failingTest
+  @override
+  test_ArgumentList_local_constructor_named_param_4() =>
+      super.test_ArgumentList_local_constructor_named_param_4();
+
+  @failingTest
+  @override
+  test_ArgumentList_local_constructor_named_param_5() =>
+      super.test_ArgumentList_local_constructor_named_param_5();
+
+  @failingTest
+  @override
+  test_ArgumentList_local_function_1() =>
+      super.test_ArgumentList_local_function_1();
+
+  @failingTest
+  @override
+  test_ArgumentList_local_function_2() =>
+      super.test_ArgumentList_local_function_2();
+
+  @failingTest
+  @override
+  test_ArgumentList_local_function_3() =>
+      super.test_ArgumentList_local_function_3();
+
+  @failingTest
+  @override
+  test_ArgumentList_local_function_3a() =>
+      super.test_ArgumentList_local_function_3a();
+
+  @failingTest
+  @override
+  test_ArgumentList_local_function_3b() =>
+      super.test_ArgumentList_local_function_3b();
+
+  @failingTest
+  @override
+  test_ArgumentList_local_function_3c() =>
+      super.test_ArgumentList_local_function_3c();
+
+  @failingTest
+  @override
+  test_ArgumentList_local_function_3d() =>
+      super.test_ArgumentList_local_function_3d();
 }

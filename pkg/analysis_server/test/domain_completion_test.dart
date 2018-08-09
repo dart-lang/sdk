@@ -23,6 +23,7 @@ import 'domain_completion_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompletionDomainHandlerTest);
+    defineReflectiveTests(CompletionDomainHandlerTest_UseCFE);
   });
 }
 
@@ -588,6 +589,15 @@ class B extends A {
     });
   }
 
+  test_is_asPrefixedIdentifierStart() async {
+    addTestFile('''
+class A { var isVisible;}
+main(A p) { var v1 = p.is^; }''');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'isVisible',
+        relevance: DART_RELEVANCE_DEFAULT);
+  }
+
   test_keyword() {
     addTestFile('library A; cl^');
     return getSuggestions().then((_) {
@@ -639,7 +649,7 @@ main() {
   test_local_override() {
     newFile('/libA.dart', content: 'class A {m() {}}');
     addTestFile('''
-import '/libA.dart';
+import '../../libA.dart';
 class B extends A {
   m() {}
   x() {^}
@@ -710,7 +720,7 @@ main() {
   test_overrides() {
     newFile('/libA.dart', content: 'class A {m() {}}');
     addTestFile('''
-import '/libA.dart';
+import '../../libA.dart';
 class B extends A {m() {^}}
 ''');
     return getSuggestions().then((_) {
@@ -830,6 +840,57 @@ class B extends A {m() {^}}
       assertNoResult('HtmlElement');
     });
   }
+}
+
+@reflectiveTest
+class CompletionDomainHandlerTest_UseCFE extends CompletionDomainHandlerTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_constructor() async => super.test_constructor();
+
+  @failingTest
+  @override
+  test_constructor2() async => super.test_constructor2();
+
+  @failingTest
+  @override
+  test_constructor3() async => super.test_constructor3();
+
+  @failingTest
+  @override
+  test_constructor4() async => super.test_constructor4();
+
+  @failingTest
+  @override
+  test_constructor5() async => super.test_constructor5();
+
+  @failingTest
+  @override
+  test_constructor6() async => super.test_constructor6();
+
+  @failingTest
+  @override
+  test_import_uri_with_trailing() async =>
+      super.test_import_uri_with_trailing();
+
+  @failingTest
+  @override
+  test_imports_incremental() async => super.test_imports_incremental();
+
+  @failingTest
+  @override
+  test_imports_partial() async => super.test_imports_partial();
+
+  @failingTest
+  @override
+  test_inherited() async => super.test_inherited();
+
+  @failingTest
+  @override
+  test_local_named_constructor() async => super.test_local_named_constructor();
 }
 
 class MockRelevancySorter implements DartContributionSorter {

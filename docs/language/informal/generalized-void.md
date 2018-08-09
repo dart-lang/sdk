@@ -2,7 +2,7 @@
 
 **Author**: eernst@
 
-**Version**: 0.9 (2018-02-22)
+**Version**: 0.10 (2018-07-10)
 
 **Status**: Under implementation.
 
@@ -274,13 +274,17 @@ for the following situations:
     type void; the static type of the conditional expression is then the
     type void. (*This is true even if one of the branches has a different
     type.*)
+*   In a null coalescing expression `e1 ?? e2`, `e2` may have the type void; the
+    static type of the null coalescing expression is then the type void.
 *   If _N1_ and _N2_ are non-terminals in the Dart grammar, and there is a
     derivation of the form _N1 --> N2_, and _N2_ can have type void, then
     _N1_ can also have type void for such a derivation. *In this derivation
     no additional tokens are included, it is only the non-terminal which
     changes.*
 *   In a return statement `return e;`, when the return type of the innermost
-    enclosing function is the type void, `e` may have type void.
+    enclosing function is the type void or dynamic, `e` may have type void.
+*   In an arrow function body `=> e`, when the return type is the type void
+    or dynamic, the returned expression `e` may have type void.
 *   An initializing expression for a variable of type void may have the type
     void.
 *   An actual parameter expression corresponding to a formal parameter whose
@@ -386,6 +390,10 @@ the type void. This motivated the decision to treat such a void-valued
 bound as `Object`.
 
 ## Updates
+
+*   July 10th 2018, v0.10: Added case to whitelist: It is not an error
+    to `return e;` with an `e` of type `void` when the return type is
+    `dynamic`.
 
 *   February 22nd 2018, v0.9: Added several new contexts where an
     expression with static type void may be evaluated, such that pure data

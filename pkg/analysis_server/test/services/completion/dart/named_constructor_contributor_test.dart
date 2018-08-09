@@ -13,6 +13,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NamedConstructorContributorTest);
+    defineReflectiveTests(NamedConstructorContributorTest_UseCFE);
   });
 }
 
@@ -168,4 +169,35 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('z');
     assertNotSuggested('m');
   }
+}
+
+@reflectiveTest
+class NamedConstructorContributorTest_UseCFE
+    extends NamedConstructorContributorTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_ConstructorName_importedClass() =>
+      super.test_ConstructorName_importedClass();
+
+  @failingTest
+  @override
+  test_ConstructorName_importedClass_unresolved() =>
+      super.test_ConstructorName_importedClass_unresolved();
+
+  @failingTest
+  @override
+  test_ConstructorName_importedFactory() =>
+      super.test_ConstructorName_importedFactory();
+
+  @failingTest
+  @override
+  test_ConstructorName_localClass() => super.test_ConstructorName_localClass();
+
+  @failingTest
+  @override
+  test_ConstructorName_localFactory() =>
+      super.test_ConstructorName_localFactory();
 }

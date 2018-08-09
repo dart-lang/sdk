@@ -242,7 +242,6 @@ regexp/pcre_test: RuntimeError
 symbol_operator_test/03: RuntimeError
 symbol_operator_test/none: RuntimeError
 symbol_reserved_word_test/03: RuntimeError # Issue 19972, new Symbol('void') should be allowed.
-uri_base_test: RuntimeError
 
 [ $compiler == dart2js && $fasta && !$strong ]
 *: SkipByDesign
@@ -281,21 +280,6 @@ string_base_vm_static_test: MissingCompileTimeError
 string_replace_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
 
-[ $compiler == dartk && $mode == release && $hot_reload ]
-bigint_parse_radix_test: Crash
-
-# ===== dartk + vm status lines =====
-[ $compiler == dartk && $runtime == vm && $strong ]
-iterable_fold_test/02: RuntimeError
-iterable_reduce_test/01: CompileTimeError # Issue 31533
-iterable_reduce_test/none: RuntimeError
-symbol_operator_test/03: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
-symbol_reserved_word_test/06: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
-symbol_reserved_word_test/09: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
-symbol_reserved_word_test/12: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
-symbol_test/none: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
-unicode_test: RuntimeError # Issue 18061: German double S.
-
 [ $compiler != dartk && $runtime == vm && $checked ]
 apply_test/01: RuntimeError
 
@@ -311,11 +295,6 @@ symbol_reserved_word_test/09: RuntimeError # Issues 11669 and 31936 - throwing c
 symbol_reserved_word_test/12: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
 symbol_test/none: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
 unicode_test: RuntimeError # Issue 18061: German double S.
-
-[ $compiler == none && $runtime == drt ]
-string_from_environment2_test: Skip
-string_from_environment3_test: Skip
-string_from_environment_test: Skip
 
 [ $compiler == none && $runtime == vm ]
 from_environment_const_type_undefined_test/09: MissingCompileTimeError
@@ -354,14 +333,14 @@ iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type
 iterable_generate_test/01: RuntimeError
 splay_tree_from_iterable_test: RuntimeError
 
+[ $mode == release && $hot_reload && ($compiler == dartk || $compiler == dartkb) ]
+bigint_parse_radix_test: Crash
+
 [ $runtime == dart_precompiled && $minified ]
 apply_test: Skip # Uses new Symbol via symbolMapToStringMap helper
 error_stack_trace1_test: Skip # Expects unobfuscated stack trace
 
-[ $runtime == drt && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk) ]
-string_trimlr_test/unicode63: RuntimeError # Uses Unicode 6.2.0 or earlier.
-
-[ $runtime != drt && ($compiler == app_jit || $compiler == none || $compiler == precompiler) ]
+[ $compiler == app_jit || $compiler == none || $compiler == precompiler ]
 symbol_test/02: MissingCompileTimeError # Issue 11669
 symbol_test/03: MissingCompileTimeError # Issue 11669
 
@@ -381,6 +360,18 @@ integer_parsed_div_rem_vm_test: RuntimeError # Issue 29921
 integer_parsed_mul_div_vm_test: RuntimeError # Issue 29921
 regress_r21715_test: RuntimeError # Requires fixed-size int64 support.
 typed_data_with_limited_ints_test: Skip # Requires fixed-size int64 support.
+
+# ===== dartk + vm status lines =====
+[ $runtime == vm && $strong && ($compiler == dartk || $compiler == dartkb) ]
+iterable_fold_test/02: RuntimeError
+iterable_reduce_test/01: CompileTimeError # Issue 31533
+iterable_reduce_test/none: RuntimeError
+symbol_operator_test/03: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+symbol_reserved_word_test/06: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+symbol_reserved_word_test/09: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+symbol_reserved_word_test/12: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+symbol_test/none: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
+unicode_test: RuntimeError # Issue 18061: German double S.
 
 [ $runtime == vm && !$strong ]
 collection_of_test: RuntimeError
@@ -446,7 +437,7 @@ symbol_test/01: MissingCompileTimeError
 # a section you need, please reach out to sigmund@ to see the best way to add
 # them.
 # ===== Skip dartk and darkp in !$strong mode ====
-[ !$strong && ($compiler == dartk || $compiler == dartkp) ]
+[ !$strong && ($compiler == dartk || $compiler == dartkb || $compiler == dartkp) ]
 *: SkipByDesign
 
 [ !$strong && ($runtime == dart_precompiled || $runtime == vm) ]

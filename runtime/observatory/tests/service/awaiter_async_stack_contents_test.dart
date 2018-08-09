@@ -10,19 +10,22 @@ import 'package:unittest/unittest.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const LINE_C = 19;
-const LINE_A = 24;
-const LINE_B = 30;
+const LINE_C = 21;
+const LINE_A = 27;
+const LINE_B = 33;
+const LINE_D = 28;
 
 foobar() async {
+  await null;
   debugger();
   print('foobar'); // LINE_C.
 }
 
 helper() async {
+  await null;
   debugger();
   print('helper'); // LINE_A.
-  await foobar();
+  await foobar(); // LINE_D
 }
 
 testMain() {
@@ -49,18 +52,19 @@ var tests = <IsolateTest>[
     ServiceMap stack = await isolate.getStack();
     expect(stack['awaiterFrames'], isNotNull);
     List awaiterFrames = stack['awaiterFrames'];
+
     expect(awaiterFrames.length, greaterThanOrEqualTo(4));
     // Awaiter frame.
     expect(await awaiterFrames[0].toUserString(),
-        stringContainsInOrder(['foobar', '.dart:19']));
+        stringContainsInOrder(['foobar', '.dart:$LINE_C']));
     // Awaiter frame.
     expect(await awaiterFrames[1].toUserString(),
-        stringContainsInOrder(['helper', '.dart:25']));
+        stringContainsInOrder(['helper', '.dart:$LINE_D']));
     // Suspension point.
     expect(awaiterFrames[2].kind, equals(M.FrameKind.asyncSuspensionMarker));
     // Causal frame.
     expect(await awaiterFrames[3].toUserString(),
-        stringContainsInOrder(['testMain', '.dart:30']));
+        stringContainsInOrder(['testMain', '.dart:$LINE_B']));
   },
 ];
 

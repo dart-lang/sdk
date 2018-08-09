@@ -23,7 +23,7 @@ List<int> _b(int length) {
 
 @reflectiveTest
 class ProtectedFileByteStoreTest {
-  static const PADDING = 8;
+  static const PADDING = 4;
 
   io.Directory cacheDirectory;
   String cachePath;

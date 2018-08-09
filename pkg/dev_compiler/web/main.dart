@@ -16,9 +16,9 @@ import 'web_command.dart';
 @JS(r'$setUpDartDevCompilerInBrowser')
 external set setUpCompilerInBrowser(Function function);
 
-Future<Function> _setUpCompilerInBrowser;
+Future<dynamic> _setUpCompilerInBrowser;
 main() {
-  var args = ['compile', '--repl-compile'];
+  var args = ['compile'];
 
   // Avoid race condition when users try to call $setUpDartDevCompilerInBrowser
   // before it is ready by installing the method immediately and making the body
@@ -41,7 +41,7 @@ _runCommand(List<String> args, {MessageHandler messageHandler}) {
     // with ArgResults or ArgParsers.
     var runner = CommandRunner('dartdevc', 'Dart Development Compiler');
     runner.addCommand(WebCompileCommand(messageHandler: messageHandler));
-    _setUpCompilerInBrowser = runner.run(args) as Future<Function>;
+    _setUpCompilerInBrowser = runner.run(args);
   } catch (e, s) {
     _handleError(e, s, args, messageHandler: messageHandler);
   }

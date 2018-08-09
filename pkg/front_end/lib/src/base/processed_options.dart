@@ -4,6 +4,8 @@
 
 import 'dart:async' show Future;
 
+import 'dart:typed_data' show Uint8List;
+
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
 import 'package:kernel/kernel.dart' show CanonicalName, Component, Location;
@@ -50,6 +52,9 @@ import '../fasta/fasta_codes.dart'
         templateSdkRootNotFound,
         templateSdkSpecificationNotFound,
         templateSdkSummaryNotFound;
+
+// TODO(ahe): Remove this import.
+import '../fasta/fasta_codes.dart' show templateUnspecified;
 
 import '../fasta/messages.dart' show getLocation;
 
@@ -140,7 +145,7 @@ class ProcessedOptions {
     if (_sdkSummaryBytes == null) {
       if (sdkSummary == null) return null;
       var entry = fileSystem.entityForUri(sdkSummary);
-      _sdkSummaryBytes = await entry.readAsBytes();
+      _sdkSummaryBytes = await _readAsBytes(entry);
     }
     return _sdkSummaryBytes;
   }
@@ -347,7 +352,7 @@ class ProcessedOptions {
       if (uris == null || uris.isEmpty) return const <Component>[];
       // TODO(sigmund): throttle # of concurrent opreations.
       var allBytes = await Future.wait(
-          uris.map((uri) => fileSystem.entityForUri(uri).readAsBytes()));
+          uris.map((uri) => _readAsBytes(fileSystem.entityForUri(uri))));
       _inputSummariesComponents =
           allBytes.map((bytes) => loadComponent(bytes, nameRoot)).toList();
     }
@@ -362,7 +367,7 @@ class ProcessedOptions {
       if (uris == null || uris.isEmpty) return const <Component>[];
       // TODO(sigmund): throttle # of concurrent opreations.
       var allBytes = await Future.wait(
-          uris.map((uri) => fileSystem.entityForUri(uri).readAsBytes()));
+          uris.map((uri) => _readAsBytes(fileSystem.entityForUri(uri))));
       _linkedDependencies =
           allBytes.map((bytes) => loadComponent(bytes, nameRoot)).toList();
     }
@@ -623,6 +628,22 @@ class ProcessedOptions {
     sb.writeln('verbose: ${verbose}');
     sb.writeln('verify: ${verify}');
     return '$sb';
+  }
+
+  Future<List<int>> _readAsBytes(FileSystemEntity file) async {
+    try {
+      return await file.readAsBytes();
+    } on FileSystemException catch (error) {
+      report(
+          // TODO(ahe): Change to templateCantReadFile.withArguments(error.uri,
+          // error.message) when CL 63144 has landed.
+          templateUnspecified
+              .withArguments(
+                  "Error when reading '${error.uri}': ${error.message}")
+              .withoutLocation(),
+          Severity.error);
+      return new Uint8List(0);
+    }
   }
 }
 

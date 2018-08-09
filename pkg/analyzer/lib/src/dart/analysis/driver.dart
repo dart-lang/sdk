@@ -52,7 +52,7 @@ import 'package:meta/meta.dart';
  * but this breaks `AnalysisContext` and code generation. So, for now let's
  * work around them, and rewrite generators to [AnalysisDriver].
  */
-typedef Future<Null> WorkToWaitAfterComputingResult(String path);
+typedef Future<void> WorkToWaitAfterComputingResult(String path);
 
 /**
  * This class computes [AnalysisResult]s for Dart files.
@@ -88,14 +88,13 @@ typedef Future<Null> WorkToWaitAfterComputingResult(String path);
  * results are "eventually consistent" with the file system by simply calling
  * [changeFile] any time the contents of a file on the file system have changed.
  *
- *
  * TODO(scheglov) Clean up the list of implicitly analyzed files.
  */
 class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 62;
+  static const int DATA_VERSION = 63;
 
   /**
    * The number of exception contexts allowed to write. Once this field is
@@ -106,7 +105,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * Whether kernel should be used to resynthesize elements.
    */
-  final bool enableKernelDriver;
+  final bool _useCFE;
 
   /**
    * The [Folder] with the `vm_platform.dill` file.
@@ -114,7 +113,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * We use `vm_platform.dill`, because loading patches is not yet implemented,
    * and patches are not a part of SDK distribution.
    */
-  final Folder kernelPlatformFolder;
+  final Folder _kernelPlatformFolder;
 
   /**
    * The scheduler that schedules analysis work in this, and possibly other
@@ -352,15 +351,17 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       this.contextRoot,
       SourceFactory sourceFactory,
       this._analysisOptions,
-      {this.enableKernelDriver: false,
-      this.kernelPlatformFolder,
+      {bool useCFE: false,
+      Folder kernelPlatformFolder,
       PackageBundle sdkBundle,
       this.disableChangesAndCacheAllResults: false,
       SummaryDataStore externalSummaries})
       : _logger = logger,
         _sourceFactory = sourceFactory.clone(),
         _sdkBundle = sdkBundle,
-        _externalSummaries = externalSummaries {
+        _externalSummaries = externalSummaries,
+        _useCFE = useCFE,
+        _kernelPlatformFolder = kernelPlatformFolder {
     _createNewSession();
     _onResults = _resultController.stream.asBroadcastStream();
     _testView = new AnalysisDriverTestView(this);
@@ -1247,7 +1248,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           _testView.numOfAnalyzedLibraries++;
 
           LibraryAnalyzer analyzer;
-          if (enableKernelDriver) {
+          if (_useCFE) {
             kernelContext = await _createKernelContext(library);
             analyzer = new LibraryAnalyzer(
                 _logger,
@@ -1258,8 +1259,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
                 kernelContext.analysisContext,
                 kernelContext.resynthesizer,
                 library,
-                enableKernelDriver: true,
-                useCFE: _analysisOptions.useFastaParser,
+                useCFE: true,
                 frontEndCompiler: _frontEndCompiler);
           } else {
             if (!_fsState.getFileForUri(Uri.parse('dart:core')).exists) {
@@ -1349,7 +1349,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       }
     }
 
-    if (enableKernelDriver) {
+    if (_useCFE) {
       var kernelContext = await _createKernelContext(library);
       try {
         CompilationUnitElement element =
@@ -1426,12 +1426,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * changes.
    */
   void _createKernelDriver() {
-    if (enableKernelDriver) {
+    if (_useCFE) {
       _frontEndCompiler = new FrontEndCompiler(
           _logger,
           _byteStore,
           analysisOptions,
-          kernelPlatformFolder,
+          _kernelPlatformFolder,
           sourceFactory,
           fsState,
           _resourceProvider.pathContext);
@@ -2123,14 +2123,14 @@ class AnalysisResult extends FileResult implements results.ResolveResult {
       : super(driver?.currentSession, path, uri, lineInfo, isPart);
 
   @override
-  LibraryElement get libraryElement => unit.element.library;
+  LibraryElement get libraryElement => unit.declaredElement.library;
 
   @override
   results.ResultState get state =>
       exists ? results.ResultState.VALID : results.ResultState.NOT_A_FILE;
 
   @override
-  TypeProvider get typeProvider => unit.element.context.typeProvider;
+  TypeProvider get typeProvider => unit.declaredElement.context.typeProvider;
 }
 
 abstract class BaseAnalysisResult implements results.AnalysisResult {

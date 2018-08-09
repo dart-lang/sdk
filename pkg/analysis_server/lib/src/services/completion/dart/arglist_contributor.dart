@@ -190,7 +190,7 @@ class ArgListContributor extends DartCompletionContributor {
     if (targetId == null) {
       return EMPTY_LIST;
     }
-    Element elem = targetId.bestElement;
+    Element elem = targetId.staticElement;
     if (elem == null) {
       return EMPTY_LIST;
     }

@@ -58,7 +58,7 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
     }
     cls.set_type_arguments_field_offset_in_words(reader->Read<int32_t>());
     cls.set_num_type_arguments(reader->Read<int16_t>());
-    cls.set_num_own_type_arguments(reader->Read<int16_t>());
+    cls.set_has_pragma_and_num_own_type_arguments(reader->Read<int16_t>());
     cls.set_num_native_fields(reader->Read<uint16_t>());
     cls.set_token_pos(TokenPosition::SnapshotDecode(reader->Read<int32_t>()));
     cls.set_state_bits(reader->Read<uint16_t>());
@@ -114,7 +114,7 @@ void RawClass::WriteTo(SnapshotWriter* writer,
     }
     writer->Write<int32_t>(ptr()->type_arguments_field_offset_in_words_);
     writer->Write<uint16_t>(ptr()->num_type_arguments_);
-    writer->Write<uint16_t>(ptr()->num_own_type_arguments_);
+    writer->Write<uint16_t>(ptr()->has_pragma_and_num_own_type_arguments_);
     writer->Write<uint16_t>(ptr()->num_native_fields_);
     writer->Write<int32_t>(ptr()->token_pos_.SnapshotEncode());
     writer->Write<uint16_t>(ptr()->state_bits_);
@@ -1334,7 +1334,8 @@ RawKernelProgramInfo* KernelProgramInfo::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &info, kIsDeserialized);
 
   // Set all the object fields.
-  READ_OBJECT_FIELDS(info, info.raw()->from(), info.raw()->to(), kAsReference);
+  READ_OBJECT_FIELDS(info, info.raw()->from(), info.raw()->to_snapshot(kind),
+                     kAsReference);
   return info.raw();
 }
 
@@ -1354,7 +1355,7 @@ void RawKernelProgramInfo::WriteTo(SnapshotWriter* writer,
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer, kAsReference);
-  visitor.VisitPointers(from(), to());
+  visitor.VisitPointers(from(), to_snapshot(kind));
 }
 
 RawCode* Code::ReadFrom(SnapshotReader* reader,

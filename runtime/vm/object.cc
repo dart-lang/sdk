@@ -14,7 +14,6 @@
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/frontend/kernel_fingerprints.h"
-#include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/intrinsifier.h"
 #include "vm/compiler/jit/compiler.h"
@@ -572,6 +571,7 @@ void Object::InitOnce(Isolate* isolate) {
     cls.set_type_arguments_field_offset_in_words(Class::kNoTypeArguments);
     cls.set_num_type_arguments(0);
     cls.set_num_own_type_arguments(0);
+    cls.set_has_pragma(false);
     cls.set_num_native_fields(0);
     cls.InitEmptyFields();
     isolate->RegisterClass(cls);
@@ -2192,6 +2192,7 @@ RawClass* Class::New() {
   result.set_id(FakeObject::kClassId);
   result.set_num_type_arguments(0);
   result.set_num_own_type_arguments(0);
+  result.set_has_pragma(false);
   result.set_num_native_fields(0);
   result.set_state_bits(0);
   if ((FakeObject::kClassId < kInstanceCid) ||
@@ -2227,10 +2228,24 @@ void Class::set_num_type_arguments(intptr_t value) const {
 }
 
 void Class::set_num_own_type_arguments(intptr_t value) const {
-  if (!Utils::IsInt(16, value)) {
+  if (!Utils::IsUint(kNumOwnTypeArgumentsSize, value)) {
     ReportTooManyTypeArguments(*this);
   }
-  StoreNonPointer(&raw_ptr()->num_own_type_arguments_, value);
+  StoreNonPointer(
+      &raw_ptr()->has_pragma_and_num_own_type_arguments_,
+      NumOwnTypeArguments::update(
+          value, raw_ptr()->has_pragma_and_num_own_type_arguments_));
+}
+
+void Class::set_has_pragma_and_num_own_type_arguments(uint16_t value) const {
+  StoreNonPointer(&raw_ptr()->has_pragma_and_num_own_type_arguments_, value);
+}
+
+void Class::set_has_pragma(bool value) const {
+  StoreNonPointer(
+      &raw_ptr()->has_pragma_and_num_own_type_arguments_,
+      HasPragmaBit::update(value,
+                           raw_ptr()->has_pragma_and_num_own_type_arguments_));
 }
 
 // Initialize class fields of type Array with empty array.
@@ -2953,7 +2968,7 @@ RawFunction* Function::GetDynamicInvocationForwarder(
   }
 
   // Check if function actually needs a dynamic invocation forwarder.
-  if (!kernel::FlowGraphBuilder::NeedsDynamicInvocationForwarder(*this)) {
+  if (!kernel::NeedsDynamicInvocationForwarder(*this)) {
     result = raw();
   } else if (allow_add) {
     result = CreateDynamicInvocationForwarder(mangled_name);
@@ -3496,6 +3511,7 @@ RawClass* Class::NewCommon(intptr_t index) {
   result.set_id(index);
   result.set_num_type_arguments(kUnknownNumTypeArguments);
   result.set_num_own_type_arguments(kUnknownNumTypeArguments);
+  result.set_has_pragma(false);
   result.set_num_native_fields(0);
   result.set_state_bits(0);
   result.InitEmptyFields();
@@ -3979,6 +3995,28 @@ bool Class::IsMixinApplication() const {
 RawClass* Class::GetPatchClass() const {
   const Library& lib = Library::Handle(library());
   return lib.GetPatchClass(String::Handle(Name()));
+}
+
+void Class::AddDirectImplementor(const Class& implementor) const {
+  ASSERT(is_implemented());
+  ASSERT(!implementor.IsNull());
+  GrowableObjectArray& direct_implementors =
+      GrowableObjectArray::Handle(raw_ptr()->direct_implementors_);
+  if (direct_implementors.IsNull()) {
+    direct_implementors = GrowableObjectArray::New(4, Heap::kOld);
+    StorePointer(&raw_ptr()->direct_implementors_, direct_implementors.raw());
+  }
+#if defined(DEBUG)
+  // Verify that the same class is not added twice.
+  for (intptr_t i = 0; i < direct_implementors.Length(); i++) {
+    ASSERT(direct_implementors.At(i) != implementor.raw());
+  }
+#endif
+  direct_implementors.Add(implementor, Heap::kOld);
+}
+
+void Class::ClearDirectImplementors() const {
+  StorePointer(&raw_ptr()->direct_implementors_, GrowableObjectArray::null());
 }
 
 void Class::AddDirectSubclass(const Class& subclass) const {
@@ -6469,12 +6507,6 @@ void Function::set_num_fixed_parameters(intptr_t value) const {
                                 value, *original));
 }
 
-void Function::set_is_no_such_method_forwarder(bool value) const {
-  const uint32_t* original = &raw_ptr()->packed_fields_;
-  StoreNonPointer(original, RawFunction::PackedIsNoSuchMethodForwarder::update(
-                                value ? 1 : 0, *original));
-}
-
 void Function::SetNumOptionalParameters(intptr_t value,
                                         bool are_optional_positional) const {
   ASSERT(Utils::IsUint(RawFunction::kMaxOptionalParametersBits, value));
@@ -6516,12 +6548,10 @@ void Function::SetIsOptimizable(bool value) const {
 
 bool Function::CanBeInlined() const {
 #if defined(PRODUCT)
-  return is_inlinable() && !is_external() && !is_generated_body() &&
-         !is_no_such_method_forwarder();
+  return is_inlinable() && !is_external() && !is_generated_body();
 #else
   Thread* thread = Thread::Current();
   return is_inlinable() && !is_external() && !is_generated_body() &&
-         !is_no_such_method_forwarder() &&
          !thread->isolate()->debugger()->HasBreakpoint(*this, thread->zone());
 #endif
 }
@@ -7192,7 +7222,6 @@ RawFunction* Function::New(const String& name,
   NOT_IN_PRECOMPILED(result.set_end_token_pos(token_pos));
   result.set_num_fixed_parameters(0);
   result.SetNumOptionalParameters(0, false);
-  result.set_is_no_such_method_forwarder(false);
   NOT_IN_PRECOMPILED(result.set_usage_counter(0));
   NOT_IN_PRECOMPILED(result.set_deoptimization_counter(0));
   NOT_IN_PRECOMPILED(result.set_optimized_instruction_count(0));
@@ -7417,8 +7446,6 @@ RawFunction* Function::ImplicitClosureFunction() const {
     closure_function.SetParameterNameAt(i, param_name);
   }
   closure_function.set_kernel_offset(kernel_offset());
-  closure_function.set_is_no_such_method_forwarder(
-      is_no_such_method_forwarder());
 
   // In strong mode, change covariant parameter types to Object in the implicit
   // closure of a method compiled by kernel.
@@ -7938,6 +7965,7 @@ void Function::SaveICDataMap(
   count = 1;
   for (intptr_t i = 0; i < deopt_id_to_ic_data.length(); i++) {
     if (deopt_id_to_ic_data[i] != NULL) {
+      ASSERT(i == deopt_id_to_ic_data[i]->deopt_id());
       array.SetAt(count++, *deopt_id_to_ic_data[i]);
     }
   }
@@ -7977,6 +8005,7 @@ void Function::RestoreICDataMap(
         ic_data = ICData::Clone(ic_data);
         ic_data.SetOriginal(original_ic_data);
       }
+      ASSERT(deopt_id_to_ic_data->At(ic_data.deopt_id()) == nullptr);
       (*deopt_id_to_ic_data)[ic_data.deopt_id()] = &ic_data;
     }
   }
@@ -8723,12 +8752,6 @@ void Field::SetPrecompiledInitializer(const Function& initializer) const {
 bool Field::HasPrecompiledInitializer() const {
   return raw_ptr()->initializer_.precompiled_->IsHeapObject() &&
          raw_ptr()->initializer_.precompiled_->IsFunction();
-}
-
-void Field::SetSavedInitialStaticValue(const Instance& value) const {
-  ASSERT(IsOriginal());
-  ASSERT(!HasPrecompiledInitializer());
-  StorePointer(&raw_ptr()->initializer_.saved_value_, value.raw());
 }
 
 void Field::EvaluateInitializer() const {
@@ -12502,6 +12525,7 @@ RawKernelProgramInfo* KernelProgramInfo::New(
     const TypedData& canonical_names,
     const ExternalTypedData& metadata_payloads,
     const ExternalTypedData& metadata_mappings,
+    const ExternalTypedData& constants_table,
     const Array& scripts) {
   const KernelProgramInfo& info =
       KernelProgramInfo::Handle(KernelProgramInfo::New());
@@ -12513,6 +12537,7 @@ RawKernelProgramInfo* KernelProgramInfo::New(
   info.StorePointer(&info.raw_ptr()->metadata_mappings_,
                     metadata_mappings.raw());
   info.StorePointer(&info.raw_ptr()->scripts_, scripts.raw());
+  info.StorePointer(&info.raw_ptr()->constants_table_, constants_table.raw());
   return info.raw();
 }
 
@@ -12528,6 +12553,11 @@ RawScript* KernelProgramInfo::ScriptAt(intptr_t index) const {
 
 void KernelProgramInfo::set_constants(const Array& constants) const {
   StorePointer(&raw_ptr()->constants_, constants.raw());
+}
+
+void KernelProgramInfo::set_constants_table(
+    const ExternalTypedData& value) const {
+  StorePointer(&raw_ptr()->constants_table_, value.raw());
 }
 
 void KernelProgramInfo::set_potential_natives(
@@ -14892,6 +14922,29 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(PRODUCT)
+class CodeCommentsWrapper final : public CodeComments {
+ public:
+  explicit CodeCommentsWrapper(const Code::Comments& comments)
+      : comments_(comments), string_(String::Handle()) {}
+
+  intptr_t Length() const override { return comments_.Length(); }
+
+  intptr_t PCOffsetAt(intptr_t i) const override {
+    return comments_.PCOffsetAt(i);
+  }
+
+  const char* CommentAt(intptr_t i) const override {
+    string_ = comments_.CommentAt(i);
+    return string_.ToCString();
+  }
+
+ private:
+  const Code::Comments& comments_;
+  String& string_;
+};
+#endif
+
 RawCode* Code::FinalizeCode(const char* name,
                             Assembler* assembler,
                             bool optimized,
@@ -14932,11 +14985,14 @@ RawCode* Code::FinalizeCode(const char* name,
   }
 #endif
 
+  const Code::Comments& comments = assembler->GetCodeComments();
+
   code.set_compile_timestamp(OS::GetCurrentMonotonicMicros());
 #ifndef PRODUCT
+  CodeCommentsWrapper comments_wrapper(comments);
   CodeObservers::NotifyAll(name, instrs.PayloadStart(),
                            assembler->prologue_offset(), instrs.Size(),
-                           optimized);
+                           optimized, &comments_wrapper);
 #endif
   {
     NoSafepointScope no_safepoint;
@@ -14972,7 +15028,7 @@ RawCode* Code::FinalizeCode(const char* name,
                              instrs.raw()->Size(), VirtualMemory::kReadExecute);
     }
   }
-  code.set_comments(assembler->GetCodeComments());
+  code.set_comments(comments);
   if (assembler->prologue_offset() >= 0) {
     code.SetPrologueOffset(assembler->prologue_offset());
   } else {
@@ -15030,7 +15086,7 @@ RawCode* Code::FinalizeBytecode(const void* bytecode_data,
 #ifndef PRODUCT
   CodeObservers::NotifyAll("bytecode", instrs.PayloadStart(),
                            0 /* prologue_offset */, instrs.Size(),
-                           false /* optimized */);
+                           false /* optimized */, nullptr);
 #endif
   {
     NoSafepointScope no_safepoint;
@@ -15690,6 +15746,8 @@ void SubtypeTestCache::AddCheck(
     const TypeArguments& instance_type_arguments,
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
+    const TypeArguments& instance_parent_function_type_arguments,
+    const TypeArguments& instance_delayed_type_arguments,
     const Bool& test_result) const {
   intptr_t old_num = NumberOfChecks();
   Array& data = Array::Handle(cache());
@@ -15703,15 +15761,22 @@ void SubtypeTestCache::AddCheck(
   data.SetAt(data_pos + kInstantiatorTypeArguments,
              instantiator_type_arguments);
   data.SetAt(data_pos + kFunctionTypeArguments, function_type_arguments);
+  data.SetAt(data_pos + kInstanceParentFunctionTypeArguments,
+             instance_parent_function_type_arguments);
+  data.SetAt(data_pos + kInstanceDelayedFunctionTypeArguments,
+             instance_delayed_type_arguments);
   data.SetAt(data_pos + kTestResult, test_result);
 }
 
-void SubtypeTestCache::GetCheck(intptr_t ix,
-                                Object* instance_class_id_or_function,
-                                TypeArguments* instance_type_arguments,
-                                TypeArguments* instantiator_type_arguments,
-                                TypeArguments* function_type_arguments,
-                                Bool* test_result) const {
+void SubtypeTestCache::GetCheck(
+    intptr_t ix,
+    Object* instance_class_id_or_function,
+    TypeArguments* instance_type_arguments,
+    TypeArguments* instantiator_type_arguments,
+    TypeArguments* function_type_arguments,
+    TypeArguments* instance_parent_function_type_arguments,
+    TypeArguments* instance_delayed_type_arguments,
+    Bool* test_result) const {
   Array& data = Array::Handle(cache());
   intptr_t data_pos = ix * kTestEntryLength;
   *instance_class_id_or_function =
@@ -15720,6 +15785,10 @@ void SubtypeTestCache::GetCheck(intptr_t ix,
   *instantiator_type_arguments ^=
       data.At(data_pos + kInstantiatorTypeArguments);
   *function_type_arguments ^= data.At(data_pos + kFunctionTypeArguments);
+  *instance_parent_function_type_arguments ^=
+      data.At(data_pos + kInstanceParentFunctionTypeArguments);
+  *instance_delayed_type_arguments ^=
+      data.At(data_pos + kInstanceDelayedFunctionTypeArguments);
   *test_result ^= data.At(data_pos + kTestResult);
 }
 
@@ -22109,13 +22178,16 @@ const char* SendPort::ToCString() const {
 }
 
 const char* Closure::ToCString() const {
-  const Function& fun = Function::Handle(function());
+  Zone* zone = Thread::Current()->zone();
+  const Function& fun = Function::Handle(zone, function());
   const bool is_implicit_closure = fun.IsImplicitClosureFunction();
-  const char* fun_sig = String::Handle(fun.UserVisibleSignature()).ToCString();
+  const Function& sig_fun =
+      Function::Handle(zone, GetInstantiatedSignature(zone));
+  const char* fun_sig =
+      String::Handle(zone, sig_fun.UserVisibleSignature()).ToCString();
   const char* from = is_implicit_closure ? " from " : "";
   const char* fun_desc = is_implicit_closure ? fun.ToCString() : "";
-  return OS::SCreate(Thread::Current()->zone(), "Closure: %s%s%s", fun_sig,
-                     from, fun_desc);
+  return OS::SCreate(zone, "Closure: %s%s%s", fun_sig, from, fun_desc);
 }
 
 int64_t Closure::ComputeHash() const {

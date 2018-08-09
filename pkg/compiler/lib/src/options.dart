@@ -189,7 +189,7 @@ class CompilerOptions implements DiagnosticOptions {
   bool omitImplicitChecks = false;
 
   /// Whether to omit class type arguments only needed for `toString` on
-  /// `RuntimeType`.
+  /// `Object.runtimeType`.
   bool laxRuntimeTypeToString = false;
 
   /// What should the compiler do with type assertions of assignments.
@@ -253,6 +253,9 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Whether to start `async` functions synchronously.
   bool startAsyncSynchronously = false;
+
+  /// If specified, a bundle of optimizations to enable (or disable).
+  int optimizationLevel = null;
 
   /// Create an options object by parsing flags from [options].
   static CompilerOptions parse(List<String> options,
@@ -355,6 +358,25 @@ class CompilerOptions implements DiagnosticOptions {
         trustTypeAnnotations = true;
       }
     }
+
+    if (optimizationLevel != null) {
+      if (optimizationLevel == 0) {
+        disableInlining = true;
+        disableTypeInference = true;
+        disableRtiOptimization = true;
+      }
+      if (optimizationLevel >= 2) {
+        enableMinification = true;
+        laxRuntimeTypeToString = true;
+      }
+      if (optimizationLevel >= 3) {
+        omitImplicitChecks = true;
+      }
+      if (optimizationLevel == 4) {
+        trustPrimitives = true;
+      }
+    }
+
     // TODO(johnniwinther): Should we support this in the future?
     generateCodeWithCompileTimeErrors = false;
     if (platformConfigUri == null) {

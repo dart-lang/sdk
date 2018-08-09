@@ -4,12 +4,6 @@
 
 library fasta.kernel_procedure_builder;
 
-import 'package:front_end/src/base/instrumentation.dart'
-    show Instrumentation, InstrumentationValueForType;
-
-import 'package:front_end/src/fasta/type_inference/type_inferrer.dart'
-    show TypeInferrer;
-
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -41,6 +35,11 @@ import 'package:kernel/ast.dart'
         setParents;
 
 import 'package:kernel/type_algebra.dart' show containsTypeVariable, substitute;
+
+import '../../base/instrumentation.dart'
+    show Instrumentation, InstrumentationValueForType;
+
+import '../type_inference/type_inferrer.dart' show TypeInferrer;
 
 import '../loader.dart' show Loader;
 
@@ -485,6 +484,9 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
     // TODO(ahe): Should complain if another type is explicitly set.
     return super.buildFunction(library)..returnType = const VoidType();
   }
+
+  @override
+  bool get hasTarget => true;
 
   Constructor get target => origin.constructor;
 

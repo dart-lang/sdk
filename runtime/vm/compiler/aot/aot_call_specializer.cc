@@ -565,13 +565,17 @@ bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
         }
         break;
       }
-      // TODO(dartbug.com/30480): Enable 64-bit integer shifts (SHL, SHR).
       case Token::kBIT_OR:
       case Token::kBIT_XOR:
       case Token::kBIT_AND:
       case Token::kADD:
       case Token::kSUB:
       case Token::kMUL:
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
+      // TODO(ajcbik): 32-bit archs too?
+      case Token::kMOD:
+      case Token::kTRUNCDIV:
+#endif
       case Token::kDIV: {
         if ((op_kind == Token::kDIV) &&
             !FlowGraphCompiler::SupportsHardwareDivision()) {
@@ -603,7 +607,6 @@ bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
         }
         break;
       }
-
       case Token::kSHL:
       case Token::kSHR: {
         Value* left_value = instr->PushArgumentAt(receiver_index)->value();
@@ -617,7 +620,6 @@ bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
         }
         break;
       }
-
       default:
         break;
     }
@@ -750,8 +752,12 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
   const ICData& unary_checks =
       ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
   const intptr_t number_of_checks = unary_checks.NumberOfChecks();
-  if (speculative_policy_->IsAllowedForInlining(instr->deopt_id()) &&
-      number_of_checks > 0) {
+  if (FLAG_use_strong_mode_types && I->strong()) {
+    // In AOT strong mode, we avoid deopting speculation.
+    // TODO(ajcbik): replace this with actual analysis phase
+    //               that determines if checks are removed later.
+  } else if (speculative_policy_->IsAllowedForInlining(instr->deopt_id()) &&
+             number_of_checks > 0) {
     if ((op_kind == Token::kINDEX) &&
         TryReplaceWithIndexedOp(instr, &unary_checks)) {
       return;
@@ -800,7 +806,8 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
   if (has_one_target) {
     RawFunction::Kind function_kind =
         Function::Handle(Z, unary_checks.GetTargetAt(0)).kind();
-    if (!flow_graph()->InstanceCallNeedsClassCheck(instr, function_kind)) {
+    if (flow_graph()->CheckForInstanceCall(instr, function_kind) ==
+        FlowGraph::ToCheck::kNoCheck) {
       CallTargets* targets = CallTargets::Create(Z, unary_checks);
       ASSERT(targets->HasSingleTarget());
       const Function& target = targets->FirstTarget();

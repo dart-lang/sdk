@@ -18,6 +18,7 @@ import '../utilities/flutter_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlutterNotificationOutlineTest);
+    defineReflectiveTests(FlutterNotificationOutlineTest_UseCFE);
   });
 }
 
@@ -69,7 +70,7 @@ class FlutterNotificationOutlineTest extends AbstractAnalysisTest {
     flutterFolder = configureFlutterPackage(resourceProvider);
   }
 
-  test_children() async {
+  Future<void> test_children() async {
     newFile('$projectPath/.packages', content: '''
 flutter:${flutterFolder.toUri()}
 ''');
@@ -116,5 +117,19 @@ class MyWidget extends StatelessWidget {
     expect(textOutlineB.kind, FlutterOutlineKind.NEW_INSTANCE);
     expect(textOutlineB.className, 'Text');
     expect(textOutlineB.offset, code.indexOf("const Text('bbb')"));
+  }
+}
+
+@reflectiveTest
+class FlutterNotificationOutlineTest_UseCFE
+    extends FlutterNotificationOutlineTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_children() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_children);
   }
 }

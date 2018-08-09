@@ -18,16 +18,16 @@ import 'test_suite.dart';
 /// shared between multiple test cases, it should not be mutated after
 /// construction.
 abstract class RuntimeConfiguration {
-  factory RuntimeConfiguration(Configuration configuration) {
+  TestConfiguration _configuration;
+
+  static RuntimeConfiguration _makeInstance(TestConfiguration configuration) {
     switch (configuration.runtime) {
-      case Runtime.contentShellOnAndroid:
       case Runtime.chrome:
       case Runtime.chromeOnAndroid:
       case Runtime.firefox:
       case Runtime.ie11:
       case Runtime.ie10:
       case Runtime.ie9:
-      case Runtime.opera:
       case Runtime.safari:
         // TODO(ahe): Replace this with one or more browser runtimes.
         return new DummyRuntimeConfiguration();
@@ -57,14 +57,14 @@ abstract class RuntimeConfiguration {
         }
         break;
 
-      case Runtime.drt:
-        return new DrtRuntimeConfiguration();
-
       case Runtime.selfCheck:
         return new SelfCheckRuntimeConfiguration();
     }
-
     throw "unreachable";
+  }
+
+  factory RuntimeConfiguration(TestConfiguration configuration) {
+    return _makeInstance(configuration).._configuration = configuration;
   }
 
   RuntimeConfiguration._subclass();
@@ -186,6 +186,10 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
         break;
     }
 
+    if (_configuration.compiler == Compiler.dartkb) {
+      multiplier *= 4;
+    }
+
     if (mode.isDebug) {
       multiplier *= 2;
       if (isReload) {
@@ -231,11 +235,18 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
       throw "Dart VM cannot run files of type '$type'.";
     }
 
+    List<String> args = arguments;
+    if (suite.configuration.compiler == Compiler.dartkb) {
+      args.removeWhere(
+          (String arg) => arg.startsWith('--optimization-counter-threshold'));
+      args = <String>['--optimization-counter-threshold=-1']..addAll(args);
+    }
+
     String executable = suite.dartVmBinaryFileName;
     if (type == 'application/kernel-ir-fully-linked') {
       executable = suite.dartVmExecutableFileName;
     }
-    return [Command.vm(executable, arguments, environmentOverrides)];
+    return [Command.vm(executable, args, environmentOverrides)];
   }
 }
 

@@ -18,7 +18,9 @@ import '../analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NewAnalysisOptionsFileNotificationTest);
+    defineReflectiveTests(NewAnalysisOptionsFileNotificationTest_UseCFE);
     defineReflectiveTests(OldAnalysisOptionsFileNotificationTest);
+    defineReflectiveTests(OldAnalysisOptionsFileNotificationTest_UseCFE);
   });
 }
 
@@ -269,8 +271,22 @@ class NewAnalysisOptionsFileNotificationTest
 }
 
 @reflectiveTest
+class NewAnalysisOptionsFileNotificationTest_UseCFE
+    extends NewAnalysisOptionsFileNotificationTest {
+  @override
+  bool get useCFE => true;
+}
+
+@reflectiveTest
 class OldAnalysisOptionsFileNotificationTest
     extends AnalysisOptionsFileNotificationTest {
   @override
   String get optionsFilePath => '$projectPath/.analysis_options';
+}
+
+@reflectiveTest
+class OldAnalysisOptionsFileNotificationTest_UseCFE
+    extends OldAnalysisOptionsFileNotificationTest {
+  @override
+  bool get useCFE => true;
 }

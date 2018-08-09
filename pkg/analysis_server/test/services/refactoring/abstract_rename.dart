@@ -43,7 +43,7 @@ class RenameRefactoringTest extends RefactoringTest {
    */
   void createRenameRefactoringAtString(String search) {
     SimpleIdentifier identifier = findIdentifier(search);
-    Element element = identifier.bestElement;
+    Element element = identifier.staticElement;
     if (element is PrefixElement) {
       element = getImportElement(identifier);
     }

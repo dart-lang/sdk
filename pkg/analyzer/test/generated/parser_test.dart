@@ -132,6 +132,9 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
 
   Expression parseCascadeSection(String code);
 
+  CommentReference parseCommentReference(
+      String referenceSource, int sourceOffset);
+
   CompilationUnit parseCompilationUnit(String source,
       {List<ErrorCode> codes, List<ExpectedError> errors});
 
@@ -306,12 +309,12 @@ class AstValidator extends UnifyingAstVisitor<Object> {
       int parentStart = parent.offset;
       int parentEnd = parentStart + parent.length;
       if (nodeStart < parentStart) {
-        _errors.add("Invalid source start ($nodeStart) for ${node
-            .runtimeType} inside ${parent.runtimeType} ($parentStart)");
+        _errors.add(
+            "Invalid source start ($nodeStart) for ${node.runtimeType} inside ${parent.runtimeType} ($parentStart)");
       }
       if (nodeEnd > parentEnd) {
-        _errors.add("Invalid source end ($nodeEnd) for ${node
-            .runtimeType} inside ${parent.runtimeType} ($parentStart)");
+        _errors.add(
+            "Invalid source end ($nodeEnd) for ${node.runtimeType} inside ${parent.runtimeType} ($parentStart)");
       }
     }
   }
@@ -2668,10 +2671,12 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
     parser.parseCompilationUnit2();
     listener.assertErrors(usingFastaParser
         ? [
+            expectedError(
+                CompileTimeErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR, 11, 2),
             expectedError(ParserErrorCode.MISSING_IDENTIFIER, 13, 1),
             expectedError(ParserErrorCode.EXPECTED_TOKEN, 13, 1),
             expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 10, 1),
-            expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 13, 1)
+            expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 13, 1),
           ]
         : [
             expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 13, 1),
@@ -2686,6 +2691,8 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
     parser.parseCompilationUnit2();
     listener.assertErrors(usingFastaParser
         ? [
+            expectedError(
+                CompileTimeErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR, 11, 6),
             expectedError(ParserErrorCode.MISSING_IDENTIFIER, 17, 1),
             expectedError(ParserErrorCode.EXPECTED_TOKEN, 17, 1),
             expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 10, 1),
@@ -2704,6 +2711,8 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
     parser.parseCompilationUnit2();
     listener.assertErrors(usingFastaParser
         ? [
+            expectedError(
+                CompileTimeErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR, 11, 13),
             expectedError(ParserErrorCode.MISSING_IDENTIFIER, 24, 1),
             expectedError(ParserErrorCode.EXPECTED_TOKEN, 24, 1),
             expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 10, 1),
@@ -3861,16 +3870,30 @@ class Wrong<T> {
 
   void test_illegalAssignmentToNonAssignable_assign_int() {
     parseStatement("0 = 1;");
-    listener.assertErrors([
-      expectedError(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 0, 1)
-    ]);
+    listener.assertErrors(usingFastaParser
+        ? [
+            expectedError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 0, 1),
+            expectedError(
+                ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 0, 1),
+          ]
+        : [
+            expectedError(
+                ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 4, 1)
+          ]);
   }
 
   void test_illegalAssignmentToNonAssignable_assign_this() {
     parseStatement("this = 1;");
-    listener.assertErrors([
-      expectedError(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 0, 4)
-    ]);
+    listener.assertErrors(usingFastaParser
+        ? [
+            expectedError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 0, 4),
+            expectedError(
+                ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 0, 4)
+          ]
+        : [
+            expectedError(
+                ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 7, 1)
+          ]);
   }
 
   void test_illegalAssignmentToNonAssignable_postfix_minusMinus_literal() {
@@ -3899,16 +3922,10 @@ class Wrong<T> {
 
   void test_illegalAssignmentToNonAssignable_superAssigned() {
     parseStatement("super = x;");
-    listener.assertErrors(usingFastaParser
-        ? [
-            expectedError(
-                ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 0, 5)
-          ]
-        : [
-            expectedError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 6, 1),
-            expectedError(
-                ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 6, 1)
-          ]);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 0, 5),
+      expectedError(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 0, 5)
+    ]);
   }
 
   void test_implementsBeforeExtends() {
@@ -4001,7 +4018,7 @@ class Wrong<T> {
   void test_invalidCommentReference__new_nonIdentifier() {
     // This test fails because the method parseCommentReference returns null.
     createParser('');
-    CommentReference reference = parser.parseCommentReference('new 42', 0);
+    CommentReference reference = parseCommentReference('new 42', 0);
     expectNotNullIfNoErrors(reference);
     listener.assertErrors(
         [expectedError(ParserErrorCode.INVALID_COMMENT_REFERENCE, 0, 6)]);
@@ -4010,7 +4027,7 @@ class Wrong<T> {
   @failingTest
   void test_invalidCommentReference__new_tooMuch() {
     createParser('');
-    CommentReference reference = parser.parseCommentReference('new a.b.c.d', 0);
+    CommentReference reference = parseCommentReference('new a.b.c.d', 0);
     expectNotNullIfNoErrors(reference);
     listener.assertErrors(
         [expectedError(ParserErrorCode.INVALID_COMMENT_REFERENCE, 0, 11)]);
@@ -4020,7 +4037,7 @@ class Wrong<T> {
   void test_invalidCommentReference__nonNew_nonIdentifier() {
     // This test fails because the method parseCommentReference returns null.
     createParser('');
-    CommentReference reference = parser.parseCommentReference('42', 0);
+    CommentReference reference = parseCommentReference('42', 0);
     expectNotNullIfNoErrors(reference);
     listener.assertErrors(
         [expectedError(ParserErrorCode.INVALID_COMMENT_REFERENCE, 0, 2)]);
@@ -4029,7 +4046,7 @@ class Wrong<T> {
   @failingTest
   void test_invalidCommentReference__nonNew_tooMuch() {
     createParser('');
-    CommentReference reference = parser.parseCommentReference('a.b.c.d', 0);
+    CommentReference reference = parseCommentReference('a.b.c.d', 0);
     expectNotNullIfNoErrors(reference);
     listener.assertErrors(
         [expectedError(ParserErrorCode.INVALID_COMMENT_REFERENCE, 0, 7)]);
@@ -4089,11 +4106,15 @@ class Wrong<T> {
   }
 
   void test_invalidOperator() {
-    createParser('void operator ===(x) {}');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    listener
-        .assertErrors([expectedError(ParserErrorCode.INVALID_OPERATOR, 14, 3)]);
+    CompilationUnit unit =
+        parseCompilationUnit('class C { void operator ===(x) { } }',
+            errors: usingFastaParser
+                ? [expectedError(ScannerErrorCode.UNSUPPORTED_OPERATOR, 24, 1)]
+                : [
+                    expectedError(ScannerErrorCode.UNSUPPORTED_OPERATOR, 24, 1),
+                    expectedError(ParserErrorCode.INVALID_OPERATOR, 24, 3)
+                  ]);
+    expect(unit, isNotNull);
   }
 
   void test_invalidOperator_unary() {
@@ -4141,6 +4162,11 @@ class Wrong<T> {
           ? expectedError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 2, 5)
           : expectedError(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, 0, 2)
     ]);
+  }
+
+  void test_invalidPropertyAccess_this() {
+    parseExpression('x.this',
+        errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 2, 4)]);
   }
 
   void test_invalidStarAfterAsync() {
@@ -4883,16 +4909,18 @@ class Wrong<T> {
     createParser('(a, {b: 0)');
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
-    listener
-        .assertErrors([expectedError(ScannerErrorCode.EXPECTED_TOKEN, 9, 1)]);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)]
+        : [expectedError(ScannerErrorCode.EXPECTED_TOKEN, 9, 1)]);
   }
 
   void test_missingTerminatorForParameterGroup_optional() {
     createParser('(a, [b = 0)');
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
-    listener
-        .assertErrors([expectedError(ScannerErrorCode.EXPECTED_TOKEN, 10, 1)]);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)]
+        : [expectedError(ScannerErrorCode.EXPECTED_TOKEN, 10, 1)]);
   }
 
   void test_missingTypedefParameters_nonVoid() {
@@ -5883,7 +5911,7 @@ void main() {
     if (usingFastaParser) {
       listener.assertErrors([
         expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1),
-        expectedError(ScannerErrorCode.EXPECTED_TOKEN, 10, 1)
+        expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)
       ]);
     } else {
       listener.assertErrors([
@@ -5902,7 +5930,7 @@ void main() {
     if (usingFastaParser) {
       listener.assertErrors([
         expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1),
-        expectedError(ScannerErrorCode.EXPECTED_TOKEN, 10, 1)
+        expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)
       ]);
     } else {
       listener.assertErrors([
@@ -8681,6 +8709,30 @@ class FormalParameterParserTest extends ParserTestCase
  */
 abstract class FormalParameterParserTestMixin
     implements AbstractParserTestCase {
+  void test_parseConstructorParameter_this() {
+    parseCompilationUnit('''
+class C {
+  final int field;
+  C(this.field);
+}''');
+  }
+
+  void test_parseConstructorParameter_this_Function() {
+    parseCompilationUnit('''
+class C {
+  final Object Function(int, double) field;
+  C(String Function(num, Object) this.field);
+}''');
+  }
+
+  void test_parseConstructorParameter_this_int() {
+    parseCompilationUnit('''
+class C {
+  final int field;
+  C(int this.field);
+}''');
+  }
+
   void test_parseFormalParameter_covariant_final_named() {
     ParameterKind kind = ParameterKind.NAMED;
     FormalParameter parameter =
@@ -10029,6 +10081,22 @@ class ParserTestCase extends EngineTestCase
     } else {
       createParser(code);
       return parser.parseCascadeSection();
+    }
+  }
+
+  CommentReference parseCommentReference(
+      String referenceSource, int sourceOffset) {
+    String padding = ' '.padLeft(sourceOffset - 4, 'a');
+    String source = '/**$padding[$referenceSource] */ class C { }';
+    CompilationUnit unit = parseCompilationUnit(source);
+    ClassDeclaration clazz = unit.declarations[0];
+    Comment comment = clazz.documentationComment;
+    List<CommentReference> references = comment.references;
+    if (references.isEmpty) {
+      return null;
+    } else {
+      expect(references, hasLength(1));
+      return references[0];
     }
   }
 
@@ -12450,443 +12518,6 @@ class SimpleParserTest extends ParserTestCase with SimpleParserTestMixin {
     expect(_isSwitchMember("break;"), isFalse);
   }
 
-  void test_parseCommentReference_new_prefixed() {
-    createParser('');
-    CommentReference reference = parser.parseCommentReference('new a.b', 7);
-    expectNotNullIfNoErrors(reference);
-    assertNoErrors();
-    expect(reference.identifier, new TypeMatcher<PrefixedIdentifier>());
-    PrefixedIdentifier prefixedIdentifier = reference.identifier;
-    SimpleIdentifier prefix = prefixedIdentifier.prefix;
-    expect(prefix.token, isNotNull);
-    expect(prefix.name, "a");
-    expect(prefix.offset, 11);
-    expect(prefixedIdentifier.period, isNotNull);
-    SimpleIdentifier identifier = prefixedIdentifier.identifier;
-    expect(identifier.token, isNotNull);
-    expect(identifier.name, "b");
-    expect(identifier.offset, 13);
-  }
-
-  void test_parseCommentReference_new_simple() {
-    createParser('');
-    CommentReference reference = parser.parseCommentReference('new a', 5);
-    expectNotNullIfNoErrors(reference);
-    assertNoErrors();
-    expect(reference.identifier, new TypeMatcher<SimpleIdentifier>());
-    SimpleIdentifier identifier = reference.identifier;
-    expect(identifier.token, isNotNull);
-    expect(identifier.name, "a");
-    expect(identifier.offset, 9);
-  }
-
-  void test_parseCommentReference_operator_withKeyword_notPrefixed() {
-    createParser('');
-    CommentReference reference = parser.parseCommentReference('operator ==', 5);
-    expectNotNullIfNoErrors(reference);
-    assertNoErrors();
-    expect(reference.identifier, new TypeMatcher<SimpleIdentifier>());
-    SimpleIdentifier identifier = reference.identifier;
-    expect(identifier.token, isNotNull);
-    expect(identifier.name, "==");
-    expect(identifier.offset, 14);
-  }
-
-  void test_parseCommentReference_operator_withKeyword_prefixed() {
-    createParser('');
-    CommentReference reference =
-        parser.parseCommentReference('Object.operator==', 7);
-    expectNotNullIfNoErrors(reference);
-    assertNoErrors();
-    expect(reference.identifier, new TypeMatcher<PrefixedIdentifier>());
-    PrefixedIdentifier prefixedIdentifier = reference.identifier;
-    SimpleIdentifier prefix = prefixedIdentifier.prefix;
-    expect(prefix.token, isNotNull);
-    expect(prefix.name, "Object");
-    expect(prefix.offset, 7);
-    expect(prefixedIdentifier.period, isNotNull);
-    SimpleIdentifier identifier = prefixedIdentifier.identifier;
-    expect(identifier.token, isNotNull);
-    expect(identifier.name, "==");
-    expect(identifier.offset, 22);
-  }
-
-  void test_parseCommentReference_operator_withoutKeyword_notPrefixed() {
-    createParser('');
-    CommentReference reference = parser.parseCommentReference('==', 5);
-    expectNotNullIfNoErrors(reference);
-    assertNoErrors();
-    expect(reference.identifier, new TypeMatcher<SimpleIdentifier>());
-    SimpleIdentifier identifier = reference.identifier;
-    expect(identifier.token, isNotNull);
-    expect(identifier.name, "==");
-    expect(identifier.offset, 5);
-  }
-
-  void test_parseCommentReference_operator_withoutKeyword_prefixed() {
-    createParser('');
-    CommentReference reference = parser.parseCommentReference('Object.==', 7);
-    expectNotNullIfNoErrors(reference);
-    assertNoErrors();
-    expect(reference.identifier, new TypeMatcher<PrefixedIdentifier>());
-    PrefixedIdentifier prefixedIdentifier = reference.identifier;
-    SimpleIdentifier prefix = prefixedIdentifier.prefix;
-    expect(prefix.token, isNotNull);
-    expect(prefix.name, "Object");
-    expect(prefix.offset, 7);
-    expect(prefixedIdentifier.period, isNotNull);
-    SimpleIdentifier identifier = prefixedIdentifier.identifier;
-    expect(identifier.token, isNotNull);
-    expect(identifier.name, "==");
-    expect(identifier.offset, 14);
-  }
-
-  void test_parseCommentReference_prefixed() {
-    createParser('');
-    CommentReference reference = parser.parseCommentReference('a.b', 7);
-    expectNotNullIfNoErrors(reference);
-    assertNoErrors();
-    expect(reference.identifier, new TypeMatcher<PrefixedIdentifier>());
-    PrefixedIdentifier prefixedIdentifier = reference.identifier;
-    SimpleIdentifier prefix = prefixedIdentifier.prefix;
-    expect(prefix.token, isNotNull);
-    expect(prefix.name, "a");
-    expect(prefix.offset, 7);
-    expect(prefixedIdentifier.period, isNotNull);
-    SimpleIdentifier identifier = prefixedIdentifier.identifier;
-    expect(identifier.token, isNotNull);
-    expect(identifier.name, "b");
-    expect(identifier.offset, 9);
-  }
-
-  void test_parseCommentReference_simple() {
-    createParser('');
-    CommentReference reference = parser.parseCommentReference('a', 5);
-    expectNotNullIfNoErrors(reference);
-    assertNoErrors();
-    expect(reference.identifier, new TypeMatcher<SimpleIdentifier>());
-    SimpleIdentifier identifier = reference.identifier;
-    expect(identifier.token, isNotNull);
-    expect(identifier.name, "a");
-    expect(identifier.offset, 5);
-  }
-
-  void test_parseCommentReference_synthetic() {
-    createParser('');
-    CommentReference reference = parser.parseCommentReference('', 5);
-    expectNotNullIfNoErrors(reference);
-    assertNoErrors();
-    expect(reference.identifier, new TypeMatcher<SimpleIdentifier>());
-    SimpleIdentifier identifier = reference.identifier;
-    expect(identifier, isNotNull);
-    expect(identifier.isSynthetic, isTrue);
-    expect(identifier.token, isNotNull);
-    expect(identifier.name, "");
-    expect(identifier.offset, 5);
-    // Should end with EOF token.
-    Token nextToken = identifier.token.next;
-    expect(nextToken, isNotNull);
-    expect(nextToken.type, TokenType.EOF);
-  }
-
-  @failingTest
-  void test_parseCommentReference_this() {
-    // This fails because we are returning null from the method and asserting
-    // that the return value is not null.
-    createParser('');
-    CommentReference reference = parser.parseCommentReference('this', 5);
-    expectNotNullIfNoErrors(reference);
-    assertNoErrors();
-    SimpleIdentifier identifier = EngineTestCase.assertInstanceOf(
-        (obj) => obj is SimpleIdentifier,
-        SimpleIdentifier,
-        reference.identifier);
-    expect(identifier.token, isNotNull);
-    expect(identifier.name, "a");
-    expect(identifier.offset, 5);
-  }
-
-  void test_parseCommentReferences_multiLine() {
-    DocumentationCommentToken token = new DocumentationCommentToken(
-        TokenType.MULTI_LINE_COMMENT, "/** xxx [a] yyy [bb] zzz */", 3);
-    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[token];
-    createParser('');
-    List<CommentReference> references = parser.parseCommentReferences(tokens);
-    expectNotNullIfNoErrors(references);
-    assertNoErrors();
-    List<Token> tokenReferences = token.references;
-    expect(references, hasLength(2));
-    expect(tokenReferences, hasLength(2));
-    {
-      CommentReference reference = references[0];
-      expect(reference, isNotNull);
-      expect(reference.identifier, isNotNull);
-      expect(reference.offset, 12);
-      // the reference is recorded in the comment token
-      Token referenceToken = tokenReferences[0];
-      expect(referenceToken.offset, 12);
-      expect(referenceToken.lexeme, 'a');
-    }
-    {
-      CommentReference reference = references[1];
-      expect(reference, isNotNull);
-      expect(reference.identifier, isNotNull);
-      expect(reference.offset, 20);
-      // the reference is recorded in the comment token
-      Token referenceToken = tokenReferences[1];
-      expect(referenceToken.offset, 20);
-      expect(referenceToken.lexeme, 'bb');
-    }
-  }
-
-  void test_parseCommentReferences_notClosed_noIdentifier() {
-    DocumentationCommentToken docToken = new DocumentationCommentToken(
-        TokenType.MULTI_LINE_COMMENT, "/** [ some text", 5);
-    createParser('');
-    List<CommentReference> references =
-        parser.parseCommentReferences(<DocumentationCommentToken>[docToken]);
-    expectNotNullIfNoErrors(references);
-    assertNoErrors();
-    expect(docToken.references, hasLength(1));
-    expect(references, hasLength(1));
-    Token referenceToken = docToken.references[0];
-    CommentReference reference = references[0];
-    expect(reference, isNotNull);
-    expect(docToken.references[0], same(reference.beginToken));
-    expect(reference.identifier, isNotNull);
-    expect(reference.identifier.isSynthetic, isTrue);
-    expect(reference.identifier.name, "");
-    // Should end with EOF token.
-    Token nextToken = referenceToken.next;
-    expect(nextToken, isNotNull);
-    expect(nextToken.type, TokenType.EOF);
-  }
-
-  void test_parseCommentReferences_notClosed_withIdentifier() {
-    DocumentationCommentToken docToken = new DocumentationCommentToken(
-        TokenType.MULTI_LINE_COMMENT, "/** [namePrefix some text", 5);
-    createParser('');
-    List<CommentReference> references =
-        parser.parseCommentReferences(<DocumentationCommentToken>[docToken]);
-    expectNotNullIfNoErrors(references);
-    assertNoErrors();
-    expect(docToken.references, hasLength(1));
-    expect(references, hasLength(1));
-    Token referenceToken = docToken.references[0];
-    CommentReference reference = references[0];
-    expect(reference, isNotNull);
-    expect(referenceToken, same(reference.beginToken));
-    expect(reference.identifier, isNotNull);
-    expect(reference.identifier.isSynthetic, isFalse);
-    expect(reference.identifier.name, "namePrefix");
-    // Should end with EOF token.
-    Token nextToken = referenceToken.next;
-    expect(nextToken, isNotNull);
-    expect(nextToken.type, TokenType.EOF);
-  }
-
-  void test_parseCommentReferences_singleLine() {
-    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
-      new DocumentationCommentToken(
-          TokenType.SINGLE_LINE_COMMENT, "/// xxx [a] yyy [b] zzz", 3),
-      new DocumentationCommentToken(
-          TokenType.SINGLE_LINE_COMMENT, "/// x [c]", 28)
-    ];
-    createParser('');
-    List<CommentReference> references = parser.parseCommentReferences(tokens);
-    expectNotNullIfNoErrors(references);
-    assertNoErrors();
-    expect(references, hasLength(3));
-    CommentReference reference = references[0];
-    expect(reference, isNotNull);
-    expect(reference.identifier, isNotNull);
-    expect(reference.offset, 12);
-    reference = references[1];
-    expect(reference, isNotNull);
-    expect(reference.identifier, isNotNull);
-    expect(reference.offset, 20);
-    reference = references[2];
-    expect(reference, isNotNull);
-    expect(reference.identifier, isNotNull);
-    expect(reference.offset, 35);
-  }
-
-  void test_parseCommentReferences_skipCodeBlock_4spaces_block() {
-    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
-      new DocumentationCommentToken(TokenType.MULTI_LINE_COMMENT,
-          "/**\n *     a[i]\n * non-code line\n */", 3)
-    ];
-    createParser('');
-    List<CommentReference> references = parser.parseCommentReferences(tokens);
-    expectNotNullIfNoErrors(references);
-    assertNoErrors();
-    expect(references, isEmpty);
-  }
-
-  void test_parseCommentReferences_skipCodeBlock_4spaces_lines() {
-    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
-      new DocumentationCommentToken(
-          TokenType.SINGLE_LINE_COMMENT, "/// Code block:", 0),
-      new DocumentationCommentToken(
-          TokenType.SINGLE_LINE_COMMENT, "///     a[i] == b[i]", 0)
-    ];
-    createParser('');
-    List<CommentReference> references = parser.parseCommentReferences(tokens);
-    expectNotNullIfNoErrors(references);
-    assertNoErrors();
-    expect(references, isEmpty);
-  }
-
-  void test_parseCommentReferences_skipCodeBlock_bracketed() {
-    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
-      new DocumentationCommentToken(
-          TokenType.MULTI_LINE_COMMENT, "/** [:xxx [a] yyy:] [b] zzz */", 3)
-    ];
-    createParser('');
-    List<CommentReference> references = parser.parseCommentReferences(tokens);
-    expectNotNullIfNoErrors(references);
-    assertNoErrors();
-    expect(references, hasLength(1));
-    CommentReference reference = references[0];
-    expect(reference, isNotNull);
-    expect(reference.identifier, isNotNull);
-    expect(reference.offset, 24);
-  }
-
-  void test_parseCommentReferences_skipCodeBlock_gitHub() {
-    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
-      new DocumentationCommentToken(
-          TokenType.MULTI_LINE_COMMENT, "/** `a[i]` and [b] */", 0)
-    ];
-    createParser('');
-    List<CommentReference> references = parser.parseCommentReferences(tokens);
-    expectNotNullIfNoErrors(references);
-    assertNoErrors();
-    expect(references, hasLength(1));
-    CommentReference reference = references[0];
-    expect(reference, isNotNull);
-    expect(reference.identifier, isNotNull);
-    expect(reference.offset, 16);
-  }
-
-  void test_parseCommentReferences_skipCodeBlock_gitHub_multiLine() {
-    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
-      new DocumentationCommentToken(
-          TokenType.MULTI_LINE_COMMENT,
-          r'''
-/**
- * First.
- * ```dart
- * Some [int] reference.
- * ```
- * Last.
- */
-''',
-          3)
-    ];
-    createParser('');
-    List<CommentReference> references = parser.parseCommentReferences(tokens);
-    expectNotNullIfNoErrors(references);
-    assertNoErrors();
-    expect(references, isEmpty);
-  }
-
-  void test_parseCommentReferences_skipCodeBlock_gitHub_multiLine_lines() {
-    String commentText = r'''
-/// First.
-/// ```dart
-/// Some [int] reference.
-/// ```
-/// Last.
-''';
-    List<DocumentationCommentToken> tokens = commentText
-        .split('\n')
-        .map((line) => new DocumentationCommentToken(
-            TokenType.SINGLE_LINE_COMMENT, line, 0))
-        .toList();
-    createParser('');
-    List<CommentReference> references = parser.parseCommentReferences(tokens);
-    expectNotNullIfNoErrors(references);
-    assertNoErrors();
-    expect(references, isEmpty);
-  }
-
-  void test_parseCommentReferences_skipCodeBlock_gitHub_notTerminated() {
-    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
-      new DocumentationCommentToken(
-          TokenType.MULTI_LINE_COMMENT, "/** `a[i] and [b] */", 0)
-    ];
-    createParser('');
-    List<CommentReference> references = parser.parseCommentReferences(tokens);
-    expectNotNullIfNoErrors(references);
-    assertNoErrors();
-    expect(references, hasLength(2));
-  }
-
-  void test_parseCommentReferences_skipCodeBlock_spaces() {
-    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
-      new DocumentationCommentToken(TokenType.MULTI_LINE_COMMENT,
-          "/**\n *     a[i]\n * xxx [i] zzz\n */", 3)
-    ];
-    createParser('');
-    List<CommentReference> references = parser.parseCommentReferences(tokens);
-    expectNotNullIfNoErrors(references);
-    assertNoErrors();
-    expect(references, hasLength(1));
-    CommentReference reference = references[0];
-    expect(reference, isNotNull);
-    expect(reference.identifier, isNotNull);
-    expect(reference.offset, 27);
-  }
-
-  void test_parseCommentReferences_skipLinkDefinition() {
-    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
-      new DocumentationCommentToken(TokenType.MULTI_LINE_COMMENT,
-          "/** [a]: http://www.google.com (Google) [b] zzz */", 3)
-    ];
-    createParser('');
-    List<CommentReference> references = parser.parseCommentReferences(tokens);
-    expectNotNullIfNoErrors(references);
-    assertNoErrors();
-    expect(references, hasLength(1));
-    CommentReference reference = references[0];
-    expect(reference, isNotNull);
-    expect(reference.identifier, isNotNull);
-    expect(reference.offset, 44);
-  }
-
-  void test_parseCommentReferences_skipLinked() {
-    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
-      new DocumentationCommentToken(TokenType.MULTI_LINE_COMMENT,
-          "/** [a](http://www.google.com) [b] zzz */", 3)
-    ];
-    createParser('');
-    List<CommentReference> references = parser.parseCommentReferences(tokens);
-    expectNotNullIfNoErrors(references);
-    assertNoErrors();
-    expect(references, hasLength(1));
-    CommentReference reference = references[0];
-    expect(reference, isNotNull);
-    expect(reference.identifier, isNotNull);
-    expect(reference.offset, 35);
-  }
-
-  void test_parseCommentReferences_skipReferenceLink() {
-    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
-      new DocumentationCommentToken(
-          TokenType.MULTI_LINE_COMMENT, "/** [a][c] [b] zzz */", 3)
-    ];
-    createParser('');
-    List<CommentReference> references = parser.parseCommentReferences(tokens);
-    expectNotNullIfNoErrors(references);
-    assertNoErrors();
-    expect(references, hasLength(1));
-    CommentReference reference = references[0];
-    expect(reference, isNotNull);
-    expect(reference.identifier, isNotNull);
-    expect(reference.offset, 15);
-  }
-
   void test_parseDottedName_multiple() {
     createParser('a.b.c');
     DottedName name = parser.parseDottedName();
@@ -13742,7 +13373,10 @@ class C<@Foo.bar(const [], const [1], const{"":r""}, 0xFF + 2, .3, 4.5) T> {}
     expectNotNullIfNoErrors(unit);
     assertNoErrors();
     ClassDeclaration declaration = unit.declarations[0];
-    expect(declaration.documentationComment, isNotNull);
+    Comment comment = declaration.documentationComment;
+    expect(comment.isDocumentation, isTrue);
+    expect(comment.tokens, hasLength(1));
+    expect(comment.tokens[0].lexeme, '/** 2 */');
     expect(declaration.metadata, hasLength(1));
   }
 
@@ -13807,6 +13441,103 @@ class C<@Foo.bar(const [], const [1], const{"":r""}, 0xFF + 2, .3, 4.5) T> {}
     expect(declaration.metadata, hasLength(2));
   }
 
+  void test_parseCommentAndMetadata_mix1() {
+    createParser(r'''
+/**
+ * aaa
+ */
+/**
+ * bbb
+ */
+class A {}
+''');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expectNotNullIfNoErrors(unit);
+    assertNoErrors();
+    ClassDeclaration declaration = unit.declarations[0];
+    expect(declaration.metadata, hasLength(0));
+    List<Token> tokens = declaration.documentationComment.tokens;
+    expect(tokens, hasLength(1));
+    expect(tokens[0].lexeme, contains('bbb'));
+  }
+
+  void test_parseCommentAndMetadata_mix2() {
+    createParser(r'''
+/**
+ * aaa
+ */
+/// bbb
+/// ccc
+class B {}
+''');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expectNotNullIfNoErrors(unit);
+    assertNoErrors();
+    ClassDeclaration declaration = unit.declarations[0];
+    expect(declaration.metadata, hasLength(0));
+    List<Token> tokens = declaration.documentationComment.tokens;
+    expect(tokens, hasLength(2));
+    expect(tokens[0].lexeme, contains('bbb'));
+    expect(tokens[1].lexeme, contains('ccc'));
+  }
+
+  void test_parseCommentAndMetadata_mix3() {
+    createParser(r'''
+/// aaa
+/// bbb
+/**
+ * ccc
+ */
+class C {}
+''');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expectNotNullIfNoErrors(unit);
+    assertNoErrors();
+    ClassDeclaration declaration = unit.declarations[0];
+    expect(declaration.metadata, hasLength(0));
+    List<Token> tokens = declaration.documentationComment.tokens;
+    expect(tokens, hasLength(1));
+    expect(tokens[0].lexeme, contains('ccc'));
+  }
+
+  test_parseCommentAndMetadata_mix4() {
+    createParser(r'''
+/// aaa
+/// bbb
+/**
+ * ccc
+ */
+/// ddd
+class D {}
+''');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expectNotNullIfNoErrors(unit);
+    assertNoErrors();
+    ClassDeclaration declaration = unit.declarations[0];
+    expect(declaration.metadata, hasLength(0));
+    List<Token> tokens = declaration.documentationComment.tokens;
+    expect(tokens, hasLength(1));
+    expect(tokens[0].lexeme, contains('ddd'));
+  }
+
+  test_parseCommentAndMetadata_mix5() {
+    createParser(r'''
+/**
+ * aaa
+ */
+// bbb
+class E {}
+''');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expectNotNullIfNoErrors(unit);
+    assertNoErrors();
+    ClassDeclaration declaration = unit.declarations[0];
+    expect(declaration.metadata, hasLength(0));
+    List<Token> tokens = declaration.documentationComment.tokens;
+    expect(tokens, hasLength(1));
+    expect(tokens[0].lexeme, contains('aaa'));
+  }
+
   void test_parseCommentAndMetadata_none() {
     createParser('class C {}');
     CompilationUnit unit = parser.parseCompilationUnit2();
@@ -13843,6 +13574,490 @@ class C {}
     expect(reference, isNotNull);
     expect(reference.identifier, isNotNull);
     expect(reference.offset, 5);
+  }
+
+  void test_parseCommentReferences_beforeAnnotation() {
+    CompilationUnit unit = parseCompilationUnit('''
+/// See [int] and [String]
+/// and [Object].
+@Annotation
+abstract class Foo {}
+''');
+    ClassDeclaration clazz = unit.declarations[0];
+    Comment comment = clazz.documentationComment;
+    expect(clazz.isAbstract, isTrue);
+    List<CommentReference> references = comment.references;
+    expect(references, hasLength(3));
+
+    expectReference(int index, String expectedText, int expectedOffset) {
+      CommentReference reference = references[index];
+      expect(reference.identifier.name, expectedText);
+      expect(reference.offset, expectedOffset);
+    }
+
+    expectReference(0, 'int', 9);
+    expectReference(1, 'String', 19);
+    expectReference(2, 'Object', 36);
+  }
+
+  void test_parseCommentReferences_complex() {
+    CompilationUnit unit = parseCompilationUnit('''
+/// This dartdoc comment [should] be ignored
+@Annotation
+/// This dartdoc comment is [included].
+// a non dartdoc comment [inbetween]
+/// See [int] and [String] but `not [a]`
+/// ```
+/// This [code] block should be ignored
+/// ```
+/// and [Object].
+abstract class Foo {}
+''');
+    ClassDeclaration clazz = unit.declarations[0];
+    Comment comment = clazz.documentationComment;
+    expect(clazz.isAbstract, isTrue);
+    List<CommentReference> references = comment.references;
+    expect(references, hasLength(4));
+
+    expectReference(int index, String expectedText, int expectedOffset) {
+      CommentReference reference = references[index];
+      expect(reference.identifier.name, expectedText);
+      expect(reference.offset, expectedOffset);
+    }
+
+    expectReference(0, 'included', 86);
+    expectReference(1, 'int', 143);
+    expectReference(2, 'String', 153);
+    expectReference(3, 'Object', 240);
+  }
+
+  void test_parseCommentReference_new_prefixed() {
+    createParser('');
+    CommentReference reference = parseCommentReference('new a.b', 7);
+    expectNotNullIfNoErrors(reference);
+    assertNoErrors();
+    expect(reference.identifier, new TypeMatcher<PrefixedIdentifier>());
+    PrefixedIdentifier prefixedIdentifier = reference.identifier;
+    SimpleIdentifier prefix = prefixedIdentifier.prefix;
+    expect(prefix.token, isNotNull);
+    expect(prefix.name, "a");
+    expect(prefix.offset, 11);
+    expect(prefixedIdentifier.period, isNotNull);
+    SimpleIdentifier identifier = prefixedIdentifier.identifier;
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, "b");
+    expect(identifier.offset, 13);
+  }
+
+  void test_parseCommentReference_new_simple() {
+    createParser('');
+    CommentReference reference = parseCommentReference('new a', 5);
+    expectNotNullIfNoErrors(reference);
+    assertNoErrors();
+    expect(reference.identifier, new TypeMatcher<SimpleIdentifier>());
+    SimpleIdentifier identifier = reference.identifier;
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, "a");
+    expect(identifier.offset, 9);
+  }
+
+  void test_parseCommentReference_operator_withKeyword_notPrefixed() {
+    createParser('');
+    CommentReference reference = parseCommentReference('operator ==', 5);
+    expectNotNullIfNoErrors(reference);
+    assertNoErrors();
+    expect(reference.identifier, new TypeMatcher<SimpleIdentifier>());
+    SimpleIdentifier identifier = reference.identifier;
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, "==");
+    expect(identifier.offset, 14);
+  }
+
+  void test_parseCommentReference_operator_withKeyword_prefixed() {
+    createParser('');
+    CommentReference reference = parseCommentReference('Object.operator==', 7);
+    expectNotNullIfNoErrors(reference);
+    assertNoErrors();
+    expect(reference.identifier, new TypeMatcher<PrefixedIdentifier>());
+    PrefixedIdentifier prefixedIdentifier = reference.identifier;
+    SimpleIdentifier prefix = prefixedIdentifier.prefix;
+    expect(prefix.token, isNotNull);
+    expect(prefix.name, "Object");
+    expect(prefix.offset, 7);
+    expect(prefixedIdentifier.period, isNotNull);
+    SimpleIdentifier identifier = prefixedIdentifier.identifier;
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, "==");
+    expect(identifier.offset, 22);
+  }
+
+  void test_parseCommentReference_operator_withoutKeyword_notPrefixed() {
+    createParser('');
+    CommentReference reference = parseCommentReference('==', 5);
+    expectNotNullIfNoErrors(reference);
+    assertNoErrors();
+    expect(reference.identifier, new TypeMatcher<SimpleIdentifier>());
+    SimpleIdentifier identifier = reference.identifier;
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, "==");
+    expect(identifier.offset, 5);
+  }
+
+  void test_parseCommentReference_operator_withoutKeyword_prefixed() {
+    createParser('');
+    CommentReference reference = parseCommentReference('Object.==', 7);
+    expectNotNullIfNoErrors(reference);
+    assertNoErrors();
+    expect(reference.identifier, new TypeMatcher<PrefixedIdentifier>());
+    PrefixedIdentifier prefixedIdentifier = reference.identifier;
+    SimpleIdentifier prefix = prefixedIdentifier.prefix;
+    expect(prefix.token, isNotNull);
+    expect(prefix.name, "Object");
+    expect(prefix.offset, 7);
+    expect(prefixedIdentifier.period, isNotNull);
+    SimpleIdentifier identifier = prefixedIdentifier.identifier;
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, "==");
+    expect(identifier.offset, 14);
+  }
+
+  void test_parseCommentReference_prefixed() {
+    createParser('');
+    CommentReference reference = parseCommentReference('a.b', 7);
+    expectNotNullIfNoErrors(reference);
+    assertNoErrors();
+    expect(reference.identifier, new TypeMatcher<PrefixedIdentifier>());
+    PrefixedIdentifier prefixedIdentifier = reference.identifier;
+    SimpleIdentifier prefix = prefixedIdentifier.prefix;
+    expect(prefix.token, isNotNull);
+    expect(prefix.name, "a");
+    expect(prefix.offset, 7);
+    expect(prefixedIdentifier.period, isNotNull);
+    SimpleIdentifier identifier = prefixedIdentifier.identifier;
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, "b");
+    expect(identifier.offset, 9);
+  }
+
+  void test_parseCommentReference_simple() {
+    createParser('');
+    CommentReference reference = parseCommentReference('a', 5);
+    expectNotNullIfNoErrors(reference);
+    assertNoErrors();
+    expect(reference.identifier, new TypeMatcher<SimpleIdentifier>());
+    SimpleIdentifier identifier = reference.identifier;
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, "a");
+    expect(identifier.offset, 5);
+  }
+
+  void test_parseCommentReference_synthetic() {
+    createParser('');
+    CommentReference reference = parseCommentReference('', 5);
+    expectNotNullIfNoErrors(reference);
+    assertNoErrors();
+    expect(reference.identifier, new TypeMatcher<SimpleIdentifier>());
+    SimpleIdentifier identifier = reference.identifier;
+    expect(identifier, isNotNull);
+    expect(identifier.isSynthetic, isTrue);
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, "");
+    expect(identifier.offset, 5);
+    // Should end with EOF token.
+    Token nextToken = identifier.token.next;
+    expect(nextToken, isNotNull);
+    expect(nextToken.type, TokenType.EOF);
+  }
+
+  @failingTest
+  void test_parseCommentReference_this() {
+    // This fails because we are returning null from the method and asserting
+    // that the return value is not null.
+    createParser('');
+    CommentReference reference = parseCommentReference('this', 5);
+    expectNotNullIfNoErrors(reference);
+    assertNoErrors();
+    SimpleIdentifier identifier = EngineTestCase.assertInstanceOf(
+        (obj) => obj is SimpleIdentifier,
+        SimpleIdentifier,
+        reference.identifier);
+    expect(identifier.token, isNotNull);
+    expect(identifier.name, "a");
+    expect(identifier.offset, 5);
+  }
+
+  void test_parseCommentReferences_multiLine() {
+    DocumentationCommentToken token = new DocumentationCommentToken(
+        TokenType.MULTI_LINE_COMMENT, "/** xxx [a] yyy [bb] zzz */", 3);
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[token];
+    createParser('');
+    List<CommentReference> references = parser.parseCommentReferences(tokens);
+    expectNotNullIfNoErrors(references);
+    assertNoErrors();
+    expect(references, hasLength(2));
+    {
+      CommentReference reference = references[0];
+      expect(reference, isNotNull);
+      expect(reference.identifier, isNotNull);
+      expect(reference.offset, 12);
+      Token referenceToken = reference.identifier.beginToken;
+      expect(referenceToken.offset, 12);
+      expect(referenceToken.lexeme, 'a');
+    }
+    {
+      CommentReference reference = references[1];
+      expect(reference, isNotNull);
+      expect(reference.identifier, isNotNull);
+      expect(reference.offset, 20);
+      Token referenceToken = reference.identifier.beginToken;
+      expect(referenceToken.offset, 20);
+      expect(referenceToken.lexeme, 'bb');
+    }
+  }
+
+  void test_parseCommentReferences_notClosed_noIdentifier() {
+    DocumentationCommentToken docToken = new DocumentationCommentToken(
+        TokenType.MULTI_LINE_COMMENT, "/** [ some text", 5);
+    createParser('');
+    List<CommentReference> references =
+        parser.parseCommentReferences(<DocumentationCommentToken>[docToken]);
+    expectNotNullIfNoErrors(references);
+    assertNoErrors();
+    expect(references, hasLength(1));
+    CommentReference reference = references[0];
+    Token referenceToken = reference.identifier.beginToken;
+    expect(reference, isNotNull);
+    expect(reference.identifier, isNotNull);
+    expect(reference.identifier.isSynthetic, isTrue);
+    expect(reference.identifier.name, "");
+    // Should end with EOF token.
+    Token nextToken = referenceToken.next;
+    expect(nextToken, isNotNull);
+    expect(nextToken.type, TokenType.EOF);
+  }
+
+  void test_parseCommentReferences_notClosed_withIdentifier() {
+    DocumentationCommentToken docToken = new DocumentationCommentToken(
+        TokenType.MULTI_LINE_COMMENT, "/** [namePrefix some text", 5);
+    createParser('');
+    List<CommentReference> references =
+        parser.parseCommentReferences(<DocumentationCommentToken>[docToken]);
+    expectNotNullIfNoErrors(references);
+    assertNoErrors();
+    expect(references, hasLength(1));
+    CommentReference reference = references[0];
+    Token referenceToken = reference.identifier.beginToken;
+    expect(reference, isNotNull);
+    expect(referenceToken, same(reference.beginToken));
+    expect(reference.identifier, isNotNull);
+    expect(reference.identifier.isSynthetic, isFalse);
+    expect(reference.identifier.name, "namePrefix");
+    // Should end with EOF token.
+    Token nextToken = referenceToken.next;
+    expect(nextToken, isNotNull);
+    expect(nextToken.type, TokenType.EOF);
+  }
+
+  void test_parseCommentReferences_singleLine() {
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+      new DocumentationCommentToken(
+          TokenType.SINGLE_LINE_COMMENT, "/// xxx [a] yyy [b] zzz", 3),
+      new DocumentationCommentToken(
+          TokenType.SINGLE_LINE_COMMENT, "/// x [c]", 28)
+    ];
+    createParser('');
+    List<CommentReference> references = parser.parseCommentReferences(tokens);
+    expectNotNullIfNoErrors(references);
+    assertNoErrors();
+    expect(references, hasLength(3));
+    CommentReference reference = references[0];
+    expect(reference, isNotNull);
+    expect(reference.identifier, isNotNull);
+    expect(reference.offset, 12);
+    reference = references[1];
+    expect(reference, isNotNull);
+    expect(reference.identifier, isNotNull);
+    expect(reference.offset, 20);
+    reference = references[2];
+    expect(reference, isNotNull);
+    expect(reference.identifier, isNotNull);
+    expect(reference.offset, 35);
+  }
+
+  void test_parseCommentReferences_skipCodeBlock_4spaces_block() {
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+      new DocumentationCommentToken(TokenType.MULTI_LINE_COMMENT,
+          "/**\n *     a[i]\n * non-code line\n */", 3)
+    ];
+    createParser('');
+    List<CommentReference> references = parser.parseCommentReferences(tokens);
+    expectNotNullIfNoErrors(references);
+    assertNoErrors();
+    expect(references, isEmpty);
+  }
+
+  void test_parseCommentReferences_skipCodeBlock_4spaces_lines() {
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+      new DocumentationCommentToken(
+          TokenType.SINGLE_LINE_COMMENT, "/// Code block:", 0),
+      new DocumentationCommentToken(
+          TokenType.SINGLE_LINE_COMMENT, "///     a[i] == b[i]", 0)
+    ];
+    createParser('');
+    List<CommentReference> references = parser.parseCommentReferences(tokens);
+    expectNotNullIfNoErrors(references);
+    assertNoErrors();
+    expect(references, isEmpty);
+  }
+
+  void test_parseCommentReferences_skipCodeBlock_bracketed() {
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+      new DocumentationCommentToken(
+          TokenType.MULTI_LINE_COMMENT, "/** [:xxx [a] yyy:] [b] zzz */", 3)
+    ];
+    createParser('');
+    List<CommentReference> references = parser.parseCommentReferences(tokens);
+    expectNotNullIfNoErrors(references);
+    assertNoErrors();
+    expect(references, hasLength(1));
+    CommentReference reference = references[0];
+    expect(reference, isNotNull);
+    expect(reference.identifier, isNotNull);
+    expect(reference.offset, 24);
+  }
+
+  void test_parseCommentReferences_skipCodeBlock_gitHub() {
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+      new DocumentationCommentToken(
+          TokenType.MULTI_LINE_COMMENT, "/** `a[i]` and [b] */", 0)
+    ];
+    createParser('');
+    List<CommentReference> references = parser.parseCommentReferences(tokens);
+    expectNotNullIfNoErrors(references);
+    assertNoErrors();
+    expect(references, hasLength(1));
+    CommentReference reference = references[0];
+    expect(reference, isNotNull);
+    expect(reference.identifier, isNotNull);
+    expect(reference.offset, 16);
+  }
+
+  void test_parseCommentReferences_skipCodeBlock_gitHub_multiLine() {
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+      new DocumentationCommentToken(
+          TokenType.MULTI_LINE_COMMENT,
+          r'''
+/**
+ * First.
+ * ```dart
+ * Some [int] reference.
+ * ```
+ * Last.
+ */
+''',
+          3)
+    ];
+    createParser('');
+    List<CommentReference> references = parser.parseCommentReferences(tokens);
+    expectNotNullIfNoErrors(references);
+    assertNoErrors();
+    expect(references, isEmpty);
+  }
+
+  void test_parseCommentReferences_skipCodeBlock_gitHub_multiLine_lines() {
+    String commentText = r'''
+/// First.
+/// ```dart
+/// Some [int] reference.
+/// ```
+/// Last.
+''';
+    List<DocumentationCommentToken> tokens = commentText
+        .split('\n')
+        .map((line) => new DocumentationCommentToken(
+            TokenType.SINGLE_LINE_COMMENT, line, 0))
+        .toList();
+    createParser('');
+    List<CommentReference> references = parser.parseCommentReferences(tokens);
+    expectNotNullIfNoErrors(references);
+    assertNoErrors();
+    expect(references, isEmpty);
+  }
+
+  void test_parseCommentReferences_skipCodeBlock_gitHub_notTerminated() {
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+      new DocumentationCommentToken(
+          TokenType.MULTI_LINE_COMMENT, "/** `a[i] and [b] */", 0)
+    ];
+    createParser('');
+    List<CommentReference> references = parser.parseCommentReferences(tokens);
+    expectNotNullIfNoErrors(references);
+    assertNoErrors();
+    expect(references, hasLength(2));
+  }
+
+  void test_parseCommentReferences_skipCodeBlock_spaces() {
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+      new DocumentationCommentToken(TokenType.MULTI_LINE_COMMENT,
+          "/**\n *     a[i]\n * xxx [i] zzz\n */", 3)
+    ];
+    createParser('');
+    List<CommentReference> references = parser.parseCommentReferences(tokens);
+    expectNotNullIfNoErrors(references);
+    assertNoErrors();
+    expect(references, hasLength(1));
+    CommentReference reference = references[0];
+    expect(reference, isNotNull);
+    expect(reference.identifier, isNotNull);
+    expect(reference.offset, 27);
+  }
+
+  void test_parseCommentReferences_skipLinkDefinition() {
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+      new DocumentationCommentToken(TokenType.MULTI_LINE_COMMENT,
+          "/** [a]: http://www.google.com (Google) [b] zzz */", 3)
+    ];
+    createParser('');
+    List<CommentReference> references = parser.parseCommentReferences(tokens);
+    expectNotNullIfNoErrors(references);
+    assertNoErrors();
+    expect(references, hasLength(1));
+    CommentReference reference = references[0];
+    expect(reference, isNotNull);
+    expect(reference.identifier, isNotNull);
+    expect(reference.offset, 44);
+  }
+
+  void test_parseCommentReferences_skipLinked() {
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+      new DocumentationCommentToken(TokenType.MULTI_LINE_COMMENT,
+          "/** [a](http://www.google.com) [b] zzz */", 3)
+    ];
+    createParser('');
+    List<CommentReference> references = parser.parseCommentReferences(tokens);
+    expectNotNullIfNoErrors(references);
+    assertNoErrors();
+    expect(references, hasLength(1));
+    CommentReference reference = references[0];
+    expect(reference, isNotNull);
+    expect(reference.identifier, isNotNull);
+    expect(reference.offset, 35);
+  }
+
+  void test_parseCommentReferences_skipReferenceLink() {
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+      new DocumentationCommentToken(
+          TokenType.MULTI_LINE_COMMENT, "/** [a][c] [b] zzz */", 3)
+    ];
+    createParser('');
+    List<CommentReference> references = parser.parseCommentReferences(tokens);
+    expectNotNullIfNoErrors(references);
+    assertNoErrors();
+    expect(references, hasLength(1));
+    CommentReference reference = references[0];
+    expect(reference, isNotNull);
+    expect(reference.identifier, isNotNull);
+    expect(reference.offset, 15);
   }
 
   void test_parseConfiguration_noOperator_dottedIdentifier() {
@@ -14120,6 +14335,37 @@ class C {}
     expect(clause.implementsKeyword, isNotNull);
   }
 
+  void test_parseInstanceCreation_keyword_33647() {
+    enableOptionalNewAndConst = true;
+    CompilationUnit unit = parseCompilationUnit('''
+var c = new Future<int>.sync(() => 3).then<int>((e) => e);
+''');
+    expect(unit, isNotNull);
+    TopLevelVariableDeclaration v = unit.declarations[0];
+    MethodInvocation init = v.variables.variables[0].initializer;
+    expect(init.methodName.name, 'then');
+    NodeList<TypeAnnotation> typeArg = init.typeArguments.arguments;
+    expect(typeArg, hasLength(1));
+    expect(typeArg[0].beginToken.lexeme, 'int');
+  }
+
+  void test_parseInstanceCreation_noKeyword_33647() {
+    enableOptionalNewAndConst = true;
+    // Old parser produces errors
+    if (usingFastaParser) {
+      CompilationUnit unit = parseCompilationUnit('''
+var c = Future<int>.sync(() => 3).then<int>((e) => e);
+''');
+      expect(unit, isNotNull);
+      TopLevelVariableDeclaration v = unit.declarations[0];
+      MethodInvocation init = v.variables.variables[0].initializer;
+      expect(init.methodName.name, 'then');
+      NodeList<TypeAnnotation> typeArg = init.typeArguments.arguments;
+      expect(typeArg, hasLength(1));
+      expect(typeArg[0].beginToken.lexeme, 'int');
+    }
+  }
+
   void test_parseInstanceCreation_noKeyword_noPrefix() {
     enableOptionalNewAndConst = true;
     createParser('f() => C<E>.n();');
@@ -14169,37 +14415,6 @@ void main() {final c = C<int, int Function(String)>();}
     MethodInvocation creation = variable.initializer;
     expect(creation.methodName.name, 'C');
     expect(creation.typeArguments.toSource(), '<int, int Function(String)>');
-  }
-
-  void test_parseInstanceCreation_keyword_33647() {
-    enableOptionalNewAndConst = true;
-    CompilationUnit unit = parseCompilationUnit('''
-var c = new Future<int>.sync(() => 3).then<int>((e) => e);
-''');
-    expect(unit, isNotNull);
-    TopLevelVariableDeclaration v = unit.declarations[0];
-    MethodInvocation init = v.variables.variables[0].initializer;
-    expect(init.methodName.name, 'then');
-    NodeList<TypeAnnotation> typeArg = init.typeArguments.arguments;
-    expect(typeArg, hasLength(1));
-    expect(typeArg[0].beginToken.lexeme, 'int');
-  }
-
-  void test_parseInstanceCreation_noKeyword_33647() {
-    enableOptionalNewAndConst = true;
-    // Old parser produces errors
-    if (usingFastaParser) {
-      CompilationUnit unit = parseCompilationUnit('''
-var c = Future<int>.sync(() => 3).then<int>((e) => e);
-''');
-      expect(unit, isNotNull);
-      TopLevelVariableDeclaration v = unit.declarations[0];
-      MethodInvocation init = v.variables.variables[0].initializer;
-      expect(init.methodName.name, 'then');
-      NodeList<TypeAnnotation> typeArg = init.typeArguments.arguments;
-      expect(typeArg, hasLength(1));
-      expect(typeArg[0].beginToken.lexeme, 'int');
-    }
   }
 
   void test_parseLibraryIdentifier_builtin() {
@@ -14920,6 +15135,20 @@ main() {
     expect(statement.condition, isNotNull);
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.semicolon, isNotNull);
+  }
+
+  void test_parseElseAlone() {
+    parseCompilationUnit('main() { else return 0; } ',
+        errors: usingFastaParser
+            ? [
+                expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 4),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 4),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 9, 4),
+              ]
+            : [
+                expectedError(ParserErrorCode.MISSING_STATEMENT, 9, 4),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 9, 4),
+              ]);
   }
 
   void test_parseEmptyStatement() {
@@ -15733,6 +15962,44 @@ main() {
     expect(clause.exceptionParameter, isNotNull);
     expect(clause.comma, isNull);
     expect(clause.stackTraceParameter, isNull);
+    expect(clause.body, isNotNull);
+    expect(statement.finallyKeyword, isNull);
+    expect(statement.finallyBlock, isNull);
+  }
+
+  void test_parseTryStatement_catch_error_invalidCatchParam() {
+    CompilationUnit unit =
+        parseCompilationUnit('main() { try {} catch (int e) { } }',
+            errors: usingFastaParser
+                ? [expectedError(ParserErrorCode.CATCH_SYNTAX, 27, 1)]
+                : [
+                    expectedError(ParserErrorCode.EXPECTED_TOKEN, 27, 1),
+                    expectedError(ParserErrorCode.EXPECTED_TOKEN, 27, 1),
+                    expectedError(ParserErrorCode.EXPECTED_TOKEN, 27, 1),
+                    expectedError(ParserErrorCode.MISSING_IDENTIFIER, 28, 1),
+                    expectedError(ParserErrorCode.EXPECTED_TOKEN, 28, 1),
+                    expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 28, 1),
+                  ]);
+    FunctionDeclaration method = unit.declarations[0];
+    BlockFunctionBody body = method.functionExpression.body;
+    TryStatement statement = body.block.statements[0];
+    expect(statement.tryKeyword, isNotNull);
+    expect(statement.body, isNotNull);
+    NodeList<CatchClause> catchClauses = statement.catchClauses;
+    expect(catchClauses, hasLength(1));
+    CatchClause clause = catchClauses[0];
+    expect(clause.onKeyword, isNull);
+    expect(clause.exceptionType, isNull);
+    expect(clause.catchKeyword, isNotNull);
+    if (usingFastaParser) {
+      expect(clause.exceptionParameter.name, 'int');
+      expect(clause.comma, isNotNull);
+      expect(clause.stackTraceParameter.name, 'e');
+    } else {
+      expect(clause.exceptionParameter.name, 'int');
+      expect(clause.comma, isNull);
+      expect(clause.stackTraceParameter, isNull);
+    }
     expect(clause.body, isNotNull);
     expect(statement.finallyKeyword, isNull);
     expect(statement.finallyBlock, isNull);
@@ -17156,6 +17423,35 @@ Function(int, String) v;
     expect(lib.name.components[2].name, 'c');
   }
 
+  void test_parseDirective_library_annotation() {
+    createParser("@A library l;");
+    Directive directive = parseFullDirective();
+    expect(directive, isNotNull);
+    assertNoErrors();
+    expect(directive, new TypeMatcher<LibraryDirective>());
+    LibraryDirective libraryDirective = directive;
+    expect(libraryDirective.libraryKeyword, isNotNull);
+    expect(libraryDirective.name, isNotNull);
+    expect(libraryDirective.semicolon, isNotNull);
+    expect(libraryDirective.metadata, hasLength(1));
+    expect(libraryDirective.metadata[0].name.name, 'A');
+  }
+
+  void test_parseDirective_library_annotation2() {
+    createParser("@A library l;");
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    Directive directive = unit.directives[0];
+    expect(directive, isNotNull);
+    assertNoErrors();
+    expect(directive, new TypeMatcher<LibraryDirective>());
+    LibraryDirective libraryDirective = directive;
+    expect(libraryDirective.libraryKeyword, isNotNull);
+    expect(libraryDirective.name, isNotNull);
+    expect(libraryDirective.semicolon, isNotNull);
+    expect(libraryDirective.metadata, hasLength(1));
+    expect(libraryDirective.metadata[0].name.name, 'A');
+  }
+
   void test_parseDirective_library_withDocumentationComment() {
     createParser('/// Doc\nlibrary l;');
     var directive = parseFullDirective() as LibraryDirective;
@@ -17221,6 +17517,14 @@ Function(int, String) v;
     expect(partOfDirective.ofKeyword, isNotNull);
     expect(partOfDirective.libraryName, isNotNull);
     expect(partOfDirective.semicolon, isNotNull);
+  }
+
+  void test_parseDirectives_annotations() {
+    CompilationUnit unit =
+        parseDirectives("@A library l; @B import 'foo.dart';");
+    expect(unit.directives, hasLength(2));
+    expect(unit.directives[0].metadata[0].name.name, 'A');
+    expect(unit.directives[1].metadata[0].name.name, 'B');
   }
 
   void test_parseDirectives_complete() {

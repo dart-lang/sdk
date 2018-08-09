@@ -53,9 +53,6 @@ xhr_test/xhr: Pass, RuntimeError # Roll 50 failure
 [ $compiler == fasta ]
 *: Skip # TODO(ahe): Support dart:html in Fasta.
 
-[ $runtime == drt ]
-webgl_extensions_test: Skip # webgl does not work properly on DRT, which is 'headless'.
-
 [ $runtime == ie11 ]
 audiobuffersourcenode_test/supported: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
 audiocontext_test/supported: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
@@ -154,6 +151,9 @@ speechrecognition_test/supported: Fail # Safari Feature support statuses - All c
 touchevent_test/supported: Fail # Safari does not support TouchEvents
 webgl_1_test: Pass, Fail # Issue 8219
 
+[ $system == windows ]
+xhr_test/xhr: Skip # Times out.  Issue 21527
+
 # The html tests were moved to lib_2/html, and there they should be made strong
 # mode compliant. There's no sense in running the old versions here.
 [ $strong ]
@@ -169,6 +169,7 @@ fileapi_test/getFile: Fail # TODO(dart2js-team): Please triage this failure.
 media_stream_test/supported_MediaStreamEvent: RuntimeError # Please triage.
 media_stream_test/supported_MediaStreamTrackEvent: RuntimeError # Please triage.
 speechrecognition_test/types: RuntimeError # Please triage.
+svgelement_test/supported_altGlyph: RuntimeError # Issue 25787
 touchevent_test/supported: Fail # Touch events are only supported on touch devices
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
@@ -365,9 +366,6 @@ xsltprocessor_test: RuntimeError
 fontface_loaded_test: RuntimeError
 streams_test: RuntimeError
 
-[ $compiler == dart2js && $runtime == drt && !$checked ]
-audiocontext_test/functional: Pass, Fail
-
 [ $compiler == dart2js && $runtime == ff ]
 dart_object_local_storage_test: Skip # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 element_animate_test/timing_dict: RuntimeError # Issue 26730
@@ -383,6 +381,7 @@ input_element_test/supported_week: Fail # Firefox Feature support statuses - All
 media_stream_test/supported_MediaStreamEvent: Fail # Firefox Feature support statuses - All changes should be accompanied by platform support annotation changes.
 media_stream_test/supported_MediaStreamTrackEvent: Fail # Firefox Feature support statuses - All changes should be accompanied by platform support annotation changes.
 messageevent_test: Pass, RuntimeError # Issue 28983
+request_animation_frame_test: Skip # Async test hangs.
 serialized_script_value_test: Pass, RuntimeError # Issue 28983
 shadow_dom_test/supported: Fail # Firefox Feature support statuses - All changes should be accompanied by platform support annotation changes.
 speechrecognition_test/supported: Fail # Firefox Feature support statuses - All changes should be accompanied by platform support annotation changes.
@@ -462,7 +461,7 @@ xhr_test/xhr_requestBlob/xhr_requestBlob: Pass
 
 # Note: these tests are all injecting scripts by design.  This is not allowed under CSP.
 # TODO(sra): Change these tests to use a same-origin JavaScript script file.
-[ $compiler == dart2js && $csp && ($runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt || $runtime == ff || $runtime == safari) ]
+[ $compiler == dart2js && $csp && ($runtime == chrome || $runtime == chromeOnAndroid || $runtime == ff || $runtime == safari) ]
 event_customevent_test: SkipByDesign
 js_array_test: SkipByDesign
 js_dart_to_string_test: SkipByDesign
@@ -506,12 +505,6 @@ streams_test: RuntimeError
 [ $compiler == dart2js && $minified ]
 canvas_pixel_array_type_alias_test/types2_runtimeTypeName: Fail, OK # Issue 12605
 
-[ $compiler == dart2js && ($runtime == chrome || $runtime == drt) ]
-svgelement_test/supported_altGlyph: RuntimeError # Issue 25787
-
-[ $compiler == dart2js && ($runtime == drt || $runtime == ff) ]
-request_animation_frame_test: Skip # Async test hangs.
-
 [ $compiler == dart2js && ($runtime == ff || $runtime == safari || $ie) ]
 custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Polyfill does not support
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
@@ -537,13 +530,10 @@ scripts_htmltest: SkipByDesign # uses inline script
 two_scripts_htmltest: SkipByDesign # uses inline script
 worker_test/functional: SkipByDesign # starts worker with inline script
 
-[ $runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt ]
+[ $runtime == chrome || $runtime == chromeOnAndroid ]
 webgl_1_test: Pass, Fail # Issue 8219
 
 # 'html' tests import the HTML library, so they only make sense in
 # a browser environment.
 [ $runtime == dart_precompiled || $runtime == vm ]
 *: Skip
-
-[ $system == windows || $runtime == drt && $system == macos ]
-xhr_test/xhr: Skip # Times out.  Issue 21527

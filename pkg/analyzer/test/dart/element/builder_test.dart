@@ -265,8 +265,10 @@ class C {
   }
 
   void test_visitCompilationUnit_codeRange() {
-    TopLevelVariableDeclaration topLevelVariableDeclaration = AstTestFactory
-        .topLevelVariableDeclaration(null, AstTestFactory.typeName4('int'),
+    TopLevelVariableDeclaration topLevelVariableDeclaration =
+        AstTestFactory.topLevelVariableDeclaration(
+            null,
+            AstTestFactory.typeName4('int'),
             [AstTestFactory.variableDeclaration('V')]);
     CompilationUnit unit = astFactory.compilationUnit(
         topLevelVariableDeclaration.beginToken,
@@ -385,7 +387,7 @@ class C {
     expect(functions, hasLength(1));
     FunctionElement function = functions[0];
     expect(function, isNotNull);
-    expect(expression.element, same(function));
+    expect(expression.declaredElement, same(function));
     expect(function.hasImplicitReturnType, isTrue);
     expect(function.isSynthetic, isFalse);
     expect(function.typeParameters, hasLength(0));
@@ -397,7 +399,7 @@ class C {
     BlockFunctionBody fBody = f.functionExpression.body;
     ReturnStatement returnStatement = fBody.block.statements[0];
     FunctionExpression closure = returnStatement.expression;
-    FunctionElement function = closure.element;
+    FunctionElement function = closure.declaredElement;
     expect(function, isNotNull);
     expect(function.hasImplicitReturnType, isTrue);
     expect(function.isSynthetic, isFalse);
@@ -409,7 +411,7 @@ class C {
     FunctionDeclaration f = compilationUnit.declarations[0];
     ExpressionFunctionBody fBody = f.functionExpression.body;
     FunctionExpression closure = fBody.expression;
-    FunctionElement function = closure.element;
+    FunctionElement function = closure.declaredElement;
     expect(function, isNotNull);
     expect(function.hasImplicitReturnType, isTrue);
     expect(function.isSynthetic, isFalse);
@@ -670,8 +672,9 @@ class C {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = _makeBuilder(holder);
     String parameterName = "p";
-    SimpleFormalParameter formalParameter = AstTestFactory
-        .simpleFormalParameter4(AstTestFactory.typeName4('T'), parameterName);
+    SimpleFormalParameter formalParameter =
+        AstTestFactory.simpleFormalParameter4(
+            AstTestFactory.typeName4('T'), parameterName);
     _useParameterInMethod(formalParameter, 100, 110);
     formalParameter.accept(builder);
     List<ParameterElement> parameters = holder.parameters;
@@ -693,8 +696,9 @@ class C {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = _makeBuilder(holder);
     String parameterName = "p";
-    SimpleFormalParameterImpl formalParameter = AstTestFactory
-        .simpleFormalParameter4(AstTestFactory.typeName4('T'), parameterName);
+    SimpleFormalParameterImpl formalParameter =
+        AstTestFactory.simpleFormalParameter4(
+            AstTestFactory.typeName4('T'), parameterName);
     formalParameter.covariantKeyword =
         TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
     _useParameterInMethod(formalParameter, 100, 110);
@@ -774,7 +778,7 @@ class C {
 
     List<MethodElement> methods = holder.methods;
     expect(methods, hasLength(1));
-    LocalVariableElement variableElement = variableIdentifier.element;
+    LocalVariableElement variableElement = variableIdentifier.declaredElement;
     expect(variableElement.name, variableName);
     _assertVisibleRange(variableElement, 100, 110);
   }
@@ -808,7 +812,7 @@ class C {
 
     List<MethodElement> methods = holder.methods;
     expect(methods, hasLength(1));
-    LocalVariableElement variableElement = variableIdentifier.element;
+    LocalVariableElement variableElement = variableIdentifier.declaredElement;
     expect(variableElement.name, variableName);
     _assertVisibleRange(variableElement, 100, 110);
   }
@@ -837,7 +841,7 @@ class C {
 
     List<MethodElement> methods = holder.methods;
     expect(methods, hasLength(1));
-    LocalVariableElement variableElement = variable.element;
+    LocalVariableElement variableElement = variable.declaredElement;
     expect(variableElement.hasImplicitType, isFalse);
     expect(variableElement.name, variableName);
     _assertVisibleRange(variableElement, 100, 110);
@@ -871,8 +875,8 @@ class C {
     FunctionElement initializerElement = fieldElement.initializer;
     expect(initializerElement, isNotNull);
     expect(initializerElement.hasImplicitReturnType, isTrue);
-    expect(initializer.element, new TypeMatcher<FunctionElement>());
-    LocalVariableElement variableElement = variable.element;
+    expect(initializer.declaredElement, new TypeMatcher<FunctionElement>());
+    LocalVariableElement variableElement = variable.declaredElement;
     expect(variableElement.hasImplicitType, isTrue);
     expect(variableElement.isConst, isFalse);
     expect(variableElement.isFinal, isFalse);
@@ -912,11 +916,11 @@ class C {
         AstTestFactory.variableDeclaration('a');
     VariableDeclaration variableDeclaration2 =
         AstTestFactory.variableDeclaration('b');
-    TopLevelVariableDeclaration topLevelVariableDeclaration = AstTestFactory
-        .topLevelVariableDeclaration(
+    TopLevelVariableDeclaration topLevelVariableDeclaration =
+        AstTestFactory.topLevelVariableDeclaration(
             Keyword.FINAL, null, [variableDeclaration1, variableDeclaration2]);
-    topLevelVariableDeclaration.documentationComment = AstTestFactory
-        .documentationComment(
+    topLevelVariableDeclaration.documentationComment =
+        AstTestFactory.documentationComment(
             [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
 
     topLevelVariableDeclaration.accept(builder);
@@ -937,10 +941,11 @@ class C {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = _makeBuilder(holder);
     String variableName = "v";
-    VariableDeclaration variableDeclaration = AstTestFactory
-        .variableDeclaration2(variableName, AstTestFactory.integer(42));
-    AstTestFactory
-        .variableDeclarationList2(Keyword.CONST, [variableDeclaration]);
+    VariableDeclaration variableDeclaration =
+        AstTestFactory.variableDeclaration2(
+            variableName, AstTestFactory.integer(42));
+    AstTestFactory.variableDeclarationList2(
+        Keyword.CONST, [variableDeclaration]);
     variableDeclaration.accept(builder);
 
     List<TopLevelVariableElement> variables = holder.topLevelVariables;
@@ -966,8 +971,8 @@ class C {
     String variableName = "v";
     VariableDeclaration variableDeclaration =
         AstTestFactory.variableDeclaration2(variableName, null);
-    AstTestFactory
-        .variableDeclarationList2(Keyword.FINAL, [variableDeclaration]);
+    AstTestFactory.variableDeclarationList2(
+        Keyword.FINAL, [variableDeclaration]);
     variableDeclaration.accept(builder);
     List<TopLevelVariableElement> variables = holder.topLevelVariables;
     expect(variables, hasLength(1));
@@ -1079,7 +1084,7 @@ main() {
       unit.accept(new ApiElementBuilder(holder, compilationUnitElement));
     }
     // Validate the parameter element.
-    var parameterElement = parameter.element as ParameterElementImpl;
+    var parameterElement = parameter.declaredElement as ParameterElementImpl;
     expect(parameterElement, isNotNull);
     expect(parameterElement.initializer, isNull);
     // Build the initializer element.
@@ -1099,7 +1104,7 @@ main() {
       unit.accept(new ApiElementBuilder(holder, compilationUnitElement));
     }
     // Validate the variable element.
-    var variableElement = variable.element as VariableElementImpl;
+    var variableElement = variable.declaredElement as VariableElementImpl;
     expect(variableElement, isNotNull);
     expect(variableElement.initializer, isNull);
     // Build the initializer element.
@@ -1174,11 +1179,11 @@ main() {
     List<FormalParameter> parameters =
         f.functionExpression.parameters.parameters;
 
-    ParameterElement a = parameters[0].element;
+    ParameterElement a = parameters[0].declaredElement;
     expect(a, isNotNull);
     expect(a.name, 'a');
 
-    ParameterElement b = parameters[1].element;
+    ParameterElement b = parameters[1].declaredElement;
     expect(b, isNotNull);
     expect(b.name, 'b');
   }
@@ -1492,8 +1497,8 @@ class C {
     ClassDeclaration classDeclaration = AstTestFactory.classDeclaration(
         null,
         className,
-        AstTestFactory
-            .typeParameterList([firstVariableName, secondVariableName]),
+        AstTestFactory.typeParameterList(
+            [firstVariableName, secondVariableName]),
         null,
         null,
         null);
@@ -1582,7 +1587,7 @@ class C {
     List<ClassElement> types = holder.types;
     expect(types, hasLength(1));
     ClassElement type = types[0];
-    expect(alias.element, same(type));
+    expect(alias.declaredElement, same(type));
     expect(type.name, equals('C'));
     expect(type.isAbstract, isFalse);
     expect(type.isMixinApplication, isTrue);
@@ -1707,8 +1712,8 @@ class C {
             AstTestFactory.formalParameterList(),
             null,
             AstTestFactory.blockFunctionBody2());
-    constructorDeclaration.documentationComment = AstTestFactory
-        .documentationComment(
+    constructorDeclaration.documentationComment =
+        AstTestFactory.documentationComment(
             [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
     constructorDeclaration.endToken.offset = 80;
 
@@ -1748,7 +1753,7 @@ class C {
     expect(constructor.name, constructorName);
     expect(constructor.parameters, hasLength(0));
     expect(constructorDeclaration.name.staticElement, same(constructor));
-    expect(constructorDeclaration.element, same(constructor));
+    expect(constructorDeclaration.declaredElement, same(constructor));
   }
 
   void test_visitConstructorDeclaration_unnamed() {
@@ -1772,7 +1777,7 @@ class C {
     expect(constructor.isFactory, isFalse);
     expect(constructor.name, "");
     expect(constructor.parameters, hasLength(0));
-    expect(constructorDeclaration.element, same(constructor));
+    expect(constructorDeclaration.declaredElement, same(constructor));
   }
 
   void test_visitEnumDeclaration() {
@@ -1856,8 +1861,8 @@ class C {
         null,
         null,
         parameterName,
-        AstTestFactory
-            .formalParameterList([AstTestFactory.simpleFormalParameter3("a")]));
+        AstTestFactory.formalParameterList(
+            [AstTestFactory.simpleFormalParameter3("a")]));
     ElementHolder holder = buildElementsForAst(formalParameter);
     List<ParameterElement> parameters = holder.parameters;
     expect(parameters, hasLength(1));
@@ -1906,8 +1911,8 @@ class C {
     FunctionElement function = functions[0];
     expect(function, isNotNull);
     expect(function.name, functionName);
-    expect(declaration.element, same(function));
-    expect(declaration.functionExpression.element, same(function));
+    expect(declaration.declaredElement, same(function));
+    expect(declaration.functionExpression.declaredElement, same(function));
     expect(function.hasImplicitReturnType, isTrue);
     expect(function.isExternal, isTrue);
     expect(function.isSynthetic, isFalse);
@@ -1935,8 +1940,8 @@ class C {
     assertHasCodeRange(accessor, 50, 31);
     expect(accessor.documentationComment, '/// aaa');
     expect(accessor.name, functionName);
-    expect(declaration.element, same(accessor));
-    expect(declaration.functionExpression.element, same(accessor));
+    expect(declaration.declaredElement, same(accessor));
+    expect(declaration.functionExpression.declaredElement, same(accessor));
     expect(accessor.hasImplicitReturnType, isTrue);
     expect(accessor.isGetter, isTrue);
     expect(accessor.isExternal, isFalse);
@@ -1971,8 +1976,8 @@ class C {
     expect(function.documentationComment, '/// aaa');
     expect(function.hasImplicitReturnType, isFalse);
     expect(function.name, functionName);
-    expect(declaration.element, same(function));
-    expect(declaration.functionExpression.element, same(function));
+    expect(declaration.declaredElement, same(function));
+    expect(declaration.functionExpression.declaredElement, same(function));
     expect(function.isExternal, isFalse);
     expect(function.isSynthetic, isFalse);
     expect(function.typeParameters, hasLength(0));
@@ -2000,8 +2005,8 @@ class C {
     expect(accessor.documentationComment, '/// aaa');
     expect(accessor.hasImplicitReturnType, isTrue);
     expect(accessor.name, "$functionName=");
-    expect(declaration.element, same(accessor));
-    expect(declaration.functionExpression.element, same(accessor));
+    expect(declaration.declaredElement, same(accessor));
+    expect(declaration.functionExpression.declaredElement, same(accessor));
     expect(accessor.isGetter, isFalse);
     expect(accessor.isExternal, isFalse);
     expect(accessor.isSetter, isTrue);
@@ -2033,8 +2038,8 @@ class C {
     expect(function.name, functionName);
     expect(function.isExternal, isFalse);
     expect(function.isSynthetic, isFalse);
-    expect(declaration.element, same(function));
-    expect(expression.element, same(function));
+    expect(declaration.declaredElement, same(function));
+    expect(expression.declaredElement, same(function));
     List<TypeParameterElement> typeParameters = function.typeParameters;
     expect(typeParameters, hasLength(1));
     TypeParameterElement typeParameter = typeParameters[0];
@@ -2078,7 +2083,7 @@ class A {
 ''');
     ClassDeclaration classNode = compilationUnit.declarations.single;
     // ClassElement
-    ClassElement classElement = classNode.element;
+    ClassElement classElement = classNode.declaredElement;
     expect(classElement.fields, hasLength(2));
     expect(classElement.accessors, hasLength(3));
     FieldElement notSyntheticFieldElement = classElement.fields
@@ -2102,8 +2107,8 @@ class A {
     FieldDeclaration fieldDeclNode = classNode.members[0];
     VariableDeclaration fieldNode = fieldDeclNode.fields.variables.single;
     MethodDeclaration getterNode = classNode.members[1];
-    expect(fieldNode.element, notSyntheticFieldElement);
-    expect(getterNode.element, notSyntheticGetterElement);
+    expect(fieldNode.declaredElement, notSyntheticFieldElement);
+    expect(getterNode.declaredElement, notSyntheticGetterElement);
   }
 
   void test_visitMethodDeclaration_external() {
@@ -2146,8 +2151,8 @@ class A {
         AstTestFactory.identifier3(methodName),
         AstTestFactory.formalParameterList(),
         AstTestFactory.blockFunctionBody2());
-    methodDeclaration.documentationComment = AstTestFactory
-        .documentationComment(
+    methodDeclaration.documentationComment =
+        AstTestFactory.documentationComment(
             [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
     methodDeclaration.endToken.offset = 80;
 
@@ -2249,8 +2254,8 @@ class A {
         AstTestFactory.identifier3(methodName),
         AstTestFactory.formalParameterList(),
         AstTestFactory.blockFunctionBody2());
-    methodDeclaration.documentationComment = AstTestFactory
-        .documentationComment(
+    methodDeclaration.documentationComment =
+        AstTestFactory.documentationComment(
             [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
     methodDeclaration.endToken.offset = 80;
 
@@ -2310,8 +2315,8 @@ class A {
         AstTestFactory.identifier3(methodName),
         AstTestFactory.formalParameterList(),
         AstTestFactory.blockFunctionBody2());
-    methodDeclaration.documentationComment = AstTestFactory
-        .documentationComment(
+    methodDeclaration.documentationComment =
+        AstTestFactory.documentationComment(
             [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
     methodDeclaration.endToken.offset = 80;
 
@@ -2588,8 +2593,8 @@ abstract class _BaseTest extends ParserTestCase {
     expect(metadata, hasLength(1));
     expect(metadata[0], new TypeMatcher<AnnotationImpl>());
     AnnotationImpl annotation = metadata[0];
-    expect(annotation.elementAnnotation,
-        new TypeMatcher<ElementAnnotationImpl>());
+    expect(
+        annotation.elementAnnotation, new TypeMatcher<ElementAnnotationImpl>());
     ElementAnnotationImpl elementAnnotation = annotation.elementAnnotation;
     expect(elementAnnotation.element, isNull); // Not yet resolved
     expect(elementAnnotation.compilationUnit, isNotNull);

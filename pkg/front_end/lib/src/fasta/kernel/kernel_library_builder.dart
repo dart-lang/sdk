@@ -65,6 +65,8 @@ import '../modifier.dart'
 
 import '../problems.dart' show unexpected, unhandled;
 
+import '../source/outline_listener.dart' show OutlineListener;
+
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 
 import '../source/source_library_builder.dart'
@@ -148,14 +150,20 @@ class KernelLibraryBuilder
   /// the error message is the corresponding value in the map.
   Map<String, String> unserializableExports;
 
+  final OutlineListener outlineListener;
+
   KernelLibraryBuilder(Uri uri, Uri fileUri, Loader loader, this.actualOrigin,
       [Scope scope, Library target])
       : library = target ??
             (actualOrigin?.library ?? new Library(uri, fileUri: fileUri)),
+        outlineListener = loader.createOutlineListener(fileUri),
         super(loader, fileUri, scope);
 
   @override
   KernelLibraryBuilder get origin => actualOrigin ?? this;
+
+  @override
+  bool get hasTarget => true;
 
   @override
   Library get target => library;
@@ -174,7 +182,10 @@ class KernelLibraryBuilder
 
   KernelTypeBuilder addNamedType(
       Object name, List<KernelTypeBuilder> arguments, int charOffset) {
-    return addType(new KernelNamedTypeBuilder(name, arguments), charOffset);
+    return addType(
+        new KernelNamedTypeBuilder(
+            outlineListener, charOffset, name, arguments),
+        charOffset);
   }
 
   KernelTypeBuilder addMixinApplication(KernelTypeBuilder supertype,
@@ -747,8 +758,8 @@ class KernelLibraryBuilder
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       int charOffset) {
-    var builder =
-        new KernelFunctionTypeBuilder(returnType, typeVariables, formals);
+    var builder = new KernelFunctionTypeBuilder(
+        outlineListener, charOffset, returnType, typeVariables, formals);
     checkTypeVariables(typeVariables, null);
     // Nested declaration began in `OutlineBuilder.beginFunctionType` or
     // `OutlineBuilder.beginFunctionTypedFormalParameter`.
@@ -841,6 +852,7 @@ class KernelLibraryBuilder
     // This is required for the DietListener to correctly match up metadata.
     int importIndex = 0;
     int exportIndex = 0;
+    MetadataCollector metadataCollector = loader.target.metadataCollector;
     while (importIndex < imports.length || exportIndex < exports.length) {
       if (exportIndex >= exports.length ||
           (importIndex < imports.length &&
@@ -855,15 +867,18 @@ class KernelLibraryBuilder
           continue;
         }
 
+        LibraryDependency dependency;
         if (import.deferred && import.prefixBuilder?.dependency != null) {
-          library.addDependency(import.prefixBuilder.dependency);
+          dependency = import.prefixBuilder.dependency;
         } else {
-          library.addDependency(new LibraryDependency.import(
-              import.imported.target,
+          dependency = new LibraryDependency.import(import.imported.target,
               name: import.prefix,
               combinators: toKernelCombinators(import.combinators))
-            ..fileOffset = import.charOffset);
+            ..fileOffset = import.charOffset;
         }
+        library.addDependency(dependency);
+        metadataCollector?.setImportPrefixOffset(
+            dependency, import.prefixCharOffset);
       } else {
         // Add export
         Export export = exports[exportIndex++];

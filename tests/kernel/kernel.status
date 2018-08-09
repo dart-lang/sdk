@@ -11,7 +11,7 @@ unsorted/super_initializer_test: Skip
 [ !$fasta ]
 unsorted/loop_test: Skip # This test uses optional new/const.
 
-[ $compiler != app_jitk && $compiler != dart2js && $compiler != dartk && $compiler != dartkp && $runtime != none ]
+[ $compiler != app_jitk && $compiler != dart2js && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $runtime != none ]
 unsorted/types_test: RuntimeError
 
 [ $compiler == dart2analyzer && $runtime == none ]
@@ -34,7 +34,7 @@ unsorted/super_mixin_test: CompileTimeError
 [ $compiler == dart2js && !$strong ]
 unsorted/types_test: RuntimeError
 
-[ $compiler != dartk && $compiler != dartkp && !$strong ]
+[ $compiler != dartk && $compiler != dartkb && $compiler != dartkp && !$strong ]
 unsorted/invocation_errors_test/00: MissingCompileTimeError # This test has been tuned for dart 2.
 
 [ $runtime == dart_precompiled && $minified ]

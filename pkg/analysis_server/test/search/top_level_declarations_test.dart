@@ -15,6 +15,7 @@ import 'abstract_search_domain.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TopLevelDeclarationsTest);
+    defineReflectiveTests(TopLevelDeclarationsTest_UseCFE);
   });
 }
 
@@ -79,4 +80,10 @@ class ABC {}
     assertHasDeclaration(ElementKind.TOP_LEVEL_VARIABLE, 'E');
     assertNoDeclaration(ElementKind.CLASS, 'ABC');
   }
+}
+
+@reflectiveTest
+class TopLevelDeclarationsTest_UseCFE extends TopLevelDeclarationsTest {
+  @override
+  bool get useCFE => true;
 }

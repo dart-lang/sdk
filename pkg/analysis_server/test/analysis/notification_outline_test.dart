@@ -15,12 +15,13 @@ import '../analysis_abstract.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(_AnalysisNotificationOutlineTest);
+    defineReflectiveTests(AnalysisNotificationOutlineTest);
+    defineReflectiveTests(AnalysisNotificationOutlineTest_UseCFE);
   });
 }
 
 @reflectiveTest
-class _AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
+class AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
   FileKind fileKind;
   String libraryName;
   Outline outline;
@@ -83,7 +84,7 @@ library my.lib;
   }
 
   @failingTest
-  test_libraryName_hasLibraryPartOfDirectives() async {
+  Future<void> test_libraryName_hasLibraryPartOfDirectives() async {
     // This appears to have broken with the move to the new analysis driver.
     addTestFile('''
 part of lib.in.part.of;
@@ -94,7 +95,7 @@ library my.lib;
     expect(libraryName, 'my.lib');
   }
 
-  test_libraryName_hasPartOfDirective() async {
+  Future<void> test_libraryName_hasPartOfDirective() async {
     addTestFile('''
 part of my.lib;
 ''');
@@ -131,5 +132,26 @@ class B {}
     // the result which is used is pre-cached, and not a newly computed.
     await prepareOutline();
     expect(outline.children, hasLength(2));
+  }
+}
+
+@reflectiveTest
+class AnalysisNotificationOutlineTest_UseCFE
+    extends AnalysisNotificationOutlineTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_libraryName_hasLibraryPartOfDirectives() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_libraryName_hasLibraryPartOfDirectives);
+  }
+
+  @failingTest
+  @override
+  test_libraryName_hasPartOfDirective() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_libraryName_hasPartOfDirective);
   }
 }

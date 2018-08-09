@@ -23,6 +23,8 @@
 
 library async_helper;
 
+import 'dart:async';
+
 bool _initialized = false;
 int _asyncLevel = 0;
 
@@ -81,7 +83,7 @@ void asyncSuccess(_) => asyncEnd();
  *
  * [f] must return a [:Future:] for the test computation.
  */
-void asyncTest(f()) {
+Future<void> asyncTest(f()) {
   asyncStart();
-  f().then(asyncSuccess);
+  return f().then(asyncSuccess);
 }

@@ -41,9 +41,11 @@ class InstanceMemberInferrerTest extends ResolverTestCase {
     Source source = addNamedSource('/test.dart', content);
     if (enableNewAnalysisDriver) {
       var analysisResult = await computeAnalysisResult(source);
-      return analysisResult.unit.element;
+      return analysisResult.unit.declaredElement;
     } else {
-      return analysisContext.resolveCompilationUnit2(source, source).element;
+      return analysisContext
+          .resolveCompilationUnit2(source, source)
+          .declaredElement;
     }
   }
 
@@ -454,7 +456,7 @@ var x = 0;
 set x() {}
 ''');
     var analysisResult = await computeAnalysisResult(source);
-    CompilationUnitElement unit = analysisResult.unit.element;
+    CompilationUnitElement unit = analysisResult.unit.declaredElement;
     TopLevelVariableElement variable = unit.topLevelVariables.single;
     setFieldType(variable, unit.context.typeProvider.intType);
   }

@@ -37,7 +37,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
 
   InlineLocalRefactoringImpl(
       this.searchEngine, this.astProvider, this.unit, this.offset) {
-    unitElement = unit.element;
+    unitElement = unit.declaredElement;
     utils = new CorrectionUtils(unit);
   }
 

@@ -455,8 +455,10 @@ class ComplexTypeInfo implements TypeInfo {
       if (token == null) {
         break; // Not a function type.
       }
-      if (!required && !token.next.isIdentifier) {
-        break; // `Function` used as the name in a function declaration.
+      if (!required) {
+        if (!(token.next.isIdentifier || optional('this', token.next))) {
+          break; // `Function` used as the name in a function declaration.
+        }
       }
       assert(optional(')', token));
       gftHasReturnType ??= typeVariableStart != start;

@@ -27,6 +27,10 @@ import 'package:analyzer/src/summary/summarize_elements.dart';
 class SummaryBuilder {
   final Iterable<Source> librarySources;
   final AnalysisContext context;
+
+  /**
+   * TODO(brianwilkerson) Remove this field.
+   */
   final bool strong;
 
   /**
@@ -71,6 +75,10 @@ class SummaryBuilder {
 class _Builder {
   final AnalysisContext context;
   final Iterable<Source> librarySources;
+
+  /**
+   * TODO(brianwilkerson) Remove this field.
+   */
   final bool strong;
 
   final Set<String> libraryUris = new Set<String>();

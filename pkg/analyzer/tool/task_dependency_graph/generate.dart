@@ -47,8 +47,8 @@ import 'package:path/path.dart';
  */
 main() async {
   String pkgPath = normalize(join(package_root.packageRoot, 'analyzer'));
-  await GeneratedContent
-      .generateAll(pkgPath, <GeneratedContent>[target, htmlTarget]);
+  await GeneratedContent.generateAll(
+      pkgPath, <GeneratedContent>[target, htmlTarget]);
 }
 
 final GeneratedFile htmlTarget = new GeneratedFile(
@@ -210,19 +210,20 @@ $data
     listOfResultDescriptorType =
         typeProvider.listType.instantiate([resultDescriptorType]);
     CompilationUnit enginePluginUnit = await getUnit(enginePluginPath);
-    enginePluginClass = enginePluginUnit.element.getType('EnginePlugin');
+    enginePluginClass =
+        enginePluginUnit.declaredElement.getType('EnginePlugin');
     extensionPointIdType =
-        enginePluginUnit.element.getType('ExtensionPointId').type;
+        enginePluginUnit.declaredElement.getType('ExtensionPointId').type;
     CompilationUnit dartDartUnit = await getUnit(dartDartPath);
     CompilationUnit taskUnit = await getUnit(taskPath);
-    taskUnitElement = taskUnit.element;
+    taskUnitElement = taskUnit.declaredElement;
     Set<String> results = new Set<String>();
     Set<String> resultLists = new Set<String>();
     for (CompilationUnitMember dartUnitMember in dartDartUnit.declarations) {
       if (dartUnitMember is ClassDeclaration) {
         ClassDeclaration clazz = dartUnitMember;
         if (!clazz.isAbstract &&
-            clazz.element.type.isSubtypeOf(analysisTaskType)) {
+            clazz.declaredElement.type.isSubtypeOf(analysisTaskType)) {
           String task = clazz.name.name;
 
           MethodDeclaration buildInputsAst;

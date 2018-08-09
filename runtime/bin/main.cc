@@ -172,7 +172,7 @@ static Dart_Handle EnvironmentCallback(Dart_Handle name) {
   }
 
 static void WriteDepsFile(Dart_Isolate isolate) {
-  if (Options::snapshot_deps_filename() == NULL) {
+  if (Options::depfile() == NULL) {
     return;
   }
   Loader::ResolveDependenciesAsFilePaths();
@@ -182,13 +182,17 @@ static void WriteDepsFile(Dart_Isolate isolate) {
   MallocGrowableArray<char*>* dependencies = isolate_data->dependencies();
   ASSERT(dependencies != NULL);
   File* file =
-      File::Open(NULL, Options::snapshot_deps_filename(), File::kWriteTruncate);
+      File::Open(NULL, Options::depfile(), File::kWriteTruncate);
   if (file == NULL) {
     ErrorExit(kErrorExitCode, "Error: Unable to open snapshot depfile: %s\n\n",
-              Options::snapshot_deps_filename());
+              Options::depfile());
   }
   bool success = true;
-  success &= file->Print("%s: ", Options::snapshot_filename());
+  if (Options::snapshot_filename() != NULL) {
+    success &= file->Print("%s: ", Options::snapshot_filename());
+  } else {
+    success &= file->Print("%s: ", Options::depfile_output_filename());
+  }
   for (intptr_t i = 0; i < dependencies->length(); i++) {
     char* dep = dependencies->At(i);
     success &= file->Print("%s ", dep);
@@ -208,14 +212,13 @@ static void WriteDepsFile(Dart_Isolate isolate) {
   success &= file->Print("\n");
   if (!success) {
     ErrorExit(kErrorExitCode, "Error: Unable to write snapshot depfile: %s\n\n",
-              Options::snapshot_deps_filename());
+              Options::depfile());
   }
   file->Release();
-  isolate_data->set_dependencies(NULL);
-  delete dependencies;
+  dependencies->Clear();
 }
 
-static void SnapshotOnExitHook(int64_t exit_code) {
+static void OnExitHook(int64_t exit_code) {
   if (Dart_CurrentIsolate() != main_isolate) {
     Log::PrintErr(
         "A snapshot was requested, but a secondary isolate "
@@ -224,7 +227,9 @@ static void SnapshotOnExitHook(int64_t exit_code) {
     Platform::Exit(kErrorExitCode);
   }
   if (exit_code == 0) {
-    Snapshot::GenerateAppJIT(Options::snapshot_filename());
+    if (Options::gen_snapshot_kind() == kAppJIT) {
+      Snapshot::GenerateAppJIT(Options::snapshot_filename());
+    }
     WriteDepsFile(main_isolate);
   }
 }
@@ -454,7 +459,10 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
                                                 Dart_IsolateFlags* flags,
                                                 char** error,
                                                 int* exit_code) {
-  const char* kernel_snapshot_uri = dfe.frontend_filename();
+  const char* kernel_snapshot_uri = NULL;
+  if (Options::gen_snapshot_kind() != kAppJIT) {
+    kernel_snapshot_uri = dfe.frontend_filename();
+  }
   const char* uri =
       kernel_snapshot_uri != NULL ? kernel_snapshot_uri : script_uri;
 
@@ -669,7 +677,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
     isolate_data->set_kernel_buffer(kernel_buffer, kernel_buffer_size,
                                     true /*take ownership*/);
   }
-  if (is_main_isolate && (Options::snapshot_deps_filename() != NULL)) {
+  if (is_main_isolate && (Options::depfile() != NULL)) {
     isolate_data->set_dependencies(new MallocGrowableArray<char*>());
   }
 
@@ -886,59 +894,6 @@ static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size) {
 }
 
 static Dart_QualifiedFunctionName standalone_entry_points[] = {
-    // Functions.
-    {"dart:_builtin", "::", "_getPrintClosure"},
-    {"dart:_builtin", "::", "_libraryFilePath"},
-    {"dart:_builtin", "::", "_resolveInWorkingDirectory"},
-    {"dart:_builtin", "::", "_setPackageRoot"},
-    {"dart:_builtin", "::", "_setPackagesMap"},
-    {"dart:_builtin", "::", "_setWorkingDirectory"},
-    {"dart:async", "::", "_setScheduleImmediateClosure"},
-    {"dart:cli", "::", "_getWaitForEvent"},
-    {"dart:cli", "::", "_waitForEventClosure"},
-    {"dart:io", "::", "_getUriBaseClosure"},
-    {"dart:io", "::", "_getWatchSignalInternal"},
-    {"dart:io", "::", "_makeDatagram"},
-    {"dart:io", "::", "_makeUint8ListView"},
-    {"dart:io", "::", "_setupHooks"},
-    {"dart:io", "_EmbedderConfig", "_mayExit"},
-    {"dart:io", "_ExternalBuffer", "get:end"},
-    {"dart:io", "_ExternalBuffer", "get:start"},
-    {"dart:io", "_ExternalBuffer", "set:data"},
-    {"dart:io", "_ExternalBuffer", "set:end"},
-    {"dart:io", "_ExternalBuffer", "set:start"},
-    {"dart:io", "_Namespace", "_setupNamespace"},
-    {"dart:io", "_Platform", "set:_nativeScript"},
-    {"dart:io", "_ProcessStartStatus", "set:_errorCode"},
-    {"dart:io", "_ProcessStartStatus", "set:_errorMessage"},
-    {"dart:io", "_SecureFilterImpl", "get:buffers"},
-    {"dart:io", "_SecureFilterImpl", "get:ENCRYPTED_SIZE"},
-    {"dart:io", "_SecureFilterImpl", "get:SIZE"},
-    {"dart:io", "CertificateException", "CertificateException."},
-    {"dart:io", "Directory", "Directory."},
-    {"dart:io", "File", "File."},
-    {"dart:io", "FileSystemException", "FileSystemException."},
-    {"dart:io", "HandshakeException", "HandshakeException."},
-    {"dart:io", "Link", "Link."},
-    {"dart:io", "OSError", "OSError."},
-    {"dart:io", "TlsException", "TlsException."},
-    {"dart:io", "X509Certificate", "X509Certificate._"},
-    {"dart:isolate", "::", "_getIsolateScheduleImmediateClosure"},
-    {"dart:isolate", "::", "_setupHooks"},
-    {"dart:isolate", "::", "_startMainIsolate"},
-    // Fields
-    {"dart:_builtin", "::", "_isolateId"},
-    {"dart:_builtin", "::", "_loadPort"},
-    {"dart:_internal", "::", "_printClosure"},
-    {"dart:vmservice_io", "::", "_autoStart"},
-    {"dart:vmservice_io", "::", "_deterministic"},
-    {"dart:vmservice_io", "::", "_ip"},
-    {"dart:vmservice_io", "::", "_isFuchsia"},
-    {"dart:vmservice_io", "::", "_isWindows"},
-    {"dart:vmservice_io", "::", "_originCheckDisabled"},
-    {"dart:vmservice_io", "::", "_port"},
-    {"dart:vmservice_io", "::", "_signalWatch"},
-    {"dart:vmservice_io", "::", "_traceLoading"},
     {NULL, NULL, NULL}  // Must be terminated with NULL entries.
 };
 
@@ -1220,12 +1175,6 @@ void main(int argc, char** argv) {
 
   Loader::InitOnce();
 
-  if (!DartUtils::SetOriginalWorkingDirectory()) {
-    OSError err;
-    Log::PrintErr("Error determining current directory: %s\n", err.message());
-    Platform::Exit(kErrorExitCode);
-  }
-
 #if defined(DART_LINK_APP_SNAPSHOT)
   vm_run_app_snapshot = true;
   vm_snapshot_data = _kDartVmSnapshotData;
@@ -1274,8 +1223,11 @@ void main(int argc, char** argv) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   vm_options.AddArgument("--precompilation");
 #endif
-  if (Options::gen_snapshot_kind() == kAppJIT) {
-    Process::SetExitHook(SnapshotOnExitHook);
+  // If we need to write an app-jit snapshot or a depfile, then add an exit
+  // hook that writes the snapshot and/or depfile as appropriate.
+  if ((Options::gen_snapshot_kind() == kAppJIT) ||
+      (Options::depfile() != NULL)) {
+    Process::SetExitHook(OnExitHook);
   }
 
   char* error = nullptr;

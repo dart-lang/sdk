@@ -96,6 +96,8 @@ abstract class LibraryResynthesizerMixin implements LibraryResynthesizer {
       new NamespaceBuilder().createPublicNamespaceForLibrary(library);
 }
 
+class RecursiveInstantiateToBounds {}
+
 /// Data structure used during resynthesis to record all the information that is
 /// known about how to resynthesize a single entry in [LinkedUnit.references]
 /// (and its associated entry in [UnlinkedUnit.references], if it exists).
@@ -151,12 +153,6 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
   TypeProvider _typeProvider;
 
   /**
-   * Indicates whether the summary should be resynthesized assuming strong mode
-   * semantics.
-   */
-  final bool strongMode;
-
-  /**
    * Map of compilation units resynthesized from summaries.  The two map keys
    * are the first two elements of the element's location (the library URI and
    * the compilation unit URI).
@@ -179,8 +175,7 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
   final Map<String, LibraryElement> _resynthesizedLibraries =
       <String, LibraryElement>{};
 
-  SummaryResynthesizer(
-      AnalysisContext context, this.sourceFactory, this.strongMode)
+  SummaryResynthesizer(AnalysisContext context, this.sourceFactory, bool _)
       : super(context) {
     _buildTypeProvider();
   }
@@ -189,6 +184,13 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
    * Number of libraries that have been resynthesized so far.
    */
   int get resynthesisCount => _resynthesizedLibraries.length;
+
+  /**
+   * Indicates whether the summary should be resynthesized assuming strong mode
+   * semantics.
+   */
+  @deprecated
+  bool get strongMode => true;
 
   /**
    * The [TypeProvider] used to obtain SDK types during resynthesis.
@@ -398,8 +400,9 @@ class SummaryResynthesizerContext implements ResynthesizerContext {
 
   SummaryResynthesizerContext(this.unitResynthesizer);
 
+  @deprecated
   @override
-  bool get isStrongMode => unitResynthesizer.summaryResynthesizer.strongMode;
+  bool get isStrongMode => true;
 
   @override
   ElementAnnotationImpl buildAnnotation(ElementImpl context, UnlinkedExpr uc) {
@@ -858,8 +861,6 @@ class _LibraryResynthesizerContext extends LibraryResynthesizerContextMixin
   }
 }
 
-class RecursiveInstantiateToBounds {}
-
 /// Specialization of [ReferenceInfo] for resynthesis from linked summaries.
 class _ReferenceInfo extends ReferenceInfo {
   /**
@@ -989,17 +990,13 @@ class _ReferenceInfo extends ReferenceInfo {
             _isBeingInstantiatedToBounds = true;
             _isRecursiveWhileInstantiateToBounds = false;
             try {
-              if (libraryResynthesizer.summaryResynthesizer.strongMode) {
-                InterfaceType instantiatedToBounds = libraryResynthesizer
-                    .summaryResynthesizer.context.typeSystem
-                    .instantiateToBounds(element.type) as InterfaceType;
-                if (_isRecursiveWhileInstantiateToBounds) {
-                  throw new RecursiveInstantiateToBounds();
-                }
-                return instantiatedToBounds.typeArguments;
-              } else {
-                return _dynamicTypeArguments;
+              InterfaceType instantiatedToBounds = libraryResynthesizer
+                  .summaryResynthesizer.context.typeSystem
+                  .instantiateToBounds(element.type) as InterfaceType;
+              if (_isRecursiveWhileInstantiateToBounds) {
+                throw new RecursiveInstantiateToBounds();
               }
+              return instantiatedToBounds.typeArguments;
             } finally {
               _isBeingInstantiatedToBounds = false;
             }
@@ -1022,8 +1019,7 @@ class _ReferenceInfo extends ReferenceInfo {
       List<DartType> typeArguments;
       if (numTypeArguments == numTypeParameters) {
         typeArguments = _buildTypeArguments(numTypeArguments, getTypeArgument);
-      } else if (libraryResynthesizer.summaryResynthesizer.strongMode &&
-          instantiateToBoundsAllowed) {
+      } else if (instantiateToBoundsAllowed) {
         if (!_isBeingInstantiatedToBounds) {
           _isBeingInstantiatedToBounds = true;
           _isRecursiveWhileInstantiateToBounds = false;
@@ -1051,8 +1047,7 @@ class _ReferenceInfo extends ReferenceInfo {
         if (numTypeArguments == numTypeParameters) {
           typeArguments =
               _buildTypeArguments(numTypeArguments, getTypeArgument);
-        } else if (libraryResynthesizer.summaryResynthesizer.strongMode &&
-            instantiateToBoundsAllowed) {
+        } else if (instantiateToBoundsAllowed) {
           if (!_isBeingInstantiatedToBounds) {
             _isBeingInstantiatedToBounds = true;
             _isRecursiveWhileInstantiateToBounds = false;
@@ -1240,8 +1235,8 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
         elementAnnotation.annotationAst =
             AstTestFactory.annotation2(constExpr, null, arguments);
       } else {
-        elementAnnotation.annotationAst = AstTestFactory
-            .annotation(AstTestFactory.identifier3(r'#invalidConst'));
+        elementAnnotation.annotationAst = AstTestFactory.annotation(
+            AstTestFactory.identifier3(r'#invalidConst'));
       }
     } else if (constExpr is InstanceCreationExpression) {
       elementAnnotation.element = constExpr.staticElement;
@@ -1263,17 +1258,17 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
       ArgumentList arguments = constExpr.getProperty(ExprBuilder.ARGUMENT_LIST);
       if (propertyElement is PropertyAccessorElement && arguments == null) {
         elementAnnotation.element = propertyElement;
-        elementAnnotation.annotationAst = AstTestFactory.annotation2(
-            target, propertyName, null)
-          ..element = propertyElement;
+        elementAnnotation.annotationAst =
+            AstTestFactory.annotation2(target, propertyName, null)
+              ..element = propertyElement;
       } else if (propertyElement is ConstructorElement && arguments != null) {
         elementAnnotation.element = propertyElement;
-        elementAnnotation.annotationAst = AstTestFactory.annotation2(
-            target, propertyName, arguments)
-          ..element = propertyElement;
+        elementAnnotation.annotationAst =
+            AstTestFactory.annotation2(target, propertyName, arguments)
+              ..element = propertyElement;
       } else {
-        elementAnnotation.annotationAst = AstTestFactory
-            .annotation(AstTestFactory.identifier3(r'#invalidConst'));
+        elementAnnotation.annotationAst = AstTestFactory.annotation(
+            AstTestFactory.identifier3(r'#invalidConst'));
       }
     } else {
       throw new StateError(
@@ -1510,13 +1505,6 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
               locationComponents[2]
             ];
           }
-        }
-        if (!_resynthesizerContext.isStrongMode &&
-            locationComponents.length == 3 &&
-            locationComponents[0] == 'dart:async' &&
-            locationComponents[2] == 'FutureOr') {
-          type = typeProvider.dynamicType;
-          numTypeParameters = 0;
         }
         ElementLocation location =
             new ElementLocationImpl.con3(locationComponents);

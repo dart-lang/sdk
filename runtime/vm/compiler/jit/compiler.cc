@@ -32,6 +32,7 @@
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/kernel.h"
+#include "vm/kernel_loader.h"  // For kernel::ParseStaticFieldInitializer.
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -791,7 +792,8 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
     thread()->set_deopt_id(0);
     LongJumpScope jump;
     if (setjmp(*jump.Set()) == 0) {
-      FlowGraph* flow_graph = NULL;
+      FlowGraph* flow_graph = nullptr;
+      ZoneGrowableArray<const ICData*>* ic_data_array = nullptr;
 
       // Class hierarchy analysis is registered with the thread in the
       // constructor and unregisters itself upon destruction.
@@ -801,34 +803,37 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       // LongJump.
       {
         CSTAT_TIMER_SCOPE(thread(), graphbuilder_timer);
-        ZoneGrowableArray<const ICData*>* ic_data_array =
-            new (zone) ZoneGrowableArray<const ICData*>();
-        if (optimized()) {
-          // Extract type feedback before the graph is built, as the graph
-          // builder uses it to attach it to nodes.
 
+        if (optimized()) {
           // In background compilation the deoptimization counter may have
           // already reached the limit.
           ASSERT(Compiler::IsBackgroundCompilation() ||
                  (function.deoptimization_counter() <
                   FLAG_max_deoptimization_counter_threshold));
+        }
 
-          // 'Freeze' ICData in background compilation so that it does not
-          // change while compiling.
-          const bool clone_ic_data = Compiler::IsBackgroundCompilation();
-          function.RestoreICDataMap(ic_data_array, clone_ic_data);
+        // Extract type feedback before the graph is built, as the graph
+        // builder uses it to attach it to nodes.
+        ic_data_array = new (zone) ZoneGrowableArray<const ICData*>();
 
+        // Clone ICData for background compilation so that it does not
+        // change while compiling.
+        const bool clone_ic_data = Compiler::IsBackgroundCompilation();
+        function.RestoreICDataMap(ic_data_array, clone_ic_data);
+
+        if (optimized()) {
           if (Compiler::IsBackgroundCompilation() &&
               (function.ic_data_array() == Array::null())) {
             Compiler::AbortBackgroundCompilation(
                 Thread::kNoDeoptId, "RestoreICDataMap: ICData array cleared.");
           }
-          if (FLAG_print_ic_data_map) {
-            for (intptr_t i = 0; i < ic_data_array->length(); i++) {
-              if ((*ic_data_array)[i] != NULL) {
-                THR_Print("%" Pd " ", i);
-                FlowGraphPrinter::PrintICData(*(*ic_data_array)[i]);
-              }
+        }
+
+        if (FLAG_print_ic_data_map) {
+          for (intptr_t i = 0; i < ic_data_array->length(); i++) {
+            if ((*ic_data_array)[i] != NULL) {
+              THR_Print("%" Pd " ", i);
+              FlowGraphPrinter::PrintICData(*(*ic_data_array)[i]);
             }
           }
         }
@@ -895,7 +900,8 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       FlowGraphCompiler graph_compiler(
           &assembler, flow_graph, *parsed_function(), optimized(),
           &speculative_policy, pass_state.inline_id_to_function,
-          pass_state.inline_id_to_token_pos, pass_state.caller_inline_id);
+          pass_state.inline_id_to_token_pos, pass_state.caller_inline_id,
+          ic_data_array);
       {
         CSTAT_TIMER_SCOPE(thread(), graphcompiler_timer);
         NOT_IN_PRODUCT(TimelineDurationScope tds(thread(), compiler_timeline,
@@ -1015,6 +1021,7 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
     CompileParsedFunctionHelper helper(parsed_function, optimized, osr_id);
 
     if (Compiler::IsBackgroundCompilation()) {
+      ASSERT(optimized && function.is_background_optimizable());
       if (isolate->IsTopLevelParsing() ||
           (loading_invalidation_gen_at_start !=
            isolate->loading_invalidation_gen())) {
@@ -1780,9 +1787,12 @@ void BackgroundCompiler::Run() {
           } else {
             qelem = function_queue()->Remove();
             const Function& old = Function::Handle(qelem->Function());
+            // If an optimizable method is not optimized, put it back on
+            // the background queue (unless it was passed to foreground).
             if ((!old.HasOptimizedCode() && old.IsOptimizable()) ||
                 FLAG_stress_test_background_compilation) {
-              if (Compiler::CanOptimizeFunction(thread, old)) {
+              if (old.is_background_optimizable() &&
+                  Compiler::CanOptimizeFunction(thread, old)) {
                 QueueElement* repeat_qelem = new QueueElement(old);
                 function_queue()->Add(repeat_qelem);
               }

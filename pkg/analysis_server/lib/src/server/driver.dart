@@ -7,6 +7,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/server/dev_server.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
@@ -31,6 +32,8 @@ import 'package:telemetry/telemetry.dart' as telemetry;
 /// TODO(pquitslund): replaces with a simple [ArgParser] instance
 /// when the args package supports ignoring unrecognized
 /// options/flags (https://github.com/dart-lang/args/issues/9).
+/// TODO(devoncarew): Consider removing the ability to support unrecognized
+/// flags for the analysis server.
 class CommandLineParser {
   final List<String> _knownFlags;
   final bool _alwaysIgnoreUnrecognized;
@@ -268,6 +271,11 @@ class Driver implements ServerStarter {
   static const String USE_FASTA_PARSER = "use-fasta-parser";
 
   /**
+   * A directory to analyze in order to train an analysis server snapshot.
+   */
+  static const String TRAIN_USING = "train-using";
+
+  /**
    * The instrumentation server that is to be used by the analysis server.
    */
   InstrumentationServer instrumentationServer;
@@ -287,8 +295,6 @@ class Driver implements ServerStarter {
   SocketServer socketServer;
 
   HttpAnalysisServer httpServer;
-
-  StdioAnalysisServer stdioServer;
 
   Driver();
 
@@ -320,9 +326,14 @@ class Driver implements ServerStarter {
     analysisServerOptions.useCFE = results[USE_CFE];
     analysisServerOptions.useFastaParser = results[USE_FASTA_PARSER];
 
+    bool disableAnalyticsForSession = results[SUPPRESS_ANALYTICS_FLAG];
+    if (results.wasParsed(TRAIN_USING)) {
+      disableAnalyticsForSession = true;
+    }
+
     telemetry.Analytics analytics = telemetry.createAnalyticsInstance(
         'UA-26406144-29', 'analysis-server',
-        disableForSession: results[SUPPRESS_ANALYTICS_FLAG]);
+        disableForSession: disableAnalyticsForSession);
     analysisServerOptions.analytics = analytics;
 
     if (analysisServerOptions.clientId != null) {
@@ -352,6 +363,15 @@ class Driver implements ServerStarter {
     if (results[HELP_OPTION]) {
       _printUsage(parser.parser, analytics, fromHelp: true);
       return null;
+    }
+
+    String trainDirectory = results[TRAIN_USING];
+    if (trainDirectory != null) {
+      if (!FileSystemEntity.isDirectorySync(trainDirectory)) {
+        print("Training directory '$trainDirectory' not found.\n");
+        exitCode = 1;
+        return null;
+      }
     }
 
     int port;
@@ -430,26 +450,61 @@ class Driver implements ServerStarter {
         fileResolverProvider,
         packageResolverProvider);
     httpServer = new HttpAnalysisServer(socketServer);
-    stdioServer = new StdioAnalysisServer(socketServer);
 
     diagnosticServer.httpServer = httpServer;
     if (serve_http) {
       diagnosticServer.startOnPort(port);
     }
 
-    _captureExceptions(instrumentationService, () {
-      stdioServer.serveStdio().then((_) async {
-        // TODO(brianwilkerson) Determine whether this await is necessary.
-        await null;
+    if (trainDirectory != null) {
+      Directory tempDriverDir =
+          Directory.systemTemp.createTempSync('analysis_server_');
+      analysisServerOptions.cacheFolder = tempDriverDir.path;
+
+      DevAnalysisServer devServer = new DevAnalysisServer(socketServer);
+      devServer.initServer();
+
+      () async {
+        // We first analyze code with an empty driver cache.
+        print('Analyzing with an empty driver cache:');
+        int exitCode = await devServer.processDirectories([trainDirectory]);
+
+        print('');
+
+        // Then again with a populated cache.
+        print('Analyzing with a populated driver cache:');
+        exitCode = await devServer.processDirectories([trainDirectory]);
+
         if (serve_http) {
           httpServer.close();
         }
         await instrumentationService.shutdown();
-        exit(0);
-      });
-    },
-        print:
-            results[INTERNAL_PRINT_TO_CONSOLE] ? null : httpServer.recordPrint);
+
+        try {
+          tempDriverDir.deleteSync(recursive: true);
+        } catch (_) {
+          // ignore any exception
+        }
+
+        exit(exitCode);
+      }();
+    } else {
+      _captureExceptions(instrumentationService, () {
+        StdioAnalysisServer stdioServer = new StdioAnalysisServer(socketServer);
+        stdioServer.serveStdio().then((_) async {
+          // TODO(brianwilkerson) Determine whether this await is necessary.
+          await null;
+          if (serve_http) {
+            httpServer.close();
+          }
+          await instrumentationService.shutdown();
+          exit(0);
+        });
+      },
+          print: results[INTERNAL_PRINT_TO_CONSOLE]
+              ? null
+              : httpServer.recordPrint);
+    }
 
     return socketServer.analysisServer;
   }
@@ -546,6 +601,9 @@ class Driver implements ServerStarter {
         help: "Enable the Dart 2.0 Common Front End implementation");
     parser.addFlag(USE_FASTA_PARSER,
         help: "Whether to enable parsing via the Fasta parser");
+    parser.addOption(TRAIN_USING,
+        help: "Pass in a directory to analyze for purposes of training an "
+            "analysis server snapshot.");
 
     return parser;
   }

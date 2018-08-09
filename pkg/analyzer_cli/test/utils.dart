@@ -58,7 +58,7 @@ Future<Null> recursiveCopy(FileSystemEntity src, String dstPath) async {
 /// completes, the temporary directory and all its contents will be deleted.
 ///
 /// Returns the return value of [fn].
-dynamic withTempDir(fn(String path)) {
+T withTempDir<T>(T fn(String path)) {
   var tempDir = Directory.systemTemp.createTempSync('analyzer_').path;
   try {
     return fn(tempDir);

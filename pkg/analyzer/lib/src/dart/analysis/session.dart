@@ -74,11 +74,7 @@ class AnalysisSessionImpl implements AnalysisSession {
     await null;
     _checkConsistency();
     if (_typeSystem == null) {
-      if (_driver.analysisOptions.strongMode) {
-        _typeSystem = new StrongTypeSystemImpl(await typeProvider);
-      } else {
-        _typeSystem = new TypeSystemImpl(await typeProvider);
-      }
+      _typeSystem = new StrongTypeSystemImpl(await typeProvider);
     }
     return _typeSystem;
   }

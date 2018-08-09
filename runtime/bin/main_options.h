@@ -21,6 +21,8 @@ namespace bin {
   V(package_root, package_root)                                                \
   V(snapshot, snapshot_filename)                                               \
   V(snapshot_depfile, snapshot_deps_filename)                                  \
+  V(depfile, depfile)                                                          \
+  V(depfile_output_filename, depfile_output_filename)                          \
   V(shared_blobs, shared_blobs_filename)                                       \
   V(save_obfuscation_map, obfuscation_map_filename)                            \
   V(save_compilation_trace, save_compilation_trace_filename)                   \

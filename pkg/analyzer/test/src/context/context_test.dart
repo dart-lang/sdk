@@ -258,7 +258,8 @@ int b = aa;''';
     expect(partUnit, isNotNull);
     TopLevelVariableDeclaration declaration =
         libraryUnit.declarations[0] as TopLevelVariableDeclaration;
-    Element declarationElement = declaration.variables.variables[0].element;
+    Element declarationElement =
+        declaration.variables.variables[0].declaredElement;
     TopLevelVariableDeclaration use =
         partUnit.declarations[0] as TopLevelVariableDeclaration;
     Element useElement =
@@ -2505,7 +2506,7 @@ void functionWithClosureAsDefaultParam([x = () => null]) {}
     CompilationUnit compilationUnit =
         context.resolveCompilationUnit(source, library);
     expect(compilationUnit, isNotNull);
-    expect(compilationUnit.element, isNotNull);
+    expect(compilationUnit.declaredElement, isNotNull);
   }
 
   void test_resolveCompilationUnit_source() {
@@ -2797,7 +2798,7 @@ int aa = 0;''';
     Source source = resourceProvider.newFile(path, code).createSource();
     context.applyChanges(new ChangeSet()..addedSource(source));
     CompilationUnitElement unitElement =
-        context.resolveCompilationUnit2(source, source).element;
+        context.resolveCompilationUnit2(source, source).declaredElement;
     validate(unitElement, 'initial state');
     for (ResultDescriptor<CompilationUnit> descriptor
         in RESOLVED_UNIT_RESULTS) {

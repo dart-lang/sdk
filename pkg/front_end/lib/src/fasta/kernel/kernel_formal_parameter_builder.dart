@@ -4,8 +4,7 @@
 
 library fasta.kernel_formal_parameter_builder;
 
-import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart'
-    show VariableDeclarationJudgment;
+import 'kernel_shadow_ast.dart' show VariableDeclarationJudgment;
 
 import '../modifier.dart' show finalMask;
 
@@ -16,8 +15,7 @@ import 'kernel_builder.dart'
         KernelTypeBuilder,
         MetadataBuilder;
 
-import 'package:front_end/src/fasta/source/source_library_builder.dart'
-    show SourceLibraryBuilder;
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 class KernelFormalParameterBuilder
     extends FormalParameterBuilder<KernelTypeBuilder> {
@@ -34,6 +32,9 @@ class KernelFormalParameterBuilder
       this.charOffset)
       : super(metadata, modifiers, type, name, hasThis, compilationUnit,
             charOffset);
+
+  @override
+  bool get hasTarget => true;
 
   VariableDeclarationJudgment get target => declaration;
 

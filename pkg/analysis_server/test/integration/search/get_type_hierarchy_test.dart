@@ -194,7 +194,7 @@ class Pivot /* target */ extends Base2 {}
     });
   }
 
-  test_getTypeHierarchy() {
+  Future<void> test_getTypeHierarchy() {
     pathname = sourcePath('test.dart');
     // Write a dummy file which will be overridden by tests using
     // [sendAnalysisUpdateContent].
@@ -227,6 +227,19 @@ class Pivot /* target */ extends Base2 {}
     } else {
       return new HierarchyResults(result.hierarchyItems);
     }
+  }
+}
+
+@reflectiveTest
+class GetTypeHierarchyTest_UseCFE extends GetTypeHierarchyTest {
+  @override
+  bool get useCFE => true;
+
+  @override
+  @failingTest
+  test_getTypeHierarchy() {
+    fail('Timeout');
+//    return callFailingTest(super.test_getTypeHierarchy);
   }
 }
 
@@ -272,15 +285,4 @@ class HierarchyResults {
       fail('Class $name not found in hierarchy results');
     }
   }
-}
-
-@reflectiveTest
-class GetTypeHierarchyTest_UseCFE extends GetTypeHierarchyTest {
-  @override
-  bool get useCFE => true;
-
-  @override
-  @failingTest
-  // TODO(devoncarew): 'NoSuchMethodError: The getter 'source' was called on null'
-  Future test_getTypeHierarchy() => new Future.error('failing test');
 }

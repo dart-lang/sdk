@@ -291,6 +291,37 @@ class VMService extends MessageRouter {
     }
   }
 
+  Future<Null> _handleNativeRpcCall(message, SendPort replyPort) async {
+    // Keep in sync with "runtime/vm/service_isolate.cc:InvokeServiceRpc".
+    Response response;
+
+    try {
+      final Message rpc = new Message.fromJsonRpc(
+          null, json.decode(utf8.decode(message as List<int>)));
+      if (rpc.type != MessageType.Request) {
+        response = new Response.internalError(
+            'The client sent a non-request json-rpc message.');
+      } else {
+        response = await routeRequest(this, rpc);
+      }
+    } catch (exception) {
+      response = new Response.internalError(
+          'The rpc call resulted in exception: $exception.');
+    }
+    List<int> bytes;
+    switch (response.kind) {
+      case ResponsePayloadKind.String:
+        bytes = utf8.encode(response.payload);
+        bytes = bytes is Uint8List ? bytes : new Uint8List.fromList(bytes);
+        break;
+      case ResponsePayloadKind.Binary:
+      case ResponsePayloadKind.Utf8String:
+        bytes = response.payload as Uint8List;
+        break;
+    }
+    replyPort.send(bytes);
+  }
+
   Future _exit() async {
     // Stop the server.
     if (VMServiceEmbedderHooks.serverStop != null) {
@@ -329,11 +360,17 @@ class VMService extends MessageRouter {
         return;
       }
       if (message.length == 3) {
-        // This is a message interacting with the web server.
-        assert((message[0] == Constants.WEB_SERVER_CONTROL_MESSAGE_ID) ||
-            (message[0] == Constants.SERVER_INFO_MESSAGE_ID));
-        _serverMessageHandler(message[0], message[1], message[2]);
-        return;
+        final opcode = message[0];
+        if (opcode == Constants.METHOD_CALL_FROM_NATIVE) {
+          _handleNativeRpcCall(message[1], message[2]);
+          return;
+        } else {
+          // This is a message interacting with the web server.
+          assert((opcode == Constants.WEB_SERVER_CONTROL_MESSAGE_ID) ||
+              (opcode == Constants.SERVER_INFO_MESSAGE_ID));
+          _serverMessageHandler(message[0], message[1], message[2]);
+          return;
+        }
       }
       if (message.length == 4) {
         // This is a message informing us of the birth or death of an
@@ -659,11 +696,13 @@ class VMService extends MessageRouter {
   }
 }
 
+@pragma("vm.entry-point")
 RawReceivePort boot() {
   // Return the port we expect isolate control messages on.
   return isolateControlPort;
 }
 
+@pragma("vm.entry-point", !const bool.fromEnvironment("dart.vm.product"))
 void _registerIsolate(int port_id, SendPort sp, String name) {
   var service = new VMService();
   service.runningIsolates.isolateStartup(port_id, sp, name);

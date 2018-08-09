@@ -25,7 +25,7 @@ Bytecode {
   Push                 r0
   PushConstant         CP#6
   Push                 FP[-5]
-  LoadFieldTOS         CP#8
+  LoadTypeArgumentsField CP#8
   PushConstant         CP#2
   InstantiateType      CP#7
   StoreIndexedTOS
@@ -36,7 +36,7 @@ Bytecode {
   Push                 r0
   PushConstant         CP#11
   Push                 FP[-5]
-  LoadFieldTOS         CP#8
+  LoadTypeArgumentsField CP#8
   PushConstant         CP#2
   InstantiateType      CP#12
   StoreIndexedTOS
@@ -57,7 +57,7 @@ ConstantPool {
   [5] = String 'Base: '
   [6] = Int 1
   [7] = Type #lib::Base::T1
-  [8] = TypeArgumentsFieldOffset #lib::Base
+  [8] = TypeArgumentsField #lib::Base
   [9] = Int 2
   [10] = String ', '
   [11] = Int 3
@@ -111,7 +111,7 @@ Bytecode {
   Push                 r0
   PushConstant         CP#6
   Push                 FP[-5]
-  LoadFieldTOS         CP#8
+  LoadTypeArgumentsField CP#8
   PushConstant         CP#2
   InstantiateType      CP#7
   StoreIndexedTOS
@@ -132,7 +132,7 @@ ConstantPool {
   [5] = String 'B: '
   [6] = Int 1
   [7] = Type #lib::B::T
-  [8] = TypeArgumentsFieldOffset #lib::B
+  [8] = TypeArgumentsField #lib::B
   [9] = StaticICData target 'dart.core::_StringBase::_interpolate', arg-desc CP#0
   [10] = StaticICData target 'dart.core::print', arg-desc CP#0
 }
@@ -211,7 +211,7 @@ Bytecode {
   Entry                0
   CheckStack
   Push                 FP[-5]
-  LoadFieldTOS         CP#0
+  LoadTypeArgumentsField CP#0
   PushConstant         CP#2
   IndirectStaticCall   1, CP#1
   ReturnTOS
@@ -219,7 +219,7 @@ Bytecode {
   ReturnTOS
 }
 ConstantPool {
-  [0] = TypeArgumentsFieldOffset #lib::E
+  [0] = TypeArgumentsField #lib::E
   [1] = ArgDesc num-args 1, num-type-args 0, names []
   [2] = StaticICData target 'dart.core::Map::', arg-desc CP#1
   [3] = Null
@@ -252,7 +252,7 @@ Bytecode {
   Entry                0
   CheckStack
   Push                 FP[-5]
-  LoadFieldTOS         CP#0
+  LoadTypeArgumentsField CP#0
   PushConstant         CP#2
   IndirectStaticCall   1, CP#1
   ReturnTOS
@@ -260,7 +260,7 @@ Bytecode {
   ReturnTOS
 }
 ConstantPool {
-  [0] = TypeArgumentsFieldOffset #lib::F
+  [0] = TypeArgumentsField #lib::F
   [1] = ArgDesc num-args 1, num-type-args 0, names []
   [2] = StaticICData target 'dart.core::Map::', arg-desc CP#1
   [3] = Null

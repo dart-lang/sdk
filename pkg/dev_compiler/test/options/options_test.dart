@@ -78,11 +78,11 @@ main() {
     ];
 
     var argResults = ddcArgParser().parse(args);
-    var options = AnalyzerOptions.fromArguments(argResults);
-    expect(options.summaryPaths,
+    var options = CompilerOptions.fromArguments(argResults);
+    expect(options.summaryModules.keys.toList(),
         orderedEquals(['normal', 'custom/path', 'another', 'custom/path2']));
-    expect(options.customSummaryModules['custom/path'], equals('module'));
-    expect(options.customSummaryModules['custom/path2'], equals('module2'));
-    expect(options.customSummaryModules.containsKey('normal'), isFalse);
+    expect(options.summaryModules['custom/path'], equals('module'));
+    expect(options.summaryModules['custom/path2'], equals('module2'));
+    expect(options.summaryModules.containsKey('normal'), isFalse);
   });
 }

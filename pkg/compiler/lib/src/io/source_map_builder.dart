@@ -10,7 +10,7 @@ import '../util/uri_extras.dart' show relativize;
 import '../util/util.dart';
 import 'location_provider.dart';
 import 'code_output.dart' show SourceLocationsProvider, SourceLocations;
-import 'source_information.dart' show SourceLocation;
+import 'source_information.dart' show SourceLocation, FrameEntry;
 
 class SourceMapBuilder {
   final String version;
@@ -24,8 +24,21 @@ class SourceMapBuilder {
   final LocationProvider locationProvider;
   final List<SourceMapEntry> entries = new List<SourceMapEntry>();
 
-  SourceMapBuilder(this.version, this.sourceMapUri, this.targetFileUri,
-      this.locationProvider);
+  /// Extension used to deobfuscate minified names in error messages.
+  final Map<String, String> minifiedGlobalNames;
+  final Map<String, String> minifiedInstanceNames;
+
+  /// Extension used to deobfuscate inlined stack frames.
+  final Map<int, List<FrameEntry>> frames;
+
+  SourceMapBuilder(
+      this.version,
+      this.sourceMapUri,
+      this.targetFileUri,
+      this.locationProvider,
+      this.minifiedGlobalNames,
+      this.minifiedInstanceNames,
+      this.frames);
 
   void addMapping(int targetOffset, SourceLocation sourceLocation) {
     entries.add(new SourceMapEntry(sourceLocation, targetOffset));
@@ -75,8 +88,7 @@ class SourceMapBuilder {
     IndexMap<Uri> uriMap = new IndexMap<Uri>();
     IndexMap<String> nameMap = new IndexMap<String>();
 
-    lineColumnMap.forEachElement((SourceMapEntry entry) {
-      SourceLocation sourceLocation = entry.sourceLocation;
+    void registerLocation(SourceLocation sourceLocation) {
       if (sourceLocation != null) {
         if (sourceLocation.sourceUri != null) {
           uriMap.register(sourceLocation.sourceUri);
@@ -85,7 +97,22 @@ class SourceMapBuilder {
           }
         }
       }
+    }
+
+    lineColumnMap.forEachElement((SourceMapEntry entry) {
+      registerLocation(entry.sourceLocation);
     });
+
+    minifiedGlobalNames.values.forEach(nameMap.register);
+    minifiedInstanceNames.values.forEach(nameMap.register);
+    for (List<FrameEntry> entries in frames.values) {
+      for (var frame in entries) {
+        registerLocation(frame.pushLocation);
+        if (frame.inlinedMethodName != null) {
+          nameMap.register(frame.inlinedMethodName);
+        }
+      }
+    }
 
     StringBuffer mappingsBuffer = new StringBuffer();
     writeEntries(lineColumnMap, uriMap, nameMap, mappingsBuffer);
@@ -112,7 +139,18 @@ class SourceMapBuilder {
     buffer.write(',\n');
     buffer.write('  "mappings": "');
     buffer.write(mappingsBuffer);
-    buffer.write('"\n}\n');
+    buffer.write('",\n');
+    buffer.write('  "x_org_dartlang_dart2js": {\n');
+    buffer.write('    "minified_names": {\n');
+    buffer.write('      "global": ');
+    writeMinifiedNames(minifiedGlobalNames, nameMap, buffer);
+    buffer.write(',\n');
+    buffer.write('      "instance": ');
+    writeMinifiedNames(minifiedInstanceNames, nameMap, buffer);
+    buffer.write('\n    },\n');
+    buffer.write('    "frames": ');
+    writeFrames(uriMap, nameMap, buffer);
+    buffer.write('\n  }\n}\n');
     return buffer.toString();
   }
 
@@ -170,6 +208,53 @@ class SourceMapBuilder {
     });
   }
 
+  void writeMinifiedNames(Map<String, String> minifiedNames,
+      IndexMap<String> nameMap, StringBuffer buffer) {
+    bool first = true;
+    buffer.write('{');
+    minifiedNames.forEach((String minifiedName, String name) {
+      if (!first) buffer.write(',');
+      buffer.write('"');
+      writeJsonEscapedCharsOn(minifiedName, buffer);
+      buffer.write('"');
+      buffer.write(':');
+      buffer.write(nameMap[name]);
+      first = false;
+    });
+    buffer.write('}');
+  }
+
+  void writeFrames(
+      IndexMap<Uri> uriMap, IndexMap<String> nameMap, StringBuffer buffer) {
+    bool first = true;
+    buffer.write('[');
+    frames.forEach((int offset, List<FrameEntry> entries) {
+      if (!first) buffer.write(',');
+      buffer.write('[');
+      buffer.write(offset);
+      for (var entry in entries) {
+        buffer.write(',');
+        if (entry.isPush) {
+          SourceLocation location = entry.pushLocation;
+          buffer.write('[');
+          buffer.write(uriMap[location.sourceUri]);
+          buffer.write(',');
+          buffer.write(location.line - 1);
+          buffer.write(',');
+          buffer.write(location.column - 1);
+          buffer.write(',');
+          buffer.write(nameMap[entry.inlinedMethodName]);
+          buffer.write(']');
+        } else {
+          buffer.write(entry.isEmptyPop ? 0 : -1);
+        }
+      }
+      buffer.write(']');
+      first = false;
+    });
+    buffer.write(']');
+  }
+
   /// Returns the source map tag to put at the end a .js file in [fileUri] to
   /// make it point to the source map file in [sourceMapUri].
   static String generateSourceMapTag(Uri sourceMapUri, Uri fileUri) {
@@ -191,6 +276,8 @@ class SourceMapBuilder {
   static void outputSourceMap(
       SourceLocationsProvider sourceLocationsProvider,
       LocationProvider locationProvider,
+      Map<String, String> minifiedGlobalNames,
+      Map<String, String> minifiedInstanceNames,
       String name,
       Uri sourceMapUri,
       Uri fileUri,
@@ -201,7 +288,13 @@ class SourceMapBuilder {
     sourceLocationsProvider.sourceLocations
         .forEach((SourceLocations sourceLocations) {
       SourceMapBuilder sourceMapBuilder = new SourceMapBuilder(
-          sourceLocations.name, sourceMapUri, fileUri, locationProvider);
+          sourceLocations.name,
+          sourceMapUri,
+          fileUri,
+          locationProvider,
+          minifiedGlobalNames,
+          minifiedInstanceNames,
+          sourceLocations.frameMarkers);
       sourceLocations.forEachSourceLocation(sourceMapBuilder.addMapping);
       String sourceMap = sourceMapBuilder.build();
       String extension = 'js.map';

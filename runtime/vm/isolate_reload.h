@@ -236,7 +236,8 @@ class IsolateReloadContext {
   void FindModifiedSources(Thread* thread,
                            bool force_reload,
                            Dart_SourceFile** modified_sources,
-                           intptr_t* count);
+                           intptr_t* count,
+                           const char* packages_url);
 
   void CheckpointLibraries();
 

@@ -52,10 +52,10 @@ class _IoFileSystemEntity implements FileSystemEntity {
 
   @override
   Future<bool> exists() async {
-    if (await io.FileSystemEntity.isFile(uri.toFilePath())) {
-      return new io.File.fromUri(uri).exists();
+    if (await io.FileSystemEntity.isDirectory(uri.toFilePath())) {
+      return true;
     } else {
-      return new io.Directory.fromUri(uri).exists();
+      return new io.File.fromUri(uri).exists();
     }
   }
 

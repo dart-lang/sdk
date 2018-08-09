@@ -56,6 +56,7 @@ namespace dart {
   V(::, min, MathMin, Dynamic, 0x32ebc57d)                                     \
   V(::, max, MathMax, Dynamic, 0x377e8889)                                     \
   V(::, _doublePow, MathDoublePow, Double, 0x5add0ec1)                         \
+  V(::, _intPow, MathIntPow, Dynamic, 0x11b45569)                              \
   V(Float32x4, Float32x4., Float32x4Constructor, Float32x4, 0x26ea459b)        \
   V(Float32x4, Float32x4.zero, Float32x4Zero, Float32x4, 0x16eca604)           \
   V(Float32x4, Float32x4.splat, Float32x4Splat, Float32x4, 0x694e83e3)         \
@@ -182,6 +183,7 @@ namespace dart {
   V(Object, get:runtimeType, ObjectRuntimeType, Type, 0x00e8ab29)              \
   V(Object, _haveSameRuntimeType, ObjectHaveSameRuntimeType, Bool, 0x4dc50799) \
   V(_StringBase, get:hashCode, String_getHashCode, Smi, 0x78c3d446)            \
+  V(_StringBase, get:_identityHashCode, String_identityHash, Smi, 0x0472b1d8)  \
   V(_StringBase, get:isEmpty, StringBaseIsEmpty, Bool, 0x4a8b29c8)             \
   V(_StringBase, _substringMatches, StringBaseSubstringMatches, Bool,          \
     0x46de4f10)                                                                \

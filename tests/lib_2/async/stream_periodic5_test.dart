@@ -7,7 +7,7 @@ library dart.test.stream_from_iterable;
 
 import 'dart:async';
 
-import 'package:unittest/unittest.dart';
+import 'package:expect/async_minitest.dart';
 
 watchMs(Stopwatch watch) {
   int microsecs = watch.elapsedMicroseconds;

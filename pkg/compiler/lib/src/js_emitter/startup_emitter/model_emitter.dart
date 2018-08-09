@@ -296,6 +296,8 @@ class ModelEmitter {
       SourceMapBuilder.outputSourceMap(
           mainOutput,
           locationCollector,
+          namer.createMinifiedGlobalNameMap(),
+          namer.createMinifiedInstanceNameMap(),
           '',
           compiler.options.sourceMapUri,
           compiler.options.outputUri,
@@ -380,8 +382,8 @@ class ModelEmitter {
 
       output.add(SourceMapBuilder.generateSourceMapTag(mapUri, partUri));
       output.close();
-      SourceMapBuilder.outputSourceMap(output, locationCollector, partName,
-          mapUri, partUri, compiler.outputProvider);
+      SourceMapBuilder.outputSourceMap(output, locationCollector, {}, {},
+          partName, mapUri, partUri, compiler.outputProvider);
     } else {
       output.close();
     }

@@ -109,7 +109,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
             error.errorCode != HintCode.UNUSED_LOCAL_VARIABLE;
       }), isEmpty);
     }
-    testUnitElement = testUnit.element;
+    testUnitElement = testUnit.declaredElement;
     testLibraryElement = testUnitElement.library;
   }
 

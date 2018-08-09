@@ -26,7 +26,11 @@ abstract class Declaration {
 
   String get fullNameForErrors;
 
+  bool get buildsArguments => false;
+
   bool get hasProblem => false;
+
+  bool get hasTarget => false;
 
   bool get isConst => false;
 

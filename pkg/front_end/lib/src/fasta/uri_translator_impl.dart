@@ -4,13 +4,13 @@
 
 library fasta.uri_translator_impl;
 
-import 'package:front_end/src/base/libraries_specification.dart'
-    show TargetLibrariesSpecification;
-import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-import 'package:front_end/src/fasta/fasta_codes.dart';
-import 'package:front_end/src/fasta/severity.dart' show Severity;
-import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:package_config/packages.dart' show Packages;
+
+import '../base/libraries_specification.dart' show TargetLibrariesSpecification;
+import 'compiler_context.dart' show CompilerContext;
+import 'fasta_codes.dart';
+import 'severity.dart' show Severity;
+import 'uri_translator.dart';
 
 /// Implementation of [UriTranslator] for absolute `dart` and `package` URIs.
 class UriTranslatorImpl implements UriTranslator {

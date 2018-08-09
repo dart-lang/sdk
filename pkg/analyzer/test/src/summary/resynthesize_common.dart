@@ -5230,6 +5230,28 @@ class D {
 ''');
   }
 
+  test_defaultValue_genericFunction() async {
+    var library = await checkLibrary('''
+typedef void F<T>(T v);
+
+void defaultF<T>(T v) {}
+
+class X {
+  final F f;
+  const X({this.f: defaultF});
+}
+''');
+    checkElementText(library, r'''
+typedef F<T> = void Function(T v);
+class X {
+  final (dynamic) → void f;
+  const X({(dynamic) → void this.f:
+        defaultF/*location: test.dart;defaultF*/});
+}
+void defaultF<T>(T v) {}
+''');
+  }
+
   test_defaultValue_refersToGenericClass_constructor() async {
     var library = await checkLibrary('''
 class B<T> {
@@ -6574,6 +6596,26 @@ dynamic main() {}
 ''');
   }
 
+  test_import_export() async {
+    addLibrary('dart:async');
+    var library = await checkLibrary('''
+import 'dart:async' as i1;
+export 'dart:math';
+import 'dart:async' as i2;
+export 'dart:math';
+import 'dart:async' as i3;
+export 'dart:math';
+''');
+    checkElementText(library, r'''
+import 'dart:async' as i1;
+import 'dart:async' as i2;
+import 'dart:async' as i3;
+export 'dart:math';
+export 'dart:math';
+export 'dart:math';
+''');
+  }
+
   test_import_hide() async {
     addLibrary('dart:async');
     var library = await checkLibrary('''
@@ -6613,6 +6655,10 @@ Future<dynamic> f;
   test_import_prefixed() async {
     addLibrarySource('/a.dart', 'library a; class C {}');
     var library = await checkLibrary('import "a.dart" as a; a.C c;');
+
+    expect(library.imports[0].prefix.nameOffset, 19);
+    expect(library.imports[0].prefix.nameLength, 1);
+
     checkElementText(library, r'''
 import 'a.dart' as a;
 C c;
@@ -8977,6 +9023,16 @@ class C {
 ''');
   }
 
+  test_parameter() async {
+    var library = await checkLibrary('void main(int p) {}');
+    checkElementText(
+        library,
+        r'''
+void main@5(int p@14) {}
+''',
+        withOffsets: true);
+  }
+
   test_parameter_checked() async {
     // Note: due to dartbug.com/27393, the keyword "checked" is identified by
     // its presence in a library called "meta".  If that bug is fixed, this test
@@ -10399,6 +10455,19 @@ dynamic v;
     }
   }
 
+  test_variable() async {
+    var library = await checkLibrary('int x = 0;');
+    checkElementText(
+        library,
+        r'''
+int x@4;
+synthetic int get x@4 {}
+synthetic void set x@4(int _x@4) {}
+''',
+        withOffsets: true,
+        withSyntheticAccessors: true);
+  }
+
   test_variable_const() async {
     var library = await checkLibrary('const int i = 0;');
     checkElementText(library, r'''
@@ -10657,8 +10726,7 @@ class TestSummaryResynthesizer extends SummaryResynthesizer {
 
   TestSummaryResynthesizer(AnalysisContext context, this.unlinkedSummaries,
       this.linkedSummaries, this.allowMissingFiles)
-      : super(context, context.sourceFactory,
-            context.analysisOptions.strongMode) {
+      : super(context, context.sourceFactory, true) {
     // Clear after resynthesizing TypeProvider in super().
     unlinkedSummariesRequested.clear();
     linkedSummariesRequested.clear();

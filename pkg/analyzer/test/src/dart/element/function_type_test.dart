@@ -1188,7 +1188,7 @@ class MockGenericTypeAliasElement implements GenericTypeAliasElement {
   get isSynthetic => false;
 
   @override
-  get type => _type ??= new FunctionTypeImpl.forTypedef(this);
+  FunctionType get type => _type ??= new FunctionTypeImpl.forTypedef(this);
 
   noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);

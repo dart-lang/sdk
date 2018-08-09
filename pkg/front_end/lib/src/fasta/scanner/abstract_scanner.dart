@@ -21,7 +21,8 @@ import '../fasta_codes.dart'
 import '../scanner.dart'
     show ErrorToken, Keyword, Scanner, buildUnexpectedCharacterToken;
 
-import 'error_token.dart' show UnterminatedString, UnterminatedToken;
+import 'error_token.dart'
+    show UnsupportedOperator, UnterminatedString, UnterminatedToken;
 
 import 'keyword_state.dart' show KeywordState;
 
@@ -599,7 +600,16 @@ abstract class AbstractScanner implements Scanner {
 
     next = advance();
     if (identical(next, $EQ)) {
-      return select($EQ, TokenType.BANG_EQ_EQ, TokenType.BANG_EQ);
+      //was `return select($EQ, TokenType.BANG_EQ_EQ, TokenType.BANG_EQ);`
+      int next = advance();
+      if (identical(next, $EQ)) {
+        appendPrecedenceToken(TokenType.BANG_EQ_EQ);
+        appendErrorToken(new UnsupportedOperator(tail, tokenStart));
+        return advance();
+      } else {
+        appendPrecedenceToken(TokenType.BANG_EQ);
+        return next;
+      }
     }
     appendPrecedenceToken(TokenType.BANG);
     return next;
@@ -615,7 +625,16 @@ abstract class AbstractScanner implements Scanner {
 
     next = advance();
     if (identical(next, $EQ)) {
-      return select($EQ, TokenType.EQ_EQ_EQ, TokenType.EQ_EQ);
+      // was `return select($EQ, TokenType.EQ_EQ_EQ, TokenType.EQ_EQ);`
+      int next = advance();
+      if (identical(next, $EQ)) {
+        appendPrecedenceToken(TokenType.EQ_EQ_EQ);
+        appendErrorToken(new UnsupportedOperator(tail, tokenStart));
+        return advance();
+      } else {
+        appendPrecedenceToken(TokenType.EQ_EQ);
+        return next;
+      }
     } else if (identical(next, $GT)) {
       appendPrecedenceToken(TokenType.FUNCTION);
       return advance();

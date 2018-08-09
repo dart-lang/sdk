@@ -76,9 +76,7 @@ abstract class ResolutionEnqueuerWorldBuilder extends ResolutionWorldBuilder {
   // TODO(johnniwinther): Support unknown type arguments for generic types.
   void registerTypeInstantiation(
       InterfaceType type, ClassUsedCallback classUsed,
-      {ConstructorEntity constructor,
-      bool byMirrors: false,
-      bool isRedirection: false});
+      {ConstructorEntity constructor, bool isRedirection: false});
 
   /// Computes usage for all members declared by [cls]. Calls [membersUsed] with
   /// the usage changes for each member.
@@ -510,25 +508,18 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
   // TODO(johnniwinther): Support unknown type arguments for generic types.
   void registerTypeInstantiation(
       InterfaceType type, ClassUsedCallback classUsed,
-      {ConstructorEntity constructor,
-      bool byMirrors: false,
-      bool isRedirection: false}) {
+      {ConstructorEntity constructor, bool isRedirection: false}) {
     ClassEntity cls = type.element;
     InstantiationInfo info =
         _instantiationInfo.putIfAbsent(cls, () => new InstantiationInfo());
     Instantiation kind = Instantiation.UNINSTANTIATED;
     bool isNative = _nativeBasicData.isNativeClass(cls);
-    if (!cls.isAbstract ||
-        // We can't use the closed-world assumption with native abstract
-        // classes; a native abstract class may have non-abstract subclasses
-        // not declared to the program.  Instances of these classes are
-        // indistinguishable from the abstract class.
-        isNative ||
-        // Likewise, if this registration comes from the mirror system,
-        // all bets are off.
-        // TODO(herhut): Track classes required by mirrors seperately.
-        byMirrors) {
-      if (isNative || byMirrors) {
+    // We can't use the closed-world assumption with native abstract
+    // classes; a native abstract class may have non-abstract subclasses
+    // not declared to the program.  Instances of these classes are
+    // indistinguishable from the abstract class.
+    if (!cls.isAbstract || isNative) {
+      if (isNative) {
         kind = Instantiation.ABSTRACTLY_INSTANTIATED;
       } else {
         kind = Instantiation.DIRECTLY_INSTANTIATED;

@@ -22,6 +22,7 @@ import '../abstract_context.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ElementTest);
+    defineReflectiveTests(ElementTest_UseCFE);
     defineReflectiveTests(ElementKindTest);
   });
 }
@@ -321,7 +322,7 @@ enum E2 { three, four }''');
     }
     {
       engine.FieldElement engineElement =
-          unit.element.enums[1].getField('index');
+          unit.declaredElement.enums[1].getField('index');
       // create notification Element
       Element element = convertElement(engineElement);
       expect(element.kind, ElementKind.FIELD);
@@ -340,7 +341,7 @@ enum E2 { three, four }''');
     }
     {
       engine.FieldElement engineElement =
-          unit.element.enums[1].getField('values');
+          unit.declaredElement.enums[1].getField('values');
       // create notification Element
       Element element = convertElement(engineElement);
       expect(element.kind, ElementKind.FIELD);
@@ -510,4 +511,14 @@ class A {
     expect(element.returnType, isNull);
     expect(element.flags, 0);
   }
+}
+
+@reflectiveTest
+class ElementTest_UseCFE extends ElementTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_fromElement_LABEL() => super.test_fromElement_LABEL();
 }

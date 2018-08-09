@@ -79,9 +79,7 @@ class AnalysisGetImportElementsIntegrationTest
     EditImportElementsResult result =
         await sendEditImportElements(pathname, <ImportedElements>[]);
 
-    SourceFileEdit edit = result.edit;
-    expect(edit, isNotNull);
-    expect(edit.edits, hasLength(0));
+    expect(result.edit, isNull);
   }
 
   Future setUp() async {

@@ -1054,7 +1054,7 @@ class ElementBuilder extends ApiElementBuilder {
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
     super.visitDefaultFormalParameter(node);
     buildParameterInitializer(
-        node.element as ParameterElementImpl, node.defaultValue);
+        node.declaredElement as ParameterElementImpl, node.defaultValue);
     return null;
   }
 
@@ -1067,7 +1067,7 @@ class ElementBuilder extends ApiElementBuilder {
   @override
   Object visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
-    VariableElementImpl element = node.element as VariableElementImpl;
+    VariableElementImpl element = node.declaredElement as VariableElementImpl;
     buildVariableInitializer(element, node.initializer);
     return null;
   }
@@ -1167,7 +1167,7 @@ class LocalElementBuilder extends _BaseElementBuilder {
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
     super.visitDefaultFormalParameter(node);
     buildParameterInitializer(
-        node.element as ParameterElementImpl, node.defaultValue);
+        node.declaredElement as ParameterElementImpl, node.defaultValue);
     return null;
   }
 
@@ -1418,7 +1418,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     }
     _currentHolder.addParameter(parameter);
     if (normalParameter is SimpleFormalParameterImpl) {
-      normalParameter.element = parameter;
+      normalParameter.declaredElement = parameter;
     }
     parameterName?.staticElement = parameter;
     normalParameter.accept(this);
@@ -1447,7 +1447,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     //
     ElementHolder holder = new ElementHolder();
     _visitChildren(holder, node);
-    ParameterElementImpl element = node.element;
+    ParameterElementImpl element = node.declaredElement;
     element.metadata = _createElementAnnotations(node.metadata);
     if (node.parameters != null) {
       _createGenericFunctionType(element, holder);
@@ -1478,7 +1478,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     //
     ElementHolder holder = new ElementHolder();
     _visitChildren(holder, node);
-    ParameterElementImpl element = node.element;
+    ParameterElementImpl element = node.declaredElement;
     element.metadata = _createElementAnnotations(node.metadata);
     _createGenericFunctionType(element, holder);
     holder.validate();
@@ -1518,11 +1518,11 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
         parameter.hasImplicitType = true;
       }
       _currentHolder.addParameter(parameter);
-      (node as SimpleFormalParameterImpl).element = parameter;
+      (node as SimpleFormalParameterImpl).declaredElement = parameter;
       parameterName?.staticElement = parameter;
     }
     super.visitSimpleFormalParameter(node);
-    parameter ??= node.element;
+    parameter ??= node.declaredElement;
     parameter?.metadata = _createElementAnnotations(node.metadata);
     return null;
   }
@@ -1612,7 +1612,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
   void _setVariableDeclarationListAnnotations(VariableDeclarationList node,
       List<ElementAnnotation> elementAnnotations) {
     for (VariableDeclaration variableDeclaration in node.variables) {
-      ElementImpl element = variableDeclaration.element as ElementImpl;
+      ElementImpl element = variableDeclaration.declaredElement as ElementImpl;
       _setCodeRange(element, node.parent);
       element.metadata = elementAnnotations;
     }

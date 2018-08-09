@@ -32,7 +32,7 @@ class ExpectationSet {
   /// Reads the expectations defined by the status files at [statusFilePaths]
   /// when in [configuration].
   ExpectationSet.read(
-      List<String> statusFilePaths, Configuration configuration) {
+      List<String> statusFilePaths, TestConfiguration configuration) {
     try {
       var environment = new ConfigurationEnvironment(configuration);
       for (var path in statusFilePaths) {

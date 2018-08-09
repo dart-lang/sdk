@@ -708,7 +708,7 @@ class PluginManager {
           environment: {_pubEnvironmentKey: _getPubEnvironmentValue()});
       if (result.exitCode != 0) {
         StringBuffer buffer = new StringBuffer();
-        buffer.writeln('Failed to run pub get');
+        buffer.writeln('Failed to run pub $pubSubcommand');
         buffer.writeln('  pluginFolder = ${pluginFolder.path}');
         buffer.writeln('  exitCode = ${result.exitCode}');
         buffer.writeln('  stdout = ${result.stdout}');
@@ -1072,8 +1072,10 @@ class PluginSession {
       return false;
     }
     channel = info._createChannel();
-    await channel.listen(handleResponse, handleNotification,
-        onDone: handleOnDone, onError: handleOnError);
+    // TODO(brianwilkerson) Determine if await is necessary, if so, change the
+    // return type of `channel.listen` to `Future<void>`.
+    await (channel.listen(handleResponse, handleNotification,
+        onDone: handleOnDone, onError: handleOnError) as dynamic);
     if (channel == null) {
       // If there is an error when starting the isolate, the channel will invoke
       // handleOnDone, which will cause `channel` to be set to `null`.

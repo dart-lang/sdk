@@ -276,7 +276,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         (this._options.lint && !options.lint) ||
         _notEqual(this._options.lintRules, options.lintRules) ||
         this._options.preserveComments != options.preserveComments ||
-        this._options.strongMode != options.strongMode ||
         this._options.useFastaParser != options.useFastaParser ||
         this._options.enableLazyAssignmentOperators !=
             options.enableLazyAssignmentOperators ||
@@ -313,9 +312,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.lint = options.lint;
     this._options.lintRules = options.lintRules;
     this._options.preserveComments = options.preserveComments;
-    if (this._options.strongMode != options.strongMode) {
-      _typeSystem = null;
-    }
     this._options.useFastaParser = options.useFastaParser;
     this._options.previewDart2 = options.previewDart2;
     this._options.trackCacheDependencies = options.trackCacheDependencies;

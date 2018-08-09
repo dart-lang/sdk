@@ -73,7 +73,9 @@ Expected -DbRoot=/absolute/path/to/other/sdk/repo
     },
     "compile": {
       "exitCode": 1,
-      "stdout": """Usage: compile [options] dartfile
+      "stdout": """
+Error: No input file provided to the compiler.
+Usage: compile [options] dartfile
 
 Compiles a Dart program to the Dill/Kernel IR format.
 
@@ -85,6 +87,7 @@ Error: No Dart file specified.
     "compile-platform": {
       "exitCode": 1,
       "stdout": """
+Error: No input file provided to the compiler.
 Usage: compile_platform [options] dart-library-uri libraries.json vm_outline_strong.dill platform.dill outline.dill
 
 Compiles Dart SDK platform to the Dill/Kernel IR format.
@@ -101,7 +104,9 @@ Error: Expected five arguments.
     },
     "outline": {
       "exitCode": 1,
-      "stdout": """Usage: outline [options] dartfile
+      "stdout": """
+Error: No input file provided to the compiler.
+Usage: outline [options] dartfile
 
 Creates an outline of a Dart program in the Dill/Kernel IR format.
 

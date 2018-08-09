@@ -7,11 +7,12 @@
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
-#include "vm/compiler/frontend/kernel_binary_flowgraph.h"
-#include "vm/compiler/frontend/kernel_to_il.h"
+#include "vm/bit_vector.h"
+#include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/hash_map.h"
 #include "vm/kernel.h"
 #include "vm/object.h"
+#include "vm/symbols.h"
 
 namespace dart {
 namespace kernel {
@@ -159,10 +160,10 @@ class KernelLoader : public ValueObject {
   void AnnotateNativeProcedures(const Array& constant_table);
   void LoadNativeExtensionLibraries(const Array& constant_table);
 
-  void ReadProcedureAnnotations(intptr_t annotation_count,
-                                String* native_name,
-                                bool* is_potential_native,
-                                bool* has_pragma_annotation);
+  void ReadVMAnnotations(intptr_t annotation_count,
+                         String* native_name,
+                         bool* is_potential_native,
+                         bool* has_pragma_annotation);
 
   const String& DartSymbolPlain(StringIndex index) {
     return translation_helper_.DartSymbolPlain(index);
@@ -272,6 +273,15 @@ class KernelLoader : public ValueObject {
     }
   }
 
+  void EnsurePragmaClassIsLookedUp() {
+    if (pragma_class_.IsNull()) {
+      const Library& internal_lib =
+          Library::Handle(zone_, dart::Library::InternalLibrary());
+      pragma_class_ = internal_lib.LookupClass(Symbols::Pragma());
+      ASSERT(!pragma_class_.IsNull());
+    }
+  }
+
   void EnsurePotentialNatives() {
     potential_natives_ = kernel_program_info_.potential_natives();
     if (potential_natives_.IsNull()) {
@@ -308,12 +318,15 @@ class KernelLoader : public ValueObject {
   ExternalTypedData& library_kernel_data_;
   KernelProgramInfo& kernel_program_info_;
   BuildingTranslationHelper translation_helper_;
-  StreamingFlowGraphBuilder builder_;
+  KernelReaderHelper helper_;
+  TypeTranslator type_translator_;
 
   Class& external_name_class_;
   Field& external_name_field_;
   GrowableObjectArray& potential_natives_;
   GrowableObjectArray& potential_extension_libraries_;
+
+  Class& pragma_class_;
 
   Mapping<Library> libraries_;
   Mapping<Class> classes_;
@@ -323,6 +336,12 @@ class KernelLoader : public ValueObject {
 
   DISALLOW_COPY_AND_ASSIGN(KernelLoader);
 };
+
+RawFunction* CreateFieldInitializerFunction(Thread* thread,
+                                            Zone* zone,
+                                            const Field& field);
+
+ParsedFunction* ParseStaticFieldInitializer(Zone* zone, const Field& field);
 
 }  // namespace kernel
 }  // namespace dart

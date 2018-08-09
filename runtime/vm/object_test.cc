@@ -44,15 +44,20 @@ ISOLATE_UNIT_TEST_CASE(Class) {
   EXPECT_EQ(Array::Handle(cls.functions()).Length(), 0);
 
   // Setup the interfaces in the class.
+  // Normally the class finalizer is resolving super types and interfaces
+  // before finalizing the types in a class. A side-effect of this is setting
+  // the is_implemented() bit on a class. We do that manually here.
   const Array& interfaces = Array::Handle(Array::New(2));
   Class& interface = Class::Handle();
   String& interface_name = String::Handle();
   interface_name = Symbols::New(thread, "Harley");
   interface = CreateDummyClass(interface_name, script);
   interfaces.SetAt(0, Type::Handle(Type::NewNonParameterizedType(interface)));
+  interface.set_is_implemented();
   interface_name = Symbols::New(thread, "Norton");
   interface = CreateDummyClass(interface_name, script);
   interfaces.SetAt(1, Type::Handle(Type::NewNonParameterizedType(interface)));
+  interface.set_is_implemented();
   cls.set_interfaces(interfaces);
 
   // Finalization of types happens before the fields and functions have been
@@ -3009,15 +3014,20 @@ ISOLATE_UNIT_TEST_CASE(SubtypeTestCache) {
   const TypeArguments& targ_0 = TypeArguments::Handle(TypeArguments::New(2));
   const TypeArguments& targ_1 = TypeArguments::Handle(TypeArguments::New(3));
   const TypeArguments& targ_2 = TypeArguments::Handle(TypeArguments::New(4));
-  cache.AddCheck(class_id_or_fun, targ_0, targ_1, targ_2, Bool::True());
+  const TypeArguments& targ_3 = TypeArguments::Handle(TypeArguments::New(5));
+  const TypeArguments& targ_4 = TypeArguments::Handle(TypeArguments::New(6));
+  cache.AddCheck(class_id_or_fun, targ_0, targ_1, targ_2, targ_3, targ_4,
+                 Bool::True());
   EXPECT_EQ(1, cache.NumberOfChecks());
   Object& test_class_id_or_fun = Object::Handle();
   TypeArguments& test_targ_0 = TypeArguments::Handle();
   TypeArguments& test_targ_1 = TypeArguments::Handle();
   TypeArguments& test_targ_2 = TypeArguments::Handle();
+  TypeArguments& test_targ_3 = TypeArguments::Handle();
+  TypeArguments& test_targ_4 = TypeArguments::Handle();
   Bool& test_result = Bool::Handle();
   cache.GetCheck(0, &test_class_id_or_fun, &test_targ_0, &test_targ_1,
-                 &test_targ_2, &test_result);
+                 &test_targ_2, &test_targ_3, &test_targ_4, &test_result);
   EXPECT_EQ(class_id_or_fun.raw(), test_class_id_or_fun.raw());
   EXPECT_EQ(targ_0.raw(), test_targ_0.raw());
   EXPECT_EQ(targ_1.raw(), test_targ_1.raw());
@@ -3857,38 +3867,38 @@ TEST_CASE(Metadata) {
 TEST_CASE(FunctionSourceFingerprint) {
   const char* kScriptChars =
       "class A {\n"
-      "  static void test1(int a) {\n"
+      "  static test1(int a) {\n"
       "    return a > 1 ? a + 1 : a;\n"
       "  }\n"
-      "  static void test2(a) {\n"
+      "  static test2(a) {\n"
       "    return a > 1 ? a + 1 : a;\n"
       "  }\n"
-      "  static void test3(b) {\n"
+      "  static test3(b) {\n"
       "    return b > 1 ? b + 1 : b;\n"
       "  }\n"
-      "  static void test4(b) {\n"
+      "  static test4(b) {\n"
       "    return b > 1 ? b - 1 : b;\n"
       "  }\n"
-      "  static void test5(b) {\n"
+      "  static test5(b) {\n"
       "    return b > 1 ? b - 2 : b;\n"
       "  }\n"
-      "  void test6(int a) {\n"
+      "  test6(int a) {\n"
       "    return a > 1 ? a + 1 : a;\n"
       "  }\n"
       "}\n"
       "class B {\n"
-      "  static void /* Different declaration style. */\n"
+      "  static /* Different declaration style. */\n"
       "  test1(int a) {\n"
       "    /* Returns a + 1 for a > 1, a otherwise. */\n"
       "    return a > 1 ?\n"
       "        a + 1 :\n"
       "        a;\n"
       "  }\n"
-      "  static void test5(b) {\n"
+      "  static test5(b) {\n"
       "    return b > 1 ?\n"
       "        b - 2 : b;\n"
       "  }\n"
-      "  void test6(int a) {\n"
+      "  test6(int a) {\n"
       "    return a > 1 ? a + 1 : a;\n"
       "  }\n"
       "}";

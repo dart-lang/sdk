@@ -34,6 +34,7 @@ class CodeIndexTable;
 class CompilerStats;
 class Debugger;
 class DeoptContext;
+class ExternalTypedData;
 class HandleScope;
 class HandleVisitor;
 class Heap;
@@ -600,6 +601,8 @@ class Isolate : public BaseIsolate {
   RawError* sticky_error() const { return sticky_error_; }
   void clear_sticky_error();
 
+  void RetainKernelBlob(const ExternalTypedData& kernel_blob);
+
   bool compilation_allowed() const {
     return CompilationAllowedBit::decode(isolate_flags_);
   }
@@ -975,6 +978,12 @@ class Isolate : public BaseIsolate {
   RawGrowableObjectArray* deoptimized_code_array_;
 
   RawError* sticky_error_;
+
+  // Issue(dartbug.com/33973): We keep a reference to [ExternalTypedData]s with
+  // finalizers to ensure we keep the hot-reloaded kernel blobs alive.
+  //
+  // -> We should get rid of this field once Issue 33973 is fixed.
+  RawGrowableObjectArray* reloaded_kernel_blobs_;
 
   // Isolate list next pointer.
   Isolate* next_;

@@ -50,7 +50,6 @@ int findIdentifierLength(String search) {
 class AbstractAnalysisTest extends Object with ResourceProviderMixin {
   bool generateSummaryFiles = false;
   MockServerChannel serverChannel;
-  MockPackageMapProvider packageMapProvider;
   TestPluginManager pluginManager;
   AnalysisServer server;
   RequestHandler handler;
@@ -73,6 +72,12 @@ class AbstractAnalysisTest extends Object with ResourceProviderMixin {
   AnalysisOptions get analysisOptions => testDiver.analysisOptions;
 
   AnalysisDriver get testDiver => server.getAnalysisDriver(testFile);
+
+  /**
+   * Return `true` if the CFE should be used to perform analysis. Subclasses
+   * can override the getter to change the default behavior.
+   */
+  bool get useCFE => false;
 
   void addAnalysisSubscription(AnalysisService service, String file) {
     // add file to subscription
@@ -117,11 +122,11 @@ class AbstractAnalysisTest extends Object with ResourceProviderMixin {
     // Create server
     //
     AnalysisServerOptions options = new AnalysisServerOptions()
-      ..previewDart2 = true;
+      ..previewDart2 = true
+      ..useCFE = useCFE;
     return new AnalysisServer(
         serverChannel,
         resourceProvider,
-        packageMapProvider,
         options,
         new DartSdkManager(resourceProvider.convertPath('/'), true),
         InstrumentationService.NULL_SERVICE);
@@ -200,7 +205,6 @@ class AbstractAnalysisTest extends Object with ResourceProviderMixin {
     projectPath = resourceProvider.convertPath('/project');
     testFolder = resourceProvider.convertPath('/project/bin');
     testFile = resourceProvider.convertPath('/project/bin/test.dart');
-    packageMapProvider = new MockPackageMapProvider();
     pluginManager = new TestPluginManager();
     server = createAnalysisServer();
     server.pluginManager = pluginManager;
@@ -231,8 +235,9 @@ class AbstractAnalysisTest extends Object with ResourceProviderMixin {
    * Completes with a successful [Response] for the given [request].
    * Otherwise fails.
    */
-  Future<Response> waitResponse(Request request) async {
-    return serverChannel.sendRequest(request);
+  Future<Response> waitResponse(Request request,
+      {bool throwOnError = true}) async {
+    return serverChannel.sendRequest(request, throwOnError: throwOnError);
   }
 }
 

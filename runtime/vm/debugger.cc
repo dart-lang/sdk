@@ -917,7 +917,28 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
           :
           // source script tokens array has first element duplicated
           await_jump_var;
-  ASSERT(await_to_token_map_index < await_to_token_map.Length());
+
+  if (script.kind() == RawScript::kKernelTag) {
+    // yield_positions returns all yield positions for the script (in sorted
+    // order).
+    // We thus need to offset the function start to get the actual index.
+    if (!function_.token_pos().IsReal()) {
+      return;
+    }
+    const intptr_t function_start = function_.token_pos().value();
+    for (intptr_t i = 0;
+         i < await_to_token_map.Length() &&
+         Smi::Value(reinterpret_cast<RawSmi*>(await_to_token_map.At(i))) <
+             function_start;
+         i++) {
+      await_to_token_map_index++;
+    }
+  }
+
+  if (await_to_token_map_index >= await_to_token_map.Length()) {
+    return;
+  }
+
   const Object& token_pos =
       Object::Handle(await_to_token_map.At(await_to_token_map_index));
   if (token_pos.IsNull()) {

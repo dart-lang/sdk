@@ -27,6 +27,7 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
    * A list of suffixes that can be used by tests of class members.
    */
   static final List<TestSuffix> classMemberSuffixes = <TestSuffix>[
+    new TestSuffix('annotation', '@annotation var f;'),
     new TestSuffix('field', 'var f;'),
     new TestSuffix('fieldConst', 'const f = 0;'),
     new TestSuffix('fieldFinal', 'final f = 0;'),

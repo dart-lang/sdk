@@ -578,7 +578,7 @@ Random v2;
     {
       String randomPath = sdk.mapDartUri('dart:math').fullName;
       AnalysisResult result = await driver.getResult(randomPath);
-      randomElement = result.unit.element.getType('Random');
+      randomElement = result.unit.declaredElement.getType('Random');
     }
 
     Element v1 = _findElement('v1');
@@ -1430,7 +1430,7 @@ _C v1;
 
     AnalysisResult result = await driver.getResult(p);
     testUnit = result.unit;
-    testUnitElement = testUnit.element;
+    testUnitElement = testUnit.declaredElement;
     testLibraryElement = testUnitElement.library;
 
     ClassElement element = testLibraryElement.parts[0].types[0];
@@ -1928,7 +1928,7 @@ class NoMatchABCDE {}
   }
 
   Element _findElement(String name, [ElementKind kind]) {
-    return findChildElement(testUnit.element, name, kind);
+    return findChildElement(testUnit.declaredElement, name, kind);
   }
 
   Element _findElementAtString(String search) {
@@ -1949,7 +1949,7 @@ class NoMatchABCDE {}
     if (testUnit == null) {
       AnalysisResult result = await driver.getResult(testFile);
       testUnit = result.unit;
-      testUnitElement = testUnit.element;
+      testUnitElement = testUnit.declaredElement;
       testLibraryElement = testUnitElement.library;
     }
   }

@@ -117,7 +117,12 @@ class FastaVerifyingVisitor extends VerifyingVisitor
   visitAsExpression(AsExpression node) {
     super.visitAsExpression(node);
     if (node.fileOffset == -1) {
-      problem(node, "No offset for $node");
+      TreeNode parent = node.parent;
+      while (parent != null) {
+        if (parent.fileOffset != -1) break;
+        parent = parent.parent;
+      }
+      problem(parent, "No offset for $node", context: node);
     }
   }
 

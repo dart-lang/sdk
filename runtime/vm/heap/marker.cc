@@ -7,7 +7,7 @@
 #include "vm/allocation.h"
 #include "vm/dart_api_state.h"
 #include "vm/heap/pages.h"
-#include "vm/heap/store_buffer.h"
+#include "vm/heap/pointer_block.h"
 #include "vm/isolate.h"
 #include "vm/log.h"
 #include "vm/object_id_ring.h"
@@ -152,7 +152,6 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
         page_space_(page_space),
         work_list_(marking_stack),
         delayed_weak_properties_(NULL),
-        visiting_old_object_(NULL),
         skipped_code_functions_(skipped_code_functions),
         marked_bytes_(0) {
     ASSERT(thread_->isolate() == isolate);
@@ -191,7 +190,6 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
 
         // The key is marked so we make sure to properly visit all pointers
         // originating from this weak property.
-        VisitingOldObject(cur_weak);
         cur_weak->VisitPointersNonvirtual(this);
       } else {
         // Requeue this weak property to be handled later.
@@ -200,7 +198,6 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       // Advance to next weak property in the queue.
       cur_weak = reinterpret_cast<RawWeakProperty*>(next_weak);
     }
-    VisitingOldObject(NULL);
     return marked;
   }
 
@@ -211,21 +208,25 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     }
 
     if (raw_obj == NULL) {
-      ASSERT(visiting_old_object_ == NULL);
       return;
     }
+
     do {
       do {
         // First drain the marking stacks.
-        VisitingOldObject(raw_obj);
         const intptr_t class_id = raw_obj->GetClassId();
+
+        intptr_t size;
         if (class_id != kWeakPropertyCid) {
-          marked_bytes_ += raw_obj->VisitPointersNonvirtual(this);
+          size = raw_obj->VisitPointersNonvirtual(this);
         } else {
           RawWeakProperty* raw_weak =
               reinterpret_cast<RawWeakProperty*>(raw_obj);
-          marked_bytes_ += ProcessWeakProperty(raw_weak);
+          size = ProcessWeakProperty(raw_weak);
         }
+        marked_bytes_ += size;
+        NOT_IN_PRODUCT(UpdateLiveOld(class_id, size));
+
         raw_obj = work_list_.Pop();
       } while (raw_obj != NULL);
 
@@ -236,12 +237,11 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       // by the handling of weak properties.
       raw_obj = work_list_.Pop();
     } while (raw_obj != NULL);
-    VisitingOldObject(NULL);
   }
 
   void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** current = first; current <= last; current++) {
-      MarkObject(*current, current);
+      MarkObject(*current);
     }
   }
 
@@ -297,11 +297,6 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     }
   }
 
-  void VisitingOldObject(RawObject* obj) {
-    ASSERT((obj == NULL) || obj->IsOldObject());
-    visiting_old_object_ = obj;
-  }
-
  private:
   void PushMarked(RawObject* raw_obj) {
     ASSERT(raw_obj->IsHeapObject());
@@ -311,41 +306,26 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
 
     // Push the marked object on the marking stack.
     ASSERT(raw_obj->IsMarked());
-    // We acquired the mark bit => no other task is modifying the header.
-    // TODO(koda): For concurrent mutator, this needs synchronization. Consider
-    // clearing these bits already in the CAS for the mark bit.
-    raw_obj->ClearRememberedBitUnsynchronized();
     work_list_.Push(raw_obj);
   }
 
   static bool TryAcquireMarkBit(RawObject* raw_obj) {
+    // While it might seem this is redundant with TryAcquireMarkBit, we must
+    // do this check first to avoid attempting an AMO on the read-only
+    // vm-isolate or image pages.
+    if (raw_obj->IsMarked()) return false;
+
     if (!sync) {
-      if (raw_obj->IsMarked()) return false;
       raw_obj->SetMarkBitUnsynchronized();
       return true;
+    } else {
+      return raw_obj->TryAcquireMarkBit();
     }
-    return raw_obj->TryAcquireMarkBit();
   }
 
-  void MarkObject(RawObject* raw_obj, RawObject** p) {
+  void MarkObject(RawObject* raw_obj) {
     // Fast exit if the raw object is a Smi.
-    if (!raw_obj->IsHeapObject()) {
-      return;
-    }
-
-    // Fast exit if the raw object is marked.
-    if (raw_obj->IsMarked()) {
-      return;
-    }
-
-    // TODO(koda): Investigate performance impact of alternative branching:
-    // if (smi or new) <-- can be done as single compare + conditional jump
-    //   if (smi) return;
-    //   else ...
-    // if (marked) return;
-    // ...
-    if (raw_obj->IsNewObject()) {
-      ProcessNewSpaceObject(raw_obj, p);
+    if (raw_obj->IsSmiOrNewObject()) {
       return;
     }
 
@@ -354,40 +334,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       return;
     }
 
-#ifndef PRODUCT
-    if (RawObject::IsVariableSizeClassId(raw_obj->GetClassId())) {
-      UpdateLiveOld(raw_obj->GetClassId(), raw_obj->Size());
-    } else {
-      UpdateLiveOld(raw_obj->GetClassId(), 0);
-    }
-#endif  // !PRODUCT
-
     PushMarked(raw_obj);
-  }
-
-  static bool TryAcquireRememberedBit(RawObject* raw_obj) {
-    if (!sync) {
-      if (raw_obj->IsRemembered()) return false;
-      raw_obj->SetRememberedBitUnsynchronized();
-      return true;
-    }
-    return raw_obj->TryAcquireRememberedBit();
-  }
-
-  void ProcessNewSpaceObject(RawObject* raw_obj, RawObject** p) {
-    // TODO(iposva): Add consistency check.
-    if ((visiting_old_object_ != NULL) &&
-        TryAcquireRememberedBit(visiting_old_object_)) {
-      // NOTE: We pass in the pointer to the address we are visiting
-      // allows us to get a distance from the object start. At some
-      // point we might want to store exact addresses in store buffers
-      // for locations far enough from the header, so that we do not
-      // need to walk big objects only to find the single new
-      // reference in the last word during scavenge. This doesn't seem
-      // to be a problem though currently.
-      ASSERT(p != NULL);
-      thread_->StoreBufferAddObjectGC(visiting_old_object_);
-    }
   }
 
 #ifndef PRODUCT
@@ -407,7 +354,6 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   PageSpace* page_space_;
   MarkerWorkList work_list_;
   RawWeakProperty* delayed_weak_properties_;
-  RawObject* visiting_old_object_;
   SkippedCodeFunctions* skipped_code_functions_;
   uintptr_t marked_bytes_;
 
@@ -462,11 +408,36 @@ class MarkingWeakVisitor : public HandleVisitor {
 
 void GCMarker::Prologue(Isolate* isolate) {
   isolate->PrepareForGC();
-  // The store buffers will be rebuilt as part of marking, reset them now.
-  isolate->store_buffer()->Reset();
 }
 
-void GCMarker::Epilogue(Isolate* isolate) {}
+void GCMarker::Epilogue(Isolate* isolate) {
+  // Filter collected objects from the remembered set.
+  StoreBuffer* store_buffer = isolate->store_buffer();
+  StoreBufferBlock* reading = store_buffer->Blocks();
+  StoreBufferBlock* writing = store_buffer->PopNonFullBlock();
+  while (reading != NULL) {
+    StoreBufferBlock* next = reading->next();
+    // Generated code appends to store buffers; tell MemorySanitizer.
+    MSAN_UNPOISON(reading, sizeof(*reading));
+    while (!reading->IsEmpty()) {
+      RawObject* raw_object = reading->Pop();
+      ASSERT(!raw_object->IsForwardingCorpse());
+      ASSERT(raw_object->IsRemembered());
+      if (raw_object->IsMarked()) {
+        writing->Push(raw_object);
+        if (writing->IsFull()) {
+          store_buffer->PushBlock(writing, StoreBuffer::kIgnoreThreshold);
+          writing = store_buffer->PopNonFullBlock();
+        }
+      }
+    }
+    reading->Reset();
+    // Return the emptied block for recycling (no need to check threshold).
+    store_buffer->PushBlock(reading, StoreBuffer::kIgnoreThreshold);
+    reading = next;
+  }
+  store_buffer->PushBlock(writing, StoreBuffer::kIgnoreThreshold);
+}
 
 void GCMarker::IterateRoots(Isolate* isolate,
                             ObjectPointerVisitor* visitor,
@@ -474,10 +445,12 @@ void GCMarker::IterateRoots(Isolate* isolate,
                             intptr_t num_slices) {
   ASSERT(0 <= slice_index && slice_index < num_slices);
   if ((slice_index == 0) || (num_slices <= 1)) {
+    TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ProcessRoots");
     isolate->VisitObjectPointers(visitor,
                                  ValidationPolicy::kDontValidateFrames);
   }
   if ((slice_index == 1) || (num_slices <= 1)) {
+    TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ProcessNewSpace");
     heap_->new_space()->VisitObjectPointers(visitor);
   }
 
@@ -695,6 +668,7 @@ void GCMarker::MarkObjects(Isolate* isolate,
     marked_bytes_ = 0;
     const int num_tasks = FLAG_marker_tasks;
     if (num_tasks == 0) {
+      TIMELINE_FUNCTION_GC_DURATION(thread, "Mark");
       // Mark everything on main thread.
       SkippedCodeFunctions* skipped_code_functions =
           collect_code ? new (zone) SkippedCodeFunctions() : NULL;
@@ -703,7 +677,7 @@ void GCMarker::MarkObjects(Isolate* isolate,
       IterateRoots(isolate, &mark, 0, 1);
       mark.DrainMarkingStack();
       {
-        TIMELINE_FUNCTION_GC_DURATION(thread, "WeakHandleProcessing");
+        TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessWeakHandles");
         MarkingWeakVisitor mark_weak(thread);
         IterateWeakRoots(isolate, &mark_weak);
       }
@@ -745,7 +719,7 @@ void GCMarker::MarkObjects(Isolate* isolate,
 
       // Phase 2: Weak processing on main thread.
       {
-        TIMELINE_FUNCTION_GC_DURATION(thread, "WeakHandleProcessing");
+        TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessWeakHandles");
         MarkingWeakVisitor mark_weak(thread);
         IterateWeakRoots(isolate, &mark_weak);
       }

@@ -30,6 +30,12 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.ABSTRACT_CLASS_MEMBER, offset, length);
         return;
+      case "ANNOTATION_WITH_TYPE_ARGUMENTS":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS,
+            offset,
+            length);
+        return;
       case "ASYNC_FOR_IN_WRONG_CONTEXT":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT, offset, length);
@@ -502,6 +508,10 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, offset, length);
         return;
+      case "NON_SYNC_FACTORY":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.NON_SYNC_FACTORY, offset, length);
+        return;
       case "POSITIONAL_AFTER_NAMED_ARGUMENT":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT, offset, length);
@@ -575,6 +585,10 @@ class FastaErrorReporter {
             offset,
             length,
             [arguments['name']]);
+        return;
+      case "TYPE_PARAMETER_ON_CONSTRUCTOR":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR, offset, length);
         return;
       case "TYPEDEF_IN_CLASS":
         errorReporter?.reportErrorForOffset(

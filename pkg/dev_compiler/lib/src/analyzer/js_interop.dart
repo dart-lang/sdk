@@ -33,7 +33,7 @@ bool isJsRestAnnotation(DartObjectImpl value) =>
 /// Whether [i] is a `spread` invocation (to be used on function arguments
 /// to have them compiled as `...` spread args in ES6 outputs).
 bool isJsSpreadInvocation(MethodInvocation i) =>
-    _isJsLibType('spread', i.methodName?.bestElement);
+    _isJsLibType('spread', i.methodName?.staticElement);
 
 // TODO(jmesserly): Move JsPeerInterface to package:js (see issue #135).
 // TODO(jacobr): The 'JS' annotation is the new, publically accessible one.

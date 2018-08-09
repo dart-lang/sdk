@@ -918,17 +918,20 @@ class KernelReaderHelper {
   const Script& script() const { return script_; }
 
   virtual void set_current_script_id(intptr_t id) {
-    // Do nothing by default. This is overridden in StreamingFlowGraphBuilder.
+    // Do nothing by default.
+    // This is overridden in KernelTokenPositionCollector.
     USE(id);
   }
 
   virtual void RecordYieldPosition(TokenPosition position) {
-    // Do nothing by default. This is overridden in StreamingFlowGraphBuilder.
+    // Do nothing by default.
+    // This is overridden in KernelTokenPositionCollector.
     USE(position);
   }
 
   virtual void RecordTokenPosition(TokenPosition position) {
-    // Do nothing by default. This is overridden in StreamingFlowGraphBuilder.
+    // Do nothing by default.
+    // This is overridden in KernelTokenPositionCollector.
     USE(position);
   }
 
@@ -978,6 +981,12 @@ class KernelReaderHelper {
   Tag PeekTag(uint8_t* payload = NULL);
   uint8_t ReadFlags() { return reader_.ReadFlags(); }
 
+  intptr_t SourceTableSize();
+  intptr_t GetOffsetForSourceInfo(intptr_t index);
+  String& SourceTableUriFor(intptr_t index);
+  String& GetSourceFor(intptr_t index);
+  RawTypedData* GetLineStartsFor(intptr_t index);
+
   Zone* zone_;
   TranslationHelper& translation_helper_;
   Reader reader_;
@@ -1009,6 +1018,7 @@ class KernelReaderHelper {
   friend class TypeParameterHelper;
   friend class TypeTranslator;
   friend class VariableDeclarationHelper;
+  friend bool NeedsDynamicInvocationForwarder(const Function& function);
 
 #if defined(DART_USE_INTERPRETER)
   friend class BytecodeMetadataHelper;
@@ -1157,6 +1167,12 @@ class TypeTranslator {
                                   const Function& parameterized_function);
 
   const Type& ReceiverType(const Class& klass);
+
+  void SetupFunctionParameters(const Class& klass,
+                               const Function& function,
+                               bool is_method,
+                               bool is_closure,
+                               FunctionNodeHelper* function_node_helper);
 
  private:
   // Can build a malformed type.

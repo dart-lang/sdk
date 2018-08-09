@@ -296,19 +296,9 @@ bool looksLikeExpressionStart(Token next) =>
 /// Return `true` if the given [token] should be treated like the start of
 /// a new statement for the purposes of recovery.
 bool looksLikeStatementStart(Token token) => isOneOfOrEof(token, const [
-      'assert',
-      'break',
-      'continue',
-      'do',
-      'final',
-      'for',
-      'if',
-      'return',
-      'switch',
-      'try',
-      'var',
-      'void',
-      'while'
+      '@',
+      'assert', 'break', 'continue', 'do', 'else', 'final', 'for', //
+      'if', 'return', 'switch', 'try', 'var', 'void', 'while', //
     ]);
 
 // TODO(ahe): Remove when analyzer supports generalized function syntax.

@@ -572,7 +572,6 @@ enum TypeUseKind {
   CATCH_TYPE,
   TYPE_LITERAL,
   INSTANTIATION,
-  MIRROR_INSTANTIATION,
   NATIVE_INSTANTIATION,
   IMPLICIT_CAST,
   PARAMETER_CHECK,
@@ -612,9 +611,6 @@ class TypeUse {
         break;
       case TypeUseKind.INSTANTIATION:
         sb.write('inst:');
-        break;
-      case TypeUseKind.MIRROR_INSTANTIATION:
-        sb.write('mirror:');
         break;
       case TypeUseKind.NATIVE_INSTANTIATION:
         sb.write('native:');
@@ -682,11 +678,6 @@ class TypeUse {
   /// [type] used in an instantiation, like `new T();`.
   factory TypeUse.instantiation(InterfaceType type) {
     return new TypeUse.internal(type, TypeUseKind.INSTANTIATION);
-  }
-
-  /// [type] used in an instantiation through mirrors.
-  factory TypeUse.mirrorInstantiation(InterfaceType type) {
-    return new TypeUse.internal(type, TypeUseKind.MIRROR_INSTANTIATION);
   }
 
   /// [type] used in a native instantiation.

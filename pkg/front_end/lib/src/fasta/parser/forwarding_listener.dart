@@ -923,6 +923,17 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleCommentReference(
+      Token newKeyword, Token prefix, Token period, Token token) {
+    listener?.handleCommentReference(newKeyword, prefix, period, token);
+  }
+
+  @override
+  void handleCommentReferenceText(String referenceSource, int referenceOffset) {
+    listener?.handleCommentReferenceText(referenceSource, referenceOffset);
+  }
+
+  @override
   void beginConditionalExpression(Token question) {
     listener?.beginConditionalExpression(question);
   }
@@ -1128,6 +1139,11 @@ class ForwardingListener implements Listener {
   @override
   void handleNoArguments(Token token) {
     listener?.handleNoArguments(token);
+  }
+
+  @override
+  void handleNoCommentReference() {
+    listener?.handleNoCommentReference();
   }
 
   @override

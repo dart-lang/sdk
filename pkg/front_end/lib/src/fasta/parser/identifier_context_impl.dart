@@ -293,7 +293,7 @@ class ExpressionIdentifierContext extends IdentifierContext {
         identifier, fasta.templateExpectedIdentifier);
     if (!looksLikeStatementStart(identifier)) {
       if (identifier.isKeywordOrIdentifier) {
-        if (!isOneOfOrEof(identifier, const ['as', 'is'])) {
+        if (isContinuation || !isOneOfOrEof(identifier, const ['as', 'is'])) {
           return identifier;
         }
       } else if (!identifier.isOperator &&
@@ -944,7 +944,7 @@ void checkAsyncAwaitYieldAsIdentifier(Token identifier, Parser parser) {
 }
 
 bool looksLikeStartOfNextClassMember(Token token) =>
-    token.isModifier || isOneOfOrEof(token, const ['get', 'set', 'void']);
+    token.isModifier || isOneOfOrEof(token, const ['@', 'get', 'set', 'void']);
 
 bool looksLikeStartOfNextTopLevelDeclaration(Token token) =>
     token.isTopLevelKeyword ||

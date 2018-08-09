@@ -16,6 +16,7 @@ import '../analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNotificationNavigationTest);
+    defineReflectiveTests(AnalysisNotificationNavigationTest_UseCFE);
   });
 }
 
@@ -696,7 +697,7 @@ library my.lib;
     assertHasTargetString('my.lib');
   }
 
-  test_multiplyDefinedElement() async {
+  Future<void> test_multiplyDefinedElement() async {
     newFile('$projectPath/bin/libA.dart', content: 'library A; int TEST = 1;');
     newFile('$projectPath/bin/libB.dart', content: 'library B; int TEST = 2;');
     addTestFile('''
@@ -815,7 +816,7 @@ class A {
     assertHasFileTarget(libFile, libCode.indexOf('lib;'), 'lib'.length);
   }
 
-  test_string_export_unresolvedUri() async {
+  Future<void> test_string_export_unresolvedUri() async {
     addTestFile('export "no.dart";');
     await prepareNavigation();
     assertNoRegionString('"no.dart"');
@@ -836,7 +837,7 @@ class A {
     assertNoRegionAt('import ;');
   }
 
-  test_string_import_unresolvedUri() async {
+  Future<void> test_string_import_unresolvedUri() async {
     addTestFile('import "no.dart";');
     await prepareNavigation();
     assertNoRegionString('"no.dart"');
@@ -855,7 +856,7 @@ part "test_unit.dart";
     assertHasFileTarget(unitFile, 0, 0);
   }
 
-  test_string_part_unresolvedUri() async {
+  Future<void> test_string_part_unresolvedUri() async {
     addTestFile('''
 library lib;
 part "test_unit.dart";
@@ -1028,5 +1029,60 @@ var x;
 ''');
     await prepareNavigation();
     assertNoRegionAt('var');
+  }
+}
+
+@reflectiveTest
+class AnalysisNotificationNavigationTest_UseCFE
+    extends AnalysisNotificationNavigationTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_inComment() async => super.test_inComment();
+
+  @failingTest
+  @override
+  test_library() async => super.test_library();
+
+  @failingTest
+  @override
+  test_multiplyDefinedElement() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_multiplyDefinedElement);
+  }
+
+  @failingTest
+  @override
+  test_partOf() async => super.test_partOf();
+
+  @failingTest
+  @override
+  test_string_export() async => super.test_string_export();
+
+  @failingTest
+  @override
+  test_string_export_unresolvedUri() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_string_export_unresolvedUri);
+  }
+
+  @failingTest
+  @override
+  test_string_import() async => super.test_string_import();
+
+  @failingTest
+  @override
+  test_string_import_unresolvedUri() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_string_import_unresolvedUri);
+  }
+
+  @failingTest
+  @override
+  test_string_part_unresolvedUri() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_string_part_unresolvedUri);
   }
 }

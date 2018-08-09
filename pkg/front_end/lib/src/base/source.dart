@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/base/analysis_target.dart';
-import 'package:front_end/src/base/timestamped_data.dart';
-import 'package:front_end/src/base/uri_kind.dart';
 import 'package:path/path.dart' as pathos;
+
+import 'analysis_target.dart';
+import 'timestamped_data.dart';
+import 'uri_kind.dart';
 
 /// Base class providing implementations for the methods in [Source] that don't
 /// require filesystem access.

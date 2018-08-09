@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-typedef hest_t = ({named: dynamic}) → dynamic;
+typedef hest_t = ({@self::foo dynamic named}) → dynamic;
 class Bar extends core::Object {
   const constructor •() → void
     : super core::Object::•()

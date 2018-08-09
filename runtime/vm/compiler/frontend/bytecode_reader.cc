@@ -5,8 +5,10 @@
 #include "vm/compiler/frontend/bytecode_reader.h"
 
 #include "vm/bootstrap.h"
+#include "vm/class_finalizer.h"
 #include "vm/code_descriptors.h"
 #include "vm/compiler/assembler/disassembler_kbc.h"
+#include "vm/constants_kbc.h"
 #include "vm/dart_entry.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -95,10 +97,10 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
     kArgDesc,
     kICData,
     kStaticICData,
-    kField,
-    kFieldOffset,
+    kStaticField,
+    kInstanceField,
     kClass,
-    kTypeArgumentsFieldOffset,
+    kTypeArgumentsField,
     kTearOff,
     kType,
     kTypeArguments,
@@ -106,11 +108,11 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
     kInstance,
     kSymbol,
     kTypeArgumentsForInstanceAllocation,
-    kContextOffset,
     kClosureFunction,
     kEndClosureFunctionScope,
     kNativeEntry,
     kSubtypeTestCache,
+    kPartialTearOffInstantiation,
   };
 
   enum InvocationKind {
@@ -220,6 +222,11 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
           }
           name = H.DartProcedureName(target).raw();
           elem = H.LookupStaticMethodByKernelProcedure(target);
+          if ((kind == InvocationKind::getter) && !H.IsGetter(target)) {
+            // Tear-off
+            name = H.DartGetterName(target).raw();
+            elem = Function::Cast(elem).GetMethodExtractor(name);
+          }
         }
         ASSERT(elem.IsFunction());
         intptr_t arg_desc_index = helper_->ReadUInt();
@@ -234,20 +241,28 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         ICData::Cast(obj).set_tag(ICData::Tag::kStaticCall);
 #endif
       } break;
-      case ConstantPoolTag::kField:
+      case ConstantPoolTag::kStaticField:
         obj = H.LookupFieldByKernelField(helper_->ReadCanonicalNameReference());
         ASSERT(obj.IsField());
         break;
-      case ConstantPoolTag::kFieldOffset:
-        obj = H.LookupFieldByKernelField(helper_->ReadCanonicalNameReference());
-        ASSERT(obj.IsField());
-        obj = Smi::New(Field::Cast(obj).Offset() / kWordSize);
+      case ConstantPoolTag::kInstanceField:
+        field =
+            H.LookupFieldByKernelField(helper_->ReadCanonicalNameReference());
+        // InstanceField constant occupies 2 entries.
+        // The first entry is used for field offset.
+        obj = Smi::New(field.Offset() / kWordSize);
+        pool.SetTypeAt(i, ObjectPool::kTaggedObject);
+        pool.SetObjectAt(i, obj);
+        ++i;
+        ASSERT(i < obj_count);
+        // The second entry is used for field object.
+        obj = field.raw();
         break;
       case ConstantPoolTag::kClass:
         obj = H.LookupClassByKernelClass(helper_->ReadCanonicalNameReference());
         ASSERT(obj.IsClass());
         break;
-      case ConstantPoolTag::kTypeArgumentsFieldOffset:
+      case ConstantPoolTag::kTypeArgumentsField:
         cls = H.LookupClassByKernelClass(helper_->ReadCanonicalNameReference());
         obj = Smi::New(cls.type_arguments_field_offset() / kWordSize);
         break;
@@ -316,14 +331,6 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
                 .BuildInstantiatedTypeArguments(cls, helper_->ReadListLength())
                 .raw();
         ASSERT(obj.IsNull() || obj.IsTypeArguments());
-      } break;
-      case ConstantPoolTag::kContextOffset: {
-        intptr_t index = helper_->ReadUInt();
-        if (index == 0) {
-          obj = Smi::New(Context::parent_offset() / kWordSize);
-        } else {
-          obj = Smi::New(Context::variable_offset(index - 1) / kWordSize);
-        }
       } break;
       case ConstantPoolTag::kClosureFunction: {
         name = H.DartSymbolPlain(helper_->ReadStringReference()).raw();
@@ -418,6 +425,13 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         // The closure has no body.
         function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kEnd);
 
+        // Finalize function type.
+        Type& signature_type =
+            Type::Handle(helper_->zone_, closure.SignatureType());
+        signature_type ^= ClassFinalizer::FinalizeType(*(active_class_->klass),
+                                                       signature_type);
+        closure.SetSignatureType(signature_type);
+
         pool.SetTypeAt(i, ObjectPool::kTaggedObject);
         pool.SetObjectAt(i, closure);
 
@@ -443,6 +457,25 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
       } break;
       case ConstantPoolTag::kSubtypeTestCache: {
         obj = SubtypeTestCache::New();
+      } break;
+      case ConstantPoolTag::kPartialTearOffInstantiation: {
+        intptr_t tearoff_index = helper_->ReadUInt();
+        ASSERT(tearoff_index < i);
+        const Closure& old_closure = Closure::CheckedHandle(
+            helper_->zone_, pool.ObjectAt(tearoff_index));
+
+        intptr_t type_args_index = helper_->ReadUInt();
+        ASSERT(type_args_index < i);
+        type_args ^= pool.ObjectAt(type_args_index);
+
+        obj = Closure::New(
+            TypeArguments::Handle(helper_->zone_,
+                                  old_closure.instantiator_type_arguments()),
+            TypeArguments::Handle(helper_->zone_,
+                                  old_closure.function_type_arguments()),
+            type_args, Function::Handle(helper_->zone_, old_closure.function()),
+            Context::Handle(helper_->zone_, old_closure.context()), Heap::kOld);
+        obj = H.Canonicalize(Instance::Cast(obj));
       } break;
       default:
         UNREACHABLE();
@@ -482,9 +515,9 @@ void BytecodeMetadataHelper::ReadExceptionsTable(const Code& bytecode) {
     for (intptr_t try_index = 0; try_index < try_block_count; try_index++) {
       intptr_t outer_try_index_plus1 = helper_->reader_.ReadUInt();
       intptr_t outer_try_index = outer_try_index_plus1 - 1;
-      intptr_t start_pc = helper_->reader_.ReadUInt();
-      intptr_t end_pc = helper_->reader_.ReadUInt();
-      intptr_t handler_pc = helper_->reader_.ReadUInt();
+      intptr_t start_pc = sizeof(KBCInstr) * helper_->reader_.ReadUInt();
+      intptr_t end_pc = sizeof(KBCInstr) * helper_->reader_.ReadUInt();
+      intptr_t handler_pc = sizeof(KBCInstr) * helper_->reader_.ReadUInt();
       uint8_t flags = helper_->reader_.ReadByte();
       const uint8_t kFlagNeedsStackTrace = 1 << 0;
       const uint8_t kFlagIsSynthetic = 1 << 1;

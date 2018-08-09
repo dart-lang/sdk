@@ -7,6 +7,30 @@ mixin_constructor_forwarding/const_constructor_with_field_test/none: CompileTime
 mixin_constructor_forwarding/optional_named_parameters_test/none: CompileTimeError # Issue 31543
 mixin_constructor_forwarding/optional_positional_parameters_test/none: CompileTimeError # Issue 31543
 
+[ $compiler == dart2analyzer ]
+void/*: Skip  # https://github.com/dart-lang/sdk/issues/34010
+invalid_returns/*: Skip  # https://github.com/dart-lang/sdk/issues/34010
+
+[ $compiler == dart2js ]
+void/*: Skip  # https://github.com/dart-lang/sdk/issues/34011
+invalid_returns/*: Skip  # https://github.com/dart-lang/sdk/issues/34011
+
+[ $compiler == dartdevc || $compiler == dartdevk ]
+void/*: Skip # https://github.com/dart-lang/sdk/issues/34012
+invalid_returns/*: Skip  # https://github.com/dart-lang/sdk/issues/34012
+
+[ $compiler == app_jit || $compiler == app_jitk || $compiler == none ]
+void/*: Skip # https://github.com/dart-lang/sdk/issues/34013
+invalid_returns/*: Skip  # https://github.com/dart-lang/sdk/issues/34013
+
+[ $compiler == dartk || $compiler == dartkb || $compiler == dartkp || $compiler == fasta ]
+void/*: Skip # https://github.com/dart-lang/sdk/issues/34014
+invalid_returns/*: Skip  # https://github.com/dart-lang/sdk/issues/34014
+
+[ $compiler == spec_parser ]
+void/*: Skip # https://github.com/dart-lang/sdk/issues/34015
+invalid_returns/*: Skip # https://github.com/dart-lang/sdk/issues/34015
+
 [ $compiler == app_jit ]
 deferred_inheritance_constraints_test/redirecting_constructor: Crash
 
@@ -30,56 +54,14 @@ regress_29784_test/02: SkipByDesign # Requires checked mode.
 stacktrace_demangle_ctors_test: SkipByDesign # Names are not scrubbed.
 type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
 
-[ $fasta ]
-initializer_super_last_test/cc04: MissingCompileTimeError
-initializer_super_last_test/cc09: MissingCompileTimeError
-initializer_super_last_test/cc10: MissingCompileTimeError
-initializer_super_last_test/cc11: MissingCompileTimeError
-initializer_super_last_test/cc12: MissingCompileTimeError
-initializer_super_last_test/cc13: MissingCompileTimeError
-initializer_super_last_test/cc14: MissingCompileTimeError
-initializer_super_last_test/cc15: MissingCompileTimeError
-initializer_super_last_test/cc16: MissingCompileTimeError
-initializer_super_last_test/cc25: MissingCompileTimeError
-initializer_super_last_test/cc26: MissingCompileTimeError
-initializer_super_last_test/cc27: MissingCompileTimeError
-initializer_super_last_test/cc28: MissingCompileTimeError
-initializer_super_last_test/cc29: MissingCompileTimeError
-initializer_super_last_test/cc30: MissingCompileTimeError
-initializer_super_last_test/cc31: MissingCompileTimeError
-initializer_super_last_test/cc32: MissingCompileTimeError
-void/return_future_future_or_void_async_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_future_future_or_void_sync_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_future_or_future_or_void_sync_error0_test: MissingCompileTimeError
-void/return_future_or_future_or_void_sync_error1_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_future_or_void_async_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_future_or_void_sync_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_future_or_void_sync_error1_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_future_or_void_sync_error2_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_future_or_void_sync_error3_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_future_void_async_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_future_void_async_error1_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_future_void_async_error2_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_void_async_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_void_async_error1_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_void_async_error2_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_void_async_error3_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_void_async_error4_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_void_sync_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_void_sync_error1_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_void_sync_error2_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-
-[ $compiler != app_jitk && $compiler != dartk && $compiler != dartkp && $mode == debug && $runtime == vm ]
+[ $compiler != app_jitk && $compiler != dartk && $compiler != dartkp && $compiler != dartkb && $mode == debug && $runtime == vm ]
 built_in_identifier_type_annotation_test/set: Crash # Not supported by legacy VM front-end.
-
-[ $compiler != dart2js && $compiler != dartdevc && !$fasta && $strong ]
-type_promotion_functions_test: CompileTimeError # Issue 30895: This test requires a complete rewrite for 2.0.
 
 # Detection of compile-time errors that are related to constants can't be fully
 # done at the front end, because constants are evaluated at back ends.  So, some
 # errors aren't detected by fasta, but reported by back ends as compile-time
 # errors.
-[ $compiler != dart2js && $runtime != dart_precompiled && $runtime != vm && $fasta ]
+[ $compiler != dart2analyzer && $compiler != dart2js && $runtime != dart_precompiled && $runtime != vm && $fasta ]
 function_type_parameter2_negative_test: Fail
 function_type_parameter_negative_test: Fail
 implicit_creation/implicit_const_not_default_values_test/e12: MissingCompileTimeError
@@ -92,6 +74,9 @@ implicit_creation/implicit_const_not_default_values_test/e3: MissingCompileTimeE
 implicit_creation/implicit_const_not_default_values_test/e30: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e6: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e9: MissingCompileTimeError
+
+[ $compiler != dart2js && $compiler != dartdevc && !$fasta && $strong ]
+type_promotion_functions_test: CompileTimeError # Issue 30895: This test requires a complete rewrite for 2.0.
 
 [ $compiler != dart2js && !$fasta && $strong ]
 compile_time_constant_static5_test/11: CompileTimeError # Issue 30546
@@ -140,11 +125,8 @@ initializer_super_last_test/cc30: MissingCompileTimeError # Was valid in Dart 1.
 initializer_super_last_test/cc31: MissingCompileTimeError # Was valid in Dart 1.
 initializer_super_last_test/cc32: MissingCompileTimeError # Was valid in Dart 1.
 
-[ $compiler != dartdevc && !$checked ]
+[ $compiler != dartdevc && $compiler != dart2js && !$checked ]
 function_type/*: Skip # Needs checked mode.
-
-[ $compiler == none && $runtime == drt && !$checked ]
-assertion_initializer_const_error_test/01: Fail
 
 [ $compiler != spec_parser && $runtime != none && !$checked && !$strong ]
 closure_type_test: RuntimeError
@@ -259,11 +241,11 @@ vm/type_vm_test/25: MissingCompileTimeError
 vm/type_vm_test/26: MissingCompileTimeError
 vm/type_vm_test/27: MissingCompileTimeError
 void/return_future_future_or_void_sync_error1_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void_block_return_test/00: MissingCompileTimeError # Requires strong mode
-void_type_callbacks_test: Skip # Requires strong mode
-void_type_function_types_test: Skip # Requires strong mode
-void_type_override_test: Skip # Requires strong mode
-void_type_usage_test: Skip # Requires strong mode
+void/void_block_return_test/00: MissingCompileTimeError # Requires strong mode
+void/void_type_callbacks_test: Skip # Requires strong mode
+void/void_type_function_types_test: Skip # Requires strong mode
+void/void_type_override_test: Skip # Requires strong mode
+void/void_type_usage_test: Skip # Requires strong mode
 wrong_number_type_arguments_test/*: MissingCompileTimeError # Requires strong mode
 wrong_number_type_arguments_test/none: Pass
 

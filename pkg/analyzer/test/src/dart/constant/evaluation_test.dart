@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.evaluation_test;
-
 import 'dart:async';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
@@ -1203,7 +1201,7 @@ const int s2 = 'beta';
 const int i = (true ? s1 : s2).length;
 ''');
     ConstTopLevelVariableElementImpl element =
-        findTopLevelDeclaration(compilationUnit, 'i').element;
+        findTopLevelDeclaration(compilationUnit, 'i').declaredElement;
     EvaluationResultImpl result = element.evaluationResult;
     expect(_assertValidInt(result), 5);
   }
@@ -1216,7 +1214,7 @@ const int s = 'alpha';
 const int i = s.length;
 ''');
     ConstTopLevelVariableElementImpl element =
-        findTopLevelDeclaration(compilationUnit, 'i').element;
+        findTopLevelDeclaration(compilationUnit, 'i').declaredElement;
     EvaluationResultImpl result = element.evaluationResult;
     expect(_assertValidInt(result), 5);
   }
@@ -1245,7 +1243,7 @@ const A a = const A();
     VariableDeclaration voidSymbol =
         findTopLevelDeclaration(compilationUnit, "voidSymbol");
     EvaluationResultImpl voidSymbolResult =
-        (voidSymbol.element as VariableElementImpl).evaluationResult;
+        (voidSymbol.declaredElement as VariableElementImpl).evaluationResult;
     DartObjectImpl value = voidSymbolResult.value;
     expect(value.type, typeProvider.symbolType);
     expect(value.toSymbolValue(), "void");
@@ -1471,7 +1469,7 @@ class A {
       CompilationUnit compilationUnit, String name) {
     VariableDeclaration varDecl =
         findTopLevelDeclaration(compilationUnit, name);
-    ConstTopLevelVariableElementImpl varElement = varDecl.element;
+    ConstTopLevelVariableElementImpl varElement = varDecl.declaredElement;
     return varElement.evaluationResult;
   }
 
@@ -1488,7 +1486,8 @@ class A {
 
   void _validate(bool shouldBeValid, VariableDeclarationList declarationList) {
     for (VariableDeclaration declaration in declarationList.variables) {
-      VariableElementImpl element = declaration.element as VariableElementImpl;
+      VariableElementImpl element =
+          declaration.declaredElement as VariableElementImpl;
       expect(element, isNotNull);
       EvaluationResultImpl result = element.evaluationResult;
       if (shouldBeValid) {
@@ -1679,7 +1678,7 @@ const b = 3;''');
     TestTypeProvider typeProvider = new TestTypeProvider();
     return expression.accept(new ConstantVisitor(
         new ConstantEvaluationEngine(typeProvider, new DeclaredVariables(),
-            typeSystem: new TypeSystemImpl(typeProvider)),
+            typeSystem: new StrongTypeSystemImpl(typeProvider)),
         errorReporter));
   }
 

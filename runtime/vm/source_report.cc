@@ -452,7 +452,15 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
     cls = it.GetNextClass();
     if (!cls.is_finalized()) {
       if (compile_mode_ == kForceCompile) {
-        const Error& err = Error::Handle(cls.EnsureIsFinalized(thread()));
+        Error& err = Error::Handle();
+        if (cls.is_marked_for_parsing()) {
+          const String& error_message = String::Handle(
+              String::New("Unable to process 'force compile' request, "
+                          "while the class is being finalized."));
+          err = ApiError::New(error_message);
+        } else {
+          err = cls.EnsureIsFinalized(thread());
+        }
         if (!err.IsNull()) {
           // Emit an uncompiled range for this class with error information.
           JSONObject range(jsarr);
@@ -464,6 +472,7 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
           range.AddProperty("error", err);
           continue;
         }
+        ASSERT(cls.is_finalized());
       } else {
         // Emit one range for the whole uncompiled class.
         JSONObject range(jsarr);

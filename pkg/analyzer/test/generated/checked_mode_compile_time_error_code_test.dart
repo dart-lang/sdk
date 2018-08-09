@@ -419,10 +419,13 @@ const int y = 1;
 var v = const C<String>();
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [
-      CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
-      StaticTypeWarningCode.INVALID_ASSIGNMENT
-    ]);
+    assertErrors(
+      source,
+      [
+        CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
+        StaticTypeWarningCode.INVALID_ASSIGNMENT
+      ],
+    );
     verify([source]);
   }
 
@@ -451,7 +454,10 @@ const int y = 1;
 var v = const C<int>();
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    assertErrors(
+      source,
+      [StaticTypeWarningCode.INVALID_ASSIGNMENT],
+    );
     verify([source]);
   }
 

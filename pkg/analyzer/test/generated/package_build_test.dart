@@ -473,6 +473,16 @@ class PackageBuildWorkspaceTest extends _BaseTest {
     expect(workspace.findFile(_p('/workspace/web/file.dart')), webFile);
   }
 
+  void test_supports_flutter() {
+    provider.newFolder(_p('/workspace/.dart_tool/build'));
+    provider.newFileWithBytes(
+        _p('/workspace/pubspec.yaml'), 'name: project'.codeUnits);
+    PackageBuildWorkspace workspace =
+        _createWorkspace('/workspace', ['project', 'flutter']);
+
+    expect(workspace.hasFlutterDependency, true);
+  }
+
   PackageBuildWorkspace _createWorkspace(
       String root, List<String> packageNames) {
     final contextBuilder = new MockContextBuilder();

@@ -161,6 +161,7 @@ class ReusableHandleStack {
  public:
   explicit ReusableHandleStack(Zone* zone) : zone_(zone), handles_count_(0) {}
 
+ private:
   T* Obtain() {
     T* handle;
     if (handles_count_ < handles_.length()) {
@@ -173,8 +174,6 @@ class ReusableHandleStack {
     return handle;
   }
 
-  // The released [handle] can be used even after releasing until the next
-  // call to [Obtain].
   void Release(T* handle) {
     handles_count_--;
     ASSERT(handles_count_ >= 0);
@@ -185,6 +184,25 @@ class ReusableHandleStack {
 
   intptr_t handles_count_;
   MallocGrowableArray<T*> handles_;
+
+  template <typename U>
+  friend class ScopedHandle;
+};
+
+template <typename T>
+class ScopedHandle {
+ public:
+  explicit ScopedHandle(ReusableHandleStack<T>* stack)
+      : stack_(stack), handle_(stack_->Obtain()) {}
+
+  ~ScopedHandle() { stack_->Release(handle_); }
+
+  T& operator*() { return *handle_; }
+  T* operator->() { return handle_; }
+
+ private:
+  ReusableHandleStack<T>* stack_;
+  T* handle_;
 };
 
 // Attempts to find a [Class] from un-instantiated [TypeArgument] vector to
@@ -238,17 +256,15 @@ class TypeArgumentClassFinder {
       // No support for recursive types.
       return false;
     } else if (type.IsType()) {
-      TypeArguments* type_arguments = type_arguments_handles_.Obtain();
+      ScopedHandle<TypeArguments> type_arguments(&type_arguments_handles_);
       *type_arguments = Type::Cast(type).arguments();
       const intptr_t len = type_arguments->Length();
       for (intptr_t i = 0; i < len; ++i) {
         type_ = type_arguments->TypeAt(i);
         if (!FindClassFromType(type_)) {
-          type_arguments_handles_.Release(type_arguments);
           return false;
         }
       }
-      type_arguments_handles_.Release(type_arguments);
       return true;
     } else if (type.IsBoundedType()) {
       // No support for bounded types.
@@ -411,6 +427,12 @@ void RegisterTypeArgumentsUse(const Function& function,
                               TypeUsageInfo* type_usage_info,
                               const Class& klass,
                               Definition* type_arguments);
+
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
+void DeoptimizeTypeTestingStubs();
+
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart
 

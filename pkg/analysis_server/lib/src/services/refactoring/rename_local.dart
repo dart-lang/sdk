@@ -116,7 +116,7 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor {
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
-    Element nodeElement = node.bestElement;
+    Element nodeElement = node.staticElement;
     if (nodeElement != null && nodeElement.name == newName) {
       // Duplicate declaration.
       if (node.inDeclarationContext() && _isVisibleWithTarget(nodeElement)) {

@@ -16,6 +16,7 @@ analyzer/test/generated/compile_time_error_code_test: Slow, Pass
 analyzer/test/generated/hint_code_kernel_test: Slow, Pass
 analyzer/test/generated/non_error_resolver_driver_test: Slow, Pass
 analyzer/test/generated/non_error_resolver_kernel_test: Slow, Pass
+analyzer/test/generated/non_hint_code_kernel_test: Slow, Pass
 analyzer/test/generated/static_type_warning_code_kernel_test: Slow, Pass
 analyzer/test/generated/static_warning_code_driver_test: Slow, Pass
 analyzer/test/generated/static_warning_code_kernel_test: Slow, Pass
@@ -51,6 +52,7 @@ vm/testcases/*: SkipByDesign # These are not tests but input for tests.
 
 [ $compiler == dart2analyzer ]
 dev_compiler/test/options/*: SkipByDesign
+testing/test/dart_sdk_negative_test: SkipByDesign
 
 [ $compiler != dart2analyzer ]
 analyzer/test/src/summary/summarize_fasta_test: RuntimeError, Slow
@@ -162,10 +164,8 @@ testing/test/analyze_test: SkipByDesign
 [ $jscl ]
 kernel/test/*: SkipByDesign # Uses dart:io and bigints.
 
-[ $no_preview_dart_2 ]
-dev_compiler/*: SkipByDesign # uses Dart 2.
-
 [ !$preview_dart_2 ]
+dev_compiler/*: SkipByDesign # uses Dart 2.
 smith/test/*: Skip # Uses optional new.
 
 [ $arch == x64 && $runtime == vm && $system == windows && $checked ]
@@ -173,13 +173,10 @@ analyzer/test/src/task/strong/inferred_type_test: Pass, Slow
 
 # analyzer using the fasta parser
 [ $builder_tag == analyzer_use_fasta && $runtime == vm ]
-analysis_server/test/analysis/get_errors_test: Fail
 analysis_server/test/completion_test: Fail
 analysis_server/test/domain_completion_test: Fail
-analysis_server/test/edit/fixes_test: Fail
 analysis_server/test/integration/analysis/package_root_test: Pass, RuntimeError # Issue 33382
 analysis_server/test/services/completion/dart/keyword_contributor_test: Pass, Slow
-analysis_server/test/services/completion/statement/statement_completion_test: Fail
 analysis_server/test/services/correction/fix_test: Fail, Timeout
 analysis_server/test/services/refactoring/extract_local_test: Fail
 analysis_server/test/src/plugin/plugin_manager_test: Pass, Slow
@@ -193,10 +190,6 @@ analyzer/test/generated/non_error_resolver_test: Fail
 analyzer/test/generated/resolver_test: Fail
 analyzer/test/generated/utilities_test: Fail
 analyzer/test/src/context/context_test: Fail
-analyzer_plugin/test/src/utilities/completion/completion_target_test: Fail
-analyzer_plugin/test/src/utilities/completion/optype_test: Fail
-analyzer_plugin/test/src/utilities/visitors/local_declaration_visitor_test: Fail
-analyzer_plugin/test/utilities/completion/completion_target_test: Fail
 
 [ $builder_tag != dart2js_analyzer && $compiler == dart2js ]
 analysis_server/test/*: Skip # Issue 26813
@@ -216,9 +209,6 @@ front_end/test/src/base/uri_resolver_test: SkipByDesign # Relies on access to fi
 [ $compiler == dart2js && $runtime != d8 ]
 front_end/test/mixin_export_test: RuntimeError # Issue 30576
 
-[ $compiler == dart2js && $runtime == drt ]
-async/test/stream_zip_test: RuntimeError, Pass # Issue 18548
-
 [ $compiler == dart2js && $browser ]
 crypto/test/sha1_test: Slow, Pass
 crypto/test/sha256_test: Slow, Pass
@@ -236,10 +226,8 @@ status_file/test/status_expression_dnf_test: RuntimeError # not strong-clean
 async/test/stream_zip_test: SkipSlow # Times out. Issue 22050
 collection/test/unmodifiable_collection_test: SkipSlow # Times out. Issue 22050
 
-[ $compiler == none && $runtime == drt ]
-front_end/*: SkipByDesign
-mutation_observer: Skip # Issue 21149
-unittest/*: Skip # Issue 21949
+[ $compiler == none && !$preview_dart_2 ]
+analysis_server/test/analysis/get_errors_test: Fail
 
 [ $runtime == vm && $system == windows ]
 analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
@@ -260,6 +248,9 @@ analysis_server/test/socket_server_test: Skip # Pass, Slow
 analyzer/test/generated/non_error_resolver_kernel_test: Pass, Slow
 analyzer/test/src/summary/resynthesize_ast_test: Pass, Slow
 analyzer/test/src/task/strong/front_end_inference_test: Pass, Slow
+
+[ $runtime == vm && !$preview_dart_2 ]
+analysis_server/test/services/correction/assist_test: RuntimeError
 
 # Timeout. These tests do not run efficiently on our simulator or low-end
 # devices.

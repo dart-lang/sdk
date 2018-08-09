@@ -8,7 +8,7 @@ library stream_controller_async_test;
 import 'dart:async';
 
 import 'package:expect/expect.dart';
-import 'package:unittest/unittest.dart';
+import 'package:expect/async_minitest.dart';
 
 import 'event_helper.dart';
 import 'stream_state_helper.dart';
@@ -670,7 +670,8 @@ void testAsBroadcast() {
 }
 
 void testSink({bool sync, bool broadcast, bool asBroadcast}) {
-  String type = "${sync?"S":"A"}${broadcast?"B":"S"}${asBroadcast?"aB":""}";
+  String type =
+      "${sync ? "S" : "A"}${broadcast ? "B" : "S"}${asBroadcast ? "aB" : ""}";
   test("$type-controller-sink", () {
     var done = expectAsync(() {});
     var c = broadcast

@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/problems.dart';
 import 'package:kernel/ast.dart';
+
+import '../fasta/problems.dart';
 
 /// Convert '→' to '->' because '→' doesn't show up in some terminals.
 /// Remove prefixes that are used very often in tests.

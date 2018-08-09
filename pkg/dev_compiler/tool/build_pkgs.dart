@@ -142,9 +142,6 @@ Future compileModule(String module,
     for (var dep in deps) {
       args.add('-s${pkgDirectory}/$dep.${kernel ? "dill" : "sum"}');
     }
-    if (kernel) {
-      args.add('--summary-input-dir=$pkgDirectory');
-    }
     return args;
   }
 

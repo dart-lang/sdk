@@ -17,6 +17,8 @@ import '../fasta_codes.dart' show messageSupertypeIsFunction, noLength;
 
 import '../problems.dart' show unsupported;
 
+import '../source/outline_listener.dart';
+
 import 'kernel_builder.dart'
     show
         FormalParameterBuilder,
@@ -30,7 +32,12 @@ import 'kernel_builder.dart'
 
 class KernelFunctionTypeBuilder extends FunctionTypeBuilder
     implements KernelTypeBuilder {
+  final OutlineListener outlineListener;
+  final int charOffset;
+
   KernelFunctionTypeBuilder(
+      this.outlineListener,
+      this.charOffset,
       KernelTypeBuilder returnType,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals)
@@ -40,7 +47,6 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
     DartType builtReturnType =
         returnType?.build(library) ?? const DynamicType();
     List<DartType> positionalParameters = <DartType>[];
-    List<String> positionalParameterNames = <String>[];
     List<NamedType> namedParameters;
     int requiredParameterCount = 0;
     if (formals != null) {
@@ -48,7 +54,6 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
         DartType type = formal.type?.build(library) ?? const DynamicType();
         if (formal.isPositional) {
           positionalParameters.add(type);
-          positionalParameterNames.add(formal.name ?? '');
           if (formal.isRequired) requiredParameterCount++;
         } else if (formal.isNamed) {
           namedParameters ??= <NamedType>[];
@@ -66,11 +71,12 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
         typeParameters.add(t.parameter);
       }
     }
-    return new FunctionType(positionalParameters, builtReturnType,
+    var type = new FunctionType(positionalParameters, builtReturnType,
         namedParameters: namedParameters ?? const <NamedType>[],
         typeParameters: typeParameters ?? const <TypeParameter>[],
-        requiredParameterCount: requiredParameterCount,
-        positionalParameterNames: positionalParameterNames);
+        requiredParameterCount: requiredParameterCount);
+    outlineListener?.store(charOffset, false, type: type);
+    return type;
   }
 
   Supertype buildSupertype(
@@ -102,7 +108,11 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
       clonedFormals[i] = formals[i].clone(newTypes);
     }
     KernelFunctionTypeBuilder newType = new KernelFunctionTypeBuilder(
-        returnType.clone(newTypes), clonedTypeVariables, clonedFormals);
+        outlineListener,
+        charOffset,
+        returnType.clone(newTypes),
+        clonedTypeVariables,
+        clonedFormals);
     newTypes.add(newType);
     return newType;
   }

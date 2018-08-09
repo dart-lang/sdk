@@ -66,7 +66,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
 
   CompilationUnit get unit => resolveResult.unit;
 
-  CompilationUnitElement get unitElement => unit.element;
+  CompilationUnitElement get unitElement => unit.declaredElement;
 
   String get _declarationKeyword {
     if (_isPartOfConstantExpression(rootExpression)) {
@@ -269,7 +269,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       // stop at void method invocations
       if (node is MethodInvocation) {
         MethodInvocation invocation = node;
-        Element element = invocation.methodName.bestElement;
+        Element element = invocation.methodName.staticElement;
         if (element is ExecutableElement &&
             element.returnType != null &&
             element.returnType.isVoid) {
@@ -289,7 +289,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
                 'Cannot extract the name part of a declaration.',
                 newLocation_fromNode(node));
           }
-          Element element = node.bestElement;
+          Element element = node.staticElement;
           if (element is FunctionElement || element is MethodElement) {
             continue;
           }
@@ -557,7 +557,7 @@ class _ExtractExpressionAnalyzer extends SelectionAnalyzer {
         invalidSelection('Cannot extract the name part of a declaration.');
       }
       // method name
-      Element element = node.bestElement;
+      Element element = node.staticElement;
       if (element is FunctionElement || element is MethodElement) {
         invalidSelection('Cannot extract a single method name.');
       }

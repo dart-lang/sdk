@@ -524,7 +524,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   void writeParameterMatchingArgument(
       Expression argument, int index, Set<String> usedNames) {
     // append type name
-    DartType type = argument.bestType;
+    DartType type = argument.staticType;
     if (type == null || type.isBottom || type.isDartCoreNull) {
       type = DynamicTypeImpl.instance;
     }
@@ -573,11 +573,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       // default value
       String defaultCode = parameter.defaultValueCode;
       if (defaultCode != null) {
-        if (sawPositional) {
-          write(' = ');
-        } else {
-          write(': ');
-        }
+        write(' = ');
         write(defaultCode);
       }
     }
@@ -766,10 +762,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       }
     }
     // positional argument
-    ParameterElement parameter = expression.propagatedParameterElement;
-    if (parameter == null) {
-      parameter = expression.staticParameterElement;
-    }
+    ParameterElement parameter = expression.staticParameterElement;
     if (parameter != null) {
       return parameter.displayName;
     }
@@ -1123,8 +1116,11 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
    */
   DartFileEditBuilderImpl(DartChangeBuilderImpl changeBuilder, String path,
       int timeStamp, this.unit)
-      : libraryElement = unit.element.library,
+      : libraryElement = unit.declaredElement.library,
         super(changeBuilder, path, timeStamp);
+
+  @override
+  bool get hasEdits => super.hasEdits || librariesToImport.isNotEmpty;
 
   @override
   void addInsertion(int offset, void buildEdit(DartEditBuilder builder)) =>
@@ -1160,7 +1156,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     if (librariesToImport.isNotEmpty) {
       CompilationUnitElement definingUnitElement =
           libraryElement.definingCompilationUnit;
-      if (definingUnitElement == unit.element) {
+      if (definingUnitElement == unit.declaredElement) {
         _addLibraryImports(librariesToImport.values);
       } else {
         await (changeBuilder as DartChangeBuilder).addFileEdit(
@@ -1493,13 +1489,13 @@ class _EnclosingElementFinder {
     AstNode node = new NodeLocator2(offset).searchWithin(target);
     while (node != null) {
       if (node is ClassDeclaration) {
-        enclosingClass = node.element;
+        enclosingClass = node.declaredElement;
       } else if (node is ConstructorDeclaration) {
-        enclosingExecutable = node.element;
+        enclosingExecutable = node.declaredElement;
       } else if (node is MethodDeclaration) {
-        enclosingExecutable = node.element;
+        enclosingExecutable = node.declaredElement;
       } else if (node is FunctionDeclaration) {
-        enclosingExecutable = node.element;
+        enclosingExecutable = node.declaredElement;
       }
       node = node.parent;
     }

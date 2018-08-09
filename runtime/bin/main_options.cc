@@ -83,7 +83,7 @@ DFE* Options::dfe_ = NULL;
 DEFINE_STRING_OPTION_CB(dfe, { Options::dfe()->set_frontend_filename(value); });
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-DEFINE_BOOL_OPTION_CB(hot_reload_test_mode, {
+static void hot_reload_test_mode_callback(CommandLineOptions* vm_options) {
   // Identity reload.
   vm_options->AddArgument("--identity_reload");
   // Start reloading quickly.
@@ -94,9 +94,15 @@ DEFINE_BOOL_OPTION_CB(hot_reload_test_mode, {
   vm_options->AddArgument("--reload_every_back_off");
   // Ensure that every isolate has reloaded once before exiting.
   vm_options->AddArgument("--check_reloaded");
-});
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Options::dfe()->set_use_incremental_compiler(true);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+}
 
-DEFINE_BOOL_OPTION_CB(hot_reload_rollback_test_mode, {
+DEFINE_BOOL_OPTION_CB(hot_reload_test_mode, hot_reload_test_mode_callback);
+
+static void hot_reload_rollback_test_mode_callback(
+    CommandLineOptions* vm_options) {
   // Identity reload.
   vm_options->AddArgument("--identity_reload");
   // Start reloading quickly.
@@ -109,7 +115,13 @@ DEFINE_BOOL_OPTION_CB(hot_reload_rollback_test_mode, {
   vm_options->AddArgument("--check_reloaded");
   // Force all reloads to fail and execute the rollback code.
   vm_options->AddArgument("--reload_force_rollback");
-});
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Options::dfe()->set_use_incremental_compiler(true);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+}
+
+DEFINE_BOOL_OPTION_CB(hot_reload_rollback_test_mode,
+                      hot_reload_rollback_test_mode_callback);
 
 void Options::PrintVersion() {
   Log::PrintErr("Dart VM version: %s\n", Dart_VersionString());
@@ -125,9 +137,6 @@ void Options::PrintUsage() {
   if (!Options::verbose_option()) {
     Log::PrintErr(
 "Common options:\n"
-"--checked or -c\n"
-"  Insert runtime type checks and enable assertions (checked mode, not\n"
-"  compatible with --preview-dart-2).\n"
 "--enable-asserts\n"
 "  Enable assert statements.\n"
 "--help or -h\n"
@@ -159,9 +168,6 @@ void Options::PrintUsage() {
   } else {
     Log::PrintErr(
 "Supported options:\n"
-"--checked or -c\n"
-"  Insert runtime type checks and enable assertions (checked mode, not\n"
-"  compatible with --preview-dart-2).\n"
 "--enable-asserts\n"
 "  Enable assert statements.\n"
 "--help or -h\n"
@@ -428,6 +434,17 @@ int Options::ParseArguments(int argc,
   }
 
   // Verify consistency of arguments.
+
+  // snapshot_depfile is an alias for depfile. Passing them both is an error.
+  if ((snapshot_deps_filename_ != NULL) && (depfile_ != NULL)) {
+    Log::PrintErr("Specify only one of --depfile and --snapshot_depfile\n");
+    return -1;
+  }
+  if (snapshot_deps_filename_ != NULL) {
+    depfile_ = snapshot_deps_filename_;
+    snapshot_deps_filename_ = NULL;
+  }
+
   if ((Options::package_root() != NULL) && (packages_file_ != NULL)) {
     Log::PrintErr(
         "Specifying both a packages directory and a packages "
@@ -443,9 +460,14 @@ int Options::ParseArguments(int argc,
     Log::PrintErr("Empty package file name specified.\n");
     return -1;
   }
-  if (((gen_snapshot_kind_ != kNone) || (snapshot_deps_filename_ != NULL)) &&
-      (snapshot_filename_ == NULL)) {
+  if ((gen_snapshot_kind_ != kNone) && (snapshot_filename_ == NULL)) {
     Log::PrintErr("Generating a snapshot requires a filename (--snapshot).\n");
+    return -1;
+  }
+  if ((gen_snapshot_kind_ == kNone) && (depfile_ != NULL) &&
+      (snapshot_filename_ == NULL) && (depfile_output_filename_ == NULL)) {
+    Log::PrintErr("Generating a depfile requires an output filename"
+                  " (--depfile-output-filename or --snapshot).\n");
     return -1;
   }
   if ((gen_snapshot_kind_ != kNone) && vm_run_app_snapshot) {

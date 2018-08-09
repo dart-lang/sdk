@@ -7,11 +7,16 @@ library type_graph_inferrer;
 import 'dart:collection' show Queue;
 
 import 'package:kernel/ast.dart' as ir;
+import '../closure.dart';
+import '../compiler.dart';
 import '../elements/entities.dart';
+import '../js_backend/inferred_data.dart';
+import '../js_model/locals.dart';
+import '../kernel/element_map.dart';
 import '../types/abstract_value_domain.dart';
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
-import '../world.dart' show JClosedWorld;
+import '../world.dart';
 import 'inferrer_engine.dart';
 import 'type_graph_nodes.dart';
 
@@ -46,12 +51,20 @@ class WorkQueue {
   int get length => queue.length;
 }
 
-abstract class TypeGraphInferrer implements TypesInferrer {
+class TypeGraphInferrer implements TypesInferrer {
   InferrerEngine inferrer;
   final bool _disableTypeInference;
   final JClosedWorld closedWorld;
 
-  TypeGraphInferrer(this.closedWorld, {bool disableTypeInference: false})
+  final Compiler _compiler;
+  final KernelToElementMapForBuilding _elementMap;
+  final GlobalLocalsMap _globalLocalsMap;
+  final ClosureDataLookup _closureDataLookup;
+  final InferredDataBuilder _inferredDataBuilder;
+
+  TypeGraphInferrer(this._compiler, this._elementMap, this._globalLocalsMap,
+      this._closureDataLookup, this.closedWorld, this._inferredDataBuilder,
+      {bool disableTypeInference: false})
       : this._disableTypeInference = disableTypeInference;
 
   String get name => 'Graph inferrer';
@@ -67,7 +80,21 @@ abstract class TypeGraphInferrer implements TypesInferrer {
     inferrer.runOverAllElements();
   }
 
-  InferrerEngine createInferrerEngineFor(FunctionEntity main);
+  InferrerEngine createInferrerEngineFor(FunctionEntity main) {
+    return new InferrerEngineImpl(
+        _compiler.options,
+        _compiler.progress,
+        _compiler.reporter,
+        _compiler.outputProvider,
+        _elementMap,
+        _globalLocalsMap,
+        _closureDataLookup,
+        closedWorld,
+        _compiler.backend.noSuchMethodRegistry,
+        main,
+        _compiler.backendStrategy.sorter,
+        _inferredDataBuilder);
+  }
 
   AbstractValue getReturnTypeOfMember(MemberEntity element) {
     if (_disableTypeInference) return _dynamicType;

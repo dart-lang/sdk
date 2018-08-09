@@ -689,6 +689,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void visitTypedef(Typedef node) {
+    _variableIndexer ??= new VariableIndexer();
     writeCanonicalNameReference(getCanonicalNameOfTypedef(node));
 
     final Uri activeFileUriSaved = _activeFileUri;
@@ -697,10 +698,18 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeStringReference(node.name);
     writeAnnotationList(node.annotations);
-    enterScope(typeParameters: node.typeParameters);
+
+    enterScope(typeParameters: node.typeParameters, variableScope: true);
     writeNodeList(node.typeParameters);
     writeNode(node.type);
-    leaveScope(typeParameters: node.typeParameters);
+
+    enterScope(typeParameters: node.typeParametersOfFunctionType);
+    writeNodeList(node.typeParametersOfFunctionType);
+    writeVariableDeclarationList(node.positionalParameters);
+    writeVariableDeclarationList(node.namedParameters);
+
+    leaveScope(typeParameters: node.typeParametersOfFunctionType);
+    leaveScope(typeParameters: node.typeParameters, variableScope: true);
 
     _activeFileUri = activeFileUriSaved;
   }
@@ -1344,42 +1353,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeLibraryDependencyReference(node.import);
   }
 
-  @override
-  void visitVectorCreation(VectorCreation node) {
-    writeByte(Tag.VectorCreation);
-    writeUInt30(node.length);
-  }
-
-  @override
-  void visitVectorGet(VectorGet node) {
-    writeByte(Tag.VectorGet);
-    writeNode(node.vectorExpression);
-    writeUInt30(node.index);
-  }
-
-  @override
-  void visitVectorSet(VectorSet node) {
-    writeByte(Tag.VectorSet);
-    writeNode(node.vectorExpression);
-    writeUInt30(node.index);
-    writeNode(node.value);
-  }
-
-  @override
-  void visitVectorCopy(VectorCopy node) {
-    writeByte(Tag.VectorCopy);
-    writeNode(node.vectorExpression);
-  }
-
-  @override
-  void visitClosureCreation(ClosureCreation node) {
-    writeByte(Tag.ClosureCreation);
-    writeReference(node.topLevelFunctionReference);
-    writeNode(node.contextVector);
-    writeNode(node.functionType);
-    writeNodeList(node.typeArguments);
-  }
-
   writeStatementOrEmpty(Statement node) {
     if (node == null) {
       writeByte(Tag.EmptyStatement);
@@ -1673,7 +1646,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
         node.typedefReference == null) {
       writeByte(Tag.SimpleFunctionType);
       writeNodeList(node.positionalParameters);
-      writeStringReferenceList(node.positionalParameterNames);
       writeNode(node.returnType);
     } else {
       writeByte(Tag.FunctionType);
@@ -1684,7 +1656,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
           node.positionalParameters.length + node.namedParameters.length);
       writeNodeList(node.positionalParameters);
       writeNodeList(node.namedParameters);
-      writeStringReferenceList(node.positionalParameterNames);
       writeReference(node.typedefReference);
       writeNode(node.returnType);
       leaveScope(typeParameters: node.typeParameters);
@@ -1702,11 +1673,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.TypeParameterType);
     writeUInt30(_typeParameterIndexer[node.parameter]);
     writeOptionalNode(node.promotedBound);
-  }
-
-  @override
-  void visitVectorType(VectorType node) {
-    writeByte(Tag.VectorType);
   }
 
   @override

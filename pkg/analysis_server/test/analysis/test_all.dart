@@ -7,6 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'get_errors_test.dart' as get_errors_test;
 import 'get_hover_test.dart' as get_hover_test;
 import 'get_navigation_test.dart' as get_navigation_test;
+import 'get_signature_test.dart' as get_signature_information_test;
 import 'notification_analysis_options_test.dart'
     as notification_analysis_options_test;
 import 'notification_analyzedFiles_test.dart'
@@ -34,6 +35,7 @@ main() {
     get_errors_test.main();
     get_hover_test.main();
     get_navigation_test.main();
+    get_signature_information_test.main();
     notification_analysis_options_test.main();
     notification_analyzedFiles_test.main();
     notification_closingLabels_test.main();

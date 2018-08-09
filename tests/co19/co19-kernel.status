@@ -3,13 +3,9 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == fasta ]
-Language/Classes/Getters/override_t02: CompileTimeError
-Language/Classes/Getters/override_t03: CompileTimeError
-Language/Classes/Setters/override_t02: CompileTimeError
 Language/Classes/definition_t24: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t01: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: MissingCompileTimeError
-Language/Mixins/Mixin_Application/syntax_t21: CompileTimeError
 Language/Types/Type_Void/syntax_t08: MissingCompileTimeError
 Language/Types/Type_Void/syntax_t09: MissingCompileTimeError
 LayoutTests/*: Skip # TODO(ahe): Make dart:html available.
@@ -65,6 +61,8 @@ Language/Classes/Constructors/Generative_Constructors/static_type_t01: CompileTi
 Language/Classes/Constructors/name_t01: MissingCompileTimeError
 Language/Classes/Constructors/name_t02: MissingCompileTimeError
 Language/Classes/Constructors/name_t03: MissingCompileTimeError
+Language/Classes/Getters/override_t02: CompileTimeError
+Language/Classes/Getters/override_t03: CompileTimeError
 Language/Classes/Getters/static_getter_t01: CompileTimeError
 Language/Classes/Instance_Methods/same_name_setter_t01: CompileTimeError
 Language/Classes/Instance_Methods/same_name_setter_t02: CompileTimeError # Issue 14736
@@ -73,6 +71,7 @@ Language/Classes/Setters/name_t03: CompileTimeError
 Language/Classes/Setters/name_t04: CompileTimeError
 Language/Classes/Setters/name_t06: CompileTimeError
 Language/Classes/Setters/name_t07: CompileTimeError
+Language/Classes/Setters/override_t02: CompileTimeError
 Language/Classes/Setters/static_setter_t05: CompileTimeError
 Language/Classes/Setters/static_setter_t06: CompileTimeError
 Language/Classes/Static_Methods/same_name_method_and_setter_t01: CompileTimeError
@@ -91,6 +90,7 @@ Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_members
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t01: CompileTimeError
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t02: CompileTimeError
 Language/Metadata/compilation_t03: MissingCompileTimeError
+Language/Mixins/Mixin_Application/syntax_t21: CompileTimeError
 
 [ $compiler == fasta && !$strong ]
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t01: MissingCompileTimeError
@@ -1783,5 +1783,5 @@ LibTest/typed_data/Uint64List/Uint64List.fromList_A01_t02: CompileTimeError
 LibTest/typed_data/Uint64List/Uint64List.view_A01_t01: CompileTimeError
 LibTest/typed_data/Uint64List/Uint64List.view_A01_t02: CompileTimeError
 
-[ $compiler == app_jitk || $compiler == dartk || $compiler == dartkp ]
+[ $compiler == app_jitk || $compiler == dartk || $compiler == dartkb || $compiler == dartkp ]
 *: SkipByDesign

@@ -126,7 +126,4 @@ class Target extends Base implements Interface1, Interface2 {
 class OverridesTest_UseCFE extends OverridesTest {
   @override
   bool get useCFE => true;
-
-  @override
-  test_overrides() => super.test_overrides();
 }

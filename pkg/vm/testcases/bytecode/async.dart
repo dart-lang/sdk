@@ -61,4 +61,8 @@ Future<int> testAssert(Future<int> a) async {
   return 7;
 }
 
+var asyncInFieldInitializer = (Future<int> x) async {
+  await x;
+};
+
 main() {}

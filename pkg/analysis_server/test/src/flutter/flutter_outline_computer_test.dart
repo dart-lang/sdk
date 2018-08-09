@@ -6,17 +6,16 @@ import 'dart:async';
 
 import 'package:analysis_server/src/flutter/flutter_outline_computer.dart';
 import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_context.dart';
-import '../utilities/flutter_util.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlutterOutlineComputerTest);
+    defineReflectiveTests(FlutterOutlineComputerTest_UseCFE);
   });
 }
 
@@ -31,8 +30,7 @@ class FlutterOutlineComputerTest extends AbstractContextTest {
   void setUp() {
     super.setUp();
     testPath = resourceProvider.convertPath('/test.dart');
-    Folder libFolder = configureFlutterPackage(resourceProvider);
-    packageMap['flutter'] = [libFolder];
+    addFlutterPackage();
   }
 
   test_attribute_namedExpression() async {
@@ -473,6 +471,7 @@ class MyWidget extends StatelessWidget {
 
     testPath = resourceProvider.convertPath('/home/user/test/lib/test.dart');
     newFile('/home/user/test/lib/my_lib.dart', content: '');
+    configureDriver();
 
     await _computeOutline('''
 import 'package:flutter/widgets.dart';
@@ -699,4 +698,10 @@ class MyWidget extends StatelessWidget {
     }
     return buffer.toString();
   }
+}
+
+@reflectiveTest
+class FlutterOutlineComputerTest_UseCFE extends FlutterOutlineComputerTest {
+  @override
+  bool get useCFE => true;
 }

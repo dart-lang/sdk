@@ -17,8 +17,7 @@ import '../deferred_load.dart' show DeferredLoadTask, OutputUnitData;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../enqueue.dart'
-    show Enqueuer, EnqueueTask, ResolutionEnqueuer, TreeShakingEnqueuerStrategy;
+import '../enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import '../frontend_strategy.dart';
 import '../io/source_information.dart'
     show SourceInformation, SourceInformationStrategy;
@@ -593,7 +592,6 @@ class JavaScriptBackend {
         task,
         compiler.options,
         compiler.reporter,
-        const TreeShakingEnqueuerStrategy(),
         new ResolutionEnqueuerListener(
             compiler.options,
             elementEnvironment,
@@ -654,7 +652,6 @@ class JavaScriptBackend {
     return new CodegenEnqueuer(
         task,
         compiler.options,
-        const TreeShakingEnqueuerStrategy(),
         compiler.backendStrategy.createCodegenWorldBuilder(
             closedWorld.nativeData,
             closedWorld,
@@ -846,10 +843,6 @@ class JavaScriptBackend {
   // [ElementEnvironment.getMemberMetadata] in [AnnotationProcessor].
   void processAnnotations(
       JClosedWorld closedWorld, InferredDataBuilder inferredDataBuilder) {
-    // These methods are overwritten with generated versions.
-    inlineCache.markAsNonInlinable(
-        closedWorld.commonElements.getInterceptorMethod,
-        insideLoop: true);
     for (MemberEntity entity in closedWorld.processedMembers) {
       _processMemberAnnotations(closedWorld, inferredDataBuilder, entity);
     }

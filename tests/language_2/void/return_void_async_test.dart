@@ -13,6 +13,7 @@ void main() {
   test3();
   test4();
   test5();
+  test6();
 }
 
 // Testing that a block bodied async function may have an empty return
@@ -46,4 +47,9 @@ void test4() async {
 // Testing that a block bodied async function may return dynamic
 void test5() async {
   return null as dynamic;
+}
+
+// Testing that a block bodied async function may return FutureOr<void>
+void test6() async {
+  return null as FutureOr<void>;
 }

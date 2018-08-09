@@ -15,6 +15,7 @@ import '../../abstract_context.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImportElementsComputerTest);
+    defineReflectiveTests(ImportElementsComputerTest_UseCFE);
   });
 }
 
@@ -397,4 +398,10 @@ class A {
         new ImportedElementsComputer(result.unit, offset, length);
     return computer.compute();
   }
+}
+
+@reflectiveTest
+class ImportElementsComputerTest_UseCFE extends ImportElementsComputerTest {
+  @override
+  bool get useCFE => true;
 }

@@ -166,7 +166,7 @@ class MinifyNamer extends Namer
       r'BoundClosure',
       r'Closure',
       r'StateError$',
-      r'getInterceptor',
+      r'getInterceptor$',
       r'max',
       r'$mul',
       r'Map',

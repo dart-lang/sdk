@@ -13,7 +13,8 @@ import 'package:kernel/ast.dart'
         LibraryDependency,
         LibraryPart,
         Node,
-        TreeNode;
+        TreeNode,
+        VariableDeclaration;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -34,6 +35,15 @@ import '../fasta_codes.dart'
     show Message, messageExpectedBlockToSkip, templateInternalProblemNotFound;
 
 import '../kernel/kernel_body_builder.dart' show KernelBodyBuilder;
+
+import '../kernel/kernel_formal_parameter_builder.dart'
+    show KernelFormalParameterBuilder;
+
+import '../kernel/kernel_function_type_alias_builder.dart'
+    show KernelFunctionTypeAliasBuilder;
+
+import '../kernel/kernel_procedure_builder.dart'
+    show KernelRedirectingFactoryBuilder;
 
 import '../parser.dart' show Assert, MemberKind, Parser, optional;
 
@@ -217,6 +227,38 @@ class DietListener extends StackListener {
 
     Declaration typedefBuilder = lookupBuilder(typedefKeyword, null, name);
     parseMetadata(typedefBuilder, metadata, typedefBuilder.target);
+    if (typedefBuilder is KernelFunctionTypeAliasBuilder &&
+        typedefBuilder.type != null &&
+        typedefBuilder.type.formals != null) {
+      for (int i = 0; i < typedefBuilder.type.formals.length; ++i) {
+        KernelFormalParameterBuilder formal = typedefBuilder.type.formals[i];
+        List<MetadataBuilder> metadata = formal.metadata;
+        if (metadata != null && metadata.length > 0) {
+          // [parseMetadata] is using [Parser.parseMetadataStar] under the hood,
+          // so we only need the offset of the first annotation.
+          Token metadataToken =
+              tokenForOffset(typedefKeyword, endToken, metadata[0].charOffset);
+          List<Expression> annotations =
+              parseMetadata(typedefBuilder, metadataToken, null);
+          if (formal.isPositional) {
+            VariableDeclaration parameter =
+                typedefBuilder.target.positionalParameters[i];
+            for (Expression annotation in annotations) {
+              parameter.addAnnotation(annotation);
+            }
+          } else {
+            for (VariableDeclaration named
+                in typedefBuilder.target.namedParameters) {
+              if (named.name == formal.name) {
+                for (Expression annotation in annotations) {
+                  named.addAnnotation(annotation);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
 
     checkEmpty(typedefKeyword.charOffset);
   }
@@ -451,8 +493,32 @@ class DietListener extends StackListener {
     Token metadata = pop();
     checkEmpty(beginToken.charOffset);
     if (bodyToken == null || optional("=", bodyToken.endGroup.next)) {
-      // TODO(ahe): Don't skip this. We need to compile metadata and
-      // redirecting factory bodies.
+      // TODO(dmitryas): Consider building redirecting factory bodies here.
+      KernelRedirectingFactoryBuilder factory =
+          lookupConstructor(beginToken, name);
+      parseMetadata(factory, metadata, factory.target);
+
+      if (factory.formals != null) {
+        List<int> metadataOffsets = new List<int>(factory.formals.length);
+        for (int i = 0; i < factory.formals.length; ++i) {
+          List<MetadataBuilder> metadata = factory.formals[i].metadata;
+          if (metadata != null && metadata.length > 0) {
+            // [parseMetadata] is using [Parser.parseMetadataStar] under the
+            // hood, so we only need the offset of the first annotation.
+            metadataOffsets[i] = metadata[0].charOffset;
+          } else {
+            metadataOffsets[i] = -1;
+          }
+        }
+        List<Token> metadataTokens =
+            tokensForOffsets(beginToken, endToken, metadataOffsets);
+        for (int i = 0; i < factory.formals.length; ++i) {
+          Token metadata = metadataTokens[i];
+          if (metadata == null) continue;
+          parseMetadata(
+              factory.formals[i], metadata, factory.formals[i].target);
+        }
+      }
       return;
     }
     buildFunctionBody(bodyToken, lookupConstructor(beginToken, name),
@@ -804,5 +870,43 @@ class DietListener extends StackListener {
       return listener.finishMetadata(parent);
     }
     return null;
+  }
+
+  /// Returns [Token] found between [start] (inclusive) and [end]
+  /// (non-inclusive) that has its [Token.charOffset] equal to [offset].  If
+  /// there is no such token, null is returned.
+  Token tokenForOffset(Token start, Token end, int offset) {
+    if (offset < start.charOffset || offset >= end.charOffset) {
+      return null;
+    }
+    while (start != end) {
+      if (offset == start.charOffset) {
+        return start;
+      }
+      start = start.next;
+    }
+    return null;
+  }
+
+  /// Returns list of [Token]s found between [start] (inclusive) and [end]
+  /// (non-inclusive) that correspond to [offsets].  If there's no token between
+  /// [start] and [end] for the given offset, the corresponding item in the
+  /// resulting list is set to null.  [offsets] are assumed to be in ascending
+  /// order.
+  List<Token> tokensForOffsets(Token start, Token end, List<int> offsets) {
+    List<Token> result =
+        new List<Token>.filled(offsets.length, null, growable: false);
+    for (int i = 0; start != end && i < offsets.length;) {
+      int offset = offsets[i];
+      if (offset < start.charOffset) {
+        ++i;
+      } else if (offset == start.charOffset) {
+        result[i] = start;
+        start = start.next;
+      } else {
+        start = start.next;
+      }
+    }
+    return result;
   }
 }

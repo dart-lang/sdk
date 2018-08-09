@@ -324,8 +324,7 @@ class CompletionPage extends DiagnosticPageWithNav {
 
     int fastCount =
         completions.where((c) => c.elapsedInMilliseconds <= 100).length;
-    p('${completions.length} results; ${printPercentage(
-        fastCount / completions.length)} within 100ms.');
+    p('${completions.length} results; ${printPercentage(fastCount / completions.length)} within 100ms.');
 
     // draw a chart
     buf.writeln(
@@ -362,8 +361,7 @@ class CompletionPage extends DiagnosticPageWithNav {
     for (CompletionPerformance completion in completions) {
       String shortName = pathContext.basename(completion.path);
       buf.writeln('<tr>'
-          '<td class="pre right">${printMilliseconds(
-          completion.elapsedInMilliseconds)}</td>'
+          '<td class="pre right">${printMilliseconds(completion.elapsedInMilliseconds)}</td>'
           '<td class="right">${completion.suggestionCount}</td>'
           '<td>${escape(shortName)}</td>'
           '<td><code>${escape(completion.snippet)}</code></td>'
@@ -492,8 +490,7 @@ class ContextsPage extends DiagnosticPageWithNav {
     implicitFiles.sort();
 
     String lenCounter(List list) {
-      return '<span class="counter" style="float: right;">${list
-          .length}</span>';
+      return '<span class="counter" style="float: right;">${list.length}</span>';
     }
 
     h3('Context files');
@@ -624,9 +621,7 @@ abstract class DiagnosticPage extends Page {
 
       <nav class="masthead-nav">
         <a href="/status" ${isNavPage ? ' class="active"' : ''}>Diagnostics</a>
-        <a href="/feedback" ${isCurrentPage('/feedback')
-        ? ' class="active"'
-        : ''}>Feedback</a>
+        <a href="/feedback" ${isCurrentPage('/feedback') ? ' class="active"' : ''}>Feedback</a>
         <a href="https://www.dartlang.org/tools/analyzer" target="_blank">Docs</a>
         <a href="https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/doc/api.html" target="_blank">Spec</a>
       </nav>
@@ -797,7 +792,7 @@ class ElementModelPage extends DiagnosticPageWithNav {
     }
 
     ElementWriter writer = new ElementWriter(buf);
-    result.unit.element.accept(writer);
+    result.unit.declaredElement.accept(writer);
   }
 
   @override
@@ -906,12 +901,9 @@ class FeedbackPage extends DiagnosticPage {
 
     p('Other data to include:');
     ul([
-      "the IDE you are using and it's version${ideText.isEmpty
-          ? ''
-          : ' ($ideText)'}",
+      "the IDE you are using and it's version${ideText.isEmpty ? '' : ' ($ideText)'}",
       'the Dart SDK version (<code>${escape(_sdkVersion)}</code>)',
-      'your operating system (<code>${escape(
-          Platform.operatingSystem)}</code>)',
+      'your operating system (<code>${escape(Platform.operatingSystem)}</code>)',
     ], (line) => buf.writeln(line));
 
     p('Thanks!');
@@ -1071,8 +1063,7 @@ class OverlaysPage extends DiagnosticPageWithNav {
       blankslate('No overlays.');
     } else {
       String lenCounter(List list) {
-        return '<span class="counter" style="float: right;">${list
-            .length}</span>';
+        return '<span class="counter" style="float: right;">${list.length}</span>';
       }
 
       h3('Overlays ${lenCounter(paths)}', raw: true);
@@ -1254,7 +1245,7 @@ class ServiceProtocol {
   final WebSocket socket;
 
   int _id = 0;
-  Map<String, Completer> _completers = {};
+  Map<String, Completer<Map>> _completers = {};
 
   ServiceProtocol._(this.socket) {
     socket.listen(_handleMessage);
@@ -1262,7 +1253,7 @@ class ServiceProtocol {
 
   Future<Map> call(String method, [Map args]) {
     String id = '${++_id}';
-    Completer completer = new Completer();
+    Completer<Map> completer = new Completer();
     _completers[id] = completer;
     Map m = {'id': id, 'method': method};
     if (args != null) m['params'] = args;

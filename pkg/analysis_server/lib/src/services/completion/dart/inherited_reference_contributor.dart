@@ -64,7 +64,7 @@ class InheritedReferenceContributor extends DartCompletionContributor
     }
 
     ClassDeclaration classDecl = _enclosingClass(request.target);
-    if (classDecl == null || classDecl.element == null) {
+    if (classDecl == null || classDecl.declaredElement == null) {
       return EMPTY_LIST;
     }
     containingLibrary = request.libraryElement;

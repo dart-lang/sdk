@@ -12,10 +12,12 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
+import '../test_utilities/utillities.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNotificationHighlightsTest);
+    defineReflectiveTests(AnalysisNotificationHighlightsTest_UseCFE);
     defineReflectiveTests(HighlightTypeTest);
   });
 }
@@ -252,7 +254,7 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'get = 42');
   }
 
-  test_BUILT_IN_hide() async {
+  Future<void> test_BUILT_IN_hide() async {
     addTestFile('''
 import 'foo.dart' hide Foo;
 main() {
@@ -275,7 +277,7 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'implements = 42');
   }
 
-  test_BUILT_IN_import() async {
+  Future<void> test_BUILT_IN_import() async {
     addTestFile('''
 import "foo.dart";
 main() {
@@ -297,7 +299,7 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'library = 42');
   }
 
-  test_BUILT_IN_native() async {
+  Future<void> test_BUILT_IN_native() async {
     addTestFile('''
 class A native "A_native" {}
 class B {
@@ -379,7 +381,7 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'set = 42');
   }
 
-  test_BUILT_IN_show() async {
+  Future<void> test_BUILT_IN_show() async {
     addTestFile('''
 import 'foo.dart' show Foo;
 main() {
@@ -536,7 +538,7 @@ main() {
     assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'name(42)');
   }
 
-  test_DIRECTIVE() async {
+  Future<void> test_DIRECTIVE() async {
     addTestFile('''
 library lib;
 import 'dart:math';
@@ -912,7 +914,7 @@ main(A a) {
     assertHasRegion(HighlightRegionType.FIELD, 'bbb = 2');
   }
 
-  test_TOP_LEVEL_VARIABLE() async {
+  Future<void> test_TOP_LEVEL_VARIABLE() async {
     addTestFile('''
 const VVV = 0;
 @VVV // annotation
@@ -929,7 +931,7 @@ main() {
     assertHasRegion(HighlightRegionType.TOP_LEVEL_VARIABLE, 'VVV = 1');
   }
 
-  test_TYPE_NAME_DYNAMIC() async {
+  Future<void> test_TYPE_NAME_DYNAMIC() async {
     addTestFile('''
 dynamic main() {
   dynamic = 42;
@@ -960,6 +962,60 @@ class A<T> {
 library lib;
 part 'test.dart';
     ''');
+  }
+}
+
+@reflectiveTest
+class AnalysisNotificationHighlightsTest_UseCFE
+    extends AnalysisNotificationHighlightsTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_BUILT_IN_hide() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_BUILT_IN_hide);
+  }
+
+  @failingTest
+  @override
+  test_BUILT_IN_import() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_BUILT_IN_import);
+  }
+
+  @failingTest
+  @override
+  test_BUILT_IN_native() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_BUILT_IN_native);
+  }
+
+  @failingTest
+  @override
+  test_BUILT_IN_show() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_BUILT_IN_show);
+  }
+
+  @failingTest
+  @override
+  test_DIRECTIVE() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_DIRECTIVE);
+  }
+
+  @failingTest
+  @override
+  test_TOP_LEVEL_VARIABLE() async =>
+      callFailingTest(super.test_TOP_LEVEL_VARIABLE);
+
+  @failingTest
+  @override
+  test_TYPE_NAME_DYNAMIC() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_TYPE_NAME_DYNAMIC);
   }
 }
 

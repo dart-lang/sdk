@@ -958,6 +958,7 @@ class Class : public Object {
     ASSERT(is_valid_id(value));
     StoreNonPointer(&raw_ptr()->id_, value);
   }
+  static intptr_t id_offset() { return OFFSET_OF(RawClass, id_); }
 
   RawString* Name() const;
   RawString* ScrubbedName() const;
@@ -1096,6 +1097,13 @@ class Class : public Object {
   static intptr_t interfaces_offset() {
     return OFFSET_OF(RawClass, interfaces_);
   }
+
+  // Returns the list of classes directly implementing this class.
+  RawGrowableObjectArray* direct_implementors() const {
+    return raw_ptr()->direct_implementors_;
+  }
+  void AddDirectImplementor(const Class& subclass) const;
+  void ClearDirectImplementors() const;
 
   // Returns the list of classes having this class as direct superclass.
   RawGrowableObjectArray* direct_subclasses() const {
@@ -1422,6 +1430,8 @@ class Class : public Object {
 
   void DisableAllCHAOptimizedCode();
 
+  void DisableCHAImplementorUsers() { DisableAllCHAOptimizedCode(); }
+
   // Return the list of code objects that were compiled using CHA of this class.
   // These code objects will be invalidated if new subclasses of this class
   // are finalized.
@@ -1529,8 +1539,21 @@ class Class : public Object {
   // functions_hash_table is in use iff there are at least this many functions.
   static const intptr_t kFunctionLookupHashTreshold = 16;
 
+  enum HasPragmaAndNumOwnTypeArgumentsBits {
+    kHasPragmaBit = 0,
+    kNumOwnTypeArgumentsPos = 1,
+    kNumOwnTypeArgumentsSize = 15
+  };
+
+  class HasPragmaBit : public BitField<uint16_t, bool, kHasPragmaBit, 1> {};
+  class NumOwnTypeArguments : public BitField<uint16_t,
+                                              uint16_t,
+                                              kNumOwnTypeArgumentsPos,
+                                              kNumOwnTypeArgumentsSize> {};
+
   // Initial value for the cached number of type arguments.
-  static const intptr_t kUnknownNumTypeArguments = -1;
+  static const intptr_t kUnknownNumTypeArguments =
+      (1U << kNumOwnTypeArgumentsSize) - 1;
 
   int16_t num_type_arguments() const { return raw_ptr()->num_type_arguments_; }
   void set_num_type_arguments(intptr_t value) const;
@@ -1538,10 +1561,21 @@ class Class : public Object {
     return OFFSET_OF(RawClass, num_type_arguments_);
   }
 
-  int16_t num_own_type_arguments() const {
-    return raw_ptr()->num_own_type_arguments_;
+ public:
+  bool has_pragma() const {
+    return HasPragmaBit::decode(
+        raw_ptr()->has_pragma_and_num_own_type_arguments_);
+  }
+  void set_has_pragma(bool has_pragma) const;
+
+ private:
+  uint16_t num_own_type_arguments() const {
+    return NumOwnTypeArguments::decode(
+        raw_ptr()->has_pragma_and_num_own_type_arguments_);
   }
   void set_num_own_type_arguments(intptr_t value) const;
+
+  void set_has_pragma_and_num_own_type_arguments(uint16_t value) const;
 
   // Assigns empty array to all raw class array fields.
   void InitEmptyFields();
@@ -2461,13 +2495,6 @@ class Function : public Object {
 #endif
   }
 
-  bool is_no_such_method_forwarder() const {
-    return RawFunction::PackedIsNoSuchMethodForwarder::decode(
-        raw_ptr()->packed_fields_);
-  }
-
-  void set_is_no_such_method_forwarder(bool value) const;
-
   intptr_t num_fixed_parameters() const {
     return RawFunction::PackedNumFixedParameters::decode(
         raw_ptr()->packed_fields_);
@@ -3365,11 +3392,6 @@ class Field : public Object {
   void SetPrecompiledInitializer(const Function& initializer) const;
   bool HasPrecompiledInitializer() const;
 
-  RawInstance* SavedInitialStaticValue() const {
-    return raw_ptr()->initializer_.saved_value_;
-  }
-  void SetSavedInitialStaticValue(const Instance& value) const;
-
   // For static fields only. Constructs a closure that gets/sets the
   // field value.
   RawInstance* GetterClosure() const;
@@ -4109,6 +4131,7 @@ class KernelProgramInfo : public Object {
                                    const TypedData& canonical_names,
                                    const ExternalTypedData& metadata_payload,
                                    const ExternalTypedData& metadata_mappings,
+                                   const ExternalTypedData& constants_table,
                                    const Array& scripts);
 
   static intptr_t InstanceSize() {
@@ -4128,6 +4151,12 @@ class KernelProgramInfo : public Object {
   RawExternalTypedData* metadata_mappings() const {
     return raw_ptr()->metadata_mappings_;
   }
+
+  RawExternalTypedData* constants_table() const {
+    return raw_ptr()->constants_table_;
+  }
+
+  void set_constants_table(const ExternalTypedData& value) const;
 
   RawArray* scripts() const { return raw_ptr()->scripts_; }
 
@@ -5385,12 +5414,14 @@ class MegamorphicCache : public Object {
 class SubtypeTestCache : public Object {
  public:
   enum Entries {
-    kInstanceClassIdOrFunction = 0,
-    kInstanceTypeArguments = 1,
-    kInstantiatorTypeArguments = 2,
-    kFunctionTypeArguments = 3,
-    kTestResult = 4,
-    kTestEntryLength = 5,
+    kTestResult = 0,
+    kInstanceClassIdOrFunction = 1,
+    kInstanceTypeArguments = 2,
+    kInstantiatorTypeArguments = 3,
+    kFunctionTypeArguments = 4,
+    kInstanceParentFunctionTypeArguments = 5,
+    kInstanceDelayedFunctionTypeArguments = 6,
+    kTestEntryLength = 7,
   };
 
   intptr_t NumberOfChecks() const;
@@ -5398,12 +5429,16 @@ class SubtypeTestCache : public Object {
                 const TypeArguments& instance_type_arguments,
                 const TypeArguments& instantiator_type_arguments,
                 const TypeArguments& function_type_arguments,
+                const TypeArguments& instance_parent_function_type_arguments,
+                const TypeArguments& instance_delayed_type_arguments,
                 const Bool& test_result) const;
   void GetCheck(intptr_t ix,
                 Object* instance_class_id_or_function,
                 TypeArguments* instance_type_arguments,
                 TypeArguments* instantiator_type_arguments,
                 TypeArguments* function_type_arguments,
+                TypeArguments* instance_parent_function_type_arguments,
+                TypeArguments* instance_delayed_type_arguments,
                 Bool* test_result) const;
 
   static RawSubtypeTestCache* New();
@@ -6368,6 +6403,8 @@ class Type : public AbstractType {
   // was parameterized to obtain the actual signature.
   RawFunction* signature() const;
   void set_signature(const Function& value) const;
+  static intptr_t signature_offset() { return OFFSET_OF(RawType, sig_or_err_); }
+
   virtual bool IsFunctionType() const {
     return signature() != Function::null();
   }

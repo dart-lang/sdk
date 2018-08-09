@@ -62,7 +62,7 @@ ping_test: Skip # Resolve test issues
 [ $compiler == app_jit || $mode == product || $runtime != vm ]
 checked_test: Skip # Unsupported.
 
-[ $compiler == dartk || $compiler == dartkp ]
+[ $compiler == dartk || $compiler == dartkb || $compiler == dartkp ]
 *: Skip # This directory has only Dart1 tests (Dart2 tests are in lib_2/isolate).
 
 [ $compiler != none || $runtime != vm ]

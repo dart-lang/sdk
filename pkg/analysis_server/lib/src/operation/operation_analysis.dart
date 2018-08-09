@@ -28,7 +28,7 @@ Future<Null> scheduleImplementedNotification(
   }
   for (String file in files) {
     CompilationUnit unit = server.getCachedAnalysisResult(file)?.unit;
-    CompilationUnitElement unitElement = unit?.element;
+    CompilationUnitElement unitElement = unit?.declaredElement;
     if (unitElement != null) {
       try {
         ImplementedComputer computer =

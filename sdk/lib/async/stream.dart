@@ -2008,7 +2008,7 @@ abstract class StreamTransformer<S, T> {
   Stream<T> bind(Stream<S> stream);
 
   /**
-   * Provides a `StreamTrasformer<RS, RT>` view of this stream transformer.
+   * Provides a `StreamTransformer<RS, RT>` view of this stream transformer.
    *
    * The resulting transformer will check at run-time that all data events
    * of the stream it transforms are actually instances of [S],

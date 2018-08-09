@@ -17,6 +17,7 @@ import 'package:source_span/source_span.dart' show SourceLocation;
 import '../compiler/js_names.dart' as JS;
 import '../compiler/js_utils.dart' as JS;
 import '../compiler/module_builder.dart' show pathToJSIdentifier;
+import '../compiler/shared_command.dart' show SharedCompilerOptions;
 import '../compiler/shared_compiler.dart';
 import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/js_ast.dart' show js;
@@ -37,6 +38,8 @@ class ProgramCompiler extends Object
         ExpressionVisitor<JS.Expression>,
         DartTypeVisitor<JS.Expression>,
         ConstantVisitor<JS.Expression> {
+  final SharedCompilerOptions options;
+
   /// The set of libraries we are currently compiling, and the temporaries used
   /// to refer to them.
   ///
@@ -48,8 +51,8 @@ class ProgramCompiler extends Object
   /// corresponding Kernel summary module we imported it with.
   final _importToSummary = Map<Library, Component>.identity();
 
-  /// Maps a summary to the file URI we used to load it from disk.
-  final _summaryToUri = Map<Component, Uri>.identity();
+  /// Maps a summary to the JS import name for the module.
+  final _summaryToModule = Map<Component, String>.identity();
 
   /// Imported libraries, and the temporaries used to refer to them.
   final _imports = Map<Library, JS.TemporaryId>();
@@ -127,10 +130,6 @@ class ProgramCompiler extends Object
 
   final _superHelpers = Map<String, JS.Method>();
 
-  final bool emitMetadata;
-  final bool enableAsserts;
-  final bool replCompile;
-
   // Compilation of Kernel's [BreakStatement].
   //
   // Kernel represents Dart's `break` and `continue` uniformly as
@@ -196,11 +195,8 @@ class ProgramCompiler extends Object
 
   final NullableInference _nullableInference;
 
-  factory ProgramCompiler(Component component,
-      {bool emitMetadata = false,
-      bool replCompile = false,
-      bool enableAsserts = true,
-      Map<String, String> declaredVariables = const {}}) {
+  factory ProgramCompiler(Component component, SharedCompilerOptions options,
+      Map<String, String> declaredVariables) {
     var coreTypes = CoreTypes(component);
     var types =
         TypeSchemaEnvironment(coreTypes, ClassHierarchy(component), true);
@@ -208,15 +204,18 @@ class ProgramCompiler extends Object
     var nativeTypes = NativeTypeSet(coreTypes, constants);
     var jsTypeRep = JSTypeRep(types);
     return ProgramCompiler._(coreTypes, coreTypes.index, nativeTypes, constants,
-        types, jsTypeRep, NullableInference(jsTypeRep),
-        emitMetadata: emitMetadata,
-        enableAsserts: enableAsserts,
-        replCompile: replCompile);
+        types, jsTypeRep, NullableInference(jsTypeRep), options);
   }
 
-  ProgramCompiler._(this.coreTypes, LibraryIndex sdk, this._extensionTypes,
-      this._constants, this.types, this._typeRep, this._nullableInference,
-      {this.emitMetadata, this.enableAsserts, this.replCompile})
+  ProgramCompiler._(
+      this.coreTypes,
+      LibraryIndex sdk,
+      this._extensionTypes,
+      this._constants,
+      this.types,
+      this._typeRep,
+      this._nullableInference,
+      this.options)
       : _jsArrayClass = sdk.getClass('dart:_interceptors', 'JSArray'),
         _asyncStreamIteratorClass =
             sdk.getClass('dart:async', 'StreamIterator'),
@@ -234,20 +233,23 @@ class ProgramCompiler extends Object
 
   Uri get currentLibraryUri => _currentLibrary.importUri;
 
-  JS.Program emitModule(
-      Component buildUnit, List<Component> summaries, List<Uri> summaryUris) {
+  bool get emitMetadata => options.emitMetadata;
+
+  JS.Program emitModule(Component buildUnit, List<Component> summaries,
+      Map<Uri, String> summaryModules) {
     if (moduleItems.isNotEmpty) {
       throw StateError('Can only call emitModule once.');
     }
     _component = buildUnit;
 
+    var moduleImports = summaryModules.values.toList();
     for (var i = 0; i < summaries.length; i++) {
       var summary = summaries[i];
-      var summaryUri = summaryUris[i];
+      var moduleImport = moduleImports[i];
       for (var l in summary.libraries) {
         assert(!_importToSummary.containsKey(l));
         _importToSummary[l] = summary;
-        _summaryToUri[summary] = summaryUri;
+        _summaryToModule[summary] = moduleImport;
       }
     }
 
@@ -366,17 +368,11 @@ class ProgramCompiler extends Object
       return JS.dartSdkModule;
     }
     var summary = _importToSummary[library];
-    assert(summary != null);
-    // TODO(jmesserly): look up the appropriate relative import path if the user
-    // specified that on the command line.
-    var uri = _summaryToUri[summary];
-    var summaryPath = uri.path;
-    var extensionIndex = summaryPath.lastIndexOf('.');
-    // Note: These URIs do not contain absolute paths from the physical file
-    // system, but only the relevant path within a user's project. This path
-    // will match the path where the .js file is generated, so we use it as
-    // the module name.
-    var moduleName = summaryPath.substring(1, extensionIndex);
+    var moduleName = _summaryToModule[summary];
+    if (moduleName == null) {
+      throw StateError('Could not find module name for library "$library" '
+          'from component "$summary".');
+    }
     return moduleName;
   }
 
@@ -1080,7 +1076,7 @@ class ProgramCompiler extends Object
       fields.add(valueField);
       for (var f in fields) {
         assert(f.isConst);
-        body.add(_defineValueOnClass(
+        body.add(defineValueOnClass(
                 classRef,
                 _emitStaticMemberName(f.name.name),
                 _visitInitializer(f.initializer, f.annotations))
@@ -1541,18 +1537,8 @@ class ProgramCompiler extends Object
 
   JS.Statement _addConstructorToClass(
       JS.Expression className, String name, JS.Expression jsCtor) {
-    jsCtor = _defineValueOnClass(className, _constructorName(name), jsCtor);
+    jsCtor = defineValueOnClass(className, _constructorName(name), jsCtor);
     return js.statement('#.prototype = #.prototype;', [jsCtor, className]);
-  }
-
-  JS.Expression _defineValueOnClass(
-      JS.Expression className, JS.Expression name, JS.Expression value) {
-    var args = [className, name, value];
-    if (name is JS.LiteralString &&
-        JS.invalidStaticFieldName(name.valueWithoutQuotes)) {
-      return runtimeCall('defineValue(#, #, #)', args);
-    }
-    return js.call('#.# = #', args);
   }
 
   List<JS.Method> _emitClassMethods(Class c) {
@@ -2464,9 +2450,6 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitVectorType(type) => defaultDartType(type);
-
-  @override
   visitFunctionType(type, {Member member, bool lazy = false}) {
     var requiredTypes =
         type.positionalParameters.take(type.requiredParameterCount).toList();
@@ -3087,7 +3070,7 @@ class ProgramCompiler extends Object
 
   @override
   visitAssertStatement(AssertStatement node) {
-    if (!enableAsserts) return JS.EmptyStatement();
+    if (!options.enableAsserts) return JS.EmptyStatement();
     var condition = node.condition;
     var conditionType = condition.getStaticType(types);
     var jsCondition = _visitExpression(condition);
@@ -3647,7 +3630,7 @@ class ProgramCompiler extends Object
         // If the receiver is nullable, use a helper so calls like
         // `null.hashCode` and `null.runtimeType` will work.
         // Also method tearoffs like `null.toString`.
-        if (_isObjectMethod(memberName)) {
+        if (_isObjectMethodTearoff(memberName)) {
           return runtimeCall('bind(#, #)', [jsReceiver, jsName]);
         }
         return runtimeCall('#(#)', [memberName, jsReceiver]);
@@ -3667,7 +3650,7 @@ class ProgramCompiler extends Object
   // TODO(jmesserly): can we encapsulate REPL name lookups and remove this?
   // _emitMemberName would be a nice place to handle it, but we don't have
   // access to the target expression there (needed for `dart.replNameLookup`).
-  String get _replSuffix => replCompile ? 'Repl' : '';
+  String get _replSuffix => options.replCompile ? 'Repl' : '';
 
   JS.Expression _emitPropertySet(
       Expression receiver, Member member, Expression value,
@@ -3768,8 +3751,9 @@ class ProgramCompiler extends Object
     }
 
     var jsName = _emitMemberName(name, member: target);
-    if (isObjectMember(name)) {
-      assert(arguments.types.isEmpty); // Object methods don't take type args.
+
+    // Handle Object methods that are supported by `null`.
+    if (_isObjectMethodCall(name, arguments)) {
       if (isNullable(receiver)) {
         // If the receiver is nullable, use a helper so calls like
         // `null.toString()` will work.
@@ -4897,21 +4881,6 @@ class ProgramCompiler extends Object
   @override
   visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) => js.boolean(true);
 
-  @override
-  visitVectorCreation(VectorCreation node) => defaultExpression(node);
-
-  @override
-  visitVectorGet(VectorGet node) => defaultExpression(node);
-
-  @override
-  visitVectorSet(VectorSet node) => defaultExpression(node);
-
-  @override
-  visitVectorCopy(VectorCopy node) => defaultExpression(node);
-
-  @override
-  visitClosureCreation(ClosureCreation node) => defaultExpression(node);
-
   bool _reifyFunctionType(FunctionNode f) {
     if (_currentLibrary.importUri.scheme != 'dart') return true;
     var parent = f.parent;
@@ -5055,5 +5024,16 @@ bool isObjectMember(String name) {
   return false;
 }
 
-bool _isObjectMethod(String name) =>
+bool _isObjectMethodTearoff(String name) =>
     name == 'toString' || name == 'noSuchMethod';
+
+bool _isObjectMethodCall(String name, Arguments args) {
+  if (name == 'toString') {
+    return args.positional.isEmpty && args.named.isEmpty && args.types.isEmpty;
+  } else if (name == 'noSuchMethod') {
+    return args.positional.length == 1 &&
+        args.named.isEmpty &&
+        args.types.isEmpty;
+  }
+  return false;
+}

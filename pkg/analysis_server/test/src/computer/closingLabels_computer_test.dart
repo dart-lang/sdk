@@ -15,6 +15,7 @@ import '../../abstract_context.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ClosingLabelsComputerTest);
+    defineReflectiveTests(ClosingLabelsComputerTest_UseCFE);
   });
 }
 
@@ -405,4 +406,14 @@ void myMethod() {
         new DartUnitClosingLabelsComputer(result.lineInfo, result.unit);
     return computer.compute();
   }
+}
+
+@reflectiveTest
+class ClosingLabelsComputerTest_UseCFE extends ClosingLabelsComputerTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_knownBadCode1() => super.test_knownBadCode1();
 }

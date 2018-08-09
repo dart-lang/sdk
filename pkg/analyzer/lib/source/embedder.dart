@@ -51,8 +51,9 @@ class EmbedderSdk extends AbstractDartSdk {
   @override
   String getRelativePathFromFile(JavaFile file) => file.getAbsolutePath();
 
+  @deprecated
   @override
-  PackageBundle getSummarySdkBundle(bool strongMode) => null;
+  PackageBundle getSummarySdkBundle(bool _) => null;
 
   @override
   FileBasedSource internalMapDartUri(String dartUri) {

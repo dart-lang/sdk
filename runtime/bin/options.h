@@ -112,7 +112,7 @@ class CallbackOptionProcessor : public OptionProcessor {
       if (*value != '\0') {                                                    \
         return false;                                                          \
       }                                                                        \
-      callback;                                                                \
+      callback(vm_options);                                                    \
       return true;                                                             \
     }                                                                          \
   };                                                                           \

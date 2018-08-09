@@ -1887,8 +1887,6 @@ void KernelReaderHelper::SkipFunctionType(bool simple) {
     }
   }
 
-  SkipListOfStrings();  // read positional parameter names.
-
   if (!simple) {
     SkipCanonicalNameReference();  // read typedef reference.
   }
@@ -2377,13 +2375,16 @@ void KernelReaderHelper::SkipLibraryPart() {
 }
 
 void KernelReaderHelper::SkipLibraryTypedef() {
-  SkipCanonicalNameReference();  // read canonical name.
-  ReadUInt();                    // read source_uri_index.
-  ReadPosition();                // read position.
-  SkipStringReference();         // read name index.
-  SkipListOfExpressions();       // read annotations.
-  SkipTypeParametersList();      // read type parameters.
-  SkipDartType();                // read type.
+  SkipCanonicalNameReference();      // read canonical name.
+  ReadUInt();                        // read source_uri_index.
+  ReadPosition();                    // read position.
+  SkipStringReference();             // read name index.
+  SkipListOfExpressions();           // read annotations.
+  SkipTypeParametersList();          // read type parameters.
+  SkipDartType();                    // read type.
+  SkipTypeParametersList();          // read type parameters of function type.
+  SkipListOfVariableDeclarations();  // read positional parameters.
+  SkipListOfVariableDeclarations();  // read named parameters.
 }
 
 TokenPosition KernelReaderHelper::ReadPosition(bool record) {
@@ -2392,6 +2393,100 @@ TokenPosition KernelReaderHelper::ReadPosition(bool record) {
     RecordTokenPosition(position);
   }
   return position;
+}
+
+intptr_t KernelReaderHelper::SourceTableSize() {
+  AlternativeReadingScope alt(&reader_);
+  intptr_t library_count = reader_.ReadFromIndexNoReset(
+      reader_.size(), LibraryCountFieldCountFromEnd, 1, 0);
+  intptr_t source_table_offset = reader_.ReadFromIndexNoReset(
+      reader_.size(),
+      LibraryCountFieldCountFromEnd + 1 + library_count + 1 +
+          SourceTableFieldCountFromFirstLibraryOffset,
+      1, 0);
+  SetOffset(source_table_offset);  // read source table offset.
+  return reader_.ReadUInt32();     // read source table size.
+}
+
+intptr_t KernelReaderHelper::GetOffsetForSourceInfo(intptr_t index) {
+  AlternativeReadingScope alt(&reader_);
+  intptr_t library_count = reader_.ReadFromIndexNoReset(
+      reader_.size(), LibraryCountFieldCountFromEnd, 1, 0);
+  intptr_t source_table_offset = reader_.ReadFromIndexNoReset(
+      reader_.size(),
+      LibraryCountFieldCountFromEnd + 1 + library_count + 1 +
+          SourceTableFieldCountFromFirstLibraryOffset,
+      1, 0);
+  intptr_t next_field_offset = reader_.ReadUInt32();
+  SetOffset(source_table_offset);
+  intptr_t size = reader_.ReadUInt32();  // read source table size.
+
+  return reader_.ReadFromIndexNoReset(next_field_offset, 0, size, index);
+}
+
+String& KernelReaderHelper::SourceTableUriFor(intptr_t index) {
+  AlternativeReadingScope alt(&reader_);
+  SetOffset(GetOffsetForSourceInfo(index));
+  intptr_t size = ReadUInt();  // read uri List<byte> size.
+  return H.DartString(reader_.BufferAt(ReaderOffset()), size, Heap::kOld);
+}
+
+String& KernelReaderHelper::GetSourceFor(intptr_t index) {
+  AlternativeReadingScope alt(&reader_);
+  SetOffset(GetOffsetForSourceInfo(index));
+  SkipBytes(ReadUInt());       // skip uri.
+  intptr_t size = ReadUInt();  // read source List<byte> size.
+  return H.DartString(reader_.BufferAt(ReaderOffset()), size, Heap::kOld);
+}
+
+RawTypedData* KernelReaderHelper::GetLineStartsFor(intptr_t index) {
+  // Line starts are delta encoded. So get the max delta first so that we
+  // can store them as tighly as possible.
+  AlternativeReadingScope alt(&reader_);
+  SetOffset(GetOffsetForSourceInfo(index));
+  SkipBytes(ReadUInt());                         // skip uri.
+  SkipBytes(ReadUInt());                         // skip source.
+  const intptr_t line_start_count = ReadUInt();  // read number of line start
+  // entries.
+  MallocGrowableArray<int32_t> line_starts_array;
+
+  intptr_t max_delta = 0;
+  for (intptr_t i = 0; i < line_start_count; ++i) {
+    int32_t delta = ReadUInt();
+    line_starts_array.Add(delta);
+    if (delta > max_delta) {
+      max_delta = delta;
+    }
+  }
+
+  intptr_t cid;
+  if (max_delta <= kMaxInt8) {
+    cid = kTypedDataInt8ArrayCid;
+  } else if (max_delta <= kMaxInt16) {
+    cid = kTypedDataInt16ArrayCid;
+  } else {
+    cid = kTypedDataInt32ArrayCid;
+  }
+
+  TypedData& line_starts_data =
+      TypedData::Handle(Z, TypedData::New(cid, line_start_count, Heap::kOld));
+  for (intptr_t j = 0; j < line_start_count; ++j) {
+    int32_t line_start = line_starts_array[j];
+    switch (cid) {
+      case kTypedDataInt8ArrayCid:
+        line_starts_data.SetInt8(j, static_cast<int8_t>(line_start));
+        break;
+      case kTypedDataInt16ArrayCid:
+        line_starts_data.SetInt16(j << 1, static_cast<int16_t>(line_start));
+        break;
+      case kTypedDataInt32ArrayCid:
+        line_starts_data.SetInt32(j << 2, line_start);
+        break;
+      default:
+        UNREACHABLE();
+    }
+  }
+  return line_starts_data.raw();
 }
 
 intptr_t ActiveClass::MemberTypeParameterCount(Zone* zone) {
@@ -2669,8 +2764,6 @@ void TypeTranslator::BuildFunctionType(bool simple) {
     }
   }
 
-  helper_->SkipListOfStrings();  // read positional parameter names.
-
   if (!simple) {
     helper_->SkipCanonicalNameReference();  // read typedef reference.
   }
@@ -2747,6 +2840,10 @@ void TypeTranslator::BuildTypeParameterType() {
           result_ ^=
               TypeArguments::Handle(Z, active_class_->member->type_parameters())
                   .TypeAt(parameter_index);
+          if (finalize_) {
+            result_ =
+                ClassFinalizer::FinalizeType(*active_class_->klass, result_);
+          }
         } else {
           result_ ^= Type::DynamicType();
         }
@@ -2763,6 +2860,9 @@ void TypeTranslator::BuildTypeParameterType() {
             active_class_->local_type_parameters->TypeAt(parameter_index);
       } else {
         result_ ^= Type::DynamicType();
+      }
+      if (finalize_) {
+        result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_);
       }
       return;
     }
@@ -2922,6 +3022,114 @@ const Type& TypeTranslator::ReceiverType(const Class& klass) {
     klass.SetCanonicalType(type);
   }
   return type;
+}
+
+void TypeTranslator::SetupFunctionParameters(
+    const Class& klass,
+    const Function& function,
+    bool is_method,
+    bool is_closure,
+    FunctionNodeHelper* function_node_helper) {
+  ASSERT(!(is_method && is_closure));
+  bool is_factory = function.IsFactory();
+  intptr_t extra_parameters = (is_method || is_closure || is_factory) ? 1 : 0;
+
+  if (!is_factory) {
+    LoadAndSetupTypeParameters(active_class_, function,
+                               helper_->ReadListLength(), function);
+    function_node_helper->SetJustRead(FunctionNodeHelper::kTypeParameters);
+  }
+
+  ActiveTypeParametersScope scope(
+      active_class_, &function,
+      TypeArguments::Handle(Z, function.type_parameters()), Z);
+
+  function_node_helper->ReadUntilExcluding(
+      FunctionNodeHelper::kPositionalParameters);
+
+  intptr_t required_parameter_count =
+      function_node_helper->required_parameter_count_;
+  intptr_t total_parameter_count = function_node_helper->total_parameter_count_;
+
+  intptr_t positional_parameter_count =
+      helper_->ReadListLength();  // read list length.
+
+  intptr_t named_parameter_count =
+      total_parameter_count - positional_parameter_count;
+
+  function.set_num_fixed_parameters(extra_parameters +
+                                    required_parameter_count);
+  if (named_parameter_count > 0) {
+    function.SetNumOptionalParameters(named_parameter_count, false);
+  } else {
+    function.SetNumOptionalParameters(
+        positional_parameter_count - required_parameter_count, true);
+  }
+  intptr_t parameter_count = extra_parameters + total_parameter_count;
+  function.set_parameter_types(
+      Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
+  function.set_parameter_names(
+      Array::Handle(Z, Array::New(parameter_count, Heap::kOld)));
+  intptr_t pos = 0;
+  if (is_method) {
+    ASSERT(!klass.IsNull());
+    function.SetParameterTypeAt(pos, H.GetCanonicalType(klass));
+    function.SetParameterNameAt(pos, Symbols::This());
+    pos++;
+  } else if (is_closure) {
+    function.SetParameterTypeAt(pos, AbstractType::dynamic_type());
+    function.SetParameterNameAt(pos, Symbols::ClosureParameter());
+    pos++;
+  } else if (is_factory) {
+    function.SetParameterTypeAt(pos, AbstractType::dynamic_type());
+    function.SetParameterNameAt(pos, Symbols::TypeArgumentsParameter());
+    pos++;
+  }
+
+  const Library& lib = Library::Handle(Z, active_class_->klass->library());
+  for (intptr_t i = 0; i < positional_parameter_count; ++i, ++pos) {
+    // Read ith variable declaration.
+    VariableDeclarationHelper helper(helper_);
+    helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
+    const AbstractType& type = BuildTypeWithoutFinalization();  // read type.
+    Tag tag = helper_->ReadTag();  // read (first part of) initializer.
+    if (tag == kSomething) {
+      helper_->SkipExpression();  // read (actual) initializer.
+    }
+
+    function.SetParameterTypeAt(
+        pos, type.IsMalformed() ? Type::dynamic_type() : type);
+    function.SetParameterNameAt(pos, H.DartIdentifier(lib, helper.name_index_));
+  }
+
+  intptr_t named_parameter_count_check =
+      helper_->ReadListLength();  // read list length.
+  ASSERT(named_parameter_count_check == named_parameter_count);
+  for (intptr_t i = 0; i < named_parameter_count; ++i, ++pos) {
+    // Read ith variable declaration.
+    VariableDeclarationHelper helper(helper_);
+    helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
+    const AbstractType& type = BuildTypeWithoutFinalization();  // read type.
+    Tag tag = helper_->ReadTag();  // read (first part of) initializer.
+    if (tag == kSomething) {
+      helper_->SkipExpression();  // read (actual) initializer.
+    }
+
+    function.SetParameterTypeAt(
+        pos, type.IsMalformed() ? Type::dynamic_type() : type);
+    function.SetParameterNameAt(pos, H.DartIdentifier(lib, helper.name_index_));
+  }
+
+  function_node_helper->SetJustRead(FunctionNodeHelper::kNamedParameters);
+
+  // The result type for generative constructors has already been set.
+  if (!function.IsGenerativeConstructor()) {
+    const AbstractType& return_type =
+        BuildTypeWithoutFinalization();  // read return type.
+    function.set_result_type(return_type.IsMalformed() ? Type::dynamic_type()
+                                                       : return_type);
+    function_node_helper->SetJustRead(FunctionNodeHelper::kReturnType);
+  }
 }
 
 }  // namespace kernel

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.task.strong_mode;
-
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -72,9 +70,7 @@ class InstanceMemberInferrer {
   InstanceMemberInferrer(
       TypeProvider typeProvider, this.inheritanceManagerProvider,
       {TypeSystem typeSystem})
-      : typeSystem = (typeSystem != null)
-            ? typeSystem
-            : new TypeSystemImpl(typeProvider),
+      : typeSystem = typeSystem ?? new StrongTypeSystemImpl(typeProvider),
         this.typeProvider = typeProvider;
 
   /**
@@ -313,15 +309,15 @@ class InstanceMemberInferrer {
         //
         // Then infer the types for the members.
         //
-        classElement.fields.forEach((field) {
+        for (FieldElement field in classElement.fields) {
           _inferField(inheritanceManager, field);
-        });
-        classElement.accessors.forEach((accessor) {
+        }
+        for (PropertyAccessorElement accessor in classElement.accessors) {
           _inferAccessor(inheritanceManager, accessor);
-        });
-        classElement.methods.forEach((method) {
+        }
+        for (MethodElement method in classElement.methods) {
           _inferExecutable(inheritanceManager, method);
-        });
+        }
         //
         // Infer initializing formal parameter types. This must happen after
         // field types are inferred.

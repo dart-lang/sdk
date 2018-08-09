@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
@@ -28,11 +29,13 @@ main(List<String> args) {
 
 _parse(File file) {
   var src = file.readAsStringSync();
+  PhysicalResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
+  var source = resourceProvider.getFile(file.path).createSource();
   var errorListener = new _ErrorCollector();
   var reader = new CharSequenceReader(src);
-  var scanner = new Scanner(null, reader, errorListener);
+  var scanner = new Scanner(source, reader, errorListener);
   var token = scanner.tokenize();
-  var parser = new Parser(null, errorListener);
+  var parser = new Parser(source, errorListener);
   var unit = parser.parseCompilationUnit(token);
 
   var visitor = new _ASTVisitor();

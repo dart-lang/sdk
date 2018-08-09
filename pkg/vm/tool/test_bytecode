@@ -16,8 +16,8 @@
 set -e
 
 # Pick the architecture and mode to build and test.
-BUILD_FLAGS="-m debug -a x64"
-BUILD_SUBDIR="DebugX64"
+BUILD_FLAGS="-m debug -a x64 --bytecode"
+BUILD_SUBDIR="DebugX64KBC"
 
 function follow_links() {
   file="$1"
@@ -51,7 +51,7 @@ if [ $REBUILD -ne 0 ]
 then
   echo "Rebuilding VM to support interpreter"
   rm -rf $BUILD_DIR
-  $SDK_DIR/tools/gn.py $BUILD_FLAGS --gn-args=dart_use_interpreter=true
+  $SDK_DIR/tools/gn.py $BUILD_FLAGS
   $SDK_DIR/tools/build.py $BUILD_FLAGS runtime
 fi
 

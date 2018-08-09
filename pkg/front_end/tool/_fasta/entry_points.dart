@@ -67,7 +67,7 @@ compileEntryPoint(List<String> arguments) async {
 
   for (int i = 0; i < iterations; i++) {
     if (i > 0) {
-      print("\n\n=== Iteration ${i+1} of $iterations");
+      print("\n\n=== Iteration ${i + 1} of $iterations");
     }
     var stopwatch = new Stopwatch()..start();
     await compile(arguments);
@@ -141,7 +141,7 @@ class BatchCompiler {
 
   Future<bool> batchCompileArguments(List<String> arguments) async {
     return runProtectedFromAbort<bool>(
-        () => withGlobalOptions("compile", arguments, true,
+        () => withGlobalOptions<bool>("compile", arguments, true,
             (CompilerContext c, _) => batchCompileImpl(c)),
         false);
   }

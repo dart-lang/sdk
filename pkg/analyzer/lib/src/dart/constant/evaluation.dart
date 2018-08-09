@@ -24,7 +24,7 @@ import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, RecordingErrorListener;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/type_system.dart'
-    show TypeSystem, TypeSystemImpl;
+    show StrongTypeSystemImpl, TypeSystem;
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/dart.dart';
 
@@ -86,7 +86,7 @@ class ConstantEvaluationEngine {
       : typeProvider = typeProvider,
         validator =
             validator ?? new ConstantEvaluationValidator_ForProduction(),
-        typeSystem = typeSystem ?? new TypeSystemImpl(typeProvider);
+        typeSystem = typeSystem ?? new StrongTypeSystemImpl(typeProvider);
 
   /**
    * Check that the arguments to a call to fromEnvironment() are correct. The

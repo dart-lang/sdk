@@ -11,9 +11,11 @@ import 'package:kernel/ast.dart'
         FunctionType,
         InvalidType,
         TypeParameter,
-        Typedef;
+        Typedef,
+        VariableDeclaration;
 
-import 'package:kernel/type_algebra.dart' show substitute;
+import 'package:kernel/type_algebra.dart'
+    show FreshTypeParameters, getFreshTypeParameters, substitute;
 
 import '../fasta_codes.dart'
     show noLength, templateCyclicTypedef, templateTypeArgumentMismatch;
@@ -23,6 +25,7 @@ import '../problems.dart' show unhandled;
 import 'kernel_builder.dart'
     show
         FunctionTypeAliasBuilder,
+        KernelFormalParameterBuilder,
         KernelFunctionTypeBuilder,
         KernelTypeBuilder,
         KernelTypeVariableBuilder,
@@ -32,6 +35,7 @@ import 'kernel_builder.dart'
 
 class KernelFunctionTypeAliasBuilder
     extends FunctionTypeAliasBuilder<KernelFunctionTypeBuilder, DartType> {
+  final bool hasTarget = true;
   final Typedef target;
 
   DartType thisType;
@@ -50,7 +54,34 @@ class KernelFunctionTypeAliasBuilder
         super(metadata, name, typeVariables, type, parent, charOffset);
 
   Typedef build(LibraryBuilder libraryBuilder) {
-    return target..type ??= buildThisType(libraryBuilder);
+    target..type ??= buildThisType(libraryBuilder);
+
+    if (type != null) {
+      List<TypeParameter> typeParameters =
+          new List<TypeParameter>(type.typeVariables?.length ?? 0);
+      for (int i = 0; i < typeParameters.length; ++i) {
+        KernelTypeVariableBuilder typeVariable = type.typeVariables[i];
+        typeParameters[i] = typeVariable.parameter;
+      }
+      FreshTypeParameters freshTypeParameters =
+          getFreshTypeParameters(typeParameters);
+      target.typeParametersOfFunctionType
+          .addAll(freshTypeParameters.freshTypeParameters);
+
+      if (type.formals != null) {
+        for (KernelFormalParameterBuilder formal in type.formals) {
+          VariableDeclaration parameter = formal.build(libraryBuilder);
+          parameter.type = freshTypeParameters.substitute(parameter.type);
+          if (formal.isNamed) {
+            target.namedParameters.add(parameter);
+          } else {
+            target.positionalParameters.add(parameter);
+          }
+        }
+      }
+    }
+
+    return target;
   }
 
   DartType buildThisType(LibraryBuilder library) {

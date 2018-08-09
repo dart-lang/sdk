@@ -44,13 +44,13 @@ class ThisAccessGenerator extends KernelGenerator {
   }
 
   @override
-  Initializer buildFieldInitializer(Map<String, int> initializedFields) {
+  Expression buildFieldInitializerError() {
     String keyword = isSuper ? "super" : "this";
     int offset = offsetForToken(token);
-    return helper.buildInvalidInitializer(
-        helper.deprecated_buildCompileTimeError(
-            "Can't use '$keyword' here, did you mean '$keyword()'?", offset),
-        offset);
+    return helper.buildCompileTimeError(
+        templateThisOrSuperAccessInFieldInitializer.withArguments(keyword),
+        offset,
+        keyword.length);
   }
 
   buildPropertyAccess(
@@ -60,8 +60,8 @@ class ThisAccessGenerator extends KernelGenerator {
     int offset = offsetForToken(send.token);
     if (isInitializer && send is SendAccessGenerator) {
       if (isNullAware) {
-        helper.deprecated_addCompileTimeError(
-            operatorOffset, "Expected '.'\nTry removing '?'.");
+        helper.addCompileTimeError(
+            messageInvalidUseOfNullAwareAccess, operatorOffset, 2);
       }
       return buildConstructorInitializer(offset, name, arguments);
     }
@@ -161,10 +161,10 @@ class ThisAccessGenerator extends KernelGenerator {
   }
 
   Expression buildAssignmentError() {
-    String message =
-        isSuper ? "Can't assign to 'super'." : "Can't assign to 'this'.";
-    return helper.deprecated_buildCompileTimeError(
-        message, offsetForToken(token));
+    return helper.buildCompileTimeError(
+        isSuper ? messageCannotAssignToSuper : messageNotAnLvalue,
+        offsetForToken(token),
+        token.length);
   }
 
   @override
@@ -375,8 +375,17 @@ class ParenthesizedExpressionGenerator extends KernelReadOnlyAccessGenerator {
 
   String get debugName => "ParenthesizedExpressionGenerator";
 
+  @override
+  ComplexAssignmentJudgment startComplexAssignment(Expression rhs) {
+    return new IllegalAssignmentJudgment(rhs,
+        assignmentOffset: offsetForToken(token));
+  }
+
   Expression makeInvalidWrite(Expression value) {
-    return helper.deprecated_buildCompileTimeError(
-        "Can't assign to a parenthesized expression.", offsetForToken(token));
+    var error = helper.buildCompileTimeError(
+        messageCannotAssignToParenthesizedExpression,
+        offsetForToken(token),
+        lengthForToken(token));
+    return new InvalidWriteJudgment(error, expression);
   }
 }

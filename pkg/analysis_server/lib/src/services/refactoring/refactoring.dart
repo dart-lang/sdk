@@ -522,7 +522,7 @@ class ResolvedUnitCache {
 
   ResolvedUnitCache(this._astProvider, [CompilationUnit unit]) {
     if (unit != null) {
-      _map[unit.element] = unit;
+      _map[unit.declaredElement] = unit;
     }
   }
 

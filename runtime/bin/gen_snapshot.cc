@@ -154,8 +154,6 @@ static const char* kSnapshotKindNames[] = {
   V(save_obfuscation_map, obfuscation_map_filename)
 
 #define BOOL_OPTIONS_LIST(V)                                                   \
-  V(dependencies_only, dependencies_only)                                      \
-  V(print_dependencies, print_dependencies)                                    \
   V(obfuscate, obfuscate)                                                      \
   V(verbose, verbose)                                                          \
   V(version, version)                                                          \
@@ -206,10 +204,6 @@ static void PrintUsage() {
 "--dependencies=<output-file>                                                \n"
 "  Generates a Makefile with snapshot output files as targets and all        \n"
 "  transitive imports as sources.                                            \n"
-"--print_dependencies                                                        \n"
-"  Prints all transitive imports to stdout.                                  \n"
-"--dependencies_only                                                         \n"
-"  Don't create and output the snapshot.                                     \n"
 "--help                                                                      \n"
 "  Display this message (add --verbose for information about all VM options).\n"
 "--version                                                                   \n"
@@ -705,38 +699,16 @@ static void CreateAndWriteDependenciesFile() {
 
   Loader::ResolveDependenciesAsFilePaths();
 
-  ASSERT((dependencies_filename != NULL) || print_dependencies);
+  ASSERT(dependencies_filename != NULL);
   if (dependencies_filename != NULL) {
     DependenciesFileWriter writer;
     writer.WriteDependencies(dependencies);
   }
 
-  if (print_dependencies) {
-    Log::Print("%s\n", vm_snapshot_data_filename);
-    if (snapshot_kind == kScript) {
-      if (vm_snapshot_data_filename != NULL) {
-        Log::Print("%s\n", vm_snapshot_data_filename);
-      }
-      if (vm_snapshot_instructions_filename != NULL) {
-        Log::Print("%s\n", vm_snapshot_instructions_filename);
-      }
-      if (isolate_snapshot_data_filename != NULL) {
-        Log::Print("%s\n", isolate_snapshot_data_filename);
-      }
-      if (isolate_snapshot_instructions_filename != NULL) {
-        Log::Print("%s\n", isolate_snapshot_instructions_filename);
-      }
-    }
-    for (intptr_t i = 0; i < dependencies->length(); i++) {
-      Log::Print("%s\n", dependencies->At(i));
-    }
-  }
-
   for (intptr_t i = 0; i < dependencies->length(); i++) {
     free(dependencies->At(i));
   }
-  delete dependencies;
-  isolate_data->set_dependencies(NULL);
+  dependencies->Clear();
 }
 
 static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
@@ -1423,7 +1395,7 @@ static int GenerateSnapshotFromKernel(const uint8_t* kernel_buffer,
   char* error = NULL;
   IsolateData* isolate_data = new IsolateData(NULL, commandline_package_root,
                                               commandline_packages_file, NULL);
-  if ((dependencies_filename != NULL) || print_dependencies) {
+  if (dependencies_filename != NULL) {
     isolate_data->set_dependencies(new MallocGrowableArray<char*>());
   }
 
@@ -1454,21 +1426,28 @@ static int GenerateSnapshotFromKernel(const uint8_t* kernel_buffer,
   Dart_Handle result = Dart_SetEnvironmentCallback(EnvironmentCallback);
   CHECK_RESULT(result);
 
+  // The root library has to be set to generate AOT snapshots, and sometimes we
+  // set one for the core snapshot too.
+  // If the input dill file has a root library, then Dart_LoadScript will
+  // ignore this dummy uri and set the root library to the one reported in
+  // the dill file. Since dill files are not dart script files,
+  // trying to resolve the root library URI based on the dill file name
+  // would not help.
+  //
+  // If the input dill file does not have a root library, then
+  // Dart_LoadScript will error.
+  //
+  // TODO(kernel): Dart_CreateIsolateFromKernel should respect the root library
+  // in the kernel file, though this requires auditing the other loading paths
+  // in the embedders that had to work around this.
+  result = Dart_SetRootLibrary(
+      Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size));
+  CHECK_RESULT(result);
+
   switch (snapshot_kind) {
     case kAppAOTBlobs:
     case kAppAOTAssembly: {
-      // The root library has to be set to generate AOT snapshots.
-      // If the input dill file has a root library, then Dart_LoadScript will
-      // ignore this dummy uri and set the root library to the one reported in
-      // the dill file. Since dill files are not dart script files,
-      // trying to resolve the root library URI based on the dill file name
-      // would not help.
-      //
-      // If the input dill file does not have a root library, then
-      // Dart_LoadScript will error.
-      Dart_Handle library =
-          Dart_LoadScriptFromKernel(kernel_buffer, kernel_buffer_size);
-      if (Dart_IsError(library)) {
+      if (Dart_IsNull(Dart_RootLibrary())) {
         Log::PrintErr(
             "Unable to load root library from the input dill file.\n");
         return kErrorExitCode;
@@ -1546,8 +1525,7 @@ int main(int argc, char** argv) {
           "Can only generate core or aot snapshots from a kernel file.\n");
       return kErrorExitCode;
     }
-    if ((dependencies_filename != NULL) || print_dependencies ||
-        dependencies_only) {
+    if (dependencies_filename != NULL) {
       Log::PrintErr("Depfiles are not supported in Dart 2.\n");
       return kErrorExitCode;
     }
@@ -1712,7 +1690,7 @@ int main(int argc, char** argv) {
     // be in the snapshot.
     isolate_data = new IsolateData(app_script_name, commandline_package_root,
                                    commandline_packages_file, NULL);
-    if ((dependencies_filename != NULL) || print_dependencies) {
+    if (dependencies_filename != NULL) {
       isolate_data->set_dependencies(new MallocGrowableArray<char*>());
     }
 
@@ -1762,24 +1740,22 @@ int main(int argc, char** argv) {
 
     LoadCompilationTrace();
 
-    if (!dependencies_only) {
-      switch (snapshot_kind) {
-        case kCore:
-          CreateAndWriteCoreSnapshot();
-          break;
-        case kCoreJIT:
-          CreateAndWriteCoreJITSnapshot();
-          break;
-        case kScript:
-          CreateAndWriteScriptSnapshot();
-          break;
-        case kAppAOTBlobs:
-        case kAppAOTAssembly:
-          CreateAndWritePrecompiledSnapshot(entry_points);
-          break;
-        default:
-          UNREACHABLE();
-      }
+    switch (snapshot_kind) {
+      case kCore:
+        CreateAndWriteCoreSnapshot();
+        break;
+      case kCoreJIT:
+        CreateAndWriteCoreJITSnapshot();
+        break;
+      case kScript:
+        CreateAndWriteScriptSnapshot();
+        break;
+      case kAppAOTBlobs:
+      case kAppAOTAssembly:
+        CreateAndWritePrecompiledSnapshot(entry_points);
+        break;
+      default:
+        UNREACHABLE();
     }
 
     CreateAndWriteDependenciesFile();

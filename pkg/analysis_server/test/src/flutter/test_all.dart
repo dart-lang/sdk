@@ -4,12 +4,14 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'flutter_outline_computer_test.dart' as outline_computer_test;
-import 'flutter_outline_notification_test.dart' as outline_notification_test;
+import 'flutter_correction_test.dart' as flutter_correction;
+import 'flutter_outline_computer_test.dart' as outline_computer;
+import 'flutter_outline_notification_test.dart' as outline_notification;
 
 main() {
   defineReflectiveSuite(() {
-    outline_computer_test.main();
-    outline_notification_test.main();
+    flutter_correction.main();
+    outline_computer.main();
+    outline_notification.main();
   });
 }

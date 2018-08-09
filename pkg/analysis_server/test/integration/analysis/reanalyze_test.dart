@@ -44,10 +44,4 @@ class ReanalyzeTest extends AbstractAnalysisServerIntegrationTest {
 class ReanalyzeTest_UseCFE extends ReanalyzeTest {
   @override
   bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_reanalyze() {
-    fail('Test fails with CFE');
-  }
 }

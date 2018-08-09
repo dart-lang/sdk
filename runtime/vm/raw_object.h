@@ -762,14 +762,16 @@ class RawClass : public RawObject {
   RawType* canonical_type_;  // Canonical type for this class.
   RawArray* invocation_dispatcher_cache_;  // Cache for dispatcher functions.
   RawCode* allocation_stub_;  // Stub code for allocation of instances.
+  RawGrowableObjectArray* direct_implementors_;  // Array of Class.
   RawGrowableObjectArray* direct_subclasses_;  // Array of Class.
   RawArray* dependent_code_;                   // CHA optimized codes.
   VISIT_TO(RawObject*, dependent_code_);
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
+      case Snapshot::kFullAOT:
+        return reinterpret_cast<RawObject**>(&ptr()->allocation_stub_);
       case Snapshot::kFull:
       case Snapshot::kScript:
-      case Snapshot::kFullAOT:
         return reinterpret_cast<RawObject**>(&ptr()->direct_subclasses_);
       case Snapshot::kFullJIT:
         return reinterpret_cast<RawObject**>(&ptr()->dependent_code_);
@@ -789,8 +791,12 @@ class RawClass : public RawObject {
   int32_t next_field_offset_in_words_;  // Offset of the next instance field.
   classid_t id_;                // Class Id, also index in the class table.
   int16_t num_type_arguments_;  // Number of type arguments in flattened vector.
-  int16_t num_own_type_arguments_;  // Number of non-overlapping type arguments.
-  uint16_t num_native_fields_;      // Number of native fields in class.
+
+  // Bitfields with number of non-overlapping type arguments and 'has_pragma'
+  // bit.
+  uint16_t has_pragma_and_num_own_type_arguments_;
+
+  uint16_t num_native_fields_;
   uint16_t state_bits_;
   NOT_IN_PRECOMPILED(intptr_t kernel_offset_);
 
@@ -941,8 +947,7 @@ class RawFunction : public RawObject {
   uint32_t kind_tag_;                          // See Function::KindTagBits.
   uint32_t packed_fields_;
 
-  typedef BitField<uint32_t, bool, 0, 1> PackedIsNoSuchMethodForwarder;
-  typedef BitField<uint32_t, bool, PackedIsNoSuchMethodForwarder::kNextBit, 1>
+  typedef BitField<uint32_t, bool, 0, 1>
       PackedHasNamedOptionalParameters;
   typedef BitField<uint32_t,
                    bool,
@@ -1041,7 +1046,6 @@ class RawField : public RawObject {
   } initializer_;
   RawSmi* guarded_list_length_;
   RawArray* dependent_code_;
-  VISIT_TO(RawObject*, dependent_code_);
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFull:
@@ -1059,7 +1063,12 @@ class RawField : public RawObject {
     UNREACHABLE();
     return NULL;
   }
-
+#if defined(DART_USE_INTERPRETER)
+  RawSubtypeTestCache* type_test_cache_;  // For type test in implicit setter.
+  VISIT_TO(RawObject*, type_test_cache_);
+#else
+  VISIT_TO(RawObject*, dependent_code_);
+#endif
   TokenPosition token_pos_;
   TokenPosition end_token_pos_;
   classid_t guarded_cid_;
@@ -1234,7 +1243,12 @@ class RawKernelProgramInfo : public RawObject {
   RawArray* scripts_;
   RawArray* constants_;
   RawGrowableObjectArray* potential_natives_;
-  VISIT_TO(RawObject*, potential_natives_);
+  RawExternalTypedData* constants_table_;
+  VISIT_TO(RawObject*, constants_table_);
+
+  RawObject** to_snapshot(Snapshot::Kind kind) {
+    return reinterpret_cast<RawObject**>(&ptr()->potential_natives_);
+  }
 };
 
 class RawCode : public RawObject {
@@ -1934,7 +1948,7 @@ class RawClosure : public RawInstance {
   // passed-in function type arguments get concatenated to the function type
   // arguments of the parent that are found in the context_.
   //
-  // delayed_type_arguments_ is used to support the parital instantiation
+  // delayed_type_arguments_ is used to support the partial instantiation
   // feature. When this field is set to any value other than
   // Object::empty_type_arguments(), the types in this vector will be passed as
   // type arguments to the closure when invoked. In this case there may not be

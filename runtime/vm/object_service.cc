@@ -394,7 +394,7 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   } else if (guarded_list_length() == kNoFixedLength) {
     jsobj.AddProperty("_guardLength", "variable");
   } else {
-    jsobj.AddProperty("_guardLength", guarded_list_length());
+    jsobj.AddPropertyF("_guardLength", "%" Pd, guarded_list_length());
   }
   const class Script& script = Script::Handle(Script());
   if (!script.IsNull()) {

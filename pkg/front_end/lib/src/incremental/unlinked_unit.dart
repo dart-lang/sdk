@@ -4,15 +4,13 @@
 
 import 'dart:typed_data';
 
-import 'package:front_end/src/base/api_signature.dart';
-import 'package:front_end/src/fasta/parser.dart'
-    show Listener, Parser, optional;
-import 'package:front_end/src/fasta/parser/top_level_parser.dart';
-import 'package:front_end/src/fasta/scanner.dart';
-import 'package:front_end/src/fasta/scanner/token_constants.dart'
-    show STRING_TOKEN;
-import 'package:front_end/src/fasta/source/directive_listener.dart';
-import 'package:front_end/src/incremental/format.dart';
+import '../base/api_signature.dart';
+import '../fasta/parser.dart' show Listener, Parser, optional;
+import '../fasta/parser/top_level_parser.dart';
+import '../fasta/scanner.dart';
+import '../fasta/scanner/token_constants.dart' show STRING_TOKEN;
+import '../fasta/source/directive_listener.dart';
+import 'format.dart';
 
 /// Compute the [UnlinkedUnitBuilder] for the [content].
 UnlinkedUnitBuilder computeUnlinkedUnit(List<int> salt, List<int> content) {

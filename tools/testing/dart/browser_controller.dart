@@ -160,8 +160,7 @@ abstract class Browser {
    */
   Future<bool> startBrowserProcess(String command, List<String> arguments,
       {Map<String, String> environment}) {
-    return Process
-        .start(command, arguments, environment: environment)
+    return Process.start(command, arguments, environment: environment)
         .then((startedProcess) {
       _logEvent("Started browser using $command ${arguments.join(' ')}");
       process = startedProcess;
@@ -228,8 +227,8 @@ abstract class Browser {
 
         if (!stdoutIsDone || !stderrIsDone) {
           watchdogTimer = new Timer(MAX_STDIO_DELAY, () {
-            DebugLogger
-                .warning("$MAX_STDIO_DELAY_PASSED_MESSAGE (browser: $this)");
+            DebugLogger.warning(
+                "$MAX_STDIO_DELAY_PASSED_MESSAGE (browser: $this)");
             watchdogTimer = null;
             stdoutSubscription.cancel();
             stderrSubscription.cancel();
@@ -855,7 +854,7 @@ class BrowserTestRunner {
   /// If the queue was recently empty, don't start another browser.
   static const Duration MIN_NONEMPTY_QUEUE_TIME = const Duration(seconds: 1);
 
-  final Configuration configuration;
+  final TestConfiguration configuration;
   final BrowserTestingServer testingServer;
 
   final String localIp;
@@ -907,7 +906,7 @@ class BrowserTestRunner {
   }
 
   BrowserTestRunner(
-      Configuration configuration, String localIp, this.maxNumBrowsers)
+      TestConfiguration configuration, String localIp, this.maxNumBrowsers)
       : configuration = configuration,
         localIp = localIp,
         testingServer = new BrowserTestingServer(configuration, localIp,
@@ -1183,8 +1182,8 @@ class BrowserTestRunner {
   }
 
   void handleNextTestTimeout(BrowserStatus status) {
-    DebugLogger
-        .warning("Browser timed out before getting next test. Restarting");
+    DebugLogger.warning(
+        "Browser timed out before getting next test. Restarting");
     if (status.timeout) return;
     numBrowserGetTestTimeouts++;
     if (numBrowserGetTestTimeouts >= MAX_NEXT_TEST_TIMEOUTS) {
@@ -1249,7 +1248,7 @@ class BrowserTestRunner {
 }
 
 class BrowserTestingServer {
-  final Configuration configuration;
+  final TestConfiguration configuration;
 
   /// Interface of the testing server:
   ///
@@ -1287,8 +1286,7 @@ class BrowserTestingServer {
   BrowserTestingServer(this.configuration, this.localIp, this.requiresFocus);
 
   Future start() {
-    return HttpServer
-        .bind(localIp, configuration.testDriverErrorPort)
+    return HttpServer.bind(localIp, configuration.testDriverErrorPort)
         .then(setupErrorServer)
         .then(setupDispatchingServer);
   }
@@ -1364,13 +1362,12 @@ class BrowserTestingServer {
       } else {
         textResponse = new Future<String>.value("");
       }
-      request.response.done.catchError((error) {
+      request.response.done.catchError((error) async {
         if (!underTermination) {
-          return textResponse.then((String text) {
-            print("URI ${request.uri}");
-            print("textResponse $textResponse");
-            throw "Error returning content to browser: $error";
-          });
+          String text = await textResponse;
+          print("URI ${request.uri}");
+          print("text $text");
+          throw "Error returning content to browser: $error";
         }
       });
       textResponse.then((String text) async {

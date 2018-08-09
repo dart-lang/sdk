@@ -156,7 +156,7 @@ class ClassSerializationCluster : public SerializationCluster {
     s->Write<int32_t>(cls->ptr()->next_field_offset_in_words_);
     s->Write<int32_t>(cls->ptr()->type_arguments_field_offset_in_words_);
     s->Write<uint16_t>(cls->ptr()->num_type_arguments_);
-    s->Write<uint16_t>(cls->ptr()->num_own_type_arguments_);
+    s->Write<uint16_t>(cls->ptr()->has_pragma_and_num_own_type_arguments_);
     s->Write<uint16_t>(cls->ptr()->num_native_fields_);
     s->WriteTokenPosition(cls->ptr()->token_pos_);
     s->Write<uint16_t>(cls->ptr()->state_bits_);
@@ -224,7 +224,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
       }
       cls->ptr()->type_arguments_field_offset_in_words_ = d->Read<int32_t>();
       cls->ptr()->num_type_arguments_ = d->Read<uint16_t>();
-      cls->ptr()->num_own_type_arguments_ = d->Read<uint16_t>();
+      cls->ptr()->has_pragma_and_num_own_type_arguments_ = d->Read<uint16_t>();
       cls->ptr()->num_native_fields_ = d->Read<uint16_t>();
       cls->ptr()->token_pos_ = d->ReadTokenPosition();
       cls->ptr()->state_bits_ = d->Read<uint16_t>();
@@ -260,7 +260,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
       cls->ptr()->next_field_offset_in_words_ = d->Read<int32_t>();
       cls->ptr()->type_arguments_field_offset_in_words_ = d->Read<int32_t>();
       cls->ptr()->num_type_arguments_ = d->Read<uint16_t>();
-      cls->ptr()->num_own_type_arguments_ = d->Read<uint16_t>();
+      cls->ptr()->has_pragma_and_num_own_type_arguments_ = d->Read<uint16_t>();
       cls->ptr()->num_native_fields_ = d->Read<uint16_t>();
       cls->ptr()->token_pos_ = d->ReadTokenPosition();
       cls->ptr()->state_bits_ = d->Read<uint16_t>();
@@ -1567,7 +1567,7 @@ class KernelProgramInfoSerializationCluster : public SerializationCluster {
     objects_.Add(info);
 
     RawObject** from = info->from();
-    RawObject** to = info->to();
+    RawObject** to = info->to_snapshot(s->kind());
     for (RawObject** p = from; p <= to; p++) {
       s->Push(*p);
     }
@@ -1588,7 +1588,7 @@ class KernelProgramInfoSerializationCluster : public SerializationCluster {
     for (intptr_t i = 0; i < count; i++) {
       RawKernelProgramInfo* info = objects_[i];
       RawObject** from = info->from();
-      RawObject** to = info->to();
+      RawObject** to = info->to_snapshot(s->kind());
       for (RawObject** p = from; p <= to; p++) {
         s->WriteRef(*p);
       }
@@ -1627,9 +1627,13 @@ class KernelProgramInfoDeserializationCluster : public DeserializationCluster {
                                      KernelProgramInfo::InstanceSize(),
                                      is_vm_object);
       RawObject** from = info->from();
-      RawObject** to = info->to();
+      RawObject** to = info->to_snapshot(d->kind());
+      RawObject** end = info->to();
       for (RawObject** p = from; p <= to; p++) {
         *p = d->ReadRef();
+      }
+      for (RawObject** p = to + 1; p <= end; p++) {
+        *p = Object::null();
       }
     }
   }
@@ -5353,7 +5357,7 @@ RawApiError* Deserializer::VerifyVersionAndFeatures(Isolate* isolate) {
     const intptr_t kMessageBufferSize = 1024;
     char message_buffer[kMessageBufferSize];
     char* actual_features =
-        Utils::StrNDup(features, buffer_len < 128 ? buffer_len : 128);
+        Utils::StrNDup(features, buffer_len < 1024 ? buffer_len : 1024);
     Utils::SNPrint(message_buffer, kMessageBufferSize,
                    "Snapshot not compatible with the current VM configuration: "
                    "the snapshot requires '%s' but the VM has '%s'",

@@ -109,7 +109,7 @@ a:focus, a:hover {
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  1.20.4
+  1.20.5
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -513,18 +513,24 @@ a:focus, a:hover {
           analysis is being performed and if so what is being
           analyzed.
         </p>
-      </dd><dt class="field"><b>pub: <a href="#type_PubStatus">PubStatus</a><span style="color:#999999"> (optional)</span></b></dt><dd>
+      </dd><dt class="field"><b><span class="deprecated">pub</span>: <a href="#type_PubStatus">PubStatus</a><span style="color:#999999"> (optional)</span></b></dt><dd>
         
         <p>
           The current status of pub execution, indicating whether we are
           currently running pub.
         </p>
+
+        <p>
+          Note: this status type is deprecated, and is no longer sent by
+          the server.
+      </p>
       </dd></dl></dd></dl>
 <h2 class="domain"><a name="domain_analysis">analysis domain</a></h2>
   <p>
     The analysis domain contains API’s related to the analysis of
     files.
   </p>
+  
   
   
   
@@ -4241,6 +4247,26 @@ a:focus, a:hover {
           An "analysis.getReachableSources" request specified a FilePath
           which does not match a file currently subject to
           analysis.
+        </p>
+      </dd><dt class="value">GET_SIGNATURE_INVALID_FILE</dt><dd>
+        
+        <p>
+          An "analysis.getSignature" request specified a FilePath
+          which does not match a file currently subject to
+          analysis.
+        </p>
+      </dd><dt class="value">GET_SIGNATURE_INVALID_OFFSET</dt><dd>
+        
+        <p>
+          An "analysis.getSignature" request specified an offset
+          which is not a valid location within for the contents of
+          the file specified FilePath.
+        </p>
+      </dd><dt class="value">GET_SIGNATURE_UNKNOWN_FUNCTION</dt><dd>
+        
+        <p>
+          An "analysis.getSignature" request specified an offset
+          that could not be matched to a function call.
         </p>
       </dd><dt class="value">IMPORT_ELEMENTS_INVALID_FILE</dt><dd>
         

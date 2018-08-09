@@ -105,9 +105,6 @@ cc/Profiler_SourcePositionOptimized: Skip
 cc/Profiler_BinaryOperatorSourcePosition: Skip
 cc/Profiler_BinaryOperatorSourcePositionOptimized: Skip
 
-[ $compiler == none && $runtime == drt ]
-dart/truncating_ints_test: Skip # Issue 14651
-
 [ $compiler == dart2js ]
 dart/redirection_type_shuffling_test: Skip # Depends on lazy enforcement of type bounds
 dart/byte_array_test: Skip # compilers not aware of byte arrays

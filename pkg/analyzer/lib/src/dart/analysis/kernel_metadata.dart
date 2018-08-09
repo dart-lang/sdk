@@ -18,6 +18,10 @@ class AnalyzerMetadata {
   /// Optional documentation comment, may be `null`.
   String documentationComment;
 
+  /// If the node is an import library dependency, the offset of the prefix.
+  /// Otherwise `-1`.
+  int importPrefixOffset = -1;
+
   /// Return the [AnalyzerMetadata] for the [node], or `null` absent.
   static AnalyzerMetadata forNode(kernel.TreeNode node) {
     var repository =
@@ -47,6 +51,12 @@ class AnalyzerMetadataCollector implements MetadataCollector {
   void setDocumentationComment(kernel.NamedNode node, String comment) {
     var metadata = repository._forWriting(node);
     metadata.documentationComment = comment;
+  }
+
+  @override
+  void setImportPrefixOffset(kernel.LibraryDependency node, int offset) {
+    var metadata = repository._forWriting(node);
+    metadata.importPrefixOffset = offset;
   }
 }
 
@@ -135,7 +145,8 @@ class AnalyzerMetadataRepository
       kernel.Node node, kernel.BinarySource source) {
     return new AnalyzerMetadata()
       ..constructorNameOffset = _readOffset(source)
-      ..documentationComment = _readOptionalString(source);
+      ..documentationComment = _readOptionalString(source)
+      ..importPrefixOffset = _readOffset(source);
   }
 
   @override
@@ -143,6 +154,7 @@ class AnalyzerMetadataRepository
       AnalyzerMetadata metadata, kernel.Node node, kernel.BinarySink sink) {
     _writeOffset(sink, metadata.constructorNameOffset);
     _writeOptionalString(sink, metadata.documentationComment);
+    _writeOffset(sink, metadata.importPrefixOffset);
   }
 
   /// Return the existing or new [AnalyzerMetadata] instance for the [node].

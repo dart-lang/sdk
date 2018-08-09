@@ -170,14 +170,9 @@ String _getBaseNameFromLocationInParent(Expression expression) {
     }
   }
   // positional argument
-  {
-    ParameterElement parameter = expression.propagatedParameterElement;
-    if (parameter == null) {
-      parameter = expression.staticParameterElement;
-    }
-    if (parameter != null) {
-      return parameter.displayName;
-    }
+  ParameterElement parameter = expression.staticParameterElement;
+  if (parameter != null) {
+    return parameter.displayName;
   }
   // unknown
   return null;

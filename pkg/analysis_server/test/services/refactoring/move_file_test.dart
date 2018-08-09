@@ -8,17 +8,26 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../test_utilities/utillities.dart';
 import 'abstract_refactoring.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MoveFileTest);
+    defineReflectiveTests(MoveFileTest_UseCFE);
   });
 }
 
 @reflectiveTest
 class MoveFileTest extends RefactoringTest {
   MoveFileRefactoring refactoring;
+
+  @failingTest
+  test_dart_uris_are_unmodified() async {
+    // TODO(dantup): See _computeNewUri implementation which currently only
+    // handles relative + package: urls (package url handling is also incomplete)
+    fail('Not yet implemented/tested');
+  }
 
   test_file_containing_imports_exports_parts() async {
     String pathA = '/project/000/1111/a.dart';
@@ -54,26 +63,8 @@ part '/absolute/uri.dart';
   }
 
   @failingTest
-  test_file_importedLibrary_sideways() async {
-    fail('Not yet implemented/tested');
-    String pathA = '/project/000/1111/a.dart';
-    testFile = '/project/000/1111/sub/folder/test.dart';
-    addSource(pathA, '''
-import 'sub/folder/test.dart';
-''');
-    addTestSource('');
-    // perform refactoring
-    _createRefactoring('/project/000/new/folder/name/new_name.dart');
-    await _assertSuccessfulRefactoring();
-    assertFileChangeResult(pathA, '''
-import '../new/folder/name/new_name.dart';
-''');
-    assertNoFileChange(testFile);
-  }
-
-  @failingTest
   test_file_importedLibrary_down() async {
-    fail('Not yet implemented/tested');
+    _fail('Not yet implemented/tested');
     String pathA = '/project/000/1111/a.dart';
     testFile = '/project/000/1111/test.dart';
     addSource(pathA, '''
@@ -91,7 +82,7 @@ import '22/new_name.dart';
 
   @failingTest
   test_file_importedLibrary_package() async {
-    fail('Not yet implemented/tested');
+    _fail('Not yet implemented/tested');
     // configure packages
     testFile = '/packages/my_pkg/lib/aaa/test.dart';
     newFile(testFile, content: '');
@@ -121,8 +112,26 @@ import 'package:my_pkg/bbb/ccc/new_name.dart';
   }
 
   @failingTest
+  test_file_importedLibrary_sideways() async {
+    _fail('Not yet implemented/tested');
+    String pathA = '/project/000/1111/a.dart';
+    testFile = '/project/000/1111/sub/folder/test.dart';
+    addSource(pathA, '''
+import 'sub/folder/test.dart';
+''');
+    addTestSource('');
+    // perform refactoring
+    _createRefactoring('/project/000/new/folder/name/new_name.dart');
+    await _assertSuccessfulRefactoring();
+    assertFileChangeResult(pathA, '''
+import '../new/folder/name/new_name.dart';
+''');
+    assertNoFileChange(testFile);
+  }
+
+  @failingTest
   test_file_importedLibrary_up() async {
-    fail('Not yet implemented/tested');
+    _fail('Not yet implemented/tested');
     String pathA = '/project/000/1111/a.dart';
     testFile = '/project/000/1111/22/test.dart';
     addSource(pathA, '''
@@ -138,29 +147,9 @@ import 'new_name.dart';
     assertNoFileChange(testFile);
   }
 
-  test_file_referenced_by_part() async {
-    String pathA = '/project/000/1111/a.dart';
-    testFile = '/project/000/1111/22/test.dart';
-    addSource(pathA, '''
-library lib;
-part '22/test.dart';
-''');
-    addTestSource('''
-part of lib;
-''');
-    // perform refactoring
-    _createRefactoring('/project/000/1111/22/new_name.dart');
-    await _assertSuccessfulRefactoring();
-    assertFileChangeResult(pathA, '''
-library lib;
-part '22/new_name.dart';
-''');
-    assertNoFileChange(testFile);
-  }
-
   @failingTest
   test_file_referenced_by_multiple_libraries() async {
-    fail('Not yet implemented/tested');
+    _fail('Not yet implemented/tested');
     String pathA = '/project/000/1111/a.dart';
     String pathB = '/project/000/b.dart';
     testFile = '/project/000/1111/22/test.dart';
@@ -189,17 +178,24 @@ part '1111/22/new_name.dart';
     assertNoFileChange(testFile);
   }
 
-  @failingTest
-  test_renaming_part_that_uses_uri_in_part_of() async {
-    // If the file is a part in a library, and the part-of directive uses a URI
-    // rather than a library name, that will need updating too (if the relative
-    // path to the parent changes).
-    fail('Not yet implemented/tested');
-  }
-
-  @failingTest
-  test_projectFolder() async {
-    fail('Not yet implemented/tested');
+  test_file_referenced_by_part() async {
+    String pathA = '/project/000/1111/a.dart';
+    testFile = '/project/000/1111/22/test.dart';
+    addSource(pathA, '''
+library lib;
+part '22/test.dart';
+''');
+    addTestSource('''
+part of lib;
+''');
+    // perform refactoring
+    _createRefactoring('/project/000/1111/22/new_name.dart');
+    await _assertSuccessfulRefactoring();
+    assertFileChangeResult(pathA, '''
+library lib;
+part '22/new_name.dart';
+''');
+    assertNoFileChange(testFile);
   }
 
   @failingTest
@@ -213,19 +209,25 @@ part '1111/22/new_name.dart';
   }
 
   @failingTest
-  test_project_folder_ancestor() async {
-    fail('Not yet implemented/tested');
-  }
-
-  @failingTest
   test_nonexistent_file_returns_suitable_failure() async {
     fail('Not yet implemented/tested');
   }
 
   @failingTest
-  test_dart_uris_are_unmodified() async {
-    // TODO(dantup): See _computeNewUri implementation which currently only
-    // handles relative + package: urls (package url handling is also incomplete)
+  test_project_folder_ancestor() async {
+    fail('Not yet implemented/tested');
+  }
+
+  @failingTest
+  test_projectFolder() async {
+    fail('Not yet implemented/tested');
+  }
+
+  @failingTest
+  test_renaming_part_that_uses_uri_in_part_of() async {
+    // If the file is a part in a library, and the part-of directive uses a URI
+    // rather than a library name, that will need updating too (if the relative
+    // path to the parent changes).
     fail('Not yet implemented/tested');
   }
 
@@ -243,4 +245,24 @@ part '1111/22/new_name.dart';
         new MoveFileRefactoring(resourceProvider, workspace, testSource, null);
     refactoring.newFile = newName;
   }
+
+  /// Used to disable the dead code warnings.
+  void _fail(String message) {
+    fail(message);
+  }
+}
+
+@reflectiveTest
+class MoveFileTest_UseCFE extends MoveFileTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_file_containing_imports_exports_parts() =>
+      callFailingTest(super.test_file_containing_imports_exports_parts());
+
+  @failingTest
+  @override
+  test_file_referenced_by_part() => super.test_file_referenced_by_part();
 }

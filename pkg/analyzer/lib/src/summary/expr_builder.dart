@@ -199,8 +199,8 @@ class ExprBuilder {
           case UnlinkedExprOperation.makeTypedMap:
             TypeAnnotation keyType = _newTypeName();
             TypeAnnotation valueType = _newTypeName();
-            _pushMap(AstTestFactory
-                .typeArgumentList(<TypeAnnotation>[keyType, valueType]));
+            _pushMap(AstTestFactory.typeArgumentList(
+                <TypeAnnotation>[keyType, valueType]));
             break;
           case UnlinkedExprOperation.pushReference:
             _pushReference();
@@ -430,7 +430,7 @@ class ExprBuilder {
     SimpleFormalParameterImpl simpleParam =
         AstTestFactory.simpleFormalParameter(null, param.name);
     simpleParam.identifier.staticElement = param;
-    simpleParam.element = param;
+    simpleParam.declaredElement = param;
     var unlinkedParam = (param as ParameterElementImpl).unlinkedParam;
     if (unlinkedParam.kind == UnlinkedParamKind.positional) {
       return AstTestFactory.positionalFormalParameter(simpleParam, null);

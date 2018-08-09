@@ -40,7 +40,8 @@ main() {
         expectedExceptions: [EXCEPTION]);
 
     List<String> expectedLines = [
-      'Error: Input file not found: memory:main.dart.'
+      'Error: Input file not found: memory:main.dart.',
+      'memory:main.dart:\nError: Crash-marker',
     ];
     test('Throw in input provider',
         await run(memorySourceFiles: new CrashingMap()),

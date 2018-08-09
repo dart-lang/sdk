@@ -13,16 +13,27 @@ import '../../../abstract_single_unit.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(_DeclarationCompletionTest);
+    defineReflectiveTests(_DeclarationCompletionTest_UseCfe);
     defineReflectiveTests(_ControlFlowCompletionTest);
+    defineReflectiveTests(_ControlFlowCompletionTest_UseCfe);
     defineReflectiveTests(_DoCompletionTest);
+    defineReflectiveTests(_DoCompletionTest_UseCfe);
     defineReflectiveTests(_ExpressionCompletionTest);
+    defineReflectiveTests(_ExpressionCompletionTest_UseCfe);
     defineReflectiveTests(_ForCompletionTest);
+    defineReflectiveTests(_ForCompletionTest_UseCfe);
     defineReflectiveTests(_ForEachCompletionTest);
+    defineReflectiveTests(_ForEachCompletionTest_UseCfe);
     defineReflectiveTests(_IfCompletionTest);
+    defineReflectiveTests(_IfCompletionTest_UseCfe);
     defineReflectiveTests(_SimpleCompletionTest);
+    defineReflectiveTests(_SimpleCompletionTest_UseCfe);
     defineReflectiveTests(_SwitchCompletionTest);
+    defineReflectiveTests(_SwitchCompletionTest_UseCfe);
     defineReflectiveTests(_TryCompletionTest);
+    defineReflectiveTests(_TryCompletionTest_UseCfe);
     defineReflectiveTests(_WhileCompletionTest);
+    defineReflectiveTests(_WhileCompletionTest_UseCfe);
   });
 }
 
@@ -78,12 +89,10 @@ class StatementCompletionTest extends AbstractSingleUnitTest {
   }
 
   _prepareCompletion(String search, String sourceCode,
-      {bool atStart: false, bool atEnd: false, int delta: 0}) async {
+      {bool atEnd: false, int delta: 0}) async {
     testCode = sourceCode.replaceAll('////', '');
     int offset = findOffset(search);
-    if (atStart) {
-      delta = 0;
-    } else if (atEnd) {
+    if (atEnd) {
       delta = search.length;
     }
     await _prepareCompletionAt(offset + delta, testCode);
@@ -288,6 +297,16 @@ ex(e) {
 }
 
 @reflectiveTest
+class _ControlFlowCompletionTest_UseCfe extends _ControlFlowCompletionTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_ifNoBlock() => super.test_ifNoBlock();
+}
+
+@reflectiveTest
 class _DeclarationCompletionTest extends StatementCompletionTest {
   test_classNameNoBody() async {
     await _prepareCompletion(
@@ -455,6 +474,12 @@ class Sample extends Object with M {
 }
 
 @reflectiveTest
+class _DeclarationCompletionTest_UseCfe extends _DeclarationCompletionTest {
+  @override
+  bool get useCFE => true;
+}
+
+@reflectiveTest
 class _DoCompletionTest extends StatementCompletionTest {
   test_emptyCondition() async {
     await _prepareCompletion(
@@ -584,6 +609,16 @@ main() {
 ''',
         (s) => _after(s, 'while ('));
   }
+}
+
+@reflectiveTest
+class _DoCompletionTest_UseCfe extends _DoCompletionTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_keywordOnly() => super.test_keywordOnly();
 }
 
 @reflectiveTest
@@ -801,6 +836,24 @@ main() {
 """,
         (s) => _afterLast(s, '  '));
   }
+}
+
+@reflectiveTest
+class _ExpressionCompletionTest_UseCfe extends _ExpressionCompletionTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_listAssign() => super.test_listAssign();
+
+  @failingTest
+  @override
+  test_listAssignMultiLine() => super.test_listAssignMultiLine();
+
+  @failingTest
+  @override
+  test_stringAssign() => super.test_stringAssign();
 }
 
 @reflectiveTest
@@ -1042,6 +1095,20 @@ main() {
 }
 
 @reflectiveTest
+class _ForCompletionTest_UseCfe extends _ForCompletionTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_emptyInitializers() => super.test_emptyInitializers();
+
+  @failingTest
+  @override
+  test_emptyInitializersAfterBody() => super.test_emptyInitializersAfterBody();
+}
+
+@reflectiveTest
 class _ForEachCompletionTest extends StatementCompletionTest {
   test_emptyIdentifier() async {
     await _prepareCompletion(
@@ -1065,6 +1132,10 @@ main() {
   }
 
   test_emptyIdentifierAndIterable() async {
+    // Analyzer parser produces
+    //    for (_s_ in _s_) ;
+    // Fasta parser produces
+    //    for (in; ;) ;
     await _prepareCompletion(
         'in)',
         '''
@@ -1128,6 +1199,12 @@ main() {
 ''',
         (s) => _after(s, '    '));
   }
+}
+
+@reflectiveTest
+class _ForEachCompletionTest_UseCfe extends _ForEachCompletionTest {
+  @override
+  bool get useCFE => true;
 }
 
 @reflectiveTest
@@ -1351,6 +1428,16 @@ main() {
 }
 
 @reflectiveTest
+class _IfCompletionTest_UseCfe extends _IfCompletionTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_keywordOnly() => super.test_keywordOnly();
+}
+
+@reflectiveTest
 class _SimpleCompletionTest extends StatementCompletionTest {
   test_enter() async {
     await _prepareCompletion(
@@ -1389,7 +1476,17 @@ main() {
         (s) => _afterLast(s, '  '));
   }
 
+  @failingTest
   test_noCloseParenWithSemicolon() async {
+    // TODO(danrubel):
+    // Fasta scanner produces an error message which is converted into
+    // an Analyzer error message before the fasta parser gets a chance
+    // to move it along with the associated synthetic ')' to a more
+    // appropriate location. This means that some statement completions,
+    // which are expecting errors in a particular location, don't work.
+    // Fixing this properly means modifying the scanner not to generate
+    // closing ')', then updating the parser to handle that situation.
+    // This is a fair amount of work and won't be tackled today.
     String before = '''
 main() {
   var s = 'sample'.substring(3;
@@ -1408,6 +1505,12 @@ main() {
     await _prepareCompletion('ing(3;', before, atEnd: true);
     _assertHasChange('Insert a newline at the end of the current line', after,
         (s) => _afterLast(s, '  '));
+
+    // The old Analyzer parser passes this test, but will be turned off soon.
+    // It is preferable to throw only if the old analyzer is being used,
+    // but there does not seem to be a reliable way to determine that here.
+    // TODO(danrubel): remove this once fasta parser is enabled by default.
+    throw 'remove this once fasta parser is enabled by default';
   }
 
   test_semicolonFn() async {
@@ -1451,10 +1554,18 @@ main() {
         (s) => _afterLast(s, '()'));
   }
 
+  @failingTest
   test_semicolonFnBodyWithDef() async {
     // This ought to be the same as test_semicolonFnBody() but the definition
     // of f() removes an error and it appears to be a different case.
     // Suggestions for unifying the two are welcome.
+
+    // Analyzer parser produces
+    //   int; f();
+    // Fasta parser produces
+    //   int f; ();
+    // Neither of these is ideal.
+    // TODO(danrubel): Improve parser recovery in this situation.
     await _prepareCompletion(
         'f()',
         '''
@@ -1474,6 +1585,12 @@ main() {
 f() {}
 ''',
         (s) => _afterLast(s, '  '));
+
+    // The old Analyzer parser passes this test, but will be turned off soon.
+    // It is preferable to throw only if the old analyzer is being used,
+    // but there does not seem to be a reliable way to determine that here.
+    // TODO(danrubel): remove this once fasta parser is enabled by default.
+    throw 'remove this once fasta parser is enabled by default';
   }
 
   test_semicolonFnExpr() async {
@@ -1535,6 +1652,16 @@ main() {
 ''',
         (s) => _afterLast(s, '  '));
   }
+}
+
+@reflectiveTest
+class _SimpleCompletionTest_UseCfe extends _SimpleCompletionTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_semicolonVar() => super.test_semicolonVar();
 }
 
 @reflectiveTest
@@ -1647,6 +1774,12 @@ main() {
 ''',
         (s) => _after(s, 'switch ('));
   }
+}
+
+@reflectiveTest
+class _SwitchCompletionTest_UseCfe extends _SwitchCompletionTest {
+  @override
+  bool get useCFE => true;
 }
 
 @reflectiveTest
@@ -1906,6 +2039,12 @@ main() {
 }
 
 @reflectiveTest
+class _TryCompletionTest_UseCfe extends _TryCompletionTest {
+  @override
+  bool get useCFE => true;
+}
+
+@reflectiveTest
 class _WhileCompletionTest extends StatementCompletionTest {
   /*
      The implementation of completion for while-statements is shared with
@@ -1934,4 +2073,14 @@ main() {
 ''',
         (s) => _after(s, 'while ('));
   }
+}
+
+@reflectiveTest
+class _WhileCompletionTest_UseCfe extends _WhileCompletionTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_keywordOnly() => super.test_keywordOnly();
 }

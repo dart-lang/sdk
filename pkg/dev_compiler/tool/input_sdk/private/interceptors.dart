@@ -103,18 +103,23 @@ class NativeError extends Interceptor {
 // Note that this needs to be in interceptors.dart in order for
 // it to be picked up as an extension type.
 @JsPeerInterface(name: 'TypeError')
-class NullError extends NativeError implements NoSuchMethodError {
-  static RegExp _nullError = RegExp(r"^Cannot read property '(.+)' of null$");
-  static RegExp _extensionName = RegExp(r"^Symbol\(dartx\.(.+)\)$");
-  static RegExp _privateName = RegExp(r"^Symbol\((_.+)\)$");
+class JSNoSuchMethodError extends NativeError implements NoSuchMethodError {
+  static final _nullError = RegExp(r"^Cannot read property '(.+)' of null$");
+  static final _notAFunction = RegExp(r"^(.+) is not a function$");
+  static final _extensionName = RegExp(r"^Symbol\(dartx\.(.+)\)$");
+  static final _privateName = RegExp(r"^Symbol\((_.+)\)$");
 
-  String _fieldName() {
-    var message = JS('String', '#.message', this);
+  String _fieldName(String message) {
     var match = _nullError.firstMatch(message);
     if (match == null) return null;
     var name = match[1];
     match = _extensionName.firstMatch(name) ?? _privateName.firstMatch(name);
     return match != null ? match[1] : name;
+  }
+
+  String _functionCallTarget(String message) {
+    var match = _notAFunction.firstMatch(message);
+    return match != null ? match[1] : null;
   }
 
   String dartStack() {
@@ -127,15 +132,21 @@ class NullError extends NativeError implements NoSuchMethodError {
   StackTrace get stackTrace => getTraceFromException(this);
 
   String toString() {
+    String message = JS('!', '#.message', this);
+    var callTarget = _functionCallTarget(message);
+    if (callTarget != null) {
+      return "NoSuchMethodError: tried to call a non-function, such as null: "
+          "'$callTarget'";
+    }
     // TODO(vsm): Distinguish between null reference errors and other
     // TypeErrors.  We should not get non-null TypeErrors from DDC code,
     // but we may from native JavaScript.
-    var name = _fieldName();
+    var name = _fieldName(message);
     if (name == null) {
       // Not a Null NSM error: fallback to JS.
       return JS('String', '#.toString()', this);
     }
-    return "NullError: invalid member on null: '$name'";
+    return "NoSuchMethodError: invalid member on null: '$name'";
   }
 }
 

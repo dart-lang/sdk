@@ -1460,11 +1460,13 @@ class Assembler : public ValueObject {
   void StoreIntoObject(Register object,
                        const Address& dest,
                        Register value,
-                       CanBeSmi can_value_be_smi = kValueCanBeSmi);
+                       CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                       bool lr_reserved = false);
   void StoreIntoObjectOffset(Register object,
                              int32_t offset,
                              Register value,
-                             CanBeSmi can_value_be_smi = kValueCanBeSmi);
+                             CanBeSmi can_value_be_smi = kValueCanBeSmi,
+                             bool lr_reserved = false);
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
                                 Register value);
@@ -1509,7 +1511,7 @@ class Assembler : public ValueObject {
   void CompareObject(Register reg, const Object& object);
 
   void LoadClassId(Register result, Register object);
-  // Overwrites class_id register.
+  // Overwrites class_id register (it will be tagged afterwards).
   void LoadClassById(Register result, Register class_id);
   void LoadClass(Register result, Register object);
   void CompareClassId(Register object,

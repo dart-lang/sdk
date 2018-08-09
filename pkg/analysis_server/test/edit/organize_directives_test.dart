@@ -17,6 +17,7 @@ import '../mocks.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OrganizeDirectivesTest);
+    defineReflectiveTests(OrganizeDirectivesTest_UseCFE);
   });
 }
 
@@ -165,4 +166,22 @@ main() {
     var result = new EditOrganizeDirectivesResult.fromResponse(response);
     fileEdit = result.edit;
   }
+}
+
+@reflectiveTest
+class OrganizeDirectivesTest_UseCFE extends OrganizeDirectivesTest {
+  @override
+  bool get useCFE => true;
+
+  @override
+  test_BAD_doesNotExist() async => super.test_BAD_doesNotExist();
+
+  @failingTest
+  @override
+  test_OK_remove_unresolvedDirectives() async =>
+      super.test_OK_remove_unresolvedDirectives();
+
+  @failingTest
+  @override
+  test_OK_remove_unusedImports() async => super.test_OK_remove_unusedImports();
 }

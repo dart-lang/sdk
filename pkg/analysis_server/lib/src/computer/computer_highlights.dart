@@ -146,10 +146,6 @@ class DartUnitHighlightsComputer {
     if (element is! VariableElement) {
       return false;
     }
-    // has propagated type
-    if (node.propagatedType != null) {
-      return false;
-    }
     // has dynamic static type
     DartType staticType = node.staticType;
     if (staticType == null || !staticType.isDynamic) {
@@ -160,7 +156,7 @@ class DartUnitHighlightsComputer {
   }
 
   bool _addIdentifierRegion_field(SimpleIdentifier node) {
-    Element element = node.bestElement;
+    Element element = node.staticElement;
     if (element is FieldFormalParameterElement) {
       element = (element as FieldFormalParameterElement).field;
     }
@@ -271,7 +267,7 @@ class DartUnitHighlightsComputer {
   }
 
   bool _addIdentifierRegion_method(SimpleIdentifier node) {
-    Element element = node.bestElement;
+    Element element = node.staticElement;
     if (element is! MethodElement) {
       return false;
     }

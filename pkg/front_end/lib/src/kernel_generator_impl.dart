@@ -52,8 +52,6 @@ Future<CompilerResult> generateKernelInternal(
     bool truncateSummary: false}) async {
   var options = CompilerContext.current.options;
   var fs = options.fileSystem;
-  if (!await options.validateOptions()) return null;
-  options.ticker.logMs("Validated arguments");
 
   Loader sourceLoader;
   return withCrashReporting<CompilerResult>(

@@ -4,7 +4,7 @@
 
 /// This library defines runtime operations on objects used by the code
 /// generator.
-part of "runtime.dart";
+part of dart._runtime;
 
 // TODO(jmesserly): remove this in favor of _Invocation.
 class InvocationImpl extends Invocation {
@@ -422,8 +422,7 @@ final Object _ignoreTypeFailure = JS('', '''(() => {
     }
 
     if (!!$isSubtype(type, $Iterable) && !!$isSubtype(actual, $Iterable) ||
-        !!$isSubtype(type, $Future) && !!$isSubtype(actual, $Future) ||
-        !!$isSubtype(type, $Map) && !!$isSubtype(actual, $Map)) {
+        !!$isSubtype(type, $Future) && !!$isSubtype(actual, $Future)) {
       console.warn('Ignoring cast fail from ' + $typeName(actual) +
                    ' to ' + $typeName(type));
       return true;

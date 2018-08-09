@@ -28,7 +28,7 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor {
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
-    Element element = node.bestElement;
+    Element element = node.staticElement;
     if (element != null) {
       _addOccurrence(element, node.offset);
     }

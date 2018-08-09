@@ -16,6 +16,7 @@ import 'abstract_refactoring.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtractMethodTest);
+    defineReflectiveTests(ExtractMethodTest_UseCFE);
   });
 }
 
@@ -2932,4 +2933,20 @@ Future<int> newFuture() => null;
       return new RefactoringMethodParameter(p.kind, p.type, p.name, id: p.id);
     }).toList();
   }
+}
+
+@reflectiveTest
+class ExtractMethodTest_UseCFE extends ExtractMethodTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_bad_conflict_topLevel_willHideInheritedMemberUsage() =>
+      super.test_bad_conflict_topLevel_willHideInheritedMemberUsage();
+
+  @failingTest
+  @override
+  test_statements_parameters_localFunction() =>
+      super.test_statements_parameters_localFunction();
 }

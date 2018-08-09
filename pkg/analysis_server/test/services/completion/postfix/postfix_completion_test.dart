@@ -13,15 +13,25 @@ import '../../../abstract_single_unit.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(_AssertTest);
+    defineReflectiveTests(_AssertTest_UseCfe);
     defineReflectiveTests(_ForTest);
+    defineReflectiveTests(_ForTest_UseCfe);
     defineReflectiveTests(_NegateTest);
+    defineReflectiveTests(_NegateTest_UseCfe);
     defineReflectiveTests(_IfTest);
+    defineReflectiveTests(_IfTest_UseCfe);
     defineReflectiveTests(_NotNullTest);
+    defineReflectiveTests(_NotNullTest_UseCfe);
     defineReflectiveTests(_ParenTest);
+    defineReflectiveTests(_ParenTest_UseCfe);
     defineReflectiveTests(_ReturnTest);
+    defineReflectiveTests(_ReturnTest_UseCfe);
     defineReflectiveTests(_SwitchTest);
+    defineReflectiveTests(_SwitchTest_UseCfe);
     defineReflectiveTests(_TryTest);
+    defineReflectiveTests(_TryTest_UseCfe);
     defineReflectiveTests(_WhileTest);
+    defineReflectiveTests(_WhileTest_UseCfe);
   });
 }
 
@@ -134,6 +144,12 @@ f(int x, int y) {
 }
 ''');
   }
+}
+
+@reflectiveTest
+class _AssertTest_UseCfe extends _AssertTest {
+  @override
+  bool get useCFE => true;
 }
 
 @reflectiveTest
@@ -267,6 +283,12 @@ f() {
 }
 
 @reflectiveTest
+class _ForTest_UseCfe extends _ForTest {
+  @override
+  bool get useCFE => true;
+}
+
+@reflectiveTest
 class _IfTest extends PostfixCompletionTest {
   test_Else() async {
     await _prepareCompletion('.else', '''
@@ -321,6 +343,12 @@ f(expr) {
 }
 ''');
   }
+}
+
+@reflectiveTest
+class _IfTest_UseCfe extends _IfTest {
+  @override
+  bool get useCFE => true;
 }
 
 @reflectiveTest
@@ -424,6 +452,12 @@ f() {
 }
 ''');
   }
+}
+
+@reflectiveTest
+class _NegateTest_UseCfe extends _NegateTest {
+  @override
+  bool get useCFE => true;
 }
 
 @reflectiveTest
@@ -535,6 +569,12 @@ f() {
 }
 
 @reflectiveTest
+class _NotNullTest_UseCfe extends _NotNullTest {
+  @override
+  bool get useCFE => true;
+}
+
+@reflectiveTest
 class _ParenTest extends PostfixCompletionTest {
   test_paren() async {
     await _prepareCompletion('.par', '''
@@ -548,6 +588,12 @@ f(expr) {
 }
 ''');
   }
+}
+
+@reflectiveTest
+class _ParenTest_UseCfe extends _ParenTest {
+  @override
+  bool get useCFE => true;
 }
 
 @reflectiveTest
@@ -567,6 +613,12 @@ f(expr) {
 }
 
 @reflectiveTest
+class _ReturnTest_UseCfe extends _ReturnTest {
+  @override
+  bool get useCFE => true;
+}
+
+@reflectiveTest
 class _SwitchTest extends PostfixCompletionTest {
   test_return() async {
     await _prepareCompletion('.switch', '''
@@ -582,6 +634,12 @@ f(expr) {
 }
 ''');
   }
+}
+
+@reflectiveTest
+class _SwitchTest_UseCfe extends _SwitchTest {
+  @override
+  bool get useCFE => true;
 }
 
 @reflectiveTest
@@ -691,6 +749,12 @@ f() {
 }
 
 @reflectiveTest
+class _TryTest_UseCfe extends _TryTest {
+  @override
+  bool get useCFE => true;
+}
+
+@reflectiveTest
 class _WhileTest extends PostfixCompletionTest {
   test_while() async {
     await _prepareCompletion('.while', '''
@@ -706,4 +770,10 @@ f(expr) {
 }
 ''');
   }
+}
+
+@reflectiveTest
+class _WhileTest_UseCfe extends _WhileTest {
+  @override
+  bool get useCFE => true;
 }

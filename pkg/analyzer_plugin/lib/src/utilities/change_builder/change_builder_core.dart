@@ -67,8 +67,10 @@ class ChangeBuilderImpl implements ChangeBuilder {
     await null;
     FileEditBuilderImpl builder = await createFileEditBuilder(path);
     buildFileEdit(builder);
-    _change.addFileEdit(builder.fileEdit);
-    await builder.finalize();
+    if (builder.hasEdits) {
+      _change.addFileEdit(builder.fileEdit);
+      await builder.finalize();
+    }
   }
 
   /**
@@ -274,6 +276,11 @@ class FileEditBuilderImpl implements FileEditBuilder {
    */
   FileEditBuilderImpl(this.changeBuilder, String path, int timeStamp)
       : fileEdit = new SourceFileEdit(path, timeStamp);
+
+  /**
+   * Return `true` if this builder has edits to be applied.
+   */
+  bool get hasEdits => fileEdit.edits.isNotEmpty;
 
   @override
   void addDeletion(SourceRange range) {

@@ -7,8 +7,8 @@
 #include "vm/dart.h"
 #include "vm/dart_api_state.h"
 #include "vm/flag_list.h"
+#include "vm/heap/pointer_block.h"
 #include "vm/heap/safepoint.h"
-#include "vm/heap/store_buffer.h"
 #include "vm/heap/verifier.h"
 #include "vm/heap/weak_table.h"
 #include "vm/isolate.h"
@@ -577,10 +577,18 @@ void Scavenger::IterateObjectIdTable(Isolate* isolate,
 }
 
 void Scavenger::IterateRoots(Isolate* isolate, ScavengerVisitor* visitor) {
+  NOT_IN_PRODUCT(Thread* thread = Thread::Current());
   int64_t start = OS::GetCurrentMonotonicMicros();
-  isolate->VisitObjectPointers(visitor, ValidationPolicy::kDontValidateFrames);
+  {
+    TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessRoots");
+    isolate->VisitObjectPointers(visitor,
+                                 ValidationPolicy::kDontValidateFrames);
+  }
   int64_t middle = OS::GetCurrentMonotonicMicros();
-  IterateStoreBuffers(isolate, visitor);
+  {
+    TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessRememberedSet");
+    IterateStoreBuffers(isolate, visitor);
+  }
   IterateObjectIdTable(isolate, visitor);
   int64_t end = OS::GetCurrentMonotonicMicros();
   heap_->RecordData(kToKBAfterStoreBuffer, RoundWordsToKB(UsedInWords()));
@@ -890,10 +898,13 @@ void Scavenger::Scavenge() {
     page_space->AcquireDataLock();
     IterateRoots(isolate, &visitor);
     int64_t iterate_roots = OS::GetCurrentMonotonicMicros();
-    ProcessToSpace(&visitor);
+    {
+      TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessToSpace");
+      ProcessToSpace(&visitor);
+    }
     int64_t process_to_space = OS::GetCurrentMonotonicMicros();
     {
-      TIMELINE_FUNCTION_GC_DURATION(thread, "WeakHandleProcessing");
+      TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessWeakHandles");
       ScavengerWeakVisitor weak_visitor(thread, this);
       IterateWeakRoots(isolate, &weak_visitor);
     }

@@ -14,6 +14,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InheritedReferenceContributorTest);
+    defineReflectiveTests(InheritedReferenceContributorTest_UseCFE);
   });
 }
 
@@ -674,4 +675,19 @@ $line^
     expect(cs.requiredParameterCount, isNull);
     expect(cs.hasNamedParameters, isNull);
   }
+}
+
+@reflectiveTest
+class InheritedReferenceContributorTest_UseCFE
+    extends InheritedReferenceContributorTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_Block_inherited_imported() => super.test_Block_inherited_imported();
+
+  @failingTest
+  @override
+  test_Block_inherited_local() => super.test_Block_inherited_local();
 }

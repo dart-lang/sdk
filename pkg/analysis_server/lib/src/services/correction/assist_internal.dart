@@ -86,7 +86,7 @@ class AssistProcessor {
     file = dartContext.source.fullName;
     // unit
     unit = dartContext.unit;
-    unitElement = dartContext.unit.element;
+    unitElement = dartContext.unit.declaredElement;
     // library
     unitLibraryElement = resolutionMap
         .elementDeclaredByCompilationUnit(dartContext.unit)
@@ -243,7 +243,7 @@ class AssistProcessor {
       _coverageMarker();
       return;
     }
-    DartType type = declaredIdentifier.identifier.bestType;
+    DartType type = declaredIdentifier.identifier.staticType;
     if (type is! InterfaceType && type is! FunctionType) {
       _coverageMarker();
       return;
@@ -288,7 +288,7 @@ class AssistProcessor {
       return;
     }
     // prepare the type
-    DartType type = parameter.element.type;
+    DartType type = parameter.declaredElement.type;
     // TODO(scheglov) If the parameter is in a method declaration, and if the
     // method overrides a method that has a type for the corresponding
     // parameter, it would be nice to copy down the type from the overridden
@@ -347,7 +347,7 @@ class AssistProcessor {
       _coverageMarker();
       return;
     }
-    DartType type = initializer.bestType;
+    DartType type = initializer.staticType;
     // prepare type source
     if ((type is! InterfaceType || type.isDartCoreNull) &&
         type is! FunctionType) {
@@ -402,7 +402,7 @@ class AssistProcessor {
     Expression expression = expressionStatement.expression;
     int offset = expression.offset;
     // prepare expression type
-    DartType type = expression.bestType;
+    DartType type = expression.staticType;
     if (type.isVoid) {
       _coverageMarker();
       return;
@@ -547,7 +547,7 @@ class AssistProcessor {
     }
     // Check that there is no corresponding setter.
     {
-      ExecutableElement element = getter.element;
+      ExecutableElement element = getter.declaredElement;
       if (element == null) {
         return;
       }
@@ -656,7 +656,7 @@ class AssistProcessor {
       return;
     }
     String libraryPath = unitLibraryElement.source.fullName;
-    String partPath = unit.element.source.fullName;
+    String partPath = unit.declaredElement.source.fullName;
     String relativePath = relative(libraryPath, from: dirname(partPath));
     String uri = new Uri.file(relativePath).toString();
     SourceRange replacementRange = range.node(directive.libraryName);
@@ -841,7 +841,7 @@ class AssistProcessor {
     // analyze parameter
     if (parameter != null) {
       String parameterName = parameter.identifier.name;
-      ParameterElement parameterElement = parameter.element;
+      ParameterElement parameterElement = parameter.declaredElement;
       // check number of references
       {
         int numOfReferences = 0;
@@ -931,7 +931,7 @@ class AssistProcessor {
     }
     // iterable should be List
     {
-      DartType iterableType = iterable.bestType;
+      DartType iterableType = iterable.staticType;
       InterfaceType listType = typeProvider.listType;
       if (iterableType is! InterfaceType ||
           iterableType.element != listType.element) {
@@ -1132,7 +1132,7 @@ class AssistProcessor {
       return;
     }
     // should be "isEmpty"
-    Element propertyElement = isEmptyIdentifier.bestElement;
+    Element propertyElement = isEmptyIdentifier.staticElement;
     if (propertyElement == null || 'isEmpty' != propertyElement.name) {
       _coverageMarker();
       return;
@@ -1177,7 +1177,7 @@ class AssistProcessor {
       ConstructorDeclaration constructor = node.parent.parent.parent;
       FormalParameterList parameterList = node.parent.parent;
       FieldFormalParameter parameter = node.parent;
-      ParameterElement parameterElement = parameter.element;
+      ParameterElement parameterElement = parameter.declaredElement;
       String name = (node as SimpleIdentifier).name;
       // prepare type
       DartType type = parameterElement.type;
@@ -1269,7 +1269,7 @@ class AssistProcessor {
       for (ClassMember member in classDeclaration.members) {
         if (member is ConstructorDeclaration) {
           for (FormalParameter parameter in member.parameters.parameters) {
-            ParameterElement parameterElement = parameter.element;
+            ParameterElement parameterElement = parameter.declaredElement;
             if (parameterElement is FieldFormalParameterElement &&
                 parameterElement.field == fieldElement) {
               SimpleIdentifier identifier = parameter.identifier;
@@ -1436,7 +1436,7 @@ class AssistProcessor {
     }
 
     // Must be a StatelessWidget subclasses.
-    ClassElement widgetClassElement = widgetClass.element;
+    ClassElement widgetClassElement = widgetClass.declaredElement;
     if (!flutter.isExactlyStatelessWidgetType(widgetClassElement.supertype)) {
       _coverageMarker();
       return;
@@ -1481,7 +1481,7 @@ class AssistProcessor {
     for (var member in widgetClass.members) {
       if (member is FieldDeclaration && !member.isStatic) {
         for (VariableDeclaration fieldNode in member.fields.variables) {
-          FieldElement fieldElement = fieldNode.element;
+          FieldElement fieldElement = fieldNode.declaredElement;
           if (!fieldsAssignedInConstructors.contains(fieldElement)) {
             nodesToMove.add(member);
             elementsToMove.add(fieldElement);
@@ -1494,7 +1494,7 @@ class AssistProcessor {
       }
       if (member is MethodDeclaration && !member.isStatic) {
         nodesToMove.add(member);
-        elementsToMove.add(member.element);
+        elementsToMove.add(member.declaredElement);
       }
     }
 
@@ -1543,7 +1543,7 @@ class AssistProcessor {
     var stateType = stateClass.type.instantiate([widgetClassElement.type]);
 
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) async {
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addReplacement(range.node(superclass), (builder) {
         builder.writeType(statefulWidgetClass.type);
       });
@@ -3059,7 +3059,7 @@ class AssistProcessor {
       ClassDeclaration targetClassDeclaration =
           target.getAncestor((node) => node is ClassDeclaration);
       if (targetClassDeclaration != null) {
-        utils.targetClassElement = targetClassDeclaration.element;
+        utils.targetClassElement = targetClassDeclaration.declaredElement;
       }
     }
   }

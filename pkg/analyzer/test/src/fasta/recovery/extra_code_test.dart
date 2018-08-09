@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'recovery_test_support.dart';
@@ -57,11 +59,17 @@ class B = Object with A;
   }
 
   void test_getter_parameters() {
-    testRecovery('''
-int get g() => 0;
-''', [ParserErrorCode.GETTER_WITH_PARAMETERS], '''
-int get g => 0;
-''');
+    var content = '''
+int get g(x) => 0;
+''';
+    var unit = parseCompilationUnit(content,
+        codes: [ParserErrorCode.GETTER_WITH_PARAMETERS]);
+    validateTokenStream(unit.beginToken);
+
+    FunctionDeclaration g = unit.declarations.first;
+    var parameters = g.functionExpression.parameters;
+    expect(parameters, isNotNull);
+    expect(parameters.parameters, hasLength(1));
   }
 
   @failingTest

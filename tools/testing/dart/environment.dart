@@ -6,8 +6,8 @@ import 'package:status_file/environment.dart';
 
 import 'configuration.dart';
 
-typedef String _LookUpFunction(Configuration configuration);
-typedef bool _BoolLookUpFunction(Configuration configuration);
+typedef String _LookUpFunction(TestConfiguration configuration);
+typedef bool _BoolLookUpFunction(TestConfiguration configuration);
 
 // TODO(29756): Instead of synthesized negated variables like "unchecked",
 // consider adding support for "!" to status expressions.
@@ -36,15 +36,15 @@ final _variables = {
   "mode": new _Variable((c) => c.mode.name, Mode.names),
   "no_preview_dart_2": new _Variable.bool((c) => c.noPreviewDart2),
   "preview_dart_2": new _Variable.bool((c) => !c.noPreviewDart2),
-  "runtime": new _Variable(_runtimeName, Runtime.names),
+  "runtime": new _Variable(_runtimeName, _runtimeNames),
   "spec_parser": new _Variable.bool((c) => c.compiler == Compiler.specParser),
   "strong": new _Variable.bool((c) => !c.noPreviewDart2),
-  "system": new _Variable((c) => c.system.name, System.names),
+  "system": new _Variable(_systemName, _systemNames),
   "use_sdk": new _Variable.bool((c) => c.useSdk)
 };
 
 /// Gets the name of the runtime as it appears in status files.
-String _runtimeName(Configuration configuration) {
+String _runtimeName(TestConfiguration configuration) {
   // TODO(rnystrom): Handle "ff" being used as the name for firefox. We don't
   // want to make the Runtime itself use that as the name because it appears
   // elsewhere in test.dart and we want those other places to show "firefox".
@@ -53,6 +53,20 @@ String _runtimeName(Configuration configuration) {
   return configuration.runtime.name;
 }
 
+List<String> _runtimeNames = ['ff', 'drt']..addAll(Runtime.names);
+
+/// Gets the name of the runtime as it appears in status files.
+String _systemName(TestConfiguration configuration) {
+  // Because we are getting rid of status files, we don't want to change all
+  // of them to say "win" instead of "windows" and "mac" instead of "macos"
+  if (configuration.system == System.win) return 'windows';
+  if (configuration.system == System.mac) return 'macos';
+
+  return configuration.system.name;
+}
+
+List<String> _systemNames = ['windows', 'macos']..addAll(System.names);
+
 /// Defines the variables that are available for use inside a status file
 /// section header.
 ///
@@ -60,7 +74,7 @@ String _runtimeName(Configuration configuration) {
 /// is only a subset of the full set of command line arguments.
 class ConfigurationEnvironment implements Environment {
   /// The configuration where variable data is found.
-  final Configuration _configuration;
+  final TestConfiguration _configuration;
 
   ConfigurationEnvironment(this._configuration);
 
@@ -106,7 +120,7 @@ class ConfigurationEnvironment implements Environment {
 /// Each variable is an enumerated string type that only accepts a limited range
 /// of values. Each instance of this class defines one variable, the values it
 /// permits, and the logic needed to look up the variable's value from a
-/// [Configuration]
+/// [TestConfiguration]
 class _Variable {
   final _LookUpFunction _lookUp;
   final List<String> allowedValues;
@@ -119,5 +133,5 @@ class _Variable {
       : _lookUp = ((configuration) => lookUp(configuration).toString()),
         allowedValues = const ["true", "false"];
 
-  String lookUp(Configuration configuration) => _lookUp(configuration);
+  String lookUp(TestConfiguration configuration) => _lookUp(configuration);
 }

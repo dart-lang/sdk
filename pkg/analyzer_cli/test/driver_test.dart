@@ -904,22 +904,13 @@ class OptionsTest extends BaseTest {
     ]);
     expect(processorFor(missing_return).severity, ErrorSeverity.ERROR);
     expect(bulletToDash(outSink),
-        contains("error - This function declares a return type of 'int'"));
+        contains("error - This function has a return type of 'int'"));
     expect(outSink.toString(), contains("1 error and 1 warning found."));
   }
 
   test_basic_language() async {
     await _driveBasic();
     expect(analysisOptions.enableSuperMixins, isTrue);
-  }
-
-  test_basic_strongMode() async {
-    await _driveBasic();
-    expect(analysisOptions.strongMode, isTrue);
-    // https://github.com/dart-lang/sdk/issues/26129
-    AnalysisContext sdkContext =
-        driver.analysisDriver.sourceFactory.dartSdk.context;
-    expect(sdkContext.analysisOptions.strongMode, isTrue);
   }
 
   test_includeDirective() async {
@@ -945,13 +936,6 @@ class OptionsTest extends BaseTest {
     await drive('data/options_tests_project/test_file.dart',
         args: ['--preview-dart-2']);
     expect(analysisOptions.useFastaParser, isFalse);
-  }
-
-  test_strongSdk() async {
-    String testDir = path.join(testDirectory, 'data', 'strong_sdk');
-    await drive(path.join(testDir, 'main.dart'));
-    expect(analysisOptions.strongMode, isTrue);
-    expect(outSink.toString(), contains('No issues found'));
   }
 
   test_todo() async {
@@ -1034,14 +1018,6 @@ class OptionsTest_UseCFE extends OptionsTest {
   @override
   @failingTest
   test_basic_filters() => callFailingTest(super.test_basic_filters);
-
-  @override
-  @failingTest
-  test_basic_language() => callFailingTest(super.test_basic_language);
-
-  @override
-  @failingTest
-  test_basic_strongMode() => callFailingTest(super.test_basic_strongMode);
 
   @override
   @failingTest

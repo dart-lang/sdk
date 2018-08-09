@@ -15,6 +15,7 @@ import '../fasta_codes.dart'
         templateNonAsciiIdentifier,
         templateNonAsciiWhitespace,
         templateUnmatchedToken,
+        templateUnsupportedOperator,
         templateUnterminatedString;
 
 import '../scanner.dart' show Token, unicodeReplacementCharacter;
@@ -137,6 +138,20 @@ class AsciiControlCharacterToken extends ErrorToken {
       templateAsciiControlCharacter.withArguments(character);
 }
 
+/// Denotes an operator that is not supported in the Dart language.
+class UnsupportedOperator extends ErrorToken {
+  Token token;
+
+  UnsupportedOperator(this.token, int charOffset) : super(charOffset);
+
+  @override
+  Message get assertionMessage =>
+      templateUnsupportedOperator.withArguments(token);
+
+  @override
+  String toString() => "UnsupportedOperator(${token.lexeme})";
+}
+
 /// Represents an unterminated string.
 class UnterminatedString extends ErrorToken {
   final String start;
@@ -149,8 +164,8 @@ class UnterminatedString extends ErrorToken {
 
   int get charCount => endOffset - charOffset;
 
-  Message get assertionMessage => templateUnterminatedString.withArguments(
-      start, closeQuoteFor(start));
+  Message get assertionMessage =>
+      templateUnterminatedString.withArguments(start, closeQuoteFor(start));
 }
 
 /// Represents an unterminated token.
@@ -179,6 +194,6 @@ class UnmatchedToken extends ErrorToken {
 
   String toString() => "UnmatchedToken(${begin.lexeme})";
 
-  Message get assertionMessage => templateUnmatchedToken.withArguments(
-      closeBraceFor(begin.lexeme), begin);
+  Message get assertionMessage =>
+      templateUnmatchedToken.withArguments(closeBraceFor(begin.lexeme), begin);
 }

@@ -30,6 +30,7 @@ import 'dart:async' show Completer, DeferredLoadException, Future;
 import 'dart:_foreign_helper'
     show
         DART_CLOSURE_TO_JS,
+        getInterceptor,
         JS,
         JS_BUILTIN,
         JS_CONST,
@@ -49,7 +50,10 @@ import 'dart:_internal'
 import 'dart:_native_typed_data';
 
 import 'dart:_js_names'
-    show extractKeys, mangledNames, unmangleAllIdentifiersIfPreservedAnyways;
+    show
+        extractKeys,
+        unmangleGlobalNameIfPreservedAnyways,
+        unmangleAllIdentifiersIfPreservedAnyways;
 
 part 'annotations.dart';
 part 'constant_map.dart';
@@ -105,6 +109,15 @@ bool isDartVoidTypeRti(Object type) {
 @ForceInline()
 String rawRtiToJsConstructorName(Object rti) {
   return JS_BUILTIN('String', JsBuiltin.rawRtiToJsConstructorName, rti);
+}
+
+/// Given a raw constructor name, return the unminified name, if available,
+/// otherwise tag the name with `minified:`.
+String unminifyOrTag(String rawClassName) {
+  String preserved = unmangleGlobalNameIfPreservedAnyways(rawClassName);
+  if (preserved is String) return preserved;
+  if (JS_GET_FLAG('MINIFIED')) return 'minified:${rawClassName}';
+  return rawClassName;
 }
 
 /// Returns the rti from the given [constructorName].
@@ -312,30 +325,16 @@ class JSInvocationMirror implements Invocation {
   var /* String or Symbol */ _memberName;
   final String _internalName;
   final int _kind;
-  final List<Type> _typeArguments;
   final List _arguments;
   final List _namedArgumentNames;
   final int _typeArgumentCount;
-  /** Map from argument name to index in _arguments. */
-  Map<String, dynamic> _namedIndices = null;
 
   JSInvocationMirror(this._memberName, this._internalName, this._kind,
       this._arguments, this._namedArgumentNames, this._typeArgumentCount);
 
   Symbol get memberName {
     if (_memberName is Symbol) return _memberName;
-    String name = _memberName;
-    String unmangledName = mangledNames[name];
-    if (unmangledName != null) {
-      name = unmangledName.split(':')[0];
-    } else {
-      if (mangledNames[_internalName] == null) {
-        print("Warning: '$name' is used reflectively but not in MirrorsUsed. "
-            "This will break minified code.");
-      }
-    }
-    _memberName = new _symbol_dev.Symbol.unvalidated(name);
-    return _memberName;
+    return _memberName = new _symbol_dev.Symbol.unvalidated(_memberName);
   }
 
   bool get isMethod => _kind == METHOD;
@@ -834,10 +833,83 @@ class Primitives {
   /// In minified mode, uses the unminified names if available.
   @NoInline()
   static String objectTypeName(Object object) {
-    return formatType(_objectRawTypeName(object), getRuntimeTypeInfo(object));
+    if (JS_GET_FLAG('STRONG_MODE')) {
+      String className = _objectClassName(object);
+      String arguments = joinArguments(getRuntimeTypeInfo(object), 0);
+      return '${className}${arguments}';
+    } else {
+      return formatType(
+          _objectRawTypeNameV1(object), getRuntimeTypeInfo(object));
+    }
   }
 
-  static String _objectRawTypeName(Object object) {
+  static String _objectClassName(Object object) {
+    var interceptor = getInterceptor(object);
+    // The interceptor is either an object (self-intercepting plain Dart class),
+    // the prototype of the constructor for an Interceptor class (like
+    // `JSString.prototype`, `JSNull.prototype`), or an Interceptor object
+    // instance (`const JSString()`, should use `JSString.prototype`).
+    //
+    // These all should have a `constructor` property with a `name` property.
+    String name;
+    var interceptorConstructor = JS('', '#.constructor', interceptor);
+    if (JS('bool', 'typeof # == "function"', interceptorConstructor)) {
+      var interceptorConstructorName = JS('', '#.name', interceptorConstructor);
+      if (interceptorConstructorName is String) {
+        name = interceptorConstructorName;
+      }
+    }
+
+    if (name == null ||
+        identical(interceptor, JS_INTERCEPTOR_CONSTANT(Interceptor)) ||
+        object is UnknownJavaScriptObject) {
+      // Try to do better.  If we do not find something better, leave the name
+      // as 'UnknownJavaScriptObject' or 'Interceptor' (or the minified name).
+      //
+      // When we get here via the UnknownJavaScriptObject test (for JavaScript
+      // objects from outside the program), the object's constructor has a
+      // better name that 'UnknownJavaScriptObject'.
+      //
+      // When we get here the Interceptor test (for Native classes that are
+      // declared in the Dart program but have been 'folded' into Interceptor),
+      // the native class's constructor name is better than the generic
+      // 'Interceptor' (an abstract class).
+
+      // Try the [constructorNameFallback]. This gets the constructor name for
+      // any browser (used by [getNativeInterceptor]).
+      String dispatchName = constructorNameFallback(object);
+      name ??= dispatchName;
+      if (dispatchName == 'Object') {
+        // Try to decompile the constructor by turning it into a string and get
+        // the name out of that. If the decompiled name is a string containing
+        // an identifier, we use that instead of the very generic 'Object'.
+        var objectConstructor = JS('', '#.constructor', object);
+        if (JS('bool', 'typeof # == "function"', objectConstructor)) {
+          var match = JS('var', r'#.match(/^\s*function\s*([\w$]*)\s*\(/)',
+              JS('var', r'String(#)', objectConstructor));
+          var decompiledName = match == null ? null : JS('var', r'#[1]', match);
+          if (decompiledName is String &&
+              JS('bool', r'/^\w+$/.test(#)', decompiledName)) {
+            name = decompiledName;
+          }
+        }
+      }
+      return JS('String', '#', name);
+    }
+
+    // Type inference does not understand that [name] is now always a non-null
+    // String. (There is some imprecision in the negation of the disjunction.)
+    name = JS('String', '#', name);
+
+    // TODO(kasperl): If the namer gave us a fresh global name, we may
+    // want to remove the numeric suffix that makes it unique too.
+    if (name.length > 1 && identical(name.codeUnitAt(0), DOLLAR_CHAR_VALUE)) {
+      name = name.substring(1);
+    }
+    return unminifyOrTag(name);
+  }
+
+  static String _objectRawTypeNameV1(Object object) {
     var interceptor = getInterceptor(object);
     // The interceptor is either an object (self-intercepting plain Dart class),
     // the prototype of the constructor for an Interceptor class (like
@@ -2588,10 +2660,14 @@ abstract class Closure implements Function {
             new BoundClosure(null, null, null, null));
 
     JS('', '#.\$initialize = #', prototype, JS('', '#.constructor', prototype));
+
+    // The constructor functions have names to prevent the JavaScript
+    // implementation from inventing a name that might have special meaning
+    // (e.g. clashing with minified 'Object' or 'Interceptor').
     var constructor = isStatic
-        ? JS('', 'function(){this.\$initialize()}')
+        ? JS('', 'function static_tear_off(){this.\$initialize()}')
         : isCsp
-            ? JS('', 'function(a,b,c,d) {this.\$initialize(a,b,c,d)}')
+            ? JS('', 'function tear_off(a,b,c,d) {this.\$initialize(a,b,c,d)}')
             : JS(
                 '',
                 'new Function("a,b,c,d" + #,'
@@ -2975,7 +3051,11 @@ class StaticClosure extends TearOffClosure {
     String name =
         JS('String|Null', '#[#]', this, STATIC_FUNCTION_NAME_PROPERTY_NAME);
     if (name == null) return 'Closure of unknown static method';
-    return "Closure '$name'";
+    if (JS_GET_FLAG('STRONG_MODE')) {
+      return "Closure '${unminifyOrTag(name)}'";
+    } else {
+      return "Closure '$name'";
+    }
   }
 }
 
@@ -3026,6 +3106,8 @@ class BoundClosure extends TearOffClosure {
 
   toString() {
     var receiver = _receiver == null ? _self : _receiver;
+    // TODO(sra): When minified, mark [_name] with a tag,
+    // e.g. 'minified-property:' so that it can be unminified.
     return "Closure '$_name' of "
         "${Primitives.objectToHumanReadableString(receiver)}";
   }

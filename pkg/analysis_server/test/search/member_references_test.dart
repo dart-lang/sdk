@@ -14,6 +14,7 @@ import 'abstract_search_domain.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MemberReferencesTest);
+    defineReflectiveTests(MemberReferencesTest_UseCFE);
   });
 }
 
@@ -32,7 +33,7 @@ class MemberReferencesTest extends AbstractSearchDomainTest {
     return waitForSearchResults();
   }
 
-  test_fields_explicit() async {
+  Future<void> test_fields_explicit() async {
     addTestFile('''
 class A {
   var foo;
@@ -64,7 +65,7 @@ mainUnresolved(a, b) {
     assertHasRef(SearchResultKind.READ, 'foo); // unresolved B', true);
   }
 
-  test_fields_implicit() async {
+  Future<void> test_fields_implicit() async {
     addTestFile('''
 class A {
   get foo => null;
@@ -88,7 +89,7 @@ mainUnresolved(a, b) {
     assertHasRef(SearchResultKind.READ, 'foo); // unresolved B', true);
   }
 
-  test_methods() async {
+  Future<void> test_methods() async {
     addTestFile('''
 class A {
   foo() {}
@@ -110,5 +111,32 @@ mainUnresolved(a, b) {
     assertNoResult(SearchResultKind.INVOCATION, 'foo(2)');
     assertHasRef(SearchResultKind.INVOCATION, 'foo(10)', true);
     assertHasRef(SearchResultKind.INVOCATION, 'foo(20)', true);
+  }
+}
+
+@reflectiveTest
+class MemberReferencesTest_UseCFE extends MemberReferencesTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_fields_explicit() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_fields_explicit);
+  }
+
+  @failingTest
+  @override
+  test_fields_implicit() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_fields_implicit);
+  }
+
+  @failingTest
+  @override
+  test_methods() async {
+    fail('Timeout');
+//    return callFailingTest(super.test_methods);
   }
 }

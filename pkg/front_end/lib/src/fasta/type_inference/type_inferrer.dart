@@ -68,9 +68,29 @@ import '../../scanner/token.dart' show Token;
 
 import '../builder/builder.dart' show PrefixBuilder;
 
-import '../fasta_codes.dart';
-
-import '../kernel/factory.dart' show Factory;
+import '../fasta_codes.dart'
+    show
+        LocatedMessage,
+        Message,
+        Template,
+        messageReturnFromVoidFunction,
+        messageVoidExpression,
+        noLength,
+        templateArgumentTypeNotAssignable,
+        templateDuplicatedNamedArgument,
+        templateImplicitCallOfNonMethod,
+        templateInvalidAssignment,
+        templateInvalidCastFunctionExpr,
+        templateInvalidCastLiteralList,
+        templateInvalidCastLiteralMap,
+        templateInvalidCastLocalFunction,
+        templateInvalidCastNewExpr,
+        templateInvalidCastStaticMethod,
+        templateInvalidCastTopLevelFunction,
+        templateMixinInferenceNoMatchingClass,
+        templateUndefinedGetter,
+        templateUndefinedMethod,
+        templateUndefinedSetter;
 
 import '../kernel/kernel_expression_generator.dart' show buildIsNull;
 
@@ -106,7 +126,8 @@ import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
 import 'type_inference_engine.dart'
     show IncludesTypeParametersCovariantly, TypeInferenceEngine;
 
-import 'type_inference_listener.dart' show TypeInferenceListener;
+import 'type_inference_listener.dart'
+    show TypeInferenceListener, TypeInferenceTokensSaver;
 
 import 'type_promotion.dart' show TypePromoter, TypePromoterDisabled;
 
@@ -166,6 +187,8 @@ class ClosureContext {
   /// this typing expectation in `Stream` or `Iterator`, as appropriate.
   final DartType returnOrYieldContext;
 
+  final DartType declaredReturnType;
+
   final bool _needToInferReturnType;
 
   final bool _needImplicitDowncasts;
@@ -187,6 +210,7 @@ class ClosureContext {
       DartType returnContext,
       bool needToInferReturnType,
       bool needImplicitDowncasts) {
+    DartType declaredReturnType = returnContext;
     bool isAsync = asyncMarker == AsyncMarker.Async ||
         asyncMarker == AsyncMarker.AsyncStar;
     bool isGenerator = asyncMarker == AsyncMarker.SyncStar ||
@@ -204,28 +228,33 @@ class ClosureContext {
           inferrer.typeSchemaEnvironment.unfutureType(returnContext));
     }
     return new ClosureContext._(isAsync, isGenerator, returnContext,
-        needToInferReturnType, needImplicitDowncasts);
+        declaredReturnType, needToInferReturnType, needImplicitDowncasts);
   }
 
-  ClosureContext._(this.isAsync, this.isGenerator, this.returnOrYieldContext,
-      this._needToInferReturnType, this._needImplicitDowncasts) {
+  ClosureContext._(
+      this.isAsync,
+      this.isGenerator,
+      this.returnOrYieldContext,
+      this.declaredReturnType,
+      this._needToInferReturnType,
+      this._needImplicitDowncasts) {
     assert(returnOrYieldContext != null);
   }
 
   /// Updates the inferred return type based on the presence of a return
   /// statement returning the given [type].
   void handleReturn(TypeInferrerImpl inferrer, DartType type,
-      Expression expression, int fileOffset) {
+      Expression expression, int fileOffset, bool isArrow) {
     if (isGenerator) return;
     _updateInferredReturnType(
-        inferrer, type, expression, fileOffset, true, false);
+        inferrer, type, expression, fileOffset, true, false, isArrow);
   }
 
   void handleYield(TypeInferrerImpl inferrer, bool isYieldStar, DartType type,
       Expression expression, int fileOffset) {
     if (!isGenerator) return;
     _updateInferredReturnType(
-        inferrer, type, expression, fileOffset, false, isYieldStar);
+        inferrer, type, expression, fileOffset, false, isYieldStar, false);
   }
 
   DartType inferReturnType(TypeInferrerImpl inferrer) {
@@ -242,8 +271,14 @@ class ClosureContext {
     return _wrapAsyncOrGenerator(inferrer, inferredType);
   }
 
-  void _updateInferredReturnType(TypeInferrerImpl inferrer, DartType type,
-      Expression expression, int fileOffset, bool isReturn, bool isYieldStar) {
+  void _updateInferredReturnType(
+      TypeInferrerImpl inferrer,
+      DartType type,
+      Expression expression,
+      int fileOffset,
+      bool isReturn,
+      bool isYieldStar,
+      bool isArrow) {
     if (_needImplicitDowncasts) {
       var expectedType = isYieldStar
           ? _wrapAsyncOrGenerator(inferrer, returnOrYieldContext)
@@ -252,7 +287,10 @@ class ClosureContext {
         expectedType = greatestClosure(inferrer.coreTypes, expectedType);
         if (inferrer.ensureAssignable(
                 expectedType, type, expression, fileOffset,
-                isReturnFromAsync: isAsync) !=
+                isReturnFromAsync: isAsync,
+                isReturn: isReturn,
+                declaredReturnType: declaredReturnType,
+                isArrow: isArrow) !=
             null) {
           type = expectedType;
         }
@@ -349,48 +387,42 @@ abstract class TypeInferrer {
   /// Performs full type inference on the given field initializer.
   void inferFieldInitializer<Expression, Statement, Initializer, Type>(
       InferenceHelper helper,
-      Factory<Expression, Statement, Initializer, Type> factory,
       DartType declaredType,
       kernel.Expression initializer);
 
   /// Performs type inference on the given function body.
   void inferFunctionBody<Expression, Statement, Initializer, Type>(
       InferenceHelper helper,
-      Factory<Expression, Statement, Initializer, Type> factory,
       DartType returnType,
       AsyncMarker asyncMarker,
       Statement body);
 
   /// Performs type inference on the given constructor initializer.
   void inferInitializer<Expression, Statement, Initializer, Type>(
-      InferenceHelper helper,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      kernel.Initializer initializer);
+      InferenceHelper helper, kernel.Initializer initializer);
 
   /// Performs type inference on the given metadata annotations.
   void inferMetadata<Expression, Statement, Initializer, Type>(
-      InferenceHelper helper,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      List<kernel.Expression> annotations);
+      InferenceHelper helper, List<kernel.Expression> annotations);
 
   /// Performs type inference on the given metadata annotations keeping the
   /// existing helper if possible.
   void inferMetadataKeepingHelper<Expression, Statement, Initializer, Type>(
-      Factory<Expression, Statement, Initializer, Type> factory,
       List<kernel.Expression> annotations);
 
   /// Performs type inference on the given function parameter initializer
   /// expression.
   void inferParameterInitializer<Expression, Statement, Initializer, Type>(
       InferenceHelper helper,
-      Factory<Expression, Statement, Initializer, Type> factory,
       kernel.Expression initializer,
       DartType declaredType);
 
   void storePrefix(Token token, PrefixBuilder prefix);
 
-  void storeTypeReference(
-      int offset, TreeNode reference, Object binder, DartType type);
+  void storeUnresolved(Token token);
+
+  void storeTypeReference(int offset, bool forSyntheticToken,
+      TreeNode reference, Object binder, DartType type);
 
   void storeTypeUse(int offset, Node node);
 
@@ -398,6 +430,8 @@ abstract class TypeInferrer {
       int offset, Object binder, TypeParameter typeParameter);
 
   void voidType(int offset, Token token, DartType type);
+
+  TypeInferenceTokensSaver get tokensSaver;
 }
 
 /// Implementation of [TypeInferrer] which doesn't do any type inference.
@@ -427,39 +461,31 @@ class TypeInferrerDisabled extends TypeInferrer {
   @override
   void inferFieldInitializer<Expression, Statement, Initializer, Type>(
       InferenceHelper helper,
-      Factory<Expression, Statement, Initializer, Type> factory,
       DartType declaredType,
       kernel.Expression initializer) {}
 
   @override
   void inferFunctionBody<Expression, Statement, Initializer, Type>(
       InferenceHelper helper,
-      Factory<Expression, Statement, Initializer, Type> statementFactory,
       DartType returnType,
       AsyncMarker asyncMarker,
       Statement body) {}
 
   @override
   void inferInitializer<Expression, Statement, Initializer, Type>(
-      InferenceHelper helper,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      kernel.Initializer initializer) {}
+      InferenceHelper helper, kernel.Initializer initializer) {}
 
   @override
   void inferMetadata<Expression, Statement, Initializer, Type>(
-      InferenceHelper helper,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      List<kernel.Expression> annotations) {}
+      InferenceHelper helper, List<kernel.Expression> annotations) {}
 
   @override
   void inferMetadataKeepingHelper<Expression, Statement, Initializer, Type>(
-      Factory<Expression, Statement, Initializer, Type> factory,
       List<kernel.Expression> annotations) {}
 
   @override
   void inferParameterInitializer<Expression, Statement, Initializer, Type>(
       InferenceHelper helper,
-      Factory<Expression, Statement, Initializer, Type> factory,
       kernel.Expression initializer,
       DartType declaredType) {}
 
@@ -467,8 +493,11 @@ class TypeInferrerDisabled extends TypeInferrer {
   void storePrefix(Token token, PrefixBuilder prefix) {}
 
   @override
-  void storeTypeReference(
-      int offset, TreeNode reference, Object binder, DartType type) {}
+  void storeUnresolved(Token token) {}
+
+  @override
+  void storeTypeReference(int offset, bool forSyntheticToken,
+      TreeNode reference, Object binder, DartType type) {}
 
   @override
   void storeTypeUse(int offset, Node node) {}
@@ -479,6 +508,8 @@ class TypeInferrerDisabled extends TypeInferrer {
 
   @override
   void voidType(int offset, Token token, DartType type) {}
+
+  TypeInferenceTokensSaver get tokensSaver => null;
 }
 
 /// Derived class containing generic implementations of [TypeInferrer].
@@ -568,9 +599,23 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// [expectedType], and inserts an implicit downcast if appropriate.
   Expression ensureAssignable(DartType expectedType, DartType actualType,
       Expression expression, int fileOffset,
-      {bool isReturnFromAsync = false,
+      {bool isReturnFromAsync: false,
+      bool isReturn: false,
+      bool isVoidAllowed,
+      bool isArrow: false,
+      DartType declaredReturnType,
       Template<Message Function(DartType, DartType)> template}) {
+    isVoidAllowed ??= isArrow;
     assert(expectedType != null);
+    if (isReturn &&
+        !isArrow &&
+        !isValidReturn(declaredReturnType, actualType, isReturnFromAsync)) {
+      TreeNode parent = expression.parent;
+      Expression errorNode = helper.wrapInProblem(
+          expression, messageReturnFromVoidFunction, noLength);
+      parent?.replaceChild(expression, errorNode);
+      return errorNode;
+    }
     expectedType = greatestClosure(coreTypes, expectedType);
 
     DartType initialExpectedType = expectedType;
@@ -585,6 +630,28 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         expectedType = unfuturedExpectedType;
       } else if (isAssignable(futuredExpectedType, actualType)) {
         expectedType = futuredExpectedType;
+      }
+    }
+    if (isReturn && !isArrow) {
+      if (expectedType is VoidType) {
+        isVoidAllowed = true;
+        if (actualType is! VoidType &&
+            actualType is! DynamicType &&
+            !isNull(actualType)) {
+          // Error: not assignable.  Perform error recovery.
+          TreeNode parent = expression.parent;
+          Expression errorNode = helper.wrapInProblem(
+              expression, messageReturnFromVoidFunction, noLength);
+          parent?.replaceChild(expression, errorNode);
+          return errorNode;
+        }
+      } else {
+        DartType flattened = typeSchemaEnvironment.unfutureType(expectedType);
+        if (flattened is VoidType) {
+          isVoidAllowed = true;
+        } else {
+          isVoidAllowed = expectedType is DynamicType;
+        }
       }
     }
 
@@ -623,6 +690,15 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
     }
 
+    if (actualType is VoidType && !isVoidAllowed) {
+      // Error: not assignable.  Perform error recovery.
+      TreeNode parent = expression.parent;
+      Expression errorNode =
+          helper.wrapInProblem(expression, messageVoidExpression, noLength);
+      parent?.replaceChild(expression, errorNode);
+      return errorNode;
+    }
+
     if (expectedType == null ||
         typeSchemaEnvironment.isSubtypeOf(actualType, expectedType)) {
       // Types are compatible.
@@ -658,6 +734,67 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         return typeCheck;
       }
     }
+  }
+
+  bool isValidReturn(
+      DartType returnType, DartType expressionType, bool isAsync) {
+    final DartType t = returnType;
+    final DartType s = expressionType;
+    if (!isAsync) {
+      if (t is DynamicType) {
+        // * `return exp;` where `exp` has static type `S` is a valid return if:
+        //   * `T` is `dynamic`
+        return true;
+      }
+
+      if (t is VoidType) {
+        // * `return exp;` where `exp` has static type `S` is a valid return if:
+        //   * `T` is `void`
+        //   * and `S` is `void` or `dynamic` or `Null`
+        return s is VoidType || s is DynamicType || isNull(s);
+      } else {
+        // * `return exp;` where `exp` has static type `S` is a valid return if:
+        //   * `T` is not `void`
+        //   * and `S` is not `void`
+        //   * and `S` is assignable to `T`
+        return s is! VoidType;
+      }
+    }
+    final DartType flattenT = typeSchemaEnvironment.unfutureType(t);
+
+    // * `return exp;` where `exp` has static type `S` is a valid return if:
+    //   * `flatten(T)` is `dynamic` or `Null`
+    if (flattenT is DynamicType || isNull(flattenT)) return true;
+
+    // * `return exp;` where `exp` has static type `S` is a valid return if:
+    //   * `T` is `void`
+    //   * and `S` is `void`, `dynamic` or `Null`
+    if (t is VoidType) {
+      if (s is VoidType || s is DynamicType || isNull(s)) return true;
+    } else {
+      final DartType flattenS = typeSchemaEnvironment.unfutureType(s);
+      // * `return exp;` where `exp` has static type `S` is a valid return if:
+      //   * `T` is not `void`
+      //   * `flatten(T)` is `void`
+      //   * and `flatten(S)` is `void`, `dynamic` or `Null`
+      if (flattenT is VoidType) {
+        if (flattenS is VoidType ||
+            flattenS is DynamicType ||
+            isNull(flattenS)) {
+          return true;
+        }
+      }
+
+      // * `return exp;` where `exp` has static type `S` is a valid return if:
+      //   * `T` is not `void`
+      //   * and `flatten(S)` is not `void`
+      if (flattenS is! VoidType) return true;
+    }
+    return false;
+  }
+
+  bool isNull(DartType type) {
+    return type is InterfaceType && type.classNode == coreTypes.nullClass;
   }
 
   /// Finds a member of [receiverType] called [name], and if it is found,
@@ -1084,21 +1221,18 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Derived classes should override this method with logic that dispatches on
   /// the expression type and calls the appropriate specialized "infer" method.
   DartType inferExpression<Expression, Statement, Initializer, Type>(
-      Factory<Expression, Statement, Initializer, Type> factory,
-      kernel.Expression expression,
-      DartType typeContext,
-      bool typeNeeded);
+      kernel.Expression expression, DartType typeContext, bool typeNeeded,
+      {bool isVoidAllowed});
 
   @override
   void inferFieldInitializer<Expression, Statement, Initializer, Type>(
       InferenceHelper helper,
-      Factory<Expression, Statement, Initializer, Type> factory,
       DartType declaredType,
       kernel.Expression initializer) {
     assert(closureContext == null);
     this.helper = helper;
-    var actualType = inferExpression(factory, initializer,
-        declaredType ?? const UnknownType(), declaredType != null);
+    var actualType = inferExpression(
+        initializer, declaredType ?? const UnknownType(), declaredType != null);
     if (declaredType != null) {
       ensureAssignable(
           declaredType, actualType, initializer, initializer.fileOffset);
@@ -1111,14 +1245,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Derived classes should provide an implementation that calls
   /// [inferExpression] for the given [field]'s initializer expression.
   DartType inferFieldTopLevel<Expression, Statement, Initializer, Type>(
-      Factory<Expression, Statement, Initializer, Type> factory,
-      ShadowField field,
-      bool typeNeeded);
+      ShadowField field, bool typeNeeded);
 
   @override
   void inferFunctionBody<Expression, Statement, Initializer, Type>(
       InferenceHelper helper,
-      Factory<Expression, Statement, Initializer, Type> factory,
       DartType returnType,
       AsyncMarker asyncMarker,
       Statement body) {
@@ -1126,7 +1257,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     this.helper = helper;
     closureContext =
         new ClosureContext(this, asyncMarker, returnType, false, true);
-    inferStatement(factory, body);
+    inferStatement(body);
     closureContext = null;
     this.helper = null;
   }
@@ -1135,7 +1266,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// invocations (constructors, instance methods, and static methods).
   ExpressionInferenceResult
       inferInvocation<Expression, Statement, Initializer, Type>(
-          Factory<Expression, Statement, Initializer, Type> factory,
           DartType typeContext,
           int offset,
           FunctionType calleeType,
@@ -1209,7 +1339,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           ? substitution.substituteType(formalType)
           : formalType;
       var expressionType = inferExpression(
-          factory,
           expression,
           inferredFormalType,
           inferenceNeeded ||
@@ -1224,6 +1353,48 @@ abstract class TypeInferrerImpl extends TypeInferrer {
             receiverType, expressionType);
       }
     });
+
+    // Check for and remove duplicated named arguments.
+    var named = arguments.named;
+    if (named.length == 2) {
+      if (named[0].name == named[1].name) {
+        var name = named[1].name;
+        var error = helper.buildCompileTimeError(
+            templateDuplicatedNamedArgument.withArguments(name),
+            named[1].fileOffset,
+            name.length);
+        arguments.named = [new kernel.NamedExpression(named[1].name, error)];
+        formalTypes.removeLast();
+        actualTypes.removeLast();
+      }
+    } else if (named.length > 2) {
+      var seenNames = <String, kernel.NamedExpression>{};
+      var hasProblem = false;
+      var namedTypeIndex = arguments.positional.length;
+      var uniqueNamed = <kernel.NamedExpression>[];
+      for (var expression in named) {
+        var name = expression.name;
+        if (seenNames.containsKey(name)) {
+          hasProblem = true;
+          var prevNamedExpression = seenNames[name];
+          prevNamedExpression.value = helper.buildCompileTimeError(
+              templateDuplicatedNamedArgument.withArguments(name),
+              expression.fileOffset,
+              name.length)
+            ..parent = prevNamedExpression;
+          formalTypes.removeAt(namedTypeIndex);
+          actualTypes.removeAt(namedTypeIndex);
+        } else {
+          seenNames[name] = expression;
+          uniqueNamed.add(expression);
+          namedTypeIndex++;
+        }
+      }
+      if (hasProblem) {
+        arguments.named = uniqueNamed;
+      }
+    }
+
     if (inferenceNeeded) {
       typeSchemaEnvironment.inferGenericFunctionOrType(
           returnType,
@@ -1274,7 +1445,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   ExpressionInferenceResult
       inferLocalFunction<Expression, Statement, Initializer, Type>(
-          Factory<Expression, Statement, Initializer, Type> factory,
           FunctionNode function,
           DartType typeContext,
           int fileOffset,
@@ -1288,22 +1458,21 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       var positionalParameters = function.positionalParameters;
       for (var i = 0; i < positionalParameters.length; i++) {
         var parameter = positionalParameters[i];
-        inferMetadataKeepingHelper(factory, parameter.annotations);
+        inferMetadataKeepingHelper(parameter.annotations);
         if (i >= function.requiredParameterCount &&
             parameter.initializer == null) {
           parameter.initializer = new NullJudgment(null)..parent = parameter;
         }
         if (parameter.initializer != null) {
-          inferExpression(
-              factory, parameter.initializer, parameter.type, false);
+          inferExpression(parameter.initializer, parameter.type, false);
         }
       }
       for (var parameter in function.namedParameters) {
-        inferMetadataKeepingHelper(factory, parameter.annotations);
+        inferMetadataKeepingHelper(parameter.annotations);
         if (parameter.initializer == null) {
           parameter.initializer = new NullJudgment(null)..parent = parameter;
         }
-        inferExpression(factory, parameter.initializer, parameter.type, false);
+        inferExpression(parameter.initializer, parameter.type, false);
       }
     }
 
@@ -1399,7 +1568,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         needToSetReturnType,
         needImplicitDowncasts);
     this.closureContext = closureContext;
-    inferStatement(factory, function.body);
+    inferStatement(function.body);
 
     // If the closure is declared with `async*` or `sync*`, let `M` be the
     // least upper bound of the types of the `yield` expressions in `B’`, or
@@ -1428,19 +1597,16 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   @override
   void inferMetadata<Expression, Statement, Initializer, Type>(
-      InferenceHelper helper,
-      Factory<Expression, Statement, Initializer, Type> factory,
-      List<kernel.Expression> annotations) {
+      InferenceHelper helper, List<kernel.Expression> annotations) {
     if (annotations != null) {
       this.helper = helper;
-      inferMetadataKeepingHelper(factory, annotations);
+      inferMetadataKeepingHelper(annotations);
       this.helper = null;
     }
   }
 
   @override
   void inferMetadataKeepingHelper<Expression, Statement, Initializer, Type>(
-      Factory<Expression, Statement, Initializer, Type> factory,
       List<kernel.Expression> annotations) {
     if (annotations != null) {
       // Place annotations in a temporary list literal so that they will have a
@@ -1449,7 +1615,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       var parents = annotations.map((e) => e.parent).toList();
       new ListLiteral(annotations);
       for (var annotation in annotations) {
-        inferExpression(factory, annotation, const UnknownType(), false);
+        inferExpression(annotation, const UnknownType(), false);
       }
       for (int i = 0; i < annotations.length; ++i) {
         annotations[i].parent = parents[i];
@@ -1461,7 +1627,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// handles both null-aware and non-null-aware method invocations).
   ExpressionInferenceResult
       inferMethodInvocation<Expression, Statement, Initializer, Type>(
-          Factory<Expression, Statement, Initializer, Type> factory,
           kernel.Expression expression,
           kernel.Expression receiver,
           int fileOffset,
@@ -1475,7 +1640,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // First infer the receiver so we can look up the method that was invoked.
     var receiverType = receiver == null
         ? thisType
-        : inferExpression(factory, receiver, const UnknownType(), true);
+        : inferExpression(receiver, const UnknownType(), true);
     if (strongMode) {
       receiverVariable?.type = receiverType;
     }
@@ -1494,8 +1659,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         getCalleeFunctionType(interfaceMember, receiverType, !isImplicitCall);
     var checkKind = preCheckInvocationContravariance(receiver, receiverType,
         interfaceMember, desugaredInvocation, arguments, expression);
-    var inferenceResult = inferInvocation(factory, typeContext, fileOffset,
-        calleeType, calleeType.returnType, arguments,
+    var inferenceResult = inferInvocation(
+        typeContext, fileOffset, calleeType, calleeType.returnType, arguments,
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
         receiverType: receiverType);
     var inferredType = inferenceResult.type;
@@ -1532,6 +1697,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       listener.methodInvocation(
           expression,
           resultOffset,
+          receiverType,
           arguments.types,
           isImplicitCall,
           getRealTarget(interfaceMember),
@@ -1545,13 +1711,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   @override
   void inferParameterInitializer<Expression, Statement, Initializer, Type>(
       InferenceHelper helper,
-      Factory<Expression, Statement, Initializer, Type> factory,
       kernel.Expression initializer,
       DartType declaredType) {
     assert(closureContext == null);
     this.helper = helper;
     assert(declaredType != null);
-    var actualType = inferExpression(factory, initializer, declaredType, true);
+    var actualType = inferExpression(initializer, declaredType, true);
     ensureAssignable(
         declaredType, actualType, initializer, initializer.fileOffset);
     this.helper = null;
@@ -1560,10 +1725,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Performs the core type inference algorithm for property gets (this handles
   /// both null-aware and non-null-aware property gets).
   void inferPropertyGet<Expression, Statement, Initializer, Type>(
-      Factory<Expression, Statement, Initializer, Type> factory,
       ExpressionJudgment expression,
       ExpressionJudgment receiver,
       int fileOffset,
+      bool forSyntheticToken,
       DartType typeContext,
       {VariableDeclaration receiverVariable,
       PropertyGet desugaredGet,
@@ -1574,7 +1739,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (receiver == null) {
       receiverType = thisType;
     } else {
-      inferExpression(factory, receiver, const UnknownType(), true);
+      inferExpression(receiver, const UnknownType(), true);
       receiverType = receiver.inferredType;
     }
     if (strongMode) {
@@ -1606,8 +1771,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (identical(interfaceMember, 'call')) {
       listener.propertyGetCall(expression, expression.fileOffset, inferredType);
     } else {
-      listener.propertyGet(
-          expression, expression.fileOffset, interfaceMember, inferredType);
+      listener.propertyGet(expression, expression.fileOffset, forSyntheticToken,
+          receiverType, interfaceMember, inferredType);
     }
     expression.inferredType = inferredType;
   }
@@ -1627,7 +1792,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Derived classes should override this method with logic that dispatches on
   /// the statement type and calls the appropriate specialized "infer" method.
   void inferStatement<Expression, Statement, Initializer, Type>(
-      Factory<Expression, Statement, Initializer, Type> factory,
       Statement statement);
 
   /// Performs the type inference steps necessary to instantiate a tear-off
@@ -1751,9 +1915,15 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   }
 
   @override
-  void storeTypeReference(
-      int offset, TreeNode reference, Object binder, DartType type) {
-    listener.typeReference(offset, null, null, null, reference, binder, type);
+  void storeUnresolved(Token token) {
+    listener.storeUnresolved(token.offset);
+  }
+
+  @override
+  void storeTypeReference(int offset, bool forSyntheticToken,
+      TreeNode reference, Object binder, DartType type) {
+    listener.typeReference(
+        offset, forSyntheticToken, null, null, null, reference, binder, type);
   }
 
   @override
@@ -1891,6 +2061,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
     return false;
   }
+
+  TypeInferenceTokensSaver get tokensSaver =>
+      listener?.typeInferenceTokensSaver;
 }
 
 class LegacyModeMixinInferrer implements MixinInferrer {

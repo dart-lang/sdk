@@ -405,12 +405,12 @@ class KernelImpactBuilder extends ir.Visitor {
       handleNew(node, node.target, isConst: node.isConst);
     } else {
       FunctionEntity target = elementMap.getMethod(node.target);
+      List<DartType> typeArguments = _visitArguments(node.arguments);
       if (_options.strongMode &&
           target == commonElements.extractTypeArguments) {
-        _handleExtractTypeArguments(node, target);
+        _handleExtractTypeArguments(node, target, typeArguments);
         return;
       }
-      List<DartType> typeArguments = _visitArguments(node.arguments);
       impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
           target, elementMap.getCallStructure(node.arguments), typeArguments));
     }
@@ -439,8 +439,8 @@ class KernelImpactBuilder extends ir.Visitor {
     }
   }
 
-  void _handleExtractTypeArguments(
-      ir.StaticInvocation node, FunctionEntity target) {
+  void _handleExtractTypeArguments(ir.StaticInvocation node,
+      FunctionEntity target, List<DartType> typeArguments) {
     // extractTypeArguments<Map>(obj, fn) has additional impacts:
     //
     //   1. All classes implementing Map need to carry type arguments (similar
@@ -448,7 +448,6 @@ class KernelImpactBuilder extends ir.Visitor {
     //
     //   2. There is an invocation of fn with some number of type arguments.
     //
-    List<DartType> typeArguments = _visitArguments(node.arguments);
     impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
         target, elementMap.getCallStructure(node.arguments), typeArguments));
 
@@ -639,6 +638,27 @@ class KernelImpactBuilder extends ir.Visitor {
     if (node.name.name == Identifiers.runtimeType_) {
       if (_options.strongMode) {
         RuntimeTypeUse runtimeTypeUse = computeRuntimeTypeUse(elementMap, node);
+        if (_options.omitImplicitChecks) {
+          switch (runtimeTypeUse.kind) {
+            case RuntimeTypeUseKind.string:
+              if (!_options.laxRuntimeTypeToString) {
+                if (runtimeTypeUse.receiverType == commonElements.objectType) {
+                  reporter.reportHintMessage(
+                      computeSourceSpanFromTreeNode(node),
+                      MessageKind.RUNTIME_TYPE_TO_STRING_OBJECT);
+                } else {
+                  reporter.reportHintMessage(
+                      computeSourceSpanFromTreeNode(node),
+                      MessageKind.RUNTIME_TYPE_TO_STRING_SUBTYPE,
+                      {'receiverType': '${runtimeTypeUse.receiverType}.'});
+                }
+              }
+              break;
+            case RuntimeTypeUseKind.equals:
+            case RuntimeTypeUseKind.unknown:
+              break;
+          }
+        }
         impactBuilder.registerRuntimeTypeUse(runtimeTypeUse);
       } else {
         impactBuilder.registerRuntimeTypeUse(new RuntimeTypeUse(

@@ -349,9 +349,6 @@ html/js_extend_class_test: RuntimeError
 [ $compiler == dart2js && $runtime != d8 && !$strong ]
 html/js_dart_functions_test: RuntimeError # does not implement Dart 2 implicit `.call` tearoff
 
-[ $compiler == dart2js && $runtime == drt && !$checked ]
-html/audiocontext_test/functional: Pass, Fail
-
 [ $compiler == dart2js && $runtime == ff ]
 async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Times out. Issue 22050
@@ -571,7 +568,6 @@ html/element_constructor_1_test: Crash # NoSuchMethodError: Class 'JMethod' has 
 html/element_dimensions_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/element_offset_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/element_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/element_test/ElementList: RuntimeError
 html/element_test/_ElementList: RuntimeError
 html/element_test/attributes: RuntimeError
 html/element_test/children: RuntimeError
@@ -749,6 +745,7 @@ html/custom/mirrors_test: Crash # NoSuchMethodError: Class 'JMethod' has no inst
 html/custom_elements_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/element_classes_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/element_offset_test/offset: RuntimeError
+html/element_test/ElementList: RuntimeError
 html/element_types_constructors2_test/constructors: RuntimeError
 html/element_types_constructors3_test/constructors: RuntimeError
 html/element_types_constructors4_test/constructors: RuntimeError
@@ -824,9 +821,7 @@ html/canvas_pixel_array_type_alias_test/types2_runtimeTypeName: Fail, OK # Issue
 [ $compiler == dart2js && $strong ]
 async/future_or_type_test: RuntimeError
 async/slow_consumer2_test: RuntimeError
-async/stream_controller_async_test: RuntimeError
 async/stream_distinct_test: RuntimeError
-async/stream_join_test: RuntimeError
 collection/list_test: RuntimeError
 html/element_classes_test: RuntimeError
 

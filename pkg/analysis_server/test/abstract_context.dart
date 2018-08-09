@@ -60,10 +60,16 @@ class AbstractContextTest extends Object with ResourceProviderMixin {
 
   bool get previewDart2 => driver.analysisOptions.previewDart2;
 
+  /**
+   * Return `true` to enable the Dart 2.0 Common Front End.
+   */
+  bool get useCFE => false;
+
   void addFlutterPackage() {
     addMetaPackageSource();
     Folder libFolder = configureFlutterPackage(resourceProvider);
     packageMap['flutter'] = [libFolder];
+    configureDriver();
   }
 
   Source addMetaPackageSource() => addPackageSource('meta', 'meta.dart', r'''
@@ -93,6 +99,7 @@ class _IsTestGroup {
     packageMap[packageName] = [newFolder('/pubcache/$packageName/lib')];
     File file =
         newFile('/pubcache/$packageName/lib/$filePath', content: content);
+    configureDriver();
     return file.createSource();
   }
 
@@ -103,6 +110,14 @@ class _IsTestGroup {
     driver.changeFile(file.path);
     fileContentOverlay[file.path] = content;
     return source;
+  }
+
+  /**
+   * Re-configure the driver. This is necessary, for example, after defining a
+   * new package that test code will reference.
+   */
+  void configureDriver() {
+    driver.configure();
   }
 
   void configurePreviewDart2() {
@@ -140,7 +155,8 @@ class _IsTestGroup {
         new ContextRoot(resourceProvider.convertPath('/project'), [],
             pathContext: resourceProvider.pathContext),
         sourceFactory,
-        new AnalysisOptionsImpl());
+        new AnalysisOptionsImpl()..useFastaParser = useCFE,
+        useCFE: useCFE);
     scheduler.start();
     AnalysisEngine.instance.logger = PrintLogger.instance;
   }

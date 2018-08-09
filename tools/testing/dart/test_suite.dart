@@ -27,7 +27,6 @@ import 'http_server.dart';
 import 'multitest.dart';
 import 'path.dart';
 import 'repository.dart';
-import 'runtime_updater.dart';
 import 'summary_report.dart';
 import 'test_configurations.dart';
 import 'test_runner.dart';
@@ -119,7 +118,7 @@ class FutureGroup {
  * and a status file containing the expected results when these tests are run.
  */
 abstract class TestSuite {
-  final Configuration configuration;
+  final TestConfiguration configuration;
   final String suiteName;
   final List<String> statusFilePaths;
   // This function is set by subclasses before enqueueing starts.
@@ -437,7 +436,7 @@ class VMTestSuite extends TestSuite {
   String hostRunnerPath;
   final String dartDir;
 
-  VMTestSuite(Configuration configuration)
+  VMTestSuite(TestConfiguration configuration)
       : dartDir = Repository.dir.toNativePath(),
         super(configuration, "vm", ["runtime/tests/vm/vm.status"]) {
     // For running the tests we use the given '$runnerName' binary
@@ -569,7 +568,7 @@ class StandardTestSuite extends TestSuite {
   static final Uri legacyCo19SuiteLocation =
       Repository.uri.resolve("tests/co19/");
 
-  StandardTestSuite(Configuration configuration, String suiteName,
+  StandardTestSuite(TestConfiguration configuration, String suiteName,
       Path suiteDirectory, List<String> statusFilePaths,
       {this.isTestFilePredicate, bool recursive: false})
       : dartDir = Repository.dir,
@@ -616,7 +615,7 @@ class StandardTestSuite extends TestSuite {
    * in test.dart, this will all be set up for you.
    */
   factory StandardTestSuite.forDirectory(
-      Configuration configuration, Path directory) {
+      TestConfiguration configuration, Path directory) {
     var name = directory.filename;
     var status_paths = [
       '$directory/$name.status',
@@ -656,10 +655,6 @@ class StandardTestSuite extends TestSuite {
   Future forEachTest(
       Function onTest, Map<String, List<TestInformation>> testCache,
       [VoidFunction onDone]) async {
-    if (configuration.runtime == Runtime.drt && !configuration.listTests) {
-      await updateContentShell(configuration.drtPath);
-    }
-
     doTest = onTest;
     testExpectations = readExpectations();
 
@@ -738,8 +733,8 @@ class StandardTestSuite extends TestSuite {
     if (isHtmlTestFile(filename)) {
       var info = html_test.getInformation(filename);
       if (info == null) {
-        DebugLogger
-            .error("HtmlTest $filename does not contain required annotations");
+        DebugLogger.error(
+            "HtmlTest $filename does not contain required annotations");
         return;
       }
       cachedTests.add(info);
@@ -1127,27 +1122,8 @@ class StandardTestSuite extends TestSuite {
     var htmlPathSubtest = _createUrlPathFromFile(new Path(htmlPath));
     var fullHtmlPath = _uriForBrowserTest(htmlPathSubtest, subtestName);
 
-    if (configuration.runtime == Runtime.drt) {
-      var dartFlags = <String>[];
-      var contentShellOptions = ['--no-timeout', '--run-layout-test'];
-
-      // Disable the GPU under Linux and Dartium. If the GPU is enabled,
-      // Chrome may send a termination signal to a test.  The test will be
-      // terminated if a machine (bot) doesn't have a GPU or if a test is
-      // still running after a certain period of time.
-      if (configuration.system == System.linux &&
-          configuration.runtime == Runtime.drt) {
-        contentShellOptions.add('--disable-gpu');
-        // TODO(terry): Roll 50 need this in conjection with disable-gpu.
-        contentShellOptions.add('--disable-gpu-early-init');
-      }
-
-      commands.add(Command.contentShell(contentShellFilename, fullHtmlPath,
-          contentShellOptions, dartFlags, environmentOverrides));
-    } else {
-      commands.add(Command.browserTest(fullHtmlPath, configuration,
-          retry: !isNegative(info)));
-    }
+    commands.add(Command.browserTest(fullHtmlPath, configuration,
+        retry: !isNegative(info)));
 
     var fullName = testName;
     if (subtestName != null) fullName += "/$subtestName";
@@ -1166,7 +1142,7 @@ class StandardTestSuite extends TestSuite {
     }
 
     // HTML tests work only with the browser controller.
-    if (!runtime.isBrowser || runtime == Runtime.drt) return;
+    if (!runtime.isBrowser) return;
 
     var compileToJS = compiler == Compiler.dart2js;
 
@@ -1608,18 +1584,13 @@ class StandardTestSuite extends TestSuite {
     const compilers = const [
       Compiler.none,
       Compiler.dartk,
+      Compiler.dartkb,
       Compiler.dartkp,
       Compiler.precompiler,
       Compiler.appJit
     ];
 
-    const runtimes = const [
-      Runtime.none,
-      Runtime.dartPrecompiled,
-      Runtime.vm,
-      Runtime.drt,
-      Runtime.contentShellOnAndroid
-    ];
+    const runtimes = const [Runtime.none, Runtime.dartPrecompiled, Runtime.vm];
 
     var needsVmOptions = compilers.contains(configuration.compiler) &&
         runtimes.contains(configuration.runtime);
@@ -1675,7 +1646,7 @@ class StandardTestSuite extends TestSuite {
 /// Used for testing packages in on off settings, i.e., we pass in the actual
 /// directory that we want to test.
 class PKGTestSuite extends StandardTestSuite {
-  PKGTestSuite(Configuration configuration, Path directoryPath)
+  PKGTestSuite(TestConfiguration configuration, Path directoryPath)
       : super(configuration, directoryPath.filename, directoryPath,
             ["$directoryPath/.status"],
             isTestFilePredicate: (f) => f.endsWith('_test.dart'),
@@ -1701,14 +1672,14 @@ class PKGTestSuite extends StandardTestSuite {
 }
 
 class AnalyzeLibraryTestSuite extends StandardTestSuite {
-  static Path _libraryPath(Configuration configuration) =>
+  static Path _libraryPath(TestConfiguration configuration) =>
       new Path(configuration.useSdk
           ? '${configuration.buildDirectory}/dart-sdk'
           : 'sdk');
 
   bool get listRecursively => true;
 
-  AnalyzeLibraryTestSuite(Configuration configuration)
+  AnalyzeLibraryTestSuite(TestConfiguration configuration)
       : super(configuration, 'analyze_library', _libraryPath(configuration),
             ['tests/lib/analyzer/analyze_library.status']);
 

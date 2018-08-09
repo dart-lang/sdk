@@ -105,7 +105,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     if (verifyNoTestUnitErrors) {
       assertNoErrorsInSource(testSource);
     }
-    testUnitElement = testUnit.element;
+    testUnitElement = testUnit.declaredElement;
     testLibraryElement = testUnitElement.library;
   }
 }

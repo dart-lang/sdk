@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.dart.element.type;
-
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/token.dart';
@@ -404,8 +402,14 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
     var freshVarElements = <TypeParameterElement>[];
     for (int i = 0; i < formalCount; i++) {
       var typeParamElement = originalFormals[i];
-      var freshElement =
-          new TypeParameterElementImpl.synthetic(typeParamElement.name);
+
+      // We don't know in which context the fresh function type will be used.
+      // So, we can only compute De Bruijn index for type parameters.
+      int negativeDeBruijnIndex = -(formalCount - i);
+
+      var freshElement = new TypeParameterElementImpl.synthetic(
+          typeParamElement.name,
+          nestingLevel: negativeDeBruijnIndex);
       var freshTypeVar = new TypeParameterTypeImpl(freshElement);
       freshElement.type = freshTypeVar;
 
@@ -763,12 +767,12 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
         type,
         (DartType t, DartType s) =>
             (t as TypeImpl).isMoreSpecificThan(s, withDynamic),
-        new TypeSystemImpl(null).instantiateToBounds);
+        new StrongTypeSystemImpl(null).instantiateToBounds);
   }
 
   @override
   bool isSubtypeOf(DartType type) {
-    var typeSystem = new TypeSystemImpl(null);
+    var typeSystem = new StrongTypeSystemImpl(null);
     return FunctionTypeImpl.relate(
         typeSystem.instantiateToBounds(this),
         typeSystem.instantiateToBounds(type),
@@ -1960,10 +1964,10 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * the analyzer), `null` is returned.
    */
   static InterfaceType computeLeastUpperBound(InterfaceType i, InterfaceType j,
-      {bool strong = false}) {
+      {@deprecated bool strong = true}) {
     // compute set of supertypes
-    Set<InterfaceType> si = computeSuperinterfaceSet(i, strong: strong);
-    Set<InterfaceType> sj = computeSuperinterfaceSet(j, strong: strong);
+    Set<InterfaceType> si = computeSuperinterfaceSet(i);
+    Set<InterfaceType> sj = computeSuperinterfaceSet(j);
     // union si with i and sj with j
     si.add(i);
     sj.add(j);
@@ -1988,8 +1992,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * See [computeLeastUpperBound].
    */
   static Set<InterfaceType> computeSuperinterfaceSet(InterfaceType type,
-          {bool strong = false}) =>
-      _computeSuperinterfaceSet(type, new HashSet<InterfaceType>(), strong);
+          {@deprecated bool strong = true}) =>
+      _computeSuperinterfaceSet(type, new HashSet<InterfaceType>(), true);
 
   /**
    * Return the type from the [types] list that has the longest inheritance path
@@ -2158,21 +2162,21 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * See [computeSuperinterfaceSet], and [computeLeastUpperBound].
    */
   static Set<InterfaceType> _computeSuperinterfaceSet(
-      InterfaceType type, HashSet<InterfaceType> set, bool strong) {
+      InterfaceType type, HashSet<InterfaceType> set, bool _) {
     Element element = type.element;
     if (element != null) {
       List<InterfaceType> superinterfaces = type.interfaces;
       for (InterfaceType superinterface in superinterfaces) {
-        if (!strong || !superinterface.isDartCoreFunction) {
+        if (!superinterface.isDartCoreFunction) {
           if (set.add(superinterface)) {
-            _computeSuperinterfaceSet(superinterface, set, strong);
+            _computeSuperinterfaceSet(superinterface, set, true);
           }
         }
       }
       InterfaceType supertype = type.superclass;
-      if (supertype != null && (!strong || !supertype.isDartCoreFunction)) {
+      if (supertype != null && !supertype.isDartCoreFunction) {
         if (set.add(supertype)) {
-          _computeSuperinterfaceSet(supertype, set, strong);
+          _computeSuperinterfaceSet(supertype, set, true);
         }
       }
     }

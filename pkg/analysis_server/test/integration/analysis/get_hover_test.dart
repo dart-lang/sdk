@@ -73,10 +73,9 @@ main() {
     String docRegexp: null,
     bool isLiteral: false,
     List<String> parameterRegexps: null,
-    propagatedType: null,
   }) {
     int offset = text.indexOf(target);
-    return sendAnalysisGetHover(pathname, offset).then((result) {
+    return sendAnalysisGetHover(pathname, offset).then((result) async {
       expect(result.hovers, hasLength(1));
       HoverInformation info = result.hovers[0];
       expect(info.offset, equals(offset));
@@ -121,6 +120,7 @@ main() {
           expect(info.staticType, matches(staticTypeRegexp));
         }
       }
+      return null;
     });
   }
 
@@ -163,7 +163,7 @@ main() {
           isCore: true, docRegexp: '.*'));
       tests.add(checkHover(
           'localVar =', 8, ['num', 'localVar'], 'local variable', ['num'],
-          isLocal: true, propagatedType: 'int'));
+          isLocal: true));
       tests.add(checkHover('topLevelVar.length;', 11, ['List', 'topLevelVar'],
           'top level variable', ['List']));
       tests.add(checkHover(
@@ -181,7 +181,7 @@ main() {
           isCore: true, docRegexp: '.*'));
       tests.add(checkHover(
           'localVar)', 8, ['num', 'localVar'], 'local variable', ['num'],
-          isLocal: true, parameterRegexps: ['.*'], propagatedType: 'int'));
+          isLocal: true, parameterRegexps: ['.*']));
       tests.add(checkHover(
           'func(35', 4, ['func', 'int', 'param'], 'function', ['int', 'void'],
           docRegexp: 'Documentation for func'));
@@ -198,11 +198,4 @@ class AnalysisGetHoverIntegrationTest_UseCFE
     extends AnalysisGetHoverIntegrationTest {
   @override
   bool get useCFE => true;
-
-  @override
-  @failingTest
-  test_getHover() {
-    // TODO(devoncarew): NoSuchMethodError: The getter 'canonicalName' was called on null.
-    return super.test_getHover();
-  }
 }

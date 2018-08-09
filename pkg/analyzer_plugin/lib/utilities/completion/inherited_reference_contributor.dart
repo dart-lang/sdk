@@ -51,7 +51,7 @@ class InheritedReferenceContributor extends Object
       return;
     }
     ClassDeclaration classDecl = _enclosingClass(target);
-    if (classDecl == null || classDecl.element == null) {
+    if (classDecl == null || classDecl.declaredElement == null) {
       return;
     }
     containingLibrary = request.result.libraryElement;
@@ -82,7 +82,7 @@ class InheritedReferenceContributor extends Object
     }
     if (classElement == null) {
       ClassDeclaration classDecl = _enclosingClass(target);
-      if (classDecl == null || classDecl.element == null) {
+      if (classDecl == null || classDecl.declaredElement == null) {
         return;
       }
       classElement = resolutionMap.elementDeclaredByClassDeclaration(classDecl);

@@ -60,7 +60,7 @@ class ConstantAstCloner extends AstCloner {
   @override
   FunctionExpression visitFunctionExpression(FunctionExpression node) {
     FunctionExpression expression = super.visitFunctionExpression(node);
-    expression.element = node.element;
+    expression.element = node.declaredElement;
     return expression;
   }
 
@@ -243,7 +243,7 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     super.visitConstructorDeclaration(node);
     if (node.constKeyword != null) {
-      ConstructorElement element = node.element;
+      ConstructorElement element = node.declaredElement;
       if (element != null) {
         constantsToCompute.add(element);
         constantsToCompute.addAll(element.parameters);
@@ -256,7 +256,7 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
     super.visitDefaultFormalParameter(node);
     Expression defaultValue = node.defaultValue;
-    if (defaultValue != null && node.element != null) {
+    if (defaultValue != null && node.declaredElement != null) {
       constantsToCompute
           .add(resolutionMap.elementDeclaredByFormalParameter(node));
     }
@@ -267,7 +267,7 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
   Object visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
     Expression initializer = node.initializer;
-    VariableElement element = node.element;
+    VariableElement element = node.declaredElement;
     if (initializer != null &&
         (node.isConst ||
             treatFinalInstanceVarAsConst &&

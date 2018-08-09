@@ -143,8 +143,9 @@ class AnalysisContextFactory {
       ElementFactory.functionElement3("print", VoidTypeImpl.instance,
           <ClassElement>[objectClassElement], null)
     ];
-    TopLevelVariableElement proxyTopLevelVariableElt = ElementFactory
-        .topLevelVariableElement3("proxy", true, false, proxyClassElement.type);
+    TopLevelVariableElement proxyTopLevelVariableElt =
+        ElementFactory.topLevelVariableElement3(
+            "proxy", true, false, proxyClassElement.type);
     ConstTopLevelVariableElementImpl deprecatedTopLevelVariableElt =
         ElementFactory.topLevelVariableElement3(
             "deprecated", true, false, provider.deprecatedType);
@@ -153,8 +154,8 @@ class AnalysisContextFactory {
             "override", true, false, overrideClassElement.type);
     {
       ClassElement deprecatedElement = provider.deprecatedType.element;
-      InstanceCreationExpression initializer = AstTestFactory
-          .instanceCreationExpression2(
+      InstanceCreationExpression initializer =
+          AstTestFactory.instanceCreationExpression2(
               Keyword.CONST,
               AstTestFactory.typeName(deprecatedElement),
               [AstTestFactory.string2('next release')]);
@@ -205,17 +206,15 @@ class AnalysisContextFactory {
     //   Future<R> then<R>(FutureOr<R> onValue(T value), { Function onError });
     TypeDefiningElement futureThenR = DynamicElementImpl.instance;
     DartType onValueReturnType = DynamicTypeImpl.instance;
-    if (context.analysisOptions.strongMode) {
-      futureThenR = ElementFactory.typeParameterWithType('R');
-      onValueReturnType = futureOrElement.type.instantiate([futureThenR.type]);
-    }
+    futureThenR = ElementFactory.typeParameterWithType('R');
+    onValueReturnType = futureOrElement.type.instantiate([futureThenR.type]);
     FunctionElementImpl thenOnValue = ElementFactory.functionElement3(
         'onValue', onValueReturnType, [futureElement.typeParameters[0]], null);
     thenOnValue.isSynthetic = true;
 
     DartType futureRType = futureElement.type.instantiate([futureThenR.type]);
-    MethodElementImpl thenMethod = ElementFactory
-        .methodElementWithParameters(futureElement, "then", futureRType, [
+    MethodElementImpl thenMethod = ElementFactory.methodElementWithParameters(
+        futureElement, "then", futureRType, [
       ElementFactory.requiredParameter2("onValue", thenOnValue.type),
       ElementFactory.namedParameter2("onError", provider.functionType)
     ]);
@@ -307,8 +306,8 @@ class AnalysisContextFactory {
     ClassElementImpl htmlDocumentElement =
         ElementFactory.classElement("HtmlDocument", documentElement.type);
     htmlDocumentElement.methods = <MethodElement>[
-      ElementFactory
-          .methodElement("query", elementType, <DartType>[provider.stringType])
+      ElementFactory.methodElement(
+          "query", elementType, <DartType>[provider.stringType])
     ];
     htmlUnit.types = <ClassElement>[
       ElementFactory.classElement("AnchorElement", elementType),
@@ -349,8 +348,9 @@ class AnalysisContextFactory {
         provider.doubleType,
         <ClassElement>[provider.numType.element],
         ClassElement.EMPTY_LIST);
-    TopLevelVariableElement ln10Element = ElementFactory
-        .topLevelVariableElement3("LN10", true, false, provider.doubleType);
+    TopLevelVariableElement ln10Element =
+        ElementFactory.topLevelVariableElement3(
+            "LN10", true, false, provider.doubleType);
     TypeParameterElement maxT =
         ElementFactory.typeParameterWithType('T', provider.numType);
     FunctionElementImpl maxElement = ElementFactory.functionElement3(

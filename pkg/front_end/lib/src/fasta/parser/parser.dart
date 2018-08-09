@@ -90,9 +90,12 @@ import 'type_info.dart'
 
 import 'util.dart'
     show
-        findPreviousNonZeroLengthToken,
         findNonZeroLengthToken,
+        findPreviousNonZeroLengthToken,
+        isLetter,
+        isLetterOrDigit,
         isOneOf,
+        isWhitespace,
         optional;
 
 /// An event generating parser of Dart programs. This parser expects all tokens
@@ -366,7 +369,6 @@ class Parser {
     token = syntheticPreviousToken(token);
     while (!token.next.isEof) {
       final Token start = token.next;
-      final String value = start.stringValue;
       final String nextValue = start.next.stringValue;
 
       // If a built-in keyword is being used as function name, then stop.
@@ -381,6 +383,7 @@ class Parser {
         token = parseScript(token);
       } else {
         token = parseMetadataStar(token);
+        final String value = token.next.stringValue;
         if (identical(value, 'import')) {
           directiveState?.checkImport(this, token);
           token = parseImport(token);
@@ -1184,9 +1187,7 @@ class Parser {
             token = rewriter.insertTokenAfter(token, comma).next;
             continue;
           } else {
-            reportRecoverableError(
-                next, fasta.templateExpectedButGot.withArguments(')'));
-            token = begin.endGroup;
+            token = ensureCloseParen(token, begin);
           }
         }
         break;
@@ -2139,7 +2140,12 @@ class Parser {
     if (getOrSet != null && !inPlainSync && optional("set", getOrSet)) {
       reportRecoverableError(asyncToken, fasta.messageSetterNotSync);
     }
-    token = parseFunctionBody(token, false, externalToken != null);
+    bool isExternal = externalToken != null;
+    if (isExternal && !optional(';', token.next)) {
+      reportRecoverableError(
+          externalToken, fasta.messageExternalMethodWithBody);
+    }
+    token = parseFunctionBody(token, false, isExternal);
     asyncState = savedAsyncModifier;
     listener.endTopLevelMethod(beforeStart.next, getOrSet, token);
     return token;
@@ -2271,7 +2277,7 @@ class Parser {
       listener.endInitializer(token.next);
       return token;
     } else if (optional('super', next)) {
-      return parseInitializerExpressionRest(token);
+      return parseSuperInitializerExpression(token);
     } else if (optional('this', next)) {
       token = next;
       next = token.next;
@@ -2335,6 +2341,32 @@ class Parser {
     return parseInitializerExpressionRest(beforeExpression);
   }
 
+  /// Parse the `super` initializer:
+  /// ```
+  ///   'super' ('.' identifier)? arguments ;
+  /// ```
+  Token parseSuperInitializerExpression(final Token start) {
+    Token token = start.next;
+    assert(optional('super', token));
+    Token next = token.next;
+    if (optional('.', next)) {
+      token = next;
+      next = token.next;
+      if (next.kind != IDENTIFIER_TOKEN) {
+        next = IdentifierContext.expressionContinuation
+            .ensureIdentifier(token, this);
+      }
+      token = next;
+      next = token.next;
+    }
+    if (!optional('(', next)) {
+      reportRecoverableError(
+          token, fasta.templateExpectedAfterButGot.withArguments('('));
+      rewriter.insertParens(token, false);
+    }
+    return parseInitializerExpressionRest(start);
+  }
+
   Token parseInitializerExpressionRest(Token token) {
     token = parseExpression(token);
     listener.endInitializer(token.next);
@@ -2372,6 +2404,11 @@ class Parser {
     Token next = token.next;
     if (optional(')', next)) {
       return next;
+    }
+    if (openParen.endGroup.isSynthetic) {
+      // Scanner has already reported a missing `)` error,
+      // but placed the `)` in the wrong location, so move it.
+      return rewriter.moveSynthetic(token, openParen.endGroup);
     }
 
     // TODO(danrubel): Pass in context for better error message.
@@ -2666,6 +2703,7 @@ class Parser {
           listener.endMember();
           return token;
         } else if (optional('===', next2) ||
+            optional('!==', next2) ||
             (next2.isOperator &&
                 !optional('=', next2) &&
                 !optional('<', next2))) {
@@ -2847,8 +2885,8 @@ class Parser {
       reportRecoverableError(next, fasta.messageRedirectionInNonFactory);
       token = parseRedirectingFactoryBody(token);
     } else {
-      token = parseFunctionBody(
-          token, false, staticToken == null || externalToken != null);
+      token = parseFunctionBody(token, false,
+          (staticToken == null || externalToken != null) && inPlainSync);
     }
     asyncState = savedAsyncModifier;
     listener.endMethod(getOrSet, beforeStart.next, beforeParam.next, token);
@@ -2942,9 +2980,13 @@ class Parser {
       return next;
     } else {
       // Recovery
-      // The user has specified an invalid operator name.
-      // Report the error, accept the invalid operator name, and move on.
-      reportRecoverableErrorWithToken(next, fasta.templateInvalidOperator);
+      // Scanner reports an error for `===` and `!==`.
+      if (next.type != TokenType.EQ_EQ_EQ &&
+          next.type != TokenType.BANG_EQ_EQ) {
+        // The user has specified an invalid operator name.
+        // Report the error, accept the invalid operator name, and move on.
+        reportRecoverableErrorWithToken(next, fasta.templateInvalidOperator);
+      }
       listener.handleInvalidOperatorName(token, next);
       return next;
     }
@@ -3874,9 +3916,6 @@ class Parser {
       Token next = token.next;
       reportRecoverableError(
           next, fasta.templateExpectedToken.withArguments('('));
-      // TODO(danrubel): Consider removing the 2nd error message.
-      reportRecoverableError(
-          next, fasta.templateExpectedToken.withArguments(')'));
       rewriter.insertParens(token, false);
     }
     Token begin = token.next;
@@ -3896,12 +3935,8 @@ class Parser {
     token = token.next;
     assert(optional('(', token));
     BeginToken begin = token;
-    token = parseExpression(token).next;
-    if (!identical(begin.endGroup, token)) {
-      reportRecoverableError(
-          token, fasta.templateExpectedButGot.withArguments(')'));
-      token = begin.endGroup;
-    }
+    token = parseExpression(token);
+    token = ensureCloseParen(token, begin);
     assert(optional(')', token));
     return token;
   }
@@ -4464,10 +4499,7 @@ class Parser {
                   new SyntheticToken(TokenType.COMMA, next.offset))
               .next;
         } else {
-          reportRecoverableError(
-              next, fasta.templateExpectedButGot.withArguments(')'));
-          // Scanner guarantees a closing parenthesis
-          token = begin.endGroup;
+          token = ensureCloseParen(token, begin);
           break;
         }
       }
@@ -4968,12 +5000,8 @@ class Parser {
     Token inKeyword = token.next;
     assert(optional('in', inKeyword) || optional(':', inKeyword));
     listener.beginForInExpression(inKeyword.next);
-    token = parseExpression(inKeyword).next;
-    if (!optional(')', token)) {
-      reportRecoverableError(
-          token, fasta.templateExpectedButGot.withArguments(')'));
-      token = leftParenthesis.endGroup;
-    }
+    token = parseExpression(inKeyword);
+    token = ensureCloseParen(token, leftParenthesis);
     listener.endForInExpression(token);
     listener.beginForInBody(token.next);
     LoopState savedLoopState = loopState;
@@ -5202,6 +5230,16 @@ class Parser {
             if (!exceptionName.isSynthetic) {
               reportRecoverableError(comma, fasta.messageCatchSyntax);
             }
+
+            // TODO(danrubel): Consider inserting `on` clause if
+            // exceptionName is preceded by type and followed by a comma.
+            // Then this
+            //   } catch (E e, t) {
+            // will recover to
+            //   } on E catch (e, t) {
+            // with a detailed explaination for the user in the error
+            // indicating what they should do to fix the code.
+
             // TODO(danrubel): Consider inserting synthetic identifier if
             // exceptionName is a non-synthetic identifier followed by `.`.
             // Then this
@@ -5213,12 +5251,13 @@ class Parser {
             // rather than
             //   } catch (e) {}
             //   _s_.f();
+
             if (openParens.endGroup.isSynthetic) {
               // The scanner did not place the synthetic ')' correctly.
               rewriter.moveSynthetic(exceptionName, openParens.endGroup);
               comma = null;
             } else {
-              comma = rewriter.insertTokenAfter(exceptionName,
+              comma = rewriter.insertToken(exceptionName,
                   new SyntheticToken(TokenType.COMMA, comma.charOffset));
             }
           }
@@ -5575,7 +5614,9 @@ class Parser {
           beforeName, new SyntheticToken(Keyword.OPERATOR, next.offset));
     }
 
-    assert((next.isOperator && next.endGroup == null) || optional('===', next));
+    assert((next.isOperator && next.endGroup == null) ||
+        optional('===', next) ||
+        optional('!==', next));
 
     Token token = parseMethod(
         beforeStart,
@@ -5789,6 +5830,280 @@ class Parser {
     Token before = new Token.eof(-1);
     before.next = token;
     return before;
+  }
+
+  /// Return the first dartdoc comment token preceding the given token
+  /// or `null` if no dartdoc token is found.
+  Token findDartDoc(Token token) {
+    Token comments = token.precedingComments;
+    Token dartdoc = null;
+    bool isMultiline = false;
+    while (comments != null) {
+      String lexeme = comments.lexeme;
+      if (lexeme.startsWith('///')) {
+        if (!isMultiline) {
+          dartdoc = comments;
+          isMultiline = true;
+        }
+      } else if (lexeme.startsWith('/**')) {
+        dartdoc = comments;
+        isMultiline = false;
+      }
+      comments = comments.next;
+    }
+    return dartdoc;
+  }
+
+  /// Parse the comment references in a sequence of comment tokens
+  /// where [dartdoc] (not null) is the first token in the sequence.
+  /// Return the number of comment references parsed.
+  int parseCommentReferences(Token dartdoc) {
+    return dartdoc.lexeme.startsWith('///')
+        ? parseReferencesInSingleLineComments(dartdoc)
+        : parseReferencesInMultiLineComment(dartdoc);
+  }
+
+  /// Parse the comment references in a multi-line comment token.
+  /// Return the number of comment references parsed.
+  int parseReferencesInMultiLineComment(Token multiLineDoc) {
+    String comment = multiLineDoc.lexeme;
+    assert(comment.startsWith('/**'));
+    int count = 0;
+    int length = comment.length;
+    int start = 3;
+    bool inCodeBlock = false;
+    int codeBlock = comment.indexOf('```', 3);
+    if (codeBlock == -1) {
+      codeBlock = length;
+    }
+    while (start < length) {
+      if (isWhitespace(comment.codeUnitAt(start))) {
+        ++start;
+        continue;
+      }
+      int end = comment.indexOf('\n', start);
+      if (end == -1) {
+        end = length;
+      }
+      if (codeBlock < end) {
+        inCodeBlock = !inCodeBlock;
+        codeBlock = comment.indexOf('```', end);
+        if (codeBlock == -1) {
+          codeBlock = length;
+        }
+      }
+      if (!inCodeBlock && !comment.startsWith('*     ', start)) {
+        count += parseCommentReferencesInText(multiLineDoc, start, end);
+      }
+      start = end + 1;
+    }
+    return count;
+  }
+
+  /// Parse the comment references in a sequence of single line comment tokens
+  /// where [token] is the first comment token in the sequence.
+  /// Return the number of comment references parsed.
+  int parseReferencesInSingleLineComments(Token token) {
+    int count = 0;
+    bool inCodeBlock = false;
+    while (token != null && !token.isEof) {
+      String comment = token.lexeme;
+      if (comment.startsWith('///')) {
+        if (comment.indexOf('```', 3) != -1) {
+          inCodeBlock = !inCodeBlock;
+        }
+        if (!inCodeBlock && !comment.startsWith('///    ')) {
+          count += parseCommentReferencesInText(token, 3, comment.length);
+        }
+      }
+      token = token.next;
+    }
+    return count;
+  }
+
+  /// Parse the comment references in the text between [start] inclusive
+  /// and [end] exclusive. Return a count indicating how many were parsed.
+  int parseCommentReferencesInText(Token commentToken, int start, int end) {
+    String comment = commentToken.lexeme;
+    int count = 0;
+    int index = start;
+    while (index < end) {
+      int ch = comment.codeUnitAt(index);
+      if (ch == 0x5B /* `[` */) {
+        ++index;
+        if (index < end && comment.codeUnitAt(index) == 0x3A /* `:` */) {
+          // Skip old-style code block.
+          index = comment.indexOf(':]', index + 1) + 1;
+          if (index == 0 || index > end) {
+            break;
+          }
+        } else {
+          int referenceStart = index;
+          index = comment.indexOf(']', index);
+          if (index == -1 || index >= end) {
+            // Recovery: terminating ']' is not typed yet.
+            index = findReferenceEnd(comment, referenceStart, end);
+          }
+          if (ch != 0x27 /* `'` */ && ch != 0x22 /* `"` */) {
+            if (isLinkText(comment, index)) {
+              // TODO(brianwilkerson) Handle the case where there's a library
+              // URI in the link text.
+            } else {
+              listener.handleCommentReferenceText(
+                  comment.substring(referenceStart, index),
+                  commentToken.charOffset + referenceStart);
+              ++count;
+            }
+          }
+        }
+      } else if (ch == 0x60 /* '`' */) {
+        // Skip inline code block if there is both starting '`' and ending '`'
+        int endCodeBlock = comment.indexOf('`', index + 1);
+        if (endCodeBlock != -1 && endCodeBlock < end) {
+          index = endCodeBlock;
+        }
+      }
+      ++index;
+    }
+    return count;
+  }
+
+  /// Given a comment reference without a closing `]`,
+  /// search for a possible place where `]` should be.
+  int findReferenceEnd(String comment, int index, int end) {
+    // Find the end of the identifier if there is one
+    if (index >= end || !isLetter(comment.codeUnitAt(index))) {
+      return index;
+    }
+    while (index < end && isLetterOrDigit(comment.codeUnitAt(index))) {
+      ++index;
+    }
+
+    // Check for a trailing `.`
+    if (index >= end || comment.codeUnitAt(index) != 0x2E /* `.` */) {
+      return index;
+    }
+    ++index;
+
+    // Find end of the identifier after the `.`
+    if (index >= end || !isLetter(comment.codeUnitAt(index))) {
+      return index;
+    }
+    ++index;
+    while (index < end && isLetterOrDigit(comment.codeUnitAt(index))) {
+      ++index;
+    }
+    return index;
+  }
+
+  /// Parse the tokens in a single comment reference and generate either a
+  /// `handleCommentReference` or `handleNoCommentReference` event.
+  /// Return `true` if a comment reference was successfully parsed.
+  bool parseOneCommentReference(Token token, int referenceOffset) {
+    Token begin = token;
+    Token newKeyword = null;
+    if (optional('new', token)) {
+      newKeyword = token;
+      token = token.next;
+    }
+    Token prefix, period;
+    if (token.isIdentifier && optional('.', token.next)) {
+      prefix = token;
+      period = token.next;
+      token = period.next;
+    }
+    if (token.isEof) {
+      // Recovery: Insert a synthetic identifier for code completion
+      token = rewriter.insertSyntheticIdentifier(
+          period ?? newKeyword ?? syntheticPreviousToken(token));
+      if (begin == token.next) {
+        begin = token;
+      }
+    }
+    Token operatorKeyword = null;
+    if (optional('operator', token)) {
+      operatorKeyword = token;
+      token = token.next;
+    }
+    if (token.isUserDefinableOperator) {
+      if (token.next.isEof) {
+        parseOneCommentReferenceRest(
+            begin, referenceOffset, newKeyword, prefix, period, token);
+        return true;
+      }
+    } else {
+      token = operatorKeyword ?? token;
+      if (token.next.isEof) {
+        if (token.isIdentifier) {
+          parseOneCommentReferenceRest(
+              begin, referenceOffset, newKeyword, prefix, period, token);
+          return true;
+        }
+        Keyword keyword = token.keyword;
+        if (newKeyword == null &&
+            prefix == null &&
+            (keyword == Keyword.THIS ||
+                keyword == Keyword.NULL ||
+                keyword == Keyword.TRUE ||
+                keyword == Keyword.FALSE)) {
+          // TODO(brianwilkerson) If we want to support this we will need to
+          // extend the definition of CommentReference to take an expression
+          // rather than an identifier. For now we just ignore it to reduce the
+          // number of errors produced, but that's probably not a valid long
+          // term approach.
+        }
+      }
+    }
+    listener.handleNoCommentReference();
+    return false;
+  }
+
+  void parseOneCommentReferenceRest(
+      Token begin,
+      int referenceOffset,
+      Token newKeyword,
+      Token prefix,
+      Token period,
+      Token identifierOrOperator) {
+    // Adjust the token offsets to match the enclosing comment token.
+    Token token = begin;
+    do {
+      token.offset += referenceOffset;
+      token = token.next;
+    } while (!token.isEof);
+
+    listener.handleCommentReference(
+        newKeyword, prefix, period, identifierOrOperator);
+  }
+
+  /// Given that we have just found bracketed text within the given [comment],
+  /// look to see whether that text is (a) followed by a parenthesized link
+  /// address, (b) followed by a colon, or (c) followed by optional whitespace
+  /// and another square bracket. The [rightIndex] is the index of the right
+  /// bracket. Return `true` if the bracketed text is followed by a link
+  /// address.
+  ///
+  /// This method uses the syntax described by the
+  /// <a href="http://daringfireball.net/projects/markdown/syntax">markdown</a>
+  /// project.
+  bool isLinkText(String comment, int rightIndex) {
+    int length = comment.length;
+    int index = rightIndex + 1;
+    if (index >= length) {
+      return false;
+    }
+    int ch = comment.codeUnitAt(index);
+    if (ch == 0x28 || ch == 0x3A) {
+      return true;
+    }
+    while (isWhitespace(ch)) {
+      index = index + 1;
+      if (index >= length) {
+        return false;
+      }
+      ch = comment.codeUnitAt(index);
+    }
+    return ch == 0x5B;
   }
 }
 

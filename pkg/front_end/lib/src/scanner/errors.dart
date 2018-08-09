@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/base/errors.dart';
-import 'package:front_end/src/fasta/fasta_codes.dart';
-import 'package:front_end/src/fasta/scanner/error_token.dart';
-import 'package:front_end/src/scanner/token.dart' show Token, TokenType;
-import 'package:front_end/src/fasta/scanner/token_constants.dart';
+import '../base/errors.dart';
+import '../fasta/fasta_codes.dart';
+import '../fasta/scanner/error_token.dart';
+import 'token.dart' show Token, TokenType;
+import '../fasta/scanner/token_constants.dart';
 
 /**
  * The error codes used for errors detected by the scanner.
@@ -51,6 +51,13 @@ class ScannerErrorCode extends ErrorCode {
           "A '\$' has special meaning inside a string, and must be followed by "
           "an identifier or an expression in curly braces ({}).",
           correction: "Try adding a backslash (\\) to escape the '\$'.");
+
+  /**
+   * Parameters:
+   * 0: the unsupported operator
+   */
+  static const ScannerErrorCode UNSUPPORTED_OPERATOR = const ScannerErrorCode(
+      'UNSUPPORTED_OPERATOR', "The '{0}' operator is not supported.");
 
   static const ScannerErrorCode UNTERMINATED_MULTI_LINE_COMMENT =
       const ScannerErrorCode(
@@ -135,6 +142,10 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
     case "ILLEGAL_CHARACTER":
       return _makeError(ScannerErrorCode.ILLEGAL_CHARACTER, [token.character]);
 
+    case "UNSUPPORTED_OPERATOR":
+      return _makeError(ScannerErrorCode.UNSUPPORTED_OPERATOR,
+          [(token as UnsupportedOperator).token.lexeme]);
+
     default:
       if (errorCode == codeUnmatchedToken) {
         charOffset = token.begin.endToken.charOffset;
@@ -155,7 +166,7 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
       } else if (errorCode == codeUnexpectedDollarInString) {
         return _makeError(ScannerErrorCode.MISSING_IDENTIFIER, null);
       }
-      throw new UnimplementedError('$errorCode');
+      throw new UnimplementedError('$errorCode "${errorCode.analyzerCode}"');
   }
 }
 

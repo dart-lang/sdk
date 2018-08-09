@@ -4,7 +4,7 @@
 
 import 'dart:typed_data' show Uint8List;
 
-import 'package:front_end/src/base/flat_buffers.dart' as fb;
+import '../base/flat_buffers.dart' as fb;
 
 /// Unlinked information about a `show` or `hide` combinator in an import or
 /// export directive.

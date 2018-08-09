@@ -381,7 +381,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
     case RawFunction::kIrregexpFunction:
       UNREACHABLE();
   }
-  if (needs_expr_temp_ || function.is_no_such_method_forwarder()) {
+  if (needs_expr_temp_) {
     scope_->AddVariable(parsed_function_->EnsureExpressionTemp());
   }
   parsed_function_->AllocateVariables();
@@ -549,6 +549,13 @@ void ScopeBuilder::VisitFunctionNode() {
     {
       LocalVariable* temp =
           scope_->LookupVariable(Symbols::AsyncCompleter(), true);
+      if (temp != NULL) {
+        scope_->CaptureVariable(temp);
+      }
+    }
+    {
+      LocalVariable* temp =
+          scope_->LookupVariable(Symbols::ControllerStream(), true);
       if (temp != NULL) {
         scope_->CaptureVariable(temp);
       }
@@ -1283,8 +1290,6 @@ void ScopeBuilder::VisitFunctionType(bool simple) {
       VisitDartType();  // read named_parameters[i].type.
     }
   }
-
-  helper_.SkipListOfStrings();  // read positional parameter names.
 
   if (!simple) {
     helper_.SkipCanonicalNameReference();  // read typedef reference.

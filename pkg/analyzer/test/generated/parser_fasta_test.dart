@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart' as analyzer;
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -420,6 +421,22 @@ class FastaParserTestCase extends Object
     return cascadeExpression.cascadeSections.first;
   }
 
+  CommentReference parseCommentReference(
+      String referenceSource, int sourceOffset) {
+    String padding = ' '.padLeft(sourceOffset - 4, 'a');
+    String source = '/**$padding[$referenceSource] */ class C { }';
+    CompilationUnit unit = parseCompilationUnit(source);
+    ClassDeclaration clazz = unit.declarations[0];
+    Comment comment = clazz.documentationComment;
+    List<CommentReference> references = comment.references;
+    if (references.isEmpty) {
+      return null;
+    } else {
+      expect(references, hasLength(1));
+      return references[0];
+    }
+  }
+
   @override
   CompilationUnit parseCompilationUnit(String content,
       {List<ErrorCode> codes, List<ExpectedError> errors}) {
@@ -826,6 +843,27 @@ class ParserProxy extends analyzer.ParserAdapter {
 
   List<Combinator> parseCombinators() {
     return _run('Import', () => super.parseCombinators());
+  }
+
+  @override
+  List<CommentReference> parseCommentReferences(
+      List<DocumentationCommentToken> tokens) {
+    for (int index = 0; index < tokens.length - 1; ++index) {
+      analyzer.Token next = tokens[index].next;
+      if (next == null) {
+        tokens[index].setNext(tokens[index + 1]);
+      } else {
+        expect(next, tokens[index + 1]);
+      }
+    }
+    expect(tokens[tokens.length - 1].next, isNull);
+    List<CommentReference> references =
+        astBuilder.parseCommentReferences(tokens.first);
+    if (astBuilder.stack.isNotEmpty) {
+      throw 'Expected empty stack, but found:'
+          '\n  ${astBuilder.stack.values.join('\n  ')}';
+    }
+    return references;
   }
 
   @override

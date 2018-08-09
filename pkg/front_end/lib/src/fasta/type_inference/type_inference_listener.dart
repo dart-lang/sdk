@@ -4,9 +4,7 @@
 
 import 'package:kernel/ast.dart'
     show Catch, DartType, FunctionType, Node, TypeParameter;
-
 import 'package:kernel/ast.dart' show Catch, DartType, FunctionType, Node;
-
 import 'package:kernel/type_algebra.dart' show Substitution;
 
 import '../../scanner/token.dart' show Token;
@@ -18,9 +16,374 @@ import '../kernel/kernel_shadow_ast.dart'
         LoadLibraryTearOffJudgment,
         StatementJudgment,
         SwitchCaseJudgment;
-
 import '../kernel/kernel_type_variable_builder.dart'
     show KernelTypeVariableBuilder;
+
+class AsExpressionTokens {
+  final Token asOperator;
+
+  AsExpressionTokens(this.asOperator);
+}
+
+class AssertInitializerTokens {
+  final Token assertKeyword;
+  final Token leftParenthesis;
+  final Token comma;
+  final Token rightParenthesis;
+
+  AssertInitializerTokens(this.assertKeyword, this.leftParenthesis, this.comma,
+      this.rightParenthesis);
+}
+
+class AssertStatementTokens {
+  final Token assertKeyword;
+  final Token leftParenthesis;
+  final Token comma;
+  final Token rightParenthesis;
+  final Token semicolon;
+
+  AssertStatementTokens(this.assertKeyword, this.leftParenthesis, this.comma,
+      this.rightParenthesis, this.semicolon);
+}
+
+class AwaitExpressionTokens {
+  final Token awaitKeyword;
+
+  AwaitExpressionTokens(this.awaitKeyword);
+}
+
+class BlockTokens {
+  final Token leftBracket;
+  final Token rightBracket;
+
+  BlockTokens(this.leftBracket, this.rightBracket);
+}
+
+class BoolLiteralTokens {
+  final Token literal;
+
+  BoolLiteralTokens(this.literal);
+}
+
+class BreakStatementTokens {
+  final Token breakKeyword;
+  final Token semicolon;
+
+  BreakStatementTokens(this.breakKeyword, this.semicolon);
+}
+
+class ContinueStatementTokens {
+  final Token continueKeyword;
+  final Token semicolon;
+
+  ContinueStatementTokens(this.continueKeyword, this.semicolon);
+}
+
+class ConditionalExpressionTokens {
+  final Token question;
+  final Token colon;
+
+  ConditionalExpressionTokens(this.question, this.colon);
+}
+
+class ContinueSwitchStatementTokens {
+  final Token continueKeyword;
+  final Token semicolon;
+
+  ContinueSwitchStatementTokens(this.continueKeyword, this.semicolon);
+}
+
+class DoStatementTokens {
+  final Token doKeyword;
+  final Token whileKeyword;
+  final Token leftParenthesis;
+  final Token rightParenthesis;
+  final Token semicolon;
+
+  DoStatementTokens(this.doKeyword, this.whileKeyword, this.leftParenthesis,
+      this.rightParenthesis, this.semicolon);
+}
+
+class DoubleLiteralTokens {
+  final Token literal;
+
+  DoubleLiteralTokens(this.literal);
+}
+
+class EmptyStatementTokens {
+  final Token semicolon;
+
+  EmptyStatementTokens(this.semicolon);
+}
+
+class ExpressionStatementTokens {
+  final Token semicolon;
+
+  ExpressionStatementTokens(this.semicolon);
+}
+
+class ForInStatementTokens {
+  final Token awaitKeyword;
+  final Token forKeyword;
+  final Token leftParenthesis;
+  final Token inKeyword;
+  final Token rightParenthesis;
+
+  ForInStatementTokens(this.awaitKeyword, this.forKeyword, this.leftParenthesis,
+      this.inKeyword, this.rightParenthesis);
+}
+
+class ForStatementTokens {
+  final Token forKeyword;
+  final Token leftParenthesis;
+  final Token leftSeparator;
+  final Token rightSeparator;
+  final Token rightParenthesis;
+
+  ForStatementTokens(this.forKeyword, this.leftParenthesis, this.leftSeparator,
+      this.rightSeparator, this.rightParenthesis);
+}
+
+class IfNullTokens {
+  final Token operator;
+
+  IfNullTokens(this.operator);
+}
+
+class IfStatementTokens {
+  final Token ifKeyword;
+  final Token leftParenthesis;
+  final Token rightParenthesis;
+  final Token elseKeyword;
+
+  IfStatementTokens(this.ifKeyword, this.leftParenthesis, this.rightParenthesis,
+      this.elseKeyword);
+}
+
+class IntLiteralTokens {
+  final Token literal;
+
+  IntLiteralTokens(this.literal);
+}
+
+class IsExpressionTokens {
+  final Token isOperator;
+
+  IsExpressionTokens(this.isOperator);
+}
+
+class IsNotExpressionTokens {
+  final Token isOperator;
+  final Token notOperator;
+
+  IsNotExpressionTokens(this.isOperator, this.notOperator);
+}
+
+class ListLiteralTokens {
+  final Token constKeyword;
+  final Token leftBracket;
+  final Token rightBracket;
+
+  ListLiteralTokens(this.constKeyword, this.leftBracket, this.rightBracket);
+}
+
+class LogicalExpressionTokens {
+  final Token operatorToken;
+
+  LogicalExpressionTokens(this.operatorToken);
+}
+
+class MapLiteralTokens {
+  final Token constKeyword;
+  final Token leftBracket;
+  final Token rightBracket;
+
+  MapLiteralTokens(this.constKeyword, this.leftBracket, this.rightBracket);
+}
+
+class NotTokens {
+  final Token operator;
+
+  NotTokens(this.operator);
+}
+
+class NullLiteralTokens {
+  final Token literal;
+
+  NullLiteralTokens(this.literal);
+}
+
+class RethrowTokens {
+  final Token rethrowKeyword;
+
+  RethrowTokens(this.rethrowKeyword);
+}
+
+class ReturnStatementTokens {
+  final Token returnKeyword;
+  final Token semicolon;
+
+  ReturnStatementTokens(this.returnKeyword, this.semicolon);
+}
+
+class StringLiteralTokens {
+  final Token literal;
+
+  StringLiteralTokens(this.literal);
+}
+
+class SuperInitializerTokens {
+  final Token superKeyword;
+  final Token period;
+  final Token constructorName;
+
+  SuperInitializerTokens(this.superKeyword, this.period, this.constructorName);
+}
+
+class SwitchCaseTokens {
+  final Token keyword;
+  final Token colon;
+
+  SwitchCaseTokens(this.keyword, this.colon);
+}
+
+class SwitchStatementTokens {
+  final Token switchKeyword;
+  final Token leftParenthesis;
+  final Token rightParenthesis;
+  final Token leftBracket;
+  final Token rightBracket;
+
+  SwitchStatementTokens(this.switchKeyword, this.leftParenthesis,
+      this.rightParenthesis, this.leftBracket, this.rightBracket);
+}
+
+class ThisExpressionTokens {
+  final Token thisKeyword;
+
+  ThisExpressionTokens(this.thisKeyword);
+}
+
+class ThrowTokens {
+  final Token throwKeyword;
+
+  ThrowTokens(this.throwKeyword);
+}
+
+class CatchStatementTokens {
+  final Token onKeyword;
+  final Token catchKeyword;
+  final Token leftParenthesis;
+  final Token comma;
+  final Token rightParenthesis;
+
+  CatchStatementTokens(this.onKeyword, this.catchKeyword, this.leftParenthesis,
+      this.comma, this.rightParenthesis);
+}
+
+class TryFinallyTokens {
+  final Token tryKeyword;
+  final Token finallyKeyword;
+
+  TryFinallyTokens(this.tryKeyword, this.finallyKeyword);
+}
+
+class WhileStatementTokens {
+  final Token whileKeyword;
+  final Token leftParenthesis;
+  final Token rightParenthesis;
+
+  WhileStatementTokens(
+      this.whileKeyword, this.leftParenthesis, this.rightParenthesis);
+}
+
+class YieldStatementTokens {
+  final Token yieldKeyword;
+  final Token star;
+  final Token semicolon;
+
+  YieldStatementTokens(this.yieldKeyword, this.star, this.semicolon);
+}
+
+class NamedExpressionTokens {
+  final Token nameToken;
+  final Token colon;
+
+  NamedExpressionTokens(this.nameToken, this.colon);
+}
+
+abstract class TypeInferenceTokensSaver {
+  AsExpressionTokens asExpressionTokens(Token asOperator);
+  AssertInitializerTokens assertInitializerTokens(Token assertKeyword,
+      Token leftParenthesis, Token comma, Token rightParenthesis);
+  AssertStatementTokens assertStatementTokens(
+      Token assertKeyword,
+      Token leftParenthesis,
+      Token comma,
+      Token rightParenthesis,
+      Token semicolon);
+  AwaitExpressionTokens awaitExpressionTokens(Token awaitKeyword);
+  BlockTokens blockTokens(Token leftBracket, Token rightBracket);
+  BoolLiteralTokens boolLiteralTokens(Token literal);
+  BreakStatementTokens breakStatementTokens(
+      Token breakKeyword, Token semicolon);
+  ContinueStatementTokens continueStatementTokens(
+      Token continueKeyword, Token semicolon);
+  ConditionalExpressionTokens conditionalExpressionTokens(
+      Token question, Token colon);
+  ContinueSwitchStatementTokens continueSwitchStatementTokens(
+      Token continueKeyword, Token semicolon);
+  DoStatementTokens doStatementTokens(Token doKeyword, Token whileKeyword,
+      Token leftParenthesis, Token rightParenthesis, Token semicolon);
+  DoubleLiteralTokens doubleLiteralTokens(Token literal);
+  EmptyStatementTokens emptyStatementTokens(Token semicolon);
+  ExpressionStatementTokens expressionStatementTokens(Token semicolon);
+  ForInStatementTokens forInStatementTokens(
+      Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      Token inKeyword,
+      Token rightParenthesis);
+  ForStatementTokens forStatementTokens(Token forKeyword, Token leftParenthesis,
+      Token leftSeparator, Token rightSeparator, Token rightParenthesis);
+  IfNullTokens ifNullTokens(Token operator);
+  IfStatementTokens ifStatementTokens(Token ifKeyword, Token leftParenthesis,
+      Token rightParenthesis, Token elseKeyword);
+  IntLiteralTokens intLiteralTokens(Token literal);
+  IsExpressionTokens isExpressionTokens(Token isOperator);
+  IsNotExpressionTokens isNotExpressionTokens(
+      Token isOperator, Token notOperator);
+  ListLiteralTokens listLiteralTokens(
+      Token constKeyword, Token leftBracket, Token rightBracket);
+  LogicalExpressionTokens logicalExpressionTokens(Token operatorToken);
+  MapLiteralTokens mapLiteralTokens(
+      Token constKeyword, Token leftBracket, Token rightBracket);
+  NotTokens notTokens(Token operator);
+  NullLiteralTokens nullLiteralTokens(Token literal);
+  RethrowTokens rethrowTokens(Token rethrowKeyword);
+  ReturnStatementTokens returnStatementTokens(
+      Token returnKeyword, Token semicolon);
+  StringLiteralTokens stringLiteralTokens(Token literal);
+  SuperInitializerTokens superInitializerTokens(
+      Token superKeyword, Token period, Token constructorName);
+  SwitchCaseTokens switchCaseTokens(Token keyword, Token colon);
+  SwitchStatementTokens switchStatementTokens(
+      Token switchKeyword,
+      Token leftParenthesis,
+      Token rightParenthesis,
+      Token leftBracket,
+      Token rightBracket);
+  ThisExpressionTokens thisExpressionTokens(Token thisKeyword);
+  ThrowTokens throwTokens(Token throwKeyword);
+  CatchStatementTokens catchStatementTokens(Token onKeyword, Token catchKeyword,
+      Token leftParenthesis, Token comma, Token rightParenthesis);
+  TryFinallyTokens tryFinallyTokens(Token tryKeyword, Token finallyKeyword);
+  WhileStatementTokens whileStatementTokens(
+      Token whileKeyword, Token leftParenthesis, Token rightParenthesis);
+  YieldStatementTokens yieldStatementTokens(
+      Token yieldKeyword, Token star, Token semicolon);
+  NamedExpressionTokens namedExpressionTokens(Token nameToken, Token colon);
+}
 
 /// Callback interface used by [TypeInferrer] to report the results of type
 /// inference to a client.
@@ -35,37 +398,24 @@ import '../kernel/kernel_type_variable_builder.dart'
 /// be used to debug type inference by uncommenting the
 /// "with TypeInferenceDebugging" clause below.
 abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
+  TypeInferenceTokensSaver get typeInferenceTokensSaver;
+
   void asExpression(
       ExpressionJudgment judgment,
       Location location,
       void expression,
-      Token asOperator,
+      AsExpressionTokens tokens,
       void literalType,
       DartType inferredType);
 
-  void assertInitializer(
-      InitializerJudgment judgment,
-      Location location,
-      Token assertKeyword,
-      Token leftParenthesis,
-      void condition,
-      Token comma,
-      void message,
-      Token rightParenthesis);
+  void assertInitializer(InitializerJudgment judgment, Location location,
+      AssertInitializerTokens tokens, void condition, void message);
 
-  void assertStatement(
-      StatementJudgment judgment,
-      Location location,
-      Token assertKeyword,
-      Token leftParenthesis,
-      void condition,
-      Token comma,
-      void message,
-      Token rightParenthesis,
-      Token semicolon);
+  void assertStatement(StatementJudgment judgment, Location location,
+      AssertStatementTokens tokens, void condition, void message);
 
   void awaitExpression(ExpressionJudgment judgment, Location location,
-      Token awaitKeyword, void expression, DartType inferredType);
+      AwaitExpressionTokens tokens, void expression, DartType inferredType);
 
   Object binderForFunctionDeclaration(
       StatementJudgment judgment, Location location, String name);
@@ -79,22 +429,17 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
   Object binderForTypeVariable(
       KernelTypeVariableBuilder builder, int fileOffset, String name);
 
-  Object binderForVariableDeclaration(
-      StatementJudgment judgment, int fileOffset, String name);
+  Object binderForVariableDeclaration(StatementJudgment judgment,
+      int fileOffset, String name, bool forSyntheticToken);
 
-  void block(StatementJudgment judgment, Location location, Token leftBracket,
-      List<void> statements, Token rightBracket);
+  void block(StatementJudgment judgment, Location location, BlockTokens tokens,
+      List<void> statements);
 
   void boolLiteral(ExpressionJudgment judgment, Location location,
-      Token literal, bool value, DartType inferredType);
+      BoolLiteralTokens tokens, bool value, DartType inferredType);
 
-  void breakStatement(
-      StatementJudgment judgment,
-      Location location,
-      Token breakKeyword,
-      void label,
-      Token semicolon,
-      covariant Object labelBinder);
+  void breakStatement(StatementJudgment judgment, Location location,
+      BreakStatementTokens tokens, void label, covariant Object labelBinder);
 
   void cascadeExpression(
       ExpressionJudgment judgment, Location location, DartType inferredType);
@@ -102,16 +447,9 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
   void catchStatement(
       Catch judgment,
       Location location,
-      Token onKeyword,
+      CatchStatementTokens tokens,
       void type,
-      Token catchKeyword,
-      Token leftParenthesis,
-      Token exceptionParameter,
-      Token comma,
-      Token stackTraceParameter,
-      Token rightParenthesis,
       void body,
-      DartType guardType,
       covariant Object exceptionBinder,
       DartType exceptionType,
       covariant Object stackTraceBinder,
@@ -121,52 +459,37 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
       ExpressionJudgment judgment,
       Location location,
       void condition,
-      Token question,
+      ConditionalExpressionTokens tokens,
       void thenExpression,
-      Token colon,
       void elseExpression,
       DartType inferredType);
 
   void constructorInvocation(ExpressionJudgment judgment, Location location,
       Reference expressionTarget, DartType inferredType);
 
-  void continueStatement(
-      StatementJudgment judgment,
-      Location location,
-      Token continueKeyword,
-      void label,
-      Token semicolon,
-      covariant Object labelBinder);
+  void continueStatement(StatementJudgment judgment, Location location,
+      ContinueStatementTokens tokens, void label, covariant Object labelBinder);
 
   void continueSwitchStatement(
       StatementJudgment judgment,
       Location location,
-      Token continueKeyword,
+      ContinueSwitchStatementTokens tokens,
       void label,
-      Token semicolon,
       covariant Object labelBinder);
 
   void deferredCheck(
       ExpressionJudgment judgment, Location location, DartType inferredType);
 
-  void doStatement(
-      StatementJudgment judgment,
-      Location location,
-      Token doKeyword,
-      void body,
-      Token whileKeyword,
-      Token leftParenthesis,
-      void condition,
-      Token rightParenthesis,
-      Token semicolon);
+  void doStatement(StatementJudgment judgment, Location location,
+      DoStatementTokens tokens, void body, void condition);
 
   void doubleLiteral(ExpressionJudgment judgment, Location location,
-      Token literal, double value, DartType inferredType);
+      DoubleLiteralTokens tokens, double value, DartType inferredType);
 
-  void emptyStatement(Token semicolon);
+  void emptyStatement(EmptyStatementTokens tokens);
 
   void expressionStatement(StatementJudgment judgment, Location location,
-      void expression, Token semicolon);
+      void expression, ExpressionStatementTokens tokens);
 
   void fieldInitializer(
       InitializerJudgment judgment,
@@ -181,14 +504,9 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
   void forInStatement(
       StatementJudgment judgment,
       Location location,
-      Token awaitKeyword,
-      Token forKeyword,
-      Token leftParenthesis,
+      ForInStatementTokens tokens,
       Object loopVariable,
-      Token identifier,
-      Token inKeyword,
       void iterator,
-      Token rightParenthesis,
       void body,
       covariant Object loopVariableBinder,
       DartType loopVariableType,
@@ -200,15 +518,11 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
   void forStatement(
       StatementJudgment judgment,
       Location location,
-      Token forKeyword,
-      Token leftParenthesis,
+      ForStatementTokens tokens,
       List<Object> variableList,
       void initialization,
-      Token leftSeparator,
       void condition,
-      Token rightSeparator,
       void updaters,
-      Token rightParenthesis,
       void body);
 
   void functionDeclaration(covariant Object binder, FunctionType inferredType);
@@ -221,24 +535,28 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
   void functionTypedFormalParameter(Location location, DartType type);
 
   void ifNull(ExpressionJudgment judgment, Location location, void leftOperand,
-      Token operator, void rightOperand, DartType inferredType);
+      IfNullTokens tokens, void rightOperand, DartType inferredType);
 
   void ifStatement(
       StatementJudgment judgment,
       Location location,
-      Token ifKeyword,
-      Token leftParenthesis,
+      IfStatementTokens tokens,
       void condition,
-      Token rightParenthesis,
       void thenStatement,
-      Token elseKeyword,
       void elseStatement);
 
-  void indexAssign(ExpressionJudgment judgment, Location location,
-      Reference writeMember, Reference combiner, DartType inferredType);
+  void indexAssign(
+      ExpressionJudgment judgment,
+      Location location,
+      DartType receiverType,
+      Reference writeMember,
+      Reference combiner,
+      DartType inferredType);
 
-  void intLiteral(ExpressionJudgment judgment, Location location, Token literal,
-      num value, DartType inferredType);
+  void intLiteral(ExpressionJudgment judgment, Location location,
+      IntLiteralTokens tokens, num value, DartType inferredType);
+
+  void invalidAssignment(ExpressionJudgment judgment, Location location);
 
   void invalidInitializer(InitializerJudgment judgment, Location location);
 
@@ -246,19 +564,16 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
       ExpressionJudgment judgment,
       Location location,
       void expression,
-      Token isOperator,
+      IsExpressionTokens tokens,
       void literalType,
-      DartType testedType,
       DartType inferredType);
 
   void isNotExpression(
       ExpressionJudgment judgment,
       Location location,
       void expression,
-      Token isOperator,
-      Token notOperator,
+      IsNotExpressionTokens tokens,
       void literalType,
-      DartType type,
       DartType inferredType);
 
   void labeledStatement(List<Object> labels, void statement);
@@ -266,11 +581,9 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
   void listLiteral(
       ExpressionJudgment judgment,
       Location location,
-      Token constKeyword,
+      ListLiteralTokens tokens,
       covariant Object typeArguments,
-      Token leftBracket,
       void elements,
-      Token rightBracket,
       DartType inferredType);
 
   void loadLibrary(LoadLibraryJudgment judgment, Location location,
@@ -283,18 +596,16 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
       ExpressionJudgment judgment,
       Location location,
       void leftOperand,
-      Token operator,
+      LogicalExpressionTokens tokens,
       void rightOperand,
       DartType inferredType);
 
   void mapLiteral(
       ExpressionJudgment judgment,
       Location location,
-      Token constKeyword,
+      MapLiteralTokens tokens,
       covariant Object typeArguments,
-      Token leftBracket,
       List<Object> entries,
-      Token rightBracket,
       DartType inferredType);
 
   void mapLiteralEntry(
@@ -303,6 +614,7 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
   void methodInvocation(
       ExpressionJudgment judgment,
       Location resultOffset,
+      DartType receiverType,
       List<DartType> argumentsTypes,
       bool isImplicitCall,
       Reference interfaceMember,
@@ -322,27 +634,30 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
   void namedFunctionExpression(ExpressionJudgment judgment,
       covariant Object binder, DartType inferredType);
 
-  void not(ExpressionJudgment judgment, Location location, Token operator,
+  void not(ExpressionJudgment judgment, Location location, NotTokens tokens,
       void operand, DartType inferredType);
 
   void nullLiteral(ExpressionJudgment judgment, Location location,
-      Token literal, bool isSynthetic, DartType inferredType);
+      NullLiteralTokens tokens, bool isSynthetic, DartType inferredType);
 
   void propertyAssign(
       ExpressionJudgment judgment,
       Location location,
+      DartType receiverType,
       Reference writeMember,
       DartType writeContext,
       Reference combiner,
       DartType inferredType);
 
-  void propertyGet(ExpressionJudgment judgment, Location location,
-      Reference member, DartType inferredType);
+  void propertyGet(
+      ExpressionJudgment judgment,
+      Location location,
+      bool forSyntheticToken,
+      DartType receiverType,
+      Reference member,
+      DartType inferredType);
 
   void propertyGetCall(
-      ExpressionJudgment judgment, Location location, DartType inferredType);
-
-  void propertySet(
       ExpressionJudgment judgment, Location location, DartType inferredType);
 
   void redirectingInitializer(
@@ -355,10 +670,10 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
       Reference initializerTarget);
 
   void rethrow_(ExpressionJudgment judgment, Location location,
-      Token rethrowKeyword, DartType inferredType);
+      RethrowTokens tokens, DartType inferredType);
 
   void returnStatement(StatementJudgment judgment, Location location,
-      Token returnKeyword, void expression, Token semicolon);
+      ReturnStatementTokens tokens, void expression);
 
   Object statementLabel(covariant Object binder, Token label, Token colon);
 
@@ -387,35 +702,24 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
 
   void storePrefixInfo(Location location, PrefixInfo prefixInfo);
 
+  void storeUnresolved(Location location);
+
   void stringConcatenation(
       ExpressionJudgment judgment, Location location, DartType inferredType);
 
   void stringLiteral(ExpressionJudgment judgment, Location location,
-      Token literal, String value, DartType inferredType);
+      StringLiteralTokens tokens, String value, DartType inferredType);
 
-  void superInitializer(
-      InitializerJudgment judgment,
-      Location location,
-      Token superKeyword,
-      Token period,
-      Token constructorName,
-      covariant Object argumentList);
+  void superInitializer(InitializerJudgment judgment, Location location,
+      SuperInitializerTokens tokens, covariant Object argumentList);
 
   Object switchCase(SwitchCaseJudgment switchCase, List<Object> labels,
       Token keyword, void expression, Token colon, List<void> statements);
 
   Object switchLabel(covariant Object binder, Token label, Token colon);
 
-  void switchStatement(
-      StatementJudgment judgment,
-      Location location,
-      Token switchKeyword,
-      Token leftParenthesis,
-      void expression,
-      Token rightParenthesis,
-      Token leftBracket,
-      void members,
-      Token rightBracket);
+  void switchStatement(StatementJudgment judgment, Location location,
+      SwitchStatementTokens tokens, void expression, void members);
 
   void symbolLiteral(
       ExpressionJudgment judgment,
@@ -426,27 +730,22 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
       DartType inferredType);
 
   void thisExpression(ExpressionJudgment judgment, Location location,
-      Token thisKeyword, DartType inferredType);
+      ThisExpressionTokens tokens, DartType inferredType);
 
   void throw_(ExpressionJudgment judgment, Location location,
-      Token throwKeyword, void expression, DartType inferredType);
+      ThrowTokens tokens, void expression, DartType inferredType);
 
   void tryCatch(StatementJudgment judgment, Location location);
 
-  void tryFinally(
-      StatementJudgment judgment,
-      Location location,
-      Token tryKeyword,
-      void body,
-      void catchClauses,
-      Token finallyKeyword,
-      void finallyBlock);
+  void tryFinally(StatementJudgment judgment, Location location,
+      TryFinallyTokens tokens, void body, void catchClauses, void finallyBlock);
 
   void typeLiteral(ExpressionJudgment judgment, Location location,
       Reference expressionType, DartType inferredType);
 
   void typeReference(
       Location location,
+      bool forSyntheticToken,
       Token leftBracket,
       List<void> typeArguments,
       Token rightBracket,
@@ -465,25 +764,23 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
       Reference combiner,
       DartType inferredType);
 
-  void variableDeclaration(
-      covariant Object binder, DartType statementType, DartType inferredType);
+  void variableDeclaration(covariant Object binder, DartType inferredType);
 
-  void variableGet(ExpressionJudgment judgment, Location location,
-      bool isInCascade, covariant Object variableBinder, DartType inferredType);
+  void variableGet(
+      ExpressionJudgment judgment,
+      Location location,
+      bool forSyntheticToken,
+      bool isInCascade,
+      covariant Object variableBinder,
+      DartType inferredType);
 
   void voidType(Location location, Token token, DartType type);
 
-  void whileStatement(
-      StatementJudgment judgment,
-      Location location,
-      Token whileKeyword,
-      Token leftParenthesis,
-      void condition,
-      Token rightParenthesis,
-      void body);
+  void whileStatement(StatementJudgment judgment, Location location,
+      WhileStatementTokens tokens, void condition, void body);
 
   void yieldStatement(StatementJudgment judgment, Location location,
-      Token yieldKeyword, Token star, void expression, Token semicolon);
+      YieldStatementTokens tokens, void expression);
 }
 
 /// Kernel implementation of TypeInferenceListener; does nothing.
@@ -492,35 +789,23 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
 class KernelTypeInferenceListener
     implements TypeInferenceListener<int, Node, int> {
   @override
+  TypeInferenceTokensSaver get typeInferenceTokensSaver => null;
+
+  @override
   void asExpression(ExpressionJudgment judgment, location, void expression,
-      Token asOperator, void literalType, DartType inferredType) {}
+      AsExpressionTokens tokens, void literalType, DartType inferredType) {}
 
   @override
-  void assertInitializer(
-      InitializerJudgment judgment,
-      location,
-      Token assertKeyword,
-      Token leftParenthesis,
-      void condition,
-      Token comma,
-      void message,
-      Token rightParenthesis) {}
+  void assertInitializer(InitializerJudgment judgment, location,
+      AssertInitializerTokens tokens, void condition, void message) {}
 
   @override
-  void assertStatement(
-      StatementJudgment judgment,
-      location,
-      Token assertKeyword,
-      Token leftParenthesis,
-      void condition,
-      Token comma,
-      void message,
-      Token rightParenthesis,
-      Token semicolon) {}
+  void assertStatement(StatementJudgment judgment, location,
+      AssertStatementTokens tokens, void condition, void message) {}
 
   @override
   void awaitExpression(ExpressionJudgment judgment, location,
-      Token awaitKeyword, void expression, DartType inferredType) {}
+      AwaitExpressionTokens tokens, void expression, DartType inferredType) {}
 
   @override
   void binderForFunctionDeclaration(
@@ -539,20 +824,20 @@ class KernelTypeInferenceListener
       KernelTypeVariableBuilder builder, int fileOffset, String name) {}
 
   @override
-  void binderForVariableDeclaration(
-      StatementJudgment judgment, int fileOffset, String name) {}
+  void binderForVariableDeclaration(StatementJudgment judgment, int fileOffset,
+      String name, bool forSyntheticToken) {}
 
   @override
-  void block(StatementJudgment judgment, location, Token leftBracket,
-      List<void> statements, Token rightBracket) {}
+  void block(StatementJudgment judgment, location, BlockTokens tokens,
+      List<void> statements) {}
 
   @override
-  void boolLiteral(ExpressionJudgment judgment, location, Token literal,
-      bool value, DartType inferredType) {}
+  void boolLiteral(ExpressionJudgment judgment, location,
+      BoolLiteralTokens tokens, bool value, DartType inferredType) {}
 
   @override
-  void breakStatement(StatementJudgment judgment, location, Token breakKeyword,
-      void label, Token semicolon, covariant void labelBinder) {}
+  void breakStatement(StatementJudgment judgment, location,
+      BreakStatementTokens tokens, void label, covariant void labelBinder) {}
 
   @override
   void cascadeExpression(
@@ -562,16 +847,9 @@ class KernelTypeInferenceListener
   void catchStatement(
       Catch judgment,
       location,
-      Token onKeyword,
+      CatchStatementTokens tokens,
       void type,
-      Token catchKeyword,
-      Token leftParenthesis,
-      Token exceptionParameter,
-      Token comma,
-      Token stackTraceParameter,
-      Token rightParenthesis,
       void body,
-      DartType guardType,
       covariant void exceptionBinder,
       DartType exceptionType,
       covariant void stackTraceBinder,
@@ -582,9 +860,8 @@ class KernelTypeInferenceListener
       ExpressionJudgment judgment,
       location,
       void condition,
-      Token question,
+      ConditionalExpressionTokens tokens,
       void thenExpression,
-      Token colon,
       void elseExpression,
       DartType inferredType) {}
 
@@ -593,21 +870,15 @@ class KernelTypeInferenceListener
       expressionTarget, DartType inferredType) {}
 
   @override
-  void continueStatement(
-      StatementJudgment judgment,
-      location,
-      Token continueKeyword,
-      void label,
-      Token semicolon,
-      covariant void labelBinder) {}
+  void continueStatement(StatementJudgment judgment, location,
+      ContinueStatementTokens tokens, void label, covariant void labelBinder) {}
 
   @override
   void continueSwitchStatement(
       StatementJudgment judgment,
       location,
-      Token continueKeyword,
+      ContinueSwitchStatementTokens tokens,
       void label,
-      Token semicolon,
       covariant void labelBinder) {}
 
   @override
@@ -615,27 +886,19 @@ class KernelTypeInferenceListener
       ExpressionJudgment judgment, location, DartType inferredType) {}
 
   @override
-  void doStatement(
-      StatementJudgment judgment,
-      location,
-      Token doKeyword,
-      void body,
-      Token whileKeyword,
-      Token leftParenthesis,
-      void condition,
-      Token rightParenthesis,
-      Token semicolon) {}
+  void doStatement(StatementJudgment judgment, location,
+      DoStatementTokens tokens, void body, void condition) {}
 
   @override
-  void doubleLiteral(ExpressionJudgment judgment, location, Token literal,
-      double value, DartType inferredType) {}
+  void doubleLiteral(ExpressionJudgment judgment, location,
+      DoubleLiteralTokens tokens, double value, DartType inferredType) {}
 
   @override
-  void emptyStatement(Token semicolon) {}
+  void emptyStatement(EmptyStatementTokens tokens) {}
 
   @override
-  void expressionStatement(
-      StatementJudgment judgment, location, void expression, Token semicolon) {}
+  void expressionStatement(StatementJudgment judgment, location,
+      void expression, ExpressionStatementTokens tokens) {}
 
   @override
   void fieldInitializer(
@@ -652,14 +915,9 @@ class KernelTypeInferenceListener
   void forInStatement(
       StatementJudgment judgment,
       location,
-      Token awaitKeyword,
-      Token forKeyword,
-      Token leftParenthesis,
+      ForInStatementTokens tokens,
       covariant Object loopVariable,
-      Token identifier,
-      Token inKeyword,
       void iterator,
-      Token rightParenthesis,
       void body,
       covariant void loopVariableBinder,
       DartType loopVariableType,
@@ -672,15 +930,11 @@ class KernelTypeInferenceListener
   void forStatement(
       StatementJudgment judgment,
       location,
-      Token forKeyword,
-      Token leftParenthesis,
+      ForStatementTokens tokens,
       Object variableDeclarationList,
       void initialization,
-      Token leftSeparator,
       void condition,
-      Token rightSeparator,
       void updaters,
-      Token rightParenthesis,
       void body) {}
 
   @override
@@ -696,51 +950,38 @@ class KernelTypeInferenceListener
 
   @override
   void ifNull(ExpressionJudgment judgment, location, void leftOperand,
-      Token operator, void rightOperand, DartType inferredType) {}
+      IfNullTokens tokens, void rightOperand, DartType inferredType) {}
 
   @override
   void ifStatement(
       StatementJudgment judgment,
       location,
-      Token ifKeyword,
-      Token leftParenthesis,
+      IfStatementTokens tokens,
       void condition,
-      Token rightParenthesis,
       void thenStatement,
-      Token elseKeyword,
       void elseStatement) {}
 
   @override
-  void indexAssign(ExpressionJudgment judgment, location, writeMember, combiner,
-      DartType inferredType) {}
+  void indexAssign(ExpressionJudgment judgment, location, receiverType,
+      writeMember, combiner, DartType inferredType) {}
 
   @override
-  void intLiteral(ExpressionJudgment judgment, location, Token literal,
-      num value, DartType inferredType) {}
+  void intLiteral(ExpressionJudgment judgment, location,
+      IntLiteralTokens tokens, num value, DartType inferredType) {}
+
+  @override
+  void invalidAssignment(ExpressionJudgment judgment, int location) {}
 
   @override
   void invalidInitializer(InitializerJudgment judgment, location) {}
 
   @override
-  void isExpression(
-      ExpressionJudgment judgment,
-      location,
-      void expression,
-      Token isOperator,
-      void literalType,
-      DartType testedType,
-      DartType inferredType) {}
+  void isExpression(ExpressionJudgment judgment, location, void expression,
+      IsExpressionTokens tokens, void literalType, DartType inferredType) {}
 
   @override
-  void isNotExpression(
-      ExpressionJudgment judgment,
-      location,
-      void expression,
-      Token isOperator,
-      Token notOperator,
-      void literalType,
-      DartType type,
-      DartType inferredType) {}
+  void isNotExpression(ExpressionJudgment judgment, location, void expression,
+      IsNotExpressionTokens tokens, void literalType, DartType inferredType) {}
 
   @override
   void labeledStatement(List<Object> labels, void statement) {}
@@ -749,11 +990,9 @@ class KernelTypeInferenceListener
   void listLiteral(
       ExpressionJudgment judgment,
       location,
-      Token constKeyword,
+      ListLiteralTokens tokens,
       covariant Object typeArguments,
-      Token leftBracket,
       void elements,
-      Token rightBracket,
       DartType inferredType) {}
 
   @override
@@ -769,7 +1008,7 @@ class KernelTypeInferenceListener
       ExpressionJudgment judgment,
       location,
       void leftOperand,
-      Token operator,
+      LogicalExpressionTokens tokens,
       void rightOperand,
       DartType inferredType) {}
 
@@ -777,11 +1016,9 @@ class KernelTypeInferenceListener
   void mapLiteral(
       ExpressionJudgment judgment,
       location,
-      Token constKeyword,
+      MapLiteralTokens tokens,
       Object typeArguments,
-      Token leftBracket,
       List<Object> entries,
-      Token rightBracket,
       DartType inferredType) {}
 
   void mapLiteralEntry(
@@ -791,6 +1028,7 @@ class KernelTypeInferenceListener
   void methodInvocation(
       ExpressionJudgment judgment,
       resultOffset,
+      DartType receiverType,
       List<DartType> argumentsTypes,
       bool isImplicitCall,
       interfaceMember,
@@ -813,27 +1051,23 @@ class KernelTypeInferenceListener
       covariant void binder, DartType inferredType) {}
 
   @override
-  void not(ExpressionJudgment judgment, location, Token operator, void operand,
-      DartType inferredType) {}
+  void not(ExpressionJudgment judgment, location, NotTokens tokens,
+      void operand, DartType inferredType) {}
 
   @override
-  void nullLiteral(ExpressionJudgment judgment, location, Token literal,
-      bool isSynthetic, DartType inferredType) {}
+  void nullLiteral(ExpressionJudgment judgment, location,
+      NullLiteralTokens tokens, bool isSynthetic, DartType inferredType) {}
 
   @override
-  void propertyAssign(ExpressionJudgment judgment, location, writeMember,
-      DartType writeContext, combiner, DartType inferredType) {}
+  void propertyAssign(ExpressionJudgment judgment, location, receiverType,
+      writeMember, DartType writeContext, combiner, DartType inferredType) {}
 
   @override
-  void propertyGet(
-      ExpressionJudgment judgment, location, member, DartType inferredType) {}
+  void propertyGet(ExpressionJudgment judgment, location,
+      bool forSyntheticToken, receiverType, member, DartType inferredType) {}
 
   @override
   void propertyGetCall(
-      ExpressionJudgment judgment, location, DartType inferredType) {}
-
-  @override
-  void propertySet(
       ExpressionJudgment judgment, location, DartType inferredType) {}
 
   @override
@@ -847,12 +1081,12 @@ class KernelTypeInferenceListener
       initializerTarget) {}
 
   @override
-  void rethrow_(ExpressionJudgment judgment, location, Token rethrowKeyword,
+  void rethrow_(ExpressionJudgment judgment, location, RethrowTokens tokens,
       DartType inferredType) {}
 
   @override
   void returnStatement(StatementJudgment judgment, location,
-      Token returnKeyword, void expression, Token semicolon) {}
+      ReturnStatementTokens tokens, void expression) {}
 
   @override
   void statementLabel(covariant void binder, Token label, Token colon) {}
@@ -882,21 +1116,19 @@ class KernelTypeInferenceListener
   void storePrefixInfo(location, prefixInfo) {}
 
   @override
+  void storeUnresolved(int location) {}
+
+  @override
   void stringConcatenation(
       ExpressionJudgment judgment, location, DartType inferredType) {}
 
   @override
-  void stringLiteral(ExpressionJudgment judgment, location, Token literal,
-      String value, DartType inferredType) {}
+  void stringLiteral(ExpressionJudgment judgment, location,
+      StringLiteralTokens tokens, String value, DartType inferredType) {}
 
   @override
-  void superInitializer(
-      InitializerJudgment judgment,
-      location,
-      Token superKeyword,
-      Token period,
-      Token constructorName,
-      covariant Object argumentList) {}
+  void superInitializer(InitializerJudgment judgment, location,
+      SuperInitializerTokens tokens, covariant Object argumentList) {}
 
   @override
   void switchCase(SwitchCaseJudgment switchCase, covariant List<Object> labels,
@@ -906,43 +1138,42 @@ class KernelTypeInferenceListener
   void switchLabel(covariant void binder, Token label, Token colon) {}
 
   @override
-  void switchStatement(
-      StatementJudgment judgment,
-      location,
-      Token switchKeyword,
-      Token leftParenthesis,
-      void expression,
-      Token rightParenthesis,
-      Token leftBracket,
-      void members,
-      Token rightBracket) {}
+  void switchStatement(StatementJudgment judgment, location,
+      SwitchStatementTokens tokens, void expression, void members) {}
 
   @override
   void symbolLiteral(ExpressionJudgment judgment, location, Token poundSign,
       List<Token> components, String value, DartType inferredType) {}
 
   @override
-  void thisExpression(ExpressionJudgment judgment, location, Token thisKeyword,
-      DartType inferredType) {}
+  void thisExpression(ExpressionJudgment judgment, location,
+      ThisExpressionTokens tokns, DartType inferredType) {}
 
   @override
-  void throw_(ExpressionJudgment judgment, location, Token throwKeyword,
+  void throw_(ExpressionJudgment judgment, location, ThrowTokens tokens,
       void expression, DartType inferredType) {}
 
   @override
   void tryCatch(StatementJudgment judgment, location) {}
 
   @override
-  void tryFinally(StatementJudgment judgment, location, Token tryKeyword,
-      void body, void catchClauses, Token finallyKeyword, void finallyBlock) {}
+  void tryFinally(StatementJudgment judgment, location, TryFinallyTokens tokens,
+      void body, void catchClauses, void finallyBlock) {}
 
   @override
   void typeLiteral(ExpressionJudgment judgment, location, expressionType,
       DartType inferredType) {}
 
   @override
-  void typeReference(location, Token leftBracket, List<void> typeArguments,
-      Token rightBracket, reference, covariant void binder, DartType type) {}
+  void typeReference(
+      location,
+      bool forSyntheticToken,
+      Token leftBracket,
+      List<void> typeArguments,
+      Token rightBracket,
+      reference,
+      covariant void binder,
+      DartType type) {}
 
   @override
   void typeVariableDeclaration(
@@ -958,27 +1189,25 @@ class KernelTypeInferenceListener
       DartType inferredType) {}
 
   @override
-  void variableDeclaration(
-      covariant void binder, DartType statementType, DartType inferredType) {}
+  void variableDeclaration(covariant void binder, DartType inferredType) {}
 
   @override
-  void variableGet(ExpressionJudgment judgment, location, bool isInCascade,
-      expressionVariable, DartType inferredType) {}
+  void variableGet(
+      ExpressionJudgment judgment,
+      location,
+      bool forSyntheticToken,
+      bool isInCascade,
+      expressionVariable,
+      DartType inferredType) {}
 
   @override
   void voidType(location, Token token, DartType type) {}
 
   @override
-  void whileStatement(
-      StatementJudgment judgment,
-      location,
-      Token whileKeyword,
-      Token leftParenthesis,
-      void condition,
-      Token rightParenthesis,
-      void body) {}
+  void whileStatement(StatementJudgment judgment, location,
+      WhileStatementTokens toknes, void condition, void body) {}
 
   @override
-  void yieldStatement(StatementJudgment judgment, location, Token yieldKeyword,
-      Token star, void expression, Token semicolon) {}
+  void yieldStatement(StatementJudgment judgment, location,
+      YieldStatementTokens tokens, void expression) {}
 }

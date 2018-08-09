@@ -8,15 +8,16 @@ import 'dart:typed_data';
 
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
-import 'package:front_end/src/api_prototype/byte_store.dart';
-import 'package:front_end/src/api_prototype/file_system.dart';
-import 'package:front_end/src/base/api_signature.dart';
-import 'package:front_end/src/base/resolve_relative_uri.dart';
-import 'package:front_end/src/dependency_walker.dart' as graph;
-import 'package:front_end/src/fasta/uri_translator.dart';
-import 'package:front_end/src/incremental/format.dart';
-import 'package:front_end/src/incremental/unlinked_unit.dart';
 import 'package:kernel/target/targets.dart';
+
+import '../api_prototype/byte_store.dart';
+import '../api_prototype/file_system.dart';
+import '../base/api_signature.dart';
+import '../base/resolve_relative_uri.dart';
+import '../dependency_walker.dart' as graph;
+import '../fasta/uri_translator.dart';
+import 'format.dart';
+import 'unlinked_unit.dart';
 
 /// This function is called for each newly discovered file, and the returned
 /// [Future] is awaited before reading the file content.

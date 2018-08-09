@@ -22,7 +22,7 @@ import 'dart:async';
 import 'dart:_internal';
 
 class Object {
-  const Object() {}
+  const Object();
   bool operator ==(other) => identical(this, other);
   String toString() => 'a string';
   int get hashCode => 0;
@@ -412,9 +412,7 @@ const Map<String, LibraryInfo> libraries = const {
     List<Source> librarySources = sdkLibraries
         .map((SdkLibrary library) => mapDartUri(library.shortName))
         .toList();
-    return new SummaryBuilder(
-            librarySources, context, context.analysisOptions.strongMode)
-        .build();
+    return new SummaryBuilder(librarySources, context, true).build();
   }
 }
 

@@ -15,12 +15,13 @@ import '../analysis_abstract.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(_AnalysisNotificationFoldingTest);
+    defineReflectiveTests(AnalysisNotificationFoldingTest);
+    defineReflectiveTests(AnalysisNotificationFoldingTest_UseCFE);
   });
 }
 
 @reflectiveTest
-class _AnalysisNotificationFoldingTest extends AbstractAnalysisTest {
+class AnalysisNotificationFoldingTest extends AbstractAnalysisTest {
   static const sampleCode = '''
 import 'dart:async';
 import 'dart:core';
@@ -95,4 +96,11 @@ main async() {}
     action();
     return _regionsReceived.future;
   }
+}
+
+@reflectiveTest
+class AnalysisNotificationFoldingTest_UseCFE
+    extends AnalysisNotificationFoldingTest {
+  @override
+  bool get useCFE => true;
 }

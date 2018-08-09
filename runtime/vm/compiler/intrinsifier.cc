@@ -1223,6 +1223,10 @@ bool Intrinsifier::Build_DoubleRound(FlowGraph* flow_graph) {
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kDoubleRound);
 }
 
+void Intrinsifier::String_identityHash(Assembler* assembler) {
+  String_getHashCode(assembler);
+}
+
 void Intrinsifier::Double_identityHash(Assembler* assembler) {
   Double_hashCode(assembler);
 }

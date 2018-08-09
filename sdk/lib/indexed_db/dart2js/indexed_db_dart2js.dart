@@ -304,8 +304,7 @@ class CursorWithValue extends Cursor {
 @Unstable()
 @Native("IDBDatabase")
 class Database extends EventTarget {
-  ObjectStore createObjectStore(String name,
-      {String keyPath, bool autoIncrement}) {
+  ObjectStore createObjectStore(String name, {keyPath, bool autoIncrement}) {
     var options = {};
     if (keyPath != null) {
       options['keyPath'] = keyPath;

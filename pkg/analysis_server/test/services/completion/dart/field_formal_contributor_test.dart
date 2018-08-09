@@ -12,6 +12,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FieldFormalContributorTest);
+    defineReflectiveTests(FieldFormalContributorTest_UseCFE);
   });
 }
 
@@ -194,4 +195,10 @@ class FieldFormalContributorTest extends DartCompletionContributorTest {
     assertSuggestField('y', 'int', relevance: DART_RELEVANCE_LOCAL_FIELD);
     assertNotSuggested('x');
   }
+}
+
+@reflectiveTest
+class FieldFormalContributorTest_UseCFE extends FieldFormalContributorTest {
+  @override
+  bool get useCFE => true;
 }

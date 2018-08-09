@@ -38,7 +38,6 @@ declare_args() {
 # ......pub
 # ......snapshots/
 # ........analysis_server.dart.snapshot
-# ........analysis_server_dart1.dart.snapshot (this is temporary; #33877)
 # ........dart2js.dart.snapshot
 # ........dartanalyzer.dart.snapshot
 # ........dartdoc.dart.snapshot
@@ -119,10 +118,6 @@ _platform_sdk_snapshots = [
     "../utils/analysis_server",
   ],
   [
-    "analysis_server_dart1",
-    "../utils/analysis_server_dart1",
-  ],
-  [
     "dartanalyzer",
     "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
   ],
@@ -148,10 +143,6 @@ _full_sdk_snapshots = [
   [
     "analysis_server",
     "../utils/analysis_server",
-  ],
-  [
-    "analysis_server_dart1",
-    "../utils/analysis_server_dart1",
   ],
   [
     "dart2js",
@@ -192,25 +183,6 @@ _full_sdk_snapshots = [
 ]
 
 # Libraries that go under lib/
-_platform_sdk_libraries = [
-  "_internal",
-  "async",
-  "cli",
-  "collection",
-  "convert",
-  "core",
-  "developer",
-  "html",
-  "_http",
-  "internal",
-  "io",
-  "isolate",
-  "math",
-  "mirrors",
-  "profiler",
-  "typed_data",
-]
-
 _full_sdk_libraries = [
   "_chrome",
   "_internal",
@@ -237,6 +209,29 @@ _full_sdk_libraries = [
   "web_gl",
   "web_sql",
 ]
+
+# Apps running on the platform SDK shouldn't be using Dart4Web libraries, but
+# the analyzer and dartdoc expect all the library sources to be present.
+#
+# _platform_sdk_libraries = [
+#   "_internal",
+#   "async",
+#   "cli",
+#   "collection",
+#   "convert",
+#   "core",
+#   "developer",
+#   "html",
+#   "_http",
+#   "internal",
+#   "io",
+#   "isolate",
+#   "math",
+#   "mirrors",
+#   "profiler",
+#   "typed_data",
+# ]
+_platform_sdk_libraries = _full_sdk_libraries
 
 # Package sources copied to lib/
 _analyzer_source_dirs = [

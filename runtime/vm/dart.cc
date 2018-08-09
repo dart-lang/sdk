@@ -15,7 +15,7 @@
 #include "vm/heap/become.h"
 #include "vm/heap/freelist.h"
 #include "vm/heap/heap.h"
-#include "vm/heap/store_buffer.h"
+#include "vm/heap/pointer_block.h"
 #include "vm/isolate.h"
 #include "vm/kernel_isolate.h"
 #include "vm/malloc_hooks.h"
@@ -719,6 +719,11 @@ const char* Dart::FeaturesString(Isolate* isolate,
 #else
     buffer.AddString(" x64-sysv");
 #endif
+
+#if defined(DART_USE_INTERPRETER)
+    buffer.AddString(" kbc");
+#endif
+
 #elif defined(TARGET_ARCH_DBC)
 #if defined(ARCH_IS_32_BIT)
     buffer.AddString(" dbc32");

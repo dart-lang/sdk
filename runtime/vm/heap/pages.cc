@@ -901,8 +901,6 @@ bool PageSpace::ShouldPerformIdleMarkCompact(int64_t deadline) {
 
 void PageSpace::CollectGarbage(bool compact) {
   Thread* thread = Thread::Current();
-  Isolate* isolate = heap_->isolate();
-  ASSERT(isolate == Isolate::Current());
 
   const int64_t pre_wait_for_sweepers = OS::GetCurrentMonotonicMicros();
 
@@ -923,147 +921,7 @@ void PageSpace::CollectGarbage(bool compact) {
   // loser skips collection and goes straight to allocation.
   {
     SafepointOperationScope safepoint_scope(thread);
-
-    const int64_t start = OS::GetCurrentMonotonicMicros();
-
-    NOT_IN_PRODUCT(isolate->class_table()->ResetCountersOld());
-    // Perform various cleanup that relies on no tasks interfering.
-    isolate->class_table()->FreeOldTables();
-
-    NoSafepointScope no_safepoints;
-
-    if (FLAG_print_free_list_before_gc) {
-      OS::PrintErr("Data Freelist (before GC):\n");
-      freelist_[HeapPage::kData].Print();
-      OS::PrintErr("Executable Freelist (before GC):\n");
-      freelist_[HeapPage::kExecutable].Print();
-    }
-
-    if (FLAG_verify_before_gc) {
-      OS::PrintErr("Verifying before marking...");
-      heap_->VerifyGC();
-      OS::PrintErr(" done.\n");
-    }
-
-    // Make code pages writable.
-    WriteProtectCode(false);
-
-    // Save old value before GCMarker visits the weak persistent handles.
-    SpaceUsage usage_before = GetCurrentUsage();
-
-    // Mark all reachable old-gen objects.
-#if defined(PRODUCT)
-    bool collect_code = FLAG_collect_code && ShouldCollectCode();
-#else
-    bool collect_code = FLAG_collect_code && ShouldCollectCode() &&
-                        !isolate->HasAttemptedReload();
-#endif  // !defined(PRODUCT)
-    GCMarker marker(heap_);
-    marker.MarkObjects(isolate, this, collect_code);
-    usage_.used_in_words = marker.marked_words();
-
-    int64_t mid1 = OS::GetCurrentMonotonicMicros();
-
-    // Abandon the remainder of the bump allocation block.
-    AbandonBumpAllocation();
-    // Reset the freelists and setup sweeping.
-    freelist_[HeapPage::kData].Reset();
-    freelist_[HeapPage::kExecutable].Reset();
-
-    int64_t mid2 = OS::GetCurrentMonotonicMicros();
-    int64_t mid3 = 0;
-
-    {
-      if (FLAG_verify_before_gc) {
-        OS::PrintErr("Verifying before sweeping...");
-        heap_->VerifyGC(kAllowMarked);
-        OS::PrintErr(" done.\n");
-      }
-      GCSweeper sweeper;
-
-      // During stop-the-world phases we should use bulk lock when adding
-      // elements to the free list.
-      MutexLocker mld(freelist_[HeapPage::kData].mutex());
-      MutexLocker mle(freelist_[HeapPage::kExecutable].mutex());
-
-      // Large and executable pages are always swept immediately.
-      HeapPage* prev_page = NULL;
-      HeapPage* page = large_pages_;
-      while (page != NULL) {
-        HeapPage* next_page = page->next();
-        const intptr_t words_to_end = sweeper.SweepLargePage(page);
-        if (words_to_end == 0) {
-          FreeLargePage(page, prev_page);
-        } else {
-          TruncateLargePage(page, words_to_end << kWordSizeLog2);
-          prev_page = page;
-        }
-        // Advance to the next page.
-        page = next_page;
-      }
-
-      prev_page = NULL;
-      page = exec_pages_;
-      FreeList* freelist = &freelist_[HeapPage::kExecutable];
-      while (page != NULL) {
-        HeapPage* next_page = page->next();
-        bool page_in_use = sweeper.SweepPage(page, freelist, true);
-        if (page_in_use) {
-          prev_page = page;
-        } else {
-          FreePage(page, prev_page);
-        }
-        // Advance to the next page.
-        page = next_page;
-      }
-
-      mid3 = OS::GetCurrentMonotonicMicros();
-    }
-
-    if (compact) {
-      Compact(thread);
-    } else if (FLAG_concurrent_sweep) {
-      ConcurrentSweep(isolate);
-    } else {
-      BlockingSweep();
-    }
-
-    // Make code pages read-only.
-    WriteProtectCode(true);
-
-    int64_t end = OS::GetCurrentMonotonicMicros();
-
-    // Record signals for growth control. Include size of external allocations.
-    page_space_controller_.EvaluateGarbageCollection(
-        usage_before, GetCurrentUsage(), start, end);
-
-    int64_t mark_micros = mid3 - start;
-    if (mark_micros == 0) {
-      mark_micros = 1;  // Prevent division by zero.
-    }
-    mark_words_per_micro_ = usage_before.used_in_words / mark_micros;
-    if (mark_words_per_micro_ == 0) {
-      mark_words_per_micro_ = 1;  // Prevent division by zero.
-    }
-
-    heap_->RecordTime(kConcurrentSweep, pre_safe_point - pre_wait_for_sweepers);
-    heap_->RecordTime(kSafePoint, start - pre_safe_point);
-    heap_->RecordTime(kMarkObjects, mid1 - start);
-    heap_->RecordTime(kResetFreeLists, mid2 - mid1);
-    heap_->RecordTime(kSweepPages, mid3 - mid2);
-    heap_->RecordTime(kSweepLargePages, end - mid3);
-
-    if (FLAG_print_free_list_after_gc) {
-      OS::PrintErr("Data Freelist (after GC):\n");
-      freelist_[HeapPage::kData].Print();
-      OS::PrintErr("Executable Freelist (after GC):\n");
-      freelist_[HeapPage::kExecutable].Print();
-    }
-
-    UpdateMaxUsed();
-    if (heap_ != NULL) {
-      heap_->UpdateGlobalMaxUsed();
-    }
+    CollectGarbageAtSafepoint(compact, pre_wait_for_sweepers, pre_safe_point);
   }
 
   // Done, reset the task count.
@@ -1074,7 +932,161 @@ void PageSpace::CollectGarbage(bool compact) {
   }
 }
 
+void PageSpace::CollectGarbageAtSafepoint(bool compact,
+                                          int64_t pre_wait_for_sweepers,
+                                          int64_t pre_safe_point) {
+  Thread* thread = Thread::Current();
+  ASSERT(thread->IsAtSafepoint());
+  Isolate* isolate = heap_->isolate();
+  ASSERT(isolate == Isolate::Current());
+
+  const int64_t start = OS::GetCurrentMonotonicMicros();
+
+  NOT_IN_PRODUCT(isolate->class_table()->ResetCountersOld());
+  // Perform various cleanup that relies on no tasks interfering.
+  isolate->class_table()->FreeOldTables();
+
+  NoSafepointScope no_safepoints;
+
+  if (FLAG_print_free_list_before_gc) {
+    OS::PrintErr("Data Freelist (before GC):\n");
+    freelist_[HeapPage::kData].Print();
+    OS::PrintErr("Executable Freelist (before GC):\n");
+    freelist_[HeapPage::kExecutable].Print();
+  }
+
+  if (FLAG_verify_before_gc) {
+    OS::PrintErr("Verifying before marking...");
+    heap_->VerifyGC();
+    OS::PrintErr(" done.\n");
+  }
+
+  // Make code pages writable.
+  WriteProtectCode(false);
+
+  // Save old value before GCMarker visits the weak persistent handles.
+  SpaceUsage usage_before = GetCurrentUsage();
+
+  // Mark all reachable old-gen objects.
+#if defined(PRODUCT)
+  bool collect_code = FLAG_collect_code && ShouldCollectCode();
+#else
+  bool collect_code = FLAG_collect_code && ShouldCollectCode() &&
+                      !isolate->HasAttemptedReload();
+#endif  // !defined(PRODUCT)
+  GCMarker marker(heap_);
+  marker.MarkObjects(isolate, this, collect_code);
+  usage_.used_in_words = marker.marked_words();
+
+  int64_t mid1 = OS::GetCurrentMonotonicMicros();
+
+  // Abandon the remainder of the bump allocation block.
+  AbandonBumpAllocation();
+  // Reset the freelists and setup sweeping.
+  freelist_[HeapPage::kData].Reset();
+  freelist_[HeapPage::kExecutable].Reset();
+
+  int64_t mid2 = OS::GetCurrentMonotonicMicros();
+  int64_t mid3 = 0;
+
+  {
+    if (FLAG_verify_before_gc) {
+      OS::PrintErr("Verifying before sweeping...");
+      heap_->VerifyGC(kAllowMarked);
+      OS::PrintErr(" done.\n");
+    }
+
+    TIMELINE_FUNCTION_GC_DURATION(thread, "SweepLargeAndExecutablePages");
+    GCSweeper sweeper;
+
+    // During stop-the-world phases we should use bulk lock when adding
+    // elements to the free list.
+    MutexLocker mld(freelist_[HeapPage::kData].mutex());
+    MutexLocker mle(freelist_[HeapPage::kExecutable].mutex());
+
+    // Large and executable pages are always swept immediately.
+    HeapPage* prev_page = NULL;
+    HeapPage* page = large_pages_;
+    while (page != NULL) {
+      HeapPage* next_page = page->next();
+      const intptr_t words_to_end = sweeper.SweepLargePage(page);
+      if (words_to_end == 0) {
+        FreeLargePage(page, prev_page);
+      } else {
+        TruncateLargePage(page, words_to_end << kWordSizeLog2);
+        prev_page = page;
+      }
+      // Advance to the next page.
+      page = next_page;
+    }
+
+    prev_page = NULL;
+    page = exec_pages_;
+    FreeList* freelist = &freelist_[HeapPage::kExecutable];
+    while (page != NULL) {
+      HeapPage* next_page = page->next();
+      bool page_in_use = sweeper.SweepPage(page, freelist, true);
+      if (page_in_use) {
+        prev_page = page;
+      } else {
+        FreePage(page, prev_page);
+      }
+      // Advance to the next page.
+      page = next_page;
+    }
+
+    mid3 = OS::GetCurrentMonotonicMicros();
+  }
+
+  if (compact) {
+    Compact(thread);
+  } else if (FLAG_concurrent_sweep) {
+    ConcurrentSweep(isolate);
+  } else {
+    BlockingSweep();
+  }
+
+  // Make code pages read-only.
+  WriteProtectCode(true);
+
+  int64_t end = OS::GetCurrentMonotonicMicros();
+
+  // Record signals for growth control. Include size of external allocations.
+  page_space_controller_.EvaluateGarbageCollection(
+      usage_before, GetCurrentUsage(), start, end);
+
+  int64_t mark_micros = mid3 - start;
+  if (mark_micros == 0) {
+    mark_micros = 1;  // Prevent division by zero.
+  }
+  mark_words_per_micro_ = usage_before.used_in_words / mark_micros;
+  if (mark_words_per_micro_ == 0) {
+    mark_words_per_micro_ = 1;  // Prevent division by zero.
+  }
+
+  heap_->RecordTime(kConcurrentSweep, pre_safe_point - pre_wait_for_sweepers);
+  heap_->RecordTime(kSafePoint, start - pre_safe_point);
+  heap_->RecordTime(kMarkObjects, mid1 - start);
+  heap_->RecordTime(kResetFreeLists, mid2 - mid1);
+  heap_->RecordTime(kSweepPages, mid3 - mid2);
+  heap_->RecordTime(kSweepLargePages, end - mid3);
+
+  if (FLAG_print_free_list_after_gc) {
+    OS::PrintErr("Data Freelist (after GC):\n");
+    freelist_[HeapPage::kData].Print();
+    OS::PrintErr("Executable Freelist (after GC):\n");
+    freelist_[HeapPage::kExecutable].Print();
+  }
+
+  UpdateMaxUsed();
+  if (heap_ != NULL) {
+    heap_->UpdateGlobalMaxUsed();
+  }
+}
+
 void PageSpace::BlockingSweep() {
+  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "Sweep");
+
   MutexLocker mld(freelist_[HeapPage::kData].mutex());
   MutexLocker mle(freelist_[HeapPage::kExecutable].mutex());
 

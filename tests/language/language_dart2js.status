@@ -13,6 +13,7 @@ await_not_started_immediately_test: RuntimeError # sync-async is on by default
 full_stacktrace1_test: Pass, RuntimeError # Issue 12698
 full_stacktrace2_test: Pass, RuntimeError # Issue 12698
 full_stacktrace3_test: Pass, RuntimeError # Issue 12698
+issue23244_test: RuntimeError # 23244
 library_env_test/has_no_html_support: RuntimeError, OK
 main_test/03: MissingRuntimeError # dart:isolate not supported
 vm/*: Skip # Issue 12699
@@ -35,9 +36,6 @@ override_field_test/02: Pass, Slow # TODO(kasperl): Please triage.
 [ $compiler == dart2js && $runtime == d8 && $fasta ]
 int_round_to_double_test: RuntimeError # Large integer literal. Not valid in dart2.
 regress_23408_test: RuntimeError
-
-[ $compiler == dart2js && $runtime != drt ]
-issue23244_test: RuntimeError # 23244
 
 [ $compiler == dart2js && $runtime == ff ]
 round_test: Pass, Fail, OK # Fixed in ff 35. Common JavaScript engine Math.round bug.

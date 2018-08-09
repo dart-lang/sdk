@@ -339,7 +339,7 @@ class CompletionTarget {
       parent = parent.parent;
     }
     if (parent is InstanceCreationExpression) {
-      DartType instType = parent.bestType;
+      DartType instType = parent.staticType;
       if (instType != null) {
         Element intTypeElem = instType.element;
         if (intTypeElem is ClassElement) {
@@ -355,7 +355,7 @@ class CompletionTarget {
     } else if (parent is MethodInvocation) {
       SimpleIdentifier methodName = parent.methodName;
       if (methodName != null) {
-        Element methodElem = methodName.bestElement;
+        Element methodElem = methodName.staticElement;
         if (methodElem is MethodElement) {
           return _isFunctionalParameter(
               methodElem.parameters, argIndex, containingNode);

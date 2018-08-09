@@ -257,6 +257,7 @@ void CompilerPass::RunPipeline(PipelineMode mode,
     INVOKE_PASS(ReplaceArrayBoundChecksForAOT);
   }
 #endif
+  INVOKE_PASS(WriteBarrierElimination);
   INVOKE_PASS(FinalizeGraph);
   INVOKE_PASS(AllocateRegisters);
   if (mode == kJIT) {
@@ -396,6 +397,38 @@ COMPILER_PASS(ReorderBlocks, {
     state->block_scheduler->ReorderBlocks();
   }
 });
+
+static void WriteBarrierElimination(FlowGraph* flow_graph) {
+  for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
+       !block_it.Done(); block_it.Advance()) {
+    BlockEntryInstr* block = block_it.Current();
+    Definition* last_allocated = nullptr;
+    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+      Instruction* current = it.Current();
+      if (StoreInstanceFieldInstr* instr = current->AsStoreInstanceField()) {
+        if (!current->CanTriggerGC()) {
+          if (instr->instance()->definition() == last_allocated) {
+            instr->set_emit_store_barrier(kNoStoreBarrier);
+          }
+          continue;
+        }
+      }
+
+      AllocationInstr* alloc = current->AsAllocation();
+      if (alloc != nullptr && alloc->WillAllocateNewOrRemembered()) {
+        last_allocated = alloc;
+        continue;
+      }
+
+      if (current->CanTriggerGC()) {
+        last_allocated = nullptr;
+      }
+    }
+  }
+}
+
+COMPILER_PASS(WriteBarrierElimination,
+              { WriteBarrierElimination(flow_graph); });
 
 COMPILER_PASS(FinalizeGraph, {
   // Compute and store graph informations (call & instruction counts)

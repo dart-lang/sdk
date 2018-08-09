@@ -30,6 +30,7 @@
 #include "vm/hash_table.h"
 #include "vm/isolate.h"
 #include "vm/json_writer.h"
+#include "vm/kernel_loader.h"  // For kernel::ParseStaticFieldInitializer.
 #include "vm/log.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
@@ -490,50 +491,7 @@ void Precompiler::PrecompileConstructors() {
 }
 
 static Dart_QualifiedFunctionName vm_entry_points[] = {
-    // Functions
-    {"dart:async", "::", "_ensureScheduleImmediate"},
-    {"dart:core", "::", "_completeDeferredLoads"},
-    {"dart:core", "::", "identityHashCode"},
-    {"dart:core", "AbstractClassInstantiationError",
-     "AbstractClassInstantiationError._create"},
-    {"dart:core", "ArgumentError", "ArgumentError."},
-    {"dart:core", "ArgumentError", "ArgumentError.value"},
-    {"dart:core", "CyclicInitializationError", "CyclicInitializationError."},
-    {"dart:core", "FallThroughError", "FallThroughError._create"},
-    {"dart:core", "FormatException", "FormatException."},
-    {"dart:core", "NoSuchMethodError", "NoSuchMethodError._withType"},
-    {"dart:core", "NullThrownError", "NullThrownError."},
-    {"dart:core", "OutOfMemoryError", "OutOfMemoryError."},
-    {"dart:core", "RangeError", "RangeError."},
-    {"dart:core", "RangeError", "RangeError.range"},
-    {"dart:core", "StackOverflowError", "StackOverflowError."},
-    {"dart:core", "UnsupportedError", "UnsupportedError."},
-    {"dart:core", "_AssertionError", "_AssertionError._create"},
-    {"dart:core", "_CastError", "_CastError._create"},
-    {"dart:core", "_InternalError", "_InternalError."},
-    {"dart:core", "_InvocationMirror", "_allocateInvocationMirror"},
-    {"dart:core", "_InvocationMirror", "_allocateInvocationMirrorForClosure"},
-    {"dart:core", "_TypeError", "_TypeError._create"},
-    {"dart:collection", "::", "_rehashObjects"},
-    {"dart:isolate", "IsolateSpawnException", "IsolateSpawnException."},
-    {"dart:isolate", "::", "_runPendingImmediateCallback"},
-    {"dart:isolate", "::", "_startIsolate"},
-    {"dart:isolate", "_RawReceivePortImpl", "_handleMessage"},
-    {"dart:isolate", "_RawReceivePortImpl", "_lookupHandler"},
-    {"dart:isolate", "_SendPortImpl", "send"},
-    {"dart:typed_data", "ByteData", "ByteData."},
-    {"dart:typed_data", "ByteData", "ByteData._view"},
-    {"dart:typed_data", "_ByteBuffer", "_ByteBuffer._New"},
-    {"dart:_vmservice", "::", "boot"},
-#if !defined(PRODUCT)
-    {"dart:_vmservice", "::", "_registerIsolate"},
-    {"dart:developer", "Metrics", "_printMetrics"},
-    {"dart:developer", "::", "_runExtension"},
-#endif  // !PRODUCT
     // Fields
-    {"dart:core", "Error", "_stackTrace"},
-    {"dart:core", "::", "_uriBaseClosure"},
-    {"dart:math", "_Random", "_state"},
     {NULL, NULL, NULL}  // Must be terminated with NULL entries.
 };
 
@@ -1507,12 +1465,15 @@ void Precompiler::AddInstantiatedClass(const Class& cls) {
   }
 }
 
-// Adds all values annotated with @pragma('vm.entry_point') as roots.
+enum class EntryPointPragma { kAlways, kNever, kGetterOnly, kSetterOnly };
+
+// Adds all values annotated with @pragma('vm.entry-point') as roots.
 void Precompiler::AddAnnotatedRoots() {
   auto& lib = Library::Handle(Z);
   auto& cls = Class::Handle(isolate()->object_store()->pragma_class());
-  auto& functions = Array::Handle(Z);
+  auto& members = Array::Handle(Z);
   auto& function = Function::Handle(Z);
+  auto& field = Field::Handle(Z);
   auto& metadata = Array::Handle(Z);
   auto& pragma = Object::Handle(Z);
   auto& pragma_options = Object::Handle(Z);
@@ -1520,44 +1481,127 @@ void Precompiler::AddAnnotatedRoots() {
   auto& pragma_options_field =
       Field::Handle(Z, cls.LookupField(Symbols::options()));
 
+  // Lists of fields which need implicit getter/setter/static final getter
+  // added.
+  auto& implicit_getters = GrowableObjectArray::Handle(Z);
+  auto& implicit_setters = GrowableObjectArray::Handle(Z);
+  auto& implicit_static_getters = GrowableObjectArray::Handle(Z);
+
+  // Local function allows easy reuse of handles above.
+  auto metadata_defines_entrypoint = [&]() {
+    for (intptr_t i = 0; i < metadata.Length(); i++) {
+      pragma = metadata.At(i);
+      if (pragma.clazz() != isolate()->object_store()->pragma_class()) {
+        continue;
+      }
+      if (Instance::Cast(pragma).GetField(pragma_name_field) !=
+          Symbols::vm_entry_point().raw()) {
+        continue;
+      }
+      pragma_options = Instance::Cast(pragma).GetField(pragma_options_field);
+      if (pragma_options.raw() == Bool::null() ||
+          pragma_options.raw() == Bool::True().raw()) {
+        return EntryPointPragma::kAlways;
+        break;
+      }
+      if (pragma_options.raw() == Symbols::Get().raw()) {
+        return EntryPointPragma::kGetterOnly;
+      }
+      if (pragma_options.raw() == Symbols::Set().raw()) {
+        return EntryPointPragma::kSetterOnly;
+      }
+    }
+    return EntryPointPragma::kNever;
+  };
+
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
-      functions = cls.functions();
-      for (intptr_t k = 0; k < functions.Length(); k++) {
-        function ^= functions.At(k);
-        if (!function.has_pragma()) continue;
-        metadata ^= lib.GetMetadata(function);
-        if (metadata.IsNull()) continue;
 
-        bool is_entry_point = false;
-        for (intptr_t i = 0; i < metadata.Length(); i++) {
-          pragma = metadata.At(i);
-          if (pragma.clazz() != isolate()->object_store()->pragma_class()) {
-            continue;
-          }
-          if (Instance::Cast(pragma).GetField(pragma_name_field) !=
-              Symbols::vm_entry_point().raw()) {
-            continue;
-          }
-          pragma_options =
-              Instance::Cast(pragma).GetField(pragma_options_field);
-          if (pragma_options.raw() == Bool::null() ||
-              pragma_options.raw() == Bool::True().raw()) {
-            is_entry_point = true;
-            break;
-          }
-        }
-
-        if (!is_entry_point) continue;
-
-        AddFunction(function);
-        if (function.IsGenerativeConstructor()) {
+      if (cls.has_pragma()) {
+        // Check for @pragma on the class itself.
+        metadata ^= lib.GetMetadata(cls);
+        if (metadata_defines_entrypoint() != EntryPointPragma::kAlways) {
           AddInstantiatedClass(cls);
         }
+
+        // Check for @pragma on any fields in the class.
+        members = cls.fields();
+        implicit_getters = GrowableObjectArray::New(members.Length());
+        implicit_setters = GrowableObjectArray::New(members.Length());
+        implicit_static_getters = GrowableObjectArray::New(members.Length());
+        for (intptr_t k = 0; k < members.Length(); ++k) {
+          field ^= members.At(k);
+          metadata ^= lib.GetMetadata(field);
+          if (metadata.IsNull()) continue;
+          EntryPointPragma pragma = metadata_defines_entrypoint();
+          if (pragma == EntryPointPragma::kNever) continue;
+
+          AddField(field);
+
+          if (!field.is_static()) {
+            if (pragma != EntryPointPragma::kSetterOnly) {
+              implicit_getters.Add(field);
+            }
+            if (pragma != EntryPointPragma::kGetterOnly) {
+              implicit_setters.Add(field);
+            }
+          } else {
+            implicit_static_getters.Add(field);
+          }
+        }
       }
+
+      // Check for @pragma on any functions in the class.
+      members = cls.functions();
+      for (intptr_t k = 0; k < members.Length(); k++) {
+        function ^= members.At(k);
+        if (function.has_pragma()) {
+          metadata ^= lib.GetMetadata(function);
+          if (metadata.IsNull()) continue;
+          if (metadata_defines_entrypoint() != EntryPointPragma::kAlways) {
+            continue;
+          }
+
+          AddFunction(function);
+          if (function.IsGenerativeConstructor()) {
+            AddInstantiatedClass(cls);
+          }
+        }
+        if (function.kind() == RawFunction::kImplicitGetter &&
+            !implicit_getters.IsNull()) {
+          for (intptr_t i = 0; i < implicit_getters.Length(); ++i) {
+            field ^= implicit_getters.At(i);
+            if (function.accessor_field() == field.raw()) {
+              AddFunction(function);
+            }
+          }
+        }
+        if (function.kind() == RawFunction::kImplicitSetter &&
+            !implicit_setters.IsNull()) {
+          for (intptr_t i = 0; i < implicit_setters.Length(); ++i) {
+            field ^= implicit_setters.At(i);
+            if (function.accessor_field() == field.raw()) {
+              AddFunction(function);
+            }
+          }
+        }
+        if (function.kind() == RawFunction::kImplicitStaticFinalGetter &&
+            !implicit_static_getters.IsNull()) {
+          for (intptr_t i = 0; i < implicit_static_getters.Length(); ++i) {
+            field ^= implicit_static_getters.At(i);
+            if (function.accessor_field() == field.raw()) {
+              AddFunction(function);
+            }
+          }
+        }
+      }
+
+      implicit_getters = GrowableObjectArray::null();
+      implicit_setters = GrowableObjectArray::null();
+      implicit_static_getters = GrowableObjectArray::null();
     }
   }
 }
@@ -2101,8 +2145,9 @@ void Precompiler::TraceTypesFromRetainedClasses() {
         continue;  // class 'dynamic' is in the read-only VM isolate.
       }
 
-      // The subclasses array is only needed for CHA.
+      // The subclasses/implementors array is only needed for CHA.
       cls.ClearDirectSubclasses();
+      cls.ClearDirectImplementors();
 
       bool retain = false;
       members = cls.fields();
@@ -2815,7 +2860,8 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
     LongJumpScope jump;
     const intptr_t val = setjmp(*jump.Set());
     if (val == 0) {
-      FlowGraph* flow_graph = NULL;
+      FlowGraph* flow_graph = nullptr;
+      ZoneGrowableArray<const ICData*>* ic_data_array = nullptr;
 
       // Class hierarchy analysis is registered with the thread in the
       // constructor and unregisters itself upon destruction.
@@ -2825,8 +2871,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       // LongJump.
       {
         CSTAT_TIMER_SCOPE(thread(), graphbuilder_timer);
-        ZoneGrowableArray<const ICData*>* ic_data_array =
-            new (zone) ZoneGrowableArray<const ICData*>();
+        ic_data_array = new (zone) ZoneGrowableArray<const ICData*>();
 #ifndef PRODUCT
         TimelineDurationScope tds(thread(), compiler_timeline,
                                   "BuildFlowGraph");
@@ -2893,7 +2938,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           &assembler, flow_graph, *parsed_function(), optimized(),
           &speculative_policy, pass_state.inline_id_to_function,
           pass_state.inline_id_to_token_pos, pass_state.caller_inline_id,
-          function_stats);
+          ic_data_array, function_stats);
       {
         CSTAT_TIMER_SCOPE(thread(), graphcompiler_timer);
 #ifndef PRODUCT

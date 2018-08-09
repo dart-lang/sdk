@@ -16,6 +16,7 @@ abstract class _EmbedderConfig {
   static bool _mayChdir = true;
 
   /// The Isolate may call exit().
+  @pragma("vm.entry-point")
   static bool _mayExit = true;
 
   // The Isolate may set Stdin.echoMode.

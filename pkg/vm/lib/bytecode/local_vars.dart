@@ -9,7 +9,7 @@ import 'dart:math' show max;
 import 'package:kernel/ast.dart';
 import 'package:kernel/transformations/continuation.dart'
     show ContinuationVariables;
-import 'package:vm/bytecode/dbc.dart';
+import 'dbc.dart';
 
 class LocalVariables {
   final Map<TreeNode, Scope> _scopes = <TreeNode, Scope>{};
@@ -967,6 +967,16 @@ class _Allocator extends RecursiveVisitor<Null> {
 
   @override
   visitDirectPropertySet(DirectPropertySet node) {
+    _visit(node, temps: 1);
+  }
+
+  @override
+  visitSuperMethodInvocation(SuperMethodInvocation node) {
+    _visit(node, temps: 1);
+  }
+
+  @override
+  visitSuperPropertyGet(SuperPropertyGet node) {
     _visit(node, temps: 1);
   }
 

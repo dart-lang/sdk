@@ -26,31 +26,35 @@ This script invokes ninja to build Dart.
 
 def BuildOptions():
   result = optparse.OptionParser(usage=usage)
-  result.add_option("-m", "--mode",
-      help='Build variants (comma-separated).',
-      metavar='[all,debug,release,product]',
-      default='debug')
-  result.add_option("-v", "--verbose",
-      help='Verbose output.',
-      default=False, action="store_true")
   result.add_option("-a", "--arch",
       help='Target architectures (comma-separated).',
       metavar='[all,ia32,x64,simarm,arm,simarmv6,armv6,simarmv5te,armv5te,'
               'simarm64,arm64,simdbc,armsimdbc]',
       default=utils.GuessArchitecture())
-  result.add_option("--os",
-      help='Target OSs (comma-separated).',
-      metavar='[all,host,android]',
-      default='host')
+  result.add_option("-b", "--bytecode",
+      help='Build with the kernel bytecode interpreter',
+      default=False,
+      action='store_true')
   result.add_option("-j",
       type=int,
       help='Ninja -j option for Goma builds.',
       metavar=1000,
       default=1000)
+  result.add_option("-m", "--mode",
+      help='Build variants (comma-separated).',
+      metavar='[all,debug,release,product]',
+      default='debug')
   result.add_option("--no-start-goma",
       help="Don't try to start goma",
       default=False,
       action='store_true')
+  result.add_option("--os",
+      help='Target OSs (comma-separated).',
+      metavar='[all,host,android]',
+      default='host')
+  result.add_option("-v", "--verbose",
+      help='Verbose output.',
+      default=False, action="store_true")
   return result
 
 
@@ -224,9 +228,9 @@ def EnsureGomaStarted(out_dir):
 
 
 # Returns a tuple (build_config, command to run, whether goma is used)
-def BuildOneConfig(options, targets, target_os, mode, arch):
-  build_config = utils.GetBuildConf(mode, arch, target_os)
-  out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os)
+def BuildOneConfig(options, targets, target_os, mode, arch, kbc):
+  build_config = utils.GetBuildConf(mode, arch, target_os, kbc=kbc)
+  out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os, kbc=kbc)
   using_goma = False
   # TODO(zra): Remove auto-run of gn, replace with prompt for user to run
   # gn.py manually.
@@ -291,7 +295,8 @@ def Main():
   for target_os in options.os:
     for mode in options.mode:
       for arch in options.arch:
-        configs.append(BuildOneConfig(options, targets, target_os, mode, arch))
+        configs.append(BuildOneConfig(options, targets, target_os, mode, arch,
+                                      options.bytecode))
 
   # Build regular configs.
   goma_builds = []

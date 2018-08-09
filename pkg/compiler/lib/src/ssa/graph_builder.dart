@@ -290,14 +290,16 @@ abstract class GraphBuilder {
   /// concrete SSA builder reports an error.
   bool getFlagValue(String flagName) {
     switch (flagName) {
-      case 'MUST_RETAIN_METADATA':
-        return false;
-      case 'USE_CONTENT_SECURITY_POLICY':
-        return options.useContentSecurityPolicy;
       case 'IS_FULL_EMITTER':
         return !options.useStartupEmitter;
+      case 'MINIFIED':
+        return options.enableMinification;
+      case 'MUST_RETAIN_METADATA':
+        return false;
       case 'STRONG_MODE':
         return options.strongMode;
+      case 'USE_CONTENT_SECURITY_POLICY':
+        return options.useContentSecurityPolicy;
       default:
         return null;
     }

@@ -308,8 +308,10 @@ const int kAbiPreservedFpuRegCount = 4;
 const RegList kReservedCpuRegisters = (1 << SPREG) | (1 << FPREG) | (1 << TMP) |
                                       (1 << PP) | (1 << THR) | (1 << PC);
 // CPU registers available to Dart allocator.
-const RegList kDartAvailableCpuRegs =
+constexpr RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
+constexpr int kNumberOfDartAvailableCpuRegs = kNumberOfCpuRegisters - 6;
+const intptr_t kStoreBufferWrapperSize = 24;
 // Registers available to Dart that are not preserved by runtime calls.
 const RegList kDartVolatileCpuRegs =
     kDartAvailableCpuRegs & ~kAbiPreservedCpuRegs;

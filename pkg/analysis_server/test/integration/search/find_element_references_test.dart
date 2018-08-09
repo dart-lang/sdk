@@ -8,6 +8,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../test_utilities/utillities.dart';
 import '../support/integration_tests.dart';
 
 main() {
@@ -79,5 +80,6 @@ class FindElementReferencesTest_UseCFE extends FindElementReferencesTest {
 
   @override
   @failingTest
-  Future test_findReferences() => fail('Test fails with CFE');
+  // TimeoutException
+  test_findReferences() => callFailingTest(super.test_findReferences());
 }

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--enable_type_checks --enable_asserts
+// dart2jsOptions=--enable-asserts
 
 // Dart test program testing assert statements.
 

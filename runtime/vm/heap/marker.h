@@ -49,7 +49,6 @@ class GCMarker : public ValueObject {
   Heap* heap_;
 
   Mutex stats_mutex_;
-  // TODO(koda): Remove after verifying it's redundant w.r.t. ClassHeapStats.
   uintptr_t marked_bytes_;
 
   friend class MarkTask;

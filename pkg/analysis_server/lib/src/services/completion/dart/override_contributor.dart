@@ -40,7 +40,7 @@ class OverrideContributor implements DartCompletionContributor {
     }
 
     // Generate a collection of inherited members
-    ClassElement classElem = classDecl.element;
+    ClassElement classElem = classDecl.declaredElement;
     InheritanceManager manager = new InheritanceManager(classElem.library);
     Map<String, ExecutableElement> map =
         manager.getMembersInheritedFromInterfaces(classElem);

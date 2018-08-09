@@ -106,7 +106,7 @@ class BaseAnalysisDriverTest {
         createAnalysisOptions(),
         disableChangesAndCacheAllResults: disableChangesAndCacheAllResults,
         externalSummaries: externalSummaries,
-        enableKernelDriver: useCFE);
+        useCFE: useCFE);
   }
 
   AnalysisOptionsImpl createAnalysisOptions() =>

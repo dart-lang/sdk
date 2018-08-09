@@ -1,4 +1,6 @@
-## unreleased
+## 0.32.4
+* Updated SDK constraint to <3.0.0.
+* Updated to be compatible with Dart 2 void usage semantics.
 * Deprecate the `AnalysisOptions.strongMode` flag. This is now hard-coded to
   always return true.
 

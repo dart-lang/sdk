@@ -687,7 +687,8 @@ const TypeArguments& TypeArgumentInstantiator::InstantiateTypeArguments(
     const Class& klass,
     const TypeArguments& type_arguments) {
   const intptr_t len = klass.NumTypeArguments();
-  TypeArguments* instantiated_type_arguments = type_arguments_handles_.Obtain();
+  ScopedHandle<TypeArguments> instantiated_type_arguments(
+      &type_arguments_handles_);
   *instantiated_type_arguments = TypeArguments::New(len);
   for (intptr_t i = 0; i < len; ++i) {
     type_ = type_arguments.TypeAt(i);
@@ -699,7 +700,6 @@ const TypeArguments& TypeArgumentInstantiator::InstantiateTypeArguments(
   }
   *instantiated_type_arguments =
       instantiated_type_arguments->Canonicalize(NULL);
-  type_arguments_handles_.Release(instantiated_type_arguments);
   return *instantiated_type_arguments;
 }
 
@@ -729,8 +729,8 @@ RawAbstractType* TypeArgumentInstantiator::InstantiateType(
     const Type& from = Type::Cast(type);
     klass_ = from.type_class();
 
-    Type* to = type_handles_.Obtain();
-    TypeArguments* to_type_arguments = type_arguments_handles_.Obtain();
+    ScopedHandle<Type> to(&type_handles_);
+    ScopedHandle<TypeArguments> to_type_arguments(&type_arguments_handles_);
 
     *to_type_arguments = TypeArguments::null();
     *to = Type::New(klass_, *to_type_arguments, type.token_pos());
@@ -739,9 +739,6 @@ RawAbstractType* TypeArgumentInstantiator::InstantiateType(
     to->set_arguments(InstantiateTypeArguments(klass_, *to_type_arguments));
     to->SetIsFinalized();
     *to ^= to->Canonicalize(NULL);
-
-    type_arguments_handles_.Release(to_type_arguments);
-    type_handles_.Release(to);
 
     return to->raw();
   }
@@ -1001,5 +998,26 @@ bool TypeUsageInfo::IsUsedInTypeTest(const AbstractType& type) {
   }
   return false;
 }
+
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
+void DeoptimizeTypeTestingStubs() {
+  auto isolate = Isolate::Current();
+  auto& tts_array = GrowableObjectArray::Handle(
+      isolate->object_store()->type_testing_stubs());
+  auto& type = AbstractType::Handle();
+  auto& instr = Instructions::Handle();
+
+  TypeTestingStubGenerator generator;
+  if (!tts_array.IsNull()) {
+    for (intptr_t i = 0; i < tts_array.Length(); i += 2) {
+      type ^= tts_array.At(i);
+      instr = generator.DefaultCodeForType(type);
+      type.SetTypeTestingStub(instr);
+    }
+  }
+}
+
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart

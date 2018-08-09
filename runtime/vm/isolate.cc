@@ -20,8 +20,8 @@
 #include "vm/deopt_instructions.h"
 #include "vm/flags.h"
 #include "vm/heap/heap.h"
+#include "vm/heap/pointer_block.h"
 #include "vm/heap/safepoint.h"
-#include "vm/heap/store_buffer.h"
 #include "vm/heap/verifier.h"
 #include "vm/image_snapshot.h"
 #include "vm/interpreter.h"
@@ -929,6 +929,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       tag_table_(GrowableObjectArray::null()),
       deoptimized_code_array_(GrowableObjectArray::null()),
       sticky_error_(Error::null()),
+      reloaded_kernel_blobs_(GrowableObjectArray::null()),
       next_(NULL),
       loading_invalidation_gen_(kInvalidGen),
       top_level_parsing_count_(0),
@@ -1126,6 +1127,14 @@ Isolate* Isolate::Init(const char* name_prefix,
   }
 
   return result;
+}
+
+void Isolate::RetainKernelBlob(const ExternalTypedData& kernel_blob) {
+  if (reloaded_kernel_blobs_ == Object::null()) {
+    reloaded_kernel_blobs_ = GrowableObjectArray::New();
+  }
+  auto& kernel_blobs = GrowableObjectArray::Handle(reloaded_kernel_blobs_);
+  kernel_blobs.Add(kernel_blob);
 }
 
 Thread* Isolate::mutator_thread() const {
@@ -1834,6 +1843,14 @@ void Isolate::Shutdown() {
   // avoid exposing it in a state of decay.
   RemoveIsolateFromList(this);
 
+  {
+    // After removal from isolate list. Before tearing down the heap.
+    StackZone zone(thread);
+    HandleScope handle_scope(thread);
+    ServiceIsolate::SendIsolateShutdownMessage();
+    KernelIsolate::NotifyAboutIsolateShutdown(this);
+  }
+
   if (heap_ != NULL) {
     // Wait for any concurrent GC tasks to finish before shutting down.
     // TODO(koda): Support faster sweeper shutdown (e.g., after current page).
@@ -1855,9 +1872,6 @@ void Isolate::Shutdown() {
     }
   }
 
-  // TODO(33514): Ideally this should be moved to Dart_ShutdownIsolate,
-  // next to ServiceIsolate::SendIsolateShutdownMessage().
-  KernelIsolate::NotifyAboutIsolateShutdown(Isolate::Current());
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
   // Then, proceed with low-level teardown.
@@ -1916,6 +1930,7 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&deoptimized_code_array_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&sticky_error_));
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&reloaded_kernel_blobs_));
 #if !defined(PRODUCT)
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&pending_service_extension_calls_));

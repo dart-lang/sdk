@@ -73,7 +73,7 @@ abstract class Forest {
 
   /// Return a representation of an integer literal at the given [location]. The
   /// literal has the given [value].
-  Expression literalInt(int value, Token location);
+  Expression literalInt(int value, Token location, {Expression desugaredError});
 
   /// Return a representation of a list literal. The [constKeyword] is the
   /// location of the `const` keyword, or `null` if there is no keyword. The
@@ -162,8 +162,8 @@ abstract class Forest {
 
   Expression checkLibraryIsLoaded(covariant dependency);
 
-  Expression asExpression(
-      Expression expression, covariant type, Token location);
+  Expression asExpression(Expression expression, covariant type, Token location,
+      {Expression desugaredError});
 
   /// Return a representation of an assert that appears in a constructor's
   /// initializer list.

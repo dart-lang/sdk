@@ -13,10 +13,6 @@ main() {
   });
 }
 
-/// Tests marked with this annotations fail because we either have not triaged
-/// them, or know that this is an analyzer problem.
-const potentialAnalyzerProblem = const Object();
-
 /// Wrapper around the test package's `fail` function.
 ///
 /// Unlike the test package's `fail` function, this function is not annotated
@@ -78,34 +74,6 @@ class B {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33642')
-  test_const_annotation_notConstConstructor() async {
-    await super.test_const_annotation_notConstConstructor();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_const_annotation_withArgs() async {
-    await super.test_const_annotation_withArgs();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_const_externalConstFactory() async {
-    await super.test_const_externalConstFactory();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31555')
-  @override
-  test_const_implicitSuperConstructorInvocation() async {
-    await super.test_const_implicitSuperConstructorInvocation();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/33719')
   test_errors_uriDoesNotExist_export() async {
     await super.test_errors_uriDoesNotExist_export();
@@ -142,13 +110,6 @@ class B {
     // Skipped by design.
   }
 
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_getErrors() async {
-    await super.test_getErrors();
-  }
-
   @override
   @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/33719')
@@ -156,57 +117,43 @@ class B {
     await super.test_getResult_doesNotExist();
   }
 
-  @override
-  @assertFailingTest
-  test_getResult_functionTypeFormalParameter_withTypeParameter() {
-    // Failed assertion: 'element != null': is not true.
-    return super.test_getResult_functionTypeFormalParameter_withTypeParameter();
-  }
-
   @failingTest
-  @potentialAnalyzerProblem
   @override
   test_getResult_importLibrary_thenRemoveIt() async {
     await super.test_getResult_importLibrary_thenRemoveIt();
   }
 
   @failingTest
-  @potentialAnalyzerProblem
   @override
   test_getResult_invalid_annotation_functionAsConstructor() async {
     await super.test_getResult_invalid_annotation_functionAsConstructor();
   }
 
   @failingTest
-  @potentialAnalyzerProblem
   @override
   test_getResult_invalidUri() async {
     await super.test_getResult_invalidUri();
   }
 
   @failingTest
-  @potentialAnalyzerProblem
   @override
   test_getResult_invalidUri_exports_dart() async {
     await super.test_getResult_invalidUri_exports_dart();
   }
 
   @failingTest
-  @potentialAnalyzerProblem
   @override
   test_getResult_invalidUri_imports_dart() async {
     await super.test_getResult_invalidUri_imports_dart();
   }
 
   @failingTest
-  @potentialAnalyzerProblem
   @override
   test_getResult_invalidUri_metadata() async {
     await super.test_getResult_invalidUri_metadata();
   }
 
   @failingTest
-  @potentialAnalyzerProblem
   @override
   test_getResult_mix_fileAndPackageUris() async {
     await super.test_getResult_mix_fileAndPackageUris();
@@ -229,17 +176,12 @@ class B {
   @override
   @failingTest
   test_missingDartLibrary_async() {
-    // Crash when compiling package:test/test.dart, at character offset null:
-    // Class 'FutureOr' not found in library 'dart:async'
     return super.test_missingDartLibrary_async();
   }
 
   @override
   @failingTest
   test_missingDartLibrary_core() {
-    // Crash when compiling package:test/test.dart, at character offset null:
-    // file:///sdk/lib/core/core.dart:1: Internal problem: Couldn't find
-    // 'Object' in 'file:///sdk/lib/core/core.dart'.
     return super.test_missingDartLibrary_core();
   }
 
@@ -273,18 +215,12 @@ class B {
   }
 
   @failingTest
-  @potentialAnalyzerProblem
   @override
   test_removeFile_invalidate_importers() async {
     await super.test_removeFile_invalidate_importers();
   }
 
   String _p(String path) => provider.convertPath(path);
-}
-
-/// Tests marked with this annotation fail because of an Analyzer problem.
-class AnalyzerProblem {
-  const AnalyzerProblem(String issueUri);
 }
 
 /// Tests marked with this annotation fail because of a Fasta problem.

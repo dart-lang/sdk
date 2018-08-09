@@ -928,6 +928,10 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
       class_name = &Symbols::ArgumentError();
       constructor_name = &Symbols::DotValue();
       break;
+    case kIntegerDivisionByZeroException:
+      library = Library::CoreLibrary();
+      class_name = &Symbols::IntegerDivisionByZeroException();
+      break;
     case kNoSuchMethod:
       library = Library::CoreLibrary();
       class_name = &Symbols::NoSuchMethodError();

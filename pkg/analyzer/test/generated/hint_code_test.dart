@@ -73,7 +73,7 @@ class _VisibleForTesting {
         r'''
 library js;
 class JS {
-  const JS([String js]) { }
+  const JS([String js]);
 }
 '''
       ]
@@ -93,7 +93,14 @@ class B extends A {
 }
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    if (useCFE) {
+      assertErrors(source, [
+        StaticTypeWarningCode.UNDEFINED_SUPER_GETTER,
+        HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE
+      ]);
+    } else {
+      assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    }
     verify([source]);
   }
 
@@ -109,7 +116,14 @@ class B extends A {
 }
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    if (useCFE) {
+      assertErrors(source, [
+        StaticTypeWarningCode.UNDEFINED_SUPER_METHOD,
+        HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE
+      ]);
+    } else {
+      assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    }
     verify([source]);
   }
 
@@ -125,7 +139,14 @@ class B extends A {
 }
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    if (useCFE) {
+      assertErrors(source, [
+        StaticTypeWarningCode.UNDEFINED_SUPER_GETTER,
+        HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE
+      ]);
+    } else {
+      assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    }
     verify([source]);
   }
 
@@ -141,7 +162,14 @@ class B extends A {
 }
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    if (useCFE) {
+      assertErrors(source, [
+        StaticTypeWarningCode.UNDEFINED_SUPER_SETTER,
+        HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE
+      ]);
+    } else {
+      assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    }
     verify([source]);
   }
 
@@ -157,7 +185,14 @@ class B extends A {
 }
 ''');
     await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    if (useCFE) {
+      assertErrors(source, [
+        StaticTypeWarningCode.UNDEFINED_SUPER_METHOD,
+        HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE
+      ]);
+    } else {
+      assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    }
     verify([source]);
   }
 
@@ -1096,14 +1131,7 @@ class Function {}
 class A extends Function {}
 ''');
     await computeAnalysisResult(source);
-    if (analysisOptions.strongMode) {
-      assertErrors(source, [HintCode.DEPRECATED_EXTENDS_FUNCTION]);
-    } else {
-      assertErrors(source, [
-        HintCode.DEPRECATED_EXTENDS_FUNCTION,
-        StaticWarningCode.FUNCTION_WITHOUT_CALL
-      ]);
-    }
+    assertErrors(source, [HintCode.DEPRECATED_EXTENDS_FUNCTION]);
     verify([source]);
   }
 
@@ -1125,14 +1153,7 @@ class A extends Function {}
 class A extends Object with Function {}
 ''');
     await computeAnalysisResult(source);
-    if (analysisOptions.strongMode) {
-      assertErrors(source, [HintCode.DEPRECATED_MIXIN_FUNCTION]);
-    } else {
-      assertErrors(source, [
-        HintCode.DEPRECATED_MIXIN_FUNCTION,
-        StaticWarningCode.FUNCTION_WITHOUT_CALL
-      ]);
-    }
+    assertErrors(source, [HintCode.DEPRECATED_MIXIN_FUNCTION]);
     verify([source]);
   }
 
@@ -2378,11 +2399,137 @@ class A {
     verify([source]);
   }
 
+  test_missingReturn_functionExpression_declared() async {
+    Source source = addSource(r'''
+main() {
+  f() {} // no hint
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_missingReturn_functionExpression_expression() async {
+    Source source = addSource(r'''
+main() {
+  int Function() f = () => null; // no hint
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
+  test_missingReturn_functionExpression_futureOrDynamic() async {
+    Source source = addSource(r'''
+import 'dart:async';
+main() {
+  FutureOr<dynamic> Function() f = () { print(42); };
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_missingReturn_functionExpression_futureOrInt() async {
+    Source source = addSource(r'''
+import 'dart:async';
+main() {
+  FutureOr<int> Function() f = () { print(42); };
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MISSING_RETURN]);
+    verify([source]);
+  }
+
+  test_missingReturn_functionExpression_inferred() async {
+    Source source = addSource(r'''
+main() {
+  int Function() f = () { print(42); };
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MISSING_RETURN]);
+    verify([source]);
+  }
+
+  test_missingReturn_functionExpression_inferred_dynamic() async {
+    Source source = addSource(r'''
+main() {
+  Function() f = () { print(42); }; // no hint
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_missingReturn_functionExpressionAsync_inferred() async {
+    Source source = addSource(r'''
+import 'dart:async';
+main() {
+  Future<int> Function() f = () async { print(42); };
+}
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MISSING_RETURN]);
+    verify([source]);
+  }
+
+  test_missingReturn_functionExpressionAsync_inferred_dynamic() async {
+    Source source = addSource(r'''
+import 'dart:async';
+main() {
+  Future Function() f = () async { print(42); }; // no hint
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_missingReturn_method() async {
     Source source = addSource(r'''
 class A {
   int m() {}
 }''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MISSING_RETURN]);
+    verify([source]);
+  }
+
+  test_missingReturn_method_futureOrDynamic() async {
+    Source source = addSource(r'''
+import 'dart:async';
+class A {
+  FutureOr<dynamic> m() {}
+}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_missingReturn_method_futureOrInt() async {
+    Source source = addSource(r'''
+import 'dart:async';
+class A {
+  FutureOr<int> m() {}
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.MISSING_RETURN]);
+    verify([source]);
+  }
+
+  test_missingReturn_method_inferred() async {
+    Source source = addSource(r'''
+abstract class A {
+  int m();
+}
+class B extends A {
+  m() {}
+}
+''');
     await computeAnalysisResult(source);
     assertErrors(source, [HintCode.MISSING_RETURN]);
     verify([source]);
@@ -3112,7 +3259,7 @@ var b = new A().g;
     var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     TopLevelVariableDeclaration b = analysisResult.unit.declarations[1];
-    expect(b.variables.variables[0].element.type.toString(), 'int');
+    expect(b.variables.variables[0].declaredElement.type.toString(), 'int');
     verify([source]);
   }
 
@@ -3127,7 +3274,7 @@ var b = a.g();
     var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     TopLevelVariableDeclaration b = analysisResult.unit.declarations[2];
-    expect(b.variables.variables[0].element.type.toString(), 'int');
+    expect(b.variables.variables[0].declaredElement.type.toString(), 'int');
     verify([source]);
   }
 
@@ -3141,7 +3288,7 @@ var b = new A().g;
     var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     TopLevelVariableDeclaration b = analysisResult.unit.declarations[1];
-    expect(b.variables.variables[0].element.type.toString(), 'int');
+    expect(b.variables.variables[0].declaredElement.type.toString(), 'int');
     verify([source]);
   }
 
@@ -3156,7 +3303,7 @@ var b = a.g();
     var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     TopLevelVariableDeclaration b = analysisResult.unit.declarations[2];
-    expect(b.variables.variables[0].element.type.toString(), 'int');
+    expect(b.variables.variables[0].declaredElement.type.toString(), 'int');
     verify([source]);
   }
 
@@ -3171,7 +3318,7 @@ var b = a.g;
     var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     TopLevelVariableDeclaration b = analysisResult.unit.declarations[2];
-    expect(b.variables.variables[0].element.type.toString(), 'int');
+    expect(b.variables.variables[0].declaredElement.type.toString(), 'int');
     verify([source]);
   }
 
@@ -3661,7 +3808,7 @@ var b = a.g;
     var analysisResult = await computeAnalysisResult(source);
     assertNoErrors(source);
     TopLevelVariableDeclaration b = analysisResult.unit.declarations[2];
-    expect(b.variables.variables[0].element.type.toString(), 'int');
+    expect(b.variables.variables[0].declaredElement.type.toString(), 'int');
     verify([source]);
   }
 
@@ -3904,7 +4051,9 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    } else if (previewDart2) {
       assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
     } else {
       assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
@@ -3920,7 +4069,12 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
+    if (useCFE) {
+      assertErrors(source, [
+        StaticTypeWarningCode.UNDEFINED_METHOD,
+        StaticTypeWarningCode.UNDEFINED_METHOD
+      ]);
+    } else if (previewDart2) {
       assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
     } else {
       assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
@@ -3936,7 +4090,9 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    } else if (previewDart2) {
       assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
     } else {
       assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
@@ -3952,7 +4108,9 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (previewDart2) {
+    if (useCFE) {
+      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    } else if (previewDart2) {
       assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
     } else {
       assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);

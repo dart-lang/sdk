@@ -145,10 +145,6 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_dynamicLocal(SimpleIdentifier node) {
-    // no propagated type
-    if (node.propagatedType != null) {
-      return false;
-    }
     // has dynamic static type
     DartType staticType = node.staticType;
     if (staticType == null || !staticType.isDynamic) {
@@ -172,7 +168,7 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_field(SimpleIdentifier node) {
-    Element element = node.bestElement;
+    Element element = node.staticElement;
     if (element is FieldFormalParameterElement) {
       if (node.parent is FieldFormalParameter) {
         element = (element as FieldFormalParameterElement).field;
@@ -320,7 +316,7 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_method(SimpleIdentifier node) {
-    Element element = node.bestElement;
+    Element element = node.staticElement;
     if (element is! MethodElement) {
       return false;
     }
@@ -366,7 +362,7 @@ class DartUnitHighlightsComputer2 {
   bool _addIdentifierRegion_unresolvedInstanceMemberReference(
       SimpleIdentifier node) {
     // unresolved
-    Element element = node.bestElement;
+    Element element = node.staticElement;
     if (element != null) {
       return false;
     }
@@ -432,7 +428,7 @@ class DartUnitHighlightsComputer2 {
     if (e is SimpleIdentifier && e.staticElement is PrefixElement) {
       return false;
     }
-    return resolutionMap.bestTypeForExpression(e).isDynamic;
+    return resolutionMap.staticTypeForExpression(e).isDynamic;
   }
 }
 

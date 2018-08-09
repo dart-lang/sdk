@@ -171,16 +171,18 @@ class SourceFactoryImpl implements SourceFactory {
 
   @override
   Uri restoreUri(Source source) {
-    // First see if a resolver can restore the URI.
     for (UriResolver resolver in resolvers) {
+      // First see if a resolver can restore the URI.
       Uri uri = resolver.restoreAbsolute(source);
+
       if (uri != null) {
-        // Now see if there's a package mapping.
+        // See if there's a package mapping.
         Uri packageMappedUri = _getPackageMapping(uri);
         if (packageMappedUri != null) {
           return packageMappedUri;
         }
-        // Fall back to the resolver's computed URI.
+
+        // Else fall back to the resolver's computed URI.
         return uri;
       }
     }
@@ -192,22 +194,25 @@ class SourceFactoryImpl implements SourceFactory {
     if (_packages == null) {
       return null;
     }
+
     if (sourceUri.scheme != 'file') {
-      //TODO(pquitslund): verify this works for non-file URIs.
+      // TODO(pquitslund): verify this works for non-file URIs.
       return null;
     }
 
-    Uri packageUri;
-    _packages.asMap().forEach((String name, Uri uri) {
-      if (packageUri == null) {
-        if (utils.startsWith(sourceUri, uri)) {
-          String relativePath = sourceUri.path
-              .substring(min(uri.path.length, sourceUri.path.length));
-          packageUri = Uri.parse('package:$name/$relativePath');
-        }
+    Map<String, Uri> packagesMap = _packages.asMap();
+
+    for (String name in packagesMap.keys) {
+      final Uri uri = packagesMap[name];
+
+      if (utils.startsWith(sourceUri, uri)) {
+        String relativePath = sourceUri.path
+            .substring(min(uri.path.length, sourceUri.path.length));
+        return new Uri(scheme: 'package', path: '$name/$relativePath');
       }
-    });
-    return packageUri;
+    }
+
+    return null;
   }
 
   /**

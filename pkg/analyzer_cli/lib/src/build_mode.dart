@@ -144,7 +144,7 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
     errorSink = errorBuffer;
     outSink = outBuffer;
     exitHandler = (int exitCode) {
-      return throw new StateError('Exit called: $exitCode');
+      throw new StateError('Exit called: $exitCode');
     };
     await super.run();
   }
@@ -393,20 +393,18 @@ class BuildMode extends Object with HasContextMixin {
     logger.run('Add SDK bundle', () {
       PackageBundle sdkBundle;
       if (options.dartSdkSummaryPath != null) {
-        SummaryBasedDartSdk summarySdk = new SummaryBasedDartSdk(
-            options.dartSdkSummaryPath, options.strongMode);
+        SummaryBasedDartSdk summarySdk =
+            new SummaryBasedDartSdk(options.dartSdkSummaryPath, true);
         sdk = summarySdk;
         sdkBundle = summarySdk.bundle;
       } else {
-        FolderBasedDartSdk dartSdk = new FolderBasedDartSdk(
-            resourceProvider,
-            resourceProvider.getFolder(options.dartSdkPath),
-            options.strongMode);
+        FolderBasedDartSdk dartSdk = new FolderBasedDartSdk(resourceProvider,
+            resourceProvider.getFolder(options.dartSdkPath), true);
         dartSdk.analysisOptions =
             createAnalysisOptionsForCommandLineOptions(options, rootPath);
         dartSdk.useSummary = !options.buildSummaryOnly;
         sdk = dartSdk;
-        sdkBundle = dartSdk.getSummarySdkBundle(options.strongMode);
+        sdkBundle = dartSdk.getSummarySdkBundle(true);
       }
 
       // Include SDK bundle to avoid parsing SDK sources.

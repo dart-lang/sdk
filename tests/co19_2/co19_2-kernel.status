@@ -916,7 +916,7 @@ Utils/tests/Expect/equals_A01_t04: CompileTimeError # Dart 1 constants, https://
 Utils/tests/Expect/identical_A01_t01: CompileTimeError # Dart 1 constants, https://github.com/dart-lang/sdk/issues/33894
 Utils/tests/Expect/setEquals_A01_t02: CompileTimeError # Dart 1 constants, https://github.com/dart-lang/sdk/issues/33894
 
-[ $compiler == dartk && $strong ]
+[ $strong && ($compiler == dartk || $compiler == dartkb) ]
 Language/Classes/Constructors/Constant_Constructors/potentially_constant_expression_t01: Crash
 Language/Expressions/Additive_Expressions/syntax_t01: RuntimeError
 Language/Expressions/Assignment/null_aware_assignment_static_type_t01: RuntimeError

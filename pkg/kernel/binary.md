@@ -131,7 +131,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 9;
+  UInt32 formatVersion = 11;
   Library[] libraries;
   UriSource sourceMap;
   List<CanonicalName> canonicalNames;
@@ -253,6 +253,9 @@ type Typedef {
   List<Expression> annotations;
   List<TypeParameter> typeParameters;
   DartType type;
+  List<TypeParameter> typeParametersOfFunctionType;
+  List<VariableDeclaration> positionalParameters;
+  List<VariableDeclaration> namedParameters;
 }
 
 type Combinator {
@@ -831,37 +834,6 @@ type CheckLibraryIsLoaded extends Expression {
   LibraryDependencyReference deferredImport;
 }
 
-type VectorCreation extends Expression {
-  Byte tag = 102;
-  UInt length;
-}
-
-type VectorGet extends Expression {
-  Byte tag = 103;
-  Expression vectorExpression;
-  UInt index;
-}
-
-type VectorSet extends Expression {
-  Byte tag = 104;
-  Expression vectorExpression;
-  UInt index;
-  Expression value;
-}
-
-type VectorCopy extends Expression {
-  Byte tag = 105;
-  Expression vectorExpression;
-}
-
-type ClosureCreation extends Expression {
-  Byte tag = 106;
-  MemberReference topLevelFunctionReference;
-  Expression contextVector;
-  FunctionType functionType;
-  List<DartType> typeArguments;
-}
-
 type ConstantExpression extends Expression {
   Byte tag = 107;
   ConstantReference constantReference;
@@ -1131,10 +1103,6 @@ type FunctionDeclaration extends Statement {
 
 abstract type DartType extends Node {}
 
-type VectorType extends DartType {
-  Byte tag = 88;
-}
-
 type InvalidType extends DartType {
   Byte tag = 90;
 }
@@ -1167,7 +1135,6 @@ type FunctionType extends DartType {
   UInt totalParameterCount;
   List<DartType> positionalParameters;
   List<NamedDartType> namedParameters;
-  List<StringReference> positionalParameterNames;
   CanonicalNameReference typedefReference;
   DartType returnType;
 }

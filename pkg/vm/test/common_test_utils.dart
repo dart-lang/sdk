@@ -17,12 +17,22 @@ import 'package:test/test.dart';
 
 const bool kDumpActualResult = const bool.fromEnvironment('dump.actual.result');
 
-Future<Component> compileTestCaseToKernelProgram(Uri sourceUri) async {
+class TestingVmTarget extends VmTarget {
+  TestingVmTarget(TargetFlags flags) : super(flags);
+
+  @override
+  bool enableSuperMixins;
+}
+
+Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
+    {bool enableSuperMixins: false}) async {
   final platformKernel =
       computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
+  final target = new TestingVmTarget(new TargetFlags(strongMode: true))
+    ..enableSuperMixins = enableSuperMixins;
   final options = new CompilerOptions()
     ..strongMode = true
-    ..target = new VmTarget(new TargetFlags(strongMode: true))
+    ..target = target
     ..linkedDependencies = <Uri>[platformKernel]
     ..reportMessages = true
     ..onError = (CompilationMessage error) {

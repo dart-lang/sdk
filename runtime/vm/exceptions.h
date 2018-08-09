@@ -52,6 +52,7 @@ class Exceptions : AllStatic {
     kRangeMsg,
     kArgument,
     kArgumentValue,
+    kIntegerDivisionByZeroException,
     kNoSuchMethod,
     kFormat,
     kUnsupported,

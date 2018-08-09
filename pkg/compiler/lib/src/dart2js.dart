@@ -63,7 +63,7 @@ class OptionHandler {
 String extractParameter(String argument, {bool isOptionalArgument: false}) {
   // m[0] is the entire match (which will be equal to argument). m[1]
   // is something like "-o" or "--out=", and m[2] is the parameter.
-  Match m = new RegExp('^(-[a-z]|--.+=)(.*)').firstMatch(argument);
+  Match m = new RegExp('^(-[a-zA-Z]|--.+=)(.*)').firstMatch(argument);
   if (m == null) {
     if (isOptionalArgument) return null;
     helpAndFail('Unknown option "$argument".');
@@ -132,6 +132,7 @@ Future<api.CompilationResult> compile(List<String> argv,
   bool showWarnings;
   bool showHints;
   bool enableColors;
+  int optimizationLevel = null;
   Uri platformBinaries = computePlatformBinariesLocation();
   Map<String, String> environment = new Map<String, String>();
 
@@ -168,6 +169,16 @@ Future<api.CompilationResult> compile(List<String> argv,
     }
     out = currentDirectory.resolve(nativeToUriPath(path));
     sourceMapOut = Uri.parse('$out.map');
+  }
+
+  void setOptimizationLevel(String argument) {
+    int value = int.tryParse(extractParameter(argument));
+    if (value == null || value < 0 || value > 4) {
+      helpAndFail("Error: Unsupported optimization level '$argument', "
+          "supported levels are: 0, 1, 2, 3, 4");
+      return;
+    }
+    optimizationLevel = value;
   }
 
   void setOutputType(String argument) {
@@ -312,6 +323,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.version, (_) => wantVersion = true),
     new OptionHandler('--library-root=.+', setLibraryRoot),
     new OptionHandler('--out=.+|-o.*', setOutput, multipleArguments: true),
+    new OptionHandler('-O.*', setOptimizationLevel),
     new OptionHandler(Flags.allowMockCompilation, ignoreOption),
     new OptionHandler(Flags.fastStartup, passThrough),
     new OptionHandler(Flags.genericMethodSyntax, ignoreOption),
@@ -515,7 +527,8 @@ Future<api.CompilationResult> compile(List<String> argv,
     ..packageConfig = packageConfig
     ..environment = environment
     ..packagesDiscoveryProvider = findPackages
-    ..kernelInitializedCompilerState = kernelInitializedCompilerState;
+    ..kernelInitializedCompilerState = kernelInitializedCompilerState
+    ..optimizationLevel = optimizationLevel;
   return compileFunc(
           compilerOptions, inputProvider, diagnosticHandler, outputProvider)
       .then(compilationDone);
@@ -600,6 +613,9 @@ Usage: dart2js [options] dartfile
 Compiles Dart to JavaScript.
 
 Supported options:
+  -h, /h, /?, --help
+    Display this message (add -v for information about all options).
+
   -o <file>, --out=<file>
     Generate the output into <file>.
 
@@ -608,9 +624,6 @@ Supported options:
 
   --enable-asserts
     Enable assertions.
-
-  -h, /h, /?, --help
-    Display this message (add -v for information about all options).
 
   -v, --verbose
     Display verbose information.
@@ -663,10 +676,68 @@ Supported options:
     checks that fail at runtime, this temporary flag may help in the migration
     process. See also '--omit-implicit-checks'.
 
-The following advanced options can help reduce the size of the generated code,
-but they may cause programs to behave unexpectedly if assumptions are not met.
-Only turn on these flags if you have enough test coverage to ensure they are
-safe to use:
+  -O<0,1,2,3,4>
+    Controls optimizations that can help reduce code-size and improve
+    performance of the generated code for deployment.
+
+    -O0
+       Disables all optimizations. Equivalent to calling dart2js with these
+       extra flags:
+        --disable-inlining
+        --disable-type-inference
+        --disable-rti-optimizations
+
+
+       Some optimizations cannot be dissabled at this time, as we add the option
+       to disable them, they will be added here as well.
+
+    -O1
+       Enables default optimizations. Equivalent to calling dart2js with no
+       extra flags.
+
+    -O2
+       Enables optimizations that respect the language semantics and are safe
+       for all programs. It however changes the string representation of types,
+       which will no longer be consistent with the Dart VM or DDC.
+
+       Equivalent to calling dart2js with these extra flags:
+        --minify
+        --lax-runtime-type-to-string
+
+    -O3
+       Enables optimizations that respect the language semantics only on
+       programs that don't ever throw any subtype of `Error`.  These
+       optimizations improve the generated code, but they may cause programs to
+       behave unexpectedly if this assumption is not met.  To use this
+       option, we recommend that you properly test your application first
+       without it, and ensure that no subtype of `Error` (such as `TypeError`)
+       is ever thrown.
+
+       Equivalent to calling dart2js with these extra flags:
+         -O2
+         --omit-implicit-checks
+
+    -O4
+       Enables more aggressive optimizations than -O3, but with the same
+       assumptions. These optimizations are on a separate group because they
+       are more susceptible to variations in input data. To use this option we
+       recommend to pay special attention to test edge cases in user input.
+
+       Equivalent to calling dart2js with these extra flags:
+         -O3
+         --trust-primitives
+
+    While some of the individual optimizations and flags may change with time,
+    we intend to keep the -O* flags stable. New safe optimizations may be added
+    on any level, and optimizations that only work on some programs may move up
+    from one level to the next (for instance, once alternative safe
+    optimizations are implemented, `omit-implicit-checks` may be removed or may
+    move to the O4 level).
+
+The following individual options are included in some of the -O optimization
+levels above. They help reduce the size of the generated code, but they may
+cause programs to behave unexpectedly if assumptions are not met. Only turn on
+these flags if you have enough test coverage to ensure they are safe to use:
 
   --omit-implicit-checks
     Omit implicit runtime checks, such as parameter checks and implicit
@@ -681,6 +752,12 @@ safe to use:
     This option allows the compiler to drop runtime checks for those operations.
     Note: a well-typed program is not guaranteed to have valid inputs. For
     example, an int index argument may be null or out of range.
+
+  --lax-runtime-type-to-string
+    Omits reified class type arguments when these are only needed for `toString`
+    on `runtimeType`. This is useful if `runtimeType.toString()` is only used
+    for debugging. Note that semantics of other uses of `.runtimeType`, for
+    instance `a.runtimeType == b.runtimeType`, is not affected by this flag.
 
 The following options are only used for compiler development and may
 be removed in a future version:

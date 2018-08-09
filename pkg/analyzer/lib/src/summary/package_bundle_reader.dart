@@ -317,8 +317,8 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
    * Subclasses must call this method in their constructors.
    */
   void createResynthesizer() {
-    _resynthesizer = new StoreBasedSummaryResynthesizer(context,
-        context.sourceFactory, context.analysisOptions.strongMode, _dataStore);
+    _resynthesizer = new StoreBasedSummaryResynthesizer(
+        context, context.sourceFactory, true, _dataStore);
   }
 
   /**
@@ -336,8 +336,8 @@ class StoreBasedSummaryResynthesizer extends SummaryResynthesizer {
   final SummaryDataStore _dataStore;
 
   StoreBasedSummaryResynthesizer(AnalysisContext context,
-      SourceFactory sourceFactory, bool strongMode, this._dataStore)
-      : super(context, sourceFactory, strongMode);
+      SourceFactory sourceFactory, bool _, this._dataStore)
+      : super(context, sourceFactory, true);
 
   @override
   LinkedLibrary getLinkedSummary(String uri) {

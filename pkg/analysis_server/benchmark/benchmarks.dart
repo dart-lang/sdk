@@ -105,6 +105,8 @@ class RunCommand extends Command {
         benchmarks.firstWhere((b) => b.id == benchmarkId, orElse: () {
       print("Benchmark '$benchmarkId' not found.");
       exit(1);
+      // Never reached.
+      return null;
     });
 
     int actualIterations = repeatCount;

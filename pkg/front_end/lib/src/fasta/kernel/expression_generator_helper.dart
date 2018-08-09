@@ -75,10 +75,16 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   Expression buildCompileTimeError(Message message, int charOffset, int length,
       {List<LocatedMessage> context});
 
+  Expression buildCompileTimeErrorExpression(Message message, int offset,
+      {int length});
+
   Expression wrapInCompileTimeError(Expression expression, Message message);
 
-  Expression deprecated_buildCompileTimeError(String error,
-      [int offset, Message message]);
+  Expression wrapInProblem(Expression expression, Message message, int length,
+      {List<LocatedMessage> context});
+
+  Initializer buildInvalidFieldInitializer(int offset, bool isSynthetic,
+      Node target, Expression value, Expression error);
 
   Initializer buildInvalidInitializer(Expression expression, [int offset]);
 
@@ -120,8 +126,6 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   Expression wrapInDeferredCheck(
       Expression expression, KernelPrefixBuilder prefix, int charOffset);
 
-  dynamic deprecated_addCompileTimeError(int charOffset, String message);
-
   bool isIdentical(Member member);
 
   Expression buildMethodInvocation(
@@ -136,6 +140,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   Expression buildConstructorInvocation(
       TypeDeclarationBuilder<KernelTypeBuilder, DartType> type,
       Token nameToken,
+      Token nameLastToken,
       Arguments arguments,
       String name,
       List<DartType> typeArguments,
@@ -169,5 +174,5 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   void storeTypeUse(int offset, Node node);
 
-  void storeUnresolvedPrefix(Token token);
+  void storeUnresolved(Token token);
 }

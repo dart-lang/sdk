@@ -21,10 +21,12 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../mock_sdk.dart';
+import '../../test_utilities/utillities.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SearchEngineImplTest);
+    defineReflectiveTests(SearchEngineImplTest_UseCFE);
   });
 }
 
@@ -38,6 +40,11 @@ class SearchEngineImplTest extends Object with ResourceProviderMixin {
   PerformanceLog logger;
 
   AnalysisDriverScheduler scheduler;
+
+  /**
+   * Return `true` to enable the Dart 2.0 Common Front End.
+   */
+  bool get useCFE => false;
 
   void setUp() {
     sdk = new MockSdk(resourceProvider: resourceProvider);
@@ -76,7 +83,7 @@ class C extends A {
     await scheduler.waitForIdle();
 
     var resultA = await driver1.getResult(a);
-    ClassElement elementA = resultA.unit.element.types[0];
+    ClassElement elementA = resultA.unit.declaredElement.types[0];
 
     var searchEngine = new SearchEngineImpl([driver1, driver2]);
     Set<String> members = await searchEngine.membersOfSubtypes(elementA);
@@ -103,7 +110,7 @@ class B extends A {}
     await scheduler.waitForIdle();
 
     var resultA = await driver.getResult(a);
-    ClassElement elementA = resultA.unit.element.types[0];
+    ClassElement elementA = resultA.unit.declaredElement.types[0];
 
     var searchEngine = new SearchEngineImpl([driver]);
     Set<String> members = await searchEngine.membersOfSubtypes(elementA);
@@ -132,7 +139,7 @@ class B {
     await scheduler.waitForIdle();
 
     var resultA = await driver.getResult(a);
-    ClassElement elementA = resultA.unit.element.types[0];
+    ClassElement elementA = resultA.unit.declaredElement.types[0];
 
     var searchEngine = new SearchEngineImpl([driver]);
     Set<String> members = await searchEngine.membersOfSubtypes(elementA);
@@ -169,7 +176,7 @@ class D extends B {
     await scheduler.waitForIdle();
 
     var resultA = await driver1.getResult(a);
-    ClassElement elementA = resultA.unit.element.types[0];
+    ClassElement elementA = resultA.unit.declaredElement.types[0];
 
     var searchEngine = new SearchEngineImpl([driver1, driver2]);
     Set<String> members = await searchEngine.membersOfSubtypes(elementA);
@@ -188,7 +195,7 @@ class C implements B {}
     driver.addFile(p);
 
     var resultA = await driver.getResult(p);
-    ClassElement element = resultA.unit.element.types[0];
+    ClassElement element = resultA.unit.declaredElement.types[0];
 
     var searchEngine = new SearchEngineImpl([driver]);
     Set<ClassElement> subtypes = await searchEngine.searchAllSubtypes(element);
@@ -216,7 +223,7 @@ class C extends B {}
     driver2.addFile(b);
 
     var resultA = await driver1.getResult(a);
-    ClassElement element = resultA.unit.element.types[0];
+    ClassElement element = resultA.unit.declaredElement.types[0];
 
     var searchEngine = new SearchEngineImpl([driver1, driver2]);
     Set<ClassElement> subtypes = await searchEngine.searchAllSubtypes(element);
@@ -325,7 +332,7 @@ T b;
     driver2.addFile(b);
 
     var resultA = await driver1.getResult(a);
-    ClassElement element = resultA.unit.element.types[0];
+    ClassElement element = resultA.unit.declaredElement.types[0];
 
     var searchEngine = new SearchEngineImpl([driver1, driver2]);
     List<SearchMatch> matches = await searchEngine.searchReferences(element);
@@ -468,6 +475,37 @@ class B extends A {}
         contentOverlay,
         null,
         new SourceFactory(resolvers, null, resourceProvider),
-        new AnalysisOptionsImpl());
+        new AnalysisOptionsImpl(),
+        useCFE: useCFE);
+  }
+}
+
+@reflectiveTest
+class SearchEngineImplTest_UseCFE extends SearchEngineImplTest {
+  @override
+  bool get useCFE => true;
+
+  @failingTest
+  @override
+  test_searchAllSubtypes() => super.test_searchAllSubtypes();
+
+  @failingTest
+  @override
+  test_searchAllSubtypes_acrossDrivers() =>
+      super.test_searchAllSubtypes_acrossDrivers();
+
+  @failingTest
+  @override
+  test_searchMemberReferences() =>
+      callFailingTest(super.test_searchMemberReferences());
+
+  @failingTest
+  @override
+  test_searchReferences() => super.test_searchReferences();
+
+  @failingTest
+  @override
+  test_searchReferences_discover_owned() {
+    return callFailingTest(super.test_searchReferences_discover_owned);
   }
 }

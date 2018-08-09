@@ -27,6 +27,7 @@ class SnapshotWriter;
   V(RunExceptionHandler)                                                       \
   V(DeoptForRewind)                                                            \
   V(UpdateStoreBuffer)                                                         \
+  V(UpdateStoreBufferWrappers)                                                 \
   V(PrintStopMessage)                                                          \
   V(AllocateArray)                                                             \
   V(AllocateContext)                                                           \
@@ -69,6 +70,7 @@ class SnapshotWriter;
   V(Subtype1TestCache)                                                         \
   V(Subtype2TestCache)                                                         \
   V(Subtype4TestCache)                                                         \
+  V(Subtype6TestCache)                                                         \
   V(DefaultTypeTest)                                                           \
   V(TopTypeTypeTest)                                                           \
   V(TypeRefTypeTest)                                                           \

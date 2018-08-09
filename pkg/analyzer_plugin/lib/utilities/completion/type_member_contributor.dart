@@ -107,7 +107,7 @@ class TypeMemberContributor implements CompletionContributor {
       LibraryElement containingLibrary,
       Expression expression) {
     if (expression is Identifier) {
-      Element element = expression.bestElement;
+      Element element = expression.staticElement;
       if (element is ClassElement) {
         // Suggestions provided by StaticMemberContributor
         return;
@@ -119,12 +119,12 @@ class TypeMemberContributor implements CompletionContributor {
     }
 
     // Determine the target expression's type
-    DartType type = expression.bestType;
-    if (type.isDynamic) {
+    DartType type = expression.staticType;
+    if (type == null || type.isDynamic) {
       // If the expression does not provide a good type
       // then attempt to get a better type from the element
       if (expression is Identifier) {
-        Element elem = expression.bestElement;
+        Element elem = expression.staticElement;
         if (elem is FunctionTypedElement) {
           type = elem.returnType;
         } else if (elem is ParameterElement) {
@@ -159,7 +159,7 @@ class TypeMemberContributor implements CompletionContributor {
         }
       }
     }
-    if (type.isDynamic) {
+    if (type == null || type.isDynamic) {
       // Suggest members from object if target is "dynamic"
       type = request.result.typeProvider.objectType;
     }
@@ -251,7 +251,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   @override
   void declaredLocalVar(SimpleIdentifier name, TypeAnnotation type) {
     if (name.name == targetName) {
-      typeFound = name.bestType;
+      typeFound = name.staticType;
       finished();
     }
   }

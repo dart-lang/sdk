@@ -12,6 +12,7 @@ main(List<String> args) async {
     return;
   }
   String filePath = args[0];
+
   List<String> output = new File(filePath).readAsLinesSync();
   int failureCount = 0;
   int index = 0;
@@ -80,9 +81,9 @@ main(List<String> args) async {
   List<String> keys = testsByExpectedAndActual.keys.toList();
   keys.sort();
   for (String key in keys) {
-    print(key);
     List<TestResult> results = testsByExpectedAndActual[key];
     results.sort((first, second) => first.testName.compareTo(second.testName));
+    print('$key (${results.length})');
     for (TestResult result in results) {
       if (result.message == null) {
         print('  ${result.testName}');
@@ -102,8 +103,12 @@ main(List<String> args) async {
   if (testsByStackTrace.isNotEmpty) {
     print('');
     print('Unique stack traces (${testsByStackTrace.length}):');
-    for (String traceLine in testsByStackTrace.keys) {
-      print('  $traceLine');
+    List<String> keys = testsByStackTrace.keys.toList();
+    keys.sort((first, second) {
+      return testsByStackTrace[second].length - testsByStackTrace[first].length;
+    });
+    for (String traceLine in keys) {
+      print('  (${testsByStackTrace[traceLine].length}) $traceLine');
     }
   }
 }
@@ -125,6 +130,20 @@ class TestResult {
       String traceLine = stackTrace[i];
       if (traceLine.startsWith(framePattern) &&
           traceLine.contains('(package:')) {
+        if (traceLine.contains('ResolutionApplier._get') ||
+            traceLine.contains('ElementWalker.getAccessor') ||
+            traceLine.contains('ElementWalker.getClass') ||
+            traceLine.contains('ElementWalker.getEnum') ||
+            traceLine.contains('ElementWalker.getVariable') ||
+            traceLine.contains('DeclarationResolver._match') ||
+            traceLine.contains('DeclarationResolver.applyParameters') ||
+            traceLine.contains('ResolutionStorer._store')) {
+          return stackTrace[i + 1];
+        } else if (traceLine.contains('_FunctionTypeImplLazy.substitute2') ||
+            traceLine.contains('ElementImpl.encloseElement') ||
+            traceLine.contains('ResolutionStorer._validateLocation')) {
+          return stackTrace[i + 2];
+        }
         return traceLine;
       }
     }

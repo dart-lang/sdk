@@ -22,6 +22,7 @@
 #include "vm/stack_frame.h"
 #include "vm/thread.h"
 #include "vm/timeline.h"
+#include "vm/type_testing_stubs.h"
 #include "vm/visitor.h"
 
 namespace dart {
@@ -593,7 +594,7 @@ void IsolateReloadContext::Reload(bool force_reload,
       intptr_t modified_scripts_count = 0;
 
       FindModifiedSources(thread, force_reload, &modified_scripts,
-                          &modified_scripts_count);
+                          &modified_scripts_count, packages_url_);
 
       Dart_KernelCompilationResult retval;
       {
@@ -614,8 +615,26 @@ void IsolateReloadContext::Reload(bool force_reload,
         return;
       }
       did_kernel_compilation = true;
-      kernel_program.set(
-          kernel::Program::ReadFromBuffer(retval.kernel, retval.kernel_size));
+
+      // The ownership of the kernel buffer goes now to the VM.
+      const ExternalTypedData& typed_data = ExternalTypedData::Handle(
+          Z,
+          ExternalTypedData::New(kExternalTypedDataUint8ArrayCid, retval.kernel,
+                                 retval.kernel_size, Heap::kOld));
+      typed_data.AddFinalizer(
+          retval.kernel,
+          [](void* isolate_callback_data, Dart_WeakPersistentHandle handle,
+             void* data) { free(data); },
+          retval.kernel_size);
+
+      // TODO(dartbug.com/33973): Change the heap objects to have a proper
+      // retaining path to the kernel blob and ensure the finalizer will free it
+      // once there are no longer references to it.
+      // (The [ExternalTypedData] currently referenced by e.g. functions point
+      // into the middle of c-allocated buffer and don't have a finalizer).
+      I->RetainKernelBlob(typed_data);
+
+      kernel_program.set(kernel::Program::ReadFromTypedData(typed_data));
     }
 
     kernel::KernelLoader::FindModifiedLibraries(kernel_program.get(), I,
@@ -905,6 +924,8 @@ void IsolateReloadContext::DeoptimizeDependentCode() {
     }
   }
 
+  DeoptimizeTypeTestingStubs();
+
   // TODO(johnmccutchan): Also call LibraryPrefix::InvalidateDependentCode.
 }
 
@@ -993,7 +1014,8 @@ void IsolateReloadContext::FindModifiedSources(
     Thread* thread,
     bool force_reload,
     Dart_SourceFile** modified_sources,
-    intptr_t* count) {
+    intptr_t* count,
+    const char* packages_url) {
   Zone* zone = thread->zone();
   int64_t last_reload = I->last_reload_timestamp();
   GrowableArray<const char*> modified_sources_uris;
@@ -1022,6 +1044,15 @@ void IsolateReloadContext::FindModifiedSources(
       if (force_reload || ScriptModifiedSince(script, last_reload)) {
         modified_sources_uris.Add(uri.ToCString());
       }
+    }
+  }
+
+  // In addition to all sources, we need to check if the .packages file
+  // contents have been modified.
+  if (packages_url != NULL) {
+    if (file_modified_callback_ == NULL ||
+        (*file_modified_callback_)(packages_url, last_reload)) {
+      modified_sources_uris.Add(packages_url);
     }
   }
 
@@ -2079,14 +2110,24 @@ void IsolateReloadContext::RebuildDirectSubclasses() {
       cls = class_table->At(i);
       subclasses = cls.direct_subclasses();
       if (!subclasses.IsNull()) {
-        subclasses.SetLength(0);
+        cls.ClearDirectSubclasses();
+      }
+      subclasses = cls.direct_implementors();
+      if (!subclasses.IsNull()) {
+        cls.ClearDirectImplementors();
       }
     }
   }
 
-  // Recompute the direct subclasses.
+  // Recompute the direct subclasses / implementors.
+
   AbstractType& super_type = AbstractType::Handle();
   Class& super_cls = Class::Handle();
+
+  Array& interface_types = Array::Handle();
+  AbstractType& interface_type = AbstractType::Handle();
+  Class& interface_class = Class::Handle();
+
   for (intptr_t i = 1; i < num_cids; i++) {
     if (class_table->HasValidClassAt(i)) {
       cls = class_table->At(i);
@@ -2095,6 +2136,15 @@ void IsolateReloadContext::RebuildDirectSubclasses() {
         super_cls = cls.SuperClass();
         ASSERT(!super_cls.IsNull());
         super_cls.AddDirectSubclass(cls);
+      }
+
+      interface_types = cls.interfaces();
+      if (!interface_types.IsNull()) {
+        for (intptr_t j = 0; j < interface_types.Length(); ++j) {
+          interface_type ^= interface_types.At(j);
+          interface_class = interface_type.type_class();
+          interface_class.AddDirectImplementor(cls);
+        }
       }
     }
   }

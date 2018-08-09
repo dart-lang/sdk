@@ -46,7 +46,7 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
   String instrumentedCode;
 
   FlutterOutlineComputer(this.file, this.content, this.lineInfo, this.unit)
-      : typeProvider = unit.element.context.typeProvider;
+      : typeProvider = unit.declaredElement.context.typeProvider;
 
   protocol.FlutterOutline compute() {
     protocol.Outline dartOutline = new DartUnitOutlineComputer(
@@ -56,7 +56,7 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
 
     // Find widget classes.
     // IDEA plugin only supports rendering widgets in libraries.
-    if (unit.element.source == unit.element.librarySource) {
+    if (unit.declaredElement.source == unit.declaredElement.librarySource) {
       _findWidgets();
     }
 
@@ -291,7 +291,8 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
     }
 
     for (var stateNode in unit.declarations) {
-      if (stateNode is ClassDeclaration && stateNode.element == stateElement) {
+      if (stateNode is ClassDeclaration &&
+          stateNode.declaredElement == stateElement) {
         return stateNode;
       }
     }
@@ -308,7 +309,7 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
         var designTimeConstructor = widget.getConstructor(CONSTRUCTOR_NAME);
         bool hasDesignTimeConstructor = designTimeConstructor != null;
 
-        InterfaceType superType = widget.element.supertype;
+        InterfaceType superType = widget.declaredElement.supertype;
         if (isExactlyStatelessWidgetType(superType)) {
           widgets[nameOffset] =
               new _WidgetClass(nameOffset, hasDesignTimeConstructor);
