@@ -6360,6 +6360,7 @@ void UnaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ rsbs(out_lo, left_lo, Operand(0));
       __ sbc(out_hi, out_hi, Operand(out_hi));
       __ sub(out_hi, out_hi, Operand(left_hi));
+      break;
     default:
       UNREACHABLE();
   }
