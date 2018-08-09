@@ -1,4 +1,20 @@
-## 2.1.0
+## 2.1.0-dev.XX.0
+(Add new changes here, and they will be copied to the change section for the
+  next dev version)
+
+### Language
+
+### Dart VM
+
+### Tool Changes
+
+#### Pub
+
+#### Other Tools
+
+### Core library changes
+
+## 2.1.0-dev.0.0
 
 ### Tool Changes
 
