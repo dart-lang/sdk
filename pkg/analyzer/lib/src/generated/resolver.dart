@@ -233,6 +233,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   static String _TO_INT_METHOD_NAME = "toInt";
 
+  static final _templateExtension = '.template';
+
   static final _testDir = '${path.separator}test${path.separator}';
 
   static final _testingDir = '${path.separator}testing${path.separator}';
@@ -849,9 +851,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   ///   getter/setter, method closure or invocation accessed outside a subclass,
   ///   or accessed outside the library wherein the identifier is declared, or
   /// * if the given identifier is a closure, field, getter, setter, method
+  ///   closure or invocation which is annotated with `visibleForTemplate`, and
+  ///   is accessed outside of the defining library, and the current library
+  ///   does not have the suffix '.template' in its source path, or
+  /// * if the given identifier is a closure, field, getter, setter, method
   ///   closure or invocation which is annotated with `visibleForTesting`, and
   ///   is accessed outside of the defining library, and the current library
-  ///   does not have the word 'test' in its name.
+  ///   does not have a directory named 'test' or 'testing' in its path.
   void _checkForInvalidAccess(SimpleIdentifier identifier) {
     if (identifier.inDeclarationContext()) {
       return;
@@ -866,6 +872,21 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       if (element is MethodElement &&
           element.enclosingElement is ClassElement &&
           element.hasProtected) {
+        return true;
+      }
+      return false;
+    }
+
+    bool isVisibleForTemplate(Element element) {
+      if (element == null) {
+        return false;
+      }
+      if (element.hasVisibleForTemplate) {
+        return true;
+      }
+      if (element is PropertyAccessorElement &&
+          element.enclosingElement is ClassElement &&
+          element.variable.hasVisibleForTemplate) {
         return true;
       }
       return false;
@@ -897,12 +918,19 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         identifier.parent is Combinator &&
         identifier.parent.parent is ExportDirective;
 
+    bool inTemplateSource(LibraryElement library) =>
+        library.definingCompilationUnit.source.fullName
+            .contains(_templateExtension);
+
     bool inTestDirectory(LibraryElement library) =>
         library.definingCompilationUnit.source.fullName.contains(_testDir) ||
         library.definingCompilationUnit.source.fullName.contains(_testingDir);
 
     Element element = identifier.staticElement;
-    if (!isProtected(element) && !isVisibleForTesting(element)) {
+    if (!isProtected(element) &&
+        !isVisibleForTemplate(element) &&
+        !isVisibleForTesting(element)) {
+      // Without any of these annotations, the access is valid.
       return;
     }
 
@@ -920,23 +948,40 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         return;
       }
     }
+    if (isVisibleForTemplate(element)) {
+      if (inCurrentLibrary(element) ||
+          inTemplateSource(_currentLibrary) ||
+          inExportDirective(identifier) ||
+          inCommentReference(identifier)) {
+        // The access is valid; even if [element] is also marked `protected`,
+        // the "visibilities" are unioned.
+        return;
+      }
+    }
     if (isVisibleForTesting(element)) {
       if (inCurrentLibrary(element) ||
           inTestDirectory(_currentLibrary) ||
           inExportDirective(identifier) ||
           inCommentReference(identifier)) {
-        // The access is valid; even if [element] is also marked
-        // `protected`, the "visibilities" are unioned.
+        // The access is valid; even if [element] is also marked `protected`,
+        // the "visibilities" are unioned.
         return;
       }
     }
 
     // At this point, [identifier] was not cleared as protected access, nor
-    // cleared as access for testing. Report the appropriate violation(s).
+    // cleared as access for templates or testing. Report the appropriate
+    // violation(s).
     Element definingClass = element.enclosingElement;
     if (isProtected(element)) {
       _errorReporter.reportErrorForNode(
           HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
+          identifier,
+          [identifier.name.toString(), definingClass.name]);
+    }
+    if (isVisibleForTemplate(element)) {
+      _errorReporter.reportErrorForNode(
+          HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER,
           identifier,
           [identifier.name.toString(), definingClass.name]);
     }

@@ -651,6 +651,12 @@ abstract class Element implements AnalysisTarget {
 
   /**
    * Return `true` if this element has an annotation of the form
+   * `@visibleForTemplate`.
+   */
+  bool get hasVisibleForTemplate;
+
+  /**
+   * Return `true` if this element has an annotation of the form
    * `@visibleForTesting`.
    */
   bool get hasVisibleForTesting;
@@ -947,6 +953,12 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
    * required.
    */
   bool get isRequired;
+
+  /**
+   * Return `true` if this annotation marks the associated member as being
+   * visible for template files.
+   */
+  bool get isVisibleForTemplate;
 
   /**
    * Return `true` if this annotation marks the associated member as being

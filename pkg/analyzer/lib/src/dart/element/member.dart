@@ -419,6 +419,9 @@ abstract class Member implements Element {
   bool get hasRequired => _baseElement.hasRequired;
 
   @override
+  bool get hasVisibleForTemplate => _baseElement.hasVisibleForTemplate;
+
+  @override
   bool get hasVisibleForTesting => _baseElement.hasVisibleForTesting;
 
   @override
@@ -453,6 +456,9 @@ abstract class Member implements Element {
 
   @override
   bool get isSynthetic => _baseElement.isSynthetic;
+
+  @override
+  bool get isVisibleForTemplate => _baseElement.hasVisibleForTemplate;
 
   @override
   bool get isVisibleForTesting => _baseElement.hasVisibleForTesting;

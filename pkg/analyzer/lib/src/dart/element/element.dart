@@ -2907,6 +2907,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
   static String _MUST_CALL_SUPER_VARIABLE_NAME = "mustCallSuper";
 
   /**
+   * The name of `angular.meta` library, used to define angular analysis
+   * annotations.
+   */
+  static String _NG_META_LIB_NAME = "angular.meta";
+
+  /**
    * The name of the top-level variable used to mark a method as being expected
    * to override an inherited method.
    */
@@ -2934,6 +2940,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
    * required.
    */
   static String _REQUIRED_VARIABLE_NAME = "required";
+
+  /// The name of the top-level variable used to mark a method as being
+  /// visible for templates.
+  static String _VISIBLE_FOR_TEMPLATE_VARIABLE_NAME = "visibleForTemplate";
 
   /// The name of the top-level variable used to mark a method as being
   /// visible for testing.
@@ -3064,6 +3074,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
       element is PropertyAccessorElement &&
           element.name == _REQUIRED_VARIABLE_NAME &&
           element.library?.name == _META_LIB_NAME;
+
+  @override
+  bool get isVisibleForTemplate =>
+      element is PropertyAccessorElement &&
+      element.name == _VISIBLE_FOR_TEMPLATE_VARIABLE_NAME &&
+      element.library?.name == _NG_META_LIB_NAME;
 
   @override
   bool get isVisibleForTesting =>
@@ -3282,6 +3298,10 @@ abstract class ElementImpl implements Element {
       metadata.any((ElementAnnotation annotation) => annotation.isRequired);
 
   @override
+  bool get hasVisibleForTemplate => metadata
+      .any((ElementAnnotation annotation) => annotation.isVisibleForTemplate);
+
+  @override
   bool get hasVisibleForTesting => metadata
       .any((ElementAnnotation annotation) => annotation.isVisibleForTesting);
 
@@ -3381,6 +3401,9 @@ abstract class ElementImpl implements Element {
   void set isSynthetic(bool isSynthetic) {
     setModifier(Modifier.SYNTHETIC, isSynthetic);
   }
+
+  bool get isVisibleForTemplate => metadata
+      .any((ElementAnnotation annotation) => annotation.isVisibleForTemplate);
 
   @override
   bool get isVisibleForTesting => metadata
@@ -7666,6 +7689,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   bool get hasRequired => false;
 
   @override
+  bool get hasVisibleForTemplate => false;
+
+  @override
   bool get hasVisibleForTesting => false;
 
   @override
@@ -7703,6 +7729,8 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   bool get isSynthetic => true;
+
+  bool get isVisibleForTemplate => false;
 
   @override
   bool get isVisibleForTesting => false;

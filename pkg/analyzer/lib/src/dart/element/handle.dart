@@ -381,6 +381,9 @@ abstract class ElementHandle implements Element {
   bool get hasRequired => actualElement.hasRequired;
 
   @override
+  bool get hasVisibleForTemplate => actualElement.hasVisibleForTemplate;
+
+  @override
   bool get hasVisibleForTesting => actualElement.hasVisibleForTesting;
 
   @override
@@ -412,6 +415,9 @@ abstract class ElementHandle implements Element {
 
   @override
   bool get isSynthetic => actualElement.isSynthetic;
+
+  @override
+  bool get isVisibleForTemplate => actualElement.hasVisibleForTemplate;
 
   @override
   bool get isVisibleForTesting => actualElement.hasVisibleForTesting;
