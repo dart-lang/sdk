@@ -954,7 +954,6 @@ type_promotion_functions_test/13: CompileTimeError
 type_promotion_functions_test/14: CompileTimeError
 type_promotion_functions_test/none: CompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError
-type_variable_promotion_test: RuntimeError
 
 [ $compiler == dart2js && !$strong ]
 *: SkipByDesign

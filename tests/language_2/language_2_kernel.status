@@ -351,7 +351,6 @@ vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading k
 export_ambiguous_main_test: Crash # Issue 32618
 
 [ $compiler == app_jitk && $mode == product ]
-type_variable_promotion_test: RuntimeError
 vm/causal_async_exception_stack2_test: RuntimeError
 vm/causal_async_exception_stack_test: RuntimeError
 
@@ -966,7 +965,6 @@ wrong_number_type_arguments_test/01: MissingCompileTimeError
 no_such_method_native_test: RuntimeError # Compares symbol #foobar with string "foobar" in noSuchMethod
 recursive_generic_test: RuntimeError # Compares a (dynamic) toString call to 'C<D>'
 tearoff_dynamic_test: RuntimeError # Compares call to "foo" (noSuchMethod) with string "foo"
-type_variable_promotion_test: RuntimeError # Compares runtime type to the string "List<B>"
 
 [ $compiler == fasta && $strong ]
 class_cycle_test/02: MissingCompileTimeError
