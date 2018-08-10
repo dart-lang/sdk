@@ -10,7 +10,8 @@ import '../fasta_codes.dart' show noLength;
 
 import '../scanner.dart' show Token;
 
-import '../../scanner/token.dart' show BeginToken;
+import '../../scanner/token.dart'
+    show BeginToken, SimpleToken, SyntheticToken, TokenType;
 
 /// Returns true if [token] is the symbol or keyword [value].
 bool optional(String value, Token token) {
@@ -126,4 +127,45 @@ Token skipMetadata(Token token) {
     }
   }
   return token;
+}
+
+/// Split `>=` into two separate tokens.
+Token splitGtEq(Token token) {
+  assert(optional('>=', token));
+  return new SimpleToken(
+      TokenType.GT, token.charOffset, token.precedingComments)
+    ..setNext(new SimpleToken(TokenType.EQ, token.charOffset + 1)
+      ..setNext(token.next));
+}
+
+/// Split `>>` into two separate tokens.
+SimpleToken splitGtGt(Token token) {
+  assert(optional('>>', token));
+  return new SimpleToken(
+      TokenType.GT, token.charOffset, token.precedingComments)
+    ..setNext(new SimpleToken(TokenType.GT, token.charOffset + 1)
+      ..setNext(token.next));
+}
+
+/// Split `>>=` into three separate tokens.
+Token splitGtGtEq(Token token) {
+  assert(optional('>>=', token));
+  return new SimpleToken(
+      TokenType.GT, token.charOffset, token.precedingComments)
+    ..setNext(new SimpleToken(TokenType.GT, token.charOffset + 1)
+      ..setNext(new SimpleToken(TokenType.EQ, token.charOffset + 2)
+        ..setNext(token.next)));
+}
+
+/// Split `>>=` into two separate tokens... `>` followed by `>=`.
+Token splitGtFromGtGtEq(Token token) {
+  assert(optional('>>=', token));
+  return new SimpleToken(
+      TokenType.GT, token.charOffset, token.precedingComments)
+    ..setNext(new SimpleToken(TokenType.GT_EQ, token.charOffset + 1)
+      ..setNext(token.next));
+}
+
+Token syntheticGt(Token token) {
+  return new SyntheticToken(TokenType.GT, token.charOffset)..setNext(token);
 }

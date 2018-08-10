@@ -17917,6 +17917,21 @@ enum E {
     expect(alias.semicolon, isNotNull);
   }
 
+  void test_parseGenericTypeAlias_typeParameters2() {
+    // The scanner creates a single token for `>=`
+    // then the parser must split it into two separate tokens.
+    createParser('typedef F<T>= T Function(T);');
+    GenericTypeAlias alias = parseFullCompilationUnitMember();
+    expect(alias, isNotNull);
+    assertNoErrors();
+    expect(alias.name, isNotNull);
+    expect(alias.name.name, 'F');
+    expect(alias.typeParameters, isNotNull);
+    expect(alias.equals, isNotNull);
+    expect(alias.functionType, isNotNull);
+    expect(alias.semicolon, isNotNull);
+  }
+
   void test_parseImportDirective_configuration_multiple() {
     createParser("import 'lib/lib.dart' if (a) 'b.dart' if (c) 'd.dart';");
     ImportDirective directive = parseFullDirective();

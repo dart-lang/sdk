@@ -23,7 +23,50 @@ import 'parser.dart' show Parser;
 
 import 'type_info.dart';
 
-import 'util.dart' show isOneOf, optional, skipMetadata;
+import 'util.dart' show isOneOf, optional, skipMetadata, splitGtEq, splitGtGt;
+
+/// [SimpleType] is a specialized [TypeInfo] returned by [computeType]
+/// when there is a single identifier as the type reference.
+const TypeInfo simpleType = const SimpleType();
+
+/// [PrefixedType] is a specialized [TypeInfo] returned by [computeType]
+/// when the type reference is of the form: identifier `.` identifier.
+const TypeInfo prefixedType = const PrefixedType();
+
+/// [SimpleTypeWith1Argument] is a specialized [TypeInfo] returned by
+/// [computeType] when the type reference is of the form:
+/// identifier `<` identifier `>`.
+const TypeInfo simpleTypeWith1Argument =
+    const SimpleTypeWith1Argument(simpleTypeArgument1);
+
+/// [SimpleTypeWith1Argument] is a specialized [TypeInfo] returned by
+/// [computeType] when the type reference is of the form:
+/// identifier `<` identifier `>=`.
+const TypeInfo simpleTypeWith1ArgumentGtEq =
+    const SimpleTypeWith1Argument(simpleTypeArgument1GtEq);
+
+/// [SimpleTypeWith1Argument] is a specialized [TypeInfo] returned by
+/// [computeType] when the type reference is of the form:
+/// identifier `<` identifier `>>`.
+const TypeInfo simpleTypeWith1ArgumentGtGt =
+    const SimpleTypeWith1Argument(simpleTypeArgument1GtGt);
+
+/// [SimpleTypeArgument1] is a specialized [TypeParamOrArgInfo] returned by
+/// [computeTypeParamOrArg] when the type reference is of the form:
+/// `<` identifier `>`.
+const TypeParamOrArgInfo simpleTypeArgument1 = const SimpleTypeArgument1();
+
+/// [SimpleTypeArgument1] is a specialized [TypeParamOrArgInfo] returned by
+/// [computeTypeParamOrArg] when the type reference is of the form:
+/// `<` identifier `>=`.
+const TypeParamOrArgInfo simpleTypeArgument1GtEq =
+    const SimpleTypeArgument1GtEq();
+
+/// [SimpleTypeArgument1] is a specialized [TypeParamOrArgInfo] returned by
+/// [computeTypeParamOrArg] when the type reference is of the form:
+/// `<` identifier `>>`.
+const TypeParamOrArgInfo simpleTypeArgument1GtGt =
+    const SimpleTypeArgument1GtGt();
 
 /// See documentation on the [noType] const.
 class NoType implements TypeInfo {
@@ -108,7 +151,9 @@ class PrefixedType implements TypeInfo {
 
 /// See documentation on the [simpleTypeWith1Argument] const.
 class SimpleTypeWith1Argument implements TypeInfo {
-  const SimpleTypeWith1Argument();
+  final TypeParamOrArgInfo typeArg;
+
+  const SimpleTypeWith1Argument(this.typeArg);
 
   @override
   bool get couldBeExpression => false;
@@ -131,7 +176,7 @@ class SimpleTypeWith1Argument implements TypeInfo {
     assert(token.isKeywordOrIdentifier);
     Listener listener = parser.listener;
     listener.handleIdentifier(token, IdentifierContext.typeReference);
-    token = simpleTypeArgument1.parseArguments(token, parser);
+    token = typeArg.parseArguments(token, parser);
     listener.handleType(start, token.next);
     return token;
   }
@@ -140,7 +185,7 @@ class SimpleTypeWith1Argument implements TypeInfo {
   Token skipType(Token token) {
     token = token.next;
     assert(token.isKeywordOrIdentifier);
-    return simpleTypeArgument1.skip(token);
+    return typeArg.skip(token);
   }
 }
 
@@ -470,7 +515,7 @@ class ComplexTypeInfo implements TypeInfo {
 }
 
 /// See [noTypeParamOrArg].
-class NoTypeParamOrArg implements TypeParamOrArgInfo {
+class NoTypeParamOrArg extends TypeParamOrArgInfo {
   const NoTypeParamOrArg();
 
   @override
@@ -489,37 +534,43 @@ class NoTypeParamOrArg implements TypeParamOrArgInfo {
   Token skip(Token token) => token;
 }
 
-class SimpleTypeArgument1 implements TypeParamOrArgInfo {
+class SimpleTypeArgument1 extends TypeParamOrArgInfo {
   const SimpleTypeArgument1();
 
   @override
+  bool get isSimpleTypeArgument => true;
+
+  @override
+  TypeInfo get typeInfo => simpleTypeWith1Argument;
+
+  @override
   Token parseArguments(Token token, Parser parser) {
-    BeginToken start = token = token.next;
-    assert(optional('<', token));
+    BeginToken beginGroup = token.next;
+    assert(optional('<', beginGroup));
     Listener listener = parser.listener;
-    listener.beginTypeArguments(token);
-    token = simpleType.parseType(token, parser);
-    token = processEndGroup(token, start, parser);
-    parser.listener.endTypeArguments(1, start, token);
+    listener.beginTypeArguments(beginGroup);
+    token = simpleType.parseType(beginGroup, parser);
+    token = updateEndGroup(beginGroup, token);
+    parser.listener.endTypeArguments(1, beginGroup, token);
     return token;
   }
 
   @override
   Token parseVariables(Token token, Parser parser) {
-    BeginToken start = token = token.next;
-    assert(optional('<', token));
+    BeginToken beginGroup = token.next;
+    assert(optional('<', beginGroup));
     Listener listener = parser.listener;
-    listener.beginTypeVariables(token);
-    token = token.next;
+    listener.beginTypeVariables(beginGroup);
+    token = beginGroup.next;
     listener.beginMetadataStar(token);
     listener.endMetadataStar(0);
     listener.handleIdentifier(token, IdentifierContext.typeVariableDeclaration);
     listener.beginTypeVariable(token);
     listener.handleTypeVariablesDefined(token, 1);
     listener.handleNoType(token);
-    token = processEndGroup(token, start, parser);
+    token = updateEndGroup(beginGroup, token);
     listener.endTypeVariable(token, 0, null);
-    listener.endTypeVariables(start, token);
+    listener.endTypeVariables(beginGroup, token);
     return token;
   }
 
@@ -527,15 +578,68 @@ class SimpleTypeArgument1 implements TypeParamOrArgInfo {
   Token skip(Token token) {
     token = token.next;
     assert(optional('<', token));
-    assert(token.endGroup != null ||
-        (optional('>', token.next.next) || optional('>>', token.next.next)));
-    return (optional('>', token.endGroup ?? token.next.next)
-        ? token.next.next
-        : token.next);
+    token = token.next;
+    assert(token.isKeywordOrIdentifier);
+    return skipEndGroup(token);
+  }
+
+  Token skipEndGroup(Token token) {
+    token = token.next;
+    assert(optional('>', token));
+    return token;
+  }
+
+  Token updateEndGroup(BeginToken beginGroup, Token token) {
+    token = token.next;
+    assert(optional('>', token));
+    beginGroup.endGroup = token;
+    return token;
   }
 }
 
-class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
+class SimpleTypeArgument1GtEq extends SimpleTypeArgument1 {
+  const SimpleTypeArgument1GtEq();
+
+  @override
+  TypeInfo get typeInfo => simpleTypeWith1ArgumentGtEq;
+
+  Token skipEndGroup(Token token) {
+    token = token.next;
+    assert(optional('>=', token));
+    return splitGtEq(token);
+  }
+
+  Token updateEndGroup(BeginToken beginGroup, Token beforeEndGroup) {
+    Token endGroup = beforeEndGroup.next;
+    assert(optional('>=', endGroup));
+    beginGroup.endGroup = endGroup = splitGtEq(endGroup);
+    beforeEndGroup.setNext(endGroup);
+    return endGroup;
+  }
+}
+
+class SimpleTypeArgument1GtGt extends SimpleTypeArgument1 {
+  const SimpleTypeArgument1GtGt();
+
+  @override
+  TypeInfo get typeInfo => simpleTypeWith1ArgumentGtGt;
+
+  Token skipEndGroup(Token token) {
+    assert(optional('>>', token.next));
+    return token;
+  }
+
+  Token updateEndGroup(BeginToken beginGroup, Token beforeEndGroup) {
+    Token endGroup = beforeEndGroup.next;
+    if (!optional('>', endGroup)) {
+      endGroup = splitGtGt(endGroup);
+    }
+    beginGroup.endGroup = endGroup;
+    return endGroup;
+  }
+}
+
+class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
   /// The first token in the type var.
   final BeginToken start;
 

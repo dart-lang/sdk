@@ -1060,7 +1060,7 @@ class Parser {
     TypeInfo typeInfo = computeType(typedefKeyword, false);
     token = typeInfo.skipType(typedefKeyword).next;
     Token equals;
-    TypeParamOrArgInfo typeParam = computeTypeParamOrArg(token);
+    TypeParamOrArgInfo typeParam = computeTypeParamOrArg(token, true);
     if (typeInfo == noType &&
         (token.kind == IDENTIFIER_TOKEN || token.type.isPseudo) &&
         optional('=', typeParam.skip(token).next)) {

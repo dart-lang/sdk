@@ -14,7 +14,8 @@ import '../../scanner/token.dart'
         Token,
         TokenType;
 
-import 'util.dart' show optional;
+import 'util.dart'
+    show optional, splitGtEq, splitGtGt, splitGtGtEq, syntheticGt;
 
 /// Provides the capability of inserting tokens into a token stream. This
 /// implementation does this by rewriting the previous token to point to the
@@ -143,20 +144,13 @@ class TokenStreamRewriter {
 
     Token gt;
     if (optional('>>', end)) {
-      gt = new SimpleToken(TokenType.GT, end.charOffset, end.precedingComments)
-        ..setNext(new SimpleToken(TokenType.GT, end.charOffset + 1)
-          ..setNext(end.next));
+      gt = splitGtGt(end);
     } else if (optional('>=', end)) {
-      gt = new SimpleToken(TokenType.GT, end.charOffset, end.precedingComments)
-        ..setNext(new SimpleToken(TokenType.EQ, end.charOffset + 1)
-          ..setNext(end.next));
+      gt = splitGtEq(end);
     } else if (optional('>>=', end)) {
-      gt = new SimpleToken(TokenType.GT, end.charOffset, end.precedingComments)
-        ..setNext(new SimpleToken(TokenType.GT, end.charOffset + 1)
-          ..setNext(new SimpleToken(TokenType.EQ, end.charOffset + 2)
-            ..setNext(end.next)));
+      gt = splitGtGtEq(end);
     } else {
-      gt = new SyntheticToken(TokenType.GT, end.charOffset)..setNext(end);
+      gt = syntheticGt(end);
     }
 
     Token token = start;

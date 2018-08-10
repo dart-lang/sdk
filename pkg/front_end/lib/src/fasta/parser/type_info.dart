@@ -59,6 +59,17 @@ abstract class TypeInfo {
 /// [computeTypeParamOrArg] about a particular group of type arguments
 /// or type parameters.
 abstract class TypeParamOrArgInfo {
+  const TypeParamOrArgInfo();
+
+  /// Return `true` if the receiver represents a single type argument
+  bool get isSimpleTypeArgument => false;
+
+  /// Return the simple type associated with this simple type argument
+  /// or throw an exception if this is not a simple type argument.
+  TypeInfo get typeInfo {
+    throw "Internal error: $runtimeType is not a SimpleTypeArgument.";
+  }
+
   /// Call this function to parse optional type arguments after [token].
   /// This function will call the appropriate event methods on the [Parser]'s
   /// listener to handle the arguments. This may modify the token stream
@@ -82,31 +93,13 @@ abstract class TypeParamOrArgInfo {
 /// there is no type information in the source.
 const TypeInfo noType = const NoType();
 
-/// [VoidType] is a specialized [TypeInfo] returned by [computeType] when
-/// there is a single identifier as the type reference.
-const TypeInfo voidType = const VoidType();
-
-/// [SimpleType] is a specialized [TypeInfo] returned by [computeType]
-/// when there is a single identifier as the type reference.
-const TypeInfo simpleType = const SimpleType();
-
-/// [PrefixedType] is a specialized [TypeInfo] returned by [computeType]
-/// when the type reference is of the form: identifier `.` identifier.
-const TypeInfo prefixedType = const PrefixedType();
-
-/// [SimpleTypeWith1Argument] is a specialized [TypeInfo] returned by
-/// [computeType] when the type reference is of the form:
-/// identifier `<` identifier `>`.
-const TypeInfo simpleTypeWith1Argument = const SimpleTypeWith1Argument();
-
 /// [NoTypeParamOrArg] is a specialized [TypeParamOrArgInfo] returned by
 /// [computeTypeParamOrArg] when no type parameters or arguments are found.
 const TypeParamOrArgInfo noTypeParamOrArg = const NoTypeParamOrArg();
 
-/// [SimpleTypeArgument1] is a specialized [TypeParamOrArgInfo] returned by
-/// [computeTypeParamOrArg] when the type reference is of the form:
-/// `<` identifier `>`.
-const TypeParamOrArgInfo simpleTypeArgument1 = const SimpleTypeArgument1();
+/// [VoidType] is a specialized [TypeInfo] returned by [computeType] when
+/// there is a single identifier as the type reference.
+const TypeInfo voidType = const VoidType();
 
 bool isGeneralizedFunctionType(Token token) {
   return optional('Function', token) &&
@@ -191,13 +184,13 @@ TypeInfo computeType(final Token token, bool required,
   TypeParamOrArgInfo typeParamOrArg =
       computeTypeParamOrArg(next, inDeclaration, innerEndGroup);
   if (typeParamOrArg != noTypeParamOrArg) {
-    if (typeParamOrArg == simpleTypeArgument1) {
+    if (typeParamOrArg.isSimpleTypeArgument) {
       // We've seen identifier `<` identifier `>`
       next = typeParamOrArg.skip(next).next;
       if (!isGeneralizedFunctionType(next)) {
         if (required || looksLikeName(next)) {
           // identifier `<` identifier `>` identifier
-          return simpleTypeWith1Argument;
+          return typeParamOrArg.typeInfo;
         } else {
           // identifier `<` identifier `>` non-identifier
           return noType;
@@ -272,28 +265,33 @@ TypeInfo computeType(final Token token, bool required,
 /// has not been split or the first `>` if the `>>` token has been split.
 TypeParamOrArgInfo computeTypeParamOrArg(Token token,
     [bool inDeclaration = false, Token innerEndGroup]) {
-  Token next = token.next;
-  if (!optional('<', next)) {
+  Token beginGroup = token.next;
+  if (!optional('<', beginGroup)) {
     return noTypeParamOrArg;
   }
-  Token endGroup = next.endGroup ?? innerEndGroup;
+  Token endGroup = beginGroup.endGroup ?? innerEndGroup;
   if (endGroup == null) {
-    if (inDeclaration) {
-      // Recovery
-      // Since the leading `<` cannot be part of an expression,
-      // try to more aggressively recover given an unbalanced '<'.
-      return new ComplexTypeParamOrArgInfo(token, inDeclaration)
-          .compute(innerEndGroup);
+    if (!inDeclaration) {
+      return noTypeParamOrArg;
     }
-    return noTypeParamOrArg;
+    // Recovery:
+    // Since the leading `<` cannot be part of an expression, fall through and
+    // try to more aggressively recover given an unbalanced '<'.
   }
-  Token identifier = next.next;
+
   // identifier `<` `void` `>` and `<` `dynamic` `>`
   // are handled by ComplexTypeInfo.
-  if ((identifier.kind == IDENTIFIER_TOKEN || identifier.type.isPseudo) &&
-      identifier.next == endGroup) {
-    return simpleTypeArgument1;
+  Token identifier = beginGroup.next;
+  if ((identifier.kind == IDENTIFIER_TOKEN || identifier.type.isPseudo)) {
+    if (optional('>', identifier.next)) {
+      return simpleTypeArgument1;
+    } else if (optional('>>', identifier.next)) {
+      return simpleTypeArgument1GtGt;
+    } else if (optional('>=', identifier.next)) {
+      return simpleTypeArgument1GtEq;
+    }
   }
+
   // TODO(danrubel): Consider adding additional const for common situations.
   return new ComplexTypeParamOrArgInfo(token, inDeclaration)
       .compute(innerEndGroup);

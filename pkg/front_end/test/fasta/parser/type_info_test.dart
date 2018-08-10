@@ -580,7 +580,7 @@ class TypeInfoTest {
 
   void test_computeType_nested() {
     expectNestedInfo(simpleType, '<T>');
-    expectNestedInfo(simpleTypeWith1Argument, '<T<S>>');
+    expectNestedInfo(simpleTypeWith1ArgumentGtGt, '<T<S>>');
     expectNestedComplexInfo('<T<S,R>>');
     expectNestedComplexInfo('<T<S Function()>>');
     expectNestedComplexInfo('<T<S Function()>>');
@@ -837,7 +837,18 @@ class TypeParamOrArgInfoTest {
     Token t = start.next.next;
     expect(t.next.lexeme, '>>');
 
-    expect(simpleTypeArgument1.skip(start), t);
+    expect(simpleTypeArgument1GtGt.skip(start), t);
+  }
+
+  void test_simple_skip3() {
+    final Token start = scanString('before <T>= after').tokens;
+    Token t = start.next.next;
+    expect(t.next.lexeme, '>=');
+
+    Token skip = simpleTypeArgument1GtEq.skip(start);
+    expect(skip.lexeme, '>');
+    expect(skip.next.lexeme, '=');
+    expect(skip.next.next, t.next.next);
   }
 
   void test_simple_parseArguments() {
@@ -891,6 +902,10 @@ class TypeParamOrArgInfoTest {
     expectTypeParamOrArg(simpleTypeArgument1, '<T>');
   }
 
+  void test_computeTypeParamOrArg_simple2() {
+    expectTypeParamOrArg(simpleTypeArgument1GtEq, '<T>=', inDeclaration: true);
+  }
+
   void test_computeTypeParamOrArg_simple_nested() {
     String source = '<C<T>>';
     Token start = scan(source).next.next;
@@ -899,7 +914,7 @@ class TypeParamOrArgInfoTest {
     expect(gtgt.lexeme, '>>');
 
     TypeParamOrArgInfo typeVarInfo = computeTypeParamOrArg(start, false, gtgt);
-    expect(typeVarInfo, simpleTypeArgument1, reason: source);
+    expect(typeVarInfo, simpleTypeArgument1GtGt, reason: source);
   }
 
   void test_computeTypeArg_complex() {
