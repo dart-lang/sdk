@@ -363,7 +363,7 @@ class Configuration {
       runtime == other.runtime &&
       system == other.system &&
       builderTag == other.builderTag &&
-      vmOptions == other.vmOptions &&
+      vmOptions.join(" & ") == other.vmOptions.join(" & ") &&
       timeout == other.timeout &&
       enableAsserts == other.enableAsserts &&
       isChecked == other.isChecked &&

@@ -631,13 +631,8 @@ compiler.''',
           for (var modeName in modes.split(",")) {
             var mode = Mode.find(modeName);
             var system = System.find(data["system"] as String);
-            var namedConfiguration = getNamedConfiguration(
-                data["named_configuration"] as String,
-                runtime,
-                compiler,
-                mode,
-                architecture,
-                system);
+            var namedConfiguration =
+                getNamedConfiguration(data["named_configuration"] as String);
             var innerConfiguration = new Configuration(
                 namedConfiguration?.name ?? "custom configuration",
                 architecture,
@@ -718,6 +713,10 @@ compiler.''',
       }
     }
 
+    if (result.length > 1 && data["named_configuration"] != null) {
+      _fail("Named configuration cannot be used with multiple values for "
+          "arch, compiler, mode, or runtime");
+    }
     return result;
   }
 
@@ -761,9 +760,8 @@ compiler.''',
         pattern = ".?";
       }
       if (selectorMap.containsKey(suite)) {
-        print("Error: '$suite/$pattern'.  Only one test selection"
+        _fail("Error: '$suite/$pattern'.  Only one test selection"
             " pattern is allowed to start with '$suite/'");
-        exit(1);
       }
       selectorMap[suite] = new RegExp(pattern);
     }
@@ -861,26 +859,8 @@ Options:''');
   }
 }
 
-Configuration getNamedConfiguration(String template, Runtime runtime,
-    Compiler compiler, Mode mode, Architecture architecture, System system) {
+Configuration getNamedConfiguration(String template) {
   if (template == null) return null;
-  if (template.contains(r"${runtime}")) {
-    template = template.replaceFirst(r"${runtime}", runtime.name);
-  }
-  if (template.contains(r"${compiler}")) {
-    template = template.replaceFirst(r"${compiler}", compiler.name);
-  }
-  if (template.contains(r"${mode}")) {
-    template = template.replaceFirst(r"${mode}", mode.name);
-  }
-  if (template.contains(r"${arch}")) {
-    template = template.replaceFirst(r"${arch}", architecture.name);
-  }
-  if (template.contains(r"${system}")) {
-    var name = {'windows': 'win', 'macos': 'mac'}[system.name] ?? system.name;
-    template = template.replaceFirst(r"${system}", name);
-  }
-
   TestMatrix testMatrix = TestMatrix.fromPath("tools/bots/test_matrix.json");
   return testMatrix.configurations
       .singleWhere((c) => c.name == template, orElse: () => null);
