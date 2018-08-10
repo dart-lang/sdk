@@ -58,6 +58,16 @@ void testCookies() {
   });
 }
 
+void testValidateCookieWithDoubleQuotes() {
+  try {
+    Cookie cookie = Cookie('key', '"double-quoted-value"');
+  } catch (e) {
+    Expect.fail("Unexpected error $e.\n"
+        "Unable to parse cookie with value in double-quote characters.");
+  }
+}
+
 void main() {
   testCookies();
+  testValidateCookieWithDoubleQuotes();
 }
