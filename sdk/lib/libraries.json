@@ -144,6 +144,9 @@
       }
     }
   },
+  "none": {
+    "libraries": {}
+  },
   "dart2js": {
     "libraries": {
       "async": {

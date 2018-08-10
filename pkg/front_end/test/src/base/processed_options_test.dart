@@ -112,7 +112,7 @@ class ProcessedOptionsTest {
         .writeAsStringSync('');
     fileSystem
         .entityForUri(Uri.parse('org-dartlang-test:///libraries.json'))
-        .writeAsStringSync('{"vm":{"libraries":{"foo":{"uri":"bar.dart"}}}}');
+        .writeAsStringSync('{"none":{"libraries":{"foo":{"uri":"bar.dart"}}}}');
     var raw = new CompilerOptions()
       ..packagesFileUri = Uri.parse('org-dartlang-test:///.packages')
       ..fileSystem = fileSystem
@@ -131,7 +131,7 @@ class ProcessedOptionsTest {
     fileSystem
         .entityForUri(
             Uri.parse('org-dartlang-test:///mysdk/lib/libraries.json'))
-        .writeAsStringSync('{"vm":{"libraries":{"foo":{"uri":"bar.dart"}}}}');
+        .writeAsStringSync('{"none":{"libraries":{"foo":{"uri":"bar.dart"}}}}');
     var raw = new CompilerOptions()
       ..fileSystem = fileSystem
       ..packagesFileUri = Uri.parse('org-dartlang-test:///.packages')
@@ -150,7 +150,7 @@ class ProcessedOptionsTest {
     fileSystem
         .entityForUri(
             Uri.parse('org-dartlang-test:///mysdk/lib/libraries.json'))
-        .writeAsStringSync('{"vm":{"libraries":{"foo":{"uri":"bar.dart"}}}}');
+        .writeAsStringSync('{"none":{"libraries":{"foo":{"uri":"bar.dart"}}}}');
     var raw = new CompilerOptions()
       ..fileSystem = fileSystem
       ..packagesFileUri = Uri.parse('org-dartlang-test:///.packages')

@@ -33,8 +33,12 @@ import 'package:front_end/src/fasta/severity.dart' show Severity;
 
 import 'package:kernel/kernel.dart' show Component;
 
+import 'package:kernel/target/targets.dart' show TargetFlags;
+
 import "package:testing/testing.dart"
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
+
+import "package:vm/target/vm.dart" show VmTarget;
 
 import "package:yaml/yaml.dart" show YamlList, YamlMap, loadYamlNode;
 
@@ -353,6 +357,7 @@ CompilerOptions getOptions(bool strong) {
   final Uri sdkRoot = computePlatformBinariesLocation();
   CompilerOptions options = new CompilerOptions()
     ..sdkRoot = sdkRoot
+    ..target = new VmTarget(new TargetFlags(strongMode: strong))
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
     ..onProblem = (FormattedMessage problem, Severity severity,
         List<FormattedMessage> context) {

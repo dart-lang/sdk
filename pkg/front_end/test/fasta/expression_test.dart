@@ -38,7 +38,11 @@ import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
 
+import 'package:kernel/target/targets.dart' show TargetFlags;
+
 import 'package:kernel/text/ast_to_text.dart' show Printer;
+
+import 'package:vm/target/vm.dart' show VmTarget;
 
 import '../../lib/src/fasta/testing/kernel_chain.dart' show runDiff, openWrite;
 
@@ -363,6 +367,7 @@ Future<Context> createContext(
 
   final CompilerOptions optionBuilder = new CompilerOptions()
     ..strongMode = true
+    ..target = new VmTarget(new TargetFlags(strongMode: true))
     ..reportMessages = true
     ..verbose = true
     ..fileSystem = fs

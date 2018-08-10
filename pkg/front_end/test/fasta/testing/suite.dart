@@ -64,11 +64,11 @@ import 'package:kernel/kernel.dart' show loadComponentFromBytes;
 
 import 'package:kernel/target/targets.dart' show TargetFlags;
 
-import 'package:kernel/target/vm.dart' show VmTarget;
-
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
+
+import 'package:vm/target/vm.dart' show VmTarget;
 
 export 'package:testing/testing.dart' show Chain, runMe;
 

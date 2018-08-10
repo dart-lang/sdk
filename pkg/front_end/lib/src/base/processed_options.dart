@@ -10,9 +10,8 @@ import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
 import 'package:kernel/kernel.dart' show CanonicalName, Component, Location;
 
-import 'package:kernel/target/targets.dart' show Target, TargetFlags;
-
-import 'package:kernel/target/vm.dart' show VmTarget;
+import 'package:kernel/target/targets.dart'
+    show NoneTarget, Target, TargetFlags;
 
 import 'package:package_config/packages.dart' show Packages;
 
@@ -323,7 +322,7 @@ class ProcessedOptions {
 
   Target _target;
   Target get target => _target ??=
-      _raw.target ?? new VmTarget(new TargetFlags(strongMode: strongMode));
+      _raw.target ?? new NoneTarget(new TargetFlags(strongMode: strongMode));
 
   /// Get an outline component that summarizes the SDK, if any.
   // TODO(sigmund): move, this doesn't feel like an "option".

@@ -10,8 +10,12 @@ import "dart:io" show File;
 
 import "dart:typed_data" show Uint8List;
 
+import "package:kernel/target/targets.dart" show TargetFlags;
+
 import "package:testing/testing.dart"
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
+
+import "package:vm/target/vm.dart" show VmTarget;
 
 import "package:yaml/yaml.dart" show YamlList, YamlMap, YamlNode, loadYamlNode;
 
@@ -455,6 +459,7 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
         new CompilerOptions()
           ..sdkSummary = computePlatformBinariesLocation()
               .resolve("vm_platform_strong.dill")
+          ..target = new VmTarget(new TargetFlags(strongMode: true))
           ..fileSystem = new HybridFileSystem(suite.fileSystem)
           ..onProblem = (FormattedMessage problem, Severity severity,
               List<FormattedMessage> context) {

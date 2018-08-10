@@ -11,6 +11,9 @@
 # changing libraries, sources, and patch files.  See
 # https://github.com/dart-lang/sdk/issues/28836.
 
+none:
+  libraries: {}
+
 vm:
   libraries:
     _builtin:

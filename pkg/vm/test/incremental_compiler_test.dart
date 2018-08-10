@@ -14,12 +14,13 @@ import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/binary/limited_ast_to_binary.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
-import 'package:kernel/target/vm.dart';
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:stream_channel/stream_channel.dart';
 import 'package:test/test.dart';
-import 'package:vm/incremental_compiler.dart';
 import 'package:web_socket_channel/io.dart';
+
+import 'package:vm/incremental_compiler.dart';
+import 'package:vm/target/vm.dart';
 
 main() {
   final platformKernel =

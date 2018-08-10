@@ -14,22 +14,18 @@ import 'dart:convert' show jsonEncode;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/sdk.dart';
+import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
 import 'package:path/path.dart' as path;
-
 import 'package:front_end/src/api_prototype/front_end.dart';
-
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/kernel_generator_impl.dart';
 import 'package:front_end/src/fasta/util/relativize.dart' show relativizeUri;
-
 import 'package:front_end/src/fasta/get_dependencies.dart' show getDependencies;
 import 'package:front_end/src/fasta/kernel/utils.dart'
     show writeComponentToFile;
-
 import 'package:kernel/target/targets.dart';
-import 'package:kernel/target/vm.dart' show VmTarget;
-import 'package:kernel/target/flutter.dart' show FlutterTarget;
-import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
+import 'package:vm/target/vm.dart' show VmTarget;
+import 'package:vm/target/flutter.dart' show FlutterTarget;
 
 /// Set of input files that were read by this script to generate patched SDK.
 /// We will dump it out into the depfile for ninja to use.

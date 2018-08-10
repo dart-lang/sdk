@@ -7,11 +7,11 @@ library front_end.tool.perf_common;
 
 import 'dart:io' show exitCode, stderr;
 
-import 'package:kernel/target/flutter.dart' show FlutterTarget;
-
 import 'package:kernel/target/targets.dart' show Target, TargetFlags;
 
-import 'package:kernel/target/vm.dart' show VmTarget;
+import 'package:vm/target/flutter.dart' show FlutterTarget;
+
+import 'package:vm/target/vm.dart' show VmTarget;
 
 import 'package:front_end/src/api_prototype/front_end.dart'
     show CompilationMessage;
@@ -52,8 +52,8 @@ onErrorHandler(bool isStrong) {
     if (m.severity == Severity.internalProblem ||
         m.severity == Severity.error) {
       if (!isStrong || !whitelistMessageCode.contains(m.code)) {
-        var uri = m.span.start.sourceUrl;
-        var offset = m.span.start.offset;
+        var uri = m.span?.start?.sourceUrl ?? "?";
+        var offset = m.span?.start?.offset ?? "?";
         stderr.writeln('$uri:$offset: '
             '${severityPrefixes[m.severity]}: ${m.message}');
         exitCode = 1;
@@ -140,7 +140,7 @@ class TimingsCollector {
       for (double duration in durations.skip(3)) {
         total += duration;
       }
-      print("$key took: ${total/(durations.length - 3)}ms");
+      print("$key took: ${total / (durations.length - 3)}ms");
     });
   }
 }

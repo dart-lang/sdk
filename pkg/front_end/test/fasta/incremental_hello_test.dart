@@ -10,6 +10,10 @@ import 'package:expect/expect.dart' show Expect;
 
 import 'package:kernel/ast.dart' show Component;
 
+import 'package:kernel/target/targets.dart' show TargetFlags;
+
+import 'package:vm/target/vm.dart' show VmTarget;
+
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions;
 
@@ -36,6 +40,7 @@ void problemHandler(FormattedMessage message, Severity severity,
 test({bool sdkFromSource}) async {
   final CompilerOptions optionBuilder = new CompilerOptions()
     ..packagesFileUri = Uri.base.resolve(".packages")
+    ..target = new VmTarget(new TargetFlags(strongMode: false))
     ..strongMode = false
     ..onProblem = problemHandler;
 

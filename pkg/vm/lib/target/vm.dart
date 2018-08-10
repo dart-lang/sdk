@@ -1,20 +1,18 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-library kernel.target.vm;
+library vm.target.vm;
 
 import 'dart:core' hide MapEntry;
 
-import '../ast.dart';
-import '../class_hierarchy.dart';
-import '../core_types.dart';
-
-import '../transformations/mixin_full_resolution.dart' as transformMixins
-    show transformLibraries;
-import '../transformations/continuation.dart' as transformAsync
+import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
+import 'package:kernel/target/targets.dart';
+import 'package:kernel/transformations/mixin_full_resolution.dart'
+    as transformMixins show transformLibraries;
+import 'package:kernel/transformations/continuation.dart' as transformAsync
     show transformLibraries, transformProcedure;
-
-import 'targets.dart';
 
 /// Specializes the kernel IR to the Dart VM.
 class VmTarget extends Target {

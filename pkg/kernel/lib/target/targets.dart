@@ -7,8 +7,6 @@ import '../ast.dart';
 import '../class_hierarchy.dart';
 import '../core_types.dart';
 import '../transformations/treeshaker.dart' show ProgramRoot;
-import 'flutter.dart' show FlutterTarget;
-import 'vm.dart' show VmTarget;
 
 final List<String> targetNames = targets.keys.toList();
 
@@ -33,8 +31,6 @@ typedef Target _TargetBuilder(TargetFlags flags);
 
 final Map<String, _TargetBuilder> targets = <String, _TargetBuilder>{
   'none': (TargetFlags flags) => new NoneTarget(flags),
-  'vm': (TargetFlags flags) => new VmTarget(flags),
-  'flutter': (TargetFlags flags) => new FlutterTarget(flags),
 };
 
 Target getTarget(String name, TargetFlags flags) {

@@ -39,7 +39,7 @@ main(List<String> args) async {
   var bench = options.rest[0];
   var entryUri = Uri.base.resolve(options.rest[1]);
 
-  await setup(entryUri);
+  await setup(entryUri, strongMode: strongMode);
 
   Map<Uri, List<int>> files = await scanReachableFiles(entryUri);
   var handlers = {
@@ -89,14 +89,15 @@ UriTranslator uriResolver;
 
 /// Preliminary set up to be able to correctly resolve URIs on the given
 /// program.
-Future setup(Uri entryUri) async {
+Future setup(Uri entryUri, {bool strongMode: false}) async {
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
     // Because this is only used to create a uriResolver, we don't allow any
     // whitelisting of error messages in the error handler.
     ..onError = onErrorHandler(false)
     ..compileSdk = true
-    ..packagesFileUri = Uri.base.resolve('.packages');
+    ..packagesFileUri = Uri.base.resolve('.packages')
+    ..target = createTarget(isFlutter: false, strongMode: strongMode);
   uriResolver = await new ProcessedOptions(options).getUriTranslator();
 }
 
