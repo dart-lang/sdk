@@ -53,11 +53,13 @@ void applyCheckElementTextReplacements() {
  * actual text with the given [expected] one.
  */
 void checkElementText(LibraryElement library, String expected,
-    {bool withConstElements: true,
+    {bool withCodeRanges: false,
+    bool withConstElements: true,
     bool withOffsets: false,
     bool withSyntheticAccessors: false,
     bool withSyntheticFields: false}) {
   var writer = new _ElementWriter(
+      withCodeRanges: withCodeRanges,
       withConstElements: withConstElements,
       withOffsets: withOffsets,
       withSyntheticAccessors: withSyntheticAccessors,
@@ -122,6 +124,7 @@ void checkElementText(LibraryElement library, String expected,
  * Writes the canonical text presentation of elements.
  */
 class _ElementWriter {
+  final bool withCodeRanges;
   final bool withOffsets;
   final bool withConstElements;
   final bool withSyntheticAccessors;
@@ -129,7 +132,8 @@ class _ElementWriter {
   final StringBuffer buffer = new StringBuffer();
 
   _ElementWriter(
-      {this.withConstElements: true,
+      {this.withCodeRanges,
+      this.withConstElements: true,
       this.withOffsets: false,
       this.withSyntheticAccessors: false,
       this.withSyntheticFields: false});
@@ -177,6 +181,15 @@ class _ElementWriter {
 
     writeName(e);
     writeTypeParameterElements(e.typeParameters);
+
+    if (withCodeRanges) {
+      var elementImpl = e as ElementImpl;
+      buffer.write('/*codeOffset=');
+      buffer.write(elementImpl.codeOffset);
+      buffer.write(', codeLength=');
+      buffer.write(elementImpl.codeLength);
+      buffer.write('*/');
+    }
 
     if (e.supertype != null && e.supertype.displayName != 'Object' ||
         e.mixins.isNotEmpty) {

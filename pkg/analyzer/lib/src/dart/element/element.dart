@@ -575,6 +575,10 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   int get codeLength {
+    if (_kernel != null) {
+      var metadata = AnalyzerMetadata.forNode(_kernel);
+      return metadata?.codeLength;
+    }
     if (_unlinkedClass != null) {
       return _unlinkedClass.codeRange?.length;
     }
@@ -583,6 +587,10 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   int get codeOffset {
+    if (_kernel != null) {
+      var metadata = AnalyzerMetadata.forNode(_kernel);
+      return metadata?.codeOffset;
+    }
     if (_unlinkedClass != null) {
       return _unlinkedClass.codeRange?.offset;
     }

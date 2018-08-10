@@ -344,7 +344,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int startCharOffset,
       int charOffset,
       int charEndOffset,
-      int supertypeOffset);
+      int supertypeOffset,
+      int codeStartOffset,
+      int codeEndOffset);
 
   void addNamedMixinApplication(
       String documentationComment,
@@ -354,7 +356,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int modifiers,
       T mixinApplication,
       List<T> interfaces,
-      int charOffset);
+      int charOffset,
+      int codeStartOffset,
+      int codeEndOffset);
 
   void addField(
       String documentationComment,

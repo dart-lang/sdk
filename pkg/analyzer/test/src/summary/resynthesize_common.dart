@@ -2544,6 +2544,134 @@ final dynamic f;
     }
   }
 
+  test_codeRange_class() async {
+    var library = await checkLibrary('''
+class Raw {}
+
+/// Comment 1.
+/// Comment 2.
+class HasDocComment {}
+
+@Object()
+class HasAnnotation {}
+
+@Object()
+/// Comment 1.
+/// Comment 2.
+class AnnotationThenComment {}
+
+/// Comment 1.
+/// Comment 2.
+@Object()
+class CommentThenAnnotation {}
+
+/// Comment 1.
+@Object()
+/// Comment 2.
+class CommentAroundAnnotation {}
+''');
+    checkElementText(
+        library,
+        r'''
+class Raw/*codeOffset=0, codeLength=12*/ {
+}
+/// Comment 1.
+/// Comment 2.
+class HasDocComment/*codeOffset=14, codeLength=52*/ {
+}
+@Object()
+class HasAnnotation/*codeOffset=68, codeLength=32*/ {
+}
+/// Comment 1.
+/// Comment 2.
+@Object()
+class AnnotationThenComment/*codeOffset=102, codeLength=70*/ {
+}
+/// Comment 1.
+/// Comment 2.
+@Object()
+class CommentThenAnnotation/*codeOffset=174, codeLength=70*/ {
+}
+/// Comment 2.
+@Object()
+class CommentAroundAnnotation/*codeOffset=261, codeLength=57*/ {
+}
+''',
+        withCodeRanges: true,
+        withConstElements: false);
+  }
+
+  test_codeRange_class_namedMixin() async {
+    var library = await checkLibrary('''
+class A {}
+
+class B {}
+    
+class Raw = Object with A, B;
+
+/// Comment 1.
+/// Comment 2.
+class HasDocComment = Object with A, B;
+
+@Object()
+class HasAnnotation = Object with A, B;
+
+@Object()
+/// Comment 1.
+/// Comment 2.
+class AnnotationThenComment = Object with A, B;
+
+/// Comment 1.
+/// Comment 2.
+@Object()
+class CommentThenAnnotation = Object with A, B;
+
+/// Comment 1.
+@Object()
+/// Comment 2.
+class CommentAroundAnnotation = Object with A, B;
+''');
+    checkElementText(
+        library,
+        r'''
+class A/*codeOffset=0, codeLength=10*/ {
+}
+class B/*codeOffset=12, codeLength=10*/ {
+}
+class alias Raw/*codeOffset=28, codeLength=29*/ extends Object with A, B {
+  synthetic Raw() = Object;
+}
+/// Comment 1.
+/// Comment 2.
+class alias HasDocComment/*codeOffset=59, codeLength=69*/ extends Object with A, B {
+  synthetic HasDocComment() = Object;
+}
+@Object()
+class alias HasAnnotation/*codeOffset=130, codeLength=49*/ extends Object with A, B {
+  synthetic HasAnnotation() = Object;
+}
+/// Comment 1.
+/// Comment 2.
+@Object()
+class alias AnnotationThenComment/*codeOffset=181, codeLength=87*/ extends Object with A, B {
+  synthetic AnnotationThenComment() = Object;
+}
+/// Comment 1.
+/// Comment 2.
+@Object()
+class alias CommentThenAnnotation/*codeOffset=270, codeLength=87*/ extends Object with A, B {
+  synthetic CommentThenAnnotation() = Object;
+}
+/// Comment 2.
+@Object()
+class alias CommentAroundAnnotation/*codeOffset=374, codeLength=74*/ extends Object with A, B {
+  synthetic CommentAroundAnnotation() = Object;
+}
+''',
+        withCodeRanges: true,
+        withConstElements: false);
+  }
+
   test_const_constructor_inferred_args() async {
     if (!isStrongMode) return;
     var library = await checkLibrary('''
