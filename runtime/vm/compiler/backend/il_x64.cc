@@ -5326,9 +5326,32 @@ static void EmitInt64ModTruncDiv(FlowGraphCompiler* compiler,
   //   out = left % right
   // or
   //   out = left / right.
+  //
+  // Note that since 64-bit division requires twice as many cycles
+  // and has much higher latency compared to the 32-bit division,
+  // even for this non-speculative 64-bit path we add a "fast path".
+  // Integers are untagged at this stage, so testing if sign extending
+  // the lower half of each operand equals the full operand, effectively
+  // tests if the values fit in 32-bit operands (and the slightly
+  // dangerous division by -1 has been handled above already).
   ASSERT(left == RAX);
+  ASSERT(right != RDX);  // available at this stage
+  Label div_64;
+  Label div_merge;
+  __ movsxd(RDX, left);
+  __ cmpq(RDX, left);
+  __ j(NOT_EQUAL, &div_64, Assembler::kNearJump);
+  __ movsxd(RDX, right);
+  __ cmpq(RDX, right);
+  __ j(NOT_EQUAL, &div_64, Assembler::kNearJump);
+  __ cdq();         // sign-ext eax into edx:eax
+  __ idivl(right);  // quotient eax, remainder edx
+  __ movsxd(out, out);
+  __ jmp(&div_merge, Assembler::kNearJump);
+  __ Bind(&div_64);
   __ cqo();         // sign-ext rax into rdx:rax
   __ idivq(right);  // quotient rax, remainder rdx
+  __ Bind(&div_merge);
   if (op_kind == Token::kMOD) {
     ASSERT(out == RDX);
     ASSERT(tmp == RAX);

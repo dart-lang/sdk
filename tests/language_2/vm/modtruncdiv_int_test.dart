@@ -177,6 +177,34 @@ main() {
     Expect.equals(38654705666, acc);
 
     acc = 0;
+    doModVars(minInt32 - 4, minInt32 + 4, -11, -1);
+    Expect.equals(239, acc);
+
+    acc = 0;
+    doModVars(minInt32 - 4, minInt32 + 4, 2, 7);
+    Expect.equals(85, acc);
+
+    acc = 0;
+    doModVars(minInt32 - 4, minInt32 + 4, minInt32 - 4, minInt32 + 4);
+    Expect.equals(77309411268, acc);
+
+    acc = 0;
+    doModVars(minInt32 - 4, minInt32 + 4, maxInt32 - 4, maxInt32 + 4);
+    Expect.equals(96636763974, acc);
+
+    acc = 0;
+    doModVars(maxInt32 - 4, maxInt32 + 4, 2, 7);
+    Expect.equals(104, acc);
+
+    acc = 0;
+    doModVars(maxInt32 - 4, maxInt32 + 4, minInt32 - 4, minInt32 + 4);
+    Expect.equals(96636764139, acc);
+
+    acc = 0;
+    doModVars(maxInt32 - 4, maxInt32 + 4, maxInt32 - 4, maxInt32 + 4);
+    Expect.equals(77309411352, acc);
+
+    acc = 0;
     doTruncDivVars(3, 5, 2, 6);
     Expect.equals(11, acc);
 
@@ -199,6 +227,38 @@ main() {
     acc = 0;
     doTruncDivVars(minInt64, minInt64, -1, -1);
     Expect.equals(minInt64, acc);
+
+    acc = 0;
+    doTruncDivVars(minInt32 - 4, minInt32 + 4, -11, -1);
+    Expect.equals(58366234918, acc);
+
+    acc = 0;
+    doTruncDivVars(minInt32 - 4, minInt32 + 4, 2, 7);
+    Expect.equals(-30785711991, acc);
+
+    acc = 0;
+    doTruncDivVars(minInt32 - 4, minInt32 + 4, minInt32 - 4, minInt32 + 4);
+    Expect.equals(45, acc);
+
+    acc = 0;
+    doTruncDivVars(minInt32 - 4, minInt32 + 4, maxInt32 - 4, maxInt32 + 4);
+    Expect.equals(-53, acc);
+
+    acc = 0;
+    doTruncDivVars(maxInt32 - 4, maxInt32 + 4, 2, 7);
+    Expect.equals(30785711975, acc);
+
+    acc = 0;
+    doTruncDivVars(maxInt32 - 4, maxInt32 + 4, minInt32 - 4, minInt32 + 4);
+    Expect.equals(-36, acc);
+
+    acc = 0;
+    doTruncDivVars(maxInt32 - 4, maxInt32 + 4, maxInt32 - 4, maxInt32 + 4);
+    Expect.equals(45, acc);
+
+    acc = 0;
+    doTruncDivVars(maxInt32 - 4, maxInt32 + 4, 1, 7);
+    Expect.equals(50113064798, acc);
 
     // Exceptions at the right time.
 
