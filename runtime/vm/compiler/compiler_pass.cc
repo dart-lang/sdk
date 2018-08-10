@@ -223,6 +223,7 @@ void CompilerPass::RunPipeline(PipelineMode mode,
   INVOKE_PASS(TypePropagation);
   INVOKE_PASS(ApplyClassIds);
   INVOKE_PASS(TypePropagation);
+  INVOKE_PASS(ApplyICData);
   INVOKE_PASS(Canonicalize);
   INVOKE_PASS(BranchSimplify);
   INVOKE_PASS(IfConvert);
