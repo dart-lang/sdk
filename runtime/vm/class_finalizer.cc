@@ -2735,6 +2735,11 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     THR_Print("Finalize %s\n", cls.ToCString());
   }
 
+#if !defined(PRODUCT)
+  TimelineDurationScope tds(thread, Timeline::GetCompilerStream(),
+                            "ClassFinalizer::FinalizeClass");
+#endif  // !defined(PRODUCT)
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // If loading from a kernel, make sure that the class is fully loaded.
   // Top level classes are always fully loaded.

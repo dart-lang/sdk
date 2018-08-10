@@ -333,7 +333,6 @@ template("build_gen_snapshot") {
     configs += [
                  "..:dart_arch_config",
                  "..:dart_config",
-                 "..:dart_maybe_interpreter_config",
                  "..:dart_precompiler_config",
                ] + extra_configs
     if (is_fuchsia) {
@@ -409,6 +408,7 @@ template("build_gen_snapshot") {
 
 build_gen_snapshot("gen_snapshot") {
   extra_configs = [
+    "..:dart_maybe_interpreter_config",
     "..:dart_maybe_product_config",
     "..:dart_os_config",
   ]
@@ -421,6 +421,7 @@ build_gen_snapshot("gen_snapshot") {
 
 build_gen_snapshot("gen_snapshot_product") {
   extra_configs = [
+    "..:dart_maybe_interpreter_config",
     "..:dart_product_config",
     "..:dart_os_config",
   ]
@@ -433,6 +434,7 @@ build_gen_snapshot("gen_snapshot_product") {
 
 build_gen_snapshot("gen_snapshot_fuchsia") {
   extra_configs = [
+    "..:dart_maybe_interpreter_config",
     "..:dart_maybe_product_config",
     "..:dart_os_fuchsia_config",
   ]
@@ -445,6 +447,7 @@ build_gen_snapshot("gen_snapshot_fuchsia") {
 
 build_gen_snapshot("gen_snapshot_product_fuchsia") {
   extra_configs = [
+    "..:dart_maybe_interpreter_config",
     "..:dart_product_config",
     "..:dart_os_fuchsia_config",
   ]
@@ -453,6 +456,60 @@ build_gen_snapshot("gen_snapshot_product_fuchsia") {
     ":libdart_builtin_product_fuchsia",
     "..:libdart_nosnapshot_with_precompiler_product_fuchsia",
   ]
+}
+
+if (!is_win) {
+  build_gen_snapshot("gen_snapshot_interpreter") {
+    extra_configs = [
+      "..:dart_interpreter_config",
+      "..:dart_maybe_product_config",
+      "..:dart_os_config",
+    ]
+    extra_deps = [
+      ":gen_snapshot_dart_io",
+      ":libdart_builtin",
+      "..:libdart_nosnapshot_with_precompiler_interpreter",
+    ]
+  }
+
+  build_gen_snapshot("gen_snapshot_product_interpreter") {
+    extra_configs = [
+      "..:dart_interpreter_config",
+      "..:dart_product_config",
+      "..:dart_os_config",
+    ]
+    extra_deps = [
+      ":gen_snapshot_dart_io",
+      ":libdart_builtin",
+      "..:libdart_nosnapshot_with_precompiler_interpreter",
+    ]
+  }
+
+  build_gen_snapshot("gen_snapshot_interpreter_fuchsia") {
+    extra_configs = [
+      "..:dart_interpreter_config",
+      "..:dart_maybe_product_config",
+      "..:dart_os_fuchsia_config",
+    ]
+    extra_deps = [
+      ":gen_snapshot_dart_io_fuchsia",
+      ":libdart_builtin_fuchsia",
+      "..:libdart_nosnapshot_with_precompiler_interpreter_fuchsia",
+    ]
+  }
+
+  build_gen_snapshot("gen_snapshot_product_interpreter_fuchsia") {
+    extra_configs = [
+      "..:dart_interpreter_config",
+      "..:dart_product_config",
+      "..:dart_os_fuchsia_config",
+    ]
+    extra_deps = [
+      ":gen_snapshot_dart_io_product_fuchsia",
+      ":libdart_builtin_product_fuchsia",
+      "..:libdart_nosnapshot_with_precompiler_product_interpreter_fuchsia",
+    ]
+  }
 }
 
 # A source set for the implementation of 'dart:io' library

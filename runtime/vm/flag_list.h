@@ -130,7 +130,7 @@ constexpr bool kDartPrecompiledRuntime = false;
   P(new_gen_semi_initial_size, int, (kWordSize <= 4) ? 1 : 2,                  \
     "Initial size of new gen semi space in MB")                                \
   P(omit_strong_type_checks, bool, false, "Omit strong mode type checks.")     \
-  P(optimization_counter_threshold, int, 30000,                                \
+  P(optimization_counter_threshold, int, USING_KBC ? -1 : 30000,               \
     "Function's usage-counter value before it is optimized, -1 means never")   \
   P(old_gen_heap_size, int, kDefaultMaxOldGenHeapSize,                         \
     "Max size of old gen heap size in MB, or 0 for unlimited,"                 \

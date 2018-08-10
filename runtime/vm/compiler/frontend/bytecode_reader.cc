@@ -10,6 +10,7 @@
 #include "vm/compiler/assembler/disassembler_kbc.h"
 #include "vm/constants_kbc.h"
 #include "vm/dart_entry.h"
+#include "vm/timeline.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #if defined(DART_USE_INTERPRETER)
@@ -33,6 +34,11 @@ BytecodeMetadataHelper::BytecodeMetadataHelper(KernelReaderHelper* helper,
       active_class_(active_class) {}
 
 void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
+#if !defined(PRODUCT)
+  TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),
+                            "BytecodeMetadataHelper::ReadMetadata");
+#endif  // !defined(PRODUCT)
+
   const intptr_t node_offset = function.kernel_offset();
   const intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
   if (md_offset < 0) {
@@ -85,6 +91,11 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
                                                  const Function& inner_function,
                                                  const ObjectPool& pool,
                                                  intptr_t from_index) {
+#if !defined(PRODUCT)
+  TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),
+                            "BytecodeMetadataHelper::ReadPoolEntries");
+#endif  // !defined(PRODUCT)
+
   // These enums and the code below reading the constant pool from kernel must
   // be kept in sync with pkg/vm/lib/bytecode/constant_pool.dart.
   enum ConstantPoolTag {
@@ -488,6 +499,11 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
 }
 
 RawCode* BytecodeMetadataHelper::ReadBytecode(const ObjectPool& pool) {
+#if !defined(PRODUCT)
+  TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),
+                            "BytecodeMetadataHelper::ReadBytecode");
+#endif  // !defined(PRODUCT)
+
   intptr_t size = helper_->reader_.ReadUInt();
   intptr_t offset = helper_->reader_.offset();
   const uint8_t* data = helper_->reader_.BufferAt(offset);
@@ -499,6 +515,11 @@ RawCode* BytecodeMetadataHelper::ReadBytecode(const ObjectPool& pool) {
 }
 
 void BytecodeMetadataHelper::ReadExceptionsTable(const Code& bytecode) {
+#if !defined(PRODUCT)
+  TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),
+                            "BytecodeMetadataHelper::ReadExceptionsTable");
+#endif  // !defined(PRODUCT)
+
   const intptr_t try_block_count = helper_->reader_.ReadListLength();
   if (try_block_count > 0) {
     const ObjectPool& pool =
