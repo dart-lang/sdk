@@ -162,20 +162,6 @@ class GetErrorsTest_UseCFE extends GetErrorsTest {
   @override
   test_fileDoesNotExist() => super.test_fileDoesNotExist();
 
-  @failingTest
-  @override
-  test_hasErrors() {
-    fail('Flaky');
-//    return super.test_hasErrors();
-  }
-
-  @failingTest
-  @override
-  test_noErrors() {
-    fail('Flaky');
-//    return super.test_noErrors();
-  }
-
   @override
   test_removeContextAfterRequest() => super.test_removeContextAfterRequest();
 }

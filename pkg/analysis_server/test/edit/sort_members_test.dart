@@ -260,9 +260,4 @@ class C {}
 class SortMembersTest_UseCFE extends SortMembersTest {
   @override
   bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_OK_directives_withAnnotation() =>
-      super.test_OK_directives_withAnnotation();
 }

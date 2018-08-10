@@ -57,7 +57,10 @@ class MockServerChannel implements ServerCommunicationChannel {
   List<Notification> notificationsReceived = [];
   bool _closed = false;
 
+  String name;
+
   MockServerChannel();
+
   @override
   void close() {
     _closed = true;
@@ -83,6 +86,8 @@ class MockServerChannel implements ServerCommunicationChannel {
     }
     notificationsReceived.add(notification);
     if (errorCompleter != null && notification.event == 'server.error') {
+      print(
+          '[server.error] test: $name message: ${notification.params['message']}');
       errorCompleter.completeError(
           new ServerError(notification.params['message']),
           new StackTrace.fromString(notification.params['stackTrace']));
@@ -141,8 +146,12 @@ class MockServerChannel implements ServerCommunicationChannel {
     Future<Response> response =
         responseController.stream.firstWhere((response) => response.id == id);
     if (throwOnError) {
-      errorCompleter ??= new Completer<Response>();
-      return Future.any([response, errorCompleter.future]);
+      errorCompleter = new Completer<Response>();
+      try {
+        return Future.any([response, errorCompleter.future]);
+      } finally {
+        errorCompleter = null;
+      }
     }
     return response;
   }

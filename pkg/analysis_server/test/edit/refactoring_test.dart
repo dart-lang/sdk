@@ -604,11 +604,6 @@ main() {
 class ExtractLocalVariableTest_UseCFE extends ExtractLocalVariableTest {
   @override
   bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_resetOnAnalysisSetChanged_overlay() =>
-      super.test_resetOnAnalysisSetChanged_overlay();
 }
 
 @reflectiveTest
