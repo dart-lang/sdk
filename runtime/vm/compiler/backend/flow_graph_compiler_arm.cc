@@ -1066,7 +1066,7 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(const ICData& ic_data,
   __ LoadFromOffset(kWord, R0, SP,
                     (ic_data.CountWithoutTypeArgs() - 1) * kWordSize);
   __ LoadUniqueObject(CODE_REG, initial_stub);
-  __ ldr(LR, FieldAddress(CODE_REG, Code::checked_entry_point_offset()));
+  __ ldr(LR, FieldAddress(CODE_REG, Code::monomorphic_entry_point_offset()));
   __ LoadUniqueObject(R9, ic_data);
   __ blx(LR);
 

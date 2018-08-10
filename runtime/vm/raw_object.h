@@ -1255,7 +1255,11 @@ class RawCode : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Code);
 
   uword entry_point_;          // Accessed from generated code.
-  uword checked_entry_point_;  // Accessed from generated code (AOT only).
+
+  // In AOT this entry-point supports switchable calls. It checks the type of
+  // the receiver on entry to the function and calls a stub to patch up the
+  // caller if they mismatch.
+  uword monomorphic_entry_point_;  // Accessed from generated code (AOT only).
 
   VISIT_FROM(RawObject*, object_pool_);
   RawObjectPool* object_pool_;     // Accessed from generated code.

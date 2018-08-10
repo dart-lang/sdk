@@ -28,10 +28,10 @@ StubEntry* StubCode::entries_[kNumStubEntries] = {
 
 StubEntry::StubEntry(const Code& code)
     : code_(code.raw()),
-      entry_point_(code.UncheckedEntryPoint()),
-      checked_entry_point_(code.CheckedEntryPoint()),
+      entry_point_(code.EntryPoint()),
+      monomorphic_entry_point_(code.MonomorphicEntryPoint()),
       size_(code.Size()),
-      label_(code.UncheckedEntryPoint()) {}
+      label_(code.EntryPoint()) {}
 
 // Visit all object pointers.
 void StubEntry::VisitObjectPointers(ObjectPointerVisitor* visitor) {

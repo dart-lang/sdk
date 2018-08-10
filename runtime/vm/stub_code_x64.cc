@@ -2787,7 +2787,7 @@ void StubCode::GenerateUnlinkedCallStub(Assembler* assembler) {
   __ LeaveStubFrame();
 
   __ movq(CODE_REG, Address(THR, Thread::ic_lookup_through_code_stub_offset()));
-  __ movq(RCX, FieldAddress(CODE_REG, Code::checked_entry_point_offset()));
+  __ movq(RCX, FieldAddress(CODE_REG, Code::monomorphic_entry_point_offset()));
   __ jmp(RCX);
 }
 
@@ -2823,7 +2823,7 @@ void StubCode::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ LeaveStubFrame();
 
   __ movq(CODE_REG, Address(THR, Thread::ic_lookup_through_code_stub_offset()));
-  __ movq(RCX, FieldAddress(CODE_REG, Code::checked_entry_point_offset()));
+  __ movq(RCX, FieldAddress(CODE_REG, Code::monomorphic_entry_point_offset()));
   __ jmp(RCX);
 }
 
@@ -2844,7 +2844,7 @@ void StubCode::GenerateMonomorphicMissStub(Assembler* assembler) {
   __ LeaveStubFrame();
 
   __ movq(CODE_REG, Address(THR, Thread::ic_lookup_through_code_stub_offset()));
-  __ movq(RCX, FieldAddress(CODE_REG, Code::checked_entry_point_offset()));
+  __ movq(RCX, FieldAddress(CODE_REG, Code::monomorphic_entry_point_offset()));
   __ jmp(RCX);
 }
 

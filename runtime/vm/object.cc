@@ -5929,7 +5929,7 @@ void Function::SetInstructions(const Code& value) const {
 
 void Function::SetInstructionsSafe(const Code& value) const {
   StorePointer(&raw_ptr()->code_, value.raw());
-  StoreNonPointer(&raw_ptr()->entry_point_, value.UncheckedEntryPoint());
+  StoreNonPointer(&raw_ptr()->entry_point_, value.EntryPoint());
 }
 
 void Function::AttachCode(const Code& value) const {
@@ -6014,7 +6014,7 @@ void Function::SwitchToUnoptimizedCode() const {
 
   if (FLAG_trace_deoptimization_verbose) {
     THR_Print("Disabling optimized code: '%s' entry: %#" Px "\n",
-              ToFullyQualifiedCString(), current_code.UncheckedEntryPoint());
+              ToFullyQualifiedCString(), current_code.EntryPoint());
   }
   current_code.DisableDartCode();
   const Error& error =
@@ -14403,7 +14403,7 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
     ASSERT(target.HasCode());
     const Code& code = Code::Handle(target.CurrentCode());
     const Smi& entry_point =
-        Smi::Handle(Smi::FromAlignedAddress(code.UncheckedEntryPoint()));
+        Smi::Handle(Smi::FromAlignedAddress(code.EntryPoint()));
     data.SetAt(data_pos + 1, code);
     data.SetAt(data_pos + 2, entry_point);
   }
@@ -15514,7 +15514,7 @@ const char* Code::Name() const {
   const Object& obj = Object::Handle(zone, owner());
   if (obj.IsNull()) {
     // Regular stub.
-    const char* name = StubCode::NameOfStub(UncheckedEntryPoint());
+    const char* name = StubCode::NameOfStub(EntryPoint());
     if (name == NULL) {
       return zone->PrintToString("[this stub]");  // Not yet recorded.
     }
@@ -15594,9 +15594,9 @@ void Code::SetActiveInstructions(const Instructions& instructions) const {
   // store buffer update is not needed here.
   StorePointer(&raw_ptr()->active_instructions_, instructions.raw());
   StoreNonPointer(&raw_ptr()->entry_point_,
-                  Instructions::UncheckedEntryPoint(instructions.raw()));
-  StoreNonPointer(&raw_ptr()->checked_entry_point_,
-                  Instructions::CheckedEntryPoint(instructions.raw()));
+                  Instructions::EntryPoint(instructions.raw()));
+  StoreNonPointer(&raw_ptr()->monomorphic_entry_point_,
+                  Instructions::MonomorphicEntryPoint(instructions.raw()));
 #endif
 }
 
@@ -15626,8 +15626,7 @@ RawStackMap* Code::GetStackMap(uint32_t pc_offset,
   // the entry to an osr function. (In which case all stack slots are
   // considered to have tagged pointers.)
   // Running with --verify-on-transition should hit this.
-  ASSERT(!is_optimized() ||
-         (pc_offset == UncheckedEntryPoint() - PayloadStart()));
+  ASSERT(!is_optimized() || (pc_offset == EntryPoint() - PayloadStart()));
   return StackMap::null();
 }
 
@@ -17876,7 +17875,7 @@ void AbstractType::SetTypeTestingStub(const Instructions& instr) const {
     StoreNonPointer(&raw_ptr()->type_test_stub_entry_point_, 0);
   } else {
     StoreNonPointer(&raw_ptr()->type_test_stub_entry_point_,
-                    instr.UncheckedEntryPoint());
+                    instr.EntryPoint());
   }
 }
 

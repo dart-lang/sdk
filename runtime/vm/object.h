@@ -4341,8 +4341,8 @@ class Instructions : public Object {
   }
 
   uword PayloadStart() const { return PayloadStart(raw()); }
-  uword CheckedEntryPoint() const { return CheckedEntryPoint(raw()); }
-  uword UncheckedEntryPoint() const { return UncheckedEntryPoint(raw()); }
+  uword MonomorphicEntryPoint() const { return MonomorphicEntryPoint(raw()); }
+  uword EntryPoint() const { return EntryPoint(raw()); }
   static uword PayloadStart(const RawInstructions* instr) {
     return reinterpret_cast<uword>(instr->ptr()) + HeaderSize();
   }
@@ -4366,14 +4366,14 @@ class Instructions : public Object {
 #error Missing entry offsets for current architecture
 #endif
 
-  static uword CheckedEntryPoint(const RawInstructions* instr) {
+  static uword MonomorphicEntryPoint(const RawInstructions* instr) {
     uword entry = PayloadStart(instr);
     if (!HasSingleEntryPoint(instr)) {
       entry += kCheckedEntryOffset;
     }
     return entry;
   }
-  static uword UncheckedEntryPoint(const RawInstructions* instr) {
+  static uword EntryPoint(const RawInstructions* instr) {
     uword entry = PayloadStart(instr);
     if (!HasSingleEntryPoint(instr)) {
       entry += kUncheckedEntryOffset;
@@ -4821,8 +4821,8 @@ class Code : public Object {
   static intptr_t entry_point_offset() {
     return OFFSET_OF(RawCode, entry_point_);
   }
-  static intptr_t checked_entry_point_offset() {
-    return OFFSET_OF(RawCode, checked_entry_point_);
+  static intptr_t monomorphic_entry_point_offset() {
+    return OFFSET_OF(RawCode, monomorphic_entry_point_);
   }
 
   RawObjectPool* object_pool() const { return raw_ptr()->object_pool_; }
@@ -4844,13 +4844,13 @@ class Code : public Object {
   uword PayloadStart() const {
     return Instructions::PayloadStart(instructions());
   }
-  uword UncheckedEntryPoint() const {
+  uword EntryPoint() const {
     const Instructions& instr = Instructions::Handle(instructions());
-    return instr.UncheckedEntryPoint();
+    return instr.EntryPoint();
   }
-  uword CheckedEntryPoint() const {
+  uword MonomorphicEntryPoint() const {
     const Instructions& instr = Instructions::Handle(instructions());
-    return instr.CheckedEntryPoint();
+    return instr.MonomorphicEntryPoint();
   }
   intptr_t Size() const { return Instructions::Size(instructions()); }
   RawObjectPool* GetObjectPool() const { return object_pool(); }

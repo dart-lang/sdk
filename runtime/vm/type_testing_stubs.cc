@@ -201,23 +201,23 @@ RawInstructions* TypeTestingStubFinder::LookupByAddresss(
     uword entry_point) const {
   // First test the 4 common ones:
   code_ = StubCode::DefaultTypeTest_entry()->code();
-  if (entry_point == code_.UncheckedEntryPoint()) {
+  if (entry_point == code_.EntryPoint()) {
     return code_.instructions();
   }
   code_ = StubCode::LazySpecializeTypeTest_entry()->code();
-  if (entry_point == code_.UncheckedEntryPoint()) {
+  if (entry_point == code_.EntryPoint()) {
     return code_.instructions();
   }
   code_ = StubCode::TopTypeTypeTest_entry()->code();
-  if (entry_point == code_.UncheckedEntryPoint()) {
+  if (entry_point == code_.EntryPoint()) {
     return code_.instructions();
   }
   code_ = StubCode::TypeRefTypeTest_entry()->code();
-  if (entry_point == code_.UncheckedEntryPoint()) {
+  if (entry_point == code_.EntryPoint()) {
     return code_.instructions();
   }
   code_ = StubCode::UnreachableTypeTest_entry()->code();
-  if (entry_point == code_.UncheckedEntryPoint()) {
+  if (entry_point == code_.EntryPoint()) {
     return code_.instructions();
   }
 
@@ -229,23 +229,23 @@ const char* TypeTestingStubFinder::StubNameFromAddresss(
     uword entry_point) const {
   // First test the 4 common ones:
   code_ = StubCode::DefaultTypeTest_entry()->code();
-  if (entry_point == code_.UncheckedEntryPoint()) {
+  if (entry_point == code_.EntryPoint()) {
     return "TypeTestingStub_Default";
   }
   code_ = StubCode::LazySpecializeTypeTest_entry()->code();
-  if (entry_point == code_.UncheckedEntryPoint()) {
+  if (entry_point == code_.EntryPoint()) {
     return "TypeTestingStub_LazySpecialize";
   }
   code_ = StubCode::TopTypeTypeTest_entry()->code();
-  if (entry_point == code_.UncheckedEntryPoint()) {
+  if (entry_point == code_.EntryPoint()) {
     return "TypeTestingStub_Top";
   }
   code_ = StubCode::TypeRefTypeTest_entry()->code();
-  if (entry_point == code_.UncheckedEntryPoint()) {
+  if (entry_point == code_.EntryPoint()) {
     return "TypeTestingStub_Ref";
   }
   code_ = StubCode::UnreachableTypeTest_entry()->code();
-  if (entry_point == code_.UncheckedEntryPoint()) {
+  if (entry_point == code_.EntryPoint()) {
     return "TypeTestingStub_Unreachable";
   }
 
@@ -291,7 +291,7 @@ void TypeTestingStubFinder::SortTableForFastLookup() {
     }
 
     uword Value(intptr_t i) {
-      return Instructions::UncheckedEntryPoint(
+      return Instructions::EntryPoint(
           Instructions::RawCast(array_.At(2 * i + 1)));
     }
 
@@ -311,7 +311,7 @@ intptr_t TypeTestingStubFinder::LookupInSortedArray(uword entry_point) const {
   while (left <= right) {
     const intptr_t mid = left + (right - left) / 2;
     RawInstructions* instr = Instructions::RawCast(array_.At(2 * mid + 1));
-    const uword mid_value = Instructions::UncheckedEntryPoint(instr);
+    const uword mid_value = Instructions::EntryPoint(instr);
 
     if (entry_point < mid_value) {
       right = mid - 1;
