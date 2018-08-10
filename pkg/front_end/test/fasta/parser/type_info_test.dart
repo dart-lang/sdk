@@ -13,21 +13,26 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(NoTypeInfoTest);
+    defineReflectiveTests(PrefixedTypeInfoTest);
+    defineReflectiveTests(SimpleTypeInfoTest);
+    defineReflectiveTests(SimpleTypeWith1ArgumentTest);
     defineReflectiveTests(TypeInfoTest);
     defineReflectiveTests(TypeParamOrArgInfoTest);
+    defineReflectiveTests(VoidTypeInfoTest);
   });
 }
 
 @reflectiveTest
-class TypeInfoTest {
-  void test_noType() {
+class NoTypeInfoTest {
+  void test_basic() {
     final Token start = scanString('before ;').tokens;
 
     expect(noType.couldBeExpression, isFalse);
     expect(noType.skipType(start), start);
   }
 
-  void test_noType_ensureTypeNotVoid() {
+  void test_ensureTypeNotVoid() {
     final Token start = scanString('before ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
@@ -41,7 +46,7 @@ class TypeInfoTest {
     expect(listener.errors, [new ExpectedError(codeExpectedType, 7, 1)]);
   }
 
-  void test_noType_ensureTypeOrVoid() {
+  void test_ensureTypeOrVoid() {
     final Token start = scanString('before ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
@@ -55,7 +60,7 @@ class TypeInfoTest {
     expect(listener.errors, [new ExpectedError(codeExpectedType, 7, 1)]);
   }
 
-  void test_noType_parseType() {
+  void test_parseType() {
     final Token start = scanString('before ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
@@ -64,7 +69,7 @@ class TypeInfoTest {
     expect(listener.errors, isNull);
   }
 
-  void test_noType_parseTypeNotVoid() {
+  void test_parseTypeNotVoid() {
     final Token start = scanString('before ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
@@ -72,15 +77,18 @@ class TypeInfoTest {
     expect(listener.calls, ['handleNoType before']);
     expect(listener.errors, isNull);
   }
+}
 
-  void test_voidType() {
+@reflectiveTest
+class VoidTypeInfoTest {
+  void test_basic() {
     final Token start = scanString('before void ;').tokens;
 
     expect(voidType.skipType(start), start.next);
     expect(voidType.couldBeExpression, isFalse);
   }
 
-  void test_voidType_ensureTypeNotVoid() {
+  void test_ensureTypeNotVoid() {
     final Token start = scanString('before void ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
@@ -93,7 +101,7 @@ class TypeInfoTest {
     expect(listener.errors, [new ExpectedError(codeInvalidVoid, 7, 4)]);
   }
 
-  void test_voidType_ensureTypeOrVoid() {
+  void test_ensureTypeOrVoid() {
     final Token start = scanString('before void ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
@@ -102,7 +110,7 @@ class TypeInfoTest {
     expect(listener.errors, isNull);
   }
 
-  void test_voidType_parseType() {
+  void test_parseType() {
     final Token start = scanString('before void ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
@@ -111,7 +119,7 @@ class TypeInfoTest {
     expect(listener.errors, isNull);
   }
 
-  void test_voidType_parseTypeNotVoid() {
+  void test_parseTypeNotVoid() {
     final Token start = scanString('before void ;').tokens;
     final TypeInfoListener listener = new TypeInfoListener();
 
@@ -123,7 +131,10 @@ class TypeInfoTest {
     ]);
     expect(listener.errors, [new ExpectedError(codeInvalidVoid, 7, 4)]);
   }
+}
 
+@reflectiveTest
+class PrefixedTypeInfoTest {
   void test_prefixedTypeInfo() {
     final Token start = scanString('before C.a ;').tokens;
     final Token expectedEnd = start.next.next.next;
@@ -156,7 +167,10 @@ class TypeInfoTest {
     listener = new TypeInfoListener();
     assertResult(prefixedType.parseType(start, new Parser(listener)));
   }
+}
 
+@reflectiveTest
+class SimpleTypeInfoTest {
   void test_simpleTypeInfo() {
     final Token start = scanString('before C ;').tokens;
     final Token expectedEnd = start.next;
@@ -187,8 +201,11 @@ class TypeInfoTest {
     listener = new TypeInfoListener();
     assertResult(simpleType.parseType(start, new Parser(listener)));
   }
+}
 
-  void test_simpleTypeArgumentsInfo() {
+@reflectiveTest
+class SimpleTypeWith1ArgumentTest {
+  void test_gt() {
     final Token start = scanString('before C<T> ;').tokens;
     final Token expectedEnd = start.next.next.next.next;
     expect(expectedEnd.lexeme, '>');
@@ -228,6 +245,98 @@ class TypeInfoTest {
         simpleTypeWith1Argument.parseType(start, new Parser(listener)));
   }
 
+  void test_gt_eq() {
+    final Token start = scanString('before C<T>= ;').tokens;
+    final Token t = start.next.next.next;
+    final Token semicolon = t.next.next;
+    expect(semicolon.lexeme, ';');
+
+    Token skip = simpleTypeWith1ArgumentGtEq.skipType(start);
+    expect(skip.lexeme, '>');
+    expect(skip.next.lexeme, '=');
+    expect(skip.next.next, semicolon);
+    expect(simpleTypeWith1ArgumentGtEq.couldBeExpression, isFalse);
+
+    TypeInfoListener listener;
+    assertResult(Token actualEnd) {
+      expect(actualEnd.lexeme, '>');
+      expect(actualEnd.next.lexeme, '=');
+      expect(actualEnd.next.next, semicolon);
+      expect(listener.calls, [
+        'handleIdentifier C typeReference',
+        'beginTypeArguments <',
+        'handleIdentifier T typeReference',
+        'handleNoTypeArguments >',
+        'handleType T >',
+        'endTypeArguments 1 < >',
+        'handleType C =',
+      ]);
+      expect(listener.errors, isNull);
+    }
+
+    listener = new TypeInfoListener();
+    assertResult(simpleTypeWith1ArgumentGtEq.ensureTypeNotVoid(
+        start, new Parser(listener)));
+
+    listener = new TypeInfoListener();
+    assertResult(simpleTypeWith1ArgumentGtEq.ensureTypeOrVoid(
+        start, new Parser(listener)));
+
+    listener = new TypeInfoListener();
+    assertResult(simpleTypeWith1ArgumentGtEq.parseTypeNotVoid(
+        start, new Parser(listener)));
+
+    listener = new TypeInfoListener();
+    assertResult(
+        simpleTypeWith1ArgumentGtEq.parseType(start, new Parser(listener)));
+  }
+
+  void test_gt_gt() {
+    final Token start = scanString('before C<T>> ;').tokens;
+    final Token t = start.next.next.next;
+    final Token semicolon = t.next.next;
+    expect(semicolon.lexeme, ';');
+
+    expect(simpleTypeWith1ArgumentGtGt.skipType(start), t);
+    expect(simpleTypeWith1ArgumentGtGt.couldBeExpression, isFalse);
+
+    TypeInfoListener listener;
+    assertResult(Token actualEnd) {
+      expect(actualEnd.lexeme, '>');
+      expect(actualEnd.next.lexeme, '>');
+      expect(actualEnd.next.next, semicolon);
+      expect(listener.calls, [
+        'handleIdentifier C typeReference',
+        'beginTypeArguments <',
+        'handleIdentifier T typeReference',
+        'handleNoTypeArguments >',
+        'handleType T >',
+        'endTypeArguments 1 < >',
+        'handleType C >',
+      ]);
+      expect(listener.errors, isNull);
+    }
+
+    listener = new TypeInfoListener();
+    assertResult(simpleTypeWith1ArgumentGtGt.ensureTypeNotVoid(
+        start, new Parser(listener)));
+
+    listener = new TypeInfoListener();
+    assertResult(simpleTypeWith1ArgumentGtGt.ensureTypeOrVoid(
+        start, new Parser(listener)));
+
+    listener = new TypeInfoListener();
+    assertResult(simpleTypeWith1ArgumentGtGt.parseTypeNotVoid(
+        start, new Parser(listener)));
+
+    listener = new TypeInfoListener();
+    assertResult(
+        simpleTypeWith1ArgumentGtGt.parseType(start, new Parser(listener)));
+  }
+}
+
+@reflectiveTest
+class TypeInfoTest {
   void test_computeType_basic() {
     expectInfo(noType, '');
     expectInfo(noType, ';');

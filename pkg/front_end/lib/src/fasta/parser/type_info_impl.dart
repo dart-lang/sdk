@@ -547,31 +547,31 @@ class SimpleTypeArgument1 extends TypeParamOrArgInfo {
   Token parseArguments(Token token, Parser parser) {
     BeginToken beginGroup = token.next;
     assert(optional('<', beginGroup));
+    Token endGroup = updateEndGroup(beginGroup, beginGroup.next);
     Listener listener = parser.listener;
     listener.beginTypeArguments(beginGroup);
-    token = simpleType.parseType(beginGroup, parser);
-    token = updateEndGroup(beginGroup, token);
-    parser.listener.endTypeArguments(1, beginGroup, token);
-    return token;
+    simpleType.parseType(beginGroup, parser);
+    parser.listener.endTypeArguments(1, beginGroup, endGroup);
+    return endGroup;
   }
 
   @override
   Token parseVariables(Token token, Parser parser) {
     BeginToken beginGroup = token.next;
     assert(optional('<', beginGroup));
+    token = beginGroup.next;
+    Token endGroup = updateEndGroup(beginGroup, token);
     Listener listener = parser.listener;
     listener.beginTypeVariables(beginGroup);
-    token = beginGroup.next;
     listener.beginMetadataStar(token);
     listener.endMetadataStar(0);
     listener.handleIdentifier(token, IdentifierContext.typeVariableDeclaration);
     listener.beginTypeVariable(token);
     listener.handleTypeVariablesDefined(token, 1);
     listener.handleNoType(token);
-    token = updateEndGroup(beginGroup, token);
-    listener.endTypeVariable(token, 0, null);
-    listener.endTypeVariables(beginGroup, token);
-    return token;
+    listener.endTypeVariable(endGroup, 0, null);
+    listener.endTypeVariables(beginGroup, endGroup);
+    return endGroup;
   }
 
   @override
@@ -611,8 +611,10 @@ class SimpleTypeArgument1GtEq extends SimpleTypeArgument1 {
 
   Token updateEndGroup(BeginToken beginGroup, Token beforeEndGroup) {
     Token endGroup = beforeEndGroup.next;
-    assert(optional('>=', endGroup));
-    beginGroup.endGroup = endGroup = splitGtEq(endGroup);
+    if (!optional('>', endGroup)) {
+      endGroup = splitGtEq(endGroup);
+    }
+    beginGroup.endGroup = endGroup;
     beforeEndGroup.setNext(endGroup);
     return endGroup;
   }
@@ -635,6 +637,7 @@ class SimpleTypeArgument1GtGt extends SimpleTypeArgument1 {
       endGroup = splitGtGt(endGroup);
     }
     beginGroup.endGroup = endGroup;
+    beforeEndGroup.setNext(endGroup);
     return endGroup;
   }
 }

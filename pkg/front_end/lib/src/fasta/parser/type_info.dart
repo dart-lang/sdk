@@ -98,7 +98,7 @@ const TypeInfo noType = const NoType();
 const TypeParamOrArgInfo noTypeParamOrArg = const NoTypeParamOrArg();
 
 /// [VoidType] is a specialized [TypeInfo] returned by [computeType] when
-/// there is a single identifier as the type reference.
+/// `void` appears in the source.
 const TypeInfo voidType = const VoidType();
 
 bool isGeneralizedFunctionType(Token token) {
