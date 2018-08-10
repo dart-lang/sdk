@@ -79,7 +79,6 @@ async/slow_consumer2_test: RuntimeError # Issue 31402 (Invocation arguments)
 async/stream_distinct_test: RuntimeError
 async/timer_not_available_test: RuntimeError
 html/*: SkipByDesign # dart:html not supported on VM.
-isolate/compile_time_error_test/01: Crash
 isolate/deferred_in_isolate2_test: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/deferred_in_isolate_test: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/issue_21398_parent_isolate2_test/01: Skip # Times out. Deferred loading kernel issue 28335.
