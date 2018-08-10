@@ -36,7 +36,7 @@
     At this time we recommend to test and debug with `-O1` and to deploy with
     `-O3`.
 
-## 2.0.0 - 07-08-2018
+## 2.0.0 - 2018-08-07
 
 This is the first major version release of Dart since 1.0.0, so it contains many
 significant changes across all areas of the platform. Large changes include:
@@ -670,7 +670,7 @@ Still need entries for all changes to dart:web_audio,web_gl,web_sql since 1.x
 [pub#1795]: https://github.com/dart-lang/pub/issues/1795
 [pub#1823]: https://github.com/dart-lang/pub/issues/1823
 
-## 1.24.3 - 14-12-2017
+## 1.24.3 - 2017-12-14
 
 * Fix for constructing a new SecurityContext that contains the built-in
   certificate authority roots
@@ -684,7 +684,7 @@ Still need entries for all changes to dart:web_audio,web_gl,web_sql since 1.x
     `SecureSocket`, `SecurityContext`, and `X509Certificate` properties and
     methods are now supported on iOS and OSX.
 
-## 1.24.2 - 22-06-2017
+## 1.24.2 - 2017-06-22
 
 * Fixes for debugging in Dartium.
   * Fix DevConsole crash with JS
@@ -692,7 +692,7 @@ Still need entries for all changes to dart:web_audio,web_gl,web_sql since 1.x
   * Fix debugging in WebStorm, NULL returned for JS objects
     ([issue 29854](https://github.com/dart-lang/sdk/issues/29854)).
 
-## 1.24.1 - 14-06-2017
+## 1.24.1 - 2017-06-14
 
 * Bug fixes for dartdevc support in `pub serve`.
   * Fixed module config invalidation logic so modules are properly
@@ -706,7 +706,7 @@ Still need entries for all changes to dart:web_audio,web_gl,web_sql since 1.x
 * Fix for a Dartium issue where there was no sound in checked mode
   ([issue 29810](https://github.com/dart-lang/sdk/issues/29810)).
 
-## 1.24.0 - 12-06-2017
+## 1.24.0 - 2017-06-12
 
 ### Language
 * During a dynamic type check, `void` is not required to be `null` anymore.
