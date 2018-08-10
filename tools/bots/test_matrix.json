@@ -2051,6 +2051,11 @@
           "arguments": ["--fatal-warnings", "pkg/compiler"]
         },
         {
+          "name": "analyze pkg/dart2js_tools",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["--fatal-warnings", "pkg/dart2js_tools"]
+        },
+        {
           "name": "analyze pkg/dart_internal",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": ["--fatal-warnings", "pkg/dart_internal"]
