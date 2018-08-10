@@ -28,7 +28,6 @@ isolate/browser/*: Skip # TODO(ahe): Make dart:html available.
 js/*: Skip # TODO(ahe): Make dart:js available.
 
 [ $fasta ]
-isolate/compile_time_error_test/01: MissingCompileTimeError
 mirrors/deferred_constraints_constants_test/default_argument2: MissingCompileTimeError
 mirrors/generic_bounded_by_type_parameter_test/02: MissingCompileTimeError
 mirrors/generic_bounded_test/01: MissingCompileTimeError

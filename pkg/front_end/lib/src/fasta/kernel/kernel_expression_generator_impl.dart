@@ -17,11 +17,12 @@ part of 'kernel_expression_generator.dart';
 
 class ThisAccessGenerator extends KernelGenerator {
   final bool isInitializer;
+  final bool inFieldInitializer;
 
   final bool isSuper;
 
-  ThisAccessGenerator(
-      ExpressionGeneratorHelper helper, Token token, this.isInitializer,
+  ThisAccessGenerator(ExpressionGeneratorHelper helper, Token token,
+      this.isInitializer, this.inFieldInitializer,
       {this.isSuper: false})
       : super(helper, token);
 
@@ -34,7 +35,11 @@ class ThisAccessGenerator extends KernelGenerator {
 
   Expression buildSimpleRead() {
     if (!isSuper) {
-      return forest.thisExpression(token);
+      if (inFieldInitializer) {
+        return buildFieldInitializerError();
+      } else {
+        return forest.thisExpression(token);
+      }
     } else {
       return new SyntheticExpressionJudgment(helper.buildCompileTimeError(
           messageSuperAsExpression,
@@ -47,10 +52,10 @@ class ThisAccessGenerator extends KernelGenerator {
   Expression buildFieldInitializerError() {
     String keyword = isSuper ? "super" : "this";
     int offset = offsetForToken(token);
-    return helper.buildCompileTimeError(
+    return helper.buildCompileTimeErrorExpression(
         templateThisOrSuperAccessInFieldInitializer.withArguments(keyword),
         offset,
-        keyword.length);
+        length: keyword.length);
   }
 
   buildPropertyAccess(
@@ -64,6 +69,9 @@ class ThisAccessGenerator extends KernelGenerator {
             messageInvalidUseOfNullAwareAccess, operatorOffset, 2);
       }
       return buildConstructorInitializer(offset, name, arguments);
+    }
+    if (inFieldInitializer && !isInitializer) {
+      return buildFieldInitializerError();
     }
     Member getter = helper.lookupInstanceMember(name, isSuper: isSuper);
     if (send is SendAccessGenerator) {

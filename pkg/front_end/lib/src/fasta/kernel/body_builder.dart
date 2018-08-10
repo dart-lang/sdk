@@ -193,6 +193,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   /// second in the formal parameter scope.
   bool inInitializer = false;
 
+  bool inFieldInitializer = false;
+
   bool inCatchClause = false;
 
   bool inCatchBlock = false;
@@ -627,11 +629,13 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void beginInitializer(Token token) {
     debugEvent("beginInitializer");
     inInitializer = true;
+    inFieldInitializer = true;
   }
 
   @override
   void endInitializer(Token token) {
     debugEvent("endInitializer");
+    inFieldInitializer = false;
     assert(!inInitializer);
     final member = this.member;
     Object node = pop();
@@ -1519,7 +1523,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       declaration =
           classBuilder.origin.findStaticBuilder(name, charOffset, uri, library);
     }
-    if (declaration != null && member.isField && declaration.isInstanceMember) {
+    if (declaration != null &&
+        declaration.isInstanceMember &&
+        inFieldInitializer &&
+        !inInitializer) {
       return new IncompleteErrorGenerator(this, token, declaration.target,
           fasta.templateThisAccessInFieldInitializer.withArguments(name));
     }
@@ -1848,8 +1855,14 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
+  void beginFieldInitializer(Token token) {
+    inFieldInitializer = true;
+  }
+
+  @override
   void endFieldInitializer(Token assignmentOperator, Token token) {
     debugEvent("FieldInitializer");
+    inFieldInitializer = false;
     assert(assignmentOperator.stringValue == "=");
     push(popForValue());
   }
@@ -3129,7 +3142,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void handleThisExpression(Token token, IdentifierContext context) {
     debugEvent("ThisExpression");
     if (context.isScopeReference && isInstanceContext) {
-      push(new ThisAccessGenerator(this, token, inInitializer));
+      push(new ThisAccessGenerator(
+          this, token, inInitializer, inFieldInitializer));
     } else {
       push(new IncompleteErrorGenerator(
           this, token, null, fasta.messageThisAsIdentifier));
@@ -3142,7 +3156,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     if (context.isScopeReference && isInstanceContext) {
       Member member = this.member.target;
       member.transformerFlags |= TransformerFlag.superCalls;
-      push(new ThisAccessGenerator(this, token, inInitializer, isSuper: true));
+      push(new ThisAccessGenerator(
+          this, token, inInitializer, inFieldInitializer,
+          isSuper: true));
     } else {
       push(new IncompleteErrorGenerator(
           this, token, null, fasta.messageSuperAsIdentifier));

@@ -316,7 +316,6 @@ constructor5_test: RuntimeError
 constructor6_test: RuntimeError
 constructor_call_as_function_test/01: MissingRuntimeError
 constructor_named_arguments_test/none: RuntimeError
-constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
 deferred_constraints_constants_test/none: RuntimeError
 deferred_constraints_constants_test/reference_after_load: RuntimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError

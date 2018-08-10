@@ -128,7 +128,7 @@ main() {
     KernelBodyBuilder helper = new KernelBodyBuilder(
         libraryBuilder, null, null, null, null, null, null, false, uri, null);
 
-    Generator generator = new ThisAccessGenerator(helper, token, false);
+    Generator generator = new ThisAccessGenerator(helper, token, false, false);
 
     Library library = new Library(uri);
     Class cls = new Class();
@@ -203,7 +203,7 @@ main() {
         new KernelLoadLibraryGenerator(helper, token, loadLibraryBuilder));
     check(
         "ThisAccessGenerator(offset: 4, isInitializer: false, isSuper: false)",
-        new ThisAccessGenerator(helper, token, false));
+        new ThisAccessGenerator(helper, token, false, false));
     check("IncompleteErrorGenerator(offset: 4, message: Unspecified)",
         new IncompleteErrorGenerator(helper, token, getter, message));
     check("SendAccessGenerator(offset: 4, name: bar, arguments: (\"arg\"))",

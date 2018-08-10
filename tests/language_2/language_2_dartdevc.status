@@ -248,7 +248,6 @@ const_syntax_test/05: MissingCompileTimeError
 const_types_test/34: MissingCompileTimeError
 const_types_test/39: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
-constructor_redirect_test/01: MissingCompileTimeError
 covariant_subtyping_test: RuntimeError
 cyclic_type_variable_test/01: MissingCompileTimeError
 cyclic_type_variable_test/02: MissingCompileTimeError
@@ -415,8 +414,6 @@ regress_23408_test: CompileTimeError # Issue 31533
 regress_24283_test: RuntimeError # Expect.equals(expected: <-1>, actual: <4294967295>) fails.
 regress_29025_test: CompileTimeError
 regress_29405_test: CompileTimeError # Issue 31402 Error: A value of type '#lib2::Foo' can't be assigned to a variable of type '(#lib2::Foo) → void'.
-regress_29784_test/01: MissingCompileTimeError
-regress_29784_test/02: MissingCompileTimeError
 regress_30339_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
 regress_30339_test: CompileTimeError
 setter_no_getter_test/01: CompileTimeError

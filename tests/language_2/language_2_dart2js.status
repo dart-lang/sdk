@@ -242,7 +242,6 @@ constructor_duplicate_final_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/02: MissingCompileTimeError
 constructor_named_arguments_test/01: MissingCompileTimeError
 constructor_named_arguments_test/none: RuntimeError
-constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
 covariant_override/runtime_check_test: RuntimeError
 covariant_subtyping_test: RuntimeError
 deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
@@ -418,7 +417,6 @@ regress_28217_test/none: MissingCompileTimeError
 regress_28255_test: RuntimeError
 regress_28341_test: RuntimeError
 regress_29405_test: RuntimeError
-regress_29784_test/02: MissingCompileTimeError # Issue 29784
 regress_30339_test: RuntimeError # Issue 26429
 regress_31057_test: Crash # Unsupported operation: Unsupported type parameter type node B.
 stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
@@ -755,7 +753,6 @@ const_types_test/34: MissingCompileTimeError
 const_types_test/39: MissingCompileTimeError
 constructor12_test: RuntimeError
 constructor_named_arguments_test/none: RuntimeError
-constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
 covariant_subtyping_test: Crash
 ct_const_test: RuntimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
@@ -915,8 +912,6 @@ regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constr
 regress_28255_test: RuntimeError
 regress_29025_test: CompileTimeError
 regress_29405_test: CompileTimeError
-regress_29784_test/01: Crash
-regress_29784_test/02: MissingCompileTimeError # Issue 29784
 regress_30339_test: CompileTimeError
 setter_no_getter_test/01: CompileTimeError
 stacktrace_demangle_ctors_test: RuntimeError # Issue 12698

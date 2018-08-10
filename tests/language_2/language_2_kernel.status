@@ -226,7 +226,6 @@ const_constructor_mixin_test: CompileTimeError # Issue 33644.
 const_instance_field_test/01: MissingCompileTimeError # Fasta bug: Const instance field. Issue 32326.
 const_types_test/34: MissingCompileTimeError # Issue 32988
 const_types_test/39: MissingCompileTimeError # Issue 32988
-constructor_redirect_test/01: MissingCompileTimeError # Fasta bug: Initializer refers to this.
 cyclic_type_variable_test/01: MissingCompileTimeError # Issue 32989 (missing cycle check in bounds)
 cyclic_type_variable_test/02: MissingCompileTimeError # Issue 32989 (missing cycle check in bounds)
 cyclic_type_variable_test/03: MissingCompileTimeError # Issue 32989 (missing cycle check in bounds)
@@ -322,8 +321,6 @@ redirecting_factory_default_values_test/01: MissingCompileTimeError # Fasta bug:
 redirecting_factory_default_values_test/02: MissingCompileTimeError # Fasta bug: Default values are not allowed on redirecting factory constructors.
 regress_22976_test/*: CompileTimeError # Issue 31935
 regress_27617_test/1: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
-regress_29784_test/01: MissingCompileTimeError
-regress_29784_test/02: MissingCompileTimeError
 syntax_test/28: MissingCompileTimeError # Issue 29763
 syntax_test/29: MissingCompileTimeError # Issue 29763
 syntax_test/30: MissingCompileTimeError # Issue 29763

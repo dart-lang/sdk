@@ -35,9 +35,6 @@ kill_test: RuntimeError # Uppercase constants removed
 browser/package_resolve_browser_hook_test: SkipByDesign # Test written in a way that violates CSP.
 deferred_in_isolate2_test: Skip # Issue 16898. Deferred loading does not work from an isolate in CSP-mode
 
-[ $fasta ]
-compile_time_error_test/01: MissingCompileTimeError
-
 [ $jscl ]
 spawn_uri_multi_test/none: RuntimeError # Issue 13544
 

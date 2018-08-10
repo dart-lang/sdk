@@ -25,11 +25,6 @@ Language/Classes/Constructors/Factories/default_value_t01: MissingCompileTimeErr
 Language/Classes/Constructors/Factories/default_value_t02: MissingCompileTimeError
 Language/Classes/Constructors/Factories/function_type_t01: MissingCompileTimeError
 Language/Classes/Constructors/Factories/function_type_t02: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/execution_t04: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/execution_t05: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/execution_t06: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/execution_t07: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/execution_t12: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/initializers_t15: CompileTimeError
 Language/Classes/Constructors/name_t01: MissingCompileTimeError # Legal, see #33235
 Language/Classes/Constructors/name_t02: MissingCompileTimeError # Legal, see #33235
@@ -123,7 +118,6 @@ Language/Expressions/Maps/key_value_equals_operator_t01: MissingCompileTimeError
 Language/Expressions/Method_Invocation/Ordinary_Invocation/accessible_instance_member_t04: CompileTimeError
 Language/Expressions/Method_Invocation/Ordinary_Invocation/function_type_t01: MissingCompileTimeError
 Language/Expressions/Method_Invocation/Super_Invocation/getter_lookup_failed_t02: CompileTimeError
-Language/Expressions/Method_Invocation/Super_Invocation/invocation_t02: MissingCompileTimeError
 Language/Expressions/Multiplicative_Expressions/syntax_t01: CompileTimeError
 Language/Expressions/Postfix_Expressions/syntax_t01: CompileTimeError
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/instance_of_type_getter_t01: CompileTimeError
@@ -137,7 +131,6 @@ Language/Expressions/Relational_Expressions/syntax_t01: CompileTimeError
 Language/Expressions/Shift/syntax_t01: CompileTimeError
 Language/Expressions/Strings/String_Interpolation/double_quote_t02: CompileTimeError
 Language/Expressions/Strings/String_Interpolation/single_quote_t02: CompileTimeError
-Language/Expressions/This/placement_t04: MissingCompileTimeError
 Language/Expressions/Unary_Expressions/syntax_t10: CompileTimeError
 Language/Expressions/Unary_Expressions/syntax_t27: CompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t01: MissingCompileTimeError
