@@ -600,9 +600,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       if (part == this) {
         addCompileTimeError(messagePartOfSelf, -1, noLength, fileUri);
       } else if (seenParts.add(part.fileUri)) {
-        if (part.partOfLibrary != null &&
-            // TODO(askesc): Remove this hack when co19 fix is rolled in.
-            !part.fileUri.path.endsWith("/co19/src/Utils/expect_common.dart")) {
+        if (part.partOfLibrary != null) {
           addProblem(messagePartOfTwoLibraries, -1, noLength, part.fileUri,
               context: [
                 messagePartOfTwoLibrariesContext.withLocation(
