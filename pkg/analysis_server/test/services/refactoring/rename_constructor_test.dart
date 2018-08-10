@@ -260,11 +260,6 @@ class RenameConstructorTest_UseCFE extends RenameConstructorTest {
 
   @failingTest
   @override
-  test_createChange_add_toSynthetic() =>
-      super.test_createChange_add_toSynthetic();
-
-  @failingTest
-  @override
   test_createChange_change() => super.test_createChange_change();
 
   @failingTest

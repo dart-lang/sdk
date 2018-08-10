@@ -1383,6 +1383,12 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
+  test_uriWithInterpolation_constant() async {
+    return super.test_uriWithInterpolation_constant();
+  }
+
+  @override
+  @failingTest
   test_uriWithInterpolation_nonConstant() async {
     return super.test_uriWithInterpolation_nonConstant();
   }

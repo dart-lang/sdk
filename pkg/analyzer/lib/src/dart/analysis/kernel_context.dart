@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/kernel/resynthesize.dart';
 import 'package:front_end/src/base/performance_logger.dart';
+import 'package:front_end/src/base/resolve_relative_uri.dart';
 import 'package:kernel/ast.dart' as kernel;
 import 'package:kernel/text/ast_to_text.dart' as kernel;
 
@@ -23,8 +24,6 @@ import 'package:kernel/text/ast_to_text.dart' as kernel;
  * Support for resynthesizing element model from Kernel.
  */
 class KernelContext {
-  static const DEBUG = false;
-
   /**
    * The [AnalysisContext] which is used to do the analysis.
    */
@@ -67,6 +66,50 @@ class KernelContext {
 //    return store.unlinkedMap[uriStr]?.isPartOf == false;
   }
 
+  static KernelResynthesizer buildResynthesizer(
+      FileSystemState fsState,
+      LibraryCompilationResult libraryResult,
+      AnalysisContextImpl analysisContext) {
+    // Remember Kernel libraries produced by the compiler.
+    // There might be more libraries than we actually need.
+    // This is probably OK, because we consume them lazily.
+    var fileInfoMap = <String, KernelFileInfo>{};
+
+    void addFileInfo(FileState file, {kernel.Library library}) {
+      String uriStr = file.uriStr;
+      if (!fileInfoMap.containsKey(uriStr)) {
+        fileInfoMap[file.uriStr] = new KernelFileInfo(
+            file?.exists ?? false,
+            file?.content?.length ?? 0,
+            file?.lineInfo ?? new LineInfo([0]),
+            library);
+      }
+    }
+
+    bool coreFound = false;
+    for (var library in libraryResult.component.libraries) {
+      String uriStr = library.importUri.toString();
+      if (uriStr == 'dart:core') {
+        coreFound = true;
+      }
+      FileState file = fsState.getFileForUri(library.importUri);
+      addFileInfo(file, library: library);
+      for (var part in library.parts) {
+        var relativePartUri = Uri.parse(part.partUri);
+        var partUri = resolveRelativeUri(library.importUri, relativePartUri);
+        FileState partFile = fsState.getFileForUri(partUri);
+        addFileInfo(partFile);
+      }
+    }
+    if (!coreFound) {
+      throw new StateError('No dart:core library found (dartbug.com/33686)');
+    }
+
+    // Create the resynthesizer bound to the analysis context.
+    var resynthesizer = new KernelResynthesizer(analysisContext, fileInfoMap);
+    return resynthesizer;
+  }
+
   /**
    * Create a [KernelContext] which is prepared to analyze [targetLibrary].
    */
@@ -81,39 +124,9 @@ class KernelContext {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     return logger.runAsync('Create kernel context', () async {
-      // TODO(brianwilkerson) Determine whether this await is necessary.
-      await null;
       Uri targetUri = targetLibrary.uri;
-      LibraryCompilationResult compilationResult =
+      LibraryCompilationResult libraryResult =
           await compiler.compile(targetUri);
-
-      // Remember Kernel libraries produced by the compiler.
-      // There might be more libraries than we actually need.
-      // This is probably OK, because we consume them lazily.
-      var lineInfoMap = <String, LineInfo>{};
-      var libraryMap = <String, kernel.Library>{};
-      var libraryExistMap = <String, bool>{};
-      bool coreFound = false;
-      for (var library in compilationResult.component.libraries) {
-        String uriStr = library.importUri.toString();
-        if (uriStr == 'dart:core') {
-          coreFound = true;
-        }
-        FileState file = fsState.getFileForUri(library.importUri);
-        lineInfoMap[uriStr] = file?.lineInfo ?? new LineInfo([0]);
-        libraryMap[uriStr] = library;
-        libraryExistMap[uriStr] = file?.exists ?? false;
-      }
-      if (!coreFound) {
-        throw new StateError('No dart:core library found (dartbug.com/33686)');
-      }
-
-      if (DEBUG) {
-        print('----------- ${targetLibrary.uriStr}');
-        var libraryKernel = libraryMap[targetLibrary.uriStr];
-        print(_getLibraryText(libraryKernel));
-        print('--------------------------------------');
-      }
 
       // Create and configure a new context.
       AnalysisContextImpl analysisContext =
@@ -124,19 +137,10 @@ class KernelContext {
       analysisContext.sourceFactory = sourceFactory.clone();
       analysisContext.contentCache = new _ContentCacheWrapper(fsState);
 
-      // Create the resynthesizer bound to the analysis context.
-      var resynthesizer = new KernelResynthesizer(
-          analysisContext, lineInfoMap, libraryMap, libraryExistMap);
-
+      KernelResynthesizer resynthesizer =
+          buildResynthesizer(fsState, libraryResult, analysisContext);
       return new KernelContext._(analysisContext, resynthesizer);
     });
-  }
-
-  static String _getLibraryText(kernel.Library library) {
-    StringBuffer buffer = new StringBuffer();
-    new kernel.Printer(buffer, syntheticNames: new kernel.NameSystem())
-        .writeLibraryFile(library);
-    return buffer.toString();
   }
 }
 

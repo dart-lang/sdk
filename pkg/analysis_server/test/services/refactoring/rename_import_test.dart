@@ -237,20 +237,6 @@ class RenameImportTest_UseCFE extends RenameImportTest {
 
   @failingTest
   @override
-  test_createChange_add() => super.test_createChange_add();
-
-  @failingTest
-  @override
-  test_createChange_add_interpolationExpression_hasCurlyBrackets() =>
-      super.test_createChange_add_interpolationExpression_hasCurlyBrackets();
-
-  @failingTest
-  @override
-  test_createChange_add_interpolationExpression_noCurlyBrackets() =>
-      super.test_createChange_add_interpolationExpression_noCurlyBrackets();
-
-  @failingTest
-  @override
   test_createChange_change_className() =>
       super.test_createChange_change_className();
 

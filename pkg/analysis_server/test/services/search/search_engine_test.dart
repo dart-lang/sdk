@@ -487,15 +487,6 @@ class SearchEngineImplTest_UseCFE extends SearchEngineImplTest {
 
   @failingTest
   @override
-  test_searchAllSubtypes() => super.test_searchAllSubtypes();
-
-  @failingTest
-  @override
-  test_searchAllSubtypes_acrossDrivers() =>
-      super.test_searchAllSubtypes_acrossDrivers();
-
-  @failingTest
-  @override
   test_searchMemberReferences() =>
       callFailingTest(super.test_searchMemberReferences());
 
@@ -506,6 +497,7 @@ class SearchEngineImplTest_UseCFE extends SearchEngineImplTest {
   @failingTest
   @override
   test_searchReferences_discover_owned() {
-    return callFailingTest(super.test_searchReferences_discover_owned);
+    fail('Timeout');
+//    return callFailingTest(super.test_searchReferences_discover_owned);
   }
 }

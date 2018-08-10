@@ -455,33 +455,4 @@ class F implements A {}
 class HierarchyTest_UseCFE extends HierarchyTest {
   @override
   bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_getHierarchyMembers_fields() => super.test_getHierarchyMembers_fields();
-
-  @failingTest
-  @override
-  test_getHierarchyMembers_methods() =>
-      super.test_getHierarchyMembers_methods();
-
-  @failingTest
-  @override
-  test_getHierarchyMembers_withInterfaces() =>
-      super.test_getHierarchyMembers_withInterfaces();
-
-  @failingTest
-  @override
-  test_getHierarchyNamedParameters() =>
-      super.test_getHierarchyNamedParameters();
-
-  @failingTest
-  @override
-  test_getHierarchyNamedParameters_invalid_missing() =>
-      super.test_getHierarchyNamedParameters_invalid_missing();
-
-  @failingTest
-  @override
-  test_getHierarchyNamedParameters_invalid_notNamed() =>
-      super.test_getHierarchyNamedParameters_invalid_notNamed();
 }

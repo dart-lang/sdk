@@ -12,15 +12,13 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/frontend_resolution.dart';
+import 'package:analyzer/src/dart/analysis/kernel_context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/kernel/resynthesize.dart';
 import 'package:front_end/src/api_prototype/byte_store.dart';
 import 'package:front_end/src/base/performance_logger.dart';
-import 'package:kernel/kernel.dart' as kernel;
-import 'package:kernel/text/ast_to_text.dart' as kernel;
-import 'package:kernel/type_environment.dart' as kernel;
 import 'package:test/src/frontend/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -46,8 +44,6 @@ class FastaProblem {
 
 @reflectiveTest
 class ResynthesizeTest_Kernel extends ResynthesizeTest {
-  static const DEBUG = false;
-
   final resourceProvider = new MemoryResourceProvider();
 
   @override
@@ -286,33 +282,6 @@ class C {
 
     LibraryCompilationResult libraryResult = await compiler.compile(testUri);
 
-    // Remember Kernel libraries produced by the compiler.
-    var lineInfoMap = <String, LineInfo>{};
-    var libraryMap = <String, kernel.Library>{};
-    var libraryExistMap = <String, bool>{};
-    for (var library in libraryResult.component.libraries) {
-      String uriStr = library.importUri.toString();
-      FileState file = fsState.getFileForUri(library.importUri);
-      lineInfoMap[uriStr] = file?.lineInfo ?? new LineInfo([0]);
-      libraryMap[uriStr] = library;
-      libraryExistMap[uriStr] = file?.exists ?? false;
-    }
-
-    if (DEBUG) {
-      String testUriStr = testUri.toString();
-      var library = libraryMap[testUriStr];
-      print(_getLibraryText(library));
-    }
-
-    var resynthesizer = new KernelResynthesizer(
-        context, lineInfoMap, libraryMap, libraryExistMap);
-    return resynthesizer;
-  }
-
-  String _getLibraryText(kernel.Library library) {
-    StringBuffer buffer = new StringBuffer();
-    new kernel.Printer(buffer, syntheticNames: new kernel.NameSystem())
-        .writeLibraryFile(library);
-    return buffer.toString();
+    return KernelContext.buildResynthesizer(fsState, libraryResult, context);
   }
 }

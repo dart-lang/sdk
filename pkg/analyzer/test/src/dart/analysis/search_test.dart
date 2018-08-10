@@ -2028,11 +2028,6 @@ class SearchTest_UseCFE extends SearchTest {
 
   @failingTest
   @override
-  test_searchReferences_CompilationUnitElement() =>
-      super.test_searchReferences_CompilationUnitElement();
-
-  @failingTest
-  @override
   test_searchReferences_ConstructorElement_default() =>
       super.test_searchReferences_ConstructorElement_default();
 
@@ -2215,14 +2210,6 @@ class SearchTest_UseCFE extends SearchTest {
   @override
   test_searchReferences_TypeParameterElement_ofTopLevelFunction() =>
       super.test_searchReferences_TypeParameterElement_ofTopLevelFunction();
-
-  @failingTest
-  @override
-  test_searchSubtypes() => super.test_searchSubtypes();
-
-  @failingTest
-  @override
-  test_subTypes_discover() => super.test_subTypes_discover();
 
   @failingTest
   @override
