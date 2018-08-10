@@ -586,20 +586,21 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     enclosingFunction = node.function;
     parentFunction = null;
     hasErrors = false;
-    if (node.isInstanceMember ||
-        node is Constructor ||
-        (node is Procedure && node.isFactory)) {
+    final isFactory = node is Procedure && node.isFactory;
+    if (node.isInstanceMember || node is Constructor || isFactory) {
       if (enclosingClass.typeParameters.isNotEmpty) {
         classTypeParameters =
             new Set<TypeParameter>.from(enclosingClass.typeParameters);
         // Treat type arguments of factory constructors as class
         // type parameters.
-        if (node is Procedure && node.isFactory) {
+        if (isFactory) {
           classTypeParameters.addAll(node.function.typeParameters);
         }
       }
       if (hasInstantiatorTypeArguments(enclosingClass)) {
-        final typeParameters = enclosingClass.typeParameters
+        final typeParameters = (isFactory
+                ? node.function.typeParameters
+                : enclosingClass.typeParameters)
             .map((p) => new TypeParameterType(p))
             .toList();
         instantiatorTypeArguments =
@@ -1797,6 +1798,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
 
     _genStaticCall(throwNewAssertionError, new ConstantArgDesc(3), 3);
+    asm.emitDrop1();
 
     asm.bind(done);
   }

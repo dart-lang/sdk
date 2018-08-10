@@ -2498,6 +2498,7 @@ L3:
   PushConstant         CP#3
   PushConstant         CP#16
   IndirectStaticCall   3, CP#15
+  Drop1
 L2:
   Push                 r4
   PushConstant         CP#17

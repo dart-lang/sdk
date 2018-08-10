@@ -17,6 +17,7 @@ Bytecode {
   PushConstant         CP#2
   PushConstant         CP#4
   IndirectStaticCall   3, CP#3
+  Drop1
 L1:
   PushConstant         CP#2
   ReturnTOS
@@ -48,6 +49,7 @@ Bytecode {
   InstanceCall1        1, CP#4
   PushConstant         CP#6
   IndirectStaticCall   3, CP#5
+  Drop1
 L1:
   PushConstant         CP#7
   ReturnTOS
