@@ -25,6 +25,18 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
 
   @override
   @failingTest
+  test_deadCode_afterForEachWithBreakLabel() async {
+    await super.test_deadCode_afterForEachWithBreakLabel();
+  }
+
+  @override
+  @failingTest
+  test_deadCode_afterForWithBreakLabel() async {
+    await super.test_deadCode_afterForWithBreakLabel();
+  }
+
+  @override
+  @failingTest
   test_unusedImport_annotationOnDirective() async {
     await super.test_unusedImport_annotationOnDirective();
   }

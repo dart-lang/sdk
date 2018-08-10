@@ -2222,17 +2222,17 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
         if (lhsResult != null) {
           bool value = lhsResult.value.toBoolValue();
           if (value == true && isBarBar) {
-            // report error on else block: true || !e!
+            // Report error on "else" block: true || !e!
             _errorReporter.reportErrorForNode(
                 HintCode.DEAD_CODE, node.rightOperand);
-            // only visit the LHS:
+            // Only visit the LHS:
             lhsCondition?.accept(this);
             return null;
           } else if (value == false && isAmpAmp) {
-            // report error on if block: false && !e!
+            // Report error on "if" block: false && !e!
             _errorReporter.reportErrorForNode(
                 HintCode.DEAD_CODE, node.rightOperand);
-            // only visit the LHS:
+            // Only visit the LHS:
             lhsCondition?.accept(this);
             return null;
           }
@@ -2288,13 +2288,13 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
           _getConstantBooleanValue(conditionExpression);
       if (result != null) {
         if (result.value.toBoolValue() == true) {
-          // report error on else block: true ? 1 : !2!
+          // Report error on "else" block: true ? 1 : !2!
           _errorReporter.reportErrorForNode(
               HintCode.DEAD_CODE, node.elseExpression);
           node.thenExpression?.accept(this);
           return null;
         } else {
-          // report error on if block: false ? !1! : 2
+          // Report error on "if" block: false ? !1! : 2
           _errorReporter.reportErrorForNode(
               HintCode.DEAD_CODE, node.thenExpression);
           node.elseExpression?.accept(this);
@@ -2315,7 +2315,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
   Object visitExportDirective(ExportDirective node) {
     ExportElement exportElement = node.element;
     if (exportElement != null) {
-      // The element is null when the URI is invalid
+      // The element is null when the URI is invalid.
       LibraryElement library = exportElement.exportedLibrary;
       if (library != null && !library.isSynthetic) {
         for (Combinator combinator in node.combinators) {
@@ -2335,7 +2335,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
           _getConstantBooleanValue(conditionExpression);
       if (result != null) {
         if (result.value.toBoolValue() == true) {
-          // report error on else block: if(true) {} else {!}
+          // Report error on else block: if(true) {} else {!}
           Statement elseStatement = node.elseStatement;
           if (elseStatement != null) {
             _errorReporter.reportErrorForNode(
@@ -2344,7 +2344,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
             return null;
           }
         } else {
-          // report error on if block: if (false) {!} else {}
+          // Report error on if block: if (false) {!} else {}
           _errorReporter.reportErrorForNode(
               HintCode.DEAD_CODE, node.thenStatement);
           node.elseStatement?.accept(this);
@@ -2419,8 +2419,8 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
     for (int i = 0; i < numOfCatchClauses; i++) {
       CatchClause catchClause = catchClauses[i];
       if (catchClause.onKeyword != null) {
-        // on-catch clause found, verify that the exception type is not a
-        // subtype of a previous on-catch exception type
+        // An on-catch clause was found; verify that the exception type is not a
+        // subtype of a previous on-catch exception type.
         DartType currentType = catchClause.exceptionType?.type;
         if (currentType != null) {
           if (currentType.isObject) {
@@ -2430,7 +2430,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
             // following catch clauses (and don't visit them).
             catchClause?.accept(this);
             if (i + 1 != numOfCatchClauses) {
-              // this catch clause is not the last in the try statement
+              // This catch clause is not the last in the try statement.
               CatchClause nextCatchClause = catchClauses[i + 1];
               CatchClause lastCatchClause = catchClauses[numOfCatchClauses - 1];
               int offset = nextCatchClause.offset;
@@ -2464,7 +2464,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
         // (and don't visit them).
         catchClause?.accept(this);
         if (i + 1 != numOfCatchClauses) {
-          // this catch clause is not the last in the try statement
+          // This catch clause is not the last in the try statement.
           CatchClause nextCatchClause = catchClauses[i + 1];
           CatchClause lastCatchClause = catchClauses[numOfCatchClauses - 1];
           int offset = nextCatchClause.offset;
@@ -2487,7 +2487,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
           _getConstantBooleanValue(conditionExpression);
       if (result != null) {
         if (result.value.toBoolValue() == false) {
-          // report error on if block: while (false) {!}
+          // Report error on while block: while (false) {!}
           _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.body);
           return null;
         }
@@ -3367,7 +3367,13 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     bool outerBreakValue = _enclosingBlockContainsBreak;
     _enclosingBlockContainsBreak = false;
     try {
-      return _nodeExits(node.iterable);
+      bool iterableExits = _nodeExits(node.iterable);
+      // Discard whether the for-each body exits; since the for-each iterable
+      // may be empty, execution may never enter the body, so it doesn't matter
+      // if it exits or not.  We still must visit the body, to accurately
+      // manage `_enclosingBlockBreaksLabel`.
+      _nodeExits(node.body);
+      return iterableExits;
     } finally {
       _enclosingBlockContainsBreak = outerBreakValue;
     }
