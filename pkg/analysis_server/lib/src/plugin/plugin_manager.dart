@@ -517,10 +517,10 @@ class PluginManager {
     if (parentFolder.exists) {
       Folder executionFolder =
           parentFolder.getChildAssumingFolder(pluginFolder.shortName);
-      return _computePaths(executionFolder);
+      return _computePaths(executionFolder, pubCommand: 'upgrade');
     }
     Folder executionFolder = pluginFolder.copyTo(parentFolder);
-    return _computePaths(executionFolder, runPub: true);
+    return _computePaths(executionFolder, pubCommand: 'get');
   }
 
   /**
@@ -681,9 +681,11 @@ class PluginManager {
   /**
    * Compute the paths to be returned by the enclosing method given that the
    * plugin should exist in the given [pluginFolder].
+   *
+   * Runs pub if [pubCommand] is provided and not null.
    */
   List<String> _computePaths(Folder pluginFolder,
-      {bool runPub: false, Workspace workspace}) {
+      {String pubCommand, Workspace workspace}) {
     File pluginFile = pluginFolder
         .getChildAssumingFolder('bin')
         .getChildAssumingFile('plugin.dart');
@@ -692,23 +694,21 @@ class PluginManager {
     }
     String reason;
     File packagesFile = pluginFolder.getChildAssumingFile('.packages');
-    bool packagesFilePreExists = packagesFile.exists;
-    if (runPub) {
+    if (pubCommand != null) {
       String vmPath = Platform.executable;
       String pubPath = path.join(path.dirname(vmPath), 'pub');
       if (Platform.isWindows) {
         // Process.run requires the `.bat` suffix on Windows
         pubPath = '$pubPath.bat';
       }
-      String pubSubcommand = packagesFilePreExists ? 'upgrade' : 'get';
-      ProcessResult result = Process.runSync(pubPath, <String>[pubSubcommand],
+      ProcessResult result = Process.runSync(pubPath, <String>[pubCommand],
           stderrEncoding: utf8,
           stdoutEncoding: utf8,
           workingDirectory: pluginFolder.path,
           environment: {_pubEnvironmentKey: _getPubEnvironmentValue()});
       if (result.exitCode != 0) {
         StringBuffer buffer = new StringBuffer();
-        buffer.writeln('Failed to run pub $pubSubcommand');
+        buffer.writeln('Failed to run pub $pubCommand');
         buffer.writeln('  pluginFolder = ${pluginFolder.path}');
         buffer.writeln('  exitCode = ${result.exitCode}');
         buffer.writeln('  stdout = ${result.stdout}');
@@ -720,7 +720,7 @@ class PluginManager {
         reason ??= 'File "${packagesFile.path}" does not exist.';
         packagesFile = null;
       }
-    } else if (!packagesFilePreExists) {
+    } else if (!packagesFile.exists) {
       if (workspace != null) {
         packagesFile =
             _createPackagesFile(pluginFolder, workspace.packageUriResolver);
