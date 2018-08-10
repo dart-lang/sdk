@@ -180,16 +180,8 @@ class _ElementWriter {
     writeIf(e.isMixinApplication, 'alias ');
 
     writeName(e);
+    writeCodeRange(e);
     writeTypeParameterElements(e.typeParameters);
-
-    if (withCodeRanges) {
-      var elementImpl = e as ElementImpl;
-      buffer.write('/*codeOffset=');
-      buffer.write(elementImpl.codeOffset);
-      buffer.write(', codeLength=');
-      buffer.write(elementImpl.codeLength);
-      buffer.write('*/');
-    }
 
     if (e.supertype != null && e.supertype.displayName != 'Object' ||
         e.mixins.isNotEmpty) {
@@ -221,6 +213,17 @@ class _ElementWriter {
 
     e.methods.forEach(writeMethodElement);
     buffer.writeln('}');
+  }
+
+  void writeCodeRange(Element e) {
+    if (withCodeRanges) {
+      var elementImpl = e as ElementImpl;
+      buffer.write('/*codeOffset=');
+      buffer.write(elementImpl.codeOffset);
+      buffer.write(', codeLength=');
+      buffer.write(elementImpl.codeLength);
+      buffer.write('*/');
+    }
   }
 
   void writeConstructorElement(ConstructorElement e) {
@@ -267,9 +270,13 @@ class _ElementWriter {
   }
 
   void writeDocumentation(Element e, [String prefix = '']) {
-    if (e.documentationComment != null) {
+    String comment = e.documentationComment;
+    if (comment != null) {
+      if (comment.startsWith('///')) {
+        comment = comment.split('\n').join('\n$prefix');
+      }
       buffer.write(prefix);
-      buffer.writeln(e.documentationComment);
+      buffer.writeln(comment);
     }
   }
 
@@ -475,6 +482,7 @@ class _ElementWriter {
     writeType2(e.returnType);
 
     writeName(e);
+    writeCodeRange(e);
 
     writeTypeParameterElements(e.typeParameters);
     writeParameterElements(e.parameters);
@@ -598,6 +606,7 @@ class _ElementWriter {
     writeType2(e.returnType);
 
     writeName(e);
+    writeCodeRange(e);
 
     writeTypeParameterElements(e.typeParameters);
     writeParameterElements(e.parameters);

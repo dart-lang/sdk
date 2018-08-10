@@ -620,11 +620,6 @@ class RenameUnitMemberTest_UseCFE extends RenameUnitMemberTest {
 
   @failingTest
   @override
-  test_checkFinalConditions_shadowedBy_MethodElement() =>
-      super.test_checkFinalConditions_shadowedBy_MethodElement();
-
-  @failingTest
-  @override
   test_checkFinalConditions_shadowsInSubClass_importedLib_hideCombinator() =>
       callFailingTest(super
           .test_checkFinalConditions_shadowsInSubClass_importedLib_hideCombinator());

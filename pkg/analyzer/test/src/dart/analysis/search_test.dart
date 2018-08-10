@@ -1998,16 +1998,6 @@ class SearchTest_UseCFE extends SearchTest {
 
   @failingTest
   @override
-  test_searchMemberReferences_qualified_unresolved() =>
-      super.test_searchMemberReferences_qualified_unresolved();
-
-  @failingTest
-  @override
-  test_searchMemberReferences_unqualified_unresolved() =>
-      super.test_searchMemberReferences_unqualified_unresolved();
-
-  @failingTest
-  @override
   test_searchReferences_ClassElement_definedInSdk_declarationSite() =>
       super.test_searchReferences_ClassElement_definedInSdk_declarationSite();
 
@@ -2028,68 +2018,8 @@ class SearchTest_UseCFE extends SearchTest {
 
   @failingTest
   @override
-  test_searchReferences_ConstructorElement_default() =>
-      super.test_searchReferences_ConstructorElement_default();
-
-  @failingTest
-  @override
-  test_searchReferences_ConstructorElement_default_otherFile() =>
-      super.test_searchReferences_ConstructorElement_default_otherFile();
-
-  @failingTest
-  @override
-  test_searchReferences_ConstructorElement_named() =>
-      super.test_searchReferences_ConstructorElement_named();
-
-  @failingTest
-  @override
-  test_searchReferences_ConstructorElement_synthetic() =>
-      super.test_searchReferences_ConstructorElement_synthetic();
-
-  @failingTest
-  @override
   test_searchReferences_FieldElement() =>
       super.test_searchReferences_FieldElement();
-
-  @failingTest
-  @override
-  test_searchReferences_FieldElement_ofEnum() =>
-      super.test_searchReferences_FieldElement_ofEnum();
-
-  @failingTest
-  @override
-  test_searchReferences_FieldElement_synthetic() =>
-      super.test_searchReferences_FieldElement_synthetic();
-
-  @failingTest
-  @override
-  test_searchReferences_FunctionElement() =>
-      super.test_searchReferences_FunctionElement();
-
-  @failingTest
-  @override
-  test_searchReferences_FunctionElement_local() =>
-      super.test_searchReferences_FunctionElement_local();
-
-  @failingTest
-  @override
-  test_searchReferences_ImportElement_noPrefix() =>
-      super.test_searchReferences_ImportElement_noPrefix();
-
-  @failingTest
-  @override
-  test_searchReferences_ImportElement_noPrefix_inPackage() =>
-      super.test_searchReferences_ImportElement_noPrefix_inPackage();
-
-  @failingTest
-  @override
-  test_searchReferences_ImportElement_withPrefix() =>
-      super.test_searchReferences_ImportElement_withPrefix();
-
-  @failingTest
-  @override
-  test_searchReferences_ImportElement_withPrefix_forMultipleImports() =>
-      super.test_searchReferences_ImportElement_withPrefix_forMultipleImports();
 
   @failingTest
   @override
@@ -2098,58 +2028,8 @@ class SearchTest_UseCFE extends SearchTest {
 
   @failingTest
   @override
-  test_searchReferences_LocalVariableElement() =>
-      super.test_searchReferences_LocalVariableElement();
-
-  @failingTest
-  @override
-  test_searchReferences_LocalVariableElement_inForEachLoop() =>
-      super.test_searchReferences_LocalVariableElement_inForEachLoop();
-
-  @failingTest
-  @override
-  test_searchReferences_LocalVariableElement_inPackage() =>
-      super.test_searchReferences_LocalVariableElement_inPackage();
-
-  @failingTest
-  @override
-  test_searchReferences_MethodElement() =>
-      super.test_searchReferences_MethodElement();
-
-  @failingTest
-  @override
-  test_searchReferences_MethodMember() =>
-      super.test_searchReferences_MethodMember();
-
-  @failingTest
-  @override
-  test_searchReferences_ParameterElement_named() =>
-      super.test_searchReferences_ParameterElement_named();
-
-  @failingTest
-  @override
   test_searchReferences_ParameterElement_ofConstructor() =>
       super.test_searchReferences_ParameterElement_ofConstructor();
-
-  @failingTest
-  @override
-  test_searchReferences_ParameterElement_ofLocalFunction() =>
-      super.test_searchReferences_ParameterElement_ofLocalFunction();
-
-  @failingTest
-  @override
-  test_searchReferences_ParameterElement_ofMethod() =>
-      super.test_searchReferences_ParameterElement_ofMethod();
-
-  @failingTest
-  @override
-  test_searchReferences_ParameterElement_ofTopLevelFunction() =>
-      super.test_searchReferences_ParameterElement_ofTopLevelFunction();
-
-  @failingTest
-  @override
-  test_searchReferences_ParameterElement_optionalPositional() =>
-      super.test_searchReferences_ParameterElement_optionalPositional();
 
   @failingTest
   @override
@@ -2178,16 +2058,6 @@ class SearchTest_UseCFE extends SearchTest {
 
   @failingTest
   @override
-  test_searchReferences_PropertyAccessorElement_getter() =>
-      super.test_searchReferences_PropertyAccessorElement_getter();
-
-  @failingTest
-  @override
-  test_searchReferences_PropertyAccessorElement_setter() =>
-      super.test_searchReferences_PropertyAccessorElement_setter();
-
-  @failingTest
-  @override
   test_searchReferences_TopLevelVariableElement() =>
       super.test_searchReferences_TopLevelVariableElement();
 
@@ -2195,11 +2065,6 @@ class SearchTest_UseCFE extends SearchTest {
   @override
   test_searchReferences_TypeParameterElement_ofClass() =>
       super.test_searchReferences_TypeParameterElement_ofClass();
-
-  @failingTest
-  @override
-  test_searchReferences_TypeParameterElement_ofLocalFunction() =>
-      super.test_searchReferences_TypeParameterElement_ofLocalFunction();
 
   @failingTest
   @override

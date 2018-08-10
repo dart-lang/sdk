@@ -416,6 +416,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int charOpenParenOffset,
       int charEndOffset,
       String nativeMethodName,
+      int codeStartOffset,
+      int codeEndOffset,
       {bool isTopLevel});
 
   void addEnum(

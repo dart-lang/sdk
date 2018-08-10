@@ -551,6 +551,11 @@ class OutlineBuilder extends StackListener {
         .resolveTypes(typeVariables, library);
     final int startCharOffset =
         metadata == null ? beginToken.charOffset : metadata.first.charOffset;
+
+    int codeStartOffset =
+        _chooseCodeStartOffset(docComment, metadataToken, beginToken);
+    int codeEndOffset = endToken.end;
+
     library.addProcedure(
         docComment?.text,
         metadata,
@@ -565,6 +570,8 @@ class OutlineBuilder extends StackListener {
         formalsOffset,
         endToken.charOffset,
         nativeMethodName,
+        codeStartOffset,
+        codeEndOffset,
         isTopLevel: true);
     nativeMethodName = null;
   }
@@ -766,6 +773,11 @@ class OutlineBuilder extends StackListener {
       }
       final int startCharOffset =
           metadata == null ? beginToken.charOffset : metadata.first.charOffset;
+
+      int codeStartOffset =
+          _chooseCodeStartOffset(docComment, metadataToken, beginToken);
+      int codeEndOffset = endToken.end;
+
       library.addProcedure(
           docComment?.text,
           metadata,
@@ -780,6 +792,8 @@ class OutlineBuilder extends StackListener {
           formalsOffset,
           endToken.charOffset,
           nativeMethodName,
+          codeStartOffset,
+          codeEndOffset,
           isTopLevel: false);
     }
     nativeMethodName = null;

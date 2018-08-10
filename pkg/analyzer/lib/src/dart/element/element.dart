@@ -4236,6 +4236,10 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   @override
   int get codeLength {
+    if (_kernel != null) {
+      var metadata = AnalyzerMetadata.forNode(_kernel);
+      return metadata?.codeLength;
+    }
     if (serializedExecutable != null) {
       return serializedExecutable.codeRange?.length;
     }
@@ -4244,6 +4248,10 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   @override
   int get codeOffset {
+    if (_kernel != null) {
+      var metadata = AnalyzerMetadata.forNode(_kernel);
+      return metadata?.codeOffset;
+    }
     if (serializedExecutable != null) {
       return serializedExecutable.codeRange?.offset;
     }

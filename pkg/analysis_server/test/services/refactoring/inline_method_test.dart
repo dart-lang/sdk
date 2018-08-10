@@ -1768,11 +1768,6 @@ class InlineMethodTest_UseCFE extends InlineMethodTest {
 
   @failingTest
   @override
-  test_bad_async_targetIsSync_doesNotReturnFuture() =>
-      super.test_bad_async_targetIsSync_doesNotReturnFuture();
-
-  @failingTest
-  @override
   test_noArgument_named_hasDefault() =>
       super.test_noArgument_named_hasDefault();
 

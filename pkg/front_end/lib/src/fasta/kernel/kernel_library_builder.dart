@@ -617,6 +617,8 @@ class KernelLibraryBuilder
       int charOpenParenOffset,
       int charEndOffset,
       String nativeMethodName,
+      int codeStartOffset,
+      int codeEndOffset,
       {bool isTopLevel}) {
     MetadataCollector metadataCollector = loader.target.metadataCollector;
     ProcedureBuilder procedure = new KernelProcedureBuilder(
@@ -635,6 +637,8 @@ class KernelLibraryBuilder
         nativeMethodName);
     metadataCollector?.setDocumentationComment(
         procedure.target, documentationComment);
+    metadataCollector?.setCodeStartEnd(
+        procedure.target, codeStartOffset, codeEndOffset);
     checkTypeVariables(typeVariables, procedure);
     addBuilder(name, procedure, charOffset);
     if (nativeMethodName != null) {
