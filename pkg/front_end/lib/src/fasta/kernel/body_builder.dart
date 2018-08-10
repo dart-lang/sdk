@@ -795,7 +795,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       } else if (resolvedTarget is Constructor &&
           resolvedTarget.enclosingClass.isAbstract) {
         replacementNode = evaluateArgumentsBefore(
-            forest.arguments(invocation.arguments.positional, null,
+            forest.arguments(
+                invocation.arguments.positional, noLocation, noLocation,
                 types: invocation.arguments.types,
                 named: invocation.arguments.named),
             buildAbstractClassInstantiationError(
@@ -816,7 +817,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
               throwNoSuchMethodError(
                   forest.literalNull(null)..fileOffset = invocation.fileOffset,
                   errorName,
-                  forest.arguments(invocation.arguments.positional, null,
+                  forest.arguments(
+                      invocation.arguments.positional, noLocation, noLocation,
                       types: invocation.arguments.types,
                       named: invocation.arguments.named),
                   initialTarget.fileOffset));
@@ -834,7 +836,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
           replacementNode = buildStaticInvocation(
               resolvedTarget,
-              forest.arguments(invocation.arguments.positional, null,
+              forest.arguments(
+                  invocation.arguments.positional, noLocation, noLocation,
                   types: invocation.arguments.types,
                   named: invocation.arguments.named),
               constness: invocation.isConst
@@ -973,7 +976,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       /// >unless the enclosing class is class Object.
       Constructor superTarget = lookupConstructor(emptyName, isSuper: true);
       Initializer initializer;
-      Arguments arguments = forest.argumentsEmpty(noLocation);
+      Arguments arguments = forest.argumentsEmpty(noLocation, noLocation);
       if (superTarget == null ||
           checkArgumentsForFunction(superTarget.function, arguments,
                   builder.charOffset, const <TypeParameter>[]) !=
@@ -1038,11 +1041,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           arguments.getRange(0, firstNamedArgumentIndex));
       List<NamedExpression> named = new List<NamedExpression>.from(
           arguments.getRange(firstNamedArgumentIndex, arguments.length));
-      push(forest.arguments(positional, beginToken, named: named));
+      push(forest.arguments(positional, beginToken, endToken, named: named));
     } else {
       // TODO(kmillikin): Find a way to avoid allocating a second list in the
       // case where there were no named arguments, which is a common one.
-      push(forest.arguments(new List<Expression>.from(arguments), beginToken));
+      push(forest.arguments(
+          new List<Expression>.from(arguments), beginToken, endToken));
     }
   }
 
@@ -1062,7 +1066,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleSend(Token beginToken, Token endToken) {
     debugEvent("Send");
-    Arguments arguments = pop();
+    ArgumentsJudgment arguments = pop();
     List<DartType> typeArguments = pop();
     Object receiver = pop();
     if (arguments != null && typeArguments != null) {
@@ -1087,7 +1091,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  finishSend(Object receiver, Arguments arguments, int charOffset) {
+  finishSend(Object receiver, ArgumentsJudgment arguments, int charOffset) {
     if (receiver is Generator) {
       return receiver.doInvocation(charOffset, arguments);
     } else {
@@ -1182,8 +1186,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           fasta.templateInvalidOperator.withArguments(token), token.charOffset,
           length: token.length);
     } else {
-      Expression result = buildMethodInvocation(a, new Name(operator),
-          forest.arguments(<Expression>[b], noLocation), token.charOffset,
+      Expression result = buildMethodInvocation(
+          a,
+          new Name(operator),
+          forest.arguments(<Expression>[b], noLocation, noLocation),
+          token.charOffset,
           // This *could* be a constant expression, we can't know without
           // evaluating [a] and [b].
           isConstantExpression: !isSuper,
@@ -2635,12 +2642,13 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       push(new SuperIndexedAccessGenerator(
           this,
           openSquareBracket,
+          closeSquareBracket,
           index,
           lookupInstanceMember(indexGetName, isSuper: true),
           lookupInstanceMember(indexSetName, isSuper: true)));
     } else {
-      push(IndexedAccessGenerator.make(
-          this, openSquareBracket, toValue(receiver), index, null, null));
+      push(IndexedAccessGenerator.make(this, openSquareBracket,
+          closeSquareBracket, toValue(receiver), index, null, null));
     }
   }
 
@@ -2676,7 +2684,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         }
       }
       push(buildMethodInvocation(receiverValue, new Name(operator),
-          forest.argumentsEmpty(noLocation), token.charOffset,
+          forest.argumentsEmpty(noLocation, noLocation), token.charOffset,
           // This *could* be a constant expression, we can't know without
           // evaluating [receiver].
           isConstantExpression: !isSuper,
@@ -2792,7 +2800,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  Expression buildStaticInvocation(Member target, Arguments arguments,
+  Expression buildStaticInvocation(Member target, ArgumentsJudgment arguments,
       {Constness constness: Constness.implicit,
       int charOffset: -1,
       int charLength: noLength,
@@ -2869,21 +2877,28 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  LocatedMessage checkArgumentsForFunction(FunctionNode function,
-      Arguments arguments, int offset, List<TypeParameter> typeParameters) {
+  LocatedMessage checkArgumentsForFunction(
+      FunctionNode function,
+      ArgumentsJudgment arguments,
+      int offset,
+      List<TypeParameter> typeParameters) {
     if (forest.argumentsPositional(arguments).length <
         function.requiredParameterCount) {
+      var argsOffset = arguments.fileOffset;
+      var argsLength = arguments.fileEndOffset - argsOffset;
       return fasta.templateTooFewArguments
           .withArguments(function.requiredParameterCount,
               forest.argumentsPositional(arguments).length)
-          .withLocation(uri, offset, noLength);
+          .withLocation(uri, argsOffset, argsLength);
     }
     if (forest.argumentsPositional(arguments).length >
         function.positionalParameters.length) {
+      var argsOffset = arguments.fileOffset;
+      var argsLength = arguments.fileEndOffset - argsOffset;
       return fasta.templateTooManyArguments
           .withArguments(function.positionalParameters.length,
               forest.argumentsPositional(arguments).length)
-          .withLocation(uri, offset, noLength);
+          .withLocation(uri, argsOffset, argsLength);
     }
     List<Object> named = forest.argumentsNamed(arguments);
     if (named.isNotEmpty) {
@@ -2913,20 +2928,24 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   LocatedMessage checkArgumentsForType(
-      FunctionType function, Arguments arguments, int offset) {
+      FunctionType function, ArgumentsJudgment arguments, int offset) {
     if (forest.argumentsPositional(arguments).length <
         function.requiredParameterCount) {
+      var argsOffset = arguments.fileOffset;
+      var argsLength = arguments.fileEndOffset - argsOffset;
       return fasta.templateTooFewArguments
           .withArguments(function.requiredParameterCount,
               forest.argumentsPositional(arguments).length)
-          .withLocation(uri, offset, noLength);
+          .withLocation(uri, argsOffset, argsLength);
     }
     if (forest.argumentsPositional(arguments).length >
         function.positionalParameters.length) {
+      var argsOffset = arguments.fileOffset;
+      var argsLength = arguments.fileEndOffset - argsOffset;
       return fasta.templateTooManyArguments
           .withArguments(function.positionalParameters.length,
               forest.argumentsPositional(arguments).length)
-          .withLocation(uri, offset, noLength);
+          .withLocation(uri, argsOffset, argsLength);
     }
     List<Object> named = forest.argumentsNamed(arguments);
     if (named.isNotEmpty) {
@@ -3084,7 +3103,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
               target.function.typeParameters.length !=
                   forest.argumentsTypeArguments(arguments).length) {
             arguments = forest.arguments(
-                forest.argumentsPositional(arguments), null,
+                forest.argumentsPositional(arguments), noLocation, noLocation,
                 named: forest.argumentsNamed(arguments),
                 types: new List<DartType>.filled(
                     target.function.typeParameters.length, const DynamicType(),
@@ -4073,7 +4092,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           forest.literalString("${location?.file ?? uri}", null)
             ..fileOffset = charOffset,
           forest.literalInt(location?.line ?? 0, null)..fileOffset = charOffset,
-        ], noLocation),
+        ], noLocation, noLocation),
         charOffset: charOffset));
   }
 
@@ -4088,7 +4107,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         constructor.target,
         forest.arguments(<Expression>[
           forest.literalString(className, null)..fileOffset = charOffset
-        ], noLocation)));
+        ], noLocation, noLocation)));
   }
 
   Statement buildCompileTimeErrorStatement(Message message, int charOffset,
@@ -4191,7 +4210,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
                 constructor.target,
                 forest.arguments(<Expression>[
                   forest.literalString(name, null)..fileOffset = offset
-                ], noLocation),
+                ], noLocation, noLocation),
                 charOffset: offset))))
           ..fileOffset = offset;
       } else {

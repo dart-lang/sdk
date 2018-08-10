@@ -64,6 +64,7 @@ import 'kernel_api.dart' show printQualifiedNameOn;
 import 'kernel_ast_api.dart'
     show
         Arguments,
+        ArgumentsJudgment,
         DartType,
         DynamicType,
         Expression,
@@ -202,7 +203,7 @@ abstract class Generator implements ExpressionGenerator {
   }
 
   /* Expression | Generator | Initializer */ doInvocation(
-      int offset, Arguments arguments);
+      int offset, ArgumentsJudgment arguments);
 
   /* Expression | Generator */ buildPropertyAccess(
       IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
@@ -373,28 +374,30 @@ abstract class SuperPropertyAccessGenerator implements Generator {
 abstract class IndexedAccessGenerator implements Generator {
   factory IndexedAccessGenerator.internal(
       ExpressionGeneratorHelper helper,
-      Token token,
+      Token openSquareBracket,
+      Token closeSquareBracket,
       Expression receiver,
       Expression index,
       Procedure getter,
       Procedure setter) {
-    return helper.forest
-        .indexedAccessGenerator(helper, token, receiver, index, getter, setter);
+    return helper.forest.indexedAccessGenerator(helper, openSquareBracket,
+        closeSquareBracket, receiver, index, getter, setter);
   }
 
   static Generator make(
       ExpressionGeneratorHelper helper,
-      Token token,
+      Token openSquareBracket,
+      Token closeSquareBracket,
       Expression receiver,
       Expression index,
       Procedure getter,
       Procedure setter) {
     if (helper.forest.isThisExpression(receiver)) {
       return new ThisIndexedAccessGenerator(
-          helper, token, index, getter, setter);
+          helper, openSquareBracket, closeSquareBracket, index, getter, setter);
     } else {
-      return new IndexedAccessGenerator.internal(
-          helper, token, receiver, index, getter, setter);
+      return new IndexedAccessGenerator.internal(helper, openSquareBracket,
+          closeSquareBracket, receiver, index, getter, setter);
     }
   }
 
@@ -411,10 +414,15 @@ abstract class IndexedAccessGenerator implements Generator {
 /// Special case of [IndexedAccessGenerator] to avoid creating an indirect
 /// access to 'this'.
 abstract class ThisIndexedAccessGenerator implements Generator {
-  factory ThisIndexedAccessGenerator(ExpressionGeneratorHelper helper,
-      Token token, Expression index, Procedure getter, Procedure setter) {
-    return helper.forest
-        .thisIndexedAccessGenerator(helper, token, index, getter, setter);
+  factory ThisIndexedAccessGenerator(
+      ExpressionGeneratorHelper helper,
+      Token openSquareBracket,
+      Token closeSquareBracket,
+      Expression index,
+      Procedure getter,
+      Procedure setter) {
+    return helper.forest.thisIndexedAccessGenerator(
+        helper, openSquareBracket, closeSquareBracket, index, getter, setter);
   }
 
   @override
@@ -428,10 +436,15 @@ abstract class ThisIndexedAccessGenerator implements Generator {
 }
 
 abstract class SuperIndexedAccessGenerator implements Generator {
-  factory SuperIndexedAccessGenerator(ExpressionGeneratorHelper helper,
-      Token token, Expression index, Member getter, Member setter) {
-    return helper.forest
-        .superIndexedAccessGenerator(helper, token, index, getter, setter);
+  factory SuperIndexedAccessGenerator(
+      ExpressionGeneratorHelper helper,
+      Token openSquareBracket,
+      Token closeSquareBracket,
+      Expression index,
+      Member getter,
+      Member setter) {
+    return helper.forest.superIndexedAccessGenerator(
+        helper, openSquareBracket, closeSquareBracket, index, getter, setter);
   }
 
   String get plainNameForRead => "[]";
@@ -749,7 +762,7 @@ abstract class ErroneousExpressionGenerator implements Generator {
 
   @override
   Expression buildFieldInitializerError() {
-    return buildError(forest.argumentsEmpty(token), isSetter: true);
+    return buildError(forest.argumentsEmpty(token, token), isSetter: true);
   }
 
   @override
@@ -768,7 +781,7 @@ abstract class ErroneousExpressionGenerator implements Generator {
   @override
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
     return new SyntheticExpressionJudgment(buildError(
-        forest.arguments(<Expression>[value], token),
+        forest.arguments(<Expression>[value], token, token),
         isSetter: true));
   }
 
@@ -779,7 +792,7 @@ abstract class ErroneousExpressionGenerator implements Generator {
       Procedure interfaceTarget,
       bool isPreIncDec: false}) {
     return new SyntheticExpressionJudgment(buildError(
-        forest.arguments(<Expression>[value], token),
+        forest.arguments(<Expression>[value], token, token),
         isGetter: true));
   }
 
@@ -789,6 +802,7 @@ abstract class ErroneousExpressionGenerator implements Generator {
     var error = buildError(
         forest.arguments(
             <Expression>[forest.literalInt(1, null)..fileOffset = offset],
+            token,
             token),
         isGetter: true);
     return new UnresolvedVariableUnaryJudgment(
@@ -802,6 +816,7 @@ abstract class ErroneousExpressionGenerator implements Generator {
     var error = buildError(
         forest.arguments(
             <Expression>[forest.literalInt(1, null)..fileOffset = offset],
+            token,
             token),
         isGetter: true);
     return new UnresolvedVariableUnaryJudgment(
@@ -814,22 +829,22 @@ abstract class ErroneousExpressionGenerator implements Generator {
       Expression value, DartType type, int offset,
       {bool voidContext: false}) {
     return new SyntheticExpressionJudgment(buildError(
-        forest.arguments(<Expression>[value], token),
+        forest.arguments(<Expression>[value], token, token),
         isSetter: true));
   }
 
   @override
   Expression buildSimpleRead() => new SyntheticExpressionJudgment(
-      buildError(forest.argumentsEmpty(token), isGetter: true));
+      buildError(forest.argumentsEmpty(token, token), isGetter: true));
 
   @override
   Expression makeInvalidRead() => new SyntheticExpressionJudgment(
-      buildError(forest.argumentsEmpty(token), isGetter: true));
+      buildError(forest.argumentsEmpty(token, token), isGetter: true));
 
   @override
   Expression makeInvalidWrite(Expression value) {
     return new SyntheticExpressionJudgment(buildError(
-        forest.arguments(<Expression>[value], token),
+        forest.arguments(<Expression>[value], token, token),
         isSetter: true));
   }
 

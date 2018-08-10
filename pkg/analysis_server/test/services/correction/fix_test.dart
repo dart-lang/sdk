@@ -995,6 +995,44 @@ class Test {
 ''');
   }
 
+  test_addMissingParameter_constructor_named_required_hasOne() async {
+    await resolveTestUnit('''
+class A {
+  A.named(int a) {}
+}
+main() {
+  new A.named(1, 2.0);
+}
+''');
+    await assertHasFix(DartFixKind.ADD_MISSING_PARAMETER_REQUIRED, '''
+class A {
+  A.named(int a, double d) {}
+}
+main() {
+  new A.named(1, 2.0);
+}
+''');
+  }
+
+  test_addMissingParameter_constructor_unnamed_required_hasOne() async {
+    await resolveTestUnit('''
+class A {
+  A(int a) {}
+}
+main() {
+  new A(1, 2.0);
+}
+''');
+    await assertHasFix(DartFixKind.ADD_MISSING_PARAMETER_REQUIRED, '''
+class A {
+  A(int a, double d) {}
+}
+main() {
+  new A(1, 2.0);
+}
+''');
+  }
+
   test_addMissingParameter_function_positional_hasNamed() async {
     await resolveTestUnit('''
 test({int a}) {}
@@ -7200,41 +7238,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_addMissingParameter_function_positional_hasZero() =>
-      super.test_addMissingParameter_function_positional_hasZero();
-
-  @failingTest
-  @override
-  test_addMissingParameter_function_required_hasNamed() =>
-      super.test_addMissingParameter_function_required_hasNamed();
-
-  @failingTest
-  @override
-  test_addMissingParameter_function_required_hasOne() =>
-      super.test_addMissingParameter_function_required_hasOne();
-
-  @failingTest
-  @override
-  test_addMissingParameter_function_required_hasZero() =>
-      super.test_addMissingParameter_function_required_hasZero();
-
-  @failingTest
-  @override
-  test_addMissingParameter_method_positional_hasOne() =>
-      super.test_addMissingParameter_method_positional_hasOne();
-
-  @failingTest
-  @override
-  test_addMissingParameter_method_required_hasOne() =>
-      super.test_addMissingParameter_method_required_hasOne();
-
-  @failingTest
-  @override
-  test_addMissingParameter_method_required_hasZero() =>
-      super.test_addMissingParameter_method_required_hasZero();
-
-  @failingTest
-  @override
   test_addMissingParameterNamed_constructor_hasNamed() =>
       super.test_addMissingParameterNamed_constructor_hasNamed();
 
@@ -7416,11 +7419,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
   @override
   test_createConstructor_forFinalFields_flutter_childrenLast() =>
       super.test_createConstructor_forFinalFields_flutter_childrenLast();
-
-  @failingTest
-  @override
-  test_createConstructor_insteadOfSyntheticDefault() =>
-      super.test_createConstructor_insteadOfSyntheticDefault();
 
   @failingTest
   @override

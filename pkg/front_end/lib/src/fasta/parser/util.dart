@@ -63,6 +63,12 @@ int offsetForToken(Token token) {
   return token == null ? TreeNode.noOffset : token.offset;
 }
 
+/// A null-aware alternative to `token.end`.  If [token] is `null`, returns
+/// `TreeNode.noOffset`.
+int endOffsetForToken(Token token) {
+  return token == null ? TreeNode.noOffset : token.end;
+}
+
 bool isDigit(int c) => c >= 0x30 && c <= 0x39;
 
 bool isLetter(int c) => c >= 0x41 && c <= 0x5A || c >= 0x61 && c <= 0x7A;

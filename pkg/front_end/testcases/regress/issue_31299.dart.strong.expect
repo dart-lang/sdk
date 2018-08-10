@@ -1,12 +1,12 @@
 // Errors:
 //
-// pkg/front_end/testcases/regress/issue_31299.dart:18:7: Error: Too many positional arguments: 0 allowed, 2 given.
+// pkg/front_end/testcases/regress/issue_31299.dart:18:12: Error: Too many positional arguments: 0 allowed, 2 given.
 //   new A.foo(1, 2);
-//       ^
+//            ^^^^^^
 //
-// pkg/front_end/testcases/regress/issue_31299.dart:15:11: Error: Too few positional arguments: 2 required, 0 given.
+// pkg/front_end/testcases/regress/issue_31299.dart:15:14: Error: Too few positional arguments: 2 required, 0 given.
 //   new A().foo();
-//           ^
+//              ^^
 
 library;
 import self as self;

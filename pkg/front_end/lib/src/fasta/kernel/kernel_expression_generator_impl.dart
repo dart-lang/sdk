@@ -229,7 +229,7 @@ class IncompleteErrorGenerator extends IncompleteSendGenerator
 
   @override
   Expression buildSimpleRead() {
-    var error = buildError(forest.argumentsEmpty(token), isGetter: true);
+    var error = buildError(forest.argumentsEmpty(token, token), isGetter: true);
     return new InvalidPropertyGetJudgment(error, member)
       ..fileOffset = offsetForToken(token);
   }

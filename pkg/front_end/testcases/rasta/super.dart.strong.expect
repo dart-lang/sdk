@@ -222,21 +222,21 @@
 //     use(super.m -= 42);
 //               ^
 //
-// pkg/front_end/testcases/rasta/super.dart:147:11: Error: Too many positional arguments: 0 allowed, 1 given.
+// pkg/front_end/testcases/rasta/super.dart:147:12: Error: Too many positional arguments: 0 allowed, 1 given.
 //     super.m(87);
-//           ^
+//            ^^^^
 //
-// pkg/front_end/testcases/rasta/super.dart:148:15: Error: Too many positional arguments: 0 allowed, 1 given.
+// pkg/front_end/testcases/rasta/super.dart:148:16: Error: Too many positional arguments: 0 allowed, 1 given.
 //     use(super.m(87));
-//               ^
+//                ^^^^
 //
-// pkg/front_end/testcases/rasta/super.dart:149:11: Error: Too many positional arguments: 0 allowed, 1 given.
+// pkg/front_end/testcases/rasta/super.dart:149:12: Error: Too many positional arguments: 0 allowed, 1 given.
 //     super.n(87);
-//           ^
+//            ^^^^
 //
-// pkg/front_end/testcases/rasta/super.dart:150:15: Error: Too many positional arguments: 0 allowed, 1 given.
+// pkg/front_end/testcases/rasta/super.dart:150:16: Error: Too many positional arguments: 0 allowed, 1 given.
 //     use(super.n(87));
-//               ^
+//                ^^^^
 
 library;
 import self as self;
