@@ -10276,7 +10276,8 @@ void Script::TokenRangeAtLine(intptr_t line_number,
 
   if (kind() == RawScript::kKernelTag) {
     const TypedData& line_starts_data = TypedData::Handle(line_starts());
-    if (line_starts_data.IsNull()) {
+    const String& source = String::Handle(Source());
+    if (line_starts_data.IsNull() || source.IsNull()) {
       // Scripts in the AOT snapshot do not have a line starts array.
       *first_token_index = TokenPosition::kNoSource;
       *last_token_index = TokenPosition::kNoSource;
@@ -10285,9 +10286,8 @@ void Script::TokenRangeAtLine(intptr_t line_number,
 #if !defined(DART_PRECOMPILED_RUNTIME)
     kernel::KernelLineStartsReader line_starts_reader(
         line_starts_data, Thread::Current()->zone());
-    line_starts_reader.TokenRangeAtLine(String::Handle(Source()).Length(),
-                                        line_number, first_token_index,
-                                        last_token_index);
+    line_starts_reader.TokenRangeAtLine(source.Length(), line_number,
+                                        first_token_index, last_token_index);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
     return;
   }
