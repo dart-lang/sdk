@@ -36,7 +36,7 @@ String getExtensionPath(String buildDirectory) {
 }
 
 bool checkExitCode(int code) {
-  return ((code == 255) || (code == 253));
+  return ((code == 255) || (code == 254) || (code == 253));
 }
 
 bool checkStdError(String err) {

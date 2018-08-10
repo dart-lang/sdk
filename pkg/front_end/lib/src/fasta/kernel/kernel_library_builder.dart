@@ -828,10 +828,10 @@ class KernelLibraryBuilder
     }
   }
 
-  void addNativeDependency(Uri nativeImportUri) {
+  void addNativeDependency(String nativeImportPath) {
     Declaration constructor = loader.getNativeAnnotation();
     Arguments arguments =
-        new Arguments(<Expression>[new StringLiteral("$nativeImportUri")]);
+        new Arguments(<Expression>[new StringLiteral(nativeImportPath)]);
     Expression annotation;
     if (constructor.isConstructor) {
       annotation = new ConstructorInvocation(constructor.target, arguments)
@@ -862,8 +862,8 @@ class KernelLibraryBuilder
         Import import = imports[importIndex++];
 
         // Rather than add a LibraryDependency, we attach an annotation.
-        if (import.nativeImportUri != null) {
-          addNativeDependency(import.nativeImportUri);
+        if (import.nativeImportPath != null) {
+          addNativeDependency(import.nativeImportPath);
           continue;
         }
 

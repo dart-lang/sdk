@@ -547,7 +547,7 @@ void KernelLoader::LoadNativeExtensionLibraries(
       {
         TransitionVMToNative transition(thread_);
         Api::Scope api_scope(thread_);
-        Dart_Handle retval = handler(Dart_kImportResolvedExtensionTag,
+        Dart_Handle retval = handler(Dart_kImportExtensionTag,
                                      Api::NewHandle(thread_, library.raw()),
                                      Api::NewHandle(thread_, uri_path.raw()));
         result = Api::UnwrapHandle(retval);

@@ -2846,7 +2846,7 @@ typedef enum {
   Dart_kSourceTag,
   Dart_kImportTag,
   Dart_kKernelTag,
-  Dart_kImportResolvedExtensionTag,
+  Dart_kImportExtensionTag,
 } Dart_LibraryTag;
 
 /**
@@ -2896,12 +2896,10 @@ typedef enum {
  * files into one intermediate file hence we don't use the source/import or
  * script tags.
  *
- * Dart_kImportResolvedExtensionTag
+ * Dart_kImportExtensionTag
  *
- * This tag is used to load an external import (shared object file) without
- * performing path resolution first. The 'url' provided should be an absolute
- * path with the 'file://' schema. It doesn't require the service isolate to be
- * available and will not initialize a Loader for the isolate.
+ * This tag is used to load an external import (shared object file). The
+ * extension path must have the scheme 'dart-ext:'.
  */
 typedef Dart_Handle (*Dart_LibraryTagHandler)(
     Dart_LibraryTag tag,
