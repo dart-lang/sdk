@@ -300,10 +300,6 @@ ex(e) {
 class _ControlFlowCompletionTest_UseCfe extends _ControlFlowCompletionTest {
   @override
   bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_ifNoBlock() => super.test_ifNoBlock();
 }
 
 @reflectiveTest
@@ -842,18 +838,6 @@ main() {
 class _ExpressionCompletionTest_UseCfe extends _ExpressionCompletionTest {
   @override
   bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_listAssign() => super.test_listAssign();
-
-  @failingTest
-  @override
-  test_listAssignMultiLine() => super.test_listAssignMultiLine();
-
-  @failingTest
-  @override
-  test_stringAssign() => super.test_stringAssign();
 }
 
 @reflectiveTest
@@ -1658,10 +1642,6 @@ main() {
 class _SimpleCompletionTest_UseCfe extends _SimpleCompletionTest {
   @override
   bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_semicolonVar() => super.test_semicolonVar();
 }
 
 @reflectiveTest

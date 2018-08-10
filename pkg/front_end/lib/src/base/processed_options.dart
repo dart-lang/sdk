@@ -688,12 +688,16 @@ class _CompilationMessage implements CompilationMessage {
   String get dart2jsCode => _original.code.dart2jsCode;
 
   SourceSpan get span {
-    if (_original.charOffset == -1) {
-      if (_original.uri == null) return null;
-      return new SourceLocation(0, sourceUrl: _original.uri).pointSpan();
+    var uri = _original.uri;
+    var offset = _original.charOffset;
+    if (offset == -1) {
+      if (uri == null) return null;
+      return new SourceLocation(0, sourceUrl: uri).pointSpan();
     }
-    return new SourceLocation(_original.charOffset, sourceUrl: _original.uri)
-        .pointSpan();
+    return new SourceSpan(
+        new SourceLocation(offset, sourceUrl: uri),
+        new SourceLocation(offset + _original.length, sourceUrl: uri),
+        'X' * _original.length);
   }
 
   _CompilationMessage(this._original, this.severity);

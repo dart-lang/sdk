@@ -7133,23 +7133,13 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_addExplicitCast_assignment_general() =>
-      super.test_addExplicitCast_assignment_general();
+  test_addExplicitCast_assignment_list() =>
+      super.test_addExplicitCast_assignment_list();
 
   @failingTest
   @override
-  test_addExplicitCast_assignment_general_all() =>
-      super.test_addExplicitCast_assignment_general_all();
-
-  @failingTest
-  @override
-  test_addExplicitCast_assignment_map() =>
-      super.test_addExplicitCast_assignment_map();
-
-  @failingTest
-  @override
-  test_addExplicitCast_assignment_map_all() =>
-      super.test_addExplicitCast_assignment_map_all();
+  test_addExplicitCast_assignment_list_all() =>
+      super.test_addExplicitCast_assignment_list_all();
 
   @failingTest
   @override
@@ -7163,33 +7153,13 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_addExplicitCast_assignment_set() =>
-      super.test_addExplicitCast_assignment_set();
+  test_addExplicitCast_declaration_list() =>
+      super.test_addExplicitCast_declaration_list();
 
   @failingTest
   @override
-  test_addExplicitCast_assignment_set_all() =>
-      super.test_addExplicitCast_assignment_set_all();
-
-  @failingTest
-  @override
-  test_addExplicitCast_declaration_general() =>
-      super.test_addExplicitCast_declaration_general();
-
-  @failingTest
-  @override
-  test_addExplicitCast_declaration_general_all() =>
-      super.test_addExplicitCast_declaration_general_all();
-
-  @failingTest
-  @override
-  test_addExplicitCast_declaration_map() =>
-      super.test_addExplicitCast_declaration_map();
-
-  @failingTest
-  @override
-  test_addExplicitCast_declaration_map_all() =>
-      super.test_addExplicitCast_declaration_map_all();
+  test_addExplicitCast_declaration_list_all() =>
+      super.test_addExplicitCast_declaration_list_all();
 
   @failingTest
   @override
@@ -7200,16 +7170,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
   @override
   test_addExplicitCast_declaration_needsParens_all() =>
       super.test_addExplicitCast_declaration_needsParens_all();
-
-  @failingTest
-  @override
-  test_addExplicitCast_declaration_set() =>
-      super.test_addExplicitCast_declaration_set();
-
-  @failingTest
-  @override
-  test_addExplicitCast_declaration_set_all() =>
-      super.test_addExplicitCast_declaration_set_all();
 
   @failingTest
   @override
@@ -7351,6 +7311,11 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
   @override
   test_changeToStaticAccess_property_importType() =>
       super.test_changeToStaticAccess_property_importType();
+
+  @failingTest
+  @override
+  test_changeTypeAnnotation_OK_simple() =>
+      super.test_changeTypeAnnotation_OK_simple();
 
   @failingTest
   @override
@@ -7744,10 +7709,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
   @override
   test_creationFunction_forFunctionType_method_targetClass_hasOtherMember() => super
       .test_creationFunction_forFunctionType_method_targetClass_hasOtherMember();
-
-  @failingTest
-  @override
-  test_expectedToken_semicolon() => super.test_expectedToken_semicolon();
 
   @failingTest
   @override
