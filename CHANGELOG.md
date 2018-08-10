@@ -1,3 +1,11 @@
+# 0.1.59
+
+* relaxed `void_checks` (allowing `T Function()` to be assigned to `void Function()`)
+* test and build improvements
+* introduced Effective Dart rule set
+* Google ruleset updates
+* (internal cleanup): move cli main into `lib/`
+* fixed false positives in `lines_longer_than_80_chars`
 * new lint: `prefer_void_to_null`
 
 # 0.1.58
