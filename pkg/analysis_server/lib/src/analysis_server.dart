@@ -374,6 +374,7 @@ class AnalysisServer {
     defaultContextOptions.useFastaParser =
         options.useCFE || options.useFastaParser;
     defaultContextOptions.previewDart2 = options.previewDart2;
+    defaultContextOptions.useCFE = options.useCFE;
 
     {
       String name = options.newAnalysisDriverLog;

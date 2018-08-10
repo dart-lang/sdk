@@ -99,6 +99,7 @@ class ContextCacheEntry {
     contextOptions.useFastaParser = clOptions.useFastaParser;
     if (clOptions.useCFE) {
       contextOptions.useFastaParser = true;
+      contextOptions.useCFE = true;
     }
     return contextOptions;
   }

@@ -1458,6 +1458,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   bool useFastaParser = false;
 
+  /// [useCFE] exists on [AnalysisOptionsImpl] but not [AnalysisOptions] so as
+  /// not to make it public API. It's used when calculating the driver signature
+  /// of cached results.
+  bool useCFE = false;
+
   @override
   bool previewDart2 = true;
 
@@ -1523,6 +1528,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       implicitCasts = options.implicitCasts;
       nonnullableTypes = options.nonnullableTypes;
       implicitDynamic = options.implicitDynamic;
+      useCFE = options.useCFE;
     }
     trackCacheDependencies = options.trackCacheDependencies;
     disableCacheFlushing = options.disableCacheFlushing;
@@ -1657,6 +1663,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       buffer.addBool(strongModeHints);
       buffer.addBool(useFastaParser);
       buffer.addBool(previewDart2);
+      buffer.addBool(useCFE);
 
       // Append error processors.
       buffer.addInt(errorProcessors.length);
