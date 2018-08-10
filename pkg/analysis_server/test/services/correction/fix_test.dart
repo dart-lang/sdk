@@ -7198,56 +7198,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_addMissingParameterNamed_constructor_hasNamed() =>
-      super.test_addMissingParameterNamed_constructor_hasNamed();
-
-  @failingTest
-  @override
-  test_addMissingParameterNamed_constructor_hasRequired() =>
-      super.test_addMissingParameterNamed_constructor_hasRequired();
-
-  @failingTest
-  @override
-  test_addMissingParameterNamed_constructor_noParameters() =>
-      super.test_addMissingParameterNamed_constructor_noParameters();
-
-  @failingTest
-  @override
-  test_addMissingParameterNamed_constructor_noParameters_named() =>
-      super.test_addMissingParameterNamed_constructor_noParameters_named();
-
-  @failingTest
-  @override
-  test_addMissingParameterNamed_function_hasNamed() =>
-      super.test_addMissingParameterNamed_function_hasNamed();
-
-  @failingTest
-  @override
-  test_addMissingParameterNamed_function_hasRequired() =>
-      super.test_addMissingParameterNamed_function_hasRequired();
-
-  @failingTest
-  @override
-  test_addMissingParameterNamed_function_noParameters() =>
-      super.test_addMissingParameterNamed_function_noParameters();
-
-  @failingTest
-  @override
-  test_addMissingParameterNamed_method_hasNamed() =>
-      super.test_addMissingParameterNamed_method_hasNamed();
-
-  @failingTest
-  @override
-  test_addMissingParameterNamed_method_hasRequired() =>
-      super.test_addMissingParameterNamed_method_hasRequired();
-
-  @failingTest
-  @override
-  test_addMissingParameterNamed_method_noParameters() =>
-      super.test_addMissingParameterNamed_method_noParameters();
-
-  @failingTest
-  @override
   test_addMissingRequiredArg_multiple() =>
       super.test_addMissingRequiredArg_multiple();
 
@@ -7331,20 +7281,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
   @override
   test_convertToNamedArguments_OK_methodInvocation() =>
       super.test_convertToNamedArguments_OK_methodInvocation();
-
-  @failingTest
-  @override
-  test_createClass() => super.test_createClass();
-
-  @failingTest
-  @override
-  test_createClass_inLibraryOfPrefix() =>
-      super.test_createClass_inLibraryOfPrefix();
-
-  @failingTest
-  @override
-  test_createClass_innerLocalFunction() =>
-      super.test_createClass_innerLocalFunction();
 
   @failingTest
   @override
@@ -7588,82 +7524,13 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_createMissingOverrides_field_untyped() =>
-      super.test_createMissingOverrides_field_untyped();
-
-  @failingTest
-  @override
-  test_createMissingOverrides_functionTypeAlias() =>
-      super.test_createMissingOverrides_functionTypeAlias();
-
-  @failingTest
-  @override
   test_createMissingOverrides_functionTypedParameter() =>
       super.test_createMissingOverrides_functionTypedParameter();
 
   @failingTest
   @override
-  test_createMissingOverrides_generics_typeArguments() =>
-      super.test_createMissingOverrides_generics_typeArguments();
-
-  @failingTest
-  @override
-  test_createMissingOverrides_generics_typeParameters() =>
-      super.test_createMissingOverrides_generics_typeParameters();
-
-  @failingTest
-  @override
-  test_createMissingOverrides_getter() =>
-      super.test_createMissingOverrides_getter();
-
-  @failingTest
-  @override
-  test_createMissingOverrides_importPrefix() =>
-      super.test_createMissingOverrides_importPrefix();
-
-  @failingTest
-  @override
-  test_createMissingOverrides_mergeToField_getterSetter() =>
-      super.test_createMissingOverrides_mergeToField_getterSetter();
-
-  @failingTest
-  @override
   test_createMissingOverrides_method() =>
       super.test_createMissingOverrides_method();
-
-  @failingTest
-  @override
-  test_createMissingOverrides_method_emptyClassBody() =>
-      super.test_createMissingOverrides_method_emptyClassBody();
-
-  @failingTest
-  @override
-  test_createMissingOverrides_method_generic() =>
-      super.test_createMissingOverrides_method_generic();
-
-  @failingTest
-  @override
-  test_createMissingOverrides_method_generic_withBounds() =>
-      super.test_createMissingOverrides_method_generic_withBounds();
-
-  @failingTest
-  @override
-  test_createMissingOverrides_method_notEmptyClassBody() =>
-      super.test_createMissingOverrides_method_notEmptyClassBody();
-
-  @failingTest
-  @override
-  test_createMissingOverrides_operator() =>
-      super.test_createMissingOverrides_operator();
-
-  @failingTest
-  @override
-  test_createMissingOverrides_setter() =>
-      super.test_createMissingOverrides_setter();
-
-  @failingTest
-  @override
-  test_createNoSuchMethod_OK() => super.test_createNoSuchMethod_OK();
 
   @failingTest
   @override
@@ -7732,16 +7599,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_importLibraryPackage_preferDirectOverExport() =>
-      super.test_importLibraryPackage_preferDirectOverExport();
-
-  @failingTest
-  @override
-  test_importLibraryPackage_preferDirectOverExport_src() =>
-      super.test_importLibraryPackage_preferDirectOverExport_src();
-
-  @failingTest
-  @override
   test_importLibraryProject_BAD_inLibSrc_differentContextRoot() =>
       super.test_importLibraryProject_BAD_inLibSrc_differentContextRoot();
 
@@ -7754,21 +7611,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
   @override
   test_importLibraryProject_withClass_annotation() =>
       super.test_importLibraryProject_withClass_annotation();
-
-  @failingTest
-  @override
-  test_importLibraryProject_withClass_inParentFolder() =>
-      super.test_importLibraryProject_withClass_inParentFolder();
-
-  @failingTest
-  @override
-  test_importLibraryProject_withClass_inRelativeFolder() =>
-      super.test_importLibraryProject_withClass_inRelativeFolder();
-
-  @failingTest
-  @override
-  test_importLibraryProject_withClass_inSameFolder() =>
-      super.test_importLibraryProject_withClass_inSameFolder();
 
   @failingTest
   @override
@@ -7787,18 +7629,8 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_importLibraryProject_withFunctionTypeAlias() =>
-      super.test_importLibraryProject_withFunctionTypeAlias();
-
-  @failingTest
-  @override
   test_importLibraryProject_withTopLevelVariable() =>
       super.test_importLibraryProject_withTopLevelVariable();
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withClass_AsExpression() =>
-      super.test_importLibrarySdk_withClass_AsExpression();
 
   @failingTest
   @override
@@ -7829,11 +7661,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_importLibrarySdk_withClass_IsExpression() =>
-      super.test_importLibrarySdk_withClass_IsExpression();
-
-  @failingTest
-  @override
   test_importLibrarySdk_withClass_itemOfList() =>
       super.test_importLibrarySdk_withClass_itemOfList();
 
@@ -7844,18 +7671,8 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_importLibrarySdk_withClass_typeAnnotation() =>
-      super.test_importLibrarySdk_withClass_typeAnnotation();
-
-  @failingTest
-  @override
   test_importLibrarySdk_withClass_typeAnnotation_PrefixedIdentifier() =>
       super.test_importLibrarySdk_withClass_typeAnnotation_PrefixedIdentifier();
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withClass_typeArgument() =>
-      super.test_importLibrarySdk_withClass_typeArgument();
 
   @failingTest
   @override
@@ -7925,11 +7742,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
   @override
   test_undefinedClass_useSimilar_fromImport() =>
       super.test_undefinedClass_useSimilar_fromImport();
-
-  @failingTest
-  @override
-  test_undefinedClass_useSimilar_fromThisLibrary() =>
-      super.test_undefinedClass_useSimilar_fromThisLibrary();
 
   @failingTest
   @override
@@ -8100,10 +7912,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
   @override
   test_undefinedSetter_useSimilar_unqualified() =>
       super.test_undefinedSetter_useSimilar_unqualified();
-
-  @failingTest
-  @override
-  test_useImportPrefix_withClass() => super.test_useImportPrefix_withClass();
 
   @failingTest
   @override

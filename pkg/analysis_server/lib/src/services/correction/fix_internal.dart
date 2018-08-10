@@ -400,7 +400,8 @@ class FixProcessor {
     if (errorCode == StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR) {
       await _addFix_createConstructor_named();
     }
-    if (errorCode ==
+    if (errorCode == StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER ||
+        errorCode ==
             StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE ||
         errorCode ==
             StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO ||
@@ -421,6 +422,7 @@ class FixProcessor {
     }
     if (errorCode == CompileTimeErrorCode.UNDEFINED_CLASS ||
         errorCode == StaticWarningCode.CAST_TO_NON_TYPE ||
+        errorCode == StaticWarningCode.NOT_A_TYPE ||
         errorCode == StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME ||
         errorCode == StaticWarningCode.UNDEFINED_CLASS) {
       await _addFix_importLibrary_withType();
@@ -450,7 +452,8 @@ class FixProcessor {
       await _addFix_importLibrary_withTopLevelVariable();
       await _addFix_createLocalVariable();
     }
-    if (errorCode == StaticWarningCode.UNDEFINED_NAMED_PARAMETER) {
+    if (errorCode == CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER ||
+        errorCode == StaticWarningCode.UNDEFINED_NAMED_PARAMETER) {
       await _addFix_addMissingNamedArgument();
     }
     if (errorCode == StaticTypeWarningCode.UNDEFINED_METHOD_WITH_CONSTRUCTOR) {

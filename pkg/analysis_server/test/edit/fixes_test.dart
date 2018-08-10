@@ -175,8 +175,4 @@ bbb:${asFileUri('/bbb/lib')}
 class FixesTest_UseCFE extends FixesTest {
   @override
   bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_fixUndefinedClass() => super.test_fixUndefinedClass();
 }
