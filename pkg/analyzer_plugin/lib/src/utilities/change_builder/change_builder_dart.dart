@@ -41,7 +41,7 @@ class DartChangeBuilderImpl extends ChangeBuilderImpl
   DartChangeBuilderImpl(this.session);
 
   @override
-  Future<Null> addFileEdit(
+  Future<void> addFileEdit(
       String path, void buildFileEdit(DartFileEditBuilder builder),
       {ImportPrefixGenerator importPrefixGenerator}) {
     return super.addFileEdit(path, (builder) {
@@ -1154,7 +1154,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   @override
-  Future<Null> finalize() async {
+  Future<void> finalize() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (librariesToImport.isNotEmpty) {

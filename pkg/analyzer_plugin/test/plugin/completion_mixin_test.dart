@@ -64,7 +64,7 @@ class _TestCompletionContributor implements CompletionContributor {
   _TestCompletionContributor(this.suggestions);
 
   @override
-  Future<Null> computeSuggestions(
+  Future<void> computeSuggestions(
       CompletionRequest request, CompletionCollector collector) async {
     if ((collector as CompletionCollectorImpl).offset == null) {
       collector.offset = 1;

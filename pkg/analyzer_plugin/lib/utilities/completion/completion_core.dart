@@ -72,7 +72,7 @@ abstract class CompletionContributor {
    * Contribute completion suggestions for the completion location specified by
    * the given [request] into the given [collector].
    */
-  Future<Null> computeSuggestions(
+  Future<void> computeSuggestions(
       covariant CompletionRequest request, CompletionCollector collector);
 }
 

@@ -51,7 +51,7 @@ class OccurrencesMixinTest {
     await plugin.handleAnalysisSetContextRoots(
         new AnalysisSetContextRootsParams([contextRoot1]));
 
-    Completer<Null> notificationReceived = new Completer<Null>();
+    Completer<void> notificationReceived = new Completer<void>();
     channel.listen(null, onNotification: (Notification notification) {
       expect(notification, isNotNull);
       AnalysisOccurrencesParams params =

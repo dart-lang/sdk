@@ -226,7 +226,7 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
   }
 
   @override
-  Future<Null> listen(void onResponse(Response response),
+  Future<void> listen(void onResponse(Response response),
       void onNotification(Notification notification),
       {void onError(dynamic error), void onDone()}) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -264,7 +264,7 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
       close();
       return null;
     }
-    Completer<Null> channelReady = new Completer<Null>();
+    Completer<void> channelReady = new Completer<void>();
     _receivePort.listen((dynamic input) {
       if (input is SendPort) {
         _sendPort = input;

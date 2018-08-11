@@ -450,7 +450,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
    * Return a [Future] that completes with the containing library information
    * after it is accessible via [context.getLibrariesContaining].
    */
-  Future<Null> computeLibrariesContaining() {
+  Future<void> computeLibrariesContaining() {
     return driver.getResult(testFile).then((result) => null);
   }
 

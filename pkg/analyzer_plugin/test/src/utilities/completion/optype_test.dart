@@ -21,77 +21,6 @@ main() {
   });
 }
 
-/// Common test methods to Dart1/Dart2 versions of OpType tests.
-class OpTypeTestCommon extends AbstractContextTest {
-  String testpath;
-  int completionOffset;
-  OpType visitor;
-
-  @override
-  void setUp() {
-    super.setUp();
-    testpath = provider.convertPath('/completionTest.dart');
-  }
-
-  void addTestSource(String content) {
-    completionOffset = content.indexOf('^');
-    expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
-    int nextOffset = content.indexOf('^', completionOffset + 1);
-    expect(nextOffset, equals(-1), reason: 'too many ^');
-    content = content.substring(0, completionOffset) +
-        content.substring(completionOffset + 1);
-    super.addSource(testpath, content);
-  }
-
-  Future<Null> assertOpType(
-      {bool caseLabel: false,
-      bool constructors: false,
-      bool namedArgs: false,
-      bool prefixed: false,
-      bool returnValue: false,
-      bool statementLabel: false,
-      bool staticMethodBody: false,
-      bool typeNames: false,
-      bool varNames: false,
-      bool voidReturn: false,
-      CompletionSuggestionKind kind:
-          CompletionSuggestionKind.INVOCATION}) async {
-    AnalysisResult analysisResult = await driver.getResult(testpath);
-
-    CompletionTarget completionTarget =
-        new CompletionTarget.forOffset(analysisResult.unit, completionOffset);
-    visitor = new OpType.forCompletion(completionTarget, completionOffset);
-
-    expect(visitor.includeCaseLabelSuggestions, caseLabel, reason: 'caseLabel');
-    expect(visitor.includeConstructorSuggestions, constructors,
-        reason: 'constructors');
-    expect(visitor.includeNamedArgumentSuggestions, namedArgs,
-        reason: 'namedArgs');
-    expect(visitor.includeReturnValueSuggestions, returnValue,
-        reason: 'returnValue');
-    expect(visitor.includeStatementLabelSuggestions, statementLabel,
-        reason: 'statementLabel');
-    expect(visitor.includeTypeNameSuggestions, typeNames, reason: 'typeNames');
-    expect(visitor.includeVarNameSuggestions, varNames, reason: 'varNames');
-    expect(visitor.includeVoidReturnSuggestions, voidReturn,
-        reason: 'voidReturn');
-    expect(visitor.inStaticMethodBody, staticMethodBody,
-        reason: 'staticMethodBody');
-    expect(visitor.isPrefixed, prefixed, reason: 'prefixed');
-    expect(visitor.suggestKind, kind, reason: 'suggestion kind');
-  }
-}
-
-/// Execute the tests that work on both.
-@reflectiveTest
-class OpTypeDart1Test extends OpTypeTest {
-  @override
-  bool get enablePreviewDart2 => false;
-
-  @override
-  bool get enableStrongMode => false;
-}
-
 @reflectiveTest
 // TODO: determine if tests here need to be fixed for Dart2.
 class OpTypeDart1OnlyTest extends OpTypeTestCommon {
@@ -424,8 +353,9 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
         voidReturn: true);
   }
 
-  test_Block_identifier_partial() async {
-    addTestSource('class X {a() {var f; {var x;} D^ var r;} void b() { }}');
+  test_Block_empty() async {
+    // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
+    addTestSource('class A extends E implements I with M {a() {^}}');
     await assertOpType(
         constructors: previewDart2,
         returnValue: true,
@@ -433,9 +363,8 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
         voidReturn: true);
   }
 
-  test_Block_empty() async {
-    // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
-    addTestSource('class A extends E implements I with M {a() {^}}');
+  test_Block_identifier_partial() async {
+    addTestSource('class X {a() {var f; {var x;} D^ var r;} void b() { }}');
     await assertOpType(
         constructors: previewDart2,
         returnValue: true,
@@ -1061,6 +990,16 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     addTestSource('class x extends Object with ^\n{}');
     await assertOpType(constructors: previewDart2, typeNames: true);
   }
+}
+
+/// Execute the tests that work on both.
+@reflectiveTest
+class OpTypeDart1Test extends OpTypeTest {
+  @override
+  bool get enablePreviewDart2 => false;
+
+  @override
+  bool get enableStrongMode => false;
 }
 
 @reflectiveTest
@@ -2052,5 +1991,66 @@ class C2 {
     // VariableDeclarationList  VariableDeclarationStatement  Block
     addTestSource('main() {final ^}');
     await assertOpType(typeNames: true);
+  }
+}
+
+/// Common test methods to Dart1/Dart2 versions of OpType tests.
+class OpTypeTestCommon extends AbstractContextTest {
+  String testpath;
+  int completionOffset;
+  OpType visitor;
+
+  void addTestSource(String content) {
+    completionOffset = content.indexOf('^');
+    expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
+    int nextOffset = content.indexOf('^', completionOffset + 1);
+    expect(nextOffset, equals(-1), reason: 'too many ^');
+    content = content.substring(0, completionOffset) +
+        content.substring(completionOffset + 1);
+    super.addSource(testpath, content);
+  }
+
+  Future<void> assertOpType(
+      {bool caseLabel: false,
+      bool constructors: false,
+      bool namedArgs: false,
+      bool prefixed: false,
+      bool returnValue: false,
+      bool statementLabel: false,
+      bool staticMethodBody: false,
+      bool typeNames: false,
+      bool varNames: false,
+      bool voidReturn: false,
+      CompletionSuggestionKind kind:
+          CompletionSuggestionKind.INVOCATION}) async {
+    AnalysisResult analysisResult = await driver.getResult(testpath);
+
+    CompletionTarget completionTarget =
+        new CompletionTarget.forOffset(analysisResult.unit, completionOffset);
+    visitor = new OpType.forCompletion(completionTarget, completionOffset);
+
+    expect(visitor.includeCaseLabelSuggestions, caseLabel, reason: 'caseLabel');
+    expect(visitor.includeConstructorSuggestions, constructors,
+        reason: 'constructors');
+    expect(visitor.includeNamedArgumentSuggestions, namedArgs,
+        reason: 'namedArgs');
+    expect(visitor.includeReturnValueSuggestions, returnValue,
+        reason: 'returnValue');
+    expect(visitor.includeStatementLabelSuggestions, statementLabel,
+        reason: 'statementLabel');
+    expect(visitor.includeTypeNameSuggestions, typeNames, reason: 'typeNames');
+    expect(visitor.includeVarNameSuggestions, varNames, reason: 'varNames');
+    expect(visitor.includeVoidReturnSuggestions, voidReturn,
+        reason: 'voidReturn');
+    expect(visitor.inStaticMethodBody, staticMethodBody,
+        reason: 'staticMethodBody');
+    expect(visitor.isPrefixed, prefixed, reason: 'prefixed');
+    expect(visitor.suggestKind, kind, reason: 'suggestion kind');
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+    testpath = provider.convertPath('/completionTest.dart');
   }
 }

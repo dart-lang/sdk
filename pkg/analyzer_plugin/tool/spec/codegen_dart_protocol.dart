@@ -857,7 +857,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
           String flag = 'FLAG_${name.toUpperCase()}';
           String camelName = camelJoin(['is', name]);
           writeln('static const int $flag = $value;');
-          makeFlagsArgs.add('$camelName: false');
+          makeFlagsArgs.add('bool $camelName: false');
           makeFlagsStatements.add('if ($camelName) flags |= $flag;');
         });
         writeln();
@@ -1073,7 +1073,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         }
       }
       return new FromJsonSnippet((String jsonPath, String json) =>
-          'jsonDecoder.decodeUnion($jsonPath, $json, ${literalString(type.field)}, {${decoders.join(', ')}})');
+          'jsonDecoder.decodeUnion($jsonPath, $json as Map, ${literalString(type.field)}, {${decoders.join(', ')}})');
     } else {
       throw new Exception("Can't convert $type from JSON");
     }

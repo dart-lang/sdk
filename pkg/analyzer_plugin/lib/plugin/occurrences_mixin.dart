@@ -55,7 +55,7 @@ abstract class OccurrencesMixin implements ServerPlugin {
   Future<OccurrencesRequest> getOccurrencesRequest(String path);
 
   @override
-  Future<Null> sendOccurrencesNotification(String path) async {
+  Future<void> sendOccurrencesNotification(String path) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     try {

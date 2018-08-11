@@ -415,31 +415,31 @@ class _TestServerPlugin extends MockServerPlugin {
       : super(resourceProvider);
 
   @override
-  Future<Null> sendFoldingNotification(String path) {
+  Future<void> sendFoldingNotification(String path) {
     _sent(path, AnalysisService.FOLDING);
     return new Future.value();
   }
 
   @override
-  Future<Null> sendHighlightsNotification(String path) {
+  Future<void> sendHighlightsNotification(String path) {
     _sent(path, AnalysisService.HIGHLIGHTS);
     return new Future.value();
   }
 
   @override
-  Future<Null> sendNavigationNotification(String path) {
+  Future<void> sendNavigationNotification(String path) {
     _sent(path, AnalysisService.NAVIGATION);
     return new Future.value();
   }
 
   @override
-  Future<Null> sendOccurrencesNotification(String path) {
+  Future<void> sendOccurrencesNotification(String path) {
     _sent(path, AnalysisService.OCCURRENCES);
     return new Future.value();
   }
 
   @override
-  Future<Null> sendOutlineNotification(String path) {
+  Future<void> sendOutlineNotification(String path) {
     _sent(path, AnalysisService.OUTLINE);
     return new Future.value();
   }

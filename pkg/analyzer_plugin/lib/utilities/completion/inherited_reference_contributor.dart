@@ -40,7 +40,7 @@ class InheritedReferenceContributor extends Object
    * call on `computeSuggestionsForClass`.
    */
   @override
-  Future<Null> computeSuggestions(
+  Future<void> computeSuggestions(
       DartCompletionRequest request, CompletionCollector collector) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -62,7 +62,7 @@ class InheritedReferenceContributor extends Object
   /**
    * Clients should not overload this function.
    */
-  Future<Null> computeSuggestionsForClass(
+  Future<void> computeSuggestionsForClass(
     DartCompletionRequest request,
     CompletionCollector collector,
     ClassElement classElement, {

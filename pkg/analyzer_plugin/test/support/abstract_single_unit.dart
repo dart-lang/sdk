@@ -95,7 +95,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     return length;
   }
 
-  Future<Null> resolveTestUnit(String code) async {
+  Future<void> resolveTestUnit(String code) async {
     addTestSource(code);
     var result = await driver.getResult(testFile);
     testUnit = (result).unit;

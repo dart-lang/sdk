@@ -2069,7 +2069,7 @@ class B {}
     expect(edit.replacement, equalsIgnoringWhitespace('implements A, B'));
   }
 
-  Future<Null> _assertImportLibrary(
+  Future<void> _assertImportLibrary(
       String initialCode, List<String> newUris, String expectedCode) async {
     String path = provider.convertPath('/test.dart');
     addSource(path, initialCode);

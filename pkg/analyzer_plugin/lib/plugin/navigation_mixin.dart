@@ -85,7 +85,7 @@ abstract class NavigationMixin implements ServerPlugin {
    * server.
    */
   @override
-  Future<Null> sendNavigationNotification(String path) async {
+  Future<void> sendNavigationNotification(String path) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     try {

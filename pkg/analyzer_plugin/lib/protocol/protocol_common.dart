@@ -1697,15 +1697,10 @@ class Element implements HasToJson {
   }
 
   bool get isAbstract => (flags & FLAG_ABSTRACT) != 0;
-
   bool get isConst => (flags & FLAG_CONST) != 0;
-
   bool get isFinal => (flags & FLAG_FINAL) != 0;
-
   bool get isStatic => (flags & FLAG_STATIC) != 0;
-
   bool get isPrivate => (flags & FLAG_PRIVATE) != 0;
-
   bool get isDeprecated => (flags & FLAG_DEPRECATED) != 0;
 
   @override
