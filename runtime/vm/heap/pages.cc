@@ -1367,10 +1367,9 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
   gc_threshold_in_words_ =
       after.CombinedCapacityInWords() + (kPageSizeInWords * grow_heap);
 
-  // Set the idle threshold halfway between the current capacity and the
-  // capacity at which we'd block for a GC.
+  // Set a tight idle threshold.
   idle_gc_threshold_in_words_ =
-      (after.CombinedCapacityInWords() + gc_threshold_in_words_) / 2;
+      after.CombinedCapacityInWords() + 2 * kPageSizeInWords;
 
   if (FLAG_log_growth) {
     THR_Print("%s: threshold=%" Pd "kB, idle_threshold=%" Pd "kB\n",
