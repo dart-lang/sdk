@@ -1482,8 +1482,7 @@ LocalVariable* ScopeBuilder::MakeVariable(
     const InferredTypeMetadata* param_type_md /* = NULL */) {
   CompileType* param_type = NULL;
   if ((param_type_md != NULL) && !param_type_md->IsTrivial()) {
-    param_type = new (Z) CompileType(CompileType::CreateNullable(
-        param_type_md->nullable, param_type_md->cid));
+    param_type = new (Z) CompileType(param_type_md->ToCompileType(Z));
   }
   return new (Z)
       LocalVariable(declaration_pos, token_pos, name, type, param_type);

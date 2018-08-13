@@ -359,8 +359,7 @@ Fragment FlowGraphBuilder::InstanceCall(
       checked_argument_count, ic_data_array_, GetNextDeoptId(),
       interface_target);
   if ((result_type != NULL) && !result_type->IsTrivial()) {
-    call->SetResultType(Z, CompileType::CreateNullable(result_type->nullable,
-                                                       result_type->cid));
+    call->SetResultType(Z, result_type->ToCompileType(Z));
   }
   Push(call);
   return Fragment(call);
@@ -553,8 +552,7 @@ void FlowGraphBuilder::SetResultTypeForStaticCall(
     }
   }
   if ((result_type != NULL) && !result_type->IsTrivial()) {
-    call->SetResultType(Z, CompileType::CreateNullable(result_type->nullable,
-                                                       result_type->cid));
+    call->SetResultType(Z, result_type->ToCompileType(Z));
   }
 }
 

@@ -957,9 +957,10 @@ CompileType ParameterInstr::ComputeType() const {
       if (block_->IsGraphEntry()) {
         inferred_type = param->parameter_type();
       }
-      // Best bet: use inferred type if it has a concrete class.
-      if ((inferred_type != NULL) &&
-          (inferred_type->ToNullableCid() != kDynamicCid)) {
+      // Best bet: use inferred type if it is a concrete class or int.
+      if ((inferred_type != nullptr) &&
+          ((inferred_type->ToNullableCid() != kDynamicCid) ||
+           inferred_type->IsNullableInt())) {
         TraceStrongModeType(this, inferred_type);
         return *inferred_type;
       }

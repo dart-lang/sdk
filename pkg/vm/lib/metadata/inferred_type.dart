@@ -9,18 +9,25 @@ import 'package:kernel/ast.dart';
 /// Metadata for annotating nodes with an inferred type information.
 class InferredType {
   final Reference _concreteClassReference;
-  final bool nullable;
+  final int _flags;
 
-  InferredType(Class concreteClass, bool nullable)
-      : this._byReference(getClassReference(concreteClass), nullable);
+  static const int flagNullable = 1 << 0;
+  static const int flagInt = 1 << 1;
 
-  InferredType._byReference(this._concreteClassReference, this.nullable);
+  InferredType(Class concreteClass, bool nullable, bool isInt)
+      : this._byReference(getClassReference(concreteClass),
+            (nullable ? flagNullable : 0) | (isInt ? flagInt : 0));
+
+  InferredType._byReference(this._concreteClassReference, this._flags);
 
   Class get concreteClass => _concreteClassReference?.asClass;
 
+  bool get nullable => (_flags & flagNullable) != 0;
+  bool get isInt => (_flags & flagInt) != 0;
+
   @override
   String toString() =>
-      "${concreteClass != null ? concreteClass : '!'}${nullable ? '?' : ''}";
+      "${concreteClass != null ? concreteClass : (isInt ? 'int' : '!')}${nullable ? '?' : ''}";
 }
 
 /// Repository for [InferredType].
@@ -35,14 +42,14 @@ class InferredTypeMetadataRepository extends MetadataRepository<InferredType> {
   void writeToBinary(InferredType metadata, Node node, BinarySink sink) {
     sink.writeCanonicalNameReference(
         getCanonicalNameOfClass(metadata.concreteClass));
-    sink.writeByte(metadata.nullable ? 1 : 0);
+    sink.writeByte(metadata._flags);
   }
 
   @override
   InferredType readFromBinary(Node node, BinarySource source) {
     final concreteClassReference =
         source.readCanonicalNameReference()?.getReference();
-    final nullable = (source.readByte() != 0);
-    return new InferredType._byReference(concreteClassReference, nullable);
+    final flags = source.readByte();
+    return new InferredType._byReference(concreteClassReference, flags);
   }
 }

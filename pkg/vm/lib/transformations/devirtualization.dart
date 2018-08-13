@@ -72,7 +72,7 @@ abstract class Devirtualization extends RecursiveVisitor<Null> {
       directCall.checkReceiverForNull &&
       _objectMemberNames.contains(directCall.target.name);
 
-  DirectCallMetadata getDirectCall(TreeNode node, Member target,
+  DirectCallMetadata getDirectCall(TreeNode node, Member interfaceTarget,
       {bool setter = false});
 
   makeDirectCall(TreeNode node, Member target, DirectCallMetadata directCall) {
@@ -96,17 +96,20 @@ abstract class Devirtualization extends RecursiveVisitor<Null> {
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
 
-    Member target = node.interfaceTarget;
-    if ((target != null) && isMethod(target)) {
-      DirectCallMetadata directCall = getDirectCall(node, target);
-      // TODO(dartbug.com/30480): Convert _isLegalTargetForMethodInvocation()
-      // check into an assertion once front-end implements override checks.
-      if ((directCall != null) &&
-          isMethod(directCall.target) &&
-          isLegalTargetForMethodInvocation(directCall.target, node.arguments) &&
-          !hasExtraTargetForNull(directCall)) {
-        makeDirectCall(node, target, directCall);
-      }
+    final Member target = node.interfaceTarget;
+    if (target != null && !isMethod(target)) {
+      return;
+    }
+
+    final DirectCallMetadata directCall = getDirectCall(node, target);
+
+    // TODO(alexmarkov): Convert _isLegalTargetForMethodInvocation()
+    // check into an assertion once front-end implements all override checks.
+    if ((directCall != null) &&
+        isMethod(directCall.target) &&
+        isLegalTargetForMethodInvocation(directCall.target, node.arguments) &&
+        !hasExtraTargetForNull(directCall)) {
+      makeDirectCall(node, target, directCall);
     }
   }
 
@@ -114,14 +117,17 @@ abstract class Devirtualization extends RecursiveVisitor<Null> {
   visitPropertyGet(PropertyGet node) {
     super.visitPropertyGet(node);
 
-    Member target = node.interfaceTarget;
-    if ((target != null) && isFieldOrGetter(target)) {
-      DirectCallMetadata directCall = getDirectCall(node, target);
-      if ((directCall != null) &&
-          isFieldOrGetter(directCall.target) &&
-          !hasExtraTargetForNull(directCall)) {
-        makeDirectCall(node, target, directCall);
-      }
+    final Member target = node.interfaceTarget;
+    if (target != null && !isFieldOrGetter(target)) {
+      return;
+    }
+
+    final DirectCallMetadata directCall = getDirectCall(node, target);
+
+    if ((directCall != null) &&
+        isFieldOrGetter(directCall.target) &&
+        !hasExtraTargetForNull(directCall)) {
+      makeDirectCall(node, target, directCall);
     }
   }
 
@@ -129,12 +135,11 @@ abstract class Devirtualization extends RecursiveVisitor<Null> {
   visitPropertySet(PropertySet node) {
     super.visitPropertySet(node);
 
-    Member target = node.interfaceTarget;
-    if (target != null) {
-      DirectCallMetadata directCall = getDirectCall(node, target, setter: true);
-      if (directCall != null) {
-        makeDirectCall(node, target, directCall);
-      }
+    final Member target = node.interfaceTarget;
+    final DirectCallMetadata directCall =
+        getDirectCall(node, target, setter: true);
+    if (directCall != null) {
+      makeDirectCall(node, target, directCall);
     }
   }
 }
@@ -148,10 +153,13 @@ class CHADevirtualization extends Devirtualization {
       : super(coreTypes, component, hierarchy);
 
   @override
-  DirectCallMetadata getDirectCall(TreeNode node, Member target,
+  DirectCallMetadata getDirectCall(TreeNode node, Member interfaceTarget,
       {bool setter = false}) {
+    if (interfaceTarget == null) {
+      return null;
+    }
     Member singleTarget = _hierarchySubtype
-        .getSingleTargetForInterfaceInvocation(target, setter: setter);
+        .getSingleTargetForInterfaceInvocation(interfaceTarget, setter: setter);
     if (singleTarget == null) {
       return null;
     }

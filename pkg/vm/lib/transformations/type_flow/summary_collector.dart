@@ -1067,16 +1067,17 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   }
 
   @override
-  visitSwitchStatement(SwitchStatement node) {
+  TypeExpr visitSwitchStatement(SwitchStatement node) {
     _visit(node.expression);
     for (var switchCase in node.cases) {
       switchCase.expressions.forEach(_visit);
       _visit(switchCase.body);
     }
+    return null;
   }
 
   @override
-  visitTryCatch(TryCatch node) {
+  TypeExpr visitTryCatch(TryCatch node) {
     _visit(node.body);
     for (var catchClause in node.catches) {
       if (catchClause.exception != null) {
@@ -1087,49 +1088,56 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       }
       _visit(catchClause.body);
     }
+    return null;
   }
 
   @override
-  visitTryFinally(TryFinally node) {
+  TypeExpr visitTryFinally(TryFinally node) {
     _visit(node.body);
     _visit(node.finalizer);
+    return null;
   }
 
   @override
-  visitVariableDeclaration(VariableDeclaration node) {
+  TypeExpr visitVariableDeclaration(VariableDeclaration node) {
     final v = _declareVariable(node, addInitType: true);
     if (node.initializer == null) {
       v.values.add(_nullType);
     }
+    return null;
   }
 
   @override
-  visitWhileStatement(WhileStatement node) {
+  TypeExpr visitWhileStatement(WhileStatement node) {
     _addUse(_visit(node.condition));
     _visit(node.body);
+    return null;
   }
 
   @override
-  visitYieldStatement(YieldStatement node) {
+  TypeExpr visitYieldStatement(YieldStatement node) {
     _visit(node.expression);
+    return null;
   }
 
   @override
-  visitFieldInitializer(FieldInitializer node) {
+  TypeExpr visitFieldInitializer(FieldInitializer node) {
     final value = _visit(node.value);
     final args = new Args<TypeExpr>([_receiver, value]);
     _makeCall(node,
         new DirectSelector(node.field, callKind: CallKind.PropertySet), args);
+    return null;
   }
 
   @override
-  visitRedirectingInitializer(RedirectingInitializer node) {
+  TypeExpr visitRedirectingInitializer(RedirectingInitializer node) {
     final args = _visitArguments(_receiver, node.arguments);
     _makeCall(node, new DirectSelector(node.target), args);
+    return null;
   }
 
   @override
-  visitSuperInitializer(SuperInitializer node) {
+  TypeExpr visitSuperInitializer(SuperInitializer node) {
     final args = _visitArguments(_receiver, node.arguments);
 
     Constructor target = null;
@@ -1146,22 +1154,27 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     }
     assertx(target != null);
     _makeCall(node, new DirectSelector(target), args);
+    return null;
   }
 
   @override
-  visitLocalInitializer(LocalInitializer node) {
+  TypeExpr visitLocalInitializer(LocalInitializer node) {
     visitVariableDeclaration(node.variable);
+    return null;
   }
 
   @override
-  visitAssertInitializer(AssertInitializer node) {
+  TypeExpr visitAssertInitializer(AssertInitializer node) {
     if (!kRemoveAsserts) {
       _visit(node.statement);
     }
+    return null;
   }
 
   @override
-  visitInvalidInitializer(InvalidInitializer node) {}
+  TypeExpr visitInvalidInitializer(InvalidInitializer node) {
+    return null;
+  }
 
   @override
   TypeExpr visitConstantExpression(ConstantExpression node) {

@@ -450,6 +450,13 @@ class _DispatchableInvocation extends _Invocation {
         }
         _getReceiverTypeBuilder(targets, kNoSuchMethodMarker)
             .addConcreteType(receiver);
+      } else if (selector is DynamicSelector) {
+        if (kPrintTrace) {
+          tracePrint(
+              "Dynamic selector - adding noSuchMethod for receiver $receiver");
+        }
+        _getReceiverTypeBuilder(targets, kNoSuchMethodMarker)
+            .addConcreteType(receiver);
       } else {
         if (kPrintTrace) {
           tracePrint("Target is not found for receiver $receiver");

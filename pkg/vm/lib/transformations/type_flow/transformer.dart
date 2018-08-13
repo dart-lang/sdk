@@ -96,7 +96,7 @@ class TFADevirtualization extends Devirtualization {
             _typeFlowAnalysis.environment.hierarchy);
 
   @override
-  DirectCallMetadata getDirectCall(TreeNode node, Member target,
+  DirectCallMetadata getDirectCall(TreeNode node, Member interfaceTarget,
       {bool setter = false}) {
     final callSite = _typeFlowAnalysis.callSite(node);
     if (callSite != null) {
@@ -115,10 +115,12 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
   final TypeFlowAnalysis _typeFlowAnalysis;
   final InferredTypeMetadataRepository _inferredTypeMetadata;
   final UnreachableNodeMetadataRepository _unreachableNodeMetadata;
+  final DartType _intType;
 
   AnnotateKernel(Component component, this._typeFlowAnalysis)
       : _inferredTypeMetadata = new InferredTypeMetadataRepository(),
-        _unreachableNodeMetadata = new UnreachableNodeMetadataRepository() {
+        _unreachableNodeMetadata = new UnreachableNodeMetadataRepository(),
+        _intType = _typeFlowAnalysis.environment.intType {
     component.addMetadataRepository(_inferredTypeMetadata);
     component.addMetadataRepository(_unreachableNodeMetadata);
   }
@@ -127,23 +129,25 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
     assertx(type != null);
 
     Class concreteClass;
+    bool isInt = false;
 
     final nullable = type is NullableType;
     if (nullable) {
-      final baseType = (type as NullableType).baseType;
-
-      if (baseType == const EmptyType()) {
-        concreteClass = _typeFlowAnalysis.environment.coreTypes.nullClass;
-      } else {
-        concreteClass =
-            baseType.getConcreteClass(_typeFlowAnalysis.hierarchyCache);
-      }
-    } else {
-      concreteClass = type.getConcreteClass(_typeFlowAnalysis.hierarchyCache);
+      type = (type as NullableType).baseType;
     }
 
-    if ((concreteClass != null) || !nullable) {
-      return new InferredType(concreteClass, nullable);
+    if (nullable && type == const EmptyType()) {
+      concreteClass = _typeFlowAnalysis.environment.coreTypes.nullClass;
+    } else {
+      concreteClass = type.getConcreteClass(_typeFlowAnalysis.hierarchyCache);
+
+      if (concreteClass == null) {
+        isInt = type.isSubtypeOf(_typeFlowAnalysis.hierarchyCache, _intType);
+      }
+    }
+
+    if ((concreteClass != null) || !nullable || isInt) {
+      return new InferredType(concreteClass, nullable, isInt);
     }
 
     return null;

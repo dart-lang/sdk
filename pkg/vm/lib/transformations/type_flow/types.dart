@@ -95,6 +95,8 @@ abstract class Type extends TypeExpr {
 
   Class getConcreteClass(TypeHierarchy typeHierarchy) => null;
 
+  bool isSubtypeOf(TypeHierarchy typeHierarchy, DartType dartType) => false;
+
   @override
   Type getComputedType(List<Type> types) => this;
 
@@ -166,6 +168,10 @@ class NullableType extends Type {
 
   @override
   String toString() => "${baseType}?";
+
+  @override
+  bool isSubtypeOf(TypeHierarchy typeHierarchy, DartType dartType) =>
+      baseType.isSubtypeOf(typeHierarchy, dartType);
 
   @override
   int get order => TypeOrder.Nullable.index;
@@ -277,6 +283,10 @@ class SetType extends Type {
 
   @override
   String toString() => "_T ${types}";
+
+  @override
+  bool isSubtypeOf(TypeHierarchy typeHierarchy, DartType dartType) =>
+      types.every((ConcreteType t) => t.isSubtypeOf(typeHierarchy, dartType));
 
   @override
   int get order => TypeOrder.Set.index;
@@ -397,6 +407,10 @@ class ConeType extends Type {
       .getConcreteClass(typeHierarchy);
 
   @override
+  bool isSubtypeOf(TypeHierarchy typeHierarchy, DartType dartType) =>
+      typeHierarchy.isSubtype(this.dartType, dartType);
+
+  @override
   int get hashCode => (dartType.hashCode + 37) & kHashMask;
 
   @override
@@ -503,6 +517,10 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
   @override
   Class getConcreteClass(TypeHierarchy typeHierarchy) =>
       (dartType as InterfaceType).classNode;
+
+  @override
+  bool isSubtypeOf(TypeHierarchy typeHierarchy, DartType dartType) =>
+      typeHierarchy.isSubtype(this.dartType, dartType);
 
   @override
   int get hashCode => (classId.hashCode ^ 0x1234) & kHashMask;
