@@ -1184,21 +1184,9 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
     inferrer.updateSelectorInMember(
         caller, _callType, _call, selector, typeMask);
 
-    AbstractValue maskToUse =
-        closedWorld.extendMaskIfReachesAll(selector, typeMask);
-    bool canReachAll =
-        closedWorld.backendUsage.isInvokeOnUsed && (maskToUse != typeMask);
-
-    // If this call could potentially reach all methods that satisfy
-    // the untyped selector (through noSuchMethod's `Invocation`
-    // and a call to `delegate`), we iterate over all these methods to
-    // update their parameter types.
     _hasClosureCallTargets =
-        closedWorld.includesClosureCall(selector, maskToUse);
-    _concreteTargets = closedWorld.locateMembers(selector, maskToUse);
-    Iterable<MemberEntity> typedTargets = canReachAll
-        ? closedWorld.locateMembers(selector, typeMask)
-        : _concreteTargets;
+        closedWorld.includesClosureCall(selector, typeMask);
+    _concreteTargets = closedWorld.locateMembers(selector, typeMask);
 
     // Update the call graph if the targets could have changed.
     if (!identical(_concreteTargets, oldTargets)) {
@@ -1237,14 +1225,6 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
     } else {
       result = inferrer.types
           .joinTypeMasks(_concreteTargets.map((MemberEntity element) {
-        // If [canReachAll] is true, then we are iterating over all
-        // targets that satisfy the untyped selector. We skip the return
-        // type of the targets that can only be reached through
-        // `Invocation.delegate`. Note that the `noSuchMethod` targets
-        // are included in [typedTargets].
-        if (canReachAll && !typedTargets.contains(element)) {
-          return abstractValueDomain.emptyType;
-        }
         if (inferrer.returnsListElementType(selector, typeMask)) {
           return abstractValueDomain.getContainerElementType(receiver.type);
         } else if (inferrer.returnsMapValueType(selector, typeMask)) {

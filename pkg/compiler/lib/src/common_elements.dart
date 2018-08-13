@@ -892,10 +892,6 @@ class CommonElements {
   ConstructorEntity get typeVariableConstructor => _typeVariableConstructor ??=
       _env.lookupConstructor(typeVariableClass, '');
 
-  FunctionEntity _invokeOnMethod;
-  FunctionEntity get invokeOnMethod => _invokeOnMethod ??= _env
-      .lookupLocalClassMember(jsInvocationMirrorClass, '_getCachedInvocation');
-
   FunctionEntity _assertTest;
   FunctionEntity get assertTest =>
       _assertTest ??= _findHelperFunction('assertTest');

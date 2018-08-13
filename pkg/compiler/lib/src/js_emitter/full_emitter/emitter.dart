@@ -377,10 +377,6 @@ class Emitter extends js_emitter.EmitterBase {
         subclassReadGenerator, interceptorsByTagAccess, leafTagsAccess);
   }
 
-  jsAst.ObjectInitializer generateInterceptedNamesSet() {
-    return interceptorEmitter.generateInterceptedNamesSet();
-  }
-
   /// In minified mode we want to keep the name for the most common core types.
   bool _isNativeTypeNeedingReflectionName(ClassEntity element) {
     return (element == commonElements.intClass ||

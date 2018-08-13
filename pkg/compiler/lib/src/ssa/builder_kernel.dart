@@ -40,8 +40,7 @@ import '../universe/feature.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart' show SideEffects;
 import '../universe/target_checks.dart' show TargetChecks;
-import '../universe/use.dart'
-    show ConstantUse, ConstrainedDynamicUse, StaticUse;
+import '../universe/use.dart' show ConstantUse, StaticUse;
 import '../universe/world_builder.dart' show CodegenWorldBuilder;
 import '../world.dart';
 import 'graph_builder.dart';
@@ -4469,17 +4468,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
         _elementMap.getClass(_containingClass(invocation));
     FunctionEntity noSuchMethod =
         _elementMap.getSuperNoSuchMethod(containingClass);
-    if (backendUsage.isInvokeOnUsed &&
-        noSuchMethod.enclosingClass != _commonElements.objectClass) {
-      // Register the call as dynamic if [noSuchMethod] on the super
-      // class is _not_ the default implementation from [Object] (it might be
-      // overridden in the super class, but it might have a different number of
-      // arguments), in case the [noSuchMethod] implementation calls
-      // [JSInvocationMirror._invokeOn].
-      // TODO(johnniwinther): Register this more precisely.
-      registry
-          ?.registerDynamicUse(new ConstrainedDynamicUse(selector, null, null));
-    }
 
     ConstantValue nameConstant = constantSystem.createString(publicName);
 

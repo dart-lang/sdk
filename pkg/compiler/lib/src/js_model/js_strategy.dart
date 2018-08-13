@@ -439,7 +439,6 @@ class JsClosedWorldBuilder {
         needToInitializeDispatchProperty:
             backendUsage.needToInitializeDispatchProperty,
         requiresPreamble: backendUsage.requiresPreamble,
-        isInvokeOnUsed: backendUsage.isInvokeOnUsed,
         runtimeTypeUses: runtimeTypeUses,
         isFunctionApplyUsed: backendUsage.isFunctionApplyUsed,
         isMirrorsUsed: backendUsage.isMirrorsUsed,
