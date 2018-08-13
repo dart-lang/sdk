@@ -38,7 +38,7 @@ Bytecode {
   CheckStack
   JumpIfNoAsserts      L1
   Push                 FP[-6]
-  InstanceCall1        1, CP#1
+  InstanceCall         1, CP#1
   AssertBoolean        0
   PushConstant         CP#2
   IfEqStrictTOS
@@ -46,7 +46,7 @@ Bytecode {
   PushConstant         CP#3
   PushConstant         CP#3
   Push                 FP[-5]
-  InstanceCall1        1, CP#4
+  InstanceCall         1, CP#4
   PushConstant         CP#6
   IndirectStaticCall   3, CP#5
   Drop1

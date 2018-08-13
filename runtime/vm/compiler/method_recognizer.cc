@@ -22,6 +22,18 @@ bool MethodRecognizer::PolymorphicTarget(const Function& function) {
   return function.is_polymorphic_target();
 }
 
+intptr_t MethodRecognizer::NumArgsCheckedForStaticCall(
+    const Function& function) {
+  switch (RecognizeKind(function)) {
+    case MethodRecognizer::kDoubleFromInteger:
+    case MethodRecognizer::kMathMin:
+    case MethodRecognizer::kMathMax:
+      return 2;
+    default:
+      return 0;
+  }
+}
+
 intptr_t MethodRecognizer::ResultCid(const Function& function) {
   switch (function.recognized_kind()) {
 #define DEFINE_CASE(cname, fname, ename, result_type, fingerprint)             \

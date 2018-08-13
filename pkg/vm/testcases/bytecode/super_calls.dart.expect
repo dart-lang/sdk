@@ -190,7 +190,7 @@ Bytecode {
   PushConstant         CP#2
   IndirectStaticCall   1, CP#1
   PushConstant         CP#3
-  InstanceCall1        3, CP#5
+  InstanceCall         3, CP#5
   ReturnTOS
   PushConstant         CP#6
   ReturnTOS
@@ -444,7 +444,7 @@ Bytecode {
   PushConstant         CP#10
   IndirectStaticCall   2, CP#9
   PushConstant         CP#11
-  InstanceCall1        3, CP#13
+  InstanceCall         3, CP#13
   ReturnTOS
   PushConstant         CP#14
   ReturnTOS

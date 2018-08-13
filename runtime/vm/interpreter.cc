@@ -2340,7 +2340,7 @@ RawObject* Interpreter::Call(RawFunction* function,
   }
 
   {
-    BYTECODE(InstanceCall1, A_D);
+    BYTECODE(InstanceCall, A_D);
 
     // Check if single stepping.
     if (thread->isolate()->single_step()) {
@@ -2359,36 +2359,18 @@ RawObject* Interpreter::Call(RawFunction* function,
       RawICData* icdata = RAW_CAST(ICData, LOAD_CONSTANT(kidx));
       InterpreterHelpers::IncrementUsageCounter(
           RAW_CAST(Function, icdata->ptr()->owner_));
-      if (!InstanceCall1(thread, icdata, call_base, call_top, &pc, &FP, &SP,
-                         false /* optimized */)) {
-        HANDLE_EXCEPTION;
-      }
-    }
-
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(InstanceCall2, A_D);
-    if (thread->isolate()->single_step()) {
-      Exit(thread, FP, SP + 1, pc);
-      NativeArguments args(thread, 0, NULL, NULL);
-      INVOKE_RUNTIME(DRT_SingleStepHandler, args);
-    }
-
-    {
-      const uint16_t argc = rA;
-      const uint16_t kidx = rD;
-
-      RawObject** call_base = SP - argc + 1;
-      RawObject** call_top = SP + 1;
-
-      RawICData* icdata = RAW_CAST(ICData, LOAD_CONSTANT(kidx));
-      InterpreterHelpers::IncrementUsageCounter(
-          RAW_CAST(Function, icdata->ptr()->owner_));
-      if (!InstanceCall2(thread, icdata, call_base, call_top, &pc, &FP, &SP,
-                         false /* optimized */)) {
-        HANDLE_EXCEPTION;
+      if (ICData::NumArgsTestedBits::decode(icdata->ptr()->state_bits_) == 1) {
+        if (!InstanceCall1(thread, icdata, call_base, call_top, &pc, &FP, &SP,
+                           false /* optimized */)) {
+          HANDLE_EXCEPTION;
+        }
+      } else {
+        ASSERT(ICData::NumArgsTestedBits::decode(icdata->ptr()->state_bits_) ==
+               2);
+        if (!InstanceCall2(thread, icdata, call_base, call_top, &pc, &FP, &SP,
+                           false /* optimized */)) {
+          HANDLE_EXCEPTION;
+        }
       }
     }
 

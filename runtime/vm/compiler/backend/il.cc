@@ -4119,18 +4119,8 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       (ic_data() == NULL)) {
     const Array& arguments_descriptor =
         Array::Handle(zone, GetArgumentsDescriptor());
-    MethodRecognizer::Kind recognized_kind =
-        MethodRecognizer::RecognizeKind(function());
-    int num_args_checked = 0;
-    switch (recognized_kind) {
-      case MethodRecognizer::kDoubleFromInteger:
-      case MethodRecognizer::kMathMin:
-      case MethodRecognizer::kMathMax:
-        num_args_checked = 2;
-        break;
-      default:
-        break;
-    }
+    const int num_args_checked =
+        MethodRecognizer::NumArgsCheckedForStaticCall(function());
     call_ic_data = compiler->GetOrAddStaticCallICData(
         deopt_id(), function(), arguments_descriptor, num_args_checked,
         rebind_rule_);

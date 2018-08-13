@@ -110,7 +110,7 @@ Bytecode {
   LoadTypeArgumentsField CP#0
   PushConstant         CP#1
   PushConstant         CP#2
-  InstanceCall1        4, CP#4
+  InstanceCall         4, CP#4
   AssertBoolean        0
   PushConstant         CP#5
   IfNeStrictTOS
@@ -125,7 +125,7 @@ L1:
   LoadTypeArgumentsField CP#0
   PushConstant         CP#1
   PushConstant         CP#9
-  InstanceCall1        4, CP#10
+  InstanceCall         4, CP#10
   AssertBoolean        0
   PushConstant         CP#5
   IfNeStrictTOS
@@ -143,7 +143,7 @@ L2:
   PushConstant         CP#13
   PushConstant         CP#14
   AssertAssignable     0, CP#15
-  InstanceCall1        2, CP#17
+  InstanceCall         2, CP#17
   Drop1
   PushConstant         CP#1
   ReturnTOS
@@ -186,7 +186,7 @@ Bytecode {
   PushConstant         CP#0
   Push                 r0
   PushConstant         CP#1
-  InstanceCall1        4, CP#3
+  InstanceCall         4, CP#3
   AssertBoolean        0
   PushConstant         CP#4
   IfNeStrictTOS
@@ -201,7 +201,7 @@ L1:
   LoadTypeArgumentsField CP#8
   Push                 r0
   PushConstant         CP#9
-  InstanceCall1        4, CP#10
+  InstanceCall         4, CP#10
   AssertBoolean        0
   PushConstant         CP#4
   IfNeStrictTOS
@@ -216,8 +216,8 @@ L2:
   LoadTypeArgumentsField CP#8
   Push                 r0
   PushConstant         CP#13
-  InstanceCall1        4, CP#14
-  InstanceCall1        1, CP#15
+  InstanceCall         4, CP#14
+  InstanceCall         1, CP#15
   ReturnTOS
   PushConstant         CP#0
   ReturnTOS
@@ -371,7 +371,7 @@ Bytecode {
   PushConstant         CP#0
   PushConstant         CP#0
   PushConstant         CP#1
-  InstanceCall1        4, CP#3
+  InstanceCall         4, CP#3
   AssertBoolean        0
   PushConstant         CP#4
   IfNeStrictTOS
@@ -385,7 +385,7 @@ L1:
   PushConstant         CP#0
   PushConstant         CP#0
   PushConstant         CP#8
-  InstanceCall1        4, CP#9
+  InstanceCall         4, CP#9
   AssertBoolean        0
   PushConstant         CP#4
   IfNeStrictTOS
@@ -399,7 +399,7 @@ L2:
   PushConstant         CP#0
   PushConstant         CP#0
   PushConstant         CP#12
-  InstanceCall1        4, CP#13
+  InstanceCall         4, CP#13
   ReturnTOS
   PushConstant         CP#0
   ReturnTOS

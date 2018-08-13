@@ -220,11 +220,11 @@ Bytecode {
   PopLocal             r3
   PushConstant         CP#51
   Push                 r3
-  InstanceCall1        2, CP#52
+  InstanceCall         2, CP#52
   Drop1
   PushConstant         CP#53
   Push                 r3
-  InstanceCall1        2, CP#54
+  InstanceCall         2, CP#54
   Drop1
   PushConstant         CP#18
   ReturnTOS
@@ -404,7 +404,7 @@ Closure CP#9 {
   StoreFieldTOS        CP#1
   PopLocal             r3
   Push                 r3
-  InstanceCall1        1, CP#43
+  InstanceCall         1, CP#43
   Drop1
   PushConstant         CP#18
   ReturnTOS
@@ -445,11 +445,11 @@ Closure CP#0 {
   PopLocal             r3
   PushConstant         CP#45
   Push                 r3
-  InstanceCall1        2, CP#47
+  InstanceCall         2, CP#47
   Drop1
   PushConstant         CP#48
   Push                 r3
-  InstanceCall1        2, CP#49
+  InstanceCall         2, CP#49
   Drop1
   PushConstant         CP#18
   ReturnTOS
@@ -538,11 +538,11 @@ Bytecode {
   PopLocal             r3
   Push                 r3
   PushConstant         CP#32
-  InstanceCall1        2, CP#33
+  InstanceCall         2, CP#33
   Drop1
   Push                 r3
   PushConstant         CP#34
-  InstanceCall1        2, CP#35
+  InstanceCall         2, CP#35
   Drop1
   Push                 r2
   PushConstant         CP#36
@@ -589,7 +589,7 @@ Bytecode {
   StoreFieldTOS        CP#4
   PopLocal             r2
   Push                 r2
-  InstanceCall1        1, CP#43
+  InstanceCall         1, CP#43
   Drop1
   Push                 r0
   LoadContextParent
@@ -658,7 +658,7 @@ Closure CP#16 {
   LoadContextParent
   LoadContextVar       0
   PushConstant         CP#1
-  InstanceCall1        2, CP#17
+  InstanceCall         2, CP#17
   StoreContextVar      0
   Push                 r0
   Push                 r0
@@ -667,11 +667,11 @@ Closure CP#16 {
   LoadContextParent
   LoadContextParent
   LoadContextVar       0
-  InstanceCall1        1, CP#19
+  InstanceCall         1, CP#19
   Push                 r0
   LoadContextParent
   LoadContextVar       0
-  InstanceCall1        2, CP#20
+  InstanceCall         2, CP#20
   StoreContextVar      0
   PushConstant         CP#6
   ReturnTOS
@@ -712,14 +712,14 @@ Closure CP#3 {
   Push                 r0
   LoadContextVar       0
   PushConstant         CP#0
-  InstanceCall1        2, CP#11
+  InstanceCall         2, CP#11
   StoreContextVar      0
   Push                 r0
   LoadContextParent
   LoadContextParent
   LoadContextVar       0
   PushConstant         CP#12
-  InstanceCall1        2, CP#13
+  InstanceCall         2, CP#13
   AssertBoolean        0
   PushConstant         CP#14
   IfNeStrictTOS
@@ -749,7 +749,7 @@ Closure CP#3 {
   StoreFieldTOS        CP#4
   PopLocal             r3
   Push                 r3
-  InstanceCall1        1, CP#29
+  InstanceCall         1, CP#29
   Drop1
   Push                 r0
   LoadContextVar       0
@@ -776,7 +776,7 @@ Closure CP#40 {
   LoadContextVar       0
   Push                 r0
   LoadContextVar       0
-  InstanceCall1        2, CP#41
+  InstanceCall         2, CP#41
   Drop1
   PushConstant         CP#6
   ReturnTOS
@@ -881,7 +881,7 @@ L2:
   Push                 r0
   LoadContextVar       0
   PushConstant         CP#5
-  InstanceCall1        2, CP#6
+  InstanceCall         2, CP#6
   AssertBoolean        0
   PushConstant         CP#7
   IfNeStrictTOS
@@ -901,7 +901,7 @@ L2:
   Push                 r3
   Push                 r0
   StoreFieldTOS        CP#9
-  InstanceCall1        2, CP#21
+  InstanceCall         2, CP#21
   Drop1
   Push                 r4
   Allocate             CP#14
@@ -918,7 +918,7 @@ L2:
   Push                 r3
   Push                 r0
   StoreFieldTOS        CP#9
-  InstanceCall1        2, CP#28
+  InstanceCall         2, CP#28
   Drop1
   Push                 r0
   CloneContext
@@ -927,7 +927,7 @@ L2:
   Push                 r0
   LoadContextVar       0
   PushConstant         CP#29
-  InstanceCall1        2, CP#30
+  InstanceCall         2, CP#30
   StoreLocal           r3
   StoreContextVar      0
   Push                 r3
@@ -987,7 +987,7 @@ Closure CP#8 {
   Push                 r0
   LoadContextParent
   LoadContextVar       0
-  InstanceCall1        2, CP#11
+  InstanceCall         2, CP#11
   ReturnTOS
   PushConstant         CP#12
   ReturnTOS
@@ -1012,7 +1012,7 @@ Closure CP#22 {
   Push                 r0
   LoadContextParent
   LoadContextVar       0
-  InstanceCall1        2, CP#26
+  InstanceCall         2, CP#26
   StoreContextVar      0
   PushConstant         CP#12
   ReturnTOS
@@ -1041,12 +1041,12 @@ Bytecode {
   AssertAssignable     0, CP#3
   Drop1
   Push                 FP[-5]
-  InstanceCall1        1, CP#5
+  InstanceCall         1, CP#5
   PopLocal             r2
 L2:
   CheckStack
   Push                 r2
-  InstanceCall1        1, CP#6
+  InstanceCall         1, CP#6
   PushConstant         CP#7
   IfNeStrictTOS
   Jump                 L1
@@ -1058,7 +1058,7 @@ L2:
   PopLocal             r0
   Push                 r0
   Push                 r2
-  InstanceCall1        1, CP#8
+  InstanceCall         1, CP#8
   StoreContextVar      0
   Allocate             CP#16
   StoreLocal           r4
@@ -1076,7 +1076,7 @@ L2:
   StoreFieldTOS        CP#10
   PopLocal             r3
   Push                 r3
-  InstanceCall1        1, CP#23
+  InstanceCall         1, CP#23
   Drop1
   Push                 r0
   LoadContextVar       0
@@ -1128,7 +1128,7 @@ Closure CP#9 {
   Push                 r0
   LoadContextVar       0
   PushConstant         CP#12
-  InstanceCall1        2, CP#14
+  InstanceCall         2, CP#14
   StoreContextVar      0
   PushConstant         CP#0
   ReturnTOS
@@ -1265,7 +1265,7 @@ Bytecode {
   PopLocal             r2
   Push                 r2
   PushConstant         CP#18
-  InstanceCall1        2, CP#19
+  InstanceCall         2, CP#19
   Drop1
   Push                 r0
   LoadContextVar       0
@@ -1315,7 +1315,7 @@ Closure CP#1 {
   Push                 r0
   LoadContextVar       0
   Push                 FP[-5]
-  InstanceCall1        2, CP#9
+  InstanceCall         2, CP#9
   StoreContextVar      0
   PushConstant         CP#4
   ReturnTOS
@@ -1437,7 +1437,7 @@ Bytecode {
   PushConstant         CP#4
   IndirectStaticCall   1, CP#3
   Drop1
-  InstanceCall1        2, CP#6
+  InstanceCall         2, CP#6
   Drop1
   PushConstant         CP#7
   PushConstant         CP#2
@@ -1448,7 +1448,7 @@ Bytecode {
   PushConstant         CP#8
   IndirectStaticCall   1, CP#3
   Drop1
-  InstanceCall1        2, CP#9
+  InstanceCall         2, CP#9
   Drop1
   PushConstant         CP#7
   PushConstant         CP#10
@@ -1459,7 +1459,7 @@ Bytecode {
   PushConstant         CP#11
   IndirectStaticCall   1, CP#3
   Drop1
-  InstanceCall1        2, CP#12
+  InstanceCall         2, CP#12
   Drop1
   PushConstant         CP#13
   ReturnTOS

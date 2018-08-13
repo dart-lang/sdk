@@ -137,7 +137,7 @@ Try #0 handler:
   LoadContextVar       6
   Push                 r8
   Push                 r9
-  InstanceCall1        3, CP#19
+  InstanceCall         3, CP#19
   Drop1
   Jump                 L3
 L3:
@@ -245,7 +245,7 @@ Closure CP#0 {
   Drop1
   Push                 r0
   LoadContextVar       6
-  InstanceCall1        1, CP#33
+  InstanceCall         1, CP#33
   ReturnTOS
   Push                 r0
   LoadContextParent
@@ -346,7 +346,7 @@ Bytecode {
   Drop1
   Push                 r0
   LoadContextVar       3
-  InstanceCall1        1, CP#27
+  InstanceCall         1, CP#27
   ReturnTOS
   Push                 r0
   LoadContextParent
@@ -432,7 +432,7 @@ Try #0 handler:
   LoadContextVar       3
   Push                 r8
   Push                 r9
-  InstanceCall1        3, CP#13
+  InstanceCall         3, CP#13
   Drop1
   Jump                 L3
 L3:
@@ -556,7 +556,7 @@ Bytecode {
   Drop1
   Push                 r0
   LoadContextVar       8
-  InstanceCall1        1, CP#32
+  InstanceCall         1, CP#32
   ReturnTOS
   Push                 r0
   LoadContextParent
@@ -680,7 +680,7 @@ L3:
   Push                 r4
   LoadContextVar       6
   Push                 r1
-  InstanceCall1        2, CP#14
+  InstanceCall         2, CP#14
   StoreContextVar      7
   Jump                 L4
 L4:
@@ -712,7 +712,7 @@ Try #0 handler:
   LoadContextVar       8
   Push                 r8
   Push                 r9
-  InstanceCall1        3, CP#18
+  InstanceCall         3, CP#18
   Drop1
   Jump                 L5
 L5:
@@ -848,7 +848,7 @@ Bytecode {
   Drop1
   Push                 r0
   LoadContextVar       9
-  InstanceCall1        1, CP#44
+  InstanceCall         1, CP#44
   ReturnTOS
   Push                 r0
   LoadContextParent
@@ -946,7 +946,7 @@ L6:
   Push                 r4
   LoadContextVar       0
   PushConstant         CP#8
-  InstanceCall1        2, CP#10
+  InstanceCall         2, CP#10
   AssertBoolean        0
   PushConstant         CP#11
   IfNeStrictTOS
@@ -963,7 +963,7 @@ L6:
   LoadContextParent
   LoadContextParent
   LoadContextVar       0
-  InstanceCall1        1, CP#12
+  InstanceCall         1, CP#12
   PopLocal             r8
   Push                 r4
   Push                 r8
@@ -973,7 +973,7 @@ L5:
   Push                 r4
   LoadContextVar       0
   StoreLocal           r8
-  InstanceCall1        1, CP#13
+  InstanceCall         1, CP#13
   PushConstant         CP#11
   IfNeStrictTOS
   Jump                 L3
@@ -985,7 +985,7 @@ L5:
   PopLocal             r4
   Push                 r4
   Push                 r8
-  InstanceCall1        1, CP#14
+  InstanceCall         1, CP#14
   StoreContextVar      0
   Push                 r4
   LoadContextParent
@@ -1009,7 +1009,7 @@ L5:
   LoadContextVar       0
   Push                 r4
   LoadContextVar       0
-  InstanceCall1        2, CP#15
+  InstanceCall         2, CP#15
   StoreContextVar      3
   Push                 r4
   LoadContextParent
@@ -1074,8 +1074,8 @@ L4:
   LoadContextParent
   LoadContextVar       3
   Push                 r1
-  InstanceCall1        2, CP#21
-  InstanceCall1        2, CP#22
+  InstanceCall         2, CP#21
+  InstanceCall         2, CP#22
   StoreContextVar      0
   Push                 r4
   LoadContextParent
@@ -1092,7 +1092,7 @@ L3:
   Push                 r4
   LoadContextVar       0
   PushConstant         CP#16
-  InstanceCall1        2, CP#23
+  InstanceCall         2, CP#23
   StoreLocal           r8
   StoreContextVar      0
   Push                 r8
@@ -1108,7 +1108,7 @@ L8:
   CheckStack
   Push                 r8
   PushConstant         CP#8
-  InstanceCall1        2, CP#24
+  InstanceCall         2, CP#24
   AssertBoolean        0
   PushConstant         CP#11
   IfNeStrictTOS
@@ -1117,11 +1117,11 @@ L8:
   Push                 r4
   LoadContextVar       0
   Push                 r8
-  InstanceCall1        2, CP#25
+  InstanceCall         2, CP#25
   StoreContextVar      0
   Push                 r8
   PushConstant         CP#16
-  InstanceCall1        2, CP#26
+  InstanceCall         2, CP#26
   StoreLocal           r8
   Drop1
   Jump                 L8
@@ -1167,7 +1167,7 @@ Try #0 handler:
   LoadContextVar       9
   Push                 r8
   Push                 r9
-  InstanceCall1        3, CP#30
+  InstanceCall         3, CP#30
   Drop1
   Jump                 L10
 L10:
@@ -1324,7 +1324,7 @@ Bytecode {
   Drop1
   Push                 r0
   LoadContextVar       12
-  InstanceCall1        1, CP#50
+  InstanceCall         1, CP#50
   ReturnTOS
   Push                 r0
   LoadContextParent
@@ -1467,7 +1467,7 @@ L2:
   LoadContextParent
   LoadContextVar       2
   Push                 r1
-  InstanceCall1        2, CP#12
+  InstanceCall         2, CP#12
   StoreContextVar      0
   Jump                 L3
 Try #2 end:
@@ -1502,7 +1502,7 @@ Try #2 handler:
   PushConstant         CP#3
   PushConstant         CP#3
   PushConstant         CP#14
-  InstanceCall1        4, CP#15
+  InstanceCall         4, CP#15
   AssertBoolean        0
   PushConstant         CP#16
   IfNeStrictTOS
@@ -1567,7 +1567,7 @@ L6:
   LoadContextParent
   LoadContextVar       2
   Push                 r1
-  InstanceCall1        2, CP#20
+  InstanceCall         2, CP#20
   StoreContextVar      0
   Push                 r4
   LoadContextParent
@@ -1650,7 +1650,7 @@ L8:
   LoadContextParent
   LoadContextVar       2
   Push                 r1
-  InstanceCall1        2, CP#25
+  InstanceCall         2, CP#25
   StoreContextVar      0
   Push                 r4
   LoadContextParent
@@ -1722,7 +1722,7 @@ L10:
   LoadContextParent
   LoadContextVar       2
   Push                 r1
-  InstanceCall1        2, CP#29
+  InstanceCall         2, CP#29
   StoreContextVar      0
   Push                 r4
   LoadContextParent
@@ -1791,7 +1791,7 @@ L11:
   LoadContextParent
   LoadContextVar       2
   Push                 r1
-  InstanceCall1        2, CP#33
+  InstanceCall         2, CP#33
   StoreContextVar      0
   Push                 r4
   LoadContextParent
@@ -1834,7 +1834,7 @@ Try #0 handler:
   LoadContextVar       12
   Push                 r8
   Push                 r9
-  InstanceCall1        3, CP#36
+  InstanceCall         3, CP#36
   Drop1
   Jump                 L12
 L12:
@@ -2086,7 +2086,7 @@ L2:
   LoadContextVar       0
   Push                 r4
   LoadContextVar       0
-  InstanceCall1        2, CP#16
+  InstanceCall         2, CP#16
   StoreContextVar      7
   Jump                 L3
   Jump                 L4
@@ -2165,7 +2165,7 @@ Try #0 handler:
   LoadContextVar       8
   Push                 r8
   Push                 r9
-  InstanceCall1        3, CP#24
+  InstanceCall         3, CP#24
   Drop1
   Jump                 L6
 L6:
@@ -2260,7 +2260,7 @@ Closure CP#1 {
   Drop1
   Push                 r0
   LoadContextVar       8
-  InstanceCall1        1, CP#38
+  InstanceCall         1, CP#38
   ReturnTOS
   Push                 r0
   LoadContextParent
@@ -2392,7 +2392,7 @@ Bytecode {
   Drop1
   Push                 r0
   LoadContextVar       7
-  InstanceCall1        1, CP#34
+  InstanceCall         1, CP#34
   ReturnTOS
   Push                 r0
   LoadContextParent
@@ -2488,7 +2488,7 @@ L3:
   JumpIfNoAsserts      L2
   Push                 r1
   PushConstant         CP#11
-  InstanceCall1        2, CP#13
+  InstanceCall         2, CP#13
   AssertBoolean        0
   PushConstant         CP#14
   IfEqStrictTOS
@@ -2533,7 +2533,7 @@ Try #0 handler:
   LoadContextVar       7
   Push                 r8
   Push                 r9
-  InstanceCall1        3, CP#20
+  InstanceCall         3, CP#20
   Drop1
   Jump                 L5
 L5:

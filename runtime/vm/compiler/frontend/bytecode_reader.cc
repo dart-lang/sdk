@@ -200,10 +200,17 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         intptr_t arg_desc_index = helper_->ReadUInt();
         ASSERT(arg_desc_index < i);
         array ^= pool.ObjectAt(arg_desc_index);
-        // TODO(regis): Should num_args_tested be explicitly provided?
+        intptr_t checked_argument_count = 1;
+        if ((kind == InvocationKind::method) &&
+            (MethodTokenRecognizer::RecognizeTokenKind(name) !=
+             Token::kILLEGAL)) {
+          intptr_t argument_count = ArgumentsDescriptor(array).Count();
+          ASSERT(argument_count <= 2);
+          checked_argument_count = argument_count;
+        }
         obj = ICData::New(function, name,
                           array,  // Arguments descriptor.
-                          Thread::kNoDeoptId, 1 /* num_args_tested */,
+                          Thread::kNoDeoptId, checked_argument_count,
                           ICData::RebindRule::kInstance);
 #if defined(TAG_IC_DATA)
         ICData::Cast(obj).set_tag(ICData::Tag::kInstanceCall);
@@ -239,13 +246,15 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
             elem = Function::Cast(elem).GetMethodExtractor(name);
           }
         }
+        const int num_args_checked =
+            MethodRecognizer::NumArgsCheckedForStaticCall(Function::Cast(elem));
         ASSERT(elem.IsFunction());
         intptr_t arg_desc_index = helper_->ReadUInt();
         ASSERT(arg_desc_index < i);
         array ^= pool.ObjectAt(arg_desc_index);
         obj = ICData::New(function, name,
                           array,  // Arguments descriptor.
-                          Thread::kNoDeoptId, 0 /* num_args_tested */,
+                          Thread::kNoDeoptId, num_args_checked,
                           ICData::RebindRule::kStatic);
         ICData::Cast(obj).AddTarget(Function::Cast(elem));
 #if defined(TAG_IC_DATA)

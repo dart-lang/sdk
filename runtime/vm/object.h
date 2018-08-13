@@ -2118,6 +2118,7 @@ class ICData : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ICData, Object);
   friend class Class;
+  friend class Interpreter;
   friend class SnapshotWriter;
   friend class Serializer;
   friend class Deserializer;

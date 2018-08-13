@@ -57,7 +57,7 @@ Bytecode {
   Push                 FP[-7]
   Push                 FP[-5]
   PushConstant         CP#5
-  InstanceCall1        2, CP#7
+  InstanceCall         2, CP#7
   StoreFieldTOS        CP#8
   Push                 FP[-7]
   PushConstant         CP#11
@@ -113,7 +113,7 @@ Bytecode {
   Push                 FP[-7]
   Push                 FP[-6]
   Push                 FP[-5]
-  InstanceCall1        2, CP#1
+  InstanceCall         2, CP#1
   PushConstant         CP#3
   IndirectStaticCall   3, CP#2
   Drop1
