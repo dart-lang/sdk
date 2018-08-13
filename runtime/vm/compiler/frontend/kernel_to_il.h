@@ -77,17 +77,13 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   Fragment LoadInstantiatorTypeArguments();
   Fragment LoadFunctionTypeArguments();
-  Fragment InstantiateType(const AbstractType& type);
-  Fragment InstantiateTypeArguments(const TypeArguments& type_arguments);
   Fragment TranslateInstantiatedTypeArguments(
       const TypeArguments& type_arguments);
 
-  Fragment AllocateContext(intptr_t size);
   Fragment AllocateObject(TokenPosition position,
                           const Class& klass,
                           intptr_t argument_count);
   Fragment AllocateObject(const Class& klass, const Function& closure_function);
-  Fragment BooleanNegate();
   Fragment CatchBlockEntry(const Array& handler_types,
                            intptr_t handler_index,
                            bool needs_stacktrace,
@@ -95,7 +91,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment TryCatch(int try_handler_index);
   Fragment CheckStackOverflowInPrologue(TokenPosition position);
   Fragment CloneContext(intptr_t num_context_variables);
-  Fragment CreateArray();
   Fragment InstanceCall(TokenPosition position,
                         const String& name,
                         Token::Kind kind,
@@ -114,7 +109,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment LoadField(const Field& field);
   Fragment LoadLocal(LocalVariable* variable);
   Fragment InitStaticField(const Field& field);
-  Fragment LoadStaticField();
   Fragment NativeCall(const String* name, const Function* function);
   Fragment Return(TokenPosition position);
   Fragment CheckNull(TokenPosition position,
@@ -135,25 +129,13 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                       ICData::RebindRule rebind_rule,
                       const InferredTypeMetadata* result_type = NULL,
                       intptr_t type_args_len = 0);
-  Fragment StoreIndexed(intptr_t class_id);
   Fragment StoreInstanceFieldGuarded(const Field& field,
                                      bool is_initialization_store);
-  Fragment StoreInstanceField(
-      TokenPosition position,
-      intptr_t offset,
-      StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
-  Fragment StoreInstanceField(
-      const Field& field,
-      bool is_initialization_store,
-      StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
-  Fragment StoreStaticField(TokenPosition position, const Field& field);
   Fragment StringInterpolate(TokenPosition position);
   Fragment StringInterpolateSingle(TokenPosition position);
   Fragment ThrowTypeError();
   Fragment ThrowNoSuchMethodError();
   Fragment BuildImplicitClosureCreation(const Function& target);
-  Fragment GuardFieldLength(const Field& field, intptr_t deopt_id);
-  Fragment GuardFieldClass(const Field& field, intptr_t deopt_id);
 
   Fragment EvaluateAssertion();
   Fragment CheckVariableTypeInCheckedMode(const AbstractType& dst_type,

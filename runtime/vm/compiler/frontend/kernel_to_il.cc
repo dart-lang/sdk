@@ -167,27 +167,6 @@ Fragment FlowGraphBuilder::LoadFunctionTypeArguments() {
   return instructions;
 }
 
-Fragment FlowGraphBuilder::InstantiateType(const AbstractType& type) {
-  Value* function_type_args = Pop();
-  Value* instantiator_type_args = Pop();
-  InstantiateTypeInstr* instr = new (Z) InstantiateTypeInstr(
-      TokenPosition::kNoSource, type, instantiator_type_args,
-      function_type_args, GetNextDeoptId());
-  Push(instr);
-  return Fragment(instr);
-}
-
-Fragment FlowGraphBuilder::InstantiateTypeArguments(
-    const TypeArguments& type_arguments) {
-  Value* function_type_args = Pop();
-  Value* instantiator_type_args = Pop();
-  InstantiateTypeArgumentsInstr* instr = new (Z) InstantiateTypeArgumentsInstr(
-      TokenPosition::kNoSource, type_arguments, *active_class_.klass,
-      instantiator_type_args, function_type_args, GetNextDeoptId());
-  Push(instr);
-  return Fragment(instr);
-}
-
 Fragment FlowGraphBuilder::TranslateInstantiatedTypeArguments(
     const TypeArguments& type_arguments) {
   Fragment instructions;
@@ -231,13 +210,6 @@ Fragment FlowGraphBuilder::TranslateInstantiatedTypeArguments(
   return instructions;
 }
 
-Fragment FlowGraphBuilder::AllocateContext(intptr_t size) {
-  AllocateContextInstr* allocate =
-      new (Z) AllocateContextInstr(TokenPosition::kNoSource, size);
-  Push(allocate);
-  return Fragment(allocate);
-}
-
 Fragment FlowGraphBuilder::AllocateObject(TokenPosition position,
                                           const Class& klass,
                                           intptr_t argument_count) {
@@ -256,12 +228,6 @@ Fragment FlowGraphBuilder::AllocateObject(const Class& klass,
   allocate->set_closure_function(closure_function);
   Push(allocate);
   return Fragment(allocate);
-}
-
-Fragment FlowGraphBuilder::BooleanNegate() {
-  BooleanNegateInstr* negate = new (Z) BooleanNegateInstr(Pop());
-  Push(negate);
-  return Fragment(negate);
 }
 
 Fragment FlowGraphBuilder::CatchBlockEntry(const Array& handler_types,
@@ -376,16 +342,6 @@ Fragment FlowGraphBuilder::CloneContext(intptr_t num_context_variables) {
   return instructions;
 }
 
-Fragment FlowGraphBuilder::CreateArray() {
-  Value* element_count = Pop();
-  CreateArrayInstr* array =
-      new (Z) CreateArrayInstr(TokenPosition::kNoSource,
-                               Pop(),  // Element type.
-                               element_count, GetNextDeoptId());
-  Push(array);
-  return Fragment(array);
-}
-
 Fragment FlowGraphBuilder::InstanceCall(
     TokenPosition position,
     const String& name,
@@ -446,22 +402,10 @@ Fragment FlowGraphBuilder::LoadClassId() {
   return Fragment(load);
 }
 
-const Field& MayCloneField(Zone* zone, const Field& field) {
-  if ((Compiler::IsBackgroundCompilation() ||
-       FLAG_force_clone_compiler_objects) &&
-      field.IsOriginal()) {
-    return Field::ZoneHandle(zone, field.CloneFromOriginal());
-  } else {
-    ASSERT(field.IsZoneHandle());
-    return field;
-  }
-}
-
 Fragment FlowGraphBuilder::LoadField(const Field& field) {
-  LoadFieldInstr* load =
-      new (Z) LoadFieldInstr(Pop(), &MayCloneField(Z, field),
-                             AbstractType::ZoneHandle(Z, field.type()),
-                             TokenPosition::kNoSource, parsed_function_);
+  LoadFieldInstr* load = new (Z) LoadFieldInstr(
+      Pop(), &MayCloneField(field), AbstractType::ZoneHandle(Z, field.type()),
+      TokenPosition::kNoSource, parsed_function_);
   Push(load);
   return Fragment(load);
 }
@@ -484,15 +428,8 @@ Fragment FlowGraphBuilder::LoadLocal(LocalVariable* variable) {
 
 Fragment FlowGraphBuilder::InitStaticField(const Field& field) {
   InitStaticFieldInstr* init = new (Z)
-      InitStaticFieldInstr(Pop(), MayCloneField(Z, field), GetNextDeoptId());
+      InitStaticFieldInstr(Pop(), MayCloneField(field), GetNextDeoptId());
   return Fragment(init);
-}
-
-Fragment FlowGraphBuilder::LoadStaticField() {
-  LoadStaticFieldInstr* load =
-      new (Z) LoadStaticFieldInstr(Pop(), TokenPosition::kNoSource);
-  Push(load);
-  return Fragment(load);
 }
 
 Fragment FlowGraphBuilder::NativeCall(const String* name,
@@ -638,23 +575,9 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
   return Fragment(call);
 }
 
-Fragment FlowGraphBuilder::StoreIndexed(intptr_t class_id) {
-  Value* value = Pop();
-  Value* index = Pop();
-  const StoreBarrierType emit_store_barrier =
-      value->BindsToConstant() ? kNoStoreBarrier : kEmitStoreBarrier;
-  StoreIndexedInstr* store = new (Z) StoreIndexedInstr(
-      Pop(),  // Array.
-      index, value, emit_store_barrier, Instance::ElementSizeFor(class_id),
-      class_id, kAlignedAccess, Thread::kNoDeoptId, TokenPosition::kNoSource);
-  Push(store);
-  return Fragment(store);
-}
-
-Fragment FlowGraphBuilder::StoreInstanceField(
+Fragment FlowGraphBuilder::StoreInstanceFieldGuarded(
     const Field& field,
-    bool is_initialization_store,
-    StoreBarrierType emit_store_barrier) {
+    bool is_initialization_store) {
   Fragment instructions;
 
   const AbstractType& dst_type = AbstractType::ZoneHandle(Z, field.type());
@@ -663,48 +586,10 @@ Fragment FlowGraphBuilder::StoreInstanceField(
         CheckAssignable(dst_type, String::ZoneHandle(Z, field.name()));
   }
 
-  Value* value = Pop();
-  if (value->BindsToConstant()) {
-    emit_store_barrier = kNoStoreBarrier;
-  }
-
-  StoreInstanceFieldInstr* store = new (Z)
-      StoreInstanceFieldInstr(MayCloneField(Z, field), Pop(), value,
-                              emit_store_barrier, TokenPosition::kNoSource);
-  store->set_is_initialization(is_initialization_store);
-  instructions <<= store;
+  instructions += BaseFlowGraphBuilder::StoreInstanceFieldGuarded(
+      field, is_initialization_store);
 
   return instructions;
-}
-
-Fragment FlowGraphBuilder::StoreInstanceFieldGuarded(
-    const Field& field,
-    bool is_initialization_store) {
-  Fragment instructions;
-  const Field& field_clone = MayCloneField(Z, field);
-  if (I->use_field_guards()) {
-    LocalVariable* store_expression = MakeTemporary();
-    instructions += LoadLocal(store_expression);
-    instructions += GuardFieldClass(field_clone, GetNextDeoptId());
-    instructions += LoadLocal(store_expression);
-    instructions += GuardFieldLength(field_clone, GetNextDeoptId());
-  }
-  instructions += StoreInstanceField(field_clone, is_initialization_store);
-  return instructions;
-}
-
-Fragment FlowGraphBuilder::StoreInstanceField(
-    TokenPosition position,
-    intptr_t offset,
-    StoreBarrierType emit_store_barrier) {
-  return BaseFlowGraphBuilder::StoreInstanceField(position, offset,
-                                                  emit_store_barrier);
-}
-
-Fragment FlowGraphBuilder::StoreStaticField(TokenPosition position,
-                                            const Field& field) {
-  return Fragment(
-      new (Z) StoreStaticFieldInstr(MayCloneField(Z, field), Pop(), position));
 }
 
 Fragment FlowGraphBuilder::StringInterpolate(TokenPosition position) {
@@ -1089,16 +974,6 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
       StoreInstanceField(TokenPosition::kNoSource, Context::variable_offset(0));
 
   return fragment;
-}
-
-Fragment FlowGraphBuilder::GuardFieldLength(const Field& field,
-                                            intptr_t deopt_id) {
-  return Fragment(new (Z) GuardFieldLengthInstr(Pop(), field, deopt_id));
-}
-
-Fragment FlowGraphBuilder::GuardFieldClass(const Field& field,
-                                           intptr_t deopt_id) {
-  return Fragment(new (Z) GuardFieldClassInstr(Pop(), field, deopt_id));
 }
 
 Fragment FlowGraphBuilder::CheckVariableTypeInCheckedMode(

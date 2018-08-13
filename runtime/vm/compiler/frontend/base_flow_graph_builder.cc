@@ -5,6 +5,7 @@
 #include "vm/compiler/frontend/base_flow_graph_builder.h"
 
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For InlineExitCollector.
+#include "vm/compiler/jit/compiler.h"  // For Compiler::IsBackgroundCompilation().
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -12,6 +13,7 @@ namespace dart {
 namespace kernel {
 
 #define Z (zone_)
+#define I (thread_->isolate())
 
 Fragment& Fragment::operator+=(const Fragment& other) {
   if (entry == NULL) {
@@ -347,6 +349,27 @@ Fragment BaseFlowGraphBuilder::PushArgument() {
   return Fragment(argument);
 }
 
+Fragment BaseFlowGraphBuilder::GuardFieldLength(const Field& field,
+                                                intptr_t deopt_id) {
+  return Fragment(new (Z) GuardFieldLengthInstr(Pop(), field, deopt_id));
+}
+
+Fragment BaseFlowGraphBuilder::GuardFieldClass(const Field& field,
+                                               intptr_t deopt_id) {
+  return Fragment(new (Z) GuardFieldClassInstr(Pop(), field, deopt_id));
+}
+
+const Field& BaseFlowGraphBuilder::MayCloneField(const Field& field) {
+  if ((Compiler::IsBackgroundCompilation() ||
+       FLAG_force_clone_compiler_objects) &&
+      field.IsOriginal()) {
+    return Field::ZoneHandle(Z, field.CloneFromOriginal());
+  } else {
+    ASSERT(field.IsZoneHandle());
+    return field;
+  }
+}
+
 Fragment BaseFlowGraphBuilder::StoreInstanceField(
     TokenPosition position,
     intptr_t offset,
@@ -357,6 +380,65 @@ Fragment BaseFlowGraphBuilder::StoreInstanceField(
   }
   StoreInstanceFieldInstr* store = new (Z) StoreInstanceFieldInstr(
       offset, Pop(), value, emit_store_barrier, position);
+  return Fragment(store);
+}
+
+Fragment BaseFlowGraphBuilder::StoreInstanceField(
+    const Field& field,
+    bool is_initialization_store,
+    StoreBarrierType emit_store_barrier) {
+  Value* value = Pop();
+  if (value->BindsToConstant()) {
+    emit_store_barrier = kNoStoreBarrier;
+  }
+
+  StoreInstanceFieldInstr* store = new (Z)
+      StoreInstanceFieldInstr(MayCloneField(field), Pop(), value,
+                              emit_store_barrier, TokenPosition::kNoSource);
+  store->set_is_initialization(is_initialization_store);
+
+  return Fragment(store);
+}
+
+Fragment BaseFlowGraphBuilder::StoreInstanceFieldGuarded(
+    const Field& field,
+    bool is_initialization_store) {
+  Fragment instructions;
+  const Field& field_clone = MayCloneField(field);
+  if (I->use_field_guards()) {
+    LocalVariable* store_expression = MakeTemporary();
+    instructions += LoadLocal(store_expression);
+    instructions += GuardFieldClass(field_clone, GetNextDeoptId());
+    instructions += LoadLocal(store_expression);
+    instructions += GuardFieldLength(field_clone, GetNextDeoptId());
+  }
+  instructions += StoreInstanceField(field_clone, is_initialization_store);
+  return instructions;
+}
+
+Fragment BaseFlowGraphBuilder::LoadStaticField() {
+  LoadStaticFieldInstr* load =
+      new (Z) LoadStaticFieldInstr(Pop(), TokenPosition::kNoSource);
+  Push(load);
+  return Fragment(load);
+}
+
+Fragment BaseFlowGraphBuilder::StoreStaticField(TokenPosition position,
+                                                const Field& field) {
+  return Fragment(
+      new (Z) StoreStaticFieldInstr(MayCloneField(field), Pop(), position));
+}
+
+Fragment BaseFlowGraphBuilder::StoreIndexed(intptr_t class_id) {
+  Value* value = Pop();
+  Value* index = Pop();
+  const StoreBarrierType emit_store_barrier =
+      value->BindsToConstant() ? kNoStoreBarrier : kEmitStoreBarrier;
+  StoreIndexedInstr* store = new (Z) StoreIndexedInstr(
+      Pop(),  // Array.
+      index, value, emit_store_barrier, Instance::ElementSizeFor(class_id),
+      class_id, kAlignedAccess, Thread::kNoDeoptId, TokenPosition::kNoSource);
+  Push(store);
   return Fragment(store);
 }
 
@@ -561,6 +643,51 @@ Fragment BaseFlowGraphBuilder::AssertBool(TokenPosition position) {
   Value* value = Pop();
   AssertBooleanInstr* instr =
       new (Z) AssertBooleanInstr(position, value, GetNextDeoptId());
+  Push(instr);
+  return Fragment(instr);
+}
+
+Fragment BaseFlowGraphBuilder::BooleanNegate() {
+  BooleanNegateInstr* negate = new (Z) BooleanNegateInstr(Pop());
+  Push(negate);
+  return Fragment(negate);
+}
+
+Fragment BaseFlowGraphBuilder::AllocateContext(intptr_t size) {
+  AllocateContextInstr* allocate =
+      new (Z) AllocateContextInstr(TokenPosition::kNoSource, size);
+  Push(allocate);
+  return Fragment(allocate);
+}
+
+Fragment BaseFlowGraphBuilder::CreateArray() {
+  Value* element_count = Pop();
+  CreateArrayInstr* array =
+      new (Z) CreateArrayInstr(TokenPosition::kNoSource,
+                               Pop(),  // Element type.
+                               element_count, GetNextDeoptId());
+  Push(array);
+  return Fragment(array);
+}
+
+Fragment BaseFlowGraphBuilder::InstantiateType(const AbstractType& type) {
+  Value* function_type_args = Pop();
+  Value* instantiator_type_args = Pop();
+  InstantiateTypeInstr* instr = new (Z) InstantiateTypeInstr(
+      TokenPosition::kNoSource, type, instantiator_type_args,
+      function_type_args, GetNextDeoptId());
+  Push(instr);
+  return Fragment(instr);
+}
+
+Fragment BaseFlowGraphBuilder::InstantiateTypeArguments(
+    const TypeArguments& type_arguments) {
+  Value* function_type_args = Pop();
+  Value* instantiator_type_args = Pop();
+  const Class& instantiator_class = Class::ZoneHandle(Z, function_.Owner());
+  InstantiateTypeArgumentsInstr* instr = new (Z) InstantiateTypeArgumentsInstr(
+      TokenPosition::kNoSource, type_arguments, instantiator_class,
+      instantiator_type_args, function_type_args, GetNextDeoptId());
   Push(instr);
   return Fragment(instr);
 }
