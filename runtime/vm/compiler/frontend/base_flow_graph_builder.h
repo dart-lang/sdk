@@ -44,6 +44,9 @@ class Fragment {
   Fragment& operator<<=(Instruction* next);
 
   Fragment closed();
+
+ private:
+  DISALLOW_ALLOCATION();
 };
 
 Fragment operator+(const Fragment& first, const Fragment& second);

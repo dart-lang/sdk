@@ -4809,8 +4809,8 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement() {
   // of a jump due to:
   //   * `continue case_label`
   //   * `case e1: case e2: body`
-  Fragment* body_fragments = new Fragment[case_count];
-  intptr_t* case_expression_offsets = new intptr_t[case_count];
+  Fragment* body_fragments = Z->Alloc<Fragment>(case_count);
+  intptr_t* case_expression_offsets = Z->Alloc<intptr_t>(case_count);
   int default_case = -1;
 
   for (intptr_t i = 0; i < case_count; ++i) {
@@ -4991,9 +4991,6 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement() {
     // So it is fine to just let more statements after the switch append to the
     // default case.
   }
-
-  delete[] body_fragments;
-  delete[] case_expression_offsets;
 
   SetOffset(end_offset);
   return Fragment(head_instructions.entry, current_instructions.current);
