@@ -14,9 +14,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:path/path.dart' as path;
 
-// TODO(devoncarew): Convert the commented out code below to a --verbose option,
-// emitting failing tests in a markdown ready format?
-
 /// Count failing Analyzer CFE integration tests.
 ///
 /// We look for classes ending in *Test_UseCFE or *Test_Kernel with test
@@ -90,18 +87,22 @@ void main() {
         }
 
         totalFailingCount += failingCount;
-
-        //if (failingCount > 0) {
-        //  print('  ${member.name}, $failingCount failing tests');
-        //}
       }
     }
 
     print('  $totalFailingCount failing tests');
   }
 
+  // tests/language_2/language_2_analyzer.status:
+  //   [ $compiler == dart2analyzer && $fasta ]
+  print('\nCFE tests for tests/language_2:');
+  int useCfeLanguage2 = countExclusions(
+      'tests/language_2/language_2_analyzer.status',
+      r'[ $compiler == dart2analyzer && $fasta ]');
+  print('  $useCfeLanguage2 failing tests');
+
   // Also count the Fasta '-DuseFastaParser=true' tests.
-  print('\n--use-fasta-parser excusions from status files');
+  print('\n--use-fasta-parser exclusions from status files');
 
   int testExclusions = 0;
 
