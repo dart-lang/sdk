@@ -8,10 +8,6 @@
 mock_writable_final_private_field_test: CompileTimeError # Issue 30848
 vm/reflect_core_vm_test: CompileTimeError # Issue 30848
 
-[ $compiler == dart2analyzer && $runtime == none && !$fasta ]
-error_stacktrace_test/00: MissingCompileTimeError
-vm/lazy_deopt_with_exception_test: CompileTimeError
-
 [ $compiler == dart2analyzer && $analyzer_use_fasta_parser ]
 multiline_newline_test/01: Pass
 multiline_newline_test/01r: Pass
@@ -28,36 +24,452 @@ constructor_type_parameter_test/00: MissingCompileTimeError # Issue 33110
 constructor_with_type_parameters_test/03: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && $fasta ]
+arg_param_trailing_comma_test/100: Crash
+arg_param_trailing_comma_test/138: Crash
+arg_param_trailing_comma_test/147: Crash
+arg_param_trailing_comma_test/156: Crash
+arg_param_trailing_comma_test/165: Crash
+arg_param_trailing_comma_test/166: Crash
+arg_param_trailing_comma_test/24: Crash
+arg_param_trailing_comma_test/25: Crash
+arg_param_trailing_comma_test/26: Crash
+arg_param_trailing_comma_test/72: Crash
+arg_param_trailing_comma_test/73: Crash
+arg_param_trailing_comma_test/74: Crash
+arg_param_trailing_comma_test/98: Crash
+arg_param_trailing_comma_test/99: Crash
+assign_to_type_test/01: Crash
+assign_to_type_test/02: Crash
+assign_to_type_test/03: Crash
+assign_to_type_test/04: Crash
+black_listed_test/02: Crash
+black_listed_test/04: Crash
+black_listed_test/06: Crash
+black_listed_test/08: Crash
+black_listed_test/10: Crash
+black_listed_test/12: Crash
+black_listed_test/14: Crash
+built_in_identifier_illegal_test/implements: Crash
+built_in_identifier_illegal_test/part: Crash
+built_in_identifier_illegal_test/typedef: Crash
+built_in_identifier_type_annotation_test/part: Crash
+built_in_identifier_type_annotation_test/set: Crash
+built_in_identifier_type_annotation_test/set-funret: Crash
+call_nonexistent_static_test/10: Crash
+case_expression_with_assignment_test/01: Crash
+class_cycle2_test/01: Crash
+class_cycle2_test/02: Crash
+class_cycle_test/00: Crash
+class_cycle_test/01: Crash
+class_cycle_test/02: MissingCompileTimeError
+class_cycle_test/03: MissingCompileTimeError
+class_literal_static_test/12: Crash
+class_literal_static_test/13: Crash
+class_literal_static_test/24: Crash
+class_literal_test/12: Crash
+class_literal_test/13: Crash
+class_literal_test/24: Crash
 compile_time_constant_static5_test/11: CompileTimeError # Issue 31537
 compile_time_constant_static5_test/16: CompileTimeError # Issue 31537
 compile_time_constant_static5_test/21: CompileTimeError # Issue 31537
 compile_time_constant_static5_test/23: CompileTimeError # Issue 31402
+conditional_property_assignment_test/20: Crash
+conditional_property_assignment_test/21: Crash
+conditional_property_assignment_test/22: Crash
+config_import_corelib_test: CompileTimeError
+conflicting_generic_interfaces_hierarchy_loop_infinite_test: Crash
+conflicting_generic_interfaces_hierarchy_loop_test: Crash
+const_counter_test/01: Crash
+const_native_factory_test: Crash
+constructor9_test/01: MissingStaticWarning
+constructor_name_test/02: Crash
+constructor_named_arguments_test/01: Crash
+constructor_redirect2_test/02: Crash
+constructor_redirect2_test/03: Crash
+constructor_redirect2_test/04: Crash
+constructor_redirect_test/01: Crash
+covariant_override_test: Crash
+covariant_subtyping_test: Crash
+crash_6725_test/01: Crash
+cyclic_class_member_test/01: Crash
+deep_nesting_statement_test/01: Crash
+deferred_load_library_wrong_args_test/01: CompileTimeError
+duplicate_constructor_test/01: Crash
+duplicate_field_with_initializer_test/01: Crash
+duplicate_implements_test/01: MissingCompileTimeError
+duplicate_implements_test/02: MissingCompileTimeError
+duplicate_interface_implements_test/01: MissingCompileTimeError
+dynamic_prefix_core_test/none: CompileTimeError
+emit_const_fields_test: CompileTimeError
+enum_syntax_test/02: Crash
+enum_syntax_test/03: Crash
+enum_syntax_test/04: Crash
+enum_syntax_test/05: Crash
+enum_syntax_test/06: Crash
+enum_syntax_test/09: Crash
+enum_syntax_test/10: Crash
+enum_syntax_test/11: Crash
+enum_syntax_test/30: Crash
+export_ambiguous_main_test: MissingCompileTimeError
+external_test/21: CompileTimeError
+external_test/24: CompileTimeError
+factory2_test/01: Crash
+factory_test/00: Crash
+factory_with_type_parameters_test/03: Crash
+factory_with_type_parameters_test/04: Crash
+field1_test: Crash
+field2_test: Crash
+field4_test: Crash
+field5_test: Crash
+field6_test/00: Crash
+field6_test/01: Crash
+field_initialization_order_test/01: MissingCompileTimeError
+final_syntax_test/01: MissingCompileTimeError
+final_syntax_test/02: MissingCompileTimeError
+final_syntax_test/03: MissingCompileTimeError
+final_syntax_test/04: MissingCompileTimeError
+first_class_types_literals_test/03: Crash
+first_class_types_literals_test/04: Crash
+first_class_types_literals_test/08: Crash
+first_class_types_literals_test/09: Crash
+function_type_parameter2_negative_test: Crash
+function_type_parameter_negative_test: Crash
+generic_function_type_as_type_argument_test/01: MissingCompileTimeError
+generic_function_type_as_type_argument_test/02: MissingCompileTimeError
+generic_function_typedef2_test/04: Crash
+generic_local_functions_test: Crash
+generic_methods_generic_function_parameter_test: Crash
+generic_methods_generic_function_result_test/01: MissingCompileTimeError
+generic_no_such_method_dispatcher_simple_test: CompileTimeError
+generic_no_such_method_dispatcher_test: CompileTimeError
+generic_tearoff_test: Crash
+generic_test/01: MissingCompileTimeError
+get_set_syntax_test/02: Crash
+get_set_syntax_test/03: Crash
+get_set_syntax_test/06: Crash
+get_set_syntax_test/07: Crash
+get_set_syntax_test/10: Crash
+get_set_syntax_test/11: Crash
+get_set_syntax_test/14: Crash
+get_set_syntax_test/15: Crash
+getters_setters2_test/01: MissingStaticWarning
+getters_setters_type_test/01: MissingStaticWarning
+hidden_import_test/01: MissingStaticWarning
+hidden_import_test/02: MissingStaticWarning
+if_null_assignment_behavior_test/15: Crash
+illegal_initializer_test/02: Crash
+illegal_initializer_test/04: Crash
+import_nonexisting_dart_uri_test/01: Crash
+instantiate_tearoff_of_call_test: CompileTimeError
+instantiate_type_variable_test/01: Crash
+interface_cycle_test/01: Crash
+interface_cycle_test/02: Crash
+interface_injection1_test/1: Crash
+interface_injection2_test/1: Crash
+internal_library_test/02: Crash
+is_not_class2_test/01: Crash
+issue31596_super_test/01: CompileTimeError
+issue31596_super_test/03: CompileTimeError
+label5_test/01: Crash
+label6_test/03: Crash
+library_ambiguous_test/00: Crash
+library_test/01: Crash
+list_literal_negative_test: Crash
+main_not_a_function_test: Crash
+metadata_test: Crash
+missing_part_of_tag_test/01: Crash
+mixin_cyclic_test/01: Crash
+mixin_cyclic_test/02: Crash
+mixin_illegal_cycles_test/01: Crash
+mixin_illegal_cycles_test/02: Crash
+mixin_illegal_cycles_test/03: Crash
+mixin_illegal_cycles_test/04: Crash
+mixin_illegal_cycles_test/05: Crash
+mixin_illegal_cycles_test/06: Crash
+mixin_illegal_super_use_test/01: MissingCompileTimeError
+mixin_illegal_super_use_test/04: MissingCompileTimeError
+mixin_illegal_super_use_test/07: MissingCompileTimeError
+mixin_illegal_super_use_test/10: MissingCompileTimeError
+mixin_illegal_super_use_test/11: MissingCompileTimeError
+mixin_illegal_superclass_test/01: MissingCompileTimeError
+mixin_illegal_superclass_test/02: MissingCompileTimeError
+mixin_illegal_superclass_test/03: MissingCompileTimeError
+mixin_illegal_superclass_test/04: MissingCompileTimeError
+mixin_illegal_superclass_test/05: MissingCompileTimeError
+mixin_illegal_superclass_test/06: MissingCompileTimeError
+mixin_illegal_superclass_test/07: MissingCompileTimeError
+mixin_illegal_superclass_test/08: MissingCompileTimeError
+mixin_illegal_superclass_test/09: MissingCompileTimeError
+mixin_illegal_superclass_test/10: MissingCompileTimeError
+mixin_illegal_superclass_test/11: MissingCompileTimeError
+mixin_illegal_superclass_test/12: MissingCompileTimeError
+mixin_illegal_superclass_test/13: MissingCompileTimeError
+mixin_illegal_superclass_test/14: MissingCompileTimeError
+mixin_illegal_superclass_test/15: MissingCompileTimeError
+mixin_illegal_superclass_test/16: MissingCompileTimeError
+mixin_illegal_superclass_test/17: MissingCompileTimeError
+mixin_illegal_superclass_test/18: MissingCompileTimeError
+mixin_illegal_superclass_test/19: MissingCompileTimeError
+mixin_illegal_superclass_test/20: MissingCompileTimeError
+mixin_illegal_superclass_test/21: MissingCompileTimeError
+mixin_illegal_superclass_test/22: MissingCompileTimeError
+mixin_illegal_superclass_test/23: MissingCompileTimeError
+mixin_illegal_superclass_test/24: MissingCompileTimeError
+mixin_illegal_superclass_test/25: MissingCompileTimeError
+mixin_illegal_superclass_test/26: MissingCompileTimeError
+mixin_illegal_superclass_test/27: MissingCompileTimeError
+mixin_illegal_superclass_test/28: MissingCompileTimeError
+mixin_illegal_superclass_test/29: MissingCompileTimeError
+mixin_illegal_superclass_test/30: MissingCompileTimeError
+mixin_illegal_syntax_test/01: Crash
+mixin_illegal_syntax_test/02: Crash
+mixin_illegal_syntax_test/03: Crash
+mixin_illegal_syntax_test/04: Crash
+mixin_illegal_syntax_test/05: Crash
+mixin_illegal_syntax_test/06: Crash
+mixin_illegal_syntax_test/07: Crash
+mixin_illegal_syntax_test/08: Crash
+mixin_illegal_syntax_test/09: Crash
+mixin_illegal_syntax_test/10: Crash
+mixin_illegal_syntax_test/11: Crash
+mixin_illegal_syntax_test/12: Crash
+mixin_illegal_syntax_test/14: Crash
+mixin_supertype_subclass2_test/02: MissingStaticWarning
+mixin_supertype_subclass2_test/05: MissingStaticWarning
+mixin_supertype_subclass3_test/02: MissingStaticWarning
+mixin_supertype_subclass3_test/05: MissingStaticWarning
+mixin_supertype_subclass4_test/01: MissingStaticWarning
+mixin_supertype_subclass4_test/02: MissingStaticWarning
+mixin_supertype_subclass4_test/03: MissingStaticWarning
+mixin_supertype_subclass4_test/04: MissingStaticWarning
+mixin_supertype_subclass4_test/05: MissingStaticWarning
+named_constructor_test/07: Crash
+named_constructor_test/10: Crash
+named_parameters_aggregated_test/03: Crash
+nested_generic_closure_test: Crash
+new_expression_type_args_test/00: Crash
+new_expression_type_args_test/01: Crash
+no_main_test/01: MissingStaticWarning
+not_enough_positional_arguments_test/01: Crash
+not_enough_positional_arguments_test/02: Crash
+not_enough_positional_arguments_test/05: Crash
+null_no_such_method_test: CompileTimeError
+operator2_negative_test: Crash
+parameter_default_test/01: Crash
+parameter_default_test/02: Crash
+parameter_default_test/03: Crash
+parameter_default_test/04: Crash
+parameter_default_test/05: Crash
+parameter_default_test/06: Crash
+parameter_metadata_test/02: Crash
+parameter_metadata_test/03: Crash
+parameter_metadata_test/04: Crash
+parser_quirks_test: CompileTimeError
+part_of_multiple_libs_test/01: Crash
+part_refers_to_core_library_test/01: Crash
+prefix_import_collision_test/01: Crash
+prefix_shadow_test/01: Crash
+prefix_variable_collision_test/01: Crash
+regress_20394_test/01: Crash
+regress_23408_test: CompileTimeError
+regress_28217_test/01: Crash
+regress_28217_test/none: Crash
+regress_29025_test: CompileTimeError
+regress_29405_test: CompileTimeError
+regress_30339_test: CompileTimeError
+regress_33235_04_test/01: Crash
+regress_33235_05_test/01: Crash
+regress_33235_06_test/01: Crash
+regress_33235_08_test/01: Crash
+regress_33235_09_test/01: Crash
+regress_33235_14_test/01: Crash
+regress_33235_15_test/01: Crash
+script1_negative_test: Crash
+script2_negative_test: Crash
+setter3_test/01: MissingStaticWarning
+setter3_test/02: MissingStaticWarning
+setter_declaration2_negative_test: Crash
+setter_declaration_negative_test: Crash
+setter_no_getter_call_test/01: Crash
+setter_no_getter_test/01: CompileTimeError
+static_setter_conflicts_test/09: Crash
+static_setter_conflicts_test/10: Crash
+static_setter_get_test/01: Crash
+string_split_test: CompileTimeError
+string_supertype_checked_test: CompileTimeError
+super_bound_closure_test/none: CompileTimeError
+super_call4_test/01: Pass
+super_conditional_operator_test/01: Crash
+super_conditional_operator_test/17: Crash
+super_conditional_operator_test/18: Crash
+super_no_such_method1_test: CompileTimeError
+super_no_such_method2_test: CompileTimeError
+super_no_such_method3_test: CompileTimeError
+super_operator_index5_test: CompileTimeError
+super_operator_index6_test: CompileTimeError
+super_operator_index7_test: CompileTimeError
+super_operator_index8_test: CompileTimeError
+switch3_negative_test: Crash
+switch5_negative_test: Crash
+switch7_negative_test: Crash
+switch_case_warn_test/15: MissingCompileTimeError
+switch_case_warn_test/17: MissingCompileTimeError
+syntax_test/04: Crash
+syntax_test/05: Crash
+syntax_test/06: Crash
+syntax_test/07: Crash
+syntax_test/08: Crash
+syntax_test/09: Crash
+syntax_test/10: Crash
+syntax_test/11: Crash
+syntax_test/13: Crash
+syntax_test/14: Crash
+syntax_test/15: Crash
+syntax_test/16: Crash
+syntax_test/17: Crash
+syntax_test/18: Crash
+syntax_test/19: Crash
+syntax_test/20: Crash
+syntax_test/21: Crash
+syntax_test/23: Crash
+syntax_test/24: Crash
+syntax_test/25: Crash
+syntax_test/26: Crash
+syntax_test/63: Crash
+syntax_test/64: Crash
+syntax_test/65: Crash
+this_conditional_operator_test/01: Crash
+this_in_initializer_test/06: Crash
+this_in_initializer_test/07: Crash
+this_in_initializer_test/08: Crash
+this_in_initializer_test/10: Crash
+this_in_initializer_test/11: Crash
+this_in_initializer_test/12: Crash
+this_in_initializer_test/13: Crash
+this_in_initializer_test/15: Crash
+this_in_initializer_test/16: Crash
+this_in_initializer_test/17: Crash
+this_in_initializer_test/18: Crash
+this_in_initializer_test/25: Crash
+this_in_initializer_test/26: Crash
+this_in_initializer_test/28: Crash
+this_in_initializer_test/35: Crash
+this_in_initializer_test/36: Crash
+this_in_initializer_test/38: Crash
+this_in_initializer_test/40: Crash
+this_in_initializer_test/41: Crash
+this_test/01: Crash
+this_test/02: Crash
+this_test/03: Crash
+this_test/04: Crash
+this_test/05: Crash
+this_test/06: Crash
+this_test/07: Crash
+this_test/08: Crash
+toplevel_collision1_test/00: Crash
+toplevel_collision1_test/02: Crash
+toplevel_collision2_test/00: Crash
+toplevel_collision2_test/01: Crash
+type_parameter_test/04: Crash
+type_parameter_test/05: Crash
+type_parameter_test/06: Crash
+type_parameter_test/08: Crash
+type_parameter_test/09: Crash
+type_promotion_functions_test/02: CompileTimeError
+type_promotion_functions_test/03: CompileTimeError
+type_promotion_functions_test/04: CompileTimeError
+type_promotion_functions_test/09: CompileTimeError
+type_promotion_functions_test/11: CompileTimeError
+type_promotion_functions_test/12: CompileTimeError
+type_promotion_functions_test/13: CompileTimeError
+type_promotion_functions_test/14: CompileTimeError
+type_promotion_functions_test/none: CompileTimeError
+type_promotion_more_specific_test/04: CompileTimeError
+type_variable_static_context_test: Crash
+unbalanced_brace_test/01: Crash
+unbalanced_brace_test/02: Crash
+unsupported_operators_test/01: Crash
+unsupported_operators_test/02: Crash
+unsupported_operators_test/03: Crash
+unsupported_operators_test/04: Crash
+variable_declaration_metadata_test/13: Crash
+variable_declaration_metadata_test/14: Crash
+variable_declaration_metadata_test/15: Crash
+variable_declaration_metadata_test/16: Crash
+variable_shadow_class_test/01: Crash
+vm/debug_break_vm_test/01: Crash
+vm/debug_break_vm_test/02: Crash
+vm/regress_27201_test: Crash
+vm/regress_33469_test/01: Crash
+vm/regress_33469_test/02: Crash
+vm/regress_33469_test/03: MissingCompileTimeError
+web_int_literals_test/01: MissingCompileTimeError
+web_int_literals_test/02: MissingCompileTimeError
+web_int_literals_test/03: MissingCompileTimeError
+web_int_literals_test/10: MissingCompileTimeError
+web_int_literals_test/11: MissingCompileTimeError
+web_int_literals_test/12: MissingCompileTimeError
+web_int_literals_test/13: MissingCompileTimeError
+web_int_literals_test/20: MissingCompileTimeError
+web_int_literals_test/21: MissingCompileTimeError
+web_int_literals_test/22: MissingCompileTimeError
+web_int_literals_test/23: MissingCompileTimeError
+web_int_literals_test/24: MissingCompileTimeError
+web_int_literals_test/25: MissingCompileTimeError
+web_int_literals_test/26: MissingCompileTimeError
+web_int_literals_test/27: MissingCompileTimeError
+web_int_literals_test/28: MissingCompileTimeError
+web_int_literals_test/29: MissingCompileTimeError
+web_int_literals_test/61: MissingCompileTimeError
+web_int_literals_test/62: MissingCompileTimeError
+web_int_literals_test/63: MissingCompileTimeError
+web_int_literals_test/64: MissingCompileTimeError
+web_int_literals_test/65: MissingCompileTimeError
+web_int_literals_test/70: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && !$fasta ]
 abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue #30568
 abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue #30568
 abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError # Issue #30568
+accessor_conflict_export2_test: CompileTimeError # Issue 25626
+accessor_conflict_export_test: CompileTimeError # Issue 25626
+accessor_conflict_import2_test: CompileTimeError # Issue 25626
+accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
+accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
+accessor_conflict_import_test: CompileTimeError # Issue 25626
+additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/dynamic-gen: MissingCompileTimeError # Issue 28813
+cascaded_forwarding_stubs_test: CompileTimeError
 check_member_static_test/01: CompileTimeError
+config_import_corelib_test: CompileTimeError
 config_import_corelib_test: StaticWarning, OK
+conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Crashes or times out
 conflicting_type_variable_and_setter_test: CompileTimeError # Issue 25525
 const_cast2_test/01: CompileTimeError
 const_cast2_test/none: CompileTimeError
 const_for_in_variable_test/01: MissingCompileTimeError # Issue 25161
+default_implementation2_test: CompileTimeError # Issue 30855
 dynamic_prefix_core_test/01: MissingCompileTimeError
 emit_const_fields_test: CompileTimeError
 enum_syntax_test/05: Fail # Issue 21649
 enum_syntax_test/06: Fail # Issue 21649
+error_stacktrace_test/00: MissingCompileTimeError
+error_stacktrace_test/00: Pass
 field3_test/01: MissingCompileTimeError # Issue 33022
 field3_test/02: MissingCompileTimeError # Issue 33022
+field3a_negative_test: StaticWarning # Issue 28823
 final_syntax_test/01: Fail # Issue 11124
 final_syntax_test/02: Fail # Issue 11124
 final_syntax_test/03: Fail # Issue 11124
 final_syntax_test/04: Fail # Issue 11124
+forwarding_stub_tearoff_test: CompileTimeError
 generic_local_functions_test: CompileTimeError # Issue 28515
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
+generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30207
 generic_no_such_method_dispatcher_simple_test: Skip # This test is just for kernel.
+generic_no_such_method_dispatcher_test: CompileTimeError
+generic_tearoff_test: CompileTimeError
 getter_setter_in_lib_test: Fail # Issue 23286
 implicit_creation/implicit_const_context_constructor_generic_named_test: CompileTimeError
 implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError
@@ -65,12 +477,29 @@ implicit_creation/implicit_const_context_prefix_constructor_generic_named_test: 
 implicit_creation/implicit_const_context_prefix_constructor_generic_test: CompileTimeError
 index_assign_operator_infer_return_type_test: StaticWarning
 initializing_formal_final_test: MissingCompileTimeError
+interceptor6_test: CompileTimeError
 interface_test/00: MissingCompileTimeError
 invalid_type_argument_count_test/01: MissingCompileTimeError
 invalid_type_argument_count_test/02: MissingCompileTimeError
 invalid_type_argument_count_test/03: MissingCompileTimeError
 invalid_type_argument_count_test/04: MissingCompileTimeError
+issue13673_test: StaticWarning # Issue 31925
+issue31596_implement_covariant_test: CompileTimeError
+issue31596_override_test/01: CompileTimeError
+issue31596_override_test/02: CompileTimeError
+issue31596_override_test/03: CompileTimeError
+issue31596_override_test/04: CompileTimeError
+issue31596_override_test/none: CompileTimeError
+issue31596_super_test/01: CompileTimeError
+issue31596_super_test/03: CompileTimeError
+issue31596_super_test/05: CompileTimeError
+issue31596_super_test/none: CompileTimeError
+issue31596_tearoff_test: CompileTimeError
+issue31596_test: CompileTimeError
+malformed2_test: Pass, MissingCompileTimeError # Issue 31056.
 method_override7_test/03: Fail # Issue 11497
+mixin_super_2_test/01: MissingCompileTimeError
+mixin_super_2_test/03: MissingCompileTimeError
 mixin_supertype_subclass2_test/02: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass2_test/05: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass3_test/02: MissingStaticWarning # Issue 25614
@@ -80,21 +509,40 @@ mixin_supertype_subclass4_test/02: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass4_test/03: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass4_test/04: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass4_test/05: MissingStaticWarning # Issue 25614
+mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/02: MissingStaticWarning # Issue 25614
+mixin_supertype_subclass_test/05: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingStaticWarning # Issue 25614
+multiline_newline_test/01: CompileTimeError
+multiline_newline_test/01r: CompileTimeError
+multiline_newline_test/02: CompileTimeError
+multiline_newline_test/02r: CompileTimeError
+multiline_newline_test/04: MissingCompileTimeError
+multiline_newline_test/04r: MissingCompileTimeError
+multiline_newline_test/05: MissingCompileTimeError
+multiline_newline_test/05r: MissingCompileTimeError
+multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 nested_generic_closure_test: CompileTimeError
 no_main_test/01: Fail # Issue 20030
+no_main_test/01: MissingStaticWarning # Issue 28823
 no_such_constructor2_test: StaticWarning
 override_field_test/02: CompileTimeError
+override_inheritance_field_test/42: CompileTimeError
+parser_quirks_test: CompileTimeError
 part_of_multiple_libs_test/01: MissingCompileTimeError # Issue 33227
 part_refers_to_core_library_test/01: MissingCompileTimeError # Issue 29709
 prefix_shadow_test/01: MissingCompileTimeError # Issue 33005
+regress_22976_test/01: CompileTimeError
+regress_22976_test/02: CompileTimeError
+regress_22976_test/none: CompileTimeError
 regress_23408_test: Skip # don't care about the static warning.
 regress_27617_test/1: MissingCompileTimeError
 regress_29025_test: CompileTimeError # Issue 29081
 regress_29349_test: CompileTimeError # Issue 29744
 regress_29405_test: CompileTimeError # Issue 29421
 regress_29784_test/02: MissingCompileTimeError # Issue 29784
+regress_30121_test: CompileTimeError # Issue 31087
+regress_30339_test: CompileTimeError
 regress_33235_03_test/01: MissingCompileTimeError
 regress_33235_07_test/03: MissingCompileTimeError
 regress_33235_10_test/01: MissingCompileTimeError
@@ -107,33 +555,50 @@ regress_33235_16_test/02: MissingCompileTimeError
 regress_33235_16_test/03: MissingCompileTimeError
 regress_33235_19_test: CompileTimeError
 regress_33235_20_test: CompileTimeError
+setter_override2_test/02: MissingCompileTimeError # Issue 14736
 static_setter_conflicts_test/02: MissingCompileTimeError
 static_setter_conflicts_test/11: MissingCompileTimeError
 static_setter_conflicts_test/12: MissingCompileTimeError
+string_split_test: CompileTimeError
+string_supertype_checked_test: CompileTimeError
+super_bound_closure_test/none: CompileTimeError
 super_call4_test/01: MissingCompileTimeError
-super_setter_test: StaticWarning
+super_no_such_method4_test/01: MissingCompileTimeError # Issue 33553
+super_no_such_method5_test/01: MissingCompileTimeError # Issue 33553
+super_setter_test: StaticWarning # Issue 28823
+switch_case_test/none: CompileTimeError
+syntax_test/60: MissingCompileTimeError
+syntax_test/61: MissingCompileTimeError
 try_catch_on_syntax_test/10: MissingCompileTimeError
 try_catch_on_syntax_test/11: MissingCompileTimeError
 type_inference_inconsistent_inheritance_test: MissingCompileTimeError
+type_promotion_functions_test/01: Pass
+type_promotion_functions_test/05: Pass
+type_promotion_functions_test/06: Pass
+type_promotion_functions_test/07: Pass
+type_promotion_functions_test/08: Pass
+type_promotion_functions_test/10: Pass
 type_variable_scope_test/none: Fail # Issue 11578
 vm/debug_break_enabled_vm_test: Skip
 vm/debug_break_vm_test/*: Skip
+vm/lazy_deopt_with_exception_test: CompileTimeError
 vm/lazy_deopt_with_exception_test: Pass
 vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.
 vm/regress_33469_test/01: Crash # http://dartbug.com/33481
 vm/regress_33469_test/02: Crash # http://dartbug.com/33481
 vm/regress_33469_test/03: MissingCompileTimeError # http://dartbug.com/33481
 void/generalized_void_syntax_test: CompileTimeError # https://github.com/dart-lang/sdk/issues/30177
-void/void_type_usage_test/async_use_in_await:  CompileTimeError # https://github.com/dart-lang/sdk/issues/30177
-void/void_type_usage_test/async_use_in_yield:  MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
-void/void_type_usage_test/async_use_in_yield_star:  MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
+void/void_type_function_types_test/none: CompileTimeError # Issue 30177
+void/void_type_usage_test/async_use_in_await: CompileTimeError # https://github.com/dart-lang/sdk/issues/30177
+void/void_type_usage_test/async_use_in_yield: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
+void/void_type_usage_test/async_use_in_yield_star: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/final_local_for_in2: MissingCompileTimeError
 void/void_type_usage_test/param_boolean_and_right: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/param_boolean_negation: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/param_boolean_or_right: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/param_use_in_string_interpolation: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
-void/void_type_usage_test/sync_use_in_yield:  MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
-void/void_type_usage_test/sync_use_in_yield_star:  MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
+void/void_type_usage_test/sync_use_in_yield: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
+void/void_type_usage_test/sync_use_in_yield_star: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 web_int_literals_test/01: MissingCompileTimeError
 web_int_literals_test/02: MissingCompileTimeError
 web_int_literals_test/03: MissingCompileTimeError
@@ -158,103 +623,3 @@ web_int_literals_test/63: MissingCompileTimeError
 web_int_literals_test/64: MissingCompileTimeError
 web_int_literals_test/65: MissingCompileTimeError
 web_int_literals_test/70: MissingCompileTimeError
-
-[ $compiler == dart2analyzer && !$fasta && !$preview_dart_2 ]
-call_type_literal_test: CompileTimeError
-class_literal_static_test/none: CompileTimeError
-class_literal_test/none: CompileTimeError
-constructor_call_as_function_test: CompileTimeError
-implicit_creation/implicit_const_context_constructor_named_test: CompileTimeError
-implicit_creation/implicit_const_context_constructor_test: CompileTimeError
-implicit_creation/implicit_const_context_list_test: CompileTimeError
-implicit_creation/implicit_const_context_map_test: CompileTimeError
-implicit_creation/implicit_const_context_prefix_constructor_named_test: CompileTimeError
-implicit_creation/implicit_const_context_prefix_constructor_test: CompileTimeError
-implicit_creation/implicit_const_not_default_values_test/o.*: CompileTimeError # No support for implicit creation.
-implicit_creation/implicit_new_constructor_generic_named_test: CompileTimeError
-implicit_creation/implicit_new_constructor_generic_test: CompileTimeError
-implicit_creation/implicit_new_constructor_named_test: CompileTimeError
-implicit_creation/implicit_new_constructor_test: CompileTimeError
-implicit_creation/implicit_new_or_const_composite_test: CompileTimeError
-implicit_creation/implicit_new_or_const_generic_test: CompileTimeError
-implicit_creation/implicit_new_or_const_test: CompileTimeError
-implicit_creation/implicit_new_prefix_constructor_generic_named_test: CompileTimeError
-implicit_creation/implicit_new_prefix_constructor_generic_test: CompileTimeError
-implicit_creation/implicit_new_prefix_constructor_named_test: CompileTimeError
-implicit_creation/implicit_new_prefix_constructor_test: CompileTimeError
-reify_typevar_static_test/00: MissingCompileTimeError
-type_literal_prefix_call_test: CompileTimeError
-
-[ $compiler == dart2analyzer && !$fasta && $strong ]
-accessor_conflict_export2_test: CompileTimeError # Issue 25626
-accessor_conflict_export_test: CompileTimeError # Issue 25626
-accessor_conflict_import2_test: CompileTimeError # Issue 25626
-accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
-accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
-accessor_conflict_import_test: CompileTimeError # Issue 25626
-additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
-cascaded_forwarding_stubs_test: CompileTimeError
-config_import_corelib_test: CompileTimeError
-conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Crashes or times out
-default_implementation2_test: CompileTimeError # Issue 30855
-error_stacktrace_test/00: Pass
-field3_test/02: MissingCompileTimeError # Issue 33022
-field3a_negative_test: StaticWarning # Issue 28823
-forwarding_stub_tearoff_test: CompileTimeError
-generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30207
-generic_no_such_method_dispatcher_test: CompileTimeError
-generic_tearoff_test: CompileTimeError
-interceptor6_test: CompileTimeError
-issue13673_test: StaticWarning # Issue 31925
-issue31596_implement_covariant_test: CompileTimeError
-issue31596_override_test/01: CompileTimeError
-issue31596_override_test/02: CompileTimeError
-issue31596_override_test/03: CompileTimeError
-issue31596_override_test/04: CompileTimeError
-issue31596_override_test/none: CompileTimeError
-issue31596_super_test/01: CompileTimeError
-issue31596_super_test/03: CompileTimeError
-issue31596_super_test/05: CompileTimeError
-issue31596_super_test/none: CompileTimeError
-issue31596_tearoff_test: CompileTimeError
-issue31596_test: CompileTimeError
-malformed2_test: Pass, MissingCompileTimeError # Issue 31056.
-mixin_super_2_test/01: MissingCompileTimeError
-mixin_super_2_test/03: MissingCompileTimeError
-mixin_supertype_subclass_test/02: MissingCompileTimeError
-mixin_supertype_subclass_test/05: MissingCompileTimeError
-multiline_newline_test/01: CompileTimeError
-multiline_newline_test/01r: CompileTimeError
-multiline_newline_test/02: CompileTimeError
-multiline_newline_test/02r: CompileTimeError
-multiline_newline_test/04: MissingCompileTimeError
-multiline_newline_test/04r: MissingCompileTimeError
-multiline_newline_test/05: MissingCompileTimeError
-multiline_newline_test/05r: MissingCompileTimeError
-multiple_interface_inheritance_test: CompileTimeError # Issue 30552
-no_main_test/01: MissingStaticWarning # Issue 28823
-override_inheritance_field_test/42: CompileTimeError
-parser_quirks_test: CompileTimeError
-regress_22976_test/01: CompileTimeError
-regress_22976_test/02: CompileTimeError
-regress_22976_test/none: CompileTimeError
-regress_30121_test: CompileTimeError # Issue 31087
-regress_30339_test: CompileTimeError
-setter_override2_test/02: MissingCompileTimeError # Issue 14736
-string_split_test: CompileTimeError
-string_supertype_checked_test: CompileTimeError
-super_bound_closure_test/none: CompileTimeError
-super_no_such_method4_test/01: MissingCompileTimeError # Issue 33553
-super_no_such_method5_test/01: MissingCompileTimeError # Issue 33553
-super_setter_test: StaticWarning # Issue 28823
-switch_case_test/none: CompileTimeError
-syntax_test/60: MissingCompileTimeError
-syntax_test/61: MissingCompileTimeError
-type_promotion_functions_test/01: Pass
-type_promotion_functions_test/05: Pass
-type_promotion_functions_test/06: Pass
-type_promotion_functions_test/07: Pass
-type_promotion_functions_test/08: Pass
-type_promotion_functions_test/10: Pass
-vm/lazy_deopt_with_exception_test: CompileTimeError
-void/void_type_function_types_test/none: CompileTimeError # Issue 30177

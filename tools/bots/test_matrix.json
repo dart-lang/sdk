@@ -1945,6 +1945,15 @@
           ]
         },
         {
+          "name": "run language2 tests",
+          "arguments": [
+            "--compiler=dart2analyzer",
+            "--use-cfe",
+            "--use-sdk",
+            "language_2"
+          ]
+        },
+        {
           "name": "benchmarks analysis-server-cold --use-cfe",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
@@ -2018,6 +2027,15 @@
             "--fatal-warnings",
             "--use-cfe",
             "pkg/kernel"
+          ]
+        },
+        {
+          "name": "run language2 tests",
+          "arguments": [
+            "--compiler=dart2analyzer",
+            "--use-cfe",
+            "--use-sdk",
+            "language_2"
           ]
         }
       ]
