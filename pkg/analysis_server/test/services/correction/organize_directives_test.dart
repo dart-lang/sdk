@@ -334,7 +334,7 @@ import 'package:product2.client/entity.dart';
     expect(result, expectedCode);
   }
 
-  Future<Null> _computeUnitAndErrors(String code) async {
+  Future<void> _computeUnitAndErrors(String code) async {
     addTestSource(code);
     AnalysisResult result = await driver.getResult(testSource.fullName);
     testUnit = result.unit;

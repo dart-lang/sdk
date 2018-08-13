@@ -437,7 +437,7 @@ main() {
 }
 ''');
 
-    Future<Null> checkUpdate(doUpdate()) async {
+    Future<void> checkUpdate(doUpdate()) async {
       await getRefactoringResult(() {
         return sendStringRequest('1 + 2', 'res', true);
       });

@@ -20,7 +20,7 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
   int completionOffset;
   int replacementOffset;
   int replacementLength;
-  Map<String, Completer<Null>> receivedSuggestionsCompleters = {};
+  Map<String, Completer<void>> receivedSuggestionsCompleters = {};
   List<CompletionSuggestion> suggestions = [];
   bool suggestionsDone = false;
   Map<String, List<CompletionSuggestion>> allSuggestions = {};
@@ -128,8 +128,8 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
     handler = new CompletionDomainHandler(server);
   }
 
-  Completer<Null> _getResultsCompleter(String id) {
+  Completer<void> _getResultsCompleter(String id) {
     return receivedSuggestionsCompleters.putIfAbsent(
-        id, () => new Completer<Null>());
+        id, () => new Completer<void>());
   }
 }

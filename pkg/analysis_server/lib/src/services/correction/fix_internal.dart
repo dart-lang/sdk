@@ -595,7 +595,7 @@ class FixProcessor {
     return fixes;
   }
 
-  Future<Null> _addFix_addAsync() async {
+  Future<void> _addFix_addAsync() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     FunctionBody body = node.getAncestor((n) => n is FunctionBody);
@@ -609,7 +609,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_addExplicitCast() async {
+  Future<void> _addFix_addExplicitCast() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (coveredNode is! Expression) {
@@ -710,7 +710,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_addMissingNamedArgument() async {
+  Future<void> _addFix_addMissingNamedArgument() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     // Prepare the name of the missing parameter.
@@ -774,7 +774,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_addMissingParameter() async {
+  Future<void> _addFix_addMissingParameter() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     // The error is reported on ArgumentList.
@@ -844,7 +844,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_addMissingRequiredArgument() async {
+  Future<void> _addFix_addMissingRequiredArgument() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     InstanceCreationExpression creation;
@@ -913,7 +913,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_addOverrideAnnotation() async {
+  Future<void> _addFix_addOverrideAnnotation() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     ClassMember member = node.getAncestor((n) => n is ClassMember);
@@ -940,7 +940,7 @@ class FixProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.LINT_ADD_OVERRIDE);
   }
 
-  Future<Null> _addFix_addRequiredAnnotation() async {
+  Future<void> _addFix_addRequiredAnnotation() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
@@ -950,7 +950,7 @@ class FixProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.LINT_ADD_REQUIRED);
   }
 
-  Future<Null> _addFix_addStatic() async {
+  Future<void> _addFix_addStatic() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     FieldDeclaration declaration =
@@ -962,7 +962,7 @@ class FixProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.ADD_STATIC);
   }
 
-  Future<Null> _addFix_boolInsteadOfBoolean() async {
+  Future<void> _addFix_boolInsteadOfBoolean() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
@@ -972,7 +972,7 @@ class FixProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_BOOLEAN_WITH_BOOL);
   }
 
-  Future<Null> _addFix_canBeNullAfterNullAware() async {
+  Future<void> _addFix_canBeNullAfterNullAware() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     AstNode node = coveredNode;
@@ -996,7 +996,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_changeTypeAnnotation() async {
+  Future<void> _addFix_changeTypeAnnotation() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     AstNode declaration = coveredNode.parent;
@@ -1029,7 +1029,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_convertFlutterChild() async {
+  Future<void> _addFix_convertFlutterChild() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     NamedExpression named = flutter.findNamedExpression(node, 'child');
@@ -1071,7 +1071,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_convertFlutterChildren() async {
+  Future<void> _addFix_convertFlutterChildren() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     AstNode node = this.node;
@@ -1101,7 +1101,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_convertToNamedArgument() async {
+  Future<void> _addFix_convertToNamedArgument() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     var argumentList = this.node;
@@ -1171,7 +1171,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_createClass() async {
+  Future<void> _addFix_createClass() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     Element prefixElement = null;
@@ -1256,7 +1256,7 @@ class FixProcessor {
    * Here we handle cases when there are no constructors in a class, and the
    * class has uninitialized final fields.
    */
-  Future<Null> _addFix_createConstructor_forUninitializedFinalFields() async {
+  Future<void> _addFix_createConstructor_forUninitializedFinalFields() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (node is! SimpleIdentifier || node.parent is! VariableDeclaration) {
@@ -1334,7 +1334,7 @@ class FixProcessor {
         changeBuilder, DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS);
   }
 
-  Future<Null> _addFix_createConstructor_insteadOfSyntheticDefault() async {
+  Future<void> _addFix_createConstructor_insteadOfSyntheticDefault() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (node is! ArgumentList) {
@@ -1379,7 +1379,7 @@ class FixProcessor {
         args: [constructorName]);
   }
 
-  Future<Null> _addFix_createConstructor_named() async {
+  Future<void> _addFix_createConstructor_named() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     SimpleIdentifier name = null;
@@ -1439,7 +1439,7 @@ class FixProcessor {
         args: [constructorName]);
   }
 
-  Future<Null> _addFix_createConstructorSuperExplicit() async {
+  Future<void> _addFix_createConstructorSuperExplicit() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (node.parent is! ConstructorDeclaration ||
@@ -1510,7 +1510,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_createConstructorSuperImplicit() async {
+  Future<void> _addFix_createConstructorSuperImplicit() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     ClassDeclaration targetClassNode = node.parent as ClassDeclaration;
@@ -1579,7 +1579,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_createField() async {
+  Future<void> _addFix_createField() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (node is! SimpleIdentifier) {
@@ -1656,7 +1656,7 @@ class FixProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_FIELD, args: [name]);
   }
 
-  Future<Null> _addFix_createField_initializingFormal() async {
+  Future<void> _addFix_createField_initializingFormal() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     //
@@ -1692,7 +1692,7 @@ class FixProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_FIELD, args: [name]);
   }
 
-  Future<Null> _addFix_createFunction_forFunctionType() async {
+  Future<void> _addFix_createFunction_forFunctionType() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (node is SimpleIdentifier) {
@@ -1742,7 +1742,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_createGetter() async {
+  Future<void> _addFix_createGetter() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (node is! SimpleIdentifier) {
@@ -1819,7 +1819,7 @@ class FixProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_GETTER, args: [name]);
   }
 
-  Future<Null> _addFix_createImportUri() async {
+  Future<void> _addFix_createImportUri() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     // TODO(brianwilkerson) Generalize this to allow other valid string literals.
@@ -1847,7 +1847,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_createLocalVariable() async {
+  Future<void> _addFix_createLocalVariable() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (node is! SimpleIdentifier) {
@@ -1900,7 +1900,7 @@ class FixProcessor {
         args: [name]);
   }
 
-  Future<Null> _addFix_createMissingOverrides() async {
+  Future<void> _addFix_createMissingOverrides() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (node.parent is! ClassDeclaration) {
@@ -2049,7 +2049,7 @@ class FixProcessor {
     utils.targetExecutableElement = null;
   }
 
-  Future<Null> _addFix_createNoSuchMethod() async {
+  Future<void> _addFix_createNoSuchMethod() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (node.parent is! ClassDeclaration) {
@@ -2077,7 +2077,7 @@ class FixProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_NO_SUCH_METHOD);
   }
 
-  Future<Null> _addFix_createPartUri() async {
+  Future<void> _addFix_createPartUri() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     // TODO(brianwilkerson) Generalize this to allow other valid string literals.
@@ -2098,7 +2098,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_illegalAsyncReturnType() async {
+  Future<void> _addFix_illegalAsyncReturnType() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     // prepare the existing type
@@ -2111,7 +2111,7 @@ class FixProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_RETURN_TYPE_FUTURE);
   }
 
-  Future<Null> _addFix_importLibrary(FixKind kind, Uri library) async {
+  Future<void> _addFix_importLibrary(FixKind kind, Uri library) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     String uriText;
@@ -2122,7 +2122,7 @@ class FixProcessor {
     _addFixFromBuilder(changeBuilder, kind, args: [uriText]);
   }
 
-  Future<Null> _addFix_importLibrary_withElement(String name,
+  Future<void> _addFix_importLibrary_withElement(String name,
       List<ElementKind> elementKinds, TopLevelDeclarationKind kind2) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -2226,7 +2226,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_importLibrary_withFunction() async {
+  Future<void> _addFix_importLibrary_withFunction() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (node is SimpleIdentifier && node.parent is MethodInvocation) {
@@ -2239,7 +2239,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_importLibrary_withTopLevelVariable() async {
+  Future<void> _addFix_importLibrary_withTopLevelVariable() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (node is SimpleIdentifier) {
@@ -2251,7 +2251,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_importLibrary_withType() async {
+  Future<void> _addFix_importLibrary_withType() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (_mayBeTypeIdentifier(node)) {
@@ -2267,7 +2267,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_insertSemicolon() async {
+  Future<void> _addFix_insertSemicolon() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (error.message.contains("';'")) {
@@ -2283,7 +2283,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_isNotEmpty() async {
+  Future<void> _addFix_isNotEmpty() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (node is! PrefixExpression) {
@@ -2311,7 +2311,7 @@ class FixProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.USE_IS_NOT_EMPTY);
   }
 
-  Future<Null> _addFix_isNotNull() async {
+  Future<void> _addFix_isNotNull() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (coveredNode is IsExpression) {
@@ -2328,7 +2328,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_isNull() async {
+  Future<void> _addFix_isNull() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (coveredNode is IsExpression) {
@@ -2345,7 +2345,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_makeEnclosingClassAbstract() async {
+  Future<void> _addFix_makeEnclosingClassAbstract() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     ClassDeclaration enclosingClass =
@@ -2363,7 +2363,7 @@ class FixProcessor {
         args: [className]);
   }
 
-  Future<Null> _addFix_makeFieldNotFinal() async {
+  Future<void> _addFix_makeFieldNotFinal() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     AstNode node = this.node;
@@ -2408,7 +2408,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_makeVariableFinal() async {
+  Future<void> _addFix_makeVariableFinal() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     AstNode node = this.node;
@@ -2429,7 +2429,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_nonBoolCondition_addNotNull() async {
+  Future<void> _addFix_nonBoolCondition_addNotNull() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
@@ -2439,7 +2439,7 @@ class FixProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.ADD_NE_NULL);
   }
 
-  Future<Null> _addFix_removeAwait() async {
+  Future<void> _addFix_removeAwait() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     final awaitExpression = node;
@@ -2453,7 +2453,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_removeDeadCode() async {
+  Future<void> _addFix_removeDeadCode() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     AstNode coveringNode = this.coveredNode;
@@ -2496,7 +2496,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_removeEmptyCatch() async {
+  Future<void> _addFix_removeEmptyCatch() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
@@ -2506,7 +2506,7 @@ class FixProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_EMPTY_CATCH);
   }
 
-  Future<Null> _addFix_removeEmptyConstructorBody() async {
+  Future<void> _addFix_removeEmptyConstructorBody() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
@@ -2518,7 +2518,7 @@ class FixProcessor {
         changeBuilder, DartFixKind.REMOVE_EMPTY_CONSTRUCTOR_BODY);
   }
 
-  Future<Null> _addFix_removeEmptyElse() async {
+  Future<void> _addFix_removeEmptyElse() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     IfStatement ifStatement = node.parent;
@@ -2530,7 +2530,7 @@ class FixProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_EMPTY_ELSE);
   }
 
-  Future<Null> _addFix_removeEmptyStatement() async {
+  Future<void> _addFix_removeEmptyStatement() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     EmptyStatement emptyStatement = node;
@@ -2553,7 +2553,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_removeInitializer() async {
+  Future<void> _addFix_removeInitializer() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     // Retrieve the linted node.
@@ -2569,7 +2569,7 @@ class FixProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_INITIALIZER);
   }
 
-  Future<Null> _addFix_removeInterpolationBraces() async {
+  Future<void> _addFix_removeInterpolationBraces() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     AstNode node = this.node;
@@ -2588,7 +2588,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_removeMethodDeclaration() async {
+  Future<void> _addFix_removeMethodDeclaration() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     MethodDeclaration declaration =
@@ -2602,7 +2602,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_removeParameters_inGetterDeclaration() async {
+  Future<void> _addFix_removeParameters_inGetterDeclaration() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (node is MethodDeclaration) {
@@ -2620,7 +2620,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_removeParentheses_inGetterInvocation() async {
+  Future<void> _addFix_removeParentheses_inGetterInvocation() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (node is SimpleIdentifier && node.parent is MethodInvocation) {
@@ -2636,7 +2636,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_removeThisExpression() async {
+  Future<void> _addFix_removeThisExpression() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     final thisExpression = node is ThisExpression
@@ -2658,7 +2658,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_removeTypeAnnotation() async {
+  Future<void> _addFix_removeTypeAnnotation() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     final TypeAnnotation type =
@@ -2672,7 +2672,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_removeUnnecessaryCast() async {
+  Future<void> _addFix_removeUnnecessaryCast() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (coveredNode is! AsExpression) {
@@ -2690,7 +2690,7 @@ class FixProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNNECESSARY_CAST);
   }
 
-  Future<Null> _addFix_removeUnusedCatchClause() async {
+  Future<void> _addFix_removeUnusedCatchClause() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (node is SimpleIdentifier) {
@@ -2708,7 +2708,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_removeUnusedCatchStack() async {
+  Future<void> _addFix_removeUnusedCatchStack() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (node is SimpleIdentifier) {
@@ -2727,7 +2727,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_removeUnusedImport() async {
+  Future<void> _addFix_removeUnusedImport() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     // prepare ImportDirective
@@ -2744,7 +2744,7 @@ class FixProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNUSED_IMPORT);
   }
 
-  Future<Null> _addFix_renameToCamelCase() async {
+  Future<void> _addFix_renameToCamelCase() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (node is! SimpleIdentifier) {
@@ -2787,7 +2787,7 @@ class FixProcessor {
         args: [newName]);
   }
 
-  Future<Null> _addFix_replaceFinalWithConst() async {
+  Future<void> _addFix_replaceFinalWithConst() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (node is VariableDeclarationList) {
@@ -2800,7 +2800,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_replaceVarWithDynamic() async {
+  Future<void> _addFix_replaceVarWithDynamic() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
@@ -2810,7 +2810,7 @@ class FixProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_VAR_WITH_DYNAMIC);
   }
 
-  Future<Null> _addFix_replaceWithConditionalAssignment() async {
+  Future<void> _addFix_replaceWithConditionalAssignment() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     IfStatement ifStatement = node is IfStatement
@@ -2847,7 +2847,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_replaceWithConstInstanceCreation() async {
+  Future<void> _addFix_replaceWithConstInstanceCreation() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (coveredNode is InstanceCreationExpression) {
@@ -2866,7 +2866,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_replaceWithIdentifier() async {
+  Future<void> _addFix_replaceWithIdentifier() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     final FunctionTypedFormalParameter functionTyped =
@@ -2883,7 +2883,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_replaceWithLiteral() async {
+  Future<void> _addFix_replaceWithLiteral() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     final InstanceCreationExpression instanceCreation =
@@ -2907,7 +2907,7 @@ class FixProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_WITH_LITERAL);
   }
 
-  Future<Null> _addFix_replaceWithTearOff() async {
+  Future<void> _addFix_replaceWithTearOff() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     FunctionExpression ancestor =
@@ -2915,7 +2915,7 @@ class FixProcessor {
     if (ancestor == null) {
       return;
     }
-    Future<Null> addFixOfExpression(InvocationExpression expression) async {
+    Future<void> addFixOfExpression(InvocationExpression expression) async {
       // TODO(brianwilkerson) Determine whether this await is necessary.
       await null;
       DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
@@ -2947,7 +2947,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_undefinedClass_useSimilar() async {
+  Future<void> _addFix_undefinedClass_useSimilar() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     AstNode node = this.node;
@@ -2998,7 +2998,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_undefinedClassAccessor_useSimilar() async {
+  Future<void> _addFix_undefinedClassAccessor_useSimilar() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     AstNode node = this.node;
@@ -3028,7 +3028,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_undefinedClassMember_useSimilar(
+  Future<void> _addFix_undefinedClassMember_useSimilar(
       Expression target, ElementPredicate predicate) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -3064,7 +3064,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_undefinedFunction_create() async {
+  Future<void> _addFix_undefinedFunction_create() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     // should be the name of the invocation
@@ -3113,7 +3113,7 @@ class FixProcessor {
         args: [name]);
   }
 
-  Future<Null> _addFix_undefinedFunction_useSimilar() async {
+  Future<void> _addFix_undefinedFunction_useSimilar() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     AstNode node = this.node;
@@ -3161,7 +3161,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_undefinedMethod_create() async {
+  Future<void> _addFix_undefinedMethod_create() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (node is SimpleIdentifier && node.parent is MethodInvocation) {
@@ -3247,7 +3247,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_undefinedMethod_useSimilar() async {
+  Future<void> _addFix_undefinedMethod_useSimilar() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (node.parent is MethodInvocation) {
@@ -3257,7 +3257,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_undefinedMethodWithContructor() async {
+  Future<void> _addFix_undefinedMethodWithContructor() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (node is SimpleIdentifier && node.parent is MethodInvocation) {
@@ -3277,7 +3277,7 @@ class FixProcessor {
    * Here we handle cases when a constructors does not initialize all of the
    * final fields.
    */
-  Future<Null> _addFix_updateConstructor_forUninitializedFinalFields() async {
+  Future<void> _addFix_updateConstructor_forUninitializedFinalFields() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (node is! SimpleIdentifier || node.parent is! ConstructorDeclaration) {
@@ -3339,7 +3339,7 @@ class FixProcessor {
     _addFixFromBuilder(changeBuilder, DartFixKind.ADD_FIELD_FORMAL_PARAMETERS);
   }
 
-  Future<Null> _addFix_useEffectiveIntegerDivision() async {
+  Future<void> _addFix_useEffectiveIntegerDivision() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     for (AstNode n = node; n != null; n = n.parent) {
@@ -3368,7 +3368,7 @@ class FixProcessor {
    * Adds a fix that replaces [target] with a reference to the class declaring
    * the given [element].
    */
-  Future<Null> _addFix_useStaticAccess(AstNode target, Element element) async {
+  Future<void> _addFix_useStaticAccess(AstNode target, Element element) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     Element declaringElement = element.enclosingElement;
@@ -3386,7 +3386,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_useStaticAccess_method() async {
+  Future<void> _addFix_useStaticAccess_method() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (node is SimpleIdentifier && node.parent is MethodInvocation) {
@@ -3399,7 +3399,7 @@ class FixProcessor {
     }
   }
 
-  Future<Null> _addFix_useStaticAccess_property() async {
+  Future<void> _addFix_useStaticAccess_property() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (node is SimpleIdentifier && node.parent is PrefixedIdentifier) {
@@ -3498,7 +3498,7 @@ class FixProcessor {
    * Adds proposal for creating method corresponding to the given [FunctionType] in the given
    * [ClassElement].
    */
-  Future<Null> _addProposal_createFunction_function(
+  Future<void> _addProposal_createFunction_function(
       FunctionType functionType) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -3527,7 +3527,7 @@ class FixProcessor {
    * Adds proposal for creating method corresponding to the given [FunctionType] in the given
    * [ClassElement].
    */
-  Future<Null> _addProposal_createFunction_method(
+  Future<void> _addProposal_createFunction_method(
       ClassElement targetClassElement, FunctionType functionType) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;

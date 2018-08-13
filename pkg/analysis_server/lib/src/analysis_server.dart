@@ -339,11 +339,6 @@ class AnalysisServer {
   DiagnosticServer diagnosticServer;
 
   /**
-   * The analytics instance; note, this object can be `null`.
-   */
-  telemetry.Analytics get analytics => options.analytics;
-
-  /**
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
    *
@@ -442,6 +437,11 @@ class AnalysisServer {
       new FlutterDomainHandler(this)
     ];
   }
+
+  /**
+   * The analytics instance; note, this object can be `null`.
+   */
+  telemetry.Analytics get analytics => options.analytics;
 
   /**
    * Return a list of the globs used to determine which files should be analyzed.
@@ -1009,7 +1009,7 @@ class AnalysisServer {
     return contextManager.isInAnalysisRoot(file);
   }
 
-  Future<Null> shutdown() async {
+  Future<void> shutdown() async {
     running = false;
 
     if (options.analytics != null) {

@@ -380,7 +380,7 @@ class EditDomainHandler extends AbstractRequestHandler {
   /**
    * Implement the `edit.importElements` request.
    */
-  Future<Null> importElements(Request request) async {
+  Future<void> importElements(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     EditImportElementsParams params =
@@ -462,7 +462,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     server.sendResponse(response);
   }
 
-  Future<Null> organizeDirectives(Request request) async {
+  Future<void> organizeDirectives(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     server.options.analytics?.sendEvent('edit', 'organizeDirectives');
@@ -499,7 +499,7 @@ class EditDomainHandler extends AbstractRequestHandler {
         new EditOrganizeDirectivesResult(fileEdit).toResponse(request.id));
   }
 
-  Future<Null> sortMembers(Request request) async {
+  Future<void> sortMembers(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     var params = new EditSortMembersParams.fromRequest(request);

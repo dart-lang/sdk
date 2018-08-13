@@ -148,7 +148,7 @@ class TestDriver implements AnalysisDriver {
 
   Stream<AnalysisResult> get results => _resultController.stream;
 
-  Future<Null> computeResult(String uri) {
+  Future<void> computeResult(String uri) {
     FileState file = fsState.getFileForUri(Uri.parse(uri));
     AnalysisResult result = new AnalysisResult(this, null, file.path, null,
         true, null, null, false, null, null, null, null);
@@ -165,7 +165,7 @@ class TestPluginManager implements PluginManager {
   List<ContextRoot> removedContextRoots = <ContextRoot>[];
 
   @override
-  Future<Null> addPluginToContextRoot(
+  Future<void> addPluginToContextRoot(
       ContextRoot contextRoot, String path) async {
     addedContextRoots.add(contextRoot);
     return null;

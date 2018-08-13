@@ -18,7 +18,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-Future<Null> scheduleImplementedNotification(
+Future<void> scheduleImplementedNotification(
     AnalysisServer server, Iterable<String> files) async {
   // TODO(brianwilkerson) Determine whether this await is necessary.
   await null;

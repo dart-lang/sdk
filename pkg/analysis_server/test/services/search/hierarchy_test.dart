@@ -446,7 +446,7 @@ class F implements A {}
     }
   }
 
-  Future<Null> _indexTestUnit(String code) async {
+  Future<void> _indexTestUnit(String code) async {
     await resolveTestUnit(code);
   }
 }

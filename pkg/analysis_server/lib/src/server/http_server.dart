@@ -130,7 +130,7 @@ class HttpAnalysisServer {
   /**
    * Handle a GET request received by the HTTP server.
    */
-  Future<Null> _handleGetRequest(HttpRequest request) async {
+  Future<void> _handleGetRequest(HttpRequest request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (getHandler == null) {

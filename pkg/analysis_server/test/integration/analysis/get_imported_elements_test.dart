@@ -85,7 +85,7 @@ class AnalysisGetImportedElementsIntegrationTest
    * Check that an analysis.getImportedElements request on the region matching
    * [target] produces an empty list of elements.
    */
-  Future<Null> checkNoElements(String target) async {
+  Future<void> checkNoElements(String target) async {
     int offset = text.indexOf(target);
     AnalysisGetImportedElementsResult result =
         await sendAnalysisGetImportedElements(pathname, offset, target.length);

@@ -782,7 +782,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     return result;
   }
 
-  Future<Null> _initializeReturnType() async {
+  Future<void> _initializeReturnType() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     TypeProvider typeProvider = await session.typeProvider;

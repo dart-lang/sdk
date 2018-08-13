@@ -7937,7 +7937,7 @@ class LintFixTest extends BaseFixProcessorTest {
     await _assertNoFix(kind, error);
   }
 
-  Future<Null> findLint(String src, String lintCode, {int length: 1}) async {
+  Future<void> findLint(String src, String lintCode, {int length: 1}) async {
     int errorOffset = src.indexOf('/*LINT*/');
     await resolveTestUnit(src.replaceAll('/*LINT*/', ''));
     error = new AnalysisError(

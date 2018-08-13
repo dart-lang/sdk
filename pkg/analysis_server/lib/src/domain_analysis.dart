@@ -45,7 +45,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
   /**
    * Implement the `analysis.getErrors` request.
    */
-  Future<Null> getErrors(Request request) async {
+  Future<void> getErrors(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     String file = new AnalysisGetErrorsParams.fromRequest(request).file;
@@ -79,7 +79,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
   /**
    * Implement the `analysis.getHover` request.
    */
-  Future<Null> getHover(Request request) async {
+  Future<void> getHover(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     var params = new AnalysisGetHoverParams.fromRequest(request);
@@ -106,7 +106,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
   /**
    * Implement the `analysis.getImportedElements` request.
    */
-  Future<Null> getImportedElements(Request request) async {
+  Future<void> getImportedElements(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     AnalysisGetImportedElementsParams params =
@@ -164,7 +164,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
   /**
    * Implement the `analysis.getNavigation` request.
    */
-  Future<Null> getNavigation(Request request) async {
+  Future<void> getNavigation(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     var params = new AnalysisGetNavigationParams.fromRequest(request);
@@ -251,7 +251,7 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
   /**
    * Implement the `analysis.getSignature` request.
    */
-  Future<Null> getSignature(Request request) async {
+  Future<void> getSignature(Request request) async {
     var params = new AnalysisGetSignatureParams.fromRequest(request);
 
     // Prepare the resolved units.

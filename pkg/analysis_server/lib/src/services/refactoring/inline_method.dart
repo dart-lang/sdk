@@ -464,7 +464,7 @@ class _ReferenceProcessor {
 
   _ReferenceProcessor(this.ref, this.reference);
 
-  Future<Null> init() async {
+  Future<void> init() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     refElement = reference.element;

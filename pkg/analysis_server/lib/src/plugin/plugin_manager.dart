@@ -262,11 +262,11 @@ abstract class PluginInfo {
   /**
    * Request that the plugin shutdown.
    */
-  Future<Null> stop() {
+  Future<void> stop() {
     if (currentSession == null) {
       throw new StateError('Cannot stop a plugin that is not running.');
     }
-    Future<Null> doneFuture = currentSession.stop();
+    Future<void> doneFuture = currentSession.stop();
     currentSession = null;
     return doneFuture;
   }
@@ -378,7 +378,7 @@ class PluginManager {
    * used when analyzing code for the given [contextRoot]. If the plugin had not
    * yet been started, then it will be started by this method.
    */
-  Future<Null> addPluginToContextRoot(
+  Future<void> addPluginToContextRoot(
       analyzer.ContextRoot contextRoot, String path) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -577,7 +577,7 @@ class PluginManager {
   /**
    * Restart all currently running plugins.
    */
-  Future<Null> restartPlugins() async {
+  Future<void> restartPlugins() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     for (PluginInfo plugin in _pluginMap.values.toList()) {
@@ -674,7 +674,7 @@ class PluginManager {
   /**
    * Stop all of the plugins that are currently running.
    */
-  Future<List<Null>> stopAll() {
+  Future<List<void>> stopAll() {
     return Future.wait(_pluginMap.values.map((PluginInfo info) => info.stop()));
   }
 
@@ -895,7 +895,7 @@ class PluginSession {
   /**
    * The completer used to signal when the plugin has stopped.
    */
-  Completer<Null> pluginStoppedCompleter = new Completer<Null>();
+  Completer<void> pluginStoppedCompleter = new Completer<void>();
 
   /**
    * The channel used to communicate with the plugin.
@@ -955,7 +955,7 @@ class PluginSession {
   /**
    * Return a future that will complete when the plugin has stopped.
    */
-  Future<Null> get onDone => pluginStoppedCompleter.future;
+  Future<void> get onDone => pluginStoppedCompleter.future;
 
   /**
    * Handle the given [notification].
@@ -1105,7 +1105,7 @@ class PluginSession {
   /**
    * Request that the plugin shutdown.
    */
-  Future<Null> stop() {
+  Future<void> stop() {
     if (channel == null) {
       throw new StateError('Cannot stop a plugin that is not running.');
     }

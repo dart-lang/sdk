@@ -88,7 +88,7 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
     return new RefactoringStatus();
   }
 
-  Future<Null> _updateElementDeclaration(
+  Future<void> _updateElementDeclaration(
       PropertyAccessorElement element) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;

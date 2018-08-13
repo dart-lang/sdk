@@ -342,7 +342,7 @@ class _ClassMemberValidator {
   }
 }
 
-class _LocalElementsCollector extends GeneralizingAstVisitor<Null> {
+class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   final String name;
   final List<LocalElement> elements = [];
 

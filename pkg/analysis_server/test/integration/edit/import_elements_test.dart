@@ -75,7 +75,7 @@ class AnalysisGetImportElementsIntegrationTest
    * Check that an edit.importElements request with the given list of [elements]
    * produces no edits.
    */
-  Future<Null> checkNoEdits(List<ImportedElements> elements) async {
+  Future<void> checkNoEdits(List<ImportedElements> elements) async {
     EditImportElementsResult result =
         await sendEditImportElements(pathname, <ImportedElements>[]);
 

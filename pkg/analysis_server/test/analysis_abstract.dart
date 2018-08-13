@@ -283,7 +283,7 @@ class TestPluginManager implements PluginManager {
   }
 
   @override
-  Future<Null> addPluginToContextRoot(
+  Future<void> addPluginToContextRoot(
       analyzer.ContextRoot contextRoot, String path) async {
     fail('Unexpected invocation of addPluginToContextRoot');
   }
@@ -323,7 +323,7 @@ class TestPluginManager implements PluginManager {
   }
 
   @override
-  Future<Null> restartPlugins() async {
+  Future<void> restartPlugins() async {
     // Nothing to restart.
     return null;
   }
@@ -347,7 +347,7 @@ class TestPluginManager implements PluginManager {
   }
 
   @override
-  Future<List<Null>> stopAll() async {
+  Future<List<void>> stopAll() async {
     fail('Unexpected invocation of stopAll');
   }
 }
