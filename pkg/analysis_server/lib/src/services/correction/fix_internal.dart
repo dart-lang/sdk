@@ -289,6 +289,11 @@ class FixProcessor {
     node = new NodeLocator2(errorOffset).searchWithin(unit);
     coveredNode =
         new NodeLocator2(errorOffset, errorEnd - 1).searchWithin(unit);
+    if (coveredNode == null) {
+      // TODO(brianwilkerson) Figure out why the coveredNode is sometimes null.
+      return fixes;
+    }
+
     // analyze ErrorCode
     ErrorCode errorCode = error.errorCode;
     if (errorCode == StaticWarningCode.UNDEFINED_CLASS_BOOLEAN) {
