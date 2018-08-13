@@ -135,7 +135,6 @@ Language/Expressions/Unary_Expressions/syntax_t10: CompileTimeError
 Language/Expressions/Unary_Expressions/syntax_t27: CompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t01: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: MissingCompileTimeError
-Language/Functions/async_return_type_t01: MissingCompileTimeError
 Language/Functions/generator_return_type_t01: MissingCompileTimeError
 Language/Functions/generator_return_type_t02: MissingCompileTimeError
 Language/Functions/generator_return_type_t05: MissingCompileTimeError

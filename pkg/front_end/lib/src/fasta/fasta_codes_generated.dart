@@ -3279,6 +3279,18 @@ const MessageCode messageIllegalAssignmentToNonAssignable = const MessageCode(
     message: r"""Illegal assignment to non-assignable expression.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeIllegalAsyncReturnType = messageIllegalAsyncReturnType;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageIllegalAsyncReturnType = const MessageCode(
+    "IllegalAsyncReturnType",
+    analyzerCode: "ILLEGAL_ASYNC_RETURN_TYPE",
+    dart2jsCode: "*fatal*",
+    severity: Severity.error,
+    message:
+        r"""Functions marked 'async' must have a return type that is a super type of 'Future'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateIllegalMixin =
     const Template<Message Function(String name)>(
         messageTemplate: r"""The type '#name' can't be mixed in.""",

@@ -706,6 +706,30 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     _typeInferrer.inferFunctionBody(
         this, _computeReturnTypeContext(member), asyncModifier, body);
 
+    // For async functions with declared return types, we need to determine
+    // whether those types are valid.
+    // TODO(hillerstrom): currently we need to check whether strongMode is
+    // enabled (or rather that we are not running in 'legacy mode') otherwise
+    // [_typeInferrer.typeSchemaEnvironment] might be null. We should remove this
+    // check once Dart 1 supported has been dropped.
+    if (library.loader.target.strongMode &&
+        builder.returnType != null &&
+        asyncModifier == AsyncMarker.Async) {
+      DartType returnType = builder.function.returnType;
+      // In order to decide whether Future<T> <: [returnType] for every T, we
+      // rely on Future<Bot> and transitivity of the subtyping relation
+      // because Future<Bot> <: Future<T> for every T.
+      DartType futureBottomType = library.loader.futureOfBottom;
+
+      if (!_typeInferrer.typeSchemaEnvironment
+          .isSubtypeOf(futureBottomType, returnType)) {
+        // TODO(hillerstrom): once types get annotated with location
+        // information, we can improve the quality of the error message by
+        // using the offset of [returnType].
+        addProblem(fasta.messageIllegalAsyncReturnType, member.charOffset, 0);
+      }
+    }
+
     // We finished the invalid body inference, desugar it into its error.
     if (body is InvalidStatementJudgment) {
       InvalidStatementJudgment judgment = body;

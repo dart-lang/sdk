@@ -1660,6 +1660,17 @@ ExtendingRestricted:
 NoUnnamedConstructorInObject:
   template: "'Object' has no unnamed constructor."
 
+IllegalAsyncReturnType:
+  template: "Functions marked 'async' must have a return type that is a super type of 'Future'."
+  severity: ERROR
+  analyzerCode: ILLEGAL_ASYNC_RETURN_TYPE
+  dart2jsCode: "*fatal*"
+  script:
+    - >-
+      int f() async {
+        return 0;
+      }
+
 IllegalMixinDueToConstructors:
   template: "Can't use '#name' as a mixin because it has constructors."
   analyzerCode: MIXIN_DECLARES_CONSTRUCTOR

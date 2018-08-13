@@ -62,30 +62,6 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_illegalAsyncReturnType_function_nonFuture() async {
-    await super.test_illegalAsyncReturnType_function_nonFuture();
-  }
-
-  @override
-  @failingTest
-  test_illegalAsyncReturnType_function_subtypeOfFuture() async {
-    await super.test_illegalAsyncReturnType_function_subtypeOfFuture();
-  }
-
-  @override
-  @failingTest
-  test_illegalAsyncReturnType_method_nonFuture() async {
-    await super.test_illegalAsyncReturnType_method_nonFuture();
-  }
-
-  @override
-  @failingTest
-  test_illegalAsyncReturnType_method_subtypeOfFuture() async {
-    await super.test_illegalAsyncReturnType_method_subtypeOfFuture();
-  }
-
-  @override
-  @failingTest
   test_illegalSyncGeneratorReturnType_function_nonIterator() async {
     await super.test_illegalSyncGeneratorReturnType_function_nonIterator();
   }

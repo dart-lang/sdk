@@ -11,10 +11,13 @@ import 'dart:typed_data' show Uint8List;
 import 'package:kernel/ast.dart'
     show
         Arguments,
+        BottomType,
         Class,
         Component,
+        DartType,
         Expression,
         FunctionNode,
+        InterfaceType,
         Library,
         LibraryDependency,
         ProcedureKind,
@@ -115,6 +118,8 @@ class SourceLoader<L> extends Loader<L> {
   // Used when building directly to kernel.
   ClassHierarchy hierarchy;
   CoreTypes coreTypes;
+  // Used when checking whether a return type of an async function is valid.
+  DartType futureOfBottom;
 
   @override
   TypeInferenceEngine typeInferenceEngine;
@@ -697,6 +702,8 @@ class SourceLoader<L> extends Loader<L> {
 
   void computeCoreTypes(Component component) {
     coreTypes = new CoreTypes(component);
+    futureOfBottom = new InterfaceType(
+        coreTypes.futureClass, <DartType>[const BottomType()]);
     ticker.logMs("Computed core types");
   }
 
