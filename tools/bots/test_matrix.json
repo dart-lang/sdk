@@ -176,48 +176,57 @@
         "runtime": "vm",
         "mode": "release",
         "use-sdk": true,
-        "vm-options": ["-DuserFastParser=true"],
+        "vm-options": ["-DuseFastaParser=true"],
         "builder-tag": "analyzer_use_fasta"
       }},
     "vm-legacy-(linux|mac|win)-(debug|release)-(ia32|x64)": {
       "options": {
-        "preview-dart-2": false
+        "preview-dart-2": false,
+        "builder-tag": "swarming"
       }},
     "vm-legacy-checked-(linux|mac|win)-(debug|release)-(ia32|x64)": {
       "options": {
         "preview-dart-2": false,
-        "checked": true
+        "checked": true,
+        "builder-tag": "swarming"
       }},
     "vm-legacy-linux-debug-simarm": {
       "options": {
-        "preview-dart-2": false
+        "preview-dart-2": false,
+        "builder-tag": "swarming"
       }},
     "vm-legacy-checked-linux-debug-simarm": {
       "options": {
         "preview-dart-2": false,
-        "checked": true
+        "checked": true,
+        "builder-tag": "swarming"
       }},
     "vm-legacy-linux-release-(simarm|simarm64)": {
       "options": {
-        "preview-dart-2": false
+        "preview-dart-2": false,
+        "builder-tag": "swarming"
       }},
     "vm-legacy-checked-linux-release-(simarm|simarm64)": {
       "options": {
         "preview-dart-2": false,
-        "checked": true
+        "checked": true,
+        "builder-tag": "swarming"
       }},
     "vm-legacy-mac-(debug|release)-simdbc64": {
       "options": {
-        "preview-dart-2": false
+        "preview-dart-2": false,
+        "builder-tag": "swarming"
       }},
     "vm-legacy-checked-mac-(debug|release)-simdbc64": {
       "options": {
         "preview-dart-2": false,
-        "checked": true
+        "checked": true,
+        "builder-tag": "swarming"
       }},
     "vm-legacy-(linux|mac|win)-product-x64": {
       "options": {
-        "preview-dart-2": false
+        "preview-dart-2": false,
+        "builder-tag": "swarming"
       }},
     "vm-legacy-asan-linux-release-x64": {
       "options": {
@@ -353,7 +362,7 @@
     "dartkp-linux-release-x64": { },
     "dartkp-linux-debug-x64": {
       "options": {
-        "vm-options": ["no-enable-malloc-hooks"]
+        "vm-options": ["--no-enable-malloc-hooks"]
     }},
     "dartk-(linux|mac)-(debug|release)-x64": { },
     "dartk-win-release-x64": { },
@@ -362,8 +371,7 @@
     "dartk-optcounter-linux-release-x64": {
       "options": {
         "builder-tag": "optimization_counter_threshold",
-        "vm-options": ["--optimization-counter-threshold=5"],
-        "preview-dart-2": false
+        "vm-options": ["--optimization-counter-threshold=5"]
       }},
     "dartk-legacy-linux-release-x64": {
       "options": {
@@ -631,6 +639,7 @@
             "-nvm-legacy-linux-debug-ia32",
             "--arch=ia32",
             "--no-preview-dart-2",
+            "--builder-tag=swarming",
             "vm"]
         },
         {
@@ -639,6 +648,7 @@
             "-nvm-legacy-linux-debug-x64",
             "--arch=x64",
             "--no-preview-dart-2",
+            "--builder-tag=swarming",
             "vm"]
         }
       ]
