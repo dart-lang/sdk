@@ -2109,7 +2109,6 @@ DuplicatedNamePreviouslyUsed:
 
 DuplicatedNamePreviouslyUsedCause:
   template: "Previous use of '#name'."
-  analyzerCode: REFERENCED_BEFORE_DECLARATION
   severity: CONTEXT
 
 DuplicatedNamedArgument:

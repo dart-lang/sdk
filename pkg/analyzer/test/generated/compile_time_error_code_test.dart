@@ -7327,15 +7327,7 @@ main() {
 }
 print(x) {}''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [
-        CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
-        CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION
-      ]);
-    } else {
-      assertErrors(
-          source, [CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION]);
-    }
+    assertErrors(source, [CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION]);
   }
 
   test_referencedBeforeDeclaration_hideInBlock_local() async {
@@ -7390,15 +7382,7 @@ void testTypeRef() {
 }
 ''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [
-        CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
-        CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION
-      ]);
-    } else {
-      assertErrors(
-          source, [CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION]);
-    }
+    assertErrors(source, [CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION]);
   }
 
   test_referencedBeforeDeclaration_type_localVariable() async {

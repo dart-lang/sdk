@@ -2107,7 +2107,6 @@ const Code<Message Function(String name)>
     const Code<Message Function(String name)>(
         "DuplicatedNamePreviouslyUsedCause",
         templateDuplicatedNamePreviouslyUsedCause,
-        analyzerCode: "REFERENCED_BEFORE_DECLARATION",
         severity: Severity.context);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
