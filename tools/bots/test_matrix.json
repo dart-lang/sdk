@@ -147,22 +147,29 @@
   "configurations": {
     "unittest-(linux|win|mac)": {
       "options": {
-        "compiler": "none",
-        "runtime": "vm",
+        "compiler": "dartk",
         "mode": "release",
-        "preview-dart-2": false,
-        "use-sdk": true,
-        "checked": true,
-        "timeout": 240
+        "runtime": "vm",
+        "timeout": 240,
+        "use-sdk": true
       }},
     "unittest-asserts-(linux|mac|win)": {
       "options": {
-        "compiler": "none",
-        "runtime": "vm",
+        "compiler": "dartk",
+        "enable-asserts": true,
         "mode": "release",
-        "use-sdk": true,
-        "enable-asserts": true
+        "runtime": "vm",
+        "timeout": 240,
+        "use-sdk": true
       }},
+      "unittest-asserts-no-sdk-(linux|mac|win)": {
+        "options": {
+          "compiler": "dartk",
+          "enable-asserts": true,
+          "mode": "release",
+          "runtime": "vm",
+          "timeout": 240
+        }},
     "unittest-analyzer_use_fasta-linux": {
       "options": {
         "compiler": "none",
@@ -470,12 +477,12 @@
         {
           "name": "unit tests",
           "arguments": [
-            "-nunittest-${system}",
-            "--checked",
-            "--compiler=none",
-            "--no-preview-dart-2",
+            "-nunittest-asserts-${system}",
+            "--compiler=dartk",
+            "--enable-asserts",
             "--runtime=vm",
             "--timeout=240",
+            "--use-sdk",
             "pkg/(kernel|front_end|fasta)"
           ]
         },
@@ -1269,14 +1276,13 @@
         {
           "name": "dart2js unit tests",
           "arguments": [
-            "-nunittest-linux",
-            "--compiler=none",
+            "-nunittest-asserts-no-sdk-linux",
+            "--compiler=dartk",
+            "--enable-asserts",
             "--runtime=vm",
-            "--timeout=120",
-            "--checked",
-            "--no-preview-dart-2",
+            "--timeout=240",
             "dart2js",
-            "pkg/compiler"
+            "pkg//compiler/"
           ]
         }
       ]
@@ -1777,8 +1783,10 @@
           "name": "analyzer unit tests",
           "arguments": [
             "-nunittest-asserts-${system}",
-            "--compiler=none",
+            "--compiler=dartk",
             "--enable-asserts",
+            "--runtime=vm",
+            "--timeout=240",
             "--use-sdk",
             "pkg/analyzer"
           ],
@@ -1789,8 +1797,10 @@
           "name": "analysis_server unit tests",
           "arguments": [
             "-nunittest-asserts-${system}",
-            "--compiler=none",
+            "--compiler=dartk",
             "--enable-asserts",
+            "--runtime=vm",
+            "--timeout=240",
             "--use-sdk",
             "pkg/analysis_server"
           ],
@@ -1820,8 +1830,10 @@
           "name": "analyzer_cli unit tests",
           "arguments": [
             "-nunittest-asserts-${system}",
-            "--compiler=none",
+            "--compiler=dartk",
             "--enable-asserts",
+            "--runtime=vm",
+            "--timeout=240",
             "--use-sdk",
             "pkg/analyzer_cli"
           ]
@@ -1830,8 +1842,10 @@
           "name": "analyzer_plugin unit tests",
           "arguments": [
             "-nunittest-asserts-${system}",
-            "--compiler=none",
+            "--compiler=dartk",
             "--enable-asserts",
+            "--runtime=vm",
+            "--timeout=240",
             "--use-sdk",
             "pkg/analyzer_plugin"
           ]
@@ -2269,10 +2283,9 @@
         {
           "name": "package unit tests",
           "arguments": [
-            "-nunittest-${system}",
-            "--checked",
-            "--compiler=none",
-            "--no-preview-dart-2",
+            "-nunittest-asserts-${system}",
+            "--compiler=dartk",
+            "--enable-asserts",
             "--runtime=vm",
             "--timeout=240",
             "--use-sdk"
@@ -2282,10 +2295,9 @@
         {
           "name": "third_party/pkg_tested unit tests",
           "arguments": [
-            "-nunittest-${system}",
-            "--checked",
-            "--compiler=none",
-            "--no-preview-dart-2",
+            "-nunittest-asserts-${system}",
+            "--compiler=dartk",
+            "--enable-asserts",
             "--runtime=vm",
             "--timeout=240",
             "--use-sdk"

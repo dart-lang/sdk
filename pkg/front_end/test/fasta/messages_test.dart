@@ -322,7 +322,7 @@ class BytesExample extends Example {
   final Uint8List bytes;
 
   BytesExample(String name, String code, this.node)
-      : bytes = new Uint8List.fromList(node.value),
+      : bytes = new Uint8List.fromList(node.cast<int>()),
         super(name, code);
 }
 

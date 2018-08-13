@@ -15,7 +15,6 @@ import 'package:kernel/binary/limited_ast_to_binary.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart';
-import 'package:stream_channel/stream_channel.dart';
 import 'package:test/test.dart';
 import 'package:web_socket_channel/io.dart';
 
@@ -180,9 +179,8 @@ class RemoteVm {
 
   /// Establishes the JSON rpc connection.
   json_rpc.Peer _createPeer() {
-    StreamChannel socket =
-        new IOWebSocketChannel.connect('ws://127.0.0.1:$port/ws');
-    var peer = new json_rpc.Peer(socket);
+    var socket = new IOWebSocketChannel.connect('ws://127.0.0.1:$port/ws');
+    var peer = new json_rpc.Peer(socket.cast<String>());
     peer.listen().then((_) {
       print('connection to vm-service closed');
       return disconnect();

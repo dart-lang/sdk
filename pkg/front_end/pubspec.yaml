@@ -23,7 +23,7 @@ dev_dependencies:
   build_integration:
     path: ../build_integration
   dart_style: '^1.0.7'
-  json_rpc_2: ^2.0.4
+  json_rpc_2: ^2.0.9
   mockito: ^2.0.2
   stream_channel: ^1.6.1
   test: ^0.12.0

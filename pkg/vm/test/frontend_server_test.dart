@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:args/src/arg_results.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/ast.dart' show Component;
 import 'package:kernel/kernel.dart' show loadComponentFromBinary;
@@ -45,7 +44,7 @@ Future<int> main() async {
         'sdkroot',
       ];
       await starter(args, compiler: compiler);
-      final List<ArgResults> capturedArgs = verify(compiler.compile(
+      final List<dynamic> capturedArgs = verify(compiler.compile(
         argThat(equals('server.dart')),
         captureAny,
         generator: anyNamed('generator'),
@@ -62,7 +61,7 @@ Future<int> main() async {
         '--strong',
       ];
       await starter(args, compiler: compiler);
-      final List<ArgResults> capturedArgs = verify(compiler.compile(
+      final List<dynamic> capturedArgs = verify(compiler.compile(
         argThat(equals('server.dart')),
         captureAny,
         generator: anyNamed('generator'),
@@ -81,7 +80,7 @@ Future<int> main() async {
         '--no-sync-async',
       ];
       await starter(args, compiler: compiler);
-      final List<ArgResults> capturedArgs = verify(compiler.compile(
+      final List<dynamic> capturedArgs = verify(compiler.compile(
         argThat(equals('server.dart')),
         captureAny,
         generator: anyNamed('generator'),
@@ -99,7 +98,7 @@ Future<int> main() async {
         '--link-platform',
       ];
       await starter(args, compiler: compiler);
-      final List<ArgResults> capturedArgs = verify(compiler.compile(
+      final List<dynamic> capturedArgs = verify(compiler.compile(
         argThat(equals('server.dart')),
         captureAny,
         generator: anyNamed('generator'),
@@ -455,7 +454,7 @@ Future<int> main() async {
           '/foo/bar/server.incremental.dart.dill',
         ];
         expect(await starter(args, compiler: compiler), 0);
-        final List<ArgResults> capturedArgs = verify(compiler.compile(
+        final List<dynamic> capturedArgs = verify(compiler.compile(
           argThat(equals('server.dart')),
           captureAny,
           generator: anyNamed('generator'),

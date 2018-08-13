@@ -102,7 +102,7 @@ LogicExpression _minimizeByComplementation(LogicExpression expression) {
   });
   var combinedMinSets = _combineMinSets(
       clauses.map((e) => [new LogicExpression.and(e)]).toList(), []);
-  List<List<LogicExpression>> minCover = _findMinCover(combinedMinSets, []);
+  List<List<Expression>> minCover = _findMinCover(combinedMinSets, []);
   var finalOperands = minCover.map((minSet) => _reduceMinSet(minSet)).toList();
   return new LogicExpression.or(finalOperands).normalize();
 }

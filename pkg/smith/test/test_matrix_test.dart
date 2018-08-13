@@ -11,12 +11,12 @@ void main() {
       var testMatrix = TestMatrix.fromJson({
         "configurations": {
           "x64-dart2js-debug-vm-linux": <String, dynamic>{
-            "options": <String, dynamic>{"enableAsserts": true},
+            "options": <String, dynamic>{"enable-asserts": true},
           },
           "x64-dartdevc-vm-linux": <String, dynamic>{
             "options": <String, dynamic>{
               "mode": "release",
-              "enableAsserts": true
+              "enable-asserts": true
             },
           },
         }
@@ -51,10 +51,10 @@ void main() {
           {
             "configurations": {
               "one-x64-dart2js-debug-vm-linux": <String, dynamic>{
-                "options": <String, dynamic>{"enableAsserts": true}
+                "options": <String, dynamic>{"enable-asserts": true}
               },
               "two-x64-dart2js-debug-vm-linux": <String, dynamic>{
-                "options": <String, dynamic>{"enableAsserts": true}
+                "options": <String, dynamic>{"enable-asserts": true}
               },
             }
           });
