@@ -1548,6 +1548,12 @@ void Assembler::StoreIntoObjectFilter(Register object,
     // And the result with the negated space bit of the object.
     bic(IP, IP, Operand(object));
   } else {
+#if defined(DEBUG)
+    Label okay;
+    BranchIfNotSmi(value, &okay);
+    Stop("Unexpected Smi!");
+    Bind(&okay);
+#endif
     bic(IP, value, Operand(object));
   }
   tst(IP, Operand(kNewObjectAlignmentOffset));

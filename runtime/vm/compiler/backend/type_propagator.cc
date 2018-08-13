@@ -662,6 +662,10 @@ intptr_t CompileType::ToNullableCid() {
       cid_ = kClosureCid;
     } else if (type_->HasResolvedTypeClass()) {
       const Class& type_class = Class::Handle(type_->type_class());
+      if (type_class.IsFutureOrClass()) {
+        // FutureOr<T> may be Future<T> or T.
+        return cid_ = kDynamicCid;
+      }
       Thread* thread = Thread::Current();
       CHA* cha = thread->cha();
       // Don't infer a cid from an abstract type since there can be multiple

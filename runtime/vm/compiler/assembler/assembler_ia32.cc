@@ -1840,6 +1840,12 @@ void Assembler::StoreIntoObjectFilter(Register object,
                                       CanBeSmi can_be_smi,
                                       BarrierFilterMode how_to_jump) {
   if (can_be_smi == kValueIsNotSmi) {
+#if defined(DEBUG)
+    Label okay;
+    BranchIfNotSmi(value, &okay);
+    Stop("Unexpected Smi!");
+    Bind(&okay);
+#endif
     COMPILE_ASSERT((kNewObjectAlignmentOffset == kWordSize) &&
                    (kOldObjectAlignmentOffset == 0));
     // Write-barrier triggers if the value is in the new space (has bit set) and
