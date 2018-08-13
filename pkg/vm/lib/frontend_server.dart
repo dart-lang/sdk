@@ -28,9 +28,11 @@ import 'package:kernel/kernel.dart'
 import 'package:kernel/target/targets.dart';
 import 'package:path/path.dart' as path;
 import 'package:usage/uuid/uuid.dart';
+
 import 'package:vm/incremental_compiler.dart' show IncrementalCompiler;
 import 'package:vm/kernel_front_end.dart'
     show compileToKernel, parseCommandLineDefines;
+import 'package:vm/target/install.dart' show installAdditionalTargets;
 
 ArgParser argParser = new ArgParser(allowTrailingOptions: true)
   ..addFlag('train',
@@ -300,9 +302,16 @@ class FrontendCompiler implements CompilerInterface {
       return false;
     }
 
+    // Ensure that Flutter and VM targets are added to targets dictionary.
+    installAdditionalTargets();
+
     final TargetFlags targetFlags = new TargetFlags(
         strongMode: options['strong'], syncAsync: options['sync-async']);
     compilerOptions.target = getTarget(options['target'], targetFlags);
+    if (compilerOptions.target == null) {
+      print('Failed to create front-end target ${options['target']}.');
+      return false;
+    }
 
     final String importDill = options['import-dill'];
     if (importDill != null) {

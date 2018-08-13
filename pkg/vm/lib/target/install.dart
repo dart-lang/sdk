@@ -14,10 +14,15 @@ import 'package:vm/target/flutter_runner.dart' show FlutterRunnerTarget;
 
 import 'package:vm/target/vm.dart' show VmTarget;
 
+bool _installed = false;
+
 void installAdditionalTargets() {
-  targets["dart_runner"] = (TargetFlags flags) => new DartRunnerTarget(flags);
-  targets["flutter"] = (TargetFlags flags) => new FlutterTarget(flags);
-  targets["flutter_runner"] =
-      (TargetFlags flags) => new FlutterRunnerTarget(flags);
-  targets["vm"] = (TargetFlags flags) => new VmTarget(flags);
+  if (!_installed) {
+    targets["dart_runner"] = (TargetFlags flags) => new DartRunnerTarget(flags);
+    targets["flutter"] = (TargetFlags flags) => new FlutterTarget(flags);
+    targets["flutter_runner"] =
+        (TargetFlags flags) => new FlutterRunnerTarget(flags);
+    targets["vm"] = (TargetFlags flags) => new VmTarget(flags);
+    _installed = true;
+  }
 }
