@@ -124,6 +124,7 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
     kNativeEntry,
     kSubtypeTestCache,
     kPartialTearOffInstantiation,
+    kEmptyTypeArguments,
   };
 
   enum InvocationKind {
@@ -497,6 +498,9 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
             Context::Handle(helper_->zone_, old_closure.context()), Heap::kOld);
         obj = H.Canonicalize(Instance::Cast(obj));
       } break;
+      case ConstantPoolTag::kEmptyTypeArguments:
+        obj = Object::empty_type_arguments().raw();
+        break;
       default:
         UNREACHABLE();
     }

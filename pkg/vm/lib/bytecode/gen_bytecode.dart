@@ -965,8 +965,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     asm.emitStoreFieldTOS(
         cp.add(new ConstantInstanceField(closureFunctionTypeArguments)));
 
-    // TODO(alexmarkov): How to put Object::empty_type_arguments()
-    // to _delayed_type_arguments?
+    asm.emitPush(temp);
+    asm.emitPushConstant(cp.add(const ConstantEmptyTypeArguments()));
+    asm.emitStoreFieldTOS(
+        cp.add(new ConstantInstanceField(closureDelayedTypeArguments)));
 
     asm.emitPush(temp);
     asm.emitPushConstant(closureFunctionIndex);

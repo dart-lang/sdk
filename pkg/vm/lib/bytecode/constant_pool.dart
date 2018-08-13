@@ -162,6 +162,10 @@ type ConstantPartialTearOffInstantiation extends ConstantPoolEntry {
   ConstantIndex typeArguments;
 }
 
+type ConstantEmptyTypeArguments extends ConstantPoolEntry {
+  Byte tag = 25;
+}
+
 */
 
 enum ConstantTag {
@@ -189,7 +193,8 @@ enum ConstantTag {
   kEndClosureFunctionScope,
   kNativeEntry,
   kSubtypeTestCache,
-  kPartialTearOffInstantiation
+  kPartialTearOffInstantiation,
+  kEmptyTypeArguments,
 }
 
 abstract class ConstantPoolEntry {
@@ -262,6 +267,8 @@ abstract class ConstantPoolEntry {
         return new ConstantSubtypeTestCache.readFromBinary(source);
       case ConstantTag.kPartialTearOffInstantiation:
         return new ConstantPartialTearOffInstantiation.readFromBinary(source);
+      case ConstantTag.kEmptyTypeArguments:
+        return new ConstantEmptyTypeArguments.readFromBinary(source);
     }
     throw 'Unexpected constant tag $tag';
   }
@@ -1092,6 +1099,27 @@ class ConstantPartialTearOffInstantiation extends ConstantPoolEntry {
       other is ConstantPartialTearOffInstantiation &&
       this.tearOffConstantIndex == other.tearOffConstantIndex &&
       this.typeArgumentsConstantIndex == other.typeArgumentsConstantIndex;
+}
+
+class ConstantEmptyTypeArguments extends ConstantPoolEntry {
+  const ConstantEmptyTypeArguments();
+
+  @override
+  ConstantTag get tag => ConstantTag.kEmptyTypeArguments;
+
+  @override
+  void writeValueToBinary(BinarySink sink) {}
+
+  ConstantEmptyTypeArguments.readFromBinary(BinarySource source);
+
+  @override
+  String toString() => 'EmptyTypeArguments';
+
+  @override
+  int get hashCode => 997;
+
+  @override
+  bool operator ==(other) => other is ConstantEmptyTypeArguments;
 }
 
 /// Reserved constant pool entry.
