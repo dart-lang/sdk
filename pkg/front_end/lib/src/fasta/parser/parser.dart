@@ -2431,21 +2431,6 @@ class Parser {
     return rewriteAndRecover(token, message, newToken).next;
   }
 
-  /// If the token after [token] is a '>', return it.
-  /// If the next token is a composite greater-than token such as '>>',
-  /// then replace that token with separate tokens, and return the first '>'.
-  /// Otherwise, report an error, insert a synthetic '>',
-  /// and return that newly inserted synthetic '>'.
-  Token ensureGt(Token token) {
-    Token next = token.next;
-    String value = next.stringValue;
-    if (value == '>') {
-      return next;
-    }
-    rewriteGtCompositeOrRecover(token, next, value);
-    return token.next;
-  }
-
   /// If the token after [token] is a not literal string,
   /// then insert a synthetic literal string.
   /// Call `parseLiteralString` and return the result.
@@ -2498,36 +2483,6 @@ class Parser {
         new Token(TokenType.CLOSE_SQUARE_BRACKET, next.offset + 1));
     rewriter.replaceTokenFollowing(token, replacement);
     return token;
-  }
-
-  void rewriteGtCompositeOrRecover(Token token, Token next, String value) {
-    assert(value != '>');
-    Token replacement = new Token(TokenType.GT, next.charOffset);
-    if (identical(value, '>>')) {
-      replacement.setNext(new Token(TokenType.GT, next.charOffset + 1));
-    } else if (identical(value, '>=')) {
-      replacement.setNext(new Token(TokenType.EQ, next.charOffset + 1));
-    } else if (identical(value, '>>=')) {
-      replacement.setNext(new Token(TokenType.GT, next.charOffset + 1));
-      replacement.next.setNext(new Token(TokenType.EQ, next.charOffset + 2));
-    } else {
-      // Recovery
-      rewriteAndRecover(token, fasta.templateExpectedToken.withArguments('>'),
-          new SyntheticToken(TokenType.GT, next.offset));
-      return;
-    }
-    rewriter.replaceTokenFollowing(token, replacement);
-  }
-
-  void rewriteLtEndGroupOpt(BeginToken beginToken) {
-    assert(optional('<', beginToken));
-    Token end = beginToken.endGroup;
-    String value = end?.stringValue;
-    if (value != null && value.length > 1) {
-      Token beforeEnd = previousToken(beginToken, end);
-      rewriteGtCompositeOrRecover(beforeEnd, end, value);
-      beginToken.endGroup = null;
-    }
   }
 
   /// Report the given token as unexpected and return the next token if the next

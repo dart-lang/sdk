@@ -630,8 +630,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endFunctionType(Token functionToken, Token endToken) {
-    listener?.endFunctionType(functionToken, endToken);
+  void endFunctionType(Token functionToken) {
+    listener?.endFunctionType(functionToken);
   }
 
   @override

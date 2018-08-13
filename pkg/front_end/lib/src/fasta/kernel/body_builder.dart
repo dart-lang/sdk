@@ -2305,7 +2305,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void endFunctionType(Token functionToken, Token endToken) {
+  void endFunctionType(Token functionToken) {
     debugEvent("FunctionType");
     FormalParameters<Expression, Statement, Arguments> formals = pop();
     DartType returnType = pop();

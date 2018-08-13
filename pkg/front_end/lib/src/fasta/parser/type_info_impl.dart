@@ -374,7 +374,7 @@ class ComplexTypeInfo implements TypeInfo {
       }
       token = parser.parseFormalParametersRequiredOpt(
           token, MemberKind.GeneralizedFunctionType);
-      parser.listener.endFunctionType(functionToken, token.next);
+      parser.listener.endFunctionType(functionToken);
     }
 
     // There are two situations in which the [token] != [end]:

@@ -1062,7 +1062,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endFunctionType(Token functionToken, Token semicolon) {
+  void endFunctionType(Token functionToken) {
     assert(optional('Function', functionToken));
     debugEvent("FunctionType");
 
