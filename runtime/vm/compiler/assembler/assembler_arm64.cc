@@ -915,12 +915,6 @@ void Assembler::StoreIntoObjectFilter(Register object,
   // Write-barrier triggers if the value is in the new space (has bit set) and
   // the object is in the old space (has bit cleared).
   if (value_can_be_smi == kValueIsNotSmi) {
-#if defined(DEBUG)
-    Label okay;
-    BranchIfNotSmi(value, &okay);
-    Stop("Unexpected Smi!");
-    Bind(&okay);
-#endif
     // To check that, we compute value & ~object and skip the write barrier
     // if the bit is not set. We can't destroy the object.
     bic(TMP, value, Operand(object));
@@ -960,7 +954,7 @@ void Assembler::StoreIntoObject(Register object,
   ASSERT(object != value);
   str(value, dest);
   Label done;
-  StoreIntoObjectFilter(object, value, &done, can_be_smi, kJumpToNoUpdate);
+  StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
   if (!lr_reserved) Push(LR);
   ldr(LR, Address(THR, Thread::update_store_buffer_wrappers_offset(object)));
   blr(LR);

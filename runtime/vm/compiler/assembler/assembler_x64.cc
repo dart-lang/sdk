@@ -1224,12 +1224,6 @@ void Assembler::StoreIntoObjectFilter(Register object,
                  (kOldObjectAlignmentOffset == 0));
 
   if (can_be_smi == kValueIsNotSmi) {
-#if defined(DEBUG)
-    Label okay;
-    BranchIfNotSmi(value, &okay);
-    Stop("Unexpected Smi!");
-    Bind(&okay);
-#endif
     // Write-barrier triggers if the value is in the new space (has bit set) and
     // the object is in the old space (has bit cleared).
     // To check that we could compute value & ~object and skip the write barrier
