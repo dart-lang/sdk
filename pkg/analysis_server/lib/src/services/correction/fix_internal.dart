@@ -3182,6 +3182,11 @@ class FixProcessor {
         targetElement = unitElement;
         ClassMember enclosingMember =
             node.getAncestor((node) => node is ClassMember);
+        if (enclosingMember == null) {
+          // If the undefined identifier isn't inside a class member, then it
+          // doesn't make sense to create a method.
+          return;
+        }
         targetClassNode = enclosingMember.parent;
         utils.targetClassElement = targetClassNode.declaredElement;
         staticModifier = _inStaticContext();

@@ -7284,11 +7284,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_createClass_instanceCreation_withoutNew_fromFunction() =>
-      super.test_createClass_instanceCreation_withoutNew_fromFunction();
-
-  @failingTest
-  @override
   test_createClass_instanceCreation_withoutNew_fromMethod() =>
       super.test_createClass_instanceCreation_withoutNew_fromMethod();
 
@@ -7609,16 +7604,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_importLibraryProject_withClass_instanceCreation_implicit() =>
-      super.test_importLibraryProject_withClass_instanceCreation_implicit();
-
-  @failingTest
-  @override
-  test_importLibraryProject_withFunction() =>
-      super.test_importLibraryProject_withFunction();
-
-  @failingTest
-  @override
   test_importLibraryProject_withFunction_unresolvedMethod() =>
       super.test_importLibraryProject_withFunction_unresolvedMethod();
 
@@ -7740,31 +7725,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_undefinedFunction_create_bottomArgument() =>
-      super.test_undefinedFunction_create_bottomArgument();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_duplicateArgumentNames() =>
-      super.test_undefinedFunction_create_duplicateArgumentNames();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_dynamicArgument() =>
-      super.test_undefinedFunction_create_dynamicArgument();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_dynamicReturnType() =>
-      super.test_undefinedFunction_create_dynamicReturnType();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_fromFunction() =>
-      super.test_undefinedFunction_create_fromFunction();
-
-  @failingTest
-  @override
   test_undefinedFunction_create_fromMethod() =>
       super.test_undefinedFunction_create_fromMethod();
 
@@ -7777,61 +7737,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
   @override
   test_undefinedFunction_create_generic_OK() =>
       super.test_undefinedFunction_create_generic_OK();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_importType() =>
-      super.test_undefinedFunction_create_importType();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_nullArgument() =>
-      super.test_undefinedFunction_create_nullArgument();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_returnType_bool_expressions() =>
-      super.test_undefinedFunction_create_returnType_bool_expressions();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_returnType_bool_statements() =>
-      super.test_undefinedFunction_create_returnType_bool_statements();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_returnType_fromAssignment_eq() =>
-      super.test_undefinedFunction_create_returnType_fromAssignment_eq();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_returnType_fromAssignment_plusEq() =>
-      super.test_undefinedFunction_create_returnType_fromAssignment_plusEq();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_returnType_fromBinary_right() =>
-      super.test_undefinedFunction_create_returnType_fromBinary_right();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_returnType_fromInitializer() =>
-      super.test_undefinedFunction_create_returnType_fromInitializer();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_returnType_fromInvocationArgument() =>
-      super.test_undefinedFunction_create_returnType_fromInvocationArgument();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_returnType_fromReturn() =>
-      super.test_undefinedFunction_create_returnType_fromReturn();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_returnType_void() =>
-      super.test_undefinedFunction_create_returnType_void();
 
   @failingTest
   @override
