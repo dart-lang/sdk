@@ -800,7 +800,7 @@ Future<int> main() async {
         '--sdk-root=${sdkRoot.toFilePath()}',
         '--strong',
         '--incremental',
-        '--platform=${platformKernel.path}',
+        '--platform=$platformKernel',
         '--output-dill=${dillFile.path}',
         '--output-incremental-dill=${incrementalDillFile.path}'
       ];
@@ -875,7 +875,8 @@ Future<int> main() async {
             }
 
             // Include platform and verify.
-            component = loadComponentFromBinary(platformKernel.path, component);
+            component =
+                loadComponentFromBinary(platformKernel.toFilePath(), component);
             expect(component.mainMethod, isNotNull);
             verifyComponent(component);
 
@@ -900,7 +901,8 @@ Future<int> main() async {
                 reason: "Expect the same number of sources after a reset.");
 
             // Include platform and verify.
-            component = loadComponentFromBinary(platformKernel.path, component);
+            component =
+                loadComponentFromBinary(platformKernel.toFilePath(), component);
             expect(component.mainMethod, isNotNull);
             verifyComponent(component);
 
@@ -925,10 +927,11 @@ Future<int> main() async {
 
             // Reload with 1 change
             inputStreamController.add('accept\n'.codeUnits);
-            inputStreamController.add('recompile ${dart2js.path} x$count\n'
-                '${dart2jsOtherFile.path}\n'
-                'x$count\n'
-                .codeUnits);
+            inputStreamController
+                .add('recompile ${dart2jsOtherFile.path} x$count\n'
+                    '${dart2jsOtherFile.uri}\n'
+                    'x$count\n'
+                    .codeUnits);
           } else if (count == 3) {
             // Partial file. Expect to not be empty.
             expect(incrementalDillFile.existsSync(), equals(true));
