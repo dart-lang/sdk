@@ -368,7 +368,6 @@ class AnalysisServer {
     defaultContextOptions.generateImplicitErrors = false;
     defaultContextOptions.useFastaParser =
         options.useCFE || options.useFastaParser;
-    defaultContextOptions.previewDart2 = options.previewDart2;
     defaultContextOptions.useCFE = options.useCFE;
 
     {
@@ -1190,11 +1189,6 @@ class AnalysisServerOptions {
   CrashReportSender crashReportSender;
 
   /**
-   * Whether to enable the Dart 2.0 preview.
-   */
-  bool previewDart2 = false;
-
-  /**
    * Whether to enable the Dart 2.0 Common Front End implementation.
    */
   bool useCFE = false;
@@ -1427,7 +1421,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     builder.performanceLog = analysisServer._analysisPerformanceLogger;
     builder.byteStore = analysisServer.byteStore;
     builder.fileContentOverlay = analysisServer.fileContentOverlay;
-    builder.previewDart2 = analysisServer.options.previewDart2;
     builder.useCFE = analysisServer.options.useCFE;
     return builder;
   }

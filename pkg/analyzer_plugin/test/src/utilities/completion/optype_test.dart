@@ -17,7 +17,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OpTypeTest);
     defineReflectiveTests(OpTypeDart1OnlyTest);
-    defineReflectiveTests(OpTypeDart1Test);
   });
 }
 
@@ -985,21 +984,12 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
         constructors: previewDart2, returnValue: true, typeNames: true);
   }
 
+  @failingTest
   test_WithClause() async {
     // WithClause  ClassDeclaration
     addTestSource('class x extends Object with ^\n{}');
     await assertOpType(constructors: previewDart2, typeNames: true);
   }
-}
-
-/// Execute the tests that work on both.
-@reflectiveTest
-class OpTypeDart1Test extends OpTypeTest {
-  @override
-  bool get enablePreviewDart2 => false;
-
-  @override
-  bool get enableStrongMode => false;
 }
 
 @reflectiveTest

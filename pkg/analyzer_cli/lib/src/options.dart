@@ -114,7 +114,9 @@ class CommandLineOptions {
   final bool useFastaParser;
 
   /// Whether to enable the Dart 2.0 Preview.
-  final bool previewDart2;
+  ///
+  /// This flag is deprecated and hard-coded to `true`.
+  bool get previewDart2 => true;
 
   /// Batch mode (for unit testing)
   final bool batchMode;
@@ -189,7 +191,6 @@ class CommandLineOptions {
         perfReport = cast(args['x-perf-report']),
         useCFE = cast(args['use-cfe']),
         useFastaParser = cast(args['use-fasta-parser']),
-        previewDart2 = cast(args['preview-dart-2']),
         batchMode = cast(args['batch']),
         showPackageWarnings = cast(args['show-package-warnings']) ||
             cast(args['package-warnings']) ||

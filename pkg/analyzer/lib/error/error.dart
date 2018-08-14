@@ -51,6 +51,7 @@ const List<ErrorCode> errorCodeValues = const [
   AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
   AnalysisOptionsWarningCode.SPEC_MODE_REMOVED,
   AnalysisOptionsHintCode.DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME,
+  AnalysisOptionsHintCode.PREVIEW_DART_2_SETTING_DEPRECATED,
   AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED,
   CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
   CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,

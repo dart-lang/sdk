@@ -133,7 +133,7 @@ class ContextBuilder {
   /**
    * Whether to enable the Dart 2.0 preview.
    */
-  bool previewDart2 = false;
+  bool get previewDart2 => true;
 
   /**
    * Whether to enable the Dart 2.0 Common Front End implementation.

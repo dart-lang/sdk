@@ -378,7 +378,7 @@ class AnalysisTestHelper extends Object with ResourceProviderMixin {
     server = new AnalysisServer(
         serverChannel,
         resourceProvider,
-        new AnalysisServerOptions()..previewDart2 = true,
+        new AnalysisServerOptions(),
         new DartSdkManager(convertPath('/'), false),
         InstrumentationService.NULL_SERVICE);
     handler = new AnalysisDomainHandler(server);

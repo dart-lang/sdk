@@ -86,7 +86,6 @@ class AnalyzerOptions {
   /// Supported `analyzer` language options.
   static const List<String> languageOptions = const [
     enableSuperMixins,
-    enablePreviewDart2,
   ];
 }
 
@@ -378,7 +377,11 @@ class LanguageOptionValidator extends OptionsValidator {
           bool validKey = false;
           if (k is YamlScalar) {
             key = k.value?.toString();
-            if (!AnalyzerOptions.languageOptions.contains(key)) {
+            if (AnalyzerOptions.enablePreviewDart2 == key) {
+              reporter.reportErrorForSpan(
+                  AnalysisOptionsHintCode.PREVIEW_DART_2_SETTING_DEPRECATED,
+                  k.span);
+            } else if (!AnalyzerOptions.languageOptions.contains(key)) {
               builder.reportError(reporter, AnalyzerOptions.language, k);
             } else {
               // If we have a valid key, go on and check the value.
@@ -625,8 +628,6 @@ class _OptionsProcessor {
     if (boolValue != null) {
       if (feature == AnalyzerOptions.enableSuperMixins) {
         options.enableSuperMixins = boolValue;
-      } else if (feature == AnalyzerOptions.enablePreviewDart2) {
-        options.previewDart2 = boolValue;
       }
     }
   }

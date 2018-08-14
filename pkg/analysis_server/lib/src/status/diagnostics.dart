@@ -1305,8 +1305,6 @@ class StatusPage extends DiagnosticPageWithNav {
 
     buf.writeln('<div class="column one-half">');
     h3('Status');
-    buf.writeln(writeOption('Preview-dart-2',
-        diagnosticsSite.socketServer.analysisServerOptions.previewDart2));
     buf.writeln(writeOption('Use fasta parser',
         diagnosticsSite.socketServer.analysisServerOptions.useFastaParser));
     buf.writeln(writeOption('Use common front end',
