@@ -25,6 +25,7 @@ causal_async_stack_contents_test: RuntimeError
 causal_async_stack_presence_test: RuntimeError
 causal_async_star_stack_contents_test: RuntimeError
 causal_async_star_stack_presence_test: RuntimeError
+code_test: RuntimeError # Issue 34143
 complex_reload_test: RuntimeError
 debugger_inspect_test: Skip # No incremental compiler available.
 debugger_location_second_test: RuntimeError
@@ -97,6 +98,7 @@ set_vm_name_rpc_test: RuntimeError
 steal_breakpoint_test: RuntimeError
 step_into_async_no_await_test: RuntimeError
 step_over_await_test: RuntimeError
+step_test: RuntimeError # Issue 34143
 step_through_arithmetic_test: RuntimeError
 step_through_constructor_calls_test: RuntimeError
 step_through_constructor_test: RuntimeError
