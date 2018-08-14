@@ -1473,7 +1473,6 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
         closedWorld.classHierarchy.forEachStrictSubtypeOf(cls,
             (ClassEntity sub) {
           potentiallyNeedTypeArguments(sub);
-          return null;
         });
       } else if (entity is FunctionEntity) {
         methodsNeedingTypeArguments.add(entity);

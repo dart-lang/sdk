@@ -1379,9 +1379,8 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
           if (clause is js.Case) {
             return new js.Case(
                 clause.expression, translateToBlock(clause.body));
-          } else {
-            return new js.Default(
-                translateToBlock((clause as js.Default).body));
+          } else if (clause is js.Default) {
+            return new js.Default(translateToBlock(clause.body));
           }
         }).toList();
         addStatement(new js.Switch(key, cases));
