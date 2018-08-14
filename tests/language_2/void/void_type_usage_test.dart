@@ -125,7 +125,7 @@ Object testVoidCall(void f()) {
   f() ??= 3; //# call_use_in_conditional_assignment_left: compile-time error
   Object xx;  xx ??= f(); //# call_use_in_conditional_assignment_right: compile-time error
   var ll = <int>[3]; ll[f()]; //# call_use_in_list_subscript: compile-time error
-  var mm = <void, void>{}; mm[f()]; //# call_use_in_map_lookup: ok
+  var mm = <void, void>{}; mm[f()]; //# call_use_in_map_lookup: compile-time error
 }
 
 dynamic testVoidCallDynamic(void f()) {
@@ -179,7 +179,7 @@ Object testVoidLocal() {
   x ??= 3; //# local_use_in_conditional_assignment_left: compile-time error
   Object xx;  xx ??= x; //# local_use_in_conditional_assignment_right: compile-time error
   var ll = <int>[3]; ll[x]; //# local_use_in_list_subscript: compile-time error
-  var mm = <void, void>{}; mm[x]; //# local_use_in_map_lookup: ok
+  var mm = <void, void>{}; mm[x]; //# local_use_in_map_lookup: compile-time error
 }
 
 dynamic testVoidLocalDynamic() {
@@ -234,7 +234,7 @@ Object testVoidFinalLocal() {
   x ??= 3; //# final_local_use_in_conditional_assignment_left: compile-time error
   Object xx;  xx ??= x; //# final_local_use_in_conditional_assignment_right: compile-time error
   var ll = <int>[3]; ll[x]; //# final_local_use_in_list_subscript: compile-time error
-  var mm = <void, void>{}; mm[x]; //# final_local_use_in_map_lookup: ok
+  var mm = <void, void>{}; mm[x]; //# final_local_use_in_map_lookup: compile-time error
 }
 
 dynamic testVoidFinalLocalDynamic() {
@@ -288,7 +288,7 @@ Object testVoidGlobal() {
   global ??= 3; //# global_use_in_conditional_assignment_left: compile-time error
   Object xx;  xx ??= global; //# global_use_in_conditional_assignment_right: compile-time error
   var ll = <int>[3]; ll[global]; //# global_use_in_list_subscript: compile-time error
-  var mm = <void, void>{}; mm[global]; //# global_use_in_map_lookup: ok
+  var mm = <void, void>{}; mm[global]; //# global_use_in_map_lookup: compile-time error
 }
 
 dynamic testVoidGlobalDynamic() {
@@ -540,7 +540,7 @@ Object testParenthesized() {
   (x) ??= 3; //# paren_use_in_conditional_assignment_left: compile-time error
   Object xx;  xx ??= (x); //# paren_use_in_conditional_assignment_right: compile-time error
   var ll = <int>[3]; ll[(x)]; //# paren_use_in_list_subscript: compile-time error
-  var mm = <void, void>{}; mm[(x)]; //# paren_use_in_map_lookup: ok
+  var mm = <void, void>{}; mm[(x)]; //# paren_use_in_map_lookup: compile-time error
 }
 
 dynamic testParenthesizedDynamic() {
