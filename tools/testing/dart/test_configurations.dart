@@ -85,26 +85,13 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
 
   // Print the configurations being run by this execution of
   // test.dart. However, don't do it if the silent progress indicator
-  // is used. This is only needed because of the junit tests.
+  // is used.
   if (progressIndicator != Progress.silent) {
-    var outputWords = configurations.length > 1
-        ? ['Test configurations:']
-        : ['Test configuration:'];
-
+    print('Test configuration${configurations.length > 1 ? 's' : ''}:');
     for (var configuration in configurations) {
-      var settings = [
-        configuration.compiler.name,
-        configuration.runtime.name,
-        configuration.mode.name,
-        configuration.architecture.name
-      ];
-      if (configuration.isChecked) settings.add('checked');
-      if (configuration.noPreviewDart2) settings.add('no-preview-dart-2');
-      if (configuration.useFastStartup) settings.add('fast-startup');
-      if (configuration.useEnableAsserts) settings.add('enable-asserts');
-      outputWords.add(settings.join('_'));
+      print("    ${configuration.configuration}");
+      print("Suites tested: ${configuration.selectors.keys.join(", ")}");
     }
-    print(outputWords.join(' '));
   }
 
   var runningBrowserTests =

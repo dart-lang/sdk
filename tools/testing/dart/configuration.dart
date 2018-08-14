@@ -23,7 +23,6 @@ import 'runtime_configuration.dart';
 class TestConfiguration {
   TestConfiguration(
       {this.configuration,
-      this.namedConfiguration,
       this.progress,
       this.selectors,
       this.appendLogs,
@@ -71,12 +70,9 @@ class TestConfiguration {
 
   final Map<String, RegExp> selectors;
   final Progress progress;
-  // The test configuration computed from the test options.
+  // The test configuration read from the -n option and the test matrix
+  // or else computed from the test options.
   final Configuration configuration;
-  // The test configuration coming from the -n option.  Merging
-  // these two configurations into one will be the focus of some
-  // usability work.
-  final Configuration namedConfiguration;
 
   // Boolean flags.
 
