@@ -7696,11 +7696,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_removeParentheses_inGetterDeclaration() =>
-      super.test_removeParentheses_inGetterDeclaration();
-
-  @failingTest
-  @override
   test_removeParentheses_inGetterInvocation() =>
       super.test_removeParentheses_inGetterInvocation();
 

@@ -2611,6 +2611,7 @@ class FixProcessor {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     if (node is MethodDeclaration) {
+      // Support for the analyzer error.
       MethodDeclaration method = node as MethodDeclaration;
       SimpleIdentifier name = method.name;
       FunctionBody body = method.body;
@@ -2622,6 +2623,14 @@ class FixProcessor {
         _addFixFromBuilder(
             changeBuilder, DartFixKind.REMOVE_PARAMETERS_IN_GETTER_DECLARATION);
       }
+    } else if (node is FormalParameterList) {
+      // Support for the fasta error.
+      DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addDeletion(range.node(node));
+      });
+      _addFixFromBuilder(
+          changeBuilder, DartFixKind.REMOVE_PARAMETERS_IN_GETTER_DECLARATION);
     }
   }
 
