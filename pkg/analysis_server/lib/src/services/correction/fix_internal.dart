@@ -497,6 +497,12 @@ class FixProcessor {
       await _addFix_createField();
       await _addFix_createGetter();
       await _addFix_createFunction_forFunctionType();
+      // TODO(brianwilkerson) The following were added because fasta produces
+      // UNDEFINED_GETTER in places where analyzer produced UNDEFINED_IDENTIFIER
+      await _addFix_createClass();
+      await _addFix_createLocalVariable();
+      await _addFix_importLibrary_withTopLevelVariable();
+      await _addFix_importLibrary_withType();
     }
     if (errorCode == HintCode.UNDEFINED_METHOD ||
         errorCode == StaticTypeWarningCode.UNDEFINED_METHOD) {

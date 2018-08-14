@@ -7289,10 +7289,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_createClass_itemOfList() => super.test_createClass_itemOfList();
-
-  @failingTest
-  @override
   test_createClass_itemOfList_inAnnotation() =>
       super.test_createClass_itemOfList_inAnnotation();
 
@@ -7465,45 +7461,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_createLocalVariable_functionType_named() =>
-      super.test_createLocalVariable_functionType_named();
-
-  @failingTest
-  @override
-  test_createLocalVariable_functionType_named_generic() =>
-      super.test_createLocalVariable_functionType_named_generic();
-
-  @override
-  test_createLocalVariable_functionType_synthetic() =>
-      super.test_createLocalVariable_functionType_synthetic();
-
-  @failingTest
-  @override
-  test_createLocalVariable_read_typeAssignment() =>
-      super.test_createLocalVariable_read_typeAssignment();
-
-  @failingTest
-  @override
-  test_createLocalVariable_read_typeCondition() =>
-      super.test_createLocalVariable_read_typeCondition();
-
-  @failingTest
-  @override
-  test_createLocalVariable_read_typeInvocationArgument() =>
-      super.test_createLocalVariable_read_typeInvocationArgument();
-
-  @failingTest
-  @override
-  test_createLocalVariable_read_typeInvocationTarget() =>
-      super.test_createLocalVariable_read_typeInvocationTarget();
-
-  @failingTest
-  @override
-  test_createLocalVariable_withImport() =>
-      super.test_createLocalVariable_withImport();
-
-  @failingTest
-  @override
   test_createLocalVariable_write_assignment() =>
       super.test_createLocalVariable_write_assignment();
 
@@ -7609,11 +7566,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_importLibraryProject_withTopLevelVariable() =>
-      super.test_importLibraryProject_withTopLevelVariable();
-
-  @failingTest
-  @override
   test_importLibrarySdk_withClass_instanceCreation_explicitNew() =>
       super.test_importLibrarySdk_withClass_instanceCreation_explicitNew();
 
@@ -7636,28 +7588,8 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_importLibrarySdk_withClass_invocationTarget() =>
-      super.test_importLibrarySdk_withClass_invocationTarget();
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withClass_itemOfList() =>
-      super.test_importLibrarySdk_withClass_itemOfList();
-
-  @failingTest
-  @override
   test_importLibrarySdk_withClass_itemOfList_inAnnotation() =>
       super.test_importLibrarySdk_withClass_itemOfList_inAnnotation();
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withClass_typeAnnotation_PrefixedIdentifier() =>
-      super.test_importLibrarySdk_withClass_typeAnnotation_PrefixedIdentifier();
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withTopLevelVariable() =>
-      super.test_importLibrarySdk_withTopLevelVariable();
 
   @failingTest
   @override
@@ -7807,11 +7739,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
   @override
   test_undefinedSetter_useSimilar_unqualified() =>
       super.test_undefinedSetter_useSimilar_unqualified();
-
-  @failingTest
-  @override
-  test_useImportPrefix_withTopLevelVariable() =>
-      super.test_useImportPrefix_withTopLevelVariable();
 }
 
 @reflectiveTest
