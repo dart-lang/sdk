@@ -1697,8 +1697,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitSymbolLiteral(SymbolLiteral node) {
-    final cpIndex = cp.add(new ConstantSymbol.fromLiteral(node));
-    asm.emitPushConstant(cpIndex);
+    _genPushConstExpr(node);
   }
 
   @override

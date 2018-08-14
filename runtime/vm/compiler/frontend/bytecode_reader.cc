@@ -117,7 +117,6 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
     kTypeArguments,
     kList,
     kInstance,
-    kSymbol,
     kTypeArgumentsForInstanceAllocation,
     kClosureFunction,
     kEndClosureFunctionScope,
@@ -341,10 +340,6 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         }
         obj = H.Canonicalize(Instance::Cast(obj));
       } break;
-      case ConstantPoolTag::kSymbol:
-        obj = H.DartSymbolPlain(helper_->ReadStringReference()).raw();
-        ASSERT(String::Cast(obj).IsSymbol());
-        break;
       case ConstantPoolTag::kTypeArgumentsForInstanceAllocation: {
         cls = H.LookupClassByKernelClass(helper_->ReadCanonicalNameReference());
         obj =

@@ -126,44 +126,39 @@ type ConstantInstance extends ConstantPoolEntry {
   List<Pair<CanonicalNameReference, ConstantIndex>> fieldValues;
 }
 
-type ConstantSymbol extends ConstantPoolEntry {
-  Byte tag = 18;
-  StringReference value;
-}
-
 type ConstantTypeArgumentsForInstanceAllocation extends ConstantPoolEntry {
-  Byte tag = 19;
+  Byte tag = 18;
   CanonicalNameReference instantiatingClass;
   List<DartType> types;
 }
 
 type ConstantClosureFunction extends ConstantPoolEntry {
-  Byte tag = 20;
+  Byte tag = 19;
   StringReference name;
   FunctionNode function; // Doesn't have a body.
 }
 
 type ConstantEndClosureFunctionScope extends ConstantPoolEntry {
-  Byte tag = 21;
+  Byte tag = 20;
 }
 
 type ConstantNativeEntry extends ConstantPoolEntry {
-  Byte tag = 22;
+  Byte tag = 21;
   StringReference nativeName;
 }
 
 type ConstantSubtypeTestCache extends ConstantPoolEntry {
-  Byte tag = 23;
+  Byte tag = 22;
 }
 
 type ConstantPartialTearOffInstantiation extends ConstantPoolEntry {
-  Byte tag = 24;
+  Byte tag = 23;
   ConstantIndex tearOffConstant;
   ConstantIndex typeArguments;
 }
 
 type ConstantEmptyTypeArguments extends ConstantPoolEntry {
-  Byte tag = 25;
+  Byte tag = 24;
 }
 
 */
@@ -187,7 +182,6 @@ enum ConstantTag {
   kTypeArguments,
   kList,
   kInstance,
-  kSymbol,
   kTypeArgumentsForInstanceAllocation,
   kClosureFunction,
   kEndClosureFunctionScope,
@@ -252,8 +246,6 @@ abstract class ConstantPoolEntry {
         return new ConstantList.readFromBinary(source);
       case ConstantTag.kInstance:
         return new ConstantInstance.readFromBinary(source);
-      case ConstantTag.kSymbol:
-        return new ConstantSymbol.readFromBinary(source);
       case ConstantTag.kTypeArgumentsForInstanceAllocation:
         return new ConstantTypeArgumentsForInstanceAllocation.readFromBinary(
             source);
@@ -876,34 +868,6 @@ class ConstantInstance extends ConstantPoolEntry {
       this.classNode == other.classNode &&
       this._typeArgumentsConstantIndex == other._typeArgumentsConstantIndex &&
       mapEquals(this._fieldValues, other._fieldValues);
-}
-
-class ConstantSymbol extends ConstantPoolEntry {
-  final String value;
-
-  ConstantSymbol(this.value);
-  ConstantSymbol.fromLiteral(SymbolLiteral literal) : this(literal.value);
-
-  @override
-  ConstantTag get tag => ConstantTag.kSymbol;
-
-  @override
-  void writeValueToBinary(BinarySink sink) {
-    sink.writeStringReference(value);
-  }
-
-  ConstantSymbol.readFromBinary(BinarySource source)
-      : value = source.readStringReference();
-
-  @override
-  String toString() => 'Symbol \'$value\'';
-
-  @override
-  int get hashCode => value.hashCode;
-
-  @override
-  bool operator ==(other) =>
-      other is ConstantSymbol && this.value == other.value;
 }
 
 class ConstantTypeArgumentsForInstanceAllocation extends ConstantPoolEntry {
