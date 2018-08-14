@@ -24,168 +24,168 @@ constructor_type_parameter_test/00: MissingCompileTimeError # Issue 33110
 constructor_with_type_parameters_test/03: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && $fasta ]
-arg_param_trailing_comma_test/100: Crash
-arg_param_trailing_comma_test/138: Crash
-arg_param_trailing_comma_test/147: Crash
-arg_param_trailing_comma_test/156: Crash
-arg_param_trailing_comma_test/165: Crash
-arg_param_trailing_comma_test/166: Crash
-arg_param_trailing_comma_test/24: Crash
-arg_param_trailing_comma_test/25: Crash
-arg_param_trailing_comma_test/26: Crash
-arg_param_trailing_comma_test/72: Crash
-arg_param_trailing_comma_test/73: Crash
-arg_param_trailing_comma_test/74: Crash
-arg_param_trailing_comma_test/98: Crash
-arg_param_trailing_comma_test/99: Crash
-assign_to_type_test/01: Crash
-assign_to_type_test/02: Crash
-assign_to_type_test/03: Crash
-assign_to_type_test/04: Crash
-black_listed_test/02: Crash
-black_listed_test/04: Crash
-black_listed_test/06: Crash
-black_listed_test/08: Crash
-black_listed_test/10: Crash
-black_listed_test/12: Crash
-black_listed_test/14: Crash
-built_in_identifier_illegal_test/implements: Crash
-built_in_identifier_illegal_test/part: Crash
-built_in_identifier_illegal_test/typedef: Crash
-built_in_identifier_type_annotation_test/part: Crash
-built_in_identifier_type_annotation_test/set: Crash
-built_in_identifier_type_annotation_test/set-funret: Crash
-call_nonexistent_static_test/10: Crash
-case_expression_with_assignment_test/01: Crash
-class_cycle2_test/01: Crash
-class_cycle2_test/02: Crash
-class_cycle_test/00: Crash
-class_cycle_test/01: Crash
+arg_param_trailing_comma_test/100: Crash # Error recovery in outline (synthetic argument)
+arg_param_trailing_comma_test/138: Crash # Error recovery in method body (synthetic argument)
+arg_param_trailing_comma_test/147: Crash # Error recovery in method body (synthetic argument)
+arg_param_trailing_comma_test/156: Crash # Error recovery in method body (synthetic argument)
+arg_param_trailing_comma_test/165: Crash # Error recovery in method body (synthetic argument)
+arg_param_trailing_comma_test/166: Crash # Error recovery in method body (invalid assignment)
+arg_param_trailing_comma_test/24: Crash # Error recovery in outline (synthetic argument)
+arg_param_trailing_comma_test/25: Crash # Error recovery in outline (synthetic argument)
+arg_param_trailing_comma_test/26: Crash # Error recovery in outline (synthetic argument)
+arg_param_trailing_comma_test/72: Crash # Error recovery in outline (synthetic argument)
+arg_param_trailing_comma_test/73: Crash # Error recovery in outline (synthetic argument)
+arg_param_trailing_comma_test/74: Crash # Error recovery in outline (synthetic argument)
+arg_param_trailing_comma_test/98: Crash # Error recovery in outline (synthetic argument)
+arg_param_trailing_comma_test/99: Crash # Error recovery in outline (synthetic argument)
+assign_to_type_test/01: Crash # Error recovery in method body (invalid assignment)
+assign_to_type_test/02: Crash # Error recovery in method body (invalid assignment)
+assign_to_type_test/03: Crash # Error recovery in method body (invalid assignment)
+assign_to_type_test/04: Crash # Error recovery in method body (invalid assignment)
+black_listed_test/02: Crash # Issue 33686 - No core library found
+black_listed_test/04: Crash # Issue 33686 - No core library found
+black_listed_test/06: Crash # Issue 33686 - No core library found
+black_listed_test/08: Crash # Issue 33686 - No core library found
+black_listed_test/10: Crash # Issue 33686 - No core library found
+black_listed_test/12: Crash # Issue 33686 - No core library found
+black_listed_test/14: Crash # Issue 33686 - No core library found
+built_in_identifier_illegal_test/implements: Crash # Error recovery in outline (synthetic type reference)
+built_in_identifier_illegal_test/part: Crash # No resolution for a file
+built_in_identifier_illegal_test/typedef: Crash # Issue 33686 - No core library found
+built_in_identifier_type_annotation_test/part: Crash # No resolution for a file
+built_in_identifier_type_annotation_test/set: Crash # Error recovery in outline
+built_in_identifier_type_annotation_test/set-funret: Crash # Error recovery in outline
+call_nonexistent_static_test/10: Crash # Error recovery in method body (attempt to read from setter)
+case_expression_with_assignment_test/01: Crash # Error recovery in method body (assignment to constant)
+class_cycle2_test/01: Crash # Error recovery in outline (class hierarchy cycle)
+class_cycle2_test/02: Crash # Error recovery in outline (class hierarchy cycle)
+class_cycle_test/00: Crash # Error recovery in outline (class hierarchy cycle)
+class_cycle_test/01: Crash # Error recovery in outline (class hierarchy cycle)
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
-class_literal_static_test/12: Crash
-class_literal_static_test/13: Crash
-class_literal_static_test/24: Crash
-class_literal_test/12: Crash
-class_literal_test/13: Crash
-class_literal_test/24: Crash
+class_literal_static_test/12: Crash # Error recovery in method body (invalid assignment)
+class_literal_static_test/13: Crash # Error recovery in method body (invalid assignment)
+class_literal_static_test/24: Crash # Error recovery in method body (invalid assignment)
+class_literal_test/12: Crash # Error recovery in method body (invalid assignment)
+class_literal_test/13: Crash # Error recovery in method body (invalid assignment)
+class_literal_test/24: Crash # Error recovery in method body (invalid assignment)
 compile_time_constant_static5_test/11: CompileTimeError # Issue 31537
 compile_time_constant_static5_test/16: CompileTimeError # Issue 31537
 compile_time_constant_static5_test/21: CompileTimeError # Issue 31537
 compile_time_constant_static5_test/23: CompileTimeError # Issue 31402
-conditional_property_assignment_test/20: Crash
-conditional_property_assignment_test/21: Crash
-conditional_property_assignment_test/22: Crash
-config_import_corelib_test: CompileTimeError
-conflicting_generic_interfaces_hierarchy_loop_infinite_test: Crash
-conflicting_generic_interfaces_hierarchy_loop_test: Crash
-const_counter_test/01: Crash
-const_native_factory_test: Crash
+conditional_property_assignment_test/20: Crash # Error recovery in method body (invalid assignment)
+conditional_property_assignment_test/21: Crash # Error recovery in method body (invalid assignment)
+conditional_property_assignment_test/22: Crash # Error recovery in method body (invalid assignment)
+config_import_corelib_test: CompileTimeError # Issue 34047
+conflicting_generic_interfaces_hierarchy_loop_infinite_test: Crash # Error recovery in outline (class hierarchy cycle)
+conflicting_generic_interfaces_hierarchy_loop_test: Crash # Error recovery in outline (class hierarchy cycle)
+const_counter_test/01: Crash # Error recovery in method body (use of non-const closure in a const context)
+const_native_factory_test: Crash # Error recovery in outline (native const factory)
 constructor9_test/01: MissingStaticWarning
-constructor_name_test/02: Crash
-constructor_named_arguments_test/01: Crash
-constructor_redirect2_test/02: Crash
-constructor_redirect2_test/03: Crash
-constructor_redirect2_test/04: Crash
-constructor_redirect_test/01: Crash
-covariant_override_test: Crash
-covariant_subtyping_test: Crash
-crash_6725_test/01: Crash
-cyclic_class_member_test/01: Crash
-deep_nesting_statement_test/01: Crash
-deferred_load_library_wrong_args_test/01: CompileTimeError
-duplicate_constructor_test/01: Crash
-duplicate_field_with_initializer_test/01: Crash
+constructor_name_test/02: Crash # Error recovery in outline (illegal constructor name)
+constructor_named_arguments_test/01: Crash # Error recovery in method body (argument mismatch in constructor redirect)
+constructor_redirect2_test/02: Crash # Issue 33686 - No core library found
+constructor_redirect2_test/03: Crash # Issue 33686 - No core library found
+constructor_redirect2_test/04: Crash # Issue 33686 - No core library found
+constructor_redirect_test/01: Crash # Error recovery in method body (reference to non-static method in constructor initializer)
+covariant_override_test: Crash # Improper handling of correct code - override fails to appear in kernel representation
+covariant_subtyping_test: Crash # Improper handling of correct code - problem with function-typed parameters in a generic class
+crash_6725_test/01: Crash # Error recovery in method body (mishandling of improper for-in variable)
+cyclic_class_member_test/01: Crash # Error recovery in outline (class hierarchy cycle)
+deep_nesting_statement_test/01: Crash # Error recovery in method body (deep nesting causes method to disappear)
+deferred_load_library_wrong_args_test/01: CompileTimeError # Issue 34047
+duplicate_constructor_test/01: Crash # Issue 33686 - No core library found
+duplicate_field_with_initializer_test/01: Crash # Issue 33686 - No core library found
 duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
 duplicate_interface_implements_test/01: MissingCompileTimeError
-dynamic_prefix_core_test/none: CompileTimeError
-emit_const_fields_test: CompileTimeError
-enum_syntax_test/02: Crash
-enum_syntax_test/03: Crash
-enum_syntax_test/04: Crash
-enum_syntax_test/05: Crash
-enum_syntax_test/06: Crash
-enum_syntax_test/09: Crash
-enum_syntax_test/10: Crash
-enum_syntax_test/11: Crash
-enum_syntax_test/30: Crash
+dynamic_prefix_core_test/none: CompileTimeError # Issue 34047
+emit_const_fields_test: CompileTimeError # Issue 34047
+enum_syntax_test/02: Crash # Error recovery in outline (duplicate enum name)
+enum_syntax_test/03: Crash # Error recovery in outline (enum name collision)
+enum_syntax_test/04: Crash # Error recovery in outline (enum name collision)
+enum_syntax_test/05: Crash # Error recovery in outline (enum name collision)
+enum_syntax_test/06: Crash # Error recovery in outline (enum name collision)
+enum_syntax_test/09: Crash # Issue 33686 - No core library found
+enum_syntax_test/10: Crash # Issue 33686 - No core library found
+enum_syntax_test/11: Crash # Issue 33686 - No core library found
+enum_syntax_test/30: Crash # Error recovery in method body (attempt to instantiate an enum)
 export_ambiguous_main_test: MissingCompileTimeError
-external_test/21: CompileTimeError
-external_test/24: CompileTimeError
-factory2_test/01: Crash
-factory_test/00: Crash
-factory_with_type_parameters_test/03: Crash
-factory_with_type_parameters_test/04: Crash
-field1_test: Crash
-field2_test: Crash
-field4_test: Crash
-field5_test: Crash
-field6_test/00: Crash
-field6_test/01: Crash
+external_test/21: CompileTimeError # Issue 34047
+external_test/24: CompileTimeError # Issue 34047
+factory2_test/01: Crash # Error recovery in outline (illegal constructor name)
+factory_test/00: Crash # Error recovery in outline (illegal constructor name)
+factory_with_type_parameters_test/03: Crash # Issue 33686 - No core library found
+factory_with_type_parameters_test/04: Crash # Issue 33686 - No core library found
+field1_test: Crash # Issue 33686 - No core library found
+field2_test: Crash # Issue 33686 - No core library found
+field4_test: Crash # Issue 33686 - No core library found
+field5_test: Crash # Issue 33686 - No core library found
+field6_test/00: Crash # Issue 33686 - No core library found
+field6_test/01: Crash # Issue 33686 - No core library found
 field_initialization_order_test/01: MissingCompileTimeError
 final_syntax_test/01: MissingCompileTimeError
 final_syntax_test/02: MissingCompileTimeError
 final_syntax_test/03: MissingCompileTimeError
 final_syntax_test/04: MissingCompileTimeError
-first_class_types_literals_test/03: Crash
-first_class_types_literals_test/04: Crash
-first_class_types_literals_test/08: Crash
-first_class_types_literals_test/09: Crash
-function_type_parameter2_negative_test: Crash
-function_type_parameter_negative_test: Crash
+first_class_types_literals_test/03: Crash # Error recovery in method body (invalid assignment)
+first_class_types_literals_test/04: Crash # Error recovery in method body (invalid assignment)
+first_class_types_literals_test/08: Crash # Error recovery in method body (invalid assignment)
+first_class_types_literals_test/09: Crash # Error recovery in method body (invalid assignment)
+function_type_parameter2_negative_test: Crash # Error recovery in method body (use of non-const closure in a const context)
+function_type_parameter_negative_test: Crash # Error recovery in method body (use of non-const closure in a const context)
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError
-generic_function_typedef2_test/04: Crash
-generic_local_functions_test: Crash
-generic_methods_generic_function_parameter_test: Crash
+generic_function_typedef2_test/04: Crash # Error recovery in outline (attempt to apply type arguments to a non-generic type)
+generic_local_functions_test: Crash # Problem with generic function-typed parameter
+generic_methods_generic_function_parameter_test: Crash # Problem with generic function-typed parameter
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
-generic_no_such_method_dispatcher_simple_test: CompileTimeError
-generic_no_such_method_dispatcher_test: CompileTimeError
-generic_tearoff_test: Crash
+generic_no_such_method_dispatcher_simple_test: CompileTimeError # Issue 34047
+generic_no_such_method_dispatcher_test: CompileTimeError # Issue 34047
+generic_tearoff_test: Crash # Problem with generic function-typed parameter
 generic_test/01: MissingCompileTimeError
-get_set_syntax_test/02: Crash
-get_set_syntax_test/03: Crash
-get_set_syntax_test/06: Crash
-get_set_syntax_test/07: Crash
-get_set_syntax_test/10: Crash
-get_set_syntax_test/11: Crash
-get_set_syntax_test/14: Crash
-get_set_syntax_test/15: Crash
+get_set_syntax_test/02: Crash # Error recovery in outline (setter with wrong number of parameters)
+get_set_syntax_test/03: Crash # Error recovery in outline (setter with wrong number of parameters)
+get_set_syntax_test/06: Crash # Error recovery in outline (setter with wrong number of parameters)
+get_set_syntax_test/07: Crash # Error recovery in outline (setter with wrong number of parameters)
+get_set_syntax_test/10: Crash # Error recovery in outline (setter with wrong number of parameters)
+get_set_syntax_test/11: Crash # Error recovery in outline (setter with wrong number of parameters)
+get_set_syntax_test/14: Crash # Error recovery in outline (setter with wrong number of parameters)
+get_set_syntax_test/15: Crash # Error recovery in outline (setter with wrong number of parameters)
 getters_setters2_test/01: MissingStaticWarning
 getters_setters_type_test/01: MissingStaticWarning
 hidden_import_test/01: MissingStaticWarning
 hidden_import_test/02: MissingStaticWarning
-if_null_assignment_behavior_test/15: Crash
-illegal_initializer_test/02: Crash
-illegal_initializer_test/04: Crash
-import_nonexisting_dart_uri_test/01: Crash
-instantiate_tearoff_of_call_test: CompileTimeError
-instantiate_type_variable_test/01: Crash
-interface_cycle_test/01: Crash
-interface_cycle_test/02: Crash
-interface_injection1_test/1: Crash
-interface_injection2_test/1: Crash
-internal_library_test/02: Crash
-is_not_class2_test/01: Crash
-issue31596_super_test/01: CompileTimeError
-issue31596_super_test/03: CompileTimeError
-label5_test/01: Crash
-label6_test/03: Crash
-library_ambiguous_test/00: Crash
-library_test/01: Crash
-list_literal_negative_test: Crash
-main_not_a_function_test: Crash
-metadata_test: Crash
-missing_part_of_tag_test/01: Crash
-mixin_cyclic_test/01: Crash
-mixin_cyclic_test/02: Crash
-mixin_illegal_cycles_test/01: Crash
-mixin_illegal_cycles_test/02: Crash
-mixin_illegal_cycles_test/03: Crash
-mixin_illegal_cycles_test/04: Crash
-mixin_illegal_cycles_test/05: Crash
-mixin_illegal_cycles_test/06: Crash
+if_null_assignment_behavior_test/15: Crash # Error recovery in method body (invalid assignment)
+illegal_initializer_test/02: Crash # Error recovery in method body (error in constructor initializer)
+illegal_initializer_test/04: Crash # Error recovery in method body (error in constructor initializer)
+import_nonexisting_dart_uri_test/01: Crash # Issue 33686 - No core library found
+instantiate_tearoff_of_call_test: CompileTimeError # Front end fails to instantiate tear-offs of `call`
+instantiate_type_variable_test/01: Crash # Error recovery in method body (attempt to instantiate type variable)
+interface_cycle_test/01: Crash # Error recovery in outline (class hierarchy cycle)
+interface_cycle_test/02: Crash # Error recovery in outline (class hierarchy cycle)
+interface_injection1_test/1: Crash # Issue 33686 - No core library found
+interface_injection2_test/1: Crash # Issue 33686 - No core library found
+internal_library_test/02: Crash # Error recovery in outline (illegal part file)
+is_not_class2_test/01: Crash # Error recovery in method body (non-type where type expected)
+issue31596_super_test/01: CompileTimeError # Front end fails to skip forwarding stubs when resolving super calls
+issue31596_super_test/03: CompileTimeError # Front end fails to skip forwarding stubs when resolving super calls
+label5_test/01: Crash # Error recovery in method body (illegal jump target)
+label6_test/03: Crash # Error recovery in method body (illegal jump target)
+library_ambiguous_test/00: Crash # Error recovery in method body (ambiguous imported name)
+library_test/01: Crash # Issue 33686 - No core library found
+list_literal_negative_test: Crash # Error recovery in method body (malformed constructor invocation)
+main_not_a_function_test: Crash # Issue 33686 - No core library found
+metadata_test: Crash # Poor handling of annotation inside typedef
+missing_part_of_tag_test/01: Crash # Error recovery in outline (part file missing "part of" declaration)
+mixin_cyclic_test/01: Crash # Error recovery in outline (class hierarchy cycle)
+mixin_cyclic_test/02: Crash # Error recovery in outline (class hierarchy cycle)
+mixin_illegal_cycles_test/01: Crash # Error recovery in outline (class hierarchy cycle)
+mixin_illegal_cycles_test/02: Crash # Error recovery in outline (class hierarchy cycle)
+mixin_illegal_cycles_test/03: Crash # Error recovery in outline (class hierarchy cycle)
+mixin_illegal_cycles_test/04: Crash # Error recovery in outline (class hierarchy cycle)
+mixin_illegal_cycles_test/05: Crash # Error recovery in outline (class hierarchy cycle)
+mixin_illegal_cycles_test/06: Crash # Error recovery in outline (class hierarchy cycle)
 mixin_illegal_super_use_test/01: MissingCompileTimeError
 mixin_illegal_super_use_test/04: MissingCompileTimeError
 mixin_illegal_super_use_test/07: MissingCompileTimeError
@@ -221,19 +221,19 @@ mixin_illegal_superclass_test/27: MissingCompileTimeError
 mixin_illegal_superclass_test/28: MissingCompileTimeError
 mixin_illegal_superclass_test/29: MissingCompileTimeError
 mixin_illegal_superclass_test/30: MissingCompileTimeError
-mixin_illegal_syntax_test/01: Crash
-mixin_illegal_syntax_test/02: Crash
-mixin_illegal_syntax_test/03: Crash
-mixin_illegal_syntax_test/04: Crash
-mixin_illegal_syntax_test/05: Crash
-mixin_illegal_syntax_test/06: Crash
-mixin_illegal_syntax_test/07: Crash
-mixin_illegal_syntax_test/08: Crash
-mixin_illegal_syntax_test/09: Crash
-mixin_illegal_syntax_test/10: Crash
-mixin_illegal_syntax_test/11: Crash
-mixin_illegal_syntax_test/12: Crash
-mixin_illegal_syntax_test/14: Crash
+mixin_illegal_syntax_test/01: Crash # Issue 33686 - No core library found
+mixin_illegal_syntax_test/02: Crash # Issue 33686 - No core library found
+mixin_illegal_syntax_test/03: Crash # Issue 33686 - No core library found
+mixin_illegal_syntax_test/04: Crash # Issue 33686 - No core library found
+mixin_illegal_syntax_test/05: Crash # Issue 33686 - No core library found
+mixin_illegal_syntax_test/06: Crash # Error recovery in outline (syntax error in class declaration)
+mixin_illegal_syntax_test/07: Crash # Issue 33686 - No core library found
+mixin_illegal_syntax_test/08: Crash # Issue 33686 - No core library found
+mixin_illegal_syntax_test/09: Crash # Issue 33686 - No core library found
+mixin_illegal_syntax_test/10: Crash # Error recovery in outline (syntax error in class declaration)
+mixin_illegal_syntax_test/11: Crash # Error recovery in outline (syntax error in class declaration)
+mixin_illegal_syntax_test/12: Crash # Error recovery in outline (syntax error in class declaration)
+mixin_illegal_syntax_test/14: Crash # Error recovery in outline (syntax error in class declaration)
 mixin_supertype_subclass2_test/02: MissingStaticWarning
 mixin_supertype_subclass2_test/05: MissingStaticWarning
 mixin_supertype_subclass3_test/02: MissingStaticWarning
@@ -243,165 +243,165 @@ mixin_supertype_subclass4_test/02: MissingStaticWarning
 mixin_supertype_subclass4_test/03: MissingStaticWarning
 mixin_supertype_subclass4_test/04: MissingStaticWarning
 mixin_supertype_subclass4_test/05: MissingStaticWarning
-named_constructor_test/07: Crash
-named_constructor_test/10: Crash
-named_parameters_aggregated_test/03: Crash
-nested_generic_closure_test: Crash
-new_expression_type_args_test/00: Crash
-new_expression_type_args_test/01: Crash
+named_constructor_test/07: Crash # Error recovery in method body (type arguments in non-grammatical location)
+named_constructor_test/10: Crash # Error recovery in method body (type arguments in non-grammatical location)
+named_parameters_aggregated_test/03: Crash # Error recovery in method body (default value in function-typed parameter declaration)
+nested_generic_closure_test: Crash # Problem with generic function-typed parameter
+new_expression_type_args_test/00: Crash # Error recovery in method body (attempt to instantiate type variable)
+new_expression_type_args_test/01: Crash # Error recovery in method body (attempt to instantiate type variable)
 no_main_test/01: MissingStaticWarning
-not_enough_positional_arguments_test/01: Crash
-not_enough_positional_arguments_test/02: Crash
-not_enough_positional_arguments_test/05: Crash
-null_no_such_method_test: CompileTimeError
-operator2_negative_test: Crash
-parameter_default_test/01: Crash
-parameter_default_test/02: Crash
-parameter_default_test/03: Crash
-parameter_default_test/04: Crash
-parameter_default_test/05: Crash
-parameter_default_test/06: Crash
-parameter_metadata_test/02: Crash
-parameter_metadata_test/03: Crash
-parameter_metadata_test/04: Crash
-parser_quirks_test: CompileTimeError
-part_of_multiple_libs_test/01: Crash
-part_refers_to_core_library_test/01: Crash
-prefix_import_collision_test/01: Crash
-prefix_shadow_test/01: Crash
-prefix_variable_collision_test/01: Crash
-regress_20394_test/01: Crash
-regress_23408_test: CompileTimeError
-regress_28217_test/01: Crash
-regress_28217_test/none: Crash
-regress_29025_test: CompileTimeError
-regress_29405_test: CompileTimeError
-regress_30339_test: CompileTimeError
-regress_33235_04_test/01: Crash
-regress_33235_05_test/01: Crash
-regress_33235_06_test/01: Crash
-regress_33235_08_test/01: Crash
-regress_33235_09_test/01: Crash
-regress_33235_14_test/01: Crash
-regress_33235_15_test/01: Crash
-script1_negative_test: Crash
-script2_negative_test: Crash
+not_enough_positional_arguments_test/01: Crash # Error recovery in method body (error in super constructor call)
+not_enough_positional_arguments_test/02: Crash # Error recovery in method body (error in super constructor call)
+not_enough_positional_arguments_test/05: Crash # Error recovery in method body (error in super constructor call)
+null_no_such_method_test: CompileTimeError # Issue 34047
+operator2_negative_test: Crash # Error recovery in outline (illegal operator declaration)
+parameter_default_test/01: Crash # Error recovery in outline (default value in required parameter)
+parameter_default_test/02: Crash # Error recovery in outline (default value in required parameter)
+parameter_default_test/03: Crash # Error recovery in outline (default value in required parameter)
+parameter_default_test/04: Crash # Error recovery in outline (default value in required parameter)
+parameter_default_test/05: Crash # Error recovery in outline (default value in required parameter)
+parameter_default_test/06: Crash # Error recovery in outline (default value in required parameter)
+parameter_metadata_test/02: Crash # Poor handling of annotation inside function-typed parameter
+parameter_metadata_test/03: Crash # Poor handling of annotation inside function-typed parameter
+parameter_metadata_test/04: Crash # Poor handling of annotation inside function-typed parameter
+parser_quirks_test: CompileTimeError # Issue 34047
+part_of_multiple_libs_test/01: Crash # Poor handling of part file used by multiple libs
+part_refers_to_core_library_test/01: Crash # Issue 33686 - No core library found
+prefix_import_collision_test/01: Crash # Error recovery in method body (ambiguous imported name)
+prefix_shadow_test/01: Crash # Error recovery in method body (attempt to use type variable as prefix)
+prefix_variable_collision_test/01: Crash # Issue 33686 - No core library found
+regress_20394_test/01: Crash # Error recovery in method body (error in super constructor call)
+regress_23408_test: CompileTimeError # Issue 34047
+regress_28217_test/01: Crash # Error recovery in method body (error in constructor redirect)
+regress_28217_test/none: Crash # Error recovery in method body (error in constructor redirect)
+regress_29025_test: CompileTimeError # Issue 34047
+regress_29405_test: CompileTimeError # Issue 34047
+regress_30339_test: CompileTimeError # Issue 34047
+regress_33235_04_test/01: Crash # Issue 33686 - No core library found
+regress_33235_05_test/01: Crash # Issue 33686 - No core library found
+regress_33235_06_test/01: Crash # Issue 33686 - No core library found
+regress_33235_08_test/01: Crash # Issue 33686 - No core library found
+regress_33235_09_test/01: Crash # Issue 33686 - No core library found
+regress_33235_14_test/01: Crash # Issue 33686 - No core library found
+regress_33235_15_test/01: Crash # Issue 33686 - No core library found
+script1_negative_test: Crash # Error resovery in outline (imported library has incorrect declaration order)
+script2_negative_test: Crash # Error resovery in outline (part file contains a "library" declaration)
 setter3_test/01: MissingStaticWarning
 setter3_test/02: MissingStaticWarning
-setter_declaration2_negative_test: Crash
-setter_declaration_negative_test: Crash
-setter_no_getter_call_test/01: Crash
-setter_no_getter_test/01: CompileTimeError
-static_setter_conflicts_test/09: Crash
-static_setter_conflicts_test/10: Crash
-static_setter_get_test/01: Crash
-string_split_test: CompileTimeError
-string_supertype_checked_test: CompileTimeError
-super_bound_closure_test/none: CompileTimeError
+setter_declaration2_negative_test: Crash # Error recovery in outline (setter with wrong number of parameters)
+setter_declaration_negative_test: Crash # Error recovery in outline (setter with wrong number of parameters)
+setter_no_getter_call_test/01: Crash # Error recovery in method body (attempt to read from setter)
+setter_no_getter_test/01: CompileTimeError # Issue 34047
+static_setter_conflicts_test/09: Crash # Issue 33686 - No core library found
+static_setter_conflicts_test/10: Crash # Issue 33686 - No core library found
+static_setter_get_test/01: Crash # Error recovery in method body (attempt to read from setter)
+string_split_test: CompileTimeError # Issue 34047
+string_supertype_checked_test: CompileTimeError # Issue 34047
+super_bound_closure_test/none: CompileTimeError # Issue 34047
 super_call4_test/01: Pass
-super_conditional_operator_test/01: Crash
-super_conditional_operator_test/17: Crash
-super_conditional_operator_test/18: Crash
-super_no_such_method1_test: CompileTimeError
-super_no_such_method2_test: CompileTimeError
-super_no_such_method3_test: CompileTimeError
-super_operator_index5_test: CompileTimeError
-super_operator_index6_test: CompileTimeError
-super_operator_index7_test: CompileTimeError
-super_operator_index8_test: CompileTimeError
-switch3_negative_test: Crash
-switch5_negative_test: Crash
-switch7_negative_test: Crash
+super_conditional_operator_test/01: Crash # Error recovery in method body (error in constructor redirect)
+super_conditional_operator_test/17: Crash # Error recovery in method body (nonsensical use of super)
+super_conditional_operator_test/18: Crash # Error recovery in method body (nonsensical use of super)
+super_no_such_method1_test: CompileTimeError # Issue 34047
+super_no_such_method2_test: CompileTimeError # Issue 34047
+super_no_such_method3_test: CompileTimeError # Issue 34047
+super_operator_index5_test: CompileTimeError # Issue 34047
+super_operator_index6_test: CompileTimeError # Issue 34047
+super_operator_index7_test: CompileTimeError # Issue 34047
+super_operator_index8_test: CompileTimeError # Issue 34047
+switch3_negative_test: Crash # Error recovery in method body (illegal jump target)
+switch5_negative_test: Crash # Error recovery in method body (illegal jump target)
+switch7_negative_test: Crash # Error recovery in method body (illegal jump target)
 switch_case_warn_test/15: MissingCompileTimeError
 switch_case_warn_test/17: MissingCompileTimeError
-syntax_test/04: Crash
-syntax_test/05: Crash
-syntax_test/06: Crash
-syntax_test/07: Crash
-syntax_test/08: Crash
-syntax_test/09: Crash
-syntax_test/10: Crash
-syntax_test/11: Crash
-syntax_test/13: Crash
-syntax_test/14: Crash
-syntax_test/15: Crash
-syntax_test/16: Crash
-syntax_test/17: Crash
-syntax_test/18: Crash
-syntax_test/19: Crash
-syntax_test/20: Crash
-syntax_test/21: Crash
-syntax_test/23: Crash
-syntax_test/24: Crash
-syntax_test/25: Crash
-syntax_test/26: Crash
-syntax_test/63: Crash
-syntax_test/64: Crash
-syntax_test/65: Crash
-this_conditional_operator_test/01: Crash
-this_in_initializer_test/06: Crash
-this_in_initializer_test/07: Crash
-this_in_initializer_test/08: Crash
-this_in_initializer_test/10: Crash
-this_in_initializer_test/11: Crash
-this_in_initializer_test/12: Crash
-this_in_initializer_test/13: Crash
-this_in_initializer_test/15: Crash
-this_in_initializer_test/16: Crash
-this_in_initializer_test/17: Crash
-this_in_initializer_test/18: Crash
-this_in_initializer_test/25: Crash
-this_in_initializer_test/26: Crash
-this_in_initializer_test/28: Crash
-this_in_initializer_test/35: Crash
-this_in_initializer_test/36: Crash
-this_in_initializer_test/38: Crash
-this_in_initializer_test/40: Crash
-this_in_initializer_test/41: Crash
-this_test/01: Crash
-this_test/02: Crash
-this_test/03: Crash
-this_test/04: Crash
-this_test/05: Crash
-this_test/06: Crash
-this_test/07: Crash
-this_test/08: Crash
-toplevel_collision1_test/00: Crash
-toplevel_collision1_test/02: Crash
-toplevel_collision2_test/00: Crash
-toplevel_collision2_test/01: Crash
-type_parameter_test/04: Crash
-type_parameter_test/05: Crash
-type_parameter_test/06: Crash
-type_parameter_test/08: Crash
-type_parameter_test/09: Crash
-type_promotion_functions_test/02: CompileTimeError
-type_promotion_functions_test/03: CompileTimeError
-type_promotion_functions_test/04: CompileTimeError
-type_promotion_functions_test/09: CompileTimeError
-type_promotion_functions_test/11: CompileTimeError
-type_promotion_functions_test/12: CompileTimeError
-type_promotion_functions_test/13: CompileTimeError
-type_promotion_functions_test/14: CompileTimeError
-type_promotion_functions_test/none: CompileTimeError
-type_promotion_more_specific_test/04: CompileTimeError
-type_variable_static_context_test: Crash
-unbalanced_brace_test/01: Crash
-unbalanced_brace_test/02: Crash
-unsupported_operators_test/01: Crash
-unsupported_operators_test/02: Crash
-unsupported_operators_test/03: Crash
-unsupported_operators_test/04: Crash
-variable_declaration_metadata_test/13: Crash
-variable_declaration_metadata_test/14: Crash
-variable_declaration_metadata_test/15: Crash
-variable_declaration_metadata_test/16: Crash
-variable_shadow_class_test/01: Crash
-vm/debug_break_vm_test/01: Crash
-vm/debug_break_vm_test/02: Crash
-vm/regress_27201_test: Crash
-vm/regress_33469_test/01: Crash
-vm/regress_33469_test/02: Crash
+syntax_test/04: Crash # Error recovery in outline (illegal operator declaration)
+syntax_test/05: Crash # Error recovery in outline (illegal operator declaration)
+syntax_test/06: Crash # Error recovery in outline (illegal operator declaration)
+syntax_test/07: Crash # Error recovery in outline (illegal operator declaration)
+syntax_test/08: Crash # Error recovery in outline (illegal operator declaration)
+syntax_test/09: Crash # Error recovery in outline (illegal operator declaration)
+syntax_test/10: Crash # Error recovery in outline (illegal operator declaration)
+syntax_test/11: Crash # Error recovery in outline (illegal operator declaration)
+syntax_test/13: Crash # Error recovery in outline (illegal operator declaration)
+syntax_test/14: Crash # Error recovery in outline (illegal operator declaration)
+syntax_test/15: Crash # Error recovery in outline (illegal operator declaration)
+syntax_test/16: Crash # Error recovery in outline (illegal operator declaration)
+syntax_test/17: Crash # Error recovery in outline (illegal operator declaration)
+syntax_test/18: Crash # Error recovery in outline (illegal operator declaration)
+syntax_test/19: Crash # Error recovery in outline (illegal operator declaration)
+syntax_test/20: Crash # Error recovery in outline (illegal operator declaration)
+syntax_test/21: Crash # Error recovery in outline (illegal operator declaration)
+syntax_test/23: Crash # Error recovery in outline (illegal operator declaration)
+syntax_test/24: Crash # Error recovery in outline (illegal operator declaration)
+syntax_test/25: Crash # Error recovery in outline (illegal operator declaration)
+syntax_test/26: Crash # Error recovery in outline (illegal operator declaration)
+syntax_test/63: Crash # Error recovery in method body (invalid assignment)
+syntax_test/64: Crash # Error recovery in method body (invalid assignment)
+syntax_test/65: Crash # Error recovery in method body (invalid assignment)
+this_conditional_operator_test/01: Crash # Error recovery in method body (error in constructor redirect)
+this_in_initializer_test/06: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/07: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/08: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/10: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/11: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/12: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/13: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/15: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/16: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/17: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/18: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/25: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/26: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/28: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/35: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/36: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/38: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/40: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/41: Crash # Error recovery in method body (error in constructor initializer)
+this_test/01: Crash # Error recovery in method body (nonsensical use of this)
+this_test/02: Crash # Error recovery in method body (nonsensical use of this)
+this_test/03: Crash # Error recovery in method body (nonsensical use of this)
+this_test/04: Crash # Error recovery in method body (nonsensical use of this)
+this_test/05: Crash # Error recovery in method body (nonsensical use of this)
+this_test/06: Crash # Error recovery in method body (nonsensical use of this)
+this_test/07: Crash # Error recovery in method body (nonsensical use of this)
+this_test/08: Crash # Error recovery in method body (nonsensical use of this)
+toplevel_collision1_test/00: Crash # Issue 33686 - No core library found
+toplevel_collision1_test/02: Crash # Issue 33686 - No core library found
+toplevel_collision2_test/00: Crash # Issue 33686 - No core library found
+toplevel_collision2_test/01: Crash # Issue 33686 - No core library found
+type_parameter_test/04: Crash # Error recovery in outline (attempt to use class type parameter in static signature)
+type_parameter_test/05: Crash # Error recovery in outline (attempt to use class type parameter in static signature)
+type_parameter_test/06: Crash # Error recovery in outline (attempt to use class type parameter in static signature)
+type_parameter_test/08: Crash # Error recovery in outline (attempt to use class type parameter in static signature)
+type_parameter_test/09: Crash # Error recovery in outline (attempt to use class type parameter in static signature)
+type_promotion_functions_test/02: CompileTimeError # Issue 34047
+type_promotion_functions_test/03: CompileTimeError # Issue 34047
+type_promotion_functions_test/04: CompileTimeError # Issue 34047
+type_promotion_functions_test/09: CompileTimeError # Issue 34047
+type_promotion_functions_test/11: CompileTimeError # Issue 34047
+type_promotion_functions_test/12: CompileTimeError # Issue 34047
+type_promotion_functions_test/13: CompileTimeError # Issue 34047
+type_promotion_functions_test/14: CompileTimeError # Issue 34047
+type_promotion_functions_test/none: CompileTimeError # Issue 34047
+type_promotion_more_specific_test/04: CompileTimeError # Issue 34047
+type_variable_static_context_test: Crash # Error recovery in method body (attempt to instantiate type variable)
+unbalanced_brace_test/01: Crash # Error recovery due to mismatched braces
+unbalanced_brace_test/02: Crash # Error recovery due to mismatched braces
+unsupported_operators_test/01: Crash # Error recovery in method body (attempt to use unsupported operator)
+unsupported_operators_test/02: Crash # Error recovery in method body (attempt to use unsupported operator)
+unsupported_operators_test/03: Crash # Error recovery in method body (attempt to use unsupported operator)
+unsupported_operators_test/04: Crash # Error recovery in method body (attempt to use unsupported operator)
+variable_declaration_metadata_test/13: Crash # Error recovery in method body (annotation in for statement)
+variable_declaration_metadata_test/14: Crash # Error recovery in method body (annotation in for statement)
+variable_declaration_metadata_test/15: Crash # Error recovery in method body (annotation in for statement)
+variable_declaration_metadata_test/16: Crash # Error recovery in method body (annotation in for statement)
+variable_shadow_class_test/01: Crash # Error recovery in method body (attempt to use local variable as prefix)
+vm/debug_break_vm_test/01: Crash # Error recovery in method body (illegal jump target)
+vm/debug_break_vm_test/02: Crash # Error recovery in method body (illegal jump target)
+vm/regress_27201_test: Crash # Issue 33686 - No core library found
+vm/regress_33469_test/01: Crash # Const evaluator fails to detect invalid shift
+vm/regress_33469_test/02: Crash # Const evaluator fails to detect invalid shift
 vm/regress_33469_test/03: MissingCompileTimeError
 web_int_literals_test/01: MissingCompileTimeError
 web_int_literals_test/02: MissingCompileTimeError
