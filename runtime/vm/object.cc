@@ -65,12 +65,6 @@ DEFINE_FLAG(int,
             "Huge method cutoff in unoptimized code size (in bytes).");
 DEFINE_FLAG(
     bool,
-    overlap_type_arguments,
-    true,
-    "When possible, partially or fully overlap the type arguments of a type "
-    "with the type arguments of its super type.");
-DEFINE_FLAG(
-    bool,
     show_internal_names,
     false,
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
@@ -2533,8 +2527,7 @@ intptr_t Class::NumOwnTypeArguments() const {
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
   const intptr_t num_type_params = NumTypeParameters();
-  if (!FLAG_overlap_type_arguments || (num_type_params == 0) ||
-      (super_type() == AbstractType::null()) ||
+  if ((num_type_params == 0) || (super_type() == AbstractType::null()) ||
       (super_type() == isolate->object_store()->object_type())) {
     set_num_own_type_arguments(num_type_params);
     return num_type_params;

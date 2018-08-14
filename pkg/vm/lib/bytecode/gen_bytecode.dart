@@ -4,6 +4,8 @@
 
 library vm.bytecode.gen_bytecode;
 
+import 'dart:math' show min;
+
 import 'package:kernel/ast.dart' hide MapEntry;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -419,21 +421,49 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
   }
 
+  bool _canReuseSuperclassTypeArguments(List<DartType> superTypeArgs,
+      List<TypeParameter> typeParameters, int overlap) {
+    for (int i = 0; i < overlap; ++i) {
+      final superTypeArg = superTypeArgs[superTypeArgs.length - overlap + i];
+      if (!(superTypeArg is TypeParameterType &&
+          superTypeArg.parameter == typeParameters[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   List<DartType> _flattenInstantiatorTypeArguments(
       Class instantiatedClass, List<DartType> typeArgs) {
-    assert(typeArgs.length == instantiatedClass.typeParameters.length);
+    final typeParameters = instantiatedClass.typeParameters;
+    assert(typeArgs.length == typeParameters.length);
 
-    List<DartType> flatTypeArgs;
     final supertype = instantiatedClass.supertype;
     if (supertype == null) {
-      flatTypeArgs = <DartType>[];
-    } else {
-      final substitution =
-          Substitution.fromPairs(instantiatedClass.typeParameters, typeArgs);
-      flatTypeArgs = _flattenInstantiatorTypeArguments(supertype.classNode,
-          substitution.substituteSupertype(supertype).typeArguments);
+      return typeArgs;
     }
-    flatTypeArgs.addAll(typeArgs);
+
+    final superTypeArgs = _flattenInstantiatorTypeArguments(
+        supertype.classNode, supertype.typeArguments);
+
+    // Shrink type arguments by reusing portion of superclass type arguments
+    // if there is an overlapping. This optimization should be consistent with
+    // VM in order to correctly reuse instantiator type arguments.
+    int overlap = min(superTypeArgs.length, typeArgs.length);
+    for (; overlap > 0; --overlap) {
+      if (_canReuseSuperclassTypeArguments(
+          superTypeArgs, typeParameters, overlap)) {
+        break;
+      }
+    }
+
+    final substitution = Substitution.fromPairs(typeParameters, typeArgs);
+
+    List<DartType> flatTypeArgs = <DartType>[];
+    flatTypeArgs
+        .addAll(superTypeArgs.map((t) => substitution.substituteType(t)));
+    flatTypeArgs.addAll(typeArgs.getRange(overlap, typeArgs.length));
+
     return flatTypeArgs;
   }
 

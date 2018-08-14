@@ -73,6 +73,12 @@ class J {
   factory J() native "agent_J";
 }
 
+abstract class K<A, B> {
+  factory K() => new TestTypeArgReuse<A, B>();
+}
+
+class TestTypeArgReuse<P, Q> extends Base<P, Q> implements K<P, Q> {}
+
 main() {
   foo1();
   foo2();
