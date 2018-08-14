@@ -34,6 +34,7 @@ class Capability {
   factory Capability() => new _CapabilityImpl();
 }
 
+@pragma("vm.entry-point")
 class _CapabilityImpl implements Capability {
   factory _CapabilityImpl() native "CapabilityImpl_factory";
 
@@ -128,6 +129,7 @@ Function _getIsolateScheduleImmediateClosure() {
   return _isolateScheduleImmediate;
 }
 
+@pragma("vm.entry-point")
 class _RawReceivePortImpl implements RawReceivePort {
   factory _RawReceivePortImpl() native "RawReceivePortImpl_factory";
 
@@ -192,6 +194,7 @@ class _RawReceivePortImpl implements RawReceivePort {
   static final Map _handlerMap = _initHandlerMap();
 }
 
+@pragma("vm.entry-point")
 class _SendPortImpl implements SendPort {
   /*--- public interface ---*/
   @pragma("vm.entry-point")

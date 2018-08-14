@@ -923,6 +923,7 @@ abstract class _StringBase implements String {
       native "String_concatRange";
 }
 
+@pragma("vm.entry-point")
 class _OneByteString extends _StringBase {
   factory _OneByteString._uninstantiable() {
     throw new UnsupportedError(
@@ -1226,6 +1227,7 @@ class _OneByteString extends _StringBase {
   }
 }
 
+@pragma("vm.entry-point")
 class _TwoByteString extends _StringBase {
   factory _TwoByteString._uninstantiable() {
     throw new UnsupportedError(
@@ -1246,6 +1248,7 @@ class _TwoByteString extends _StringBase {
   }
 }
 
+@pragma("vm.entry-point")
 class _ExternalOneByteString extends _StringBase {
   factory _ExternalOneByteString._uninstantiable() {
     throw new UnsupportedError(
@@ -1263,6 +1266,7 @@ class _ExternalOneByteString extends _StringBase {
   }
 }
 
+@pragma("vm.entry-point")
 class _ExternalTwoByteString extends _StringBase {
   factory _ExternalTwoByteString._uninstantiable() {
     throw new UnsupportedError(

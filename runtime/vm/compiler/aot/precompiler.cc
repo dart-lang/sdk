@@ -701,23 +701,6 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
 
   AddSelector(Symbols::Call());  // For speed, not correctness.
 
-  // Allocated from C++.
-  Class& cls = Class::Handle(Z);
-  for (intptr_t cid = kInstanceCid; cid < kNumPredefinedCids; cid++) {
-    ASSERT(isolate()->class_table()->IsValidIndex(cid));
-    if (!isolate()->class_table()->HasValidClassAt(cid)) {
-      continue;
-    }
-    if ((cid == kTypeArgumentsCid) || (cid == kDynamicCid) ||
-        (cid == kVoidCid) || (cid == kFreeListElement) ||
-        (cid == kForwardingCorpse)) {
-      continue;
-    }
-    cls = isolate()->class_table()->At(cid);
-    AddInstantiatedClass(cls);
-    entry_points_printer.AddInstantiatedClass(cls);
-  }
-
   AddEntryPoints(vm_entry_points, &entry_points_printer);
   AddEntryPoints(embedder_entry_points, &entry_points_printer);
 
@@ -1523,7 +1506,7 @@ void Precompiler::AddAnnotatedRoots() {
       if (cls.has_pragma()) {
         // Check for @pragma on the class itself.
         metadata ^= lib.GetMetadata(cls);
-        if (metadata_defines_entrypoint() != EntryPointPragma::kAlways) {
+        if (metadata_defines_entrypoint() == EntryPointPragma::kAlways) {
           AddInstantiatedClass(cls);
         }
 
