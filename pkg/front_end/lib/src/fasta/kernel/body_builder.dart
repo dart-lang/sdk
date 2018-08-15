@@ -708,11 +708,16 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
     // For async functions with declared return types, we need to determine
     // whether those types are valid.
-    // TODO(hillerstrom): currently we need to check whether strongMode is
-    // enabled (or rather that we are not running in 'legacy mode') otherwise
-    // [_typeInferrer.typeSchemaEnvironment] might be null. We should remove this
-    // check once Dart 1 supported has been dropped.
-    if (library.loader.target.strongMode &&
+
+    // TODO(hillerstrom): currently, we need to check whether [strongMode] is
+    // enabled for two reasons:
+    // 1) the [isSubtypeOf] predicate produces false-negatives when [strongMode]
+    // is false.
+    // 2) the member [_typeInferrer.typeSchemaEnvironment] might be null when
+    // [strongMode] is false. This particular behaviour can be observed when
+    // running the fasta perf benchmarks.
+    bool strongMode = library.loader.target.strongMode;
+    if (strongMode &&
         builder.returnType != null &&
         asyncModifier == AsyncMarker.Async) {
       DartType returnType = builder.function.returnType;
@@ -726,7 +731,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         // TODO(hillerstrom): once types get annotated with location
         // information, we can improve the quality of the error message by
         // using the offset of [returnType].
-        addProblem(fasta.messageIllegalAsyncReturnType, member.charOffset, 0);
+        addProblem(fasta.messageIllegalAsyncReturnType, member.charOffset,
+            member.name.length);
       }
     }
 
