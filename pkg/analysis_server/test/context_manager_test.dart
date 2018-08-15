@@ -1906,7 +1906,6 @@ linter:
 
     // Verify options were set.
     expect(analysisOptions.enableSuperMixins, isTrue);
-    expect(analysisOptions.previewDart2, isTrue);
     expect(errorProcessors, hasLength(2));
     expect(lints, hasLength(2));
 

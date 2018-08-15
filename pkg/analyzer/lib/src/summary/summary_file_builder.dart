@@ -148,7 +148,7 @@ class _Builder {
     LineInfo lineInfo = new LineInfo(scanner.lineStarts);
     Parser parser = new Parser(source, errorListener,
         useFasta: context.analysisOptions.useFastaParser);
-    parser.enableOptionalNewAndConst = context.analysisOptions.previewDart2;
+    parser.enableOptionalNewAndConst = true;
     parser.parseGenericMethodComments = strong;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;

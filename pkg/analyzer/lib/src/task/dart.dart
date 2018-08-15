@@ -3761,7 +3761,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     parser.parseFunctionBodies =
         options.analyzeFunctionBodiesPredicate(_source);
     parser.parseGenericMethodComments = true;
-    parser.enableOptionalNewAndConst = options.previewDart2;
+    parser.enableOptionalNewAndConst = true;
     CompilationUnit unit = parser.parseCompilationUnit(tokenStream);
     unit.lineInfo = lineInfo;
 
@@ -5110,14 +5110,12 @@ class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
     //
     // Re-write the AST to handle the optional new and const feature.
     //
-    if (library.context.analysisOptions.previewDart2) {
-      unit.accept(new AstRewriteVisitor(
-          context.typeSystem,
-          library,
-          unit.declaredElement.source,
-          typeProvider,
-          AnalysisErrorListener.NULL_LISTENER));
-    }
+    unit.accept(new AstRewriteVisitor(
+        context.typeSystem,
+        library,
+        unit.declaredElement.source,
+        typeProvider,
+        AnalysisErrorListener.NULL_LISTENER));
     //
     // Record outputs.
     //

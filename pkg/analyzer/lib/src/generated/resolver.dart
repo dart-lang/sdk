@@ -6505,8 +6505,7 @@ class ResolverVisitor extends ScopedVisitor {
    * expressions.
    */
   ConstantAstCloner _createCloner() {
-    return new ConstantAstCloner(
-        definingLibrary.context.analysisOptions.previewDart2);
+    return new ConstantAstCloner();
   }
 
   /**

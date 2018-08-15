@@ -700,10 +700,8 @@ class LibraryAnalyzer {
 
     new DeclarationResolver().resolve(unit, unitElement);
 
-    if (_libraryElement.context.analysisOptions.previewDart2) {
-      unit.accept(new AstRewriteVisitor(_context.typeSystem, _libraryElement,
-          source, _typeProvider, AnalysisErrorListener.NULL_LISTENER));
-    }
+    unit.accept(new AstRewriteVisitor(_context.typeSystem, _libraryElement,
+        source, _typeProvider, AnalysisErrorListener.NULL_LISTENER));
 
     // TODO(scheglov) remove EnumMemberBuilder class
 

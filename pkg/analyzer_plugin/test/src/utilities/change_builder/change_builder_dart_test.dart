@@ -1388,8 +1388,7 @@ class B extends A {
   }
 
   test_writeOverrideOfInheritedMember_setter_abstract() async {
-    if (previewDart2) {
-      await _assertWriteOverrideOfInheritedAccessor('''
+    await _assertWriteOverrideOfInheritedAccessor('''
 abstract class A {
   set value(int value);
 }
@@ -1401,25 +1400,10 @@ class B extends A {
     // TODO: implement value
   }
 ''', displayText: 'value(int value) { … }', selection: null);
-    } else {
-      await _assertWriteOverrideOfInheritedAccessor('''
-abstract class A {
-  set value(int value);
-}
-class B extends A {
-}
-''', '''
-  @override
-  set value(int value) {
-    // TODO: implement value
-  }
-''', displayText: 'value(int value) { … }', selection: null);
-    }
   }
 
   test_writeOverrideOfInheritedMember_setter_concrete() async {
-    if (previewDart2) {
-      await _assertWriteOverrideOfInheritedAccessor('''
+    await _assertWriteOverrideOfInheritedAccessor('''
 class A {
   set value(int value) {}
 }
@@ -1432,25 +1416,8 @@ class B extends A {
     super.value = value;
   }
 ''',
-          displayText: 'value(int value) { … }',
-          selection: new SourceRange(133, 20));
-    } else {
-      await _assertWriteOverrideOfInheritedAccessor('''
-class A {
-  set value(int value) {}
-}
-class B extends A {
-}
-''', '''
-  @override
-  set value(int value) {
-    // TODO: implement value
-    super.value = value;
-  }
-''',
-          displayText: 'value(int value) { … }',
-          selection: new SourceRange(128, 20));
-    }
+        displayText: 'value(int value) { … }',
+        selection: new SourceRange(133, 20));
   }
 
   test_writeParameter() async {

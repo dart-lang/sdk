@@ -352,7 +352,8 @@ class ResolverTestCase extends EngineTestCase {
 
   bool get enableNewAnalysisDriver => false;
 
-  bool get previewDart2 => analysisOptions.previewDart2;
+  /// TODO(brianwilkerson) Remove this getter.
+  bool get previewDart2 => true;
 
   /**
    * Return a type provider that can be used to test the results of resolution.

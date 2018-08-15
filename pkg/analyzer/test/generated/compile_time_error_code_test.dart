@@ -1535,26 +1535,14 @@ class Foo {
   test_constInitializedWithNonConstValue_missingConstInListLiteral() async {
     Source source = addSource("const List L = [0];");
     await computeAnalysisResult(source);
-    if ((analysisContext?.analysisOptions ?? driver.analysisOptions)
-        .previewDart2) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source,
-          [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
-    }
+    assertNoErrors(source);
     verify([source]);
   }
 
   test_constInitializedWithNonConstValue_missingConstInMapLiteral() async {
     Source source = addSource("const Map M = {'a' : 0};");
     await computeAnalysisResult(source);
-    if ((analysisContext?.analysisOptions ?? driver.analysisOptions)
-        .previewDart2) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source,
-          [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
-    }
+    assertNoErrors(source);
     verify([source]);
   }
 
