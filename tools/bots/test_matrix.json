@@ -416,10 +416,6 @@
         "use-blobs": true
       }},
     "fasta-(linux|mac|win)": { },
-    "fasta-legacy-linux": {
-      "options": {
-        "preview-dart-2": false
-      }},
     "analyzer-(linux|mac|win)": {
       "options": {
         "compiler": "dart2analyzer",
@@ -433,35 +429,6 @@
       }}
   },
   "builder_configurations": [
-    {
-      "builders": [
-        "front-end-legacy-linux-release-x64"
-      ],
-      "meta": {
-        "description": "Runs the fasta legacy mode tests."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "create_sdk",
-            "dartdevc_test",
-            "kernel_platform_files",
-            "runtime_kernel"
-          ]
-        },
-        {
-          "name": "fasta legacy mode sdk tests",
-          "arguments": [
-            "-nfasta-legacy-linux",
-            "--compiler=fasta",
-            "--no-preview-dart-2",
-            "--runtime=none"
-          ]
-        }
-      ]
-    },
     {
       "builders": [
         "front-end-linux-release-x64",
