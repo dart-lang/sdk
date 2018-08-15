@@ -48,6 +48,7 @@ class UnawaitedFutures extends LintRule implements NodeLintRule {
   void registerNodeProcessors(NodeLintRegistry registry) {
     final visitor = new _Visitor(this);
     registry.addExpressionStatement(this, visitor);
+    registry.addCascadeExpression(this, visitor);
   }
 }
 
@@ -55,6 +56,16 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);
+
+  @override
+  void visitCascadeExpression(CascadeExpression node) {
+    for (final expr in node.cascadeSections) {
+      if (expr.bestType.isDartAsyncFuture &&
+          _isEnclosedInAsyncFunctionBody(expr)) {
+        rule.reportLint(expr);
+      }
+    }
+  }
 
   @override
   void visitExpressionStatement(ExpressionStatement node) {
@@ -70,15 +81,18 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
 
-      // Not in an async function body: assume fire-and-forget.
-      var enclosingFunctionBody =
-          node.getAncestor((node) => node is FunctionBody) as FunctionBody;
-      if (enclosingFunctionBody?.isAsynchronous != true) return;
-
-      // Future expression statement that isn't awaited in an async function:
-      // while this is legal, it's a very frequent sign of an error.
-      rule.reportLint(node);
+      if (_isEnclosedInAsyncFunctionBody(node)) {
+        // Future expression statement that isn't awaited in an async function:
+        // while this is legal, it's a very frequent sign of an error.
+        rule.reportLint(node);
+      }
     }
+  }
+
+  bool _isEnclosedInAsyncFunctionBody(AstNode node) {
+    final enclosingFunctionBody =
+        node.getAncestor((node) => node is FunctionBody) as FunctionBody;
+    return enclosingFunctionBody?.isAsynchronous == true;
   }
 
   /// Detects `new Future.delayed(duration, [computation])` creations with a
