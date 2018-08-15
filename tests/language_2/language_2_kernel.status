@@ -389,6 +389,51 @@ map_literal3_test/02: MissingCompileTimeError
 const_map2_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 const_map3_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 const_switch2_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+invalid_returns/async_invalid_return_05_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_06_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_07_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_08_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_09_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_10_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_11_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_12_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_13_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_14_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_15_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_16_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_17_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_18_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_19_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_20_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_21_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_22_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_23_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_24_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_25_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_26_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_27_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_28_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_29_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_30_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_31_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_32_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_33_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_34_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_35_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_36_test: MissingCompileTimeError
+invalid_returns/async_invalid_return_37_test: MissingCompileTimeError
+invalid_returns/sync_invalid_return_06_test: MissingCompileTimeError
+invalid_returns/sync_invalid_return_07_test: MissingCompileTimeError
+invalid_returns/sync_invalid_return_08_test: MissingCompileTimeError
+invalid_returns/sync_invalid_return_09_test: MissingCompileTimeError
+invalid_returns/sync_invalid_return_10_test: MissingCompileTimeError
+invalid_returns/sync_invalid_return_11_test: MissingCompileTimeError
+invalid_returns/sync_invalid_return_12_test: MissingCompileTimeError
+invalid_returns/sync_invalid_return_13_test: MissingCompileTimeError
+invalid_returns/sync_invalid_return_14_test: MissingCompileTimeError
+invalid_returns/sync_invalid_return_15_test: MissingCompileTimeError
+invalid_returns/sync_invalid_return_16_test: MissingCompileTimeError
+invalid_returns/sync_invalid_return_17_test: MissingCompileTimeError
 switch_bad_case_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 switch_bad_case_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 switch_case_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
@@ -408,92 +453,126 @@ void/return_void_sync_error2_test: MissingCompileTimeError
 void/void_block_return_test/00: MissingCompileTimeError
 void/void_type_callbacks_test/00: MissingCompileTimeError
 void/void_type_callbacks_test/01: MissingCompileTimeError
+void/void_type_usage_test/async_use_in_await_for: MissingCompileTimeError
+void/void_type_usage_test/async_use_in_yield: MissingCompileTimeError
+void/void_type_usage_test/async_use_in_yield_star: MissingCompileTimeError
+void/void_type_usage_test/call_addition: MissingCompileTimeError
 void/void_type_usage_test/call_argument: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/call_boolean_and_left: MissingCompileTimeError
+void/void_type_usage_test/call_boolean_and_right: MissingCompileTimeError
+void/void_type_usage_test/call_boolean_negation: MissingCompileTimeError
+void/void_type_usage_test/call_boolean_or_left: MissingCompileTimeError
+void/void_type_usage_test/call_boolean_or_right: MissingCompileTimeError
 void/void_type_usage_test/call_cascade: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/call_conditional_stmt: MissingCompileTimeError
 void/void_type_usage_test/call_do_while: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/call_dynamic_init: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/call_equals_left: MissingCompileTimeError
+void/void_type_usage_test/call_equals_right: MissingCompileTimeError
 void/void_type_usage_test/call_for_in: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/call_identical: MissingCompileTimeError
 void/void_type_usage_test/call_is: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/call_literal_list_init: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/call_literal_map_key_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/call_literal_map_key_init2: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/call_literal_map_value_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/call_literal_map_value_init2: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/call_multiplication: MissingCompileTimeError
 void/void_type_usage_test/call_null_dot: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/call_null_equals2: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/call_null_equals1: MissingCompileTimeError
 void/void_type_usage_test/call_return: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/call_throw: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/call_toString: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/call_void_init: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/call_use_in_conditional_assignment_right: MissingCompileTimeError
+void/void_type_usage_test/call_use_in_list_subscript: MissingCompileTimeError
+void/void_type_usage_test/call_use_in_map_lookup: MissingCompileTimeError
+void/void_type_usage_test/call_use_in_string_interpolation: MissingCompileTimeError
 void/void_type_usage_test/call_while: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/conditional2_argument: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/conditional2_dynamic_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/conditional2_literal_list_init: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/conditional2_literal_map_value_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/conditional2_literal_map_value_init2: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/conditional2_null_equals2: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/conditional2_null_equals1: MissingCompileTimeError
 void/void_type_usage_test/conditional2_return: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/conditional2_throw: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/conditional2_void_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/conditional2do_while: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/conditional2for_in: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/conditional2while: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/conditional3_argument: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/conditional3_dynamic_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/conditional3_literal_list_init: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/conditional3_literal_map_value_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/conditional3_literal_map_value_init2: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/conditional3_null_equals2: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/conditional3_null_equals1: MissingCompileTimeError
 void/void_type_usage_test/conditional3_return: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/conditional3_throw: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/conditional3_void_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/conditional_argument: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/conditional_do_while: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/conditional_dynamic_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/conditional_for_in: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/conditional_literal_list_init: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/conditional_literal_map_value_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/conditional_literal_map_value_init2: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/conditional_null_equals2: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/conditional_null_equals1: MissingCompileTimeError
 void/void_type_usage_test/conditional_return: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/conditional_throw: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/conditional_void_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/conditional_while: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/final_local_addition: MissingCompileTimeError
 void/void_type_usage_test/final_local_argument: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/final_local_boolean_and_left: MissingCompileTimeError
+void/void_type_usage_test/final_local_boolean_and_right: MissingCompileTimeError
+void/void_type_usage_test/final_local_boolean_negation: MissingCompileTimeError
+void/void_type_usage_test/final_local_boolean_or_left: MissingCompileTimeError
+void/void_type_usage_test/final_local_boolean_or_right: MissingCompileTimeError
 void/void_type_usage_test/final_local_cascade: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/final_local_conditional_stmt: MissingCompileTimeError
 void/void_type_usage_test/final_local_do_while: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/final_local_dynamic_init: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/final_local_equals_left: MissingCompileTimeError
+void/void_type_usage_test/final_local_equals_right: MissingCompileTimeError
 void/void_type_usage_test/final_local_for_in: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/final_local_identical: MissingCompileTimeError
 void/void_type_usage_test/final_local_is: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/final_local_literal_list_init: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/final_local_literal_map_key_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/final_local_literal_map_key_init2: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/final_local_literal_map_value_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/final_local_literal_map_value_init2: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/final_local_multiplication: MissingCompileTimeError
 void/void_type_usage_test/final_local_null_dot: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/final_local_null_equals2: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/final_local_null_equals1: MissingCompileTimeError
 void/void_type_usage_test/final_local_return: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/final_local_throw: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/final_local_toString: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/final_local_void_init: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/final_local_use_in_conditional_assignment_right: MissingCompileTimeError
+void/void_type_usage_test/final_local_use_in_list_subscript: MissingCompileTimeError
+void/void_type_usage_test/final_local_use_in_map_lookup: MissingCompileTimeError
+void/void_type_usage_test/final_local_use_in_string_interpolation: MissingCompileTimeError
 void/void_type_usage_test/final_local_while: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/global_addition: MissingCompileTimeError
 void/void_type_usage_test/global_argument: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/global_boolean_and_left: MissingCompileTimeError
+void/void_type_usage_test/global_boolean_and_right: MissingCompileTimeError
+void/void_type_usage_test/global_boolean_negation: MissingCompileTimeError
+void/void_type_usage_test/global_boolean_or_left: MissingCompileTimeError
+void/void_type_usage_test/global_boolean_or_right: MissingCompileTimeError
 void/void_type_usage_test/global_cascade: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/global_conditional_stmt: MissingCompileTimeError
 void/void_type_usage_test/global_do_while: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/global_dynamic_init: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/global_equals_left: MissingCompileTimeError
+void/void_type_usage_test/global_equals_right: MissingCompileTimeError
 void/void_type_usage_test/global_for_in: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/global_identical: MissingCompileTimeError
 void/void_type_usage_test/global_is: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/global_literal_list_init: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/global_literal_map_key_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/global_literal_map_key_init2: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/global_literal_map_value_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/global_literal_map_value_init2: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/global_multiplication: MissingCompileTimeError
 void/void_type_usage_test/global_null_dot: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/global_null_equals2: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/global_return: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/global_throw: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/global_toString: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/global_void_init: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/global_use_in_conditional_assignment_left: MissingCompileTimeError
+void/void_type_usage_test/global_use_in_conditional_assignment_right: MissingCompileTimeError
+void/void_type_usage_test/global_use_in_list_subscript: MissingCompileTimeError
+void/void_type_usage_test/global_use_in_map_lookup: MissingCompileTimeError
+void/void_type_usage_test/global_use_in_string_interpolation: MissingCompileTimeError
 void/void_type_usage_test/global_while: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance2_argument: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance2_cascade: MissingCompileTimeError # Issue 32804
@@ -502,16 +581,13 @@ void/void_type_usage_test/instance2_dynamic_init: MissingCompileTimeError # Issu
 void/void_type_usage_test/instance2_for_in: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance2_is: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance2_literal_list_init: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/instance2_literal_map_key_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance2_literal_map_key_init2: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/instance2_literal_map_value_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance2_literal_map_value_init2: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance2_null_dot: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance2_null_equals2: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance2_return: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance2_throw: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance2_toString: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/instance2_void_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance2_while: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance3_argument: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance3_cascade: MissingCompileTimeError # Issue 32804
@@ -520,16 +596,13 @@ void/void_type_usage_test/instance3_dynamic_init: MissingCompileTimeError # Issu
 void/void_type_usage_test/instance3_for_in: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance3_is: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance3_literal_list_init: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/instance3_literal_map_key_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance3_literal_map_key_init2: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/instance3_literal_map_value_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance3_literal_map_value_init2: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance3_null_dot: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance3_null_equals2: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance3_return: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance3_throw: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance3_toString: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/instance3_void_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance3_while: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance_argument: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance_cascade: MissingCompileTimeError # Issue 32804
@@ -538,71 +611,110 @@ void/void_type_usage_test/instance_dynamic_init: MissingCompileTimeError # Issue
 void/void_type_usage_test/instance_for_in: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance_is: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance_literal_list_init: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/instance_literal_map_key_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance_literal_map_key_init2: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/instance_literal_map_value_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance_literal_map_value_init2: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance_null_dot: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance_null_equals2: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance_return: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance_throw: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance_toString: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/instance_void_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/instance_while: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/local_addition: MissingCompileTimeError
 void/void_type_usage_test/local_argument: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/local_boolean_and_left: MissingCompileTimeError
+void/void_type_usage_test/local_boolean_and_right: MissingCompileTimeError
+void/void_type_usage_test/local_boolean_negation: MissingCompileTimeError
+void/void_type_usage_test/local_boolean_or_left: MissingCompileTimeError
+void/void_type_usage_test/local_boolean_or_right: MissingCompileTimeError
 void/void_type_usage_test/local_cascade: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/local_conditional_stmt: MissingCompileTimeError
 void/void_type_usage_test/local_do_while: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/local_dynamic_init: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/local_equals_left: MissingCompileTimeError
+void/void_type_usage_test/local_equals_right: MissingCompileTimeError
 void/void_type_usage_test/local_for_in: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/local_identical: MissingCompileTimeError
 void/void_type_usage_test/local_is: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/local_literal_list_init: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/local_literal_map_key_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/local_literal_map_key_init2: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/local_literal_map_value_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/local_literal_map_value_init2: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/local_multiplication: MissingCompileTimeError
 void/void_type_usage_test/local_null_dot: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/local_null_equals2: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/local_null_equals1: MissingCompileTimeError
 void/void_type_usage_test/local_return: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/local_throw: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/local_toString: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/local_void_init: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/local_use_in_conditional_assignment_left: MissingCompileTimeError
+void/void_type_usage_test/local_use_in_conditional_assignment_right: MissingCompileTimeError
+void/void_type_usage_test/local_use_in_list_subscript: MissingCompileTimeError
+void/void_type_usage_test/local_use_in_map_lookup: MissingCompileTimeError
+void/void_type_usage_test/local_use_in_string_interpolation: MissingCompileTimeError
 void/void_type_usage_test/local_while: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/param_addition: MissingCompileTimeError
 void/void_type_usage_test/param_argument: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/param_boolean_and_left: MissingCompileTimeError
+void/void_type_usage_test/param_boolean_and_right: MissingCompileTimeError
+void/void_type_usage_test/param_boolean_negation: MissingCompileTimeError
+void/void_type_usage_test/param_boolean_or_left: MissingCompileTimeError
+void/void_type_usage_test/param_boolean_or_right: MissingCompileTimeError
 void/void_type_usage_test/param_cascade: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/param_conditional_stmt: MissingCompileTimeError
 void/void_type_usage_test/param_do_while: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/param_dynamic_init: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/param_equals_left: MissingCompileTimeError
+void/void_type_usage_test/param_equals_right: MissingCompileTimeError
 void/void_type_usage_test/param_for_in: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/param_identical: MissingCompileTimeError
 void/void_type_usage_test/param_is: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/param_literal_list_init: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/param_literal_map_key_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/param_literal_map_key_init2: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/param_literal_map_value_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/param_literal_map_value_init2: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/param_multiplication: MissingCompileTimeError
 void/void_type_usage_test/param_null_dot: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/param_null_equals2: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/param_null_equals1: MissingCompileTimeError
 void/void_type_usage_test/param_return: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/param_throw: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/param_toString: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/param_void_init: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/param_use_in_conditional_assignment_left: MissingCompileTimeError
+void/void_type_usage_test/param_use_in_conditional_assignment_right: MissingCompileTimeError
+void/void_type_usage_test/param_use_in_list_subscript: MissingCompileTimeError
+void/void_type_usage_test/param_use_in_map_lookup: MissingCompileTimeError
+void/void_type_usage_test/param_use_in_string_interpolation: MissingCompileTimeError
 void/void_type_usage_test/param_while: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/paren_addition: MissingCompileTimeError
 void/void_type_usage_test/paren_argument: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/paren_boolean_and_left: MissingCompileTimeError
+void/void_type_usage_test/paren_boolean_and_right: MissingCompileTimeError
+void/void_type_usage_test/paren_boolean_negation: MissingCompileTimeError
+void/void_type_usage_test/paren_boolean_or_left: MissingCompileTimeError
+void/void_type_usage_test/paren_boolean_or_right: MissingCompileTimeError
 void/void_type_usage_test/paren_cascade: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/paren_conditional_stmt: MissingCompileTimeError
 void/void_type_usage_test/paren_do_while: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/paren_dynamic_init: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/paren_equals_left: MissingCompileTimeError
+void/void_type_usage_test/paren_equals_right: MissingCompileTimeError
 void/void_type_usage_test/paren_for_in: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/paren_identical: MissingCompileTimeError
 void/void_type_usage_test/paren_is: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/paren_literal_list_init: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/paren_literal_map_key_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/paren_literal_map_key_init2: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/paren_literal_map_value_init: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/paren_literal_map_value_init2: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/paren_multiplication: MissingCompileTimeError
 void/void_type_usage_test/paren_null_dot: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/paren_null_equals2: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/paren_null_equals1: MissingCompileTimeError
 void/void_type_usage_test/paren_return: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/paren_throw: MissingCompileTimeError # Issue 32804
 void/void_type_usage_test/paren_toString: MissingCompileTimeError # Issue 32804
-void/void_type_usage_test/paren_void_init: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/paren_use_in_conditional_assignment_right: MissingCompileTimeError
+void/void_type_usage_test/paren_use_in_list_subscript: MissingCompileTimeError
+void/void_type_usage_test/paren_use_in_map_lookup: MissingCompileTimeError
+void/void_type_usage_test/paren_use_in_string_interpolation: MissingCompileTimeError
 void/void_type_usage_test/paren_while: MissingCompileTimeError # Issue 32804
+void/void_type_usage_test/sync_use_in_yield: MissingCompileTimeError
+void/void_type_usage_test/sync_use_in_yield_star: MissingCompileTimeError
+void/void_type_usage_test/void_default_parameter_closure: MissingCompileTimeError
+void/void_type_usage_test/void_default_parameter_global: MissingCompileTimeError
 
 [ $compiler != dart2analyzer && $fasta && $strong ]
 map_literal3_test/03: MissingCompileTimeError

@@ -15,17 +15,9 @@ invalid_returns/*: Skip  # https://github.com/dart-lang/sdk/issues/34011
 void/*: Skip  # https://github.com/dart-lang/sdk/issues/34011
 invalid_returns/*: Skip  # https://github.com/dart-lang/sdk/issues/34011
 
-[ $compiler == dartdevk ]
-void/*: Skip # https://github.com/dart-lang/sdk/issues/34012
-invalid_returns/*: Skip  # https://github.com/dart-lang/sdk/issues/34012
-
-[ $compiler == app_jit || $compiler == app_jitk || $compiler == none ]
+[ $compiler == app_jit || $compiler == none ]
 void/*: Skip # https://github.com/dart-lang/sdk/issues/34013
 invalid_returns/*: Skip  # https://github.com/dart-lang/sdk/issues/34013
-
-[ $compiler == dartk || $compiler == dartkb || $compiler == dartkp || $compiler == fasta ]
-void/*: Skip # https://github.com/dart-lang/sdk/issues/34014
-invalid_returns/*: Skip  # https://github.com/dart-lang/sdk/issues/34014
 
 [ $compiler == spec_parser ]
 void/*: Skip # https://github.com/dart-lang/sdk/issues/34015
