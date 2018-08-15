@@ -331,6 +331,10 @@ class FixProcessor {
     if (errorCode ==
         CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT) {
       await _addFix_createConstructorSuperImplicit();
+      // TODO(brianwilkerson) The following was added because fasta produces
+      // NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT in places where analyzer produced
+      // NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT
+      await _addFix_createConstructorSuperExplicit();
     }
     if (errorCode ==
         CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT) {
@@ -1528,7 +1532,8 @@ class FixProcessor {
   Future<void> _addFix_createConstructorSuperImplicit() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    ClassDeclaration targetClassNode = node.parent as ClassDeclaration;
+    ClassDeclaration targetClassNode =
+        node.getAncestor((parent) => parent is ClassDeclaration);
     ClassElement targetClassElement = targetClassNode.declaredElement;
     InterfaceType superType = targetClassElement.supertype;
     String targetClassName = targetClassElement.name;

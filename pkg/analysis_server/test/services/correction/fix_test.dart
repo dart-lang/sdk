@@ -7308,31 +7308,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_createConstructorSuperExplicit() =>
-      super.test_createConstructorSuperExplicit();
-
-  @failingTest
-  @override
-  test_createConstructorSuperExplicit_hasInitializers() =>
-      super.test_createConstructorSuperExplicit_hasInitializers();
-
-  @failingTest
-  @override
-  test_createConstructorSuperExplicit_named() =>
-      super.test_createConstructorSuperExplicit_named();
-
-  @failingTest
-  @override
-  test_createConstructorSuperExplicit_named_private() =>
-      super.test_createConstructorSuperExplicit_named_private();
-
-  @failingTest
-  @override
-  test_createConstructorSuperExplicit_typeArgument() =>
-      super.test_createConstructorSuperExplicit_typeArgument();
-
-  @failingTest
-  @override
   test_createConstructorSuperImplicit() =>
       super.test_createConstructorSuperImplicit();
 
