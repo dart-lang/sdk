@@ -44,7 +44,7 @@ class ColdAnalysisBenchmark extends Benchmark {
     await test.analysisFinished;
 
     stopwatch.stop();
-    int usedBytes = test.getMemoryUsage();
+    int usedBytes = await test.getMemoryUsage();
 
     CompoundBenchMarkResult result = new CompoundBenchMarkResult(id);
     result.add('analysis',
@@ -88,7 +88,7 @@ class AnalysisBenchmark extends Benchmark {
     await test.analysisFinished;
 
     stopwatch.stop();
-    int usedBytes = test.getMemoryUsage();
+    int usedBytes = await test.getMemoryUsage();
 
     CompoundBenchMarkResult result = new CompoundBenchMarkResult(id);
     result.add('warm-analysis',

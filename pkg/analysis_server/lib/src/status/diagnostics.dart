@@ -1282,8 +1282,6 @@ class ServiceProtocol {
   }
 
   static Future<ServiceProtocol> connect(Uri uri) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     WebSocket socket = await WebSocket.connect(uri.toString());
     return new ServiceProtocol._(socket);
   }
