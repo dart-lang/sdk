@@ -2674,7 +2674,6 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
             expectedError(
                 CompileTimeErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR, 11, 2),
             expectedError(ParserErrorCode.MISSING_IDENTIFIER, 13, 1),
-            expectedError(ParserErrorCode.EXPECTED_TOKEN, 13, 1),
             expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 10, 1),
             expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 13, 1),
           ]
@@ -2694,7 +2693,6 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
             expectedError(
                 CompileTimeErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR, 11, 6),
             expectedError(ParserErrorCode.MISSING_IDENTIFIER, 17, 1),
-            expectedError(ParserErrorCode.EXPECTED_TOKEN, 17, 1),
             expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 10, 1),
             expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 17, 1)
           ]
@@ -2714,7 +2712,6 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
             expectedError(
                 CompileTimeErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR, 11, 13),
             expectedError(ParserErrorCode.MISSING_IDENTIFIER, 24, 1),
-            expectedError(ParserErrorCode.EXPECTED_TOKEN, 24, 1),
             expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 10, 1),
             expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 24, 1)
           ]
@@ -6751,7 +6748,7 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
 
   void test_parseConstExpression_mapLiteral_typed_missingGt() {
     Expression expression = parseExpression('const <A, B {}',
-        errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 1)]);
+        errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1)]);
     expect(expression, isNotNull);
     var literal = expression as MapLiteral;
     expect(literal.leftBracket, isNotNull);
@@ -7043,20 +7040,17 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
   void test_parseFunctionExpression_functionInPlaceOfTypeName() {
     Expression expression = parseExpression('<test(' ', (){});>[0, 1, 2]',
         codes: usingFastaParser
-            ? [
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.UNEXPECTED_TOKEN,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_TOKEN,
-                ParserErrorCode.MISSING_FUNCTION_BODY,
-              ]
+            ? [ParserErrorCode.UNEXPECTED_TOKEN]
             : [
                 ParserErrorCode.EXPECTED_TOKEN,
                 ParserErrorCode.MISSING_IDENTIFIER,
                 ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL,
               ]);
     expect(expression, isNotNull);
+    if (usingFastaParser) {
+      ListLiteral literal = expression;
+      expect(literal.typeArguments.arguments, hasLength(1));
+    }
   }
 
   void test_parseFunctionExpression_typeParameterComments() {
@@ -11281,7 +11275,7 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
     result[new Symbol(name)] = value;
   });
   return result;
-}''', errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 36, 1)]);
+}''', errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 12, 24)]);
     }
   }
 
@@ -11610,7 +11604,7 @@ class C {
     CompilationUnit unit = parseCompilationUnit(r'''
 class C {
   final List<int f;
-}''', errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 27, 1)]);
+}''', errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 23, 3)]);
     // one class
     List<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
@@ -11637,7 +11631,7 @@ class C {
   void test_incompleteTypeParameters() {
     CompilationUnit unit = parseCompilationUnit(r'''
 class C<K {
-}''', errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1)]);
+}''', errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 1)]);
     // one class
     List<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
@@ -11654,7 +11648,7 @@ class C<K {
   void test_incompleteTypeParameters2() {
     CompilationUnit unit = parseCompilationUnit(r'''
 class C<K extends L<T> {
-}''', errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 23, 1)]);
+}''', errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 21, 1)]);
     // one class
     List<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
@@ -11671,10 +11665,13 @@ class C<K extends L<T> {
   void test_incompleteTypeParameters3() {
     CompilationUnit unit = parseCompilationUnit(r'''
 class C<K extends L<T {
-}''', errors: [
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 22, 1),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 22, 1)
-    ]);
+}''',
+        errors: usingFastaParser
+            ? [expectedError(ParserErrorCode.EXPECTED_TOKEN, 20, 1)]
+            : [
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 20, 1),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 22, 1)
+              ]);
     // one class
     List<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
@@ -11691,6 +11688,29 @@ class C<K extends L<T {
   void test_invalidFunctionBodyModifier() {
     parseCompilationUnit("f() sync {}",
         codes: [ParserErrorCode.MISSING_STAR_AFTER_SYNC]);
+  }
+
+  void test_invalidMapLiteral() {
+    parseCompilationUnit("class C { var f = Map<A, B> {}; }",
+        codes: usingFastaParser
+            ? [
+                // TODO(danrubel): Improve error message to indicate
+                // that "Map" should be removed.
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.MISSING_KEYWORD_OPERATOR,
+                ParserErrorCode.MISSING_METHOD_PARAMETERS,
+                ParserErrorCode.EXPECTED_CLASS_MEMBER,
+              ]
+            : [
+                ParserErrorCode.EXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_CLASS_MEMBER,
+                ParserErrorCode.EXPECTED_CLASS_MEMBER,
+                ParserErrorCode.UNEXPECTED_TOKEN,
+                ParserErrorCode.UNEXPECTED_TOKEN,
+                ParserErrorCode.UNEXPECTED_TOKEN,
+                ParserErrorCode.UNEXPECTED_TOKEN,
+                ParserErrorCode.EXPECTED_EXECUTABLE,
+              ]);
   }
 
   void test_invalidTypeParameters() {

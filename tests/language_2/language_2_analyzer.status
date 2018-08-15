@@ -177,6 +177,7 @@ label6_test/03: Crash # Error recovery in method body (illegal jump target)
 library_ambiguous_test/00: Crash # Error recovery in method body (ambiguous imported name)
 library_test/01: Crash # Issue 33686 - No core library found
 list_literal_negative_test: Crash # Error recovery in method body (malformed constructor invocation)
+list_literal_syntax_test/06: Crash
 main_not_a_function_test: Crash # Issue 33686 - No core library found
 metadata_test: Crash # Poor handling of annotation inside typedef
 missing_part_of_tag_test/01: Crash # Issue #34043 - Error recovery in outline (part file missing "part of" declaration - see also #33587)

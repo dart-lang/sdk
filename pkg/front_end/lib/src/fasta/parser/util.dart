@@ -136,42 +136,59 @@ Token skipMetadata(Token token) {
 }
 
 /// Split `>=` into two separate tokens.
+/// Call [Token.setNext] to add the token to the stream.
 Token splitGtEq(Token token) {
   assert(optional('>=', token));
   return new SimpleToken(
       TokenType.GT, token.charOffset, token.precedingComments)
     ..setNext(new SimpleToken(TokenType.EQ, token.charOffset + 1)
-      ..setNext(token.next));
+      // Set next rather than calling Token.setNext
+      // so that the previous token is not set.
+      ..next = token.next);
 }
 
 /// Split `>>` into two separate tokens.
+/// Call [Token.setNext] to add the token to the stream.
 SimpleToken splitGtGt(Token token) {
   assert(optional('>>', token));
   return new SimpleToken(
       TokenType.GT, token.charOffset, token.precedingComments)
     ..setNext(new SimpleToken(TokenType.GT, token.charOffset + 1)
-      ..setNext(token.next));
+      // Set next rather than calling Token.setNext
+      // so that the previous token is not set.
+      ..next = token.next);
 }
 
 /// Split `>>=` into three separate tokens.
+/// Call [Token.setNext] to add the token to the stream.
 Token splitGtGtEq(Token token) {
   assert(optional('>>=', token));
   return new SimpleToken(
       TokenType.GT, token.charOffset, token.precedingComments)
     ..setNext(new SimpleToken(TokenType.GT, token.charOffset + 1)
       ..setNext(new SimpleToken(TokenType.EQ, token.charOffset + 2)
-        ..setNext(token.next)));
+        // Set next rather than calling Token.setNext
+        // so that the previous token is not set.
+        ..next = token.next));
 }
 
 /// Split `>>=` into two separate tokens... `>` followed by `>=`.
+/// Call [Token.setNext] to add the token to the stream.
 Token splitGtFromGtGtEq(Token token) {
   assert(optional('>>=', token));
   return new SimpleToken(
       TokenType.GT, token.charOffset, token.precedingComments)
     ..setNext(new SimpleToken(TokenType.GT_EQ, token.charOffset + 1)
-      ..setNext(token.next));
+      // Set next rather than calling Token.setNext
+      // so that the previous token is not set.
+      ..next = token.next);
 }
 
-Token syntheticGt(Token token) {
-  return new SyntheticToken(TokenType.GT, token.charOffset)..setNext(token);
+/// Return a synthetic `<` followed by [next].
+/// Call [Token.setNext] to add the token to the stream.
+Token syntheticGt(Token next) {
+  return new SyntheticToken(TokenType.GT, next.charOffset)
+    // Set next rather than calling Token.setNext
+    // so that the previous token is not set.
+    ..next = next;
 }

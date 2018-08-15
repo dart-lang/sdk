@@ -125,17 +125,13 @@ bool isValidTypeReference(Token token) {
 ///
 /// If [inDeclaration] is `true`, then this will more aggressively recover
 /// given unbalanced `<` `>` and invalid parameters or arguments.
-///
-/// If this method is called by [computeTypeParamOrArg] and the outer group ends
-/// with `>>`, then then [innerEndGroup] is set to either `>>` if the token
-/// has not been split or the first `>` if the `>>` token has been split.
 TypeInfo computeType(final Token token, bool required,
-    [bool inDeclaration = false, Token innerEndGroup]) {
+    [bool inDeclaration = false]) {
   Token next = token.next;
   if (!isValidTypeReference(next)) {
     if (next.type.isBuiltIn) {
       TypeParamOrArgInfo typeParamOrArg =
-          computeTypeParamOrArg(next, inDeclaration, innerEndGroup);
+          computeTypeParamOrArg(next, inDeclaration);
       if (typeParamOrArg != noTypeParamOrArg) {
         // Recovery: built-in `<` ... `>`
         if (required || looksLikeName(typeParamOrArg.skip(next).next)) {
@@ -156,7 +152,7 @@ TypeInfo computeType(final Token token, bool required,
     } else if (required && optional('.', next)) {
       // Recovery: looks like prefixed type missing the prefix
       return new ComplexTypeInfo(
-              token, computeTypeParamOrArg(next, inDeclaration, innerEndGroup))
+              token, computeTypeParamOrArg(next, inDeclaration))
           .computePrefixedType(required);
     }
     return noType;
@@ -182,7 +178,7 @@ TypeInfo computeType(final Token token, bool required,
   // We've seen an identifier.
 
   TypeParamOrArgInfo typeParamOrArg =
-      computeTypeParamOrArg(next, inDeclaration, innerEndGroup);
+      computeTypeParamOrArg(next, inDeclaration);
   if (typeParamOrArg != noTypeParamOrArg) {
     if (typeParamOrArg.isSimpleTypeArgument) {
       // We've seen identifier `<` identifier `>`
@@ -212,8 +208,7 @@ TypeInfo computeType(final Token token, bool required,
     next = next.next;
     if (isValidTypeReference(next)) {
       // We've seen identifier `.` identifier
-      typeParamOrArg =
-          computeTypeParamOrArg(next, inDeclaration, innerEndGroup);
+      typeParamOrArg = computeTypeParamOrArg(next, inDeclaration);
       next = next.next;
       if (typeParamOrArg == noTypeParamOrArg &&
           !isGeneralizedFunctionType(next)) {
@@ -231,8 +226,7 @@ TypeInfo computeType(final Token token, bool required,
     }
     // identifier `.` non-identifier
     if (required) {
-      typeParamOrArg =
-          computeTypeParamOrArg(token.next.next, inDeclaration, innerEndGroup);
+      typeParamOrArg = computeTypeParamOrArg(token.next.next, inDeclaration);
       return new ComplexTypeInfo(token, typeParamOrArg)
           .computePrefixedType(required);
     }
@@ -259,42 +253,30 @@ TypeInfo computeType(final Token token, bool required,
 ///
 /// If [inDeclaration] is `true`, then this will more aggressively recover
 /// given unbalanced `<` `>` and invalid parameters or arguments.
-///
-/// If this method is called by [computeType] and the outer group ends
-/// with `>>`, then then [innerEndGroup] is set to either `>>` if the token
-/// has not been split or the first `>` if the `>>` token has been split.
 TypeParamOrArgInfo computeTypeParamOrArg(Token token,
-    [bool inDeclaration = false, Token innerEndGroup]) {
+    [bool inDeclaration = false]) {
   Token beginGroup = token.next;
   if (!optional('<', beginGroup)) {
     return noTypeParamOrArg;
   }
-  Token endGroup = beginGroup.endGroup ?? innerEndGroup;
-  if (endGroup == null) {
-    if (!inDeclaration) {
-      return noTypeParamOrArg;
-    }
-    // Recovery:
-    // Since the leading `<` cannot be part of an expression, fall through and
-    // try to more aggressively recover given an unbalanced '<'.
-  }
 
   // identifier `<` `void` `>` and `<` `dynamic` `>`
   // are handled by ComplexTypeInfo.
-  Token identifier = beginGroup.next;
-  if ((identifier.kind == IDENTIFIER_TOKEN || identifier.type.isPseudo)) {
-    if (optional('>', identifier.next)) {
+  Token next = beginGroup.next;
+  if ((next.kind == IDENTIFIER_TOKEN || next.type.isPseudo)) {
+    if (optional('>', next.next)) {
       return simpleTypeArgument1;
-    } else if (optional('>>', identifier.next)) {
+    } else if (optional('>>', next.next)) {
       return simpleTypeArgument1GtGt;
-    } else if (optional('>=', identifier.next)) {
+    } else if (optional('>=', next.next)) {
       return simpleTypeArgument1GtEq;
     }
+  } else if (optional('(', next)) {
+    return noTypeParamOrArg;
   }
 
   // TODO(danrubel): Consider adding additional const for common situations.
-  return new ComplexTypeParamOrArgInfo(token, inDeclaration)
-      .compute(innerEndGroup);
+  return new ComplexTypeParamOrArgInfo(token, inDeclaration).compute();
 }
 
 /// Called by the parser to obtain information about a possible group of type
