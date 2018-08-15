@@ -1126,6 +1126,17 @@ class KernelBytecode {
 
   static KBCInstr At(uword pc) { return *reinterpret_cast<KBCInstr*>(pc); }
 
+  // Converts bytecode PC into an offset.
+  // For return addresses used in PcDescriptors, PC is also advanced to the
+  // next instruction.
+  static intptr_t BytecodePcToOffset(uint32_t pc, bool is_return_address) {
+    return sizeof(KBCInstr) * (pc + (is_return_address ? 1 : 0));
+  }
+
+  static uint32_t OffsetToBytecodePc(intptr_t offset, bool is_return_address) {
+    return (offset / sizeof(KBCInstr)) - (is_return_address ? 1 : 0);
+  }
+
  private:
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(KernelBytecode);

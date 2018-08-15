@@ -544,9 +544,13 @@ void BytecodeMetadataHelper::ReadExceptionsTable(const Code& bytecode) {
     for (intptr_t try_index = 0; try_index < try_block_count; try_index++) {
       intptr_t outer_try_index_plus1 = helper_->reader_.ReadUInt();
       intptr_t outer_try_index = outer_try_index_plus1 - 1;
-      intptr_t start_pc = sizeof(KBCInstr) * helper_->reader_.ReadUInt();
-      intptr_t end_pc = sizeof(KBCInstr) * helper_->reader_.ReadUInt();
-      intptr_t handler_pc = sizeof(KBCInstr) * helper_->reader_.ReadUInt();
+      // PcDescriptors are expressed in terms of return addresses.
+      intptr_t start_pc = KernelBytecode::BytecodePcToOffset(
+          helper_->reader_.ReadUInt(), /* is_return_address = */ true);
+      intptr_t end_pc = KernelBytecode::BytecodePcToOffset(
+          helper_->reader_.ReadUInt(), /* is_return_address = */ true);
+      intptr_t handler_pc = KernelBytecode::BytecodePcToOffset(
+          helper_->reader_.ReadUInt(), /* is_return_address = */ false);
       uint8_t flags = helper_->reader_.ReadByte();
       const uint8_t kFlagNeedsStackTrace = 1 << 0;
       const uint8_t kFlagIsSynthetic = 1 << 1;
