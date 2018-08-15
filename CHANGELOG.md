@@ -10,6 +10,8 @@
 
 #### Pub
 
+* Rename the `--checked` flag to `pub run` to `--enable-asserts`.
+
 #### Other Tools
 
 ### Core library changes
