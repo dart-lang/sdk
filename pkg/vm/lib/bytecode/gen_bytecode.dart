@@ -260,10 +260,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         node.initializers.any((init) => init is RedirectingInitializer);
     if (!isRedirecting) {
       for (var field in node.enclosingClass.fields) {
-        if (!field.isStatic &&
-            field.initializer != null &&
-            !node.initializers.any(
-                (init) => init is FieldInitializer && init.field == field)) {
+        if (!field.isStatic && field.initializer != null) {
           _genFieldInitializer(field, field.initializer);
         }
       }
