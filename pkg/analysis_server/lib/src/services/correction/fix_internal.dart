@@ -394,6 +394,8 @@ class FixProcessor {
     if (errorCode == CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS ||
         errorCode == StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS ||
         errorCode ==
+            CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED ||
+        errorCode ==
             StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED) {
       await _addFix_createConstructor_insteadOfSyntheticDefault();
       await _addFix_addMissingParameter();
@@ -435,7 +437,9 @@ class FixProcessor {
       await _addFix_undefinedClass_useSimilar();
     }
     if (errorCode ==
-        StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED) {
+            CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED ||
+        errorCode ==
+            StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED) {
       await _addFix_convertToNamedArgument();
     }
     if (errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED) {

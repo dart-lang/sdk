@@ -6757,7 +6757,8 @@ const Template<
             count2)> templateTooManyArguments = const Template<
         Message Function(int count, int count2)>(
     messageTemplate:
-        r"""Too many positional arguments: #count allowed, #count2 given.""",
+        r"""Too many positional arguments: #count allowed, but #count2 found.""",
+    tipTemplate: r"""Try removing the extra positional arguments.""",
     withArguments: _withArgumentsTooManyArguments);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6772,7 +6773,39 @@ const Code<Message Function(int count, int count2)> codeTooManyArguments =
 Message _withArgumentsTooManyArguments(int count, int count2) {
   return new Message(codeTooManyArguments,
       message:
-          """Too many positional arguments: ${count} allowed, ${count2} given.""",
+          """Too many positional arguments: ${count} allowed, but ${count2} found.""",
+      tip: """Try removing the extra positional arguments.""",
+      arguments: {'count': count, 'count2': count2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        int count,
+        int
+            count2)> templateTooManyArgumentsCouldBeNamed = const Template<
+        Message Function(int count, int count2)>(
+    messageTemplate:
+        r"""Too many positional arguments: #count allowed, but #count2 found.""",
+    tipTemplate:
+        r"""Try removing the extra positional arguments or specifying the name for named arguments.""",
+    withArguments: _withArgumentsTooManyArgumentsCouldBeNamed);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(int count, int count2)>
+    codeTooManyArgumentsCouldBeNamed =
+    const Code<Message Function(int count, int count2)>(
+        "TooManyArgumentsCouldBeNamed", templateTooManyArgumentsCouldBeNamed,
+        analyzerCode: "EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED",
+        dart2jsCode: "*fatal*",
+        severity: Severity.errorLegacyWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsTooManyArgumentsCouldBeNamed(int count, int count2) {
+  return new Message(codeTooManyArgumentsCouldBeNamed,
+      message:
+          """Too many positional arguments: ${count} allowed, but ${count2} found.""",
+      tip: """Try removing the extra positional arguments or specifying the name for named arguments.""",
       arguments: {'count': count, 'count2': count2});
 }
 

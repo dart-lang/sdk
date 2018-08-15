@@ -343,6 +343,7 @@ ThisAsIdentifier/example: Fail
 ThisOrSuperAccessInFieldInitializer/example: Fail
 TooFewArguments/example: Fail
 TooManyArguments/example: Fail
+TooManyArgumentsCouldBeNamed/example: Fail
 TopLevelOperator/script1: Fail
 TopLevelOperator/script2: Fail
 TopLevelOperator/script3: Fail

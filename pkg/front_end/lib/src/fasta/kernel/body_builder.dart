@@ -2925,7 +2925,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         function.positionalParameters.length) {
       var argsOffset = arguments.fileOffset;
       var argsLength = arguments.fileEndOffset - argsOffset;
-      return fasta.templateTooManyArguments
+      var template = function.namedParameters.isNotEmpty
+          ? fasta.templateTooManyArgumentsCouldBeNamed
+          : fasta.templateTooManyArguments;
+      return template
           .withArguments(function.positionalParameters.length,
               forest.argumentsPositional(arguments).length)
           .withLocation(uri, argsOffset, argsLength);
@@ -2972,7 +2975,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         function.positionalParameters.length) {
       var argsOffset = arguments.fileOffset;
       var argsLength = arguments.fileEndOffset - argsOffset;
-      return fasta.templateTooManyArguments
+      var template = function.namedParameters.isNotEmpty
+          ? fasta.templateTooManyArgumentsCouldBeNamed
+          : fasta.templateTooManyArguments;
+      return template
           .withArguments(function.positionalParameters.length,
               forest.argumentsPositional(arguments).length)
           .withLocation(uri, argsOffset, argsLength);

@@ -7269,21 +7269,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_convertToNamedArguments_OK_instanceCreation() =>
-      super.test_convertToNamedArguments_OK_instanceCreation();
-
-  @failingTest
-  @override
-  test_convertToNamedArguments_OK_instanceCreation_hasPositional() =>
-      super.test_convertToNamedArguments_OK_instanceCreation_hasPositional();
-
-  @failingTest
-  @override
-  test_convertToNamedArguments_OK_methodInvocation() =>
-      super.test_convertToNamedArguments_OK_methodInvocation();
-
-  @failingTest
-  @override
   test_createClass_instanceCreation_withoutNew_fromMethod() =>
       super.test_createClass_instanceCreation_withoutNew_fromMethod();
 

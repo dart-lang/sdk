@@ -1300,9 +1300,17 @@ TooFewArguments:
   dart2jsCode: "*fatal*"
 
 TooManyArguments:
-  template: "Too many positional arguments: #count allowed, #count2 given."
+  template: "Too many positional arguments: #count allowed, but #count2 found."
+  tip: "Try removing the extra positional arguments."
   severity: ERROR_LEGACY_WARNING
   analyzerCode: EXTRA_POSITIONAL_ARGUMENTS
+  dart2jsCode: "*fatal*"
+
+TooManyArgumentsCouldBeNamed:
+  template: "Too many positional arguments: #count allowed, but #count2 found."
+  tip: "Try removing the extra positional arguments or specifying the name for named arguments."
+  severity: ERROR_LEGACY_WARNING
+  analyzerCode: EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED
   dart2jsCode: "*fatal*"
 
 NoSuchNamedParameter:

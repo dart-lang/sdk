@@ -222,19 +222,23 @@
 //     use(super.m -= 42);
 //               ^
 //
-// pkg/front_end/testcases/rasta/super.dart:147:12: Error: Too many positional arguments: 0 allowed, 1 given.
+// pkg/front_end/testcases/rasta/super.dart:147:12: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
 //     super.m(87);
 //            ^^^^
 //
-// pkg/front_end/testcases/rasta/super.dart:148:16: Error: Too many positional arguments: 0 allowed, 1 given.
+// pkg/front_end/testcases/rasta/super.dart:148:16: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
 //     use(super.m(87));
 //                ^^^^
 //
-// pkg/front_end/testcases/rasta/super.dart:149:12: Error: Too many positional arguments: 0 allowed, 1 given.
+// pkg/front_end/testcases/rasta/super.dart:149:12: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
 //     super.n(87);
 //            ^^^^
 //
-// pkg/front_end/testcases/rasta/super.dart:150:16: Error: Too many positional arguments: 0 allowed, 1 given.
+// pkg/front_end/testcases/rasta/super.dart:150:16: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
 //     use(super.n(87));
 //                ^^^^
 

@@ -2682,12 +2682,8 @@ main() {
   const A(0);
 }''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS]);
-    } else {
-      assertErrors(source,
-          [CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED]);
-    }
+    assertErrors(source,
+        [CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED]);
     verify([source]);
   }
 
