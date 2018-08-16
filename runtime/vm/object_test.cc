@@ -2621,7 +2621,8 @@ ISOLATE_UNIT_TEST_CASE(Code) {
   Assembler _assembler_;
   GenerateIncrement(&_assembler_);
   const Function& function = Function::Handle(CreateFunction("Test_Code"));
-  Code& code = Code::Handle(Code::FinalizeCode(function, &_assembler_));
+  Code& code =
+      Code::Handle(Code::FinalizeCode(function, nullptr, &_assembler_));
   function.AttachCode(code);
   const Instructions& instructions = Instructions::Handle(code.instructions());
   uword payload_start = instructions.PayloadStart();
@@ -2641,7 +2642,8 @@ ISOLATE_UNIT_TEST_CASE(CodeImmutability) {
   Assembler _assembler_;
   GenerateIncrement(&_assembler_);
   const Function& function = Function::Handle(CreateFunction("Test_Code"));
-  Code& code = Code::Handle(Code::FinalizeCode(function, &_assembler_));
+  Code& code =
+      Code::Handle(Code::FinalizeCode(function, nullptr, &_assembler_));
   function.AttachCode(code);
   Instructions& instructions = Instructions::Handle(code.instructions());
   uword payload_start = instructions.PayloadStart();
@@ -2667,7 +2669,8 @@ ISOLATE_UNIT_TEST_CASE(EmbedStringInCode) {
   GenerateEmbedStringInCode(&_assembler_, kHello);
   const Function& function =
       Function::Handle(CreateFunction("Test_EmbedStringInCode"));
-  const Code& code = Code::Handle(Code::FinalizeCode(function, &_assembler_));
+  const Code& code =
+      Code::Handle(Code::FinalizeCode(function, nullptr, &_assembler_));
   function.AttachCode(code);
   const Object& result =
       Object::Handle(DartEntry::InvokeFunction(function, Array::empty_array()));
@@ -2688,7 +2691,8 @@ ISOLATE_UNIT_TEST_CASE(EmbedSmiInCode) {
   GenerateEmbedSmiInCode(&_assembler_, kSmiTestValue);
   const Function& function =
       Function::Handle(CreateFunction("Test_EmbedSmiInCode"));
-  const Code& code = Code::Handle(Code::FinalizeCode(function, &_assembler_));
+  const Code& code =
+      Code::Handle(Code::FinalizeCode(function, nullptr, &_assembler_));
   function.AttachCode(code);
   const Object& result =
       Object::Handle(DartEntry::InvokeFunction(function, Array::empty_array()));
@@ -2704,7 +2708,8 @@ ISOLATE_UNIT_TEST_CASE(EmbedSmiIn64BitCode) {
   GenerateEmbedSmiInCode(&_assembler_, kSmiTestValue);
   const Function& function =
       Function::Handle(CreateFunction("Test_EmbedSmiIn64BitCode"));
-  const Code& code = Code::Handle(Code::FinalizeCode(function, &_assembler_));
+  const Code& code =
+      Code::Handle(Code::FinalizeCode(function, nullptr, &_assembler_));
   function.AttachCode(code);
   const Object& result =
       Object::Handle(DartEntry::InvokeFunction(function, Array::empty_array()));
@@ -2732,7 +2737,7 @@ ISOLATE_UNIT_TEST_CASE(ExceptionHandlers) {
   Assembler _assembler_;
   GenerateIncrement(&_assembler_);
   Code& code = Code::Handle(Code::FinalizeCode(
-      Function::Handle(CreateFunction("Test_Code")), &_assembler_));
+      Function::Handle(CreateFunction("Test_Code")), nullptr, &_assembler_));
   code.set_exception_handlers(exception_handlers);
 
   // Verify the exception handler table entries by accessing them.
@@ -2772,7 +2777,7 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptors) {
   Assembler _assembler_;
   GenerateIncrement(&_assembler_);
   Code& code = Code::Handle(Code::FinalizeCode(
-      Function::Handle(CreateFunction("Test_Code")), &_assembler_));
+      Function::Handle(CreateFunction("Test_Code")), nullptr, &_assembler_));
   code.set_pc_descriptors(descriptors);
 
   // Verify the PcDescriptor entries by accessing them.
@@ -2833,7 +2838,7 @@ ISOLATE_UNIT_TEST_CASE(PcDescriptorsLargeDeltas) {
   Assembler _assembler_;
   GenerateIncrement(&_assembler_);
   Code& code = Code::Handle(Code::FinalizeCode(
-      Function::Handle(CreateFunction("Test_Code")), &_assembler_));
+      Function::Handle(CreateFunction("Test_Code")), nullptr, &_assembler_));
   code.set_pc_descriptors(descriptors);
 
   // Verify the PcDescriptor entries by accessing them.

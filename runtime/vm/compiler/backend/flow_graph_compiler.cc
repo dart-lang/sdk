@@ -265,11 +265,13 @@ bool FlowGraphCompiler::ForceSlowPathForStackOverflow() const {
   return false;
 }
 
-static bool IsEmptyBlock(BlockEntryInstr* block) {
+bool FlowGraphCompiler::IsEmptyBlock(BlockEntryInstr* block) const {
+  // Entry-points cannot be merged because they must have assembly
+  // prologue emitted which should not be included in any block they jump to.
   return !block->IsCatchBlockEntry() && !block->HasNonRedundantParallelMove() &&
          block->next()->IsGoto() &&
          !block->next()->AsGoto()->HasNonRedundantParallelMove() &&
-         !block->IsIndirectEntry();
+         !block->IsIndirectEntry() && !flow_graph().IsEntryPoint(block);
 }
 
 void FlowGraphCompiler::CompactBlock(BlockEntryInstr* block) {
@@ -316,6 +318,26 @@ void FlowGraphCompiler::CompactBlocks() {
   ASSERT(block_order()[0]->IsGraphEntry());
   BlockInfo* block_info = block_info_[block_order()[0]->postorder_number()];
   block_info->set_next_nonempty_label(nonempty_label);
+}
+
+intptr_t FlowGraphCompiler::UncheckedEntryOffset() const {
+  TargetEntryInstr* entry = flow_graph().graph_entry()->unchecked_entry();
+  if (entry == nullptr) {
+    entry = flow_graph().graph_entry()->normal_entry();
+  }
+  Label* target = GetJumpLabel(entry);
+
+  if (target->IsBound()) {
+    return target->Position();
+  }
+
+  // Intrinsification happened.
+#ifdef DART_PRECOMPILER
+  if (parsed_function().function().IsDynamicFunction()) {
+    return Instructions::kUncheckedEntryOffset;
+  }
+#endif
+  return 0;
 }
 
 void FlowGraphCompiler::EmitCatchEntryState(Environment* env,
@@ -865,7 +887,7 @@ Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
                                        ICData::DeoptReasonId reason,
                                        uint32_t flags) {
   if (intrinsic_mode()) {
-    return &intrinsic_slow_path_label_;
+    return intrinsic_slow_path_label_;
   }
 
   // No deoptimization allowed when 'FLAG_precompiled_mode' is set.
@@ -1054,6 +1076,9 @@ void FlowGraphCompiler::FinalizeCodeSourceMap(const Code& code) {
 
 // Returns 'true' if regular code generation should be skipped.
 bool FlowGraphCompiler::TryIntrinsify() {
+  Label exit;
+  set_intrinsic_slow_path_label(&exit);
+
   if (FLAG_intrinsify) {
     // Intrinsification skips arguments checks, therefore disable if in checked
     // mode or strong mode.
@@ -1106,8 +1131,8 @@ bool FlowGraphCompiler::TryIntrinsify() {
   // (normal function body) starts.
   // This means that there must not be any side-effects in intrinsic code
   // before any deoptimization point.
-  ASSERT(!intrinsic_slow_path_label_.IsBound());
-  assembler()->Bind(&intrinsic_slow_path_label_);
+  assembler()->Bind(intrinsic_slow_path_label());
+  set_intrinsic_slow_path_label(nullptr);
   return complete;
 }
 
@@ -1276,9 +1301,8 @@ void FlowGraphCompiler::EmitComment(Instruction* instr) {
 bool FlowGraphCompiler::NeedsEdgeCounter(TargetEntryInstr* block) {
   // Only emit an edge counter if there is not goto at the end of the block,
   // except for the entry block.
-  return (FLAG_reorder_basic_blocks &&
-          (!block->last_instruction()->IsGoto() ||
-           (block == flow_graph().graph_entry()->normal_entry())));
+  return FLAG_reorder_basic_blocks && (!block->last_instruction()->IsGoto() ||
+                                       flow_graph().IsEntryPoint(block));
 }
 
 // Allocate a register that is not explictly blocked.

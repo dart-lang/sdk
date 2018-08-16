@@ -35,11 +35,13 @@ FlowGraphBuilder::FlowGraphBuilder(
     InlineExitCollector* exit_collector,
     bool optimizing,
     intptr_t osr_id,
-    intptr_t first_block_id)
+    intptr_t first_block_id,
+    bool inlining_unchecked_entry)
     : BaseFlowGraphBuilder(parsed_function,
                            first_block_id - 1,
                            context_level_array,
-                           exit_collector),
+                           exit_collector,
+                           inlining_unchecked_entry),
       translation_helper_(Thread::Current()),
       thread_(translation_helper_.thread()),
       zone_(translation_helper_.zone()),

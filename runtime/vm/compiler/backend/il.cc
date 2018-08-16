@@ -1716,11 +1716,15 @@ BlockEntryInstr* Instruction::SuccessorAt(intptr_t index) const {
 }
 
 intptr_t GraphEntryInstr::SuccessorCount() const {
-  return 1 + catch_entries_.length();
+  return 1 + (unchecked_entry() == nullptr ? 0 : 1) + catch_entries_.length();
 }
 
 BlockEntryInstr* GraphEntryInstr::SuccessorAt(intptr_t index) const {
   if (index == 0) return normal_entry_;
+  if (unchecked_entry() != nullptr) {
+    if (index == 1) return unchecked_entry();
+    return catch_entries_[index - 2];
+  }
   return catch_entries_[index - 1];
 }
 
@@ -3547,6 +3551,18 @@ LocationSummary* TargetEntryInstr::MakeLocationSummary(Zone* zone,
 
 void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
+
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM)
+  if (compiler->flow_graph().IsEntryPoint(this)) {
+    __ set_constant_pool_allowed(false);
+    // TODO(#34162): Don't emit more code if 'TryIntrinsify' returns 'true'
+    // (meaning the function was fully intrinsified).
+    compiler->TryIntrinsify();
+    compiler->EmitPrologue();
+    ASSERT(__ constant_pool_allowed());
+  }
+#endif
+
   if (!compiler->is_optimizing()) {
 #if !defined(TARGET_ARCH_DBC)
     // TODO(vegorov) re-enable edge counters on DBC if we consider them

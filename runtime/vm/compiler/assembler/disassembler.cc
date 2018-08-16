@@ -251,7 +251,8 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
       PcDescriptors::Handle(zone, code.pc_descriptors());
   THR_Print("%s}\n", descriptors.ToCString());
 
-  uword start = Instructions::Handle(zone, code.instructions()).PayloadStart();
+  const auto& instructions = Instructions::Handle(code.instructions());
+  const uword start = instructions.PayloadStart();
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   const Array& deopt_table = Array::Handle(zone, code.deopt_info_array());
@@ -321,6 +322,13 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
   const ExceptionHandlers& handlers =
       ExceptionHandlers::Handle(zone, code.exception_handlers());
   THR_Print("%s}\n", handlers.ToCString());
+
+  if (instructions.unchecked_entrypoint_pc_offset() != 0) {
+    THR_Print("Unchecked entrypoint at offset 0x%" Px "\n",
+              Instructions::UncheckedEntryPoint(instructions.raw()));
+  } else {
+    THR_Print("No unchecked entrypoint.\n");
+  }
 
   {
     THR_Print("Static call target functions {\n");

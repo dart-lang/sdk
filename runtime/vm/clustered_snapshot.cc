@@ -648,6 +648,7 @@ class FunctionDeserializationCluster : public DeserializationCluster {
 
 #if defined(DEBUG)
       func->ptr()->entry_point_ = 0;
+      func->ptr()->unchecked_entry_point_ = 0;
 #endif
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -686,6 +687,10 @@ class FunctionDeserializationCluster : public DeserializationCluster {
         uword entry_point = func.raw()->ptr()->code_->ptr()->entry_point_;
         ASSERT(entry_point != 0);
         func.raw()->ptr()->entry_point_ = entry_point;
+        uword unchecked_entry_point =
+            func.raw()->ptr()->code_->ptr()->unchecked_entry_point_;
+        ASSERT(unchecked_entry_point != 0);
+        func.raw()->ptr()->unchecked_entry_point_ = unchecked_entry_point;
       }
     } else if (kind == Snapshot::kFullJIT) {
       Function& func = Function::Handle(zone);
@@ -1774,6 +1779,8 @@ class CodeDeserializationCluster : public DeserializationCluster {
           Instructions::MonomorphicEntryPoint(instr);
       NOT_IN_PRECOMPILED(code->ptr()->active_instructions_ = instr);
       code->ptr()->instructions_ = instr;
+      code->ptr()->unchecked_entry_point_ =
+          Instructions::UncheckedEntryPoint(instr);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
       if (d->kind() == Snapshot::kFullJIT) {
@@ -1782,6 +1789,8 @@ class CodeDeserializationCluster : public DeserializationCluster {
         code->ptr()->entry_point_ = Instructions::EntryPoint(instr);
         code->ptr()->monomorphic_entry_point_ =
             Instructions::MonomorphicEntryPoint(instr);
+        code->ptr()->unchecked_entry_point_ =
+            Instructions::UncheckedEntryPoint(instr);
       }
 #endif  // !DART_PRECOMPILED_RUNTIME
 

@@ -75,6 +75,35 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildExpression(TokenPosition* position = NULL);
   Fragment BuildStatement();
 
+  // Indicates which form of the unchecked entrypoint we are compiling.
+  //
+  // kNone:
+  //
+  //   There is no unchecked entrypoint: the unchecked entry is set to NULL in
+  //   the 'GraphEntryInstr'.
+  //
+  // kSeparate:
+  //
+  //   The normal and unchecked entrypoint each point to their own versions of
+  //   the prologue, containing exactly those checks which need to be performed
+  //   on either side. Both sides jump directly to the body after performing
+  //   their prologue.
+  //
+  // kSharedWithVariable:
+  //
+  //   A temporary variable is allocated and initialized to 0 on normal entry
+  //   and 2 on unchecked entry. Code which should be ommitted on the unchecked
+  //   entrypoint is made conditional on this variable being equal to 0.
+  //
+  struct UncheckedEntryPointStyle_ {
+    enum Style {
+      kNone = 0,
+      kSeparate = 1,
+      kSharedWithVariable = 2,
+    };
+  };
+  typedef UncheckedEntryPointStyle_::Style UncheckedEntryPointStyle;
+
   // Kernel offset:
   //   start of function expression -> end of function body statement
   Fragment BuildFunctionBody(const Function& dart_function,
@@ -97,9 +126,31 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                                         LocalVariable* first_parameter);
   Fragment TypeArgumentsHandling(const Function& dart_function,
                                  intptr_t type_parameters_offset);
-  Fragment CheckArgumentTypesAsNecessary(const Function& dart_function,
-                                         intptr_t type_parameters_offset);
+  void CheckArgumentTypesAsNecessary(const Function& dart_function,
+                                     intptr_t type_parameters_offset,
+                                     Fragment* explicit_checks,
+                                     Fragment* implicit_checks);
   Fragment CompleteBodyWithYieldContinuations(Fragment body);
+  TargetEntryInstr* BuildSeparateUncheckedEntryPoint(
+      BlockEntryInstr* normal_entry,
+      Fragment normal_prologue,
+      Fragment extra_prologue,
+      Fragment shared_prologue,
+      Fragment body);
+  TargetEntryInstr* BuildSharedUncheckedEntryPoint(
+      Fragment prologue_from_normal_entry,
+      Fragment skippable_checks,
+      Fragment body);
+
+  Fragment BuildEntryPointsIntrospection();
+
+  static UncheckedEntryPointStyle ChooseEntryPointStyle(
+      const Function& dart_function,
+      const Fragment& implicit_type_checks,
+      const Fragment& first_time_prologue,
+      const Fragment& every_time_prologue);
+
+  void RecordUncheckedEntryPoint(TargetEntryInstr* extra_entry);
 
   void loop_depth_inc();
   void loop_depth_dec();
@@ -202,7 +253,9 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   };
   Fragment PushAllArguments(PushedArguments* pushed);
 
-  Fragment BuildArgumentTypeChecks(TypeChecksToBuild mode);
+  void BuildArgumentTypeChecks(TypeChecksToBuild mode,
+                               Fragment* explicit_checks,
+                               Fragment* implicit_checks);
 
   Fragment ThrowException(TokenPosition position);
   Fragment BooleanNegate();

@@ -45,6 +45,7 @@ class Code;
 class DeoptInstr;
 class DisassemblyFormatter;
 class FinalizablePersistentHandle;
+class FlowGraphCompiler;
 class HierarchyInfo;
 class LocalScope;
 class CodeStatistics;
@@ -2269,6 +2270,8 @@ class Function : public Object {
   // Return true if any parent function of this function is generic.
   bool HasGenericParent() const;
 
+  bool FindPragma(Isolate* I, const String& pragma_name, Object* options) const;
+
   // Not thread-safe; must be called in the main thread.
   // Sets function's code and code's function.
   void InstallOptimizedCode(const Code& code) const;
@@ -2314,6 +2317,10 @@ class Function : public Object {
 
   static intptr_t entry_point_offset() {
     return OFFSET_OF(RawFunction, entry_point_);
+  }
+
+  static intptr_t unchecked_entry_point_offset() {
+    return OFFSET_OF(RawFunction, unchecked_entry_point_);
   }
 
 #if defined(DART_USE_INTERPRETER)
@@ -2478,11 +2485,13 @@ class Function : public Object {
       if (FLAG_omit_strong_type_checks) {
         return false;
       }
-      return IsNonImplicitClosureFunction() ||
+      return IsClosureFunction() ||
              !(is_static() || (kind() == RawFunction::kConstructor));
     }
     return I->type_checks();
   }
+
+  bool MayHaveUncheckedEntryPoint(Isolate* I) const;
 
   TokenPosition token_pos() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -4374,12 +4383,17 @@ class Instructions : public Object {
     }
     return entry;
   }
+
   static uword EntryPoint(const RawInstructions* instr) {
     uword entry = PayloadStart(instr);
     if (!HasSingleEntryPoint(instr)) {
       entry += kUncheckedEntryOffset;
     }
     return entry;
+  }
+
+  static uword UncheckedEntryPoint(const RawInstructions* instr) {
+    return PayloadStart(instr) + instr->ptr()->unchecked_entrypoint_pc_offset_;
   }
 
   static const intptr_t kMaxElements =
@@ -4434,6 +4448,10 @@ class Instructions : public Object {
 #endif
   }
 
+  uword unchecked_entrypoint_pc_offset() const {
+    return raw_ptr()->unchecked_entrypoint_pc_offset_;
+  }
+
  private:
   void SetSize(intptr_t value) const {
     ASSERT(value >= 0);
@@ -4446,11 +4464,17 @@ class Instructions : public Object {
                     FlagsBits::update(value, raw_ptr()->size_and_flags_));
   }
 
+  void set_unchecked_entrypoint_pc_offset(uword value) const {
+    StoreNonPointer(&raw_ptr()->unchecked_entrypoint_pc_offset_, value);
+  }
+
   // New is a private method as RawInstruction and RawCode objects should
   // only be created using the Code::FinalizeCode method. This method creates
   // the RawInstruction and RawCode objects, sets up the pointer offsets
   // and links the two in a GC safe manner.
-  static RawInstructions* New(intptr_t size, bool has_single_entry_point);
+  static RawInstructions* New(intptr_t size,
+                              bool has_single_entry_point,
+                              uword unchecked_entrypoint_pc_offset);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Instructions, Object);
   friend class Class;
@@ -4825,6 +4849,9 @@ class Code : public Object {
   static intptr_t monomorphic_entry_point_offset() {
     return OFFSET_OF(RawCode, monomorphic_entry_point_);
   }
+  static intptr_t unchecked_entry_point_offset() {
+    return OFFSET_OF(RawCode, unchecked_entry_point_);
+  }
 
   RawObjectPool* object_pool() const { return raw_ptr()->object_pool_; }
   static intptr_t object_pool_offset() {
@@ -5084,10 +5111,12 @@ class Code : public Object {
   }
 #if !defined(DART_PRECOMPILED_RUNTIME)
   static RawCode* FinalizeCode(const Function& function,
+                               FlowGraphCompiler* compiler,
                                Assembler* assembler,
                                bool optimized = false,
                                CodeStatistics* stats = nullptr);
   static RawCode* FinalizeCode(const char* name,
+                               FlowGraphCompiler* compiler,
                                Assembler* assembler,
                                bool optimized,
                                CodeStatistics* stats = nullptr);
@@ -5139,6 +5168,14 @@ class Code : public Object {
   }
 
   bool IsDisabled() const { return instructions() != active_instructions(); }
+
+  uword unchecked_entry_point() const {
+    return raw_ptr()->unchecked_entry_point_;
+  }
+
+  void set_unchecked_entry_point(uword value) const {
+    StoreNonPointer(&raw_ptr()->unchecked_entry_point_, value);
+  }
 
  private:
   void set_state_bits(intptr_t bits) const;

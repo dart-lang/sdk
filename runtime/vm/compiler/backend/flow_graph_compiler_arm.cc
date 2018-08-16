@@ -852,28 +852,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
   }
 }
 
-// Input parameters:
-//   LR: return address.
-//   SP: address of last argument.
-//   FP: caller's frame pointer.
-//   PP: caller's pool pointer.
-//   R4: arguments descriptor array.
-void FlowGraphCompiler::CompileGraph() {
-  InitCompiler();
-#ifdef DART_PRECOMPILER
-  const Function& function = parsed_function().function();
-  if (function.IsDynamicFunction()) {
-    SpecialStatsBegin(CombinedCodeStatistics::kTagCheckedEntry);
-    __ MonomorphicCheckedEntry();
-    SpecialStatsEnd(CombinedCodeStatistics::kTagCheckedEntry);
-  }
-#endif  // DART_PRECOMPILER
-
-  if (TryIntrinsify()) {
-    // Skip regular code generation.
-    return;
-  }
-
+void FlowGraphCompiler::EmitPrologue() {
   EmitFrameEntry();
   ASSERT(assembler()->constant_pool_allowed());
 
@@ -898,6 +877,25 @@ void FlowGraphCompiler::CompileGraph() {
   }
 
   EndCodeSourceRange(TokenPosition::kDartCodePrologue);
+}
+
+// Input parameters:
+//   LR: return address.
+//   SP: address of last argument.
+//   FP: caller's frame pointer.
+//   PP: caller's pool pointer.
+//   R4: arguments descriptor array.
+void FlowGraphCompiler::CompileGraph() {
+  InitCompiler();
+#ifdef DART_PRECOMPILER
+  const Function& function = parsed_function().function();
+  if (function.IsDynamicFunction()) {
+    SpecialStatsBegin(CombinedCodeStatistics::kTagCheckedEntry);
+    __ MonomorphicCheckedEntry();
+    SpecialStatsEnd(CombinedCodeStatistics::kTagCheckedEntry);
+  }
+#endif  // DART_PRECOMPILER
+
   VisitBlocks();
 
   __ bkpt(0);

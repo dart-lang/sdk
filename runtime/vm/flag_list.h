@@ -208,6 +208,10 @@ constexpr bool kDartPrecompiledRuntime = false;
   D(verify_on_transition, bool, false, "Verify on dart <==> VM.")              \
   P(enable_slow_path_sharing, bool, true, "Enable sharing of slow-path code.") \
   P(shared_slow_path_triggers_gc, bool, false,                                 \
-    "TESTING: slow-path triggers a GC.")
+    "TESTING: slow-path triggers a GC.")                                       \
+  P(enable_multiple_entrypoints, bool, true,                                   \
+    "Enable multiple entrypoints per-function and related optimizations.")     \
+  R(enable_testing_pragmas, false, bool, false,                                \
+    "Enable magical pragmas for testing purposes. Use at your own risk!")
 
 #endif  // RUNTIME_VM_FLAG_LIST_H_

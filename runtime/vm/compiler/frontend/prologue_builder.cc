@@ -21,6 +21,17 @@ namespace kernel {
 
 #define Z (zone_)
 
+bool PrologueBuilder::PrologueSkippableOnUncheckedEntry(
+    const Function& function) {
+  return !function.HasOptionalParameters() &&
+         !function.IsNonImplicitClosureFunction() && !function.IsGeneric();
+}
+
+bool PrologueBuilder::HasEmptyPrologue(const Function& function) {
+  return !function.HasOptionalParameters() && !function.IsGeneric() &&
+         !function.IsClosureFunction();
+}
+
 BlockEntryInstr* PrologueBuilder::BuildPrologue(BlockEntryInstr* entry,
                                                 PrologueInfo* prologue_info) {
   Isolate* isolate = Isolate::Current();

@@ -2900,6 +2900,41 @@ RawFunction* Function::GetMethodExtractor(const String& getter_name) const {
   return result.raw();
 }
 
+bool Function::FindPragma(Isolate* I,
+                          const String& pragma_name,
+                          Object* options) const {
+  if (!has_pragma()) return false;
+
+  auto& klass = Class::Handle(Owner());
+  auto& lib = Library::Handle(klass.library());
+
+  auto& pragma_class =
+      Class::Handle(Isolate::Current()->object_store()->pragma_class());
+  auto& pragma_name_field =
+      Field::Handle(pragma_class.LookupField(Symbols::name()));
+  auto& pragma_options_field =
+      Field::Handle(pragma_class.LookupField(Symbols::options()));
+
+  Array& metadata = Array::Handle();
+  metadata ^= lib.GetMetadata(Function::Handle(raw()));
+
+  if (metadata.IsNull()) return false;
+
+  auto& pragma = Object::Handle();
+  for (intptr_t i = 0; i < metadata.Length(); ++i) {
+    pragma = metadata.At(i);
+    if (pragma.clazz() != pragma_class.raw() ||
+        Instance::Cast(pragma).GetField(pragma_name_field) !=
+            pragma_name.raw()) {
+      continue;
+    }
+    *options = Instance::Cast(pragma).GetField(pragma_options_field);
+    return true;
+  }
+
+  return false;
+}
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
 RawFunction* Function::CreateDynamicInvocationForwarder(
     const String& mangled_name) const {
@@ -5923,6 +5958,8 @@ void Function::SetInstructions(const Code& value) const {
 void Function::SetInstructionsSafe(const Code& value) const {
   StorePointer(&raw_ptr()->code_, value.raw());
   StoreNonPointer(&raw_ptr()->entry_point_, value.EntryPoint());
+  StoreNonPointer(&raw_ptr()->unchecked_entry_point_,
+                  value.unchecked_entry_point());
 }
 
 void Function::AttachCode(const Code& value) const {
@@ -6016,8 +6053,8 @@ void Function::SwitchToUnoptimizedCode() const {
     Exceptions::PropagateError(error);
   }
   const Code& unopt_code = Code::Handle(zone, unoptimized_code());
-  AttachCode(unopt_code);
   unopt_code.Enable();
+  AttachCode(unopt_code);
   isolate->TrackDeoptimizedCode(current_code);
 }
 
@@ -8257,6 +8294,16 @@ RawCode* Function::EnsureHasCode() const {
   return CurrentCode();
 }
 
+bool Function::MayHaveUncheckedEntryPoint(Isolate* I) const {
+// TODO(#34162): Support the other architectures.
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM)
+  return FLAG_enable_multiple_entrypoints &&
+         (NeedsArgumentTypeChecks(I) || IsImplicitClosureFunction());
+#else
+  return false;
+#endif
+}
+
 const char* Function::ToCString() const {
   if (IsNull()) {
     return "Function: null";
@@ -8623,9 +8670,9 @@ void Field::InitializeNew(const Field& result,
   result.set_kernel_offset(0);
   Isolate* isolate = Isolate::Current();
 
-  // Use field guards if they are enabled and the isolate has never reloaded.
-  // TODO(johnmccutchan): The reload case assumes the worst case (everything is
-  // dynamic and possibly null). Attempt to relax this later.
+// Use field guards if they are enabled and the isolate has never reloaded.
+// TODO(johnmccutchan): The reload case assumes the worst case (everything is
+// dynamic and possibly null). Attempt to relax this later.
 #if defined(PRODUCT)
   const bool use_guarded_cid =
       FLAG_precompiled_mode || isolate->use_field_guards();
@@ -13075,7 +13122,9 @@ void Library::CheckFunctionFingerprints() {
 }
 #endif  // defined(DART_NO_SNAPSHOT) && !defined(PRODUCT).
 
-RawInstructions* Instructions::New(intptr_t size, bool has_single_entry_point) {
+RawInstructions* Instructions::New(intptr_t size,
+                                   bool has_single_entry_point,
+                                   uword unchecked_entrypoint_pc_offset) {
   ASSERT(size >= 0);
   ASSERT(Object::instructions_class() != Class::null());
   if (size < 0 || size > kMaxElements) {
@@ -13092,6 +13141,7 @@ RawInstructions* Instructions::New(intptr_t size, bool has_single_entry_point) {
     result.SetSize(size);
     result.SetHasSingleEntryPoint(has_single_entry_point);
     result.set_stats(nullptr);
+    result.set_unchecked_entrypoint_pc_offset(unchecked_entrypoint_pc_offset);
   }
   return result.raw();
 }
@@ -15245,6 +15295,7 @@ class CodeCommentsWrapper final : public CodeComments {
 #endif
 
 RawCode* Code::FinalizeCode(const char* name,
+                            FlowGraphCompiler* compiler,
                             Assembler* assembler,
                             bool optimized,
                             CodeStatistics* stats /* = nullptr */) {
@@ -15266,7 +15317,8 @@ RawCode* Code::FinalizeCode(const char* name,
   assembler->set_code_object(code);
 #endif
   Instructions& instrs = Instructions::ZoneHandle(Instructions::New(
-      assembler->CodeSize(), assembler->has_single_entry_point()));
+      assembler->CodeSize(), assembler->has_single_entry_point(),
+      compiler == nullptr ? 0 : compiler->UncheckedEntryOffset()));
   INC_STAT(Thread::Current(), total_instr_size, assembler->CodeSize());
   INC_STAT(Thread::Current(), total_code_size, assembler->CodeSize());
 
@@ -15341,6 +15393,7 @@ RawCode* Code::FinalizeCode(const char* name,
 }
 
 RawCode* Code::FinalizeCode(const Function& function,
+                            FlowGraphCompiler* compiler,
                             Assembler* assembler,
                             bool optimized /* = false */,
                             CodeStatistics* stats /* = nullptr */) {
@@ -15348,11 +15401,11 @@ RawCode* Code::FinalizeCode(const Function& function,
 // try to avoid it.
 #ifndef PRODUCT
   if (CodeObservers::AreActive()) {
-    return FinalizeCode(function.ToLibNamePrefixedQualifiedCString(), assembler,
-                        optimized, stats);
+    return FinalizeCode(function.ToLibNamePrefixedQualifiedCString(), compiler,
+                        assembler, optimized, stats);
   }
 #endif  // !PRODUCT
-  return FinalizeCode("", assembler, optimized, stats);
+  return FinalizeCode("", compiler, assembler, optimized, stats);
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -15562,6 +15615,7 @@ void Code::DisableDartCode() const {
   const Code& new_code =
       Code::Handle(StubCode::FixCallersTarget_entry()->code());
   SetActiveInstructions(Instructions::Handle(new_code.instructions()));
+  StoreNonPointer(&raw_ptr()->unchecked_entry_point_, raw_ptr()->entry_point_);
 }
 
 void Code::DisableStubCode() const {
@@ -15572,6 +15626,7 @@ void Code::DisableStubCode() const {
   const Code& new_code =
       Code::Handle(StubCode::FixAllocationStubTarget_entry()->code());
   SetActiveInstructions(Instructions::Handle(new_code.instructions()));
+  StoreNonPointer(&raw_ptr()->unchecked_entry_point_, raw_ptr()->entry_point_);
 #else
   // DBC does not use allocation stubs.
   UNIMPLEMENTED();
@@ -15590,6 +15645,8 @@ void Code::SetActiveInstructions(const Instructions& instructions) const {
                   Instructions::EntryPoint(instructions.raw()));
   StoreNonPointer(&raw_ptr()->monomorphic_entry_point_,
                   Instructions::MonomorphicEntryPoint(instructions.raw()));
+  StoreNonPointer(&raw_ptr()->unchecked_entry_point_,
+                  Instructions::UncheckedEntryPoint(instructions.raw()));
 #endif
 }
 

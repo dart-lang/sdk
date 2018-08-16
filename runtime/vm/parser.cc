@@ -179,6 +179,7 @@ ParsedFunction::ParsedFunction(Thread* thread, const Function& function)
       current_context_var_(NULL),
       arg_desc_var_(NULL),
       expression_temp_var_(NULL),
+      entry_points_temp_var_(NULL),
       finally_return_temp_var_(NULL),
       deferred_prefixes_(new ZoneGrowableArray<const LibraryPrefix*>()),
       guarded_fields_(new ZoneGrowableArray<const Field*>()),
@@ -269,6 +270,18 @@ LocalVariable* ParsedFunction::EnsureExpressionTemp() {
   }
   ASSERT(has_expression_temp_var());
   return expression_temp_var();
+}
+
+LocalVariable* ParsedFunction::EnsureEntryPointsTemp() {
+  if (!has_entry_points_temp_var()) {
+    LocalVariable* temp = new (Z)
+        LocalVariable(function_.token_pos(), function_.token_pos(),
+                      Symbols::EntryPointsTemp(), Object::dynamic_type());
+    ASSERT(temp != NULL);
+    set_entry_points_temp_var(temp);
+  }
+  ASSERT(has_entry_points_temp_var());
+  return entry_points_temp_var();
 }
 
 void ParsedFunction::EnsureFinallyReturnTemp(bool is_async) {

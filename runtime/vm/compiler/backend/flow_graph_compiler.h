@@ -357,7 +357,14 @@ class FlowGraphCompiler : public ValueObject {
   void ExitIntrinsicMode();
   bool intrinsic_mode() const { return intrinsic_mode_; }
 
-  Label* intrinsic_slow_path_label() { return &intrinsic_slow_path_label_; }
+  void set_intrinsic_slow_path_label(Label* label) {
+    ASSERT(intrinsic_slow_path_label_ == nullptr || label == nullptr);
+    intrinsic_slow_path_label_ = label;
+  }
+  Label* intrinsic_slow_path_label() const {
+    ASSERT(intrinsic_slow_path_label_ != nullptr);
+    return intrinsic_slow_path_label_;
+  }
 
   bool ForceSlowPathForStackOverflow() const;
 
@@ -387,6 +394,8 @@ class FlowGraphCompiler : public ValueObject {
   void InitCompiler();
 
   void CompileGraph();
+
+  void EmitPrologue();
 
   void VisitBlocks();
 
@@ -738,6 +747,12 @@ class FlowGraphCompiler : public ValueObject {
                                      int bias,
                                      bool jump_on_miss = true);
 
+  // Returns the offset (from the very beginning of the instructions) to the
+  // unchecked entry point (incl. prologue/frame setup, etc.).
+  intptr_t UncheckedEntryOffset() const;
+
+  bool IsEmptyBlock(BlockEntryInstr* block) const;
+
  private:
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
   friend class CheckedSmiSlowPath;          // Same.
@@ -938,7 +953,7 @@ class FlowGraphCompiler : public ValueObject {
   bool may_reoptimize_;
   // True while emitting intrinsic code.
   bool intrinsic_mode_;
-  Label intrinsic_slow_path_label_;
+  Label* intrinsic_slow_path_label_ = nullptr;
   CodeStatistics* stats_;
 
   const Class& double_class_;
