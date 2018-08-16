@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Error pattern: NoSuchMethodError: method not found: '[^']*'\nReceiver: Instance of '([^']*)'
+// Error pattern: NoSuchMethodError: method not found: '[^']*'\r?\nReceiver: Instance of '([^']*)'
 // Kind of minified name: global
 // Expected deobfuscated name: B
 
