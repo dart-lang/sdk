@@ -8,7 +8,7 @@
 \usepackage[T1]{fontenc}
 \title{Dart Programming Language Specification\\
 {5th edition draft}\\
-{\large Version 2.0.0-dev}}
+{\large Version 2.1.0-dev}}
 
 % For information about Location Markers (and in particular the
 % commands \LMHash and \LMLabel), see the long comment at the
@@ -17,6 +17,10 @@
 % CHANGES
 % =======
 % Significant changes to the specification.
+%
+% 2.1
+% - Remove 64-bit constraint on integer literals compiled to JavaScript numbers.
+% - Allow integer literals in a double context to evaluate to a double value.
 %
 % 2.0
 % - Don't allow functions as assert test values.
@@ -1790,7 +1794,7 @@ must be a potentially constant expression (\ref{constantConstructors}).
 
 \LMHash{}
 It is a dynamic error if an actual argument passed in an invocation of a redirecting generative constructor $k$
-is not a subtype of the actual type 
+is not a subtype of the actual type
 \ref{actualTypeOfADeclaration}) of the corresponding formal parameter in the declaration of $k$.
 It is a dynamic error if an actual argument passed to the redirectee $k'$ of a redirecting generative constructor
 is not a subtype of the actual type
@@ -3521,7 +3525,14 @@ or it {\em throws} an exception object and an associated stack trace.
 In the former case, we also say that the expression {\em evaluates to a value}.
 
 \LMHash{}
-Every expression has an associated static type (\ref{staticTypes}).
+Every expression has an associated static type (\ref{staticTypes}) and
+may have an associated static context type.
+\commentary{The static context type represents
+the type expectation of the surrounding context,
+the expression or statement that the expression itself is part of.
+Some contexts may not introduce any static context type.}
+The static context type may affect the static type and evaluation
+of the expression.
 Every value has an associated dynamic type (\ref{dynamicTypeSystem}).
 
 \LMHash{}
@@ -3563,8 +3574,6 @@ An expression $e$ may always be enclosed in parentheses, but this never has any 
 \commentary{
 Sadly, it may have an effect on the surrounding expression.
 Given a class $C$ with static method $m => 42$, $C.m()$ returns 42, but $(C).m()$ produces a \code{NoSuchMethodError}.
-This anomaly can be corrected by removing the restrictions on calling the members of instances of \code{Type}.
-This issue may be addressed in future versions of Dart.
 }
 
 
@@ -3810,7 +3819,12 @@ It has the numeric integer value of the decimal numeral.
 
 \LMHash{}
 An {\em integer literal} is either a hexadecimal integer literal or a decimal integer literal.
-The static type of an integer literal is \code{int}.
+
+\LMHash{}
+An integer literal has static type \code{int},
+unless the surrounding static context type is a type
+which \code{int} is not assignable to, and \code{double} is.
+In that case the static type of the integer literal is \code{double}.
 
 \LMHash{}
 A numeric literal that is not an integer literal is a {\em double literal}.
@@ -3818,30 +3832,19 @@ A numeric literal that is not an integer literal is a {\em double literal}.
 The static type of a double literal is \code{double}.
 
 \LMHash{}
-A hexadecimal integer literal with numeric value $i$ is a compile-time
-error if $i \ge{} 2^{64}$, unless it is prefixed by a unary minus operator,
-in which case it is a compile-time error if $i \gt{} 2^{63}$.
 If the \code{int} class is implemented as signed 64-bit two's complement integers,
-$i \ge{} 2^{63}$, and the literal is not prefixed by a unary minus operator, then
-the literal evaluates to an instance of the \code{int} class representing the integer value $i - 2^{64}$.
-Otherwise the literal evaluates to an instance of the \code{int} class representing
-the integer value $i$,
+and a hexadecimal integer literal with static type \code{int}
+and numeric value $i \ge{} 2^{63}$ is not prefixed by a unary minus operator,
+then it is a compile-time error if $i \ge{} 2^{64}$, and otherwise
+the hexadecimal integer literal evaluates to an instance of the \code{int} class
+representing the value $i - 2^{64}$.
+
+\LMHash{}
+Otherwise an integer literal with static type \code{int}
+that is not prefixed by a unary minus operator,
+evaluates to an instance of the \code{int} class representing the integer value $i$,
 and it is a compile-time error if the integer $i$ cannot be represented exactly
 by an instance of \code{int}.
-
-\LMHash{}
-A decimal integer literal with numeric value $i$ is a compile-time error
-if $i \ge{} 2^{63}$, unless $i$ is prefixed by a unary minus operator,
-in which case it is only a compile-time error if $i \gt{} 2^{63}$.
-Otherwise the literal evaluates to an instance of the \code{int} class representing
-the integer value $i$.
-It is a compile-time error if the value $i$ cannot be represented exactly
-by an instance of \code{int}.
-
-\LMHash{}
-A double literal evaluates to a an instance of the \code{double} class
-representing a 64 bit double precision floating point number
-as specified by the IEEE 754 standard.
 
 \commentary{
 Integers in Dart are designed to be implemented as
@@ -3851,6 +3854,26 @@ For example, Dart compiled to JavaScript may use the JavaScript number type,
 equivalent to Dart \code{double}, to represent integers, and if so,
 integer literals with more than 53 bits of precision cannot be represented
 exactly.
+}
+
+\LMHash{}
+A double literal evaluates to a an instance of the \code{double} class
+representing a 64 bit double precision floating point number
+as specified by the IEEE 754 standard.
+
+\LMHash{}
+An integer literal with static type \code{double} and numeric value $i$
+evaluates to an instance of the \code{double} class representing
+the value $i$. It is a compile-time error if the value $i$ cannot be
+represented {\em precisely} by the an instace of \code{double}.
+\commentary{
+A 64 bit double precision floating point number
+is usually taken to represent a range of real numbers
+around the precise value denoted by the number's
+sign, mantissa and exponent.
+For integer literals evaluating to \code{double}
+values we insist that the integer literal's numeric value
+is the precise value of the \code{double} instance.
 }
 
 \LMHash{}
@@ -7134,17 +7157,26 @@ Evaluation of an expression of the form \code{-{}-$e$} is equivalent to \code{$e
 %The expression $-e$ is equivalent to the method invocation \code{$e$.-()}.  The expression \code{-\SUPER{}} is equivalent to the method invocation \code{\SUPER{}.-()}.
 
 \LMHash{}
-If $e$ is an expression is of the form \code{-$l$}
-where $l$ is an integer literal (\ref{numbers}) with numerical integer value $i$,
-then it is a compile-time error if $i \gt{} 2^{63}$.
-Otherwise, when $0 \le{} i \le{} 2^{63}$, the static type of $e$ is \code{int}
-and $e$ evaluates to an instance of the class \code{int}
-representing the integer value $-i$,
-and it is a compile-time error if the integer $-i$ cannot be represented exactly
-by an instance of \code{int}.
-\rationale{This treats \code{-$l$} where $l$ is an integer literal as an atomic signed numeral.
-It does not {\em evaluate} $l$ as an individual expression because \code{-9223372036854775808}
-should represent a valid \code{int} even if \code{9223372036854775808} does not.}
+If $e$ is an expression of the form \code{-$l$}
+where $l$ is an integer literal (\ref{numbers}) with numeric integer value $i$,
+then the static type of $e$ is the same as the static type of an integer literal
+with the same context type,
+and evaluation of $e$ first proceeds as for an integer literal
+with numeric value $-i$, evaluating to a value $v$.
+Then, if the static type of the $e$ is \code{double} and $v$ is the \code{double} value 0.0, then $e$ evaluates to the \code{double} value -0.0,
+otherwise $e$ evaluates to $v$.
+\commentary{
+We treat \code{-$l$} \emph{as if} it is a single integer literal with a negative
+numeric value. The specified semantics of integer literals (\ref{numbers})
+allows negative numeric values, so they can be applied as-is to the value $-i$,
+except that we want \code{-0} in a \code{double} context
+to evaluate to \code{-0.0}.
+The expression \code{-$l$} is not \emph{itself} an integer literal,
+it's merely treated as one,
+so this rule does not apply twice to \code{- -$l$}.
+It also does not apply to \code{-($l$)}
+since a parenthesized expression is not an integer literal expression.
+}
 
 \LMHash{}
 Any other expression of the form \code{$op$ $e$} is equivalent to the method invocation \code{$e.op()$}.
