@@ -503,9 +503,9 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
     isolate_data->set_kernel_buffer(const_cast<uint8_t*>(kernel_service_buffer),
                                     kernel_service_buffer_size,
                                     false /* take_ownership */);
-    isolate = Dart_CreateIsolateFromKernel(uri, main, kernel_service_buffer,
-                                           kernel_service_buffer_size, flags,
-                                           isolate_data, error);
+    isolate = Dart_CreateIsolateFromKernel(
+        DART_KERNEL_ISOLATE_NAME, main, kernel_service_buffer,
+        kernel_service_buffer_size, flags, isolate_data, error);
   }
 
   if (isolate == NULL) {

@@ -78,6 +78,7 @@ class ServiceIsolate : public AllStatic {
   static char* server_address_;
 
   friend class Dart;
+  friend class Isolate;
   friend class RunServiceTask;
   friend class ServiceIsolateNatives;
 };

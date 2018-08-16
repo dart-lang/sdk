@@ -1877,15 +1877,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
       isolate->reload_every_n_stack_overflow_checks();
   if ((FLAG_deoptimize_every > 0) || (FLAG_stacktrace_every > 0) ||
       (isolate_reload_every > 0)) {
-    bool is_auxiliary_isolate = ServiceIsolate::IsServiceIsolate(isolate);
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    // Certain flags should not effect the kernel isolate itself.  They might be
-    // used by tests via the "VMOptions=--..." annotation to test VM
-    // functionality in the main isolate.
-    is_auxiliary_isolate =
-        is_auxiliary_isolate || KernelIsolate::IsKernelIsolate(isolate);
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-    if (!is_auxiliary_isolate) {
+    if (!Isolate::IsVMInternalIsolate(isolate)) {
       // TODO(turnidge): To make --deoptimize_every and
       // --stacktrace-every faster we could move this increment/test to
       // the generated code.

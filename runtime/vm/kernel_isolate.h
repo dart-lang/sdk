@@ -83,6 +83,7 @@ class KernelIsolate : public AllStatic {
   }
 
   friend class Dart;
+  friend class Isolate;
   friend class RunKernelTask;
 };
 

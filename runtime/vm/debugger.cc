@@ -324,14 +324,12 @@ ActivationFrame::ActivationFrame(const Closure& async_activation)
 }
 
 bool Debugger::NeedsIsolateEvents() {
-  return ((isolate_ != Dart::vm_isolate()) &&
-          !ServiceIsolate::IsServiceIsolateDescendant(isolate_) &&
+  return (!Isolate::IsVMInternalIsolate(isolate_) &&
           ((event_handler_ != NULL) || Service::isolate_stream.enabled()));
 }
 
 bool Debugger::NeedsDebugEvents() {
-  ASSERT(isolate_ != Dart::vm_isolate() &&
-         !ServiceIsolate::IsServiceIsolateDescendant(isolate_));
+  ASSERT(!Isolate::IsVMInternalIsolate(isolate_));
   return (FLAG_warn_on_pause_with_no_debugger || (event_handler_ != NULL) ||
           Service::debug_stream.enabled());
 }
@@ -1735,8 +1733,7 @@ Debugger::~Debugger() {
 void Debugger::Shutdown() {
   // TODO(johnmccutchan): Do not create a debugger for isolates that don't need
   // them. Then, assert here that isolate_ is not one of those isolates.
-  if ((isolate_ == Dart::vm_isolate()) ||
-      ServiceIsolate::IsServiceIsolateDescendant(isolate_)) {
+  if (Isolate::IsVMInternalIsolate(isolate_)) {
     return;
   }
   while (breakpoint_locations_ != NULL) {

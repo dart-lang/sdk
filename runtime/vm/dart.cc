@@ -619,18 +619,11 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   if (FLAG_print_class_table) {
     I->class_table()->Print();
   }
-
-  bool is_kernel_isolate = false;
-  USE(is_kernel_isolate);
-
-#ifndef DART_PRECOMPILED_RUNTIME
-  KernelIsolate::InitCallback(I);
-  is_kernel_isolate = KernelIsolate::IsKernelIsolate(I);
-#endif
-
   ServiceIsolate::MaybeMakeServiceIsolate(I);
+
 #if !defined(PRODUCT)
-  if (!ServiceIsolate::IsServiceIsolate(I) && !is_kernel_isolate) {
+  if (!ServiceIsolate::IsServiceIsolate(I) &&
+      !KernelIsolate::IsKernelIsolate(I)) {
     I->message_handler()->set_should_pause_on_start(
         FLAG_pause_isolates_on_start);
     I->message_handler()->set_should_pause_on_exit(FLAG_pause_isolates_on_exit);
