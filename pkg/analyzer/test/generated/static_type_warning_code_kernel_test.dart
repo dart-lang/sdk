@@ -38,55 +38,6 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
-  test_illegalAsyncGeneratorReturnType_function_nonStream() async {
-    await super.test_illegalAsyncGeneratorReturnType_function_nonStream();
-  }
-
-  @override
-  @failingTest
-  test_illegalAsyncGeneratorReturnType_function_subtypeOfStream() async {
-    await super.test_illegalAsyncGeneratorReturnType_function_subtypeOfStream();
-  }
-
-  @override
-  @failingTest
-  test_illegalAsyncGeneratorReturnType_method_nonStream() async {
-    await super.test_illegalAsyncGeneratorReturnType_method_nonStream();
-  }
-
-  @override
-  @failingTest
-  test_illegalAsyncGeneratorReturnType_method_subtypeOfStream() async {
-    await super.test_illegalAsyncGeneratorReturnType_method_subtypeOfStream();
-  }
-
-  @override
-  @failingTest
-  test_illegalSyncGeneratorReturnType_function_nonIterator() async {
-    await super.test_illegalSyncGeneratorReturnType_function_nonIterator();
-  }
-
-  @override
-  @failingTest
-  test_illegalSyncGeneratorReturnType_function_subclassOfIterator() async {
-    await super
-        .test_illegalSyncGeneratorReturnType_function_subclassOfIterator();
-  }
-
-  @override
-  @failingTest
-  test_illegalSyncGeneratorReturnType_method_nonIterator() async {
-    await super.test_illegalSyncGeneratorReturnType_method_nonIterator();
-  }
-
-  @override
-  @failingTest
-  test_illegalSyncGeneratorReturnType_method_subclassOfIterator() async {
-    await super.test_illegalSyncGeneratorReturnType_method_subclassOfIterator();
-  }
-
-  @override
-  @failingTest
   test_instanceAccessToStaticMember_method_invocation() async {
     await super.test_instanceAccessToStaticMember_method_invocation();
   }

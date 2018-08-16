@@ -706,9 +706,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     _typeInferrer.inferFunctionBody(
         this, _computeReturnTypeContext(member), asyncModifier, body);
 
-    // For async functions with declared return types, we need to determine
-    // whether those types are valid.
-
+    // For async, async*, and sync* functions with declared return types, we need
+    // to determine whether those types are valid.
     // TODO(hillerstrom): currently, we need to check whether [strongMode] is
     // enabled for two reasons:
     // 1) the [isSubtypeOf] predicate produces false-negatives when [strongMode]
@@ -717,22 +716,58 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     // [strongMode] is false. This particular behaviour can be observed when
     // running the fasta perf benchmarks.
     bool strongMode = library.loader.target.strongMode;
-    if (strongMode &&
-        builder.returnType != null &&
-        asyncModifier == AsyncMarker.Async) {
+    if (strongMode && builder.returnType != null) {
       DartType returnType = builder.function.returnType;
-      // In order to decide whether Future<T> <: [returnType] for every T, we
-      // rely on Future<Bot> and transitivity of the subtyping relation
-      // because Future<Bot> <: Future<T> for every T.
-      DartType futureBottomType = library.loader.futureOfBottom;
+      // We use the same trick in each case below. For example to decide whether
+      // Future<T> <: [returnType] for every T, we rely on Future<Bot> and
+      // transitivity of the subtyping relation because Future<Bot> <: Future<T>
+      // for every T.
+      bool Function(DartType, DartType) isSubtypeOf = (DartType subtype,
+              DartType supertype) =>
+          _typeInferrer.typeSchemaEnvironment.isSubtypeOf(subtype, supertype);
 
-      if (!_typeInferrer.typeSchemaEnvironment
-          .isSubtypeOf(futureBottomType, returnType)) {
+      // Determine whether there is a problem. We use [problem == null] to
+      // signal success.
+      Message problem;
+      switch (asyncModifier) {
+        case AsyncMarker.Async:
+          DartType futureBottomType = library.loader.futureOfBottom;
+          if (!isSubtypeOf(futureBottomType, returnType)) {
+            problem = fasta.messageIllegalAsyncReturnType;
+          }
+          break;
+
+        case AsyncMarker.AsyncStar:
+          DartType streamBottomType = library.loader.streamOfBottom;
+          if (returnType is VoidType) {
+            problem = fasta.messageIllegalAsyncGeneratorVoidReturnType;
+          } else if (!isSubtypeOf(streamBottomType, returnType)) {
+            problem = fasta.messageIllegalAsyncGeneratorReturnType;
+          }
+          break;
+
+        case AsyncMarker.SyncStar:
+          DartType iterableBottomType = library.loader.iterableOfBottom;
+          if (returnType is VoidType) {
+            problem = fasta.messageIllegalSyncGeneratorVoidReturnType;
+          } else if (!isSubtypeOf(iterableBottomType, returnType)) {
+            problem = fasta.messageIllegalSyncGeneratorReturnType;
+          }
+          break;
+
+        case AsyncMarker.Sync:
+          break; // skip
+        case AsyncMarker.SyncYielding:
+          unexpected("async, async*, sync, or sync*", "$asyncModifier",
+              member.charOffset, uri);
+          break;
+      }
+
+      if (problem != null) {
         // TODO(hillerstrom): once types get annotated with location
         // information, we can improve the quality of the error message by
-        // using the offset of [returnType].
-        addProblem(fasta.messageIllegalAsyncReturnType, member.charOffset,
-            member.name.length);
+        // using the offset of [returnType] (and the length of its name).
+        addProblem(problem, member.charOffset, member.name.length);
       }
     }
 

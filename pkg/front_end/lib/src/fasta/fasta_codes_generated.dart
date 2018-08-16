@@ -3278,6 +3278,31 @@ const MessageCode messageIllegalAssignmentToNonAssignable = const MessageCode(
     message: r"""Illegal assignment to non-assignable expression.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeIllegalAsyncGeneratorReturnType =
+    messageIllegalAsyncGeneratorReturnType;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageIllegalAsyncGeneratorReturnType = const MessageCode(
+    "IllegalAsyncGeneratorReturnType",
+    analyzerCode: "ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE",
+    dart2jsCode: "*fatal*",
+    severity: Severity.error,
+    message:
+        r"""Functions marked 'async*' must have a return type assignable to 'Stream'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeIllegalAsyncGeneratorVoidReturnType =
+    messageIllegalAsyncGeneratorVoidReturnType;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageIllegalAsyncGeneratorVoidReturnType =
+    const MessageCode("IllegalAsyncGeneratorVoidReturnType",
+        dart2jsCode: "*fatal*",
+        severity: Severity.error,
+        message:
+            r"""Functions marked 'async*' can't have return type 'void'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeIllegalAsyncReturnType = messageIllegalAsyncReturnType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3287,7 +3312,7 @@ const MessageCode messageIllegalAsyncReturnType = const MessageCode(
     dart2jsCode: "*fatal*",
     severity: Severity.error,
     message:
-        r"""Functions marked 'async' must have a return type that is a super type of 'Future'.""");
+        r"""Functions marked 'async' must have a return type assignable to 'Future'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateIllegalMixin =
@@ -3352,6 +3377,30 @@ Message _withArgumentsIllegalMixinDueToConstructorsCause(String name) {
       message: """This constructor prevents using '${name}' as a mixin.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeIllegalSyncGeneratorReturnType =
+    messageIllegalSyncGeneratorReturnType;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageIllegalSyncGeneratorReturnType = const MessageCode(
+    "IllegalSyncGeneratorReturnType",
+    analyzerCode: "ILLEGAL_SYNC_GENERATOR_RETURN_TYPE",
+    dart2jsCode: "*fatal*",
+    severity: Severity.error,
+    message:
+        r"""Functions marked 'sync*' must have a return type assignable to 'Iterable'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeIllegalSyncGeneratorVoidReturnType =
+    messageIllegalSyncGeneratorVoidReturnType;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageIllegalSyncGeneratorVoidReturnType = const MessageCode(
+    "IllegalSyncGeneratorVoidReturnType",
+    dart2jsCode: "*fatal*",
+    severity: Severity.error,
+    message: r"""Functions marked 'sync*' can't have return type 'void'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeImplementsBeforeExtends = messageImplementsBeforeExtends;

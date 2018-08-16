@@ -120,6 +120,8 @@ class SourceLoader<L> extends Loader<L> {
   CoreTypes coreTypes;
   // Used when checking whether a return type of an async function is valid.
   DartType futureOfBottom;
+  DartType iterableOfBottom;
+  DartType streamOfBottom;
 
   @override
   TypeInferenceEngine typeInferenceEngine;
@@ -701,9 +703,14 @@ class SourceLoader<L> extends Loader<L> {
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
 
   void computeCoreTypes(Component component) {
+    DartType Function(Class) instantiateWithBottom =
+        (Class cls) => new InterfaceType(cls, <DartType>[const BottomType()]);
+
     coreTypes = new CoreTypes(component);
-    futureOfBottom = new InterfaceType(
-        coreTypes.futureClass, <DartType>[const BottomType()]);
+    futureOfBottom = instantiateWithBottom(coreTypes.futureClass);
+    iterableOfBottom = instantiateWithBottom(coreTypes.iterableClass);
+    streamOfBottom = instantiateWithBottom(coreTypes.streamClass);
+
     ticker.logMs("Computed core types");
   }
 

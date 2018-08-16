@@ -212,8 +212,6 @@ abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeE
 abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue 32014.
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue 32014.
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError # Issue 32014.
-async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError # Issue 33068
-async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError # Issue 33068
 async_return_types_test/nestedFuture: MissingCompileTimeError # Issue 33068
 call_non_method_field_test/01: MissingCompileTimeError # Issue 32975
 call_non_method_field_test/02: MissingCompileTimeError # Issue 32975

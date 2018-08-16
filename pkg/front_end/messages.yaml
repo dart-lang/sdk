@@ -1668,8 +1668,28 @@ ExtendingRestricted:
 NoUnnamedConstructorInObject:
   template: "'Object' has no unnamed constructor."
 
+IllegalAsyncGeneratorReturnType:
+  template: "Functions marked 'async*' must have a return type assignable to 'Stream'."
+  severity: ERROR
+  analyzerCode: ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE
+  dart2jsCode: "*fatal*"
+  script:
+    - >-
+      int g() async* {
+        yield 0;
+      }
+
+IllegalAsyncGeneratorVoidReturnType:
+  template: "Functions marked 'async*' can't have return type 'void'."
+  severity: ERROR
+  dart2jsCode: "*fatal*"
+  script:
+    - >-
+      void g() async* {
+      }
+
 IllegalAsyncReturnType:
-  template: "Functions marked 'async' must have a return type that is a super type of 'Future'."
+  template: "Functions marked 'async' must have a return type assignable to 'Future'."
   severity: ERROR
   analyzerCode: ILLEGAL_ASYNC_RETURN_TYPE
   dart2jsCode: "*fatal*"
@@ -1677,6 +1697,26 @@ IllegalAsyncReturnType:
     - >-
       int f() async {
         return 0;
+      }
+
+IllegalSyncGeneratorReturnType:
+  template: "Functions marked 'sync*' must have a return type assignable to 'Iterable'."
+  severity: ERROR
+  analyzerCode: ILLEGAL_SYNC_GENERATOR_RETURN_TYPE
+  dart2jsCode: "*fatal*"
+  script:
+    - >-
+      int g() sync* {
+        yield 0;
+      }
+
+IllegalSyncGeneratorVoidReturnType:
+  template: "Functions marked 'sync*' can't have return type 'void'."
+  severity: ERROR
+  dart2jsCode: "*fatal*"
+  script:
+    - >-
+      void g() sync* {
       }
 
 IllegalMixinDueToConstructors:
