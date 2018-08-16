@@ -1169,6 +1169,26 @@ class TypeParamOrArgInfoTest {
       'handleType T',
       'endTypeArguments 2 < >'
     ]);
+    expectComplexTypeArg('<S,T>=', expectedAfter: '=', expectedCalls: [
+      'beginTypeArguments <',
+      'handleIdentifier S typeReference',
+      'handleNoTypeArguments ,',
+      'handleType S',
+      'handleIdentifier T typeReference',
+      'handleNoTypeArguments >=',
+      'handleType T',
+      'endTypeArguments 2 < >'
+    ]);
+    expectComplexTypeArg('<S,T>>=', expectedAfter: '>=', expectedCalls: [
+      'beginTypeArguments <',
+      'handleIdentifier S typeReference',
+      'handleNoTypeArguments ,',
+      'handleType S',
+      'handleIdentifier T typeReference',
+      'handleNoTypeArguments >>=',
+      'handleType T',
+      'endTypeArguments 2 < >'
+    ]);
     expectComplexTypeArg('<S Function()>', expectedCalls: [
       'beginTypeArguments <',
       'handleNoTypeVariables (',
@@ -1202,6 +1222,17 @@ class TypeParamOrArgInfoTest {
       'handleType S',
       'endTypeArguments 1 < >'
     ]);
+    expectComplexTypeArg('<S<T>>=', expectedAfter: '=', expectedCalls: [
+      'beginTypeArguments <',
+      'handleIdentifier S typeReference',
+      'beginTypeArguments <',
+      'handleIdentifier T typeReference',
+      'handleNoTypeArguments >>=',
+      'handleType T',
+      'endTypeArguments 1 < >',
+      'handleType S',
+      'endTypeArguments 1 < >'
+    ]);
     expectComplexTypeArg('<S<Function()>>', expectedCalls: [
       'beginTypeArguments <',
       'handleIdentifier S typeReference',
@@ -1216,6 +1247,22 @@ class TypeParamOrArgInfoTest {
       'handleType S',
       'endTypeArguments 1 < >'
     ]);
+    expectComplexTypeArg('<S<Function()>>=',
+        expectedAfter: '=',
+        expectedCalls: [
+          'beginTypeArguments <',
+          'handleIdentifier S typeReference',
+          'beginTypeArguments <',
+          'handleNoTypeVariables (',
+          'beginFunctionType Function',
+          'handleNoType <',
+          'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
+          'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
+          'endFunctionType Function',
+          'endTypeArguments 1 < >',
+          'handleType S',
+          'endTypeArguments 1 < >'
+        ]);
     expectComplexTypeArg('<S<void Function()>>', expectedCalls: [
       'beginTypeArguments <',
       'handleIdentifier S typeReference',

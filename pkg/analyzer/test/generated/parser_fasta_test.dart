@@ -1018,21 +1018,7 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
 @reflectiveTest
 class SimpleParserTest_Fasta extends FastaParserTestCase
-    with SimpleParserTestMixin {
-  @override
-  @failingTest
-  void test_parseTypeParameterList_parameterizedWithTrailingEquals() {
-    // TODO(danrubel): Update TypeInfo to handle '>>='
-    super.test_parseTypeParameterList_parameterizedWithTrailingEquals();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeParameterList_parameterizedWithTrailingEquals2() {
-    // TODO(danrubel): Update TypeInfo to handle '>>='
-    super.test_parseTypeParameterList_parameterizedWithTrailingEquals2();
-  }
-}
+    with SimpleParserTestMixin {}
 
 /**
  * Tests of the fasta parser based on [StatementParserTestMixin].

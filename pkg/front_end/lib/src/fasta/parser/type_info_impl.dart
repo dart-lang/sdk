@@ -4,8 +4,7 @@
 
 library fasta.parser.type_info_impl;
 
-import '../../scanner/token.dart'
-    show SimpleToken, SyntheticToken, Token, TokenType;
+import '../../scanner/token.dart' show SyntheticToken, Token, TokenType;
 
 import '../fasta_codes.dart' as fasta;
 
@@ -24,7 +23,13 @@ import 'parser.dart' show Parser;
 import 'type_info.dart';
 
 import 'util.dart'
-    show optional, skipMetadata, splitGtEq, splitGtGt, syntheticGt;
+    show
+        optional,
+        skipMetadata,
+        splitGtEq,
+        splitGtFromGtGtEq,
+        splitGtGt,
+        syntheticGt;
 
 /// [SimpleType] is a specialized [TypeInfo] returned by [computeType]
 /// when there is a single identifier as the type reference.
@@ -904,7 +909,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
     } else if (identical(value, '>=')) {
       return splitGtEq(next);
     } else if (identical(value, '>>=')) {
-      // TODO(danrubel): Add support for this
+      return splitGtFromGtGtEq(next);
     }
     return syntheticGt(next);
   }
@@ -915,8 +920,8 @@ bool isCloser(Token token) {
   final value = token.stringValue;
   return identical(value, '>') ||
       identical(value, '>>') ||
-      identical(value, '>=');
-  // TODO(danrubel): Add support for `>>=`.
+      identical(value, '>=') ||
+      identical(value, '>>=');
 }
 
 /// If [token] is one of `>`, `>>`, `>=', or `>>=`,
@@ -926,18 +931,18 @@ bool parseCloser(Token beforeCloser) {
   String value = closer.stringValue;
   if (identical(value, '>')) {
     return true;
-  } else if (identical(value, '>>')) {
-    SimpleToken split = splitGtGt(closer);
-    split.next.setNext(closer.next);
-    beforeCloser.setNext(split);
-    return true;
-  } else if (identical(value, '>=')) {
-    Token split = splitGtEq(closer);
-    split.next.setNext(closer.next);
-    beforeCloser.setNext(split);
-    return true;
-  } else if (identical(value, '>>=')) {
-    // TODO(danrubel): Add support for parsing `>>=`
   }
-  return false;
+  Token split;
+  if (identical(value, '>>')) {
+    split = splitGtGt(closer);
+  } else if (identical(value, '>=')) {
+    split = splitGtEq(closer);
+  } else if (identical(value, '>>=')) {
+    split = splitGtFromGtGtEq(closer);
+  } else {
+    return false;
+  }
+  split.next.setNext(closer.next);
+  beforeCloser.setNext(split);
+  return true;
 }
