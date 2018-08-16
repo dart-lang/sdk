@@ -4,7 +4,7 @@
 
 // part of "core_patch.dart";
 
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 class _Closure implements Function {
   bool operator ==(Object other) native "Closure_equals";
 
@@ -29,15 +29,15 @@ class _Closure implements Function {
   // deferred objects is properly initialized.
   // Caution: These fields are not Dart instances, but VM objects. Their Dart
   // names do not need to match the C++ names, but they must be private.
-  @pragma("vm.entry-point")
+  @pragma("vm:entry-point")
   var _instantiator_type_arguments;
-  @pragma("vm.entry-point")
+  @pragma("vm:entry-point")
   var _function_type_arguments;
-  @pragma("vm.entry-point")
+  @pragma("vm:entry-point")
   var _delayed_type_arguments;
-  @pragma("vm.entry-point")
+  @pragma("vm:entry-point")
   var _function;
-  @pragma("vm.entry-point")
+  @pragma("vm:entry-point")
   var _context;
 
   // Note: _Closure objects are created by VM "magically", without invoking
@@ -47,6 +47,6 @@ class _Closure implements Function {
   // nullable and may incorrectly remove 'if (_hash == null)' in get:hashCode.
   // This initializer makes _hash field nullable even without constructor
   // compilation.
-  @pragma("vm.entry-point")
+  @pragma("vm:entry-point")
   var _hash = null;
 }

@@ -31,6 +31,9 @@ abstract class EntryPointsListener {
 
 enum PragmaEntryPointType { Always, GetterOnly, SetterOnly }
 
+const kEntryPointPragmaName = "vm:entry-point";
+const kNativeMethodPragmaName = "vm:native-method";
+
 abstract class EntryPointsAnnotationMatcher {
   PragmaEntryPointType annotationsDefineRoot(List<Expression> annotations);
 }
@@ -47,7 +50,7 @@ class ConstantEntryPointsAnnotationMatcher
     Constant name = constant.fieldValues[coreTypes.pragmaName.reference];
     assertx(name != null);
     if (name is! StringConstant ||
-        (name as StringConstant).value != "vm.entry-point") {
+        (name as StringConstant).value != kEntryPointPragmaName) {
       return null;
     }
 
@@ -63,7 +66,7 @@ class ConstantEntryPointsAnnotationMatcher
       } else if (options.value == "set") {
         return PragmaEntryPointType.SetterOnly;
       } else {
-        throw "Error: string directive to @pragma('vm.entry-point', ...) must be either 'get' or 'set'.";
+        throw "Error: string directive to @pragma('$kEntryPointPragmaName', ...) must be either 'get' or 'set'.";
       }
     }
     return null;

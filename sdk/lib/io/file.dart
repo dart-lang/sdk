@@ -247,7 +247,7 @@ abstract class File implements FileSystemEntity {
    * If [path] is an absolute path, it will be immune to changes to the
    * current working directory.
    */
-  @pragma("vm.entry-point")
+  @pragma("vm:entry-point")
   factory File(String path) {
     final IOOverrides overrides = IOOverrides.current;
     if (overrides == null) {
@@ -980,7 +980,7 @@ class FileSystemException implements IOException {
    * [message], optional file system path [path] and optional OS error
    * [osError].
    */
-  @pragma("vm.entry-point")
+  @pragma("vm:entry-point")
   const FileSystemException([this.message = "", this.path = "", this.osError]);
 
   String toString() {

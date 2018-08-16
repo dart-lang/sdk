@@ -28,18 +28,18 @@ void _print(arg) {
   _printString(arg.toString());
 }
 
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 _getPrintClosure() => _print;
 
 // Asynchronous loading of resources.
 // The embedder forwards loading requests to the service isolate.
 
 // A port for communicating with the service isolate for I/O.
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 SendPort _loadPort;
 
 // The isolateId used to communicate with the service isolate for I/O.
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 int _isolateId;
 
 // Requests made to the service isolate over the load port.
@@ -140,7 +140,7 @@ _enforceTrailingSlash(uri) {
 
 // Embedder Entrypoint:
 // The embedder calls this method with the current working directory.
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 void _setWorkingDirectory(String cwd) {
   if (!_setupCompleted) {
     _setupHooks();
@@ -156,7 +156,7 @@ void _setWorkingDirectory(String cwd) {
 
 // Embedder Entrypoint:
 // The embedder calls this method with a custom package root.
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 String _setPackageRoot(String packageRoot) {
   if (!_setupCompleted) {
     _setupHooks();
@@ -187,7 +187,7 @@ String _setPackageRoot(String packageRoot) {
 }
 
 // Embedder Entrypoint:
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 String _setPackagesMap(String packagesParam) {
   if (!_setupCompleted) {
     _setupHooks();
@@ -219,7 +219,7 @@ String _setPackagesMap(String packagesParam) {
 
 // Resolves the script uri in the current working directory iff the given uri
 // did not specify a scheme (e.g. a path to a script file on the command line).
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 String _resolveScriptUri(String scriptName) {
   if (_traceLoading) {
     _log("Resolving script: $scriptName");
@@ -248,7 +248,7 @@ String _resolveScriptUri(String scriptName) {
 
 // Embedder Entrypoint (gen_snapshot):
 // Resolve relative paths relative to working directory.
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 String _resolveInWorkingDirectory(String fileName) {
   if (!_setupCompleted) {
     _setupHooks();
@@ -305,7 +305,7 @@ String _filePathFromUri(String userUri) {
 }
 
 // Embedder Entrypoint.
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 _libraryFilePath(String libraryUri) {
   if (!_setupCompleted) {
     _setupHooks();
@@ -321,7 +321,7 @@ _libraryFilePath(String libraryUri) {
 }
 
 // Register callbacks and hooks with the rest of the core libraries.
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 _setupHooks() {
   _setupCompleted = true;
   VMLibraryHooks.resourceReadAsBytes = _resourceReadAsBytes;

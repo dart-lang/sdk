@@ -8,7 +8,7 @@
 
 // This function takes care of rehashing of the linked hashmaps in [objects]. We
 // do this eagerly after snapshot deserialization.
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 void _rehashObjects(List objects) {
   final int length = objects.length;
   for (int i = 0; i < length; ++i) {
@@ -131,7 +131,7 @@ class _IdenticalAndIdentityHashCode {
 }
 
 // VM-internalized implementation of a default-constructed LinkedHashMap.
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 class _InternalLinkedHashMap<K, V> extends _HashVMBase
     with
         MapMixin<K, V>,

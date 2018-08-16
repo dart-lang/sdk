@@ -17,7 +17,7 @@ of compilation.
 
 # Pragma annotation
 
-The annotation `@pragma("vm.entry-point", ...)` can be placed on a class or
+The annotation `@pragma("vm:entry-point", ...)` can be placed on a class or
 member to indicate that it may be allocated or invoked directly from native or
 VM code. The allowed uses of the annotation are as follows.
 
@@ -26,9 +26,9 @@ VM code. The allowed uses of the annotation are as follows.
 Any one of the following forms may be attached to a class:
 
 ```dart
-@pragma("vm.entry-point")
-@pragma("vm.entry-point", true/false)
-@pragma("vm.entry-point", !const bool.formEnvironment("dart.vm.product"))
+@pragma("vm:entry-point")
+@pragma("vm:entry-point", true/false)
+@pragma("vm:entry-point", !const bool.formEnvironment("dart.vm.product"))
 class C { ... }
 ```
 
@@ -41,9 +41,9 @@ Any one of the following forms may be attached to a procedure (including
 getters, setters and constructors):
 
 ```dart
-@pragma("vm.entry-point")
-@pragma("vm.entry-point", true/false)
-@pragma("vm.entry-point", !const bool.formEnvironment("dart.vm.product"))
+@pragma("vm:entry-point")
+@pragma("vm:entry-point", true/false)
+@pragma("vm:entry-point", !const bool.formEnvironment("dart.vm.product"))
 void foo() { ... }
 ```
 
@@ -58,11 +58,11 @@ Any one of the following forms may be attached to a non-static field. The first
 three forms may be attached to static fields.
 
 ```dart
-@pragma("vm.entry-point")
-@pragma("vm.entry-point", null)
-@pragma("vm.entry-point", true/false)
-@pragma("vm.entry-point", !const bool.formEnvironment("dart.vm.product"))
-@pragma("vm.entry-point", "get"/"set")
+@pragma("vm:entry-point")
+@pragma("vm:entry-point", null)
+@pragma("vm:entry-point", true/false)
+@pragma("vm:entry-point", !const bool.formEnvironment("dart.vm.product"))
+@pragma("vm:entry-point", "get"/"set")
 void foo() { ... }
 ```
 

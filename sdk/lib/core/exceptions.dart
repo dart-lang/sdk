@@ -74,7 +74,7 @@ class FormatException implements Exception {
    * Optionally also supply the actual [source] with the incorrect format,
    * and the [offset] in the format where a problem was detected.
    */
-  @pragma("vm.entry-point")
+  @pragma("vm:entry-point")
   const FormatException([this.message = "", this.source, this.offset]);
 
   /**
@@ -175,7 +175,7 @@ class FormatException implements Exception {
 
 // Exception thrown when doing integer division with a zero divisor.
 class IntegerDivisionByZeroException implements Exception {
-  @pragma("vm.entry-point")
+  @pragma("vm:entry-point")
   const IntegerDivisionByZeroException();
   String toString() => "IntegerDivisionByZeroException";
 }

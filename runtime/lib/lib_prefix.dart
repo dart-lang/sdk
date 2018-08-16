@@ -5,7 +5,7 @@
 // part of "core_patch.dart";
 
 // This type corresponds to the VM-internal class LibraryPrefix.
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 class _LibraryPrefix {
   bool _load() native "LibraryPrefix_load";
   Object _loadError() native "LibraryPrefix_loadError";
@@ -47,7 +47,7 @@ class _LibraryPrefix {
 var _outstandingLoadRequests = new List<List>();
 
 // Called from the VM when an outstanding load request has finished.
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 _completeDeferredLoads() {
   // Determine which outstanding load requests have completed and complete
   // their completer (with an error or true). For outstanding load requests

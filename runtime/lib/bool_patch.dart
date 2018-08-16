@@ -5,7 +5,7 @@
 // part of "core_patch.dart";
 
 @patch
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 class bool {
   @patch
   const factory bool.fromEnvironment(String name, {bool defaultValue: false})

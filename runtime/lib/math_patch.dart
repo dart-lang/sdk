@@ -178,7 +178,7 @@ class Random {
 
 class _Random implements Random {
   // Internal state of the random number generator.
-  @pragma("vm.entry-point")
+  @pragma("vm:entry-point")
   final Uint32List _state;
   static const _kSTATE_LO = 0;
   static const _kSTATE_HI = 1; // Unused in Dart code.

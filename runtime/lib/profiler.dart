@@ -14,7 +14,7 @@ class UserTag {
   static UserTag get defaultTag => _getDefaultTag();
 }
 
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 class _UserTag implements UserTag {
   factory _UserTag(String label) native "UserTag_new";
   String get label native "UserTag_label";

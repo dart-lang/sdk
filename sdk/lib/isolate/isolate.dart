@@ -26,7 +26,7 @@ part "capability.dart";
 class IsolateSpawnException implements Exception {
   /** Error message reported by the spawn operation. */
   final String message;
-  @pragma("vm.entry-point")
+  @pragma("vm:entry-point")
   IsolateSpawnException(this.message);
   String toString() => "IsolateSpawnException: $message";
 }

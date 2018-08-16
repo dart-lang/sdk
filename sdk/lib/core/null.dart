@@ -11,7 +11,7 @@ part of dart.core;
  * It is a compile-time error for a class to attempt to extend or implement
  * Null.
  */
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 class Null {
   factory Null._uninstantiable() {
     throw new UnsupportedError('class Null cannot be instantiated');

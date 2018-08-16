@@ -459,7 +459,7 @@ class ObjectPointerVisitor;
   V(GrowRegExpStack, "_growRegExpStack")                                       \
   V(DebugProcedureName, ":Eval")                                               \
   V(DebugClassName, "#DebugClass")                                             \
-  V(vm_entry_point, "vm.entry-point")                                          \
+  V(vm_entry_point, "vm:entry-point")                                          \
   V(Get, "get")                                                                \
   V(Set, "set")
 

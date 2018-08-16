@@ -68,7 +68,7 @@ _registerExtension(String method, ServiceExtensionHandler handler)
     native "Developer_registerExtension";
 
 // This code is only invoked when there is no other Dart code on the stack.
-@pragma("vm.entry-point", !const bool.fromEnvironment("dart.vm.product"))
+@pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
 _runExtension(
     ServiceExtensionHandler handler,
     String method,

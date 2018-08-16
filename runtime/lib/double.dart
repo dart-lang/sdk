@@ -4,7 +4,7 @@
 
 // part of "core_patch.dart";
 
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 class _Double implements double {
   factory _Double.fromInteger(int value) native "Double_doubleFromInteger";
 

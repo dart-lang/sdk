@@ -1450,7 +1450,7 @@ void Precompiler::AddInstantiatedClass(const Class& cls) {
 
 enum class EntryPointPragma { kAlways, kNever, kGetterOnly, kSetterOnly };
 
-// Adds all values annotated with @pragma('vm.entry-point') as roots.
+// Adds all values annotated with @pragma('vm:entry-point') as roots.
 void Precompiler::AddAnnotatedRoots() {
   auto& lib = Library::Handle(Z);
   auto& cls = Class::Handle(isolate()->object_store()->pragma_class());

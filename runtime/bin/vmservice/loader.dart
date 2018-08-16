@@ -62,9 +62,9 @@ class FileRequest {
   FileRequest(this.sp, this.tag, this.uri, this.resolvedUri, this.libraryUrl);
 }
 
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 bool _traceLoading = false;
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 bool _deterministic = false;
 
 // State associated with the isolate that is used for loading.

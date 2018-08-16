@@ -20,7 +20,7 @@ class _SecureFilter {
 @patch
 class X509Certificate {
   @patch
-  @pragma("vm.entry-point")
+  @pragma("vm:entry-point")
   factory X509Certificate._() => new _X509CertificateImpl();
 }
 
@@ -68,9 +68,9 @@ class _SecureFilterImpl extends NativeFieldWrapperClass1
   // Performance is improved if a full buffer of plaintext fits
   // in the encrypted buffer, when encrypted.
   // SIZE and ENCRYPTED_SIZE are referenced from C++.
-  @pragma("vm.entry-point")
+  @pragma("vm:entry-point")
   static final int SIZE = 8 * 1024;
-  @pragma("vm.entry-point")
+  @pragma("vm:entry-point")
   static final int ENCRYPTED_SIZE = 10 * 1024;
 
   _SecureFilterImpl() {
@@ -120,7 +120,7 @@ class _SecureFilterImpl extends NativeFieldWrapperClass1
   // This is a security issue, as it exposes a raw pointer to Dart code.
   int _pointer() native "SecureSocket_FilterPointer";
 
-  @pragma("vm.entry-point", "get")
+  @pragma("vm:entry-point", "get")
   List<_ExternalBuffer> buffers;
 }
 
