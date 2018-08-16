@@ -865,7 +865,7 @@ class Listener implements UnescapeErrorListener {
     logEvent("TryStatement");
   }
 
-  void handleType(Token beginToken, Token endToken) {
+  void handleType(Token beginToken) {
     logEvent("Type");
   }
 

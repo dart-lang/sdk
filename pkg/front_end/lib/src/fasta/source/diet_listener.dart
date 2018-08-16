@@ -151,7 +151,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void handleType(Token beginToken, Token endToken) {
+  void handleType(Token beginToken) {
     debugEvent("Type");
     discard(1);
   }

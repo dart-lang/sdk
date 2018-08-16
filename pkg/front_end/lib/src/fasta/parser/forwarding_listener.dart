@@ -1296,8 +1296,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleType(Token beginToken, Token endToken) {
-    listener?.handleType(beginToken, endToken);
+  void handleType(Token beginToken) {
+    listener?.handleType(beginToken);
   }
 
   @override

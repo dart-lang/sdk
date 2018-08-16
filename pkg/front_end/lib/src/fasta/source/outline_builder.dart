@@ -855,7 +855,7 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
-  void handleType(Token beginToken, Token endToken) {
+  void handleType(Token beginToken) {
     debugEvent("Type");
     List<TypeBuilder> arguments = pop();
     int charOffset = pop();

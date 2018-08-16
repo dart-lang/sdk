@@ -140,7 +140,7 @@ class PrefixedType implements TypeInfo {
     listener.handleQualified(period);
 
     listener.handleNoTypeArguments(token.next);
-    listener.handleType(start, token.next);
+    listener.handleType(start);
     return token;
   }
 
@@ -178,7 +178,7 @@ class SimpleTypeWith1Argument implements TypeInfo {
     Listener listener = parser.listener;
     listener.handleIdentifier(token, IdentifierContext.typeReference);
     token = typeArg.parseArguments(token, parser);
-    listener.handleType(start, token.next);
+    listener.handleType(start);
     return token;
   }
 
@@ -216,7 +216,7 @@ class SimpleType implements TypeInfo {
     Listener listener = parser.listener;
     listener.handleIdentifier(token, IdentifierContext.typeReference);
     token = noTypeParamOrArg.parseArguments(token, parser);
-    listener.handleType(token, token.next);
+    listener.handleType(token);
     return token;
   }
 
@@ -364,7 +364,7 @@ class ComplexTypeInfo implements TypeInfo {
           }
         }
         token = typeArguments.parseArguments(token, parser);
-        parser.listener.handleType(typeRefOrPrefix, token.next);
+        parser.listener.handleType(typeRefOrPrefix);
       }
     }
 

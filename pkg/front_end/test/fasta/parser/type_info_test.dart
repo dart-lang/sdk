@@ -108,7 +108,7 @@ class NoTypeInfoTest {
     expect(listener.calls, [
       'handleIdentifier  typeReference',
       'handleNoTypeArguments ;',
-      'handleType  ;',
+      'handleType ',
     ]);
     expect(listener.errors, [new ExpectedError(codeExpectedType, 7, 1)]);
   }
@@ -122,7 +122,7 @@ class NoTypeInfoTest {
     expect(listener.calls, [
       'handleIdentifier  typeReference',
       'handleNoTypeArguments ;',
-      'handleType  ;',
+      'handleType ',
     ]);
     expect(listener.errors, [new ExpectedError(codeExpectedType, 7, 1)]);
   }
@@ -186,7 +186,7 @@ class VoidTypeInfoTest {
     expect(listener.calls, [
       'handleIdentifier void typeReference',
       'handleNoTypeArguments ;',
-      'handleType void ;',
+      'handleType void',
     ]);
     expect(listener.errors, [new ExpectedError(codeInvalidVoid, 7, 4)]);
   }
@@ -217,7 +217,7 @@ class VoidTypeInfoTest {
     expect(listener.calls, [
       'handleIdentifier void typeReference',
       'handleNoTypeArguments ;',
-      'handleType void ;',
+      'handleType void',
     ]);
     expect(listener.errors, [new ExpectedError(codeInvalidVoid, 7, 4)]);
   }
@@ -256,7 +256,7 @@ class PrefixedTypeInfoTest {
         'handleIdentifier a typeReferenceContinuation',
         'handleQualified .',
         'handleNoTypeArguments ;',
-        'handleType C ;',
+        'handleType C',
       ]);
       expect(listener.errors, isNull);
     }
@@ -316,7 +316,7 @@ class SimpleTypeInfoTest {
       expect(listener.calls, [
         'handleIdentifier C typeReference',
         'handleNoTypeArguments ;',
-        'handleType C ;',
+        'handleType C',
       ]);
       expect(listener.errors, isNull);
     }
@@ -392,9 +392,9 @@ class SimpleTypeWith1ArgumentTest {
         'beginTypeArguments <',
         'handleIdentifier T typeReference',
         'handleNoTypeArguments >',
-        'handleType T >',
+        'handleType T',
         'endTypeArguments 1 < >',
-        'handleType C ;',
+        'handleType C',
       ]);
       expect(listener.errors, isNull);
     }
@@ -438,9 +438,9 @@ class SimpleTypeWith1ArgumentTest {
         'beginTypeArguments <',
         'handleIdentifier T typeReference',
         'handleNoTypeArguments >',
-        'handleType T >',
+        'handleType T',
         'endTypeArguments 1 < >',
-        'handleType C =',
+        'handleType C',
       ]);
       expect(listener.errors, isNull);
     }
@@ -483,9 +483,9 @@ class SimpleTypeWith1ArgumentTest {
         'beginTypeArguments <',
         'handleIdentifier T typeReference',
         'handleNoTypeArguments >',
-        'handleType T >',
+        'handleType T',
         'endTypeArguments 1 < >',
-        'handleType C >',
+        'handleType C',
       ]);
       expect(listener.errors, isNull);
     }
@@ -576,7 +576,7 @@ class TypeInfoTest {
       'beginFormalParameter int MemberKind.GeneralizedFunctionType',
       'handleIdentifier int typeReference',
       'handleNoTypeArguments )',
-      'handleType int )',
+      'handleType int',
       'handleNoName )',
       'handleFormalParameterWithoutValue )',
       'endFormalParameter null null ) FormalParameterKind.mandatory '
@@ -602,7 +602,7 @@ class TypeInfoTest {
       'beginFormalParameter int MemberKind.GeneralizedFunctionType',
       'handleIdentifier int typeReference',
       'handleNoTypeArguments )',
-      'handleType int )',
+      'handleType int',
       'handleNoName )',
       'handleFormalParameterWithoutValue )',
       'endFormalParameter null null ) FormalParameterKind.mandatory'
@@ -641,7 +641,7 @@ class TypeInfoTest {
           'beginFunctionType C',
           'handleIdentifier C typeReference',
           'handleNoTypeArguments Function',
-          'handleType C Function',
+          'handleType C',
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
           'endFunctionType Function',
@@ -654,7 +654,7 @@ class TypeInfoTest {
       'beginTypeArguments <',
       'handleVoidKeyword void',
       'endTypeArguments 1 < >',
-      'handleType C ',
+      'handleType C',
     ]);
   }
 
@@ -664,12 +664,12 @@ class TypeInfoTest {
       'beginTypeArguments <',
       'handleIdentifier S typeReference',
       'handleNoTypeArguments ,',
-      'handleType S ,',
+      'handleType S',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeArguments 2 < >',
-      'handleType C ',
+      'handleType C',
     ]);
     expectComplexInfo('C<S<T>>', required: true, expectedCalls: [
       'handleIdentifier C typeReference',
@@ -678,23 +678,23 @@ class TypeInfoTest {
       'beginTypeArguments <',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeArguments 1 < >',
-      'handleType S >',
+      'handleType S',
       'endTypeArguments 1 < >',
-      'handleType C ',
+      'handleType C',
     ]);
     expectComplexInfo('C<S,T> f', expectedAfter: 'f', expectedCalls: [
       'handleIdentifier C typeReference',
       'beginTypeArguments <',
       'handleIdentifier S typeReference',
       'handleNoTypeArguments ,',
-      'handleType S ,',
+      'handleType S',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeArguments 2 < >',
-      'handleType C f',
+      'handleType C',
     ]);
     expectComplexInfo('C<S<T>> f', expectedAfter: 'f', expectedCalls: [
       'handleIdentifier C typeReference',
@@ -703,11 +703,11 @@ class TypeInfoTest {
       'beginTypeArguments <',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeArguments 1 < >',
-      'handleType S >',
+      'handleType S',
       'endTypeArguments 1 < >',
-      'handleType C f',
+      'handleType C',
     ]);
   }
 
@@ -721,9 +721,9 @@ class TypeInfoTest {
           'beginTypeArguments <',
           'handleIdentifier T typeReference',
           'handleNoTypeArguments >',
-          'handleType T >',
+          'handleType T',
           'endTypeArguments 1 < >',
-          'handleType C Function',
+          'handleType C',
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
           'endFunctionType Function',
@@ -747,12 +747,12 @@ class TypeInfoTest {
           'beginTypeArguments <',
           'handleIdentifier int typeReference',
           'handleNoTypeArguments double' /* was , */,
-          'handleType int double' /* was , */,
+          'handleType int' /* was , */,
           'handleIdentifier double typeReference',
           'handleNoTypeArguments >',
-          'handleType double >',
+          'handleType double',
           'endTypeArguments 2 < >',
-          'handleType G g',
+          'handleType G',
         ],
         expectedErrors: [
           error(codeExpectedButGot, 6, 6)
@@ -764,9 +764,9 @@ class TypeInfoTest {
       'beginTypeArguments <',
       'handleIdentifier  typeReference',
       'handleNoTypeArguments >',
-      'handleType  >',
+      'handleType ',
       'endTypeArguments 1 < >',
-      'handleType C ',
+      'handleType C',
     ], expectedErrors: [
       error(codeExpectedType, 2, 1)
     ]);
@@ -778,9 +778,9 @@ class TypeInfoTest {
           'beginTypeArguments <',
           'handleIdentifier  typeReference',
           'handleNoTypeArguments >',
-          'handleType  >',
+          'handleType ',
           'endTypeArguments 1 < >',
-          'handleType C f',
+          'handleType C',
         ],
         expectedErrors: [
           error(codeExpectedType, 2, 1)
@@ -832,7 +832,7 @@ class TypeInfoTest {
           'handleIdentifier a typeReferenceContinuation',
           'handleQualified .',
           'handleNoTypeArguments Function',
-          'handleType C Function',
+          'handleType C',
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
           'endFunctionType Function',
@@ -851,9 +851,9 @@ class TypeInfoTest {
       'beginTypeArguments <',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeArguments 1 < >',
-      'handleType C ',
+      'handleType C',
     ]);
 
     expectComplexInfo('C.a<T> f', expectedAfter: 'f', expectedCalls: [
@@ -863,9 +863,9 @@ class TypeInfoTest {
       'beginTypeArguments <',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeArguments 1 < >',
-      'handleType C f',
+      'handleType C',
     ]);
   }
 
@@ -899,16 +899,16 @@ class TypeInfoTest {
           'beginTypeArguments <',
           'handleIdentifier T typeReference',
           'handleNoTypeArguments >',
-          'handleType T >',
+          'handleType T',
           'endTypeArguments 1 < >',
-          'handleType C Function',
+          'handleType C',
           'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
           'beginMetadataStar int',
           'endMetadataStar 0',
           'beginFormalParameter int MemberKind.GeneralizedFunctionType',
           'handleIdentifier int typeReference',
           'handleNoTypeArguments x',
-          'handleType int x',
+          'handleType int',
           'handleIdentifier x formalParameterDeclaration',
           'handleFormalParameterWithoutValue )',
           'endFormalParameter null null x FormalParameterKind.mandatory '
@@ -921,7 +921,7 @@ class TypeInfoTest {
           'beginFormalParameter int MemberKind.GeneralizedFunctionType',
           'handleIdentifier int typeReference',
           'handleNoTypeArguments x',
-          'handleType int x',
+          'handleType int',
           'handleIdentifier x formalParameterDeclaration',
           'handleFormalParameterWithoutValue )',
           'endFormalParameter null null x FormalParameterKind.mandatory '
@@ -1095,7 +1095,7 @@ class SimpleTypeParamOrArgTest {
       'beginTypeArguments <',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeArguments 1 < >'
     ]);
     expect(listener.errors, isNull);
@@ -1163,10 +1163,10 @@ class TypeParamOrArgInfoTest {
       'beginTypeArguments <',
       'handleIdentifier S typeReference',
       'handleNoTypeArguments ,',
-      'handleType S ,',
+      'handleType S',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeArguments 2 < >'
     ]);
     expectComplexTypeArg('<S Function()>', expectedCalls: [
@@ -1175,7 +1175,7 @@ class TypeParamOrArgInfoTest {
       'beginFunctionType S',
       'handleIdentifier S typeReference',
       'handleNoTypeArguments Function',
-      'handleType S Function',
+      'handleType S',
       'beginFormalParameters ( MemberKind.GeneralizedFunctionType',
       'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
       'endFunctionType Function',
@@ -1197,9 +1197,9 @@ class TypeParamOrArgInfoTest {
       'beginTypeArguments <',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeArguments 1 < >',
-      'handleType S >',
+      'handleType S',
       'endTypeArguments 1 < >'
     ]);
     expectComplexTypeArg('<S<Function()>>', expectedCalls: [
@@ -1213,7 +1213,7 @@ class TypeParamOrArgInfoTest {
       'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
       'endFunctionType Function',
       'endTypeArguments 1 < >',
-      'handleType S >',
+      'handleType S',
       'endTypeArguments 1 < >'
     ]);
     expectComplexTypeArg('<S<void Function()>>', expectedCalls: [
@@ -1227,7 +1227,7 @@ class TypeParamOrArgInfoTest {
       'endFormalParameters 0 ( ) MemberKind.GeneralizedFunctionType',
       'endFunctionType Function',
       'endTypeArguments 1 < >',
-      'handleType S >',
+      'handleType S',
       'endTypeArguments 1 < >'
     ]);
   }
@@ -1239,7 +1239,7 @@ class TypeParamOrArgInfoTest {
       'beginTypeArguments <',
       'handleIdentifier S typeReference',
       'handleNoTypeArguments extends',
-      'handleType S extends',
+      'handleType S',
       'endTypeArguments 1 < >',
     ]);
     expectComplexTypeArg('<S extends List<T>>', expectedErrors: [
@@ -1248,7 +1248,7 @@ class TypeParamOrArgInfoTest {
       'beginTypeArguments <',
       'handleIdentifier S typeReference',
       'handleNoTypeArguments extends',
-      'handleType S extends',
+      'handleType S',
       'endTypeArguments 1 < >',
     ]);
     expectComplexTypeArg('<@A S,T>', expectedErrors: [
@@ -1257,10 +1257,10 @@ class TypeParamOrArgInfoTest {
       'beginTypeArguments <',
       'handleIdentifier S typeReference',
       'handleNoTypeArguments ,',
-      'handleType S ,',
+      'handleType S',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeArguments 2 < >'
     ]);
     expectComplexTypeArg('<@A() S,T>', expectedErrors: [
@@ -1269,10 +1269,10 @@ class TypeParamOrArgInfoTest {
       'beginTypeArguments <',
       'handleIdentifier S typeReference',
       'handleNoTypeArguments ,',
-      'handleType S ,',
+      'handleType S',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeArguments 2 < >'
     ]);
     expectComplexTypeArg('<@A() @B S,T>', expectedErrors: [
@@ -1282,10 +1282,10 @@ class TypeParamOrArgInfoTest {
       'beginTypeArguments <',
       'handleIdentifier S typeReference',
       'handleNoTypeArguments ,',
-      'handleType S ,',
+      'handleType S',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeArguments 2 < >'
     ]);
     expectComplexTypeArg('<S T>',
@@ -1305,9 +1305,9 @@ class TypeParamOrArgInfoTest {
       'beginTypeArguments <',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments ',
-      'handleType T ',
+      'handleType T',
       'endTypeArguments 1 < >',
-      'handleType S ',
+      'handleType S',
       'endTypeArguments 1 < >'
     ]);
   }
@@ -1339,7 +1339,7 @@ class TypeParamOrArgInfoTest {
       'handleTypeVariablesDefined T 1',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeVariable > 0 extends',
       'endTypeVariables < >',
     ]);
@@ -1352,7 +1352,7 @@ class TypeParamOrArgInfoTest {
       'handleTypeVariablesDefined T 1',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeVariable > 0 super',
       'endTypeVariables < >',
     ]);
@@ -1367,9 +1367,9 @@ class TypeParamOrArgInfoTest {
       'beginTypeArguments <',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeArguments 1 < >',
-      'handleType List >',
+      'handleType List',
       'endTypeVariable > 0 extends',
       'endTypeVariables < >',
     ]);
@@ -1539,9 +1539,9 @@ class TypeParamOrArgInfoTest {
           'beginTypeArguments <',
           'handleIdentifier T typeReference',
           'handleNoTypeArguments fieldName',
-          'handleType T fieldName',
+          'handleType T',
           'endTypeArguments 1 < >',
-          'handleType List fieldName',
+          'handleType List',
           'endTypeVariable fieldName 0 extends',
           'endTypeVariables < >',
         ]);
@@ -1559,9 +1559,9 @@ class TypeParamOrArgInfoTest {
       'beginTypeArguments <',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeArguments 1 < >',
-      'handleType Comparable >',
+      'handleType Comparable',
       'endTypeVariable > 0 extends',
       'endTypeVariables < >',
     ]);
@@ -1582,9 +1582,9 @@ class TypeParamOrArgInfoTest {
       'beginTypeArguments <',
       'handleIdentifier S typeReference',
       'handleNoTypeArguments >',
-      'handleType S >',
+      'handleType S',
       'endTypeArguments 1 < >',
-      'handleType Comparable ,',
+      'handleType Comparable',
       'endTypeVariable , 0 extends',
       'endTypeVariables < >'
     ]);
@@ -1604,7 +1604,7 @@ class TypeParamOrArgInfoTest {
       'beginFormalParameter T MemberKind.GeneralizedFunctionType',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments )',
-      'handleType T )',
+      'handleType T',
       'handleNoName )',
       'handleFormalParameterWithoutValue )',
       'endFormalParameter null null ) FormalParameterKind.mandatory MemberKind.GeneralizedFunctionType',
@@ -1626,11 +1626,11 @@ class TypeParamOrArgInfoTest {
       'beginTypeArguments <',
       'handleIdentifier T typeReference',
       'handleNoTypeArguments >',
-      'handleType T >',
+      'handleType T',
       'endTypeArguments 1 < >',
-      'handleType List >',
+      'handleType List',
       'endTypeArguments 1 < >',
-      'handleType List >',
+      'handleType List',
       'endTypeVariable > 0 extends',
       'endTypeVariables < >'
     ]);
@@ -2013,8 +2013,8 @@ class TypeInfoListener implements Listener {
   }
 
   @override
-  void handleType(Token beginToken, Token endToken) {
-    calls.add('handleType $beginToken $endToken');
+  void handleType(Token beginToken) {
+    calls.add('handleType $beginToken');
   }
 
   @override
