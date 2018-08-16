@@ -995,6 +995,44 @@ class Test {
 ''');
   }
 
+  test_addMissingParameter_constructor_named_required_hasOne() async {
+    await resolveTestUnit('''
+class A {
+  A.named(int a) {}
+}
+main() {
+  new A.named(1, 2.0);
+}
+''');
+    await assertHasFix(DartFixKind.ADD_MISSING_PARAMETER_REQUIRED, '''
+class A {
+  A.named(int a, double d) {}
+}
+main() {
+  new A.named(1, 2.0);
+}
+''');
+  }
+
+  test_addMissingParameter_constructor_unnamed_required_hasOne() async {
+    await resolveTestUnit('''
+class A {
+  A(int a) {}
+}
+main() {
+  new A(1, 2.0);
+}
+''');
+    await assertHasFix(DartFixKind.ADD_MISSING_PARAMETER_REQUIRED, '''
+class A {
+  A(int a, double d) {}
+}
+main() {
+  new A(1, 2.0);
+}
+''');
+  }
+
   test_addMissingParameter_function_positional_hasNamed() async {
     await resolveTestUnit('''
 test({int a}) {}
@@ -5146,28 +5184,6 @@ main() {
 ''');
   }
 
-  test_invokeConstructorUsingNew() async {
-    if (previewDart2) {
-      return;
-    }
-    await resolveTestUnit('''
-class C {
-  C.c();
-}
-main() {
-  C c = C.c();
-}
-''');
-    await assertHasFix(DartFixKind.INVOKE_CONSTRUCTOR_USING_NEW, '''
-class C {
-  C.c();
-}
-main() {
-  C c = new C.c();
-}
-''');
-  }
-
   test_isNotNull() async {
     await resolveTestUnit('''
 main(p) {
@@ -7095,23 +7111,13 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_addExplicitCast_assignment_general() =>
-      super.test_addExplicitCast_assignment_general();
+  test_addExplicitCast_assignment_list() =>
+      super.test_addExplicitCast_assignment_list();
 
   @failingTest
   @override
-  test_addExplicitCast_assignment_general_all() =>
-      super.test_addExplicitCast_assignment_general_all();
-
-  @failingTest
-  @override
-  test_addExplicitCast_assignment_map() =>
-      super.test_addExplicitCast_assignment_map();
-
-  @failingTest
-  @override
-  test_addExplicitCast_assignment_map_all() =>
-      super.test_addExplicitCast_assignment_map_all();
+  test_addExplicitCast_assignment_list_all() =>
+      super.test_addExplicitCast_assignment_list_all();
 
   @failingTest
   @override
@@ -7125,33 +7131,13 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_addExplicitCast_assignment_set() =>
-      super.test_addExplicitCast_assignment_set();
+  test_addExplicitCast_declaration_list() =>
+      super.test_addExplicitCast_declaration_list();
 
   @failingTest
   @override
-  test_addExplicitCast_assignment_set_all() =>
-      super.test_addExplicitCast_assignment_set_all();
-
-  @failingTest
-  @override
-  test_addExplicitCast_declaration_general() =>
-      super.test_addExplicitCast_declaration_general();
-
-  @failingTest
-  @override
-  test_addExplicitCast_declaration_general_all() =>
-      super.test_addExplicitCast_declaration_general_all();
-
-  @failingTest
-  @override
-  test_addExplicitCast_declaration_map() =>
-      super.test_addExplicitCast_declaration_map();
-
-  @failingTest
-  @override
-  test_addExplicitCast_declaration_map_all() =>
-      super.test_addExplicitCast_declaration_map_all();
+  test_addExplicitCast_declaration_list_all() =>
+      super.test_addExplicitCast_declaration_list_all();
 
   @failingTest
   @override
@@ -7162,16 +7148,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
   @override
   test_addExplicitCast_declaration_needsParens_all() =>
       super.test_addExplicitCast_declaration_needsParens_all();
-
-  @failingTest
-  @override
-  test_addExplicitCast_declaration_set() =>
-      super.test_addExplicitCast_declaration_set();
-
-  @failingTest
-  @override
-  test_addExplicitCast_declaration_set_all() =>
-      super.test_addExplicitCast_declaration_set_all();
 
   @failingTest
   @override
@@ -7197,91 +7173,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
   @override
   test_addFieldFormalParameters_notAllFinal() =>
       super.test_addFieldFormalParameters_notAllFinal();
-
-  @failingTest
-  @override
-  test_addMissingParameter_function_positional_hasZero() =>
-      super.test_addMissingParameter_function_positional_hasZero();
-
-  @failingTest
-  @override
-  test_addMissingParameter_function_required_hasNamed() =>
-      super.test_addMissingParameter_function_required_hasNamed();
-
-  @failingTest
-  @override
-  test_addMissingParameter_function_required_hasOne() =>
-      super.test_addMissingParameter_function_required_hasOne();
-
-  @failingTest
-  @override
-  test_addMissingParameter_function_required_hasZero() =>
-      super.test_addMissingParameter_function_required_hasZero();
-
-  @failingTest
-  @override
-  test_addMissingParameter_method_positional_hasOne() =>
-      super.test_addMissingParameter_method_positional_hasOne();
-
-  @failingTest
-  @override
-  test_addMissingParameter_method_required_hasOne() =>
-      super.test_addMissingParameter_method_required_hasOne();
-
-  @failingTest
-  @override
-  test_addMissingParameter_method_required_hasZero() =>
-      super.test_addMissingParameter_method_required_hasZero();
-
-  @failingTest
-  @override
-  test_addMissingParameterNamed_constructor_hasNamed() =>
-      super.test_addMissingParameterNamed_constructor_hasNamed();
-
-  @failingTest
-  @override
-  test_addMissingParameterNamed_constructor_hasRequired() =>
-      super.test_addMissingParameterNamed_constructor_hasRequired();
-
-  @failingTest
-  @override
-  test_addMissingParameterNamed_constructor_noParameters() =>
-      super.test_addMissingParameterNamed_constructor_noParameters();
-
-  @failingTest
-  @override
-  test_addMissingParameterNamed_constructor_noParameters_named() =>
-      super.test_addMissingParameterNamed_constructor_noParameters_named();
-
-  @failingTest
-  @override
-  test_addMissingParameterNamed_function_hasNamed() =>
-      super.test_addMissingParameterNamed_function_hasNamed();
-
-  @failingTest
-  @override
-  test_addMissingParameterNamed_function_hasRequired() =>
-      super.test_addMissingParameterNamed_function_hasRequired();
-
-  @failingTest
-  @override
-  test_addMissingParameterNamed_function_noParameters() =>
-      super.test_addMissingParameterNamed_function_noParameters();
-
-  @failingTest
-  @override
-  test_addMissingParameterNamed_method_hasNamed() =>
-      super.test_addMissingParameterNamed_method_hasNamed();
-
-  @failingTest
-  @override
-  test_addMissingParameterNamed_method_hasRequired() =>
-      super.test_addMissingParameterNamed_method_hasRequired();
-
-  @failingTest
-  @override
-  test_addMissingParameterNamed_method_noParameters() =>
-      super.test_addMissingParameterNamed_method_noParameters();
 
   @failingTest
   @override
@@ -7351,46 +7242,13 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_convertToNamedArguments_OK_instanceCreation() =>
-      super.test_convertToNamedArguments_OK_instanceCreation();
-
-  @failingTest
-  @override
-  test_convertToNamedArguments_OK_instanceCreation_hasPositional() =>
-      super.test_convertToNamedArguments_OK_instanceCreation_hasPositional();
-
-  @failingTest
-  @override
-  test_convertToNamedArguments_OK_methodInvocation() =>
-      super.test_convertToNamedArguments_OK_methodInvocation();
-
-  @failingTest
-  @override
-  test_createClass() => super.test_createClass();
-
-  @failingTest
-  @override
-  test_createClass_inLibraryOfPrefix() =>
-      super.test_createClass_inLibraryOfPrefix();
-
-  @failingTest
-  @override
-  test_createClass_innerLocalFunction() =>
-      super.test_createClass_innerLocalFunction();
-
-  @failingTest
-  @override
-  test_createClass_instanceCreation_withoutNew_fromFunction() =>
-      super.test_createClass_instanceCreation_withoutNew_fromFunction();
+  test_changeTypeAnnotation_OK_simple() =>
+      super.test_changeTypeAnnotation_OK_simple();
 
   @failingTest
   @override
   test_createClass_instanceCreation_withoutNew_fromMethod() =>
       super.test_createClass_instanceCreation_withoutNew_fromMethod();
-
-  @failingTest
-  @override
-  test_createClass_itemOfList() => super.test_createClass_itemOfList();
 
   @failingTest
   @override
@@ -7419,42 +7277,12 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_createConstructor_insteadOfSyntheticDefault() =>
-      super.test_createConstructor_insteadOfSyntheticDefault();
-
-  @failingTest
-  @override
   test_createConstructor_named() => super.test_createConstructor_named();
 
   @failingTest
   @override
   test_createConstructor_named_emptyClassBody() =>
       super.test_createConstructor_named_emptyClassBody();
-
-  @failingTest
-  @override
-  test_createConstructorSuperExplicit() =>
-      super.test_createConstructorSuperExplicit();
-
-  @failingTest
-  @override
-  test_createConstructorSuperExplicit_hasInitializers() =>
-      super.test_createConstructorSuperExplicit_hasInitializers();
-
-  @failingTest
-  @override
-  test_createConstructorSuperExplicit_named() =>
-      super.test_createConstructorSuperExplicit_named();
-
-  @failingTest
-  @override
-  test_createConstructorSuperExplicit_named_private() =>
-      super.test_createConstructorSuperExplicit_named_private();
-
-  @failingTest
-  @override
-  test_createConstructorSuperExplicit_typeArgument() =>
-      super.test_createConstructorSuperExplicit_typeArgument();
 
   @failingTest
   @override
@@ -7475,11 +7303,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
   @override
   test_createConstructorSuperImplicit_named() =>
       super.test_createConstructorSuperImplicit_named();
-
-  @failingTest
-  @override
-  test_createConstructorSuperImplicit_private() =>
-      super.test_createConstructorSuperImplicit_private();
 
   @failingTest
   @override
@@ -7576,45 +7399,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_createLocalVariable_functionType_named() =>
-      super.test_createLocalVariable_functionType_named();
-
-  @failingTest
-  @override
-  test_createLocalVariable_functionType_named_generic() =>
-      super.test_createLocalVariable_functionType_named_generic();
-
-  @override
-  test_createLocalVariable_functionType_synthetic() =>
-      super.test_createLocalVariable_functionType_synthetic();
-
-  @failingTest
-  @override
-  test_createLocalVariable_read_typeAssignment() =>
-      super.test_createLocalVariable_read_typeAssignment();
-
-  @failingTest
-  @override
-  test_createLocalVariable_read_typeCondition() =>
-      super.test_createLocalVariable_read_typeCondition();
-
-  @failingTest
-  @override
-  test_createLocalVariable_read_typeInvocationArgument() =>
-      super.test_createLocalVariable_read_typeInvocationArgument();
-
-  @failingTest
-  @override
-  test_createLocalVariable_read_typeInvocationTarget() =>
-      super.test_createLocalVariable_read_typeInvocationTarget();
-
-  @failingTest
-  @override
-  test_createLocalVariable_withImport() =>
-      super.test_createLocalVariable_withImport();
-
-  @failingTest
-  @override
   test_createLocalVariable_write_assignment() =>
       super.test_createLocalVariable_write_assignment();
 
@@ -7625,82 +7409,13 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_createMissingOverrides_field_untyped() =>
-      super.test_createMissingOverrides_field_untyped();
-
-  @failingTest
-  @override
-  test_createMissingOverrides_functionTypeAlias() =>
-      super.test_createMissingOverrides_functionTypeAlias();
-
-  @failingTest
-  @override
   test_createMissingOverrides_functionTypedParameter() =>
       super.test_createMissingOverrides_functionTypedParameter();
 
   @failingTest
   @override
-  test_createMissingOverrides_generics_typeArguments() =>
-      super.test_createMissingOverrides_generics_typeArguments();
-
-  @failingTest
-  @override
-  test_createMissingOverrides_generics_typeParameters() =>
-      super.test_createMissingOverrides_generics_typeParameters();
-
-  @failingTest
-  @override
-  test_createMissingOverrides_getter() =>
-      super.test_createMissingOverrides_getter();
-
-  @failingTest
-  @override
-  test_createMissingOverrides_importPrefix() =>
-      super.test_createMissingOverrides_importPrefix();
-
-  @failingTest
-  @override
-  test_createMissingOverrides_mergeToField_getterSetter() =>
-      super.test_createMissingOverrides_mergeToField_getterSetter();
-
-  @failingTest
-  @override
   test_createMissingOverrides_method() =>
       super.test_createMissingOverrides_method();
-
-  @failingTest
-  @override
-  test_createMissingOverrides_method_emptyClassBody() =>
-      super.test_createMissingOverrides_method_emptyClassBody();
-
-  @failingTest
-  @override
-  test_createMissingOverrides_method_generic() =>
-      super.test_createMissingOverrides_method_generic();
-
-  @failingTest
-  @override
-  test_createMissingOverrides_method_generic_withBounds() =>
-      super.test_createMissingOverrides_method_generic_withBounds();
-
-  @failingTest
-  @override
-  test_createMissingOverrides_method_notEmptyClassBody() =>
-      super.test_createMissingOverrides_method_notEmptyClassBody();
-
-  @failingTest
-  @override
-  test_createMissingOverrides_operator() =>
-      super.test_createMissingOverrides_operator();
-
-  @failingTest
-  @override
-  test_createMissingOverrides_setter() =>
-      super.test_createMissingOverrides_setter();
-
-  @failingTest
-  @override
-  test_createNoSuchMethod_OK() => super.test_createNoSuchMethod_OK();
 
   @failingTest
   @override
@@ -7749,10 +7464,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_expectedToken_semicolon() => super.test_expectedToken_semicolon();
-
-  @failingTest
-  @override
   test_illegalAsyncReturnType_adjacentNodes() =>
       super.test_illegalAsyncReturnType_adjacentNodes();
 
@@ -7773,16 +7484,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_importLibraryPackage_preferDirectOverExport() =>
-      super.test_importLibraryPackage_preferDirectOverExport();
-
-  @failingTest
-  @override
-  test_importLibraryPackage_preferDirectOverExport_src() =>
-      super.test_importLibraryPackage_preferDirectOverExport_src();
-
-  @failingTest
-  @override
   test_importLibraryProject_BAD_inLibSrc_differentContextRoot() =>
       super.test_importLibraryProject_BAD_inLibSrc_differentContextRoot();
 
@@ -7798,48 +7499,8 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_importLibraryProject_withClass_inParentFolder() =>
-      super.test_importLibraryProject_withClass_inParentFolder();
-
-  @failingTest
-  @override
-  test_importLibraryProject_withClass_inRelativeFolder() =>
-      super.test_importLibraryProject_withClass_inRelativeFolder();
-
-  @failingTest
-  @override
-  test_importLibraryProject_withClass_inSameFolder() =>
-      super.test_importLibraryProject_withClass_inSameFolder();
-
-  @failingTest
-  @override
-  test_importLibraryProject_withClass_instanceCreation_implicit() =>
-      super.test_importLibraryProject_withClass_instanceCreation_implicit();
-
-  @failingTest
-  @override
-  test_importLibraryProject_withFunction() =>
-      super.test_importLibraryProject_withFunction();
-
-  @failingTest
-  @override
   test_importLibraryProject_withFunction_unresolvedMethod() =>
       super.test_importLibraryProject_withFunction_unresolvedMethod();
-
-  @failingTest
-  @override
-  test_importLibraryProject_withFunctionTypeAlias() =>
-      super.test_importLibraryProject_withFunctionTypeAlias();
-
-  @failingTest
-  @override
-  test_importLibraryProject_withTopLevelVariable() =>
-      super.test_importLibraryProject_withTopLevelVariable();
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withClass_AsExpression() =>
-      super.test_importLibrarySdk_withClass_AsExpression();
 
   @failingTest
   @override
@@ -7865,43 +7526,8 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_importLibrarySdk_withClass_invocationTarget() =>
-      super.test_importLibrarySdk_withClass_invocationTarget();
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withClass_IsExpression() =>
-      super.test_importLibrarySdk_withClass_IsExpression();
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withClass_itemOfList() =>
-      super.test_importLibrarySdk_withClass_itemOfList();
-
-  @failingTest
-  @override
   test_importLibrarySdk_withClass_itemOfList_inAnnotation() =>
       super.test_importLibrarySdk_withClass_itemOfList_inAnnotation();
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withClass_typeAnnotation() =>
-      super.test_importLibrarySdk_withClass_typeAnnotation();
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withClass_typeAnnotation_PrefixedIdentifier() =>
-      super.test_importLibrarySdk_withClass_typeAnnotation_PrefixedIdentifier();
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withClass_typeArgument() =>
-      super.test_importLibrarySdk_withClass_typeArgument();
-
-  @failingTest
-  @override
-  test_importLibrarySdk_withTopLevelVariable() =>
-      super.test_importLibrarySdk_withTopLevelVariable();
 
   @failingTest
   @override
@@ -7940,11 +7566,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_removeParentheses_inGetterDeclaration() =>
-      super.test_removeParentheses_inGetterDeclaration();
-
-  @failingTest
-  @override
   test_removeParentheses_inGetterInvocation() =>
       super.test_removeParentheses_inGetterInvocation();
 
@@ -7969,36 +7590,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_undefinedClass_useSimilar_fromThisLibrary() =>
-      super.test_undefinedClass_useSimilar_fromThisLibrary();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_bottomArgument() =>
-      super.test_undefinedFunction_create_bottomArgument();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_duplicateArgumentNames() =>
-      super.test_undefinedFunction_create_duplicateArgumentNames();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_dynamicArgument() =>
-      super.test_undefinedFunction_create_dynamicArgument();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_dynamicReturnType() =>
-      super.test_undefinedFunction_create_dynamicReturnType();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_fromFunction() =>
-      super.test_undefinedFunction_create_fromFunction();
-
-  @failingTest
-  @override
   test_undefinedFunction_create_fromMethod() =>
       super.test_undefinedFunction_create_fromMethod();
 
@@ -8011,61 +7602,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
   @override
   test_undefinedFunction_create_generic_OK() =>
       super.test_undefinedFunction_create_generic_OK();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_importType() =>
-      super.test_undefinedFunction_create_importType();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_nullArgument() =>
-      super.test_undefinedFunction_create_nullArgument();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_returnType_bool_expressions() =>
-      super.test_undefinedFunction_create_returnType_bool_expressions();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_returnType_bool_statements() =>
-      super.test_undefinedFunction_create_returnType_bool_statements();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_returnType_fromAssignment_eq() =>
-      super.test_undefinedFunction_create_returnType_fromAssignment_eq();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_returnType_fromAssignment_plusEq() =>
-      super.test_undefinedFunction_create_returnType_fromAssignment_plusEq();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_returnType_fromBinary_right() =>
-      super.test_undefinedFunction_create_returnType_fromBinary_right();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_returnType_fromInitializer() =>
-      super.test_undefinedFunction_create_returnType_fromInitializer();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_returnType_fromInvocationArgument() =>
-      super.test_undefinedFunction_create_returnType_fromInvocationArgument();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_returnType_fromReturn() =>
-      super.test_undefinedFunction_create_returnType_fromReturn();
-
-  @failingTest
-  @override
-  test_undefinedFunction_create_returnType_void() =>
-      super.test_undefinedFunction_create_returnType_void();
 
   @failingTest
   @override
@@ -8141,15 +7677,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
   @override
   test_undefinedSetter_useSimilar_unqualified() =>
       super.test_undefinedSetter_useSimilar_unqualified();
-
-  @failingTest
-  @override
-  test_useImportPrefix_withClass() => super.test_useImportPrefix_withClass();
-
-  @failingTest
-  @override
-  test_useImportPrefix_withTopLevelVariable() =>
-      super.test_useImportPrefix_withTopLevelVariable();
 }
 
 @reflectiveTest
@@ -8170,7 +7697,7 @@ class LintFixTest extends BaseFixProcessorTest {
     await _assertNoFix(kind, error);
   }
 
-  Future<Null> findLint(String src, String lintCode, {int length: 1}) async {
+  Future<void> findLint(String src, String lintCode, {int length: 1}) async {
     int errorOffset = src.indexOf('/*LINT*/');
     await resolveTestUnit(src.replaceAll('/*LINT*/', ''));
     error = new AnalysisError(

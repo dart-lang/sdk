@@ -631,39 +631,29 @@ compiler.''',
           for (var modeName in modes.split(",")) {
             var mode = Mode.find(modeName);
             var system = System.find(data["system"] as String);
-            var namedConfiguration = getNamedConfiguration(
-                data["named_configuration"] as String,
-                runtime,
-                compiler,
-                mode,
-                architecture,
-                system);
-            var innerConfiguration = new Configuration(
-                namedConfiguration?.name ?? "custom configuration",
-                architecture,
-                compiler,
-                mode,
-                runtime,
-                system,
-                timeout: data["timeout"] as int,
-                enableAsserts: data["enable_asserts"] as bool,
-                useBlobs: data["use_blobs"] as bool,
-                useSdk: data["use_sdk"] as bool,
-                useFastStartup: data["fast_startup"] as bool,
-                useDart2JSWithKernel: data["dart2js_with_kernel"] as bool,
-                useDart2JSOldFrontEnd: data["dart2js_old_frontend"] as bool,
-                useHotReload: data["hot_reload"] as bool,
-                useHotReloadRollback: data["hot_reload_rollback"] as bool,
-                isChecked: data["checked"] as bool,
-                isHostChecked: data["host_checked"] as bool,
-                isCsp: data["csp"] as bool,
-                isMinified: data["minified"] as bool,
-                vmOptions: vmOptions,
-                builderTag: data["builder_tag"] as String,
-                previewDart2: !(data["no_preview_dart_2"] as bool));
+            var namedConfiguration =
+                getNamedConfiguration(data["named_configuration"] as String);
+            var innerConfiguration = namedConfiguration ??
+                new Configuration("custom configuration", architecture,
+                    compiler, mode, runtime, system,
+                    timeout: data["timeout"] as int,
+                    enableAsserts: data["enable_asserts"] as bool,
+                    useBlobs: data["use_blobs"] as bool,
+                    useSdk: data["use_sdk"] as bool,
+                    useFastStartup: data["fast_startup"] as bool,
+                    useDart2JSWithKernel: data["dart2js_with_kernel"] as bool,
+                    useDart2JSOldFrontEnd: data["dart2js_old_frontend"] as bool,
+                    useHotReload: data["hot_reload"] as bool,
+                    useHotReloadRollback: data["hot_reload_rollback"] as bool,
+                    isChecked: data["checked"] as bool,
+                    isHostChecked: data["host_checked"] as bool,
+                    isCsp: data["csp"] as bool,
+                    isMinified: data["minified"] as bool,
+                    vmOptions: vmOptions,
+                    builderTag: data["builder_tag"] as String,
+                    previewDart2: !(data["no_preview_dart_2"] as bool));
             var configuration = new TestConfiguration(
                 configuration: innerConfiguration,
-                namedConfiguration: namedConfiguration,
                 progress: Progress.find(data["progress"] as String),
                 selectors: selectors,
                 appendLogs: data["append_logs"] as bool,
@@ -718,6 +708,10 @@ compiler.''',
       }
     }
 
+    if (result.length > 1 && data["named_configuration"] != null) {
+      _fail("Named configuration cannot be used with multiple values for "
+          "arch, compiler, mode, or runtime");
+    }
     return result;
   }
 
@@ -761,9 +755,8 @@ compiler.''',
         pattern = ".?";
       }
       if (selectorMap.containsKey(suite)) {
-        print("Error: '$suite/$pattern'.  Only one test selection"
+        _fail("Error: '$suite/$pattern'.  Only one test selection"
             " pattern is allowed to start with '$suite/'");
-        exit(1);
       }
       selectorMap[suite] = new RegExp(pattern);
     }
@@ -861,26 +854,8 @@ Options:''');
   }
 }
 
-Configuration getNamedConfiguration(String template, Runtime runtime,
-    Compiler compiler, Mode mode, Architecture architecture, System system) {
+Configuration getNamedConfiguration(String template) {
   if (template == null) return null;
-  if (template.contains(r"${runtime}")) {
-    template = template.replaceFirst(r"${runtime}", runtime.name);
-  }
-  if (template.contains(r"${compiler}")) {
-    template = template.replaceFirst(r"${compiler}", compiler.name);
-  }
-  if (template.contains(r"${mode}")) {
-    template = template.replaceFirst(r"${mode}", mode.name);
-  }
-  if (template.contains(r"${arch}")) {
-    template = template.replaceFirst(r"${arch}", architecture.name);
-  }
-  if (template.contains(r"${system}")) {
-    var name = {'windows': 'win', 'macos': 'mac'}[system.name] ?? system.name;
-    template = template.replaceFirst(r"${system}", name);
-  }
-
   TestMatrix testMatrix = TestMatrix.fromPath("tools/bots/test_matrix.json");
   return testMatrix.configurations
       .singleWhere((c) => c.name == template, orElse: () => null);

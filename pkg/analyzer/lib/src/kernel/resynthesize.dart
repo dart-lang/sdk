@@ -27,14 +27,22 @@ import 'package:kernel/type_algebra.dart' as kernel;
 import 'package:kernel/type_environment.dart' as kernel;
 import 'package:path/path.dart' as pathos;
 
+/// Information about a single file - a library or part.
+class KernelFileInfo {
+  final bool exists;
+  final int contentLength;
+  final LineInfo lineInfo;
+  final kernel.Library library;
+
+  KernelFileInfo(this.exists, this.contentLength, this.lineInfo, this.library);
+}
+
 /**
  * Object that can resynthesize analyzer [LibraryElement] from Kernel.
  */
 class KernelResynthesizer implements ElementResynthesizer {
   final AnalysisContextImpl _analysisContext;
-  final Map<String, LineInfo> _lineInfoMap;
-  final Map<String, kernel.Library> _kernelMap;
-  final Map<String, bool> _libraryExistMap;
+  final Map<String, KernelFileInfo> _fileInfoMap;
   final Map<String, LibraryElementImpl> _libraryMap = {};
 
   /**
@@ -45,8 +53,7 @@ class KernelResynthesizer implements ElementResynthesizer {
   /// The type provider for this resynthesizer.
   SummaryTypeProvider _typeProvider;
 
-  KernelResynthesizer(this._analysisContext, this._lineInfoMap, this._kernelMap,
-      this._libraryExistMap) {
+  KernelResynthesizer(this._analysisContext, this._fileInfoMap) {
     _buildTypeProvider();
     _analysisContext.typeProvider = _typeProvider;
   }
@@ -187,10 +194,10 @@ class KernelResynthesizer implements ElementResynthesizer {
    */
   LibraryElementImpl getLibrary(String uriStr) {
     return _libraryMap.putIfAbsent(uriStr, () {
-      var kernel = _kernelMap[uriStr];
+      var kernel = _fileInfoMap[uriStr].library;
       if (kernel == null) return null;
 
-      if (_libraryExistMap[uriStr] != true) {
+      if (_fileInfoMap[uriStr]?.exists != true) {
         return _newSyntheticLibrary(uriStr);
       }
 
@@ -202,18 +209,19 @@ class KernelResynthesizer implements ElementResynthesizer {
       if (libraryElement == null) return null;
 
       // Build the defining unit.
-      var definingUnit = libraryContext._buildUnit(null).unit;
-      definingUnit.lineInfo = _lineInfoMap[uriStr];
+      var definingUnit = libraryContext._buildUnit(uriStr, kernel.fileUri).unit;
       libraryElement.definingCompilationUnit = definingUnit;
 
       // Build units for parts.
       var parts = new List<CompilationUnitElementImpl>(kernel.parts.length);
       for (int i = 0; i < kernel.parts.length; i++) {
-        var fileUriStr =
-            kernel.fileUri.resolve(kernel.parts[i].partUri).toString();
-        var unitContext = libraryContext._buildUnit(fileUriStr);
+        var relativeUriStr = kernel.parts[i].partUri;
+        var importUriStr =
+            resolveRelativeUri(kernel.importUri, Uri.parse(relativeUriStr))
+                .toString();
+        var fileUri = kernel.fileUri.resolve(relativeUriStr);
+        var unitContext = libraryContext._buildUnit(importUriStr, fileUri);
         var partUnit = unitContext.unit;
-        partUnit.lineInfo = _lineInfoMap[fileUriStr];
         parts[i] = partUnit;
       }
       libraryElement.parts = parts;
@@ -879,7 +887,9 @@ class _KernelLibraryResynthesizerContextImpl
   }
 
   @override
-  kernel.Library get coreLibrary => resynthesizer._kernelMap['dart:core'];
+  kernel.Library get coreLibrary {
+    return resynthesizer._fileInfoMap['dart:core'].library;
+  }
 
   @override
   bool get hasExtUri {
@@ -929,39 +939,18 @@ class _KernelLibraryResynthesizerContextImpl
         new LibraryElementImpl.forKernel(resynthesizer._analysisContext, this);
   }
 
-  _KernelUnitResynthesizerContextImpl _buildUnit(String fileUri) {
-    var unitContext = new _KernelUnitResynthesizerContextImpl(
-        this, fileUri ?? "${library.fileUri}");
+  _KernelUnitResynthesizerContextImpl _buildUnit(String uriStr, Uri fileUri) {
+    var unitContext = new _KernelUnitResynthesizerContextImpl(this, fileUri);
+
     var unitElement = new CompilationUnitElementImpl.forKernel(
         libraryElement, unitContext, '<no name>');
     unitContext.unit = unitElement;
     unitElement.librarySource = librarySource;
-
-    if (fileUri != null) {
-      String absoluteUriStr;
-      if (fileUri.startsWith('file://')) {
-        // Compute the URI relative to the library directory.
-        // E.g. when the library directory URI is `sdk/lib/core`, and the unit
-        // URI is `sdk/lib/core/bool.dart`, the result is `bool.dart`.
-        var relativeUri =
-            pathos.url.relative(fileUri, from: libraryDirectoryUri);
-        // Compute the absolute URI.
-        // When the absolute library URI is `dart:core`, and the relative
-        // URI is `bool.dart`, the result is `dart:core/bool.dart`.
-        Uri absoluteUri =
-            resolveRelativeUri(librarySource.uri, Uri.parse(relativeUri));
-        absoluteUriStr = absoluteUri.toString();
-      } else {
-        // File URIs must have the "file" scheme.
-        // But for invalid URIs, which cannot be even parsed, FrontEnd returns
-        // URIs with the "org-dartlang-malformed-uri" scheme, and does not
-        // resolve them to file URIs.
-        // We don't have anything better than to use these URIs as is.
-        absoluteUriStr = fileUri;
-      }
-      unitElement.source = resynthesizer._getSource(absoluteUriStr);
-    } else {
-      unitElement.source = librarySource;
+    if (!fileUri.isScheme('org-dartlang-malformed-uri')) {
+      var fileInfo = resynthesizer._fileInfoMap[uriStr];
+      unitElement.setCodeRange(0, fileInfo.contentLength);
+      unitElement.lineInfo = fileInfo.lineInfo;
+      unitElement.source = resynthesizer._getSource(uriStr);
     }
 
     unitContext.unit = unitElement;
@@ -986,9 +975,9 @@ class _KernelUnitImpl implements KernelUnit {
   @override
   List<kernel.Expression> get annotations {
     if (_annotations == null) {
+      var libraryFileUri = context.libraryContext.library.fileUri;
       for (var part in context.libraryContext.library.parts) {
-        if ("${context.libraryContext.library.fileUri.resolve(part.partUri)}" ==
-            context.fileUri) {
+        if (libraryFileUri.resolve(part.partUri) == context.fileUri) {
           return _annotations = part.annotations;
         }
       }
@@ -999,25 +988,25 @@ class _KernelUnitImpl implements KernelUnit {
   @override
   List<kernel.Class> get classes =>
       _classes ??= context.libraryContext.library.classes
-          .where((n) => "${n.fileUri}" == context.fileUri)
+          .where((n) => n.fileUri == context.fileUri)
           .toList(growable: false);
 
   @override
   List<kernel.Field> get fields =>
       _fields ??= context.libraryContext.library.fields
-          .where((n) => "${n.fileUri}" == context.fileUri)
+          .where((n) => n.fileUri == context.fileUri)
           .toList(growable: false);
 
   @override
   List<kernel.Procedure> get procedures =>
       _procedures ??= context.libraryContext.library.procedures
-          .where((n) => "${n.fileUri}" == context.fileUri)
+          .where((n) => n.fileUri == context.fileUri)
           .toList(growable: false);
 
   @override
   List<kernel.Typedef> get typedefs =>
       _typedefs ??= context.libraryContext.library.typedefs
-          .where((n) => "${n.fileUri}" == context.fileUri)
+          .where((n) => n.fileUri == context.fileUri)
           .toList(growable: false);
 }
 
@@ -1029,7 +1018,7 @@ class _KernelUnitResynthesizerContextImpl
   static final Uri dartInternalUri = Uri.parse('dart:_internal');
 
   final _KernelLibraryResynthesizerContextImpl libraryContext;
-  final String fileUri;
+  final Uri fileUri;
 
   CompilationUnitElementImpl unit;
 

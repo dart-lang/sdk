@@ -418,13 +418,17 @@ class CustomScrollView extends Widget {
 
   test_ArgumentList_Flutter_MethodExpression_children() async {
     // Ensure we don't generate params for a method call
+    // TODO(brianwilkerson) This test has been changed so that it no longer has
+    // anything to do with Flutter (by moving the declaration of `foo` out of
+    // the 'material' library). Determine whether the test is still valid.
     addFlutterPackage();
 
     addTestSource('''
 import 'package:flutter/material.dart';
 
 main() {
-foo(^);
+  foo(^);
+}
 
 foo({String children}) {}
 ''');
@@ -892,7 +896,6 @@ main() { new A(^);}''');
   test_ArgumentList_local_function_1() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
-      import '${convertPathForImport('/libA.dart')}'
       expect(arg) { }
       class B { }
       String bar() => true;
@@ -904,7 +907,6 @@ main() { new A(^);}''');
   test_ArgumentList_local_function_2() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
-      import '${convertPathForImport('/libA.dart')}'
       expect(arg1, int arg2) { }
       class B { }
       String bar() => true;
@@ -916,7 +918,6 @@ main() { new A(^);}''');
   test_ArgumentList_local_function_3() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
-      import '${convertPathForImport('/libA.dart')}'
       expect(arg1, int arg2) { }
       class B { }
       String bar() => true;
@@ -928,7 +929,6 @@ main() { new A(^);}''');
   test_ArgumentList_local_function_3a() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
-      import '${convertPathForImport('/libA.dart')}'
       expect(arg1, int arg2, {bool arg3}) { }
       class B { }
       String bar() => true;
@@ -940,7 +940,6 @@ main() { new A(^);}''');
   test_ArgumentList_local_function_3b() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
-      import '${convertPathForImport('/libA.dart')}'
       expect(arg1, int arg2, {bool arg3}) { }
       class B { }
       String bar() => true;
@@ -952,7 +951,6 @@ main() { new A(^);}''');
   test_ArgumentList_local_function_3c() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
-      import '${convertPathForImport('/libA.dart')}'
       expect(arg1, int arg2, {bool arg3}) { }
       class B { }
       String bar() => true;
@@ -964,7 +962,6 @@ main() { new A(^);}''');
   test_ArgumentList_local_function_3d() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
-      import '${convertPathForImport('/libA.dart')}'
       expect(arg1, int arg2, {bool arg3}) { }
       class B { }
       String bar() => true;
@@ -1052,11 +1049,6 @@ class ArgListContributorTest_UseCFE extends ArgListContributorTest {
 
   @failingTest
   @override
-  test_ArgumentList_Flutter_MethodExpression_children() =>
-      super.test_ArgumentList_Flutter_MethodExpression_children();
-
-  @failingTest
-  @override
   test_ArgumentList_local_constructor_named_param_4() =>
       super.test_ArgumentList_local_constructor_named_param_4();
 
@@ -1064,39 +1056,4 @@ class ArgListContributorTest_UseCFE extends ArgListContributorTest {
   @override
   test_ArgumentList_local_constructor_named_param_5() =>
       super.test_ArgumentList_local_constructor_named_param_5();
-
-  @failingTest
-  @override
-  test_ArgumentList_local_function_1() =>
-      super.test_ArgumentList_local_function_1();
-
-  @failingTest
-  @override
-  test_ArgumentList_local_function_2() =>
-      super.test_ArgumentList_local_function_2();
-
-  @failingTest
-  @override
-  test_ArgumentList_local_function_3() =>
-      super.test_ArgumentList_local_function_3();
-
-  @failingTest
-  @override
-  test_ArgumentList_local_function_3a() =>
-      super.test_ArgumentList_local_function_3a();
-
-  @failingTest
-  @override
-  test_ArgumentList_local_function_3b() =>
-      super.test_ArgumentList_local_function_3b();
-
-  @failingTest
-  @override
-  test_ArgumentList_local_function_3c() =>
-      super.test_ArgumentList_local_function_3c();
-
-  @failingTest
-  @override
-  test_ArgumentList_local_function_3d() =>
-      super.test_ArgumentList_local_function_3d();
 }

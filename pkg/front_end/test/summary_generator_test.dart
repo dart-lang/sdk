@@ -52,7 +52,7 @@ main() {
 
   test('non-sdk dependencies are marked external', () async {
     var summaryA = await summarize(['a.dart'], allSources);
-    var sourcesWithA = new Map.from(allSources);
+    var sourcesWithA = new Map<String, dynamic>.from(allSources);
     sourcesWithA['a.dill'] = summaryA;
     var summaryB =
         await summarize(['b.dart'], sourcesWithA, inputSummaries: ['a.dill']);
@@ -66,13 +66,13 @@ main() {
 
   test('dependencies can be combined without conflict', () async {
     var summaryA = await summarize(['a.dart'], allSources);
-    var sourcesWithA = new Map.from(allSources);
+    var sourcesWithA = new Map<String, dynamic>.from(allSources);
     sourcesWithA['a.dill'] = summaryA;
 
     var summaryBC = await summarize(['b.dart', 'c.dart'], sourcesWithA,
         inputSummaries: ['a.dill']);
 
-    var sourcesWithABC = new Map.from(sourcesWithA);
+    var sourcesWithABC = new Map<String, dynamic>.from(sourcesWithA);
     sourcesWithABC['bc.dill'] = summaryBC;
 
     // Note: a is loaded first, bc.dill have a.dart as an external reference so
@@ -85,13 +85,13 @@ main() {
 
   test('dependencies can be combined in any order', () async {
     var summaryA = await summarize(['a.dart'], allSources);
-    var sourcesWithA = new Map.from(allSources);
+    var sourcesWithA = new Map<String, dynamic>.from(allSources);
     sourcesWithA['a.dill'] = summaryA;
 
     var summaryBC = await summarize(['b.dart', 'c.dart'], sourcesWithA,
         inputSummaries: ['a.dill']);
 
-    var sourcesWithABC = new Map.from(sourcesWithA);
+    var sourcesWithABC = new Map<String, dynamic>.from(sourcesWithA);
     sourcesWithABC['bc.dill'] = summaryBC;
 
     // Note: unlinke the previous test now bc.dill is loaded first and contains
@@ -111,7 +111,7 @@ main() {
     expect(
         component.libraries.single.importUri.path.endsWith('a.dart'), isTrue);
 
-    var sourcesWithA = new Map.from(allSources);
+    var sourcesWithA = new Map<String, dynamic>.from(allSources);
     sourcesWithA['a.dill'] = summaryA;
     var summaryB = await summarize(['b.dart'], sourcesWithA,
         inputSummaries: ['a.dill'], truncate: true);
@@ -131,7 +131,7 @@ main() {
   // TODO(sigmund): test trimDependencies when it is part of the public API.
 }
 
-var allSources = {
+var allSources = <String, String>{
   'a.dart': 'class A { foo() { print("hi"); } }',
   'b.dart': 'import "a.dart"; class B extends A {}',
   'c.dart': 'class C { bar() => 1; }',

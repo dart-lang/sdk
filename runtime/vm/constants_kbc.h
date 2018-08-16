@@ -164,7 +164,13 @@ namespace dart {
 //    SP[-(1+ArgC)], ..., SP[-1] and argument descriptor PP[D], which
 //    indicates whether the first argument is a type argument vector.
 //
-//  - InstanceCall<N> ArgC, D; InstanceCall<N>Opt ArgC, D
+//  - InstanceCall ArgC, D
+//
+//    Lookup and invoke method using ICData in PP[D]
+//    with arguments SP[-(1+ArgC)], ..., SP[-1].
+//    The ICData indicates whether the first argument is a type argument vector.
+//
+//  - InstanceCall<N>Opt ArgC, D
 //
 //    Lookup and invoke method with N checked arguments using ICData in PP[D]
 //    with arguments SP[-(1+ArgC)], ..., SP[-1].
@@ -815,8 +821,7 @@ namespace dart {
   V(PopLocal,                              X, xeg, ___, ___)                   \
   V(IndirectStaticCall,                  A_D, num, num, ___)                   \
   V(StaticCall,                          A_D, num, num, ___)                   \
-  V(InstanceCall1,                       A_D, num, num, ___)                   \
-  V(InstanceCall2,                       A_D, num, num, ___)                   \
+  V(InstanceCall,                        A_D, num, num, ___)                   \
   V(InstanceCall1Opt,                    A_D, num, num, ___)                   \
   V(InstanceCall2Opt,                    A_D, num, num, ___)                   \
   V(PushPolymorphicInstanceCall,         A_D, num, num, ___)                   \
@@ -1079,8 +1084,7 @@ class KernelBytecode {
     switch (DecodeOpcode(instr)) {
       case KernelBytecode::kStaticCall:
       case KernelBytecode::kIndirectStaticCall:
-      case KernelBytecode::kInstanceCall1:
-      case KernelBytecode::kInstanceCall2:
+      case KernelBytecode::kInstanceCall:
       case KernelBytecode::kInstanceCall1Opt:
       case KernelBytecode::kInstanceCall2Opt:
       case KernelBytecode::kDebugBreak:
@@ -1121,6 +1125,17 @@ class KernelBytecode {
   }
 
   static KBCInstr At(uword pc) { return *reinterpret_cast<KBCInstr*>(pc); }
+
+  // Converts bytecode PC into an offset.
+  // For return addresses used in PcDescriptors, PC is also advanced to the
+  // next instruction.
+  static intptr_t BytecodePcToOffset(uint32_t pc, bool is_return_address) {
+    return sizeof(KBCInstr) * (pc + (is_return_address ? 1 : 0));
+  }
+
+  static uint32_t OffsetToBytecodePc(intptr_t offset, bool is_return_address) {
+    return (offset / sizeof(KBCInstr)) - (is_return_address ? 1 : 0);
+  }
 
  private:
   DISALLOW_ALLOCATION();

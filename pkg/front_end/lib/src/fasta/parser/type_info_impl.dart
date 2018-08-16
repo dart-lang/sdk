@@ -4,8 +4,7 @@
 
 library fasta.parser.type_info_impl;
 
-import '../../scanner/token.dart'
-    show BeginToken, SyntheticToken, Token, TokenType;
+import '../../scanner/token.dart' show SyntheticToken, Token, TokenType;
 
 import '../fasta_codes.dart' as fasta;
 
@@ -23,7 +22,57 @@ import 'parser.dart' show Parser;
 
 import 'type_info.dart';
 
-import 'util.dart' show isOneOf, optional, skipMetadata;
+import 'util.dart'
+    show
+        optional,
+        skipMetadata,
+        splitGtEq,
+        splitGtFromGtGtEq,
+        splitGtGt,
+        syntheticGt;
+
+/// [SimpleType] is a specialized [TypeInfo] returned by [computeType]
+/// when there is a single identifier as the type reference.
+const TypeInfo simpleType = const SimpleType();
+
+/// [PrefixedType] is a specialized [TypeInfo] returned by [computeType]
+/// when the type reference is of the form: identifier `.` identifier.
+const TypeInfo prefixedType = const PrefixedType();
+
+/// [SimpleTypeWith1Argument] is a specialized [TypeInfo] returned by
+/// [computeType] when the type reference is of the form:
+/// identifier `<` identifier `>`.
+const TypeInfo simpleTypeWith1Argument =
+    const SimpleTypeWith1Argument(simpleTypeArgument1);
+
+/// [SimpleTypeWith1Argument] is a specialized [TypeInfo] returned by
+/// [computeType] when the type reference is of the form:
+/// identifier `<` identifier `>=`.
+const TypeInfo simpleTypeWith1ArgumentGtEq =
+    const SimpleTypeWith1Argument(simpleTypeArgument1GtEq);
+
+/// [SimpleTypeWith1Argument] is a specialized [TypeInfo] returned by
+/// [computeType] when the type reference is of the form:
+/// identifier `<` identifier `>>`.
+const TypeInfo simpleTypeWith1ArgumentGtGt =
+    const SimpleTypeWith1Argument(simpleTypeArgument1GtGt);
+
+/// [SimpleTypeArgument1] is a specialized [TypeParamOrArgInfo] returned by
+/// [computeTypeParamOrArg] when the type reference is of the form:
+/// `<` identifier `>`.
+const TypeParamOrArgInfo simpleTypeArgument1 = const SimpleTypeArgument1();
+
+/// [SimpleTypeArgument1] is a specialized [TypeParamOrArgInfo] returned by
+/// [computeTypeParamOrArg] when the type reference is of the form:
+/// `<` identifier `>=`.
+const TypeParamOrArgInfo simpleTypeArgument1GtEq =
+    const SimpleTypeArgument1GtEq();
+
+/// [SimpleTypeArgument1] is a specialized [TypeParamOrArgInfo] returned by
+/// [computeTypeParamOrArg] when the type reference is of the form:
+/// `<` identifier `>>`.
+const TypeParamOrArgInfo simpleTypeArgument1GtGt =
+    const SimpleTypeArgument1GtGt();
 
 /// See documentation on the [noType] const.
 class NoType implements TypeInfo {
@@ -96,7 +145,7 @@ class PrefixedType implements TypeInfo {
     listener.handleQualified(period);
 
     listener.handleNoTypeArguments(token.next);
-    listener.handleType(start, token.next);
+    listener.handleType(start);
     return token;
   }
 
@@ -108,7 +157,9 @@ class PrefixedType implements TypeInfo {
 
 /// See documentation on the [simpleTypeWith1Argument] const.
 class SimpleTypeWith1Argument implements TypeInfo {
-  const SimpleTypeWith1Argument();
+  final TypeParamOrArgInfo typeArg;
+
+  const SimpleTypeWith1Argument(this.typeArg);
 
   @override
   bool get couldBeExpression => false;
@@ -131,8 +182,8 @@ class SimpleTypeWith1Argument implements TypeInfo {
     assert(token.isKeywordOrIdentifier);
     Listener listener = parser.listener;
     listener.handleIdentifier(token, IdentifierContext.typeReference);
-    token = simpleTypeArgument1.parseArguments(token, parser);
-    listener.handleType(start, token.next);
+    token = typeArg.parseArguments(token, parser);
+    listener.handleType(start);
     return token;
   }
 
@@ -140,7 +191,7 @@ class SimpleTypeWith1Argument implements TypeInfo {
   Token skipType(Token token) {
     token = token.next;
     assert(token.isKeywordOrIdentifier);
-    return simpleTypeArgument1.skip(token);
+    return typeArg.skip(token);
   }
 }
 
@@ -170,7 +221,7 @@ class SimpleType implements TypeInfo {
     Listener listener = parser.listener;
     listener.handleIdentifier(token, IdentifierContext.typeReference);
     token = noTypeParamOrArg.parseArguments(token, parser);
-    listener.handleType(token, token.next);
+    listener.handleType(token);
     return token;
   }
 
@@ -230,7 +281,8 @@ bool looksLikeTypeParamOrArg(bool inDeclaration, Token token) {
   if (inDeclaration && token.kind == IDENTIFIER_TOKEN) {
     Token next = token.next;
     if (next.kind == IDENTIFIER_TOKEN ||
-        isOneOf(next, const [',', '>', '>>'])) {
+        optional(',', next) ||
+        isCloser(next)) {
       return true;
     }
   }
@@ -285,8 +337,10 @@ class ComplexTypeInfo implements TypeInfo {
           token, IdentifierContext.prefixedTypeReference);
     }
 
+    final typeVariableEndGroups = <Token>[];
     for (Link<Token> t = typeVariableStarters; t.isNotEmpty; t = t.tail) {
-      computeTypeParamOrArg(t.head, true).parseVariables(t.head, parser);
+      typeVariableEndGroups.add(
+          computeTypeParamOrArg(t.head, true).parseVariables(t.head, parser));
       parser.listener.beginFunctionType(start);
     }
 
@@ -315,21 +369,24 @@ class ComplexTypeInfo implements TypeInfo {
           }
         }
         token = typeArguments.parseArguments(token, parser);
-        parser.listener.handleType(typeRefOrPrefix, token.next);
+        parser.listener.handleType(typeRefOrPrefix);
       }
     }
 
+    int endGroupIndex = typeVariableEndGroups.length - 1;
     for (Link<Token> t = typeVariableStarters; t.isNotEmpty; t = t.tail) {
       token = token.next;
       assert(optional('Function', token));
       Token functionToken = token;
       if (optional("<", token.next)) {
         // Skip type parameters, they were parsed above.
-        token = token.next.endGroup;
+        token = typeVariableEndGroups[endGroupIndex];
+        assert(optional('>', token));
       }
+      --endGroupIndex;
       token = parser.parseFormalParametersRequiredOpt(
           token, MemberKind.GeneralizedFunctionType);
-      parser.listener.endFunctionType(functionToken, token.next);
+      parser.listener.endFunctionType(functionToken);
     }
 
     // There are two situations in which the [token] != [end]:
@@ -470,7 +527,7 @@ class ComplexTypeInfo implements TypeInfo {
 }
 
 /// See [noTypeParamOrArg].
-class NoTypeParamOrArg implements TypeParamOrArgInfo {
+class NoTypeParamOrArg extends TypeParamOrArgInfo {
   const NoTypeParamOrArg();
 
   @override
@@ -489,64 +546,125 @@ class NoTypeParamOrArg implements TypeParamOrArgInfo {
   Token skip(Token token) => token;
 }
 
-class SimpleTypeArgument1 implements TypeParamOrArgInfo {
+class SimpleTypeArgument1 extends TypeParamOrArgInfo {
   const SimpleTypeArgument1();
 
   @override
+  bool get isSimpleTypeArgument => true;
+
+  @override
+  TypeInfo get typeInfo => simpleTypeWith1Argument;
+
+  @override
   Token parseArguments(Token token, Parser parser) {
-    BeginToken start = token = token.next;
-    assert(optional('<', token));
+    Token beginGroup = token.next;
+    assert(optional('<', beginGroup));
+    Token endGroup = parseEndGroup(beginGroup, beginGroup.next);
     Listener listener = parser.listener;
-    listener.beginTypeArguments(token);
-    token = simpleType.parseType(token, parser);
-    token = processEndGroup(token, start, parser);
-    parser.listener.endTypeArguments(1, start, token);
-    return token;
+    listener.beginTypeArguments(beginGroup);
+    simpleType.parseType(beginGroup, parser);
+    parser.listener.endTypeArguments(1, beginGroup, endGroup);
+    return endGroup;
   }
 
   @override
   Token parseVariables(Token token, Parser parser) {
-    BeginToken start = token = token.next;
-    assert(optional('<', token));
+    Token beginGroup = token.next;
+    assert(optional('<', beginGroup));
+    token = beginGroup.next;
+    Token endGroup = parseEndGroup(beginGroup, token);
     Listener listener = parser.listener;
-    listener.beginTypeVariables(token);
-    token = token.next;
+    listener.beginTypeVariables(beginGroup);
     listener.beginMetadataStar(token);
     listener.endMetadataStar(0);
     listener.handleIdentifier(token, IdentifierContext.typeVariableDeclaration);
     listener.beginTypeVariable(token);
     listener.handleTypeVariablesDefined(token, 1);
     listener.handleNoType(token);
-    token = processEndGroup(token, start, parser);
-    listener.endTypeVariable(token, 0, null);
-    listener.endTypeVariables(start, token);
-    return token;
+    listener.endTypeVariable(endGroup, 0, null);
+    listener.endTypeVariables(beginGroup, endGroup);
+    return endGroup;
   }
 
   @override
   Token skip(Token token) {
     token = token.next;
     assert(optional('<', token));
-    assert(token.endGroup != null ||
-        (optional('>', token.next.next) || optional('>>', token.next.next)));
-    return (optional('>', token.endGroup ?? token.next.next)
-        ? token.next.next
-        : token.next);
+    token = token.next;
+    assert(token.isKeywordOrIdentifier);
+    return skipEndGroup(token);
+  }
+
+  Token skipEndGroup(Token token) {
+    token = token.next;
+    assert(optional('>', token));
+    return token;
+  }
+
+  Token parseEndGroup(Token beginGroup, Token token) {
+    token = token.next;
+    assert(optional('>', token));
+    return token;
   }
 }
 
-class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
+class SimpleTypeArgument1GtEq extends SimpleTypeArgument1 {
+  const SimpleTypeArgument1GtEq();
+
+  @override
+  TypeInfo get typeInfo => simpleTypeWith1ArgumentGtEq;
+
+  Token skipEndGroup(Token token) {
+    token = token.next;
+    assert(optional('>=', token));
+    return splitGtEq(token);
+  }
+
+  Token parseEndGroup(Token beginGroup, Token beforeEndGroup) {
+    Token endGroup = beforeEndGroup.next;
+    if (!optional('>', endGroup)) {
+      endGroup = splitGtEq(endGroup);
+      endGroup.next.setNext(endGroup.next.next);
+    }
+    beforeEndGroup.setNext(endGroup);
+    return endGroup;
+  }
+}
+
+class SimpleTypeArgument1GtGt extends SimpleTypeArgument1 {
+  const SimpleTypeArgument1GtGt();
+
+  @override
+  TypeInfo get typeInfo => simpleTypeWith1ArgumentGtGt;
+
+  Token skipEndGroup(Token token) {
+    token = token.next;
+    assert(optional('>>', token));
+    return splitGtGt(token);
+  }
+
+  Token parseEndGroup(Token beginGroup, Token beforeEndGroup) {
+    Token endGroup = beforeEndGroup.next;
+    if (!optional('>', endGroup)) {
+      endGroup = splitGtGt(endGroup);
+      endGroup.next.setNext(endGroup.next.next);
+    }
+    beforeEndGroup.setNext(endGroup);
+    return endGroup;
+  }
+}
+
+class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
   /// The first token in the type var.
-  final BeginToken start;
+  final Token start;
 
   /// If [inDeclaration] is `true`, then this will more aggressively recover
   /// given unbalanced `<` `>` and invalid parameters or arguments.
   final bool inDeclaration;
 
-  /// The last token in the group (typically `>`).
-  /// If a `>>` has not yet been split, then this field will be
-  /// `>>` for the outer group and the token before `>>` for the inner group.
-  Token end;
+  /// The token before the end group token (e.g. `>`, `>>`, `>=`, or `>>=`)
+  /// or after which a synthetic end group token should be inserted.
+  Token beforeEnd;
 
   ComplexTypeParamOrArgInfo(Token token, this.inDeclaration)
       : assert(optional('<', token.next)),
@@ -556,29 +674,25 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
   /// Parse the tokens and return the receiver or [noTypeParamOrArg] if there
   /// are no type parameters or arguments. This does not modify the token
   /// stream.
-  ///
-  /// If this group is enclosed and the outer group ends with `>>`, then
-  /// [endGroup] is set to either `>>` if the token has not been split
-  /// or the first `>` if the `>>` token has been split.
-  TypeParamOrArgInfo compute(Token endGroup) {
-    Token innerEndGroup;
-    if (start.endGroup != null && optional('>>', start.endGroup)) {
-      innerEndGroup = start.endGroup;
-    }
-
+  TypeParamOrArgInfo compute() {
     Token token;
     Token next = start;
     while (true) {
-      TypeInfo typeInfo = computeType(next, true, inDeclaration, innerEndGroup);
+      TypeInfo typeInfo = computeType(next, true, inDeclaration);
       if (typeInfo == noType) {
         while (typeInfo == noType && optional('@', next.next)) {
           next = skipMetadata(next);
-          typeInfo = computeType(next, true, inDeclaration, innerEndGroup);
+          typeInfo = computeType(next, true, inDeclaration);
         }
-        if (typeInfo == noType && !optional(',', next.next)) {
-          token = next;
-          next = token.next;
-          break;
+        if (typeInfo == noType) {
+          if (next == start && !inDeclaration && !isCloser(next.next)) {
+            return noTypeParamOrArg;
+          }
+          if (!optional(',', next.next)) {
+            token = next;
+            next = token.next;
+            break;
+          }
         }
         assert(typeInfo != noType || optional(',', next.next));
         // Fall through to process type (if any) and consume `,`
@@ -586,33 +700,41 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
       token = typeInfo.skipType(next);
       next = token.next;
       if (optional('extends', next) || optional('super', next)) {
-        token = computeType(next, true, inDeclaration, innerEndGroup)
-            .skipType(next);
+        token = computeType(next, true, inDeclaration).skipType(next);
         next = token.next;
       }
       if (!optional(',', next)) {
+        if (isCloser(next)) {
+          beforeEnd = token;
+          return this;
+        }
+        if (!inDeclaration) {
+          return noTypeParamOrArg;
+        }
+
+        // Recovery
         if (!looksLikeTypeParamOrArg(inDeclaration, next)) {
           break;
         }
-        // Recovery: Missing comma. Continue looping
+        // Looks like missing comma. Continue looping.
+        next = token;
       }
     }
 
-    if (next == start.endGroup) {
-      end = next;
-    } else if (next == endGroup) {
-      assert(start.endGroup == null);
-      assert(optional('>', endGroup) || optional('>>', endGroup));
-      // If `>>`, then the end or last consumed token is the token before `>>`.
-      end = optional('>>', next) ? token : next;
-    } else if (inDeclaration) {
-      end = start.endGroup;
-      if (end == null) {
-        // Recovery: Unbalanced `<`
-        end = token;
+    // Recovery
+    beforeEnd = token;
+    if (!isCloser(next)) {
+      if (optional('(', next)) {
+        token = next.endGroup;
+        next = token.next;
       }
-    } else {
-      return noTypeParamOrArg;
+      if (!isCloser(next)) {
+        token = next;
+        next = token.next;
+      }
+      if (isCloser(next)) {
+        beforeEnd = token;
+      }
     }
     return this;
   }
@@ -621,18 +743,17 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
   Token parseArguments(Token token, Parser parser) {
     assert(identical(token.next, start));
     Token next = start;
-    Token innerEndGroup = processBeginGroup(start, parser);
     parser.listener.beginTypeArguments(start);
     int count = 0;
     while (true) {
-      TypeInfo typeInfo = computeType(next, true, inDeclaration, innerEndGroup);
+      TypeInfo typeInfo = computeType(next, true, inDeclaration);
       if (typeInfo == noType) {
         // Recovery
         while (typeInfo == noType && optional('@', next.next)) {
           parser.reportRecoverableErrorWithToken(
               next.next, fasta.templateUnexpectedToken);
           next = skipMetadata(next);
-          typeInfo = computeType(next, true, inDeclaration, innerEndGroup);
+          typeInfo = computeType(next, true, inDeclaration);
         }
         // Fall through to process type (if any) and consume `,`
       }
@@ -640,22 +761,23 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
       next = token.next;
       ++count;
       if (!optional(',', next)) {
-        if (!looksLikeTypeParamOrArg(inDeclaration, next)) {
+        if (parseCloser(token)) {
+          beforeEnd = token;
           break;
         }
 
-        // Recovery: missing comma
-        parser.reportRecoverableError(
-            next, fasta.templateExpectedButGot.withArguments(','));
-        next = parser.rewriter
-            .insertTokenAfter(
-                token, new SyntheticToken(TokenType.COMMA, next.charOffset))
-            .next;
+        // Recovery
+        if (!looksLikeTypeParamOrArg(inDeclaration, next)) {
+          parseUnexpectedEnd(token, parser);
+          break;
+        }
+        // Missing comma. Report error, insert comma, and continue looping.
+        next = parseMissingComma(token, parser);
       }
     }
-    end = processEndGroup(token, start, parser);
-    parser.listener.endTypeArguments(count, start, end);
-    return end;
+    Token endGroup = beforeEnd.next;
+    parser.listener.endTypeArguments(count, start, endGroup);
+    return endGroup;
   }
 
   @override
@@ -664,7 +786,6 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
     Token next = start;
     Listener listener = parser.listener;
     listener.beginTypeVariables(start);
-    Token innerEndGroup = processBeginGroup(start, parser);
     int count = 0;
 
     Link<Token> typeStarts = const Link<Token>();
@@ -672,15 +793,18 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
 
     while (true) {
       token = parser.parseMetadataStar(next);
-      token = parser.ensureIdentifier(
+      next = parser.ensureIdentifier(
           token, IdentifierContext.typeVariableDeclaration);
+      if (beforeEnd == token) {
+        beforeEnd = next;
+      }
+      token = next;
       listener.beginTypeVariable(token);
       typeStarts = typeStarts.prepend(token);
 
       next = token.next;
       if (optional('extends', next) || optional('super', next)) {
-        TypeInfo typeInfo =
-            computeType(next, true, inDeclaration, innerEndGroup);
+        TypeInfo typeInfo = computeType(next, true, inDeclaration);
         token = typeInfo.skipType(next);
         next = token.next;
         superTypeInfos = superTypeInfos.prepend(typeInfo);
@@ -690,17 +814,16 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
 
       ++count;
       if (!optional(',', next)) {
-        if (!looksLikeTypeParamOrArg(inDeclaration, next)) {
+        if (isCloser(token)) {
           break;
         }
 
-        // Recovery: missing comma
-        parser.reportRecoverableError(
-            next, fasta.templateExpectedButGot.withArguments(','));
-        next = parser.rewriter
-            .insertTokenAfter(
-                token, new SyntheticToken(TokenType.COMMA, next.charOffset))
-            .next;
+        // Recovery
+        if (!looksLikeTypeParamOrArg(inDeclaration, next)) {
+          break;
+        }
+        // Missing comma. Report error, insert comma, and continue looping.
+        next = parseMissingComma(token, parser);
       }
     }
 
@@ -734,53 +857,92 @@ class ComplexTypeParamOrArgInfo implements TypeParamOrArgInfo {
       superTypeInfos = superTypeInfos.tail;
     }
 
-    end = processEndGroup(token, start, parser);
-    listener.endTypeVariables(start, end);
-    return end;
+    if (parseCloser(token)) {
+      beforeEnd = token;
+    } else {
+      parseUnexpectedEnd(token, parser);
+    }
+    Token endGroup = beforeEnd.next;
+    listener.endTypeVariables(start, endGroup);
+    return endGroup;
+  }
+
+  Token parseMissingComma(Token token, Parser parser) {
+    Token next = token.next;
+    parser.reportRecoverableError(
+        next, fasta.templateExpectedButGot.withArguments(','));
+    return parser.rewriter.insertToken(
+        token, new SyntheticToken(TokenType.COMMA, next.charOffset));
+  }
+
+  void parseUnexpectedEnd(Token token, Parser parser) {
+    if (beforeEnd.isSynthetic && beforeEnd.charOffset == token.charOffset) {
+      // Ensure that beforeEnd is in the token stream
+      // as a nested type argument or parameter may have inserted
+      // a synthetic closer.
+      beforeEnd = token;
+    }
+    if (parseCloser(beforeEnd)) {
+      parser.reportRecoverableErrorWithToken(
+          token.next, fasta.templateUnexpectedToken);
+    } else {
+      // If token is synthetic, then an error has already been reported.
+      if (!token.isSynthetic) {
+        parser.reportRecoverableError(
+            token, fasta.templateExpectedAfterButGot.withArguments('>'));
+      }
+      Token next = beforeEnd.next;
+      Token endGroup = syntheticGt(next);
+      endGroup.setNext(next);
+      beforeEnd.setNext(endGroup);
+    }
   }
 
   @override
-  Token skip(Token token) => end;
+  Token skip(Token token) {
+    final next = beforeEnd.next;
+    final value = next.stringValue;
+    if (identical(value, '>')) {
+      return next;
+    } else if (identical(value, '>>')) {
+      return splitGtGt(next);
+    } else if (identical(value, '>=')) {
+      return splitGtEq(next);
+    } else if (identical(value, '>>=')) {
+      return splitGtFromGtGtEq(next);
+    }
+    return syntheticGt(next);
+  }
 }
 
-Token processBeginGroup(BeginToken start, Parser parser) {
-  if (start.endGroup != null && optional('>>', start.endGroup)) {
-    return parser.rewriter.splitEndGroup(start);
-  }
-  return null;
+/// Return `true` if [token] is one of `>`, `>>`, `>=', or `>>=`.
+bool isCloser(Token token) {
+  final value = token.stringValue;
+  return identical(value, '>') ||
+      identical(value, '>>') ||
+      identical(value, '>=') ||
+      identical(value, '>>=');
 }
 
-Token processEndGroup(Token token, BeginToken start, Parser parser) {
-  Token next = token.next;
-  if (next == start.endGroup) {
-    return next;
-  } else if (optional('>', next) && !next.isSynthetic) {
-    // When `>>` is split, the inner group's endGroup updated here.
-    assert(start.endGroup == null);
-    start.endGroup = next;
-    return next;
+/// If [token] is one of `>`, `>>`, `>=', or `>>=`,
+/// then update the token stream and return `true`.
+bool parseCloser(Token beforeCloser) {
+  Token closer = beforeCloser.next;
+  String value = closer.stringValue;
+  if (identical(value, '>')) {
+    return true;
   }
-
-  // Recovery
-  if (start.endGroup != null) {
-    // Extraneous tokens between `<` and `>`.
-    parser.reportRecoverableErrorWithToken(next, fasta.templateUnexpectedToken);
-    return start.endGroup;
-  } else if (isOneOf(next, const ['>>', '>=', '>>='])) {
-    // Found single unbalanced `<`.
-    return parser.rewriter.splitEndGroup(start, next);
+  Token split;
+  if (identical(value, '>>')) {
+    split = splitGtGt(closer);
+  } else if (identical(value, '>=')) {
+    split = splitGtEq(closer);
+  } else if (identical(value, '>>=')) {
+    split = splitGtFromGtGtEq(closer);
+  } else {
+    return false;
   }
-  // Ensure that `>` is inserted after any newly inserted synthetic tokens.
-  while (next.isSynthetic && !next.isEof) {
-    token = next;
-    next = token.next;
-  }
-  // Unbalanced `<` `>`
-  parser.reportRecoverableError(
-      next, fasta.templateExpectedButGot.withArguments('>'));
-  start.endGroup = parser.rewriter
-      .insertTokenAfter(
-          token, new SyntheticToken(TokenType.GT, next.charOffset))
-      .next;
-  return start.endGroup;
+  split.next.setNext(closer.next);
+  beforeCloser.setNext(split);
+  return true;
 }

@@ -35,6 +35,12 @@ class CompletionRunner {
   final bool printMissing;
 
   /**
+   * A flag indicating whether to produce output about the quality of the sort
+   * order.
+   */
+  final bool printQuality;
+
+  /**
    * A flag indicating whether to produce timing information.
    */
   final bool timing;
@@ -61,11 +67,13 @@ class CompletionRunner {
   CompletionRunner(
       {StringSink output,
       bool printMissing,
+      bool printQuality,
       bool timing,
       bool useCFE,
       bool verbose})
       : this.output = output ?? new NullStringSink(),
         this.printMissing = printMissing ?? false,
+        this.printQuality = printQuality ?? false,
         this.timing = timing ?? false,
         this.useCFE = useCFE ?? false,
         this.verbose = verbose ?? false;
@@ -87,7 +95,10 @@ class CompletionRunner {
 
     int fileCount = 0;
     int identifierCount = 0;
+    int expectedCount = 0;
     int missingCount = 0;
+    List<int> indexCount = new List.filled(20, 0);
+    List<int> filteredIndexCount = new List.filled(20, 0);
 
     // Consider getting individual timings so that we can also report the
     // longest and shortest times, or even a distribution.
@@ -95,6 +106,9 @@ class CompletionRunner {
 
     for (AnalysisContext context in collection.contexts) {
       for (String path in context.contextRoot.analyzedFiles()) {
+        if (!path.endsWith('.dart')) {
+          continue;
+        }
         fileCount++;
         output.write('.');
         ResolveResult result =
@@ -123,7 +137,10 @@ class CompletionRunner {
 
           if (!identifier.inDeclarationContext() &&
               !_isNamedExpressionName(identifier)) {
-            if (!_hasSuggestion(suggestions, identifier.name)) {
+            expectedCount++;
+            suggestions = _sort(suggestions.toList());
+            int index = _indexOf(suggestions, identifier.name);
+            if (index < 0) {
               missingCount++;
               if (printMissing) {
                 CharacterLocation location = lineInfo.getLocation(offset);
@@ -132,6 +149,17 @@ class CompletionRunner {
                 if (verbose) {
                   _printSuggestions(suggestions);
                 }
+              }
+            } else if (printQuality) {
+              if (index < indexCount.length) {
+                indexCount[index]++;
+              }
+              List<CompletionSuggestion> filteredSuggestions =
+                  _filterBy(suggestions, identifier.name.substring(0, 1));
+              int filteredIndex =
+                  _indexOf(filteredSuggestions, identifier.name);
+              if (filteredIndex < filteredIndexCount.length) {
+                filteredIndexCount[filteredIndex]++;
               }
             }
           }
@@ -145,12 +173,53 @@ class CompletionRunner {
     if (printMissing) {
       output.writeln();
     }
-    if (identifierCount == 0) {
-      output.writeln('No identifiers found in $fileCount files');
-    } else {
-      int percent = (missingCount * 100 / identifierCount).round();
-      output.writeln('$percent% missing suggestions '
-          '($missingCount of $identifierCount in $fileCount files)');
+    output.writeln('Found $identifierCount identifiers in $fileCount files');
+    if (expectedCount > 0) {
+      output.writeln('  $expectedCount were expected to code complete');
+      if (printQuality) {
+        int percent = (missingCount * 100 / expectedCount).round();
+        output.writeln('  $percent% of which were missing suggestions '
+            '($missingCount)');
+
+        int foundCount = expectedCount - missingCount;
+
+        void printCount(int count) {
+          if (count < 10) {
+            output.write('      $count  ');
+          } else if (count < 100) {
+            output.write('     $count  ');
+          } else if (count < 1000) {
+            output.write('    $count  ');
+          } else if (count < 10000) {
+            output.write('   $count  ');
+          } else {
+            output.write('  $count  ');
+          }
+          int percent = (count * 100 / foundCount).floor();
+          for (int j = 0; j < percent; j++) {
+            output.write('-');
+          }
+          output.writeln();
+        }
+
+        void _printCounts(List<int> counts) {
+          int nearTopCount = 0;
+          for (int i = 0; i < counts.length; i++) {
+            int count = counts[i];
+            printCount(count);
+            nearTopCount += count;
+          }
+          printCount(foundCount - nearTopCount);
+        }
+
+        output.writeln();
+        output.writeln('By position in the list');
+        _printCounts(indexCount);
+        output.writeln();
+        output.writeln('By position in the list (filtered by first character)');
+        _printCounts(filteredIndexCount);
+        output.writeln();
+      }
     }
     if (timing && identifierCount > 0) {
       int time = timer.elapsedMilliseconds;
@@ -160,18 +229,11 @@ class CompletionRunner {
     }
   }
 
-  /**
-   * Return `true` if the given list of [suggestions] includes a suggestion for
-   * the given [identifier].
-   */
-  bool _hasSuggestion(
-      List<CompletionSuggestion> suggestions, String identifier) {
-    for (CompletionSuggestion suggestion in suggestions) {
-      if (suggestion.completion == identifier) {
-        return true;
-      }
-    }
-    return false;
+  List<CompletionSuggestion> _filterBy(
+      List<CompletionSuggestion> suggestions, String pattern) {
+    return suggestions
+        .where((suggestion) => suggestion.completion.startsWith(pattern))
+        .toList();
   }
 
   /**
@@ -182,6 +244,19 @@ class CompletionRunner {
     IdentifierCollector visitor = new IdentifierCollector();
     unit.accept(visitor);
     return visitor.identifiers;
+  }
+
+  /**
+   * If the given list of [suggestions] includes a suggestion for the given
+   * [identifier], return the index of the suggestion. Otherwise, return `-1`.
+   */
+  int _indexOf(List<CompletionSuggestion> suggestions, String identifier) {
+    for (int i = 0; i < suggestions.length; i++) {
+      if (suggestions[i].completion == identifier) {
+        return i;
+      }
+    }
+    return -1;
   }
 
   /**
@@ -205,6 +280,11 @@ class CompletionRunner {
     for (CompletionSuggestion suggestion in suggestions) {
       output.writeln('    ${suggestion.completion}');
     }
+  }
+
+  List<CompletionSuggestion> _sort(List<CompletionSuggestion> suggestions) {
+    suggestions.sort((first, second) => second.relevance - first.relevance);
+    return suggestions;
   }
 }
 

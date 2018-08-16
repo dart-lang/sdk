@@ -55,7 +55,7 @@ abstract class OutlineMixin implements ServerPlugin {
   Future<OutlineRequest> getOutlineRequest(String path);
 
   @override
-  Future<Null> sendOutlineNotification(String path) async {
+  Future<void> sendOutlineNotification(String path) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     try {

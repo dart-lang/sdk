@@ -110,7 +110,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     return length;
   }
 
-  Future<Null> resolveTestUnit(String code) async {
+  Future<void> resolveTestUnit(String code) async {
     addTestSource(code);
     testAnalysisResult = await driver.getResult(convertPath(testFile));
     testUnit = testAnalysisResult.unit;
@@ -136,7 +136,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   }
 }
 
-class _ElementsByNameFinder extends RecursiveAstVisitor<Null> {
+class _ElementsByNameFinder extends RecursiveAstVisitor<void> {
   final String name;
   final List<Element> elements = [];
 

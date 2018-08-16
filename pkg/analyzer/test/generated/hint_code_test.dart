@@ -76,7 +76,19 @@ class JS {
   const JS([String js]);
 }
 '''
-      ]
+      ],
+      [
+        'angular_meta',
+        r'''
+library angular.meta;
+
+const _VisibleForTemplate visibleForTemplate = const _VisibleForTemplate();
+
+class _VisibleForTemplate {
+  const _VisibleForTemplate();
+}
+'''
+      ],
     ]);
   }
 
@@ -2142,7 +2154,7 @@ class C {
     verify([source, source2, source3]);
   }
 
-  test_invalidUseOfVisibleForTestingMember_OK_export() async {
+  test_invalidUseOfVisibleForTestingMember_export_OK() async {
     Source source = addNamedSource('/lib1.dart', r'''
 import 'package:meta/meta.dart';
 
@@ -2220,6 +2232,184 @@ import 'lib1.dart';
 
 class B extends A {
   void b() => new A().a();
+}
+''');
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertNoErrors(source2);
+    verify([source, source2]);
+  }
+
+  test_invalidUseOfVisibleForTemplateMember_constructor() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:angular_meta/angular_meta.dart';
+class A {
+  int _x;
+
+  @visibleForTemplate
+  A.forTemplate(this._x);
+}
+''');
+    Source source2 = addNamedSource('/lib2.dart', r'''
+import 'lib1.dart';
+
+void main() {
+  new A.forTemplate(0);
+}
+''');
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertErrors(
+        source2, [HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER]);
+    verify([source, source2]);
+  }
+
+  test_invalidUseOfVisibleForTemplateMember_method() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:angular_meta/angular_meta.dart';
+class A {
+  @visibleForTemplate
+  void a(){ }
+}
+''');
+    Source source2 = addNamedSource('/lib2.dart', r'''
+import 'lib1.dart';
+
+class B {
+  void b() => new A().a();
+}
+''');
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertErrors(
+        source2, [HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER]);
+    verify([source, source2]);
+  }
+
+  test_invalidUseOfVisibleForTemplateMember_method_OK() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:angular_meta/angular_meta.dart';
+class A {
+  @visibleForTemplate
+  void a(){ }
+}
+''');
+    Source source2 = addNamedSource('/lib1.template.dart', r'''
+import 'lib1.dart';
+
+class B {
+  void b() => new A().a();
+}
+''');
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertNoErrors(source2);
+    verify([source, source2]);
+  }
+
+  test_invalidUseOfVisibleForTemplateMember_export_OK() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:angular_meta/angular_meta.dart';
+
+@visibleForTemplate
+int fn0() => 1;
+''');
+    Source source2 = addNamedSource('/lib2.dart', r'''
+export 'lib1.dart' show fn0;
+''');
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertNoErrors(source2);
+    verify([source, source2]);
+  }
+
+  test_invalidUseOfVisibleForTemplateMember_propertyAccess() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:angular_meta/angular_meta.dart';
+class A {
+  @visibleForTemplate
+  int get a => 7;
+
+  @visibleForTemplate
+  set b(_) => 7;
+}
+''');
+    Source source2 = addNamedSource('/lib2.dart', r'''
+import 'lib1.dart';
+
+void main() {
+  new A().a;
+  new A().b = 6;
+}
+''');
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertErrors(source2, [
+      HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER,
+      HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER
+    ]);
+    verify([source, source2]);
+  }
+
+  test_invalidUseOfVisibleForTemplateMember_topLevelFunction() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:angular_meta/angular_meta.dart';
+
+@visibleForTemplate
+int fn0() => 1;
+''');
+    Source source2 = addNamedSource('/lib2.dart', r'''
+import 'lib1.dart';
+
+void main() {
+  fn0();
+}
+''');
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertErrors(
+        source2, [HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER]);
+    verify([source, source2]);
+  }
+
+  test_invalidUseProtectedAndForTemplate_asProtected_OK() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:angular_meta/angular_meta.dart';
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  @visibleForTemplate
+  void a(){ }
+}
+''');
+    Source source2 = addNamedSource('/lib2.dart', r'''
+import 'lib1.dart';
+
+class B extends A {
+  void b() => new A().a();
+}
+''');
+    await computeAnalysisResult(source);
+    await computeAnalysisResult(source2);
+    assertNoErrors(source2);
+    verify([source, source2]);
+  }
+
+  test_invalidUseProtectedAndForTemplate_asTemplate_OK() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:angular_meta/angular_meta.dart';
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  @visibleForTemplate
+  void a(){ }
+}
+''');
+    Source source2 = addNamedSource('/lib1.template.dart', r'''
+import 'lib1.dart';
+
+void main() {
+  new A().a();
 }
 ''');
     await computeAnalysisResult(source);
@@ -2399,122 +2589,10 @@ class A {
     verify([source]);
   }
 
-  test_missingReturn_functionExpression_declared() async {
-    Source source = addSource(r'''
-main() {
-  f() {} // no hint
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-  }
-
-  test_missingReturn_functionExpression_expression() async {
-    Source source = addSource(r'''
-main() {
-  int Function() f = () => null; // no hint
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-  }
-
-  test_missingReturn_functionExpression_futureOrDynamic() async {
-    Source source = addSource(r'''
-import 'dart:async';
-main() {
-  FutureOr<dynamic> Function() f = () { print(42); };
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_missingReturn_functionExpression_futureOrInt() async {
-    Source source = addSource(r'''
-import 'dart:async';
-main() {
-  FutureOr<int> Function() f = () { print(42); };
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.MISSING_RETURN]);
-    verify([source]);
-  }
-
-  test_missingReturn_functionExpression_inferred() async {
-    Source source = addSource(r'''
-main() {
-  int Function() f = () { print(42); };
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.MISSING_RETURN]);
-    verify([source]);
-  }
-
-  test_missingReturn_functionExpression_inferred_dynamic() async {
-    Source source = addSource(r'''
-main() {
-  Function() f = () { print(42); }; // no hint
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_missingReturn_functionExpressionAsync_inferred() async {
-    Source source = addSource(r'''
-import 'dart:async';
-main() {
-  Future<int> Function() f = () async { print(42); };
-}
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.MISSING_RETURN]);
-    verify([source]);
-  }
-
-  test_missingReturn_functionExpressionAsync_inferred_dynamic() async {
-    Source source = addSource(r'''
-import 'dart:async';
-main() {
-  Future Function() f = () async { print(42); }; // no hint
-}
-''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_missingReturn_method() async {
     Source source = addSource(r'''
 class A {
   int m() {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [HintCode.MISSING_RETURN]);
-    verify([source]);
-  }
-
-  test_missingReturn_method_futureOrDynamic() async {
-    Source source = addSource(r'''
-import 'dart:async';
-class A {
-  FutureOr<dynamic> m() {}
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_missingReturn_method_futureOrInt() async {
-    Source source = addSource(r'''
-import 'dart:async';
-class A {
-  FutureOr<int> m() {}
 }''');
     await computeAnalysisResult(source);
     assertErrors(source, [HintCode.MISSING_RETURN]);

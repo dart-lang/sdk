@@ -55,7 +55,7 @@ abstract class HighlightsMixin implements ServerPlugin {
   Future<HighlightsRequest> getHighlightsRequest(String path);
 
   @override
-  Future<Null> sendHighlightsNotification(String path) async {
+  Future<void> sendHighlightsNotification(String path) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     try {

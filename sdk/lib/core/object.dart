@@ -18,6 +18,7 @@ part of dart.core;
  * section of the [library
  * tour](http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html).
  */
+@pragma("vm.entry-point")
 class Object {
   /**
    * Creates a new [Object] instance.

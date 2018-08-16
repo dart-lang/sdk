@@ -211,7 +211,9 @@ class KernelLibraryBuilder
       int startCharOffset,
       int charOffset,
       int charEndOffset,
-      int supertypeOffset) {
+      int supertypeOffset,
+      int codeStartOffset,
+      int codeEndOffset) {
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
     var declaration = endNestedDeclaration(className)
       ..resolveTypes(typeVariables, this);
@@ -245,6 +247,8 @@ class KernelLibraryBuilder
         charEndOffset);
     loader.target.metadataCollector
         ?.setDocumentationComment(cls.target, documentationComment);
+    loader.target.metadataCollector
+        ?.setCodeStartEnd(cls.target, codeStartOffset, codeEndOffset);
 
     constructorReferences.clear();
     Map<String, TypeVariableBuilder> typeVariablesByName =
@@ -319,7 +323,9 @@ class KernelLibraryBuilder
       String name,
       List<TypeVariableBuilder> typeVariables,
       int modifiers,
-      List<KernelTypeBuilder> interfaces}) {
+      List<KernelTypeBuilder> interfaces,
+      int codeStartOffset,
+      int codeEndOffset}) {
     if (name == null) {
       // The following parameters should only be used when building a named
       // mixin application.
@@ -499,6 +505,8 @@ class KernelLibraryBuilder
         if (isNamedMixinApplication) {
           loader.target.metadataCollector?.setDocumentationComment(
               application.target, documentationComment);
+          loader.target.metadataCollector?.setCodeStartEnd(
+              application.target, codeStartOffset, codeEndOffset);
         }
         // TODO(ahe, kmillikin): Should always be true?
         // pkg/analyzer/test/src/summary/resynthesize_kernel_test.dart can't
@@ -522,7 +530,9 @@ class KernelLibraryBuilder
       int modifiers,
       KernelTypeBuilder mixinApplication,
       List<KernelTypeBuilder> interfaces,
-      int charOffset) {
+      int charOffset,
+      int codeStartOffset,
+      int codeEndOffset) {
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
     endNestedDeclaration(name).resolveTypes(typeVariables, this);
     KernelNamedTypeBuilder supertype = applyMixins(
@@ -532,7 +542,9 @@ class KernelLibraryBuilder
         name: name,
         typeVariables: typeVariables,
         modifiers: modifiers,
-        interfaces: interfaces);
+        interfaces: interfaces,
+        codeStartOffset: codeStartOffset,
+        codeEndOffset: codeEndOffset);
     checkTypeVariables(typeVariables, supertype.declaration);
   }
 
@@ -605,6 +617,8 @@ class KernelLibraryBuilder
       int charOpenParenOffset,
       int charEndOffset,
       String nativeMethodName,
+      int codeStartOffset,
+      int codeEndOffset,
       {bool isTopLevel}) {
     MetadataCollector metadataCollector = loader.target.metadataCollector;
     ProcedureBuilder procedure = new KernelProcedureBuilder(
@@ -623,6 +637,8 @@ class KernelLibraryBuilder
         nativeMethodName);
     metadataCollector?.setDocumentationComment(
         procedure.target, documentationComment);
+    metadataCollector?.setCodeStartEnd(
+        procedure.target, codeStartOffset, codeEndOffset);
     checkTypeVariables(typeVariables, procedure);
     addBuilder(name, procedure, charOffset);
     if (nativeMethodName != null) {
@@ -828,10 +844,10 @@ class KernelLibraryBuilder
     }
   }
 
-  void addNativeDependency(Uri nativeImportUri) {
+  void addNativeDependency(String nativeImportPath) {
     Declaration constructor = loader.getNativeAnnotation();
     Arguments arguments =
-        new Arguments(<Expression>[new StringLiteral("$nativeImportUri")]);
+        new Arguments(<Expression>[new StringLiteral(nativeImportPath)]);
     Expression annotation;
     if (constructor.isConstructor) {
       annotation = new ConstructorInvocation(constructor.target, arguments)
@@ -862,8 +878,8 @@ class KernelLibraryBuilder
         Import import = imports[importIndex++];
 
         // Rather than add a LibraryDependency, we attach an annotation.
-        if (import.nativeImportUri != null) {
-          addNativeDependency(import.nativeImportUri);
+        if (import.nativeImportPath != null) {
+          addNativeDependency(import.nativeImportPath);
           continue;
         }
 

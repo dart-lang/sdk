@@ -1,5 +1,9 @@
 This directory contains "informal specifications".
 
+**Note**: This directory is no longer where new language proposals are
+discussed. Instead, new language proposals should be submitted to
+[dart-lang/language](https://github.com/dart-lang/language).
+
 In order to move faster and get better feedback, we implement and iterate on
 language changes before the full official specification has been written. Still,
 the implementers need *something* to go on.

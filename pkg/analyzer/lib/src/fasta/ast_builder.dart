@@ -885,7 +885,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleType(Token beginToken, Token endToken) {
+  void handleType(Token beginToken) {
     debugEvent("Type");
 
     TypeArgumentList arguments = pop();
@@ -1062,7 +1062,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endFunctionType(Token functionToken, Token semicolon) {
+  void endFunctionType(Token functionToken) {
     assert(optional('Function', functionToken));
     debugEvent("FunctionType");
 
@@ -2412,7 +2412,7 @@ class AstBuilder extends StackListener {
     // keyword up to an element?
     handleIdentifier(voidKeyword, IdentifierContext.typeReference);
     handleNoTypeArguments(voidKeyword);
-    handleType(voidKeyword, voidKeyword);
+    handleType(voidKeyword);
   }
 
   @override

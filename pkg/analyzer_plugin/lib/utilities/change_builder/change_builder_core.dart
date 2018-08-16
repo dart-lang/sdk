@@ -36,7 +36,7 @@ abstract class ChangeBuilder {
    * file with the given [path]. The edits will be added to the source change
    * that is being built.
    */
-  Future<Null> addFileEdit(
+  Future<void> addFileEdit(
       String path, void buildFileEdit(FileEditBuilder builder));
 
   /**

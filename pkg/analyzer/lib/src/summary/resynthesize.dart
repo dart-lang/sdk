@@ -1587,7 +1587,7 @@ class _UnitResynthesizer extends UnitResynthesizer with UnitResynthesizerMixin {
   Expression _buildConstExpression(ElementImpl context, UnlinkedExpr uc) {
     var expression = new ExprBuilder(this, context, uc).build();
 
-    if (expression != null && context.context.analysisOptions.previewDart2) {
+    if (expression != null) {
       astRewriteVisitor ??= new AstRewriteVisitor(
           libraryResynthesizer.summaryResynthesizer.context.typeSystem,
           libraryResynthesizer.library,

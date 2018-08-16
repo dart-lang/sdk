@@ -29,7 +29,7 @@ class TypeMemberContributor implements CompletionContributor {
    * call on `computeSuggestionsWithEntryPoint`.
    */
   @override
-  Future<Null> computeSuggestions(
+  Future<void> computeSuggestions(
       DartCompletionRequest request, CompletionCollector collector) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -51,7 +51,7 @@ class TypeMemberContributor implements CompletionContributor {
   /**
    * Clients should not overload this function.
    */
-  Future<Null> computeSuggestionsWithEntryPoint(DartCompletionRequest request,
+  Future<void> computeSuggestionsWithEntryPoint(DartCompletionRequest request,
       CompletionCollector collector, AstNode entryPoint) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;

@@ -133,24 +133,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
 
   @failingTest
   @override
-  test_missingReturn_functionExpression_futureOrInt() async {
-    return super.test_missingReturn_functionExpression_futureOrInt();
-  }
-
-  @failingTest
-  @override
-  test_missingReturn_functionExpression_inferred() async {
-    return super.test_missingReturn_functionExpression_inferred();
-  }
-
-  @failingTest
-  @override
-  test_missingReturn_functionExpressionAsync_inferred() async {
-    return super.test_missingReturn_functionExpressionAsync_inferred();
-  }
-
-  @failingTest
-  @override
   test_mustCallSuper() async {
     return super.test_mustCallSuper();
   }

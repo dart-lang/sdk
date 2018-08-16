@@ -4,6 +4,7 @@
 
 // part of "core_patch.dart";
 
+@pragma("vm.entry-point")
 class _Closure implements Function {
   bool operator ==(Object other) native "Closure_equals";
 

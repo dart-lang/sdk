@@ -27,6 +27,7 @@ import 'kernel_builder.dart' show KernelTypeBuilder, PrefixBuilder;
 import 'kernel_ast_api.dart'
     show
         Arguments,
+        ArgumentsJudgment,
         Constructor,
         DartType,
         Expression,
@@ -70,7 +71,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   scopeLookup(Scope scope, String name, Token token,
       {bool isQualified: false, PrefixBuilder prefix});
 
-  finishSend(Object receiver, Arguments arguments, int offset);
+  finishSend(Object receiver, ArgumentsJudgment arguments, int offset);
 
   Expression buildCompileTimeError(Message message, int charOffset, int length,
       {List<LocatedMessage> context});
@@ -100,7 +101,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       Constructor constructor, Arguments arguments,
       [int charOffset = -1]);
 
-  Expression buildStaticInvocation(Procedure target, Arguments arguments,
+  Expression buildStaticInvocation(
+      Procedure target, ArgumentsJudgment arguments,
       {Constness constness, int charOffset, Expression error});
 
   Expression buildProblemExpression(
@@ -115,11 +117,14 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       bool isStatic,
       LocatedMessage argMessage});
 
-  LocatedMessage checkArgumentsForFunction(FunctionNode function,
-      Arguments arguments, int offset, List<TypeParameter> typeParameters);
+  LocatedMessage checkArgumentsForFunction(
+      FunctionNode function,
+      ArgumentsJudgment arguments,
+      int offset,
+      List<TypeParameter> typeParameters);
 
   LocatedMessage checkArgumentsForType(
-      FunctionType function, Arguments arguments, int offset);
+      FunctionType function, ArgumentsJudgment arguments, int offset);
 
   StaticGet makeStaticGet(Member readTarget, Token token);
 

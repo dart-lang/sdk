@@ -1849,9 +1849,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         return _abstractValueDomain.createNonNullSubtype(enclosing);
       }
     }
-    // If [JSInvocationMirror._invokeOn] is enabled, and this call
-    // might hit a `noSuchMethod`, we register an untyped selector.
-    return _closedWorld.extendMaskIfReachesAll(selector, mask);
+    return mask ?? _abstractValueDomain.dynamicType;
   }
 
   void registerMethodInvoke(HInvokeDynamic node) {

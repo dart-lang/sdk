@@ -8,10 +8,6 @@
 mock_writable_final_private_field_test: CompileTimeError # Issue 30848
 vm/reflect_core_vm_test: CompileTimeError # Issue 30848
 
-[ $compiler == dart2analyzer && $runtime == none && !$fasta ]
-error_stacktrace_test/00: MissingCompileTimeError
-vm/lazy_deopt_with_exception_test: CompileTimeError
-
 [ $compiler == dart2analyzer && $analyzer_use_fasta_parser ]
 multiline_newline_test/01: Pass
 multiline_newline_test/01r: Pass
@@ -22,42 +18,461 @@ multiline_newline_test/04r: Pass
 multiline_newline_test/05: Pass
 multiline_newline_test/05r: Pass
 regress_29349_test: Pass
+void/generalized_void_syntax_test: Pass
+void/void_type_function_types_test/none: Pass 
 
 [ $compiler == dart2analyzer && !$analyzer_use_fasta_parser && !$fasta ]
 constructor_type_parameter_test/00: MissingCompileTimeError # Issue 33110
 constructor_with_type_parameters_test/03: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && $fasta ]
+arg_param_trailing_comma_test/100: Crash # Issue #34043 - Error recovery in outline (extraneous comma before formal parameter)
+arg_param_trailing_comma_test/138: Crash # Error recovery in method body (synthetic argument)
+arg_param_trailing_comma_test/147: Crash # Error recovery in method body (synthetic argument)
+arg_param_trailing_comma_test/156: Crash # Error recovery in method body (synthetic argument)
+arg_param_trailing_comma_test/165: Crash # Error recovery in method body (synthetic argument)
+arg_param_trailing_comma_test/166: Crash # Error recovery in method body (invalid assignment)
+arg_param_trailing_comma_test/24: Crash # Issue #34043 - Error recovery in outline (extraneous comma before formal parameter)
+arg_param_trailing_comma_test/25: Crash # Issue #34043 - Error recovery in outline (extraneous comma before formal parameter)
+arg_param_trailing_comma_test/26: Crash # Issue #34043 - Error recovery in outline (extraneous comma before formal parameter)
+arg_param_trailing_comma_test/72: Crash # Issue #34043 - Error recovery in outline (extraneous comma before formal parameter)
+arg_param_trailing_comma_test/73: Crash # Issue #34043 - Error recovery in outline (extraneous comma before formal parameter)
+arg_param_trailing_comma_test/74: Crash # Issue #34043 - Error recovery in outline (extraneous comma before formal parameter)
+arg_param_trailing_comma_test/98: Crash # Issue #34043 - Error recovery in outline (extraneous comma before formal parameter)
+arg_param_trailing_comma_test/99: Crash # Issue #34043 - Error recovery in outline (extraneous comma before formal parameter)
+assign_to_type_test/01: Crash # Error recovery in method body (invalid assignment)
+assign_to_type_test/02: Crash # Error recovery in method body (invalid assignment)
+assign_to_type_test/03: Crash # Error recovery in method body (invalid assignment)
+assign_to_type_test/04: Crash # Error recovery in method body (invalid assignment)
+black_listed_test/02: Crash # Issue 33686 - No core library found
+black_listed_test/04: Crash # Issue 33686 - No core library found
+black_listed_test/06: Crash # Issue 33686 - No core library found
+black_listed_test/08: Crash # Issue 33686 - No core library found
+black_listed_test/10: Crash # Issue 33686 - No core library found
+black_listed_test/12: Crash # Issue 33686 - No core library found
+black_listed_test/14: Crash # Issue 33686 - No core library found
+built_in_identifier_illegal_test/implements: Crash # Issue #34043 - Error recovery in outline (synthetic token used where type expected)
+built_in_identifier_illegal_test/part: Crash # No resolution for a file
+built_in_identifier_illegal_test/typedef: Crash # Issue 33686 - No core library found
+built_in_identifier_type_annotation_test/part: Crash # No resolution for a file
+built_in_identifier_type_annotation_test/set: Crash # Issue #34043 - Error recovery in outline
+built_in_identifier_type_annotation_test/set-funret: Crash # Issue #34043 - Error recovery in outline
+call_nonexistent_static_test/10: Crash # Error recovery in method body (attempt to read from setter)
+case_expression_with_assignment_test/01: Crash # Error recovery in method body (assignment to constant)
+class_cycle2_test/01: Crash # Issue #34043 - Error recovery in outline (class hierarchy cycle - see also #33756)
+class_cycle2_test/02: Crash # Issue #34043 - Error recovery in outline (class hierarchy cycle - see also #33756)
+class_cycle_test/00: Crash # Issue #34043 - Error recovery in outline (class hierarchy cycle - see also #33756)
+class_cycle_test/01: Crash # Issue #34043 - Error recovery in outline (class hierarchy cycle - see also #33756)
+class_cycle_test/02: MissingCompileTimeError
+class_cycle_test/03: MissingCompileTimeError
+class_literal_static_test/12: Crash # Error recovery in method body (invalid assignment)
+class_literal_static_test/13: Crash # Error recovery in method body (invalid assignment)
+class_literal_static_test/24: Crash # Error recovery in method body (invalid assignment)
+class_literal_test/12: Crash # Error recovery in method body (invalid assignment)
+class_literal_test/13: Crash # Error recovery in method body (invalid assignment)
+class_literal_test/24: Crash # Error recovery in method body (invalid assignment)
 compile_time_constant_static5_test/11: CompileTimeError # Issue 31537
 compile_time_constant_static5_test/16: CompileTimeError # Issue 31537
 compile_time_constant_static5_test/21: CompileTimeError # Issue 31537
 compile_time_constant_static5_test/23: CompileTimeError # Issue 31402
+conditional_property_assignment_test/20: Crash # Error recovery in method body (invalid assignment)
+conditional_property_assignment_test/21: Crash # Error recovery in method body (invalid assignment)
+conditional_property_assignment_test/22: Crash # Error recovery in method body (invalid assignment)
+config_import_corelib_test: CompileTimeError # Issue 34047
+conflicting_generic_interfaces_hierarchy_loop_infinite_test: Crash # Issue #34043 - Error recovery in outline (class hierarchy cycle - see also #33756)
+conflicting_generic_interfaces_hierarchy_loop_test: Crash # Issue #34043 - Error recovery in outline (class hierarchy cycle - see also #33756)
+const_counter_test/01: Crash # Error recovery in method body (use of non-const closure in a const context)
+const_native_factory_test: Crash # Issue #34043 - Error recovery in outline (native const factory)
+constructor9_test/01: MissingStaticWarning
+constructor_name_test/02: Crash # Issue #34043 - Error recovery in outline (illegal constructor name)
+constructor_named_arguments_test/01: Crash # Error recovery in method body (argument mismatch in constructor redirect)
+constructor_redirect2_test/02: Crash # Issue 33686 - No core library found
+constructor_redirect2_test/03: Crash # Issue 33686 - No core library found
+constructor_redirect2_test/04: Crash # Issue 33686 - No core library found
+constructor_redirect_test/01: Crash # Error recovery in method body (reference to non-static method in constructor initializer)
+covariant_override_test: Crash # Improper handling of correct code - override fails to appear in kernel representation
+covariant_subtyping_test: Crash # Improper handling of correct code - problem with function-typed parameters in a generic class
+crash_6725_test/01: Crash # Error recovery in method body (mishandling of improper for-in variable)
+cyclic_class_member_test/01: Crash # Issue #34043 - Error recovery in outline (class hierarchy cycle - see also #33756)
+deep_nesting_statement_test/01: Crash # Error recovery in method body (deep nesting causes method to disappear)
+deferred_load_library_wrong_args_test/01: CompileTimeError # Issue 34047
+duplicate_constructor_test/01: Crash # Issue 33686 - No core library found
+duplicate_field_with_initializer_test/01: Crash # Issue 33686 - No core library found
+duplicate_implements_test/01: MissingCompileTimeError
+duplicate_implements_test/02: MissingCompileTimeError
+duplicate_interface_implements_test/01: MissingCompileTimeError
+dynamic_prefix_core_test/none: CompileTimeError # Issue 34047
+emit_const_fields_test: CompileTimeError # Issue 34047
+enum_syntax_test/02: Crash # Issue #34043 - Error recovery in outline (duplicate enum name)
+enum_syntax_test/03: Crash # Issue #34043 - Error recovery in outline (enum name collision)
+enum_syntax_test/04: Crash # Issue #34043 - Error recovery in outline (enum name collision)
+enum_syntax_test/05: Crash # Issue #34043 - Error recovery in outline (enum name collision)
+enum_syntax_test/06: Crash # Issue #34043 - Error recovery in outline (enum name collision)
+enum_syntax_test/09: Crash # Issue 33686 - No core library found
+enum_syntax_test/10: Crash # Issue 33686 - No core library found
+enum_syntax_test/11: Crash # Issue 33686 - No core library found
+enum_syntax_test/30: Crash # Error recovery in method body (attempt to instantiate an enum)
+export_ambiguous_main_test: MissingCompileTimeError
+external_test/21: CompileTimeError # Issue 34047
+external_test/24: CompileTimeError # Issue 34047
+factory2_test/01: Crash # Issue #34043 - Error recovery in outline (illegal constructor name)
+factory_test/00: Crash # Issue #34043 - Error recovery in outline (illegal constructor name)
+factory_with_type_parameters_test/03: Crash # Issue 33686 - No core library found
+factory_with_type_parameters_test/04: Crash # Issue 33686 - No core library found
+field1_test: Crash # Issue 33686 - No core library found
+field2_test: Crash # Issue 33686 - No core library found
+field4_test: Crash # Issue 33686 - No core library found
+field5_test: Crash # Issue 33686 - No core library found
+field6_test/00: Crash # Issue 33686 - No core library found
+field6_test/01: Crash # Issue 33686 - No core library found
+field_initialization_order_test/01: MissingCompileTimeError
+final_syntax_test/01: MissingCompileTimeError
+final_syntax_test/02: MissingCompileTimeError
+final_syntax_test/03: MissingCompileTimeError
+final_syntax_test/04: MissingCompileTimeError
+first_class_types_literals_test/03: Crash # Error recovery in method body (invalid assignment)
+first_class_types_literals_test/04: Crash # Error recovery in method body (invalid assignment)
+first_class_types_literals_test/08: Crash # Error recovery in method body (invalid assignment)
+first_class_types_literals_test/09: Crash # Error recovery in method body (invalid assignment)
+function_type_parameter2_negative_test: Crash # Error recovery in method body (use of non-const closure in a const context)
+function_type_parameter_negative_test: Crash # Error recovery in method body (use of non-const closure in a const context)
+generic_function_type_as_type_argument_test/01: MissingCompileTimeError
+generic_function_type_as_type_argument_test/02: MissingCompileTimeError
+generic_function_typedef2_test/04: Crash # Issue #34043 - Error recovery in outline (attempt to apply type arguments to a non-generic type)
+generic_local_functions_test: Crash # Problem with generic function-typed parameter
+generic_methods_generic_function_parameter_test: Crash # Problem with generic function-typed parameter
+generic_methods_generic_function_result_test/01: MissingCompileTimeError
+generic_no_such_method_dispatcher_simple_test: CompileTimeError # Issue 34047
+generic_no_such_method_dispatcher_test: CompileTimeError # Issue 34047
+generic_tearoff_test: Crash # Problem with generic function-typed parameter
+generic_test/01: MissingCompileTimeError
+get_set_syntax_test/02: Crash # Issue #34043 - Error recovery in outline (setter with wrong number of parameters - see also #33691)
+get_set_syntax_test/03: Crash # Issue #34043 - Error recovery in outline (setter with wrong number of parameters - see also #33691)
+get_set_syntax_test/06: Crash # Issue #34043 - Error recovery in outline (setter with wrong number of parameters - see also #33691)
+get_set_syntax_test/07: Crash # Issue #34043 - Error recovery in outline (setter with wrong number of parameters - see also #33691)
+get_set_syntax_test/10: Crash # Issue #34043 - Error recovery in outline (setter with wrong number of parameters - see also #33691)
+get_set_syntax_test/11: Crash # Issue #34043 - Error recovery in outline (setter with wrong number of parameters - see also #33691)
+get_set_syntax_test/14: Crash # Issue #34043 - Error recovery in outline (setter with wrong number of parameters - see also #33691)
+get_set_syntax_test/15: Crash # Issue #34043 - Error recovery in outline (setter with wrong number of parameters - see also #33691)
+getters_setters2_test/01: MissingStaticWarning
+getters_setters_type_test/01: MissingStaticWarning
+hidden_import_test/01: MissingStaticWarning
+hidden_import_test/02: MissingStaticWarning
+if_null_assignment_behavior_test/15: Crash # Error recovery in method body (invalid assignment)
+illegal_initializer_test/02: Crash # Issue #33771 - Error recovery in method body (error in constructor initializer)
+illegal_initializer_test/04: Crash # Issue #33771 - Error recovery in method body (error in constructor initializer)
+import_nonexisting_dart_uri_test/01: Crash # Issue 33686 - No core library found
+instantiate_tearoff_of_call_test: CompileTimeError # Front end fails to instantiate tear-offs of `call`
+instantiate_type_variable_test/01: Crash # Error recovery in method body (attempt to instantiate type variable)
+interface_cycle_test/01: Crash # Issue #34043 - Error recovery in outline (class hierarchy cycle - see also #33756)
+interface_cycle_test/02: Crash # Issue #34043 - Error recovery in outline (class hierarchy cycle - see also #33756)
+interface_injection1_test/1: Crash # Issue 33686 - No core library found
+interface_injection2_test/1: Crash # Issue 33686 - No core library found
+internal_library_test/02: Crash # Issue #34043 - Error recovery in outline (illegal part file)
+is_not_class2_test/01: Crash # Error recovery in method body (non-type where type expected)
+issue31596_super_test/01: CompileTimeError # Front end fails to skip forwarding stubs when resolving super calls
+issue31596_super_test/03: CompileTimeError # Front end fails to skip forwarding stubs when resolving super calls
+label5_test/01: Crash # Error recovery in method body (illegal jump target)
+label6_test/03: Crash # Error recovery in method body (illegal jump target)
+library_ambiguous_test/00: Crash # Error recovery in method body (ambiguous imported name)
+library_test/01: Crash # Issue 33686 - No core library found
+list_literal_negative_test: Crash # Error recovery in method body (malformed constructor invocation)
+list_literal_syntax_test/06: Crash
+main_not_a_function_test: Crash # Issue 33686 - No core library found
+metadata_test: Crash # Poor handling of annotation inside typedef
+missing_part_of_tag_test/01: Crash # Issue #34043 - Error recovery in outline (part file missing "part of" declaration - see also #33587)
+mixin_cyclic_test/01: Crash # Issue #34043 - Error recovery in outline (class hierarchy cycle - see also #33756)
+mixin_cyclic_test/02: Crash # Issue #34043 - Error recovery in outline (class hierarchy cycle - see also #33756)
+mixin_illegal_cycles_test/01: Crash # Issue #34043 - Error recovery in outline (class hierarchy cycle - see also #33756)
+mixin_illegal_cycles_test/02: Crash # Issue #34043 - Error recovery in outline (class hierarchy cycle - see also #33756)
+mixin_illegal_cycles_test/03: Crash # Issue #34043 - Error recovery in outline (class hierarchy cycle - see also #33756)
+mixin_illegal_cycles_test/04: Crash # Issue #34043 - Error recovery in outline (class hierarchy cycle - see also #33756)
+mixin_illegal_cycles_test/05: Crash # Issue #34043 - Error recovery in outline (class hierarchy cycle - see also #33756)
+mixin_illegal_cycles_test/06: Crash # Issue #34043 - Error recovery in outline (class hierarchy cycle - see also #33756)
+mixin_illegal_super_use_test/01: MissingCompileTimeError
+mixin_illegal_super_use_test/04: MissingCompileTimeError
+mixin_illegal_super_use_test/07: MissingCompileTimeError
+mixin_illegal_super_use_test/10: MissingCompileTimeError
+mixin_illegal_super_use_test/11: MissingCompileTimeError
+mixin_illegal_superclass_test/01: MissingCompileTimeError
+mixin_illegal_superclass_test/02: MissingCompileTimeError
+mixin_illegal_superclass_test/03: MissingCompileTimeError
+mixin_illegal_superclass_test/04: MissingCompileTimeError
+mixin_illegal_superclass_test/05: MissingCompileTimeError
+mixin_illegal_superclass_test/06: MissingCompileTimeError
+mixin_illegal_superclass_test/07: MissingCompileTimeError
+mixin_illegal_superclass_test/08: MissingCompileTimeError
+mixin_illegal_superclass_test/09: MissingCompileTimeError
+mixin_illegal_superclass_test/10: MissingCompileTimeError
+mixin_illegal_superclass_test/11: MissingCompileTimeError
+mixin_illegal_superclass_test/12: MissingCompileTimeError
+mixin_illegal_superclass_test/13: MissingCompileTimeError
+mixin_illegal_superclass_test/14: MissingCompileTimeError
+mixin_illegal_superclass_test/15: MissingCompileTimeError
+mixin_illegal_superclass_test/16: MissingCompileTimeError
+mixin_illegal_superclass_test/17: MissingCompileTimeError
+mixin_illegal_superclass_test/18: MissingCompileTimeError
+mixin_illegal_superclass_test/19: MissingCompileTimeError
+mixin_illegal_superclass_test/20: MissingCompileTimeError
+mixin_illegal_superclass_test/21: MissingCompileTimeError
+mixin_illegal_superclass_test/22: MissingCompileTimeError
+mixin_illegal_superclass_test/23: MissingCompileTimeError
+mixin_illegal_superclass_test/24: MissingCompileTimeError
+mixin_illegal_superclass_test/25: MissingCompileTimeError
+mixin_illegal_superclass_test/26: MissingCompileTimeError
+mixin_illegal_superclass_test/27: MissingCompileTimeError
+mixin_illegal_superclass_test/28: MissingCompileTimeError
+mixin_illegal_superclass_test/29: MissingCompileTimeError
+mixin_illegal_superclass_test/30: MissingCompileTimeError
+mixin_illegal_syntax_test/01: Crash # Issue 33686 - No core library found
+mixin_illegal_syntax_test/02: Crash # Issue 33686 - No core library found
+mixin_illegal_syntax_test/03: Crash # Issue 33686 - No core library found
+mixin_illegal_syntax_test/04: Crash # Issue 33686 - No core library found
+mixin_illegal_syntax_test/05: Crash # Issue 33686 - No core library found
+mixin_illegal_syntax_test/06: Crash # Issue #34043 - Error recovery in outline (syntax error in class declaration)
+mixin_illegal_syntax_test/07: Crash # Issue 33686 - No core library found
+mixin_illegal_syntax_test/08: Crash # Issue 33686 - No core library found
+mixin_illegal_syntax_test/09: Crash # Issue 33686 - No core library found
+mixin_illegal_syntax_test/10: Crash # Issue #34043 - Error recovery in outline (syntax error in class declaration)
+mixin_illegal_syntax_test/11: Crash # Issue #34043 - Error recovery in outline (syntax error in class declaration)
+mixin_illegal_syntax_test/12: Crash # Issue #34043 - Error recovery in outline (syntax error in class declaration)
+mixin_illegal_syntax_test/14: Crash # Issue #34043 - Error recovery in outline (syntax error in class declaration)
+mixin_supertype_subclass2_test/02: MissingStaticWarning
+mixin_supertype_subclass2_test/05: MissingStaticWarning
+mixin_supertype_subclass3_test/02: MissingStaticWarning
+mixin_supertype_subclass3_test/05: MissingStaticWarning
+mixin_supertype_subclass4_test/01: MissingStaticWarning
+mixin_supertype_subclass4_test/02: MissingStaticWarning
+mixin_supertype_subclass4_test/03: MissingStaticWarning
+mixin_supertype_subclass4_test/04: MissingStaticWarning
+mixin_supertype_subclass4_test/05: MissingStaticWarning
+named_constructor_test/07: Crash # Error recovery in method body (type arguments in non-grammatical location)
+named_constructor_test/10: Crash # Error recovery in method body (type arguments in non-grammatical location)
+named_parameters_aggregated_test/03: Crash # Error recovery in method body (default value in function-typed parameter declaration)
+nested_generic_closure_test: Crash # Problem with generic function-typed parameter
+new_expression_type_args_test/00: Crash # Error recovery in method body (attempt to instantiate type variable)
+new_expression_type_args_test/01: Crash # Error recovery in method body (attempt to instantiate type variable)
+no_main_test/01: MissingStaticWarning
+not_enough_positional_arguments_test/01: Crash # Error recovery in method body (error in super constructor call)
+not_enough_positional_arguments_test/02: Crash # Error recovery in method body (error in super constructor call)
+not_enough_positional_arguments_test/05: Crash # Error recovery in method body (error in super constructor call)
+null_no_such_method_test: CompileTimeError # Issue 34047
+operator2_negative_test: Crash # Issue #34043 - Error recovery in outline (illegal operator declaration)
+parameter_default_test/01: Crash # Issue #34043 - Error recovery in outline (default value in required parameter)
+parameter_default_test/02: Crash # Issue #34043 - Error recovery in outline (default value in required parameter)
+parameter_default_test/03: Crash # Issue #34043 - Error recovery in outline (default value in required parameter)
+parameter_default_test/04: Crash # Issue #34043 - Error recovery in outline (default value in required parameter)
+parameter_default_test/05: Crash # Issue #34043 - Error recovery in outline (default value in required parameter)
+parameter_default_test/06: Crash # Issue #34043 - Error recovery in outline (default value in required parameter)
+parameter_metadata_test/02: Crash # Poor handling of annotation inside function-typed parameter
+parameter_metadata_test/03: Crash # Poor handling of annotation inside function-typed parameter
+parameter_metadata_test/04: Crash # Poor handling of annotation inside function-typed parameter
+parser_quirks_test: CompileTimeError # Issue 34047
+part_of_multiple_libs_test/01: Crash # Poor handling of part file used by multiple libs
+part_refers_to_core_library_test/01: Crash # Issue 33686 - No core library found
+prefix_import_collision_test/01: Crash # Error recovery in method body (ambiguous imported name)
+prefix_shadow_test/01: Crash # Error recovery in method body (attempt to use type variable as prefix)
+prefix_variable_collision_test/01: Crash # Issue 33686 - No core library found
+regress_20394_test/01: Crash # Error recovery in method body (error in super constructor call)
+regress_23408_test: CompileTimeError # Issue 34047
+regress_28217_test/01: Crash # Error recovery in method body (error in constructor redirect)
+regress_28217_test/none: Crash # Error recovery in method body (error in constructor redirect)
+regress_29025_test: CompileTimeError # Issue 34047
+regress_29405_test: CompileTimeError # Issue 34047
+regress_30339_test: CompileTimeError # Issue 34047
+regress_33235_04_test/01: Crash # Issue 33686 - No core library found
+regress_33235_05_test/01: Crash # Issue 33686 - No core library found
+regress_33235_06_test/01: Crash # Issue 33686 - No core library found
+regress_33235_08_test/01: Crash # Issue 33686 - No core library found
+regress_33235_09_test/01: Crash # Issue 33686 - No core library found
+regress_33235_14_test/01: Crash # Issue 33686 - No core library found
+regress_33235_15_test/01: Crash # Issue 33686 - No core library found
+script1_negative_test: Crash # Error resovery in outline (imported library has incorrect declaration order)
+script2_negative_test: Crash # Error resovery in outline (part file contains a "library" declaration)
+setter3_test/01: MissingStaticWarning
+setter3_test/02: MissingStaticWarning
+setter_declaration2_negative_test: Crash # Issue #34043 - Error recovery in outline (setter with wrong number of parameters - see also #33691)
+setter_declaration_negative_test: Crash # Issue #34043 - Error recovery in outline (setter with wrong number of parameters - see also #33691)
+setter_no_getter_call_test/01: Crash # Error recovery in method body (attempt to read from setter)
+setter_no_getter_test/01: CompileTimeError # Issue 34047
+static_setter_conflicts_test/09: Crash # Issue 33686 - No core library found
+static_setter_conflicts_test/10: Crash # Issue 33686 - No core library found
+static_setter_get_test/01: Crash # Error recovery in method body (attempt to read from setter)
+string_split_test: CompileTimeError # Issue 34047
+string_supertype_checked_test: CompileTimeError # Issue 34047
+super_bound_closure_test/none: CompileTimeError # Issue 34047
+super_call4_test/01: Pass
+super_conditional_operator_test/01: Crash # Error recovery in method body (error in constructor redirect)
+super_conditional_operator_test/17: Crash # Error recovery in method body (nonsensical use of super)
+super_conditional_operator_test/18: Crash # Error recovery in method body (nonsensical use of super)
+super_no_such_method1_test: CompileTimeError # Issue 34047
+super_no_such_method2_test: CompileTimeError # Issue 34047
+super_no_such_method3_test: CompileTimeError # Issue 34047
+super_operator_index5_test: CompileTimeError # Issue 34047
+super_operator_index6_test: CompileTimeError # Issue 34047
+super_operator_index7_test: CompileTimeError # Issue 34047
+super_operator_index8_test: CompileTimeError # Issue 34047
+switch3_negative_test: Crash # Error recovery in method body (illegal jump target)
+switch5_negative_test: Crash # Error recovery in method body (illegal jump target)
+switch7_negative_test: Crash # Error recovery in method body (illegal jump target)
+switch_case_warn_test/15: MissingCompileTimeError
+switch_case_warn_test/17: MissingCompileTimeError
+syntax_test/04: Crash # Issue #34043 - Error recovery in outline (illegal operator declaration)
+syntax_test/05: Crash # Issue #34043 - Error recovery in outline (illegal operator declaration)
+syntax_test/06: Crash # Issue #34043 - Error recovery in outline (illegal operator declaration)
+syntax_test/07: Crash # Issue #34043 - Error recovery in outline (illegal operator declaration)
+syntax_test/08: Crash # Issue #34043 - Error recovery in outline (illegal operator declaration)
+syntax_test/09: Crash # Issue #34043 - Error recovery in outline (illegal operator declaration)
+syntax_test/10: Crash # Issue #34043 - Error recovery in outline (illegal operator declaration)
+syntax_test/11: Crash # Issue #34043 - Error recovery in outline (illegal operator declaration)
+syntax_test/13: Crash # Issue #34043 - Error recovery in outline (illegal operator declaration)
+syntax_test/14: Crash # Issue #34043 - Error recovery in outline (illegal operator declaration)
+syntax_test/15: Crash # Issue #34043 - Error recovery in outline (illegal operator declaration)
+syntax_test/16: Crash # Issue #34043 - Error recovery in outline (illegal operator declaration)
+syntax_test/17: Crash # Issue #34043 - Error recovery in outline (illegal operator declaration)
+syntax_test/18: Crash # Issue #34043 - Error recovery in outline (illegal operator declaration)
+syntax_test/19: Crash # Issue #34043 - Error recovery in outline (illegal operator declaration)
+syntax_test/20: Crash # Issue #34043 - Error recovery in outline (illegal operator declaration)
+syntax_test/21: Crash # Issue #34043 - Error recovery in outline (illegal operator declaration)
+syntax_test/23: Crash # Issue #34043 - Error recovery in outline (illegal operator declaration)
+syntax_test/24: Crash # Issue #34043 - Error recovery in outline (illegal operator declaration)
+syntax_test/25: Crash # Issue #34043 - Error recovery in outline (illegal operator declaration)
+syntax_test/26: Crash # Issue #34043 - Error recovery in outline (illegal operator declaration)
+syntax_test/63: Crash # Error recovery in method body (invalid assignment)
+syntax_test/64: Crash # Error recovery in method body (invalid assignment)
+syntax_test/65: Crash # Error recovery in method body (invalid assignment)
+this_conditional_operator_test/01: Crash # Error recovery in method body (error in constructor redirect)
+this_in_initializer_test/06: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/07: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/08: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/10: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/11: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/12: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/13: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/15: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/16: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/17: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/18: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/25: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/26: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/28: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/35: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/36: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/38: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/40: Crash # Error recovery in method body (error in constructor initializer)
+this_in_initializer_test/41: Crash # Error recovery in method body (error in constructor initializer)
+this_test/01: Crash # Error recovery in method body (nonsensical use of this)
+this_test/02: Crash # Error recovery in method body (nonsensical use of this)
+this_test/03: Crash # Error recovery in method body (nonsensical use of this)
+this_test/04: Crash # Error recovery in method body (nonsensical use of this)
+this_test/05: Crash # Error recovery in method body (nonsensical use of this)
+this_test/06: Crash # Error recovery in method body (nonsensical use of this)
+this_test/07: Crash # Error recovery in method body (nonsensical use of this)
+this_test/08: Crash # Error recovery in method body (nonsensical use of this)
+toplevel_collision1_test/00: Crash # Issue 33686 - No core library found
+toplevel_collision1_test/02: Crash # Issue 33686 - No core library found
+toplevel_collision2_test/00: Crash # Issue 33686 - No core library found
+toplevel_collision2_test/01: Crash # Issue 33686 - No core library found
+type_parameter_test/04: Crash # Issue #34043 - Error recovery in outline (attempt to use class type parameter in static signature)
+type_parameter_test/05: Crash # Issue #34043 - Error recovery in outline (attempt to use class type parameter in static signature)
+type_parameter_test/06: Crash # Issue #34043 - Error recovery in outline (attempt to use class type parameter in static signature)
+type_parameter_test/08: Crash # Issue #34043 - Error recovery in outline (attempt to use class type parameter in static signature)
+type_parameter_test/09: Crash # Issue #34043 - Error recovery in outline (attempt to use class type parameter in static signature)
+type_promotion_functions_test/02: CompileTimeError # Issue 34047
+type_promotion_functions_test/03: CompileTimeError # Issue 34047
+type_promotion_functions_test/04: CompileTimeError # Issue 34047
+type_promotion_functions_test/09: CompileTimeError # Issue 34047
+type_promotion_functions_test/11: CompileTimeError # Issue 34047
+type_promotion_functions_test/12: CompileTimeError # Issue 34047
+type_promotion_functions_test/13: CompileTimeError # Issue 34047
+type_promotion_functions_test/14: CompileTimeError # Issue 34047
+type_promotion_functions_test/none: CompileTimeError # Issue 34047
+type_promotion_more_specific_test/04: CompileTimeError # Issue 34047
+type_variable_static_context_test: Crash # Error recovery in method body (attempt to instantiate type variable)
+unbalanced_brace_test/01: Crash # Error recovery due to mismatched braces
+unbalanced_brace_test/02: Crash # Error recovery due to mismatched braces
+unsupported_operators_test/01: Crash # Error recovery in method body (attempt to use unsupported operator)
+unsupported_operators_test/02: Crash # Error recovery in method body (attempt to use unsupported operator)
+unsupported_operators_test/03: Crash # Error recovery in method body (attempt to use unsupported operator)
+unsupported_operators_test/04: Crash # Error recovery in method body (attempt to use unsupported operator)
+variable_declaration_metadata_test/13: Crash # Error recovery in method body (annotation in for statement)
+variable_declaration_metadata_test/14: Crash # Error recovery in method body (annotation in for statement)
+variable_declaration_metadata_test/15: Crash # Error recovery in method body (annotation in for statement)
+variable_declaration_metadata_test/16: Crash # Error recovery in method body (annotation in for statement)
+variable_shadow_class_test/01: Crash # Error recovery in method body (attempt to use local variable as prefix)
+vm/debug_break_vm_test/01: Crash # Error recovery in method body (illegal jump target)
+vm/debug_break_vm_test/02: Crash # Error recovery in method body (illegal jump target)
+vm/regress_27201_test: Crash # Issue 33686 - No core library found
+vm/regress_33469_test/01: Crash # Const evaluator fails to detect invalid shift
+vm/regress_33469_test/02: Crash # Const evaluator fails to detect invalid shift
+vm/regress_33469_test/03: MissingCompileTimeError
+web_int_literals_test/01: MissingCompileTimeError
+web_int_literals_test/02: MissingCompileTimeError
+web_int_literals_test/03: MissingCompileTimeError
+web_int_literals_test/10: MissingCompileTimeError
+web_int_literals_test/11: MissingCompileTimeError
+web_int_literals_test/12: MissingCompileTimeError
+web_int_literals_test/13: MissingCompileTimeError
+web_int_literals_test/20: MissingCompileTimeError
+web_int_literals_test/21: MissingCompileTimeError
+web_int_literals_test/22: MissingCompileTimeError
+web_int_literals_test/23: MissingCompileTimeError
+web_int_literals_test/24: MissingCompileTimeError
+web_int_literals_test/25: MissingCompileTimeError
+web_int_literals_test/26: MissingCompileTimeError
+web_int_literals_test/27: MissingCompileTimeError
+web_int_literals_test/28: MissingCompileTimeError
+web_int_literals_test/29: MissingCompileTimeError
+web_int_literals_test/61: MissingCompileTimeError
+web_int_literals_test/62: MissingCompileTimeError
+web_int_literals_test/63: MissingCompileTimeError
+web_int_literals_test/64: MissingCompileTimeError
+web_int_literals_test/65: MissingCompileTimeError
+web_int_literals_test/70: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && !$fasta ]
 abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue #30568
 abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue #30568
 abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError # Issue #30568
+accessor_conflict_export2_test: CompileTimeError # Issue 25626
+accessor_conflict_export_test: CompileTimeError # Issue 25626
+accessor_conflict_import2_test: CompileTimeError # Issue 25626
+accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
+accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
+accessor_conflict_import_test: CompileTimeError # Issue 25626
+additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/dynamic-gen: MissingCompileTimeError # Issue 28813
+cascaded_forwarding_stubs_test: CompileTimeError
 check_member_static_test/01: CompileTimeError
+config_import_corelib_test: CompileTimeError
 config_import_corelib_test: StaticWarning, OK
+conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Crashes or times out
 conflicting_type_variable_and_setter_test: CompileTimeError # Issue 25525
 const_cast2_test/01: CompileTimeError
 const_cast2_test/none: CompileTimeError
 const_for_in_variable_test/01: MissingCompileTimeError # Issue 25161
+default_implementation2_test: CompileTimeError # Issue 30855
 dynamic_prefix_core_test/01: MissingCompileTimeError
 emit_const_fields_test: CompileTimeError
 enum_syntax_test/05: Fail # Issue 21649
 enum_syntax_test/06: Fail # Issue 21649
+error_stacktrace_test/00: MissingCompileTimeError
+error_stacktrace_test/00: Pass
 field3_test/01: MissingCompileTimeError # Issue 33022
 field3_test/02: MissingCompileTimeError # Issue 33022
+field3a_negative_test: StaticWarning # Issue 28823
 final_syntax_test/01: Fail # Issue 11124
 final_syntax_test/02: Fail # Issue 11124
 final_syntax_test/03: Fail # Issue 11124
 final_syntax_test/04: Fail # Issue 11124
+forwarding_stub_tearoff_test: CompileTimeError
 generic_local_functions_test: CompileTimeError # Issue 28515
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
+generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30207
 generic_no_such_method_dispatcher_simple_test: Skip # This test is just for kernel.
+generic_no_such_method_dispatcher_test: CompileTimeError
+generic_tearoff_test: CompileTimeError
 getter_setter_in_lib_test: Fail # Issue 23286
 implicit_creation/implicit_const_context_constructor_generic_named_test: CompileTimeError
 implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError
@@ -65,12 +480,29 @@ implicit_creation/implicit_const_context_prefix_constructor_generic_named_test: 
 implicit_creation/implicit_const_context_prefix_constructor_generic_test: CompileTimeError
 index_assign_operator_infer_return_type_test: StaticWarning
 initializing_formal_final_test: MissingCompileTimeError
+interceptor6_test: CompileTimeError
 interface_test/00: MissingCompileTimeError
 invalid_type_argument_count_test/01: MissingCompileTimeError
 invalid_type_argument_count_test/02: MissingCompileTimeError
 invalid_type_argument_count_test/03: MissingCompileTimeError
 invalid_type_argument_count_test/04: MissingCompileTimeError
+issue13673_test: StaticWarning # Issue 31925
+issue31596_implement_covariant_test: CompileTimeError
+issue31596_override_test/01: CompileTimeError
+issue31596_override_test/02: CompileTimeError
+issue31596_override_test/03: CompileTimeError
+issue31596_override_test/04: CompileTimeError
+issue31596_override_test/none: CompileTimeError
+issue31596_super_test/01: CompileTimeError
+issue31596_super_test/03: CompileTimeError
+issue31596_super_test/05: CompileTimeError
+issue31596_super_test/none: CompileTimeError
+issue31596_tearoff_test: CompileTimeError
+issue31596_test: CompileTimeError
+malformed2_test: Pass, MissingCompileTimeError # Issue 31056.
 method_override7_test/03: Fail # Issue 11497
+mixin_super_2_test/01: MissingCompileTimeError
+mixin_super_2_test/03: MissingCompileTimeError
 mixin_supertype_subclass2_test/02: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass2_test/05: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass3_test/02: MissingStaticWarning # Issue 25614
@@ -80,21 +512,40 @@ mixin_supertype_subclass4_test/02: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass4_test/03: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass4_test/04: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass4_test/05: MissingStaticWarning # Issue 25614
+mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/02: MissingStaticWarning # Issue 25614
+mixin_supertype_subclass_test/05: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingStaticWarning # Issue 25614
+multiline_newline_test/01: CompileTimeError
+multiline_newline_test/01r: CompileTimeError
+multiline_newline_test/02: CompileTimeError
+multiline_newline_test/02r: CompileTimeError
+multiline_newline_test/04: MissingCompileTimeError
+multiline_newline_test/04r: MissingCompileTimeError
+multiline_newline_test/05: MissingCompileTimeError
+multiline_newline_test/05r: MissingCompileTimeError
+multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 nested_generic_closure_test: CompileTimeError
 no_main_test/01: Fail # Issue 20030
+no_main_test/01: MissingStaticWarning # Issue 28823
 no_such_constructor2_test: StaticWarning
 override_field_test/02: CompileTimeError
+override_inheritance_field_test/42: CompileTimeError
+parser_quirks_test: CompileTimeError
 part_of_multiple_libs_test/01: MissingCompileTimeError # Issue 33227
 part_refers_to_core_library_test/01: MissingCompileTimeError # Issue 29709
 prefix_shadow_test/01: MissingCompileTimeError # Issue 33005
+regress_22976_test/01: CompileTimeError
+regress_22976_test/02: CompileTimeError
+regress_22976_test/none: CompileTimeError
 regress_23408_test: Skip # don't care about the static warning.
 regress_27617_test/1: MissingCompileTimeError
 regress_29025_test: CompileTimeError # Issue 29081
 regress_29349_test: CompileTimeError # Issue 29744
 regress_29405_test: CompileTimeError # Issue 29421
 regress_29784_test/02: MissingCompileTimeError # Issue 29784
+regress_30121_test: CompileTimeError # Issue 31087
+regress_30339_test: CompileTimeError
 regress_33235_03_test/01: MissingCompileTimeError
 regress_33235_07_test/03: MissingCompileTimeError
 regress_33235_10_test/01: MissingCompileTimeError
@@ -107,33 +558,70 @@ regress_33235_16_test/02: MissingCompileTimeError
 regress_33235_16_test/03: MissingCompileTimeError
 regress_33235_19_test: CompileTimeError
 regress_33235_20_test: CompileTimeError
+setter_override2_test/02: MissingCompileTimeError # Issue 14736
 static_setter_conflicts_test/02: MissingCompileTimeError
 static_setter_conflicts_test/11: MissingCompileTimeError
 static_setter_conflicts_test/12: MissingCompileTimeError
+string_split_test: CompileTimeError
+string_supertype_checked_test: CompileTimeError
+super_bound_closure_test/none: CompileTimeError
 super_call4_test/01: MissingCompileTimeError
-super_setter_test: StaticWarning
+super_no_such_method4_test/01: MissingCompileTimeError # Issue 33553
+super_no_such_method5_test/01: MissingCompileTimeError # Issue 33553
+super_setter_test: StaticWarning # Issue 28823
+switch_case_test/none: CompileTimeError
+syntax_test/60: MissingCompileTimeError
+syntax_test/61: MissingCompileTimeError
 try_catch_on_syntax_test/10: MissingCompileTimeError
 try_catch_on_syntax_test/11: MissingCompileTimeError
 type_inference_inconsistent_inheritance_test: MissingCompileTimeError
+type_promotion_functions_test/01: Pass
+type_promotion_functions_test/05: Pass
+type_promotion_functions_test/06: Pass
+type_promotion_functions_test/07: Pass
+type_promotion_functions_test/08: Pass
+type_promotion_functions_test/10: Pass
 type_variable_scope_test/none: Fail # Issue 11578
 vm/debug_break_enabled_vm_test: Skip
 vm/debug_break_vm_test/*: Skip
+vm/lazy_deopt_with_exception_test: CompileTimeError
 vm/lazy_deopt_with_exception_test: Pass
 vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.
 vm/regress_33469_test/01: Crash # http://dartbug.com/33481
 vm/regress_33469_test/02: Crash # http://dartbug.com/33481
 vm/regress_33469_test/03: MissingCompileTimeError # http://dartbug.com/33481
 void/generalized_void_syntax_test: CompileTimeError # https://github.com/dart-lang/sdk/issues/30177
-void/void_type_usage_test/async_use_in_await:  CompileTimeError # https://github.com/dart-lang/sdk/issues/30177
-void/void_type_usage_test/async_use_in_yield:  MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
-void/void_type_usage_test/async_use_in_yield_star:  MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
+void/void_type_function_types_test/none: CompileTimeError # Issue 30177
+void/void_type_usage_test/async_use_in_await: CompileTimeError # https://github.com/dart-lang/sdk/issues/30177
+void/void_type_usage_test/async_use_in_yield: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
+void/void_type_usage_test/async_use_in_yield_star: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
+void/void_type_usage_test/call_boolean_and_right: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
+void/void_type_usage_test/call_boolean_negation: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
+void/void_type_usage_test/call_boolean_or_right: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
+void/void_type_usage_test/call_use_in_string_interpolation: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
+void/void_type_usage_test/final_local_boolean_and_right: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
+void/void_type_usage_test/final_local_boolean_negation: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
+void/void_type_usage_test/final_local_boolean_or_right: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/final_local_for_in2: MissingCompileTimeError
+void/void_type_usage_test/final_local_use_in_string_interpolation: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
+void/void_type_usage_test/global_boolean_and_right: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
+void/void_type_usage_test/global_boolean_negation: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
+void/void_type_usage_test/global_boolean_or_right: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
+void/void_type_usage_test/global_use_in_string_interpolation: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
+void/void_type_usage_test/local_boolean_and_right: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
+void/void_type_usage_test/local_boolean_negation: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
+void/void_type_usage_test/local_boolean_or_right: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
+void/void_type_usage_test/local_use_in_string_interpolation: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/param_boolean_and_right: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/param_boolean_negation: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/param_boolean_or_right: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/param_use_in_string_interpolation: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
-void/void_type_usage_test/sync_use_in_yield:  MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
-void/void_type_usage_test/sync_use_in_yield_star:  MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
+void/void_type_usage_test/paren_boolean_and_right: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
+void/void_type_usage_test/paren_boolean_negation: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
+void/void_type_usage_test/paren_boolean_or_right: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
+void/void_type_usage_test/paren_use_in_string_interpolation: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
+void/void_type_usage_test/sync_use_in_yield: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
+void/void_type_usage_test/sync_use_in_yield_star: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 web_int_literals_test/01: MissingCompileTimeError
 web_int_literals_test/02: MissingCompileTimeError
 web_int_literals_test/03: MissingCompileTimeError
@@ -158,103 +646,3 @@ web_int_literals_test/63: MissingCompileTimeError
 web_int_literals_test/64: MissingCompileTimeError
 web_int_literals_test/65: MissingCompileTimeError
 web_int_literals_test/70: MissingCompileTimeError
-
-[ $compiler == dart2analyzer && !$fasta && !$preview_dart_2 ]
-call_type_literal_test: CompileTimeError
-class_literal_static_test/none: CompileTimeError
-class_literal_test/none: CompileTimeError
-constructor_call_as_function_test: CompileTimeError
-implicit_creation/implicit_const_context_constructor_named_test: CompileTimeError
-implicit_creation/implicit_const_context_constructor_test: CompileTimeError
-implicit_creation/implicit_const_context_list_test: CompileTimeError
-implicit_creation/implicit_const_context_map_test: CompileTimeError
-implicit_creation/implicit_const_context_prefix_constructor_named_test: CompileTimeError
-implicit_creation/implicit_const_context_prefix_constructor_test: CompileTimeError
-implicit_creation/implicit_const_not_default_values_test/o.*: CompileTimeError # No support for implicit creation.
-implicit_creation/implicit_new_constructor_generic_named_test: CompileTimeError
-implicit_creation/implicit_new_constructor_generic_test: CompileTimeError
-implicit_creation/implicit_new_constructor_named_test: CompileTimeError
-implicit_creation/implicit_new_constructor_test: CompileTimeError
-implicit_creation/implicit_new_or_const_composite_test: CompileTimeError
-implicit_creation/implicit_new_or_const_generic_test: CompileTimeError
-implicit_creation/implicit_new_or_const_test: CompileTimeError
-implicit_creation/implicit_new_prefix_constructor_generic_named_test: CompileTimeError
-implicit_creation/implicit_new_prefix_constructor_generic_test: CompileTimeError
-implicit_creation/implicit_new_prefix_constructor_named_test: CompileTimeError
-implicit_creation/implicit_new_prefix_constructor_test: CompileTimeError
-reify_typevar_static_test/00: MissingCompileTimeError
-type_literal_prefix_call_test: CompileTimeError
-
-[ $compiler == dart2analyzer && !$fasta && $strong ]
-accessor_conflict_export2_test: CompileTimeError # Issue 25626
-accessor_conflict_export_test: CompileTimeError # Issue 25626
-accessor_conflict_import2_test: CompileTimeError # Issue 25626
-accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
-accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
-accessor_conflict_import_test: CompileTimeError # Issue 25626
-additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
-cascaded_forwarding_stubs_test: CompileTimeError
-config_import_corelib_test: CompileTimeError
-conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Crashes or times out
-default_implementation2_test: CompileTimeError # Issue 30855
-error_stacktrace_test/00: Pass
-field3_test/02: MissingCompileTimeError # Issue 33022
-field3a_negative_test: StaticWarning # Issue 28823
-forwarding_stub_tearoff_test: CompileTimeError
-generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30207
-generic_no_such_method_dispatcher_test: CompileTimeError
-generic_tearoff_test: CompileTimeError
-interceptor6_test: CompileTimeError
-issue13673_test: StaticWarning # Issue 31925
-issue31596_implement_covariant_test: CompileTimeError
-issue31596_override_test/01: CompileTimeError
-issue31596_override_test/02: CompileTimeError
-issue31596_override_test/03: CompileTimeError
-issue31596_override_test/04: CompileTimeError
-issue31596_override_test/none: CompileTimeError
-issue31596_super_test/01: CompileTimeError
-issue31596_super_test/03: CompileTimeError
-issue31596_super_test/05: CompileTimeError
-issue31596_super_test/none: CompileTimeError
-issue31596_tearoff_test: CompileTimeError
-issue31596_test: CompileTimeError
-malformed2_test: Pass, MissingCompileTimeError # Issue 31056.
-mixin_super_2_test/01: MissingCompileTimeError
-mixin_super_2_test/03: MissingCompileTimeError
-mixin_supertype_subclass_test/02: MissingCompileTimeError
-mixin_supertype_subclass_test/05: MissingCompileTimeError
-multiline_newline_test/01: CompileTimeError
-multiline_newline_test/01r: CompileTimeError
-multiline_newline_test/02: CompileTimeError
-multiline_newline_test/02r: CompileTimeError
-multiline_newline_test/04: MissingCompileTimeError
-multiline_newline_test/04r: MissingCompileTimeError
-multiline_newline_test/05: MissingCompileTimeError
-multiline_newline_test/05r: MissingCompileTimeError
-multiple_interface_inheritance_test: CompileTimeError # Issue 30552
-no_main_test/01: MissingStaticWarning # Issue 28823
-override_inheritance_field_test/42: CompileTimeError
-parser_quirks_test: CompileTimeError
-regress_22976_test/01: CompileTimeError
-regress_22976_test/02: CompileTimeError
-regress_22976_test/none: CompileTimeError
-regress_30121_test: CompileTimeError # Issue 31087
-regress_30339_test: CompileTimeError
-setter_override2_test/02: MissingCompileTimeError # Issue 14736
-string_split_test: CompileTimeError
-string_supertype_checked_test: CompileTimeError
-super_bound_closure_test/none: CompileTimeError
-super_no_such_method4_test/01: MissingCompileTimeError # Issue 33553
-super_no_such_method5_test/01: MissingCompileTimeError # Issue 33553
-super_setter_test: StaticWarning # Issue 28823
-switch_case_test/none: CompileTimeError
-syntax_test/60: MissingCompileTimeError
-syntax_test/61: MissingCompileTimeError
-type_promotion_functions_test/01: Pass
-type_promotion_functions_test/05: Pass
-type_promotion_functions_test/06: Pass
-type_promotion_functions_test/07: Pass
-type_promotion_functions_test/08: Pass
-type_promotion_functions_test/10: Pass
-vm/lazy_deopt_with_exception_test: CompileTimeError
-void/void_type_function_types_test/none: CompileTimeError # Issue 30177

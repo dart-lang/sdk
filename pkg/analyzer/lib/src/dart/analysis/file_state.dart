@@ -638,7 +638,7 @@ class FileState {
 
     bool useFasta = analysisOptions.useFastaParser;
     Parser parser = new Parser(source, errorListener, useFasta: useFasta);
-    parser.enableOptionalNewAndConst = analysisOptions.previewDart2;
+    parser.enableOptionalNewAndConst = true;
     parser.parseGenericMethodComments = true;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;

@@ -34,6 +34,9 @@ library vm.bytecode.dbc;
 //    D = index of TypeArgumentsField constant pool entry corresponding
 //    to an instance's class.
 //
+// 10. InstanceCall1 and InstanceCall2 instructions are superseded by
+//     InstanceCall which works for any number of checked arguments.
+//
 
 enum Opcode {
   kTrap,
@@ -59,8 +62,7 @@ enum Opcode {
   kPopLocal,
   kIndirectStaticCall,
   kStaticCall,
-  kInstanceCall1,
-  kInstanceCall2,
+  kInstanceCall,
   kInstanceCall1Opt,
   kInstanceCall2Opt,
   kPushPolymorphicInstanceCall,
@@ -316,9 +318,7 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.kAD, const [Operand.imm, Operand.lit, Operand.none]),
   Opcode.kStaticCall: const Format(
       Encoding.kAD, const [Operand.imm, Operand.imm, Operand.none]),
-  Opcode.kInstanceCall1: const Format(
-      Encoding.kAD, const [Operand.imm, Operand.lit, Operand.none]),
-  Opcode.kInstanceCall2: const Format(
+  Opcode.kInstanceCall: const Format(
       Encoding.kAD, const [Operand.imm, Operand.lit, Operand.none]),
   Opcode.kInstanceCall1Opt: const Format(
       Encoding.kAD, const [Operand.imm, Operand.lit, Operand.none]),

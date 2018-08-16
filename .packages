@@ -23,12 +23,11 @@ charted:third_party/observatory_pub_packages/packages/charted/lib
 cli_util:third_party/pkg/cli_util/lib
 collection:third_party/pkg/collection/lib
 compiler:pkg/compiler/lib
-# Compiler is imported as compiler_unsupported so it can work outside the SDK.
-compiler_unsupported:pkg/compiler/lib
 convert:third_party/pkg/convert/lib
 crypto:third_party/pkg/crypto/lib
 csslib:third_party/pkg/csslib/lib
 dart2js_info:third_party/pkg/dart2js_info/lib
+dart2js_tools:pkg/dart2js_tools/lib
 dart_internal:pkg/dart_internal/lib
 dart_messages:pkg/dart_messages/lib
 dart_style:third_party/pkg_tested/dart_style/lib

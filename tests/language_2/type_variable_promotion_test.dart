@@ -30,6 +30,11 @@ class Foo<T extends A> {
 main() {
   var foo = new Foo<B>();
   var b = new B();
-  Expect.equals('List<B>', foo.foo(b));
+
+  // List class has many different platform specific implementations
+  // so we can't rely on the fact that all of them have the same
+  // user visible name. Instead we build a name for List<B> from List<A>.
+  final expected = (<A>[]).runtimeType.toString().replaceAll('<$A>', '<$B>');
+  Expect.equals(expected, foo.foo(b));
   Expect.listEquals([b], foo.bar(b));
 }

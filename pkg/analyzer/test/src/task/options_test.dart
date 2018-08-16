@@ -579,7 +579,7 @@ analyzer:
 analyzer:
   language:
     unsupported: true
-''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES]);
+''', [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE]);
   }
 
   test_analyzer_language_unsupported_value() {

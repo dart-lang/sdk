@@ -404,7 +404,6 @@ testForEach() async {
     List<ClassEntity> visited = <ClassEntity>[];
     classSet.forEachSubclass((cls) {
       visited.add(cls);
-      return null;
     }, ClassHierarchyNode.ALL);
 
     Expect.listEquals(
@@ -442,7 +441,6 @@ testForEach() async {
     List<ClassEntity> visited = <ClassEntity>[];
     classSet.forEachSubtype((cls) {
       visited.add(cls);
-      return null;
     }, ClassHierarchyNode.ALL);
 
     Expect.listEquals(

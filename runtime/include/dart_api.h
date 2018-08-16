@@ -9,10 +9,8 @@
 
 /** \mainpage Dart Embedding API Reference
  *
- * Dart is a class-based programming language for creating structured
- * web applications. This reference describes the Dart embedding api,
- * which is used to embed the Dart Virtual Machine within an
- * application.
+ * This reference describes the Dart Embedding API, which is used to embed the
+ * Dart Virtual Machine within C/C++ applications.
  *
  * This reference is generated from the header include/dart_api.h.
  */
@@ -1695,20 +1693,6 @@ DART_EXPORT Dart_Handle Dart_NewDouble(double value);
 DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle double_obj, double* value);
 
 /**
- * Returns a closure of top level function 'function_name' in the exported
- * namespace of specified 'library'. If a top level function 'function_name'
- * does not exist, looks for a top level getter 'function_name' and invokes
- * it and returns the object returned by the getter.
- *
- * \param library Library object
- * \param function_name Name of the top level function
- *
- * \return A valid Dart instance if no error occurs during the operation.
- */
-DART_EXPORT Dart_Handle Dart_GetClosure(Dart_Handle library,
-                                        Dart_Handle function_name);
-
-/**
  * Returns a closure of static function 'function_name' in the class 'class_name'
  * in the exported namespace of specified 'library'.
  *
@@ -2862,7 +2846,7 @@ typedef enum {
   Dart_kSourceTag,
   Dart_kImportTag,
   Dart_kKernelTag,
-  Dart_kImportResolvedExtensionTag,
+  Dart_kImportExtensionTag,
 } Dart_LibraryTag;
 
 /**
@@ -2912,12 +2896,10 @@ typedef enum {
  * files into one intermediate file hence we don't use the source/import or
  * script tags.
  *
- * Dart_kImportResolvedExtensionTag
+ * Dart_kImportExtensionTag
  *
- * This tag is used to load an external import (shared object file) without
- * performing path resolution first. The 'url' provided should be an absolute
- * path with the 'file://' schema. It doesn't require the service isolate to be
- * available and will not initialize a Loader for the isolate.
+ * This tag is used to load an external import (shared object file). The
+ * extension path must have the scheme 'dart-ext:'.
  */
 typedef Dart_Handle (*Dart_LibraryTagHandler)(
     Dart_LibraryTag tag,

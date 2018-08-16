@@ -342,10 +342,14 @@ class EqualsOperation implements BinaryOperation {
     }
 
     if (left.isConstructedObject) {
+      if (right.isNull) {
+        return DART_CONSTANT_SYSTEM.createBool(false);
+      }
       // Unless we know that the user-defined object does not implement the
       // equality operator we cannot fold here.
       return null;
     }
+
     return DART_CONSTANT_SYSTEM.createBool(left == right);
   }
 

@@ -111,7 +111,7 @@ class AnalysisOptionsWarningCode extends ErrorCode {
   static const AnalysisOptionsWarningCode UNSUPPORTED_OPTION_WITH_LEGAL_VALUE =
       const AnalysisOptionsWarningCode(
           'UNSUPPORTED_OPTION_WITH_LEGAL_VALUE',
-          "The option '{1}' isn't supported by '{0}'."
+          "The option '{1}' isn't supported by '{0}'. "
           "Try using the only supported option: '{2}'.");
 
   /**
@@ -189,6 +189,14 @@ class AnalysisOptionsHintCode extends ErrorCode {
           'DEPRECATED_ANALYSIS_OPTIONS_FILE_NAME',
           "The name of the analysis options file {0} is deprecated;"
           " consider renaming it to analysis_options.yaml.");
+
+  /**
+   * An error code indicating that the enablePreviewDart2 setting is deprecated.
+   */
+  static const AnalysisOptionsHintCode PREVIEW_DART_2_SETTING_DEPRECATED =
+      const AnalysisOptionsHintCode('PREVIEW_DART_2_SETTING_DEPRECATED',
+          "The 'enablePreviewDart2' setting is deprecated.",
+          correction: "It is no longer necessary to explicitly enable Dart 2.");
 
   /**
    * An error code indicating that strong-mode: true is deprecated.

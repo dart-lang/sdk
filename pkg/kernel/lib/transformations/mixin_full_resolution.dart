@@ -348,7 +348,7 @@ class SuperCallResolutionTransformer extends Transformer {
       // Target not found at all, or call was illegal.
       return _callNoSuchMethod(node.name.name, visitedArguments, node,
           isSuper: true);
-    } else if (target != null) {
+    } else {
       return new MethodInvocation(
           new DirectPropertyGet(new ThisExpression(), target),
           new Name('call'),

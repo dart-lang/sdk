@@ -4,6 +4,7 @@
 
 // part of "core_patch.dart";
 
+@pragma("vm.entry-point")
 class _List<E> extends FixedLengthListBase<E> {
   factory _List(length) native "List_allocate";
 

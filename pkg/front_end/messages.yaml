@@ -1300,9 +1300,17 @@ TooFewArguments:
   dart2jsCode: "*fatal*"
 
 TooManyArguments:
-  template: "Too many positional arguments: #count allowed, #count2 given."
+  template: "Too many positional arguments: #count allowed, but #count2 found."
+  tip: "Try removing the extra positional arguments."
   severity: ERROR_LEGACY_WARNING
   analyzerCode: EXTRA_POSITIONAL_ARGUMENTS
+  dart2jsCode: "*fatal*"
+
+TooManyArgumentsCouldBeNamed:
+  template: "Too many positional arguments: #count allowed, but #count2 found."
+  tip: "Try removing the extra positional arguments or specifying the name for named arguments."
+  severity: ERROR_LEGACY_WARNING
+  analyzerCode: EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED
   dart2jsCode: "*fatal*"
 
 NoSuchNamedParameter:
@@ -1659,6 +1667,57 @@ ExtendingRestricted:
 
 NoUnnamedConstructorInObject:
   template: "'Object' has no unnamed constructor."
+
+IllegalAsyncGeneratorReturnType:
+  template: "Functions marked 'async*' must have a return type assignable to 'Stream'."
+  severity: ERROR
+  analyzerCode: ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE
+  dart2jsCode: "*fatal*"
+  script:
+    - >-
+      int g() async* {
+        yield 0;
+      }
+
+IllegalAsyncGeneratorVoidReturnType:
+  template: "Functions marked 'async*' can't have return type 'void'."
+  severity: ERROR
+  dart2jsCode: "*fatal*"
+  script:
+    - >-
+      void g() async* {
+      }
+
+IllegalAsyncReturnType:
+  template: "Functions marked 'async' must have a return type assignable to 'Future'."
+  severity: ERROR
+  analyzerCode: ILLEGAL_ASYNC_RETURN_TYPE
+  dart2jsCode: "*fatal*"
+  script:
+    - >-
+      int f() async {
+        return 0;
+      }
+
+IllegalSyncGeneratorReturnType:
+  template: "Functions marked 'sync*' must have a return type assignable to 'Iterable'."
+  severity: ERROR
+  analyzerCode: ILLEGAL_SYNC_GENERATOR_RETURN_TYPE
+  dart2jsCode: "*fatal*"
+  script:
+    - >-
+      int g() sync* {
+        yield 0;
+      }
+
+IllegalSyncGeneratorVoidReturnType:
+  template: "Functions marked 'sync*' can't have return type 'void'."
+  severity: ERROR
+  dart2jsCode: "*fatal*"
+  script:
+    - >-
+      void g() sync* {
+      }
 
 IllegalMixinDueToConstructors:
   template: "Can't use '#name' as a mixin because it has constructors."
@@ -2098,7 +2157,6 @@ DuplicatedNamePreviouslyUsed:
 
 DuplicatedNamePreviouslyUsedCause:
   template: "Previous use of '#name'."
-  analyzerCode: REFERENCED_BEFORE_DECLARATION
   severity: CONTEXT
 
 DuplicatedNamedArgument:

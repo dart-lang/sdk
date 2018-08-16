@@ -56,8 +56,4 @@ void foo() { }''');
 class GetStatementCompletionTest_UseCFE extends GetStatementCompletionTest {
   @override
   bool get useCFE => true;
-
-  @override
-  @failingTest
-  test_statement_completion() => super.test_statement_completion();
 }

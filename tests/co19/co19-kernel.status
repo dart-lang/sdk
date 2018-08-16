@@ -15,7 +15,6 @@ WebPlatformTest/*: Skip # TODO(ahe): Make dart:html available.
 
 [ $compiler != dart2js && $fasta && !$strong ]
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t03: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/execution_t05: MissingCompileTimeError
 Language/Expressions/Constants/bitwise_operators_t02: MissingCompileTimeError
 Language/Expressions/Constants/exception_t04: MissingCompileTimeError
 Language/Expressions/Constants/literal_number_t01: CompileTimeError
@@ -26,7 +25,6 @@ Language/Expressions/Constants/math_operators_t04: MissingCompileTimeError
 Language/Expressions/Constants/math_operators_t06: CompileTimeError
 Language/Expressions/Numbers/static_type_of_int_t01: CompileTimeError
 Language/Expressions/Numbers/syntax_t10: CompileTimeError
-Language/Expressions/This/placement_t04: MissingCompileTimeError
 LibTest/core/double/isInfinite_A01_t03: CompileTimeError
 LibTest/core/int/abs_A01_t01: CompileTimeError
 LibTest/core/int/ceilToDouble_A01_t01: CompileTimeError
@@ -175,11 +173,6 @@ Language/Classes/Constructors/Factories/return_wrong_type_t04: CompileTimeError
 Language/Classes/Constructors/Factories/syntax_t01: CompileTimeError
 Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t03: CompileTimeError
 Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t04: CompileTimeError
-Language/Classes/Constructors/Generative_Constructors/execution_t04: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/execution_t05: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/execution_t06: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/execution_t07: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/execution_t12: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/explicit_type_t01: CompileTimeError
 Language/Classes/Constructors/Generative_Constructors/explicit_type_t02: CompileTimeError
 Language/Classes/Constructors/Generative_Constructors/initializers_t15: CompileTimeError
@@ -654,7 +647,6 @@ Language/Expressions/Method_Invocation/Super_Invocation/getter_lookup_failed_t01
 Language/Expressions/Method_Invocation/Super_Invocation/getter_lookup_failed_t02: CompileTimeError
 Language/Expressions/Method_Invocation/Super_Invocation/getter_lookup_failed_t03: CompileTimeError
 Language/Expressions/Method_Invocation/Super_Invocation/getter_lookup_failed_t04: CompileTimeError
-Language/Expressions/Method_Invocation/Super_Invocation/invocation_t02: MissingCompileTimeError
 Language/Expressions/Method_Invocation/Super_Invocation/method_lookup_failed_t02: CompileTimeError
 Language/Expressions/Method_Invocation/Super_Invocation/static_type_dynamic_t02: CompileTimeError
 Language/Expressions/Method_Invocation/Super_Invocation/wrong_type_t01: CompileTimeError
@@ -804,7 +796,6 @@ Language/Expressions/Strings/static_type_t06: CompileTimeError
 Language/Expressions/Strings/static_type_t07: CompileTimeError
 Language/Expressions/Strings/static_type_t08: CompileTimeError
 Language/Expressions/Strings/static_type_t09: CompileTimeError
-Language/Expressions/This/placement_t04: MissingCompileTimeError
 Language/Expressions/This/static_type_t01: CompileTimeError
 Language/Expressions/Throw/throw_various_types_t01: CompileTimeError
 Language/Expressions/Type_Cast/evaluation_t04: CompileTimeError
@@ -1695,10 +1686,6 @@ Language/Classes/Constructors/Factories/const_modifier_t01: MissingCompileTimeEr
 Language/Classes/Constructors/Factories/const_modifier_t02: MissingCompileTimeError
 Language/Classes/Constructors/Factories/default_value_t01: MissingCompileTimeError
 Language/Classes/Constructors/Factories/default_value_t02: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/execution_t04: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/execution_t06: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/execution_t07: MissingCompileTimeError
-Language/Classes/Constructors/Generative_Constructors/execution_t12: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t02: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t03: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t05: MissingCompileTimeError
@@ -1727,7 +1714,6 @@ Language/Expressions/Maps/constant_map_t02: MissingCompileTimeError
 Language/Expressions/Maps/key_value_equals_operator_t01: MissingCompileTimeError
 Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t01: MissingCompileTimeError
 Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t02: MissingCompileTimeError
-Language/Expressions/Method_Invocation/Super_Invocation/invocation_t02: MissingCompileTimeError
 Language/Expressions/Method_Invocation/Super_Invocation/invocation_t03: MissingCompileTimeError
 Language/Expressions/Numbers/syntax_t06: CompileTimeError
 Language/Expressions/Numbers/syntax_t09: CompileTimeError

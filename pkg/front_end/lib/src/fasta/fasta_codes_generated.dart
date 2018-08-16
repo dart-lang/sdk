@@ -2107,7 +2107,6 @@ const Code<Message Function(String name)>
     const Code<Message Function(String name)>(
         "DuplicatedNamePreviouslyUsedCause",
         templateDuplicatedNamePreviouslyUsedCause,
-        analyzerCode: "REFERENCED_BEFORE_DECLARATION",
         severity: Severity.context);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3279,6 +3278,43 @@ const MessageCode messageIllegalAssignmentToNonAssignable = const MessageCode(
     message: r"""Illegal assignment to non-assignable expression.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeIllegalAsyncGeneratorReturnType =
+    messageIllegalAsyncGeneratorReturnType;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageIllegalAsyncGeneratorReturnType = const MessageCode(
+    "IllegalAsyncGeneratorReturnType",
+    analyzerCode: "ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE",
+    dart2jsCode: "*fatal*",
+    severity: Severity.error,
+    message:
+        r"""Functions marked 'async*' must have a return type assignable to 'Stream'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeIllegalAsyncGeneratorVoidReturnType =
+    messageIllegalAsyncGeneratorVoidReturnType;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageIllegalAsyncGeneratorVoidReturnType =
+    const MessageCode("IllegalAsyncGeneratorVoidReturnType",
+        dart2jsCode: "*fatal*",
+        severity: Severity.error,
+        message:
+            r"""Functions marked 'async*' can't have return type 'void'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeIllegalAsyncReturnType = messageIllegalAsyncReturnType;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageIllegalAsyncReturnType = const MessageCode(
+    "IllegalAsyncReturnType",
+    analyzerCode: "ILLEGAL_ASYNC_RETURN_TYPE",
+    dart2jsCode: "*fatal*",
+    severity: Severity.error,
+    message:
+        r"""Functions marked 'async' must have a return type assignable to 'Future'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateIllegalMixin =
     const Template<Message Function(String name)>(
         messageTemplate: r"""The type '#name' can't be mixed in.""",
@@ -3341,6 +3377,30 @@ Message _withArgumentsIllegalMixinDueToConstructorsCause(String name) {
       message: """This constructor prevents using '${name}' as a mixin.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeIllegalSyncGeneratorReturnType =
+    messageIllegalSyncGeneratorReturnType;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageIllegalSyncGeneratorReturnType = const MessageCode(
+    "IllegalSyncGeneratorReturnType",
+    analyzerCode: "ILLEGAL_SYNC_GENERATOR_RETURN_TYPE",
+    dart2jsCode: "*fatal*",
+    severity: Severity.error,
+    message:
+        r"""Functions marked 'sync*' must have a return type assignable to 'Iterable'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeIllegalSyncGeneratorVoidReturnType =
+    messageIllegalSyncGeneratorVoidReturnType;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageIllegalSyncGeneratorVoidReturnType = const MessageCode(
+    "IllegalSyncGeneratorVoidReturnType",
+    dart2jsCode: "*fatal*",
+    severity: Severity.error,
+    message: r"""Functions marked 'sync*' can't have return type 'void'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeImplementsBeforeExtends = messageImplementsBeforeExtends;
@@ -6746,7 +6806,8 @@ const Template<
             count2)> templateTooManyArguments = const Template<
         Message Function(int count, int count2)>(
     messageTemplate:
-        r"""Too many positional arguments: #count allowed, #count2 given.""",
+        r"""Too many positional arguments: #count allowed, but #count2 found.""",
+    tipTemplate: r"""Try removing the extra positional arguments.""",
     withArguments: _withArgumentsTooManyArguments);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6761,7 +6822,39 @@ const Code<Message Function(int count, int count2)> codeTooManyArguments =
 Message _withArgumentsTooManyArguments(int count, int count2) {
   return new Message(codeTooManyArguments,
       message:
-          """Too many positional arguments: ${count} allowed, ${count2} given.""",
+          """Too many positional arguments: ${count} allowed, but ${count2} found.""",
+      tip: """Try removing the extra positional arguments.""",
+      arguments: {'count': count, 'count2': count2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        int count,
+        int
+            count2)> templateTooManyArgumentsCouldBeNamed = const Template<
+        Message Function(int count, int count2)>(
+    messageTemplate:
+        r"""Too many positional arguments: #count allowed, but #count2 found.""",
+    tipTemplate:
+        r"""Try removing the extra positional arguments or specifying the name for named arguments.""",
+    withArguments: _withArgumentsTooManyArgumentsCouldBeNamed);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(int count, int count2)>
+    codeTooManyArgumentsCouldBeNamed =
+    const Code<Message Function(int count, int count2)>(
+        "TooManyArgumentsCouldBeNamed", templateTooManyArgumentsCouldBeNamed,
+        analyzerCode: "EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED",
+        dart2jsCode: "*fatal*",
+        severity: Severity.errorLegacyWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsTooManyArgumentsCouldBeNamed(int count, int count2) {
+  return new Message(codeTooManyArgumentsCouldBeNamed,
+      message:
+          """Too many positional arguments: ${count} allowed, but ${count2} found.""",
+      tip: """Try removing the extra positional arguments or specifying the name for named arguments.""",
       arguments: {'count': count, 'count2': count2});
 }
 

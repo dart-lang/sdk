@@ -672,10 +672,10 @@ abstract class PluginTestSupport {
    * content that implements a minimal plugin if the contents are not given. The
    * [test] function will be passed the path of the directory that was created.
    */
-  Future<Null> withPlugin(
+  Future<void> withPlugin(
       {String content,
       String pluginName,
-      Future<Null> test(String pluginPath)}) async {
+      Future<void> test(String pluginPath)}) async {
     io.Directory tempDirectory =
         io.Directory.systemTemp.createTempSync(pluginName ?? 'test_plugin');
     try {
@@ -720,10 +720,10 @@ abstract class PluginTestSupport {
    * content that implements a minimal plugin if the contents are not given. The
    * [test] function will be passed the path of the directory that was created.
    */
-  Future<Null> withPubspecPlugin(
+  Future<void> withPubspecPlugin(
       {String content,
       String pluginName,
-      Future<Null> test(String pluginPath)}) async {
+      Future<void> test(String pluginPath)}) async {
     io.Directory tempDirectory =
         io.Directory.systemTemp.createTempSync(pluginName ?? 'test_plugin');
     try {

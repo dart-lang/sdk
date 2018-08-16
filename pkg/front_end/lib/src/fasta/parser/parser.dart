@@ -1060,7 +1060,7 @@ class Parser {
     TypeInfo typeInfo = computeType(typedefKeyword, false);
     token = typeInfo.skipType(typedefKeyword).next;
     Token equals;
-    TypeParamOrArgInfo typeParam = computeTypeParamOrArg(token);
+    TypeParamOrArgInfo typeParam = computeTypeParamOrArg(token, true);
     if (typeInfo == noType &&
         (token.kind == IDENTIFIER_TOKEN || token.type.isPseudo) &&
         optional('=', typeParam.skip(token).next)) {
@@ -1320,9 +1320,11 @@ class Parser {
       next = token.next;
     }
     Token beforeInlineFunctionType;
+    TypeParamOrArgInfo typeParam = noTypeParamOrArg;
     if (optional("<", next)) {
-      Token closer = next.endGroup;
-      if (closer != null) {
+      typeParam = computeTypeParamOrArg(token);
+      if (typeParam != noTypeParamOrArg) {
+        Token closer = typeParam.skip(token);
         if (optional("(", closer.next)) {
           if (varFinalOrConst != null) {
             reportRecoverableError(
@@ -1350,8 +1352,8 @@ class Parser {
 
     Token endInlineFunctionType;
     if (beforeInlineFunctionType != null) {
-      endInlineFunctionType = computeTypeParamOrArg(beforeInlineFunctionType)
-          .parseVariables(beforeInlineFunctionType, this);
+      endInlineFunctionType =
+          typeParam.parseVariables(beforeInlineFunctionType, this);
       listener.beginFunctionTypedFormalParameter(beforeInlineFunctionType.next);
       token = typeInfo.parseType(beforeType, this);
       endInlineFunctionType = parseFormalParametersRequiredOpt(
@@ -2152,17 +2154,15 @@ class Parser {
   }
 
   Token parseMethodTypeVar(Token name) {
+    if (!optional('<', name.next)) {
+      return noTypeParamOrArg.parseVariables(name, this);
+    }
     TypeParamOrArgInfo typeVar = computeTypeParamOrArg(name, true);
-    Token token;
-    if (typeVar == noTypeParamOrArg || name.next.endGroup != null) {
-      token = typeVar.parseVariables(name, this);
-    } else {
+    Token token = typeVar.parseVariables(name, this);
+    if (optional('=', token.next)) {
       // Recovery
-      token = typeVar.parseVariables(name, this);
-      if (optional('=', token.next)) {
-        token = token.next;
-        reportRecoverableErrorWithToken(token, fasta.templateUnexpectedToken);
-      }
+      token = token.next;
+      reportRecoverableErrorWithToken(token, fasta.templateUnexpectedToken);
     }
     return token;
   }
@@ -2431,21 +2431,6 @@ class Parser {
     return rewriteAndRecover(token, message, newToken).next;
   }
 
-  /// If the token after [token] is a '>', return it.
-  /// If the next token is a composite greater-than token such as '>>',
-  /// then replace that token with separate tokens, and return the first '>'.
-  /// Otherwise, report an error, insert a synthetic '>',
-  /// and return that newly inserted synthetic '>'.
-  Token ensureGt(Token token) {
-    Token next = token.next;
-    String value = next.stringValue;
-    if (value == '>') {
-      return next;
-    }
-    rewriteGtCompositeOrRecover(token, next, value);
-    return token.next;
-  }
-
   /// If the token after [token] is a not literal string,
   /// then insert a synthetic literal string.
   /// Call `parseLiteralString` and return the result.
@@ -2498,36 +2483,6 @@ class Parser {
         new Token(TokenType.CLOSE_SQUARE_BRACKET, next.offset + 1));
     rewriter.replaceTokenFollowing(token, replacement);
     return token;
-  }
-
-  void rewriteGtCompositeOrRecover(Token token, Token next, String value) {
-    assert(value != '>');
-    Token replacement = new Token(TokenType.GT, next.charOffset);
-    if (identical(value, '>>')) {
-      replacement.setNext(new Token(TokenType.GT, next.charOffset + 1));
-    } else if (identical(value, '>=')) {
-      replacement.setNext(new Token(TokenType.EQ, next.charOffset + 1));
-    } else if (identical(value, '>>=')) {
-      replacement.setNext(new Token(TokenType.GT, next.charOffset + 1));
-      replacement.next.setNext(new Token(TokenType.EQ, next.charOffset + 2));
-    } else {
-      // Recovery
-      rewriteAndRecover(token, fasta.templateExpectedToken.withArguments('>'),
-          new SyntheticToken(TokenType.GT, next.offset));
-      return;
-    }
-    rewriter.replaceTokenFollowing(token, replacement);
-  }
-
-  void rewriteLtEndGroupOpt(BeginToken beginToken) {
-    assert(optional('<', beginToken));
-    Token end = beginToken.endGroup;
-    String value = end?.stringValue;
-    if (value != null && value.length > 1) {
-      Token beforeEnd = previousToken(beginToken, end);
-      rewriteGtCompositeOrRecover(beforeEnd, end, value);
-      beginToken.endGroup = null;
-    }
   }
 
   /// Report the given token as unexpected and return the next token if the next
@@ -2687,9 +2642,10 @@ class Parser {
         // Fall through to continue parsing `factory` as an identifier.
       } else if (identical(value, 'operator')) {
         Token next2 = next.next;
+        TypeParamOrArgInfo typeParam = computeTypeParamOrArg(next);
         // `operator` can be used as an identifier as in
         // `int operator<T>()` or `int operator = 2`
-        if (next2.isUserDefinableOperator && next2.endGroup == null) {
+        if (next2.isUserDefinableOperator && typeParam == noTypeParamOrArg) {
           token = parseMethod(
               beforeStart,
               externalToken,
@@ -2961,7 +2917,7 @@ class Parser {
     assert(optional('operator', token));
     Token next = token.next;
     if (next.isUserDefinableOperator) {
-      if (next.endGroup != null) {
+      if (computeTypeParamOrArg(token) != noTypeParamOrArg) {
         // `operator` is being used as an identifier.
         // For example: `int operator<T>(foo) => 0;`
         listener.handleIdentifier(token, IdentifierContext.methodDeclaration);
@@ -3002,11 +2958,13 @@ class Parser {
   }
 
   Token parseFunctionLiteral(
-      final Token start, TypeInfo typeInfo, IdentifierContext context) {
-    Token beforeName = typeInfo.skipType(start);
-    Token name = beforeName.next;
-    assert(name.isIdentifier);
-    Token formals = computeTypeParamOrArg(name).parseVariables(name, this);
+      Token start,
+      Token beforeName,
+      Token name,
+      TypeInfo typeInfo,
+      TypeParamOrArgInfo typeParam,
+      IdentifierContext context) {
+    Token formals = typeParam.parseVariables(name, this);
     listener.beginNamedFunctionExpression(start.next);
     typeInfo.parseType(start, this);
     return parseNamedFunctionRest(beforeName, start.next, formals, true);
@@ -3067,13 +3025,14 @@ class Parser {
     return token;
   }
 
-  Token parseConstructorReference(Token token) {
+  Token parseConstructorReference(Token token, [TypeParamOrArgInfo typeArg]) {
     Token start =
         ensureIdentifier(token, IdentifierContext.constructorReference);
     listener.beginConstructorReference(start);
     token = parseQualifiedRestOpt(
         start, IdentifierContext.constructorReferenceContinuation);
-    token = computeTypeParamOrArg(token).parseArguments(token, this);
+    typeArg ??= computeTypeParamOrArg(token);
+    token = typeArg.parseArguments(token, this);
     Token period = null;
     if (optional('.', token.next)) {
       period = token.next;
@@ -3748,11 +3707,12 @@ class Parser {
       if (identifier.isIdentifier) {
         // Looking at `identifier ('.' identifier)?`.
         if (optional("<", identifier.next)) {
-          BeginToken typeArguments = identifier.next;
-          Token endTypeArguments = typeArguments.endGroup;
-          if (endTypeArguments != null &&
-              optional(".", endTypeArguments.next)) {
-            return parseImplicitCreationExpression(token);
+          TypeParamOrArgInfo typeArg = computeTypeParamOrArg(identifier);
+          if (typeArg != noTypeParamOrArg) {
+            Token endTypeArguments = typeArg.skip(identifier);
+            if (optional(".", endTypeArguments.next)) {
+              return parseImplicitCreationExpression(token, typeArg);
+            }
           }
         }
       }
@@ -4171,10 +4131,23 @@ class Parser {
       return parseSend(token, context);
     }
     TypeInfo typeInfo = computeType(token, false);
-    if (!looksLikeFunctionDeclaration(typeInfo.skipType(token).next)) {
-      return parseSend(token, context);
+    Token beforeName = typeInfo.skipType(token);
+    Token name = beforeName.next;
+    if (name.isIdentifier) {
+      TypeParamOrArgInfo typeParam = computeTypeParamOrArg(name);
+      Token next = name;
+      if (typeParam != noTypeParamOrArg) {
+        next = typeParam.skip(next);
+      }
+      next = next.next;
+      if (optional('(', next)) {
+        if (looksLikeFunctionBody(next.endGroup.next)) {
+          return parseFunctionLiteral(
+              token, beforeName, name, typeInfo, typeParam, context);
+        }
+      }
     }
-    return parseFunctionLiteral(token, typeInfo, context);
+    return parseSend(token, context);
   }
 
   Token parseRequiredArguments(Token token) {
@@ -4203,10 +4176,11 @@ class Parser {
     return token;
   }
 
-  Token parseImplicitCreationExpression(Token token) {
+  Token parseImplicitCreationExpression(
+      Token token, TypeParamOrArgInfo typeArg) {
     Token begin = token;
     listener.beginImplicitCreationExpression(token);
-    token = parseConstructorReference(token);
+    token = parseConstructorReference(token, typeArg);
     token = parseRequiredArguments(token);
     listener.endImplicitCreationExpression(begin);
     return token;
@@ -4564,14 +4538,14 @@ class Parser {
   /// without a return type.
   bool looksLikeLocalFunction(Token token) {
     if (token.isIdentifier) {
-      token = token.next;
-      if (optional('<', token)) {
-        Token closeBrace = token.endGroup;
-        if (closeBrace == null) {
+      if (optional('<', token.next)) {
+        TypeParamOrArgInfo typeParam = computeTypeParamOrArg(token);
+        if (typeParam == noTypeParamOrArg) {
           return false;
         }
-        token = closeBrace.next;
+        token = typeParam.skip(token);
       }
+      token = token.next;
       if (optional('(', token)) {
         token = token.endGroup.next;
         return optional('{', token) ||
@@ -4592,24 +4566,6 @@ class Parser {
         optional('=>', token) ||
         optional('async', token) ||
         optional('sync', token);
-  }
-
-  /// Returns true if [token] could be the start of a function declaration
-  /// without a return type.
-  bool looksLikeFunctionDeclaration(Token token) {
-    if (!token.isIdentifier) {
-      return false;
-    }
-    token = token.next;
-    if (optional('<', token)) {
-      Token closeBrace = token.endGroup;
-      if (closeBrace == null) return false;
-      token = closeBrace.next;
-    }
-    if (optional('(', token)) {
-      return looksLikeFunctionBody(token.endGroup.next);
-    }
-    return false;
   }
 
   Token parseExpressionStatementOrConstDeclaration(final Token start) {
@@ -4696,22 +4652,24 @@ class Parser {
     Token token = typeInfo.skipType(beforeType);
     Token next = token.next;
 
-    if (!onlyParseVariableDeclarationStart && looksLikeLocalFunction(next)) {
-      // Parse a local function declaration.
-      if (varFinalOrConst != null) {
-        reportRecoverableErrorWithToken(
-            varFinalOrConst, fasta.templateExtraneousModifier);
+    if (!onlyParseVariableDeclarationStart) {
+      if (looksLikeLocalFunction(next)) {
+        // Parse a local function declaration.
+        if (varFinalOrConst != null) {
+          reportRecoverableErrorWithToken(
+              varFinalOrConst, fasta.templateExtraneousModifier);
+        }
+        if (!optional('@', start.next)) {
+          listener.beginMetadataStar(start.next);
+          listener.endMetadataStar(0);
+        }
+        Token beforeFormals =
+            computeTypeParamOrArg(next).parseVariables(next, this);
+        listener.beginLocalFunctionDeclaration(start.next);
+        token = typeInfo.parseType(beforeType, this);
+        next = token.next;
+        return parseNamedFunctionRest(token, start.next, beforeFormals, false);
       }
-      if (!optional('@', start.next)) {
-        listener.beginMetadataStar(start.next);
-        listener.endMetadataStar(0);
-      }
-      Token beforeFormals =
-          computeTypeParamOrArg(next).parseVariables(next, this);
-      listener.beginLocalFunctionDeclaration(start.next);
-      token = typeInfo.parseType(beforeType, this);
-      next = token.next;
-      return parseNamedFunctionRest(token, start.next, beforeFormals, false);
     }
 
     if (token == start) {

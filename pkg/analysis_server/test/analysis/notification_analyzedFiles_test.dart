@@ -35,7 +35,7 @@ class AnalysisNotificationAnalyzedFilesTest extends AbstractAnalysisTest {
     expect(analyzedFiles, isNot(contains(filePath)));
   }
 
-  Future<Null> prepareAnalyzedFiles() async {
+  Future<void> prepareAnalyzedFiles() async {
     addGeneralAnalysisSubscription(GeneralAnalysisService.ANALYZED_FILES);
     await pumpEventQueue(times: 5000);
   }

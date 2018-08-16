@@ -39,9 +39,7 @@ typedef void ReferenceFinderCallback(ConstantEvaluationTarget dependency);
  * constants to be evaluated.
  */
 class ConstantAstCloner extends AstCloner {
-  final bool previewDart2;
-
-  ConstantAstCloner(this.previewDart2) : super(true);
+  ConstantAstCloner() : super(true);
 
   @override
   Annotation visitAnnotation(Annotation node) {
@@ -69,7 +67,7 @@ class ConstantAstCloner extends AstCloner {
       InstanceCreationExpression node) {
     InstanceCreationExpression expression =
         super.visitInstanceCreationExpression(node);
-    if (previewDart2 && node.keyword == null) {
+    if (node.keyword == null) {
       if (node.isConst) {
         expression.keyword = new KeywordToken(Keyword.CONST, node.offset);
       } else {
@@ -84,7 +82,7 @@ class ConstantAstCloner extends AstCloner {
   ListLiteral visitListLiteral(ListLiteral node) {
     ListLiteral literal = super.visitListLiteral(node);
     literal.staticType = node.staticType;
-    if (previewDart2 && node.constKeyword == null && node.isConst) {
+    if (node.constKeyword == null && node.isConst) {
       literal.constKeyword = new KeywordToken(Keyword.CONST, node.offset);
     }
     return literal;
@@ -94,7 +92,7 @@ class ConstantAstCloner extends AstCloner {
   MapLiteral visitMapLiteral(MapLiteral node) {
     MapLiteral literal = super.visitMapLiteral(node);
     literal.staticType = node.staticType;
-    if (previewDart2 && node.constKeyword == null && node.isConst) {
+    if (node.constKeyword == null && node.isConst) {
       literal.constKeyword = new KeywordToken(Keyword.CONST, node.offset);
     }
     return literal;

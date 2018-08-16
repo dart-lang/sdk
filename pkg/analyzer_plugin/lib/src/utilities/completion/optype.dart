@@ -125,8 +125,7 @@ class OpType {
     if (optype.includeReturnValueSuggestions) {
       // Careful: in angular plugin, `target.unit` may be null!
       CompilationUnitElement unitElement = target.unit?.declaredElement;
-      if (unitElement != null &&
-          unitElement.context.analysisOptions.previewDart2) {
+      if (unitElement != null) {
         optype.includeConstructorSuggestions = true;
       }
     }
@@ -319,7 +318,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
           index = node.arguments.length - 1;
         }
       } else {
-        index = node.arguments.indexOf(entity);
+        index = node.arguments.indexOf(entity as Expression);
       }
       if (0 <= index && index < parameters.length) {
         ParameterElement param = parameters[index];

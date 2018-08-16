@@ -1456,7 +1456,8 @@ main() {
 }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS]);
+      assertErrors(source,
+          [CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED]);
     } else {
       assertErrors(source,
           [StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED]);
@@ -1471,7 +1472,8 @@ main() {
 }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS]);
+      assertErrors(source,
+          [CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED]);
     } else {
       assertErrors(source,
           [StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED]);

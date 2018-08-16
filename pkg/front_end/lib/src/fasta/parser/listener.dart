@@ -865,7 +865,7 @@ class Listener implements UnescapeErrorListener {
     logEvent("TryStatement");
   }
 
-  void handleType(Token beginToken, Token endToken) {
+  void handleType(Token beginToken) {
     logEvent("Type");
   }
 
@@ -881,7 +881,7 @@ class Listener implements UnescapeErrorListener {
   /// - Type variables
   /// - Return type
   /// - Formal parameters
-  void endFunctionType(Token functionToken, Token endToken) {
+  void endFunctionType(Token functionToken) {
     logEvent("FunctionType");
   }
 

@@ -150,14 +150,6 @@ class ConvertGetterMethodToMethodTest_UseCFE
     extends ConvertGetterMethodToMethodTest {
   @override
   bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_function() => super.test_function();
-
-  @failingTest
-  @override
-  test_method() => super.test_method();
 }
 
 @reflectiveTest
@@ -276,14 +268,6 @@ main(A a, B b, C c, D d) {
 class ConvertMethodToGetterTest_UseCFE extends ConvertMethodToGetterTest {
   @override
   bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_function() => super.test_function();
-
-  @failingTest
-  @override
-  test_method() => super.test_method();
 }
 
 @reflectiveTest
@@ -453,7 +437,7 @@ main() {
 }
 ''');
 
-    Future<Null> checkUpdate(doUpdate()) async {
+    Future<void> checkUpdate(doUpdate()) async {
       await getRefactoringResult(() {
         return sendStringRequest('1 + 2', 'res', true);
       });
@@ -604,11 +588,6 @@ main() {
 class ExtractLocalVariableTest_UseCFE extends ExtractLocalVariableTest {
   @override
   bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_resetOnAnalysisSetChanged_overlay() =>
-      super.test_resetOnAnalysisSetChanged_overlay();
 }
 
 @reflectiveTest
@@ -1201,22 +1180,6 @@ main() {
 class InlineLocalTest_UseCFE extends InlineLocalTest {
   @override
   bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_analysis_onlyOneFile() => super.test_analysis_onlyOneFile();
-
-  @failingTest
-  @override
-  test_feedback() => super.test_feedback();
-
-  @failingTest
-  @override
-  test_OK() => super.test_OK();
-
-  @failingTest
-  @override
-  test_resetOnAnalysisSetChanged() => super.test_resetOnAnalysisSetChanged();
 }
 
 @reflectiveTest
@@ -1349,23 +1312,6 @@ main() {
 class InlineMethodTest_UseCFE extends InlineMethodTest {
   @override
   bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_feedback() => super.test_feedback();
-
-  @failingTest
-  @override
-  test_method() => super.test_method();
-
-  @failingTest
-  @override
-  test_topLevelFunction() => super.test_topLevelFunction();
-
-  @failingTest
-  @override
-  test_topLevelFunction_oneInvocation() =>
-      super.test_topLevelFunction_oneInvocation();
 }
 
 @reflectiveTest

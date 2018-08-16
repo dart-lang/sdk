@@ -1054,7 +1054,7 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(const ICData& ic_data,
   __ Comment("SwitchableCall");
   __ movq(RDI, Address(RSP, (ic_data.CountWithoutTypeArgs() - 1) * kWordSize));
   __ LoadUniqueObject(CODE_REG, initial_stub);
-  __ movq(RCX, FieldAddress(CODE_REG, Code::checked_entry_point_offset()));
+  __ movq(RCX, FieldAddress(CODE_REG, Code::monomorphic_entry_point_offset()));
   __ LoadUniqueObject(RBX, ic_data);
   __ call(RCX);
 

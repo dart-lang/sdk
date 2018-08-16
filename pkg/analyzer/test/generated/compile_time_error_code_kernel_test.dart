@@ -1221,18 +1221,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_referencedBeforeDeclaration_hideInBlock_local() async {
-    await super.test_referencedBeforeDeclaration_hideInBlock_local();
-  }
-
-  @override
-  @failingTest
-  test_referencedBeforeDeclaration_hideInBlock_subBlock() async {
-    await super.test_referencedBeforeDeclaration_hideInBlock_subBlock();
-  }
-
-  @override
-  @failingTest
   test_referencedBeforeDeclaration_inInitializer_closure() async {
     await super.test_referencedBeforeDeclaration_inInitializer_closure();
   }
@@ -1241,12 +1229,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @failingTest
   test_referencedBeforeDeclaration_inInitializer_directly() async {
     await super.test_referencedBeforeDeclaration_inInitializer_directly();
-  }
-
-  @override
-  @failingTest
-  test_referencedBeforeDeclaration_type_localVariable() async {
-    await super.test_referencedBeforeDeclaration_type_localVariable();
   }
 
   @override
@@ -1379,6 +1361,12 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @failingTest
   test_uriDoesNotExist_part() async {
     await super.test_uriDoesNotExist_part();
+  }
+
+  @override
+  @failingTest
+  test_uriWithInterpolation_constant() async {
+    return super.test_uriWithInterpolation_constant();
   }
 
   @override

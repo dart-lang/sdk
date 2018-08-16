@@ -1607,17 +1607,18 @@ InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
     intptr_t node_offset) {
   const intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
   if (md_offset < 0) {
-    return InferredTypeMetadata(kDynamicCid, true);
+    return InferredTypeMetadata(kDynamicCid,
+                                InferredTypeMetadata::kFlagNullable);
   }
 
   AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
                               md_offset);
 
   const NameIndex kernel_name = helper_->ReadCanonicalNameReference();
-  const bool nullable = helper_->ReadBool();
+  const uint8_t flags = helper_->ReadByte();
 
   if (H.IsRoot(kernel_name)) {
-    return InferredTypeMetadata(kDynamicCid, nullable);
+    return InferredTypeMetadata(kDynamicCid, flags);
   }
 
   const Class& klass =
@@ -1631,7 +1632,7 @@ InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
     cid = kDynamicCid;
   }
 
-  return InferredTypeMetadata(cid, nullable);
+  return InferredTypeMetadata(cid, flags);
 }
 
 ProcedureAttributesMetadataHelper::ProcedureAttributesMetadataHelper(

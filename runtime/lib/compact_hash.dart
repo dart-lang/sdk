@@ -131,6 +131,7 @@ class _IdenticalAndIdentityHashCode {
 }
 
 // VM-internalized implementation of a default-constructed LinkedHashMap.
+@pragma("vm.entry-point")
 class _InternalLinkedHashMap<K, V> extends _HashVMBase
     with
         MapMixin<K, V>,

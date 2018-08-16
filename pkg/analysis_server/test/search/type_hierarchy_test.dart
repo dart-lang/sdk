@@ -12,7 +12,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
-import '../test_utilities/utillities.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -1087,7 +1086,8 @@ class GetTypeHierarchyTest_UseCFE extends GetTypeHierarchyTest {
   @failingTest
   @override
   test_class_extendsTypeB() {
-    return callFailingTest(super.test_class_extendsTypeB);
+    fail('Timeout');
+//    return callFailingTest(super.test_class_extendsTypeB);
   }
 
   @failingTest

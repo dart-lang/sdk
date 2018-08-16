@@ -233,6 +233,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   static String _TO_INT_METHOD_NAME = "toInt";
 
+  static final _templateExtension = '.template';
+
   static final _testDir = '${path.separator}test${path.separator}';
 
   static final _testingDir = '${path.separator}testing${path.separator}';
@@ -412,14 +414,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     } finally {
       inDeprecatedMember = wasInDeprecatedMember;
     }
-  }
-
-  @override
-  Object visitFunctionExpression(FunctionExpression node) {
-    if (node.parent is! FunctionDeclaration) {
-      _checkForMissingReturn(null, node.body, node.declaredElement, node);
-    }
-    return super.visitFunctionExpression(node);
   }
 
   @override
@@ -849,9 +843,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   ///   getter/setter, method closure or invocation accessed outside a subclass,
   ///   or accessed outside the library wherein the identifier is declared, or
   /// * if the given identifier is a closure, field, getter, setter, method
+  ///   closure or invocation which is annotated with `visibleForTemplate`, and
+  ///   is accessed outside of the defining library, and the current library
+  ///   does not have the suffix '.template' in its source path, or
+  /// * if the given identifier is a closure, field, getter, setter, method
   ///   closure or invocation which is annotated with `visibleForTesting`, and
   ///   is accessed outside of the defining library, and the current library
-  ///   does not have the word 'test' in its name.
+  ///   does not have a directory named 'test' or 'testing' in its path.
   void _checkForInvalidAccess(SimpleIdentifier identifier) {
     if (identifier.inDeclarationContext()) {
       return;
@@ -866,6 +864,21 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       if (element is MethodElement &&
           element.enclosingElement is ClassElement &&
           element.hasProtected) {
+        return true;
+      }
+      return false;
+    }
+
+    bool isVisibleForTemplate(Element element) {
+      if (element == null) {
+        return false;
+      }
+      if (element.hasVisibleForTemplate) {
+        return true;
+      }
+      if (element is PropertyAccessorElement &&
+          element.enclosingElement is ClassElement &&
+          element.variable.hasVisibleForTemplate) {
         return true;
       }
       return false;
@@ -897,12 +910,19 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         identifier.parent is Combinator &&
         identifier.parent.parent is ExportDirective;
 
+    bool inTemplateSource(LibraryElement library) =>
+        library.definingCompilationUnit.source.fullName
+            .contains(_templateExtension);
+
     bool inTestDirectory(LibraryElement library) =>
         library.definingCompilationUnit.source.fullName.contains(_testDir) ||
         library.definingCompilationUnit.source.fullName.contains(_testingDir);
 
     Element element = identifier.staticElement;
-    if (!isProtected(element) && !isVisibleForTesting(element)) {
+    if (!isProtected(element) &&
+        !isVisibleForTemplate(element) &&
+        !isVisibleForTesting(element)) {
+      // Without any of these annotations, the access is valid.
       return;
     }
 
@@ -920,23 +940,40 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         return;
       }
     }
+    if (isVisibleForTemplate(element)) {
+      if (inCurrentLibrary(element) ||
+          inTemplateSource(_currentLibrary) ||
+          inExportDirective(identifier) ||
+          inCommentReference(identifier)) {
+        // The access is valid; even if [element] is also marked `protected`,
+        // the "visibilities" are unioned.
+        return;
+      }
+    }
     if (isVisibleForTesting(element)) {
       if (inCurrentLibrary(element) ||
           inTestDirectory(_currentLibrary) ||
           inExportDirective(identifier) ||
           inCommentReference(identifier)) {
-        // The access is valid; even if [element] is also marked
-        // `protected`, the "visibilities" are unioned.
+        // The access is valid; even if [element] is also marked `protected`,
+        // the "visibilities" are unioned.
         return;
       }
     }
 
     // At this point, [identifier] was not cleared as protected access, nor
-    // cleared as access for testing. Report the appropriate violation(s).
+    // cleared as access for templates or testing. Report the appropriate
+    // violation(s).
     Element definingClass = element.enclosingElement;
     if (isProtected(element)) {
       _errorReporter.reportErrorForNode(
           HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
+          identifier,
+          [identifier.name.toString(), definingClass.name]);
+    }
+    if (isVisibleForTemplate(element)) {
+      _errorReporter.reportErrorForNode(
+          HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER,
           identifier,
           [identifier.name.toString(), definingClass.name]);
     }
@@ -1079,28 +1116,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
             ? returnType.flattenFutures(_typeSystem)
             : returnType;
 
-        // Function expressions without a return will have their return type set
-        // to `Null` regardless of their context type. So we need to figure out
-        // if a return type was expected from the original downwards context.
-        //
-        // This helps detect hint cases like `int Function() f = () {}`.
-        // See https://github.com/dart-lang/sdk/issues/28233 for context.
-        if (flattenedType.isDartCoreNull &&
-            functionNode is FunctionExpression) {
-          var contextType = InferenceContext.getContext(functionNode);
-          if (contextType is FunctionType) {
-            returnType = contextType.returnType;
-            flattenedType = body.isAsynchronous
-                ? returnType.flattenFutures(_typeSystem)
-                : returnType;
-          }
-        }
-
-        // dynamic, Null, void, and FutureOr<T> where T is (dynamic, Null, void)
-        // are allowed to omit a return.
-        if (flattenedType.isDartAsyncFutureOr) {
-          flattenedType = (flattenedType as InterfaceType).typeArguments[0];
-        }
+        // dynamic/Null/void are allowed to omit a return.
         if (flattenedType.isDynamic ||
             flattenedType.isDartCoreNull ||
             flattenedType.isVoid) {
@@ -2177,17 +2193,17 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
         if (lhsResult != null) {
           bool value = lhsResult.value.toBoolValue();
           if (value == true && isBarBar) {
-            // report error on else block: true || !e!
+            // Report error on "else" block: true || !e!
             _errorReporter.reportErrorForNode(
                 HintCode.DEAD_CODE, node.rightOperand);
-            // only visit the LHS:
+            // Only visit the LHS:
             lhsCondition?.accept(this);
             return null;
           } else if (value == false && isAmpAmp) {
-            // report error on if block: false && !e!
+            // Report error on "if" block: false && !e!
             _errorReporter.reportErrorForNode(
                 HintCode.DEAD_CODE, node.rightOperand);
-            // only visit the LHS:
+            // Only visit the LHS:
             lhsCondition?.accept(this);
             return null;
           }
@@ -2243,13 +2259,13 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
           _getConstantBooleanValue(conditionExpression);
       if (result != null) {
         if (result.value.toBoolValue() == true) {
-          // report error on else block: true ? 1 : !2!
+          // Report error on "else" block: true ? 1 : !2!
           _errorReporter.reportErrorForNode(
               HintCode.DEAD_CODE, node.elseExpression);
           node.thenExpression?.accept(this);
           return null;
         } else {
-          // report error on if block: false ? !1! : 2
+          // Report error on "if" block: false ? !1! : 2
           _errorReporter.reportErrorForNode(
               HintCode.DEAD_CODE, node.thenExpression);
           node.elseExpression?.accept(this);
@@ -2270,7 +2286,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
   Object visitExportDirective(ExportDirective node) {
     ExportElement exportElement = node.element;
     if (exportElement != null) {
-      // The element is null when the URI is invalid
+      // The element is null when the URI is invalid.
       LibraryElement library = exportElement.exportedLibrary;
       if (library != null && !library.isSynthetic) {
         for (Combinator combinator in node.combinators) {
@@ -2290,7 +2306,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
           _getConstantBooleanValue(conditionExpression);
       if (result != null) {
         if (result.value.toBoolValue() == true) {
-          // report error on else block: if(true) {} else {!}
+          // Report error on else block: if(true) {} else {!}
           Statement elseStatement = node.elseStatement;
           if (elseStatement != null) {
             _errorReporter.reportErrorForNode(
@@ -2299,7 +2315,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
             return null;
           }
         } else {
-          // report error on if block: if (false) {!} else {}
+          // Report error on if block: if (false) {!} else {}
           _errorReporter.reportErrorForNode(
               HintCode.DEAD_CODE, node.thenStatement);
           node.elseStatement?.accept(this);
@@ -2374,8 +2390,8 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
     for (int i = 0; i < numOfCatchClauses; i++) {
       CatchClause catchClause = catchClauses[i];
       if (catchClause.onKeyword != null) {
-        // on-catch clause found, verify that the exception type is not a
-        // subtype of a previous on-catch exception type
+        // An on-catch clause was found; verify that the exception type is not a
+        // subtype of a previous on-catch exception type.
         DartType currentType = catchClause.exceptionType?.type;
         if (currentType != null) {
           if (currentType.isObject) {
@@ -2385,7 +2401,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
             // following catch clauses (and don't visit them).
             catchClause?.accept(this);
             if (i + 1 != numOfCatchClauses) {
-              // this catch clause is not the last in the try statement
+              // This catch clause is not the last in the try statement.
               CatchClause nextCatchClause = catchClauses[i + 1];
               CatchClause lastCatchClause = catchClauses[numOfCatchClauses - 1];
               int offset = nextCatchClause.offset;
@@ -2419,7 +2435,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
         // (and don't visit them).
         catchClause?.accept(this);
         if (i + 1 != numOfCatchClauses) {
-          // this catch clause is not the last in the try statement
+          // This catch clause is not the last in the try statement.
           CatchClause nextCatchClause = catchClauses[i + 1];
           CatchClause lastCatchClause = catchClauses[numOfCatchClauses - 1];
           int offset = nextCatchClause.offset;
@@ -2442,7 +2458,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
           _getConstantBooleanValue(conditionExpression);
       if (result != null) {
         if (result.value.toBoolValue() == false) {
-          // report error on if block: while (false) {!}
+          // Report error on while block: while (false) {!}
           _errorReporter.reportErrorForNode(HintCode.DEAD_CODE, node.body);
           return null;
         }
@@ -3322,7 +3338,13 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     bool outerBreakValue = _enclosingBlockContainsBreak;
     _enclosingBlockContainsBreak = false;
     try {
-      return _nodeExits(node.iterable);
+      bool iterableExits = _nodeExits(node.iterable);
+      // Discard whether the for-each body exits; since the for-each iterable
+      // may be empty, execution may never enter the body, so it doesn't matter
+      // if it exits or not.  We still must visit the body, to accurately
+      // manage `_enclosingBlockBreaksLabel`.
+      _nodeExits(node.body);
+      return iterableExits;
     } finally {
       _enclosingBlockContainsBreak = outerBreakValue;
     }
@@ -6483,8 +6505,7 @@ class ResolverVisitor extends ScopedVisitor {
    * expressions.
    */
   ConstantAstCloner _createCloner() {
-    return new ConstantAstCloner(
-        definingLibrary.context.analysisOptions.previewDart2);
+    return new ConstantAstCloner();
   }
 
   /**

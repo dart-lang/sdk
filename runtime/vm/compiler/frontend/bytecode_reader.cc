@@ -10,6 +10,7 @@
 #include "vm/compiler/assembler/disassembler_kbc.h"
 #include "vm/constants_kbc.h"
 #include "vm/dart_entry.h"
+#include "vm/timeline.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #if defined(DART_USE_INTERPRETER)
@@ -33,6 +34,11 @@ BytecodeMetadataHelper::BytecodeMetadataHelper(KernelReaderHelper* helper,
       active_class_(active_class) {}
 
 void BytecodeMetadataHelper::ReadMetadata(const Function& function) {
+#if !defined(PRODUCT)
+  TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),
+                            "BytecodeMetadataHelper::ReadMetadata");
+#endif  // !defined(PRODUCT)
+
   const intptr_t node_offset = function.kernel_offset();
   const intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
   if (md_offset < 0) {
@@ -85,6 +91,11 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
                                                  const Function& inner_function,
                                                  const ObjectPool& pool,
                                                  intptr_t from_index) {
+#if !defined(PRODUCT)
+  TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),
+                            "BytecodeMetadataHelper::ReadPoolEntries");
+#endif  // !defined(PRODUCT)
+
   // These enums and the code below reading the constant pool from kernel must
   // be kept in sync with pkg/vm/lib/bytecode/constant_pool.dart.
   enum ConstantPoolTag {
@@ -106,13 +117,13 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
     kTypeArguments,
     kList,
     kInstance,
-    kSymbol,
     kTypeArgumentsForInstanceAllocation,
     kClosureFunction,
     kEndClosureFunctionScope,
     kNativeEntry,
     kSubtypeTestCache,
     kPartialTearOffInstantiation,
+    kEmptyTypeArguments,
   };
 
   enum InvocationKind {
@@ -189,10 +200,17 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         intptr_t arg_desc_index = helper_->ReadUInt();
         ASSERT(arg_desc_index < i);
         array ^= pool.ObjectAt(arg_desc_index);
-        // TODO(regis): Should num_args_tested be explicitly provided?
+        intptr_t checked_argument_count = 1;
+        if ((kind == InvocationKind::method) &&
+            (MethodTokenRecognizer::RecognizeTokenKind(name) !=
+             Token::kILLEGAL)) {
+          intptr_t argument_count = ArgumentsDescriptor(array).Count();
+          ASSERT(argument_count <= 2);
+          checked_argument_count = argument_count;
+        }
         obj = ICData::New(function, name,
                           array,  // Arguments descriptor.
-                          Thread::kNoDeoptId, 1 /* num_args_tested */,
+                          Thread::kNoDeoptId, checked_argument_count,
                           ICData::RebindRule::kInstance);
 #if defined(TAG_IC_DATA)
         ICData::Cast(obj).set_tag(ICData::Tag::kInstanceCall);
@@ -228,13 +246,15 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
             elem = Function::Cast(elem).GetMethodExtractor(name);
           }
         }
+        const int num_args_checked =
+            MethodRecognizer::NumArgsCheckedForStaticCall(Function::Cast(elem));
         ASSERT(elem.IsFunction());
         intptr_t arg_desc_index = helper_->ReadUInt();
         ASSERT(arg_desc_index < i);
         array ^= pool.ObjectAt(arg_desc_index);
         obj = ICData::New(function, name,
                           array,  // Arguments descriptor.
-                          Thread::kNoDeoptId, 0 /* num_args_tested */,
+                          Thread::kNoDeoptId, num_args_checked,
                           ICData::RebindRule::kStatic);
         ICData::Cast(obj).AddTarget(Function::Cast(elem));
 #if defined(TAG_IC_DATA)
@@ -320,10 +340,6 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         }
         obj = H.Canonicalize(Instance::Cast(obj));
       } break;
-      case ConstantPoolTag::kSymbol:
-        obj = H.DartSymbolPlain(helper_->ReadStringReference()).raw();
-        ASSERT(String::Cast(obj).IsSymbol());
-        break;
       case ConstantPoolTag::kTypeArgumentsForInstanceAllocation: {
         cls = H.LookupClassByKernelClass(helper_->ReadCanonicalNameReference());
         obj =
@@ -477,6 +493,9 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
             Context::Handle(helper_->zone_, old_closure.context()), Heap::kOld);
         obj = H.Canonicalize(Instance::Cast(obj));
       } break;
+      case ConstantPoolTag::kEmptyTypeArguments:
+        obj = Object::empty_type_arguments().raw();
+        break;
       default:
         UNREACHABLE();
     }
@@ -488,6 +507,11 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
 }
 
 RawCode* BytecodeMetadataHelper::ReadBytecode(const ObjectPool& pool) {
+#if !defined(PRODUCT)
+  TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),
+                            "BytecodeMetadataHelper::ReadBytecode");
+#endif  // !defined(PRODUCT)
+
   intptr_t size = helper_->reader_.ReadUInt();
   intptr_t offset = helper_->reader_.offset();
   const uint8_t* data = helper_->reader_.BufferAt(offset);
@@ -499,6 +523,11 @@ RawCode* BytecodeMetadataHelper::ReadBytecode(const ObjectPool& pool) {
 }
 
 void BytecodeMetadataHelper::ReadExceptionsTable(const Code& bytecode) {
+#if !defined(PRODUCT)
+  TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),
+                            "BytecodeMetadataHelper::ReadExceptionsTable");
+#endif  // !defined(PRODUCT)
+
   const intptr_t try_block_count = helper_->reader_.ReadListLength();
   if (try_block_count > 0) {
     const ObjectPool& pool =
@@ -515,9 +544,13 @@ void BytecodeMetadataHelper::ReadExceptionsTable(const Code& bytecode) {
     for (intptr_t try_index = 0; try_index < try_block_count; try_index++) {
       intptr_t outer_try_index_plus1 = helper_->reader_.ReadUInt();
       intptr_t outer_try_index = outer_try_index_plus1 - 1;
-      intptr_t start_pc = sizeof(KBCInstr) * helper_->reader_.ReadUInt();
-      intptr_t end_pc = sizeof(KBCInstr) * helper_->reader_.ReadUInt();
-      intptr_t handler_pc = sizeof(KBCInstr) * helper_->reader_.ReadUInt();
+      // PcDescriptors are expressed in terms of return addresses.
+      intptr_t start_pc = KernelBytecode::BytecodePcToOffset(
+          helper_->reader_.ReadUInt(), /* is_return_address = */ true);
+      intptr_t end_pc = KernelBytecode::BytecodePcToOffset(
+          helper_->reader_.ReadUInt(), /* is_return_address = */ true);
+      intptr_t handler_pc = KernelBytecode::BytecodePcToOffset(
+          helper_->reader_.ReadUInt(), /* is_return_address = */ false);
       uint8_t flags = helper_->reader_.ReadByte();
       const uint8_t kFlagNeedsStackTrace = 1 << 0;
       const uint8_t kFlagIsSynthetic = 1 << 1;

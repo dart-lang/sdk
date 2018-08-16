@@ -254,12 +254,6 @@ main() {
             CommandLineOptions.parse(['--preview-dart-2', 'foo.dart']);
         expect(options.previewDart2, isTrue);
       });
-
-      test('--no-preview-dart-2', () {
-        CommandLineOptions options =
-            CommandLineOptions.parse(['--no-preview-dart-2', 'foo.dart']);
-        expect(options.previewDart2, isFalse);
-      });
     });
   });
   defineReflectiveTests(CommandLineOptionsTest);

@@ -37,7 +37,7 @@ vars = {
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
   "co19_rev": "9858ee7d79cf09b50d6b5bc13fb950ae5f357954",
-  "co19_2_rev": "bafb589613379dc1f2e3511566661a5c6250486a",
+  "co19_2_rev": "afadfe417b85037281a770b477f42c3786a8666a",
 
   # As Flutter does, we pull buildtools, including the clang toolchain, from
   # Fuchsia. This revision should be kept up to date with the revision pulled
@@ -95,7 +95,7 @@ vars = {
   "intl_tag": "0.15.6",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "2.0.9",
-  "linter_tag": "0.1.58",
+  "linter_tag": "0.1.59",
   "logging_tag": "0.11.3+2",
   "markdown_tag": "2.0.2",
   "matcher_tag": "0.12.3",
@@ -111,7 +111,7 @@ vars = {
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "1.3.6",
   "protobuf_tag": "0.9.0",
-  "pub_rev": "5962908a66e814dd78f6856a4e5f792c6db65fbc",
+  "pub_rev": "9f00679ef47bc79cadc18e143720ade6c06c0100",
   "pub_semver_tag": "1.4.2",
   "quiver_tag": "0.29.0+2",
   "resource_rev": "2.1.5",

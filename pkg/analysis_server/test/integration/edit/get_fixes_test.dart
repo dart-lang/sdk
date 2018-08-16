@@ -31,11 +31,20 @@ Future f;
 
     EditGetFixesResult result =
         await sendEditGetFixes(pathname, text.indexOf('Future f'));
-    expect(result.fixes, hasLength(1));
+
+    AnalysisErrorFixes fix;
+    if (useCFE) {
+      // TODO(scheglov) We have to filter errors, because two are reported.
+      // https://github.com/dart-lang/sdk/issues/34124
+      fix = result.fixes
+          .singleWhere((fix) => fix.error.code == 'undefined_class');
+    } else {
+      expect(result.fixes, hasLength(1));
+      fix = result.fixes.first;
+      expect(fix.error.code, 'undefined_class');
+    }
 
     // expect a suggestion to add the dart:async import
-    AnalysisErrorFixes fix = result.fixes.first;
-    expect(fix.error.code, 'undefined_class');
     expect(fix.fixes, isNotEmpty);
 
     SourceChange change = fix.fixes.singleWhere(

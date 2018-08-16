@@ -126,40 +126,39 @@ type ConstantInstance extends ConstantPoolEntry {
   List<Pair<CanonicalNameReference, ConstantIndex>> fieldValues;
 }
 
-type ConstantSymbol extends ConstantPoolEntry {
-  Byte tag = 18;
-  StringReference value;
-}
-
 type ConstantTypeArgumentsForInstanceAllocation extends ConstantPoolEntry {
-  Byte tag = 19;
+  Byte tag = 18;
   CanonicalNameReference instantiatingClass;
   List<DartType> types;
 }
 
 type ConstantClosureFunction extends ConstantPoolEntry {
-  Byte tag = 20;
+  Byte tag = 19;
   StringReference name;
   FunctionNode function; // Doesn't have a body.
 }
 
 type ConstantEndClosureFunctionScope extends ConstantPoolEntry {
-  Byte tag = 21;
+  Byte tag = 20;
 }
 
 type ConstantNativeEntry extends ConstantPoolEntry {
-  Byte tag = 22;
+  Byte tag = 21;
   StringReference nativeName;
 }
 
 type ConstantSubtypeTestCache extends ConstantPoolEntry {
-  Byte tag = 23;
+  Byte tag = 22;
 }
 
 type ConstantPartialTearOffInstantiation extends ConstantPoolEntry {
-  Byte tag = 24;
+  Byte tag = 23;
   ConstantIndex tearOffConstant;
   ConstantIndex typeArguments;
+}
+
+type ConstantEmptyTypeArguments extends ConstantPoolEntry {
+  Byte tag = 24;
 }
 
 */
@@ -183,13 +182,13 @@ enum ConstantTag {
   kTypeArguments,
   kList,
   kInstance,
-  kSymbol,
   kTypeArgumentsForInstanceAllocation,
   kClosureFunction,
   kEndClosureFunctionScope,
   kNativeEntry,
   kSubtypeTestCache,
-  kPartialTearOffInstantiation
+  kPartialTearOffInstantiation,
+  kEmptyTypeArguments,
 }
 
 abstract class ConstantPoolEntry {
@@ -247,8 +246,6 @@ abstract class ConstantPoolEntry {
         return new ConstantList.readFromBinary(source);
       case ConstantTag.kInstance:
         return new ConstantInstance.readFromBinary(source);
-      case ConstantTag.kSymbol:
-        return new ConstantSymbol.readFromBinary(source);
       case ConstantTag.kTypeArgumentsForInstanceAllocation:
         return new ConstantTypeArgumentsForInstanceAllocation.readFromBinary(
             source);
@@ -262,6 +259,8 @@ abstract class ConstantPoolEntry {
         return new ConstantSubtypeTestCache.readFromBinary(source);
       case ConstantTag.kPartialTearOffInstantiation:
         return new ConstantPartialTearOffInstantiation.readFromBinary(source);
+      case ConstantTag.kEmptyTypeArguments:
+        return new ConstantEmptyTypeArguments.readFromBinary(source);
     }
     throw 'Unexpected constant tag $tag';
   }
@@ -871,34 +870,6 @@ class ConstantInstance extends ConstantPoolEntry {
       mapEquals(this._fieldValues, other._fieldValues);
 }
 
-class ConstantSymbol extends ConstantPoolEntry {
-  final String value;
-
-  ConstantSymbol(this.value);
-  ConstantSymbol.fromLiteral(SymbolLiteral literal) : this(literal.value);
-
-  @override
-  ConstantTag get tag => ConstantTag.kSymbol;
-
-  @override
-  void writeValueToBinary(BinarySink sink) {
-    sink.writeStringReference(value);
-  }
-
-  ConstantSymbol.readFromBinary(BinarySource source)
-      : value = source.readStringReference();
-
-  @override
-  String toString() => 'Symbol \'$value\'';
-
-  @override
-  int get hashCode => value.hashCode;
-
-  @override
-  bool operator ==(other) =>
-      other is ConstantSymbol && this.value == other.value;
-}
-
 class ConstantTypeArgumentsForInstanceAllocation extends ConstantPoolEntry {
   final Reference _instantiatingClassRef;
   final List<DartType> typeArgs;
@@ -1092,6 +1063,27 @@ class ConstantPartialTearOffInstantiation extends ConstantPoolEntry {
       other is ConstantPartialTearOffInstantiation &&
       this.tearOffConstantIndex == other.tearOffConstantIndex &&
       this.typeArgumentsConstantIndex == other.typeArgumentsConstantIndex;
+}
+
+class ConstantEmptyTypeArguments extends ConstantPoolEntry {
+  const ConstantEmptyTypeArguments();
+
+  @override
+  ConstantTag get tag => ConstantTag.kEmptyTypeArguments;
+
+  @override
+  void writeValueToBinary(BinarySink sink) {}
+
+  ConstantEmptyTypeArguments.readFromBinary(BinarySource source);
+
+  @override
+  String toString() => 'EmptyTypeArguments';
+
+  @override
+  int get hashCode => 997;
+
+  @override
+  bool operator ==(other) => other is ConstantEmptyTypeArguments;
 }
 
 /// Reserved constant pool entry.

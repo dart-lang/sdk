@@ -10,7 +10,8 @@ import '../fasta_codes.dart' show noLength;
 
 import '../scanner.dart' show Token;
 
-import '../../scanner/token.dart' show BeginToken;
+import '../../scanner/token.dart'
+    show BeginToken, SimpleToken, SyntheticToken, TokenType;
 
 /// Returns true if [token] is the symbol or keyword [value].
 bool optional(String value, Token token) {
@@ -60,6 +61,12 @@ Token findNonZeroLengthToken(Token token) {
 /// `TreeNode.noOffset`.
 int offsetForToken(Token token) {
   return token == null ? TreeNode.noOffset : token.offset;
+}
+
+/// A null-aware alternative to `token.end`.  If [token] is `null`, returns
+/// `TreeNode.noOffset`.
+int endOffsetForToken(Token token) {
+  return token == null ? TreeNode.noOffset : token.end;
 }
 
 bool isDigit(int c) => c >= 0x30 && c <= 0x39;
@@ -126,4 +133,62 @@ Token skipMetadata(Token token) {
     }
   }
   return token;
+}
+
+/// Split `>=` into two separate tokens.
+/// Call [Token.setNext] to add the token to the stream.
+Token splitGtEq(Token token) {
+  assert(optional('>=', token));
+  return new SimpleToken(
+      TokenType.GT, token.charOffset, token.precedingComments)
+    ..setNext(new SimpleToken(TokenType.EQ, token.charOffset + 1)
+      // Set next rather than calling Token.setNext
+      // so that the previous token is not set.
+      ..next = token.next);
+}
+
+/// Split `>>` into two separate tokens.
+/// Call [Token.setNext] to add the token to the stream.
+SimpleToken splitGtGt(Token token) {
+  assert(optional('>>', token));
+  return new SimpleToken(
+      TokenType.GT, token.charOffset, token.precedingComments)
+    ..setNext(new SimpleToken(TokenType.GT, token.charOffset + 1)
+      // Set next rather than calling Token.setNext
+      // so that the previous token is not set.
+      ..next = token.next);
+}
+
+/// Split `>>=` into three separate tokens.
+/// Call [Token.setNext] to add the token to the stream.
+Token splitGtGtEq(Token token) {
+  assert(optional('>>=', token));
+  return new SimpleToken(
+      TokenType.GT, token.charOffset, token.precedingComments)
+    ..setNext(new SimpleToken(TokenType.GT, token.charOffset + 1)
+      ..setNext(new SimpleToken(TokenType.EQ, token.charOffset + 2)
+        // Set next rather than calling Token.setNext
+        // so that the previous token is not set.
+        ..next = token.next));
+}
+
+/// Split `>>=` into two separate tokens... `>` followed by `>=`.
+/// Call [Token.setNext] to add the token to the stream.
+Token splitGtFromGtGtEq(Token token) {
+  assert(optional('>>=', token));
+  return new SimpleToken(
+      TokenType.GT, token.charOffset, token.precedingComments)
+    ..setNext(new SimpleToken(TokenType.GT_EQ, token.charOffset + 1)
+      // Set next rather than calling Token.setNext
+      // so that the previous token is not set.
+      ..next = token.next);
+}
+
+/// Return a synthetic `<` followed by [next].
+/// Call [Token.setNext] to add the token to the stream.
+Token syntheticGt(Token next) {
+  return new SyntheticToken(TokenType.GT, next.charOffset)
+    // Set next rather than calling Token.setNext
+    // so that the previous token is not set.
+    ..next = next;
 }

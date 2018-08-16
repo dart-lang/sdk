@@ -232,12 +232,8 @@ class BytecodeAssembler {
     emitWord(_encodeAD(Opcode.kStaticCall, ra, rd));
   }
 
-  void emitInstanceCall1(int ra, int rd) {
-    emitWord(_encodeAD(Opcode.kInstanceCall1, ra, rd));
-  }
-
-  void emitInstanceCall2(int ra, int rd) {
-    emitWord(_encodeAD(Opcode.kInstanceCall2, ra, rd));
+  void emitInstanceCall(int ra, int rd) {
+    emitWord(_encodeAD(Opcode.kInstanceCall, ra, rd));
   }
 
   void emitInstanceCall1Opt(int ra, int rd) {

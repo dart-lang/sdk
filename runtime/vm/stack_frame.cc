@@ -92,11 +92,15 @@ const char* StackFrame::ToCString() const {
 }
 
 void ExitFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  // Visit pc marker and saved pool pointer.
-  RawObject** last_fixed =
-      reinterpret_cast<RawObject**>(fp()) + kFirstObjectSlotFromFp;
-  RawObject** first_fixed =
-      reinterpret_cast<RawObject**>(fp()) + kLastFixedObjectSlotFromFp;
+  ASSERT(visitor != NULL);
+  // Visit pc marker and saved pool pointer, or, for interpreted frame, code
+  // object and function object.
+  RawObject** last_fixed = reinterpret_cast<RawObject**>(fp()) +
+                           (is_interpreted() ? kKBCLastFixedObjectSlotFromFp
+                                             : kFirstObjectSlotFromFp);
+  RawObject** first_fixed = reinterpret_cast<RawObject**>(fp()) +
+                            (is_interpreted() ? kKBCFirstObjectSlotFromFp
+                                              : kLastFixedObjectSlotFromFp);
 #if !defined(TARGET_ARCH_DBC)
   ASSERT(first_fixed <= last_fixed);
   visitor->VisitPointers(first_fixed, last_fixed);
@@ -107,17 +111,22 @@ void ExitFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 void EntryFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  // Visit objects between SP and (FP - callee_save_area).
   ASSERT(visitor != NULL);
+  // Visit objects between SP and (FP - callee_save_area).
 #if !defined(TARGET_ARCH_DBC)
-  RawObject** first = reinterpret_cast<RawObject**>(sp());
-  RawObject** last = reinterpret_cast<RawObject**>(
-      fp() + (kExitLinkSlotFromEntryFp - 1) * kWordSize);
+  RawObject** first = is_interpreted() ? reinterpret_cast<RawObject**>(fp()) +
+                                             kKBCSavedArgDescSlotFromEntryFp
+                                       : reinterpret_cast<RawObject**>(sp());
+  RawObject** last = is_interpreted() ? reinterpret_cast<RawObject**>(sp())
+                                      : reinterpret_cast<RawObject**>(fp()) +
+                                            kExitLinkSlotFromEntryFp - 1;
+  // There may not be any pointer to visit; in this case, first > last.
   visitor->VisitPointers(first, last);
 #else
   // On DBC stack is growing upwards which implies fp() <= sp().
   RawObject** first = reinterpret_cast<RawObject**>(fp());
   RawObject** last = reinterpret_cast<RawObject**>(sp());
+  ASSERT(first <= last);
   visitor->VisitPointers(first, last);
 #endif
 }

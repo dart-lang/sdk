@@ -58,8 +58,6 @@ class AbstractContextTest extends Object with ResourceProviderMixin {
 
   AnalysisDriver get driver => _driver;
 
-  bool get previewDart2 => driver.analysisOptions.previewDart2;
-
   /**
    * Return `true` to enable the Dart 2.0 Common Front End.
    */

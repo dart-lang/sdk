@@ -18,7 +18,7 @@ import 'package:build_integration/file_system/multi_root.dart';
 import 'package:front_end/src/api_unstable/bazel_worker.dart' as fe;
 import 'package:kernel/ast.dart' show Component, Library;
 import 'package:kernel/target/targets.dart';
-import 'package:kernel/target/vm.dart';
+import 'package:vm/target/vm.dart';
 
 main(List<String> args) async {
   args = preprocessArgs(args);

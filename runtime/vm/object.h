@@ -1374,6 +1374,17 @@ class Class : public Object {
   // Return true on success, or false and error otherwise.
   bool ApplyPatch(const Class& patch, Error* error) const;
 
+  RawObject* Invoke(const String& selector,
+                    const Array& arguments,
+                    const Array& argument_names,
+                    bool respect_reflectable = true) const;
+  RawObject* InvokeGetter(const String& selector,
+                          bool throw_nsm_if_absent,
+                          bool respect_reflectable = true) const;
+  RawObject* InvokeSetter(const String& selector,
+                          const Instance& argument,
+                          bool respect_reflectable = true) const;
+
   // Evaluate the given expression as if it appeared in a static method of this
   // class and return the resulting value, or an error object if evaluating the
   // expression fails. The method has the formal (type) parameters given in
@@ -1404,7 +1415,8 @@ class Class : public Object {
   static RawClass* New(const Library& lib,
                        const String& name,
                        const Script& script,
-                       TokenPosition token_pos);
+                       TokenPosition token_pos,
+                       bool register_class = true);
   static RawClass* NewNativeWrapper(const Library& library,
                                     const String& name,
                                     int num_fields);
@@ -2106,6 +2118,7 @@ class ICData : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ICData, Object);
   friend class Class;
+  friend class Interpreter;
   friend class SnapshotWriter;
   friend class Serializer;
   friend class Deserializer;
@@ -3807,6 +3820,17 @@ class Library : public Object {
 
   static RawLibrary* New(const String& url);
 
+  RawObject* Invoke(const String& selector,
+                    const Array& arguments,
+                    const Array& argument_names,
+                    bool respect_reflectable = true) const;
+  RawObject* InvokeGetter(const String& selector,
+                          bool throw_nsm_if_absent,
+                          bool respect_reflectable = true) const;
+  RawObject* InvokeSetter(const String& selector,
+                          const Instance& argument,
+                          bool respect_reflectable = true) const;
+
   // Evaluate the given expression as if it appeared in an top-level method of
   // this library and return the resulting value, or an error object if
   // evaluating the expression fails. The method has the formal (type)
@@ -3842,6 +3866,7 @@ class Library : public Object {
   RawObject* LookupObjectAllowPrivate(const String& name) const;
   RawObject* LookupLocalObjectAllowPrivate(const String& name) const;
   RawObject* LookupLocalObject(const String& name) const;
+  RawObject* LookupLocalOrReExportObject(const String& name) const;
   RawObject* LookupImportedObject(const String& name) const;
   RawClass* LookupClass(const String& name) const;
   RawClass* LookupClassAllowPrivate(const String& name) const;
@@ -4317,8 +4342,8 @@ class Instructions : public Object {
   }
 
   uword PayloadStart() const { return PayloadStart(raw()); }
-  uword CheckedEntryPoint() const { return CheckedEntryPoint(raw()); }
-  uword UncheckedEntryPoint() const { return UncheckedEntryPoint(raw()); }
+  uword MonomorphicEntryPoint() const { return MonomorphicEntryPoint(raw()); }
+  uword EntryPoint() const { return EntryPoint(raw()); }
   static uword PayloadStart(const RawInstructions* instr) {
     return reinterpret_cast<uword>(instr->ptr()) + HeaderSize();
   }
@@ -4342,14 +4367,14 @@ class Instructions : public Object {
 #error Missing entry offsets for current architecture
 #endif
 
-  static uword CheckedEntryPoint(const RawInstructions* instr) {
+  static uword MonomorphicEntryPoint(const RawInstructions* instr) {
     uword entry = PayloadStart(instr);
     if (!HasSingleEntryPoint(instr)) {
       entry += kCheckedEntryOffset;
     }
     return entry;
   }
-  static uword UncheckedEntryPoint(const RawInstructions* instr) {
+  static uword EntryPoint(const RawInstructions* instr) {
     uword entry = PayloadStart(instr);
     if (!HasSingleEntryPoint(instr)) {
       entry += kUncheckedEntryOffset;
@@ -4797,8 +4822,8 @@ class Code : public Object {
   static intptr_t entry_point_offset() {
     return OFFSET_OF(RawCode, entry_point_);
   }
-  static intptr_t checked_entry_point_offset() {
-    return OFFSET_OF(RawCode, checked_entry_point_);
+  static intptr_t monomorphic_entry_point_offset() {
+    return OFFSET_OF(RawCode, monomorphic_entry_point_);
   }
 
   RawObjectPool* object_pool() const { return raw_ptr()->object_pool_; }
@@ -4820,13 +4845,13 @@ class Code : public Object {
   uword PayloadStart() const {
     return Instructions::PayloadStart(instructions());
   }
-  uword UncheckedEntryPoint() const {
+  uword EntryPoint() const {
     const Instructions& instr = Instructions::Handle(instructions());
-    return instr.UncheckedEntryPoint();
+    return instr.EntryPoint();
   }
-  uword CheckedEntryPoint() const {
+  uword MonomorphicEntryPoint() const {
     const Instructions& instr = Instructions::Handle(instructions());
-    return instr.CheckedEntryPoint();
+    return instr.MonomorphicEntryPoint();
   }
   intptr_t Size() const { return Instructions::Size(instructions()); }
   RawObjectPool* GetObjectPool() const { return object_pool(); }
@@ -5701,6 +5726,16 @@ class Instance : public Object {
   // class implementing a 'call' method, return true and set the function
   // (if not NULL) to call.
   bool IsCallable(Function* function) const;
+
+  RawObject* Invoke(const String& selector,
+                    const Array& arguments,
+                    const Array& argument_names,
+                    bool respect_reflectable = true) const;
+  RawObject* InvokeGetter(const String& selector,
+                          bool respect_reflectable = true) const;
+  RawObject* InvokeSetter(const String& selector,
+                          const Instance& argument,
+                          bool respect_reflectable = true) const;
 
   // Evaluate the given expression as if it appeared in an instance method of
   // this instance and return the resulting value, or an error object if

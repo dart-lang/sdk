@@ -10,9 +10,8 @@ import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
 import 'package:kernel/kernel.dart' show CanonicalName, Component, Location;
 
-import 'package:kernel/target/targets.dart' show Target, TargetFlags;
-
-import 'package:kernel/target/vm.dart' show VmTarget;
+import 'package:kernel/target/targets.dart'
+    show NoneTarget, Target, TargetFlags;
 
 import 'package:package_config/packages.dart' show Packages;
 
@@ -323,7 +322,7 @@ class ProcessedOptions {
 
   Target _target;
   Target get target => _target ??=
-      _raw.target ?? new VmTarget(new TargetFlags(strongMode: strongMode));
+      _raw.target ?? new NoneTarget(new TargetFlags(strongMode: strongMode));
 
   /// Get an outline component that summarizes the SDK, if any.
   // TODO(sigmund): move, this doesn't feel like an "option".
@@ -689,12 +688,16 @@ class _CompilationMessage implements CompilationMessage {
   String get dart2jsCode => _original.code.dart2jsCode;
 
   SourceSpan get span {
-    if (_original.charOffset == -1) {
-      if (_original.uri == null) return null;
-      return new SourceLocation(0, sourceUrl: _original.uri).pointSpan();
+    var uri = _original.uri;
+    var offset = _original.charOffset;
+    if (offset == -1) {
+      if (uri == null) return null;
+      return new SourceLocation(0, sourceUrl: uri).pointSpan();
     }
-    return new SourceLocation(_original.charOffset, sourceUrl: _original.uri)
-        .pointSpan();
+    return new SourceSpan(
+        new SourceLocation(offset, sourceUrl: uri),
+        new SourceLocation(offset + _original.length, sourceUrl: uri),
+        'X' * _original.length);
   }
 
   _CompilationMessage(this._original, this.severity);

@@ -381,6 +381,9 @@ abstract class ElementHandle implements Element {
   bool get hasRequired => actualElement.hasRequired;
 
   @override
+  bool get hasVisibleForTemplate => actualElement.hasVisibleForTemplate;
+
+  @override
   bool get hasVisibleForTesting => actualElement.hasVisibleForTesting;
 
   @override

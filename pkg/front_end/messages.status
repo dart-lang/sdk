@@ -189,8 +189,10 @@ GetterNotFound/dart2jsCode: Fail
 GetterNotFound/example: Fail
 GetterWithFormals/example: Fail
 IllegalAssignmentToNonAssignable/script1: Fail
+IllegalAsyncGeneratorVoidReturnType/analyzerCode: Fail # The analyzer doesn't report this error.
 IllegalMixin/example: Fail
 IllegalMixinDueToConstructors/example: Fail
+IllegalSyncGeneratorVoidReturnType/analyzerCode: Fail # The analyzer doesn't report this error.
 ImplementsBeforeExtends/script: Fail
 ImplementsBeforeWith/script: Fail
 ImplicitCallOfNonMethod/example: Fail
@@ -343,6 +345,7 @@ ThisAsIdentifier/example: Fail
 ThisOrSuperAccessInFieldInitializer/example: Fail
 TooFewArguments/example: Fail
 TooManyArguments/example: Fail
+TooManyArgumentsCouldBeNamed/example: Fail
 TopLevelOperator/script1: Fail
 TopLevelOperator/script2: Fail
 TopLevelOperator/script3: Fail

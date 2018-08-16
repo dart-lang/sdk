@@ -957,7 +957,7 @@ class _Cookie implements Cookie {
   }
 
   void _validate() {
-    const SEPERATORS = const [
+    const separators = const [
       "(",
       ")",
       "<",
@@ -980,10 +980,14 @@ class _Cookie implements Cookie {
       int codeUnit = name.codeUnits[i];
       if (codeUnit <= 32 ||
           codeUnit >= 127 ||
-          SEPERATORS.indexOf(name[i]) >= 0) {
+          separators.indexOf(name[i]) >= 0) {
         throw new FormatException(
             "Invalid character in cookie name, code unit: '$codeUnit'");
       }
+    }
+
+    if (value[0] == '"' && value[value.length - 1] == '"') {
+      value = value.substring(1, value.length - 1);
     }
     for (int i = 0; i < value.length; i++) {
       int codeUnit = value.codeUnits[i];

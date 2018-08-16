@@ -313,7 +313,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.lintRules = options.lintRules;
     this._options.preserveComments = options.preserveComments;
     this._options.useFastaParser = options.useFastaParser;
-    this._options.previewDart2 = options.previewDart2;
     this._options.trackCacheDependencies = options.trackCacheDependencies;
     this._options.disableCacheFlushing = options.disableCacheFlushing;
     this._options.patchPaths = options.patchPaths;
@@ -323,6 +322,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       this._options.implicitCasts = options.implicitCasts;
       this._options.nonnullableTypes = options.nonnullableTypes;
       this._options.implicitDynamic = options.implicitDynamic;
+      this._options.useCFE = options.useCFE;
     }
     if (needsRecompute) {
       for (WorkManager workManager in workManagers) {

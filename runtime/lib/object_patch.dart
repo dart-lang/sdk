@@ -8,6 +8,7 @@ int _getHash(obj) native "Object_getHash";
 void _setHash(obj, hash) native "Object_setHash";
 
 @patch
+@pragma("vm.entry-point")
 class Object {
   // The VM has its own implementation of equals.
   @patch

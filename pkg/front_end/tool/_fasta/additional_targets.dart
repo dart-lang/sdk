@@ -8,9 +8,8 @@ import 'package:kernel/target/targets.dart' show TargetFlags, targets;
 
 import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
 
-import 'package:vm/target/dart_runner.dart' show DartRunnerTarget;
-
-import 'package:vm/target/flutter_runner.dart' show FlutterRunnerTarget;
+import 'package:vm/target/install.dart' as vm_target_install
+    show installAdditionalTargets;
 
 void installAdditionalTargets() {
   // If you add new targets here, please also update FastaUsageLong in
@@ -19,7 +18,5 @@ void installAdditionalTargets() {
       (TargetFlags flags) => new Dart2jsTarget("dart2js", flags);
   targets["dart2js_server"] =
       (TargetFlags flags) => new Dart2jsTarget("dart2js_server", flags);
-  targets["dart_runner"] = (TargetFlags flags) => new DartRunnerTarget(flags);
-  targets["flutter_runner"] =
-      (TargetFlags flags) => new FlutterRunnerTarget(flags);
+  vm_target_install.installAdditionalTargets();
 }

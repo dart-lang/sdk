@@ -92,7 +92,8 @@ class FixGenerator {
    * by the given [request]. If any of the contributors throws an exception,
    * also create a non-fatal 'plugin.error' notification.
    */
-  GeneratorResult generateFixesResponse(FixesRequest request) {
+  GeneratorResult<EditGetFixesResult> generateFixesResponse(
+      FixesRequest request) {
     List<Notification> notifications = <Notification>[];
     FixCollectorImpl collector = new FixCollectorImpl();
     for (FixContributor contributor in contributors) {

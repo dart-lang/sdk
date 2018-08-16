@@ -21,9 +21,6 @@ main() {
 
 @reflectiveTest
 class TypeMemberContributorTest extends DartCompletionContributorTest {
-  @override
-  bool get enableStrongMode => true;
-
   /**
    * Check whether a declaration of the form [shadower] in a derived class
    * shadows a declaration of the form [shadowee] in a base class, for the

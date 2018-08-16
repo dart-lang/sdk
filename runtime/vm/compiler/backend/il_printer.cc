@@ -1033,7 +1033,7 @@ void StoreIndexedUnsafeInstr::PrintOperandsTo(BufferFormatter* f) const {
 void TailCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   const char* name = "<unknown code>";
   if (code_.IsStubCode()) {
-    name = StubCode::NameOfStub(code_.UncheckedEntryPoint());
+    name = StubCode::NameOfStub(code_.EntryPoint());
   } else {
     const Object& owner = Object::Handle(code_.owner());
     if (owner.IsFunction()) {

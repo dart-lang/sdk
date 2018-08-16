@@ -11,12 +11,12 @@ import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class GeneratorResult {
+class GeneratorResult<T extends ResponseResult> {
   /**
    * The result to be sent to the server, or `null` if there is no response, as
    * when the generator is generating a notification.
    */
-  final ResponseResult result;
+  final T result;
 
   /**
    * The notifications that should be sent to the server. The list will be empty

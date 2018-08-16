@@ -65,11 +65,6 @@ const TYPES = 'types';
 /// runtime-type-information (rti) object.
 const GET_TYPE_FROM_NAME = 'getTypeFromName';
 
-/// If [JSInvocationMirror._invokeOn] is being used, this embedded global
-/// contains a JavaScript map with the names of methods that are
-/// intercepted.
-const INTERCEPTED_NAMES = 'interceptedNames';
-
 /// A JS map from mangled global names to their unmangled names.
 ///
 /// If the program does not use reflection, this embedded global may be empty

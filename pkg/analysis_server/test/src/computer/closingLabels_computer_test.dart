@@ -412,8 +412,4 @@ void myMethod() {
 class ClosingLabelsComputerTest_UseCFE extends ClosingLabelsComputerTest {
   @override
   bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_knownBadCode1() => super.test_knownBadCode1();
 }

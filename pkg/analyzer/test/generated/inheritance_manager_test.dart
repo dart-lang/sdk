@@ -56,9 +56,6 @@ class InheritanceManagerTest {
    */
   int _numOfMembersInObject = 0;
 
-  bool get previewDart2 =>
-      _definingLibrary.context.analysisOptions.previewDart2;
-
   void setUp() {
     _typeProvider = new TestTypeProvider();
     _inheritanceManager = _createInheritanceManager();
@@ -356,8 +353,8 @@ class InheritanceManagerTest {
         ElementFactory.methodElement(methodName, null, [_typeProvider.intType]);
     classI1.methods = <MethodElement>[methodM1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2");
-    MethodElement methodM2 = ElementFactory
-        .methodElement(methodName, null, [_typeProvider.stringType]);
+    MethodElement methodM2 = ElementFactory.methodElement(
+        methodName, null, [_typeProvider.stringType]);
     classI2.methods = <MethodElement>[methodM2];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classI1.type, classI2.type];
@@ -450,8 +447,8 @@ class InheritanceManagerTest {
     // class A implements I2, I1 {}
     ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String methodName = "m";
-    MethodElement methodM1 = ElementFactory
-        .methodElement(methodName, null, [_typeProvider.stringType]);
+    MethodElement methodM1 = ElementFactory.methodElement(
+        methodName, null, [_typeProvider.stringType]);
     classI1.methods = <MethodElement>[methodM1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2");
     MethodElement methodM2 =
@@ -573,13 +570,8 @@ class InheritanceManagerTest {
         _inheritanceManager.getMembersInheritedFromInterfaces(classA);
     expect(mapA.length, _numOfMembersInObject + 1);
     PropertyAccessorElement syntheticAccessor;
-    if (previewDart2) {
-      syntheticAccessor = ElementFactory.getterElement(
-          accessorName, false, _typeProvider.intType);
-    } else {
-      syntheticAccessor = ElementFactory.getterElement(
-          accessorName, false, _typeProvider.dynamicType);
-    }
+    syntheticAccessor = ElementFactory.getterElement(
+        accessorName, false, _typeProvider.intType);
     expect(mapA[accessorName].type, syntheticAccessor.type);
     _assertNoErrors(classA);
   }
@@ -614,13 +606,8 @@ class InheritanceManagerTest {
         _inheritanceManager.getMembersInheritedFromInterfaces(classA);
     expect(mapA.length, _numOfMembersInObject + 1);
     MethodElement syntheticMethod;
-    if (previewDart2) {
-      syntheticMethod = ElementFactory.methodElement(
-          methodName, _typeProvider.dynamicType, [_typeProvider.numType]);
-    } else {
-      syntheticMethod = ElementFactory.methodElement(
-          methodName, _typeProvider.dynamicType, [_typeProvider.dynamicType]);
-    }
+    syntheticMethod = ElementFactory.methodElement(
+        methodName, _typeProvider.dynamicType, [_typeProvider.numType]);
     expect(mapA[methodName].type, syntheticMethod.type);
     _assertNoErrors(classA);
   }
@@ -645,15 +632,9 @@ class InheritanceManagerTest {
         _inheritanceManager.getMembersInheritedFromInterfaces(classA);
     expect(mapA.length, _numOfMembersInObject + 1);
     PropertyAccessorElementImpl syntheticAccessor;
-    if (previewDart2) {
-      syntheticAccessor = ElementFactory.setterElement(
-          accessorName, false, _typeProvider.numType);
-      syntheticAccessor.returnType = VoidTypeImpl.instance;
-    } else {
-      syntheticAccessor = ElementFactory.setterElement(
-          accessorName, false, _typeProvider.dynamicType);
-      syntheticAccessor.returnType = _typeProvider.dynamicType;
-    }
+    syntheticAccessor = ElementFactory.setterElement(
+        accessorName, false, _typeProvider.numType);
+    syntheticAccessor.returnType = VoidTypeImpl.instance;
     expect(mapA["$accessorName="].type, syntheticAccessor.type);
     _assertNoErrors(classA);
   }
@@ -693,13 +674,8 @@ class InheritanceManagerTest {
         _inheritanceManager.getMembersInheritedFromInterfaces(classD);
     expect(mapD.length, _numOfMembersInObject + 1);
     PropertyAccessorElement syntheticAccessor;
-    if (previewDart2) {
-      syntheticAccessor =
-          ElementFactory.getterElement(accessorName, false, classC.type);
-    } else {
-      syntheticAccessor = ElementFactory.getterElement(
-          accessorName, false, _typeProvider.dynamicType);
-    }
+    syntheticAccessor =
+        ElementFactory.getterElement(accessorName, false, classC.type);
     expect(mapD[accessorName].type, syntheticAccessor.type);
     _assertNoErrors(classD);
   }
@@ -754,13 +730,8 @@ class InheritanceManagerTest {
         _inheritanceManager.getMembersInheritedFromInterfaces(classD);
     expect(mapD.length, _numOfMembersInObject + 1);
     MethodElement syntheticMethod;
-    if (previewDart2) {
-      syntheticMethod = ElementFactory
-          .methodElement(methodName, _typeProvider.dynamicType, [classA.type]);
-    } else {
-      syntheticMethod = ElementFactory.methodElement(
-          methodName, _typeProvider.dynamicType, [_typeProvider.dynamicType]);
-    }
+    syntheticMethod = ElementFactory.methodElement(
+        methodName, _typeProvider.dynamicType, [classA.type]);
     expect(mapD[methodName].type, syntheticMethod.type);
     _assertNoErrors(classD);
   }
@@ -800,15 +771,9 @@ class InheritanceManagerTest {
         _inheritanceManager.getMembersInheritedFromInterfaces(classD);
     expect(mapD.length, _numOfMembersInObject + 1);
     PropertyAccessorElementImpl syntheticAccessor;
-    if (previewDart2) {
-      syntheticAccessor =
-          ElementFactory.setterElement(accessorName, false, classA.type);
-      syntheticAccessor.returnType = VoidTypeImpl.instance;
-    } else {
-      syntheticAccessor = ElementFactory.setterElement(
-          accessorName, false, _typeProvider.dynamicType);
-      syntheticAccessor.returnType = _typeProvider.dynamicType;
-    }
+    syntheticAccessor =
+        ElementFactory.setterElement(accessorName, false, classA.type);
+    syntheticAccessor.returnType = VoidTypeImpl.instance;
     expect(mapD["$accessorName="].type, syntheticAccessor.type);
     _assertNoErrors(classD);
   }

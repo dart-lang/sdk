@@ -1886,18 +1886,6 @@ class KeywordContributorTest_UseCFE extends KeywordContributorTest {
 
   @failingTest
   @override
-  test_anonymous_function_async2() => super.test_anonymous_function_async2();
-
-  @failingTest
-  @override
-  test_anonymous_function_async7() => super.test_anonymous_function_async7();
-
-  @failingTest
-  @override
-  test_anonymous_function_async9() => super.test_anonymous_function_async9();
-
-  @failingTest
-  @override
   test_class_extends_name() => super.test_class_extends_name();
 
   @failingTest
@@ -1919,10 +1907,6 @@ class KeywordContributorTest_UseCFE extends KeywordContributorTest {
   @failingTest
   @override
   test_for_initialization_var() => super.test_for_initialization_var();
-
-  @failingTest
-  @override
-  test_function_async() => super.test_function_async();
 
   @failingTest
   @override

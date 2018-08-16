@@ -17,96 +17,17 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OpTypeTest);
     defineReflectiveTests(OpTypeDart1OnlyTest);
-    defineReflectiveTests(OpTypeDart1Test);
   });
-}
-
-/// Common test methods to Dart1/Dart2 versions of OpType tests.
-class OpTypeTestCommon extends AbstractContextTest {
-  String testpath;
-  int completionOffset;
-  OpType visitor;
-
-  @override
-  void setUp() {
-    super.setUp();
-    testpath = provider.convertPath('/completionTest.dart');
-  }
-
-  void addTestSource(String content) {
-    completionOffset = content.indexOf('^');
-    expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
-    int nextOffset = content.indexOf('^', completionOffset + 1);
-    expect(nextOffset, equals(-1), reason: 'too many ^');
-    content = content.substring(0, completionOffset) +
-        content.substring(completionOffset + 1);
-    super.addSource(testpath, content);
-  }
-
-  Future<Null> assertOpType(
-      {bool caseLabel: false,
-      bool constructors: false,
-      bool namedArgs: false,
-      bool prefixed: false,
-      bool returnValue: false,
-      bool statementLabel: false,
-      bool staticMethodBody: false,
-      bool typeNames: false,
-      bool varNames: false,
-      bool voidReturn: false,
-      CompletionSuggestionKind kind:
-          CompletionSuggestionKind.INVOCATION}) async {
-    AnalysisResult analysisResult = await driver.getResult(testpath);
-
-    CompletionTarget completionTarget =
-        new CompletionTarget.forOffset(analysisResult.unit, completionOffset);
-    visitor = new OpType.forCompletion(completionTarget, completionOffset);
-
-    expect(visitor.includeCaseLabelSuggestions, caseLabel, reason: 'caseLabel');
-    expect(visitor.includeConstructorSuggestions, constructors,
-        reason: 'constructors');
-    expect(visitor.includeNamedArgumentSuggestions, namedArgs,
-        reason: 'namedArgs');
-    expect(visitor.includeReturnValueSuggestions, returnValue,
-        reason: 'returnValue');
-    expect(visitor.includeStatementLabelSuggestions, statementLabel,
-        reason: 'statementLabel');
-    expect(visitor.includeTypeNameSuggestions, typeNames, reason: 'typeNames');
-    expect(visitor.includeVarNameSuggestions, varNames, reason: 'varNames');
-    expect(visitor.includeVoidReturnSuggestions, voidReturn,
-        reason: 'voidReturn');
-    expect(visitor.inStaticMethodBody, staticMethodBody,
-        reason: 'staticMethodBody');
-    expect(visitor.isPrefixed, prefixed, reason: 'prefixed');
-    expect(visitor.suggestKind, kind, reason: 'suggestion kind');
-  }
-}
-
-/// Execute the tests that work on both.
-@reflectiveTest
-class OpTypeDart1Test extends OpTypeTest {
-  @override
-  bool get enablePreviewDart2 => false;
-
-  @override
-  bool get enableStrongMode => false;
 }
 
 @reflectiveTest
 // TODO: determine if tests here need to be fixed for Dart2.
 class OpTypeDart1OnlyTest extends OpTypeTestCommon {
-  @override
-  bool get enablePreviewDart2 => false;
-
-  @override
-  bool get enableStrongMode => false;
-
   @failingTest
   test_Annotation() async {
     // SimpleIdentifier  Annotation  MethodDeclaration  ClassDeclaration
     addTestSource('class C { @A^ }');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
     // TODO(danrubel): This test fails when fasta parser is enabled
     // because the @A is dropped from the Analyzer AST.
     // Ideally we generate a synthetic field and associate the annotation
@@ -126,7 +47,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     // If "expect()" were resolved, then either namedArgs would be true
     // or returnValue and typeNames would be true.
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         namedArgs: true,
         returnValue: true,
         typeNames: true);
@@ -136,31 +57,26 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     // SimpleIdentifier  NamedExpression  ArgumentList  MethodInvocation
     // ExpressionStatement
     addTestSource('void main() {expect(foo: ^)}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_ArgumentList_prefixedIdentifier() async {
     // SimpleIdentifier  PrefixedIdentifier  ArgumentList
     addTestSource('void main() {expect(aa.^)}');
     await assertOpType(
-        constructors: previewDart2,
-        returnValue: true,
-        typeNames: true,
-        prefixed: true);
+        constructors: true, returnValue: true, typeNames: true, prefixed: true);
   }
 
   test_ArgumentList_resolved() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('void main() {int.parse(^)}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_AsIdentifier() async {
     addTestSource('class A {var asdf; foo() {as^}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -168,22 +84,19 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
 
   test_Assert() async {
     addTestSource('main() {assert(^)}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_AssertInitializer() async {
     addTestSource('class C { C() : assert(^); }');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_AssignmentExpression_RHS() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement  Block
     addTestSource('class A {} main() {int a; int b = ^}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_AssignmentExpression_type() async {
@@ -199,7 +112,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     // Consider suggesting only types
     // if only spaces separates the 1st and 2nd identifiers.
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -217,7 +130,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     // if newline follows first identifier
     // because user is probably starting a new statement
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -236,7 +149,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     // Consider suggesting only types
     // if only spaces separates the 1st and 2nd identifiers.
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -254,7 +167,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     // if newline follows first identifier
     // because user is probably starting a new statement
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -263,67 +176,57 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
   test_AwaitExpression() async {
     // SimpleIdentifier  AwaitExpression  ExpressionStatement
     addTestSource('main() async {A a; await ^}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_AwaitExpression2() async {
     addTestSource('main() async {A a; await c^ await}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_AwaitExpression3() async {
     addTestSource('main() async {A a; await ^ await foo;}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_AwaitExpression4() async {
     addTestSource('main() async {A a; await ^ await bar();}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_AwaitExpression_assignment() async {
     addTestSource('main() async {A a; int x = await ^}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_AwaitExpression_assignment2() async {
     addTestSource('main() async {A a; int x = await ^ await foo;}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_AwaitExpression_assignment3() async {
     addTestSource('main() async {A a; int x = await v^ int y = await foo;}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_BinaryExpression_LHS() async {
     // SimpleIdentifier  BinaryExpression  VariableDeclaration
     // VariableDeclarationList  VariableDeclarationStatement
     addTestSource('main() {int a = 1, b = ^ + 2;}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_BinaryExpression_RHS() async {
     // SimpleIdentifier  BinaryExpression  VariableDeclaration
     // VariableDeclarationList  VariableDeclarationStatement
     addTestSource('main() {int a = 1, b = 2 + ^;}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_BinaryExpression_RHS2() async {
     // SimpleIdentifier  BinaryExpression
     addTestSource('main() {if (c < ^)}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_Block() async {
@@ -338,7 +241,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
         }
       }''');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -348,7 +251,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     // '}'  Block  BlockFunctionBody  FunctionExpression
     addTestSource('main() {try {} catch () {} ^}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -358,7 +261,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     // [ExpressionStatement 'c']  Block  BlockFunctionBody
     addTestSource('main() {try {} catch () {} c^}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -368,7 +271,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     // [EmptyStatement]  Block  BlockFunctionBody  FunctionExpression
     addTestSource('main() {try {} catch () {} ^;}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -378,7 +281,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     // [VariableDeclarationStatement 'Foo foo']  Block  BlockFunctionBody
     addTestSource('main() {try {} catch () {} ^ Foo foo;}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -388,7 +291,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     // '}'  Block  BlockFunctionBody  FunctionExpression
     addTestSource('main() {try {} finally {} ^}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -398,7 +301,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     // [ExpressionStatement 'c']  Block  BlockFunctionBody
     addTestSource('main() {try {} finally {} c^}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -408,7 +311,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     // [EmptyStatement]  Block  BlockFunctionBody  FunctionExpression
     addTestSource('main() {try {} finally {} ^;}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -418,16 +321,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     // [VariableDeclarationStatement 'Foo foo']  Block  BlockFunctionBody
     addTestSource('main() {try {} finally {} ^ Foo foo;}');
     await assertOpType(
-        constructors: previewDart2,
-        returnValue: true,
-        typeNames: true,
-        voidReturn: true);
-  }
-
-  test_Block_identifier_partial() async {
-    addTestSource('class X {a() {var f; {var x;} D^ var r;} void b() { }}');
-    await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -437,7 +331,16 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
     addTestSource('class A extends E implements I with M {a() {^}}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
+        returnValue: true,
+        typeNames: true,
+        voidReturn: true);
+  }
+
+  test_Block_identifier_partial() async {
+    addTestSource('class X {a() {var f; {var x;} D^ var r;} void b() { }}');
+    await assertOpType(
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -446,7 +349,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
   test_Block_keyword() async {
     addTestSource('class C { static C get instance => null; } main() {C.in^}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         prefixed: true,
         returnValue: true,
         typeNames: true,
@@ -456,7 +359,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
   test_Block_static() async {
     addTestSource('class A {static foo() {^}}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         staticMethodBody: true,
@@ -470,7 +373,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
       // but the user is trying to get completions for a non-cascade
       main() {A a; a.^.z}''');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true,
@@ -481,7 +384,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     // SimpleIdentifier  PropertyAccess  CascadeExpression  ExpressionStatement
     addTestSource('main() {A a; a..^z}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         voidReturn: true,
         prefixed: true);
@@ -491,7 +394,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     // PropertyAccess  CascadeExpression  ExpressionStatement  Block
     addTestSource('main() {A a; a..^ return}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         voidReturn: true,
         prefixed: true);
@@ -501,7 +404,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     // SimpleIdentifier  CascadeExpression  ExpressionStatement
     addTestSource('main() {A a; a^..b}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -511,7 +414,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     // Block  CatchClause  TryStatement
     addTestSource('class A {a() {try{var x;} on E catch (e) {^}}}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -521,7 +424,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     // Block  CatchClause  TryStatement
     addTestSource('class A {a() {try{var x;} catch (e, s) {^}}}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -531,7 +434,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     // SimpleIdentifier  CommentReference  Comment  MethodDeclaration
     addTestSource('class A {/** [^] */ mth() {}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true,
@@ -541,64 +444,56 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
   test_ConditionalExpression_elseExpression() async {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
     addTestSource('class C {foo(){var f; {var x;} return a ? T1 : T^}}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_ConditionalExpression_elseExpression_empty() async {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
     addTestSource('class C {foo(){var f; {var x;} return a ? T1 : ^}}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_ConditionalExpression_partial_thenExpression() async {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
     addTestSource('class C {foo(){var f; {var x;} return a ? T^}}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_ConditionalExpression_partial_thenExpression_empty() async {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
     addTestSource('class C {foo(){var f; {var x;} return a ? ^}}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_ConditionalExpression_thenExpression() async {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
     addTestSource('class C {foo(){var f; {var x;} return a ? T^ : c}}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_DefaultFormalParameter_named_expression() async {
     // DefaultFormalParameter FormalParameterList MethodDeclaration
     addTestSource('class A {a(blat: ^) { }}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_DoStatement() async {
     // SimpleIdentifier  DoStatement  Block
     addTestSource('main() {do{} while(^x);}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_ExpressionFunctionBody() async {
     // SimpleIdentifier  ExpressionFunctionBody  FunctionExpression
     addTestSource('m(){[1].forEach((x)=>^x);}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_ExpressionStatement() async {
     // ExpressionStatement  Block  BlockFunctionBody
     addTestSource('n(){f(3);^}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -607,15 +502,14 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
   test_ForEachStatement() async {
     // SimpleIdentifier  ForEachStatement  Block
     addTestSource('main() {for(z in ^zs) {}}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_ForEachStatement_body_typed() async {
     // Block  ForEachStatement
     addTestSource('main(args) {for (int foo in bar) {^}}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -625,7 +519,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     // Block  ForEachStatement
     addTestSource('main(args) {for (foo in bar) {^}}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -634,45 +528,34 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
   test_ForEachStatement_iterable() async {
     // SimpleIdentifier  ForEachStatement  Block
     addTestSource('main(args) {for (int foo in ^) {}}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_FormalParameter_partialType() async {
     // FormalParameterList MethodDeclaration
     addTestSource('class A {a(b.^ f) { }}');
     await assertOpType(
-        constructors: previewDart2,
-        returnValue: true,
-        typeNames: true,
-        prefixed: true);
+        constructors: true, returnValue: true, typeNames: true, prefixed: true);
   }
 
   test_FormalParameter_partialType2() async {
     // FormalParameterList MethodDeclaration
     addTestSource('class A {a(b.z^ f) { }}');
     await assertOpType(
-        constructors: previewDart2,
-        returnValue: true,
-        typeNames: true,
-        prefixed: true);
+        constructors: true, returnValue: true, typeNames: true, prefixed: true);
   }
 
   test_FormalParameter_partialType3() async {
     // FormalParameterList MethodDeclaration
     addTestSource('class A {a(b.^) { }}');
     await assertOpType(
-        constructors: previewDart2,
-        returnValue: true,
-        typeNames: true,
-        prefixed: true);
+        constructors: true, returnValue: true, typeNames: true, prefixed: true);
   }
 
   test_ForStatement_condition() async {
     // SimpleIdentifier  ForStatement
     addTestSource('main() {for (int index = 0; i^)}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_ForStatement_updaters() async {
@@ -680,7 +563,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     addTestSource('main() {for (int index = 0; index < 10; i^)}');
     // TODO (danrubel) may want to exclude methods/functions with void return
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -689,15 +572,14 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
   test_ForStatement_updaters_prefix_expression() async {
     // SimpleIdentifier  PrefixExpression  ForStatement
     addTestSource('main() {for (int index = 0; index < 10; ++i^)}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_IfStatement() async {
     // EmptyStatement  IfStatement  Block  BlockFunctionBody
     addTestSource('main(){var a; if (true) ^}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -706,44 +588,37 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
   test_IfStatement_condition() async {
     // SimpleIdentifier  IfStatement  Block  BlockFunctionBody
     addTestSource('main(){var a; if (^)}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_IfStatement_empty() async {
     // SimpleIdentifier  PrefixIdentifier  IfStatement
     addTestSource('class A {foo() {A a; if (^) something}}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_IfStatement_invocation() async {
     // SimpleIdentifier  PrefixIdentifier  IfStatement
     addTestSource('main() {var a; if (a.^) something}');
     await assertOpType(
-        constructors: previewDart2,
-        returnValue: true,
-        typeNames: true,
-        prefixed: true);
+        constructors: true, returnValue: true, typeNames: true, prefixed: true);
   }
 
   test_IndexExpression() async {
     addTestSource('class C {foo(){var f; {var x;} f[^]}}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_IndexExpression2() async {
     addTestSource('class C {foo(){var f; {var x;} f[T^]}}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_InstanceCreationExpression_keyword() async {
     // InstanceCreationExpression  ExpressionStatement  Block
     addTestSource('class C {foo(){var f; {var x;} new^ }}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -753,7 +628,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     // InstanceCreationExpression  ExpressionStatement  Block
     addTestSource('class C {foo(){var f; {var x;} new^ C();}}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -762,73 +637,62 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
   test_InterpolationExpression() async {
     // SimpleIdentifier  InterpolationExpression  StringInterpolation
     addTestSource('main() {String name; print("hello \$^");}');
-    await assertOpType(constructors: previewDart2, returnValue: true);
+    await assertOpType(constructors: true, returnValue: true);
   }
 
   test_InterpolationExpression_block() async {
     // SimpleIdentifier  InterpolationExpression  StringInterpolation
     addTestSource('main() {String name; print("hello \${n^}");}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_InterpolationExpression_prefix_selector() async {
     // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
     addTestSource('main() {String name; print("hello \${name.^}");}');
     await assertOpType(
-        constructors: previewDart2,
-        returnValue: true,
-        typeNames: true,
-        prefixed: true);
+        constructors: true, returnValue: true, typeNames: true, prefixed: true);
   }
 
   test_InterpolationExpression_prefix_target() async {
     // SimpleIdentifier  PrefixedIdentifier  InterpolationExpression
     addTestSource('main() {String name; print("hello \${nam^e.length}");}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_IsExpression_target() async {
     // IfStatement  Block  BlockFunctionBody
     addTestSource('main(){var a; if (^ is A)}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_Literal_list() async {
     // ']'  ListLiteral  ArgumentList  MethodInvocation
     addTestSource('main() {var Some; print([^]);}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_Literal_list2() async {
     // SimpleIdentifier ListLiteral  ArgumentList  MethodInvocation
     addTestSource('main() {var Some; print([S^]);}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_MapLiteralEntry() async {
     // MapLiteralEntry  MapLiteral  VariableDeclaration
     addTestSource('foo = {^');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_MapLiteralEntry1() async {
     // MapLiteralEntry  MapLiteral  VariableDeclaration
     addTestSource('foo = {T^');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_MapLiteralEntry2() async {
     // SimpleIdentifier  MapLiteralEntry  MapLiteral  VariableDeclaration
     addTestSource('foo = {7:T^};');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_MethodInvocation_no_semicolon() async {
@@ -839,7 +703,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
         set _s2(I x) {x.^ m(null);}
       }''');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true,
@@ -849,15 +713,14 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
   test_PostfixExpression() async {
     // SimpleIdentifier  PostfixExpression  ForStatement
     addTestSource('int x = 0; main() {ax+^+;}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_PrefixedIdentifier_class_const() async {
     // SimpleIdentifier PrefixedIdentifier ExpressionStatement Block
     addTestSource('main() {A.^}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true,
@@ -868,7 +731,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('main() {A a; a.^}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true,
@@ -879,7 +742,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('class X {foo(){A^.bar}}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         typeNames: true,
         returnValue: true,
         voidReturn: true);
@@ -889,7 +752,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     // SimpleIdentifier  MethodInvocation  PropertyAccess  ExpressionStatement
     addTestSource('class A {a() {"hello".to^String().length}}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true,
@@ -900,7 +763,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     // SimpleIdentifier  PropertyAccess  ExpressionStatement  Block
     addTestSource('class A {a() {"hello".length.^}}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true,
@@ -910,15 +773,14 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
   test_ReturnStatement() async {
     // ReturnStatement  Block
     addTestSource('f() { var vvv = 42; return ^ }');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_SwitchCase_between() async {
     // SwitchCase  SwitchStatement  Block
     addTestSource('main() {switch(k) {case 1: ^ case 2: return}}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -927,22 +789,20 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
   test_SwitchCase_expression1() async {
     // SimpleIdentifier  SwitchCase  SwitchStatement
     addTestSource('''m() {switch (x) {case ^D: return;}}''');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_SwitchCase_expression2() async {
     // SimpleIdentifier  SwitchCase  SwitchStatement
     addTestSource('''m() {switch (x) {case ^}}''');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_SwitchDefault_between() async {
     // SwitchDefault  SwitchStatement  Block
     addTestSource('main() {switch(k) {case 1: ^ default: return;}}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -952,7 +812,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     // Token('}')  SwitchStatement  Block
     addTestSource('main() {switch(k) {case 1:^}}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -961,7 +821,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
   test_SwitchStatement_body_end2() async {
     addTestSource('main() {switch(k) {case 1:as^}}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -970,22 +830,19 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
   test_SwitchStatement_expression1() async {
     // SimpleIdentifier  SwitchStatement  Block
     addTestSource('main() {switch(^k) {case 1:{}}}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_SwitchStatement_expression2() async {
     // SimpleIdentifier  SwitchStatement  Block
     addTestSource('main() {switch(k^) {case 1:{}}}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_SwitchStatement_expression_empty() async {
     // SimpleIdentifier  SwitchStatement  Block
     addTestSource('main() {switch(^) {case 1:{}}}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_ThisExpression_block() async {
@@ -997,7 +854,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
       }''');
     // TODO(brianwilkerson) We should not be adding constructors here.
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         voidReturn: true,
         prefixed: true);
@@ -1010,7 +867,7 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
         A() {this.^}
       }''');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         voidReturn: true,
         prefixed: true);
@@ -1019,15 +876,14 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
   test_ThrowExpression() async {
     // SimpleIdentifier  ThrowExpression  ExpressionStatement
     addTestSource('main() {throw ^;}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_VariableDeclarationStatement_afterSemicolon() async {
     // VariableDeclarationStatement  Block  BlockFunctionBody
     addTestSource('class A {var a; x() {var b;^}}');
     await assertOpType(
-        constructors: previewDart2,
+        constructors: true,
         returnValue: true,
         typeNames: true,
         voidReturn: true);
@@ -1037,29 +893,27 @@ class OpTypeDart1OnlyTest extends OpTypeTestCommon {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement
     addTestSource('class C {bar(){var f; {var x;} var e = ^}}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_VariableDeclarationStatement_RHS_missing_semicolon() async {
     // VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement
     addTestSource('class C {bar(){var f; {var x;} var e = ^ var g}}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
   test_WhileStatement() async {
     // SimpleIdentifier  WhileStatement  Block
     addTestSource('mth() { while (b^) {} }}');
-    await assertOpType(
-        constructors: previewDart2, returnValue: true, typeNames: true);
+    await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
 
+  @failingTest
   test_WithClause() async {
     // WithClause  ClassDeclaration
     addTestSource('class x extends Object with ^\n{}');
-    await assertOpType(constructors: previewDart2, typeNames: true);
+    await assertOpType(constructors: true, typeNames: true);
   }
 }
 
@@ -2052,5 +1906,66 @@ class C2 {
     // VariableDeclarationList  VariableDeclarationStatement  Block
     addTestSource('main() {final ^}');
     await assertOpType(typeNames: true);
+  }
+}
+
+/// Common test methods to Dart1/Dart2 versions of OpType tests.
+class OpTypeTestCommon extends AbstractContextTest {
+  String testpath;
+  int completionOffset;
+  OpType visitor;
+
+  void addTestSource(String content) {
+    completionOffset = content.indexOf('^');
+    expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
+    int nextOffset = content.indexOf('^', completionOffset + 1);
+    expect(nextOffset, equals(-1), reason: 'too many ^');
+    content = content.substring(0, completionOffset) +
+        content.substring(completionOffset + 1);
+    super.addSource(testpath, content);
+  }
+
+  Future<void> assertOpType(
+      {bool caseLabel: false,
+      bool constructors: false,
+      bool namedArgs: false,
+      bool prefixed: false,
+      bool returnValue: false,
+      bool statementLabel: false,
+      bool staticMethodBody: false,
+      bool typeNames: false,
+      bool varNames: false,
+      bool voidReturn: false,
+      CompletionSuggestionKind kind:
+          CompletionSuggestionKind.INVOCATION}) async {
+    AnalysisResult analysisResult = await driver.getResult(testpath);
+
+    CompletionTarget completionTarget =
+        new CompletionTarget.forOffset(analysisResult.unit, completionOffset);
+    visitor = new OpType.forCompletion(completionTarget, completionOffset);
+
+    expect(visitor.includeCaseLabelSuggestions, caseLabel, reason: 'caseLabel');
+    expect(visitor.includeConstructorSuggestions, constructors,
+        reason: 'constructors');
+    expect(visitor.includeNamedArgumentSuggestions, namedArgs,
+        reason: 'namedArgs');
+    expect(visitor.includeReturnValueSuggestions, returnValue,
+        reason: 'returnValue');
+    expect(visitor.includeStatementLabelSuggestions, statementLabel,
+        reason: 'statementLabel');
+    expect(visitor.includeTypeNameSuggestions, typeNames, reason: 'typeNames');
+    expect(visitor.includeVarNameSuggestions, varNames, reason: 'varNames');
+    expect(visitor.includeVoidReturnSuggestions, voidReturn,
+        reason: 'voidReturn');
+    expect(visitor.inStaticMethodBody, staticMethodBody,
+        reason: 'staticMethodBody');
+    expect(visitor.isPrefixed, prefixed, reason: 'prefixed');
+    expect(visitor.suggestKind, kind, reason: 'suggestion kind');
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+    testpath = provider.convertPath('/completionTest.dart');
   }
 }

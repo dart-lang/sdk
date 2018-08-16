@@ -339,11 +339,6 @@ class AnalysisServer {
   DiagnosticServer diagnosticServer;
 
   /**
-   * The analytics instance; note, this object can be `null`.
-   */
-  telemetry.Analytics get analytics => options.analytics;
-
-  /**
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
    *
@@ -373,7 +368,7 @@ class AnalysisServer {
     defaultContextOptions.generateImplicitErrors = false;
     defaultContextOptions.useFastaParser =
         options.useCFE || options.useFastaParser;
-    defaultContextOptions.previewDart2 = options.previewDart2;
+    defaultContextOptions.useCFE = options.useCFE;
 
     {
       String name = options.newAnalysisDriverLog;
@@ -441,6 +436,11 @@ class AnalysisServer {
       new FlutterDomainHandler(this)
     ];
   }
+
+  /**
+   * The analytics instance; note, this object can be `null`.
+   */
+  telemetry.Analytics get analytics => options.analytics;
 
   /**
    * Return a list of the globs used to determine which files should be analyzed.
@@ -1008,7 +1008,7 @@ class AnalysisServer {
     return contextManager.isInAnalysisRoot(file);
   }
 
-  Future<Null> shutdown() async {
+  Future<void> shutdown() async {
     running = false;
 
     if (options.analytics != null) {
@@ -1187,11 +1187,6 @@ class AnalysisServerOptions {
    * should be accessed via a null-aware operator.
    */
   CrashReportSender crashReportSender;
-
-  /**
-   * Whether to enable the Dart 2.0 preview.
-   */
-  bool previewDart2 = false;
 
   /**
    * Whether to enable the Dart 2.0 Common Front End implementation.
@@ -1426,7 +1421,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     builder.performanceLog = analysisServer._analysisPerformanceLogger;
     builder.byteStore = analysisServer.byteStore;
     builder.fileContentOverlay = analysisServer.fileContentOverlay;
-    builder.previewDart2 = analysisServer.options.previewDart2;
     builder.useCFE = analysisServer.options.useCFE;
     return builder;
   }

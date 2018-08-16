@@ -183,7 +183,9 @@ KernelLoader::KernelLoader(Program* program)
       external_name_field_(Field::Handle(Z)),
       potential_natives_(GrowableObjectArray::Handle(Z)),
       potential_extension_libraries_(GrowableObjectArray::Handle(Z)),
-      pragma_class_(Class::Handle(Z)) {
+      pragma_class_(Class::Handle(Z)),
+      expression_evaluation_library_(Library::Handle(Z)),
+      expression_evaluation_function_(Function::Handle(Z)) {
   if (!program->is_single_program()) {
     FATAL(
         "Trying to load a concatenated dill file at a time where that is "
@@ -344,7 +346,9 @@ KernelLoader::KernelLoader(const Script& script,
       external_name_field_(Field::Handle(Z)),
       potential_natives_(GrowableObjectArray::Handle(Z)),
       potential_extension_libraries_(GrowableObjectArray::Handle(Z)),
-      pragma_class_(Class::Handle(Z)) {
+      pragma_class_(Class::Handle(Z)),
+      expression_evaluation_library_(Library::Handle(Z)),
+      expression_evaluation_function_(Function::Handle(Z)) {
   ASSERT(T.active_class_ == &active_class_);
   T.finalize_ = false;
 
@@ -543,7 +547,7 @@ void KernelLoader::LoadNativeExtensionLibraries(
       {
         TransitionVMToNative transition(thread_);
         Api::Scope api_scope(thread_);
-        Dart_Handle retval = handler(Dart_kImportResolvedExtensionTag,
+        Dart_Handle retval = handler(Dart_kImportExtensionTag,
                                      Api::NewHandle(thread_, library.raw()),
                                      Api::NewHandle(thread_, uri_path.raw()));
         result = Api::UnwrapHandle(retval);
@@ -615,6 +619,49 @@ RawObject* KernelLoader::LoadProgram(bool process_pending_classes) {
   RawError* error = thread_->sticky_error();
   thread_->clear_sticky_error();
   return error;
+}
+
+RawObject* KernelLoader::LoadExpressionEvaluationFunction(
+    const String& library_url,
+    const String& klass) {
+  // Find the original context, i.e. library/class, in which the evaluation will
+  // happen.
+  const Library& real_library = Library::Handle(
+      Z, Library::LookupLibrary(Thread::Current(), library_url));
+  ASSERT(!real_library.IsNull());
+  const Class& real_class = Class::Handle(
+      Z, klass.IsNull() ? real_library.toplevel_class()
+                        : real_library.LookupClassAllowPrivate(klass));
+  ASSERT(!real_class.IsNull());
+
+  const intptr_t num_cids = I->class_table()->NumCids();
+  const intptr_t num_libs =
+      GrowableObjectArray::Handle(I->object_store()->libraries()).Length();
+
+  // Load the "evaluate:source" expression evaluation library.
+  ASSERT(expression_evaluation_library_.IsNull());
+  ASSERT(expression_evaluation_function_.IsNull());
+  const Object& result = Object::Handle(Z, LoadProgram(true));
+  if (result.IsError()) {
+    return result.raw();
+  }
+  ASSERT(!expression_evaluation_library_.IsNull());
+  ASSERT(!expression_evaluation_function_.IsNull());
+  ASSERT(GrowableObjectArray::Handle(I->object_store()->libraries()).Length() ==
+         num_libs);
+  ASSERT(I->class_table()->NumCids() == num_cids);
+
+  // Make the expression evaluation function have the right kernel data and
+  // parent.
+  auto& eval_data = ExternalTypedData::Handle(
+      Z, expression_evaluation_library_.kernel_data());
+  auto& eval_script =
+      Script::Handle(Z, expression_evaluation_function_.script());
+  expression_evaluation_function_.SetKernelDataAndScript(
+      eval_script, eval_data, expression_evaluation_library_.kernel_offset());
+  expression_evaluation_function_.set_owner(real_class);
+
+  return expression_evaluation_function_.raw();
 }
 
 void KernelLoader::FindModifiedLibraries(Program* program,
@@ -780,9 +827,16 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   library_helper.SetJustRead(LibraryHelper::kAnnotations);
 
   // Setup toplevel class (which contains library fields/procedures).
+
+  // We do not register expression evaluation classes with the VM:
+  // The expression evaluation functions should be GC-able as soon as
+  // they are not reachable anymore and we never look them up by name.
+  const bool register_class =
+      library.raw() != expression_evaluation_library_.raw();
+
   Class& toplevel_class =
       Class::Handle(Z, Class::New(library, Symbols::TopLevel(), script,
-                                  TokenPosition::kNoSource));
+                                  TokenPosition::kNoSource, register_class));
   toplevel_class.set_is_cycle_free();
   library.set_toplevel_class(toplevel_class);
 
@@ -801,8 +855,10 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   for (intptr_t i = 0; i < class_count; ++i) {
     helper_.SetOffset(next_class_offset);
     next_class_offset = library_index.ClassOffset(i + 1);
-    classes.Add(LoadClass(library, toplevel_class, next_class_offset),
-                Heap::kOld);
+    const Class& klass = LoadClass(library, toplevel_class, next_class_offset);
+    if (register_class) {
+      classes.Add(klass, Heap::kOld);
+    }
   }
   helper_.SetOffset(next_class_offset);
 
@@ -881,7 +937,9 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   }
 
   toplevel_class.SetFunctions(Array::Handle(MakeFunctionsArray()));
-  classes.Add(toplevel_class, Heap::kOld);
+  if (register_class) {
+    classes.Add(toplevel_class, Heap::kOld);
+  }
   if (!library.Loaded()) library.SetLoaded();
 
   return library.raw();
@@ -1161,7 +1219,13 @@ Class& KernelLoader::LoadClass(const Library& library,
                              class_offset - correction_offset_);
   }
 
-  if (loading_native_wrappers_library_) {
+  // We do not register expression evaluation classes with the VM:
+  // The expression evaluation functions should be GC-able as soon as
+  // they are not reachable anymore and we never look them up by name.
+  const bool register_class =
+      library.raw() != expression_evaluation_library_.raw();
+
+  if (loading_native_wrappers_library_ || !register_class) {
     FinishClassLoading(klass, library, toplevel_class, class_offset,
                        class_index, &class_helper);
   }
@@ -1514,6 +1578,12 @@ void KernelLoader::LoadProcedure(const Library& library,
   const Object& script_class =
       ClassForScriptAt(owner, procedure_helper.source_uri_index_);
   RawFunction::Kind kind = GetFunctionType(procedure_helper.kind_);
+
+  // We do not register expression evaluation libraries with the VM:
+  // The expression evaluation functions should be GC-able as soon as
+  // they are not reachable anymore and we never look them up by name.
+  const bool register_function = !name.Equals(Symbols::DebugProcedureName());
+
   Function& function = Function::ZoneHandle(
       Z, Function::New(name, kind,
                        !is_method,  // is_static
@@ -1523,7 +1593,11 @@ void KernelLoader::LoadProcedure(const Library& library,
                        script_class, procedure_helper.start_position_));
   function.set_has_pragma(has_pragma_annotation);
   function.set_end_token_pos(procedure_helper.end_position_);
-  functions_.Add(&function);
+  if (register_function) {
+    functions_.Add(&function);
+  } else {
+    expression_evaluation_function_ = function.raw();
+  }
   function.set_kernel_offset(procedure_offset);
 
   ActiveMemberScope active_member(&active_class_, &function);
@@ -1787,11 +1861,23 @@ Library& KernelLoader::LookupLibraryOrNull(NameIndex library) {
 Library& KernelLoader::LookupLibrary(NameIndex library) {
   Library* handle = NULL;
   if (!libraries_.Lookup(library, &handle)) {
-    const String& url = H.DartString(H.CanonicalNameString(library));
-    handle = &Library::Handle(Z, Library::LookupLibrary(thread_, url));
-    if (handle->IsNull()) {
-      *handle = Library::New(url);
-      handle->Register(thread_);
+    handle = &Library::Handle(Z);
+    const String& url = H.DartSymbolPlain(H.CanonicalNameString(library));
+
+    // We do not register expression evaluation libraries with the VM:
+    // The expression evaluation functions should be GC-able as soon as
+    // they are not reachable anymore and we never look them up by name.
+    if (url.Equals(Symbols::EvalSourceUri())) {
+      if (handle->IsNull()) {
+        *handle = Library::New(url);
+        expression_evaluation_library_ = handle->raw();
+      }
+    } else {
+      *handle = Library::LookupLibrary(thread_, url);
+      if (handle->IsNull()) {
+        *handle = Library::New(url);
+        handle->Register(thread_);
+      }
     }
     ASSERT(!handle->IsNull());
     libraries_.Insert(library, handle);
@@ -1806,9 +1892,17 @@ Class& KernelLoader::LookupClass(NameIndex klass) {
     const String& name = H.DartClassName(klass);
     handle = &Class::Handle(Z, library.LookupLocalClass(name));
     if (handle->IsNull()) {
+      // We do not register expression evaluation classes with the VM:
+      // The expression evaluation functions should be GC-able as soon as
+      // they are not reachable anymore and we never look them up by name.
+      const bool register_class =
+          library.raw() != expression_evaluation_library_.raw();
+
       *handle = Class::New(library, name, Script::Handle(Z),
-                           TokenPosition::kNoSource);
-      library.AddClass(*handle);
+                           TokenPosition::kNoSource, register_class);
+      if (register_class) {
+        library.AddClass(*handle);
+      }
     }
     // Insert the class in the cache before calling ReadPreliminaryClass so
     // we do not risk allocating the class again by calling LookupClass

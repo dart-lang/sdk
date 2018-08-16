@@ -133,6 +133,11 @@ class KernelLoader : public ValueObject {
   // was no main procedure, or a failure object if there was an error.
   RawObject* LoadProgram(bool process_pending_classes = true);
 
+  // Returns the function which will evaluate the expression, or a failure
+  // object if there was an error.
+  RawObject* LoadExpressionEvaluationFunction(const String& library_url,
+                                              const String& klass);
+
   // Finds all libraries that have been modified in this incremental
   // version of the kernel program file.
   static void FindModifiedLibraries(Program* program,
@@ -330,6 +335,33 @@ class KernelLoader : public ValueObject {
 
   Mapping<Library> libraries_;
   Mapping<Class> classes_;
+
+  // We "re-use" the normal .dill file format for encoding compiled evaluation
+  // expressions from the debugger.  This allows us to also reuse the normal
+  // a) kernel loader b) flow graph building code.  The encoding is either one
+  // of the following two options:
+  //
+  //   * Option a) The expression is evaluated inside an instance method call
+  //               context:
+  //
+  //   Program:
+  //   |> library "evaluate:source"
+  //      |> class "#DebugClass"
+  //         |> procedure ":Eval"
+  //
+  //   * Option b) The expression is evaluated outside an instance method call
+  //               context:
+  //
+  //   Program:
+  //   |> library "evaluate:source"
+  //      |> procedure ":Eval"
+  //
+  // See
+  //   * pkg/front_end/lib/src/fasta/incremental_compiler.dart:compileExpression
+  //   * pkg/front_end/lib/src/fasta/kernel/utils.dart:serializeProcedure
+  //
+  Library& expression_evaluation_library_;
+  Function& expression_evaluation_function_;
 
   GrowableArray<const Function*> functions_;
   GrowableArray<const Field*> fields_;

@@ -400,6 +400,53 @@ ConstantPool {
 ]  @_in::ExternalName::•("agent_J")
   external static factory •() → self::J;
 }
+abstract class K<A extends core::Object = dynamic, B extends core::Object = dynamic> extends core::Object {
+[@vm.bytecode=
+Bytecode {
+  Entry                1
+  CheckStack
+  Push                 FP[-5]
+  PushConstant         CP#0
+  AllocateT
+  StoreLocal           r0
+  Push                 r0
+  PushConstant         CP#2
+  IndirectStaticCall   1, CP#1
+  Drop1
+  ReturnTOS
+  PushConstant         CP#3
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Class #lib::TestTypeArgReuse
+  [1] = ArgDesc num-args 1, num-type-args 0, names []
+  [2] = StaticICData target '#lib::TestTypeArgReuse::', arg-desc CP#1
+  [3] = Null
+}
+]  static factory •<A extends core::Object = dynamic, B extends core::Object = dynamic>() → self::K<self::K::•::A, self::K::•::B>
+    return new self::TestTypeArgReuse::•<self::K::•::A, self::K::•::B>();
+}
+class TestTypeArgReuse<P extends core::Object = dynamic, Q extends core::Object = dynamic> extends self::Base<self::TestTypeArgReuse::P, self::TestTypeArgReuse::Q> implements self::K<self::TestTypeArgReuse::P, self::TestTypeArgReuse::Q> {
+[@vm.bytecode=
+Bytecode {
+  Entry                0
+  CheckStack
+  Push                 FP[-5]
+  PushConstant         CP#1
+  IndirectStaticCall   1, CP#0
+  Drop1
+  PushConstant         CP#2
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ArgDesc num-args 1, num-type-args 0, names []
+  [1] = StaticICData target '#lib::Base::', arg-desc CP#0
+  [2] = Null
+}
+]  synthetic constructor •() → void
+    : super self::Base::•()
+    ;
+}
 [@vm.bytecode=
 Bytecode {
   Entry                1

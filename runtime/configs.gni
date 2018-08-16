@@ -16,25 +16,33 @@ _base_fuchsia_config = [
   "$_dart_runtime:dart_os_fuchsia_config",
 ]
 
-_jit_config = _base_config + [
-                "$_dart_runtime:dart_maybe_interpreter_config",
-                "$_dart_runtime:dart_maybe_product_config",
-              ]
+_maybe_interpreter_maybe_product = [
+  "$_dart_runtime:dart_maybe_interpreter_config",
+  "$_dart_runtime:dart_maybe_product_config",
+]
 
-_jit_product_config = _base_config + [
-                        "$_dart_runtime:dart_maybe_interpreter_config",
-                        "$_dart_runtime:dart_product_config",
-                      ]
+_maybe_interpreter_product = [
+  "$_dart_runtime:dart_maybe_interpreter_config",
+  "$_dart_runtime:dart_product_config",
+]
 
-_jit_interpreter_config = _base_config + [
-                            "$_dart_runtime:dart_interpreter_config",
-                            "$_dart_runtime:dart_maybe_product_config",
-                          ]
+_interpreter_maybe_product = [
+  "$_dart_runtime:dart_interpreter_config",
+  "$_dart_runtime:dart_maybe_product_config",
+]
 
-_jit_product_interpreter_config = _base_config + [
-                                    "$_dart_runtime:dart_interpreter_config",
-                                    "$_dart_runtime:dart_product_config",
-                                  ]
+_interpreter_product = [
+  "$_dart_runtime:dart_interpreter_config",
+  "$_dart_runtime:dart_product_config",
+]
+
+_jit_config = _base_config + _maybe_interpreter_maybe_product
+
+_jit_product_config = _base_config + _maybe_interpreter_product
+
+_jit_interpreter_config = _base_config + _interpreter_maybe_product
+
+_jit_product_interpreter_config = _base_config + _interpreter_product
 
 _precompiled_runtime_config =
     _base_config + [
@@ -58,33 +66,34 @@ _precompiler_product_config = _base_config + [
                                 "$_dart_runtime:dart_precompiler_config",
                               ]
 
+_nosnapshot_precompiler_base = [
+  "$_dart_runtime:dart_nosnapshot_config",
+  "$_dart_runtime:dart_precompiler_config",
+]
+
 _nosnapshot_with_precompiler_config =
-    _base_config + [
-      "$_dart_runtime:dart_maybe_product_config",
-      "$_dart_runtime:dart_nosnapshot_config",
-      "$_dart_runtime:dart_precompiler_config",
-    ]
+    _base_config + _nosnapshot_precompiler_base + _maybe_interpreter_maybe_product
+
+_nosnapshot_with_precompiler_interpreter_config =
+    _base_config + _nosnapshot_precompiler_base + _interpreter_maybe_product
+
+_nosnapshot_with_precompiler_product_interpreter_config =
+    _base_config + _nosnapshot_precompiler_base + _interpreter_product
 
 _nosnapshot_with_precompiler_product_config =
-    _base_config + [
-      "$_dart_runtime:dart_product_config",
-      "$_dart_runtime:dart_nosnapshot_config",
-      "$_dart_runtime:dart_precompiler_config",
-    ]
+    _base_config + _nosnapshot_precompiler_base + _maybe_interpreter_product
 
 _nosnapshot_with_precompiler_fuchsia_config =
-    _base_fuchsia_config + [
-      "$_dart_runtime:dart_maybe_product_config",
-      "$_dart_runtime:dart_nosnapshot_config",
-      "$_dart_runtime:dart_precompiler_config",
-    ]
+    _base_fuchsia_config + _nosnapshot_precompiler_base + _maybe_interpreter_maybe_product
 
 _nosnapshot_with_precompiler_product_fuchsia_config =
-    _base_fuchsia_config + [
-      "$_dart_runtime:dart_product_config",
-      "$_dart_runtime:dart_nosnapshot_config",
-      "$_dart_runtime:dart_precompiler_config",
-    ]
+    _base_fuchsia_config + _nosnapshot_precompiler_base + _maybe_interpreter_product
+
+_nosnapshot_with_precompiler_interpreter_fuchsia_config =
+    _base_fuchsia_config + _nosnapshot_precompiler_base + _interpreter_maybe_product
+
+_nosnapshot_with_precompiler_product_interpreter_fuchsia_config =
+    _base_fuchsia_config + _nosnapshot_precompiler_base + _interpreter_product
 
 _all_configs = [
   {
@@ -151,6 +160,26 @@ if (!is_win) {
       suffix = "_jit_product_interpreter"
       configs = _jit_product_interpreter_config
       snapshot = true
+    },
+    {
+      suffix = "_nosnapshot_with_precompiler_interpreter"
+      configs = _nosnapshot_with_precompiler_interpreter_config
+      snapshot = false
+    },
+    {
+      suffix = "_nosnapshot_with_precompiler_product_interpreter"
+      configs = _nosnapshot_with_precompiler_product_interpreter_config
+      snapshot = false
+    },
+    {
+      suffix = "_nosnapshot_with_precompiler_interpreter_fuchsia"
+      configs = _nosnapshot_with_precompiler_interpreter_fuchsia_config
+      snapshot = false
+    },
+    {
+      suffix = "_nosnapshot_with_precompiler_product_interpreter_fuchsia"
+      configs = _nosnapshot_with_precompiler_product_interpreter_fuchsia_config
+      snapshot = false
     },
   ]
 }

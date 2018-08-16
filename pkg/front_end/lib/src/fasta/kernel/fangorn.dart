@@ -35,7 +35,7 @@ import 'package:kernel/ast.dart'
         VariableDeclaration,
         setParents;
 
-import '../parser.dart' show offsetForToken, optional;
+import '../parser.dart' show endOffsetForToken, offsetForToken, optional;
 
 import '../problems.dart' show unsupported;
 
@@ -132,15 +132,17 @@ class Fangorn extends Forest {
   Fangorn(this.typeInferenceTokensSaver);
 
   @override
-  ArgumentsJudgment arguments(List<Expression> positional, Token token,
+  ArgumentsJudgment arguments(
+      List<Expression> positional, Token beginToken, Token endToken,
       {List<DartType> types, List<NamedExpression> named}) {
-    return new ArgumentsJudgment(positional, types: types, named: named)
-      ..fileOffset = offsetForToken(token);
+    return new ArgumentsJudgment(
+        offsetForToken(beginToken), endOffsetForToken(endToken), positional,
+        types: types, named: named);
   }
 
   @override
-  ArgumentsJudgment argumentsEmpty(Token token) {
-    return arguments(<Expression>[], token);
+  ArgumentsJudgment argumentsEmpty(Token beginToken, Token endToken) {
+    return arguments(<Expression>[], beginToken, endToken);
   }
 
   @override
@@ -787,35 +789,38 @@ class Fangorn extends Forest {
   @override
   KernelIndexedAccessGenerator indexedAccessGenerator(
       ExpressionGeneratorHelper helper,
-      Token token,
+      Token openSquareBracket,
+      Token closeSquareBracket,
       Expression receiver,
       Expression index,
       Procedure getter,
       Procedure setter) {
-    return new KernelIndexedAccessGenerator.internal(
-        helper, token, receiver, index, getter, setter);
+    return new KernelIndexedAccessGenerator.internal(helper, openSquareBracket,
+        closeSquareBracket, receiver, index, getter, setter);
   }
 
   @override
   KernelThisIndexedAccessGenerator thisIndexedAccessGenerator(
       ExpressionGeneratorHelper helper,
-      Token token,
+      Token openSquareBracket,
+      Token closeSquareBracket,
       Expression index,
       Procedure getter,
       Procedure setter) {
     return new KernelThisIndexedAccessGenerator(
-        helper, token, index, getter, setter);
+        helper, openSquareBracket, closeSquareBracket, index, getter, setter);
   }
 
   @override
   KernelSuperIndexedAccessGenerator superIndexedAccessGenerator(
       ExpressionGeneratorHelper helper,
-      Token token,
+      Token openSquareBracket,
+      Token closeSquareBracket,
       Expression index,
       Member getter,
       Member setter) {
     return new KernelSuperIndexedAccessGenerator(
-        helper, token, index, getter, setter);
+        helper, openSquareBracket, closeSquareBracket, index, getter, setter);
   }
 
   @override

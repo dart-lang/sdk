@@ -310,6 +310,16 @@ class HintCode extends ErrorCode {
       "of '{1}'.");
 
   /// This hint is generated anywhere where a member annotated with
+  /// `@visibleForTemplate` is used outside of a "template" Dart file.
+  ///
+  /// Parameters:
+  /// 0: the name of the member
+  /// 1: the name of the defining class
+  static const HintCode INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER =
+      const HintCode('INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER',
+          "The member '{0}' can only be used within '{1}' or a template library.");
+
+  /// This hint is generated anywhere where a member annotated with
   /// `@visibleForTesting` is used outside the defining library, or a test.
   ///
   /// Parameters:

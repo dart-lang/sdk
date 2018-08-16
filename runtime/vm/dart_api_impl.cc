@@ -2314,20 +2314,6 @@ DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle double_obj,
   return Api::Success();
 }
 
-DART_EXPORT Dart_Handle Dart_GetClosure(Dart_Handle library,
-                                        Dart_Handle function_name) {
-  DARTSCOPE(Thread::Current());
-  const Library& lib = Api::UnwrapLibraryHandle(Z, library);
-  if (lib.IsNull()) {
-    RETURN_TYPE_ERROR(Z, library, Library);
-  }
-  const String& name = Api::UnwrapStringHandle(Z, function_name);
-  if (name.IsNull()) {
-    RETURN_TYPE_ERROR(Z, function_name, String);
-  }
-  return Api::NewHandle(T, lib.GetFunctionClosure(name));
-}
-
 DART_EXPORT Dart_Handle Dart_GetStaticMethodClosure(Dart_Handle library,
                                                     Dart_Handle cls_type,
                                                     Dart_Handle function_name) {
@@ -4148,7 +4134,8 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
   API_TIMELINE_DURATION(T);
   CHECK_CALLBACK_STATE(T);
 
-  const String& function_name = Api::UnwrapStringHandle(Z, name);
+  String& function_name =
+      String::Handle(Z, Api::UnwrapStringHandle(Z, name).raw());
   if (function_name.IsNull()) {
     RETURN_TYPE_ERROR(Z, name, String);
   }
@@ -4163,7 +4150,9 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
   }
   Dart_Handle result;
   Array& args = Array::Handle(Z);
-  const intptr_t kTypeArgsLen = 0;
+  // This API does not provide a way to pass named parameters.
+  const Array& arg_names = Object::empty_array();
+  const bool respect_reflectable = false;
   if (obj.IsType()) {
     if (!Type::Cast(obj).IsFinalized()) {
       return Api::NewError(
@@ -4172,70 +4161,33 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
     }
 
     const Class& cls = Class::Handle(Z, Type::Cast(obj).type_class());
-    const Function& function =
-        Function::Handle(Z, Resolver::ResolveStaticAllowPrivate(
-                                cls, function_name, kTypeArgsLen,
-                                number_of_arguments, Object::empty_array()));
-    if (function.IsNull()) {
-      const String& cls_name = String::Handle(Z, cls.Name());
-      return Api::NewError("%s: did not find static method '%s.%s'.",
-                           CURRENT_FUNC, cls_name.ToCString(),
-                           function_name.ToCString());
+    if (Library::IsPrivate(function_name)) {
+      const Library& lib = Library::Handle(Z, cls.library());
+      function_name = lib.PrivateName(function_name);
     }
-#if !defined(PRODUCT)
-    if (tds.enabled()) {
-      const String& cls_name = String::Handle(Z, cls.Name());
-      tds.SetNumArguments(1);
-      tds.FormatArgument(0, "name", "%s.%s", cls_name.ToCString(),
-                         function_name.ToCString());
-    }
-#endif  // !defined(PRODUCT)
+
     // Setup args and check for malformed arguments in the arguments list.
     result = SetupArguments(T, number_of_arguments, arguments, 0, &args);
-    if (!::Dart_IsError(result)) {
-      result = Api::NewHandle(T, DartEntry::InvokeFunction(function, args));
+    if (::Dart_IsError(result)) {
+      return result;
     }
-    return result;
+    return Api::NewHandle(
+        T, cls.Invoke(function_name, args, arg_names, respect_reflectable));
   } else if (obj.IsNull() || obj.IsInstance()) {
     // Since we have allocated an object it would mean that the type of the
     // receiver is already resolved and finalized, hence it is not necessary
     // to check here.
     Instance& instance = Instance::Handle(Z);
     instance ^= obj.raw();
-    ArgumentsDescriptor args_desc(Array::Handle(
-        Z, ArgumentsDescriptor::New(kTypeArgsLen, number_of_arguments + 1)));
-    const Function& function = Function::Handle(
-        Z, Resolver::ResolveDynamic(instance, function_name, args_desc));
-    if (function.IsNull()) {
-      // Setup args and check for malformed arguments in the arguments list.
-      result = SetupArguments(T, number_of_arguments, arguments, 1, &args);
-      if (!::Dart_IsError(result)) {
-        args.SetAt(0, instance);
-        const Array& args_descriptor = Array::Handle(
-            Z, ArgumentsDescriptor::New(kTypeArgsLen, args.Length()));
-        result = Api::NewHandle(
-            T, DartEntry::InvokeNoSuchMethod(instance, function_name, args,
-                                             args_descriptor));
-      }
-      return result;
-    }
-#if !defined(PRODUCT)
-    if (tds.enabled()) {
-      const Class& cls = Class::Handle(Z, instance.clazz());
-      ASSERT(!cls.IsNull());
-      const String& cls_name = String::Handle(Z, cls.Name());
-      tds.SetNumArguments(1);
-      tds.FormatArgument(0, "name", "%s.%s", cls_name.ToCString(),
-                         function_name.ToCString());
-    }
-#endif  // !defined(PRODUCT)
+
     // Setup args and check for malformed arguments in the arguments list.
     result = SetupArguments(T, number_of_arguments, arguments, 1, &args);
-    if (!::Dart_IsError(result)) {
-      args.SetAt(0, instance);
-      result = Api::NewHandle(T, DartEntry::InvokeFunction(function, args));
+    if (::Dart_IsError(result)) {
+      return result;
     }
-    return result;
+    args.SetAt(0, instance);
+    return Api::NewHandle(T, instance.Invoke(function_name, args, arg_names,
+                                             respect_reflectable));
   } else if (obj.IsLibrary()) {
     // Check whether class finalization is needed.
     const Library& lib = Library::Cast(obj);
@@ -4246,37 +4198,18 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
                            CURRENT_FUNC);
     }
 
-    const Function& function =
-        Function::Handle(Z, lib.LookupFunctionAllowPrivate(function_name));
-    if (function.IsNull()) {
-      return Api::NewError("%s: did not find top-level function '%s'.",
-                           CURRENT_FUNC, function_name.ToCString());
+    if (Library::IsPrivate(function_name)) {
+      function_name = lib.PrivateName(function_name);
     }
 
-#if !defined(PRODUCT)
-    if (tds.enabled()) {
-      const String& lib_name = String::Handle(Z, lib.url());
-      tds.SetNumArguments(1);
-      tds.FormatArgument(0, "name", "%s.%s", lib_name.ToCString(),
-                         function_name.ToCString());
-    }
-#endif  // !defined(PRODUCT)
-
-    // LookupFunctionAllowPrivate does not check argument arity, so we
-    // do it here.
-    String& error_message = String::Handle(Z);
-    if (!function.AreValidArgumentCounts(kTypeArgsLen, number_of_arguments, 0,
-                                         &error_message)) {
-      return Api::NewError("%s: wrong argument count for function '%s': %s.",
-                           CURRENT_FUNC, function_name.ToCString(),
-                           error_message.ToCString());
-    }
     // Setup args and check for malformed arguments in the arguments list.
     result = SetupArguments(T, number_of_arguments, arguments, 0, &args);
-    if (!::Dart_IsError(result)) {
-      result = Api::NewHandle(T, DartEntry::InvokeFunction(function, args));
+    if (::Dart_IsError(result)) {
+      return result;
     }
-    return result;
+
+    return Api::NewHandle(
+        T, lib.Invoke(function_name, args, arg_names, respect_reflectable));
   } else {
     return Api::NewError(
         "%s expects argument 'target' to be an object, type, or library.",
@@ -4320,96 +4253,39 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
   API_TIMELINE_DURATION(T);
   CHECK_CALLBACK_STATE(T);
 
-  const String& field_name = Api::UnwrapStringHandle(Z, name);
+  String& field_name =
+      String::Handle(Z, Api::UnwrapStringHandle(Z, name).raw());
   if (field_name.IsNull()) {
     RETURN_TYPE_ERROR(Z, name, String);
   }
-
-  Field& field = Field::Handle(Z);
-  Function& getter = Function::Handle(Z);
   const Object& obj = Object::Handle(Z, Api::UnwrapHandle(container));
-  if (obj.IsNull()) {
-    return Api::NewError("%s expects argument 'container' to be non-null.",
-                         CURRENT_FUNC);
-  } else if (obj.IsType()) {
+  const bool throw_nsm_if_absent = true;
+  const bool respect_reflectable = false;
+
+  if (obj.IsType()) {
     if (!Type::Cast(obj).IsFinalized()) {
       return Api::NewError(
           "%s expects argument 'container' to be a fully resolved type.",
           CURRENT_FUNC);
     }
-    // To access a static field we may need to use the Field or the
-    // getter Function.
     Class& cls = Class::Handle(Z, Type::Cast(obj).type_class());
-
-    field = cls.LookupStaticFieldAllowPrivate(field_name);
-    if (field.IsNull() || field.IsUninitialized()) {
-      const String& getter_name =
-          String::Handle(Z, Field::GetterName(field_name));
-      getter = cls.LookupStaticFunctionAllowPrivate(getter_name);
+    if (Library::IsPrivate(field_name)) {
+      const Library& lib = Library::Handle(Z, cls.library());
+      field_name = lib.PrivateName(field_name);
     }
-
-#if !defined(PRODUCT)
-    if (tds.enabled()) {
-      const String& cls_name = String::Handle(cls.Name());
-      tds.SetNumArguments(1);
-      tds.FormatArgument(0, "name", "%s.%s", cls_name.ToCString(),
-                         field_name.ToCString());
+    return Api::NewHandle(T, cls.InvokeGetter(field_name, throw_nsm_if_absent,
+                                              respect_reflectable));
+  } else if (obj.IsNull() || obj.IsInstance()) {
+    Instance& instance = Instance::Handle(Z);
+    instance ^= obj.raw();
+    if (Library::IsPrivate(field_name)) {
+      const Class& cls = Class::Handle(Z, instance.clazz());
+      const Library& lib = Library::Handle(Z, cls.library());
+      field_name = lib.PrivateName(field_name);
     }
-#endif  // !defined(PRODUCT)
-
-    if (!getter.IsNull()) {
-      // Invoke the getter and return the result.
-      return Api::NewHandle(
-          T, DartEntry::InvokeFunction(getter, Object::empty_array()));
-    } else if (!field.IsNull()) {
-      return Api::NewHandle(T, field.StaticValue());
-    } else {
-      return Api::NewError("%s: did not find static field '%s'.", CURRENT_FUNC,
-                           field_name.ToCString());
-    }
-
-  } else if (obj.IsInstance()) {
-    // Every instance field has a getter Function.  Try to find the
-    // getter in any superclass and use that function to access the
-    // field.
-    const Instance& instance = Instance::Cast(obj);
-    Class& cls = Class::Handle(Z, instance.clazz());
-    String& getter_name = String::Handle(Z, Field::GetterName(field_name));
-    while (!cls.IsNull()) {
-      getter = cls.LookupDynamicFunctionAllowPrivate(getter_name);
-      if (!getter.IsNull()) {
-        break;
-      }
-      cls = cls.SuperClass();
-    }
-
-#if !defined(PRODUCT)
-    if (tds.enabled()) {
-      const String& cls_name = String::Handle(cls.Name());
-      tds.SetNumArguments(1);
-      tds.FormatArgument(0, "name", "%s.%s", cls_name.ToCString(),
-                         field_name.ToCString());
-    }
-#endif  // !defined(PRODUCT)
-
-    // Invoke the getter and return the result.
-    const int kTypeArgsLen = 0;
-    const int kNumArgs = 1;
-    const Array& args = Array::Handle(Z, Array::New(kNumArgs));
-    args.SetAt(0, instance);
-    if (getter.IsNull()) {
-      const Array& args_descriptor = Array::Handle(
-          Z, ArgumentsDescriptor::New(kTypeArgsLen, args.Length()));
-      return Api::NewHandle(
-          T, DartEntry::InvokeNoSuchMethod(instance, getter_name, args,
-                                           args_descriptor));
-    }
-    return Api::NewHandle(T, DartEntry::InvokeFunction(getter, args));
-
+    return Api::NewHandle(
+        T, instance.InvokeGetter(field_name, respect_reflectable));
   } else if (obj.IsLibrary()) {
-    // To access a top-level we may need to use the Field or the
-    // getter Function.  The getter function may either be in the
-    // library or in the field's owner class, depending.
     const Library& lib = Library::Cast(obj);
     // Check that the library is loaded.
     if (!lib.Loaded()) {
@@ -4417,40 +4293,11 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
           "%s expects library argument 'container' to be loaded.",
           CURRENT_FUNC);
     }
-    field = lib.LookupFieldAllowPrivate(field_name);
-    if (field.IsNull()) {
-      // No field found and no ambiguity error.  Check for a getter in the lib.
-      const String& getter_name =
-          String::Handle(Z, Field::GetterName(field_name));
-      getter = lib.LookupFunctionAllowPrivate(getter_name);
-    } else if (!field.IsNull() && field.IsUninitialized()) {
-      // A field was found.  Check for a getter in the field's owner class.
-      const Class& cls = Class::Handle(Z, field.Owner());
-      const String& getter_name =
-          String::Handle(Z, Field::GetterName(field_name));
-      getter = cls.LookupStaticFunctionAllowPrivate(getter_name);
+    if (Library::IsPrivate(field_name)) {
+      field_name = lib.PrivateName(field_name);
     }
-
-#if !defined(PRODUCT)
-    if (tds.enabled()) {
-      const String& lib_name = String::Handle(lib.url());
-      tds.SetNumArguments(1);
-      tds.FormatArgument(0, "name", "%s.%s", lib_name.ToCString(),
-                         field_name.ToCString());
-    }
-#endif  // !defined(PRODUCT)
-
-    if (!getter.IsNull()) {
-      // Invoke the getter and return the result.
-      return Api::NewHandle(
-          T, DartEntry::InvokeFunction(getter, Object::empty_array()));
-    }
-    if (!field.IsNull()) {
-      return Api::NewHandle(T, field.StaticValue());
-    }
-    return Api::NewError("%s: did not find top-level variable '%s'.",
-                         CURRENT_FUNC, field_name.ToCString());
-
+    return Api::NewHandle(T, lib.InvokeGetter(field_name, throw_nsm_if_absent,
+                                              respect_reflectable));
   } else if (obj.IsError()) {
     return container;
   } else {
@@ -4467,7 +4314,8 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
   API_TIMELINE_DURATION(T);
   CHECK_CALLBACK_STATE(T);
 
-  const String& field_name = Api::UnwrapStringHandle(Z, name);
+  String& field_name =
+      String::Handle(Z, Api::UnwrapStringHandle(Z, name).raw());
   if (field_name.IsNull()) {
     RETURN_TYPE_ERROR(Z, name, String);
   }
@@ -4480,13 +4328,10 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
   Instance& value_instance = Instance::Handle(Z);
   value_instance ^= value_obj.raw();
 
-  Field& field = Field::Handle(Z);
-  Function& setter = Function::Handle(Z);
   const Object& obj = Object::Handle(Z, Api::UnwrapHandle(container));
-  if (obj.IsNull()) {
-    return Api::NewError("%s expects argument 'container' to be non-null.",
-                         CURRENT_FUNC);
-  } else if (obj.IsType()) {
+  const bool respect_reflectable = false;
+
+  if (obj.IsType()) {
     if (!Type::Cast(obj).IsFinalized()) {
       return Api::NewError(
           "%s expects argument 'container' to be a fully resolved type.",
@@ -4496,73 +4341,22 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
     // To access a static field we may need to use the Field or the
     // setter Function.
     Class& cls = Class::Handle(Z, Type::Cast(obj).type_class());
-
-    field = cls.LookupStaticFieldAllowPrivate(field_name);
-    if (field.IsNull()) {
-      String& setter_name = String::Handle(Z, Field::SetterName(field_name));
-      setter = cls.LookupStaticFunctionAllowPrivate(setter_name);
+    if (Library::IsPrivate(field_name)) {
+      const Library& lib = Library::Handle(Z, cls.library());
+      field_name = lib.PrivateName(field_name);
     }
-
-    if (!setter.IsNull()) {
-      // Invoke the setter and return the result.
-      const int kNumArgs = 1;
-      const Array& args = Array::Handle(Z, Array::New(kNumArgs));
-      args.SetAt(0, value_instance);
-      const Object& result =
-          Object::Handle(Z, DartEntry::InvokeFunction(setter, args));
-      if (result.IsError()) {
-        return Api::NewHandle(T, result.raw());
-      } else {
-        return Api::Success();
-      }
-    } else if (!field.IsNull()) {
-      if (field.is_final()) {
-        return Api::NewError("%s: cannot set final field '%s'.", CURRENT_FUNC,
-                             field_name.ToCString());
-      } else {
-        field.SetStaticValue(value_instance);
-        return Api::Success();
-      }
-    } else {
-      return Api::NewError("%s: did not find static field '%s'.", CURRENT_FUNC,
-                           field_name.ToCString());
+    return Api::NewHandle(
+        T, cls.InvokeSetter(field_name, value_instance, respect_reflectable));
+  } else if (obj.IsNull() || obj.IsInstance()) {
+    Instance& instance = Instance::Handle(Z);
+    instance ^= obj.raw();
+    if (Library::IsPrivate(field_name)) {
+      const Class& cls = Class::Handle(Z, instance.clazz());
+      const Library& lib = Library::Handle(Z, cls.library());
+      field_name = lib.PrivateName(field_name);
     }
-
-  } else if (obj.IsInstance()) {
-    // Every instance field has a setter Function.  Try to find the
-    // setter in any superclass and use that function to access the
-    // field.
-    const Instance& instance = Instance::Cast(obj);
-    Class& cls = Class::Handle(Z, instance.clazz());
-    String& setter_name = String::Handle(Z, Field::SetterName(field_name));
-    while (!cls.IsNull()) {
-      field = cls.LookupInstanceFieldAllowPrivate(field_name);
-      if (!field.IsNull() && field.is_final()) {
-        return Api::NewError("%s: cannot set final field '%s'.", CURRENT_FUNC,
-                             field_name.ToCString());
-      }
-      setter = cls.LookupDynamicFunctionAllowPrivate(setter_name);
-      if (!setter.IsNull()) {
-        break;
-      }
-      cls = cls.SuperClass();
-    }
-
-    // Invoke the setter and return the result.
-    const int kTypeArgsLen = 0;
-    const int kNumArgs = 2;
-    const Array& args = Array::Handle(Z, Array::New(kNumArgs));
-    args.SetAt(0, instance);
-    args.SetAt(1, value_instance);
-    if (setter.IsNull()) {
-      const Array& args_descriptor = Array::Handle(
-          Z, ArgumentsDescriptor::New(kTypeArgsLen, args.Length()));
-      return Api::NewHandle(
-          T, DartEntry::InvokeNoSuchMethod(instance, setter_name, args,
-                                           args_descriptor));
-    }
-    return Api::NewHandle(T, DartEntry::InvokeFunction(setter, args));
-
+    return Api::NewHandle(T, instance.InvokeSetter(field_name, value_instance,
+                                                   respect_reflectable));
   } else if (obj.IsLibrary()) {
     // To access a top-level we may need to use the Field or the
     // setter Function.  The setter function may either be in the
@@ -4574,36 +4368,12 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
           "%s expects library argument 'container' to be loaded.",
           CURRENT_FUNC);
     }
-    field = lib.LookupFieldAllowPrivate(field_name);
-    if (field.IsNull()) {
-      const String& setter_name =
-          String::Handle(Z, Field::SetterName(field_name));
-      setter ^= lib.LookupFunctionAllowPrivate(setter_name);
-    }
 
-    if (!setter.IsNull()) {
-      // Invoke the setter and return the result.
-      const int kNumArgs = 1;
-      const Array& args = Array::Handle(Z, Array::New(kNumArgs));
-      args.SetAt(0, value_instance);
-      const Object& result =
-          Object::Handle(Z, DartEntry::InvokeFunction(setter, args));
-      if (result.IsError()) {
-        return Api::NewHandle(T, result.raw());
-      }
-      return Api::Success();
+    if (Library::IsPrivate(field_name)) {
+      field_name = lib.PrivateName(field_name);
     }
-    if (!field.IsNull()) {
-      if (field.is_final()) {
-        return Api::NewError("%s: cannot set final top-level variable '%s'.",
-                             CURRENT_FUNC, field_name.ToCString());
-      }
-      field.SetStaticValue(value_instance);
-      return Api::Success();
-    }
-    return Api::NewError("%s: did not find top-level variable '%s'.",
-                         CURRENT_FUNC, field_name.ToCString());
-
+    return Api::NewHandle(
+        T, lib.InvokeSetter(field_name, value_instance, respect_reflectable));
   } else if (obj.IsError()) {
     return container;
   }

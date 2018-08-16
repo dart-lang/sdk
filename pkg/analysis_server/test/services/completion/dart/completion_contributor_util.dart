@@ -47,7 +47,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
    */
   bool get suggestConstructorsWithoutNew => true;
 
-  bool get usingFastaParser => analyzer.Parser.useFasta;
+  bool get usingFastaParser => useCFE || analyzer.Parser.useFasta;
 
   void addTestSource(String content) {
     expect(completionOffset, isNull, reason: 'Call addTestUnit exactly once');
@@ -464,7 +464,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
    * Return a [Future] that completes with the containing library information
    * after it is accessible via [context.getLibrariesContaining].
    */
-  Future<Null> computeLibrariesContaining([int times = 200]) {
+  Future<void> computeLibrariesContaining([int times = 200]) {
     return driver.getResult(testFile).then((result) => null);
   }
 

@@ -28,7 +28,7 @@ class CompletionTargetTest extends AbstractContextTest {
 
   bool get usingFastaParser => analyzer.Parser.useFasta;
 
-  Future<Null> addTestSource(String content) async {
+  Future<void> addTestSource(String content) async {
     expect(completionOffset, isNull, reason: 'Call addTestSource exactly once');
     completionOffset = content.indexOf('^');
     expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
@@ -41,7 +41,7 @@ class CompletionTargetTest extends AbstractContextTest {
     target = new CompletionTarget.forOffset(result.unit, completionOffset);
   }
 
-  Future<Null> assertTarget(entityText, nodeText,
+  Future<void> assertTarget(entityText, nodeText,
       {int argIndex: null,
       bool isFunctionalArgument: false,
       String droppedToken}) async {
@@ -363,6 +363,16 @@ class CompletionTargetTest extends AbstractContextTest {
     await assertTarget('zoo', 'zoo(z) {}');
   }
 
+  test_IfStatement_droppedToken() async {
+    // Comment  ClassDeclaration  CompilationUnit
+    await addTestSource('main() { if (v i^) }');
+    if (usingFastaParser) {
+      await assertTarget(')', 'if (v) ;', droppedToken: 'i');
+    } else {
+      await assertTarget('i;', 'if (v) i;');
+    }
+  }
+
   test_InstanceCreationExpression_identifier() async {
     // InstanceCreationExpression  ExpressionStatement  Block
     await addTestSource('class C {foo(){var f; {var x;} new ^C();}}');
@@ -408,16 +418,6 @@ class CompletionTargetTest extends AbstractContextTest {
         zoo(z) { } String name; }''');
     await assertTarget(
         '// normal comment ', 'class C2 {zoo(z) {} String name;}');
-  }
-
-  test_IfStatement_droppedToken() async {
-    // Comment  ClassDeclaration  CompilationUnit
-    await addTestSource('main() { if (v i^) }');
-    if (usingFastaParser) {
-      await assertTarget(')', 'if (v) ;', droppedToken: 'i');
-    } else {
-      await assertTarget('i;', 'if (v) i;');
-    }
   }
 
   test_MethodDeclaration_inLineComment2() async {

@@ -14,8 +14,6 @@ import '../../scanner/token.dart'
         Token,
         TokenType;
 
-import 'util.dart' show optional;
-
 /// Provides the capability of inserting tokens into a token stream. This
 /// implementation does this by rewriting the previous token to point to the
 /// inserted token.
@@ -94,7 +92,7 @@ class TokenStreamRewriter {
     return previousToken;
   }
 
-  /// Move [endGroup] (a synthetic `)`, `]`, `}`, or `>` token) and associated
+  /// Move [endGroup] (a synthetic `)`, `]`, or `}` token) and associated
   /// error token after [token] in the token stream and return [endGroup].
   Token moveSynthetic(Token token, Token endGroup) {
     assert(endGroup.beforeSynthetic != null);
@@ -131,50 +129,6 @@ class TokenStreamRewriter {
     _lastTokenInChain(replacementToken).setNext(replacedToken.next);
 
     return replacementToken;
-  }
-
-  /// Split a `>>` token into two separate `>` tokens, updates the token stream,
-  /// and returns the first `>`. If [start].endGroup is `>>` then sets
-  /// [start].endGroup to the second `>` but does not set the inner group's
-  /// endGroup, otherwise sets [start].endGroup to the first `>`.
-  Token splitEndGroup(BeginToken start, [Token end]) {
-    end ??= start.endGroup;
-    assert(end != null);
-
-    Token gt;
-    if (optional('>>', end)) {
-      gt = new SimpleToken(TokenType.GT, end.charOffset, end.precedingComments)
-        ..setNext(new SimpleToken(TokenType.GT, end.charOffset + 1)
-          ..setNext(end.next));
-    } else if (optional('>=', end)) {
-      gt = new SimpleToken(TokenType.GT, end.charOffset, end.precedingComments)
-        ..setNext(new SimpleToken(TokenType.EQ, end.charOffset + 1)
-          ..setNext(end.next));
-    } else if (optional('>>=', end)) {
-      gt = new SimpleToken(TokenType.GT, end.charOffset, end.precedingComments)
-        ..setNext(new SimpleToken(TokenType.GT, end.charOffset + 1)
-          ..setNext(new SimpleToken(TokenType.EQ, end.charOffset + 2)
-            ..setNext(end.next)));
-    } else {
-      gt = new SyntheticToken(TokenType.GT, end.charOffset)..setNext(end);
-    }
-
-    Token token = start;
-    Token next = token.next;
-    while (!identical(next, end)) {
-      token = next;
-      next = token.next;
-    }
-    token.setNext(gt);
-
-    if (start.endGroup != null) {
-      assert(optional('>>', start.endGroup));
-      start.endGroup = gt.next;
-    } else {
-      // Recovery
-      start.endGroup = gt;
-    }
-    return gt;
   }
 
   /// Given the [firstToken] in a chain of tokens to be inserted, return the

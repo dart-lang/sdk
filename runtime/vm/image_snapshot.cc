@@ -362,17 +362,16 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     // 2. Write a label at the entry point.
     // Linux's perf uses these labels.
     if (code.IsNull()) {
-      const char* name = tts.StubNameFromAddresss(insns.UncheckedEntryPoint());
+      const char* name = tts.StubNameFromAddresss(insns.EntryPoint());
       assembly_stream_.Print("Precompiled_%s:\n", name);
     } else {
       owner = code.owner();
       if (owner.IsNull()) {
-        const char* name = StubCode::NameOfStub(insns.UncheckedEntryPoint());
+        const char* name = StubCode::NameOfStub(insns.EntryPoint());
         if (name != NULL) {
           assembly_stream_.Print("Precompiled_Stub_%s:\n", name);
         } else {
-          const char* name =
-              tts.StubNameFromAddresss(insns.UncheckedEntryPoint());
+          const char* name = tts.StubNameFromAddresss(insns.EntryPoint());
           assembly_stream_.Print("Precompiled__%s:\n", name);
         }
       } else if (owner.IsClass()) {

@@ -2437,9 +2437,17 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
       if (rhs == 0) {
         return left()->definition();
       } else if (rhs < 0) {
+        // Instruction will always throw on negative rhs operand.
+        if (!CanDeoptimize()) {
+          // For non-speculative operations (no deopt), let
+          // the code generator deal with throw on slowpath.
+          break;
+        }
+        ASSERT(GetDeoptId() != Thread::kNoDeoptId);
         DeoptimizeInstr* deopt =
             new DeoptimizeInstr(ICData::kDeoptBinarySmiOp, GetDeoptId());
         flow_graph->InsertBefore(this, deopt, env(), FlowGraph::kEffect);
+        // Replace with zero since it always throws.
         return CreateConstantResult(flow_graph, Integer::Handle(Smi::New(0)));
       }
       break;
@@ -2450,10 +2458,18 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
         return left()->definition();
       } else if ((rhs < 0) || (rhs >= kMaxShift)) {
         if ((rhs < 0) || !is_truncating()) {
+          // Instruction will always throw on negative rhs operand.
+          if (!CanDeoptimize()) {
+            // For non-speculative operations (no deopt), let
+            // the code generator deal with throw on slowpath.
+            break;
+          }
+          ASSERT(GetDeoptId() != Thread::kNoDeoptId);
           DeoptimizeInstr* deopt =
               new DeoptimizeInstr(ICData::kDeoptBinarySmiOp, GetDeoptId());
           flow_graph->InsertBefore(this, deopt, env(), FlowGraph::kEffect);
         }
+        // Replace with zero since it overshifted or always throws.
         return CreateConstantResult(flow_graph, Integer::Handle(Smi::New(0)));
       }
       break;
@@ -4103,18 +4119,8 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       (ic_data() == NULL)) {
     const Array& arguments_descriptor =
         Array::Handle(zone, GetArgumentsDescriptor());
-    MethodRecognizer::Kind recognized_kind =
-        MethodRecognizer::RecognizeKind(function());
-    int num_args_checked = 0;
-    switch (recognized_kind) {
-      case MethodRecognizer::kDoubleFromInteger:
-      case MethodRecognizer::kMathMin:
-      case MethodRecognizer::kMathMax:
-        num_args_checked = 2;
-        break;
-      default:
-        break;
-    }
+    const int num_args_checked =
+        MethodRecognizer::NumArgsCheckedForStaticCall(function());
     call_ic_data = compiler->GetOrAddStaticCallICData(
         deopt_id(), function(), arguments_descriptor, num_args_checked,
         rebind_rule_);

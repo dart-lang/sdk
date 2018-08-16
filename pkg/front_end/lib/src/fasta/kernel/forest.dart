@@ -48,10 +48,13 @@ export 'kernel_builder.dart'
 abstract class Forest {
   const Forest();
 
-  Arguments arguments(List<Expression> positional, Token location,
+  /// [beginToken] is the opening `(`.
+  /// [endToken] is the closing `)`.
+  Arguments arguments(
+      List<Expression> positional, Token beginToken, Token endToken,
       {covariant List types, covariant List named});
 
-  Arguments argumentsEmpty(Token location);
+  Arguments argumentsEmpty(Token beginToken, Token endToken);
 
   List argumentsNamed(Arguments arguments);
 
@@ -390,17 +393,28 @@ abstract class Forest {
 
   Generator indexedAccessGenerator(
       ExpressionGeneratorHelper helper,
-      Token location,
+      Token openSquareBracket,
+      Token closeSquareBracket,
       Expression receiver,
       Expression index,
       Procedure getter,
       Procedure setter);
 
-  Generator thisIndexedAccessGenerator(ExpressionGeneratorHelper helper,
-      Token location, Expression index, Procedure getter, Procedure setter);
+  Generator thisIndexedAccessGenerator(
+      ExpressionGeneratorHelper helper,
+      Token openSquareBracket,
+      Token closeSquareBracket,
+      Expression index,
+      Procedure getter,
+      Procedure setter);
 
-  Generator superIndexedAccessGenerator(ExpressionGeneratorHelper helper,
-      Token location, Expression index, Member getter, Member setter);
+  Generator superIndexedAccessGenerator(
+      ExpressionGeneratorHelper helper,
+      Token openSquareBracket,
+      Token closeSquareBracket,
+      Expression index,
+      Member getter,
+      Member setter);
 
   Generator staticAccessGenerator(ExpressionGeneratorHelper helper,
       Token location, Member getter, Member setter);

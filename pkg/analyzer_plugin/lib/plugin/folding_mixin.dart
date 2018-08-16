@@ -55,7 +55,7 @@ abstract class FoldingMixin implements ServerPlugin {
   Future<FoldingRequest> getFoldingRequest(String path);
 
   @override
-  Future<Null> sendFoldingNotification(String path) async {
+  Future<void> sendFoldingNotification(String path) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     try {

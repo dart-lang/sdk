@@ -5,6 +5,7 @@
 #ifndef RUNTIME_VM_COMPILER_FRONTEND_KERNEL_TRANSLATION_HELPER_H_
 #define RUNTIME_VM_COMPILER_FRONTEND_KERNEL_TRANSLATION_HELPER_H_
 
+#include "vm/compiler/backend/il.h"  // For CompileType.
 #include "vm/kernel.h"
 #include "vm/kernel_binary.h"
 #include "vm/object.h"
@@ -831,13 +832,31 @@ class DirectCallMetadataHelper : public MetadataHelper {
 };
 
 struct InferredTypeMetadata {
-  InferredTypeMetadata(intptr_t cid_, bool nullable_)
-      : cid(cid_), nullable(nullable_) {}
+  enum Flag {
+    kFlagNullable = 1 << 0,
+    kFlagInt = 1 << 1,
+  };
+
+  InferredTypeMetadata(intptr_t cid_, uint8_t flags_)
+      : cid(cid_), flags(flags_) {}
 
   const intptr_t cid;
-  const bool nullable;
+  const uint8_t flags;
 
-  bool IsTrivial() const { return (cid == kDynamicCid) && nullable; }
+  bool IsTrivial() const {
+    return (cid == kDynamicCid) && (flags == kFlagNullable);
+  }
+  bool IsNullable() const { return (flags & kFlagNullable) != 0; }
+  bool IsInt() const { return (flags & kFlagInt) != 0; }
+
+  CompileType ToCompileType(Zone* zone) const {
+    if (IsInt()) {
+      return CompileType::FromAbstractType(
+          Type::ZoneHandle(zone, Type::IntType()), IsNullable());
+    } else {
+      return CompileType::CreateNullable(IsNullable(), cid);
+    }
+  }
 };
 
 // Helper class which provides access to inferred type metadata.

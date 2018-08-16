@@ -128,7 +128,7 @@ main() {
     KernelBodyBuilder helper = new KernelBodyBuilder(
         libraryBuilder, null, null, null, null, null, null, false, uri, null);
 
-    Generator generator = new ThisAccessGenerator(helper, token, false);
+    Generator generator = new ThisAccessGenerator(helper, token, false, false);
 
     Library library = new Library(uri);
     Class cls = new Class();
@@ -182,17 +182,17 @@ main() {
         " getter: $uri::myGetter, setter: $uri::mySetter,"
         " receiverVariable: null, indexVariable: null)",
         new KernelIndexedAccessGenerator.internal(
-            helper, token, expression, index, getter, setter));
+            helper, token, token, expression, index, getter, setter));
     check(
         "ThisIndexedAccessGenerator(offset: 4, index: index,"
         " getter: $uri::myGetter, setter: $uri::mySetter, indexVariable: null)",
         new KernelThisIndexedAccessGenerator(
-            helper, token, index, getter, setter));
+            helper, token, token, index, getter, setter));
     check(
         "SuperIndexedAccessGenerator(offset: 4, index: index,"
         " getter: $uri::myGetter, setter: $uri::mySetter, indexVariable: null)",
         new KernelSuperIndexedAccessGenerator(
-            helper, token, index, getter, setter));
+            helper, token, token, index, getter, setter));
     check(
         "StaticAccessGenerator(offset: 4, readTarget: $uri::myGetter,"
         " writeTarget: $uri::mySetter)",
@@ -203,7 +203,7 @@ main() {
         new KernelLoadLibraryGenerator(helper, token, loadLibraryBuilder));
     check(
         "ThisAccessGenerator(offset: 4, isInitializer: false, isSuper: false)",
-        new ThisAccessGenerator(helper, token, false));
+        new ThisAccessGenerator(helper, token, false, false));
     check("IncompleteErrorGenerator(offset: 4, message: Unspecified)",
         new IncompleteErrorGenerator(helper, token, getter, message));
     check("SendAccessGenerator(offset: 4, name: bar, arguments: (\"arg\"))",

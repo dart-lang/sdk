@@ -261,8 +261,4 @@ class MoveFileTest_UseCFE extends MoveFileTest {
   @override
   test_file_containing_imports_exports_parts() =>
       callFailingTest(super.test_file_containing_imports_exports_parts());
-
-  @failingTest
-  @override
-  test_file_referenced_by_part() => super.test_file_referenced_by_part();
 }

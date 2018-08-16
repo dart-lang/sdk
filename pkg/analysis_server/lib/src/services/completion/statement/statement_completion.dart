@@ -137,7 +137,7 @@ class StatementCompletionProcessor {
   AstNode node;
   StatementCompletion completion;
   SourceChange change = new SourceChange('statement-completion');
-  List errors = <engine.AnalysisError>[];
+  List<engine.AnalysisError> errors = [];
   final Map<String, LinkedEditGroup> linkedPositionGroups =
       <String, LinkedEditGroup>{};
   Position exitPosition = null;

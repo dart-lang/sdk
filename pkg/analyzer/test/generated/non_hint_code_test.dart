@@ -236,6 +236,42 @@ f() {
     verify([source]);
   }
 
+  test_deadCode_afterForEachWithBreakLabel() async {
+    Source source = addSource('''
+f() {
+  named: {
+    for (var x in [1]) {
+      if (x == null)
+        break named;
+    }
+    return;
+  }
+  print('not dead');
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_deadCode_afterForWithBreakLabel() async {
+    Source source = addSource('''
+f() {
+  named: {
+    for (int i = 0; i < 7; i++) {
+      if (i == null)
+        break named;
+    }
+    return;
+  }
+  print('not dead');
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_deprecatedAnnotationUse_namedParameter_inDefiningFunction() async {
     Source source = addSource(r'''
 f({@deprecated int x}) => x;

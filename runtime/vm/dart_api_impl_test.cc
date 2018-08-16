@@ -794,7 +794,7 @@ TEST_CASE(DartAPI_FunctionName) {
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
 
-  Dart_Handle closure = Dart_GetClosure(lib, NewString("getInt"));
+  Dart_Handle closure = Dart_GetField(lib, NewString("getInt"));
   EXPECT_VALID(closure);
   if (Dart_IsClosure(closure)) {
     closure = Dart_ClosureFunction(closure);
@@ -814,7 +814,7 @@ TEST_CASE(DartAPI_FunctionOwner) {
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
 
-  Dart_Handle closure = Dart_GetClosure(lib, NewString("getInt"));
+  Dart_Handle closure = Dart_GetField(lib, NewString("getInt"));
   EXPECT_VALID(closure);
   if (Dart_IsClosure(closure)) {
     closure = Dart_ClosureFunction(closure);
@@ -844,7 +844,7 @@ TEST_CASE(DartAPI_FunctionIsStatic) {
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
 
-  Dart_Handle closure = Dart_GetClosure(lib, NewString("getInt"));
+  Dart_Handle closure = Dart_GetField(lib, NewString("getInt"));
   EXPECT_VALID(closure);
   if (Dart_IsClosure(closure)) {
     closure = Dart_ClosureFunction(closure);
@@ -882,7 +882,7 @@ TEST_CASE(DartAPI_ClosureFunction) {
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
 
-  Dart_Handle closure = Dart_GetClosure(lib, NewString("getInt"));
+  Dart_Handle closure = Dart_GetField(lib, NewString("getInt"));
   EXPECT_VALID(closure);
   EXPECT(Dart_IsClosure(closure));
   Dart_Handle closure_str = Dart_ToString(closure);
@@ -3850,8 +3850,9 @@ static void TestFieldOk(Dart_Handle container,
 }
 
 static void TestFieldNotFound(Dart_Handle container, Dart_Handle name) {
-  EXPECT(Dart_IsError(Dart_GetField(container, name)));
-  EXPECT(Dart_IsError(Dart_SetField(container, name, Dart_Null())));
+  EXPECT_ERROR(Dart_GetField(container, name), "NoSuchMethodError");
+  EXPECT_ERROR(Dart_SetField(container, name, Dart_Null()),
+               "NoSuchMethodError");
 }
 
 TEST_CASE(DartAPI_FieldAccess) {
@@ -4083,7 +4084,7 @@ TEST_CASE(DartAPI_FieldAccess) {
   name = NewString("imported_fld");
   TestFieldNotFound(type, name);
   TestFieldNotFound(instance, name);
-  TestFieldOk(lib, name, false, "imported");
+  TestFieldNotFound(lib, name);
 
   // Hidden imported top-level field.  Not found at any level.
   name = NewString("_imported_fld");
@@ -4095,7 +4096,7 @@ TEST_CASE(DartAPI_FieldAccess) {
   name = NewString("imported_getset_fld");
   TestFieldNotFound(type, name);
   TestFieldNotFound(instance, name);
-  TestFieldOk(lib, name, false, "imported getset");
+  TestFieldNotFound(lib, name);
 
   // Hidden imported top-level get/set field.  Not found at any level.
   name = NewString("_imported_getset_fld");
@@ -5006,7 +5007,8 @@ TEST_CASE(DartAPI_Invoke) {
 
   // Static method, wrong arg count.
   EXPECT_ERROR(Dart_Invoke(type, name, 2, bad_args),
-               "did not find static method 'Methods.staticMethod'");
+               "NoSuchMethodError: No static method 'staticMethod' with "
+               "matching arguments");
 
   // Hidden static method.
   name = NewString("_staticMethod");
@@ -5034,8 +5036,8 @@ TEST_CASE(DartAPI_Invoke) {
 
   // Top-level method, wrong arg count.
   EXPECT_ERROR(Dart_Invoke(lib, name, 2, bad_args),
-               "Dart_Invoke: wrong argument count for function 'topMethod': "
-               "2 passed, 1 expected.");
+               "NoSuchMethodError: No top-level method 'topMethod' with "
+               "matching arguments");
 
   // Hidden top-level method.
   name = NewString("_topMethod");
@@ -5131,6 +5133,17 @@ TEST_CASE(DartAPI_Invoke_Null) {
   result = Dart_Invoke(Dart_Null(), function_name, 0, NULL);
   EXPECT(Dart_IsError(result));
   EXPECT(Dart_ErrorHasException(result));
+
+  result = Dart_GetField(Dart_Null(), NewString("toString"));
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsClosure(result));
+
+  result =
+      Dart_SetField(Dart_Null(), NewString("nullHasNoSetters"), Dart_Null());
+  // Not that Dart_SetField expects a non-null receiver.
+  EXPECT_ERROR(
+      result,
+      "NoSuchMethodError: The setter 'nullHasNoSetters=' was called on null");
 }
 
 TEST_CASE(DartAPI_InvokeNoSuchMethod) {
@@ -5228,10 +5241,11 @@ TEST_CASE(DartAPI_Invoke_CrossLibrary) {
   EXPECT_VALID(Dart_Invoke(lib1, NewString("local"), 0, NULL));
   EXPECT_VALID(Dart_Invoke(lib1, NewString("_local"), 0, NULL));
 
-  // We can only invoke non-private imported functions.
-  EXPECT_VALID(Dart_Invoke(lib1, NewString("imported"), 0, NULL));
+  // We cannot invoke imported functions (the library is an explicit receiver).
+  EXPECT_ERROR(Dart_Invoke(lib1, NewString("imported"), 0, NULL),
+               "NoSuchMethodError: No top-level method 'imported' declared");
   EXPECT_ERROR(Dart_Invoke(lib1, NewString("_imported"), 0, NULL),
-               "did not find top-level function '_imported'");
+               "NoSuchMethodError: No top-level method '_imported' declared");
 }
 
 TEST_CASE(DartAPI_InvokeClosure) {
@@ -6029,7 +6043,7 @@ TEST_CASE(DartAPI_ImportLibraryWithPrefix) {
   // not be found directly in lib2.
   Dart_Handle method_name = NewString("foo");
   result = Dart_Invoke(lib2, method_name, 0, NULL);
-  EXPECT_ERROR(result, "Dart_Invoke: did not find top-level function 'foo'");
+  EXPECT_ERROR(result, "NoSuchMethodError: No top-level method 'foo' declared");
 
   // Check that lib1 is available under the prefix in lib2.
   method_name = NewString("foobar");
@@ -9107,12 +9121,8 @@ TEST_CASE(DartAPI_InvokeImportedFunction) {
 
   Dart_Handle args[2] = {Dart_NewInteger(123), Dart_NewInteger(321)};
   Dart_Handle result = Dart_Invoke(lib, max, 2, args);
-  EXPECT_VALID(result);
-  EXPECT(Dart_IsNumber(result));
-
-  int64_t result_value;
-  EXPECT_VALID(Dart_IntegerToInt64(result, &result_value));
-  EXPECT(result_value == 321);
+  EXPECT_ERROR(result,
+               "NoSuchMethodError: No top-level method 'max' declared.");
 
   // The function 'getCurrentTag' is actually defined in the library
   // dart:developer. However, the library dart:profiler exports dart:developer
@@ -9121,7 +9131,9 @@ TEST_CASE(DartAPI_InvokeImportedFunction) {
   // an interim solution until we fix DartAPI_Invoke_CrossLibrary.
   Dart_Handle getCurrentTag = Dart_NewStringFromCString("getCurrentTag");
   result = Dart_Invoke(lib, getCurrentTag, 0, NULL);
-  EXPECT_VALID(result);
+  EXPECT_ERROR(
+      result,
+      "NoSuchMethodError: No top-level method 'getCurrentTag' declared.");
 }
 
 #endif  // !PRODUCT

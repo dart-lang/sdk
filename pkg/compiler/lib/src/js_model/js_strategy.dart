@@ -295,7 +295,6 @@ class JsClosedWorldBuilder {
         .getClassHierarchyNode(closedWorld.commonElements.objectClass)
         .forEachSubclass((ClassEntity cls) {
       convertClassSet(closedWorld.classHierarchy.getClassSet(cls));
-      return null;
     }, ClassHierarchyNode.ALL);
 
     Set<MemberEntity> liveInstanceMembers =
@@ -439,7 +438,6 @@ class JsClosedWorldBuilder {
         needToInitializeDispatchProperty:
             backendUsage.needToInitializeDispatchProperty,
         requiresPreamble: backendUsage.requiresPreamble,
-        isInvokeOnUsed: backendUsage.isInvokeOnUsed,
         runtimeTypeUses: runtimeTypeUses,
         isFunctionApplyUsed: backendUsage.isFunctionApplyUsed,
         isMirrorsUsed: backendUsage.isMirrorsUsed,

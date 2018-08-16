@@ -70,8 +70,4 @@ void bar() {
 class GetRefactoringTest_UseCFE extends GetRefactoringTest {
   @override
   bool get useCFE => true;
-
-  @override
-  @failingTest
-  test_rename() => super.test_rename();
 }

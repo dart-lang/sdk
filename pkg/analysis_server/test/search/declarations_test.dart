@@ -186,7 +186,7 @@ typedef tf2<T> = int Function<S>(T tp, S sp);
     assertHas('tf2', ElementKind.FUNCTION_TYPE_ALIAS);
   }
 
-  Future<Null> _getDeclarations(
+  Future<void> _getDeclarations(
       {String file, String pattern, int maxResults}) async {
     Request request = new SearchGetElementDeclarationsParams(
             file: file, pattern: pattern, maxResults: maxResults)

@@ -1535,26 +1535,14 @@ class Foo {
   test_constInitializedWithNonConstValue_missingConstInListLiteral() async {
     Source source = addSource("const List L = [0];");
     await computeAnalysisResult(source);
-    if ((analysisContext?.analysisOptions ?? driver.analysisOptions)
-        .previewDart2) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source,
-          [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
-    }
+    assertNoErrors(source);
     verify([source]);
   }
 
   test_constInitializedWithNonConstValue_missingConstInMapLiteral() async {
     Source source = addSource("const Map M = {'a' : 0};");
     await computeAnalysisResult(source);
-    if ((analysisContext?.analysisOptions ?? driver.analysisOptions)
-        .previewDart2) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source,
-          [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
-    }
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -2682,12 +2670,8 @@ main() {
   const A(0);
 }''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS]);
-    } else {
-      assertErrors(source,
-          [CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED]);
-    }
+    assertErrors(source,
+        [CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED]);
     verify([source]);
   }
 
@@ -7327,15 +7311,7 @@ main() {
 }
 print(x) {}''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [
-        CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
-        CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION
-      ]);
-    } else {
-      assertErrors(
-          source, [CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION]);
-    }
+    assertErrors(source, [CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION]);
   }
 
   test_referencedBeforeDeclaration_hideInBlock_local() async {
@@ -7390,15 +7366,7 @@ void testTypeRef() {
 }
 ''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [
-        CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
-        CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION
-      ]);
-    } else {
-      assertErrors(
-          source, [CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION]);
-    }
+    assertErrors(source, [CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION]);
   }
 
   test_referencedBeforeDeclaration_type_localVariable() async {

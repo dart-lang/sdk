@@ -674,18 +674,32 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
                                  MallocFinalizer);
     return result;
   }
-  if (tag == Dart_kImportResolvedExtensionTag) {
-    if (strncmp(url_string, "file://", 7)) {
+  if (tag == Dart_kImportExtensionTag) {
+    if (strncmp(url_string, "dart-ext:", 9)) {
       return DartUtils::NewError(
-          "Resolved native extensions must use the file:// scheme.");
+          "Native extensions must use the dart-ext: scheme.");
     }
-    const char* absolute_path = DartUtils::RemoveScheme(url_string);
+    const char* path = DartUtils::RemoveScheme(url_string);
 
-    if (!File::IsAbsolutePath(absolute_path)) {
-      return DartUtils::NewError("Native extension path must be absolute.");
+    const char* lib_uri = NULL;
+    result = Dart_StringToCString(Dart_LibraryUrl(library), &lib_uri);
+    RETURN_ERROR(result);
+
+    char* lib_path = NULL;
+    if (strncmp(lib_uri, "file://", 7) == 0) {
+      lib_path = DartUtils::DirName(DartUtils::RemoveScheme(lib_uri));
+    } else {
+      lib_path = strdup(lib_uri);
     }
 
-    return Extensions::LoadExtension("/", absolute_path, library);
+    if (!File::IsAbsolutePath(path) && PathContainsSeparator(path)) {
+      return DartUtils::NewError(
+          "Native extension path must be absolute, or simply the file name: "
+          "%s: ",
+          path);
+    }
+
+    return Extensions::LoadExtension(lib_path, path, library);
   }
   if (tag != Dart_kScriptTag) {
     // Special case for handling dart: imports and parts.

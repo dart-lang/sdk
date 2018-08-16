@@ -204,9 +204,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
    */
   TypeProvider _typeProvider;
 
-  AnalysisOptions _analysisOptions;
-
-  bool get previewDart2 => _analysisOptions.previewDart2;
+  /// TODO(brianwilkerson) Remove this getter.
+  bool get previewDart2 => true;
 
   /**
    * The type system used to analyze the test cases.
@@ -1536,7 +1535,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
       context = AnalysisContextFactory.contextWithCore(
           resourceProvider: resourceProvider);
     }
-    _analysisOptions = context.analysisOptions;
     Source source = new FileSource(resourceProvider.getFile("/lib.dart"));
     CompilationUnitElementImpl definingCompilationUnit =
         new CompilationUnitElementImpl("lib.dart");

@@ -41,7 +41,7 @@ main(List<String> arguments) {
   });
 }
 
-withTemporaryDirectory(String prefix, Future f(Uri tmp)) async {
+withTemporaryDirectory(String prefix, Future<void> f(Uri tmp)) async {
   Directory tmp = await Directory.systemTemp.createTemp(prefix);
   try {
     await f(tmp.uri);

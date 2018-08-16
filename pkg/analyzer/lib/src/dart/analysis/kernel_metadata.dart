@@ -11,6 +11,12 @@ import 'package:kernel/kernel.dart' as kernel;
 
 /// Additional information that Analyzer needs for nodes.
 class AnalyzerMetadata {
+  /// The offset of the beginning of the node code.
+  int codeOffset = -1;
+
+  /// The length of the node code.
+  int codeLength = 0;
+
   /// If the node is a named constructor, the offset of the name.
   /// Otherwise `-1`.
   int constructorNameOffset = -1;
@@ -38,6 +44,13 @@ class AnalyzerMetadataCollector implements MetadataCollector {
   @override
   final AnalyzerMetadataRepository repository =
       new AnalyzerMetadataRepository();
+
+  @override
+  void setCodeStartEnd(kernel.TreeNode node, int start, int end) {
+    var metadata = repository._forWriting(node);
+    metadata.codeOffset = start;
+    metadata.codeLength = end - start;
+  }
 
   @override
   void setConstructorNameOffset(kernel.Member node, Object name) {
@@ -144,6 +157,8 @@ class AnalyzerMetadataRepository
   AnalyzerMetadata readFromBinary(
       kernel.Node node, kernel.BinarySource source) {
     return new AnalyzerMetadata()
+      ..codeOffset = _readOffset(source)
+      ..codeLength = _readLength(source)
       ..constructorNameOffset = _readOffset(source)
       ..documentationComment = _readOptionalString(source)
       ..importPrefixOffset = _readOffset(source);
@@ -152,6 +167,8 @@ class AnalyzerMetadataRepository
   @override
   void writeToBinary(
       AnalyzerMetadata metadata, kernel.Node node, kernel.BinarySink sink) {
+    _writeOffset(sink, metadata.codeOffset);
+    _writeLength(sink, metadata.codeLength);
     _writeOffset(sink, metadata.constructorNameOffset);
     _writeOptionalString(sink, metadata.documentationComment);
     _writeOffset(sink, metadata.importPrefixOffset);
@@ -160,6 +177,10 @@ class AnalyzerMetadataRepository
   /// Return the existing or new [AnalyzerMetadata] instance for the [node].
   AnalyzerMetadata _forWriting(kernel.TreeNode node) {
     return mapping[node] ??= new AnalyzerMetadata();
+  }
+
+  int _readLength(kernel.BinarySource source) {
+    return source.readUint32();
   }
 
   int _readOffset(kernel.BinarySource source) {
@@ -174,6 +195,12 @@ class AnalyzerMetadataRepository
     } else {
       return null;
     }
+  }
+
+  /// The [length] value must be `>= 0`.
+  void _writeLength(kernel.BinarySink sink, int length) {
+    assert(length >= 0);
+    sink.writeUInt32(length);
   }
 
   /// The [offset] value must be `>= -1`.

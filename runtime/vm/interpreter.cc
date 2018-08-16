@@ -1644,13 +1644,14 @@ bool Interpreter::AssertAssignable(Thread* thread,
     RawTypeArguments* instance_type_arguments =
         static_cast<RawTypeArguments*>(null_value);
     RawObject* instance_cid_or_function;
+
+    RawTypeArguments* parent_function_type_arguments;
+    RawTypeArguments* delayed_function_type_arguments;
     if (cid == kClosureCid) {
       RawClosure* closure = static_cast<RawClosure*>(instance);
-      if (closure->ptr()->function_type_arguments_ != TypeArguments::null()) {
-        // Cache cannot be used for generic closures.
-        goto AssertAssignableCallRuntime;
-      }
       instance_type_arguments = closure->ptr()->instantiator_type_arguments_;
+      parent_function_type_arguments = closure->ptr()->function_type_arguments_;
+      delayed_function_type_arguments = closure->ptr()->delayed_type_arguments_;
       instance_cid_or_function = closure->ptr()->function_;
     } else {
       instance_cid_or_function = Smi::New(cid);
@@ -1663,6 +1664,10 @@ bool Interpreter::AssertAssignable(Thread* thread,
             instance->ptr())[instance_class->ptr()
                                  ->type_arguments_field_offset_in_words_];
       }
+      parent_function_type_arguments =
+          static_cast<RawTypeArguments*>(null_value);
+      delayed_function_type_arguments =
+          static_cast<RawTypeArguments*>(null_value);
     }
 
     for (RawObject** entries = cache->ptr()->cache_->ptr()->data();
@@ -1675,7 +1680,11 @@ bool Interpreter::AssertAssignable(Thread* thread,
           (entries[SubtypeTestCache::kInstantiatorTypeArguments] ==
            instantiator_type_arguments) &&
           (entries[SubtypeTestCache::kFunctionTypeArguments] ==
-           function_type_arguments)) {
+           function_type_arguments) &&
+          (entries[SubtypeTestCache::kInstanceParentFunctionTypeArguments] ==
+           parent_function_type_arguments) &&
+          (entries[SubtypeTestCache::kInstanceDelayedFunctionTypeArguments] ==
+           delayed_function_type_arguments)) {
         if (Bool::True().raw() == entries[SubtypeTestCache::kTestResult]) {
           return true;
         } else {
@@ -2331,7 +2340,7 @@ RawObject* Interpreter::Call(RawFunction* function,
   }
 
   {
-    BYTECODE(InstanceCall1, A_D);
+    BYTECODE(InstanceCall, A_D);
 
     // Check if single stepping.
     if (thread->isolate()->single_step()) {
@@ -2350,36 +2359,18 @@ RawObject* Interpreter::Call(RawFunction* function,
       RawICData* icdata = RAW_CAST(ICData, LOAD_CONSTANT(kidx));
       InterpreterHelpers::IncrementUsageCounter(
           RAW_CAST(Function, icdata->ptr()->owner_));
-      if (!InstanceCall1(thread, icdata, call_base, call_top, &pc, &FP, &SP,
-                         false /* optimized */)) {
-        HANDLE_EXCEPTION;
-      }
-    }
-
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(InstanceCall2, A_D);
-    if (thread->isolate()->single_step()) {
-      Exit(thread, FP, SP + 1, pc);
-      NativeArguments args(thread, 0, NULL, NULL);
-      INVOKE_RUNTIME(DRT_SingleStepHandler, args);
-    }
-
-    {
-      const uint16_t argc = rA;
-      const uint16_t kidx = rD;
-
-      RawObject** call_base = SP - argc + 1;
-      RawObject** call_top = SP + 1;
-
-      RawICData* icdata = RAW_CAST(ICData, LOAD_CONSTANT(kidx));
-      InterpreterHelpers::IncrementUsageCounter(
-          RAW_CAST(Function, icdata->ptr()->owner_));
-      if (!InstanceCall2(thread, icdata, call_base, call_top, &pc, &FP, &SP,
-                         false /* optimized */)) {
-        HANDLE_EXCEPTION;
+      if (ICData::NumArgsTestedBits::decode(icdata->ptr()->state_bits_) == 1) {
+        if (!InstanceCall1(thread, icdata, call_base, call_top, &pc, &FP, &SP,
+                           false /* optimized */)) {
+          HANDLE_EXCEPTION;
+        }
+      } else {
+        ASSERT(ICData::NumArgsTestedBits::decode(icdata->ptr()->state_bits_) ==
+               2);
+        if (!InstanceCall2(thread, icdata, call_base, call_top, &pc, &FP, &SP,
+                           false /* optimized */)) {
+          HANDLE_EXCEPTION;
+        }
       }
     }
 
@@ -3813,13 +3804,15 @@ RawObject* Interpreter::Call(RawFunction* function,
       RawTypeArguments* instance_type_arguments =
           static_cast<RawTypeArguments*>(null_value);
       RawObject* instance_cid_or_function;
+      RawTypeArguments* parent_function_type_arguments;
+      RawTypeArguments* delayed_function_type_arguments;
       if (cid == kClosureCid) {
         RawClosure* closure = static_cast<RawClosure*>(instance);
-        if (closure->ptr()->function_type_arguments_ != TypeArguments::null()) {
-          // Cache cannot be used for generic closures.
-          goto InstanceOfCallRuntime;
-        }
         instance_type_arguments = closure->ptr()->instantiator_type_arguments_;
+        parent_function_type_arguments =
+            closure->ptr()->function_type_arguments_;
+        delayed_function_type_arguments =
+            closure->ptr()->delayed_type_arguments_;
         instance_cid_or_function = closure->ptr()->function_;
       } else {
         instance_cid_or_function = Smi::New(cid);
@@ -3832,6 +3825,10 @@ RawObject* Interpreter::Call(RawFunction* function,
               instance->ptr())[instance_class->ptr()
                                    ->type_arguments_field_offset_in_words_];
         }
+        parent_function_type_arguments =
+            static_cast<RawTypeArguments*>(null_value);
+        delayed_function_type_arguments =
+            static_cast<RawTypeArguments*>(null_value);
       }
 
       for (RawObject** entries = cache->ptr()->cache_->ptr()->data();
@@ -3844,7 +3841,11 @@ RawObject* Interpreter::Call(RawFunction* function,
             (entries[SubtypeTestCache::kInstantiatorTypeArguments] ==
              instantiator_type_arguments) &&
             (entries[SubtypeTestCache::kFunctionTypeArguments] ==
-             function_type_arguments)) {
+             function_type_arguments) &&
+            (entries[SubtypeTestCache::kInstanceParentFunctionTypeArguments] ==
+             parent_function_type_arguments) &&
+            (entries[SubtypeTestCache::kInstanceDelayedFunctionTypeArguments] ==
+             delayed_function_type_arguments)) {
           SP[-4] = entries[SubtypeTestCache::kTestResult];
           goto InstanceOfOk;
         }

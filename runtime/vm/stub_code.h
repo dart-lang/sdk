@@ -122,7 +122,7 @@ class StubEntry {
 
   const ExternalLabel& label() const { return label_; }
   uword EntryPoint() const { return entry_point_; }
-  uword CheckedEntryPoint() const { return checked_entry_point_; }
+  uword MonomorphicEntryPoint() const { return monomorphic_entry_point_; }
   RawCode* code() const { return code_; }
   intptr_t Size() const { return size_; }
 
@@ -132,7 +132,7 @@ class StubEntry {
  private:
   RawCode* code_;
   uword entry_point_;
-  uword checked_entry_point_;
+  uword monomorphic_entry_point_;
   intptr_t size_;
   ExternalLabel label_;
 

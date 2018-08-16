@@ -5258,20 +5258,18 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return;
     }
 
-    // Anything can be returned to `dynamic`, or to `Future<dynamic>` in
-    // an async function.
-    if (toType.isDynamic) {
-      return;
-    }
-
-    // Anything can be return to `Future<Null>` in an async function
-    if (_inAsync && toType.isDartCoreNull) {
-      return;
-    }
-
-    // If we're not in one of the `void` related special cases
-    // just check assignability.
-    if (!expectedType.isVoid && !fromType.isVoid) {
+    if (toType.isVoid) {
+      if (fromType.isVoid ||
+          fromType.isDynamic ||
+          fromType.isDartCoreNull ||
+          fromType.isBottom) {
+        return;
+      }
+    } else if (fromType.isVoid) {
+      if (toType.isDynamic || toType.isDartCoreNull || toType.isBottom) {
+        return;
+      }
+    } else {
       var checkWithType = (!_inAsync)
           ? fromType
           : _typeProvider.futureType.instantiate(<DartType>[fromType]);
@@ -5281,31 +5279,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
     }
 
-    // Void related special cases.  If the expression type flattens
-    // to `void`, and the expected type doesn't, then it's an error.
-    // Otherwise:
-    if (toType.isVoid) {
-      // In the case that the expected type is `void`
-      if (expectedType.isVoid) {
-        // Valid if the expression type is void, dynamic or Null
-        if (expressionType.isVoid ||
-            expressionType.isDynamic ||
-            expressionType.isDartCoreNull ||
-            expressionType.isBottom) {
-          return;
-        }
-      } else {
-        // The expected type is Future<void> or FutureOr<void>,
-        // and the return is valid if the expression type flattens
-        // to void, dynamic, or Null.
-        if (fromType.isVoid ||
-            fromType.isDynamic ||
-            fromType.isDartCoreNull ||
-            fromType.isBottom) {
-          return;
-        }
-      }
-    }
     reportTypeError();
   }
 

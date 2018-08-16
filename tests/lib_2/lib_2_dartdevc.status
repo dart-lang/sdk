@@ -82,7 +82,7 @@ html/js_typed_interop_type_test: RuntimeError # Issue 30947
 html/js_util_test: RuntimeError # Issue 29922
 html/media_stream_test: RuntimeError # Issue 29922
 html/no_linked_scripts_htmltest: Skip # Issue 29919
-html/notification_permission_test: Timeout # Issue 32002
+html/notification_permission_test: Skip # Issue 32002
 html/scripts_htmltest: Skip # Issue 29919
 html/transition_event_test: Pass, RuntimeError, Timeout # Issue 29922, this test seems flaky
 html/two_scripts_htmltest: Skip # Issue 29919

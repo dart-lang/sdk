@@ -74,7 +74,7 @@ abstract class NavigationMixin implements ServerPlugin {
     NavigationRequest request = await getNavigationRequest(parameters);
     NavigationGenerator generator =
         new NavigationGenerator(getNavigationContributors(path));
-    GeneratorResult result =
+    GeneratorResult<AnalysisGetNavigationResult> result =
         await generator.generateNavigationResponse(request);
     result.sendNotifications(channel);
     return result.result;
@@ -85,7 +85,7 @@ abstract class NavigationMixin implements ServerPlugin {
    * server.
    */
   @override
-  Future<Null> sendNavigationNotification(String path) async {
+  Future<void> sendNavigationNotification(String path) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     try {

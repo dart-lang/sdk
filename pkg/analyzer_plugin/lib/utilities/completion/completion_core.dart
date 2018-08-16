@@ -72,7 +72,7 @@ abstract class CompletionContributor {
    * Contribute completion suggestions for the completion location specified by
    * the given [request] into the given [collector].
    */
-  Future<Null> computeSuggestions(
+  Future<void> computeSuggestions(
       covariant CompletionRequest request, CompletionCollector collector);
 }
 
@@ -97,8 +97,8 @@ class CompletionGenerator {
    * [path]. If any of the contributors throws an exception, also create a
    * non-fatal 'plugin.error' notification.
    */
-  Future<GeneratorResult> generateCompletionResponse(
-      CompletionRequest request) async {
+  Future<GeneratorResult<CompletionGetSuggestionsResult>>
+      generateCompletionResponse(CompletionRequest request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     List<Notification> notifications = <Notification>[];

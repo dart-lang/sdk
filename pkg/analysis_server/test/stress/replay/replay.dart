@@ -29,7 +29,7 @@ import 'operation.dart';
 /**
  * Run the simulation based on the given command-line [arguments].
  */
-Future<Null> main(List<String> arguments) async {
+Future<void> main(List<String> arguments) async {
   Driver driver = new Driver();
   await driver.run(arguments);
 }
@@ -135,14 +135,14 @@ class Driver {
   /**
    * Allow the output from the server to be read and processed.
    */
-  Future<Null> readServerOutput() async {
+  Future<void> readServerOutput() async {
     await new Future.delayed(new Duration(milliseconds: 2));
   }
 
   /**
    * Run the simulation based on the given command-line arguments ([args]).
    */
-  Future<Null> run(List<String> args) async {
+  Future<void> run(List<String> args) async {
     //
     // Process the command-line arguments.
     //
@@ -358,7 +358,7 @@ class Driver {
   /**
    * Replay the changes in each commit.
    */
-  Future<Null> _replayChanges() async {
+  Future<void> _replayChanges() async {
     //
     // Get the revision history of the repo.
     //
@@ -428,7 +428,7 @@ class Driver {
    * Replay the changes between two commits, as represented by the given
    * [commitDelta].
    */
-  Future<Null> _replayDiff(CommitDelta commitDelta) async {
+  Future<void> _replayDiff(CommitDelta commitDelta) async {
     List<FileEdit> editList = <FileEdit>[];
     for (DiffRecord record in commitDelta.diffRecords) {
       FileEdit edit = new FileEdit(overlayStyle, record);
@@ -475,7 +475,7 @@ class Driver {
   /**
    * Run the simulation by starting up a server and sending it requests.
    */
-  Future<Null> _runSimulation() async {
+  Future<void> _runSimulation() async {
     server = new Server(logger: logger);
     Stopwatch stopwatch = new Stopwatch();
     statistics.stopwatch = stopwatch;

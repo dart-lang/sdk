@@ -176,16 +176,22 @@ class ClassInferenceInfo {
 
 /// Concrete shadow object representing a set of invocation arguments.
 class ArgumentsJudgment extends Arguments {
+  /// The end offset of the closing `)`.
+  final int fileEndOffset;
+
   bool _hasExplicitTypeArguments;
 
   List<ExpressionJudgment> get positionalJudgments => positional.cast();
 
   List<NamedExpressionJudgment> get namedJudgments => named.cast();
 
-  ArgumentsJudgment(List<Expression> positional,
+  ArgumentsJudgment(
+      int fileOffset, this.fileEndOffset, List<Expression> positional,
       {List<DartType> types, List<NamedExpression> named})
       : _hasExplicitTypeArguments = types != null && types.isNotEmpty,
-        super(positional, types: types, named: named);
+        super(positional, types: types, named: named) {
+    this.fileOffset = fileOffset;
+  }
 
   static void setNonInferrableArgumentTypes(
       ArgumentsJudgment arguments, List<DartType> types) {

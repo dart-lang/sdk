@@ -21,11 +21,12 @@ void main(List<String> args) async {
     CompletionRunner runner = new CompletionRunner(
         output: stdout,
         printMissing: result['missing'],
+        printQuality: result['quality'],
         timing: result['timing'],
         useCFE: result['use-cfe'],
         verbose: result['verbose']);
     await runner.runAll(analysisRoot);
-    stdout.flush();
+    await stdout.flush();
   }
 }
 
@@ -43,6 +44,11 @@ ArgParser createArgParser() {
   parser.addFlag(
     'missing',
     help: 'Report locations where the current identifier was not suggested',
+    negatable: false,
+  );
+  parser.addFlag(
+    'quality',
+    help: 'Report on the quality of the sort order',
     negatable: false,
   );
   parser.addFlag(

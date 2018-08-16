@@ -2942,11 +2942,6 @@ class ExtractMethodTest_UseCFE extends ExtractMethodTest {
 
   @failingTest
   @override
-  test_bad_conflict_topLevel_willHideInheritedMemberUsage() =>
-      super.test_bad_conflict_topLevel_willHideInheritedMemberUsage();
-
-  @failingTest
-  @override
   test_statements_parameters_localFunction() =>
       super.test_statements_parameters_localFunction();
 }

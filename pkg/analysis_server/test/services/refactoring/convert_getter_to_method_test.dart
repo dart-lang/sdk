@@ -167,16 +167,4 @@ main() {
 class ConvertGetterToMethodTest_UseCFE extends ConvertGetterToMethodTest {
   @override
   bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_change_function() => super.test_change_function();
-
-  @failingTest
-  @override
-  test_change_method() => super.test_change_method();
-
-  @failingTest
-  @override
-  test_change_multipleFiles() => super.test_change_multipleFiles();
 }

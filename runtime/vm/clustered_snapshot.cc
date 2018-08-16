@@ -1769,9 +1769,9 @@ class CodeDeserializationCluster : public DeserializationCluster {
 
       RawInstructions* instr = d->ReadInstructions();
 
-      code->ptr()->entry_point_ = Instructions::UncheckedEntryPoint(instr);
-      code->ptr()->checked_entry_point_ =
-          Instructions::CheckedEntryPoint(instr);
+      code->ptr()->entry_point_ = Instructions::EntryPoint(instr);
+      code->ptr()->monomorphic_entry_point_ =
+          Instructions::MonomorphicEntryPoint(instr);
       NOT_IN_PRECOMPILED(code->ptr()->active_instructions_ = instr);
       code->ptr()->instructions_ = instr;
 
@@ -1779,9 +1779,9 @@ class CodeDeserializationCluster : public DeserializationCluster {
       if (d->kind() == Snapshot::kFullJIT) {
         RawInstructions* instr = d->ReadInstructions();
         code->ptr()->active_instructions_ = instr;
-        code->ptr()->entry_point_ = Instructions::UncheckedEntryPoint(instr);
-        code->ptr()->checked_entry_point_ =
-            Instructions::CheckedEntryPoint(instr);
+        code->ptr()->entry_point_ = Instructions::EntryPoint(instr);
+        code->ptr()->monomorphic_entry_point_ =
+            Instructions::MonomorphicEntryPoint(instr);
       }
 #endif  // !DART_PRECOMPILED_RUNTIME
 

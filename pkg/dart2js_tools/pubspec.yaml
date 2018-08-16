@@ -1,0 +1,9 @@
+name: dart2js_tools
+version: 0.0.1
+description: >
+  Collection of tools used with dart2js including analyzing compilation
+  information, deobfuscation of stack-traces and minified names.
+dependencies:
+  source_maps: ^0.10.7
+environment:
+  sdk: '>=2.0.0 <3.0.0'

@@ -171,7 +171,7 @@ class AstPage extends DiagnosticPageWithNav {
   bool get showInNav => false;
 
   @override
-  Future<Null> generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     String path = params['file'];
@@ -199,7 +199,7 @@ class AstPage extends DiagnosticPageWithNav {
   }
 
   @override
-  Future<Null> generatePage(Map<String, String> params) async {
+  Future<void> generatePage(Map<String, String> params) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     try {
@@ -584,7 +584,7 @@ abstract class DiagnosticPage extends Page {
   AnalysisServer get server =>
       (site as DiagnosticsSite).socketServer.analysisServer;
 
-  Future<Null> generateContainer(Map<String, String> params) async {
+  Future<void> generateContainer(Map<String, String> params) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     buf.writeln('<div class="columns docs-layout">');
@@ -600,7 +600,7 @@ abstract class DiagnosticPage extends Page {
     buf.writeln('</div>');
   }
 
-  Future generateContent(Map<String, String> params);
+  Future<void> generateContent(Map<String, String> params);
 
   void generateFooter() {
     buf.writeln('''
@@ -630,7 +630,7 @@ abstract class DiagnosticPage extends Page {
 ''');
   }
 
-  Future<Null> generatePage(Map<String, String> params) async {
+  Future<void> generatePage(Map<String, String> params) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     buf.writeln('<!DOCTYPE html><html lang="en">');
@@ -670,7 +670,7 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
 
   bool get showInNav => true;
 
-  Future<Null> generateContainer(Map<String, String> params) async {
+  Future<void> generateContainer(Map<String, String> params) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     buf.writeln('<div class="columns docs-layout">');
@@ -768,7 +768,7 @@ class ElementModelPage extends DiagnosticPageWithNav {
   bool get showInNav => false;
 
   @override
-  Future<Null> generateContent(Map<String, String> params) async {
+  Future<void> generateContent(Map<String, String> params) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     String path = params['file'];
@@ -796,7 +796,7 @@ class ElementModelPage extends DiagnosticPageWithNav {
   }
 
   @override
-  Future<Null> generatePage(Map<String, String> params) async {
+  Future<void> generatePage(Map<String, String> params) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     try {
@@ -1282,8 +1282,6 @@ class ServiceProtocol {
   }
 
   static Future<ServiceProtocol> connect(Uri uri) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     WebSocket socket = await WebSocket.connect(uri.toString());
     return new ServiceProtocol._(socket);
   }
@@ -1305,8 +1303,6 @@ class StatusPage extends DiagnosticPageWithNav {
 
     buf.writeln('<div class="column one-half">');
     h3('Status');
-    buf.writeln(writeOption('Preview-dart-2',
-        diagnosticsSite.socketServer.analysisServerOptions.previewDart2));
     buf.writeln(writeOption('Use fasta parser',
         diagnosticsSite.socketServer.analysisServerOptions.useFastaParser));
     buf.writeln(writeOption('Use common front end',

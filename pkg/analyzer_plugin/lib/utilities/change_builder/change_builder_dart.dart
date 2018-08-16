@@ -38,7 +38,7 @@ abstract class DartChangeBuilder implements ChangeBuilder {
    * import prefix for every newly imported library.
    */
   @override
-  Future<Null> addFileEdit(
+  Future<void> addFileEdit(
       String path, void buildFileEdit(DartFileEditBuilder builder),
       {ImportPrefixGenerator importPrefixGenerator});
 }

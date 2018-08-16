@@ -254,7 +254,6 @@ class RecordingSourceInformationStrategy
         }
         return null;
       }
-      return null;
     });
   }
 }

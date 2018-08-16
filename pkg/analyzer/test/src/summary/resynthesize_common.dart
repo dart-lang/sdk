@@ -1979,6 +1979,72 @@ class C {
 ''');
   }
 
+  test_class_documented_withMetadata() async {
+    var library = await checkLibrary('''
+/// Comment 1
+/// Comment 2
+@Annotation()
+class BeforeMeta {}
+
+/// Comment 1
+/// Comment 2
+@Annotation.named()
+class BeforeMetaNamed {}
+
+@Annotation()
+/// Comment 1
+/// Comment 2
+class AfterMeta {}
+
+/// Comment 1
+@Annotation()
+/// Comment 2
+class AroundMeta {}
+
+/// Doc comment.
+@Annotation()
+// Not doc comment.
+class DocBeforeMetaNotDocAfter {}
+
+class Annotation {
+  const Annotation();
+  const Annotation.named();
+}
+''');
+    checkElementText(
+        library,
+        r'''
+/// Comment 1
+/// Comment 2
+@Annotation()
+class BeforeMeta {
+}
+/// Comment 1
+/// Comment 2
+@Annotation.named()
+class BeforeMetaNamed {
+}
+/// Comment 1
+/// Comment 2
+@Annotation()
+class AfterMeta {
+}
+/// Comment 2
+@Annotation()
+class AroundMeta {
+}
+/// Doc comment.
+@Annotation()
+class DocBeforeMetaNotDocAfter {
+}
+class Annotation {
+  const Annotation();
+  const Annotation.named();
+}
+''',
+        withConstElements: false);
+  }
+
   test_class_field_const() async {
     var library = await checkLibrary('class C { static const int i = 0; }');
     checkElementText(library, r'''
@@ -2476,6 +2542,240 @@ unit: a.dart
 final dynamic f;
 ''');
     }
+  }
+
+  test_codeRange_class() async {
+    var library = await checkLibrary('''
+class Raw {}
+
+/// Comment 1.
+/// Comment 2.
+class HasDocComment {}
+
+@Object()
+class HasAnnotation {}
+
+@Object()
+/// Comment 1.
+/// Comment 2.
+class AnnotationThenComment {}
+
+/// Comment 1.
+/// Comment 2.
+@Object()
+class CommentThenAnnotation {}
+
+/// Comment 1.
+@Object()
+/// Comment 2.
+class CommentAroundAnnotation {}
+''');
+    checkElementText(
+        library,
+        r'''
+class Raw/*codeOffset=0, codeLength=12*/ {
+}
+/// Comment 1.
+/// Comment 2.
+class HasDocComment/*codeOffset=14, codeLength=52*/ {
+}
+@Object()
+class HasAnnotation/*codeOffset=68, codeLength=32*/ {
+}
+/// Comment 1.
+/// Comment 2.
+@Object()
+class AnnotationThenComment/*codeOffset=102, codeLength=70*/ {
+}
+/// Comment 1.
+/// Comment 2.
+@Object()
+class CommentThenAnnotation/*codeOffset=174, codeLength=70*/ {
+}
+/// Comment 2.
+@Object()
+class CommentAroundAnnotation/*codeOffset=261, codeLength=57*/ {
+}
+''',
+        withCodeRanges: true,
+        withConstElements: false);
+  }
+
+  test_codeRange_class_namedMixin() async {
+    var library = await checkLibrary('''
+class A {}
+
+class B {}
+    
+class Raw = Object with A, B;
+
+/// Comment 1.
+/// Comment 2.
+class HasDocComment = Object with A, B;
+
+@Object()
+class HasAnnotation = Object with A, B;
+
+@Object()
+/// Comment 1.
+/// Comment 2.
+class AnnotationThenComment = Object with A, B;
+
+/// Comment 1.
+/// Comment 2.
+@Object()
+class CommentThenAnnotation = Object with A, B;
+
+/// Comment 1.
+@Object()
+/// Comment 2.
+class CommentAroundAnnotation = Object with A, B;
+''');
+    checkElementText(
+        library,
+        r'''
+class A/*codeOffset=0, codeLength=10*/ {
+}
+class B/*codeOffset=12, codeLength=10*/ {
+}
+class alias Raw/*codeOffset=28, codeLength=29*/ extends Object with A, B {
+  synthetic Raw() = Object;
+}
+/// Comment 1.
+/// Comment 2.
+class alias HasDocComment/*codeOffset=59, codeLength=69*/ extends Object with A, B {
+  synthetic HasDocComment() = Object;
+}
+@Object()
+class alias HasAnnotation/*codeOffset=130, codeLength=49*/ extends Object with A, B {
+  synthetic HasAnnotation() = Object;
+}
+/// Comment 1.
+/// Comment 2.
+@Object()
+class alias AnnotationThenComment/*codeOffset=181, codeLength=87*/ extends Object with A, B {
+  synthetic AnnotationThenComment() = Object;
+}
+/// Comment 1.
+/// Comment 2.
+@Object()
+class alias CommentThenAnnotation/*codeOffset=270, codeLength=87*/ extends Object with A, B {
+  synthetic CommentThenAnnotation() = Object;
+}
+/// Comment 2.
+@Object()
+class alias CommentAroundAnnotation/*codeOffset=374, codeLength=74*/ extends Object with A, B {
+  synthetic CommentAroundAnnotation() = Object;
+}
+''',
+        withCodeRanges: true,
+        withConstElements: false);
+  }
+
+  test_codeRange_function() async {
+    var library = await checkLibrary('''
+void raw() {}
+
+/// Comment 1.
+/// Comment 2.
+void hasDocComment() {}
+
+@Object()
+void hasAnnotation() {}
+
+@Object()
+/// Comment 1.
+/// Comment 2.
+void annotationThenComment() {}
+
+/// Comment 1.
+/// Comment 2.
+@Object()
+void commentThenAnnotation() {}
+
+/// Comment 1.
+@Object()
+/// Comment 2.
+void commentAroundAnnotation() {}
+''');
+    checkElementText(
+        library,
+        r'''
+void raw/*codeOffset=0, codeLength=13*/() {}
+/// Comment 1.
+/// Comment 2.
+void hasDocComment/*codeOffset=15, codeLength=53*/() {}
+@Object()
+void hasAnnotation/*codeOffset=70, codeLength=33*/() {}
+/// Comment 1.
+/// Comment 2.
+@Object()
+void annotationThenComment/*codeOffset=105, codeLength=71*/() {}
+/// Comment 1.
+/// Comment 2.
+@Object()
+void commentThenAnnotation/*codeOffset=178, codeLength=71*/() {}
+/// Comment 2.
+@Object()
+void commentAroundAnnotation/*codeOffset=266, codeLength=58*/() {}
+''',
+        withCodeRanges: true,
+        withConstElements: false);
+  }
+
+  test_codeRange_method() async {
+    var library = await checkLibrary('''
+class C {
+  void raw() {}
+  
+  /// Comment 1.
+  /// Comment 2.
+  void hasDocComment() {}
+  
+  @Object()
+  void hasAnnotation() {}
+  
+  @Object()
+  /// Comment 1.
+  /// Comment 2.
+  void annotationThenComment() {}
+  
+  /// Comment 1.
+  /// Comment 2.
+  @Object()
+  void commentThenAnnotation() {}
+  
+  /// Comment 1.
+  @Object()
+  /// Comment 2.
+  void commentAroundAnnotation() {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class C/*codeOffset=0, codeLength=382*/ {
+  void raw/*codeOffset=12, codeLength=13*/() {}
+  /// Comment 1.
+  /// Comment 2.
+  void hasDocComment/*codeOffset=31, codeLength=57*/() {}
+  @Object()
+  void hasAnnotation/*codeOffset=94, codeLength=35*/() {}
+  /// Comment 1.
+  /// Comment 2.
+  @Object()
+  void annotationThenComment/*codeOffset=135, codeLength=77*/() {}
+  /// Comment 1.
+  /// Comment 2.
+  @Object()
+  void commentThenAnnotation/*codeOffset=218, codeLength=77*/() {}
+  /// Comment 2.
+  @Object()
+  void commentAroundAnnotation/*codeOffset=318, codeLength=62*/() {}
+}
+''',
+        withCodeRanges: true,
+        withConstElements: false);
   }
 
   test_const_constructor_inferred_args() async {

@@ -1052,7 +1052,7 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
               ""
               " to '%s' new entry point %#" Px " (%s)\n",
               caller_frame->pc(), target_function.ToFullyQualifiedCString(),
-              target_code.UncheckedEntryPoint(),
+              target_code.EntryPoint(),
               target_code.is_optimized() ? "optimized" : "unoptimized");
   }
   arguments.SetReturn(target_code);
@@ -1605,7 +1605,7 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 1) {
           SingleTargetCache::Handle(SingleTargetCache::New());
       const Code& code = Code::Handle(target_function.CurrentCode());
       cache.set_target(code);
-      cache.set_entry_point(code.UncheckedEntryPoint());
+      cache.set_entry_point(code.EntryPoint());
       cache.set_lower_limit(lower);
       cache.set_upper_limit(upper);
       const Code& stub =
@@ -2061,8 +2061,7 @@ static void HandleOSRRequest(Thread* thread) {
 
   if (!result.IsNull()) {
     const Code& code = Code::Cast(result);
-    uword optimized_entry =
-        Instructions::UncheckedEntryPoint(code.instructions());
+    uword optimized_entry = Instructions::EntryPoint(code.instructions());
     frame->set_pc(optimized_entry);
     frame->set_pc_marker(code.raw());
   }
@@ -2242,7 +2241,7 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
                  " "
                  "target '%s' -> %#" Px "\n",
                  frame->pc(), target_function.ToFullyQualifiedCString(),
-                 current_target_code.UncheckedEntryPoint());
+                 current_target_code.EntryPoint());
   }
   ASSERT(!current_target_code.IsDisabled());
   arguments.SetReturn(current_target_code);
@@ -2285,8 +2284,7 @@ DEFINE_RUNTIME_ENTRY(FixAllocationStubTarget, 0) {
     OS::PrintErr("FixAllocationStubTarget: caller %#" Px
                  " alloc-class %s "
                  " -> %#" Px "\n",
-                 frame->pc(), alloc_class.ToCString(),
-                 alloc_stub.UncheckedEntryPoint());
+                 frame->pc(), alloc_class.ToCString(), alloc_stub.EntryPoint());
   }
   arguments.SetReturn(alloc_stub);
 #else

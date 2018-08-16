@@ -44,6 +44,9 @@ class Fragment {
   Fragment& operator<<=(Instruction* next);
 
   Fragment closed();
+
+ private:
+  DISALLOW_ALLOCATION();
 };
 
 Fragment operator+(const Fragment& first, const Fragment& second);
@@ -134,10 +137,22 @@ class BaseFlowGraphBuilder {
   Fragment StoreLocal(TokenPosition position, LocalVariable* variable);
   Fragment StoreLocalRaw(TokenPosition position, LocalVariable* variable);
   Fragment LoadContextAt(int depth);
+  Fragment GuardFieldLength(const Field& field, intptr_t deopt_id);
+  Fragment GuardFieldClass(const Field& field, intptr_t deopt_id);
+  const Field& MayCloneField(const Field& field);
   Fragment StoreInstanceField(
       TokenPosition position,
       intptr_t offset,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
+  Fragment StoreInstanceField(
+      const Field& field,
+      bool is_initialization_store,
+      StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
+  Fragment StoreInstanceFieldGuarded(const Field& field,
+                                     bool is_initialization_store);
+  Fragment LoadStaticField();
+  Fragment StoreStaticField(TokenPosition position, const Field& field);
+  Fragment StoreIndexed(intptr_t class_id);
 
   void Push(Definition* definition);
   Definition* Peek();
@@ -232,6 +247,11 @@ class BaseFlowGraphBuilder {
   JoinEntryInstr* BuildThrowNoSuchMethod();
 
   Fragment AssertBool(TokenPosition position);
+  Fragment BooleanNegate();
+  Fragment AllocateContext(intptr_t size);
+  Fragment CreateArray();
+  Fragment InstantiateType(const AbstractType& type);
+  Fragment InstantiateTypeArguments(const TypeArguments& type_arguments);
 
  protected:
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }

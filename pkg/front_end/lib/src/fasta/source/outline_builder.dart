@@ -4,6 +4,8 @@
 
 library fasta.outline_builder;
 
+import 'dart:math' show min;
+
 import 'package:kernel/ast.dart' show ProcedureKind;
 
 import '../../scanner/token.dart' show Token;
@@ -146,19 +148,30 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
+  void beginMetadataStar(Token token) {
+    push(token);
+  }
+
+  @override
   void endMetadataStar(int count) {
     debugEvent("MetadataStar");
-    push(popList(
-            count,
-            new List<ExpressionMetadataBuilder<TypeBuilder>>.filled(count, null,
-                growable: true)) ??
-        NullValue.Metadata);
+    if (count == 0) {
+      pop();
+      push(NullValue.MetadataToken);
+      push(NullValue.Metadata);
+    } else {
+      push(popList(
+          count,
+          new List<ExpressionMetadataBuilder<TypeBuilder>>.filled(count, null,
+              growable: true)));
+    }
   }
 
   @override
   void handleInvalidTopLevelDeclaration(Token endToken) {
     debugEvent("InvalidTopLevelDeclaration");
     pop(); // metadata star
+    pop(); // metadataToken
   }
 
   @override
@@ -191,6 +204,7 @@ class OutlineBuilder extends StackListener {
     int uriOffset = popCharOffset();
     String uri = pop();
     List<MetadataBuilder> metadata = pop();
+    pop(); // metadataToken
     library.addExport(metadata, uri, configurations, combinators,
         exportKeyword.charOffset, uriOffset);
     checkEmpty(exportKeyword.charOffset);
@@ -219,6 +233,7 @@ class OutlineBuilder extends StackListener {
     int uriOffset = popCharOffset();
     String uri = pop(); // For a conditional import, this is the default URI.
     List<MetadataBuilder> metadata = pop();
+    pop(); // metadataToken
     library.addImport(
         metadata,
         uri,
@@ -274,6 +289,7 @@ class OutlineBuilder extends StackListener {
     int charOffset = popCharOffset();
     String uri = pop();
     List<MetadataBuilder> metadata = pop();
+    pop(); // metadataToken
     library.addPart(metadata, uri, charOffset);
     checkEmpty(partKeyword.charOffset);
   }
@@ -297,8 +313,8 @@ class OutlineBuilder extends StackListener {
     if (context == IdentifierContext.enumValueDeclaration) {
       super.handleIdentifier(token, context);
       push(token.charOffset);
-      String documentationComment = getDocumentationComment(token);
-      push(documentationComment ?? NullValue.DocumentationComment);
+      var docComment = documentationCommentBefore(token);
+      push(docComment?.text ?? NullValue.DocumentationComment);
     } else {
       super.handleIdentifier(token, context);
       push(token.charOffset);
@@ -385,10 +401,11 @@ class OutlineBuilder extends StackListener {
   void endLibraryName(Token libraryKeyword, Token semicolon) {
     debugEvent("endLibraryName");
     popCharOffset();
-    String documentationComment = getDocumentationComment(libraryKeyword);
     Object name = pop();
     List<MetadataBuilder> metadata = pop();
-    library.documentationComment = documentationComment;
+    Token metadataToken = pop();
+    var docComment = documentationComment(libraryKeyword, metadataToken);
+    library.documentationComment = docComment?.text;
     library.name = "${name}";
     library.metadata = metadata;
   }
@@ -451,7 +468,6 @@ class OutlineBuilder extends StackListener {
   @override
   void endClassDeclaration(Token beginToken, Token endToken) {
     debugEvent("endClassDeclaration");
-    String documentationComment = getDocumentationComment(beginToken);
     List<TypeBuilder> interfaces = pop(NullValue.TypeBuilderList);
     int supertypeOffset = pop();
     TypeBuilder supertype = pop();
@@ -463,12 +479,18 @@ class OutlineBuilder extends StackListener {
       supertype.typeVariables = typeVariables;
     }
     List<MetadataBuilder> metadata = pop();
+    Token metadataToken = pop();
+    var docComment = documentationComment(beginToken, metadataToken);
 
     final int startCharOffset =
         metadata == null ? beginToken.charOffset : metadata.first.charOffset;
 
+    int codeStartOffset =
+        _chooseCodeStartOffset(docComment, metadataToken, beginToken);
+    int codeEndOffset = endToken.end;
+
     library.addClass(
-        documentationComment,
+        docComment?.text,
         metadata,
         modifiers,
         name,
@@ -478,7 +500,9 @@ class OutlineBuilder extends StackListener {
         startCharOffset,
         charOffset,
         endToken.charOffset,
-        supertypeOffset);
+        supertypeOffset,
+        codeStartOffset,
+        codeEndOffset);
     checkEmpty(beginToken.charOffset);
   }
 
@@ -519,15 +543,21 @@ class OutlineBuilder extends StackListener {
       modifiers |= abstractMask;
     }
     List<MetadataBuilder> metadata = pop();
-    String documentationComment = getDocumentationComment(beginToken);
+    Token metadataToken = pop();
+    var docComment = documentationComment(beginToken, metadataToken);
     checkEmpty(beginToken.charOffset);
     library
         .endNestedDeclaration("#method")
         .resolveTypes(typeVariables, library);
     final int startCharOffset =
         metadata == null ? beginToken.charOffset : metadata.first.charOffset;
+
+    int codeStartOffset =
+        _chooseCodeStartOffset(docComment, metadataToken, beginToken);
+    int codeEndOffset = endToken.end;
+
     library.addProcedure(
-        documentationComment,
+        docComment?.text,
         metadata,
         modifiers,
         returnType,
@@ -540,6 +570,8 @@ class OutlineBuilder extends StackListener {
         formalsOffset,
         endToken.charOffset,
         nativeMethodName,
+        codeStartOffset,
+        codeEndOffset,
         isTopLevel: true);
     nativeMethodName = null;
   }
@@ -697,7 +729,8 @@ class OutlineBuilder extends StackListener {
     bool isConst = (modifiers & constMask) != 0;
     int varFinalOrConstOffset = pop();
     List<MetadataBuilder> metadata = pop();
-    String documentationComment = getDocumentationComment(beginToken);
+    Token metadataToken = pop();
+    var docComment = documentationComment(beginToken, metadataToken);
     library
         .endNestedDeclaration("#method")
         .resolveTypes(typeVariables, library);
@@ -720,7 +753,7 @@ class OutlineBuilder extends StackListener {
       final int startCharOffset =
           metadata == null ? beginToken.charOffset : metadata.first.charOffset;
       library.addConstructor(
-          documentationComment,
+          docComment?.text,
           metadata,
           modifiers,
           returnType,
@@ -740,8 +773,13 @@ class OutlineBuilder extends StackListener {
       }
       final int startCharOffset =
           metadata == null ? beginToken.charOffset : metadata.first.charOffset;
+
+      int codeStartOffset =
+          _chooseCodeStartOffset(docComment, metadataToken, beginToken);
+      int codeEndOffset = endToken.end;
+
       library.addProcedure(
-          documentationComment,
+          docComment?.text,
           metadata,
           modifiers,
           returnType,
@@ -754,6 +792,8 @@ class OutlineBuilder extends StackListener {
           formalsOffset,
           endToken.charOffset,
           nativeMethodName,
+          codeStartOffset,
+          codeEndOffset,
           isTopLevel: false);
     }
     nativeMethodName = null;
@@ -773,7 +813,6 @@ class OutlineBuilder extends StackListener {
   void endNamedMixinApplication(Token beginToken, Token classKeyword,
       Token equals, Token implementsKeyword, Token endToken) {
     debugEvent("endNamedMixinApplication");
-    String documentationComment = getDocumentationComment(beginToken);
     List<TypeBuilder> interfaces = popIfNotNull(implementsKeyword);
     TypeBuilder mixinApplication = pop();
     int modifiers = pop();
@@ -781,8 +820,24 @@ class OutlineBuilder extends StackListener {
     int charOffset = pop();
     String name = pop();
     List<MetadataBuilder> metadata = pop();
-    library.addNamedMixinApplication(documentationComment, metadata, name,
-        typeVariables, modifiers, mixinApplication, interfaces, charOffset);
+    Token metadataToken = pop();
+    var docComment = documentationComment(beginToken, metadataToken);
+
+    int codeStartOffset =
+        _chooseCodeStartOffset(docComment, metadataToken, beginToken);
+    int codeEndOffset = endToken.end;
+
+    library.addNamedMixinApplication(
+        docComment?.text,
+        metadata,
+        name,
+        typeVariables,
+        modifiers,
+        mixinApplication,
+        interfaces,
+        charOffset,
+        codeStartOffset,
+        codeEndOffset);
     checkEmpty(beginToken.charOffset);
   }
 
@@ -800,7 +855,7 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
-  void handleType(Token beginToken, Token endToken) {
+  void handleType(Token beginToken) {
     debugEvent("Type");
     List<TypeBuilder> arguments = pop();
     int charOffset = pop();
@@ -846,6 +901,7 @@ class OutlineBuilder extends StackListener {
     TypeBuilder type = pop();
     int modifiers = pop();
     List<MetadataBuilder> metadata = pop();
+    pop(); // metadataToken
     push(library.addFormalParameter(
         metadata, modifiers, type, name, thisKeyword != null, charOffset));
   }
@@ -976,14 +1032,15 @@ class OutlineBuilder extends StackListener {
 
   @override
   void endEnum(Token enumKeyword, Token leftBrace, int count) {
-    String documentationComment = getDocumentationComment(enumKeyword);
     List<Object> constantNamesAndOffsets = popList(
-        count * 4, new List<Object>.filled(count * 4, null, growable: true));
+        count * 5, new List<Object>.filled(count * 5, null, growable: true));
     int charOffset = pop();
     String name = pop();
     List<MetadataBuilder> metadata = pop();
-    library.addEnum(documentationComment, metadata, name,
-        constantNamesAndOffsets, charOffset, leftBrace?.endGroup?.charOffset);
+    Token metadataToken = pop();
+    var docComment = documentationComment(enumKeyword, metadataToken);
+    library.addEnum(docComment?.text, metadata, name, constantNamesAndOffsets,
+        charOffset, leftBrace?.endGroup?.charOffset);
     checkEmpty(enumKeyword.charOffset);
   }
 
@@ -1005,7 +1062,7 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
-  void endFunctionType(Token functionToken, Token endToken) {
+  void endFunctionType(Token functionToken) {
     debugEvent("FunctionType");
     List<FormalParameterBuilder> formals = pop();
     pop(); // formals offset
@@ -1030,7 +1087,6 @@ class OutlineBuilder extends StackListener {
   void endFunctionTypeAlias(
       Token typedefKeyword, Token equals, Token endToken) {
     debugEvent("endFunctionTypeAlias");
-    String documentationComment = getDocumentationComment(typedefKeyword);
     List<TypeVariableBuilder> typeVariables;
     String name;
     int charOffset;
@@ -1066,7 +1122,9 @@ class OutlineBuilder extends StackListener {
       }
     }
     List<MetadataBuilder> metadata = pop();
-    library.addFunctionTypeAlias(documentationComment, metadata, name,
+    Token metadataToken = pop();
+    var docComment = documentationComment(typedefKeyword, metadataToken);
+    library.addFunctionTypeAlias(docComment?.text, metadata, name,
         typeVariables, functionType, charOffset);
     checkEmpty(typedefKeyword.charOffset);
   }
@@ -1082,9 +1140,9 @@ class OutlineBuilder extends StackListener {
         (covariantToken != null ? covariantMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme);
     List<MetadataBuilder> metadata = pop();
-    String documentationComment = getDocumentationComment(beginToken);
-    library.addFields(
-        documentationComment, metadata, modifiers, type, fieldsInfo);
+    Token metadataToken = pop();
+    var docComment = documentationComment(beginToken, metadataToken);
+    library.addFields(docComment?.text, metadata, modifiers, type, fieldsInfo);
     checkEmpty(beginToken.charOffset);
   }
 
@@ -1099,9 +1157,9 @@ class OutlineBuilder extends StackListener {
         (covariantToken != null ? covariantMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme);
     List<MetadataBuilder> metadata = pop();
-    String documentationComment = getDocumentationComment(beginToken);
-    library.addFields(
-        documentationComment, metadata, modifiers, type, fieldsInfo);
+    Token metadataToken = pop();
+    var docComment = documentationComment(beginToken, metadataToken);
+    library.addFields(docComment?.text, metadata, modifiers, type, fieldsInfo);
   }
 
   @override
@@ -1112,6 +1170,7 @@ class OutlineBuilder extends StackListener {
     // TODO(paulberry): type variable metadata should not be ignored.  See
     // dartbug.com/28981.
     /* List<MetadataBuilder> metadata = */ pop();
+    pop(); // metadataToken
 
     push(library.addTypeVariable(name, null, charOffset));
   }
@@ -1151,6 +1210,7 @@ class OutlineBuilder extends StackListener {
     int charOffset = popCharOffset();
     Object containingLibrary = pop();
     List<MetadataBuilder> metadata = pop();
+    pop(); // metadataToken
     if (hasName) {
       library.addPartOf(metadata, "$containingLibrary", null, charOffset);
     } else {
@@ -1196,9 +1256,10 @@ class OutlineBuilder extends StackListener {
     Object name = pop();
     int modifiers = pop();
     List<MetadataBuilder> metadata = pop();
-    String documentationComment = getDocumentationComment(beginToken);
+    Token metadataToken = pop();
+    var docComment = documentationComment(beginToken, metadataToken);
     library.addFactoryMethod(
-        documentationComment,
+        docComment?.text,
         metadata,
         modifiers,
         name,
@@ -1261,6 +1322,7 @@ class OutlineBuilder extends StackListener {
   void handleInvalidMember(Token endToken) {
     debugEvent("InvalidMember");
     pop(); // metadata star
+    pop(); // metadataToken
   }
 
   @override
@@ -1297,36 +1359,71 @@ class OutlineBuilder extends StackListener {
     library.addProblem(message, charOffset, length, uri, context: context);
   }
 
+  static int _chooseCodeStartOffset(
+      _DocumentationComment docComment, Token metadataToken, Token beginToken) {
+    if (docComment != null && metadataToken != null) {
+      return min(docComment.offset, metadataToken.charOffset);
+    }
+    if (docComment != null) {
+      return docComment.offset;
+    }
+    if (metadataToken != null) {
+      return metadataToken.charOffset;
+    }
+    return beginToken.offset;
+  }
+
+  /// Return the documentation comment for the [beginToken] or [metadataToken],
+  /// or `null` if there is no preceding documentation comment in either of
+  /// these nodes.
+  static _DocumentationComment documentationComment(
+      Token beginToken, Token metadataToken) {
+    return documentationCommentBefore(beginToken) ??
+        documentationCommentBefore(metadataToken);
+  }
+
   /// Return the documentation comment for the entity that starts at the
   /// given [token], or `null` if there is no preceding documentation comment.
-  static String getDocumentationComment(Token token) {
-    Token docToken = token.precedingComments;
-    if (docToken == null) return null;
+  static _DocumentationComment documentationCommentBefore(Token token) {
+    Token commentToken = token?.precedingComments;
+    if (commentToken == null) return null;
     bool inSlash = false;
-    var buffer = new StringBuffer();
-    while (docToken != null) {
-      String lexeme = docToken.lexeme;
+    Token firstDocToken;
+    StringBuffer buffer;
+    while (commentToken != null) {
+      String lexeme = commentToken.lexeme;
       if (lexeme.startsWith('/**')) {
         inSlash = false;
-        buffer.clear();
+        firstDocToken = commentToken;
+        buffer = new StringBuffer();
         buffer.write(lexeme);
       } else if (lexeme.startsWith('///')) {
-        if (!inSlash) {
+        if (!inSlash || buffer == null) {
           inSlash = true;
-          buffer.clear();
+          firstDocToken = commentToken;
+          buffer = new StringBuffer();
         }
         if (buffer.isNotEmpty) {
           buffer.writeln();
         }
         buffer.write(lexeme);
       }
-      docToken = docToken.next;
+      commentToken = commentToken.next;
     }
-    return buffer.toString();
+    if (buffer == null) return null;
+    return new _DocumentationComment(
+        firstDocToken.charOffset, buffer.toString());
   }
 
   @override
   void debugEvent(String name) {
     // printEvent('OutlineBuilder: $name');
   }
+}
+
+class _DocumentationComment {
+  final int offset;
+  final String text;
+
+  _DocumentationComment(this.offset, this.text);
 }

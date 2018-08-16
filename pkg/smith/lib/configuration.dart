@@ -363,7 +363,7 @@ class Configuration {
       runtime == other.runtime &&
       system == other.system &&
       builderTag == other.builderTag &&
-      vmOptions == other.vmOptions &&
+      vmOptions.join(" & ") == other.vmOptions.join(" & ") &&
       timeout == other.timeout &&
       enableAsserts == other.enableAsserts &&
       isChecked == other.isChecked &&
@@ -390,7 +390,7 @@ class Configuration {
       runtime.hashCode ^
       system.hashCode ^
       builderTag.hashCode ^
-      vmOptions.hashCode ^
+      vmOptions.join(" & ").hashCode ^
       timeout.hashCode ^
       (enableAsserts ? 1 : 0) ^
       (isChecked ? 2 : 0) ^
@@ -419,7 +419,7 @@ class Configuration {
     fields.add("system: $system");
 
     if (builderTag != "") fields.add("builder-tag: $builderTag");
-    if (vmOptions != "") fields.add("vm-options: $vmOptions");
+    if (vmOptions != "") fields.add("vm-options: [${vmOptions.join(", ")}]");
     if (timeout != 0) fields.add("timeout: $timeout");
     if (enableAsserts) fields.add("enable-asserts");
     if (isChecked) fields.add("checked");

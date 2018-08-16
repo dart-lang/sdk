@@ -161,11 +161,6 @@ abstract class JClosedWorld implements World {
   /// Returns `true` if the field [element] is known to be effectively final.
   bool fieldNeverChanges(MemberEntity element);
 
-  /// Extends the [receiver] type for calling [selector] to take live
-  /// `noSuchMethod` handlers into account.
-  AbstractValue extendMaskIfReachesAll(
-      Selector selector, AbstractValue receiver);
-
   /// Returns `true` if [selector] on [receiver] can hit a `call` method on a
   /// subclass of `Closure`.
   ///
@@ -568,16 +563,6 @@ abstract class ClosedWorldBase implements JClosedWorld {
     }
     receiver ??= abstractValueDomain.dynamicType;
     return abstractValueDomain.locateSingleMember(receiver, selector);
-  }
-
-  AbstractValue extendMaskIfReachesAll(
-      Selector selector, AbstractValue receiver) {
-    bool canReachAll = true;
-    if (receiver != null) {
-      canReachAll = backendUsage.isInvokeOnUsed &&
-          abstractValueDomain.needsNoSuchMethodHandling(receiver, selector);
-    }
-    return canReachAll ? abstractValueDomain.dynamicType : receiver;
   }
 
   bool fieldNeverChanges(MemberEntity element) {

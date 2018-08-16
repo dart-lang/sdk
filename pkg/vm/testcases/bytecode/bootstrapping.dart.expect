@@ -122,7 +122,7 @@ Bytecode {
   PushConstant         CP#0
   PushStatic           CP#0
   PushConstant         CP#1
-  InstanceCall1        2, CP#3
+  InstanceCall         2, CP#3
   AssertBoolean        0
   PushConstant         CP#4
   IfNeStrictTOS
@@ -318,7 +318,7 @@ Bytecode {
   PushConstant         CP#0
   PushStatic           CP#0
   PushConstant         CP#1
-  InstanceCall1        2, CP#3
+  InstanceCall         2, CP#3
   AssertBoolean        0
   PushConstant         CP#4
   IfNeStrictTOS
@@ -326,7 +326,7 @@ Bytecode {
   PushConstant         CP#5
   PushStatic           CP#5
   PushConstant         CP#1
-  InstanceCall1        2, CP#6
+  InstanceCall         2, CP#6
   AssertBoolean        0
   BooleanNegateTOS
   PopLocal             r0
@@ -342,7 +342,7 @@ L2:
   Jump                 L3
   PushConstant         CP#5
   PushStatic           CP#5
-  InstanceCall1        1, CP#9
+  InstanceCall         1, CP#9
   StoreStaticTOS       CP#0
 L3:
   PushConstant         CP#0
@@ -392,7 +392,7 @@ Bytecode {
   Entry                0
   CheckStack
   Push                 FP[-5]
-  InstanceCall1        1, CP#1
+  InstanceCall         1, CP#1
   PushConstant         CP#2
   IndirectStaticCall   1, CP#0
   Drop1
@@ -470,7 +470,7 @@ Bytecode {
   PushConstant         CP#0
   PushStatic           CP#0
   PushConstant         CP#1
-  InstanceCall1        2, CP#3
+  InstanceCall         2, CP#3
   AssertBoolean        0
   PushConstant         CP#4
   IfEqStrictTOS
@@ -478,7 +478,7 @@ Bytecode {
   PushConstant         CP#0
   PushStatic           CP#0
   PushConstant         CP#5
-  InstanceCall1        2, CP#6
+  InstanceCall         2, CP#6
   AssertBoolean        0
   PopLocal             r1
   Jump                 L2
@@ -494,7 +494,7 @@ L2:
   PushConstant         CP#0
   PushStatic           CP#0
   PushConstant         CP#7
-  InstanceCall1        2, CP#8
+  InstanceCall         2, CP#8
   AssertBoolean        0
   PopLocal             r0
   Jump                 L4
@@ -521,7 +521,7 @@ L5:
   PushStatic           CP#0
   PushConstant         CP#14
   IndirectStaticCall   2, CP#2
-  InstanceCall1        2, CP#15
+  InstanceCall         2, CP#15
   ReturnTOS
 L6:
   PushConstant         CP#13

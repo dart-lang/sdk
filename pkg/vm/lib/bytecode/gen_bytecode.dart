@@ -4,6 +4,8 @@
 
 library vm.bytecode.gen_bytecode;
 
+import 'dart:math' show min;
+
 import 'package:kernel/ast.dart' hide MapEntry;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -258,10 +260,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         node.initializers.any((init) => init is RedirectingInitializer);
     if (!isRedirecting) {
       for (var field in node.enclosingClass.fields) {
-        if (!field.isStatic &&
-            field.initializer != null &&
-            !node.initializers.any(
-                (init) => init is FieldInitializer && init.field == field)) {
+        if (!field.isStatic && field.initializer != null) {
           _genFieldInitializer(field, field.initializer);
         }
       }
@@ -419,21 +418,49 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
   }
 
+  bool _canReuseSuperclassTypeArguments(List<DartType> superTypeArgs,
+      List<TypeParameter> typeParameters, int overlap) {
+    for (int i = 0; i < overlap; ++i) {
+      final superTypeArg = superTypeArgs[superTypeArgs.length - overlap + i];
+      if (!(superTypeArg is TypeParameterType &&
+          superTypeArg.parameter == typeParameters[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   List<DartType> _flattenInstantiatorTypeArguments(
       Class instantiatedClass, List<DartType> typeArgs) {
-    assert(typeArgs.length == instantiatedClass.typeParameters.length);
+    final typeParameters = instantiatedClass.typeParameters;
+    assert(typeArgs.length == typeParameters.length);
 
-    List<DartType> flatTypeArgs;
     final supertype = instantiatedClass.supertype;
     if (supertype == null) {
-      flatTypeArgs = <DartType>[];
-    } else {
-      final substitution =
-          Substitution.fromPairs(instantiatedClass.typeParameters, typeArgs);
-      flatTypeArgs = _flattenInstantiatorTypeArguments(supertype.classNode,
-          substitution.substituteSupertype(supertype).typeArguments);
+      return typeArgs;
     }
-    flatTypeArgs.addAll(typeArgs);
+
+    final superTypeArgs = _flattenInstantiatorTypeArguments(
+        supertype.classNode, supertype.typeArguments);
+
+    // Shrink type arguments by reusing portion of superclass type arguments
+    // if there is an overlapping. This optimization should be consistent with
+    // VM in order to correctly reuse instantiator type arguments.
+    int overlap = min(superTypeArgs.length, typeArgs.length);
+    for (; overlap > 0; --overlap) {
+      if (_canReuseSuperclassTypeArguments(
+          superTypeArgs, typeParameters, overlap)) {
+        break;
+      }
+    }
+
+    final substitution = Substitution.fromPairs(typeParameters, typeArgs);
+
+    List<DartType> flatTypeArgs = <DartType>[];
+    flatTypeArgs
+        .addAll(superTypeArgs.map((t) => substitution.substituteType(t)));
+    flatTypeArgs.addAll(typeArgs.getRange(overlap, typeArgs.length));
+
     return flatTypeArgs;
   }
 
@@ -577,7 +604,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final argDescIndex = cp.add(new ConstantArgDesc(4));
     final icdataIndex = cp.add(new ConstantICData(
         InvocationKind.method, objectInstanceOf.name, argDescIndex));
-    asm.emitInstanceCall1(4, icdataIndex);
+    asm.emitInstanceCall(4, icdataIndex);
   }
 
   void start(Member node) {
@@ -586,20 +613,21 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     enclosingFunction = node.function;
     parentFunction = null;
     hasErrors = false;
-    if (node.isInstanceMember ||
-        node is Constructor ||
-        (node is Procedure && node.isFactory)) {
+    final isFactory = node is Procedure && node.isFactory;
+    if (node.isInstanceMember || node is Constructor || isFactory) {
       if (enclosingClass.typeParameters.isNotEmpty) {
         classTypeParameters =
             new Set<TypeParameter>.from(enclosingClass.typeParameters);
         // Treat type arguments of factory constructors as class
         // type parameters.
-        if (node is Procedure && node.isFactory) {
+        if (isFactory) {
           classTypeParameters.addAll(node.function.typeParameters);
         }
       }
       if (hasInstantiatorTypeArguments(enclosingClass)) {
-        final typeParameters = enclosingClass.typeParameters
+        final typeParameters = (isFactory
+                ? node.function.typeParameters
+                : enclosingClass.typeParameters)
             .map((p) => new TypeParameterType(p))
             .toList();
         instantiatorTypeArguments =
@@ -964,8 +992,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     asm.emitStoreFieldTOS(
         cp.add(new ConstantInstanceField(closureFunctionTypeArguments)));
 
-    // TODO(alexmarkov): How to put Object::empty_type_arguments()
-    // to _delayed_type_arguments?
+    asm.emitPush(temp);
+    asm.emitPushConstant(cp.add(const ConstantEmptyTypeArguments()));
+    asm.emitStoreFieldTOS(
+        cp.add(new ConstantInstanceField(closureDelayedTypeArguments)));
 
     asm.emitPush(temp);
     asm.emitPushConstant(closureFunctionIndex);
@@ -1160,7 +1190,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       final argDescIndex = cp.add(new ConstantArgDesc(4));
       final icdataIndex = cp.add(new ConstantICData(
           InvocationKind.method, objectAs.name, argDescIndex));
-      asm.emitInstanceCall1(4, icdataIndex);
+      asm.emitInstanceCall(4, icdataIndex);
     }
   }
 
@@ -1457,8 +1487,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         args.named.length +
         1 /* receiver */ +
         (args.types.isNotEmpty ? 1 : 0) /* type arguments */;
-    // TODO(alexmarkov): figure out when generate InstanceCall2 (2 checked arguments).
-    asm.emitInstanceCall1(totalArgCount, icdataIndex);
+    asm.emitInstanceCall(totalArgCount, icdataIndex);
   }
 
   @override
@@ -1467,7 +1496,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final argDescIndex = cp.add(new ConstantArgDesc(1));
     final icdataIndex = cp.add(
         new ConstantICData(InvocationKind.getter, node.name, argDescIndex));
-    asm.emitInstanceCall1(1, icdataIndex);
+    asm.emitInstanceCall(1, icdataIndex);
   }
 
   @override
@@ -1485,7 +1514,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final argDescIndex = cp.add(new ConstantArgDesc(2));
     final icdataIndex = cp.add(
         new ConstantICData(InvocationKind.setter, node.name, argDescIndex));
-    asm.emitInstanceCall1(2, icdataIndex);
+    asm.emitInstanceCall(2, icdataIndex);
     asm.emitDrop1();
 
     if (hasResult) {
@@ -1695,8 +1724,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitSymbolLiteral(SymbolLiteral node) {
-    final cpIndex = cp.add(new ConstantSymbol.fromLiteral(node));
-    asm.emitPushConstant(cpIndex);
+    _genPushConstExpr(node);
   }
 
   @override
@@ -1797,6 +1825,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
 
     _genStaticCall(throwNewAssertionError, new ConstantArgDesc(3), 3);
+    asm.emitDrop1();
 
     asm.bind(done);
   }
@@ -1880,7 +1909,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     const kMoveNext = 'moveNext'; // Iterator.moveNext
     const kCurrent = 'current'; // Iterator.current
 
-    asm.emitInstanceCall1(
+    asm.emitInstanceCall(
         1,
         cp.add(new ConstantICData(InvocationKind.getter, new Name(kIterator),
             cp.add(new ConstantArgDesc(1)))));
@@ -1908,7 +1937,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       asm.emitPush(iteratorTemp);
     }
 
-    asm.emitInstanceCall1(
+    asm.emitInstanceCall(
         1,
         cp.add(new ConstantICData(InvocationKind.method, new Name(kMoveNext),
             cp.add(new ConstantArgDesc(1)))));
@@ -1919,7 +1948,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     _genPushContextIfCaptured(node.variable);
 
     asm.emitPush(iteratorTemp);
-    asm.emitInstanceCall1(
+    asm.emitInstanceCall(
         1,
         cp.add(new ConstantICData(InvocationKind.getter, new Name(kCurrent),
             cp.add(new ConstantArgDesc(1)))));
@@ -2049,9 +2078,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         for (var expr in switchCase.expressions) {
           asm.emitPush(temp);
           _genPushConstExpr(expr);
-          // TODO(alexmarkov): generate InstanceCall2 once we have a way to
-          // mark ICData as having 2 checked arguments.
-          asm.emitInstanceCall1(
+          asm.emitInstanceCall(
               2,
               cp.add(new ConstantICData(
                   InvocationKind.method, new Name('=='), equalsArgDesc)));
