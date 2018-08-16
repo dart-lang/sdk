@@ -25,7 +25,10 @@ import 'test_support.dart';
 
 main() {
   // The fasta parser has a parallel set of tests in parser_fasta_test.dart
-  if (Parser.useFasta) return;
+  if (Parser.useFasta) {
+    test('useFasta', () => true);
+    return;
+  }
 
   defineReflectiveSuite(() {
     defineReflectiveTests(ClassMemberParserTest);
