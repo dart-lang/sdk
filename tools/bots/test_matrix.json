@@ -1359,7 +1359,7 @@
         {
           "name": "dart2js fast-startup tests",
           "arguments": [
-            "-ndart2js-minified-faststartup-csp-linux-d8",
+            "-ndart2js-minified-faststartup-csp-linux-chrome",
             "--reset-browser-configuration"
           ],
           "exclude_tests": ["observatory_ui", "co19"],
@@ -1391,7 +1391,7 @@
         {
           "name": "dart2js fast-startup package tests",
           "arguments": [
-            "-ndart2js-minified-faststartup-csp-linux-d8",
+            "-ndart2js-minified-faststartup-csp-linux-chrome",
             "--reset-browser-configuration"
           ],
           "tests": ["pkg"]
@@ -1399,7 +1399,7 @@
         {
           "name": "dart2js fast-startup observatory-ui tests",
           "arguments": [
-            "-ndart2js-minified-faststartup-csp-linux-d8",
+            "-ndart2js-minified-faststartup-csp-linux-chrome",
             "--reset-browser-configuration"
           ],
           "tests": ["observatory_ui"]
@@ -1407,7 +1407,7 @@
         {
           "name": "dart2js fast-startup extra tests",
           "arguments": [
-            "-ndart2js-minified-faststartup-csp-linux-d8",
+            "-ndart2js-minified-faststartup-csp-linux-chrome",
             "--reset-browser-configuration"
           ],
           "tests": ["dart2js_extra","dart2js_native"]
