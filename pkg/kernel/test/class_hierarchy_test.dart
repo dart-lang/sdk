@@ -24,12 +24,23 @@ class ClosedWorldClassHierarchyTest extends _ClassHierarchyTest {
   }
 
   void test_applyTreeChanges() {
-    var a = addClass(new Class(name: 'A', supertype: objectSuper));
-    var b = addClass(new Class(name: 'B', supertype: a.asThisSupertype));
-
-    _assertTestLibraryText('''
+    Class a = addClass(new Class(name: 'A', supertype: objectSuper));
+    _assertLibraryText(library, '''
 class A {}
-class B extends self::A {}
+''');
+
+    Class b = new Class(name: 'B', supertype: a.asThisSupertype);
+    Library libWithB =
+        new Library(Uri.parse('org-dartlang:///test_b.dart'), name: 'test_b');
+    libWithB.parent = component;
+    component.libraries.add(libWithB);
+    libWithB.addClass(b);
+    _assertLibraryText(libWithB, '''
+library test_b;
+import self as self;
+import "./test.dart" as test;
+
+class B extends test::A {}
 ''');
 
     // No updated classes, the same hierarchy.
@@ -39,13 +50,19 @@ class B extends self::A {}
     // Has updated classes, still the same hierarchy (instance). Can answer
     // queries about the new classes.
     var c = new Class(name: 'C', supertype: a.asThisSupertype);
-    expect(hierarchy.applyTreeChanges([b], [c]), same(hierarchy));
+    Library libWithC =
+        new Library(Uri.parse('org-dartlang:///test2.dart'), name: 'test2');
+    libWithC.parent = component;
+    component.libraries.add(libWithC);
+    libWithC.addClass(c);
+
+    expect(hierarchy.applyTreeChanges([libWithB], [libWithC]), same(hierarchy));
     expect(hierarchy.isSubclassOf(a, c), false);
     expect(hierarchy.isSubclassOf(c, a), true);
     expect(hierarchy.hasProperSubtypes(a), true);
 
     // Remove so A should no longer be a super of anything.
-    expect(hierarchy.applyTreeChanges([c], []), same(hierarchy));
+    expect(hierarchy.applyTreeChanges([libWithC], []), same(hierarchy));
     expect(hierarchy.hasProperSubtypes(a), false);
   }
 
@@ -654,12 +671,12 @@ class Z {}
       var T = new TypeParameter('T', objectClass.rawType);
       C1 = addClass(
           new Class(name: 'C1', typeParameters: [T], supertype: objectSuper));
-      DartType C1_T = Substitution
-          .fromMap({T: new TypeParameterType(T)}).substituteType(C1.thisType);
+      DartType C1_T = Substitution.fromMap({T: new TypeParameterType(T)})
+          .substituteType(C1.thisType);
       DartType N_C1_T =
           Substitution.fromMap({NT: C1_T}).substituteType(N.thisType);
-      Supertype N_N_C1_T = Substitution
-          .fromMap({NT: N_C1_T}).substituteSupertype(N.asThisSupertype);
+      Supertype N_N_C1_T = Substitution.fromMap({NT: N_C1_T})
+          .substituteSupertype(N.asThisSupertype);
       C1.supertype = N_N_C1_T;
     }
 
@@ -669,16 +686,16 @@ class Z {}
       var T = new TypeParameter('T', objectClass.rawType);
       C2 = addClass(
           new Class(name: 'C2', typeParameters: [T], supertype: objectSuper));
-      DartType C2_T = Substitution
-          .fromMap({T: new TypeParameterType(T)}).substituteType(C2.thisType);
+      DartType C2_T = Substitution.fromMap({T: new TypeParameterType(T)})
+          .substituteType(C2.thisType);
       DartType N_C2_T =
           Substitution.fromMap({NT: C2_T}).substituteType(N.thisType);
       DartType C2_N_C2_T =
           Substitution.fromMap({T: N_C2_T}).substituteType(C2.thisType);
       DartType N_C2_N_C2_T =
           Substitution.fromMap({NT: C2_N_C2_T}).substituteType(N.thisType);
-      Supertype N_N_C2_N_C2_T = Substitution
-          .fromMap({NT: N_C2_N_C2_T}).substituteSupertype(N.asThisSupertype);
+      Supertype N_N_C2_N_C2_T = Substitution.fromMap({NT: N_C2_N_C2_T})
+          .substituteSupertype(N.asThisSupertype);
       C2.supertype = N_N_C2_N_C2_T;
     }
 
@@ -1362,9 +1379,13 @@ class B<T> extends self::A<self::B::T, core::bool> {}
   /// Assert that the test [library] has the [expectedText] presentation.
   /// The presentation is close, but not identical to the normal Kernel one.
   void _assertTestLibraryText(String expectedText) {
+    _assertLibraryText(library, expectedText);
+  }
+
+  void _assertLibraryText(Library lib, String expectedText) {
     StringBuffer sb = new StringBuffer();
     Printer printer = new Printer(sb);
-    printer.writeLibraryFile(library);
+    printer.writeLibraryFile(lib);
 
     String actualText = sb.toString();
 

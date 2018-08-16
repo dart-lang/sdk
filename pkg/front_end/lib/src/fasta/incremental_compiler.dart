@@ -192,12 +192,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
 
       if (hierarchy != null) {
-        List<Class> removedClasses = new List<Class>();
+        List<Library> removedLibraries = new List<Library>();
         for (LibraryBuilder builder in notReusedLibraries) {
           Library lib = builder.target;
-          removedClasses.addAll(lib.classes);
+          removedLibraries.add(lib);
         }
-        hierarchy.applyTreeChanges(removedClasses, const []);
+        hierarchy.applyTreeChanges(removedLibraries, const []);
       }
 
       if (userCode != null) {
@@ -328,16 +328,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
     }
 
-    List<Class> removedClasses = new List<Class>();
+    List<Library> removedLibraries = new List<Library>();
     for (Uri uri in potentiallyReferencedLibraries.keys) {
       if (uri.scheme == "package") continue;
       LibraryBuilder builder = userCode.loader.builders.remove(uri);
       if (builder != null) {
         Library lib = builder.target;
-        removedClasses.addAll(lib.classes);
+        removedLibraries.add(lib);
       }
     }
-    hierarchy?.applyTreeChanges(removedClasses, const []);
+    hierarchy?.applyTreeChanges(removedLibraries, const []);
 
     return result;
   }
