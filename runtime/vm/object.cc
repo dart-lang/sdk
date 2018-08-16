@@ -15420,7 +15420,7 @@ RawCode* Code::FinalizeBytecode(const void* bytecode_data,
   const intptr_t pointer_offset_count = 0;  // No fixups in bytecode.
   Code& code = Code::ZoneHandle(Code::New(pointer_offset_count));
   Instructions& instrs = Instructions::ZoneHandle(
-      Instructions::New(bytecode_size, true /* has_single_entry_point */));
+      Instructions::New(bytecode_size, true /* has_single_entry_point */, 0));
   INC_STAT(Thread::Current(), total_instr_size, bytecode_size);
   INC_STAT(Thread::Current(), total_code_size, bytecode_size);
 
