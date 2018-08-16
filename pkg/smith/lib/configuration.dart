@@ -439,6 +439,80 @@ class Configuration {
     buffer.write(")");
     return buffer.toString();
   }
+
+  String visualCompare(Configuration other) {
+    var buffer = new StringBuffer();
+    buffer.writeln(name);
+    buffer.writeln(other.name);
+
+    var fields = <String>[];
+    fields.add("architecture: $architecture ${other.architecture}");
+    fields.add("compiler: $compiler ${other.compiler}");
+    fields.add("mode: $mode ${other.mode}");
+    fields.add("runtime: $runtime ${other.runtime}");
+    fields.add("system: $system ${other.system}");
+
+    if (builderTag != "" || other.builderTag != "") {
+      var tag = builderTag == "" ? "(none)" : builderTag;
+      var otherTag = other.builderTag == "" ? "(none)" : other.builderTag;
+      fields.add("builder-tag: $tag $otherTag");
+    }
+    if (vmOptions != "" || other.vmOptions != "") {
+      var tag = "[${vmOptions.join(", ")}]";
+      var otherTag = "[${other.vmOptions.join(", ")}]";
+      fields.add("vm-options: $tag $otherTag");
+    }
+    fields.add("timeout: $timeout ${other.timeout}");
+    if (enableAsserts || other.enableAsserts) {
+      fields.add("enable-asserts $enableAsserts ${other.enableAsserts}");
+    }
+    if (isChecked || other.isChecked) {
+      fields.add("checked $isChecked ${other.isChecked}");
+    }
+    if (isCsp || other.isCsp) {
+      fields.add("csp $isCsp ${other.isCsp}");
+    }
+    if (isHostChecked || other.isHostChecked) {
+      fields.add("isHostChecked $isHostChecked ${other.isHostChecked}");
+    }
+    if (isMinified || other.isMinified) {
+      fields.add("isMinified $isMinified ${other.isMinified}");
+    }
+    if (previewDart2 || other.previewDart2) {
+      fields.add("previewDart2 $previewDart2 ${other.previewDart2}");
+    }
+    if (useBlobs || other.useBlobs) {
+      fields.add("useBlobs $useBlobs ${other.useBlobs}");
+    }
+    if (useDart2JSWithKernel || other.useDart2JSWithKernel) {
+      fields.add("useDart2JSWithKernel "
+          "$useDart2JSWithKernel ${other.useDart2JSWithKernel}");
+    }
+    if (useDart2JSOldFrontEnd || other.useDart2JSOldFrontEnd) {
+      fields.add("useDart2JSOldFrontEnd "
+          "$useDart2JSOldFrontEnd ${other.useDart2JSOldFrontEnd}");
+    }
+    if (useFastStartup || other.useFastStartup) {
+      fields.add("useFastStartup $useFastStartup ${other.useFastStartup}");
+    }
+    if (useHotReload || other.useHotReload) {
+      fields.add("useHotReload $useHotReload ${other.useHotReload}");
+    }
+    if (isHostChecked) {
+      fields.add("host-checked $isHostChecked ${other.isHostChecked}");
+    }
+    if (useHotReloadRollback || other.useHotReloadRollback) {
+      fields.add("useHotReloadRollback"
+          " $useHotReloadRollback ${other.useHotReloadRollback}");
+    }
+    if (useSdk || other.useSdk) {
+      fields.add("useSdk $useSdk ${other.useSdk}");
+    }
+
+    buffer.write(fields.join("\n   "));
+    buffer.write("\n");
+    return buffer.toString();
+  }
 }
 
 class Architecture extends NamedEnum {
