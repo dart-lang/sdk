@@ -12,7 +12,6 @@ import 'package:kernel/src/tool/batch_util.dart' as batch_util;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/text/ast_to_text.dart'
     show globalDebuggingNames, NameSystem;
-import 'package:vm/bytecode/gen_bytecode.dart' show isKernelBytecodeEnabled;
 import 'package:vm/kernel_front_end.dart'
     show compileToKernel, ErrorDetector, ErrorPrinter, parseCommandLineDefines;
 import 'package:vm/target/vm.dart' show VmTarget;
@@ -47,8 +46,7 @@ final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
       defaultsTo: true)
   ..addMultiOption('entry-points',
       help: 'Path to JSON file with the list of entry points')
-  ..addFlag('gen-bytecode',
-      help: 'Generate bytecode', defaultsTo: isKernelBytecodeEnabled)
+  ..addFlag('gen-bytecode', help: 'Generate bytecode', defaultsTo: false)
   ..addFlag('drop-ast',
       help: 'Drop AST for members with bytecode', defaultsTo: false);
 

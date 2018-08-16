@@ -30,12 +30,6 @@ import 'local_vars.dart' show LocalVariables;
 import '../constants_error_reporter.dart' show ForwardConstantEvaluationErrors;
 import '../metadata/bytecode.dart';
 
-/// Flag to toggle generation of bytecode in kernel files.
-const bool isKernelBytecodeEnabled = false;
-
-/// Flag to toggle generation of bytecode in platform kernel files.
-const bool isKernelBytecodeEnabledForPlatform = isKernelBytecodeEnabled;
-
 void generateBytecode(Component component,
     {bool strongMode: true,
     bool dropAST: false,

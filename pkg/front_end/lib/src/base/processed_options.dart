@@ -320,6 +320,9 @@ class ProcessedOptions {
   /// Whether to interpret Dart sources in strong-mode.
   bool get strongMode => _raw.strongMode;
 
+  /// Whether to generate bytecode.
+  bool get bytecode => _raw.bytecode;
+
   Target _target;
   Target get target => _target ??=
       _raw.target ?? new NoneTarget(new TargetFlags(strongMode: strongMode));

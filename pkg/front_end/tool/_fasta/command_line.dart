@@ -236,6 +236,7 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--target": String,
   "--verbose": false,
   "--verify": false,
+  "--bytecode": false,
   "-h": "--help",
   "-o": "--output",
   "-t": "--target",
@@ -297,6 +298,8 @@ ProcessedOptions analyzeCommandLine(
 
   final bool warningsAreFatal = fatal.contains("warnings");
 
+  final bool bytecode = options["--bytecode"];
+
   final bool compileSdk = options.containsKey("--compile-sdk");
 
   final String singleRootScheme = options["--single-root-scheme"];
@@ -346,7 +349,8 @@ ProcessedOptions analyzeCommandLine(
           ..embedSourceText = !excludeSource
           ..debugDump = dumpIr
           ..verbose = verbose
-          ..verify = verify,
+          ..verify = verify
+          ..bytecode = bytecode,
         <Uri>[Uri.parse(arguments[0])],
         resolveInputUri(arguments[3], extraSchemes: extraSchemes));
   } else if (arguments.isEmpty) {

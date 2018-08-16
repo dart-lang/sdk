@@ -2944,6 +2944,9 @@ const MessageCode messageFastaUsageLong =
   --dump-ir
     Print compiled libraries in Kernel source notation.
 
+  --bytecode
+    Generate bytecode. Supported only for SDK platform compilation.
+
   --exclude-source
     Do not include source code in the dill file.
 
