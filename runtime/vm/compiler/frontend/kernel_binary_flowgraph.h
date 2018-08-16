@@ -44,7 +44,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
 #endif  // defined(DART_USE_INTERPRETER)
         direct_call_metadata_helper_(this),
         inferred_type_metadata_helper_(this),
-        procedure_attributes_metadata_helper_(this) {
+        procedure_attributes_metadata_helper_(this),
+        call_site_attributes_metadata_helper_(this, &type_translator_) {
   }
 
   virtual ~StreamingFlowGraphBuilder() {}
@@ -366,6 +367,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   DirectCallMetadataHelper direct_call_metadata_helper_;
   InferredTypeMetadataHelper inferred_type_metadata_helper_;
   ProcedureAttributesMetadataHelper procedure_attributes_metadata_helper_;
+  CallSiteAttributesMetadataHelper call_site_attributes_metadata_helper_;
 
   friend class KernelLoader;
 

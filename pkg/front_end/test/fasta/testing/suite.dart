@@ -342,20 +342,14 @@ class TestVmTarget extends VmTarget {
 
   String get name => "vm";
 
-  void performModularTransformationsOnLibraries(
+  @override
+  void performModularTransformationsOnLibraries(Component component,
       CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
       {void logger(String msg)}) {
     if (enabled) {
       super.performModularTransformationsOnLibraries(
-          coreTypes, hierarchy, libraries,
+          component, coreTypes, hierarchy, libraries,
           logger: logger);
-    }
-  }
-
-  void performGlobalTransformations(CoreTypes coreTypes, Component component,
-      {void logger(String msg)}) {
-    if (enabled) {
-      super.performGlobalTransformations(coreTypes, component, logger: logger);
     }
   }
 }

@@ -92,6 +92,7 @@ List<int> serializeProcedure(Procedure procedure) {
     procedure.parent = fakeLibrary;
   }
 
+  // TODO(vegorov) find a way to preserve metadata.
   Component program = new Component(libraries: [fakeLibrary]);
   return serializeComponent(program);
 }

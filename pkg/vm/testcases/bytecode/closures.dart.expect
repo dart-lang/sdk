@@ -1056,8 +1056,8 @@ Closure CP#25 {
     core::List<core::Function> getI = <core::Function>[];
     core::List<core::Function> setI = <core::Function>[];
     for (core::int i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1)) {
-      getI.{core::List::add}(() → core::int => i.{core::num::+}(delta));
-      setI.{core::List::add}((core::int ii) → core::Null {
+      [@vm.call-site-attributes.metadata=receiverType:dart.core::List<dart.core::Function>] getI.{core::List::add}(() → core::int => i.{core::num::+}(delta));
+      [@vm.call-site-attributes.metadata=receiverType:dart.core::List<dart.core::Function>] setI.{core::List::add}((core::int ii) → core::Null {
         i = ii.{core::num::+}(delta);
       });
     }

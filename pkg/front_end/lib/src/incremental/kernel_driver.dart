@@ -418,7 +418,8 @@ class KernelDriver {
         List<int> bytes = _byteStore.get(kernelKey);
         if (bytes != null) {
           return _logger.runAsync('Read serialized libraries', () async {
-            var component = new Component(nameRoot: nameRoot);
+            var component = _options.target
+                .configureComponent(new Component(nameRoot: nameRoot));
             _readComponent(component, bytes);
             await appendNewDillLibraries(component);
 

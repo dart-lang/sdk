@@ -16,6 +16,7 @@ namespace dart {
 namespace kernel {
 
 class KernelReaderHelper;
+class TypeTranslator;
 
 class TranslationHelper {
  public:
@@ -900,6 +901,28 @@ class ProcedureAttributesMetadataHelper : public MetadataHelper {
   DISALLOW_COPY_AND_ASSIGN(ProcedureAttributesMetadataHelper);
 };
 
+struct CallSiteAttributesMetadata {
+  const AbstractType* receiver_type = nullptr;
+};
+
+// Helper class which provides access to direct call metadata.
+class CallSiteAttributesMetadataHelper : public MetadataHelper {
+ public:
+  static const char* tag() { return "vm.call-site-attributes.metadata"; }
+
+  CallSiteAttributesMetadataHelper(KernelReaderHelper* helper,
+                                   TypeTranslator* type_translator);
+
+  CallSiteAttributesMetadata GetCallSiteAttributes(intptr_t node_offset);
+
+ private:
+  bool ReadMetadata(intptr_t node_offset, CallSiteAttributesMetadata* metadata);
+
+  TypeTranslator& type_translator_;
+
+  DISALLOW_COPY_AND_ASSIGN(CallSiteAttributesMetadataHelper);
+};
+
 class KernelReaderHelper {
  public:
   KernelReaderHelper(Zone* zone,
@@ -1019,6 +1042,7 @@ class KernelReaderHelper {
   intptr_t data_program_offset_;
 
   friend class ClassHelper;
+  friend class CallSiteAttributesMetadataHelper;
   friend class ConstantEvaluator;
   friend class ConstantHelper;
   friend class ConstructorHelper;

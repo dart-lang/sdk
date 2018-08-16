@@ -392,8 +392,11 @@ class KernelTarget extends TargetImplementation {
     this.uriToSource.forEach(copySource);
     dillTarget.loader.uriToSource.forEach(copySource);
 
-    Component component = new Component(
-        nameRoot: nameRoot, libraries: libraries, uriToSource: uriToSource);
+    Component component = CompilerContext.current.options.target
+        .configureComponent(new Component(
+            nameRoot: nameRoot,
+            libraries: libraries,
+            uriToSource: uriToSource));
     if (loader.first != null) {
       // TODO(sigmund): do only for full program
       Declaration declaration =
@@ -601,7 +604,8 @@ class KernelTarget extends TargetImplementation {
         libraries.add(library.target);
       }
     }
-    Component plaformLibraries = new Component();
+    Component plaformLibraries = CompilerContext.current.options.target
+        .configureComponent(new Component());
     // Add libraries directly to prevent that their parents are changed.
     plaformLibraries.libraries.addAll(libraries);
     loader.computeCoreTypes(plaformLibraries);
@@ -728,7 +732,7 @@ class KernelTarget extends TargetImplementation {
   /// libraries for the first time.
   void runBuildTransformations() {
     backendTarget.performModularTransformationsOnLibraries(
-        loader.coreTypes, loader.hierarchy, loader.libraries,
+        component, loader.coreTypes, loader.hierarchy, loader.libraries,
         logger: (String msg) => ticker.logMs(msg));
   }
 

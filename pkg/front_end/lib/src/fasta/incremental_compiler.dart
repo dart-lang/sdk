@@ -245,8 +245,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
         userCode.loader.builders.clear();
         userCode = userCodeOld;
-        return new Component(
-            libraries: compiledLibraries, uriToSource: <Uri, Source>{});
+        return context.options.target.configureComponent(new Component(
+            libraries: compiledLibraries, uriToSource: <Uri, Source>{}));
       }
       if (componentWithDill != null) {
         this.invalidatedUris.clear();
@@ -281,7 +281,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
 
       // This is the incremental component.
-      return new Component(libraries: outputLibraries, uriToSource: uriToSource)
+      return context.options.target.configureComponent(
+          new Component(libraries: outputLibraries, uriToSource: uriToSource))
         ..mainMethod = mainMethod;
     });
   }
@@ -348,7 +349,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
     if (summaryBytes != null) {
       ticker.logMs("Read ${c.options.sdkSummary}");
-      data.component = new Component();
+      data.component = c.options.target.configureComponent(new Component());
       new BinaryBuilder(summaryBytes, disableLazyReading: false)
           .readComponent(data.component);
       ticker.logMs("Deserialized ${c.options.sdkSummary}");

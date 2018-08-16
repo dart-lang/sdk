@@ -1670,6 +1670,34 @@ ProcedureAttributesMetadataHelper::GetProcedureAttributes(
   return metadata;
 }
 
+CallSiteAttributesMetadataHelper::CallSiteAttributesMetadataHelper(
+    KernelReaderHelper* helper,
+    TypeTranslator* type_translator)
+    : MetadataHelper(helper, tag(), /* precompiler_only = */ false),
+      type_translator_(*type_translator) {}
+
+bool CallSiteAttributesMetadataHelper::ReadMetadata(
+    intptr_t node_offset,
+    CallSiteAttributesMetadata* metadata) {
+  intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
+  if (md_offset < 0) {
+    return false;
+  }
+
+  AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
+                              md_offset);
+
+  metadata->receiver_type = &type_translator_.BuildType();
+  return true;
+}
+
+CallSiteAttributesMetadata
+CallSiteAttributesMetadataHelper::GetCallSiteAttributes(intptr_t node_offset) {
+  CallSiteAttributesMetadata metadata;
+  ReadMetadata(node_offset, &metadata);
+  return metadata;
+}
+
 intptr_t KernelReaderHelper::ReaderOffset() const {
   return reader_.offset();
 }

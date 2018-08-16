@@ -56,6 +56,8 @@ class IncrementalCompiler {
         combined[library.importUri] = library;
       }
     }
+
+    // TODO(vegorov) this needs to merge metadata repositories from deltas.
     return new Component(libraries: combined.values.toList())
       ..mainMethod = mainMethod;
   }

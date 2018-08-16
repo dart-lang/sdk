@@ -64,12 +64,8 @@ class DevCompilerTarget extends Target {
   bool get enableNoSuchMethodForwarders => true;
 
   @override
-  void performModularTransformationsOnLibraries(
+  void performModularTransformationsOnLibraries(Component component,
       CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
-      {void logger(String msg)}) {}
-
-  @override
-  void performGlobalTransformations(CoreTypes coreTypes, Component component,
       {void logger(String msg)}) {}
 
   @override
