@@ -690,6 +690,13 @@ class TypeUse {
     return new TypeUse.internal(type, TypeUseKind.RTI_VALUE);
   }
 
+  /// [type] used in a `instanceof` check.
+  factory TypeUse.instanceConstructor(DartType type) {
+    // TODO(johnniwinther,sra): Use a separate use kind if constructors is no
+    // longer used for RTI.
+    return new TypeUse.internal(type, TypeUseKind.RTI_VALUE);
+  }
+
   /// [type] used directly as a type argument.
   ///
   /// The happens during optimization where a type variable can be replaced by
