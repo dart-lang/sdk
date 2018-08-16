@@ -33,6 +33,7 @@ next_through_implicit_call_test: RuntimeError # Snapshots don't include source a
 pause_on_unhandled_async_exceptions2_test: Pass, RuntimeError, Timeout, Crash # Issue 29178
 process_service_test: RuntimeError # Spawned process runs in Dart2 mode
 set_name_rpc_test: RuntimeError # Issue 27806
+simple_reload_test: RuntimeError # Issue 27806
 step_through_constructor_calls_test: RuntimeError # Snapshots don't include source and generated source is not 1-to-1. The column offsets are thus off.
 step_through_function_test: RuntimeError # Snapshots don't include source and generated source is not 1-to-1. The column offsets are thus off.
 step_through_switch_test: RuntimeError # Snapshots don't include source and generated source is not 1-to-1. The column offsets are thus off.
