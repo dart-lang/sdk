@@ -744,6 +744,9 @@ compile_time_constant_o_test/02: Pass
 const_dynamic_type_literal_test/02: Pass
 map_literal3_test/01: Pass
 map_literal3_test/02: Pass
+vm/causal_async_exception_stack2_test: RuntimeError # No support for line numbers in stacktraces
+vm/causal_async_exception_stack_test: RuntimeError # No support for line numbers in stacktraces
+vm/regress_28325_test: RuntimeError # No support for line numbers in stacktraces
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
 const_instance_field_test/01: Crash # Issue 32326.

@@ -239,6 +239,8 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
     if (suite.configuration.compiler == Compiler.dartkb) {
       args.removeWhere(
           (String arg) => arg.startsWith('--optimization-counter-threshold'));
+      args.removeWhere(
+          (String arg) => arg.startsWith('--optimization_counter_threshold'));
       args = <String>['--optimization-counter-threshold=-1']..addAll(args);
     }
 
