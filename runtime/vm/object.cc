@@ -8296,8 +8296,10 @@ RawCode* Function::EnsureHasCode() const {
 
 bool Function::MayHaveUncheckedEntryPoint(Isolate* I) const {
 // TODO(#34162): Support the other architectures.
+// TODO(#34162): Enable multiple-entrypoints for AOT if we
+// consider them beneficial.
 #if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM)
-  return FLAG_enable_multiple_entrypoints &&
+  return !FLAG_precompiled_mode && FLAG_enable_multiple_entrypoints &&
          (NeedsArgumentTypeChecks(I) || IsImplicitClosureFunction());
 #else
   return false;
