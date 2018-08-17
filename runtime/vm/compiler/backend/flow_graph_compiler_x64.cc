@@ -885,6 +885,7 @@ void FlowGraphCompiler::CompileGraph() {
   }
 #endif  // DART_PRECOMPILER
 
+  __ set_constant_pool_allowed(true);
   ASSERT(!block_order().is_empty());
   VisitBlocks();
 
