@@ -768,7 +768,8 @@ class _Allocator extends RecursiveVisitor<Null> {
         function.namedParameters.isNotEmpty;
 
     _currentFrame.hasCapturedParameters =
-        (hasReceiver && locals.isCaptured(_currentFrame.receiverVar)) ||
+        (isFactory && locals.isCaptured(_currentFrame.factoryTypeArgsVar)) ||
+            (hasReceiver && locals.isCaptured(_currentFrame.receiverVar)) ||
             function.positionalParameters.any(locals.isCaptured) ||
             function.namedParameters.any(locals.isCaptured);
 
