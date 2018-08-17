@@ -256,6 +256,8 @@ class Configuration {
         isHostChecked: boolOption("host-checked"),
         isMinified: boolOption("minified"),
         previewDart2: boolOption("preview-dart-2"),
+        useAnalyzerCfe: boolOption("use-cfe"),
+        useAnalyzerFastaParser: boolOption("analyzer-use-fasta-parser"),
         useBlobs: boolOption("use-blobs"),
         useDart2JSWithKernel: boolOption("dart2js-with-kernel"),
         useDart2JSOldFrontEnd: boolOption("dart2js-old-frontend"),
@@ -305,6 +307,10 @@ class Configuration {
   // TODO(rnystrom): Remove this when Dart 1.0 is no longer supported.
   final bool previewDart2;
 
+  // TODO(whesse): Remove these when only fasta front end is in analyzer.
+  final bool useAnalyzerCfe;
+  final bool useAnalyzerFastaParser;
+
   // TODO(rnystrom): What is this?
   final bool useBlobs;
 
@@ -330,6 +336,8 @@ class Configuration {
       bool isHostChecked,
       bool isMinified,
       bool previewDart2,
+      bool useAnalyzerCfe,
+      bool useAnalyzerFastaParser,
       bool useBlobs,
       bool useDart2JSWithKernel,
       bool useDart2JSOldFrontEnd,
@@ -346,6 +354,8 @@ class Configuration {
         isHostChecked = isHostChecked ?? false,
         isMinified = isMinified ?? false,
         previewDart2 = previewDart2 ?? true,
+        useAnalyzerCfe = useAnalyzerCfe ?? false,
+        useAnalyzerFastaParser = useAnalyzerFastaParser ?? false,
         useBlobs = useBlobs ?? false,
         useDart2JSWithKernel = useDart2JSWithKernel ?? false,
         useDart2JSOldFrontEnd = useDart2JSOldFrontEnd ?? false,
@@ -371,6 +381,8 @@ class Configuration {
       isHostChecked == other.isHostChecked &&
       isMinified == other.isMinified &&
       previewDart2 == other.previewDart2 &&
+      useAnalyzerCfe == other.useAnalyzerCfe &&
+      useAnalyzerFastaParser == other.useAnalyzerFastaParser &&
       useBlobs == other.useBlobs &&
       useDart2JSWithKernel == other.useDart2JSWithKernel &&
       useDart2JSOldFrontEnd == other.useDart2JSOldFrontEnd &&
@@ -398,13 +410,15 @@ class Configuration {
       (isHostChecked ? 8 : 0) ^
       (isMinified ? 16 : 0) ^
       (previewDart2 ? 32 : 0) ^
-      (useBlobs ? 64 : 0) ^
-      (useDart2JSWithKernel ? 128 : 0) ^
-      (useDart2JSOldFrontEnd ? 256 : 0) ^
-      (useFastStartup ? 512 : 0) ^
-      (useHotReload ? 1024 : 0) ^
-      (useHotReloadRollback ? 2048 : 0) ^
-      (useSdk ? 4096 : 0);
+      (useAnalyzerCfe ? 64 : 0) ^
+      (useAnalyzerFastaParser ? 128 : 0) ^
+      (useBlobs ? 256 : 0) ^
+      (useDart2JSWithKernel ? 512 : 0) ^
+      (useDart2JSOldFrontEnd ? 1024 : 0) ^
+      (useFastStartup ? 2048 : 0) ^
+      (useHotReload ? 4096 : 0) ^
+      (useHotReloadRollback ? 8192 : 0) ^
+      (useSdk ? 16384 : 0);
 
   String toString() {
     var buffer = new StringBuffer();
@@ -427,6 +441,8 @@ class Configuration {
     if (isHostChecked) fields.add("host-checked");
     if (isMinified) fields.add("minified");
     if (previewDart2) fields.add("preview-dart-2");
+    if (useAnalyzerCfe) fields.add("use-cfe");
+    if (useAnalyzerFastaParser) fields.add("analyzer-use-fasta-parser");
     if (useBlobs) fields.add("use-blobs");
     if (useDart2JSWithKernel) fields.add("dart2js-with-kernel");
     if (useDart2JSOldFrontEnd) fields.add("dart2js-old-frontend");
@@ -480,6 +496,13 @@ class Configuration {
     }
     if (previewDart2 || other.previewDart2) {
       fields.add("previewDart2 $previewDart2 ${other.previewDart2}");
+    }
+    if (useAnalyzerCfe || other.useAnalyzerCfe) {
+      fields.add("useAnalyzerCfe $useAnalyzerCfe ${other.useAnalyzerCfe}");
+    }
+    if (useAnalyzerFastaParser || other.useAnalyzerFastaParser) {
+      fields.add("useAnalyzerFastaParser "
+          "$useAnalyzerFastaParser ${other.useAnalyzerFastaParser}");
     }
     if (useBlobs || other.useBlobs) {
       fields.add("useBlobs $useBlobs ${other.useBlobs}");

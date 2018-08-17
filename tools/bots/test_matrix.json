@@ -430,6 +430,18 @@
         "compiler": "dart2analyzer",
         "enable-asserts": true,
         "use-sdk": true
+      }},
+    "analyzer-cfe-(linux|mac|win)": {
+      "options": {
+        "compiler": "dart2analyzer",
+        "use-cfe": true,
+        "use-sdk": true
+      }},
+    "analyzer-fasta_parser-linux": {
+      "options": {
+        "compiler": "dart2analyzer",
+        "analyzer-use-fasta-parser": true,
+        "use-sdk": true
       }}
   },
   "builder_configurations": [
@@ -1637,18 +1649,14 @@
         {
           "name": "dartanalyzer --batch --use-cfe pkg tests",
           "arguments": [
-            "--compiler=dart2analyzer",
-            "--use-cfe",
-            "--use-sdk",
+            "-nanalyzer-cfe-${system}",
             "pkg"
           ]
         },
         {
           "name": "run language2 tests",
           "arguments": [
-            "--compiler=dart2analyzer",
-            "--use-cfe",
-            "--use-sdk",
+            "-nanalyzer-cfe-${system}",
             "language_2"
           ]
         },
@@ -1874,9 +1882,7 @@
         {
           "name": "run language2 tests",
           "arguments": [
-            "--analyzer-use-fasta-parser",
-            "--compiler=dart2analyzer",
-            "--use-sdk",
+            "-nanalyzer-fasta_parser-linux",
             "language_2"
           ]
         },
