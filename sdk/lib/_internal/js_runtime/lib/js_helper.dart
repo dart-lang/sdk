@@ -3786,7 +3786,9 @@ class FallThroughErrorImplementation extends FallThroughError {
 bool assertTest(condition) {
   // Do bool success check first, it is common and faster than 'is Function'.
   if (true == condition) return false;
-  if (condition is Function) condition = condition();
+  if (!JS_GET_FLAG('STRONG_MODE') && condition is Function) {
+    condition = condition();
+  }
   if (condition is bool) return !condition;
   throw new TypeErrorImplementation(condition, 'bool');
 }
