@@ -879,6 +879,10 @@ bool GuardFieldLengthInstr::AttributesEqual(Instruction* other) const {
   return field().raw() == other->AsGuardFieldLength()->field().raw();
 }
 
+bool GuardFieldTypeInstr::AttributesEqual(Instruction* other) const {
+  return field().raw() == other->AsGuardFieldType()->field().raw();
+}
+
 bool AssertAssignableInstr::AttributesEqual(Instruction* other) const {
   AssertAssignableInstr* other_assert = other->AsAssertAssignable();
   ASSERT(other_assert != NULL);
@@ -2647,6 +2651,15 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
       }
     } else if (CreateArrayInstr* create_array = array->AsCreateArray()) {
       return create_array->element_type()->definition();
+    } else if (LoadFieldInstr* load_array = array->AsLoadField()) {
+      const Field* field = load_array->field();
+      // For trivially exact fields we know that type arguments match
+      // static type arguments exactly.
+      if ((field != nullptr) &&
+          field->static_type_exactness_state().IsTriviallyExact()) {
+        return flow_graph->GetConstant(TypeArguments::Handle(
+            AbstractType::Handle(field->type()).arguments()));
+      }
     }
   }
 
@@ -2693,31 +2706,64 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
   // be located in the unreachable part of the graph (e.g.
   // it might be dominated by CheckClass that always fails).
   // This means that the code below must guard against such possibility.
-  ConstantInstr* constant_instantiator_type_args =
-      instantiator_type_arguments()->definition()->AsConstant();
-  ConstantInstr* constant_function_type_args =
-      function_type_arguments()->definition()->AsConstant();
-  if ((constant_instantiator_type_args != NULL) &&
-      (constant_function_type_args != NULL)) {
-    ASSERT(constant_instantiator_type_args->value().IsNull() ||
-           constant_instantiator_type_args->value().IsTypeArguments());
-    ASSERT(constant_function_type_args->value().IsNull() ||
-           constant_function_type_args->value().IsTypeArguments());
+  Zone* Z = Thread::Current()->zone();
 
-    Zone* Z = Thread::Current()->zone();
-    const TypeArguments& instantiator_type_args = TypeArguments::Handle(
-        Z,
-        TypeArguments::RawCast(constant_instantiator_type_args->value().raw()));
+  const TypeArguments* instantiator_type_args = nullptr;
+  const TypeArguments* function_type_args = nullptr;
 
-    const TypeArguments& function_type_args = TypeArguments::Handle(
-        Z, TypeArguments::RawCast(constant_function_type_args->value().raw()));
+  if (instantiator_type_arguments()->BindsToConstant()) {
+    const Object& val = instantiator_type_arguments()->BoundConstant();
+    instantiator_type_args = (val.raw() == TypeArguments::null())
+                                 ? &TypeArguments::null_type_arguments()
+                                 : &TypeArguments::Cast(val);
+  }
 
+  if (function_type_arguments()->BindsToConstant()) {
+    const Object& val = function_type_arguments()->BoundConstant();
+    function_type_args =
+        (val.raw() == TypeArguments::null())
+            ? &TypeArguments::null_type_arguments()
+            : &TypeArguments::Cast(function_type_arguments()->BoundConstant());
+  }
+
+  // If instantiator_type_args are not constant try to match the pattern
+  // obj.field.:type_arguments where field's static type exactness state
+  // tells us that all values stored in the field have exact superclass.
+  // In this case we know the prefix of the actual type arguments vector
+  // and can try to instantiate the type using just the prefix.
+  //
+  // Note: TypeParameter::InstantiateFrom returns an error if we try
+  // to instantiate it from a vector that is too short.
+  if (instantiator_type_args == nullptr) {
+    if (LoadFieldInstr* load_type_args =
+            instantiator_type_arguments()->definition()->AsLoadField()) {
+      if (load_type_args->native_field() != nullptr &&
+          load_type_args->native_field()->kind() ==
+              NativeFieldDesc::kTypeArguments) {
+        if (LoadFieldInstr* load_field = load_type_args->instance()
+                                             ->definition()
+                                             ->OriginalDefinition()
+                                             ->AsLoadField()) {
+          if (load_field->field() != nullptr &&
+              load_field->field()
+                  ->static_type_exactness_state()
+                  .IsHasExactSuperClass()) {
+            instantiator_type_args = &TypeArguments::Handle(
+                Z, AbstractType::Handle(Z, load_field->field()->type())
+                       .arguments());
+          }
+        }
+      }
+    }
+  }
+
+  if ((instantiator_type_args != nullptr) && (function_type_args != nullptr)) {
     Error& bound_error = Error::Handle(Z);
 
     AbstractType& new_dst_type = AbstractType::Handle(
-        Z, dst_type().InstantiateFrom(instantiator_type_args,
-                                      function_type_args, kAllFree,
-                                      &bound_error, NULL, NULL, Heap::kOld));
+        Z, dst_type().InstantiateFrom(
+               *instantiator_type_args, *function_type_args, kAllFree,
+               &bound_error, nullptr, nullptr, Heap::kOld));
     if (new_dst_type.IsMalformedOrMalbounded() || !bound_error.IsNull()) {
       return this;
     }
@@ -3316,6 +3362,11 @@ Instruction* GuardFieldLengthInstr::Canonicalize(FlowGraph* flow_graph) {
   }
 
   return this;
+}
+
+Instruction* GuardFieldTypeInstr::Canonicalize(FlowGraph* flow_graph) {
+  return field().static_type_exactness_state().NeedsFieldGuard() ? this
+                                                                 : nullptr;
 }
 
 Instruction* CheckSmiInstr::Canonicalize(FlowGraph* flow_graph) {

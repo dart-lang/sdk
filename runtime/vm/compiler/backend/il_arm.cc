@@ -2013,6 +2013,16 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+LocationSummary* GuardFieldTypeInstr::MakeLocationSummary(Zone* zone,
+                                                          bool opt) const {
+  UNREACHABLE();
+  return nullptr;
+}
+
+void GuardFieldTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNREACHABLE();
+}
+
 class BoxAllocationSlowPath : public TemplateSlowPathCode<Instruction> {
  public:
   BoxAllocationSlowPath(Instruction* instruction,

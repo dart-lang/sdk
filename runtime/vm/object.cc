@@ -8670,6 +8670,8 @@ void Field::InitializeNew(const Field& result,
   result.set_is_unboxing_candidate(true);
   result.set_initializer_changed_after_initialization(false);
   result.set_kernel_offset(0);
+  result.set_static_type_exactness_state(
+      StaticTypeExactnessState::NotTracking());
   Isolate* isolate = Isolate::Current();
 
 // Use field guards if they are enabled and the isolate has never reloaded.
@@ -8970,7 +8972,9 @@ bool Field::IsConsistentWith(const Field& other) const {
          (raw_ptr()->is_nullable_ == other.raw_ptr()->is_nullable_) &&
          (raw_ptr()->guarded_list_length_ ==
           other.raw_ptr()->guarded_list_length_) &&
-         (is_unboxing_candidate() == other.is_unboxing_candidate());
+         (is_unboxing_candidate() == other.is_unboxing_candidate()) &&
+         (static_type_exactness_state().Encode() ==
+          other.static_type_exactness_state().Encode());
 }
 
 bool Field::IsUninitialized() const {
@@ -9058,7 +9062,22 @@ const char* Field::GuardedPropertiesAsCString() const {
   if (guarded_cid() == kIllegalCid) {
     return "<?>";
   } else if (guarded_cid() == kDynamicCid) {
+    ASSERT(!static_type_exactness_state().IsExactOrUninitialized());
     return "<*>";
+  }
+
+  const char* exactness = "";
+  if (!static_type_exactness_state().IsExactOrUninitialized()) {
+    exactness = " {!exact}";
+  } else if (static_type_exactness_state().IsTriviallyExact()) {
+    exactness = " {trivially-exact}";
+  } else if (static_type_exactness_state().IsHasExactSuperType()) {
+    exactness = " {has-exact-super-type}";
+  } else if (static_type_exactness_state().IsHasExactSuperClass()) {
+    exactness = " {has-exact-super-class}";
+  } else {
+    ASSERT(static_type_exactness_state().IsUninitialized());
+    exactness = " {unknown exactness}";
   }
 
   const Class& cls =
@@ -9069,16 +9088,18 @@ const char* Field::GuardedPropertiesAsCString() const {
       is_final()) {
     ASSERT(guarded_list_length() != kUnknownFixedLength);
     if (guarded_list_length() == kNoFixedLength) {
-      return Thread::Current()->zone()->PrintToString("<%s [*]>", class_name);
+      return Thread::Current()->zone()->PrintToString("<%s [*]%s>", class_name,
+                                                      exactness);
     } else {
       return Thread::Current()->zone()->PrintToString(
-          "<%s [%" Pd " @%" Pd "]>", class_name, guarded_list_length(),
-          guarded_list_length_in_object_offset());
+          "<%s [%" Pd " @%" Pd "]%s>", class_name, guarded_list_length(),
+          guarded_list_length_in_object_offset(), exactness);
     }
   }
 
   return Thread::Current()->zone()->PrintToString(
-      "<%s %s>", is_nullable() ? "nullable" : "not-nullable", class_name);
+      "<%s %s%s>", is_nullable() ? "nullable" : "not-nullable", class_name,
+      exactness);
 }
 
 void Field::InitializeGuardedListLengthInObjectOffset() const {
@@ -9160,6 +9181,232 @@ bool Field::UpdateGuardedCidAndLength(const Object& value) const {
   return true;
 }
 
+// Given the type G<T0, ..., Tn> and class C<U0, ..., Un> find path to C at G.
+// This path can be used to compute type arguments of C at G.
+//
+// Note: we are relying on the restriction that the same class can only occur
+// once among the supertype.
+static bool FindInstantiationOf(const Type& type,
+                                const Class& cls,
+                                GrowableArray<const AbstractType*>* path,
+                                bool consider_only_super_classes) {
+  if (type.type_class() == cls.raw()) {
+    return true;  // Found instantiation.
+  }
+
+  Class& cls2 = Class::Handle();
+  AbstractType& super_type = AbstractType::Handle();
+  super_type = cls.super_type();
+  if (!super_type.IsNull() && !super_type.IsObjectType()) {
+    cls2 = super_type.type_class();
+    path->Add(&super_type);
+    if (FindInstantiationOf(type, cls2, path, consider_only_super_classes)) {
+      return true;  // Found instantiation.
+    }
+    path->RemoveLast();
+  }
+
+  if (!consider_only_super_classes) {
+    Array& super_interfaces = Array::Handle(cls.interfaces());
+    for (intptr_t i = 0; i < super_interfaces.Length(); i++) {
+      super_type ^= super_interfaces.At(i);
+      cls2 = super_type.type_class();
+      path->Add(&super_type);
+      if (FindInstantiationOf(type, cls2, path,
+                              /*consider_only_supertypes=*/false)) {
+        return true;  // Found instantiation.
+      }
+      path->RemoveLast();
+    }
+  }
+
+  return false;  // Not found.
+}
+
+bool Field::UpdateGuardedExactnessState(const Object& value) const {
+  if (!static_type_exactness_state().IsExactOrUninitialized()) {
+    // Nothing to update.
+    return false;
+  }
+
+  if (guarded_cid() == kDynamicCid) {
+    if (FLAG_trace_field_guards) {
+      THR_Print(
+          "  => switching off exactness tracking because guarded cid is "
+          "dynamic\n");
+    }
+    set_static_type_exactness_state(StaticTypeExactnessState::NotExact());
+    return true;  // Invalidate.
+  }
+
+  // If we are storing null into a field or we have an exact super type
+  // then there is nothing to do.
+  if (value.IsNull() || static_type_exactness_state().IsHasExactSuperType() ||
+      static_type_exactness_state().IsHasExactSuperClass()) {
+    return false;
+  }
+
+  // If we are storing a non-null value into a field that is considered
+  // to be trivially exact then we need to check if value has an appropriate
+  // type.
+  ASSERT(guarded_cid() != kNullCid);
+
+  const Type& field_type = Type::Cast(AbstractType::Handle(type()));
+  const TypeArguments& field_type_args =
+      TypeArguments::Handle(field_type.arguments());
+
+  const Instance& instance = Instance::Cast(value);
+  TypeArguments& args = TypeArguments::Handle();
+  if (static_type_exactness_state().IsTriviallyExact()) {
+    args = instance.GetTypeArguments();
+    if (args.raw() == field_type_args.raw()) {
+      return false;
+    }
+
+    if (FLAG_trace_field_guards) {
+      THR_Print("  expected %s got %s type arguments\n",
+                field_type_args.ToCString(), args.ToCString());
+    }
+
+    set_static_type_exactness_state(StaticTypeExactnessState::NotExact());
+    return true;
+  }
+
+  ASSERT(static_type_exactness_state().IsUninitialized());
+  ASSERT(field_type.IsFinalized());
+  const Class& cls = Class::Handle(instance.clazz());
+  GrowableArray<const AbstractType*> path(10);
+
+  bool is_super_class = true;
+  if (!FindInstantiationOf(field_type, cls, &path,
+                           /*consider_only_super_classes=*/true)) {
+    is_super_class = false;
+    bool found_super_interface = FindInstantiationOf(
+        field_type, cls, &path, /*consider_only_super_classes=*/false);
+    ASSERT(found_super_interface);
+  }
+
+  // Trivial case: field has type G<T0, ..., Tn> and value has type
+  // G<U0, ..., Un>. Check if type arguments match.
+  if (path.is_empty()) {
+    ASSERT(cls.raw() == field_type.type_class());
+    args = instance.GetTypeArguments();
+    // TODO(dartbug.com/34170) Evaluate if comparing relevant subvectors (that
+    // disregards superclass own arguments) improves precision of the
+    // tracking.
+    if (args.raw() == field_type_args.raw()) {
+      return false;
+    }
+
+    if (FLAG_trace_field_guards) {
+      THR_Print("  expected %s got %s type arguments\n",
+                field_type_args.ToCString(), args.ToCString());
+    }
+    set_static_type_exactness_state(StaticTypeExactnessState::NotExact());
+    return true;
+  }
+
+  // Value has type C<U0, ..., Un> and field has type G<T0, ..., Tn> and G != C.
+  // Compute C<X0, ..., Xn> at G (Xi are free type arguments).
+  // Path array contains a chain of immediate supertypes S0 <: S1 <: ... Sn,
+  // such that S0 is an immediate supertype of C and Sn is G<...>.
+  // Each Si might depend on type parameters of the previous supertype S{i-1}.
+  // To compute C<X0, ..., Xn> at G we walk the chain backwards and
+  // instantiate Si using type parameters of S{i-1} which gives us a type
+  // depending on type parameters of S{i-2}.
+  Error& error = Error::Handle();
+  AbstractType& type = AbstractType::Handle(path.Last()->raw());
+  for (intptr_t i = path.length() - 2; (i >= 0) && !type.IsInstantiated();
+       i--) {
+    args = path[i]->arguments();
+    type = type.InstantiateFrom(
+        args, TypeArguments::null_type_arguments(), kAllFree, &error,
+        /*instantiation_trail=*/nullptr, /*bound_trail=*/nullptr, Heap::kNew);
+  }
+
+  if (type.IsInstantiated()) {
+    // C<X0, ..., Xn> at G is fully instantiated and does not depend on
+    // Xi. In this case just check if type arguments match.
+    args = type.arguments();
+    if (args.Equals(field_type_args)) {
+      set_static_type_exactness_state(
+          is_super_class ? StaticTypeExactnessState::HasExactSuperClass()
+                         : StaticTypeExactnessState::HasExactSuperType());
+    } else {
+      if (FLAG_trace_field_guards) {
+        THR_Print(
+            "  expected %s got %s type arguments\n",
+            field_type_args.ToCString(),
+            TypeArguments::Handle(instance.GetTypeArguments()).ToCString());
+      }
+      set_static_type_exactness_state(StaticTypeExactnessState::NotExact());
+    }
+
+    // We are going from trivially exact to either super-exact or not-exact.
+    // In either of those case invalidate any code that might be depending
+    // on the field state.
+    return true;
+  }
+
+  // The most complicated case: C<X0, ..., Xn> at G depends on
+  // Xi values. To compare type arguments we would need to instantiate
+  // it fully from value's type arguments and compare with <U0, ..., Un>.
+  // However this would complicate fast path in the native code. To avoid this
+  // complication we would optimize for the trivial case: we check if
+  // C<X0, ..., Xn> at G is exactly G<X0, ..., Xn> which means we can simply
+  // compare values type arguements (<T0, ..., Tn>) to fields type arguments
+  // (<U0, ..., Un>) to establish if field type is exact.
+  ASSERT(cls.IsGeneric());
+  const intptr_t num_type_params = cls.NumTypeParameters();
+  bool trivial_case =
+      (num_type_params ==
+       Class::Handle(field_type.type_class()).NumTypeParameters()) &&
+      (instance.GetTypeArguments() == field_type.arguments());
+  if (!trivial_case && FLAG_trace_field_guards) {
+    THR_Print("Not a simple case: %" Pd " vs %" Pd
+              " type parameters, %s vs %s type arguments\n",
+              num_type_params,
+              Class::Handle(field_type.type_class()).NumTypeParameters(),
+              TypeArguments::Handle(instance.GetTypeArguments()).ToCString(),
+              field_type_args.ToCString());
+  }
+
+  AbstractType& type_arg = AbstractType::Handle();
+  args = type.arguments();
+  for (intptr_t i = 0; (i < num_type_params) && trivial_case; i++) {
+    type_arg = args.TypeAt(i);
+    if (!type_arg.IsTypeParameter() ||
+        (TypeParameter::Cast(type_arg).index() != i)) {
+      if (FLAG_trace_field_guards) {
+        THR_Print("  => encountered %s at index % " Pd "\n",
+                  type_arg.ToCString(), i);
+      }
+      trivial_case = false;
+    }
+  }
+
+  if (trivial_case) {
+    const intptr_t type_arguments_offset = cls.type_arguments_field_offset();
+    ASSERT(type_arguments_offset != Class::kNoTypeArguments);
+    if (static_type_exactness_state().IsUninitialized()) {
+      if (StaticTypeExactnessState::CanRepresentAsTriviallyExact(
+              type_arguments_offset)) {
+        set_static_type_exactness_state(
+            StaticTypeExactnessState::TriviallyExact(type_arguments_offset));
+      } else {
+        set_static_type_exactness_state(StaticTypeExactnessState::NotExact());
+      }
+      return true;
+    }
+
+    // Nothing to do - already initialized and checked.
+    return false;
+  }
+
+  set_static_type_exactness_state(StaticTypeExactnessState::NotExact());
+  return true;
+}
+
 void Field::RecordStore(const Object& value) const {
   ASSERT(IsOriginal());
   if (!Isolate::Current()->use_field_guards()) {
@@ -9171,7 +9418,15 @@ void Field::RecordStore(const Object& value) const {
               value.ToCString());
   }
 
+  bool invalidate = false;
   if (UpdateGuardedCidAndLength(value)) {
+    invalidate = true;
+  }
+  if (UpdateGuardedExactnessState(value)) {
+    invalidate = true;
+  }
+
+  if (invalidate) {
     if (FLAG_trace_field_guards) {
       THR_Print("    => %s\n", GuardedPropertiesAsCString());
     }
@@ -9187,6 +9442,9 @@ void Field::ForceDynamicGuardedCidAndLength() const {
   set_is_nullable(true);
   set_guarded_list_length(Field::kNoFixedLength);
   set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
+  if (static_type_exactness_state().IsTracking()) {
+    set_static_type_exactness_state(StaticTypeExactnessState::NotExact());
+  }
   // Drop any code that relied on the above assumptions.
   DeoptimizeDependentCode();
 }

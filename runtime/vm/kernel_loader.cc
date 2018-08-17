@@ -1239,6 +1239,50 @@ Class& KernelLoader::LoadClass(const Library& library,
   return klass;
 }
 
+#if defined(TARGET_ARCH_X64)
+static bool ReferencesAnyTypeArguments(const AbstractType& type) {
+  if (type.IsTypeRef()) {
+    return false;
+  }
+
+  if (type.IsType()) {
+    const TypeArguments& args =
+        TypeArguments::Handle(Type::Cast(type).arguments());
+    AbstractType& arg = AbstractType::Handle();
+    for (intptr_t i = 0; i < args.Length(); i++) {
+      arg = args.TypeAt(i);
+      if (ReferencesAnyTypeArguments(arg)) {
+        return true;
+      }
+    }
+  }
+
+  return type.IsTypeParameter();
+}
+
+static bool IsPotentialExactGeneric(const AbstractType& type) {
+  if (type.IsType()) {
+    const TypeArguments& args =
+        TypeArguments::Handle(Type::Cast(type).arguments());
+    if (args.Length() == 0) {
+      return false;
+    }
+
+    // TODO(dartbug.com/34170) Investigate supporting this for
+    // fields with types that depend on type parameters
+    // of the enclosoing class.
+    return !ReferencesAnyTypeArguments(type);
+  }
+
+  return false;
+}
+#else
+// TODO(dartbug.com/34170) Support other architectures.
+static bool IsPotentialExactGeneric(const AbstractType& type) {
+  return false;
+}
+#endif
+
 void KernelLoader::FinishClassLoading(const Class& klass,
                                       const Library& library,
                                       const Class& toplevel_class,
@@ -1300,6 +1344,11 @@ void KernelLoader::FinishClassLoading(const Class& klass,
           Field::New(name, field_helper.IsStatic(), is_final,
                      field_helper.IsConst(), is_reflectable, script_class, type,
                      field_helper.position_, field_helper.end_position_));
+      if (I->strong() && I->use_field_guards() &&
+          IsPotentialExactGeneric(type)) {
+        field.set_static_type_exactness_state(
+            StaticTypeExactnessState::Unitialized());
+      }
       field.set_kernel_offset(field_offset);
       CheckForInitializer(field);
       field_helper.ReadUntilExcluding(FieldHelper::kInitializer);

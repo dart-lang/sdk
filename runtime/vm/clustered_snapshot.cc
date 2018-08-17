@@ -1052,6 +1052,7 @@ class FieldSerializationCluster : public SerializationCluster {
         s->WriteTokenPosition(field->ptr()->end_token_pos_);
         s->WriteCid(field->ptr()->guarded_cid_);
         s->WriteCid(field->ptr()->is_nullable_);
+        s->Write<int8_t>(field->ptr()->static_type_exactness_state_);
 #if !defined(DART_PRECOMPILED_RUNTIME)
         s->Write<int32_t>(field->ptr()->kernel_offset_);
 #endif
@@ -1103,6 +1104,7 @@ class FieldDeserializationCluster : public DeserializationCluster {
         field->ptr()->end_token_pos_ = d->ReadTokenPosition();
         field->ptr()->guarded_cid_ = d->ReadCid();
         field->ptr()->is_nullable_ = d->ReadCid();
+        field->ptr()->static_type_exactness_state_ = d->Read<int8_t>();
 #if !defined(DART_PRECOMPILED_RUNTIME)
         field->ptr()->kernel_offset_ = d->Read<int32_t>();
 #endif
@@ -1124,6 +1126,8 @@ class FieldDeserializationCluster : public DeserializationCluster {
         field.set_guarded_list_length(Field::kNoFixedLength);
         field.set_guarded_list_length_in_object_offset(
             Field::kUnknownLengthOffset);
+        field.set_static_type_exactness_state(
+            StaticTypeExactnessState::NotTracking());
       }
     } else {
       for (intptr_t i = start_index_; i < stop_index_; i++) {

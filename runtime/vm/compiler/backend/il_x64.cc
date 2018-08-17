@@ -1646,10 +1646,14 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ j(EQUAL, &ok);
 
     // Check if the tracked state of the guarded field can be initialized
-    // inline. If the field needs length check we fall through to runtime
-    // which is responsible for computing offset of the length field
-    // based on the class id.
-    if (!field().needs_length_check()) {
+    // inline. If the field needs length check or requires type arguments and
+    // class hierarchy processing for exactness tracking then we fall through
+    // into runtime which is responsible for computing offset of the length
+    // field based on the class id.
+    const bool is_complicated_field =
+        field().needs_length_check() ||
+        field().static_type_exactness_state().IsUninitialized();
+    if (!is_complicated_field) {
       // Uninitialized field can be handled inline. Check if the
       // field is still unitialized.
       __ cmpw(field_cid_operand, Immediate(kIllegalCid));
@@ -1803,6 +1807,87 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         Immediate(Smi::RawValue(field().guarded_list_length())));
     __ j(NOT_EQUAL, deopt);
   }
+}
+
+LocationSummary* GuardFieldTypeInstr::MakeLocationSummary(Zone* zone,
+                                                          bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_temp(0, Location::RequiresRegister());
+  return summary;
+}
+
+void GuardFieldTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // Should never emit GuardFieldType for fields that are marked as NotTracking.
+  ASSERT(field().static_type_exactness_state().IsTracking());
+  if (!field().static_type_exactness_state().NeedsFieldGuard()) {
+    // Nothing to do: we only need to perform checks for trivially invariant
+    // fields. If optimizing Canonicalize pass should have removed
+    // this instruction.
+    if (Compiler::IsBackgroundCompilation()) {
+      Compiler::AbortBackgroundCompilation(
+          deopt_id(),
+          "GuardFieldTypeInstr: field state changed during compilation");
+    }
+    ASSERT(!compiler->is_optimizing());
+    return;
+  }
+
+  Label* deopt =
+      compiler->is_optimizing()
+          ? compiler->AddDeoptStub(deopt_id(), ICData::kDeoptGuardField)
+          : NULL;
+
+  Label ok;
+
+  const Register value_reg = locs()->in(0).reg();
+  const Register temp = locs()->temp(0).reg();
+
+  // Skip null values for nullable fields.
+  if (!compiler->is_optimizing() || field().is_nullable()) {
+    __ CompareObject(value_reg, Object::Handle());
+    __ j(EQUAL, &ok);
+  }
+
+  // Get the state.
+  __ LoadObject(temp, field());
+  __ movsxb(temp,
+            FieldAddress(temp, Field::static_type_exactness_state_offset()));
+
+  if (!compiler->is_optimizing()) {
+    // Check if field requires checking (it is in unitialized or trivially
+    // exact state).
+    __ cmpq(temp, Immediate(StaticTypeExactnessState::kUninitialized));
+    __ j(LESS, &ok);
+  }
+
+  Label call_runtime;
+  if (field().static_type_exactness_state().IsUninitialized()) {
+    // Can't initialize the field state inline in optimized code.
+    __ cmpq(temp, Immediate(StaticTypeExactnessState::kUninitialized));
+    __ j(EQUAL, compiler->is_optimizing() ? deopt : &call_runtime);
+  }
+
+  // At this point temp is known to be type arguments offset in words.
+  __ movq(temp, FieldAddress(value_reg, temp, TIMES_8, 0));
+  __ CompareObject(temp, TypeArguments::ZoneHandle(
+                             AbstractType::Handle(field().type()).arguments()));
+  if (deopt != nullptr) {
+    __ j(NOT_EQUAL, deopt);
+  } else {
+    __ j(EQUAL, &ok);
+
+    __ Bind(&call_runtime);
+    __ PushObject(field());
+    __ pushq(value_reg);
+    __ CallRuntime(kUpdateFieldCidRuntimeEntry, 2);
+    __ Drop(2);
+  }
+
+  __ Bind(&ok);
 }
 
 LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,

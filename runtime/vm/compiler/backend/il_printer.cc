@@ -651,16 +651,8 @@ void LoadFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(", %" Pd, offset_in_bytes());
 
   if (field() != nullptr) {
-    f->Print(" {%s}", String::Handle(field()->name()).ToCString());
-    const char* expected = "?";
-    if (field()->guarded_cid() != kIllegalCid) {
-      const Class& cls = Class::Handle(
-          Isolate::Current()->class_table()->At(field()->guarded_cid()));
-      expected = String::Handle(cls.Name()).ToCString();
-    }
-
-    f->Print(" [%s %s]", field()->is_nullable() ? "nullable" : "non-nullable",
-             expected);
+    f->Print(" {%s} %s", String::Handle(field()->name()).ToCString(),
+             field()->GuardedPropertiesAsCString());
   }
 
   if (native_field() != nullptr) {

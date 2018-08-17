@@ -38,6 +38,7 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(TruncDivMod)                                                               \
   M(GuardFieldClass)                                                           \
   M(GuardFieldLength)                                                          \
+  M(GuardFieldType)                                                            \
   M(IfThenElse)                                                                \
   M(ExtractNthOutput)                                                          \
   M(BinaryUint32Op)                                                            \

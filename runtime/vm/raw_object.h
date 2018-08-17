@@ -1081,6 +1081,11 @@ class RawField : public RawObject {
   // generated on platforms with weak addressing modes (ARM).
   int8_t guarded_list_length_in_object_offset_;
 
+  // Runtime tracking state of exactness of type annotation of this field.
+  // See StaticTypeExactnessState for the meaning and possible values in this
+  // field.
+  int8_t static_type_exactness_state_;
+
   uint8_t kind_bits_;  // static, final, const, has initializer....
 
   friend class CidRewriteVisitor;
