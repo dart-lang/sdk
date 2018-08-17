@@ -595,7 +595,6 @@ vm/regress_33469_test/02: Crash # http://dartbug.com/33481
 vm/regress_33469_test/03: MissingCompileTimeError # http://dartbug.com/33481
 void/generalized_void_syntax_test: CompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_function_types_test/none: CompileTimeError # Issue 30177
-void/void_type_usage_test/async_use_in_await: CompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/async_use_in_yield: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/async_use_in_yield_star: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/call_boolean_and_right: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177

@@ -4923,7 +4923,7 @@ main() async {
   await x;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+    assertNoErrors(source);
     verify([source]);
   }
 

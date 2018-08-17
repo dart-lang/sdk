@@ -578,6 +578,7 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   }
 
   @override
+  @failingTest
   test_useOfVoidResult_await() async {
     return super.test_useOfVoidResult_await();
   }
