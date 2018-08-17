@@ -111,7 +111,6 @@ class _WaitForUtils {
  * subsequent calls block waiting for a condition that is only satisfied when
  * an earlier call returns.
  */
-@provisional
 T waitFor<T>(Future<T> future, {Duration timeout}) {
   T result;
   bool futureCompleted = false;

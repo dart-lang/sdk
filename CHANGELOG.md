@@ -14,6 +14,11 @@
 
 ### Core library changes
 
+#### `dart:core`:
+*   Deprecated the `provisional` annotation and the `Provisional`
+    annotation class. These should have been removed before releasing Dart 2.0,
+    and they have no effect.
+
 ## 2.1.0-dev.1.0
 
 ### Tool Changes
