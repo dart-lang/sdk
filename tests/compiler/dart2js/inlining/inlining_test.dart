@@ -93,15 +93,27 @@ class InliningIrComputer extends IrDataExtractor {
         }
       });
       StringBuffer sb = new StringBuffer();
-      String tooDifficultReason = getTooDifficultReason(member);
+      String tooDifficultReason1 = getTooDifficultReasonForbidLoops(member);
+      String tooDifficultReason2 = getTooDifficultReasonAllowLoops(member);
       inlinedIn.sort();
-      if (tooDifficultReason != null) {
-        sb.write(tooDifficultReason);
-        if (inlinedIn.isNotEmpty) {
-          sb.write(',[${inlinedIn.join(',')}]');
-        }
-      } else {
-        sb.write('[${inlinedIn.join(',')}]');
+      String sep = '';
+      if (tooDifficultReason1 != null) {
+        sb.write(sep);
+        sb.write(tooDifficultReason1);
+        sep = ',';
+      }
+      if (tooDifficultReason2 != null &&
+          tooDifficultReason2 != tooDifficultReason1) {
+        sb.write(sep);
+        sb.write('(allowLoops)');
+        sb.write(tooDifficultReason2);
+        sep = ',';
+      }
+      if (inlinedIn.isNotEmpty || sep == '') {
+        sb.write(sep);
+        sb.write('[');
+        sb.write(inlinedIn.join(','));
+        sb.write(']');
       }
       return sb.toString();
     }
@@ -113,10 +125,16 @@ class InliningIrComputer extends IrDataExtractor {
         .getConstructorBody(_elementMap.getMemberDefinition(constructor).node);
   }
 
-  String getTooDifficultReason(MemberEntity member) {
+  String getTooDifficultReasonForbidLoops(MemberEntity member) {
     if (member is! FunctionEntity) return null;
     return kernel.InlineWeeder.cannotBeInlinedReason(_elementMap, member, null,
         enableUserAssertions: true);
+  }
+
+  String getTooDifficultReasonAllowLoops(MemberEntity member) {
+    if (member is! FunctionEntity) return null;
+    return kernel.InlineWeeder.cannotBeInlinedReason(_elementMap, member, null,
+        allowLoops: true, enableUserAssertions: true);
   }
 
   @override

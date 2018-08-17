@@ -5153,19 +5153,35 @@ class KernelSsaGraphBuilder extends ir.Visitor
             InlineWeeder.INLINING_NODES_OUTSIDE_LOOP_ARG_FACTOR * numParameters;
       }
 
-      // If a method is called only once, and all the methods in the
-      // inlining stack are called only once as well, we know we will
-      // save on output size by inlining this method.
-      if (_isCalledOnce(function)) {
+      bool markedTryInline = inlineCache.markedAsTryInline(function);
+      bool calledOnce = _isCalledOnce(function);
+      // If a method is called only once, and all the methods in the inlining
+      // stack are called only once as well, we know we will save on output size
+      // by inlining this method.
+      if (markedTryInline || calledOnce) {
         maxInliningNodes = null;
       }
+      bool allowLoops = false;
+      if (markedTryInline) {
+        allowLoops = true;
+      }
+
       bool canInline = InlineWeeder.canBeInlined(
           _elementMap, function, maxInliningNodes,
+          allowLoops: allowLoops,
           enableUserAssertions: options.enableUserAssertions);
-      if (canInline) {
-        inlineCache.markAsInlinable(function, insideLoop: insideLoop);
+      if (markedTryInline || calledOnce) {
+        if (canInline) {
+          inlineCache.markAsInlinable(function, insideLoop: false);
+        } else {
+          inlineCache.markAsNonInlinable(function, insideLoop: true);
+        }
       } else {
-        inlineCache.markAsNonInlinable(function, insideLoop: insideLoop);
+        if (canInline) {
+          inlineCache.markAsInlinable(function, insideLoop: insideLoop);
+        } else {
+          inlineCache.markAsNonInlinable(function, insideLoop: insideLoop);
+        }
       }
       return canInline;
     }
@@ -5720,7 +5736,7 @@ class InlineWeeder extends ir.Visitor {
   bool registerNode() {
     if (maxInliningNodes == null) return true;
     if (nodeCount++ > maxInliningNodes) {
-      tooDifficultReason = 'too many nodes';
+      tooDifficultReason ??= 'too many nodes';
       return false;
     }
     return true;
@@ -5731,7 +5747,7 @@ class InlineWeeder extends ir.Visitor {
     if (tooDifficult) return;
     if (!registerNode()) return;
     if (seenReturn) {
-      tooDifficultReason = 'code after return';
+      tooDifficultReason ??= 'code after return';
       return;
     }
     node.visitChildren(this);
@@ -5741,7 +5757,7 @@ class InlineWeeder extends ir.Visitor {
   visitReturnStatement(ir.ReturnStatement node) {
     if (!registerNode()) return;
     if (seenReturn) {
-      tooDifficultReason = 'code after return';
+      tooDifficultReason ??= 'code after return';
       return;
     }
     node.visitChildren(this);
@@ -5752,69 +5768,66 @@ class InlineWeeder extends ir.Visitor {
   visitThrow(ir.Throw node) {
     if (!registerNode()) return;
     if (seenReturn) {
-      tooDifficultReason = 'code after return';
+      tooDifficultReason ??= 'code after return';
       return;
     }
     node.visitChildren(this);
   }
 
-  _handleLoop() {
-    // It's actually not difficult to inline a method with a loop, but
-    // our measurements show that it's currently better to not inline a
-    // method that contains a loop.
-    if (!allowLoops) tooDifficultReason = 'loop';
-    // TODO(johnniwinther): Shouldn't the loop body have been counted here? It
-    // isn't in the AST based inline weeder.
+  _handleLoop(ir.Node node) {
+    // It's actually not difficult to inline a method with a loop, but our
+    // measurements show that it's currently better to not inline a method that
+    // contains a loop.
+    if (!allowLoops) tooDifficultReason ??= 'loop';
+    node.visitChildren(this);
   }
 
   @override
   visitForStatement(ir.ForStatement node) {
-    _handleLoop();
+    _handleLoop(node);
   }
 
   @override
   visitForInStatement(ir.ForInStatement node) {
-    _handleLoop();
+    _handleLoop(node);
   }
 
   @override
   visitWhileStatement(ir.WhileStatement node) {
-    _handleLoop();
+    _handleLoop(node);
   }
 
   @override
   visitDoStatement(ir.DoStatement node) {
-    _handleLoop();
+    _handleLoop(node);
   }
 
   @override
   visitTryCatch(ir.TryCatch node) {
-    if (tooDifficult) return;
-    tooDifficultReason = 'try';
+    tooDifficultReason ??= 'try';
   }
 
   @override
   visitTryFinally(ir.TryFinally node) {
-    if (tooDifficult) return;
-    tooDifficultReason = 'try';
+    tooDifficultReason ??= 'try';
   }
 
   @override
   visitFunctionExpression(ir.FunctionExpression node) {
     if (!registerNode()) return;
-    tooDifficultReason = 'closure';
+    tooDifficultReason ??= 'closure';
   }
 
   @override
   visitFunctionDeclaration(ir.FunctionDeclaration node) {
     if (!registerNode()) return;
-    tooDifficultReason = 'closure';
+    tooDifficultReason ??= 'closure';
   }
 
   @override
   visitFunctionNode(ir.FunctionNode node) {
     if (node.asyncMarker != ir.AsyncMarker.Sync) {
-      tooDifficultReason = 'async/await';
+      tooDifficultReason ??= 'async/await';
       return;
     }
     node.visitChildren(this);

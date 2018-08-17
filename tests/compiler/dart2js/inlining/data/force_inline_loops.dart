@@ -49,6 +49,16 @@ _doLoop() {
   } while (i < 10);
 }
 
+/*element: _hardLoop:loop,(allowLoops)code after return*/
+@ForceInline()
+_hardLoop() {
+  for (int i = 0; i < 10; i++) {
+    if (i % 2 == 0) return 2;
+    if (i % 3 == 0) return 3;
+  }
+  return 1;
+}
+
 /*element: forceInlineLoops:[]*/
 @NoInline()
 forceInlineLoops() {
@@ -56,4 +66,5 @@ forceInlineLoops() {
   _forInLoop();
   _whileLoop();
   _doLoop();
+  _hardLoop();
 }
