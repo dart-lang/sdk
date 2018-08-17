@@ -269,7 +269,7 @@ testStaticGenericMethod() {
 }
 
 /*kernel.element: testInstanceGenericMethod:
- dynamic=[genericMethod(1)],
+ dynamic=[call(1),genericMethod(1)],
  static=[
   GenericClass.generative(0),
   assertIsSubtype,

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/fasta/operator.dart';
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
@@ -618,6 +619,19 @@ class KernelImpactBuilder extends ir.Visitor {
 
       impactBuilder.registerDynamicUse(
           new ConstrainedDynamicUse(selector, constraint, typeArguments));
+
+      ir.Member interfaceTarget = node.interfaceTarget;
+      if (operatorFromString(node.name.name) == null) {
+        if (interfaceTarget == null ||
+            interfaceTarget is ir.Field ||
+            interfaceTarget is ir.Procedure &&
+                interfaceTarget.kind == ir.ProcedureKind.Getter) {
+          // An `o.foo()` invocation is (potentially) an `o.foo.call()`
+          // invocation.
+          impactBuilder.registerDynamicUse(new ConstrainedDynamicUse(
+              selector.toCallSelector(), null, typeArguments));
+        }
+      }
     }
   }
 
