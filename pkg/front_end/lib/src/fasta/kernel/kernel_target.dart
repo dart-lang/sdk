@@ -464,7 +464,12 @@ class KernelTarget extends TargetImplementation {
   /// If [builder] doesn't have a constructors, install the defaults.
   void installDefaultConstructor(SourceClassBuilder builder) {
     if (builder.isMixinApplication && !builder.isNamedMixinApplication) return;
-    if (builder.constructors.local.isNotEmpty) return;
+    // TODO(askesc): Make this check light-weight in the absence of patches.
+    if (builder.target.constructors.isNotEmpty) return;
+    if (builder.target.redirectingFactoryConstructors.isNotEmpty) return;
+    for (Procedure proc in builder.target.procedures) {
+      if (proc.isFactory) return;
+    }
     if (builder.isPatch) return;
 
     /// Quotes below are from [Dart Programming Language Specification, 4th
