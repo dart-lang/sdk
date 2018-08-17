@@ -71,6 +71,22 @@ DEFINE_NATIVE_ENTRY(Closure_computeHash, 1) {
   return Smi::New(receiver.ComputeHash());
 }
 
+RawContext* DeepCloneContext(Zone* zone, const Context& context) {
+  Context& parent = Context::Handle(zone, context.parent());
+  if (!parent.IsNull()) {
+    parent = DeepCloneContext(zone, parent);
+  }
+  Context& cloned_context = Context::Handle(zone);
+  cloned_context = Context::New(context.num_variables());
+  cloned_context.set_parent(parent);
+  Object& instance = Object::Handle(zone);
+  for (int i = 0; i < context.num_variables(); i++) {
+    instance = context.At(i);
+    cloned_context.SetAt(i, instance);
+  }
+  return cloned_context.raw();
+}
+
 DEFINE_NATIVE_ENTRY(Closure_clone, 1) {
   const Closure& receiver =
       Closure::CheckedHandle(zone, arguments->NativeArgAt(0));
@@ -79,19 +95,12 @@ DEFINE_NATIVE_ENTRY(Closure_clone, 1) {
   const TypeArguments& function_type_arguments =
       TypeArguments::Handle(zone, receiver.function_type_arguments());
   const Function& function = Function::Handle(zone, receiver.function());
-  const Context& context = Context::Handle(zone, receiver.context());
-  Context& cloned_context = Context::Handle(zone);
+  Context& context = Context::Handle(zone, receiver.context());
   if (!context.IsNull()) {
-    cloned_context = Context::New(context.num_variables());
-    cloned_context.set_parent(Context::Handle(zone, context.parent()));
-    Object& instance = Object::Handle(zone);
-    for (int i = 0; i < context.num_variables(); i++) {
-      instance = context.At(i);
-      cloned_context.SetAt(i, instance);
-    }
+    context = DeepCloneContext(zone, context);
   }
   return Closure::New(instantiator_type_arguments, function_type_arguments,
-                      function, cloned_context);
+                      function, context);
 }
 
 }  // namespace dart
