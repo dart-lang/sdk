@@ -854,6 +854,13 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     asm = savedAssemblers.removeLast();
   }
 
+  void _evaluateDefaultParameterValue(VariableDeclaration param) {
+    if (param.initializer != null && param.initializer is! BasicLiteral) {
+      final constant = _evaluateConstantExpression(param.initializer);
+      param.initializer = new ConstantExpression(constant)..parent = param;
+    }
+  }
+
   int _genClosureBytecode(TreeNode node, String name, FunctionNode function) {
     _pushAssemblerState();
 
@@ -870,6 +877,12 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     List<Label> savedYieldPoints = yieldPoints;
     yieldPoints = locals.isSyncYieldingFrame ? <Label>[] : null;
+
+    // Replace default values of optional parameters with constants,
+    // as default value expressions could use local const variables which
+    // are not available in bytecode.
+    function.positionalParameters.forEach(_evaluateDefaultParameterValue);
+    function.namedParameters.forEach(_evaluateDefaultParameterValue);
 
     final int closureFunctionIndex =
         cp.add(new ConstantClosureFunction(name, function));
