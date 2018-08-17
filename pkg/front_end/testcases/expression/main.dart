@@ -21,7 +21,7 @@ T id<T>(T x) => x;
 
 class B {
   int x;
-  final int y;
+  final int y = 7;
   String get z {
     return "";
   }

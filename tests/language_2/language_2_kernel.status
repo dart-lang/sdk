@@ -236,8 +236,6 @@ duplicate_export_collision_test/01: MissingCompileTimeError # Issue 12916
 f_bounded_quantification_test/01: MissingCompileTimeError # Issue 33018
 f_bounded_quantification_test/02: MissingCompileTimeError # Issue 33018
 factory4_test/00: MissingCompileTimeError # Issue 32988
-field3_test/01: MissingCompileTimeError # Issue 33022
-field3_test/02: MissingCompileTimeError # Issue 33022
 generic_methods_bounds_test/01: MissingCompileTimeError # Issue 33018
 generic_methods_recursive_bound_test/02: MissingCompileTimeError # Issue 33018
 initializer_super_last_test/cc04: MissingCompileTimeError

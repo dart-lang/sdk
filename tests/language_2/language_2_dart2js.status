@@ -494,7 +494,6 @@ deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTim
 f_bounded_quantification_test/01: MissingCompileTimeError
 f_bounded_quantification_test/02: MissingCompileTimeError
 factory4_test/00: MissingCompileTimeError
-field3_test/01: MissingCompileTimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
 identical_const_test/01: MissingCompileTimeError
@@ -623,7 +622,6 @@ deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTim
 f_bounded_quantification_test/01: MissingCompileTimeError
 f_bounded_quantification_test/02: MissingCompileTimeError
 factory4_test/00: MissingCompileTimeError
-field3_test/01: MissingCompileTimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
 identical_const_test/01: MissingCompileTimeError

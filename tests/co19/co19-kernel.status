@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == fasta ]
+Language/Classes/Constructors/Generative_Constructors/final_variables_t01: CompileTimeError # Expects a warning, but this is an error in Dart 2
 Language/Classes/definition_t24: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t01: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: MissingCompileTimeError
@@ -1119,8 +1120,6 @@ Language/Variables/constant_variable_t02: CompileTimeError
 Language/Variables/constant_variable_t03: CompileTimeError
 Language/Variables/constant_variable_t04: CompileTimeError
 Language/Variables/constant_variable_t10: CompileTimeError
-Language/Variables/final_or_static_initialization_t02: MissingCompileTimeError
-Language/Variables/final_or_static_initialization_t03: MissingCompileTimeError
 Language/Variables/final_t01/01: CompileTimeError
 Language/Variables/final_t02/01: CompileTimeError
 Language/Variables/implicit_getter_t02: CompileTimeError
@@ -1744,8 +1743,6 @@ Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t01: MissingCompile
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t03: MissingCompileTimeError
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t05: MissingCompileTimeError
 Language/Types/Interface_Types/subtype_t30: CompileTimeError
-Language/Variables/final_or_static_initialization_t02: MissingCompileTimeError
-Language/Variables/final_or_static_initialization_t03: MissingCompileTimeError
 LibTest/core/int/compareTo_A01_t01: CompileTimeError
 LibTest/core/int/isEven_A01_t01: CompileTimeError
 LibTest/core/int/isOdd_A01_t01: CompileTimeError

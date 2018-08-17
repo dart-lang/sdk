@@ -7257,26 +7257,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_createConstructor_forFinalFields() =>
-      super.test_createConstructor_forFinalFields();
-
-  @failingTest
-  @override
-  test_createConstructor_forFinalFields_flutter() =>
-      super.test_createConstructor_forFinalFields_flutter();
-
-  @failingTest
-  @override
-  test_createConstructor_forFinalFields_flutter_childLast() =>
-      super.test_createConstructor_forFinalFields_flutter_childLast();
-
-  @failingTest
-  @override
-  test_createConstructor_forFinalFields_flutter_childrenLast() =>
-      super.test_createConstructor_forFinalFields_flutter_childrenLast();
-
-  @failingTest
-  @override
   test_createConstructor_named() => super.test_createConstructor_named();
 
   @failingTest

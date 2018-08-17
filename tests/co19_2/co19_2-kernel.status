@@ -25,6 +25,7 @@ Language/Classes/Constructors/Factories/default_value_t01: MissingCompileTimeErr
 Language/Classes/Constructors/Factories/default_value_t02: MissingCompileTimeError
 Language/Classes/Constructors/Factories/function_type_t01: MissingCompileTimeError
 Language/Classes/Constructors/Factories/function_type_t02: MissingCompileTimeError
+Language/Classes/Constructors/Generative_Constructors/final_variables_t01: CompileTimeError # Expects a warning, but this is an error in Dart 2
 Language/Classes/Constructors/Generative_Constructors/initializers_t15: CompileTimeError
 Language/Classes/Constructors/name_t01: MissingCompileTimeError # Legal, see #33235
 Language/Classes/Constructors/name_t02: MissingCompileTimeError # Legal, see #33235
@@ -190,8 +191,6 @@ Language/Types/Type_Void/returning_t04: MissingCompileTimeError
 Language/Types/Type_Void/returning_t05: MissingCompileTimeError
 Language/Types/Type_Void/syntax_t08: MissingCompileTimeError
 Language/Types/Type_Void/using_t01: MissingCompileTimeError
-Language/Variables/final_or_static_initialization_t02: MissingCompileTimeError
-Language/Variables/final_or_static_initialization_t03: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t01: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t03: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t04: MissingCompileTimeError

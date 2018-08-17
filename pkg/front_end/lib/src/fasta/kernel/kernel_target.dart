@@ -12,9 +12,9 @@ import 'package:kernel/ast.dart'
         Block,
         CanonicalName,
         Class,
+        Component,
         Constructor,
         DartType,
-        Procedure,
         DynamicType,
         EmptyStatement,
         Expression,
@@ -29,8 +29,9 @@ import 'package:kernel/ast.dart'
         Name,
         NamedExpression,
         NullLiteral,
+        Procedure,
         ProcedureKind,
-        Component,
+        RedirectingInitializer,
         Source,
         Statement,
         StringLiteral,
@@ -59,6 +60,7 @@ import '../messages.dart'
         messageConstConstructorNonFinalField,
         messageConstConstructorNonFinalFieldCause,
         noLength,
+        templateFinalFieldNotInitialized,
         templateSuperclassHasNoDefaultConstructor;
 
 import '../problems.dart' show unhandled;
@@ -79,11 +81,11 @@ import 'kernel_builder.dart'
         Declaration,
         InvalidTypeBuilder,
         KernelClassBuilder,
+        KernelFieldBuilder,
         KernelLibraryBuilder,
         KernelNamedTypeBuilder,
         KernelProcedureBuilder,
         LibraryBuilder,
-        MemberBuilder,
         NamedTypeBuilder,
         TypeBuilder,
         TypeDeclarationBuilder,
@@ -292,9 +294,9 @@ class KernelTarget extends TargetImplementation {
           loader.finishDeferredLoadTearoffs();
           loader.finishNoSuchMethodForwarders();
           List<SourceClassBuilder> myClasses = collectMyClasses();
-          finishAllConstructors(myClasses);
           loader.finishNativeMethods();
           loader.finishPatchMethods();
+          finishAllConstructors(myClasses);
           runBuildTransformations();
 
           if (verify) this.verify();
@@ -640,14 +642,18 @@ class KernelTarget extends TargetImplementation {
         uninitializedFields.add(field);
       }
     }
-    Map<Constructor, List<FieldInitializer>> fieldInitializers =
-        <Constructor, List<FieldInitializer>>{};
+    Map<Constructor, Set<Field>> constructorInitializedFields =
+        <Constructor, Set<Field>>{};
     Constructor superTarget;
-    builder.constructors.forEach((String name, Declaration member) {
-      if (member.isFactory) return;
-      MemberBuilder constructorBuilder = member;
-      Constructor constructor = constructorBuilder.target;
-      if (!constructorBuilder.isRedirectingGenerativeConstructor) {
+    for (Constructor constructor in cls.constructors) {
+      bool isRedirecting = false;
+      for (Initializer initializer in constructor.initializers) {
+        if (initializer is RedirectingInitializer) {
+          isRedirecting = true;
+          break;
+        }
+      }
+      if (!isRedirecting) {
         /// >If no superinitializer is provided, an implicit superinitializer
         /// >of the form super() is added at the end of k’s initializer list,
         /// >unless the enclosing class is class Object.
@@ -676,13 +682,23 @@ class KernelTarget extends TargetImplementation {
           constructor.function.body = new EmptyStatement();
           constructor.function.body.parent = constructor.function;
         }
-        List<FieldInitializer> myFieldInitializers = <FieldInitializer>[];
+        Set<Field> myInitializedFields = new Set<Field>();
         for (Initializer initializer in constructor.initializers) {
           if (initializer is FieldInitializer) {
-            myFieldInitializers.add(initializer);
+            myInitializedFields.add(initializer.field);
           }
         }
-        fieldInitializers[constructor] = myFieldInitializers;
+        for (VariableDeclaration formal
+            in constructor.function.positionalParameters) {
+          if (formal.isFieldFormal) {
+            Declaration fieldBuilder = builder.scope.local[formal.name] ??
+                builder.origin.scope.local[formal.name];
+            if (fieldBuilder is KernelFieldBuilder) {
+              myInitializedFields.add(fieldBuilder.field);
+            }
+          }
+        }
+        constructorInitializedFields[constructor] = myInitializedFields;
         if (constructor.isConst && nonFinalFields.isNotEmpty) {
           builder.addCompileTimeError(messageConstConstructorNonFinalField,
               constructor.fileOffset, noLength,
@@ -693,36 +709,45 @@ class KernelTarget extends TargetImplementation {
           nonFinalFields.clear();
         }
       }
-    });
+    }
     Set<Field> initializedFields;
-    fieldInitializers.forEach(
-        (Constructor constructor, List<FieldInitializer> initializers) {
-      Iterable<Field> fields = initializers.map((i) => i.field);
+    constructorInitializedFields
+        .forEach((Constructor constructor, Set<Field> fields) {
       if (initializedFields == null) {
         initializedFields = new Set<Field>.from(fields);
       } else {
         initializedFields.addAll(fields);
       }
     });
+
     // Run through all fields that aren't initialized by any constructor, and
     // set their initializer to `null`.
     for (Field field in uninitializedFields) {
       if (initializedFields == null || !initializedFields.contains(field)) {
         field.initializer = new NullLiteral()..parent = field;
+        if (field.isFinal && cls.constructors.isNotEmpty) {
+          builder.library.addProblem(
+              templateFinalFieldNotInitialized.withArguments(field.name.name),
+              field.fileOffset,
+              field.name.name.length,
+              field.fileUri);
+        }
       }
     }
+
     // Run through all fields that are initialized by some constructor, and
     // make sure that all other constructors also initialize them.
-    fieldInitializers.forEach(
-        (Constructor constructor, List<FieldInitializer> initializers) {
-      Iterable<Field> fields = initializers.map((i) => i.field);
-      for (Field field in initializedFields.difference(fields.toSet())) {
+    constructorInitializedFields
+        .forEach((Constructor constructor, Set<Field> fields) {
+      for (Field field in initializedFields.difference(fields)) {
         if (field.initializer == null) {
           FieldInitializer initializer =
               new FieldInitializer(field, new NullLiteral())
                 ..isSynthetic = true;
           initializer.parent = constructor;
           constructor.initializers.insert(0, initializer);
+          // TODO(askesc): Report error here if the field is final,
+          // that this particular constructor does not initialize the field.
         }
       }
     });

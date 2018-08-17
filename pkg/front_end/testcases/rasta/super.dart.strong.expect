@@ -241,6 +241,16 @@
 // Try removing the extra positional arguments.
 //     use(super.n(87));
 //                ^^^^
+//
+// pkg/front_end/testcases/rasta/super.dart:11:9: Error: Final field 'f' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final f;
+//         ^
+//
+// pkg/front_end/testcases/rasta/super.dart:33:9: Error: Final field 'd' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final d;
+//         ^
 
 library;
 import self as self;

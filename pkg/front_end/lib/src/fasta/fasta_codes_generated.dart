@@ -3013,6 +3013,34 @@ const MessageCode messageFinalAndVar = const MessageCode("FinalAndVar",
 const Template<
     Message Function(
         String
+            name)> templateFinalFieldNotInitialized = const Template<
+        Message Function(String name)>(
+    messageTemplate: r"""Final field '#name' is not initialized.""",
+    tipTemplate:
+        r"""Try to initialize the field in the declaration or in every constructor.""",
+    withArguments: _withArgumentsFinalFieldNotInitialized);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFinalFieldNotInitialized =
+    const Code<Message Function(String name)>(
+        "FinalFieldNotInitialized", templateFinalFieldNotInitialized,
+        analyzerCode: "FINAL_NOT_INITIALIZED",
+        dart2jsCode: "*fatal*",
+        severity: Severity.error);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFinalFieldNotInitialized(String name) {
+  return new Message(codeFinalFieldNotInitialized,
+      message: """Final field '${name}' is not initialized.""",
+      tip:
+          """Try to initialize the field in the declaration or in every constructor.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
             name)> templateFinalFieldWithoutInitializer = const Template<
         Message Function(String name)>(
     messageTemplate: r"""The final variable '#name' must be initialized.""",

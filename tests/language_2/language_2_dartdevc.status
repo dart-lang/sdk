@@ -37,6 +37,7 @@ const_cast2_test/none: CompileTimeError
 const_constructor_mixin3_test/01: MissingCompileTimeError # Issue 33644
 const_constructor_mixin_test/01: MissingCompileTimeError # Issue 33644
 const_for_in_variable_test/01: MissingCompileTimeError
+constructor9_test/01: MissingCompileTimeError # CFE Issue 33022
 constructor_type_parameter_test/00: MissingCompileTimeError
 constructor_with_type_parameters_test/03: MissingCompileTimeError
 covariance_field_test/03: RuntimeError
@@ -52,6 +53,8 @@ execute_finally6_test: RuntimeError # Issue 29920
 expect_test: RuntimeError # Issue 29920
 export_private_test/01: MissingCompileTimeError # Issue 29920
 f_bounded_quantification3_test: RuntimeError # Issue 29920
+field3_test/01: MissingCompileTimeError # CFE Issue 33022
+field3_test/02: MissingCompileTimeError # CFE Issue 33022
 field_wierd_name_test: Crash
 final_syntax_test/01: MissingCompileTimeError
 final_syntax_test/02: MissingCompileTimeError
@@ -535,8 +538,6 @@ example_constructor_test: RuntimeError # Expect.equals(expected: <0 1 2 3 4 5 6 
 exception_test: RuntimeError # DDC doesn't implement NullThrownError?; Expect.isTrue(false) fails.
 expect_test: RuntimeError # Issue 29920; Expect.identical did not fail
 f_bounded_quantification3_test: RuntimeError # Issue 29920; Uncaught Error: type arguments should not be null: (F1, F2) => {
-field3_test/01: MissingCompileTimeError # Issue 33022
-field3_test/02: MissingCompileTimeError # Issue 33022
 field_initialization_order_test/none: RuntimeError # Expect.equals(expected: <b.a.ai.bi.>, actual: <b.bi.a.ai.>) fails.
 flatten_test/05: MissingRuntimeError # Issue 29920
 flatten_test/08: MissingRuntimeError # Issue 29920

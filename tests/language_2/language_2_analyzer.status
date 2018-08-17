@@ -19,7 +19,7 @@ multiline_newline_test/05: Pass
 multiline_newline_test/05r: Pass
 regress_29349_test: Pass
 void/generalized_void_syntax_test: Pass
-void/void_type_function_types_test/none: Pass 
+void/void_type_function_types_test/none: Pass
 
 [ $compiler == dart2analyzer && !$analyzer_use_fasta_parser && !$fasta ]
 constructor_type_parameter_test/00: MissingCompileTimeError # Issue 33110
@@ -83,7 +83,7 @@ conflicting_generic_interfaces_hierarchy_loop_infinite_test: Crash # Issue #3404
 conflicting_generic_interfaces_hierarchy_loop_test: Crash # Issue #34043 - Error recovery in outline (class hierarchy cycle - see also #33756)
 const_counter_test/01: Crash # Error recovery in method body (use of non-const closure in a const context)
 const_native_factory_test: Crash # Issue #34043 - Error recovery in outline (native const factory)
-constructor9_test/01: MissingStaticWarning
+constructor9_test/01: MissingCompileTimeError
 constructor_name_test/02: Crash # Issue #34043 - Error recovery in outline (illegal constructor name)
 constructor_named_arguments_test/01: Crash # Error recovery in method body (argument mismatch in constructor redirect)
 constructor_redirect2_test/02: Crash # Issue 33686 - No core library found
@@ -121,6 +121,8 @@ factory_with_type_parameters_test/03: Crash # Issue 33686 - No core library foun
 factory_with_type_parameters_test/04: Crash # Issue 33686 - No core library found
 field1_test: Crash # Issue 33686 - No core library found
 field2_test: Crash # Issue 33686 - No core library found
+field3_test/01: MissingCompileTimeError
+field3_test/02: MissingCompileTimeError
 field4_test: Crash # Issue 33686 - No core library found
 field5_test: Crash # Issue 33686 - No core library found
 field6_test/00: Crash # Issue 33686 - No core library found
@@ -452,6 +454,7 @@ conflicting_type_variable_and_setter_test: CompileTimeError # Issue 25525
 const_cast2_test/01: CompileTimeError
 const_cast2_test/none: CompileTimeError
 const_for_in_variable_test/01: MissingCompileTimeError # Issue 25161
+constructor9_test/01: MissingCompileTimeError # CFE Issue 33022
 default_implementation2_test: CompileTimeError # Issue 30855
 dynamic_prefix_core_test/01: MissingCompileTimeError
 emit_const_fields_test: CompileTimeError
@@ -459,8 +462,8 @@ enum_syntax_test/05: Fail # Issue 21649
 enum_syntax_test/06: Fail # Issue 21649
 error_stacktrace_test/00: MissingCompileTimeError
 error_stacktrace_test/00: Pass
-field3_test/01: MissingCompileTimeError # Issue 33022
-field3_test/02: MissingCompileTimeError # Issue 33022
+field3_test/01: MissingCompileTimeError # CFE Issue 33022
+field3_test/02: MissingCompileTimeError # CFE Issue 33022
 field3a_negative_test: StaticWarning # Issue 28823
 final_syntax_test/01: Fail # Issue 11124
 final_syntax_test/02: Fail # Issue 11124

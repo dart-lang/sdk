@@ -481,8 +481,8 @@ ConstAndFinal:
   analyzerCode: CONST_AND_FINAL
   dart2jsCode: EXTRANEOUS_MODIFIER
   script:
-    - "class C { const final int x; }"
-    - "class C { final const int x; }"
+    - "class C { const final int x = 5; }"
+    - "class C { final const int x = 5; }"
 
 ConstAndVar:
   template: "Members can't be declared to be both 'const' and 'var'."
@@ -572,7 +572,7 @@ DuplicatedModifier:
   script:
     - "class C { const const m; }"
     - "class C { external external f(); }"
-    - "class C { final final m; }"
+    - "class C { final final m = 5; }"
     - "class C { static static var m; }"
     - "class C { var var m; }"
 
@@ -684,8 +684,8 @@ FinalAndCovariant:
   analyzerCode: FINAL_AND_COVARIANT
   dart2jsCode: "*ignored*"
   script:
-    - "class C { covariant final f; }"
-    - "class C { final covariant f; }"
+    - "class C { covariant final f = 5; }"
+    - "class C { final covariant f = 5; }"
 
 FinalAndVar:
   template: "Members can't be declared to be both 'final' and 'var'."
@@ -693,8 +693,8 @@ FinalAndVar:
   analyzerCode: FINAL_AND_VAR
   dart2jsCode: EXTRANEOUS_MODIFIER
   script:
-    - "class C { final var x; }"
-    - "class C { var final x; }"
+    - "class C { final var x = 5; }"
+    - "class C { var final x = 5; }"
 
 StaticAfterConst:
   template: "The modifier 'static' should be before the modifier 'const'."
@@ -710,7 +710,7 @@ StaticAfterFinal:
   analyzerCode: STATIC_AFTER_FINAL
   dart2jsCode: EXTRANEOUS_MODIFIER
   script:
-    - "class C { final static int f; }"
+    - "class C { final static int f = 5; }"
 
 StaticAfterVar:
   template: "The modifier 'static' should be before the modifier 'var'."
@@ -839,6 +839,17 @@ InvalidInitializer:
   severity: ERROR
   analyzerCode: INVALID_INITIALIZER
   dart2jsCode: "*fatal*"
+
+FinalFieldNotInitialized:
+  template: "Final field '#name' is not initialized."
+  tip: "Try to initialize the field in the declaration or in every constructor."
+  severity: ERROR
+  analyzerCode: FINAL_NOT_INITIALIZED
+  dart2jsCode: "*fatal*"
+  script: >
+    class C {
+      final int x;
+    }
 
 MissingExponent:
   template: "Numbers in exponential notation should always contain an exponent (an integer number with an optional sign)."
