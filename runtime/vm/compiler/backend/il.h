@@ -4213,6 +4213,13 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
   friend class JitCallSpecializer;  // For ASSERT(initialization_).
 
   Assembler::CanBeSmi CanValueBeSmi() const {
+    Isolate* isolate = Isolate::Current();
+    if (isolate->type_checks() && !isolate->strong()) {
+      // Dart 1 sometimes places a store into a context before a parameter
+      // type check.
+      return Assembler::kValueCanBeSmi;
+    }
+
     const intptr_t cid = value()->Type()->ToNullableCid();
     // Write barrier is skipped for nullable and non-nullable smis.
     ASSERT(cid != kSmiCid);
@@ -4356,6 +4363,13 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
 
  private:
   Assembler::CanBeSmi CanValueBeSmi() const {
+    Isolate* isolate = Isolate::Current();
+    if (isolate->type_checks() && !isolate->strong()) {
+      // Dart 1 sometimes places a store into a context before a parameter
+      // type check.
+      return Assembler::kValueCanBeSmi;
+    }
+
     const intptr_t cid = value()->Type()->ToNullableCid();
     // Write barrier is skipped for nullable and non-nullable smis.
     ASSERT(cid != kSmiCid);

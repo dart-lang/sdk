@@ -666,7 +666,8 @@ intptr_t CompileType::ToNullableCid() {
       CHA* cha = thread->cha();
       // Don't infer a cid from an abstract type since there can be multiple
       // compatible classes with different cids.
-      if (!CHA::IsImplemented(type_class) && !CHA::HasSubclasses(type_class)) {
+      if (!type_class.is_abstract() && !CHA::IsImplemented(type_class) &&
+          !CHA::HasSubclasses(type_class)) {
         if (type_class.IsPrivate()) {
           // Type of a private class cannot change through later loaded libs.
           cid_ = type_class.id();
