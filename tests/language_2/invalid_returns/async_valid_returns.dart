@@ -319,7 +319,7 @@ FutureOr<void> async_Null_to_FutureOr_void_() async {
 
 /*
 * `return exp;` where `exp` has static type `S` is a valid return if:
-  * `flatten(T)` is not `void`
+  * `T` is not `void`
   * and `flatten(S)` is not `void`
   * and `Future<flatten(S)>` is assignable to `T`
 */
@@ -340,6 +340,46 @@ Future<int> async_FutureOr_int__to_Future_int_() async {
 
 Future<int> async_Future_int__to_Future_int__e() async => fvi;
 Future<int> async_Future_int__to_Future_int_() async {
+  return fvi;
+}
+
+Future<void> async_int_to_Future_void__e() async => vi;
+Future<void> async_int_to_Future_void_() async {
+  return vi;
+}
+
+Future<void> async_Object_to_Future_void__e() async => vo;
+Future<void> async_Object_to_Future_void_() async {
+  return vo;
+}
+
+Future<void> async_FutureOr_int__to_Future_void__e() async => fovi;
+Future<void> async_FutureOr_int__to_Future_void_() async {
+  return fovi;
+}
+
+Future<void> async_Future_int__to_Future_void__e() async => fvi;
+Future<void> async_Future_int__to_Future_void_() async {
+  return fvi;
+}
+
+FutureOr<void> async_int_to_FutureOr_void__e() async => vi;
+FutureOr<void> async_int_to_FutureOr_void_() async {
+  return vi;
+}
+
+FutureOr<void> async_Object_to_FutureOr_void__e() async => vo;
+FutureOr<void> async_Object_to_FutureOr_void_() async {
+  return vo;
+}
+
+FutureOr<void> async_FutureOr_int__to_FutureOr_void__e() async => fovi;
+FutureOr<void> async_FutureOr_int__to_FutureOr_void_() async {
+  return fovi;
+}
+
+FutureOr<void> async_Future_int__to_FutureOr_void__e() async => fvi;
+FutureOr<void> async_Future_int__to_FutureOr_void_() async {
   return fvi;
 }
 
@@ -462,4 +502,20 @@ void main() {
   async_FutureOr_int__to_Future_int_();
   async_Future_int__to_Future_int__e();
   async_Future_int__to_Future_int_();
+  async_int_to_Future_void__e();
+  async_int_to_Future_void_();
+  async_Object_to_Future_void__e();
+  async_Object_to_Future_void_();
+  async_FutureOr_int__to_Future_void__e();
+  async_FutureOr_int__to_Future_void_();
+  async_Future_int__to_Future_void__e();
+  async_Future_int__to_Future_void_();
+  async_int_to_FutureOr_void__e();
+  async_int_to_FutureOr_void_();
+  async_Object_to_FutureOr_void__e();
+  async_Object_to_FutureOr_void_();
+  async_FutureOr_int__to_FutureOr_void__e();
+  async_FutureOr_int__to_FutureOr_void_();
+  async_Future_int__to_FutureOr_void__e();
+  async_Future_int__to_FutureOr_void_();
 }

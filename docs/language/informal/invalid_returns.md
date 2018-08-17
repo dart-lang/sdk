@@ -67,7 +67,7 @@ The rules for an asynchronous non-generator function with declared return type
   * and `flatten(S)` is `void`, `dynamic` or `Null`
 
 * `return exp;` where `exp` has static type `S` is a valid return if:
-  * `flatten(T)` is not `void`
+  * `T` is not `void`
   * and `flatten(S)` is not `void`
   * and `Future<flatten(S)>` is assignable to `T`
 
@@ -114,7 +114,7 @@ The rules for an asynchronous non-generator function with declared return type
 
 * `return;` is an error if `flatten(T)` is not `void`, `dynamic`, or `Null`
 
-* `return exp;` where `exp` has static type `S` is an error if `flatten(T)` is
+* `return exp;` where `exp` has static type `S` is an error if `T` is
   `void` and `flatten(S)` is not `void`, `dynamic`, or `Null`
 
 * `return exp;` where `exp` has static type `S` is an error if `flatten(S)` is

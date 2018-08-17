@@ -5269,7 +5269,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (toType.isDynamic || toType.isDartCoreNull || toType.isBottom) {
         return;
       }
-    } else {
+    }
+    if (!expectedType.isVoid && !fromType.isVoid) {
       var checkWithType = (!_inAsync)
           ? fromType
           : _typeProvider.futureType.instantiate(<DartType>[fromType]);
