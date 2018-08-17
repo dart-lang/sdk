@@ -1853,7 +1853,7 @@ void GuardFieldTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   // Get the state.
-  __ LoadObject(temp, field());
+  __ LoadObject(temp, Field::ZoneHandle(compiler->zone(), field().Original()));
   __ movsxb(temp,
             FieldAddress(temp, Field::static_type_exactness_state_offset()));
 
@@ -1874,6 +1874,7 @@ void GuardFieldTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // At this point temp is known to be type arguments offset in words.
   __ movq(temp, FieldAddress(value_reg, temp, TIMES_8, 0));
   __ CompareObject(temp, TypeArguments::ZoneHandle(
+                             compiler->zone(),
                              AbstractType::Handle(field().type()).arguments()));
   if (deopt != nullptr) {
     __ j(NOT_EQUAL, deopt);

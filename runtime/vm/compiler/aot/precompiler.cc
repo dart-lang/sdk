@@ -482,6 +482,9 @@ void Precompiler::PrecompileConstructors() {
     const intptr_t cid = current->cid_;
     current->field_->set_guarded_cid(cid);
     current->field_->set_is_nullable(cid == kNullCid || cid == kDynamicCid);
+    // TODO(vegorov) we can actually compute the length in the same way we
+    // compute cids.
+    current->field_->set_guarded_list_length(Field::kNoFixedLength);
     if (FLAG_trace_precompiler) {
       THR_Print(
           "Field %s <- Type %s\n", current->field_->ToCString(),
