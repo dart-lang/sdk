@@ -185,14 +185,12 @@ class AbstractClassInstantiationError {
 @patch
 class NoSuchMethodError {
   // Deprecated members to be removed.
-  final Object _receiver;
-  final Symbol _memberName;
-  final List _arguments;
-  final Map<Symbol, dynamic> _namedArguments;
-  final List _existingArgumentNames;
+  Symbol _memberName;
+  List _arguments;
+  Map<Symbol, dynamic> _namedArguments;
+  List _existingArgumentNames;
 
-  // TODO(regis): Move _receiver declaration here:
-  // final Object _receiver;
+  final Object _receiver;
   final _InvocationMirror _invocation;
 
   @patch
@@ -231,7 +229,7 @@ class NoSuchMethodError {
   // Remember the type from the invocation mirror or static compilation
   // analysis when thrown directly with _throwNew. A negative value means
   // that no information is available.
-  final int _invocation_type;
+  int _invocation_type;
 
   // TODO(regis): Deprecated constructor still used by dart2js to be removed.
   @patch
@@ -239,6 +237,7 @@ class NoSuchMethodError {
       List positionalArguments, Map<Symbol, dynamic> namedArguments,
       [List existingArgumentNames = null])
       : _receiver = receiver,
+        _invocation = null,
         _memberName = memberName,
         _arguments = positionalArguments,
         _namedArguments = namedArguments,

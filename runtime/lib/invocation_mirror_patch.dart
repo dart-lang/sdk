@@ -37,11 +37,11 @@ class _InvocationMirror implements Invocation {
   static const int _FIRST_NAMED_ENTRY = 3;
 
   // Internal representation of the invocation mirror.
-  final String _functionName;
-  final List _argumentsDescriptor;
-  final List _arguments;
-  final bool _isSuperInvocation;
-  final int _delayedTypeArgumentsLen;
+  String _functionName;
+  List _argumentsDescriptor;
+  List _arguments;
+  bool _isSuperInvocation;
+  int _delayedTypeArgumentsLen;
 
   // External representation of the invocation mirror; populated on demand.
   Symbol _memberName;

@@ -851,6 +851,19 @@ FinalFieldNotInitialized:
       final int x;
     }
 
+FinalFieldNotInitializedByConstructor:
+  template: "Final field '#name' is not initialized by this constructor."
+  tip: "Try to initialize the field using an initializing formal or a field initializer."
+  severity: ERROR
+  analyzerCode: FINAL_NOT_INITIALIZED_CONSTRUCTOR_1
+  dart2jsCode: "*fatal*"
+  script: >
+    class C {
+      final int x;
+      C(this.x) {}
+      C.missing() {}
+    }
+
 MissingExponent:
   template: "Numbers in exponential notation should always contain an exponent (an integer number with an optional sign)."
   tip: "Make sure there is an exponent, and remove any whitespace before it."

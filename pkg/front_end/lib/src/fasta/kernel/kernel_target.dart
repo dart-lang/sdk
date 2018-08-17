@@ -61,6 +61,8 @@ import '../messages.dart'
         messageConstConstructorNonFinalFieldCause,
         noLength,
         templateFinalFieldNotInitialized,
+        templateFinalFieldNotInitializedByConstructor,
+        templateMissingImplementationCause,
         templateSuperclassHasNoDefaultConstructor;
 
 import '../problems.dart' show unhandled;
@@ -751,8 +753,20 @@ class KernelTarget extends TargetImplementation {
                 ..isSynthetic = true;
           initializer.parent = constructor;
           constructor.initializers.insert(0, initializer);
-          // TODO(askesc): Report error here if the field is final,
-          // that this particular constructor does not initialize the field.
+          if (field.isFinal) {
+            builder.library.addProblem(
+                templateFinalFieldNotInitializedByConstructor
+                    .withArguments(field.name.name),
+                constructor.fileOffset,
+                constructor.name.name.length,
+                constructor.fileUri,
+                context: [
+                  templateMissingImplementationCause
+                      .withArguments(field.name.name)
+                      .withLocation(field.fileUri, field.fileOffset,
+                          field.name.name.length)
+                ]);
+          }
         }
       }
     });

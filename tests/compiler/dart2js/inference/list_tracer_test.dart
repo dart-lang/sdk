@@ -22,7 +22,7 @@ class A {
 
   A(this.field);
 
-  A.bar(list) {
+  A.bar(list) : field = null {
     nonFinalField = list;
   }
 

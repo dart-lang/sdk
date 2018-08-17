@@ -30,7 +30,7 @@ class A {
 
   A(this.field);
 
-  A.bar(map) {
+  A.bar(map) : field = null {
     nonFinalField = map;
   }
 

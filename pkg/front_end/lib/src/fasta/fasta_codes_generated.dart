@@ -3041,6 +3041,38 @@ Message _withArgumentsFinalFieldNotInitialized(String name) {
 const Template<
     Message Function(
         String
+            name)> templateFinalFieldNotInitializedByConstructor = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Final field '#name' is not initialized by this constructor.""",
+    tipTemplate:
+        r"""Try to initialize the field using an initializing formal or a field initializer.""",
+    withArguments: _withArgumentsFinalFieldNotInitializedByConstructor);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeFinalFieldNotInitializedByConstructor =
+    const Code<Message Function(String name)>(
+        "FinalFieldNotInitializedByConstructor",
+        templateFinalFieldNotInitializedByConstructor,
+        analyzerCode: "FINAL_NOT_INITIALIZED_CONSTRUCTOR_1",
+        dart2jsCode: "*fatal*",
+        severity: Severity.error);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFinalFieldNotInitializedByConstructor(String name) {
+  return new Message(codeFinalFieldNotInitializedByConstructor,
+      message:
+          """Final field '${name}' is not initialized by this constructor.""",
+      tip:
+          """Try to initialize the field using an initializing formal or a field initializer.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
             name)> templateFinalFieldWithoutInitializer = const Template<
         Message Function(String name)>(
     messageTemplate: r"""The final variable '#name' must be initialized.""",
