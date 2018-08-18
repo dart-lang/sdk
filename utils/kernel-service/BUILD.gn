@@ -4,24 +4,39 @@
 
 import("../../build/dart/dart_action.gni")
 import("../../build/dart/dart_host_sdk_toolchain.gni")
+import("../../runtime/runtime_args.gni")
 import("../application_snapshot.gni")
+
+group("kernel-service") {
+  if (create_kernel_service_snapshot) {
+    deps = [
+      # TODO(rmacnak): Link this into 'dart'.
+      ":copy_kernel-service_snapshot",
+    ]
+  } else {
+    deps = [
+      ":kernel_service_dill",
+    ]
+  }
+}
 
 # TODO: Switch this to use kernel based app-jit snapshot
 # when we are ready to switch to the kernel based core snapshots.
-application_snapshot("kernel-service") {
-  main_dart = "../../pkg/vm/bin/kernel_service.dart"
+kernel_application_snapshot("kernel-service_snapshot") {
+  main_dart = "$root_gen_dir/kernel_service.dill"
   deps = [
-    "../../runtime/vm:kernel_platform_files($dart_host_toolchain)",
+    ":kernel_service_dill",
   ]
   training_args = [
     "--train",
     "file://" + rebase_path("../../pkg/compiler/lib/src/dart2js.dart"),
   ]
+  output = "$root_gen_dir/kernel-service.dart.snapshot"
 }
 
-copy("copy_kernel_service_snapshot") {
+copy("copy_kernel-service_snapshot") {
   deps = [
-    ":kernel-service",
+    ":kernel-service_snapshot",
   ]
   sources = [
     "$root_gen_dir/kernel-service.dart.snapshot",
@@ -40,14 +55,15 @@ application_snapshot("frontend_server") {
   training_args = [
     "--train",
     "--sdk-root=$sdk_root/",
-    "--platform=$sdk_root/vm_platform.dill",
+    "--platform=$sdk_root/vm_platform_strong.dill",
   ]
   output = "$root_out_dir/frontend_server.dart.snapshot"
 }
 
 prebuilt_dart_action("kernel_service_dill") {
   deps = [
-    "../../runtime/vm:vm_legacy_platform",
+    "../../runtime/vm:vm_platform",
+    "../../runtime/vm:kernel_platform_files($dart_host_toolchain)",
   ]
   kernel_service_script = "../../pkg/vm/bin/kernel_service.dart"
   gen_kernel_script = "../../pkg/vm/bin/gen_kernel.dart"
@@ -55,7 +71,7 @@ prebuilt_dart_action("kernel_service_dill") {
   inputs = [
     gen_kernel_script,
     kernel_service_script,
-    "$root_out_dir/vm_platform.dill",
+    "$root_out_dir/vm_platform_strong.dill",
   ]
   output = "$root_gen_dir/kernel_service.dill"
   outputs = [
@@ -74,14 +90,10 @@ prebuilt_dart_action("kernel_service_dill") {
 
   script = gen_kernel_script
 
-  # TODO: Switch over to vm_platform_strong.dill and remove the
-  # flags --no-strong-mode once https://github.com/dart-lang/sdk/issues/31623
-  # is fixed.
   args = [
     "--packages=" + rebase_path("../../.packages"),
-    "--platform=" + rebase_path("$root_out_dir/vm_platform.dill"),
+    "--platform=" + rebase_path("$root_out_dir/vm_platform_strong.dill"),
     "--no-aot",
-    "--no-strong-mode",
     "--no-embed-sources",
     "--output=" + rebase_path("$root_gen_dir/kernel_service.dill"),
     rebase_path(kernel_service_script),

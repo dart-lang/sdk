@@ -125,43 +125,45 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
         strdup("Spawning of only Kernel isolate is supported in run_vm_tests.");
     return NULL;
   }
-  if (kernel_snapshot == NULL) {
-    *error =
-        strdup("Kernel snapshot location has to be specified via --dfe option");
-    return NULL;
-  }
-  script_uri = kernel_snapshot;
+  Dart_Isolate isolate = NULL;
+  bin::IsolateData* isolate_data = NULL;
+  const uint8_t* kernel_service_buffer = NULL;
+  intptr_t kernel_service_buffer_size = 0;
 
-  // Kernel isolate uses an app snapshot or the core libraries snapshot.
-  bool isolate_run_script_snapshot = false;
-  const uint8_t* isolate_snapshot_data = bin::core_isolate_snapshot_data;
-  const uint8_t* isolate_snapshot_instructions =
-      bin::core_isolate_snapshot_instructions;
-  bin::AppSnapshot* app_snapshot = NULL;
-  switch (bin::DartUtils::SniffForMagicNumber(script_uri)) {
-    case bin::DartUtils::kAppJITMagicNumber: {
-      app_snapshot = bin::Snapshot::TryReadAppSnapshot(script_uri);
-      ASSERT(app_snapshot != NULL);
-
-      const uint8_t* ignore_vm_snapshot_data;
-      const uint8_t* ignore_vm_snapshot_instructions;
-      app_snapshot->SetBuffers(
-          &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
-          &isolate_snapshot_data, &isolate_snapshot_instructions);
-      break;
-    }
-    case bin::DartUtils::kSnapshotMagicNumber: {
-      isolate_run_script_snapshot = true;
-      break;
-    }
-    default:
-      return NULL;
+  // Kernel isolate uses an app snapshot or the kernel service dill file.
+  if (kernel_snapshot != NULL &&
+      (bin::DartUtils::SniffForMagicNumber(kernel_snapshot) ==
+       bin::DartUtils::kAppJITMagicNumber)) {
+    script_uri = kernel_snapshot;
+    bin::AppSnapshot* app_snapshot =
+        bin::Snapshot::TryReadAppSnapshot(script_uri);
+    ASSERT(app_snapshot != NULL);
+    const uint8_t* ignore_vm_snapshot_data;
+    const uint8_t* ignore_vm_snapshot_instructions;
+    const uint8_t* isolate_snapshot_data;
+    const uint8_t* isolate_snapshot_instructions;
+    app_snapshot->SetBuffers(
+        &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
+        &isolate_snapshot_data, &isolate_snapshot_instructions);
+    isolate_data = new bin::IsolateData(script_uri, package_root,
+                                        packages_config, app_snapshot);
+    isolate = Dart_CreateIsolate(
+        DART_KERNEL_ISOLATE_NAME, main, isolate_snapshot_data,
+        isolate_snapshot_instructions, NULL, NULL, flags, isolate_data, error);
+  } else {
+    bin::dfe.Init();
+    bin::dfe.LoadKernelService(&kernel_service_buffer,
+                               &kernel_service_buffer_size);
+    ASSERT(kernel_service_buffer != NULL);
+    isolate_data =
+        new bin::IsolateData(script_uri, package_root, packages_config, NULL);
+    isolate_data->set_kernel_buffer(const_cast<uint8_t*>(kernel_service_buffer),
+                                    kernel_service_buffer_size,
+                                    false /* take_ownership */);
+    isolate = Dart_CreateIsolateFromKernel(
+        script_uri, main, kernel_service_buffer, kernel_service_buffer_size,
+        flags, isolate_data, error);
   }
-  bin::IsolateData* isolate_data = new bin::IsolateData(
-      script_uri, package_root, packages_config, app_snapshot);
-  Dart_Isolate isolate = Dart_CreateIsolate(
-      DART_KERNEL_ISOLATE_NAME, main, isolate_snapshot_data,
-      isolate_snapshot_instructions, NULL, NULL, flags, isolate_data, error);
   if (isolate == NULL) {
     delete isolate_data;
     return NULL;
@@ -169,21 +171,17 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
 
   Dart_EnterScope();
 
-  if (isolate_run_script_snapshot) {
-    uint8_t* payload;
-    intptr_t payload_length;
-    void* file = bin::DartUtils::OpenFile(script_uri, false);
-    bin::DartUtils::ReadFile(&payload, &payload_length, file);
-    bin::DartUtils::CloseFile(file);
-
-    Dart_Handle result = Dart_LoadScriptFromSnapshot(payload, payload_length);
-    CHECK_RESULT(result);
-  }
-
   bin::DartUtils::SetOriginalWorkingDirectory();
   Dart_Handle result = bin::DartUtils::PrepareForScriptLoading(
       false /* is_service_isolate */, false /* trace_loading */);
   CHECK_RESULT(result);
+
+  // Setup kernel service as the main script for this isolate.
+  if (kernel_service_buffer) {
+    result = Dart_LoadScriptFromKernel(kernel_service_buffer,
+                                       kernel_service_buffer_size);
+    CHECK_RESULT(result);
+  }
 
   Dart_ExitScope();
   Dart_ExitIsolate();
@@ -216,6 +214,9 @@ static int Main(int argc, const char** argv) {
 
   // Save the console state so we can restore it later.
   dart::bin::Console::SaveConfig();
+
+  // Store the executable name.
+  dart::bin::Platform::SetExecutableName(argv[0]);
 
   if (argc < 2) {
     // Bad parameter count.
