@@ -792,6 +792,149 @@ class CompilationUnitBuilder {
   }
 }
 
+class CompilationUnitFunctionTypeFixBuilder {
+  void fixFunctionTypes(CompilationUnit unit) {
+    ElementHolder holder = new ElementHolder();
+    _TypesFixBuilder builder = new _TypesFixBuilder(holder, unit.element as CompilationUnitElementImpl);
+    unit.accept(builder);
+    holder.validate();
+  }
+}
+
+//(yury-yufimov) mostly copy-pasted from [_BaseElementBuilder]
+class _TypesFixBuilder extends RecursiveAstVisitor<Object> {
+  // We want to create unexisting elements for types of [GenericFunctionType] nodes only.
+  // The problem is, there can be [GenericFunctionType]s within other [GenericFunctionType]s
+  int _recurseLevel = 0;
+
+  final CompilationUnitElementImpl _unitElement;
+
+  ElementHolder _currentHolder;
+
+  _TypesFixBuilder(this._currentHolder, this._unitElement);
+
+  @override
+  Object visitGenericFunctionType(GenericFunctionType node) {
+    if ((node as GenericFunctionTypeImpl).type != null) {
+      return null;
+    }
+    _recurseLevel++;
+    ElementHolder holder = new ElementHolder();
+    _visitChildren(holder, node);
+    GenericFunctionTypeElementImpl element =
+    new GenericFunctionTypeElementImpl.forOffset(node.beginToken.offset);
+    _setCodeRange(element, node);
+    element.parameters = holder.parameters;
+    element.typeParameters = holder.typeParameters;
+    FunctionType type = new FunctionTypeImpl(element);
+    element.type = type;
+    (node as GenericFunctionTypeImpl).type = type;
+    holder.validate();
+    _recurseLevel--;
+    return null;
+  }
+
+  @override
+  Object visitSimpleFormalParameter(SimpleFormalParameter node) {
+    if (_recurseLevel == 0) {
+      super.visitSimpleFormalParameter(node);
+      return null;
+    }
+
+    ParameterElementImpl parameter;
+    if (node.parent is! DefaultFormalParameter) {
+      SimpleIdentifier parameterName = node.identifier;
+      parameter = new ParameterElementImpl.forNode(parameterName);
+      _setCodeRange(parameter, node);
+      parameter.isConst = node.isConst;
+      parameter.isExplicitlyCovariant = node.covariantKeyword != null;
+      parameter.isFinal = node.isFinal;
+      // ignore: deprecated_member_use
+      parameter.parameterKind = node.kind;
+      _setParameterVisibleRange(node, parameter);
+      if (node.type == null) {
+        parameter.hasImplicitType = true;
+      }
+      _currentHolder.addParameter(parameter);
+      (node as SimpleFormalParameterImpl).element = parameter;
+      parameterName?.staticElement = parameter;
+    }
+    super.visitSimpleFormalParameter(node);
+    parameter ??= node.element;
+    parameter?.metadata = _createElementAnnotations(node.metadata);
+    return null;
+  }
+
+  @override
+  Object visitTypeParameter(TypeParameter node) {
+    if (_recurseLevel == 0) {
+      return super.visitTypeParameter(node);
+    }
+
+    SimpleIdentifier parameterName = node.name;
+    TypeParameterElementImpl typeParameter =
+    new TypeParameterElementImpl.forNode(parameterName);
+    _setCodeRange(typeParameter, node);
+    typeParameter.metadata = _createElementAnnotations(node.metadata);
+    TypeParameterTypeImpl typeParameterType =
+    new TypeParameterTypeImpl(typeParameter);
+    typeParameter.type = typeParameterType;
+    _currentHolder.addTypeParameter(typeParameter);
+    parameterName.staticElement = typeParameter;
+    return super.visitTypeParameter(node);
+  }
+
+
+  void _setCodeRange(ElementImpl element, AstNode node) {
+    element.setCodeRange(node.offset, node.length);
+  }
+
+  void _visitChildren(ElementHolder holder, AstNode node) {
+    if (node != null) {
+      ElementHolder previousHolder = _currentHolder;
+      _currentHolder = holder;
+      try {
+        node.visitChildren(this);
+      } finally {
+        _currentHolder = previousHolder;
+      }
+    }
+  }
+
+  void _setParameterVisibleRange(
+      FormalParameter node, ParameterElementImpl element) {
+    FunctionBody body = _getFunctionBody(node);
+    if (body is BlockFunctionBody || body is ExpressionFunctionBody) {
+      element.setVisibleRange(body.offset, body.length);
+    }
+  }
+
+  List<ElementAnnotation> _createElementAnnotations(
+      NodeList<Annotation> annotations) {
+    if (annotations.isEmpty) {
+      return ElementAnnotation.EMPTY_LIST;
+    }
+    return annotations.map((Annotation a) {
+      ElementAnnotationImpl elementAnnotation =
+      new ElementAnnotationImpl(_unitElement);
+      a.elementAnnotation = elementAnnotation;
+      return elementAnnotation;
+    }).toList();
+  }
+
+  FunctionBody _getFunctionBody(FormalParameter parameter) {
+    AstNode parent = parameter?.parent?.parent;
+    if (parent is ConstructorDeclaration) {
+      return parent.body;
+    } else if (parent is FunctionExpression) {
+      return parent.body;
+    } else if (parent is MethodDeclaration) {
+      return parent.body;
+    }
+    return null;
+  }
+}
+
 /**
  * Instances of the class `DirectiveElementBuilder` build elements for top
  * level library directives.

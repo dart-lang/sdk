@@ -468,6 +468,9 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
    */
   List<ClassElement> get types;
 
+  @Deprecated('(yury-yufimov): for internal use only')
+  bool get typesResolved;
+
   @override
   CompilationUnit computeNode();
 

@@ -228,6 +228,9 @@ class CompilationUnitElementHandle extends ElementHandle
   List<ClassElement> get types => actualElement.types;
 
   @override
+  bool get typesResolved => true;
+
+  @override
   String get uri => actualElement.uri;
 
   @override

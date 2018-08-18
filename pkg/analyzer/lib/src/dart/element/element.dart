@@ -1882,6 +1882,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
+  bool typesResolved;
+
+  @override
   bool operator ==(Object object) =>
       object is CompilationUnitElementImpl && source == object.source;
 

@@ -1069,6 +1069,12 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
       (element as CompilationUnitElementImpl).lineInfo = lineInfo;
     } else {
       new DeclarationResolver().resolve(unit, element);
+      // (yury-yufimov): Dirty fix for
+      // https://github.com/dart-lang/sdk/issues/33889
+      if (element.typesResolved != true) {
+        CompilationUnitFunctionTypeFixBuilder builder = new CompilationUnitFunctionTypeFixBuilder();
+        builder.fixFunctionTypes(unit);
+      }
     }
     //
     // Prepare constants.
@@ -5118,6 +5124,7 @@ class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
           typeProvider,
           AnalysisErrorListener.NULL_LISTENER));
     }
+    (unitElement as CompilationUnitElementImpl).typesResolved = true;
     //
     // Record outputs.
     //
