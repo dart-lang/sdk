@@ -469,9 +469,6 @@ IsolateReloadContext::~IsolateReloadContext() {
 }
 
 void IsolateReloadContext::ReportError(const Error& error) {
-  if (!FLAG_support_service || Isolate::IsVMInternalIsolate(I)) {
-    return;
-  }
   if (FLAG_trace_reload) {
     THR_Print("ISO-RELOAD: Error: %s\n", error.ToErrorCString());
   }
@@ -481,9 +478,6 @@ void IsolateReloadContext::ReportError(const Error& error) {
 }
 
 void IsolateReloadContext::ReportSuccess() {
-  if (!FLAG_support_service || Isolate::IsVMInternalIsolate(I)) {
-    return;
-  }
   ServiceEvent service_event(I, ServiceEvent::kIsolateReload);
   Service::HandleEvent(&service_event);
 }

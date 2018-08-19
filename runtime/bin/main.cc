@@ -459,7 +459,10 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
                                                 Dart_IsolateFlags* flags,
                                                 char** error,
                                                 int* exit_code) {
-  const char* kernel_snapshot_uri = dfe.frontend_filename();
+  const char* kernel_snapshot_uri = NULL;
+  if (Options::gen_snapshot_kind() != kAppJIT) {
+    kernel_snapshot_uri = dfe.frontend_filename();
+  }
   const char* uri =
       kernel_snapshot_uri != NULL ? kernel_snapshot_uri : script_uri;
 
@@ -470,19 +473,20 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
   Dart_Isolate isolate;
   IsolateData* isolate_data = NULL;
   bool isolate_run_app_snapshot = false;
-  AppSnapshot* app_snapshot = NULL;
-  // Kernel isolate uses an app snapshot or uses the dill file.
-  if ((kernel_snapshot_uri != NULL) &&
-      (app_snapshot = Snapshot::TryReadAppSnapshot(kernel_snapshot_uri)) !=
-          NULL) {
-    const uint8_t* isolate_snapshot_data = NULL;
-    const uint8_t* isolate_snapshot_instructions = NULL;
-    const uint8_t* ignore_vm_snapshot_data;
-    const uint8_t* ignore_vm_snapshot_instructions;
-    isolate_run_app_snapshot = true;
-    app_snapshot->SetBuffers(
-        &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
-        &isolate_snapshot_data, &isolate_snapshot_instructions);
+  if (kernel_snapshot_uri != NULL) {
+    // Kernel isolate uses an app snapshot or the core libraries snapshot.
+    const uint8_t* isolate_snapshot_data = core_isolate_snapshot_data;
+    const uint8_t* isolate_snapshot_instructions =
+        core_isolate_snapshot_instructions;
+    AppSnapshot* app_snapshot = Snapshot::TryReadAppSnapshot(uri);
+    if (app_snapshot != NULL) {
+      isolate_run_app_snapshot = true;
+      const uint8_t* ignore_vm_snapshot_data;
+      const uint8_t* ignore_vm_snapshot_instructions;
+      app_snapshot->SetBuffers(
+          &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
+          &isolate_snapshot_data, &isolate_snapshot_instructions);
+    }
     IsolateData* isolate_data =
         new IsolateData(uri, package_root, packages_config, app_snapshot);
     isolate = Dart_CreateIsolate(
@@ -1254,13 +1258,7 @@ void main(int argc, char** argv) {
                                       application_kernel_buffer_size);
     // Since we saw a dill file, it means we have to turn on all the
     // preview_dart_2 options.
-    if (Options::no_preview_dart_2()) {
-      Log::PrintErr(
-          "A kernel file is specified as the input, "
-          "--no-preview-dart-2 option is incompatible with it\n");
-      Platform::Exit(kErrorExitCode);
-    }
-    Options::dfe()->set_use_dfe();
+    Options::SetDart2Options(&vm_options);
   }
 #endif
 

@@ -833,8 +833,14 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
 
   int get timeoutMultiplier {
     var multiplier = 1;
-    if (_isDebug) multiplier *= 2;
+    if (_isDebug) multiplier *= 4;
     if (_isChecked) multiplier *= 2;
+
+    // The CL in 396c92e disabled running the kernel-isolate from app-jit
+    // snapshots if the VM is run with --snapshot-kind=app-jit. This made our
+    // app-jit tests run slower.
+    if (previewDart2) multiplier *= 2;
+
     return multiplier;
   }
 
