@@ -1158,9 +1158,11 @@ void FlowGraphCompiler::GenerateCallWithDeopt(TokenPosition token_pos,
 void FlowGraphCompiler::GenerateInstanceCall(intptr_t deopt_id,
                                              TokenPosition token_pos,
                                              LocationSummary* locs,
-                                             const ICData& ic_data_in) {
+                                             const ICData& ic_data_in,
+                                             Code::EntryKind entry_kind) {
   ICData& ic_data = ICData::ZoneHandle(ic_data_in.Original());
   if (FLAG_precompiled_mode) {
+    // TODO(#34162): Support unchecked entry-points in precompiled mode.
     ic_data = ic_data.AsUnaryClassChecks();
     EmitSwitchableInstanceCall(ic_data, deopt_id, token_pos, locs);
     return;
@@ -1174,12 +1176,12 @@ void FlowGraphCompiler::GenerateInstanceCall(intptr_t deopt_id,
       case 1:
         EmitOptimizedInstanceCall(
             *StubCode::OneArgOptimizedCheckInlineCache_entry(), ic_data,
-            deopt_id, token_pos, locs);
+            deopt_id, token_pos, locs, entry_kind);
         return;
       case 2:
         EmitOptimizedInstanceCall(
             *StubCode::TwoArgsOptimizedCheckInlineCache_entry(), ic_data,
-            deopt_id, token_pos, locs);
+            deopt_id, token_pos, locs, entry_kind);
         return;
       default:
         UNIMPLEMENTED();
@@ -1216,7 +1218,8 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
                                            ArgumentsInfo args_info,
                                            LocationSummary* locs,
                                            const ICData& ic_data_in,
-                                           ICData::RebindRule rebind_rule) {
+                                           ICData::RebindRule rebind_rule,
+                                           Code::EntryKind entry_kind) {
   const ICData& ic_data = ICData::ZoneHandle(ic_data_in.Original());
   const Array& arguments_descriptor = Array::ZoneHandle(
       zone(), ic_data.IsNull() ? args_info.ToArgumentsDescriptor()
@@ -1226,7 +1229,7 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
   if (is_optimizing()) {
     EmitOptimizedStaticCall(function, arguments_descriptor,
                             args_info.count_with_type_args, deopt_id, token_pos,
-                            locs);
+                            locs, entry_kind);
   } else {
     ICData& call_ic_data = ICData::ZoneHandle(zone(), ic_data.raw());
     if (call_ic_data.IsNull()) {
@@ -1809,7 +1812,8 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
     EmitTestAndCall(targets, original_call.function_name(), args_info,
                     deopt,  // No cid match.
                     &ok,    // Found cid.
-                    deopt_id, token_pos, locs, complete, total_ic_calls);
+                    deopt_id, token_pos, locs, complete, total_ic_calls,
+                    original_call.entry_kind());
     assembler()->Bind(&ok);
   } else {
     if (complete) {
@@ -1817,11 +1821,14 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
       EmitTestAndCall(targets, original_call.function_name(), args_info,
                       NULL,  // No cid match.
                       &ok,   // Found cid.
-                      deopt_id, token_pos, locs, true, total_ic_calls);
+                      deopt_id, token_pos, locs, true, total_ic_calls,
+                      original_call.entry_kind());
       assembler()->Bind(&ok);
     } else {
       const ICData& unary_checks = ICData::ZoneHandle(
           zone(), original_call.ic_data()->AsUnaryClassChecks());
+      // TODO(sjindel/entrypoints): Support skiping type checks on switchable
+      // calls.
       EmitSwitchableInstanceCall(unary_checks, deopt_id, token_pos, locs);
     }
   }
@@ -1837,7 +1844,8 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
                                         TokenPosition token_index,
                                         LocationSummary* locs,
                                         bool complete,
-                                        intptr_t total_ic_calls) {
+                                        intptr_t total_ic_calls,
+                                        Code::EntryKind entry_kind) {
   ASSERT(is_optimizing());
 
   const Array& arguments_descriptor =
@@ -1879,9 +1887,9 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.
     const Function& function = *targets.TargetAt(smi_case)->target;
-    GenerateStaticDartCall(deopt_id, token_index,
-                           *StubCode::CallStaticFunction_entry(),
-                           RawPcDescriptors::kOther, locs, function);
+    GenerateStaticDartCall(
+        deopt_id, token_index, *StubCode::CallStaticFunction_entry(),
+        RawPcDescriptors::kOther, locs, function, entry_kind);
     __ Drop(args_info.count_with_type_args);
     if (match_found != NULL) {
       __ Jump(match_found);
@@ -1930,9 +1938,9 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.
     const Function& function = *targets.TargetAt(i)->target;
-    GenerateStaticDartCall(deopt_id, token_index,
-                           *StubCode::CallStaticFunction_entry(),
-                           RawPcDescriptors::kOther, locs, function);
+    GenerateStaticDartCall(
+        deopt_id, token_index, *StubCode::CallStaticFunction_entry(),
+        RawPcDescriptors::kOther, locs, function, entry_kind);
     __ Drop(args_info.count_with_type_args);
     if (!is_last_check || add_megamorphic_call) {
       __ Jump(match_found);

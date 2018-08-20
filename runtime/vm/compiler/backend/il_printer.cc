@@ -517,6 +517,9 @@ void PolymorphicInstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   if (complete()) {
     f->Print(" COMPLETE");
   }
+  if (instance_call()->entry_kind() == Code::EntryKind::kUnchecked) {
+    f->Print(" using unchecked entrypoint");
+  }
 }
 
 void StrictCompareInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -559,6 +562,9 @@ void StaticCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     if (i > 0) f->Print(", ");
     PushArgumentAt(i)->value()->PrintTo(f);
+  }
+  if (entry_kind() == Code::EntryKind::kUnchecked) {
+    f->Print(", using unchecked entrypoint");
   }
 }
 

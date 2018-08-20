@@ -696,19 +696,28 @@ class Assembler : public ValueObject {
 
   void BranchLink(const StubEntry& stub_entry,
                   Patchability patchable = kNotPatchable);
-  void BranchLink(const Code& code, Patchability patchable);
+  void BranchLink(const Code& code,
+                  Patchability patchable,
+                  Code::EntryKind entry_kind = Code::EntryKind::kNormal);
   void BranchLinkToRuntime();
 
   void CallNullErrorShared(bool save_fpu_registers);
 
   // Branch and link to an entry address. Call sequence can be patched.
-  void BranchLinkPatchable(const StubEntry& stub_entry);
-  void BranchLinkPatchable(const Code& code);
+  void BranchLinkPatchable(
+      const StubEntry& stub_entry,
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
+
+  void BranchLinkPatchable(
+      const Code& code,
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
-  void BranchLinkWithEquivalence(const StubEntry& stub_entry,
-                                 const Object& equivalence);
+  void BranchLinkWithEquivalence(
+      const StubEntry& stub_entry,
+      const Object& equivalence,
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   // Branch and link to [base + offset]. Call sequence is never patched.
   void BranchLinkOffset(Register base, int32_t offset);

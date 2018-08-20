@@ -2460,7 +2460,9 @@ void Assembler::Branch(const StubEntry& stub_entry,
   bx(IP, cond);
 }
 
-void Assembler::BranchLink(const Code& target, Patchability patchable) {
+void Assembler::BranchLink(const Code& target,
+                           Patchability patchable,
+                           Code::EntryKind entry_kind) {
   // Make sure that class CallPattern is able to patch the label referred
   // to by this code sequence.
   // For added code robustness, use 'blx lr' in a patchable sequence and
@@ -2468,7 +2470,7 @@ void Assembler::BranchLink(const Code& target, Patchability patchable) {
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindObject(target, patchable));
   LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag, PP, AL);
-  ldr(LR, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  ldr(LR, FieldAddress(CODE_REG, Code::entry_point_offset(entry_kind)));
   blx(LR);  // Use blx instruction so that the return branch prediction works.
 }
 
@@ -2478,8 +2480,9 @@ void Assembler::BranchLink(const StubEntry& stub_entry,
   BranchLink(code, patchable);
 }
 
-void Assembler::BranchLinkPatchable(const Code& target) {
-  BranchLink(target, kPatchable);
+void Assembler::BranchLinkPatchable(const Code& target,
+                                    Code::EntryKind entry_kind) {
+  BranchLink(target, kPatchable, entry_kind);
 }
 
 void Assembler::BranchLinkToRuntime() {
@@ -2498,7 +2501,8 @@ void Assembler::CallNullErrorShared(bool save_fpu_registers) {
 }
 
 void Assembler::BranchLinkWithEquivalence(const StubEntry& stub_entry,
-                                          const Object& equivalence) {
+                                          const Object& equivalence,
+                                          Code::EntryKind entry_kind) {
   const Code& target = Code::ZoneHandle(stub_entry.code());
   // Make sure that class CallPattern is able to patch the label referred
   // to by this code sequence.
@@ -2507,7 +2511,7 @@ void Assembler::BranchLinkWithEquivalence(const StubEntry& stub_entry,
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindObject(target, equivalence));
   LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag, PP, AL);
-  ldr(LR, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  ldr(LR, FieldAddress(CODE_REG, Code::entry_point_offset(entry_kind)));
   blx(LR);  // Use blx instruction so that the return branch prediction works.
 }
 
@@ -2516,8 +2520,9 @@ void Assembler::BranchLink(const ExternalLabel* label) {
   blx(LR);  // Use blx instruction so that the return branch prediction works.
 }
 
-void Assembler::BranchLinkPatchable(const StubEntry& stub_entry) {
-  BranchLinkPatchable(Code::ZoneHandle(stub_entry.code()));
+void Assembler::BranchLinkPatchable(const StubEntry& stub_entry,
+                                    Code::EntryKind entry_kind) {
+  BranchLinkPatchable(Code::ZoneHandle(stub_entry.code()), entry_kind);
 }
 
 void Assembler::BranchLinkOffset(Register base, int32_t offset) {

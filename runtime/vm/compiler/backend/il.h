@@ -3360,6 +3360,10 @@ class InstanceCallInstr : public TemplateDartCall<0> {
 
   RawFunction* ResolveForReceiverClass(const Class& cls, bool allow_add = true);
 
+  Code::EntryKind entry_kind() const { return entry_kind_; }
+
+  void set_entry_kind(Code::EntryKind value) { entry_kind_ = value; }
+
  protected:
   friend class CallSpecializer;
   void set_ic_data(ICData* value) { ic_data_ = value; }
@@ -3372,6 +3376,7 @@ class InstanceCallInstr : public TemplateDartCall<0> {
   const Function& interface_target_;
   CompileType* result_type_;  // Inferred result type.
   bool has_unique_selector_;
+  Code::EntryKind entry_kind_ = Code::EntryKind::kNormal;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceCallInstr);
 };
@@ -3860,6 +3865,10 @@ class StaticCallInstr : public TemplateDartCall<0> {
     is_known_list_constructor_ = value;
   }
 
+  Code::EntryKind entry_kind() const { return entry_kind_; }
+
+  void set_entry_kind(Code::EntryKind value) { entry_kind_ = value; }
+
   bool IsRecognizedFactory() const { return is_known_list_constructor(); }
 
   virtual AliasIdentity Identity() const { return identity_; }
@@ -3876,6 +3885,8 @@ class StaticCallInstr : public TemplateDartCall<0> {
 
   // 'True' for recognized list constructors.
   bool is_known_list_constructor_;
+
+  Code::EntryKind entry_kind_ = Code::EntryKind::kNormal;
 
   AliasIdentity identity_;
 

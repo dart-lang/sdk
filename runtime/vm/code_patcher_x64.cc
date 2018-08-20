@@ -39,10 +39,10 @@ class UnoptimizedCall : public ValueObject {
 
   bool IsValid() const {
     static int16_t pattern[kCallPatternSize] = {
-        0x49, 0x8b, 0x9f, -1,   -1,   -1, -1,  // movq RBX, [PP + offs]
-        0x4d, 0x8b, 0xa7, -1,   -1,   -1, -1,  // movq CR, [PP + offs]
-        0x4d, 0x8b, 0x5c, 0x24, 0x07,  // movq TMP, [CR + entry_point_offs]
-        0x41, 0xff, 0xd3               // callq TMP
+        0x49, 0x8b, 0x9f, -1,   -1, -1, -1,  // movq RBX, [PP + offs]
+        0x4d, 0x8b, 0xa7, -1,   -1, -1, -1,  // movq CR, [PP + offs]
+        0x4d, 0x8b, 0x5c, 0x24, -1,  // movq TMP, [CR + entry_point_offs]
+        0x41, 0xff, 0xd3             // callq TMP
     };
     return MatchesPattern(start_, pattern, kCallPatternSize);
   }
@@ -134,9 +134,9 @@ class PoolPointerCall : public ValueObject {
 
   bool IsValid() const {
     static int16_t pattern[kCallPatternSize] = {
-        0x4d, 0x8b, 0xa7, -1,   -1,   -1, -1,  // movq CR, [PP + offs]
-        0x4d, 0x8b, 0x5c, 0x24, 0x07,  // movq TMP, [CR + entry_point_off]
-        0x41, 0xff, 0xd3               // callq TMP
+        0x4d, 0x8b, 0xa7, -1,   -1, -1, -1,  // movq CR, [PP + offs]
+        0x4d, 0x8b, 0x5c, 0x24, -1,          // movq TMP, [CR + entry_point_off]
+        0x41, 0xff, 0xd3                     // callq TMP
     };
     return MatchesPattern(start_, pattern, kCallPatternSize);
   }

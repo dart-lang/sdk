@@ -462,31 +462,39 @@ class FlowGraphCompiler : public ValueObject {
                         TokenPosition token_pos,
                         const StubEntry& stub_entry,
                         RawPcDescriptors::Kind kind,
-                        LocationSummary* locs);
-  void GenerateStaticDartCall(intptr_t deopt_id,
-                              TokenPosition token_pos,
-                              const StubEntry& stub_entry,
-                              RawPcDescriptors::Kind kind,
-                              LocationSummary* locs,
-                              const Function& target);
+                        LocationSummary* locs,
+                        Code::EntryKind entry_kind = Code::EntryKind::kNormal);
+
+  void GenerateStaticDartCall(
+      intptr_t deopt_id,
+      TokenPosition token_pos,
+      const StubEntry& stub_entry,
+      RawPcDescriptors::Kind kind,
+      LocationSummary* locs,
+      const Function& target,
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   void GenerateInstanceOf(TokenPosition token_pos,
                           intptr_t deopt_id,
                           const AbstractType& type,
                           LocationSummary* locs);
 
-  void GenerateInstanceCall(intptr_t deopt_id,
-                            TokenPosition token_pos,
-                            LocationSummary* locs,
-                            const ICData& ic_data);
+  void GenerateInstanceCall(
+      intptr_t deopt_id,
+      TokenPosition token_pos,
+      LocationSummary* locs,
+      const ICData& ic_data,
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
-  void GenerateStaticCall(intptr_t deopt_id,
-                          TokenPosition token_pos,
-                          const Function& function,
-                          ArgumentsInfo args_info,
-                          LocationSummary* locs,
-                          const ICData& ic_data_in,
-                          ICData::RebindRule rebind_rule);
+  void GenerateStaticCall(
+      intptr_t deopt_id,
+      TokenPosition token_pos,
+      const Function& function,
+      ArgumentsInfo args_info,
+      LocationSummary* locs,
+      const ICData& ic_data_in,
+      ICData::RebindRule rebind_rule,
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   void GenerateNumberTypeCheck(Register kClassIdReg,
                                const AbstractType& type,
@@ -519,11 +527,13 @@ class FlowGraphCompiler : public ValueObject {
                                      Label* outside_range_lbl = NULL,
                                      bool fall_through_if_inside = false);
 
-  void EmitOptimizedInstanceCall(const StubEntry& stub_entry,
-                                 const ICData& ic_data,
-                                 intptr_t deopt_id,
-                                 TokenPosition token_pos,
-                                 LocationSummary* locs);
+  void EmitOptimizedInstanceCall(
+      const StubEntry& stub_entry,
+      const ICData& ic_data,
+      intptr_t deopt_id,
+      TokenPosition token_pos,
+      LocationSummary* locs,
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   void EmitInstanceCall(const StubEntry& stub_entry,
                         const ICData& ic_data,
@@ -564,7 +574,8 @@ class FlowGraphCompiler : public ValueObject {
                        TokenPosition token_index,
                        LocationSummary* locs,
                        bool complete,
-                       intptr_t total_ic_calls);
+                       intptr_t total_ic_calls,
+                       Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   Condition EmitEqualityRegConstCompare(Register reg,
                                         const Object& obj,
@@ -770,12 +781,14 @@ class FlowGraphCompiler : public ValueObject {
   // Emit code to load a Value into register 'dst'.
   void LoadValue(Register dst, Value* value);
 
-  void EmitOptimizedStaticCall(const Function& function,
-                               const Array& arguments_descriptor,
-                               intptr_t count_with_type_args,
-                               intptr_t deopt_id,
-                               TokenPosition token_pos,
-                               LocationSummary* locs);
+  void EmitOptimizedStaticCall(
+      const Function& function,
+      const Array& arguments_descriptor,
+      intptr_t count_with_type_args,
+      intptr_t deopt_id,
+      TokenPosition token_pos,
+      LocationSummary* locs,
+      Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
   void EmitUnoptimizedStaticCall(intptr_t count_with_type_args,
                                  intptr_t deopt_id,

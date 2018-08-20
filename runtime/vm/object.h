@@ -4971,14 +4971,23 @@ class Code : public Object {
     return OFFSET_OF(RawCode, instructions_);
   }
 
-  static intptr_t entry_point_offset() {
-    return OFFSET_OF(RawCode, entry_point_);
-  }
-  static intptr_t monomorphic_entry_point_offset() {
-    return OFFSET_OF(RawCode, monomorphic_entry_point_);
-  }
-  static intptr_t unchecked_entry_point_offset() {
-    return OFFSET_OF(RawCode, unchecked_entry_point_);
+  enum class EntryKind {
+    kNormal,
+    kUnchecked,
+    kMonomorphic,
+  };
+
+  static intptr_t entry_point_offset(EntryKind kind = EntryKind::kNormal) {
+    switch (kind) {
+      case EntryKind::kNormal:
+        return OFFSET_OF(RawCode, entry_point_);
+      case EntryKind::kUnchecked:
+        return OFFSET_OF(RawCode, unchecked_entry_point_);
+      case EntryKind::kMonomorphic:
+        return OFFSET_OF(RawCode, monomorphic_entry_point_);
+      default:
+        UNREACHABLE();
+    }
   }
 
   RawObjectPool* object_pool() const { return raw_ptr()->object_pool_; }
