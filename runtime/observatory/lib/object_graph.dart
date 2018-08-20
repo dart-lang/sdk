@@ -452,7 +452,7 @@ class ObjectGraph {
         new List<ObjectVertex>.from(vertices.where((u) => !u.isRoot));
     _mostRetained.sort((u, v) => v.retainedSize - u.retainedSize);
 
-    var result = _mostRetained;
+    Iterable<ObjectVertex> result = _mostRetained;
     if (classId != null) {
       result = result.where((u) => u.vmCid == classId);
     }
