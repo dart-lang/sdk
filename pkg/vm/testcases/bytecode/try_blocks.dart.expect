@@ -14,6 +14,7 @@ Try #0 start:
   Jump                 L1
 Try #0 end:
 Try #0 handler:
+  SetFrame             4
   MoveSpecial          r0, exception
   MoveSpecial          r1, stackTrace
   Push                 r0
@@ -76,6 +77,7 @@ Try #0 start:
   Jump                 L1
 Try #0 end:
 Try #0 handler:
+  SetFrame             5
   MoveSpecial          r0, exception
   MoveSpecial          r1, stackTrace
   Push                 r0
@@ -303,6 +305,7 @@ Try #0 start:
   Jump                 L1
 Try #0 end:
 Try #0 handler:
+  SetFrame             7
   Push                 r2
   PopLocal             r0
   MoveSpecial          r2, exception
@@ -439,6 +442,7 @@ Try #0 start:
   Jump                 L1
 Try #0 end:
 Try #0 handler:
+  SetFrame             6
   Push                 r2
   PopLocal             r0
   MoveSpecial          r2, exception
@@ -477,6 +481,7 @@ Try #0 start:
   Jump                 L1
 Try #0 end:
 Try #0 handler:
+  SetFrame             6
   Push                 r2
   PopLocal             r0
   MoveSpecial          r2, exception
@@ -569,6 +574,7 @@ Try #1 start:
   Jump                 L1
 Try #1 end:
 Try #1 handler:
+  SetFrame             8
   MoveSpecial          r2, exception
   MoveSpecial          r3, stackTrace
   Push                 r2
@@ -591,6 +597,7 @@ L2:
   Jump                 L3
 Try #2 end:
 Try #2 handler:
+  SetFrame             8
   MoveSpecial          r5, exception
   MoveSpecial          r6, stackTrace
   Push                 r5
@@ -606,6 +613,7 @@ L1:
   Jump                 L4
 Try #0 end:
 Try #0 handler:
+  SetFrame             8
   MoveSpecial          r0, exception
   MoveSpecial          r1, stackTrace
   Push                 r0
@@ -626,9 +634,9 @@ L4:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 2, end 36, handler 36, needs-stack-trace, types [CP#3]
+  try-index 0, outer -1, start 2, end 38, handler 38, needs-stack-trace, types [CP#3]
   try-index 1, outer 0, start 2, end 7, handler 7, needs-stack-trace, types [CP#3]
-  try-index 2, outer 0, start 11, end 25, handler 25, types [CP#3]
+  try-index 2, outer 0, start 12, end 26, handler 26, types [CP#3]
 }
 ConstantPool {
   [0] = String 'try 1 > try 2'
@@ -695,6 +703,7 @@ L2:
   Jump                 L4
 Try #0 end:
 Try #0 handler:
+  SetFrame             3
   MoveSpecial          r1, exception
   MoveSpecial          r2, stackTrace
   Push                 r0
@@ -832,6 +841,7 @@ Try #1 start:
   Jump                 L5
 Try #1 end:
 Try #1 handler:
+  SetFrame             9
   Push                 r5
   PopLocal             r0
   MoveSpecial          r5, exception
@@ -868,6 +878,7 @@ L5:
   Jump                 L7
 Try #0 end:
 Try #0 handler:
+  SetFrame             9
   Push                 r3
   PopLocal             r0
   MoveSpecial          r3, exception
@@ -906,7 +917,7 @@ L3:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 25, end 99, handler 99, needs-stack-trace, types [CP#30]
+  try-index 0, outer -1, start 25, end 100, handler 100, needs-stack-trace, types [CP#30]
   try-index 1, outer 0, start 40, end 67, handler 67, needs-stack-trace, types [CP#30]
 }
 ConstantPool {
@@ -1050,6 +1061,7 @@ Try #0 start:
   Jump                 L1
 Try #0 end:
 Try #0 handler:
+  SetFrame             6
   Push                 r3
   PopLocal             r0
   MoveSpecial          r3, exception
@@ -1083,7 +1095,7 @@ L1:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 15, end 34, handler 34, needs-stack-trace, types [CP#10]
+  try-index 0, outer -1, start 15, end 34, handler 34, needs-stack-trace, types [CP#9]
 }
 ConstantPool {
   [0] = Int 11
@@ -1095,18 +1107,18 @@ ConstantPool {
   [6] = StaticICData target 'dart.core::print', arg-desc CP#5
   [7] = String 'try 1'
   [8] = StaticICData target 'dart.core::print', arg-desc CP#5
-  [9] = Int 42
-  [10] = Type dynamic
-  [11] = String 'try 2'
+  [9] = Type dynamic
+  [10] = String 'try 2'
+  [11] = StaticICData target 'dart.core::print', arg-desc CP#5
   [12] = StaticICData target 'dart.core::print', arg-desc CP#5
-  [13] = Int 43
-  [14] = StaticICData target 'dart.core::print', arg-desc CP#5
+  [13] = StaticICData target 'dart.core::print', arg-desc CP#5
+  [14] = Int 43
   [15] = StaticICData target 'dart.core::print', arg-desc CP#5
   [16] = StaticICData target 'dart.core::print', arg-desc CP#5
   [17] = StaticICData target 'dart.core::print', arg-desc CP#5
   [18] = StaticICData target 'dart.core::print', arg-desc CP#5
   [19] = StaticICData target 'dart.core::print', arg-desc CP#5
-  [20] = StaticICData target 'dart.core::print', arg-desc CP#5
+  [20] = Int 42
   [21] = StaticICData target 'dart.core::print', arg-desc CP#5
   [22] = StaticICData target 'dart.core::print', arg-desc CP#5
   [23] = StaticICData target 'dart.core::print', arg-desc CP#5
@@ -1145,11 +1157,11 @@ Try #0 start:
   PushConstant         CP#8
   IndirectStaticCall   1, CP#5
   Drop1
-  PushConstant         CP#9
   Jump                 L1
   Jump                 L2
 Try #0 end:
 Try #0 handler:
+  SetFrame             6
   Push                 r2
   PopLocal             r0
   MoveSpecial          r2, exception
@@ -1157,22 +1169,22 @@ Try #0 handler:
   Push                 r0
   PopLocal             r4
 Try #1 start:
+  PushConstant         CP#10
   PushConstant         CP#11
-  PushConstant         CP#12
   IndirectStaticCall   1, CP#5
   Drop1
-  PushConstant         CP#13
   Jump                 L3
   Jump                 L4
 Try #1 end:
 Try #1 handler:
+  SetFrame             6
   Push                 r4
   PopLocal             r0
   MoveSpecial          r4, exception
   MoveSpecial          r5, stackTrace
   Push                 r0
   LoadContextVar       0
-  PushConstant         CP#14
+  PushConstant         CP#12
   IndirectStaticCall   1, CP#5
   Drop1
   Push                 r4
@@ -1183,16 +1195,17 @@ L3:
   PopLocal             r0
   Push                 r0
   LoadContextVar       0
-  PushConstant         CP#15
+  PushConstant         CP#13
   IndirectStaticCall   1, CP#5
   Drop1
+  PushConstant         CP#14
   ReturnTOS
 L4:
   Push                 r4
   PopLocal             r0
   Push                 r0
   LoadContextVar       0
-  PushConstant         CP#16
+  PushConstant         CP#15
   IndirectStaticCall   1, CP#5
   Drop1
   Push                 r2
@@ -1204,22 +1217,22 @@ L1:
   Push                 r0
   PopLocal             r4
 Try #2 start:
-  PushConstant         CP#11
-  PushConstant         CP#17
+  PushConstant         CP#10
+  PushConstant         CP#16
   IndirectStaticCall   1, CP#5
   Drop1
-  PushConstant         CP#13
   Jump                 L5
   Jump                 L6
 Try #2 end:
 Try #2 handler:
+  SetFrame             6
   Push                 r4
   PopLocal             r0
   MoveSpecial          r4, exception
   MoveSpecial          r5, stackTrace
   Push                 r0
   LoadContextVar       0
-  PushConstant         CP#18
+  PushConstant         CP#17
   IndirectStaticCall   1, CP#5
   Drop1
   Push                 r4
@@ -1230,18 +1243,20 @@ L5:
   PopLocal             r0
   Push                 r0
   LoadContextVar       0
-  PushConstant         CP#19
+  PushConstant         CP#18
   IndirectStaticCall   1, CP#5
   Drop1
+  PushConstant         CP#14
   ReturnTOS
 L6:
   Push                 r4
   PopLocal             r0
   Push                 r0
   LoadContextVar       0
-  PushConstant         CP#20
+  PushConstant         CP#19
   IndirectStaticCall   1, CP#5
   Drop1
+  PushConstant         CP#20
   ReturnTOS
 L2:
   Push                 r2
@@ -1249,15 +1264,15 @@ L2:
   Push                 r0
   PopLocal             r4
 Try #3 start:
-  PushConstant         CP#11
+  PushConstant         CP#10
   PushConstant         CP#21
   IndirectStaticCall   1, CP#5
   Drop1
-  PushConstant         CP#13
   Jump                 L7
   Jump                 L8
 Try #3 end:
 Try #3 handler:
+  SetFrame             6
   Push                 r4
   PopLocal             r0
   MoveSpecial          r4, exception
@@ -1278,6 +1293,7 @@ L7:
   PushConstant         CP#23
   IndirectStaticCall   1, CP#5
   Drop1
+  PushConstant         CP#14
   ReturnTOS
 L8:
   Push                 r4
@@ -1330,6 +1346,7 @@ Try #1 start:
   Jump                 L1
 Try #1 end:
 Try #1 handler:
+  SetFrame             5
   MoveSpecial          r2, exception
   MoveSpecial          r3, stackTrace
   Push                 r2
@@ -1343,6 +1360,7 @@ L1:
   Jump                 L2
 Try #0 end:
 Try #0 handler:
+  SetFrame             5
   MoveSpecial          r0, exception
   MoveSpecial          r1, stackTrace
   PushConstant         CP#6
@@ -1361,7 +1379,7 @@ L2:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 2, end 17, handler 17, needs-stack-trace, types [CP#3]
+  try-index 0, outer -1, start 2, end 18, handler 18, needs-stack-trace, types [CP#3]
   try-index 1, outer 0, start 2, end 7, handler 7, types [CP#3]
 }
 ConstantPool {

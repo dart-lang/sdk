@@ -127,6 +127,7 @@ L2:
   Jump                 L3
 Try #0 end:
 Try #0 handler:
+  SetFrame             10
   Push                 r0
   LoadFieldTOS         CP#1
   PopLocal             r4
@@ -435,6 +436,7 @@ L2:
   Jump                 L3
 Try #0 end:
 Try #0 handler:
+  SetFrame             10
   Push                 r6
   PopLocal             r4
   MoveSpecial          r6, exception
@@ -717,6 +719,7 @@ L4:
   Jump                 L5
 Try #0 end:
 Try #0 handler:
+  SetFrame             10
   Push                 r0
   LoadFieldTOS         CP#6
   PopLocal             r4
@@ -1178,6 +1181,7 @@ L9:
   Jump                 L10
 Try #0 end:
 Try #0 handler:
+  SetFrame             11
   Push                 r0
   LoadFieldTOS         CP#6
   PopLocal             r4
@@ -1505,6 +1509,7 @@ L2:
   Jump                 L3
 Try #2 end:
 Try #2 handler:
+  SetFrame             14
   Push                 r0
   LoadFieldTOS         CP#6
   PopLocal             r4
@@ -1620,6 +1625,7 @@ L3:
   Jump                 L7
 Try #1 end:
 Try #1 handler:
+  SetFrame             14
   Push                 r0
   LoadFieldTOS         CP#6
   PopLocal             r4
@@ -1851,6 +1857,7 @@ L9:
   Jump                 L12
 Try #0 end:
 Try #0 handler:
+  SetFrame             14
   Push                 r0
   LoadFieldTOS         CP#6
   PopLocal             r4
@@ -2131,6 +2138,7 @@ L2:
   Jump                 L4
 Try #1 end:
 Try #1 handler:
+  SetFrame             12
   Push                 r0
   LoadFieldTOS         CP#2
   PopLocal             r4
@@ -2188,6 +2196,7 @@ L5:
   Jump                 L6
 Try #0 end:
 Try #0 handler:
+  SetFrame             12
   Push                 r0
   LoadFieldTOS         CP#2
   PopLocal             r4
@@ -2565,6 +2574,7 @@ L4:
   Jump                 L5
 Try #0 end:
 Try #0 handler:
+  SetFrame             10
   Push                 r0
   LoadFieldTOS         CP#6
   PopLocal             r4

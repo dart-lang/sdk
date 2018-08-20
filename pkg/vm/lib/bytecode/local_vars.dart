@@ -88,6 +88,9 @@ class LocalVariables {
           .scratchVar ??
       (throw 'Scratch variable is not declared in ${_currentFrame.function}'));
 
+  int get returnVarIndexInFrame => getVarIndexInFrame(_currentFrame.returnVar ??
+      (throw 'Return variable is not declared in ${_currentFrame.function}'));
+
   int get functionTypeArgsVarIndexInFrame => getVarIndexInFrame(_currentFrame
           .functionTypeArgsVar ??
       (throw 'FunctionTypeArgs variable is not declared in ${_currentFrame.function}'));
@@ -201,6 +204,7 @@ class VarDesc {
 class Frame {
   final TreeNode function;
   final Frame parent;
+  Scope topScope;
 
   int numParameters = 0;
   int numTypeArguments = 0;
@@ -215,6 +219,7 @@ class Frame {
   VariableDeclaration closureVar;
   VariableDeclaration contextVar;
   VariableDeclaration scratchVar;
+  VariableDeclaration returnVar;
   Map<String, VariableDeclaration> syntheticVars;
   int frameSize = 0;
   List<int> temporaries = <int>[];
@@ -360,6 +365,7 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
   _enterFrame(TreeNode node) {
     _currentFrame = new Frame(node, _currentFrame);
     _enterScope(node);
+    _currentFrame.topScope = _currentScope;
   }
 
   _leaveFrame() {
@@ -377,8 +383,11 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
     _currentScope = _currentScope.parent;
   }
 
-  void _declareVariable(VariableDeclaration variable) {
-    final VarDesc v = new VarDesc(variable, _currentScope);
+  void _declareVariable(VariableDeclaration variable, [Scope scope]) {
+    if (scope == null) {
+      scope = _currentScope;
+    }
+    final VarDesc v = new VarDesc(variable, scope);
     assert(locals._vars[variable] == null);
     locals._vars[variable] = v;
   }
@@ -408,6 +417,7 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
         _currentFrame.closureVar,
         _currentFrame.contextVar,
         _currentFrame.scratchVar,
+        _currentFrame.returnVar,
       ]);
     transient.addAll((_currentFrame.function as FunctionDeclaration)
         .function
@@ -617,6 +627,22 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
     node.finalizer?.accept(this);
     _enclosingTryCatches.removeLast();
   }
+
+  @override
+  visitReturnStatement(ReturnStatement node) {
+    // If returning from within a try-finally block, need to allocate
+    // an extra variable to hold a return value.
+    // Return value can't be kept on the stack as try-catch statements
+    // inside finally can zap expression stack.
+    // Literals (including implicit 'null' in 'return;') do not require
+    // an extra variable as they can be generated after all finally blocks.
+    if (_enclosingTryBlocks.isNotEmpty &&
+        (node.expression != null && node.expression is! BasicLiteral)) {
+      _currentFrame.returnVar = new VariableDeclaration(':return');
+      _declareVariable(_currentFrame.returnVar, _currentFrame.topScope);
+    }
+    node.visitChildren(this);
+  }
 }
 
 class _Allocator extends RecursiveVisitor<Null> {
@@ -802,6 +828,7 @@ class _Allocator extends RecursiveVisitor<Null> {
     _ensureVariableAllocated(_currentFrame.functionTypeArgsVar);
     _ensureVariableAllocated(_currentFrame.contextVar);
     _ensureVariableAllocated(_currentFrame.scratchVar);
+    _ensureVariableAllocated(_currentFrame.returnVar);
   }
 
   void _visitFunction(TreeNode node) {

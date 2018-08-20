@@ -1087,15 +1087,12 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
   }
 
-  /// Generates non-local transfer from inner node [from] into the outer
-  /// node, executing finally blocks on the way out. [to] can be null,
-  /// in such case all enclosing finally blocks are executed.
+  /// Appends chained [FinallyBlock]s to each try-finally in the given
+  /// list [tryFinallyBlocks] (ordered from inner to outer).
   /// [continuation] is invoked to generate control transfer code following
   /// the last finally block.
-  void _generateNonLocalControlTransfer(
-      TreeNode from, TreeNode to, GenerateContinuation continuation) {
-    List<TryFinally> tryFinallyBlocks = _getEnclosingTryFinallyBlocks(from, to);
-
+  void _addFinallyBlocks(
+      List<TryFinally> tryFinallyBlocks, GenerateContinuation continuation) {
     // Add finally blocks to all try-finally from outer to inner.
     // The outermost finally block should generate continuation, each inner
     // finally block should proceed to a corresponding outer block.
@@ -1112,6 +1109,17 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     // Generate jump to the innermost finally (or to the original
     // continuation if there are no try-finally blocks).
     continuation();
+  }
+
+  /// Generates non-local transfer from inner node [from] into the outer
+  /// node, executing finally blocks on the way out. [to] can be null,
+  /// in such case all enclosing finally blocks are executed.
+  /// [continuation] is invoked to generate control transfer code following
+  /// the last finally block.
+  void _generateNonLocalControlTransfer(
+      TreeNode from, TreeNode to, GenerateContinuation continuation) {
+    List<TryFinally> tryFinallyBlocks = _getEnclosingTryFinallyBlocks(from, to);
+    _addFinallyBlocks(tryFinallyBlocks, continuation);
   }
 
   // For certain expressions wrapped into ExpressionStatement we can
@@ -2057,17 +2065,31 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitReturnStatement(ReturnStatement node) {
-    if (node.expression != null) {
-      node.expression.accept(this);
-    } else {
-      _genPushNull();
-    }
+    final expr = node.expression ?? new NullLiteral();
 
-    // TODO(alexmarkov): Do we need to save return value
-    // to a variable?
-    _generateNonLocalControlTransfer(node, null, () {
+    final List<TryFinally> tryFinallyBlocks =
+        _getEnclosingTryFinallyBlocks(node, null);
+    if (tryFinallyBlocks.isEmpty) {
+      expr.accept(this);
       asm.emitReturnTOS();
-    });
+    } else {
+      if (expr is BasicLiteral) {
+        _addFinallyBlocks(tryFinallyBlocks, () {
+          expr.accept(this);
+          asm.emitReturnTOS();
+        });
+      } else {
+        // Keep return value in a variable as try-catch statements
+        // inside finally can zap expression stack.
+        node.expression.accept(this);
+        asm.emitPopLocal(locals.returnVarIndexInFrame);
+
+        _addFinallyBlocks(tryFinallyBlocks, () {
+          asm.emitPush(locals.returnVarIndexInFrame);
+          asm.emitReturnTOS();
+        });
+      }
+    }
   }
 
   @override
@@ -2195,8 +2217,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     tryBlock.endPC = asm.offsetInWords;
     tryBlock.handlerPC = asm.offsetInWords;
 
-    // TODO(alexmarkov): Consider emitting SetFrame to cut expression stack.
-    // In such case, we need to save return value to a variable in visitReturn.
+    asm.emitSetFrame(locals.frameSize);
 
     _restoreContextForTryBlock(node);
 
