@@ -73,6 +73,8 @@
 % - It is no longer an error for a getter to have return type `void`.
 % - Specify that each redirection of a constructor is checked, statically and
 %   dynamically.
+% - Specify that it is an error for a superinitializer to occur anywhere else
+%   than at the end of an initializer list.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -1832,6 +1834,7 @@ Let $k$ be a generative constructor.
 Then $k$ may include at most one superinitializer in its initializer list or a compile-time error occurs.
 If no superinitializer is provided, an implicit superinitializer of the form \SUPER{}() is added at the end of $k$'s initializer list,
 unless the enclosing class is class \code{Object}.
+It is a compile-time error if a superinitializer appears in $k$'s initializer list at any other position than at the end.
 It is a compile-time error if more than one initializer corresponding to a given instance variable appears in $k$'s initializer list.
 It is a compile-time error if $k$'s initializer list contains an initializer for a variable that is initialized by means of an initializing formal of $k$.
 It is a compile-time error if $k$'s initializer list contains an initializer for a final variable $f$ whose declaration includes an initialization expression.
@@ -1907,15 +1910,6 @@ Then, unless the enclosing class is \code{Object}, the explicitly specified or
 implicitly added superinitializer (\ref{initializerLists}) is executed to
 further initialize $i$.
 
-\commentary{
-The super constructor call can be written anywhere
-in the initializer list of $k$,
-but the actual call always happens after all initializers have been processed.
-It is not equivalent to moving the super call to the end of the initializer list
-because the argument expressions may have visible side effects
-which must happen in the order the expressions occur in the program text.
-}
-
 \LMHash{}
 After the superinitializer has completed, the body of $k$ is executed in a scope where \THIS{} is bound to $i$.
 
@@ -1957,18 +1951,18 @@ First, the argument list
 is evaluated.
 
 \LMHash{}
-Then, after the remainder of the initializer list of $k$ has been executed,
-the superconstructor is executed as follows:
+Then the superconstructor is executed as follows:
 
 \LMHash{}
 Let $C$ be the class in which the superinitializer appears and let $S$ be the superclass of $C$.
-If $S$ is generic (\ref{generics}), let $U_1, \ldots, U_m$ be the actual type arguments passed to $S$ in the superclass clause of $C$.
+If $S$ is generic (\ref{generics}), let $U_1, \ldots, U_p$ be the actual type arguments passed to $S$,
+obtained by substituting $V_1, \ldots, V_m$ for the formal parameters in the superclass clause of $C$.
 
 \LMHash{}
 The generative constructor $S$ (respectively \code{$S$.\id}) of $S$ is executed
 to initialize $i$ with respect to the bindings that resulted from the evaluation of
 \code{($a_1, \ldots,\ a_n,\ x_{n+1}$: $a_{n+1}, \ldots,\ x_{n+k}$: $a_{n+k}$)},
-and the type parameters (if any) of class $S$ bound to $U_1, \ldots, U_m$.
+and the type parameters (if any) of class $S$ bound to $U_1, \ldots, U_p$.
 
 \LMHash{}
 It is a compile-time error if class $S$ does not declare a generative constructor named $S$ (respectively \code{$S$.\id}).
