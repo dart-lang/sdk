@@ -475,7 +475,16 @@ class Driver implements ServerStarter {
           // ignore any exception
         }
 
-        exit(exitCode);
+        if (exitCode == 0 && analysisServerOptions.useCFE == false) {
+          // And then run everything again with CFE to train both frontends.
+          print('Analyzing again with CFE.');
+          List<String> args = new List<String>.from(arguments);
+          args.add("--use-cfe");
+          ServerStarter starter = new ServerStarter();
+          starter.start(args);
+        } else {
+          exit(exitCode);
+        }
       }();
     } else {
       _captureExceptions(instrumentationService, () {
