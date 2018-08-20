@@ -249,6 +249,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       _allocateInvocationMirror ??= libraryIndex.getMember(
           'dart:core', '_InvocationMirror', '_allocateInvocationMirror');
 
+  Procedure _unsafeCast;
+  Procedure get unsafeCast => _unsafeCast ??=
+      libraryIndex.getTopLevelMember('dart:_internal', 'unsafeCast');
+
   void _genConstructorInitializers(Constructor node) {
     bool isRedirecting =
         node.initializers.any((init) => init is RedirectingInitializer);
@@ -1661,11 +1665,18 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   @override
   visitStaticInvocation(StaticInvocation node) {
     Arguments args = node.arguments;
-    if (node.target.isFactory) {
-      final constructedClass = node.target.enclosingClass;
+    final target = node.target;
+    if (target == unsafeCast) {
+      // The result of the unsafeCast() intrinsic method is its sole argument,
+      // without any additional checks or type casts.
+      assert(args.named.isEmpty);
+      args.positional.single.accept(this);
+      return;
+    }
+    if (target.isFactory) {
+      final constructedClass = target.enclosingClass;
       if (hasInstantiatorTypeArguments(constructedClass)) {
-        _genTypeArguments(args.types,
-            instantiatingClass: node.target.enclosingClass);
+        _genTypeArguments(args.types, instantiatingClass: constructedClass);
       } else {
         assert(args.types.isEmpty);
         // VM needs type arguments for every invocation of a factory
@@ -1676,7 +1687,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
           new Arguments(node.arguments.positional, named: node.arguments.named);
     }
     _genArguments(null, args);
-    _genStaticCallWithArgs(node.target, args, isFactory: node.target.isFactory);
+    _genStaticCallWithArgs(target, args, isFactory: target.isFactory);
   }
 
   @override
