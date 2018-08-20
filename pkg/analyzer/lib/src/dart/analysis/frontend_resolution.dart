@@ -245,9 +245,13 @@ class FrontEndCompiler {
           }
         });
 
-        // TODO(scheglov) Only for new libraries?
-        _component.computeCanonicalNames();
-        _component.accept(new _ShadowCleaner());
+        _ShadowCleaner cleaner = new _ShadowCleaner();
+        for (var library in _component.libraries) {
+          if (!_results.containsKey(library.importUri)) {
+            _component.computeCanonicalNamesForLibrary(library);
+            library.accept(cleaner);
+          }
+        }
 
         _logger.run('Compute dependencies', _computeDependencies);
 
