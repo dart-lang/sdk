@@ -109,6 +109,7 @@ class AnalyzerMetadataIndex {
       _indexNewMetadata(newRepository);
       if (repository != null) {
         newRepository.mapping.addAll(repository.mapping);
+        repository.mapping.clear(); // Avoid major memory leak.
       }
       repository = newRepository;
     } else {
