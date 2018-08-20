@@ -7,7 +7,6 @@ dist: trusty
 env:
   - LINTER_BOT=main
   - LINTER_BOT=benchmark
-  - LINTER_BOT=no-preview-dart-2
 
 # Only building master means that we don't run two builds for each pull request.
 branches:

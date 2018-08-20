@@ -34,13 +34,8 @@ else
   echo "Running main linter bot"
 
   # Run the tests.
-  if [ "$LINTER_BOT" = "no-preview-dart-2" ]; then
-    echo "(no-preview-dart-2)"
-    dart --no-preview-dart-2 --enable-asserts test/all.dart
-  else
-    dart --enable-asserts test/all.dart  
-  fi
-
+  dart --enable-asserts test/all.dart
+  
   # Install dart_coveralls; gather and send coverage data.
   if [ "$COVERALLS_TOKEN" ]; then
     pub global activate dart_coveralls
