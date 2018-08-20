@@ -459,10 +459,19 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
                                                 Dart_IsolateFlags* flags,
                                                 char** error,
                                                 int* exit_code) {
-  const char* kernel_snapshot_uri = NULL;
-  if (Options::gen_snapshot_kind() != kAppJIT) {
-    kernel_snapshot_uri = dfe.frontend_filename();
+  // Do not start a kernel isolate if we are doing a training run
+  // to create an app JIT snapshot and a kernel file is specified
+  // as the application to run.
+  if (Options::gen_snapshot_kind() == kAppJIT) {
+    const uint8_t* kernel_buffer = NULL;
+    intptr_t kernel_buffer_size = 0;
+    dfe.application_kernel_buffer(&kernel_buffer, &kernel_buffer_size);
+    if (kernel_buffer_size != 0) {
+      return NULL;
+    }
   }
+  // Create and Start the kernel isolate.
+  const char* kernel_snapshot_uri = dfe.frontend_filename();
   const char* uri =
       kernel_snapshot_uri != NULL ? kernel_snapshot_uri : script_uri;
 
