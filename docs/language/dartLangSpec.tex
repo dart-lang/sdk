@@ -2271,7 +2271,23 @@ This is precluded by the following rule, combined with the rules for evaluating 
 }
 
 \LMHash{}
-When invoked from a constant object expression, a constant constructor must throw an exception if any of its actual parameters is a value that would prevent one of the potentially constant expressions within it from being a valid compile-time constant.
+When a constant constructor $k$ is invoked from a constant object expression,
+it is a compile-time error if
+the invocation of $k$ at run time would throw an exception,
+and it is a compile-time error if
+substitution of the actual arguments for the formal parameters
+yields an initializing expression $e$ in the initializer list of $k$
+which is not a constant expression.
+
+\commentary{
+For instance, if $e$ is \code{a.length}
+where \code{a} is a formal argument of $k$ with type \DYNAMIC{},
+$e$ is potentially constant and can be used in the initializer list of $k$.
+It is an error to invoke $k$ with an argument of type \code{C}
+if \code{C} is a class different from \code{String},
+even if \code{C} has a \code{length} getter,
+and that same expression would evaluate without errors at run time.
+}
 
 %Discuss External Constructors in ne subsubsection here
 
