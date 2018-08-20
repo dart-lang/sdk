@@ -8,7 +8,6 @@ library type_representation_test;
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common_elements.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/js/js.dart';
@@ -24,9 +23,7 @@ import '../type_test_helper.dart';
 
 void main() {
   asyncTest(() async {
-    print('--test from kernel------------------------------------------------');
-    await testAll();
-    print('--test from kernel (strong)---------------------------------------');
+    // TODO(johnniwinther): Remove code for Dart 1 tests.
     await testAll(strongMode: true);
   });
 }
@@ -65,9 +62,8 @@ main() {
   ${createUses(signatures, prefix: 'm')}
 }
 ''';
-  CompilationResult result = await runCompiler(
-      memorySourceFiles: {'main.dart': source},
-      options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2]);
+  CompilationResult result =
+      await runCompiler(memorySourceFiles: {'main.dart': source});
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
   JavaScriptBackend backend = compiler.backend;

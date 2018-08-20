@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/universe/call_structure.dart';
@@ -16,7 +15,6 @@ import 'type_test_helper.dart';
 
 void main() {
   asyncTest(() async {
-    print('--test from kernel------------------------------------------------');
     await testClassSets();
   });
 }
@@ -30,6 +28,7 @@ class Subclass extends Superclass {
 }
 class Subtype implements Superclass {
   bar() {}
+  noSuchMethod(_) {}
 }
 """;
 
@@ -40,6 +39,7 @@ testClassSets() async {
   String testMode;
 
   Future run(List<String> instantiated) async {
+    print('---- testing $instantiated ---------------------------------------');
     StringBuffer main = new StringBuffer();
     main.writeln(CLASSES);
     main.write('main() {');
@@ -49,8 +49,8 @@ testClassSets() async {
     main.write('}');
     testMode = '$instantiated';
 
-    var env = await TypeEnvironment.create(main.toString(),
-        testBackendWorld: true, options: [Flags.noPreviewDart2]);
+    var env =
+        await TypeEnvironment.create(main.toString(), testBackendWorld: true);
     foo = new Selector.call(const PublicName('foo'), CallStructure.NO_ARGS);
     bar = new Selector.call(const PublicName('bar'), CallStructure.NO_ARGS);
     baz = new Selector.call(const PublicName('baz'), CallStructure.NO_ARGS);
@@ -73,7 +73,7 @@ testClassSets() async {
     Expect.equals(
         expectedResult,
         result,
-        'Unexpected result for $selector in $cls ($query)'
+        'Unexpected result for $selector in $cls ($query) '
         'for instantiations $testMode');
   }
 
@@ -233,7 +233,7 @@ testClassSets() async {
   check(superclass, ClassQuery.SUBCLASS, foo, false);
   check(superclass, ClassQuery.SUBCLASS, bar, false);
   check(superclass, ClassQuery.SUBCLASS, baz, false);
-  check(superclass, ClassQuery.SUBTYPE, foo, true);
+  check(superclass, ClassQuery.SUBTYPE, foo, false);
   check(superclass, ClassQuery.SUBTYPE, bar, false);
   check(superclass, ClassQuery.SUBTYPE, baz, true);
 
@@ -247,13 +247,13 @@ testClassSets() async {
   check(subclass, ClassQuery.SUBTYPE, bar, false);
   check(subclass, ClassQuery.SUBTYPE, baz, false);
 
-  check(subtype, ClassQuery.EXACT, foo, true);
+  check(subtype, ClassQuery.EXACT, foo, false);
   check(subtype, ClassQuery.EXACT, bar, false);
   check(subtype, ClassQuery.EXACT, baz, true);
-  check(subtype, ClassQuery.SUBCLASS, foo, true);
+  check(subtype, ClassQuery.SUBCLASS, foo, false);
   check(subtype, ClassQuery.SUBCLASS, bar, false);
   check(subtype, ClassQuery.SUBCLASS, baz, true);
-  check(subtype, ClassQuery.SUBTYPE, foo, true);
+  check(subtype, ClassQuery.SUBTYPE, foo, false);
   check(subtype, ClassQuery.SUBTYPE, bar, false);
   check(subtype, ClassQuery.SUBTYPE, baz, true);
 
@@ -278,7 +278,7 @@ testClassSets() async {
   check(superclass, ClassQuery.SUBCLASS, foo, false);
   check(superclass, ClassQuery.SUBCLASS, bar, false);
   check(superclass, ClassQuery.SUBCLASS, baz, true);
-  check(superclass, ClassQuery.SUBTYPE, foo, true);
+  check(superclass, ClassQuery.SUBTYPE, foo, false);
   check(superclass, ClassQuery.SUBTYPE, bar, false);
   check(superclass, ClassQuery.SUBTYPE, baz, true);
 
@@ -292,13 +292,13 @@ testClassSets() async {
   check(subclass, ClassQuery.SUBTYPE, bar, false);
   check(subclass, ClassQuery.SUBTYPE, baz, true);
 
-  check(subtype, ClassQuery.EXACT, foo, true);
+  check(subtype, ClassQuery.EXACT, foo, false);
   check(subtype, ClassQuery.EXACT, bar, false);
   check(subtype, ClassQuery.EXACT, baz, true);
-  check(subtype, ClassQuery.SUBCLASS, foo, true);
+  check(subtype, ClassQuery.SUBCLASS, foo, false);
   check(subtype, ClassQuery.SUBCLASS, bar, false);
   check(subtype, ClassQuery.SUBCLASS, baz, true);
-  check(subtype, ClassQuery.SUBTYPE, foo, true);
+  check(subtype, ClassQuery.SUBTYPE, foo, false);
   check(subtype, ClassQuery.SUBTYPE, bar, false);
   check(subtype, ClassQuery.SUBTYPE, baz, true);
 }

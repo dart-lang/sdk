@@ -19,11 +19,6 @@ import 'package:kernel/ast.dart' as ir;
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 
-const List<String> skipForKernel = const <String>[
-  // TODO(johnniwinther): Remove this when issue 31767 is fixed.
-  'mixin_constructor_default_parameter_values.dart',
-];
-
 const List<String> skipForStrong = const <String>[
   // TODO(johnniwinther): Remove this when issue 31767 is fixed.
   'mixin_constructor_default_parameter_values.dart',
@@ -49,7 +44,6 @@ runTests(List<String> args, [int shardIndex]) {
         forUserLibrariesOnly: true,
         args: args,
         options: [stopAfterTypeInference],
-        skipForKernel: skipForKernel,
         skipForStrong: skipForStrong,
         shardIndex: shardIndex ?? 0,
         shards: shardIndex != null ? 2 : 1, onTest: (Uri uri) {

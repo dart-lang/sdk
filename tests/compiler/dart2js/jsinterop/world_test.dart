@@ -6,7 +6,6 @@ library jsinterop.world_test;
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart' show ClassEntity;
@@ -19,15 +18,11 @@ import '../memory_compiler.dart';
 
 void main() {
   asyncTest(() async {
-    print('--test from kernel------------------------------------------------');
-    await testClasses([Flags.noPreviewDart2]);
-    print('--test from kernel (strong mode)----------------------------------');
-    // TODO(johnniwinther): Update the test to be strong mode compliant.
-    //await testClasses([Flags.strongMode]);
+    await testClasses();
   });
 }
 
-testClasses(List<String> options) async {
+testClasses() async {
   test(String mainSource,
       {List<String> directlyInstantiated: const <String>[],
       List<String> abstractlyInstantiated: const <String>[],
@@ -38,14 +33,14 @@ import 'package:js/js.dart';
 
 @JS()
 class A {
-  get foo;
+  external get foo;
 
   external A(var foo);
 }
 
 @JS('BClass')
 class B {
-  get foo;
+  external get foo;
 
   external B(var foo);
 }
@@ -53,7 +48,7 @@ class B {
 @JS()
 @anonymous
 class C {
-  final foo;
+  external get foo;
 
   external factory C({foo});
 }
@@ -61,7 +56,7 @@ class C {
 @JS()
 @anonymous
 class D {
-  final foo;
+  external get foo;
 
   external factory D({foo});
 }
@@ -87,7 +82,7 @@ newF() => new F(5);
 
 $mainSource
 """
-    }, options: options);
+    });
     Compiler compiler = result.compiler;
     Map<String, ClassEntity> classEnvironment = <String, ClassEntity>{};
 

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// TODO(johnniwinther): Currently this only works with the mock compiler.
-
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import '../compiler_helper.dart';
@@ -70,23 +68,41 @@ main() {
 
 main() {
   runTests() async {
-    String generated1 = await compileAll(TEST1);
-    Expect.isTrue(generated1.contains('if (typeof t1'));
+    String generated1 = await compile(TEST1, disableTypeInference: false);
+    Expect.isTrue(
+        generated1.contains('if (typeof t1'),
+        "Code pattern 'if (typeof t1' not found in\n$generated1\n"
+        "for source\n$TEST1");
 
-    String generated2 = await compileAll(TEST2);
-    Expect.isTrue(generated2.contains('if (typeof t1'));
+    String generated2 = await compile(TEST2, disableTypeInference: false);
+    Expect.isTrue(
+        generated2.contains('if (typeof t1'),
+        "Code pattern 'if (typeof t1' not found in\n$generated2\n"
+        "for source\n$TEST2");
 
-    String generated3 = await compileAll(TEST3);
-    Expect.isTrue(generated3.contains('if (typeof t1'));
+    String generated3 = await compile(TEST3, disableTypeInference: false);
+    Expect.isTrue(
+        generated3.contains('if (typeof t1'),
+        "Code pattern 'if (typeof t1' not found in\n$generated3\n"
+        "for source\n$TEST3");
 
-    String generated4 = await compileAll(TEST4);
-    Expect.isTrue(generated4.contains('if (typeof t1'));
+    String generated4 = await compile(TEST4, disableTypeInference: false);
+    Expect.isTrue(
+        generated4.contains('if (typeof t1'),
+        "Code pattern 'if (typeof t1' not found in\n$generated4\n"
+        "for source\n$TEST4");
 
-    String generated5 = await compileAll(TEST5);
-    Expect.isFalse(generated5.contains('iae'));
+    String generated5 = await compile(TEST5, disableTypeInference: false);
+    Expect.isFalse(
+        generated5.contains('iae'),
+        "Code pattern 'iae' found in\n$generated5\n"
+        "for source\n$TEST5");
 
-    String generated6 = await compileAll(TEST6);
-    Expect.isFalse(generated6.contains('iae'));
+    String generated6 = await compile(TEST6, disableTypeInference: false);
+    Expect.isFalse(
+        generated6.contains('iae'),
+        "Code pattern 'iae' found in\n$generated6\n"
+        "for source\n$TEST6");
 
     var memberInvocations = const <String>[
       'first',
@@ -98,22 +114,20 @@ main() {
       'removeLast()',
     ];
     for (String member in memberInvocations) {
-      String generated = await compileAll(generateTest('$member'),
-          expectedErrors: 0, expectedWarnings: 0);
+      String generated =
+          await compile(generateTest('$member'), disableTypeInference: false);
       Expect.isTrue(
           generated.contains('+ 42'),
           "Missing '+ 42' code for invocation '$member':\n"
           "$generated");
-      // TODO(johnniwinther): Update this test to query the generated code for
-      // main only.
-      /*Expect.isFalse(
+      Expect.isFalse(
           generated.contains('if (typeof t1'),
           "Unexpected 'if (typeof t1' code for invocation '$member':\n"
           "$generated");
       Expect.isFalse(
           generated.contains('if (t1 == null)'),
           "Unexpected 'if (t1 == null)' code for invocation '$member':\n"
-          "$generated");*/
+          "$generated");
     }
   }
 

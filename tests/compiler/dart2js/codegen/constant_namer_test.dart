@@ -14,7 +14,7 @@ const String TEST_ONE = r"""
     use() { print(this); }
   }
   test() {
-    const [12,53].use();
+    (const [12,53] as dynamic).use();
     const Token('start').use();
     const Token('end').use();
     const Token('yes', 12).use();

@@ -39,6 +39,17 @@ main() {
   new F();
   new H();
   new I();
+  method<int>();
+}
+
+method<T>() {
+  local1() {}
+  local2(T t) {}
+  local3<S>(S s) {}
+
+  local1();
+  local2(null);
+  local3(null);
 }
 ''';
 
@@ -50,20 +61,19 @@ const Map<String, List<String>> expectedIsChecksMap =
   'D': const <String>[r'$isB', r'$asB'],
   'E': const <String>[],
   'F': const <String>[r'$asB'],
-  'G': const <String>[r'$isFunction'],
-  'H': const <String>[r'$isFunction', r'$isG'],
-  'I': const <String>[r'$isFunction', r'$signature'],
+  'G': const <String>[],
+  'H': const <String>[r'$isG'],
+  'I': const <String>[],
+  'method_local1': const <String>[r'$signature'],
+  'method_local2': const <String>[r'$signature'],
+  'method_local3': const <String>[r'$signature'],
 };
 
 main() {
   runTest() async {
-    CompilationResult result = await runCompiler(memorySourceFiles: {
-      'main.dart': code
-    }, options: [
-      Flags.noPreviewDart2,
-      Flags.disableRtiOptimization,
-      Flags.disableInlining
-    ]);
+    CompilationResult result = await runCompiler(
+        memorySourceFiles: {'main.dart': code},
+        options: [Flags.disableRtiOptimization, Flags.disableInlining]);
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
@@ -71,12 +81,18 @@ main() {
     RuntimeTypesNeed rtiNeed = closedWorld.rtiNeed;
     ProgramLookup programLookup = new ProgramLookup(compiler);
 
+    List<ClassEntity> closures = <ClassEntity>[];
+
     void processMember(MemberEntity element) {
       if (element is FunctionEntity) {
         Expect.isTrue(rtiNeed.methodNeedsTypeArguments(element),
             "Expected $element to need type arguments.");
         Expect.isTrue(rtiNeed.methodNeedsSignature(element),
             "Expected $element to need signature.");
+        elementEnvironment.forEachNestedClosure(element,
+            (FunctionEntity local) {
+          closures.add(local.enclosingClass);
+        });
       }
     }
 
@@ -89,6 +105,9 @@ main() {
       if (expectedIsChecks != null) {
         Class cls = programLookup.getClass(element);
         List<String> isChecks = cls.isChecks.map((m) => m.name.key).toList();
+        if (cls.functionTypeIndex != null) {
+          isChecks.add(r'$signature');
+        }
         Expect.setEquals(
             expectedIsChecks,
             isChecks,
@@ -100,6 +119,7 @@ main() {
     LibraryEntity library = elementEnvironment.mainLibrary;
     elementEnvironment.forEachClass(library, processClass);
     elementEnvironment.forEachLibraryMember(library, processMember);
+    closures.forEach(processClass);
   }
 
   asyncTest(() async {

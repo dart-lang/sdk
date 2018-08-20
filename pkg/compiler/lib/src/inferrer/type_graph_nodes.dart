@@ -1236,8 +1236,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
               if (abstractValueDomain.containsDictionaryKey(typeMask, key)) {
                 if (debug.VERBOSE) {
                   print("Dictionary lookup for $key yields "
-                      "${abstractValueDomain.
-                      getDictionaryValueForKey(typeMask, key)}.");
+                      "${abstractValueDomain.getDictionaryValueForKey(typeMask, key)}.");
                 }
                 return abstractValueDomain.getDictionaryValueForKey(
                     typeMask, key);

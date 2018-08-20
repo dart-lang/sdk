@@ -72,6 +72,8 @@ class NoSuchMethodRegistryImpl implements NoSuchMethodRegistry {
   final Set<FunctionEntity> throwingImpls = new Set<FunctionEntity>();
 
   /// The implementations that fall into category C, described above.
+  // TODO(johnniwinther): Remove this category when Dart 1 is no longer
+  // supported.
   final Set<FunctionEntity> notApplicableImpls = new Set<FunctionEntity>();
 
   /// The implementations that fall into category D, described above.

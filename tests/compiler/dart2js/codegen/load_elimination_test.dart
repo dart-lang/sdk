@@ -11,7 +11,7 @@ class A {
   var a = 42;
 }
 
-void main() {
+main() {
   new A().a = 54;
   return new A().a;
 }
@@ -22,7 +22,7 @@ class A {
   var a = 42;
 }
 
-void main() {
+main() {
   return new A().a;
 }
 """;
@@ -32,7 +32,7 @@ class A {
   var a = 42;
 }
 
-void main() {
+main() {
   var a = new A();
   return a.a + a.a;
 }
@@ -44,7 +44,7 @@ class A {
 }
 
 var list = [];
-void main() {
+main() {
   new A().a = 54;
   var a = new A();
   list.add(a);
@@ -58,7 +58,7 @@ class A {
 }
 
 var list = [];
-void main() {
+main() {
   var a = new A();
   list.add(a);
   return a.a + a.a;
@@ -71,7 +71,7 @@ class A {
 }
 
 var list = [new A()];
-void main() {
+main() {
   var a = new A();
   var b = list[0];
   b.a = 52;
@@ -85,7 +85,7 @@ class A {
 }
 
 var list = [new A(), new A()];
-void main() {
+main() {
   var a = list[0];
   a.a = 32;
   return a.a;
@@ -98,7 +98,7 @@ class A {
 }
 
 var list = [new A(), new A()];
-void main() {
+main() {
   var a = list[0];
   a.a = 32;
   var b = list[1];
@@ -112,7 +112,7 @@ class A {
   var a = 42;
 }
 
-void main() {
+main() {
   var a = new A();
   (() => a.a = 2)();
   return a.a;
@@ -124,7 +124,7 @@ class A {
   var a = 42;
 }
 
-void main() {
+main() {
   var a = new A();
   a.a = 2;
   return a.a;
@@ -144,7 +144,7 @@ class A {
   }
 }
 
-void main() {
+main() {
   var a = new A(42);
   var b = new A.bar(a);
   b.foo();
@@ -156,7 +156,7 @@ const String TEST_12 = """
 var a;
 var b;
 
-void main() {
+main() {
   a = 10;
   b = 4;
   return a - b;
@@ -166,7 +166,7 @@ void main() {
 const String TEST_13 = """
 var a = [1, 2];
 
-void main() {
+main() {
   a[0] = 10;
   a[1] = 4;
   return a[0] - a[1];
@@ -177,7 +177,7 @@ const String TEST_14 = """
 var a = [1, 2];
 var b = [1, 2];
 
-void main() {
+main() {
   a[0] = 10;
   b[0] = 4;
   return a[0];
@@ -187,7 +187,7 @@ void main() {
 const String TEST_15 = """
 var a;
 
-void main() {
+main() {
   a = 42;
   if (true) {
   }
@@ -198,7 +198,7 @@ void main() {
 const String TEST_16 = """
 var a;
 
-void main() {
+main() {
   a = false;
   if (main() && main()) {
     a = true;
@@ -210,7 +210,7 @@ void main() {
 const String TEST_17 = """
 var a;
 
-void main() {
+main() {
   if (main()) {
     a = true;
   } else {
@@ -222,7 +222,7 @@ void main() {
 
 const String TEST_18 = """
 
-void main() {
+main() {
   var a = [42, true];
   if (a[1]) {
     a[0] = 1;
@@ -236,7 +236,8 @@ void main() {
 main() {
   runTests() async {
     test(String code, String expected) async {
-      String generated = await compileAll(code, disableInlining: false);
+      String generated = await compile(code,
+          disableInlining: false, disableTypeInference: false);
       Expect.isTrue(
           generated.contains(expected),
           "Generated code didn't contain '$expected'.\n"

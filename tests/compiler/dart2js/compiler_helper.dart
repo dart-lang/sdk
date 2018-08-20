@@ -45,16 +45,20 @@ Future<String> compile(String code,
     bool minify: false,
     bool disableInlining: true,
     bool trustJSInteropTypeAnnotations: false,
+    bool disableTypeInference: true,
+    bool omitImplicitChecks: true,
     void check(String generatedEntry),
     bool returnAll: false}) async {
   OutputCollector outputCollector = returnAll ? new OutputCollector() : null;
-  // TODO(sigmund): use strong-mode.
-  List<String> options = <String>[
-    Flags.noPreviewDart2,
-    Flags.disableTypeInference
-  ];
+  List<String> options = <String>[];
+  if (disableTypeInference) {
+    options.add(Flags.disableTypeInference);
+  }
   if (enableTypeAssertions) {
     options.add(Flags.enableCheckedMode);
+  }
+  if (omitImplicitChecks) {
+    options.add(Flags.omitImplicitChecks);
   }
   if (minify) {
     options.add(Flags.minify);
@@ -101,7 +105,7 @@ Future<String> compileAll(String code,
     int expectedWarnings}) async {
   OutputCollector outputCollector = new OutputCollector();
   DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
-  List<String> options = <String>[Flags.noPreviewDart2];
+  List<String> options = <String>[];
   if (disableInlining) {
     options.add(Flags.disableInlining);
   }
@@ -145,15 +149,15 @@ void checkNumberOfMatches(Iterator it, int nb) {
 
 Future compileAndMatch(String code, String entry, RegExp regexp) {
   return compile(code, entry: entry, check: (String generated) {
-    Expect.isTrue(
-        regexp.hasMatch(generated), '"$generated" does not match /$regexp/');
+    Expect.isTrue(regexp.hasMatch(generated),
+        '"$generated" does not match /$regexp/ from source:\n$code');
   });
 }
 
 Future compileAndDoNotMatch(String code, String entry, RegExp regexp) {
   return compile(code, entry: entry, check: (String generated) {
-    Expect.isFalse(
-        regexp.hasMatch(generated), '"$generated" has a match in /$regexp/');
+    Expect.isFalse(regexp.hasMatch(generated),
+        '"$generated" has a match in /$regexp/ from source:\n$code');
   });
 }
 
@@ -172,14 +176,19 @@ Future compileAndDoNotMatchFuzzy(String code, String entry, String regexp) {
 Future compileAndMatchFuzzyHelper(String code, String entry, String regexp,
     {bool shouldMatch}) {
   return compile(code, entry: entry, check: (String generated) {
+    String originalRegexp = regexp;
     final xRe = new RegExp('\\bx\\b');
     regexp = regexp.replaceAll(xRe, '(?:$anyIdentifier)');
     final spaceRe = new RegExp('\\s+');
     regexp = regexp.replaceAll(spaceRe, '(?:\\s*)');
     if (shouldMatch) {
-      Expect.isTrue(new RegExp(regexp).hasMatch(generated));
+      Expect.isTrue(
+          new RegExp(regexp).hasMatch(generated),
+          "Pattern '$originalRegexp' not found in\n$generated\n"
+          "from source\n$code");
     } else {
-      Expect.isFalse(new RegExp(regexp).hasMatch(generated));
+      Expect.isFalse(new RegExp(regexp).hasMatch(generated),
+          "Pattern '$originalRegexp' found in\n$generated\nfrom source\n$code");
     }
   });
 }

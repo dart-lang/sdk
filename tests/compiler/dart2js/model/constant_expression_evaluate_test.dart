@@ -48,17 +48,12 @@ class ConstantData {
   /// a [ConstantResult].
   final expectedResults;
 
-  /// Expected results for Dart 2 if different from [expectedResults].
-  final strongModeResults;
-
   /// A [MessageKind] or a list of [MessageKind]s containing the error messages
   /// expected as the result of evaluating the constant under the empty
   /// environment.
   final expectedErrors;
 
-  const ConstantData(this.code, this.expectedResults,
-      {this.expectedErrors, strongModeResults})
-      : this.strongModeResults = strongModeResults ?? expectedResults;
+  const ConstantData(this.code, this.expectedResults, {this.expectedErrors});
 }
 
 class EvaluationError {
@@ -169,18 +164,13 @@ const List<TestData> DATA = const [
     const ConstantData('Object', 'TypeConstant(Object)'),
     const ConstantData('null ?? 0', 'IntConstant(0)'),
     const ConstantData(
-        'const [0, 1]', 'ListConstant([IntConstant(0), IntConstant(1)])',
-        strongModeResults:
-            'ListConstant(<int>[IntConstant(0), IntConstant(1)])'),
+        'const [0, 1]', 'ListConstant(<int>[IntConstant(0), IntConstant(1)])'),
     const ConstantData('const <int>[0, 1]',
         'ListConstant(<int>[IntConstant(0), IntConstant(1)])'),
     const ConstantData(
         'const {0: 1, 2: 3}',
-        'MapConstant({IntConstant(0): IntConstant(1), '
-        'IntConstant(2): IntConstant(3)})',
-        strongModeResults:
-            'MapConstant(<int, int>{IntConstant(0): IntConstant(1), '
-            'IntConstant(2): IntConstant(3)})'),
+        'MapConstant(<int, int>{IntConstant(0): IntConstant(1), '
+        'IntConstant(2): IntConstant(3)})'),
     const ConstantData(
         'const <int, int>{0: 1, 2: 3}',
         'MapConstant(<int, int>{IntConstant(0): IntConstant(1), '
@@ -610,8 +600,7 @@ Future testData(TestData data) async {
   Future runTest(
       List<String> options,
       EvaluationEnvironment getEnvironment(
-          Compiler compiler, FieldEntity field),
-      {bool strongMode: false}) async {
+          Compiler compiler, FieldEntity field)) async {
     CompilationResult result = await runCompiler(
         memorySourceFiles: {'main.dart': source}, options: options);
     Compiler compiler = result.compiler;
@@ -624,8 +613,7 @@ Future testData(TestData data) async {
         ConstantExpression constant =
             elementEnvironment.getFieldConstant(field);
 
-        var expectedResults =
-            strongMode ? data.strongModeResults : data.expectedResults;
+        var expectedResults = data.expectedResults;
         if (expectedResults is String) {
           expectedResults = <Map<String, String>, String>{
             const <String, String>{}: expectedResults
@@ -673,25 +661,12 @@ Future testData(TestData data) async {
     });
   }
 
-  const skipKernelList = const [];
-
   const skipStrongList = const [
     // TODO(johnniwinther): Investigate why different errors are reported in
     // strong mode.
     'errors',
   ];
 
-  if (!skipKernelList.contains(data.name) && !data.strongModeOnly) {
-    print(
-        '--test kernel-------------------------------------------------------');
-    await runTest([Flags.noPreviewDart2],
-        (Compiler compiler, FieldEntity field) {
-      KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
-      KernelToElementMap elementMap = frontendStrategy.elementMap;
-      return new KernelEvaluationEnvironment(elementMap, null, field,
-          constantRequired: field.isConst);
-    });
-  }
   if (!skipStrongList.contains(data.name)) {
     print(
         '--test kernel (strong mode)-----------------------------------------');
@@ -700,6 +675,6 @@ Future testData(TestData data) async {
       KernelToElementMap elementMap = frontendStrategy.elementMap;
       return new KernelEvaluationEnvironment(elementMap, null, field,
           constantRequired: field.isConst);
-    }, strongMode: true);
+    });
   }
 }

@@ -549,8 +549,7 @@ class InferrerEngineImpl extends InferrerEngine {
           }
           if (debug.VERBOSE) {
             print("traced closure $element as "
-                "${inferredDataBuilder
-                    .getCurrentlyKnownMightBePassedToApply(element)}");
+                "${inferredDataBuilder.getCurrentlyKnownMightBePassedToApply(element)}");
           }
         });
       }

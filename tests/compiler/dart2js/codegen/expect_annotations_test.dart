@@ -4,7 +4,6 @@
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
@@ -39,10 +38,10 @@ int methodAssumeDynamicTrustTypeAnnotations(String arg) => arg.length;
 void main(List<String> args) {
   print(method(args[0]));
   print(methodAssumeDynamic('foo'));
-  print(methodTrustTypeAnnotations(42));
+  print(methodTrustTypeAnnotations(42 as dynamic));
   print(methodTrustTypeAnnotations("fourtyTwo"));
   print(methodNoInline('bar'));
-  print(methodNoInlineTrustTypeAnnotations(42));
+  print(methodNoInlineTrustTypeAnnotations(42 as dynamic));
   print(methodNoInlineTrustTypeAnnotations("fourtyTwo"));
   print(methodAssumeDynamicTrustTypeAnnotations(null));
 }
@@ -51,14 +50,13 @@ void main(List<String> args) {
 
 main() {
   asyncTest(() async {
-    print('--test from kernel------------------------------------------------');
     await runTest();
   });
 }
 
 runTest() async {
-  CompilationResult result = await runCompiler(
-      memorySourceFiles: MEMORY_SOURCE_FILES, options: [Flags.noPreviewDart2]);
+  CompilationResult result =
+      await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
   Compiler compiler = result.compiler;
   JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
   Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');

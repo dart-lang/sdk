@@ -490,7 +490,6 @@ typedef void Callback();
 /// file and any supporting libraries.
 Future checkTests(Directory dataDir, DataComputer dataComputer,
     {bool testStrongMode: true,
-    List<String> skipForKernel: const <String>[],
     List<String> skipForStrong: const <String>[],
     bool filterActualData(IdValue idValue, ActualData actualData),
     List<String> options: const <String>[],
@@ -527,13 +526,11 @@ Future checkTests(Directory dataDir, DataComputer dataComputer,
     if (shouldContinue) continued = true;
     testCount++;
     List<String> testOptions = options.toList();
-    bool strongModeOnlyTest = false;
     bool trustTypeAnnotations = false;
     if (name.endsWith('_ea.dart')) {
       testOptions.add(Flags.enableAsserts);
     }
     if (name.contains('_strong')) {
-      strongModeOnlyTest = true;
       if (!testStrongMode) {
         testOptions.add(Flags.strongMode);
       }
@@ -593,30 +590,6 @@ Future checkTests(Directory dataDir, DataComputer dataComputer,
 
     if (setUpFunction != null) setUpFunction();
 
-    if (skipForKernel.contains(name) ||
-        (testStrongMode && strongModeOnlyTest)) {
-      print('--skipped for kernel--------------------------------------------');
-    } else {
-      print('--from kernel---------------------------------------------------');
-      List<String> options = [Flags.noPreviewDart2]..addAll(testOptions);
-      if (trustTypeAnnotations) {
-        options.add(Flags.trustTypeAnnotations);
-      }
-      MemberAnnotations<IdValue> annotations = expectedMaps[kernelMarker];
-      CompiledData compiledData2 = await computeData(
-          entryPoint, memorySourceFiles, dataComputer,
-          options: options,
-          verbose: verbose,
-          testFrontend: testFrontend,
-          forUserLibrariesOnly: forUserLibrariesOnly,
-          globalIds: annotations.globalData.keys);
-      if (await checkCode(
-          kernelName, entity.uri, code, annotations, compiledData2,
-          filterActualData: filterActualData,
-          fatalErrors: !testAfterFailures)) {
-        hasFailures = true;
-      }
-    }
     if (testStrongMode) {
       if (skipForStrong.contains(name)) {
         print('--skipped for kernel (strong mode)----------------------------');

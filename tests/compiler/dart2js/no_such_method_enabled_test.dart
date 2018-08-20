@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
@@ -20,7 +19,6 @@ class NoSuchMethodInfo {
   final bool isThrowing;
   final bool isDefault;
   final bool isOther;
-  final bool isNotApplicable;
   final bool isComplexNoReturn;
   final bool isComplexReturn;
 
@@ -31,7 +29,6 @@ class NoSuchMethodInfo {
       this.isThrowing: false,
       this.isDefault: false,
       this.isOther: false,
-      this.isNotApplicable: false,
       this.isComplexNoReturn: false,
       this.isComplexReturn: false});
 }
@@ -120,7 +117,7 @@ class A {
   noSuchMethod(x) => 3;
 }
 main() {
-  print(new A().foo());
+  print((new A() as dynamic).foo());
 }
 """, const <NoSuchMethodInfo>[
     const NoSuchMethodInfo('A', isOther: true, isComplexReturn: true),
@@ -130,40 +127,29 @@ class A {
   noSuchMethod(x, [y]) => super.noSuchMethod(x);
 }
 main() {
-  print(new A().foo());
+  print((new A() as dynamic).foo());
 }
 """, const <NoSuchMethodInfo>[
     const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
   ]),
   const NoSuchMethodTest("""
 class A {
-  noSuchMethod(x, [y]) => super.noSuchMethod(x, y);
+  noSuchMethod(x, [y]) => super.noSuchMethod(x) + y;
 }
 main() {
-  print(new A().foo());
+  print((new A() as dynamic).foo());
 }
 """, const <NoSuchMethodInfo>[
     const NoSuchMethodInfo('A', isOther: true, isComplexNoReturn: true),
   ], isNoSuchMethodUsed: true),
   const NoSuchMethodTest("""
 class A {
-  noSuchMethod(x, y) => super.noSuchMethod(x);
-}
-main() {
-  print(new A().foo());
-}
-""", const <NoSuchMethodInfo>[
-    const NoSuchMethodInfo('A',
-        hasForwardingSyntax: true, isNotApplicable: true),
-  ]),
-  const NoSuchMethodTest("""
-class A {
   noSuchMethod(Invocation x) {
-    throw new UnsupportedError();
+    throw new UnsupportedError('');
   }
 }
 main() {
-  print(new A().foo());
+  print((new A() as dynamic).foo());
 }
 """, const <NoSuchMethodInfo>[
     const NoSuchMethodInfo('A', hasThrowingSyntax: true, isThrowing: true),
@@ -176,7 +162,7 @@ class A {
   }
 }
 main() {
-  print(new A().foo());
+  print((new A() as dynamic).foo());
 }
 """, const <NoSuchMethodInfo>[
     const NoSuchMethodInfo('A', isOther: true, isComplexNoReturn: true),
@@ -188,7 +174,7 @@ class A {
   }
 }
 main() {
-  print(new A().foo());
+  print((new A() as dynamic).foo());
 }
 """, const <NoSuchMethodInfo>[
     const NoSuchMethodInfo('A', isOther: true, isComplexReturn: true),
@@ -198,7 +184,7 @@ class A {
   noSuchMethod(x) => super.noSuchMethod(x) as dynamic;
 }
 main() {
-  print(new A().foo());
+  print((new A() as dynamic).foo());
 }
 """, const <NoSuchMethodInfo>[
     const NoSuchMethodInfo('A', hasForwardingSyntax: true, isDefault: true),
@@ -210,9 +196,8 @@ main() {
     for (NoSuchMethodTest test in TESTS) {
       print('---- testing -------------------------------------------------');
       print(test.code);
-      CompilationResult result = await runCompiler(
-          memorySourceFiles: {'main.dart': test.code},
-          options: [Flags.noPreviewDart2]);
+      CompilationResult result =
+          await runCompiler(memorySourceFiles: {'main.dart': test.code});
       Compiler compiler = result.compiler;
       checkTest(compiler, test);
     }
@@ -295,10 +280,6 @@ checkTest(Compiler compiler, NoSuchMethodTest test) {
         info.isOther,
         registry.otherImpls.contains(frontendNoSuchMethod),
         "Unexpected isOther result on $frontendNoSuchMethod.");
-    Expect.equals(
-        info.isNotApplicable,
-        registry.notApplicableImpls.contains(frontendNoSuchMethod),
-        "Unexpected isNotApplicable result on $frontendNoSuchMethod.");
 
     ClassEntity backendClass = backendEnvironment.lookupClass(
         backendEnvironment.mainLibrary, info.className);

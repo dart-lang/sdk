@@ -10,7 +10,7 @@ const String CODE = """
 class A {
   var link;
 }
-int foo(x) {
+foo(x) {
   if (new DateTime.now().millisecondsSinceEpoch == 42) return null;
   var a = new A();
   if (new DateTime.now().millisecondsSinceEpoch == 42) return a;
@@ -25,8 +25,8 @@ main() {
 
 main() {
   runTest() async {
-    // The `==` is strengthened to a HIdentity instruction.  The HIdentity follows
-    // `x.link`, so x cannot be `null`.
+    // The `==` is strengthened to a HIdentity instruction. The HIdentity
+    // follows `x.link`, so x cannot be `null`.
     var compare = new RegExp(r'x === x\.get\$link\(\)');
     await compileAndMatch(CODE, 'main', compare);
   }

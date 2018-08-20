@@ -33,7 +33,6 @@ show(ArgResults argResults, DataComputer dataComputer,
     useColors = argResults['colors'];
   }
   bool verbose = argResults['verbose'];
-  bool strongMode = argResults['strong'];
   bool omitImplicitChecks = argResults['omit-implicit-checks'];
   bool trustTypeAnnotations = argResults['trust-type-annotations'];
 
@@ -49,9 +48,6 @@ show(ArgResults argResults, DataComputer dataComputer,
   }
 
   options = new List<String>.from(options);
-  if (!strongMode) {
-    options.add(Flags.noPreviewDart2);
-  }
   if (trustTypeAnnotations) {
     options.add(Flags.trustTypeAnnotations);
   }

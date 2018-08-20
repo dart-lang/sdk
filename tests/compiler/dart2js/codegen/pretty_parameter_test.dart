@@ -61,7 +61,7 @@ foo(param1, param2, param3) {
 """;
 
 const String PARAMETER_INIT = r"""
-int foo(var start, bool test) {
+int foo(var start, var test) {
   var result = start;
   if (test) {
     foo(1, 2);

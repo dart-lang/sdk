@@ -8,7 +8,6 @@ library class_set_test;
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart' show ClassEntity;
 import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/util/enumset.dart';
@@ -18,17 +17,14 @@ import '../type_test_helper.dart';
 
 void main() {
   asyncTest(() async {
-    print('--test from kernel------------------------------------------------');
     await testAll();
-    print('--test from kernel (strong)---------------------------------------');
-    await testAll(strongMode: true);
   });
 }
 
-testAll({bool strongMode: false}) async {
+testAll() async {
   await testIterators();
   await testForEach();
-  await testClosures(strongMode: strongMode);
+  await testClosures();
 }
 
 testIterators() async {
@@ -588,7 +584,7 @@ testForEach() async {
       find: I, anySubtype: true, expectedResult: true);
 }
 
-testClosures({bool strongMode}) async {
+testClosures() async {
   var env = await TypeEnvironment.create(r"""
       class A {
         call() => null;
@@ -599,9 +595,7 @@ testClosures({bool strongMode}) async {
         () {};
         local() {}
       }
-      """,
-      options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2],
-      testBackendWorld: true);
+      """, testBackendWorld: true);
   JClosedWorld world = env.jClosedWorld;
 
   ClassEntity functionClass = world.commonElements.functionClass;
@@ -616,7 +610,7 @@ testClosures({bool strongMode}) async {
         "of $functionClass.");
   }
 
-  checkIsFunction(A, expected: !strongMode);
+  checkIsFunction(A, expected: false);
 
   world.classHierarchy.forEachStrictSubtypeOf(closureClass, checkIsFunction);
 }

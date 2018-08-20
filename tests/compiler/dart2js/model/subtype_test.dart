@@ -14,9 +14,7 @@ import '../type_test_helper.dart';
 
 void main() {
   asyncTest(() async {
-    print('--test from kernel------------------------------------------------');
-    await runTests();
-    print('--test from kernel (strong)---------------------------------------');
+    // TODO(johnniwinther): Remove code for Dart 1 tests.
     await runTests(strongMode: true);
   });
 }
@@ -63,7 +61,8 @@ Future testInterfaceSubtype({bool strongMode}) async {
       main() {
         new C();
       }
-      """, options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2])
+      """,
+          options: strongMode ? [Flags.strongMode] : [/*Flags.noPreviewDart2*/])
       .then((env) {
     void expect(bool expectSubtype, DartType T, DartType S,
         {bool expectMoreSpecific}) {
@@ -327,7 +326,8 @@ Future testCallableSubtype({bool strongMode}) async {
         a.m4(null, null);
         a.m5(null, null);
       }
-      """, options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2])
+      """,
+          options: strongMode ? [Flags.strongMode] : [/*Flags.noPreviewDart2*/])
       .then((env) {
     void expect(bool expectSubtype, DartType T, DartType S,
         {bool expectMoreSpecific}) {
@@ -382,7 +382,7 @@ Future testFunctionSubtyping({bool strongMode}) async {
     ${createUses(functionTypesData)}
   }
   """),
-          options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2])
+          options: strongMode ? [Flags.strongMode] : [/*Flags.noPreviewDart2*/])
       .then(functionSubtypingHelper);
 }
 
@@ -393,7 +393,7 @@ Future testTypedefSubtyping({bool strongMode}) async {
     ${createUses(functionTypesData)}
   }
   """),
-          options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2])
+          options: strongMode ? [Flags.strongMode] : [/*Flags.noPreviewDart2*/])
       .then(functionSubtypingHelper);
 }
 
@@ -476,7 +476,7 @@ Future testFunctionSubtypingOptional({bool strongMode}) async {
     ${createUses(optionalFunctionTypesData)}
   }
   """),
-          options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2])
+          options: strongMode ? [Flags.strongMode] : [/*Flags.noPreviewDart2*/])
       .then((env) => functionSubtypingOptionalHelper(env, strongMode));
 }
 
@@ -487,7 +487,7 @@ Future testTypedefSubtypingOptional({bool strongMode}) async {
     ${createUses(optionalFunctionTypesData)}
   }
   """),
-          options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2])
+          options: strongMode ? [Flags.strongMode] : [/*Flags.noPreviewDart2*/])
       .then((env) => functionSubtypingOptionalHelper(env, strongMode));
 }
 
@@ -558,7 +558,7 @@ Future testFunctionSubtypingNamed({bool strongMode}) async {
     ${createUses(namedFunctionTypesData)}
   }
   """),
-          options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2])
+          options: strongMode ? [Flags.strongMode] : [/*Flags.noPreviewDart2*/])
       .then((env) => functionSubtypingNamedHelper(env, strongMode));
 }
 
@@ -569,7 +569,7 @@ Future testTypedefSubtypingNamed({bool strongMode}) async {
     ${createUses(namedFunctionTypesData)}
   }
   """),
-          options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2])
+          options: strongMode ? [Flags.strongMode] : [/*Flags.noPreviewDart2*/])
       .then((env) => functionSubtypingNamedHelper(env, strongMode));
 }
 
@@ -634,7 +634,8 @@ Future testTypeVariableSubtype({bool strongMode}) async {
         new I();
         new J();
       }
-      """, options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2])
+      """,
+          options: strongMode ? [Flags.strongMode] : [/*Flags.noPreviewDart2*/])
       .then((env) {
     void expect(bool expectSubtype, DartType T, DartType S,
         {bool expectMoreSpecific}) {
@@ -872,7 +873,8 @@ Future testStrongModeSubtyping({bool strongMode}) async {
         takeVoid(null);
         takeObject(null);
       }
-      """, options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2])
+      """,
+          options: strongMode ? [Flags.strongMode] : [/*Flags.noPreviewDart2*/])
       .then((env) {
     void expect(bool expectSubtype, DartType T, DartType S) {
       Expect.equals(expectSubtype, env.isSubtype(T, S), '$T <: $S');

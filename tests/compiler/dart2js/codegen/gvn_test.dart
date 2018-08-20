@@ -52,11 +52,11 @@ class A {
 class B {}
 
 main() {
-  var a = [new B(), new A()][0];
+  dynamic a = [new B(), new A()][0];
   var b = a.foo;
   var c = a.foo;
   if (a is B) {
-    c = a.foo;
+    c = (a as dynamic).foo;
   }
   return b + c;
 }
@@ -69,7 +69,7 @@ class A {
 }
 
 main() {
-  var a = new A();
+  dynamic a = new A();
   while (a.field == 54) { a.field = 42; }
 }
 """;
@@ -84,8 +84,8 @@ class A {
 }
 
 main() {
-  var a = new A();
-  var b = new A.bar();
+  dynamic a = new A();
+  dynamic b = new A.bar();
   while (a.field == 54) { a.field = 42; b.field = 42; }
 }
 """;
@@ -99,8 +99,8 @@ class A {
 }
 
 main() {
-  var a = new A();
-  var b = new A.bar();
+  dynamic a = new A();
+  dynamic b = new A.bar();
   for (int i = 0; i < a.field; i++) { a.field = 42; b.field = 42; }
 }
 """;

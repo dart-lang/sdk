@@ -260,8 +260,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// Create an options object by parsing flags from [options].
   static CompilerOptions parse(List<String> options,
       {Uri libraryRoot, Uri platformBinaries}) {
-    bool isStrong = _hasOption(options, Flags.strongMode) ||
-        !_hasOption(options, Flags.noPreviewDart2);
+    // TODO(johnniwinther): Remove [strongMode], [enableTypeAssertions] and
+    // [trustTypeAnnotations].
+    bool isStrong = true;
     return new CompilerOptions()
       ..libraryRoot = libraryRoot
       ..allowMockCompilation = _hasOption(options, Flags.allowMockCompilation)

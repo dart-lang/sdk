@@ -16,6 +16,7 @@ class B extends A {
 }
 class C implements A {
   bar() => 68;
+  noSuchMethod(_) {}
 }
 main() {
   new A();

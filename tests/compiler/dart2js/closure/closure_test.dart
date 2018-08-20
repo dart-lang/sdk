@@ -19,13 +19,11 @@ import '../equivalence/id_equivalence_helper.dart';
 import 'package:front_end/src/fasta/util/link.dart' show Link;
 import 'package:kernel/ast.dart' as ir;
 
-const List<String> skipForKernel = const <String>[];
-
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, const ClosureDataComputer(),
-        skipForKernel: skipForKernel, args: args, testOmit: true);
+        args: args, testOmit: true);
   });
 }
 
@@ -199,8 +197,8 @@ class ClosureIrChecker extends IrDataExtractor {
       print(' capturedScope (${capturedScope.runtimeType})');
       capturedScope.forEachBoxedVariable((a, b) => print('  boxed: $a->$b'));
     }
-    print(' closureRepresentationInfo (${closureRepresentationInfo
-        .runtimeType})');
+    print(
+        ' closureRepresentationInfo (${closureRepresentationInfo.runtimeType})');
     closureRepresentationInfo
         ?.forEachFreeVariable((a, b) => print('  free: $a->$b'));
     closureRepresentationInfo

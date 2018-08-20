@@ -554,10 +554,10 @@ class A23 {
   /*element: A23.:[exact=A23]*/
   A23() {
     // Test string interpolation.
-    '${/*update: [exact=A23]*/f23a = null}';
+    '${/*update: [exact=A23]*/ f23a = null}';
     // Test string juxtaposition.
     ''
-        '${/*update: [exact=A23]*/f23b = null}';
+        '${/*update: [exact=A23]*/ f23b = null}';
     // Test list literal.
     [/*update: [exact=A23]*/ f23c = null];
     // Test map literal.

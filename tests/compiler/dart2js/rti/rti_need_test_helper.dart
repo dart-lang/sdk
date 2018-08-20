@@ -33,9 +33,6 @@ runTests(List<String> args, [int shardIndex]) {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, const RtiNeedDataComputer(),
         options: [],
-        skipForKernel: [
-          'runtime_type_closure_equals2.dart',
-        ],
         skipForStrong: [
           'map_literal_checked.dart',
           // TODO(johnniwinther): Optimize local function type signature need.

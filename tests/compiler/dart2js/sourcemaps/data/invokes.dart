@@ -122,14 +122,10 @@ class C<T> extends B {
   }
 
   invalidInvokes() {
-    // ignore: not_enough_required_arguments
-    C();
-    // ignore: invocation_of_non_function
-    dynamic();
-    // ignore: invocation_of_non_function
-    F();
-    // ignore: invocation_of_non_function
-    T();
+    (C as dynamic)();
+    (dynamic as dynamic)();
+    (F as dynamic)();
+    (T as dynamic)();
   }
 
   thisInstanceInvokes() {
