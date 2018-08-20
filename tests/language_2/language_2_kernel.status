@@ -359,6 +359,9 @@ compile_time_constant_c_test/02: MissingCompileTimeError
 const_constructor_nonconst_field_test/01: MissingCompileTimeError
 const_syntax_test/05: MissingCompileTimeError
 
+[ $compiler != dart2analyzer && $compiler != dart2js && $fasta && $strong ]
+super_call4_test/01: MissingCompileTimeError
+
 # The precomilation and bytecode configurations use a kernel2kernel constants evaluator
 # which is is more correct than fasta/vm in JIT mode (i.e. it catches more
 # compile-time errors).
@@ -715,14 +718,14 @@ void/void_type_usage_test/void_default_parameter_global: MissingCompileTimeError
 [ $compiler != dart2analyzer && $fasta && $strong ]
 map_literal3_test/03: MissingCompileTimeError
 
+[ $compiler != dart2analyzer && $fasta && !$strong ]
+super_call4_test/01: MissingCompileTimeError
+
 [ $compiler != dart2js && $fasta ]
 mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError
 mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingCompileTimeError
-
-[ $compiler != dart2js && $fasta && $strong ]
-super_call4_test/01: MissingCompileTimeError
 
 [ $compiler == dartk && $runtime == vm && !$checked && $strong ]
 assertion_initializer_const_error2_test/cc01: MissingCompileTimeError # Not reporting failed assert() at compile time.
@@ -2313,7 +2316,6 @@ string_test/01: MissingCompileTimeError
 substring_test/01: MissingCompileTimeError
 super_assign_test/01: MissingCompileTimeError
 super_bound_closure_test/01: MissingCompileTimeError
-super_call4_test/01: MissingCompileTimeError
 super_operator_index_test/01: MissingCompileTimeError
 super_operator_index_test/02: MissingCompileTimeError
 super_operator_index_test/03: MissingCompileTimeError

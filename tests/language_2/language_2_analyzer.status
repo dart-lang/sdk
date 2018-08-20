@@ -303,7 +303,6 @@ static_setter_get_test/01: Crash # Error recovery in method body (attempt to rea
 string_split_test: CompileTimeError # Issue 34047
 string_supertype_checked_test: CompileTimeError # Issue 34047
 super_bound_closure_test/none: CompileTimeError # Issue 34047
-super_call4_test/01: Pass
 super_conditional_operator_test/01: Crash # Error recovery in method body (error in constructor redirect)
 super_conditional_operator_test/17: Crash # Error recovery in method body (nonsensical use of super)
 super_conditional_operator_test/18: Crash # Error recovery in method body (nonsensical use of super)
