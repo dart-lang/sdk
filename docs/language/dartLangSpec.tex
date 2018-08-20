@@ -1357,8 +1357,13 @@ The rules of inheritance determine what members a class has.
 \end{dartCode}
 
 \LMHash{}
-It is a compile-time error if a class $C$ declares a member with the same name as $C$.
-It is a compile-time error if a generic class declares a type variable with the same name as the class or any of its members or constructors.
+It is a compile-time error if a class named $C$ declares
+a member with basename (\ref{classMemberConflicts}) $C$.
+If a generic class named $G$ declares a type variable named $X$,
+it is a compile-time error
+if $X$ is equal to $G$,
+if $G$ has a member whose basename is $X$,
+and if $G$ has a constructor named \code{$G$.$X$}.
 
 
 \subsection{Instance Methods}
