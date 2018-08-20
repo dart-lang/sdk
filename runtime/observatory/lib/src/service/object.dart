@@ -1180,7 +1180,7 @@ class InboundReferences implements M.InboundReferences {
 
 class InboundReference implements M.InboundReference {
   final ServiceObject /*HeapObject*/ source;
-  final Instance parentField;
+  final HeapObject parentField;
   final int parentListIndex;
   final int parentWordOffset;
 
@@ -1202,7 +1202,7 @@ class RetainingPath implements M.RetainingPath {
 
 class RetainingPathItem implements M.RetainingPathItem {
   final ServiceObject /*HeapObject*/ source;
-  final Instance parentField;
+  final HeapObject parentField;
   final int parentListIndex;
   final int parentWordOffset;
 
