@@ -5,23 +5,22 @@
 part of dart.core;
 
 /**
- * The annotation `@Deprecated('expires when')` marks a feature as deprecated.
+ * The annotation `@Deprecated('migration')` marks a feature as deprecated.
  *
- * The annotation `@deprecated` is a shorthand for deprecating until
- * an unspecified "next release".
+ * The annotation [deprecated] is a shorthand for deprecating until
+ * an unspecified "next release" without migration instructions.
  *
  * The intent of the `@Deprecated` annotation is to inform users of a feature
  * that they should change their code, even if it is currently still working
  * correctly.
  *
  * A deprecated feature is scheduled to be removed at a later time, possibly
- * specified as the "expires" field of the annotation.
- * This means that a deprecated feature should not be used, or code using it
- * will break at some point in the future. If there is code using the feature,
- * that code should be rewritten to not use the deprecated feature.
+ * specified in [message]. A deprecated feature should not be used, code using
+ * it will break at some point in the future. If existing code is using the
+ * feature it should be rewritten to not use the deprecated feature.
  *
- * A deprecated feature should document how the same effect can be achieved,
- * so the programmer knows how to rewrite the code.
+ * A deprecated feature should document how the same effect can be achieved in
+ * [message], so the programmer knows how to rewrite the code.
  *
  * The `@Deprecated` annotation applies to libraries, top-level declarations
  * (variables, getters, setters, functions, classes and typedefs),
@@ -54,22 +53,28 @@ part of dart.core;
  */
 class Deprecated {
   /**
-   * A description of when the deprecated feature is expected to be retired.
+   * Message provided to the user when they use the deprecated feature.
+   *
+   * The message should explain how to migrate away from the feature if an
+   * alternative is available, and when the deprecated feature is expected to be
+   * removed.
    */
-  final String expires;
+  final String message;
 
   /**
-   * Create a deprecation annotation which specifies the expiration of the
-   * annotated feature.
+   * Create a deprecation annotation which specifies the migration path and
+   * expiration of the annotated feature.
    *
-   * The [expires] argument should be readable by programmers, and should state
-   * when an annotated feature is expected to be removed.
-   * This can be specified, for example, as a date, as a release number, or
-   * as relative to some other change (like "when bug 4418 is fixed").
+   * The [message] argument should be readable by programmers, and should state
+   * an alternative feature (if available) as well as when an annotated feature
+   * is expected to be removed.
    */
-  const Deprecated(String expires) : this.expires = expires;
+  const Deprecated(this.message);
 
-  String toString() => "Deprecated feature. Will be removed $expires";
+  @Deprecated('Use `message` instead. Will be removed in Dart 3.0.0')
+  String get expires => message;
+
+  String toString() => "Deprecated feature: $message";
 }
 
 /**
