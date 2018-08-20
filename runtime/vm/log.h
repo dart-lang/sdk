@@ -54,6 +54,9 @@ class Log {
   void EnableManualFlush();
   void DisableManualFlush(const intptr_t cursor);
 
+  // Returns true when flush is required.
+  bool ShouldFlush() const;
+
   // Returns false if we should drop log messages related to 'isolate'.
   static bool ShouldLogForIsolate(const Isolate* isolate);
 
