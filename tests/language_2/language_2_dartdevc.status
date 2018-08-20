@@ -450,6 +450,7 @@ switch_bad_case_test/02: MissingCompileTimeError
 switch_case_test/00: MissingCompileTimeError
 switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
+syncstar_yield_test/capturing: RuntimeError
 syncstar_yield_test/copyParameters: RuntimeError # Expect.equals(expected: <2>, actual: <3>) fails.
 try_catch_test/01: MissingCompileTimeError
 type_alias_equality_test/02: RuntimeError # Issue 32785
