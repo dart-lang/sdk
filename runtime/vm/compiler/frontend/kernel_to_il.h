@@ -111,7 +111,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment LoadLocal(LocalVariable* variable);
   Fragment InitStaticField(const Field& field);
   Fragment NativeCall(const String* name, const Function* function);
-  Fragment Return(TokenPosition position);
+  Fragment Return(TokenPosition position, bool omit_result_type_check = false);
   Fragment CheckNull(TokenPosition position,
                      LocalVariable* receiver,
                      const String& function_name);
