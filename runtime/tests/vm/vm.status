@@ -53,8 +53,8 @@ dart/simd128float32_test: Skip # compilers not aware of Simd128
 dart/truncating_ints_test: SkipByDesign # The test requires int64.
 dart/wrap_around_in_range_analysis_test: SkipByDesign # The test requires int64.
 
-[ $compiler != dartk || ($arch != x64 && $arch != simarm && $arch != arm)]
-dart/entrypoints/*: Skip  # Only supported in Dart 2 JIT.
+[ $compiler != dartk || ($arch != x64 && $arch != simarm && $arch != arm) || $hot_reload]
+dart/entrypoints/*: Skip  # Only supported in Dart 2 JIT (hot-reload -> issue 34199).
 
 [ ($compiler == dartk || $compiler == dartkb) ]
 cc/DartAPI_New: Fail # Issue #33041
