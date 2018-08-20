@@ -3867,9 +3867,16 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
   Fragment instructions;
   LocalVariable* instance_variable = NULL;
 
-  bool special_case_identical = klass.IsTopLevel() &&
-                                (klass.library() == Library::CoreLibrary()) &&
-                                (target.name() == Symbols::Identical().raw());
+  const bool special_case_unchecked_cast =
+      klass.IsTopLevel() && (klass.library() == Library::InternalLibrary()) &&
+      (target.name() == Symbols::UnsafeCast().raw());
+
+  const bool special_case_identical =
+      klass.IsTopLevel() && (klass.library() == Library::CoreLibrary()) &&
+      (target.name() == Symbols::Identical().raw());
+
+  const bool special_case =
+      special_case_identical || special_case_unchecked_cast;
 
   // If we cross the Kernel -> VM core library boundary, a [StaticInvocation]
   // can appear, but the thing we're calling is not a static method, but a
@@ -3905,7 +3912,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
     const TypeArguments& type_arguments = PeekArgumentsInstantiatedType(klass);
     instructions += TranslateInstantiatedTypeArguments(type_arguments);
     instructions += PushArgument();
-  } else if (!special_case_identical && I->reify_generic_functions()) {
+  } else if (!special_case && I->reify_generic_functions()) {
     AlternativeReadingScope alt(&reader_);
     ReadUInt();                               // read argument count.
     intptr_t list_length = ReadListLength();  // read types list length.
@@ -3921,7 +3928,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
   Array& argument_names = Array::ZoneHandle(Z);
   instructions += BuildArguments(&argument_names, NULL /* arg count */,
                                  NULL /* positional arg count */,
-                                 special_case_identical);  // read arguments.
+                                 special_case);  // read arguments.
   ASSERT(target.AreValidArguments(type_args_len, argument_count, argument_names,
                                   NULL));
 
@@ -3931,6 +3938,8 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
   if (special_case_identical) {
     ASSERT(argument_count == 2);
     instructions += StrictCompare(Token::kEQ_STRICT, /*number_check=*/true);
+  } else if (special_case_unchecked_cast) {
+    // Simply do nothing: the result value is already pushed on the stack.
   } else {
     instructions += StaticCall(position, target, argument_count, argument_names,
                                ICData::kStatic, &result_type, type_args_len);

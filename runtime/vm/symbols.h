@@ -25,6 +25,7 @@ class ObjectPointerVisitor;
   V(TruncDivOperator, "~/")                                                    \
   V(UnaryMinus, "unary-")                                                      \
   V(Identical, "identical")                                                    \
+  V(UnsafeCast, "unsafeCast")                                                  \
   V(Length, "length")                                                          \
   V(_setLength, "_setLength")                                                  \
   V(IndexToken, "[]")                                                          \

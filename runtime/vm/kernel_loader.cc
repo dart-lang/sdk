@@ -1652,6 +1652,8 @@ void KernelLoader::LoadProcedure(const Library& library,
     expression_evaluation_function_ = function.raw();
   }
   function.set_kernel_offset(procedure_offset);
+  function.set_is_reflectable(function.is_reflectable() &&
+                              library.raw() != Library::InternalLibrary());
 
   ActiveMemberScope active_member(&active_class_, &function);
 

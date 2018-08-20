@@ -319,6 +319,11 @@ DEFINE_NATIVE_ENTRY(Internal_inquireIs64Bit, 0) {
 #endif  // defined(ARCH_IS_64_BIT)
 }
 
+DEFINE_NATIVE_ENTRY(Internal_unsafeCast, 1) {
+  UNREACHABLE();  // Should be erased at Kernel translation time.
+  return arguments->NativeArgAt(0);
+}
+
 static bool ExtractInterfaceTypeArgs(Zone* zone,
                                      const Class& instance_cls,
                                      const TypeArguments& instance_type_args,

@@ -6100,7 +6100,9 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
   result_type.SetScopeFunction(func);
   func.set_end_token_pos(function_end_pos);
   func.set_modifier(func_modifier);
-  if (library_.is_dart_scheme() && library_.IsPrivate(func_name)) {
+  if (library_.is_dart_scheme() &&
+      (library_.IsPrivate(func_name) ||
+       library_.raw() == Library::InternalLibrary())) {
     func.set_is_reflectable(false);
   }
   if (is_native) {
@@ -11759,6 +11761,11 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
                                   InvocationMirror::kMethod,
                                   NULL,  // No existing function.
                                   prefix);
+  } else if (cls.IsTopLevel() &&
+             (cls.library() == Library::InternalLibrary()) &&
+             (func.name() == Symbols::UnsafeCast().raw())) {
+    ASSERT(num_arguments == 1);
+    return arguments->NodeAt(0);
   } else if (cls.IsTopLevel() && (cls.library() == Library::CoreLibrary()) &&
              (func.name() == Symbols::Identical().raw()) &&
              func_type_args.IsNull()) {

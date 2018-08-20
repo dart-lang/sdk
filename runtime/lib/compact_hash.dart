@@ -344,7 +344,7 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashBase {
 
   V operator [](Object key) {
     var v = _getValueOrData(key);
-    return identical(_data, v) ? null : v;
+    return identical(_data, v) ? null : internal.unsafeCast<V>(v);
   }
 
   bool containsValue(Object value) {
