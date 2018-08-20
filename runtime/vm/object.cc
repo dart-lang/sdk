@@ -9225,6 +9225,18 @@ static bool FindInstantiationOf(const Type& type,
   return false;  // Not found.
 }
 
+static void SetTrivialTypeExactness(const Field& field, const Class& cls) {
+  const intptr_t type_arguments_offset = cls.type_arguments_field_offset();
+  ASSERT(type_arguments_offset != Class::kNoTypeArguments);
+  if (StaticTypeExactnessState::CanRepresentAsTriviallyExact(
+          type_arguments_offset)) {
+    field.set_static_type_exactness_state(
+        StaticTypeExactnessState::TriviallyExact(type_arguments_offset));
+  } else {
+    field.set_static_type_exactness_state(StaticTypeExactnessState::NotExact());
+  }
+}
+
 bool Field::UpdateGuardedExactnessState(const Object& value) const {
   if (!static_type_exactness_state().IsExactOrUninitialized()) {
     // Nothing to update.
@@ -9297,7 +9309,8 @@ bool Field::UpdateGuardedExactnessState(const Object& value) const {
     // disregards superclass own arguments) improves precision of the
     // tracking.
     if (args.raw() == field_type_args.raw()) {
-      return false;
+      SetTrivialTypeExactness(*this, cls);
+      return true;
     }
 
     if (FLAG_trace_field_guards) {
@@ -9388,16 +9401,8 @@ bool Field::UpdateGuardedExactnessState(const Object& value) const {
   }
 
   if (trivial_case) {
-    const intptr_t type_arguments_offset = cls.type_arguments_field_offset();
-    ASSERT(type_arguments_offset != Class::kNoTypeArguments);
     if (static_type_exactness_state().IsUninitialized()) {
-      if (StaticTypeExactnessState::CanRepresentAsTriviallyExact(
-              type_arguments_offset)) {
-        set_static_type_exactness_state(
-            StaticTypeExactnessState::TriviallyExact(type_arguments_offset));
-      } else {
-        set_static_type_exactness_state(StaticTypeExactnessState::NotExact());
-      }
+      SetTrivialTypeExactness(*this, cls);
       return true;
     }
 
