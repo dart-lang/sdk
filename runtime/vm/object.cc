@@ -9067,17 +9067,19 @@ const char* Field::GuardedPropertiesAsCString() const {
   }
 
   const char* exactness = "";
-  if (!static_type_exactness_state().IsExactOrUninitialized()) {
-    exactness = " {!exact}";
-  } else if (static_type_exactness_state().IsTriviallyExact()) {
-    exactness = " {trivially-exact}";
-  } else if (static_type_exactness_state().IsHasExactSuperType()) {
-    exactness = " {has-exact-super-type}";
-  } else if (static_type_exactness_state().IsHasExactSuperClass()) {
-    exactness = " {has-exact-super-class}";
-  } else {
-    ASSERT(static_type_exactness_state().IsUninitialized());
-    exactness = " {unknown exactness}";
+  if (static_type_exactness_state().IsTracking()) {
+    if (!static_type_exactness_state().IsExactOrUninitialized()) {
+      exactness = " {!exact}";
+    } else if (static_type_exactness_state().IsTriviallyExact()) {
+      exactness = " {trivially-exact}";
+    } else if (static_type_exactness_state().IsHasExactSuperType()) {
+      exactness = " {has-exact-super-type}";
+    } else if (static_type_exactness_state().IsHasExactSuperClass()) {
+      exactness = " {has-exact-super-class}";
+    } else {
+      ASSERT(static_type_exactness_state().IsUninitialized());
+      exactness = " {unknown exactness}";
+    }
   }
 
   const Class& cls =
@@ -9410,6 +9412,13 @@ bool Field::UpdateGuardedExactnessState(const Object& value) const {
 void Field::RecordStore(const Object& value) const {
   ASSERT(IsOriginal());
   if (!Isolate::Current()->use_field_guards()) {
+    return;
+  }
+
+  if ((guarded_cid() == kDynamicCid) ||
+      (is_nullable() && value.raw() == Object::null())) {
+    // Nothing to do: the field is not guarded or we are storing null into
+    // a nullable field.
     return;
   }
 

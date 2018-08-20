@@ -5164,6 +5164,7 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
         native_field_(nullptr),
         field_(field),
         token_pos_(token_pos) {
+    ASSERT(Class::Handle(field->Owner()).is_finalized());
     ASSERT(field->IsZoneHandle());
     // May be null if field is not an instance.
     ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());

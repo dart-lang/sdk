@@ -214,9 +214,8 @@ ParsedFunction::ParsedFunction(Thread* thread, const Function& function)
 }
 
 void ParsedFunction::AddToGuardedFields(const Field* field) const {
-  if (((field->guarded_cid() == kDynamicCid) ||
-       (field->guarded_cid() == kIllegalCid)) &&
-      field->static_type_exactness_state().IsExactOrUninitialized()) {
+  if ((field->guarded_cid() == kDynamicCid) ||
+      (field->guarded_cid() == kIllegalCid)) {
     return;
   }
 
