@@ -859,7 +859,8 @@ void FlowGraphCompiler::EmitPrologue() {
 
     intptr_t args_desc_slot = -1;
     if (parsed_function().has_arg_desc_var()) {
-      args_desc_slot = FrameSlotForVariable(parsed_function().arg_desc_var());
+      args_desc_slot = compiler_frame_layout.FrameSlotForVariable(
+          parsed_function().arg_desc_var());
     }
 
     __ Comment("Initialize spill slots");
@@ -867,7 +868,8 @@ void FlowGraphCompiler::EmitPrologue() {
       __ LoadObject(RAX, Object::null_object());
     }
     for (intptr_t i = 0; i < num_locals; ++i) {
-      const intptr_t slot_index = FrameSlotForVariableIndex(-i);
+      const intptr_t slot_index =
+          compiler_frame_layout.FrameSlotForVariableIndex(-i);
       Register value_reg = slot_index == args_desc_slot ? ARGS_DESC_REG : RAX;
       __ movq(Address(RBP, slot_index * kWordSize), value_reg);
     }
@@ -1240,14 +1242,14 @@ void ParallelMoveResolver::EmitMove(int index) {
     } else {
       ASSERT(destination.IsStackSlot());
       ASSERT((destination.base_reg() != FPREG) ||
-             ((-VariableIndexForFrameSlot(destination.stack_index())) <
-              compiler_->StackSize()));
+             ((-compiler_frame_layout.VariableIndexForFrameSlot(
+                  destination.stack_index())) < compiler_->StackSize()));
       __ movq(destination.ToStackSlotAddress(), source.reg());
     }
   } else if (source.IsStackSlot()) {
     ASSERT((source.base_reg() != FPREG) ||
-           ((-VariableIndexForFrameSlot(source.stack_index())) <
-            compiler_->StackSize()));
+           ((-compiler_frame_layout.VariableIndexForFrameSlot(
+                source.stack_index())) < compiler_->StackSize()));
     if (destination.IsRegister()) {
       __ movq(destination.reg(), source.ToStackSlotAddress());
     } else {

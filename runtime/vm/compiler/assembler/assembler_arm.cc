@@ -1433,7 +1433,7 @@ void Assembler::CheckCodePointer() {
 }
 
 void Assembler::RestoreCodePointer() {
-  ldr(CODE_REG, Address(FP, kPcMarkerSlotFromFp * kWordSize));
+  ldr(CODE_REG, Address(FP, compiler_frame_layout.code_from_fp * kWordSize));
   CheckCodePointer();
 }
 
@@ -3124,7 +3124,8 @@ void Assembler::EnterOsrFrame(intptr_t extra_size) {
 
 void Assembler::LeaveDartFrame(RestorePP restore_pp) {
   if (restore_pp == kRestoreCallerPP) {
-    ldr(PP, Address(FP, kSavedCallerPpSlotFromFp * kWordSize));
+    ldr(PP,
+        Address(FP, compiler_frame_layout.saved_caller_pp_from_fp * kWordSize));
     set_constant_pool_allowed(false);
   }
 

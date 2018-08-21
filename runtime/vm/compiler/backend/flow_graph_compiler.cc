@@ -78,8 +78,8 @@ void CompilerDeoptInfo::AllocateIncomingParametersRecursive(
   for (Environment::ShallowIterator it(env); !it.Done(); it.Advance()) {
     if (it.CurrentLocation().IsInvalid() &&
         it.CurrentValue()->definition()->IsPushArgument()) {
-      it.SetCurrentLocation(
-          Location::StackSlot(FrameSlotForVariableIndex(-*stack_height)));
+      it.SetCurrentLocation(Location::StackSlot(
+          compiler_frame_layout.FrameSlotForVariableIndex(-*stack_height)));
       (*stack_height)++;
     }
   }
@@ -376,7 +376,8 @@ void FlowGraphCompiler::EmitCatchEntryState(Environment* env,
         catch_entry_state_maps_builder_->AppendConstant(id, dest_index);
         continue;
       }
-      const intptr_t src_index = -VariableIndexForFrameSlot(src.stack_index());
+      const intptr_t src_index =
+          -compiler_frame_layout.VariableIndexForFrameSlot(src.stack_index());
       if (src_index != dest_index) {
         catch_entry_state_maps_builder_->AppendMove(src_index, dest_index);
       }
@@ -406,7 +407,8 @@ void FlowGraphCompiler::EmitCatchEntryState(Environment* env,
         catch_entry_state_maps_builder_->AppendConstant(id, dest_index);
         continue;
       }
-      const intptr_t src_index = -VariableIndexForFrameSlot(src.stack_index());
+      const intptr_t src_index =
+          -compiler_frame_layout.VariableIndexForFrameSlot(src.stack_index());
       if (src_index != dest_index) {
         catch_entry_state_maps_builder_->AppendMove(src_index, dest_index);
       }
@@ -1010,8 +1012,8 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
     info.scope_id = 0;
     info.begin_pos = TokenPosition::kMinSource;
     info.end_pos = TokenPosition::kMinSource;
-    info.set_index(
-        FrameSlotForVariable(parsed_function().current_context_var()));
+    info.set_index(compiler_frame_layout.FrameSlotForVariable(
+        parsed_function().current_context_var()));
     var_descs.SetVar(0, Symbols::CurrentContextVar(), &info);
   }
   code.set_var_descriptors(var_descs);
@@ -1323,7 +1325,8 @@ static Register AllocateFreeRegister(bool* blocked_registers) {
 
 void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   ASSERT(!is_optimizing());
-  instr->InitializeLocationSummary(zone(), false);  // Not optimizing.
+  instr->InitializeLocationSummary(zone(),
+                                   false);  // Not optimizing.
 
 // No need to allocate registers based on LocationSummary on DBC as in
 // unoptimized mode it's a stack based bytecode just like IR itself.

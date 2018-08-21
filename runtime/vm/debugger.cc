@@ -1131,8 +1131,8 @@ RawObject* ActivationFrame::GetParameter(intptr_t index) {
     // were actually supplied at the call site, but they are copied to a fixed
     // place in the callee's frame.
 
-    return GetVariableValue(
-        LocalVarAddress(fp(), FrameSlotForVariableIndex(-index)));
+    return GetVariableValue(LocalVarAddress(
+        fp(), runtime_frame_layout.FrameSlotForVariableIndex(-index)));
   } else {
     intptr_t reverse_index = num_parameters - index;
     return GetVariableValue(ParamAddress(fp(), reverse_index));
@@ -1145,7 +1145,8 @@ RawObject* ActivationFrame::GetClosure() {
 }
 
 RawObject* ActivationFrame::GetStackVar(VariableIndex variable_index) {
-  const intptr_t slot_index = FrameSlotForVariableIndex(variable_index.value());
+  const intptr_t slot_index =
+      runtime_frame_layout.FrameSlotForVariableIndex(variable_index.value());
   if (deopt_frame_.IsNull()) {
     return GetVariableValue(LocalVarAddress(fp(), slot_index));
   } else {

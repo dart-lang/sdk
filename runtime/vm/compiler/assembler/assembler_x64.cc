@@ -1486,7 +1486,7 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
 }
 
 void Assembler::RestoreCodePointer() {
-  movq(CODE_REG, Address(RBP, kPcMarkerSlotFromFp * kWordSize));
+  movq(CODE_REG, Address(RBP, compiler_frame_layout.code_from_fp * kWordSize));
 }
 
 void Assembler::LoadPoolPointer(Register pp) {
@@ -1515,7 +1515,8 @@ void Assembler::EnterDartFrame(intptr_t frame_size, Register new_pp) {
 void Assembler::LeaveDartFrame(RestorePP restore_pp) {
   // Restore caller's PP register that was pushed in EnterDartFrame.
   if (restore_pp == kRestoreCallerPP) {
-    movq(PP, Address(RBP, (kSavedCallerPpSlotFromFp * kWordSize)));
+    movq(PP, Address(RBP, (compiler_frame_layout.saved_caller_pp_from_fp *
+                           kWordSize)));
     set_constant_pool_allowed(false);
   }
   LeaveFrame();

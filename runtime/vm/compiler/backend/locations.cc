@@ -244,18 +244,21 @@ Location Location::RemapForSlowPath(Definition* def,
   if (IsRegister()) {
     intptr_t index = cpu_reg_slots[reg()];
     ASSERT(index >= 0);
-    return Location::StackSlot(FrameSlotForVariableIndex(-index));
+    return Location::StackSlot(
+        compiler_frame_layout.FrameSlotForVariableIndex(-index));
   } else if (IsFpuRegister()) {
     intptr_t index = fpu_reg_slots[fpu_reg()];
     ASSERT(index >= 0);
     switch (def->representation()) {
       case kUnboxedDouble:
-        return Location::DoubleStackSlot(FrameSlotForVariableIndex(-index));
+        return Location::DoubleStackSlot(
+            compiler_frame_layout.FrameSlotForVariableIndex(-index));
 
       case kUnboxedFloat32x4:
       case kUnboxedInt32x4:
       case kUnboxedFloat64x2:
-        return Location::QuadStackSlot(FrameSlotForVariableIndex(-index));
+        return Location::QuadStackSlot(
+            compiler_frame_layout.FrameSlotForVariableIndex(-index));
 
       default:
         UNREACHABLE();
@@ -267,16 +270,16 @@ Location Location::RemapForSlowPath(Definition* def,
     intptr_t index_hi;
 
     if (value_pair->At(0).IsRegister()) {
-      index_lo =
-          FrameSlotForVariableIndex(-cpu_reg_slots[value_pair->At(0).reg()]);
+      index_lo = compiler_frame_layout.FrameSlotForVariableIndex(
+          -cpu_reg_slots[value_pair->At(0).reg()]);
     } else {
       ASSERT(value_pair->At(0).IsStackSlot());
       index_lo = value_pair->At(0).stack_index();
     }
 
     if (value_pair->At(1).IsRegister()) {
-      index_hi =
-          FrameSlotForVariableIndex(-cpu_reg_slots[value_pair->At(1).reg()]);
+      index_hi = compiler_frame_layout.FrameSlotForVariableIndex(
+          -cpu_reg_slots[value_pair->At(1).reg()]);
     } else {
       ASSERT(value_pair->At(1).IsStackSlot());
       index_hi = value_pair->At(1).stack_index();

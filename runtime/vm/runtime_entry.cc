@@ -2436,10 +2436,10 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
   HANDLESCOPE(thread);
 
   // All registers have been saved below last-fp as if they were locals.
-  const uword last_fp = saved_registers_address +
-                        (kNumberOfSavedCpuRegisters * kWordSize) +
-                        (kNumberOfSavedFpuRegisters * kFpuRegisterSize) -
-                        ((kFirstLocalSlotFromFp + 1) * kWordSize);
+  const uword last_fp =
+      saved_registers_address + (kNumberOfSavedCpuRegisters * kWordSize) +
+      (kNumberOfSavedFpuRegisters * kFpuRegisterSize) -
+      ((runtime_frame_layout.first_local_from_fp + 1) * kWordSize);
 
   // Get optimized code and frame that need to be deoptimized.
   DartFrameIterator iterator(last_fp, thread,

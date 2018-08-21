@@ -820,7 +820,8 @@ void FlowGraphCompiler::CompileGraph() {
 
     intptr_t args_desc_slot = -1;
     if (parsed_function().has_arg_desc_var()) {
-      args_desc_slot = FrameSlotForVariable(parsed_function().arg_desc_var());
+      args_desc_slot = compiler_frame_layout.FrameSlotForVariable(
+          parsed_function().arg_desc_var());
     }
 
     __ Comment("Initialize spill slots");
@@ -830,7 +831,8 @@ void FlowGraphCompiler::CompileGraph() {
       __ movl(EAX, raw_null);
     }
     for (intptr_t i = 0; i < num_locals; ++i) {
-      const intptr_t slot_index = FrameSlotForVariableIndex(-i);
+      const intptr_t slot_index =
+          compiler_frame_layout.FrameSlotForVariableIndex(-i);
       Register value_reg = slot_index == args_desc_slot ? ARGS_DESC_REG : EAX;
       __ movl(Address(EBP, slot_index * kWordSize), value_reg);
     }

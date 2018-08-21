@@ -29,6 +29,7 @@
 #include "vm/service_isolate.h"
 #include "vm/simulator.h"
 #include "vm/snapshot.h"
+#include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/thread_interrupter.h"
@@ -134,6 +135,8 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     FLAG_verify_gc_contains = true;
   }
 #endif
+  FrameLayout::InitOnce();
+
   set_thread_exit_callback(thread_exit);
   SetFileCallbacks(file_open, file_read, file_write, file_close);
   set_entropy_source_callback(entropy_source);

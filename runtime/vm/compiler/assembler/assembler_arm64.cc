@@ -1077,7 +1077,7 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
 }
 
 void Assembler::RestoreCodePointer() {
-  ldr(CODE_REG, Address(FP, kPcMarkerSlotFromFp * kWordSize));
+  ldr(CODE_REG, Address(FP, compiler_frame_layout.code_from_fp * kWordSize));
   CheckCodePointer();
 }
 
@@ -1184,7 +1184,8 @@ void Assembler::LeaveDartFrame(RestorePP restore_pp) {
   if (restore_pp == kRestoreCallerPP) {
     set_constant_pool_allowed(false);
     // Restore and untag PP.
-    LoadFromOffset(PP, FP, kSavedCallerPpSlotFromFp * kWordSize);
+    LoadFromOffset(PP, FP,
+                   compiler_frame_layout.saved_caller_pp_from_fp * kWordSize);
     sub(PP, PP, Operand(kHeapObjectTag));
   }
   LeaveFrame();

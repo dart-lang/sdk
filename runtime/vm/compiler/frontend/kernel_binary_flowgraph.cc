@@ -668,13 +668,15 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
       body += LoadField(ArgumentsDescriptor::count_offset());
       body += LoadLocal(parsed_function()->current_context_var());
       body += B->LoadField(Context::variable_offset(0));
-      body += B->StoreFpRelativeSlot(kWordSize * kParamEndSlotFromFp);
+      body += B->StoreFpRelativeSlot(kWordSize *
+                                     compiler_frame_layout.param_end_from_fp);
       body += Drop();
     } else {
       body += LoadLocal(parsed_function()->current_context_var());
       body += B->LoadField(Context::variable_offset(0));
       body += B->StoreFpRelativeSlot(
-          kWordSize * (kParamEndSlotFromFp + function.NumParameters()));
+          kWordSize *
+          (compiler_frame_layout.param_end_from_fp + function.NumParameters()));
       body += Drop();
     }
   }
@@ -729,7 +731,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
   //
   // for (; i < argument_count; ++i) {
   //   arguments[i] = LoadFpRelativeSlot(
-  //       kWordSize * (kParamEndSlotFromFp + argument_count - i));
+  //       kWordSize * (frame_layout.param_end_from_fp + argument_count - i));
   // }
   body += Constant(TypeArguments::ZoneHandle(Z, TypeArguments::null()));
   body += LoadLocal(argument_count);
@@ -773,13 +775,14 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
     Fragment loop_body(body_entry);
 
     // arguments[i] = LoadFpRelativeSlot(
-    //     kWordSize * (kParamEndSlotFromFp + argument_count - i));
+    //     kWordSize * (frame_layout.param_end_from_fp + argument_count - i));
     loop_body += LoadLocal(arguments);
     loop_body += LoadLocal(index);
     loop_body += LoadLocal(argument_count);
     loop_body += LoadLocal(index);
     loop_body += B->SmiBinaryOp(Token::kSUB, /*truncate=*/true);
-    loop_body += B->LoadFpRelativeSlot(kWordSize * kParamEndSlotFromFp);
+    loop_body += B->LoadFpRelativeSlot(kWordSize *
+                                       compiler_frame_layout.param_end_from_fp);
     loop_body += StoreIndexed(kArrayCid);
     loop_body += Drop();
 
@@ -1226,9 +1229,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder() {
     graph_entry->RelinkToOsrEntry(Z,
                                   flow_graph_builder_->last_used_block_id_ + 1);
   }
-  return new (Z)
-      FlowGraph(*parsed_function(), graph_entry,
-                flow_graph_builder_->last_used_block_id_, prologue_info);
+  return new (Z) FlowGraph(*parsed_function(), graph_entry,
+                           B->last_used_block_id_, prologue_info);
 }
 
 Fragment StreamingFlowGraphBuilder::DebugStepCheckInPrologue(
