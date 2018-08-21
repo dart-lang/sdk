@@ -576,20 +576,4 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   test_undefinedIdentifier_function() async {
     return super.test_undefinedIdentifier_function();
   }
-
-  @override
-  @failingTest
-  test_useOfVoidResult_await() async {
-    return super.test_useOfVoidResult_await();
-  }
-
-  @override
-  test_useOfVoidResult_inForLoop_ok() async {
-    return super.test_useOfVoidResult_inForLoop_ok();
-  }
-
-  @override
-  test_useOfVoidResult_variableDeclaration_method_ok() async {
-    return super.test_useOfVoidResult_variableDeclaration_method_ok();
-  }
 }

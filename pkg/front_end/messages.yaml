@@ -2875,7 +2875,7 @@ VoidExpression:
   statement: |
     {
       void x;
-      var y = x;
+      int y = x;
     }
 
 ReturnFromVoidFunction:
