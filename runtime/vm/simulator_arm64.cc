@@ -732,7 +732,6 @@ Simulator::Simulator() : exclusive_access_addr_(0), exclusive_access_value_(0) {
   break_pc_ = NULL;
   break_instr_ = 0;
   last_setjmp_buffer_ = NULL;
-  top_exit_frame_info_ = 0;
 
   // Setup architecture state.
   // All registers are initialized to zero to start with.
