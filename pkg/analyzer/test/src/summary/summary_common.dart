@@ -9875,8 +9875,8 @@ var v = c.f;
     if (!includeInformative) return;
     serializeLibraryText(' int a = 1, b = 22;');
     List<UnlinkedVariable> variables = unlinkedUnits[0].variables;
-    _assertCodeRange(variables[0].codeRange, 1, 18);
-    _assertCodeRange(variables[1].codeRange, 1, 18);
+    _assertCodeRange(variables[0].codeRange, 1, 9);
+    _assertCodeRange(variables[1].codeRange, 12, 6);
   }
 
   test_variable_const() {

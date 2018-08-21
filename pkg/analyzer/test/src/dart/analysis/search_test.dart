@@ -117,7 +117,7 @@ class C {
     _assertHasDeclaration(declarations, 'C', DeclarationKind.CLASS,
         offset: 6, codeOffset: 0, codeLength: 91);
     _assertHasDeclaration(declarations, 'f', DeclarationKind.FIELD,
-        offset: 16, codeOffset: 12, codeLength: 6, className: 'C');
+        offset: 16, codeOffset: 12, codeLength: 5, className: 'C');
     _assertHasDeclaration(declarations, '', DeclarationKind.CONSTRUCTOR,
         offset: 21, codeOffset: 21, codeLength: 4, className: 'C');
     _assertHasDeclaration(declarations, 'named', DeclarationKind.CONSTRUCTOR,
@@ -363,7 +363,7 @@ typedef tf2<T> = int Function<S>(T tp, S sp);
       codeLength: 16,
     );
     _assertHasDeclaration(declarations, 'v', DeclarationKind.VARIABLE,
-        offset: 54, codeOffset: 50, codeLength: 6);
+        offset: 54, codeOffset: 50, codeLength: 5);
     _assertHasDeclaration(
         declarations, 'tf1', DeclarationKind.FUNCTION_TYPE_ALIAS,
         offset: 70, codeOffset: 57, codeLength: 19);

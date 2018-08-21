@@ -990,7 +990,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     bool isCovariant = isField
         ? (variables.parent as FieldDeclaration).covariantKeyword != null
         : false;
-    for (VariableDeclaration variable in variables.variables) {
+    for (int i = 0; i < variables.variables.length; i++) {
+      VariableDeclaration variable = variables.variables[i];
       UnlinkedVariableBuilder b = new UnlinkedVariableBuilder();
       b.isConst = variables.isConst;
       b.isCovariant = isCovariant;
@@ -1001,7 +1002,13 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       b.type = serializeType(variables.type);
       b.documentationComment = serializeDocumentation(documentationComment);
       b.annotations = serializeAnnotations(annotations);
-      b.codeRange = serializeCodeRange(variables.parent);
+
+      {
+        int offset = (i == 0 ? variables.parent : variable).offset;
+        int length = variable.end - offset;
+        b.codeRange = new CodeRangeBuilder(offset: offset, length: length);
+      }
+
       bool serializeBodyExpr = variable.isConst ||
           variable.isFinal && isField && !isDeclaredStatic ||
           variables.type == null;

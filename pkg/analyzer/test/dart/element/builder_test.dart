@@ -175,6 +175,11 @@ var B = () {
       expect(b.initializer, isNull);
     }
   }
+
+  @override
+  void _assertHasVariableInitializer(VariableElement element) {
+    expect(element.initializer, isNull);
+  }
 }
 
 @reflectiveTest
@@ -747,7 +752,7 @@ class C {
     var code = 'class C { C() { var v = 1; } }';
     buildElementsForText(code);
     var v = findLocalVariable(code, 'v =');
-    assertHasCodeRange(v, 16, 10);
+    assertHasCodeRange(v, 16, 9);
     expect(v.hasImplicitType, isTrue);
     expect(v.name, 'v');
     _assertVisibleRange(v, 14, 28);
@@ -1798,40 +1803,35 @@ class C {
   }
 
   void test_visitFieldDeclaration() {
-    String firstFieldName = "x";
-    String secondFieldName = "y";
-    FieldDeclaration fieldDeclaration =
-        AstTestFactory.fieldDeclaration2(false, null, [
-      AstTestFactory.variableDeclaration(firstFieldName),
-      AstTestFactory.variableDeclaration(secondFieldName)
-    ]);
-    fieldDeclaration.documentationComment = AstTestFactory.documentationComment(
-        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
-    fieldDeclaration.endToken.offset = 110;
-
-    ElementHolder holder = buildElementsForAst(fieldDeclaration);
-    List<FieldElement> fields = holder.fields;
+    var holder = buildElementsForText(r'''
+class C {
+  /// aaa
+  int x = 1, y;
+}
+''');
+    ClassElement c = holder.types.single;
+    List<FieldElement> fields = c.fields;
     expect(fields, hasLength(2));
 
-    FieldElement firstField = fields[0];
-    expect(firstField, isNotNull);
-    assertHasCodeRange(firstField, 50, 61);
-    expect(firstField.documentationComment, '/// aaa');
-    expect(firstField.name, firstFieldName);
-    expect(firstField.initializer, isNull);
-    expect(firstField.isConst, isFalse);
-    expect(firstField.isFinal, isFalse);
-    expect(firstField.isSynthetic, isFalse);
+    FieldElement x = fields[0];
+    expect(x, isNotNull);
+    assertHasCodeRange(x, 12, 19);
+    expect(x.documentationComment, '/// aaa');
+    expect(x.name, 'x');
+    _assertHasVariableInitializer(x);
+    expect(x.isConst, isFalse);
+    expect(x.isFinal, isFalse);
+    expect(x.isSynthetic, isFalse);
 
-    FieldElement secondField = fields[1];
-    expect(secondField, isNotNull);
-    assertHasCodeRange(secondField, 50, 61);
-    expect(secondField.documentationComment, '/// aaa');
-    expect(secondField.name, secondFieldName);
-    expect(secondField.initializer, isNull);
-    expect(secondField.isConst, isFalse);
-    expect(secondField.isFinal, isFalse);
-    expect(secondField.isSynthetic, isFalse);
+    FieldElement y = fields[1];
+    expect(y, isNotNull);
+    assertHasCodeRange(y, 33, 1);
+    expect(y.documentationComment, '/// aaa');
+    expect(y.name, 'y');
+    expect(y.initializer, isNull);
+    expect(y.isConst, isFalse);
+    expect(y.isFinal, isFalse);
+    expect(y.isSynthetic, isFalse);
   }
 
   void test_visitFieldFormalParameter() {
@@ -2550,6 +2550,10 @@ class A {
     expect(typeParameterElement.name, parameterName);
     expect(typeParameterElement.bound, isNull);
     expect(typeParameterElement.isSynthetic, isFalse);
+  }
+
+  void _assertHasVariableInitializer(VariableElement element) {
+    expect(element.initializer, isNotNull);
   }
 }
 

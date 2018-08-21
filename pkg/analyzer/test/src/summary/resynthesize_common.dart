@@ -2672,6 +2672,99 @@ class alias CommentAroundAnnotation/*codeOffset=374, codeLength=74*/ extends Obj
         withConstElements: false);
   }
 
+  test_codeRange_field() async {
+    var library = await checkLibrary('''
+class C {
+  int withInit = 1;
+  
+  int withoutInit;
+  
+  int multiWithInit = 2, multiWithoutInit, multiWithInit2 = 3; 
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class C/*codeOffset=0, codeLength=120*/ {
+  int withInit/*codeOffset=12, codeLength=16*/;
+  int withoutInit/*codeOffset=35, codeLength=15*/;
+  int multiWithInit/*codeOffset=57, codeLength=21*/;
+  int multiWithoutInit/*codeOffset=80, codeLength=16*/;
+  int multiWithInit2/*codeOffset=98, codeLength=18*/;
+}
+''',
+        withCodeRanges: true,
+        withConstElements: false);
+  }
+
+  test_codeRange_field_annotations() async {
+    var library = await checkLibrary('''
+class C {
+  /// Comment 1.
+  /// Comment 2.
+  int hasDocComment, hasDocComment2;
+  
+  @Object()
+  int hasAnnotation, hasAnnotation2;
+  
+  @Object()
+  /// Comment 1.
+  /// Comment 2.
+  int annotationThenComment, annotationThenComment2;
+  
+  /// Comment 1.
+  /// Comment 2.
+  @Object()
+  int commentThenAnnotation, commentThenAnnotation2;
+  
+  /// Comment 1.
+  @Object()
+  /// Comment 2.
+  int commentAroundAnnotation, commentAroundAnnotation2;
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class C/*codeOffset=0, codeLength=444*/ {
+  /// Comment 1.
+  /// Comment 2.
+  int hasDocComment/*codeOffset=12, codeLength=51*/;
+  /// Comment 1.
+  /// Comment 2.
+  int hasDocComment2/*codeOffset=65, codeLength=14*/;
+  @Object()
+  int hasAnnotation/*codeOffset=86, codeLength=29*/;
+  @Object()
+  int hasAnnotation2/*codeOffset=117, codeLength=14*/;
+  /// Comment 1.
+  /// Comment 2.
+  @Object()
+  int annotationThenComment/*codeOffset=138, codeLength=71*/;
+  /// Comment 1.
+  /// Comment 2.
+  @Object()
+  int annotationThenComment2/*codeOffset=211, codeLength=22*/;
+  /// Comment 1.
+  /// Comment 2.
+  @Object()
+  int commentThenAnnotation/*codeOffset=240, codeLength=71*/;
+  /// Comment 1.
+  /// Comment 2.
+  @Object()
+  int commentThenAnnotation2/*codeOffset=313, codeLength=22*/;
+  /// Comment 2.
+  @Object()
+  int commentAroundAnnotation/*codeOffset=359, codeLength=56*/;
+  /// Comment 2.
+  @Object()
+  int commentAroundAnnotation2/*codeOffset=417, codeLength=24*/;
+}
+''',
+        withCodeRanges: true,
+        withConstElements: false);
+  }
+
   test_codeRange_function() async {
     var library = await checkLibrary('''
 void raw() {}
@@ -2773,6 +2866,119 @@ class C/*codeOffset=0, codeLength=382*/ {
   @Object()
   void commentAroundAnnotation/*codeOffset=318, codeLength=62*/() {}
 }
+''',
+        withCodeRanges: true,
+        withConstElements: false);
+  }
+
+  test_codeRange_parameter() async {
+    var library = await checkLibrary('''
+main({int a = 1, int b, int c = 2}) {}
+''');
+    checkElementText(
+        library,
+        'dynamic main/*codeOffset=0, codeLength=38*/('
+        '{int a/*codeOffset=6, codeLength=9*/: 1}, '
+        '{int b/*codeOffset=17, codeLength=5*/}, '
+        '{int c/*codeOffset=24, codeLength=9*/: 2}) {}\n',
+        withCodeRanges: true,
+        withConstElements: false);
+  }
+
+  test_codeRange_parameter_annotations() async {
+    var library = await checkLibrary('''
+main(@Object() int a, int b, @Object() int c) {}
+''');
+    checkElementText(
+        library,
+        'dynamic main/*codeOffset=0, codeLength=48*/('
+        '@Object() int a/*codeOffset=5, codeLength=15*/, '
+        'int b/*codeOffset=22, codeLength=5*/, '
+        '@Object() int c/*codeOffset=29, codeLength=15*/) {}\n',
+        withCodeRanges: true,
+        withConstElements: false);
+  }
+
+  test_codeRange_topLevelVariable() async {
+    var library = await checkLibrary('''
+int withInit = 1;
+
+int withoutInit;
+
+int multiWithInit = 2, multiWithoutInit, multiWithInit2 = 3; 
+''');
+    checkElementText(
+        library,
+        r'''
+int withInit/*codeOffset=0, codeLength=16*/;
+int withoutInit/*codeOffset=19, codeLength=15*/;
+int multiWithInit/*codeOffset=37, codeLength=21*/;
+int multiWithoutInit/*codeOffset=60, codeLength=16*/;
+int multiWithInit2/*codeOffset=78, codeLength=18*/;
+''',
+        withCodeRanges: true,
+        withConstElements: false);
+  }
+
+  test_codeRange_topLevelVariable_annotations() async {
+    var library = await checkLibrary('''
+/// Comment 1.
+/// Comment 2.
+int hasDocComment, hasDocComment2;
+
+@Object()
+int hasAnnotation, hasAnnotation2;
+
+@Object()
+/// Comment 1.
+/// Comment 2.
+int annotationThenComment, annotationThenComment2;
+
+/// Comment 1.
+/// Comment 2.
+@Object()
+int commentThenAnnotation, commentThenAnnotation2;
+
+/// Comment 1.
+@Object()
+/// Comment 2.
+int commentAroundAnnotation, commentAroundAnnotation2;
+''');
+    checkElementText(
+        library,
+        r'''
+/// Comment 1.
+/// Comment 2.
+int hasDocComment/*codeOffset=0, codeLength=47*/;
+/// Comment 1.
+/// Comment 2.
+int hasDocComment2/*codeOffset=49, codeLength=14*/;
+@Object()
+int hasAnnotation/*codeOffset=66, codeLength=27*/;
+@Object()
+int hasAnnotation2/*codeOffset=95, codeLength=14*/;
+/// Comment 1.
+/// Comment 2.
+@Object()
+int annotationThenComment/*codeOffset=112, codeLength=65*/;
+/// Comment 1.
+/// Comment 2.
+@Object()
+int annotationThenComment2/*codeOffset=179, codeLength=22*/;
+/// Comment 1.
+/// Comment 2.
+@Object()
+int commentThenAnnotation/*codeOffset=204, codeLength=65*/;
+/// Comment 1.
+/// Comment 2.
+@Object()
+int commentThenAnnotation2/*codeOffset=271, codeLength=22*/;
+/// Comment 2.
+@Object()
+int commentAroundAnnotation/*codeOffset=311, codeLength=52*/;
+/// Comment 2.
+@Object()
+int commentAroundAnnotation2/*codeOffset=365, codeLength=24*/;
 ''',
         withCodeRanges: true,
         withConstElements: false);
