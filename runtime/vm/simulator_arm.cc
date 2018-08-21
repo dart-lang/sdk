@@ -683,7 +683,6 @@ Simulator::Simulator() : exclusive_access_addr_(0), exclusive_access_value_(0) {
   break_pc_ = NULL;
   break_instr_ = 0;
   last_setjmp_buffer_ = NULL;
-  top_exit_frame_info_ = 0;
 
   // Setup architecture state.
   // All registers are initialized to zero to start with.
@@ -1387,13 +1386,6 @@ void Simulator::SupervisorCall(Instr* instr) {
         if (IsTracingExecution()) {
           THR_Print("Call to host function at 0x%" Pd "\n", external);
         }
-
-        if ((redirection->call_kind() == kRuntimeCall) ||
-            (redirection->call_kind() == kBootstrapNativeCall) ||
-            (redirection->call_kind() == kNativeCall)) {
-          // Set the top_exit_frame_info of this simulator to the native stack.
-          set_top_exit_frame_info(OSThread::GetCurrentStackPointer());
-        }
         if (redirection->call_kind() == kRuntimeCall) {
           NativeArguments arguments;
           ASSERT(sizeof(NativeArguments) == 4 * kWordSize);
@@ -1467,7 +1459,6 @@ void Simulator::SupervisorCall(Instr* instr) {
           set_register(R0, icount_);  // Zap result register from void function.
           set_register(R1, icount_);
         }
-        set_top_exit_frame_info(0);
 
         // Zap caller-saved registers, since the actual runtime call could have
         // used them.
@@ -1494,7 +1485,6 @@ void Simulator::SupervisorCall(Instr* instr) {
         set_pc(saved_lr);
       } else {
         // Coming via long jump from a throw. Continue to exception handler.
-        set_top_exit_frame_info(0);
       }
 
       break;

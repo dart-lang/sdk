@@ -556,7 +556,6 @@ Interpreter::Interpreter()
   stack_limit_ = stack_base_ + OSThread::GetSpecifiedStackSize();
 
   last_setjmp_buffer_ = NULL;
-  top_exit_frame_info_ = 0;
 
   DEBUG_ONLY(icount_ = 1);  // So that tracing after 0 traces first bytecode.
 }

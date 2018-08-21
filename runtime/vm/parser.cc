@@ -671,7 +671,6 @@ class TopLevelParsingScope : public StackResource {
 void Parser::ParseCompilationUnit(const Library& library,
                                   const Script& script) {
   Thread* thread = Thread::Current();
-  ASSERT(thread->long_jump_base()->IsSafeToJump());
   CSTAT_TIMER_SCOPE(thread, parser_timer);
 #ifndef PRODUCT
   VMTagScope tagScope(thread, VMTag::kCompileTopLevelTagId);
@@ -1009,14 +1008,12 @@ void Parser::ParseClass(const Class& cls) {
   }
 #endif
   if (!cls.is_synthesized_class()) {
-    ASSERT(thread->long_jump_base()->IsSafeToJump());
     CSTAT_TIMER_SCOPE(thread, parser_timer);
     const Script& script = Script::Handle(zone, cls.script());
     const Library& lib = Library::Handle(zone, cls.library());
     Parser parser(script, lib, cls.token_pos());
     parser.ParseClassDefinition(cls);
   } else if (cls.is_enum_class()) {
-    ASSERT(thread->long_jump_base()->IsSafeToJump());
     CSTAT_TIMER_SCOPE(thread, parser_timer);
     const Script& script = Script::Handle(zone, cls.script());
     const Library& lib = Library::Handle(zone, cls.library());
@@ -1165,7 +1162,6 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   TimelineDurationScope tds(thread, Timeline::GetCompilerStream(),
                             "ParseFunction");
 #endif  // !PRODUCT
-  ASSERT(thread->long_jump_base()->IsSafeToJump());
   ASSERT(parsed_function != NULL);
   const Function& func = parsed_function->function();
   const Script& script = Script::Handle(zone, func.script());
