@@ -128,7 +128,8 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     node.leftHandSide.accept(this);
     node.rightHandSide.accept(this);
 
-    SyntacticEntity entity = _getAssignmentEntity(node.leftHandSide);
+    SyntacticEntity entity =
+        _getAssignmentEntity(node.leftHandSide) ?? node.operator;
     var data = _get(entity);
     node.staticElement = _translateAuxiliaryReference(data.combiner);
     node.staticType = _translateType(data.inferredType);
@@ -557,7 +558,8 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   @override
   void visitPostfixExpression(PostfixExpression node) {
     node.operand.accept(this);
-    SyntacticEntity entity = _getAssignmentEntity(node.operand);
+    SyntacticEntity entity =
+        _getAssignmentEntity(node.operand) ?? node.operator;
     var data = _get(entity);
     node.staticElement = _translateAuxiliaryReference(data.combiner);
     node.staticType = _translateType(data.inferredType);
@@ -577,7 +579,8 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     if (tokenType.isIncrementOperator) {
       // ++v;
       // This is an assignment, it is associated with the operand.
-      SyntacticEntity entity = _getAssignmentEntity(node.operand);
+      SyntacticEntity entity =
+          _getAssignmentEntity(node.operand) ?? node.operator;
       var data = _get(entity);
       node.staticElement = _translateAuxiliaryReference(data.combiner);
       node.staticType = _translateType(data.inferredType);
@@ -749,8 +752,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     } else if (leftHandSide is ParenthesizedExpression) {
       return leftHandSide.rightParenthesis;
     } else {
-      throw new StateError(
-          'Unexpected LHS (${leftHandSide.runtimeType}) $leftHandSide');
+      return null;
     }
   }
 

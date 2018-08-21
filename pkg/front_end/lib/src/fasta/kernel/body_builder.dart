@@ -114,6 +114,8 @@ import 'kernel_ast_api.dart';
 
 import 'kernel_builder.dart';
 
+import 'kernel_expression_generator.dart' show KernelNonLValueGenerator;
+
 import 'type_algorithms.dart' show calculateBounds;
 
 // TODO(ahe): Remove this and ensure all nodes have a location.
@@ -2038,16 +2040,15 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void handleAssignmentExpression(Token token) {
     debugEvent("AssignmentExpression");
     Expression value = popForValue();
-    Object generator = pop();
-    if (generator is! Generator) {
-      push(new SyntheticExpressionJudgment(buildCompileTimeError(
-          fasta.messageNotAnLvalue,
-          offsetForToken(token),
-          lengthForToken(token))));
+    Object lhs = pop();
+    Generator generator;
+    if (lhs is Generator) {
+      generator = lhs;
     } else {
-      push(new DelayedAssignment(
-          this, token, generator, value, token.stringValue));
+      generator = new KernelNonLValueGenerator(this, token, lhs);
     }
+    push(new DelayedAssignment(
+        this, token, generator, value, token.stringValue));
   }
 
   @override

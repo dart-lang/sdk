@@ -65,9 +65,6 @@ compile_time_constant_static5_test/11: CompileTimeError # Issue 31537
 compile_time_constant_static5_test/16: CompileTimeError # Issue 31537
 compile_time_constant_static5_test/21: CompileTimeError # Issue 31537
 compile_time_constant_static5_test/23: CompileTimeError # Issue 31402
-conditional_property_assignment_test/20: Crash # Error recovery in method body (invalid assignment)
-conditional_property_assignment_test/21: Crash # Error recovery in method body (invalid assignment)
-conditional_property_assignment_test/22: Crash # Error recovery in method body (invalid assignment)
 config_import_corelib_test: CompileTimeError # Issue 34047
 conflicting_generic_interfaces_hierarchy_loop_infinite_test: Crash # Issue #34043 - Error recovery in outline (class hierarchy cycle - see also #33756)
 conflicting_generic_interfaces_hierarchy_loop_test: Crash # Issue #34043 - Error recovery in outline (class hierarchy cycle - see also #33756)
@@ -322,9 +319,6 @@ syntax_test/23: Crash # Issue #34043 - Error recovery in outline (illegal operat
 syntax_test/24: Crash # Issue #34043 - Error recovery in outline (illegal operator declaration)
 syntax_test/25: Crash # Issue #34043 - Error recovery in outline (illegal operator declaration)
 syntax_test/26: Crash # Issue #34043 - Error recovery in outline (illegal operator declaration)
-syntax_test/63: Crash # Error recovery in method body (invalid assignment)
-syntax_test/64: Crash # Error recovery in method body (invalid assignment)
-syntax_test/65: Crash # Error recovery in method body (invalid assignment)
 this_conditional_operator_test/01: Crash # Error recovery in method body (error in constructor redirect)
 this_in_initializer_test/06: Crash # Error recovery in method body (error in constructor initializer)
 this_in_initializer_test/07: Crash # Error recovery in method body (error in constructor initializer)

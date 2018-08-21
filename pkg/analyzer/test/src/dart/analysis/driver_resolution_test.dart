@@ -897,6 +897,25 @@ void f(int x) {
     assertElement(xRef, findElement.parameter('x'));
   }
 
+  test_assign_to_non_lvalue() async {
+    addTestFile('''
+void f(int x, double y, String z) {
+  x + y = z;
+}
+''');
+    await resolveTestFile();
+
+    var xRef = findNode.simple('x +');
+    assertType(xRef, 'int');
+    assertElement(xRef, findElement.parameter('x'));
+    var yRef = findNode.simple('y =');
+    assertType(yRef, 'double');
+    assertElement(yRef, findElement.parameter('y'));
+    var zRef = findNode.simple('z;');
+    assertType(zRef, 'String');
+    assertElement(zRef, findElement.parameter('z'));
+  }
+
   test_assignment_to_final_parameter() async {
     addTestFile('''
 f(final int x) {

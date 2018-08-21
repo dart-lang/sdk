@@ -376,6 +376,26 @@ class IncompletePropertyAccessGenerator extends IncompleteSendGenerator {
   }
 }
 
+class KernelNonLValueGenerator extends KernelReadOnlyAccessGenerator {
+  KernelNonLValueGenerator(
+      ExpressionGeneratorHelper helper, Token token, Expression expression)
+      : super(helper, token, expression, null);
+
+  String get debugName => "KernelNonLValueGenerator";
+
+  @override
+  ComplexAssignmentJudgment startComplexAssignment(Expression rhs) {
+    return new IllegalAssignmentJudgment(rhs,
+        assignmentOffset: offsetForToken(token));
+  }
+
+  Expression makeInvalidWrite(Expression value) {
+    var error = helper.buildCompileTimeError(
+        messageNotAnLvalue, offsetForToken(token), lengthForToken(token));
+    return new InvalidWriteJudgment(error, expression);
+  }
+}
+
 class ParenthesizedExpressionGenerator extends KernelReadOnlyAccessGenerator {
   ParenthesizedExpressionGenerator(
       ExpressionGeneratorHelper helper, Token token, Expression expression)
