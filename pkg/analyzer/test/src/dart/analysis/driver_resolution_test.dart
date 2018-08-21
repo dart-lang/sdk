@@ -896,6 +896,23 @@ void f(num x, int y) {
     assertElement(yRef, findElement.parameter('y'));
   }
 
+  test_assign_to_ambiguous_type() async {
+    provider.newFile('/test/lib/a.dart', 'class C {}');
+    provider.newFile('/test/lib/b.dart', 'class C {}');
+    addTestFile('''
+import 'a.dart';
+import 'b.dart';
+void f(int x) {
+  C = x;
+}
+''');
+    await resolveTestFile();
+
+    var xRef = findNode.simple('x;');
+    assertType(xRef, 'int');
+    assertElement(xRef, findElement.parameter('x'));
+  }
+
   test_assign_to_class() async {
     addTestFile('''
 class C {}

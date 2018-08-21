@@ -155,7 +155,6 @@ issue31596_super_test/01: CompileTimeError # Front end fails to skip forwarding 
 issue31596_super_test/03: CompileTimeError # Front end fails to skip forwarding stubs when resolving super calls
 label5_test/01: Crash # Error recovery in method body (illegal jump target)
 label6_test/03: Crash # Error recovery in method body (illegal jump target)
-library_ambiguous_test/00: Crash # Error recovery in method body (ambiguous imported name)
 library_test/01: Crash # Issue 33686 - No core library found
 list_literal_negative_test: Crash # Error recovery in method body (malformed constructor invocation)
 list_literal_syntax_test/06: Crash
@@ -251,7 +250,6 @@ parameter_metadata_test/04: Crash # Poor handling of annotation inside function-
 parser_quirks_test: CompileTimeError # Issue 34047
 part_of_multiple_libs_test/01: Crash # Poor handling of part file used by multiple libs
 part_refers_to_core_library_test/01: Crash # Issue 33686 - No core library found
-prefix_import_collision_test/01: Crash # Error recovery in method body (ambiguous imported name)
 prefix_shadow_test/01: Crash # Error recovery in method body (attempt to use type variable as prefix)
 prefix_variable_collision_test/01: Crash # Issue 33686 - No core library found
 regress_20394_test/01: Crash # Error recovery in method body (error in super constructor call)
