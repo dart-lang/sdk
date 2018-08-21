@@ -813,6 +813,21 @@ abstract class AstFactory {
       ArgumentList argumentList);
 
   /**
+   * Return a newly created mixin declaration.
+   */
+  MixinDeclaration mixinDeclaration(
+      Comment comment,
+      List<Annotation> metadata,
+      Token mixinKeyword,
+      SimpleIdentifier name,
+      TypeParameterList typeParameters,
+      OnClause onClause,
+      ImplementsClause implementsClause,
+      Token leftBracket,
+      List<ClassMember> members,
+      Token rightBracket);
+
+  /**
    * Returns a newly created named expression..
    */
   NamedExpression namedExpression(Label name, Expression expression);
@@ -840,6 +855,11 @@ abstract class AstFactory {
    * Returns a newly created null literal.
    */
   NullLiteral nullLiteral(Token literal);
+
+  /**
+   * Return a newly created on clause.
+   */
+  OnClause onClause(Token onKeyword, List<TypeName> superclassConstraints);
 
   /**
    * Returns a newly created parenthesized expression.

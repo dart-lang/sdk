@@ -1233,6 +1233,11 @@ class CodeGenerator extends Object
     return _emitClassDeclaration(node, node.declaredElement, []);
   }
 
+  @override
+  JS.Statement visitMixinDeclaration(MixinDeclaration node) {
+    throw new UnimplementedError();
+  }
+
   /// Wraps a possibly generic class in its type arguments.
   JS.Statement _defineClassTypeArguments(TypeDefiningElement element,
       List<TypeParameterElement> formals, JS.Statement body,
@@ -6301,6 +6306,10 @@ class CodeGenerator extends Object
   /// Unused, see [_emitParameters].
   @override
   visitFormalParameterList(node) => _unreachable(node);
+
+  /// Unused, handled by [visitMixinDeclaration].
+  @override
+  JS.Node visitOnClause(OnClause node) => _unreachable(node);
 
   /// Unused, handled by imports/exports.
   @override
