@@ -725,6 +725,12 @@ class Thread : public BaseThread {
     safepoint_state_ =
         BlockedForSafepointField::update(value, safepoint_state_);
   }
+  bool BypassSafepoints() const {
+    return BypassSafepointsField::decode(safepoint_state_);
+  }
+  static uint32_t SetBypassSafepoints(bool value, uint32_t state) {
+    return BypassSafepointsField::update(value, state);
+  }
 
   enum ExecutionState {
     kThreadInVM = 0,
@@ -907,6 +913,7 @@ class Thread : public BaseThread {
   class AtSafepointField : public BitField<uint32_t, bool, 0, 1> {};
   class SafepointRequestedField : public BitField<uint32_t, bool, 1, 1> {};
   class BlockedForSafepointField : public BitField<uint32_t, bool, 2, 1> {};
+  class BypassSafepointsField : public BitField<uint32_t, bool, 3, 1> {};
   uint32_t safepoint_state_;
   uint32_t execution_state_;
 

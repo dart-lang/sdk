@@ -2772,7 +2772,8 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
     thread->set_os_thread(os_thread);
     ASSERT(thread->execution_state() == Thread::kThreadInNative);
     thread->set_execution_state(Thread::kThreadInVM);
-    thread->set_safepoint_state(0);
+    thread->set_safepoint_state(
+        Thread::SetBypassSafepoints(bypass_safepoint, 0));
     thread->set_vm_tag(VMTag::kVMTagId);
     ASSERT(thread->no_safepoint_scope_depth() == 0);
     os_thread->set_thread(thread);
