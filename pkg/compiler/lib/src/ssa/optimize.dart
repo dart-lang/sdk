@@ -627,7 +627,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     List<HInstruction> inputs = node.inputs.sublist(1);
     bool canInline = true;
-    if (_options.enableTypeAssertions && inputs.length > 1) {
+    if ((_options.enableTypeAssertions ||
+            _options.parameterCheckPolicy.isEmitted) &&
+        inputs.length > 1) {
       // TODO(sra): Check if [input] is guaranteed to pass the parameter
       // type check.  Consider using a strengthened type check to avoid
       // passing `null` to primitive types since the native methods usually
@@ -1088,7 +1090,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // Use `node.inputs.last` in case the call follows the interceptor calling
     // convention, but is not a call on an interceptor.
     HInstruction value = node.inputs.last;
-    if (_options.enableTypeAssertions) {
+    if (_options.enableTypeAssertions ||
+        _options.parameterCheckPolicy.isEmitted) {
       DartType type = _closedWorld.elementEnvironment.getFieldType(field);
       if (!type.treatAsRaw ||
           type.isTypeVariable ||

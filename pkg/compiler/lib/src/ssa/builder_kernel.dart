@@ -328,7 +328,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
     _inLazyInitializerExpression = node.isStatic;
     FieldEntity field = _elementMap.getMember(node);
     openFunction(field, checks: TargetChecks.none);
-    if (node.isInstanceMember && options.enableTypeAssertions) {
+    if (node.isInstanceMember &&
+        (options.enableTypeAssertions ||
+            options.parameterCheckPolicy.isEmitted)) {
       HInstruction thisInstruction = localsHandler.readThis(
           sourceInformation: _sourceInformationBuilder.buildGet(node));
       // Use dynamic type because the type computed by the inferrer is
