@@ -55,6 +55,9 @@ const char* const DartUtils::kVMServiceLibURL = "dart:vmservice";
 MagicNumberData appjit_magic_number = {8, {0xdc, 0xdc, 0xf6, 0xf6, 0, 0, 0, 0}};
 MagicNumberData snapshot_magic_number = {4, {0xf5, 0xf5, 0xdc, 0xdc}};
 MagicNumberData kernel_magic_number = {4, {0x90, 0xab, 0xcd, 0xef}};
+MagicNumberData kernel_list_magic_number = {
+    7,
+    {0x23, 0x40, 0x64, 0x69, 0x6c, 0x6c, 0x0a}};  // #@dill\n
 MagicNumberData gzip_magic_number = {2, {0x1f, 0x8b, 0, 0}};
 
 static bool IsWindowsHost() {
@@ -438,6 +441,8 @@ DartUtils::MagicNumber DartUtils::SniffForMagicNumber(const char* filename) {
       max_magic_length =
           Utils::Maximum(max_magic_length, kernel_magic_number.length);
       max_magic_length =
+          Utils::Maximum(max_magic_length, kernel_list_magic_number.length);
+      max_magic_length =
           Utils::Maximum(max_magic_length, gzip_magic_number.length);
       ASSERT(max_magic_length <= 8);
       uint8_t header[8];
@@ -461,6 +466,10 @@ DartUtils::MagicNumber DartUtils::SniffForMagicNumber(const uint8_t* buffer,
 
   if (CheckMagicNumber(buffer, buffer_length, kernel_magic_number)) {
     return kKernelMagicNumber;
+  }
+
+  if (CheckMagicNumber(buffer, buffer_length, kernel_list_magic_number)) {
+    return kKernelListMagicNumber;
   }
 
   if (CheckMagicNumber(buffer, buffer_length, gzip_magic_number)) {

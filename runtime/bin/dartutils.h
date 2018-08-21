@@ -220,6 +220,7 @@ class DartUtils {
     kSnapshotMagicNumber,
     kAppJITMagicNumber,
     kKernelMagicNumber,
+    kKernelListMagicNumber,
     kGzipMagicNumber,
     kUnknownMagicNumber
   };
@@ -640,6 +641,7 @@ struct MagicNumberData {
 extern MagicNumberData appjit_magic_number;
 extern MagicNumberData snapshot_magic_number;
 extern MagicNumberData kernel_magic_number;
+extern MagicNumberData kernel_list_magic_number;
 extern MagicNumberData gzip_magic_number;
 
 }  // namespace bin
