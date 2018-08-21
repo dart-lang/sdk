@@ -528,11 +528,9 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     info.addInstantiation(constructor, type, kind,
         isRedirection: isRedirection);
     if (kind != Instantiation.UNINSTANTIATED) {
-      if (_options.strongMode) {
-        _classHierarchyBuilder.updateClassHierarchyNodeForClass(cls,
-            directlyInstantiated: info.isDirectlyInstantiated,
-            abstractlyInstantiated: info.isAbstractlyInstantiated);
-      }
+      _classHierarchyBuilder.updateClassHierarchyNodeForClass(cls,
+          directlyInstantiated: info.isDirectlyInstantiated,
+          abstractlyInstantiated: info.isAbstractlyInstantiated);
       _processInstantiatedClass(cls, classUsed);
     }
 

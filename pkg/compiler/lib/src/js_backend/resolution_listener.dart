@@ -422,9 +422,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     // will instantiate those two classes.
     _addInterceptors(_commonElements.jsBoolClass, impactBuilder);
     _addInterceptors(_commonElements.jsNullClass, impactBuilder);
-    if (_options.enableTypeAssertions) {
-      _registerBackendImpact(impactBuilder, _impacts.enableTypeAssertions);
-    }
     if (_options.disableRtiOptimization) {
       // When RTI optimization is disabled we always need all RTI helpers, so
       // register these here.

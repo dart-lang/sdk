@@ -105,11 +105,6 @@ main() {
           Expect.isTrue(asCasts.contains(type), "Extra $typeUse $context");
           asCasts.remove(type);
           break;
-        case TypeUseKind.CHECKED_MODE_CHECK:
-          Expect.isTrue(
-              checkedModeChecks.contains(type), "Extra $typeUse $context");
-          checkedModeChecks.remove(type);
-          break;
         case TypeUseKind.IMPLICIT_CAST:
           Expect.isTrue(
               implicitCasts.contains(type), "Extra $typeUse $context");

@@ -614,7 +614,7 @@ class JavaScriptBackend {
             _allocatorResolutionAnalysis,
             _nativeResolutionEnqueuer,
             noSuchMethodRegistry,
-            compiler.options.strongMode && useStrongModeWorldStrategy
+            useStrongModeWorldStrategy
                 ? const StrongModeWorldStrategy()
                 : const OpenWorldStrategy(),
             classHierarchyBuilder,
@@ -795,8 +795,7 @@ class JavaScriptBackend {
         closedWorld.nativeData,
         closedWorld.elementEnvironment,
         closedWorld.commonElements,
-        closedWorld.rtiNeed,
-        strongMode: compiler.options.strongMode);
+        closedWorld.rtiNeed);
     emitter.createEmitter(namer, closedWorld, codegenWorldBuilder, sorter);
     // TODO(johnniwinther): Share the impact object created in
     // createCodegenEnqueuer.
@@ -817,7 +816,6 @@ class JavaScriptBackend {
         closedWorld.elementEnvironment,
         closedWorld.commonElements,
         impacts,
-        checkedModeHelpers,
         closedWorld.nativeData,
         closedWorld.backendUsage,
         closedWorld.rtiNeed,

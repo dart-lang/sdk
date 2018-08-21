@@ -130,8 +130,7 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
     }
     // TODO(johnniwinther): Merge this and the following if statement.
     if (!index.isInteger(closedWorld.abstractValueDomain) &&
-        (options.enableTypeAssertions ||
-            options.parameterCheckPolicy.isEmitted)) {
+        options.parameterCheckPolicy.isEmitted) {
       // We want the right checked mode error.
       return null;
     }
@@ -194,8 +193,7 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
     }
     // TODO(johnniwinther): Merge this and the following if statement.
     if (!instruction.inputs[2].isInteger(closedWorld.abstractValueDomain) &&
-        (options.enableTypeAssertions ||
-            options.parameterCheckPolicy.isEmitted)) {
+        options.parameterCheckPolicy.isEmitted) {
       // We want the right checked mode error.
       return null;
     }

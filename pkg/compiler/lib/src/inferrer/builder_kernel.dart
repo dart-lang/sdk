@@ -760,7 +760,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
       TypeInformation type =
           handleStaticInvoke(node, selector, mask, info.callMethod, arguments);
-      if (_options.strongMode && useStaticResultTypes) {
+      if (useStaticResultTypes) {
         type = _types.narrowType(type, _elementMap.getStaticType(node));
       }
       return type;
@@ -785,7 +785,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     }
     TypeInformation type = handleDynamicInvoke(
         CallType.access, node, selector, mask, receiverType, arguments);
-    if (_options.strongMode && useStaticResultTypes) {
+    if (useStaticResultTypes) {
       type = _types.narrowType(type, _elementMap.getStaticType(node));
     }
     return type;
@@ -1185,14 +1185,14 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     } else if (member.isFunction) {
       TypeInformation type =
           handleStaticInvoke(node, selector, mask, member, arguments);
-      if (_options.strongMode && useStaticResultTypes) {
+      if (useStaticResultTypes) {
         type = _types.narrowType(type, _elementMap.getStaticType(node));
       }
       return type;
     } else {
       TypeInformation type =
           handleClosureCall(node, selector, mask, member, arguments);
-      if (_options.strongMode && useStaticResultTypes) {
+      if (useStaticResultTypes) {
         type = _types.narrowType(type, _elementMap.getStaticType(node));
       }
       return type;
@@ -1211,7 +1211,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     AbstractValue mask = _memberData.typeOfSend(node);
     TypeInformation type = handleStaticInvoke(
         node, new Selector.getter(member.memberName), mask, member, null);
-    if (_options.strongMode && useStaticResultTypes) {
+    if (useStaticResultTypes) {
       type = _types.narrowType(type, _elementMap.getStaticType(node));
     }
     return type;
@@ -1242,7 +1242,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
           selector, _types.newTypedSelector(receiverType, mask));
     }
     TypeInformation type = handleDynamicGet(node, selector, mask, receiverType);
-    if (_options.strongMode && useStaticResultTypes) {
+    if (useStaticResultTypes) {
       type = _types.narrowType(type, _elementMap.getStaticType(node));
     }
     return type;
@@ -1257,7 +1257,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     Selector selector = new Selector.getter(member.memberName);
     _checkIfExposesThis(selector, _types.newTypedSelector(receiverType, mask));
     TypeInformation type = handleDynamicGet(node, selector, mask, receiverType);
-    if (_options.strongMode && useStaticResultTypes) {
+    if (useStaticResultTypes) {
       type = _types.narrowType(type, _elementMap.getStaticType(node));
     }
     return type;
@@ -1686,7 +1686,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     } else {
       TypeInformation type =
           handleStaticInvoke(node, selector, mask, member, null);
-      if (_options.strongMode && useStaticResultTypes) {
+      if (useStaticResultTypes) {
         type = _types.narrowType(type, _elementMap.getStaticType(node));
       }
       return type;
@@ -1733,7 +1733,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       } else {
         TypeInformation type =
             handleStaticInvoke(node, selector, mask, member, arguments);
-        if (_options.strongMode && useStaticResultTypes) {
+        if (useStaticResultTypes) {
           type = _types.narrowType(type, _elementMap.getStaticType(node));
         }
         return type;
@@ -1741,7 +1741,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     } else {
       TypeInformation type =
           handleClosureCall(node, selector, mask, member, arguments);
-      if (_options.strongMode && useStaticResultTypes) {
+      if (useStaticResultTypes) {
         type = _types.narrowType(type, _elementMap.getStaticType(node));
       }
       return type;

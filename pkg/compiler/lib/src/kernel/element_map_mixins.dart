@@ -45,8 +45,8 @@ abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
   CallStructure getCallStructure(ir.Arguments arguments) {
     int argumentCount = arguments.positional.length + arguments.named.length;
     List<String> namedArguments = arguments.named.map((e) => e.name).toList();
-    return new CallStructure(argumentCount, namedArguments,
-        options.strongMode ? arguments.types.length : 0);
+    return new CallStructure(
+        argumentCount, namedArguments, arguments.types.length);
   }
 
   @override

@@ -397,54 +397,6 @@ const String directAccessTestExpression = r'''
   })()
 ''';
 
-/// Deferred fragments (aka 'hunks') are built similarly to the main fragment.
-///
-/// However, at specific moments they need to contribute their data.
-/// For example, once the holders have been created, they are included into
-/// the main holders.
-///
-/// This template is used for Dart 1.
-const String deferredBoilerplateDart1 = '''
-function(inherit, mixin, lazy, makeConstList, convertToFastObject,
-         installTearOff, setFunctionNamesIfNecessary, updateHolder, updateTypes,
-         setOrUpdateInterceptorsByTag, setOrUpdateLeafTags,
-         #embeddedGlobalsObject, holdersList, #staticState) {
-
-// Builds the holders. They only contain the data for new holders.
-#holders;
-
-// If the name is not set on the functions, do it now.
-setFunctionNamesIfNecessary(#deferredHoldersList);
-
-// Updates the holders of the main-fragment. Uses the provided holdersList to
-// access the main holders.
-// The local holders are replaced by the combined holders. This is necessary
-// for the inheritance setup below.
-#updateHolders;
-// Sets the prototypes of the new classes.
-#prototypes;
-// Sets aliases of methods (on the prototypes of classes).
-#aliases;
-// Installs the tear-offs of functions.
-#tearOffs;
-// Builds the inheritance structure.
-#inheritance;
-
-// Instantiates all constants of this deferred fragment.
-// Note that the constant-holder has been updated earlier and storing the
-// constant values in the constant-holder makes them available globally.
-#constants;
-// Initializes the static non-final fields (with their constant values).
-#staticNonFinalFields;
-// Creates lazy getters for statics that must run initializers on first access.
-#lazyStatics;
-
-updateTypes(#types);
-
-// Native-support uses setOrUpdateInterceptorsByTag and setOrUpdateLeafTags.
-#nativeSupport;
-}''';
-
 /// Soft-deferred fragments are built similarly to the main fragment.
 
 /// Deferred fragments (aka 'hunks') are built similarly to the main fragment.
@@ -645,51 +597,28 @@ class FragmentEmitter {
           '#holder = updateHolder(holdersList[#index], #holder)',
           {'index': js.number(i), 'holder': new js.VariableUse(holder.name)}));
     }
-    if (compiler.options.strongMode) {
-      // TODO(floitsch): don't just reference 'init'.
-      return js.js(deferredBoilerplateDart2, {
-        'embeddedGlobalsObject': new js.Parameter('init'),
-        'staticState': new js.Parameter(namer.staticStateHolder),
-        'holders': emitHolders(holders, fragment),
-        'deferredHoldersList': new js.ArrayInitializer(nonStaticStateHolders
-            .map((holder) => js.js("#", holder.name))
-            .toList(growable: false)),
-        'updateHolders': new js.Block(updateHolderAssignments),
-        'prototypes': emitPrototypes(fragment, includeClosures: false),
-        'closures': emitPrototypes(fragment, includeClosures: true),
-        'inheritance': emitInheritance(fragment),
-        'aliases': emitInstanceMethodAliases(fragment),
-        'tearOffs': emitInstallTearOffs(fragment),
-        'constants': emitConstants(fragment),
-        'staticNonFinalFields': emitStaticNonFinalFields(fragment),
-        'lazyStatics': emitLazilyInitializedStatics(fragment),
-        'types': deferredTypes,
-        // TODO(floitsch): only call emitNativeSupport if we need native.
-        'nativeSupport': emitNativeSupport(fragment),
-        'typesOffset': namer.typesOffsetName,
-      });
-    } else {
-      // TODO(floitsch): don't just reference 'init'.
-      return js.js(deferredBoilerplateDart1, {
-        'embeddedGlobalsObject': new js.Parameter('init'),
-        'staticState': new js.Parameter(namer.staticStateHolder),
-        'holders': emitHolders(holders, fragment),
-        'deferredHoldersList': new js.ArrayInitializer(nonStaticStateHolders
-            .map((holder) => js.js("#", holder.name))
-            .toList(growable: false)),
-        'updateHolders': new js.Block(updateHolderAssignments),
-        'prototypes': emitPrototypes(fragment),
-        'inheritance': emitInheritance(fragment),
-        'aliases': emitInstanceMethodAliases(fragment),
-        'tearOffs': emitInstallTearOffs(fragment),
-        'constants': emitConstants(fragment),
-        'staticNonFinalFields': emitStaticNonFinalFields(fragment),
-        'lazyStatics': emitLazilyInitializedStatics(fragment),
-        'types': deferredTypes,
-        // TODO(floitsch): only call emitNativeSupport if we need native.
-        'nativeSupport': emitNativeSupport(fragment),
-      });
-    }
+    // TODO(floitsch): don't just reference 'init'.
+    return js.js(deferredBoilerplateDart2, {
+      'embeddedGlobalsObject': new js.Parameter('init'),
+      'staticState': new js.Parameter(namer.staticStateHolder),
+      'holders': emitHolders(holders, fragment),
+      'deferredHoldersList': new js.ArrayInitializer(nonStaticStateHolders
+          .map((holder) => js.js("#", holder.name))
+          .toList(growable: false)),
+      'updateHolders': new js.Block(updateHolderAssignments),
+      'prototypes': emitPrototypes(fragment, includeClosures: false),
+      'closures': emitPrototypes(fragment, includeClosures: true),
+      'inheritance': emitInheritance(fragment),
+      'aliases': emitInstanceMethodAliases(fragment),
+      'tearOffs': emitInstallTearOffs(fragment),
+      'constants': emitConstants(fragment),
+      'staticNonFinalFields': emitStaticNonFinalFields(fragment),
+      'lazyStatics': emitLazilyInitializedStatics(fragment),
+      'types': deferredTypes,
+      // TODO(floitsch): only call emitNativeSupport if we need native.
+      'nativeSupport': emitNativeSupport(fragment),
+      'typesOffset': namer.typesOffsetName,
+    });
   }
 
   /// Emits all holders, except for the static-state holder.

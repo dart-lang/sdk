@@ -952,7 +952,6 @@ abstract class BaseDartTypeVisitor<R, A> extends DartTypeVisitor<R, A> {
 abstract class AbstractTypeRelation<T extends DartType>
     extends BaseDartTypeVisitor<bool, T> {
   CommonElements get commonElements;
-  bool get strongMode;
 
   final _Assumptions assumptions = new _Assumptions();
 
@@ -1186,30 +1185,15 @@ abstract class AbstractTypeRelation<T extends DartType>
 abstract class MoreSpecificVisitor<T extends DartType>
     extends AbstractTypeRelation<T> {
   bool isMoreSpecific(T t, T s) {
-    if (strongMode) {
-      if (identical(t, s) ||
-          s.treatAsDynamic ||
-          s.isVoid ||
-          s == commonElements.objectType ||
-          t == commonElements.nullType) {
-        return true;
-      }
-      if (t.treatAsDynamic) {
-        return false;
-      }
-    } else {
-      if (identical(t, s) || s.treatAsDynamic || t == commonElements.nullType) {
-        return true;
-      }
-      if (t.isVoid || s.isVoid) {
-        return false;
-      }
-      if (t.treatAsDynamic) {
-        return false;
-      }
-      if (s == commonElements.objectType) {
-        return true;
-      }
+    if (identical(t, s) ||
+        s.treatAsDynamic ||
+        s.isVoid ||
+        s == commonElements.objectType ||
+        t == commonElements.nullType) {
+      return true;
+    }
+    if (t.treatAsDynamic) {
+      return false;
     }
 
     t = getUnaliased(t);
@@ -1248,9 +1232,6 @@ abstract class MoreSpecificVisitor<T extends DartType>
 abstract class SubtypeVisitor<T extends DartType>
     extends MoreSpecificVisitor<T> {
   bool isSubtype(DartType t, DartType s) {
-    if (!strongMode && t.treatAsDynamic) {
-      return true;
-    }
     if (s.isFutureOr) {
       FutureOrType sFutureOr = s;
       if (isSubtype(t, sFutureOr.typeArgument)) {
@@ -1276,13 +1257,11 @@ abstract class SubtypeVisitor<T extends DartType>
   }
 
   bool invalidFunctionReturnTypes(T t, T s) {
-    if (strongMode) return !isSubtype(t, s);
-    return !s.isVoid && !isAssignable(t, s);
+    return !isSubtype(t, s);
   }
 
   bool invalidFunctionParameterTypes(T t, T s) {
-    if (strongMode) return !isSubtype(s, t);
-    return !isAssignable(t, s);
+    return !isSubtype(s, t);
   }
 
   bool invalidTypeVariableBounds(T bound, T s) {

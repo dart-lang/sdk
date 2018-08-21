@@ -58,8 +58,7 @@ class KernelCodegenWorkItemBuilder implements WorkItemBuilder {
     // Codegen inlines field initializers. It only needs to generate
     // code for checked setters.
     if (entity.isField && entity.isInstanceMember) {
-      if (!(_options.enableTypeAssertions ||
-              _options.parameterCheckPolicy.isEmitted) ||
+      if (!_options.parameterCheckPolicy.isEmitted ||
           entity.enclosingClass.isClosure) {
         return null;
       }

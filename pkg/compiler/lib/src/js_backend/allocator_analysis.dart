@@ -104,7 +104,6 @@ class JAllocatorAnalysis implements AllocatorAnalysis {
       // in-allocator initialization.
       return false;
     }
-    if (!_options.strongMode) return false;
     return true;
   }
   // TODO(sra): Add way to let injected fields be initialized to a constant in

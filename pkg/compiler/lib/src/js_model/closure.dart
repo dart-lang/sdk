@@ -25,8 +25,7 @@ import 'js_strategy.dart' show JsClosedWorldBuilder;
 class KernelClosureAnalysis {
   /// Inspect members and mark if those members capture any state that needs to
   /// be marked as free variables.
-  static ScopeModel computeScopeModel(
-      MemberEntity entity, ir.Member node, CompilerOptions options) {
+  static ScopeModel computeScopeModel(MemberEntity entity, ir.Member node) {
     if (entity.isAbstract) return null;
     if (entity.isField && !entity.isInstanceMember) {
       ir.Field field = node;
@@ -43,7 +42,7 @@ class KernelClosureAnalysis {
     }
     ScopeModel model = new ScopeModel();
     CapturedScopeBuilder translator =
-        new CapturedScopeBuilder(model, options, hasThisLocal: hasThisLocal);
+        new CapturedScopeBuilder(model, hasThisLocal: hasThisLocal);
     if (entity.isField) {
       if (node is ir.Field && node.initializer != null) {
         node.accept(translator);

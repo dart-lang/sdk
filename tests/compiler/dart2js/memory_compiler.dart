@@ -63,11 +63,8 @@ CompilerDiagnostics createCompilerDiagnostics(
   return handler;
 }
 
-// Cached kernel state for non-strong mode.
+// Cached kernel state.
 fe.InitializedCompilerState kernelInitializedCompilerState;
-
-// Cached kernel state for strong mode.
-fe.InitializedCompilerState strongKernelInitializedCompilerState;
 
 /// memorySourceFiles can contain a map of string filename to string file
 /// contents or string file name to binary file contents (hence the `dynamic`
@@ -99,15 +96,9 @@ Future<CompilationResult> runCompiler(
   if (beforeRun != null) {
     beforeRun(compiler);
   }
-  fe.InitializedCompilerState compilerState;
   bool isSuccess = await compiler.run(entryPoint);
-  if (compiler.options.strongMode) {
-    compilerState = strongKernelInitializedCompilerState =
-        compiler.libraryLoader.initializedCompilerState;
-  } else {
-    compilerState = kernelInitializedCompilerState =
-        compiler.libraryLoader.initializedCompilerState;
-  }
+  fe.InitializedCompilerState compilerState = kernelInitializedCompilerState =
+      compiler.libraryLoader.initializedCompilerState;
   return new CompilationResult(compiler,
       isSuccess: isSuccess, kernelInitializedCompilerState: compilerState);
 }
@@ -156,13 +147,8 @@ CompilerImpl compilerFor(
     ..environment = {}
     ..packageConfig = packageConfig
     ..packagesDiscoveryProvider = packagesDiscoveryProvider;
-  if (compilerOptions.strongMode) {
-    compilerOptions.kernelInitializedCompilerState =
-        strongKernelInitializedCompilerState;
-  } else {
-    compilerOptions.kernelInitializedCompilerState =
-        kernelInitializedCompilerState;
-  }
+  compilerOptions.kernelInitializedCompilerState =
+      kernelInitializedCompilerState;
   CompilerImpl compiler = new CompilerImpl(
       provider, outputProvider, diagnosticHandler, compilerOptions);
 
