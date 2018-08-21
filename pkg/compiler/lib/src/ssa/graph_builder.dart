@@ -296,9 +296,6 @@ abstract class GraphBuilder {
         return options.enableMinification;
       case 'MUST_RETAIN_METADATA':
         return false;
-      case 'STRONG_MODE':
-        // TODO(johnniwinther): Remove this `JS_GET_FLAG` value.
-        return true;
       case 'USE_CONTENT_SECURITY_POLICY':
         return options.useContentSecurityPolicy;
       default:

@@ -51,16 +51,9 @@ List<T> makeFixedListUnmodifiable<T>(List<T> fixedLengthList) {
 @patch
 @NoInline()
 Object extractTypeArguments<T>(T instance, Function extract) {
-  // In Dart 2.0 this function is recognized and replaced with calls to
-  // js_runtime.
-  if (JS_GET_FLAG('STRONG_MODE')) throw new UnimplementedError();
+  // This function is recognized and replaced with calls to js_runtime.
 
-  // In Dart 1.0, instantiating the generic with dynamic (which this does),
-  // gives you an object that can be used anywhere a more specific type is
-  // expected, so this works for now.
-
-  // This call to [extract] is also required for Dart 2.0 to model that the
-  // function is called and the returned value flows to the result of
-  // extractTypeArguments.
+  // This call to [extract] is required to model that the function is called and
+  // the returned value flows to the result of extractTypeArguments.
   return extract();
 }
