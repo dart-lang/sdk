@@ -508,31 +508,19 @@ ConstantPool {
 Bytecode {
   Entry                5
   CheckStack
-  AllocateContext      1
+  AllocateContext      4
   PopLocal             r0
   Push                 r0
   Push                 FP[-5]
   StoreContextVar      0
-  AllocateContext      1
-  StoreLocal           r1
-  Push                 r1
-  Push                 r0
-  StoreContextParent
-  PopLocal             r0
   Push                 r0
   PushConstant         CP#0
-  StoreContextVar      0
-  AllocateContext      1
-  StoreLocal           r1
-  Push                 r1
-  Push                 r0
-  StoreContextParent
-  PopLocal             r0
+  StoreContextVar      1
   PushConstant         CP#1
   PopLocal             r2
   Push                 r0
   PushConstant         CP#2
-  StoreContextVar      0
+  StoreContextVar      2
   Allocate             CP#22
   StoreLocal           r4
   Push                 r4
@@ -564,30 +552,18 @@ Bytecode {
   IndirectStaticCall   1, CP#18
   Drop1
   Push                 r0
-  LoadContextVar       0
+  LoadContextVar       2
   PushConstant         CP#40
   IndirectStaticCall   1, CP#18
   Drop1
   Push                 r0
-  LoadContextParent
-  PopLocal             r0
-  Push                 r0
-  LoadContextVar       0
+  LoadContextVar       1
   PushConstant         CP#41
   IndirectStaticCall   1, CP#18
   Drop1
   Push                 r0
-  LoadContextParent
-  PopLocal             r0
-  AllocateContext      1
-  StoreLocal           r1
-  Push                 r1
-  Push                 r0
-  StoreContextParent
-  PopLocal             r0
-  Push                 r0
   PushConstant         CP#42
-  StoreContextVar      0
+  StoreContextVar      3
   Allocate             CP#22
   StoreLocal           r3
   Push                 r3
@@ -609,9 +585,6 @@ Bytecode {
   Push                 r2
   InstanceCall         1, CP#46
   Drop1
-  Push                 r0
-  LoadContextParent
-  PopLocal             r0
   PushConstant         CP#6
   ReturnTOS
 }
@@ -672,28 +645,21 @@ Closure CP#16 {
   PopLocal             r0
   Push                 r0
   LoadContextParent
-  LoadContextParent
   Push                 r0
   LoadContextParent
-  LoadContextParent
-  LoadContextParent
-  LoadContextVar       0
+  LoadContextVar       1
   PushConstant         CP#1
   InstanceCall         2, CP#17
-  StoreContextVar      0
+  StoreContextVar      2
   Push                 r0
   Push                 r0
-  LoadContextParent
-  LoadContextParent
-  LoadContextParent
   LoadContextParent
   LoadContextVar       0
   InstanceCall         1, CP#19
   Push                 r0
-  LoadContextParent
   LoadContextVar       0
   InstanceCall         2, CP#20
-  StoreContextVar      0
+  StoreContextVar      1
   PushConstant         CP#6
   ReturnTOS
 
@@ -705,15 +671,13 @@ Closure CP#3 {
   Push                 FP[-6]
   LoadFieldTOS         CP#4
   PopLocal             r0
-  AllocateContext      1
+  AllocateContext      2
   StoreLocal           r1
   Push                 r1
   Push                 r0
   StoreContextParent
   PopLocal             r0
   Push                 r0
-  LoadContextParent
-  LoadContextParent
   LoadContextParent
   Push                 FP[-5]
   StoreContextVar      0
@@ -729,31 +693,23 @@ Closure CP#3 {
   Drop1
   Push                 r0
   LoadContextParent
-  LoadContextParent
   Push                 r0
   LoadContextVar       0
   PushConstant         CP#0
   InstanceCall         2, CP#11
-  StoreContextVar      0
+  StoreContextVar      1
   Push                 r0
   LoadContextParent
-  LoadContextParent
-  LoadContextVar       0
+  LoadContextVar       1
   PushConstant         CP#12
   InstanceCall         2, CP#13
   AssertBoolean        0
   PushConstant         CP#14
   IfNeStrictTOS
   Jump                 L1
-  AllocateContext      1
-  StoreLocal           r1
-  Push                 r1
-  Push                 r0
-  StoreContextParent
-  PopLocal             r0
   Push                 r0
   PushConstant         CP#15
-  StoreContextVar      0
+  StoreContextVar      1
   Allocate             CP#22
   StoreLocal           r2
   Push                 r2
@@ -776,13 +732,10 @@ Closure CP#3 {
   InstanceCall         1, CP#32
   Drop1
   Push                 r0
-  LoadContextVar       0
+  LoadContextVar       1
   PushConstant         CP#33
   IndirectStaticCall   1, CP#18
   Drop1
-  Push                 r0
-  LoadContextParent
-  PopLocal             r0
 L1:
   PushConstant         CP#6
   ReturnTOS
@@ -796,10 +749,9 @@ Closure CP#43 {
   LoadFieldTOS         CP#4
   PopLocal             r0
   Push                 r0
-  LoadContextParent
   LoadContextVar       0
   Push                 r0
-  LoadContextVar       0
+  LoadContextVar       3
   InstanceCall         2, CP#44
   Drop1
   PushConstant         CP#6
@@ -865,10 +817,6 @@ Bytecode {
   Entry                5
   CheckStack
   AllocateContext      1
-  StoreLocal           r1
-  Push                 r1
-  Push                 r0
-  StoreContextParent
   PopLocal             r0
   Push                 r0
   PushConstant         CP#0
@@ -1084,10 +1032,6 @@ L2:
   IfNeStrictTOS
   Jump                 L1
   AllocateContext      1
-  StoreLocal           r1
-  Push                 r1
-  Push                 r0
-  StoreContextParent
   PopLocal             r0
   Push                 r0
   Push                 r2
@@ -1285,10 +1229,6 @@ Bytecode {
   Entry                4
   CheckStack
   AllocateContext      1
-  StoreLocal           r1
-  Push                 r1
-  Push                 r0
-  StoreContextParent
   PopLocal             r0
   Push                 r0
   PushConstant         CP#0
