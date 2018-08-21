@@ -65,12 +65,9 @@ class AnnotateWithStaticTypes extends RecursiveVisitor<Null> {
   }
 
   // TODO(vegorov) handle setters as well.
-  // TODO(34162): We don't need to save the type here, just whether or not it's
-  // a statically-checked call.
   static bool shouldAnnotate(MethodInvocation node) =>
-      (node.interfaceTarget != null &&
-          hasGenericCovariantParameters(node.interfaceTarget)) ||
-      node.name.name == "call";
+      node.interfaceTarget != null &&
+      hasGenericCovariantParameters(node.interfaceTarget);
 
   /// Return [true] if the given list of [VariableDeclaration] contains
   /// any annotated with generic-covariant-impl.

@@ -2388,13 +2388,10 @@ Fragment StreamingFlowGraphBuilder::LoadStaticField() {
   return flow_graph_builder_->LoadStaticField();
 }
 
-Fragment StreamingFlowGraphBuilder::CheckNull(
-    TokenPosition position,
-    LocalVariable* receiver,
-    const String& function_name,
-    bool clear_the_temp /* = true */) {
-  return flow_graph_builder_->CheckNull(position, receiver, function_name,
-                                        clear_the_temp);
+Fragment StreamingFlowGraphBuilder::CheckNull(TokenPosition position,
+                                              LocalVariable* receiver,
+                                              const String& function_name) {
+  return flow_graph_builder_->CheckNull(position, receiver, function_name);
 }
 
 Fragment StreamingFlowGraphBuilder::StaticCall(TokenPosition position,
@@ -2843,8 +2840,8 @@ Fragment StreamingFlowGraphBuilder::BuildArgumentsFromActualArguments(
   }
   for (intptr_t i = 0; i < list_length; ++i) {
     String& name =
-        H.DartSymbolObfuscate(ReadStringReference());  // read ith name index.
-    instructions += BuildExpression();                 // read ith expression.
+        H.DartSymbolObfuscate(ReadStringReference());    // read ith name index.
+    instructions += BuildExpression();                   // read ith expression.
     if (!skip_push_arguments) instructions += PushArgument();
     if (do_drop) instructions += Drop();
     if (argument_names != NULL) {
@@ -3455,11 +3452,6 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   const InferredTypeMetadata result_type =
       inferred_type_metadata_helper_.GetInferredType(offset);
 
-#ifndef TARGET_ARCH_DBC
-  const CallSiteAttributesMetadata call_site_attributes =
-      call_site_attributes_metadata_helper_.GetCallSiteAttributes(offset);
-#endif
-
   const Tag receiver_tag = PeekTag();  // peek tag for receiver.
   if (IsNumberLiteral(receiver_tag) &&
       (!optimizing() || constant_evaluator_.IsCached(offset))) {
@@ -3495,16 +3487,6 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
     SetOffset(before_branch_offset);
   }
 
-  bool is_unchecked_closure_call = false;
-#ifndef TARGET_ARCH_DBC
-  if (call_site_attributes.receiver_type != nullptr &&
-      call_site_attributes.receiver_type->IsFunctionType()) {
-    AlternativeReadingScope alt(&reader_);
-    SkipExpression();  // skip receiver
-    is_unchecked_closure_call = ReadNameAsMethodName().Equals(Symbols::Call());
-  }
-#endif
-
   Fragment instructions;
 
   intptr_t type_args_len = 0;
@@ -3519,7 +3501,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
       const TypeArguments& type_arguments =
           T.BuildTypeArguments(list_length);  // read types.
       instructions += TranslateInstantiatedTypeArguments(type_arguments);
-      if (direct_call.check_receiver_for_null_ || is_unchecked_closure_call) {
+      if (direct_call.check_receiver_for_null_) {
         // Don't yet push type arguments if we need to check receiver for null.
         // In this case receiver will be duplicated so instead of pushing
         // type arguments here we need to push it between receiver_temp
@@ -3556,7 +3538,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   }
 
   LocalVariable* receiver_temp = NULL;
-  if (direct_call.check_receiver_for_null_ || is_unchecked_closure_call) {
+  if (direct_call.check_receiver_for_null_) {
     // Duplicate receiver for CheckNull before it is consumed by PushArgument.
     receiver_temp = MakeTemporary();
     if (type_arguments_temp != NULL) {
@@ -3601,22 +3583,11 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
             Field::GetterSymbol(name) == interface_target->name()));
   }
 
-  // TODO(sjindel): Avoid the check for null on unchecked closure calls if TFA
-  // allows.
-  if (direct_call.check_receiver_for_null_ || is_unchecked_closure_call) {
-    // Receiver temp is needed to load the function to call from the closure.
-    instructions += CheckNull(position, receiver_temp, name,
-                              /*clear_temp=*/!is_unchecked_closure_call);
+  if (direct_call.check_receiver_for_null_) {
+    instructions += CheckNull(position, receiver_temp, name);
   }
 
-  if (is_unchecked_closure_call) {
-    // Lookup the function in the closure.
-    instructions += LoadLocal(receiver_temp);
-    instructions += LoadField(Closure::function_offset());
-    instructions +=
-        B->ClosureCall(type_args_len, argument_count, argument_names,
-                       /*use_unchecked_entry=*/true);
-  } else if (!direct_call.target_.IsNull()) {
+  if (!direct_call.target_.IsNull()) {
     ASSERT(FLAG_precompiled_mode);
     instructions += StaticCall(position, direct_call.target_, argument_count,
                                argument_names, ICData::kNoRebind, &result_type,

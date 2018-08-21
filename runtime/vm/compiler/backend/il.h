@@ -3193,15 +3193,12 @@ class ClosureCallInstr : public TemplateDartCall<1> {
   ClosureCallInstr(Value* function,
                    ClosureCallNode* node,
                    PushArgumentsArray* arguments,
-                   intptr_t deopt_id,
-                   Code::EntryKind entry_kind = Code::EntryKind::kNormal)
+                   intptr_t deopt_id)
       : TemplateDartCall(deopt_id,
                          node->arguments()->type_args_len(),
                          node->arguments()->names(),
                          arguments,
-                         node->token_pos()),
-        entry_kind_(entry_kind) {
-    ASSERT(entry_kind != Code::EntryKind::kMonomorphic);
+                         node->token_pos()) {
     ASSERT(!arguments->is_empty());
     SetInputAt(0, function);
   }
@@ -3211,14 +3208,12 @@ class ClosureCallInstr : public TemplateDartCall<1> {
                    intptr_t type_args_len,
                    const Array& argument_names,
                    TokenPosition token_pos,
-                   intptr_t deopt_id,
-                   Code::EntryKind entry_kind = Code::EntryKind::kNormal)
+                   intptr_t deopt_id)
       : TemplateDartCall(deopt_id,
                          type_args_len,
                          argument_names,
                          arguments,
-                         token_pos),
-        entry_kind_(entry_kind) {
+                         token_pos) {
     ASSERT(!arguments->is_empty());
     SetInputAt(0, function);
   }
@@ -3232,13 +3227,9 @@ class ClosureCallInstr : public TemplateDartCall<1> {
 
   virtual bool HasUnknownSideEffects() const { return true; }
 
-  Code::EntryKind entry_kind() const { return entry_kind_; }
-
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  const Code::EntryKind entry_kind_;
-
   DISALLOW_COPY_AND_ASSIGN(ClosureCallInstr);
 };
 

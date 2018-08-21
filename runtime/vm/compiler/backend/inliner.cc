@@ -968,9 +968,6 @@ class CallSiteInliner : public ValueObject {
           } else if (PolymorphicInstanceCallInstr* instr =
                          call_data->call->AsPolymorphicInstanceCall()) {
             entry_kind = instr->instance_call()->entry_kind();
-          } else if (ClosureCallInstr* instr =
-                         call_data->call->AsClosureCall()) {
-            entry_kind = instr->entry_kind();
           }
           kernel::FlowGraphBuilder builder(
               parsed_function, *ic_data_array, /* not building var desc */ NULL,
