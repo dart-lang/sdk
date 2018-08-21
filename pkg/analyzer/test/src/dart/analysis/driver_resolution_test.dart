@@ -880,6 +880,23 @@ void main() {
     }
   }
 
+  test_assign_to_class() async {
+    addTestFile('''
+class C {}
+void f(int x) {
+  C = x;
+}
+''');
+    await resolveTestFile();
+
+    var cRef = findNode.simple('C =');
+    assertType(cRef, 'Type');
+    assertElement(cRef, findElement.class_('C'));
+    var xRef = findNode.simple('x;');
+    assertType(xRef, 'int');
+    assertElement(xRef, findElement.parameter('x'));
+  }
+
   test_assignment_to_final_parameter() async {
     addTestFile('''
 f(final int x) {

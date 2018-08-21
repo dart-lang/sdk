@@ -40,10 +40,6 @@ arg_param_trailing_comma_test/73: Crash # Issue #34043 - Error recovery in outli
 arg_param_trailing_comma_test/74: Crash # Issue #34043 - Error recovery in outline (extraneous comma before formal parameter)
 arg_param_trailing_comma_test/98: Crash # Issue #34043 - Error recovery in outline (extraneous comma before formal parameter)
 arg_param_trailing_comma_test/99: Crash # Issue #34043 - Error recovery in outline (extraneous comma before formal parameter)
-assign_to_type_test/01: Crash # Error recovery in method body (invalid assignment)
-assign_to_type_test/02: Crash # Error recovery in method body (invalid assignment)
-assign_to_type_test/03: Crash # Error recovery in method body (invalid assignment)
-assign_to_type_test/04: Crash # Error recovery in method body (invalid assignment)
 black_listed_test/02: Crash # Issue 33686 - No core library found
 black_listed_test/04: Crash # Issue 33686 - No core library found
 black_listed_test/06: Crash # Issue 33686 - No core library found
@@ -65,12 +61,6 @@ class_cycle_test/00: Crash # Issue #34043 - Error recovery in outline (class hie
 class_cycle_test/01: Crash # Issue #34043 - Error recovery in outline (class hierarchy cycle - see also #33756)
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
-class_literal_static_test/12: Crash # Error recovery in method body (invalid assignment)
-class_literal_static_test/13: Crash # Error recovery in method body (invalid assignment)
-class_literal_static_test/24: Crash # Error recovery in method body (invalid assignment)
-class_literal_test/12: Crash # Error recovery in method body (invalid assignment)
-class_literal_test/13: Crash # Error recovery in method body (invalid assignment)
-class_literal_test/24: Crash # Error recovery in method body (invalid assignment)
 compile_time_constant_static5_test/11: CompileTimeError # Issue 31537
 compile_time_constant_static5_test/16: CompileTimeError # Issue 31537
 compile_time_constant_static5_test/21: CompileTimeError # Issue 31537
@@ -132,10 +122,6 @@ final_syntax_test/01: MissingCompileTimeError
 final_syntax_test/02: MissingCompileTimeError
 final_syntax_test/03: MissingCompileTimeError
 final_syntax_test/04: MissingCompileTimeError
-first_class_types_literals_test/03: Crash # Error recovery in method body (invalid assignment)
-first_class_types_literals_test/04: Crash # Error recovery in method body (invalid assignment)
-first_class_types_literals_test/08: Crash # Error recovery in method body (invalid assignment)
-first_class_types_literals_test/09: Crash # Error recovery in method body (invalid assignment)
 function_type_parameter2_negative_test: Crash # Error recovery in method body (use of non-const closure in a const context)
 function_type_parameter_negative_test: Crash # Error recovery in method body (use of non-const closure in a const context)
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError
@@ -160,7 +146,6 @@ getters_setters2_test/01: MissingStaticWarning
 getters_setters_type_test/01: MissingStaticWarning
 hidden_import_test/01: MissingStaticWarning
 hidden_import_test/02: MissingStaticWarning
-if_null_assignment_behavior_test/15: Crash # Error recovery in method body (invalid assignment)
 illegal_initializer_test/02: Crash # Issue #33771 - Error recovery in method body (error in constructor initializer)
 illegal_initializer_test/04: Crash # Issue #33771 - Error recovery in method body (error in constructor initializer)
 import_nonexisting_dart_uri_test/01: Crash # Issue 33686 - No core library found
