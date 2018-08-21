@@ -545,7 +545,7 @@ L1:
         y = 3;
       }
     }
-    foo.call();
+    [@vm.call-site-attributes.metadata=receiverType:() → void] foo.call();
     core::print(y);
   }
   on dynamic catch(final dynamic e, final core::StackTrace st) {
@@ -1001,7 +1001,7 @@ Closure CP#12 {
               core::print(x);
               core::print(y);
             }
-            foo.call();
+            [@vm.call-site-attributes.metadata=receiverType:() → void] foo.call();
             continue #L4;
           }
           finally {
@@ -1330,7 +1330,7 @@ L8:
   }
   finally {
     core::print(x);
-    y.call();
+    [@vm.call-site-attributes.metadata=receiverType:dynamic] y.call();
   }
 }
 [@vm.bytecode=

@@ -365,7 +365,7 @@ ConstantPool {
 }
 ]  static get platformScript() → dynamic {
     if(self::VMLibraryHooks::_cachedScript.{core::Object::==}(null) && !self::VMLibraryHooks::_computeScriptUri.{core::Object::==}(null)) {
-      self::VMLibraryHooks::_cachedScript = self::VMLibraryHooks::_computeScriptUri.call();
+      self::VMLibraryHooks::_cachedScript = [@vm.call-site-attributes.metadata=receiverType:dynamic] self::VMLibraryHooks::_computeScriptUri.call();
     }
     return self::VMLibraryHooks::_cachedScript;
   }

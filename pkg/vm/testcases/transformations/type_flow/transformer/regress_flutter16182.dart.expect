@@ -56,7 +56,7 @@ class B2 extends self::B2Base {
     : super self::B2Base::•()
     ;
   method doSuperCall() → void {
-    [@vm.direct-call.metadata=#lib::A2::call] [@vm.inferred-type.metadata=#lib::A2] super.{self::B2Base::aa2}.call(1, 2, 3, 4, 5, new self::T2::•());
+    [@vm.call-site-attributes.metadata=receiverType:dynamic] [@vm.direct-call.metadata=#lib::A2::call] [@vm.inferred-type.metadata=#lib::A2] super.{self::B2Base::aa2}.call(1, 2, 3, 4, 5, new self::T2::•());
   }
 }
 class T3 extends core::Object {
@@ -127,7 +127,7 @@ static method test2() → void {
   exp::Expect::isTrue([@vm.inferred-type.metadata=dart.core::bool?] self::ok);
 }
 static method getDynamic3() → dynamic
-  return self::unknown3.call();
+  return [@vm.call-site-attributes.metadata=receiverType:dart.core::Function] self::unknown3.call();
 static method test3() → void {
   self::getDynamic3().aa3(1, 2, 3, 4, 5, 6, new self::T3::•());
   self::ok = false;
@@ -135,7 +135,7 @@ static method test3() → void {
   exp::Expect::isTrue([@vm.inferred-type.metadata=dart.core::bool?] self::ok);
 }
 static method getDynamic4() → dynamic
-  return self::unknown4.call();
+  return [@vm.call-site-attributes.metadata=receiverType:dart.core::Function] self::unknown4.call();
 static method test4() → void {
   self::getDynamic4().aa4(1, 2, 3, 4, 5, 6, 7, new self::T4::•());
   self::ok = false;

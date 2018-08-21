@@ -205,7 +205,7 @@ ConstantPool {
   [6] = Null
 }
 ]  method testSuperCallViaGetter() → dynamic
-    return super.{self::Base1::bar}.call<core::int>("param");
+    return [@vm.call-site-attributes.metadata=receiverType:dynamic] super.{self::Base1::bar}.call<core::int>("param");
 [@vm.bytecode=
 Bytecode {
   Entry                1
@@ -467,7 +467,7 @@ ConstantPool {
   [14] = Null
 }
 ]  method testSuperCallViaGetter() → dynamic
-    return super.{self::Base2::bar}.call<core::int>("param");
+    return [@vm.call-site-attributes.metadata=receiverType:dynamic] super.{self::Base2::bar}.call<core::int>("param");
 [@vm.bytecode=
 Bytecode {
   Entry                1

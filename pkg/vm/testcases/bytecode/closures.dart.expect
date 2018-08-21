@@ -474,13 +474,13 @@ Closure CP#0 {
           core::print(<core::Type>[self::A::T1, self::A::T2, self::A::foo::T3, self::A::foo::T4, T5, T6, T7, T8]);
           self::callWithArgs<self::A::T1, self::A::T2, self::A::foo::T3, self::A::foo::T4, T5, T6, T7, T8>();
         };
-        nested3.call();
+        [@vm.call-site-attributes.metadata=receiverType:() → dart.core::Null] nested3.call();
       }
-      nested2.call<self::C7, self::C8>();
-      nested2.call<core::List<self::C7>, core::List<self::C8>>();
+      [@vm.call-site-attributes.metadata=receiverType:<T7 extends dart.core::Object = dynamic, T8 extends dart.core::Object = dynamic>() → void] nested2.call<self::C7, self::C8>();
+      [@vm.call-site-attributes.metadata=receiverType:<T7 extends dart.core::Object = dynamic, T8 extends dart.core::Object = dynamic>() → void] nested2.call<core::List<self::C7>, core::List<self::C8>>();
     }
-    nested1.call<self::C5, self::C6>();
-    nested1.call<core::List<self::C5>, core::List<self::C6>>();
+    [@vm.call-site-attributes.metadata=receiverType:<T5 extends dart.core::Object = dynamic, T6 extends dart.core::Object = dynamic>() → void] nested1.call<self::C5, self::C6>();
+    [@vm.call-site-attributes.metadata=receiverType:<T5 extends dart.core::Object = dynamic, T6 extends dart.core::Object = dynamic>() → void] nested1.call<core::List<self::C5>, core::List<self::C6>>();
   }
 }
 class B extends core::Object {
@@ -820,12 +820,12 @@ Closure CP#43 {
               z = x.{core::num::+}(2);
               w = this.{self::B::foo}.{core::num::+}(y);
             }
-            closure2.call();
+            [@vm.call-site-attributes.metadata=receiverType:() → void] closure2.call();
             core::print(w);
           }
         };
-        closure1.call(10);
-        closure1.call(11);
+        [@vm.call-site-attributes.metadata=receiverType:(dart.core::int) → dart.core::Null] closure1.call(10);
+        [@vm.call-site-attributes.metadata=receiverType:(dart.core::int) → dart.core::Null] closure1.call(11);
         core::print(y);
         core::print(z);
       }
@@ -836,7 +836,7 @@ Closure CP#43 {
       () → core::Null closure3 = () → core::Null {
         this.{self::B::foo} = x;
       };
-      closure3.call();
+      [@vm.call-site-attributes.metadata=receiverType:() → dart.core::Null] closure3.call();
     }
   }
 }
@@ -1178,7 +1178,7 @@ Closure CP#9 {
       () → core::Null inc = () → core::Null {
         i = i.{core::num::+}(1);
       };
-      inc.call();
+      [@vm.call-site-attributes.metadata=receiverType:() → dart.core::Null] inc.call();
       core::print(i);
     }
   }
@@ -1377,7 +1377,7 @@ Closure CP#1 {
   (core::int) → core::Null inc = (core::int y) → core::Null {
     x = x.{core::num::+}(y);
   };
-  inc.call(3);
+  [@vm.call-site-attributes.metadata=receiverType:(dart.core::int) → dart.core::Null] inc.call(3);
   return x;
 }
 [@vm.bytecode=

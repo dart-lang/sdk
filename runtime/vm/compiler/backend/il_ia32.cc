@@ -6147,18 +6147,8 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // ECX: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
   __ xorl(ECX, ECX);
   __ call(EBX);
-  compiler->RecordSafepoint(locs());
-  // Marks either the continuation point in unoptimized code or the
-  // deoptimization point in optimized code, after call.
-  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id());
-  if (compiler->is_optimizing()) {
-    compiler->AddDeoptIndexAtCall(deopt_id_after);
-  }
-  // Add deoptimization continuation point after the call and before the
-  // arguments are removed.
-  // In optimized code this descriptor is needed for exception handling.
-  compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after,
-                                 token_pos());
+  compiler->EmitCallsiteMetadata(token_pos(), deopt_id(),
+                                 RawPcDescriptors::kOther, locs());
   __ Drop(argument_count);
 }
 
