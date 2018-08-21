@@ -124,8 +124,6 @@ final_syntax_test/03: MissingCompileTimeError
 final_syntax_test/04: MissingCompileTimeError
 function_type_parameter2_negative_test: Crash # Error recovery in method body (use of non-const closure in a const context)
 function_type_parameter_negative_test: Crash # Error recovery in method body (use of non-const closure in a const context)
-generic_function_type_as_type_argument_test/01: MissingCompileTimeError
-generic_function_type_as_type_argument_test/02: MissingCompileTimeError
 generic_function_typedef2_test/04: Crash # Issue #34043 - Error recovery in outline (attempt to apply type arguments to a non-generic type)
 generic_local_functions_test: Crash # Problem with generic function-typed parameter
 generic_methods_generic_function_parameter_test: Crash # Problem with generic function-typed parameter
@@ -488,8 +486,13 @@ issue31596_tearoff_test: CompileTimeError
 issue31596_test: CompileTimeError
 malformed2_test: Pass, MissingCompileTimeError # Issue 31056.
 method_override7_test/03: Fail # Issue 11497
+mixin_forwarding_constructor4_test/01: CompileTimeError # See issue 15101
+mixin_forwarding_constructor4_test/02: CompileTimeError # See issue 15101
+mixin_forwarding_constructor4_test/03: CompileTimeError # See issue 15101
 mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError
+mixin_super_constructor_named_test/01: CompileTimeError # See issue 15101
+mixin_super_constructor_positionals_test/01: CompileTimeError # See issue 15101
 mixin_supertype_subclass2_test/02: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass2_test/05: MissingStaticWarning # Issue 25614
 mixin_supertype_subclass3_test/02: MissingStaticWarning # Issue 25614

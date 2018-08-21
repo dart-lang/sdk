@@ -220,120 +220,117 @@ const_cast2_test/none: CompileTimeError # Issue 32517
 const_constructor_mixin3_test: CompileTimeError # Issue 33644.
 const_constructor_mixin_test: CompileTimeError # Issue 33644.
 const_instance_field_test/01: MissingCompileTimeError # Fasta bug: Const instance field. Issue 32326.
-const_types_test/34: MissingCompileTimeError # Issue 32988
-const_types_test/39: MissingCompileTimeError # Issue 32988
+const_types_test/34: MissingCompileTimeError # Issue 31590
+const_types_test/39: MissingCompileTimeError # Issue 31590
 cyclic_type_variable_test/01: MissingCompileTimeError # Issue 32989 (missing cycle check in bounds)
 cyclic_type_variable_test/02: MissingCompileTimeError # Issue 32989 (missing cycle check in bounds)
 cyclic_type_variable_test/03: MissingCompileTimeError # Issue 32989 (missing cycle check in bounds)
 cyclic_type_variable_test/04: MissingCompileTimeError # Issue 32989 (missing cycle check in bounds)
-default_factory2_test/01: MissingCompileTimeError # Issue 32988
-default_factory_test/01: MissingCompileTimeError # Issue 32988
+default_factory2_test/01: MissingCompileTimeError # Issue 31590
+default_factory_test/01: MissingCompileTimeError # Issue 31590
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
 duplicate_export_collision_test/01: MissingCompileTimeError # Issue 12916
-f_bounded_quantification_test/01: MissingCompileTimeError # Issue 33018
-f_bounded_quantification_test/02: MissingCompileTimeError # Issue 33018
-factory4_test/00: MissingCompileTimeError # Issue 32988
-generic_methods_bounds_test/01: MissingCompileTimeError # Issue 33018
-generic_methods_recursive_bound_test/02: MissingCompileTimeError # Issue 33018
-initializer_super_last_test/cc04: MissingCompileTimeError
-initializer_super_last_test/cc09: MissingCompileTimeError
-initializer_super_last_test/cc10: MissingCompileTimeError
-initializer_super_last_test/cc11: MissingCompileTimeError
-initializer_super_last_test/cc12: MissingCompileTimeError
-initializer_super_last_test/cc13: MissingCompileTimeError
-initializer_super_last_test/cc14: MissingCompileTimeError
-initializer_super_last_test/cc15: MissingCompileTimeError
-initializer_super_last_test/cc16: MissingCompileTimeError
-initializer_super_last_test/cc25: MissingCompileTimeError
-initializer_super_last_test/cc26: MissingCompileTimeError
-initializer_super_last_test/cc27: MissingCompileTimeError
-initializer_super_last_test/cc28: MissingCompileTimeError
-initializer_super_last_test/cc29: MissingCompileTimeError
-initializer_super_last_test/cc30: MissingCompileTimeError
-initializer_super_last_test/cc31: MissingCompileTimeError
-initializer_super_last_test/cc32: MissingCompileTimeError
-issue31596_super_test/02: MissingCompileTimeError
-issue31596_super_test/04: MissingCompileTimeError
-malbounded_instantiation_test/01: MissingCompileTimeError # Issue 33018
-malbounded_instantiation_test/02: MissingCompileTimeError # Issue 33018
-malbounded_instantiation_test/03: MissingCompileTimeError # Issue 33018
-malbounded_redirecting_factory_test/02: MissingCompileTimeError # Issue 33018
-malbounded_redirecting_factory_test/03: MissingCompileTimeError # Issue 33018
-malbounded_redirecting_factory_test/04: MissingCompileTimeError # Issue 33018
-malbounded_redirecting_factory_test/05: MissingCompileTimeError # Issue 33018
-malbounded_type_cast2_test: MissingCompileTimeError # Issue 33018
-malbounded_type_cast_test/00: MissingCompileTimeError # Issue 33018
-malbounded_type_cast_test/01: MissingCompileTimeError # Issue 33018
-malbounded_type_cast_test/02: MissingCompileTimeError # Issue 33018
-malbounded_type_literal_test/00: MissingCompileTimeError # Issue 33018
-malbounded_type_test2_test/00: MissingCompileTimeError # Issue 33018
-malbounded_type_test_test/00: MissingCompileTimeError # Issue 33018
-malbounded_type_test_test/01: MissingCompileTimeError # Issue 33018
-malbounded_type_test_test/02: MissingCompileTimeError # Issue 33018
-mixin_forwarding_constructor4_test/01: MissingCompileTimeError # KernelVM bug: Issue 15101
-mixin_forwarding_constructor4_test/02: MissingCompileTimeError # KernelVM bug: Issue 15101
-mixin_forwarding_constructor4_test/03: MissingCompileTimeError # KernelVM bug: Issue 15101
-mixin_invalid_bound2_test/02: MissingCompileTimeError # Issue 33071 (missing bounds check)
-mixin_invalid_bound2_test/03: MissingCompileTimeError # Issue 33071 (missing bounds check)
-mixin_invalid_bound2_test/04: MissingCompileTimeError # Issue 33071 (missing bounds check)
-mixin_invalid_bound2_test/05: MissingCompileTimeError # Issue 33071 (missing bounds check)
-mixin_invalid_bound2_test/06: MissingCompileTimeError # Issue 33071 (missing bounds check)
-mixin_invalid_bound2_test/07: MissingCompileTimeError # Issue 33071 (missing bounds check)
-mixin_invalid_bound2_test/08: MissingCompileTimeError # Issue 33071 (missing bounds check)
-mixin_invalid_bound2_test/09: MissingCompileTimeError # Issue 33071 (missing bounds check)
-mixin_invalid_bound2_test/10: MissingCompileTimeError # Issue 33071 (missing bounds check)
-mixin_invalid_bound2_test/11: MissingCompileTimeError # Issue 33071 (missing bounds check)
-mixin_invalid_bound2_test/12: MissingCompileTimeError # Issue 33071 (missing bounds check)
-mixin_invalid_bound2_test/13: MissingCompileTimeError # Issue 33071 (missing bounds check)
-mixin_invalid_bound2_test/14: MissingCompileTimeError # Issue 33071 (missing bounds check)
-mixin_invalid_bound2_test/15: MissingCompileTimeError # Issue 33071 (missing bounds check)
-mixin_invalid_bound_test/02: MissingCompileTimeError # Issue 33071 (missing bounds check)
-mixin_invalid_bound_test/03: MissingCompileTimeError # Issue 33071 (missing bounds check)
-mixin_invalid_bound_test/04: MissingCompileTimeError # Issue 33071 (missing bounds check)
-mixin_invalid_bound_test/05: MissingCompileTimeError # Issue 33071 (missing bounds check)
-mixin_invalid_bound_test/06: MissingCompileTimeError # Issue 33071 (missing bounds check)
-mixin_invalid_bound_test/07: MissingCompileTimeError # Issue 33071 (missing bounds check)
-mixin_invalid_bound_test/08: MissingCompileTimeError # Issue 33071 (missing bounds check)
-mixin_invalid_bound_test/09: MissingCompileTimeError # Issue 33071 (missing bounds check)
-mixin_invalid_bound_test/10: MissingCompileTimeError # Issue 33071 (missing bounds check)
-mixin_super_bound_test/01: MissingCompileTimeError
-mixin_super_bound_test/02: MissingCompileTimeError
-mixin_super_constructor_named_test/01: MissingCompileTimeError # KernelVM bug: Issue 15101
-mixin_super_constructor_positionals_test/01: MissingCompileTimeError # KernelVM bug: Issue 15101
-mixin_type_parameters_errors_test/03: MissingCompileTimeError
-mixin_type_parameters_errors_test/04: MissingCompileTimeError
-named_constructor_test/01: MissingCompileTimeError
-named_parameters_default_eq_test/02: MissingCompileTimeError # Fasta bug: Default values are not allowed on redirecting factory constructors.
-partial_tearoff_instantiation_test/05: MissingCompileTimeError
-partial_tearoff_instantiation_test/06: MissingCompileTimeError
-partial_tearoff_instantiation_test/07: MissingCompileTimeError
-partial_tearoff_instantiation_test/08: MissingCompileTimeError
-redirecting_factory_default_values_test/01: MissingCompileTimeError # Fasta bug: Default values are not allowed on redirecting factory constructors.
-redirecting_factory_default_values_test/02: MissingCompileTimeError # Fasta bug: Default values are not allowed on redirecting factory constructors.
+f_bounded_quantification_test/01: MissingCompileTimeError # Issue 33308
+f_bounded_quantification_test/02: MissingCompileTimeError # Issue 33308
+factory4_test/00: MissingCompileTimeError # Issue 31590
+generic_function_type_as_type_argument_test/01: MissingCompileTimeError # Issue 30931
+generic_function_type_as_type_argument_test/02: MissingCompileTimeError # Issue 30931
+generic_methods_bounds_test/01: MissingCompileTimeError # Issue 33308
+generic_methods_recursive_bound_test/02: MissingCompileTimeError # Issue 33308
+initializer_super_last_test/cc04: MissingCompileTimeError # Issue 33101
+initializer_super_last_test/cc09: MissingCompileTimeError # Issue 33101
+initializer_super_last_test/cc10: MissingCompileTimeError # Issue 33101
+initializer_super_last_test/cc11: MissingCompileTimeError # Issue 33101
+initializer_super_last_test/cc12: MissingCompileTimeError # Issue 33101
+initializer_super_last_test/cc13: MissingCompileTimeError # Issue 33101
+initializer_super_last_test/cc14: MissingCompileTimeError # Issue 33101
+initializer_super_last_test/cc15: MissingCompileTimeError # Issue 33101
+initializer_super_last_test/cc16: MissingCompileTimeError # Issue 33101
+initializer_super_last_test/cc25: MissingCompileTimeError # Issue 33101
+initializer_super_last_test/cc26: MissingCompileTimeError # Issue 33101
+initializer_super_last_test/cc27: MissingCompileTimeError # Issue 33101
+initializer_super_last_test/cc28: MissingCompileTimeError # Issue 33101
+initializer_super_last_test/cc29: MissingCompileTimeError # Issue 33101
+initializer_super_last_test/cc30: MissingCompileTimeError # Issue 33101
+initializer_super_last_test/cc31: MissingCompileTimeError # Issue 33101
+initializer_super_last_test/cc32: MissingCompileTimeError # Issue 33101
+issue31596_super_test/02: MissingCompileTimeError # Issue 31596
+issue31596_super_test/04: MissingCompileTimeError # Issue 31596
+malbounded_instantiation_test/01: MissingCompileTimeError # Issue 33308
+malbounded_instantiation_test/02: MissingCompileTimeError # Issue 33308
+malbounded_instantiation_test/03: MissingCompileTimeError # Issue 33308
+malbounded_redirecting_factory_test/02: MissingCompileTimeError # Issue 33308
+malbounded_redirecting_factory_test/03: MissingCompileTimeError # Issue 33308
+malbounded_redirecting_factory_test/04: MissingCompileTimeError # Issue 33308
+malbounded_redirecting_factory_test/05: MissingCompileTimeError # Issue 33308
+malbounded_type_cast2_test: MissingCompileTimeError # Issue 33308
+malbounded_type_cast_test/00: MissingCompileTimeError # Issue 33308
+malbounded_type_cast_test/01: MissingCompileTimeError # Issue 33308
+malbounded_type_cast_test/02: MissingCompileTimeError # Issue 33308
+malbounded_type_literal_test/00: MissingCompileTimeError # Issue 33308
+malbounded_type_test2_test/00: MissingCompileTimeError # Issue 33308
+malbounded_type_test_test/00: MissingCompileTimeError # Issue 33308
+malbounded_type_test_test/01: MissingCompileTimeError # Issue 33308
+malbounded_type_test_test/02: MissingCompileTimeError # Issue 33308
+mixin_invalid_bound2_test/02: MissingCompileTimeError # Issue 33308
+mixin_invalid_bound2_test/03: MissingCompileTimeError # Issue 33308
+mixin_invalid_bound2_test/04: MissingCompileTimeError # Issue 33308
+mixin_invalid_bound2_test/05: MissingCompileTimeError # Issue 33308
+mixin_invalid_bound2_test/06: MissingCompileTimeError # Issue 33308
+mixin_invalid_bound2_test/07: MissingCompileTimeError # Issue 33308
+mixin_invalid_bound2_test/08: MissingCompileTimeError # Issue 33308
+mixin_invalid_bound2_test/09: MissingCompileTimeError # Issue 33308
+mixin_invalid_bound2_test/10: MissingCompileTimeError # Issue 33308
+mixin_invalid_bound2_test/11: MissingCompileTimeError # Issue 33308
+mixin_invalid_bound2_test/12: MissingCompileTimeError # Issue 33308
+mixin_invalid_bound2_test/13: MissingCompileTimeError # Issue 33308
+mixin_invalid_bound2_test/14: MissingCompileTimeError # Issue 33308
+mixin_invalid_bound2_test/15: MissingCompileTimeError # Issue 33308
+mixin_invalid_bound_test/02: MissingCompileTimeError # Issue 33308
+mixin_invalid_bound_test/03: MissingCompileTimeError # Issue 33308
+mixin_invalid_bound_test/04: MissingCompileTimeError # Issue 33308
+mixin_invalid_bound_test/05: MissingCompileTimeError # Issue 33308
+mixin_invalid_bound_test/06: MissingCompileTimeError # Issue 33308
+mixin_invalid_bound_test/07: MissingCompileTimeError # Issue 33308
+mixin_invalid_bound_test/08: MissingCompileTimeError # Issue 33308
+mixin_invalid_bound_test/09: MissingCompileTimeError # Issue 33308
+mixin_invalid_bound_test/10: MissingCompileTimeError # Issue 33308
+mixin_super_bound_test/01: MissingCompileTimeError # Issue 33308
+mixin_super_bound_test/02: MissingCompileTimeError # Issue 33308
+mixin_type_parameters_errors_test/03: MissingCompileTimeError # Issue 32972
+mixin_type_parameters_errors_test/04: MissingCompileTimeError # Issue 32972
+named_constructor_test/01: MissingCompileTimeError # Issue 34159
+named_parameters_default_eq_test/02: MissingCompileTimeError # Issue 34160
+partial_tearoff_instantiation_test/05: MissingCompileTimeError # Issue 32281
+partial_tearoff_instantiation_test/06: MissingCompileTimeError # Issue 32281
+partial_tearoff_instantiation_test/07: MissingCompileTimeError # Issue 32281
+partial_tearoff_instantiation_test/08: MissingCompileTimeError # Issue 32281
+redirecting_factory_default_values_test/01: MissingCompileTimeError # Issue 34160
+redirecting_factory_default_values_test/02: MissingCompileTimeError # Issue 34160
 regress_22976_test/*: CompileTimeError # Issue 31935
-regress_27617_test/1: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
-syntax_test/28: MissingCompileTimeError # Issue 29763
-syntax_test/29: MissingCompileTimeError # Issue 29763
-syntax_test/30: MissingCompileTimeError # Issue 29763
-syntax_test/31: MissingCompileTimeError # Issue 29763
-syntax_test/32: MissingCompileTimeError # Issue 29763
-syntax_test/33: MissingCompileTimeError # Issue 29763
-syntax_test/60: MissingCompileTimeError # Issue 30176
-syntax_test/61: MissingCompileTimeError # Issue 30176
-type_variable_bounds2_test: MissingCompileTimeError
-type_variable_bounds3_test/00: MissingCompileTimeError
-type_variable_bounds4_test/01: MissingCompileTimeError
-type_variable_bounds_test/01: MissingCompileTimeError
-type_variable_bounds_test/02: MissingCompileTimeError
-type_variable_bounds_test/03: MissingCompileTimeError
-type_variable_bounds_test/04: MissingCompileTimeError
-type_variable_bounds_test/05: MissingCompileTimeError
-type_variable_bounds_test/06: MissingCompileTimeError
-type_variable_bounds_test/08: MissingCompileTimeError
-type_variable_bounds_test/11: MissingCompileTimeError
+regress_27617_test/1: MissingCompileTimeError # Issue 34161
+syntax_test/28: MissingCompileTimeError # Issue 29763 - low priority
+syntax_test/29: MissingCompileTimeError # Issue 29763 - low priority
+syntax_test/30: MissingCompileTimeError # Issue 29763 - low priority
+syntax_test/31: MissingCompileTimeError # Issue 29763 - low priority
+syntax_test/32: MissingCompileTimeError # Issue 29763 - low priority
+syntax_test/33: MissingCompileTimeError # Issue 29763 - low priority
+syntax_test/60: MissingCompileTimeError # Issue 30470
+syntax_test/61: MissingCompileTimeError # Issue 30470
+type_variable_bounds2_test: MissingCompileTimeError # Issue 33308
+type_variable_bounds3_test/00: MissingCompileTimeError # Issue 33308
+type_variable_bounds4_test/01: MissingCompileTimeError # Issue 33308
+type_variable_bounds_test/01: MissingCompileTimeError # Issue 33308
+type_variable_bounds_test/02: MissingCompileTimeError # Issue 33308
+type_variable_bounds_test/03: MissingCompileTimeError # Issue 33308
+type_variable_bounds_test/04: MissingCompileTimeError # Issue 33308
+type_variable_bounds_test/05: MissingCompileTimeError # Issue 33308
+type_variable_bounds_test/06: MissingCompileTimeError # Issue 33308
+type_variable_bounds_test/08: MissingCompileTimeError # Issue 33308
+type_variable_bounds_test/11: MissingCompileTimeError # Issue 33308
 vm/debug_break_enabled_vm_test/01: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.
@@ -738,6 +735,8 @@ assertion_initializer_const_error2_test/cc07: MissingCompileTimeError # Not repo
 assertion_initializer_const_error2_test/cc08: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc09: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc10: MissingCompileTimeError # Not reporting failed assert() at compile time.
+generic_function_type_as_type_argument_test/01: Pass # VM reports expected error
+generic_function_type_as_type_argument_test/02: Pass # VM reports expected error
 
 [ $compiler == dartkb && $runtime == vm && $strong ]
 compile_time_constant_o_test/01: Pass
@@ -1101,8 +1100,6 @@ export_ambiguous_main_test: MissingCompileTimeError
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
 field_initialization_order_test/01: MissingCompileTimeError
-generic_function_type_as_type_argument_test/01: MissingCompileTimeError
-generic_function_type_as_type_argument_test/02: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError
 generic_no_such_method_dispatcher_test: CompileTimeError
@@ -1903,8 +1900,6 @@ generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
 generic_constructor_mixin_test/01: MissingCompileTimeError
 generic_field_mixin6_test/01: MissingCompileTimeError
-generic_function_type_as_type_argument_test/01: MissingCompileTimeError
-generic_function_type_as_type_argument_test/02: MissingCompileTimeError
 generic_function_typedef2_test/04: MissingCompileTimeError
 generic_methods_dynamic_test/01: MissingCompileTimeError
 generic_methods_dynamic_test/03: MissingCompileTimeError
