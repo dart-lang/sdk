@@ -880,6 +880,22 @@ void main() {
     }
   }
 
+  test_assign_in_const_context() async {
+    addTestFile('''
+void f(num x, int y) {
+  const [x = y];
+}
+''');
+    await resolveTestFile();
+
+    var xRef = findNode.simple('x =');
+    assertType(xRef, 'num');
+    assertElement(xRef, findElement.parameter('x'));
+    var yRef = findNode.simple('y]');
+    assertType(yRef, 'int');
+    assertElement(yRef, findElement.parameter('y'));
+  }
+
   test_assign_to_class() async {
     addTestFile('''
 class C {}

@@ -54,7 +54,6 @@ built_in_identifier_type_annotation_test/part: Crash # No resolution for a file
 built_in_identifier_type_annotation_test/set: Crash # Issue #34043 - Error recovery in outline
 built_in_identifier_type_annotation_test/set-funret: Crash # Issue #34043 - Error recovery in outline
 call_nonexistent_static_test/10: Crash # Error recovery in method body (attempt to read from setter)
-case_expression_with_assignment_test/01: Crash # Error recovery in method body (assignment to constant)
 class_cycle2_test/01: Crash # Issue #34043 - Error recovery in outline (class hierarchy cycle - see also #33756)
 class_cycle2_test/02: Crash # Issue #34043 - Error recovery in outline (class hierarchy cycle - see also #33756)
 class_cycle_test/00: Crash # Issue #34043 - Error recovery in outline (class hierarchy cycle - see also #33756)

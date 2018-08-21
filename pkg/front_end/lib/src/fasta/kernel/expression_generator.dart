@@ -1007,11 +1007,23 @@ abstract class DelayedAssignment implements ContextAwareGenerator {
   }
 
   Expression handleAssignment(bool voidContext) {
+    var assignment = makeAssignmentExpression(voidContext);
     if (helper.constantContext != ConstantContext.none) {
+      // The assignment needs to have a parent so that type inference can be
+      // applied to it, but it doesn't matter what the parent is because the
+      // assignment won't appear in the tree.  So just give it a quick and dirty
+      // parent.
+      new VariableDeclaration.forValue(assignment);
+
       return helper.buildCompileTimeErrorExpression(
           messageNotAConstantExpression, offsetForToken(token),
-          length: token.length);
+          length: token.length, original: assignment);
+    } else {
+      return assignment;
     }
+  }
+
+  Expression makeAssignmentExpression(bool voidContext) {
     if (identical("=", assignmentOperator)) {
       return generator.buildAssignment(value, voidContext: voidContext);
     } else if (identical("+=", assignmentOperator)) {

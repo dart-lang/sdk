@@ -4096,9 +4096,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   Expression buildCompileTimeErrorExpression(Message message, int offset,
-      {int length}) {
+      {int length, Expression original}) {
     return new SyntheticExpressionJudgment(
-        buildCompileTimeError(message, offset, length ?? noLength));
+        buildCompileTimeError(message, offset, length ?? noLength),
+        original: original);
   }
 
   Expression wrapInCompileTimeError(Expression expression, Message message,
