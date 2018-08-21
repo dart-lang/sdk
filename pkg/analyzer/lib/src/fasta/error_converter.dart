@@ -668,11 +668,6 @@ class FastaErrorReporter {
   }
 
   void reportCompilationMessage(CompilationMessage message) {
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/33680
-    if (message.code == 'MissingImplementationCause') {
-      return;
-    }
-
     String errorCodeStr = message.analyzerCode;
     ErrorCode errorCode = _getErrorCode(errorCodeStr);
     if (errorCode != null) {
