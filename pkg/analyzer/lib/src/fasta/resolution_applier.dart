@@ -130,7 +130,8 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
     SyntacticEntity entity =
         _getAssignmentEntity(node.leftHandSide) ?? node.operator;
-    var data = _get(entity);
+    var data = _get(entity,
+        isSynthetic: entity is SimpleIdentifier && entity.isSynthetic);
     node.staticElement = _translateAuxiliaryReference(data.combiner);
     node.staticType = _translateType(data.inferredType);
   }

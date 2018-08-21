@@ -2780,7 +2780,7 @@ class InvalidVariableWriteJudgment extends SyntheticExpressionJudgment {
   @override
   Expression infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer, DartType typeContext) {
-    inferrer.listener.variableAssign(this, fileOffset, _variable.type,
+    inferrer.listener.variableAssign(this, fileOffset, false, _variable.type,
         _variable.createBinder(inferrer), null, _variable.type);
     return super.infer(inferrer, typeContext);
   }
@@ -3300,6 +3300,7 @@ class VariableAssignmentJudgment extends ComplexAssignmentJudgment {
     inferrer.listener.variableAssign(
         this,
         write.fileOffset,
+        false,
         writeContext,
         write is VariableSet
             ? (write.variable as VariableDeclarationJudgment)
@@ -3483,9 +3484,10 @@ class UnresolvedTargetInvocationJudgment extends SyntheticExpressionJudgment {
 class UnresolvedVariableAssignmentJudgment extends SyntheticExpressionJudgment {
   final bool isCompound;
   final ExpressionJudgment rhs;
+  final bool isSyntheticLhs;
 
-  UnresolvedVariableAssignmentJudgment(
-      kernel.Expression desugared, this.isCompound, this.rhs)
+  UnresolvedVariableAssignmentJudgment(kernel.Expression desugared,
+      this.isCompound, this.rhs, this.isSyntheticLhs)
       : super(desugared);
 
   @override
@@ -3493,8 +3495,8 @@ class UnresolvedVariableAssignmentJudgment extends SyntheticExpressionJudgment {
       ShadowTypeInferrer inferrer, DartType typeContext) {
     inferrer.inferExpression(rhs, const UnknownType(), true);
     inferredType = isCompound ? const DynamicType() : rhs.inferredType;
-    inferrer.listener.variableAssign(
-        this, fileOffset, const DynamicType(), null, null, inferredType);
+    inferrer.listener.variableAssign(this, fileOffset, isSyntheticLhs,
+        const DynamicType(), null, null, inferredType);
     return super.infer(inferrer, typeContext);
   }
 }
@@ -3515,7 +3517,7 @@ class UnresolvedVariableUnaryJudgment extends SyntheticExpressionJudgment {
     inferrer.listener.variableGet(
         this, offset, isSynthetic, false, null, const DynamicType());
     inferrer.listener.variableAssign(
-        this, fileOffset, const DynamicType(), null, null, inferredType);
+        this, fileOffset, false, const DynamicType(), null, null, inferredType);
     return super.infer(inferrer, typeContext);
   }
 }

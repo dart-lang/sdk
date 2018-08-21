@@ -956,6 +956,19 @@ void f(int x, double y, String z) {
     assertElement(zRef, findElement.parameter('z'));
   }
 
+  test_assign_with_synthetic_lhs() async {
+    addTestFile('''
+void f(int x) {
+  = x;
+}
+''');
+    await resolveTestFile();
+
+    var xRef = findNode.simple('x;');
+    assertType(xRef, 'int');
+    assertElement(xRef, findElement.parameter('x'));
+  }
+
   test_assignment_to_final_parameter() async {
     addTestFile('''
 f(final int x) {

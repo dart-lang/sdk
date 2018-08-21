@@ -1570,11 +1570,12 @@ class KernelUnresolvedNameGenerator extends KernelGenerator
   UnresolvedVariableAssignmentJudgment _buildUnresolvedVariableAssignment(
       bool isCompound, Expression value) {
     return new UnresolvedVariableAssignmentJudgment(
-      buildError(forest.arguments(<Expression>[value], token, token),
-          isSetter: true),
-      isCompound,
-      value,
-    )..fileOffset = token.charOffset;
+        buildError(forest.arguments(<Expression>[value], token, token),
+            isSetter: true),
+        isCompound,
+        value,
+        token.isSynthetic)
+      ..fileOffset = token.charOffset;
   }
 }
 
