@@ -5066,12 +5066,17 @@ class KernelSsaGraphBuilder extends ir.Visitor
           _elementMap, function, maxInliningNodes,
           allowLoops: allowLoops,
           enableUserAssertions: options.enableUserAssertions);
-      if (markedTryInline || calledOnce) {
+      if (markedTryInline) {
         if (canInline) {
+          inlineCache.markAsInlinable(function, insideLoop: true);
           inlineCache.markAsInlinable(function, insideLoop: false);
         } else {
           inlineCache.markAsNonInlinable(function, insideLoop: true);
+          inlineCache.markAsNonInlinable(function, insideLoop: false);
         }
+      } else if (calledOnce) {
+        // TODO(34203): We can't update the decision due to imprecision in the
+        // calledOnce data, described in Issue 34203.
       } else {
         if (canInline) {
           inlineCache.markAsInlinable(function, insideLoop: insideLoop);
