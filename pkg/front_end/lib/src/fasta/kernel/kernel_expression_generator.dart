@@ -1332,11 +1332,9 @@ class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
         helper.addProblemErrorIfConst(
             declaration.message.messageObject, offset, token.length);
       }
-      return new UnresolvedVariableGetJudgment(
+      return new SyntheticExpressionJudgment(
           new Throw(forest.literalString(declaration.message.message, token))
-            ..fileOffset = offset,
-          token.isSynthetic)
-        ..fileOffset = offset;
+            ..fileOffset = offset);
     } else {
       return forest.literalType(
           buildTypeWithBuiltArguments(null, nonInstanceAccessIsError: true),
