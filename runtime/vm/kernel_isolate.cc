@@ -92,9 +92,10 @@ class RunKernelTask : public ThreadPool::Task {
     api_flags.enable_asserts = false;
     api_flags.enable_error_on_bad_type = false;
     api_flags.enable_error_on_bad_override = false;
-    api_flags.reify_generic_functions = false;
-    api_flags.strong = false;
-    api_flags.sync_async = false;
+    api_flags.use_dart_frontend = true;
+    api_flags.reify_generic_functions = true;
+    api_flags.strong = true;
+    api_flags.sync_async = true;
 #if !defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                 \
     !defined(DART_USE_INTERPRETER)
     api_flags.use_field_guards = true;
@@ -233,12 +234,10 @@ void KernelIsolate::Run() {
 }
 
 void KernelIsolate::Shutdown() {
-  Isolate::KillIfExists(isolate_, Isolate::kInternalKillMsg);
-  {
-    MonitorLocker ml(monitor_);
-    while (isolate_ != NULL) {
-      ml.Wait();
-    }
+  MonitorLocker ml(monitor_);
+  while (isolate_ != NULL) {
+    Isolate::KillIfExists(isolate_, Isolate::kInternalKillMsg);
+    ml.Wait();
   }
 }
 

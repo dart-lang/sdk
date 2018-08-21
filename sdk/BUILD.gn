@@ -14,6 +14,7 @@
 # fail.
 
 import("../build/dart/copy_tree.gni")
+import("../runtime/runtime_args.gni")
 
 declare_args() {
   # Build a SDK with less stuff. It excludes dart2js, ddc, and web libraries.
@@ -130,14 +131,18 @@ _platform_sdk_snapshots = [
     "../utils/dartfmt",
   ],
   [
-    "kernel-service",
-    "../utils/kernel-service",
-  ],
-  [
     "pub",
     "../utils/pub",
   ],
 ]
+if (create_kernel_service_snapshot) {
+  _platform_sdk_snapshots += [
+    [
+      "kernel-service",
+      "../utils/kernel-service:kernel-service_snapshot",
+    ],
+  ]
+}
 
 _full_sdk_snapshots = [
   [
@@ -173,14 +178,18 @@ _full_sdk_snapshots = [
     "../utils/bazel:kernel_worker",
   ],
   [
-    "kernel-service",
-    "../utils/kernel-service",
-  ],
-  [
     "pub",
     "../utils/pub",
   ],
 ]
+if (create_kernel_service_snapshot) {
+  _full_sdk_snapshots += [
+    [
+      "kernel-service",
+      "../utils/kernel-service:kernel-service_snapshot",
+    ],
+  ]
+}
 
 # Libraries that go under lib/
 _full_sdk_libraries = [

@@ -337,12 +337,19 @@ void Snapshot::GenerateKernel(const char* snapshot_filename,
                               bool strong,
                               const char* package_config) {
 #if !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM) && !defined(TESTING)
-  Dart_KernelCompilationResult result =
-      dfe.CompileScript(script_name, strong, false, package_config);
-  if (result.status != Dart_KernelCompilationStatus_Ok) {
-    ErrorExit(kErrorExitCode, "%s\n", result.error);
+  uint8_t* kernel_buffer = NULL;
+  intptr_t kernel_buffer_size = 0;
+  dfe.ReadScript(script_name, &kernel_buffer, &kernel_buffer_size);
+  if (kernel_buffer != NULL) {
+    WriteSnapshotFile(snapshot_filename, kernel_buffer, kernel_buffer_size);
+  } else {
+    Dart_KernelCompilationResult result =
+        dfe.CompileScript(script_name, strong, false, package_config);
+    if (result.status != Dart_KernelCompilationStatus_Ok) {
+      ErrorExit(kErrorExitCode, "%s\n", result.error);
+    }
+    WriteSnapshotFile(snapshot_filename, result.kernel, result.kernel_size);
   }
-  WriteSnapshotFile(snapshot_filename, result.kernel, result.kernel_size);
 #else
   UNREACHABLE();
 #endif  // !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM) && !defined(TESTING)

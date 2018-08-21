@@ -643,7 +643,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
 
 #ifndef PRODUCT
 void IsolateMessageHandler::NotifyPauseOnStart() {
-  if (!FLAG_support_service) {
+  if (!FLAG_support_service || Isolate::IsVMInternalIsolate(I)) {
     return;
   }
   if (Service::debug_stream.enabled() || FLAG_warn_on_pause_with_no_debugger) {
@@ -659,7 +659,7 @@ void IsolateMessageHandler::NotifyPauseOnStart() {
 }
 
 void IsolateMessageHandler::NotifyPauseOnExit() {
-  if (!FLAG_support_service) {
+  if (!FLAG_support_service || Isolate::IsVMInternalIsolate(I)) {
     return;
   }
   if (Service::debug_stream.enabled() || FLAG_warn_on_pause_with_no_debugger) {
@@ -1310,7 +1310,8 @@ const char* Isolate::MakeRunnable() {
       event->Complete();
     }
   }
-  if (FLAG_support_service && Service::isolate_stream.enabled()) {
+  if (FLAG_support_service && !Isolate::IsVMInternalIsolate(this) &&
+      Service::isolate_stream.enabled()) {
     ServiceEvent runnableEvent(this, ServiceEvent::kIsolateRunnable);
     Service::HandleEvent(&runnableEvent);
   }
@@ -2438,10 +2439,7 @@ void Isolate::AppendServiceExtensionCall(const Instance& closure,
 // done atomically.
 void Isolate::RegisterServiceExtensionHandler(const String& name,
                                               const Instance& closure) {
-  if (!FLAG_support_service) {
-    return;
-  }
-  if (Isolate::IsVMInternalIsolate(this)) {
+  if (!FLAG_support_service || Isolate::IsVMInternalIsolate(this)) {
     return;
   }
   GrowableObjectArray& handlers =

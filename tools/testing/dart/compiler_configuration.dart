@@ -833,7 +833,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
 
   int get timeoutMultiplier {
     var multiplier = 1;
-    if (_isDebug) multiplier *= 4;
+    if (_isDebug) multiplier *= 2;
     if (_isChecked) multiplier *= 2;
     return multiplier;
   }
