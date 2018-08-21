@@ -120,6 +120,10 @@ class Deprecated extends Object {
 }
 const Object deprecated = const Deprecated("next release");
 
+class Exception {
+  factory Exception([var message]);
+}
+
 class Iterator<E> {
   bool moveNext();
   E get current;
@@ -151,9 +155,13 @@ class List<E> implements Iterable<E> {
 }
 
 abstract class Map<K, V> extends Object {
+  Iterable<K> get keys;
+  int get length;
+  Iterable<V> get values;
+  V operator [](K key) => null;
+  void operator []=(K key, V value) {}
   Map<RK, RV> cast<RK, RV>();
   bool containsKey(Object key);
-  Iterable<K> get keys;
 }
 
 external bool identical(Object a, Object b);

@@ -302,11 +302,13 @@ class List<E> implements Iterable<E> {
 }
 
 class Map<K, V> extends Object {
-  V operator [](K key) => null;
-  void operator []=(K key, V value) {}
   Iterable<K> get keys => null;
   int get length;
   Iterable<V> get values;
+  V operator [](K key) => null;
+  void operator []=(K key, V value) {}
+  Map<RK, RV> cast<RK, RV>();
+  bool containsKey(Object key);
 }
 
 class Duration implements Comparable<Duration> {}

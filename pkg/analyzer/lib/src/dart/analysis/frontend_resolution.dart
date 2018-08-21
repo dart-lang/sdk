@@ -424,6 +424,11 @@ class _AnalyzerKernelTarget extends KernelTarget {
   }
 
   @override
+  Declaration getAbstractClassInstantiationError(loader) {
+    return loader.coreLibrary.getConstructor('Exception');
+  }
+
+  @override
   Declaration getDuplicatedFieldInitializerError(loader) {
     return loader.coreLibrary.getConstructor('Exception');
   }

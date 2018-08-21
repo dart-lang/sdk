@@ -180,8 +180,4 @@ class OrganizeDirectivesTest_UseCFE extends OrganizeDirectivesTest {
   @override
   test_OK_remove_unresolvedDirectives() async =>
       super.test_OK_remove_unresolvedDirectives();
-
-  @failingTest
-  @override
-  test_OK_remove_unusedImports() async => super.test_OK_remove_unusedImports();
 }

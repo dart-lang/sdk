@@ -9016,36 +9016,6 @@ class LintFixTest_UseCFE extends LintFixTest {
   @override
   test_lint_addMissingOverride_method_with_doc_comment_and_metadata() =>
       super.test_lint_addMissingOverride_method_with_doc_comment_and_metadata();
-
-  @failingTest
-  @override
-  test_replaceWithLiteral_linkedHashMap_withCommentsInGeneric() =>
-      super.test_replaceWithLiteral_linkedHashMap_withCommentsInGeneric();
-
-  @failingTest
-  @override
-  test_replaceWithLiteral_linkedHashMap_withDynamicGenerics() =>
-      super.test_replaceWithLiteral_linkedHashMap_withDynamicGenerics();
-
-  @failingTest
-  @override
-  test_replaceWithLiteral_linkedHashMap_withGeneric() =>
-      super.test_replaceWithLiteral_linkedHashMap_withGeneric();
-
-  @failingTest
-  @override
-  test_replaceWithLiteral_linkedHashMap_withoutGeneric() =>
-      super.test_replaceWithLiteral_linkedHashMap_withoutGeneric();
-
-  @failingTest
-  @override
-  test_replaceWithLiteral_map_withGeneric() =>
-      super.test_replaceWithLiteral_map_withGeneric();
-
-  @failingTest
-  @override
-  test_replaceWithLiteral_map_withoutGeneric() =>
-      super.test_replaceWithLiteral_map_withoutGeneric();
 }
 
 class _DartFixContextImpl implements DartFixContext {
