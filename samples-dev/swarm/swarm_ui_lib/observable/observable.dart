@@ -134,8 +134,8 @@ class ObservableList<T> extends AbstractObservable
   List<T> _internal;
 
   ObservableList([Observable parent = null])
-      : super(parent),
-        _internal = new List<T>();
+      : _internal = new List<T>(),
+        super(parent);
 
   T operator [](int index) => _internal[index];
 
@@ -371,8 +371,8 @@ class ObservableList<T> extends AbstractObservable
 /** A wrapper around a single value whose change can be observed. */
 class ObservableValue<T> extends AbstractObservable {
   ObservableValue(T value, [Observable parent = null])
-      : super(parent),
-        _value = value;
+      : _value = value,
+        super(parent);
 
   T get value => _value;
 

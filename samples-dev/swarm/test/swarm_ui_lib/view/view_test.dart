@@ -210,9 +210,7 @@ class TestView extends View {
   Function exitDocumentFn;
   List<View> childViews;
 
-  TestView()
-      : super(),
-        childViews = [] {
+  TestView() : childViews = [] {
     // Default behavior.
     renderFn = () => new Element.html('<div class="test"></div>');
     afterRenderFn = (node) {};

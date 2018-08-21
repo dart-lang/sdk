@@ -30,7 +30,7 @@ class SliderMenu extends View {
 
   List<String> _menuItems;
 
-  SliderMenu(this._menuItems, this.onSelect) : super() {}
+  SliderMenu(this._menuItems, this.onSelect);
 
   Element render() {
     // Create a div for each menu item.
