@@ -236,8 +236,6 @@ duplicate_export_collision_test/01: MissingCompileTimeError # Issue 12916
 f_bounded_quantification_test/01: MissingCompileTimeError # Issue 33308
 f_bounded_quantification_test/02: MissingCompileTimeError # Issue 33308
 factory4_test/00: MissingCompileTimeError # Issue 31590
-generic_function_type_as_type_argument_test/01: MissingCompileTimeError # Issue 30931
-generic_function_type_as_type_argument_test/02: MissingCompileTimeError # Issue 30931
 generic_methods_bounds_test/01: MissingCompileTimeError # Issue 33308
 generic_methods_recursive_bound_test/02: MissingCompileTimeError # Issue 33308
 initializer_super_last_test/cc04: MissingCompileTimeError # Issue 33101
@@ -735,8 +733,6 @@ assertion_initializer_const_error2_test/cc07: MissingCompileTimeError # Not repo
 assertion_initializer_const_error2_test/cc08: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc09: MissingCompileTimeError # Not reporting failed assert() at compile time.
 assertion_initializer_const_error2_test/cc10: MissingCompileTimeError # Not reporting failed assert() at compile time.
-generic_function_type_as_type_argument_test/01: Pass # VM reports expected error
-generic_function_type_as_type_argument_test/02: Pass # VM reports expected error
 
 [ $compiler == dartkb && $runtime == vm && $strong ]
 compile_time_constant_o_test/01: Pass
@@ -1439,6 +1435,10 @@ vm/type_vm_test/33: MissingRuntimeError
 vm/type_vm_test/34: MissingRuntimeError
 vm/type_vm_test/35: MissingRuntimeError
 vm/type_vm_test/36: MissingRuntimeError
+
+[ $runtime != dart_precompiled && $runtime != vm && $fasta ]
+generic_function_type_as_type_argument_test/01: MissingCompileTimeError # Issue 30931
+generic_function_type_as_type_argument_test/02: MissingCompileTimeError # Issue 30931
 
 [ $runtime == vm && $checked && $strong && ($compiler == dartk || $compiler == dartkb) ]
 assert_initializer_test/31: MissingCompileTimeError # KernelVM bug: Constant evaluation.
