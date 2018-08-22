@@ -8,8 +8,32 @@ bounds_check4b_test: RuntimeError # Issue 32741
 class_test: Fail
 constant_javascript_semantics4_test: Fail, OK
 generic_class_is_test: Fail # Issue 32004
+jsinterop_test/01: MissingCompileTimeError # Issue 34174
+jsinterop_test/02: MissingCompileTimeError # Issue 34174
+jsinterop_test/03: MissingCompileTimeError # Issue 34174
+jsinterop_test/04: MissingCompileTimeError # Issue 34174
+jsinterop_test/34: MissingCompileTimeError # Issue 33834
+jsinterop_test/35: MissingCompileTimeError # Issue 33834
+jsinterop_test/36: MissingCompileTimeError # Issue 33834
+jsinterop_test/37: MissingCompileTimeError # Issue 33834
+jsinterop_test/38: MissingCompileTimeError # Issue 34174
+jsinterop_test/42: MissingCompileTimeError # Issue 34174
+jsinterop_test/46: MissingCompileTimeError # Issue 34174
+jsinterop_test/51: MissingCompileTimeError # Issue 34174
 many_instantiations_test/01: Crash # Issue 33819
 no_such_method_test: Fail # Wrong Invocation.memberName.
+non_jsinterop_test/01: MissingCompileTimeError # Issue 34174
+non_jsinterop_test/02: MissingCompileTimeError # Issue 34174
+non_jsinterop_test/03: MissingCompileTimeError # Issue 34174
+non_jsinterop_test/04: MissingCompileTimeError # Issue 34174
+non_jsinterop_test/34: MissingCompileTimeError # Issue 33834
+non_jsinterop_test/35: MissingCompileTimeError # Issue 33834
+non_jsinterop_test/36: MissingCompileTimeError # Issue 33834
+non_jsinterop_test/37: MissingCompileTimeError # Issue 33834
+non_jsinterop_test/38: MissingCompileTimeError # Issue 34174
+non_jsinterop_test/42: MissingCompileTimeError # Issue 34174
+non_jsinterop_test/46: MissingCompileTimeError # Issue 34174
+non_jsinterop_test/51: MissingCompileTimeError # Issue 34174
 statements_test: Fail
 typed_locals_test: Pass, Fail
 

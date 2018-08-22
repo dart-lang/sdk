@@ -413,7 +413,9 @@ main() {
   func();
 }
 '''),
-  const Test('Non-external field.', '''
+  const Test(
+    'Non-external field.',
+    '''
 @JS()
 library lib;
 
@@ -431,7 +433,10 @@ external B makeB();
 main() {
   makeB().callback();
 }
-'''),
+''',
+    // TODO(34174): Disallow js-interop fields.
+    /*errors: const [MessageKind.IMPLICIT_JS_INTEROP_FIELD_NOT_SUPPORTED]*/
+  ),
 ];
 
 void main(List<String> args) {

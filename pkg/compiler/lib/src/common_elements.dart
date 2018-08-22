@@ -15,6 +15,7 @@ import 'elements/types.dart';
 import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'js_backend/constant_system_javascript.dart';
 import 'js_backend/native_data.dart' show NativeBasicData;
+import 'native/native.dart';
 import 'types/abstract_value_domain.dart';
 import 'universe/call_structure.dart' show CallStructure;
 import 'universe/selector.dart' show Selector;
@@ -1284,6 +1285,32 @@ class CommonElements {
   }
 
   bool isForeign(MemberEntity element) => element.library == foreignLibrary;
+
+  /// Returns `true` if [member] is a "foreign helper", that is, a member whose
+  /// semantics is defined synthetically and not through Dart code.
+  ///
+  /// Most foreign helpers are located in the `dart:_foreign_helper` library.
+  bool isForeignHelper(MemberEntity member) {
+    return member.library == foreignLibrary ||
+        isCreateInvocationMirrorHelper(member);
+  }
+
+  /// Returns `true` if [function] is allowed to be external.
+  ///
+  /// This returns `true` for foreign helpers, from environment constructors and
+  /// members of libraries that support native.
+  ///
+  /// This returns `false` for JS interop members which therefore must be
+  /// allowed to be external through the JS interop annotation handling.
+  bool isExternalAllowed(FunctionEntity function) {
+    return isForeignHelper(function) ||
+        (function is ConstructorEntity &&
+            function.isFromEnvironmentConstructor) ||
+        maybeEnableNative(function.library.canonicalUri) ||
+        // TODO(johnniwinther): Remove this when importing dart:mirrors is
+        // a compile-time error.
+        function.library.canonicalUri == Uris.dart_mirrors;
+  }
 
   /// Returns `true` if the implementation of the 'operator ==' [function] is
   /// known to handle `null` as argument.

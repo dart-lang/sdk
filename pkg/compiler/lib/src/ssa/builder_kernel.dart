@@ -3288,7 +3288,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildCall(node, node);
     FunctionEntity function = _elementMap.getMember(target);
-    if (_elementMap.isForeignHelper(function)) {
+    if (_commonElements.isForeignHelper(function)) {
       handleInvokeStaticForeign(node, function);
       return;
     }
