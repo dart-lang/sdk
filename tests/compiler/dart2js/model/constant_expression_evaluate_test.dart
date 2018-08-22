@@ -532,7 +532,7 @@ class B extends A {
     }
     class D extends C {
       final b;
-      const D(c) : super(c + 1), b = c + 2;
+      const D(c) : b = c + 2, super(c + 1);
     }
   ''', const [
     const ConstantData(r'const A()', 'ConstructedConstant(A())'),

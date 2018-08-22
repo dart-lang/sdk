@@ -60,8 +60,6 @@ export_ambiguous_main_test: Crash
 external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
 external_test/20: MissingRuntimeError
-field_initialization_order_test/01: MissingCompileTimeError
-field_initialization_order_test/none: RuntimeError
 flatten_test/05: MissingRuntimeError
 flatten_test/08: MissingRuntimeError
 flatten_test/09: MissingRuntimeError
@@ -238,23 +236,6 @@ f_bounded_quantification_test/02: MissingCompileTimeError # Issue 33308
 factory4_test/00: MissingCompileTimeError # Issue 31590
 generic_methods_bounds_test/01: MissingCompileTimeError # Issue 33308
 generic_methods_recursive_bound_test/02: MissingCompileTimeError # Issue 33308
-initializer_super_last_test/cc04: MissingCompileTimeError # Issue 33101
-initializer_super_last_test/cc09: MissingCompileTimeError # Issue 33101
-initializer_super_last_test/cc10: MissingCompileTimeError # Issue 33101
-initializer_super_last_test/cc11: MissingCompileTimeError # Issue 33101
-initializer_super_last_test/cc12: MissingCompileTimeError # Issue 33101
-initializer_super_last_test/cc13: MissingCompileTimeError # Issue 33101
-initializer_super_last_test/cc14: MissingCompileTimeError # Issue 33101
-initializer_super_last_test/cc15: MissingCompileTimeError # Issue 33101
-initializer_super_last_test/cc16: MissingCompileTimeError # Issue 33101
-initializer_super_last_test/cc25: MissingCompileTimeError # Issue 33101
-initializer_super_last_test/cc26: MissingCompileTimeError # Issue 33101
-initializer_super_last_test/cc27: MissingCompileTimeError # Issue 33101
-initializer_super_last_test/cc28: MissingCompileTimeError # Issue 33101
-initializer_super_last_test/cc29: MissingCompileTimeError # Issue 33101
-initializer_super_last_test/cc30: MissingCompileTimeError # Issue 33101
-initializer_super_last_test/cc31: MissingCompileTimeError # Issue 33101
-initializer_super_last_test/cc32: MissingCompileTimeError # Issue 33101
 issue31596_super_test/02: MissingCompileTimeError # Issue 31596
 issue31596_super_test/04: MissingCompileTimeError # Issue 31596
 malbounded_instantiation_test/01: MissingCompileTimeError # Issue 33308
@@ -918,7 +899,6 @@ external_test/13: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/20: MissingRuntimeError # KernelVM bug: Unbound external.
 factory3_test/01: Pass
 field_increment_bailout_test: SkipByDesign
-field_initialization_order_test: Fail, OK
 flatten_test/05: MissingRuntimeError
 flatten_test/08: MissingRuntimeError
 flatten_test/09: MissingRuntimeError
@@ -1095,7 +1075,6 @@ emit_const_fields_test: CompileTimeError
 export_ambiguous_main_test: MissingCompileTimeError
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
-field_initialization_order_test/01: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError
 generic_no_such_method_dispatcher_test: CompileTimeError
@@ -1529,7 +1508,6 @@ example_constructor_test: Fail, OK
 external_test/10: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/13: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/20: MissingRuntimeError # KernelVM bug: Unbound external.
-field_initialization_order_test: Fail, OK
 flatten_test/05: MissingRuntimeError
 flatten_test/08: MissingRuntimeError
 flatten_test/09: MissingRuntimeError
@@ -1857,7 +1835,6 @@ factory_redirection_test/none: MissingCompileTimeError
 factory_return_type_checked_test/00: MissingCompileTimeError
 fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
-field_initialization_order_test/01: MissingCompileTimeError
 field_method4_test: MissingCompileTimeError
 field_override2_test: MissingCompileTimeError
 field_override3_test/00: MissingCompileTimeError

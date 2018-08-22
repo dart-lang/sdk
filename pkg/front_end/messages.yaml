@@ -640,6 +640,34 @@ InitializerOutsideConstructor:
   analyzerCode: INITIALIZER_OUTSIDE_CONSTRUCTOR
   dart2jsCode: "*fatal*"
 
+MoreThanOneSuperOrThisInitializer:
+  template: "Can't have more than one 'super' or 'this' initializer."
+  severity: ERROR
+  analyzerCode: SUPER_IN_REDIRECTING_CONSTRUCTOR
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { C.bad() : super(), super(); }"
+    - "class C { C(); C.bad() : super(), this(); }"
+    - "class C { C(); C.bad() : this(), super(); }"
+    - "class C { C(); C.bad() : this(), this(); }"
+
+ThisInitializerNotAlone:
+  template: "Can't have other initializers together with 'this'."
+  severity: ERROR
+  analyzerCode: FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { int x; C(); C.bad() : x = 5, this(); }"
+    - "class C { int x; C(); C.bad() : this(), x = 5; }"
+
+SuperInitializerNotLast:
+  template: "Can't have initializers after 'super'."
+  severity: ERROR
+  analyzerCode: INVALID_SUPER_INVOCATION
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { int x; C.bad() : super(), x = 5; }"
+
 ConstConstructorWithNonConstSuper:
   template: "Constant constructor can't call non-constant super constructors."
   analyzerCode: CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER

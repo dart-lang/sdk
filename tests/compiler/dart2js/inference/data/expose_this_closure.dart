@@ -6,7 +6,6 @@
 main() {
   exposeThis1();
   exposeThis2();
-  exposeThis3();
   exposeThis4();
   exposeThis5();
 }
@@ -51,39 +50,6 @@ class Class2 {
 
 /*element: exposeThis2:[exact=Class2]*/
 exposeThis2() => new Class2();
-
-////////////////////////////////////////////////////////////////////////////////
-// Class with super call containing closure between two initializers.
-////////////////////////////////////////////////////////////////////////////////
-
-abstract class SuperClass1 {
-  /*element: SuperClass1.:[exact=Class3]*/
-  SuperClass1(
-      /*kernel.[null|subclass=Object]*/
-      /*strong.[null|subclass=JSInt]*/
-      o);
-}
-
-class Class3 extends SuperClass1 {
-  /*element: Class3.field1:[exact=JSUInt31]*/
-  var field1;
-  // The inferred type of the field includes `null` because `this` has been
-  // exposed before its initialization.
-  /*element: Class3.field2:[null|exact=JSUInt31]*/
-  var field2;
-
-  /*element: Class3.:[exact=Class3]*/
-  Class3()
-      : field1 = 42,
-        // ignore: STRONG_MODE_INVALID_SUPER_INVOCATION
-        super(/*[exact=JSUInt31]*/ () {
-          return 42;
-        }()),
-        field2 = 87;
-}
-
-/*element: exposeThis3:[exact=Class3]*/
-exposeThis3() => new Class3();
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class with closure after two initializers in the constructor body.

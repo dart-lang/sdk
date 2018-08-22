@@ -16,10 +16,8 @@ import 'package:kernel/ast.dart'
         Expression,
         FunctionNode,
         Initializer,
-        LocalInitializer,
         Member,
         Name,
-        NamedExpression,
         Procedure,
         ProcedureKind,
         RedirectingInitializer,
@@ -30,7 +28,6 @@ import 'package:kernel/ast.dart'
         TypeParameter,
         TypeParameterType,
         VariableDeclaration,
-        VariableGet,
         VoidType,
         setParents;
 
@@ -39,21 +36,21 @@ import 'package:kernel/type_algebra.dart' show containsTypeVariable, substitute;
 import '../../base/instrumentation.dart'
     show Instrumentation, InstrumentationValueForType;
 
-import '../type_inference/type_inferrer.dart' show TypeInferrer;
-
 import '../loader.dart' show Loader;
 
 import '../messages.dart'
     show
+        Message,
+        messageMoreThanOneSuperOrThisInitializer,
         messageNonInstanceTypeVariableUse,
         messagePatchDeclarationMismatch,
         messagePatchDeclarationOrigin,
         messagePatchNonExternal,
+        messageSuperInitializerNotLast,
+        messageThisInitializerNotAlone,
         noLength;
 
 import '../problems.dart' show unexpected;
-
-import '../deprecated_problems.dart' show deprecated_inputError;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -77,6 +74,8 @@ import 'kernel_shadow_ast.dart'
     show ShadowProcedure, VariableDeclarationJudgment;
 
 import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
+
+import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
 abstract class KernelFunctionBuilder
     extends ProcedureBuilder<KernelTypeBuilder> {
@@ -490,69 +489,54 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
 
   Constructor get target => origin.constructor;
 
-  void checkSuperOrThisInitializer(Initializer initializer) {
-    if (superInitializer != null || redirectingInitializer != null) {
-      return deprecated_inputError(fileUri, initializer.fileOffset,
-          "Can't have more than one 'super' or 'this' initializer.");
-    }
+  void injectInvalidInitializer(
+      Message message, int charOffset, ExpressionGeneratorHelper helper) {
+    List<Initializer> initializers = constructor.initializers;
+    Initializer lastInitializer = initializers.removeLast();
+    assert(lastInitializer == superInitializer ||
+        lastInitializer == redirectingInitializer);
+    Initializer error = helper.buildInvalidInitializer(
+        helper.buildCompileTimeError(message, charOffset, noLength),
+        charOffset);
+    initializers.add(error..parent = constructor);
+    initializers.add(lastInitializer);
   }
 
-  void addInitializer(Initializer initializer, TypeInferrer typeInferrer) {
+  void addInitializer(
+      Initializer initializer, ExpressionGeneratorHelper helper) {
     List<Initializer> initializers = constructor.initializers;
     if (initializer is SuperInitializer) {
-      checkSuperOrThisInitializer(initializer);
-      superInitializer = initializer;
+      if (superInitializer != null || redirectingInitializer != null) {
+        injectInvalidInitializer(messageMoreThanOneSuperOrThisInitializer,
+            initializer.fileOffset, helper);
+      } else {
+        initializers.add(initializer..parent = constructor);
+        superInitializer = initializer;
+      }
     } else if (initializer is RedirectingInitializer) {
-      checkSuperOrThisInitializer(initializer);
-      redirectingInitializer = initializer;
-      if (constructor.initializers.isNotEmpty) {
-        deprecated_inputError(fileUri, initializer.fileOffset,
-            "'this' initializer must be the only initializer.");
+      if (superInitializer != null || redirectingInitializer != null) {
+        injectInvalidInitializer(messageMoreThanOneSuperOrThisInitializer,
+            initializer.fileOffset, helper);
+      } else if (constructor.initializers.isNotEmpty) {
+        Initializer first = constructor.initializers.first;
+        Initializer error = helper.buildInvalidInitializer(
+            helper.buildCompileTimeError(
+                messageThisInitializerNotAlone, first.fileOffset, noLength),
+            first.fileOffset);
+        initializers.add(error..parent = constructor);
+      } else {
+        initializers.add(initializer..parent = constructor);
+        redirectingInitializer = initializer;
       }
     } else if (redirectingInitializer != null) {
-      deprecated_inputError(fileUri, initializer.fileOffset,
-          "'this' initializer must be the only initializer.");
+      injectInvalidInitializer(
+          messageThisInitializerNotAlone, initializer.fileOffset, helper);
     } else if (superInitializer != null) {
-      // If there is a super initializer ([initializer] isn't it), we need to
-      // insert [initializer] before the super initializer (thus ensuring that
-      // the super initializer is always last).
-      assert(superInitializer != initializer);
-      assert(initializers.last == superInitializer);
-      initializers.removeLast();
-      if (!hasMovedSuperInitializer) {
-        // To preserve correct evaluation order, the arguments to super call
-        // must be evaluated before [initializer]. Once the super initializer
-        // has been moved once, the arguments are evaluated in the correct
-        // order.
-        hasMovedSuperInitializer = true;
-        Arguments arguments = superInitializer.arguments;
-        List<Expression> positional = arguments.positional;
-        for (int i = 0; i < positional.length; i++) {
-          var type = typeInferrer.typeSchemaEnvironment.strongMode
-              ? positional[i].getStaticType(typeInferrer.typeSchemaEnvironment)
-              : const DynamicType();
-          VariableDeclaration variable = new VariableDeclaration.forValue(
-              positional[i],
-              isFinal: true,
-              type: type);
-          initializers
-              .add(new LocalInitializer(variable)..parent = constructor);
-          positional[i] = new VariableGet(variable)..parent = arguments;
-        }
-        for (NamedExpression named in arguments.named) {
-          VariableDeclaration variable =
-              new VariableDeclaration.forValue(named.value, isFinal: true);
-          named.value = new VariableGet(variable)..parent = named;
-          initializers
-              .add(new LocalInitializer(variable)..parent = constructor);
-        }
-      }
+      injectInvalidInitializer(
+          messageSuperInitializerNotLast, superInitializer.fileOffset, helper);
+    } else {
       initializers.add(initializer..parent = constructor);
-      initializers.add(superInitializer);
-      return;
     }
-    initializers.add(initializer);
-    initializer.parent = constructor;
   }
 
   @override

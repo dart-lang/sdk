@@ -301,25 +301,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_fieldInitializerRedirectingConstructor_afterRedirection() async {
-    return super.test_fieldInitializerRedirectingConstructor_afterRedirection();
-  }
-
-  @override
-  @failingTest
-  test_fieldInitializerRedirectingConstructor_beforeRedirection() async {
-    return super
-        .test_fieldInitializerRedirectingConstructor_beforeRedirection();
-  }
-
-  @override
-  @failingTest
-  test_fieldInitializingFormalRedirectingConstructor() async {
-    return super.test_fieldInitializingFormalRedirectingConstructor();
-  }
-
-  @override
-  @failingTest
   test_genericFunctionTypeArgument_class() async {
     await super.test_genericFunctionTypeArgument_class();
   }
@@ -1285,15 +1266,9 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   }
 
   @override
-  @failingTest
-  test_superInRedirectingConstructor_redirectionSuper() async {
-    return super.test_superInRedirectingConstructor_redirectionSuper();
-  }
-
-  @override
-  @failingTest
+  @failingTest // Deliberately only reports one of the expected errors.
   test_superInRedirectingConstructor_superRedirection() async {
-    return super.test_superInRedirectingConstructor_superRedirection();
+    await super.test_superInRedirectingConstructor_superRedirection();
   }
 
   @override

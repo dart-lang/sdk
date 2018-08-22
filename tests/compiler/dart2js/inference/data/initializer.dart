@@ -8,7 +8,6 @@ main() {
   fieldInitializer();
   thisInitializer();
   superInitializer();
-  superInitializerFirst();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -78,31 +77,3 @@ class Class4 extends SuperClass4 {
 
 /*element: superInitializer:[exact=Class4]*/
 superInitializer() => new Class4(0);
-
-////////////////////////////////////////////////////////////////////////////////
-// Constructor with super constructor call before field initializer.
-////////////////////////////////////////////////////////////////////////////////
-
-abstract class SuperClass5 {
-  /*element: SuperClass5.field1:[exact=JSUInt31]*/
-  var field1;
-
-  /*element: SuperClass5.:[exact=Class5]*/
-  SuperClass5(this. /*[exact=JSUInt31]*/ field1);
-}
-
-class Class5 extends SuperClass5 {
-  /*element: Class5.field2:Value([exact=JSString], value: "")*/
-  var field2;
-
-  /*element: Class5.:[exact=Class5]*/
-  Class5(
-      /*[exact=JSUInt31]*/ field1,
-      /*Value([exact=JSString], value: "")*/ field2)
-      // ignore: STRONG_MODE_INVALID_SUPER_INVOCATION
-      : super(field1),
-        this.field2 = field2;
-}
-
-/*element: superInitializerFirst:[exact=Class5]*/
-superInitializerFirst() => new Class5(0, '');

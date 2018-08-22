@@ -585,8 +585,6 @@ external_test/13: MissingRuntimeError
 external_test/20: MissingRuntimeError
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
-field_initialization_order_test/01: MissingCompileTimeError
-field_initialization_order_test/none: RuntimeError
 flatten_test/05: MissingRuntimeError
 flatten_test/08: MissingRuntimeError
 flatten_test/09: MissingRuntimeError

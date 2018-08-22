@@ -5158,6 +5158,18 @@ Message _withArgumentsMixinInferenceNoMatchingClass(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMoreThanOneSuperOrThisInitializer =
+    messageMoreThanOneSuperOrThisInitializer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMoreThanOneSuperOrThisInitializer = const MessageCode(
+    "MoreThanOneSuperOrThisInitializer",
+    analyzerCode: "SUPER_IN_REDIRECTING_CONSTRUCTOR",
+    dart2jsCode: "*fatal*",
+    severity: Severity.error,
+    message: r"""Can't have more than one 'super' or 'this' initializer.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMultipleExtends = messageMultipleExtends;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6569,6 +6581,17 @@ const MessageCode messageSuperAsIdentifier = const MessageCode(
     message: r"""Expected identifier, but got 'super'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeSuperInitializerNotLast = messageSuperInitializerNotLast;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageSuperInitializerNotLast = const MessageCode(
+    "SuperInitializerNotLast",
+    analyzerCode: "INVALID_SUPER_INVOCATION",
+    dart2jsCode: "*fatal*",
+    severity: Severity.error,
+    message: r"""Can't have initializers after 'super'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSuperNullAware = messageSuperNullAware;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6810,6 +6833,17 @@ const MessageCode messageThisAsIdentifier = const MessageCode(
     dart2jsCode: "*fatal*",
     severity: Severity.error,
     message: r"""Expected identifier, but got 'this'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeThisInitializerNotAlone = messageThisInitializerNotAlone;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageThisInitializerNotAlone = const MessageCode(
+    "ThisInitializerNotAlone",
+    analyzerCode: "FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR",
+    dart2jsCode: "*fatal*",
+    severity: Severity.error,
+    message: r"""Can't have other initializers together with 'this'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)>

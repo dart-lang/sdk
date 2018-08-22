@@ -595,7 +595,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
                   formal.charOffset, new VariableGet(formal.declaration),
                   formalType: formal.declaration.type);
             }
-            member.addInitializer(initializer, _typeInferrer);
+            member.addInitializer(initializer, this);
           }
         }
       }
@@ -659,7 +659,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     }
     _typeInferrer.inferInitializer(this, initializer);
     if (member is KernelConstructorBuilder && !member.isExternal) {
-      member.addInitializer(initializer, _typeInferrer);
+      member.addInitializer(initializer, this);
     } else {
       addCompileTimeError(
           fasta.templateInitializerOutsideConstructor

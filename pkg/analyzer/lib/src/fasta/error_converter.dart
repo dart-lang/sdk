@@ -266,6 +266,12 @@ class FastaErrorReporter {
             offset,
             length);
         return;
+      case "FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR,
+            offset,
+            length);
+        return;
       case "FINAL_AND_COVARIANT":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.FINAL_AND_COVARIANT, offset, length);
@@ -395,6 +401,10 @@ class FastaErrorReporter {
       case "INVALID_OPERATOR_FOR_SUPER":
         _reportByCode(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, message,
             offset, length);
+        return;
+      case "INVALID_SUPER_INVOCATION":
+        errorReporter?.reportErrorForOffset(
+            StrongModeCode.INVALID_SUPER_INVOCATION, offset, length);
         return;
       case "INVALID_UNICODE_ESCAPE":
         errorReporter?.reportErrorForOffset(
@@ -574,6 +584,12 @@ class FastaErrorReporter {
       case "STATIC_OPERATOR":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.STATIC_OPERATOR, offset, length);
+        return;
+      case "SUPER_IN_REDIRECTING_CONSTRUCTOR":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
+            offset,
+            length);
         return;
       case "SWITCH_HAS_CASE_AFTER_DEFAULT_CASE":
         errorReporter?.reportErrorForOffset(

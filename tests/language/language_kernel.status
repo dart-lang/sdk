@@ -10,6 +10,8 @@ function_type_parameter_negative_test: Fail
 prefix5_negative_test: Fail
 
 [ $fasta ]
+assertion_initializer_const_error2_test.dart: CompileTimeError # super initializer not last
+assertion_initializer_test.dart: CompileTimeError # super initializer not last
 bad_constructor_test/04: MissingCompileTimeError
 bad_constructor_test/06: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
@@ -20,14 +22,23 @@ bit_operations_test/02: CompileTimeError
 bit_operations_test/03: CompileTimeError
 bit_operations_test/04: CompileTimeError
 bit_operations_test/none: CompileTimeError
+canonical_const3_test: CompileTimeError # super initializer not last
 check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
+closure_in_initializer_test: CompileTimeError # super initializer not last
 config_import_test: Crash
 const_instance_field_test/01: MissingCompileTimeError
 const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
 const_switch2_test/01: MissingCompileTimeError
+constructor2_test: CompileTimeError # super initializer not last
+constructor3_test: CompileTimeError # super initializer not last
+constructor5_test: CompileTimeError # super initializer not last
+constructor6_test: CompileTimeError # super initializer not last
+constructor_initializer_test/none: CompileTimeError # super initializer not last
+constructor_test: CompileTimeError # super initializer not last
+constructor_with_mixin_test: CompileTimeError # super initializer not last
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
@@ -36,9 +47,11 @@ duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
 duplicate_implements_test/03: MissingCompileTimeError
 duplicate_implements_test/04: MissingCompileTimeError
+example_constructor_test: CompileTimeError # super initializer not last
 factory_redirection_test/07: MissingCompileTimeError
 fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
+field_initialization_order_test: CompileTimeError # super initializer not last
 field_override3_test/00: MissingCompileTimeError
 field_override3_test/01: MissingCompileTimeError
 field_override3_test/02: MissingCompileTimeError
@@ -46,6 +59,8 @@ field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
 final_attempt_reinitialization_test/01: MissingCompileTimeError
 final_attempt_reinitialization_test/02: MissingCompileTimeError
+final_field_initialization_order_test: CompileTimeError # super initializer not last
+function_test: CompileTimeError # super initializer not last
 getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
@@ -105,6 +120,7 @@ mixin_super_bound2_test/none: CompileTimeError
 mixin_super_constructor_named_test/01: MissingCompileTimeError
 mixin_super_constructor_positionals_test/01: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
+naming_test: CompileTimeError # super initializer not last
 override_field_method1_negative_test: Fail
 override_field_method2_negative_test: Fail
 override_field_method4_negative_test: Fail
@@ -115,7 +131,10 @@ override_inheritance_mixed_test/02: MissingCompileTimeError
 override_inheritance_mixed_test/03: MissingCompileTimeError
 override_inheritance_mixed_test/04: MissingCompileTimeError
 override_method_with_field_test/01: MissingCompileTimeError
+parameter_initializer_test.dart: CompileTimeError # super initializer not last
 private_super_constructor_test/01: MissingCompileTimeError
+private_test: CompileTimeError # super initializer not last
+redirecting_constructor_initializer_test: CompileTimeError # super initializer not last
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 regress_20394_test/01: MissingCompileTimeError
@@ -125,13 +144,19 @@ regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
+string_interpolate_test.dart: CompileTimeError # super initializer not last
+super_field_access_test: CompileTimeError # super initializer not last
+super_first_constructor_test: CompileTimeError # super initializer not last
+super_test: CompileTimeError # super initializer not last
 switch_bad_case_test/01: MissingCompileTimeError
 switch_bad_case_test/02: MissingCompileTimeError
 switch_case_test/00: MissingCompileTimeError
 switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
 syntax_test/none: CompileTimeError
+third_test: CompileTimeError # super initializer not last
 type_variable_conflict2_test/02: MissingCompileTimeError
+unbound_getter_test.dart: CompileTimeError # super initializer not last
 vm/debug_break_enabled_vm_test/01: CompileTimeError
 vm/debug_break_enabled_vm_test/none: CompileTimeError
 vm/regress_14903_test: CompileTimeError

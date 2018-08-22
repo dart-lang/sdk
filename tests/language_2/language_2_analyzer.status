@@ -72,8 +72,6 @@ const_native_factory_test: Crash # Issue #34043 - Error recovery in outline (nat
 constructor9_test/01: MissingCompileTimeError
 constructor_name_test/02: Crash # Issue #34043 - Error recovery in outline (illegal constructor name)
 constructor_named_arguments_test/01: Crash # Error recovery in method body (argument mismatch in constructor redirect)
-constructor_redirect2_test/02: Crash # Issue 33686 - No core library found
-constructor_redirect2_test/03: Crash # Issue 33686 - No core library found
 constructor_redirect2_test/04: Crash # Issue 33686 - No core library found
 constructor_redirect_test/01: Crash # Error recovery in method body (reference to non-static method in constructor initializer)
 covariant_override_test: Crash # Improper handling of correct code - override fails to appear in kernel representation
@@ -113,7 +111,6 @@ field4_test: Crash # Issue 33686 - No core library found
 field5_test: Crash # Issue 33686 - No core library found
 field6_test/00: Crash # Issue 33686 - No core library found
 field6_test/01: Crash # Issue 33686 - No core library found
-field_initialization_order_test/01: MissingCompileTimeError
 final_syntax_test/01: MissingCompileTimeError
 final_syntax_test/02: MissingCompileTimeError
 final_syntax_test/03: MissingCompileTimeError
