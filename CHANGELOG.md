@@ -10,6 +10,11 @@
 
 #### Pub
 
+#### dartfmt
+
+*   Upgrade to an intermediate version of dartfmt.
+*   Address several dartfmt issues when used with the new CFE parser.
+
 #### Other Tools
 
 ### Core library changes
