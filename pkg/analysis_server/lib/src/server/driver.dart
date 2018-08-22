@@ -455,14 +455,18 @@ class Driver implements ServerStarter {
 
       () async {
         // We first analyze code with an empty driver cache.
-        print('Analyzing with an empty driver cache:');
+        print('Analyzing${analysisServerOptions.useCFE ? ' using CFE' : ''} '
+            'with an empty driver cache:');
         int exitCode = await devServer.processDirectories([trainDirectory]);
+        if (exitCode != 0) exit(exitCode);
 
         print('');
 
         // Then again with a populated cache.
-        print('Analyzing with a populated driver cache:');
+        print('Analyzing${analysisServerOptions.useCFE ? ' using CFE' : ''} '
+            'with a populated driver cache:');
         exitCode = await devServer.processDirectories([trainDirectory]);
+        if (exitCode != 0) exit(exitCode);
 
         if (serve_http) {
           httpServer.close();
@@ -475,9 +479,10 @@ class Driver implements ServerStarter {
           // ignore any exception
         }
 
-        if (exitCode == 0 && analysisServerOptions.useCFE == false) {
+        if (!analysisServerOptions.useCFE) {
+          print('');
+
           // And then run everything again with CFE to train both frontends.
-          print('Analyzing again with CFE.');
           List<String> args = new List<String>.from(arguments);
           args.add("--use-cfe");
           ServerStarter starter = new ServerStarter();
