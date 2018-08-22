@@ -682,12 +682,15 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     const char* path = DartUtils::RemoveScheme(url_string);
 
     const char* lib_uri = NULL;
-    result = Dart_StringToCString(Dart_LibraryUrl(library), &lib_uri);
+    result = Dart_StringToCString(Dart_LibraryResolvedUrl(library), &lib_uri);
     RETURN_ERROR(result);
+
+    UriDecoder decoder(lib_uri);
+    lib_uri = decoder.decoded();
 
     char* lib_path = NULL;
     if (strncmp(lib_uri, "file://", 7) == 0) {
-      lib_path = DartUtils::DirName(DartUtils::RemoveScheme(lib_uri));
+      lib_path = DartUtils::DirName(lib_uri + 7);
     } else {
       lib_path = strdup(lib_uri);
     }
@@ -699,7 +702,10 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
           path);
     }
 
-    return Extensions::LoadExtension(lib_path, path, library);
+    Dart_Handle result =
+        Extensions::LoadExtension(decoder.decoded(), path, library);
+    free(lib_path);
+    return result;
   }
   if (tag != Dart_kScriptTag) {
     // Special case for handling dart: imports and parts.

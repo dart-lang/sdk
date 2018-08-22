@@ -3053,9 +3053,15 @@ DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library,
  * of it are removed from the embedder code. */
 
 /**
- * Returns the url from which a library was loaded.
+ * Returns an import path to a Library, such as "file:///test.dart" or
+ * "dart:core".
  */
 DART_EXPORT Dart_Handle Dart_LibraryUrl(Dart_Handle library);
+
+/**
+ * Returns a URL from which a Library was loaded.
+ */
+DART_EXPORT Dart_Handle Dart_LibraryResolvedUrl(Dart_Handle library);
 
 /**
  * \return An array of libraries.

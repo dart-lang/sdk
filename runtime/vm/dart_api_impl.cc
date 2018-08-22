@@ -5301,6 +5301,21 @@ DART_EXPORT Dart_Handle Dart_LibraryUrl(Dart_Handle library) {
   return Api::NewHandle(T, url.raw());
 }
 
+DART_EXPORT Dart_Handle Dart_LibraryResolvedUrl(Dart_Handle library) {
+  DARTSCOPE(Thread::Current());
+  const Library& lib = Api::UnwrapLibraryHandle(Z, library);
+  if (lib.IsNull()) {
+    RETURN_TYPE_ERROR(Z, library, Library);
+  }
+  const Class& toplevel = Class::Handle(lib.toplevel_class());
+  ASSERT(!toplevel.IsNull());
+  const Script& script = Script::Handle(toplevel.script());
+  ASSERT(!script.IsNull());
+  const String& url = String::Handle(script.resolved_url());
+  ASSERT(!url.IsNull());
+  return Api::NewHandle(T, url.raw());
+}
+
 DART_EXPORT Dart_Handle Dart_GetLoadedLibraries() {
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
