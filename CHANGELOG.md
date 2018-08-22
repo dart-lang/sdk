@@ -10,16 +10,23 @@
 
 #### Pub
 
+#### Other Tools
+
+### Core library changes
+
+## 2.1.0-dev.2.0
+
+### Tool Changes
+
 #### dartfmt
 
 *   Upgrade to an intermediate version of dartfmt.
 *   Address several dartfmt issues when used with the new CFE parser.
 
-#### Other Tools
-
 ### Core library changes
 
 #### `dart:core`:
+
 *   Deprecated the `provisional` annotation and the `Provisional`
     annotation class. These should have been removed before releasing Dart 2.0,
     and they have no effect.
