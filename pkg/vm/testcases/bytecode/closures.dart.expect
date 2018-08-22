@@ -678,10 +678,6 @@ Closure CP#3 {
   StoreContextParent
   PopLocal             r0
   Push                 r0
-  LoadContextParent
-  Push                 FP[-5]
-  StoreContextVar      0
-  Push                 r0
   Push                 FP[-5]
   StoreContextVar      0
   Push                 FP[-5]

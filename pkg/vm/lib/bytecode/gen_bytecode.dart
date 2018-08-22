@@ -790,11 +790,14 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     if (locals.hasCapturedParameters) {
       // Copy captured parameters to their respective locations in the context.
-      if (locals.hasFactoryTypeArgsVar) {
-        _copyParamIfCaptured(locals.factoryTypeArgsVar);
-      }
-      if (locals.hasReceiver) {
-        _copyParamIfCaptured(locals.receiverVar);
+      final isClosure = parentFunction != null;
+      if (!isClosure) {
+        if (locals.hasFactoryTypeArgsVar) {
+          _copyParamIfCaptured(locals.factoryTypeArgsVar);
+        }
+        if (locals.hasReceiver) {
+          _copyParamIfCaptured(locals.receiverVar);
+        }
       }
       function.positionalParameters.forEach(_copyParamIfCaptured);
       function.namedParameters.forEach(_copyParamIfCaptured);
