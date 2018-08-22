@@ -2608,7 +2608,8 @@ class FindFreeTypeParametersVisitor extends DartTypeVisitor<bool> {
     }
 
     final bool result = node.positionalParameters.any((t) => t.accept(this)) ||
-        node.namedParameters.any((p) => p.type.accept(this));
+        node.namedParameters.any((p) => p.type.accept(this)) ||
+        node.returnType.accept(this);
 
     if (node.typeParameters.isNotEmpty) {
       _declaredTypeParameters.removeAll(node.typeParameters);
