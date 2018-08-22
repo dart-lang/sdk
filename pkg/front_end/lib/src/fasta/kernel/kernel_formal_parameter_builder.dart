@@ -21,6 +21,8 @@ class KernelFormalParameterBuilder
     extends FormalParameterBuilder<KernelTypeBuilder> {
   VariableDeclarationJudgment declaration;
   final int charOffset;
+  final int codeStartOffset;
+  final int codeEndOffset;
 
   KernelFormalParameterBuilder(
       List<MetadataBuilder> metadata,
@@ -29,7 +31,9 @@ class KernelFormalParameterBuilder
       String name,
       bool hasThis,
       KernelLibraryBuilder compilationUnit,
-      this.charOffset)
+      this.charOffset,
+      this.codeStartOffset,
+      this.codeEndOffset)
       : super(metadata, modifiers, type, name, hasThis, compilationUnit,
             charOffset);
 
@@ -47,6 +51,8 @@ class KernelFormalParameterBuilder
           isFieldFormal: hasThis,
           isCovariant: isCovariant)
         ..fileOffset = charOffset;
+      library.loader.target.metadataCollector
+          ?.setCodeStartEnd(declaration, codeStartOffset, codeEndOffset);
     }
     return declaration;
   }
@@ -56,8 +62,16 @@ class KernelFormalParameterBuilder
     assert(declaration != null);
     return !hasThis
         ? this
-        : (new KernelFormalParameterBuilder(metadata, modifiers | finalMask,
-            type, name, hasThis, parent, charOffset)
+        : (new KernelFormalParameterBuilder(
+            metadata,
+            modifiers | finalMask,
+            type,
+            name,
+            hasThis,
+            parent,
+            charOffset,
+            codeStartOffset,
+            codeEndOffset)
           ..declaration = declaration);
   }
 }

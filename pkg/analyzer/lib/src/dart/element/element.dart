@@ -8296,6 +8296,10 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   int get codeLength {
+    if (_kernel != null) {
+      var metadata = AnalyzerMetadata.forNode(_kernel);
+      return metadata?.codeLength;
+    }
     if (unlinkedParam != null) {
       return unlinkedParam.codeRange?.length;
     }
@@ -8304,6 +8308,10 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   int get codeOffset {
+    if (_kernel != null) {
+      var metadata = AnalyzerMetadata.forNode(_kernel);
+      return metadata?.codeOffset;
+    }
     if (unlinkedParam != null) {
       return unlinkedParam.codeRange?.offset;
     }

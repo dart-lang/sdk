@@ -1989,21 +1989,6 @@ class SearchTest_UseCFE extends SearchTest {
 
   @failingTest
   @override
-  test_searchReferences_ClassElement_definedInside() =>
-      super.test_searchReferences_ClassElement_definedInside();
-
-  @failingTest
-  @override
-  test_searchReferences_ClassElement_definedOutside() =>
-      super.test_searchReferences_ClassElement_definedOutside();
-
-  @failingTest
-  @override
-  test_searchReferences_FieldElement() =>
-      super.test_searchReferences_FieldElement();
-
-  @failingTest
-  @override
   test_searchReferences_LabelElement() =>
       super.test_searchReferences_LabelElement();
 
@@ -2011,21 +1996,6 @@ class SearchTest_UseCFE extends SearchTest {
   @override
   test_searchReferences_TopLevelVariableElement() =>
       super.test_searchReferences_TopLevelVariableElement();
-
-  @failingTest
-  @override
-  test_searchReferences_TypeParameterElement_ofClass() =>
-      super.test_searchReferences_TypeParameterElement_ofClass();
-
-  @failingTest
-  @override
-  test_searchReferences_TypeParameterElement_ofMethod() =>
-      super.test_searchReferences_TypeParameterElement_ofMethod();
-
-  @failingTest
-  @override
-  test_searchReferences_TypeParameterElement_ofTopLevelFunction() =>
-      super.test_searchReferences_TypeParameterElement_ofTopLevelFunction();
 
   @failingTest
   @override

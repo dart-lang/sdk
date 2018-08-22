@@ -126,16 +126,6 @@ class C {
 ''');
   }
 
-  @failingTest
-  test_codeRange_parameter() async {
-    await super.test_codeRange_parameter();
-  }
-
-  @failingTest
-  test_codeRange_parameter_annotations() async {
-    await super.test_codeRange_parameter_annotations();
-  }
-
   @failingTest // See dartbug.com/32290
   test_const_constructor_inferred_args() =>
       super.test_const_constructor_inferred_args();

@@ -483,8 +483,15 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int codeEndOffset,
       String nativeMethodName);
 
-  FormalParameterBuilder addFormalParameter(List<MetadataBuilder> metadata,
-      int modifiers, T type, String name, bool hasThis, int charOffset);
+  FormalParameterBuilder addFormalParameter(
+      List<MetadataBuilder> metadata,
+      int modifiers,
+      T type,
+      String name,
+      bool hasThis,
+      int charOffset,
+      int codeStartOffset,
+      int codeEndOffset);
 
   TypeVariableBuilder addTypeVariable(String name, T bound, int charOffset);
 

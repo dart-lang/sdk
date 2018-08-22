@@ -1420,8 +1420,8 @@ class Parser {
     } else {
       listener.handleFormalParameterWithoutValue(next);
     }
-    listener.endFormalParameter(
-        thisKeyword, periodAfterThis, nameToken, parameterKind, memberKind);
+    listener.endFormalParameter(thisKeyword, periodAfterThis, nameToken,
+        parameterKind, memberKind, token);
     return token;
   }
 

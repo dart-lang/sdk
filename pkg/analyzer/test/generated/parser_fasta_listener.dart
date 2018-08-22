@@ -749,11 +749,16 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
-      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
+  void endFormalParameter(
+      Token thisKeyword,
+      Token periodAfterThis,
+      Token nameToken,
+      FormalParameterKind kind,
+      MemberKind memberKind,
+      Token endToken) {
     end('FormalParameter');
     super.endFormalParameter(
-        thisKeyword, periodAfterThis, nameToken, kind, memberKind);
+        thisKeyword, periodAfterThis, nameToken, kind, memberKind, endToken);
   }
 
   @override
