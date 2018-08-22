@@ -702,8 +702,7 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
           path);
     }
 
-    Dart_Handle result =
-        Extensions::LoadExtension(decoder.decoded(), path, library);
+    Dart_Handle result = Extensions::LoadExtension(lib_path, path, library);
     free(lib_path);
     return result;
   }
