@@ -242,6 +242,9 @@ class _ElementWriter {
       buffer.write('.');
       writeName(e);
     }
+    if (!e.isSynthetic) {
+      writeCodeRange(e);
+    }
 
     writeParameterElements(e.parameters);
 

@@ -752,6 +752,11 @@ class OutlineBuilder extends StackListener {
       }
       final int startCharOffset =
           metadata == null ? beginToken.charOffset : metadata.first.charOffset;
+
+      int codeStartOffset =
+          _chooseCodeStartOffset(docComment, metadataToken, beginToken);
+      int codeEndOffset = endToken.end;
+
       library.addConstructor(
           docComment?.text,
           metadata,
@@ -765,6 +770,8 @@ class OutlineBuilder extends StackListener {
           charOffset,
           formalsOffset,
           endToken.charOffset,
+          codeStartOffset,
+          codeEndOffset,
           nativeMethodName);
     } else {
       if (isConst) {
@@ -1258,6 +1265,11 @@ class OutlineBuilder extends StackListener {
     List<MetadataBuilder> metadata = pop();
     Token metadataToken = pop();
     var docComment = documentationComment(beginToken, metadataToken);
+
+    int codeStartOffset =
+        _chooseCodeStartOffset(docComment, metadataToken, beginToken);
+    int codeEndOffset = endToken.end;
+
     library.addFactoryMethod(
         docComment?.text,
         metadata,
@@ -1269,6 +1281,8 @@ class OutlineBuilder extends StackListener {
         charOffset,
         formalsOffset,
         endToken.charOffset,
+        codeStartOffset,
+        codeEndOffset,
         nativeMethodName);
     nativeMethodName = null;
     inConstructor = false;

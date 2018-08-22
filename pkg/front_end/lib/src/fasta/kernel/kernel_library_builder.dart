@@ -578,6 +578,8 @@ class KernelLibraryBuilder
       int charOffset,
       int charOpenParenOffset,
       int charEndOffset,
+      int codeStartOffset,
+      int codeEndOffset,
       String nativeMethodName) {
     MetadataCollector metadataCollector = loader.target.metadataCollector;
     ProcedureBuilder procedure = new KernelConstructorBuilder(
@@ -596,6 +598,8 @@ class KernelLibraryBuilder
     metadataCollector?.setDocumentationComment(
         procedure.target, documentationComment);
     metadataCollector?.setConstructorNameOffset(procedure.target, name);
+    metadataCollector?.setCodeStartEnd(
+        procedure.target, codeStartOffset, codeEndOffset);
     checkTypeVariables(typeVariables, procedure);
     addBuilder(constructorName, procedure, charOffset);
     if (nativeMethodName != null) {
@@ -657,6 +661,8 @@ class KernelLibraryBuilder
       int charOffset,
       int charOpenParenOffset,
       int charEndOffset,
+      int codeStartOffset,
+      int codeEndOffset,
       String nativeMethodName) {
     KernelTypeBuilder returnType = addNamedType(
         currentDeclaration.parent.name, <KernelTypeBuilder>[], charOffset);
@@ -715,6 +721,8 @@ class KernelLibraryBuilder
     metadataCollector?.setDocumentationComment(
         procedure.target, documentationComment);
     metadataCollector?.setConstructorNameOffset(procedure.target, name);
+    metadataCollector?.setCodeStartEnd(
+        procedure.target, codeStartOffset, codeEndOffset);
 
     DeclarationBuilder<TypeBuilder> savedDeclaration = currentDeclaration;
     currentDeclaration = factoryDeclaration;

@@ -400,6 +400,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int charOffset,
       int charOpenParenOffset,
       int charEndOffset,
+      int codeStartOffset,
+      int codeEndOffset,
       String nativeMethodName);
 
   void addProcedure(
@@ -453,6 +455,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int charOffset,
       int charOpenParenOffset,
       int charEndOffset,
+      int codeStartOffset,
+      int codeEndOffset,
       String nativeMethodName);
 
   FormalParameterBuilder addFormalParameter(List<MetadataBuilder> metadata,

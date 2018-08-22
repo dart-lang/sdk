@@ -2028,11 +2028,6 @@ class SearchTest_UseCFE extends SearchTest {
 
   @failingTest
   @override
-  test_searchReferences_ParameterElement_ofConstructor() =>
-      super.test_searchReferences_ParameterElement_ofConstructor();
-
-  @failingTest
-  @override
   test_searchReferences_PrefixElement() =>
       super.test_searchReferences_PrefixElement();
 
