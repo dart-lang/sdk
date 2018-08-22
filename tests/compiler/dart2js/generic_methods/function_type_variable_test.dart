@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:expect/expect.dart';
@@ -53,8 +52,7 @@ main() {
       F11(null);
       F12(null);
     }
-    """),
-        options: [Flags.strongMode]);
+    """));
 
     testToString(FunctionType type, String expectedToString) {
       Expect.equals(expectedToString, type.toString());

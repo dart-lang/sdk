@@ -532,7 +532,7 @@ Future checkTests(Directory dataDir, DataComputer dataComputer,
     }
     if (name.contains('_strong')) {
       if (!testStrongMode) {
-        testOptions.add(Flags.strongMode);
+        // TODO(johnniwinther): Remove irrelevant tests.
       }
     }
     if (name.endsWith('_checked.dart')) {
@@ -595,7 +595,7 @@ Future checkTests(Directory dataDir, DataComputer dataComputer,
         print('--skipped for kernel (strong mode)----------------------------');
       } else {
         print('--from kernel (strong mode)-----------------------------------');
-        List<String> options = [Flags.strongMode]..addAll(testOptions);
+        List<String> options = new List<String>.from(testOptions);
         if (trustTypeAnnotations && !testOmit) {
           options.add(Flags.omitImplicitChecks);
         }
@@ -621,7 +621,6 @@ Future checkTests(Directory dataDir, DataComputer dataComputer,
       } else {
         print('--from kernel (strong mode, omit-implicit-checks)-------------');
         List<String> options = [
-          Flags.strongMode,
           Flags.omitImplicitChecks,
           Flags.laxRuntimeTypeToString
         ]..addAll(testOptions);

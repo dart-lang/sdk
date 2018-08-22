@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:expect/expect.dart';
@@ -50,7 +49,7 @@ main() {
   new C().futureT();
   new C().futureOrT();
 }
-""", options: [Flags.strongMode]);
+""");
     FunctionType getFunctionType(String name, String expectedType,
         [ClassEntity cls]) {
       FunctionType type = env.getMemberType(name, cls);

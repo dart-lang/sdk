@@ -7,7 +7,6 @@ library dart2js.constants.expressions.evaluate_test;
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/compiler.dart';
@@ -598,11 +597,10 @@ Future testData(TestData data) async {
   print(source);
 
   Future runTest(
-      List<String> options,
       EvaluationEnvironment getEnvironment(
           Compiler compiler, FieldEntity field)) async {
-    CompilationResult result = await runCompiler(
-        memorySourceFiles: {'main.dart': source}, options: options);
+    CompilationResult result =
+        await runCompiler(memorySourceFiles: {'main.dart': source});
     Compiler compiler = result.compiler;
     ElementEnvironment elementEnvironment =
         compiler.frontendStrategy.elementEnvironment;
@@ -668,9 +666,7 @@ Future testData(TestData data) async {
   ];
 
   if (!skipStrongList.contains(data.name)) {
-    print(
-        '--test kernel (strong mode)-----------------------------------------');
-    await runTest([Flags.strongMode], (Compiler compiler, FieldEntity field) {
+    await runTest((Compiler compiler, FieldEntity field) {
       KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
       KernelToElementMap elementMap = frontendStrategy.elementMap;
       return new KernelEvaluationEnvironment(elementMap, null, field,

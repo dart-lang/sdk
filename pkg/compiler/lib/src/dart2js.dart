@@ -246,10 +246,6 @@ Future<api.CompilationResult> compile(List<String> argv,
     passThrough('--categories=${categories.join(",")}');
   }
 
-  void setUseOldFrontend(String argument) {
-    helpAndFail("Option '${Flags.useOldFrontend}' is not supported.");
-  }
-
   void setPlatformBinaries(String argument) {
     platformBinaries =
         currentDirectory.resolve(extractPath(argument, isDirectory: true));
@@ -304,8 +300,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(
         '--output-type=dart|--output-type=dart-multi|--output-type=js',
         setOutputType),
-    new OptionHandler(Flags.useKernel, ignoreOption),
-    new OptionHandler(Flags.useOldFrontend, setUseOldFrontend),
+    new OptionHandler('--use-kernel', ignoreOption),
     new OptionHandler(Flags.platformBinaries, setPlatformBinaries),
     new OptionHandler(Flags.noFrequencyBasedMinification, passThrough),
     new OptionHandler(Flags.verbose, setVerbose),
@@ -355,7 +350,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.useContentSecurityPolicy, passThrough),
     new OptionHandler(Flags.enableExperimentalMirrors, passThrough),
     new OptionHandler(Flags.enableAssertMessage, passThrough),
-    new OptionHandler(Flags.strongMode, ignoreOption),
+    new OptionHandler('--strong', ignoreOption),
     new OptionHandler(Flags.previewDart2, ignoreOption),
     new OptionHandler(Flags.omitImplicitChecks, passThrough),
     new OptionHandler(Flags.laxRuntimeTypeToString, passThrough),

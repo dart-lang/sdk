@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
@@ -104,8 +103,8 @@ main() {
 
 main() {
   asyncTest(() async {
-    CompilationResult result = await runCompiler(
-        memorySourceFiles: {'main.dart': source}, options: [Flags.strongMode]);
+    CompilationResult result =
+        await runCompiler(memorySourceFiles: {'main.dart': source});
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
