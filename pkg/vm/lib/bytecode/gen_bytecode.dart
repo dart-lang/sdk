@@ -716,6 +716,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   }
 
   void _genPrologue(Node node, FunctionNode function) {
+    final bool isClosure =
+        node is FunctionDeclaration || node is FunctionExpression;
+
     if (locals.hasOptionalParameters) {
       final int numOptionalPositional = function.positionalParameters.length -
           function.requiredParameterCount;
@@ -743,13 +746,12 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       }
 
       asm.emitFrame(locals.frameSize - locals.numParameters);
+    } else if (isClosure) {
+      asm.emitEntryFixed(locals.numParameters, locals.frameSize);
     } else {
       asm.emitEntry(locals.frameSize);
     }
     asm.emitCheckStack();
-
-    final bool isClosure =
-        node is FunctionDeclaration || node is FunctionExpression;
 
     if (isClosure) {
       asm.emitPush(locals.closureVarIndexInFrame);

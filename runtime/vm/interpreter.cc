@@ -1841,6 +1841,26 @@ RawObject* Interpreter::Call(RawFunction* function,
   }
 
   {
+    BYTECODE(EntryFixed, A_D);
+    const uint16_t num_fixed_params = rA;
+    const uint16_t num_locals = rD;
+
+    const intptr_t arg_count = InterpreterHelpers::ArgDescArgCount(argdesc_);
+    const intptr_t pos_count = InterpreterHelpers::ArgDescPosCount(argdesc_);
+    if ((arg_count != num_fixed_params) || (pos_count != num_fixed_params)) {
+      goto ClosureNoSuchMethod;
+    }
+
+    // Initialize locals with null & set SP.
+    for (intptr_t i = 0; i < num_locals; i++) {
+      FP[i] = null_value;
+    }
+    SP = FP + num_locals - 1;
+
+    DISPATCH();
+  }
+
+  {
     BYTECODE(EntryOptional, A_B_C);
     const uint16_t num_fixed_params = rA;
     const uint16_t num_opt_pos_params = rB;

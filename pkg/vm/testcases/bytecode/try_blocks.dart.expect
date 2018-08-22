@@ -405,7 +405,7 @@ ConstantPool {
   [42] = EndClosureFunctionScope
 }
 Closure CP#2 {
-  Entry                6
+  EntryFixed           1, 6
   CheckStack
   Push                 FP[-5]
   LoadFieldTOS         CP#3
@@ -443,7 +443,7 @@ L1:
 }
 
 Closure CP#31 {
-  Entry                6
+  EntryFixed           1, 6
   CheckStack
   Push                 FP[-5]
   LoadFieldTOS         CP#3
@@ -934,7 +934,7 @@ ConstantPool {
   [42] = StaticICData target 'dart.core::print', arg-desc CP#7
 }
 Closure CP#12 {
-  Entry                2
+  EntryFixed           1, 2
   CheckStack
   Push                 FP[-5]
   LoadFieldTOS         CP#13
@@ -1103,7 +1103,7 @@ ConstantPool {
   [39] = ICData target-name 'call', arg-desc CP#5
 }
 Closure CP#2 {
-  Entry                6
+  EntryFixed           1, 6
   CheckStack
   Push                 FP[-5]
   LoadFieldTOS         CP#3

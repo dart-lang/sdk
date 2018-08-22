@@ -563,6 +563,13 @@ namespace dart {
 //    Function prologue for the function
 //        rD - number of local slots to reserve;
 //
+//  - EntryFixed A, D
+//
+//    Function prologue for functions without optional arguments.
+//    Checks number of arguments.
+//        A - expected number of positional arguments;
+//        D - number of local slots to reserve;
+//
 //  - EntryOptional A, B, C
 //
 //    Function prologue for the function with optional or named arguments:
@@ -969,6 +976,7 @@ namespace dart {
   V(BooleanNegate,                       A_D, reg, reg, ___)                   \
   V(Throw,                                 A, num, ___, ___)                   \
   V(Entry,                                 D, num, ___, ___)                   \
+  V(EntryFixed,                          A_D, num, num, ___)                   \
   V(EntryOptional,                     A_B_C, num, num, num)                   \
   V(EntryOptimized,                      A_D, num, num, ___)                   \
   V(Frame,                                 D, num, ___, ___)                   \

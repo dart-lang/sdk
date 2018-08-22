@@ -158,7 +158,7 @@ L1:
 }
 
 Closure CP#0 {
-  Entry                4
+  EntryFixed           2, 4
   CheckStack
   Push                 FP[-6]
   LoadFieldTOS         CP#1
@@ -2121,7 +2121,7 @@ L1:
 }
 
 Closure CP#1 {
-  Entry                4
+  EntryFixed           1, 4
   CheckStack
   Push                 FP[-5]
   LoadFieldTOS         CP#2

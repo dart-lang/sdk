@@ -944,6 +944,10 @@ class BytecodeAssembler {
     emitWord(_encode0(Opcode.kDeoptRewind));
   }
 
+  void emitEntryFixed(int ra, int rd) {
+    emitWord(_encodeAD(Opcode.kEntryFixed, ra, rd));
+  }
+
   void emitEntryOptional(int ra, int rb, int rc) {
     emitWord(_encodeABC(Opcode.kEntryOptional, ra, rb, rc));
   }
