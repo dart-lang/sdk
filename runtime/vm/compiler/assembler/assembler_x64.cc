@@ -464,6 +464,13 @@ void Assembler::testb(const Address& address, const Immediate& imm) {
   EmitUint8(imm.value() & 0xFF);
 }
 
+void Assembler::testb(const Address& address, Register reg) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandREX(reg, address, REX_NONE);
+  EmitUint8(0x84);
+  EmitOperand(reg & 7, address);
+}
+
 void Assembler::testq(Register reg, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   if (imm.is_uint8()) {

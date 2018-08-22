@@ -523,6 +523,7 @@ class Assembler : public ValueObject {
 
   void testl(Register reg, const Immediate& imm) { testq(reg, imm); }
   void testb(const Address& address, const Immediate& imm);
+  void testb(const Address& address, Register reg);
 
   void testq(Register reg, const Immediate& imm);
   void TestImmediate(Register dst, const Immediate& imm);
