@@ -21,6 +21,10 @@
 % 2.1
 % - Remove 64-bit constraint on integer literals compiled to JavaScript numbers.
 % - Allow integer literals in a double context to evaluate to a double value.
+% - Specify dynamic error for a failing downcast in redirecting factory
+%   constructor invocation.
+% - Specify that type arguments passed in a redirecting factory constructor
+%   declaration must be taken into account during static checks.
 %
 % 2.0
 % - Don't allow functions as assert test values.
@@ -1645,6 +1649,23 @@ Constructors may be generative (\ref{generativeConstructors}) or they may be fac
 A {\em constructor name} always begins with the name of its immediately enclosing class, and may optionally be followed by a dot and an identifier \id.
 It is a compile-time error if the name of a constructor is not a constructor name.
 
+\LMHash{}
+The {\em function type of a constructor} $k$ is the function type whose
+return type is the class that contains the declaration of $k$,
+and whose formal parameter types, optionality, and names of named parameters
+correspond to the declaration of $k$.
+
+\commentary{
+Note that the function type $F$ of a constructor $k$ may contain
+type variables declared by the enclosing class $C$.
+In that case we can apply a substitution to $F$, as in
+$[T_1/X_1, \ldots, T_m/X_m]F$,
+where $X_j, j \in 1 .. m$ are the formal type parameters of $C$
+and $T_j, j \in 1 .. m$ are specified in the given context.
+We may also omit such a substitution when the given context is
+the instance scope of $C$, where $X_1, \ldots, X_m$ are in scope.
+}
+
 \commentary{
 A constructor declaration may conflict with static member declarations
 (\ref{classMemberConflicts}).
@@ -1801,8 +1822,8 @@ must be a potentially constant expression (\ref{constantConstructors}).
 
 \LMHash{}
 It is a dynamic error if an actual argument passed in an invocation of a redirecting generative constructor $k$
-is not a subtype of the actual type
-\ref{actualTypeOfADeclaration}) of the corresponding formal parameter in the declaration of $k$.
+is not a subtype of the actual type (\ref{actualTypeOfADeclaration})
+of the corresponding formal parameter in the declaration of $k$.
 It is a dynamic error if an actual argument passed to the redirectee $k'$ of a redirecting generative constructor
 is not a subtype of the actual type
 (\ref{actualTypeOfADeclaration}) of the corresponding formal parameter in the declaration of the redirectee.
@@ -2062,10 +2083,6 @@ would either be unused because the actual argument has the type required by $k'$
 or it would amount to a dynamic error which is simply delayed a single step.
 }
 
-\LMHash{}
-Moreover, when $\ConstMetavar$ is \CONST{}
-the redirectee must be a constant constructor.
-
 \commentary{
 Note that the non-generic case is covered by letting $m$ or $p$ or both be zero,
 in which case the formal type parameter list of the class $C$
@@ -2078,6 +2095,11 @@ It is a compile-time error if $k$ explicitly specifies a default value for an op
 Default values specified in $k$ would be ignored, since it is the {\em actual} parameters that are passed to $k'$.
 Hence, default values are disallowed.
 }
+
+\LMHash{}
+It is a compile-time error if a formal parameter of $k'$ has a default value
+whose type is not a subtype of the type annotation
+on the corresponding formal parameter in $k$.
 
 \LMHash{}
 It is a compile-time error if a redirecting factory constructor redirects to itself, either directly or indirectly via a sequence of redirections.
@@ -2128,10 +2150,19 @@ However, redirecting factories have several advantages:
 It is a compile-time error if $k$ is prefixed with the \CONST{} modifier but $k'$ is not a constant constructor (\ref{constantConstructors}).
 
 \LMHash{}
-It is a compile-time error if the function type of $k'$ is not a subtype of the type of $k$.
+Let $T_1, \ldots, T_m$ be the actual type arguments passed to $k'$
+in the declaration of $k$.
+Let $X_1, \ldots, X_m$ be the formal type arguments declared by
+the class that contains the declaration of $k'$.
+Let $F'$ be the function of $k'$ (\ref{constructors}).
+It is a compile-time error if $[T_1/X_1, \ldots, T_m/X_m]F'$
+is not a subtype of the function type of $k$.
 
 \commentary{
-This implies that the resulting object conforms to the interface of the immediately enclosing class of $k$.
+In the case where the two classes are non-generic
+this is just a subtype check on the function types of the two constructors.
+In general, this implies that the resulting object conforms to
+the interface of the immediately enclosing class of $k$.
 }
 
 \LMHash{}
@@ -2141,6 +2172,11 @@ It is a compile-time error if any of the type arguments to $k'$ are not subtypes
 For the dynamic semantics,
 assume that $k$ is a redirecting factory constructor
 and $k'$ is the redirectee of $k$.
+
+\LMHash{}
+It is a dynamic error if an actual argument passed in an invocation of $k$
+is not a subtype of the actual type (\ref{actualTypeOfADeclaration})
+of the corresponding formal parameter in the declaration of $k$.
 
 \LMHash{}
 When the redirectee $k'$ is a factory constructor,
