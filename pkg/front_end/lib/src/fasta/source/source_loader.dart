@@ -209,9 +209,13 @@ class SourceLoader<L> extends Loader<L> {
       // time we suppress lexical errors.
       Token tokens = await tokenize(library, suppressLexicalErrors: true);
       if (tokens == null) return;
+
       DietListener listener = createDietListener(library);
       DietParser parser = new DietParser(listener);
+
+      listener.currentUnit = library;
       parser.parseUnit(tokens);
+
       for (SourceLibraryBuilder part in library.parts) {
         if (part.partOfLibrary != library) {
           // Part was included in multiple libraries. Skip it here.
@@ -219,6 +223,7 @@ class SourceLoader<L> extends Loader<L> {
         }
         Token tokens = await tokenize(part);
         if (tokens != null) {
+          listener.currentUnit = part;
           listener.uri = part.fileUri;
           listener.partDirectiveIndex = 0;
           parser.parseUnit(tokens);
