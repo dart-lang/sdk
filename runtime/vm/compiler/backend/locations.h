@@ -17,6 +17,7 @@ class ConstantInstr;
 class Definition;
 class PairLocation;
 class Value;
+struct FrameLayout;
 
 enum Representation {
   kNoRepresentation,

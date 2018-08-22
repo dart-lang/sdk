@@ -7257,26 +7257,6 @@ class FixProcessorTest_UseCFE extends FixProcessorTest {
 
   @failingTest
   @override
-  test_createConstructor_forFinalFields() =>
-      super.test_createConstructor_forFinalFields();
-
-  @failingTest
-  @override
-  test_createConstructor_forFinalFields_flutter() =>
-      super.test_createConstructor_forFinalFields_flutter();
-
-  @failingTest
-  @override
-  test_createConstructor_forFinalFields_flutter_childLast() =>
-      super.test_createConstructor_forFinalFields_flutter_childLast();
-
-  @failingTest
-  @override
-  test_createConstructor_forFinalFields_flutter_childrenLast() =>
-      super.test_createConstructor_forFinalFields_flutter_childrenLast();
-
-  @failingTest
-  @override
   test_createConstructor_named() => super.test_createConstructor_named();
 
   @failingTest
@@ -9036,36 +9016,6 @@ class LintFixTest_UseCFE extends LintFixTest {
   @override
   test_lint_addMissingOverride_method_with_doc_comment_and_metadata() =>
       super.test_lint_addMissingOverride_method_with_doc_comment_and_metadata();
-
-  @failingTest
-  @override
-  test_replaceWithLiteral_linkedHashMap_withCommentsInGeneric() =>
-      super.test_replaceWithLiteral_linkedHashMap_withCommentsInGeneric();
-
-  @failingTest
-  @override
-  test_replaceWithLiteral_linkedHashMap_withDynamicGenerics() =>
-      super.test_replaceWithLiteral_linkedHashMap_withDynamicGenerics();
-
-  @failingTest
-  @override
-  test_replaceWithLiteral_linkedHashMap_withGeneric() =>
-      super.test_replaceWithLiteral_linkedHashMap_withGeneric();
-
-  @failingTest
-  @override
-  test_replaceWithLiteral_linkedHashMap_withoutGeneric() =>
-      super.test_replaceWithLiteral_linkedHashMap_withoutGeneric();
-
-  @failingTest
-  @override
-  test_replaceWithLiteral_map_withGeneric() =>
-      super.test_replaceWithLiteral_map_withGeneric();
-
-  @failingTest
-  @override
-  test_replaceWithLiteral_map_withoutGeneric() =>
-      super.test_replaceWithLiteral_map_withoutGeneric();
 }
 
 class _DartFixContextImpl implements DartFixContext {

@@ -13,6 +13,7 @@
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/type_propagator.h"
+#include "vm/compiler/compiler_pass.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/jit/compiler.h"
@@ -542,9 +543,12 @@ class PolymorphicInliner : public ValueObject {
 static bool HasAnnotation(const Function& function, const char* annotation) {
   const Class& owner = Class::Handle(function.Owner());
   const Library& library = Library::Handle(owner.library());
-  const Array& metadata =
-      Array::Cast(Object::Handle(library.GetMetadata(function)));
 
+  auto& metadata_or_error = Object::Handle(library.GetMetadata(function));
+  if (metadata_or_error.IsError()) {
+    Exceptions::PropagateError(Error::Cast(metadata_or_error));
+  }
+  const Array& metadata = Array::Cast(metadata_or_error);
   if (metadata.Length() > 0) {
     Object& val = Object::Handle();
     for (intptr_t i = 0; i < metadata.Length(); i++) {
@@ -958,11 +962,22 @@ class CallSiteInliner : public ValueObject {
             new (Z) InlineExitCollector(caller_graph_, call);
         FlowGraph* callee_graph;
         if (UseKernelFrontEndFor(parsed_function)) {
+          Code::EntryKind entry_kind = Code::EntryKind::kNormal;
+          if (StaticCallInstr* instr = call_data->call->AsStaticCall()) {
+            entry_kind = instr->entry_kind();
+          } else if (InstanceCallInstr* instr =
+                         call_data->call->AsInstanceCall()) {
+            entry_kind = instr->entry_kind();
+          } else if (PolymorphicInstanceCallInstr* instr =
+                         call_data->call->AsPolymorphicInstanceCall()) {
+            entry_kind = instr->instance_call()->entry_kind();
+          }
           kernel::FlowGraphBuilder builder(
               parsed_function, *ic_data_array, /* not building var desc */ NULL,
               exit_collector,
               /* optimized = */ true, Compiler::kNoOSRDeoptId,
-              caller_graph_->max_block_id() + 1);
+              caller_graph_->max_block_id() + 1,
+              entry_kind == Code::EntryKind::kUnchecked);
           {
             CSTAT_TIMER_SCOPE(thread(), graphinliner_build_timer);
             callee_graph = builder.BuildGraph();
@@ -1105,6 +1120,11 @@ class CallSiteInliner : public ValueObject {
             // before 'SelectRepresentations' which inserts conversion nodes.
             callee_graph->TryOptimizePatterns();
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
+
+            // This optimization must be performed before inlining to ensure
+            // that the receiver of the function is detected (since it will just
+            // be some regular variable after inlining).
+            MarkCallsOnReceiverUnchecked(callee_graph);
 
             callee_graph->Canonicalize();
           }

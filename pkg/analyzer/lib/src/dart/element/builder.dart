@@ -690,6 +690,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
       elementAnnotations = _createElementAnnotations(node.metadata);
     }
     _setVariableDeclarationListAnnotations(node, elementAnnotations);
+    _setVariableDeclarationListCodeRanges(node);
     return null;
   }
 
@@ -1312,6 +1313,7 @@ class LocalElementBuilder extends _BaseElementBuilder {
     List<ElementAnnotation> elementAnnotations =
         _createElementAnnotations(node.metadata);
     _setVariableDeclarationListAnnotations(node, elementAnnotations);
+    _setVariableDeclarationListCodeRanges(node);
     return null;
   }
 
@@ -1613,8 +1615,18 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
       List<ElementAnnotation> elementAnnotations) {
     for (VariableDeclaration variableDeclaration in node.variables) {
       ElementImpl element = variableDeclaration.declaredElement as ElementImpl;
-      _setCodeRange(element, node.parent);
       element.metadata = elementAnnotations;
+    }
+  }
+
+  void _setVariableDeclarationListCodeRanges(VariableDeclarationList node) {
+    List<VariableDeclaration> variables = node.variables;
+    for (var i = 0; i < variables.length; i++) {
+      var variable = variables[i];
+      var offset = (i == 0 ? node.parent : variable).offset;
+      var length = variable.end - offset;
+      var element = variable.declaredElement as ElementImpl;
+      element.setCodeRange(offset, length);
     }
   }
 

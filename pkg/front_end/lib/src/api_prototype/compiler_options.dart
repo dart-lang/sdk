@@ -213,4 +213,7 @@ class CompilerOptions {
   ///
   /// Typically used by developers to debug internals of the compiler.
   bool throwOnWarningsForDebugging = false;
+
+  /// Whether to generate bytecode.
+  bool bytecode = false;
 }

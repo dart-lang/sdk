@@ -18,8 +18,6 @@ import 'package:compiler/src/constants/values.dart';
 
 import 'package:kernel/ast.dart' as ir;
 
-const List<String> skipForKernel = const <String>[];
-
 ///  Add in options to pass to the compiler like
 /// `Flags.disableTypeInference` or `Flags.disableInlining`
 const List<String> compilerOptions = const <String>[];
@@ -34,7 +32,6 @@ main(List<String> args) {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, const OutputUnitDataComputer(),
         libDirectory: new Directory.fromUri(Platform.script.resolve('libs')),
-        skipForKernel: skipForKernel,
         options: compilerOptions,
         args: args,
         testOmit: true, setUpFunction: () {

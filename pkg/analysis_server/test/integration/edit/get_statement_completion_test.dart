@@ -18,6 +18,7 @@ main() {
 
 @reflectiveTest
 class GetStatementCompletionTest extends AbstractAnalysisServerIntegrationTest {
+  @TestTimeout(const Timeout.factor(2))
   test_statement_completion() async {
     String pathname = sourcePath('test.dart');
     String text = r'''

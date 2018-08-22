@@ -527,8 +527,8 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode MISSING_CLASS_BODY = const ParserErrorCode(
       'MISSING_CLASS_BODY',
-      "A class definition must have a body, even if it is empty.",
-      correction: "Try adding a class body.");
+      "A class or mixin definition must have a body, even if it is empty.",
+      correction: "Try adding a body to your class or mixin.");
 
   static const ParserErrorCode MISSING_CLOSING_PARENTHESIS =
       const ParserErrorCode(

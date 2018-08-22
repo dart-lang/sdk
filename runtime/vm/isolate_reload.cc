@@ -469,6 +469,9 @@ IsolateReloadContext::~IsolateReloadContext() {
 }
 
 void IsolateReloadContext::ReportError(const Error& error) {
+  if (!FLAG_support_service || Isolate::IsVMInternalIsolate(I)) {
+    return;
+  }
   if (FLAG_trace_reload) {
     THR_Print("ISO-RELOAD: Error: %s\n", error.ToErrorCString());
   }
@@ -478,6 +481,9 @@ void IsolateReloadContext::ReportError(const Error& error) {
 }
 
 void IsolateReloadContext::ReportSuccess() {
+  if (!FLAG_support_service || Isolate::IsVMInternalIsolate(I)) {
+    return;
+  }
   ServiceEvent service_event(I, ServiceEvent::kIsolateReload);
   Service::HandleEvent(&service_event);
 }
@@ -577,6 +583,7 @@ void IsolateReloadContext::Reload(bool force_reload,
   }
 
   bool did_kernel_compilation = false;
+  bool skip_reload = false;
   if (isolate()->use_dart_frontend()) {
     // Load the kernel program and figure out the modified libraries.
     const GrowableObjectArray& libs =
@@ -637,13 +644,14 @@ void IsolateReloadContext::Reload(bool force_reload,
       kernel_program.set(kernel::Program::ReadFromTypedData(typed_data));
     }
 
-    kernel::KernelLoader::FindModifiedLibraries(kernel_program.get(), I,
-                                                modified_libs_, force_reload);
+    kernel::KernelLoader::FindModifiedLibraries(
+        kernel_program.get(), I, modified_libs_, force_reload, &skip_reload);
   } else {
     // Check to see which libraries have been modified.
     modified_libs_ = FindModifiedLibraries(force_reload, root_lib_modified);
+    skip_reload = !modified_libs_->Contains(old_root_lib.index());
   }
-  if (!modified_libs_->Contains(old_root_lib.index())) {
+  if (skip_reload) {
     ASSERT(modified_libs_->IsEmpty());
     reload_skipped_ = true;
     // Inform GetUnusedChangesInLastReload that a reload has happened.

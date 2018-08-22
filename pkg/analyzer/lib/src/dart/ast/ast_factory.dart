@@ -723,6 +723,30 @@ class AstFactoryImpl extends AstFactory {
           target, operator, methodName, typeArguments, argumentList);
 
   @override
+  MixinDeclaration mixinDeclaration(
+          Comment comment,
+          List<Annotation> metadata,
+          Token mixinKeyword,
+          SimpleIdentifier name,
+          TypeParameterList typeParameters,
+          OnClause onClause,
+          ImplementsClause implementsClause,
+          Token leftBracket,
+          List<ClassMember> members,
+          Token rightBracket) =>
+      new MixinDeclarationImpl(
+          comment,
+          metadata,
+          mixinKeyword,
+          name,
+          typeParameters,
+          onClause,
+          implementsClause,
+          leftBracket,
+          members,
+          rightBracket);
+
+  @override
   NamedExpression namedExpression(Label name, Expression expression) =>
       new NamedExpressionImpl(name, expression);
 
@@ -741,6 +765,10 @@ class AstFactoryImpl extends AstFactory {
 
   @override
   NullLiteral nullLiteral(Token literal) => new NullLiteralImpl(literal);
+
+  @override
+  OnClause onClause(Token onKeyword, List<TypeName> superclassConstraints) =>
+      new OnClauseImpl(onKeyword, superclassConstraints);
 
   @override
   ParenthesizedExpression parenthesizedExpression(Token leftParenthesis,
@@ -859,6 +887,7 @@ class AstFactoryImpl extends AstFactory {
   @override
   SuperExpression superExpression(Token superKeyword) =>
       new SuperExpressionImpl(superKeyword);
+
   @override
   SwitchCase switchCase(List<Label> labels, Token keyword,
           Expression expression, Token colon, List<Statement> statements) =>

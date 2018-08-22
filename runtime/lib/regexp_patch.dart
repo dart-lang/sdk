@@ -182,7 +182,7 @@ class _RegExpMatch implements Match {
   static const int _MATCH_PAIR = 2;
 }
 
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 class _RegExp implements RegExp {
   factory _RegExp(String pattern,
       {bool multiLine: false,

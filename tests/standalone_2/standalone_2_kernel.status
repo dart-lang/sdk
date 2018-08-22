@@ -11,7 +11,6 @@
 # to add them.
 
 [ $compiler == app_jitk ]
-io/directory_test: RuntimeError
 io/file_error_test: RuntimeError
 io/file_test: RuntimeError
 io/http_auth_digest_test: RuntimeError
@@ -59,7 +58,6 @@ dart_developer_disabled_env_test: RuntimeError
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
 io/compile_all_test: Crash # Issue 32373
-io/directory_test: Crash # Issue 33475
 io/raw_socket_test: Crash
 io/skipping_dart2js_compilations_test: Crash
 io/socket_exception_test: Pass, Crash

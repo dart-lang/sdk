@@ -667,7 +667,8 @@ RawObject* KernelLoader::LoadExpressionEvaluationFunction(
 void KernelLoader::FindModifiedLibraries(Program* program,
                                          Isolate* isolate,
                                          BitVector* modified_libs,
-                                         bool force_reload) {
+                                         bool force_reload,
+                                         bool* is_empty_program) {
   LongJumpScope jump;
   Zone* zone = Thread::Current()->zone();
   if (setjmp(*jump.Set()) == 0) {
@@ -689,9 +690,10 @@ void KernelLoader::FindModifiedLibraries(Program* program,
 
     // Now go through all the libraries that are present in the incremental
     // kernel files, these will constitute the modified libraries.
+    *is_empty_program = true;
     if (program->is_single_program()) {
       KernelLoader loader(program);
-      return loader.walk_incremental_kernel(modified_libs);
+      return loader.walk_incremental_kernel(modified_libs, is_empty_program);
     } else {
       kernel::Reader reader(program->kernel_data(),
                             program->kernel_data_size());
@@ -709,15 +711,17 @@ void KernelLoader::FindModifiedLibraries(Program* program,
         Program* subprogram = Program::ReadFrom(&reader);
         ASSERT(subprogram->is_single_program());
         KernelLoader loader(subprogram);
-        loader.walk_incremental_kernel(modified_libs);
+        loader.walk_incremental_kernel(modified_libs, is_empty_program);
         delete subprogram;
       }
     }
   }
 }
 
-void KernelLoader::walk_incremental_kernel(BitVector* modified_libs) {
+void KernelLoader::walk_incremental_kernel(BitVector* modified_libs,
+                                           bool* is_empty_program) {
   intptr_t length = program_->library_count();
+  *is_empty_program = *is_empty_program && (length == 0);
   for (intptr_t i = 0; i < length; i++) {
     intptr_t kernel_offset = library_offset(i);
     helper_.SetOffset(kernel_offset);
@@ -1599,6 +1603,8 @@ void KernelLoader::LoadProcedure(const Library& library,
     expression_evaluation_function_ = function.raw();
   }
   function.set_kernel_offset(procedure_offset);
+  function.set_is_reflectable(function.is_reflectable() &&
+                              library.raw() != Library::InternalLibrary());
 
   ActiveMemberScope active_member(&active_class_, &function);
 

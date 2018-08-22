@@ -127,7 +127,8 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label stack_ok;
   __ Comment("Stack Check");
   const intptr_t fp_sp_dist =
-      (kFirstLocalSlotFromFp + 1 - compiler->StackSize()) * kWordSize;
+      (compiler_frame_layout.first_local_from_fp + 1 - compiler->StackSize()) *
+      kWordSize;
   ASSERT(fp_sp_dist <= 0);
   __ sub(R2, SP, Operand(FP));
   __ CompareImmediate(R2, fp_sp_dist);
@@ -291,7 +292,9 @@ LocationSummary* LoadLocalInstr::MakeLocationSummary(Zone* zone,
 
 void LoadLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register result = locs()->out(0).reg();
-  __ LoadFromOffset(result, FP, FrameOffsetInBytesForVariable(&local()));
+  __ LoadFromOffset(
+      result, FP,
+      compiler_frame_layout.FrameOffsetInBytesForVariable(&local()));
 }
 
 LocationSummary* StoreLocalInstr::MakeLocationSummary(Zone* zone,
@@ -304,7 +307,8 @@ void StoreLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
   ASSERT(result == value);  // Assert that register assignment is correct.
-  __ StoreToOffset(value, FP, FrameOffsetInBytesForVariable(&local()));
+  __ StoreToOffset(
+      value, FP, compiler_frame_layout.FrameOffsetInBytesForVariable(&local()));
 }
 
 LocationSummary* ConstantInstr::MakeLocationSummary(Zone* zone,
@@ -874,7 +878,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   __ LoadImmediate(R1, argc_tag);
   ExternalLabel label(entry);
-  __ LoadNativeEntry(R5, &label);
+  __ LoadNativeEntry(R5, &label, link_lazily() ? kPatchable : kNotPatchable);
   if (link_lazily()) {
     compiler->GeneratePatchableCall(token_pos(), *stub_entry,
                                     RawPcDescriptors::kOther, locs());
@@ -1570,6 +1574,16 @@ static void LoadValueCid(FlowGraphCompiler* compiler,
   __ BranchIfSmi(value_reg, value_is_smi == NULL ? &done : value_is_smi);
   __ LoadClassId(value_cid_reg, value_reg);
   __ Bind(&done);
+}
+
+LocationSummary* GuardFieldTypeInstr::MakeLocationSummary(Zone* zone,
+                                                          bool opt) const {
+  UNREACHABLE();
+  return nullptr;
+}
+
+void GuardFieldTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNREACHABLE();
 }
 
 LocationSummary* GuardFieldClassInstr::MakeLocationSummary(Zone* zone,
@@ -2675,18 +2689,21 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Restore SP from FP as we are coming from a throw and the code for
   // popping arguments has not been run.
   const intptr_t fp_sp_dist =
-      (kFirstLocalSlotFromFp + 1 - compiler->StackSize()) * kWordSize;
+      (compiler_frame_layout.first_local_from_fp + 1 - compiler->StackSize()) *
+      kWordSize;
   ASSERT(fp_sp_dist <= 0);
   __ AddImmediate(SP, FP, fp_sp_dist);
 
   if (!compiler->is_optimizing()) {
     if (raw_exception_var_ != nullptr) {
       __ StoreToOffset(kExceptionObjectReg, FP,
-                       FrameOffsetInBytesForVariable(raw_exception_var_));
+                       compiler_frame_layout.FrameOffsetInBytesForVariable(
+                           raw_exception_var_));
     }
     if (raw_stacktrace_var_ != nullptr) {
       __ StoreToOffset(kStackTraceObjectReg, FP,
-                       FrameOffsetInBytesForVariable(raw_stacktrace_var_));
+                       compiler_frame_layout.FrameOffsetInBytesForVariable(
+                           raw_stacktrace_var_));
     }
   }
 }

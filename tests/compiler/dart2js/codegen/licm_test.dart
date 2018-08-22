@@ -12,7 +12,7 @@ const String TEST = '''
 var a = [1];
 
 main() {
-  int count = int.parse('42') == 42 ? 42 : null;
+  dynamic count = int.parse('42') == 42 ? 42 : null;
   for (int i = 0; i < count && i < a[0]; i++) {
     print(i);
   }

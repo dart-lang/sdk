@@ -49,7 +49,6 @@ ConflictsWithSetterWarning/example: Fail
 ConflictsWithTypeVariable/example: Fail
 ConstAfterFactory/script1: Fail
 ConstAndCovariant/script2: Fail
-ConstAndFinal/script1: Fail
 ConstAndVar/script1: Fail
 ConstConstructorInSubclassOfMixinApplication/example: Fail
 ConstConstructorNonFinalField/example: Fail
@@ -123,8 +122,8 @@ ExpectedBlock/script: Fail
 ExpectedBlockToSkip/script: Fail
 ExpectedButGot/script1: Fail
 ExpectedButGot/script2: Fail
-ExpectedClassBody/example: Fail
 ExpectedClassMember/example: Fail
+ExpectedClassOrMixinBody/example: Fail
 ExpectedDeclaration/example: Fail
 ExpectedFunctionBody/example: Fail
 ExpectedNamedArgument/example: Fail

@@ -863,7 +863,8 @@ void FlowGraphCompiler::CompileGraph() {
 
     intptr_t args_desc_slot = -1;
     if (parsed_function().has_arg_desc_var()) {
-      args_desc_slot = FrameSlotForVariable(parsed_function().arg_desc_var());
+      args_desc_slot = compiler_frame_layout.FrameSlotForVariable(
+          parsed_function().arg_desc_var());
     }
 
     __ Comment("Initialize spill slots");
@@ -871,7 +872,8 @@ void FlowGraphCompiler::CompileGraph() {
       __ LoadObject(R0, Object::null_object());
     }
     for (intptr_t i = 0; i < num_locals; ++i) {
-      const intptr_t slot_index = FrameSlotForVariableIndex(-i);
+      const intptr_t slot_index =
+          compiler_frame_layout.FrameSlotForVariableIndex(-i);
       Register value_reg = slot_index == args_desc_slot ? ARGS_DESC_REG : R0;
       __ StoreToOffset(value_reg, FP, slot_index * kWordSize);
     }
@@ -905,7 +907,9 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
                                          TokenPosition token_pos,
                                          const StubEntry& stub_entry,
                                          RawPcDescriptors::Kind kind,
-                                         LocationSummary* locs) {
+                                         LocationSummary* locs,
+                                         Code::EntryKind entry_kind) {
+  // TODO(sjindel/entrypoints): Support multiple entrypoints on ARM64.
   __ BranchLinkPatchable(stub_entry);
   EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
 }
@@ -915,7 +919,9 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
                                                const StubEntry& stub_entry,
                                                RawPcDescriptors::Kind kind,
                                                LocationSummary* locs,
-                                               const Function& target) {
+                                               const Function& target,
+                                               Code::EntryKind entry_kind) {
+  // TODO(sjindel/entrypoints): Support multiple entrypoints on ARM64.
   // Call sites to the same target can share object pool entries. These
   // call sites are never patched for breakpoints: the function is deoptimized
   // and the unoptimized code with IC calls for static calls is patched instead.
@@ -953,7 +959,9 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(const StubEntry& stub_entry,
                                                   const ICData& ic_data,
                                                   intptr_t deopt_id,
                                                   TokenPosition token_pos,
-                                                  LocationSummary* locs) {
+                                                  LocationSummary* locs,
+                                                  Code::EntryKind entry_kind) {
+  // TODO(sjindel/entrypoints): Support multiple entrypoints on ARM64.
   ASSERT(Array::Handle(zone(), ic_data.arguments_descriptor()).Length() > 0);
   // Each ICData propagated from unoptimized to optimized code contains the
   // function that corresponds to the Dart function of that IC call. Due
@@ -1039,7 +1047,8 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(const ICData& ic_data,
   __ Comment("SwitchableCall");
   __ LoadFromOffset(R0, SP, (ic_data.CountWithoutTypeArgs() - 1) * kWordSize);
   __ LoadUniqueObject(CODE_REG, initial_stub);
-  __ ldr(TMP, FieldAddress(CODE_REG, Code::monomorphic_entry_point_offset()));
+  __ ldr(TMP, FieldAddress(CODE_REG, Code::entry_point_offset(
+                                         Code::EntryKind::kMonomorphic)));
   __ LoadUniqueObject(R5, ic_data);
   __ blr(TMP);
 
@@ -1067,7 +1076,9 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     intptr_t count_with_type_args,
     intptr_t deopt_id,
     TokenPosition token_pos,
-    LocationSummary* locs) {
+    LocationSummary* locs,
+    Code::EntryKind entry_kind) {
+  // TODO(sjindel/entrypoints): Support multiple entrypoints on ARM64.
   ASSERT(!function.IsClosureFunction());
   if (function.HasOptionalParameters() ||
       (isolate()->reify_generic_functions() && function.IsGeneric())) {

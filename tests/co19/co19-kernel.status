@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == fasta ]
+Language/Classes/Constructors/Generative_Constructors/final_variables_t01: CompileTimeError # Expects a warning, but this is an error in Dart 2
 Language/Classes/definition_t24: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t01: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: MissingCompileTimeError
@@ -173,8 +174,10 @@ Language/Classes/Constructors/Factories/return_wrong_type_t04: CompileTimeError
 Language/Classes/Constructors/Factories/syntax_t01: CompileTimeError
 Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t03: CompileTimeError
 Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t04: CompileTimeError
+Language/Classes/Constructors/Generative_Constructors/execution_t03: CompileTimeError # super initializer not last
 Language/Classes/Constructors/Generative_Constructors/explicit_type_t01: CompileTimeError
 Language/Classes/Constructors/Generative_Constructors/explicit_type_t02: CompileTimeError
+Language/Classes/Constructors/Generative_Constructors/initializers_t01: CompileTimeError # super initializer not last
 Language/Classes/Constructors/Generative_Constructors/initializers_t15: CompileTimeError
 Language/Classes/Constructors/Generative_Constructors/initializing_this_t03: CompileTimeError
 Language/Classes/Constructors/implicit_constructor_t03: CompileTimeError
@@ -229,8 +232,6 @@ Language/Classes/method_definition_t04: CompileTimeError
 Language/Classes/method_definition_t05: CompileTimeError
 Language/Classes/same_name_instance_and_static_members_t02: Pass
 Language/Classes/same_name_instance_and_static_members_t04: Pass
-Language/Classes/same_name_type_variable_t04: MissingCompileTimeError
-Language/Classes/same_name_type_variable_t07: MissingCompileTimeError
 Language/Enums/declaration_equivalent_t03: CompileTimeError
 Language/Enums/declaration_equivalent_t05: CompileTimeError
 Language/Enums/declaration_equivalent_t08: CompileTimeError
@@ -550,7 +551,10 @@ Language/Expressions/Instance_Creation/New/evaluation_t16: CompileTimeError
 Language/Expressions/Instance_Creation/New/evaluation_t17: CompileTimeError
 Language/Expressions/Instance_Creation/New/evaluation_t18: CompileTimeError
 Language/Expressions/Instance_Creation/New/execution_t02: CompileTimeError
+Language/Expressions/Instance_Creation/New/execution_t04: CompileTimeError # super initializer not last
+Language/Expressions/Instance_Creation/New/execution_t06: CompileTimeError # super initializer not last
 Language/Expressions/Instance_Creation/New/execution_t07: CompileTimeError
+Language/Expressions/Instance_Creation/New/execution_t09: CompileTimeError # super initializer not last
 Language/Expressions/Instance_Creation/New/execution_t11: CompileTimeError
 Language/Expressions/Instance_Creation/New/execution_t13: CompileTimeError
 Language/Expressions/Instance_Creation/New/named_constructor_t01: CompileTimeError
@@ -1119,8 +1123,6 @@ Language/Variables/constant_variable_t02: CompileTimeError
 Language/Variables/constant_variable_t03: CompileTimeError
 Language/Variables/constant_variable_t04: CompileTimeError
 Language/Variables/constant_variable_t10: CompileTimeError
-Language/Variables/final_or_static_initialization_t02: MissingCompileTimeError
-Language/Variables/final_or_static_initialization_t03: MissingCompileTimeError
 Language/Variables/final_t01/01: CompileTimeError
 Language/Variables/final_t02/01: CompileTimeError
 Language/Variables/implicit_getter_t02: CompileTimeError
@@ -1686,6 +1688,8 @@ Language/Classes/Constructors/Factories/const_modifier_t01: MissingCompileTimeEr
 Language/Classes/Constructors/Factories/const_modifier_t02: MissingCompileTimeError
 Language/Classes/Constructors/Factories/default_value_t01: MissingCompileTimeError
 Language/Classes/Constructors/Factories/default_value_t02: MissingCompileTimeError
+Language/Classes/Constructors/Generative_Constructors/execution_t03: CompileTimeError # super initializer not last
+Language/Classes/Constructors/Generative_Constructors/initializers_t01: CompileTimeError # super initializer not last
 Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t02: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t03: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/superclass_constructor_t05: MissingCompileTimeError
@@ -1710,6 +1714,9 @@ Language/Expressions/Constants/math_operators_t05: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t03: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/arguments_t03: MissingCompileTimeError
+Language/Expressions/Instance_Creation/New/execution_t04: CompileTimeError # super initializer not last
+Language/Expressions/Instance_Creation/New/execution_t06: CompileTimeError # super initializer not last
+Language/Expressions/Instance_Creation/New/execution_t09: CompileTimeError # super initializer not last
 Language/Expressions/Maps/constant_map_t02: MissingCompileTimeError
 Language/Expressions/Maps/key_value_equals_operator_t01: MissingCompileTimeError
 Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t01: MissingCompileTimeError
@@ -1744,8 +1751,6 @@ Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t01: MissingCompile
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t03: MissingCompileTimeError
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t05: MissingCompileTimeError
 Language/Types/Interface_Types/subtype_t30: CompileTimeError
-Language/Variables/final_or_static_initialization_t02: MissingCompileTimeError
-Language/Variables/final_or_static_initialization_t03: MissingCompileTimeError
 LibTest/core/int/compareTo_A01_t01: CompileTimeError
 LibTest/core/int/isEven_A01_t01: CompileTimeError
 LibTest/core/int/isOdd_A01_t01: CompileTimeError

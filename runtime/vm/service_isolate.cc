@@ -194,7 +194,7 @@ bool ServiceIsolate::SendIsolateStartupMessage() {
   }
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
-  if (IsServiceIsolateDescendant(isolate)) {
+  if (Isolate::IsVMInternalIsolate(isolate)) {
     return false;
   }
   ASSERT(isolate != NULL);
@@ -219,7 +219,7 @@ bool ServiceIsolate::SendIsolateShutdownMessage() {
   }
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
-  if (IsServiceIsolateDescendant(isolate)) {
+  if (Isolate::IsVMInternalIsolate(isolate)) {
     return false;
   }
   ASSERT(isolate != NULL);

@@ -431,9 +431,11 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   return true;
 }
 
-void Assembler::LoadNativeEntry(Register dst, const ExternalLabel* label) {
+void Assembler::LoadNativeEntry(Register dst,
+                                const ExternalLabel* label,
+                                Patchability patchable) {
   const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindNativeFunction(label, kNotPatchable));
+      object_pool_wrapper_.FindNativeFunction(label, patchable));
   LoadWordFromPoolOffset(dst, offset);
 }
 
@@ -915,6 +917,12 @@ void Assembler::StoreIntoObjectFilter(Register object,
   // Write-barrier triggers if the value is in the new space (has bit set) and
   // the object is in the old space (has bit cleared).
   if (value_can_be_smi == kValueIsNotSmi) {
+#if defined(DEBUG)
+    Label okay;
+    BranchIfNotSmi(value, &okay);
+    Stop("Unexpected Smi!");
+    Bind(&okay);
+#endif
     // To check that, we compute value & ~object and skip the write barrier
     // if the bit is not set. We can't destroy the object.
     bic(TMP, value, Operand(object));
@@ -954,7 +962,7 @@ void Assembler::StoreIntoObject(Register object,
   ASSERT(object != value);
   str(value, dest);
   Label done;
-  StoreIntoObjectFilter(object, value, &done, kValueCanBeSmi, kJumpToNoUpdate);
+  StoreIntoObjectFilter(object, value, &done, can_be_smi, kJumpToNoUpdate);
   if (!lr_reserved) Push(LR);
   ldr(LR, Address(THR, Thread::update_store_buffer_wrappers_offset(object)));
   blr(LR);
@@ -1071,7 +1079,7 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
 }
 
 void Assembler::RestoreCodePointer() {
-  ldr(CODE_REG, Address(FP, kPcMarkerSlotFromFp * kWordSize));
+  ldr(CODE_REG, Address(FP, compiler_frame_layout.code_from_fp * kWordSize));
   CheckCodePointer();
 }
 
@@ -1178,7 +1186,8 @@ void Assembler::LeaveDartFrame(RestorePP restore_pp) {
   if (restore_pp == kRestoreCallerPP) {
     set_constant_pool_allowed(false);
     // Restore and untag PP.
-    LoadFromOffset(PP, FP, kSavedCallerPpSlotFromFp * kWordSize);
+    LoadFromOffset(PP, FP,
+                   compiler_frame_layout.saved_caller_pp_from_fp * kWordSize);
     sub(PP, PP, Operand(kHeapObjectTag));
   }
   LeaveFrame();

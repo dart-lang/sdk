@@ -1582,6 +1582,25 @@ void ClassFinalizer::FinalizeUpperBounds(const Class& cls,
   }
 }
 
+#if defined(TARGET_ARCH_X64)
+static bool IsPotentialExactGeneric(const AbstractType& type) {
+  // TODO(dartbug.com/34170) Investigate supporting this for fields with types
+  // that depend on type parameters of the enclosing class.
+  if (type.IsType() && !type.IsFunctionType() && !type.IsDartFunctionType() &&
+      type.IsInstantiated()) {
+    const Class& cls = Class::Handle(type.type_class());
+    return cls.IsGeneric();
+  }
+
+  return false;
+}
+#else
+// TODO(dartbug.com/34170) Support other architectures.
+static bool IsPotentialExactGeneric(const AbstractType& type) {
+  return false;
+}
+#endif
+
 void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
   // Note that getters and setters are explicitly listed as such in the list of
   // functions of a class, so we do not need to consider fields as implicitly
@@ -1605,6 +1624,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
   //   instance method.
 
   // Resolve type of fields and check for conflicts in super classes.
+  Isolate* isolate = Isolate::Current();
   Zone* zone = Thread::Current()->zone();
   Array& array = Array::Handle(zone, cls.fields());
   Field& field = Field::Handle(zone);
@@ -1614,11 +1634,16 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
   String& other_name = String::Handle(zone);
   Class& super_class = Class::Handle(zone);
   const intptr_t num_fields = array.Length();
+  const bool track_exactness = isolate->strong() && isolate->use_field_guards();
   for (intptr_t i = 0; i < num_fields; i++) {
     field ^= array.At(i);
     type = field.type();
     type = FinalizeType(cls, type);
     field.SetFieldType(type);
+    if (track_exactness && IsPotentialExactGeneric(type)) {
+      field.set_static_type_exactness_state(
+          StaticTypeExactnessState::Unitialized());
+    }
     name = field.name();
     if (field.is_static()) {
       getter_name = Field::GetterSymbol(name);
@@ -1676,7 +1701,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
           (!type.IsDynamicType() &&
            !const_value.IsInstanceOf(type, Object::null_type_arguments(),
                                      Object::null_type_arguments(), &error))) {
-        if (Isolate::Current()->error_on_bad_type()) {
+        if (isolate->error_on_bad_type()) {
           const AbstractType& const_value_type =
               AbstractType::Handle(zone, const_value.GetType(Heap::kNew));
           const String& const_value_type_name =
@@ -1718,7 +1743,6 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
   // If we check for bad overrides, collect interfaces, super interfaces, and
   // super classes of this class.
   GrowableArray<const Class*> interfaces(zone, 4);
-  Isolate* isolate = Isolate::Current();
   if (isolate->error_on_bad_override() && !isolate->strong()) {
     CollectInterfaces(cls, &interfaces);
     // Include superclasses in list of interfaces and super interfaces.

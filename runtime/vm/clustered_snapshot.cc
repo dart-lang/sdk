@@ -648,6 +648,7 @@ class FunctionDeserializationCluster : public DeserializationCluster {
 
 #if defined(DEBUG)
       func->ptr()->entry_point_ = 0;
+      func->ptr()->unchecked_entry_point_ = 0;
 #endif
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -686,6 +687,10 @@ class FunctionDeserializationCluster : public DeserializationCluster {
         uword entry_point = func.raw()->ptr()->code_->ptr()->entry_point_;
         ASSERT(entry_point != 0);
         func.raw()->ptr()->entry_point_ = entry_point;
+        uword unchecked_entry_point =
+            func.raw()->ptr()->code_->ptr()->unchecked_entry_point_;
+        ASSERT(unchecked_entry_point != 0);
+        func.raw()->ptr()->unchecked_entry_point_ = unchecked_entry_point;
       }
     } else if (kind == Snapshot::kFullJIT) {
       Function& func = Function::Handle(zone);
@@ -1047,6 +1052,7 @@ class FieldSerializationCluster : public SerializationCluster {
         s->WriteTokenPosition(field->ptr()->end_token_pos_);
         s->WriteCid(field->ptr()->guarded_cid_);
         s->WriteCid(field->ptr()->is_nullable_);
+        s->Write<int8_t>(field->ptr()->static_type_exactness_state_);
 #if !defined(DART_PRECOMPILED_RUNTIME)
         s->Write<int32_t>(field->ptr()->kernel_offset_);
 #endif
@@ -1098,6 +1104,7 @@ class FieldDeserializationCluster : public DeserializationCluster {
         field->ptr()->end_token_pos_ = d->ReadTokenPosition();
         field->ptr()->guarded_cid_ = d->ReadCid();
         field->ptr()->is_nullable_ = d->ReadCid();
+        field->ptr()->static_type_exactness_state_ = d->Read<int8_t>();
 #if !defined(DART_PRECOMPILED_RUNTIME)
         field->ptr()->kernel_offset_ = d->Read<int32_t>();
 #endif
@@ -1119,6 +1126,8 @@ class FieldDeserializationCluster : public DeserializationCluster {
         field.set_guarded_list_length(Field::kNoFixedLength);
         field.set_guarded_list_length_in_object_offset(
             Field::kUnknownLengthOffset);
+        field.set_static_type_exactness_state(
+            StaticTypeExactnessState::NotTracking());
       }
     } else {
       for (intptr_t i = start_index_; i < stop_index_; i++) {
@@ -1774,6 +1783,8 @@ class CodeDeserializationCluster : public DeserializationCluster {
           Instructions::MonomorphicEntryPoint(instr);
       NOT_IN_PRECOMPILED(code->ptr()->active_instructions_ = instr);
       code->ptr()->instructions_ = instr;
+      code->ptr()->unchecked_entry_point_ =
+          Instructions::UncheckedEntryPoint(instr);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
       if (d->kind() == Snapshot::kFullJIT) {
@@ -1782,6 +1793,8 @@ class CodeDeserializationCluster : public DeserializationCluster {
         code->ptr()->entry_point_ = Instructions::EntryPoint(instr);
         code->ptr()->monomorphic_entry_point_ =
             Instructions::MonomorphicEntryPoint(instr);
+        code->ptr()->unchecked_entry_point_ =
+            Instructions::UncheckedEntryPoint(instr);
       }
 #endif  // !DART_PRECOMPILED_RUNTIME
 

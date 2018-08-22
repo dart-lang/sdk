@@ -931,7 +931,7 @@ void Service::SendEvent(const char* stream_id,
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
-  ASSERT(!ServiceIsolate::IsServiceIsolateDescendant(isolate));
+  ASSERT(!Isolate::IsVMInternalIsolate(isolate));
 
   if (FLAG_trace_service) {
     OS::PrintErr(

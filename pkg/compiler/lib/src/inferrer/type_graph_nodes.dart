@@ -820,7 +820,6 @@ class ParameterTypeInformation extends ElementTypeInformation {
       // The trusting of the parameter types within the body of the method is
       // is done through `LocalsHandler.update` called in
       // `KernelTypeGraphBuilder.handleParameter`.
-      assert(!inferrer.options.enableTypeAssertions);
       return _narrowType(inferrer.closedWorld, mask, _type);
     }
     return mask;
@@ -1236,8 +1235,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
               if (abstractValueDomain.containsDictionaryKey(typeMask, key)) {
                 if (debug.VERBOSE) {
                   print("Dictionary lookup for $key yields "
-                      "${abstractValueDomain.
-                      getDictionaryValueForKey(typeMask, key)}.");
+                      "${abstractValueDomain.getDictionaryValueForKey(typeMask, key)}.");
                 }
                 return abstractValueDomain.getDictionaryValueForKey(
                     typeMask, key);

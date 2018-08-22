@@ -4,7 +4,7 @@
 
 // part of "mirrors_patch.dart";
 
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 class _MirrorReference {
   factory _MirrorReference._uninstantiable() {
     throw new UnsupportedError("class _MirrorReference cannot be instantiated");

@@ -762,7 +762,7 @@ class Isolate : public BaseIsolate {
   static void DisableIsolateCreation();
   static void EnableIsolateCreation();
   static bool IsolateCreationEnabled();
-  static bool IsVMInternalIsolate(Isolate* isolate);
+  static bool IsVMInternalIsolate(const Isolate* isolate);
 
 #if !defined(PRODUCT)
   intptr_t reload_every_n_stack_overflow_checks() const {

@@ -37,8 +37,6 @@ class TestConfiguration {
       this.reportInJson,
       this.resetBrowser,
       this.skipCompilation,
-      this.useAnalyzerCfe,
-      this.useAnalyzerFastaParser,
       this.useKernelBytecode,
       this.writeDebugLog,
       this.writeTestOutcomeLog,
@@ -89,8 +87,6 @@ class TestConfiguration {
   final bool reportInJson;
   final bool resetBrowser;
   final bool skipCompilation;
-  final bool useAnalyzerCfe;
-  final bool useAnalyzerFastaParser;
   final bool useKernelBytecode;
   final bool writeDebugLog;
   final bool writeTestOutcomeLog;
@@ -111,6 +107,8 @@ class TestConfiguration {
   bool get isCsp => configuration.isCsp;
   bool get isMinified => configuration.isMinified;
   bool get noPreviewDart2 => !configuration.previewDart2;
+  bool get useAnalyzerCfe => configuration.useAnalyzerCfe;
+  bool get useAnalyzerFastaParser => configuration.useAnalyzerFastaParser;
   bool get useBlobs => configuration.useBlobs;
   bool get useSdk => configuration.useSdk;
   bool get useFastStartup => configuration.useFastStartup;

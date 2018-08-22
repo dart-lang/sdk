@@ -881,6 +881,8 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
       TokenPosition::SnapshotDecode(reader->Read<int32_t>()));
   field.set_guarded_cid(reader->Read<int32_t>());
   field.set_is_nullable(reader->Read<int32_t>());
+  field.set_static_type_exactness_state(
+      StaticTypeExactnessState::Decode(reader->Read<int8_t>()));
 #if !defined(DART_PRECOMPILED_RUNTIME)
   field.set_kernel_offset(reader->Read<int32_t>());
 #endif
@@ -896,6 +898,8 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
     field.set_is_nullable(true);
     field.set_guarded_list_length(Field::kNoFixedLength);
     field.set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
+    field.set_static_type_exactness_state(
+        StaticTypeExactnessState::NotTracking());
   } else {
     field.InitializeGuardedListLengthInObjectOffset();
   }
@@ -922,6 +926,7 @@ void RawField::WriteTo(SnapshotWriter* writer,
   writer->Write<int32_t>(ptr()->end_token_pos_.SnapshotEncode());
   writer->Write<int32_t>(ptr()->guarded_cid_);
   writer->Write<int32_t>(ptr()->is_nullable_);
+  writer->Write<int32_t>(ptr()->static_type_exactness_state_);
 #if !defined(DART_PRECOMPILED_RUNTIME)
   writer->Write<int32_t>(ptr()->kernel_offset_);
 #endif

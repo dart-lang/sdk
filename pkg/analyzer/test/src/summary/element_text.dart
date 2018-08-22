@@ -242,6 +242,9 @@ class _ElementWriter {
       buffer.write('.');
       writeName(e);
     }
+    if (!e.isSynthetic) {
+      writeCodeRange(e);
+    }
 
     writeParameterElements(e.parameters);
 
@@ -682,6 +685,7 @@ class _ElementWriter {
     }
 
     writeName(e);
+    writeCodeRange(e);
 
     if (e.parameters.isNotEmpty) {
       writeList('(', ')', e.parameters, ', ', writeParameterElement,
@@ -825,6 +829,7 @@ class _ElementWriter {
     writeType2(type);
 
     writeName(e);
+    writeCodeRange(e);
 
     writeVariableTypeInferenceError(e);
 

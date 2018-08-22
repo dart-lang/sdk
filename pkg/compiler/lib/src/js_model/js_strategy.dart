@@ -353,10 +353,7 @@ class JsClosedWorldBuilder {
           new JsClosureRtiNeed(
               jRtiNeed,
               localFunctionsNodesNeedingTypeArguments,
-              localFunctionsNodesNeedingSignature,
-              runtimeTypeUsedOnClosures:
-                  kernelRtiNeed.runtimeTypeUsedOnClosures,
-              allNeedsTypeArguments: kernelRtiNeed.allNeedsTypeArguments));
+              localFunctionsNodesNeedingSignature));
 
       List<FunctionEntity> callMethodsNeedingSignature = <FunctionEntity>[];
       for (ir.Node node in localFunctionsNodesNeedingSignature) {
@@ -582,9 +579,7 @@ class JsClosedWorldBuilder {
         null,
         null,
         selectorsNeedingTypeArguments,
-        rtiNeed.instantiationsNeedingTypeArguments,
-        allNeedsTypeArguments: rtiNeed.allNeedsTypeArguments,
-        runtimeTypeUsedOnClosures: rtiNeed.runtimeTypeUsedOnClosures);
+        rtiNeed.instantiationsNeedingTypeArguments);
   }
 
   /// Construct a closure class and set up the necessary class inference
@@ -865,18 +860,14 @@ class JsClosureRtiNeed implements ClosureRtiNeed {
   final RuntimeTypesNeed rtiNeed;
   final Set<ir.Node> localFunctionsNodesNeedingTypeArguments;
   final Set<ir.Node> localFunctionsNodesNeedingSignature;
-  final bool runtimeTypeUsedOnClosures;
-  final bool allNeedsTypeArguments;
 
   JsClosureRtiNeed(this.rtiNeed, this.localFunctionsNodesNeedingTypeArguments,
-      this.localFunctionsNodesNeedingSignature,
-      {this.runtimeTypeUsedOnClosures, this.allNeedsTypeArguments});
+      this.localFunctionsNodesNeedingSignature);
 
   @override
   bool localFunctionNeedsSignature(ir.Node node) {
     assert(node is ir.FunctionDeclaration || node is ir.FunctionExpression);
-    return runtimeTypeUsedOnClosures ||
-        localFunctionsNodesNeedingSignature.contains(node);
+    return localFunctionsNodesNeedingSignature.contains(node);
   }
 
   @override
@@ -890,8 +881,7 @@ class JsClosureRtiNeed implements ClosureRtiNeed {
   @override
   bool localFunctionNeedsTypeArguments(ir.Node node) {
     assert(node is ir.FunctionDeclaration || node is ir.FunctionExpression);
-    return allNeedsTypeArguments ||
-        localFunctionsNodesNeedingTypeArguments.contains(node);
+    return localFunctionsNodesNeedingTypeArguments.contains(node);
   }
 
   @override

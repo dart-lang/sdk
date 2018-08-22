@@ -414,7 +414,7 @@ class _FSEventStreamFileSystemWatcher extends _FileSystemWatcher {
   }
 }
 
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 Uint8List _makeUint8ListView(Uint8List source, int offsetInBytes, int length) {
   return new Uint8List.view(source.buffer, offsetInBytes, length);
 }

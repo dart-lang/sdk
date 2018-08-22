@@ -11,14 +11,14 @@ valid*.*
 ### Expression bodied functions
 
 
-An asynchronous expression bodied function with return type `T` and return
-expression `e` has a valid return if:
+An asynchronous expression bodied function with return type `T` and body `exp`
+has a valid return if:
   * `flatten(T)` is `void`
   * or `return exp;` is a valid return for an equivalent block bodied function
   with return type `T` as defined below.
 
-A synchronous expression bodied function with return type `T` and return expression
-`e` has a valid return if:
+A synchronous expression bodied function with return type `T` and body `exp` has
+a valid return if:
   * `T` is `void`
   * or `return exp;` is a valid return for an equivalent block bodied function
   with return type `T` as defined below.
@@ -67,7 +67,7 @@ The rules for an asynchronous non-generator function with declared return type
   * and `flatten(S)` is `void`, `dynamic` or `Null`
 
 * `return exp;` where `exp` has static type `S` is a valid return if:
-  * `flatten(T)` is not `void`
+  * `T` is not `void`
   * and `flatten(S)` is not `void`
   * and `Future<flatten(S)>` is assignable to `T`
 
@@ -77,14 +77,14 @@ The rules for an asynchronous non-generator function with declared return type
 ### Expression bodied functions
 
 
-It is an error if an asynchronous expression bodied function with return type `T`
-has return expression `exp` and both:
+It is an error if an asynchronous expression bodied function with return type
+`T` has body `exp` and both:
   * `flatten(T)` is not `void`
   * `return exp;` would be an error in an equivalent block bodied function
   with return type `T` as defined below.
 
 It is an error if a synchronous expression bodied function with return type `T`
-has return expression `exp` and both:
+has body `exp` and both:
   * `T` is not `void`
   * `return exp;` would be an error in an equivalent block bodied function
   with return type `T` as defined below.
@@ -114,7 +114,7 @@ The rules for an asynchronous non-generator function with declared return type
 
 * `return;` is an error if `flatten(T)` is not `void`, `dynamic`, or `Null`
 
-* `return exp;` where `exp` has static type `S` is an error if `flatten(T)` is
+* `return exp;` where `exp` has static type `S` is an error if `T` is
   `void` and `flatten(S)` is not `void`, `dynamic`, or `Null`
 
 * `return exp;` where `exp` has static type `S` is an error if `flatten(S)` is

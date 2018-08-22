@@ -145,9 +145,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// core libraries. If false, all native classes will be included by default.
   bool enableNativeLiveTypeAnalysis = true;
 
-  /// Whether to generate code containing checked-mode assignability checks.
-  bool enableTypeAssertions = false;
-
   /// Whether to generate code containing user's `assert` statements.
   bool enableUserAssertions = false;
 
@@ -182,9 +179,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to trust primitive types during inference and optimizations.
   bool trustPrimitives = false;
 
-  /// Whether to trust type annotations during inference and optimizations.
-  bool trustTypeAnnotations = false;
-
   /// Whether to omit implicit strong mode checks.
   bool omitImplicitChecks = false;
 
@@ -209,9 +203,6 @@ class CompilerOptions implements DiagnosticOptions {
 
   /// Whether to generate code compliant with content security policy (CSP).
   bool useContentSecurityPolicy = false;
-
-  /// Enables strong mode in dart2js.
-  bool strongMode = true;
 
   /// When obfuscating for minification, whether to use the frequency of a name
   /// as an heuristic to pick shorter names.
@@ -260,8 +251,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// Create an options object by parsing flags from [options].
   static CompilerOptions parse(List<String> options,
       {Uri libraryRoot, Uri platformBinaries}) {
-    bool isStrong = _hasOption(options, Flags.strongMode) ||
-        !_hasOption(options, Flags.noPreviewDart2);
     return new CompilerOptions()
       ..libraryRoot = libraryRoot
       ..allowMockCompilation = _hasOption(options, Flags.allowMockCompilation)
@@ -288,8 +277,6 @@ class CompilerOptions implements DiagnosticOptions {
       ..enableMinification = _hasOption(options, Flags.minify)
       ..enableNativeLiveTypeAnalysis =
           !_hasOption(options, Flags.disableNativeLiveTypeAnalysis)
-      ..enableTypeAssertions =
-          _hasOption(options, Flags.enableCheckedMode) && !isStrong
       ..enableUserAssertions = _hasOption(options, Flags.enableCheckedMode) ||
           _hasOption(options, Flags.enableAsserts)
       ..experimentalTrackAllocations =
@@ -306,7 +293,6 @@ class CompilerOptions implements DiagnosticOptions {
       ..platformBinaries =
           platformBinaries ?? _extractUriOption(options, '--platform-binaries=')
       ..sourceMapUri = _extractUriOption(options, '--source-map=')
-      ..strongMode = isStrong
       ..omitImplicitChecks = _hasOption(options, Flags.omitImplicitChecks)
       ..laxRuntimeTypeToString =
           _hasOption(options, Flags.laxRuntimeTypeToString)
@@ -314,7 +300,6 @@ class CompilerOptions implements DiagnosticOptions {
       ..trustJSInteropTypeAnnotations =
           _hasOption(options, Flags.trustJSInteropTypeAnnotations)
       ..trustPrimitives = _hasOption(options, Flags.trustPrimitives)
-      ..trustTypeAnnotations = _hasOption(options, Flags.trustTypeAnnotations)
       ..useContentSecurityPolicy =
           _hasOption(options, Flags.useContentSecurityPolicy)
       ..useFrequencyNamer =
@@ -352,11 +337,7 @@ class CompilerOptions implements DiagnosticOptions {
     if (benchmarkingProduction) {
       useStartupEmitter = true;
       trustPrimitives = true;
-      if (strongMode) {
-        omitImplicitChecks = true;
-      } else {
-        trustTypeAnnotations = true;
-      }
+      omitImplicitChecks = true;
     }
 
     if (optimizationLevel != null) {
@@ -384,31 +365,15 @@ class CompilerOptions implements DiagnosticOptions {
     }
     librariesSpecificationUri = _resolveLibrariesSpecification(libraryRoot);
 
-    if (strongMode) {
-      // Strong mode always trusts type annotations (inferred or explicit), so
-      // assignments checks should be trusted.
-      assignmentCheckPolicy = CheckPolicy.trusted;
-      if (omitImplicitChecks) {
-        parameterCheckPolicy = CheckPolicy.trusted;
-        implicitDowncastCheckPolicy = CheckPolicy.trusted;
-      } else {
-        parameterCheckPolicy = CheckPolicy.checked;
-        implicitDowncastCheckPolicy = CheckPolicy.checked;
-      }
+    // Strong mode always trusts type annotations (inferred or explicit), so
+    // assignments checks should be trusted.
+    assignmentCheckPolicy = CheckPolicy.trusted;
+    if (omitImplicitChecks) {
+      parameterCheckPolicy = CheckPolicy.trusted;
+      implicitDowncastCheckPolicy = CheckPolicy.trusted;
     } else {
-      // The implicit-downcast representation is a strong-mode only feature.
-      implicitDowncastCheckPolicy = CheckPolicy.ignored;
-
-      if (enableTypeAssertions) {
-        assignmentCheckPolicy = CheckPolicy.checked;
-        parameterCheckPolicy = CheckPolicy.checked;
-      } else if (trustTypeAnnotations) {
-        assignmentCheckPolicy = CheckPolicy.trusted;
-        parameterCheckPolicy = CheckPolicy.trusted;
-      } else {
-        assignmentCheckPolicy = CheckPolicy.ignored;
-        parameterCheckPolicy = CheckPolicy.ignored;
-      }
+      parameterCheckPolicy = CheckPolicy.checked;
+      implicitDowncastCheckPolicy = CheckPolicy.checked;
     }
   }
 

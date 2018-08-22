@@ -439,6 +439,13 @@ testStaticFunctionGet() => StaticFunctionGetClass.foo;
 
 /*element: testDynamicInvoke:
  dynamic=[
+  call(1),
+  call(1,b),
+  call(1,b,c),
+  call(1,b,c),
+  call(1,c),
+  call(2),
+  call(3),
   f1(1),
   f2(1),
   f3(2),
@@ -628,11 +635,14 @@ testClosure() {
   () {};
 }
 
-/*kernel.element: testClosureInvoke:dynamic=[call(0)],
-  static=[def:<anonymous>],
-  type=[inst:Function]*/
-/*strong.element: testClosureInvoke:dynamic=[call(0)],
-  static=[computeSignature,
+/*kernel.element: testClosureInvoke:
+ dynamic=[call(0)],
+ static=[def:<anonymous>],
+ type=[inst:Function]
+*/
+/*strong.element: testClosureInvoke:
+ dynamic=[call(0)],
+ static=[computeSignature,
   def:<anonymous>,
   getRuntimeTypeArguments,
   getRuntimeTypeInfo,
@@ -642,31 +652,39 @@ testClosure() {
   inst:JSExtendableArray<dynamic>,
   inst:JSFixedArray<dynamic>,
   inst:JSMutableArray<dynamic>,
-  inst:JSUnmodifiableArray<dynamic>]*/
+  inst:JSUnmodifiableArray<dynamic>]
+*/
 testClosureInvoke() {
   () {}();
 }
 
-/*element: testInvokeIndex:dynamic=[[]],
-  type=[inst:JSDouble,
+/*element: testInvokeIndex:
+ dynamic=[[]],
+ type=[inst:JSDouble,
   inst:JSInt,
   inst:JSNumber,
   inst:JSPositiveInt,
   inst:JSUInt31,
-  inst:JSUInt32]*/
+  inst:JSUInt32]
+*/
 testInvokeIndex(o) => o[42];
 
-/*element: testInvokeIndexSet:dynamic=[[]=],
-  type=[inst:JSDouble,
+/*element: testInvokeIndexSet:
+ dynamic=[[]=],
+ type=[inst:JSDouble,
   inst:JSInt,
   inst:JSNull,
   inst:JSNumber,
   inst:JSPositiveInt,
   inst:JSUInt31,
-  inst:JSUInt32]*/
+  inst:JSUInt32]
+*/
 testInvokeIndexSet(o) => o[42] = null;
 
-/*element: testDynamicPrivateMethodInvoke:dynamic=[_privateMethod(0)],type=[inst:JSNull]*/
+/*element: testDynamicPrivateMethodInvoke:
+ dynamic=[_privateMethod(0),call(0)],
+ type=[inst:JSNull]
+*/
 testDynamicPrivateMethodInvoke([o]) => o._privateMethod();
 
 class GenericClass<X, Y> {}

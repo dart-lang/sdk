@@ -192,7 +192,7 @@ void FlowGraphTypePropagator::SetTypeOf(Definition* def, CompileType* type) {
 void FlowGraphTypePropagator::SetCid(Definition* def, intptr_t cid) {
   CompileType* current = TypeOf(def);
   if (current->IsNone() || (current->ToCid() != cid)) {
-    SetTypeOf(def, new CompileType(CompileType::FromCid(cid)));
+    SetTypeOf(def, new (zone()) CompileType(CompileType::FromCid(cid)));
   }
 }
 
@@ -248,11 +248,28 @@ void FlowGraphTypePropagator::VisitCheckArrayBound(
 }
 
 void FlowGraphTypePropagator::VisitCheckClass(CheckClassInstr* check) {
-  if (!check->cids().IsMonomorphic()) {
+  // Use a monomorphic cid directly.
+  const Cids& cids = check->cids();
+  if (cids.IsMonomorphic()) {
+    SetCid(check->value()->definition(), cids.MonomorphicReceiverCid());
     return;
   }
-
-  SetCid(check->value()->definition(), check->cids().MonomorphicReceiverCid());
+  // Take the union of polymorphic cids.
+  CompileType result = CompileType::None();
+  for (intptr_t i = 0, n = cids.length(); i < n; i++) {
+    CidRange* cid_range = cids.At(i);
+    if (cid_range->IsIllegalRange()) {
+      return;
+    }
+    for (intptr_t cid = cid_range->cid_start; cid <= cid_range->cid_end;
+         cid++) {
+      CompileType tp = CompileType::FromCid(cid);
+      result.Union(&tp);
+    }
+  }
+  if (!result.IsNone()) {
+    SetTypeOf(check->value()->definition(), new (zone()) CompileType(result));
+  }
 }
 
 void FlowGraphTypePropagator::VisitCheckClassId(CheckClassIdInstr* check) {
@@ -330,14 +347,14 @@ void FlowGraphTypePropagator::VisitGuardFieldClass(
       (current->is_nullable() && !guard->field().is_nullable())) {
     const bool is_nullable =
         guard->field().is_nullable() && current->is_nullable();
-    SetTypeOf(def, new CompileType(is_nullable, cid, NULL));
+    SetTypeOf(def, new (zone()) CompileType(is_nullable, cid, NULL));
   }
 }
 
 void FlowGraphTypePropagator::VisitAssertAssignable(
     AssertAssignableInstr* instr) {
   SetTypeOf(instr->value()->definition(),
-            new CompileType(instr->ComputeType()));
+            new (zone()) CompileType(instr->ComputeType()));
 }
 
 void FlowGraphTypePropagator::VisitAssertSubtype(AssertSubtypeInstr* instr) {}
@@ -519,23 +536,38 @@ void CompileType::Union(CompileType* other) {
     return;
   }
 
+  const AbstractType* abstract_type = ToAbstractType();
   if (ToNullableCid() != other->ToNullableCid()) {
     ASSERT(cid_ != kNullCid);
     cid_ = kDynamicCid;
   }
 
-  const AbstractType* abstract_type = ToAbstractType();
   const AbstractType* other_abstract_type = other->ToAbstractType();
   if (abstract_type->IsMoreSpecificThan(*other_abstract_type, NULL, NULL,
                                         Heap::kOld)) {
     type_ = other_abstract_type;
+    return;
   } else if (other_abstract_type->IsMoreSpecificThan(*abstract_type, NULL, NULL,
                                                      Heap::kOld)) {
-    // Nothing to do.
-  } else {
-    // Can't unify.
-    type_ = &Object::dynamic_type();
+    return;  // Nothing to do.
   }
+
+  // Climb up the hierarchy to find a suitable supertype. Note that interface
+  // types are not considered, making the union potentially non-commutative
+  if (abstract_type->IsInstantiated() && !abstract_type->IsDynamicType()) {
+    Class& cls = Class::Handle(abstract_type->type_class());
+    for (; !cls.IsNull() && !cls.IsGeneric(); cls = cls.SuperClass()) {
+      type_ = &AbstractType::ZoneHandle(cls.RareType());
+      if (other_abstract_type->IsSubtypeOf(*type_, NULL, NULL, Heap::kOld)) {
+        // Found suitable supertype: keep type_ only.
+        cid_ = kDynamicCid;
+        return;
+      }
+    }
+  }
+
+  // Can't unify.
+  type_ = &Object::dynamic_type();
 }
 
 CompileType* CompileType::ComputeRefinedType(CompileType* old_type,
@@ -666,7 +698,8 @@ intptr_t CompileType::ToNullableCid() {
       CHA* cha = thread->cha();
       // Don't infer a cid from an abstract type since there can be multiple
       // compatible classes with different cids.
-      if (!CHA::IsImplemented(type_class) && !CHA::HasSubclasses(type_class)) {
+      if (!type_class.is_abstract() && !CHA::IsImplemented(type_class) &&
+          !CHA::HasSubclasses(type_class)) {
         if (type_class.IsPrivate()) {
           // Type of a private class cannot change through later loaded libs.
           cid_ = type_class.id();

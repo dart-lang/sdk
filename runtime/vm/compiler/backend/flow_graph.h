@@ -144,6 +144,10 @@ class FlowGraph : public ZoneAllocated {
     return num_direct_parameters_ - variable->index().value();
   }
 
+  bool IsEntryPoint(BlockEntryInstr* target) const {
+    return graph_entry()->IsEntryPoint(target);
+  }
+
   // Flow graph orders.
   const GrowableArray<BlockEntryInstr*>& preorder() const { return preorder_; }
   const GrowableArray<BlockEntryInstr*>& postorder() const {

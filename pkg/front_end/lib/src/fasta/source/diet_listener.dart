@@ -653,7 +653,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void beginClassBody(Token token) {
+  void beginClassOrMixinBody(Token token) {
     debugEvent("beginClassBody");
     String name = pop();
     Token metadata = pop();
@@ -668,8 +668,8 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endClassBody(int memberCount, Token beginToken, Token endToken) {
-    debugEvent("ClassBody");
+  void endClassOrMixinBody(int memberCount, Token beginToken, Token endToken) {
+    debugEvent("ClassOrMixinBody");
     currentClass = null;
     memberScope = library.scope;
   }
@@ -785,7 +785,7 @@ class DietListener extends StackListener {
     if (isTopLevel) {
       token = parser.parseTopLevelMember(metadata ?? token);
     } else {
-      token = parser.parseClassMember(metadata ?? token).next;
+      token = parser.parseClassOrMixinMember(metadata ?? token).next;
     }
     listenerFinishFields(listener, startToken, metadata, isTopLevel);
     listener.checkEmpty(token.charOffset);

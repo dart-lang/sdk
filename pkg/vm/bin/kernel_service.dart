@@ -260,8 +260,8 @@ Future _processExpressionCompilationRequest(request) async {
   final SendPort port = request[1];
   final int isolateId = request[2];
   final String expression = request[3];
-  final List definitions = request[4];
-  final List typeDefinitions = request[5];
+  final List<String> definitions = request[4].cast<String>();
+  final List<String> typeDefinitions = request[5].cast<String>();
   final String libraryUri = request[6];
   final String klass = request[7]; // might be null
   final bool isStatic = request[8];
@@ -569,11 +569,11 @@ train(String scriptUri, String platformKernelPath) {
     scriptUri,
     platformKernelPath,
     false /* incremental */,
-    false /* strong */,
+    true /* strong */,
     1 /* isolateId chosen randomly */,
     [] /* source files */,
     false /* suppress warnings */,
-    false /* synchronous async */,
+    true /* synchronous async */,
     null /* package_config */,
     null /* multirootFilepaths */,
     null /* multirootScheme */,

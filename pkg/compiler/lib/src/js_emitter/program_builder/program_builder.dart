@@ -7,7 +7,6 @@ library dart2js.js_emitter.program_builder;
 import 'dart:io';
 import 'dart:convert' show jsonDecode;
 
-import '../../closure.dart' show ClosureConversionTask;
 import '../../common.dart';
 import '../../common/names.dart' show Names, Selectors;
 import '../../constants/values.dart'
@@ -64,10 +63,8 @@ class ProgramBuilder {
   final DiagnosticReporter _reporter;
   final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
-  final DartTypes _types;
   final DeferredLoadTask _deferredLoadTask;
   final OutputUnitData _outputUnitData;
-  final ClosureConversionTask _closureDataLookup;
   final CodegenWorldBuilder _worldBuilder;
   final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
   final BackendUsage _backendUsage;
@@ -112,10 +109,8 @@ class ProgramBuilder {
       this._reporter,
       this._elementEnvironment,
       this._commonElements,
-      this._types,
       this._deferredLoadTask,
       this._outputUnitData,
-      this._closureDataLookup,
       this._worldBuilder,
       this._nativeCodegenEnqueuer,
       this._backendUsage,
@@ -541,28 +536,7 @@ class ProgramBuilder {
               FunctionEntity fn = member;
               functionType = _elementEnvironment.getFunctionType(fn);
             } else if (member.isGetter) {
-              if (_options.trustTypeAnnotations) {
-                DartType returnType =
-                    _elementEnvironment.getFunctionType(member).returnType;
-                if (returnType.isFunctionType) {
-                  functionType = returnType;
-                } else if (returnType.treatAsDynamic ||
-                    _types.isSubtype(
-                        returnType,
-                        // ignore: UNNECESSARY_CAST
-                        _commonElements.functionType as DartType)) {
-                  if (returnType.isTypedef) {
-                    TypedefType typedef = returnType;
-                    functionType = typedef.unaliased;
-                  } else {
-                    // Other misc function type such as commonElements.Function.
-                    // Allow any number of arguments.
-                    isFunctionLike = true;
-                  }
-                }
-              } else {
-                isFunctionLike = true;
-              }
+              isFunctionLike = true;
             } // TODO(jacobr): handle field elements.
 
             if (isFunctionLike || functionType != null) {
@@ -667,14 +641,12 @@ class ProgramBuilder {
         enableMinification: _options.enableMinification);
     RuntimeTypeGenerator runtimeTypeGenerator = new RuntimeTypeGenerator(
         _commonElements,
-        _closureDataLookup,
         _outputUnitData,
         _task,
         _namer,
         _rtiChecks,
         _rtiEncoder,
-        _jsInteropAnalysis,
-        _options.strongMode);
+        _jsInteropAnalysis);
 
     void visitMember(MemberEntity member) {
       if (member.isInstanceMember && !member.isAbstract && !member.isField) {

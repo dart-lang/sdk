@@ -82,5 +82,5 @@ main() {
   Expect.equals(
       'b.bi.a.ai.', run(() => new InheritOneField.initWithSuperInit_correctOrder()));
   Expect.equals(
-      'b.a.ai.bi.', run(() => new InheritOneField.initWithSuperInit_incorrectOrder()));
+      'b.bi.a.ai.', run(() => new InheritOneField.initWithSuperInit_incorrectOrder()));
 }

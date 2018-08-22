@@ -124,4 +124,3 @@ LanguageFeatures/Super-bounded-types/static_analysis_A01_t06: CompileTimeError #
 LanguageFeatures/Super-bounded-types/static_analysis_A01_t07: CompileTimeError # Issue 32903
 LanguageFeatures/Super-bounded-types/static_analysis_A01_t08: CompileTimeError # Issue 32903
 LanguageFeatures/Super-bounded-types/static_analysis_A01_t09: CompileTimeError # Issue 32903
-

@@ -568,7 +568,6 @@ class GenericStaticUse extends StaticUse {
 enum TypeUseKind {
   IS_CHECK,
   AS_CAST,
-  CHECKED_MODE_CHECK,
   CATCH_TYPE,
   TYPE_LITERAL,
   INSTANTIATION,
@@ -599,9 +598,6 @@ class TypeUse {
         break;
       case TypeUseKind.AS_CAST:
         sb.write('as:');
-        break;
-      case TypeUseKind.CHECKED_MODE_CHECK:
-        sb.write('check:');
         break;
       case TypeUseKind.CATCH_TYPE:
         sb.write('catch:');
@@ -640,11 +636,6 @@ class TypeUse {
   /// [type] used in an as cast, like `e as T`.
   factory TypeUse.asCast(DartType type) {
     return new TypeUse.internal(type, TypeUseKind.AS_CAST);
-  }
-
-  /// [type] used as a type annotation in Dart 1, like `T foo;`.
-  factory TypeUse.checkedModeCheck(DartType type) {
-    return new TypeUse.internal(type, TypeUseKind.CHECKED_MODE_CHECK);
   }
 
   /// [type] used as a parameter type or field type in Dart 2, like `T` in:
@@ -687,6 +678,13 @@ class TypeUse {
 
   /// [type] used as a direct RTI value.
   factory TypeUse.constTypeLiteral(DartType type) {
+    return new TypeUse.internal(type, TypeUseKind.RTI_VALUE);
+  }
+
+  /// [type] used in a `instanceof` check.
+  factory TypeUse.instanceConstructor(DartType type) {
+    // TODO(johnniwinther,sra): Use a separate use kind if constructors is no
+    // longer used for RTI.
     return new TypeUse.internal(type, TypeUseKind.RTI_VALUE);
   }
 

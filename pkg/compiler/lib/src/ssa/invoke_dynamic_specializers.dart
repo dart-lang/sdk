@@ -125,10 +125,12 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
       JClosedWorld closedWorld) {
     HInstruction receiver = instruction.inputs[1];
     HInstruction index = instruction.inputs[2];
-    if (!receiver.isMutableIndexable(closedWorld.abstractValueDomain))
+    if (!receiver.isMutableIndexable(closedWorld.abstractValueDomain)) {
       return null;
+    }
+    // TODO(johnniwinther): Merge this and the following if statement.
     if (!index.isInteger(closedWorld.abstractValueDomain) &&
-        options.enableTypeAssertions) {
+        options.parameterCheckPolicy.isEmitted) {
       // We want the right checked mode error.
       return null;
     }
@@ -186,9 +188,12 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
       CommonElements commonElements,
       JClosedWorld closedWorld) {
     if (!instruction.inputs[1]
-        .isIndexablePrimitive(closedWorld.abstractValueDomain)) return null;
+        .isIndexablePrimitive(closedWorld.abstractValueDomain)) {
+      return null;
+    }
+    // TODO(johnniwinther): Merge this and the following if statement.
     if (!instruction.inputs[2].isInteger(closedWorld.abstractValueDomain) &&
-        options.enableTypeAssertions) {
+        options.parameterCheckPolicy.isEmitted) {
       // We want the right checked mode error.
       return null;
     }

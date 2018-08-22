@@ -15,8 +15,7 @@ import 'package:kernel/kernel.dart'
 
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 
-import 'package:vm/bytecode/gen_bytecode.dart'
-    show generateBytecode, isKernelBytecodeEnabledForPlatform;
+import 'package:vm/bytecode/gen_bytecode.dart' show generateBytecode;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
@@ -328,7 +327,7 @@ Future compilePlatformInternal(CompilerContext c, Uri fullOutput,
   new File.fromUri(outlineOutput).writeAsBytesSync(result.summary);
   c.options.ticker.logMs("Wrote outline to ${outlineOutput.toFilePath()}");
 
-  if (isKernelBytecodeEnabledForPlatform) {
+  if (c.options.bytecode) {
     generateBytecode(result.component, strongMode: c.options.strongMode);
   }
 

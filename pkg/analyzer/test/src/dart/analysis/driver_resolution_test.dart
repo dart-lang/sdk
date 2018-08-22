@@ -159,6 +159,13 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest {
     }
   }
 
+  void assertUnresolvedInvokeType(DartType invokeType) {
+    if (useCFE) {
+      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/33682
+      expect(invokeType.toString(), '() → dynamic');
+    }
+  }
+
   /// Creates a function that checks that an expression is a reference to a top
   /// level variable with the given [name].
   void Function(Expression) checkTopVarRef(String name) {
@@ -878,6 +885,88 @@ void main() {
       expect(intName.name.staticElement, typeProvider.intType.element);
       expect(intName.name.staticType, typeProvider.intType);
     }
+  }
+
+  test_assign_in_const_context() async {
+    addTestFile('''
+void f(num x, int y) {
+  const [x = y];
+}
+''');
+    await resolveTestFile();
+
+    var xRef = findNode.simple('x =');
+    assertType(xRef, 'num');
+    assertElement(xRef, findElement.parameter('x'));
+    var yRef = findNode.simple('y]');
+    assertType(yRef, 'int');
+    assertElement(yRef, findElement.parameter('y'));
+  }
+
+  test_assign_to_ambiguous_type() async {
+    provider.newFile(_p('/test/lib/a.dart'), 'class C {}');
+    provider.newFile(_p('/test/lib/b.dart'), 'class C {}');
+    addTestFile('''
+import 'a.dart';
+import 'b.dart';
+void f(int x) {
+  C = x;
+}
+''');
+    await resolveTestFile();
+
+    var xRef = findNode.simple('x;');
+    assertType(xRef, 'int');
+    assertElement(xRef, findElement.parameter('x'));
+  }
+
+  test_assign_to_class() async {
+    addTestFile('''
+class C {}
+void f(int x) {
+  C = x;
+}
+''');
+    await resolveTestFile();
+
+    var cRef = findNode.simple('C =');
+    assertType(cRef, 'Type');
+    assertElement(cRef, findElement.class_('C'));
+    var xRef = findNode.simple('x;');
+    assertType(xRef, 'int');
+    assertElement(xRef, findElement.parameter('x'));
+  }
+
+  test_assign_to_non_lvalue() async {
+    addTestFile('''
+void f(int x, double y, String z) {
+  x + y = z;
+}
+''');
+    await resolveTestFile();
+
+    var xRef = findNode.simple('x +');
+    assertType(xRef, 'int');
+    assertElement(xRef, findElement.parameter('x'));
+    var yRef = findNode.simple('y =');
+    assertType(yRef, 'double');
+    assertElement(yRef, findElement.parameter('y'));
+    var zRef = findNode.simple('z;');
+    assertType(zRef, 'String');
+    assertElement(zRef, findElement.parameter('z'));
+  }
+
+  test_assign_with_synthetic_lhs() async {
+    addTestFile('''
+void f(int x) {
+  = x;
+}
+''');
+    await resolveTestFile();
+
+    var xRef = findNode.simple('x;');
+    assertType(xRef, 'int');
+    assertElement(xRef, findElement.parameter('x'));
   }
 
   test_assignment_to_final_parameter() async {
@@ -4405,12 +4494,7 @@ main() {
 
     var invocation = findNode.methodInvocation('p(a)');
     expect(invocation.staticType, isDynamicType);
-    if (useCFE) {
-      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/33682
-      expect(invocation.staticInvokeType.toString(), '() → dynamic');
-    } else {
-      expect(invocation.staticInvokeType, isDynamicType);
-    }
+    assertUnresolvedInvokeType(invocation.staticInvokeType);
 
     var pRef = invocation.methodName;
     assertElement(pRef, import.prefix);
@@ -4438,12 +4522,7 @@ main() {
 
     MethodInvocation invocation = statement.expression;
     expect(invocation.staticType, isDynamicType);
-    if (useCFE) {
-      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/33682
-      expect(invocation.staticInvokeType.toString(), '() → dynamic');
-    } else {
-      expect(invocation.staticInvokeType, typeProvider.intType);
-    }
+    assertUnresolvedInvokeType(invocation.staticInvokeType);
 
     SimpleIdentifier name = invocation.methodName;
     expect(name.staticElement, same(foo.getter));
@@ -9611,12 +9690,7 @@ main() {
 
     MethodInvocation invocation = statement.expression;
     expect(invocation.staticType, isDynamicType);
-    if (useCFE) {
-      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/33682
-      expect(invocation.staticInvokeType.toString(), '() → dynamic');
-    } else {
-      expect(invocation.staticInvokeType, isDynamicType);
-    }
+    assertUnresolvedInvokeType(invocation.staticInvokeType);
 
     SimpleIdentifier target = invocation.target;
     expect(target.staticElement, same(foo.getter));
@@ -9624,12 +9698,7 @@ main() {
 
     SimpleIdentifier name = invocation.methodName;
     expect(name.staticElement, isNull);
-    if (useCFE) {
-      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/33682
-      expect(name.staticType.toString(), '() → dynamic');
-    } else {
-      expect(name.staticType, isDynamicType);
-    }
+    assertUnresolvedInvokeType(name.staticType);
 
     assertTypeArguments(invocation.typeArguments, [intType, doubleType]);
     _assertInvocationArguments(invocation.argumentList,
@@ -9646,20 +9715,17 @@ main() {
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    List<Statement> statements = _getMainStatements(result);
-    ExpressionStatement statement = statements[0];
-
-    MethodInvocation invocation = statement.expression;
-    expect(invocation.staticType, isDynamicType);
-    expect(invocation.staticInvokeType, isDynamicType);
+    var invocation = findNode.methodInvocation('foo.bar');
+    assertTypeDynamic(invocation);
+    assertUnresolvedInvokeType(invocation.staticInvokeType);
 
     SimpleIdentifier target = invocation.target;
-    expect(target.staticElement, isNull);
-    expect(target.staticType, isDynamicType);
+    assertElementNull(target);
+    assertTypeDynamic(target);
 
     SimpleIdentifier name = invocation.methodName;
-    expect(name.staticElement, isNull);
-    expect(name.staticType, isDynamicType);
+    assertElementNull(name);
+    assertUnresolvedInvokeType(name.staticType);
 
     assertTypeArguments(invocation.typeArguments, [intType, doubleType]);
     _assertInvocationArguments(invocation.argumentList,

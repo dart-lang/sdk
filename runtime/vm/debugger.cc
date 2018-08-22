@@ -324,14 +324,12 @@ ActivationFrame::ActivationFrame(const Closure& async_activation)
 }
 
 bool Debugger::NeedsIsolateEvents() {
-  return ((isolate_ != Dart::vm_isolate()) &&
-          !ServiceIsolate::IsServiceIsolateDescendant(isolate_) &&
+  return (!Isolate::IsVMInternalIsolate(isolate_) &&
           ((event_handler_ != NULL) || Service::isolate_stream.enabled()));
 }
 
 bool Debugger::NeedsDebugEvents() {
-  ASSERT(isolate_ != Dart::vm_isolate() &&
-         !ServiceIsolate::IsServiceIsolateDescendant(isolate_));
+  ASSERT(!Isolate::IsVMInternalIsolate(isolate_));
   return (FLAG_warn_on_pause_with_no_debugger || (event_handler_ != NULL) ||
           Service::debug_stream.enabled());
 }
@@ -1133,8 +1131,8 @@ RawObject* ActivationFrame::GetParameter(intptr_t index) {
     // were actually supplied at the call site, but they are copied to a fixed
     // place in the callee's frame.
 
-    return GetVariableValue(
-        LocalVarAddress(fp(), FrameSlotForVariableIndex(-index)));
+    return GetVariableValue(LocalVarAddress(
+        fp(), runtime_frame_layout.FrameSlotForVariableIndex(-index)));
   } else {
     intptr_t reverse_index = num_parameters - index;
     return GetVariableValue(ParamAddress(fp(), reverse_index));
@@ -1147,7 +1145,8 @@ RawObject* ActivationFrame::GetClosure() {
 }
 
 RawObject* ActivationFrame::GetStackVar(VariableIndex variable_index) {
-  const intptr_t slot_index = FrameSlotForVariableIndex(variable_index.value());
+  const intptr_t slot_index =
+      runtime_frame_layout.FrameSlotForVariableIndex(variable_index.value());
   if (deopt_frame_.IsNull()) {
     return GetVariableValue(LocalVarAddress(fp(), slot_index));
   } else {
@@ -1735,8 +1734,7 @@ Debugger::~Debugger() {
 void Debugger::Shutdown() {
   // TODO(johnmccutchan): Do not create a debugger for isolates that don't need
   // them. Then, assert here that isolate_ is not one of those isolates.
-  if ((isolate_ == Dart::vm_isolate()) ||
-      ServiceIsolate::IsServiceIsolateDescendant(isolate_)) {
+  if (Isolate::IsVMInternalIsolate(isolate_)) {
     return;
   }
   while (breakpoint_locations_ != NULL) {

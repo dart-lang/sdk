@@ -482,6 +482,9 @@ void Precompiler::PrecompileConstructors() {
     const intptr_t cid = current->cid_;
     current->field_->set_guarded_cid(cid);
     current->field_->set_is_nullable(cid == kNullCid || cid == kDynamicCid);
+    // TODO(vegorov) we can actually compute the length in the same way we
+    // compute cids.
+    current->field_->set_guarded_list_length(Field::kNoFixedLength);
     if (FLAG_trace_precompiler) {
       THR_Print(
           "Field %s <- Type %s\n", current->field_->ToCString(),
@@ -1450,7 +1453,7 @@ void Precompiler::AddInstantiatedClass(const Class& cls) {
 
 enum class EntryPointPragma { kAlways, kNever, kGetterOnly, kSetterOnly };
 
-// Adds all values annotated with @pragma('vm.entry-point') as roots.
+// Adds all values annotated with @pragma('vm:entry-point') as roots.
 void Precompiler::AddAnnotatedRoots() {
   auto& lib = Library::Handle(Z);
   auto& cls = Class::Handle(isolate()->object_store()->pragma_class());
@@ -2765,8 +2768,8 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
            deopt_info_array.Length() * sizeof(uword));
   // Allocates instruction object. Since this occurs only at safepoint,
   // there can be no concurrent access to the instruction page.
-  const Code& code =
-      Code::Handle(Code::FinalizeCode(function, assembler, optimized(), stats));
+  const Code& code = Code::Handle(Code::FinalizeCode(
+      function, graph_compiler, assembler, optimized(), stats));
   code.set_is_optimized(optimized());
   code.set_owner(function);
   if (!function.IsOptimizable()) {

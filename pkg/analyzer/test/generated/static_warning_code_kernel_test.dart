@@ -286,18 +286,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
 
   @override
   @failingTest
-  test_finalNotInitialized_instanceField_final() async {
-    return super.test_finalNotInitialized_instanceField_final();
-  }
-
-  @override
-  @failingTest
-  test_finalNotInitialized_instanceField_final_static() async {
-    return super.test_finalNotInitialized_instanceField_final_static();
-  }
-
-  @override
-  @failingTest
   test_generalizedVoid_invocationOfVoidFieldError() async {
     return super.test_generalizedVoid_invocationOfVoidFieldError();
   }
@@ -587,20 +575,5 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @failingTest
   test_undefinedIdentifier_function() async {
     return super.test_undefinedIdentifier_function();
-  }
-
-  @override
-  test_useOfVoidResult_await() async {
-    return super.test_useOfVoidResult_await();
-  }
-
-  @override
-  test_useOfVoidResult_inForLoop_ok() async {
-    return super.test_useOfVoidResult_inForLoop_ok();
-  }
-
-  @override
-  test_useOfVoidResult_variableDeclaration_method_ok() async {
-    return super.test_useOfVoidResult_variableDeclaration_method_ok();
   }
 }

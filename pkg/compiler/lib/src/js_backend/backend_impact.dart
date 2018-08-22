@@ -462,13 +462,6 @@ class BackendImpacts {
     return _typeCheck ??= new BackendImpact(otherImpacts: [boolValues]);
   }
 
-  BackendImpact _checkedModeTypeCheck;
-
-  BackendImpact get checkedModeTypeCheck {
-    return _checkedModeTypeCheck ??=
-        new BackendImpact(staticUses: [_commonElements.throwRuntimeError]);
-  }
-
   BackendImpact _malformedTypeCheck;
 
   BackendImpact get malformedTypeCheck {
@@ -497,25 +490,11 @@ class BackendImpacts {
     return _genericIsCheck ??= new BackendImpact(otherImpacts: [intValues]);
   }
 
-  BackendImpact _genericCheckedModeTypeCheck;
-
-  BackendImpact get genericCheckedModeTypeCheck {
-    return _genericCheckedModeTypeCheck ??=
-        new BackendImpact(staticUses: [_commonElements.assertSubtype]);
-  }
-
   BackendImpact _typeVariableTypeCheck;
 
   BackendImpact get typeVariableTypeCheck {
     return _typeVariableTypeCheck ??= new BackendImpact(
         staticUses: [_commonElements.checkSubtypeOfRuntimeType]);
-  }
-
-  BackendImpact _typeVariableCheckedModeTypeCheck;
-
-  BackendImpact get typeVariableCheckedModeTypeCheck {
-    return _typeVariableCheckedModeTypeCheck ??= new BackendImpact(
-        staticUses: [_commonElements.assertSubtypeOfRuntimeType]);
   }
 
   BackendImpact _functionTypeCheck;
@@ -666,17 +645,6 @@ class BackendImpacts {
         // Because we cannot enqueue elements at the time of emission,
         // we make sure they are always generated.
         globalUses: [_commonElements.isJsIndexable]);
-  }
-
-  BackendImpact _enableTypeAssertions;
-
-  BackendImpact get enableTypeAssertions {
-    return _enableTypeAssertions ??= new BackendImpact(
-        // Register the helper that checks if the expression in an if/while/for
-        // is a boolean.
-        // TODO(johnniwinther): Should this be registered through a [Feature]
-        // instead?
-        globalUses: [_commonElements.boolConversionCheck]);
   }
 
   BackendImpact _traceHelper;

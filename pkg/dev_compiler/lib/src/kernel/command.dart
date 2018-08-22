@@ -80,7 +80,14 @@ Future<CompilerResult> _compile(List<String> args,
         help: 'emit API summary in a .js.txt file', defaultsTo: true)
     // TODO(jmesserly): add verbose help to show hidden options
     ..addOption('dart-sdk-summary',
-        help: 'The path to the Dart SDK summary file.', hide: true);
+        help: 'The path to the Dart SDK summary file.', hide: true)
+    ..addOption('multi-root-scheme',
+        help: 'The custom scheme to indicate a multi-root uri.',
+        defaultsTo: 'org-dartlang-app')
+    ..addMultiOption('multi-root',
+        help: 'The directories to search when encountering uris with the '
+            'specified multi-root scheme.',
+        defaultsTo: [Uri.base.path]);
   SharedCompilerOptions.addArguments(argParser);
 
   var declaredVariables = parseAndRemoveDeclaredVariables(args);
@@ -96,13 +103,18 @@ Future<CompilerResult> _compile(List<String> args,
   // lib folder). The following [FileSystem] will resolve those references to
   // the correct location and keeps the real file location hidden from the
   // front end.
-  var customScheme = 'org-dartlang-app';
+  var multiRootScheme = argResults['multi-root-scheme'] as String;
+
   var fileSystem = MultiRootFileSystem(
-      customScheme, [Uri.base], StandardFileSystem.instance);
+      multiRootScheme,
+      (argResults['multi-root'] as Iterable<String>)
+          .map(Uri.base.resolve)
+          .toList(),
+      StandardFileSystem.instance);
 
   Uri toCustomUri(Uri uri) {
     if (uri.scheme == '') {
-      return Uri(scheme: customScheme, path: '/' + uri.path);
+      return Uri(scheme: multiRootScheme, path: '/' + uri.path);
     }
     return uri;
   }
@@ -190,7 +202,8 @@ Future<CompilerResult> _compile(List<String> args,
       buildSourceMap: argResults['source-map'] as bool,
       jsUrl: path.toUri(output).toString(),
       mapUrl: path.toUri(output + '.map').toString(),
-      bazelMapping: options.bazelMapping);
+      bazelMapping: options.bazelMapping,
+      customScheme: multiRootScheme);
 
   outFiles.add(file.writeAsString(jsCode.code));
   if (jsCode.sourceMap != null) {

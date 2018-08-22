@@ -19,6 +19,6 @@ abstract class _Namespace {
   // If it is not set up by the embedder, relative paths will be resolved
   // relative to the process's current working directory and absolute paths will
   // be left relative to the file system root.
-  @pragma("vm.entry-point")
+  @pragma("vm:entry-point")
   external static void _setupNamespace(var namespace);
 }

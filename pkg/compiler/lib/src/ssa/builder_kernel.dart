@@ -328,7 +328,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     _inLazyInitializerExpression = node.isStatic;
     FieldEntity field = _elementMap.getMember(node);
     openFunction(field, checks: TargetChecks.none);
-    if (node.isInstanceMember && options.enableTypeAssertions) {
+    if (node.isInstanceMember && options.parameterCheckPolicy.isEmitted) {
       HInstruction thisInstruction = localsHandler.readThis(
           sourceInformation: _sourceInformationBuilder.buildGet(node));
       // Use dynamic type because the type computed by the inferrer is
@@ -949,13 +949,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
     FunctionType functionType =
         _elementMap.getFunctionType(originalClosureNode);
     functionType.forEachTypeVariable((TypeVariableType typeVariableType) {
-      if (options.strongMode ||
-          typeVariableType.element.typeDeclaration is ClassEntity) {
-        DartType result = localsHandler.substInContext(typeVariableType);
-        HInstruction argument =
-            typeBuilder.analyzeTypeArgument(result, sourceElement);
-        typeArguments.add(argument);
-      }
+      DartType result = localsHandler.substInContext(typeVariableType);
+      HInstruction argument =
+          typeBuilder.analyzeTypeArgument(result, sourceElement);
+      typeArguments.add(argument);
     });
     push(new HTypeInfoExpression(
         TypeInfoExpressionKind.COMPLETE,
@@ -1160,18 +1157,13 @@ class KernelSsaGraphBuilder extends ir.Visitor
       HInstruction newParameter = localsHandler.directLocals[local];
       DartType type = _getDartTypeIfValid(variable.type);
 
-      if (options.strongMode) {
-        if (targetChecks.checkAllParameters ||
-            (targetChecks.checkCovariantParameters &&
-                (variable.isGenericCovariantImpl || variable.isCovariant))) {
-          newParameter = typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
-              newParameter, type);
-        } else {
-          newParameter = typeBuilder.trustTypeOfParameter(newParameter, type);
-        }
-      } else {
+      if (targetChecks.checkAllParameters ||
+          (targetChecks.checkCovariantParameters &&
+              (variable.isGenericCovariantImpl || variable.isCovariant))) {
         newParameter = typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
             newParameter, type);
+      } else {
+        newParameter = typeBuilder.trustTypeOfParameter(newParameter, type);
       }
 
       localsHandler.directLocals[local] = newParameter;
@@ -1480,7 +1472,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
       node.expression.accept(this);
       value = pop();
       if (_currentFrame.asyncMarker == AsyncMarker.ASYNC) {
-        if (options.enableTypeAssertions &&
+        // TODO(johnniwinther): Is this special-casing of async still needed
+        // or should we use the general check below?
+        /*if (options.enableTypeAssertions &&
             !isValidAsyncReturnType(_returnType)) {
           generateTypeError(
               "Async function returned a Future,"
@@ -1488,7 +1482,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
               sourceInformation);
           pop();
           return;
-        }
+        }*/
       } else {
         value = typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(
             value, _returnType);
@@ -3188,7 +3182,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   /// returns the selector corresponding to the passed type arguments.
   Selector _fillDynamicTypeArguments(
       Selector selector, ir.Arguments arguments, List<DartType> typeArguments) {
-    if (options.strongMode && selector.typeArgumentCount > 0) {
+    if (selector.typeArgumentCount > 0) {
       if (rtiNeed.selectorNeedsTypeArguments(selector)) {
         typeArguments.addAll(arguments.types.map(_elementMap.getDartType));
       } else {
@@ -3217,7 +3211,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   List<DartType> _getStaticTypeArguments(
       FunctionEntity function, ir.Arguments arguments) {
-    if (options.strongMode && rtiNeed.methodNeedsTypeArguments(function)) {
+    if (rtiNeed.methodNeedsTypeArguments(function)) {
       return arguments.types.map(_elementMap.getDartType).toList();
     }
     return const <DartType>[];
@@ -3294,13 +3288,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildCall(node, node);
     FunctionEntity function = _elementMap.getMember(target);
-    if (_elementMap.isForeignHelper(function)) {
+    if (_commonElements.isForeignHelper(function)) {
       handleInvokeStaticForeign(node, function);
       return;
     }
 
-    if (options.strongMode &&
-        function == _commonElements.extractTypeArguments &&
+    if (function == _commonElements.extractTypeArguments &&
         handleExtractTypeArguments(node, sourceInformation)) {
       return;
     }
@@ -3368,10 +3361,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     InterfaceType instanceType = _elementMap.createInterfaceType(
         invocation.target.enclosingClass, invocation.arguments.types);
-    if (_checkAllTypeVariableBounds(
-        function, instanceType, sourceInformation)) {
-      return;
-    }
 
     AbstractValue resultType = typeMask;
 
@@ -4600,94 +4589,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
         sourceInformation);
   }
 
-  /// In checked mode checks the [type] of [node] to be well-bounded.
-  /// Returns `true` if an error can be statically determined.
-  ///
-  /// We do this at the call site rather that in the constructor body so that we
-  /// can perform *static* analysis errors/warnings rather than only dynamic
-  /// ones from the type pararameters passed in to the constructors. This also
-  /// performs all checks for the instantiated class and all of its supertypes
-  /// (extended and inherited) at this single call site because interface type
-  /// variable constraints (when applicable) need to be checked but will not
-  /// have a constructor body that gets inlined to execute.
-  bool _checkAllTypeVariableBounds(ConstructorEntity constructor,
-      InterfaceType type, SourceInformation sourceInformation) {
-    if (!options.enableTypeAssertions) return false;
-
-    // This map keeps track of what checks we perform as we walk up the
-    // inheritance chain so that we don't check the same thing more than once.
-    Map<DartType, Set<DartType>> seenChecksMap =
-        new Map<DartType, Set<DartType>>();
-    bool knownInvalidBounds = false;
-
-    void _addTypeVariableBoundCheck(InterfaceType instance,
-        DartType typeArgument, TypeVariableType typeVariable, DartType bound) {
-      if (knownInvalidBounds) return;
-
-      int subtypeRelation = types.computeSubtypeRelation(typeArgument, bound);
-      if (subtypeRelation == DartTypes.IS_SUBTYPE) return;
-
-      String prefix = "Can't create an instance of malbounded type '$type': '";
-      String infix = "' is not a subtype of bound '";
-      String suffix;
-
-      if (type == instance) {
-        suffix = "' type variable '${typeVariable}' of type "
-            "'${types.getThisType(type.element)}'.";
-      } else {
-        suffix = "' type variable '${typeVariable}' of type "
-            "'${types.getThisType(instance.element)}' on the supertype "
-            "'${instance}' of '${type}'.";
-      }
-
-      if (subtypeRelation == DartTypes.NOT_SUBTYPE) {
-        String message = "TypeError: $prefix$typeArgument$infix$bound$suffix";
-        generateTypeError(message, sourceInformation);
-        knownInvalidBounds = true;
-        return;
-      } else if (subtypeRelation == DartTypes.MAYBE_SUBTYPE) {
-        Set<DartType> seenChecks =
-            seenChecksMap.putIfAbsent(typeArgument, () => new Set<DartType>());
-        if (!seenChecks.contains(bound)) {
-          seenChecks.add(bound);
-          _assertIsSubtype(typeArgument, bound, prefix, infix, suffix);
-        }
-      }
-    }
-
-    types.checkTypeVariableBounds(
-        type,
-        type.typeArguments,
-        _elementMap.elementEnvironment.getThisType(type.element).typeArguments,
-        _addTypeVariableBoundCheck);
-    if (knownInvalidBounds) {
-      return true;
-    }
-    for (InterfaceType supertype
-        in types.getSupertypes(constructor.enclosingClass)) {
-      InterfaceType instance = types.asInstanceOf(type, supertype.element);
-      types.checkTypeVariableBounds(
-          instance,
-          instance.typeArguments,
-          _elementMap.elementEnvironment
-              .getThisType(instance.element)
-              .typeArguments,
-          _addTypeVariableBoundCheck);
-      if (knownInvalidBounds) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  void _assertIsSubtype(DartType subtype, DartType supertype, String prefix,
-      String infix, String suffix) {
-    HInstruction subtypeInstruction = typeBuilder.analyzeTypeArgument(
-        localsHandler.substInContext(subtype), sourceElement);
-    _assertIsType(subtypeInstruction, supertype, prefix, infix, suffix);
-    registry?.registerTypeVariableBoundsSubtypeCheck(subtype, supertype);
-  }
-
   void _assertIsType(HInstruction subtypeInstruction, DartType supertype,
       String prefix, String infix, String suffix) {
     HInstruction supertypeInstruction = typeBuilder.analyzeTypeArgument(
@@ -4728,11 +4629,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
     InterfaceType instanceType = _elementMap.createInterfaceType(
         target.enclosingClass, node.arguments.types);
     instanceType = localsHandler.substInContext(instanceType);
-
-    if (_checkAllTypeVariableBounds(
-        constructor, instanceType, sourceInformation)) {
-      return;
-    }
 
     List<HInstruction> arguments = <HInstruction>[];
     if (constructor.isGenerativeConstructor &&
@@ -5153,19 +5049,40 @@ class KernelSsaGraphBuilder extends ir.Visitor
             InlineWeeder.INLINING_NODES_OUTSIDE_LOOP_ARG_FACTOR * numParameters;
       }
 
-      // If a method is called only once, and all the methods in the
-      // inlining stack are called only once as well, we know we will
-      // save on output size by inlining this method.
-      if (_isCalledOnce(function)) {
+      bool markedTryInline = inlineCache.markedAsTryInline(function);
+      bool calledOnce = _isCalledOnce(function);
+      // If a method is called only once, and all the methods in the inlining
+      // stack are called only once as well, we know we will save on output size
+      // by inlining this method.
+      if (markedTryInline || calledOnce) {
         maxInliningNodes = null;
       }
+      bool allowLoops = false;
+      if (markedTryInline) {
+        allowLoops = true;
+      }
+
       bool canInline = InlineWeeder.canBeInlined(
           _elementMap, function, maxInliningNodes,
+          allowLoops: allowLoops,
           enableUserAssertions: options.enableUserAssertions);
-      if (canInline) {
-        inlineCache.markAsInlinable(function, insideLoop: insideLoop);
+      if (markedTryInline) {
+        if (canInline) {
+          inlineCache.markAsInlinable(function, insideLoop: true);
+          inlineCache.markAsInlinable(function, insideLoop: false);
+        } else {
+          inlineCache.markAsNonInlinable(function, insideLoop: true);
+          inlineCache.markAsNonInlinable(function, insideLoop: false);
+        }
+      } else if (calledOnce) {
+        // TODO(34203): We can't update the decision due to imprecision in the
+        // calledOnce data, described in Issue 34203.
       } else {
-        inlineCache.markAsNonInlinable(function, insideLoop: insideLoop);
+        if (canInline) {
+          inlineCache.markAsInlinable(function, insideLoop: insideLoop);
+        } else {
+          inlineCache.markAsNonInlinable(function, insideLoop: insideLoop);
+        }
       }
       return canInline;
     }
@@ -5553,15 +5470,13 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // TODO(sra): Incorporate properties of call site to help determine which
     // type parameters and value parameters need to be checked.
     bool trusted = false;
-    if (options.strongMode) {
-      if (function.isStatic ||
-          function.isTopLevel ||
-          function.isConstructor ||
-          function is ConstructorBodyEntity) {
-        // We inline static methods, top-level methods, constructors and
-        // constructor bodies only from direct call sites.
-        trusted = true;
-      }
+    if (function.isStatic ||
+        function.isTopLevel ||
+        function.isConstructor ||
+        function is ConstructorBodyEntity) {
+      // We inline static methods, top-level methods, constructors and
+      // constructor bodies only from direct call sites.
+      trusted = true;
     }
 
     if (!trusted) {
@@ -5720,7 +5635,7 @@ class InlineWeeder extends ir.Visitor {
   bool registerNode() {
     if (maxInliningNodes == null) return true;
     if (nodeCount++ > maxInliningNodes) {
-      tooDifficultReason = 'too many nodes';
+      tooDifficultReason ??= 'too many nodes';
       return false;
     }
     return true;
@@ -5731,7 +5646,7 @@ class InlineWeeder extends ir.Visitor {
     if (tooDifficult) return;
     if (!registerNode()) return;
     if (seenReturn) {
-      tooDifficultReason = 'code after return';
+      tooDifficultReason ??= 'code after return';
       return;
     }
     node.visitChildren(this);
@@ -5741,7 +5656,7 @@ class InlineWeeder extends ir.Visitor {
   visitReturnStatement(ir.ReturnStatement node) {
     if (!registerNode()) return;
     if (seenReturn) {
-      tooDifficultReason = 'code after return';
+      tooDifficultReason ??= 'code after return';
       return;
     }
     node.visitChildren(this);
@@ -5752,69 +5667,66 @@ class InlineWeeder extends ir.Visitor {
   visitThrow(ir.Throw node) {
     if (!registerNode()) return;
     if (seenReturn) {
-      tooDifficultReason = 'code after return';
+      tooDifficultReason ??= 'code after return';
       return;
     }
     node.visitChildren(this);
   }
 
-  _handleLoop() {
-    // It's actually not difficult to inline a method with a loop, but
-    // our measurements show that it's currently better to not inline a
-    // method that contains a loop.
-    if (!allowLoops) tooDifficultReason = 'loop';
-    // TODO(johnniwinther): Shouldn't the loop body have been counted here? It
-    // isn't in the AST based inline weeder.
+  _handleLoop(ir.Node node) {
+    // It's actually not difficult to inline a method with a loop, but our
+    // measurements show that it's currently better to not inline a method that
+    // contains a loop.
+    if (!allowLoops) tooDifficultReason ??= 'loop';
+    node.visitChildren(this);
   }
 
   @override
   visitForStatement(ir.ForStatement node) {
-    _handleLoop();
+    _handleLoop(node);
   }
 
   @override
   visitForInStatement(ir.ForInStatement node) {
-    _handleLoop();
+    _handleLoop(node);
   }
 
   @override
   visitWhileStatement(ir.WhileStatement node) {
-    _handleLoop();
+    _handleLoop(node);
   }
 
   @override
   visitDoStatement(ir.DoStatement node) {
-    _handleLoop();
+    _handleLoop(node);
   }
 
   @override
   visitTryCatch(ir.TryCatch node) {
-    if (tooDifficult) return;
-    tooDifficultReason = 'try';
+    tooDifficultReason ??= 'try';
   }
 
   @override
   visitTryFinally(ir.TryFinally node) {
-    if (tooDifficult) return;
-    tooDifficultReason = 'try';
+    tooDifficultReason ??= 'try';
   }
 
   @override
   visitFunctionExpression(ir.FunctionExpression node) {
     if (!registerNode()) return;
-    tooDifficultReason = 'closure';
+    tooDifficultReason ??= 'closure';
   }
 
   @override
   visitFunctionDeclaration(ir.FunctionDeclaration node) {
     if (!registerNode()) return;
-    tooDifficultReason = 'closure';
+    tooDifficultReason ??= 'closure';
   }
 
   @override
   visitFunctionNode(ir.FunctionNode node) {
     if (node.asyncMarker != ir.AsyncMarker.Sync) {
-      tooDifficultReason = 'async/await';
+      tooDifficultReason ??= 'async/await';
       return;
     }
     node.visitChildren(this);

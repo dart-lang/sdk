@@ -1430,6 +1430,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
               : arguments.named[i - numPositionalArgs].value;
           ensureAssignable(
               expectedType, actualType, expression, expression.fileOffset,
+              isVoidAllowed: expectedType is VoidType,
               template: templateArgumentTypeNotAssignable);
         }
       }

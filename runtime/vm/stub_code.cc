@@ -62,8 +62,8 @@ RawCode* StubCode::Generate(const char* name,
                             void (*GenerateStub)(Assembler* assembler)) {
   Assembler assembler;
   GenerateStub(&assembler);
-  const Code& code =
-      Code::Handle(Code::FinalizeCode(name, &assembler, false /* optimized */));
+  const Code& code = Code::Handle(
+      Code::FinalizeCode(name, nullptr, &assembler, false /* optimized */));
 #ifndef PRODUCT
   if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
     LogBlock lb;
@@ -144,7 +144,8 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
     StubCode::GenerateAllocationStubForClass(&assembler, cls);
 
     if (thread->IsMutatorThread()) {
-      stub ^= Code::FinalizeCode(name, &assembler, false /* optimized */);
+      stub ^=
+          Code::FinalizeCode(name, nullptr, &assembler, false /* optimized */);
       // Check if background compilation thread has not already added the stub.
       if (cls.allocation_stub() == Code::null()) {
         stub.set_owner(cls);
@@ -168,7 +169,8 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
         // Do not Garbage collect during this stage and instead allow the
         // heap to grow.
         NoHeapGrowthControlScope no_growth_control;
-        stub ^= Code::FinalizeCode(name, &assembler, false /* optimized */);
+        stub ^= Code::FinalizeCode(name, nullptr, &assembler,
+                                   false /* optimized */);
         stub.set_owner(cls);
         cls.set_allocation_stub(stub);
       }

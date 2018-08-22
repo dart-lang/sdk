@@ -464,7 +464,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
       namedParameterTypes.add(getParameterType(variable));
     }
     List<FunctionTypeVariable> typeVariables;
-    if (node.typeParameters.isNotEmpty && options.strongMode) {
+    if (node.typeParameters.isNotEmpty) {
       List<DartType> typeParameters = <DartType>[];
       for (ir.TypeParameter typeParameter in node.typeParameters) {
         typeParameters
@@ -511,7 +511,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
   void _ensureCallType(IndexedClass cls, ClassData data) {
     if (!data.isCallTypeComputed) {
       data.isCallTypeComputed = true;
-      if (options.strongMode && !cls.isClosure) {
+      if (!cls.isClosure) {
         // In Dart 2, a regular class with a 'call' method is no longer a
         // subtype of its function type.
         return;
@@ -861,8 +861,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
       try {
         _typeEnvironment ??= new ir.TypeEnvironment(
             new ir.CoreTypes(_env.mainComponent),
-            new ir.ClassHierarchy(_env.mainComponent),
-            strongMode: options.strongMode);
+            new ir.ClassHierarchy(_env.mainComponent));
       } catch (e) {}
     }
     if (_typeEnvironment == null) {
@@ -1163,11 +1162,8 @@ abstract class ElementCreatorMixin implements KernelToElementMapBase {
     int typeParameters = node.typeParameters.length;
     List<String> namedParameters =
         node.namedParameters.map((p) => p.name).toList()..sort();
-    return new ParameterStructure(
-        requiredParameters,
-        positionalParameters,
-        namedParameters,
-        options.strongMode && includeTypeParameters ? typeParameters : 0);
+    return new ParameterStructure(requiredParameters, positionalParameters,
+        namedParameters, includeTypeParameters ? typeParameters : 0);
   }
 
   IndexedLibrary createLibrary(String name, Uri canonicalUri);
@@ -1347,7 +1343,7 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
 
   ScopeModel computeScopeModel(KMember member) {
     ir.Member node = _members.getData(member).definition.node;
-    return KernelClosureAnalysis.computeScopeModel(member, node, options);
+    return KernelClosureAnalysis.computeScopeModel(member, node);
   }
 
   /// Returns the kernel [ir.Procedure] node for the [method].
@@ -1820,16 +1816,6 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
     if (typeParameter != null) {
       return typeParameter;
     }
-    if (node.parameter.parent is ir.FunctionNode &&
-        node.parameter.parent.parent is ir.Procedure) {
-      // Special case for Dart 1 compatibility in checked mode.
-      ir.Procedure typeParameterParent = node.parameter.parent.parent;
-      if (typeParameterParent.kind != ir.ProcedureKind.Factory &&
-          !elementMap.options.strongMode) {
-        return new Dart1MethodTypeVariableType(
-            elementMap.getTypeVariable(node.parameter));
-      }
-    }
     if (node.parameter.parent is ir.Typedef) {
       // Typedefs are only used in type literals so we never need their type
       // variables.
@@ -1843,14 +1829,10 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
     int index = 0;
     List<FunctionTypeVariable> typeVariables;
     for (ir.TypeParameter typeParameter in node.typeParameters) {
-      if (elementMap.options.strongMode) {
-        FunctionTypeVariable typeVariable = new FunctionTypeVariable(index);
-        currentFunctionTypeParameters[typeParameter] = typeVariable;
-        typeVariables ??= <FunctionTypeVariable>[];
-        typeVariables.add(typeVariable);
-      } else {
-        currentFunctionTypeParameters[typeParameter] = const DynamicType();
-      }
+      FunctionTypeVariable typeVariable = new FunctionTypeVariable(index);
+      currentFunctionTypeParameters[typeParameter] = typeVariable;
+      typeVariables ??= <FunctionTypeVariable>[];
+      typeVariables.add(typeVariable);
       index++;
     }
     if (typeVariables != null) {
@@ -1882,11 +1864,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
     ClassEntity cls = elementMap.getClass(node.classNode);
     if (cls.name == 'FutureOr' &&
         cls.library == elementMap.commonElements.asyncLibrary) {
-      if (elementMap.options.strongMode) {
-        return new FutureOrType(visitTypes(node.typeArguments).single);
-      }
-      // In Dart 1 we encode 'FutureOr' as a dynamic type.
-      return const DynamicType();
+      return new FutureOrType(visitTypes(node.typeArguments).single);
     }
     return new InterfaceType(cls, visitTypes(node.typeArguments));
   }
@@ -2296,7 +2274,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
           _libraries.register<IndexedLibrary, LibraryData, LibraryEnv>(
               newLibrary,
               data.copy(),
-              options.strongMode && useStrongModeWorldStrategy
+              useStrongModeWorldStrategy
                   ? env.copyLive(_elementMap, liveMembers)
                   : env);
       assert(newLibrary.libraryIndex == oldLibrary.libraryIndex);
@@ -2313,7 +2291,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
       _classMap[env.cls] = _classes.register(
           newClass,
           data.copy(),
-          options.strongMode && useStrongModeWorldStrategy
+          useStrongModeWorldStrategy
               ? env.copyLive(_elementMap, liveMembers)
               : env);
       assert(newClass.classIndex == oldClass.classIndex);
@@ -2342,9 +2320,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
         memberIndex < _elementMap._members.length;
         memberIndex++) {
       IndexedMember oldMember = _elementMap._members.getEntity(memberIndex);
-      if (options.strongMode &&
-          useStrongModeWorldStrategy &&
-          !liveMembers.contains(oldMember)) {
+      if (useStrongModeWorldStrategy && !liveMembers.contains(oldMember)) {
         _members.skipIndex(oldMember.memberIndex);
         continue;
       }

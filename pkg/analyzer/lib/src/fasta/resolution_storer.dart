@@ -791,11 +791,13 @@ class ResolutionStorer
   void variableAssign(
       ExpressionJudgment judgment,
       int location,
+      bool isSyntheticLhs,
       DartType writeContext,
       covariant VariableDeclarationBinder writeVariableBinder,
       Node combiner,
       DartType inferredType) {
     _store(location,
+        isSynthetic: isSyntheticLhs,
         declaration: writeVariableBinder?.fileOffset,
         isWriteReference: true,
         writeContext: writeContext,

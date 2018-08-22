@@ -442,7 +442,8 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
-  void handleClassImplements(Token implementsKeyword, int interfacesCount) {
+  void handleClassOrMixinImplements(
+      Token implementsKeyword, int interfacesCount) {
     debugEvent("handleClassImplements");
     push(popList(
             interfacesCount,
@@ -752,6 +753,11 @@ class OutlineBuilder extends StackListener {
       }
       final int startCharOffset =
           metadata == null ? beginToken.charOffset : metadata.first.charOffset;
+
+      int codeStartOffset =
+          _chooseCodeStartOffset(docComment, metadataToken, beginToken);
+      int codeEndOffset = endToken.end;
+
       library.addConstructor(
           docComment?.text,
           metadata,
@@ -765,6 +771,8 @@ class OutlineBuilder extends StackListener {
           charOffset,
           formalsOffset,
           endToken.charOffset,
+          codeStartOffset,
+          codeEndOffset,
           nativeMethodName);
     } else {
       if (isConst) {
@@ -886,24 +894,36 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
-  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
-      Token varFinalOrConst) {
+  void beginFormalParameter(Token beginToken, MemberKind kind,
+      Token covariantToken, Token varFinalOrConst) {
+    push(beginToken);
     push((covariantToken != null ? covariantMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme));
   }
 
   @override
-  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
-      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
+  void endFormalParameter(
+      Token thisKeyword,
+      Token periodAfterThis,
+      Token nameToken,
+      FormalParameterKind kind,
+      MemberKind memberKind,
+      Token endToken) {
     debugEvent("FormalParameter");
     int charOffset = pop();
     String name = pop();
     TypeBuilder type = pop();
     int modifiers = pop();
+    Token beginToken = pop();
     List<MetadataBuilder> metadata = pop();
-    pop(); // metadataToken
-    push(library.addFormalParameter(
-        metadata, modifiers, type, name, thisKeyword != null, charOffset));
+    Token metadataToken = pop();
+
+    int codeStartOffset =
+        _chooseCodeStartOffset(null, metadataToken, beginToken);
+    int codeEndOffset = endToken.end;
+
+    push(library.addFormalParameter(metadata, modifiers, type, name,
+        thisKeyword != null, charOffset, codeStartOffset, codeEndOffset));
   }
 
   @override
@@ -1142,7 +1162,10 @@ class OutlineBuilder extends StackListener {
     List<MetadataBuilder> metadata = pop();
     Token metadataToken = pop();
     var docComment = documentationComment(beginToken, metadataToken);
-    library.addFields(docComment?.text, metadata, modifiers, type, fieldsInfo);
+    int firstFieldCodeStartOffset =
+        _chooseCodeStartOffset(docComment, metadataToken, beginToken);
+    library.addFields(docComment?.text, metadata, modifiers, type, fieldsInfo,
+        firstFieldCodeStartOffset);
     checkEmpty(beginToken.charOffset);
   }
 
@@ -1159,7 +1182,10 @@ class OutlineBuilder extends StackListener {
     List<MetadataBuilder> metadata = pop();
     Token metadataToken = pop();
     var docComment = documentationComment(beginToken, metadataToken);
-    library.addFields(docComment?.text, metadata, modifiers, type, fieldsInfo);
+    int firstFieldCodeStartOffset =
+        _chooseCodeStartOffset(docComment, metadataToken, beginToken);
+    library.addFields(docComment?.text, metadata, modifiers, type, fieldsInfo,
+        firstFieldCodeStartOffset);
   }
 
   @override
@@ -1258,6 +1284,11 @@ class OutlineBuilder extends StackListener {
     List<MetadataBuilder> metadata = pop();
     Token metadataToken = pop();
     var docComment = documentationComment(beginToken, metadataToken);
+
+    int codeStartOffset =
+        _chooseCodeStartOffset(docComment, metadataToken, beginToken);
+    int codeEndOffset = endToken.end;
+
     library.addFactoryMethod(
         docComment?.text,
         metadata,
@@ -1269,6 +1300,8 @@ class OutlineBuilder extends StackListener {
         charOffset,
         formalsOffset,
         endToken.charOffset,
+        codeStartOffset,
+        codeEndOffset,
         nativeMethodName);
     nativeMethodName = null;
     inConstructor = false;
@@ -1338,8 +1371,8 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
-  void endClassBody(int memberCount, Token beginToken, Token endToken) {
-    debugEvent("ClassBody");
+  void endClassOrMixinBody(int memberCount, Token beginToken, Token endToken) {
+    debugEvent("ClassOrMixinBody");
   }
 
   @override

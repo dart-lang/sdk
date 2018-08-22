@@ -35,8 +35,10 @@ class Fragment {
   Fragment(Instruction* entry, Instruction* current)
       : entry(entry), current(current) {}
 
-  bool is_open() { return entry == nullptr || current != nullptr; }
-  bool is_closed() { return !is_open(); }
+  bool is_open() const { return entry == nullptr || current != nullptr; }
+  bool is_closed() const { return !is_open(); }
+
+  bool is_empty() const { return entry == nullptr && current == nullptr; }
 
   void Prepend(Instruction* start);
 
@@ -112,7 +114,8 @@ class BaseFlowGraphBuilder {
       const ParsedFunction* parsed_function,
       intptr_t last_used_block_id,
       ZoneGrowableArray<intptr_t>* context_level_array = nullptr,
-      InlineExitCollector* exit_collector = nullptr)
+      InlineExitCollector* exit_collector = nullptr,
+      bool inlining_unchecked_entry = false)
       : parsed_function_(parsed_function),
         function_(parsed_function_->function()),
         thread_(Thread::Current()),
@@ -125,7 +128,8 @@ class BaseFlowGraphBuilder {
         stack_(NULL),
         pending_argument_count_(0),
         loop_depth_(0),
-        exit_collector_(exit_collector) {}
+        exit_collector_(exit_collector),
+        inlining_unchecked_entry_(inlining_unchecked_entry) {}
 
   Fragment LoadField(intptr_t offset, intptr_t class_id = kDynamicCid);
   Fragment LoadNativeField(const NativeFieldDesc* native_field);
@@ -253,6 +257,10 @@ class BaseFlowGraphBuilder {
   Fragment InstantiateType(const AbstractType& type);
   Fragment InstantiateTypeArguments(const TypeArguments& type_arguments);
 
+  // Returns true if we are building a graph for inlining of a call site that
+  // enters the function through the unchecked entry.
+  bool InliningUncheckedEntry() const { return inlining_unchecked_entry_; }
+
  protected:
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }
   intptr_t CurrentTryIndex();
@@ -275,6 +283,8 @@ class BaseFlowGraphBuilder {
   intptr_t pending_argument_count_;
   intptr_t loop_depth_;
   InlineExitCollector* exit_collector_;
+
+  const bool inlining_unchecked_entry_;
 
   friend class TryCatchBlock;
   friend class StreamingFlowGraphBuilder;

@@ -8,7 +8,6 @@ library subtypeset_test;
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/world.dart';
@@ -16,9 +15,7 @@ import '../type_test_helper.dart';
 
 void main() {
   asyncTest(() async {
-    print('--test from kernel------------------------------------------------');
-    await runTests();
-    print('--test from kernel (strong)---------------------------------------');
+    // TODO(johnniwinther): Remove code for Dart 1 tests.
     await runTests(strongMode: true);
   });
 }
@@ -51,7 +48,7 @@ runTests({bool strongMode: false}) async {
         new F();
         new G();
       }
-      """, options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2]);
+      """);
   KClosedWorld world = env.kClosedWorld;
 
   ClassEntity A = env.getElement("A");

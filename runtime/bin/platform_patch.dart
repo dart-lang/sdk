@@ -40,7 +40,7 @@ class _Platform {
   static Uri _script() => VMLibraryHooks.platformScript;
 
   // This script singleton is written to by the embedder if applicable.
-  @pragma("vm.entry-point")
+  @pragma("vm:entry-point")
   static void set _nativeScript(String path) {
     VMLibraryHooks.platformScript = (() {
       if (path.startsWith('http:') ||

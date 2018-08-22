@@ -397,7 +397,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _errorReporter.reportErrorForToken(
           CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, node.awaitKeyword);
     }
-    _checkForUseOfVoidResult(node.expression);
     return super.visitAwaitExpression(node);
   }
 
@@ -5269,7 +5268,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (toType.isDynamic || toType.isDartCoreNull || toType.isBottom) {
         return;
       }
-    } else {
+    }
+    if (!expectedType.isVoid && !fromType.isVoid) {
       var checkWithType = (!_inAsync)
           ? fromType
           : _typeProvider.futureType.instantiate(<DartType>[fromType]);

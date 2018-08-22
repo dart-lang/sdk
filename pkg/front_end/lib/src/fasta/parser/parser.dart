@@ -112,7 +112,7 @@ import 'util.dart'
 /// Parse methods all have the prefix `parse`, generate events
 /// (by calling methods on [listener]), and return the next token to parse.
 /// Some exceptions to this last point are methods such as [parseFunctionBody]
-/// and [parseClassBody] which return the last token parsed
+/// and [parseClassOrMixinBody] which return the last token parsed
 /// rather than the next token to be parsed.
 /// Parse methods are generally named `parseGrammarProductionSuffix`.
 /// The suffix can be one of `opt`, or `star`.
@@ -383,18 +383,19 @@ class Parser {
         token = parseScript(token);
       } else {
         token = parseMetadataStar(token);
-        final String value = token.next.stringValue;
+        Token keyword = token.next;
+        final String value = keyword.stringValue;
         if (identical(value, 'import')) {
-          directiveState?.checkImport(this, token);
-          token = parseImport(token);
+          directiveState?.checkImport(this, keyword);
+          token = parseImport(keyword);
         } else if (identical(value, 'export')) {
-          directiveState?.checkExport(this, token);
-          token = parseExport(token);
+          directiveState?.checkExport(this, keyword);
+          token = parseExport(keyword);
         } else if (identical(value, 'library')) {
-          directiveState?.checkLibrary(this, token);
-          token = parseLibraryName(token);
+          directiveState?.checkLibrary(this, keyword);
+          token = parseLibraryName(keyword);
         } else if (identical(value, 'part')) {
-          token = parsePartOrPartOf(token, directiveState);
+          token = parsePartOrPartOf(keyword, directiveState);
         } else if (identical(value, ';')) {
           token = start;
         } else {
@@ -448,7 +449,7 @@ class Parser {
     token = parseMetadataStar(token);
     Token next = token.next;
     if (next.isTopLevelKeyword) {
-      return parseTopLevelKeywordDeclaration(token, null, directiveState);
+      return parseTopLevelKeywordDeclaration(token, next, directiveState);
     }
     Token start = token;
     // Skip modifiers to find a top level keyword or identifier
@@ -467,23 +468,7 @@ class Parser {
     }
     next = token.next;
     if (next.isTopLevelKeyword) {
-      Token beforeAbstractToken;
-      Token beforeModifier = start;
-      Token modifier = start.next;
-      while (modifier != next) {
-        if (optional('abstract', modifier) &&
-            optional('class', next) &&
-            beforeAbstractToken == null) {
-          beforeAbstractToken = beforeModifier;
-        } else {
-          // Recovery
-          reportTopLevelModifierError(modifier, next);
-        }
-        beforeModifier = modifier;
-        modifier = modifier.next;
-      }
-      return parseTopLevelKeywordDeclaration(
-          token, beforeAbstractToken, directiveState);
+      return parseTopLevelKeywordDeclaration(start, next, directiveState);
     } else if (next.isKeywordOrIdentifier) {
       // TODO(danrubel): improve parseTopLevelMember
       // so that we don't parse modifiers twice.
@@ -514,6 +499,33 @@ class Parser {
     return parseInvalidTopLevelDeclaration(token);
   }
 
+  /// Parse the modifiers before the `class` keyword.
+  /// Return the first `abstract` modifier or `null` if not found.
+  Token parseClassDeclarationModifiers(Token start, Token keyword) {
+    Token modifier = start.next;
+    while (modifier != keyword) {
+      if (optional('abstract', modifier)) {
+        parseTopLevelKeywordModifiers(modifier, keyword);
+        return modifier;
+      } else {
+        // Recovery
+        reportTopLevelModifierError(modifier, keyword);
+      }
+      modifier = modifier.next;
+    }
+    return null;
+  }
+
+  /// Report errors on any modifiers before the specified keyword.
+  void parseTopLevelKeywordModifiers(Token start, Token keyword) {
+    Token modifier = start.next;
+    while (modifier != keyword) {
+      // Recovery
+      reportTopLevelModifierError(modifier, keyword);
+      modifier = modifier.next;
+    }
+  }
+
   // Report an error for the given modifier preceding a top level keyword
   // such as `import` or `class`.
   void reportTopLevelModifierError(Token modifier, Token afterModifiers) {
@@ -537,50 +549,47 @@ class Parser {
   }
 
   /// Parse any top-level declaration that begins with a keyword.
+  /// [start] is the token before any modifiers preceding [keyword].
   Token parseTopLevelKeywordDeclaration(
-      Token token, Token beforeAbstractToken, DirectiveContext directiveState) {
-    Token previous = token;
-    token = token.next;
-    assert(token.isTopLevelKeyword);
-    final String value = token.stringValue;
+      Token start, Token keyword, DirectiveContext directiveState) {
+    assert(keyword.isTopLevelKeyword);
+    final String value = keyword.stringValue;
     if (identical(value, 'class')) {
       directiveState?.checkDeclaration();
-      return parseClassOrNamedMixinApplication(previous, beforeAbstractToken);
+      Token abstractToken = parseClassDeclarationModifiers(start, keyword);
+      return parseClassOrNamedMixinApplication(abstractToken, keyword);
     } else if (identical(value, 'enum')) {
       directiveState?.checkDeclaration();
-      return parseEnum(previous);
-    } else if (identical(value, 'typedef')) {
-      String nextValue = token.next.stringValue;
-      directiveState?.checkDeclaration();
-      if (identical('(', nextValue) ||
-          identical('<', nextValue) ||
-          identical('.', nextValue)) {
-        return parseTopLevelMemberImpl(previous);
-      } else {
-        return parseTypedef(previous);
-      }
+      parseTopLevelKeywordModifiers(start, keyword);
+      return parseEnum(keyword);
     } else {
       // The remaining top level keywords are built-in keywords
       // and can be used in a top level declaration
       // as an identifier such as "abstract<T>() => 0;"
       // or as a prefix such as "abstract.A b() => 0;".
-      String nextValue = token.next.stringValue;
+      String nextValue = keyword.next.stringValue;
       if (identical(nextValue, '(') ||
           identical(nextValue, '<') ||
           identical(nextValue, '.')) {
         directiveState?.checkDeclaration();
-        return parseTopLevelMemberImpl(previous);
-      } else if (identical(value, 'library')) {
-        directiveState?.checkLibrary(this, token);
-        return parseLibraryName(previous);
-      } else if (identical(value, 'import')) {
-        directiveState?.checkImport(this, token);
-        return parseImport(previous);
-      } else if (identical(value, 'export')) {
-        directiveState?.checkExport(this, token);
-        return parseExport(previous);
-      } else if (identical(value, 'part')) {
-        return parsePartOrPartOf(previous, directiveState);
+        return parseTopLevelMemberImpl(start);
+      } else {
+        parseTopLevelKeywordModifiers(start, keyword);
+        if (identical(value, 'typedef')) {
+          directiveState?.checkDeclaration();
+          return parseTypedef(keyword);
+        } else if (identical(value, 'library')) {
+          directiveState?.checkLibrary(this, keyword);
+          return parseLibraryName(keyword);
+        } else if (identical(value, 'import')) {
+          directiveState?.checkImport(this, keyword);
+          return parseImport(keyword);
+        } else if (identical(value, 'export')) {
+          directiveState?.checkExport(this, keyword);
+          return parseExport(keyword);
+        } else if (identical(value, 'part')) {
+          return parsePartOrPartOf(keyword, directiveState);
+        }
       }
     }
 
@@ -592,11 +601,10 @@ class Parser {
   ///   'library' qualified ';'
   /// ;
   /// ```
-  Token parseLibraryName(Token token) {
-    Token libraryKeyword = token.next;
+  Token parseLibraryName(Token libraryKeyword) {
     assert(optional('library', libraryKeyword));
     listener.beginLibraryName(libraryKeyword);
-    token = parseQualified(libraryKeyword, IdentifierContext.libraryName,
+    Token token = parseQualified(libraryKeyword, IdentifierContext.libraryName,
         IdentifierContext.libraryNameContinuation);
     token = ensureSemicolon(token);
     listener.endLibraryName(libraryKeyword, token);
@@ -631,11 +639,10 @@ class Parser {
   ///   'import' uri ('if' '(' test ')' uri)* importPrefix? combinator* ';'
   /// ;
   /// ```
-  Token parseImport(Token token) {
-    Token importKeyword = token.next;
+  Token parseImport(Token importKeyword) {
     assert(optional('import', importKeyword));
     listener.beginImport(importKeyword);
-    token = ensureLiteralString(importKeyword);
+    Token token = ensureLiteralString(importKeyword);
     Token uri = token;
     token = parseConditionalUriStar(token);
     token = parseImportPrefixOpt(token);
@@ -829,11 +836,10 @@ class Parser {
   ///   'export' uri conditional-uris* combinator* ';'
   /// ;
   /// ```
-  Token parseExport(Token token) {
-    Token exportKeyword = token.next;
+  Token parseExport(Token exportKeyword) {
     assert(optional('export', exportKeyword));
     listener.beginExport(exportKeyword);
-    token = ensureLiteralString(exportKeyword);
+    Token token = ensureLiteralString(exportKeyword);
     token = parseConditionalUriStar(token);
     token = parseCombinatorStar(token);
     token = ensureSemicolon(token);
@@ -927,15 +933,14 @@ class Parser {
     return token;
   }
 
-  Token parsePartOrPartOf(Token token, DirectiveContext directiveState) {
-    Token next = token.next;
-    assert(optional('part', next));
-    if (optional('of', next.next)) {
-      directiveState?.checkPartOf(this, next);
-      return parsePartOf(token);
+  Token parsePartOrPartOf(Token partKeyword, DirectiveContext directiveState) {
+    assert(optional('part', partKeyword));
+    if (optional('of', partKeyword.next)) {
+      directiveState?.checkPartOf(this, partKeyword);
+      return parsePartOf(partKeyword);
     } else {
-      directiveState?.checkPart(this, next);
-      return parsePart(token);
+      directiveState?.checkPart(this, partKeyword);
+      return parsePart(partKeyword);
     }
   }
 
@@ -944,11 +949,10 @@ class Parser {
   ///   'part' uri ';'
   /// ;
   /// ```
-  Token parsePart(Token token) {
-    Token partKeyword = token.next;
+  Token parsePart(Token partKeyword) {
     assert(optional('part', partKeyword));
     listener.beginPart(partKeyword);
-    token = ensureLiteralString(partKeyword);
+    Token token = ensureLiteralString(partKeyword);
     token = ensureSemicolon(token);
     listener.endPart(partKeyword, token);
     return token;
@@ -959,13 +963,13 @@ class Parser {
   ///   'part' 'of' (qualified | uri) ';'
   /// ;
   /// ```
-  Token parsePartOf(Token token) {
-    Token partKeyword = token.next;
+  Token parsePartOf(Token partKeyword) {
     Token ofKeyword = partKeyword.next;
     assert(optional('part', partKeyword));
     assert(optional('of', ofKeyword));
     listener.beginPartOf(partKeyword);
     bool hasName = ofKeyword.next.isIdentifier;
+    Token token;
     if (hasName) {
       token = parseQualified(ofKeyword, IdentifierContext.partName,
           IdentifierContext.partNameContinuation);
@@ -1053,12 +1057,11 @@ class Parser {
   ///   returnType? identifier
   /// ;
   /// ```
-  Token parseTypedef(Token token) {
-    Token typedefKeyword = token.next;
+  Token parseTypedef(Token typedefKeyword) {
     assert(optional('typedef', typedefKeyword));
     listener.beginFunctionTypeAlias(typedefKeyword);
     TypeInfo typeInfo = computeType(typedefKeyword, false);
-    token = typeInfo.skipType(typedefKeyword).next;
+    Token token = typeInfo.skipType(typedefKeyword).next;
     Token equals;
     TypeParamOrArgInfo typeParam = computeTypeParamOrArg(token, true);
     if (typeInfo == noType &&
@@ -1417,8 +1420,8 @@ class Parser {
     } else {
       listener.handleFormalParameterWithoutValue(next);
     }
-    listener.endFormalParameter(
-        thisKeyword, periodAfterThis, nameToken, parameterKind, memberKind);
+    listener.endFormalParameter(thisKeyword, periodAfterThis, nameToken,
+        parameterKind, memberKind, token);
     return token;
   }
 
@@ -1575,11 +1578,11 @@ class Parser {
   ///   metadata 'enum' id '{' metadata id [',' metadata id]* [','] '}'
   /// ;
   /// ```
-  Token parseEnum(Token token) {
-    Token enumKeyword = token.next;
+  Token parseEnum(Token enumKeyword) {
     assert(optional('enum', enumKeyword));
     listener.beginEnum(enumKeyword);
-    token = ensureIdentifier(enumKeyword, IdentifierContext.enumDeclaration);
+    Token token =
+        ensureIdentifier(enumKeyword, IdentifierContext.enumDeclaration);
     Token leftBrace = token.next;
     int count = 0;
     if (optional('{', leftBrace)) {
@@ -1635,16 +1638,13 @@ class Parser {
   }
 
   Token parseClassOrNamedMixinApplication(
-      Token token, Token beforeAbstractToken) {
-    token = token.next;
-    listener.beginClassOrNamedMixinApplication(token);
-    Token abstractToken = beforeAbstractToken?.next;
-    Token begin = abstractToken ?? token;
-    Token classKeyword = token;
-    assert(optional('class', token));
-    Token name =
-        ensureIdentifier(token, IdentifierContext.classOrNamedMixinDeclaration);
-    token = computeTypeParamOrArg(name, true).parseVariables(name, this);
+      Token abstractToken, Token classKeyword) {
+    assert(optional('class', classKeyword));
+    Token begin = abstractToken ?? classKeyword;
+    listener.beginClassOrNamedMixinApplication(begin);
+    Token name = ensureIdentifier(
+        classKeyword, IdentifierContext.classOrMixinDeclaration);
+    Token token = computeTypeParamOrArg(name, true).parseVariables(name, this);
     if (optional('=', token.next)) {
       listener.beginNamedMixinApplication(begin, abstractToken, name);
       return parseNamedMixinApplication(token, begin, classKeyword);
@@ -1688,16 +1688,16 @@ class Parser {
     if (!optional('{', token.next)) {
       // Recovery
       token = parseClassHeaderRecovery(start, begin, classKeyword);
-      ensureBlock(token, fasta.templateExpectedClassBody);
+      ensureBlock(token, fasta.templateExpectedClassOrMixinBody);
     }
-    token = parseClassBody(token);
+    token = parseClassOrMixinBody(token);
     listener.endClassDeclaration(begin, token);
     return token;
   }
 
   Token parseClassHeaderOpt(Token token, Token begin, Token classKeyword) {
     token = parseClassExtendsOpt(token);
-    token = parseClassImplementsOpt(token);
+    token = parseClassOrMixinImplementsOpt(token);
     Token nativeToken;
     if (optional('native', token.next)) {
       nativeToken = token.next;
@@ -1783,7 +1783,7 @@ class Parser {
         }
       }
 
-      token = parseClassImplementsOpt(token);
+      token = parseClassOrMixinImplementsOpt(token);
 
       if (recoveryListener.implementsKeyword != null) {
         if (hasImplements) {
@@ -1830,7 +1830,7 @@ class Parser {
   ///   'implements' typeName (',' typeName)*
   /// ;
   /// ```
-  Token parseClassImplementsOpt(Token token) {
+  Token parseClassOrMixinImplementsOpt(Token token) {
     Token implementsKeyword;
     int interfacesCount = 0;
     if (optional('implements', token.next)) {
@@ -1841,7 +1841,7 @@ class Parser {
         ++interfacesCount;
       } while (optional(',', token.next));
     }
-    listener.handleClassImplements(implementsKeyword, interfacesCount);
+    listener.handleClassOrMixinImplements(implementsKeyword, interfacesCount);
     return token;
   }
 
@@ -2515,9 +2515,9 @@ class Parser {
     return token;
   }
 
-  Token skipClassBody(Token token) {
+  Token skipClassOrMixinBody(Token token) {
     // The scanner ensures that `{` always has a closing `}`.
-    return ensureBlock(token, fasta.templateExpectedClassBody);
+    return ensureBlock(token, fasta.templateExpectedClassOrMixinBody);
   }
 
   /// ```
@@ -2525,18 +2525,18 @@ class Parser {
   ///   '{' classMember* '}'
   /// ;
   /// ```
-  Token parseClassBody(Token token) {
+  Token parseClassOrMixinBody(Token token) {
     Token begin = token = token.next;
     assert(optional('{', token));
-    listener.beginClassBody(token);
+    listener.beginClassOrMixinBody(token);
     int count = 0;
     while (notEofOrValue('}', token.next)) {
-      token = parseClassMemberImpl(token);
+      token = parseClassOrMixinMemberImpl(token);
       ++count;
     }
     token = token.next;
     assert(optional('}', token));
-    listener.endClassBody(count, begin, token);
+    listener.endClassOrMixinBody(count, begin, token);
     return token;
   }
 
@@ -2545,14 +2545,14 @@ class Parser {
       token.lexeme == 'unary' &&
       optional('-', token.next);
 
-  /// Parse a class member.
+  /// Parse a class or mixin member.
   ///
   /// This method is only invoked from outside the parser. As a result, this
   /// method takes the next token to be consumed rather than the last consumed
   /// token and returns the token after the last consumed token rather than the
   /// last consumed token.
-  Token parseClassMember(Token token) {
-    return parseClassMemberImpl(syntheticPreviousToken(token)).next;
+  Token parseClassOrMixinMember(Token token) {
+    return parseClassOrMixinMemberImpl(syntheticPreviousToken(token)).next;
   }
 
   /// ```
@@ -2561,8 +2561,13 @@ class Parser {
   ///   constructorDeclaration |
   ///   methodDeclaration
   /// ;
+  ///
+  /// mixinMember:
+  ///   fieldDeclaration |
+  ///   methodDeclaration
+  /// ;
   /// ```
-  Token parseClassMemberImpl(Token token) {
+  Token parseClassOrMixinMemberImpl(Token token) {
     Token beforeStart = token = parseMetadataStar(token);
 
     Token covariantToken;

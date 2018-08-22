@@ -15,18 +15,25 @@ import 'package:path/path.dart';
 import 'package:watcher/watcher.dart';
 
 /**
- * The name of the directory containing plugin specific subfolders used to
- * store data across sessions.
+ * The name of the directory containing plugin specific subfolders used to store
+ * data across sessions.
  */
 const String _SERVER_DIR = ".dartServer";
 
 /**
- * Returns the path to the user's home directory.
+ * Returns the path to default state location.
+ *
+ * Generally this is ~/.dartServer. It can be overridden via the
+ * ANALYZER_STATE_LOCATION_OVERRIDE environment variable, in which case this
+ * method will return the contents of that environment variable.
  */
 String _getStandardStateLocation() {
-  final home = io.Platform.isWindows
-      ? io.Platform.environment['LOCALAPPDATA']
-      : io.Platform.environment['HOME'];
+  final Map<String, String> env = io.Platform.environment;
+  if (env.containsKey('ANALYZER_STATE_LOCATION_OVERRIDE')) {
+    return env['ANALYZER_STATE_LOCATION_OVERRIDE'];
+  }
+
+  final home = io.Platform.isWindows ? env['LOCALAPPDATA'] : env['HOME'];
   return home != null && io.FileSystemEntity.isDirectorySync(home)
       ? join(home, _SERVER_DIR)
       : null;

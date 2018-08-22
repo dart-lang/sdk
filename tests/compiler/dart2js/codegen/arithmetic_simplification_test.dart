@@ -7,67 +7,65 @@ import 'package:async_helper/async_helper.dart';
 import '../compiler_helper.dart';
 
 const String INT_PLUS_ZERO = """
-int foo(x) => x;
-void main() {
-  var x = foo(0);
+int foo(int x) => x;
+main() {
+  int x = foo(0);
   return (x & 1) + 0;
 }
 """;
 
 const String ZERO_PLUS_INT = """
-int foo(x) => x;
-void main() {
-  var x = foo(0);
+int foo(int x) => x;
+main() {
+  int x = foo(0);
   return 0 + (x & 1);
 }
 """;
 
-// TODO(johnniwinther): Find out why this doesn't work without the `as num`
-// cast.
 const String NUM_PLUS_ZERO = """
-int foo(x) => x;
-void main() {
-  var x = foo(0) as num;
+num foo(num x) => x;
+main() {
+  num x = foo(0);
   return x + 0;
 }
 """;
 
 const String ZERO_PLUS_NUM = """
-int foo(x) => x;
-void main() {
-  var x = foo(0);
+num foo(num x) => x;
+main() {
+  num x = foo(0);
   return 0 + x;
 }
 """;
 
 const String INT_TIMES_ONE = """
-int foo(x) => x;
-void main() {
-  var x = foo(0);
+int foo(int x) => x;
+main() {
+  int x = foo(0);
   return (x & 1) * 1;
 }
 """;
 
 const String ONE_TIMES_INT = """
-int foo(x) => x;
-void main() {
-  var x = foo(0);
+int foo(int x) => x;
+main() {
+  int x = foo(0);
   return 1 * (x & 1);
 }
 """;
 
 const String NUM_TIMES_ONE = """
-int foo(x) => x;
-void main() {
-  var x = foo(0);
+num foo(num x) => x;
+main() {
+  num x = foo(0);
   return x * 1;
 }
 """;
 
 const String ONE_TIMES_NUM = """
-int foo(x) => x;
-void main() {
-  var x = foo(0);
+num foo(num x) => x;
+main() {
+  num x = foo(0);
   return 1 * x;
 }
 """;

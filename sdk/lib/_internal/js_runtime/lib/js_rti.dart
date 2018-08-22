@@ -57,14 +57,7 @@ class TypeImpl implements Type {
 
   String get _typeName => __typeName ??= runtimeTypeToString(_rti);
 
-  String toString() {
-    if (JS_GET_FLAG('STRONG_MODE')) {
-      return _typeName;
-    } else {
-      return _unmangledName ??=
-          unmangleAllIdentifiersIfPreservedAnyways(_typeName);
-    }
-  }
+  String toString() => _typeName;
 
   // TODO(ahe): This is a poor hashCode as it collides with its name.
   int get hashCode => _hashCode ??= _typeName.hashCode;
@@ -172,21 +165,10 @@ String getClassName(var object) {
   return rawRtiToJsConstructorName(getRawRuntimeType(getInterceptor(object)));
 }
 
-/**
- * Creates the string representation for the type representation [rti]
- * of type 4, the JavaScript array, where the first element represents the class
- * and the remaining elements represent the type arguments.
- */
-String _getRuntimeTypeAsStringV1(var rti) {
-  assert(isJsArray(rti));
-  String className = rawRtiToJsConstructorName(getIndex(rti, 0));
-  return '$className${joinArgumentsV1(rti, 1)}';
-}
-
-String _getRuntimeTypeAsStringV2(var rti, List<String> genericContext) {
+String _getRuntimeTypeAsString(var rti, List<String> genericContext) {
   assert(isJsArray(rti));
   String className = unminifyOrTag(rawRtiToJsConstructorName(getIndex(rti, 0)));
-  return '$className${joinArgumentsV2(rti, 1, genericContext)}';
+  return '$className${_joinArguments(rti, 1, genericContext)}';
 }
 
 /// Returns a human-readable representation of the type representation [rti].
@@ -194,43 +176,10 @@ String _getRuntimeTypeAsStringV2(var rti, List<String> genericContext) {
 /// Called from generated code.
 @NoInline()
 String runtimeTypeToString(var rti) {
-  return JS_GET_FLAG('STRONG_MODE')
-      ? runtimeTypeToStringV2(rti, null)
-      : runtimeTypeToStringV1(rti);
+  return _runtimeTypeToString(rti, null);
 }
 
-String runtimeTypeToStringV1(var rti) {
-  if (rti == null) {
-    return 'dynamic';
-  }
-  if (isJsArray(rti)) {
-    // A list representing a type with arguments.
-    return _getRuntimeTypeAsStringV1(rti);
-  }
-  if (isJsFunction(rti)) {
-    // A reference to the constructor.
-    return rawRtiToJsConstructorName(rti);
-  }
-  if (rti is int) {
-    return '${rti}';
-  }
-  String functionPropertyName = JS_GET_NAME(JsGetName.FUNCTION_TYPE_TAG);
-  if (JS('bool', 'typeof #[#] != "undefined"', rti, functionPropertyName)) {
-    // If the RTI has typedef equivalence info (via mirrors), use that since the
-    // mirrors helpers will re-parse the generated string.
-
-    String typedefPropertyName = JS_GET_NAME(JsGetName.TYPEDEF_TAG);
-    var typedefInfo = JS('', '#[#]', rti, typedefPropertyName);
-    if (typedefInfo != null) {
-      return runtimeTypeToStringV1(typedefInfo);
-    }
-    return _functionRtiToStringV1(rti);
-  }
-  // We should not get here.
-  return 'unknown-reified-type';
-}
-
-String runtimeTypeToStringV2(var rti, List<String> genericContext) {
+String _runtimeTypeToString(var rti, List<String> genericContext) {
   if (isDartDynamicTypeRti(rti)) {
     return 'dynamic';
   }
@@ -239,7 +188,7 @@ String runtimeTypeToStringV2(var rti, List<String> genericContext) {
   }
   if (isJsArray(rti)) {
     // A list representing a type with arguments.
-    return _getRuntimeTypeAsStringV2(rti, genericContext);
+    return _getRuntimeTypeAsString(rti, genericContext);
   }
   if (isJsFunction(rti)) {
     // A reference to the constructor.
@@ -257,79 +206,14 @@ String runtimeTypeToStringV2(var rti, List<String> genericContext) {
   }
   if (isDartFunctionType(rti)) {
     // TODO(sra): If there is a typedef tag, use the typedef name.
-    return _functionRtiToStringV2(rti, genericContext);
+    return _functionRtiToString(rti, genericContext);
   }
   if (isDartFutureOrType(rti)) {
     var typeArgument = getFutureOrArgument(rti);
-    return 'FutureOr<${runtimeTypeToStringV2(typeArgument, genericContext)}>';
+    return 'FutureOr<${_runtimeTypeToString(typeArgument, genericContext)}>';
   }
   // We should not get here.
   return 'unknown-reified-type';
-}
-
-String _functionRtiToStringV1(var rti) {
-  String returnTypeText;
-  String voidTag = JS_GET_NAME(JsGetName.FUNCTION_TYPE_VOID_RETURN_TAG);
-  if (JS('bool', '!!#[#]', rti, voidTag)) {
-    returnTypeText = 'void';
-  } else {
-    String returnTypeTag = JS_GET_NAME(JsGetName.FUNCTION_TYPE_RETURN_TYPE_TAG);
-    var returnRti = JS('', '#[#]', rti, returnTypeTag);
-    returnTypeText = runtimeTypeToStringV1(returnRti);
-  }
-
-  String argumentsText = '';
-  String sep = '';
-
-  String requiredParamsTag =
-      JS_GET_NAME(JsGetName.FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG);
-  bool hasArguments = JS('bool', '# in #', requiredParamsTag, rti);
-  if (hasArguments) {
-    List arguments = JS('JSFixedArray', '#[#]', rti, requiredParamsTag);
-    for (var argument in arguments) {
-      argumentsText += sep;
-      argumentsText += runtimeTypeToStringV1(argument);
-      sep = ', ';
-    }
-  }
-
-  String optionalParamsTag =
-      JS_GET_NAME(JsGetName.FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG);
-  bool hasOptionalArguments = JS('bool', '# in #', optionalParamsTag, rti);
-  if (hasOptionalArguments) {
-    List optionalArguments = JS('JSFixedArray', '#[#]', rti, optionalParamsTag);
-    argumentsText += '$sep[';
-    sep = '';
-    for (var argument in optionalArguments) {
-      argumentsText += sep;
-      argumentsText += runtimeTypeToStringV1(argument);
-      sep = ', ';
-    }
-    argumentsText += ']';
-  }
-
-  String namedParamsTag =
-      JS_GET_NAME(JsGetName.FUNCTION_TYPE_NAMED_PARAMETERS_TAG);
-  bool hasNamedArguments = JS('bool', '# in #', namedParamsTag, rti);
-  if (hasNamedArguments) {
-    var namedArguments = JS('', '#[#]', rti, namedParamsTag);
-    argumentsText += '$sep{';
-    sep = '';
-    for (String name in extractKeys(namedArguments)) {
-      argumentsText += sep;
-      argumentsText +=
-          runtimeTypeToStringV1(JS('', '#[#]', namedArguments, name));
-      argumentsText += ' $name';
-      sep = ', ';
-    }
-    argumentsText += '}';
-  }
-
-  // TODO(sra): Below is the same format as the VM. Change to:
-  //
-  //     '${returnTypeText} Function(${argumentsText})';
-  //
-  return '(${argumentsText}) => ${returnTypeText}';
 }
 
 // Returns a formatted String version of a function type.
@@ -343,7 +227,7 @@ String _functionRtiToStringV1(var rti) {
 // the inner scope index `0` is R, `3` is P, and `4` is Q.
 //
 // [genericContext] is initially `null`.
-String _functionRtiToStringV2(var rti, List<String> genericContext) {
+String _functionRtiToString(var rti, List<String> genericContext) {
   String typeParameters = '';
   int outerContextLength;
 
@@ -369,7 +253,7 @@ String _functionRtiToStringV2(var rti, List<String> genericContext) {
       var boundRti = boundsRti[i];
       if (isInterestingBound(boundRti)) {
         typeParameters +=
-            ' extends ' + runtimeTypeToStringV2(boundRti, genericContext);
+            ' extends ' + _runtimeTypeToString(boundRti, genericContext);
       }
     }
     typeParameters += '>';
@@ -382,7 +266,7 @@ String _functionRtiToStringV2(var rti, List<String> genericContext) {
   } else {
     String returnTypeTag = JS_GET_NAME(JsGetName.FUNCTION_TYPE_RETURN_TYPE_TAG);
     var returnRti = JS('', '#[#]', rti, returnTypeTag);
-    returnTypeText = runtimeTypeToStringV2(returnRti, genericContext);
+    returnTypeText = _runtimeTypeToString(returnRti, genericContext);
   }
 
   String argumentsText = '';
@@ -394,7 +278,7 @@ String _functionRtiToStringV2(var rti, List<String> genericContext) {
     List arguments = JS('JSFixedArray', '#[#]', rti, requiredParamsTag);
     for (var argument in arguments) {
       argumentsText += sep;
-      argumentsText += runtimeTypeToStringV2(argument, genericContext);
+      argumentsText += _runtimeTypeToString(argument, genericContext);
       sep = ', ';
     }
   }
@@ -408,7 +292,7 @@ String _functionRtiToStringV2(var rti, List<String> genericContext) {
     sep = '';
     for (var argument in optionalArguments) {
       argumentsText += sep;
-      argumentsText += runtimeTypeToStringV2(argument, genericContext);
+      argumentsText += _runtimeTypeToString(argument, genericContext);
       sep = ', ';
     }
     argumentsText += ']';
@@ -423,7 +307,7 @@ String _functionRtiToStringV2(var rti, List<String> genericContext) {
     sep = '';
     for (String name in extractKeys(namedArguments)) {
       argumentsText += sep;
-      argumentsText += runtimeTypeToStringV2(
+      argumentsText += _runtimeTypeToString(
           JS('', '#[#]', namedArguments, name), genericContext);
       argumentsText += ' $name';
       sep = ', ';
@@ -449,33 +333,10 @@ String _functionRtiToStringV2(var rti, List<String> genericContext) {
  * [startIndex].
  */
 String joinArguments(var types, int startIndex) {
-  return JS_GET_FLAG('STRONG_MODE')
-      ? joinArgumentsV2(types, startIndex, null)
-      : joinArgumentsV1(types, startIndex);
+  return _joinArguments(types, startIndex, null);
 }
 
-String joinArgumentsV1(var types, int startIndex) {
-  if (types == null) return '';
-  assert(isJsArray(types));
-  bool firstArgument = true;
-  bool allDynamic = true;
-  StringBuffer buffer = new StringBuffer('');
-  for (int index = startIndex; index < getLength(types); index++) {
-    if (firstArgument) {
-      firstArgument = false;
-    } else {
-      buffer.write(', ');
-    }
-    var argument = getIndex(types, index);
-    if (argument != null) {
-      allDynamic = false;
-    }
-    buffer.write(runtimeTypeToStringV1(argument));
-  }
-  return allDynamic ? '' : '<$buffer>';
-}
-
-String joinArgumentsV2(var types, int startIndex, List<String> genericContext) {
+String _joinArguments(var types, int startIndex, List<String> genericContext) {
   if (types == null) return '';
   assert(isJsArray(types));
   var separator = '';
@@ -488,9 +349,9 @@ String joinArgumentsV2(var types, int startIndex, List<String> genericContext) {
     if (argument != null) {
       allDynamic = false;
     }
-    buffer.write(runtimeTypeToStringV2(argument, genericContext));
+    buffer.write(_runtimeTypeToString(argument, genericContext));
   }
-  return (!JS_GET_FLAG('STRONG_MODE') && allDynamic) ? '' : '<$buffer>';
+  return '<$buffer>';
 }
 
 /**
@@ -581,13 +442,6 @@ substitute(var substitution, var arguments) {
  *   against.
  */
 bool checkSubtype(Object object, String isField, List checks, String asField) {
-  return JS_GET_FLAG('STRONG_MODE')
-      ? checkSubtypeV2(object, isField, checks, asField)
-      : checkSubtypeV1(object, isField, checks, asField);
-}
-
-bool checkSubtypeV1(
-    Object object, String isField, List checks, String asField) {
   if (object == null) return false;
   var arguments = getRuntimeTypeInfo(object);
   // Interceptor is needed for JSArray and native classes.
@@ -599,23 +453,7 @@ bool checkSubtypeV1(
   if (isSubclass == null) return false;
   // Should the asField function be passed the receiver?
   var substitution = getField(interceptor, asField);
-  return checkArgumentsV1(substitution, arguments, checks);
-}
-
-bool checkSubtypeV2(
-    Object object, String isField, List checks, String asField) {
-  if (object == null) return false;
-  var arguments = getRuntimeTypeInfo(object);
-  // Interceptor is needed for JSArray and native classes.
-  // TODO(sra): It could be a more specialized interceptor since [object] is not
-  // `null` or a primitive.
-  var interceptor = getInterceptor(object);
-  var isSubclass = getField(interceptor, isField);
-  // When we read the field and it is not there, [isSubclass] will be `null`.
-  if (isSubclass == null) return false;
-  // Should the asField function be passed the receiver?
-  var substitution = getField(interceptor, asField);
-  return checkArgumentsV2(substitution, arguments, null, checks, null);
+  return checkArguments(substitution, arguments, null, checks, null);
 }
 
 /// Returns the field's type name.
@@ -664,21 +502,9 @@ throwTypeError(message) {
   throw new TypeErrorImplementation.fromMessage(message);
 }
 
-/**
- * Check that the types in the list [arguments] are subtypes of the types in
- * list [checks] (at the respective positions), possibly applying [substitution]
- * to the arguments before the check.
- *
- * See the comment in the beginning of this file for a description of the
- * possible values for [substitution].
- */
-bool checkArgumentsV1(var substitution, var arguments, var checks) {
-  return areSubtypesV1(substitute(substitution, arguments), checks);
-}
-
-bool checkArgumentsV2(
+bool checkArguments(
     var substitution, var arguments, var sEnv, var checks, var tEnv) {
-  return areSubtypesV2(substitute(substitution, arguments), sEnv, checks, tEnv);
+  return areSubtypes(substitute(substitution, arguments), sEnv, checks, tEnv);
 }
 
 /**
@@ -693,30 +519,13 @@ bool checkArgumentsV2(
  * representations.
  */
 
-bool areSubtypesV1(var s, var t) {
-  // `null` means a raw type.
-  if (s == null || t == null) return true;
-
-  assert(isJsArray(s));
-  assert(isJsArray(t));
-  assert(getLength(s) == getLength(t));
-
-  int len = getLength(s);
-  for (int i = 0; i < len; i++) {
-    if (!isSubtypeV1(getIndex(s, i), getIndex(t, i))) {
-      return false;
-    }
-  }
-  return true;
-}
-
-bool areSubtypesV2(var s, var sEnv, var t, var tEnv) {
+bool areSubtypes(var s, var sEnv, var t, var tEnv) {
   // `null` means a raw type.
   if (t == null) return true;
   if (s == null) {
     int len = getLength(t);
     for (int i = 0; i < len; i++) {
-      if (!isSubtypeV2(null, null, getIndex(t, i), tEnv)) {
+      if (!_isSubtype(null, null, getIndex(t, i), tEnv)) {
         return false;
       }
     }
@@ -729,7 +538,7 @@ bool areSubtypesV2(var s, var sEnv, var t, var tEnv) {
 
   int len = getLength(s);
   for (int i = 0; i < len; i++) {
-    if (!isSubtypeV2(getIndex(s, i), sEnv, getIndex(t, i), tEnv)) {
+    if (!_isSubtype(getIndex(s, i), sEnv, getIndex(t, i), tEnv)) {
       return false;
     }
   }
@@ -748,25 +557,9 @@ computeSignature(var signature, var context, var contextName) {
 }
 
 /// Returns `true` if the runtime type representation [type] is a top type.
-///
-/// For Dart 1 this is either `dynamic` or `Object`. For Dart 2 this is either
-/// `dynamic`, `void` or `Object`.
+/// That is, either `dynamic`, `void` or `Object`.
 @ForceInline()
 bool isTopType(var type) {
-  return JS_GET_FLAG('STRONG_MODE') ? isTopTypeV2(type) : isTopTypeV1(type);
-}
-
-/// Returns `true` if the runtime type representation [type] is a top type for
-/// Dart 1. That is, either `dynamic` or `Object`.
-@ForceInline()
-bool isTopTypeV1(var type) {
-  return isDartDynamicTypeRti(type) || isDartObjectTypeRti(type);
-}
-
-/// Returns `true` if the runtime type representation [type] is a top type for
-/// Dart 2. That is, either `dynamic`, `void` or `Object`.
-@ForceInline()
-bool isTopTypeV2(var type) {
   return isDartDynamicTypeRti(type) ||
       isDartVoidTypeRti(type) ||
       isDartObjectTypeRti(type) ||
@@ -777,18 +570,7 @@ bool isTopTypeV2(var type) {
 /// [Null].
 @ForceInline()
 bool isSupertypeOfNull(var type) {
-  return JS_GET_FLAG('STRONG_MODE')
-      ? isSupertypeOfNullBaseV2(type) || isSupertypeOfNullRecursive(type)
-      : isSupertypeOfNullBaseV1(type);
-}
-
-/// Returns `true` if the runtime type representation [type] is a simple
-/// supertype of [Null].
-@ForceInline()
-bool isSupertypeOfNullBaseV1(var type) {
-  return isDartDynamicTypeRti(type) ||
-      isDartObjectTypeRti(type) ||
-      isNullTypeRti(type);
+  return isSupertypeOfNullBase(type) || isSupertypeOfNullRecursive(type);
 }
 
 /// Returns `true` if the runtime type representation [type] is a simple
@@ -797,7 +579,7 @@ bool isSupertypeOfNullBaseV1(var type) {
 /// This method doesn't handle `FutureOr<Null>`. This is handle by
 /// [isSupertypeOfNullRecursive] because it requires a recursive check.
 @ForceInline()
-bool isSupertypeOfNullBaseV2(var type) {
+bool isSupertypeOfNullBase(var type) {
   return isDartDynamicTypeRti(type) ||
       isDartObjectTypeRti(type) ||
       isNullTypeRti(type) ||
@@ -818,7 +600,7 @@ bool isSupertypeOfNullRecursive(var type) {
   }
   if (isDartFutureOrType(type)) {
     var typeArgument = getFutureOrArgument(type);
-    return isSupertypeOfNullBaseV2(type) ||
+    return isSupertypeOfNullBase(type) ||
         isSupertypeOfNullRecursive(typeArgument);
   }
   return false;
@@ -848,7 +630,7 @@ bool checkSubtypeOfRuntimeType(o, t) {
   if (o == null) return isSupertypeOfNull(t);
   if (isTopType(t)) return true;
   if (JS('bool', 'typeof # == "object"', t)) {
-    if (JS_GET_FLAG('STRONG_MODE') && isDartFutureOrType(t)) {
+    if (isDartFutureOrType(t)) {
       // `o is FutureOr<T>` is equivalent to
       //
       //     o is T || o is Future<T>
@@ -915,75 +697,20 @@ getArguments(var type) {
  * constructor of the class, or an array (for generic class types).
  */
 bool isSubtype(var s, var t) {
-  return JS_GET_FLAG('STRONG_MODE')
-      ? isSubtypeV2(s, null, t, null)
-      : isSubtypeV1(s, t);
+  return _isSubtype(s, null, t, null);
 }
 
-bool isSubtypeV1(var s, var t) {
-  // Subtyping is reflexive.
-  if (isIdentical(s, t)) return true;
-  // If either type is dynamic, [s] is a subtype of [t].
-  if (isDartDynamicTypeRti(s) || isDartDynamicTypeRti(t)) return true;
-
-  // Generic function type parameters must match exactly, which would have
-  // exited earlier. The de Bruijn indexing ensures the representation as a
-  // small number can be used for type comparison.
-  if (isGenericFunctionTypeParameter(s)) {
-    // TODO(sra):  tau <: Object.
-    return false;
-  }
-  if (isGenericFunctionTypeParameter(t)) return false;
-
-  if (isNullType(s)) return true;
-
-  if (isDartFunctionType(t)) {
-    return isFunctionSubtypeV1(s, t);
-  }
-  // Check function types against the Function class and the Object class.
-  if (isDartFunctionType(s)) {
-    return isDartFunctionTypeRti(t) || isDartObjectTypeRti(t);
-  }
-
-  // Get the object describing the class and check for the subtyping flag
-  // constructed from the type of [t].
-  var typeOfS = isJsArray(s) ? getIndex(s, 0) : s;
-  var typeOfT = isJsArray(t) ? getIndex(t, 0) : t;
-
-  // Check for a subtyping flag.
-  // Get the necessary substitution of the type arguments, if there is one.
-  var substitution;
-  if (isNotIdentical(typeOfT, typeOfS)) {
-    String typeOfTString = runtimeTypeToString(typeOfT);
-    if (!builtinIsSubtype(typeOfS, typeOfTString)) {
-      return false;
-    }
-    var typeOfSPrototype = JS('', '#.prototype', typeOfS);
-    var field = '${JS_GET_NAME(JsGetName.OPERATOR_AS_PREFIX)}${typeOfTString}';
-    substitution = getField(typeOfSPrototype, field);
-  }
-  // The class of [s] is a subclass of the class of [t].  If [s] has no type
-  // arguments and no substitution, it is used as raw type.  If [t] has no
-  // type arguments, it used as a raw type.  In both cases, [s] is a subtype
-  // of [t].
-  if ((!isJsArray(s) && substitution == null) || !isJsArray(t)) {
-    return true;
-  }
-  // Recursively check the type arguments.
-  return checkArgumentsV1(substitution, getArguments(s), getArguments(t));
-}
-
-bool isSubtypeV2(var s, var sEnv, var t, var tEnv) {
+bool _isSubtype(var s, var sEnv, var t, var tEnv) {
   // Subtyping is reflexive.
   if (isIdentical(s, t)) return true;
 
   // [t] is a top type?
-  if (isTopTypeV2(t)) return true;
+  if (isTopType(t)) return true;
 
   if (isDartJsInteropTypeArgumentRti(s)) return true;
 
   // [s] is a top type?
-  if (isTopTypeV2(s)) {
+  if (isTopType(s)) {
     if (isGenericFunctionTypeParameter(t)) {
       // We need to check for function type variables because
       // `isDartFutureOrType` doesn't work on numbers.
@@ -992,7 +719,7 @@ bool isSubtypeV2(var s, var sEnv, var t, var tEnv) {
     if (isDartFutureOrType(t)) {
       // [t] is FutureOr<T>. Check [s] <: T.
       var tTypeArgument = getFutureOrArgument(t);
-      return isSubtypeV2(s, sEnv, tTypeArgument, tEnv);
+      return _isSubtype(s, sEnv, tTypeArgument, tEnv);
     }
     return false;
   }
@@ -1009,7 +736,7 @@ bool isSubtypeV2(var s, var sEnv, var t, var tEnv) {
   if (isNullType(s)) return true;
 
   if (isDartFunctionType(t)) {
-    return isFunctionSubtypeV2(s, sEnv, t, tEnv);
+    return _isFunctionSubtype(s, sEnv, t, tEnv);
   }
 
   if (isDartFunctionType(s)) {
@@ -1028,8 +755,8 @@ bool isSubtypeV2(var s, var sEnv, var t, var tEnv) {
     if (isDartFutureOrType(s)) {
       // [S] is FutureOr<S>. Check S <: T
       var sTypeArgument = getFutureOrArgument(s);
-      return isSubtypeV2(sTypeArgument, sEnv, tTypeArgument, tEnv);
-    } else if (isSubtypeV2(s, sEnv, tTypeArgument, tEnv)) {
+      return _isSubtype(sTypeArgument, sEnv, tTypeArgument, tEnv);
+    } else if (_isSubtype(s, sEnv, tTypeArgument, tEnv)) {
       // `true` because [s] <: T.
       return true;
     } else {
@@ -1046,7 +773,7 @@ bool isSubtypeV2(var s, var sEnv, var t, var tEnv) {
       var futureArgument =
           isJsArray(futureArguments) ? getIndex(futureArguments, 0) : null;
       // [s] implements Future<S>. Check S <: T.
-      return isSubtypeV2(futureArgument, sEnv, tTypeArgument, tEnv);
+      return _isSubtype(futureArgument, sEnv, tTypeArgument, tEnv);
     }
   }
 
@@ -1072,163 +799,17 @@ bool isSubtypeV2(var s, var sEnv, var t, var tEnv) {
     return true;
   }
   // Recursively check the type arguments.
-  return checkArgumentsV2(
+  return checkArguments(
       substitution, getArguments(s), sEnv, getArguments(t), tEnv);
-}
-
-bool isAssignableV1(var s, var t) {
-  return isSubtypeV1(s, t) || isSubtypeV1(t, s);
-}
-
-/**
- * If [allowShorter] is `true`, [t] is allowed to be shorter than [s].
- */
-bool areAssignableV1(List s, List t, bool allowShorter) {
-  // Both lists are empty and thus equal.
-  if (t == null && s == null) return true;
-  // [t] is empty (and [s] is not) => only OK if [allowShorter].
-  if (t == null) return allowShorter;
-  // [s] is empty (and [t] is not) => [s] is not longer or equal to [t].
-  if (s == null) return false;
-
-  assert(isJsArray(s));
-  assert(isJsArray(t));
-
-  int sLength = getLength(s);
-  int tLength = getLength(t);
-  if (allowShorter) {
-    if (sLength < tLength) return false;
-  } else {
-    if (sLength != tLength) return false;
-  }
-
-  for (int i = 0; i < tLength; i++) {
-    if (!isAssignableV1(getIndex(s, i), getIndex(t, i))) {
-      return false;
-    }
-  }
-  return true;
-}
-
-bool areAssignableMapsV1(var s, var t) {
-  if (t == null) return true;
-  if (s == null) return false;
-
-  assert(isJsObject(s));
-  assert(isJsObject(t));
-
-  List names =
-      JSArray.markFixedList(JS('', 'Object.getOwnPropertyNames(#)', t));
-  for (int i = 0; i < names.length; i++) {
-    var name = names[i];
-    if (JS('bool', '!Object.hasOwnProperty.call(#, #)', s, name)) {
-      return false;
-    }
-    var tType = JS('', '#[#]', t, name);
-    var sType = JS('', '#[#]', s, name);
-    if (!isAssignableV1(tType, sType)) return false;
-  }
-  return true;
 }
 
 /// Top-level function subtype check when [t] is known to be a function type
 /// rti.
 bool isFunctionSubtype(var s, var t) {
-  return JS_GET_FLAG('STRONG_MODE')
-      ? isFunctionSubtypeV2(s, null, t, null)
-      : isFunctionSubtypeV1(s, t);
+  return _isFunctionSubtype(s, null, t, null);
 }
 
-bool isFunctionSubtypeV1(var s, var t) {
-  assert(isDartFunctionType(t));
-  if (!isDartFunctionType(s)) return false;
-  var genericBoundsTag =
-      JS_GET_NAME(JsGetName.FUNCTION_TYPE_GENERIC_BOUNDS_TAG);
-  var voidReturnTag = JS_GET_NAME(JsGetName.FUNCTION_TYPE_VOID_RETURN_TAG);
-  var returnTypeTag = JS_GET_NAME(JsGetName.FUNCTION_TYPE_RETURN_TYPE_TAG);
-
-  if (hasField(s, voidReturnTag)) {
-    if (hasNoField(t, voidReturnTag) && hasField(t, returnTypeTag)) {
-      return false;
-    }
-  } else if (hasNoField(t, voidReturnTag)) {
-    var sReturnType = getField(s, returnTypeTag);
-    var tReturnType = getField(t, returnTypeTag);
-    if (!isAssignableV1(sReturnType, tReturnType)) return false;
-  }
-  var requiredParametersTag =
-      JS_GET_NAME(JsGetName.FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG);
-  var sParameterTypes = getField(s, requiredParametersTag);
-  var tParameterTypes = getField(t, requiredParametersTag);
-
-  var optionalParametersTag =
-      JS_GET_NAME(JsGetName.FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG);
-  var sOptionalParameterTypes = getField(s, optionalParametersTag);
-  var tOptionalParameterTypes = getField(t, optionalParametersTag);
-
-  int sParametersLen = sParameterTypes != null ? getLength(sParameterTypes) : 0;
-  int tParametersLen = tParameterTypes != null ? getLength(tParameterTypes) : 0;
-
-  int sOptionalParametersLen =
-      sOptionalParameterTypes != null ? getLength(sOptionalParameterTypes) : 0;
-  int tOptionalParametersLen =
-      tOptionalParameterTypes != null ? getLength(tOptionalParameterTypes) : 0;
-
-  if (sParametersLen > tParametersLen) {
-    // Too many required parameters in [s].
-    return false;
-  }
-  if (sParametersLen + sOptionalParametersLen <
-      tParametersLen + tOptionalParametersLen) {
-    // Too few required and optional parameters in [s].
-    return false;
-  }
-  if (sParametersLen == tParametersLen) {
-    // Simple case: Same number of required parameters.
-    if (!areAssignableV1(sParameterTypes, tParameterTypes, false)) return false;
-    if (!areAssignableV1(
-        sOptionalParameterTypes, tOptionalParameterTypes, true)) {
-      return false;
-    }
-  } else {
-    // Complex case: Optional parameters of [s] for required parameters of [t].
-    int pos = 0;
-    // Check all required parameters of [s].
-    for (; pos < sParametersLen; pos++) {
-      if (!isAssignableV1(
-          getIndex(sParameterTypes, pos), getIndex(tParameterTypes, pos))) {
-        return false;
-      }
-    }
-    int sPos = 0;
-    int tPos = pos;
-    // Check the remaining parameters of [t] with the first optional parameters
-    // of [s].
-    for (; tPos < tParametersLen; sPos++, tPos++) {
-      if (!isAssignableV1(getIndex(sOptionalParameterTypes, sPos),
-          getIndex(tParameterTypes, tPos))) {
-        return false;
-      }
-    }
-    tPos = 0;
-    // Check the optional parameters of [t] with the remaining optional
-    // parameters of [s]:
-    for (; tPos < tOptionalParametersLen; sPos++, tPos++) {
-      if (!isAssignableV1(getIndex(sOptionalParameterTypes, sPos),
-          getIndex(tOptionalParameterTypes, tPos))) {
-        return false;
-      }
-    }
-  }
-
-  var namedParametersTag =
-      JS_GET_NAME(JsGetName.FUNCTION_TYPE_NAMED_PARAMETERS_TAG);
-  var sNamedParameters = getField(s, namedParametersTag);
-  var tNamedParameters = getField(t, namedParametersTag);
-  return areAssignableMapsV1(sNamedParameters, tNamedParameters);
-}
-
-bool isFunctionSubtypeV2(var s, var sEnv, var t, var tEnv) {
+bool _isFunctionSubtype(var s, var sEnv, var t, var tEnv) {
   assert(isDartFunctionType(t));
   if (!isDartFunctionType(s)) return false;
   var genericBoundsTag =
@@ -1255,7 +836,7 @@ bool isFunctionSubtypeV2(var s, var sEnv, var t, var tEnv) {
 
   var sReturnType = getField(s, returnTypeTag);
   var tReturnType = getField(t, returnTypeTag);
-  if (!isSubtypeV2(sReturnType, sEnv, tReturnType, tEnv)) return false;
+  if (!_isSubtype(sReturnType, sEnv, tReturnType, tEnv)) return false;
 
   var requiredParametersTag =
       JS_GET_NAME(JsGetName.FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG);
@@ -1288,7 +869,7 @@ bool isFunctionSubtypeV2(var s, var sEnv, var t, var tEnv) {
   int pos = 0;
   // Check all required parameters of [s].
   for (; pos < sParametersLen; pos++) {
-    if (!isSubtypeV2(getIndex(tParameterTypes, pos), tEnv,
+    if (!_isSubtype(getIndex(tParameterTypes, pos), tEnv,
         getIndex(sParameterTypes, pos), sEnv)) {
       return false;
     }
@@ -1298,7 +879,7 @@ bool isFunctionSubtypeV2(var s, var sEnv, var t, var tEnv) {
   // Check the remaining parameters of [t] with the first optional parameters
   // of [s].
   for (; tPos < tParametersLen; sPos++, tPos++) {
-    if (!isSubtypeV2(getIndex(tParameterTypes, tPos), tEnv,
+    if (!_isSubtype(getIndex(tParameterTypes, tPos), tEnv,
         getIndex(sOptionalParameterTypes, sPos), sEnv)) {
       return false;
     }
@@ -1307,7 +888,7 @@ bool isFunctionSubtypeV2(var s, var sEnv, var t, var tEnv) {
   // Check the optional parameters of [t] with the remaining optional
   // parameters of [s]:
   for (; tPos < tOptionalParametersLen; sPos++, tPos++) {
-    if (!isSubtypeV2(getIndex(tOptionalParameterTypes, tPos), tEnv,
+    if (!_isSubtype(getIndex(tOptionalParameterTypes, tPos), tEnv,
         getIndex(sOptionalParameterTypes, sPos), sEnv)) {
       return false;
     }
@@ -1319,11 +900,11 @@ bool isFunctionSubtypeV2(var s, var sEnv, var t, var tEnv) {
   var tNamedParameters = getField(t, namedParametersTag);
   if (tNamedParameters == null) return true;
   if (sNamedParameters == null) return false;
-  return namedParametersSubtypeCheckV2(
+  return namedParametersSubtypeCheck(
       sNamedParameters, sEnv, tNamedParameters, tEnv);
 }
 
-bool namedParametersSubtypeCheckV2(var s, var sEnv, var t, var tEnv) {
+bool namedParametersSubtypeCheck(var s, var sEnv, var t, var tEnv) {
   assert(isJsObject(s));
   assert(isJsObject(t));
 
@@ -1337,7 +918,7 @@ bool namedParametersSubtypeCheckV2(var s, var sEnv, var t, var tEnv) {
     }
     var tType = JS('', '#[#]', t, name);
     var sType = JS('', '#[#]', s, name);
-    if (!isSubtypeV2(tType, tEnv, sType, sEnv)) return false;
+    if (!_isSubtype(tType, tEnv, sType, sEnv)) return false;
   }
   return true;
 }

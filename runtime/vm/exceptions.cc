@@ -144,12 +144,9 @@ static RawObject** VariableAt(uword fp, int stack_slot) {
 #if defined(TARGET_ARCH_DBC)
   return reinterpret_cast<RawObject**>(fp + stack_slot * kWordSize);
 #else
-  if (stack_slot < 0) {
-    return reinterpret_cast<RawObject**>(ParamAddress(fp, -stack_slot));
-  } else {
-    return reinterpret_cast<RawObject**>(
-        LocalVarAddress(fp, kFirstLocalSlotFromFp - stack_slot));
-  }
+  const intptr_t frame_slot =
+      runtime_frame_layout.FrameSlotForVariableIndex(-stack_slot);
+  return reinterpret_cast<RawObject**>(fp + frame_slot * kWordSize);
 #endif
 }
 

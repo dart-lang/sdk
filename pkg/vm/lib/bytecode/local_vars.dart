@@ -88,6 +88,9 @@ class LocalVariables {
           .scratchVar ??
       (throw 'Scratch variable is not declared in ${_currentFrame.function}'));
 
+  int get returnVarIndexInFrame => getVarIndexInFrame(_currentFrame.returnVar ??
+      (throw 'Return variable is not declared in ${_currentFrame.function}'));
+
   int get functionTypeArgsVarIndexInFrame => getVarIndexInFrame(_currentFrame
           .functionTypeArgsVar ??
       (throw 'FunctionTypeArgs variable is not declared in ${_currentFrame.function}'));
@@ -189,18 +192,17 @@ class VarDesc {
   bool get isAllocated => index != null;
 
   void capture() {
-    if (!isCaptured) {
-      assert(!isAllocated);
-      // TODO(alexmarkov): Consider sharing context between scopes.
-      index = scope.contextSize++;
-      isCaptured = true;
-    }
+    assert(!isAllocated);
+    isCaptured = true;
   }
+
+  String toString() => 'var ${declaration.name}';
 }
 
 class Frame {
   final TreeNode function;
   final Frame parent;
+  Scope topScope;
 
   int numParameters = 0;
   int numTypeArguments = 0;
@@ -215,6 +217,7 @@ class Frame {
   VariableDeclaration closureVar;
   VariableDeclaration contextVar;
   VariableDeclaration scratchVar;
+  VariableDeclaration returnVar;
   Map<String, VariableDeclaration> syntheticVars;
   int frameSize = 0;
   List<int> temporaries = <int>[];
@@ -230,14 +233,18 @@ class Frame {
 class Scope {
   final Scope parent;
   final Frame frame;
+  final int loopDepth;
   final List<VarDesc> vars = <VarDesc>[];
 
   int localsUsed;
   int tempsUsed;
+
+  Scope contextOwner;
+  int contextUsed = 0;
   int contextSize = 0;
   int contextLevel;
 
-  Scope(this.parent, this.frame);
+  Scope(this.parent, this.frame, this.loopDepth);
 
   bool get hasContext => contextSize > 0;
 }
@@ -249,6 +256,7 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
   Frame _currentFrame;
   List<TreeNode> _enclosingTryBlocks;
   List<TreeNode> _enclosingTryCatches;
+  int _loopDepth;
 
   _ScopeBuilder(this.locals);
 
@@ -259,12 +267,14 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
   }
 
   void _visitFunction(TreeNode node) {
-    _enterFrame(node);
-
     final savedEnclosingTryBlocks = _enclosingTryBlocks;
     _enclosingTryBlocks = <TreeNode>[];
     final savedEnclosingTryCatches = _enclosingTryCatches;
     _enclosingTryCatches = <TreeNode>[];
+    final saveLoopDepth = _loopDepth;
+    _loopDepth = 0;
+
+    _enterFrame(node);
 
     if (node is Field) {
       node.initializer.accept(this);
@@ -351,15 +361,17 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
       _declareVariable(_currentFrame.scratchVar);
     }
 
+    _leaveFrame();
+
     _enclosingTryBlocks = savedEnclosingTryBlocks;
     _enclosingTryCatches = savedEnclosingTryCatches;
-
-    _leaveFrame();
+    _loopDepth = saveLoopDepth;
   }
 
   _enterFrame(TreeNode node) {
     _currentFrame = new Frame(node, _currentFrame);
     _enterScope(node);
+    _currentFrame.topScope = _currentScope;
   }
 
   _leaveFrame() {
@@ -368,7 +380,7 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
   }
 
   void _enterScope(TreeNode node) {
-    _currentScope = new Scope(_currentScope, _currentFrame);
+    _currentScope = new Scope(_currentScope, _currentFrame, _loopDepth);
     assert(locals._scopes[node] == null);
     locals._scopes[node] = _currentScope;
   }
@@ -377,8 +389,11 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
     _currentScope = _currentScope.parent;
   }
 
-  void _declareVariable(VariableDeclaration variable) {
-    final VarDesc v = new VarDesc(variable, _currentScope);
+  void _declareVariable(VariableDeclaration variable, [Scope scope]) {
+    if (scope == null) {
+      scope = _currentScope;
+    }
+    final VarDesc v = new VarDesc(variable, scope);
     assert(locals._vars[variable] == null);
     locals._vars[variable] = v;
   }
@@ -408,6 +423,7 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
         _currentFrame.closureVar,
         _currentFrame.contextVar,
         _currentFrame.scratchVar,
+        _currentFrame.returnVar,
       ]);
     transient.addAll((_currentFrame.function as FunctionDeclaration)
         .function
@@ -547,7 +563,9 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
 
   @override
   visitForStatement(ForStatement node) {
+    ++_loopDepth;
     _visitWithScope(node);
+    --_loopDepth;
   }
 
   @override
@@ -557,15 +575,17 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
     VariableDeclaration iteratorVar;
     if (_currentFrame.isSyncYielding) {
       // Declare a variable to hold 'iterator' so it could be captured.
-      iteratorVar = new VariableDeclaration(null);
+      iteratorVar = new VariableDeclaration(':iterator');
       _declareVariable(iteratorVar);
       locals._capturedIteratorVars[node] = iteratorVar;
     }
 
+    ++_loopDepth;
     _enterScope(node);
     node.variable.accept(this);
     node.body.accept(this);
     _leaveScope();
+    --_loopDepth;
 
     if (_currentFrame.isSyncYielding && !locals.isCaptured(iteratorVar)) {
       // Iterator variable was not captured, as there are no yield points
@@ -617,6 +637,36 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
     node.finalizer?.accept(this);
     _enclosingTryCatches.removeLast();
   }
+
+  @override
+  visitReturnStatement(ReturnStatement node) {
+    // If returning from within a try-finally block, need to allocate
+    // an extra variable to hold a return value.
+    // Return value can't be kept on the stack as try-catch statements
+    // inside finally can zap expression stack.
+    // Literals (including implicit 'null' in 'return;') do not require
+    // an extra variable as they can be generated after all finally blocks.
+    if (_enclosingTryBlocks.isNotEmpty &&
+        (node.expression != null && node.expression is! BasicLiteral)) {
+      _currentFrame.returnVar = new VariableDeclaration(':return');
+      _declareVariable(_currentFrame.returnVar, _currentFrame.topScope);
+    }
+    node.visitChildren(this);
+  }
+
+  @override
+  visitWhileStatement(WhileStatement node) {
+    ++_loopDepth;
+    node.visitChildren(this);
+    --_loopDepth;
+  }
+
+  @override
+  visitDoStatement(DoStatement node) {
+    ++_loopDepth;
+    node.visitChildren(this);
+    --_loopDepth;
+  }
 }
 
 class _Allocator extends RecursiveVisitor<Null> {
@@ -624,7 +674,6 @@ class _Allocator extends RecursiveVisitor<Null> {
 
   Scope _currentScope;
   Frame _currentFrame;
-  int _contextLevel = 0;
 
   _Allocator(this.locals);
 
@@ -639,6 +688,20 @@ class _Allocator extends RecursiveVisitor<Null> {
 
       if (_currentScope.parent != null) {
         _currentFrame.contextLevelAtEntry = _currentScope.parent.contextLevel;
+
+        if (_currentFrame.isSyncYielding) {
+          // _Closure._clone(), which is used to clone sync-yielding closures
+          // only clones 1 level of a context. So parent frame of a
+          // sync-yielding closure should have exactly 1 context level.
+          final parentFrame = _currentFrame.parent;
+          final currentLevel = _currentFrame.contextLevelAtEntry;
+          final parentLevel = parentFrame.contextLevelAtEntry ?? -1;
+          if (currentLevel != parentLevel + 1) {
+            throw 'Unexpected context allocation in ${parentFrame.function}\n'
+                ' - context level at parent entry: ${parentLevel}\n'
+                ' - context level at synthetic closure entry: ${currentLevel}\n';
+          }
+        }
       }
 
       _currentScope.localsUsed = 0;
@@ -648,17 +711,43 @@ class _Allocator extends RecursiveVisitor<Null> {
       _currentScope.tempsUsed = _currentScope.parent.tempsUsed;
     }
 
-    if (_currentScope.parent == null || _currentScope.hasContext) {
-      _currentScope.contextLevel = _contextLevel++;
+    assert(_currentScope.contextOwner == null);
+    assert(_currentScope.contextLevel == null);
+
+    final int parentContextLevel =
+        _currentScope.parent != null ? _currentScope.parent.contextLevel : -1;
+
+    final int numCaptured =
+        _currentScope.vars.where((v) => v.isCaptured).length;
+    if (numCaptured > 0) {
+      // Share contexts between scopes which belong to the same frame and
+      // have the same loop depth.
+      _currentScope.contextOwner = _currentScope;
+      for (Scope contextOwner = _currentScope;
+          contextOwner != null &&
+              contextOwner.frame == _currentScope.frame &&
+              contextOwner.loopDepth == _currentScope.loopDepth;
+          contextOwner = contextOwner.parent) {
+        if (contextOwner.hasContext) {
+          _currentScope.contextOwner = contextOwner;
+          break;
+        }
+      }
+
+      _currentScope.contextOwner.contextSize += numCaptured;
+
+      if (_currentScope.contextOwner == _currentScope) {
+        _currentScope.contextLevel = parentContextLevel + 1;
+      } else {
+        _currentScope.contextLevel = _currentScope.contextOwner.contextLevel;
+      }
     } else {
-      _currentScope.contextLevel = _currentScope.parent.contextLevel;
+      _currentScope.contextLevel = parentContextLevel;
     }
   }
 
   void _leaveScope() {
-    if (_currentScope.hasContext) {
-      --_contextLevel;
-    }
+    assert(_currentScope.contextUsed == _currentScope.contextSize);
 
     _currentScope = _currentScope.parent;
     _currentFrame = _currentScope?.frame;
@@ -712,14 +801,15 @@ class _Allocator extends RecursiveVisitor<Null> {
 
   void _allocateVariable(VariableDeclaration variable, {int paramSlotIndex}) {
     final VarDesc v = locals._getVarDesc(variable);
-    if (v.isCaptured) {
-      assert(v.isAllocated);
-      v.originalParamSlotIndex = paramSlotIndex;
-      return;
-    }
 
     assert(!v.isAllocated);
     assert(v.scope == _currentScope);
+
+    if (v.isCaptured) {
+      v.index = _currentScope.contextOwner.contextUsed++;
+      v.originalParamSlotIndex = paramSlotIndex;
+      return;
+    }
 
     if (paramSlotIndex != null) {
       assert(paramSlotIndex < 0 ||
@@ -768,7 +858,8 @@ class _Allocator extends RecursiveVisitor<Null> {
         function.namedParameters.isNotEmpty;
 
     _currentFrame.hasCapturedParameters =
-        (hasReceiver && locals.isCaptured(_currentFrame.receiverVar)) ||
+        (isFactory && locals.isCaptured(_currentFrame.factoryTypeArgsVar)) ||
+            (hasReceiver && locals.isCaptured(_currentFrame.receiverVar)) ||
             function.positionalParameters.any(locals.isCaptured) ||
             function.namedParameters.any(locals.isCaptured);
 
@@ -801,6 +892,7 @@ class _Allocator extends RecursiveVisitor<Null> {
     _ensureVariableAllocated(_currentFrame.functionTypeArgsVar);
     _ensureVariableAllocated(_currentFrame.contextVar);
     _ensureVariableAllocated(_currentFrame.scratchVar);
+    _ensureVariableAllocated(_currentFrame.returnVar);
   }
 
   void _visitFunction(TreeNode node) {
@@ -898,6 +990,7 @@ class _Allocator extends RecursiveVisitor<Null> {
   @override
   visitForInStatement(ForInStatement node) {
     _allocateTemp(node);
+    _ensureVariableAllocated(locals._capturedIteratorVars[node]);
 
     node.iterable.accept(this);
 

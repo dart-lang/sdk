@@ -4,7 +4,7 @@
 
 // part of "core_patch.dart";
 
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 class _WeakProperty {
   factory _WeakProperty(key, value) => _new(key, value);
 

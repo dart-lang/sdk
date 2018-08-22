@@ -5,7 +5,7 @@
 import 'package:expect/expect.dart';
 
 class C {
-  /*element: C.noSuchMethod:selectors=[Selector(call, foo, arity=0, types=2)]*/
+  /*element: C.noSuchMethod:selectors=[Selector(call, call, arity=0, types=2),Selector(call, foo, arity=0, types=2)]*/
   noSuchMethod(i) => i.typeArguments;
 }
 

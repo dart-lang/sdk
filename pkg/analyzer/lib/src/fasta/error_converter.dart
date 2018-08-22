@@ -266,6 +266,12 @@ class FastaErrorReporter {
             offset,
             length);
         return;
+      case "FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR,
+            offset,
+            length);
+        return;
       case "FINAL_AND_COVARIANT":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.FINAL_AND_COVARIANT, offset, length);
@@ -278,6 +284,14 @@ class FastaErrorReporter {
         String name = arguments['name'];
         errorReporter?.reportErrorForOffset(
             StaticWarningCode.FINAL_NOT_INITIALIZED, offset, length, [name]);
+        return;
+      case "FINAL_NOT_INITIALIZED_CONSTRUCTOR_1":
+        String name = arguments['name'];
+        errorReporter?.reportErrorForOffset(
+            StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
+            offset,
+            length,
+            [name]);
         return;
       case "FUNCTION_TYPED_PARAMETER_VAR":
         errorReporter?.reportErrorForOffset(
@@ -387,6 +401,10 @@ class FastaErrorReporter {
       case "INVALID_OPERATOR_FOR_SUPER":
         _reportByCode(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, message,
             offset, length);
+        return;
+      case "INVALID_SUPER_INVOCATION":
+        errorReporter?.reportErrorForOffset(
+            StrongModeCode.INVALID_SUPER_INVOCATION, offset, length);
         return;
       case "INVALID_UNICODE_ESCAPE":
         errorReporter?.reportErrorForOffset(
@@ -567,6 +585,12 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.STATIC_OPERATOR, offset, length);
         return;
+      case "SUPER_IN_REDIRECTING_CONSTRUCTOR":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
+            offset,
+            length);
+        return;
       case "SWITCH_HAS_CASE_AFTER_DEFAULT_CASE":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE, offset, length);
@@ -660,11 +684,6 @@ class FastaErrorReporter {
   }
 
   void reportCompilationMessage(CompilationMessage message) {
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/33680
-    if (message.code == 'MissingImplementationCause') {
-      return;
-    }
-
     String errorCodeStr = message.analyzerCode;
     ErrorCode errorCode = _getErrorCode(errorCodeStr);
     if (errorCode != null) {

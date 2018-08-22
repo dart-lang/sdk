@@ -66,15 +66,42 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
 
     String libraryName = getJsInteropName(
         library, elementEnvironment.getLibraryMetadata(library));
-    bool isJsLibrary = libraryName != null;
+    final bool isExplicitlylyJsLibrary = libraryName != null;
+    bool isJsLibrary = isExplicitlylyJsLibrary;
 
     elementEnvironment.forEachLibraryMember(library, (MemberEntity member) {
-      if (member.isField) return;
       String memberName = getJsInteropName(
           library, elementEnvironment.getMemberMetadata(member));
-      if (memberName != null) {
-        _nativeBasicDataBuilder.markAsJsInteropMember(member, memberName);
-        checkFunctionParameters(member);
+      if (member.isField) {
+        if (memberName != null) {
+          // TODO(34174): Disallow js-interop fields.
+          /*reporter.reportErrorMessage(
+              member, MessageKind.JS_INTEROP_FIELD_NOT_SUPPORTED);*/
+        }
+      } else {
+        FunctionEntity function = member;
+        if (function.isExternal && isExplicitlylyJsLibrary) {
+          // External members of explicit js-interop library are implicitly
+          // js-interop members.
+          memberName ??= function.name;
+        }
+        if (memberName != null) {
+          if (!function.isExternal) {
+            // TODO(johnniwinther): Disallow non-external js-interop members.
+            /*reporter.reportErrorMessage(
+                function, MessageKind.JS_INTEROP_NON_EXTERNAL_MEMBER);*/
+          } else {
+            _nativeBasicDataBuilder.markAsJsInteropMember(function, memberName);
+            checkFunctionParameters(function);
+            // TODO(johnniwinther): It is unclear whether library can be
+            // implicitly js-interop. For now we allow it.
+            isJsLibrary = true;
+          }
+        } else if (function.isExternal &&
+            !commonElements.isExternalAllowed(function)) {
+          reporter.reportErrorMessage(
+              function, MessageKind.NON_NATIVE_EXTERNAL);
+        }
       }
     });
 
@@ -94,41 +121,70 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
         // has a non-empty name.
         _nativeBasicDataBuilder.markAsJsInteropClass(cls,
             name: className, isAnonymous: isAnonymous);
-        // TODO(johnniwinther): When fasta supports library metadata, report
-        // and error if [isJsLibrary] is false.
-        // For now, assume the library is a js-interop library.
+        // TODO(johnniwinther): It is unclear whether library can be implicitly
+        // js-interop. For now we allow it.
         isJsLibrary = true;
 
         elementEnvironment.forEachLocalClassMember(cls, (MemberEntity member) {
-          if (member.isField) return;
-          FunctionEntity function = member;
+          if (member.isField) {
+            // TODO(34174): Disallow js-interop fields.
+            /*reporter.reportErrorMessage(
+                member, MessageKind.IMPLICIT_JS_INTEROP_FIELD_NOT_SUPPORTED);*/
+          } else {
+            FunctionEntity function = member;
+            String memberName = getJsInteropName(
+                library, elementEnvironment.getMemberMetadata(function));
 
-          String memberName = getJsInteropName(
-              library, elementEnvironment.getMemberMetadata(function));
-          if (memberName != null) {
-            _nativeBasicDataBuilder.markAsJsInteropMember(function, memberName);
+            if (function.isExternal) {
+              memberName ??= function.name;
+            }
+            if (memberName != null) {
+              // TODO(johnniwinther): The documentation states that explicit
+              // member name annotations are not allowed on instance members.
+              _nativeBasicDataBuilder.markAsJsInteropMember(
+                  function, memberName);
+            }
+
+            if (!function.isExternal &&
+                !function.isAbstract &&
+                !function.isStatic) {
+              reporter.reportErrorMessage(
+                  function,
+                  MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
+                  {'cls': cls.name, 'member': member.name});
+            }
+
+            checkFunctionParameters(function);
           }
-
-          if (!function.isExternal &&
-              !function.isAbstract &&
-              !function.isConstructor &&
-              !function.isStatic) {
-            reporter.reportErrorMessage(
-                function,
-                MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
-                {'cls': cls.name, 'member': member.name});
-          }
-
-          checkFunctionParameters(function);
         });
         elementEnvironment.forEachConstructor(cls,
             (ConstructorEntity constructor) {
           String memberName = getJsInteropName(
               library, elementEnvironment.getMemberMetadata(constructor));
+          if (constructor.isExternal) {
+            // TODO(johnniwinther): It should probably be an error to have a
+            // no-name constructor without a @JS() annotation.
+            memberName ??= constructor.name;
+          }
           if (memberName != null) {
+            // TODO(johnniwinther): The documentation states that explicit
+            // member name annotations are not allowed on instance members.
             _nativeBasicDataBuilder.markAsJsInteropMember(
                 constructor, memberName);
           }
+
+          // TODO(33834): It is a breaking change (at least against in some of
+          // our own tests) but JS-interop constructors should be required to be
+          // external since we otherwise allow creating a Dart object that tries
+          // to pass as a JS-interop class.
+          /*if (!constructor.isExternal) {
+            reporter.reportErrorMessage(constructor,
+                MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_CONSTRUCTOR, {
+              'cls': cls.name,
+              'constructor':
+                  constructor.name.isEmpty ? '${cls.name}.' : constructor.name
+            });
+          }*/
 
           if (constructor.isFactoryConstructor && isAnonymous) {
             if (constructor.parameterStructure.positionalParameters > 0) {
@@ -142,12 +198,42 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
             checkFunctionParameters(constructor);
           }
         });
+      } else {
+        elementEnvironment.forEachLocalClassMember(cls, (MemberEntity member) {
+          String memberName = getJsInteropName(
+              library, elementEnvironment.getMemberMetadata(member));
+          if (memberName != null) {
+            reporter.reportErrorMessage(
+                member, MessageKind.JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS);
+          } else if (member is FunctionEntity) {
+            if (member.isExternal &&
+                !commonElements.isExternalAllowed(member)) {
+              reporter.reportErrorMessage(
+                  member, MessageKind.NON_NATIVE_EXTERNAL);
+            }
+          }
+        });
+        elementEnvironment.forEachConstructor(cls,
+            (ConstructorEntity constructor) {
+          String memberName = getJsInteropName(
+              library, elementEnvironment.getMemberMetadata(constructor));
+          if (memberName != null) {
+            reporter.reportErrorMessage(constructor,
+                MessageKind.JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS);
+          } else {
+            if (constructor.isExternal &&
+                !commonElements.isExternalAllowed(constructor)) {
+              reporter.reportErrorMessage(
+                  constructor, MessageKind.NON_NATIVE_EXTERNAL);
+            }
+          }
+        });
       }
     });
 
     if (isJsLibrary) {
-      // TODO(johnniwinther): Remove this when fasta supports library metadata.
-      // For now, assume the empty name.
+      // TODO(johnniwinther): It is unclear whether library can be implicitly
+      // js-interop. For now we allow it and assume the empty name.
       libraryName ??= '';
       _nativeBasicDataBuilder.markAsJsInteropLibrary(library,
           name: libraryName);

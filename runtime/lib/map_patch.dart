@@ -11,7 +11,7 @@ class Map<K, V> {
   // The keys are at position 2*n and are already type checked by the parser
   // in checked mode.
   // The values are at position 2*n+1 and are not yet type checked.
-  @pragma("vm.entry-point")
+  @pragma("vm:entry-point")
   factory Map._fromLiteral(List elements) {
     var map = new LinkedHashMap<K, V>();
     var len = elements.length;

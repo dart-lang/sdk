@@ -6,7 +6,6 @@ library subtype_test;
 
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/entities.dart' show ClassEntity;
 import 'package:compiler/src/elements/types.dart';
 import 'package:expect/expect.dart';
@@ -14,24 +13,21 @@ import '../type_test_helper.dart';
 
 void main() {
   asyncTest(() async {
-    print('--test from kernel------------------------------------------------');
     await runTests();
-    print('--test from kernel (strong)---------------------------------------');
-    await runTests(strongMode: true);
   });
 }
 
-Future runTests({bool strongMode: false}) async {
-  await testCallableSubtype(strongMode: strongMode);
-  await testInterfaceSubtype(strongMode: strongMode);
-  await testFunctionSubtyping(strongMode: strongMode);
-  await testTypedefSubtyping(strongMode: strongMode);
-  await testFunctionSubtypingOptional(strongMode: strongMode);
-  await testTypedefSubtypingOptional(strongMode: strongMode);
-  await testFunctionSubtypingNamed(strongMode: strongMode);
-  await testTypedefSubtypingNamed(strongMode: strongMode);
-  await testTypeVariableSubtype(strongMode: strongMode);
-  await testStrongModeSubtyping(strongMode: strongMode);
+Future runTests() async {
+  await testCallableSubtype();
+  await testInterfaceSubtype();
+  await testFunctionSubtyping();
+  await testTypedefSubtyping();
+  await testFunctionSubtypingOptional();
+  await testTypedefSubtypingOptional();
+  await testFunctionSubtypingNamed();
+  await testTypedefSubtypingNamed();
+  await testTypeVariableSubtype();
+  await testStrongModeSubtyping();
 }
 
 void testTypes(TypeEnvironment env, DartType subtype, DartType supertype,
@@ -52,7 +48,7 @@ void testElementTypes(TypeEnvironment env, String subname, String supername,
   testTypes(env, subtype, supertype, expectSubtype, expectMoreSpecific);
 }
 
-Future testInterfaceSubtype({bool strongMode}) async {
+Future testInterfaceSubtype() async {
   await TypeEnvironment.create(r"""
       class A<T> {}
       class B<T1, T2> extends A<T1> {}
@@ -63,8 +59,7 @@ Future testInterfaceSubtype({bool strongMode}) async {
       main() {
         new C();
       }
-      """, options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2])
-      .then((env) {
+      """).then((env) {
     void expect(bool expectSubtype, DartType T, DartType S,
         {bool expectMoreSpecific}) {
       testTypes(env, T, S, expectSubtype, expectMoreSpecific);
@@ -85,8 +80,8 @@ Future testInterfaceSubtype({bool strongMode}) async {
     expect(true, void_, dynamic_);
     // Unsure about the next one, see dartbug.com/14933.
     expect(true, dynamic_, void_, expectMoreSpecific: false);
-    expect(strongMode, void_, Object_);
-    expect(strongMode, Object_, void_);
+    expect(true, void_, Object_);
+    expect(true, Object_, void_);
     expect(true, Null_, void_);
 
     expect(true, Object_, Object_);
@@ -100,21 +95,21 @@ Future testInterfaceSubtype({bool strongMode}) async {
     expect(true, num_, num_);
     expect(true, int_, num_);
     expect(false, String_, num_);
-    expect(!strongMode, dynamic_, num_, expectMoreSpecific: false);
+    expect(false, dynamic_, num_, expectMoreSpecific: false);
     expect(true, Null_, num_);
 
     expect(false, Object_, int_);
     expect(false, num_, int_);
     expect(true, int_, int_);
     expect(false, String_, int_);
-    expect(!strongMode, dynamic_, int_, expectMoreSpecific: false);
+    expect(false, dynamic_, int_, expectMoreSpecific: false);
     expect(true, Null_, int_);
 
     expect(false, Object_, String_);
     expect(false, num_, String_);
     expect(false, int_, String_);
     expect(true, String_, String_);
-    expect(!strongMode, dynamic_, String_, expectMoreSpecific: false);
+    expect(false, dynamic_, String_, expectMoreSpecific: false);
     expect(true, Null_, String_);
 
     expect(true, Object_, dynamic_);
@@ -128,7 +123,7 @@ Future testInterfaceSubtype({bool strongMode}) async {
     expect(false, num_, Null_);
     expect(false, int_, Null_);
     expect(false, String_, Null_);
-    expect(!strongMode, dynamic_, Null_, expectMoreSpecific: false);
+    expect(false, dynamic_, Null_, expectMoreSpecific: false);
     expect(true, Null_, Null_);
 
     DartType A_Object = instantiate(A, [Object_]);
@@ -156,21 +151,21 @@ Future testInterfaceSubtype({bool strongMode}) async {
     expect(true, A_num, A_num);
     expect(true, A_int, A_num);
     expect(false, A_String, A_num);
-    expect(!strongMode, A_dynamic, A_num, expectMoreSpecific: false);
+    expect(false, A_dynamic, A_num, expectMoreSpecific: false);
     expect(true, A_Null, A_num);
 
     expect(false, A_Object, A_int);
     expect(false, A_num, A_int);
     expect(true, A_int, A_int);
     expect(false, A_String, A_int);
-    expect(!strongMode, A_dynamic, A_int, expectMoreSpecific: false);
+    expect(false, A_dynamic, A_int, expectMoreSpecific: false);
     expect(true, A_Null, A_int);
 
     expect(false, A_Object, A_String);
     expect(false, A_num, A_String);
     expect(false, A_int, A_String);
     expect(true, A_String, A_String);
-    expect(!strongMode, A_dynamic, A_String, expectMoreSpecific: false);
+    expect(false, A_dynamic, A_String, expectMoreSpecific: false);
     expect(true, A_Null, A_String);
 
     expect(true, A_Object, A_dynamic);
@@ -184,7 +179,7 @@ Future testInterfaceSubtype({bool strongMode}) async {
     expect(false, A_num, A_Null);
     expect(false, A_int, A_Null);
     expect(false, A_String, A_Null);
-    expect(!strongMode, A_dynamic, A_Null, expectMoreSpecific: false);
+    expect(false, A_dynamic, A_Null, expectMoreSpecific: false);
     expect(true, A_Null, A_Null);
 
     DartType B_Object_Object = instantiate(B, [Object_, Object_]);
@@ -216,9 +211,9 @@ Future testInterfaceSubtype({bool strongMode}) async {
 
     expect(true, B_dynamic_dynamic, Object_);
     expect(true, B_dynamic_dynamic, A_Object, expectMoreSpecific: false);
-    expect(!strongMode, B_dynamic_dynamic, A_num, expectMoreSpecific: false);
-    expect(!strongMode, B_dynamic_dynamic, A_int, expectMoreSpecific: false);
-    expect(!strongMode, B_dynamic_dynamic, A_String, expectMoreSpecific: false);
+    expect(false, B_dynamic_dynamic, A_num, expectMoreSpecific: false);
+    expect(false, B_dynamic_dynamic, A_int, expectMoreSpecific: false);
+    expect(false, B_dynamic_dynamic, A_String, expectMoreSpecific: false);
     expect(true, B_dynamic_dynamic, A_dynamic);
 
     expect(true, B_String_dynamic, Object_);
@@ -237,15 +232,13 @@ Future testInterfaceSubtype({bool strongMode}) async {
     expect(false, B_Object_Object, B_num_num);
     expect(true, B_num_num, B_num_num);
     expect(true, B_int_num, B_num_num);
-    expect(!strongMode, B_dynamic_dynamic, B_num_num,
-        expectMoreSpecific: false);
+    expect(false, B_dynamic_dynamic, B_num_num, expectMoreSpecific: false);
     expect(false, B_String_dynamic, B_num_num);
 
     expect(false, B_Object_Object, B_int_num);
     expect(false, B_num_num, B_int_num);
     expect(true, B_int_num, B_int_num);
-    expect(!strongMode, B_dynamic_dynamic, B_int_num,
-        expectMoreSpecific: false);
+    expect(false, B_dynamic_dynamic, B_int_num, expectMoreSpecific: false);
     expect(false, B_String_dynamic, B_int_num);
 
     expect(true, B_Object_Object, B_dynamic_dynamic);
@@ -257,7 +250,7 @@ Future testInterfaceSubtype({bool strongMode}) async {
     expect(false, B_Object_Object, B_String_dynamic);
     expect(false, B_num_num, B_String_dynamic);
     expect(false, B_int_num, B_String_dynamic);
-    expect(!strongMode, B_dynamic_dynamic, B_String_dynamic,
+    expect(false, B_dynamic_dynamic, B_String_dynamic,
         expectMoreSpecific: false);
     expect(true, B_String_dynamic, B_String_dynamic);
 
@@ -285,12 +278,10 @@ Future testInterfaceSubtype({bool strongMode}) async {
     expect(true, C_int_String, B_String_dynamic);
 
     expect(true, C_dynamic_dynamic, B_Object_Object, expectMoreSpecific: false);
-    expect(!strongMode, C_dynamic_dynamic, B_num_num,
-        expectMoreSpecific: false);
-    expect(!strongMode, C_dynamic_dynamic, B_int_num,
-        expectMoreSpecific: false);
+    expect(false, C_dynamic_dynamic, B_num_num, expectMoreSpecific: false);
+    expect(false, C_dynamic_dynamic, B_int_num, expectMoreSpecific: false);
     expect(true, C_dynamic_dynamic, B_dynamic_dynamic);
-    expect(!strongMode, C_dynamic_dynamic, B_String_dynamic,
+    expect(false, C_dynamic_dynamic, B_String_dynamic,
         expectMoreSpecific: false);
 
     expect(false, C_int_String, A_int);
@@ -302,7 +293,7 @@ Future testInterfaceSubtype({bool strongMode}) async {
   });
 }
 
-Future testCallableSubtype({bool strongMode}) async {
+Future testCallableSubtype() async {
   await TypeEnvironment.create(r"""
       class U {}
       class V extends U {}
@@ -327,8 +318,7 @@ Future testCallableSubtype({bool strongMode}) async {
         a.m4(null, null);
         a.m5(null, null);
       }
-      """, options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2])
-      .then((env) {
+      """).then((env) {
     void expect(bool expectSubtype, DartType T, DartType S,
         {bool expectMoreSpecific}) {
       testTypes(env, T, S, expectSubtype, expectMoreSpecific);
@@ -344,14 +334,14 @@ Future testCallableSubtype({bool strongMode}) async {
     DartType m4 = env.getMemberType('m4', classA);
     DartType m5 = env.getMemberType('m5', classA);
 
-    expect(!strongMode, A, function);
-    expect(!strongMode, A, call);
-    expect(!strongMode, call, m1);
-    expect(!strongMode, A, m1);
-    expect(!strongMode, A, m2, expectMoreSpecific: false);
+    expect(false, A, function);
+    expect(false, A, call);
+    expect(false, call, m1);
+    expect(false, A, m1);
+    expect(false, A, m2, expectMoreSpecific: false);
     expect(false, A, m3);
     expect(false, A, m4);
-    expect(!strongMode, A, m5);
+    expect(false, A, m5);
   });
 }
 
@@ -375,25 +365,23 @@ const List<FunctionTypeData> functionTypesData = const <FunctionTypeData>[
       'void', 'inline_void__int', '(void Function(int i) f)'),
 ];
 
-Future testFunctionSubtyping({bool strongMode}) async {
+Future testFunctionSubtyping() async {
   await TypeEnvironment.create(
           createMethods(functionTypesData, additionalData: """
   main() {
     ${createUses(functionTypesData)}
   }
-  """),
-          options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2])
+  """))
       .then(functionSubtypingHelper);
 }
 
-Future testTypedefSubtyping({bool strongMode}) async {
+Future testTypedefSubtyping() async {
   await TypeEnvironment.create(
           createTypedefs(functionTypesData, additionalData: """
   main() {
     ${createUses(functionTypesData)}
   }
-  """),
-          options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2])
+  """))
       .then(functionSubtypingHelper);
 }
 
@@ -469,29 +457,27 @@ const List<FunctionTypeData> optionalFunctionTypesData =
   const FunctionTypeData('void', 'void___Object_int', '([Object o, int i])'),
 ];
 
-Future testFunctionSubtypingOptional({bool strongMode}) async {
+Future testFunctionSubtypingOptional() async {
   await TypeEnvironment.create(
           createMethods(optionalFunctionTypesData, additionalData: """
   main() {
     ${createUses(optionalFunctionTypesData)}
   }
-  """),
-          options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2])
-      .then((env) => functionSubtypingOptionalHelper(env, strongMode));
+  """))
+      .then((env) => functionSubtypingOptionalHelper(env));
 }
 
-Future testTypedefSubtypingOptional({bool strongMode}) async {
+Future testTypedefSubtypingOptional() async {
   await TypeEnvironment.create(
           createTypedefs(optionalFunctionTypesData, additionalData: """
   main() {
     ${createUses(optionalFunctionTypesData)}
   }
-  """),
-          options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2])
-      .then((env) => functionSubtypingOptionalHelper(env, strongMode));
+  """))
+      .then((env) => functionSubtypingOptionalHelper(env));
 }
 
-functionSubtypingOptionalHelper(TypeEnvironment env, bool strongMode) {
+functionSubtypingOptionalHelper(TypeEnvironment env) {
   void expect(bool expectSubtype, String sub, String sup,
       {bool expectMoreSpecific}) {
     testElementTypes(env, sub, sup, expectSubtype, expectMoreSpecific);
@@ -508,7 +494,7 @@ functionSubtypingOptionalHelper(TypeEnvironment env, bool strongMode) {
   // Test ([Object])->void <: ([int])->void.
   expect(true, 'void___Object', 'void___int', expectMoreSpecific: false);
   // Test ([int])->void <: ([Object])->void.
-  expect(!strongMode, 'void___int', 'void___Object');
+  expect(false, 'void___int', 'void___Object');
   // Test (int,[int])->void <: (int)->void.
   expect(true, 'void__int__int', 'void__int');
   // Test (int,[int])->void <: (int,[int])->void.
@@ -551,29 +537,27 @@ const List<FunctionTypeData> namedFunctionTypesData = const <FunctionTypeData>[
   const FunctionTypeData('void', 'void___c_int', '({int c})'),
 ];
 
-Future testFunctionSubtypingNamed({bool strongMode}) async {
+Future testFunctionSubtypingNamed() async {
   await TypeEnvironment.create(
           createMethods(namedFunctionTypesData, additionalData: """
   main() {
     ${createUses(namedFunctionTypesData)}
   }
-  """),
-          options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2])
-      .then((env) => functionSubtypingNamedHelper(env, strongMode));
+  """))
+      .then((env) => functionSubtypingNamedHelper(env));
 }
 
-Future testTypedefSubtypingNamed({bool strongMode}) async {
+Future testTypedefSubtypingNamed() async {
   await TypeEnvironment.create(
           createTypedefs(namedFunctionTypesData, additionalData: """
   main() {
     ${createUses(namedFunctionTypesData)}
   }
-  """),
-          options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2])
-      .then((env) => functionSubtypingNamedHelper(env, strongMode));
+  """))
+      .then((env) => functionSubtypingNamedHelper(env));
 }
 
-functionSubtypingNamedHelper(TypeEnvironment env, bool strongMode) {
+functionSubtypingNamedHelper(TypeEnvironment env) {
   expect(bool expectSubtype, String sub, String sup,
       {bool expectMoreSpecific}) {
     testElementTypes(env, sub, sup, expectSubtype, expectMoreSpecific);
@@ -592,7 +576,7 @@ functionSubtypingNamedHelper(TypeEnvironment env, bool strongMode) {
   // Test ({Object a})->void <: ({int a})->void.
   expect(true, 'void___a_Object', 'void___a_int', expectMoreSpecific: false);
   // Test ({int a})->void <: ({Object a})->void.
-  expect(!strongMode, 'void___a_int', 'void___a_Object');
+  expect(false, 'void___a_int', 'void___a_Object');
   // Test (int,{int a})->void <: (int,{int a})->void.
   expect(true, 'void__int__a_int', 'void__int__a_int2');
   // Test ({int a})->void <: ({double a})->void.
@@ -609,7 +593,7 @@ functionSubtypingNamedHelper(TypeEnvironment env, bool strongMode) {
   expect(true, 'void___a_int_b_int_c_int', 'void___c_int');
 }
 
-Future testTypeVariableSubtype({bool strongMode}) async {
+Future testTypeVariableSubtype() async {
   await TypeEnvironment.create(r"""
       class A<T> {}
       class B<T extends Object> {}
@@ -634,8 +618,7 @@ Future testTypeVariableSubtype({bool strongMode}) async {
         new I();
         new J();
       }
-      """, options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2])
-      .then((env) {
+      """).then((env) {
     void expect(bool expectSubtype, DartType T, DartType S,
         {bool expectMoreSpecific}) {
       testTypes(env, T, S, expectSubtype, expectMoreSpecific);
@@ -845,7 +828,7 @@ Future testTypeVariableSubtype({bool strongMode}) async {
   });
 }
 
-Future testStrongModeSubtyping({bool strongMode}) async {
+Future testStrongModeSubtyping() async {
   await TypeEnvironment.create(r"""
       class ClassWithCall {
         void call() {}
@@ -872,8 +855,7 @@ Future testStrongModeSubtyping({bool strongMode}) async {
         takeVoid(null);
         takeObject(null);
       }
-      """, options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2])
-      .then((env) {
+      """).then((env) {
     void expect(bool expectSubtype, DartType T, DartType S) {
       Expect.equals(expectSubtype, env.isSubtype(T, S), '$T <: $S');
       if (expectSubtype) {
@@ -907,10 +889,10 @@ Future testStrongModeSubtyping({bool strongMode}) async {
     DartType takeObject = env.getMemberType('takeObject');
 
     // Classes with call methods are no longer subtypes of Function.
-    expect(!strongMode, ClassWithCall, Function_);
+    expect(false, ClassWithCall, Function_);
     // Classes with call methods are no longer subtype the function type of the
     // call method.
-    expect(!strongMode, ClassWithCall, ClassWithCallType);
+    expect(false, ClassWithCall, ClassWithCallType);
 
     // At runtime `Object`, `dynamic` and `void` are the same and are therefore
     // subtypes and supertypes of each other.
@@ -918,7 +900,7 @@ Future testStrongModeSubtyping({bool strongMode}) async {
     // `dynamic` is no longer a bottom type but `Null` is.
 
     expect(true, Object_, Object_);
-    expect(strongMode, Object_, void_);
+    expect(true, Object_, void_);
     expect(true, Object_, dynamic_);
     expect(false, Object_, Null_);
     expect(false, Object_, Function_);
@@ -926,10 +908,10 @@ Future testStrongModeSubtyping({bool strongMode}) async {
     expect(true, dynamic_, Object_);
     expect(true, dynamic_, void_);
     expect(true, dynamic_, dynamic_);
-    expect(!strongMode, dynamic_, Null_);
-    expect(!strongMode, dynamic_, Function_);
+    expect(false, dynamic_, Null_);
+    expect(false, dynamic_, Function_);
 
-    expect(strongMode, void_, Object_);
+    expect(true, void_, Object_);
     expect(true, void_, void_);
     expect(true, void_, dynamic_);
     expect(false, void_, Null_);
@@ -942,13 +924,13 @@ Future testStrongModeSubtyping({bool strongMode}) async {
     expect(true, Null_, Function_);
 
     expect(true, Function_, Object_);
-    expect(strongMode, Function_, void_);
+    expect(true, Function_, void_);
     expect(true, Function_, dynamic_);
     expect(false, Function_, Null_);
     expect(true, Function_, Function_);
 
     expect(true, List_Object, List_Object);
-    expect(strongMode, List_Object, List_void);
+    expect(true, List_Object, List_void);
     expect(true, List_Object, List_dynamic);
     expect(false, List_Object, List_Null);
     expect(false, List_Object, List_Function);
@@ -956,10 +938,10 @@ Future testStrongModeSubtyping({bool strongMode}) async {
     expect(true, List_dynamic, List_Object);
     expect(true, List_dynamic, List_void);
     expect(true, List_dynamic, List_dynamic);
-    expect(!strongMode, List_dynamic, List_Null);
-    expect(!strongMode, List_dynamic, List_Function);
+    expect(false, List_dynamic, List_Null);
+    expect(false, List_dynamic, List_Function);
 
-    expect(strongMode, List_void, List_Object);
+    expect(true, List_void, List_Object);
     expect(true, List_void, List_void);
     expect(true, List_void, List_dynamic);
     expect(false, List_void, List_Null);
@@ -972,14 +954,14 @@ Future testStrongModeSubtyping({bool strongMode}) async {
     expect(true, List_Null, List_Function);
 
     expect(true, List_Function, List_Object);
-    expect(strongMode, List_Function, List_void);
+    expect(true, List_Function, List_void);
     expect(true, List_Function, List_dynamic);
     expect(false, List_Function, List_Null);
     expect(true, List_Function, List_Function);
 
     // Return type are now covariant.
     expect(true, returnNum, returnNum);
-    expect(!strongMode, returnNum, returnInt);
+    expect(false, returnNum, returnInt);
     expect(true, returnNum, returnVoid);
     expect(true, returnNum, returnObject);
 
@@ -991,10 +973,10 @@ Future testStrongModeSubtyping({bool strongMode}) async {
     expect(false, returnVoid, returnNum);
     expect(false, returnVoid, returnInt);
     expect(true, returnVoid, returnVoid);
-    expect(strongMode, returnVoid, returnObject);
+    expect(true, returnVoid, returnObject);
 
-    expect(!strongMode, returnObject, returnNum);
-    expect(!strongMode, returnObject, returnInt);
+    expect(false, returnObject, returnNum);
+    expect(false, returnObject, returnInt);
     expect(true, returnObject, returnVoid);
     expect(true, returnObject, returnObject);
 
@@ -1002,21 +984,21 @@ Future testStrongModeSubtyping({bool strongMode}) async {
     expect(true, takeNum, takeNum);
     expect(true, takeNum, takeInt);
     expect(false, takeNum, takeVoid);
-    expect(!strongMode, takeNum, takeObject);
+    expect(false, takeNum, takeObject);
 
-    expect(!strongMode, takeInt, takeNum);
+    expect(false, takeInt, takeNum);
     expect(true, takeInt, takeInt);
     expect(false, takeInt, takeVoid);
-    expect(!strongMode, takeInt, takeObject);
+    expect(false, takeInt, takeObject);
 
-    expect(strongMode, takeVoid, takeNum);
-    expect(strongMode, takeVoid, takeInt);
+    expect(true, takeVoid, takeNum);
+    expect(true, takeVoid, takeInt);
     expect(true, takeVoid, takeVoid);
-    expect(strongMode, takeVoid, takeObject);
+    expect(true, takeVoid, takeObject);
 
     expect(true, takeObject, takeNum);
     expect(true, takeObject, takeInt);
-    expect(strongMode, takeObject, takeVoid);
+    expect(true, takeObject, takeVoid);
     expect(true, takeObject, takeObject);
   });
 }

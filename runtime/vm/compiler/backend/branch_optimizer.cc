@@ -284,6 +284,13 @@ void IfConverter::Simplify(FlowGraph* flow_graph) {
           (pred1->PredecessorAt(0) == pred2->PredecessorAt(0))) {
         BlockEntryInstr* pred = pred1->PredecessorAt(0);
         BranchInstr* branch = pred->last_instruction()->AsBranch();
+
+        if (branch == nullptr) {
+          // There is no "B_pred" block.
+          ASSERT(pred->last_instruction()->IsGraphEntry());
+          continue;
+        }
+
         ComparisonInstr* comparison = branch->comparison();
 
         // Check if the platform supports efficient branchless IfThenElseInstr

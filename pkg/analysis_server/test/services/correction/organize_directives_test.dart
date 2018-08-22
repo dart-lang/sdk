@@ -354,10 +354,6 @@ class OrganizeDirectivesTest_UseCFE extends OrganizeDirectivesTest {
 
   @failingTest
   @override
-  test_remove_unusedImports() => super.test_remove_unusedImports();
-
-  @failingTest
-  @override
   test_remove_unusedImports_hasUnresolvedError() =>
       super.test_remove_unusedImports_hasUnresolvedError();
 

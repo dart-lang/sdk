@@ -10,14 +10,16 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:front_end/src/fasta/scanner/abstract_scanner.dart';
+import 'package:front_end/src/fasta/scanner.dart'
+    show ScannerResult, scanString;
+import 'package:front_end/src/fasta/scanner/abstract_scanner.dart'
+    show AbstractScanner;
+import 'package:front_end/src/scanner/errors.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -25,7 +27,10 @@ import 'test_support.dart';
 
 main() {
   // The fasta parser has a parallel set of tests in parser_fasta_test.dart
-  if (Parser.useFasta) return;
+  if (Parser.useFasta) {
+    test('useFasta', () => true);
+    return;
+  }
 
   defineReflectiveSuite(() {
     defineReflectiveTests(ClassMemberParserTest);
@@ -9967,17 +9972,32 @@ class ParserTestCase extends EngineTestCase
    * prepared to parse the tokens scanned from the given [content].
    */
   void createParser(String content, {int expectedEndOffset}) {
+    Source source = new TestSource();
     listener = new GatheringErrorListener();
+
+    void reportError(
+        ScannerErrorCode errorCode, int offset, List<Object> arguments) {
+      listener
+          .onError(new AnalysisError(source, offset, 1, errorCode, arguments));
+    }
+
     //
     // Scan the source.
     //
-    TestSource source = new TestSource();
-    CharacterReader reader = new CharSequenceReader(content);
-    Scanner scanner = new Scanner(source, reader, listener);
-    scanner.scanGenericMethodComments = enableGenericMethodComments;
-    scanner.scanLazyAssignmentOperators = enableLazyAssignmentOperators;
-    Token tokenStream = scanner.tokenize();
-    listener.setLineInfo(source, scanner.lineStarts);
+    ScannerResult result = scanString(content,
+        includeComments: true,
+        scanGenericMethodComments: enableGenericMethodComments,
+        scanLazyAssignmentOperators: enableLazyAssignmentOperators);
+    Token token = result.tokens;
+    if (result.hasErrors) {
+      // The default recovery strategy used by scanString
+      // places all error tokens at the head of the stream.
+      while (token.type == TokenType.BAD_INPUT) {
+        translateErrorToken(token, reportError);
+        token = token.next;
+      }
+    }
+    listener.setLineInfo(source, result.lineStarts);
     //
     // Create and initialize the parser.
     //
@@ -9987,7 +10007,7 @@ class ParserTestCase extends EngineTestCase
     parser.parseFunctionBodies = parseFunctionBodies;
     parser.enableNnbd = enableNnbd;
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
-    parser.currentToken = tokenStream;
+    parser.currentToken = token;
   }
 
   @override
@@ -10103,15 +10123,36 @@ class ParserTestCase extends EngineTestCase
    * @throws Exception if the source could not be parsed, if the compilation errors in the source do
    *           not match those that are expected, or if the result would have been `null`
    */
-  CompilationUnit parseCompilationUnit(String source,
+  CompilationUnit parseCompilationUnit(String content,
       {List<ErrorCode> codes, List<ExpectedError> errors}) {
+    Source source = new TestSource();
     GatheringErrorListener listener = new GatheringErrorListener();
-    Scanner scanner =
-        new Scanner(null, new CharSequenceReader(source), listener);
-    TestSource testSource = new TestSource();
-    listener.setLineInfo(testSource, scanner.lineStarts);
-    Token token = scanner.tokenize();
-    Parser parser = new Parser(testSource, listener);
+
+    void reportError(
+        ScannerErrorCode errorCode, int offset, List<Object> arguments) {
+      listener
+          .onError(new AnalysisError(source, offset, 1, errorCode, arguments));
+    }
+
+    //
+    // Scan the source.
+    //
+    ScannerResult result = scanString(content,
+        includeComments: true,
+        scanGenericMethodComments: enableGenericMethodComments,
+        scanLazyAssignmentOperators: enableLazyAssignmentOperators);
+    Token token = result.tokens;
+    if (result.hasErrors) {
+      // The default recovery strategy used by scanString
+      // places all error tokens at the head of the stream.
+      while (token.type == TokenType.BAD_INPUT) {
+        translateErrorToken(token, reportError);
+        token = token.next;
+      }
+    }
+    listener.setLineInfo(source, result.lineStarts);
+
+    Parser parser = new Parser(source, listener);
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     expect(unit, isNotNull);
@@ -10126,17 +10167,40 @@ class ParserTestCase extends EngineTestCase
   }
 
   /**
-   * Parse the given [code] as a compilation unit.
+   * Parse the given [content] as a compilation unit.
    */
-  CompilationUnit parseCompilationUnit2(String code,
+  CompilationUnit parseCompilationUnit2(String content,
       {AnalysisErrorListener listener}) {
+    Source source = NonExistingSource.unknown;
     listener ??= AnalysisErrorListener.NULL_LISTENER;
-    Scanner scanner = new Scanner(null, new CharSequenceReader(code), listener);
-    Token token = scanner.tokenize();
-    Parser parser = new Parser(NonExistingSource.unknown, listener);
+
+    void reportError(
+        ScannerErrorCode errorCode, int offset, List<Object> arguments) {
+      listener
+          .onError(new AnalysisError(source, offset, 1, errorCode, arguments));
+    }
+
+    //
+    // Scan the source.
+    //
+    ScannerResult result = scanString(content,
+        includeComments: true,
+        scanGenericMethodComments: enableGenericMethodComments,
+        scanLazyAssignmentOperators: enableLazyAssignmentOperators);
+    Token token = result.tokens;
+    if (result.hasErrors) {
+      // The default recovery strategy used by scanString
+      // places all error tokens at the head of the stream.
+      while (token.type == TokenType.BAD_INPUT) {
+        translateErrorToken(token, reportError);
+        token = token.next;
+      }
+    }
+
+    Parser parser = new Parser(source, listener);
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     CompilationUnit unit = parser.parseCompilationUnit(token);
-    unit.lineInfo = new LineInfo(scanner.lineStarts);
+    unit.lineInfo = new LineInfo(result.lineStarts);
     return unit;
   }
 
@@ -10453,22 +10517,42 @@ class ParserTestCase extends EngineTestCase
   }
 
   /**
-   * Parse the given [source] as a statement. If [enableLazyAssignmentOperators]
+   * Parse the given [content] as a statement. If [enableLazyAssignmentOperators]
    * is `true`, then lazy assignment operators should be enabled.
    */
-  Statement parseStatement(String source,
+  Statement parseStatement(String content,
       {bool enableLazyAssignmentOperators, int expectedEndOffset}) {
+    Source source = new TestSource();
     listener = new GatheringErrorListener();
-    Scanner scanner =
-        new Scanner(null, new CharSequenceReader(source), listener);
-    scanner.scanGenericMethodComments = enableGenericMethodComments;
     if (enableLazyAssignmentOperators != null) {
-      scanner.scanLazyAssignmentOperators = enableLazyAssignmentOperators;
+      this.enableLazyAssignmentOperators = enableLazyAssignmentOperators;
     }
-    var testSource = new TestSource();
-    listener.setLineInfo(testSource, scanner.lineStarts);
-    Token token = scanner.tokenize();
-    Parser parser = new Parser(testSource, listener);
+
+    void reportError(
+        ScannerErrorCode errorCode, int offset, List<Object> arguments) {
+      listener
+          .onError(new AnalysisError(source, offset, 1, errorCode, arguments));
+    }
+
+    //
+    // Scan the source.
+    //
+    ScannerResult result = scanString(content,
+        includeComments: true,
+        scanGenericMethodComments: enableGenericMethodComments,
+        scanLazyAssignmentOperators: enableLazyAssignmentOperators);
+    Token token = result.tokens;
+    if (result.hasErrors) {
+      // The default recovery strategy used by scanString
+      // places all error tokens at the head of the stream.
+      while (token.type == TokenType.BAD_INPUT) {
+        translateErrorToken(token, reportError);
+        token = token.next;
+      }
+    }
+    listener.setLineInfo(source, result.lineStarts);
+
+    Parser parser = new Parser(source, listener);
     parser.parseGenericMethodComments = enableGenericMethodComments;
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     Statement statement = parser.parseStatement(token);
@@ -10487,15 +10571,35 @@ class ParserTestCase extends EngineTestCase
    *           the expected count, if the compilation errors in the source do not match those that
    *           are expected, or if the result would have been `null`
    */
-  List<Statement> parseStatements(String source, int expectedCount,
+  List<Statement> parseStatements(String content, int expectedCount,
       [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
+    Source source = new TestSource();
     GatheringErrorListener listener = new GatheringErrorListener();
-    Scanner scanner =
-        new Scanner(null, new CharSequenceReader(source), listener);
-    var testSource = new TestSource();
-    listener.setLineInfo(testSource, scanner.lineStarts);
-    Token token = scanner.tokenize();
-    Parser parser = new Parser(testSource, listener);
+
+    void reportError(
+        ScannerErrorCode errorCode, int offset, List<Object> arguments) {
+      listener
+          .onError(new AnalysisError(source, offset, 1, errorCode, arguments));
+    }
+
+    //
+    // Scan the source.
+    //
+    ScannerResult result = scanString(content,
+        scanGenericMethodComments: enableGenericMethodComments,
+        scanLazyAssignmentOperators: enableLazyAssignmentOperators);
+    Token token = result.tokens;
+    if (result.hasErrors) {
+      // The default recovery strategy used by scanString
+      // places all error tokens at the head of the stream.
+      while (token.type == TokenType.BAD_INPUT) {
+        translateErrorToken(token, reportError);
+        token = token.next;
+      }
+    }
+    listener.setLineInfo(source, result.lineStarts);
+
+    Parser parser = new Parser(source, listener);
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     List<Statement> statements = parser.parseStatements(token);
     expect(statements, hasLength(expectedCount));

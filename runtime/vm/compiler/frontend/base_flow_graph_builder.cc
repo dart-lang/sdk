@@ -411,6 +411,14 @@ Fragment BaseFlowGraphBuilder::StoreInstanceFieldGuarded(
     instructions += GuardFieldClass(field_clone, GetNextDeoptId());
     instructions += LoadLocal(store_expression);
     instructions += GuardFieldLength(field_clone, GetNextDeoptId());
+
+    // If we are tracking exactness of the static type of the field then
+    // emit appropriate guard.
+    if (field_clone.static_type_exactness_state().IsTracking()) {
+      instructions += LoadLocal(store_expression);
+      instructions <<=
+          new (Z) GuardFieldTypeInstr(Pop(), field_clone, GetNextDeoptId());
+    }
   }
   instructions += StoreInstanceField(field_clone, is_initialization_store);
   return instructions;

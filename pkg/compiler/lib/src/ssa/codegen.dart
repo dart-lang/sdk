@@ -2757,7 +2757,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void checkTypeViaInstanceof(HInstruction input, InterfaceType type,
       SourceInformation sourceInformation,
       {bool negative: false}) {
-    _registry.registerTypeUse(new TypeUse.isCheck(type));
+    _registry.registerTypeUse(new TypeUse.instanceConstructor(type));
 
     use(input);
 
@@ -2767,7 +2767,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (negative) {
       push(new js.Prefix('!', pop()).withSourceInformation(sourceInformation));
     }
-    _registry.registerInstantiation(type);
   }
 
   void handleNumberOrStringSupertypeCheck(

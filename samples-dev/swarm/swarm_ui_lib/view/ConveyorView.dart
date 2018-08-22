@@ -26,8 +26,8 @@ class ConveyorView extends CompositeView {
   Timer animationTimer;
 
   ConveyorView()
-      : super('conveyor-view', true),
-        animationTimer = null {}
+      : animationTimer = null,
+        super('conveyor-view', true) {}
 
   Element render() {
     final result = super.render();

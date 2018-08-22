@@ -17,6 +17,9 @@ import 'package:vm/metadata/procedure_attributes.dart'
 import 'package:vm/metadata/unreachable.dart'
     show UnreachableNodeMetadataRepository;
 
+import 'package:vm/metadata/call_site_attributes.dart'
+    show CallSiteAttributesMetadataRepository;
+
 final String _usage = '''
 Usage: dump_kernel input.dill output.txt
 Dumps kernel binary file with VM-specific metadata.
@@ -39,6 +42,7 @@ main(List<String> arguments) async {
   component.addMetadataRepository(new ProcedureAttributesMetadataRepository());
   component.addMetadataRepository(new UnreachableNodeMetadataRepository());
   component.addMetadataRepository(new BytecodeMetadataRepository());
+  component.addMetadataRepository(new CallSiteAttributesMetadataRepository());
 
   final List<int> bytes = new File(input).readAsBytesSync();
   new BinaryBuilderWithMetadata(bytes).readComponent(component);

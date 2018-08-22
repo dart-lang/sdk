@@ -4,7 +4,6 @@
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/elements/entities.dart';
@@ -16,14 +15,11 @@ import '../memory_compiler.dart';
 
 main() {
   asyncTest(() async {
-    print('--test from non-strong mode---------------------------------------');
-    await runTest(strongMode: false);
-    print('--test from strong mode-------------------------------------------');
-    await runTest(strongMode: true);
+    await runTest();
   });
 }
 
-runTest({bool strongMode}) async {
+runTest() async {
   String source = '''
 class A {}
 class B {}
@@ -60,40 +56,24 @@ main() {
 ''';
 
   Map<String, Impact> expectedImpactMap = <String, Impact>{
-    'method1':
-        strongMode ? const Impact() : new Impact(checkedModeChecks: ['int']),
-    'method2': strongMode
-        ? new Impact(implicitCasts: ['int'])
-        : new Impact(checkedModeChecks: ['int']),
-    'method3': strongMode
-        ? new Impact(parameterChecks: ['int'])
-        : new Impact(checkedModeChecks: ['int']),
-    'method4': strongMode
-        ? new Impact(asCasts: ['int'])
-        : new Impact(checkedModeChecks: ['int'], asCasts: ['int']),
-    'method5':
-        strongMode ? const Impact() : new Impact(checkedModeChecks: ['void']),
+    'method1': const Impact(),
+    'method2': new Impact(implicitCasts: ['int']),
+    'method3': new Impact(parameterChecks: ['int']),
+    'method4': new Impact(asCasts: ['int']),
+    'method5': const Impact(),
     'method6': const Impact(),
     'method7': const Impact(),
-    'method8':
-        strongMode ? const Impact() : new Impact(checkedModeChecks: ['int']),
-    'method9': strongMode
-        ? new Impact(implicitCasts: ['int'])
-        : new Impact(checkedModeChecks: ['int']),
+    'method8': const Impact(),
+    'method9': new Impact(implicitCasts: ['int']),
     'method10': const Impact(),
     'method11': const Impact(),
-    'method12': strongMode
-        ? const Impact()
-        : new Impact(checkedModeChecks: ['int', 'String']),
-    'method13': strongMode
-        ? new Impact(implicitCasts: ['int'], parameterChecks: ['String'])
-        : new Impact(checkedModeChecks: ['int', 'String']),
+    'method12': const Impact(),
+    'method13': new Impact(implicitCasts: ['int'], parameterChecks: ['String']),
   };
 
   ImpactCacheDeleter.retainCachesForTesting = true;
-  CompilationResult result = await runCompiler(
-      memorySourceFiles: {'main.dart': source},
-      options: strongMode ? [Flags.strongMode] : [Flags.noPreviewDart2]);
+  CompilationResult result =
+      await runCompiler(memorySourceFiles: {'main.dart': source});
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
 
@@ -116,7 +96,7 @@ main() {
     Set<String> implicitCasts = expectedImpact.implicitCasts.toSet();
     Set<String> parameterChecks = expectedImpact.parameterChecks.toSet();
 
-    String context = 'in $member for Dart ${strongMode ? '2' : '1'}:\n'
+    String context = 'in $member:\n'
         'Expected: $expectedImpact\nActual: $typeUses';
     for (TypeUse typeUse in typeUses) {
       String type = '${typeUse.type}';
@@ -124,11 +104,6 @@ main() {
         case TypeUseKind.AS_CAST:
           Expect.isTrue(asCasts.contains(type), "Extra $typeUse $context");
           asCasts.remove(type);
-          break;
-        case TypeUseKind.CHECKED_MODE_CHECK:
-          Expect.isTrue(
-              checkedModeChecks.contains(type), "Extra $typeUse $context");
-          checkedModeChecks.remove(type);
           break;
         case TypeUseKind.IMPLICIT_CAST:
           Expect.isTrue(

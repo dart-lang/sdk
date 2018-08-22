@@ -5,7 +5,7 @@
 // part of "core_patch.dart";
 
 /// VM internal StackTrace implementation.
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 class _StackTrace implements StackTrace {
   // toString() is overridden on the C++ side.
 }

@@ -696,13 +696,13 @@ class VMService extends MessageRouter {
   }
 }
 
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 RawReceivePort boot() {
   // Return the port we expect isolate control messages on.
   return isolateControlPort;
 }
 
-@pragma("vm.entry-point", !const bool.fromEnvironment("dart.vm.product"))
+@pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
 void _registerIsolate(int port_id, SendPort sp, String name) {
   var service = new VMService();
   service.runningIsolates.isolateStartup(port_id, sp, name);

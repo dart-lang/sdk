@@ -320,6 +320,9 @@ class ProcessedOptions {
   /// Whether to interpret Dart sources in strong-mode.
   bool get strongMode => _raw.strongMode;
 
+  /// Whether to generate bytecode.
+  bool get bytecode => _raw.bytecode;
+
   Target _target;
   Target get target => _target ??=
       _raw.target ?? new NoneTarget(new TargetFlags(strongMode: strongMode));
@@ -375,7 +378,8 @@ class ProcessedOptions {
 
   /// Helper to load a .dill file from [uri] using the existing [nameRoot].
   Component loadComponent(List<int> bytes, CanonicalName nameRoot) {
-    Component component = new Component(nameRoot: nameRoot);
+    Component component =
+        target.configureComponent(new Component(nameRoot: nameRoot));
     // TODO(ahe): Pass file name to BinaryBuilder.
     // TODO(ahe): Control lazy loading via an option.
     new BinaryBuilder(bytes, filename: null, disableLazyReading: false)

@@ -17,6 +17,17 @@ ClassEntity findClass(JClosedWorld closedWorld, String name) {
       closedWorld.commonElements.interceptorsLibrary, name);
   cls ??= elementEnvironment.lookupClass(
       closedWorld.commonElements.jsHelperLibrary, name);
+  if (cls == null) {
+    for (LibraryEntity library in elementEnvironment.libraries) {
+      if (library.canonicalUri.scheme != 'dart' &&
+          library.canonicalUri.scheme != 'package') {
+        cls = elementEnvironment.lookupClass(library, name);
+        if (cls != null) {
+          break;
+        }
+      }
+    }
+  }
   assert(cls != null, "Class '$name' not found.");
   return cls;
 }
@@ -24,21 +35,49 @@ ClassEntity findClass(JClosedWorld closedWorld, String name) {
 MemberEntity findClassMember(
     JClosedWorld closedWorld, String className, String memberName,
     {bool required: true}) {
+  bool isSetter = false;
+  if (memberName.endsWith('=')) {
+    memberName = memberName.substring(0, memberName.length - 1);
+    isSetter = true;
+  }
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   ClassEntity cls = findClass(closedWorld, className);
   assert(cls != null, "Class '$className' not found.");
-  MemberEntity member = elementEnvironment.lookupClassMember(cls, memberName);
+  MemberEntity member =
+      elementEnvironment.lookupClassMember(cls, memberName, setter: isSetter);
+  if (member == null && !isSetter) {
+    member = elementEnvironment.lookupConstructor(cls, memberName);
+  }
   assert(
       !required || member != null, "Member '$memberName' not found in $cls.");
   return member;
 }
 
 MemberEntity findMember(JClosedWorld closedWorld, String name) {
+  bool isSetter = false;
+  if (name.endsWith('=')) {
+    name = name.substring(0, name.length - 1);
+    isSetter = true;
+  }
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   MemberEntity member = elementEnvironment.lookupLibraryMember(
-      elementEnvironment.mainLibrary, name);
+      elementEnvironment.mainLibrary, name,
+      setter: isSetter);
   member ??= elementEnvironment.lookupLibraryMember(
-      closedWorld.commonElements.coreLibrary, name);
+      closedWorld.commonElements.coreLibrary, name,
+      setter: isSetter);
+  if (member == null) {
+    for (LibraryEntity library in elementEnvironment.libraries) {
+      if (library.canonicalUri.scheme != 'dart' &&
+          library.canonicalUri.scheme != 'package') {
+        member = elementEnvironment.lookupLibraryMember(library, name,
+            setter: isSetter);
+        if (member != null) {
+          break;
+        }
+      }
+    }
+  }
   assert(member != null, "Member '$name' not found.");
   return member;
 }

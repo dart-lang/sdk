@@ -37,6 +37,53 @@ Iterable<int> foo3(int p) sync* {
   yield p + i;
 }
 
+void testCapturingInSyncStar() {
+  int localL0 = 0;
+
+  nested1(int paramL1) sync* {
+    int localL1 = 0;
+    localL0 += 10;
+    paramL1 += 100;
+
+    nested2(int paramL2) sync* {
+      int localL2 = 0;
+      localL0 += 1000;
+      paramL1 += 10000;
+      localL1 += 100000;
+      paramL2 += 1000000;
+      localL2 += 10000000;
+
+      yield localL0 + paramL1 + localL1 + paramL2 + localL2;
+    }
+
+    yield nested2(0);
+  }
+
+  Iterable t1 = nested1(0);
+
+  Iterator it11 = t1.iterator;
+  Iterator it12 = t1.iterator;
+  it11.moveNext();
+  it12.moveNext();
+
+  Iterable t2 = it11.current;
+  Iterable t3 = it12.current;
+  Iterator it21 = t2.iterator;
+  Iterator it22 = t2.iterator;
+  Iterator it31 = t3.iterator;
+  Iterator it32 = t3.iterator;
+
+  it21.moveNext();
+  it22.moveNext();
+  it31.moveNext();
+  it32.moveNext();
+
+  Expect.equals(11111120, it21.current);
+  Expect.equals(11222120, it22.current);
+  Expect.equals(11113120, it31.current);
+  Expect.equals(11224120, it32.current);
+}
+
 main() {
   Expect.listEquals([1], foo1().toList());
   Expect.listEquals(
@@ -54,4 +101,6 @@ main() {
   Expect.isFalse(it1.moveNext());
   Expect.isFalse(it2.moveNext()); //# copyParameters: continued
   Expect.isFalse(it2.moveNext()); //# copyParameters: continued
+
+  testCapturingInSyncStar(); //# capturing: ok
 }

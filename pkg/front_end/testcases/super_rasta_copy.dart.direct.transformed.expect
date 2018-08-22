@@ -1,3 +1,15 @@
+// Errors:
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:14:9: Error: Final field 'f' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final f;
+//         ^
+//
+// pkg/front_end/testcases/super_rasta_copy.dart:33:9: Error: Final field 'd' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final d;
+//         ^
+
 library;
 import self as self;
 import "dart:core" as core;

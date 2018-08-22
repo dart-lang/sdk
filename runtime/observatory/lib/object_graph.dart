@@ -448,18 +448,41 @@ class ObjectGraph {
   int getOwnedByCid(int cid) => _ownedSizesByCid[cid];
 
   Iterable<ObjectVertex> getMostRetained({int classId, int limit}) {
-    List<ObjectVertex> _mostRetained =
-        new List<ObjectVertex>.from(vertices.where((u) => !u.isRoot));
-    _mostRetained.sort((u, v) => v.retainedSize - u.retainedSize);
+    if (limit != null && limit < 20) {
+      SplayTreeSet<int> workingSet = new SplayTreeSet<int>((int e1, int e2) {
+        int result = _retainedSizes[e2] - _retainedSizes[e1];
+        if (result != 0) return result;
+        return e2 - e1;
+      });
 
-    var result = _mostRetained;
-    if (classId != null) {
-      result = result.where((u) => u.vmCid == classId);
+      for (int i = ROOT + 1; i < _N; i++) {
+        if (classId != null && _cids[i] != classId) continue;
+        workingSet.add(i);
+        if (workingSet.length > limit) {
+          int smallest = workingSet.last;
+          workingSet.remove(smallest);
+        }
+      }
+
+      List<ObjectVertex> result = new List<ObjectVertex>();
+      for (int id in workingSet) {
+        result.add(new ObjectVertex._(id, this));
+      }
+      return result;
+    } else {
+      List<ObjectVertex> _mostRetained =
+          new List<ObjectVertex>.from(vertices.where((u) => !u.isRoot));
+      _mostRetained.sort((u, v) => v.retainedSize - u.retainedSize);
+
+      Iterable<ObjectVertex> result = _mostRetained;
+      if (classId != null) {
+        result = result.where((u) => u.vmCid == classId);
+      }
+      if (limit != null) {
+        result = result.take(limit);
+      }
+      return result;
     }
-    if (limit != null) {
-      result = result.take(limit);
-    }
-    return result;
   }
 
   Stream<List> process() {

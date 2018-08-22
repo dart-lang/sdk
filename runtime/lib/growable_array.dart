@@ -4,7 +4,7 @@
 
 // part of "core_patch.dart";
 
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 class _GrowableList<T> extends ListBase<T> {
   void insert(int index, T element) {
     if ((index < 0) || (index > length)) {

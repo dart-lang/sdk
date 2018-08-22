@@ -296,8 +296,6 @@ abstract class GraphBuilder {
         return options.enableMinification;
       case 'MUST_RETAIN_METADATA':
         return false;
-      case 'STRONG_MODE':
-        return options.strongMode;
       case 'USE_CONTENT_SECURITY_POLICY':
         return options.useContentSecurityPolicy;
       default:

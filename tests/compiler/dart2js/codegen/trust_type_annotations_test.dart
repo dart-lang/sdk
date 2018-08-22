@@ -35,11 +35,11 @@ class A {
 }
 
 main () {
-  var a = new A("42");
+  var a = new A("42" as dynamic);
   print(a.aField);
   print(a.foo("42"));
   print(a.foo(42));
-  print(a.faa("42"));
+  print(a.faa("42" as dynamic));
   print(a.faa(42));
   print(a.baz("42"));
   print(a.baz(42));
@@ -51,7 +51,7 @@ main () {
 
 void main() {
   runTest() async {
-    var options = [Flags.noPreviewDart2, Flags.trustTypeAnnotations];
+    var options = [Flags.omitImplicitChecks];
     var result = await runCompiler(
         memorySourceFiles: {'main.dart': TEST}, options: options);
     var compiler = result.compiler;

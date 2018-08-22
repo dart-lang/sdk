@@ -15,11 +15,14 @@ import 'package:kernel/binary/limited_ast_to_binary.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:web_socket_channel/io.dart';
 
 import 'package:vm/incremental_compiler.dart';
 import 'package:vm/target/vm.dart';
+
+import 'common_test_utils.dart';
 
 main() {
   final platformKernel =
@@ -56,6 +59,170 @@ main() {
     });
   });
 
+  group('multiple kernels', () {
+    Directory mytest;
+    File main;
+    File lib;
+    setUpAll(() {
+      mytest = Directory.systemTemp.createTempSync('incremental');
+      main = new File('${mytest.path}/main.dart')..createSync();
+      main.writeAsStringSync("import 'lib.dart'; main() => print(foo()); \n");
+      lib = new File('${mytest.path}/lib.dart')..createSync();
+      lib.writeAsStringSync("foo() => 'foo'; main() => print('bar');\n");
+    });
+
+    tearDownAll(() {
+      try {
+        mytest.deleteSync(recursive: true);
+      } catch (_) {
+        // Ignore errors;
+      }
+    });
+
+    compileAndSerialize(
+        File mainDill, File libDill, IncrementalCompiler compiler) async {
+      Component component = await compiler.compile();
+      new BinaryPrinter(new DevNullSink<List<int>>())
+          .writeComponentFile(component);
+      IOSink sink = mainDill.openWrite();
+      BinaryPrinter printer = new LimitedBinaryPrinter(
+          sink,
+          (lib) => lib.fileUri.path.endsWith("main.dart"),
+          false /* excludeUriToSource */);
+      printer.writeComponentFile(component);
+      await sink.flush();
+      await sink.close();
+      sink = libDill.openWrite();
+      printer = new LimitedBinaryPrinter(
+          sink,
+          (lib) => lib.fileUri.path.endsWith("lib.dart"),
+          false /* excludeUriToSource */);
+      printer.writeComponentFile(component);
+      await sink.flush();
+      await sink.close();
+    }
+
+    test('main first, lib second', () async {
+      Directory dir = mytest.createTempSync();
+      File mainDill = File(p.join(dir.path, p.basename(main.path + ".dill")));
+      File libDill = File(p.join(dir.path, p.basename(lib.path + ".dill")));
+      IncrementalCompiler compiler = new IncrementalCompiler(options, main.uri);
+      await compileAndSerialize(mainDill, libDill, compiler);
+
+      var list = new File(p.join(dir.path, 'myMain.dilllist'))..createSync();
+      list.writeAsStringSync("#@dill\n${mainDill.path}\n${libDill.path}\n");
+      var vm =
+          await Process.start(Platform.resolvedExecutable, <String>[list.path]);
+
+      final splitter = new LineSplitter();
+      Completer<String> portLineCompleter = new Completer<String>();
+      vm.stdout.transform(utf8.decoder).transform(splitter).listen((String s) {
+        print("vm stdout: $s");
+        if (!portLineCompleter.isCompleted) {
+          portLineCompleter.complete(s);
+        }
+      });
+      vm.stderr.transform(utf8.decoder).transform(splitter).listen((String s) {
+        print("vm stderr: $s");
+      });
+      expect(await portLineCompleter.future, equals('foo'));
+      print("Compiler terminated with ${await vm.exitCode} exit code");
+    });
+
+    test('main second, lib first', () async {
+      Directory dir = mytest.createTempSync();
+      File mainDill = File(p.join(dir.path, p.basename(main.path + ".dill")));
+      File libDill = File(p.join(dir.path, p.basename(lib.path + ".dill")));
+      IncrementalCompiler compiler = new IncrementalCompiler(options, lib.uri);
+      await compileAndSerialize(mainDill, libDill, compiler);
+
+      var list = new File(p.join(dir.path, 'myMain.dilllist'))..createSync();
+      list.writeAsStringSync("#@dill\n${libDill.path}\n${mainDill.path}\n");
+      var vm =
+          await Process.start(Platform.resolvedExecutable, <String>[list.path]);
+
+      final splitter = new LineSplitter();
+
+      Completer<String> portLineCompleter = new Completer<String>();
+      vm.stdout.transform(utf8.decoder).transform(splitter).listen((String s) {
+        print("vm stdout: $s");
+        if (!portLineCompleter.isCompleted) {
+          portLineCompleter.complete(s);
+        }
+      });
+      vm.stderr.transform(utf8.decoder).transform(splitter).listen((String s) {
+        print("vm stderr: $s");
+      });
+      expect(await portLineCompleter.future, equals('bar'));
+      print("Compiler terminated with ${await vm.exitCode} exit code");
+    });
+
+    test('empty list', () async {
+      var list = new File(p.join(mytest.path, 'myMain.dilllist'))..createSync();
+      list.writeAsStringSync("#@dill\n");
+      var vm =
+          await Process.start(Platform.resolvedExecutable, <String>[list.path]);
+
+      Completer<int> exitCodeCompleter = new Completer<int>();
+      vm.exitCode.then((exitCode) {
+        print("Compiler terminated with $exitCode exit code");
+        exitCodeCompleter.complete(exitCode);
+      });
+      expect(await exitCodeCompleter.future, equals(254));
+    });
+
+    test('fallback to source compilation if fail to load', () async {
+      var list = new File('${mytest.path}/myMain.dilllist')..createSync();
+      list.writeAsStringSync("main() => print('baz');\n");
+      var vm =
+          await Process.start(Platform.resolvedExecutable, <String>[list.path]);
+
+      final splitter = new LineSplitter();
+
+      Completer<String> portLineCompleter = new Completer<String>();
+      vm.stdout.transform(utf8.decoder).transform(splitter).listen((String s) {
+        print("vm stdout: $s");
+        if (!portLineCompleter.isCompleted) {
+          portLineCompleter.complete(s);
+        }
+      });
+      vm.stderr.transform(utf8.decoder).transform(splitter).listen((String s) {
+        print("vm stderr: $s");
+      });
+      expect(await portLineCompleter.future, equals('baz'));
+      print("Compiler terminated with ${await vm.exitCode} exit code");
+    });
+
+    test('relative paths', () async {
+      Directory dir = mytest.createTempSync();
+      File mainDill = File(p.join(dir.path, p.basename(main.path + ".dill")));
+      File libDill = File(p.join(dir.path, p.basename(lib.path + ".dill")));
+      IncrementalCompiler compiler = new IncrementalCompiler(options, main.uri);
+      await compileAndSerialize(mainDill, libDill, compiler);
+
+      var list = new File(p.join(dir.path, 'myMain.dilllist'))..createSync();
+      list.writeAsStringSync("#@dill\n../main.dart.dill\n../lib.dart.dill\n");
+      Directory runFrom = new Directory(dir.path + "/runFrom")..createSync();
+      var vm = await Process.start(
+          Platform.resolvedExecutable, <String>[list.path],
+          workingDirectory: runFrom.path);
+
+      final splitter = new LineSplitter();
+      Completer<String> portLineCompleter = new Completer<String>();
+      vm.stdout.transform(utf8.decoder).transform(splitter).listen((String s) {
+        print("vm stdout: $s");
+        if (!portLineCompleter.isCompleted) {
+          portLineCompleter.complete(s);
+        }
+      });
+      vm.stderr.transform(utf8.decoder).transform(splitter).listen((String s) {
+        print("vm stderr: $s");
+      });
+      expect(await portLineCompleter.future, equals('foo'));
+      print("Compiler terminated with ${await vm.exitCode} exit code");
+    });
+  });
+
   group('reload', () {
     test('picks up after rejected delta', () async {
       var systemTempDir = Directory.systemTemp;
@@ -87,7 +254,7 @@ main() {
         '--pause_isolates_on_start',
         outputFile.path
       ];
-      final vm = await Process.start(Platform.executable, vmArgs);
+      final vm = await Process.start(Platform.resolvedExecutable, vmArgs);
 
       final splitter = new LineSplitter();
 
@@ -154,6 +321,7 @@ _writeProgramToFile(Component component, File outputFile) async {
   final BinaryPrinter printer = new LimitedBinaryPrinter(
       sink, (_) => true /* predicate */, false /* excludeUriToSource */);
   printer.writeComponentFile(component);
+  await sink.flush();
   await sink.close();
 }
 

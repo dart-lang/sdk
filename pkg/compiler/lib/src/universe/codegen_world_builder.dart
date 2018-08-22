@@ -81,7 +81,7 @@ abstract class CodegenWorldBuilder implements WorldBuilder {
   /// Returns the types that are live as constant type literals.
   Iterable<DartType> get constTypeLiterals;
 
-  /// Returns the types that are live as constant type literals.
+  /// Returns the types that are live as constant type arguments.
   Iterable<DartType> get liveTypeArguments;
 }
 

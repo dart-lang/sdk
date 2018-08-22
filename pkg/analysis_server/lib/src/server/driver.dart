@@ -36,13 +36,11 @@ import 'package:telemetry/telemetry.dart' as telemetry;
 /// flags for the analysis server.
 class CommandLineParser {
   final List<String> _knownFlags;
-  final bool _alwaysIgnoreUnrecognized;
   final ArgParser _parser;
 
   /// Creates a new command line parser
-  CommandLineParser({bool alwaysIgnoreUnrecognized: false})
+  CommandLineParser()
       : _knownFlags = <String>[],
-        _alwaysIgnoreUnrecognized = alwaysIgnoreUnrecognized,
         _parser = new ArgParser(allowTrailingOptions: true);
 
   ArgParser get parser => _parser;
@@ -117,10 +115,11 @@ class CommandLineParser {
   }
 
   List<String> _filterUnknowns(List<String> args) {
-    // Only filter args if the ignore flag is specified, or if
-    // _alwaysIgnoreUnrecognized was set to true
-    if (_alwaysIgnoreUnrecognized ||
-        args.contains('--ignore-unrecognized-flags')) {
+    // TODO(devoncarew): Consider dropping support for the
+    // --ignore-unrecognized-flags option.
+
+    // Only filter args if the ignore flag is specified.
+    if (args.contains('--ignore-unrecognized-flags')) {
       // Filter all unrecognized flags and options.
       List<String> filtered = <String>[];
       for (int i = 0; i < args.length; ++i) {
@@ -456,14 +455,18 @@ class Driver implements ServerStarter {
 
       () async {
         // We first analyze code with an empty driver cache.
-        print('Analyzing with an empty driver cache:');
+        print('Analyzing${analysisServerOptions.useCFE ? ' using CFE' : ''} '
+            'with an empty driver cache:');
         int exitCode = await devServer.processDirectories([trainDirectory]);
+        if (exitCode != 0) exit(exitCode);
 
         print('');
 
         // Then again with a populated cache.
-        print('Analyzing with a populated driver cache:');
+        print('Analyzing${analysisServerOptions.useCFE ? ' using CFE' : ''} '
+            'with a populated driver cache:');
         exitCode = await devServer.processDirectories([trainDirectory]);
+        if (exitCode != 0) exit(exitCode);
 
         if (serve_http) {
           httpServer.close();
@@ -476,7 +479,17 @@ class Driver implements ServerStarter {
           // ignore any exception
         }
 
-        exit(exitCode);
+        if (!analysisServerOptions.useCFE) {
+          print('');
+
+          // And then run everything again with CFE to train both frontends.
+          List<String> args = new List<String>.from(arguments);
+          args.add("--use-cfe");
+          ServerStarter starter = new ServerStarter();
+          starter.start(args);
+        } else {
+          exit(exitCode);
+        }
       }();
     } else {
       _captureExceptions(instrumentationService, () {
@@ -532,8 +545,7 @@ class Driver implements ServerStarter {
    * Create and return the parser used to parse the command-line arguments.
    */
   CommandLineParser _createArgParser() {
-    CommandLineParser parser =
-        new CommandLineParser(alwaysIgnoreUnrecognized: true);
+    CommandLineParser parser = new CommandLineParser();
     parser.addOption(CLIENT_ID,
         help: "an identifier used to identify the client");
     parser.addOption(CLIENT_VERSION, help: "the version of the client");

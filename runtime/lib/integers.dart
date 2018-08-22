@@ -451,7 +451,7 @@ abstract class _IntegerImplementation implements int {
   }
 }
 
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 class _Smi extends _IntegerImplementation implements _int64 {
   factory _Smi._uninstantiable() {
     throw new UnsupportedError("_Smi can only be allocated by the VM");
@@ -650,7 +650,7 @@ class _Smi extends _IntegerImplementation implements _int64 {
 }
 
 // Represents integers that cannot be represented by Smi but fit into 64bits.
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 class _Mint extends _IntegerImplementation implements _int64 {
   factory _Mint._uninstantiable() {
     throw new UnsupportedError("_Mint can only be allocated by the VM");

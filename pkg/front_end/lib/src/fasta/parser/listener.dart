@@ -76,19 +76,19 @@ class Listener implements UnescapeErrorListener {
     logEvent("CaseExpression");
   }
 
-  void beginClassBody(Token token) {}
+  void beginClassOrMixinBody(Token token) {}
 
-  /// Handle the end of the body of a class declaration.  The only substructures
-  /// are the class members.
-  void endClassBody(int memberCount, Token beginToken, Token endToken) {
-    logEvent("ClassBody");
+  /// Handle the end of the body of a class or mixin declaration.
+  /// The only substructures are the class or mixin members.
+  void endClassOrMixinBody(int memberCount, Token beginToken, Token endToken) {
+    logEvent("ClassOrMixinBody");
   }
 
   /// Called before parsing a class or named mixin application.
   void beginClassOrNamedMixinApplication(Token token) {}
 
   /// Handle the beginning of a class declaration.
-  /// [beginToken] may be the same as [name], or may point to modifiers
+  /// [begin] may be the same as [name], or may point to modifiers
   /// (or extraneous modifiers in the case of recovery) preceding [name].
   void beginClassDeclaration(Token begin, Token abstractToken, Token name) {}
 
@@ -98,9 +98,11 @@ class Listener implements UnescapeErrorListener {
     logEvent("ClassExtends");
   }
 
-  /// Handle an implements clause in a class declaration. Substructures:
+  /// Handle an implements clause in a class or mixin declaration.
+  /// Substructures:
   /// - implemented types
-  void handleClassImplements(Token implementsKeyword, int interfacesCount) {
+  void handleClassOrMixinImplements(
+      Token implementsKeyword, int interfacesCount) {
     logEvent("ClassImplements");
   }
 
@@ -229,11 +231,19 @@ class Listener implements UnescapeErrorListener {
     logEvent("FactoryMethod");
   }
 
-  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
-      Token varFinalOrConst) {}
+  /// [beginToken] is the first token of the parameter, e.g. `int` in
+  /// `int a`, or `this` in `C(this.f)`.
+  void beginFormalParameter(Token beginToken, MemberKind kind,
+      Token covariantToken, Token varFinalOrConst) {}
 
-  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
-      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
+  /// [endToken] is the last token of the parameter, e.g. `1` in `{int a = 1}`.
+  void endFormalParameter(
+      Token thisKeyword,
+      Token periodAfterThis,
+      Token nameToken,
+      FormalParameterKind kind,
+      MemberKind memberKind,
+      Token endToken) {
     logEvent("FormalParameter");
   }
 

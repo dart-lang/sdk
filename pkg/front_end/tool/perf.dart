@@ -33,8 +33,7 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
-import 'package:front_end/src/scanner/reader.dart';
-import 'package:front_end/src/scanner/scanner.dart';
+import 'package:front_end/src/fasta/scanner.dart';
 import 'package:front_end/src/scanner/token.dart';
 import 'package:package_config/discovery.dart';
 import 'package:path/path.dart' as path;
@@ -284,8 +283,15 @@ Token tokenize(Source source) {
   scanTimer.start();
   // TODO(sigmund): is there a way to scan from a random-access-file without
   // first converting to String?
-  var scanner = new _Scanner(source.contents.data);
-  var token = scanner.tokenize();
+  ScannerResult result =
+      scanString(source.contents.data, includeComments: false);
+  var token = result.tokens;
+  if (result.hasErrors) {
+    // Ignore errors.
+    while (token is ErrorToken) {
+      token = token.next;
+    }
+  }
   scanTimer.stop();
   return token;
 }
@@ -326,16 +332,5 @@ class _UnlinkedSummaries {
       print('Warning: no summary found for: $uri');
     }
     return result;
-  }
-}
-
-class _Scanner extends Scanner {
-  _Scanner(String contents) : super.create(new CharSequenceReader(contents)) {
-    preserveComments = false;
-  }
-
-  @override
-  void reportError(errorCode, int offset, List<Object> arguments) {
-    // ignore errors.
   }
 }

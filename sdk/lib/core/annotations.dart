@@ -5,23 +5,22 @@
 part of dart.core;
 
 /**
- * The annotation `@Deprecated('expires when')` marks a feature as deprecated.
+ * The annotation `@Deprecated('migration')` marks a feature as deprecated.
  *
- * The annotation `@deprecated` is a shorthand for deprecating until
- * an unspecified "next release".
+ * The annotation [deprecated] is a shorthand for deprecating until
+ * an unspecified "next release" without migration instructions.
  *
  * The intent of the `@Deprecated` annotation is to inform users of a feature
  * that they should change their code, even if it is currently still working
  * correctly.
  *
  * A deprecated feature is scheduled to be removed at a later time, possibly
- * specified as the "expires" field of the annotation.
- * This means that a deprecated feature should not be used, or code using it
- * will break at some point in the future. If there is code using the feature,
- * that code should be rewritten to not use the deprecated feature.
+ * specified in [message]. A deprecated feature should not be used, code using
+ * it will break at some point in the future. If existing code is using the
+ * feature it should be rewritten to not use the deprecated feature.
  *
- * A deprecated feature should document how the same effect can be achieved,
- * so the programmer knows how to rewrite the code.
+ * A deprecated feature should document how the same effect can be achieved in
+ * [message], so the programmer knows how to rewrite the code.
  *
  * The `@Deprecated` annotation applies to libraries, top-level declarations
  * (variables, getters, setters, functions, classes and typedefs),
@@ -54,22 +53,28 @@ part of dart.core;
  */
 class Deprecated {
   /**
-   * A description of when the deprecated feature is expected to be retired.
+   * Message provided to the user when they use the deprecated feature.
+   *
+   * The message should explain how to migrate away from the feature if an
+   * alternative is available, and when the deprecated feature is expected to be
+   * removed.
    */
-  final String expires;
+  final String message;
 
   /**
-   * Create a deprecation annotation which specifies the expiration of the
-   * annotated feature.
+   * Create a deprecation annotation which specifies the migration path and
+   * expiration of the annotated feature.
    *
-   * The [expires] argument should be readable by programmers, and should state
-   * when an annotated feature is expected to be removed.
-   * This can be specified, for example, as a date, as a release number, or
-   * as relative to some other change (like "when bug 4418 is fixed").
+   * The [message] argument should be readable by programmers, and should state
+   * an alternative feature (if available) as well as when an annotated feature
+   * is expected to be removed.
    */
-  const Deprecated(String expires) : this.expires = expires;
+  const Deprecated(this.message);
 
-  String toString() => "Deprecated feature. Will be removed $expires";
+  @Deprecated('Use `message` instead. Will be removed in Dart 3.0.0')
+  String get expires => message;
+
+  String toString() => "Deprecated feature: $message";
 }
 
 /**
@@ -109,57 +114,23 @@ class _Override {
 const Object override = const _Override();
 
 /**
- * The annotation `@Provisional('message')` marks a feature as provisional.
+ * An annotation class that was used during development of Dart 2.
  *
- * An API is considered to be provisional if it is still going through the
- * process of stabilizing and is subject to change or removal.
- *
- * The intent of the `@Provisional` annotation is to mark APIs that are still in
- * development or that are added only tentatively. Adding the API allows users
- * to experiment with using the APIs, which can provide valuable feedback. Such
- * provisional APIs do not promise stability. They can be changed or removed
- * without warning.
- *
- * The `@Provisional` annotation applies to:
- * - library directives,
- * - public top-level declarations, and
- * - public members of public classes.
- *
- * Provisionality is transitive:
- * - If a library is provisional, so is every member of it.
- * - If a class is provisional, so is every member of it.
- * - If a variable is provisional, so are its implicit getter and setter.
- *
- * Further, if a class is provisional, so are classes that extend, implement,
- * and mix-in the class.
- *
- * A tool that processes Dart source code may report when:
- * - the code imports a provisional library.
- * - the code exports a provisional library, or any provisional member of
- *   a non-provisional library.
- * - the code refers statically to a provisional declaration.
- * - the code dynamically uses a member of an object with a statically known
- *   type, where the member is provisional on the static type of the object.
- *
- * If the provisional use is inside a library, class or method which is itself
- * provisional, the tool should not bother the user about it.
- * A provisional feature is expected to use other provisional features.
+ * Should not be used any more.
  */
+@deprecated
 class Provisional {
-  /**
-   * A brief message describing how or why the feature is provisional.
-   */
-  final String message;
-
-  const Provisional({String message})
-      : this.message = message ?? "Subject to change or removal.";
+  String get message => null;
+  const Provisional({String message});
 }
 
 /**
- * Marks a feature as provisional with the message "Subject to change or
- * removal".
+ * An annotation that was used during development of Dart 2.
+ *
+ * Should not be used any more.
  */
-const Provisional provisional = const Provisional();
+@deprecated
+const Null provisional = null;
 
 class _Proxy {
   const _Proxy();
@@ -248,7 +219,7 @@ const Object proxy = const _Proxy();
  * function foo is annotated with a pragma 'other-pragma' specific to OtherTool.
  *
  */
-@pragma('vm.entry-point')
+@pragma('vm:entry-point')
 class pragma {
   /**
    * The name of the hint.

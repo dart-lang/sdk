@@ -12,6 +12,15 @@ namespace dart {
 
 DEFINE_FLAG(bool, force_log_flush, false, "Always flush log messages.");
 
+// The following flag is useful when debugging on Android, since
+// adb logcat truncates messages that are "too long" (and always
+// flushing would result in too many short messages).
+DEFINE_FLAG(
+    int,
+    force_log_flush_at_size,
+    0,
+    "Flush log messages when buffer exceeds given size (disabled when 0).");
+
 DEFINE_FLAG(charp,
             isolate_log_filter,
             NULL,
@@ -80,7 +89,7 @@ void Log::VPrint(const char* format, va_list args) {
   }
   free(buffer);
 
-  if ((manual_flush_ == 0) || FLAG_force_log_flush) {
+  if (ShouldFlush()) {
     Flush();
   }
 }
@@ -159,6 +168,12 @@ void Log::DisableManualFlush(const intptr_t cursor) {
   if (manual_flush_ == 0) {
     Flush(cursor);
   }
+}
+
+bool Log::ShouldFlush() const {
+  return ((manual_flush_ == 0) || FLAG_force_log_flush ||
+          ((FLAG_force_log_flush_at_size > 0) &&
+           (cursor() > FLAG_force_log_flush_at_size)));
 }
 
 void LogBlock::Initialize() {

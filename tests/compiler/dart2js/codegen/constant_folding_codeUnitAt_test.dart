@@ -18,7 +18,7 @@ foo() {
 const String TEST_2 = """
 foo() {
   var a = 'Hello';
-  var b = 1.5;
+  dynamic b = 1.5;
   return a.codeUnitAt(b);
 }
 """;
@@ -27,7 +27,7 @@ foo() {
 const String TEST_3 = """
 foo() {
   var a = 'Hello';
-  var b = 55;
+  dynamic b = 55;
   return a.codeUnitAt(b);
 }
 """;

@@ -50,7 +50,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                    InlineExitCollector* exit_collector,
                    bool optimizing,
                    intptr_t osr_id,
-                   intptr_t first_block_id = 1);
+                   intptr_t first_block_id = 1,
+                   bool inlining_unchecked_entry = false);
   virtual ~FlowGraphBuilder();
 
   FlowGraph* BuildGraph();
@@ -110,7 +111,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment LoadLocal(LocalVariable* variable);
   Fragment InitStaticField(const Field& field);
   Fragment NativeCall(const String* name, const Function* function);
-  Fragment Return(TokenPosition position);
+  Fragment Return(TokenPosition position, bool omit_result_type_check = false);
   Fragment CheckNull(TokenPosition position,
                      LocalVariable* receiver,
                      const String& function_name);

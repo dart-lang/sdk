@@ -4,8 +4,6 @@
 
 library dart2js.js_emitter.runtime_type_generator;
 
-import '../closure.dart'
-    show ClosureRepresentationInfo, ClosureConversionTask, ScopeInfo;
 import '../common_elements.dart' show CommonElements;
 import '../deferred_load.dart' show OutputUnit, OutputUnitData;
 import '../elements/entities.dart';
@@ -23,7 +21,6 @@ import '../js_backend/runtime_types.dart'
         Substitution,
         TypeCheck;
 import '../js_emitter/sorter.dart';
-import '../js_model/closure.dart' show JClosureField;
 import '../util/util.dart' show Setlet;
 
 import 'code_emitter_task.dart' show CodeEmitterTask;
@@ -93,26 +90,22 @@ class TypeTestProperties {
 
 class RuntimeTypeGenerator {
   final CommonElements _commonElements;
-  final ClosureConversionTask _closureDataLookup;
   final OutputUnitData _outputUnitData;
   final CodeEmitterTask emitterTask;
   final Namer _namer;
   final RuntimeTypesChecks _rtiChecks;
   final RuntimeTypesEncoder _rtiEncoder;
   final JsInteropAnalysis _jsInteropAnalysis;
-  final bool _strongMode;
   final _TypeContainedInOutputUnitVisitor _outputUnitVisitor;
 
   RuntimeTypeGenerator(
       this._commonElements,
-      this._closureDataLookup,
       this._outputUnitData,
       this.emitterTask,
       this._namer,
       this._rtiChecks,
       this._rtiEncoder,
-      this._jsInteropAnalysis,
-      this._strongMode)
+      this._jsInteropAnalysis)
       : _outputUnitVisitor = new _TypeContainedInOutputUnitVisitor(
             _commonElements, _outputUnitData);
 
@@ -170,43 +163,21 @@ class RuntimeTypeGenerator {
       } else {
         jsAst.Expression encoding =
             generatedCode[classFunctionType.signatureFunction];
-        if (_strongMode) {
-          if (classFunctionType.signatureFunction == null) {
-            // The signature function isn't live.
-            return;
+        if (classFunctionType.signatureFunction == null) {
+          // The signature function isn't live.
+          return;
+        }
+        if (functionTypeIndex != null) {
+          if (isDeferred) {
+            // The function type index must be offset by the number of types
+            // already loaded.
+            encoding = new jsAst.Binary(
+                '+',
+                new jsAst.VariableUse(_namer.typesOffsetName),
+                functionTypeIndex);
+          } else {
+            encoding = functionTypeIndex;
           }
-          if (functionTypeIndex != null) {
-            if (isDeferred) {
-              // The function type index must be offset by the number of types
-              // already loaded.
-              encoding = new jsAst.Binary(
-                  '+',
-                  new jsAst.VariableUse(_namer.typesOffsetName),
-                  functionTypeIndex);
-            } else {
-              encoding = functionTypeIndex;
-            }
-          }
-        } else if (encoding == null) {
-          // Generate the signature on the fly. This is only supported for
-          // Dart 1.
-
-          jsAst.Expression thisAccess = new jsAst.This();
-          if (method.enclosingClass.isClosure) {
-            ScopeInfo scopeInfo = _closureDataLookup.getScopeInfo(method);
-            if (scopeInfo is ClosureRepresentationInfo) {
-              FieldEntity thisLocal = scopeInfo.thisFieldEntity;
-              if (thisLocal != null) {
-                assert(thisLocal is JClosureField);
-                jsAst.Name thisName =
-                    _namer.instanceFieldPropertyName(thisLocal);
-                thisAccess = js('this.#', thisName);
-              }
-            }
-          }
-
-          encoding = _rtiEncoder.getSignatureEncoding(
-              emitterTask.emitter, type, thisAccess);
         }
         if (encoding != null) {
           jsAst.Name operatorSignature =

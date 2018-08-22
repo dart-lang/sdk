@@ -77,13 +77,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33827')
-  test_conflictingTypeVariableAndMember_setter() async {
-    await super.test_conflictingTypeVariableAndMember_setter();
-  }
-
-  @override
-  @failingTest
   test_constConstructorWithNonFinalField_super() async {
     await super.test_constConstructorWithNonFinalField_super();
   }
@@ -304,25 +297,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @failingTest
   test_fieldInitializerOutsideConstructor() async {
     await super.test_fieldInitializerOutsideConstructor();
-  }
-
-  @override
-  @failingTest
-  test_fieldInitializerRedirectingConstructor_afterRedirection() async {
-    return super.test_fieldInitializerRedirectingConstructor_afterRedirection();
-  }
-
-  @override
-  @failingTest
-  test_fieldInitializerRedirectingConstructor_beforeRedirection() async {
-    return super
-        .test_fieldInitializerRedirectingConstructor_beforeRedirection();
-  }
-
-  @override
-  @failingTest
-  test_fieldInitializingFormalRedirectingConstructor() async {
-    return super.test_fieldInitializingFormalRedirectingConstructor();
   }
 
   @override
@@ -1292,15 +1266,9 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   }
 
   @override
-  @failingTest
-  test_superInRedirectingConstructor_redirectionSuper() async {
-    return super.test_superInRedirectingConstructor_redirectionSuper();
-  }
-
-  @override
-  @failingTest
+  @failingTest // Deliberately only reports one of the expected errors.
   test_superInRedirectingConstructor_superRedirection() async {
-    return super.test_superInRedirectingConstructor_superRedirection();
+    await super.test_superInRedirectingConstructor_superRedirection();
   }
 
   @override

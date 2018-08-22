@@ -645,19 +645,6 @@ class SourceLoader<L> extends Loader<L> {
     return new Component()..libraries.addAll(libraries);
   }
 
-  List<Class> computeListOfLoaderClasses() {
-    List<Class> result = <Class>[];
-    builders.forEach((Uri uri, LibraryBuilder libraryBuilder) {
-      if (!libraryBuilder.isPart &&
-          !libraryBuilder.isPatch &&
-          (libraryBuilder.loader == this)) {
-        Library library = libraryBuilder.target;
-        result.addAll(library.classes);
-      }
-    });
-    return result;
-  }
-
   void computeHierarchy() {
     List<List> ambiguousTypesRecords = [];
     HandleAmbiguousSupertypes onAmbiguousSupertypes =
@@ -674,8 +661,9 @@ class SourceLoader<L> extends Loader<L> {
               : new LegacyModeMixinInferrer());
     } else {
       hierarchy.onAmbiguousSupertypes = onAmbiguousSupertypes;
-      hierarchy.applyTreeChanges(const [], computeListOfLoaderClasses(),
-          reissueAmbiguousSupertypesFor: computeFullComponent());
+      Component component = computeFullComponent();
+      hierarchy.applyTreeChanges(const [], component.libraries,
+          reissueAmbiguousSupertypesFor: component);
     }
     for (List record in ambiguousTypesRecords) {
       handleAmbiguousSupertypes(record[0], record[1], record[2]);

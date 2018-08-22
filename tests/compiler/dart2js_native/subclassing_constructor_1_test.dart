@@ -45,8 +45,8 @@ class B extends A {
 
   B.two()
       : b1 = log(201),
-        super.two(),
-        b3 = log(203) {
+        b3 = log(203),
+        super.two() {
     log('body(B.two)');
   }
 

@@ -30,12 +30,6 @@ import 'local_vars.dart' show LocalVariables;
 import '../constants_error_reporter.dart' show ForwardConstantEvaluationErrors;
 import '../metadata/bytecode.dart';
 
-/// Flag to toggle generation of bytecode in kernel files.
-const bool isKernelBytecodeEnabled = false;
-
-/// Flag to toggle generation of bytecode in platform kernel files.
-const bool isKernelBytecodeEnabledForPlatform = isKernelBytecodeEnabled;
-
 void generateBytecode(Component component,
     {bool strongMode: true,
     bool dropAST: false,
@@ -254,6 +248,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   Procedure get allocateInvocationMirror =>
       _allocateInvocationMirror ??= libraryIndex.getMember(
           'dart:core', '_InvocationMirror', '_allocateInvocationMirror');
+
+  Procedure _unsafeCast;
+  Procedure get unsafeCast => _unsafeCast ??=
+      libraryIndex.getTopLevelMember('dart:_internal', 'unsafeCast');
 
   void _genConstructorInitializers(Constructor node) {
     bool isRedirecting =
@@ -792,11 +790,14 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     if (locals.hasCapturedParameters) {
       // Copy captured parameters to their respective locations in the context.
-      if (locals.hasFactoryTypeArgsVar) {
-        _copyParamIfCaptured(locals.factoryTypeArgsVar);
-      }
-      if (locals.hasReceiver) {
-        _copyParamIfCaptured(locals.receiverVar);
+      final isClosure = parentFunction != null;
+      if (!isClosure) {
+        if (locals.hasFactoryTypeArgsVar) {
+          _copyParamIfCaptured(locals.factoryTypeArgsVar);
+        }
+        if (locals.hasReceiver) {
+          _copyParamIfCaptured(locals.receiverVar);
+        }
       }
       function.positionalParameters.forEach(_copyParamIfCaptured);
       function.namedParameters.forEach(_copyParamIfCaptured);
@@ -860,6 +861,13 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     asm = savedAssemblers.removeLast();
   }
 
+  void _evaluateDefaultParameterValue(VariableDeclaration param) {
+    if (param.initializer != null && param.initializer is! BasicLiteral) {
+      final constant = _evaluateConstantExpression(param.initializer);
+      param.initializer = new ConstantExpression(constant)..parent = param;
+    }
+  }
+
   int _genClosureBytecode(TreeNode node, String name, FunctionNode function) {
     _pushAssemblerState();
 
@@ -876,6 +884,12 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     List<Label> savedYieldPoints = yieldPoints;
     yieldPoints = locals.isSyncYieldingFrame ? <Label>[] : null;
+
+    // Replace default values of optional parameters with constants,
+    // as default value expressions could use local const variables which
+    // are not available in bytecode.
+    function.positionalParameters.forEach(_evaluateDefaultParameterValue);
+    function.namedParameters.forEach(_evaluateDefaultParameterValue);
 
     final int closureFunctionIndex =
         cp.add(new ConstantClosureFunction(name, function));
@@ -1076,15 +1090,12 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
   }
 
-  /// Generates non-local transfer from inner node [from] into the outer
-  /// node, executing finally blocks on the way out. [to] can be null,
-  /// in such case all enclosing finally blocks are executed.
+  /// Appends chained [FinallyBlock]s to each try-finally in the given
+  /// list [tryFinallyBlocks] (ordered from inner to outer).
   /// [continuation] is invoked to generate control transfer code following
   /// the last finally block.
-  void _generateNonLocalControlTransfer(
-      TreeNode from, TreeNode to, GenerateContinuation continuation) {
-    List<TryFinally> tryFinallyBlocks = _getEnclosingTryFinallyBlocks(from, to);
-
+  void _addFinallyBlocks(
+      List<TryFinally> tryFinallyBlocks, GenerateContinuation continuation) {
     // Add finally blocks to all try-finally from outer to inner.
     // The outermost finally block should generate continuation, each inner
     // finally block should proceed to a corresponding outer block.
@@ -1101,6 +1112,17 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     // Generate jump to the innermost finally (or to the original
     // continuation if there are no try-finally blocks).
     continuation();
+  }
+
+  /// Generates non-local transfer from inner node [from] into the outer
+  /// node, executing finally blocks on the way out. [to] can be null,
+  /// in such case all enclosing finally blocks are executed.
+  /// [continuation] is invoked to generate control transfer code following
+  /// the last finally block.
+  void _generateNonLocalControlTransfer(
+      TreeNode from, TreeNode to, GenerateContinuation continuation) {
+    List<TryFinally> tryFinallyBlocks = _getEnclosingTryFinallyBlocks(from, to);
+    _addFinallyBlocks(tryFinallyBlocks, continuation);
   }
 
   // For certain expressions wrapped into ExpressionStatement we can
@@ -1654,11 +1676,18 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   @override
   visitStaticInvocation(StaticInvocation node) {
     Arguments args = node.arguments;
-    if (node.target.isFactory) {
-      final constructedClass = node.target.enclosingClass;
+    final target = node.target;
+    if (target == unsafeCast) {
+      // The result of the unsafeCast() intrinsic method is its sole argument,
+      // without any additional checks or type casts.
+      assert(args.named.isEmpty);
+      args.positional.single.accept(this);
+      return;
+    }
+    if (target.isFactory) {
+      final constructedClass = target.enclosingClass;
       if (hasInstantiatorTypeArguments(constructedClass)) {
-        _genTypeArguments(args.types,
-            instantiatingClass: node.target.enclosingClass);
+        _genTypeArguments(args.types, instantiatingClass: constructedClass);
       } else {
         assert(args.types.isEmpty);
         // VM needs type arguments for every invocation of a factory
@@ -1669,7 +1698,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
           new Arguments(node.arguments.positional, named: node.arguments.named);
     }
     _genArguments(null, args);
-    _genStaticCallWithArgs(node.target, args, isFactory: node.target.isFactory);
+    _genStaticCallWithArgs(target, args, isFactory: target.isFactory);
   }
 
   @override
@@ -2039,17 +2068,31 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitReturnStatement(ReturnStatement node) {
-    if (node.expression != null) {
-      node.expression.accept(this);
-    } else {
-      _genPushNull();
-    }
+    final expr = node.expression ?? new NullLiteral();
 
-    // TODO(alexmarkov): Do we need to save return value
-    // to a variable?
-    _generateNonLocalControlTransfer(node, null, () {
+    final List<TryFinally> tryFinallyBlocks =
+        _getEnclosingTryFinallyBlocks(node, null);
+    if (tryFinallyBlocks.isEmpty) {
+      expr.accept(this);
       asm.emitReturnTOS();
-    });
+    } else {
+      if (expr is BasicLiteral) {
+        _addFinallyBlocks(tryFinallyBlocks, () {
+          expr.accept(this);
+          asm.emitReturnTOS();
+        });
+      } else {
+        // Keep return value in a variable as try-catch statements
+        // inside finally can zap expression stack.
+        node.expression.accept(this);
+        asm.emitPopLocal(locals.returnVarIndexInFrame);
+
+        _addFinallyBlocks(tryFinallyBlocks, () {
+          asm.emitPush(locals.returnVarIndexInFrame);
+          asm.emitReturnTOS();
+        });
+      }
+    }
   }
 
   @override
@@ -2177,8 +2220,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     tryBlock.endPC = asm.offsetInWords;
     tryBlock.handlerPC = asm.offsetInWords;
 
-    // TODO(alexmarkov): Consider emitting SetFrame to cut expression stack.
-    // In such case, we need to save return value to a variable in visitReturn.
+    asm.emitSetFrame(locals.frameSize);
 
     _restoreContextForTryBlock(node);
 

@@ -90,10 +90,11 @@ class FunctionInlineCache {
   // don't know about the general case yet.
   static const int _canInlineInLoopMayInlineOutside = 3;
   static const int _canInline = 4;
-  static const int _mustInline = 5;
 
   final Map<FunctionEntity, int> _cachedDecisions =
       new Map<FunctionEntity, int>();
+
+  final Set<FunctionEntity> _tryInlineFunctions = new Set<FunctionEntity>();
 
   /// Checks that [method] is the canonical representative for this method.
   ///
@@ -137,7 +138,6 @@ class FunctionInlineCache {
         case _canInlineInLoopMustNotOutside:
         case _canInlineInLoopMayInlineOutside:
         case _canInline:
-        case _mustInline:
           return true;
       }
     } else {
@@ -154,7 +154,6 @@ class FunctionInlineCache {
           return null;
 
         case _canInline:
-        case _mustInline:
           return true;
       }
     }
@@ -192,7 +191,6 @@ class FunctionInlineCache {
         case _canInlineInLoopMustNotOutside:
         case _canInlineInLoopMayInlineOutside:
         case _canInline:
-        case _mustInline:
           // Do nothing.
           break;
       }
@@ -212,7 +210,6 @@ class FunctionInlineCache {
           break;
 
         case _canInline:
-        case _mustInline:
           // Do nothing.
           break;
       }
@@ -232,7 +229,6 @@ class FunctionInlineCache {
         case _canInlineInLoopMustNotOutside:
         case _canInlineInLoopMayInlineOutside:
         case _canInline:
-        case _mustInline:
           throw failedAt(
               element,
               "Can't mark a function as non-inlinable and inlinable at the "
@@ -250,7 +246,6 @@ class FunctionInlineCache {
     } else {
       switch (oldDecision) {
         case _canInline:
-        case _mustInline:
           throw failedAt(
               element,
               "Can't mark a function as non-inlinable and inlinable at the "
@@ -278,9 +273,14 @@ class FunctionInlineCache {
     }
   }
 
-  void markAsMustInline(FunctionEntity element) {
+  void markAsTryInline(FunctionEntity element) {
     assert(checkFunction(element), failedAt(element));
-    _cachedDecisions[element] = _mustInline;
+    _tryInlineFunctions.add(element);
+  }
+
+  bool markedAsTryInline(FunctionEntity element) {
+    assert(checkFunction(element), failedAt(element));
+    return _tryInlineFunctions.contains(element);
   }
 }
 
@@ -614,7 +614,7 @@ class JavaScriptBackend {
             _allocatorResolutionAnalysis,
             _nativeResolutionEnqueuer,
             noSuchMethodRegistry,
-            compiler.options.strongMode && useStrongModeWorldStrategy
+            useStrongModeWorldStrategy
                 ? const StrongModeWorldStrategy()
                 : const OpenWorldStrategy(),
             classHierarchyBuilder,
@@ -795,8 +795,7 @@ class JavaScriptBackend {
         closedWorld.nativeData,
         closedWorld.elementEnvironment,
         closedWorld.commonElements,
-        closedWorld.rtiNeed,
-        strongMode: compiler.options.strongMode);
+        closedWorld.rtiNeed);
     emitter.createEmitter(namer, closedWorld, codegenWorldBuilder, sorter);
     // TODO(johnniwinther): Share the impact object created in
     // createCodegenEnqueuer.
@@ -817,7 +816,6 @@ class JavaScriptBackend {
         closedWorld.elementEnvironment,
         closedWorld.commonElements,
         impacts,
-        checkedModeHelpers,
         closedWorld.nativeData,
         closedWorld.backendUsage,
         closedWorld.rtiNeed,
@@ -868,7 +866,7 @@ class JavaScriptBackend {
           reporter.reportErrorMessage(element, MessageKind.GENERIC,
               {'text': '@tryInline must not be used with @noInline.'});
         } else {
-          inlineCache.markAsMustInline(element);
+          inlineCache.markAsTryInline(element);
         }
       }
     }
@@ -895,7 +893,7 @@ class JavaScriptBackend {
           reporter.reportHintMessage(
               method, MessageKind.GENERIC, {'text': "Must inline"});
         }
-        inlineCache.markAsMustInline(method);
+        inlineCache.markAsTryInline(method);
       } else if (cls == commonElements.noInlineClass) {
         hasNoInline = true;
         if (VERBOSE_OPTIMIZER_HINTS) {

@@ -74,12 +74,6 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
 
   @override
   @failingTest
-  test_unresolved_methodInvocation_target_unresolved() async {
-    await super.test_unresolved_methodInvocation_target_unresolved();
-  }
-
-  @override
-  @failingTest
   test_unresolved_redirectingFactory_22() async {
     await super.test_unresolved_redirectingFactory_22();
   }

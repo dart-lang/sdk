@@ -6,7 +6,6 @@
 unsorted/invocation_errors_test: Pass
 unsorted/nsm_dispatcher_test: Skip # The test uses Symbol without MirrorsUsed
 unsorted/simple_literal_test/01: Skip # The test expects error for large integer literal.
-unsorted/super_initializer_test: Skip
 
 [ !$fasta ]
 unsorted/loop_test: Skip # This test uses optional new/const.
@@ -16,10 +15,6 @@ unsorted/types_test: RuntimeError
 
 [ $compiler == dart2analyzer && $runtime == none ]
 unsorted/super_mixin_test: CompileTimeError
-
-[ $compiler == dart2analyzer && $strong ]
-unsorted/klass_field_initializer_test: CompileTimeError
-unsorted/super_initializer_test: CompileTimeError
 
 [ $compiler == dart2js && $fasta ]
 unsorted/super_mixin_test: RuntimeError

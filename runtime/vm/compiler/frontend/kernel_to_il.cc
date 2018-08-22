@@ -35,11 +35,13 @@ FlowGraphBuilder::FlowGraphBuilder(
     InlineExitCollector* exit_collector,
     bool optimizing,
     intptr_t osr_id,
-    intptr_t first_block_id)
+    intptr_t first_block_id,
+    bool inlining_unchecked_entry)
     : BaseFlowGraphBuilder(parsed_function,
                            first_block_id - 1,
                            context_level_array,
-                           exit_collector),
+                           exit_collector,
+                           inlining_unchecked_entry),
       translation_helper_(Thread::Current()),
       thread_(translation_helper_.thread()),
       zone_(translation_helper_.zone()),
@@ -447,13 +449,15 @@ Fragment FlowGraphBuilder::NativeCall(const String* name,
   return Fragment(call);
 }
 
-Fragment FlowGraphBuilder::Return(TokenPosition position) {
+Fragment FlowGraphBuilder::Return(TokenPosition position,
+                                  bool omit_result_type_check /* = false */) {
   Fragment instructions;
   const Function& function = parsed_function_->function();
 
   // Emit a type check of the return type in checked mode for all functions
   // and in strong mode for native functions.
-  if (I->type_checks() || (function.is_native() && I->strong())) {
+  if (!omit_result_type_check &&
+      (I->type_checks() || (function.is_native() && I->strong()))) {
     const AbstractType& return_type =
         AbstractType::Handle(Z, function.result_type());
     instructions += CheckAssignable(return_type, Symbols::FunctionResult());
@@ -739,7 +743,8 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
   // to build these graphs so that this code is not duplicated.
 
   Fragment body;
-  MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(function);
+  const MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(function);
+  bool omit_result_type_check = true;
   switch (kind) {
     case MethodRecognizer::kObjectEquals:
       body += LoadLocal(scopes_->this_variable);
@@ -917,10 +922,12 @@ Fragment FlowGraphBuilder::NativeFunctionBody(const Function& function,
         body += PushArgument();
       }
       body += NativeCall(&name, &function);
+      // We typecheck results of native calls for type safety.
+      omit_result_type_check = false;
       break;
     }
   }
-  return body + Return(TokenPosition::kNoSource);
+  return body + Return(TokenPosition::kNoSource, omit_result_type_check);
 }
 
 Fragment FlowGraphBuilder::BuildImplicitClosureCreation(

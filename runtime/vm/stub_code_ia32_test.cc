@@ -58,7 +58,7 @@ TEST_CASE(CallRuntimeStubCode) {
   Assembler assembler;
   GenerateCallToCallRuntimeStub(&assembler, length);
   const Code& code = Code::Handle(Code::FinalizeCode(
-      *CreateFunction("Test_CallRuntimeStubCode"), &assembler));
+      *CreateFunction("Test_CallRuntimeStubCode"), nullptr, &assembler));
   const Function& function = RegisterFakeFunction(kName, code);
   Array& result = Array::Handle();
   result ^= DartEntry::InvokeFunction(function, Object::empty_array());
@@ -102,7 +102,7 @@ TEST_CASE(CallLeafRuntimeStubCode) {
   GenerateCallToCallLeafRuntimeStub(&assembler, str_value, lhs_index_value,
                                     rhs_index_value, length_value);
   const Code& code = Code::Handle(Code::FinalizeCode(
-      *CreateFunction("Test_CallLeafRuntimeStubCode"), &assembler));
+      *CreateFunction("Test_CallLeafRuntimeStubCode"), nullptr, &assembler));
   const Function& function = RegisterFakeFunction(kName, code);
   Instance& result = Instance::Handle();
   result ^= DartEntry::InvokeFunction(function, Object::empty_array());

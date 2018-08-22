@@ -361,11 +361,6 @@ abstract class DeferredLoadTask extends CompilerTask {
                 _collectTypeDependencies(type, dependencies);
               }
               break;
-            case TypeUseKind.CHECKED_MODE_CHECK:
-              if (compiler.options.assignmentCheckPolicy.isEmitted) {
-                _collectTypeDependencies(type, dependencies);
-              }
-              break;
             case TypeUseKind.RTI_VALUE:
             case TypeUseKind.TYPE_ARGUMENT:
               failedAt(element, "Unexpected type use: $typeUse.");

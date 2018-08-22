@@ -17,6 +17,8 @@
 #include <fuchsia/timezone/cpp/fidl.h>
 
 #include "lib/component/cpp/environment_services.h"
+#include "lib/component/cpp/startup_context.h"
+#include "lib/svc/cpp/services.h"
 
 #include "platform/assert.h"
 #include "vm/zone.h"
@@ -40,11 +42,17 @@ intptr_t OS::ProcessId() {
   return static_cast<intptr_t>(getpid());
 }
 
+// TODO(FL-98): Change this to talk to fuchsia.dart to get timezone service to
+// directly get timezone.
+//
+// Putting this hack right now due to CP-120 as I need to remove
+// component:ConnectToEnvironmentServices and this is the only thing that is
+// blocking it and FL-98 will take time.
+static fuchsia::timezone::TimezoneSyncPtr tz;
+
 static zx_status_t GetLocalAndDstOffsetInSeconds(int64_t seconds_since_epoch,
                                                  int32_t* local_offset,
                                                  int32_t* dst_offset) {
-  fuchsia::timezone::TimezoneSyncPtr tz;
-  component::ConnectToEnvironmentService(tz.NewRequest());
   zx_status_t status = tz->GetTimezoneOffsetMinutes(seconds_since_epoch * 1000,
                                                     local_offset, dst_offset);
   if (status != ZX_OK) {
@@ -58,8 +66,6 @@ static zx_status_t GetLocalAndDstOffsetInSeconds(int64_t seconds_since_epoch,
 const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
   // TODO(abarth): Handle time zone changes.
   static const auto* tz_name = new std::string([] {
-    fuchsia::timezone::TimezoneSyncPtr tz;
-    component::ConnectToEnvironmentService(tz.NewRequest());
     fidl::StringPtr result;
     tz->GetTimezoneId(&result);
     return *result;
@@ -255,6 +261,10 @@ void OS::InitOnce() {
   static bool init_once_called = false;
   ASSERT(init_once_called == false);
   init_once_called = true;
+  auto environment_services = std::make_shared<component::Services>();
+  auto env_service_root = component::subtle::CreateStaticServiceRootHandle();
+  environment_services->Bind(std::move(env_service_root));
+  environment_services->ConnectToService(tz.NewRequest());
 }
 
 void OS::Shutdown() {}

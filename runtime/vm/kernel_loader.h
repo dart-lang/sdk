@@ -143,7 +143,8 @@ class KernelLoader : public ValueObject {
   static void FindModifiedLibraries(Program* program,
                                     Isolate* isolate,
                                     BitVector* modified_libs,
-                                    bool force_reload);
+                                    bool force_reload,
+                                    bool* is_empty_kernel);
 
   RawLibrary* LoadLibrary(intptr_t index);
 
@@ -213,7 +214,8 @@ class KernelLoader : public ValueObject {
   void InitializeFields();
   static void index_programs(kernel::Reader* reader,
                              GrowableArray<intptr_t>* subprogram_file_starts);
-  void walk_incremental_kernel(BitVector* modified_libs);
+  void walk_incremental_kernel(BitVector* modified_libs,
+                               bool* is_empty_program);
 
   void LoadPreliminaryClass(ClassHelper* class_helper,
                             intptr_t type_parameter_count);

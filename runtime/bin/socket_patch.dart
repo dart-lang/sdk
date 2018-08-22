@@ -1905,7 +1905,7 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
   }
 }
 
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 Datagram _makeDatagram(
     List<int> data, String address, List<int> in_addr, int port) {
   return new Datagram(data, new _InternetAddress(address, null, in_addr), port);

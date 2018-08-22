@@ -310,12 +310,12 @@ MultipleImplements:
   dart2jsCode: "GENERIC"
   script: "class A implements B implements C, D {}"
 
-ExpectedClassBody:
-  template: "Expected a class body, but got '#lexeme'."
+ExpectedClassOrMixinBody:
+  template: "Expected a class or mixin body, but got '#lexeme'."
   analyzerCode: MISSING_CLASS_BODY
   dart2jsCode: "*fatal*"
 
-ExpectedClassBodyToSkip: ExpectedClassBody
+ExpectedClassBodyToSkip: ExpectedClassOrMixinBody
 
 ExpectedDeclaration:
   template: "Expected a declaration, but got '#lexeme'."
@@ -481,8 +481,8 @@ ConstAndFinal:
   analyzerCode: CONST_AND_FINAL
   dart2jsCode: EXTRANEOUS_MODIFIER
   script:
-    - "class C { const final int x; }"
-    - "class C { final const int x; }"
+    - "class C { const final int x = 5; }"
+    - "class C { final const int x = 5; }"
 
 ConstAndVar:
   template: "Members can't be declared to be both 'const' and 'var'."
@@ -572,7 +572,7 @@ DuplicatedModifier:
   script:
     - "class C { const const m; }"
     - "class C { external external f(); }"
-    - "class C { final final m; }"
+    - "class C { final final m = 5; }"
     - "class C { static static var m; }"
     - "class C { var var m; }"
 
@@ -640,6 +640,34 @@ InitializerOutsideConstructor:
   analyzerCode: INITIALIZER_OUTSIDE_CONSTRUCTOR
   dart2jsCode: "*fatal*"
 
+MoreThanOneSuperOrThisInitializer:
+  template: "Can't have more than one 'super' or 'this' initializer."
+  severity: ERROR
+  analyzerCode: SUPER_IN_REDIRECTING_CONSTRUCTOR
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { C.bad() : super(), super(); }"
+    - "class C { C(); C.bad() : super(), this(); }"
+    - "class C { C(); C.bad() : this(), super(); }"
+    - "class C { C(); C.bad() : this(), this(); }"
+
+ThisInitializerNotAlone:
+  template: "Can't have other initializers together with 'this'."
+  severity: ERROR
+  analyzerCode: FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { int x; C(); C.bad() : x = 5, this(); }"
+    - "class C { int x; C(); C.bad() : this(), x = 5; }"
+
+SuperInitializerNotLast:
+  template: "Can't have initializers after 'super'."
+  severity: ERROR
+  analyzerCode: INVALID_SUPER_INVOCATION
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { int x; C.bad() : super(), x = 5; }"
+
 ConstConstructorWithNonConstSuper:
   template: "Constant constructor can't call non-constant super constructors."
   analyzerCode: CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER
@@ -684,8 +712,8 @@ FinalAndCovariant:
   analyzerCode: FINAL_AND_COVARIANT
   dart2jsCode: "*ignored*"
   script:
-    - "class C { covariant final f; }"
-    - "class C { final covariant f; }"
+    - "class C { covariant final f = 5; }"
+    - "class C { final covariant f = 5; }"
 
 FinalAndVar:
   template: "Members can't be declared to be both 'final' and 'var'."
@@ -693,8 +721,8 @@ FinalAndVar:
   analyzerCode: FINAL_AND_VAR
   dart2jsCode: EXTRANEOUS_MODIFIER
   script:
-    - "class C { final var x; }"
-    - "class C { var final x; }"
+    - "class C { final var x = 5; }"
+    - "class C { var final x = 5; }"
 
 StaticAfterConst:
   template: "The modifier 'static' should be before the modifier 'const'."
@@ -710,7 +738,7 @@ StaticAfterFinal:
   analyzerCode: STATIC_AFTER_FINAL
   dart2jsCode: EXTRANEOUS_MODIFIER
   script:
-    - "class C { final static int f; }"
+    - "class C { final static int f = 5; }"
 
 StaticAfterVar:
   template: "The modifier 'static' should be before the modifier 'var'."
@@ -839,6 +867,30 @@ InvalidInitializer:
   severity: ERROR
   analyzerCode: INVALID_INITIALIZER
   dart2jsCode: "*fatal*"
+
+FinalFieldNotInitialized:
+  template: "Final field '#name' is not initialized."
+  tip: "Try to initialize the field in the declaration or in every constructor."
+  severity: ERROR
+  analyzerCode: FINAL_NOT_INITIALIZED
+  dart2jsCode: "*fatal*"
+  script: >
+    class C {
+      final int x;
+    }
+
+FinalFieldNotInitializedByConstructor:
+  template: "Final field '#name' is not initialized by this constructor."
+  tip: "Try to initialize the field using an initializing formal or a field initializer."
+  severity: ERROR
+  analyzerCode: FINAL_NOT_INITIALIZED_CONSTRUCTOR_1
+  dart2jsCode: "*fatal*"
+  script: >
+    class C {
+      final int x;
+      C(this.x) {}
+      C.missing() {}
+    }
 
 MissingExponent:
   template: "Numbers in exponential notation should always contain an exponent (an integer number with an optional sign)."
@@ -1446,6 +1498,9 @@ FastaUsageLong:
 
       --dump-ir
         Print compiled libraries in Kernel source notation.
+
+      --bytecode
+        Generate bytecode. Supported only for SDK platform compilation.
 
       --exclude-source
         Do not include source code in the dill file.
@@ -2848,7 +2903,7 @@ VoidExpression:
   statement: |
     {
       void x;
-      var y = x;
+      int y = x;
     }
 
 ReturnFromVoidFunction:

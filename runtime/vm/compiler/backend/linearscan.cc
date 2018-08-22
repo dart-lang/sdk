@@ -449,7 +449,8 @@ void LiveRange::Print() {
   assigned_location().Print();
   if (spill_slot_.HasStackIndex()) {
     const intptr_t stack_slot =
-        -VariableIndexForFrameSlot(spill_slot_.stack_index());
+        -compiler_frame_layout.VariableIndexForFrameSlot(
+            spill_slot_.stack_index());
     THR_Print(" allocated spill slot: %" Pd "", stack_slot);
   }
   THR_Print("\n");
@@ -711,7 +712,7 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
     }
 #endif  // defined(TARGET_ARCH_DBC)
     if (param->base_reg() == FPREG) {
-      slot_index = FrameSlotForVariableIndex(-slot_index);
+      slot_index = compiler_frame_layout.FrameSlotForVariableIndex(-slot_index);
     }
     range->set_assigned_location(
         Location::StackSlot(slot_index, param->base_reg()));
@@ -752,7 +753,7 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
   ConvertAllUses(range);
   Location spill_slot = range->spill_slot();
   if (spill_slot.IsStackSlot() && spill_slot.base_reg() == FPREG &&
-      spill_slot.stack_index() <= kFirstLocalSlotFromFp) {
+      spill_slot.stack_index() <= compiler_frame_layout.first_local_from_fp) {
     // On entry to the function, range is stored on the stack above the FP in
     // the same space which is used for spill slots. Update spill slot state to
     // reflect that and prevent register allocator from reusing this space as a
@@ -2011,13 +2012,14 @@ void FlowGraphAllocator::AllocateSpillSlotFor(LiveRange* range) {
 
   // Assign spill slot to the range.
   if (register_kind_ == Location::kRegister) {
-    const intptr_t slot_index = FrameSlotForVariableIndex(-idx);
+    const intptr_t slot_index =
+        compiler_frame_layout.FrameSlotForVariableIndex(-idx);
     range->set_spill_slot(Location::StackSlot(slot_index));
   } else {
     // We use the index of the slot with the lowest address as an index for the
     // FPU register spill slot. In terms of indexes this relation is inverted:
     // so we have to take the highest index.
-    const intptr_t slot_idx = FrameSlotForVariableIndex(
+    const intptr_t slot_idx = compiler_frame_layout.FrameSlotForVariableIndex(
         -(cpu_spill_slot_count_ + idx * kDoubleSpillFactor +
           (kDoubleSpillFactor - 1)));
 
@@ -2041,7 +2043,8 @@ void FlowGraphAllocator::MarkAsObjectAtSafepoints(LiveRange* range) {
   Location spill_slot = range->spill_slot();
   intptr_t stack_index = spill_slot.stack_index();
   if (spill_slot.base_reg() == FPREG) {
-    stack_index = -VariableIndexForFrameSlot(spill_slot.stack_index());
+    stack_index = -compiler_frame_layout.VariableIndexForFrameSlot(
+        spill_slot.stack_index());
   }
   ASSERT(stack_index >= 0);
   while (range != NULL) {

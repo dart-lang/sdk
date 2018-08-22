@@ -412,6 +412,10 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R visitMethodInvocation(MethodInvocation node) =>
       visitInvocationExpression(node);
 
+  @override
+  R visitMixinDeclaration(MixinDeclaration node) =>
+      visitNamedCompilationUnitMember(node);
+
   R visitNamedCompilationUnitMember(NamedCompilationUnitMember node) =>
       visitCompilationUnitMember(node);
 
@@ -437,6 +441,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitNullLiteral(NullLiteral node) => visitLiteral(node);
+
+  @override
+  R visitOnClause(OnClause node) => visitNode(node);
 
   @override
   R visitParenthesizedExpression(ParenthesizedExpression node) =>
@@ -1015,6 +1022,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R visitMixinDeclaration(MixinDeclaration node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R visitNamedExpression(NamedExpression node) {
     node.visitChildren(this);
     return null;
@@ -1034,6 +1047,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitNullLiteral(NullLiteral node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitOnClause(OnClause node) {
     node.visitChildren(this);
     return null;
   }
@@ -1482,6 +1501,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R visitMethodInvocation(MethodInvocation node) => null;
 
   @override
+  R visitMixinDeclaration(MixinDeclaration node) => null;
+
+  @override
   R visitNamedExpression(NamedExpression node) => null;
 
   @override
@@ -1492,6 +1514,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitNullLiteral(NullLiteral node) => null;
+
+  @override
+  R visitOnClause(OnClause node) => null;
 
   @override
   R visitParenthesizedExpression(ParenthesizedExpression node) => null;
@@ -1834,6 +1859,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R visitMethodInvocation(MethodInvocation node) => _throw(node);
 
   @override
+  R visitMixinDeclaration(MixinDeclaration node) => _throw(node);
+
+  @override
   R visitNamedExpression(NamedExpression node) => _throw(node);
 
   @override
@@ -1844,6 +1872,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitNullLiteral(NullLiteral node) => _throw(node);
+
+  @override
+  R visitOnClause(OnClause node) => _throw(node);
 
   @override
   R visitParenthesizedExpression(ParenthesizedExpression node) => _throw(node);
@@ -2554,6 +2585,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T visitMixinDeclaration(MixinDeclaration node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitMixinDeclaration(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T visitNamedExpression(NamedExpression node) {
     stopwatch.start();
     T result = _baseVisitor.visitNamedExpression(node);
@@ -2581,6 +2620,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T visitNullLiteral(NullLiteral node) {
     stopwatch.start();
     T result = _baseVisitor.visitNullLiteral(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitOnClause(OnClause node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitOnClause(node);
     stopwatch.stop();
     return result;
   }
@@ -3109,6 +3156,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R visitMethodInvocation(MethodInvocation node) => visitNode(node);
 
   @override
+  R visitMixinDeclaration(MixinDeclaration node) => visitNode(node);
+
+  @override
   R visitNamedExpression(NamedExpression node) => visitNode(node);
 
   @override
@@ -3124,6 +3174,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitNullLiteral(NullLiteral node) => visitNode(node);
+
+  @override
+  R visitOnClause(OnClause node) => visitNode(node);
 
   @override
   R visitParenthesizedExpression(ParenthesizedExpression node) =>

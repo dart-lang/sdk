@@ -29,5 +29,5 @@ class C {
         this.y = b;
 
   /*element: C.toString:[exact=JSString]*/
-  String toString() => "C(${/*[exact=D]*/x},${/*[exact=D]*/y})";
+  String toString() => "C(${/*[exact=D]*/ x},${/*[exact=D]*/ y})";
 }

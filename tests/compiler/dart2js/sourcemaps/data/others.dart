@@ -286,13 +286,3 @@ tryOnCatch() {
     print(e);
   }
 }
-
-unresolvedToplevel() {
-  // ignore: undefined_function
-  unresolved();
-}
-
-unresolvedType(e) {
-  // ignore: type_test_with_undefined_name
-  e is Unresolved;
-}

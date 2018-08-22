@@ -1743,11 +1743,7 @@ void main() {
 void f(void x) {}
 ''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-    } else {
-      assertNoErrors(source);
-    }
+    assertNoErrors(source);
   }
 
   test_generalizedVoid_assignToVoid_notStrong_error() async {
@@ -2088,11 +2084,7 @@ void main() {
 }
 ''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-    } else {
-      assertNoErrors(source);
-    }
+    assertNoErrors(source);
   }
 
   test_generalizedVoid_useOfVoidInMapLiteralKeyError() async {
@@ -2114,11 +2106,7 @@ void main() {
 }
 ''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-    } else {
-      assertNoErrors(source);
-    }
+    assertNoErrors(source);
   }
 
   test_generalizedVoid_useOfVoidInMapLiteralValueError() async {
@@ -2140,11 +2128,7 @@ void main() {
 }
 ''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-    } else {
-      assertNoErrors(source);
-    }
+    assertNoErrors(source);
   }
 
   test_generalizedVoid_useOfVoidInNullOperatorLhsError() async {
@@ -2166,11 +2150,7 @@ void main() {
 }
 ''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-    } else {
-      assertNoErrors(source);
-    }
+    assertNoErrors(source);
   }
 
   test_generalizedVoid_useOfVoidInSpecialAssignmentError() async {
@@ -2182,7 +2162,10 @@ void main() {
 ''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+      assertErrors(source, [
+        StaticTypeWarningCode.UNDEFINED_METHOD,
+        StaticWarningCode.USE_OF_VOID_RESULT
+      ]);
     } else {
       assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
     }
@@ -2290,11 +2273,7 @@ void main() {
 }
 ''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-    } else {
-      assertNoErrors(source);
-    }
+    assertNoErrors(source);
   }
 
   test_importDuplicatedLibraryNamed() async {
@@ -4885,10 +4864,7 @@ class A {
 }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [
-        StaticWarningCode.USE_OF_VOID_RESULT,
-        StaticWarningCode.USE_OF_VOID_RESULT
-      ]);
+      assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
     } else {
       assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
     }
@@ -4906,10 +4882,7 @@ class A {
 }''');
     await computeAnalysisResult(source);
     if (useCFE) {
-      assertErrors(source, [
-        StaticWarningCode.USE_OF_VOID_RESULT,
-        StaticWarningCode.USE_OF_VOID_RESULT
-      ]);
+      assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
     } else {
       assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
     }
@@ -4923,7 +4896,7 @@ main() async {
   await x;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -4949,11 +4922,7 @@ class A {
   }
 }''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-    } else {
-      assertNoErrors(source);
-    }
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -4979,11 +4948,7 @@ class A {
   }
 }''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-    } else {
-      assertNoErrors(source);
-    }
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -5025,11 +4990,7 @@ class A {
   }
 }''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [StaticWarningCode.USE_OF_VOID_RESULT]);
-    } else {
-      assertNoErrors(source);
-    }
+    assertNoErrors(source);
     verify([source]);
   }
 

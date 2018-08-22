@@ -108,9 +108,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginClassBody(Token token) {
-    super.beginClassBody(token);
-    begin('ClassBody');
+  void beginClassOrMixinBody(Token token) {
+    super.beginClassOrMixinBody(token);
+    begin('ClassOrMixinBody');
   }
 
   @override
@@ -360,7 +360,7 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void beginMember() {
-    expectIn('ClassBody');
+    expectIn('ClassOrMixinBody');
     super.beginMember();
     begin('Member');
   }
@@ -600,9 +600,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endClassBody(int memberCount, Token beginToken, Token endToken) {
-    end('ClassBody');
-    super.endClassBody(memberCount, beginToken, endToken);
+  void endClassOrMixinBody(int memberCount, Token beginToken, Token endToken) {
+    end('ClassOrMixinBody');
+    super.endClassOrMixinBody(memberCount, beginToken, endToken);
   }
 
   @override
@@ -749,11 +749,16 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
-      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
+  void endFormalParameter(
+      Token thisKeyword,
+      Token periodAfterThis,
+      Token nameToken,
+      FormalParameterKind kind,
+      MemberKind memberKind,
+      Token endToken) {
     end('FormalParameter');
     super.endFormalParameter(
-        thisKeyword, periodAfterThis, nameToken, kind, memberKind);
+        thisKeyword, periodAfterThis, nameToken, kind, memberKind, endToken);
   }
 
   @override
@@ -1091,9 +1096,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void handleClassImplements(Token implementsKeyword, int interfacesCount) {
-    expectIn('ClassDeclaration');
-    listener.handleClassImplements(implementsKeyword, interfacesCount);
+  void handleClassOrMixinImplements(
+      Token implementsKeyword, int interfacesCount) {
+    expectInOneOf(['ClassDeclaration', 'MixinDeclaration']);
+    listener.handleClassOrMixinImplements(implementsKeyword, interfacesCount);
   }
 
   @override

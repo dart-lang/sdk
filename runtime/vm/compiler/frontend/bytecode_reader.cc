@@ -316,6 +316,7 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
           elem = pool.ObjectAt(elem_index);
           array.SetAt(j, elem);
         }
+        array.MakeImmutable();
         obj = H.Canonicalize(Array::Cast(array));
         ASSERT(!obj.IsNull());
       } break;

@@ -759,6 +759,7 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
   void variableAssign(
       ExpressionJudgment judgment,
       Location location,
+      bool isSyntheticLhs,
       DartType writeContext,
       covariant Object writeVariableBinder,
       Reference combiner,
@@ -1183,6 +1184,7 @@ class KernelTypeInferenceListener
   void variableAssign(
       ExpressionJudgment judgment,
       location,
+      bool isSyntheticLhs,
       DartType writeContext,
       covariant void writeVariableBinder,
       combiner,

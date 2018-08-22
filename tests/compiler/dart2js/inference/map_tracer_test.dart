@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/inferrer/type_graph_inferrer.dart';
@@ -18,8 +17,8 @@ import '../memory_compiler.dart';
 
 String generateTest(String mapAllocation) {
   return """
-int anInt = 42;
-double aDouble = 42.5;
+dynamic anInt = 42;
+dynamic aDouble = 42.5;
 String aKey = 'aKey';
 String anotherKey = 'anotherKey';
 String presetKey = 'presetKey';
@@ -30,7 +29,7 @@ class A {
 
   A(this.field);
 
-  A.bar(map) {
+  A.bar(map) : field = null {
     nonFinalField = map;
   }
 
@@ -160,14 +159,14 @@ main() {
   mapUsedWithConstraint[aKey] += anInt;
 
   mapEscapingFromSetter[aKey] = anInt;
-  foo(new A(null).field = mapEscapingFromSetter);
+  foo((new A(null) as dynamic).field = mapEscapingFromSetter);
 
   mapUsedInLocal[aKey] = anInt;
-  var a = mapUsedInLocal;
+  dynamic a = mapUsedInLocal;
   mapUsedInLocal[anotherKey] = aDouble;
 
   // At least use [mapUnset] in a local to pretend it's used.
-  var b = mapUnset;
+  dynamic b = mapUnset;
 
   mapOnlySetWithConstraint[aKey]++;
 
@@ -210,17 +209,16 @@ main() {
 void main() {
   runTests() async {
     // Test empty literal map
-    await doTest('{}');
+    await doTest('<dynamic, dynamic>{}');
     // Test preset map of <String,uint32>
-    await doTest('{presetKey : anInt}',
+    await doTest('<dynamic, dynamic>{presetKey : anInt}',
         keyElementName: "presetKey", valueElementName: "anInt");
     // Test preset map of <Double,uint32>
-    await doTest('{aDouble : anInt}',
+    await doTest('<dynamic, dynamic>{aDouble : anInt}',
         keyElementName: "aDouble", valueElementName: "anInt");
   }
 
   asyncTest(() async {
-    print('--test from kernel------------------------------------------------');
     await runTests();
   });
 }
@@ -228,9 +226,7 @@ void main() {
 doTest(String allocation,
     {String keyElementName, String valueElementName}) async {
   String source = generateTest(allocation);
-  var result = await runCompiler(
-      memorySourceFiles: {'main.dart': source},
-      options: [Flags.noPreviewDart2]);
+  var result = await runCompiler(memorySourceFiles: {'main.dart': source});
   Expect.isTrue(result.isSuccess);
   Compiler compiler = result.compiler;
   TypeMask keyType, valueType;

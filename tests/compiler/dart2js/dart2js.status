@@ -29,6 +29,7 @@ inlining/inlining_test: Slow, Pass
 kernel/*: Slow, Pass
 kernel/compile_from_dill_fast_startup_test: RuntimeError # Test must be updated to support FE with patching.
 kernel/compile_from_dill_test: RuntimeError # Test must be updated to support FE with patching.
+model/native_test: Pass, Slow
 model/subtype_test: Pass, Slow
 no_such_method_enabled_test: Pass, Slow
 packages/*: Skip # Skip packages folder

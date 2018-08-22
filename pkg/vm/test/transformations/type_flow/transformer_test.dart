@@ -39,7 +39,7 @@ class ExpressionEntryPointsAnnotationMatcher
     }
 
     var argument = annotation.arguments.positional[0];
-    return argument is StringLiteral && argument.value == "vm.entry-point";
+    return argument is StringLiteral && argument.value == kEntryPointPragmaName;
   }
 
   @override

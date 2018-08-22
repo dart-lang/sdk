@@ -37,11 +37,11 @@ class _InvocationMirror implements Invocation {
   static const int _FIRST_NAMED_ENTRY = 3;
 
   // Internal representation of the invocation mirror.
-  final String _functionName;
-  final List _argumentsDescriptor;
-  final List _arguments;
-  final bool _isSuperInvocation;
-  final int _delayedTypeArgumentsLen;
+  String _functionName;
+  List _argumentsDescriptor;
+  List _arguments;
+  bool _isSuperInvocation;
+  int _delayedTypeArgumentsLen;
 
   // External representation of the invocation mirror; populated on demand.
   Symbol _memberName;
@@ -176,7 +176,7 @@ class _InvocationMirror implements Invocation {
       this._positionalArguments, this._namedArguments, this._isSuperInvocation,
       [this._delayedTypeArgumentsLen = 0]);
 
-  @pragma("vm.entry-point")
+  @pragma("vm:entry-point")
   static _allocateInvocationMirror(String functionName,
       List argumentsDescriptor, List arguments, bool isSuperInvocation,
       [int type = null]) {
@@ -189,7 +189,7 @@ class _InvocationMirror implements Invocation {
   // indicate 0 type arguments, but the actual number of type arguments are
   // passed in `delayedTypeArgumentsLen`. If any type arguments are available,
   // the type arguments vector will be the first entry in `arguments`.
-  @pragma("vm.entry-point")
+  @pragma("vm:entry-point")
   static _allocateInvocationMirrorForClosure(
       String functionName,
       List argumentsDescriptor,

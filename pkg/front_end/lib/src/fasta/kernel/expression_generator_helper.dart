@@ -77,7 +77,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       {List<LocatedMessage> context});
 
   Expression buildCompileTimeErrorExpression(Message message, int offset,
-      {int length});
+      {int length, Expression original});
 
   Expression wrapInCompileTimeError(Expression expression, Message message);
 

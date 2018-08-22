@@ -64,7 +64,7 @@ class OSError {
   final int errorCode;
 
   /** Creates an OSError object from a message and an errorCode. */
-  @pragma("vm.entry-point")
+  @pragma("vm:entry-point")
   const OSError([this.message = "", this.errorCode = noErrorCode]);
 
   /** Converts an OSError object to a string representation. */

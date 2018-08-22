@@ -847,19 +847,8 @@ void FlowGraphCompiler::EmitFrameEntry() {
   }
 }
 
-void FlowGraphCompiler::CompileGraph() {
-  InitCompiler();
-#ifdef DART_PRECOMPILER
-  const Function& function = parsed_function().function();
-  if (function.IsDynamicFunction()) {
-    __ MonomorphicCheckedEntry();
-  }
-#endif  // DART_PRECOMPILER
-
-  if (TryIntrinsify()) {
-    // Skip regular code generation.
-    return;
-  }
+void FlowGraphCompiler::EmitPrologue() {
+  BeginCodeSourceRange();
 
   EmitFrameEntry();
   ASSERT(assembler()->constant_pool_allowed());
@@ -870,7 +859,8 @@ void FlowGraphCompiler::CompileGraph() {
 
     intptr_t args_desc_slot = -1;
     if (parsed_function().has_arg_desc_var()) {
-      args_desc_slot = FrameSlotForVariable(parsed_function().arg_desc_var());
+      args_desc_slot = compiler_frame_layout.FrameSlotForVariable(
+          parsed_function().arg_desc_var());
     }
 
     __ Comment("Initialize spill slots");
@@ -878,13 +868,26 @@ void FlowGraphCompiler::CompileGraph() {
       __ LoadObject(RAX, Object::null_object());
     }
     for (intptr_t i = 0; i < num_locals; ++i) {
-      const intptr_t slot_index = FrameSlotForVariableIndex(-i);
+      const intptr_t slot_index =
+          compiler_frame_layout.FrameSlotForVariableIndex(-i);
       Register value_reg = slot_index == args_desc_slot ? ARGS_DESC_REG : RAX;
       __ movq(Address(RBP, slot_index * kWordSize), value_reg);
     }
   }
 
   EndCodeSourceRange(TokenPosition::kDartCodePrologue);
+}
+
+void FlowGraphCompiler::CompileGraph() {
+  InitCompiler();
+#ifdef DART_PRECOMPILER
+  const Function& function = parsed_function().function();
+  if (function.IsDynamicFunction()) {
+    __ MonomorphicCheckedEntry();
+  }
+#endif  // DART_PRECOMPILER
+
+  __ set_constant_pool_allowed(true);
   ASSERT(!block_order().is_empty());
   VisitBlocks();
 
@@ -913,8 +916,9 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
                                          TokenPosition token_pos,
                                          const StubEntry& stub_entry,
                                          RawPcDescriptors::Kind kind,
-                                         LocationSummary* locs) {
-  __ CallPatchable(stub_entry);
+                                         LocationSummary* locs,
+                                         Code::EntryKind entry_kind) {
+  __ CallPatchable(stub_entry, entry_kind);
   EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
 }
 
@@ -923,12 +927,13 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
                                                const StubEntry& stub_entry,
                                                RawPcDescriptors::Kind kind,
                                                LocationSummary* locs,
-                                               const Function& target) {
+                                               const Function& target,
+                                               Code::EntryKind entry_kind) {
   // Call sites to the same target can share object pool entries. These
   // call sites are never patched for breakpoints: the function is deoptimized
   // and the unoptimized code with IC calls for static calls is patched instead.
   ASSERT(is_optimizing());
-  __ CallWithEquivalence(stub_entry, target);
+  __ CallWithEquivalence(stub_entry, target, entry_kind);
   EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
   AddStaticCallTarget(target);
 }
@@ -972,7 +977,8 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(const StubEntry& stub_entry,
                                                   const ICData& ic_data,
                                                   intptr_t deopt_id,
                                                   TokenPosition token_pos,
-                                                  LocationSummary* locs) {
+                                                  LocationSummary* locs,
+                                                  Code::EntryKind entry_kind) {
   ASSERT(Array::Handle(zone(), ic_data.arguments_descriptor()).Length() > 0);
   // Each ICData propagated from unoptimized to optimized code contains the
   // function that corresponds to the Dart function of that IC call. Due
@@ -983,7 +989,7 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(const StubEntry& stub_entry,
   __ LoadObject(RDI, parsed_function().function());
   __ LoadUniqueObject(RBX, ic_data);
   GenerateDartCall(deopt_id, token_pos, stub_entry, RawPcDescriptors::kIcCall,
-                   locs);
+                   locs, entry_kind);
   __ Drop(ic_data.CountWithTypeArgs(), RCX);
 }
 
@@ -1054,7 +1060,8 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(const ICData& ic_data,
   __ Comment("SwitchableCall");
   __ movq(RDI, Address(RSP, (ic_data.CountWithoutTypeArgs() - 1) * kWordSize));
   __ LoadUniqueObject(CODE_REG, initial_stub);
-  __ movq(RCX, FieldAddress(CODE_REG, Code::monomorphic_entry_point_offset()));
+  __ movq(RCX, FieldAddress(CODE_REG, Code::entry_point_offset(
+                                          Code::EntryKind::kMonomorphic)));
   __ LoadUniqueObject(RBX, ic_data);
   __ call(RCX);
 
@@ -1068,7 +1075,8 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     intptr_t count_with_type_args,
     intptr_t deopt_id,
     TokenPosition token_pos,
-    LocationSummary* locs) {
+    LocationSummary* locs,
+    Code::EntryKind entry_kind) {
   ASSERT(!function.IsClosureFunction());
   if (function.HasOptionalParameters() ||
       (isolate()->reify_generic_functions() && function.IsGeneric())) {
@@ -1080,7 +1088,7 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
   // we can record the outgoing edges to other code.
   GenerateStaticDartCall(deopt_id, token_pos,
                          *StubCode::CallStaticFunction_entry(),
-                         RawPcDescriptors::kOther, locs, function);
+                         RawPcDescriptors::kOther, locs, function, entry_kind);
   __ Drop(count_with_type_args, RCX);
 }
 
@@ -1234,14 +1242,14 @@ void ParallelMoveResolver::EmitMove(int index) {
     } else {
       ASSERT(destination.IsStackSlot());
       ASSERT((destination.base_reg() != FPREG) ||
-             ((-VariableIndexForFrameSlot(destination.stack_index())) <
-              compiler_->StackSize()));
+             ((-compiler_frame_layout.VariableIndexForFrameSlot(
+                  destination.stack_index())) < compiler_->StackSize()));
       __ movq(destination.ToStackSlotAddress(), source.reg());
     }
   } else if (source.IsStackSlot()) {
     ASSERT((source.base_reg() != FPREG) ||
-           ((-VariableIndexForFrameSlot(source.stack_index())) <
-            compiler_->StackSize()));
+           ((-compiler_frame_layout.VariableIndexForFrameSlot(
+                source.stack_index())) < compiler_->StackSize()));
     if (destination.IsRegister()) {
       __ movq(destination.reg(), source.ToStackSlotAddress());
     } else {

@@ -120,7 +120,7 @@ void _asyncStarListenHelper(var object, var awaiter) {
   object._awaiter = awaiter;
 }
 
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 void _asyncStarMoveNextHelper(var stream) {
   if (stream is! _StreamImpl) {
     return;
@@ -135,7 +135,7 @@ void _asyncStarMoveNextHelper(var stream) {
 
 // _AsyncStarStreamController is used by the compiler to implement
 // async* generator functions.
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 class _AsyncStarStreamController<T> {
   StreamController<T> controller;
   Function asyncStarBody;
@@ -290,7 +290,7 @@ class _StreamImpl<T> {
   Function _generator;
 }
 
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 void _completeOnAsyncReturn(Completer completer, Object value) {
   completer.complete(value);
 }
@@ -300,11 +300,11 @@ void _completeOnAsyncReturn(Completer completer, Object value) {
 Object _asyncStackTraceHelper(Function async_op)
     native "StackTrace_asyncStackTraceHelper";
 
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 void _clearAsyncThreadStackTrace()
     native "StackTrace_clearAsyncThreadStackTrace";
 
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 void _setAsyncThreadStackTrace(StackTrace stackTrace)
     native "StackTrace_setAsyncThreadStackTrace";
 

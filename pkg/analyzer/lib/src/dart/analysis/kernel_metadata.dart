@@ -108,9 +108,13 @@ class AnalyzerMetadataIndex {
     if (newRepository != null) {
       _indexNewMetadata(newRepository);
       if (repository != null) {
-        newRepository.mapping.addAll(repository.mapping);
+        // Copy the new (partial) metadata into the existing metadata repository
+        // and replace the reference to the partial data with the full data.
+        repository.mapping.addAll(newRepository.mapping);
+        newComponent.metadata[AnalyzerMetadataRepository.TAG] = repository;
+      } else {
+        repository = newRepository;
       }
-      repository = newRepository;
     } else {
       newComponent.metadata[AnalyzerMetadataRepository.TAG] = repository;
     }

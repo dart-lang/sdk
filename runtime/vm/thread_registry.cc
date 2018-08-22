@@ -82,7 +82,9 @@ void ThreadRegistry::PrepareForGC() {
   MonitorLocker ml(threads_lock());
   Thread* thread = active_list_;
   while (thread != NULL) {
-    thread->PrepareForGC();
+    if (!thread->BypassSafepoints()) {
+      thread->PrepareForGC();
+    }
     thread = thread->next_;
   }
 }

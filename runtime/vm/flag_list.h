@@ -176,7 +176,7 @@ constexpr bool kDartPrecompiledRuntime = false;
   R(support_service, false, bool, true, "Support the service protocol.")       \
   R(support_timeline, false, bool, true, "Support timeline.")                  \
   D(trace_cha, bool, false, "Trace CHA operations")                            \
-  D(trace_field_guards, bool, false, "Trace changes in field's cids.")         \
+  R(trace_field_guards, false, bool, false, "Trace changes in field's cids.")  \
   C(trace_irregexp, false, false, bool, false, "Trace irregexps.")             \
   D(trace_isolates, bool, false, "Trace isolate creation and shut down.")      \
   D(trace_handles, bool, false, "Traces allocation of handles.")               \
@@ -208,6 +208,10 @@ constexpr bool kDartPrecompiledRuntime = false;
   D(verify_on_transition, bool, false, "Verify on dart <==> VM.")              \
   P(enable_slow_path_sharing, bool, true, "Enable sharing of slow-path code.") \
   P(shared_slow_path_triggers_gc, bool, false,                                 \
-    "TESTING: slow-path triggers a GC.")
+    "TESTING: slow-path triggers a GC.")                                       \
+  P(enable_multiple_entrypoints, bool, true,                                   \
+    "Enable multiple entrypoints per-function and related optimizations.")     \
+  R(enable_testing_pragmas, false, bool, false,                                \
+    "Enable magical pragmas for testing purposes. Use at your own risk!")
 
 #endif  // RUNTIME_VM_FLAG_LIST_H_

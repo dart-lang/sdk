@@ -43,6 +43,7 @@ enum MessageKind {
   HIDDEN_HINTS,
   HIDDEN_WARNINGS,
   HIDDEN_WARNINGS_HINTS,
+  IMPLICIT_JS_INTEROP_FIELD_NOT_SUPPORTED,
   INVALID_ASSERT_VALUE,
   INVALID_ASSERT_VALUE_MESSAGE,
   INVALID_BOOL_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE,
@@ -59,8 +60,8 @@ enum MessageKind {
   INVALID_CONSTANT_INTERPOLATION_TYPE,
   INVALID_CONSTANT_NEGATE_TYPE,
   INVALID_CONSTANT_NOT_TYPE,
-  INVALID_CONSTANT_NUM_ADD_TYPE,
   INVALID_CONSTANT_STRING_ADD_TYPE,
+  INVALID_CONSTANT_NUM_ADD_TYPE,
   INVALID_CONSTANT_STRING_LENGTH_TYPE,
   INVALID_CONSTANT_SHIFT,
   INVALID_FROM_ENVIRONMENT_NAME_TYPE,
@@ -73,9 +74,12 @@ enum MessageKind {
   INVALID_PACKAGE_URI,
   INVALID_STRING_FROM_ENVIRONMENT_DEFAULT_VALUE_TYPE,
   JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS,
+  JS_INTEROP_CLASS_NON_EXTERNAL_CONSTRUCTOR,
   JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
-  // TODO(johnniwinther): Why isn't this used?
+  JS_INTEROP_FIELD_NOT_SUPPORTED,
   JS_INTEROP_INDEX_NOT_SUPPORTED,
+  JS_INTEROP_NON_EXTERNAL_MEMBER,
+  JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS,
   JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS,
   JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
   JS_PLACEHOLDER_CAPTURE,
@@ -84,6 +88,7 @@ enum MessageKind {
   MISSING_EXPRESSION_IN_THROW,
   MULTI_INHERITANCE,
   NO_SUCH_SUPER_MEMBER,
+  NON_NATIVE_EXTERNAL,
   NOT_A_COMPILE_TIME_CONSTANT,
   NOT_ASSIGNABLE,
   PLEASE_REPORT_THE_CRASH,
@@ -198,46 +203,6 @@ class MessageTemplate {
               """
           ]),
 
-      MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER: const MessageTemplate(
-          MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
-          "Member '#{member}' in js-interop class '#{cls}' is not external.",
-          howToFix: "Mark all interop methods external",
-          examples: const [
-            """
-              import 'package:js/js.dart';
-
-              @JS()
-              class Foo {
-                bar() {}
-              }
-
-              main() {
-                new Foo().bar();
-              }
-              """
-          ]),
-
-      MessageKind.JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS: const MessageTemplate(
-          MessageKind.JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS,
-          "Js-interop method '#{method}' has named arguments but is not "
-          "a factory constructor of an @anonymous @JS class.",
-          howToFix: "Remove all named arguments from js-interop method or "
-              "in the case of a factory constructor annotate the class "
-              "as @anonymous.",
-          examples: const [
-            """
-              import 'package:js/js.dart';
-
-              @JS()
-              class Foo {
-                external bar(foo, {baz});
-              }
-
-              main() {
-                new Foo().bar(4, baz: 5);
-              }
-              """
-          ]),
       MessageKind.JS_INTEROP_INDEX_NOT_SUPPORTED: const MessageTemplate(
           MessageKind.JS_INTEROP_INDEX_NOT_SUPPORTED,
           "Js-interop does not support [] and []= operator methods.",
@@ -281,19 +246,84 @@ class MessageTemplate {
                   "constructors named.",
               examples: const [
             """
+class Super {
+  factory Super.foo() => null;
+}
+class Class extends Super {
+  Class() : super.foo();
+}
+main() => new Class();
+"""
+          ]),
+
+      MessageKind.JS_INTEROP_NON_EXTERNAL_MEMBER: const MessageTemplate(
+          MessageKind.JS_INTEROP_NON_EXTERNAL_MEMBER,
+          "Js-interop members must be 'external'."),
+
+      MessageKind.JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS: const MessageTemplate(
+          MessageKind.JS_INTEROP_MEMBER_IN_NON_JS_INTEROP_CLASS,
+          "Js-interop class members are only supported in js-interop classes.",
+          howToFix: "Try marking the enclosing class as js-interop or "
+              "remove the js-interop annotation from the member."),
+
+      MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_CONSTRUCTOR:
+          const MessageTemplate(
+              MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_CONSTRUCTOR,
+              "Constructor '#{constructor}' in js-interop class '#{cls}' is "
+              "not external.",
+              howToFix: "Try adding the 'external' to '#{constructor}'."),
+
+      MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER: const MessageTemplate(
+          MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
+          "Member '#{member}' in js-interop class '#{cls}' is not external.",
+          howToFix: "Try adding the 'external' to '#{member}'.",
+          examples: const [
+            """
               import 'package:js/js.dart';
 
-              @anonymous
               @JS()
               class Foo {
-                external factory Foo(foo, {baz});
+                bar() {}
               }
 
               main() {
-                new Foo(5, baz: 5);
+                new Foo().bar();
               }
               """
           ]),
+
+      MessageKind.JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS: const MessageTemplate(
+          MessageKind.JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS,
+          "Js-interop method '#{method}' has named arguments but is not "
+          "a factory constructor of an @anonymous @JS class.",
+          howToFix: "Remove all named arguments from js-interop method or "
+              "in the case of a factory constructor annotate the class "
+              "as @anonymous.",
+          examples: const [
+            """
+              import 'package:js/js.dart';
+
+              @JS()
+              class Foo {
+                external bar(foo, {baz});
+              }
+
+              main() {
+                new Foo().bar(4, baz: 5);
+              }
+              """
+          ]),
+      MessageKind.IMPLICIT_JS_INTEROP_FIELD_NOT_SUPPORTED:
+          const MessageTemplate(
+              MessageKind.IMPLICIT_JS_INTEROP_FIELD_NOT_SUPPORTED,
+              "Fields in js-interop classes are not supported.",
+              howToFix: "Try replacing the field with an "
+                  "external getter and/or setter."),
+      MessageKind.JS_INTEROP_FIELD_NOT_SUPPORTED: const MessageTemplate(
+          MessageKind.JS_INTEROP_FIELD_NOT_SUPPORTED,
+          "Field can't be marked as js-interop.",
+          howToFix: "Try replacing the field with an "
+              "external getter and/or setter."),
 
       MessageKind.LIBRARY_NOT_FOUND: const MessageTemplate(
           MessageKind.LIBRARY_NOT_FOUND, "Library not found '#{resolvedUri}'."),
@@ -631,6 +661,13 @@ become a compile-time error in the future."""),
           howToFix: "If used only for debugging, consider using option "
               "${Flags.laxRuntimeTypeToString} to reduce the code size "
               "impact."),
+
+      MessageKind.NON_NATIVE_EXTERNAL: const MessageTemplate(
+          MessageKind.NON_NATIVE_EXTERNAL,
+          "Only external js-interop functions are supported.",
+          howToFix:
+              "Try removing 'external' keyword or annotating the function "
+              "as a js-interop function."),
     }); // End of TEMPLATES.
 
   String toString() => template;

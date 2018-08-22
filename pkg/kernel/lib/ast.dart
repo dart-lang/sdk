@@ -5353,9 +5353,13 @@ class Component extends TreeNode {
 
   void computeCanonicalNames() {
     for (var library in libraries) {
-      root.getChildFromUri(library.importUri).bindTo(library.reference);
-      library.computeCanonicalNames();
+      computeCanonicalNamesForLibrary(library);
     }
+  }
+
+  void computeCanonicalNamesForLibrary(Library library) {
+    root.getChildFromUri(library.importUri).bindTo(library.reference);
+    library.computeCanonicalNames();
   }
 
   void unbindCanonicalNames() {

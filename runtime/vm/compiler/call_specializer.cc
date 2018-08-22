@@ -960,7 +960,6 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
 
   if (I->use_field_guards()) {
     if (field.guarded_cid() != kDynamicCid) {
-      ASSERT(I->use_field_guards());
       InsertBefore(instr,
                    new (Z)
                        GuardFieldClassInstr(new (Z) Value(instr->ArgumentAt(1)),
@@ -969,12 +968,19 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
     }
 
     if (field.needs_length_check()) {
-      ASSERT(I->use_field_guards());
       InsertBefore(
           instr,
           new (Z) GuardFieldLengthInstr(new (Z) Value(instr->ArgumentAt(1)),
                                         field, instr->deopt_id()),
           instr->env(), FlowGraph::kEffect);
+    }
+
+    if (field.static_type_exactness_state().NeedsFieldGuard()) {
+      InsertBefore(instr,
+                   new (Z)
+                       GuardFieldTypeInstr(new (Z) Value(instr->ArgumentAt(1)),
+                                           field, instr->deopt_id()),
+                   instr->env(), FlowGraph::kEffect);
     }
   }
 

@@ -61,7 +61,14 @@ class JsInteropClass {
   external double method();
 }
 
-/*element: testJsInteropClass:dynamic=[method(0)],static=[JsInteropClass.(0)]*/
+/*kernel.element: testJsInteropClass:
+ dynamic=[call(0),method(0)],
+ static=[JsInteropClass.(0)]
+*/
+/*strong.element: testJsInteropClass:
+ dynamic=[method(0)],
+ static=[JsInteropClass.(0)]
+*/
 testJsInteropClass() => new JsInteropClass().method();
 
 typedef void Callback<T>(T value);
@@ -96,5 +103,12 @@ class GenericClass<T> {
   external GenericClass method([Callback<T> callback]);
 }
 
-/*element: testOptionalGenericFunctionTypeArgument:dynamic=[method(0)],static=[GenericClass.(0)]*/
+/*kernel.element: testOptionalGenericFunctionTypeArgument:
+ dynamic=[call(0),method(0)],
+ static=[GenericClass.(0)]
+*/
+/*strong.element: testOptionalGenericFunctionTypeArgument:
+ dynamic=[method(0)],
+ static=[GenericClass.(0)]
+*/
 testOptionalGenericFunctionTypeArgument() => new GenericClass().method();

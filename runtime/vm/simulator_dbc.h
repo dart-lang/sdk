@@ -52,12 +52,6 @@ class Simulator {
   // High address (DBC stack grows up).
   uword stack_limit() const { return stack_limit_; }
 
-  // The thread's top_exit_frame_info refers to a Dart frame in the simulator
-  // stack. The simulator's top_exit_frame_info refers to a C++ frame in the
-  // native stack.
-  uword top_exit_frame_info() const { return top_exit_frame_info_; }
-  void set_top_exit_frame_info(uword value) { top_exit_frame_info_ = value; }
-
   // Call on program start.
   static void InitOnce();
 
@@ -102,7 +96,6 @@ class Simulator {
   DEBUG_ONLY(uint64_t icount_;)
 
   SimulatorSetjmpBuffer* last_setjmp_buffer_;
-  uword top_exit_frame_info_;
 
   RawObjectPool* pp_;  // Pool Pointer.
   RawArray* argdesc_;  // Arguments Descriptor: used to pass information between

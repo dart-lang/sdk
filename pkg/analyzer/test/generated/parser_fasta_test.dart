@@ -377,6 +377,11 @@ class FastaParserTestCase extends Object
     return _parseExpression(code);
   }
 
+  Expression parseArgument(String source) {
+    createParser(source);
+    return _parserProxy.parseArgument();
+  }
+
   @override
   Expression parseAssignableExpression(String code, bool primaryAllowed) {
     return _parseExpression(code);
@@ -838,7 +843,7 @@ class ParserProxy extends analyzer.ParserAdapter {
 
   @override
   ClassMember parseClassMember(String className) {
-    return _run('ClassBody', () => super.parseClassMember(className));
+    return _run('ClassOrMixinBody', () => super.parseClassMember(className));
   }
 
   List<Combinator> parseCombinators() {
@@ -1018,7 +1023,22 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
 @reflectiveTest
 class SimpleParserTest_Fasta extends FastaParserTestCase
-    with SimpleParserTestMixin {}
+    with SimpleParserTestMixin {
+  test_parseArgument() {
+    Expression result = parseArgument('3');
+    expect(result, const TypeMatcher<IntegerLiteral>());
+    IntegerLiteral literal = result;
+    expect(literal.value, 3);
+  }
+
+  test_parseArgument_named() {
+    Expression result = parseArgument('foo: "a"');
+    expect(result, const TypeMatcher<NamedExpression>());
+    NamedExpression expression = result;
+    StringLiteral literal = expression.expression;
+    expect(literal.stringValue, 'a');
+  }
+}
 
 /**
  * Tests of the fasta parser based on [StatementParserTestMixin].

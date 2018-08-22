@@ -12,7 +12,7 @@ abstract class Link implements FileSystemEntity {
   /**
    * Creates a Link object.
    */
-  @pragma("vm.entry-point")
+  @pragma("vm:entry-point")
   factory Link(String path) {
     final IOOverrides overrides = IOOverrides.current;
     if (overrides == null) {

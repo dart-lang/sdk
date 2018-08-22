@@ -34,7 +34,7 @@ class Capability {
   factory Capability() => new _CapabilityImpl();
 }
 
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 class _CapabilityImpl implements Capability {
   factory _CapabilityImpl() native "CapabilityImpl_factory";
 
@@ -107,7 +107,7 @@ void _isolateScheduleImmediate(void callback()) {
   _pendingImmediateCallback = callback;
 }
 
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 void _runPendingImmediateCallback() {
   if (_pendingImmediateCallback != null) {
     var callback = _pendingImmediateCallback;
@@ -124,12 +124,12 @@ _ImmediateCallback _removePendingImmediateCallback() {
 
 /// The embedder can execute this function to get hold of
 /// [_isolateScheduleImmediate] above.
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 Function _getIsolateScheduleImmediateClosure() {
   return _isolateScheduleImmediate;
 }
 
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 class _RawReceivePortImpl implements RawReceivePort {
   factory _RawReceivePortImpl() native "RawReceivePortImpl_factory";
 
@@ -156,14 +156,14 @@ class _RawReceivePortImpl implements RawReceivePort {
   _get_sendport() native "RawReceivePortImpl_get_sendport";
 
   // Called from the VM to retrieve the handler for a message.
-  @pragma("vm.entry-point")
+  @pragma("vm:entry-point")
   static _lookupHandler(int id) {
     var result = _handlerMap[id];
     return result;
   }
 
   // Called from the VM to dispatch to the handler.
-  @pragma("vm.entry-point")
+  @pragma("vm:entry-point")
   static void _handleMessage(Function handler, var message) {
     // TODO(floitsch): this relies on the fact that any exception aborts the
     // VM. Once we have non-fatal global exceptions we need to catch errors
@@ -194,10 +194,10 @@ class _RawReceivePortImpl implements RawReceivePort {
   static final Map _handlerMap = _initHandlerMap();
 }
 
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 class _SendPortImpl implements SendPort {
   /*--- public interface ---*/
-  @pragma("vm.entry-point")
+  @pragma("vm:entry-point")
   void send(var message) {
     _sendInternal(message);
   }
@@ -227,7 +227,7 @@ typedef _BinaryFunction(Null args, Null message);
  * initial message.  Defers execution of the entry point until the
  * isolate is in the message loop.
  */
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 void _startMainIsolate(Function entryPoint, List<String> args) {
   _startIsolate(
       null, // no parent port
@@ -243,7 +243,7 @@ void _startMainIsolate(Function entryPoint, List<String> args) {
  * Takes the real entry point as argument and invokes it with the initial
  * message.
  */
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 void _startIsolate(
     SendPort parentPort,
     Function entryPoint,

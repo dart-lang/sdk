@@ -3188,8 +3188,9 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_constructorFieldInitializer() {
-    ConstructorFieldInitializer node = AstTestFactory
-        .constructorFieldInitializer(false, "f", AstTestFactory.integer(0));
+    ConstructorFieldInitializer node =
+        AstTestFactory.constructorFieldInitializer(
+            false, "f", AstTestFactory.integer(0));
     _assertReplace(
         node, new Getter_NodeReplacerTest_test_constructorFieldInitializer());
     _assertReplace(
@@ -3342,8 +3343,8 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_formalParameterList() {
-    FormalParameterList node = AstTestFactory
-        .formalParameterList([AstTestFactory.simpleFormalParameter3("p")]);
+    FormalParameterList node = AstTestFactory.formalParameterList(
+        [AstTestFactory.simpleFormalParameter3("p")]);
     _assertReplace(
         node, new ListGetter_NodeReplacerTest_test_formalParameterList(0));
   }
@@ -3425,8 +3426,8 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_functionExpressionInvocation() {
-    FunctionExpressionInvocation node = AstTestFactory
-        .functionExpressionInvocation(
+    FunctionExpressionInvocation node =
+        AstTestFactory.functionExpressionInvocation(
             AstTestFactory.identifier3("f"), [AstTestFactory.integer(0)]);
     _assertReplace(
         node, new Getter_NodeReplacerTest_test_functionExpressionInvocation());
@@ -3454,8 +3455,10 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_functionTypedFormalParameter() {
-    FunctionTypedFormalParameter node = AstTestFactory
-        .functionTypedFormalParameter(AstTestFactory.typeName4("R"), "f",
+    FunctionTypedFormalParameter node =
+        AstTestFactory.functionTypedFormalParameter(
+            AstTestFactory.typeName4("R"),
+            "f",
             [AstTestFactory.simpleFormalParameter3("p")]);
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata = [
@@ -3511,9 +3514,9 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_instanceCreationExpression() {
-    InstanceCreationExpression node = AstTestFactory
-        .instanceCreationExpression3(null, AstTestFactory.typeName4("C"), "c",
-            [AstTestFactory.integer(2)]);
+    InstanceCreationExpression node =
+        AstTestFactory.instanceCreationExpression3(null,
+            AstTestFactory.typeName4("C"), "c", [AstTestFactory.integer(2)]);
     _assertReplace(
         node, new Getter_NodeReplacerTest_test_instanceCreationExpression_2());
     _assertReplace(
@@ -3539,8 +3542,8 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_labeledStatement() {
-    LabeledStatement node = AstTestFactory
-        .labeledStatement([AstTestFactory.label2("l")], AstTestFactory.block());
+    LabeledStatement node = AstTestFactory.labeledStatement(
+        [AstTestFactory.label2("l")], AstTestFactory.block());
     _assertReplace(
         node, new ListGetter_NodeReplacerTest_test_labeledStatement(0));
     _assertReplace(node, new Getter_NodeReplacerTest_test_labeledStatement());
@@ -3649,8 +3652,8 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_partOfDirective() {
-    PartOfDirective node = AstTestFactory
-        .partOfDirective(AstTestFactory.libraryIdentifier2(["lib"]));
+    PartOfDirective node = AstTestFactory.partOfDirective(
+        AstTestFactory.libraryIdentifier2(["lib"]));
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
         .add(AstTestFactory.annotation(AstTestFactory.identifier3("a")));
@@ -3685,8 +3688,9 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_redirectingConstructorInvocation() {
-    RedirectingConstructorInvocation node = AstTestFactory
-        .redirectingConstructorInvocation2("c", [AstTestFactory.integer(0)]);
+    RedirectingConstructorInvocation node =
+        AstTestFactory.redirectingConstructorInvocation2(
+            "c", [AstTestFactory.integer(0)]);
     _assertReplace(node,
         new Getter_NodeReplacerTest_test_redirectingConstructorInvocation());
     _assertReplace(node,
@@ -3725,8 +3729,9 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_superConstructorInvocation() {
-    SuperConstructorInvocation node = AstTestFactory
-        .superConstructorInvocation2("s", [AstTestFactory.integer(1)]);
+    SuperConstructorInvocation node =
+        AstTestFactory.superConstructorInvocation2(
+            "s", [AstTestFactory.integer(1)]);
     _assertReplace(
         node, new Getter_NodeReplacerTest_test_superConstructorInvocation());
     _assertReplace(
@@ -3741,8 +3746,8 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_switchDefault() {
-    SwitchDefault node = AstTestFactory
-        .switchDefault([AstTestFactory.label2("l")], [AstTestFactory.block()]);
+    SwitchDefault node = AstTestFactory.switchDefault(
+        [AstTestFactory.label2("l")], [AstTestFactory.block()]);
     _testSwitchMember(node);
   }
 
@@ -3751,8 +3756,8 @@ class NodeReplacerTest extends EngineTestCase {
         AstTestFactory.switchStatement(AstTestFactory.identifier3("x"), [
       AstTestFactory.switchCase2([AstTestFactory.label2("l")],
           AstTestFactory.integer(0), [AstTestFactory.block()]),
-      AstTestFactory
-          .switchDefault([AstTestFactory.label2("l")], [AstTestFactory.block()])
+      AstTestFactory.switchDefault(
+          [AstTestFactory.label2("l")], [AstTestFactory.block()])
     ]);
     _assertReplace(node, new Getter_NodeReplacerTest_test_switchStatement());
     _assertReplace(
@@ -3766,8 +3771,10 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_topLevelVariableDeclaration() {
-    TopLevelVariableDeclaration node = AstTestFactory
-        .topLevelVariableDeclaration(null, AstTestFactory.typeName4("T"),
+    TopLevelVariableDeclaration node =
+        AstTestFactory.topLevelVariableDeclaration(
+            null,
+            AstTestFactory.typeName4("T"),
             [AstTestFactory.variableDeclaration("t")]);
     node.documentationComment = astFactory.endOfLineComment(EMPTY_TOKEN_LIST);
     node.metadata
@@ -3845,8 +3852,10 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_variableDeclarationStatement() {
-    VariableDeclarationStatement node = AstTestFactory
-        .variableDeclarationStatement(null, AstTestFactory.typeName4("T"),
+    VariableDeclarationStatement node =
+        AstTestFactory.variableDeclarationStatement(
+            null,
+            AstTestFactory.typeName4("T"),
             [AstTestFactory.variableDeclaration("a")]);
     _assertReplace(
         node, new Getter_NodeReplacerTest_test_variableDeclarationStatement());
@@ -4248,8 +4257,8 @@ class StringUtilitiesTest {
 
   void test_printListOfQuotedNames_five() {
     expect(
-        StringUtilities
-            .printListOfQuotedNames(<String>["a", "b", "c", "d", "e"]),
+        StringUtilities.printListOfQuotedNames(
+            <String>["a", "b", "c", "d", "e"]),
         "'a', 'b', 'c', 'd' and 'e'");
   }
 

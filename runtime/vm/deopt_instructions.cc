@@ -357,8 +357,9 @@ intptr_t* DeoptContext::CatchEntryState(intptr_t num_vars) {
     intptr_t dest_index = kNumberOfCpuRegisters - 1 - i;
 #else
     const intptr_t len = deopt_instructions.length();
-    intptr_t slot =
-        i < params ? i : i + kParamEndSlotFromFp - kFirstLocalSlotFromFp;
+    intptr_t slot = i < params ? i
+                               : i + kParamEndSlotFromFp -
+                                     runtime_frame_layout.first_local_from_fp;
     DeoptInstr* instr = deopt_instructions[len - 1 - slot];
     intptr_t dest_index = i - params;
 #endif
@@ -1016,7 +1017,8 @@ intptr_t DeoptInfoBuilder::FindOrAddObjectInTable(const Object& obj) const {
 
 intptr_t DeoptInfoBuilder::CalculateStackIndex(
     const Location& source_loc) const {
-  intptr_t index = -VariableIndexForFrameSlot(source_loc.stack_index());
+  intptr_t index = -compiler_frame_layout.VariableIndexForFrameSlot(
+      source_loc.stack_index());
   return index < 0 ? index + num_args_
                    : index + num_args_ + kDartFrameFixedSize;
 }

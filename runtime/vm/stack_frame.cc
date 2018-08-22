@@ -21,31 +21,46 @@
 
 namespace dart {
 
-intptr_t FrameSlotForVariable(const LocalVariable* variable) {
+const FrameLayout invalid_frame_layout = {
+    /*.first_object_from_fp = */ -1,
+    /*.last_fixed_object_from_fp = */ -1,
+    /*.param_end_from_fp = */ -1,
+    /*.first_local_from_fp = */ -1,
+    /*.dart_fixed_frame_size = */ -1,
+    /*.saved_caller_pp_from_fp = */ -1,
+    /*.code_from_fp = */ -1,
+};
+
+const FrameLayout default_frame_layout = {
+    /*.first_object_from_fp = */ kFirstObjectSlotFromFp,
+    /*.last_fixed_object_from_fp = */ kLastFixedObjectSlotFromFp,
+    /*.param_end_from_fp = */ kParamEndSlotFromFp,
+    /*.first_local_from_fp = */ kFirstLocalSlotFromFp,
+    /*.dart_fixed_frame_size = */ kDartFrameFixedSize,
+    /*.saved_caller_pp_from_fp = */ kSavedCallerPpSlotFromFp,
+    /*.code_from_fp = */ kPcMarkerSlotFromFp,
+};
+
+FrameLayout compiler_frame_layout = invalid_frame_layout;
+FrameLayout runtime_frame_layout = invalid_frame_layout;
+
+int FrameLayout::FrameSlotForVariable(const LocalVariable* variable) const {
   ASSERT(!variable->is_captured());
-  return FrameSlotForVariableIndex(variable->index().value());
+  return this->FrameSlotForVariableIndex(variable->index().value());
 }
 
-intptr_t FrameOffsetInBytesForVariable(const LocalVariable* variable) {
-  return FrameSlotForVariable(variable) * kWordSize;
-}
-
-intptr_t FrameSlotForVariableIndex(intptr_t variable_index) {
+int FrameLayout::FrameSlotForVariableIndex(int variable_index) const {
   // Variable indices are:
   //    [1, 2, ..., M] for the M parameters.
   //    [0, -1, -2, ... -(N-1)] for the N [LocalVariable]s
   // See (runtime/vm/scopes.h)
-  return variable_index <= 0 ? (variable_index + kFirstLocalSlotFromFp)
-                             : (variable_index + kParamEndSlotFromFp);
+  return variable_index <= 0 ? (variable_index + first_local_from_fp)
+                             : (variable_index + param_end_from_fp);
 }
 
-intptr_t VariableIndexForFrameSlot(intptr_t frame_slot) {
-  if (frame_slot <= kFirstLocalSlotFromFp) {
-    return frame_slot - kFirstLocalSlotFromFp;
-  } else {
-    ASSERT(frame_slot > kParamEndSlotFromFp);
-    return frame_slot - kParamEndSlotFromFp;
-  }
+void FrameLayout::InitOnce() {
+  compiler_frame_layout = default_frame_layout;
+  runtime_frame_layout = default_frame_layout;
 }
 
 bool StackFrame::IsStubFrame() const {
@@ -95,15 +110,21 @@ void ExitFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
   // Visit pc marker and saved pool pointer, or, for interpreted frame, code
   // object and function object.
-  RawObject** last_fixed = reinterpret_cast<RawObject**>(fp()) +
-                           (is_interpreted() ? kKBCLastFixedObjectSlotFromFp
-                                             : kFirstObjectSlotFromFp);
-  RawObject** first_fixed = reinterpret_cast<RawObject**>(fp()) +
-                            (is_interpreted() ? kKBCFirstObjectSlotFromFp
-                                              : kLastFixedObjectSlotFromFp);
+  RawObject** last_fixed =
+      reinterpret_cast<RawObject**>(fp()) +
+      (is_interpreted() ? kKBCLastFixedObjectSlotFromFp
+                        : runtime_frame_layout.first_object_from_fp);
+  RawObject** first_fixed =
+      reinterpret_cast<RawObject**>(fp()) +
+      (is_interpreted() ? kKBCFirstObjectSlotFromFp
+                        : runtime_frame_layout.last_fixed_object_from_fp);
 #if !defined(TARGET_ARCH_DBC)
-  ASSERT(first_fixed <= last_fixed);
-  visitor->VisitPointers(first_fixed, last_fixed);
+  if (first_fixed <= last_fixed) {
+    visitor->VisitPointers(first_fixed, last_fixed);
+  } else {
+    ASSERT(runtime_frame_layout.first_object_from_fp ==
+           runtime_frame_layout.first_local_from_fp);
+  }
 #else
   ASSERT(last_fixed <= first_fixed);
   visitor->VisitPointers(last_fixed, first_fixed);
@@ -161,7 +182,7 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
       }
       RawObject** first = reinterpret_cast<RawObject**>(sp());
       RawObject** last = reinterpret_cast<RawObject**>(
-          fp() + (kFirstLocalSlotFromFp * kWordSize));
+          fp() + (runtime_frame_layout.first_local_from_fp * kWordSize));
 
       // A stack map is present in the code object, use the stack map to
       // visit frame slots which are marked as having objects.
@@ -199,17 +220,19 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
       // Now visit other slots which might be part of the calling convention.
       first = reinterpret_cast<RawObject**>(
-          fp() + ((kFirstLocalSlotFromFp + 1) * kWordSize));
+          fp() + ((runtime_frame_layout.first_local_from_fp + 1) * kWordSize));
       last = reinterpret_cast<RawObject**>(
-          fp() + (kFirstObjectSlotFromFp * kWordSize));
+          fp() + (runtime_frame_layout.first_object_from_fp * kWordSize));
       visitor->VisitPointers(first, last);
 #else
       RawObject** first = reinterpret_cast<RawObject**>(fp());
       RawObject** last = reinterpret_cast<RawObject**>(sp());
 
       // Visit fixed prefix of the frame.
-      RawObject** first_fixed = first + kFirstObjectSlotFromFp;
-      RawObject** last_fixed = first + kLastFixedObjectSlotFromFp;
+      RawObject** first_fixed =
+          first + runtime_frame_layout.first_object_from_fp;
+      RawObject** last_fixed =
+          first + (runtime_frame_layout.first_object_from_fp + 1);
       ASSERT(first_fixed <= last_fixed);
       visitor->VisitPointers(first_fixed, last_fixed);
 
@@ -250,11 +273,13 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   RawObject** first = reinterpret_cast<RawObject**>(
       is_interpreted() ? fp() + (kKBCFirstObjectSlotFromFp * kWordSize) : sp());
   RawObject** last = reinterpret_cast<RawObject**>(
-      is_interpreted() ? sp() : fp() + (kFirstObjectSlotFromFp * kWordSize));
+      is_interpreted()
+          ? sp()
+          : fp() + (runtime_frame_layout.first_object_from_fp * kWordSize));
 #else
   // On DBC stack grows upwards: fp() <= sp().
   RawObject** first = reinterpret_cast<RawObject**>(
-      fp() + (kFirstObjectSlotFromFp * kWordSize));
+      fp() + (runtime_frame_layout.first_object_from_fp * kWordSize));
   RawObject** last = reinterpret_cast<RawObject**>(sp());
 #endif  // !defined(TARGET_ARCH_DBC)
 
@@ -295,9 +320,9 @@ RawCode* StackFrame::GetCodeObject() const {
 
 RawCode* StackFrame::UncheckedGetCodeObject() const {
   return *(reinterpret_cast<RawCode**>(
-      fp() +
-      ((is_interpreted() ? kKBCPcMarkerSlotFromFp : kPcMarkerSlotFromFp) *
-       kWordSize)));
+      fp() + ((is_interpreted() ? kKBCPcMarkerSlotFromFp
+                                : runtime_frame_layout.code_from_fp) *
+              kWordSize)));
 }
 
 bool StackFrame::FindExceptionHandler(Thread* thread,

@@ -26,7 +26,7 @@ main() {
 
 const String TEST3 = r"""
 main() {
-  var a = 52;
+  dynamic a = 52;
   var g = () { a = 'foo'; };
   var f = () => a + 87;
   f();

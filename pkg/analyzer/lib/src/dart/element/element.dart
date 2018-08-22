@@ -7990,6 +7990,10 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
 
   @override
   int get codeLength {
+    if (_kernel != null) {
+      var metadata = AnalyzerMetadata.forNode(_kernel);
+      return metadata?.codeLength;
+    }
     if (_unlinkedVariable != null) {
       return _unlinkedVariable.codeRange?.length;
     }
@@ -7998,6 +8002,10 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
 
   @override
   int get codeOffset {
+    if (_kernel != null) {
+      var metadata = AnalyzerMetadata.forNode(_kernel);
+      return metadata?.codeOffset;
+    }
     if (_unlinkedVariable != null) {
       return _unlinkedVariable.codeRange?.offset;
     }
@@ -8288,6 +8296,10 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   int get codeLength {
+    if (_kernel != null) {
+      var metadata = AnalyzerMetadata.forNode(_kernel);
+      return metadata?.codeLength;
+    }
     if (unlinkedParam != null) {
       return unlinkedParam.codeRange?.length;
     }
@@ -8296,6 +8308,10 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   int get codeOffset {
+    if (_kernel != null) {
+      var metadata = AnalyzerMetadata.forNode(_kernel);
+      return metadata?.codeOffset;
+    }
     if (unlinkedParam != null) {
       return unlinkedParam.codeRange?.offset;
     }

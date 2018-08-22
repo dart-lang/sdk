@@ -173,8 +173,8 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endClassBody(int memberCount, Token beginToken, Token endToken) {
-    debugEvent("ClassBody");
+  void endClassOrMixinBody(int memberCount, Token beginToken, Token endToken) {
+    debugEvent("ClassOrMixinBody");
     push(popList(memberCount,
         new List<ClassMember>.filled(memberCount, null, growable: true)));
   }
@@ -240,8 +240,13 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
-      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
+  void endFormalParameter(
+      Token thisKeyword,
+      Token periodAfterThis,
+      Token nameToken,
+      FormalParameterKind kind,
+      MemberKind memberKind,
+      Token endToken) {
     debugEvent("FormalParameter");
     pop(); // Name
     pop(); // Type

@@ -1319,21 +1319,29 @@ class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
   @override
   Expression get expression {
     if (super.expression == null) {
-      int offset = offsetForToken(token);
-      if (declaration is KernelInvalidTypeBuilder) {
-        KernelInvalidTypeBuilder declaration = this.declaration;
-        helper.addProblemErrorIfConst(
-            declaration.message.messageObject, offset, token.length);
-        super.expression = new SyntheticExpressionJudgment(
-            new Throw(forest.literalString(declaration.message.message, token))
-              ..fileOffset = offset);
-      } else {
-        super.expression = forest.literalType(
-            buildTypeWithBuiltArguments(null, nonInstanceAccessIsError: true),
-            token);
-      }
+      super.expression = computeExpression();
     }
     return super.expression;
+  }
+
+  Expression computeExpression({bool silent: false}) {
+    int offset = offsetForToken(token);
+    if (declaration is KernelInvalidTypeBuilder) {
+      KernelInvalidTypeBuilder declaration = this.declaration;
+      if (!silent) {
+        helper.addProblemErrorIfConst(
+            declaration.message.messageObject, offset, token.length);
+      }
+      return new UnresolvedVariableGetJudgment(
+          new Throw(forest.literalString(declaration.message.message, token))
+            ..fileOffset = offset,
+          token.isSynthetic)
+        ..fileOffset = offset;
+    } else {
+      return forest.literalType(
+          buildTypeWithBuiltArguments(null, nonInstanceAccessIsError: true),
+          token);
+    }
   }
 
   @override
@@ -1342,13 +1350,20 @@ class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
 
   @override
   Expression makeInvalidWrite(Expression value) {
-    return new SyntheticExpressionJudgment(helper.throwNoSuchMethodError(
+    var read = computeExpression(silent: true);
+    // The read needs to have a parent so that type inference can be applied to
+    // it, but it doesn't mater what the parent is because the final read won't
+    // appear in the tree.  So just give it a quick and dirty parent.
+    new VariableDeclaration.forValue(read);
+
+    var throwExpr = helper.throwNoSuchMethodError(
         forest.literalNull(token),
         plainNameForRead,
         forest.arguments(<Expression>[value], noLocation, noLocation)
           ..fileOffset = value.fileOffset,
         offsetForToken(token),
-        isSetter: true));
+        isSetter: true);
+    return new SyntheticExpressionJudgment(throwExpr, original: read);
   }
 
   @override
@@ -1555,11 +1570,12 @@ class KernelUnresolvedNameGenerator extends KernelGenerator
   UnresolvedVariableAssignmentJudgment _buildUnresolvedVariableAssignment(
       bool isCompound, Expression value) {
     return new UnresolvedVariableAssignmentJudgment(
-      buildError(forest.arguments(<Expression>[value], token, token),
-          isSetter: true),
-      isCompound,
-      value,
-    )..fileOffset = token.charOffset;
+        buildError(forest.arguments(<Expression>[value], token, token),
+            isSetter: true),
+        isCompound,
+        value,
+        token.isSynthetic)
+      ..fileOffset = token.charOffset;
   }
 }
 

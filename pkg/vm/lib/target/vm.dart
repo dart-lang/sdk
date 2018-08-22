@@ -14,6 +14,8 @@ import 'package:kernel/transformations/mixin_full_resolution.dart'
 import 'package:kernel/transformations/continuation.dart' as transformAsync
     show transformLibraries, transformProcedure;
 
+import '../transformations/call_site_annotator.dart' as callSiteAnnotator;
+
 /// Specializes the kernel IR to the Dart VM.
 class VmTarget extends Target {
   final TargetFlags flags;
@@ -56,7 +58,7 @@ class VmTarget extends Target {
       ];
 
   @override
-  void performModularTransformationsOnLibraries(
+  void performModularTransformationsOnLibraries(Component component,
       CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
       {void logger(String msg)}) {
     transformMixins.transformLibraries(this, coreTypes, hierarchy, libraries,
@@ -66,11 +68,11 @@ class VmTarget extends Target {
     // TODO(kmillikin): Make this run on a per-method basis.
     transformAsync.transformLibraries(coreTypes, libraries, flags.syncAsync);
     logger?.call("Transformed async methods");
-  }
 
-  @override
-  void performGlobalTransformations(CoreTypes coreTypes, Component component,
-      {void logger(String msg)}) {}
+    callSiteAnnotator.transformLibraries(
+        component, libraries, coreTypes, hierarchy);
+    logger?.call("Annotated call sites");
+  }
 
   @override
   void performTransformationsOnProcedure(
@@ -284,4 +286,10 @@ class VmTarget extends Target {
 
   @override
   bool get nativeExtensionExpectsString => true;
+
+  @override
+  Component configureComponent(Component component) {
+    callSiteAnnotator.addRepositoryTo(component);
+    return super.configureComponent(component);
+  }
 }

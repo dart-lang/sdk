@@ -222,9 +222,9 @@ class ModelEmitter {
   js.Comment buildGeneratedBy() {
     StringBuffer flavor = new StringBuffer();
     flavor.write('fast startup emitter');
-    if (compiler.options.strongMode) flavor.write(', strong');
+    // TODO(johnniwinther): Remove this flavor.
+    flavor.write(', strong');
     if (compiler.options.trustPrimitives) flavor.write(', trust primitives');
-    if (compiler.options.trustTypeAnnotations) flavor.write(', trust types');
     if (compiler.options.omitImplicitChecks) flavor.write(', omit checks');
     if (compiler.options.laxRuntimeTypeToString) {
       flavor.write(', lax runtime type');

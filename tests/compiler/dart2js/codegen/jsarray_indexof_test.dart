@@ -32,14 +32,10 @@ main() {
 
 main() {
   asyncTest(() async {
-    print('--test from kernel------------------------------------------------');
-    await runTest([Flags.noPreviewDart2]);
-    print('--test from kernel (trust-type-annotations)-----------------------');
-    await runTest([Flags.noPreviewDart2, Flags.trustTypeAnnotations]);
     print('--test from kernel (strong mode)----------------------------------');
-    await runTest([Flags.strongMode]);
-    print('--test from kernel (strong mode, omit-implicit.checks)------------');
-    await runTest([Flags.strongMode, Flags.omitImplicitChecks]);
+    await runTest([]);
+    print('--test from kernel (strong mode, omit-implicit-checks)------------');
+    await runTest([Flags.omitImplicitChecks]);
   });
 }
 

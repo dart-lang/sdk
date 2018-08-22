@@ -61,26 +61,28 @@ void Assembler::call(const ExternalLabel* label) {
   call(TMP);
 }
 
-void Assembler::CallPatchable(const StubEntry& stub_entry) {
+void Assembler::CallPatchable(const StubEntry& stub_entry,
+                              Code::EntryKind entry_kind) {
   ASSERT(constant_pool_allowed());
   const Code& target = Code::ZoneHandle(stub_entry.code());
   intptr_t call_start = buffer_.GetPosition();
   const intptr_t idx = object_pool_wrapper_.AddObject(target, kPatchable);
   const int32_t offset = ObjectPool::element_offset(idx);
   LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag);
-  movq(TMP, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  movq(TMP, FieldAddress(CODE_REG, Code::entry_point_offset(entry_kind)));
   call(TMP);
   ASSERT((buffer_.GetPosition() - call_start) == kCallExternalLabelSize);
 }
 
 void Assembler::CallWithEquivalence(const StubEntry& stub_entry,
-                                    const Object& equivalence) {
+                                    const Object& equivalence,
+                                    Code::EntryKind entry_kind) {
   ASSERT(constant_pool_allowed());
   const Code& target = Code::ZoneHandle(stub_entry.code());
   const intptr_t idx = object_pool_wrapper_.FindObject(target, equivalence);
   const int32_t offset = ObjectPool::element_offset(idx);
   LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag);
-  movq(TMP, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  movq(TMP, FieldAddress(CODE_REG, Code::entry_point_offset(entry_kind)));
   call(TMP);
 }
 
@@ -1224,6 +1226,12 @@ void Assembler::StoreIntoObjectFilter(Register object,
                  (kOldObjectAlignmentOffset == 0));
 
   if (can_be_smi == kValueIsNotSmi) {
+#if defined(DEBUG)
+    Label okay;
+    BranchIfNotSmi(value, &okay);
+    Stop("Unexpected Smi!");
+    Bind(&okay);
+#endif
     // Write-barrier triggers if the value is in the new space (has bit set) and
     // the object is in the old space (has bit cleared).
     // To check that we could compute value & ~object and skip the write barrier
@@ -1478,7 +1486,7 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
 }
 
 void Assembler::RestoreCodePointer() {
-  movq(CODE_REG, Address(RBP, kPcMarkerSlotFromFp * kWordSize));
+  movq(CODE_REG, Address(RBP, compiler_frame_layout.code_from_fp * kWordSize));
 }
 
 void Assembler::LoadPoolPointer(Register pp) {
@@ -1507,7 +1515,8 @@ void Assembler::EnterDartFrame(intptr_t frame_size, Register new_pp) {
 void Assembler::LeaveDartFrame(RestorePP restore_pp) {
   // Restore caller's PP register that was pushed in EnterDartFrame.
   if (restore_pp == kRestoreCallerPP) {
-    movq(PP, Address(RBP, (kSavedCallerPpSlotFromFp * kWordSize)));
+    movq(PP, Address(RBP, (compiler_frame_layout.saved_caller_pp_from_fp *
+                           kWordSize)));
     set_constant_pool_allowed(false);
   }
   LeaveFrame();

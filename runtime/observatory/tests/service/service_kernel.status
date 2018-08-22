@@ -95,6 +95,7 @@ rewind_test: RuntimeError
 set_library_debuggable_test: RuntimeError
 set_name_rpc_test: RuntimeError
 set_vm_name_rpc_test: RuntimeError
+simple_reload_test: RuntimeError
 steal_breakpoint_test: RuntimeError
 step_into_async_no_await_test: RuntimeError
 step_over_await_test: RuntimeError
@@ -132,6 +133,9 @@ unused_changes_in_last_reload_test: RuntimeError
 [ $fasta ]
 developer_extension_test: CompileTimeError
 get_isolate_after_language_error_test: CompileTimeError
+
+[ $arch == arm64 && $compiler == dartk ]
+coverage_optimized_function_test: Pass, Slow
 
 [ $arch != simarm && $arch != simarm64 && $arch != simdbc && $compiler == dartk ]
 complex_reload_test: RuntimeError
@@ -252,5 +256,6 @@ reload_sources_test: Skip # Times out.
 rewind_optimized_out_test: RuntimeError # Issue #33087
 rewind_test: Pass, RuntimeError
 set_name_rpc_test: RuntimeError # Please triage.
+simple_reload_test: RuntimeError, Timeout
 unused_changes_in_last_reload_test: Skip # Times out on sim architectures.
 valid_source_locations_test: Pass, Slow, Timeout # Issue 33087

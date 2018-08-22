@@ -1,3 +1,12 @@
+## 1.1.7
+
+* Introduce `@sealed` to declare that a class or mixin is not allowed as a
+  super-type.
+
+  Only classes in the same package as a class or mixin annotated with `@sealed`
+  may extend, implement or mix-in the annotated class or mixin. (SDK issue
+  [27372](https://github.com/dart-lang/sdk/issues/27372)).
+
 ## 1.1.6
 
 * Set max SDK version to <3.0.0.

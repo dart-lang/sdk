@@ -731,8 +731,7 @@ abstract class FunctionDataMixin implements FunctionData {
   List<TypeVariableType> getFunctionTypeVariables(
       covariant KernelToElementMapBase elementMap) {
     if (_typeVariables == null) {
-      if (functionNode.typeParameters.isEmpty ||
-          !elementMap.options.strongMode) {
+      if (functionNode.typeParameters.isEmpty) {
         _typeVariables = const <TypeVariableType>[];
       } else {
         ir.TreeNode parent = functionNode.parent;

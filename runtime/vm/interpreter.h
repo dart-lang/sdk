@@ -110,7 +110,6 @@ class Interpreter {
   DEBUG_ONLY(uint64_t icount_;)
 
   InterpreterSetjmpBuffer* last_setjmp_buffer_;
-  uword top_exit_frame_info_;
 
   RawObjectPool* pp_;  // Pool Pointer.
   RawArray* argdesc_;  // Arguments Descriptor: used to pass information between

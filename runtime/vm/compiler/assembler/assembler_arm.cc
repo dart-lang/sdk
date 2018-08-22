@@ -85,6 +85,7 @@ void Assembler::EmitType5(Condition cond, int32_t offset, bool link) {
   ASSERT(cond != kNoCondition);
   int32_t encoding = static_cast<int32_t>(cond) << kConditionShift |
                      5 << kTypeShift | (link ? 1 : 0) << kLinkShift;
+  BailoutIfInvalidBranchOffset(offset);
   Emit(Assembler::EncodeBranchOffset(offset, encoding));
 }
 
@@ -1433,7 +1434,7 @@ void Assembler::CheckCodePointer() {
 }
 
 void Assembler::RestoreCodePointer() {
-  ldr(CODE_REG, Address(FP, kPcMarkerSlotFromFp * kWordSize));
+  ldr(CODE_REG, Address(FP, compiler_frame_layout.code_from_fp * kWordSize));
   CheckCodePointer();
 }
 
@@ -1548,6 +1549,12 @@ void Assembler::StoreIntoObjectFilter(Register object,
     // And the result with the negated space bit of the object.
     bic(IP, IP, Operand(object));
   } else {
+#if defined(DEBUG)
+    Label okay;
+    BranchIfNotSmi(value, &okay);
+    Stop("Unexpected Smi!");
+    Bind(&okay);
+#endif
     bic(IP, value, Operand(object));
   }
   tst(IP, Operand(kNewObjectAlignmentOffset));
@@ -1784,19 +1791,16 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
   SmiTag(result);
 }
 
-static bool CanEncodeBranchOffset(int32_t offset) {
-  ASSERT(Utils::IsAligned(offset, 4));
-  return Utils::IsInt(Utils::CountOneBits32(kBranchOffsetMask), offset);
+void Assembler::BailoutIfInvalidBranchOffset(int32_t offset) {
+  if (!CanEncodeBranchDistance(offset)) {
+    ASSERT(!use_far_branches());
+    Thread::Current()->long_jump_base()->Jump(1, Object::branch_offset_error());
+  }
 }
 
 int32_t Assembler::EncodeBranchOffset(int32_t offset, int32_t inst) {
   // The offset is off by 8 due to the way the ARM CPUs read PC.
   offset -= Instr::kPCReadOffset;
-
-  if (!CanEncodeBranchOffset(offset)) {
-    ASSERT(!use_far_branches());
-    Thread::Current()->long_jump_base()->Jump(1, Object::branch_offset_error());
-  }
 
   // Properly preserve only the bits supported in the instruction.
   offset >>= 2;
@@ -1924,7 +1928,7 @@ void Assembler::EmitFarBranch(Condition cond, int32_t offset, bool link) {
 void Assembler::EmitBranch(Condition cond, Label* label, bool link) {
   if (label->IsBound()) {
     const int32_t dest = label->Position() - buffer_.Size();
-    if (use_far_branches() && !CanEncodeBranchOffset(dest)) {
+    if (use_far_branches() && !CanEncodeBranchDistance(dest)) {
       EmitFarBranch(cond, label->Position(), link);
     } else {
       EmitType5(cond, dest, link);
@@ -1948,7 +1952,7 @@ void Assembler::BindARMv6(Label* label) {
   while (label->IsLinked()) {
     const int32_t position = label->Position();
     int32_t dest = bound_pc - position;
-    if (use_far_branches() && !CanEncodeBranchOffset(dest)) {
+    if (use_far_branches() && !CanEncodeBranchDistance(dest)) {
       // Far branches are enabled and we can't encode the branch offset.
 
       // Grab instructions that load the offset.
@@ -1978,7 +1982,7 @@ void Assembler::BindARMv6(Label* label) {
       buffer_.Store<int32_t>(position + 2 * Instr::kInstrSize, patched_or2);
       buffer_.Store<int32_t>(position + 3 * Instr::kInstrSize, patched_or3);
       label->position_ = DecodeARMv6LoadImmediate(mov, or1, or2, or3);
-    } else if (use_far_branches() && CanEncodeBranchOffset(dest)) {
+    } else if (use_far_branches() && CanEncodeBranchDistance(dest)) {
       // Grab instructions that load the offset, and the branch.
       const int32_t mov = buffer_.Load<int32_t>(position);
       const int32_t or1 =
@@ -2011,6 +2015,7 @@ void Assembler::BindARMv6(Label* label) {
 
       label->position_ = DecodeARMv6LoadImmediate(mov, or1, or2, or3);
     } else {
+      BailoutIfInvalidBranchOffset(dest);
       int32_t next = buffer_.Load<int32_t>(position);
       int32_t encoded = Assembler::EncodeBranchOffset(dest, next);
       buffer_.Store<int32_t>(position, encoded);
@@ -2026,7 +2031,7 @@ void Assembler::BindARMv7(Label* label) {
   while (label->IsLinked()) {
     const int32_t position = label->Position();
     int32_t dest = bound_pc - position;
-    if (use_far_branches() && !CanEncodeBranchOffset(dest)) {
+    if (use_far_branches() && !CanEncodeBranchDistance(dest)) {
       // Far branches are enabled and we can't encode the branch offset.
 
       // Grab instructions that load the offset.
@@ -2049,7 +2054,7 @@ void Assembler::BindARMv7(Label* label) {
       buffer_.Store<int32_t>(position + 0 * Instr::kInstrSize, patched_movw);
       buffer_.Store<int32_t>(position + 1 * Instr::kInstrSize, patched_movt);
       label->position_ = DecodeARMv7LoadImmediate(movt, movw);
-    } else if (use_far_branches() && CanEncodeBranchOffset(dest)) {
+    } else if (use_far_branches() && CanEncodeBranchDistance(dest)) {
       // Far branches are enabled, but we can encode the branch offset.
 
       // Grab instructions that load the offset, and the branch.
@@ -2077,6 +2082,7 @@ void Assembler::BindARMv7(Label* label) {
 
       label->position_ = DecodeARMv7LoadImmediate(movt, movw);
     } else {
+      BailoutIfInvalidBranchOffset(dest);
       int32_t next = buffer_.Load<int32_t>(position);
       int32_t encoded = Assembler::EncodeBranchOffset(dest, next);
       buffer_.Store<int32_t>(position, encoded);
@@ -2454,7 +2460,9 @@ void Assembler::Branch(const StubEntry& stub_entry,
   bx(IP, cond);
 }
 
-void Assembler::BranchLink(const Code& target, Patchability patchable) {
+void Assembler::BranchLink(const Code& target,
+                           Patchability patchable,
+                           Code::EntryKind entry_kind) {
   // Make sure that class CallPattern is able to patch the label referred
   // to by this code sequence.
   // For added code robustness, use 'blx lr' in a patchable sequence and
@@ -2462,7 +2470,7 @@ void Assembler::BranchLink(const Code& target, Patchability patchable) {
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindObject(target, patchable));
   LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag, PP, AL);
-  ldr(LR, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  ldr(LR, FieldAddress(CODE_REG, Code::entry_point_offset(entry_kind)));
   blx(LR);  // Use blx instruction so that the return branch prediction works.
 }
 
@@ -2472,8 +2480,9 @@ void Assembler::BranchLink(const StubEntry& stub_entry,
   BranchLink(code, patchable);
 }
 
-void Assembler::BranchLinkPatchable(const Code& target) {
-  BranchLink(target, kPatchable);
+void Assembler::BranchLinkPatchable(const Code& target,
+                                    Code::EntryKind entry_kind) {
+  BranchLink(target, kPatchable, entry_kind);
 }
 
 void Assembler::BranchLinkToRuntime() {
@@ -2492,7 +2501,8 @@ void Assembler::CallNullErrorShared(bool save_fpu_registers) {
 }
 
 void Assembler::BranchLinkWithEquivalence(const StubEntry& stub_entry,
-                                          const Object& equivalence) {
+                                          const Object& equivalence,
+                                          Code::EntryKind entry_kind) {
   const Code& target = Code::ZoneHandle(stub_entry.code());
   // Make sure that class CallPattern is able to patch the label referred
   // to by this code sequence.
@@ -2501,7 +2511,7 @@ void Assembler::BranchLinkWithEquivalence(const StubEntry& stub_entry,
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindObject(target, equivalence));
   LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag, PP, AL);
-  ldr(LR, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  ldr(LR, FieldAddress(CODE_REG, Code::entry_point_offset(entry_kind)));
   blx(LR);  // Use blx instruction so that the return branch prediction works.
 }
 
@@ -2510,8 +2520,9 @@ void Assembler::BranchLink(const ExternalLabel* label) {
   blx(LR);  // Use blx instruction so that the return branch prediction works.
 }
 
-void Assembler::BranchLinkPatchable(const StubEntry& stub_entry) {
-  BranchLinkPatchable(Code::ZoneHandle(stub_entry.code()));
+void Assembler::BranchLinkPatchable(const StubEntry& stub_entry,
+                                    Code::EntryKind entry_kind) {
+  BranchLinkPatchable(Code::ZoneHandle(stub_entry.code()), entry_kind);
 }
 
 void Assembler::BranchLinkOffset(Register base, int32_t offset) {
@@ -3113,7 +3124,8 @@ void Assembler::EnterOsrFrame(intptr_t extra_size) {
 
 void Assembler::LeaveDartFrame(RestorePP restore_pp) {
   if (restore_pp == kRestoreCallerPP) {
-    ldr(PP, Address(FP, kSavedCallerPpSlotFromFp * kWordSize));
+    ldr(PP,
+        Address(FP, compiler_frame_layout.saved_caller_pp_from_fp * kWordSize));
     set_constant_pool_allowed(false);
   }
 

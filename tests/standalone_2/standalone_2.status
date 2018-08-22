@@ -108,7 +108,6 @@ io/socket_connect_stream_data_close_cancel_test: Pass, Timeout # Issue 27453
 io/socket_many_connections_test: Skip # This test fails with "Too many open files" on the Mac OS buildbot. This is expected as MacOS by default runs with a very low number of allowed open files ('ulimit -n' says something like 256).
 
 [ $strong && ($compiler == dartk || $compiler == dartkb || $compiler == dartkp) ]
-io/directory_test: RuntimeError
 io/file_error_test: RuntimeError
 io/file_test: RuntimeError
 io/http_auth_digest_test: RuntimeError

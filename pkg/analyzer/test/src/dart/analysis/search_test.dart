@@ -117,7 +117,7 @@ class C {
     _assertHasDeclaration(declarations, 'C', DeclarationKind.CLASS,
         offset: 6, codeOffset: 0, codeLength: 91);
     _assertHasDeclaration(declarations, 'f', DeclarationKind.FIELD,
-        offset: 16, codeOffset: 12, codeLength: 6, className: 'C');
+        offset: 16, codeOffset: 12, codeLength: 5, className: 'C');
     _assertHasDeclaration(declarations, '', DeclarationKind.CONSTRUCTOR,
         offset: 21, codeOffset: 21, codeLength: 4, className: 'C');
     _assertHasDeclaration(declarations, 'named', DeclarationKind.CONSTRUCTOR,
@@ -363,7 +363,7 @@ typedef tf2<T> = int Function<S>(T tp, S sp);
       codeLength: 16,
     );
     _assertHasDeclaration(declarations, 'v', DeclarationKind.VARIABLE,
-        offset: 54, codeOffset: 50, codeLength: 6);
+        offset: 54, codeOffset: 50, codeLength: 5);
     _assertHasDeclaration(
         declarations, 'tf1', DeclarationKind.FUNCTION_TYPE_ALIAS,
         offset: 70, codeOffset: 57, codeLength: 19);
@@ -1989,92 +1989,13 @@ class SearchTest_UseCFE extends SearchTest {
 
   @failingTest
   @override
-  test_references_discover() => super.test_references_discover();
-
-  @failingTest
-  @override
-  test_references_discover_onlyOwned() =>
-      super.test_references_discover_onlyOwned();
-
-  @failingTest
-  @override
-  test_searchReferences_ClassElement_definedInSdk_declarationSite() =>
-      super.test_searchReferences_ClassElement_definedInSdk_declarationSite();
-
-  @failingTest
-  @override
-  test_searchReferences_ClassElement_definedInSdk_useSite() =>
-      super.test_searchReferences_ClassElement_definedInSdk_useSite();
-
-  @failingTest
-  @override
-  test_searchReferences_ClassElement_definedInside() =>
-      super.test_searchReferences_ClassElement_definedInside();
-
-  @failingTest
-  @override
-  test_searchReferences_ClassElement_definedOutside() =>
-      super.test_searchReferences_ClassElement_definedOutside();
-
-  @failingTest
-  @override
-  test_searchReferences_FieldElement() =>
-      super.test_searchReferences_FieldElement();
-
-  @failingTest
-  @override
   test_searchReferences_LabelElement() =>
       super.test_searchReferences_LabelElement();
 
   @failingTest
   @override
-  test_searchReferences_ParameterElement_ofConstructor() =>
-      super.test_searchReferences_ParameterElement_ofConstructor();
-
-  @failingTest
-  @override
-  test_searchReferences_PrefixElement() =>
-      super.test_searchReferences_PrefixElement();
-
-  @failingTest
-  @override
-  test_searchReferences_PrefixElement_inPackage() =>
-      super.test_searchReferences_PrefixElement_inPackage();
-
-  @failingTest
-  @override
-  test_searchReferences_private_declaredInDefiningUnit() =>
-      super.test_searchReferences_private_declaredInDefiningUnit();
-
-  @failingTest
-  @override
-  test_searchReferences_private_declaredInPart() =>
-      super.test_searchReferences_private_declaredInPart();
-
-  @failingTest
-  @override
-  test_searchReferences_private_inPackage() =>
-      super.test_searchReferences_private_inPackage();
-
-  @failingTest
-  @override
   test_searchReferences_TopLevelVariableElement() =>
       super.test_searchReferences_TopLevelVariableElement();
-
-  @failingTest
-  @override
-  test_searchReferences_TypeParameterElement_ofClass() =>
-      super.test_searchReferences_TypeParameterElement_ofClass();
-
-  @failingTest
-  @override
-  test_searchReferences_TypeParameterElement_ofMethod() =>
-      super.test_searchReferences_TypeParameterElement_ofMethod();
-
-  @failingTest
-  @override
-  test_searchReferences_TypeParameterElement_ofTopLevelFunction() =>
-      super.test_searchReferences_TypeParameterElement_ofTopLevelFunction();
 
   @failingTest
   @override

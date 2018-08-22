@@ -46,13 +46,13 @@ part of dart.cli;
  */
 external void _waitForEvent(int timeoutMillis);
 
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 void Function(int) _getWaitForEvent() => _waitForEvent;
 
 // This should be set from C++ code by the embedder to wire up waitFor() to the
 // native implementation. In the standalone VM this is set to _waitForEvent()
 // above. If it is null, calling waitFor() will throw an UnsupportedError.
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 void Function(int) _waitForEventClosure;
 
 class _WaitForUtils {
@@ -111,7 +111,6 @@ class _WaitForUtils {
  * subsequent calls block waiting for a condition that is only satisfied when
  * an earlier call returns.
  */
-@provisional
 T waitFor<T>(Future<T> future, {Duration timeout}) {
   T result;
   bool futureCompleted = false;

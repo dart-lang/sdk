@@ -5,7 +5,7 @@
 // part of "core_patch.dart";
 
 @patch
-@pragma("vm.entry-point")
+@pragma("vm:entry-point")
 class Null {
   static const _HASH_CODE = 2011; // The year Dart was announced and a prime.
 

@@ -194,11 +194,6 @@ class CodegenEnqueuer extends EnqueuerImpl {
           _registerIsCheck(type);
         }
         break;
-      case TypeUseKind.CHECKED_MODE_CHECK:
-        if (_options.assignmentCheckPolicy.isEmitted) {
-          _registerIsCheck(type);
-        }
-        break;
       case TypeUseKind.TYPE_LITERAL:
         if (type is TypeVariableType) {
           _worldBuilder.registerTypeVariableTypeLiteral(type);

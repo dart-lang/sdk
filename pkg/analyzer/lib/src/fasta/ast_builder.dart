@@ -1144,8 +1144,13 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
-      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
+  void endFormalParameter(
+      Token thisKeyword,
+      Token periodAfterThis,
+      Token nameToken,
+      FormalParameterKind kind,
+      MemberKind memberKind,
+      Token endToken) {
     assert(optionalOrNull('this', thisKeyword));
     assert(thisKeyword == null
         ? periodAfterThis == null
@@ -1734,10 +1739,11 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endClassBody(int memberCount, Token leftBracket, Token rightBracket) {
+  void endClassOrMixinBody(
+      int memberCount, Token leftBracket, Token rightBracket) {
     assert(optional('{', leftBracket));
     assert(optional('}', rightBracket));
-    debugEvent("ClassBody");
+    debugEvent("ClassOrMixinBody");
 
     classDeclaration.leftBracket = leftBracket;
     classDeclaration.rightBracket = rightBracket;
@@ -1773,7 +1779,8 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleClassImplements(Token implementsKeyword, int interfacesCount) {
+  void handleClassOrMixinImplements(
+      Token implementsKeyword, int interfacesCount) {
     assert(optionalOrNull('implements', implementsKeyword));
     debugEvent("ClassImplements");
 
@@ -1805,7 +1812,8 @@ class AstBuilder extends StackListener {
     Token abstractKeyword = modifiers?.abstractKeyword;
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, begin);
-    // leftBracket, members, and rightBracket are set in [endClassBody].
+    // leftBracket, members, and rightBracket
+    // are set in [endClassOrMixinBody].
     classDeclaration = ast.classDeclaration(
       comment,
       metadata,

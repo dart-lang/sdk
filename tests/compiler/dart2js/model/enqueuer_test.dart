@@ -155,7 +155,6 @@ ${test.code}
 main() {}
 '''
   }, options: [
-    Flags.strongMode,
     Flags.disableInlining,
   ]);
 
