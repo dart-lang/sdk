@@ -310,12 +310,12 @@ MultipleImplements:
   dart2jsCode: "GENERIC"
   script: "class A implements B implements C, D {}"
 
-ExpectedClassBody:
-  template: "Expected a class body, but got '#lexeme'."
+ExpectedClassOrMixinBody:
+  template: "Expected a class or mixin body, but got '#lexeme'."
   analyzerCode: MISSING_CLASS_BODY
   dart2jsCode: "*fatal*"
 
-ExpectedClassBodyToSkip: ExpectedClassBody
+ExpectedClassBodyToSkip: ExpectedClassOrMixinBody
 
 ExpectedDeclaration:
   template: "Expected a declaration, but got '#lexeme'."

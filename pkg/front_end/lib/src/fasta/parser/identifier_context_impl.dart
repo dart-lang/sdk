@@ -43,10 +43,10 @@ class CatchParameterIdentifierContext extends IdentifierContext {
   }
 }
 
-/// See [IdentifierContext.classOrNamedMixinDeclaration].
-class ClassOrNamedMixinIdentifierContext extends IdentifierContext {
-  const ClassOrNamedMixinIdentifierContext()
-      : super('classOrNamedMixinDeclaration',
+/// See [IdentifierContext.classOrMixinDeclaration].
+class ClassOrMixinIdentifierContext extends IdentifierContext {
+  const ClassOrMixinIdentifierContext()
+      : super('classOrMixinDeclaration',
             inDeclaration: true, isBuiltInIdentifierAllowed: false);
 
   @override

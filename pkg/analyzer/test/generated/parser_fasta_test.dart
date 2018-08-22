@@ -843,7 +843,7 @@ class ParserProxy extends analyzer.ParserAdapter {
 
   @override
   ClassMember parseClassMember(String className) {
-    return _run('ClassBody', () => super.parseClassMember(className));
+    return _run('ClassOrMixinBody', () => super.parseClassMember(className));
   }
 
   List<Combinator> parseCombinators() {

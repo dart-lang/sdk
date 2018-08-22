@@ -134,7 +134,7 @@ abstract class ParserAdapter implements Parser {
       <ClassMember>[],
       null /* rightBracket */,
     );
-    currentToken = fastaParser.parseClassMember(currentToken);
+    currentToken = fastaParser.parseClassOrMixinMember(currentToken);
     ClassDeclaration declaration = astBuilder.classDeclaration;
     astBuilder.classDeclaration = null;
     return declaration.members.isNotEmpty ? declaration.members[0] : null;

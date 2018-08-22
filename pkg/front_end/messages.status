@@ -122,8 +122,8 @@ ExpectedBlock/script: Fail
 ExpectedBlockToSkip/script: Fail
 ExpectedButGot/script1: Fail
 ExpectedButGot/script2: Fail
-ExpectedClassBody/example: Fail
 ExpectedClassMember/example: Fail
+ExpectedClassOrMixinBody/example: Fail
 ExpectedDeclaration/example: Fail
 ExpectedFunctionBody/example: Fail
 ExpectedNamedArgument/example: Fail

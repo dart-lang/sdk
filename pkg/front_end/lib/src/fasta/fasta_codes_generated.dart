@@ -2357,29 +2357,10 @@ Message _withArgumentsExpectedButGot(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(Token token)> templateExpectedClassBody =
-    const Template<Message Function(Token token)>(
-        messageTemplate: r"""Expected a class body, but got '#lexeme'.""",
-        withArguments: _withArgumentsExpectedClassBody);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(Token token)> codeExpectedClassBody =
-    const Code<Message Function(Token token)>(
-        "ExpectedClassBody", templateExpectedClassBody,
-        analyzerCode: "MISSING_CLASS_BODY", dart2jsCode: "*fatal*");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExpectedClassBody(Token token) {
-  String lexeme = token.lexeme;
-  return new Message(codeExpectedClassBody,
-      message: """Expected a class body, but got '${lexeme}'.""",
-      arguments: {'token': token});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateExpectedClassBodyToSkip =
     const Template<Message Function(Token token)>(
-        messageTemplate: r"""Expected a class body, but got '#lexeme'.""",
+        messageTemplate:
+            r"""Expected a class or mixin body, but got '#lexeme'.""",
         withArguments: _withArgumentsExpectedClassBodyToSkip);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2392,7 +2373,7 @@ const Code<Message Function(Token token)> codeExpectedClassBodyToSkip =
 Message _withArgumentsExpectedClassBodyToSkip(Token token) {
   String lexeme = token.lexeme;
   return new Message(codeExpectedClassBodyToSkip,
-      message: """Expected a class body, but got '${lexeme}'.""",
+      message: """Expected a class or mixin body, but got '${lexeme}'.""",
       arguments: {'token': token});
 }
 
@@ -2413,6 +2394,27 @@ Message _withArgumentsExpectedClassMember(Token token) {
   String lexeme = token.lexeme;
   return new Message(codeExpectedClassMember,
       message: """Expected a class member, but got '${lexeme}'.""",
+      arguments: {'token': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Token token)> templateExpectedClassOrMixinBody =
+    const Template<Message Function(Token token)>(
+        messageTemplate:
+            r"""Expected a class or mixin body, but got '#lexeme'.""",
+        withArguments: _withArgumentsExpectedClassOrMixinBody);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)> codeExpectedClassOrMixinBody =
+    const Code<Message Function(Token token)>(
+        "ExpectedClassOrMixinBody", templateExpectedClassOrMixinBody,
+        analyzerCode: "MISSING_CLASS_BODY", dart2jsCode: "*fatal*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExpectedClassOrMixinBody(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeExpectedClassOrMixinBody,
+      message: """Expected a class or mixin body, but got '${lexeme}'.""",
       arguments: {'token': token});
 }
 

@@ -30,9 +30,10 @@ class ClassHeaderRecoveryListener extends ForwardingListener {
   }
 
   @override
-  void handleClassImplements(Token implementsKeyword, int interfacesCount) {
+  void handleClassOrMixinImplements(
+      Token implementsKeyword, int interfacesCount) {
     this.implementsKeyword = implementsKeyword;
-    super.handleClassImplements(implementsKeyword, interfacesCount);
+    super.handleClassOrMixinImplements(implementsKeyword, interfacesCount);
   }
 }
 

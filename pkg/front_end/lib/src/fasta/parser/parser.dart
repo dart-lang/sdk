@@ -112,7 +112,7 @@ import 'util.dart'
 /// Parse methods all have the prefix `parse`, generate events
 /// (by calling methods on [listener]), and return the next token to parse.
 /// Some exceptions to this last point are methods such as [parseFunctionBody]
-/// and [parseClassBody] which return the last token parsed
+/// and [parseClassOrMixinBody] which return the last token parsed
 /// rather than the next token to be parsed.
 /// Parse methods are generally named `parseGrammarProductionSuffix`.
 /// The suffix can be one of `opt`, or `star`.
@@ -1643,7 +1643,7 @@ class Parser {
     Token begin = abstractToken ?? classKeyword;
     listener.beginClassOrNamedMixinApplication(begin);
     Token name = ensureIdentifier(
-        classKeyword, IdentifierContext.classOrNamedMixinDeclaration);
+        classKeyword, IdentifierContext.classOrMixinDeclaration);
     Token token = computeTypeParamOrArg(name, true).parseVariables(name, this);
     if (optional('=', token.next)) {
       listener.beginNamedMixinApplication(begin, abstractToken, name);
@@ -1688,16 +1688,16 @@ class Parser {
     if (!optional('{', token.next)) {
       // Recovery
       token = parseClassHeaderRecovery(start, begin, classKeyword);
-      ensureBlock(token, fasta.templateExpectedClassBody);
+      ensureBlock(token, fasta.templateExpectedClassOrMixinBody);
     }
-    token = parseClassBody(token);
+    token = parseClassOrMixinBody(token);
     listener.endClassDeclaration(begin, token);
     return token;
   }
 
   Token parseClassHeaderOpt(Token token, Token begin, Token classKeyword) {
     token = parseClassExtendsOpt(token);
-    token = parseClassImplementsOpt(token);
+    token = parseClassOrMixinImplementsOpt(token);
     Token nativeToken;
     if (optional('native', token.next)) {
       nativeToken = token.next;
@@ -1783,7 +1783,7 @@ class Parser {
         }
       }
 
-      token = parseClassImplementsOpt(token);
+      token = parseClassOrMixinImplementsOpt(token);
 
       if (recoveryListener.implementsKeyword != null) {
         if (hasImplements) {
@@ -1830,7 +1830,7 @@ class Parser {
   ///   'implements' typeName (',' typeName)*
   /// ;
   /// ```
-  Token parseClassImplementsOpt(Token token) {
+  Token parseClassOrMixinImplementsOpt(Token token) {
     Token implementsKeyword;
     int interfacesCount = 0;
     if (optional('implements', token.next)) {
@@ -1841,7 +1841,7 @@ class Parser {
         ++interfacesCount;
       } while (optional(',', token.next));
     }
-    listener.handleClassImplements(implementsKeyword, interfacesCount);
+    listener.handleClassOrMixinImplements(implementsKeyword, interfacesCount);
     return token;
   }
 
@@ -2515,9 +2515,9 @@ class Parser {
     return token;
   }
 
-  Token skipClassBody(Token token) {
+  Token skipClassOrMixinBody(Token token) {
     // The scanner ensures that `{` always has a closing `}`.
-    return ensureBlock(token, fasta.templateExpectedClassBody);
+    return ensureBlock(token, fasta.templateExpectedClassOrMixinBody);
   }
 
   /// ```
@@ -2525,18 +2525,18 @@ class Parser {
   ///   '{' classMember* '}'
   /// ;
   /// ```
-  Token parseClassBody(Token token) {
+  Token parseClassOrMixinBody(Token token) {
     Token begin = token = token.next;
     assert(optional('{', token));
-    listener.beginClassBody(token);
+    listener.beginClassOrMixinBody(token);
     int count = 0;
     while (notEofOrValue('}', token.next)) {
-      token = parseClassMemberImpl(token);
+      token = parseClassOrMixinMemberImpl(token);
       ++count;
     }
     token = token.next;
     assert(optional('}', token));
-    listener.endClassBody(count, begin, token);
+    listener.endClassOrMixinBody(count, begin, token);
     return token;
   }
 
@@ -2545,14 +2545,14 @@ class Parser {
       token.lexeme == 'unary' &&
       optional('-', token.next);
 
-  /// Parse a class member.
+  /// Parse a class or mixin member.
   ///
   /// This method is only invoked from outside the parser. As a result, this
   /// method takes the next token to be consumed rather than the last consumed
   /// token and returns the token after the last consumed token rather than the
   /// last consumed token.
-  Token parseClassMember(Token token) {
-    return parseClassMemberImpl(syntheticPreviousToken(token)).next;
+  Token parseClassOrMixinMember(Token token) {
+    return parseClassOrMixinMemberImpl(syntheticPreviousToken(token)).next;
   }
 
   /// ```
@@ -2561,8 +2561,13 @@ class Parser {
   ///   constructorDeclaration |
   ///   methodDeclaration
   /// ;
+  ///
+  /// mixinMember:
+  ///   fieldDeclaration |
+  ///   methodDeclaration
+  /// ;
   /// ```
-  Token parseClassMemberImpl(Token token) {
+  Token parseClassOrMixinMemberImpl(Token token) {
     Token beforeStart = token = parseMetadataStar(token);
 
     Token covariantToken;
