@@ -573,12 +573,14 @@ class ResolutionStorer
   void propertyAssign(
       ExpressionJudgment judgment,
       int location,
+      bool isSyntheticLhs,
       DartType receiverType,
       Node writeMember,
       DartType writeContext,
       Node combiner,
       DartType inferredType) {
     _store(location,
+        isSynthetic: isSyntheticLhs,
         isWriteReference: true,
         reference: writeMember,
         writeContext: writeContext,

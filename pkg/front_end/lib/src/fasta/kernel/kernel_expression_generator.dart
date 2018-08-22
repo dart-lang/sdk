@@ -501,7 +501,8 @@ class KernelThisPropertyAccessGenerator extends KernelGenerator
 
   @override
   ComplexAssignmentJudgment startComplexAssignment(Expression rhs) =>
-      new PropertyAssignmentJudgment(null, rhs);
+      new PropertyAssignmentJudgment(null, rhs,
+          isSyntheticLhs: token.isSynthetic);
 
   @override
   void printOn(StringSink sink) {

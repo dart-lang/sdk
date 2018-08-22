@@ -2234,10 +2234,11 @@ class PropertyAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
   /// If this assignment uses null-aware access (`?.`), the conditional
   /// expression that guards the access; otherwise `null`.
   ConditionalExpression nullAwareGuard;
+  final bool isSyntheticLhs;
 
   PropertyAssignmentJudgment(
       ExpressionJudgment receiver, ExpressionJudgment rhs,
-      {bool isSuper: false})
+      {bool isSuper: false, this.isSyntheticLhs: false})
       : super(receiver, rhs, isSuper);
 
   @override
@@ -2287,6 +2288,7 @@ class PropertyAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
     inferrer.listener.propertyAssign(
         this,
         write.fileOffset,
+        isSyntheticLhs,
         receiverType,
         inferrer.getRealTarget(writeMember),
         writeContext,
