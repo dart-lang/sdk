@@ -87,7 +87,7 @@ Future<CompilerResult> _compile(List<String> args,
     ..addMultiOption('multi-root',
         help: 'The directories to search when encountering uris with the '
             'specified multi-root scheme.',
-        defaultsTo: [Uri.base.toFilePath()]);
+        defaultsTo: [Uri.base.path]);
   SharedCompilerOptions.addArguments(argParser);
 
   var declaredVariables = parseAndRemoveDeclaredVariables(args);
