@@ -20,6 +20,7 @@ import 'constants/values.dart'
         InstantiationConstantValue;
 import 'elements/types.dart';
 import 'elements/entities.dart';
+import 'kernel/kelements.dart' show KLocalFunction;
 import 'library_loader.dart';
 import 'universe/use.dart';
 import 'universe/world_impact.dart'
@@ -278,16 +279,7 @@ abstract class DeferredLoadTask extends CompilerTask {
     // TODO(het): we would like to separate out types that are only needed for
     // rti from types that are needed for their members.
     if (type is FunctionType) {
-      for (DartType argumentType in type.parameterTypes) {
-        _collectTypeDependencies(argumentType, dependencies);
-      }
-      for (DartType argumentType in type.optionalParameterTypes) {
-        _collectTypeDependencies(argumentType, dependencies);
-      }
-      for (DartType argumentType in type.namedParameterTypes) {
-        _collectTypeDependencies(argumentType, dependencies);
-      }
-      _collectTypeDependencies(type.returnType, dependencies);
+      _collectFunctionTypeDependencies(type, dependencies);
     } else if (type is TypedefType) {
       type.typeArguments
           .forEach((t) => _collectTypeDependencies(t, dependencies));
@@ -299,6 +291,23 @@ abstract class DeferredLoadTask extends CompilerTask {
     }
   }
 
+  void _collectFunctionTypeDependencies(
+      FunctionType type, Dependencies dependencies) {
+    for (FunctionTypeVariable typeVariable in type.typeVariables) {
+      _collectTypeDependencies(typeVariable.bound, dependencies);
+    }
+    for (DartType argumentType in type.parameterTypes) {
+      _collectTypeDependencies(argumentType, dependencies);
+    }
+    for (DartType argumentType in type.optionalParameterTypes) {
+      _collectTypeDependencies(argumentType, dependencies);
+    }
+    for (DartType argumentType in type.namedParameterTypes) {
+      _collectTypeDependencies(argumentType, dependencies);
+    }
+    _collectTypeDependencies(type.returnType, dependencies);
+  }
+
   /// Extract any dependencies that are known from the impact of [element].
   void _collectDependenciesFromImpact(
       MemberEntity element, Dependencies dependencies) {
@@ -307,14 +316,17 @@ abstract class DeferredLoadTask extends CompilerTask {
         element,
         worldImpact,
         new WorldImpactVisitorImpl(visitStaticUse: (StaticUse staticUse) {
-          if (staticUse.element is MemberEntity) {
-            dependencies.members.add(staticUse.element);
+          Entity usedEntity = staticUse.element;
+          if (usedEntity is MemberEntity) {
+            dependencies.members.add(usedEntity);
           } else {
-            assert(
-                staticUse.element is Local,
-                failedAt(
-                    staticUse.element, "Unexpected static use $staticUse."));
-            dependencies.localFunctions.add(staticUse.element);
+            assert(usedEntity is KLocalFunction,
+                failedAt(usedEntity, "Unexpected static use $staticUse."));
+            KLocalFunction localFunction = usedEntity;
+            // TODO(sra): Consult KClosedWorld to see if signature is needed.
+            _collectFunctionTypeDependencies(
+                localFunction.functionType, dependencies);
+            dependencies.localFunctions.add(localFunction);
           }
           switch (staticUse.kind) {
             case StaticUseKind.CONSTRUCTOR_INVOKE:
