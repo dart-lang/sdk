@@ -543,9 +543,12 @@ class PolymorphicInliner : public ValueObject {
 static bool HasAnnotation(const Function& function, const char* annotation) {
   const Class& owner = Class::Handle(function.Owner());
   const Library& library = Library::Handle(owner.library());
-  const Array& metadata =
-      Array::Cast(Object::Handle(library.GetMetadata(function)));
 
+  auto& metadata_or_error = Object::Handle(library.GetMetadata(function));
+  if (metadata_or_error.IsError()) {
+    Exceptions::PropagateError(Error::Cast(metadata_or_error));
+  }
+  const Array& metadata = Array::Cast(metadata_or_error);
   if (metadata.Length() > 0) {
     Object& val = Object::Handle();
     for (intptr_t i = 0; i < metadata.Length(); i++) {
