@@ -134,6 +134,9 @@ unused_changes_in_last_reload_test: RuntimeError
 developer_extension_test: CompileTimeError
 get_isolate_after_language_error_test: CompileTimeError
 
+[ $arch == arm64 && $compiler == dartk ]
+coverage_optimized_function_test: Pass, Slow
+
 [ $arch != simarm && $arch != simarm64 && $arch != simdbc && $compiler == dartk ]
 complex_reload_test: RuntimeError
 
