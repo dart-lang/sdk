@@ -62,7 +62,16 @@ SimpleIdentifier _getTargetId(AstNode node) {
       }
     }
     if (parent is Annotation) {
-      return parent.constructorName ?? parent.name;
+      SimpleIdentifier name = parent.constructorName;
+      if (name == null) {
+        Identifier parentName = parent.name;
+        if (parentName is SimpleIdentifier) {
+          return parentName;
+        } else if (parentName is PrefixedIdentifier) {
+          return parentName.identifier;
+        }
+      }
+      return name;
     }
   }
   return null;

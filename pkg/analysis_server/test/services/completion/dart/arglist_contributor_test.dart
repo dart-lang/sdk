@@ -152,6 +152,21 @@ library libA; class A { const A({int one, String two: 'defaultValue'}); }''');
         namedArgumentsWithTypes: {'one': 'int', 'two': 'String'});
   }
 
+  test_Annotation_importedConstructor_prefixed() async {
+    addSource('/libA.dart', '''
+class A {
+  const A({int value});
+}
+''');
+    addTestSource('''
+import "${convertPathForImport("/libA.dart")}" as p;
+@p.A(^)
+main() {}
+''');
+    await computeSuggestions();
+    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'value': 'int'});
+  }
+
   test_Annotation_local_constructor_named_param() async {
     addTestSource('''
 class A { const A({int one, String two: 'defaultValue'}); }
