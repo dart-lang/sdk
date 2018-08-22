@@ -127,16 +127,6 @@ class C {
   }
 
   @failingTest
-  test_codeRange_field() async {
-    await super.test_codeRange_field();
-  }
-
-  @failingTest
-  test_codeRange_field_annotations() async {
-    await super.test_codeRange_field_annotations();
-  }
-
-  @failingTest
   test_codeRange_parameter() async {
     await super.test_codeRange_parameter();
   }
@@ -144,16 +134,6 @@ class C {
   @failingTest
   test_codeRange_parameter_annotations() async {
     await super.test_codeRange_parameter_annotations();
-  }
-
-  @failingTest
-  test_codeRange_topLevelVariable() async {
-    await super.test_codeRange_topLevelVariable();
-  }
-
-  @failingTest
-  test_codeRange_topLevelVariable_annotations() async {
-    await super.test_codeRange_topLevelVariable_annotations();
   }
 
   @failingTest // See dartbug.com/32290

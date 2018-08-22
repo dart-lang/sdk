@@ -556,13 +556,19 @@ class KernelLibraryBuilder
       KernelTypeBuilder type,
       String name,
       int charOffset,
+      int codeStartOffset,
+      int codeEndOffset,
       Token initializerTokenForInference,
       bool hasInitializer) {
     var builder = new KernelFieldBuilder(metadata, type, name, modifiers, this,
         charOffset, initializerTokenForInference, hasInitializer);
     addBuilder(name, builder, charOffset);
-    loader.target.metadataCollector
-        ?.setDocumentationComment(builder.target, documentationComment);
+
+    var metadataCollector = loader.target.metadataCollector;
+    metadataCollector?.setDocumentationComment(
+        builder.target, documentationComment);
+    metadataCollector?.setCodeStartEnd(
+        builder.target, codeStartOffset, codeEndOffset);
   }
 
   void addConstructor(

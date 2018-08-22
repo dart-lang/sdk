@@ -367,23 +367,47 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       T type,
       String name,
       int charOffset,
+      int codeStartOffset,
+      int codeEndOffset,
       Token initializerTokenForInference,
       bool hasInitializer);
 
-  void addFields(String documentationComment, List<MetadataBuilder> metadata,
-      int modifiers, T type, List<Object> fieldsInfo) {
+  void addFields(
+      String documentationComment,
+      List<MetadataBuilder> metadata,
+      int modifiers,
+      T type,
+      List<Object> fieldsInfo,
+      int firstFieldCodeStartOffset) {
     for (int i = 0; i < fieldsInfo.length; i += 4) {
       String name = fieldsInfo[i];
       int charOffset = fieldsInfo[i + 1];
       bool hasInitializer = fieldsInfo[i + 2] != null;
       Token initializerTokenForInference =
           type == null ? fieldsInfo[i + 2] : null;
+      Token beforeLast = fieldsInfo[i + 3];
       if (initializerTokenForInference != null) {
-        Token beforeLast = fieldsInfo[i + 3];
         beforeLast.setNext(new Token.eof(beforeLast.next.offset));
       }
-      addField(documentationComment, metadata, modifiers, type, name,
-          charOffset, initializerTokenForInference, hasInitializer);
+
+      int codeEndOffset;
+      if (beforeLast != null) {
+        codeEndOffset = beforeLast.next.offset;
+      } else {
+        codeEndOffset = charOffset + name.length;
+      }
+
+      addField(
+          documentationComment,
+          metadata,
+          modifiers,
+          type,
+          name,
+          charOffset,
+          i == 0 ? firstFieldCodeStartOffset : charOffset,
+          codeEndOffset,
+          initializerTokenForInference,
+          hasInitializer);
     }
   }
 

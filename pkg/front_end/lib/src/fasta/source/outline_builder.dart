@@ -1149,7 +1149,10 @@ class OutlineBuilder extends StackListener {
     List<MetadataBuilder> metadata = pop();
     Token metadataToken = pop();
     var docComment = documentationComment(beginToken, metadataToken);
-    library.addFields(docComment?.text, metadata, modifiers, type, fieldsInfo);
+    int firstFieldCodeStartOffset =
+        _chooseCodeStartOffset(docComment, metadataToken, beginToken);
+    library.addFields(docComment?.text, metadata, modifiers, type, fieldsInfo,
+        firstFieldCodeStartOffset);
     checkEmpty(beginToken.charOffset);
   }
 
@@ -1166,7 +1169,10 @@ class OutlineBuilder extends StackListener {
     List<MetadataBuilder> metadata = pop();
     Token metadataToken = pop();
     var docComment = documentationComment(beginToken, metadataToken);
-    library.addFields(docComment?.text, metadata, modifiers, type, fieldsInfo);
+    int firstFieldCodeStartOffset =
+        _chooseCodeStartOffset(docComment, metadataToken, beginToken);
+    library.addFields(docComment?.text, metadata, modifiers, type, fieldsInfo,
+        firstFieldCodeStartOffset);
   }
 
   @override

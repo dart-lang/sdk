@@ -1989,25 +1989,6 @@ class SearchTest_UseCFE extends SearchTest {
 
   @failingTest
   @override
-  test_references_discover() => super.test_references_discover();
-
-  @failingTest
-  @override
-  test_references_discover_onlyOwned() =>
-      super.test_references_discover_onlyOwned();
-
-  @failingTest
-  @override
-  test_searchReferences_ClassElement_definedInSdk_declarationSite() =>
-      super.test_searchReferences_ClassElement_definedInSdk_declarationSite();
-
-  @failingTest
-  @override
-  test_searchReferences_ClassElement_definedInSdk_useSite() =>
-      super.test_searchReferences_ClassElement_definedInSdk_useSite();
-
-  @failingTest
-  @override
   test_searchReferences_ClassElement_definedInside() =>
       super.test_searchReferences_ClassElement_definedInside();
 
@@ -2025,31 +2006,6 @@ class SearchTest_UseCFE extends SearchTest {
   @override
   test_searchReferences_LabelElement() =>
       super.test_searchReferences_LabelElement();
-
-  @failingTest
-  @override
-  test_searchReferences_PrefixElement() =>
-      super.test_searchReferences_PrefixElement();
-
-  @failingTest
-  @override
-  test_searchReferences_PrefixElement_inPackage() =>
-      super.test_searchReferences_PrefixElement_inPackage();
-
-  @failingTest
-  @override
-  test_searchReferences_private_declaredInDefiningUnit() =>
-      super.test_searchReferences_private_declaredInDefiningUnit();
-
-  @failingTest
-  @override
-  test_searchReferences_private_declaredInPart() =>
-      super.test_searchReferences_private_declaredInPart();
-
-  @failingTest
-  @override
-  test_searchReferences_private_inPackage() =>
-      super.test_searchReferences_private_inPackage();
 
   @failingTest
   @override

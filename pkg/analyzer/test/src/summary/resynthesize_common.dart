@@ -3017,7 +3017,7 @@ main(@Object() int a, int b, @Object() int c) {}
 
   test_codeRange_topLevelVariable() async {
     var library = await checkLibrary('''
-int withInit = 1;
+int withInit = 1 + 2 * 3;
 
 int withoutInit;
 
@@ -3026,11 +3026,11 @@ int multiWithInit = 2, multiWithoutInit, multiWithInit2 = 3;
     checkElementText(
         library,
         r'''
-int withInit/*codeOffset=0, codeLength=16*/;
-int withoutInit/*codeOffset=19, codeLength=15*/;
-int multiWithInit/*codeOffset=37, codeLength=21*/;
-int multiWithoutInit/*codeOffset=60, codeLength=16*/;
-int multiWithInit2/*codeOffset=78, codeLength=18*/;
+int withInit/*codeOffset=0, codeLength=24*/;
+int withoutInit/*codeOffset=27, codeLength=15*/;
+int multiWithInit/*codeOffset=45, codeLength=21*/;
+int multiWithoutInit/*codeOffset=68, codeLength=16*/;
+int multiWithInit2/*codeOffset=86, codeLength=18*/;
 ''',
         withCodeRanges: true,
         withConstElements: false);
