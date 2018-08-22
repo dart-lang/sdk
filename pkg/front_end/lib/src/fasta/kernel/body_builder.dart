@@ -2776,27 +2776,29 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleUnaryPrefixAssignmentExpression(Token token) {
     debugEvent("UnaryPrefixAssignmentExpression");
-    Object generator = pop();
-    if (generator is Generator) {
-      push(generator.buildPrefixIncrement(incrementOperator(token),
-          offset: token.charOffset));
+    Object target = pop();
+    Generator generator;
+    if (target is Generator) {
+      generator = target;
     } else {
-      push(
-          wrapInCompileTimeError(toValue(generator), fasta.messageNotAnLvalue));
+      generator = new KernelNonLValueGenerator(this, token, toValue(target));
     }
+    push(generator.buildPrefixIncrement(incrementOperator(token),
+        offset: token.charOffset));
   }
 
   @override
   void handleUnaryPostfixAssignmentExpression(Token token) {
     debugEvent("UnaryPostfixAssignmentExpression");
-    Object generator = pop();
-    if (generator is Generator) {
-      push(new DelayedPostfixIncrement(
-          this, token, generator, incrementOperator(token), null));
+    Object target = pop();
+    Generator generator;
+    if (target is Generator) {
+      generator = target;
     } else {
-      push(
-          wrapInCompileTimeError(toValue(generator), fasta.messageNotAnLvalue));
+      generator = new KernelNonLValueGenerator(this, token, toValue(target));
     }
+    push(new DelayedPostfixIncrement(
+        this, token, generator, incrementOperator(token), null));
   }
 
   @override

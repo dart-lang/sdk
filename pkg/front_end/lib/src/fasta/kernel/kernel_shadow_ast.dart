@@ -1625,16 +1625,22 @@ abstract class InitializerJudgment implements Initializer {
 class IntJudgment extends IntLiteral implements ExpressionJudgment {
   IntLiteralTokens tokens;
   final kernel.Expression desugaredError;
+  final bool isSynthetic;
 
   DartType inferredType;
 
-  IntJudgment(this.tokens, int value, {this.desugaredError}) : super(value);
+  IntJudgment(this.tokens, int value,
+      {this.desugaredError, this.isSynthetic: false})
+      : super(value);
 
   @override
   Expression infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer, DartType typeContext) {
     inferredType = inferrer.coreTypes.intClass.rawType;
-    inferrer.listener.intLiteral(this, fileOffset, tokens, value, inferredType);
+    if (!isSynthetic) {
+      inferrer.listener
+          .intLiteral(this, fileOffset, tokens, value, inferredType);
+    }
     if (desugaredError != null) {
       parent.replaceChild(this, desugaredError);
       parent = null;

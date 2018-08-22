@@ -199,8 +199,8 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
       Procedure interfaceTarget}) {
-    return buildCompoundAssignment(
-        binaryOperator, forest.literalInt(1, null)..fileOffset = offset,
+    return buildCompoundAssignment(binaryOperator,
+        forest.literalInt(1, null, isSynthetic: true)..fileOffset = offset,
         offset: offset,
         voidContext: voidContext,
         interfaceTarget: interfaceTarget,
@@ -213,8 +213,8 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
       bool voidContext: false,
       Procedure interfaceTarget}) {
     if (voidContext) {
-      return buildCompoundAssignment(
-          binaryOperator, forest.literalInt(1, null)..fileOffset = offset,
+      return buildCompoundAssignment(binaryOperator,
+          forest.literalInt(1, null, isSynthetic: true)..fileOffset = offset,
           offset: offset,
           voidContext: voidContext,
           interfaceTarget: interfaceTarget,

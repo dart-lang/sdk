@@ -7164,6 +7164,19 @@ my.Future<int> a;
         expectedPrefix: myImport.prefix);
   }
 
+  test_postfix_increment_of_non_generator() async {
+    addTestFile('''
+void f(int g()) {
+  g()++;
+}
+''');
+    await resolveTestFile();
+
+    var gRef = findNode.simple('g()++');
+    assertType(gRef, '() → int');
+    assertElement(gRef, findElement.parameter('g'));
+  }
+
   test_postfixExpression_local() async {
     String content = r'''
 main() {
@@ -7236,6 +7249,19 @@ class C {
       expect(propertyName.staticElement, same(fElement.setter));
       expect(propertyName.staticType, typeProvider.intType);
     }
+  }
+
+  test_prefix_increment_of_non_generator() async {
+    addTestFile('''
+void f(bool x) {
+  ++!x;
+}
+''');
+    await resolveTestFile();
+
+    var xRef = findNode.simple('x;');
+    assertType(xRef, 'bool');
+    assertElement(xRef, findElement.parameter('x'));
   }
 
   test_prefixedIdentifier_classInstance_instanceField() async {
