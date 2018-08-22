@@ -279,9 +279,7 @@ class KernelLibraryBuilder
 
     members.forEach(setParentAndCheckConflicts);
     constructors.forEach(setParentAndCheckConflicts);
-    // Formally, a setter has the name `id=`, so it can never conflict with a
-    // type variable.
-    setters.forEach(setParent);
+    setters.forEach(setParentAndCheckConflicts);
     addBuilder(className, cls, charOffset);
   }
 

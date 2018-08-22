@@ -77,13 +77,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33827')
-  test_conflictingTypeVariableAndMember_setter() async {
-    await super.test_conflictingTypeVariableAndMember_setter();
-  }
-
-  @override
-  @failingTest
   test_constConstructorWithNonFinalField_super() async {
     await super.test_constConstructorWithNonFinalField_super();
   }

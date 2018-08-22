@@ -230,8 +230,6 @@ Language/Classes/method_definition_t04: CompileTimeError
 Language/Classes/method_definition_t05: CompileTimeError
 Language/Classes/same_name_instance_and_static_members_t02: Pass
 Language/Classes/same_name_instance_and_static_members_t04: Pass
-Language/Classes/same_name_type_variable_t04: MissingCompileTimeError
-Language/Classes/same_name_type_variable_t07: MissingCompileTimeError
 Language/Enums/declaration_equivalent_t03: CompileTimeError
 Language/Enums/declaration_equivalent_t05: CompileTimeError
 Language/Enums/declaration_equivalent_t08: CompileTimeError

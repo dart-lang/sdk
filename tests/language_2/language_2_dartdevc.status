@@ -33,7 +33,6 @@ cascaded_forwarding_stubs_test: CompileTimeError
 check_member_static_test/01: CompileTimeError
 conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Crashes or times out
 conflicting_generic_interfaces_simple_test: MissingCompileTimeError
-conflicting_type_variable_and_setter_test: CompileTimeError
 const_cast2_test/01: CompileTimeError
 const_cast2_test/none: CompileTimeError
 const_constructor_mixin3_test/01: MissingCompileTimeError # Issue 33644
