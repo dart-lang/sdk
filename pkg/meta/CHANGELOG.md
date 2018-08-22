@@ -1,3 +1,9 @@
+## 1.1.7
+
+* Introduce `@sealed` to declare that a class cannot be extended by, implemented
+  by, or mixed into another class. (SDK issue
+  [27372](https://github.com/dart-lang/sdk/issues/27372)).
+
 ## 1.1.6
 
 * Set max SDK version to <3.0.0.

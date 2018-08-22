@@ -188,6 +188,18 @@ const _Protected protected = const _Protected();
 ///   corresponding to a named parameter that has this annotation.
 const Required required = const Required();
 
+/// Annotation marking a class as unusable as a super-type, outside of the
+/// package in which the class is declared.
+///
+/// Given a class _C_, which is annotated with this, and a class _D_, which
+/// extends, implements, or mixes in _C_, then tools, such as the analyzer, may
+/// emit warnings if:
+///
+/// * _C_ and _D_ are declared in different packages, or
+/// * _C_ and _D_ are declared in the same package, and _D_ is not also
+/// annotated with this.
+const _Sealed sealed = const _Sealed();
+
 /// Used to annotate a field that is allowed to be overridden in Strong Mode.
 const _Virtual virtual = const _Virtual();
 
@@ -282,6 +294,10 @@ class _OptionalTypeArgs {
 
 class _Protected {
   const _Protected();
+}
+
+class _Sealed {
+  const _Sealed();
 }
 
 class _Virtual {
