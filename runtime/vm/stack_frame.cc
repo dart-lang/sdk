@@ -578,9 +578,10 @@ StackFrame* StackFrameIterator::NextFrame() {
 #if defined(DART_USE_INTERPRETER)
 void StackFrameIterator::FrameSetIterator::CheckIfInterpreted(
     uword exit_marker) {
-  // TODO(regis): Once the interpreter shares the native stack, we may rely on
-  // a new thread vm_tag to identify an interpreter frame.
-  Interpreter* interpreter = thread_->isolate()->interpreter();
+  // TODO(regis): We should rely on a new thread vm_tag to identify an
+  // interpreter frame and not need the HasFrame() method.
+  Isolate* isolate = thread_->isolate();
+  Interpreter* interpreter = isolate != NULL ? isolate->interpreter() : NULL;
   is_interpreted_ = (interpreter != NULL) && interpreter->HasFrame(exit_marker);
 }
 #endif
