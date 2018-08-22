@@ -188,15 +188,17 @@ const _Protected protected = const _Protected();
 ///   corresponding to a named parameter that has this annotation.
 const Required required = const Required();
 
-/// Annotation marking a class as unusable as a super-type, outside of the
-/// package in which the class is declared.
+/// Annotation marking a class or mixin as not allowed as a super-type.
 ///
-/// Given a class _C_, which is annotated with this, and a class _D_, which
-/// extends, implements, or mixes in _C_, then tools, such as the analyzer, may
-/// emit warnings if:
+/// Classes in the same package as the marked class or mixin may extend,
+/// implement or mix-in the annotated class or mixin.
 ///
-/// * _C_ and _D_ are declared in different packages, or
-/// * _C_ and _D_ are declared in the same package, and _D_ is not also
+/// Given a class or mixin `c`, which is annotated with this, and a class or
+/// mixin `d`, which extends, implements, or mixes in `c`, then tools, such as
+/// the analyzer, may emit warnings if:
+///
+/// * `c` and `d` are declared in different packages, or
+/// * `c` and `d` are declared in the same package, and `d` is not also
 /// annotated with this.
 const _Sealed sealed = const _Sealed();
 
