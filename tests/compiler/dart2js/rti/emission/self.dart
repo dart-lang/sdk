@@ -4,7 +4,7 @@
 
 import 'package:meta/dart2js.dart';
 
-/*class: C:checkedInstance,checks=[],instance*/
+/*class: C:checkedInstance,checks=[],instance,typeLiteral*/
 class C {}
 
 @noInline
