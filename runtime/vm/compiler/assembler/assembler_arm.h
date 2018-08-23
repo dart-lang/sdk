@@ -338,8 +338,10 @@ class FieldAddress : public Address {
 
 class Assembler : public ValueObject {
  public:
-  explicit Assembler(bool use_far_branches = false)
+  explicit Assembler(ObjectPoolWrapper* object_pool_wrapper,
+                     bool use_far_branches = false)
       : buffer_(),
+        object_pool_wrapper_(object_pool_wrapper),
         prologue_offset_(-1),
         has_single_entry_point_(true),
         use_far_branches_(use_far_branches),
@@ -375,10 +377,10 @@ class Assembler : public ValueObject {
     return buffer_.pointer_offsets();
   }
 
-  ObjectPoolWrapper& object_pool_wrapper() { return object_pool_wrapper_; }
+  ObjectPoolWrapper& object_pool_wrapper() { return *object_pool_wrapper_; }
 
   RawObjectPool* MakeObjectPool() {
-    return object_pool_wrapper_.MakeObjectPool();
+    return object_pool_wrapper_->MakeObjectPool();
   }
 
   bool use_far_branches() const {
@@ -1138,7 +1140,7 @@ class Assembler : public ValueObject {
 
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.
-  ObjectPoolWrapper object_pool_wrapper_;
+  ObjectPoolWrapper* object_pool_wrapper_;
   int32_t prologue_offset_;
   bool has_single_entry_point_;
   bool use_far_branches_;

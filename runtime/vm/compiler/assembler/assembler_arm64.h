@@ -425,7 +425,8 @@ class Operand : public ValueObject {
 
 class Assembler : public ValueObject {
  public:
-  explicit Assembler(bool use_far_branches = false);
+  explicit Assembler(ObjectPoolWrapper* object_pool_wrapper,
+                     bool use_far_branches = false);
   ~Assembler() {}
 
   void PushRegister(Register r) { Push(r); }
@@ -462,10 +463,10 @@ class Assembler : public ValueObject {
     return buffer_.pointer_offsets();
   }
 
-  ObjectPoolWrapper& object_pool_wrapper() { return object_pool_wrapper_; }
+  ObjectPoolWrapper& object_pool_wrapper() { return *object_pool_wrapper_; }
 
   RawObjectPool* MakeObjectPool() {
-    return object_pool_wrapper_.MakeObjectPool();
+    return object_pool_wrapper_->MakeObjectPool();
   }
 
   bool use_far_branches() const {
@@ -1608,7 +1609,7 @@ class Assembler : public ValueObject {
 
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.
-  ObjectPoolWrapper object_pool_wrapper_;
+  ObjectPoolWrapper* object_pool_wrapper_;
   int32_t prologue_offset_;
   bool has_single_entry_point_;
   bool use_far_branches_;

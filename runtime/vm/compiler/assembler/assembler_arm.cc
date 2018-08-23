@@ -1377,7 +1377,7 @@ void Assembler::Drop(intptr_t stack_elements) {
 }
 
 intptr_t Assembler::FindImmediate(int32_t imm) {
-  return object_pool_wrapper_.FindImmediate(imm);
+  return object_pool_wrapper().FindImmediate(imm);
 }
 
 // Uses a code sequence that can easily be decoded.
@@ -1480,8 +1480,8 @@ void Assembler::LoadObjectHelper(Register rd,
     // Make sure that class CallPattern is able to decode this load from the
     // object pool.
     const int32_t offset = ObjectPool::element_offset(
-        is_unique ? object_pool_wrapper_.AddObject(object)
-                  : object_pool_wrapper_.FindObject(object));
+        is_unique ? object_pool_wrapper().AddObject(object)
+                  : object_pool_wrapper().FindObject(object));
     LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, pp, cond);
   } else {
     UNREACHABLE();
@@ -1502,7 +1502,7 @@ void Assembler::LoadFunctionFromCalleePool(Register dst,
                                            const Function& function,
                                            Register new_pp) {
   const int32_t offset =
-      ObjectPool::element_offset(object_pool_wrapper_.FindObject(function));
+      ObjectPool::element_offset(object_pool_wrapper().FindObject(function));
   LoadWordFromPoolOffset(dst, offset - kHeapObjectTag, new_pp, AL);
 }
 
@@ -1511,7 +1511,7 @@ void Assembler::LoadNativeEntry(Register rd,
                                 ObjectPool::Patchability patchable,
                                 Condition cond) {
   const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindNativeFunction(label, patchable));
+      object_pool_wrapper().FindNativeFunction(label, patchable));
   LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, PP, cond);
 }
 
@@ -2454,7 +2454,7 @@ void Assembler::Branch(const StubEntry& stub_entry,
                        Condition cond) {
   const Code& target_code = Code::ZoneHandle(stub_entry.code());
   const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindObject(target_code, patchable));
+      object_pool_wrapper().FindObject(target_code, patchable));
   LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag, pp, cond);
   ldr(IP, FieldAddress(CODE_REG, Code::entry_point_offset()), cond);
   bx(IP, cond);
@@ -2468,7 +2468,7 @@ void Assembler::BranchLink(const Code& target,
   // For added code robustness, use 'blx lr' in a patchable sequence and
   // use 'blx ip' in a non-patchable sequence (see other BranchLink flavors).
   const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindObject(target, patchable));
+      object_pool_wrapper().FindObject(target, patchable));
   LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag, PP, AL);
   ldr(LR, FieldAddress(CODE_REG, Code::entry_point_offset(entry_kind)));
   blx(LR);  // Use blx instruction so that the return branch prediction works.
@@ -2509,7 +2509,7 @@ void Assembler::BranchLinkWithEquivalence(const StubEntry& stub_entry,
   // For added code robustness, use 'blx lr' in a patchable sequence and
   // use 'blx ip' in a non-patchable sequence (see other BranchLink flavors).
   const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindObject(target, equivalence));
+      object_pool_wrapper().FindObject(target, equivalence));
   LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag, PP, AL);
   ldr(LR, FieldAddress(CODE_REG, Code::entry_point_offset(entry_kind)));
   blx(LR);  // Use blx instruction so that the return branch prediction works.

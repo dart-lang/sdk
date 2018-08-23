@@ -2901,7 +2901,9 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
       ASSERT(pass_state.inline_id_to_function.length() ==
              pass_state.caller_inline_id.length());
-      Assembler assembler(use_far_branches);
+
+      ObjectPoolWrapper object_pool;
+      Assembler assembler(&object_pool, use_far_branches);
 
       CodeStatistics* function_stats = NULL;
       if (FLAG_print_instruction_stats) {

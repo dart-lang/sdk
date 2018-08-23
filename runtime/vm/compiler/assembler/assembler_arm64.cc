@@ -21,8 +21,10 @@ DECLARE_FLAG(bool, inline_alloc);
 
 DEFINE_FLAG(bool, use_far_branches, false, "Always use far branches");
 
-Assembler::Assembler(bool use_far_branches)
+Assembler::Assembler(ObjectPoolWrapper* object_pool_wrapper,
+                     bool use_far_branches)
     : buffer_(),
+      object_pool_wrapper_(object_pool_wrapper),
       prologue_offset_(-1),
       has_single_entry_point_(true),
       use_far_branches_(use_far_branches),
@@ -407,7 +409,7 @@ void Assembler::LoadWordFromPoolOffsetFixed(Register dst, uint32_t offset) {
 }
 
 intptr_t Assembler::FindImmediate(int64_t imm) {
-  return object_pool_wrapper_.FindImmediate(imm);
+  return object_pool_wrapper().FindImmediate(imm);
 }
 
 bool Assembler::CanLoadFromObjectPool(const Object& object) const {
@@ -435,7 +437,7 @@ void Assembler::LoadNativeEntry(Register dst,
                                 const ExternalLabel* label,
                                 ObjectPool::Patchability patchable) {
   const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindNativeFunction(label, patchable));
+      object_pool_wrapper().FindNativeFunction(label, patchable));
   LoadWordFromPoolOffset(dst, offset);
 }
 
@@ -452,8 +454,8 @@ void Assembler::LoadObjectHelper(Register dst,
     ldr(dst, Address(THR, Thread::OffsetFromThread(object)));
   } else if (CanLoadFromObjectPool(object)) {
     const int32_t offset = ObjectPool::element_offset(
-        is_unique ? object_pool_wrapper_.AddObject(object)
-                  : object_pool_wrapper_.FindObject(object));
+        is_unique ? object_pool_wrapper().AddObject(object)
+                  : object_pool_wrapper().FindObject(object));
     LoadWordFromPoolOffset(dst, offset);
   } else {
     ASSERT(object.IsSmi());
@@ -467,7 +469,7 @@ void Assembler::LoadFunctionFromCalleePool(Register dst,
   ASSERT(!constant_pool_allowed());
   ASSERT(new_pp != PP);
   const int32_t offset =
-      ObjectPool::element_offset(object_pool_wrapper_.FindObject(function));
+      ObjectPool::element_offset(object_pool_wrapper().FindObject(function));
   ASSERT(Address::CanHoldOffset(offset));
   ldr(dst, Address(new_pp, offset));
 }
@@ -618,7 +620,7 @@ void Assembler::Branch(const StubEntry& stub_entry,
                        ObjectPool::Patchability patchable) {
   const Code& target = Code::ZoneHandle(stub_entry.code());
   const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindObject(target, patchable));
+      object_pool_wrapper().FindObject(target, patchable));
   LoadWordFromPoolOffset(CODE_REG, offset, pp);
   ldr(TMP, FieldAddress(CODE_REG, Code::entry_point_offset()));
   br(TMP);
@@ -632,7 +634,7 @@ void Assembler::BranchLink(const StubEntry& stub_entry,
                            ObjectPool::Patchability patchable) {
   const Code& target = Code::ZoneHandle(stub_entry.code());
   const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindObject(target, patchable));
+      object_pool_wrapper().FindObject(target, patchable));
   LoadWordFromPoolOffset(CODE_REG, offset);
   ldr(TMP, FieldAddress(CODE_REG, Code::entry_point_offset()));
   blr(TMP);
@@ -652,7 +654,7 @@ void Assembler::BranchLinkWithEquivalence(const StubEntry& stub_entry,
                                           const Object& equivalence) {
   const Code& target = Code::ZoneHandle(stub_entry.code());
   const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindObject(target, equivalence));
+      object_pool_wrapper().FindObject(target, equivalence));
   LoadWordFromPoolOffset(CODE_REG, offset);
   ldr(TMP, FieldAddress(CODE_REG, Code::entry_point_offset()));
   blr(TMP);

@@ -65,7 +65,8 @@ static void GenerateDummyCode(Assembler* assembler, const Object& result) {
 
 static void MakeDummyInstanceCall(Assembler* assembler, const Object& result) {
   // Make a dummy function.
-  Assembler _assembler_;
+  ObjectPoolWrapper object_pool_wrapper;
+  Assembler _assembler_(&object_pool_wrapper);
   GenerateDummyCode(&_assembler_, result);
   const char* dummy_function_name = "dummy_instance_function";
   const Function& dummy_instance_function =
