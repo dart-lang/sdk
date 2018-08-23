@@ -356,10 +356,10 @@ Fragment FlowGraphBuilder::InstanceCall(
     const InferredTypeMetadata* result_type) {
   const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0);
   ArgumentArray arguments = GetArguments(total_count);
-  InstanceCallInstr* call = new (Z) InstanceCallInstr(
-      position, name, kind, arguments, type_args_len, argument_names,
-      checked_argument_count, ic_data_array_, GetNextDeoptId(),
-      interface_target);
+  InstanceCallInstr* call = new (Z)
+      InstanceCallInstr(position, name, kind, arguments, type_args_len,
+                        argument_names, checked_argument_count, ic_data_array_,
+                        GetNextDeoptId(), interface_target);
   if ((result_type != NULL) && !result_type->IsTrivial()) {
     call->SetResultType(Z, result_type->ToCompileType(Z));
   }
@@ -367,15 +367,19 @@ Fragment FlowGraphBuilder::InstanceCall(
   return Fragment(call);
 }
 
-Fragment FlowGraphBuilder::ClosureCall(intptr_t type_args_len,
+Fragment FlowGraphBuilder::ClosureCall(TokenPosition position,
+                                       intptr_t type_args_len,
                                        intptr_t argument_count,
-                                       const Array& argument_names) {
+                                       const Array& argument_names,
+                                       bool is_statically_checked) {
   Value* function = Pop();
   const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0);
   ArgumentArray arguments = GetArguments(total_count);
   ClosureCallInstr* call = new (Z)
       ClosureCallInstr(function, arguments, type_args_len, argument_names,
-                       TokenPosition::kNoSource, GetNextDeoptId());
+                       position, GetNextDeoptId(),
+                       is_statically_checked ? Code::EntryKind::kUnchecked
+                                             : Code::EntryKind::kNormal);
   Push(call);
   return Fragment(call);
 }
@@ -486,7 +490,8 @@ Fragment FlowGraphBuilder::Return(TokenPosition position,
 
 Fragment FlowGraphBuilder::CheckNull(TokenPosition position,
                                      LocalVariable* receiver,
-                                     const String& function_name) {
+                                     const String& function_name,
+                                     bool clear_the_temp /* = true */) {
   Fragment instructions = LoadLocal(receiver);
 
   CheckNullInstr* check_null =
@@ -494,11 +499,13 @@ Fragment FlowGraphBuilder::CheckNull(TokenPosition position,
 
   instructions <<= check_null;
 
-  // Null out receiver to make sure it is not saved into the frame before
-  // doing the call.
-  instructions += NullConstant();
-  instructions += StoreLocal(TokenPosition::kNoSource, receiver);
-  instructions += Drop();
+  if (clear_the_temp) {
+    // Null out receiver to make sure it is not saved into the frame before
+    // doing the call.
+    instructions += NullConstant();
+    instructions += StoreLocal(TokenPosition::kNoSource, receiver);
+    instructions += Drop();
+  }
 
   return instructions;
 }
@@ -1352,8 +1359,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
     body += LoadLocal(closure);
     body += LoadField(Closure::function_offset());
 
-    body += ClosureCall(descriptor.TypeArgsLen(), descriptor.Count(),
-                        argument_names);
+    body += ClosureCall(TokenPosition::kNoSource, descriptor.TypeArgsLen(),
+                        descriptor.Count(), argument_names);
   } else {
     const intptr_t kNumArgsChecked = 1;
     body += InstanceCall(TokenPosition::kMinSource, Symbols::Call(),

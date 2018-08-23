@@ -1388,7 +1388,7 @@ async_star_test/05: Crash
 enum_test: Crash
 
 [ $mode == debug && ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
-enum_duplicate_test/01: Crash
+enum_duplicate_test/01: Pass, Crash
 
 [ $mode == product && $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
 deferred_load_constants_test/02: Fail

@@ -5005,6 +5005,18 @@ class Code : public Object {
     }
   }
 
+  static intptr_t function_entry_point_offset(EntryKind kind) {
+    switch (kind) {
+      case Code::EntryKind::kNormal:
+        return Function::entry_point_offset();
+      case Code::EntryKind::kUnchecked:
+        return Function::unchecked_entry_point_offset();
+      default:
+        ASSERT(false && "Invalid entry kind.");
+        UNREACHABLE();
+    }
+  }
+
   RawObjectPool* object_pool() const { return raw_ptr()->object_pool_; }
   static intptr_t object_pool_offset() {
     return OFFSET_OF(RawCode, object_pool_);
@@ -5024,9 +5036,9 @@ class Code : public Object {
   uword PayloadStart() const {
     return Instructions::PayloadStart(instructions());
   }
-  uword EntryPoint() const {
-    const Instructions& instr = Instructions::Handle(instructions());
-    return instr.EntryPoint();
+  uword EntryPoint() const { return Instructions::EntryPoint(instructions()); }
+  uword UncheckedEntryPoint() const {
+    return Instructions::UncheckedEntryPoint(instructions());
   }
   uword MonomorphicEntryPoint() const {
     const Instructions& instr = Instructions::Handle(instructions());
@@ -5320,14 +5332,6 @@ class Code : public Object {
   }
 
   bool IsDisabled() const { return instructions() != active_instructions(); }
-
-  uword unchecked_entry_point() const {
-    return raw_ptr()->unchecked_entry_point_;
-  }
-
-  void set_unchecked_entry_point(uword value) const {
-    StoreNonPointer(&raw_ptr()->unchecked_entry_point_, value);
-  }
 
  private:
   void set_state_bits(intptr_t bits) const;
