@@ -953,7 +953,8 @@ abstract class ContextAwareGenerator implements Generator {
       {int offset: -1,
       bool voidContext: false,
       Procedure interfaceTarget,
-      bool isPreIncDec: false}) {
+      bool isPreIncDec: false,
+      bool isPostIncDec: false}) {
     return makeInvalidWrite(value);
   }
 
