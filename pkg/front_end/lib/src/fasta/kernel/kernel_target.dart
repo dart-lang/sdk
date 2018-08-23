@@ -261,6 +261,7 @@ class KernelTarget extends TargetImplementation {
           computeCoreTypes();
           loader.computeHierarchy();
           loader.performTopLevelInference(myClasses);
+          loader.checkSupertypes(myClasses);
           loader.checkOverrides(myClasses);
           loader.checkAbstractMembers(myClasses);
           loader.addNoSuchMethodForwarders(myClasses);

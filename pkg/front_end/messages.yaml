@@ -303,6 +303,27 @@ ImplementsBeforeWith:
   dart2jsCode: "*ignored*"
   script: "class A extends B implements C with D {}"
 
+ImplementsRepeated:
+  template: "'#name' can only be implemented once."
+  analyzerCode: IMPLEMENTS_REPEATED
+  dart2jsCode: "*fatal*"
+  tip: "Try removing #count of the occurrences."
+  script:
+    - >-
+      abstract class I {}
+      abstract class J {}
+      class K implements I, J, I {}
+
+ImplementsSuperClass:
+  template: "'#name' can't be used in both 'extends' and 'implements' clauses."
+  analyzerCode: IMPLEMENTS_SUPER_CLASS
+  dart2jsCode: "*fatal*"
+  tip: "Try removing one of the occurrences."
+  script:
+    - >-
+      abstract class A {}
+      class C extends A implements A {}
+
 MultipleImplements:
   template: "Each class definition can have at most one implements clause."
   tip: "Try combining all of the implements clauses into a single clause."

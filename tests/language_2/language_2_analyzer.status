@@ -57,8 +57,6 @@ class_cycle2_test/01: Crash # Issue #34043 - Error recovery in outline (class hi
 class_cycle2_test/02: Crash # Issue #34043 - Error recovery in outline (class hierarchy cycle - see also #33756)
 class_cycle_test/00: Crash # Issue #34043 - Error recovery in outline (class hierarchy cycle - see also #33756)
 class_cycle_test/01: Crash # Issue #34043 - Error recovery in outline (class hierarchy cycle - see also #33756)
-class_cycle_test/02: MissingCompileTimeError
-class_cycle_test/03: MissingCompileTimeError
 compile_time_constant_static5_test/11: CompileTimeError # Issue 31537
 compile_time_constant_static5_test/16: CompileTimeError # Issue 31537
 compile_time_constant_static5_test/21: CompileTimeError # Issue 31537
@@ -81,9 +79,6 @@ deep_nesting_statement_test/01: Crash # Error recovery in method body (deep nest
 deferred_load_library_wrong_args_test/01: CompileTimeError # Issue 34047
 duplicate_constructor_test/01: Crash # Issue 33686 - No core library found
 duplicate_field_with_initializer_test/01: Crash # Issue 33686 - No core library found
-duplicate_implements_test/01: MissingCompileTimeError
-duplicate_implements_test/02: MissingCompileTimeError
-duplicate_interface_implements_test/01: MissingCompileTimeError
 dynamic_prefix_core_test/none: CompileTimeError # Issue 34047
 emit_const_fields_test: CompileTimeError # Issue 34047
 enum_syntax_test/02: Crash # Issue #34043 - Error recovery in outline (duplicate enum name)

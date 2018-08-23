@@ -26,7 +26,6 @@ const_dynamic_type_literal_test/03: Pass # but it shouldn't until we fix issue 1
 deopt_inlined_function_lazy_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 deopt_smi_op_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in dart2js; bug #11551.
-duplicate_interface_implements_test/01: MissingCompileTimeError
 external_test/10: CompileTimeError # External non-js-interop function are treated as compile-time errors.
 external_test/13: CompileTimeError # External non-js-interop function are treated as compile-time errors.
 external_test/20: CompileTimeError # External non-js-interop function are treated as compile-time errors.
@@ -256,10 +255,6 @@ deferred_load_library_wrong_args_test/01: MissingRuntimeError
 deferred_not_loaded_check_test: RuntimeError # Test out of date. Issue 31933
 deferred_redirecting_factory_test: RuntimeError
 double_int_to_string_test: RuntimeError, OK # non JS number semantics
-duplicate_implements_test/01: MissingCompileTimeError
-duplicate_implements_test/02: MissingCompileTimeError
-duplicate_implements_test/03: MissingCompileTimeError
-duplicate_implements_test/04: MissingCompileTimeError
 dynamic_prefix_core_test/none: RuntimeError
 enum_mirror_test: RuntimeError
 expect_test: RuntimeError, OK # Issue 13080
@@ -545,8 +540,6 @@ async_star_test/02: RuntimeError
 bit_operations_test: RuntimeError
 branch_canonicalization_test: RuntimeError
 canonical_const2_test: RuntimeError, OK # non JS number semantics
-class_cycle_test/02: MissingCompileTimeError
-class_cycle_test/03: MissingCompileTimeError
 compile_time_constant_o_test/01: MissingCompileTimeError
 compile_time_constant_o_test/02: MissingCompileTimeError
 compile_time_constant_static5_test/11: CompileTimeError
@@ -573,8 +566,6 @@ deferred_load_library_wrong_args_test/01: CompileTimeError
 deferred_not_loaded_check_test: RuntimeError # Test out of date. Issue 31933
 deferred_redirecting_factory_test: RuntimeError
 double_int_to_string_test: RuntimeError, OK # non JS number semantics
-duplicate_implements_test/01: MissingCompileTimeError
-duplicate_implements_test/02: MissingCompileTimeError
 dynamic_prefix_core_test/none: CompileTimeError
 emit_const_fields_test: CompileTimeError
 enum_mirror_test: RuntimeError

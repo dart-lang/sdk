@@ -241,8 +241,8 @@ call_method_implicit_tear_off_implements_function_test/05: RuntimeError # Kernel
 call_method_implicit_tear_off_implements_function_test/06: RuntimeError # Kernel is missing the implicit `call` tearoff for assignment `Function`
 call_method_must_not_be_field_test/06: RuntimeError # Kernel does not distinguish `d()` from `d.call()`
 call_method_must_not_be_getter_test/06: RuntimeError # Kernel does not distinguish `d()` from `d.call()`
-class_cycle_test/02: MissingCompileTimeError
-class_cycle_test/03: MissingCompileTimeError
+call_non_method_field_test/01: MissingCompileTimeError
+call_non_method_field_test/02: MissingCompileTimeError
 compile_time_constant_c_test/02: MissingCompileTimeError
 compile_time_constant_k_test/01: MissingCompileTimeError
 compile_time_constant_k_test/02: MissingCompileTimeError
@@ -274,9 +274,6 @@ constants_test/05: MissingCompileTimeError
 covariant_subtyping_test: RuntimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
 double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in ddk
-duplicate_implements_test/01: MissingCompileTimeError
-duplicate_implements_test/02: MissingCompileTimeError
-duplicate_interface_implements_test/01: MissingCompileTimeError
 dynamic_prefix_core_test/none: CompileTimeError
 emit_const_fields_test: CompileTimeError # Issue 31533
 export_ambiguous_main_test: MissingCompileTimeError

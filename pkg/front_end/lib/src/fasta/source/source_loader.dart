@@ -707,6 +707,15 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Computed core types");
   }
 
+  void checkSupertypes(List<SourceClassBuilder> sourceClasses) {
+    for (SourceClassBuilder builder in sourceClasses) {
+      if (builder.library.loader == this) {
+        builder.checkSupertypes();
+      }
+    }
+    ticker.logMs("Checked overrides");
+  }
+
   void checkOverrides(List<SourceClassBuilder> sourceClasses) {
     assert(hierarchy != null);
     for (SourceClassBuilder builder in sourceClasses) {

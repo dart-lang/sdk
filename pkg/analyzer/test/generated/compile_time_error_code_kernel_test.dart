@@ -431,38 +431,8 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_implementsRepeated() async {
-    await super.test_implementsRepeated();
-  }
-
-  @override
-  @failingTest
   test_implementsRepeated_3times() async {
     await super.test_implementsRepeated_3times();
-  }
-
-  @override
-  @failingTest
-  test_implementsSuperClass() async {
-    await super.test_implementsSuperClass();
-  }
-
-  @override
-  @failingTest
-  test_implementsSuperClass_Object() async {
-    await super.test_implementsSuperClass_Object();
-  }
-
-  @override
-  @failingTest
-  test_implementsSuperClass_Object_typeAlias() async {
-    await super.test_implementsSuperClass_Object_typeAlias();
-  }
-
-  @override
-  @failingTest
-  test_implementsSuperClass_typeAlias() async {
-    await super.test_implementsSuperClass_typeAlias();
   }
 
   @override

@@ -3502,6 +3502,54 @@ const MessageCode messageImplementsBeforeWith = const MessageCode(
     tip: r"""Try moving the with clause before the implements clause.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, int count)>
+    templateImplementsRepeated =
+    const Template<Message Function(String name, int count)>(
+        messageTemplate: r"""'#name' can only be implemented once.""",
+        tipTemplate: r"""Try removing #count of the occurrences.""",
+        withArguments: _withArgumentsImplementsRepeated);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, int count)> codeImplementsRepeated =
+    const Code<Message Function(String name, int count)>(
+        "ImplementsRepeated", templateImplementsRepeated,
+        analyzerCode: "IMPLEMENTS_REPEATED", dart2jsCode: "*fatal*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsImplementsRepeated(String name, int count) {
+  return new Message(codeImplementsRepeated,
+      message: """'${name}' can only be implemented once.""",
+      tip: """Try removing ${count} of the occurrences.""",
+      arguments: {'name': name, 'count': count});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateImplementsSuperClass = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""'#name' can't be used in both 'extends' and 'implements' clauses.""",
+    tipTemplate: r"""Try removing one of the occurrences.""",
+    withArguments: _withArgumentsImplementsSuperClass);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeImplementsSuperClass =
+    const Code<Message Function(String name)>(
+        "ImplementsSuperClass", templateImplementsSuperClass,
+        analyzerCode: "IMPLEMENTS_SUPER_CLASS", dart2jsCode: "*fatal*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsImplementsSuperClass(String name) {
+  return new Message(codeImplementsSuperClass,
+      message:
+          """'${name}' can't be used in both 'extends' and 'implements' clauses.""",
+      tip: """Try removing one of the occurrences.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         DartType
