@@ -942,32 +942,14 @@ abstract class ContextAwareGenerator implements Generator {
   @override
   Expression buildAssignment(Expression value,
       {bool voidContext: false, int offset: -1}) {
-    var lhs = buildSimpleRead();
-    // The lhs expression needs to have a parent so that type inference can be
-    // applied to it, but it doesn't matter what the parent is because the
-    // lhs expression won't appear in the tree.  So just give it a quick and
-    // dirty parent.
-    new VariableDeclaration.forValue(lhs);
-
-    return new IllegalAssignmentJudgment(value,
-        assignmentOffset: offset, desugared: makeInvalidWrite(value))
-      ..write = lhs;
+    return buildInvalidAssignment(value, offset);
   }
 
   @override
   Expression buildNullAwareAssignment(
       Expression value, DartType type, int offset,
       {bool voidContext: false}) {
-    var lhs = buildSimpleRead();
-    // The lhs expression needs to have a parent so that type inference can be
-    // applied to it, but it doesn't matter what the parent is because the
-    // lhs expression won't appear in the tree.  So just give it a quick and
-    // dirty parent.
-    new VariableDeclaration.forValue(lhs);
-
-    return new IllegalAssignmentJudgment(value,
-        assignmentOffset: offset, desugared: makeInvalidWrite(value))
-      ..write = lhs;
+    return buildInvalidAssignment(value, offset);
   }
 
   @override
@@ -977,6 +959,24 @@ abstract class ContextAwareGenerator implements Generator {
       Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
+    return buildInvalidAssignment(value, offset);
+  }
+
+  @override
+  Expression buildPrefixIncrement(Name binaryOperator,
+      {int offset: -1, bool voidContext: false, Procedure interfaceTarget}) {
+    return buildInvalidAssignment(
+        forest.literalInt(1, null, isSynthetic: true), offset);
+  }
+
+  @override
+  Expression buildPostfixIncrement(Name binaryOperator,
+      {int offset: -1, bool voidContext: false, Procedure interfaceTarget}) {
+    return buildInvalidAssignment(
+        forest.literalInt(1, null, isSynthetic: true), offset);
+  }
+
+  Expression buildInvalidAssignment(Expression value, int offset) {
     var lhs = buildSimpleRead();
     // The lhs expression needs to have a parent so that type inference can be
     // applied to it, but it doesn't matter what the parent is because the
@@ -987,40 +987,6 @@ abstract class ContextAwareGenerator implements Generator {
     return new IllegalAssignmentJudgment(value,
         assignmentOffset: offset, desugared: makeInvalidWrite(value))
       ..write = lhs;
-  }
-
-  @override
-  Expression buildPrefixIncrement(Name binaryOperator,
-      {int offset: -1, bool voidContext: false, Procedure interfaceTarget}) {
-    var innerExpression = buildSimpleRead();
-    // The inner expression needs to have a parent so that type inference can be
-    // applied to it, but it doesn't matter what the parent is because the
-    // inner expression won't appear in the tree.  So just give it a quick and
-    // dirty parent.
-    new VariableDeclaration.forValue(innerExpression);
-
-    return new IllegalAssignmentJudgment(
-        forest.literalInt(1, null, isSynthetic: true),
-        assignmentOffset: offset,
-        desugared: makeInvalidWrite(null))
-      ..write = innerExpression;
-  }
-
-  @override
-  Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset: -1, bool voidContext: false, Procedure interfaceTarget}) {
-    var innerExpression = buildSimpleRead();
-    // The inner expression needs to have a parent so that type inference can be
-    // applied to it, but it doesn't matter what the parent is because the
-    // inner expression won't appear in the tree.  So just give it a quick and
-    // dirty parent.
-    new VariableDeclaration.forValue(innerExpression);
-
-    return new IllegalAssignmentJudgment(
-        forest.literalInt(1, null, isSynthetic: true),
-        assignmentOffset: offset,
-        desugared: makeInvalidWrite(null))
-      ..write = innerExpression;
   }
 
   @override
