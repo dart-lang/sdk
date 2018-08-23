@@ -18,6 +18,7 @@ class ResolutionData {
   final DartType invokeType;
   final bool isExplicitCall;
   final bool isImplicitCall;
+  final bool isNamespaceCombinatorReference;
   final bool isOutline;
   final bool isPrefixReference;
   final bool isTypeReference;
@@ -36,6 +37,7 @@ class ResolutionData {
       this.invokeType,
       this.isExplicitCall = false,
       this.isImplicitCall = false,
+      this.isNamespaceCombinatorReference = false,
       this.isOutline = false,
       this.isPrefixReference = false,
       this.isTypeReference = false,

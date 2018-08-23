@@ -2533,7 +2533,6 @@ import 'a.dart' deferred as a;
 main() {
   a.loadLibrary();
 }
-
 ''');
     await resolveTestFile();
     var import = findElement.import('package:test/a.dart');
@@ -2561,7 +2560,6 @@ var c = 2;
 main() {
   a.loadLibrary(b, c);
 }
-
 ''');
     await resolveTestFile();
     var import = findElement.import('package:test/a.dart');
@@ -2595,7 +2593,6 @@ import 'a.dart' deferred as a;
 main() {
   a.loadLibrary;
 }
-
 ''');
     await resolveTestFile();
     var import = findElement.import('package:test/a.dart');
@@ -2621,7 +2618,6 @@ main() async {
   a.v;
   a.v = 1;
 }
-
 ''');
     await resolveTestFile();
     var import = findElement.import('package:test/a.dart');
@@ -2651,6 +2647,153 @@ main() async {
 
       assertElement(prefixed.identifier, v.setter);
       assertType(prefixed.identifier, 'int');
+    }
+  }
+
+  test_directive_export() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, r'''
+class MyClass {}
+int myVar;
+int get myGetter => 0;
+int set mySetter(_) {}
+''');
+    addTestFile(r'''
+export 'a.dart' show MyClass, myVar, myGetter, mySetter, Unresolved;
+''');
+    await resolveTestFile();
+    var export = findElement.export('package:test/a.dart');
+    var namespace = export.exportedLibrary.exportNamespace;
+
+    {
+      var ref = findNode.simple('MyClass');
+      assertElement(ref, namespace.get('MyClass'));
+      assertType(ref, null);
+    }
+
+    {
+      var ref = findNode.simple('myVar');
+      PropertyAccessorElement getter = namespace.get('myVar');
+      assertElement(ref, getter.variable);
+      assertType(ref, null);
+    }
+
+    {
+      var ref = findNode.simple('myGetter');
+      PropertyAccessorElement getter = namespace.get('myGetter');
+      assertElement(ref, getter.variable);
+      assertType(ref, null);
+    }
+
+    {
+      var ref = findNode.simple('mySetter');
+      PropertyAccessorElement getter = namespace.get('mySetter=');
+      assertElement(ref, getter.variable);
+      assertType(ref, null);
+    }
+
+    {
+      var ref = findNode.simple('Unresolved');
+      assertElementNull(ref);
+      assertType(ref, null);
+    }
+  }
+
+  test_directive_import_hide() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, r'''
+class MyClass {}
+int myVar;
+int get myGetter => 0;
+int set mySetter(_) {}
+''');
+    addTestFile(r'''
+import 'a.dart' hide MyClass, myVar, myGetter, mySetter, Unresolved;
+''');
+    await resolveTestFile();
+    var import = findElement.import('package:test/a.dart');
+    var namespace = import.importedLibrary.exportNamespace;
+
+    {
+      var ref = findNode.simple('MyClass');
+      assertElement(ref, namespace.get('MyClass'));
+      assertType(ref, null);
+    }
+
+    {
+      var ref = findNode.simple('myVar');
+      PropertyAccessorElement getter = namespace.get('myVar');
+      assertElement(ref, getter.variable);
+      assertType(ref, null);
+    }
+
+    {
+      var ref = findNode.simple('myGetter');
+      PropertyAccessorElement getter = namespace.get('myGetter');
+      assertElement(ref, getter.variable);
+      assertType(ref, null);
+    }
+
+    {
+      var ref = findNode.simple('mySetter');
+      PropertyAccessorElement getter = namespace.get('mySetter=');
+      assertElement(ref, getter.variable);
+      assertType(ref, null);
+    }
+
+    {
+      var ref = findNode.simple('Unresolved');
+      assertElementNull(ref);
+      assertType(ref, null);
+    }
+  }
+
+  test_directive_import_show() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, r'''
+class MyClass {}
+int myVar;
+int get myGetter => 0;
+int set mySetter(_) {}
+''');
+    addTestFile(r'''
+import 'a.dart' show MyClass, myVar, myGetter, mySetter, Unresolved;
+''');
+    await resolveTestFile();
+    var import = findElement.import('package:test/a.dart');
+    var namespace = import.importedLibrary.exportNamespace;
+
+    {
+      var ref = findNode.simple('MyClass');
+      assertElement(ref, namespace.get('MyClass'));
+      assertType(ref, null);
+    }
+
+    {
+      var ref = findNode.simple('myVar');
+      PropertyAccessorElement getter = namespace.get('myVar');
+      assertElement(ref, getter.variable);
+      assertType(ref, null);
+    }
+
+    {
+      var ref = findNode.simple('myGetter');
+      PropertyAccessorElement getter = namespace.get('myGetter');
+      assertElement(ref, getter.variable);
+      assertType(ref, null);
+    }
+
+    {
+      var ref = findNode.simple('mySetter');
+      PropertyAccessorElement getter = namespace.get('mySetter=');
+      assertElement(ref, getter.variable);
+      assertType(ref, null);
+    }
+
+    {
+      var ref = findNode.simple('Unresolved');
+      assertElementNull(ref);
+      assertType(ref, null);
     }
   }
 
@@ -10351,6 +10494,23 @@ class FindElement {
       }
     }
     fail('Not found class: $name');
+  }
+
+  ExportElement export(String targetUri) {
+    ExportElement exportElement;
+    for (var export in unitElement.library.exports) {
+      var exportedUri = export.exportedLibrary.source.uri.toString();
+      if (exportedUri == targetUri) {
+        if (exportElement != null) {
+          throw new StateError('Not unique $targetUri export.');
+        }
+        exportElement = export;
+      }
+    }
+    if (exportElement != null) {
+      return exportElement;
+    }
+    fail('Not found export: $targetUri');
   }
 
   FieldElement field(String name) {

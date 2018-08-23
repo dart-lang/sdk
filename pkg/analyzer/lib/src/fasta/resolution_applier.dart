@@ -919,8 +919,9 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       return _translatePrefixInfo(data.prefixInfo);
     }
     return _typeContext.translateReference(data.reference,
-        isWriteReference: data.isWriteReference,
+        isNamespaceCombinatorReference: data.isNamespaceCombinatorReference,
         isTypeReference: data.isTypeReference,
+        isWriteReference: data.isWriteReference,
         inferredType: data.inferredType,
         receiverType: data.receiverType);
   }
@@ -977,8 +978,9 @@ abstract class TypeContext {
 
   /// Return the analyzer [Element] for the given kernel node.
   Element translateReference(kernel.Node referencedNode,
-      {bool isWriteReference = false,
+      {bool isNamespaceCombinatorReference = false,
       bool isTypeReference = false,
+      bool isWriteReference = false,
       kernel.DartType inferredType,
       kernel.DartType receiverType});
 

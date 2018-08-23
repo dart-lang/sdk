@@ -443,12 +443,16 @@ class _AnalyzerOutlineListener implements OutlineListener {
 
   @override
   void store(int offset, bool isSynthetic,
-      {int importIndex, Node reference, DartType type}) {
+      {int importIndex,
+      bool isNamespaceCombinatorReference = false,
+      Node reference,
+      DartType type}) {
 //    if (fileUri.toString().endsWith('test.dart')) {
 //      print('[store][offset: $offset][reference: $reference][type: $type]');
 //    }
     var encodedLocation = 2 * offset + (isSynthetic ? 1 : 0);
     resolution.kernelData[encodedLocation] = new ResolutionData(
+        isNamespaceCombinatorReference: isNamespaceCombinatorReference,
         isOutline: true,
         prefixInfo: importIndex,
         reference: reference,

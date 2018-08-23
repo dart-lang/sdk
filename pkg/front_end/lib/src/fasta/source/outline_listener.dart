@@ -22,5 +22,8 @@ class OutlineListener {
   /// `List<int>` will have a reference to `List` and type `List<int>`, i.e.
   /// with type arguments applied.
   void store(int offset, bool isSynthetic,
-      {int importIndex, Node reference, DartType type}) {}
+      {int importIndex,
+      bool isNamespaceCombinatorReference,
+      Node reference,
+      DartType type}) {}
 }

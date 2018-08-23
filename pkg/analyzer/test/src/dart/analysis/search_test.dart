@@ -1994,11 +1994,6 @@ class SearchTest_UseCFE extends SearchTest {
 
   @failingTest
   @override
-  test_searchReferences_TopLevelVariableElement() =>
-      super.test_searchReferences_TopLevelVariableElement();
-
-  @failingTest
-  @override
   test_subtypes_partWithoutLibrary() =>
       super.test_subtypes_partWithoutLibrary();
 }

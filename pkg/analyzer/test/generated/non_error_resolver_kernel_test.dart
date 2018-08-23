@@ -40,13 +40,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @AnalyzerProblem('https://github.com/dart-lang/sdk/issues/33636')
-  test_ambiguousImport_showCombinator() async {
-    return super.test_ambiguousImport_showCombinator();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31604')
   test_commentReference_beforeConstructor() async {
     return super.test_commentReference_beforeConstructor();
