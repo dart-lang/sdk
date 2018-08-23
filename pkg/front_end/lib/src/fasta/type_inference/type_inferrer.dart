@@ -252,7 +252,7 @@ class ClosureContext {
         _inferredUnwrappedReturnOrYieldType = unwrappedType;
       } else {
         _inferredUnwrappedReturnOrYieldType = inferrer.typeSchemaEnvironment
-            .getLeastUpperBound(
+            .getStandardUpperBound(
                 _inferredUnwrappedReturnOrYieldType, unwrappedType);
       }
     }
@@ -283,7 +283,7 @@ class ClosureContext {
         _inferredUnwrappedReturnOrYieldType = unwrappedType;
       } else {
         _inferredUnwrappedReturnOrYieldType = inferrer.typeSchemaEnvironment
-            .getLeastUpperBound(
+            .getStandardUpperBound(
                 _inferredUnwrappedReturnOrYieldType, unwrappedType);
       }
     }

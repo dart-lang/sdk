@@ -666,7 +666,7 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
         combinedType = readType == null
             ? rhsType
             : inferrer.typeSchemaEnvironment
-                .getLeastUpperBound(readType, rhsType);
+                .getStandardUpperBound(readType, rhsType);
         if (inferrer.strongMode) {
           nullAwareCombiner.staticType = combinedType;
         }
@@ -757,7 +757,7 @@ class ConditionalJudgment extends ConditionalExpression
     inferrer.inferExpression(otherwiseJudgment, typeContext, useLub,
         isVoidAllowed: true);
     inferredType = useLub
-        ? inferrer.typeSchemaEnvironment.getLeastUpperBound(
+        ? inferrer.typeSchemaEnvironment.getStandardUpperBound(
             thenJudgment.inferredType, otherwiseJudgment.inferredType)
         : greatestClosure(inferrer.coreTypes, typeContext);
     if (inferrer.strongMode) {
@@ -1439,13 +1439,9 @@ class IfNullJudgment extends Let implements ExpressionJudgment {
     // - Let T = greatest closure of K with respect to `?` if K is not `_`, else
     //   UP(t0, t1)
     // - Then the inferred type is T.
-    if (rhsType is VoidType) {
-      inferredType = rhsType;
-    } else {
-      inferredType = useLub
-          ? inferrer.typeSchemaEnvironment.getLeastUpperBound(lhsType, rhsType)
-          : greatestClosure(inferrer.coreTypes, typeContext);
-    }
+    inferredType = useLub
+        ? inferrer.typeSchemaEnvironment.getStandardUpperBound(lhsType, rhsType)
+        : greatestClosure(inferrer.coreTypes, typeContext);
     if (inferrer.strongMode) {
       body.staticType = inferredType;
     }
