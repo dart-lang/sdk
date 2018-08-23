@@ -215,7 +215,8 @@ class AstBuilder extends StackListener {
       for (int i = 1; i < parts.length - 1; i++) {
         var part = parts[i];
         if (part is Token) {
-          elements.add(ast.interpolationString(part, part.lexeme));
+          elements.add(ast.interpolationString(
+              part, unescape(part.lexeme, quote, part, this)));
         } else if (part is InterpolationExpression) {
           elements.add(part);
         } else {
