@@ -177,12 +177,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  test_optionalNew_rewrite() {
-    return super.test_optionalNew_rewrite();
-  }
-
-  @override
-  @failingTest
   test_undefinedIdentifier_synthetic_whenMethodName() async {
     return super.test_undefinedIdentifier_synthetic_whenMethodName();
   }
