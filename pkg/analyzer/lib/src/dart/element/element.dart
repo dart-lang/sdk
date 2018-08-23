@@ -1651,7 +1651,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
           ..addAll(_explicitTopLevelVariables.implicitAccessors);
       }
     }
-    return _accessors ?? PropertyAccessorElement.EMPTY_LIST;
+    return _accessors ?? const <PropertyAccessorElement>[];
   }
 
   /**
@@ -1829,7 +1829,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
         _variables = variables;
       }
     }
-    return _variables ?? TopLevelVariableElement.EMPTY_LIST;
+    return _variables ?? const <TopLevelVariableElement>[];
   }
 
   /**
@@ -6413,7 +6413,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * A list containing all of the compilation units that are included in this
    * library using a `part` directive.
    */
-  List<CompilationUnitElement> _parts = CompilationUnitElement.EMPTY_LIST;
+  List<CompilationUnitElement> _parts = const <CompilationUnitElement>[];
 
   /**
    * The element representing the synthetic function `loadLibrary` that is
@@ -6726,7 +6726,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
             resynthesizerContext.linkedLibrary.importDependencies);
       }
     }
-    return _imports ?? ImportElement.EMPTY_LIST;
+    return _imports ?? const <ImportElement>[];
   }
 
   /**
@@ -7968,7 +7968,7 @@ class MultiplyInheritedMethodElementImpl extends MethodElementImpl
    * A list the array of executable elements that were used to compose this
    * element.
    */
-  List<ExecutableElement> _elements = MethodElement.EMPTY_LIST;
+  List<ExecutableElement> _elements = const <MethodElement>[];
 
   MultiplyInheritedMethodElementImpl(Identifier name) : super.forNode(name) {
     isSynthetic = true;
@@ -7993,7 +7993,7 @@ class MultiplyInheritedPropertyAccessorElementImpl
    * A list the array of executable elements that were used to compose this
    * element.
    */
-  List<ExecutableElement> _elements = PropertyAccessorElement.EMPTY_LIST;
+  List<ExecutableElement> _elements = const <PropertyAccessorElement>[];
 
   MultiplyInheritedPropertyAccessorElementImpl(Identifier name)
       : super.forNode(name) {
@@ -8991,7 +8991,7 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   String get identifier => "_${super.identifier}";
 
   @override
-  List<LibraryElement> get importedLibraries => LibraryElement.EMPTY_LIST;
+  List<LibraryElement> get importedLibraries => const <LibraryElement>[];
 
   @override
   ElementKind get kind => ElementKind.PREFIX;

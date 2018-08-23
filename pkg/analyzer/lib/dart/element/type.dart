@@ -34,6 +34,7 @@ abstract class DartType {
   /**
    * An empty list of types.
    */
+  @deprecated
   static const List<DartType> EMPTY_LIST = const <DartType>[];
 
   /**
@@ -351,6 +352,7 @@ abstract class InterfaceType implements ParameterizedType {
   /**
    * An empty list of types.
    */
+  @deprecated
   static const List<InterfaceType> EMPTY_LIST = const <InterfaceType>[];
 
   /**
@@ -717,6 +719,7 @@ abstract class TypeParameterType implements DartType {
   /**
    * An empty list of type parameter types.
    */
+  @deprecated
   static const List<TypeParameterType> EMPTY_LIST = const <TypeParameterType>[];
 
   /**

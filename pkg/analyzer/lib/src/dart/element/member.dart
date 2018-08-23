@@ -706,7 +706,7 @@ class ParameterMember extends VariableMember
     if (type is FunctionType) {
       return type.parameters;
     }
-    return ParameterElement.EMPTY_LIST;
+    return const <ParameterElement>[];
   }
 
   @override

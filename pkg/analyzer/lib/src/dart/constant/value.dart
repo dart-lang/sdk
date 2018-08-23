@@ -167,6 +167,7 @@ class DartObjectImpl implements DartObject {
   /**
    * An empty list of objects.
    */
+  @deprecated
   static const List<DartObjectImpl> EMPTY_LIST = const <DartObjectImpl>[];
 
   @override

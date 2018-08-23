@@ -1039,7 +1039,7 @@ class PrefixElementHandle extends ElementHandle implements PrefixElement {
       super.enclosingElement as LibraryElement;
 
   @override
-  List<LibraryElement> get importedLibraries => LibraryElement.EMPTY_LIST;
+  List<LibraryElement> get importedLibraries => const <LibraryElement>[];
 
   @override
   ElementKind get kind => ElementKind.PREFIX;

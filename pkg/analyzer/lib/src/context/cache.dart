@@ -949,7 +949,7 @@ class CacheFlushManager<T> {
   List<TargetedResult> flushToSize() {
     // If still under the cap, done.
     if (currentSize <= maxSize) {
-      return TargetedResult.EMPTY_LIST;
+      return const <TargetedResult>[];
     }
     // Flush results until we are under the cap.
     List<TargetedResult> resultsToFlush = <TargetedResult>[];
@@ -1122,7 +1122,7 @@ abstract class CachePartition {
    */
   List<Source> getSourcesWithFullName(String path) {
     List<Source> sources = pathToSource[path];
-    return sources ?? Source.EMPTY_LIST;
+    return sources ?? const <Source>[];
   }
 
   /**
@@ -1537,7 +1537,7 @@ class UnlimitedCacheFlushManager extends CacheFlushManager {
 
   @override
   List<TargetedResult> resultStored(TargetedResult newResult, newValue) {
-    return TargetedResult.EMPTY_LIST;
+    return const <TargetedResult>[];
   }
 
   @override

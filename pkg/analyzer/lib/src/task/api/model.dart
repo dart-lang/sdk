@@ -510,6 +510,7 @@ class TargetedResult {
   /**
    * An empty list of results.
    */
+  @deprecated
   static final List<TargetedResult> EMPTY_LIST = const <TargetedResult>[];
 
   /**

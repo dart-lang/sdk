@@ -252,7 +252,7 @@ class ConstantFinderTest {
       constructorDeclaration.element = constructorElement;
       classElement.constructors = <ConstructorElement>[constructorElement];
     } else {
-      classElement.constructors = ConstructorElement.EMPTY_LIST;
+      classElement.constructors = const <ConstructorElement>[];
     }
     return variableDeclaration;
   }

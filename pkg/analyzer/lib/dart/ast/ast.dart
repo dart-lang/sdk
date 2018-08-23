@@ -448,6 +448,7 @@ abstract class AstNode implements SyntacticEntity {
   /**
    * An empty list of AST nodes.
    */
+  @deprecated
   static const List<AstNode> EMPTY_LIST = const <AstNode>[];
 
   /**
@@ -2597,6 +2598,7 @@ abstract class Expression extends AstNode {
   /**
    * An empty list of expressions.
    */
+  @deprecated
   static const List<Expression> EMPTY_LIST = const <Expression>[];
 
   /**

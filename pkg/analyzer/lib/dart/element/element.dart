@@ -59,6 +59,7 @@ abstract class ClassElement
   /**
    * An empty list of class elements.
    */
+  @deprecated
   static const List<ClassElement> EMPTY_LIST = const <ClassElement>[];
 
   /**
@@ -447,6 +448,7 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
   /**
    * An empty list of compilation unit elements.
    */
+  @deprecated
   static const List<CompilationUnitElement> EMPTY_LIST =
       const <CompilationUnitElement>[];
 
@@ -529,6 +531,7 @@ abstract class ConstructorElement
   /**
    * An empty list of constructor elements.
    */
+  @deprecated
   static const List<ConstructorElement> EMPTY_LIST =
       const <ConstructorElement>[];
 
@@ -899,6 +902,7 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /**
    * An empty list of annotations.
    */
+  @deprecated
   static const List<ElementAnnotation> EMPTY_LIST = const <ElementAnnotation>[];
 
   /**
@@ -1231,6 +1235,7 @@ abstract class ExecutableElement implements FunctionTypedElement {
   /**
    * An empty list of executable elements.
    */
+  @deprecated
   static const List<ExecutableElement> EMPTY_LIST = const <ExecutableElement>[];
 
   /**
@@ -1296,6 +1301,7 @@ abstract class ExportElement implements Element, UriReferencedElement {
   /**
    * An empty list of export elements.
    */
+  @deprecated
   static const List<ExportElement> EMPTY_LIST = const <ExportElement>[];
 
   /**
@@ -1321,6 +1327,7 @@ abstract class FieldElement
   /**
    * An empty list of field elements.
    */
+  @deprecated
   static const List<FieldElement> EMPTY_LIST = const <FieldElement>[];
 
   /**
@@ -1361,6 +1368,7 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
   /**
    * An empty list of function elements.
    */
+  @deprecated
   static const List<FunctionElement> EMPTY_LIST = const <FunctionElement>[];
 
   /**
@@ -1405,6 +1413,7 @@ abstract class FunctionTypeAliasElement
   /**
    * An empty array of type alias elements.
    */
+  @deprecated
   static List<FunctionTypeAliasElement> EMPTY_LIST =
       new List<FunctionTypeAliasElement>(0);
 
@@ -1495,6 +1504,7 @@ abstract class ImportElement implements Element, UriReferencedElement {
   /**
    * An empty list of import elements.
    */
+  @deprecated
   static const List<ImportElement> EMPTY_LIST = const <ImportElement>[];
 
   /**
@@ -1542,6 +1552,7 @@ abstract class LabelElement implements Element {
   /**
    * An empty list of label elements.
    */
+  @deprecated
   static const List<LabelElement> EMPTY_LIST = const <LabelElement>[];
 
   @override
@@ -1557,6 +1568,7 @@ abstract class LibraryElement implements Element {
   /**
    * An empty list of library elements.
    */
+  @deprecated
   static const List<LibraryElement> EMPTY_LIST = const <LibraryElement>[];
 
   /**
@@ -1726,6 +1738,7 @@ abstract class LocalVariableElement implements LocalElement, VariableElement {
   /**
    * An empty list of field elements.
    */
+  @deprecated
   static const List<LocalVariableElement> EMPTY_LIST =
       const <LocalVariableElement>[];
 }
@@ -1739,6 +1752,7 @@ abstract class MethodElement implements ClassMemberElement, ExecutableElement {
   /**
    * An empty list of method elements.
    */
+  @deprecated
   static const List<MethodElement> EMPTY_LIST = const <MethodElement>[];
 
   @override
@@ -1800,6 +1814,7 @@ abstract class NamespaceCombinator {
   /**
    * An empty list of namespace combinators.
    */
+  @deprecated
   static const List<NamespaceCombinator> EMPTY_LIST =
       const <NamespaceCombinator>[];
 }
@@ -1814,6 +1829,7 @@ abstract class ParameterElement
   /**
    * An empty list of parameter elements.
    */
+  @deprecated
   static const List<ParameterElement> EMPTY_LIST = const <ParameterElement>[];
 
   /**
@@ -1906,6 +1922,7 @@ abstract class PrefixElement implements Element {
   /**
    * An empty list of prefix elements.
    */
+  @deprecated
   static const List<PrefixElement> EMPTY_LIST = const <PrefixElement>[];
 
   @override
@@ -1941,6 +1958,7 @@ abstract class PropertyAccessorElement implements ExecutableElement {
   /**
    * An empty list of property accessor elements.
    */
+  @deprecated
   static const List<PropertyAccessorElement> EMPTY_LIST =
       const <PropertyAccessorElement>[];
 
@@ -1999,6 +2017,7 @@ abstract class PropertyInducingElement implements VariableElement {
   /**
    * An empty list of elements.
    */
+  @deprecated
   static const List<PropertyInducingElement> EMPTY_LIST =
       const <PropertyInducingElement>[];
 
@@ -2062,6 +2081,7 @@ abstract class TopLevelVariableElement implements PropertyInducingElement {
   /**
    * An empty list of top-level variable elements.
    */
+  @deprecated
   static const List<TopLevelVariableElement> EMPTY_LIST =
       const <TopLevelVariableElement>[];
 
@@ -2090,6 +2110,7 @@ abstract class TypeParameterElement implements TypeDefiningElement {
   /**
    * An empty list of type parameter elements.
    */
+  @deprecated
   static const List<TypeParameterElement> EMPTY_LIST =
       const <TypeParameterElement>[];
 
@@ -2168,6 +2189,7 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
   /**
    * An empty list of variable elements.
    */
+  @deprecated
   static const List<VariableElement> EMPTY_LIST = const <VariableElement>[];
 
   /**
