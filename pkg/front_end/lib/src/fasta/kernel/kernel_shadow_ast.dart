@@ -559,7 +559,8 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
   /// pre-decrement.
   bool isPreIncDec = false;
 
-  ComplexAssignmentJudgment(this.rhs) : super(null);
+  ComplexAssignmentJudgment(this.rhs, {Expression desugared})
+      : super(desugared);
 
   String toString() {
     var parts = _getToStringParts();
@@ -1492,8 +1493,9 @@ class IllegalAssignmentJudgment extends ComplexAssignmentJudgment {
   /// If `-1`, then there is no separate location for invalid assignment.
   final int assignmentOffset;
 
-  IllegalAssignmentJudgment(ExpressionJudgment rhs, {this.assignmentOffset: -1})
-      : super(rhs) {
+  IllegalAssignmentJudgment(ExpressionJudgment rhs,
+      {this.assignmentOffset: -1, Expression desugared})
+      : super(rhs, desugared: desugared) {
     rhs.parent = this;
   }
 

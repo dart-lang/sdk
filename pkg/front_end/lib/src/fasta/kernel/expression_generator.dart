@@ -68,6 +68,7 @@ import 'kernel_ast_api.dart'
         DartType,
         DynamicType,
         Expression,
+        IllegalAssignmentJudgment,
         Initializer,
         InvalidConstructorInvocationJudgment,
         InvalidType,
@@ -967,7 +968,18 @@ abstract class ContextAwareGenerator implements Generator {
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
       {int offset: -1, bool voidContext: false, Procedure interfaceTarget}) {
-    return makeInvalidWrite(null);
+    var innerExpression = buildSimpleRead();
+    // The inner expression needs to have a parent so that type inference can be
+    // applied to it, but it doesn't matter what the parent is because the
+    // inner expression won't appear in the tree.  So just give it a quick and
+    // dirty parent.
+    new VariableDeclaration.forValue(innerExpression);
+
+    return new IllegalAssignmentJudgment(
+        forest.literalInt(1, null, isSynthetic: true),
+        assignmentOffset: offset,
+        desugared: makeInvalidWrite(null))
+      ..write = innerExpression;
   }
 
   @override

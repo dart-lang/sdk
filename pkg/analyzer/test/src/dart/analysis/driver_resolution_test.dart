@@ -7177,6 +7177,19 @@ void f(int g()) {
     assertElement(gRef, findElement.parameter('g'));
   }
 
+  test_postfix_increment_of_postfix_increment() async {
+    addTestFile('''
+void f(int x) {
+  x ++ ++;
+}
+''');
+    await resolveTestFile();
+
+    var xRef = findNode.simple('x ++');
+    assertType(xRef, 'int');
+    assertElement(xRef, findElement.parameter('x'));
+  }
+
   test_postfixExpression_local() async {
     String content = r'''
 main() {
@@ -7261,6 +7274,19 @@ void f(bool x) {
 
     var xRef = findNode.simple('x;');
     assertType(xRef, 'bool');
+    assertElement(xRef, findElement.parameter('x'));
+  }
+
+  test_prefix_increment_of_prefix_increment() async {
+    addTestFile('''
+void f(int x) {
+  ++ ++ x;
+}
+''');
+    await resolveTestFile();
+
+    var xRef = findNode.simple('x;');
+    assertType(xRef, 'int');
     assertElement(xRef, findElement.parameter('x'));
   }
 
