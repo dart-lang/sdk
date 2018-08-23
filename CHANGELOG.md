@@ -1,3 +1,8 @@
+# 0.1.60
+
+* new lint: `avoid_void_async`
+* `unawaited_futures` updated to check cascades
+
 # 0.1.59
 
 * relaxed `void_checks` (allowing `T Function()` to be assigned to `void Function()`)
