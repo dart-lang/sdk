@@ -38,6 +38,7 @@ const _Literal literal = const _Literal();
 const _MustCallSuper mustCallSuper = const _MustCallSuper();
 const _Protected protected = const _Protected();
 const Required required = const Required();
+const _Sealed sealed = const _Sealed();
 const _VisibleForTesting visibleForTesting = const _VisibleForTesting();
 
 class Immutable {
@@ -62,6 +63,9 @@ class _Protected {
 class Required {
   final String reason;
   const Required([this.reason]);
+}
+class _Sealed {
+  const _Sealed();
 }
 class _VisibleForTesting {
   const _VisibleForTesting();
@@ -1648,6 +1652,55 @@ m3([a]) => null;
 m4({a}) => null;
 m5({@required a}) => null;
 m6({a, @required b}) => null;
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_invalidSealedAnnotation_onNonClass() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:meta/meta.dart';
+
+@sealed m({a = 1}) => null;
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.INVALID_SEALED_ANNOTATION]);
+    verify([source]);
+  }
+
+  test_invalidSealedAnnotation_onClass() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:meta/meta.dart';
+
+@sealed class A {}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_invalidSealedAnnotation_onMixinApplication() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:meta/meta.dart';
+
+abstract class A {}
+
+abstract class B {}
+
+@sealed abstract class M = A with B;
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  @failingTest
+  test_invalidSealedAnnotation_onMixin() async {
+    Source source = addNamedSource('/lib1.dart', r'''
+import 'package:meta/meta.dart';
+
+@sealed mixin M {}
 ''');
     await computeAnalysisResult(source);
     assertNoErrors(source);

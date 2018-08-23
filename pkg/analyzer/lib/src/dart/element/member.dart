@@ -419,6 +419,9 @@ abstract class Member implements Element {
   bool get hasRequired => _baseElement.hasRequired;
 
   @override
+  bool get hasSealed => _baseElement.hasSealed;
+
+  @override
   bool get hasVisibleForTemplate => _baseElement.hasVisibleForTemplate;
 
   @override

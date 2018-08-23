@@ -1574,6 +1574,13 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
       // arguments should be constants
       _validateConstantArguments(argumentList);
     }
+    if (node.elementAnnotation?.isSealed == true &&
+        !(node.parent is ClassDeclaration ||
+            node.parent is ClassTypeAlias ||
+            node.parent is MixinDeclaration)) {
+      _errorReporter.reportErrorForNode(
+          HintCode.INVALID_SEALED_ANNOTATION, node.parent, [node.element.name]);
+    }
     return null;
   }
 

@@ -297,6 +297,19 @@ class HintCode extends ErrorCode {
       correction: "Remove @required.");
 
   /**
+   * This hint is generated anywhere where `@sealed` annotates something other
+   * than a class or mixin.
+   *
+   * Parameters:
+   * 0: the name of the member
+   */
+  static const HintCode INVALID_SEALED_ANNOTATION = const HintCode(
+      'INVALID_SEALED_ANNOTATION',
+      "The member '{0}' is annotated with @sealed but only classes and mixins "
+      "can be annotated with it.",
+      correction: "Remove @sealed.");
+
+  /**
    * This hint is generated anywhere where a member annotated with `@protected`
    * is used outside an instance member of a subclass.
    *

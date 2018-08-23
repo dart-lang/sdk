@@ -2952,6 +2952,11 @@ class ElementAnnotationImpl implements ElementAnnotation {
    */
   static String _REQUIRED_VARIABLE_NAME = "required";
 
+  /**
+   * The name of the top-level variable used to mark a class as being sealed.
+   */
+  static String _SEALED_VARIABLE_NAME = "sealed";
+
   /// The name of the top-level variable used to mark a method as being
   /// visible for templates.
   static String _VISIBLE_FOR_TEMPLATE_VARIABLE_NAME = "visibleForTemplate";
@@ -3085,6 +3090,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
       element is PropertyAccessorElement &&
           element.name == _REQUIRED_VARIABLE_NAME &&
           element.library?.name == _META_LIB_NAME;
+
+  @override
+  bool get isSealed =>
+      element is PropertyAccessorElement &&
+      element.name == _SEALED_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
 
   @override
   bool get isVisibleForTemplate =>
@@ -3307,6 +3318,10 @@ abstract class ElementImpl implements Element {
   @override
   bool get hasRequired =>
       metadata.any((ElementAnnotation annotation) => annotation.isRequired);
+
+  @override
+  bool get hasSealed =>
+      metadata.any((ElementAnnotation annotation) => annotation.isSealed);
 
   @override
   bool get hasVisibleForTemplate => metadata
@@ -7773,6 +7788,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   bool get hasRequired => false;
+
+  @override
+  bool get hasSealed => false;
 
   @override
   bool get hasVisibleForTemplate => false;

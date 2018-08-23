@@ -157,6 +157,13 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
 
   @failingTest
   @override
+  // Failing due to https://github.com/dart-lang/sdk/issues/34249
+  test_invalidSealedAnnotation_onMixinApplication() async {
+    return super.test_invalidSealedAnnotation_onMixinApplication();
+  }
+
+  @failingTest
+  @override
   test_strongMode_downCastCompositeHint() async {
     return super.test_strongMode_downCastCompositeHint();
   }

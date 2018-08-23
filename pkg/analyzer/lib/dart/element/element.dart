@@ -685,6 +685,11 @@ abstract class Element implements AnalysisTarget {
   bool get hasRequired;
 
   /**
+   * Return `true` if this element has an annotation of the form '@sealed'.
+   */
+  bool get hasSealed;
+
+  /**
    * Return `true` if this element has an annotation of the form
    * `@visibleForTemplate`.
    */
@@ -989,6 +994,12 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
    * required.
    */
   bool get isRequired;
+
+  /**
+   * Return `true` if this annotation marks the associated class as being
+   * sealed.
+   */
+  bool get isSealed;
 
   /**
    * Return `true` if this annotation marks the associated member as being

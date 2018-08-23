@@ -56,6 +56,9 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
   bool get hasRequired => actualElement.hasRequired;
 
   @override
+  bool get hasSealed => actualElement.hasSealed;
+
+  @override
   bool get hasStaticMember => actualElement.hasStaticMember;
 
   @override
@@ -386,6 +389,9 @@ abstract class ElementHandle implements Element {
 
   @override
   bool get hasRequired => actualElement.hasRequired;
+
+  @override
+  bool get hasSealed => actualElement.hasSealed;
 
   @override
   bool get hasVisibleForTemplate => actualElement.hasVisibleForTemplate;

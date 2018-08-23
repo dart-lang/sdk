@@ -76,6 +76,9 @@ class WrappedCompilationUnitElement implements CompilationUnitElement {
   bool get hasRequired => wrappedUnit.hasRequired;
 
   @override
+  bool get hasSealed => wrappedUnit.hasSealed;
+
+  @override
   bool get hasVisibleForTemplate => wrappedUnit.hasVisibleForTemplate;
 
   @override
@@ -250,6 +253,9 @@ class WrappedImportElement implements ImportElement {
 
   @override
   bool get hasRequired => wrappedImport.hasRequired;
+
+  @override
+  bool get hasSealed => wrappedImport.hasSealed;
 
   @override
   bool get hasVisibleForTemplate => wrappedImport.hasVisibleForTemplate;
@@ -444,6 +450,9 @@ class WrappedLibraryElement implements LibraryElement {
 
   @override
   bool get hasRequired => wrappedLib.hasRequired;
+
+  @override
+  bool get hasSealed => wrappedLib.hasSealed;
 
   @override
   bool get hasVisibleForTemplate => wrappedLib.hasVisibleForTemplate;
