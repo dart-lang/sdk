@@ -1221,7 +1221,8 @@ static RawError* ParseFunctionHelper(CompilationPipeline* pipeline,
 }
 
 RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
-#ifdef DART_PRECOMPILER
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
+    !defined(TARGET_ARCH_IA32)
   if (FLAG_precompiled_mode) {
     return Precompiler::CompileFunction(
         /* precompiler = */ NULL, thread, thread->zone(), function);
@@ -1468,7 +1469,8 @@ RawError* Compiler::ParseAllFunctions(const Class& cls) {
 }
 
 RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
-#ifdef DART_PRECOMPILER
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
+    !defined(TARGET_ARCH_IA32)
   if (FLAG_precompiled_mode) {
     return Precompiler::EvaluateStaticInitializer(field);
   }
@@ -1536,7 +1538,8 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
 }
 
 RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
-#ifdef DART_PRECOMPILER
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
+    !defined(TARGET_ARCH_IA32)
   if (FLAG_precompiled_mode) {
     return Precompiler::ExecuteOnce(fragment);
   }

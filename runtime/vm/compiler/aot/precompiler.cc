@@ -85,7 +85,8 @@ DECLARE_FLAG(int, inlining_constant_arguments_max_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_min_size_threshold);
 DECLARE_FLAG(bool, print_instruction_stats);
 
-#ifdef DART_PRECOMPILER
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
+    !defined(TARGET_ARCH_IA32)
 
 class DartPrecompilationPipeline : public DartCompilationPipeline {
  public:
@@ -3510,6 +3511,7 @@ const char** Obfuscator::SerializeMap(Thread* thread) {
   return result;
 }
 
-#endif  // DART_PRECOMPILER
+#endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&           \
+        // !defined(TARGET_ARCH_IA32)
 
 }  // namespace dart
