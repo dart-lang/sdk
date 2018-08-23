@@ -1418,8 +1418,13 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
   for (int i = 0; i < functions.Length(); i++) {
     func ^= functions.At(i);
     ASSERT(!func.IsNull());
-    if (!func.HasCode() && !func.is_abstract() &&
-        !func.IsRedirectingFactory()) {
+    if (!func.HasCode() &&
+#if defined(DART_USE_INTERPRETER)
+        // TODO(regis): Revisit.
+        // Do not compile function if its bytecode is already loaded.
+        !func.HasBytecode() &&
+#endif
+        !func.is_abstract() && !func.IsRedirectingFactory()) {
       if ((cls.is_mixin_app_alias() || cls.IsMixinApplication()) &&
           func.HasOptionalParameters()) {
         // Skipping optional parameters in mixin application.
@@ -1429,7 +1434,13 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
       if (result.IsError()) {
         return Error::Cast(result).raw();
       }
+#if defined(DART_USE_INTERPRETER)
+      // TODO(regis): Revisit.
+      // The compiler may load bytecode and return Code::null().
+      ASSERT(!result.IsNull() || func.HasBytecode());
+#else
       ASSERT(!result.IsNull());
+#endif
     }
   }
   return Error::null();
