@@ -640,8 +640,8 @@ ASSEMBLER_TEST_RUN(Testb2, test) {
 ASSEMBLER_TEST_GENERATE(Testb3, assembler) {
   Label zero;
   __ pushq(CallingConventions::kArg1Reg);
-  __ movq(RBX, Immediate(0x10));
-  __ testb(Address(RSP, 0), RBX);
+  __ movq(RDX, Immediate(0x10));
+  __ testb(Address(RSP, 0), RDX);
   __ j(ZERO, &zero);
   __ movq(RAX, Immediate(1));
   __ popq(RCX);
@@ -658,8 +658,8 @@ ASSEMBLER_TEST_RUN(Testb3, test) {
   EXPECT_EQ(0, reinterpret_cast<TestbCode>(test->entry())(0x101));
   EXPECT_DISASSEMBLY_NOT_WINDOWS(
       "push rdi\n"
-      "movl rbx,0x10\n"
-      "testb rbx,[rsp]\n"
+      "movl rdx,0x10\n"
+      "testb rdx,[rsp]\n"
       "jz 0x................\n"
       "movl rax,1\n"
       "pop rcx\n"
