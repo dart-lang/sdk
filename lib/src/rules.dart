@@ -35,6 +35,7 @@ import 'package:linter/src/rules/avoid_slow_async_io.dart';
 import 'package:linter/src/rules/avoid_types_as_parameter_names.dart';
 import 'package:linter/src/rules/avoid_types_on_closure_parameters.dart';
 import 'package:linter/src/rules/avoid_unused_constructor_parameters.dart';
+import 'package:linter/src/rules/avoid_void_async.dart';
 import 'package:linter/src/rules/await_only_futures.dart';
 import 'package:linter/src/rules/camel_case_types.dart';
 import 'package:linter/src/rules/cancel_subscriptions.dart';
@@ -161,6 +162,7 @@ void registerLintRules() {
     ..register(new AvoidSlowAsyncIo())
     ..register(new AvoidTypesAsParameterNames())
     ..register(new AvoidUnusedConstructorParameters())
+    ..register(new AvoidVoidAsync())
     ..register(new AwaitOnlyFutures())
     ..registerDefault(new CamelCaseTypes())
     ..register(new CancelSubscriptions())

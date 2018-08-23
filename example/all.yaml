@@ -34,6 +34,7 @@ linter:
     - avoid_types_as_parameter_names
     - avoid_types_on_closure_parameters
     - avoid_unused_constructor_parameters
+    - avoid_void_async
     - await_only_futures
     - camel_case_types
     - cancel_subscriptions

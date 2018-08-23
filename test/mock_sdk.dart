@@ -164,7 +164,8 @@ library dart.async;
 
 import 'dart:math';
 
-part 'stream.dart';
+class Stream<T> {}
+abstract class StreamTransformer<S, T> {}
 
 class Future<T> {
   factory Future.delayed(Duration duration, [T computation()]) => null;
@@ -176,8 +177,6 @@ class FutureOr<T> {}
 ''', const <_MockSdkFile>[
     const _MockSdkFile('/lib/async/stream.dart', r'''
 part of dart.async;
-class Stream<T> {}
-abstract class StreamTransformer<S, T> {}
 ''')
   ]);
 
