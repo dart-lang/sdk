@@ -972,6 +972,38 @@ void f(num x, int y) {
     assertElement(yRef, findElement.parameter('y'));
   }
 
+  test_assign_to_postfix_increment_compound() async {
+    addTestFile('''
+void f(num x, int y) {
+  x++ += y;
+}
+''');
+    await resolveTestFile();
+
+    var xRef = findNode.simple('x++');
+    assertType(xRef, 'num');
+    assertElement(xRef, findElement.parameter('x'));
+    var yRef = findNode.simple('y;');
+    assertType(yRef, 'int');
+    assertElement(yRef, findElement.parameter('y'));
+  }
+
+  test_assign_to_postfix_increment_null_aware() async {
+    addTestFile('''
+void f(num x, int y) {
+  x++ ??= y;
+}
+''');
+    await resolveTestFile();
+
+    var xRef = findNode.simple('x++');
+    assertType(xRef, 'num');
+    assertElement(xRef, findElement.parameter('x'));
+    var yRef = findNode.simple('y;');
+    assertType(yRef, 'int');
+    assertElement(yRef, findElement.parameter('y'));
+  }
+
   test_assign_to_prefix_increment() async {
     addTestFile('''
 void f(num x, int y) {

@@ -958,7 +958,16 @@ abstract class ContextAwareGenerator implements Generator {
   Expression buildNullAwareAssignment(
       Expression value, DartType type, int offset,
       {bool voidContext: false}) {
-    return makeInvalidWrite(value);
+    var lhs = buildSimpleRead();
+    // The lhs expression needs to have a parent so that type inference can be
+    // applied to it, but it doesn't matter what the parent is because the
+    // lhs expression won't appear in the tree.  So just give it a quick and
+    // dirty parent.
+    new VariableDeclaration.forValue(lhs);
+
+    return new IllegalAssignmentJudgment(value,
+        assignmentOffset: offset, desugared: makeInvalidWrite(value))
+      ..write = lhs;
   }
 
   @override
@@ -968,7 +977,16 @@ abstract class ContextAwareGenerator implements Generator {
       Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
-    return makeInvalidWrite(value);
+    var lhs = buildSimpleRead();
+    // The lhs expression needs to have a parent so that type inference can be
+    // applied to it, but it doesn't matter what the parent is because the
+    // lhs expression won't appear in the tree.  So just give it a quick and
+    // dirty parent.
+    new VariableDeclaration.forValue(lhs);
+
+    return new IllegalAssignmentJudgment(value,
+        assignmentOffset: offset, desugared: makeInvalidWrite(value))
+      ..write = lhs;
   }
 
   @override
