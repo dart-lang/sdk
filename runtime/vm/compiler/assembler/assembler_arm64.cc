@@ -433,7 +433,7 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) const {
 
 void Assembler::LoadNativeEntry(Register dst,
                                 const ExternalLabel* label,
-                                Patchability patchable) {
+                                ObjectPool::Patchability patchable) {
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindNativeFunction(label, patchable));
   LoadWordFromPoolOffset(dst, offset);
@@ -615,7 +615,7 @@ void Assembler::LoadDImmediate(VRegister vd, double immd) {
 
 void Assembler::Branch(const StubEntry& stub_entry,
                        Register pp,
-                       Patchability patchable) {
+                       ObjectPool::Patchability patchable) {
   const Code& target = Code::ZoneHandle(stub_entry.code());
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindObject(target, patchable));
@@ -625,11 +625,11 @@ void Assembler::Branch(const StubEntry& stub_entry,
 }
 
 void Assembler::BranchPatchable(const StubEntry& stub_entry) {
-  Branch(stub_entry, PP, kPatchable);
+  Branch(stub_entry, PP, ObjectPool::kPatchable);
 }
 
 void Assembler::BranchLink(const StubEntry& stub_entry,
-                           Patchability patchable) {
+                           ObjectPool::Patchability patchable) {
   const Code& target = Code::ZoneHandle(stub_entry.code());
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindObject(target, patchable));
@@ -639,7 +639,7 @@ void Assembler::BranchLink(const StubEntry& stub_entry,
 }
 
 void Assembler::BranchLinkPatchable(const StubEntry& stub_entry) {
-  BranchLink(stub_entry, kPatchable);
+  BranchLink(stub_entry, ObjectPool::kPatchable);
 }
 
 void Assembler::BranchLinkToRuntime() {

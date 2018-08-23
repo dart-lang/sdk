@@ -690,14 +690,15 @@ class Assembler : public ValueObject {
   void blx(Register rm, Condition cond = AL);
 
   void Branch(const StubEntry& stub_entry,
-              Patchability patchable = kNotPatchable,
+              ObjectPool::Patchability patchable = ObjectPool::kNotPatchable,
               Register pp = PP,
               Condition cond = AL);
 
-  void BranchLink(const StubEntry& stub_entry,
-                  Patchability patchable = kNotPatchable);
+  void BranchLink(
+      const StubEntry& stub_entry,
+      ObjectPool::Patchability patchable = ObjectPool::kNotPatchable);
   void BranchLink(const Code& code,
-                  Patchability patchable,
+                  ObjectPool::Patchability patchable,
                   Code::EntryKind entry_kind = Code::EntryKind::kNormal);
   void BranchLinkToRuntime();
 
@@ -793,7 +794,7 @@ class Assembler : public ValueObject {
                                   Register new_pp);
   void LoadNativeEntry(Register dst,
                        const ExternalLabel* label,
-                       Patchability patchable,
+                       ObjectPool::Patchability patchable,
                        Condition cond = AL);
   void PushObject(const Object& object);
   void CompareObject(Register rn, const Object& object);

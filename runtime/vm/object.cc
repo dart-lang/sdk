@@ -13487,7 +13487,7 @@ RawObjectPool* ObjectPool::New(intptr_t len) {
     result ^= raw;
     result.SetLength(len);
     for (intptr_t i = 0; i < len; i++) {
-      result.SetTypeAt(i, ObjectPool::kImmediate);
+      result.SetTypeAt(i, ObjectPool::kImmediate, ObjectPool::kPatchable);
     }
   }
 

@@ -1374,11 +1374,12 @@ class Assembler : public ValueObject {
 
   void Branch(const StubEntry& stub_entry,
               Register pp,
-              Patchability patchable = kNotPatchable);
+              ObjectPool::Patchability patchable = ObjectPool::kNotPatchable);
   void BranchPatchable(const StubEntry& stub_entry);
 
-  void BranchLink(const StubEntry& stub_entry,
-                  Patchability patchable = kNotPatchable);
+  void BranchLink(
+      const StubEntry& stub_entry,
+      ObjectPool::Patchability patchable = ObjectPool::kNotPatchable);
 
   void BranchLinkPatchable(const StubEntry& stub_entry);
   void BranchLinkToRuntime();
@@ -1490,7 +1491,7 @@ class Assembler : public ValueObject {
   bool CanLoadFromObjectPool(const Object& object) const;
   void LoadNativeEntry(Register dst,
                        const ExternalLabel* label,
-                       Patchability patchable);
+                       ObjectPool::Patchability patchable);
   void LoadFunctionFromCalleePool(Register dst,
                                   const Function& function,
                                   Register new_pp);

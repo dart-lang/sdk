@@ -1508,7 +1508,7 @@ void Assembler::LoadFunctionFromCalleePool(Register dst,
 
 void Assembler::LoadNativeEntry(Register rd,
                                 const ExternalLabel* label,
-                                Patchability patchable,
+                                ObjectPool::Patchability patchable,
                                 Condition cond) {
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindNativeFunction(label, patchable));
@@ -2449,7 +2449,7 @@ void Assembler::Vdivqs(QRegister qd, QRegister qn, QRegister qm) {
 }
 
 void Assembler::Branch(const StubEntry& stub_entry,
-                       Patchability patchable,
+                       ObjectPool::Patchability patchable,
                        Register pp,
                        Condition cond) {
   const Code& target_code = Code::ZoneHandle(stub_entry.code());
@@ -2461,7 +2461,7 @@ void Assembler::Branch(const StubEntry& stub_entry,
 }
 
 void Assembler::BranchLink(const Code& target,
-                           Patchability patchable,
+                           ObjectPool::Patchability patchable,
                            Code::EntryKind entry_kind) {
   // Make sure that class CallPattern is able to patch the label referred
   // to by this code sequence.
@@ -2475,14 +2475,14 @@ void Assembler::BranchLink(const Code& target,
 }
 
 void Assembler::BranchLink(const StubEntry& stub_entry,
-                           Patchability patchable) {
+                           ObjectPool::Patchability patchable) {
   const Code& code = Code::ZoneHandle(stub_entry.code());
   BranchLink(code, patchable);
 }
 
 void Assembler::BranchLinkPatchable(const Code& target,
                                     Code::EntryKind entry_kind) {
-  BranchLink(target, kPatchable, entry_kind);
+  BranchLink(target, ObjectPool::kPatchable, entry_kind);
 }
 
 void Assembler::BranchLinkToRuntime() {

@@ -45,7 +45,7 @@ void Assembler::call(Label* label) {
 
 void Assembler::LoadNativeEntry(Register dst,
                                 const ExternalLabel* label,
-                                Patchability patchable) {
+                                ObjectPool::Patchability patchable) {
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindNativeFunction(label, patchable));
   LoadWordFromPoolOffset(dst, offset - kHeapObjectTag);
@@ -66,7 +66,8 @@ void Assembler::CallPatchable(const StubEntry& stub_entry,
   ASSERT(constant_pool_allowed());
   const Code& target = Code::ZoneHandle(stub_entry.code());
   intptr_t call_start = buffer_.GetPosition();
-  const intptr_t idx = object_pool_wrapper_.AddObject(target, kPatchable);
+  const intptr_t idx =
+      object_pool_wrapper_.AddObject(target, ObjectPool::kPatchable);
   const int32_t offset = ObjectPool::element_offset(idx);
   LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag);
   movq(TMP, FieldAddress(CODE_REG, Code::entry_point_offset(entry_kind)));
@@ -89,7 +90,8 @@ void Assembler::CallWithEquivalence(const StubEntry& stub_entry,
 void Assembler::Call(const StubEntry& stub_entry) {
   ASSERT(constant_pool_allowed());
   const Code& target = Code::ZoneHandle(stub_entry.code());
-  const intptr_t idx = object_pool_wrapper_.FindObject(target, kNotPatchable);
+  const intptr_t idx =
+      object_pool_wrapper_.FindObject(target, ObjectPool::kNotPatchable);
   const int32_t offset = ObjectPool::element_offset(idx);
   LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag);
   movq(TMP, FieldAddress(CODE_REG, Code::entry_point_offset()));
@@ -932,7 +934,8 @@ void Assembler::jmp(const ExternalLabel* label) {
 void Assembler::JmpPatchable(const StubEntry& stub_entry, Register pp) {
   ASSERT((pp != PP) || constant_pool_allowed());
   const Code& target = Code::ZoneHandle(stub_entry.code());
-  const intptr_t idx = object_pool_wrapper_.AddObject(target, kPatchable);
+  const intptr_t idx =
+      object_pool_wrapper_.AddObject(target, ObjectPool::kPatchable);
   const int32_t offset = ObjectPool::element_offset(idx);
   movq(CODE_REG, Address::AddressBaseImm32(pp, offset - kHeapObjectTag));
   movq(TMP, FieldAddress(CODE_REG, Code::entry_point_offset()));
@@ -942,7 +945,8 @@ void Assembler::JmpPatchable(const StubEntry& stub_entry, Register pp) {
 void Assembler::Jmp(const StubEntry& stub_entry, Register pp) {
   ASSERT((pp != PP) || constant_pool_allowed());
   const Code& target = Code::ZoneHandle(stub_entry.code());
-  const intptr_t idx = object_pool_wrapper_.FindObject(target, kNotPatchable);
+  const intptr_t idx =
+      object_pool_wrapper_.FindObject(target, ObjectPool::kNotPatchable);
   const int32_t offset = ObjectPool::element_offset(idx);
   movq(CODE_REG, FieldAddress(pp, offset));
   movq(TMP, FieldAddress(CODE_REG, Code::entry_point_offset()));
@@ -1142,7 +1146,8 @@ void Assembler::LoadFunctionFromCalleePool(Register dst,
                                            Register new_pp) {
   ASSERT(!constant_pool_allowed());
   ASSERT(new_pp != PP);
-  const intptr_t idx = object_pool_wrapper_.FindObject(function, kNotPatchable);
+  const intptr_t idx =
+      object_pool_wrapper_.FindObject(function, ObjectPool::kNotPatchable);
   const int32_t offset = ObjectPool::element_offset(idx);
   movq(dst, Address::AddressBaseImm32(new_pp, offset - kHeapObjectTag));
 }
@@ -1190,7 +1195,8 @@ void Assembler::CompareObject(Register reg, const Object& object) {
   if (Thread::CanLoadFromThread(object)) {
     cmpq(reg, Address(THR, Thread::OffsetFromThread(object)));
   } else if (CanLoadFromObjectPool(object)) {
-    const intptr_t idx = object_pool_wrapper_.FindObject(object, kNotPatchable);
+    const intptr_t idx =
+        object_pool_wrapper_.FindObject(object, ObjectPool::kNotPatchable);
     const int32_t offset = ObjectPool::element_offset(idx);
     cmpq(reg, Address(PP, offset - kHeapObjectTag));
   } else {

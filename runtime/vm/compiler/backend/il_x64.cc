@@ -864,7 +864,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (link_lazily()) {
     stub_entry = StubCode::CallBootstrapNative_entry();
     ExternalLabel label(NativeEntry::LinkNativeCallEntry());
-    __ LoadNativeEntry(RBX, &label, kPatchable);
+    __ LoadNativeEntry(RBX, &label, ObjectPool::kPatchable);
     compiler->GeneratePatchableCall(token_pos(), *stub_entry,
                                     RawPcDescriptors::kOther, locs());
   } else {
@@ -876,7 +876,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       stub_entry = StubCode::CallNoScopeNative_entry();
     }
     const ExternalLabel label(reinterpret_cast<uword>(native_c_function()));
-    __ LoadNativeEntry(RBX, &label, kNotPatchable);
+    __ LoadNativeEntry(RBX, &label, ObjectPool::kNotPatchable);
     compiler->GenerateCall(token_pos(), *stub_entry, RawPcDescriptors::kOther,
                            locs());
   }

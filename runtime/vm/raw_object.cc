@@ -529,10 +529,10 @@ intptr_t RawObjectPool::VisitObjectPoolPointers(RawObjectPool* raw_obj,
                                                 ObjectPointerVisitor* visitor) {
   const intptr_t length = raw_obj->ptr()->length_;
   RawObjectPool::Entry* entries = raw_obj->ptr()->data();
-  uint8_t* entry_types = raw_obj->ptr()->entry_types();
+  uint8_t* entry_bits = raw_obj->ptr()->entry_bits();
   for (intptr_t i = 0; i < length; ++i) {
     ObjectPool::EntryType entry_type =
-        static_cast<ObjectPool::EntryType>(entry_types[i]);
+        ObjectPool::TypeBits::decode(entry_bits[i]);
     if (entry_type == ObjectPool::kTaggedObject) {
       visitor->VisitPointer(&entries[i].raw_obj_);
     }

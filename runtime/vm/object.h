@@ -4356,6 +4356,15 @@ class ObjectPool : public Object {
     kNativeFunctionWrapper,
   };
 
+  enum Patchability {
+    kPatchable,
+    kNotPatchable,
+  };
+
+  class TypeBits : public BitField<uint8_t, EntryType, 0, 7> {};
+  class PatchableBit
+      : public BitField<uint8_t, Patchability, TypeBits::kNextBit, 1> {};
+
   struct Entry {
     Entry() : raw_value_(), type_() {}
     explicit Entry(const Object* obj) : obj_(obj), type_(kTaggedObject) {}
@@ -4382,11 +4391,17 @@ class ObjectPool : public Object {
   }
 
   EntryType TypeAt(intptr_t index) const {
-    return static_cast<EntryType>(raw_ptr()->entry_types()[index]);
+    return TypeBits::decode(raw_ptr()->entry_bits()[index]);
   }
-  void SetTypeAt(intptr_t index, EntryType type) const {
-    StoreNonPointer(&raw_ptr()->entry_types()[index],
-                    static_cast<uint8_t>(type));
+
+  Patchability PatchableAt(intptr_t index) const {
+    return PatchableBit::decode(raw_ptr()->entry_bits()[index]);
+  }
+
+  void SetTypeAt(intptr_t index, EntryType type, Patchability patchable) const {
+    const uint8_t bits =
+        PatchableBit::encode(patchable) | TypeBits::encode(type);
+    StoreNonPointer(&raw_ptr()->entry_bits()[index], bits);
   }
 
   RawObject* ObjectAt(intptr_t index) const {
