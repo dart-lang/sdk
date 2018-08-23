@@ -706,7 +706,6 @@ parser_quirks_test: CompileTimeError
 redirecting_factory_reflection_test: RuntimeError
 regress_23408_test: CompileTimeError
 regress_24283_test: RuntimeError, OK # non JS number semantics
-regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
 regress_28255_test: RuntimeError
 regress_29025_test: CompileTimeError
 regress_29405_test: CompileTimeError

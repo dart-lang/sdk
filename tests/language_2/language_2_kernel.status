@@ -290,7 +290,6 @@ partial_tearoff_instantiation_test/08: MissingCompileTimeError # Issue 32281
 redirecting_factory_default_values_test/01: MissingCompileTimeError # Issue 34160
 redirecting_factory_default_values_test/02: MissingCompileTimeError # Issue 34160
 regress_22976_test/*: CompileTimeError # Issue 31935
-regress_27617_test/1: MissingCompileTimeError # Issue 34161
 syntax_test/28: MissingCompileTimeError # Issue 29763 - low priority
 syntax_test/29: MissingCompileTimeError # Issue 29763 - low priority
 syntax_test/30: MissingCompileTimeError # Issue 29763 - low priority

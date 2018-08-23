@@ -4343,7 +4343,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           constructor,
           forest.castArguments(arguments),
           buildCompileTimeError(fasta.messageConstConstructorWithNonConstSuper,
-              charOffset, member.name.length),
+              charOffset, constructor.name.name.length),
           charOffset);
     }
     needsImplicitSuperInitializer = false;

@@ -974,6 +974,18 @@ const MessageCode messageConstConstructorNonFinalFieldCause = const MessageCode(
     message: r"""Field isn't final, but constructor is 'const'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstConstructorRedirectionToNonConst =
+    messageConstConstructorRedirectionToNonConst;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstConstructorRedirectionToNonConst =
+    const MessageCode("ConstConstructorRedirectionToNonConst",
+        dart2jsCode: "*fatal*",
+        severity: Severity.error,
+        message:
+            r"""A constant constructor can't call a non-constant constructor.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstConstructorWithBody = messageConstConstructorWithBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

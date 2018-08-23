@@ -250,6 +250,7 @@ prefix_shadow_test/01: Crash # Error recovery in method body (attempt to use typ
 prefix_variable_collision_test/01: Crash # Issue 33686 - No core library found
 regress_20394_test/01: Crash # Error recovery in method body (error in super constructor call)
 regress_23408_test: CompileTimeError # Issue 34047
+regress_27617_test/1: Crash # The analyzer doesn't report this error.
 regress_28217_test/01: Crash # Error recovery in method body (error in constructor redirect)
 regress_28217_test/none: Crash # Error recovery in method body (error in constructor redirect)
 regress_29025_test: CompileTimeError # Issue 34047
