@@ -13555,16 +13555,6 @@ class C<@Foo.bar(const [], const [1], const{"":r""}, 0xFF + 2, .3, 4.5) T> {}
     expect(declaration.metadata, hasLength(2));
   }
 
-  void test_parseCommentAndMetadata_mm() {
-    createParser('@A @B(x) class C {}');
-    CompilationUnit unit = parser.parseCompilationUnit2();
-    expectNotNullIfNoErrors(unit);
-    assertNoErrors();
-    ClassDeclaration declaration = unit.declarations[0];
-    expect(declaration.documentationComment, isNull);
-    expect(declaration.metadata, hasLength(2));
-  }
-
   void test_parseCommentAndMetadata_mix1() {
     createParser(r'''
 /**
@@ -13662,6 +13652,16 @@ class E {}
     expect(tokens[0].lexeme, contains('aaa'));
   }
 
+  void test_parseCommentAndMetadata_mm() {
+    createParser('@A @B(x) class C {}');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    expectNotNullIfNoErrors(unit);
+    assertNoErrors();
+    ClassDeclaration declaration = unit.declarations[0];
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.metadata, hasLength(2));
+  }
+
   void test_parseCommentAndMetadata_none() {
     createParser('class C {}');
     CompilationUnit unit = parser.parseCompilationUnit2();
@@ -13684,75 +13684,6 @@ class C {}
     ClassDeclaration declaration = unit.declarations[0];
     expect(declaration.documentationComment, isNotNull);
     expect(declaration.metadata, isEmpty);
-  }
-
-  void test_parseCommentReferences_33738() {
-    CompilationUnit unit =
-        parseCompilationUnit('/** [String] */ abstract class Foo {}');
-    ClassDeclaration clazz = unit.declarations[0];
-    Comment comment = clazz.documentationComment;
-    expect(clazz.isAbstract, isTrue);
-    List<CommentReference> references = comment.references;
-    expect(references, hasLength(1));
-    CommentReference reference = references[0];
-    expect(reference, isNotNull);
-    expect(reference.identifier, isNotNull);
-    expect(reference.offset, 5);
-  }
-
-  void test_parseCommentReferences_beforeAnnotation() {
-    CompilationUnit unit = parseCompilationUnit('''
-/// See [int] and [String]
-/// and [Object].
-@Annotation
-abstract class Foo {}
-''');
-    ClassDeclaration clazz = unit.declarations[0];
-    Comment comment = clazz.documentationComment;
-    expect(clazz.isAbstract, isTrue);
-    List<CommentReference> references = comment.references;
-    expect(references, hasLength(3));
-
-    expectReference(int index, String expectedText, int expectedOffset) {
-      CommentReference reference = references[index];
-      expect(reference.identifier.name, expectedText);
-      expect(reference.offset, expectedOffset);
-    }
-
-    expectReference(0, 'int', 9);
-    expectReference(1, 'String', 19);
-    expectReference(2, 'Object', 36);
-  }
-
-  void test_parseCommentReferences_complex() {
-    CompilationUnit unit = parseCompilationUnit('''
-/// This dartdoc comment [should] be ignored
-@Annotation
-/// This dartdoc comment is [included].
-// a non dartdoc comment [inbetween]
-/// See [int] and [String] but `not [a]`
-/// ```
-/// This [code] block should be ignored
-/// ```
-/// and [Object].
-abstract class Foo {}
-''');
-    ClassDeclaration clazz = unit.declarations[0];
-    Comment comment = clazz.documentationComment;
-    expect(clazz.isAbstract, isTrue);
-    List<CommentReference> references = comment.references;
-    expect(references, hasLength(4));
-
-    expectReference(int index, String expectedText, int expectedOffset) {
-      CommentReference reference = references[index];
-      expect(reference.identifier.name, expectedText);
-      expect(reference.offset, expectedOffset);
-    }
-
-    expectReference(0, 'included', 86);
-    expectReference(1, 'int', 143);
-    expectReference(2, 'String', 153);
-    expectReference(3, 'Object', 240);
   }
 
   void test_parseCommentReference_new_prefixed() {
@@ -13908,6 +13839,75 @@ abstract class Foo {}
     expect(identifier.token, isNotNull);
     expect(identifier.name, "a");
     expect(identifier.offset, 5);
+  }
+
+  void test_parseCommentReferences_33738() {
+    CompilationUnit unit =
+        parseCompilationUnit('/** [String] */ abstract class Foo {}');
+    ClassDeclaration clazz = unit.declarations[0];
+    Comment comment = clazz.documentationComment;
+    expect(clazz.isAbstract, isTrue);
+    List<CommentReference> references = comment.references;
+    expect(references, hasLength(1));
+    CommentReference reference = references[0];
+    expect(reference, isNotNull);
+    expect(reference.identifier, isNotNull);
+    expect(reference.offset, 5);
+  }
+
+  void test_parseCommentReferences_beforeAnnotation() {
+    CompilationUnit unit = parseCompilationUnit('''
+/// See [int] and [String]
+/// and [Object].
+@Annotation
+abstract class Foo {}
+''');
+    ClassDeclaration clazz = unit.declarations[0];
+    Comment comment = clazz.documentationComment;
+    expect(clazz.isAbstract, isTrue);
+    List<CommentReference> references = comment.references;
+    expect(references, hasLength(3));
+
+    expectReference(int index, String expectedText, int expectedOffset) {
+      CommentReference reference = references[index];
+      expect(reference.identifier.name, expectedText);
+      expect(reference.offset, expectedOffset);
+    }
+
+    expectReference(0, 'int', 9);
+    expectReference(1, 'String', 19);
+    expectReference(2, 'Object', 36);
+  }
+
+  void test_parseCommentReferences_complex() {
+    CompilationUnit unit = parseCompilationUnit('''
+/// This dartdoc comment [should] be ignored
+@Annotation
+/// This dartdoc comment is [included].
+// a non dartdoc comment [inbetween]
+/// See [int] and [String] but `not [a]`
+/// ```
+/// This [code] block should be ignored
+/// ```
+/// and [Object].
+abstract class Foo {}
+''');
+    ClassDeclaration clazz = unit.declarations[0];
+    Comment comment = clazz.documentationComment;
+    expect(clazz.isAbstract, isTrue);
+    List<CommentReference> references = comment.references;
+    expect(references, hasLength(4));
+
+    expectReference(int index, String expectedText, int expectedOffset) {
+      CommentReference reference = references[index];
+      expect(reference.identifier.name, expectedText);
+      expect(reference.offset, expectedOffset);
+    }
+
+    expectReference(0, 'included', 86);
+    expectReference(1, 'int', 143);
+    expectReference(2, 'String', 153);
+    expectReference(3, 'Object', 240);
   }
 
   void test_parseCommentReferences_multiLine() {
@@ -14136,10 +14136,17 @@ abstract class Foo {}
     expect(reference.offset, 27);
   }
 
-  void test_parseCommentReferences_skipLinkDefinition() {
+  void test_parseCommentReferences_skipLink_direct_multiLine() {
     List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
-      new DocumentationCommentToken(TokenType.MULTI_LINE_COMMENT,
-          "/** [a]: http://www.google.com (Google) [b] zzz */", 3)
+      new DocumentationCommentToken(
+          TokenType.MULTI_LINE_COMMENT,
+          '''
+/**
+ * [a link split across multiple
+ * lines](http://www.google.com) [b] zzz
+ */
+''',
+          3)
     ];
     createParser('');
     List<CommentReference> references = parser.parseCommentReferences(tokens);
@@ -14149,10 +14156,10 @@ abstract class Foo {}
     CommentReference reference = references[0];
     expect(reference, isNotNull);
     expect(reference.identifier, isNotNull);
-    expect(reference.offset, 44);
+    expect(reference.offset, 74);
   }
 
-  void test_parseCommentReferences_skipLinked() {
+  void test_parseCommentReferences_skipLink_direct_singleLine() {
     List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
       new DocumentationCommentToken(TokenType.MULTI_LINE_COMMENT,
           "/** [a](http://www.google.com) [b] zzz */", 3)
@@ -14168,7 +14175,30 @@ abstract class Foo {}
     expect(reference.offset, 35);
   }
 
-  void test_parseCommentReferences_skipReferenceLink() {
+  void test_parseCommentReferences_skipLink_reference_multiLine() {
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+      new DocumentationCommentToken(
+          TokenType.MULTI_LINE_COMMENT,
+          '''
+/**
+ * [a link split across multiple
+ * lines][c] [b] zzz
+ */
+''',
+          3)
+    ];
+    createParser('');
+    List<CommentReference> references = parser.parseCommentReferences(tokens);
+    expectNotNullIfNoErrors(references);
+    assertNoErrors();
+    expect(references, hasLength(1));
+    CommentReference reference = references[0];
+    expect(reference, isNotNull);
+    expect(reference.identifier, isNotNull);
+    expect(reference.offset, 54);
+  }
+
+  void test_parseCommentReferences_skipLink_reference_singleLine() {
     List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
       new DocumentationCommentToken(
           TokenType.MULTI_LINE_COMMENT, "/** [a][c] [b] zzz */", 3)
@@ -14182,6 +14212,22 @@ abstract class Foo {}
     expect(reference, isNotNull);
     expect(reference.identifier, isNotNull);
     expect(reference.offset, 15);
+  }
+
+  void test_parseCommentReferences_skipLinkDefinition() {
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+      new DocumentationCommentToken(TokenType.MULTI_LINE_COMMENT,
+          "/** [a]: http://www.google.com (Google) [b] zzz */", 3)
+    ];
+    createParser('');
+    List<CommentReference> references = parser.parseCommentReferences(tokens);
+    expectNotNullIfNoErrors(references);
+    assertNoErrors();
+    expect(references, hasLength(1));
+    CommentReference reference = references[0];
+    expect(reference, isNotNull);
+    expect(reference.identifier, isNotNull);
+    expect(reference.offset, 44);
   }
 
   void test_parseConfiguration_noOperator_dottedIdentifier() {
@@ -18100,24 +18146,6 @@ enum E {
     expect(alias.semicolon, isNotNull);
   }
 
-  void test_parseGenericTypeAlias_typeParameters_extends_gtGtEq() {
-    // The scanner creates a single token for `>>=`
-    // then the parser must split it into three separate tokens.
-    createParser('typedef F<A,B,C extends D<E>>=Function(A a, B b, C c);');
-    GenericTypeAlias alias = parseFullCompilationUnitMember();
-    expect(alias, isNotNull);
-    assertNoErrors();
-    expect(alias.name, isNotNull);
-    expect(alias.name.name, 'F');
-    expect(alias.typeParameters.typeParameters, hasLength(3));
-    TypeParameter typeParam = alias.typeParameters.typeParameters[2];
-    NamedType type = typeParam.bound;
-    expect(type.typeArguments.arguments, hasLength(1));
-    expect(alias.equals, isNotNull);
-    expect(alias.functionType, isNotNull);
-    expect(alias.semicolon, isNotNull);
-  }
-
   void test_parseGenericTypeAlias_typeParameters_extends3() {
     createParser(
         'typedef F<A,B,C extends D<E,G,H>> = Function(A a, B b, C c);');
@@ -18148,6 +18176,24 @@ enum E {
     TypeParameter typeParam = alias.typeParameters.typeParameters[2];
     NamedType type = typeParam.bound;
     expect(type.typeArguments.arguments, hasLength(3));
+    expect(alias.equals, isNotNull);
+    expect(alias.functionType, isNotNull);
+    expect(alias.semicolon, isNotNull);
+  }
+
+  void test_parseGenericTypeAlias_typeParameters_extends_gtGtEq() {
+    // The scanner creates a single token for `>>=`
+    // then the parser must split it into three separate tokens.
+    createParser('typedef F<A,B,C extends D<E>>=Function(A a, B b, C c);');
+    GenericTypeAlias alias = parseFullCompilationUnitMember();
+    expect(alias, isNotNull);
+    assertNoErrors();
+    expect(alias.name, isNotNull);
+    expect(alias.name.name, 'F');
+    expect(alias.typeParameters.typeParameters, hasLength(3));
+    TypeParameter typeParam = alias.typeParameters.typeParameters[2];
+    NamedType type = typeParam.bound;
+    expect(type.typeArguments.arguments, hasLength(1));
     expect(alias.equals, isNotNull);
     expect(alias.functionType, isNotNull);
     expect(alias.semicolon, isNotNull);

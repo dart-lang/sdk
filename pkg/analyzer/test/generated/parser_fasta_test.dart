@@ -1038,6 +1038,16 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
     StringLiteral literal = expression.expression;
     expect(literal.stringValue, 'a');
   }
+
+  @failingTest
+  @override
+  void test_parseCommentReferences_skipLink_direct_multiLine() =>
+      super.test_parseCommentReferences_skipLink_direct_multiLine();
+
+  @failingTest
+  @override
+  void test_parseCommentReferences_skipLink_reference_multiLine() =>
+      super.test_parseCommentReferences_skipLink_reference_multiLine();
 }
 
 /**
