@@ -142,7 +142,8 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+  Expression buildAssignment(Expression value,
+      {bool voidContext: false, int offset: -1}) {
     var complexAssignment = startComplexAssignment(value);
     return _finish(_makeSimpleWrite(value, voidContext, complexAssignment),
         complexAssignment);
@@ -1531,7 +1532,8 @@ class KernelUnresolvedNameGenerator extends KernelGenerator
       : super(helper, token);
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+  Expression buildAssignment(Expression value,
+      {bool voidContext: false, int offset: -1}) {
     return _buildUnresolvedVariableAssignment(false, value);
   }
 
@@ -1596,7 +1598,8 @@ class KernelUnlinkedGenerator extends KernelGenerator with UnlinkedGenerator {
         super(helper, token);
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext}) {
+  Expression buildAssignment(Expression value,
+      {bool voidContext, int offset: -1}) {
     return new PropertySet(receiver, name, value)
       ..fileOffset = offsetForToken(token);
   }

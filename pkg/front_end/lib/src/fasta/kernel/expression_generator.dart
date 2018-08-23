@@ -120,7 +120,8 @@ abstract class ExpressionGenerator {
   ///
   /// The returned expression evaluates to the assigned value, unless
   /// [voidContext] is true, in which case it may evaluate to anything.
-  Expression buildAssignment(Expression value, {bool voidContext});
+  Expression buildAssignment(Expression value,
+      {bool voidContext, int offset: -1});
 
   /// Returns a [Expression] representing a null-aware assignment (`??=`) with
   /// the generator on the LHS and [value] on the RHS.
@@ -780,7 +781,8 @@ abstract class ErroneousExpressionGenerator implements Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+  Expression buildAssignment(Expression value,
+      {bool voidContext: false, int offset: -1}) {
     return new SyntheticExpressionJudgment(buildError(
         forest.arguments(<Expression>[value], token, token),
         isSetter: true));
@@ -938,8 +940,18 @@ abstract class ContextAwareGenerator implements Generator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    return makeInvalidWrite(value);
+  Expression buildAssignment(Expression value,
+      {bool voidContext: false, int offset: -1}) {
+    var lhs = buildSimpleRead();
+    // The lhs expression needs to have a parent so that type inference can be
+    // applied to it, but it doesn't matter what the parent is because the
+    // lhs expression won't appear in the tree.  So just give it a quick and
+    // dirty parent.
+    new VariableDeclaration.forValue(lhs);
+
+    return new IllegalAssignmentJudgment(value,
+        assignmentOffset: offset, desugared: makeInvalidWrite(value))
+      ..write = lhs;
   }
 
   @override
@@ -962,7 +974,18 @@ abstract class ContextAwareGenerator implements Generator {
   @override
   Expression buildPrefixIncrement(Name binaryOperator,
       {int offset: -1, bool voidContext: false, Procedure interfaceTarget}) {
-    return makeInvalidWrite(null);
+    var innerExpression = buildSimpleRead();
+    // The inner expression needs to have a parent so that type inference can be
+    // applied to it, but it doesn't matter what the parent is because the
+    // inner expression won't appear in the tree.  So just give it a quick and
+    // dirty parent.
+    new VariableDeclaration.forValue(innerExpression);
+
+    return new IllegalAssignmentJudgment(
+        forest.literalInt(1, null, isSynthetic: true),
+        assignmentOffset: offset,
+        desugared: makeInvalidWrite(null))
+      ..write = innerExpression;
   }
 
   @override
@@ -1038,7 +1061,8 @@ abstract class DelayedAssignment implements ContextAwareGenerator {
 
   Expression makeAssignmentExpression(bool voidContext) {
     if (identical("=", assignmentOperator)) {
-      return generator.buildAssignment(value, voidContext: voidContext);
+      return generator.buildAssignment(value,
+          voidContext: voidContext, offset: token.offset);
     } else if (identical("+=", assignmentOperator)) {
       return generator.buildCompoundAssignment(plusName, value,
           offset: offsetForToken(token), voidContext: voidContext);

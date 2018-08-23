@@ -956,6 +956,38 @@ void f(int x, double y, String z) {
     assertElement(zRef, findElement.parameter('z'));
   }
 
+  test_assign_to_postfix_increment() async {
+    addTestFile('''
+void f(num x, int y) {
+  x++ = y;
+}
+''');
+    await resolveTestFile();
+
+    var xRef = findNode.simple('x++');
+    assertType(xRef, 'num');
+    assertElement(xRef, findElement.parameter('x'));
+    var yRef = findNode.simple('y;');
+    assertType(yRef, 'int');
+    assertElement(yRef, findElement.parameter('y'));
+  }
+
+  test_assign_to_prefix_increment() async {
+    addTestFile('''
+void f(num x, int y) {
+  ++x = y;
+}
+''');
+    await resolveTestFile();
+
+    var xRef = findNode.simple('x =');
+    assertType(xRef, 'num');
+    assertElement(xRef, findElement.parameter('x'));
+    var yRef = findNode.simple('y;');
+    assertType(yRef, 'int');
+    assertElement(yRef, findElement.parameter('y'));
+  }
+
   test_assign_with_synthetic_lhs() async {
     addTestFile('''
 void f(int x) {
@@ -7274,6 +7306,19 @@ void f(bool x) {
 
     var xRef = findNode.simple('x;');
     assertType(xRef, 'bool');
+    assertElement(xRef, findElement.parameter('x'));
+  }
+
+  test_prefix_increment_of_postfix_increment() async {
+    addTestFile('''
+void f(int x) {
+  ++x++;
+}
+''');
+    await resolveTestFile();
+
+    var xRef = findNode.simple('x++');
+    assertType(xRef, 'int');
     assertElement(xRef, findElement.parameter('x'));
   }
 
