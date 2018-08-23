@@ -6640,6 +6640,8 @@ const Code<Null> codeSuperAsIdentifier = messageSuperAsIdentifier;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSuperAsIdentifier = const MessageCode(
     "SuperAsIdentifier",
+    analyzerCode: "SUPER_AS_EXPRESSION",
+    dart2jsCode: "*fatal*",
     message: r"""Expected identifier, but got 'super'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

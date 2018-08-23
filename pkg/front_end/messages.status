@@ -324,7 +324,6 @@ SourceOutlineSummary/example: Fail
 StackOverflow/example: Fail
 StaticAfterConst/script1: Fail
 SuperAsExpression/example: Fail
-SuperAsIdentifier/analyzerCode: Fail
 SuperAsIdentifier/example: Fail
 SuperNullAware/example: Fail
 SuperclassHasNoDefaultConstructor/example: Fail

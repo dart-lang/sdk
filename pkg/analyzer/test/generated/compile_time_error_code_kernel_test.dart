@@ -1189,50 +1189,14 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_superInInvalidContext_binaryExpression() async {
-    await super.test_superInInvalidContext_binaryExpression();
-  }
-
-  @override
-  @failingTest
   test_superInInvalidContext_constructorFieldInitializer() async {
     await super.test_superInInvalidContext_constructorFieldInitializer();
   }
 
   @override
   @failingTest
-  test_superInInvalidContext_factoryConstructor() async {
-    await super.test_superInInvalidContext_factoryConstructor();
-  }
-
-  @override
-  @failingTest
   test_superInInvalidContext_instanceVariableInitializer() async {
     await super.test_superInInvalidContext_instanceVariableInitializer();
-  }
-
-  @override
-  @failingTest
-  test_superInInvalidContext_staticMethod() async {
-    await super.test_superInInvalidContext_staticMethod();
-  }
-
-  @override
-  @failingTest
-  test_superInInvalidContext_staticVariableInitializer() async {
-    await super.test_superInInvalidContext_staticVariableInitializer();
-  }
-
-  @override
-  @failingTest
-  test_superInInvalidContext_topLevelFunction() async {
-    await super.test_superInInvalidContext_topLevelFunction();
-  }
-
-  @override
-  @failingTest
-  test_superInInvalidContext_topLevelVariableInitializer() async {
-    await super.test_superInInvalidContext_topLevelVariableInitializer();
   }
 
   @override

@@ -2362,6 +2362,8 @@ ThisAsIdentifier:
 
 SuperAsIdentifier:
   template: "Expected identifier, but got 'super'."
+  analyzerCode: SUPER_AS_EXPRESSION
+  dart2jsCode: "*fatal*"
 
 SuperAsExpression:
   template: "Can't use 'super' as an expression."
