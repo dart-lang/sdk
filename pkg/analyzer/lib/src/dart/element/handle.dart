@@ -71,6 +71,9 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
   bool get isJS => actualElement.hasJS;
 
   @override
+  bool get isMixin => actualElement.isMixin;
+
+  @override
   bool get isMixinApplication => actualElement.isMixinApplication;
 
   @override
@@ -93,6 +96,10 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
 
   @override
   List<InterfaceType> get mixins => actualElement.mixins;
+
+  @override
+  List<InterfaceType> get superclassConstraints =>
+      actualElement.superclassConstraints;
 
   @override
   InterfaceType get supertype => actualElement.supertype;

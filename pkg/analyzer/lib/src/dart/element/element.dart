@@ -121,10 +121,16 @@ abstract class AbstractClassElementImpl extends ElementImpl
   }
 
   @override
-  bool get isEnum;
+  bool get isEnum => false;
+
+  @override
+  bool get isMixin => false;
 
   @override
   ElementKind get kind => ElementKind.CLASS;
+
+  @override
+  List<InterfaceType> get superclassConstraints => const <InterfaceType>[];
 
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitClassElement(this);
@@ -835,9 +841,6 @@ class ClassElementImpl extends AbstractClassElementImpl
     }
     return hasModifier(Modifier.ABSTRACT);
   }
-
-  @override
-  bool get isEnum => false;
 
   @override
   bool get isMixinApplication {
@@ -7457,6 +7460,73 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
 
     return new FunctionElementImpl.synthetic(covariantParameters, returnType)
         .type;
+  }
+}
+
+/**
+ * A [ClassElementImpl] representing a mixin declaration.
+ */
+class MixinElementImpl extends ClassElementImpl {
+  // TODO(brianwilkerson) Consider creating an abstract superclass of
+  // ClassElementImpl that contains the portions of the API that this class
+  // needs, and make this class extend the new class.
+
+  /**
+   * A list containing all of the superclass constraints that are defined for
+   * the mixin.
+   */
+  List<InterfaceType> _superclassConstraints;
+
+  /**
+   * Initialize a newly created class element to have the given [name] at the
+   * given [offset] in the file that contains the declaration of this element.
+   */
+  MixinElementImpl(String name, int offset) : super(name, offset);
+
+  /**
+   * Initialize using the given kernel.
+   */
+  MixinElementImpl.forKernel(
+      CompilationUnitElementImpl enclosingUnit, kernel.Class kernel)
+      : super.forKernel(enclosingUnit, kernel);
+
+  /**
+   * Initialize a newly created class element to have the given [name].
+   */
+  MixinElementImpl.forNode(Identifier name) : super.forNode(name);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  MixinElementImpl.forSerialized(
+      UnlinkedClass unlinkedClass, CompilationUnitElementImpl enclosingUnit)
+      : super.forSerialized(unlinkedClass, enclosingUnit);
+
+  @override
+  bool get isMixin => true;
+
+  @override
+  List<InterfaceType> get superclassConstraints {
+    if (_superclassConstraints == null) {
+      if (_kernel != null) {
+        throw new UnimplementedError();
+      }
+      if (_unlinkedClass != null) {
+        throw new UnimplementedError();
+      }
+    }
+    return _superclassConstraints ?? const <InterfaceType>[];
+  }
+
+  void set superclassConstraints(List<InterfaceType> superclassConstraints) {
+    _assertNotResynthesized(_unlinkedClass);
+    // Note: if we are using kernel or the analysis driver, the set of
+    // superclass constraints has already been computed, and it's more accurate.
+    // So we only store superclass constraints if we are using the old task
+    // model.
+    if (_unlinkedClass == null && _kernel == null) {
+      _superclassConstraints = superclassConstraints;
+    }
   }
 }
 

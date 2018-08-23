@@ -48,7 +48,9 @@ import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
 import 'package:analyzer/src/task/dart.dart';
 
 /**
- * An element that represents a class.
+ * An element that represents a class or a mixin. The class can be defined by
+ * either a class declaration (with a class body), a mixin application (without
+ * a class body), a mixin declaration, or an enum declaration.
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -67,12 +69,15 @@ abstract class ClassElement
 
   /**
    * Return a list containing all the supertypes defined for this class and its
-   * supertypes. This includes superclasses, mixins and interfaces.
+   * supertypes. This includes superclasses, mixins, interfaces and superclass
+   * constraints.
    */
   List<InterfaceType> get allSupertypes;
 
   /**
    * Return a list containing all of the constructors declared in this class.
+   * The list will be empty if there are no constructors defined for this class,
+   * as is the case when this element represents an enum or a mixin.
    */
   List<ConstructorElement> get constructors;
 
@@ -88,8 +93,10 @@ abstract class ClassElement
   bool get hasNonFinalField;
 
   /**
-   * Return `true` if this class has reference to super (so, for example, cannot
-   * be used as a mixin).
+   * Return `true` if this class has at least one reference to `super` (and
+   * hence cannot be used as a mixin), or `false` if this element represents a
+   * mixin, even if the mixin has a reference to `super`, because it is allowed
+   * to be used as a mixin.
    */
   bool get hasReferenceToSuper;
 
@@ -112,8 +119,9 @@ abstract class ClassElement
 
   /**
    * Return `true` if this class is abstract. A class is abstract if it has an
-   * explicit `abstract` modifier. Note, that this definition of <i>abstract</i>
-   * is different from <i>has unimplemented members</i>.
+   * explicit `abstract` modifier or if it is implicitly abstract, such as a
+   * class defined by a mixin declaration. Note, that this definition of
+   * <i>abstract</i> is different from <i>has unimplemented members</i>.
    */
   bool get isAbstract;
 
@@ -121,6 +129,11 @@ abstract class ClassElement
    * Return `true` if this class is defined by an enum declaration.
    */
   bool get isEnum;
+
+  /**
+   * Return `true` if this class is defined by a mixin declaration.
+   */
+  bool get isMixin;
 
   /**
    * Return `true` if this class is a mixin application.  A class is a mixin
@@ -141,7 +154,9 @@ abstract class ClassElement
 
   /**
    * Return `true` if this class can validly be used as a mixin when defining
-   * another class. The behavior of this method is defined by the Dart Language
+   * another class. For classes defined by a mixin declaration, the result is
+   * always `true`. For classes defined by a class declaration or a mixin
+   * application, the behavior of this method is defined by the Dart Language
    * Specification in section 9:
    * <blockquote>
    * It is a compile-time error if a declared or derived mixin refers to super.
@@ -170,8 +185,24 @@ abstract class ClassElement
   List<InterfaceType> get mixins;
 
   /**
-   * Return the superclass of this class, or `null` if the class represents the
-   * class 'Object'. All other classes will have a non-`null` superclass. If the
+   * Return a list containing all of the superclass constraints defined for this
+   * class. The list will be empty if this class does not represent a mixin
+   * declaration. If this class _does_ represent a mixin declaration but the
+   * declaration does not have an on clause, then the list will contain the type
+   * for the class `Object`.
+   *
+   * <b>Note:</b> Because the element model represents the state of the code, it
+   * is possible for it to be semantically invalid. In particular, it is not
+   * safe to assume that the inheritance structure of a class does not contain a
+   * cycle. Clients that traverse the inheritance structure must explicitly
+   * guard against infinite loops.
+   */
+  List<InterfaceType> get superclassConstraints;
+
+  /**
+   * Return the superclass of this class, or `null` if either the class
+   * represents the class 'Object' or if the class represents a mixin
+   * declaration. All other classes will have a non-`null` superclass. If the
    * superclass was not explicitly declared then the implicit superclass
    * 'Object' will be returned.
    *
@@ -187,11 +218,12 @@ abstract class ClassElement
   InterfaceType get type;
 
   /**
-   * Return the unnamed constructor declared in this class, or `null` if this
-   * class does not declare an unnamed constructor but does declare named
-   * constructors. The returned constructor will be synthetic if this class does
-   * not declare any constructors, in which case it will represent the default
-   * constructor for the class.
+   * Return the unnamed constructor declared in this class, or `null` if either
+   * this class does not declare an unnamed constructor but does declare named
+   * constructors or if this class represents a mixin declaration. The returned
+   * constructor will be synthetic if this class does not declare any
+   * constructors, in which case it will represent the default constructor for
+   * the class.
    */
   ConstructorElement get unnamedConstructor;
 
