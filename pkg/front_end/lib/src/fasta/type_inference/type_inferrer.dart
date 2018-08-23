@@ -1956,13 +1956,14 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     return new InterfaceType(class_, <DartType>[type ?? const DynamicType()]);
   }
 
-  void _forEachArgument(
-      Arguments arguments, void callback(String name, Expression expression)) {
+  void _forEachArgument(ArgumentsJudgment arguments,
+      void callback(String name, Expression expression)) {
     for (var expression in arguments.positional) {
       callback(null, expression);
     }
-    for (var namedExpression in arguments.named) {
-      callback(namedExpression.name, namedExpression.value);
+    for (var namedExpression in arguments.namedJudgments) {
+      callback(namedExpression.name,
+          namedExpression.originalValue ?? namedExpression.value);
     }
   }
 

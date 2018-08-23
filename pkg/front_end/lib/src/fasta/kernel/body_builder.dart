@@ -1098,12 +1098,14 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         Expression argument = toValue(node);
         arguments[i] = argument;
         if (i > firstNamedArgumentIndex) {
-          arguments[i] = new NamedExpression(
-              "#$i",
+          arguments[i] = new NamedExpressionJudgment(
+              tokensSaver?.namedExpressionTokens(null, null),
+              '#$i',
               buildCompileTimeErrorExpression(
                   fasta.messageExpectedNamedArgument,
-                  forest.readOffset(argument)))
-            ..fileOffset = beginToken.charOffset;
+                  forest.readOffset(argument)),
+              originalValue: argument)
+            ..fileOffset = offsetForToken(beginToken);
         }
       }
     }

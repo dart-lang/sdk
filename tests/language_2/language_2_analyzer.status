@@ -27,10 +27,6 @@ constructor_with_type_parameters_test/03: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && $fasta ]
 arg_param_trailing_comma_test/100: Crash # Issue #34043 - Error recovery in outline (extraneous comma before formal parameter)
-arg_param_trailing_comma_test/138: Crash # Error recovery in method body (synthetic argument)
-arg_param_trailing_comma_test/147: Crash # Error recovery in method body (synthetic argument)
-arg_param_trailing_comma_test/156: Crash # Error recovery in method body (synthetic argument)
-arg_param_trailing_comma_test/165: Crash # Error recovery in method body (synthetic argument)
 arg_param_trailing_comma_test/24: Crash # Issue #34043 - Error recovery in outline (extraneous comma before formal parameter)
 arg_param_trailing_comma_test/25: Crash # Issue #34043 - Error recovery in outline (extraneous comma before formal parameter)
 arg_param_trailing_comma_test/26: Crash # Issue #34043 - Error recovery in outline (extraneous comma before formal parameter)

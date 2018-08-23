@@ -3716,10 +3716,17 @@ class CheckLibraryIsLoadedJudgment extends CheckLibraryIsLoaded
 
 /// Concrete shadow object representing a named expression.
 class NamedExpressionJudgment extends NamedExpression {
-  NamedExpressionTokens tokens;
+  final NamedExpressionTokens tokens;
 
-  NamedExpressionJudgment(this.tokens, String nameLexeme, Expression value)
-      : super(nameLexeme, value);
+  /// The original value that is wrapped by this synthetic named argument.
+  /// Its type will be inferred.
+  final Expression originalValue;
+
+  NamedExpressionJudgment(this.tokens, String nameLexeme, Expression value,
+      {this.originalValue})
+      : super(nameLexeme, value) {
+    originalValue?.parent = this;
+  }
 
   ExpressionJudgment get judgment => value;
 }

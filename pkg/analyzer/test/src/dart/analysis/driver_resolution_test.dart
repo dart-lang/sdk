@@ -4641,6 +4641,21 @@ main() {
     assertIdentifierTopGetRef(arg2.expression, 'c');
   }
 
+  test_invalid_invocation_arguments_requiredAfterNamed() async {
+    addTestFile(r'''
+var a = 0;
+var b = 0;
+main() {
+  f(p: a, b);
+}
+void f({p}) {}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    assertTopGetRef('a, ', 'a');
+    assertTopGetRef('b);', 'b');
+  }
+
   test_invalid_invocation_arguments_static_method() async {
     addTestFile(r'''
 class C {

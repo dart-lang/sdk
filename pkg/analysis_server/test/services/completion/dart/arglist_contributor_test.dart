@@ -1061,14 +1061,4 @@ main() { f("16", radix: ^);}''');
 class ArgListContributorTest_UseCFE extends ArgListContributorTest {
   @override
   bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_ArgumentList_local_constructor_named_param_4() =>
-      super.test_ArgumentList_local_constructor_named_param_4();
-
-  @failingTest
-  @override
-  test_ArgumentList_local_constructor_named_param_5() =>
-      super.test_ArgumentList_local_constructor_named_param_5();
 }
