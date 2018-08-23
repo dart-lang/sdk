@@ -2613,7 +2613,6 @@ static bool IsSafeUse(Value* use, SafeUseCheck check_type) {
 // Right now we are attempting to sink allocation only into
 // deoptimization exit. So candidate should only be used in StoreInstanceField
 // instructions that write into fields of the allocated object.
-// We do not support materialization of the object that has type arguments.
 static bool IsAllocationSinkingCandidate(Definition* alloc,
                                          SafeUseCheck check_type) {
   for (Value* use = alloc->input_use_list(); use != NULL;

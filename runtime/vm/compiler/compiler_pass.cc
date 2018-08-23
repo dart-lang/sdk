@@ -374,7 +374,7 @@ COMPILER_PASS(EliminateDeadPhis,
 
 COMPILER_PASS(AllocationSinking_Sink, {
   // TODO(vegorov): Support allocation sinking with try-catch.
-  if (flow_graph->graph_entry()->SuccessorCount() == 1) {
+  if (flow_graph->graph_entry()->catch_entries().is_empty()) {
     state->sinking = new AllocationSinking(flow_graph);
     state->sinking->Optimize();
   }
