@@ -156,11 +156,7 @@ vm/type_cast_vm_test: RuntimeError
 web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
 [ $compiler == dartkp ]
-class_cycle_test/02: MissingCompileTimeError
-class_cycle_test/03: MissingCompileTimeError
 covariant_subtyping_test: RuntimeError
-duplicate_implements_test/01: MissingCompileTimeError
-duplicate_implements_test/02: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_no_such_method_dispatcher_test: RuntimeError # Issue 31424
 web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
