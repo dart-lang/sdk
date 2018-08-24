@@ -1626,6 +1626,13 @@ abstract class StreamSubscription<T> {
    *
    * If the subscription is paused more than once, an equal number
    * of resumes must be performed to resume the stream.
+   * Calls to [resume] and the completion of a [resumeSignal] are
+   * interchangeable - the [pause] which was passed a [resumeSignal] may be
+   * ended by a call to [resume], and completing the [resumeSignal] may end a
+   * different [pause].
+   *
+   * It is safe to [resume] or complete a [resumeSignal] even when the
+   * subscription is not paused, and the resume will have no effect.
    *
    * Currently DOM streams silently drop events when the stream is paused. This
    * is a bug and will be fixed.
@@ -1639,6 +1646,9 @@ abstract class StreamSubscription<T> {
    * When all previously calls to [pause] have been matched by a calls to
    * [resume], possibly through a `resumeSignal` passed to [pause],
    * the stream subscription may emit events again.
+   *
+   * It is safe to [resume] even when the subscription is not paused, and the
+   * resume will have no effect.
    */
   void resume();
 
