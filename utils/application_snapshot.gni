@@ -143,7 +143,7 @@ template("application_snapshot") {
       deps = []
     }
     deps += [
-      "$_dart_root/utils/kernel-service:kernel-service_snapshot"
+      "$_dart_root/utils/kernel-service:kernel-service"
     ]
   }
 }
