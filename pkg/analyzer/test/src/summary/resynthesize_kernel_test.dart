@@ -252,9 +252,20 @@ class C {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33719')
-  test_unresolved_part() async {
-    await super.test_unresolved_part();
+  test_export_configurations_useDefault() async {
+    await super.test_import_configurations_useDefault();
+  }
+
+  @override
+  @failingTest
+  test_exportImport_configurations_useDefault() async {
+    await super.test_import_configurations_useDefault();
+  }
+
+  @override
+  @failingTest
+  test_import_configurations_useDefault() async {
+    await super.test_import_configurations_useDefault();
   }
 
   Future<KernelResynthesizer> _createResynthesizer(Uri testUri) async {

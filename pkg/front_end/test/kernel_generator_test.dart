@@ -48,7 +48,7 @@ main() {
           await compileScript('main() => print("hi");', options: options);
       expect(component, isNull);
       expect(errors, isNotEmpty);
-    });
+    }, skip: true);
 
     test('compiler fails if it cannot find sdk summary', () async {
       var errors = [];
@@ -61,7 +61,7 @@ main() {
           await compileScript('main() => print("hi");', options: options);
       expect(component, isNull);
       expect(errors, isNotEmpty);
-    });
+    }, skip: true);
 
     test('by default component is compiled using the full platform file',
         () async {

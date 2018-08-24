@@ -40,8 +40,8 @@ main() {
         expectedExceptions: [EXCEPTION]);
 
     List<String> expectedLines = [
-      'Error: Input file not found: memory:main.dart.',
-      'memory:main.dart:\nError: Crash-marker',
+      "Error: Input file not found: memory:main.dart.",
+      "memory:main.dart:\nError: No 'main' method found.",
     ];
     test('Throw in input provider',
         await run(memorySourceFiles: new CrashingMap()),
@@ -69,7 +69,7 @@ void test(String title, RunResult result,
       "Unexpected number of exceptions.");
   for (int i = 0; i < expectedLines.length; i++) {
     if (expectedLines[i] != null) {
-      Expect.equals(expectedLines[i], result.lines[i]);
+      Expect.stringEquals(expectedLines[i], result.lines[i]);
     }
   }
 }

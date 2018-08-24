@@ -6,28 +6,16 @@
 # testing generating Kernel ASTs directly, that is, code in
 # pkg/fasta/lib/src/kernel/.
 
-rasta/unsupported_platform_library: RuntimeError # OK, this must report an error at runtime.
-
 DeltaBlue: Fail # Fasta and dartk disagree on static initializers
+ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
 bug31124: RuntimeError # Test has an intentional error
 call: Fail # Test can't run.
+co19_language_metadata_syntax_t04: RuntimeError # Fasta doesn't recover well
+constructor_const_inference: RuntimeError # Test exercises strong mode semantics.  See also Issue #33813.
+external_import: RuntimeError # Expected -- test uses import which doesn't exist.
 fallthrough: Fail # Missing FallThroughError.
 function_type_recovery: Fail
-invocations: Fail
-micro: Fail # External method marked abstract.
-named_parameters: Fail # Missing types and unnecessary default values.
-optional: Fail # Unnecessary default values.
-redirecting_factory: Fail # Missing types on constructor parameters.
-redirecting_factory_chain_test: Fail # Missing support for RedirectingFactoryConstructor.
-redirecting_factory_simple_test: Fail # Missing support for RedirectingFactoryConstructor.
-redirecting_factory_typeargs_test: Fail # Missing support for RedirectingFactoryConstructor.
-redirecting_factory_typeparam_test: Fail # Missing support for RedirectingFactoryConstructor.
-redirecting_factory_typeparambounds_test: Fail # Missing support for RedirectingFactoryConstructor.
-statements: Fail # Make async tranformer optional for golden file testing.
-type_variable_as_super: Fail
-uninitialized_fields: Fail # Fasta and dartk disagree on static initializers
-void_methods: Fail # Bad return from setters.
-
+incomplete_field_formal_parameter: Fail # Fasta doesn't recover well
 inference/bug31436: RuntimeError # Test exercises Dart 2.0 semantics
 inference/constructors_too_many_positional_arguments: Fail
 inference/downwards_inference_annotations_locals: Fail # Issue #30031
@@ -41,11 +29,13 @@ inference/infer_typed_list_literal: Fail
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: Fail
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: Fail
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: RuntimeError
-
 instantiate_to_bound/body_typedef_super_bounded_type: Fail # Issue 33444
 instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: RuntimeError # May be related to Issue 33479
 instantiate_to_bound/typedef_super_bounded_type: Fail # Issue 33444
-
+invocations: Fail
+micro: Fail # External method marked abstract.
+named_parameters: Fail # Missing types and unnecessary default values.
+optional: Fail # Unnecessary default values.
 rasta/abstract_constructor: Fail
 rasta/bad_constructor_redirection: Fail
 rasta/bad_continue: Fail
@@ -62,7 +52,10 @@ rasta/class_member: Fail
 rasta/constant_get_and_invoke: Fail
 rasta/deferred_lib: Fail
 rasta/deferred_load: Fail
+rasta/duplicated_mixin: RuntimeError # Expected, this file has no main method.
+rasta/export: RuntimeError # Expected, this file has no main method.
 rasta/external_factory_redirection: Fail
+rasta/foo: RuntimeError # Expected, this file has no main method.
 rasta/for_loop: Fail
 rasta/generic_factory: Fail
 rasta/issue_000001: Fail
@@ -98,13 +91,18 @@ rasta/unresolved: Fail
 rasta/unresolved_constructor: Fail
 rasta/unresolved_for_in: RuntimeError # Test contains a compile-time error, signaled at run time in the JIT VM
 rasta/unresolved_recovery: Fail
-
+redirecting_factory: Fail # Missing types on constructor parameters.
+redirecting_factory_chain_test: Fail # Missing support for RedirectingFactoryConstructor.
+redirecting_factory_const_inference: RuntimeError # Test exercises strong mode semantics.  See also Issue #33813.
+redirecting_factory_simple_test: Fail # Missing support for RedirectingFactoryConstructor.
+redirecting_factory_typeargs_test: Fail # Missing support for RedirectingFactoryConstructor.
+redirecting_factory_typeparam_test: Fail # Missing support for RedirectingFactoryConstructor.
+redirecting_factory_typeparambounds_test: Fail # Missing support for RedirectingFactoryConstructor.
 regress/issue_29975: Fail # Issue 29975.
 regress/issue_29976: RuntimeError # Issue 29976.
 regress/issue_29982: Fail # Issue 29982.
 regress/issue_30836: RuntimeError # Issue 30836.
 regress/issue_33452: RuntimeError # Test has an intentional error
-
 runtime_checks/implicit_downcast_constructor_initializer: RuntimeError # Test exercises strong mode semantics
 runtime_checks/implicit_downcast_do: RuntimeError # Test exercises strong mode semantics
 runtime_checks/implicit_downcast_for_condition: RuntimeError # Test exercises strong mode semantics
@@ -117,15 +115,9 @@ runtime_checks_new/mixin_forwarding_stub_field: RuntimeError # Test exercises st
 runtime_checks_new/mixin_forwarding_stub_getter: RuntimeError # Test exercises strong mode semantics
 runtime_checks_new/mixin_forwarding_stub_setter: RuntimeError # Test exercises strong mode semantics
 runtime_checks_new/stub_checked_via_target: RuntimeError # Test exercises strong mode semantics
-constructor_const_inference: RuntimeError # Test exercises strong mode semantics.  See also Issue #33813.
-redirecting_factory_const_inference: RuntimeError # Test exercises strong mode semantics.  See also Issue #33813.
+statements: Fail # Make async tranformer optional for golden file testing.
+type_variable_as_super: Fail
+uninitialized_fields: Fail # Fasta and dartk disagree on static initializers
+void_methods: Fail # Bad return from setters.
 
-ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
-rasta/duplicated_mixin: RuntimeError # Expected, this file has no main method.
-rasta/export: RuntimeError # Expected, this file has no main method.
-rasta/foo: RuntimeError # Expected, this file has no main method.
-
-incomplete_field_formal_parameter: Fail # Fasta doesn't recover well
-
-co19_language_metadata_syntax_t04: RuntimeError # Fasta doesn't recover well
-external_import: RuntimeError # Expected -- test uses import which doesn't exist.
+rasta/unsupported_platform_library: Fail

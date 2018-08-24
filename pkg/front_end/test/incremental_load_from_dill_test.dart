@@ -35,6 +35,8 @@ import 'package:kernel/kernel.dart' show Component;
 
 import 'package:kernel/target/targets.dart' show TargetFlags;
 
+import 'package:kernel/text/ast_to_text.dart' show componentToString;
+
 import "package:testing/testing.dart"
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
 
@@ -277,6 +279,7 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
     util.throwOnEmptyMixinBodies(component);
     print("Compile took ${stopwatch.elapsedMilliseconds} ms");
     newestWholeComponent = serializeComponent(component);
+    print("*****\n\ncomponent:\n${componentToString(component)}\n\n\n");
     if (component.libraries.length != world["expectedLibraryCount"]) {
       throw "Expected ${world["expectedLibraryCount"]} libraries, "
           "got ${component.libraries.length}";
@@ -317,6 +320,7 @@ Future<Null> newWorldTest(bool strong, List worlds) async {
       performErrorAndWarningCheck(
           world, gotError, formattedErrors, gotWarning, formattedWarnings);
       List<int> thisWholeComponent = serializeComponent(component2);
+      print("*****\n\ncomponent2:\n${componentToString(component2)}\n\n\n");
       checkIsEqual(newestWholeComponent, thisWholeComponent);
     }
   }

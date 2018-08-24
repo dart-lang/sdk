@@ -51,6 +51,8 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
         exportScopeBuilder = new ScopeBuilder(exportScope),
         super(null, -1, fileUri);
 
+  bool get isSynthetic => false;
+
   @override
   Declaration get parent => null;
 
@@ -189,7 +191,13 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
     return 0;
   }
 
-  void becomeCoreLibrary(dynamicType);
+  void becomeCoreLibrary() {
+    if (scope.local["dynamic"] == null) {
+      addSyntheticDeclarationOfDynamic();
+    }
+  }
+
+  void addSyntheticDeclarationOfDynamic();
 
   void forEach(void f(String name, Declaration declaration)) {
     scope.forEach((String name, Declaration declaration) {
@@ -218,4 +226,6 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
     if (!isPatch) return;
     unsupported("${runtimeType}.applyPatches", -1, fileUri);
   }
+
+  void recordAccess(int charOffset, int length, Uri fileUri) {}
 }

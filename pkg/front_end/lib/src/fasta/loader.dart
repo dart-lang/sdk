@@ -24,7 +24,7 @@ import 'messages.dart'
         templateInternalProblemMissingSeverity,
         templateSourceBodySummary;
 
-import 'problems.dart' show internalProblem;
+import 'problems.dart' show internalProblem, unhandled;
 
 import 'rewrite_severity.dart' as rewrite_severity;
 
@@ -37,6 +37,8 @@ import 'target_implementation.dart' show TargetImplementation;
 import 'ticker.dart' show Ticker;
 
 import 'type_inference/type_inference_engine.dart' show TypeInferenceEngine;
+
+const String untranslatableUriScheme = "org-dartlang-untranslatable-uri";
 
 abstract class Loader<L> {
   final Map<Uri, LibraryBuilder> builders = <Uri, LibraryBuilder>{};
@@ -81,6 +83,8 @@ abstract class Loader<L> {
 
   TypeInferenceEngine get typeInferenceEngine => null;
 
+  bool get isSourceLoader => false;
+
   /// Look up a library builder by the name [uri], or if such doesn't
   /// exist, create one. The canonical URI of the library is [uri], and its
   /// actual location is [fileUri].
@@ -105,7 +109,10 @@ abstract class Loader<L> {
         switch (uri.scheme) {
           case "package":
           case "dart":
-            fileUri = target.translateUri(uri);
+            fileUri = target.translateUri(uri) ??
+                new Uri(
+                    scheme: untranslatableUriScheme,
+                    path: Uri.encodeComponent("$uri"));
             break;
 
           default:
@@ -117,9 +124,11 @@ abstract class Loader<L> {
           target.createLibraryBuilder(uri, fileUri, origin);
       if (uri.scheme == "dart" && uri.path == "core") {
         coreLibrary = library;
-        target.loadExtraRequiredLibraries(this);
       }
       if (library.loader != this) {
+        if (coreLibrary == library) {
+          target.loadExtraRequiredLibraries(this);
+        }
         // This library isn't owned by this loader, so not further processing
         // should be attempted.
         return library;
@@ -132,6 +141,9 @@ abstract class Loader<L> {
         firstSourceUri ??= uri;
         first ??= library;
       }
+      if (coreLibrary == library) {
+        target.loadExtraRequiredLibraries(this);
+      }
       if (target.backendTarget.mayDefineRestrictedType(origin?.uri ?? uri)) {
         library.mayImplementRestrictedTypes = true;
       }
@@ -141,19 +153,25 @@ abstract class Loader<L> {
       unparsedLibraries.addLast(library);
       return library;
     });
-    if (accessor != null &&
-        !accessor.isPatch &&
-        !target.backendTarget
-            .allowPlatformPrivateLibraryAccess(accessor.uri, uri)) {
-      accessor.addCompileTimeError(messagePlatformPrivateLibraryAccess,
-          charOffset, noLength, accessor.fileUri);
+    if (accessor == null) {
+      if (builder.loader == this && first != builder && isSourceLoader) {
+        unhandled("null", "accessor", charOffset, uri);
+      }
+    } else {
+      builder.recordAccess(charOffset, noLength, accessor.fileUri);
+      if (!accessor.isPatch &&
+          !target.backendTarget
+              .allowPlatformPrivateLibraryAccess(accessor.uri, uri)) {
+        accessor.addCompileTimeError(messagePlatformPrivateLibraryAccess,
+            charOffset, noLength, accessor.fileUri);
+      }
     }
     return builder;
   }
 
   void ensureCoreLibrary() {
     if (coreLibrary == null) {
-      read(Uri.parse("dart:core"), -1);
+      read(Uri.parse("dart:core"), 0, accessor: first);
       assert(coreLibrary != null);
     }
   }

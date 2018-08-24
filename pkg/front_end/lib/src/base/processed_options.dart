@@ -50,10 +50,8 @@ import '../fasta/fasta_codes.dart'
         templateInternalProblemUnsupported,
         templateSdkRootNotFound,
         templateSdkSpecificationNotFound,
+        templateCantReadFile,
         templateSdkSummaryNotFound;
-
-// TODO(ahe): Remove this import.
-import '../fasta/fasta_codes.dart' show templateUnspecified;
 
 import '../fasta/messages.dart' show getLocation;
 
@@ -638,11 +636,8 @@ class ProcessedOptions {
       return await file.readAsBytes();
     } on FileSystemException catch (error) {
       report(
-          // TODO(ahe): Change to templateCantReadFile.withArguments(error.uri,
-          // error.message) when CL 63144 has landed.
-          templateUnspecified
-              .withArguments(
-                  "Error when reading '${error.uri}': ${error.message}")
+          templateCantReadFile
+              .withArguments(error.uri, error.message)
               .withoutLocation(),
           Severity.error);
       return new Uint8List(0);

@@ -39,6 +39,7 @@ import '../export.dart' show Export;
 
 import '../fasta_codes.dart'
     show
+        Message,
         messageConstructorWithWrongName,
         messageExpectedUri,
         messageMemberWithSameNameAsClass,
@@ -48,11 +49,11 @@ import '../fasta_codes.dart'
         noLength,
         templateConflictsWithMember,
         templateConflictsWithSetter,
+        templateConstructorWithWrongNameContext,
         templateCouldNotParseUri,
         templateDeferredPrefixDuplicated,
         templateDeferredPrefixDuplicatedCause,
         templateDuplicatedDefinition,
-        templateConstructorWithWrongNameContext,
         templateMissingPartOf,
         templatePartOfLibraryNameMismatch,
         templatePartOfUriMismatch,
@@ -97,6 +98,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   @override
   final bool disableTypeInference;
 
+  final List<Object> accessors = <Object>[];
+
   String documentationComment;
 
   String name;
@@ -114,6 +117,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   DeclarationBuilder<T> currentDeclaration;
 
   bool canAddImplementationBuilders = false;
+
+  /// Non-null if this library causes an error upon access, that is, there was
+  /// an error reading its source.
+  Message accessProblem;
 
   final OutlineListener outlineListener;
 
@@ -135,6 +142,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   bool get isPart => partOfName != null || partOfUri != null;
 
   List<UnresolvedType<T>> get types => libraryDeclaration.types;
+
+  @override
+  bool get isSynthetic => accessProblem != null;
 
   T addNamedType(Object name, List<T> arguments, int charOffset);
 
@@ -802,6 +812,28 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     forEach((String name, Declaration member) {
       member.instrumentTopLevelInference(instrumentation);
     });
+  }
+
+  @override
+  void recordAccess(int charOffset, int length, Uri fileUri) {
+    accessors.add(fileUri);
+    accessors.add(charOffset);
+    accessors.add(length);
+    if (accessProblem != null) {
+      addProblem(accessProblem, charOffset, length, fileUri);
+    }
+  }
+
+  void addProblemAtAccessors(Message message) {
+    if (accessProblem == null) {
+      for (int i = 0; i < accessors.length; i += 3) {
+        Uri accessor = accessors[i];
+        int charOffset = accessors[i + 1];
+        int length = accessors[i + 2];
+        addProblem(message, charOffset, length, accessor);
+      }
+      accessProblem = message;
+    }
   }
 }
 
