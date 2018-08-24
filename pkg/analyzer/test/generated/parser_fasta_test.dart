@@ -1150,4 +1150,197 @@ class A native 'something' {
     allowNativeClause = false;
     test_parseClassDeclaration_native();
   }
+
+  void test_parseMixinDeclaration_empty() {
+    createParser('mixin A {}');
+    _parserProxy.fastaParser.isMixinSupportEnabled = true;
+    MixinDeclaration declaration = parseFullCompilationUnitMember();
+    expect(declaration, isNotNull);
+    assertNoErrors();
+    expect(declaration.metadata, isEmpty);
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.onClause, isNull);
+    expect(declaration.implementsClause, isNull);
+    expect(declaration.mixinKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name.name, 'A');
+    expect(declaration.members, hasLength(0));
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNull);
+  }
+
+  void test_parseMixinDeclaration_implements() {
+    createParser('mixin A implements B {}');
+    _parserProxy.fastaParser.isMixinSupportEnabled = true;
+    MixinDeclaration declaration = parseFullCompilationUnitMember();
+    expect(declaration, isNotNull);
+    assertNoErrors();
+    expect(declaration.metadata, isEmpty);
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.onClause, isNull);
+    ImplementsClause implementsClause = declaration.implementsClause;
+    expect(implementsClause.implementsKeyword, isNotNull);
+    NodeList<TypeName> interfaces = implementsClause.interfaces;
+    expect(interfaces, hasLength(1));
+    expect(interfaces[0].name.name, 'B');
+    expect(interfaces[0].typeArguments, isNull);
+    expect(declaration.mixinKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name.name, 'A');
+    expect(declaration.members, hasLength(0));
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNull);
+  }
+
+  void test_parseMixinDeclaration_implements2() {
+    createParser('mixin A implements B<T>, C {}');
+    _parserProxy.fastaParser.isMixinSupportEnabled = true;
+    MixinDeclaration declaration = parseFullCompilationUnitMember();
+    expect(declaration, isNotNull);
+    assertNoErrors();
+    expect(declaration.metadata, isEmpty);
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.onClause, isNull);
+    ImplementsClause implementsClause = declaration.implementsClause;
+    expect(implementsClause.implementsKeyword, isNotNull);
+    NodeList<TypeName> interfaces = implementsClause.interfaces;
+    expect(interfaces, hasLength(2));
+    expect(interfaces[0].name.name, 'B');
+    expect(interfaces[0].typeArguments.arguments, hasLength(1));
+    expect(interfaces[1].name.name, 'C');
+    expect(interfaces[1].typeArguments, isNull);
+    expect(declaration.mixinKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name.name, 'A');
+    expect(declaration.members, hasLength(0));
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNull);
+  }
+
+  void test_parseMixinDeclaration_metadata() {
+    createParser('@Z mixin A {}');
+    _parserProxy.fastaParser.isMixinSupportEnabled = true;
+    MixinDeclaration declaration = parseFullCompilationUnitMember();
+    expect(declaration, isNotNull);
+    assertNoErrors();
+    NodeList<Annotation> metadata = declaration.metadata;
+    expect(metadata, hasLength(1));
+    expect(metadata[0].name.name, 'Z');
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.onClause, isNull);
+    expect(declaration.implementsClause, isNull);
+    expect(declaration.mixinKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name.name, 'A');
+    expect(declaration.members, hasLength(0));
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNull);
+  }
+
+  void test_parseMixinDeclaration_on() {
+    createParser('mixin A on B {}');
+    _parserProxy.fastaParser.isMixinSupportEnabled = true;
+    MixinDeclaration declaration = parseFullCompilationUnitMember();
+    expect(declaration, isNotNull);
+    assertNoErrors();
+    expect(declaration.metadata, isEmpty);
+    expect(declaration.documentationComment, isNull);
+    OnClause onClause = declaration.onClause;
+    expect(onClause.onKeyword, isNotNull);
+    NodeList<TypeName> constraints = onClause.superclassConstraints;
+    expect(constraints, hasLength(1));
+    expect(constraints[0].name.name, 'B');
+    expect(constraints[0].typeArguments, isNull);
+    expect(declaration.implementsClause, isNull);
+    expect(declaration.mixinKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name.name, 'A');
+    expect(declaration.members, hasLength(0));
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNull);
+  }
+
+  void test_parseMixinDeclaration_on2() {
+    createParser('mixin A on B, C<T> {}');
+    _parserProxy.fastaParser.isMixinSupportEnabled = true;
+    MixinDeclaration declaration = parseFullCompilationUnitMember();
+    expect(declaration, isNotNull);
+    assertNoErrors();
+    expect(declaration.metadata, isEmpty);
+    expect(declaration.documentationComment, isNull);
+    OnClause onClause = declaration.onClause;
+    expect(onClause.onKeyword, isNotNull);
+    NodeList<TypeName> constraints = onClause.superclassConstraints;
+    expect(constraints, hasLength(2));
+    expect(constraints[0].name.name, 'B');
+    expect(constraints[0].typeArguments, isNull);
+    expect(constraints[1].name.name, 'C');
+    expect(constraints[1].typeArguments.arguments, hasLength(1));
+    expect(declaration.implementsClause, isNull);
+    expect(declaration.mixinKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name.name, 'A');
+    expect(declaration.members, hasLength(0));
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNull);
+  }
+
+  void test_parseMixinDeclaration_onAndImplements() {
+    createParser('mixin A on B implements C {}');
+    _parserProxy.fastaParser.isMixinSupportEnabled = true;
+    MixinDeclaration declaration = parseFullCompilationUnitMember();
+    expect(declaration, isNotNull);
+    assertNoErrors();
+    expect(declaration.metadata, isEmpty);
+    expect(declaration.documentationComment, isNull);
+    OnClause onClause = declaration.onClause;
+    expect(onClause.onKeyword, isNotNull);
+    NodeList<TypeName> constraints = onClause.superclassConstraints;
+    expect(constraints, hasLength(1));
+    expect(constraints[0].name.name, 'B');
+    expect(constraints[0].typeArguments, isNull);
+    ImplementsClause implementsClause = declaration.implementsClause;
+    expect(implementsClause.implementsKeyword, isNotNull);
+    NodeList<TypeName> interfaces = implementsClause.interfaces;
+    expect(interfaces, hasLength(1));
+    expect(interfaces[0].name.name, 'C');
+    expect(interfaces[0].typeArguments, isNull);
+    expect(declaration.mixinKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name.name, 'A');
+    expect(declaration.members, hasLength(0));
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNull);
+  }
+
+  void test_parseMixinDeclaration_simple() {
+    createParser('''
+mixin A {
+  int f;
+  int get g => f;
+  set s(int v) {f = v;}
+  int add(int v) => f = f + v;
+}''');
+    _parserProxy.fastaParser.isMixinSupportEnabled = true;
+    MixinDeclaration declaration = parseFullCompilationUnitMember();
+    expect(declaration, isNotNull);
+    assertNoErrors();
+    expect(declaration.metadata, isEmpty);
+    expect(declaration.documentationComment, isNull);
+    expect(declaration.onClause, isNull);
+    expect(declaration.implementsClause, isNull);
+    expect(declaration.mixinKeyword, isNotNull);
+    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.name.name, 'A');
+    expect(declaration.members, hasLength(4));
+    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.typeParameters, isNull);
+  }
+
+  void test_parseMixinDeclaration_withDocumentationComment() {
+    createParser('/// Doc\nmixin M {}');
+    _parserProxy.fastaParser.isMixinSupportEnabled = true;
+    MixinDeclaration declaration = parseFullCompilationUnitMember();
+    expectCommentText(declaration.documentationComment, '/// Doc');
+  }
 }

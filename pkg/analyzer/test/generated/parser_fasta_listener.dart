@@ -393,6 +393,12 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
+  void beginMixinDeclaration(Token mixinKeyword, Token name) {
+    super.beginMixinDeclaration(mixinKeyword, name);
+    begin('MixinDeclaration');
+  }
+
+  @override
   void beginNamedFunctionExpression(Token token) {
     super.beginNamedFunctionExpression(token);
     begin('NamedFunctionExpression');
@@ -900,6 +906,12 @@ class ForwardingTestListener extends ForwardingListener {
   void endMixinApplication(Token withKeyword) {
     end('MixinApplication');
     super.endMixinApplication(withKeyword);
+  }
+
+  @override
+  void endMixinDeclaration(Token token) {
+    end('MixinDeclaration');
+    super.endMixinDeclaration(token);
   }
 
   @override

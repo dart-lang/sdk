@@ -45,6 +45,7 @@ black_listed_test/14: Crash # Issue 33686 - No core library found
 built_in_identifier_illegal_test/implements: Crash # Issue #34043 - Error recovery in outline (synthetic token used where type expected)
 built_in_identifier_illegal_test/part: Crash # No resolution for a file
 built_in_identifier_illegal_test/typedef: Crash # Issue 33686 - No core library found
+built_in_identifier_type_annotation_test/mixin: Crash # Issue 34164 - mixin support
 built_in_identifier_type_annotation_test/part: Crash # No resolution for a file
 built_in_identifier_type_annotation_test/set: Crash # Issue #34043 - Error recovery in outline
 built_in_identifier_type_annotation_test/set-funret: Crash # Issue #34043 - Error recovery in outline

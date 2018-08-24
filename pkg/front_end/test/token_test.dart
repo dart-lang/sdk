@@ -138,6 +138,7 @@ class Foo {
       Keyword.EXPORT,
       Keyword.IMPORT,
       Keyword.LIBRARY,
+      Keyword.MIXIN,
       Keyword.PART,
       Keyword.TYPEDEF,
     ]);
