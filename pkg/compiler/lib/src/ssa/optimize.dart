@@ -1092,7 +1092,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
       DartType type = _closedWorld.elementEnvironment.getFieldType(field);
       if (!type.treatAsRaw ||
           type.isTypeVariable ||
-          type.unaliased.isFunctionType) {
+          type.unaliased.isFunctionType ||
+          type.unaliased.isFutureOr) {
         // We cannot generate the correct type representation here, so don't
         // inline this access.
         // TODO(sra): If the input is such that we don't need a type check, we
