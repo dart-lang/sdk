@@ -15,6 +15,7 @@ import 'package:kernel/ast.dart'
         Component,
         Constructor,
         DartType,
+        DynamicType,
         EmptyStatement,
         Expression,
         ExpressionStatement,
@@ -152,7 +153,7 @@ class KernelTarget extends TargetImplementation {
   }
 
   void read(Uri uri) {
-    loader.read(uri, -1, accessor: loader.first);
+    loader.read(uri, -1);
   }
 
   @override
@@ -239,7 +240,7 @@ class KernelTarget extends TargetImplementation {
         () async {
           loader.createTypeInferenceEngine();
           await loader.buildOutlines();
-          loader.coreLibrary.becomeCoreLibrary();
+          loader.coreLibrary.becomeCoreLibrary(const DynamicType());
           dynamicType.bind(loader.coreLibrary["dynamic"]);
           loader.resolveParts();
           loader.computeLibraryScopes();
@@ -813,13 +814,13 @@ class KernelTarget extends TargetImplementation {
       KernelLibraryBuilder first;
       for (Uri patch in patches) {
         if (first == null) {
-          first = library.loader.read(patch, -1,
-              fileUri: patch, origin: library, accessor: library);
+          first =
+              library.loader.read(patch, -1, fileUri: patch, origin: library);
         } else {
           // If there's more than one patch file, it's interpreted as a part of
           // the patch library.
           KernelLibraryBuilder part =
-              library.loader.read(patch, -1, fileUri: patch, accessor: first);
+              library.loader.read(patch, -1, fileUri: patch);
           first.parts.add(part);
           part.addPartOf(null, null, "${first.uri}", -1);
         }

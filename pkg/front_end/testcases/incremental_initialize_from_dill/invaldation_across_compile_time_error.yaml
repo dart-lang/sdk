@@ -40,7 +40,7 @@ worlds:
     sources:
       main.dart: |
         import "b.dart";
-        import "nonexisting.dart";
+        import "nonexistin.dart";
         main() {
           print("hello");
           b();
@@ -52,7 +52,7 @@ worlds:
           c();
         }
     errors: true
-    expectedLibraryCount: 3
+    expectedLibraryCount: 1
   - entry: main.dart
     worldType: updated
     expectInitializeFromDill: false

@@ -243,7 +243,23 @@ generateKernel(Uri entryUri,
     options.sdkSummary = sdkRoot.resolve('outline.dill');
   }
 
-  var program = await kernelForComponent([entryUri], options);
+  var entrypoints = [
+    entryUri,
+    // These extra libraries are added to match the same set of libraries
+    // scanned by default by the VM and the other benchmarks.
+    Uri.parse('dart:async'),
+    Uri.parse('dart:collection'),
+    Uri.parse('dart:convert'),
+    Uri.parse('dart:core'),
+    Uri.parse('dart:developer'),
+    Uri.parse('dart:_internal'),
+    Uri.parse('dart:io'),
+    Uri.parse('dart:isolate'),
+    Uri.parse('dart:math'),
+    Uri.parse('dart:mirrors'),
+    Uri.parse('dart:typed_data'),
+  ];
+  var program = await kernelForComponent(entrypoints, options);
 
   timer.stop();
   var name = 'kernel_gen_e2e${compileSdk ? "" : "_sum"}';

@@ -191,6 +191,7 @@ rasta/unresolved: Fail
 rasta/unresolved_constructor: Fail
 rasta/unresolved_for_in: Fail
 rasta/unresolved_recovery: Fail
+rasta/unsupported_platform_library: Fail
 
 regress/issue_29975: Fail # Issue 29975.
 regress/issue_29976: TypeCheckError # Issue 29976.
@@ -219,5 +220,3 @@ incomplete_field_formal_parameter: Fail # Fasta doesn't recover well
 co19_language_metadata_syntax_t04: RuntimeError # Fasta doesn't recover well
 
 external_import: RuntimeError # The native extension to import doesn't exist. This is ok.
-
-rasta/unsupported_platform_library: Fail

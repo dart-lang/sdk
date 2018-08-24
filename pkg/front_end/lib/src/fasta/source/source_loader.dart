@@ -6,8 +6,6 @@ library fasta.source_loader;
 
 import 'dart:async' show Future;
 
-import 'dart:convert' show utf8;
-
 import 'dart:typed_data' show Uint8List;
 
 import 'package:kernel/ast.dart'
@@ -49,17 +47,18 @@ import '../builder/builder.dart'
 
 import '../combinator.dart';
 
+import '../deprecated_problems.dart' show deprecated_inputError;
+
 import '../export.dart' show Export;
 
 import '../fasta_codes.dart'
     show
         LocatedMessage,
         Message,
+        noLength,
         SummaryTemplate,
         Template,
-        noLength,
         templateAmbiguousSupertypes,
-        templateCantReadFile,
         templateCyclicClassHierarchy,
         templateExtendingEnum,
         templateExtendingRestricted,
@@ -67,8 +66,7 @@ import '../fasta_codes.dart'
         templateIllegalMixinDueToConstructors,
         templateIllegalMixinDueToConstructorsCause,
         templateInternalProblemUriMissingScheme,
-        templateSourceOutlineSummary,
-        templateUntranslatableUri;
+        templateSourceOutlineSummary;
 
 import '../fasta_codes.dart' as fasta_codes;
 
@@ -81,7 +79,7 @@ import '../kernel/kernel_target.dart' show KernelTarget;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
 
-import '../loader.dart' show Loader, untranslatableUriScheme;
+import '../loader.dart' show Loader;
 
 import '../parser/class_member_parser.dart' show ClassMemberParser;
 
@@ -144,53 +142,35 @@ class SourceLoader<L> extends Loader<L> {
   Template<SummaryTemplate> get outlineSummaryTemplate =>
       templateSourceOutlineSummary;
 
-  bool get isSourceLoader => true;
-
   Future<Token> tokenize(SourceLibraryBuilder library,
       {bool suppressLexicalErrors: false}) async {
     Uri uri = library.fileUri;
-
-    // Lookup the file URI in the cache.
-    List<int> bytes = sourceBytes[uri];
-
-    if (bytes == null) {
-      // Error recovery.
-      if (uri.scheme == untranslatableUriScheme) {
-        Message message = templateUntranslatableUri.withArguments(library.uri);
-        library.addProblemAtAccessors(message);
-        bytes = synthesizeSourceForMissingFile(library.uri, null);
-      } else if (!uri.hasScheme) {
-        return internalProblem(
-            templateInternalProblemUriMissingScheme.withArguments(uri),
-            -1,
-            library.uri);
-      } else if (uri.scheme == SourceLibraryBuilder.MALFORMED_URI_SCHEME) {
-        bytes = synthesizeSourceForMissingFile(library.uri, null);
-      }
-      if (bytes != null) {
-        Uint8List zeroTerminatedBytes = new Uint8List(bytes.length + 1);
-        zeroTerminatedBytes.setRange(0, bytes.length, bytes);
-        bytes = zeroTerminatedBytes;
-        sourceBytes[uri] = bytes;
-      }
+    if (uri == null) {
+      return deprecated_inputError(
+          library.uri, -1, "Not found: ${library.uri}.");
+    } else if (!uri.hasScheme) {
+      return internalProblem(
+          templateInternalProblemUriMissingScheme.withArguments(uri),
+          -1,
+          library.uri);
+    } else if (uri.scheme == SourceLibraryBuilder.MALFORMED_URI_SCHEME) {
+      // Simulate empty file
+      return null;
     }
 
+    // Get the library text from the cache, or read from the file system.
+    List<int> bytes = sourceBytes[uri];
     if (bytes == null) {
-      // If it isn't found in the cache, read the file read from the file
-      // system.
-      List<int> rawBytes;
       try {
-        rawBytes = await fileSystem.entityForUri(uri).readAsBytes();
+        List<int> rawBytes = await fileSystem.entityForUri(uri).readAsBytes();
+        Uint8List zeroTerminatedBytes = new Uint8List(rawBytes.length + 1);
+        zeroTerminatedBytes.setRange(0, rawBytes.length, rawBytes);
+        bytes = zeroTerminatedBytes;
+        sourceBytes[uri] = bytes;
+        byteCount += rawBytes.length;
       } on FileSystemException catch (e) {
-        Message message = templateCantReadFile.withArguments(uri, e.message);
-        library.addProblemAtAccessors(message);
-        rawBytes = synthesizeSourceForMissingFile(library.uri, message);
+        return deprecated_inputError(uri, -1, e.message);
       }
-      Uint8List zeroTerminatedBytes = new Uint8List(rawBytes.length + 1);
-      zeroTerminatedBytes.setRange(0, rawBytes.length, rawBytes);
-      bytes = zeroTerminatedBytes;
-      sourceBytes[uri] = bytes;
-      byteCount += rawBytes.length;
     }
 
     ScannerResult result = scan(bytes, includeComments: includeComments);
@@ -208,19 +188,6 @@ class SourceLoader<L> extends Loader<L> {
       token = token.next;
     }
     return token;
-  }
-
-  List<int> synthesizeSourceForMissingFile(Uri uri, Message message) {
-    switch ("$uri") {
-      case "dart:core":
-        return utf8.encode(defaultDartCoreSource);
-
-      case "dart:async":
-        return utf8.encode(defaultDartAsyncSource);
-
-      default:
-        return utf8.encode(message == null ? "" : "/* ${message.message} */");
-    }
   }
 
   List<int> getSource(List<int> bytes) {
@@ -671,7 +638,7 @@ class SourceLoader<L> extends Loader<L> {
       if (library.loader == this) {
         SourceLibraryBuilder sourceLibrary = library;
         L target = sourceLibrary.build(coreLibrary);
-        if (!library.isPatch && !library.isSynthetic) {
+        if (!library.isPatch) {
           libraries.add(target);
         }
       }
@@ -685,7 +652,6 @@ class SourceLoader<L> extends Loader<L> {
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (!library.isPart &&
           !library.isPatch &&
-          !library.isSynthetic &&
           (library.loader == this || library.fileUri.scheme == "dart")) {
         if (libraries.add(library.target)) {
           workList.add(library.target);
@@ -1022,114 +988,3 @@ class SourceLoader<L> extends Loader<L> {
     }
   }
 }
-
-const String defaultDartCoreSource = """
-print(object) {}
-
-class Iterator {}
-
-class Iterable {}
-
-class List extends Iterable {
-  factory List.unmodifiable(elements) => null;
-}
-
-class Map extends Iterable {
-  factory Map.unmodifiable(other) => null;
-}
-
-class NoSuchMethodError {
-  NoSuchMethodError.withInvocation(receiver, invocation);
-}
-
-class Null {}
-
-class Object {
-  noSuchMethod(invocation) => null;
-}
-
-class String {}
-
-class Symbol {}
-
-class Type {}
-
-class _InvocationMirror {
-  _InvocationMirror._withType(_memberName, _type, _typeArguments,
-      _positionalArguments, _namedArguments);
-}
-
-class bool {}
-
-class double extends num {}
-
-class int extends num {}
-
-class num {}
-
-class _SyncIterable {}
-
-class _SyncIterator {
-  var _current;
-  var _yieldEachIterable;
-}
-""";
-
-const String defaultDartAsyncSource = """
-_asyncErrorWrapperHelper(continuation) {}
-
-_asyncStackTraceHelper(async_op) {}
-
-_asyncThenWrapperHelper(continuation) {}
-
-_awaitHelper(object, thenCallback, errorCallback, awaiter) {}
-
-_completeOnAsyncReturn(completer, value) {}
-
-class _AsyncStarStreamController {
-  add(event) {}
-
-  addError(error, stackTrace) {}
-
-  addStream(stream) {}
-
-  close() {}
-
-  get stream => null;
-}
-
-class Completer {
-  factory Completer.sync() => null;
-
-  get future;
-
-  complete([value]);
-
-  completeError(error, [stackTrace]);
-}
-
-class Future {
-  factory Future.microtask(computation) => null;
-}
-
-class FutureOr {
-}
-
-class _AsyncAwaitCompleter implements Completer {
-  get future => null;
-
-  complete([value]) {}
-
-  completeError(error, [stackTrace]) {}
-}
-
-class Stream {}
-
-class _StreamIterator {
-  get current => null;
-
-  moveNext() {}
-
-  cancel() {}
-}
-""";

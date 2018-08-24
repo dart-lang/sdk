@@ -32,5 +32,4 @@ worlds:
     sources:
       .packages:
     errors: true
-    warnings: true
     expectedLibraryCount: 1

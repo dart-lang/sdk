@@ -10,7 +10,6 @@ import 'package:kernel/ast.dart'
     show
         Class,
         DartType,
-        DynamicType,
         Field,
         Library,
         ListLiteral,
@@ -71,12 +70,14 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   @override
   Library get target => library;
 
-  void addSyntheticDeclarationOfDynamic() {
-    addBuilder(
-        "dynamic",
-        new DynamicTypeBuilder<KernelTypeBuilder, DartType>(
-            const DynamicType(), this, -1),
-        -1);
+  void becomeCoreLibrary(dynamicType) {
+    if (scope.local["dynamic"] == null) {
+      addBuilder(
+          "dynamic",
+          new DynamicTypeBuilder<KernelTypeBuilder, DartType>(
+              dynamicType, this, -1),
+          -1);
+    }
   }
 
   void addClass(Class cls) {

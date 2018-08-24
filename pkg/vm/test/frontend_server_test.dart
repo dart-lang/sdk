@@ -578,7 +578,7 @@ Future<int> main() async {
           expect(outputFilenameAndErrorCount, isNotNull);
           CompilationResult result =
               new CompilationResult.parse(outputFilenameAndErrorCount);
-          expect(result.errorsCount, equals(0));
+          expect(result.errorsCount, greaterThan(0));
 
           streamController.add('quit\n'.codeUnits);
         }

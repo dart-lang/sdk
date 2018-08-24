@@ -1,5 +1,2 @@
 library;
 import self as self;
-
-static method main() → dynamic
-  ;

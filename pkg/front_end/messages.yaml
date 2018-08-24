@@ -2951,25 +2951,3 @@ RethrowNotCatch:
   template: "'rethrow' can only be used in catch clauses."
   analyzerCode: RETHROW_OUTSIDE_CATCH
   dart2jsCode: "*fatal*"
-
-UntranslatableUri:
-  template: "Not found: '#uri'"
-  dart2jsCode: "*fatal*"
-  severity: ERROR
-  analyzerCode: URI_DOES_NOT_EXIST
-  script: |
-    import "dart:non_existing_library";
-
-    main() {
-    }
-
-CantReadFile:
-  template: "Error when reading '#uri': #string"
-  analyzerCode: URI_DOES_NOT_EXIST
-  dart2jsCode: "*fatal*"
-  severity: ERROR
-  script: |
-    import "non_existing_file.dart";
-
-    main() {
-    }
