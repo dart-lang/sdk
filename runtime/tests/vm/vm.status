@@ -143,6 +143,9 @@ dart/data_uri_import_test/wrongmime: Crash
 cc/Profiler_BasicSourcePosition: Fail # http://dartbug.com/33224
 cc/Profiler_CodeTicks: Fail # dartbug.com/33337
 
+[ $arch == ia32 && $compiler != dartk && $compiler != dartkp && $compiler != dartkb && $system == windows && $runtime == vm ]
+cc/BitTestImmediate: Crash # dartbug.com/34252
+
 [ $arch == x64 && $system == windows ]
 cc/Profiler_BinaryOperatorSourcePositionOptimized: Pass, Fail # Issue 31137
 cc/Profiler_ClosureAllocation: Pass, Fail # Issue 31137
