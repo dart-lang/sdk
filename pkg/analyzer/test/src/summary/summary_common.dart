@@ -157,11 +157,6 @@ abstract class SummaryTest {
   bool get skipFullyLinkedData;
 
   /**
-   * `true` if non-const variable initializers are not serialized.
-   */
-  bool get skipNonConstInitializers;
-
-  /**
    * Get access to the unlinked compilation unit summaries that result from
    * serializing and deserializing the library under test.
    */
@@ -1868,9 +1863,6 @@ class C<T> {
   }
 
   test_constExpr_functionExpression() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 import 'dart:async';
 const v = (f) async => await f;
@@ -6191,9 +6183,6 @@ export "${'a'}.dart";
   }
 
   test_expr_assignToIndex_ofFieldSequence() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 class A {
   B b;
@@ -6236,9 +6225,6 @@ final v = (a.b.c.f[1] = 5);
   }
 
   test_expr_assignToIndex_ofIndexExpression() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 class A {
  List<B> b;
@@ -6294,9 +6280,6 @@ final v = (a.b[1].c[2].f[3] = 5);
   }
 
   test_expr_assignToIndex_ofTopLevelVariable() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 List<int> a = <int>[0, 1, 2];
 final v = (a[1] = 5);
@@ -6324,9 +6307,6 @@ final v = (a[1] = 5);
   }
 
   test_expr_assignToProperty_ofInstanceCreation() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 class C {
   int f;
@@ -6358,9 +6338,6 @@ final v = (new C().f = 5);
   }
 
   test_expr_assignToRef_classStaticField() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 class C {
   static int f;
@@ -6390,9 +6367,6 @@ final v = (C.f = 1);
   }
 
   test_expr_assignToRef_fieldSequence() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 class A {
   B b;
@@ -6452,9 +6426,6 @@ final v = (a.b.c.f = 1);
   }
 
   test_expr_assignToRef_topLevelVariable() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 int a = 0;
 final v = (a = 1);
@@ -6479,9 +6450,6 @@ final v = (a = 1);
   }
 
   test_expr_assignToRef_topLevelVariable_imported() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     addNamedSource('/a.dart', '''
 int a = 0;
 ''');
@@ -6509,9 +6477,6 @@ final v = (a = 1);
   }
 
   test_expr_assignToRef_topLevelVariable_imported_withPrefix() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     addNamedSource('/a.dart', '''
 int a = 0;
 ''');
@@ -6542,9 +6507,6 @@ final v = (p.a = 1);
   }
 
   test_expr_cascadeSection_assignToIndex() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 class C {
   List<int> items;
@@ -6571,9 +6533,6 @@ final v = c.items..[1] = 2;
   }
 
   test_expr_cascadeSection_assignToProperty() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 class C {
   int f1 = 0;
@@ -6599,9 +6558,6 @@ final v = new C()..f1 = 1..f2 += 2;
   }
 
   test_expr_cascadeSection_embedded() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 class A {
   int fa1;
@@ -6634,9 +6590,6 @@ final v = new A()
   }
 
   test_expr_cascadeSection_invokeMethod() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 class A {
   int m(int _) => 0;
@@ -6658,9 +6611,6 @@ final v = a..m(5).abs()..m(6);
   }
 
   test_expr_extractIndex_ofClassField() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 class C {
   List<int> get items => null;
@@ -6690,9 +6640,6 @@ final v = new C().items[5];
   }
 
   test_expr_extractProperty_ofInvokeConstructor() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 class C {
   int f = 0;
@@ -6774,9 +6721,6 @@ foo(a, b, c) {}
   }
 
   test_expr_functionExpression_withBlockBody() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 final v = () { return 42; };
 ''');
@@ -6787,9 +6731,6 @@ final v = () { return 42; };
   }
 
   test_expr_functionExpression_withExpressionBody() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 final v = () => 42;
 ''');
@@ -6800,9 +6741,6 @@ final v = () => 42;
   }
 
   test_expr_functionExpressionInvocation_withBlockBody() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 final v = ((a, b) {return 42;})(1, 2);
 ''');
@@ -6811,9 +6749,6 @@ final v = ((a, b) {return 42;})(1, 2);
   }
 
   test_expr_functionExpressionInvocation_withExpressionBody() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 final v = ((a, b) => 42)(1, 2);
 ''');
@@ -6822,9 +6757,6 @@ final v = ((a, b) => 42)(1, 2);
   }
 
   test_expr_inClosure() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('var v = () => 1;');
     assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
         operators: [UnlinkedExprOperation.pushInt], ints: [1]);
@@ -6838,9 +6770,6 @@ final v = ((a, b) => 42)(1, 2);
   }
 
   test_expr_inClosure_refersToOuterParam() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable =
         serializeVariableText('var v = (x) => (y) => x;');
     assertUnlinkedConst(
@@ -6850,18 +6779,12 @@ final v = ((a, b) => 42)(1, 2);
   }
 
   test_expr_inClosure_refersToParam() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('var v = (x) => x;');
     assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
         operators: [UnlinkedExprOperation.pushParameter], strings: ['x']);
   }
 
   test_expr_inClosure_refersToParam_methodCall() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('var v = (x) => x.f();');
     assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
         operators: [
@@ -6880,9 +6803,6 @@ final v = ((a, b) => 42)(1, 2);
   }
 
   test_expr_inClosure_refersToParam_methodCall_prefixed() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable =
         serializeVariableText('var v = (x) => x.y.f();');
     assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
@@ -6904,9 +6824,6 @@ final v = ((a, b) => 42)(1, 2);
   }
 
   test_expr_inClosure_refersToParam_outOfScope() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable =
         serializeVariableText('var x; var v = (b) => (b ? (x) => x : x);');
     assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
@@ -6931,9 +6848,6 @@ final v = ((a, b) => 42)(1, 2);
   }
 
   test_expr_inClosure_refersToParam_prefixedIdentifier() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('var v = (x) => x.y;');
     assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
         operators: [
@@ -6947,9 +6861,6 @@ final v = ((a, b) => 42)(1, 2);
   }
 
   test_expr_inClosure_refersToParam_prefixedIdentifier_assign() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable =
         serializeVariableText('var v = (x) => x.y = null;');
     assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
@@ -6969,9 +6880,6 @@ final v = ((a, b) => 42)(1, 2);
   }
 
   test_expr_inClosure_refersToParam_prefixedPrefixedIdentifier() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('var v = (x) => x.y.z;');
     assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
         operators: [
@@ -6987,9 +6895,6 @@ final v = ((a, b) => 42)(1, 2);
   }
 
   test_expr_inClosure_refersToParam_prefixedPrefixedIdentifier_assign() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable =
         serializeVariableText('var v = (x) => x.y.z = null;');
     assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
@@ -7011,9 +6916,6 @@ final v = ((a, b) => 42)(1, 2);
   }
 
   test_expr_invalid_typeParameter_asPrefix() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     var c = serializeClassText('''
 class C<T> {
   final f = T.k;
@@ -7061,9 +6963,6 @@ final v = new C().m(1, b: 2, c: 3);
   }
 
   test_expr_invokeMethod_withTypeParameters() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 class C {
   f<T, U>() => null;
@@ -7094,9 +6993,6 @@ final v = new C().f<int, String>();
   }
 
   test_expr_invokeMethodRef_instance() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 class A {
   B b;
@@ -7133,9 +7029,6 @@ final v = a.b.c.m(10, 20);
   }
 
   test_expr_invokeMethodRef_static_importedWithPrefix() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     addNamedSource('/a.dart', '''
 class C {
   static int m() => 42;
@@ -7163,9 +7056,6 @@ final v = p.C.m();
   }
 
   test_expr_invokeMethodRef_with_reference_arg() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 f(x) => null;
 final u = null;
@@ -7187,9 +7077,6 @@ final v = f(u);
   }
 
   test_expr_invokeMethodRef_withTypeParameters() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 f<T, U>() => null;
 final v = f<int, String>();
@@ -7275,9 +7162,6 @@ final v = f<int, String>();
   }
 
   test_expr_super() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 final v = super;
 ''');
@@ -7287,9 +7171,6 @@ final v = super;
   }
 
   test_expr_this() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 final v = this;
 ''');
@@ -7299,9 +7180,6 @@ final v = this;
   }
 
   test_expr_throwException() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 final v = throw 1 + 2;
 ''');
@@ -7320,9 +7198,6 @@ final v = throw 1 + 2;
   }
 
   test_expr_typeCast() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 final v = 42 as num;
 ''');
@@ -7342,9 +7217,6 @@ final v = 42 as num;
   }
 
   test_expr_typeCheck() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 final v = 42 is num;
 ''');
@@ -10090,9 +9962,6 @@ var v;''';
    */
   void _assertAssignmentOperator(
       String expr, UnlinkedExprAssignOperator expectedAssignOperator) {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 int a = 0;
 final v = $expr;
@@ -10148,9 +10017,6 @@ final v = $expr;
    */
   void _assertRefPrefixPostfixIncrementDecrement(
       String expr, UnlinkedExprAssignOperator expectedAssignmentOperator) {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 int a = 0;
 final v = $expr;
