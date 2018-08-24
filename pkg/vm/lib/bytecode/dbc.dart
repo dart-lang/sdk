@@ -40,6 +40,9 @@ library vm.bytecode.dbc;
 // 11. EntryFixed instruction works like Entry. In addition, it checks number
 //     of fixed arguments.
 //
+// 12. JumpIfNotZeroTypeArgs instruction jumps if number of passed
+//     function type arguments is not zero.
+//
 
 enum Opcode {
   kTrap,
@@ -52,6 +55,7 @@ enum Opcode {
   kDrop,
   kJump,
   kJumpIfNoAsserts,
+  kJumpIfNotZeroTypeArgs,
   kReturn,
   kReturnTOS,
   kMove,
@@ -295,6 +299,8 @@ const Map<Opcode, Format> BytecodeFormats = const {
   Opcode.kJump: const Format(
       Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
   Opcode.kJumpIfNoAsserts: const Format(
+      Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
+  Opcode.kJumpIfNotZeroTypeArgs: const Format(
       Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
   Opcode.kReturn: const Format(
       Encoding.kA, const [Operand.reg, Operand.none, Operand.none]),

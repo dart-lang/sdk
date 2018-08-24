@@ -4457,6 +4457,15 @@ RawObject* Interpreter::Call(RawFunction* function,
   }
 
   {
+    BYTECODE(JumpIfNotZeroTypeArgs, 0);
+    if (InterpreterHelpers::ArgDescTypeArgsLen(argdesc_) != 0) {
+      const int32_t target = static_cast<int32_t>(op) >> 8;
+      pc += (target - 1);
+    }
+    DISPATCH();
+  }
+
+  {
     BYTECODE(LoadClassId, A_D);
     const uint16_t object_reg = rD;
     RawObject* obj = static_cast<RawObject*>(FP[object_reg]);

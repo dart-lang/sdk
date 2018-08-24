@@ -174,6 +174,11 @@ class BytecodeAssembler {
     emitWord(_encodeT(Opcode.kJumpIfNoAsserts, label.jumpOperand(offset)));
   }
 
+  void emitJumpIfNotZeroTypeArgs(Label label) {
+    emitWord(
+        _encodeT(Opcode.kJumpIfNotZeroTypeArgs, label.jumpOperand(offset)));
+  }
+
   void patchJump(int pos, int rt) {
     final Opcode opcode = Opcode.values[_getOpcodeAt(pos)];
     assert(isJump(opcode));

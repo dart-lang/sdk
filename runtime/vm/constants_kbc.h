@@ -118,6 +118,12 @@ namespace dart {
 //    Jump to the given target if assertions are not enabled.
 //    Target is specified as offset from the PC of the jump instruction.
 //
+//  - JumpIfNotZeroTypeArgs target
+//
+//    Jump to the given target if number of passed function type
+//    arguments is not zero.
+//    Target is specified as offset from the PC of the jump instruction.
+//
 //  - Return R; ReturnTOS
 //
 //    Return to the caller using either a value from the given register or a
@@ -815,6 +821,7 @@ namespace dart {
   V(Drop,                                  A, num, ___, ___)                   \
   V(Jump,                                  T, tgt, ___, ___)                   \
   V(JumpIfNoAsserts,                       T, tgt, ___, ___)                   \
+  V(JumpIfNotZeroTypeArgs,                 T, tgt, ___, ___)                   \
   V(Return,                                A, reg, ___, ___)                   \
   V(ReturnTOS,                             0, ___, ___, ___)                   \
   V(Move,                                A_X, reg, xeg, ___)                   \

@@ -764,6 +764,22 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         assert(!(node is Procedure && node.isFactory));
         asm.emitCheckFunctionTypeArgs(function.typeParameters.length,
             locals.functionTypeArgsVarIndexInFrame);
+
+        bool hasNonDynamicDefaultTypes = function.typeParameters.any((p) =>
+            p.defaultType != null && p.defaultType != const DynamicType());
+        if (hasNonDynamicDefaultTypes) {
+          List<DartType> defaultTypes = function.typeParameters
+              .map((p) => p.defaultType ?? const DynamicType())
+              .toList();
+          assert(defaultTypes
+              .every((t) => !containsTypeVariable(t, functionTypeParameters)));
+
+          Label done = new Label();
+          asm.emitJumpIfNotZeroTypeArgs(done);
+          _genTypeArguments(defaultTypes);
+          asm.emitPopLocal(locals.functionTypeArgsVarIndexInFrame);
+          asm.bind(done);
+        }
       }
 
       if (isClosure) {
