@@ -30,7 +30,6 @@ class Snapshot {
  public:
   static void GenerateKernel(const char* snapshot_filename,
                              const char* script_name,
-                             bool strong,
                              const char* package_config);
   static void GenerateScript(const char* snapshot_filename);
   static void GenerateAppJIT(const char* snapshot_filename);

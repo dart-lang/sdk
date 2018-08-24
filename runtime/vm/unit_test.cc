@@ -28,17 +28,13 @@ using dart::bin::Builtin;
 using dart::bin::DartUtils;
 
 extern "C" {
-extern const uint8_t kPlatformDill[];
 extern const uint8_t kPlatformStrongDill[];
-extern intptr_t kPlatformDillSize;
 extern intptr_t kPlatformStrongDillSize;
 }
 
 namespace dart {
 
-const uint8_t* platform_dill = kPlatformDill;
 const uint8_t* platform_strong_dill = kPlatformStrongDill;
-const intptr_t platform_dill_size = kPlatformDillSize;
 const intptr_t platform_strong_dill_size = kPlatformStrongDillSize;
 
 DEFINE_FLAG(bool,
@@ -109,8 +105,7 @@ Dart_Isolate TestCase::CreateIsolate(const uint8_t* data_buffer,
 Dart_Isolate TestCase::CreateTestIsolate(const char* name, void* data) {
   if (FLAG_use_dart_frontend) {
     return CreateIsolate(
-        FLAG_strong ? platform_strong_dill : platform_dill,
-        FLAG_strong ? platform_strong_dill_size : platform_dill_size,
+        platform_strong_dill, platform_strong_dill_size,
         NULL, /* There is no instr buffer in case of dill buffers. */
         name, data);
   } else {
@@ -261,8 +256,7 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
                                          bool allow_compile_errors) {
   Zone* zone = Thread::Current()->zone();
   Dart_KernelCompilationResult compilation_result = Dart_CompileSourcesToKernel(
-      url, FLAG_strong ? platform_strong_dill : platform_dill,
-      FLAG_strong ? platform_strong_dill_size : platform_dill_size,
+      url, platform_strong_dill, platform_strong_dill_size,
       sourcefiles_count, sourcefiles, incrementally, NULL);
   return ValidateCompilationResult(zone, compilation_result, kernel_pgm);
 }
@@ -311,10 +305,8 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
                                          const char* multiroot_scheme) {
   Zone* zone = Thread::Current()->zone();
   Dart_KernelCompilationResult compilation_result = Dart_CompileSourcesToKernel(
-      url, FLAG_strong ? platform_strong_dill : platform_dill,
-      FLAG_strong ? platform_strong_dill_size : platform_dill_size,
-      sourcefiles_count, sourcefiles, incrementally, NULL, multiroot_filepaths,
-      multiroot_scheme);
+      url, platform_strong_dill, platform_strong_dill_size, sourcefiles_count,
+      sourcefiles, incrementally, NULL, multiroot_filepaths, multiroot_scheme);
   return ValidateCompilationResult(zone, compilation_result, kernel_buffer,
                                    kernel_buffer_size, allow_compile_errors);
 }

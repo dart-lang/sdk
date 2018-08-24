@@ -351,7 +351,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     intptr_t application_kernel_buffer_size = 0;
     dfe.CompileAndReadScript(script_uri, &application_kernel_buffer,
                              &application_kernel_buffer_size, error, exit_code,
-                             flags->strong, resolved_packages_config);
+                             resolved_packages_config);
     if (application_kernel_buffer == NULL) {
       Dart_ExitScope();
       Dart_ShutdownIsolate();
@@ -578,7 +578,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
     // from kernel only if we can.
     const uint8_t* kernel_buffer = NULL;
     intptr_t kernel_buffer_size = 0;
-    dfe.LoadPlatform(&kernel_buffer, &kernel_buffer_size, flags->strong);
+    dfe.LoadPlatform(&kernel_buffer, &kernel_buffer_size);
     if (kernel_buffer == NULL) {
       dfe.application_kernel_buffer(&kernel_buffer, &kernel_buffer_size);
     }
@@ -699,8 +699,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   if (Options::preview_dart_2() && !isolate_run_app_snapshot) {
     const uint8_t* platform_kernel_buffer = NULL;
     intptr_t platform_kernel_buffer_size = 0;
-    dfe.LoadPlatform(&platform_kernel_buffer, &platform_kernel_buffer_size,
-                     flags->strong);
+    dfe.LoadPlatform(&platform_kernel_buffer, &platform_kernel_buffer_size);
     if (platform_kernel_buffer == NULL) {
       platform_kernel_buffer = kernel_buffer;
       platform_kernel_buffer_size = kernel_buffer_size;
@@ -971,7 +970,6 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
     }
     if (Options::preview_dart_2()) {
       Snapshot::GenerateKernel(Options::snapshot_filename(), script_name,
-                               flags.strong,
                                isolate_data->resolved_packages_config());
     } else {
       Snapshot::GenerateScript(Options::snapshot_filename());
