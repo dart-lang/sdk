@@ -2965,6 +2965,27 @@ f() {
     verify([source]);
   }
 
+  test_forInWithConstVariable_forEach_identifier() async {
+    Source source = addSource(r'''
+f() {
+  const x = 0;
+  for (x in [0, 1, 2]) {}
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE]);
+    verify([source]);
+  }
+
+  test_forInWithConstVariable_forEach_loopVariable() async {
+    Source source = addSource(r'''
+f() {
+  for (const x in [0, 1, 2]) {}
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE]);
+    verify([source]);
+  }
+
   test_fromEnvironment_bool_badArgs() async {
     Source source = addSource(r'''
 var b1 = const bool.fromEnvironment(1);

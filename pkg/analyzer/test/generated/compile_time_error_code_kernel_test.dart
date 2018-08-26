@@ -301,6 +301,12 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
+  test_forInWithConstVariable_forEach_identifier() async {
+    return super.test_forInWithConstVariable_forEach_identifier();
+  }
+
+  @override
+  @failingTest
   test_genericFunctionTypeArgument_class() async {
     await super.test_genericFunctionTypeArgument_class();
   }

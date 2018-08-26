@@ -4667,7 +4667,8 @@ void main() {
     computeResult(target, VERIFY_ERRORS, matcher: isVerifyUnitTask);
     // validate
     _fillErrorListener(VERIFY_ERRORS);
-    errorListener.assertNoErrors();
+    errorListener.assertErrorsWithCodes(
+        <ErrorCode>[CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE]);
   }
 
   test_perform_ConstantValidator_dependencyCycle() {
