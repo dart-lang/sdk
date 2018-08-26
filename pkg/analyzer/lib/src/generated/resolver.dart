@@ -8179,51 +8179,20 @@ class TypeNameResolver {
     }
     DartType type = null;
     if (element is ClassElement) {
+      _setElement(typeName, element);
       type = element.type;
-      // In non-strong mode `FutureOr<T>` is treated as `dynamic`
-      if (!typeSystem.isStrong && type.isDartAsyncFutureOr) {
-        type = dynamicType;
-        _setElement(typeName, type.element);
-        typeName.staticType = type;
-        node.type = type;
-        if (argumentList != null) {
-          NodeList<TypeAnnotation> arguments = argumentList.arguments;
-          if (arguments.length != 1) {
-            reportErrorForNode(_getInvalidTypeParametersErrorCode(node), node,
-                [typeName.name, 1, arguments.length]);
-          }
-        }
-        return;
-      }
+    } else if (element == DynamicElementImpl.instance) {
       _setElement(typeName, element);
-    } else if (element is TypeDefiningElement &&
-        element.kind == ElementKind.DYNAMIC) {
-//      if (argumentList != null) {
-//        // Type parameters cannot have type arguments.
-//        // TODO(mfairhurst) Report this error.
-//        resolver.reportError(ResolverErrorCode.?, keyType);
-//      }
-      _setElement(typeName, element);
-      typeName.staticType = element.type;
-      node.type = element.type;
-      return;
+      type = DynamicTypeImpl.instance;
     } else if (element is FunctionTypeAliasElement) {
       _setElement(typeName, element);
       type = element.type;
     } else if (element is TypeParameterElement) {
       _setElement(typeName, element);
       type = element.type;
-//      if (argumentList != null) {
-//        // Type parameters cannot have type arguments.
-//        // TODO(brianwilkerson) Report this error.
-//        //      resolver.reportError(ResolverErrorCode.?, keyType);
-//      }
     } else if (element is MultiplyDefinedElement) {
       List<Element> elements = element.conflictingElements;
       type = _getTypeWhenMultiplyDefined(elements);
-      if (type != null) {
-        node.type = type;
-      }
     } else {
       // The name does not represent a type.
       RedirectingConstructorKind redirectingConstructorKind;

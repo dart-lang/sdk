@@ -404,7 +404,6 @@ accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
 additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
 built_in_identifier_prefix_test: CompileTimeError
-built_in_identifier_type_annotation_test/dynamic-gen: MissingCompileTimeError # Issue 28813
 cascaded_forwarding_stubs_test: CompileTimeError
 check_member_static_test/01: CompileTimeError
 config_import_corelib_test: CompileTimeError
@@ -444,10 +443,6 @@ index_assign_operator_infer_return_type_test: StaticWarning
 initializing_formal_final_test: MissingCompileTimeError
 interceptor6_test: CompileTimeError
 interface_test/00: MissingCompileTimeError
-invalid_type_argument_count_test/01: MissingCompileTimeError
-invalid_type_argument_count_test/02: MissingCompileTimeError
-invalid_type_argument_count_test/03: MissingCompileTimeError
-invalid_type_argument_count_test/04: MissingCompileTimeError
 issue13673_test: StaticWarning # Issue 31925
 issue31596_implement_covariant_test: CompileTimeError
 issue31596_override_test/01: CompileTimeError

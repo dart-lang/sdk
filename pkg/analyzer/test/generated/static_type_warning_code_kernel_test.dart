@@ -294,6 +294,12 @@ class StaticTypeWarningCodeTest_Kernel
 
   @override
   @failingTest
+  test_wrongNumberOfTypeArguments_typeParameter() async {
+    await super.test_wrongNumberOfTypeArguments_typeParameter();
+  }
+
+  @override
+  @failingTest
   test_yield_async_to_basic_type() async {
     await super.test_yield_async_to_basic_type();
   }
