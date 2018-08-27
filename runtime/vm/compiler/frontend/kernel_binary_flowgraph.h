@@ -148,7 +148,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
       const Function& dart_function,
       const Fragment& implicit_type_checks,
       const Fragment& first_time_prologue,
-      const Fragment& every_time_prologue);
+      const Fragment& every_time_prologue,
+      const Fragment& type_args_handling);
 
   void RecordUncheckedEntryPoint(TargetEntryInstr* extra_entry);
 

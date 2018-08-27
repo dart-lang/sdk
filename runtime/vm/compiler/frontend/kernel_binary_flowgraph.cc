@@ -1567,10 +1567,6 @@ Fragment StreamingFlowGraphBuilder::BuildEveryTimePrologue(
   F += CheckStackOverflowInPrologue(dart_function);
   F += DebugStepCheckInPrologue(dart_function, token_position);
   F += SetAsyncStackTrace(dart_function);
-  // TODO(#34162): We can remove the default type handling (and
-  // shorten the prologue type handling sequence) for non-dynamic invocations of
-  // regular methods.
-  F += TypeArgumentsHandling(dart_function, type_parameters_offset);
   return F;
 }
 
@@ -1709,7 +1705,8 @@ StreamingFlowGraphBuilder::ChooseEntryPointStyle(
     const Function& dart_function,
     const Fragment& implicit_type_checks,
     const Fragment& first_time_prologue,
-    const Fragment& every_time_prologue) {
+    const Fragment& every_time_prologue,
+    const Fragment& type_args_handling) {
   ASSERT(!dart_function.IsImplicitClosureFunction());
   if (!dart_function.MayHaveUncheckedEntryPoint(I) ||
       implicit_type_checks.is_empty()) {
@@ -1729,7 +1726,7 @@ StreamingFlowGraphBuilder::ChooseEntryPointStyle(
   // TODO(#34162): For regular closures we can often avoid the
   // PrologueBuilder-prologue on non-dynamic invocations.
   if (!PrologueBuilder::HasEmptyPrologue(dart_function) ||
-      !first_time_prologue.is_empty() ||
+      !type_args_handling.is_empty() || !first_time_prologue.is_empty() ||
       !(every_time_prologue.entry == every_time_prologue.current ||
         every_time_prologue.current->previous() == every_time_prologue.entry)) {
     return UncheckedEntryPointStyle::kSharedWithVariable;
@@ -1782,6 +1779,12 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
   const Fragment first_time_prologue = BuildFirstTimePrologue(
       dart_function, first_parameter, type_parameters_offset);
 
+  // TODO(#34162): We can remove the default type handling (and
+  // shorten the prologue type handling sequence) for non-dynamic invocations of
+  // regular methods.
+  const Fragment type_args_handling =
+      TypeArgumentsHandling(dart_function, type_parameters_offset);
+
   Fragment explicit_type_checks;
   Fragment implicit_type_checks;
   CheckArgumentTypesAsNecessary(dart_function, type_parameters_offset,
@@ -1790,9 +1793,9 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
   const Fragment body =
       BuildFunctionBody(dart_function, first_parameter, is_constructor);
 
-  auto extra_entry_point_style =
-      ChooseEntryPointStyle(dart_function, implicit_type_checks,
-                            first_time_prologue, every_time_prologue);
+  auto extra_entry_point_style = ChooseEntryPointStyle(
+      dart_function, implicit_type_checks, first_time_prologue,
+      every_time_prologue, type_args_handling);
 
   Fragment function(instruction_cursor);
   if (yield_continuations().is_empty()) {
@@ -1800,12 +1803,14 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
     switch (extra_entry_point_style) {
       case UncheckedEntryPointStyle::kNone: {
         function += every_time_prologue + first_time_prologue +
-                    implicit_type_checks + explicit_type_checks + body;
+                    type_args_handling + implicit_type_checks +
+                    explicit_type_checks + body;
         break;
       }
       case UncheckedEntryPointStyle::kSeparate: {
         ASSERT(instruction_cursor == normal_entry);
         ASSERT(first_time_prologue.is_empty());
+        ASSERT(type_args_handling.is_empty());
 
         const Fragment prologue_copy = BuildEveryTimePrologue(
             dart_function, token_position, type_parameters_offset);
@@ -1822,6 +1827,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
         Fragment prologue(normal_entry, instruction_cursor);
         prologue += every_time_prologue;
         prologue += first_time_prologue;
+        prologue += type_args_handling;
         prologue += explicit_type_checks;
         extra_entry = BuildSharedUncheckedEntryPoint(
             /*shared_prologue_linked_in=*/prologue,
@@ -1837,9 +1843,15 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
     // If the function's body contains any yield points, build switch statement
     // that selects a continuation point based on the value of :await_jump_var.
     ASSERT(explicit_type_checks.is_empty());
+
+    // If the function is generic, type_args_handling might require access to
+    // (possibly captured) 'this' for preparing default type arguments, in which
+    // case we can't run it before the 'first_time_prologue'.
+    ASSERT(!dart_function.IsGeneric());
+
     // TODO(#34162): We can probably ignore the implicit checks
     // here as well since the arguments are passed from generated code.
-    function += every_time_prologue +
+    function += every_time_prologue + type_args_handling +
                 CompleteBodyWithYieldContinuations(first_time_prologue +
                                                    implicit_type_checks + body);
   }
