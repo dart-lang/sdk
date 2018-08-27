@@ -852,6 +852,7 @@ void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
                                      LocationSummary* locs) {
   __ Call(stub_entry);
   EmitCallsiteMetadata(token_pos, Thread::kNoDeoptId, kind, locs);
+  AddStubCallTarget(Code::ZoneHandle(stub_entry.code()));
 }
 
 void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,

@@ -913,6 +913,7 @@ void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
                                      LocationSummary* locs) {
   __ BranchLink(stub_entry);
   EmitCallsiteMetadata(token_pos, Thread::kNoDeoptId, kind, locs);
+  AddStubCallTarget(Code::ZoneHandle(stub_entry.code()));
 }
 
 void FlowGraphCompiler::GeneratePatchableCall(TokenPosition token_pos,

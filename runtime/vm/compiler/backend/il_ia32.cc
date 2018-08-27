@@ -1744,7 +1744,6 @@ class BoxAllocationSlowPath : public TemplateSlowPathCode<Instruction> {
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(TokenPosition::kNoSource, stub_entry,
                            RawPcDescriptors::kOther, locs);
-    compiler->AddStubCallTarget(stub);
     __ MoveRegister(result_, EAX);
     compiler->RestoreLiveRegisters(locs);
     __ jmp(exit_label());
@@ -2146,9 +2145,6 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   __ Bind(&slow_path);
-  const Code& stub = Code::ZoneHandle(compiler->zone(),
-                                      StubCode::AllocateArray_entry()->code());
-  compiler->AddStubCallTarget(stub);
   compiler->GenerateCallWithDeopt(token_pos(), deopt_id(),
                                   *StubCode::AllocateArray_entry(),
                                   RawPcDescriptors::kOther, locs());
@@ -2422,9 +2418,6 @@ class AllocateContextSlowPath
     compiler->SaveLiveRegisters(locs);
 
     __ movl(EDX, Immediate(instruction()->num_context_variables()));
-    const Code& stub = Code::ZoneHandle(
-        compiler->zone(), StubCode::AllocateContext_entry()->code());
-    compiler->AddStubCallTarget(stub);
     compiler->GenerateCall(instruction()->token_pos(),
                            *StubCode::AllocateContext_entry(),
                            RawPcDescriptors::kOther, locs);
@@ -6181,7 +6174,6 @@ void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const StubEntry stub_entry(stub);
   compiler->GenerateCall(token_pos(), stub_entry, RawPcDescriptors::kOther,
                          locs());
-  compiler->AddStubCallTarget(stub);
   __ Drop(ArgumentCount());  // Discard arguments.
 }
 
