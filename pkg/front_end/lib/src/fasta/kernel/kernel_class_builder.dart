@@ -47,6 +47,7 @@ import '../fasta_codes.dart'
     show
         LocatedMessage,
         Message,
+        messageImplementsFutureOr,
         messagePatchClassOrigin,
         messagePatchClassTypeVariablesMismatch,
         messagePatchDeclarationMismatch,
@@ -197,7 +198,7 @@ abstract class KernelClassBuilder
     }
   }
 
-  void checkSupertypes() {
+  void checkSupertypes(CoreTypes coreTypes) {
     // This method determines whether the class (that's being built) its super
     // class appears both in 'extends' and 'implements' clauses and whether any
     // interface appears multiple times in the 'implements' clause.
@@ -235,6 +236,9 @@ abstract class KernelClassBuilder
 
             problemsOffsets ??= new Map<ClassBuilder, int>();
             problemsOffsets[interface] ??= type.charOffset;
+          } else if (interface.target == coreTypes.futureOrClass) {
+            addCompileTimeError(messageImplementsFutureOr, type.charOffset,
+                interface.target.name.length);
           } else {
             implemented.add(interface);
           }

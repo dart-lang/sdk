@@ -3502,6 +3502,16 @@ const MessageCode messageImplementsBeforeWith = const MessageCode(
     tip: r"""Try moving the with clause before the implements clause.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeImplementsFutureOr = messageImplementsFutureOr;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageImplementsFutureOr = const MessageCode(
+    "ImplementsFutureOr",
+    dart2jsCode: "*fatal*",
+    severity: Severity.error,
+    message: r"""'FutureOr' can't be used in an 'implements' clause.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, int count)>
     templateImplementsRepeated =
     const Template<Message Function(String name, int count)>(

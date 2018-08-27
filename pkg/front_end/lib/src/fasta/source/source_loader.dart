@@ -729,7 +729,7 @@ class SourceLoader<L> extends Loader<L> {
   void checkSupertypes(List<SourceClassBuilder> sourceClasses) {
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.library.loader == this) {
-        builder.checkSupertypes();
+        builder.checkSupertypes(coreTypes);
       }
     }
     ticker.logMs("Checked overrides");

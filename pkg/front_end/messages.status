@@ -195,6 +195,7 @@ IllegalMixinDueToConstructors/example: Fail
 IllegalSyncGeneratorVoidReturnType/analyzerCode: Fail # The analyzer doesn't report this error.
 ImplementsBeforeExtends/script: Fail
 ImplementsBeforeWith/script: Fail
+ImplementsFutureOr/analyzerCode: Fail # The analyzer doesn't report this error.
 ImplicitCallOfNonMethod/example: Fail
 ImportAfterPart/script1: Fail
 InitializerForStaticField/example: Fail

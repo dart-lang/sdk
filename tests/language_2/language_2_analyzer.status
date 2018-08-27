@@ -130,6 +130,7 @@ hidden_import_test/01: MissingStaticWarning
 hidden_import_test/02: MissingStaticWarning
 illegal_initializer_test/02: Crash # Issue #33771 - Error recovery in method body (error in constructor initializer)
 illegal_initializer_test/04: Crash # Issue #33771 - Error recovery in method body (error in constructor initializer)
+implements_futureor_test/01: Crash
 import_nonexisting_dart_uri_test/01: Crash # Issue 33686 - No core library found
 instantiate_tearoff_of_call_test: CompileTimeError # Front end fails to instantiate tear-offs of `call`
 instantiate_type_variable_test/01: Crash # Error recovery in method body (attempt to instantiate type variable)
@@ -434,6 +435,7 @@ generic_no_such_method_dispatcher_simple_test: Skip # This test is just for kern
 generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
 getter_setter_in_lib_test: Fail # Issue 23286
+implements_futureor_test/01: MissingCompileTimeError
 implicit_creation/implicit_const_context_constructor_generic_named_test: CompileTimeError
 implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError
 implicit_creation/implicit_const_context_prefix_constructor_generic_named_test: CompileTimeError
