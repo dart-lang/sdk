@@ -526,22 +526,29 @@ class _IterablePendingEvents<T> extends _PendingEvents<T> {
     }
     // Send one event per call to moveNext.
     // If moveNext returns true, send the current element as data.
+    // If current throws, send that error, but keep iterating.
     // If moveNext returns false, send a done event and clear the _iterator.
-    // If moveNext throws an error, send an error and clear the _iterator.
-    // After an error, no further events will be sent.
-    bool isDone;
+    // If moveNext throws an error, send an error and prepare to send a done
+    // event afterwards.
+    bool hasMore;
     try {
-      isDone = !_iterator.moveNext();
+      hasMore = _iterator.moveNext();
+      if (hasMore) {
+        dispatch._sendData(_iterator.current);
+      } else {
+        _iterator = null;
+        dispatch._sendDone();
+      }
     } catch (e, s) {
-      _iterator = null;
-      dispatch._sendError(e, s);
-      return;
-    }
-    if (!isDone) {
-      dispatch._sendData(_iterator.current);
-    } else {
-      _iterator = null;
-      dispatch._sendDone();
+      if (hasMore == null) {
+        // Threw in .moveNext().
+        // Ensure that we send a done afterwards.
+        _iterator = const EmptyIterator<Null>();
+        dispatch._sendError(e, s);
+      } else {
+        // Threw in .current.
+        dispatch._sendError(e, s);
+      }
     }
   }
 

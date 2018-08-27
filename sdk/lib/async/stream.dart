@@ -159,19 +159,21 @@ abstract class Stream<T> {
   }
 
   /**
-   * Creates a single-subscription stream that gets its data from [data].
+   * Creates a single-subscription stream that gets its data from [elements].
    *
    * The iterable is iterated when the stream receives a listener, and stops
-   * iterating if the listener cancels the subscription.
+   * iterating if the listener cancels the subscription, or if the
+   * [Iterator.moveNext] method returns `false` or throws.
+   * Iteration is suspended whild the stream subscription is paused.
    *
-   * If iterating [data] throws an error, the stream ends immediately with
-   * that error. No done event will be sent (iteration is not complete), but no
-   * further data events will be generated either, since iteration cannot
-   * continue.
+   * If calling [Iterator.moveNext] on `elements.iterator` throws,
+   * the stream emits that error and then it closes.
+   * If reading [Iterator.current] on `elements.iterator` throws,
+   * the stream emits that error, but keeps iterating.
    */
-  factory Stream.fromIterable(Iterable<T> data) {
+  factory Stream.fromIterable(Iterable<T> elements) {
     return new _GeneratedStreamImpl<T>(
-        () => new _IterablePendingEvents<T>(data));
+        () => new _IterablePendingEvents<T>(elements));
   }
 
   /**

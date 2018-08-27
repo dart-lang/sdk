@@ -121,6 +121,7 @@ isolate/spawn_uri_multi_test/none: RuntimeError # Issue 13544
 [ !$strong ]
 async/future_test: SkipByDesign # Uses Dart 2 syntax.
 async/stream_first_where_test/badType: MissingCompileTimeError
+async/stream_from_iterable_test: SkipByDesign # Uses Dart 2 syntax.
 async/stream_last_where_test/badType: MissingCompileTimeError
 mirrors/redirecting_factory_different_type_test/02: MissingCompileTimeError
 
