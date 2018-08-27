@@ -847,6 +847,9 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 #if defined(DART_USE_INTERPRETER)
       // TODO(regis): Revisit.
       if (flow_graph == NULL && function.HasBytecode()) {
+        // Reset global isolate state.
+        thread()->set_deopt_id(prev_deopt_id);
+
         return Code::null();
       }
 #endif
