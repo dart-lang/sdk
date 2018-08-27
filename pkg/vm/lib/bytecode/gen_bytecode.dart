@@ -762,24 +762,19 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (locals.hasFunctionTypeArgsVar) {
       if (function.typeParameters.isNotEmpty) {
         assert(!(node is Procedure && node.isFactory));
+
+        Label done = new Label();
+
+        if (isClosure) {
+          _handleDelayedTypeArguments(done);
+        }
+
         asm.emitCheckFunctionTypeArgs(function.typeParameters.length,
             locals.functionTypeArgsVarIndexInFrame);
 
-        bool hasNonDynamicDefaultTypes = function.typeParameters.any((p) =>
-            p.defaultType != null && p.defaultType != const DynamicType());
-        if (hasNonDynamicDefaultTypes) {
-          List<DartType> defaultTypes = function.typeParameters
-              .map((p) => p.defaultType ?? const DynamicType())
-              .toList();
-          assert(defaultTypes
-              .every((t) => !containsTypeVariable(t, functionTypeParameters)));
+        _handleDefaultTypeArguments(function, isClosure, done);
 
-          Label done = new Label();
-          asm.emitJumpIfNotZeroTypeArgs(done);
-          _genTypeArguments(defaultTypes);
-          asm.emitPopLocal(locals.functionTypeArgsVarIndexInFrame);
-          asm.bind(done);
-        }
+        asm.bind(done);
       }
 
       if (isClosure) {
@@ -801,6 +796,55 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         }
       }
     }
+  }
+
+  void _handleDelayedTypeArguments(Label doneCheckingTypeArguments) {
+    Label noDelayedTypeArgs = new Label();
+
+    asm.emitPush(locals.closureVarIndexInFrame);
+    asm.emitLoadFieldTOS(
+        cp.add(new ConstantInstanceField(closureDelayedTypeArguments)));
+    asm.emitStoreLocal(locals.functionTypeArgsVarIndexInFrame);
+    asm.emitPushConstant(cp.add(const ConstantEmptyTypeArguments()));
+    asm.emitIfEqStrictTOS();
+    asm.emitJump(noDelayedTypeArgs);
+
+    // There are non-empty delayed type arguments, and they are stored
+    // into function type args variable already.
+    // Just verify that there are no passed type arguments.
+    asm.emitCheckFunctionTypeArgs(0, locals.scratchVarIndexInFrame);
+    asm.emitJump(doneCheckingTypeArguments);
+
+    asm.bind(noDelayedTypeArgs);
+  }
+
+  void _handleDefaultTypeArguments(
+      FunctionNode function, bool isClosure, Label doneCheckingTypeArguments) {
+    bool hasNonDynamicDefaultTypes = function.typeParameters.any(
+        (p) => p.defaultType != null && p.defaultType != const DynamicType());
+    if (!hasNonDynamicDefaultTypes) {
+      return;
+    }
+
+    asm.emitJumpIfNotZeroTypeArgs(doneCheckingTypeArguments);
+
+    List<DartType> defaultTypes = function.typeParameters
+        .map((p) => p.defaultType ?? const DynamicType())
+        .toList();
+
+    // Load parent function type arguments if they are used to
+    // instantiate default types.
+    if (isClosure &&
+        defaultTypes
+            .any((t) => containsTypeVariable(t, functionTypeParameters))) {
+      asm.emitPush(locals.closureVarIndexInFrame);
+      asm.emitLoadFieldTOS(
+          cp.add(new ConstantInstanceField(closureFunctionTypeArguments)));
+      asm.emitPopLocal(locals.functionTypeArgsVarIndexInFrame);
+    }
+
+    _genTypeArguments(defaultTypes);
+    asm.emitPopLocal(locals.functionTypeArgsVarIndexInFrame);
   }
 
   void _setupInitialContext(FunctionNode function) {

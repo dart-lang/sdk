@@ -540,6 +540,7 @@ async_star_test/02: RuntimeError
 bit_operations_test: RuntimeError
 branch_canonicalization_test: RuntimeError
 canonical_const2_test: RuntimeError, OK # non JS number semantics
+closure_type_arguments_test: Crash # Issue 34272
 compile_time_constant_o_test/01: MissingCompileTimeError
 compile_time_constant_o_test/02: MissingCompileTimeError
 compile_time_constant_static5_test/11: CompileTimeError

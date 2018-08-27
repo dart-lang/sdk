@@ -238,6 +238,7 @@ call_method_must_not_be_field_test/06: RuntimeError # Kernel does not distinguis
 call_method_must_not_be_getter_test/06: RuntimeError # Kernel does not distinguish `d()` from `d.call()`
 call_non_method_field_test/01: MissingCompileTimeError
 call_non_method_field_test/02: MissingCompileTimeError
+closure_type_arguments_test: RuntimeError # Issue 34273
 compile_time_constant_c_test/02: MissingCompileTimeError
 compile_time_constant_k_test/01: MissingCompileTimeError
 compile_time_constant_k_test/02: MissingCompileTimeError
