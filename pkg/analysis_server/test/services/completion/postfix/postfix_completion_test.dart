@@ -332,6 +332,15 @@ f(List expr) {
 ''');
   }
 
+  test_if_invalid_importPrefix() async {
+    await _assertNotApplicable('.if', '''
+import 'dart:async' as p;
+f() {
+  p.if
+}
+''');
+  }
+
   test_ifDynamic() async {
     await _prepareCompletion('.if', '''
 f(expr) {

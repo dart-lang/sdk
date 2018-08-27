@@ -563,6 +563,7 @@ class PostfixCompletionProcessor {
     }
     Expression expr = list.firstWhere((expr) {
       DartType type = expr.staticType;
+      if (type == null) return false;
       if (type.isSubtypeOf(builtInType)) return true;
       Element element = type.element;
       if (element is TypeDefiningElement) {
