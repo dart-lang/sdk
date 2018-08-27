@@ -1142,9 +1142,14 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       throw new ArgumentError(
           'The function must have a synchronous, non-generator body.');
     }
-    addInsertion(body.offset, (EditBuilder builder) {
-      builder.write('async ');
-    });
+    if (body is! EmptyFunctionBody) {
+      addInsertion(body.offset, (EditBuilder builder) {
+        if (_isFusedWithPreviousToken(body.beginToken)) {
+          builder.write(' ');
+        }
+        builder.write('async ');
+      });
+    }
     _replaceReturnTypeWithFuture(body, typeProvider);
   }
 
@@ -1448,6 +1453,10 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         return;
       }
     }
+  }
+
+  static bool _isFusedWithPreviousToken(Token token) {
+    return token.previous.end == token.offset;
   }
 }
 

@@ -1013,6 +1013,21 @@ Future<String> f() async => '';
 ''');
   }
 
+  test_convertToAsyncBody_OK_getter_expression_noSpace() async {
+    await resolveTestUnit('''
+class C {
+  int get g=>0;
+}
+''');
+    await assertHasAssistAt('get g', DartAssistKind.CONVERT_INTO_ASYNC_BODY, '''
+import 'dart:async';
+
+class C {
+  Future<int> get g async =>0;
+}
+''');
+  }
+
   test_convertToAsyncBody_OK_method() async {
     await resolveTestUnit('''
 class C {
@@ -1025,6 +1040,21 @@ import 'dart:async';
 
 class C {
   Future<int> m() async { return 0; }
+}
+''');
+  }
+
+  test_convertToAsyncBody_OK_method_abstract() async {
+    await resolveTestUnit('''
+abstract class C {
+  int m();
+}
+''');
+    await assertHasAssistAt('m()', DartAssistKind.CONVERT_INTO_ASYNC_BODY, '''
+import 'dart:async';
+
+abstract class C {
+  Future<int> m();
 }
 ''');
   }
