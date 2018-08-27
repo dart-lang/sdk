@@ -51,7 +51,7 @@ class LocalVariables {
 
   int getOriginalParamSlotIndex(VariableDeclaration variable) =>
       _getVarDesc(variable).originalParamSlotIndex ??
-      (throw 'Variablie $variable does not have originalParamSlotIndex');
+      (throw 'Variable $variable does not have originalParamSlotIndex');
 
   int tempIndexInFrame(TreeNode node, {int tempIndex: 0}) {
     final temps = _temps[node];
@@ -106,6 +106,12 @@ class LocalVariables {
   VariableDeclaration get receiverVar =>
       _currentFrame.receiverVar ??
       (throw 'Receiver variable is not declared in ${_currentFrame.function}');
+
+  bool get hasCapturedReceiverVar => _currentFrame.capturedReceiverVar != null;
+
+  VariableDeclaration get capturedReceiverVar =>
+      _currentFrame.capturedReceiverVar ??
+      (throw 'Captured receiver variable is not declared in ${_currentFrame.function}');
 
   bool get hasReceiver => _currentFrame.receiverVar != null;
 
@@ -212,6 +218,7 @@ class Frame {
   bool isDartSync = true;
   bool isSyncYielding = false;
   VariableDeclaration receiverVar;
+  VariableDeclaration capturedReceiverVar;
   VariableDeclaration functionTypeArgsVar;
   VariableDeclaration factoryTypeArgsVar;
   VariableDeclaration closureVar;
@@ -359,6 +366,15 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
       _declareVariable(_currentFrame.contextVar);
       _currentFrame.scratchVar = new VariableDeclaration(':scratch');
       _declareVariable(_currentFrame.scratchVar);
+    }
+
+    if (node is Constructor || (node is Procedure && !node.isStatic)) {
+      if (locals.isCaptured(_currentFrame.receiverVar)) {
+        // Duplicate receiver variable for local use.
+        _currentFrame.capturedReceiverVar = _currentFrame.receiverVar;
+        _currentFrame.receiverVar = new VariableDeclaration('this');
+        _declareVariable(_currentFrame.receiverVar);
+      }
     }
 
     _leaveFrame();
@@ -859,7 +875,7 @@ class _Allocator extends RecursiveVisitor<Null> {
 
     _currentFrame.hasCapturedParameters =
         (isFactory && locals.isCaptured(_currentFrame.factoryTypeArgsVar)) ||
-            (hasReceiver && locals.isCaptured(_currentFrame.receiverVar)) ||
+            (hasReceiver && _currentFrame.capturedReceiverVar != null) ||
             function.positionalParameters.any(locals.isCaptured) ||
             function.namedParameters.any(locals.isCaptured);
 
@@ -868,7 +884,12 @@ class _Allocator extends RecursiveVisitor<Null> {
       _allocateParameter(_currentFrame.factoryTypeArgsVar, count++);
     }
     if (hasReceiver) {
+      assert(!locals.isCaptured(_currentFrame.receiverVar));
       _allocateParameter(_currentFrame.receiverVar, count++);
+
+      if (_currentFrame.capturedReceiverVar != null) {
+        _allocateVariable(_currentFrame.capturedReceiverVar);
+      }
     }
     if (hasClosureArg) {
       assert(!locals.isCaptured(_currentFrame.closureVar));

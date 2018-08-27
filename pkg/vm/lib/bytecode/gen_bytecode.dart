@@ -813,8 +813,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         if (locals.hasFactoryTypeArgsVar) {
           _copyParamIfCaptured(locals.factoryTypeArgsVar);
         }
-        if (locals.hasReceiver) {
-          _copyParamIfCaptured(locals.receiverVar);
+        if (locals.hasCapturedReceiverVar) {
+          _genPushContextForVariable(locals.capturedReceiverVar);
+          asm.emitPush(locals.getVarIndexInFrame(locals.receiverVar));
+          _genStoreVar(locals.capturedReceiverVar);
         }
       }
       function.positionalParameters.forEach(_copyParamIfCaptured);

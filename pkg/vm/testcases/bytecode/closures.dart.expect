@@ -204,8 +204,7 @@ Bytecode {
   Allocate             CP#38
   StoreLocal           r4
   Push                 r4
-  Push                 r1
-  LoadContextVar       0
+  Push                 FP[-5]
   LoadTypeArgumentsField CP#17
   StoreFieldTOS        CP#39
   Push                 r4
