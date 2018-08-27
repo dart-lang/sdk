@@ -1542,7 +1542,8 @@ class KernelUnresolvedNameGenerator extends KernelGenerator
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
       Procedure interfaceTarget,
-      bool isPreIncDec: false}) {
+      bool isPreIncDec: false,
+      bool isPostIncDec: false}) {
     return _buildUnresolvedVariableAssignment(true, value);
   }
 

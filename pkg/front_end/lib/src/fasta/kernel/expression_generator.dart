@@ -793,7 +793,8 @@ abstract class ErroneousExpressionGenerator implements Generator {
       {int offset: -1,
       bool voidContext: false,
       Procedure interfaceTarget,
-      bool isPreIncDec: false}) {
+      bool isPreIncDec: false,
+      bool isPostIncDec: false}) {
     return new SyntheticExpressionJudgment(buildError(
         forest.arguments(<Expression>[value], token, token),
         isGetter: true));
