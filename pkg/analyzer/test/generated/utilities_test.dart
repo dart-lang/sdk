@@ -908,9 +908,8 @@ library l;''');
     _assertCloneUnitMember('class A { factory A() = B; }');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   void test_visitRethrowExpression() {
-    _assertCloneExpression('rethrow');
+    _assertCloneStatement('rethrow;');
   }
 
   void test_visitReturnStatement_expression() {

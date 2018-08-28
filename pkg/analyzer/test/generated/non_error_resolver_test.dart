@@ -4024,7 +4024,6 @@ class B extends A {
     verify([source]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_nativeConstConstructor() async {
     Source source = addSource(r'''
 import 'dart-ext:x';
@@ -4033,7 +4032,7 @@ class Foo {
   const factory Foo.foo() native 'Foo_Foo_foo';
 }''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    assertErrors(source, [ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY]);
     // Cannot verify the AST because the import's URI cannot be resolved.
   }
 
@@ -5976,7 +5975,6 @@ main() {
     }
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_undefinedIdentifier_synthetic_whenMethodName() async {
     Source source = addSource(r'''
 print(x) {}
@@ -5984,7 +5982,11 @@ main(int p) {
   p.();
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [ParserErrorCode.MISSING_IDENTIFIER]);
+    assertErrors(source, [
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.MISSING_IDENTIFIER,
+      StaticTypeWarningCode.UNDEFINED_GETTER
+    ]);
   }
 
   test_undefinedMethod_functionExpression_callMethod() async {

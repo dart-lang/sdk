@@ -160,12 +160,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   }
 
   @override
-  @failingTest
-  test_nativeConstConstructor() {
-    return super.test_nativeConstConstructor();
-  }
-
-  @override
   test_null_callMethod() async {
     return super.test_null_callMethod();
   }

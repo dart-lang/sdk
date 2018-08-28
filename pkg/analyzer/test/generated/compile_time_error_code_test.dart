@@ -5805,7 +5805,6 @@ f() {
               ]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_nonConstMapAsExpressionStatement_begin() async {
     Source source = addSource(r'''
 f() {
@@ -5843,6 +5842,9 @@ f() {
                   ParserErrorCode.EXPECTED_TOKEN,
                   ParserErrorCode.EXPECTED_TOKEN,
                   ParserErrorCode.EXPECTED_TOKEN,
+                  ParserErrorCode.EXPECTED_TOKEN,
+                  ParserErrorCode.EXPECTED_TOKEN,
+                  ParserErrorCode.EXPECTED_TOKEN,
                   ParserErrorCode.MISSING_IDENTIFIER,
                   ParserErrorCode.MISSING_IDENTIFIER,
                   ParserErrorCode.MISSING_IDENTIFIER,
@@ -5856,7 +5858,6 @@ f() {
     verify([source]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_nonConstMapAsExpressionStatement_only() async {
     Source source = addSource(r'''
 f() {
@@ -5887,6 +5888,9 @@ f() {
           source,
           usingFastaParser
               ? [
+                  ParserErrorCode.EXPECTED_TOKEN,
+                  ParserErrorCode.EXPECTED_TOKEN,
+                  ParserErrorCode.EXPECTED_TOKEN,
                   ParserErrorCode.EXPECTED_TOKEN,
                   ParserErrorCode.EXPECTED_TOKEN,
                   ParserErrorCode.EXPECTED_TOKEN,

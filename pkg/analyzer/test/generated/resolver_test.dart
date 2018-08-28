@@ -204,7 +204,6 @@ class A {
     verify([source]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_enclosingElement_invalidLocalFunction() async {
     String code = r'''
 class C {
@@ -215,7 +214,10 @@ class C {
     Source source = addSource(code);
 
     TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    assertErrors(source, [ParserErrorCode.GETTER_IN_FUNCTION]);
+    assertErrors(source, [
+      ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
+      ParserErrorCode.EXPECTED_TOKEN
+    ]);
 
     CompilationUnitElement unit = analysisResult.unit.declaredElement;
     LibraryElement library = unit.library;
