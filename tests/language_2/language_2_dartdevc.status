@@ -37,8 +37,6 @@ const_cast2_test/none: CompileTimeError
 const_constructor_mixin3_test/01: MissingCompileTimeError # Issue 33644
 const_constructor_mixin_test/01: MissingCompileTimeError # Issue 33644
 constructor9_test/01: MissingCompileTimeError # CFE Issue 33022
-constructor_type_parameter_test/00: MissingCompileTimeError
-constructor_with_type_parameters_test/03: MissingCompileTimeError
 covariance_field_test/03: RuntimeError
 covariant_override/tear_off_type_test: RuntimeError # Issue 28395
 default_implementation2_test: CompileTimeError # Issue 30855
@@ -122,13 +120,6 @@ mixin_type_parameter_inference_test/07: MissingCompileTimeError
 mixin_type_parameter_inference_test/08: RuntimeError
 mixin_type_parameter_inference_test/09: RuntimeError
 mock_writable_final_private_field_test: CompileTimeError # Issue 30848
-multiline_newline_test/01: CompileTimeError
-multiline_newline_test/01r: CompileTimeError
-multiline_newline_test/02: CompileTimeError
-multiline_newline_test/02r: CompileTimeError
-multiline_newline_test/03: RuntimeError
-multiline_newline_test/03r: RuntimeError
-multiline_newline_test/none: RuntimeError
 multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 nested_generic_closure_test: CompileTimeError
 override_field_test/02: CompileTimeError
@@ -141,10 +132,9 @@ regress_23408_test: CompileTimeError
 regress_24283_test: RuntimeError # Intended to fail, requires 64-bit numbers.
 regress_27617_test/1: MissingCompileTimeError
 regress_29025_test: CompileTimeError # Issue 29081
-regress_29349_test: CompileTimeError # Issue 31093
 regress_29405_test: CompileTimeError # Issue 29421
-regress_29784_test/02: MissingCompileTimeError
 regress_29784_test/02: Crash # assert initializers not implemented
+regress_29784_test/02: MissingCompileTimeError
 regress_30121_test: CompileTimeError # Issue 31087
 regress_30339_test: CompileTimeError # As expected. Should we make this a multi test?
 regress_33235_03_test/01: MissingCompileTimeError
@@ -168,6 +158,7 @@ string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
 super_call4_test/01: MissingCompileTimeError
+super_conditional_operator_test/01: Crash # Issue 34041
 super_no_such_method4_test/01: MissingCompileTimeError # Requires Dart 2 semantics. See http://dartbug.com/33380.
 super_no_such_method5_test/01: MissingCompileTimeError # Requires Dart 2 semantics. See http://dartbug.com/33380.
 super_operator_index5_test: RuntimeError # 33470
@@ -195,8 +186,6 @@ type_promotion_functions_test/13: CompileTimeError # Issue 30895
 type_promotion_functions_test/14: CompileTimeError # Issue 30895
 type_promotion_functions_test/none: CompileTimeError # Issue 30895
 type_variable_scope_test/none: CompileTimeError
-void/generalized_void_syntax_test: CompileTimeError # https://github.com/dart-lang/sdk/issues/30177
-void/void_type_function_types_test/none: CompileTimeError # Issue 30177
 void/void_type_usage_test/async_use_in_yield: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/async_use_in_yield_star: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/call_boolean_and_right: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
@@ -348,6 +337,10 @@ mixin_super_use_test: RuntimeError
 mixin_supertype_subclass_test/02: MissingCompileTimeError
 mixin_supertype_subclass_test/05: MissingCompileTimeError
 mock_writable_final_private_field_test: RuntimeError
+multiline_newline_test/04: MissingCompileTimeError
+multiline_newline_test/04r: MissingCompileTimeError
+multiline_newline_test/05: MissingCompileTimeError
+multiline_newline_test/05r: MissingCompileTimeError
 multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
 no_such_method_mock_test: RuntimeError # Issue 31426 - Kernel does not introduce nSM for implemented fields.
@@ -483,10 +476,6 @@ mint_arithmetic_test: RuntimeError # Issue 29920; Expect.equals(expected: <42949
 mint_compares_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 mint_identical_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 modulo_test: RuntimeError # Ints and doubles are unified.; Expect.throws fails: Did not throw
-multiline_newline_test/04: MissingCompileTimeError
-multiline_newline_test/04r: MissingCompileTimeError
-multiline_newline_test/05: MissingCompileTimeError
-multiline_newline_test/05r: MissingCompileTimeError
 named_parameters_default_eq_test/none: RuntimeError # Expect.isTrue(false) fails.
 nan_identical_test: RuntimeError # Issue 29920; Unsupported operation: Uint64 accessor not supported by dart2js.
 nested_switch_label_test: RuntimeError # Issue 29920; UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;

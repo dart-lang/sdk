@@ -1196,7 +1196,7 @@ class AnalysisServerOptions {
   /**
    * Whether to enable parsing via the Fasta parser.
    */
-  bool useFastaParser = false;
+  bool useFastaParser = true;
 }
 
 /**

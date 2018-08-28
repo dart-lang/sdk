@@ -932,12 +932,6 @@ class OptionsTest extends BaseTest {
     expect(outSink.toString(), contains('Avoid empty else statements'));
   }
 
-  test_previewDart2() async {
-    await drive('data/options_tests_project/test_file.dart',
-        args: ['--preview-dart-2']);
-    expect(analysisOptions.useFastaParser, isFalse);
-  }
-
   test_todo() async {
     await drive('data/file_with_todo.dart');
     expect(outSink.toString().contains('[info]'), isFalse);
@@ -997,40 +991,6 @@ class OptionsTest_PreviewDart2 extends OptionsTest {
 class OptionsTest_UseCFE extends OptionsTest {
   @override
   bool get useCFE => true;
-
-  @override
-  @failingTest
-  test_analysisOptions_excludes() =>
-      callFailingTest(super.test_analysisOptions_excludes);
-
-  @override
-  @failingTest
-  test_analysisOptions_excludesRelativeToAnalysisOptions_explicit() =>
-      callFailingTest(super
-          .test_analysisOptions_excludesRelativeToAnalysisOptions_explicit);
-
-  @override
-  @failingTest
-  test_analysisOptions_excludesRelativeToAnalysisOptions_inferred() =>
-      callFailingTest(super
-          .test_analysisOptions_excludesRelativeToAnalysisOptions_inferred);
-
-  @override
-  @failingTest
-  test_basic_filters() => callFailingTest(super.test_basic_filters);
-
-  @override
-  @failingTest
-  test_includeDirective() => callFailingTest(super.test_includeDirective);
-
-  @override
-  @failingTest
-  test_previewDart2() => callFailingTest(super.test_previewDart2);
-
-  @override
-  @failingTest
-  test_withFlags_overrideFatalWarning() =>
-      callFailingTest(super.test_withFlags_overrideFatalWarning);
 }
 
 class TestSource implements Source {

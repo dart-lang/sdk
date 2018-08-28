@@ -184,7 +184,8 @@ class Parser {
    * A flag indicating whether the analyzer [Parser] factory method
    * will return a fasta based parser or an analyzer based parser.
    */
-  static const bool useFasta = const bool.fromEnvironment("useFastaParser");
+  static const bool useFasta =
+      const bool.fromEnvironment("useFastaParser", defaultValue: true);
 
   /**
    * The source being parsed.
@@ -278,7 +279,7 @@ class Parser {
    */
   factory Parser(Source source, AnalysisErrorListener errorListener,
       {bool useFasta}) {
-    if ((useFasta ?? false) || Parser.useFasta) {
+    if (useFasta ?? Parser.useFasta) {
       return new _Parser2(source, errorListener, allowNativeClause: true);
     } else {
       return new Parser.withoutFasta(source, errorListener);

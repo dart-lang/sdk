@@ -2384,7 +2384,6 @@ import 'package:crypto/crypto.dart';
     _assertNoExceptions();
   }
 
-  @failingTest // TODO(paulberry): Remove the annotation when dartbug.com/28515 is fixed.
   void test_resolveCompilationUnit_existingElementModel() {
     prepareAnalysisContext(new AnalysisOptionsImpl());
     Source source = addSource('/test.dart', r'''

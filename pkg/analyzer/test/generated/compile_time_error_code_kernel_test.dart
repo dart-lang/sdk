@@ -24,6 +24,14 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   bool get usingFastaParser => true;
 
   @override
+  test_nonConstMapAsExpressionStatement_begin() =>
+      super.test_nonConstMapAsExpressionStatement_begin();
+
+  @override
+  test_nonConstMapAsExpressionStatement_only() =>
+      super.test_nonConstMapAsExpressionStatement_only();
+
+  @override
   @failingTest
   test_accessPrivateEnumField() async {
     await super.test_accessPrivateEnumField();

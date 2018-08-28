@@ -1782,15 +1782,7 @@
           "arguments": ["create_sdk"]
         },
         {
-          "name": "analyze pkg/analysis_server",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
-          "arguments": [
-            "--use-fasta-parser",
-            "pkg/analysis_server"
-          ]
-        },
-        {
-          "name": "analyze pkg/analyzer",
+          "name": "analyze pkg/analyzer --use-fasta-parser",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": [
             "--use-fasta-parser",
@@ -1798,7 +1790,15 @@
           ]
         },
         {
-          "name": "analyze pkg/analyzer_cli",
+          "name": "analyze pkg/analyzer --no-use-fasta-parser",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": [
+            "--no-use-fasta-parser",
+            "pkg/analyzer"
+          ]
+        },
+        {
+          "name": "analyze pkg/analyzer_cli --use-fasta-parser",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": [
             "--use-fasta-parser",
@@ -1813,23 +1813,26 @@
           ]
         },
         {
-          "name": "run analyzer unit tests",
+          "name": "analyze pkg/analyzer_cli --no-use-fasta-parser",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": [
-            "-nunittest-analyzer_use_fasta-linux",
-            "pkg/analyzer"
+            "--no-use-fasta-parser",
+            "pkg/analyzer_cli"
           ]
         },
         {
-          "name": "run analysis server plugin tests",
+          "name": "analyze pkg/analysis_server --use-fasta-parser",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": [
-            "-nunittest-analyzer_use_fasta-linux",
-            "pkg/analyzer_plugin"
+            "--use-fasta-parser",
+            "pkg/analysis_server"
           ]
         },
         {
-          "name": "run analysis server unit tests",
+          "name": "analyze pkg/analysis_server --no-use-fasta-parser",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": [
-            "-nunittest-analyzer_use_fasta-linux",
+            "--no-use-fasta-parser",
             "pkg/analysis_server"
           ]
         }

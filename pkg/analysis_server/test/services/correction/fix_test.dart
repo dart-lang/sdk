@@ -306,6 +306,7 @@ var F = await;
     await assertNoFix(DartFixKind.ADD_ASYNC);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_addAsync_blockFunctionBody() async {
     await resolveTestUnit('''
 foo() {}
@@ -366,6 +367,7 @@ void doStuff() => takeFutureCallback(() async => await 1);
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_addAsync_expressionFunctionBody() async {
     errorFilter = (AnalysisError error) {
       return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
@@ -380,6 +382,7 @@ main() async => await foo();
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_addAsync_returnFuture() async {
     errorFilter = (AnalysisError error) {
       return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
@@ -402,6 +405,7 @@ Future<int> main() async {
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_addAsync_returnFuture_alreadyFuture() async {
     errorFilter = (AnalysisError error) {
       return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
@@ -424,6 +428,7 @@ Future<int> main() async {
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_addAsync_returnFuture_dynamic() async {
     errorFilter = (AnalysisError error) {
       return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
@@ -444,6 +449,7 @@ dynamic main() async {
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_addAsync_returnFuture_noType() async {
     errorFilter = (AnalysisError error) {
       return error.errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT;
@@ -5632,6 +5638,7 @@ main() {
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_replaceVarWithDynamic() async {
     errorFilter = (AnalysisError error) {
       return error.errorCode == ParserErrorCode.VAR_AS_TYPE_NAME;

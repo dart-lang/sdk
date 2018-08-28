@@ -603,6 +603,7 @@ class Driver implements ServerStarter {
     parser.addFlag(USE_CFE,
         help: "Enable the Dart 2.0 Common Front End implementation");
     parser.addFlag(USE_FASTA_PARSER,
+        defaultsTo: true,
         help: "Whether to enable parsing via the Fasta parser");
     parser.addOption(TRAIN_USING,
         help: "Pass in a directory to analyze for purposes of training an "

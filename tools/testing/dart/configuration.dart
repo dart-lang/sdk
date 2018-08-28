@@ -181,8 +181,7 @@ class TestConfiguration {
     ];
     return fastaCompilers.contains(compiler) ||
         (compiler == Compiler.dart2js && !useDart2JSOldFrontend) ||
-        (compiler == Compiler.dart2analyzer &&
-            (builderTag == 'analyzer_use_fasta' || useAnalyzerCfe));
+        (compiler == Compiler.dart2analyzer && useAnalyzerCfe);
   }
 
   /// The base directory named for this configuration, like:

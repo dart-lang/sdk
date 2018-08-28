@@ -163,7 +163,9 @@ void summarize(Set<Source> files, {bool prelink: false, bool link: false}) {
 /// Uses the diet-parser to parse only directives in [source].
 CompilationUnit parseDirectives(Source source) {
   var token = tokenize(source);
-  var parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER);
+  // TODO(jcollins-g): Make parser work with Fasta
+  var parser =
+      new Parser(source, AnalysisErrorListener.NULL_LISTENER, useFasta: false);
   return parser.parseDirectives(token);
 }
 

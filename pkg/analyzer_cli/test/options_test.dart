@@ -84,33 +84,33 @@ main() {
       });
 
       test('defined variables', () {
-        CommandLineOptions options = CommandLineOptions
-            .parse(['--dart-sdk', '.', '-Dfoo=bar', 'foo.dart']);
+        CommandLineOptions options = CommandLineOptions.parse(
+            ['--dart-sdk', '.', '-Dfoo=bar', 'foo.dart']);
         expect(options.definedVariables['foo'], equals('bar'));
         expect(options.definedVariables['bar'], isNull);
       });
 
       test('disable cache flushing', () {
-        CommandLineOptions options = CommandLineOptions
-            .parse(['--dart-sdk', '.', '--disable-cache-flushing', 'foo.dart']);
+        CommandLineOptions options = CommandLineOptions.parse(
+            ['--dart-sdk', '.', '--disable-cache-flushing', 'foo.dart']);
         expect(options.disableCacheFlushing, isTrue);
       });
 
       test('enable super mixins', () {
-        CommandLineOptions options = CommandLineOptions
-            .parse(['--dart-sdk', '.', '--supermixin', 'foo.dart']);
+        CommandLineOptions options = CommandLineOptions.parse(
+            ['--dart-sdk', '.', '--supermixin', 'foo.dart']);
         expect(options.enableSuperMixins, isTrue);
       });
 
       test('hintsAreFatal', () {
-        CommandLineOptions options = CommandLineOptions
-            .parse(['--dart-sdk', '.', '--fatal-hints', 'foo.dart']);
+        CommandLineOptions options = CommandLineOptions.parse(
+            ['--dart-sdk', '.', '--fatal-hints', 'foo.dart']);
         expect(options.infosAreFatal, isTrue);
       });
 
       test('infosAreFatal', () {
-        CommandLineOptions options = CommandLineOptions
-            .parse(['--dart-sdk', '.', '--fatal-infos', 'foo.dart']);
+        CommandLineOptions options = CommandLineOptions.parse(
+            ['--dart-sdk', '.', '--fatal-infos', 'foo.dart']);
         expect(options.infosAreFatal, isTrue);
       });
 
@@ -121,14 +121,14 @@ main() {
       });
 
       test('machine format', () {
-        CommandLineOptions options = CommandLineOptions
-            .parse(['--dart-sdk', '.', '--format=machine', 'foo.dart']);
+        CommandLineOptions options = CommandLineOptions.parse(
+            ['--dart-sdk', '.', '--format=machine', 'foo.dart']);
         expect(options.machineFormat, isTrue);
       });
 
       test('no-hints', () {
-        CommandLineOptions options = CommandLineOptions
-            .parse(['--dart-sdk', '.', '--no-hints', 'foo.dart']);
+        CommandLineOptions options = CommandLineOptions.parse(
+            ['--dart-sdk', '.', '--no-hints', 'foo.dart']);
         expect(options.disableHints, isTrue);
       });
 
@@ -139,26 +139,26 @@ main() {
       });
 
       test('lints', () {
-        CommandLineOptions options = CommandLineOptions
-            .parse(['--dart-sdk', '.', '--lints', 'foo.dart']);
+        CommandLineOptions options = CommandLineOptions.parse(
+            ['--dart-sdk', '.', '--lints', 'foo.dart']);
         expect(options.lints, isTrue);
       });
 
       test('package root', () {
-        CommandLineOptions options = CommandLineOptions
-            .parse(['--dart-sdk', '.', '--package-root', 'bar', 'foo.dart']);
+        CommandLineOptions options = CommandLineOptions.parse(
+            ['--dart-sdk', '.', '--package-root', 'bar', 'foo.dart']);
         expect(options.packageRootPath, equals('bar'));
       });
 
       test('package warnings', () {
-        CommandLineOptions options = CommandLineOptions
-            .parse(['--dart-sdk', '.', '--package-warnings', 'foo.dart']);
+        CommandLineOptions options = CommandLineOptions.parse(
+            ['--dart-sdk', '.', '--package-warnings', 'foo.dart']);
         expect(options.showPackageWarnings, isTrue);
       });
 
       test('sdk warnings', () {
-        CommandLineOptions options = CommandLineOptions
-            .parse(['--dart-sdk', '.', '--sdk-warnings', 'foo.dart']);
+        CommandLineOptions options = CommandLineOptions.parse(
+            ['--dart-sdk', '.', '--sdk-warnings', 'foo.dart']);
         expect(options.showSdkWarnings, isTrue);
       });
 
@@ -170,8 +170,8 @@ main() {
       });
 
       test('warningsAreFatal', () {
-        CommandLineOptions options = CommandLineOptions
-            .parse(['--dart-sdk', '.', '--fatal-warnings', 'foo.dart']);
+        CommandLineOptions options = CommandLineOptions.parse(
+            ['--dart-sdk', '.', '--fatal-warnings', 'foo.dart']);
         expect(options.warningsAreFatal, isTrue);
       });
 
@@ -189,8 +189,8 @@ main() {
       });
 
       test('hintsAreFatal', () {
-        CommandLineOptions options = CommandLineOptions
-            .parse(['--dart-sdk', '.', '--fatal-lints', 'foo.dart']);
+        CommandLineOptions options = CommandLineOptions.parse(
+            ['--dart-sdk', '.', '--fatal-lints', 'foo.dart']);
         expect(options.lintsAreFatal, isTrue);
       });
 
@@ -242,11 +242,6 @@ main() {
         CommandLineOptions options =
             CommandLineOptions.parse(['--use-fasta-parser', 'foo.dart']);
         expect(options.useFastaParser, isTrue);
-      });
-
-      test('--no-use-fasta-parser', () {
-        CommandLineOptions options = CommandLineOptions.parse(['', 'foo.dart']);
-        expect(options.useFastaParser, isFalse);
       });
 
       test('--preview-dart-2', () {

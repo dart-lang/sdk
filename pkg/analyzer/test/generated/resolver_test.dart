@@ -204,6 +204,7 @@ class A {
     verify([source]);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_enclosingElement_invalidLocalFunction() async {
     String code = r'''
 class C {

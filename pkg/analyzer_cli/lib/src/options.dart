@@ -513,7 +513,7 @@ class CommandLineOptions {
           hide: hide)
       ..addFlag('use-fasta-parser',
           help: 'Whether to enable parsing via the Fasta parser.',
-          defaultsTo: false,
+          defaultsTo: true,
           hide: hide)
       ..addFlag('preview-dart-2',
           help: 'Enable the Dart 2.0 preview.',

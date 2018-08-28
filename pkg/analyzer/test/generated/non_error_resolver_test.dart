@@ -4024,6 +4024,7 @@ class B extends A {
     verify([source]);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_nativeConstConstructor() async {
     Source source = addSource(r'''
 import 'dart-ext:x';
@@ -5975,6 +5976,7 @@ main() {
     }
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_undefinedIdentifier_synthetic_whenMethodName() async {
     Source source = addSource(r'''
 print(x) {}

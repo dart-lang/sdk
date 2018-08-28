@@ -19,8 +19,8 @@ import 'package:path/path.dart' as path;
 /// We look for classes ending in *Test_UseCFE or *Test_Kernel with test
 /// methods that are marked with @failingTest annotations.
 ///
-/// In addition, we count the test exclusions from pkg/pkg.status related to
-/// using Fasta with the Analyzer.
+/// In addition, we count the test exclusions from status related to using Fasta
+/// with the Analyzer.
 void main() {
   if (!io.FileSystemEntity.isDirectorySync('pkg')) {
     io.stderr
@@ -96,7 +96,7 @@ void main() {
   // tests/language_2/language_2_analyzer.status:
   //   [ $compiler == dart2analyzer && $fasta ]
   print('\nCFE tests for tests/language_2:');
-  int useCfeLanguage2 = countExclusions(
+  int useCfeLanguage2 = countStatusExclusions(
       'tests/language_2/language_2_analyzer.status',
       r'[ $compiler == dart2analyzer && $fasta ]');
   print('  $useCfeLanguage2 failing tests');
@@ -105,38 +105,46 @@ void main() {
   print('\n--use-fasta-parser exclusions from status files');
 
   int testExclusions = 0;
+  testExclusions += countStatusExclusions(
+      'tests/co19_2/co19_2-analyzer.status', r'# Issue 33995');
+  testExclusions += countStatusExclusions(
+      'tests/language_2/language_2_analyzer.status', r'# Issue 33022');
 
-  // pkg/pkg.status:
-  //   [ $builder_tag == analyzer_use_fasta && $runtime == vm ]
-  testExclusions += countExclusions('pkg/pkg.status',
-      r'[ $builder_tag == analyzer_use_fasta && $runtime == vm ]');
+  int testFailures = 0;
+  testFailures += countStringOccurrences(
+      'pkg/analyzer/test', 'https://github.com/dart-lang/sdk/issues/33992');
+  testFailures += countStringOccurrences('pkg/analysis_server/test',
+      'https://github.com/dart-lang/sdk/issues/33992');
 
-  // tests/language_2/language_2_analyzer.status:
-  //   [ $compiler == dart2analyzer && $analyzer_use_fasta_parser ]
-  testExclusions += countExclusions(
-      'tests/language_2/language_2_analyzer.status',
-      r'[ $compiler == dart2analyzer && $analyzer_use_fasta_parser ]');
-
-  print('  $testExclusions failing tests');
+  print('  $testExclusions co19 and language2 status file exclusions');
+  print('  $testFailures failing analyzer and analysis_server tests');
 }
 
-int countExclusions(String filePath, String exclusionHeader) {
+int countStatusExclusions(String filePath, String exclusionText) {
   io.File file = new io.File(filePath);
   List<String> lines = file.readAsLinesSync();
   lines = lines
       .where((line) => line.trim().isNotEmpty && !line.trim().startsWith('#'))
       .toList();
 
-  int index = lines.indexOf(exclusionHeader);
-  if (index == -1) {
-    print('error parsing ${file.path}');
+  return lines.where((line) => line.contains(exclusionText)).length;
+}
+
+int countStringOccurrences(String dirPath, String stringMatch) {
+  int count = 0;
+
+  for (io.FileSystemEntity entity
+      in new io.Directory(dirPath).listSync(recursive: true)) {
+    if (entity is! io.File) continue;
+    if (entity.path.endsWith('_test.dart')) {
+      String text = (entity as io.File).readAsStringSync();
+      int index = text.indexOf(stringMatch);
+      while (index != -1) {
+        count++;
+        index = text.indexOf(stringMatch, index + 1);
+      }
+    }
   }
 
-  lines = lines.sublist(index + 1);
-  int endIndex = lines.indexWhere((line) => line.startsWith('['));
-  if (endIndex >= 0) {
-    lines = lines.sublist(0, endIndex);
-  }
-
-  return lines.length;
+  return count;
 }

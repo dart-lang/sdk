@@ -933,6 +933,7 @@ main() {
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/33992')
   test_singleExpression_hasParseError_expectedSemicolon() async {
     verifyNoTestUnitErrors = false;
     await indexTestUnit('''

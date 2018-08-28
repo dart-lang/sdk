@@ -170,6 +170,7 @@ class String{}class List{}class DateTime{}typedef T Y<T extends !1>(List input);
         <String>["1+DateTime", "1+String"],
         cfeFailingTests: '1');
 
+    // https://github.com/dart-lang/sdk/issues/33992
     buildTests(
         'testCommentSnippets029',
         '''
@@ -620,6 +621,7 @@ class Foo {this.!1}''',
         cfeFailingTests: '1',
         failingTests: '1');
 
+    // https://github.com/dart-lang/sdk/issues/33992
     buildTests(
         'testCommentSnippets082',
         '''
@@ -789,7 +791,9 @@ class AAA {
 
 class C {
   @A!1
-}''', <String>["1+AAA" /*":" + ProposalKind.CONSTRUCTOR*/]);
+}''', <String>[
+      "1+AAA" /*":" + ProposalKind.CONSTRUCTOR*/
+    ]);
 
     buildTests('testCompletion_argument_typeName', '''
 class Enum {
@@ -1067,6 +1071,7 @@ class Foo { int boo = 7; mth() { PNGS.sort((String a, Str!1) => a.compareTo(b));
         <String>["1+String"],
         cfeFailingTests: '1');
 
+    // https://github.com/dart-lang/sdk/issues/33992
     buildTests(
         'testCompletion_function_partial',
         '''
@@ -1264,6 +1269,7 @@ main(p) {
         ],
         cfeFailingTests: '1234');
 
+    // https://github.com/dart-lang/sdk/issues/33992
     buildTests(
         'testCompletion_is_asIdentifierStart',
         '''
@@ -2355,6 +2361,7 @@ class T {
     buildTests(
         'test027', '''m(){try{}catch(eeee,ssss){s!1}''', <String>["1+ssss"]);
 
+    // https://github.com/dart-lang/sdk/issues/33992
     buildTests('test028', '''m(){var isX=3;if(is!1)''', <String>["1+isX"],
         cfeFailingTests: '1');
 
@@ -2538,7 +2545,7 @@ class A<Z extends X> {
    *
    * Optional argument [failingTests], if given, is a string, each character of
    * which corresponds to an X in the [originalSource] for which the test is
-   * expected to fail.  This sould be used to mark known completion bugs that
+   * expected to fail.  This should be used to mark known completion bugs that
    * have not yet been fixed.
    */
   void buildTests(String baseName, String originalSource, List<String> results,

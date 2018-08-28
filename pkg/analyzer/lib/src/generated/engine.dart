@@ -1461,7 +1461,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool trackCacheDependencies = true;
 
   @override
-  bool useFastaParser = false;
+  bool useFastaParser = true;
 
   /// [useCFE] exists on [AnalysisOptionsImpl] but not [AnalysisOptions] so as
   /// not to make it public API. It's used when calculating the driver signature
