@@ -1128,11 +1128,6 @@ class CallSiteInliner : public ValueObject {
             callee_graph->TryOptimizePatterns();
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
 
-            // This optimization must be performed before inlining to ensure
-            // that the receiver of the function is detected (since it will just
-            // be some regular variable after inlining).
-            MarkCallsOnReceiverUnchecked(callee_graph);
-
             callee_graph->Canonicalize();
           }
         }

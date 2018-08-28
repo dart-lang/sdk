@@ -2452,10 +2452,12 @@ Fragment StreamingFlowGraphBuilder::InstanceCall(
     const Array& argument_names,
     intptr_t checked_argument_count,
     const Function& interface_target,
-    const InferredTypeMetadata* result_type) {
+    const InferredTypeMetadata* result_type,
+    bool use_unchecked_entry) {
   return flow_graph_builder_->InstanceCall(
       position, name, kind, type_args_len, argument_count, argument_names,
-      checked_argument_count, interface_target, result_type);
+      checked_argument_count, interface_target, result_type,
+      use_unchecked_entry);
 }
 
 Fragment StreamingFlowGraphBuilder::ThrowException(TokenPosition position) {
@@ -3545,6 +3547,9 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
     type_args_len = list_length;
   }
 
+  // Take note of whether the invocation is against the receiver of the current
+  // function: in this case, we may skip some type checks in the callee.
+  const bool is_this_invocation = PeekTag() == kThisExpression;
   instructions += BuildExpression();  // read receiver.
 
   const String& name = ReadNameAsMethodName();  // read name.
@@ -3634,6 +3639,8 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
         B->ClosureCall(position, type_args_len, argument_count, argument_names,
                        /*use_unchecked_entry=*/true);
   } else if (!direct_call.target_.IsNull()) {
+    // TODO(#34162): Pass 'is_this_invocation' down if/when we feature multiple
+    // entry-points in AOT.
     ASSERT(FLAG_precompiled_mode);
     instructions += StaticCall(position, direct_call.target_, argument_count,
                                argument_names, ICData::kNoRebind, &result_type,
@@ -3652,10 +3659,10 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
       mangled_name = &String::ZoneHandle(
           Z, Function::CreateDynamicInvocationForwarderName(name));
     }
-    instructions +=
-        InstanceCall(position, *mangled_name, token_kind, type_args_len,
-                     argument_count, argument_names, checked_argument_count,
-                     *interface_target, &result_type);
+    instructions += InstanceCall(
+        position, *mangled_name, token_kind, type_args_len, argument_count,
+        argument_names, checked_argument_count, *interface_target, &result_type,
+        /*use_unchecked_entry=*/is_this_invocation);
   }
 
   // Drop temporaries preserving result on the top of the stack.

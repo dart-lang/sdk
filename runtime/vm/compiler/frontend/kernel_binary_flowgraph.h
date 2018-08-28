@@ -236,7 +236,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                         const Array& argument_names,
                         intptr_t checked_argument_count,
                         const Function& interface_target,
-                        const InferredTypeMetadata* result_type = NULL);
+                        const InferredTypeMetadata* result_type = nullptr,
+                        bool use_unchecked_entry = false);
 
   enum TypeChecksToBuild {
     kCheckAllTypeParameterBounds,

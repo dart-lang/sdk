@@ -92,6 +92,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment TryCatch(int try_handler_index);
   Fragment CheckStackOverflowInPrologue(TokenPosition position);
   Fragment CloneContext(intptr_t num_context_variables);
+
   Fragment InstanceCall(TokenPosition position,
                         const String& name,
                         Token::Kind kind,
@@ -100,12 +101,15 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                         const Array& argument_names,
                         intptr_t checked_argument_count,
                         const Function& interface_target,
-                        const InferredTypeMetadata* result_type = NULL);
+                        const InferredTypeMetadata* result_type = NULL,
+                        bool use_unchecked_entry = false);
+
   Fragment ClosureCall(TokenPosition position,
                        intptr_t type_args_len,
                        intptr_t argument_count,
                        const Array& argument_names,
                        bool use_unchecked_entry = false);
+
   Fragment RethrowException(TokenPosition position, int catch_try_index);
   Fragment LoadClassId();
   Fragment LoadField(intptr_t offset, intptr_t class_id = kDynamicCid);

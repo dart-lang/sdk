@@ -43,8 +43,7 @@ namespace dart {
   V(TryOptimizePatterns)                                                       \
   V(TypePropagation)                                                           \
   V(WidenSmiToInt32)                                                           \
-  V(WriteBarrierElimination)                                                   \
-  V(MarkCallsOnReceiverUnchecked)
+  V(WriteBarrierElimination)
 
 class AllocationSinking;
 class BlockScheduler;
@@ -169,8 +168,6 @@ class CompilerPass {
   const char* name_;
   intptr_t flags_;
 };
-
-void MarkCallsOnReceiverUnchecked(FlowGraph* flow_graph);
 
 }  // namespace dart
 

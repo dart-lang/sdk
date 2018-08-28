@@ -344,16 +344,16 @@ Fragment FlowGraphBuilder::CloneContext(intptr_t num_context_variables) {
   return instructions;
 }
 
-Fragment FlowGraphBuilder::InstanceCall(
-    TokenPosition position,
-    const String& name,
-    Token::Kind kind,
-    intptr_t type_args_len,
-    intptr_t argument_count,
-    const Array& argument_names,
-    intptr_t checked_argument_count,
-    const Function& interface_target,
-    const InferredTypeMetadata* result_type) {
+Fragment FlowGraphBuilder::InstanceCall(TokenPosition position,
+                                        const String& name,
+                                        Token::Kind kind,
+                                        intptr_t type_args_len,
+                                        intptr_t argument_count,
+                                        const Array& argument_names,
+                                        intptr_t checked_argument_count,
+                                        const Function& interface_target,
+                                        const InferredTypeMetadata* result_type,
+                                        bool use_unchecked_entry) {
   const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0);
   ArgumentArray arguments = GetArguments(total_count);
   InstanceCallInstr* call = new (Z)
@@ -362,6 +362,9 @@ Fragment FlowGraphBuilder::InstanceCall(
                         GetNextDeoptId(), interface_target);
   if ((result_type != NULL) && !result_type->IsTrivial()) {
     call->SetResultType(Z, result_type->ToCompileType(Z));
+  }
+  if (use_unchecked_entry) {
+    call->set_entry_kind(Code::EntryKind::kUnchecked);
   }
   Push(call);
   return Fragment(call);

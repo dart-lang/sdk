@@ -3458,6 +3458,8 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
   CompileType* result_type() const { return instance_call()->result_type(); }
   intptr_t result_cid() const { return instance_call()->result_cid(); }
 
+  Code::EntryKind entry_kind() const { return instance_call()->entry_kind(); }
+
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
@@ -3826,6 +3828,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
     if (call->result_type() != NULL) {
       new_call->result_type_ = call->result_type();
     }
+    new_call->set_entry_kind(call->entry_kind());
     return new_call;
   }
 
