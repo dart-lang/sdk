@@ -1210,9 +1210,6 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
 //   SP + 0 : type arguments object (only if class is parameterized).
 void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
                                               const Class& cls) {
-  // Must load pool pointer before being able to patch.
-  Register new_pp = NOTFP;
-  __ LoadPoolPointer(new_pp);
   // The generated code is different if the class is parameterized.
   const bool is_cls_parameterized = cls.NumTypeArguments() > 0;
   ASSERT(!is_cls_parameterized ||
