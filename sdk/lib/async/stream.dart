@@ -58,6 +58,13 @@ typedef void _TimerCallback();
  * If a listener is added to a broadcast stream while an event is being fired,
  * that listener will not receive the event currently being fired.
  * If a listener is canceled, it immediately stops receiving events.
+ * Listening on a broadcast stream can be treated as listening on a new stream
+ * containing only the events that have not yet been emitted when the [listen]
+ * call occurs.
+ * For example, the [first] getter listens to the stream, then returns the first
+ * event that listener receives.
+ * This is not necessarily the first even emitted by the stream, but the first
+ * of the *remaining* events of the broadcast stream.
  *
  * When the "done" event is fired, subscribers are unsubscribed before
  * receiving the event. After the event has been sent, the stream has no
