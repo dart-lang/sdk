@@ -413,6 +413,8 @@ Future<int> main() async {
       when(generator.initialized).thenAnswer((_) => false);
       when(generator.compile())
           .thenAnswer((_) => new Future<Component>.value(new Component()));
+      when(generator.compile(entryPoint: anyNamed("entryPoint")))
+          .thenAnswer((_) => new Future<Component>.value(new Component()));
       final _MockedBinaryPrinterFactory printerFactory =
           new _MockedBinaryPrinterFactory();
       when(printerFactory.newBinaryPrinter(any))
@@ -791,6 +793,19 @@ Future<int> main() async {
       expect(depContentsParsed[1], isNotEmpty);
     });
 
+    void checkIsEqual(List<int> a, List<int> b) {
+      int length = a.length;
+      if (b.length < length) {
+        length = b.length;
+      }
+      for (int i = 0; i < length; ++i) {
+        if (a[i] != b[i]) {
+          fail("Data differs at byte ${i + 1}.");
+        }
+      }
+      expect(a.length, equals(b.length));
+    }
+
     test('mimic flutter benchmark', () async {
       // This is based on what flutters "hot_mode_dev_cycle__benchmark" does.
       var dillFile = new File('${tempDir.path}/full.dill');
@@ -814,6 +829,7 @@ Future<int> main() async {
       int libraryCount = -1;
       int sourceCount = -1;
 
+      List<List<int>> compiledKernels = <List<int>>[];
       for (int serverCloses = 0; serverCloses < 2; ++serverCloses) {
         print("Restart #$serverCloses");
         final StreamController<List<int>> inputStreamController =
@@ -852,6 +868,16 @@ Future<int> main() async {
           String outputFilename =
               outputFilenameAndErrorCount.substring(0, delim);
           print("$outputFilename -- count $count");
+
+          // Ensure that kernel file produced when compiler was initialized
+          // from compiled kernel files matches kernel file produced when
+          // compiler was initialized from sources on the first run.
+          if (serverCloses == 0) {
+            compiledKernels.add(new File(dillFile.path).readAsBytesSync());
+          } else {
+            checkIsEqual(compiledKernels[count],
+                new File(dillFile.path).readAsBytesSync());
+          }
           if (count == 0) {
             // First request is to 'compile', which results in full kernel file.
             expect(dillFile.existsSync(), equals(true));

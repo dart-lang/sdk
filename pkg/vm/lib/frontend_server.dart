@@ -371,6 +371,17 @@ class FrontendCompiler implements CompilerInterface {
             sink, (lib) => !lib.isExternal, true /* excludeUriToSource */)
         : printerFactory.newBinaryPrinter(sink);
 
+    component.libraries.sort((Library l1, Library l2) {
+      return "${l1.fileUri}".compareTo("${l2.fileUri}");
+    });
+
+    component.computeCanonicalNames();
+    for (Library library in component.libraries) {
+      library.additionalExports.sort((Reference r1, Reference r2) {
+        return "${r1.canonicalName}".compareTo("${r2.canonicalName}");
+      });
+    }
+
     printer.writeComponentFile(component);
     await sink.close();
   }
@@ -439,11 +450,7 @@ class FrontendCompiler implements CompilerInterface {
     if (deltaProgram != null && transformer != null) {
       transformer.transform(deltaProgram);
     }
-
-    final IOSink sink = new File(_kernelBinaryFilename).openWrite();
-    final BinaryPrinter printer = printerFactory.newBinaryPrinter(sink);
-    printer.writeComponentFile(deltaProgram);
-    await sink.close();
+    await writeDillFile(deltaProgram, _kernelBinaryFilename);
     _outputStream
         .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
     _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
