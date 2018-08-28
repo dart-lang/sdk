@@ -3659,10 +3659,12 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
       mangled_name = &String::ZoneHandle(
           Z, Function::CreateDynamicInvocationForwarderName(name));
     }
+    // TODO(#34162): Pass 'is_this_invocation' down if/when we feature multiple
+    // entry-points in AOT.
     instructions += InstanceCall(
         position, *mangled_name, token_kind, type_args_len, argument_count,
         argument_names, checked_argument_count, *interface_target, &result_type,
-        /*use_unchecked_entry=*/is_this_invocation);
+        /*use_unchecked_entry=*/!FLAG_precompiled_mode && is_this_invocation);
   }
 
   // Drop temporaries preserving result on the top of the stack.
