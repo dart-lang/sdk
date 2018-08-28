@@ -439,6 +439,21 @@ main() {
     expect(result.parameters[1],
         equals(new ParameterInfo(ParameterKind.NAMED, "length", "int")));
   }
+
+  test_does_not_walk_up_over_closure() async {
+    addTestFile('''
+one(String name, int length) {}
+main() {
+  one("Danny", () {
+    /*^*/
+  });
+}
+''');
+    var result = await prepareRawSignature('/*^*/');
+    expect(result.error, isNotNull);
+    expect(result.error.code,
+        equals(RequestErrorCode.GET_SIGNATURE_UNKNOWN_FUNCTION));
+  }
 }
 
 @reflectiveTest

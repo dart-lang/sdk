@@ -31,6 +31,11 @@ class DartUnitSignatureComputer {
     // Find the closest argument list.
     var argsNode = _node;
     while (argsNode != null && !(argsNode is ArgumentList)) {
+      // Certain nodes don't make sense to search above for an argument list
+      // (for example when inside a function epxression).
+      if (argsNode is FunctionExpression) {
+        return null;
+      }
       argsNode = argsNode.parent;
     }
 
