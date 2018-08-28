@@ -755,6 +755,21 @@ class CallTargets : public Cids {
   void MergeIntoRanges();
 };
 
+class DeoptIdScope : public StackResource {
+ public:
+  DeoptIdScope(Thread* thread, intptr_t deopt_id)
+      : StackResource(thread), prev_deopt_id_(thread->deopt_id()) {
+    thread->set_deopt_id(deopt_id);
+  }
+
+  ~DeoptIdScope() { thread()->set_deopt_id(prev_deopt_id_); }
+
+ private:
+  const intptr_t prev_deopt_id_;
+
+  DISALLOW_COPY_AND_ASSIGN(DeoptIdScope);
+};
+
 class Instruction : public ZoneAllocated {
  public:
 #define DECLARE_TAG(type, attrs) k##type,

@@ -788,8 +788,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   Code* volatile result = &Code::ZoneHandle(zone);
   while (!done) {
     *result = Code::null();
-    const intptr_t prev_deopt_id = thread()->deopt_id();
-    thread()->set_deopt_id(0);
+    DeoptIdScope deopt_id_scope(thread(), 0);
     LongJumpScope jump;
     if (setjmp(*jump.Set()) == 0) {
       FlowGraph* flow_graph = nullptr;
@@ -847,9 +846,6 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 #if defined(DART_USE_INTERPRETER)
       // TODO(regis): Revisit.
       if (flow_graph == NULL && function.HasBytecode()) {
-        // Reset global isolate state.
-        thread()->set_deopt_id(prev_deopt_id);
-
         return Code::null();
       }
 #endif
@@ -971,8 +967,6 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         thread()->clear_sticky_error();
       }
     }
-    // Reset global isolate state.
-    thread()->set_deopt_id(prev_deopt_id);
   }
   return result->raw();
 }
@@ -1369,8 +1363,7 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   ASSERT(!function.IsIrregexpFunction());
   // In background compilation, parser can produce 'errors": bailouts
   // if state changed while compiling in background.
-  const intptr_t prev_deopt_id = Thread::Current()->deopt_id();
-  Thread::Current()->set_deopt_id(0);
+  DeoptIdScope deopt_id_scope(Thread::Current(), 0);
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     ZoneGrowableArray<const ICData*>* ic_data_array =
@@ -1402,7 +1395,6 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
     // Only possible with background compilation.
     ASSERT(Compiler::IsBackgroundCompilation());
   }
-  Thread::Current()->set_deopt_id(prev_deopt_id);
 }
 
 RawError* Compiler::CompileAllFunctions(const Class& cls) {

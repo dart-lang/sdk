@@ -2832,8 +2832,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       true, FLAG_max_speculative_inlining_attempts);
 
   while (!done) {
-    const intptr_t prev_deopt_id = thread()->deopt_id();
-    thread()->set_deopt_id(0);
+    DeoptIdScope deopt_id_scope(thread(), 0);
     LongJumpScope jump;
     const intptr_t val = setjmp(*jump.Set());
     if (val == 0) {
@@ -2979,8 +2978,6 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       }
       is_compiled = false;
     }
-    // Reset global isolate state.
-    thread()->set_deopt_id(prev_deopt_id);
   }
   return is_compiled;
 }

@@ -908,11 +908,11 @@ class CallSiteInliner : public ValueObject {
       return false;
     }
 
-    // Save and clear deopt id.
-    const intptr_t prev_deopt_id = thread()->deopt_id();
-    thread()->set_deopt_id(0);
     Error& error = Error::Handle();
     {
+      // Save and clear deopt id.
+      DeoptIdScope deopt_id_scope(thread(), 0);
+
       // Install bailout jump.
       LongJumpScope jump;
       if (setjmp(*jump.Set()) == 0) {
@@ -1162,7 +1162,6 @@ class CallSiteInliner : public ValueObject {
               (size > FLAG_inlining_constant_arguments_max_size_threshold)) {
             function.set_is_inlinable(false);
           }
-          thread()->set_deopt_id(prev_deopt_id);
           TRACE_INLINING(
               THR_Print("     Bailout: heuristics (%s) with "
                         "code size:  %" Pd ", "
@@ -1193,7 +1192,6 @@ class CallSiteInliner : public ValueObject {
         if (is_recursive_call) {
           inlined_recursive_call_ = true;
         }
-        thread()->set_deopt_id(prev_deopt_id);
 
         call_data->callee_graph = callee_graph;
         call_data->parameter_stubs = param_stubs;
@@ -1233,7 +1231,6 @@ class CallSiteInliner : public ValueObject {
           if (error.raw() == Object::background_compilation_error().raw()) {
             // Fall through to exit the compilation, and retry it later.
           } else {
-            thread()->set_deopt_id(prev_deopt_id);
             TRACE_INLINING(
                 THR_Print("     Bailout: %s\n", error.ToErrorCString()));
             PRINT_INLINING_TREE("Bailout", &call_data->caller, &function, call);
