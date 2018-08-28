@@ -1050,6 +1050,9 @@ abstract class Member extends NamedNode implements FileUriNode {
   /// Returns true if this is an abstract procedure.
   bool get isAbstract => false;
 
+  /// Returns true if the member has the 'const' modifier.
+  bool get isConst;
+
   /// True if this is a field or non-setter procedure.
   ///
   /// Note that operators and factories return `true`, even though there are
