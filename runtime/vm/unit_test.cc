@@ -632,6 +632,7 @@ Dart_Handle TestCase::TriggerReload() {
   if (Dart_IsError(result)) {
     // Keep load error.
   } else if (isolate->reload_context()->reload_aborted()) {
+    TransitionNativeToVM transition(thread);
     result = Api::NewHandle(thread, isolate->reload_context()->error());
   } else {
     result = Dart_RootLibrary();

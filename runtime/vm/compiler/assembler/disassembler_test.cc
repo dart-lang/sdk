@@ -13,7 +13,7 @@ namespace dart {
 // method on DBC assembler.
 #if !defined(PRODUCT) && !defined(TARGET_ARCH_DBC)
 
-TEST_CASE(Disassembler) {
+ISOLATE_UNIT_TEST_CASE(Disassembler) {
   ObjectPoolWrapper object_pool_wrapper;
   Assembler assembler(&object_pool_wrapper);
 

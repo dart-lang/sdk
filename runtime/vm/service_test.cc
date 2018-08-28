@@ -178,7 +178,7 @@ TEST_CASE(Service_IsolateStickyError) {
   }
 }
 
-TEST_CASE(Service_IdZones) {
+ISOLATE_UNIT_TEST_CASE(Service_IdZones) {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
   ObjectIdRing* ring = isolate->object_id_ring();

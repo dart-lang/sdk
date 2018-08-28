@@ -94,6 +94,7 @@ bool NativeEntry::ReturnValueIsError(NativeArguments* arguments) {
 void NativeEntry::PropagateErrors(NativeArguments* arguments) {
   Thread* thread = arguments->thread();
   thread->UnwindScopes(thread->top_exit_frame_info());
+  TransitionNativeToVM transition(thread);
 
   // The thread->zone() is different here than before we unwound.
   const Object& error =

@@ -253,7 +253,7 @@ class FindNothing : public FindObjectVisitor {
   virtual bool FindObject(RawObject* obj) const { return false; }
 };
 
-TEST_CASE(FindObject) {
+ISOLATE_UNIT_TEST_CASE(FindObject) {
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
   Heap::Space spaces[2] = {Heap::kOld, Heap::kNew};
@@ -272,7 +272,7 @@ TEST_CASE(FindObject) {
   }
 }
 
-TEST_CASE(IterateReadOnly) {
+ISOLATE_UNIT_TEST_CASE(IterateReadOnly) {
   const String& obj = String::Handle(String::New("x", Heap::kOld));
   Heap* heap = Thread::Current()->isolate()->heap();
   EXPECT(heap->Contains(RawObject::ToAddr(obj.raw())));

@@ -28,6 +28,8 @@ TEST_CASE(ClassHierarchyAnalysis) {
       "}\n";
 
   TestCase::LoadTestScript(kScriptChars, NULL);
+
+  TransitionNativeToVM transition(thread);
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   const String& name = String::Handle(String::New(TestCase::url()));
   const Library& lib = Library::Handle(Library::LookupLibrary(thread, name));

@@ -35,9 +35,12 @@ class SourcePositionTest : public ValueObject {
     EXPECT(thread_ != NULL);
     EXPECT(isolate_ != NULL);
     EXPECT(script_ != NULL);
-    Dart_Handle lib = TestCase::LoadTestScript(script, NULL);
-    EXPECT_VALID(lib);
-    root_lib_ ^= Api::UnwrapHandle(lib);
+    {
+      TransitionVMToNative transition(thread);
+      Dart_Handle lib = TestCase::LoadTestScript(script, NULL);
+      EXPECT_VALID(lib);
+      root_lib_ ^= Api::UnwrapHandle(lib);
+    }
     EXPECT(!root_lib_.IsNull());
     root_script_ ^=
         root_lib_.LookupScript(String::Handle(String::New(USER_TEST_URI)));
@@ -280,7 +283,7 @@ class SourcePositionTest : public ValueObject {
   GrowableArray<BlockEntryInstr*>* blocks_;
 };
 
-TEST_CASE(SourcePosition_InstanceCalls) {
+ISOLATE_UNIT_TEST_CASE(SourcePosition_InstanceCalls) {
   const char* kScript =
       "var x = 5;\n"
       "var y = 5;\n"
@@ -300,7 +303,7 @@ TEST_CASE(SourcePosition_InstanceCalls) {
   spt.EnsureSourcePositions();
 }
 
-TEST_CASE(SourcePosition_If) {
+ISOLATE_UNIT_TEST_CASE(SourcePosition_If) {
   const char* kScript =
       "var x = 5;\n"
       "var y = 5;\n"
@@ -328,7 +331,7 @@ TEST_CASE(SourcePosition_If) {
   spt.EnsureSourcePositions();
 }
 
-TEST_CASE(SourcePosition_ForLoop) {
+ISOLATE_UNIT_TEST_CASE(SourcePosition_ForLoop) {
   const char* kScript =
       "var x = 0;\n"
       "var y = 5;\n"
@@ -358,7 +361,7 @@ TEST_CASE(SourcePosition_ForLoop) {
   spt.EnsureSourcePositions();
 }
 
-TEST_CASE(SourcePosition_While) {
+ISOLATE_UNIT_TEST_CASE(SourcePosition_While) {
   const char* kScript =
       "var x = 0;\n"
       "var y = 5;\n"
@@ -406,7 +409,7 @@ TEST_CASE(SourcePosition_While) {
   spt.EnsureSourcePositions();
 }
 
-TEST_CASE(SourcePosition_WhileContinueBreak) {
+ISOLATE_UNIT_TEST_CASE(SourcePosition_WhileContinueBreak) {
   const char* kScript =
       "var x = 0;\n"
       "var y = 5;\n"
@@ -445,7 +448,7 @@ TEST_CASE(SourcePosition_WhileContinueBreak) {
   spt.EnsureSourcePositions();
 }
 
-TEST_CASE(SourcePosition_LoadIndexed) {
+ISOLATE_UNIT_TEST_CASE(SourcePosition_LoadIndexed) {
   const char* kScript =
       "var x = 0;\n"
       "var z = new List(3);\n"
@@ -483,7 +486,7 @@ TEST_CASE(SourcePosition_LoadIndexed) {
   spt.EnsureSourcePositions();
 }
 
-TEST_CASE(SourcePosition_StoreIndexed) {
+ISOLATE_UNIT_TEST_CASE(SourcePosition_StoreIndexed) {
   const char* kScript =
       "var x = 0;\n"
       "var z = new List(4);\n"
@@ -526,7 +529,7 @@ TEST_CASE(SourcePosition_StoreIndexed) {
   spt.EnsureSourcePositions();
 }
 
-TEST_CASE(SourcePosition_BitwiseOperations) {
+ISOLATE_UNIT_TEST_CASE(SourcePosition_BitwiseOperations) {
   const char* kScript =
       "var x = 0;\n"
       "var y = 1;\n"
@@ -575,7 +578,7 @@ TEST_CASE(SourcePosition_BitwiseOperations) {
   spt.EnsureSourcePositions();
 }
 
-TEST_CASE(SourcePosition_IfElse) {
+ISOLATE_UNIT_TEST_CASE(SourcePosition_IfElse) {
   const char* kScript =
       "var x = 5;\n"
       "var y = 5;\n"
@@ -604,7 +607,7 @@ TEST_CASE(SourcePosition_IfElse) {
   spt.EnsureSourcePositions();
 }
 
-TEST_CASE(SourcePosition_Switch) {
+ISOLATE_UNIT_TEST_CASE(SourcePosition_Switch) {
   const char* kScript =
       "var x = 5;\n"
       "var y = 5;\n"
@@ -648,7 +651,7 @@ TEST_CASE(SourcePosition_Switch) {
   spt.EnsureSourcePositions();
 }
 
-TEST_CASE(SourcePosition_TryCatchFinally) {
+ISOLATE_UNIT_TEST_CASE(SourcePosition_TryCatchFinally) {
   const char* kScript =
       "var x = 5;\n"
       "var y = 5;\n"
@@ -699,7 +702,7 @@ TEST_CASE(SourcePosition_TryCatchFinally) {
   spt.EnsureSourcePositions();
 }
 
-TEST_CASE(SourcePosition_InstanceFields) {
+ISOLATE_UNIT_TEST_CASE(SourcePosition_InstanceFields) {
   const char* kScript =
       "class A {\n"
       "  var x;\n"
@@ -728,7 +731,7 @@ TEST_CASE(SourcePosition_InstanceFields) {
   spt.EnsureSourcePositions();
 }
 
-TEST_CASE(SourcePosition_Async) {
+ISOLATE_UNIT_TEST_CASE(SourcePosition_Async) {
   const char* kScript =
       "import 'dart:async';\n"
       "var x = 5;\n"

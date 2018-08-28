@@ -12,13 +12,14 @@
 namespace dart {
 
 static RawObject* ExecuteTest(const Code& code) {
-  Thread* thread = Thread::Current();
-  TransitionToGenerated transition(thread);
   const intptr_t kTypeArgsLen = 0;
   const intptr_t kNumArgs = 0;
-  return Simulator::Current()->Call(
-      code, Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs)),
-      Array::Handle(Array::New(0)), thread);
+  const Array& args_desc =
+      Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs));
+  const Array& args = Array::Handle(Array::New(0));
+  Thread* thread = Thread::Current();
+  TransitionToGenerated transition(thread);
+  return Simulator::Current()->Call(code, args_desc, args, thread);
 }
 
 #define EXECUTE_TEST_CODE_INTPTR(code)                                         \

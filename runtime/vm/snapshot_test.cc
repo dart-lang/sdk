@@ -132,7 +132,7 @@ static void ExpectEncodeFail(Dart_CObject* root) {
   EXPECT(message == NULL);
 }
 
-TEST_CASE(SerializeNull) {
+ISOLATE_UNIT_TEST_CASE(SerializeNull) {
   StackZone zone(thread);
 
   // Write snapshot with object content.
@@ -157,7 +157,7 @@ TEST_CASE(SerializeNull) {
   delete message;
 }
 
-TEST_CASE(SerializeSmi1) {
+ISOLATE_UNIT_TEST_CASE(SerializeSmi1) {
   StackZone zone(thread);
 
   // Write snapshot with object content.
@@ -183,7 +183,7 @@ TEST_CASE(SerializeSmi1) {
   delete message;
 }
 
-TEST_CASE(SerializeSmi2) {
+ISOLATE_UNIT_TEST_CASE(SerializeSmi2) {
   StackZone zone(thread);
 
   // Write snapshot with object content.
@@ -259,7 +259,7 @@ void CheckMint(int64_t value) {
 #endif
 }
 
-TEST_CASE(SerializeMints) {
+ISOLATE_UNIT_TEST_CASE(SerializeMints) {
   // Min positive mint.
   CheckMint(Smi::kMaxValue + 1);
   // Min positive mint + 1.
@@ -278,7 +278,7 @@ TEST_CASE(SerializeMints) {
   CheckMint(kMinInt64 + 1);
 }
 
-TEST_CASE(SerializeDouble) {
+ISOLATE_UNIT_TEST_CASE(SerializeDouble) {
   StackZone zone(thread);
 
   // Write snapshot with object content.
@@ -304,7 +304,7 @@ TEST_CASE(SerializeDouble) {
   delete message;
 }
 
-TEST_CASE(SerializeTrue) {
+ISOLATE_UNIT_TEST_CASE(SerializeTrue) {
   StackZone zone(thread);
 
   // Write snapshot with true object.
@@ -332,7 +332,7 @@ TEST_CASE(SerializeTrue) {
   delete message;
 }
 
-TEST_CASE(SerializeFalse) {
+ISOLATE_UNIT_TEST_CASE(SerializeFalse) {
   StackZone zone(thread);
 
   // Write snapshot with false object.
@@ -358,7 +358,7 @@ TEST_CASE(SerializeFalse) {
   delete message;
 }
 
-TEST_CASE(SerializeCapability) {
+ISOLATE_UNIT_TEST_CASE(SerializeCapability) {
   // Write snapshot with object content.
   const Capability& capability = Capability::Handle(Capability::New(12345));
   MessageWriter writer(true);
@@ -394,7 +394,7 @@ TEST_CASE(SerializeCapability) {
     delete message;                                                            \
   }
 
-TEST_CASE(SerializeSingletons) {
+ISOLATE_UNIT_TEST_CASE(SerializeSingletons) {
   TEST_ROUND_TRIP_IDENTICAL(Object::class_class());
   TEST_ROUND_TRIP_IDENTICAL(Object::type_arguments_class());
   TEST_ROUND_TRIP_IDENTICAL(Object::function_class());
@@ -435,7 +435,7 @@ static void TestString(const char* cstr) {
   delete message;
 }
 
-TEST_CASE(SerializeString) {
+ISOLATE_UNIT_TEST_CASE(SerializeString) {
   TestString("This string shall be serialized");
   TestString("æøå");  // This file is UTF-8 encoded.
   const char* data =
@@ -450,7 +450,7 @@ TEST_CASE(SerializeString) {
   // TODO(sgjesse): Add tests with non-BMP characters.
 }
 
-TEST_CASE(SerializeArray) {
+ISOLATE_UNIT_TEST_CASE(SerializeArray) {
   // Write snapshot with object content.
   const int kArrayLength = 10;
   Array& array = Array::Handle(Array::New(kArrayLength));
@@ -485,7 +485,7 @@ TEST_CASE(SerializeArray) {
   delete message;
 }
 
-TEST_CASE(SerializeArrayWithTypeArgument) {
+ISOLATE_UNIT_TEST_CASE(SerializeArrayWithTypeArgument) {
   // Write snapshot with object content.
   const int kArrayLength = 10;
   Array& array =
@@ -569,7 +569,7 @@ TEST_CASE(FailSerializeLargeExternalTypedData) {
   ExpectEncodeFail(&root);
 }
 
-TEST_CASE(SerializeEmptyArray) {
+ISOLATE_UNIT_TEST_CASE(SerializeEmptyArray) {
   // Write snapshot with object content.
   const int kArrayLength = 0;
   Array& array = Array::Handle(Array::New(kArrayLength));
@@ -595,7 +595,7 @@ TEST_CASE(SerializeEmptyArray) {
   delete message;
 }
 
-TEST_CASE(SerializeByteArray) {
+ISOLATE_UNIT_TEST_CASE(SerializeByteArray) {
   // Write snapshot with object content.
   const int kTypedDataLength = 256;
   TypedData& typed_data = TypedData::Handle(

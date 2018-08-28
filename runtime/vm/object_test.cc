@@ -235,6 +235,7 @@ TEST_CASE(Class_ComputeEndTokenPos) {
       "}\n";
   Dart_Handle lib_h = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib_h);
+  TransitionNativeToVM transition(thread);
   Library& lib = Library::Handle();
   lib ^= Api::UnwrapHandle(lib_h);
   EXPECT(!lib.IsNull());
@@ -3841,6 +3842,7 @@ TEST_CASE(Metadata) {
   EXPECT_VALID(h_lib);
   Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
+  TransitionNativeToVM transition(thread);
   Library& lib = Library::Handle();
   lib ^= Api::UnwrapHandle(h_lib);
   EXPECT(!lib.IsNull());
@@ -4440,13 +4442,14 @@ TEST_CASE(LinkedHashMap) {
   Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeMap"), 0, NULL);
   EXPECT_VALID(h_result);
 
+  TransitionNativeToVM transition(thread);
+
   // 2. Create an empty internalized LinkedHashMap in C++.
   Instance& dart_map = Instance::Handle();
   dart_map ^= Api::UnwrapHandle(h_result);
   LinkedHashMap& cc_map = LinkedHashMap::Handle(LinkedHashMap::NewDefault());
 
   // 3. Expect them to have identical structure.
-  TransitionNativeToVM transition(thread);
   CheckIdenticalHashStructure(thread, dart_map, cc_map);
 }
 
