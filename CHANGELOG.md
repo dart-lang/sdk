@@ -13,10 +13,17 @@
 #### Other Tools
 
 ### Core library changes
-* `dart:async`
-  * Update `Stream.fromIterable` to send a done event after the the error when
+#### `dart:async`
+
+*   Update `Stream.fromIterable` to send a done event after the the error when
     the iterator's `moveNext` throws, and handle if the `current` getter throws.
     Issue [33431](http://dartbug.com/33431).
+
+#### `dart:core`
+
+*   Added missing methods to `UnmodifiableMapMixin`. Some maps intended to
+    be unmodifiable incorrectly allowed new methods added in Dart 2 to
+    succeed.
 
 ## 2.1.0-dev.2.0
 

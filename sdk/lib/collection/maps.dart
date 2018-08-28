@@ -283,6 +283,11 @@ abstract class _UnmodifiableMapMixin<K, V> implements Map<K, V> {
   }
 
   /** This operation is not supported by an unmodifiable map. */
+  void addEntries(Iterable<MapEntry<K, V>> entries) {
+    throw new UnsupportedError("Cannot modify unmodifiable map");
+  }
+
+  /** This operation is not supported by an unmodifiable map. */
   void clear() {
     throw new UnsupportedError("Cannot modify unmodifiable map");
   }
@@ -293,7 +298,22 @@ abstract class _UnmodifiableMapMixin<K, V> implements Map<K, V> {
   }
 
   /** This operation is not supported by an unmodifiable map. */
+  void removeWhere(bool test(K key, V value)) {
+    throw new UnsupportedError("Cannot modify unmodifiable map");
+  }
+
+  /** This operation is not supported by an unmodifiable map. */
   V putIfAbsent(K key, V ifAbsent()) {
+    throw new UnsupportedError("Cannot modify unmodifiable map");
+  }
+
+  /** This operation is not supported by an unmodifiable map. */
+  V update(K key, V update(V value), {V ifAbsent()}) {
+    throw new UnsupportedError("Cannot modify unmodifiable map");
+  }
+
+  /** This operation is not supported by an unmodifiable map. */
+  void updateAll(V update(K key, V value)) {
     throw new UnsupportedError("Cannot modify unmodifiable map");
   }
 }
@@ -341,7 +361,7 @@ class MapView<K, V> implements Map<K, V> {
 
   Iterable<MapEntry<K, V>> get entries => _map.entries;
 
-  void addEntries(Iterable<Object> entries) {
+  void addEntries(Iterable<MapEntry<K, V>> entries) {
     _map.addEntries(entries);
   }
 
