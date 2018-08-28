@@ -42,9 +42,6 @@ abstract class LinkedSummarizeAstTest extends SummaryLinkerTest
   bool get skipFullyLinkedData => false;
 
   @override
-  bool get skipNonConstInitializers => false;
-
-  @override
   void serializeLibraryText(String text, {bool allowErrors: false}) {
     Map<String, UnlinkedUnitBuilder> uriToUnit = this._filesToLink.uriToUnit;
     linkerInputs = createLinkerInputs(text);

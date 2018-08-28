@@ -971,6 +971,9 @@ class CallSiteInliner : public ValueObject {
           } else if (PolymorphicInstanceCallInstr* instr =
                          call_data->call->AsPolymorphicInstanceCall()) {
             entry_kind = instr->instance_call()->entry_kind();
+          } else if (ClosureCallInstr* instr =
+                         call_data->call->AsClosureCall()) {
+            entry_kind = instr->entry_kind();
           }
           kernel::FlowGraphBuilder builder(
               parsed_function, *ic_data_array, /* not building var desc */ NULL,
@@ -996,12 +999,14 @@ class CallSiteInliner : public ValueObject {
             CalleeGraphValidator::Validate(callee_graph);
           }
         }
-#ifdef DART_PRECOMPILER
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
+    !defined(TARGET_ARCH_IA32)
         if (FLAG_precompiled_mode) {
           Precompiler::PopulateWithICData(parsed_function->function(),
                                           callee_graph);
         }
-#endif
+#endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&           \
+    // !defined(TARGET_ARCH_IA32)
 
         // The parameter stubs are a copy of the actual arguments providing
         // concrete information about the values, for example constant values,
@@ -1080,7 +1085,8 @@ class CallSiteInliner : public ValueObject {
           // TODO(fschneider): Improve suppression of speculative inlining.
           // Deopt-ids overlap between caller and callee.
           if (FLAG_precompiled_mode) {
-#ifdef DART_PRECOMPILER
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
+    !defined(TARGET_ARCH_IA32)
             AotCallSpecializer call_specializer(inliner_->precompiler_,
                                                 callee_graph,
                                                 inliner_->speculative_policy_);
@@ -1102,7 +1108,8 @@ class CallSiteInliner : public ValueObject {
             callee_graph->Canonicalize();
 #else
             UNREACHABLE();
-#endif  // DART_PRECOMPILER
+#endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&           \
+        // !defined(TARGET_ARCH_IA32)
           } else {
             JitCallSpecializer call_specializer(callee_graph,
                                                 inliner_->speculative_policy_);

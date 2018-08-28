@@ -301,6 +301,12 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
+  test_forInWithConstVariable_forEach_identifier() async {
+    return super.test_forInWithConstVariable_forEach_identifier();
+  }
+
+  @override
+  @failingTest
   test_genericFunctionTypeArgument_class() async {
     await super.test_genericFunctionTypeArgument_class();
   }
@@ -431,38 +437,8 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_implementsRepeated() async {
-    await super.test_implementsRepeated();
-  }
-
-  @override
-  @failingTest
   test_implementsRepeated_3times() async {
     await super.test_implementsRepeated_3times();
-  }
-
-  @override
-  @failingTest
-  test_implementsSuperClass() async {
-    await super.test_implementsSuperClass();
-  }
-
-  @override
-  @failingTest
-  test_implementsSuperClass_Object() async {
-    await super.test_implementsSuperClass_Object();
-  }
-
-  @override
-  @failingTest
-  test_implementsSuperClass_Object_typeAlias() async {
-    await super.test_implementsSuperClass_Object_typeAlias();
-  }
-
-  @override
-  @failingTest
-  test_implementsSuperClass_typeAlias() async {
-    await super.test_implementsSuperClass_typeAlias();
   }
 
   @override
@@ -1219,50 +1195,14 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  test_superInInvalidContext_binaryExpression() async {
-    await super.test_superInInvalidContext_binaryExpression();
-  }
-
-  @override
-  @failingTest
   test_superInInvalidContext_constructorFieldInitializer() async {
     await super.test_superInInvalidContext_constructorFieldInitializer();
   }
 
   @override
   @failingTest
-  test_superInInvalidContext_factoryConstructor() async {
-    await super.test_superInInvalidContext_factoryConstructor();
-  }
-
-  @override
-  @failingTest
   test_superInInvalidContext_instanceVariableInitializer() async {
     await super.test_superInInvalidContext_instanceVariableInitializer();
-  }
-
-  @override
-  @failingTest
-  test_superInInvalidContext_staticMethod() async {
-    await super.test_superInInvalidContext_staticMethod();
-  }
-
-  @override
-  @failingTest
-  test_superInInvalidContext_staticVariableInitializer() async {
-    await super.test_superInInvalidContext_staticVariableInitializer();
-  }
-
-  @override
-  @failingTest
-  test_superInInvalidContext_topLevelFunction() async {
-    await super.test_superInInvalidContext_topLevelFunction();
-  }
-
-  @override
-  @failingTest
-  test_superInInvalidContext_topLevelVariableInitializer() async {
-    await super.test_superInInvalidContext_topLevelVariableInitializer();
   }
 
   @override

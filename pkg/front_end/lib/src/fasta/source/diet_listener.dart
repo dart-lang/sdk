@@ -76,6 +76,11 @@ class DietListener extends StackListener {
   int importExportDirectiveIndex = 0;
   int partDirectiveIndex = 0;
 
+  /// The unit currently being parsed, might be the same as [library] when
+  /// the defining unit of the library is being parsed, updated from outside
+  /// before parsing each part.
+  SourceLibraryBuilder currentUnit;
+
   ClassBuilder currentClass;
 
   /// For top-level declarations, this is the library scope. For class members,
@@ -121,7 +126,8 @@ class DietListener extends StackListener {
       Token partKeyword, Token ofKeyword, Token semicolon, bool hasName) {
     debugEvent("PartOf");
     if (hasName) discard(1);
-    discard(1); // Metadata.
+    Token metadata = pop();
+    parseMetadata(currentUnit, metadata, currentUnit.target);
   }
 
   @override

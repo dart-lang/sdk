@@ -90,7 +90,8 @@
       bool use_far_branches = false;                                           \
       LongJumpScope jump;                                                      \
       if (setjmp(*jump.Set()) == 0) {                                          \
-        Assembler assembler(use_far_branches);                                 \
+        ObjectPoolWrapper object_pool_wrapper;                                 \
+        Assembler assembler(&object_pool_wrapper, use_far_branches);           \
         AssemblerTest test("" #name, &assembler);                              \
         AssemblerTestGenerate##name(test.assembler());                         \
         test.Assemble();                                                       \
@@ -102,7 +103,8 @@
     const Error& error = Error::Handle(Thread::Current()->sticky_error());     \
     if (error.raw() == Object::branch_offset_error().raw()) {                  \
       bool use_far_branches = true;                                            \
-      Assembler assembler(use_far_branches);                                   \
+      ObjectPoolWrapper object_pool_wrapper;                                   \
+      Assembler assembler(&object_pool_wrapper, use_far_branches);             \
       AssemblerTest test("" #name, &assembler);                                \
       AssemblerTestGenerate##name(test.assembler());                           \
       test.Assemble();                                                         \

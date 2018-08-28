@@ -1589,7 +1589,7 @@ static bool IsPotentialExactGeneric(const AbstractType& type) {
   if (type.IsType() && !type.IsFunctionType() && !type.IsDartFunctionType() &&
       type.IsInstantiated()) {
     const Class& cls = Class::Handle(type.type_class());
-    return cls.IsGeneric();
+    return cls.IsGeneric() && !cls.IsFutureOrClass();
   }
 
   return false;

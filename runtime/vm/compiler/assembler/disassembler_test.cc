@@ -14,7 +14,9 @@ namespace dart {
 #if !defined(PRODUCT) && !defined(TARGET_ARCH_DBC)
 
 TEST_CASE(Disassembler) {
-  Assembler assembler;
+  ObjectPoolWrapper object_pool_wrapper;
+  Assembler assembler(&object_pool_wrapper);
+
   // The used instructions work on all platforms.
   Register reg = static_cast<Register>(0);
   assembler.PopRegister(reg);

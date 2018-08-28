@@ -559,7 +559,8 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
   /// pre-decrement.
   bool isPreIncDec = false;
 
-  ComplexAssignmentJudgment(this.rhs) : super(null);
+  ComplexAssignmentJudgment(this.rhs, {Expression desugared})
+      : super(desugared);
 
   String toString() {
     var parts = _getToStringParts();
@@ -665,7 +666,7 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
         combinedType = readType == null
             ? rhsType
             : inferrer.typeSchemaEnvironment
-                .getLeastUpperBound(readType, rhsType);
+                .getStandardUpperBound(readType, rhsType);
         if (inferrer.strongMode) {
           nullAwareCombiner.staticType = combinedType;
         }
@@ -756,7 +757,7 @@ class ConditionalJudgment extends ConditionalExpression
     inferrer.inferExpression(otherwiseJudgment, typeContext, useLub,
         isVoidAllowed: true);
     inferredType = useLub
-        ? inferrer.typeSchemaEnvironment.getLeastUpperBound(
+        ? inferrer.typeSchemaEnvironment.getStandardUpperBound(
             thenJudgment.inferredType, otherwiseJudgment.inferredType)
         : greatestClosure(inferrer.coreTypes, typeContext);
     if (inferrer.strongMode) {
@@ -1438,13 +1439,9 @@ class IfNullJudgment extends Let implements ExpressionJudgment {
     // - Let T = greatest closure of K with respect to `?` if K is not `_`, else
     //   UP(t0, t1)
     // - Then the inferred type is T.
-    if (rhsType is VoidType) {
-      inferredType = rhsType;
-    } else {
-      inferredType = useLub
-          ? inferrer.typeSchemaEnvironment.getLeastUpperBound(lhsType, rhsType)
-          : greatestClosure(inferrer.coreTypes, typeContext);
-    }
+    inferredType = useLub
+        ? inferrer.typeSchemaEnvironment.getStandardUpperBound(lhsType, rhsType)
+        : greatestClosure(inferrer.coreTypes, typeContext);
     if (inferrer.strongMode) {
       body.staticType = inferredType;
     }
@@ -1492,8 +1489,9 @@ class IllegalAssignmentJudgment extends ComplexAssignmentJudgment {
   /// If `-1`, then there is no separate location for invalid assignment.
   final int assignmentOffset;
 
-  IllegalAssignmentJudgment(ExpressionJudgment rhs, {this.assignmentOffset: -1})
-      : super(rhs) {
+  IllegalAssignmentJudgment(ExpressionJudgment rhs,
+      {this.assignmentOffset: -1, Expression desugared})
+      : super(rhs, desugared: desugared) {
     rhs.parent = this;
   }
 
@@ -1625,16 +1623,22 @@ abstract class InitializerJudgment implements Initializer {
 class IntJudgment extends IntLiteral implements ExpressionJudgment {
   IntLiteralTokens tokens;
   final kernel.Expression desugaredError;
+  final bool isSynthetic;
 
   DartType inferredType;
 
-  IntJudgment(this.tokens, int value, {this.desugaredError}) : super(value);
+  IntJudgment(this.tokens, int value,
+      {this.desugaredError, this.isSynthetic: false})
+      : super(value);
 
   @override
   Expression infer<Expression, Statement, Initializer, Type>(
       ShadowTypeInferrer inferrer, DartType typeContext) {
     inferredType = inferrer.coreTypes.intClass.rawType;
-    inferrer.listener.intLiteral(this, fileOffset, tokens, value, inferredType);
+    if (!isSynthetic) {
+      inferrer.listener
+          .intLiteral(this, fileOffset, tokens, value, inferredType);
+    }
     if (desugaredError != null) {
       parent.replaceChild(this, desugaredError);
       parent = null;
@@ -2234,10 +2238,11 @@ class PropertyAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
   /// If this assignment uses null-aware access (`?.`), the conditional
   /// expression that guards the access; otherwise `null`.
   ConditionalExpression nullAwareGuard;
+  final bool isSyntheticLhs;
 
   PropertyAssignmentJudgment(
       ExpressionJudgment receiver, ExpressionJudgment rhs,
-      {bool isSuper: false})
+      {bool isSuper: false, this.isSyntheticLhs: false})
       : super(receiver, rhs, isSuper);
 
   @override
@@ -2287,6 +2292,7 @@ class PropertyAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
     inferrer.listener.propertyAssign(
         this,
         write.fileOffset,
+        isSyntheticLhs,
         receiverType,
         inferrer.getRealTarget(writeMember),
         writeContext,
@@ -3710,10 +3716,17 @@ class CheckLibraryIsLoadedJudgment extends CheckLibraryIsLoaded
 
 /// Concrete shadow object representing a named expression.
 class NamedExpressionJudgment extends NamedExpression {
-  NamedExpressionTokens tokens;
+  final NamedExpressionTokens tokens;
 
-  NamedExpressionJudgment(this.tokens, String nameLexeme, Expression value)
-      : super(nameLexeme, value);
+  /// The original value that is wrapped by this synthetic named argument.
+  /// Its type will be inferred.
+  final Expression originalValue;
+
+  NamedExpressionJudgment(this.tokens, String nameLexeme, Expression value,
+      {this.originalValue})
+      : super(nameLexeme, value) {
+    originalValue?.parent = this;
+  }
 
   ExpressionJudgment get judgment => value;
 }

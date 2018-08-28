@@ -466,7 +466,8 @@ class FunctionsTraits {
 
 typedef UnorderedHashSet<FunctionsTraits> UniqueFunctionsSet;
 
-#if defined(DART_PRECOMPILER)
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
+    !defined(TARGET_ARCH_IA32)
 // ObfuscationMap maps Strings to Strings.
 class ObfuscationMapTraits {
  public:
@@ -670,7 +671,8 @@ class Obfuscator {
 
   static void Deobfuscate(Thread* thread, const GrowableObjectArray& pieces) {}
 };
-#endif  // DART_PRECOMPILER
+#endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&           \
+        // !defined(TARGET_ARCH_IA32)
 
 }  // namespace dart
 

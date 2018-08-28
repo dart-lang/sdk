@@ -2022,7 +2022,7 @@ abstract class TypeSystem {
     } else if (type is InterfaceType) {
       return type.typeParameters;
     } else {
-      return TypeParameterElement.EMPTY_LIST;
+      return const <TypeParameterElement>[];
     }
   }
 

@@ -334,7 +334,6 @@ static void WriteAppSnapshot(const char* filename,
 
 void Snapshot::GenerateKernel(const char* snapshot_filename,
                               const char* script_name,
-                              bool strong,
                               const char* package_config) {
 #if !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM) && !defined(TESTING)
   uint8_t* kernel_buffer = NULL;
@@ -344,7 +343,7 @@ void Snapshot::GenerateKernel(const char* snapshot_filename,
     WriteSnapshotFile(snapshot_filename, kernel_buffer, kernel_buffer_size);
   } else {
     Dart_KernelCompilationResult result =
-        dfe.CompileScript(script_name, strong, false, package_config);
+        dfe.CompileScript(script_name, false, package_config);
     if (result.status != Dart_KernelCompilationStatus_Ok) {
       ErrorExit(kErrorExitCode, "%s\n", result.error);
     }

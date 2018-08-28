@@ -4,7 +4,6 @@
 
 [ $compiler == fasta ]
 Language/Classes/Constructors/Generative_Constructors/final_variables_t01: CompileTimeError # Expects a warning, but this is an error in Dart 2
-Language/Classes/definition_t24: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t01: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: MissingCompileTimeError
 Language/Types/Type_Void/syntax_t08: MissingCompileTimeError
@@ -74,8 +73,6 @@ Language/Classes/Setters/override_t02: CompileTimeError
 Language/Classes/Setters/static_setter_t05: CompileTimeError
 Language/Classes/Setters/static_setter_t06: CompileTimeError
 Language/Classes/Static_Methods/same_name_method_and_setter_t01: CompileTimeError
-Language/Classes/Superinterfaces/more_than_once_t01: MissingCompileTimeError
-Language/Classes/Superinterfaces/superclass_as_superinterface_t01: MissingCompileTimeError
 Language/Classes/same_name_instance_and_static_members_t02: MissingCompileTimeError
 Language/Classes/same_name_instance_and_static_members_t04: MissingCompileTimeError
 Language/Expressions/Constants/exception_t01: MissingCompileTimeError
@@ -104,8 +101,6 @@ Language/Classes/Getters/same_name_method_t03: MissingCompileTimeError
 Language/Classes/Getters/same_name_method_t04: MissingCompileTimeError
 Language/Classes/Getters/same_name_method_t05: MissingCompileTimeError
 Language/Classes/Getters/same_name_method_t07: MissingCompileTimeError
-Language/Classes/Superinterfaces/more_than_once_t01: MissingCompileTimeError
-Language/Classes/Superinterfaces/superclass_as_superinterface_t01: MissingCompileTimeError
 Language/Classes/same_name_instance_and_static_members_t02: MissingCompileTimeError
 Language/Classes/same_name_instance_and_static_members_t04: MissingCompileTimeError
 Language/Expressions/Constants/bitwise_operators_t05: MissingCompileTimeError
@@ -226,7 +221,6 @@ Language/Classes/Superinterfaces/no_member_t01: CompileTimeError
 Language/Classes/Superinterfaces/no_member_t02: CompileTimeError
 Language/Classes/Superinterfaces/no_member_t05: CompileTimeError
 Language/Classes/Superinterfaces/wrong_type_t05: MissingCompileTimeError
-Language/Classes/definition_t24: MissingCompileTimeError
 Language/Classes/method_definition_t03: CompileTimeError
 Language/Classes/method_definition_t04: CompileTimeError
 Language/Classes/method_definition_t05: CompileTimeError

@@ -214,7 +214,8 @@ class Keyword extends TokenType {
   static const Keyword LIBRARY = const Keyword("library", "LIBRARY",
       isBuiltIn: true, isTopLevelKeyword: true);
 
-  static const Keyword MIXIN = const Keyword("mixin", "MIXIN", isBuiltIn: true);
+  static const Keyword MIXIN =
+      const Keyword("mixin", "MIXIN", isBuiltIn: true, isTopLevelKeyword: true);
 
   static const Keyword NATIVE =
       const Keyword("native", "NATIVE", isPseudo: true);

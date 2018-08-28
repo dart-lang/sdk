@@ -1860,10 +1860,9 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
     objects_.Add(pool);
 
     intptr_t length = pool->ptr()->length_;
-    uint8_t* entry_types = pool->ptr()->entry_types();
+    uint8_t* entry_bits = pool->ptr()->entry_bits();
     for (intptr_t i = 0; i < length; i++) {
-      ObjectPool::EntryType entry_type =
-          static_cast<ObjectPool::EntryType>(entry_types[i]);
+      auto entry_type = ObjectPool::TypeBits::decode(entry_bits[i]);
       if (entry_type == ObjectPool::kTaggedObject) {
         s->Push(pool->ptr()->data()[i].raw_obj_);
       }
@@ -1888,13 +1887,11 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
       RawObjectPool* pool = objects_[i];
       intptr_t length = pool->ptr()->length_;
       s->WriteUnsigned(length);
-      uint8_t* entry_types = pool->ptr()->entry_types();
+      uint8_t* entry_bits = pool->ptr()->entry_bits();
       for (intptr_t j = 0; j < length; j++) {
-        ObjectPool::EntryType entry_type =
-            static_cast<ObjectPool::EntryType>(entry_types[j]);
-        s->Write<int8_t>(entry_type);
+        s->Write<uint8_t>(entry_bits[j]);
         RawObjectPool::Entry& entry = pool->ptr()->data()[j];
-        switch (entry_type) {
+        switch (ObjectPool::TypeBits::decode(entry_bits[j])) {
           case ObjectPool::kTaggedObject: {
 #if !defined(TARGET_ARCH_DBC)
             if ((entry.raw_obj_ ==
@@ -1958,11 +1955,10 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
           pool, kObjectPoolCid, ObjectPool::InstanceSize(length), is_vm_object);
       pool->ptr()->length_ = length;
       for (intptr_t j = 0; j < length; j++) {
-        ObjectPool::EntryType entry_type =
-            static_cast<ObjectPool::EntryType>(d->Read<int8_t>());
-        pool->ptr()->entry_types()[j] = entry_type;
+        const uint8_t entry_bits = d->Read<uint8_t>();
+        pool->ptr()->entry_bits()[j] = entry_bits;
         RawObjectPool::Entry& entry = pool->ptr()->data()[j];
-        switch (entry_type) {
+        switch (ObjectPool::TypeBits::decode(entry_bits)) {
           case ObjectPool::kTaggedObject:
             entry.raw_obj_ = d->ReadRef();
             break;

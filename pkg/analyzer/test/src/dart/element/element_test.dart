@@ -2534,7 +2534,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
 
   void test_getConstructors_empty() {
     ClassElementImpl typeElement = ElementFactory.classElement2("A");
-    typeElement.constructors = ConstructorElement.EMPTY_LIST;
+    typeElement.constructors = const <ConstructorElement>[];
     InterfaceTypeImpl type = new InterfaceTypeImpl(typeElement);
     expect(type.constructors, isEmpty);
   }

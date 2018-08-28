@@ -591,7 +591,7 @@ class ResolverTestCase extends EngineTestCase {
     Source definingCompilationUnitSource = createNamedSource(fileName);
     List<CompilationUnitElement> sourcedCompilationUnits;
     if (typeNames == null) {
-      sourcedCompilationUnits = CompilationUnitElement.EMPTY_LIST;
+      sourcedCompilationUnits = const <CompilationUnitElement>[];
     } else {
       int count = typeNames.length;
       sourcedCompilationUnits = new List<CompilationUnitElement>(count);

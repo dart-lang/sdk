@@ -138,13 +138,6 @@ abstract class SummaryTest {
   LinkedUnit get definingUnit => linked.units[0];
 
   /**
-   * Whether the parts of the IDL marked `@informative` are expected to be
-   * included in the generated summary; if `false`, these parts of the IDL won't
-   * be checked.
-   */
-  bool get includeInformative => true;
-
-  /**
    * Get access to the linked summary that results from serializing and
    * then deserializing the library under test.
    */
@@ -155,11 +148,6 @@ abstract class SummaryTest {
    * This happens because we don't yet have a full linker; only a prelinker.
    */
   bool get skipFullyLinkedData;
-
-  /**
-   * `true` if non-const variable initializers are not serialized.
-   */
-  bool get skipNonConstInitializers;
 
   /**
    * Get access to the unlinked compilation unit summaries that result from
@@ -1128,7 +1116,6 @@ C c;
   }
 
   test_class_alias_documented() {
-    if (!includeInformative) return;
     String text = '''
 // Extra comment so doc comment offset != 0
 /**
@@ -1206,7 +1193,6 @@ class E {}
   }
 
   test_class_codeRange() {
-    if (!includeInformative) return;
     UnlinkedClass cls = serializeClassText(' class C {}');
     _assertCodeRange(cls.codeRange, 1, 10);
   }
@@ -1295,7 +1281,6 @@ class C {
   }
 
   test_class_documented() {
-    if (!includeInformative) return;
     String text = '''
 // Extra comment so doc comment offset != 0
 /**
@@ -1308,7 +1293,6 @@ class C {}''';
   }
 
   test_class_documented_tripleSlash() {
-    if (!includeInformative) return;
     String text = '''
 /// aaa
 /// bbbb
@@ -1321,7 +1305,6 @@ class C {}''';
   }
 
   test_class_documented_with_references() {
-    if (!includeInformative) return;
     String text = '''
 // Extra comment so doc comment offset != 0
 /**
@@ -1337,7 +1320,6 @@ class E {}''';
   }
 
   test_class_documented_with_with_windows_line_endings() {
-    if (!includeInformative) return;
     String text = '/**\r\n * Docs\r\n */\r\nclass C {}';
     UnlinkedClass cls = serializeClassText(text);
     expect(cls.documentationComment, isNotNull);
@@ -1388,9 +1370,7 @@ class E {}
     var classText = 'class C {}';
     UnlinkedClass cls = serializeClassText(classText);
     expect(cls.name, 'C');
-    if (includeInformative) {
-      expect(cls.nameOffset, classText.indexOf('C'));
-    }
+    expect(cls.nameOffset, classText.indexOf('C'));
   }
 
   test_class_no_flags() {
@@ -1479,9 +1459,7 @@ class E {}
     UnlinkedClass cls = serializeClassText(text);
     expect(cls.typeParameters, hasLength(1));
     expect(cls.typeParameters[0].name, 'T');
-    if (includeInformative) {
-      expect(cls.typeParameters[0].nameOffset, text.indexOf('T'));
-    }
+    expect(cls.typeParameters[0].nameOffset, text.indexOf('T'));
     expect(cls.typeParameters[0].bound, isNull);
     expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 1);
   }
@@ -1868,9 +1846,6 @@ class C<T> {
   }
 
   test_constExpr_functionExpression() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 import 'dart:async';
 const v = (f) async => await f;
@@ -3489,19 +3464,14 @@ const v = p.C.foo;
     expect(executable.isAsynchronous, isFalse);
     expect(executable.isExternal, isFalse);
     expect(executable.isGenerator, isFalse);
-    if (includeInformative) {
-      expect(executable.nameOffset, text.indexOf('C();'));
-      expect(executable.periodOffset, 0);
-      expect(executable.nameEnd, 0);
-    }
+    expect(executable.nameOffset, text.indexOf('C();'));
+    expect(executable.periodOffset, 0);
+    expect(executable.nameEnd, 0);
     expect(executable.isRedirectedConstructor, isFalse);
     expect(executable.redirectedConstructor, isNull);
     expect(executable.redirectedConstructorName, isEmpty);
-
-    if (includeInformative) {
-      expect(executable.visibleOffset, 0);
-      expect(executable.visibleLength, 0);
-    }
+    expect(executable.visibleOffset, 0);
+    expect(executable.visibleLength, 0);
   }
 
   test_constructor_anonymous() {
@@ -3526,7 +3496,6 @@ const v = p.C.foo;
   }
 
   test_constructor_documented() {
-    if (!includeInformative) return;
     String text = '''
 class C {
   /**
@@ -3927,9 +3896,7 @@ int foo() => 0;
     expect(parameter.kind, UnlinkedParamKind.named);
     expect(parameter.initializer, isNotNull);
     expect(parameter.defaultValueCode, '42');
-    if (includeInformative) {
-      _assertCodeRange(parameter.codeRange, 13, 10);
-    }
+    _assertCodeRange(parameter.codeRange, 13, 10);
     assertUnlinkedConst(parameter.initializer.bodyExpr,
         operators: [UnlinkedExprOperation.pushInt], ints: [42]);
   }
@@ -3961,9 +3928,7 @@ int foo() => 0;
     expect(parameter.kind, UnlinkedParamKind.positional);
     expect(parameter.initializer, isNotNull);
     expect(parameter.defaultValueCode, '42');
-    if (includeInformative) {
-      _assertCodeRange(parameter.codeRange, 13, 11);
-    }
+    _assertCodeRange(parameter.codeRange, 13, 11);
     assertUnlinkedConst(parameter.initializer.bodyExpr,
         operators: [UnlinkedExprOperation.pushInt], ints: [42]);
   }
@@ -4005,12 +3970,10 @@ class C {
     UnlinkedExecutable executable = findExecutable('foo',
         executables: serializeClassText(text).executables);
     expect(executable.name, 'foo');
-    if (includeInformative) {
-      expect(executable.nameOffset, text.indexOf('foo'));
-      expect(executable.periodOffset, text.indexOf('.foo'));
-      expect(executable.nameEnd, text.indexOf('()'));
-      _assertCodeRange(executable.codeRange, 10, 8);
-    }
+    expect(executable.nameOffset, text.indexOf('foo'));
+    expect(executable.periodOffset, text.indexOf('.foo'));
+    expect(executable.nameEnd, text.indexOf('()'));
+    _assertCodeRange(executable.codeRange, 10, 8);
   }
 
   test_constructor_non_const() {
@@ -5051,15 +5014,11 @@ typedef F();
     String text = 'enum E { v1 }';
     UnlinkedEnum e = serializeEnumText(text);
     expect(e.name, 'E');
-    if (includeInformative) {
-      expect(e.nameOffset, text.indexOf('E'));
-    }
+    expect(e.nameOffset, text.indexOf('E'));
     expect(e.values, hasLength(1));
     expect(e.values[0].name, 'v1');
-    if (includeInformative) {
-      expect(e.values[0].nameOffset, text.indexOf('v1'));
-      _assertCodeRange(e.codeRange, 0, 13);
-    }
+    expect(e.values[0].nameOffset, text.indexOf('v1'));
+    _assertCodeRange(e.codeRange, 0, 13);
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
         ReferenceKind.classOrEnum);
@@ -5081,7 +5040,6 @@ typedef F();
   }
 
   test_enum_documented() {
-    if (!includeInformative) return;
     String text = '''
 // Extra comment so doc comment offset != 0
 /**
@@ -5106,7 +5064,6 @@ enum E { v }''';
   }
 
   test_enum_value_documented() {
-    if (!includeInformative) return;
     String text = '''
 enum E {
   /**
@@ -5146,11 +5103,9 @@ enum E {
     expect(executable.isAsynchronous, isFalse);
     expect(executable.isExternal, isFalse);
     expect(executable.isGenerator, isFalse);
-    if (includeInformative) {
-      expect(executable.nameOffset, text.indexOf('f'));
-      expect(executable.visibleOffset, 0);
-      expect(executable.visibleLength, 0);
-    }
+    expect(executable.nameOffset, text.indexOf('f'));
+    expect(executable.visibleOffset, 0);
+    expect(executable.visibleLength, 0);
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
         ReferenceKind.topLevelFunction);
@@ -5200,9 +5155,7 @@ Stream f() async* {}
     expect(executable.isAsynchronous, isFalse);
     expect(executable.isExternal, isFalse);
     expect(executable.isGenerator, isFalse);
-    if (includeInformative) {
-      expect(executable.nameOffset, text.indexOf('f'));
-    }
+    expect(executable.nameOffset, text.indexOf('f'));
     expect(findVariable('f'), isNull);
     expect(findExecutable('f='), isNull);
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
@@ -5256,11 +5209,9 @@ f() {
     expect(executable.isAsynchronous, isFalse);
     expect(executable.isExternal, isFalse);
     expect(executable.isGenerator, isFalse);
-    if (includeInformative) {
-      expect(executable.visibleOffset, 0);
-      expect(executable.visibleLength, 0);
-      _assertCodeRange(executable.codeRange, 10, 6);
-    }
+    expect(executable.visibleOffset, 0);
+    expect(executable.visibleLength, 0);
+    _assertCodeRange(executable.codeRange, 10, 6);
   }
 
   test_executable_member_function_async() {
@@ -5311,9 +5262,7 @@ class C {
     expect(executable.isExternal, isFalse);
     expect(executable.isGenerator, isFalse);
     expect(executable.isStatic, isFalse);
-    if (includeInformative) {
-      _assertCodeRange(executable.codeRange, 10, 15);
-    }
+    _assertCodeRange(executable.codeRange, 10, 15);
     expect(findVariable('f', variables: cls.fields), isNull);
     expect(findExecutable('f=', executables: cls.executables), isNull);
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
@@ -5356,9 +5305,7 @@ class C {
     expect(executable.isAsynchronous, isFalse);
     expect(executable.isExternal, isFalse);
     expect(executable.isGenerator, isFalse);
-    if (includeInformative) {
-      _assertCodeRange(executable.codeRange, 10, 20);
-    }
+    _assertCodeRange(executable.codeRange, 10, 20);
     expect(findVariable('f', variables: cls.fields), isNull);
     expect(findExecutable('f', executables: cls.executables), isNull);
   }
@@ -5496,7 +5443,6 @@ class C {
   }
 
   test_executable_param_codeRange() {
-    if (!includeInformative) return;
     UnlinkedExecutable executable = serializeExecutableText('f(int x) {}');
     UnlinkedParam parameter = executable.parameters[0];
     _assertCodeRange(parameter.codeRange, 2, 5);
@@ -5588,9 +5534,7 @@ int foo(int a, String b) => 0;
     expect(param.kind, UnlinkedParamKind.named);
     expect(param.initializer, isNotNull);
     expect(param.defaultValueCode, '42');
-    if (includeInformative) {
-      _assertCodeRange(param.codeRange, 3, 5);
-    }
+    _assertCodeRange(param.codeRange, 3, 5);
     assertUnlinkedConst(param.initializer.bodyExpr,
         operators: [UnlinkedExprOperation.pushInt], ints: [42]);
   }
@@ -5609,9 +5553,7 @@ int foo(int a, String b) => 0;
     expect(param.kind, UnlinkedParamKind.positional);
     expect(param.initializer, isNotNull);
     expect(param.defaultValueCode, '42');
-    if (includeInformative) {
-      _assertCodeRange(param.codeRange, 3, 6);
-    }
+    _assertCodeRange(param.codeRange, 3, 6);
     assertUnlinkedConst(param.initializer.bodyExpr,
         operators: [UnlinkedExprOperation.pushInt], ints: [42]);
   }
@@ -5629,9 +5571,7 @@ int foo(int a, String b) => 0;
     UnlinkedExecutable executable = serializeExecutableText(text);
     expect(executable.parameters, hasLength(1));
     expect(executable.parameters[0].name, 'x');
-    if (includeInformative) {
-      expect(executable.parameters[0].nameOffset, text.indexOf('x'));
-    }
+    expect(executable.parameters[0].nameOffset, text.indexOf('x'));
   }
 
   test_executable_param_no_flags() {
@@ -5736,9 +5676,7 @@ f(MyFunction myFunction) {}
     expect(executable.isAsynchronous, isFalse);
     expect(executable.isExternal, isFalse);
     expect(executable.isGenerator, isFalse);
-    if (includeInformative) {
-      expect(executable.nameOffset, text.indexOf('f'));
-    }
+    expect(executable.nameOffset, text.indexOf('f'));
     expect(findVariable('f'), isNull);
     expect(findExecutable('f'), isNull);
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
@@ -5936,11 +5874,9 @@ class B extends A {}
         'Future');
     expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].hides[1],
         'Stream');
-    if (includeInformative) {
-      expect(
-          unlinkedUnits[0].publicNamespace.exports[0].combinators[0].offset, 0);
-      expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].end, 0);
-    }
+    expect(
+        unlinkedUnits[0].publicNamespace.exports[0].combinators[0].offset, 0);
+    expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].end, 0);
     expect(linked.exportNames, isNotEmpty);
   }
 
@@ -6055,12 +5991,10 @@ class B extends A {}
         'Future');
     expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].shows[1],
         'Stream');
-    if (includeInformative) {
-      expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].offset,
-          libraryText.indexOf('show'));
-      expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].end,
-          libraryText.indexOf(';'));
-    }
+    expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].offset,
+        libraryText.indexOf('show'));
+    expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].end,
+        libraryText.indexOf(';'));
   }
 
   test_export_typedef() {
@@ -6191,9 +6125,6 @@ export "${'a'}.dart";
   }
 
   test_expr_assignToIndex_ofFieldSequence() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 class A {
   B b;
@@ -6236,9 +6167,6 @@ final v = (a.b.c.f[1] = 5);
   }
 
   test_expr_assignToIndex_ofIndexExpression() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 class A {
  List<B> b;
@@ -6294,9 +6222,6 @@ final v = (a.b[1].c[2].f[3] = 5);
   }
 
   test_expr_assignToIndex_ofTopLevelVariable() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 List<int> a = <int>[0, 1, 2];
 final v = (a[1] = 5);
@@ -6324,9 +6249,6 @@ final v = (a[1] = 5);
   }
 
   test_expr_assignToProperty_ofInstanceCreation() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 class C {
   int f;
@@ -6358,9 +6280,6 @@ final v = (new C().f = 5);
   }
 
   test_expr_assignToRef_classStaticField() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 class C {
   static int f;
@@ -6390,9 +6309,6 @@ final v = (C.f = 1);
   }
 
   test_expr_assignToRef_fieldSequence() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 class A {
   B b;
@@ -6452,9 +6368,6 @@ final v = (a.b.c.f = 1);
   }
 
   test_expr_assignToRef_topLevelVariable() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 int a = 0;
 final v = (a = 1);
@@ -6479,9 +6392,6 @@ final v = (a = 1);
   }
 
   test_expr_assignToRef_topLevelVariable_imported() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     addNamedSource('/a.dart', '''
 int a = 0;
 ''');
@@ -6509,9 +6419,6 @@ final v = (a = 1);
   }
 
   test_expr_assignToRef_topLevelVariable_imported_withPrefix() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     addNamedSource('/a.dart', '''
 int a = 0;
 ''');
@@ -6542,9 +6449,6 @@ final v = (p.a = 1);
   }
 
   test_expr_cascadeSection_assignToIndex() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 class C {
   List<int> items;
@@ -6571,9 +6475,6 @@ final v = c.items..[1] = 2;
   }
 
   test_expr_cascadeSection_assignToProperty() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 class C {
   int f1 = 0;
@@ -6599,9 +6500,6 @@ final v = new C()..f1 = 1..f2 += 2;
   }
 
   test_expr_cascadeSection_embedded() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 class A {
   int fa1;
@@ -6634,9 +6532,6 @@ final v = new A()
   }
 
   test_expr_cascadeSection_invokeMethod() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 class A {
   int m(int _) => 0;
@@ -6658,9 +6553,6 @@ final v = a..m(5).abs()..m(6);
   }
 
   test_expr_extractIndex_ofClassField() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 class C {
   List<int> get items => null;
@@ -6690,9 +6582,6 @@ final v = new C().items[5];
   }
 
   test_expr_extractProperty_ofInvokeConstructor() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 class C {
   int f = 0;
@@ -6774,9 +6663,6 @@ foo(a, b, c) {}
   }
 
   test_expr_functionExpression_withBlockBody() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 final v = () { return 42; };
 ''');
@@ -6787,9 +6673,6 @@ final v = () { return 42; };
   }
 
   test_expr_functionExpression_withExpressionBody() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 final v = () => 42;
 ''');
@@ -6800,9 +6683,6 @@ final v = () => 42;
   }
 
   test_expr_functionExpressionInvocation_withBlockBody() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 final v = ((a, b) {return 42;})(1, 2);
 ''');
@@ -6811,9 +6691,6 @@ final v = ((a, b) {return 42;})(1, 2);
   }
 
   test_expr_functionExpressionInvocation_withExpressionBody() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 final v = ((a, b) => 42)(1, 2);
 ''');
@@ -6822,9 +6699,6 @@ final v = ((a, b) => 42)(1, 2);
   }
 
   test_expr_inClosure() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('var v = () => 1;');
     assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
         operators: [UnlinkedExprOperation.pushInt], ints: [1]);
@@ -6838,9 +6712,6 @@ final v = ((a, b) => 42)(1, 2);
   }
 
   test_expr_inClosure_refersToOuterParam() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable =
         serializeVariableText('var v = (x) => (y) => x;');
     assertUnlinkedConst(
@@ -6850,18 +6721,12 @@ final v = ((a, b) => 42)(1, 2);
   }
 
   test_expr_inClosure_refersToParam() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('var v = (x) => x;');
     assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
         operators: [UnlinkedExprOperation.pushParameter], strings: ['x']);
   }
 
   test_expr_inClosure_refersToParam_methodCall() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('var v = (x) => x.f();');
     assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
         operators: [
@@ -6880,9 +6745,6 @@ final v = ((a, b) => 42)(1, 2);
   }
 
   test_expr_inClosure_refersToParam_methodCall_prefixed() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable =
         serializeVariableText('var v = (x) => x.y.f();');
     assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
@@ -6904,9 +6766,6 @@ final v = ((a, b) => 42)(1, 2);
   }
 
   test_expr_inClosure_refersToParam_outOfScope() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable =
         serializeVariableText('var x; var v = (b) => (b ? (x) => x : x);');
     assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
@@ -6931,9 +6790,6 @@ final v = ((a, b) => 42)(1, 2);
   }
 
   test_expr_inClosure_refersToParam_prefixedIdentifier() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('var v = (x) => x.y;');
     assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
         operators: [
@@ -6947,9 +6803,6 @@ final v = ((a, b) => 42)(1, 2);
   }
 
   test_expr_inClosure_refersToParam_prefixedIdentifier_assign() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable =
         serializeVariableText('var v = (x) => x.y = null;');
     assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
@@ -6969,9 +6822,6 @@ final v = ((a, b) => 42)(1, 2);
   }
 
   test_expr_inClosure_refersToParam_prefixedPrefixedIdentifier() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('var v = (x) => x.y.z;');
     assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
         operators: [
@@ -6987,9 +6837,6 @@ final v = ((a, b) => 42)(1, 2);
   }
 
   test_expr_inClosure_refersToParam_prefixedPrefixedIdentifier_assign() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable =
         serializeVariableText('var v = (x) => x.y.z = null;');
     assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
@@ -7011,9 +6858,6 @@ final v = ((a, b) => 42)(1, 2);
   }
 
   test_expr_invalid_typeParameter_asPrefix() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     var c = serializeClassText('''
 class C<T> {
   final f = T.k;
@@ -7061,9 +6905,6 @@ final v = new C().m(1, b: 2, c: 3);
   }
 
   test_expr_invokeMethod_withTypeParameters() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 class C {
   f<T, U>() => null;
@@ -7094,9 +6935,6 @@ final v = new C().f<int, String>();
   }
 
   test_expr_invokeMethodRef_instance() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 class A {
   B b;
@@ -7133,9 +6971,6 @@ final v = a.b.c.m(10, 20);
   }
 
   test_expr_invokeMethodRef_static_importedWithPrefix() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     addNamedSource('/a.dart', '''
 class C {
   static int m() => 42;
@@ -7163,9 +6998,6 @@ final v = p.C.m();
   }
 
   test_expr_invokeMethodRef_with_reference_arg() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 f(x) => null;
 final u = null;
@@ -7187,9 +7019,6 @@ final v = f(u);
   }
 
   test_expr_invokeMethodRef_withTypeParameters() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 f<T, U>() => null;
 final v = f<int, String>();
@@ -7275,9 +7104,6 @@ final v = f<int, String>();
   }
 
   test_expr_super() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 final v = super;
 ''');
@@ -7287,9 +7113,6 @@ final v = super;
   }
 
   test_expr_this() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 final v = this;
 ''');
@@ -7299,9 +7122,6 @@ final v = this;
   }
 
   test_expr_throwException() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 final v = throw 1 + 2;
 ''');
@@ -7320,9 +7140,6 @@ final v = throw 1 + 2;
   }
 
   test_expr_typeCast() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 final v = 42 as num;
 ''');
@@ -7342,9 +7159,6 @@ final v = 42 as num;
   }
 
   test_expr_typeCheck() {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 final v = 42 is num;
 ''');
@@ -7389,7 +7203,6 @@ final v = 42 is num;
   }
 
   test_field_documented() {
-    if (!includeInformative) return;
     String text = '''
 class C {
   /**
@@ -7578,7 +7391,6 @@ class C<T> {
   }
 
   test_function_documented() {
-    if (!includeInformative) return;
     String text = '''
 // Extra comment so doc comment offset != 0
 /**
@@ -7611,7 +7423,6 @@ f() {}''';
   }
 
   test_getter_documented() {
-    if (!includeInformative) return;
     String text = '''
 // Extra comment so doc comment offset != 0
 /**
@@ -7720,10 +7531,8 @@ import 'foo.dart'
     expect(unlinkedUnits[0].imports[0].combinators[0].hides, hasLength(2));
     expect(unlinkedUnits[0].imports[0].combinators[0].hides[0], 'Future');
     expect(unlinkedUnits[0].imports[0].combinators[0].hides[1], 'Stream');
-    if (includeInformative) {
-      expect(unlinkedUnits[0].imports[0].combinators[0].offset, 0);
-      expect(unlinkedUnits[0].imports[0].combinators[0].end, 0);
-    }
+    expect(unlinkedUnits[0].imports[0].combinators[0].offset, 0);
+    expect(unlinkedUnits[0].imports[0].combinators[0].end, 0);
   }
 
   test_import_implicit() {
@@ -7732,10 +7541,8 @@ import 'foo.dart'
     expect(unlinkedUnits[0].imports, hasLength(1));
     checkDependency(linked.importDependencies[0], 'dart:core');
     expect(unlinkedUnits[0].imports[0].uri, isEmpty);
-    if (includeInformative) {
-      expect(unlinkedUnits[0].imports[0].uriOffset, 0);
-      expect(unlinkedUnits[0].imports[0].uriEnd, 0);
-    }
+    expect(unlinkedUnits[0].imports[0].uriOffset, 0);
+    expect(unlinkedUnits[0].imports[0].uriEnd, 0);
     expect(unlinkedUnits[0].imports[0].prefixReference, 0);
     expect(unlinkedUnits[0].imports[0].combinators, isEmpty);
     expect(unlinkedUnits[0].imports[0].isImplicit, isTrue);
@@ -8317,7 +8124,6 @@ class C {
   }
 
   test_library_documented() {
-    if (!includeInformative) return;
     String text = '''
 // Extra comment so doc comment offset != 0
 /**
@@ -8926,7 +8732,6 @@ class C {}
   }
 
   test_method_documented() {
-    if (!includeInformative) return;
     String text = '''
 class C {
   /**
@@ -9162,7 +8967,6 @@ part "${'a'}.dart"; // <-part
   }
 
   test_setter_documented() {
-    if (!includeInformative) return;
     String text = '''
 // Extra comment so doc comment offset != 0
 /**
@@ -9386,7 +9190,6 @@ class C<T> {
   }
 
   test_type_param_codeRange() {
-    if (!includeInformative) return;
     UnlinkedClass cls =
         serializeClassText('class A {} class C<T extends A> {}');
     UnlinkedTypeParam typeParameter = cls.typeParameters[0];
@@ -9631,13 +9434,11 @@ b.C c4;''');
   }
 
   test_typedef_codeRange() {
-    if (!includeInformative) return;
     UnlinkedTypedef type = serializeTypedefText('typedef F();');
     _assertCodeRange(type.codeRange, 0, 12);
   }
 
   test_typedef_documented() {
-    if (!includeInformative) return;
     String text = '''
 // Extra comment so doc comment offset != 0
 /**
@@ -9707,9 +9508,7 @@ typedef F();''';
     String text = 'typedef F();';
     UnlinkedTypedef type = serializeTypedefText(text);
     expect(type.name, 'F');
-    if (includeInformative) {
-      expect(type.nameOffset, text.indexOf('F'));
-    }
+    expect(type.nameOffset, text.indexOf('F'));
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
     expect(
         unlinkedUnits[0].publicNamespace.names[0].kind, ReferenceKind.typedef);
@@ -9778,7 +9577,6 @@ typedef F();''';
   }
 
   test_unit_codeRange() {
-    if (!includeInformative) return;
     serializeLibraryText('  int a = 1;  ');
     UnlinkedUnit unit = unlinkedUnits[0];
     _assertCodeRange(unit.codeRange, 0, 14);
@@ -9855,9 +9653,7 @@ var v = c.f;
   test_variable() {
     String text = 'int i;';
     UnlinkedVariable v = serializeVariableText(text, variableName: 'i');
-    if (includeInformative) {
-      expect(v.nameOffset, text.indexOf('i;'));
-    }
+    expect(v.nameOffset, text.indexOf('i;'));
     expect(findExecutable('i'), isNull);
     expect(findExecutable('i='), isNull);
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(2));
@@ -9872,7 +9668,6 @@ var v = c.f;
   }
 
   test_variable_codeRange() {
-    if (!includeInformative) return;
     serializeLibraryText(' int a = 1, b = 22;');
     List<UnlinkedVariable> variables = unlinkedUnits[0].variables;
     _assertCodeRange(variables[0].codeRange, 1, 9);
@@ -9886,7 +9681,6 @@ var v = c.f;
   }
 
   test_variable_documented() {
-    if (!includeInformative) return;
     String text = '''
 // Extra comment so doc comment offset != 0
 /**
@@ -9939,9 +9733,7 @@ var v;''';
     UnlinkedVariable variable = serializeVariableText('var v = 42;');
     UnlinkedExecutable initializer = variable.initializer;
     expect(initializer, isNotNull);
-    if (includeInformative) {
-      expect(initializer.nameOffset, 8);
-    }
+    expect(initializer.nameOffset, 8);
     expect(initializer.name, isEmpty);
     expect(initializer.localFunctions, isEmpty);
   }
@@ -9957,38 +9749,28 @@ var v;''';
     UnlinkedVariable variable = serializeVariableText(text);
     UnlinkedExecutable initializer = variable.initializer;
     expect(initializer, isNotNull);
-    if (includeInformative) {
-      expect(initializer.nameOffset, text.indexOf('<dynamic, dynamic>{"1'));
-    }
+    expect(initializer.nameOffset, text.indexOf('<dynamic, dynamic>{"1'));
     expect(initializer.name, isEmpty);
     expect(initializer.localFunctions, hasLength(2));
     // closure: () { f1() {} var v1; }
     {
       UnlinkedExecutable closure = initializer.localFunctions[0];
-      if (includeInformative) {
-        expect(closure.nameOffset, text.indexOf('() { f1()'));
-      }
+      expect(closure.nameOffset, text.indexOf('() { f1()'));
       expect(closure.name, isEmpty);
       // closure - f1
       expect(closure.localFunctions, hasLength(1));
       expect(closure.localFunctions[0].name, 'f1');
-      if (includeInformative) {
-        expect(closure.localFunctions[0].nameOffset, text.indexOf('f1()'));
-      }
+      expect(closure.localFunctions[0].nameOffset, text.indexOf('f1()'));
     }
     // closure: () { f2() {} var v2; }
     {
       UnlinkedExecutable closure = initializer.localFunctions[1];
-      if (includeInformative) {
-        expect(closure.nameOffset, text.indexOf('() { f2()'));
-      }
+      expect(closure.nameOffset, text.indexOf('() { f2()'));
       expect(closure.name, isEmpty);
       // closure - f1
       expect(closure.localFunctions, hasLength(1));
       expect(closure.localFunctions[0].name, 'f2');
-      if (includeInformative) {
-        expect(closure.localFunctions[0].nameOffset, text.indexOf('f2()'));
-      }
+      expect(closure.localFunctions[0].nameOffset, text.indexOf('f2()'));
     }
   }
 
@@ -10090,9 +9872,6 @@ var v;''';
    */
   void _assertAssignmentOperator(
       String expr, UnlinkedExprAssignOperator expectedAssignOperator) {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 int a = 0;
 final v = $expr;
@@ -10148,9 +9927,6 @@ final v = $expr;
    */
   void _assertRefPrefixPostfixIncrementDecrement(
       String expr, UnlinkedExprAssignOperator expectedAssignmentOperator) {
-    if (skipNonConstInitializers) {
-      return;
-    }
     UnlinkedVariable variable = serializeVariableText('''
 int a = 0;
 final v = $expr;

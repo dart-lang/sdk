@@ -193,13 +193,13 @@ const Required required = const Required();
 /// Classes in the same package as the marked class or mixin may extend,
 /// implement or mix-in the annotated class or mixin.
 ///
-/// Given a class or mixin `c`, which is annotated with this, and a class or
-/// mixin `d`, which extends, implements, or mixes in `c`, then tools, such as
+/// Given a class or mixin `C`, which is annotated with this, and a class or
+/// mixin `D`, which extends, implements, or mixes in `C`, then tools, such as
 /// the analyzer, may emit warnings if:
 ///
-/// * `c` and `d` are declared in different packages, or
-/// * `c` and `d` are declared in the same package, and `d` is not also
-/// annotated with this.
+/// * `C` and `D` are declared in different packages, or
+/// * `C` and `D` are declared in the same package, and `D` is not also
+///   annotated with this.
 const _Sealed sealed = const _Sealed();
 
 /// Used to annotate a field that is allowed to be overridden in Strong Mode.

@@ -142,7 +142,8 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
   }
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+  Expression buildAssignment(Expression value,
+      {bool voidContext: false, int offset: -1}) {
     var complexAssignment = startComplexAssignment(value);
     return _finish(_makeSimpleWrite(value, voidContext, complexAssignment),
         complexAssignment);
@@ -199,8 +200,8 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
       Procedure interfaceTarget}) {
-    return buildCompoundAssignment(
-        binaryOperator, forest.literalInt(1, null)..fileOffset = offset,
+    return buildCompoundAssignment(binaryOperator,
+        forest.literalInt(1, null, isSynthetic: true)..fileOffset = offset,
         offset: offset,
         voidContext: voidContext,
         interfaceTarget: interfaceTarget,
@@ -213,8 +214,8 @@ abstract class KernelExpressionGenerator implements ExpressionGenerator {
       bool voidContext: false,
       Procedure interfaceTarget}) {
     if (voidContext) {
-      return buildCompoundAssignment(
-          binaryOperator, forest.literalInt(1, null)..fileOffset = offset,
+      return buildCompoundAssignment(binaryOperator,
+          forest.literalInt(1, null, isSynthetic: true)..fileOffset = offset,
           offset: offset,
           voidContext: voidContext,
           interfaceTarget: interfaceTarget,
@@ -501,7 +502,8 @@ class KernelThisPropertyAccessGenerator extends KernelGenerator
 
   @override
   ComplexAssignmentJudgment startComplexAssignment(Expression rhs) =>
-      new PropertyAssignmentJudgment(null, rhs);
+      new PropertyAssignmentJudgment(null, rhs,
+          isSyntheticLhs: token.isSynthetic);
 
   @override
   void printOn(StringSink sink) {
@@ -1530,7 +1532,8 @@ class KernelUnresolvedNameGenerator extends KernelGenerator
       : super(helper, token);
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+  Expression buildAssignment(Expression value,
+      {bool voidContext: false, int offset: -1}) {
     return _buildUnresolvedVariableAssignment(false, value);
   }
 
@@ -1539,7 +1542,8 @@ class KernelUnresolvedNameGenerator extends KernelGenerator
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
       Procedure interfaceTarget,
-      bool isPreIncDec: false}) {
+      bool isPreIncDec: false,
+      bool isPostIncDec: false}) {
     return _buildUnresolvedVariableAssignment(true, value);
   }
 
@@ -1595,7 +1599,8 @@ class KernelUnlinkedGenerator extends KernelGenerator with UnlinkedGenerator {
         super(helper, token);
 
   @override
-  Expression buildAssignment(Expression value, {bool voidContext}) {
+  Expression buildAssignment(Expression value,
+      {bool voidContext, int offset: -1}) {
     return new PropertySet(receiver, name, value)
       ..fileOffset = offsetForToken(token);
   }

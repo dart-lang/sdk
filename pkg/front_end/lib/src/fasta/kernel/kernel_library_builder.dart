@@ -65,8 +65,6 @@ import '../modifier.dart'
 
 import '../problems.dart' show unexpected, unhandled;
 
-import '../source/outline_listener.dart' show OutlineListener;
-
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 
 import '../source/source_library_builder.dart'
@@ -150,13 +148,10 @@ class KernelLibraryBuilder
   /// the error message is the corresponding value in the map.
   Map<String, String> unserializableExports;
 
-  final OutlineListener outlineListener;
-
   KernelLibraryBuilder(Uri uri, Uri fileUri, Loader loader, this.actualOrigin,
       [Scope scope, Library target])
       : library = target ??
             (actualOrigin?.library ?? new Library(uri, fileUri: fileUri)),
-        outlineListener = loader.createOutlineListener(fileUri),
         super(loader, fileUri, scope);
 
   @override

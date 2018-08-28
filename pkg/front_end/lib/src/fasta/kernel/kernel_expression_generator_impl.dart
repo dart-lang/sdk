@@ -135,7 +135,8 @@ class ThisAccessGenerator extends KernelGenerator {
     }
   }
 
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+  Expression buildAssignment(Expression value,
+      {bool voidContext: false, int offset: -1}) {
     return buildAssignmentError();
   }
 
@@ -260,7 +261,8 @@ class SendAccessGenerator extends IncompleteSendGenerator {
     return unsupported("buildSimpleRead", offsetForToken(token), uri);
   }
 
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+  Expression buildAssignment(Expression value,
+      {bool voidContext: false, int offset: -1}) {
     return unsupported("buildAssignment", offsetForToken(token), uri);
   }
 
@@ -331,7 +333,8 @@ class IncompletePropertyAccessGenerator extends IncompleteSendGenerator {
     return unsupported("buildSimpleRead", offsetForToken(token), uri);
   }
 
-  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+  Expression buildAssignment(Expression value,
+      {bool voidContext: false, int offset: -1}) {
     return unsupported("buildAssignment", offsetForToken(token), uri);
   }
 

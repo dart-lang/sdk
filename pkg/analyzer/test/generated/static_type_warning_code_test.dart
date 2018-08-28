@@ -2170,6 +2170,18 @@ class B extends A {
               ]);
   }
 
+  test_wrongNumberOfTypeArguments_class_tooFew() async {
+    await assertErrorsInCode(r'''
+class A<E, F> {}
+A<A> a = null;''', [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
+  }
+
+  test_wrongNumberOfTypeArguments_class_tooMany() async {
+    await assertErrorsInCode(r'''
+class A<E> {}
+A<A, A> a = null;''', [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
+  }
+
   test_wrongNumberOfTypeArguments_classAlias() async {
     await assertErrorsInCode(r'''
 class A {}
@@ -2178,16 +2190,18 @@ class B<F extends num> = A<F> with M;''',
         [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
   }
 
-  test_wrongNumberOfTypeArguments_tooFew() async {
+  test_wrongNumberOfTypeArguments_dynamic() async {
     await assertErrorsInCode(r'''
-class A<E, F> {}
-A<A> a = null;''', [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
+dynamic<int> v;
+''', [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
   }
 
-  test_wrongNumberOfTypeArguments_tooMany() async {
+  test_wrongNumberOfTypeArguments_typeParameter() async {
     await assertErrorsInCode(r'''
-class A<E> {}
-A<A, A> a = null;''', [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
+class C<T> {
+  T<int> f;
+}
+''', [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
   }
 
   test_wrongNumberOfTypeArguments_typeTest_tooFew() async {

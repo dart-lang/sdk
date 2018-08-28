@@ -174,6 +174,11 @@ class BytecodeAssembler {
     emitWord(_encodeT(Opcode.kJumpIfNoAsserts, label.jumpOperand(offset)));
   }
 
+  void emitJumpIfNotZeroTypeArgs(Label label) {
+    emitWord(
+        _encodeT(Opcode.kJumpIfNotZeroTypeArgs, label.jumpOperand(offset)));
+  }
+
   void patchJump(int pos, int rt) {
     final Opcode opcode = Opcode.values[_getOpcodeAt(pos)];
     assert(isJump(opcode));
@@ -942,6 +947,10 @@ class BytecodeAssembler {
 
   void emitDeoptRewind() {
     emitWord(_encode0(Opcode.kDeoptRewind));
+  }
+
+  void emitEntryFixed(int ra, int rd) {
+    emitWord(_encodeAD(Opcode.kEntryFixed, ra, rd));
   }
 
   void emitEntryOptional(int ra, int rb, int rc) {

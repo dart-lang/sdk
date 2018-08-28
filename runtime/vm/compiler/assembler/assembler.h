@@ -285,19 +285,40 @@ class AssemblerBuffer : public ValueObject {
 };
 
 struct ObjectPoolWrapperEntry {
-  ObjectPoolWrapperEntry() : raw_value_(), type_(), equivalence_() {}
-  explicit ObjectPoolWrapperEntry(const Object* obj)
-      : obj_(obj), type_(ObjectPool::kTaggedObject), equivalence_(obj) {}
-  explicit ObjectPoolWrapperEntry(const Object* obj, const Object* eqv)
-      : obj_(obj), type_(ObjectPool::kTaggedObject), equivalence_(eqv) {}
-  ObjectPoolWrapperEntry(uword value, ObjectPool::EntryType info)
-      : raw_value_(value), type_(info), equivalence_() {}
+  ObjectPoolWrapperEntry() : raw_value_(), entry_bits_(0), equivalence_() {}
+  ObjectPoolWrapperEntry(const Object* obj, ObjectPool::Patchability patchable)
+      : obj_(obj),
+        entry_bits_(ObjectPool::TypeBits::encode(ObjectPool::kTaggedObject) |
+                    ObjectPool::PatchableBit::encode(patchable)),
+        equivalence_(obj) {}
+  ObjectPoolWrapperEntry(const Object* obj,
+                         const Object* eqv,
+                         ObjectPool::Patchability patchable)
+      : obj_(obj),
+        entry_bits_(ObjectPool::TypeBits::encode(ObjectPool::kTaggedObject) |
+                    ObjectPool::PatchableBit::encode(patchable)),
+        equivalence_(eqv) {}
+  ObjectPoolWrapperEntry(uword value,
+                         ObjectPool::EntryType info,
+                         ObjectPool::Patchability patchable)
+      : raw_value_(value),
+        entry_bits_(ObjectPool::TypeBits::encode(info) |
+                    ObjectPool::PatchableBit::encode(patchable)),
+        equivalence_() {}
+
+  ObjectPool::EntryType type() const {
+    return ObjectPool::TypeBits::decode(entry_bits_);
+  }
+
+  ObjectPool::Patchability patchable() const {
+    return ObjectPool::PatchableBit::decode(entry_bits_);
+  }
 
   union {
     const Object* obj_;
     uword raw_value_;
   };
-  ObjectPool::EntryType type_;
+  uint8_t entry_bits_;
   const Object* equivalence_;
 };
 
@@ -312,12 +333,14 @@ class ObjIndexPair {
   static const intptr_t kNoIndex = -1;
 
   ObjIndexPair()
-      : key_(static_cast<uword>(NULL), ObjectPool::kTaggedObject),
+      : key_(static_cast<uword>(NULL),
+             ObjectPool::kTaggedObject,
+             ObjectPool::kPatchable),
         value_(kNoIndex) {}
 
   ObjIndexPair(Key key, Value value) : value_(value) {
-    key_.type_ = key.type_;
-    if (key.type_ == ObjectPool::kTaggedObject) {
+    key_.entry_bits_ = key.entry_bits_;
+    if (key.type() == ObjectPool::kTaggedObject) {
       key_.obj_ = key.obj_;
       key_.equivalence_ = key.equivalence_;
     } else {
@@ -330,7 +353,7 @@ class ObjIndexPair {
   static Value ValueOf(Pair kv) { return kv.value_; }
 
   static intptr_t Hashcode(Key key) {
-    if (key.type_ != ObjectPool::kTaggedObject) {
+    if (key.type() != ObjectPool::kTaggedObject) {
       return key.raw_value_;
     }
     if (key.obj_->IsSmi()) {
@@ -345,8 +368,8 @@ class ObjIndexPair {
   }
 
   static inline bool IsKeyEqual(Pair kv, Key key) {
-    if (kv.key_.type_ != key.type_) return false;
-    if (kv.key_.type_ == ObjectPool::kTaggedObject) {
+    if (kv.key_.entry_bits_ != key.entry_bits_) return false;
+    if (kv.key_.type() == ObjectPool::kTaggedObject) {
       return (kv.key_.obj_->raw() == key.obj_->raw()) &&
              (kv.key_.equivalence_->raw() == key.equivalence_->raw());
     }
@@ -358,30 +381,27 @@ class ObjIndexPair {
   Value value_;
 };
 
-enum Patchability {
-  kPatchable,
-  kNotPatchable,
-};
-
 class ObjectPoolWrapper : public ValueObject {
  public:
-  intptr_t AddObject(const Object& obj, Patchability patchable = kNotPatchable);
+  intptr_t AddObject(
+      const Object& obj,
+      ObjectPool::Patchability patchable = ObjectPool::kNotPatchable);
   intptr_t AddImmediate(uword imm);
-
-  intptr_t FindObject(const Object& obj,
-                      Patchability patchable = kNotPatchable);
+  intptr_t FindObject(
+      const Object& obj,
+      ObjectPool::Patchability patchable = ObjectPool::kNotPatchable);
   intptr_t FindObject(const Object& obj, const Object& equivalence);
   intptr_t FindImmediate(uword imm);
   intptr_t FindNativeFunction(const ExternalLabel* label,
-                              Patchability patchable);
+                              ObjectPool::Patchability patchable);
   intptr_t FindNativeFunctionWrapper(const ExternalLabel* label,
-                                     Patchability patchable);
+                                     ObjectPool::Patchability patchable);
 
   RawObjectPool* MakeObjectPool();
 
  private:
-  intptr_t AddObject(ObjectPoolWrapperEntry entry, Patchability patchable);
-  intptr_t FindObject(ObjectPoolWrapperEntry entry, Patchability patchable);
+  intptr_t AddObject(ObjectPoolWrapperEntry entry);
+  intptr_t FindObject(ObjectPoolWrapperEntry entry);
 
   // Objects and jump targets.
   GrowableArray<ObjectPoolWrapperEntry> object_pool_;

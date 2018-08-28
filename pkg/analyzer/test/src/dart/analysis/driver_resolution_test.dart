@@ -956,10 +956,121 @@ void f(int x, double y, String z) {
     assertElement(zRef, findElement.parameter('z'));
   }
 
+  test_assign_to_postfix_increment() async {
+    addTestFile('''
+void f(num x, int y) {
+  x++ = y;
+}
+''');
+    await resolveTestFile();
+
+    var xRef = findNode.simple('x++');
+    assertType(xRef, 'num');
+    assertElement(xRef, findElement.parameter('x'));
+    var yRef = findNode.simple('y;');
+    assertType(yRef, 'int');
+    assertElement(yRef, findElement.parameter('y'));
+  }
+
+  test_assign_to_postfix_increment_compound() async {
+    addTestFile('''
+void f(num x, int y) {
+  x++ += y;
+}
+''');
+    await resolveTestFile();
+
+    var xRef = findNode.simple('x++');
+    assertType(xRef, 'num');
+    assertElement(xRef, findElement.parameter('x'));
+    var yRef = findNode.simple('y;');
+    assertType(yRef, 'int');
+    assertElement(yRef, findElement.parameter('y'));
+  }
+
+  test_assign_to_postfix_increment_null_aware() async {
+    addTestFile('''
+void f(num x, int y) {
+  x++ ??= y;
+}
+''');
+    await resolveTestFile();
+
+    var xRef = findNode.simple('x++');
+    assertType(xRef, 'num');
+    assertElement(xRef, findElement.parameter('x'));
+    var yRef = findNode.simple('y;');
+    assertType(yRef, 'int');
+    assertElement(yRef, findElement.parameter('y'));
+  }
+
+  test_assign_to_prefix_increment() async {
+    addTestFile('''
+void f(num x, int y) {
+  ++x = y;
+}
+''');
+    await resolveTestFile();
+
+    var xRef = findNode.simple('x =');
+    assertType(xRef, 'num');
+    assertElement(xRef, findElement.parameter('x'));
+    var yRef = findNode.simple('y;');
+    assertType(yRef, 'int');
+    assertElement(yRef, findElement.parameter('y'));
+  }
+
+  test_assign_to_prefix_increment_compound() async {
+    addTestFile('''
+void f(num x, int y) {
+  ++x += y;
+}
+''');
+    await resolveTestFile();
+
+    var xRef = findNode.simple('x +=');
+    assertType(xRef, 'num');
+    assertElement(xRef, findElement.parameter('x'));
+    var yRef = findNode.simple('y;');
+    assertType(yRef, 'int');
+    assertElement(yRef, findElement.parameter('y'));
+  }
+
+  test_assign_to_prefix_increment_null_aware() async {
+    addTestFile('''
+void f(num x, int y) {
+  ++x ??= y;
+}
+''');
+    await resolveTestFile();
+
+    var xRef = findNode.simple('x ??=');
+    assertType(xRef, 'num');
+    assertElement(xRef, findElement.parameter('x'));
+    var yRef = findNode.simple('y;');
+    assertType(yRef, 'int');
+    assertElement(yRef, findElement.parameter('y'));
+  }
+
   test_assign_with_synthetic_lhs() async {
     addTestFile('''
 void f(int x) {
   = x;
+}
+''');
+    await resolveTestFile();
+
+    var xRef = findNode.simple('x;');
+    assertType(xRef, 'int');
+    assertElement(xRef, findElement.parameter('x'));
+  }
+
+  test_assign_with_synthetic_lhs_in_method() async {
+    addTestFile('''
+class C {
+  void f(int x) {
+    = x;
+  }
 }
 ''');
     await resolveTestFile();
@@ -2486,7 +2597,6 @@ import 'a.dart' deferred as a;
 main() {
   a.loadLibrary();
 }
-
 ''');
     await resolveTestFile();
     var import = findElement.import('package:test/a.dart');
@@ -2514,7 +2624,6 @@ var c = 2;
 main() {
   a.loadLibrary(b, c);
 }
-
 ''');
     await resolveTestFile();
     var import = findElement.import('package:test/a.dart');
@@ -2548,7 +2657,6 @@ import 'a.dart' deferred as a;
 main() {
   a.loadLibrary;
 }
-
 ''');
     await resolveTestFile();
     var import = findElement.import('package:test/a.dart');
@@ -2574,7 +2682,6 @@ main() async {
   a.v;
   a.v = 1;
 }
-
 ''');
     await resolveTestFile();
     var import = findElement.import('package:test/a.dart');
@@ -2604,6 +2711,153 @@ main() async {
 
       assertElement(prefixed.identifier, v.setter);
       assertType(prefixed.identifier, 'int');
+    }
+  }
+
+  test_directive_export() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, r'''
+class MyClass {}
+int myVar;
+int get myGetter => 0;
+int set mySetter(_) {}
+''');
+    addTestFile(r'''
+export 'a.dart' show MyClass, myVar, myGetter, mySetter, Unresolved;
+''');
+    await resolveTestFile();
+    var export = findElement.export('package:test/a.dart');
+    var namespace = export.exportedLibrary.exportNamespace;
+
+    {
+      var ref = findNode.simple('MyClass');
+      assertElement(ref, namespace.get('MyClass'));
+      assertType(ref, null);
+    }
+
+    {
+      var ref = findNode.simple('myVar');
+      PropertyAccessorElement getter = namespace.get('myVar');
+      assertElement(ref, getter.variable);
+      assertType(ref, null);
+    }
+
+    {
+      var ref = findNode.simple('myGetter');
+      PropertyAccessorElement getter = namespace.get('myGetter');
+      assertElement(ref, getter.variable);
+      assertType(ref, null);
+    }
+
+    {
+      var ref = findNode.simple('mySetter');
+      PropertyAccessorElement getter = namespace.get('mySetter=');
+      assertElement(ref, getter.variable);
+      assertType(ref, null);
+    }
+
+    {
+      var ref = findNode.simple('Unresolved');
+      assertElementNull(ref);
+      assertType(ref, null);
+    }
+  }
+
+  test_directive_import_hide() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, r'''
+class MyClass {}
+int myVar;
+int get myGetter => 0;
+int set mySetter(_) {}
+''');
+    addTestFile(r'''
+import 'a.dart' hide MyClass, myVar, myGetter, mySetter, Unresolved;
+''');
+    await resolveTestFile();
+    var import = findElement.import('package:test/a.dart');
+    var namespace = import.importedLibrary.exportNamespace;
+
+    {
+      var ref = findNode.simple('MyClass');
+      assertElement(ref, namespace.get('MyClass'));
+      assertType(ref, null);
+    }
+
+    {
+      var ref = findNode.simple('myVar');
+      PropertyAccessorElement getter = namespace.get('myVar');
+      assertElement(ref, getter.variable);
+      assertType(ref, null);
+    }
+
+    {
+      var ref = findNode.simple('myGetter');
+      PropertyAccessorElement getter = namespace.get('myGetter');
+      assertElement(ref, getter.variable);
+      assertType(ref, null);
+    }
+
+    {
+      var ref = findNode.simple('mySetter');
+      PropertyAccessorElement getter = namespace.get('mySetter=');
+      assertElement(ref, getter.variable);
+      assertType(ref, null);
+    }
+
+    {
+      var ref = findNode.simple('Unresolved');
+      assertElementNull(ref);
+      assertType(ref, null);
+    }
+  }
+
+  test_directive_import_show() async {
+    var a = _p('/test/lib/a.dart');
+    provider.newFile(a, r'''
+class MyClass {}
+int myVar;
+int get myGetter => 0;
+int set mySetter(_) {}
+''');
+    addTestFile(r'''
+import 'a.dart' show MyClass, myVar, myGetter, mySetter, Unresolved;
+''');
+    await resolveTestFile();
+    var import = findElement.import('package:test/a.dart');
+    var namespace = import.importedLibrary.exportNamespace;
+
+    {
+      var ref = findNode.simple('MyClass');
+      assertElement(ref, namespace.get('MyClass'));
+      assertType(ref, null);
+    }
+
+    {
+      var ref = findNode.simple('myVar');
+      PropertyAccessorElement getter = namespace.get('myVar');
+      assertElement(ref, getter.variable);
+      assertType(ref, null);
+    }
+
+    {
+      var ref = findNode.simple('myGetter');
+      PropertyAccessorElement getter = namespace.get('myGetter');
+      assertElement(ref, getter.variable);
+      assertType(ref, null);
+    }
+
+    {
+      var ref = findNode.simple('mySetter');
+      PropertyAccessorElement getter = namespace.get('mySetter=');
+      assertElement(ref, getter.variable);
+      assertType(ref, null);
+    }
+
+    {
+      var ref = findNode.simple('Unresolved');
+      assertElementNull(ref);
+      assertType(ref, null);
     }
   }
 
@@ -4385,6 +4639,21 @@ main() {
     NamedExpression arg2 = invocation.argumentList.arguments[2];
     assertElement(arg2.name.label, f.parameters[0]);
     assertIdentifierTopGetRef(arg2.expression, 'c');
+  }
+
+  test_invalid_invocation_arguments_requiredAfterNamed() async {
+    addTestFile(r'''
+var a = 0;
+var b = 0;
+main() {
+  f(p: a, b);
+}
+void f({p}) {}
+''');
+    await resolveTestFile();
+    expect(result.errors, isNotEmpty);
+    assertTopGetRef('a, ', 'a');
+    assertTopGetRef('b);', 'b');
   }
 
   test_invalid_invocation_arguments_static_method() async {
@@ -7149,6 +7418,32 @@ my.Future<int> a;
         expectedPrefix: myImport.prefix);
   }
 
+  test_postfix_increment_of_non_generator() async {
+    addTestFile('''
+void f(int g()) {
+  g()++;
+}
+''');
+    await resolveTestFile();
+
+    var gRef = findNode.simple('g()++');
+    assertType(gRef, '() → int');
+    assertElement(gRef, findElement.parameter('g'));
+  }
+
+  test_postfix_increment_of_postfix_increment() async {
+    addTestFile('''
+void f(int x) {
+  x ++ ++;
+}
+''');
+    await resolveTestFile();
+
+    var xRef = findNode.simple('x ++');
+    assertType(xRef, 'int');
+    assertElement(xRef, findElement.parameter('x'));
+  }
+
   test_postfixExpression_local() async {
     String content = r'''
 main() {
@@ -7221,6 +7516,45 @@ class C {
       expect(propertyName.staticElement, same(fElement.setter));
       expect(propertyName.staticType, typeProvider.intType);
     }
+  }
+
+  test_prefix_increment_of_non_generator() async {
+    addTestFile('''
+void f(bool x) {
+  ++!x;
+}
+''');
+    await resolveTestFile();
+
+    var xRef = findNode.simple('x;');
+    assertType(xRef, 'bool');
+    assertElement(xRef, findElement.parameter('x'));
+  }
+
+  test_prefix_increment_of_postfix_increment() async {
+    addTestFile('''
+void f(int x) {
+  ++x++;
+}
+''');
+    await resolveTestFile();
+
+    var xRef = findNode.simple('x++');
+    assertType(xRef, 'int');
+    assertElement(xRef, findElement.parameter('x'));
+  }
+
+  test_prefix_increment_of_prefix_increment() async {
+    addTestFile('''
+void f(int x) {
+  ++ ++ x;
+}
+''');
+    await resolveTestFile();
+
+    var xRef = findNode.simple('x;');
+    assertType(xRef, 'int');
+    assertElement(xRef, findElement.parameter('x'));
   }
 
   test_prefixedIdentifier_classInstance_instanceField() async {
@@ -10239,6 +10573,23 @@ class FindElement {
       }
     }
     fail('Not found class: $name');
+  }
+
+  ExportElement export(String targetUri) {
+    ExportElement exportElement;
+    for (var export in unitElement.library.exports) {
+      var exportedUri = export.exportedLibrary.source.uri.toString();
+      if (exportedUri == targetUri) {
+        if (exportElement != null) {
+          throw new StateError('Not unique $targetUri export.');
+        }
+        exportElement = export;
+      }
+    }
+    if (exportElement != null) {
+      return exportElement;
+    }
+    fail('Not found export: $targetUri');
   }
 
   FieldElement field(String name) {

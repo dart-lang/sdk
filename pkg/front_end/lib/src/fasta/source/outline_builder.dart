@@ -14,7 +14,7 @@ import '../builder/builder.dart';
 
 import '../builder/metadata_builder.dart' show ExpressionMetadataBuilder;
 
-import '../combinator.dart' show Combinator;
+import '../combinator.dart' show Combinator, CombinatorIdentifier;
 
 import '../fasta_codes.dart'
     show
@@ -113,12 +113,14 @@ class OutlineBuilder extends StackListener {
 
   int popCharOffset() => pop();
 
-  List<String> popIdentifierList(int count) {
+  List<CombinatorIdentifier> popIdentifierList(int count) {
     if (count == 0) return null;
-    List<String> list = new List<String>.filled(count, null, growable: true);
+    var list = new List<CombinatorIdentifier>.filled(count, null);
     for (int i = count - 1; i >= 0; i--) {
-      popCharOffset();
-      list[i] = pop();
+      bool isSynthetic = pop();
+      int offset = popCharOffset();
+      String name = pop();
+      list[i] = new CombinatorIdentifier(offset, name, isSynthetic);
     }
     return list;
   }
@@ -177,15 +179,21 @@ class OutlineBuilder extends StackListener {
   @override
   void endHide(Token hideKeyword) {
     debugEvent("Hide");
-    List<String> names = pop();
-    push(new Combinator.hide(names, hideKeyword.charOffset, library.fileUri));
+    List<CombinatorIdentifier> identifiers = pop();
+    List<String> names =
+        identifiers.map((identifier) => identifier.name).toList();
+    push(new Combinator.hide(
+        identifiers, names, hideKeyword.charOffset, library.fileUri));
   }
 
   @override
   void endShow(Token showKeyword) {
     debugEvent("Show");
-    List<String> names = pop();
-    push(new Combinator.show(names, showKeyword.charOffset, library.fileUri));
+    List<CombinatorIdentifier> identifiers = pop();
+    List<String> names =
+        identifiers.map((identifier) => identifier.name).toList();
+    push(new Combinator.show(
+        identifiers, names, showKeyword.charOffset, library.fileUri));
   }
 
   @override
@@ -270,7 +278,9 @@ class OutlineBuilder extends StackListener {
   @override
   void handleDottedName(int count, Token firstIdentifier) {
     debugEvent("DottedName");
-    push(popIdentifierList(count).join('.'));
+    push(popIdentifierList(count)
+        .map((identifier) => identifier.name)
+        .join('.'));
   }
 
   @override
@@ -318,6 +328,9 @@ class OutlineBuilder extends StackListener {
     } else {
       super.handleIdentifier(token, context);
       push(token.charOffset);
+    }
+    if (context.requiresSyntheticFlag) {
+      push(token.isSynthetic);
     }
     if (inConstructor && context == IdentifierContext.methodDeclaration) {
       inConstructorName = true;

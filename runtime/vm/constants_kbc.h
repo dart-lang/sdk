@@ -118,6 +118,12 @@ namespace dart {
 //    Jump to the given target if assertions are not enabled.
 //    Target is specified as offset from the PC of the jump instruction.
 //
+//  - JumpIfNotZeroTypeArgs target
+//
+//    Jump to the given target if number of passed function type
+//    arguments is not zero.
+//    Target is specified as offset from the PC of the jump instruction.
+//
 //  - Return R; ReturnTOS
 //
 //    Return to the caller using either a value from the given register or a
@@ -563,6 +569,13 @@ namespace dart {
 //    Function prologue for the function
 //        rD - number of local slots to reserve;
 //
+//  - EntryFixed A, D
+//
+//    Function prologue for functions without optional arguments.
+//    Checks number of arguments.
+//        A - expected number of positional arguments;
+//        D - number of local slots to reserve;
+//
 //  - EntryOptional A, B, C
 //
 //    Function prologue for the function with optional or named arguments:
@@ -808,6 +821,7 @@ namespace dart {
   V(Drop,                                  A, num, ___, ___)                   \
   V(Jump,                                  T, tgt, ___, ___)                   \
   V(JumpIfNoAsserts,                       T, tgt, ___, ___)                   \
+  V(JumpIfNotZeroTypeArgs,                 T, tgt, ___, ___)                   \
   V(Return,                                A, reg, ___, ___)                   \
   V(ReturnTOS,                             0, ___, ___, ___)                   \
   V(Move,                                A_X, reg, xeg, ___)                   \
@@ -969,6 +983,7 @@ namespace dart {
   V(BooleanNegate,                       A_D, reg, reg, ___)                   \
   V(Throw,                                 A, num, ___, ___)                   \
   V(Entry,                                 D, num, ___, ___)                   \
+  V(EntryFixed,                          A_D, num, num, ___)                   \
   V(EntryOptional,                     A_B_C, num, num, num)                   \
   V(EntryOptimized,                      A_D, num, num, ___)                   \
   V(Frame,                                 D, num, ___, ___)                   \

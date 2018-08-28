@@ -880,16 +880,6 @@ bin_to_linkable("kernel_service_dill_linkable") {
   executable = false
 }
 
-bin_to_linkable("platform_dill_linkable") {
-  deps = [
-    "../vm:vm_legacy_platform",
-  ]
-  input = "$root_out_dir/vm_platform.dill"
-  symbol = "kPlatformDill"
-  size_symbol = "kPlatformDillSize"
-  executable = false
-}
-
 bin_to_linkable("platform_strong_dill_linkable") {
   deps = [
     "../vm:vm_platform",
@@ -918,11 +908,9 @@ source_set("dart_kernel_platform_cc") {
   visibility = [ ":*" ]
   deps = [
     ":kernel_service_dill_linkable",
-    ":platform_dill_linkable",
     ":platform_strong_dill_linkable",
   ]
   sources = get_target_outputs(":kernel_service_dill_linkable") +
-            get_target_outputs(":platform_dill_linkable") +
             get_target_outputs(":platform_strong_dill_linkable")
 }
 

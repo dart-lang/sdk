@@ -76,7 +76,8 @@ abstract class Forest {
 
   /// Return a representation of an integer literal at the given [location]. The
   /// literal has the given [value].
-  Expression literalInt(int value, Token location, {Expression desugaredError});
+  Expression literalInt(int value, Token location,
+      {Expression desugaredError, bool isSynthetic: false});
 
   /// Return a representation of a list literal. The [constKeyword] is the
   /// location of the `const` keyword, or `null` if there is no keyword. The

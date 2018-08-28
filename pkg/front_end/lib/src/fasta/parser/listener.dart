@@ -136,6 +136,32 @@ class Listener implements UnescapeErrorListener {
     logEvent("ClassDeclaration");
   }
 
+  /// Handle the beginning of a mixin declaration.
+  void beginMixinDeclaration(Token mixinKeyword, Token name) {}
+
+  /// Handle an on clause in a mixin declaration. Substructures:
+  /// - implemented types
+  void handleMixinOn(Token onKeyword, int typeCount) {
+    logEvent("MixinOn");
+  }
+
+  /// Handle the header of a class declaration.  Substructures:
+  /// - metadata
+  /// - mixin name
+  /// - type variables
+  /// - on types
+  /// - implemented types
+  void handleMixinHeader(Token mixinKeyword) {
+    logEvent("MixinHeader");
+  }
+
+  /// Handle the end of a mixin declaration.  Substructures:
+  /// - mixin header
+  /// - class or mixin body
+  void endMixinDeclaration(Token token) {
+    logEvent("MixinDeclaration");
+  }
+
   void beginCombinators(Token token) {}
 
   void endCombinators(int count) {

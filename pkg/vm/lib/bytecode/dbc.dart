@@ -37,6 +37,12 @@ library vm.bytecode.dbc;
 // 10. InstanceCall1 and InstanceCall2 instructions are superseded by
 //     InstanceCall which works for any number of checked arguments.
 //
+// 11. EntryFixed instruction works like Entry. In addition, it checks number
+//     of fixed arguments.
+//
+// 12. JumpIfNotZeroTypeArgs instruction jumps if number of passed
+//     function type arguments is not zero.
+//
 
 enum Opcode {
   kTrap,
@@ -49,6 +55,7 @@ enum Opcode {
   kDrop,
   kJump,
   kJumpIfNoAsserts,
+  kJumpIfNotZeroTypeArgs,
   kReturn,
   kReturnTOS,
   kMove,
@@ -210,6 +217,7 @@ enum Opcode {
   kBooleanNegate,
   kThrow,
   kEntry,
+  kEntryFixed,
   kEntryOptional,
   kEntryOptimized,
   kFrame,
@@ -291,6 +299,8 @@ const Map<Opcode, Format> BytecodeFormats = const {
   Opcode.kJump: const Format(
       Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
   Opcode.kJumpIfNoAsserts: const Format(
+      Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
+  Opcode.kJumpIfNotZeroTypeArgs: const Format(
       Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
   Opcode.kReturn: const Format(
       Encoding.kA, const [Operand.reg, Operand.none, Operand.none]),
@@ -614,6 +624,10 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.kA, const [Operand.imm, Operand.none, Operand.none]),
   Opcode.kEntry: const Format(
       Encoding.kD, const [Operand.imm, Operand.none, Operand.none]),
+  Opcode.kEntryFixed: const Format(
+      Encoding.kAD, const [Operand.imm, Operand.imm, Operand.none]),
+  Opcode.kEntryOptional: const Format(
+      Encoding.kABC, const [Operand.imm, Operand.imm, Operand.imm]),
   Opcode.kEntryOptimized: const Format(
       Encoding.kAD, const [Operand.imm, Operand.imm, Operand.none]),
   Opcode.kFrame: const Format(
@@ -674,8 +688,6 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.kAD, const [Operand.imm, Operand.imm, Operand.none]),
   Opcode.kDeoptRewind: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kEntryOptional: const Format(
-      Encoding.kABC, const [Operand.imm, Operand.imm, Operand.imm]),
 };
 
 // Should match constant in runtime/vm/stack_frame_dbc.h.

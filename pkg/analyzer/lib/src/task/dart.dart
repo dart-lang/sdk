@@ -190,7 +190,7 @@ final ResultDescriptor<ConstantEvaluationTarget> CONSTANT_VALUE =
  * The result is only available for [Source]s representing a compilation unit.
  */
 final ListResultDescriptor<Source> CONTAINING_LIBRARIES =
-    new ListResultDescriptor<Source>('CONTAINING_LIBRARIES', Source.EMPTY_LIST);
+    new ListResultDescriptor<Source>('CONTAINING_LIBRARIES', const <Source>[]);
 
 /**
  * The flag specifying that [RESOLVED_UNIT] has been been computed for this
@@ -575,7 +575,7 @@ final ResultDescriptor<bool> LIBRARY_ERRORS_READY =
  */
 final ListResultDescriptor<LibrarySpecificUnit> LIBRARY_SPECIFIC_UNITS =
     new ListResultDescriptor<LibrarySpecificUnit>(
-        'LIBRARY_SPECIFIC_UNITS', LibrarySpecificUnit.EMPTY_LIST);
+        'LIBRARY_SPECIFIC_UNITS', const <LibrarySpecificUnit>[]);
 
 /**
  * The analysis errors associated with a compilation unit in a specific library.
@@ -662,7 +662,7 @@ final ResultDescriptor<bool> READY_RESOLVED_UNIT =
  * The result is only available for [Source]s representing a library.
  */
 final ListResultDescriptor<Source> REFERENCED_SOURCES =
-    new ListResultDescriptor<Source>('REFERENCED_SOURCES', Source.EMPTY_LIST);
+    new ListResultDescriptor<Source>('REFERENCED_SOURCES', const <Source>[]);
 
 /**
  * The list of [ConstantEvaluationTarget]s on which error verification depends.

@@ -223,12 +223,16 @@ class FieldAddress : public Address {
 
 class Assembler : public ValueObject {
  public:
-  explicit Assembler(bool use_far_branches = false)
+  explicit Assembler(ObjectPoolWrapper* object_pool_wrapper,
+                     bool use_far_branches = false)
       : buffer_(),
         prologue_offset_(-1),
         jit_cookie_(0),
         comments_(),
         code_(Code::ZoneHandle()) {
+    // On ia32 we don't use object pools.
+    USE(object_pool_wrapper);
+
     // This mode is only needed and implemented for ARM.
     ASSERT(!use_far_branches);
   }

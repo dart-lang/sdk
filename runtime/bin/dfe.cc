@@ -18,15 +18,11 @@ extern "C" {
 #if !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
 extern const uint8_t kKernelServiceDill[];
 extern intptr_t kKernelServiceDillSize;
-extern const uint8_t kPlatformDill[];
-extern intptr_t kPlatformDillSize;
 extern const uint8_t kPlatformStrongDill[];
 extern intptr_t kPlatformStrongDillSize;
 #else
 const uint8_t* kKernelServiceDill = NULL;
 intptr_t kKernelServiceDillSize = 0;
-const uint8_t* kPlatformDill = NULL;
-intptr_t kPlatformDillSize = 0;
 const uint8_t* kPlatformStrongDill = NULL;
 intptr_t kPlatformStrongDillSize = 0;
 #endif  // !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
@@ -42,15 +38,11 @@ DFE dfe;
 #if defined(DART_NO_SNAPSHOT) || defined(DART_PRECOMPILER)
 const uint8_t* kernel_service_dill = NULL;
 const intptr_t kernel_service_dill_size = 0;
-const uint8_t* platform_dill = NULL;
-const intptr_t platform_dill_size = 0;
 const uint8_t* platform_strong_dill = NULL;
 const intptr_t platform_strong_dill_size = 0;
 #else
 const uint8_t* kernel_service_dill = kKernelServiceDill;
 const intptr_t kernel_service_dill_size = kKernelServiceDillSize;
-const uint8_t* platform_dill = kPlatformDill;
-const intptr_t platform_dill_size = kPlatformDillSize;
 const uint8_t* platform_strong_dill = kPlatformStrongDill;
 const intptr_t platform_strong_dill_size = kPlatformStrongDillSize;
 #endif
@@ -98,7 +90,7 @@ DFE::~DFE() {
 }
 
 void DFE::Init() {
-  if (platform_dill == NULL) {
+  if (platform_strong_dill == NULL) {
     return;
   }
 
@@ -138,19 +130,13 @@ void DFE::LoadKernelService(const uint8_t** kernel_service_buffer,
 }
 
 void DFE::LoadPlatform(const uint8_t** kernel_buffer,
-                       intptr_t* kernel_buffer_size,
-                       bool strong) {
-  if (strong) {
-    *kernel_buffer = platform_strong_dill;
-    *kernel_buffer_size = platform_strong_dill_size;
-  } else {
-    *kernel_buffer = platform_dill;
-    *kernel_buffer_size = platform_dill_size;
-  }
+                       intptr_t* kernel_buffer_size) {
+  *kernel_buffer = platform_strong_dill;
+  *kernel_buffer_size = platform_strong_dill_size;
 }
 
 bool DFE::CanUseDartFrontend() const {
-  return (platform_dill != NULL) &&
+  return (platform_strong_dill != NULL) &&
          (KernelServiceDillAvailable() || (frontend_filename() != NULL));
 }
 
@@ -191,7 +177,6 @@ class WindowsPathSanitizer {
 };
 
 Dart_KernelCompilationResult DFE::CompileScript(const char* script_uri,
-                                                bool strong,
                                                 bool incremental,
                                                 const char* package_config) {
   // TODO(aam): When Frontend is ready, VM should be passing vm_outline.dill
@@ -203,12 +188,8 @@ Dart_KernelCompilationResult DFE::CompileScript(const char* script_uri,
   const char* sanitized_uri = script_uri;
 #endif
 
-  const uint8_t* platform_binary =
-      strong ? platform_strong_dill : platform_dill;
-  intptr_t platform_binary_size =
-      strong ? platform_strong_dill_size : platform_dill_size;
-  return Dart_CompileToKernel(sanitized_uri, platform_binary,
-                              platform_binary_size, incremental,
+  return Dart_CompileToKernel(sanitized_uri, platform_strong_dill,
+                              platform_strong_dill_size, incremental,
                               package_config);
 }
 
@@ -217,10 +198,9 @@ void DFE::CompileAndReadScript(const char* script_uri,
                                intptr_t* kernel_buffer_size,
                                char** error,
                                int* exit_code,
-                               bool strong,
                                const char* package_config) {
-  Dart_KernelCompilationResult result = CompileScript(
-      script_uri, strong, use_incremental_compiler(), package_config);
+  Dart_KernelCompilationResult result =
+      CompileScript(script_uri, use_incremental_compiler(), package_config);
   switch (result.status) {
     case Dart_KernelCompilationStatus_Ok:
       *kernel_buffer = result.kernel;

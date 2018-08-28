@@ -60,7 +60,8 @@ void StubCode::InitOnce() {
 
 RawCode* StubCode::Generate(const char* name,
                             void (*GenerateStub)(Assembler* assembler)) {
-  Assembler assembler;
+  ObjectPoolWrapper object_pool_wrapper;
+  Assembler assembler(&object_pool_wrapper);
   GenerateStub(&assembler);
   const Code& code = Code::Handle(
       Code::FinalizeCode(name, nullptr, &assembler, false /* optimized */));
@@ -139,7 +140,8 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
   Code& stub = Code::Handle(zone, cls.allocation_stub());
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (stub.IsNull()) {
-    Assembler assembler;
+    ObjectPoolWrapper object_pool_wrapper;
+    Assembler assembler(&object_pool_wrapper);
     const char* name = cls.ToCString();
     StubCode::GenerateAllocationStubForClass(&assembler, cls);
 

@@ -240,6 +240,9 @@ class IdentifierContext {
   /// expressions are required.
   final bool allowedInConstantExpression;
 
+  /// Indicated whether the `isSynthetic` flag is required for the identifier.
+  final bool requiresSyntheticFlag;
+
   final Template<_MessageWithArgument<Token>> recoveryTemplate;
 
   const IdentifierContext(this._name,
@@ -249,6 +252,7 @@ class IdentifierContext {
       this.isContinuation: false,
       this.isScopeReference: false,
       this.isBuiltInIdentifierAllowed: true,
+      this.requiresSyntheticFlag: false,
       bool allowedInConstantExpression,
       this.recoveryTemplate: templateExpectedIdentifier})
       : this.allowedInConstantExpression =

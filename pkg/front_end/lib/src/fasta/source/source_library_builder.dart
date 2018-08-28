@@ -65,6 +65,8 @@ import '../configuration.dart' show Configuration;
 
 import '../problems.dart' show unhandled;
 
+import '../source/outline_listener.dart' show OutlineListener;
+
 import 'source_loader.dart' show SourceLoader;
 
 abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
@@ -113,6 +115,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   bool canAddImplementationBuilders = false;
 
+  final OutlineListener outlineListener;
+
   SourceLibraryBuilder(SourceLoader loader, Uri fileUri, Scope scope)
       : this.fromScopes(loader, fileUri, new DeclarationBuilder<T>.library(),
             scope ?? new Scope.top());
@@ -121,6 +125,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       this.loader, this.fileUri, this.libraryDeclaration, this.importScope)
       : disableTypeInference = loader.target.disableTypeInference,
         currentDeclaration = libraryDeclaration,
+        outlineListener = loader.createOutlineListener(fileUri),
         super(
             fileUri, libraryDeclaration.toScope(importScope), new Scope.top());
 

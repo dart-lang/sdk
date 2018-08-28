@@ -448,6 +448,7 @@ abstract class AstNode implements SyntacticEntity {
   /**
    * An empty list of AST nodes.
    */
+  @deprecated
   static const List<AstNode> EMPTY_LIST = const <AstNode>[];
 
   /**
@@ -2597,6 +2598,7 @@ abstract class Expression extends AstNode {
   /**
    * An empty list of expressions.
    */
+  @deprecated
   static const List<Expression> EMPTY_LIST = const <Expression>[];
 
   /**
@@ -5206,7 +5208,7 @@ abstract class MixinDeclaration extends NamedCompilationUnitMember {
 
   /**
    * Return the on clause for the mixin, or `null` if the mixin does not have
-   * any super-class constraints.
+   * any superclass constraints.
    */
   OnClause get onClause;
 
@@ -5608,7 +5610,7 @@ abstract class OnClause extends AstNode {
   Token get onKeyword;
 
   /**
-   * Return the list of the classes are super-class constraints for the mixin.
+   * Return the list of the classes are superclass constraints for the mixin.
    */
   NodeList<TypeName> get superclassConstraints;
 }

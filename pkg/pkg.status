@@ -227,6 +227,7 @@ collection/test/unmodifiable_collection_test: SkipSlow # Times out. Issue 22050
 analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
 analysis_server/test/benchmarks_test: RuntimeError # Issue 32355
 analysis_server/test/integration/*: Skip # Issue 32356
+analysis_server/test/src/plugin/plugin_manager_test: Pass, Slow, RuntimeError # Issue 34231
 analyzer/test/generated/non_error_resolver_kernel_test: RuntimeError # Issue 30785
 analyzer/test/src/task/strong/checker_test: Pass, Slow
 analyzer/tool/task_dependency_graph/check_test: Slow, Pass

@@ -702,8 +702,7 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
           path);
     }
 
-    Dart_Handle result =
-        Extensions::LoadExtension(decoder.decoded(), path, library);
+    Dart_Handle result = Extensions::LoadExtension(lib_path, path, library);
     free(lib_path);
     return result;
   }
@@ -792,7 +791,7 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
       uint8_t* kernel_buffer = NULL;
       intptr_t kernel_buffer_size = -1;
       dfe.CompileAndReadScript(url_string, &kernel_buffer, &kernel_buffer_size,
-                               &error, &exit_code, true /* strong */, NULL);
+                               &error, &exit_code, NULL);
       if (exit_code == 0) {
         return Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size);
       } else if (exit_code == kCompilationErrorExitCode) {

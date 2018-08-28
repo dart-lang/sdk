@@ -26,7 +26,6 @@ bug32372_test: RuntimeError
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/dynamic-funarg: RuntimeError # Issue 28816
 built_in_identifier_type_annotation_test/dynamic-funret: RuntimeError # Issue 28816
-built_in_identifier_type_annotation_test/dynamic-gen: MissingCompileTimeError # Issue 28816
 built_in_identifier_type_annotation_test/dynamic-list: RuntimeError # Issue 28816
 cascaded_forwarding_stubs_generic_test: RuntimeError
 cascaded_forwarding_stubs_test: CompileTimeError
@@ -37,7 +36,6 @@ const_cast2_test/01: CompileTimeError
 const_cast2_test/none: CompileTimeError
 const_constructor_mixin3_test/01: MissingCompileTimeError # Issue 33644
 const_constructor_mixin_test/01: MissingCompileTimeError # Issue 33644
-const_for_in_variable_test/01: MissingCompileTimeError
 constructor9_test/01: MissingCompileTimeError # CFE Issue 33022
 constructor_type_parameter_test/00: MissingCompileTimeError
 constructor_with_type_parameters_test/03: MissingCompileTimeError
@@ -71,6 +69,7 @@ generic_no_such_method_dispatcher_simple_test: Skip # This test is just for kern
 generic_no_such_method_dispatcher_test: CompileTimeError
 getter_closure_execution_order_test: RuntimeError # Issue 29920
 getter_setter_in_lib_test: CompileTimeError
+implements_futureor_test/01: MissingCompileTimeError
 implicit_creation/implicit_const_context_constructor_generic_named_test: CompileTimeError
 implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError
 implicit_creation/implicit_const_context_prefix_constructor_generic_named_test: CompileTimeError
@@ -84,10 +83,6 @@ instantiate_tearoff_after_contravariance_check_test: RuntimeError
 instantiate_tearoff_of_call_test: RuntimeError
 interface_test/00: MissingCompileTimeError
 internal_library_test/01: MissingCompileTimeError # Issue 29920
-invalid_type_argument_count_test/01: MissingCompileTimeError
-invalid_type_argument_count_test/02: MissingCompileTimeError
-invalid_type_argument_count_test/03: MissingCompileTimeError
-invalid_type_argument_count_test/04: MissingCompileTimeError
 issue31596_implement_covariant_test: CompileTimeError
 issue31596_override_test/01: CompileTimeError
 issue31596_override_test/02: CompileTimeError
@@ -241,8 +236,8 @@ call_method_implicit_tear_off_implements_function_test/05: RuntimeError # Kernel
 call_method_implicit_tear_off_implements_function_test/06: RuntimeError # Kernel is missing the implicit `call` tearoff for assignment `Function`
 call_method_must_not_be_field_test/06: RuntimeError # Kernel does not distinguish `d()` from `d.call()`
 call_method_must_not_be_getter_test/06: RuntimeError # Kernel does not distinguish `d()` from `d.call()`
-class_cycle_test/02: MissingCompileTimeError
-class_cycle_test/03: MissingCompileTimeError
+call_non_method_field_test/01: MissingCompileTimeError
+call_non_method_field_test/02: MissingCompileTimeError
 compile_time_constant_c_test/02: MissingCompileTimeError
 compile_time_constant_k_test/01: MissingCompileTimeError
 compile_time_constant_k_test/02: MissingCompileTimeError
@@ -274,9 +269,6 @@ constants_test/05: MissingCompileTimeError
 covariant_subtyping_test: RuntimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
 double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in ddk
-duplicate_implements_test/01: MissingCompileTimeError
-duplicate_implements_test/02: MissingCompileTimeError
-duplicate_interface_implements_test/01: MissingCompileTimeError
 dynamic_prefix_core_test/none: CompileTimeError
 emit_const_fields_test: CompileTimeError # Issue 31533
 export_ambiguous_main_test: MissingCompileTimeError

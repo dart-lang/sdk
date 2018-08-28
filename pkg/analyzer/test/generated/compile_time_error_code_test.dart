@@ -2965,6 +2965,27 @@ f() {
     verify([source]);
   }
 
+  test_forInWithConstVariable_forEach_identifier() async {
+    Source source = addSource(r'''
+f() {
+  const x = 0;
+  for (x in [0, 1, 2]) {}
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE]);
+    verify([source]);
+  }
+
+  test_forInWithConstVariable_forEach_loopVariable() async {
+    Source source = addSource(r'''
+f() {
+  for (const x in [0, 1, 2]) {}
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE]);
+    verify([source]);
+  }
+
   test_fromEnvironment_bool_badArgs() async {
     Source source = addSource(r'''
 var b1 = const bool.fromEnvironment(1);
@@ -7467,7 +7488,11 @@ main() { lib.f1(); lib.f2(); }'''
   test_superInInvalidContext_binaryExpression() async {
     Source source = addSource("var v = super + 0;");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.SUPER_AS_EXPRESSION]
+            : [CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT]);
     // no verify(), 'super.v' is not resolved
   }
 
@@ -7497,7 +7522,11 @@ class B extends A {
   }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.SUPER_AS_EXPRESSION]
+            : [CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT]);
     // no verify(), 'super.m' is not resolved
   }
 
@@ -7523,7 +7552,11 @@ class B extends A {
   static n() { return super.m(); }
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.SUPER_AS_EXPRESSION]
+            : [CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT]);
     // no verify(), 'super.m' is not resolved
   }
 
@@ -7536,7 +7569,11 @@ class B extends A {
   static int b = super.a;
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.SUPER_AS_EXPRESSION]
+            : [CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT]);
     // no verify(), 'super.a' is not resolved
   }
 
@@ -7546,14 +7583,22 @@ f() {
   super.f();
 }''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.SUPER_AS_EXPRESSION]
+            : [CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT]);
     // no verify(), 'super.f' is not resolved
   }
 
   test_superInInvalidContext_topLevelVariableInitializer() async {
     Source source = addSource("var v = super.y;");
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT]);
+    assertErrors(
+        source,
+        useCFE
+            ? [CompileTimeErrorCode.SUPER_AS_EXPRESSION]
+            : [CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT]);
     // no verify(), 'super.y' is not resolved
   }
 

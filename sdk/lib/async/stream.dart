@@ -159,19 +159,21 @@ abstract class Stream<T> {
   }
 
   /**
-   * Creates a single-subscription stream that gets its data from [data].
+   * Creates a single-subscription stream that gets its data from [elements].
    *
    * The iterable is iterated when the stream receives a listener, and stops
-   * iterating if the listener cancels the subscription.
+   * iterating if the listener cancels the subscription, or if the
+   * [Iterator.moveNext] method returns `false` or throws.
+   * Iteration is suspended whild the stream subscription is paused.
    *
-   * If iterating [data] throws an error, the stream ends immediately with
-   * that error. No done event will be sent (iteration is not complete), but no
-   * further data events will be generated either, since iteration cannot
-   * continue.
+   * If calling [Iterator.moveNext] on `elements.iterator` throws,
+   * the stream emits that error and then it closes.
+   * If reading [Iterator.current] on `elements.iterator` throws,
+   * the stream emits that error, but keeps iterating.
    */
-  factory Stream.fromIterable(Iterable<T> data) {
+  factory Stream.fromIterable(Iterable<T> elements) {
     return new _GeneratedStreamImpl<T>(
-        () => new _IterablePendingEvents<T>(data));
+        () => new _IterablePendingEvents<T>(elements));
   }
 
   /**
@@ -967,11 +969,18 @@ abstract class Stream<T> {
   /**
    * Collects the data of this stream in a [Set].
    *
+   * Creates a `Set<T>` and adds all elements of the stream to the set.
+   * in the order they arrive.
+   * When the stream ends, the returned future is completed with that set.
+   *
    * The returned set is the same type as returned by `new Set<T>()`.
    * If another type of set is needed, either use [forEach] to add each
    * element to the set, or use
    * `toList().then((list) => new SomeOtherSet.from(list))`
    * to create the set.
+   *
+   * If the stream contains an error, the returned future is completed
+   * with that error, and processing stops.
    */
   Future<Set<T>> toSet() {
     Set<T> result = new Set<T>();
@@ -1626,6 +1635,13 @@ abstract class StreamSubscription<T> {
    *
    * If the subscription is paused more than once, an equal number
    * of resumes must be performed to resume the stream.
+   * Calls to [resume] and the completion of a [resumeSignal] are
+   * interchangeable - the [pause] which was passed a [resumeSignal] may be
+   * ended by a call to [resume], and completing the [resumeSignal] may end a
+   * different [pause].
+   *
+   * It is safe to [resume] or complete a [resumeSignal] even when the
+   * subscription is not paused, and the resume will have no effect.
    *
    * Currently DOM streams silently drop events when the stream is paused. This
    * is a bug and will be fixed.
@@ -1639,6 +1655,9 @@ abstract class StreamSubscription<T> {
    * When all previously calls to [pause] have been matched by a calls to
    * [resume], possibly through a `resumeSignal` passed to [pause],
    * the stream subscription may emit events again.
+   *
+   * It is safe to [resume] even when the subscription is not paused, and the
+   * resume will have no effect.
    */
   void resume();
 

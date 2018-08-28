@@ -256,6 +256,9 @@ class Parser {
 
   bool mayParseFunctionExpressions = true;
 
+  // TODO(danrubel): remove this once mixin support is enabled by default.
+  bool isMixinSupportEnabled = false;
+
   /// Represents parser state: what asynchronous syntax is allowed in the
   /// function being currently parsed. In rare situations, this can be set by
   /// external clients, for example, to parse an expression outside a function.
@@ -574,8 +577,17 @@ class Parser {
         directiveState?.checkDeclaration();
         return parseTopLevelMemberImpl(start);
       } else {
+        // TODO(danrubel): Remove this once mixin support is enabled by default.
+        if (!isMixinSupportEnabled && identical(value, 'mixin')) {
+          directiveState?.checkDeclaration();
+          return parseTopLevelMemberImpl(start);
+        }
+
         parseTopLevelKeywordModifiers(start, keyword);
-        if (identical(value, 'typedef')) {
+        if (identical(value, 'mixin')) {
+          directiveState?.checkDeclaration();
+          return parseMixin(keyword);
+        } else if (identical(value, 'typedef')) {
           directiveState?.checkDeclaration();
           return parseTypedef(keyword);
         } else if (identical(value, 'library')) {
@@ -1842,6 +1854,63 @@ class Parser {
       } while (optional(',', token.next));
     }
     listener.handleClassOrMixinImplements(implementsKeyword, interfacesCount);
+    return token;
+  }
+
+  /// Parse a mixin declaration.
+  ///
+  /// ```
+  /// mixinDeclaration:
+  ///   metadata? 'mixin' [SimpleIdentifier] [TypeParameterList]?
+  ///        [OnClause]? [ImplementsClause]? '{' [ClassMember]* '}'
+  /// ;
+  /// ```
+  Token parseMixin(Token mixinKeyword) {
+    assert(optional('mixin', mixinKeyword));
+    Token name = ensureIdentifier(
+        mixinKeyword, IdentifierContext.classOrMixinDeclaration);
+    Token token = computeTypeParamOrArg(name, true).parseVariables(name, this);
+    listener.beginMixinDeclaration(mixinKeyword, name);
+    token = parseMixinHeaderOpt(token, mixinKeyword);
+    if (!optional('{', token.next)) {
+      // Recovery
+      token = parseMixinHeaderRecovery(mixinKeyword);
+      ensureBlock(token, fasta.templateExpectedClassOrMixinBody);
+    }
+    token = parseClassOrMixinBody(token);
+    listener.endMixinDeclaration(token);
+    return token;
+  }
+
+  Token parseMixinHeaderOpt(Token token, Token mixinKeyword) {
+    token = parseMixinOnOpt(token);
+    token = parseClassOrMixinImplementsOpt(token);
+    listener.handleMixinHeader(mixinKeyword);
+    return token;
+  }
+
+  Token parseMixinHeaderRecovery(Token mixinKeyword) {
+    // TODO(danrubel): Add mixin recovery similiar to class recovery.
+    return mixinKeyword;
+  }
+
+  /// ```
+  /// onClause:
+  ///   'on' typeName (',' typeName)*
+  /// ;
+  /// ```
+  Token parseMixinOnOpt(Token token) {
+    Token onKeyword;
+    int typeCount = 0;
+    if (optional('on', token.next)) {
+      onKeyword = token.next;
+      do {
+        token =
+            computeType(token.next, true).ensureTypeNotVoid(token.next, this);
+        ++typeCount;
+      } while (optional(',', token.next));
+    }
+    listener.handleMixinOn(onKeyword, typeCount);
     return token;
   }
 

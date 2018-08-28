@@ -228,24 +228,23 @@ const Code::Comments& Assembler::GetCodeComments() const {
 }
 
 intptr_t ObjectPoolWrapper::AddObject(const Object& obj,
-                                      Patchability patchable) {
+                                      ObjectPool::Patchability patchable) {
   ASSERT(obj.IsNotTemporaryScopedHandle());
-  return AddObject(ObjectPoolWrapperEntry(&obj), patchable);
+  return AddObject(ObjectPoolWrapperEntry(&obj, patchable));
 }
 
 intptr_t ObjectPoolWrapper::AddImmediate(uword imm) {
-  return AddObject(ObjectPoolWrapperEntry(imm, ObjectPool::kImmediate),
-                   kNotPatchable);
+  return AddObject(ObjectPoolWrapperEntry(imm, ObjectPool::kImmediate,
+                                          ObjectPool::kNotPatchable));
 }
 
-intptr_t ObjectPoolWrapper::AddObject(ObjectPoolWrapperEntry entry,
-                                      Patchability patchable) {
-  ASSERT((entry.type_ != ObjectPool::kTaggedObject) ||
+intptr_t ObjectPoolWrapper::AddObject(ObjectPoolWrapperEntry entry) {
+  ASSERT((entry.type() != ObjectPool::kTaggedObject) ||
          (entry.obj_->IsNotTemporaryScopedHandle() &&
           (entry.equivalence_ == NULL ||
            entry.equivalence_->IsNotTemporaryScopedHandle())));
   object_pool_.Add(entry);
-  if (patchable == kNotPatchable) {
+  if (entry.patchable() == ObjectPool::kNotPatchable) {
     // The object isn't patchable. Record the index for fast lookup.
     object_pool_index_table_.Insert(
         ObjIndexPair(entry, object_pool_.length() - 1));
@@ -253,47 +252,46 @@ intptr_t ObjectPoolWrapper::AddObject(ObjectPoolWrapperEntry entry,
   return object_pool_.length() - 1;
 }
 
-intptr_t ObjectPoolWrapper::FindObject(ObjectPoolWrapperEntry entry,
-                                       Patchability patchable) {
+intptr_t ObjectPoolWrapper::FindObject(ObjectPoolWrapperEntry entry) {
   // If the object is not patchable, check if we've already got it in the
   // object pool.
-  if (patchable == kNotPatchable) {
+  if (entry.patchable() == ObjectPool::kNotPatchable) {
     intptr_t idx = object_pool_index_table_.LookupValue(entry);
     if (idx != ObjIndexPair::kNoIndex) {
       return idx;
     }
   }
-  return AddObject(entry, patchable);
+  return AddObject(entry);
 }
 
 intptr_t ObjectPoolWrapper::FindObject(const Object& obj,
-                                       Patchability patchable) {
-  return FindObject(ObjectPoolWrapperEntry(&obj), patchable);
+                                       ObjectPool::Patchability patchable) {
+  return FindObject(ObjectPoolWrapperEntry(&obj, patchable));
 }
 
 intptr_t ObjectPoolWrapper::FindObject(const Object& obj,
                                        const Object& equivalence) {
-  return FindObject(ObjectPoolWrapperEntry(&obj, &equivalence), kNotPatchable);
+  return FindObject(
+      ObjectPoolWrapperEntry(&obj, &equivalence, ObjectPool::kNotPatchable));
 }
 
 intptr_t ObjectPoolWrapper::FindImmediate(uword imm) {
-  return FindObject(ObjectPoolWrapperEntry(imm, ObjectPool::kImmediate),
-                    kNotPatchable);
+  return FindObject(ObjectPoolWrapperEntry(imm, ObjectPool::kImmediate,
+                                           ObjectPool::kNotPatchable));
 }
 
-intptr_t ObjectPoolWrapper::FindNativeFunction(const ExternalLabel* label,
-                                               Patchability patchable) {
-  return FindObject(
-      ObjectPoolWrapperEntry(label->address(), ObjectPool::kNativeFunction),
-      patchable);
+intptr_t ObjectPoolWrapper::FindNativeFunction(
+    const ExternalLabel* label,
+    ObjectPool::Patchability patchable) {
+  return FindObject(ObjectPoolWrapperEntry(
+      label->address(), ObjectPool::kNativeFunction, patchable));
 }
 
 intptr_t ObjectPoolWrapper::FindNativeFunctionWrapper(
     const ExternalLabel* label,
-    Patchability patchable) {
-  return FindObject(ObjectPoolWrapperEntry(label->address(),
-                                           ObjectPool::kNativeFunctionWrapper),
-                    patchable);
+    ObjectPool::Patchability patchable) {
+  return FindObject(ObjectPoolWrapperEntry(
+      label->address(), ObjectPool::kNativeFunctionWrapper, patchable));
 }
 
 RawObjectPool* ObjectPoolWrapper::MakeObjectPool() {
@@ -303,8 +301,9 @@ RawObjectPool* ObjectPoolWrapper::MakeObjectPool() {
   }
   const ObjectPool& result = ObjectPool::Handle(ObjectPool::New(len));
   for (intptr_t i = 0; i < len; ++i) {
-    ObjectPool::EntryType type = object_pool_[i].type_;
-    result.SetTypeAt(i, type);
+    auto type = object_pool_[i].type();
+    auto patchable = object_pool_[i].patchable();
+    result.SetTypeAt(i, type, patchable);
     if (type == ObjectPool::kTaggedObject) {
       result.SetObjectAt(i, *object_pool_[i].obj_);
     } else {

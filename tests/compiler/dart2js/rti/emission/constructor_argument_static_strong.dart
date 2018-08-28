@@ -4,12 +4,14 @@
 
 import 'package:meta/dart2js.dart';
 
-/*class: A1:checks=[],instance*/
+/*strong.class: A1:checkedInstance,checks=[],instance*/
+/*omit.class: A1:checks=[],instance*/
 class A1 {}
 
 // Constructor calls are always statically invoked, so there is no checks at the
 // entry and the `Test1` constructor does not cause any checks.
-/*class: B1:checks=[],instance*/
+/*strong.class: B1:checks=[$isA1],instance*/
+/*omit.class: B1:checks=[],instance*/
 class B1 implements A1 {}
 
 /*class: Test1:checks=[],instance*/

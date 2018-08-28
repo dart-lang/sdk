@@ -19,13 +19,6 @@ class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33795')
-  test_annotation_onDirective_partOf() async {
-    await super.test_annotation_onDirective_partOf();
-  }
-
-  @override
-  @failingTest
   test_generic_function_type() async {
     await super.test_generic_function_type();
   }

@@ -40,20 +40,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @AnalyzerProblem('https://github.com/dart-lang/sdk/issues/33636')
-  test_ambiguousImport_showCombinator() async {
-    return super.test_ambiguousImport_showCombinator();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/33795')
-  test_annotated_partOfDeclaration() async {
-    return super.test_annotated_partOfDeclaration();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31604')
   test_commentReference_beforeConstructor() async {
     return super.test_commentReference_beforeConstructor();
@@ -187,12 +173,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   test_null_callOperator() async {
     return super.test_null_callOperator();
-  }
-
-  @override
-  @failingTest
-  test_optionalNew_rewrite() {
-    return super.test_optionalNew_rewrite();
   }
 
   @override

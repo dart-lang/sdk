@@ -324,41 +324,49 @@ Bytecode {
   Entry                1
   CheckStack
   CheckFunctionTypeArgs 2, 0
+  JumpIfNotZeroTypeArgs L1
+  Push                 FP[-6]
+  LoadTypeArgumentsField CP#0
+  PushConstant         CP#1
+  InstantiateTypeArgumentsTOS 0, CP#2
+  PopLocal             r0
+L1:
   Push                 FP[-6]
   LoadTypeArgumentsField CP#0
   Push                 r0
-  PushConstant         CP#1
-  PushConstant         CP#2
   PushConstant         CP#3
-  AssertSubtype
   PushConstant         CP#4
-  Push                 r0
   PushConstant         CP#5
+  AssertSubtype
+  PushConstant         CP#1
+  Push                 r0
   PushConstant         CP#6
   PushConstant         CP#7
+  PushConstant         CP#8
   AssertSubtype
   Push                 FP[-5]
-  PushConstant         CP#4
+  PushConstant         CP#1
   Push                 r0
-  PushConstant         CP#8
   PushConstant         CP#9
-  AssertAssignable     0, CP#10
+  PushConstant         CP#10
+  AssertAssignable     0, CP#11
   Drop1
-  PushConstant         CP#4
+  PushConstant         CP#1
   ReturnTOS
 }
 ConstantPool {
   [0] = TypeArgumentsField #lib::E
-  [1] = Type #lib::E::foo6::T
-  [2] = Type #lib::E::P
-  [3] = String 'T'
-  [4] = Null
-  [5] = Type #lib::E::foo6::U
-  [6] = Type dart.core::List<#lib::E::foo6::T>
-  [7] = String 'U'
-  [8] = Type dart.core::Map<#lib::E::foo6::T, #lib::E::foo6::U>
-  [9] = String 'map'
-  [10] = SubtypeTestCache
+  [1] = Null
+  [2] = TypeArgs [#lib::E::P, dart.core::List<#lib::E::P>]
+  [3] = Type #lib::E::foo6::T
+  [4] = Type #lib::E::P
+  [5] = String 'T'
+  [6] = Type #lib::E::foo6::U
+  [7] = Type dart.core::List<#lib::E::foo6::T>
+  [8] = String 'U'
+  [9] = Type dart.core::Map<#lib::E::foo6::T, #lib::E::foo6::U>
+  [10] = String 'map'
+  [11] = SubtypeTestCache
 }
 ]  method foo6<generic-covariant-impl T extends self::E::P = self::E::P, U extends core::List<self::E::foo6::T> = core::List<self::E::P>>(core::Map<self::E::foo6::T, self::E::foo6::U> map) → void {}
 }

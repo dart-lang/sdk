@@ -83,18 +83,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
     return super.test_deprecatedFunction_mixin2();
   }
 
-  @failingTest
-  @override
-  test_duplicateShownHiddenName_hidden() {
-    return super.test_duplicateShownHiddenName_hidden();
-  }
-
-  @failingTest
-  @override
-  test_duplicateShownHiddenName_shown() {
-    return super.test_duplicateShownHiddenName_shown();
-  }
-
   @override
   @failingTest
   test_invalidRequiredParam_on_named_parameter_with_default() async {
@@ -169,6 +157,13 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
 
   @failingTest
   @override
+  // Failing due to https://github.com/dart-lang/sdk/issues/34249
+  test_invalidSealedAnnotation_onMixinApplication() async {
+    return super.test_invalidSealedAnnotation_onMixinApplication();
+  }
+
+  @failingTest
+  @override
   test_strongMode_downCastCompositeHint() async {
     return super.test_strongMode_downCastCompositeHint();
   }
@@ -183,29 +178,5 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
   @override
   test_unusedImport_inComment_libraryDirective() async {
     return super.test_unusedImport_inComment_libraryDirective();
-  }
-
-  @failingTest
-  @override
-  test_unusedShownName() async {
-    return super.test_unusedShownName();
-  }
-
-  @failingTest
-  @override
-  test_unusedShownName_as() async {
-    return super.test_unusedShownName_as();
-  }
-
-  @failingTest
-  @override
-  test_unusedShownName_duplicates() async {
-    return super.test_unusedShownName_duplicates();
-  }
-
-  @failingTest
-  @override
-  test_unusedShownName_topLevelVariable() async {
-    return super.test_unusedShownName_topLevelVariable();
   }
 }

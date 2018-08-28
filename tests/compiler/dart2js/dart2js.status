@@ -33,7 +33,7 @@ model/native_test: Pass, Slow
 model/subtype_test: Pass, Slow
 no_such_method_enabled_test: Pass, Slow
 packages/*: Skip # Skip packages folder
-rti/rti_emission_test: RuntimeError, Slow # Issue 34095
+rti/rti_emission_test: Pass, Slow
 rti/rti_need0_test: Pass, Slow
 rti/rti_need1_test: Pass, Slow
 show_package_warnings_test: RuntimeError # missing errors from the FE

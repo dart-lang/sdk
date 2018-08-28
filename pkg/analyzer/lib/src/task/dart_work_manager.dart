@@ -202,7 +202,7 @@ class DartWorkManager implements WorkManager {
     }
     List<Source> libraries = partLibrariesMap[part];
     libraries ??= _getLibrariesContainingPartFromResultProvider(part);
-    return libraries?.toList() ?? Source.EMPTY_LIST;
+    return libraries?.toList() ?? const <Source>[];
   }
 
   @override

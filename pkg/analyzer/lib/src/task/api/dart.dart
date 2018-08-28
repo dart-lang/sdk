@@ -29,7 +29,7 @@ final ListResultDescriptor<AnalysisError> DART_ERRORS =
  */
 final ListResultDescriptor<Source> EXPLICITLY_IMPORTED_LIBRARIES =
     new ListResultDescriptor<Source>(
-        'EXPLICITLY_IMPORTED_LIBRARIES', Source.EMPTY_LIST);
+        'EXPLICITLY_IMPORTED_LIBRARIES', const <Source>[]);
 
 /**
  * The sources of the libraries that are exported from a library.
@@ -40,7 +40,7 @@ final ListResultDescriptor<Source> EXPLICITLY_IMPORTED_LIBRARIES =
  * The result is only available for [Source]s representing a library.
  */
 final ListResultDescriptor<Source> EXPORTED_LIBRARIES =
-    new ListResultDescriptor<Source>('EXPORTED_LIBRARIES', Source.EMPTY_LIST);
+    new ListResultDescriptor<Source>('EXPORTED_LIBRARIES', const <Source>[]);
 
 /**
  * The sources of the libraries that are implicitly or explicitly imported into
@@ -52,7 +52,7 @@ final ListResultDescriptor<Source> EXPORTED_LIBRARIES =
  * The result is only available for [Source]s representing a library.
  */
 final ListResultDescriptor<Source> IMPORTED_LIBRARIES =
-    new ListResultDescriptor<Source>('IMPORTED_LIBRARIES', Source.EMPTY_LIST);
+    new ListResultDescriptor<Source>('IMPORTED_LIBRARIES', const <Source>[]);
 
 /**
  * The sources of the parts that are included in a library.
@@ -63,7 +63,7 @@ final ListResultDescriptor<Source> IMPORTED_LIBRARIES =
  * The result is only available for [Source]s representing a library.
  */
 final ListResultDescriptor<Source> INCLUDED_PARTS =
-    new ListResultDescriptor<Source>('INCLUDED_PARTS', Source.EMPTY_LIST);
+    new ListResultDescriptor<Source>('INCLUDED_PARTS', const <Source>[]);
 
 /**
  * A flag specifying whether a library is launchable.
@@ -129,7 +129,7 @@ final ResultDescriptor<Token> TOKEN_STREAM = new ResultDescriptor<Token>(
  * The result is only available for [Source]s representing a library.
  */
 final ListResultDescriptor<Source> UNITS =
-    new ListResultDescriptor<Source>('UNITS', Source.EMPTY_LIST);
+    new ListResultDescriptor<Source>('UNITS', const <Source>[]);
 
 /**
  * A specific compilation unit in a specific library.
@@ -140,6 +140,7 @@ final ListResultDescriptor<Source> UNITS =
  * change if a single part is included in more than one library.
  */
 class LibrarySpecificUnit implements AnalysisTarget {
+  @deprecated
   static const List<LibrarySpecificUnit> EMPTY_LIST =
       const <LibrarySpecificUnit>[];
 

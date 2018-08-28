@@ -643,6 +643,7 @@ abstract class TypeInferenceListener<Location, Reference, PrefixInfo> {
   void propertyAssign(
       ExpressionJudgment judgment,
       Location location,
+      bool isSyntheticLhs,
       DartType receiverType,
       Reference writeMember,
       DartType writeContext,
@@ -1060,8 +1061,15 @@ class KernelTypeInferenceListener
       NullLiteralTokens tokens, bool isSynthetic, DartType inferredType) {}
 
   @override
-  void propertyAssign(ExpressionJudgment judgment, location, receiverType,
-      writeMember, DartType writeContext, combiner, DartType inferredType) {}
+  void propertyAssign(
+      ExpressionJudgment judgment,
+      location,
+      bool isSyntheticLhs,
+      receiverType,
+      writeMember,
+      DartType writeContext,
+      combiner,
+      DartType inferredType) {}
 
   @override
   void propertyGet(ExpressionJudgment judgment, location,

@@ -489,6 +489,9 @@ void ClosureCallInstr::PrintOperandsTo(BufferFormatter* f) const {
     f->Print(", ");
     PushArgumentAt(i)->value()->PrintTo(f);
   }
+  if (entry_kind() == Code::EntryKind::kUnchecked) {
+    f->Print(" using unchecked entrypoint");
+  }
 }
 
 void InstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {

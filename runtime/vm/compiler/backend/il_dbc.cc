@@ -981,11 +981,11 @@ EMIT_NATIVE_CODE(NativeCall,
 
   const ExternalLabel trampoline_label(reinterpret_cast<uword>(trampoline));
   const intptr_t trampoline_kidx =
-      __ object_pool_wrapper().FindNativeFunctionWrapper(&trampoline_label,
-                                                         kPatchable);
+      __ object_pool_wrapper().FindNativeFunctionWrapper(
+          &trampoline_label, ObjectPool::kPatchable);
   const ExternalLabel label(reinterpret_cast<uword>(function));
-  const intptr_t target_kidx =
-      __ object_pool_wrapper().FindNativeFunction(&label, kPatchable);
+  const intptr_t target_kidx = __ object_pool_wrapper().FindNativeFunction(
+      &label, ObjectPool::kPatchable);
   const intptr_t argc_tag_kidx =
       __ object_pool_wrapper().FindImmediate(static_cast<uword>(argc_tag));
   __ NativeCall(trampoline_kidx, target_kidx, argc_tag_kidx);

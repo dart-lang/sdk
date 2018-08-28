@@ -167,6 +167,7 @@ class DartObjectImpl implements DartObject {
   /**
    * An empty list of objects.
    */
+  @deprecated
   static const List<DartObjectImpl> EMPTY_LIST = const <DartObjectImpl>[];
 
   @override
@@ -374,21 +375,19 @@ class DartObjectImpl implements DartObject {
    */
   DartObjectImpl equalEqual(
       TypeProvider typeProvider, DartObjectImpl rightOperand) {
-    if (type != rightOperand.type) {
-      String typeName = type.name;
-      if (!(typeName == "bool" ||
-          typeName == "double" ||
-          typeName == "int" ||
-          typeName == "num" ||
-          typeName == "String" ||
-          typeName == "Null" ||
-          type.isDynamic)) {
-        throw new EvaluationException(
-            CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
-      }
+    if (isNull || rightOperand.isNull) {
+      return new DartObjectImpl(
+          typeProvider.boolType,
+          isNull && rightOperand.isNull
+              ? BoolState.TRUE_STATE
+              : BoolState.FALSE_STATE);
     }
-    return new DartObjectImpl(
-        typeProvider.boolType, _state.equalEqual(rightOperand._state));
+    if (isBoolNumStringOrNull) {
+      return new DartObjectImpl(
+          typeProvider.boolType, _state.equalEqual(rightOperand._state));
+    }
+    throw new EvaluationException(
+        CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
   }
 
   @override
@@ -573,18 +572,7 @@ class DartObjectImpl implements DartObject {
    */
   DartObjectImpl notEqual(
       TypeProvider typeProvider, DartObjectImpl rightOperand) {
-    if (type != rightOperand.type) {
-      String typeName = type.name;
-      if (typeName != "bool" &&
-          typeName != "double" &&
-          typeName != "int" &&
-          typeName != "num" &&
-          typeName != "String") {
-        return new DartObjectImpl(typeProvider.boolType, BoolState.TRUE_STATE);
-      }
-    }
-    return new DartObjectImpl(typeProvider.boolType,
-        _state.equalEqual(rightOperand._state).logicalNot());
+    return equalEqual(typeProvider, rightOperand).logicalNot(typeProvider);
   }
 
   /**

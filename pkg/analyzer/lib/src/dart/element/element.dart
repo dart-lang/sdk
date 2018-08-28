@@ -121,10 +121,16 @@ abstract class AbstractClassElementImpl extends ElementImpl
   }
 
   @override
-  bool get isEnum;
+  bool get isEnum => false;
+
+  @override
+  bool get isMixin => false;
 
   @override
   ElementKind get kind => ElementKind.CLASS;
+
+  @override
+  List<InterfaceType> get superclassConstraints => const <InterfaceType>[];
 
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitClassElement(this);
@@ -835,9 +841,6 @@ class ClassElementImpl extends AbstractClassElementImpl
     }
     return hasModifier(Modifier.ABSTRACT);
   }
-
-  @override
-  bool get isEnum => false;
 
   @override
   bool get isMixinApplication {
@@ -1648,7 +1651,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
           ..addAll(_explicitTopLevelVariables.implicitAccessors);
       }
     }
-    return _accessors ?? PropertyAccessorElement.EMPTY_LIST;
+    return _accessors ?? const <PropertyAccessorElement>[];
   }
 
   /**
@@ -1826,7 +1829,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
         _variables = variables;
       }
     }
-    return _variables ?? TopLevelVariableElement.EMPTY_LIST;
+    return _variables ?? const <TopLevelVariableElement>[];
   }
 
   /**
@@ -2949,6 +2952,11 @@ class ElementAnnotationImpl implements ElementAnnotation {
    */
   static String _REQUIRED_VARIABLE_NAME = "required";
 
+  /**
+   * The name of the top-level variable used to mark a class as being sealed.
+   */
+  static String _SEALED_VARIABLE_NAME = "sealed";
+
   /// The name of the top-level variable used to mark a method as being
   /// visible for templates.
   static String _VISIBLE_FOR_TEMPLATE_VARIABLE_NAME = "visibleForTemplate";
@@ -3082,6 +3090,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
       element is PropertyAccessorElement &&
           element.name == _REQUIRED_VARIABLE_NAME &&
           element.library?.name == _META_LIB_NAME;
+
+  @override
+  bool get isSealed =>
+      element is PropertyAccessorElement &&
+      element.name == _SEALED_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
 
   @override
   bool get isVisibleForTemplate =>
@@ -3304,6 +3318,10 @@ abstract class ElementImpl implements Element {
   @override
   bool get hasRequired =>
       metadata.any((ElementAnnotation annotation) => annotation.isRequired);
+
+  @override
+  bool get hasSealed =>
+      metadata.any((ElementAnnotation annotation) => annotation.isSealed);
 
   @override
   bool get hasVisibleForTemplate => metadata
@@ -6410,7 +6428,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * A list containing all of the compilation units that are included in this
    * library using a `part` directive.
    */
-  List<CompilationUnitElement> _parts = CompilationUnitElement.EMPTY_LIST;
+  List<CompilationUnitElement> _parts = const <CompilationUnitElement>[];
 
   /**
    * The element representing the synthetic function `loadLibrary` that is
@@ -6723,7 +6741,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
             resynthesizerContext.linkedLibrary.importDependencies);
       }
     }
-    return _imports ?? ImportElement.EMPTY_LIST;
+    return _imports ?? const <ImportElement>[];
   }
 
   /**
@@ -7461,6 +7479,73 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
 }
 
 /**
+ * A [ClassElementImpl] representing a mixin declaration.
+ */
+class MixinElementImpl extends ClassElementImpl {
+  // TODO(brianwilkerson) Consider creating an abstract superclass of
+  // ClassElementImpl that contains the portions of the API that this class
+  // needs, and make this class extend the new class.
+
+  /**
+   * A list containing all of the superclass constraints that are defined for
+   * the mixin.
+   */
+  List<InterfaceType> _superclassConstraints;
+
+  /**
+   * Initialize a newly created class element to have the given [name] at the
+   * given [offset] in the file that contains the declaration of this element.
+   */
+  MixinElementImpl(String name, int offset) : super(name, offset);
+
+  /**
+   * Initialize using the given kernel.
+   */
+  MixinElementImpl.forKernel(
+      CompilationUnitElementImpl enclosingUnit, kernel.Class kernel)
+      : super.forKernel(enclosingUnit, kernel);
+
+  /**
+   * Initialize a newly created class element to have the given [name].
+   */
+  MixinElementImpl.forNode(Identifier name) : super.forNode(name);
+
+  /**
+   * Initialize using the given serialized information.
+   */
+  MixinElementImpl.forSerialized(
+      UnlinkedClass unlinkedClass, CompilationUnitElementImpl enclosingUnit)
+      : super.forSerialized(unlinkedClass, enclosingUnit);
+
+  @override
+  bool get isMixin => true;
+
+  @override
+  List<InterfaceType> get superclassConstraints {
+    if (_superclassConstraints == null) {
+      if (_kernel != null) {
+        throw new UnimplementedError();
+      }
+      if (_unlinkedClass != null) {
+        throw new UnimplementedError();
+      }
+    }
+    return _superclassConstraints ?? const <InterfaceType>[];
+  }
+
+  void set superclassConstraints(List<InterfaceType> superclassConstraints) {
+    _assertNotResynthesized(_unlinkedClass);
+    // Note: if we are using kernel or the analysis driver, the set of
+    // superclass constraints has already been computed, and it's more accurate.
+    // So we only store superclass constraints if we are using the old task
+    // model.
+    if (_unlinkedClass == null && _kernel == null) {
+      _superclassConstraints = superclassConstraints;
+    }
+  }
+}
+
+/**
  * The constants for all of the modifiers defined by the Dart language and for a
  * few additional flags that are useful.
  *
@@ -7705,6 +7790,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   bool get hasRequired => false;
 
   @override
+  bool get hasSealed => false;
+
+  @override
   bool get hasVisibleForTemplate => false;
 
   @override
@@ -7898,7 +7986,7 @@ class MultiplyInheritedMethodElementImpl extends MethodElementImpl
    * A list the array of executable elements that were used to compose this
    * element.
    */
-  List<ExecutableElement> _elements = MethodElement.EMPTY_LIST;
+  List<ExecutableElement> _elements = const <MethodElement>[];
 
   MultiplyInheritedMethodElementImpl(Identifier name) : super.forNode(name) {
     isSynthetic = true;
@@ -7923,7 +8011,7 @@ class MultiplyInheritedPropertyAccessorElementImpl
    * A list the array of executable elements that were used to compose this
    * element.
    */
-  List<ExecutableElement> _elements = PropertyAccessorElement.EMPTY_LIST;
+  List<ExecutableElement> _elements = const <PropertyAccessorElement>[];
 
   MultiplyInheritedPropertyAccessorElementImpl(Identifier name)
       : super.forNode(name) {
@@ -8921,7 +9009,7 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   String get identifier => "_${super.identifier}";
 
   @override
-  List<LibraryElement> get importedLibraries => LibraryElement.EMPTY_LIST;
+  List<LibraryElement> get importedLibraries => const <LibraryElement>[];
 
   @override
   ElementKind get kind => ElementKind.PREFIX;

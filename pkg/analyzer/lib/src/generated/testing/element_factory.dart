@@ -185,8 +185,7 @@ class ElementFactory {
   }
 
   static ExportElementImpl exportFor(LibraryElement exportedLibrary,
-      [List<NamespaceCombinator> combinators =
-          NamespaceCombinator.EMPTY_LIST]) {
+      [List<NamespaceCombinator> combinators = const <NamespaceCombinator>[]]) {
     ExportElementImpl spec = new ExportElementImpl(-1);
     spec.exportedLibrary = exportedLibrary;
     spec.combinators = combinators;
@@ -407,8 +406,7 @@ class ElementFactory {
 
   static ImportElementImpl importFor(
       LibraryElement importedLibrary, PrefixElement prefix,
-      [List<NamespaceCombinator> combinators =
-          NamespaceCombinator.EMPTY_LIST]) {
+      [List<NamespaceCombinator> combinators = const <NamespaceCombinator>[]]) {
     ImportElementImpl spec = new ImportElementImpl(0);
     spec.importedLibrary = importedLibrary;
     spec.prefix = prefix;
@@ -436,7 +434,7 @@ class ElementFactory {
       [List<DartType> argumentTypes]) {
     MethodElementImpl method = new MethodElementImpl(methodName, 0);
     if (argumentTypes == null) {
-      method.parameters = ParameterElement.EMPTY_LIST;
+      method.parameters = const <ParameterElement>[];
     } else {
       int count = argumentTypes.length;
       List<ParameterElement> parameters = new List<ParameterElement>(count);
@@ -593,7 +591,7 @@ class ElementFactory {
   static List<TypeParameterElement> typeParameters(List<String> names) {
     int count = names.length;
     if (count == 0) {
-      return TypeParameterElement.EMPTY_LIST;
+      return const <TypeParameterElement>[];
     }
     List<TypeParameterElementImpl> typeParameters =
         new List<TypeParameterElementImpl>(count);

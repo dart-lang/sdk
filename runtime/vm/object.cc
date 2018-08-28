@@ -5959,7 +5959,7 @@ void Function::SetInstructionsSafe(const Code& value) const {
   StorePointer(&raw_ptr()->code_, value.raw());
   StoreNonPointer(&raw_ptr()->entry_point_, value.EntryPoint());
   StoreNonPointer(&raw_ptr()->unchecked_entry_point_,
-                  value.unchecked_entry_point());
+                  value.UncheckedEntryPoint());
 }
 
 void Function::AttachCode(const Code& value) const {
@@ -13487,7 +13487,7 @@ RawObjectPool* ObjectPool::New(intptr_t len) {
     result ^= raw;
     result.SetLength(len);
     for (intptr_t i = 0; i < len; i++) {
-      result.SetTypeAt(i, ObjectPool::kImmediate);
+      result.SetTypeAt(i, ObjectPool::kImmediate, ObjectPool::kPatchable);
     }
   }
 

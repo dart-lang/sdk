@@ -1011,7 +1011,7 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
   List<ElementAnnotation> _getElementAnnotations(
       NodeList<Annotation> metadata) {
     if (metadata.isEmpty) {
-      return ElementAnnotation.EMPTY_LIST;
+      return const <ElementAnnotation>[];
     }
     return metadata.map((Annotation a) => a.elementAnnotation).toList();
   }
@@ -1551,7 +1551,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
   List<ElementAnnotation> _createElementAnnotations(
       NodeList<Annotation> annotations) {
     if (annotations.isEmpty) {
-      return ElementAnnotation.EMPTY_LIST;
+      return const <ElementAnnotation>[];
     }
     return annotations.map((Annotation a) {
       ElementAnnotationImpl elementAnnotation =

@@ -25,6 +25,8 @@
 %   constructor invocation.
 % - Specify that type arguments passed in a redirecting factory constructor
 %   declaration must be taken into account during static checks.
+% - Disallow any expression statement starting with `{`, not just
+%   those that are map literals.
 %
 % 2.0
 % - Don't allow functions as assert test values.
@@ -7826,11 +7828,8 @@ A block statement introduces a new scope, which is nested in the lexically enclo
 \LMLabel{expressionStatements}
 
 \LMHash{}
-An {\em expression statement} consists of an expression other than a non-constant map literal (\ref{maps}) that has no explicit type arguments.
-
-\rationale{
-The restriction on maps is designed to resolve an ambiguity in the grammar, when a statement begins with \{.
-}
+An {\em expression statement} consists of an expression that does not
+begin with a \{ character.
 
 \begin{grammar}
 {\bf expressionStatement:}expression? `{\escapegrammar ;}'
@@ -7838,11 +7837,24 @@ The restriction on maps is designed to resolve an ambiguity in the grammar, when
 \end{grammar}
 
 \LMHash{}
-Execution of an expression statement \code{$e$;} proceeds by evaluating $e$.
+The expression of an expression statement is not allowed to begin with a \{.
+\commentary{
+This means that if some source text could otherwise be parsed as an expression
+followed by a \;, then this grammar production does not apply
+when the expression starts with a \{.
+}
+\rationale{
+The restriction resolves an ambiguity while parsing where a
+\{ can start either a block (\ref{blocks}) or a map literal (\ref{maps}).
+By disallowing the latter from starting an expression statement,
+the parser does not need to look further ahead
+before deciding that it is parsing a block statement.
+}
 
 \LMHash{}
-It is a compile-time error if a non-constant map literal that has no explicit type arguments appears in a place where a statement is expected.
-
+Execution of an expression statement \code{$e$;} proceeds by evaluating $e$.
+If the expression evaluates to a value, then the value is ignored
+and the execution completes normally.
 
 \subsection{Local Variable Declaration}
 \LMLabel{localVariableDeclaration}

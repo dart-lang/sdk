@@ -65,7 +65,7 @@ ConstantPool {
   [7] = Null
 }
 ]static method test2(() → core::bool condition, () → core::String message) → void {
-  assert(condition.call(), message.call());
+  assert([@vm.call-site-attributes.metadata=receiverType:() → dart.core::bool] condition.call(), [@vm.call-site-attributes.metadata=receiverType:() → dart.core::String] message.call());
 }
 [@vm.bytecode=
 Bytecode {

@@ -303,12 +303,42 @@ ImplementsBeforeWith:
   dart2jsCode: "*ignored*"
   script: "class A extends B implements C with D {}"
 
+ImplementsRepeated:
+  template: "'#name' can only be implemented once."
+  analyzerCode: IMPLEMENTS_REPEATED
+  dart2jsCode: "*fatal*"
+  tip: "Try removing #count of the occurrences."
+  script:
+    - >-
+      abstract class I {}
+      abstract class J {}
+      class K implements I, J, I {}
+
+ImplementsSuperClass:
+  template: "'#name' can't be used in both 'extends' and 'implements' clauses."
+  analyzerCode: IMPLEMENTS_SUPER_CLASS
+  dart2jsCode: "*fatal*"
+  tip: "Try removing one of the occurrences."
+  script:
+    - >-
+      abstract class A {}
+      class C extends A implements A {}
+
 MultipleImplements:
   template: "Each class definition can have at most one implements clause."
   tip: "Try combining all of the implements clauses into a single clause."
   analyzerCode: MULTIPLE_IMPLEMENTS_CLAUSES
   dart2jsCode: "GENERIC"
   script: "class A implements B implements C, D {}"
+
+ImplementsFutureOr:
+  template: "'FutureOr' can't be used in an 'implements' clause."
+  severity: ERROR
+  dart2jsCode: "*fatal*"
+  script:
+    - >-
+      import 'dart:async';
+      class A implements FutureOr<int> {}
 
 ExpectedClassOrMixinBody:
   template: "Expected a class or mixin body, but got '#lexeme'."
@@ -2341,6 +2371,8 @@ ThisAsIdentifier:
 
 SuperAsIdentifier:
   template: "Expected identifier, but got 'super'."
+  analyzerCode: SUPER_AS_EXPRESSION
+  dart2jsCode: "*fatal*"
 
 SuperAsExpression:
   template: "Can't use 'super' as an expression."
@@ -2431,6 +2463,17 @@ ConstConstructorInSubclassOfMixinApplication:
   severity: ERROR
   analyzerCode: CONST_CONSTRUCTOR_IN_SUBCLASS_OF_MIXIN_APPLICATION
   dart2jsCode: "*fatal*"
+
+ConstConstructorRedirectionToNonConst:
+  template: "A constant constructor can't call a non-constant constructor."
+  severity: ERROR
+  dart2jsCode: "*fatal*"
+  script:
+    - >-
+      class A {
+        const A.foo() : this.bar();
+        A.bar() {}
+      }
 
 AccessError:
   template: "Access error: '#name'."

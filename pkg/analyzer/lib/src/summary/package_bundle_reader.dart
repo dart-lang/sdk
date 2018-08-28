@@ -189,7 +189,7 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
 
     if (result == TYPE_PROVIDER) {
       entry.setValue(result as ResultDescriptor<TypeProvider>,
-          _resynthesizer.typeProvider, TargetedResult.EMPTY_LIST);
+          _resynthesizer.typeProvider, const <TargetedResult>[]);
       return true;
     }
 
@@ -202,7 +202,7 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
         if (lineStarts.isNotEmpty) {
           LineInfo lineInfo = new LineInfo(lineStarts);
           entry.setValue(result as ResultDescriptor<LineInfo>, lineInfo,
-              TargetedResult.EMPTY_LIST);
+              const <TargetedResult>[]);
           return true;
         }
       }
@@ -217,7 +217,7 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
     if (result == CONSTANT_EXPRESSION_RESOLVED &&
         target is ConstantEvaluationTarget) {
       entry.setValue(
-          result as ResultDescriptor<bool>, true, TargetedResult.EMPTY_LIST);
+          result as ResultDescriptor<bool>, true, const <TargetedResult>[]);
       return true;
     }
     // Provide results for Source.
@@ -237,17 +237,17 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
         LibraryElement libraryElement =
             resynthesizer.getLibraryElement(uriString);
         entry.setValue(result as ResultDescriptor<LibraryElement>,
-            libraryElement, TargetedResult.EMPTY_LIST);
+            libraryElement, const <TargetedResult>[]);
         return true;
       } else if (result == READY_LIBRARY_ELEMENT2 ||
           result == READY_LIBRARY_ELEMENT6 ||
           result == READY_LIBRARY_ELEMENT7) {
         entry.setValue(
-            result as ResultDescriptor<bool>, true, TargetedResult.EMPTY_LIST);
+            result as ResultDescriptor<bool>, true, const <TargetedResult>[]);
         return true;
       } else if (result == MODIFICATION_TIME) {
         entry.setValue(
-            result as ResultDescriptor<int>, 0, TargetedResult.EMPTY_LIST);
+            result as ResultDescriptor<int>, 0, const <TargetedResult>[]);
         return true;
       } else if (result == SOURCE_KIND) {
         UnlinkedUnit unlinked = _dataStore.unlinkedMap[uriString];
@@ -255,7 +255,7 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
           entry.setValue(
               result as ResultDescriptor<SourceKind>,
               unlinked.isPartOf ? SourceKind.PART : SourceKind.LIBRARY,
-              TargetedResult.EMPTY_LIST);
+              const <TargetedResult>[]);
           return true;
         }
         return false;
@@ -268,7 +268,7 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
                   context.sourceFactory.resolveUri(target, libraryUriString))
               .toList(growable: false);
           entry.setValue(result as ResultDescriptor<List<Source>>,
-              librarySources, TargetedResult.EMPTY_LIST);
+              librarySources, const <TargetedResult>[]);
           return true;
         }
         return false;
@@ -286,7 +286,7 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
           result == CREATED_RESOLVED_UNIT10 ||
           result == CREATED_RESOLVED_UNIT11) {
         entry.setValue(
-            result as ResultDescriptor<bool>, true, TargetedResult.EMPTY_LIST);
+            result as ResultDescriptor<bool>, true, const <TargetedResult>[]);
         return true;
       }
       if (result == COMPILATION_UNIT_ELEMENT) {
@@ -296,14 +296,14 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
             new ElementLocationImpl.con3(<String>[libraryUri, unitUri]));
         if (unit != null) {
           entry.setValue(result as ResultDescriptor<CompilationUnitElement>,
-              unit, TargetedResult.EMPTY_LIST);
+              unit, const <TargetedResult>[]);
           return true;
         }
       }
     } else if (target is VariableElement) {
       if (result == INFERRED_STATIC_VARIABLE) {
         entry.setValue(result as ResultDescriptor<VariableElement>, target,
-            TargetedResult.EMPTY_LIST);
+            const <TargetedResult>[]);
         return true;
       }
     }

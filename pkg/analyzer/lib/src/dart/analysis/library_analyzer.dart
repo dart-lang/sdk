@@ -741,6 +741,9 @@ class LibraryAnalyzer {
       if (directive.metadata.isNotEmpty) {
         applier.applyToAnnotations(directive);
       }
+      if (directive is NamespaceDirective) {
+        directive.combinators.accept(applier);
+      }
     }
     for (var declaration in unit.declarations) {
       if (declaration is ClassDeclaration) {
@@ -1133,8 +1136,9 @@ class _ResolutionApplierContext implements TypeContext {
 
   @override
   Element translateReference(kernel.Node referencedNode,
-      {bool isWriteReference = false,
+      {bool isNamespaceCombinatorReference = false,
       bool isTypeReference = false,
+      bool isWriteReference = false,
       kernel.DartType inferredType,
       kernel.DartType receiverType}) {
     if (referencedNode == null) {
@@ -1168,6 +1172,9 @@ class _ResolutionApplierContext implements TypeContext {
     } else {
       throw new UnimplementedError(
           'TODO(paulberry): ${referencedNode.runtimeType}');
+    }
+    if (isNamespaceCombinatorReference) {
+      return element;
     }
     if (element is PropertyInducingElement) {
       PropertyInducingElement property = element;

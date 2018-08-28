@@ -1942,12 +1942,12 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   DartObjectImpl _listValue(
-      [List<DartObjectImpl> elements = DartObjectImpl.EMPTY_LIST]) {
+      [List<DartObjectImpl> elements = const <DartObjectImpl>[]]) {
     return new DartObjectImpl(_typeProvider.listType, new ListState(elements));
   }
 
   DartObjectImpl _mapValue(
-      [List<DartObjectImpl> keyElementPairs = DartObjectImpl.EMPTY_LIST]) {
+      [List<DartObjectImpl> keyElementPairs = const <DartObjectImpl>[]]) {
     Map<DartObjectImpl, DartObjectImpl> map =
         new Map<DartObjectImpl, DartObjectImpl>();
     int count = keyElementPairs.length;

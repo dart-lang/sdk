@@ -1084,6 +1084,15 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   /**
+   * Check whether the values of the [first] and [second] nodes are [equal].
+   * Subclasses can override to throw.
+   */
+  bool failIfNotEqual(
+      AstNode first, Object firstValue, AstNode second, Object secondValue) {
+    return firstValue == secondValue;
+  }
+
+  /**
    * Check whether [second] is null. Subclasses can override to throw.
    */
   bool failIfNotNull(Object first, Object second) {
@@ -1186,7 +1195,7 @@ class AstComparator implements AstVisitor<bool> {
 
   @override
   bool visitAssertInitializer(AssertInitializer node) {
-    AssertStatement other = _other as AssertStatement;
+    AssertInitializer other = _other as AssertInitializer;
     return isEqualTokens(node.assertKeyword, other.assertKeyword) &&
         isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
         isEqualNodes(node.condition, other.condition) &&
@@ -1248,7 +1257,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitBooleanLiteral(BooleanLiteral node) {
     BooleanLiteral other = _other as BooleanLiteral;
     return isEqualTokens(node.literal, other.literal) &&
-        node.value == other.value;
+        failIfNotEqual(node, node.value, other, other.value);
   }
 
   @override
@@ -1448,7 +1457,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitDoubleLiteral(DoubleLiteral node) {
     DoubleLiteral other = _other as DoubleLiteral;
     return isEqualTokens(node.literal, other.literal) &&
-        node.value == other.value;
+        failIfNotEqual(node, node.value, other, other.value);
   }
 
   @override
@@ -1723,7 +1732,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitIntegerLiteral(IntegerLiteral node) {
     IntegerLiteral other = _other as IntegerLiteral;
     return isEqualTokens(node.literal, other.literal) &&
-        (node.value == other.value);
+        failIfNotEqual(node, node.value, other, other.value);
   }
 
   @override
@@ -1738,7 +1747,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitInterpolationString(InterpolationString node) {
     InterpolationString other = _other as InterpolationString;
     return isEqualTokens(node.contents, other.contents) &&
-        node.value == other.value;
+        failIfNotEqual(node, node.value, other, other.value);
   }
 
   @override
@@ -2006,7 +2015,7 @@ class AstComparator implements AstVisitor<bool> {
   bool visitSimpleStringLiteral(SimpleStringLiteral node) {
     SimpleStringLiteral other = _other as SimpleStringLiteral;
     return isEqualTokens(node.literal, other.literal) &&
-        (node.value == other.value);
+        failIfNotEqual(node, node.value, other, other.value);
   }
 
   @override

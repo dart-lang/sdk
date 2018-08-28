@@ -192,7 +192,7 @@ class SourcesChangedEventTest {
 
   static void assertEvent(SourcesChangedEvent event,
       {bool wereSourcesAdded: false,
-      List<Source> changedSources: Source.EMPTY_LIST,
+      List<Source> changedSources: const <Source>[],
       bool wereSourcesRemoved: false}) {
     expect(event.wereSourcesAdded, wereSourcesAdded);
     expect(event.changedSources, changedSources);
@@ -205,7 +205,7 @@ class SourcesChangedListener {
 
   void assertEvent(
       {bool wereSourcesAdded: false,
-      List<Source> changedSources: Source.EMPTY_LIST,
+      List<Source> changedSources: const <Source>[],
       bool wereSourcesRemovedOrDeleted: false}) {
     if (actualEvents.isEmpty) {
       fail('Expected event but found none');

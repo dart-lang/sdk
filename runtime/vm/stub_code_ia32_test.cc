@@ -55,7 +55,7 @@ TEST_CASE(CallRuntimeStubCode) {
                                               const Code& code);
   const int length = 10;
   const char* kName = "Test_CallRuntimeStubCode";
-  Assembler assembler;
+  Assembler assembler(nullptr);
   GenerateCallToCallRuntimeStub(&assembler, length);
   const Code& code = Code::Handle(Code::FinalizeCode(
       *CreateFunction("Test_CallRuntimeStubCode"), nullptr, &assembler));
@@ -98,7 +98,7 @@ TEST_CASE(CallLeafRuntimeStubCode) {
   intptr_t rhs_index_value = 2;
   intptr_t length_value = 2;
   const char* kName = "Test_CallLeafRuntimeStubCode";
-  Assembler assembler;
+  Assembler assembler(nullptr);
   GenerateCallToCallLeafRuntimeStub(&assembler, str_value, lhs_index_value,
                                     rhs_index_value, length_value);
   const Code& code = Code::Handle(Code::FinalizeCode(

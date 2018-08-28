@@ -325,7 +325,7 @@ class AnalysisContextFactory {
     ];
     htmlUnit.functions = <FunctionElement>[
       ElementFactory.functionElement3("query", elementElement.type,
-          <ClassElement>[provider.stringType.element], ClassElement.EMPTY_LIST)
+          <ClassElement>[provider.stringType.element], const <ClassElement>[])
     ];
     TopLevelVariableElementImpl document =
         ElementFactory.topLevelVariableElement3(
@@ -347,14 +347,14 @@ class AnalysisContextFactory {
         "cos",
         provider.doubleType,
         <ClassElement>[provider.numType.element],
-        ClassElement.EMPTY_LIST);
+        const <ClassElement>[]);
     TopLevelVariableElement ln10Element =
         ElementFactory.topLevelVariableElement3(
             "LN10", true, false, provider.doubleType);
     TypeParameterElement maxT =
         ElementFactory.typeParameterWithType('T', provider.numType);
     FunctionElementImpl maxElement = ElementFactory.functionElement3(
-        "max", maxT.type, [maxT, maxT], ClassElement.EMPTY_LIST);
+        "max", maxT.type, [maxT, maxT], const <ClassElement>[]);
     maxElement.typeParameters = [maxT];
     maxElement.type = new FunctionTypeImpl(maxElement);
     TopLevelVariableElement piElement = ElementFactory.topLevelVariableElement3(
@@ -373,12 +373,12 @@ class AnalysisContextFactory {
         "sin",
         provider.doubleType,
         <ClassElement>[provider.numType.element],
-        ClassElement.EMPTY_LIST);
+        const <ClassElement>[]);
     FunctionElement sqrtElement = ElementFactory.functionElement3(
         "sqrt",
         provider.doubleType,
         <ClassElement>[provider.numType.element],
-        ClassElement.EMPTY_LIST);
+        const <ClassElement>[]);
     mathUnit.accessors = <PropertyAccessorElement>[
       ln10Element.getter,
       piElement.getter

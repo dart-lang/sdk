@@ -1574,6 +1574,13 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
       // arguments should be constants
       _validateConstantArguments(argumentList);
     }
+    if (node.elementAnnotation?.isSealed == true &&
+        !(node.parent is ClassDeclaration ||
+            node.parent is ClassTypeAlias ||
+            node.parent is MixinDeclaration)) {
+      _errorReporter.reportErrorForNode(
+          HintCode.INVALID_SEALED_ANNOTATION, node.parent, [node.element.name]);
+    }
     return null;
   }
 
@@ -2728,7 +2735,7 @@ class ElementHolder {
 
   List<PropertyAccessorElement> get accessors {
     if (_accessors == null) {
-      return PropertyAccessorElement.EMPTY_LIST;
+      return const <PropertyAccessorElement>[];
     }
     List<PropertyAccessorElement> result = _accessors;
     _accessors = null;
@@ -2737,7 +2744,7 @@ class ElementHolder {
 
   List<ConstructorElement> get constructors {
     if (_constructors == null) {
-      return ConstructorElement.EMPTY_LIST;
+      return const <ConstructorElement>[];
     }
     List<ConstructorElement> result = _constructors;
     _constructors = null;
@@ -2746,7 +2753,7 @@ class ElementHolder {
 
   List<ClassElement> get enums {
     if (_enums == null) {
-      return ClassElement.EMPTY_LIST;
+      return const <ClassElement>[];
     }
     List<ClassElement> result = _enums;
     _enums = null;
@@ -2755,7 +2762,7 @@ class ElementHolder {
 
   List<FieldElement> get fields {
     if (_fields == null) {
-      return FieldElement.EMPTY_LIST;
+      return const <FieldElement>[];
     }
     List<FieldElement> result = _fields;
     _fields = null;
@@ -2764,7 +2771,7 @@ class ElementHolder {
 
   List<FieldElement> get fieldsWithoutFlushing {
     if (_fields == null) {
-      return FieldElement.EMPTY_LIST;
+      return const <FieldElement>[];
     }
     List<FieldElement> result = _fields;
     return result;
@@ -2772,7 +2779,7 @@ class ElementHolder {
 
   List<FunctionElement> get functions {
     if (_functions == null) {
-      return FunctionElement.EMPTY_LIST;
+      return const <FunctionElement>[];
     }
     List<FunctionElement> result = _functions;
     _functions = null;
@@ -2781,7 +2788,7 @@ class ElementHolder {
 
   List<LabelElement> get labels {
     if (_labels == null) {
-      return LabelElement.EMPTY_LIST;
+      return const <LabelElement>[];
     }
     List<LabelElement> result = _labels;
     _labels = null;
@@ -2790,7 +2797,7 @@ class ElementHolder {
 
   List<LocalVariableElement> get localVariables {
     if (_localVariables == null) {
-      return LocalVariableElement.EMPTY_LIST;
+      return const <LocalVariableElement>[];
     }
     List<LocalVariableElement> result = _localVariables;
     _localVariables = null;
@@ -2799,7 +2806,7 @@ class ElementHolder {
 
   List<MethodElement> get methods {
     if (_methods == null) {
-      return MethodElement.EMPTY_LIST;
+      return const <MethodElement>[];
     }
     List<MethodElement> result = _methods;
     _methods = null;
@@ -2808,7 +2815,7 @@ class ElementHolder {
 
   List<ParameterElement> get parameters {
     if (_parameters == null) {
-      return ParameterElement.EMPTY_LIST;
+      return const <ParameterElement>[];
     }
     List<ParameterElement> result = _parameters;
     _parameters = null;
@@ -2817,7 +2824,7 @@ class ElementHolder {
 
   List<TopLevelVariableElement> get topLevelVariables {
     if (_topLevelVariables == null) {
-      return TopLevelVariableElement.EMPTY_LIST;
+      return const <TopLevelVariableElement>[];
     }
     List<TopLevelVariableElement> result = _topLevelVariables;
     _topLevelVariables = null;
@@ -2826,7 +2833,7 @@ class ElementHolder {
 
   List<FunctionTypeAliasElement> get typeAliases {
     if (_typeAliases == null) {
-      return FunctionTypeAliasElement.EMPTY_LIST;
+      return const <FunctionTypeAliasElement>[];
     }
     List<FunctionTypeAliasElement> result = _typeAliases;
     _typeAliases = null;
@@ -2835,7 +2842,7 @@ class ElementHolder {
 
   List<TypeParameterElement> get typeParameters {
     if (_typeParameters == null) {
-      return TypeParameterElement.EMPTY_LIST;
+      return const <TypeParameterElement>[];
     }
     List<TypeParameterElement> result = _typeParameters;
     _typeParameters = null;
@@ -2844,7 +2851,7 @@ class ElementHolder {
 
   List<ClassElement> get types {
     if (_types == null) {
-      return ClassElement.EMPTY_LIST;
+      return const <ClassElement>[];
     }
     List<ClassElement> result = _types;
     _types = null;
@@ -6606,8 +6613,8 @@ class ResolverVisitor extends ScopedVisitor {
         ts is StrongTypeSystemImpl) {
       return ts.inferGenericFunctionOrType<FunctionType>(
           uninstantiatedType,
-          ParameterElement.EMPTY_LIST,
-          DartType.EMPTY_LIST,
+          const <ParameterElement>[],
+          const <DartType>[],
           InferenceContext.getContext(inferenceNode),
           downwards: true,
           errorReporter: errorReporter,
@@ -8172,51 +8179,20 @@ class TypeNameResolver {
     }
     DartType type = null;
     if (element is ClassElement) {
+      _setElement(typeName, element);
       type = element.type;
-      // In non-strong mode `FutureOr<T>` is treated as `dynamic`
-      if (!typeSystem.isStrong && type.isDartAsyncFutureOr) {
-        type = dynamicType;
-        _setElement(typeName, type.element);
-        typeName.staticType = type;
-        node.type = type;
-        if (argumentList != null) {
-          NodeList<TypeAnnotation> arguments = argumentList.arguments;
-          if (arguments.length != 1) {
-            reportErrorForNode(_getInvalidTypeParametersErrorCode(node), node,
-                [typeName.name, 1, arguments.length]);
-          }
-        }
-        return;
-      }
+    } else if (element == DynamicElementImpl.instance) {
       _setElement(typeName, element);
-    } else if (element is TypeDefiningElement &&
-        element.kind == ElementKind.DYNAMIC) {
-//      if (argumentList != null) {
-//        // Type parameters cannot have type arguments.
-//        // TODO(mfairhurst) Report this error.
-//        resolver.reportError(ResolverErrorCode.?, keyType);
-//      }
-      _setElement(typeName, element);
-      typeName.staticType = element.type;
-      node.type = element.type;
-      return;
+      type = DynamicTypeImpl.instance;
     } else if (element is FunctionTypeAliasElement) {
       _setElement(typeName, element);
       type = element.type;
     } else if (element is TypeParameterElement) {
       _setElement(typeName, element);
       type = element.type;
-//      if (argumentList != null) {
-//        // Type parameters cannot have type arguments.
-//        // TODO(brianwilkerson) Report this error.
-//        //      resolver.reportError(ResolverErrorCode.?, keyType);
-//      }
     } else if (element is MultiplyDefinedElement) {
       List<Element> elements = element.conflictingElements;
       type = _getTypeWhenMultiplyDefined(elements);
-      if (type != null) {
-        node.type = type;
-      }
     } else {
       // The name does not represent a type.
       RedirectingConstructorKind redirectingConstructorKind;

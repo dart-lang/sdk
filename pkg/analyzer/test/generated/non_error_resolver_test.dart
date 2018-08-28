@@ -1487,9 +1487,6 @@ foo() {}''');
 
   test_constEvalTypeBoolNumString_equal() async {
     Source source = addSource(r'''
-class A {
-  const A();
-}
 class B {
   final v;
   const B.a1(bool p) : v = p == true;
@@ -1509,6 +1506,8 @@ class B {
   const B.c5(String p) : v = p == '';
   const B.n1(num p) : v = p == null;
   const B.n2(num p) : v = null == p;
+  const B.n3(Object p) : v = p == null;
+  const B.n4(Object p) : v = null == p;
 }''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
@@ -1516,9 +1515,6 @@ class B {
 
   test_constEvalTypeBoolNumString_notEqual() async {
     Source source = addSource(r'''
-class A {
-  const A();
-}
 class B {
   final v;
   const B.a1(bool p) : v = p != true;
@@ -1538,13 +1534,15 @@ class B {
   const B.c5(String p) : v = p != '';
   const B.n1(num p) : v = p != null;
   const B.n2(num p) : v = null != p;
+  const B.n3(Object p) : v = p != null;
+  const B.n4(Object p) : v = null != p;
 }''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
   }
 
-  test_constEvelTypeNum_String() async {
+  test_constEvAlTypeNum_String() async {
     Source source = addSource(r'''
 const String A = 'a';
 const String B = A + 'b';

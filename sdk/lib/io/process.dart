@@ -288,6 +288,11 @@ abstract class Process {
    * which will be returned as the negative number `-1073741819`. To
    * get the original 32-bit value use `(0x100000000 + exitCode) &
    * 0xffffffff`.
+   *
+   * There is no guarantee that [stdout] and [stderr] have finished reporting
+   * the buffered output of the process when the returned future completes.
+   * To be sure that all output is captured,
+   * wait for the done event on the streams.
    */
   Future<int> get exitCode;
 

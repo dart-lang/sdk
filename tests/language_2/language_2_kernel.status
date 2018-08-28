@@ -156,11 +156,7 @@ vm/type_cast_vm_test: RuntimeError
 web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
 [ $compiler == dartkp ]
-class_cycle_test/02: MissingCompileTimeError
-class_cycle_test/03: MissingCompileTimeError
 covariant_subtyping_test: RuntimeError
-duplicate_implements_test/01: MissingCompileTimeError
-duplicate_implements_test/02: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_no_such_method_dispatcher_test: RuntimeError # Issue 31424
 web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
@@ -290,7 +286,6 @@ partial_tearoff_instantiation_test/08: MissingCompileTimeError # Issue 32281
 redirecting_factory_default_values_test/01: MissingCompileTimeError # Issue 34160
 redirecting_factory_default_values_test/02: MissingCompileTimeError # Issue 34160
 regress_22976_test/*: CompileTimeError # Issue 31935
-regress_27617_test/1: MissingCompileTimeError # Issue 34161
 syntax_test/28: MissingCompileTimeError # Issue 29763 - low priority
 syntax_test/29: MissingCompileTimeError # Issue 29763 - low priority
 syntax_test/30: MissingCompileTimeError # Issue 29763 - low priority
@@ -721,6 +716,7 @@ compile_time_constant_o_test/02: Pass
 const_dynamic_type_literal_test/02: Pass
 map_literal3_test/01: Pass
 map_literal3_test/02: Pass
+type_alias_equality_test/02: RuntimeError # Issue 31359
 vm/bool_check_stack_traces_test/01: RuntimeError # No support for line numbers in stacktraces
 vm/bool_check_stack_traces_test/none: RuntimeError # No support for line numbers in stacktraces
 vm/causal_async_exception_stack2_test: RuntimeError # No support for line numbers in stacktraces
@@ -1053,8 +1049,6 @@ recursive_generic_test: RuntimeError # Compares a (dynamic) toString call to 'C<
 tearoff_dynamic_test: RuntimeError # Compares call to "foo" (noSuchMethod) with string "foo"
 
 [ $compiler == fasta && $strong ]
-class_cycle_test/02: MissingCompileTimeError
-class_cycle_test/03: MissingCompileTimeError
 compile_time_constant_static4_test/02: MissingCompileTimeError
 compile_time_constant_static4_test/03: MissingCompileTimeError
 compile_time_constant_static5_test/11: CompileTimeError
@@ -1068,8 +1062,6 @@ config_import_test: Crash
 const_constructor3_test/04: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
-duplicate_implements_test/01: MissingCompileTimeError
-duplicate_implements_test/02: MissingCompileTimeError
 dynamic_prefix_core_test/none: CompileTimeError
 emit_const_fields_test: CompileTimeError
 export_ambiguous_main_test: MissingCompileTimeError
@@ -1396,7 +1388,7 @@ async_star_test/05: Crash
 enum_test: Crash
 
 [ $mode == debug && ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
-enum_duplicate_test/01: Crash
+enum_duplicate_test/01: Pass, Crash
 
 [ $mode == product && $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
 deferred_load_constants_test/02: Fail
@@ -1799,8 +1791,6 @@ deferred_constraints_type_annotation_test/type_annotation_generic3: MissingCompi
 deferred_constraints_type_annotation_test/type_annotation_generic4: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_null: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_top_level: MissingCompileTimeError
-duplicate_implements_test/01: MissingCompileTimeError
-duplicate_implements_test/02: MissingCompileTimeError
 duplicate_implements_test/03: MissingCompileTimeError
 duplicate_implements_test/04: MissingCompileTimeError
 dynamic_field_test/01: MissingCompileTimeError
@@ -2435,6 +2425,3 @@ async_star_test/none: Skip # Timeout
 [ $compiler == dartk || $compiler == dartkb || $compiler == dartkp ]
 generic_function_bounds_test: RuntimeError # Issue 32076
 generic_test/01: MissingCompileTimeError
-
-[ $compiler == dartkp || $compiler == fasta ]
-duplicate_interface_implements_test/01: MissingCompileTimeError

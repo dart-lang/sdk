@@ -53,9 +53,8 @@ class Interpreter {
   uword stack_limit() const { return stack_limit_; }
 
   // Returns true if the interpreter's stack contains the given frame.
-  // TODO(regis): Once the interpreter shares the native stack, we may rely on
-  // a new thread vm_tag to identify an interpreter frame and we will not need
-  // this HasFrame() method.
+  // TODO(regis): We should rely on a new thread vm_tag to identify an
+  // interpreter frame and not need this HasFrame() method.
   bool HasFrame(uword frame) const {
     return frame >= stack_base() && frame <= get_fp();
   }

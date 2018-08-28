@@ -1368,12 +1368,10 @@ class RawObjectPool : public RawObject {
   Entry* data() { OPEN_ARRAY_START(Entry, Entry); }
   Entry const* data() const { OPEN_ARRAY_START(Entry, Entry); }
 
-  // The entry types are located after the last entry. They are interpreted
-  // as ObjectPool::EntryType.
-  uint8_t* entry_types() {
-    return reinterpret_cast<uint8_t*>(&data()[length_]);
-  }
-  uint8_t const* entry_types() const {
+  // The entry bits are located after the last entry. They are encoded versions
+  // of `ObjectPool::TypeBits() | ObjectPool::PatchabililtyBit()`.
+  uint8_t* entry_bits() { return reinterpret_cast<uint8_t*>(&data()[length_]); }
+  uint8_t const* entry_bits() const {
     return reinterpret_cast<uint8_t const*>(&data()[length_]);
   }
 

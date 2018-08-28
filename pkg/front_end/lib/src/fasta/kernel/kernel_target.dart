@@ -59,6 +59,7 @@ import '../messages.dart'
         LocatedMessage,
         messageConstConstructorNonFinalField,
         messageConstConstructorNonFinalFieldCause,
+        messageConstConstructorRedirectionToNonConst,
         noLength,
         templateFinalFieldNotInitialized,
         templateFinalFieldNotInitializedByConstructor,
@@ -260,6 +261,7 @@ class KernelTarget extends TargetImplementation {
           computeCoreTypes();
           loader.computeHierarchy();
           loader.performTopLevelInference(myClasses);
+          loader.checkSupertypes(myClasses);
           loader.checkOverrides(myClasses);
           loader.checkAbstractMembers(myClasses);
           loader.addNoSuchMethodForwarders(myClasses);
@@ -656,6 +658,12 @@ class KernelTarget extends TargetImplementation {
       bool isRedirecting = false;
       for (Initializer initializer in constructor.initializers) {
         if (initializer is RedirectingInitializer) {
+          if (constructor.isConst && !initializer.target.isConst) {
+            builder.addCompileTimeError(
+                messageConstConstructorRedirectionToNonConst,
+                initializer.fileOffset,
+                initializer.target.name.name.length);
+          }
           isRedirecting = true;
           break;
         }
@@ -689,6 +697,7 @@ class KernelTarget extends TargetImplementation {
           constructor.function.body = new EmptyStatement();
           constructor.function.body.parent = constructor.function;
         }
+
         Set<Field> myInitializedFields = new Set<Field>();
         for (Initializer initializer in constructor.initializers) {
           if (initializer is FieldInitializer) {

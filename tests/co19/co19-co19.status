@@ -907,6 +907,7 @@ Utils/tests/Expect/identical_A01_t01: CompileTimeError # Uses Dart 1 constants
 Utils/tests/Expect/setEquals_A01_t02: CompileTimeError # Uses Dart 1 constants
 
 [ !$strong ]
+LibTest/async/Stream/Stream.fromIterable_A02_t01: RuntimeError # Assumes no close after error.
 LibTest/async/Stream/firstWhere_A01_t01: RuntimeError # co19 issue 137
 LibTest/async/Stream/firstWhere_A02_t01: RuntimeError # co19 issue 137
 LibTest/async/Stream/lastWhere_A01_t01: RuntimeError # co19 issue 137

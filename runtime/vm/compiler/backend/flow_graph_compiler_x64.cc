@@ -756,11 +756,11 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
   // on the call site to find out at which pool index the destination name is
   // located.
   const intptr_t sub_type_cache_index = __ object_pool_wrapper().AddObject(
-      Object::null_object(), Patchability::kPatchable);
+      Object::null_object(), ObjectPool::Patchability::kPatchable);
   const intptr_t sub_type_cache_offset =
       ObjectPool::element_offset(sub_type_cache_index) - kHeapObjectTag;
-  const intptr_t dst_name_index =
-      __ object_pool_wrapper().AddObject(dst_name, Patchability::kPatchable);
+  const intptr_t dst_name_index = __ object_pool_wrapper().AddObject(
+      dst_name, ObjectPool::Patchability::kPatchable);
   ASSERT((sub_type_cache_index + 1) == dst_name_index);
   ASSERT(__ constant_pool_allowed());
 
@@ -902,6 +902,7 @@ void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
                                      LocationSummary* locs) {
   __ Call(stub_entry);
   EmitCallsiteMetadata(token_pos, Thread::kNoDeoptId, kind, locs);
+  AddStubCallTarget(Code::ZoneHandle(stub_entry.code()));
 }
 
 void FlowGraphCompiler::GeneratePatchableCall(TokenPosition token_pos,

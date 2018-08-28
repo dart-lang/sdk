@@ -334,13 +334,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   void set analysisPriorityOrder(List<Source> sources) {
     if (sources == null || sources.isEmpty) {
-      _priorityOrder = Source.EMPTY_LIST;
+      _priorityOrder = const <Source>[];
     } else {
       while (sources.remove(null)) {
         // Nothing else to do.
       }
       if (sources.isEmpty) {
-        _priorityOrder = Source.EMPTY_LIST;
+        _priorityOrder = const <Source>[];
       } else {
         _priorityOrder = sources;
       }
@@ -897,7 +897,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   List<Source> getHtmlFilesReferencing(Source source) {
     if (!AnalysisEngine.isDartFileName(source.shortName)) {
-      return Source.EMPTY_LIST;
+      return const <Source>[];
     }
     List<Source> htmlSources = <Source>[];
     List<Source> librarySources = getLibrariesContaining(source);
@@ -911,7 +911,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     if (htmlSources.isEmpty) {
-      return Source.EMPTY_LIST;
+      return const <Source>[];
     }
     return htmlSources;
   }
@@ -951,7 +951,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     if (dependentLibraries.isEmpty) {
-      return Source.EMPTY_LIST;
+      return const <Source>[];
     }
     return dependentLibraries;
   }
@@ -962,7 +962,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (entry != null) {
       return entry.getValue(REFERENCED_LIBRARIES);
     }
-    return Source.EMPTY_LIST;
+    return const <Source>[];
   }
 
   @override
@@ -1059,7 +1059,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         // Don't compare with old contents because the cache has already been
         // updated, and we know at this point that it changed.
         _sourceChanged(source, compareWithOld: false);
-        entry.setValue(CONTENT, newContents, TargetedResult.EMPTY_LIST);
+        entry.setValue(CONTENT, newContents, const <TargetedResult>[]);
       } else {
         entry.modificationTime = _contentCache.getModificationStamp(source);
       }
@@ -1071,7 +1071,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         newContents = fileContents.data;
         entry.modificationTime = fileContents.modificationTime;
         if (newContents == originalContents) {
-          entry.setValue(CONTENT, newContents, TargetedResult.EMPTY_LIST);
+          entry.setValue(CONTENT, newContents, const <TargetedResult>[]);
           changed = false;
         }
       } catch (e) {}
@@ -1196,7 +1196,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       //
       CacheEntry entry = getCacheEntry(librarySource);
       setValue(ResultDescriptor result, value) {
-        entry.setValue(result, value, TargetedResult.EMPTY_LIST);
+        entry.setValue(result, value, const <TargetedResult>[]);
       }
 
       setValue(BUILD_DIRECTIVES_ERRORS, AnalysisError.NO_ERRORS);
@@ -1206,11 +1206,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       // CONSTRUCTORS
       // CONSTRUCTORS_ERRORS
       entry.setState(CONTENT, CacheState.FLUSHED);
-      setValue(EXPORTED_LIBRARIES, Source.EMPTY_LIST);
+      setValue(EXPORTED_LIBRARIES, const <Source>[]);
       // EXPORT_SOURCE_CLOSURE
-      setValue(IMPORTED_LIBRARIES, Source.EMPTY_LIST);
+      setValue(IMPORTED_LIBRARIES, const <Source>[]);
       // IMPORT_SOURCE_CLOSURE
-      setValue(INCLUDED_PARTS, Source.EMPTY_LIST);
+      setValue(INCLUDED_PARTS, const <Source>[]);
       setValue(IS_LAUNCHABLE, false);
       setValue(LIBRARY_ELEMENT, library);
       setValue(LIBRARY_ELEMENT1, library);
@@ -1262,7 +1262,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     });
 
     CacheEntry entry = getCacheEntry(AnalysisContextTarget.request);
-    entry.setValue(TYPE_PROVIDER, typeProvider, TargetedResult.EMPTY_LIST);
+    entry.setValue(TYPE_PROVIDER, typeProvider, const <TargetedResult>[]);
   }
 
   @override
@@ -1420,7 +1420,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         CacheEntry entry = _cache.get(source);
         if (entry != null) {
           entry.modificationTime = _contentCache.getModificationStamp(source);
-          entry.setValue(CONTENT, contents, TargetedResult.EMPTY_LIST);
+          entry.setValue(CONTENT, contents, const <TargetedResult>[]);
         }
       }
     } else if (originalContents != null) {
@@ -1501,7 +1501,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       if (nullIfEmpty) {
         return null;
       }
-      return ChangeNoticeImpl.EMPTY_LIST;
+      return const <ChangeNoticeImpl>[];
     }
     List<ChangeNotice> notices = new List.from(_pendingNotices.values);
     _pendingNotices.clear();
@@ -1529,7 +1529,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     if (sources.isEmpty) {
-      return Source.EMPTY_LIST;
+      return const <Source>[];
     }
     return sources;
   }
@@ -1801,8 +1801,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       entry.setState(SOURCE_KIND, CacheState.INVALID);
     }
     for (WorkManager workManager in workManagers) {
-      workManager.applyChange(
-          Source.EMPTY_LIST, <Source>[source], Source.EMPTY_LIST);
+      workManager
+          .applyChange(const <Source>[], <Source>[source], const <Source>[]);
     }
   }
 

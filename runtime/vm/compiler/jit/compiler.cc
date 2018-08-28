@@ -896,7 +896,8 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
       ASSERT(pass_state.inline_id_to_function.length() ==
              pass_state.caller_inline_id.length());
-      Assembler assembler(use_far_branches);
+      ObjectPoolWrapper object_pool_wrapper;
+      Assembler assembler(&object_pool_wrapper, use_far_branches);
       FlowGraphCompiler graph_compiler(
           &assembler, flow_graph, *parsed_function(), optimized(),
           &speculative_policy, pass_state.inline_id_to_function,
@@ -1220,7 +1221,8 @@ static RawError* ParseFunctionHelper(CompilationPipeline* pipeline,
 }
 
 RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
-#ifdef DART_PRECOMPILER
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
+    !defined(TARGET_ARCH_IA32)
   if (FLAG_precompiled_mode) {
     return Precompiler::CompileFunction(
         /* precompiler = */ NULL, thread, thread->zone(), function);
@@ -1416,8 +1418,13 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
   for (int i = 0; i < functions.Length(); i++) {
     func ^= functions.At(i);
     ASSERT(!func.IsNull());
-    if (!func.HasCode() && !func.is_abstract() &&
-        !func.IsRedirectingFactory()) {
+    if (!func.HasCode() &&
+#if defined(DART_USE_INTERPRETER)
+        // TODO(regis): Revisit.
+        // Do not compile function if its bytecode is already loaded.
+        !func.HasBytecode() &&
+#endif
+        !func.is_abstract() && !func.IsRedirectingFactory()) {
       if ((cls.is_mixin_app_alias() || cls.IsMixinApplication()) &&
           func.HasOptionalParameters()) {
         // Skipping optional parameters in mixin application.
@@ -1427,7 +1434,13 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
       if (result.IsError()) {
         return Error::Cast(result).raw();
       }
+#if defined(DART_USE_INTERPRETER)
+      // TODO(regis): Revisit.
+      // The compiler may load bytecode and return Code::null().
+      ASSERT(!result.IsNull() || func.HasBytecode());
+#else
       ASSERT(!result.IsNull());
+#endif
     }
   }
   return Error::null();
@@ -1467,7 +1480,8 @@ RawError* Compiler::ParseAllFunctions(const Class& cls) {
 }
 
 RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
-#ifdef DART_PRECOMPILER
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
+    !defined(TARGET_ARCH_IA32)
   if (FLAG_precompiled_mode) {
     return Precompiler::EvaluateStaticInitializer(field);
   }
@@ -1535,7 +1549,8 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
 }
 
 RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
-#ifdef DART_PRECOMPILER
+#if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
+    !defined(TARGET_ARCH_IA32)
   if (FLAG_precompiled_mode) {
     return Precompiler::ExecuteOnce(fragment);
   }
