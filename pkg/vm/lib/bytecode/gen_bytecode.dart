@@ -171,7 +171,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     for (var param in function.positionalParameters) {
       asm.emitPush(locals.getVarIndexInFrame(param));
     }
-    for (var param in function.namedParameters) {
+    // Native methods access their parameters by indices, so
+    // native wrappers should pass arguments in the original declaration
+    // order instead of sorted order.
+    for (var param in locals.originalNamedParameters) {
       asm.emitPush(locals.getVarIndexInFrame(param));
     }
 

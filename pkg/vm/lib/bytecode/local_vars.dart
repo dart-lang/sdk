@@ -163,6 +163,9 @@ class LocalVariables {
   bool get hasOptionalParameters => _currentFrame.hasOptionalParameters;
   bool get hasCapturedParameters => _currentFrame.hasCapturedParameters;
 
+  List<VariableDeclaration> get originalNamedParameters =>
+      _currentFrame.originalNamedParameters;
+
   LocalVariables(Member node) {
     final scopeBuilder = new _ScopeBuilder(this);
     node.accept(scopeBuilder);
@@ -210,6 +213,7 @@ class Frame {
   final Frame parent;
   Scope topScope;
 
+  List<VariableDeclaration> originalNamedParameters;
   int numParameters = 0;
   int numTypeArguments = 0;
   bool hasOptionalParameters = false;
@@ -333,6 +337,7 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
         _declareVariable(_currentFrame.closureVar);
       }
 
+      _currentFrame.originalNamedParameters = function.namedParameters.toList();
       _sortNamedParameters(function);
 
       visitList(function.positionalParameters, this);
