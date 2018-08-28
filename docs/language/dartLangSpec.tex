@@ -8754,11 +8754,6 @@ Leaving the return type of a function marked \ASYNC{} blank will be interpreted 
 \LMHash{}
 Executing a return statement with no expression, \code{\RETURN;} returns with no value (\ref{completion}).
 
-\LMHash{}
-% TODO(eernst): For integration of invalid_returns.md: We do allow that now, and
-% many other things, eg `void foo(bool b) { if (b) return; return print(''); }`.
-It is a compile-time error if a function contains both one or more explicit return statements of the form \code{\RETURN;} and one or more return statements of the form \code{\RETURN{} $e$;}.
-
 
 \subsection{Labels}
 \LMLabel{labels}
