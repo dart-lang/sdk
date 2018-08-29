@@ -110,6 +110,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
     thread_->StoreBufferAddObjectGC(visiting_old_object_);
   }
 
+  DART_FORCE_INLINE
   void ScavengePointer(RawObject** p) {
     // ScavengePointer cannot be called recursively.
     RawObject* raw_obj = *p;
