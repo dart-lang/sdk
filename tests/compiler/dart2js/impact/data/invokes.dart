@@ -583,7 +583,9 @@ testLocalFunctionTyped() {
 
 /*kernel.element: testLocalFunctionInvoke:static=[def:localFunction],
   type=[inst:Function]*/
-/*strong.element: testLocalFunctionInvoke:static=[computeSignature,
+/*strong.element: testLocalFunctionInvoke:
+ dynamic=[call(0)],
+ static=[computeSignature,
   def:localFunction,
   getRuntimeTypeArguments,
   getRuntimeTypeInfo,
