@@ -321,11 +321,12 @@ abstract class Future<T> {
    * Waits for multiple futures to complete and collects their results.
    *
    * Returns a future which will complete once all the provided futures
-   * have completed, either with their results, or with an error if either
+   * have completed, either with their results, or with an error if any
    * of the provided futures fail.
    *
    * The value of the returned future will be a list of all the values that
-   * were produced.
+   * were produced in the order that the futures are provided by iterating
+   * [futures].
    *
    * If any future completes with an error,
    * then the returned future completes with that error.
