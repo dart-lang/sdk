@@ -2198,6 +2198,16 @@ MissingPartOf:
     part.dart: ""
     main.dart: "part 'part.dart';"
 
+PartOfInLibrary:
+  template: "Can't import '#uri', because it has a 'part of' declaration."
+  tip: "Try removing the 'part of' declaration, or using '#uri' as a part."
+  severity: ERROR
+  analyzerCode: IMPORT_OF_NON_LIBRARY
+  dart2jsCode: "*fatal*"
+  script:
+    part.dart: "part of mainlib;"
+    main.dart: "library mainlib; import 'part.dart';"
+
 SupertypeIsFunction:
   template: "Can't use a function type as supertype."
 

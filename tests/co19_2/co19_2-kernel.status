@@ -137,7 +137,6 @@ Language/Generics/syntax_t03: CompileTimeError
 Language/Generics/upper_bound_t01: MissingCompileTimeError # Issue 33308
 Language/Libraries_and_Scripts/Exports/reexport_t01: MissingCompileTimeError # Issue 12916
 Language/Libraries_and_Scripts/Exports/same_name_t01: MissingCompileTimeError # Issue 12916
-Language/Libraries_and_Scripts/Imports/invalid_uri_t01: MissingCompileTimeError # Issue 33650
 Language/Metadata/compilation_t03: MissingCompileTimeError # Issue 34205
 Language/Mixins/Mixin_Application/deferred_t01: MissingCompileTimeError # Issue 30273
 Language/Mixins/Mixin_Application/static_warning_t01: MissingCompileTimeError # Mixin super equirement

@@ -5995,6 +5995,35 @@ Message _withArgumentsPackageNotFound(String name, Uri uri_) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
+    Message Function(Uri uri_)> templatePartOfInLibrary = const Template<
+        Message Function(Uri uri_)>(
+    messageTemplate:
+        r"""Can't import '#uri', because it has a 'part of' declaration.""",
+    tipTemplate:
+        r"""Try removing the 'part of' declaration, or using '#uri' as a part.""",
+    withArguments: _withArgumentsPartOfInLibrary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Uri uri_)> codePartOfInLibrary =
+    const Code<Message Function(Uri uri_)>(
+        "PartOfInLibrary", templatePartOfInLibrary,
+        analyzerCode: "IMPORT_OF_NON_LIBRARY",
+        dart2jsCode: "*fatal*",
+        severity: Severity.error);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsPartOfInLibrary(Uri uri_) {
+  String uri = relativizeUri(uri_);
+  return new Message(codePartOfInLibrary,
+      message:
+          """Can't import '${uri}', because it has a 'part of' declaration.""",
+      tip:
+          """Try removing the 'part of' declaration, or using '${uri}' as a part.""",
+      arguments: {'uri': uri_});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
     Message Function(
         Uri uri_,
         String name,

@@ -921,7 +921,6 @@ Language/Libraries_and_Scripts/Imports/dart_core_t03: CompileTimeError
 Language/Libraries_and_Scripts/Imports/dart_core_t04: CompileTimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01/01: CompileTimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: CompileTimeError
-Language/Libraries_and_Scripts/Imports/invalid_uri_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/namespace_changes_t01: CompileTimeError
 Language/Libraries_and_Scripts/Imports/namespace_changes_t02: CompileTimeError
 Language/Libraries_and_Scripts/Imports/namespace_changes_t03: CompileTimeError
@@ -1729,7 +1728,6 @@ Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/cla
 Language/Libraries_and_Scripts/Exports/reexport_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/Exports/reexport_t02: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: CompileTimeError
-Language/Libraries_and_Scripts/Imports/invalid_uri_t01: MissingCompileTimeError
 Language/Mixins/Mixin_Application/deferred_t01: MissingCompileTimeError
 Language/Mixins/Mixin_Application/syntax_t20: CompileTimeError
 Language/Mixins/declaring_constructor_t05: MissingCompileTimeError

@@ -346,6 +346,10 @@ class FastaErrorReporter {
             offset,
             length);
         return;
+      case "IMPORT_OF_NON_LIBRARY":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, offset, length);
+        return;
       case "INVALID_CAST_FUNCTION":
         errorReporter?.reportErrorForOffset(
             StrongModeCode.INVALID_CAST_FUNCTION, offset, length);

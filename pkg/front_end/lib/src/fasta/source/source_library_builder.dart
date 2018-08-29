@@ -54,6 +54,7 @@ import '../fasta_codes.dart'
         templateDuplicatedDefinition,
         templateConstructorWithWrongNameContext,
         templateMissingPartOf,
+        templatePartOfInLibrary,
         templatePartOfLibraryNameMismatch,
         templatePartOfUriMismatch,
         templatePartOfUseUri,
@@ -732,6 +733,13 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     for (Import import in imports) {
       if (import.imported == loader.coreLibrary) {
         explicitCoreImport = true;
+      }
+      if (import.imported?.isPart ?? false) {
+        addProblem(
+            templatePartOfInLibrary.withArguments(import.imported.fileUri),
+            import.charOffset,
+            noLength,
+            fileUri);
       }
       import.finalizeImports(this);
     }
