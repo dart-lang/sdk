@@ -1371,13 +1371,18 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<FunctionElement> _functions;
 
   /**
+   * A list containing all of the mixins contained in this compilation unit.
+   */
+  List<ClassElement> _mixins;
+
+  /**
    * A list containing all of the function type aliases contained in this
    * compilation unit.
    */
   List<FunctionTypeAliasElement> _typeAliases;
 
   /**
-   * A list containing all of the types contained in this compilation unit.
+   * A list containing all of the classes contained in this compilation unit.
    */
   List<ClassElement> _types;
 
@@ -1566,6 +1571,27 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       }
     }
     return super.metadata;
+  }
+
+  @override
+  List<ClassElement> get mixins {
+    if (_unlinkedUnit != null) {
+      _mixins ??= _unlinkedUnit.mixins
+          .map((c) => new MixinElementImpl.forSerialized(c, this))
+          .toList(growable: false);
+    }
+    return _mixins ?? const <ClassElement>[];
+  }
+
+  /**
+   * Set the mixins contained in this compilation unit to the given [mixins].
+   */
+  void set mixins(List<ClassElement> mixins) {
+    _assertNotResynthesized(_unlinkedUnit);
+    for (MixinElementImpl type in mixins) {
+      type.enclosingElement = this;
+    }
+    this._mixins = mixins;
   }
 
   @override

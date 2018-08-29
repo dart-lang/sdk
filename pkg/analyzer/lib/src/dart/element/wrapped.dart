@@ -139,6 +139,9 @@ class WrappedCompilationUnitElement implements CompilationUnitElement {
   List<ElementAnnotation> get metadata => wrappedUnit.metadata;
 
   @override
+  List<ClassElement> get mixins => wrappedUnit.mixins;
+
+  @override
   String get name => wrappedUnit.name;
 
   @override

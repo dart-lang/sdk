@@ -3762,6 +3762,8 @@ class ParseDartTask extends SourceBasedAnalysisTask {
         options.analyzeFunctionBodiesPredicate(_source);
     parser.parseGenericMethodComments = true;
     parser.enableOptionalNewAndConst = true;
+    (parser as ParserAdapter).fastaParser.isMixinSupportEnabled =
+        (options as AnalysisOptionsImpl).isMixinSupportEnabled;
     CompilationUnit unit = parser.parseCompilationUnit(tokenStream);
     unit.lineInfo = lineInfo;
 

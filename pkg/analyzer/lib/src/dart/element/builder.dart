@@ -603,6 +603,32 @@ class ApiElementBuilder extends _BaseElementBuilder {
   }
 
   @override
+  Object visitMixinDeclaration(MixinDeclaration node) {
+    ElementHolder holder = new ElementHolder();
+    ElementHolder previousHolder = _currentHolder;
+    _currentHolder = holder;
+    try {
+      node.visitChildren(this);
+    } finally {
+      _currentHolder = previousHolder;
+    }
+
+    SimpleIdentifier nameNode = node.name;
+    MixinElementImpl element = new MixinElementImpl.forNode(nameNode);
+    _setCodeRange(element, node);
+    element.metadata = _createElementAnnotations(node.metadata);
+    element.typeParameters = holder.typeParameters;
+    setElementDocumentationComment(element, node);
+    element.accessors = holder.accessors;
+    element.fields = holder.fields;
+    element.methods = holder.methods;
+    _currentHolder.addMixin(element);
+    nameNode.staticElement = element;
+    holder.validate();
+    return null;
+  }
+
+  @override
   Object visitPartDirective(PartDirective node) {
     List<ElementAnnotation> annotations =
         _createElementAnnotations(node.metadata);
@@ -783,6 +809,7 @@ class CompilationUnitBuilder {
       element.functions = holder.functions;
       element.source = source;
       element.librarySource = librarySource;
+      element.mixins = holder.mixins;
       element.typeAliases = holder.typeAliases;
       element.types = holder.types;
       element.topLevelVariables = holder.topLevelVariables;

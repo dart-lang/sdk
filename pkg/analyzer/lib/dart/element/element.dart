@@ -491,6 +491,12 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
   LineInfo get lineInfo;
 
   /**
+   * Return a list containing all of the mixins contained in this compilation
+   * unit.
+   */
+  List<ClassElement> get mixins;
+
+  /**
    * Return a list containing all of the top-level variables contained in this
    * compilation unit.
    */

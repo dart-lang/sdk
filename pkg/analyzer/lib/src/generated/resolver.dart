@@ -2723,6 +2723,8 @@ class ElementHolder {
 
   List<MethodElement> _methods;
 
+  List<ClassElement> _mixins;
+
   List<ParameterElement> _parameters;
 
   List<TopLevelVariableElement> _topLevelVariables;
@@ -2810,6 +2812,15 @@ class ElementHolder {
     }
     List<MethodElement> result = _methods;
     _methods = null;
+    return result;
+  }
+
+  List<ClassElement> get mixins {
+    if (_mixins == null) {
+      return const <ClassElement>[];
+    }
+    List<ClassElement> result = _mixins;
+    _mixins = null;
     return result;
   }
 
@@ -2912,6 +2923,13 @@ class ElementHolder {
       _methods = new List<MethodElement>();
     }
     _methods.add(element);
+  }
+
+  void addMixin(ClassElement element) {
+    if (_mixins == null) {
+      _mixins = new List<ClassElement>();
+    }
+    _mixins.add(element);
   }
 
   void addParameter(ParameterElement element) {

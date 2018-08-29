@@ -228,6 +228,9 @@ class CompilationUnitElementHandle extends ElementHandle
   LineInfo get lineInfo => actualElement.lineInfo;
 
   @override
+  List<ClassElement> get mixins => actualElement.mixins;
+
+  @override
   Source get source => actualElement.source;
 
   @override

@@ -9939,6 +9939,12 @@ class ParserTestCase extends EngineTestCase
   bool enableOptionalNewAndConst = false;
 
   /**
+   * A flag indicating whether the parser should parse mixin declarations.
+   * https://github.com/dart-lang/language/issues/12
+   */
+  bool isMixinSupportEnabled = false;
+
+  /**
    * A flag indicating whether the parser is to parse part-of directives that
    * specify a URI rather than a library name.
    */
@@ -10007,6 +10013,8 @@ class ParserTestCase extends EngineTestCase
     parser.parseFunctionBodies = parseFunctionBodies;
     parser.enableNnbd = enableNnbd;
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
+    (parser as ParserAdapter).fastaParser.isMixinSupportEnabled =
+        isMixinSupportEnabled;
     parser.currentToken = token;
   }
 
@@ -10154,6 +10162,8 @@ class ParserTestCase extends EngineTestCase
 
     Parser parser = new Parser(source, listener);
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
+    (parser as ParserAdapter).fastaParser.isMixinSupportEnabled =
+        isMixinSupportEnabled;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     expect(unit, isNotNull);
     if (codes != null) {

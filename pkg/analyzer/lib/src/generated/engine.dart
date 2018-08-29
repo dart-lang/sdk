@@ -1494,6 +1494,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool implicitDynamic = true;
 
   /**
+   * Return `true` to enable mixin declarations.
+   * https://github.com/dart-lang/language/issues/12
+   */
+  bool isMixinSupportEnabled = false;
+
+  /**
    * Initialize a newly created set of analysis options to have their default
    * values.
    */
@@ -1525,6 +1531,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       implicitCasts = options.implicitCasts;
       nonnullableTypes = options.nonnullableTypes;
       implicitDynamic = options.implicitDynamic;
+      isMixinSupportEnabled = options.isMixinSupportEnabled;
     }
     trackCacheDependencies = options.trackCacheDependencies;
     disableCacheFlushing = options.disableCacheFlushing;
@@ -1664,6 +1671,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       buffer.addBool(strongModeHints);
       buffer.addBool(useFastaParser);
       buffer.addBool(previewDart2);
+      buffer.addBool(isMixinSupportEnabled);
 
       // Append error processors.
       buffer.addInt(errorProcessors.length);
