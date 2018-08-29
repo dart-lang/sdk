@@ -106,6 +106,9 @@ step_through_getter_test: RuntimeError # Debugging StringConcatenation doesn't w
 [ $compiler == dart2js || $browser ]
 *: SkipByDesign
 
+[ $compiler == dartk || $compiler == dartkp ]
+rewind_test: Pass, RuntimeError # Issue 34287
+
 # Skip all service tests because random reloads interfere.
 [ $hot_reload || $hot_reload_rollback ]
 *: SkipByDesign # The service tests should run without being reloaded.
