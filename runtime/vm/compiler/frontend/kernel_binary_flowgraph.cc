@@ -3516,12 +3516,19 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   }
 
   bool is_unchecked_closure_call = false;
+  bool is_unchecked_call = false;
 #ifndef TARGET_ARCH_DBC
-  if (call_site_attributes.receiver_type != nullptr &&
-      call_site_attributes.receiver_type->IsFunctionType()) {
-    AlternativeReadingScope alt(&reader_);
-    SkipExpression();  // skip receiver
-    is_unchecked_closure_call = ReadNameAsMethodName().Equals(Symbols::Call());
+  if (call_site_attributes.receiver_type != nullptr) {
+    if (call_site_attributes.receiver_type->IsFunctionType()) {
+      AlternativeReadingScope alt(&reader_);
+      SkipExpression();  // skip receiver
+      is_unchecked_closure_call =
+          ReadNameAsMethodName().Equals(Symbols::Call());
+    } else if (call_site_attributes.receiver_type->HasResolvedTypeClass() &&
+               !Class::Handle(call_site_attributes.receiver_type->type_class())
+                    .IsGeneric()) {
+      is_unchecked_call = true;
+    }
   }
 #endif
 
@@ -3554,7 +3561,9 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
 
   // Take note of whether the invocation is against the receiver of the current
   // function: in this case, we may skip some type checks in the callee.
-  const bool is_this_invocation = PeekTag() == kThisExpression;
+  if (PeekTag() == kThisExpression) {
+    is_unchecked_call = true;
+  }
   instructions += BuildExpression();  // read receiver.
 
   const String& name = ReadNameAsMethodName();  // read name.
@@ -3644,7 +3653,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
         B->ClosureCall(position, type_args_len, argument_count, argument_names,
                        /*use_unchecked_entry=*/true);
   } else if (!direct_call.target_.IsNull()) {
-    // TODO(#34162): Pass 'is_this_invocation' down if/when we feature multiple
+    // TODO(#34162): Pass 'is_unchecked_call' down if/when we feature multiple
     // entry-points in AOT.
     ASSERT(FLAG_precompiled_mode);
     instructions += StaticCall(position, direct_call.target_, argument_count,
@@ -3665,12 +3674,12 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
           Z, Function::CreateDynamicInvocationForwarderName(name));
     }
 
-    // TODO(#34162): Pass 'is_this_invocation' down if/when we feature multiple
+    // TODO(#34162): Pass 'is_unchecked_call' down if/when we feature multiple
     // entry-points in AOT.
     instructions += InstanceCall(
         position, *mangled_name, token_kind, type_args_len, argument_count,
         argument_names, checked_argument_count, *interface_target, &result_type,
-        /*use_unchecked_entry=*/!FLAG_precompiled_mode && is_this_invocation,
+        /*use_unchecked_entry=*/!FLAG_precompiled_mode && is_unchecked_call,
         &call_site_attributes);
   }
 

@@ -149,6 +149,10 @@ void FlowGraphPrinter::PrintTypeCheck(const ParsedFunction& parsed_function,
       String::Handle(dst_type.Name()).ToCString(), dst_name.ToCString());
 }
 
+static const char* TypeToUserVisibleName(const AbstractType& type) {
+  return String::Handle(type.UserVisibleName()).ToCString();
+}
+
 void CompileType::PrintTo(BufferFormatter* f) const {
   const char* type_name = "?";
   if ((cid_ != kIllegalCid) && (cid_ != kDynamicCid)) {
@@ -156,7 +160,7 @@ void CompileType::PrintTo(BufferFormatter* f) const {
         Class::Handle(Isolate::Current()->class_table()->At(cid_));
     type_name = String::Handle(cls.ScrubbedName()).ToCString();
   } else if (type_ != NULL && !type_->IsDynamicType()) {
-    type_name = type_->ToCString();
+    type_name = TypeToUserVisibleName(*type_);
   } else if (!is_nullable()) {
     type_name = "!null";
   }
@@ -471,7 +475,8 @@ void DropTempsInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void AssertAssignableInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
-  f->Print(", %s, '%s',", dst_type().ToCString(), dst_name().ToCString());
+  f->Print(", %s, '%s',", TypeToUserVisibleName(dst_type()),
+           dst_name().ToCString());
   f->Print(" instantiator_type_args(");
   instantiator_type_arguments()->PrintTo(f);
   f->Print("), function_type_args(");
@@ -480,8 +485,8 @@ void AssertAssignableInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 void AssertSubtypeInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s, %s, '%s',", sub_type().ToCString(), super_type().ToCString(),
-           dst_name().ToCString());
+  f->Print("%s, %s, '%s',", TypeToUserVisibleName(sub_type()),
+           TypeToUserVisibleName(super_type()), dst_name().ToCString());
   f->Print(" instantiator_type_args(");
   instantiator_type_arguments()->PrintTo(f);
   f->Print("), function_type_args(");
