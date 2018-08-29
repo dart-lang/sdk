@@ -64,10 +64,9 @@ foo2(int /*[exact=JSUInt31]*/ choice) {
   probe2methods(methods);
 }
 
-/*kernel.element: probe2res:[null|subclass=Object]*/
 /*strong.element: probe2res:[null|subclass=JSInt]*/
 probe2res(
-        /*kernel.[null|subclass=Object]*/
+
         /*strong.[null|subclass=JSInt]*/
         x) =>
     x;

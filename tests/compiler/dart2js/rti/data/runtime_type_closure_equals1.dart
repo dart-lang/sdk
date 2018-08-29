@@ -4,17 +4,14 @@
 
 import 'package:expect/expect.dart';
 
-/*kernel.class: Class:needsArgs*/
 /*strong.class: Class:*/
 /*omit.class: Class:*/
 class Class<T> {
-  /*kernel.element: Class.:needsSignature*/
   /*strong.element: Class.:*/
   /*omit.element: Class.:*/
   Class();
 }
 
-/*kernel.element: main:needsSignature*/
 /*strong.element: main:*/
 /*omit.element: main:*/
 main() {

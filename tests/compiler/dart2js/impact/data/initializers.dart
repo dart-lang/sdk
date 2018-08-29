@@ -28,11 +28,9 @@ main() {
   testGenericClass();
 }
 
-/*kernel.element: testDefaultValuesPositional:type=[check:bool,inst:JSBool]*/
 /*strong.element: testDefaultValuesPositional:type=[inst:JSBool,param:bool]*/
 testDefaultValuesPositional([bool value = false]) {}
 
-/*kernel.element: testDefaultValuesNamed:type=[check:bool,inst:JSBool]*/
 /*strong.element: testDefaultValuesNamed:type=[inst:JSBool,param:bool]*/
 testDefaultValuesNamed({bool value: false}) {}
 
@@ -86,7 +84,6 @@ testFieldInitializer3() {
 
 /*element: ClassInstanceFieldWithInitializer.:static=[Object.(0)]*/
 class ClassInstanceFieldWithInitializer {
-  /*kernel.element: ClassInstanceFieldWithInitializer.field:type=[inst:JSBool]*/
   /*strong.element: ClassInstanceFieldWithInitializer.field:type=[inst:JSBool,param:bool]*/
   var field = false;
 }
@@ -96,7 +93,6 @@ testInstanceFieldWithInitializer() => new ClassInstanceFieldWithInitializer();
 
 /*element: ClassInstanceFieldTyped.:static=[Object.(0)]*/
 class ClassInstanceFieldTyped {
-  /*kernel.element: ClassInstanceFieldTyped.field:type=[check:int,inst:JSNull]*/
   /*strong.element: ClassInstanceFieldTyped.field:type=[inst:JSBool,inst:JSNull,param:int]*/
   int field;
 }
@@ -124,7 +120,6 @@ class ClassSuperInitializer extends ClassThisInitializer {
 testSuperInitializer() => new ClassSuperInitializer();
 
 class ClassGeneric<T> {
-  /*kernel.element: ClassGeneric.:static=[Object.(0)],type=[check:ClassGeneric.T]*/
   /*strong.element: ClassGeneric.:
    static=[
     Object.(0),

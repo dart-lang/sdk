@@ -6,16 +6,13 @@ import 'package:expect/expect.dart';
 
 String method() => null;
 
-/*kernel.class: Class1:needsArgs*/
 /*omit.class: Class1:needsArgs*/
 /*strong.class: Class1:direct,explicit=[Class1.T],needsArgs*/
 class Class1<T> {
-  /*kernel.element: Class1.:needsSignature*/
   /*strong.element: Class1.:*/
   /*omit.element: Class1.:*/
   Class1();
 
-  /*kernel.element: Class1.method:needsSignature*/
   /*strong.element: Class1.method:*/
   /*omit.element: Class1.method:*/
   method() {
@@ -34,17 +31,14 @@ class Class1<T> {
   }
 }
 
-/*kernel.class: Class2:needsArgs*/
 /*strong.class: Class2:*/
 /*omit.class: Class2:*/
 class Class2<T> {
-  /*kernel.element: Class2.:needsSignature*/
   /*strong.element: Class2.:*/
   /*omit.element: Class2.:*/
   Class2();
 }
 
-/*kernel.element: main:needsSignature*/
 /*strong.element: main:*/
 /*omit.element: main:*/
 main() {

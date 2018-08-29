@@ -6,12 +6,10 @@ import 'package:expect/expect.dart';
 
 /*class: Class1a:needsArgs*/
 class Class1a<T> {
-  /*kernel.element: Class1a.:needsSignature*/
   /*strong.element: Class1a.:*/
   /*omit.element: Class1a.:*/
   Class1a();
 
-  /*kernel.element: Class1a.==:needsSignature*/
   /*strong.element: Class1a.==:*/
   /*omit.element: Class1a.==:*/
   bool operator ==(other) {
@@ -22,7 +20,6 @@ class Class1a<T> {
 
 /*class: Class1b:needsArgs*/
 class Class1b<T> extends Class1a<T> {
-  /*kernel.element: Class1b.:needsSignature*/
   /*strong.element: Class1b.:*/
   /*omit.element: Class1b.:*/
   Class1b();
@@ -32,23 +29,19 @@ class Class1b<T> extends Class1a<T> {
 // this class.
 /*class: Class1c:needsArgs*/
 class Class1c<T> implements Class1a<T> {
-  /*kernel.element: Class1c.:needsSignature*/
   /*strong.element: Class1c.:*/
   /*omit.element: Class1c.:*/
   Class1c();
 }
 
-/*kernel.class: Class2:needsArgs*/
 /*strong.class: Class2:*/
 /*omit.class: Class2:*/
 class Class2<T> {
-  /*kernel.element: Class2.:needsSignature*/
   /*strong.element: Class2.:*/
   /*omit.element: Class2.:*/
   Class2();
 }
 
-/*kernel.element: main:needsSignature*/
 /*strong.element: main:*/
 /*omit.element: main:*/
 main() {

@@ -137,10 +137,6 @@ class ForwardingConstructorClass = ForwardingConstructorSuperClass
 testForwardingConstructor() => new ForwardingConstructorClass(null);
 
 class ForwardingConstructorTypedSuperClass {
-  /*kernel.element: ForwardingConstructorTypedSuperClass.:
-   static=[Object.(0)],
-   type=[check:int]
-  */
   /*strong.element: ForwardingConstructorTypedSuperClass.:
    static=[Object.(0)],
    type=[inst:JSBool,param:int]
@@ -158,10 +154,6 @@ class ForwardingConstructorTypedClass = ForwardingConstructorTypedSuperClass
 testForwardingConstructorTyped() => new ForwardingConstructorTypedClass(null);
 
 class ForwardingConstructorGenericSuperClass<T> {
-  /*kernel.element: ForwardingConstructorGenericSuperClass.:
-   static=[Object.(0)],
-   type=[check:ForwardingConstructorGenericSuperClass.T]
-  */
   /*strong.element: ForwardingConstructorGenericSuperClass.:
    static=[
     Object.(0),
@@ -199,17 +191,6 @@ testForwardingConstructorGeneric() {
 }
 
 enum Enum {
-  /*kernel.element: Enum.A:static=[Enum.(2)],
-   type=[
-    check:Enum,
-    inst:JSDouble,
-    inst:JSInt,
-    inst:JSNumber,
-    inst:JSPositiveInt,
-    inst:JSString,
-    inst:JSUInt31,
-    inst:JSUInt32]
-  */
   /*strong.element: Enum.A:static=[Enum.(2)],
    type=[
     inst:JSBool,
@@ -228,12 +209,6 @@ enum Enum {
 /*element: testEnum:static=[Enum.A]*/
 testEnum() => Enum.A;
 
-/*kernel.element: staticGenericMethod:
- type=[
-  check:List<staticGenericMethod.T>,
-  check:staticGenericMethod.T,
-  inst:List<dynamic>]
- */
 /*strong.element: staticGenericMethod:
  static=[
   checkSubtype,
@@ -256,10 +231,6 @@ testEnum() => Enum.A;
 */
 List<T> staticGenericMethod<T>(T arg) => [arg];
 
-/*kernel.element: testStaticGenericMethod:
-  static=[staticGenericMethod(1)],
-  type=[inst:JSBool]
-*/
 /*strong.element: testStaticGenericMethod:
   static=[staticGenericMethod<bool>(1)],
   type=[inst:JSBool]
@@ -268,14 +239,6 @@ testStaticGenericMethod() {
   staticGenericMethod<bool>(true);
 }
 
-/*kernel.element: testInstanceGenericMethod:
- dynamic=[call(1),genericMethod(1)],
- static=[
-  GenericClass.generative(0),
-  assertIsSubtype,
-  throwTypeError],
- type=[inst:JSBool]
-*/
 /*strong.element: testInstanceGenericMethod:
  dynamic=[genericMethod<bool>(1)],
  static=[
@@ -292,7 +255,6 @@ abstract class AbstractClass {
   // ignore: UNUSED_FIELD
   final _field;
 
-  /*kernel.element: AbstractClass.:type=[check:AbstractClass,inst:JSNull]*/
   /*strong.element: AbstractClass.:type=[inst:JSNull]*/
   factory AbstractClass() => null;
 }
@@ -330,13 +292,6 @@ class Class {
 class GenericClass<X, Y> {
   const GenericClass.generative();
 
-  /*kernel.element: GenericClass.genericMethod:
-   type=[
-    check:Map<GenericClass.X,genericMethod.T>,
-    check:genericMethod.T,
-    inst:JSNull,
-    inst:Map<dynamic,dynamic>]
-  */
   /*strong.element: GenericClass.genericMethod:
    static=[
     checkSubtype,

@@ -11,7 +11,7 @@ class A<T> {
     // TODO(johnniwinther): The signature is not needed since the type isn't a
     // potential subtype of the checked function types.
     return
-        /*kernel.checks=[$signature],instance*/
+
         /*strong.checks=[],instance*/
         /*omit.checks=[],instance*/
         (T t, String s) {};

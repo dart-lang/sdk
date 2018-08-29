@@ -22,9 +22,7 @@ main(List<String> args) {
     Directory dataDir =
         new Directory.fromUri(Platform.script.resolve('side_effects'));
     await checkTests(dataDir, const SideEffectsDataComputer(),
-        args: args,
-        options: [stopAfterTypeInference],
-        skipForStrong: ['closure_call.dart']);
+        args: args, options: [stopAfterTypeInference]);
   });
 }
 

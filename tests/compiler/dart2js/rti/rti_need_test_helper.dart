@@ -33,12 +33,6 @@ runTests(List<String> args, [int shardIndex]) {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, const RtiNeedDataComputer(),
         options: [],
-        skipForStrong: [
-          'map_literal_checked.dart',
-          // TODO(johnniwinther): Optimize local function type signature need.
-          'subtype_named_args.dart',
-          'subtype_named_args1.dart',
-        ],
         args: args,
         testOmit: true,
         shardIndex: shardIndex ?? 0,

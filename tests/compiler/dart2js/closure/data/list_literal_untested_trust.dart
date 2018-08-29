@@ -9,7 +9,6 @@ class A<T> {
   /*element: A.method:hasThis*/
   @NoInline()
   method() {
-    /*kernel.hasThis*/
     /*omit.hasThis*/
     /*strong.fields=[this],free=[this],hasThis*/
     dynamic local() => <T>[];

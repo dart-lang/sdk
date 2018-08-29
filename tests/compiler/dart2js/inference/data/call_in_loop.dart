@@ -12,14 +12,10 @@ class Class<T> {
     /*current: [exact=ArrayIterator]*/
     /*moveNext: [exact=ArrayIterator]*/
     for (var a in []) {
-      // ignore: invocation_of_non_function_expression
-      (T) /*invoke: [exact=TypeImpl]*/ (a);
-      // ignore: invocation_of_non_function_expression
-      (Object) /*invoke: [exact=TypeImpl]*/ ();
-      // ignore: invocation_of_non_function_expression
-      (this) /*invoke: [exact=Class]*/ ();
-      // ignore: invocation_of_non_function_expression
-      (1) /*invoke: [exact=JSUInt31]*/ ();
+      (T as dynamic) /*invoke: [exact=TypeImpl]*/ (a);
+      (Object as dynamic) /*invoke: [exact=TypeImpl]*/ ();
+      (this as dynamic) /*invoke: [exact=Class]*/ ();
+      (1 as dynamic) /*invoke: [exact=JSUInt31]*/ ();
     }
   }
 }

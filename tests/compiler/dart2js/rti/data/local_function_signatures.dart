@@ -6,7 +6,6 @@ import 'package:expect/expect.dart';
 
 class Class1 {
   method1() {
-    /*kernel.*/
     /*strong.needsSignature*/
     /*omit.needsSignature*/
     num local(num n) => null;
@@ -24,7 +23,6 @@ class Class1 {
   }
 }
 
-/*kernel.class: Class2:needsArgs*/
 /*omit.class: Class2:needsArgs*/
 /*strong.class: Class2:direct,explicit=[Class2.T],needsArgs*/
 class Class2<T> {
@@ -44,7 +42,6 @@ class Class3<T> {
   }
 }
 
-/*kernel.class: Class4:*/
 /*omit.class: Class4:*/
 /*strong.class: Class4:direct,explicit=[Class4.T],needsArgs*/
 class Class4<T> {

@@ -9,7 +9,7 @@ main() async {
   //
   // This happens because the closure is thought as possibly going to the
   // async.errorHandler callback.
-  /*kernel.*/
+
   /*strong.needsSignature*/
   /*omit.needsSignature*/
   local(object, stacktrace) => null;

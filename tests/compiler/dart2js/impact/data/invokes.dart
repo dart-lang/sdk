@@ -115,18 +115,9 @@ testTopLevelInvoke() {
   topLevelFunction3(15, c: 16, b: 17);
 }
 
-/*kernel.element: topLevelFunction1Typed:type=[check:int,check:void]*/
 /*strong.element: topLevelFunction1Typed:type=[inst:JSBool,param:int]*/
 void topLevelFunction1Typed(int a) {}
 
-/*kernel.element: topLevelFunction2Typed:
- type=[
-  check:String,
-  check:double,
-  check:int,
-  check:num,
-  inst:JSNull]
-*/
 /*strong.element: topLevelFunction2Typed:
  type=[
   inst:JSBool,
@@ -137,14 +128,6 @@ void topLevelFunction1Typed(int a) {}
 */
 int topLevelFunction2Typed(String a, [num b, double c]) => null;
 
-/*kernel.element: topLevelFunction3Typed:
- type=[
-  check:List<int>,
-  check:Map<String,bool>,
-  check:bool,
-  check:double,
-  inst:JSNull]
-*/
 /*strong.element: topLevelFunction3Typed:
  static=[
   checkSubtype,
@@ -169,30 +152,6 @@ double topLevelFunction3Typed(bool a, {List<int> b, Map<String, bool> c}) {
   return null;
 }
 
-/*kernel.element: testTopLevelInvokeTyped:
- static=[
-  topLevelFunction1Typed(1),
-  topLevelFunction2Typed(1),
-  topLevelFunction2Typed(2),
-  topLevelFunction2Typed(3),
-  topLevelFunction3Typed(1),
-  topLevelFunction3Typed(1,b),
-  topLevelFunction3Typed(1,b,c),
-  topLevelFunction3Typed(1,b,c),
-  topLevelFunction3Typed(1,c)],
- type=[
-  inst:JSBool,
-  inst:JSDouble,
-  inst:JSInt,
-  inst:JSNull,
-  inst:JSNumber,
-  inst:JSPositiveInt,
-  inst:JSString,
-  inst:JSUInt31,
-  inst:JSUInt32,
-  inst:List<dynamic>,
-  inst:Map<dynamic,dynamic>]
-*/
 /*strong.element: testTopLevelInvokeTyped:
  static=[
   topLevelFunction1Typed(1),
@@ -229,7 +188,6 @@ testTopLevelInvokeTyped() {
   topLevelFunction3Typed(false, c: {'16': false}, b: [17]);
 }
 
-/*kernel.element: topLevelFunctionTyped1:type=[check:void Function(num)]*/
 /*strong.element: topLevelFunctionTyped1:
  static=[
   checkSubtype,
@@ -249,7 +207,6 @@ testTopLevelInvokeTyped() {
 */
 topLevelFunctionTyped1(void a(num b)) {}
 
-/*kernel.element: topLevelFunctionTyped2:type=[check:void Function(num,[String])]*/
 /*strong.element: topLevelFunctionTyped2:
  static=[
   checkSubtype,
@@ -269,9 +226,6 @@ topLevelFunctionTyped1(void a(num b)) {}
 */
 topLevelFunctionTyped2(void a(num b, [String c])) {}
 
-/*kernel.element: topLevelFunctionTyped3:
- type=[check:void Function(num,{String c,int d})]
-*/
 /*strong.element: topLevelFunctionTyped3:
  static=[
   checkSubtype,
@@ -291,9 +245,6 @@ topLevelFunctionTyped2(void a(num b, [String c])) {}
 */
 topLevelFunctionTyped3(void a(num b, {String c, int d})) {}
 
-/*kernel.element: topLevelFunctionTyped4:
- type=[check:void Function(num,{int c,String d})]
-*/
 /*strong.element: topLevelFunctionTyped4:
  static=[
   checkSubtype,
@@ -337,7 +288,6 @@ get topLevelGetter => null;
 /*element: testTopLevelGetterGet:static=[topLevelGetter]*/
 testTopLevelGetterGet() => topLevelGetter;
 
-/*kernel.element: topLevelGetterTyped:type=[check:int,inst:JSNull]*/
 /*strong.element: topLevelGetterTyped:type=[inst:JSNull]*/
 int get topLevelGetterTyped => null;
 
@@ -350,7 +300,6 @@ set topLevelSetter(_) {}
 /*element: testTopLevelSetterSet:static=[set:topLevelSetter],type=[inst:JSNull]*/
 testTopLevelSetterSet() => topLevelSetter = null;
 
-/*kernel.element: topLevelSetterTyped=:type=[check:int,check:void]*/
 /*strong.element: topLevelSetterTyped=:type=[inst:JSBool,param:int]*/
 void set topLevelSetterTyped(int value) {}
 
@@ -381,28 +330,24 @@ final topLevelFieldFinal = topLevelFunction1(null);
 /*element: testTopLevelFieldFinal:static=[topLevelFieldFinal]*/
 testTopLevelFieldFinal() => topLevelFieldFinal;
 
-/*kernel.element: topLevelFieldTyped:type=[check:int,inst:JSNull]*/
 /*strong.element: topLevelFieldTyped:type=[inst:JSBool,inst:JSNull,param:int]*/
 int topLevelFieldTyped;
 
 /*element: testTopLevelFieldTyped:static=[topLevelFieldTyped]*/
 testTopLevelFieldTyped() => topLevelFieldTyped;
 
-/*kernel.element: topLevelFieldGeneric1:type=[check:GenericClass<dynamic,dynamic>,inst:JSNull]*/
 /*strong.element: topLevelFieldGeneric1:type=[inst:JSBool,inst:JSNull,param:GenericClass<dynamic,dynamic>]*/
 GenericClass topLevelFieldGeneric1;
 
 /*element: testTopLevelFieldGeneric1:static=[topLevelFieldGeneric1]*/
 testTopLevelFieldGeneric1() => topLevelFieldGeneric1;
 
-/*kernel.element: topLevelFieldGeneric2:type=[check:GenericClass<dynamic,dynamic>,inst:JSNull]*/
 /*strong.element: topLevelFieldGeneric2:type=[inst:JSBool,inst:JSNull,param:GenericClass<dynamic,dynamic>]*/
 GenericClass<dynamic, dynamic> topLevelFieldGeneric2;
 
 /*element: testTopLevelFieldGeneric2:static=[topLevelFieldGeneric2]*/
 testTopLevelFieldGeneric2() => topLevelFieldGeneric2;
 
-/*kernel.element: topLevelFieldGeneric3:type=[check:GenericClass<int,String>,inst:JSNull]*/
 /*strong.element: topLevelFieldGeneric3:
  static=[
   checkSubtype,
@@ -511,16 +456,6 @@ testLocalWithInitializer() {
   var l = 42;
 }
 
-/*kernel.element: testLocalWithInitializerTyped:
- type=[
-  check:int,
-  inst:JSDouble,
-  inst:JSInt,
-  inst:JSNumber,
-  inst:JSPositiveInt,
-  inst:JSUInt31,
-  inst:JSUInt32]
-*/
 /*strong.element: testLocalWithInitializerTyped:
  type=[
   inst:JSDouble,
@@ -535,7 +470,6 @@ testLocalWithInitializerTyped() {
   int l = 42;
 }
 
-/*kernel.element: testLocalFunction:static=[def:localFunction],type=[inst:Function]*/
 /*strong.element: testLocalFunction:
  static=[
   computeSignature,
@@ -556,10 +490,6 @@ testLocalFunction() {
   localFunction() {}
 }
 
-/*kernel.element: testLocalFunctionTyped:
- static=[def:localFunction],
- type=[check:String,check:int,inst:Function,inst:JSNull]
-*/
 /*strong.element: testLocalFunctionTyped:
  static=[
   computeSignature,
@@ -581,8 +511,6 @@ testLocalFunctionTyped() {
   int localFunction(String a) => null;
 }
 
-/*kernel.element: testLocalFunctionInvoke:static=[def:localFunction],
-  type=[inst:Function]*/
 /*strong.element: testLocalFunctionInvoke:
  dynamic=[call(0)],
  static=[computeSignature,
@@ -602,8 +530,6 @@ testLocalFunctionInvoke() {
   localFunction();
 }
 
-/*kernel.element: testLocalFunctionGet:static=[def:localFunction],
-  type=[inst:Function]*/
 /*strong.element: testLocalFunctionGet:static=[computeSignature,
   def:localFunction,
   getRuntimeTypeArguments,
@@ -620,8 +546,6 @@ testLocalFunctionGet() {
   localFunction;
 }
 
-/*kernel.element: testClosure:static=[def:<anonymous>],
-  type=[inst:Function]*/
 /*strong.element: testClosure:static=[computeSignature,
   def:<anonymous>,
   getRuntimeTypeArguments,
@@ -637,11 +561,6 @@ testClosure() {
   () {};
 }
 
-/*kernel.element: testClosureInvoke:
- dynamic=[call(0)],
- static=[def:<anonymous>],
- type=[inst:Function]
-*/
 /*strong.element: testClosureInvoke:
  dynamic=[call(0)],
  static=[computeSignature,

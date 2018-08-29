@@ -559,7 +559,6 @@ Future checkTests(Directory dataDir, DataComputer dataComputer,
           new AnnotatedCode.fromText(annotatedCode, commentStart, commentEnd)
     };
     Map<String, MemberAnnotations<IdValue>> expectedMaps = {
-      kernelMarker: new MemberAnnotations<IdValue>(),
       strongMarker: new MemberAnnotations<IdValue>(),
       omitMarker: new MemberAnnotations<IdValue>(),
     };
@@ -800,7 +799,6 @@ Spannable computeSpannable(
   throw new UnsupportedError('Unsupported id $id.');
 }
 
-const String kernelMarker = 'kernel.';
 const String strongMarker = 'strong.';
 const String omitMarker = 'omit.';
 
@@ -819,7 +817,7 @@ const String omitMarker = 'omit.';
 /// annotations without prefixes.
 void computeExpectedMap(Uri sourceUri, AnnotatedCode code,
     Map<String, MemberAnnotations<IdValue>> maps) {
-  List<String> mapKeys = [kernelMarker, strongMarker, omitMarker];
+  List<String> mapKeys = [strongMarker, omitMarker];
   Map<String, AnnotatedCode> split = splitByPrefixes(code, mapKeys);
 
   split.forEach((String marker, AnnotatedCode code) {
