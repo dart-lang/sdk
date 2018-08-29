@@ -2570,8 +2570,9 @@ RawObject* Interpreter::Call(RawFunction* function,
       } break;
       case MethodRecognizer::kLinkedHashMap_setIndex: {
         RawInstance* instance = reinterpret_cast<RawInstance*>(SP[-1]);
-        reinterpret_cast<RawObject**>(
-            instance->ptr())[LinkedHashMap::index_offset() / kWordSize] = SP[0];
+        instance->StorePointer(reinterpret_cast<RawObject**>(instance->ptr()) +
+                                   LinkedHashMap::index_offset() / kWordSize,
+                               SP[0]);
         *--SP = null_value;
       } break;
       case MethodRecognizer::kLinkedHashMap_getData: {
@@ -2581,8 +2582,9 @@ RawObject* Interpreter::Call(RawFunction* function,
       } break;
       case MethodRecognizer::kLinkedHashMap_setData: {
         RawInstance* instance = reinterpret_cast<RawInstance*>(SP[-1]);
-        reinterpret_cast<RawObject**>(
-            instance->ptr())[LinkedHashMap::data_offset() / kWordSize] = SP[0];
+        instance->StorePointer(reinterpret_cast<RawObject**>(instance->ptr()) +
+                                   LinkedHashMap::data_offset() / kWordSize,
+                               SP[0]);
         *--SP = null_value;
       } break;
       case MethodRecognizer::kLinkedHashMap_getHashMask: {
