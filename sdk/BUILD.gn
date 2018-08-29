@@ -73,13 +73,10 @@ declare_args() {
 #.........vm_platform.dill
 #.........vm_platform_strong.dill
 #.........dev_compiler/
-# ......analysis_server/
-# ......analyzer/
 # ......async/
 # ......collection/
 # ......convert/
 # ......core/
-# ......front_end/
 # ......html/
 # ......_http/
 # ......internal/
@@ -87,7 +84,6 @@ declare_args() {
 # ......isolate/
 # ......js/
 # ......js_util/
-# ......kernel/
 # ......math/
 # ......mirrors/
 # ......typed_data/
@@ -242,29 +238,9 @@ _full_sdk_libraries = [
 # ]
 _platform_sdk_libraries = _full_sdk_libraries
 
-# Package sources copied to lib/
-_analyzer_source_dirs = [
-  "analyzer",
-  "analysis_server",
-  "front_end",
-  "kernel",
-]
-
 # From here down to the copy_trees() invocation, we collect all the information
 # about trees that need to be copied in the list of scopes, copy_tree_specs.
 copy_tree_specs = []
-
-# This loop generates rules for copying analyzer sources into lib/
-foreach(analyzer_source_dir, _analyzer_source_dirs) {
-  copy_tree_specs += [ {
-        target = "copy_${analyzer_source_dir}_source_dir"
-        visibility = [ ":copy_analyzer_sources" ]
-        source = "../pkg/$analyzer_source_dir"
-        dest = "$root_out_dir/dart-sdk/lib/$analyzer_source_dir"
-        ignore_patterns =
-            "*.svn,doc,*.py,*.gypi,*.sh,.gitignore,packages,test,testcases"
-      } ]
-}
 
 # This rule copies dartdoc templates to
 # bin/snapshots/resources/dartdoc/templates
@@ -486,15 +462,6 @@ group("copy_full_sdk_snapshots") {
   public_deps = []
   foreach(snapshot, _full_sdk_snapshots) {
     public_deps += [ ":copy_${snapshot[0]}_snapshot" ]
-  }
-}
-
-# This is the main rule for copying analyzer sources to lib/
-group("copy_analyzer_sources") {
-  visibility = [ ":create_common_sdk" ]
-  public_deps = []
-  foreach(analyzer_source_dir, _analyzer_source_dirs) {
-    public_deps += [ ":copy_${analyzer_source_dir}_source_dir" ]
   }
 }
 
@@ -952,7 +919,6 @@ group("create_common_sdk") {
   visibility = [ ":create_sdk" ]
   public_deps = [
     ":copy_analysis_summaries",
-    ":copy_analyzer_sources",
     ":copy_api_readme",
     ":copy_dart",
     ":copy_dartdoc_files",
