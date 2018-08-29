@@ -136,14 +136,6 @@ class _OverriddenElementsFinder {
   _OverriddenElementsFinder(Element seed) {
     _seed = seed;
     _class = seed.enclosingElement;
-    if (_class == null) {
-      // TODO(brianwilkerson) Remove this code when the issue has been fixed
-      // (https://github.com/dart-lang/sdk/issues/25884)
-      Type type = seed.runtimeType;
-      String name = seed.name;
-      throw new ArgumentError(
-          'The $type named $name does not have an enclosing element');
-    }
     _library = _class.library;
     _name = seed.displayName;
     if (seed is MethodElement) {
