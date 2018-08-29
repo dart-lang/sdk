@@ -100,7 +100,7 @@ integer_parsed_mul_div_vm_test: Pass, Slow
 stopwatch_test: Skip # Flaky test due to expected performance behaviour.
 
 # All static_tests have expected compile-time errors.
-[ $compiler != app_jitk && $compiler != dart2analyzer && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && $compiler != fasta && $strong ]
+[ $compiler != app_jitk && $compiler != dart2analyzer && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $compiler != fasta && $strong ]
 core_runtime_types_static_test: MissingCompileTimeError
 splay_tree_test/01: MissingCompileTimeError
 splay_tree_test/02: MissingCompileTimeError
@@ -108,13 +108,13 @@ string_base_vm_static_test: MissingCompileTimeError
 string_replace_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
 
-[ $compiler != app_jitk && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && $compiler != fasta ]
+[ $compiler != app_jitk && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $compiler != fasta ]
 iterable_element_at_test/static: MissingCompileTimeError
 
-[ $compiler != app_jitk && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && $compiler != fasta && ($compiler != dart2analyzer || !$strong) ]
+[ $compiler != app_jitk && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $compiler != fasta && ($compiler != dart2analyzer || !$strong) ]
 iterable_mapping_test/01: MissingCompileTimeError
 
-[ $compiler != app_jitk && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkp && $runtime != none ]
+[ $compiler != app_jitk && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $runtime != none ]
 map_keys2_test: RuntimeError # needs Dart 2 is checks
 
 [ $compiler == dart2analyzer && $strong ]
