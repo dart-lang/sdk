@@ -13,7 +13,6 @@ import 'abstract_rename.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameClassMemberTest);
-    defineReflectiveTests(RenameClassMemberTest_UseCFE);
   });
 }
 
@@ -917,15 +916,4 @@ class A<NewName> {
 }
 ''');
   }
-}
-
-@reflectiveTest
-class RenameClassMemberTest_UseCFE extends RenameClassMemberTest {
-  @override
-  bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_checkFinalConditions_shadowed_byParameter_inSameClass() =>
-      super.test_checkFinalConditions_shadowed_byParameter_inSameClass();
 }

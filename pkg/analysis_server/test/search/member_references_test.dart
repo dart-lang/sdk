@@ -14,7 +14,6 @@ import 'abstract_search_domain.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MemberReferencesTest);
-    defineReflectiveTests(MemberReferencesTest_UseCFE);
   });
 }
 
@@ -111,32 +110,5 @@ mainUnresolved(a, b) {
     assertNoResult(SearchResultKind.INVOCATION, 'foo(2)');
     assertHasRef(SearchResultKind.INVOCATION, 'foo(10)', true);
     assertHasRef(SearchResultKind.INVOCATION, 'foo(20)', true);
-  }
-}
-
-@reflectiveTest
-class MemberReferencesTest_UseCFE extends MemberReferencesTest {
-  @override
-  bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_fields_explicit() async {
-    fail('Timeout');
-//    return callFailingTest(super.test_fields_explicit);
-  }
-
-  @failingTest
-  @override
-  test_fields_implicit() async {
-    fail('Timeout');
-//    return callFailingTest(super.test_fields_implicit);
-  }
-
-  @failingTest
-  @override
-  test_methods() async {
-    fail('Timeout');
-//    return callFailingTest(super.test_methods);
   }
 }

@@ -15,7 +15,6 @@ import 'abstract_search_domain.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeclarationsTest);
-    defineReflectiveTests(DeclarationsTest_UseCFE);
   });
 }
 
@@ -196,10 +195,4 @@ typedef tf2<T> = int Function<S>(T tp, S sp);
     declarationsResult =
         new SearchGetElementDeclarationsResult.fromResponse(response);
   }
-}
-
-@reflectiveTest
-class DeclarationsTest_UseCFE extends DeclarationsTest {
-  @override
-  bool get useCFE => true;
 }

@@ -118,15 +118,7 @@ f() {}''');
 library lib2;
 f() {}''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [
-        StaticTypeWarningCode.UNDEFINED_METHOD,
-        HintCode.UNUSED_IMPORT,
-        HintCode.UNUSED_IMPORT
-      ]);
-    } else {
-      assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
-    }
+    assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
   test_assert_message_suppresses_type_promotion() async {
@@ -542,8 +534,7 @@ class C {
   }
 
   test_inconsistentMethodInheritance_paramCount() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 abstract class A {
   int x();
 }
@@ -551,15 +542,11 @@ abstract class B {
   int x(int y);
 }
 class C implements A, B {
-}''',
-        useCFE
-            ? [StaticWarningCode.INVALID_OVERRIDE_REQUIRED]
-            : [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
+}''', [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
   }
 
   test_inconsistentMethodInheritance_paramType() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 abstract class A {
   x(int i);
 }
@@ -567,15 +554,11 @@ abstract class B {
   x(String s);
 }
 abstract class C implements A, B {}
-''',
-        useCFE
-            ? [StrongModeCode.INVALID_METHOD_OVERRIDE]
-            : [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
+''', [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
   }
 
   test_inconsistentMethodInheritance_returnType() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 abstract class A {
   int x();
 }
@@ -583,80 +566,57 @@ abstract class B {
   String x();
 }
 abstract class C implements A, B {}
-''',
-        useCFE
-            ? [StrongModeCode.INVALID_METHOD_OVERRIDE]
-            : [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
+''', [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
   }
 
   test_instanceAccessToStaticMember_method_invocation() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 class A {
   static m() {}
 }
 main(A a) {
   a.m();
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.UNDEFINED_METHOD]
-            : [StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER]);
+}''', [StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER]);
   }
 
   test_instanceAccessToStaticMember_method_reference() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 class A {
   static m() {}
 }
 main(A a) {
   a.m;
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.UNDEFINED_GETTER]
-            : [StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER]);
+}''', [StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER]);
   }
 
   test_instanceAccessToStaticMember_propertyAccess_field() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 class A {
   static var f;
 }
 main(A a) {
   a.f;
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.UNDEFINED_GETTER]
-            : [StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER]);
+}''', [StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER]);
   }
 
   test_instanceAccessToStaticMember_propertyAccess_getter() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 class A {
   static get f => 42;
 }
 main(A a) {
   a.f;
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.UNDEFINED_GETTER]
-            : [StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER]);
+}''', [StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER]);
   }
 
   test_instanceAccessToStaticMember_propertyAccess_setter() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 class A {
   static set f(x) {}
 }
 main(A a) {
   a.f = 42;
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.UNDEFINED_SETTER]
-            : [StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER]);
+}''', [StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER]);
   }
 
   test_invalidAssignment_compoundAssignment() async {
@@ -789,31 +749,22 @@ f(Function f) {
   }
 
   test_invocationOfNonFunction_localObject() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 f(Object o) {
   return o();
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.UNDEFINED_METHOD]
-            : [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
+}''', [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
   }
 
   test_invocationOfNonFunction_localVariable() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 f() {
   int x;
   return x();
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.UNDEFINED_METHOD]
-            : [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
+}''', [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
   }
 
   test_invocationOfNonFunction_ordinaryInvocation() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 class A {
   static int x;
 }
@@ -821,31 +772,23 @@ class B {
   m() {
     A.x();
   }
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.UNDEFINED_METHOD]
-            : [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
+}''', [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
     // A call to verify(source) fails as A.x() cannot be resolved.
   }
 
   test_invocationOfNonFunction_staticInvocation() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 class A {
   static int get g => 0;
   f() {
     A.g();
   }
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.UNDEFINED_METHOD]
-            : [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
+}''', [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
     // A call to verify(source) fails as g() cannot be resolved.
   }
 
   test_invocationOfNonFunction_superExpression() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 class A {
   int get g => 0;
 }
@@ -853,74 +796,48 @@ class B extends A {
   m() {
     var v = super.g();
   }
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.UNDEFINED_METHOD]
-            : [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
+}''', [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
   }
 
   test_invocationOfNonFunctionExpression_literal() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 f() {
   3(5);
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.UNDEFINED_METHOD]
-            : [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION]);
+}''', [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION]);
   }
 
   test_nonBoolCondition_conditional() async {
-    await assertErrorsInCode(
-        "f() { return 3 ? 2 : 1; }",
-        useCFE
-            ? [StaticTypeWarningCode.INVALID_ASSIGNMENT]
-            : [StaticTypeWarningCode.NON_BOOL_CONDITION]);
+    await assertErrorsInCode("f() { return 3 ? 2 : 1; }",
+        [StaticTypeWarningCode.NON_BOOL_CONDITION]);
   }
 
   test_nonBoolCondition_do() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 f() {
   do {} while (3);
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.INVALID_ASSIGNMENT]
-            : [StaticTypeWarningCode.NON_BOOL_CONDITION]);
+}''', [StaticTypeWarningCode.NON_BOOL_CONDITION]);
   }
 
   test_nonBoolCondition_for() async {
     // https://github.com/dart-lang/sdk/issues/24713
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 f() {
   for (;3;) {}
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.INVALID_ASSIGNMENT]
-            : [StaticTypeWarningCode.NON_BOOL_CONDITION]);
+}''', [StaticTypeWarningCode.NON_BOOL_CONDITION]);
   }
 
   test_nonBoolCondition_if() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 f() {
   if (3) return 2; else return 1;
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.INVALID_ASSIGNMENT]
-            : [StaticTypeWarningCode.NON_BOOL_CONDITION]);
+}''', [StaticTypeWarningCode.NON_BOOL_CONDITION]);
   }
 
   test_nonBoolCondition_while() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 f() {
   while (3) {}
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.INVALID_ASSIGNMENT]
-            : [StaticTypeWarningCode.NON_BOOL_CONDITION]);
+}''', [StaticTypeWarningCode.NON_BOOL_CONDITION]);
   }
 
   test_nonBoolExpression_functionType_bool() async {
@@ -930,90 +847,58 @@ f() {
   assert(makeAssertion);
 }''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
-    } else {
-      assertErrors(source, [StaticTypeWarningCode.NON_BOOL_EXPRESSION]);
-    }
+    assertErrors(source, [StaticTypeWarningCode.NON_BOOL_EXPRESSION]);
     verify([source]);
   }
 
   test_nonBoolExpression_functionType_int() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 int makeAssertion() => 1;
 f() {
   assert(makeAssertion);
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.INVALID_ASSIGNMENT]
-            : [StaticTypeWarningCode.NON_BOOL_EXPRESSION]);
+}''', [StaticTypeWarningCode.NON_BOOL_EXPRESSION]);
   }
 
   test_nonBoolExpression_interfaceType() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 f() {
   assert(0);
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.INVALID_ASSIGNMENT]
-            : [StaticTypeWarningCode.NON_BOOL_EXPRESSION]);
+}''', [StaticTypeWarningCode.NON_BOOL_EXPRESSION]);
   }
 
   test_nonBoolNegationExpression() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 f() {
   !42;
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.INVALID_ASSIGNMENT]
-            : [StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION]);
+}''', [StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION]);
   }
 
   test_nonBoolOperand_and_left() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 bool f(int left, bool right) {
   return left && right;
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.INVALID_ASSIGNMENT]
-            : [StaticTypeWarningCode.NON_BOOL_OPERAND]);
+}''', [StaticTypeWarningCode.NON_BOOL_OPERAND]);
   }
 
   test_nonBoolOperand_and_right() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 bool f(bool left, String right) {
   return left && right;
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.INVALID_ASSIGNMENT]
-            : [StaticTypeWarningCode.NON_BOOL_OPERAND]);
+}''', [StaticTypeWarningCode.NON_BOOL_OPERAND]);
   }
 
   test_nonBoolOperand_or_left() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 bool f(List<int> left, bool right) {
   return left || right;
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.INVALID_ASSIGNMENT]
-            : [StaticTypeWarningCode.NON_BOOL_OPERAND]);
+}''', [StaticTypeWarningCode.NON_BOOL_OPERAND]);
   }
 
   test_nonBoolOperand_or_right() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 bool f(bool left, double right) {
   return left || right;
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.INVALID_ASSIGNMENT]
-            : [StaticTypeWarningCode.NON_BOOL_OPERAND]);
+}''', [StaticTypeWarningCode.NON_BOOL_OPERAND]);
   }
 
   test_nonTypeAsTypeArgument_notAType() async {
@@ -1024,43 +909,28 @@ f(B<A> b) {}''', [StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT]);
   }
 
   test_nonTypeAsTypeArgument_undefinedIdentifier() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 class B<E> {}
-f(B<A> b) {}''',
-        useCFE
-            ? [
-                StaticWarningCode.NOT_A_TYPE,
-                CompileTimeErrorCode.UNDEFINED_CLASS
-              ]
-            : [StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT]);
+f(B<A> b) {}''', [StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT]);
   }
 
   test_returnOfInvalidType_async_future_future_int_mismatches_future_int() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 import 'dart:async';
 Future<int> f() async {
   return g();
 }
 Future<Future<int>> g() => null;
-''',
-        useCFE
-            ? [StaticTypeWarningCode.INVALID_ASSIGNMENT]
-            : [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
+''', [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
   }
 
   test_returnOfInvalidType_async_future_int_mismatches_future_string() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 import 'dart:async';
 Future<String> f() async {
   return 5;
 }
-''',
-        useCFE
-            ? [StaticTypeWarningCode.INVALID_ASSIGNMENT]
-            : [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
+''', [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
   }
 
   test_returnOfInvalidType_async_future_int_mismatches_int() async {
@@ -1076,84 +946,56 @@ int f() async {
 
   test_returnOfInvalidType_expressionFunctionBody_function() async {
     await assertErrorsInCode(
-        "int f() => '0';",
-        useCFE
-            ? [StaticTypeWarningCode.INVALID_ASSIGNMENT]
-            : [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
+        "int f() => '0';", [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
   }
 
   test_returnOfInvalidType_expressionFunctionBody_getter() async {
     await assertErrorsInCode(
-        "int get g => '0';",
-        useCFE
-            ? [StaticTypeWarningCode.INVALID_ASSIGNMENT]
-            : [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
+        "int get g => '0';", [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
   }
 
   test_returnOfInvalidType_expressionFunctionBody_localFunction() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 class A {
   String m() {
     int f() => '0';
     return '0';
   }
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.INVALID_ASSIGNMENT]
-            : [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
+}''', [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
   }
 
   test_returnOfInvalidType_expressionFunctionBody_method() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 class A {
   int f() => '0';
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.INVALID_ASSIGNMENT]
-            : [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
+}''', [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
   }
 
   test_returnOfInvalidType_function() async {
-    await assertErrorsInCode(
-        "int f() { return '0'; }",
-        useCFE
-            ? [StaticTypeWarningCode.INVALID_ASSIGNMENT]
-            : [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
+    await assertErrorsInCode("int f() { return '0'; }",
+        [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
   }
 
   test_returnOfInvalidType_getter() async {
-    await assertErrorsInCode(
-        "int get g { return '0'; }",
-        useCFE
-            ? [StaticTypeWarningCode.INVALID_ASSIGNMENT]
-            : [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
+    await assertErrorsInCode("int get g { return '0'; }",
+        [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
   }
 
   test_returnOfInvalidType_localFunction() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 class A {
   String m() {
     int f() { return '0'; }
     return '0';
   }
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.INVALID_ASSIGNMENT]
-            : [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
+}''', [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
   }
 
   test_returnOfInvalidType_method() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 class A {
   int f() { return '0'; }
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.INVALID_ASSIGNMENT]
-            : [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
+}''', [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
   }
 
   test_returnOfInvalidType_not_issued_for_expressionFunctionBody_void() async {
@@ -1601,28 +1443,20 @@ main(A<V> p) {
   }
 
   test_undefinedFunction() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 void f() {
   g();
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.UNDEFINED_METHOD]
-            : [StaticTypeWarningCode.UNDEFINED_FUNCTION]);
+}''', [StaticTypeWarningCode.UNDEFINED_FUNCTION]);
   }
 
   test_undefinedFunction_inCatch() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 void f() {
   try {
   } on Object {
     g();
   }
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.UNDEFINED_METHOD]
-            : [StaticTypeWarningCode.UNDEFINED_FUNCTION]);
+}''', [StaticTypeWarningCode.UNDEFINED_FUNCTION]);
   }
 
   test_undefinedFunction_inImportedLib() async {
@@ -1633,11 +1467,7 @@ main() { return f.g(); }''');
 library lib;
 h() {}''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
-    } else {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_FUNCTION]);
-    }
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_FUNCTION]);
   }
 
   test_undefinedGetter() async {
@@ -1726,37 +1556,22 @@ main(A<int,int> a) {
   }
 
   test_undefinedGetter_wrongOfTypeArgument() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 class A<E> {
   E element;
 }
 main(A<NoSuchType> a) {
   a.element.anyGetterExistsInDynamic;
-}''',
-        useCFE
-            ? [
-                StaticTypeWarningCode.UNDEFINED_GETTER,
-                StaticWarningCode.NOT_A_TYPE,
-                CompileTimeErrorCode.UNDEFINED_CLASS
-              ]
-            : [StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT]);
+}''', [StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT]);
   }
 
   test_undefinedMethod() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 class A {
   void m() {
     n();
   }
-}''',
-        useCFE
-            ? [
-                StaticTypeWarningCode.UNDEFINED_METHOD,
-                StaticTypeWarningCode.UNDEFINED_METHOD
-              ]
-            : [StaticTypeWarningCode.UNDEFINED_METHOD]);
+}''', [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
   test_undefinedMethod_assignmentExpression() async {
@@ -1825,20 +1640,13 @@ library lib;
 class A {
   _foo() {}
 }''');
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 import 'lib.dart';
 class B extends A {
   test() {
     _foo();
   }
-}''',
-        useCFE
-            ? [
-                StaticTypeWarningCode.UNDEFINED_METHOD,
-                StaticTypeWarningCode.UNDEFINED_METHOD
-              ]
-            : [StaticTypeWarningCode.UNDEFINED_METHOD]);
+}''', [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
   test_undefinedMethod_proxy_annotation_fakeProxy() async {
@@ -1892,78 +1700,51 @@ f() {
   }
 
   test_undefinedOperator_indexBoth() async {
-    await assertErrorsInUnverifiedCode(
-        r'''
+    await assertErrorsInUnverifiedCode(r'''
 class A {}
 f(A a) {
   a[0]++;
-}''',
-        useCFE
-            ? [
-                StaticTypeWarningCode.UNDEFINED_METHOD,
-                StaticTypeWarningCode.UNDEFINED_METHOD
-              ]
-            : [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+}''', [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
   test_undefinedOperator_indexGetter() async {
-    await assertErrorsInUnverifiedCode(
-        r'''
+    await assertErrorsInUnverifiedCode(r'''
 class A {}
 f(A a) {
   a[0];
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.UNDEFINED_METHOD]
-            : [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+}''', [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
   test_undefinedOperator_indexSetter() async {
-    await assertErrorsInUnverifiedCode(
-        r'''
+    await assertErrorsInUnverifiedCode(r'''
 class A {}
 f(A a) {
   a[0] = 1;
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.UNDEFINED_METHOD]
-            : [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+}''', [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
   test_undefinedOperator_plus() async {
-    await assertErrorsInUnverifiedCode(
-        r'''
+    await assertErrorsInUnverifiedCode(r'''
 class A {}
 f(A a) {
   a + 1;
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.UNDEFINED_METHOD]
-            : [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+}''', [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
   test_undefinedOperator_postfixExpression() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 class A {}
 f(A a) {
   a++;
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.UNDEFINED_METHOD]
-            : [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+}''', [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
   test_undefinedOperator_prefixExpression() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 class A {}
 f(A a) {
   ++a;
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.UNDEFINED_METHOD]
-            : [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+}''', [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
   }
 
   test_undefinedSetter() async {
@@ -2007,48 +1788,33 @@ class B extends A {
   }
 
   test_undefinedSuperOperator_binaryExpression() async {
-    await assertErrorsInUnverifiedCode(
-        r'''
+    await assertErrorsInUnverifiedCode(r'''
 class A {}
 class B extends A {
   operator +(value) {
     return super + value;
   }
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.UNDEFINED_SUPER_METHOD]
-            : [StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
+}''', [StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
   }
 
   test_undefinedSuperOperator_indexBoth() async {
-    await assertErrorsInUnverifiedCode(
-        r'''
+    await assertErrorsInUnverifiedCode(r'''
 class A {}
 class B extends A {
   operator [](index) {
     return super[index]++;
   }
-}''',
-        useCFE
-            ? [
-                StaticTypeWarningCode.UNDEFINED_SUPER_METHOD,
-                StaticTypeWarningCode.UNDEFINED_SUPER_METHOD
-              ]
-            : [StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
+}''', [StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
   }
 
   test_undefinedSuperOperator_indexGetter() async {
-    await assertErrorsInUnverifiedCode(
-        r'''
+    await assertErrorsInUnverifiedCode(r'''
 class A {}
 class B extends A {
   operator [](index) {
     return super[index + 1];
   }
-}''',
-        useCFE
-            ? [StaticTypeWarningCode.UNDEFINED_SUPER_METHOD]
-            : [StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
+}''', [StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
   }
 
   test_undefinedSuperOperator_indexSetter() async {
@@ -2060,17 +1826,12 @@ class B extends A {
     return super[index] = 0;
   }
 }''',
-        useCFE
+        previewDart2
             ? [
                 StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
-                StaticTypeWarningCode.UNDEFINED_SUPER_METHOD
+                StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR
               ]
-            : (previewDart2
-                ? [
-                    StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
-                    StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR
-                  ]
-                : [StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]));
+            : [StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
   }
 
   test_undefinedSuperSetter() async {
@@ -2084,8 +1845,7 @@ class B extends A {
   }
 
   test_unqualifiedReferenceToNonLocalStaticMember_getter() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 class A {
   static int get a => 0;
 }
@@ -2093,21 +1853,11 @@ class B extends A {
   int b() {
     return a;
   }
-}''',
-        useCFE
-            ? [
-                StaticTypeWarningCode.UNDEFINED_GETTER,
-                StaticTypeWarningCode.UNDEFINED_GETTER
-              ]
-            : [
-                StaticTypeWarningCode
-                    .UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER
-              ]);
+}''', [StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER]);
   }
 
   test_unqualifiedReferenceToNonLocalStaticMember_getter_invokeTarget() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 class A {
   static int foo;
 }
@@ -2117,18 +1867,11 @@ class B extends A {
     foo.abs();
   }
 }
-''',
-        useCFE
-            ? [StaticTypeWarningCode.UNDEFINED_GETTER]
-            : [
-                StaticTypeWarningCode
-                    .UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER
-              ]);
+''', [StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER]);
   }
 
   test_unqualifiedReferenceToNonLocalStaticMember_method() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 class A {
   static void a() {}
 }
@@ -2136,21 +1879,11 @@ class B extends A {
   void b() {
     a();
   }
-}''',
-        useCFE
-            ? [
-                StaticTypeWarningCode.UNDEFINED_METHOD,
-                StaticTypeWarningCode.UNDEFINED_METHOD
-              ]
-            : [
-                StaticTypeWarningCode
-                    .UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER
-              ]);
+}''', [StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER]);
   }
 
   test_unqualifiedReferenceToNonLocalStaticMember_setter() async {
-    await assertErrorsInCode(
-        r'''
+    await assertErrorsInCode(r'''
 class A {
   static set a(x) {}
 }
@@ -2158,16 +1891,7 @@ class B extends A {
   b(y) {
     a = y;
   }
-}''',
-        useCFE
-            ? [
-                StaticTypeWarningCode.UNDEFINED_SETTER,
-                StaticTypeWarningCode.UNDEFINED_SETTER
-              ]
-            : [
-                StaticTypeWarningCode
-                    .UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER
-              ]);
+}''', [StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER]);
   }
 
   test_wrongNumberOfTypeArguments_class_tooFew() async {
@@ -2245,67 +1969,47 @@ Iterable<int> f() async* {
   }
 
   test_yield_async_to_mistyped_stream() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 import 'dart:async';
 Stream<int> f() async* {
   yield "foo";
 }
-''',
-        useCFE
-            ? [StaticTypeWarningCode.INVALID_ASSIGNMENT]
-            : [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
+''', [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
   }
 
   test_yield_each_async_non_stream() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 f() async* {
   yield* 0;
 }
-''',
-        useCFE
-            ? [StaticTypeWarningCode.INVALID_ASSIGNMENT]
-            : [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
+''', [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
   }
 
   test_yield_each_async_to_mistyped_stream() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 import 'dart:async';
 Stream<int> f() async* {
   yield* g();
 }
 Stream<String> g() => null;
-''',
-        useCFE
-            ? [StaticTypeWarningCode.INVALID_ASSIGNMENT]
-            : [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
+''', [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
   }
 
   test_yield_each_sync_non_iterable() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 f() sync* {
   yield* 0;
 }
-''',
-        useCFE
-            ? [StaticTypeWarningCode.INVALID_ASSIGNMENT]
-            : [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
+''', [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
   }
 
   test_yield_each_sync_to_mistyped_iterable() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 Iterable<int> f() sync* {
   yield* g();
 }
 Iterable<String> g() => null;
-''',
-        useCFE
-            ? [StaticTypeWarningCode.INVALID_ASSIGNMENT]
-            : [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
+''', [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
   }
 
   test_yield_sync_to_basic_type() async {
@@ -2320,15 +2024,11 @@ int f() sync* {
   }
 
   test_yield_sync_to_mistyped_iterable() async {
-    await assertErrorsInCode(
-        '''
+    await assertErrorsInCode('''
 Iterable<int> f() sync* {
   yield "foo";
 }
-''',
-        useCFE
-            ? [StaticTypeWarningCode.INVALID_ASSIGNMENT]
-            : [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
+''', [StaticTypeWarningCode.YIELD_OF_INVALID_TYPE]);
   }
 
   test_yield_sync_to_stream() async {

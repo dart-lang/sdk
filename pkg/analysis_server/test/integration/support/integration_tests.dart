@@ -159,12 +159,6 @@ abstract class AbstractAnalysisServerIntegrationTest
   }
 
   /**
-   * Whether to run integration tests with the --use-cfe flag.
-   */
-  // TODO(devoncarew): Remove this when --use-cfe goes away.
-  bool get useCFE => false;
-
-  /**
    * Print out any messages exchanged with the server.  If some messages have
    * already been exchanged with the server, they are printed out immediately.
    */
@@ -265,12 +259,9 @@ abstract class AbstractAnalysisServerIntegrationTest
   Future startServer({
     int diagnosticPort,
     int servicesPort,
-    bool cfe: false,
   }) {
     return server.start(
-        diagnosticPort: diagnosticPort,
-        servicesPort: servicesPort,
-        useCFE: cfe || useCFE);
+        diagnosticPort: diagnosticPort, servicesPort: servicesPort);
   }
 
   /**
@@ -677,7 +668,6 @@ class Server {
     bool profileServer: false,
     String sdkPath,
     int servicesPort,
-    bool useCFE: false,
     bool useAnalysisHighlight2: false,
   }) async {
     if (_process != null) {
@@ -744,9 +734,6 @@ class Server {
     }
     if (useAnalysisHighlight2) {
       arguments.add('--useAnalysisHighlight2');
-    }
-    if (useCFE) {
-      arguments.add('--use-cfe');
     }
     _process = await Process.start(dartBinary, arguments);
     _process.exitCode.then((int code) {

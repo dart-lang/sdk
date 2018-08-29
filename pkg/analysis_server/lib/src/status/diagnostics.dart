@@ -1305,8 +1305,6 @@ class StatusPage extends DiagnosticPageWithNav {
     h3('Status');
     buf.writeln(writeOption('Use fasta parser',
         diagnosticsSite.socketServer.analysisServerOptions.useFastaParser));
-    buf.writeln(writeOption('Use common front end',
-        diagnosticsSite.socketServer.analysisServerOptions.useCFE));
     buf.writeln(writeOption('Instrumentation enabled',
         AnalysisEngine.instance.instrumentationService.isActive));
     buf.writeln(writeOption('Server process ID', pid));

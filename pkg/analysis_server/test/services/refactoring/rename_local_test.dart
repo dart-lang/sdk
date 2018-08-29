@@ -12,7 +12,6 @@ import 'abstract_rename.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameLocalTest);
-    defineReflectiveTests(RenameLocalTest_UseCFE);
   });
 }
 
@@ -572,15 +571,4 @@ main() {
     // old name
     expect(refactoring.oldName, 'test');
   }
-}
-
-@reflectiveTest
-class RenameLocalTest_UseCFE extends RenameLocalTest {
-  @override
-  bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_checkFinalConditions_shadows_classMember_namedParameter() =>
-      super.test_checkFinalConditions_shadows_classMember_namedParameter();
 }

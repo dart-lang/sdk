@@ -88,8 +88,10 @@ class SdkDescriptionTest extends EngineTestCase {
 
   void test_equals_samePaths_differentOptions() {
     String path = '/a/b/c';
-    AnalysisOptionsImpl leftOptions = new AnalysisOptionsImpl()..useCFE = false;
-    AnalysisOptionsImpl rightOptions = new AnalysisOptionsImpl()..useCFE = true;
+    AnalysisOptionsImpl leftOptions = new AnalysisOptionsImpl()
+      ..useFastaParser = false;
+    AnalysisOptionsImpl rightOptions = new AnalysisOptionsImpl()
+      ..useFastaParser = true;
     SdkDescription left = new SdkDescription(<String>[path], leftOptions);
     SdkDescription right = new SdkDescription(<String>[path], rightOptions);
     expect(left == right, isFalse);

@@ -12,7 +12,6 @@ import 'abstract_rename.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameImportTest);
-    defineReflectiveTests(RenameImportTest_UseCFE);
   });
 }
 
@@ -228,29 +227,4 @@ main() {
         findNodeAtString(search, (node) => node is ImportDirective);
     createRenameRefactoringForElement(directive.element);
   }
-}
-
-@reflectiveTest
-class RenameImportTest_UseCFE extends RenameImportTest {
-  @override
-  bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_createChange_change_className() =>
-      super.test_createChange_change_className();
-
-  @failingTest
-  @override
-  test_createChange_change_function() =>
-      super.test_createChange_change_function();
-
-  @failingTest
-  @override
-  test_createChange_change_onPrefixElement() =>
-      super.test_createChange_change_onPrefixElement();
-
-  @failingTest
-  @override
-  test_createChange_remove() => super.test_createChange_remove();
 }

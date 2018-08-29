@@ -322,7 +322,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       this._options.implicitCasts = options.implicitCasts;
       this._options.nonnullableTypes = options.nonnullableTypes;
       this._options.implicitDynamic = options.implicitDynamic;
-      this._options.useCFE = options.useCFE;
     }
     if (needsRecompute) {
       for (WorkManager workManager in workManagers) {

@@ -27,17 +27,10 @@ import 'package:analyzer/src/generated/resolver.dart';
  * any more complete than a [COMPILATION_UNIT_ELEMENT].
  */
 class DeclarationResolver extends RecursiveAstVisitor<Object> {
-  final bool _useCFE;
-
   /**
    * The compilation unit containing the AST nodes being visited.
    */
   CompilationUnitElementImpl _enclosingUnit;
-
-  /**
-   * The library element containing the compilation unit.
-   */
-  LibraryElement _enclosingLibrary;
 
   /**
    * The type provider used to access the known types.
@@ -50,7 +43,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
    */
   ElementWalker _walker;
 
-  DeclarationResolver({bool useCFE: false}) : _useCFE = useCFE;
+  DeclarationResolver();
 
   /**
    * Resolve the declarations within the given compilation [unit] to the
@@ -58,7 +51,6 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
    * if the element model and compilation unit do not match each other.
    */
   void resolve(CompilationUnit unit, CompilationUnitElement element) {
-    _enclosingLibrary = element.enclosingElement;
     _enclosingUnit = element;
     _typeProvider = _enclosingUnit.context?.typeProvider;
     _walker = new ElementWalker.forCompilationUnit(element);
@@ -103,9 +95,6 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
     ClassElement element = _match(node.name, _walker.getClass());
-    if (_useCFE) {
-      node.name.staticType = _typeProvider.typeType;
-    }
     _walk(new ElementWalker.forClass(element), () {
       super.visitClassDeclaration(node);
     });
@@ -116,9 +105,6 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitClassTypeAlias(ClassTypeAlias node) {
     ClassElement element = _match(node.name, _walker.getClass());
-    if (_useCFE) {
-      node.name.staticType = _typeProvider.typeType;
-    }
     _walk(new ElementWalker.forClass(element), () {
       super.visitClassTypeAlias(node);
     });
@@ -135,10 +121,6 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       super.visitConstructorDeclaration(node);
     });
     resolveMetadata(node, node.metadata, element);
-    if (_useCFE) {
-      _applyTypeToIdentifier(node.returnType, element.returnType);
-      node.name?.staticType = element.type;
-    }
     return null;
   }
 
@@ -254,17 +236,6 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   }
 
   @override
-  Object visitFormalParameterList(FormalParameterList node) {
-    if (_useCFE) {
-      applyParameters(_enclosingLibrary, _walker._parameters, node);
-      _walker.consumeParameters();
-      return null;
-    } else {
-      return super.visitFormalParameterList(node);
-    }
-  }
-
-  @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     SimpleIdentifier functionName = node.name;
     Token property = node.propertyKeyword;
@@ -280,15 +251,6 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
         assert(property.keyword == Keyword.SET);
         element = _match(functionName, _walker.getAccessor(),
             elementName: functionName.name + '=');
-      }
-    }
-    if (_useCFE) {
-      if (node.isGetter) {
-        node.name.staticType = element.returnType;
-      } else if (node.isSetter) {
-        node.name.staticType = element.parameters[0].type;
-      } else {
-        node.name.staticType = element.type;
       }
     }
     _setGenericFunctionType(node.returnType, element.returnType);
@@ -427,15 +389,6 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
             elementName: nameOfMethod + '=');
       }
     }
-    if (_useCFE) {
-      if (node.isGetter) {
-        node.name.staticType = element.returnType;
-      } else if (node.isSetter) {
-        node.name.staticType = element.parameters[0].type;
-      } else {
-        node.name.staticType = element.type;
-      }
-    }
     _setGenericFunctionType(node.returnType, element.returnType);
     _walk(new ElementWalker.forExecutable(element, _enclosingUnit), () {
       super.visitMethodDeclaration(node);
@@ -506,7 +459,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitTypeParameter(TypeParameter node) {
-    if (node.parent.parent is FunctionTypedFormalParameter && !_useCFE) {
+    if (node.parent.parent is FunctionTypedFormalParameter) {
       // Work around dartbug.com/28515.
       // TODO(paulberry): remove this once dartbug.com/28515 is fixed.
       var element = new TypeParameterElementImpl.forNode(node.name);
@@ -525,9 +478,6 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitVariableDeclaration(VariableDeclaration node) {
     VariableElement element = _match(node.name, _walker.getVariable());
-    if (_useCFE) {
-      node.name.staticType = element.type;
-    }
     Expression initializer = node.initializer;
     if (initializer != null) {
       _walk(
@@ -555,21 +505,6 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
         resolveMetadata(node, node.metadata, firstVariable);
       }
       return null;
-    }
-  }
-
-  /// TODO(scheglov) Replace with the implementation from ResolutionApplier.
-  void _applyTypeToIdentifier(Identifier identifier, DartType type) {
-    if (type is InterfaceType) {
-      if (identifier is SimpleIdentifier) {
-        identifier.staticType = _typeProvider.typeType;
-        identifier.staticElement = type.element;
-      } else {
-        throw new UnimplementedError(
-            'Cannot apply type to ${identifier.runtimeType}');
-      }
-    } else {
-      throw new UnimplementedError('Cannot apply ${type.runtimeType}');
     }
   }
 

@@ -11,7 +11,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FindTopLevelDeclarationsTest);
-    defineReflectiveTests(FindTopLevelDeclarationsTest_UseCFE);
   });
 }
 
@@ -54,10 +53,4 @@ class Foo {
     }
     fail('No result for $pathname');
   }
-}
-
-@reflectiveTest
-class FindTopLevelDeclarationsTest_UseCFE extends FindTopLevelDeclarationsTest {
-  @override
-  bool get useCFE => true;
 }

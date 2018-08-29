@@ -16,9 +16,7 @@ import '../../abstract_context.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlutterOutlineComputerTest);
-    defineReflectiveTests(FlutterOutlineComputerTest_UseCFE);
     defineReflectiveTests(OutlineComputerTest);
-    defineReflectiveTests(OutlineComputerTest_UseCFE);
   });
 }
 
@@ -137,12 +135,6 @@ MyWidget
     }
     return buffer.toString();
   }
-}
-
-@reflectiveTest
-class FlutterOutlineComputerTest_UseCFE extends FlutterOutlineComputerTest {
-  @override
-  bool get useCFE => true;
 }
 
 @reflectiveTest
@@ -1159,10 +1151,4 @@ set propB(int v) {}
     expect(element.parameters, isNull);
     expect(element.returnType, isNull);
   }
-}
-
-@reflectiveTest
-class OutlineComputerTest_UseCFE extends OutlineComputerTest {
-  @override
-  bool get useCFE => true;
 }

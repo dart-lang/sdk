@@ -11,7 +11,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IsPostfixCompletionApplicableTest);
-    defineReflectiveTests(IsPostfixCompletionApplicableTest_UseCFE);
   });
 }
 
@@ -39,11 +38,4 @@ void foo() { }
         await sendEditIsPostfixCompletionApplicable(pathname, '.tryon', loc);
     expect(result.value, isTrue);
   }
-}
-
-@reflectiveTest
-class IsPostfixCompletionApplicableTest_UseCFE
-    extends IsPostfixCompletionApplicableTest {
-  @override
-  bool get useCFE => true;
 }

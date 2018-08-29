@@ -617,12 +617,6 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
     PerformanceLog log = new PerformanceLog(null);
     AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(log);
 
-    file_system.Folder kernelPlatformBinariesFolder;
-    if (options.useCFE && options.dartSdkPlatformBinariesPath != null) {
-      kernelPlatformBinariesFolder =
-          resourceProvider.getFolder(options.dartSdkPlatformBinariesPath);
-    }
-
     analysisDriver = new AnalysisDriver(
         scheduler,
         log,
@@ -631,9 +625,7 @@ class Driver extends Object with HasContextMixin implements CommandLineStarter {
         new FileContentOverlay(),
         null,
         sourceFactory,
-        analysisOptions,
-        useCFE: options.useCFE,
-        kernelPlatformFolder: kernelPlatformBinariesFolder);
+        analysisOptions);
     analysisDriver.results.listen((_) {});
     analysisDriver.exceptions.listen((_) {});
     scheduler.start();

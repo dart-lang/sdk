@@ -18,7 +18,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReanalyzeTest);
-    defineReflectiveTests(ReanalyzeTest_UseCFE);
   });
 }
 
@@ -49,10 +48,4 @@ main() {}''';
       });
     });
   }
-}
-
-@reflectiveTest
-class ReanalyzeTest_UseCFE extends ReanalyzeTest {
-  @override
-  bool get useCFE => true;
 }

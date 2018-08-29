@@ -15,7 +15,6 @@ import '../../abstract_context.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FoldingComputerTest);
-    defineReflectiveTests(FoldingComputerTest_UseCFE);
   });
 }
 
@@ -438,22 +437,4 @@ main() {}
         new DartUnitFoldingComputer(result.lineInfo, result.unit);
     return computer.compute();
   }
-}
-
-@reflectiveTest
-class FoldingComputerTest_UseCFE extends FoldingComputerTest {
-  @override
-  bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_annotations() => super.test_annotations();
-
-  @failingTest
-  @override
-  test_multiple_directive_types() => super.test_multiple_directive_types();
-
-  @failingTest
-  @override
-  test_multiple_import_directives() => super.test_multiple_import_directives();
 }

@@ -8991,7 +8991,7 @@ const dynamic a = null;
 class C {
   dynamic x;
   C([@
-        a/*location: test.dart;a?*/ dynamic this.x]);
+        a/*location: test.dart;a?*/ dynamic this.x = null]);
 }
 const dynamic a = null;
 ''');
@@ -9064,7 +9064,7 @@ dynamic f(@
     checkElementText(library, r'''
 const dynamic a = null;
 dynamic f([@
-        a/*location: test.dart;a?*/ () → dynamic g]) {}
+        a/*location: test.dart;a?*/ () → dynamic g = null]) {}
 ''');
   }
 
@@ -9222,7 +9222,7 @@ dynamic f(@
     checkElementText(library, r'''
 const dynamic a = null;
 dynamic f([@
-        a/*location: test.dart;a?*/ dynamic x]) {}
+        a/*location: test.dart;a?*/ dynamic x = null]) {}
 ''');
   }
 

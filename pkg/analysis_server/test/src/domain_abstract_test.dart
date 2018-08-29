@@ -18,7 +18,6 @@ import '../analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AbstractRequestHandlerTest);
-    defineReflectiveTests(AbstractRequestHandlerTest_UseCFE);
   });
 }
 
@@ -93,12 +92,6 @@ class AbstractRequestHandlerTest extends AbstractAnalysisTest {
         await handler.waitForResponses(futures, timeout: 50);
     expect(responses, unorderedEquals([response2]));
   }
-}
-
-@reflectiveTest
-class AbstractRequestHandlerTest_UseCFE extends AbstractRequestHandlerTest {
-  @override
-  bool get useCFE => true;
 }
 
 class TestAbstractRequestHandler extends AbstractRequestHandler {

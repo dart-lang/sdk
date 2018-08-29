@@ -14,7 +14,6 @@ import '../analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StatementCompletionTest);
-    defineReflectiveTests(StatementCompletionTest_UseCFE);
   });
 }
 
@@ -120,10 +119,4 @@ main() {
     var result = new EditGetStatementCompletionResult.fromResponse(response);
     change = result.change;
   }
-}
-
-@reflectiveTest
-class StatementCompletionTest_UseCFE extends StatementCompletionTest {
-  @override
-  bool get useCFE => true;
 }

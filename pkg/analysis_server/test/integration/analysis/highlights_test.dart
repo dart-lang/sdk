@@ -12,7 +12,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisHighlightsTest);
-    defineReflectiveTests(AnalysisHighlightsTest_UseCFE);
   });
 }
 
@@ -144,10 +143,4 @@ int topLevelVariable;
       expect(highlights, isEmpty);
     });
   }
-}
-
-@reflectiveTest
-class AnalysisHighlightsTest_UseCFE extends AnalysisHighlightsTest {
-  @override
-  bool get useCFE => true;
 }

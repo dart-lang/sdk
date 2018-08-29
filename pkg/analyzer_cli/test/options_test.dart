@@ -73,7 +73,6 @@ main() {
         expect(options.warningsAreFatal, isFalse);
         expect(options.strongMode, isTrue);
         expect(options.lintsAreFatal, isFalse);
-        expect(options.useCFE, isFalse);
         expect(options.previewDart2, isTrue);
       });
 
@@ -231,12 +230,6 @@ main() {
               outStringBuffer.toString(), contains('Analytics are currently'));
         });
       }
-
-      test('--use-cfe', () {
-        CommandLineOptions options =
-            CommandLineOptions.parse(['--use-cfe', 'foo.dart']);
-        expect(options.useCFE, isTrue);
-      });
 
       test('--use-fasta-parser', () {
         CommandLineOptions options =

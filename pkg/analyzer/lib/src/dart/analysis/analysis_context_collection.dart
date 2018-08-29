@@ -22,8 +22,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
   AnalysisContextCollectionImpl(
       {@required List<String> includedPaths,
       ResourceProvider resourceProvider,
-      String sdkPath,
-      @deprecated bool useCFE})
+      String sdkPath})
       : resourceProvider =
             resourceProvider ?? PhysicalResourceProvider.INSTANCE {
     _throwIfAnyNotAbsoluteNormalizedPath(includedPaths);
@@ -39,8 +38,8 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
       var contextBuilder = new ContextBuilder(
         resourceProvider: this.resourceProvider,
       );
-      var context = contextBuilder.createContext(
-          contextRoot: root, sdkPath: sdkPath, useCFE: useCFE);
+      var context =
+          contextBuilder.createContext(contextRoot: root, sdkPath: sdkPath);
       contexts.add(context);
     }
   }

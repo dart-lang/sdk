@@ -12,7 +12,6 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LibraryMemberContributorTest);
-    defineReflectiveTests(LibraryMemberContributorTest_UseCFE);
   });
 }
 
@@ -285,19 +284,4 @@ main() {
     await computeSuggestions();
     assertNoSuggestions();
   }
-}
-
-@reflectiveTest
-class LibraryMemberContributorTest_UseCFE extends LibraryMemberContributorTest {
-  @override
-  bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_libraryPrefix_deferred() => super.test_libraryPrefix_deferred();
-
-  @failingTest
-  @override
-  test_libraryPrefix_deferred_inPart() =>
-      super.test_libraryPrefix_deferred_inPart();
 }

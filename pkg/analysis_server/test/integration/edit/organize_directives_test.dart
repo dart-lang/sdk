@@ -12,7 +12,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OrganizeDirectivesTest);
-    defineReflectiveTests(OrganizeDirectivesTest_UseCFE);
   });
 }
 
@@ -74,10 +73,4 @@ int minified(int x, int y) => min(x, y);
       expect(message.error['code'], 'ORGANIZE_DIRECTIVES_ERROR');
     }
   }
-}
-
-@reflectiveTest
-class OrganizeDirectivesTest_UseCFE extends OrganizeDirectivesTest {
-  @override
-  bool get useCFE => true;
 }

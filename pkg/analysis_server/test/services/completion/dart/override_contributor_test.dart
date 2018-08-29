@@ -12,7 +12,6 @@ import 'completion_contributor_util.dart';
 
 main() {
   defineReflectiveTests(OverrideContributorTest);
-  defineReflectiveTests(OverrideContributorTest_UseCFE);
 }
 
 @reflectiveTest
@@ -246,10 +245,4 @@ method() {
     expect(cs.displayText, displayText);
     return cs;
   }
-}
-
-@reflectiveTest
-class OverrideContributorTest_UseCFE extends OverrideContributorTest {
-  @override
-  bool get useCFE => true;
 }

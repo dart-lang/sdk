@@ -17,7 +17,6 @@ import '../mocks.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SortMembersTest);
-    defineReflectiveTests(SortMembersTest_UseCFE);
   });
 }
 
@@ -254,10 +253,4 @@ class C {}
     var result = new EditSortMembersResult.fromResponse(response);
     fileEdit = result.edit;
   }
-}
-
-@reflectiveTest
-class SortMembersTest_UseCFE extends SortMembersTest {
-  @override
-  bool get useCFE => true;
 }

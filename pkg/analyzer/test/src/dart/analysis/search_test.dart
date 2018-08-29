@@ -21,7 +21,6 @@ import 'base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SearchTest);
-    defineReflectiveTests(SearchTest_UseCFE);
   });
 }
 
@@ -1976,24 +1975,4 @@ class NoMatchABCDE {}
       List<SearchResult> matches, List<ExpectedResult> expectedMatches) {
     expect(matches, unorderedEquals(expectedMatches));
   }
-}
-
-@reflectiveTest
-class SearchTest_UseCFE extends SearchTest {
-  @override
-  bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_classMembers_importNotDart() => super.test_classMembers_importNotDart();
-
-  @failingTest
-  @override
-  test_searchReferences_LabelElement() =>
-      super.test_searchReferences_LabelElement();
-
-  @failingTest
-  @override
-  test_subtypes_partWithoutLibrary() =>
-      super.test_subtypes_partWithoutLibrary();
 }

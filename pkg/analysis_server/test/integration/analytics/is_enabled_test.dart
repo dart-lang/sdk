@@ -11,7 +11,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IsEnabledTest);
-    defineReflectiveTests(IsEnabledTest_UseCFE);
   });
 }
 
@@ -24,10 +23,4 @@ class IsEnabledTest extends AbstractAnalysisServerIntegrationTest {
     // Very lightweight validation of the returned data.
     expect(result, isNotNull);
   }
-}
-
-@reflectiveTest
-class IsEnabledTest_UseCFE extends IsEnabledTest {
-  @override
-  bool get useCFE => true;
 }

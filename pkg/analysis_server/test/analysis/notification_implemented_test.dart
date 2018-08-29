@@ -16,7 +16,6 @@ import '../analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNotificationImplementedTest);
-    defineReflectiveTests(AnalysisNotificationImplementedTest_UseCFE);
   });
 }
 
@@ -429,11 +428,4 @@ class B extends A {
 
     return waitForNotification(30000);
   }
-}
-
-@reflectiveTest
-class AnalysisNotificationImplementedTest_UseCFE
-    extends AnalysisNotificationImplementedTest {
-  @override
-  bool get useCFE => true;
 }

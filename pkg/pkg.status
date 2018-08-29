@@ -9,7 +9,6 @@
 */*/*/packages/*/*: Skip
 */*/packages/*/*: Skip
 */packages/*/*: Skip
-analysis_server/test/completion_test: RuntimeError # Issue 33992
 analysis_server/tool/spec/check_all_test: Skip # Issue 29133
 analyzer/test/generated/compile_time_error_code_driver_test: Slow, Pass
 analyzer/test/generated/compile_time_error_code_kernel_test: Slow, Pass
@@ -25,7 +24,6 @@ analyzer/test/generated/strong_mode_kernel_test: Slow, Pass
 analyzer/test/src/dart/analysis/driver_kernel_test: Slow, Pass
 analyzer/test/src/summary/resynthesize_kernel_test: Slow, Pass
 analyzer/test/src/task/strong/checker_test: Slow, Pass
-analyzer_cli/test/driver_test: RuntimeError # Issue 33992
 analyzer_plugin/test/plugin/folding_mixin_test: Slow, Pass
 analyzer_plugin/tool/spec/check_all_test: Skip # Issue 29133
 dart_messages/test/dart_messages_test: Skip # Requires a package root.
@@ -83,7 +81,6 @@ testing/*: SkipByDesign # Only meant to run on vm
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 
 [ $compiler == none ]
-analyzer_cli/test/driver_test: RuntimeError # Issue 33992
 kernel/test/closures_test: Fail
 
 [ $runtime == dart_precompiled ]
@@ -99,40 +96,30 @@ kernel/test/*: RuntimeError, OK # Issue 26103. Timers are not supported.
 
 [ $runtime == vm ]
 analysis_server/test/benchmarks_test: Pass, Slow
-analysis_server/test/completion_test: RuntimeError # Issue 33992
 analysis_server/test/domain_completion_test: Pass, Slow
 analysis_server/test/edit/refactoring_test: Pass, Slow
 analysis_server/test/integration/*: Pass, Slow
 analysis_server/test/integration/analysis/package_root_test: Pass, RuntimeError # Issue 33382
 analysis_server/test/integration/search/find_top_level_declarations_test: Pass, RuntimeError # 31571
 analysis_server/test/services/completion/dart/imported_reference_contributor_test: Pass, Slow
-analysis_server/test/services/completion/dart/keyword_contributor_test: RuntimeError # Issue 33992
 analysis_server/test/services/completion/dart/keyword_contributor_test: Pass, Slow
 analysis_server/test/services/completion/dart/local_constructor_contributor_test: Pass, Slow
 analysis_server/test/services/completion/dart/local_reference_contributor_test: Pass, Slow
 analysis_server/test/services/completion/dart/type_member_contributor_test: Pass, Slow
 analysis_server/test/services/correction/assist_test: Pass, Slow
-analysis_server/test/services/correction/fix_test: RuntimeError # Issue 33992
-analysis_server/test/services/refactoring/extract_local_test: RuntimeError # Issue 33992
 analysis_server/test/services/refactoring/extract_method_test: Pass, Slow
 analysis_server/test/services/refactoring/inline_method_test: Pass, Slow
 analysis_server/test/socket_server_test: Skip # Pass, Slow
 analysis_server/test/src/plugin/plugin_manager_test: Pass, Slow
 analyzer/test/file_system/physical_resource_provider_test: Pass, Fail # Issue 25472
-analyzer/test/generated/compile_time_error_code_driver_test: Fail # Issue 33992
-analyzer/test/generated/compile_time_error_code_kernel_test: Fail # Issue 33992
-analyzer/test/generated/compile_time_error_code_test: Fail # Issue 33992
 analyzer/test/generated/hint_code_driver_test: Pass, Slow
-analyzer/test/generated/non_error_resolver_driver_test: Fail # Issue 33992
 analyzer/test/generated/non_error_resolver_kernel_test: Pass, Slow
 analyzer/test/generated/strong_mode_driver_test: Pass, Slow
 analyzer/test/src/dart/analysis/driver_resolution_kernel_test: Pass, Slow
-analyzer/test/src/dart/analysis/driver_resolution_test: RuntimeError # Issue 33992
 analyzer/test/src/dart/analysis/driver_test: Pass, Slow
 analyzer/test/src/summary/resynthesize_ast_test: Pass, Slow
 analyzer/test/src/task/strong/front_end_inference_test: Pass, Slow
 analyzer/test/src/task/strong/inferred_type_test: Pass, Slow
-analyzer_cli/test/driver_test: RuntimeError # Issue 33992
 analyzer_plugin/test/src/utilities/change_builder/change_builder_dart_test: Pass, Slow
 analyzer_plugin/test/src/utilities/completion/optype_test: Pass, Slow
 mutation_observer: Skip # Skip tests on the VM if the package depends on dart:html

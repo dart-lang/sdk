@@ -14,7 +14,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetTypeHierarchyTest);
-    defineReflectiveTests(GetTypeHierarchyTest_UseCFE);
   });
 }
 
@@ -227,19 +226,6 @@ class Pivot /* target */ extends Base2 {}
     } else {
       return new HierarchyResults(result.hierarchyItems);
     }
-  }
-}
-
-@reflectiveTest
-class GetTypeHierarchyTest_UseCFE extends GetTypeHierarchyTest {
-  @override
-  bool get useCFE => true;
-
-  @override
-  @failingTest
-  test_getTypeHierarchy() {
-    fail('Timeout');
-//    return callFailingTest(super.test_getTypeHierarchy);
   }
 }
 

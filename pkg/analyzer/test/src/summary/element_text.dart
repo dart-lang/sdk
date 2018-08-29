@@ -661,13 +661,6 @@ class _ElementWriter {
       fail('Unknown parameter kind');
     }
 
-    // Kernel desugars omitted default parameter values to 'null'.
-    // Analyzer does not set initializer at all.
-    // It is not an interesting distinction, so we skip NullLiteral(s).
-    if (defaultValue is NullLiteral) {
-      defaultValue = null;
-    }
-
     writeMetadata(e, '', ' ');
 
     writeIf(e.isCovariant, 'covariant ');

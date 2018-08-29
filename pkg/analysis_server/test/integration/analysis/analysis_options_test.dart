@@ -12,7 +12,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OptionsIntegrationTest);
-    defineReflectiveTests(OptionsIntegrationTest_UseCFE);
   });
 }
 
@@ -88,10 +87,4 @@ linter:
     expect(error.location.startLine, 3);
     expect(error.location.startColumn, 7);
   }
-}
-
-@reflectiveTest
-class OptionsIntegrationTest_UseCFE extends OptionsIntegrationTest {
-  @override
-  bool get useCFE => true;
 }

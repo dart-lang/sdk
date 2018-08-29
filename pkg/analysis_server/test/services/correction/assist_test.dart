@@ -25,7 +25,6 @@ import '../../abstract_single_unit.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssistProcessorTest);
-    defineReflectiveTests(AssistProcessorTest_UseCFE);
   });
 }
 
@@ -6338,17 +6337,6 @@ main() {
     offset = findOffset('// start\n') + '// start\n'.length;
     length = findOffset('// end') - offset;
   }
-}
-
-@reflectiveTest
-class AssistProcessorTest_UseCFE extends AssistProcessorTest {
-  @override
-  bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_importAddShow_BAD_unresolvedUri() =>
-      super.test_importAddShow_BAD_unresolvedUri();
 }
 
 class _DartAssistContextForValues implements DartAssistContext {

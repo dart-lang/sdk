@@ -13,7 +13,6 @@ import '../../abstract_single_unit.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(VariableNameSuggestionTest);
-    defineReflectiveTests(VariableNameSuggestionTest_UseCFE);
   });
 }
 
@@ -367,15 +366,4 @@ main(p) {
           unorderedEquals(['goodbyeCruelWorld', 'cruelWorld', 'world2']));
     }
   }
-}
-
-@reflectiveTest
-class VariableNameSuggestionTest_UseCFE extends VariableNameSuggestionTest {
-  @override
-  bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_forExpression_instanceCreation() =>
-      super.test_forExpression_instanceCreation();
 }

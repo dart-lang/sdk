@@ -12,7 +12,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetPostfixCompletionTest);
-    defineReflectiveTests(GetPostfixCompletionTest_UseCFE);
   });
 }
 
@@ -51,10 +50,4 @@ void foo() { }
     await analysisFinished;
     expect(currentAnalysisErrors[pathname], isEmpty);
   }
-}
-
-@reflectiveTest
-class GetPostfixCompletionTest_UseCFE extends GetPostfixCompletionTest {
-  @override
-  bool get useCFE => true;
 }

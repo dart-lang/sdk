@@ -18,26 +18,17 @@ import '../src/utilities/flutter_util.dart' as flutter;
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertGetterMethodToMethodTest);
-    defineReflectiveTests(ConvertGetterMethodToMethodTest_UseCFE);
     defineReflectiveTests(ConvertMethodToGetterTest);
-    defineReflectiveTests(ConvertMethodToGetterTest_UseCFE);
     defineReflectiveTests(ExtractLocalVariableTest);
-    defineReflectiveTests(ExtractLocalVariableTest_UseCFE);
     defineReflectiveTests(ExtractMethodTest);
-    defineReflectiveTests(ExtractMethodTest_UseCFE);
     defineReflectiveTests(GetAvailableRefactoringsTest);
-    defineReflectiveTests(GetAvailableRefactoringsTest_UseCFE);
     defineReflectiveTests(InlineLocalTest);
-    defineReflectiveTests(InlineLocalTest_UseCFE);
     defineReflectiveTests(InlineMethodTest);
-    defineReflectiveTests(InlineMethodTest_UseCFE);
     defineReflectiveTests(MoveFileTest);
-    defineReflectiveTests(MoveFileTest_UseCFE);
     // TODO(brianwilkerson) Re-enable these tests. They were commented out
     // because they are non-deterministic under the new driver. I suspect that
     // there is a future that isn't being waited for.
 //    defineReflectiveTests(RenameTest);
-//    defineReflectiveTests(RenameTest_UseCFE);
   });
 }
 
@@ -143,13 +134,6 @@ main(A a, B b, C c, D d) {
         .toRequest('0');
     return serverChannel.sendRequest(request);
   }
-}
-
-@reflectiveTest
-class ConvertGetterMethodToMethodTest_UseCFE
-    extends ConvertGetterMethodToMethodTest {
-  @override
-  bool get useCFE => true;
 }
 
 @reflectiveTest
@@ -262,12 +246,6 @@ main(A a, B b, C c, D d) {
         .toRequest('0');
     return serverChannel.sendRequest(request);
   }
-}
-
-@reflectiveTest
-class ConvertMethodToGetterTest_UseCFE extends ConvertMethodToGetterTest {
-  @override
-  bool get useCFE => true;
 }
 
 @reflectiveTest
@@ -585,12 +563,6 @@ main() {
 }
 
 @reflectiveTest
-class ExtractLocalVariableTest_UseCFE extends ExtractLocalVariableTest {
-  @override
-  bool get useCFE => true;
-}
-
-@reflectiveTest
 class ExtractMethodTest extends _AbstractGetRefactoring_Test {
   int offset;
   int length;
@@ -812,12 +784,6 @@ void res(int a, int b) {
     offset = findOffset(search);
     length = search.length;
   }
-}
-
-@reflectiveTest
-class ExtractMethodTest_UseCFE extends ExtractMethodTest {
-  @override
-  bool get useCFE => true;
 }
 
 @reflectiveTest
@@ -1056,19 +1022,6 @@ main() {
 }
 
 @reflectiveTest
-class GetAvailableRefactoringsTest_UseCFE extends GetAvailableRefactoringsTest {
-  @override
-  bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_extractWidget() async {
-//    return callFailingTest(super.test_extractWidget());
-    fail('Test times out even when wrapped.');
-  }
-}
-
-@reflectiveTest
 class InlineLocalTest extends _AbstractGetRefactoring_Test {
   test_analysis_onlyOneFile() async {
     shouldWaitForFullAnalysis = false;
@@ -1174,12 +1127,6 @@ main() {
         .toRequest('0');
     return serverChannel.sendRequest(request);
   }
-}
-
-@reflectiveTest
-class InlineLocalTest_UseCFE extends InlineLocalTest {
-  @override
-  bool get useCFE => true;
 }
 
 @reflectiveTest
@@ -1309,12 +1256,6 @@ main() {
 }
 
 @reflectiveTest
-class InlineMethodTest_UseCFE extends InlineMethodTest {
-  @override
-  bool get useCFE => true;
-}
-
-@reflectiveTest
 class MoveFileTest extends _AbstractGetRefactoring_Test {
   MoveFileOptions options;
 
@@ -1346,12 +1287,6 @@ import 'bin/lib.dart';
   void _setOptions(String newFile) {
     options = new MoveFileOptions(newFile);
   }
-}
-
-@reflectiveTest
-class MoveFileTest_UseCFE extends MoveFileTest {
-  @override
-  bool get useCFE => true;
 }
 
 @reflectiveTest
@@ -2062,12 +1997,6 @@ main() {
       expect(feedback.oldName, oldName);
     }
   }
-}
-
-@reflectiveTest
-class RenameTest_UseCFE extends RenameTest {
-  @override
-  bool get useCFE => true;
 }
 
 @reflectiveTest

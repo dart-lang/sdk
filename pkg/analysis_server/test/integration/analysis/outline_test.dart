@@ -12,7 +12,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OutlineTest);
-    defineReflectiveTests(OutlineTest_UseCFE);
   });
 }
 
@@ -69,10 +68,4 @@ class Class2 {
       expect(members[4].element.name, equals('setter'));
     });
   }
-}
-
-@reflectiveTest
-class OutlineTest_UseCFE extends OutlineTest {
-  @override
-  bool get useCFE => true;
 }

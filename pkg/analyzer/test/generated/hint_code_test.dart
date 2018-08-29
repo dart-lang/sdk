@@ -109,14 +109,7 @@ class B extends A {
 }
 ''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [
-        StaticTypeWarningCode.UNDEFINED_SUPER_GETTER,
-        HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE
-      ]);
-    } else {
-      assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
-    }
+    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
     verify([source]);
   }
 
@@ -132,14 +125,7 @@ class B extends A {
 }
 ''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [
-        StaticTypeWarningCode.UNDEFINED_SUPER_METHOD,
-        HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE
-      ]);
-    } else {
-      assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
-    }
+    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
     verify([source]);
   }
 
@@ -155,14 +141,7 @@ class B extends A {
 }
 ''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [
-        StaticTypeWarningCode.UNDEFINED_SUPER_GETTER,
-        HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE
-      ]);
-    } else {
-      assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
-    }
+    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
     verify([source]);
   }
 
@@ -178,14 +157,7 @@ class B extends A {
 }
 ''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [
-        StaticTypeWarningCode.UNDEFINED_SUPER_SETTER,
-        HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE
-      ]);
-    } else {
-      assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
-    }
+    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
     verify([source]);
   }
 
@@ -201,14 +173,7 @@ class B extends A {
 }
 ''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [
-        StaticTypeWarningCode.UNDEFINED_SUPER_METHOD,
-        HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE
-      ]);
-    } else {
-      assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
-    }
+    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
     verify([source]);
   }
 
@@ -3461,11 +3426,7 @@ class A {
 var b = new A().g;
 ''');
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
     verify([source]);
   }
 
@@ -3478,11 +3439,7 @@ var a = new A();
 var b = a.g();
 ''');
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
     verify([source]);
   }
 
@@ -3494,11 +3451,7 @@ class A {
 var b = new A().g;
 ''');
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
     verify([source]);
   }
 
@@ -3511,11 +3464,7 @@ var a = new A();
 var b = a.g();
 ''');
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
     verify([source]);
   }
 
@@ -3528,11 +3477,7 @@ var a = new A();
 var b = a.g;
 ''');
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
     verify([source]);
   }
 
@@ -3548,11 +3493,7 @@ var b = f(a.x);
     // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because f is
     // generic, so the type of a.x might affect the type of b.
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
     verify([source]);
   }
 
@@ -3615,11 +3556,7 @@ var b = (<T>(y) => 0)(a.x);
     // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because the
     // closure is generic, so the type of a.x might affect the type of b.
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
     verify([source]);
   }
 
@@ -3665,11 +3602,7 @@ var b = a.f(a.x);
     // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because f is
     // generic, so the type of a.x might affect the type of b.
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
     verify([source]);
   }
 
@@ -3719,11 +3652,7 @@ var b = new B(a.x);
     // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because B is
     // generic, so the type of a.x might affect the type of b.
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
     verify([source]);
   }
 
@@ -3798,11 +3727,7 @@ var b = new B.named(a.x);
     // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because B is
     // generic, so the type of a.x might affect the type of b.
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
     verify([source]);
   }
 
@@ -3880,11 +3805,7 @@ var b = new foo.B(a.x);
     // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because B is
     // generic, so the type of a.x might affect the type of b.
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
     verify([source]);
   }
 
@@ -3897,11 +3818,7 @@ var a = new A();
 var b = a.g;
 ''');
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
     verify([source]);
   }
 
@@ -3920,11 +3837,7 @@ var b = (a.x).y;
     // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because the type
     // of a.x affects the lookup of y, which in turn affects the type of b.
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
     verify([source]);
   }
 
@@ -3951,11 +3864,7 @@ class A {
 var x = new A().f();
 ''');
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_METHOD]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_METHOD]);
     verify([source]);
   }
 
@@ -3979,11 +3888,7 @@ class A {
 var x = new A().f(0);
 ''');
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_METHOD]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_METHOD]);
     verify([source]);
   }
 
@@ -4019,11 +3924,7 @@ class A {
 var x = new A().f;
 ''');
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_METHOD]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_METHOD]);
     verify([source]);
   }
 
@@ -4035,11 +3936,7 @@ class A {
 var x = new A().f;
 ''');
     await computeAnalysisResult(source);
-    if (enableKernelDriver) {
-      assertNoErrors(source);
-    } else {
-      assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_METHOD]);
-    }
+    assertErrors(source, [StrongModeCode.TOP_LEVEL_INSTANCE_METHOD]);
     verify([source]);
   }
 
@@ -4182,9 +4079,7 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
-    } else if (previewDart2) {
+    if (previewDart2) {
       assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
     } else {
       assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
@@ -4200,12 +4095,7 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [
-        StaticTypeWarningCode.UNDEFINED_METHOD,
-        StaticTypeWarningCode.UNDEFINED_METHOD
-      ]);
-    } else if (previewDart2) {
+    if (previewDart2) {
       assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
     } else {
       assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
@@ -4221,9 +4111,7 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
-    } else if (previewDart2) {
+    if (previewDart2) {
       assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
     } else {
       assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);
@@ -4239,9 +4127,7 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
-    } else if (previewDart2) {
+    if (previewDart2) {
       assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
     } else {
       assertErrors(source, [HintCode.UNDEFINED_OPERATOR]);

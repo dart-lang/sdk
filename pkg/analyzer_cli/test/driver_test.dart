@@ -28,14 +28,11 @@ main() {
     defineReflectiveTests(BuildModeTest);
     defineReflectiveTests(ExitCodesTest);
     defineReflectiveTests(ExitCodesTest_PreviewDart2);
-    defineReflectiveTests(ExitCodesTest_UseCFE);
     defineReflectiveTests(LinterTest);
     defineReflectiveTests(LinterTest_PreviewDart2);
-    defineReflectiveTests(LinterTest_UseCFE);
     defineReflectiveTests(NonDartFilesTest);
     defineReflectiveTests(OptionsTest);
     defineReflectiveTests(OptionsTest_PreviewDart2);
-    defineReflectiveTests(OptionsTest_UseCFE);
   }, name: 'Driver');
 }
 
@@ -79,8 +76,6 @@ class BaseTest {
 
   AnalysisOptions get analysisOptions => driver.analysisDriver.analysisOptions;
 
-  bool get useCFE => false;
-
   bool get usePreviewDart2 => false;
 
   /// Normalize text with bullets.
@@ -115,9 +110,6 @@ class BaseTest {
     cmd..addAll(sources.map(_adjustFileSpec))..addAll(args);
     if (usePreviewDart2) {
       cmd.insert(0, '--preview-dart-2');
-    }
-    if (useCFE) {
-      cmd.insert(0, '--use-cfe');
     }
 
     await driver.start(cmd);
@@ -679,12 +671,6 @@ class ExitCodesTest_PreviewDart2 extends ExitCodesTest {
 }
 
 @reflectiveTest
-class ExitCodesTest_UseCFE extends ExitCodesTest {
-  @override
-  bool get useCFE => true;
-}
-
-@reflectiveTest
 class LinterTest extends BaseTest {
   String get optionsFileName => AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
 
@@ -784,12 +770,6 @@ linter:
 class LinterTest_PreviewDart2 extends LinterTest {
   @override
   bool get usePreviewDart2 => true;
-}
-
-@reflectiveTest
-class LinterTest_UseCFE extends LinterTest {
-  @override
-  bool get useCFE => true;
 }
 
 @reflectiveTest
@@ -927,15 +907,6 @@ class OptionsTest extends BaseTest {
     expect(outSink.toString().contains('[info]'), isFalse);
   }
 
-  @failingTest
-  test_useCFE() async {
-    // Disabled until integration with the CFE has been restarted.
-    fail('Times out when run on a VM with --preview-dart-2 enabled');
-//    await drive('data/options_tests_project/test_file.dart',
-//        args: ['--use-cfe']);
-//    expect(driver.context.analysisOptions.useFastaParser, isTrue);
-  }
-
   test_withFlags_overrideFatalWarning() async {
     await drive('data/options_tests_project/test_file.dart',
         args: ['--fatal-warnings'],
@@ -975,12 +946,6 @@ class OptionsTest extends BaseTest {
 class OptionsTest_PreviewDart2 extends OptionsTest {
   @override
   bool get usePreviewDart2 => true;
-}
-
-@reflectiveTest
-class OptionsTest_UseCFE extends OptionsTest {
-  @override
-  bool get useCFE => true;
 }
 
 class TestSource implements Source {

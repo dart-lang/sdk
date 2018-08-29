@@ -11,7 +11,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OverridesTest);
-    defineReflectiveTests(OverridesTest_UseCFE);
   });
 }
 
@@ -120,10 +119,4 @@ class Target extends Base implements Interface1, Interface2 {
       checkOverrides('method7', false, []);
     });
   }
-}
-
-@reflectiveTest
-class OverridesTest_UseCFE extends OverridesTest {
-  @override
-  bool get useCFE => true;
 }

@@ -16,7 +16,6 @@ import '../../../domain_completion_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CommonUsageSorterTest);
-    defineReflectiveTests(CommonUsageSorterTest_UseCFE);
   });
 }
 
@@ -165,10 +164,4 @@ main() {
     assertNoResult('Object');
     assertNoResult('A');
   }
-}
-
-@reflectiveTest
-class CommonUsageSorterTest_UseCFE extends CommonUsageSorterTest {
-  @override
-  bool get useCFE => true;
 }

@@ -12,7 +12,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetFixesTest);
-    defineReflectiveTests(GetFixesTest_UseCFE);
   });
 }
 
@@ -32,17 +31,9 @@ Future f;
     EditGetFixesResult result =
         await sendEditGetFixes(pathname, text.indexOf('Future f'));
 
-    AnalysisErrorFixes fix;
-    if (useCFE) {
-      // TODO(scheglov) We have to filter errors, because two are reported.
-      // https://github.com/dart-lang/sdk/issues/34124
-      fix = result.fixes
-          .singleWhere((fix) => fix.error.code == 'undefined_class');
-    } else {
-      expect(result.fixes, hasLength(1));
-      fix = result.fixes.first;
-      expect(fix.error.code, 'undefined_class');
-    }
+    expect(result.fixes, hasLength(1));
+    AnalysisErrorFixes fix = result.fixes.first;
+    expect(fix.error.code, 'undefined_class');
 
     // expect a suggestion to add the dart:async import
     expect(fix.fixes, isNotEmpty);
@@ -67,10 +58,4 @@ Future f;
         await sendEditGetFixes(pathname, text.indexOf('Future f'));
     expect(result.fixes, isEmpty);
   }
-}
-
-@reflectiveTest
-class GetFixesTest_UseCFE extends GetFixesTest {
-  @override
-  bool get useCFE => true;
 }

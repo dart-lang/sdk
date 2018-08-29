@@ -348,8 +348,6 @@ class ResolverTestCase extends EngineTestCase {
    */
   AnalysisOptions get defaultAnalysisOptions => new AnalysisOptionsImpl();
 
-  bool get enableKernelDriver => false;
-
   bool get enableNewAnalysisDriver => false;
 
   /// TODO(brianwilkerson) Remove this getter.
@@ -379,8 +377,6 @@ class ResolverTestCase extends EngineTestCase {
    * @return a type system
    */
   TypeSystem get typeSystem => analysisContext2.typeSystem;
-
-  bool get useCFE => false;
 
   /**
    * Add a source file with the given [filePath] in the root of the file system.
@@ -665,9 +661,6 @@ class ResolverTestCase extends EngineTestCase {
     }
     options ??= defaultAnalysisOptions;
     if (enableNewAnalysisDriver) {
-      if (useCFE) {
-        (options as AnalysisOptionsImpl)..useFastaParser = true;
-      }
       DartSdk sdk = new MockSdk(resourceProvider: resourceProvider)
         ..context.analysisOptions = options;
 
@@ -699,8 +692,7 @@ class ResolverTestCase extends EngineTestCase {
           fileContentOverlay,
           null,
           sourceFactory,
-          options,
-          useCFE: enableKernelDriver);
+          options);
       scheduler.start();
     } else {
       if (packages != null) {

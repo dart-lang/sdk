@@ -18,7 +18,6 @@ import '../analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UpdateContentTest);
-    defineReflectiveTests(UpdateContentTest_UseCFE);
   });
 }
 
@@ -263,10 +262,4 @@ f() {}
     });
     return sources;
   }
-}
-
-@reflectiveTest
-class UpdateContentTest_UseCFE extends UpdateContentTest {
-  @override
-  bool get useCFE => true;
 }

@@ -15,7 +15,6 @@ import '../analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisSignatureTest);
-    defineReflectiveTests(AnalysisSignatureTest_UseCFE);
   });
 }
 
@@ -454,29 +453,4 @@ main() {
     expect(result.error.code,
         equals(RequestErrorCode.GET_SIGNATURE_UNKNOWN_FUNCTION));
   }
-}
-
-@reflectiveTest
-class AnalysisSignatureTest_UseCFE extends AnalysisSignatureTest {
-  @override
-  bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_error_file_not_analyzed() async => super.test_error_file_not_analyzed();
-
-  @failingTest
-  @override
-  test_function_named_with_default_int() async =>
-      super.test_function_named_with_default_int();
-
-  @failingTest
-  @override
-  test_function_named_with_default_string() async =>
-      super.test_function_named_with_default_string();
-
-  @failingTest
-  @override
-  test_function_optional_with_default() async =>
-      super.test_function_optional_with_default();
 }

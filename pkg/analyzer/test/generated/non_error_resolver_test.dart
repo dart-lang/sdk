@@ -1263,15 +1263,7 @@ class A {
   static set x(int p) {}
 }''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [
-        CompileTimeErrorCode.CONFLICTS_WITH_MEMBER,
-        CompileTimeErrorCode.CONFLICTS_WITH_MEMBER
-      ]);
-    } else {
-      assertErrors(
-          source, [CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD]);
-    }
+    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD]);
     verify([source]);
   }
 
@@ -1381,12 +1373,8 @@ class B extends A {
   const B(): super();
 }''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SUPER_METHOD]);
-    } else {
-      assertErrors(source,
-          [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
-    }
+    assertErrors(source,
+        [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT]);
     verify([source]);
   }
 
@@ -3591,11 +3579,7 @@ main() {
   v();
 }''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
-    } else {
-      assertErrors(source, [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
-    }
+    assertErrors(source, [StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION]);
     verify([source]);
   }
 
@@ -5965,14 +5949,7 @@ main() {
   print(is String);
 }''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [
-        ParserErrorCode.MISSING_IDENTIFIER,
-        StaticTypeWarningCode.UNDEFINED_GETTER
-      ]);
-    } else {
-      assertErrors(source, [ParserErrorCode.MISSING_IDENTIFIER]);
-    }
+    assertErrors(source, [ParserErrorCode.MISSING_IDENTIFIER]);
   }
 
   test_undefinedIdentifier_synthetic_whenMethodName() async {

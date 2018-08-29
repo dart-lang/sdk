@@ -13,7 +13,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StatusTest);
-    defineReflectiveTests(StatusTest_UseCFE);
   });
 }
 
@@ -48,10 +47,4 @@ main() {
       return analysisFinished.future;
     });
   }
-}
-
-@reflectiveTest
-class StatusTest_UseCFE extends StatusTest {
-  @override
-  bool get useCFE => true;
 }

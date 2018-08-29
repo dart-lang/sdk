@@ -977,9 +977,7 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
-    } else if (previewDart2) {
+    if (previewDart2) {
       assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
     } else {
       assertNoErrors(source);
@@ -998,12 +996,7 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [
-        StaticTypeWarningCode.UNDEFINED_METHOD,
-        StaticTypeWarningCode.UNDEFINED_METHOD
-      ]);
-    } else if (previewDart2) {
+    if (previewDart2) {
       assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
     } else {
       assertNoErrors(source);
@@ -1022,9 +1015,7 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
-    } else if (previewDart2) {
+    if (previewDart2) {
       assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
     } else {
       assertNoErrors(source);
@@ -1043,9 +1034,7 @@ f(var a) {
   }
 }''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
-    } else if (previewDart2) {
+    if (previewDart2) {
       assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
     } else {
       assertNoErrors(source);
@@ -1179,9 +1168,7 @@ void g(bool c) {
   (c ? f(): new Future.value(0) as Future<int>).then((int value) {});
 }''');
     await computeAnalysisResult(source);
-    if (useCFE) {
-      assertErrors(source, [HintCode.UNNECESSARY_CAST]);
-    } else if (previewDart2 && enableNewAnalysisDriver) {
+    if (previewDart2 && enableNewAnalysisDriver) {
       assertErrors(source, [HintCode.UNNECESSARY_CAST]);
     } else {
       assertNoErrors(source);
@@ -1494,11 +1481,7 @@ class B extends A {
     // TODO(brianwilkerson) It isn't clear what the right semantics are in Dart
     // 2 (https://github.com/dart-lang/sdk/issues/33951). This test should be
     // updated when that issue is closed.
-    if (useCFE) {
-      assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SUPER_GETTER]);
-    } else {
-      assertNoErrors(source);
-    }
+    assertNoErrors(source);
     verify([source]);
   }
 }

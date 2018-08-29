@@ -32,7 +32,6 @@ import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/task/options.dart';
-import 'package:analyzer/src/util/sdk.dart';
 import 'package:args/args.dart';
 import 'package:front_end/src/api_prototype/byte_store.dart';
 import 'package:front_end/src/base/performance_logger.dart';
@@ -136,11 +135,6 @@ class ContextBuilder {
   bool get previewDart2 => true;
 
   /**
-   * Whether to enable the Dart 2.0 Common Front End implementation.
-   */
-  bool useCFE = false;
-
-  /**
    * Initialize a newly created builder to be ready to build a context rooted in
    * the directory with the given [rootDirectoryPath].
    */
@@ -179,18 +173,6 @@ class ContextBuilder {
     //_processAnalysisOptions(context, optionMap);
     final sf = createSourceFactory(path, options);
 
-    // The folder with `vm_platform_strong.dill`, which has required patches.
-    Folder kernelPlatformFolder;
-    if (useCFE) {
-      DartSdk sdk = sf.dartSdk;
-      if (sdk is FolderBasedDartSdk) {
-        var binariesPath = computePlatformBinariesPath(sdk.directory.path);
-        if (binariesPath != null) {
-          kernelPlatformFolder = resourceProvider.getFolder(binariesPath);
-        }
-      }
-    }
-
     AnalysisDriver driver = new AnalysisDriver(
         analysisDriverScheduler,
         performanceLog,
@@ -199,9 +181,7 @@ class ContextBuilder {
         fileContentOverlay,
         contextRoot,
         sf,
-        options,
-        useCFE: useCFE,
-        kernelPlatformFolder: kernelPlatformFolder);
+        options);
     // temporary plugin support:
     if (onCreateAnalysisDriver != null) {
       onCreateAnalysisDriver(driver, analysisDriverScheduler, performanceLog,

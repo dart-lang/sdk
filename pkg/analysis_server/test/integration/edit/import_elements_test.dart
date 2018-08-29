@@ -16,7 +16,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisGetImportElementsIntegrationTest);
-    defineReflectiveTests(AnalysisGetImportElementsIntegrationTest_UseCFE);
   });
 }
 
@@ -135,11 +134,4 @@ class C {}
       new SourceEdit(0, 0, "import 'dart:math';\n\n")
     ], expectedFile: libName);
   }
-}
-
-@reflectiveTest
-class AnalysisGetImportElementsIntegrationTest_UseCFE
-    extends AnalysisGetImportElementsIntegrationTest {
-  @override
-  bool get useCFE => true;
 }

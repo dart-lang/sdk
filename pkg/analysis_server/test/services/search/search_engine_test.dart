@@ -21,12 +21,10 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../mock_sdk.dart';
-import '../../test_utilities/utillities.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SearchEngineImplTest);
-    defineReflectiveTests(SearchEngineImplTest_UseCFE);
   });
 }
 
@@ -40,11 +38,6 @@ class SearchEngineImplTest extends Object with ResourceProviderMixin {
   PerformanceLog logger;
 
   AnalysisDriverScheduler scheduler;
-
-  /**
-   * Return `true` to enable the Dart 2.0 Common Front End.
-   */
-  bool get useCFE => false;
 
   void setUp() {
     sdk = new MockSdk(resourceProvider: resourceProvider);
@@ -475,25 +468,6 @@ class B extends A {}
         contentOverlay,
         null,
         new SourceFactory(resolvers, null, resourceProvider),
-        new AnalysisOptionsImpl(),
-        useCFE: useCFE);
-  }
-}
-
-@reflectiveTest
-class SearchEngineImplTest_UseCFE extends SearchEngineImplTest {
-  @override
-  bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_searchMemberReferences() =>
-      callFailingTest(super.test_searchMemberReferences());
-
-  @failingTest
-  @override
-  test_searchReferences_discover_owned() {
-    fail('Timeout');
-//    return callFailingTest(super.test_searchReferences_discover_owned);
+        new AnalysisOptionsImpl());
   }
 }

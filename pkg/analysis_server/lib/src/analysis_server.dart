@@ -366,9 +366,7 @@ class AnalysisServer {
         new PluginWatcher(resourceProvider, pluginManager);
 
     defaultContextOptions.generateImplicitErrors = false;
-    defaultContextOptions.useFastaParser =
-        options.useCFE || options.useFastaParser;
-    defaultContextOptions.useCFE = options.useCFE;
+    defaultContextOptions.useFastaParser = options.useFastaParser;
 
     {
       String name = options.newAnalysisDriverLog;
@@ -1189,11 +1187,6 @@ class AnalysisServerOptions {
   CrashReportSender crashReportSender;
 
   /**
-   * Whether to enable the Dart 2.0 Common Front End implementation.
-   */
-  bool useCFE = false;
-
-  /**
    * Whether to enable parsing via the Fasta parser.
    */
   bool useFastaParser = true;
@@ -1421,7 +1414,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     builder.performanceLog = analysisServer._analysisPerformanceLogger;
     builder.byteStore = analysisServer.byteStore;
     builder.fileContentOverlay = analysisServer.fileContentOverlay;
-    builder.useCFE = analysisServer.options.useCFE;
     return builder;
   }
 

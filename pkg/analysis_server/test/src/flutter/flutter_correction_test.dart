@@ -12,7 +12,6 @@ import '../../abstract_single_unit.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlutterCorrectionTest);
-    defineReflectiveTests(FlutterCorrectionTest_UseCFE);
   });
 }
 
@@ -133,10 +132,4 @@ class MyWidget extends StatelessWidget {
         session: testAnalysisResult.session,
         unit: testUnit);
   }
-}
-
-@reflectiveTest
-class FlutterCorrectionTest_UseCFE extends FlutterCorrectionTest {
-  @override
-  bool get useCFE => true;
 }

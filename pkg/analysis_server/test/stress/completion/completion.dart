@@ -23,7 +23,6 @@ void main(List<String> args) async {
         printMissing: result['missing'],
         printQuality: result['quality'],
         timing: result['timing'],
-        useCFE: result['use-cfe'],
         verbose: result['verbose']);
     await runner.runAll(analysisRoot);
     await stdout.flush();
@@ -54,11 +53,6 @@ ArgParser createArgParser() {
   parser.addFlag(
     'timing',
     help: 'Report timing information',
-    negatable: false,
-  );
-  parser.addFlag(
-    'use-cfe',
-    help: 'Use the CFE to perform the analysis',
     negatable: false,
   );
   parser.addFlag(

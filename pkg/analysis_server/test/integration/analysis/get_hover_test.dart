@@ -14,7 +14,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisGetHoverIntegrationTest);
-    defineReflectiveTests(AnalysisGetHoverIntegrationTest_UseCFE);
   });
 }
 
@@ -191,11 +190,4 @@ main() {
       return Future.wait(tests);
     });
   }
-}
-
-@reflectiveTest
-class AnalysisGetHoverIntegrationTest_UseCFE
-    extends AnalysisGetHoverIntegrationTest {
-  @override
-  bool get useCFE => true;
 }

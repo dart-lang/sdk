@@ -17,7 +17,6 @@ import 'abstract_refactoring.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InlineMethodTest);
-    defineReflectiveTests(InlineMethodTest_UseCFE);
   });
 }
 
@@ -1759,20 +1758,4 @@ main(bool p, bool p2, bool p3) {
     refactoring = new InlineMethodRefactoring(
         searchEngine, astProvider, testUnit, offset);
   }
-}
-
-@reflectiveTest
-class InlineMethodTest_UseCFE extends InlineMethodTest {
-  @override
-  bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_noArgument_named_hasDefault() =>
-      super.test_noArgument_named_hasDefault();
-
-  @failingTest
-  @override
-  test_noArgument_positional_hasDefault() =>
-      super.test_noArgument_positional_hasDefault();
 }

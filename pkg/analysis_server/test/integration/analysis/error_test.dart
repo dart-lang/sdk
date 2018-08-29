@@ -12,7 +12,6 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisErrorIntegrationTest);
-    defineReflectiveTests(AnalysisErrorIntegrationTest_UseCFE);
   });
 }
 
@@ -97,23 +96,5 @@ abstract class C extends B {
     expect(currentAnalysisErrors[pathname], isList);
     List<AnalysisError> errors = currentAnalysisErrors[pathname];
     expect(errors, isEmpty);
-  }
-}
-
-@reflectiveTest
-class AnalysisErrorIntegrationTest_UseCFE extends AnalysisErrorIntegrationTest {
-  @override
-  bool get useCFE => true;
-
-  @override
-  @failingTest
-  test_super_mixins_disabled() {
-    // Disabling super mixins is not supported in the new FE.
-    return super.test_super_mixins_disabled();
-  }
-
-  @override
-  test_super_mixins_enabled() {
-    return super.test_super_mixins_enabled();
   }
 }

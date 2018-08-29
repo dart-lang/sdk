@@ -17,7 +17,6 @@ import 'abstract_refactoring.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtractLocalTest);
-    defineReflectiveTests(ExtractLocalTest_UseCFE);
   });
 }
 
@@ -1344,15 +1343,4 @@ main() {
     }
     return subExpressions;
   }
-}
-
-@reflectiveTest
-class ExtractLocalTest_UseCFE extends ExtractLocalTest {
-  @override
-  bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_singleExpression_hasParseError_expectedSemicolon() =>
-      super.test_singleExpression_hasParseError_expectedSemicolon();
 }

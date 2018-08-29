@@ -14,7 +14,6 @@ import '../analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisHoverTest);
-    defineReflectiveTests(AnalysisHoverTest_UseCFE);
   });
 }
 
@@ -612,10 +611,4 @@ main() {
     HoverInformation hover = await prepareHover('nothing');
     expect(hover, isNull);
   }
-}
-
-@reflectiveTest
-class AnalysisHoverTest_UseCFE extends AnalysisHoverTest {
-  @override
-  bool get useCFE => true;
 }

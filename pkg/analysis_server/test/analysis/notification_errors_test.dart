@@ -20,7 +20,6 @@ import '../analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NotificationErrorsTest);
-    defineReflectiveTests(NotificationErrorsTest_UseCFE);
   });
 }
 
@@ -201,14 +200,4 @@ main() {
     expect(error.severity, AnalysisErrorSeverity.ERROR);
     expect(error.type, AnalysisErrorType.STATIC_WARNING);
   }
-}
-
-@reflectiveTest
-class NotificationErrorsTest_UseCFE extends NotificationErrorsTest {
-  @override
-  bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_importError() async => super.test_importError();
 }

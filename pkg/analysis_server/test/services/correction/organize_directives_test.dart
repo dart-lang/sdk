@@ -17,7 +17,6 @@ import '../../abstract_single_unit.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OrganizeDirectivesTest);
-    defineReflectiveTests(OrganizeDirectivesTest_UseCFE);
   });
 }
 
@@ -340,33 +339,4 @@ import 'package:product2.client/entity.dart';
     testUnit = result.unit;
     testErrors = result.errors;
   }
-}
-
-@reflectiveTest
-class OrganizeDirectivesTest_UseCFE extends OrganizeDirectivesTest {
-  @override
-  bool get useCFE => true;
-
-  @failingTest
-  @override
-  test_remove_unresolvedDirectives() =>
-      super.test_remove_unresolvedDirectives();
-
-  @failingTest
-  @override
-  test_remove_unusedImports_hasUnresolvedError() =>
-      super.test_remove_unusedImports_hasUnresolvedError();
-
-  @failingTest
-  @override
-  test_sort() => super.test_sort();
-
-  @failingTest
-  @override
-  test_sort_hasComments() => super.test_sort_hasComments();
-
-  @failingTest
-  @override
-  test_sort_imports_packageAndPath() =>
-      super.test_sort_imports_packageAndPath();
 }

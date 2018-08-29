@@ -15,7 +15,6 @@ import '../analysis_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNotificationClosingLabelsTest);
-    defineReflectiveTests(AnalysisNotificationClosingLabelsTest_UseCFE);
   });
 }
 
@@ -99,11 +98,4 @@ Widget build(BuildContext context) {
     action();
     return _labelsReceived.future;
   }
-}
-
-@reflectiveTest
-class AnalysisNotificationClosingLabelsTest_UseCFE
-    extends AnalysisNotificationClosingLabelsTest {
-  @override
-  bool get useCFE => true;
 }
