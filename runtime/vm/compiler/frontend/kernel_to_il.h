@@ -93,16 +93,18 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment CheckStackOverflowInPrologue(TokenPosition position);
   Fragment CloneContext(intptr_t num_context_variables);
 
-  Fragment InstanceCall(TokenPosition position,
-                        const String& name,
-                        Token::Kind kind,
-                        intptr_t type_args_len,
-                        intptr_t argument_count,
-                        const Array& argument_names,
-                        intptr_t checked_argument_count,
-                        const Function& interface_target,
-                        const InferredTypeMetadata* result_type = NULL,
-                        bool use_unchecked_entry = false);
+  Fragment InstanceCall(
+      TokenPosition position,
+      const String& name,
+      Token::Kind kind,
+      intptr_t type_args_len,
+      intptr_t argument_count,
+      const Array& argument_names,
+      intptr_t checked_argument_count,
+      const Function& interface_target,
+      const InferredTypeMetadata* result_type = nullptr,
+      bool use_unchecked_entry = false,
+      const CallSiteAttributesMetadata* call_site_attrs = nullptr);
 
   Fragment ClosureCall(TokenPosition position,
                        intptr_t type_args_len,

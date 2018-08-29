@@ -1697,6 +1697,10 @@ class RawICData : public RawObject {
   RawArray* ic_data_;          // Contains class-ids, target and count.
   RawString* target_name_;     // Name of target function.
   RawArray* args_descriptor_;  // Arguments descriptor.
+  // Static type of the receiver. If it is set then we are performing
+  // exactness profiling for the receiver type. See StaticTypeExactnessState
+  // class for more information.
+  NOT_IN_PRECOMPILED(RawAbstractType* static_receiver_type_);
   RawObject* owner_;  // Parent/calling function or original IC of cloned IC.
   VISIT_TO(RawObject*, owner_);
   RawObject** to_snapshot(Snapshot::Kind kind) {

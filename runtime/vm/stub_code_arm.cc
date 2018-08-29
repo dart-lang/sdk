@@ -1485,7 +1485,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     intptr_t num_args,
     const RuntimeEntry& handle_ic_miss,
     Token::Kind kind,
-    bool optimized) {
+    bool optimized,
+    bool exactness_check /* = false */) {
+  ASSERT(!exactness_check);
   __ CheckCodePointer();
   ASSERT(num_args == 1 || num_args == 2);
 #if defined(DEBUG)
@@ -1567,7 +1569,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ Bind(&update);
 
     const intptr_t entry_size =
-        ICData::TestEntryLengthFor(num_args) * kWordSize;
+        ICData::TestEntryLengthFor(num_args, exactness_check) * kWordSize;
     __ AddImmediate(R8, entry_size);  // Next entry.
 
     __ CompareImmediate(R2, Smi::RawValue(kIllegalCid));  // Done?
@@ -2538,7 +2540,8 @@ void StubCode::GenerateICCallThroughFunctionStub(Assembler* assembler) {
   __ CompareImmediate(R2, Smi::RawValue(kIllegalCid));
   __ b(&miss, EQ);
 
-  const intptr_t entry_length = ICData::TestEntryLengthFor(1) * kWordSize;
+  const intptr_t entry_length =
+      ICData::TestEntryLengthFor(1, /*tracking_exactness=*/false) * kWordSize;
   __ AddImmediate(R8, entry_length);  // Next entry.
   __ b(&loop);
 
@@ -2572,7 +2575,8 @@ void StubCode::GenerateICCallThroughCodeStub(Assembler* assembler) {
   __ CompareImmediate(R2, Smi::RawValue(kIllegalCid));
   __ b(&miss, EQ);
 
-  const intptr_t entry_length = ICData::TestEntryLengthFor(1) * kWordSize;
+  const intptr_t entry_length =
+      ICData::TestEntryLengthFor(1, /*tracking_exactness=*/false) * kWordSize;
   __ AddImmediate(R8, entry_length);  // Next entry.
   __ b(&loop);
 

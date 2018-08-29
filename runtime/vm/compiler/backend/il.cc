@@ -636,8 +636,8 @@ void Cids::CreateHelper(Zone* zone,
     }
     if (include_targets) {
       Function& function = Function::ZoneHandle(zone, ic_data.GetTargetAt(i));
-      cid_ranges_.Add(new (zone)
-                          TargetInfo(id, id, &function, ic_data.GetCountAt(i)));
+      cid_ranges_.Add(new (zone) TargetInfo(
+          id, id, &function, ic_data.GetCountAt(i), ic_data.GetExactnessAt(i)));
     } else {
       cid_ranges_.Add(new (zone) CidRange(id, id));
     }
@@ -2636,10 +2636,11 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
     } else if (LoadFieldInstr* load_array = array->AsLoadField()) {
       // For arrays with guarded lengths, replace the length load
       // with a constant.
-      const Field* field = load_array->field();
-      if ((field != nullptr) && (field->guarded_list_length() >= 0)) {
-        return flow_graph->GetConstant(
-            Smi::Handle(Smi::New(field->guarded_list_length())));
+      if (const Field* field = load_array->field()) {
+        if (field->guarded_list_length() >= 0) {
+          return flow_graph->GetConstant(
+              Smi::Handle(Smi::New(field->guarded_list_length())));
+        }
       }
     }
   } else if (native_field() != nullptr &&
@@ -2648,6 +2649,9 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
     if (StaticCallInstr* call = array->AsStaticCall()) {
       if (call->is_known_list_constructor()) {
         return call->ArgumentAt(0);
+      } else if (call->function().recognized_kind() ==
+                 MethodRecognizer::kLinkedHashMap_getData) {
+        return flow_graph->constant_null();
       }
     } else if (CreateArrayInstr* create_array = array->AsCreateArray()) {
       return create_array->element_type()->definition();
@@ -2659,6 +2663,11 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
           field->static_type_exactness_state().IsTriviallyExact()) {
         return flow_graph->GetConstant(TypeArguments::Handle(
             AbstractType::Handle(field->type()).arguments()));
+      } else if (const NativeFieldDesc* native_field =
+                     load_array->native_field()) {
+        if (native_field == NativeFieldDesc::LinkedHashMap_data()) {
+          return flow_graph->constant_null();
+        }
       }
     }
   }
@@ -3481,15 +3490,17 @@ CallTargets* CallTargets::CreateAndExpand(Zone* zone, const ICData& ic_data) {
   // class-ids in that case.
   for (int idx = 0; idx < length; idx++) {
     int lower_limit_cid = (idx == 0) ? -1 : targets[idx - 1].cid_end;
-    const Function& target = *targets.TargetAt(idx)->target;
+    auto target_info = targets.TargetAt(idx);
+    const Function& target = *target_info->target;
     if (MethodRecognizer::PolymorphicTarget(target)) continue;
-    for (int i = targets[idx].cid_start - 1; i > lower_limit_cid; i--) {
+    for (int i = target_info->cid_start - 1; i > lower_limit_cid; i--) {
       bool class_is_abstract = false;
       if (FlowGraphCompiler::LookupMethodFor(i, name, args_desc, &fn,
                                              &class_is_abstract) &&
           fn.raw() == target.raw()) {
         if (!class_is_abstract) {
-          targets[idx].cid_start = i;
+          target_info->cid_start = i;
+          target_info->exactness = StaticTypeExactnessState::NotTracking();
         }
       } else {
         break;
@@ -3503,22 +3514,24 @@ CallTargets* CallTargets::CreateAndExpand(Zone* zone, const ICData& ic_data) {
   for (int idx = 0; idx < length; idx++) {
     int upper_limit_cid =
         (idx == length - 1) ? max_cid : targets[idx + 1].cid_start;
-    const Function& target = *targets.TargetAt(idx)->target;
+    auto target_info = targets.TargetAt(idx);
+    const Function& target = *target_info->target;
     if (MethodRecognizer::PolymorphicTarget(target)) continue;
     // The code below makes attempt to avoid spreading class-id range
     // into a suffix that consists purely of abstract classes to
     // shorten the range.
     // However such spreading is beneficial when it allows to
     // merge to consequtive ranges.
-    intptr_t cid_end_including_abstract = targets[idx].cid_end;
-    for (int i = targets[idx].cid_end + 1; i < upper_limit_cid; i++) {
+    intptr_t cid_end_including_abstract = target_info->cid_end;
+    for (int i = target_info->cid_end + 1; i < upper_limit_cid; i++) {
       bool class_is_abstract = false;
       if (FlowGraphCompiler::LookupMethodFor(i, name, args_desc, &fn,
                                              &class_is_abstract) &&
           fn.raw() == target.raw()) {
         cid_end_including_abstract = i;
         if (!class_is_abstract) {
-          targets[idx].cid_end = i;
+          target_info->cid_end = i;
+          target_info->exactness = StaticTypeExactnessState::NotTracking();
         }
       } else {
         break;
@@ -3528,11 +3541,12 @@ CallTargets* CallTargets::CreateAndExpand(Zone* zone, const ICData& ic_data) {
     // Check if we have a suffix that consists of abstract classes
     // and expand into it if that would allow us to merge this
     // range with subsequent range.
-    if ((cid_end_including_abstract > targets[idx].cid_end) &&
+    if ((cid_end_including_abstract > target_info->cid_end) &&
         (idx < length - 1) &&
         ((cid_end_including_abstract + 1) == targets[idx + 1].cid_start) &&
         (target.raw() == targets.TargetAt(idx + 1)->target->raw())) {
-      targets[idx].cid_end = cid_end_including_abstract;
+      target_info->cid_end = cid_end_including_abstract;
+      target_info->exactness = StaticTypeExactnessState::NotTracking();
     }
   }
   targets.MergeIntoRanges();
@@ -3552,6 +3566,7 @@ void CallTargets::MergeIntoRanges() {
         !MethodRecognizer::PolymorphicTarget(target)) {
       TargetAt(dest)->cid_end = TargetAt(src)->cid_end;
       TargetAt(dest)->count += TargetAt(src)->count;
+      TargetAt(dest)->exactness = StaticTypeExactnessState::NotTracking();
     } else {
       dest++;
       if (src != dest) {
@@ -3914,9 +3929,27 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       (ic_data() == NULL)) {
     const Array& arguments_descriptor =
         Array::Handle(zone, GetArgumentsDescriptor());
+
+    AbstractType& static_receiver_type = AbstractType::Handle(zone);
+
+#if defined(TARGET_ARCH_X64)
+    // Enable static type exactness tracking for the callsite by setting
+    // static receiver type on the ICData.
+    if (checked_argument_count() == 1) {
+      if (static_receiver_type_ != nullptr &&
+          static_receiver_type_->HasResolvedTypeClass()) {
+        const Class& cls =
+            Class::Handle(zone, static_receiver_type_->type_class());
+        if (cls.IsGeneric() && !cls.IsFutureOrClass()) {
+          static_receiver_type = static_receiver_type_->raw();
+        }
+      }
+    }
+#endif
+
     call_ic_data = compiler->GetOrAddInstanceCallICData(
         deopt_id(), function_name(), arguments_descriptor,
-        checked_argument_count());
+        checked_argument_count(), static_receiver_type);
   } else {
     call_ic_data = &ICData::ZoneHandle(zone, ic_data()->raw());
   }
@@ -3940,7 +3973,7 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                    token_pos());
     bool is_smi_two_args_op = false;
     const StubEntry* stub_entry = TwoArgsSmiOpInlineCacheEntry(token_kind());
-    if (stub_entry != NULL) {
+    if (stub_entry != nullptr) {
       // We have a dedicated inline cache stub for this operation, add an
       // an initial Smi/Smi check with count 0.
       is_smi_two_args_op = call_ic_data->AddSmiSmiCheckForFastSmiStubs();
@@ -4682,6 +4715,17 @@ bool PhiInstr::IsRedundant() const {
     if (def != first) return false;
   }
   return true;
+}
+
+Instruction* CheckConditionInstr::Canonicalize(FlowGraph* graph) {
+  if (StrictCompareInstr* strict_compare = comparison()->AsStrictCompare()) {
+    if ((InputAt(0)->definition()->OriginalDefinition() ==
+         InputAt(1)->definition()->OriginalDefinition()) &&
+        strict_compare->kind() == Token::kEQ_STRICT) {
+      return nullptr;
+    }
+  }
+  return this;
 }
 
 bool CheckArrayBoundInstr::IsFixedLengthArrayType(intptr_t cid) {

@@ -21,7 +21,7 @@ class SnapshotWriter;
 // List of stubs created in the VM isolate, these stubs are shared by different
 // isolates running in this dart process.
 #if !defined(TARGET_ARCH_DBC)
-#define VM_STUB_CODE_LIST(V)                                                   \
+#define VM_STUB_CODE_LIST_ARCH_INDEPENDENT(V)                                  \
   V(GetCStackPointer)                                                          \
   V(JumpToFrame)                                                               \
   V(RunExceptionHandler)                                                       \
@@ -84,6 +84,19 @@ class SnapshotWriter;
   V(NullErrorSharedWithoutFPURegs)                                             \
   V(StackOverflowSharedWithFPURegs)                                            \
   V(StackOverflowSharedWithoutFPURegs)
+
+#if defined(TARGET_ARCH_X64)
+#define VM_STUB_CODE_LIST_ARCH_SPECIFIC(V)                                     \
+  V(OneArgCheckInlineCacheWithExactnessCheck)                                  \
+  V(OneArgOptimizedCheckInlineCacheWithExactnessCheck)
+
+#else
+#define VM_STUB_CODE_LIST_ARCH_SPECIFIC(V)
+#endif
+
+#define VM_STUB_CODE_LIST(V)                                                   \
+  VM_STUB_CODE_LIST_ARCH_INDEPENDENT(V)                                        \
+  VM_STUB_CODE_LIST_ARCH_SPECIFIC(V)
 
 #else
 #define VM_STUB_CODE_LIST(V)                                                   \
@@ -220,7 +233,8 @@ class StubCode : public AllStatic {
       intptr_t num_args,
       const RuntimeEntry& handle_ic_miss,
       Token::Kind kind,
-      bool optimized = false);
+      bool optimized = false,
+      bool exactness_check = false);
   static void GenerateUsageCounterIncrement(Assembler* assembler,
                                             Register temp_reg);
   static void GenerateOptimizedUsageCounterIncrement(Assembler* assembler);

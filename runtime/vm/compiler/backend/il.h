@@ -553,6 +553,7 @@ struct InstrAttrs {
   M(CheckClassId, kNoGC)                                                       \
   M(CheckSmi, kNoGC)                                                           \
   M(CheckNull, kNoGC)                                                          \
+  M(CheckCondition, kNoGC)                                                     \
   M(Constant, kNoGC)                                                           \
   M(UnboxedConstant, kNoGC)                                                    \
   M(CheckEitherNonSmi, kNoGC)                                                  \
@@ -674,14 +675,17 @@ struct TargetInfo : public CidRange {
   TargetInfo(intptr_t cid_start_arg,
              intptr_t cid_end_arg,
              const Function* target_arg,
-             intptr_t count_arg)
+             intptr_t count_arg,
+             StaticTypeExactnessState exactness)
       : CidRange(cid_start_arg, cid_end_arg),
         target(target_arg),
-        count(count_arg) {
+        count(count_arg),
+        exactness(exactness) {
     ASSERT(target->IsZoneHandle());
   }
   const Function* target;
   intptr_t count;
+  StaticTypeExactnessState exactness;
 };
 
 // A set of class-ids, arranged in ranges. Used for the CheckClass
@@ -1085,6 +1089,7 @@ class Instruction : public ZoneAllocated {
  private:
   friend class BranchInstr;      // For RawSetInputAt.
   friend class IfThenElseInstr;  // For RawSetInputAt.
+  friend class CheckConditionInstr;  // For RawSetInputAt.
 
   virtual void RawSetInputAt(intptr_t i, Value* value) = 0;
 
@@ -3344,6 +3349,11 @@ class InstanceCallInstr : public TemplateDartCall<0> {
   intptr_t checked_argument_count() const { return checked_argument_count_; }
   const Function& interface_target() const { return interface_target_; }
 
+  void set_static_receiver_type(const AbstractType* receiver_type) {
+    ASSERT(receiver_type != nullptr && receiver_type->IsInstantiated());
+    static_receiver_type_ = receiver_type;
+  }
+
   bool has_unique_selector() const { return has_unique_selector_; }
   void set_has_unique_selector(bool b) { has_unique_selector_ = b; }
 
@@ -3401,6 +3411,8 @@ class InstanceCallInstr : public TemplateDartCall<0> {
   CompileType* result_type_;  // Inferred result type.
   bool has_unique_selector_;
   Code::EntryKind entry_kind_ = Code::EntryKind::kNormal;
+
+  const AbstractType* static_receiver_type_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceCallInstr);
 };
@@ -7403,6 +7415,52 @@ class GenericCheckBoundInstr : public TemplateInstruction<2, Throws, NoCSE> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(GenericCheckBoundInstr);
+};
+
+// Instruction evaluates the given comparison and deoptimizes if it evaluates
+// to false.
+class CheckConditionInstr : public Instruction {
+ public:
+  CheckConditionInstr(ComparisonInstr* comparison, intptr_t deopt_id)
+      : Instruction(deopt_id), comparison_(comparison) {
+    ASSERT(comparison->ArgumentCount() == 0);
+    ASSERT(comparison->env() == nullptr);
+    for (intptr_t i = comparison->InputCount() - 1; i >= 0; --i) {
+      comparison->InputAt(i)->set_instruction(this);
+    }
+  }
+
+  ComparisonInstr* comparison() const { return comparison_; }
+
+  DECLARE_INSTRUCTION(CheckCondition)
+
+  virtual bool ComputeCanDeoptimize() const { return true; }
+
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    return other->Cast<CheckConditionInstr>()->comparison()->AttributesEqual(
+        comparison());
+  }
+
+  virtual intptr_t InputCount() const { return comparison()->InputCount(); }
+  virtual Value* InputAt(intptr_t i) const { return comparison()->InputAt(i); }
+
+  virtual bool MayThrow() const { return false; }
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+ private:
+  virtual void RawSetInputAt(intptr_t i, Value* value) {
+    comparison()->RawSetInputAt(i, value);
+  }
+
+  ComparisonInstr* comparison_;
+
+  DISALLOW_COPY_AND_ASSIGN(CheckConditionInstr);
 };
 
 class UnboxedIntConverterInstr : public TemplateDefinition<1, NoThrow> {

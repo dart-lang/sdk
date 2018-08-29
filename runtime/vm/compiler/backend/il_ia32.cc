@@ -1442,15 +1442,8 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-LocationSummary* GuardFieldTypeInstr::MakeLocationSummary(Zone* zone,
-                                                          bool opt) const {
-  UNREACHABLE();
-  return nullptr;
-}
-
-void GuardFieldTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNREACHABLE();
-}
+DEFINE_UNIMPLEMENTED_INSTRUCTION(GuardFieldTypeInstr)
+DEFINE_UNIMPLEMENTED_INSTRUCTION(CheckConditionInstr)
 
 LocationSummary* GuardFieldClassInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {

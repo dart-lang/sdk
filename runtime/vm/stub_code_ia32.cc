@@ -1319,7 +1319,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     intptr_t num_args,
     const RuntimeEntry& handle_ic_miss,
     Token::Kind kind,
-    bool optimized) {
+    bool optimized,
+    bool exactness_check /* = false */) {
+  ASSERT(!exactness_check);  // Not supported.
   ASSERT(num_args == 1 || num_args == 2);
 #if defined(DEBUG)
   {
@@ -1383,7 +1385,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   bool optimize = kind == Token::kILLEGAL;
   const intptr_t target_offset = ICData::TargetIndexFor(num_args) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
-  const intptr_t entry_size = ICData::TestEntryLengthFor(num_args) * kWordSize;
+  const intptr_t entry_size =
+      ICData::TestEntryLengthFor(num_args, exactness_check) * kWordSize;
 
   __ Bind(&loop);
   for (int unroll = optimize ? 4 : 2; unroll >= 0; unroll--) {

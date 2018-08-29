@@ -174,7 +174,7 @@ const char* CompileType::ToCString() const {
 static void PrintTargetsHelper(BufferFormatter* f,
                                const CallTargets& targets,
                                intptr_t num_checks_to_print) {
-  f->Print(" IC[");
+  f->Print(" Targets[");
   f->Print("%" Pd ": ", targets.length());
   Function& target = Function::Handle();
   if ((num_checks_to_print == FlowGraphPrinter::kPrintAll) ||
@@ -183,8 +183,9 @@ static void PrintTargetsHelper(BufferFormatter* f,
   }
   for (intptr_t i = 0; i < num_checks_to_print; i++) {
     const CidRange& range = targets[i];
-    const intptr_t count = targets.TargetAt(i)->count;
-    target ^= targets.TargetAt(i)->target->raw();
+    const auto target_info = targets.TargetAt(i);
+    const intptr_t count = target_info->count;
+    target ^= target_info->target->raw();
     if (i > 0) {
       f->Print(" | ");
     }
@@ -199,6 +200,10 @@ static void PrintTargetsHelper(BufferFormatter* f,
       f->Print("cid %" Pd "-%" Pd " %s", range.cid_start, range.cid_end,
                String::Handle(cls.Name()).ToCString());
       f->Print(" cnt:%" Pd " trgt:'%s'", count, target.ToQualifiedCString());
+    }
+
+    if (target_info->exactness.IsTracking()) {
+      f->Print(" %s", target_info->exactness.ToCString());
     }
   }
   if (num_checks_to_print < targets.length()) {
@@ -240,6 +245,10 @@ static void PrintICDataHelper(BufferFormatter* f,
                               const ICData& ic_data,
                               intptr_t num_checks_to_print) {
   f->Print(" IC[");
+  if (ic_data.IsTrackingExactness()) {
+    f->Print("(%s) ",
+             AbstractType::Handle(ic_data.StaticReceiverType()).ToCString());
+  }
   f->Print("%" Pd ": ", ic_data.NumberOfChecks());
   Function& target = Function::Handle();
   if ((num_checks_to_print == FlowGraphPrinter::kPrintAll) ||
@@ -262,6 +271,9 @@ static void PrintICDataHelper(BufferFormatter* f,
       f->Print("%s", String::Handle(cls.Name()).ToCString());
     }
     f->Print(" cnt:%" Pd " trgt:'%s'", count, target.ToQualifiedCString());
+    if (ic_data.IsTrackingExactness()) {
+      f->Print(" %s", ic_data.GetExactnessAt(i).ToCString());
+    }
   }
   if (num_checks_to_print < ic_data.NumberOfChecks()) {
     f->Print("...");
@@ -820,6 +832,10 @@ void CheckClassInstr::PrintOperandsTo(BufferFormatter* f) const {
   if (IsNullCheck()) {
     f->Print(" nullcheck");
   }
+}
+
+void CheckConditionInstr::PrintOperandsTo(BufferFormatter* f) const {
+  comparison()->PrintOperandsTo(f);
 }
 
 void InvokeMathCFunctionInstr::PrintOperandsTo(BufferFormatter* f) const {

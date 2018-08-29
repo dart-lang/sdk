@@ -1157,6 +1157,34 @@ void FlowGraphCompiler::GenerateCallWithDeopt(TokenPosition token_pos,
   }
 }
 
+static const StubEntry* StubEntryFor(const ICData& ic_data, bool optimized) {
+  switch (ic_data.NumArgsTested()) {
+    case 1:
+#if defined(TARGET_ARCH_X64)
+      if (ic_data.IsTrackingExactness()) {
+        if (optimized) {
+          return StubCode::
+              OneArgOptimizedCheckInlineCacheWithExactnessCheck_entry();
+        } else {
+          return StubCode::OneArgCheckInlineCacheWithExactnessCheck_entry();
+        }
+      }
+#else
+      // TODO(dartbug.com/34170) Port exactness tracking to other platforms.
+      ASSERT(!ic_data.IsTrackingExactness());
+#endif
+      return optimized ? StubCode::OneArgOptimizedCheckInlineCache_entry()
+                       : StubCode::OneArgCheckInlineCache_entry();
+    case 2:
+      ASSERT(!ic_data.IsTrackingExactness());
+      return optimized ? StubCode::TwoArgsOptimizedCheckInlineCache_entry()
+                       : StubCode::TwoArgsCheckInlineCache_entry();
+    default:
+      UNIMPLEMENTED();
+      return nullptr;
+  }
+}
+
 void FlowGraphCompiler::GenerateInstanceCall(intptr_t deopt_id,
                                              TokenPosition token_pos,
                                              LocationSummary* locs,
@@ -1174,20 +1202,8 @@ void FlowGraphCompiler::GenerateInstanceCall(intptr_t deopt_id,
     // Emit IC call that will count and thus may need reoptimization at
     // function entry.
     ASSERT(may_reoptimize() || flow_graph().IsCompiledForOsr());
-    switch (ic_data.NumArgsTested()) {
-      case 1:
-        EmitOptimizedInstanceCall(
-            *StubCode::OneArgOptimizedCheckInlineCache_entry(), ic_data,
-            deopt_id, token_pos, locs, entry_kind);
-        return;
-      case 2:
-        EmitOptimizedInstanceCall(
-            *StubCode::TwoArgsOptimizedCheckInlineCache_entry(), ic_data,
-            deopt_id, token_pos, locs, entry_kind);
-        return;
-      default:
-        UNIMPLEMENTED();
-    }
+    EmitOptimizedInstanceCall(*StubEntryFor(ic_data, /*optimized=*/true),
+                              ic_data, deopt_id, token_pos, locs, entry_kind);
     return;
   }
 
@@ -1200,18 +1216,8 @@ void FlowGraphCompiler::GenerateInstanceCall(intptr_t deopt_id,
     return;
   }
 
-  switch (ic_data.NumArgsTested()) {
-    case 1:
-      EmitInstanceCall(*StubCode::OneArgCheckInlineCache_entry(), ic_data,
-                       deopt_id, token_pos, locs);
-      break;
-    case 2:
-      EmitInstanceCall(*StubCode::TwoArgsCheckInlineCache_entry(), ic_data,
-                       deopt_id, token_pos, locs);
-      break;
-    default:
-      UNIMPLEMENTED();
-  }
+  EmitInstanceCall(*StubEntryFor(ic_data, /*optimized=*/false), ic_data,
+                   deopt_id, token_pos, locs);
 }
 
 void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
@@ -1645,7 +1651,8 @@ const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
     intptr_t deopt_id,
     const String& target_name,
     const Array& arguments_descriptor,
-    intptr_t num_args_tested) {
+    intptr_t num_args_tested,
+    const AbstractType& receiver_type) {
   if ((deopt_id_to_ic_data_ != NULL) &&
       ((*deopt_id_to_ic_data_)[deopt_id] != NULL)) {
     const ICData* res = (*deopt_id_to_ic_data_)[deopt_id];
@@ -1655,12 +1662,13 @@ const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
     ASSERT(res->TypeArgsLen() ==
            ArgumentsDescriptor(arguments_descriptor).TypeArgsLen());
     ASSERT(!res->is_static_call());
+    ASSERT(res->StaticReceiverType() == receiver_type.raw());
     return res;
   }
   const ICData& ic_data = ICData::ZoneHandle(
       zone(), ICData::New(parsed_function().function(), target_name,
                           arguments_descriptor, deopt_id, num_args_tested,
-                          ICData::kInstance));
+                          ICData::kInstance, receiver_type));
 #if defined(TAG_IC_DATA)
   ic_data.set_tag(ICData::Tag::kInstanceCall);
 #endif
@@ -1761,7 +1769,8 @@ const CallTargets* FlowGraphCompiler::ResolveCallTargetsForReceiverCid(
   if (!LookupMethodFor(cid, selector, args_desc, &fn)) return NULL;
 
   CallTargets* targets = new (zone) CallTargets(zone);
-  targets->Add(new (zone) TargetInfo(cid, cid, &fn, /* count = */ 1));
+  targets->Add(new (zone) TargetInfo(cid, cid, &fn, /* count = */ 1,
+                                     StaticTypeExactnessState::NotTracking()));
 
   return targets;
 }

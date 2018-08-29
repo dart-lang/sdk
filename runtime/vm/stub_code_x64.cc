@@ -1589,7 +1589,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     intptr_t num_args,
     const RuntimeEntry& handle_ic_miss,
     Token::Kind kind,
-    bool optimized) {
+    bool optimized,
+    bool exactness_check) {
   ASSERT(num_args == 1 || num_args == 2);
 #if defined(DEBUG)
   {
@@ -1636,9 +1637,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 
   // Get argument count as Smi into RCX.
   __ movq(RCX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
-  // Load first argument into R9.
-  __ movq(R9, Address(RSP, RCX, TIMES_4, 0));
-  __ LoadTaggedClassIdMayBeSmi(RAX, R9);
+  // Load first argument into RDX.
+  __ movq(RDX, Address(RSP, RCX, TIMES_4, 0));
+  __ LoadTaggedClassIdMayBeSmi(RAX, RDX);
   // RAX: first argument class ID as Smi.
   if (num_args == 2) {
     // Load second argument into R9.
@@ -1653,6 +1654,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   const bool optimize = kind == Token::kILLEGAL;
   const intptr_t target_offset = ICData::TargetIndexFor(num_args) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
+  const intptr_t exactness_offset =
+      ICData::ExactnessOffsetFor(num_args) * kWordSize;
 
   __ Bind(&loop);
   for (int unroll = optimize ? 4 : 2; unroll >= 0; unroll--) {
@@ -1670,7 +1673,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ Bind(&update);
 
     const intptr_t entry_size =
-        ICData::TestEntryLengthFor(num_args) * kWordSize;
+        ICData::TestEntryLengthFor(num_args, exactness_check) * kWordSize;
     __ addq(R13, Immediate(entry_size));  // Next entry.
 
     __ cmpq(R9, Immediate(Smi::RawValue(kIllegalCid)));  // Done?
@@ -1716,20 +1719,61 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 
   __ Bind(&found);
   // R13: Pointer to an IC data check group.
+  Label call_target_function_through_unchecked_entry;
+  if (exactness_check) {
+    Label exactness_ok;
+    ASSERT(num_args == 1);
+    __ movq(RAX, Address(R13, exactness_offset));
+    __ cmpq(RAX, Immediate(Smi::RawValue(
+                     StaticTypeExactnessState::HasExactSuperType().Encode())));
+    __ j(LESS, &exactness_ok);
+    __ j(EQUAL, &call_target_function_through_unchecked_entry);
+
+    // Check trivial exactness.
+    // Note: RawICData::static_receiver_type_ is guaranteed to be not null
+    // because we only emit calls to this stub when it is not null.
+    __ movq(RCX, FieldAddress(RBX, ICData::static_receiver_type_offset()));
+    __ movq(RCX, FieldAddress(RCX, Type::arguments_offset()));
+    // RAX contains an offset to type arguments in words as a smi,
+    // hence TIMES_4. RDX is guaranteed to be non-smi because it is expected to
+    // have type arguments.
+    __ cmpq(RCX, FieldAddress(RDX, RAX, TIMES_4, 0));
+    __ j(EQUAL, &call_target_function_through_unchecked_entry);
+
+    // Update exactness state (not-exact anymore).
+    __ movq(Address(R13, exactness_offset),
+            Immediate(
+                Smi::RawValue(StaticTypeExactnessState::NotExact().Encode())));
+    __ Bind(&exactness_ok);
+  }
   __ movq(RAX, Address(R13, target_offset));
 
   if (FLAG_optimization_counter_threshold >= 0) {
-    __ Comment("Update caller's counter");
+    __ Comment("Update ICData counter");
     // Ignore overflow.
     __ addq(Address(R13, count_offset), Immediate(Smi::RawValue(1)));
   }
 
-  __ Comment("Call target");
+  __ Comment("Call target (via checked entry point)");
   __ Bind(&call_target_function);
   // RAX: Target function.
   __ movq(CODE_REG, FieldAddress(RAX, Function::code_offset()));
   __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
   __ jmp(RCX);
+
+  if (exactness_check) {
+    __ Bind(&call_target_function_through_unchecked_entry);
+    if (FLAG_optimization_counter_threshold >= 0) {
+      __ Comment("Update ICData counter");
+      // Ignore overflow.
+      __ addq(Address(R13, count_offset), Immediate(Smi::RawValue(1)));
+    }
+    __ Comment("Call target (via unchecked entry point)");
+    __ movq(RAX, Address(R13, target_offset));
+    __ movq(CODE_REG, FieldAddress(RAX, Function::code_offset()));
+    __ movq(RCX, FieldAddress(RAX, Function::unchecked_entry_point_offset()));
+    __ jmp(RCX);
+  }
 
 #if !defined(PRODUCT)
   if (!optimized) {
@@ -1759,6 +1803,14 @@ void StubCode::GenerateOneArgCheckInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, RCX);
   GenerateNArgsCheckInlineCacheStub(
       assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL);
+}
+
+void StubCode::GenerateOneArgCheckInlineCacheWithExactnessCheckStub(
+    Assembler* assembler) {
+  GenerateUsageCounterIncrement(assembler, RCX);
+  GenerateNArgsCheckInlineCacheStub(
+      assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL,
+      /*optimized=*/false, /*exactness_check=*/true);
 }
 
 void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
@@ -1802,7 +1854,16 @@ void StubCode::GenerateOneArgOptimizedCheckInlineCacheStub(
   GenerateOptimizedUsageCounterIncrement(assembler);
   GenerateNArgsCheckInlineCacheStub(assembler, 1,
                                     kInlineCacheMissHandlerOneArgRuntimeEntry,
-                                    Token::kILLEGAL, true /* optimized */);
+                                    Token::kILLEGAL, /*optimized=*/true);
+}
+
+void StubCode::GenerateOneArgOptimizedCheckInlineCacheWithExactnessCheckStub(
+    Assembler* assembler) {
+  GenerateOptimizedUsageCounterIncrement(assembler);
+  GenerateNArgsCheckInlineCacheStub(assembler, 1,
+                                    kInlineCacheMissHandlerOneArgRuntimeEntry,
+                                    Token::kILLEGAL, /*optimized=*/true,
+                                    /*exactness_check=*/true);
 }
 
 void StubCode::GenerateTwoArgsOptimizedCheckInlineCacheStub(
@@ -1810,7 +1871,7 @@ void StubCode::GenerateTwoArgsOptimizedCheckInlineCacheStub(
   GenerateOptimizedUsageCounterIncrement(assembler);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
                                     kInlineCacheMissHandlerTwoArgsRuntimeEntry,
-                                    Token::kILLEGAL, true /* optimized */);
+                                    Token::kILLEGAL, /*optimized=*/true);
 }
 
 // Intermediary stub between a static call and its target. ICData contains
@@ -2721,7 +2782,8 @@ void StubCode::GenerateICCallThroughFunctionStub(Assembler* assembler) {
   __ testq(R9, R9);
   __ j(ZERO, &miss, Assembler::kNearJump);
 
-  const intptr_t entry_length = ICData::TestEntryLengthFor(1) * kWordSize;
+  const intptr_t entry_length =
+      ICData::TestEntryLengthFor(1, /*tracking_exactness=*/false) * kWordSize;
   __ addq(R13, Immediate(entry_length));  // Next entry.
   __ jmp(&loop);
 
@@ -2757,7 +2819,8 @@ void StubCode::GenerateICCallThroughCodeStub(Assembler* assembler) {
   __ testq(R9, R9);
   __ j(ZERO, &miss, Assembler::kNearJump);
 
-  const intptr_t entry_length = ICData::TestEntryLengthFor(1) * kWordSize;
+  const intptr_t entry_length =
+      ICData::TestEntryLengthFor(1, /*tracking_exactness=*/false) * kWordSize;
   __ addq(R13, Immediate(entry_length));  // Next entry.
   __ jmp(&loop);
 

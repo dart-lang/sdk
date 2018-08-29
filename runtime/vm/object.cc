@@ -101,36 +101,11 @@ cpp_vtable Smi::handle_vtable_ = 0;
 #error RAW_NULL should not be defined.
 #endif
 #define RAW_NULL kHeapObjectTag
-Object* Object::null_object_ = NULL;
-Array* Object::null_array_ = NULL;
-String* Object::null_string_ = NULL;
-Instance* Object::null_instance_ = NULL;
-Function* Object::null_function_ = NULL;
-TypeArguments* Object::null_type_arguments_ = NULL;
-TypeArguments* Object::empty_type_arguments_ = NULL;
-Array* Object::empty_array_ = NULL;
-Array* Object::zero_array_ = NULL;
-ContextScope* Object::empty_context_scope_ = NULL;
-ObjectPool* Object::empty_object_pool_ = NULL;
-PcDescriptors* Object::empty_descriptors_ = NULL;
-LocalVarDescriptors* Object::empty_var_descriptors_ = NULL;
-ExceptionHandlers* Object::empty_exception_handlers_ = NULL;
-Array* Object::extractor_parameter_types_ = NULL;
-Array* Object::extractor_parameter_names_ = NULL;
-Instance* Object::sentinel_ = NULL;
-Instance* Object::transition_sentinel_ = NULL;
-Instance* Object::unknown_constant_ = NULL;
-Instance* Object::non_constant_ = NULL;
-Bool* Object::bool_true_ = NULL;
-Bool* Object::bool_false_ = NULL;
-Smi* Object::smi_illegal_cid_ = NULL;
-LanguageError* Object::snapshot_writer_error_ = NULL;
-LanguageError* Object::branch_offset_error_ = NULL;
-LanguageError* Object::speculative_inlining_error_ = NULL;
-LanguageError* Object::background_compilation_error_ = NULL;
-Array* Object::vm_isolate_snapshot_object_table_ = NULL;
-Type* Object::dynamic_type_ = NULL;
-Type* Object::void_type_ = NULL;
+
+#define DEFINE_SHARED_READONLY_HANDLE(Type, name)                              \
+  Type* Object::name##_ = nullptr;
+SHARED_READONLY_HANDLES_LIST(DEFINE_SHARED_READONLY_HANDLE)
+#undef DEFINE_SHARED_READONLY_HANDLE
 
 RawObject* Object::null_ = reinterpret_cast<RawObject*>(RAW_NULL);
 RawClass* Object::class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -495,36 +470,10 @@ void Object::InitOnce(Isolate* isolate) {
   Heap* heap = isolate->heap();
 
   // Allocate the read only object handles here.
-  null_object_ = Object::ReadOnlyHandle();
-  null_array_ = Array::ReadOnlyHandle();
-  null_string_ = String::ReadOnlyHandle();
-  null_instance_ = Instance::ReadOnlyHandle();
-  null_function_ = Function::ReadOnlyHandle();
-  null_type_arguments_ = TypeArguments::ReadOnlyHandle();
-  empty_type_arguments_ = TypeArguments::ReadOnlyHandle();
-  empty_array_ = Array::ReadOnlyHandle();
-  zero_array_ = Array::ReadOnlyHandle();
-  empty_context_scope_ = ContextScope::ReadOnlyHandle();
-  empty_object_pool_ = ObjectPool::ReadOnlyHandle();
-  empty_descriptors_ = PcDescriptors::ReadOnlyHandle();
-  empty_var_descriptors_ = LocalVarDescriptors::ReadOnlyHandle();
-  empty_exception_handlers_ = ExceptionHandlers::ReadOnlyHandle();
-  extractor_parameter_types_ = Array::ReadOnlyHandle();
-  extractor_parameter_names_ = Array::ReadOnlyHandle();
-  sentinel_ = Instance::ReadOnlyHandle();
-  transition_sentinel_ = Instance::ReadOnlyHandle();
-  unknown_constant_ = Instance::ReadOnlyHandle();
-  non_constant_ = Instance::ReadOnlyHandle();
-  bool_true_ = Bool::ReadOnlyHandle();
-  bool_false_ = Bool::ReadOnlyHandle();
-  smi_illegal_cid_ = Smi::ReadOnlyHandle();
-  snapshot_writer_error_ = LanguageError::ReadOnlyHandle();
-  branch_offset_error_ = LanguageError::ReadOnlyHandle();
-  speculative_inlining_error_ = LanguageError::ReadOnlyHandle();
-  background_compilation_error_ = LanguageError::ReadOnlyHandle();
-  vm_isolate_snapshot_object_table_ = Array::ReadOnlyHandle();
-  dynamic_type_ = Type::ReadOnlyHandle();
-  void_type_ = Type::ReadOnlyHandle();
+#define INITIALIZE_SHARED_READONLY_HANDLE(Type, name)                          \
+  name##_ = Type::ReadOnlyHandle();
+  SHARED_READONLY_HANDLES_LIST(INITIALIZE_SHARED_READONLY_HANDLE)
+#undef INITIALIZE_SHARED_READONLY_HANDLE
 
   *null_object_ = Object::null();
   *null_array_ = Array::null();
@@ -533,6 +482,7 @@ void Object::InitOnce(Isolate* isolate) {
   *null_function_ = Function::null();
   *null_type_arguments_ = TypeArguments::null();
   *empty_type_arguments_ = TypeArguments::null();
+  *null_abstract_type_ = AbstractType::null();
 
   // Initialize the empty and zero array handles to null_ in order to be able to
   // check if the empty and zero arrays were allocated (RAW_NULL is not
@@ -9066,20 +9016,12 @@ const char* Field::GuardedPropertiesAsCString() const {
     return "<*>";
   }
 
+  Zone* zone = Thread::Current()->zone();
+
   const char* exactness = "";
   if (static_type_exactness_state().IsTracking()) {
-    if (!static_type_exactness_state().IsExactOrUninitialized()) {
-      exactness = " {!exact}";
-    } else if (static_type_exactness_state().IsTriviallyExact()) {
-      exactness = " {trivially-exact}";
-    } else if (static_type_exactness_state().IsHasExactSuperType()) {
-      exactness = " {has-exact-super-type}";
-    } else if (static_type_exactness_state().IsHasExactSuperClass()) {
-      exactness = " {has-exact-super-class}";
-    } else {
-      ASSERT(static_type_exactness_state().IsUninitialized());
-      exactness = " {unknown exactness}";
-    }
+    exactness =
+        zone->PrintToString(" {%s}", static_type_exactness_state().ToCString());
   }
 
   const Class& cls =
@@ -9090,18 +9032,17 @@ const char* Field::GuardedPropertiesAsCString() const {
       is_final()) {
     ASSERT(guarded_list_length() != kUnknownFixedLength);
     if (guarded_list_length() == kNoFixedLength) {
-      return Thread::Current()->zone()->PrintToString("<%s [*]%s>", class_name,
-                                                      exactness);
+      return zone->PrintToString("<%s [*]%s>", class_name, exactness);
     } else {
-      return Thread::Current()->zone()->PrintToString(
+      return zone->PrintToString(
           "<%s [%" Pd " @%" Pd "]%s>", class_name, guarded_list_length(),
           guarded_list_length_in_object_offset(), exactness);
     }
   }
 
-  return Thread::Current()->zone()->PrintToString(
-      "<%s %s%s>", is_nullable() ? "nullable" : "not-nullable", class_name,
-      exactness);
+  return zone->PrintToString("<%s %s%s>",
+                             is_nullable() ? "nullable" : "not-nullable",
+                             class_name, exactness);
 }
 
 void Field::InitializeGuardedListLengthInObjectOffset() const {
@@ -9225,15 +9166,156 @@ static bool FindInstantiationOf(const Type& type,
   return false;  // Not found.
 }
 
-static void SetTrivialTypeExactness(const Field& field, const Class& cls) {
+static StaticTypeExactnessState TrivialTypeExactnessFor(const Class& cls) {
   const intptr_t type_arguments_offset = cls.type_arguments_field_offset();
   ASSERT(type_arguments_offset != Class::kNoTypeArguments);
   if (StaticTypeExactnessState::CanRepresentAsTriviallyExact(
           type_arguments_offset)) {
-    field.set_static_type_exactness_state(
-        StaticTypeExactnessState::TriviallyExact(type_arguments_offset));
+    return StaticTypeExactnessState::TriviallyExact(type_arguments_offset);
   } else {
-    field.set_static_type_exactness_state(StaticTypeExactnessState::NotExact());
+    return StaticTypeExactnessState::NotExact();
+  }
+}
+
+static const char* SafeTypeArgumentsToCString(const TypeArguments& args) {
+  return (args.raw() == TypeArguments::null()) ? "<null>" : args.ToCString();
+}
+
+StaticTypeExactnessState StaticTypeExactnessState::Compute(
+    const Type& static_type,
+    const Instance& value,
+    bool print_trace /* = false */) {
+  const TypeArguments& static_type_args =
+      TypeArguments::Handle(static_type.arguments());
+
+  TypeArguments& args = TypeArguments::Handle();
+
+  ASSERT(static_type.IsFinalized());
+  const Class& cls = Class::Handle(value.clazz());
+  GrowableArray<const AbstractType*> path(10);
+
+  bool is_super_class = true;
+  if (!FindInstantiationOf(static_type, cls, &path,
+                           /*consider_only_super_classes=*/true)) {
+    is_super_class = false;
+    bool found_super_interface = FindInstantiationOf(
+        static_type, cls, &path, /*consider_only_super_classes=*/false);
+    ASSERT(found_super_interface);
+  }
+
+  // Trivial case: field has type G<T0, ..., Tn> and value has type
+  // G<U0, ..., Un>. Check if type arguments match.
+  if (path.is_empty()) {
+    ASSERT(cls.raw() == static_type.type_class());
+    args = value.GetTypeArguments();
+    // TODO(dartbug.com/34170) Evaluate if comparing relevant subvectors (that
+    // disregards superclass own arguments) improves precision of the
+    // tracking.
+    if (args.raw() == static_type_args.raw()) {
+      return TrivialTypeExactnessFor(cls);
+    }
+
+    if (print_trace) {
+      THR_Print("  expected %s got %s type arguments\n",
+                SafeTypeArgumentsToCString(static_type_args),
+                SafeTypeArgumentsToCString(args));
+    }
+    return StaticTypeExactnessState::NotExact();
+  }
+
+  // Value has type C<U0, ..., Un> and field has type G<T0, ..., Tn> and G != C.
+  // Compute C<X0, ..., Xn> at G (Xi are free type arguments).
+  // Path array contains a chain of immediate supertypes S0 <: S1 <: ... Sn,
+  // such that S0 is an immediate supertype of C and Sn is G<...>.
+  // Each Si might depend on type parameters of the previous supertype S{i-1}.
+  // To compute C<X0, ..., Xn> at G we walk the chain backwards and
+  // instantiate Si using type parameters of S{i-1} which gives us a type
+  // depending on type parameters of S{i-2}.
+  Error& error = Error::Handle();
+  AbstractType& type = AbstractType::Handle(path.Last()->raw());
+  for (intptr_t i = path.length() - 2; (i >= 0) && !type.IsInstantiated();
+       i--) {
+    args = path[i]->arguments();
+    type = type.InstantiateFrom(
+        args, TypeArguments::null_type_arguments(), kAllFree, &error,
+        /*instantiation_trail=*/nullptr, /*bound_trail=*/nullptr, Heap::kNew);
+  }
+
+  if (type.IsInstantiated()) {
+    // C<X0, ..., Xn> at G is fully instantiated and does not depend on
+    // Xi. In this case just check if type arguments match.
+    args = type.arguments();
+    if (args.Equals(static_type_args)) {
+      return is_super_class ? StaticTypeExactnessState::HasExactSuperClass()
+                            : StaticTypeExactnessState::HasExactSuperType();
+    }
+
+    if (print_trace) {
+      THR_Print("  expected %s got %s type arguments\n",
+                SafeTypeArgumentsToCString(static_type_args),
+                SafeTypeArgumentsToCString(args));
+    }
+
+    return StaticTypeExactnessState::NotExact();
+  }
+
+  // The most complicated case: C<X0, ..., Xn> at G depends on
+  // Xi values. To compare type arguments we would need to instantiate
+  // it fully from value's type arguments and compare with <U0, ..., Un>.
+  // However this would complicate fast path in the native code. To avoid this
+  // complication we would optimize for the trivial case: we check if
+  // C<X0, ..., Xn> at G is exactly G<X0, ..., Xn> which means we can simply
+  // compare values type arguements (<T0, ..., Tn>) to fields type arguments
+  // (<U0, ..., Un>) to establish if field type is exact.
+  ASSERT(cls.IsGeneric());
+  const intptr_t num_type_params = cls.NumTypeParameters();
+  bool trivial_case =
+      (num_type_params ==
+       Class::Handle(static_type.type_class()).NumTypeParameters()) &&
+      (value.GetTypeArguments() == static_type.arguments());
+  if (!trivial_case && FLAG_trace_field_guards) {
+    THR_Print("Not a simple case: %" Pd " vs %" Pd
+              " type parameters, %s vs %s type arguments\n",
+              num_type_params,
+              Class::Handle(static_type.type_class()).NumTypeParameters(),
+              SafeTypeArgumentsToCString(
+                  TypeArguments::Handle(value.GetTypeArguments())),
+              SafeTypeArgumentsToCString(static_type_args));
+  }
+
+  AbstractType& type_arg = AbstractType::Handle();
+  args = type.arguments();
+  for (intptr_t i = 0; (i < num_type_params) && trivial_case; i++) {
+    type_arg = args.TypeAt(i);
+    if (!type_arg.IsTypeParameter() ||
+        (TypeParameter::Cast(type_arg).index() != i)) {
+      if (FLAG_trace_field_guards) {
+        THR_Print("  => encountered %s at index % " Pd "\n",
+                  type_arg.ToCString(), i);
+      }
+      trivial_case = false;
+    }
+  }
+
+  return trivial_case ? TrivialTypeExactnessFor(cls)
+                      : StaticTypeExactnessState::NotExact();
+}
+
+const char* StaticTypeExactnessState::ToCString() const {
+  if (!IsTracking()) {
+    return "not-tracking";
+  } else if (!IsExactOrUninitialized()) {
+    return "not-exact";
+  } else if (IsTriviallyExact()) {
+    return Thread::Current()->zone()->PrintToString(
+        "trivially-exact(%" Pd ")", GetTypeArgumentsOffsetInWords());
+  } else if (IsHasExactSuperType()) {
+    return "has-exact-super-type";
+  } else if (IsHasExactSuperClass()) {
+    return "has-exact-super-class";
+  } else {
+    ASSERT(IsUninitialized());
+    return "uninitialized-exactness";
   }
 }
 
@@ -9287,130 +9369,8 @@ bool Field::UpdateGuardedExactnessState(const Object& value) const {
   }
 
   ASSERT(static_type_exactness_state().IsUninitialized());
-  ASSERT(field_type.IsFinalized());
-  const Class& cls = Class::Handle(instance.clazz());
-  GrowableArray<const AbstractType*> path(10);
-
-  bool is_super_class = true;
-  if (!FindInstantiationOf(field_type, cls, &path,
-                           /*consider_only_super_classes=*/true)) {
-    is_super_class = false;
-    bool found_super_interface = FindInstantiationOf(
-        field_type, cls, &path, /*consider_only_super_classes=*/false);
-    ASSERT(found_super_interface);
-  }
-
-  // Trivial case: field has type G<T0, ..., Tn> and value has type
-  // G<U0, ..., Un>. Check if type arguments match.
-  if (path.is_empty()) {
-    ASSERT(cls.raw() == field_type.type_class());
-    args = instance.GetTypeArguments();
-    // TODO(dartbug.com/34170) Evaluate if comparing relevant subvectors (that
-    // disregards superclass own arguments) improves precision of the
-    // tracking.
-    if (args.raw() == field_type_args.raw()) {
-      SetTrivialTypeExactness(*this, cls);
-      return true;
-    }
-
-    if (FLAG_trace_field_guards) {
-      THR_Print("  expected %s got %s type arguments\n",
-                field_type_args.ToCString(), args.ToCString());
-    }
-    set_static_type_exactness_state(StaticTypeExactnessState::NotExact());
-    return true;
-  }
-
-  // Value has type C<U0, ..., Un> and field has type G<T0, ..., Tn> and G != C.
-  // Compute C<X0, ..., Xn> at G (Xi are free type arguments).
-  // Path array contains a chain of immediate supertypes S0 <: S1 <: ... Sn,
-  // such that S0 is an immediate supertype of C and Sn is G<...>.
-  // Each Si might depend on type parameters of the previous supertype S{i-1}.
-  // To compute C<X0, ..., Xn> at G we walk the chain backwards and
-  // instantiate Si using type parameters of S{i-1} which gives us a type
-  // depending on type parameters of S{i-2}.
-  Error& error = Error::Handle();
-  AbstractType& type = AbstractType::Handle(path.Last()->raw());
-  for (intptr_t i = path.length() - 2; (i >= 0) && !type.IsInstantiated();
-       i--) {
-    args = path[i]->arguments();
-    type = type.InstantiateFrom(
-        args, TypeArguments::null_type_arguments(), kAllFree, &error,
-        /*instantiation_trail=*/nullptr, /*bound_trail=*/nullptr, Heap::kNew);
-  }
-
-  if (type.IsInstantiated()) {
-    // C<X0, ..., Xn> at G is fully instantiated and does not depend on
-    // Xi. In this case just check if type arguments match.
-    args = type.arguments();
-    if (args.Equals(field_type_args)) {
-      set_static_type_exactness_state(
-          is_super_class ? StaticTypeExactnessState::HasExactSuperClass()
-                         : StaticTypeExactnessState::HasExactSuperType());
-    } else {
-      if (FLAG_trace_field_guards) {
-        THR_Print(
-            "  expected %s got %s type arguments\n",
-            field_type_args.ToCString(),
-            TypeArguments::Handle(instance.GetTypeArguments()).ToCString());
-      }
-      set_static_type_exactness_state(StaticTypeExactnessState::NotExact());
-    }
-
-    // We are going from trivially exact to either super-exact or not-exact.
-    // In either of those case invalidate any code that might be depending
-    // on the field state.
-    return true;
-  }
-
-  // The most complicated case: C<X0, ..., Xn> at G depends on
-  // Xi values. To compare type arguments we would need to instantiate
-  // it fully from value's type arguments and compare with <U0, ..., Un>.
-  // However this would complicate fast path in the native code. To avoid this
-  // complication we would optimize for the trivial case: we check if
-  // C<X0, ..., Xn> at G is exactly G<X0, ..., Xn> which means we can simply
-  // compare values type arguements (<T0, ..., Tn>) to fields type arguments
-  // (<U0, ..., Un>) to establish if field type is exact.
-  ASSERT(cls.IsGeneric());
-  const intptr_t num_type_params = cls.NumTypeParameters();
-  bool trivial_case =
-      (num_type_params ==
-       Class::Handle(field_type.type_class()).NumTypeParameters()) &&
-      (instance.GetTypeArguments() == field_type.arguments());
-  if (!trivial_case && FLAG_trace_field_guards) {
-    THR_Print("Not a simple case: %" Pd " vs %" Pd
-              " type parameters, %s vs %s type arguments\n",
-              num_type_params,
-              Class::Handle(field_type.type_class()).NumTypeParameters(),
-              TypeArguments::Handle(instance.GetTypeArguments()).ToCString(),
-              field_type_args.ToCString());
-  }
-
-  AbstractType& type_arg = AbstractType::Handle();
-  args = type.arguments();
-  for (intptr_t i = 0; (i < num_type_params) && trivial_case; i++) {
-    type_arg = args.TypeAt(i);
-    if (!type_arg.IsTypeParameter() ||
-        (TypeParameter::Cast(type_arg).index() != i)) {
-      if (FLAG_trace_field_guards) {
-        THR_Print("  => encountered %s at index % " Pd "\n",
-                  type_arg.ToCString(), i);
-      }
-      trivial_case = false;
-    }
-  }
-
-  if (trivial_case) {
-    if (static_type_exactness_state().IsUninitialized()) {
-      SetTrivialTypeExactness(*this, cls);
-      return true;
-    }
-
-    // Nothing to do - already initialized and checked.
-    return false;
-  }
-
-  set_static_type_exactness_state(StaticTypeExactnessState::NotExact());
+  set_static_type_exactness_state(StaticTypeExactnessState::Compute(
+      field_type, instance, FLAG_trace_field_guards));
   return true;
 }
 
@@ -14172,9 +14132,16 @@ RawUnlinkedCall* UnlinkedCall::New() {
   return reinterpret_cast<RawUnlinkedCall*>(raw);
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+void ICData::SetStaticReceiverType(const AbstractType& type) const {
+  StorePointer(&raw_ptr()->static_receiver_type_, type.raw());
+}
+#endif
+
 void ICData::ResetSwitchable(Zone* zone) const {
   ASSERT(NumArgsTested() == 1);
-  set_ic_data_array(Array::Handle(zone, CachedEmptyICDataArray(1)));
+  ASSERT(!IsTrackingExactness());
+  set_ic_data_array(Array::Handle(zone, CachedEmptyICDataArray(1, false)));
 }
 
 const char* ICData::ToCString() const {
@@ -14316,12 +14283,14 @@ void ICData::set_state_bits(uint32_t bits) const {
   StoreNonPointer(&raw_ptr()->state_bits_, bits);
 }
 
-intptr_t ICData::TestEntryLengthFor(intptr_t num_args) {
-  return num_args + 1 /* target function*/ + 1 /* frequency */;
+intptr_t ICData::TestEntryLengthFor(intptr_t num_args,
+                                    bool tracking_exactness) {
+  return num_args + 1 /* target function*/ + 1 /* frequency */ +
+         (tracking_exactness ? 1 : 0) /* exactness state */;
 }
 
 intptr_t ICData::TestEntryLength() const {
-  return TestEntryLengthFor(NumArgsTested());
+  return TestEntryLengthFor(NumArgsTested(), IsTrackingExactness());
 }
 
 intptr_t ICData::Length() const {
@@ -14368,6 +14337,7 @@ intptr_t ICData::NumberOfUsedChecks() const {
 
 void ICData::WriteSentinel(const Array& data, intptr_t test_entry_length) {
   ASSERT(!data.IsNull());
+  RELEASE_ASSERT(smi_illegal_cid().Value() == kIllegalCid);
   for (intptr_t i = 1; i <= test_entry_length; i++) {
     data.SetAt(data.Length() - i, smi_illegal_cid());
   }
@@ -14592,6 +14562,7 @@ bool ICData::ValidateInterceptor(const Function& target) const {
 void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
                       const Function& target,
                       intptr_t count) const {
+  ASSERT(!IsTrackingExactness());
   ASSERT(!target.IsNull());
   ASSERT((target.name() == target_name()) || ValidateInterceptor(target));
   DEBUG_ASSERT(!HasCheck(class_ids));
@@ -14636,7 +14607,7 @@ void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
   ASSERT(!target.IsNull());
   data.SetAt(data_pos++, target);
   value = Smi::New(count);
-  data.SetAt(data_pos, value);
+  data.SetAt(data_pos++, value);
   // Multithreaded access to ICData requires setting of array to be the last
   // operation.
   set_ic_data_array(data);
@@ -14689,7 +14660,8 @@ void ICData::DebugDump() const {
 
 void ICData::AddReceiverCheck(intptr_t receiver_class_id,
                               const Function& target,
-                              intptr_t count) const {
+                              intptr_t count,
+                              StaticTypeExactnessState exactness) const {
 #if defined(DEBUG)
   GrowableArray<intptr_t> class_ids(1);
   class_ids.Add(receiver_class_id);
@@ -14715,6 +14687,9 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
   if (Isolate::Current()->compilation_allowed()) {
     data.SetAt(data_pos + 1, target);
     data.SetAt(data_pos + 2, Smi::Handle(Smi::New(count)));
+    if (IsTrackingExactness()) {
+      data.SetAt(data_pos + 3, Smi::Handle(Smi::New(exactness.Encode())));
+    }
   } else {
     // Precompilation only, after all functions have been compiled.
     ASSERT(target.HasCode());
@@ -14727,6 +14702,16 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
   // Multithreaded access to ICData requires setting of array to be the last
   // operation.
   set_ic_data_array(data);
+}
+
+StaticTypeExactnessState ICData::GetExactnessAt(intptr_t index) const {
+  if (!IsTrackingExactness()) {
+    return StaticTypeExactnessState::NotTracking();
+  }
+  const Array& data = Array::Handle(ic_data());
+  intptr_t data_pos = index * TestEntryLength();
+  return StaticTypeExactnessState::Decode(
+      Smi::Value(Smi::RawCast(data.At(data_pos + NumArgsTested() + 2))));
 }
 
 void ICData::GetCheckAt(intptr_t index,
@@ -14879,6 +14864,7 @@ void ICData::SetEntryPointAt(intptr_t index, const Smi& value) const {
   data.SetAt(data_pos, value);
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 RawFunction* ICData::GetTargetForReceiverClassId(intptr_t class_id,
                                                  intptr_t* count_return) const {
   const intptr_t len = NumberOfChecks();
@@ -15071,6 +15057,7 @@ void ICData::GetUsedCidsForTwoArgs(GrowableArray<intptr_t>* first,
     }
   }
 }
+#endif
 
 bool ICData::IsUsedAt(intptr_t i) const {
   if (GetCountAt(i) <= 0) {
@@ -15089,24 +15076,39 @@ bool ICData::IsUsedAt(intptr_t i) const {
 }
 
 void ICData::InitOnce() {
-  for (int i = 0; i < kCachedICDataArrayCount; i++) {
-    cached_icdata_arrays_[i] = ICData::NewNonCachedEmptyICDataArray(i);
+  for (int i = 0; i <= kCachedICDataMaxArgsTestedWithoutExactnessTracking;
+       i++) {
+    cached_icdata_arrays_
+        [kCachedICDataZeroArgTestedWithoutExactnessTrackingIdx + i] =
+            ICData::NewNonCachedEmptyICDataArray(i, false);
   }
+  cached_icdata_arrays_[kCachedICDataOneArgWithExactnessTrackingIdx] =
+      ICData::NewNonCachedEmptyICDataArray(1, true);
 }
 
-RawArray* ICData::NewNonCachedEmptyICDataArray(intptr_t num_args_tested) {
+RawArray* ICData::NewNonCachedEmptyICDataArray(intptr_t num_args_tested,
+                                               bool tracking_exactness) {
   // IC data array must be null terminated (sentinel entry).
-  const intptr_t len = TestEntryLengthFor(num_args_tested);
+  const intptr_t len = TestEntryLengthFor(num_args_tested, tracking_exactness);
   const Array& array = Array::Handle(Array::New(len, Heap::kOld));
   WriteSentinel(array, len);
   array.MakeImmutable();
   return array.raw();
 }
 
-RawArray* ICData::CachedEmptyICDataArray(intptr_t num_args_tested) {
-  ASSERT(num_args_tested >= 0);
-  ASSERT(num_args_tested < kCachedICDataArrayCount);
-  return cached_icdata_arrays_[num_args_tested];
+RawArray* ICData::CachedEmptyICDataArray(intptr_t num_args_tested,
+                                         bool tracking_exactness) {
+  if (tracking_exactness) {
+    ASSERT(num_args_tested == 1);
+    return cached_icdata_arrays_[kCachedICDataOneArgWithExactnessTrackingIdx];
+  } else {
+    ASSERT(num_args_tested >= 0);
+    ASSERT(num_args_tested <=
+           kCachedICDataMaxArgsTestedWithoutExactnessTracking);
+    return cached_icdata_arrays_
+        [kCachedICDataZeroArgTestedWithoutExactnessTrackingIdx +
+         num_args_tested];
+  }
 }
 
 // Does not initialize ICData array.
@@ -15116,7 +15118,8 @@ RawICData* ICData::NewDescriptor(Zone* zone,
                                  const Array& arguments_descriptor,
                                  intptr_t deopt_id,
                                  intptr_t num_args_tested,
-                                 RebindRule rebind_rule) {
+                                 RebindRule rebind_rule,
+                                 const AbstractType& static_receiver_type) {
   ASSERT(!owner.IsNull());
   ASSERT(!target_name.IsNull());
   ASSERT(!arguments_descriptor.IsNull());
@@ -15140,6 +15143,7 @@ RawICData* ICData::NewDescriptor(Zone* zone,
 #endif
   result.set_rebind_rule(rebind_rule);
   result.SetNumArgsTested(num_args_tested);
+  NOT_IN_PRECOMPILED(result.SetStaticReceiverType(static_receiver_type));
   return result.raw();
 }
 
@@ -15170,21 +15174,26 @@ RawICData* ICData::New(const Function& owner,
                        const Array& arguments_descriptor,
                        intptr_t deopt_id,
                        intptr_t num_args_tested,
-                       RebindRule rebind_rule) {
+                       RebindRule rebind_rule,
+                       const AbstractType& static_receiver_type) {
   Zone* zone = Thread::Current()->zone();
   const ICData& result = ICData::Handle(
-      zone, NewDescriptor(zone, owner, target_name, arguments_descriptor,
-                          deopt_id, num_args_tested, rebind_rule));
-  result.set_ic_data_array(
-      Array::Handle(zone, CachedEmptyICDataArray(num_args_tested)));
+      zone,
+      NewDescriptor(zone, owner, target_name, arguments_descriptor, deopt_id,
+                    num_args_tested, rebind_rule, static_receiver_type));
+  result.set_ic_data_array(Array::Handle(
+      zone,
+      CachedEmptyICDataArray(num_args_tested, result.IsTrackingExactness())));
   return result.raw();
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 RawICData* ICData::NewFrom(const ICData& from, intptr_t num_args_tested) {
   const ICData& result = ICData::Handle(ICData::New(
       Function::Handle(from.Owner()), String::Handle(from.target_name()),
       Array::Handle(from.arguments_descriptor()), from.deopt_id(),
-      num_args_tested, from.rebind_rule()));
+      num_args_tested, from.rebind_rule(),
+      AbstractType::Handle(from.StaticReceiverType())));
   // Copy deoptimization reasons.
   result.SetDeoptReasons(from.DeoptReasons());
   return result.raw();
@@ -15196,7 +15205,8 @@ RawICData* ICData::Clone(const ICData& from) {
       zone, Function::Handle(zone, from.Owner()),
       String::Handle(zone, from.target_name()),
       Array::Handle(zone, from.arguments_descriptor()), from.deopt_id(),
-      from.NumArgsTested(), from.rebind_rule()));
+      from.NumArgsTested(), from.rebind_rule(),
+      AbstractType::Handle(from.StaticReceiverType())));
   // Clone entry array.
   const Array& from_array = Array::Handle(zone, from.ic_data());
   const intptr_t len = from_array.Length();
@@ -15211,6 +15221,7 @@ RawICData* ICData::Clone(const ICData& from) {
   result.SetDeoptReasons(from.DeoptReasons());
   return result.raw();
 }
+#endif
 
 Code::Comments& Code::Comments::New(intptr_t count) {
   Comments* comments;

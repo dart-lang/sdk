@@ -1234,7 +1234,21 @@ static RawFunction* InlineCacheMissHandler(
     return target_function.raw();
   }
   if (args.length() == 1) {
-    ic_data.AddReceiverCheck(args[0]->GetClassId(), target_function);
+    if (ic_data.IsTrackingExactness()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      const auto& receiver = *args[0];
+      const auto state = StaticTypeExactnessState::Compute(
+          Type::Cast(AbstractType::Handle(ic_data.StaticReceiverType())),
+          receiver);
+      ic_data.AddReceiverCheck(
+          receiver.GetClassId(), target_function,
+          /*count=*/1, /*exactness=*/state.CollapseSuperTypeExactness());
+#else
+      UNREACHABLE();
+#endif
+    } else {
+      ic_data.AddReceiverCheck(args[0]->GetClassId(), target_function);
+    }
   } else {
     GrowableArray<intptr_t> class_ids(args.length());
     ASSERT(ic_data.NumArgsTested() == args.length());

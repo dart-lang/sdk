@@ -30,20 +30,21 @@ DECLARE_FLAG(int, optimization_counter_threshold);
 
 // List of instructions that are still unimplemented by DBC backend.
 #define FOR_EACH_UNIMPLEMENTED_INSTRUCTION(M)                                  \
-  M(LoadCodeUnits)                                                             \
   M(BinaryInt32Op)                                                             \
-  M(Int32ToDouble)                                                             \
-  M(DoubleToInteger)                                                           \
+  M(BinaryUint32Op)                                                            \
   M(BoxInt64)                                                                  \
-  M(TruncDivMod)                                                               \
+  M(CheckCondition)                                                            \
+  M(DoubleToInteger)                                                           \
+  M(ExtractNthOutput)                                                          \
   M(GuardFieldClass)                                                           \
   M(GuardFieldLength)                                                          \
   M(GuardFieldType)                                                            \
   M(IfThenElse)                                                                \
-  M(ExtractNthOutput)                                                          \
-  M(BinaryUint32Op)                                                            \
+  M(Int32ToDouble)                                                             \
+  M(LoadCodeUnits)                                                             \
   M(ShiftUint32Op)                                                             \
   M(SpeculativeShiftUint32Op)                                                  \
+  M(TruncDivMod)                                                               \
   M(UnaryUint32Op)                                                             \
   M(UnboxedIntConverter)
 

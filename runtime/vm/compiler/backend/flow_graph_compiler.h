@@ -699,7 +699,8 @@ class FlowGraphCompiler : public ValueObject {
   const ICData* GetOrAddInstanceCallICData(intptr_t deopt_id,
                                            const String& target_name,
                                            const Array& arguments_descriptor,
-                                           intptr_t num_args_tested);
+                                           intptr_t num_args_tested,
+                                           const AbstractType& receiver_type);
 
   const ICData* GetOrAddStaticCallICData(intptr_t deopt_id,
                                          const Function& target,

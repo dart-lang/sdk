@@ -347,93 +347,6 @@ class Object {
 
   static RawObject* null() { return null_; }
 
-  static const Object& null_object() {
-    ASSERT(null_object_ != NULL);
-    return *null_object_;
-  }
-  static const Array& null_array() {
-    ASSERT(null_array_ != NULL);
-    return *null_array_;
-  }
-  static const String& null_string() {
-    ASSERT(null_string_ != NULL);
-    return *null_string_;
-  }
-  static const Instance& null_instance() {
-    ASSERT(null_instance_ != NULL);
-    return *null_instance_;
-  }
-  static const Function& null_function() {
-    ASSERT(null_function_ != NULL);
-    return *null_function_;
-  }
-  static const TypeArguments& null_type_arguments() {
-    ASSERT(null_type_arguments_ != NULL);
-    return *null_type_arguments_;
-  }
-  static const TypeArguments& empty_type_arguments() {
-    ASSERT(empty_type_arguments_ != NULL);
-    return *empty_type_arguments_;
-  }
-
-  static const Array& empty_array() {
-    ASSERT(empty_array_ != NULL);
-    return *empty_array_;
-  }
-  static const Array& zero_array() {
-    ASSERT(zero_array_ != NULL);
-    return *zero_array_;
-  }
-
-  static const ContextScope& empty_context_scope() {
-    ASSERT(empty_context_scope_ != NULL);
-    return *empty_context_scope_;
-  }
-
-  static const ObjectPool& empty_object_pool() {
-    ASSERT(empty_object_pool_ != NULL);
-    return *empty_object_pool_;
-  }
-
-  static const PcDescriptors& empty_descriptors() {
-    ASSERT(empty_descriptors_ != NULL);
-    return *empty_descriptors_;
-  }
-
-  static const LocalVarDescriptors& empty_var_descriptors() {
-    ASSERT(empty_var_descriptors_ != NULL);
-    return *empty_var_descriptors_;
-  }
-
-  static const ExceptionHandlers& empty_exception_handlers() {
-    ASSERT(empty_exception_handlers_ != NULL);
-    return *empty_exception_handlers_;
-  }
-
-  static const Array& extractor_parameter_types() {
-    ASSERT(extractor_parameter_types_ != NULL);
-    return *extractor_parameter_types_;
-  }
-
-  static const Array& extractor_parameter_names() {
-    ASSERT(extractor_parameter_names_ != NULL);
-    return *extractor_parameter_names_;
-  }
-
-  // The sentinel is a value that cannot be produced by Dart code.
-  // It can be used to mark special values, for example to distinguish
-  // "uninitialized" fields.
-  static const Instance& sentinel() {
-    ASSERT(sentinel_ != NULL);
-    return *sentinel_;
-  }
-  // Value marking that we are transitioning from sentinel, e.g., computing
-  // a field value. Used to detect circular initialization.
-  static const Instance& transition_sentinel() {
-    ASSERT(transition_sentinel_ != NULL);
-    return *transition_sentinel_;
-  }
-
 #if defined(HASH_IN_OBJECT_HEADER)
   static uint32_t GetCachedHash(const RawObject* obj) {
     return obj->ptr()->hash_;
@@ -444,61 +357,56 @@ class Object {
   }
 #endif
 
-  // Compiler's constant propagation constants.
-  static const Instance& unknown_constant() {
-    ASSERT(unknown_constant_ != NULL);
-    return *unknown_constant_;
-  }
-  static const Instance& non_constant() {
-    ASSERT(non_constant_ != NULL);
-    return *non_constant_;
-  }
+  // The list below enumerates read-only handles for singleton
+  // objects that are shared between the different isolates.
+  //
+  // - sentinel is a value that cannot be produced by Dart code. It can be used
+  // to mark special values, for example to distinguish "uninitialized" fields.
+  // - transition_sentinel is a value marking that we are transitioning from
+  // sentinel, e.g., computing a field value. Used to detect circular
+  // initialization.
+  // - unknown_constant and non_constant are optimizing compiler's constant
+  // propagation constants.
+#define SHARED_READONLY_HANDLES_LIST(V)                                        \
+  V(Object, null_object)                                                       \
+  V(Array, null_array)                                                         \
+  V(String, null_string)                                                       \
+  V(Instance, null_instance)                                                   \
+  V(Function, null_function)                                                   \
+  V(TypeArguments, null_type_arguments)                                        \
+  V(TypeArguments, empty_type_arguments)                                       \
+  V(Array, empty_array)                                                        \
+  V(Array, zero_array)                                                         \
+  V(ContextScope, empty_context_scope)                                         \
+  V(ObjectPool, empty_object_pool)                                             \
+  V(PcDescriptors, empty_descriptors)                                          \
+  V(LocalVarDescriptors, empty_var_descriptors)                                \
+  V(ExceptionHandlers, empty_exception_handlers)                               \
+  V(Array, extractor_parameter_types)                                          \
+  V(Array, extractor_parameter_names)                                          \
+  V(Instance, sentinel)                                                        \
+  V(Instance, transition_sentinel)                                             \
+  V(Instance, unknown_constant)                                                \
+  V(Instance, non_constant)                                                    \
+  V(Bool, bool_true)                                                           \
+  V(Bool, bool_false)                                                          \
+  V(Smi, smi_illegal_cid)                                                      \
+  V(LanguageError, snapshot_writer_error)                                      \
+  V(LanguageError, branch_offset_error)                                        \
+  V(LanguageError, speculative_inlining_error)                                 \
+  V(LanguageError, background_compilation_error)                               \
+  V(Array, vm_isolate_snapshot_object_table)                                   \
+  V(Type, dynamic_type)                                                        \
+  V(Type, void_type)                                                           \
+  V(AbstractType, null_abstract_type)
 
-  static const Bool& bool_true() {
-    ASSERT(bool_true_ != NULL);
-    return *bool_true_;
+#define DEFINE_SHARED_READONLY_HANDLE_GETTER(Type, name)                       \
+  static const Type& name() {                                                  \
+    ASSERT(name##_ != nullptr);                                                \
+    return *name##_;                                                           \
   }
-  static const Bool& bool_false() {
-    ASSERT(bool_false_ != NULL);
-    return *bool_false_;
-  }
-
-  static const Smi& smi_illegal_cid() {
-    ASSERT(smi_illegal_cid_ != NULL);
-    return *smi_illegal_cid_;
-  }
-  static const LanguageError& snapshot_writer_error() {
-    ASSERT(snapshot_writer_error_ != NULL);
-    return *snapshot_writer_error_;
-  }
-
-  static const LanguageError& branch_offset_error() {
-    ASSERT(branch_offset_error_ != NULL);
-    return *branch_offset_error_;
-  }
-
-  static const LanguageError& speculative_inlining_error() {
-    ASSERT(speculative_inlining_error_ != NULL);
-    return *speculative_inlining_error_;
-  }
-
-  static const LanguageError& background_compilation_error() {
-    ASSERT(background_compilation_error_ != NULL);
-    return *background_compilation_error_;
-  }
-
-  static const Array& vm_isolate_snapshot_object_table() {
-    ASSERT(vm_isolate_snapshot_object_table_ != NULL);
-    return *vm_isolate_snapshot_object_table_;
-  }
-  static const Type& dynamic_type() {
-    ASSERT(dynamic_type_ != NULL);
-    return *dynamic_type_;
-  }
-  static const Type& void_type() {
-    ASSERT(void_type_ != NULL);
-    return *void_type_;
-  }
+  SHARED_READONLY_HANDLES_LIST(DEFINE_SHARED_READONLY_HANDLE_GETTER)
+#undef DEFINE_SHARED_READONLY_HANDLE_GETTER
 
   static void set_vm_isolate_snapshot_object_table(const Array& table);
 
@@ -806,38 +714,9 @@ class Object {
   static RawClass* unhandled_exception_class_;  // Class of UnhandledException.
   static RawClass* unwind_error_class_;         // Class of UnwindError.
 
-  // The static values below are read-only handle pointers for singleton
-  // objects that are shared between the different isolates.
-  static Object* null_object_;
-  static Array* null_array_;
-  static String* null_string_;
-  static Instance* null_instance_;
-  static Function* null_function_;
-  static TypeArguments* null_type_arguments_;
-  static TypeArguments* empty_type_arguments_;
-  static Array* empty_array_;
-  static Array* zero_array_;
-  static ContextScope* empty_context_scope_;
-  static ObjectPool* empty_object_pool_;
-  static PcDescriptors* empty_descriptors_;
-  static LocalVarDescriptors* empty_var_descriptors_;
-  static ExceptionHandlers* empty_exception_handlers_;
-  static Array* extractor_parameter_types_;
-  static Array* extractor_parameter_names_;
-  static Instance* sentinel_;
-  static Instance* transition_sentinel_;
-  static Instance* unknown_constant_;
-  static Instance* non_constant_;
-  static Bool* bool_true_;
-  static Bool* bool_false_;
-  static Smi* smi_illegal_cid_;
-  static LanguageError* snapshot_writer_error_;
-  static LanguageError* branch_offset_error_;
-  static LanguageError* speculative_inlining_error_;
-  static LanguageError* background_compilation_error_;
-  static Array* vm_isolate_snapshot_object_table_;
-  static Type* dynamic_type_;
-  static Type* void_type_;
+#define DECLARE_SHARED_READONLY_HANDLE(Type, name) static Type* name##_;
+  SHARED_READONLY_HANDLES_LIST(DECLARE_SHARED_READONLY_HANDLE)
+#undef DECLARE_SHARED_READONLY_HANDLE
 
   friend void ClassTable::Register(const Class& cls);
   friend void RawObject::Validate(Isolate* isolate) const;
@@ -1783,6 +1662,134 @@ class UnlinkedCall : public Object {
   friend class Class;
 };
 
+// Representation of a state of runtime tracking of static type exactness for
+// a particular location in the program (e.g. exactness of type annotation
+// on a field).
+//
+// Given the static type G<T0, ..., Tn> we say that it is exact iff any
+// values that can be observed at this location has runtime type T such that
+// type arguments of T at G are exactly <T0, ..., Tn>.
+//
+// Currently we only support tracking for locations that are also known
+// to be monomorphic with respect to the actual class of the values it contains.
+//
+// Important: locations should never switch from tracked (kIsTriviallyExact,
+// kHasExactSuperType, kHasExactSuperClass, kNotExact) to not tracked
+// (kNotTracking) or the other way around because that would affect unoptimized
+// graphs generated by graph builder and skew deopt ids.
+class StaticTypeExactnessState final {
+ public:
+  // Values stored in the location with static type G<T0, ..., Tn> are all
+  // instances of C<T0, ..., Tn> and C<U0, ..., Un> at G has type parameters
+  // <U0, ..., Un>.
+  //
+  // For trivially exact types we can simply compare type argument
+  // vectors as pointers to check exactness. That's why we represent
+  // trivially exact locations as offset in words to the type arguments of
+  // class C. All other states are represented as non-positive values.
+  //
+  // Note: we are ignoring the type argument vector sharing optimization for
+  // now.
+  static inline StaticTypeExactnessState TriviallyExact(
+      intptr_t type_arguments_offset) {
+    ASSERT((type_arguments_offset > 0) &&
+           Utils::IsAligned(type_arguments_offset, kWordSize) &&
+           Utils::IsInt(8, type_arguments_offset / kWordSize));
+    return StaticTypeExactnessState(type_arguments_offset / kWordSize);
+  }
+
+  static inline bool CanRepresentAsTriviallyExact(
+      intptr_t type_arguments_offset) {
+    return Utils::IsInt(8, type_arguments_offset / kWordSize);
+  }
+
+  // Values stored in the location with static type G<T0, ..., Tn> are all
+  // instances of class C<...> and C<U0, ..., Un> at G has type
+  // parameters <T0, ..., Tn> for any <U0, ..., Un> - that is C<...> has a
+  // supertype G<T0, ..., Tn>.
+  //
+  // For such locations we can simply check if the value stored
+  // is an instance of an expected class and we don't have to look at
+  // type arguments carried by the instance.
+  //
+  // We distinguish situations where we know that G is a superclass of C from
+  // situations where G might be superinterface of C - because in the first
+  // type arguments of G give us constant prefix of type arguments of C.
+  static inline StaticTypeExactnessState HasExactSuperType() {
+    return StaticTypeExactnessState(kHasExactSuperType);
+  }
+
+  static inline StaticTypeExactnessState HasExactSuperClass() {
+    return StaticTypeExactnessState(kHasExactSuperClass);
+  }
+
+  // Values stored in the location don't fall under either kIsTriviallyExact
+  // or kHasExactSuperType categories.
+  //
+  // Note: that does not imply that static type annotation is not exact
+  // according to a broader definition, e.g. location might simply be
+  // polymorphic and store instances of multiple different types.
+  // However for simplicity we don't track such cases yet.
+  static inline StaticTypeExactnessState NotExact() {
+    return StaticTypeExactnessState(kNotExact);
+  }
+
+  // The location does not track exactness of its static type at runtime.
+  static inline StaticTypeExactnessState NotTracking() {
+    return StaticTypeExactnessState(kNotTracking);
+  }
+
+  static inline StaticTypeExactnessState Unitialized() {
+    return StaticTypeExactnessState(kUninitialized);
+  }
+
+  static StaticTypeExactnessState Compute(const Type& static_type,
+                                          const Instance& value,
+                                          bool print_trace = false);
+
+  bool IsTracking() const { return value_ != kNotTracking; }
+  bool IsUninitialized() const { return value_ == kUninitialized; }
+  bool IsHasExactSuperClass() const { return value_ == kHasExactSuperClass; }
+  bool IsHasExactSuperType() const { return value_ == kHasExactSuperType; }
+  bool IsTriviallyExact() const { return value_ > kUninitialized; }
+  bool NeedsFieldGuard() const { return value_ >= kUninitialized; }
+  bool IsExactOrUninitialized() const { return value_ > kNotExact; }
+  bool IsExact() const {
+    return IsTriviallyExact() || IsHasExactSuperType() ||
+           IsHasExactSuperClass();
+  }
+
+  const char* ToCString() const;
+
+  StaticTypeExactnessState CollapseSuperTypeExactness() const {
+    return IsHasExactSuperClass() ? HasExactSuperType() : *this;
+  }
+
+  static inline StaticTypeExactnessState Decode(int8_t value) {
+    return StaticTypeExactnessState(value);
+  }
+
+  int8_t Encode() const { return value_; }
+  intptr_t GetTypeArgumentsOffsetInWords() const {
+    ASSERT(IsTriviallyExact());
+    return value_;
+  }
+
+  static constexpr int8_t kUninitialized = 0;
+
+ private:
+  static constexpr int8_t kNotTracking = -4;
+  static constexpr int8_t kNotExact = -3;
+  static constexpr int8_t kHasExactSuperType = -2;
+  static constexpr int8_t kHasExactSuperClass = -1;
+
+  explicit StaticTypeExactnessState(int8_t value) : value_(value) {}
+
+  int8_t value_;
+
+  DISALLOW_ALLOCATION();
+};
+
 // Object holding information about an IC: test classes and their
 // corresponding targets. The owner of the ICData can be either the function
 // or the original ICData object. In case of background compilation we
@@ -1820,6 +1827,18 @@ class ICData : public Object {
   }
 
   bool IsImmutable() const;
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  RawAbstractType* StaticReceiverType() const {
+    return raw_ptr()->static_receiver_type_;
+  }
+  void SetStaticReceiverType(const AbstractType& type) const;
+  bool IsTrackingExactness() const {
+    return StaticReceiverType() != Object::null();
+  }
+#else
+  bool IsTrackingExactness() const { return false; }
+#endif
 
   void Reset(Zone* zone) const;
   void ResetSwitchable(Zone* zone) const;
@@ -1922,6 +1941,12 @@ class ICData : public Object {
 
   static intptr_t owner_offset() { return OFFSET_OF(RawICData, owner_); }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  static intptr_t static_receiver_type_offset() {
+    return OFFSET_OF(RawICData, static_receiver_type_);
+  }
+#endif
+
   // Replaces entry |index| with the sentinel.
   void WriteSentinelAt(intptr_t index) const;
 
@@ -1955,11 +1980,16 @@ class ICData : public Object {
   void AddCheck(const GrowableArray<intptr_t>& class_ids,
                 const Function& target,
                 intptr_t count = 1) const;
+
+  StaticTypeExactnessState GetExactnessAt(intptr_t count) const;
+
   // Adds sorted so that Smi is the first class-id. Use only for
   // num_args_tested == 1.
   void AddReceiverCheck(intptr_t receiver_class_id,
                         const Function& target,
-                        intptr_t count = 1) const;
+                        intptr_t count = 1,
+                        StaticTypeExactnessState exactness =
+                            StaticTypeExactnessState::NotTracking()) const;
 
   // Does entry |index| contain the sentinel value?
   bool IsSentinelAt(intptr_t index) const;
@@ -2016,18 +2046,25 @@ class ICData : public Object {
   bool HasOneTarget() const;
   bool HasReceiverClassId(intptr_t class_id) const;
 
-  static RawICData* New(const Function& owner,
-                        const String& target_name,
-                        const Array& arguments_descriptor,
-                        intptr_t deopt_id,
-                        intptr_t num_args_tested,
-                        RebindRule rebind_rule);
+  // Note: passing non-null receiver_type enables exactness tracking for
+  // the receiver type. Receiver type is expected to be a fully
+  // instantiated generic (but not a FutureOr).
+  // See StaticTypeExactnessState for more information.
+  static RawICData* New(
+      const Function& owner,
+      const String& target_name,
+      const Array& arguments_descriptor,
+      intptr_t deopt_id,
+      intptr_t num_args_tested,
+      RebindRule rebind_rule,
+      const AbstractType& receiver_type = Object::null_abstract_type());
   static RawICData* NewFrom(const ICData& from, intptr_t num_args_tested);
 
   // Generates a new ICData with descriptor and data array copied (deep clone).
   static RawICData* Clone(const ICData& from);
 
-  static intptr_t TestEntryLengthFor(intptr_t num_args);
+  static intptr_t TestEntryLengthFor(intptr_t num_args,
+                                     bool tracking_exactness);
 
   static intptr_t TargetIndexFor(intptr_t num_args) { return num_args; }
   static intptr_t CodeIndexFor(intptr_t num_args) { return num_args; }
@@ -2035,6 +2072,9 @@ class ICData : public Object {
   static intptr_t CountIndexFor(intptr_t num_args) { return (num_args + 1); }
   static intptr_t EntryPointIndexFor(intptr_t num_args) {
     return (num_args + 1);
+  }
+  static intptr_t ExactnessOffsetFor(intptr_t num_args) {
+    return (num_args + 2);
   }
 
   bool IsUsedAt(intptr_t i) const;
@@ -2048,7 +2088,16 @@ class ICData : public Object {
   // Initialize the preallocated empty ICData entry arrays.
   static void InitOnce();
 
-  enum { kCachedICDataArrayCount = 4 };
+  // We cache ICData with 0, 1, 2 arguments tested without exactness
+  // tracking and with 1 argument tested with exactness tracking.
+  enum {
+    kCachedICDataZeroArgTestedWithoutExactnessTrackingIdx = 0,
+    kCachedICDataMaxArgsTestedWithoutExactnessTracking = 2,
+    kCachedICDataOneArgWithExactnessTrackingIdx =
+        kCachedICDataZeroArgTestedWithoutExactnessTrackingIdx +
+        kCachedICDataMaxArgsTestedWithoutExactnessTracking + 1,
+    kCachedICDataArrayCount = kCachedICDataOneArgWithExactnessTrackingIdx + 1,
+  };
 
 #if defined(TAG_IC_DATA)
   using Tag = RawICData::Tag;
@@ -2102,15 +2151,18 @@ class ICData : public Object {
 #endif  // DEBUG
 
   intptr_t TestEntryLength() const;
-  static RawArray* NewNonCachedEmptyICDataArray(intptr_t num_args_tested);
-  static RawArray* CachedEmptyICDataArray(intptr_t num_args_tested);
+  static RawArray* NewNonCachedEmptyICDataArray(intptr_t num_args_tested,
+                                                bool tracking_exactness);
+  static RawArray* CachedEmptyICDataArray(intptr_t num_args_tested,
+                                          bool tracking_exactness);
   static RawICData* NewDescriptor(Zone* zone,
                                   const Function& owner,
                                   const String& target_name,
                                   const Array& arguments_descriptor,
                                   intptr_t deopt_id,
                                   intptr_t num_args_tested,
-                                  RebindRule rebind_rule);
+                                  RebindRule rebind_rule,
+                                  const AbstractType& receiver_type);
 
   static void WriteSentinel(const Array& data, intptr_t test_entry_length);
 
@@ -3158,116 +3210,6 @@ class RedirectionData : public Object {
   friend class Class;
   friend class Function;
   friend class HeapProfiler;
-};
-
-// Representation of a state of runtime tracking of static type exactness for
-// a particular location in the program (e.g. exactness of type annotation
-// on a field).
-//
-// Given the static type G<T0, ..., Tn> we say that it is exact iff any
-// values that can be observed at this location has runtime type T such that
-// type arguments of T at G are exactly <T0, ..., Tn>.
-//
-// Currently we only support tracking for locations that are also known
-// to be monomorphic with respect to the actual class of the values it contains.
-//
-// Important: locations should never switch from tracked (kIsTriviallyExact,
-// kHasExactSuperType, kHasExactSuperClass, kNotExact) to not tracked
-// (kNotTracking) or the other way around because that would affect unoptimized
-// graphs generated by graph builder and skew deopt ids.
-class StaticTypeExactnessState final {
- public:
-  // Values stored in the location with static type G<T0, ..., Tn> are all
-  // instances of C<T0, ..., Tn> and C<U0, ..., Un> at G has type parameters
-  // <U0, ..., Un>.
-  //
-  // For trivially exact types we can simply compare type argument
-  // vectors as pointers to check exactness. That's why we represent
-  // trivially exact locations as offset in words to the type arguments of
-  // class C. All other states are represented as non-positive values.
-  //
-  // Note: we are ignoring the type argument vector sharing optimization for
-  // now.
-  static inline StaticTypeExactnessState TriviallyExact(
-      intptr_t type_arguments_offset) {
-    ASSERT((type_arguments_offset > 0) &&
-           Utils::IsAligned(type_arguments_offset, kWordSize) &&
-           Utils::IsInt(8, type_arguments_offset / kWordSize));
-    return StaticTypeExactnessState(type_arguments_offset / kWordSize);
-  }
-
-  static inline bool CanRepresentAsTriviallyExact(
-      intptr_t type_arguments_offset) {
-    return Utils::IsInt(8, type_arguments_offset / kWordSize);
-  }
-
-  // Values stored in the location with static type G<T0, ..., Tn> are all
-  // instances of class C<...> and C<U0, ..., Un> at G has type
-  // parameters <T0, ..., Tn> for any <U0, ..., Un> - that is C<...> has a
-  // supertype G<T0, ..., Tn>.
-  //
-  // For such locations we can simply check if the value stored
-  // is an instance of an expected class and we don't have to look at
-  // type arguments carried by the instance.
-  //
-  // We distinguish situations where we know that G is a superclass of C from
-  // situations where G might be superinterface of C - because in the first
-  // type arguments of G give us constant prefix of type arguments of C.
-  static inline StaticTypeExactnessState HasExactSuperType() {
-    return StaticTypeExactnessState(kHasExactSuperType);
-  }
-
-  static inline StaticTypeExactnessState HasExactSuperClass() {
-    return StaticTypeExactnessState(kHasExactSuperClass);
-  }
-
-  // Values stored in the location don't fall under either kIsTriviallyExact
-  // or kHasExactSuperType categories.
-  //
-  // Note: that does not imply that static type annotation is not exact
-  // according to a broader definition, e.g. location might simply be
-  // polymorphic and store instances of multiple different types.
-  // However for simplicity we don't track such cases yet.
-  static inline StaticTypeExactnessState NotExact() {
-    return StaticTypeExactnessState(kNotExact);
-  }
-
-  // The location does not track exactness of its static type at runtime.
-  static inline StaticTypeExactnessState NotTracking() {
-    return StaticTypeExactnessState(kNotTracking);
-  }
-
-  static inline StaticTypeExactnessState Unitialized() {
-    return StaticTypeExactnessState(kUninitialized);
-  }
-
-  bool IsTracking() const { return value_ != kNotTracking; }
-  bool IsUninitialized() const { return value_ == kUninitialized; }
-  bool IsHasExactSuperClass() const { return value_ == kHasExactSuperClass; }
-  bool IsHasExactSuperType() const { return value_ == kHasExactSuperType; }
-  bool IsTriviallyExact() const { return value_ > kUninitialized; }
-  bool NeedsFieldGuard() const { return value_ >= kUninitialized; }
-  bool IsExactOrUninitialized() const { return value_ > kNotExact; }
-
-  static inline StaticTypeExactnessState Decode(int8_t value) {
-    return StaticTypeExactnessState(value);
-  }
-
-  int8_t Encode() const { return value_; }
-
-  static constexpr int8_t kUninitialized = 0;
-
- private:
-  static constexpr int8_t kNotTracking = -4;
-  static constexpr int8_t kNotExact = -3;
-  static constexpr int8_t kHasExactSuperType = -2;
-  static constexpr int8_t kHasExactSuperClass = -1;
-
-  explicit StaticTypeExactnessState(int8_t value) : value_(value) {}
-
-  const int8_t value_;
-
-  DISALLOW_ALLOCATION();
 };
 
 class Field : public Object {
@@ -6584,9 +6526,7 @@ class Type : public AbstractType {
   static intptr_t type_class_id_offset() {
     return OFFSET_OF(RawType, type_class_id_);
   }
-  static intptr_t arguments_offset() {
-    return OFFSET_OF(RawType, type_class_id_);
-  }
+  static intptr_t arguments_offset() { return OFFSET_OF(RawType, arguments_); }
   static intptr_t type_state_offset() {
     return OFFSET_OF(RawType, type_state_);
   }

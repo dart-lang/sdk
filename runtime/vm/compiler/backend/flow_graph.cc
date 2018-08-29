@@ -535,6 +535,30 @@ Instruction* FlowGraph::CreateCheckClass(Definition* to_check,
       CheckClassInstr(new (zone()) Value(to_check), deopt_id, cids, token_pos);
 }
 
+void FlowGraph::AddExactnessGuard(InstanceCallInstr* call,
+                                  intptr_t receiver_cid) {
+  const Class& cls = Class::Handle(
+      zone(), Isolate::Current()->class_table()->At(receiver_cid));
+
+  Definition* load_type_args = new (zone())
+      LoadFieldInstr(call->Receiver()->CopyWithType(),
+                     NativeFieldDesc::GetTypeArgumentsFieldFor(zone(), cls),
+                     call->token_pos());
+  InsertBefore(call, load_type_args, call->env(), FlowGraph::kValue);
+
+  const AbstractType& type =
+      AbstractType::Handle(zone(), call->ic_data()->StaticReceiverType());
+  ASSERT(!type.IsNull());
+  const TypeArguments& args = TypeArguments::Handle(zone(), type.arguments());
+  Instruction* guard = new (zone()) CheckConditionInstr(
+      new StrictCompareInstr(call->token_pos(), Token::kEQ_STRICT,
+                             new (zone()) Value(load_type_args),
+                             new (zone()) Value(GetConstant(args)),
+                             /*needs_number_check=*/false, call->deopt_id()),
+      call->deopt_id());
+  InsertBefore(call, guard, call->env(), FlowGraph::kEffect);
+}
+
 bool FlowGraph::VerifyUseLists() {
   // Verify the initial definitions.
   for (intptr_t i = 0; i < graph_entry_->initial_definitions()->length(); ++i) {

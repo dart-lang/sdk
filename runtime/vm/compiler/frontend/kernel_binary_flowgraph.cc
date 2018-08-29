@@ -2453,11 +2453,12 @@ Fragment StreamingFlowGraphBuilder::InstanceCall(
     intptr_t checked_argument_count,
     const Function& interface_target,
     const InferredTypeMetadata* result_type,
-    bool use_unchecked_entry) {
+    bool use_unchecked_entry,
+    const CallSiteAttributesMetadata* call_site_attrs) {
   return flow_graph_builder_->InstanceCall(
       position, name, kind, type_args_len, argument_count, argument_names,
       checked_argument_count, interface_target, result_type,
-      use_unchecked_entry);
+      use_unchecked_entry, call_site_attrs);
 }
 
 Fragment StreamingFlowGraphBuilder::ThrowException(TokenPosition position) {
@@ -2786,8 +2787,13 @@ TestFragment StreamingFlowGraphBuilder::TranslateConditionForControl() {
     BranchInstr* branch;
     if (stack()->definition()->IsStrictCompare() &&
         stack()->definition() == instructions.current) {
-      branch = new (Z) BranchInstr(Pop()->definition()->AsStrictCompare(),
-                                   flow_graph_builder_->GetNextDeoptId());
+      StrictCompareInstr* compare = Pop()->definition()->AsStrictCompare();
+      if (negate) {
+        compare->NegateComparison();
+        negate = false;
+      }
+      branch =
+          new (Z) BranchInstr(compare, flow_graph_builder_->GetNextDeoptId());
       branch->comparison()->ClearTempIndex();
       ASSERT(instructions.current->previous() != nullptr);
       instructions.current = instructions.current->previous();
@@ -2797,10 +2803,12 @@ TestFragment StreamingFlowGraphBuilder::TranslateConditionForControl() {
       Value* right_value = Pop();
       Value* left_value = Pop();
       StrictCompareInstr* compare = new (Z) StrictCompareInstr(
-          TokenPosition::kNoSource, Token::kEQ_STRICT, left_value, right_value,
-          false, flow_graph_builder_->GetNextDeoptId());
+          TokenPosition::kNoSource,
+          negate ? Token::kNE_STRICT : Token::kEQ_STRICT, left_value,
+          right_value, false, flow_graph_builder_->GetNextDeoptId());
       branch =
           new (Z) BranchInstr(compare, flow_graph_builder_->GetNextDeoptId());
+      negate = false;
     }
     instructions <<= branch;
 
@@ -3469,11 +3477,8 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
       direct_call_metadata_helper_.GetDirectTargetForMethodInvocation(offset);
   const InferredTypeMetadata result_type =
       inferred_type_metadata_helper_.GetInferredType(offset);
-
-#ifndef TARGET_ARCH_DBC
   const CallSiteAttributesMetadata call_site_attributes =
       call_site_attributes_metadata_helper_.GetCallSiteAttributes(offset);
-#endif
 
   const Tag receiver_tag = PeekTag();  // peek tag for receiver.
   if (IsNumberLiteral(receiver_tag) &&
@@ -3659,12 +3664,14 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
       mangled_name = &String::ZoneHandle(
           Z, Function::CreateDynamicInvocationForwarderName(name));
     }
+
     // TODO(#34162): Pass 'is_this_invocation' down if/when we feature multiple
     // entry-points in AOT.
     instructions += InstanceCall(
         position, *mangled_name, token_kind, type_args_len, argument_count,
         argument_names, checked_argument_count, *interface_target, &result_type,
-        /*use_unchecked_entry=*/!FLAG_precompiled_mode && is_this_invocation);
+        /*use_unchecked_entry=*/!FLAG_precompiled_mode && is_this_invocation,
+        &call_site_attributes);
   }
 
   // Drop temporaries preserving result on the top of the stack.

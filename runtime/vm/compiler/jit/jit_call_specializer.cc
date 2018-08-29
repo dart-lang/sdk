@@ -161,6 +161,14 @@ void JitCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     const Function& target =
         Function::ZoneHandle(Z, unary_checks.GetTargetAt(0));
     StaticCallInstr* call = StaticCallInstr::FromCall(Z, instr, target);
+    if (unary_checks.NumberOfChecks() == 1 &&
+        unary_checks.GetExactnessAt(0).IsExact()) {
+      if (unary_checks.GetExactnessAt(0).IsTriviallyExact()) {
+        flow_graph()->AddExactnessGuard(instr, unary_checks.GetCidAt(0));
+      }
+      call->set_entry_kind(Code::EntryKind::kUnchecked);
+    }
+
     instr->ReplaceWith(call, current_iterator());
   } else {
     PolymorphicInstanceCallInstr* call =

@@ -688,12 +688,13 @@ static const Function* static_call_target = NULL;
 void ICData::Reset(Zone* zone) const {
   RebindRule rule = rebind_rule();
   if (rule == kInstance) {
-    intptr_t num_args = NumArgsTested();
+    const intptr_t num_args = NumArgsTested();
+    const bool tracking_exactness = IsTrackingExactness();
     if (num_args == 2) {
       ClearWithSentinel();
     } else {
-      const Array& data_array =
-          Array::Handle(zone, CachedEmptyICDataArray(num_args));
+      const Array& data_array = Array::Handle(
+          zone, CachedEmptyICDataArray(num_args, tracking_exactness));
       set_ic_data_array(data_array);
     }
     return;
