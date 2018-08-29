@@ -12,7 +12,6 @@ symbol_test/none: RuntimeError
 unicode_test: RuntimeError
 
 [ $compiler == dart2analyzer ]
-int_parse_radix_bad_handler_test: MissingCompileTimeError
 iterable_element_at_test/static: Pass
 num_sign_test: Crash, Pass # Issue 31768
 
@@ -116,9 +115,6 @@ iterable_mapping_test/01: MissingCompileTimeError
 
 [ $compiler != app_jitk && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $runtime != none ]
 map_keys2_test: RuntimeError # needs Dart 2 is checks
-
-[ $compiler == dart2analyzer && $strong ]
-int_parse_radix_bad_handler_test: Pass
 
 [ $compiler != dart2analyzer && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk ]
 bigint_js_test: SkipByDesign # JavaScript-specific test

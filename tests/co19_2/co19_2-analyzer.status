@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dart2analyzer && !$fasta ]
+[ $compiler == dart2analyzer ]
 Language/Classes/Abstract_Instance_Members/override_default_value_t01: MissingCompileTimeError # Issue 33995
 Language/Classes/Abstract_Instance_Members/override_default_value_t02: MissingCompileTimeError # Issue 33995
 Language/Classes/Abstract_Instance_Members/override_default_value_t03: MissingCompileTimeError # Issue 33995
