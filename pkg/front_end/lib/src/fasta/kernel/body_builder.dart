@@ -724,17 +724,14 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       // Future<T> <: [returnType] for every T, we rely on Future<Bot> and
       // transitivity of the subtyping relation because Future<Bot> <: Future<T>
       // for every T.
-      bool Function(DartType, DartType) isSubtypeOf = (DartType subtype,
-              DartType supertype) =>
-          _typeInferrer.typeSchemaEnvironment.isSubtypeOf(subtype, supertype);
 
-      // Determine whether there is a problem. We use [problem == null] to
-      // signal success.
+      // We use [problem == null] to signal success.
       Message problem;
       switch (asyncModifier) {
         case AsyncMarker.Async:
           DartType futureBottomType = library.loader.futureOfBottom;
-          if (!isSubtypeOf(futureBottomType, returnType)) {
+          if (!_typeInferrer.typeSchemaEnvironment
+              .isSubtypeOf(futureBottomType, returnType)) {
             problem = fasta.messageIllegalAsyncReturnType;
           }
           break;
@@ -743,7 +740,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           DartType streamBottomType = library.loader.streamOfBottom;
           if (returnType is VoidType) {
             problem = fasta.messageIllegalAsyncGeneratorVoidReturnType;
-          } else if (!isSubtypeOf(streamBottomType, returnType)) {
+          } else if (!_typeInferrer.typeSchemaEnvironment
+              .isSubtypeOf(streamBottomType, returnType)) {
             problem = fasta.messageIllegalAsyncGeneratorReturnType;
           }
           break;
@@ -752,7 +750,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           DartType iterableBottomType = library.loader.iterableOfBottom;
           if (returnType is VoidType) {
             problem = fasta.messageIllegalSyncGeneratorVoidReturnType;
-          } else if (!isSubtypeOf(iterableBottomType, returnType)) {
+          } else if (!_typeInferrer.typeSchemaEnvironment
+              .isSubtypeOf(iterableBottomType, returnType)) {
             problem = fasta.messageIllegalSyncGeneratorReturnType;
           }
           break;

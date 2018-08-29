@@ -715,13 +715,14 @@ class SourceLoader<L> extends Loader<L> {
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
 
   void computeCoreTypes(Component component) {
-    DartType Function(Class) instantiateWithBottom =
-        (Class cls) => new InterfaceType(cls, <DartType>[const BottomType()]);
-
     coreTypes = new CoreTypes(component);
-    futureOfBottom = instantiateWithBottom(coreTypes.futureClass);
-    iterableOfBottom = instantiateWithBottom(coreTypes.iterableClass);
-    streamOfBottom = instantiateWithBottom(coreTypes.streamClass);
+
+    futureOfBottom = new InterfaceType(
+        coreTypes.futureClass, <DartType>[const BottomType()]);
+    iterableOfBottom = new InterfaceType(
+        coreTypes.iterableClass, <DartType>[const BottomType()]);
+    streamOfBottom = new InterfaceType(
+        coreTypes.streamClass, <DartType>[const BottomType()]);
 
     ticker.logMs("Computed core types");
   }
