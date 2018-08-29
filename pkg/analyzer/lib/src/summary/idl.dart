@@ -985,6 +985,7 @@ abstract class PackageBundle extends base.SummaryClass {
    * is encoded as a hexadecimal string using lower case letters.
    */
   @Id(4)
+  @deprecated
   @informative
   List<String> get unlinkedUnitHashes;
 

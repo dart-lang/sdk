@@ -212,9 +212,7 @@ abstract class SummaryLinkerTest {
         true);
     linkedLibraries.forEach(assembler.addLinkedLibrary);
     linkerInputs._uriToUnit.forEach((String uri, UnlinkedUnit unit) {
-      // Note: it doesn't matter what we store for the hash because it isn't
-      // used in these tests.
-      assembler.addUnlinkedUnitWithHash(uri, unit, 'HASH');
+      assembler.addUnlinkedUnitViaUri(uri, unit);
     });
     return assembler.assemble();
   }

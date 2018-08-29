@@ -3921,7 +3921,6 @@ class PackageBundleBuilder extends Object
   List<String> _linkedLibraryUris;
   int _majorVersion;
   int _minorVersion;
-  List<String> _unlinkedUnitHashes;
   List<UnlinkedUnitBuilder> _unlinkedUnits;
   List<String> _unlinkedUnitUris;
 
@@ -3995,15 +3994,8 @@ class PackageBundleBuilder extends Object
   }
 
   @override
-  List<String> get unlinkedUnitHashes => _unlinkedUnitHashes ??= <String>[];
-
-  /**
-   * List of MD5 hashes of the files listed in [unlinkedUnitUris].  Each hash
-   * is encoded as a hexadecimal string using lower case letters.
-   */
-  void set unlinkedUnitHashes(List<String> value) {
-    this._unlinkedUnitHashes = value;
-  }
+  List<String> get unlinkedUnitHashes =>
+      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
   List<UnlinkedUnitBuilder> get unlinkedUnits =>
@@ -4033,7 +4025,6 @@ class PackageBundleBuilder extends Object
       List<String> linkedLibraryUris,
       int majorVersion,
       int minorVersion,
-      List<String> unlinkedUnitHashes,
       List<UnlinkedUnitBuilder> unlinkedUnits,
       List<String> unlinkedUnitUris})
       : _apiSignature = apiSignature,
@@ -4042,7 +4033,6 @@ class PackageBundleBuilder extends Object
         _linkedLibraryUris = linkedLibraryUris,
         _majorVersion = majorVersion,
         _minorVersion = minorVersion,
-        _unlinkedUnitHashes = unlinkedUnitHashes,
         _unlinkedUnits = unlinkedUnits,
         _unlinkedUnitUris = unlinkedUnitUris;
 
@@ -4052,7 +4042,6 @@ class PackageBundleBuilder extends Object
   void flushInformative() {
     _dependencies = null;
     _linkedLibraries?.forEach((b) => b.flushInformative());
-    _unlinkedUnitHashes = null;
     _unlinkedUnits?.forEach((b) => b.flushInformative());
   }
 
@@ -4107,7 +4096,6 @@ class PackageBundleBuilder extends Object
     fb.Offset offset_dependencies;
     fb.Offset offset_linkedLibraries;
     fb.Offset offset_linkedLibraryUris;
-    fb.Offset offset_unlinkedUnitHashes;
     fb.Offset offset_unlinkedUnits;
     fb.Offset offset_unlinkedUnitUris;
     if (_apiSignature != null) {
@@ -4124,10 +4112,6 @@ class PackageBundleBuilder extends Object
     if (!(_linkedLibraryUris == null || _linkedLibraryUris.isEmpty)) {
       offset_linkedLibraryUris = fbBuilder.writeList(
           _linkedLibraryUris.map((b) => fbBuilder.writeString(b)).toList());
-    }
-    if (!(_unlinkedUnitHashes == null || _unlinkedUnitHashes.isEmpty)) {
-      offset_unlinkedUnitHashes = fbBuilder.writeList(
-          _unlinkedUnitHashes.map((b) => fbBuilder.writeString(b)).toList());
     }
     if (!(_unlinkedUnits == null || _unlinkedUnits.isEmpty)) {
       offset_unlinkedUnits = fbBuilder
@@ -4155,9 +4139,6 @@ class PackageBundleBuilder extends Object
     }
     if (_minorVersion != null && _minorVersion != 0) {
       fbBuilder.addUint32(6, _minorVersion);
-    }
-    if (offset_unlinkedUnitHashes != null) {
-      fbBuilder.addOffset(4, offset_unlinkedUnitHashes);
     }
     if (offset_unlinkedUnits != null) {
       fbBuilder.addOffset(2, offset_unlinkedUnits);
@@ -4196,7 +4177,6 @@ class _PackageBundleImpl extends Object
   List<String> _linkedLibraryUris;
   int _majorVersion;
   int _minorVersion;
-  List<String> _unlinkedUnitHashes;
   List<idl.UnlinkedUnit> _unlinkedUnits;
   List<String> _unlinkedUnitUris;
 
@@ -4242,11 +4222,8 @@ class _PackageBundleImpl extends Object
   }
 
   @override
-  List<String> get unlinkedUnitHashes {
-    _unlinkedUnitHashes ??= const fb.ListReader<String>(const fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 4, const <String>[]);
-    return _unlinkedUnitHashes;
-  }
+  List<String> get unlinkedUnitHashes =>
+      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
   List<idl.UnlinkedUnit> get unlinkedUnits {
@@ -4279,8 +4256,6 @@ abstract class _PackageBundleMixin implements idl.PackageBundle {
       _result["linkedLibraryUris"] = linkedLibraryUris;
     if (majorVersion != 0) _result["majorVersion"] = majorVersion;
     if (minorVersion != 0) _result["minorVersion"] = minorVersion;
-    if (unlinkedUnitHashes.isNotEmpty)
-      _result["unlinkedUnitHashes"] = unlinkedUnitHashes;
     if (unlinkedUnits.isNotEmpty)
       _result["unlinkedUnits"] =
           unlinkedUnits.map((_value) => _value.toJson()).toList();
@@ -4297,7 +4272,6 @@ abstract class _PackageBundleMixin implements idl.PackageBundle {
         "linkedLibraryUris": linkedLibraryUris,
         "majorVersion": majorVersion,
         "minorVersion": minorVersion,
-        "unlinkedUnitHashes": unlinkedUnitHashes,
         "unlinkedUnits": unlinkedUnits,
         "unlinkedUnitUris": unlinkedUnitUris,
       };

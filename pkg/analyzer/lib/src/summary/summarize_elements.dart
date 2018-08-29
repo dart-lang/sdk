@@ -4,13 +4,9 @@
 
 library serialization.elements;
 
-import 'dart:convert';
-
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:convert/convert.dart';
-import 'package:crypto/crypto.dart';
 import 'package:front_end/src/base/api_signature.dart';
 
 /**
@@ -41,16 +37,6 @@ class PackageBundleAssembler {
   final List<UnlinkedUnitBuilder> _unlinkedUnits = <UnlinkedUnitBuilder>[];
   final Map<String, UnlinkedUnitBuilder> _unlinkedUnitMap =
       <String, UnlinkedUnitBuilder>{};
-  final List<String> _unlinkedUnitHashes;
-  final bool _excludeHashes;
-
-  /**
-   * Create a [PackageBundleAssembler].  If [excludeHashes] is `true`, hash
-   * computation will be skipped.
-   */
-  PackageBundleAssembler({bool excludeHashes: false})
-      : _excludeHashes = excludeHashes,
-        _unlinkedUnitHashes = excludeHashes ? null : <String>[];
 
   void addLinkedLibrary(String uri, LinkedLibraryBuilder library) {
     _linkedLibraries.add(library);
@@ -58,16 +44,13 @@ class PackageBundleAssembler {
   }
 
   void addUnlinkedUnit(Source source, UnlinkedUnitBuilder unit) {
-    addUnlinkedUnitWithHash(source.uri.toString(), unit,
-        _excludeHashes ? null : _hash(source.contents.data));
+    addUnlinkedUnitViaUri(source.uri.toString(), unit);
   }
 
-  void addUnlinkedUnitWithHash(
-      String uri, UnlinkedUnitBuilder unit, String hash) {
+  void addUnlinkedUnitViaUri(String uri, UnlinkedUnitBuilder unit) {
     _unlinkedUnitUris.add(uri);
     _unlinkedUnits.add(unit);
     _unlinkedUnitMap[uri] = unit;
-    _unlinkedUnitHashes?.add(hash);
   }
 
   /**
@@ -79,7 +62,6 @@ class PackageBundleAssembler {
         linkedLibraries: _linkedLibraries,
         unlinkedUnitUris: _unlinkedUnitUris,
         unlinkedUnits: _unlinkedUnits,
-        unlinkedUnitHashes: _unlinkedUnitHashes,
         majorVersion: currentMajorVersion,
         minorVersion: currentMinorVersion,
         apiSignature: _computeApiSignature());
@@ -95,12 +77,5 @@ class PackageBundleAssembler {
       _unlinkedUnitMap[unitUri].collectApiSignature(apiSignature);
     }
     return apiSignature.toHex();
-  }
-
-  /**
-   * Compute a hash of the given file contents.
-   */
-  String _hash(String contents) {
-    return hex.encode(md5.convert(utf8.encode(contents)).bytes);
   }
 }

@@ -1582,7 +1582,7 @@ table PackageBundle {
    * List of MD5 hashes of the files listed in [unlinkedUnitUris].  Each hash
    * is encoded as a hexadecimal string using lower case letters.
    */
-  unlinkedUnitHashes:[string] (id: 4);
+  unlinkedUnitHashes:[string] (id: 4, deprecated);
 
   /**
    * Unlinked information for the compilation units constituting the package.
