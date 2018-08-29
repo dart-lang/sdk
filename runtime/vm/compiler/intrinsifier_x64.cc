@@ -199,7 +199,10 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
     __ Bind(&done);                                                            \
                                                                                \
     /* Get the class index and insert it into the tags. */                     \
-    __ orq(RDI, Immediate(RawObject::ClassIdTag::encode(cid)));                \
+    uint32_t tags = 0;                                                         \
+    tags = RawObject::ClassIdTag::update(cid, tags);                           \
+    tags = RawObject::NewBit::update(true, tags);                              \
+    __ orq(RDI, Immediate(tags));                                              \
     __ movq(FieldAddress(RAX, type_name::tags_offset()), RDI); /* Tags. */     \
   }                                                                            \
   /* Set the length field. */                                                  \
@@ -2017,7 +2020,10 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 
     // Get the class index and insert it into the tags.
     // This also clears the hash, which is in the high bits of the tags.
-    __ orq(RDI, Immediate(RawObject::ClassIdTag::encode(cid)));
+    uint32_t tags = 0;
+    tags = RawObject::ClassIdTag::update(cid, tags);
+    tags = RawObject::NewBit::update(true, tags);
+    __ orq(RDI, Immediate(tags));
     __ movq(FieldAddress(RAX, String::tags_offset()), RDI);  // Tags.
   }
 

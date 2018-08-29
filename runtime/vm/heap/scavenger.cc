@@ -38,7 +38,7 @@ DEFINE_FLAG(int, new_gen_growth_factor, 2, "Grow new gen by this factor.");
 // objects. The kMarkBit does not intersect with the target address because of
 // object alignment.
 enum {
-  kForwardingMask = 1 << RawObject::kMarkBit,
+  kForwardingMask = 1 << RawObject::kOldAndNotMarkedBit,
   kNotForwarded = 0,
   kForwarded = kForwardingMask,
 };
@@ -167,6 +167,18 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       // Copy the object to the new location.
       memmove(reinterpret_cast<void*>(new_addr),
               reinterpret_cast<void*>(raw_addr), size);
+
+      RawObject* new_obj = RawObject::FromAddr(new_addr);
+      if (new_obj->IsOldObject()) {
+        // Promoted: update age/barrier tags.
+        uint32_t tags = new_obj->ptr()->tags_;
+        tags = RawObject::OldBit::update(true, tags);
+        tags = RawObject::OldAndNotMarkedBit::update(true, tags);
+        tags = RawObject::OldAndNotRememberedBit::update(true, tags);
+        tags = RawObject::NewBit::update(false, tags);
+        new_obj->ptr()->tags_ = tags;
+      }
+
       // Remember forwarding address.
       ForwardTo(raw_addr, new_addr);
     }

@@ -26,6 +26,11 @@ ForwardingCorpse* ForwardingCorpse::AsForwarder(uword addr, intptr_t size) {
   uint32_t tags = 0;
   tags = RawObject::SizeTag::update(size, tags);
   tags = RawObject::ClassIdTag::update(kForwardingCorpse, tags);
+  bool is_old = (addr & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;
+  tags = RawObject::OldBit::update(is_old, tags);
+  tags = RawObject::OldAndNotMarkedBit::update(is_old, tags);
+  tags = RawObject::OldAndNotRememberedBit::update(is_old, tags);
+  tags = RawObject::NewBit::update(!is_old, tags);
 
   result->tags_ = tags;
   if (size > RawObject::SizeTag::kMaxSizeTag) {
@@ -94,7 +99,7 @@ class ForwardPointersVisitor : public ObjectPointerVisitor {
 
   void VisitingObject(RawObject* obj) {
     visiting_object_ = obj;
-    if ((obj != NULL) && obj->IsRemembered()) {
+    if ((obj != NULL) && obj->IsOldObject() && obj->IsRemembered()) {
       ASSERT(!obj->IsForwardingCorpse());
       ASSERT(!obj->IsFreeListElement());
       thread_->StoreBufferAddObjectGC(obj);

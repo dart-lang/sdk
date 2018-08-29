@@ -1162,6 +1162,16 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       new_tags = RawObject::SizeTag::update(leftover_size, new_tags);
       new_tags = RawObject::VMHeapObjectTag::update(obj.raw()->IsVMHeapObject(),
                                                     new_tags);
+      const bool is_old = obj.raw()->IsOldObject();
+      new_tags = RawObject::OldBit::update(is_old, new_tags);
+      new_tags = RawObject::OldAndNotMarkedBit::update(is_old, new_tags);
+      new_tags = RawObject::OldAndNotRememberedBit::update(is_old, new_tags);
+      new_tags = RawObject::NewBit::update(!is_old, new_tags);
+      // On architectures with a relaxed memory model, the concurrent marker may
+      // observe the write of the filler object's header before observing the
+      // new array length, and so treat it as a pointer. Ensure it is a Smi so
+      // the marker won't dereference it.
+      ASSERT((new_tags & kSmiTagMask) == kSmiTag);
       uint32_t tags = raw->ptr()->tags_;
       uint32_t old_tags;
       // TODO(iposva): Investigate whether CompareAndSwapWord is necessary.
@@ -1184,6 +1194,16 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       new_tags = RawObject::SizeTag::update(leftover_size, new_tags);
       new_tags = RawObject::VMHeapObjectTag::update(
           obj.raw()->ptr()->IsVMHeapObject(), new_tags);
+      const bool is_old = obj.raw()->IsOldObject();
+      new_tags = RawObject::OldBit::update(is_old, new_tags);
+      new_tags = RawObject::OldAndNotMarkedBit::update(is_old, new_tags);
+      new_tags = RawObject::OldAndNotRememberedBit::update(is_old, new_tags);
+      new_tags = RawObject::NewBit::update(!is_old, new_tags);
+      // On architectures with a relaxed memory model, the concurrent marker may
+      // observe the write of the filler object's header before observing the
+      // new array length, and so treat it as a pointer. Ensure it is a Smi so
+      // the marker won't dereference it.
+      ASSERT((new_tags & kSmiTagMask) == kSmiTag);
       uint32_t tags = raw->ptr()->tags_;
       uint32_t old_tags;
       // TODO(iposva): Investigate whether CompareAndSwapWord is necessary.
@@ -1951,6 +1971,12 @@ void Object::InitializeObject(uword address,
   tags = RawObject::ClassIdTag::update(class_id, tags);
   tags = RawObject::SizeTag::update(size, tags);
   tags = RawObject::VMHeapObjectTag::update(is_vm_object, tags);
+  const bool is_old =
+      (address & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;
+  tags = RawObject::OldBit::update(is_old, tags);
+  tags = RawObject::OldAndNotMarkedBit::update(is_old, tags);
+  tags = RawObject::OldAndNotRememberedBit::update(is_old, tags);
+  tags = RawObject::NewBit::update(!is_old, tags);
   reinterpret_cast<RawObject*>(address)->tags_ = tags;
 #if defined(HASH_IN_OBJECT_HEADER)
   reinterpret_cast<RawObject*>(address)->hash_ = 0;
@@ -2061,7 +2087,7 @@ RawObject* Object::Clone(const Object& orig, Heap::Space space) {
   NoSafepointScope no_safepoint;
   // TODO(koda): This will trip when we start allocating black.
   // Revisit code below at that point, to account for the new write barrier.
-  ASSERT(!raw_clone->IsMarked());
+  ASSERT(!(raw_clone->IsOldObject() && raw_clone->IsMarked()));
   // Copy the body of the original into the clone.
   uword orig_addr = RawObject::ToAddr(orig.raw());
   uword clone_addr = RawObject::ToAddr(raw_clone);

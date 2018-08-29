@@ -24,9 +24,11 @@ FreeListElement* FreeListElement::AsElement(uword addr, intptr_t size) {
   uint32_t tags = 0;
   tags = RawObject::SizeTag::update(size, tags);
   tags = RawObject::ClassIdTag::update(kFreeListElement, tags);
-  // All words in a freelist element header should look like Smis.
-  ASSERT(!reinterpret_cast<RawObject*>(tags)->IsHeapObject());
-
+  ASSERT((addr & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset);
+  tags = RawObject::OldBit::update(true, tags);
+  tags = RawObject::OldAndNotMarkedBit::update(true, tags);
+  tags = RawObject::OldAndNotRememberedBit::update(true, tags);
+  tags = RawObject::NewBit::update(false, tags);
   result->tags_ = tags;
 #if defined(HASH_IN_OBJECT_HEADER)
   // Clearing this is mostly for neatness. The identityHashCode

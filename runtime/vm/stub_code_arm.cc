@@ -817,7 +817,10 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 
     // Get the class index and insert it into the tags.
     // R8: size and bit tags.
-    __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(cid));
+    uint32_t tags = 0;
+    tags = RawObject::ClassIdTag::update(cid, tags);
+    tags = RawObject::NewBit::update(true, tags);
+    __ LoadImmediate(TMP, tags);
     __ orr(R8, R8, Operand(TMP));
     __ str(R8, FieldAddress(R0, Array::tags_offset()));  // Store tags.
   }
@@ -1054,7 +1057,10 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
 
     // Get the class index and insert it into the tags.
     // R9: size and bit tags.
-    __ LoadImmediate(IP, RawObject::ClassIdTag::encode(cid));
+    uint32_t tags = 0;
+    tags = RawObject::ClassIdTag::update(cid, tags);
+    tags = RawObject::NewBit::update(true, tags);
+    __ LoadImmediate(IP, tags);
     __ orr(R9, R9, Operand(IP));
     __ str(R9, FieldAddress(R0, Context::tags_offset()));
 
@@ -1139,8 +1145,8 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Spilled: R1, R2, R3
   // R0: Address being stored
   __ ldr(TMP, FieldAddress(R0, Object::tags_offset()));
-  __ tst(TMP, Operand(1 << RawObject::kRememberedBit));
-  __ b(&add_to_buffer, EQ);
+  __ tst(TMP, Operand(1 << RawObject::kOldAndNotRememberedBit));
+  __ b(&add_to_buffer, NE);
   __ Ret();
 
   __ Bind(&add_to_buffer);
@@ -1154,7 +1160,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
 #if !defined(USING_SIMULATOR)
     ASSERT(OS::NumberOfAvailableProcessors() <= 1);
 #endif
-    __ orr(R2, R2, Operand(1 << RawObject::kRememberedBit));
+    __ bic(R2, R2, Operand(1 << RawObject::kOldAndNotRememberedBit));
     __ str(R2, FieldAddress(R0, Object::tags_offset()));
   } else {
     // Atomically set the remembered bit of the object header.
@@ -1164,7 +1170,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
     Label retry;
     __ Bind(&retry);
     __ ldrex(R2, R3);
-    __ orr(R2, R2, Operand(1 << RawObject::kRememberedBit));
+    __ bic(R2, R2, Operand(1 << RawObject::kOldAndNotRememberedBit));
     __ strex(R1, R2, R3);
     __ cmp(R1, Operand(1));
     __ b(&retry, EQ);
@@ -1253,6 +1259,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
+    tags = RawObject::NewBit::update(true, tags);
     __ LoadImmediate(R2, tags);
     __ str(R2, Address(R0, Instance::tags_offset()));
     __ add(R0, R0, Operand(kHeapObjectTag));

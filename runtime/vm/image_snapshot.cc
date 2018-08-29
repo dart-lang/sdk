@@ -260,7 +260,10 @@ void ImageWriter::WriteROData(WriteStream* stream) {
     // Write object header with the mark and VM heap bits set.
     uword marked_tags = obj.raw()->ptr()->tags_;
     marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
-    marked_tags = RawObject::MarkBit::update(true, marked_tags);
+    marked_tags = RawObject::OldBit::update(true, marked_tags);
+    marked_tags = RawObject::OldAndNotMarkedBit::update(false, marked_tags);
+    marked_tags = RawObject::OldAndNotRememberedBit::update(true, marked_tags);
+    marked_tags = RawObject::NewBit::update(false, marked_tags);
 #if defined(HASH_IN_OBJECT_HEADER)
     marked_tags |= static_cast<uword>(obj.raw()->ptr()->hash_) << 32;
 #endif
@@ -346,7 +349,11 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       // Write Instructions with the mark and VM heap bits set.
       uword marked_tags = insns.raw_ptr()->tags_;
       marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
-      marked_tags = RawObject::MarkBit::update(true, marked_tags);
+      marked_tags = RawObject::OldBit::update(true, marked_tags);
+      marked_tags = RawObject::OldAndNotMarkedBit::update(false, marked_tags);
+      marked_tags =
+          RawObject::OldAndNotRememberedBit::update(true, marked_tags);
+      marked_tags = RawObject::NewBit::update(false, marked_tags);
 #if defined(HASH_IN_OBJECT_HEADER)
       // Can't use GetObjectTagsAndHash because the update methods discard the
       // high bits.
@@ -555,7 +562,10 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     // Write Instructions with the mark and VM heap bits set.
     uword marked_tags = insns.raw_ptr()->tags_;
     marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
-    marked_tags = RawObject::MarkBit::update(true, marked_tags);
+    marked_tags = RawObject::OldBit::update(true, marked_tags);
+    marked_tags = RawObject::OldAndNotMarkedBit::update(false, marked_tags);
+    marked_tags = RawObject::OldAndNotRememberedBit::update(true, marked_tags);
+    marked_tags = RawObject::NewBit::update(false, marked_tags);
 #if defined(HASH_IN_OBJECT_HEADER)
     // Can't use GetObjectTagsAndHash because the update methods discard the
     // high bits.

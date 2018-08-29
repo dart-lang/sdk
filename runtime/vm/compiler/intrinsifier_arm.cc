@@ -201,7 +201,10 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
     __ mov(R3, Operand(0), HI);                                                \
                                                                                \
     /* Get the class index and insert it into the tags. */                     \
-    __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(cid));                 \
+    uint32_t tags = 0;                                                         \
+    tags = RawObject::ClassIdTag::update(cid, tags);                           \
+    tags = RawObject::NewBit::update(true, tags);                              \
+    __ LoadImmediate(TMP, tags);                                               \
     __ orr(R3, R3, Operand(TMP));                                              \
     __ str(R3, FieldAddress(R0, type_name::tags_offset())); /* Tags. */        \
   }                                                                            \
@@ -2003,7 +2006,10 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 
     // Get the class index and insert it into the tags.
     // R3: size and bit tags.
-    __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(cid));
+    uint32_t tags = 0;
+    tags = RawObject::ClassIdTag::update(cid, tags);
+    tags = RawObject::NewBit::update(true, tags);
+    __ LoadImmediate(TMP, tags);
     __ orr(R3, R3, Operand(TMP));
     __ str(R3, FieldAddress(R0, String::tags_offset()));  // Store tags.
   }

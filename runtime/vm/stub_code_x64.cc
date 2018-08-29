@@ -771,7 +771,10 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     __ Bind(&done);
 
     // Get the class index and insert it into the tags.
-    __ orq(RDI, Immediate(RawObject::ClassIdTag::encode(cid)));
+    uint32_t tags = 0;
+    tags = RawObject::ClassIdTag::update(cid, tags);
+    tags = RawObject::NewBit::update(true, tags);
+    __ orq(RDI, Immediate(tags));
     __ movq(FieldAddress(RAX, Array::tags_offset()), RDI);  // Tags.
   }
 
@@ -1174,7 +1177,10 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
       // RAX: new object.
       // R10: number of context variables.
       // R13: size and bit tags.
-      __ orq(R13, Immediate(RawObject::ClassIdTag::encode(cid)));
+      uint32_t tags = 0;
+      tags = RawObject::ClassIdTag::update(cid, tags);
+      tags = RawObject::NewBit::update(true, tags);
+      __ orq(R13, Immediate(tags));
       __ movq(FieldAddress(RAX, Context::tags_offset()), R13);  // Tags.
     }
 
@@ -1257,8 +1263,8 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // store buffer if the object is in the store buffer already.
   // RDX: Address being stored
   __ movl(TMP, FieldAddress(RDX, Object::tags_offset()));
-  __ testl(TMP, Immediate(1 << RawObject::kRememberedBit));
-  __ j(EQUAL, &add_to_buffer, Assembler::kNearJump);
+  __ testl(TMP, Immediate(1 << RawObject::kOldAndNotRememberedBit));
+  __ j(NOT_EQUAL, &add_to_buffer, Assembler::kNearJump);
   __ ret();
 
   // Update the tags that this object has been remembered.
@@ -1267,10 +1273,10 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // RDX: Address being stored
   // RAX: Current tag value
   __ Bind(&add_to_buffer);
-  // lock+orl is an atomic read-modify-write.
+  // lock+andl is an atomic read-modify-write.
   __ lock();
-  __ orl(FieldAddress(RDX, Object::tags_offset()),
-         Immediate(1 << RawObject::kRememberedBit));
+  __ andl(FieldAddress(RDX, Object::tags_offset()),
+          Immediate(~(1 << RawObject::kOldAndNotRememberedBit)));
 
   // Save registers being destroyed.
   __ pushq(RAX);
@@ -1361,6 +1367,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     tags = RawObject::SizeTag::update(instance_size, tags);
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
+    tags = RawObject::NewBit::update(true, tags);
     // 64 bit store also zeros the identity hash field.
     __ movq(Address(RAX, Instance::tags_offset()), Immediate(tags));
     __ addq(RAX, Immediate(kHeapObjectTag));
