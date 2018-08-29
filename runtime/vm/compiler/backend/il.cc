@@ -2461,22 +2461,23 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
       break;
 
     case Token::kSHL: {
-      const intptr_t kMaxShift = RepresentationBits(representation()) - 1;
+      const intptr_t result_bits = RepresentationBits(representation());
       if (rhs == 0) {
         return left()->definition();
-      } else if ((rhs < 0) || (rhs >= kMaxShift)) {
-        if ((rhs < 0) || !is_truncating()) {
-          // Instruction will always throw on negative rhs operand.
-          if (!CanDeoptimize()) {
-            // For non-speculative operations (no deopt), let
-            // the code generator deal with throw on slowpath.
-            break;
-          }
-          ASSERT(GetDeoptId() != Thread::kNoDeoptId);
-          DeoptimizeInstr* deopt =
-              new DeoptimizeInstr(ICData::kDeoptBinarySmiOp, GetDeoptId());
-          flow_graph->InsertBefore(this, deopt, env(), FlowGraph::kEffect);
+      } else if ((rhs >= kBitsPerInt64) ||
+                 ((rhs >= result_bits) && is_truncating())) {
+        return CreateConstantResult(flow_graph, Integer::Handle(Smi::New(0)));
+      } else if ((rhs < 0) || ((rhs >= result_bits) && !is_truncating())) {
+        // Instruction will always throw on negative rhs operand.
+        if (!CanDeoptimize()) {
+          // For non-speculative operations (no deopt), let
+          // the code generator deal with throw on slowpath.
+          break;
         }
+        ASSERT(GetDeoptId() != Thread::kNoDeoptId);
+        DeoptimizeInstr* deopt =
+            new DeoptimizeInstr(ICData::kDeoptBinarySmiOp, GetDeoptId());
+        flow_graph->InsertBefore(this, deopt, env(), FlowGraph::kEffect);
         // Replace with zero since it overshifted or always throws.
         return CreateConstantResult(flow_graph, Integer::Handle(Smi::New(0)));
       }
