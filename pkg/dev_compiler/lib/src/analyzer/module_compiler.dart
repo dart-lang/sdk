@@ -6,7 +6,8 @@ import 'dart:collection' show HashSet, Queue;
 import 'dart:convert' show json;
 import 'dart:io' show File;
 
-import 'package:analyzer/analyzer.dart' show AnalysisError, CompilationUnit;
+import 'package:analyzer/analyzer.dart'
+    show AnalysisError, CompilationUnit, StaticWarningCode;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/element/element.dart'
     show LibraryElement, UriReferencedElement;
@@ -188,17 +189,39 @@ class ModuleCompiler {
 
       var tree = context.resolveCompilationUnit(library.source, library);
       trees.add(tree);
-      errors.addAll(context.computeErrors(library.source));
+
+      var unitErrors = context.computeErrors(library.source);
+      errors.addAll(_filterJsErrors(library, unitErrors));
 
       for (var part in library.parts) {
         trees.add(context.resolveCompilationUnit(part.source, library));
-        errors.addAll(context.computeErrors(part.source));
+
+        var unitErrors = context.computeErrors(part.source);
+        errors.addAll(_filterJsErrors(library, unitErrors));
       }
     }
 
     var codeGenerator =
         CodeGenerator(context, summaryData, options, _extensionTypes, errors);
     return codeGenerator.compile(unit, trees);
+  }
+
+  Iterable<AnalysisError> _filterJsErrors(
+      LibraryElement library, Iterable<AnalysisError> errors) {
+    var libraryUriStr = library.source.uri.toString();
+    if (libraryUriStr == 'dart:html' ||
+        libraryUriStr == 'dart:svg' ||
+        libraryUriStr == 'dart:_interceptors') {
+      return errors.where((error) {
+        return error.errorCode !=
+                StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 &&
+            error.errorCode !=
+                StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 &&
+            error.errorCode !=
+                StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS;
+      });
+    }
+    return errors;
   }
 }
 

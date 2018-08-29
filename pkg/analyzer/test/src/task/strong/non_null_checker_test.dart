@@ -280,7 +280,7 @@ void foo() {}
 class A {
   final int x;
 
-  /*warning:FINAL_NOT_INITIALIZED_CONSTRUCTOR_1*/A();
+  /*error:FINAL_NOT_INITIALIZED_CONSTRUCTOR_1*/A();
 }
 ''');
     await check(nonnullableTypes: <String>['dart:core,int']);

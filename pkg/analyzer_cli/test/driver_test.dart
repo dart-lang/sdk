@@ -625,11 +625,6 @@ class ExitCodesTest extends BaseTest {
     expect(exitCode, 1);
   }
 
-  test_fatalWarnings() async {
-    await drive('data/file_with_warning.dart', args: ['--fatal-warnings']);
-    expect(exitCode, 2);
-  }
-
   test_missingDartFile() async {
     await drive('data/NO_DART_FILE_HERE.dart');
     expect(exitCode, 3);
@@ -642,11 +637,6 @@ class ExitCodesTest extends BaseTest {
 
   test_notFatalHints() async {
     await drive('data/file_with_hint.dart');
-    expect(exitCode, 0);
-  }
-
-  test_notFatalWarnings() async {
-    await drive('data/file_with_warning.dart');
     expect(exitCode, 0);
   }
 

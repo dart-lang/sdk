@@ -3808,8 +3808,7 @@ class StaticWarningCode extends ErrorCode {
           // TODO(brianwilkerson) Split this error code so that we can suggest
           // initializing fields in constructors (FINAL_FIELD_NOT_INITIALIZED
           // and FINAL_VARIABLE_NOT_INITIALIZED).
-          correction: "Try initializing the variable.",
-          isStrongModeError: false);
+          correction: "Try initializing the variable.");
 
   /**
    * 7.6.1 Generative Constructors: Each final instance variable <i>f</i>
@@ -3826,8 +3825,7 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 =
       const StaticWarningCode('FINAL_NOT_INITIALIZED_CONSTRUCTOR_1',
           "The final variable '{0}' must be initialized.",
-          correction: "Try adding an initializer for the field.",
-          isStrongModeError: false);
+          correction: "Try adding an initializer for the field.");
 
   /**
    * 7.6.1 Generative Constructors: Each final instance variable <i>f</i>
@@ -3845,8 +3843,7 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 =
       const StaticWarningCode('FINAL_NOT_INITIALIZED_CONSTRUCTOR_2',
           "The final variables '{0}' and '{1}' must be initialized.",
-          correction: "Try adding initializers for the fields.",
-          isStrongModeError: false);
+          correction: "Try adding initializers for the fields.");
 
   /**
    * 7.6.1 Generative Constructors: Each final instance variable <i>f</i>
@@ -3865,8 +3862,7 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS =
       const StaticWarningCode('FINAL_NOT_INITIALIZED_CONSTRUCTOR_3',
           "The final variables '{0}', '{1}' and '{2}' more must be initialized.",
-          correction: "Try adding initializers for the fields.",
-          isStrongModeError: false);
+          correction: "Try adding initializers for the fields.");
 
   /**
    * 15.5 Function Types: It is a static warning if a concrete class implements
@@ -3890,8 +3886,7 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode IMPORT_DUPLICATED_LIBRARY_NAMED =
       const StaticWarningCode('IMPORT_DUPLICATED_LIBRARY_NAMED',
           "The imported libraries '{0}' and '{1}' can't have the same name '{2}'.",
-          correction: "Try adding a hide clause to one of the imports.",
-          isStrongModeError: false);
+          correction: "Try adding a hide clause to one of the imports.");
 
   /**
    * 14.1 Imports: It is a static warning if the specified URI of a deferred
@@ -4230,8 +4225,7 @@ class StaticWarningCode extends ErrorCode {
           'MISMATCHED_GETTER_AND_SETTER_TYPES',
           "The parameter type for setter '{0}' is '{1}' which isn't assignable "
           "to its getter (of type '{2}').",
-          correction: "Try changing the types so that they are compatible.",
-          isStrongModeError: false);
+          correction: "Try changing the types so that they are compatible.");
 
   /**
    * 7.3 Setters: It is a static warning if a class has a setter named <i>v=</i>
@@ -4244,8 +4238,7 @@ class StaticWarningCode extends ErrorCode {
           'MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE',
           "The parameter type for setter '{0}' is '{1}' which isn't assignable "
           "to its getter (of type '{2}'), from superclass '{3}'.",
-          correction: "Try changing the types so that they are compatible.",
-          isStrongModeError: false);
+          correction: "Try changing the types so that they are compatible.");
 
   /**
    * 17.9 Switch: It is a static warning if all of the following conditions
@@ -4264,8 +4257,7 @@ class StaticWarningCode extends ErrorCode {
       const StaticWarningCode(
           'MISSING_ENUM_CONSTANT_IN_SWITCH', "Missing case clause for '{0}'.",
           correction: "Try adding a case clause for the missing constant, or "
-              "adding a default clause.",
-          isStrongModeError: false);
+              "adding a default clause.");
 
   /**
    * 13.12 Return: It is a static warning if a function contains both one or
@@ -4278,8 +4270,7 @@ class StaticWarningCode extends ErrorCode {
       // TODO(brianwilkerson) Split this error code depending on whether the
       // function declares a return type.
       correction: "Try making all the return statements consistent "
-          "(either include a value or not).",
-      isStrongModeError: false);
+          "(either include a value or not).");
 
   /**
    * 12.11.1 New: It is a static warning if <i>q</i> is a constructor of an
@@ -4512,8 +4503,7 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode NON_VOID_RETURN_FOR_OPERATOR =
       const StaticWarningCode('NON_VOID_RETURN_FOR_OPERATOR',
           "The return type of the operator []= must be 'void'.",
-          correction: "Try changing the return type to 'void'.",
-          isStrongModeError: false);
+          correction: "Try changing the return type to 'void'.");
 
   /**
    * 7.3 Setters: It is a static warning if a setter declares a return type
@@ -4523,8 +4513,7 @@ class StaticWarningCode extends ErrorCode {
       const StaticWarningCode('NON_VOID_RETURN_FOR_SETTER',
           "The return type of the setter must be 'void' or absent.",
           correction: "Try removing the return type, or "
-              "define a method rather than a setter.",
-          isStrongModeError: false);
+              "define a method rather than a setter.");
 
   /**
    * 15.1 Static Types: A type <i>T</i> is malformed iff:

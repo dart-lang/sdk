@@ -13,8 +13,10 @@ Language/Classes/Abstract_Instance_Members/same_name_static_method_in_superclass
 Language/Classes/Abstract_Instance_Members/same_name_static_method_in_superclass_t04: MissingCompileTimeError # Issue 33995
 Language/Classes/Abstract_Instance_Members/same_name_static_method_in_superclass_t05: MissingCompileTimeError # Issue 33995
 Language/Classes/Abstract_Instance_Members/same_name_static_method_in_superclass_t06: MissingCompileTimeError # Issue 33995
+Language/Classes/Constructors/Generative_Constructors/final_variables_t01: CompileTimeError # co19 issue 155
 Language/Classes/Getters/type_object_t01: CompileTimeError # Issue 33995
 Language/Classes/Getters/type_object_t02: CompileTimeError # Issue 33995
+Language/Classes/Instance_Methods/Operators/return_type_t01: CompileTimeError # co19 issue 156
 Language/Classes/Instance_Methods/override_different_default_values_t01: MissingCompileTimeError # Issue 33995
 Language/Classes/Instance_Methods/override_different_default_values_t02: MissingCompileTimeError # Issue 33995
 Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t01: MissingCompileTimeError # Issue 33995
@@ -24,6 +26,10 @@ Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t05: Mis
 Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t06: MissingCompileTimeError # Issue 27476
 Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t07: MissingCompileTimeError # Issue 27476
 Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t09: MissingCompileTimeError # Issue 27476
+Language/Classes/Setters/return_type_not_void_t01: CompileTimeError # co19 issue 153
+Language/Classes/Setters/same_name_getter_different_type_t01: CompileTimeError # co19 issue 154
+Language/Classes/Setters/syntax_t04: CompileTimeError # co19 issue 153
+Language/Classes/Setters/type_object_t02: CompileTimeError # co19 issue 153
 Language/Classes/method_definition_t06: MissingCompileTimeError # Please triage this failure
 Language/Enums/syntax_t08: CompileTimeError # Issue 33995
 Language/Enums/syntax_t09: CompileTimeError # Issue 33995
@@ -54,6 +60,7 @@ Language/Functions/generator_return_type_t06: MissingCompileTimeError # Issue 32
 Language/Generics/scope_t03: CompileTimeError # Please triage this failure
 Language/Generics/syntax_t02: CompileTimeError # Please triage this failure
 Language/Generics/syntax_t03: Crash # Issue 29388
+Language/Libraries_and_Scripts/Imports/library_name_t01: CompileTimeError # co19 issue 152
 Language/Libraries_and_Scripts/Parts/compilation_t01: MissingCompileTimeError, Pass # Please triage this failure
 Language/Libraries_and_Scripts/Parts/compilation_t04: Pass, CompileTimeError, MissingCompileTimeError # Please triage this failure
 Language/Libraries_and_Scripts/Parts/compilation_t15: CompileTimeError, Pass # Please triage this failure
@@ -85,13 +92,11 @@ Language/Statements/Continue/async_loops_t09: CompileTimeError # Issue 33995
 Language/Statements/Continue/async_loops_t10: CompileTimeError # Issue 33995
 Language/Statements/Continue/control_transfer_t08: CompileTimeError # Issue 33995
 Language/Statements/Continue/control_transfer_t09: CompileTimeError # Issue 33995
+Language/Statements/Return/many_return_statements_t01: CompileTimeError # co19 issue 157
 Language/Types/Interface_Types/subtype_t30: CompileTimeError # Please triage this failure
 Language/Types/Type_Void/syntax_t08: MissingCompileTimeError # Issue 33995
 Language/Types/Type_Void/syntax_t09: CompileTimeError # Please triage this failure
 Language/Types/Type_Void/using_t02: CompileTimeError # Please triage this failure
-Language/Variables/final_or_static_initialization_t01: MissingCompileTimeError # Issue 27510
-Language/Variables/final_or_static_initialization_t02: MissingCompileTimeError # Issue 27510
-Language/Variables/final_or_static_initialization_t03: MissingCompileTimeError # Issue 27510
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t12: MissingCompileTimeError # Issue 34087
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t13: MissingCompileTimeError # Issue 34087
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t14: MissingCompileTimeError # Issue 34087

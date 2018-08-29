@@ -59,7 +59,6 @@ conflicting_generic_interfaces_hierarchy_loop_infinite_test: Crash # Issue #3404
 conflicting_generic_interfaces_hierarchy_loop_test: Crash # Issue #34043 - Error recovery in outline (class hierarchy cycle - see also #33756)
 const_counter_test/01: Crash # Error recovery in method body (use of non-const closure in a const context)
 const_native_factory_test: Crash # Issue #34043 - Error recovery in outline (native const factory)
-constructor9_test/01: MissingCompileTimeError
 constructor_name_test/02: Crash # Issue #34043 - Error recovery in outline (illegal constructor name)
 constructor_named_arguments_test/01: Crash # Error recovery in method body (argument mismatch in constructor redirect)
 constructor_redirect2_test/04: Crash # Issue 33686 - No core library found
@@ -92,16 +91,10 @@ factory_with_type_parameters_test/03: Crash # Issue 33686 - No core library foun
 factory_with_type_parameters_test/04: Crash # Issue 33686 - No core library found
 field1_test: Crash # Issue 33686 - No core library found
 field2_test: Crash # Issue 33686 - No core library found
-field3_test/01: MissingCompileTimeError
-field3_test/02: MissingCompileTimeError
 field4_test: Crash # Issue 33686 - No core library found
 field5_test: Crash # Issue 33686 - No core library found
 field6_test/00: Crash # Issue 33686 - No core library found
 field6_test/01: Crash # Issue 33686 - No core library found
-final_syntax_test/01: MissingCompileTimeError
-final_syntax_test/02: MissingCompileTimeError
-final_syntax_test/03: MissingCompileTimeError
-final_syntax_test/04: MissingCompileTimeError
 function_type_parameter2_negative_test: Crash # Error recovery in method body (use of non-const closure in a const context)
 function_type_parameter_negative_test: Crash # Error recovery in method body (use of non-const closure in a const context)
 generic_function_typedef2_test/04: Crash # Issue #34043 - Error recovery in outline (attempt to apply type arguments to a non-generic type)
@@ -408,7 +401,6 @@ config_import_corelib_test: StaticWarning, OK
 conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Crashes or times out
 const_cast2_test/01: CompileTimeError
 const_cast2_test/none: CompileTimeError
-constructor9_test/01: MissingCompileTimeError # CFE Issue 33022
 default_implementation2_test: CompileTimeError # Issue 30855
 dynamic_prefix_core_test/01: MissingCompileTimeError
 emit_const_fields_test: CompileTimeError
@@ -416,13 +408,6 @@ enum_syntax_test/05: Fail # Issue 21649
 enum_syntax_test/06: Fail # Issue 21649
 error_stacktrace_test/00: MissingCompileTimeError
 error_stacktrace_test/00: Pass
-field3_test/01: MissingCompileTimeError # CFE Issue 33022
-field3_test/02: MissingCompileTimeError # CFE Issue 33022
-field3a_negative_test: StaticWarning # Issue 28823
-final_syntax_test/01: Fail # Issue 11124
-final_syntax_test/02: Fail # Issue 11124
-final_syntax_test/03: Fail # Issue 11124
-final_syntax_test/04: Fail # Issue 11124
 forwarding_stub_tearoff_test: CompileTimeError
 generic_local_functions_test: CompileTimeError # Issue 28515
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
@@ -431,12 +416,14 @@ generic_no_such_method_dispatcher_simple_test: Skip # This test is just for kern
 generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
 getter_setter_in_lib_test: Fail # Issue 23286
+getters_setters2_test/01: CompileTimeError
+getters_setters_type_test/01: CompileTimeError
 implements_futureor_test/01: MissingCompileTimeError
 implicit_creation/implicit_const_context_constructor_generic_named_test: CompileTimeError
 implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError
 implicit_creation/implicit_const_context_prefix_constructor_generic_named_test: CompileTimeError
 implicit_creation/implicit_const_context_prefix_constructor_generic_test: CompileTimeError
-index_assign_operator_infer_return_type_test: StaticWarning
+index_assign_operator_infer_return_type_test: CompileTimeError
 initializing_formal_final_test: MissingCompileTimeError
 interceptor6_test: CompileTimeError
 interface_test/00: MissingCompileTimeError
@@ -509,6 +496,8 @@ regress_33235_16_test/02: MissingCompileTimeError
 regress_33235_16_test/03: MissingCompileTimeError
 regress_33235_19_test: CompileTimeError
 regress_33235_20_test: CompileTimeError
+setter3_test/01: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
+setter3_test/02: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
 setter_override2_test/02: MissingCompileTimeError # Issue 14736
 static_setter_conflicts_test/02: MissingCompileTimeError
 static_setter_conflicts_test/11: MissingCompileTimeError
@@ -519,7 +508,7 @@ super_bound_closure_test/none: CompileTimeError
 super_call4_test/01: MissingCompileTimeError
 super_no_such_method4_test/01: MissingCompileTimeError # Issue 33553
 super_no_such_method5_test/01: MissingCompileTimeError # Issue 33553
-super_setter_test: StaticWarning # Issue 28823
+super_setter_test: CompileTimeError # Invalid test, see https://github.com/dart-lang/sdk/issues/33837
 switch_case_test/none: CompileTimeError
 syntax_test/60: MissingCompileTimeError
 syntax_test/61: MissingCompileTimeError
