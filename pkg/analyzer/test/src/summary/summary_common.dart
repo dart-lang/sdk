@@ -691,6 +691,26 @@ abstract class SummaryTest {
   }
 
   /**
+   * Find the mixin with the given [name] in the summary, and return its
+   * [UnlinkedClass] data structure.
+   */
+  UnlinkedClass findMixin(String name) {
+    UnlinkedClass result;
+    for (UnlinkedClass mixin in unlinkedUnits[0].mixins) {
+      if (mixin.name == name) {
+        if (result != null) {
+          fail('Duplicate mixin $name');
+        }
+        result = mixin;
+      }
+    }
+    if (result == null) {
+      fail('Mixin $name not found in serialized output.');
+    }
+    return result;
+  }
+
+  /**
    * Find the parameter with the given [name] in [parameters].
    */
   UnlinkedParam findParameter(List<UnlinkedParam> parameters, String name) {
@@ -813,6 +833,16 @@ abstract class SummaryTest {
     return findExecutable(executableName,
         executables: findClass('C', failIfAbsent: true).executables,
         failIfAbsent: true);
+  }
+
+  /**
+   * Serialize the given library [text] and return the summary of the mixin
+   * with the given [name].
+   */
+  UnlinkedClass serializeMixinText(String text,
+      {String name: 'M', bool allowErrors: false}) {
+    serializeLibraryText(text, allowErrors: allowErrors);
+    return findMixin(name);
   }
 
   /**
@@ -8623,6 +8653,11 @@ class C {}
             .annotations);
   }
 
+  test_metadata_mixinDeclaration() {
+    checkAnnotationA(
+        serializeMixinText('const a = null; @a mixin M {}').annotations);
+  }
+
   test_metadata_multiple_annotations() {
     UnlinkedClass cls =
         serializeClassText('const a = null, b = null; @a @b class C {}');
@@ -8795,6 +8830,119 @@ class C {
             className: 'C')
         .executables[0];
     expect(f.inferredReturnTypeSlot, 0);
+  }
+
+  test_mixin() {
+    UnlinkedClass mixin = serializeMixinText('mixin M {}');
+    expect(mixin.name, 'M');
+    expect(mixin.nameOffset, 6);
+
+    expect(mixin.executables, isEmpty);
+    expect(mixin.interfaces, isEmpty);
+    expect(mixin.mixins, isEmpty);
+    expect(mixin.superclassConstraints, isEmpty);
+  }
+
+  test_mixin_codeRange() {
+    UnlinkedClass mixin = serializeMixinText(' mixin M {}');
+    _assertCodeRange(mixin.codeRange, 1, 10);
+  }
+
+  test_mixin_documented() {
+    String text = '''
+// Extra comment so doc comment offset != 0
+/**
+ * Docs
+ */
+mixin M {}''';
+    UnlinkedClass mixin = serializeMixinText(text);
+    expect(mixin.documentationComment, isNotNull);
+    checkDocumentationComment(mixin.documentationComment, text);
+  }
+
+  test_mixin_documented_tripleSlash() {
+    String text = '''
+/// aaa
+/// bbbb
+/// cc
+mixin M {}''';
+    UnlinkedClass mixin = serializeMixinText(text);
+    UnlinkedDocumentationComment comment = mixin.documentationComment;
+    expect(comment, isNotNull);
+    expect(comment.text, '/// aaa\n/// bbbb\n/// cc');
+  }
+
+  test_mixin_executables() {
+    UnlinkedClass mixin = serializeMixinText(r'''
+mixin M {
+  double f;
+  int get g => 0;
+  set s(int v) {}
+  int m(int v) => 0;
+}
+''');
+    expect(mixin.fields, hasLength(1));
+    expect(mixin.fields[0].name, 'f');
+    checkTypeRef(mixin.fields[0].type, 'dart:core', 'double');
+
+    expect(mixin.executables, hasLength(3));
+
+    expect(mixin.executables[0].name, 'g');
+    expect(mixin.executables[0].kind, UnlinkedExecutableKind.getter);
+    checkTypeRef(mixin.executables[0].returnType, 'dart:core', 'int');
+
+    expect(mixin.executables[1].name, 's=');
+    expect(mixin.executables[1].kind, UnlinkedExecutableKind.setter);
+
+    expect(mixin.executables[2].name, 'm');
+    expect(mixin.executables[2].kind, UnlinkedExecutableKind.functionOrMethod);
+    checkTypeRef(mixin.executables[2].returnType, 'dart:core', 'int');
+  }
+
+  test_mixin_implements() {
+    UnlinkedClass mixin = serializeMixinText(r'''
+class A {}
+class B {}
+mixin M implements A, B {}
+''');
+    expect(mixin.executables, isEmpty);
+    expect(mixin.mixins, isEmpty);
+    expect(mixin.superclassConstraints, isEmpty);
+
+    expect(mixin.interfaces, hasLength(2));
+    checkTypeRef(mixin.interfaces[0], null, 'A');
+    checkTypeRef(mixin.interfaces[1], null, 'B');
+  }
+
+  test_mixin_superclassConstraints() {
+    UnlinkedClass mixin = serializeMixinText(r'''
+class A {}
+class B {}
+class C {}
+class D {}
+mixin M on A, B implements C, D {}
+''');
+    expect(mixin.executables, isEmpty);
+    expect(mixin.mixins, isEmpty);
+
+    expect(mixin.superclassConstraints, hasLength(2));
+    checkTypeRef(mixin.superclassConstraints[0], null, 'A');
+    checkTypeRef(mixin.superclassConstraints[1], null, 'B');
+
+    expect(mixin.interfaces, hasLength(2));
+    checkTypeRef(mixin.interfaces[0], null, 'C');
+    checkTypeRef(mixin.interfaces[1], null, 'D');
+  }
+
+  test_mixin_typeParameters() {
+    UnlinkedClass mixin = serializeMixinText('mixin M<T extends num, U> {}');
+    expect(mixin.typeParameters, hasLength(2));
+
+    expect(mixin.typeParameters[0].name, 'T');
+    checkTypeRef(mixin.typeParameters[0].bound, 'dart:core', 'num');
+
+    expect(mixin.typeParameters[1].name, 'U');
+    expect(mixin.typeParameters[1].bound, isNull);
   }
 
   test_nested_generic_functions() {

@@ -1441,6 +1441,14 @@ abstract class UnlinkedClass extends base.SummaryClass {
   int get nameOffset;
 
   /**
+   * Superclass constraints for this mixin declaration. The list will be empty
+   * if this class is not a mixin declaration, or if the declaration does not
+   * have an `on` clause (in which case the type `Object` is implied).
+   */
+  @Id(14)
+  List<EntityRef> get superclassConstraints;
+
+  /**
    * Supertype of the class, or `null` if either (a) the class doesn't
    * explicitly declare a supertype (and hence has supertype `Object`), or (b)
    * the class *is* `Object` (and hence has no supertype).
@@ -3225,6 +3233,12 @@ abstract class UnlinkedUnit extends base.SummaryClass {
   @informative
   @Id(17)
   List<int> get lineStarts;
+
+  /**
+   * Mixins declared in the compilation unit.
+   */
+  @Id(20)
+  List<UnlinkedClass> get mixins;
 
   /**
    * Part declarations in the compilation unit.

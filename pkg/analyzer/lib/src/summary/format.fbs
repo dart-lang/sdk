@@ -1877,6 +1877,13 @@ table UnlinkedClass {
   nameOffset:uint (id: 1);
 
   /**
+   * Superclass constraints for this mixin declaration. The list will be empty
+   * if this class is not a mixin declaration, or if the declaration does not
+   * have an `on` clause (in which case the type `Object` is implied).
+   */
+  superclassConstraints:[EntityRef] (id: 14);
+
+  /**
    * Supertype of the class, or `null` if either (a) the class doesn't
    * explicitly declare a supertype (and hence has supertype `Object`), or (b)
    * the class *is* `Object` (and hence has no supertype).
@@ -2820,6 +2827,11 @@ table UnlinkedUnit {
    * Offsets of the first character of each line in the source code.
    */
   lineStarts:[uint] (id: 17);
+
+  /**
+   * Mixins declared in the compilation unit.
+   */
+  mixins:[UnlinkedClass] (id: 20);
 
   /**
    * Part declarations in the compilation unit.

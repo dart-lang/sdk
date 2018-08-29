@@ -227,6 +227,7 @@ abstract class SummaryLinkerTest {
     Token token = scanner.tokenize();
     Parser parser = new Parser(
         NonExistingSource.unknown, AnalysisErrorListener.NULL_LISTENER);
+    (parser as ParserAdapter).fastaParser.isMixinSupportEnabled = true;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = new LineInfo(scanner.lineStarts);
     return unit;

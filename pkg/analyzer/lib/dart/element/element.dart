@@ -189,8 +189,8 @@ abstract class ClassElement
    * Return a list containing all of the superclass constraints defined for this
    * class. The list will be empty if this class does not represent a mixin
    * declaration. If this class _does_ represent a mixin declaration but the
-   * declaration does not have an on clause, then the list will contain the type
-   * for the class `Object`.
+   * declaration does not have an `on` clause, then the list will contain the
+   * type for the class `Object`.
    *
    * <b>Note:</b> Because the element model represents the state of the code, it
    * is possible for it to be semantically invalid. In particular, it is not
