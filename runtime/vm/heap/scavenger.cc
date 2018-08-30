@@ -898,6 +898,7 @@ void Scavenger::Scavenge() {
   }
 
   // Prepare for a scavenge.
+  FlushTLS();
   SpaceUsage usage_before = GetCurrentUsage();
   intptr_t promo_candidate_words =
       (survivor_end_ - FirstObjectStart()) / kWordSize;
