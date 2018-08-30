@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This test exercises a corner case of override checking that is safe from a
-// soundness perspective, but which we haven't decided whether or not to allow
-// from a usability perspective.
+// This test exercises a corner case of override checking.
 
 class A {
   void foo() {}

@@ -5574,7 +5574,7 @@ const MessageCode messageOperatorWithOptionalFormals = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateOverriddenMethodCause =
     const Template<Message Function(String name)>(
-        messageTemplate: r"""This is the overriden method ('#name').""",
+        messageTemplate: r"""This is the overridden method ('#name').""",
         withArguments: _withArgumentsOverriddenMethodCause);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5586,7 +5586,7 @@ const Code<Message Function(String name)> codeOverriddenMethodCause =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverriddenMethodCause(String name) {
   return new Message(codeOverriddenMethodCause,
-      message: """This is the overriden method ('${name}').""",
+      message: """This is the overridden method ('${name}').""",
       arguments: {'name': name});
 }
 
