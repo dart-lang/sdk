@@ -151,8 +151,6 @@ Language/Classes/Constructors/Factories/accessible_class_t02/01: CompileTimeErro
 Language/Classes/Constructors/Factories/accessible_class_t03/01: CompileTimeError
 Language/Classes/Constructors/Factories/accessible_class_t04/01: CompileTimeError
 Language/Classes/Constructors/Factories/accessible_class_t04/02: CompileTimeError
-Language/Classes/Constructors/Factories/const_modifier_t01: MissingCompileTimeError
-Language/Classes/Constructors/Factories/const_modifier_t02: MissingCompileTimeError
 Language/Classes/Constructors/Factories/default_value_t01: MissingCompileTimeError
 Language/Classes/Constructors/Factories/default_value_t02: MissingCompileTimeError
 Language/Classes/Constructors/Factories/function_type_t02: CompileTimeError
@@ -1677,8 +1675,6 @@ Utils/tests/Expect/throws_A01_t04: CompileTimeError
 
 [ $fasta && !$strong ]
 Language/Classes/Constructors/Constant_Constructors/potentially_constant_expression_t01: MissingCompileTimeError
-Language/Classes/Constructors/Factories/const_modifier_t01: MissingCompileTimeError
-Language/Classes/Constructors/Factories/const_modifier_t02: MissingCompileTimeError
 Language/Classes/Constructors/Factories/default_value_t01: MissingCompileTimeError
 Language/Classes/Constructors/Factories/default_value_t02: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/execution_t03: CompileTimeError # super initializer not last

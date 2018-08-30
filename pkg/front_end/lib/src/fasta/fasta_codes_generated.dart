@@ -1335,6 +1335,21 @@ const MessageCode messageConstFactory = const MessageCode("ConstFactory",
         r"""Try removing the 'const' keyword, or replacing the body with '=' followed by a valid target.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstFactoryRedirectionToNonConst =
+    messageConstFactoryRedirectionToNonConst;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstFactoryRedirectionToNonConst = const MessageCode(
+    "ConstFactoryRedirectionToNonConst",
+    analyzerCode: "REDIRECT_TO_NON_CONST_CONSTRUCTOR",
+    dart2jsCode: "*fatal*",
+    severity: Severity.error,
+    message:
+        r"""Constant factory constructor can't delegate to a non-constant constructor.""",
+    tip:
+        r"""Try redirecting to a different constructor or marking the target constructor 'const'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String

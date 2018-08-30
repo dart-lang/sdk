@@ -467,6 +467,19 @@ ConstFactory:
   script:
     - "class C { const factory C() {} }"
 
+ConstFactoryRedirectionToNonConst:
+  template: "Constant factory constructor can't delegate to a non-constant constructor."
+  tip: "Try redirecting to a different constructor or marking the target constructor 'const'."
+  severity: ERROR
+  analyzerCode: REDIRECT_TO_NON_CONST_CONSTRUCTOR
+  dart2jsCode: "*fatal*"
+  script:
+    - >-
+      class A {
+        const factory A.foo() = A.bar;
+        A.bar() {}
+      }
+
 NonConstFactory:
   template: "Cannot invoke a non-'const' factory where a const expression is expected."
   tip: "Try using a constructor or factory that is 'const'."

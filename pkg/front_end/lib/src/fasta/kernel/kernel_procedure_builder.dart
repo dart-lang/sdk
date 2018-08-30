@@ -41,6 +41,7 @@ import '../loader.dart' show Loader;
 import '../messages.dart'
     show
         Message,
+        messageConstFactoryRedirectionToNonConst,
         messageMoreThanOneSuperOrThisInitializer,
         messageNonInstanceTypeVariableUse,
         messagePatchDeclarationMismatch,
@@ -619,6 +620,13 @@ class KernelRedirectingFactoryBuilder extends KernelProcedureBuilder {
     if (actualBody != null) {
       unexpected("null", "${actualBody.runtimeType}", charOffset, fileUri);
     }
+
+    // Ensure that constant factories only have constant targets/bodies.
+    if (isConst && !target.isConst) {
+      library.addProblem(messageConstFactoryRedirectionToNonConst, charOffset,
+          noLength, fileUri);
+    }
+
     actualBody = new RedirectingFactoryBody(target, typeArguments);
     function.body = actualBody;
     actualBody?.parent = function;
