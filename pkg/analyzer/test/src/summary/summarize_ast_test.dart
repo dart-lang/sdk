@@ -49,8 +49,7 @@ abstract class LinkedSummarizeAstTest extends SummaryLinkerTest
         linkerInputs.linkedLibraries,
         linkerInputs.getDependency,
         linkerInputs.getUnit,
-        (name) => null,
-        true)[linkerInputs.testDartUri.toString()];
+        (name) => null)[linkerInputs.testDartUri.toString()];
     expect(linked, isNotNull);
     validateLinkedLibrary(linked);
     unlinkedUnits = <UnlinkedUnit>[linkerInputs.unlinkedDefiningUnit];
@@ -208,8 +207,7 @@ abstract class SummaryLinkerTest {
         linkerInputs.linkedLibraries,
         linkerInputs.getDependency,
         linkerInputs.getUnit,
-        linkerInputs.getDeclaredVariable,
-        true);
+        linkerInputs.getDeclaredVariable);
     linkedLibraries.forEach(assembler.addLinkedLibrary);
     linkerInputs._uriToUnit.forEach((String uri, UnlinkedUnit unit) {
       assembler.addUnlinkedUnitViaUri(uri, unit);

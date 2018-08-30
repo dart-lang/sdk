@@ -2004,7 +2004,7 @@ include: package:boo/other_options.yaml
     String sdkExtPath = '$projPath/sdk_ext';
     newFile('$projPath/test', content: 'test.dart');
     newFile('$sdkExtPath/entry.dart');
-    List<int> bytes = new SummaryBuilder([], null, true).build();
+    List<int> bytes = new SummaryBuilder([], null).build();
     newFileWithBytes('$projPath/sdk.ds', bytes);
     // Setup _embedder.yaml.
     newFile('$libPath/_embedder.yaml', content: r'''

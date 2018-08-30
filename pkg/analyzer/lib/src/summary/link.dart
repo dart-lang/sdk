@@ -112,12 +112,10 @@ Map<String, LinkedLibraryBuilder> link(
     Set<String> libraryUris,
     GetDependencyCallback getDependency,
     GetUnitCallback getUnit,
-    GetDeclaredVariable getDeclaredVariable,
-    bool strong) {
-  // TODO(brianwilkerson) Remove the parameter 'strong'.
+    GetDeclaredVariable getDeclaredVariable) {
   Map<String, LinkedLibraryBuilder> linkedLibraries =
       setupForLink(libraryUris, getUnit, getDeclaredVariable);
-  relink(linkedLibraries, getDependency, getUnit, strong);
+  relink(linkedLibraries, getDependency, getUnit);
   return linkedLibraries;
 }
 
@@ -135,8 +133,8 @@ Map<String, LinkedLibraryBuilder> link(
  * the corresponding fields.
  */
 void relink(Map<String, LinkedLibraryBuilder> libraries,
-    GetDependencyCallback getDependency, GetUnitCallback getUnit, bool strong) {
-  new Linker(libraries, getDependency, getUnit, strong).link();
+    GetDependencyCallback getDependency, GetUnitCallback getUnit) {
+  new Linker(libraries, getDependency, getUnit).link();
 }
 
 /**
@@ -3659,7 +3657,7 @@ class Linker {
   ContextForLink _context;
   AnalysisOptionsForLink _analysisOptions;
   Linker(Map<String, LinkedLibraryBuilder> linkedLibraries, this.getDependency,
-      this.getUnit, bool _) {
+      this.getUnit) {
     // Create elements for the libraries to be linked.  The rest of
     // the element model will be created on demand.
     linkedLibraries

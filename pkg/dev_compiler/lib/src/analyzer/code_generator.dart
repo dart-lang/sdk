@@ -327,8 +327,7 @@ class CodeGenerator extends Object
             uriToUnit.keys.toSet(),
             (uri) => summaryData.linkedMap[uri],
             (uri) => summaryData.unlinkedMap[uri] ?? uriToUnit[uri],
-            context.declaredVariables.get,
-            true)
+            context.declaredVariables.get)
         .forEach(assembler.addLinkedLibrary);
 
     var bundle = assembler.assemble();

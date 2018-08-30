@@ -321,12 +321,8 @@ class BuildMode extends Object with HasContextMixin {
       UnlinkedUnit getUnit(String absoluteUri) =>
           summaryDataStore.unlinkedMap[absoluteUri] ?? uriToUnit[absoluteUri];
 
-      Map<String, LinkedLibraryBuilder> linkResult = link(
-          libraryUris,
-          getDependency,
-          getUnit,
-          analysisDriver.declaredVariables.get,
-          options.strongMode);
+      Map<String, LinkedLibraryBuilder> linkResult = link(libraryUris,
+          getDependency, getUnit, analysisDriver.declaredVariables.get);
       linkResult.forEach(assembler.addLinkedLibrary);
     });
   }

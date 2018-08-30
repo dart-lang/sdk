@@ -38,8 +38,8 @@ class LinkerUnitTest extends SummaryLinkerTest {
         linkerInputs.linkedLibraries,
         linkerInputs.getUnit,
         linkerInputs.getDeclaredVariable);
-    linker = new Linker(linkedLibraries, linkerInputs.getDependency,
-        linkerInputs.getUnit, true);
+    linker = new Linker(
+        linkedLibraries, linkerInputs.getDependency, linkerInputs.getUnit);
   }
 
   LibraryElementForLink getLibrary(String uri) {

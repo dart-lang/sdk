@@ -94,7 +94,7 @@ abstract class AstSerializeTestMixin
         .toSet();
 
     Map<String, LinkedLibrary> linkedSummaries = link(nonSdkLibraryUris,
-        getDependency, getUnit, context.declaredVariables.get, true);
+        getDependency, getUnit, context.declaredVariables.get);
 
     return new TestSummaryResynthesizer(
         context,
