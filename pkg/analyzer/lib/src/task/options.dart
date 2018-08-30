@@ -39,6 +39,7 @@ void applyToAnalysisOptions(AnalysisOptionsImpl options, YamlMap optionMap) {
 /// `analyzer` analysis options constants.
 class AnalyzerOptions {
   static const String analyzer = 'analyzer';
+  static const String enableMixins = 'enableMixins';
   static const String enableSuperMixins = 'enableSuperMixins';
   static const String enablePreviewDart2 = 'enablePreviewDart2';
 
@@ -85,6 +86,7 @@ class AnalyzerOptions {
 
   /// Supported `analyzer` language options.
   static const List<String> languageOptions = const [
+    enableMixins,
     enableSuperMixins,
   ];
 }
@@ -626,7 +628,9 @@ class _OptionsProcessor {
       AnalysisOptionsImpl options, Object feature, Object value) {
     bool boolValue = toBool(value);
     if (boolValue != null) {
-      if (feature == AnalyzerOptions.enableSuperMixins) {
+      if (feature == AnalyzerOptions.enableMixins) {
+        options.isMixinSupportEnabled = boolValue;
+      } else if (feature == AnalyzerOptions.enableSuperMixins) {
         options.enableSuperMixins = boolValue;
       }
     }

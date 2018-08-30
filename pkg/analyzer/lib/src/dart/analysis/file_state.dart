@@ -638,6 +638,10 @@ class FileState {
     bool useFasta = analysisOptions.useFastaParser;
     Parser parser = new Parser(source, errorListener, useFasta: useFasta);
     parser.enableOptionalNewAndConst = true;
+    if (parser is ParserAdapter) {
+      parser.fastaParser.isMixinSupportEnabled =
+          (analysisOptions as AnalysisOptionsImpl).isMixinSupportEnabled;
+    }
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
 
@@ -921,18 +925,6 @@ class FileSystemState {
     _partToLibraries.clear();
   }
 
-  void _addFileWithPath(String path, FileState file) {
-    var files = _pathToFiles[path];
-    if (files == null) {
-      knownFilePaths.add(path);
-      knownFiles.add(file);
-      files = <FileState>[];
-      _pathToFiles[path] = files;
-      fileStamp++;
-    }
-    files.add(file);
-  }
-
   /**
    * A specialized version of package:path context.toUri(). This assumes the
    * path is absolute as does a performant conversion to a file: uri.
@@ -943,6 +935,18 @@ class FileSystemState {
     } else {
       return new Uri(scheme: 'file', path: path);
     }
+  }
+
+  void _addFileWithPath(String path, FileState file) {
+    var files = _pathToFiles[path];
+    if (files == null) {
+      knownFilePaths.add(path);
+      knownFiles.add(file);
+      files = <FileState>[];
+      _pathToFiles[path] = files;
+      fileStamp++;
+    }
+    files.add(file);
   }
 }
 
