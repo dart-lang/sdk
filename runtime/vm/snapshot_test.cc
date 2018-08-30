@@ -786,7 +786,7 @@ static void GenerateSourceAndCheck(const Script& script) {
   }
 }
 
-TEST_CASE(SerializeScript) {
+ISOLATE_UNIT_TEST_CASE(SerializeScript) {
   const char* kScriptChars =
       "class A {\n"
       "  static bar() { return 42; }\n"

@@ -2866,6 +2866,10 @@ static void WeakPersistentHandleCallback(void* isolate_callback_data,
 }
 
 TEST_CASE(DartAPI_WeakPersistentHandle) {
+  // GCs due to allocations or weak handle creation can cause early promotion
+  // and interfer with the scenario this test is verifying.
+  NoHeapGrowthControlScope force_growth;
+
   Dart_Handle local_new_ref = Dart_Null();
   weak_new_ref = Dart_NewWeakPersistentHandle(local_new_ref, NULL, 0,
                                               WeakPersistentHandleCallback);
@@ -2901,6 +2905,7 @@ TEST_CASE(DartAPI_WeakPersistentHandle) {
       TransitionNativeToVM transition(thread);
       // Garbage collect new space.
       GCTestHelper::CollectNewSpace();
+      GCTestHelper::WaitForGCTasks();
     }
 
     // Nothing should be invalidated or cleared.
@@ -2921,6 +2926,7 @@ TEST_CASE(DartAPI_WeakPersistentHandle) {
       TransitionNativeToVM transition(thread);
       // Garbage collect old space.
       Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+      GCTestHelper::WaitForGCTasks();
     }
 
     // Nothing should be invalidated or cleared.
@@ -2977,6 +2983,7 @@ TEST_CASE(DartAPI_WeakPersistentHandle) {
     // Garbage collect one last time to revisit deleted handles.
     Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+    GCTestHelper::WaitForGCTasks();
   }
 }
 
@@ -6415,24 +6422,28 @@ TEST_CASE(DartAPI_ParsePatchLibrary) {
   result = Dart_LoadLibrary(url, Dart_Null(), source, 0, 0);
   EXPECT_VALID(result);
 
-  const char* patchNames[] = {"main library patch", "patch class only",
-                              "patch no class"};
-  const char* patches[] = {kPatchChars, kPatchClassOnlyChars,
-                           kPatchNoClassChars};
-  const String& lib_url = String::Handle(String::New("theLibrary"));
+  {
+    TransitionNativeToVM transition(thread);
+    const char* patchNames[] = {"main library patch", "patch class only",
+                                "patch no class"};
+    const char* patches[] = {kPatchChars, kPatchClassOnlyChars,
+                             kPatchNoClassChars};
+    const String& lib_url = String::Handle(String::New("theLibrary"));
 
-  const Library& lib = Library::Handle(Library::LookupLibrary(thread, lib_url));
+    const Library& lib =
+        Library::Handle(Library::LookupLibrary(thread, lib_url));
 
-  for (int i = 0; i < 3; i++) {
-    const String& patch_url = String::Handle(String::New(patchNames[i]));
-    const String& patch_source = String::Handle(String::New(patches[i]));
-    const Script& patch_script = Script::Handle(
-        Script::New(patch_url, patch_source, RawScript::kPatchTag));
+    for (int i = 0; i < 3; i++) {
+      const String& patch_url = String::Handle(String::New(patchNames[i]));
+      const String& patch_source = String::Handle(String::New(patches[i]));
+      const Script& patch_script = Script::Handle(
+          Script::New(patch_url, patch_source, RawScript::kPatchTag));
 
-    const Error& err = Error::Handle(lib.Patch(patch_script));
-    if (!err.IsNull()) {
-      OS::PrintErr("Patching error: %s\n", err.ToErrorCString());
-      EXPECT(false);
+      const Error& err = Error::Handle(lib.Patch(patch_script));
+      if (!err.IsNull()) {
+        OS::PrintErr("Patching error: %s\n", err.ToErrorCString());
+        EXPECT(false);
+      }
     }
   }
   result = Dart_SetNativeResolver(result, &PatchNativeResolver, NULL);
@@ -6492,9 +6503,17 @@ TEST_CASE(DartAPI_ParsePatchLibrary) {
   EXPECT_VALID(Dart_IntegerToInt64(result, &value));
   EXPECT_EQ(8, value);
 
-  // Make sure all source files show up in the patched library.
-  const Array& lib_scripts = Array::Handle(lib.LoadedScripts());
-  EXPECT_EQ(4, lib_scripts.Length());
+  {
+    TransitionNativeToVM transition(thread);
+    // Make sure all source files show up in the patched library.
+    const String& lib_url = String::Handle(String::New("theLibrary"));
+
+    const Library& lib =
+        Library::Handle(Library::LookupLibrary(thread, lib_url));
+
+    const Array& lib_scripts = Array::Handle(lib.LoadedScripts());
+    EXPECT_EQ(4, lib_scripts.Length());
+  }
 }
 
 static void MyNativeFunction1(Dart_NativeArguments args) {

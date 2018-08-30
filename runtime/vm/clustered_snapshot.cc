@@ -5584,6 +5584,7 @@ void Deserializer::ReadIsolateSnapshot(ObjectStore* object_store) {
   }
 
   thread()->isolate()->class_table()->CopySizesFromClassObjects();
+  heap_->old_space()->EvaluateSnapshotLoad();
 
 #if defined(DEBUG)
   Isolate* isolate = thread()->isolate();

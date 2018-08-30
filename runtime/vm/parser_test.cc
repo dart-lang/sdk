@@ -106,7 +106,7 @@ void CheckFunction(const Library& lib,
   EXPECT(!function.IsNull());
 }
 
-TEST_CASE(ParseClassDefinition) {
+ISOLATE_UNIT_TEST_CASE(ParseClassDefinition) {
   const char* script_chars =
       "class C { }  \n"
       "class A {    \n"
@@ -141,7 +141,7 @@ TEST_CASE(ParseClassDefinition) {
   CheckFunction(lib, "A", "foo", true);
 }
 
-TEST_CASE(Parser_TopLevel) {
+ISOLATE_UNIT_TEST_CASE(Parser_TopLevel) {
   const char* script_chars =
       "class A extends B {    \n"
       "  static bar(var i, [var d = 5]) { return 77; } \n"
