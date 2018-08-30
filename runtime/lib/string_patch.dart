@@ -95,10 +95,7 @@ abstract class _StringBase implements String {
     throw new UnsupportedError("_StringBase can't be instaniated");
   }
 
-  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get hashCode native "String_getHashCode";
-
-  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get _identityHashCode native "String_getHashCode";
 
   bool get _isOneByte {
@@ -238,10 +235,8 @@ abstract class _StringBase implements String {
 
   int codeUnitAt(int index); // Implemented in the subclasses.
 
-  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get length native "String_getLength";
 
-  @pragma("vm:exact-result-type", bool)
   bool get isEmpty {
     return this.length == 0;
   }
@@ -254,7 +249,6 @@ abstract class _StringBase implements String {
     return this;
   }
 
-  @pragma("vm:exact-result-type", bool)
   bool operator ==(Object other) {
     if (identical(this, other)) {
       return true;
@@ -290,7 +284,6 @@ abstract class _StringBase implements String {
     return 0;
   }
 
-  @pragma("vm:exact-result-type", bool)
   bool _substringMatches(int start, String other) {
     if (other.isEmpty) return true;
     final len = other.length;
@@ -937,22 +930,18 @@ class _OneByteString extends _StringBase {
         "_OneByteString can only be allocated by the VM");
   }
 
-  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get hashCode native "String_getHashCode";
 
-  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int codeUnitAt(int index) native "String_codeUnitAt";
 
   bool _isWhitespace(int codeUnit) {
     return _StringBase._isOneByteWhitespace(codeUnit);
   }
 
-  @pragma("vm:exact-result-type", bool)
   bool operator ==(Object other) {
     return super == other;
   }
 
-  @pragma("vm:exact-result-type", _OneByteString)
   String _substringUncheckedNative(int startIndex, int endIndex)
       native "OneByteString_substringUnchecked";
 
@@ -1211,7 +1200,6 @@ class _OneByteString extends _StringBase {
 
   // Allocates a string of given length, expecting its content to be
   // set using _setAt.
-  @pragma("vm:exact-result-type", _OneByteString)
   static _OneByteString _allocate(int length) native "OneByteString_allocate";
 
   static _OneByteString _allocateFromOneByteList(List<int> list, int start,
@@ -1253,10 +1241,8 @@ class _TwoByteString extends _StringBase {
     return _StringBase._isTwoByteWhitespace(codeUnit);
   }
 
-  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int codeUnitAt(int index) native "String_codeUnitAt";
 
-  @pragma("vm:exact-result-type", bool)
   bool operator ==(Object other) {
     return super == other;
   }
@@ -1273,7 +1259,6 @@ class _ExternalOneByteString extends _StringBase {
     return _StringBase._isOneByteWhitespace(codeUnit);
   }
 
-  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int codeUnitAt(int index) native "String_codeUnitAt";
 
   bool operator ==(Object other) {
@@ -1292,7 +1277,6 @@ class _ExternalTwoByteString extends _StringBase {
     return _StringBase._isTwoByteWhitespace(codeUnit);
   }
 
-  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int codeUnitAt(int index) native "String_codeUnitAt";
 
   bool operator ==(Object other) {

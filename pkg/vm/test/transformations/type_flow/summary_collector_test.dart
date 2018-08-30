@@ -11,7 +11,6 @@ import 'package:kernel/type_environment.dart';
 import 'package:test/test.dart';
 import 'package:vm/transformations/type_flow/native_code.dart';
 import 'package:vm/transformations/type_flow/summary_collector.dart';
-import 'annotation_matcher.dart';
 
 import '../../common_test_utils.dart';
 
@@ -21,12 +20,9 @@ class PrintSummaries extends RecursiveVisitor<Null> {
   final SummaryCollector _summaryColector;
   final StringBuffer _buf = new StringBuffer();
 
-  PrintSummaries(TypeEnvironment environment, CoreTypes coreTypes)
-      : _summaryColector = new SummaryCollector(
-            environment,
-            new EmptyEntryPointsListener(),
-            new NativeCodeOracle(
-                null, new ExpressionPragmaAnnotationParser(coreTypes)));
+  PrintSummaries(TypeEnvironment environment)
+      : _summaryColector = new SummaryCollector(environment,
+            new EmptyEntryPointsListener(), new NativeCodeOracle(null));
 
   String print(TreeNode node) {
     visitLibrary(node);
@@ -46,12 +42,11 @@ class PrintSummaries extends RecursiveVisitor<Null> {
 runTestCase(Uri source) async {
   final Component component = await compileTestCaseToKernelProgram(source);
   final Library library = component.mainMethod.enclosingLibrary;
-  final CoreTypes coreTypes = new CoreTypes(component);
 
-  final typeEnvironment =
-      new TypeEnvironment(coreTypes, new ClassHierarchy(component));
+  final typeEnvironment = new TypeEnvironment(
+      new CoreTypes(component), new ClassHierarchy(component));
 
-  final actual = new PrintSummaries(typeEnvironment, coreTypes).print(library);
+  final actual = new PrintSummaries(typeEnvironment).print(library);
 
   compareResultWithExpectationsFile(source, actual);
 }

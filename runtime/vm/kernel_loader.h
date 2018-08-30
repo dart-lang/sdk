@@ -165,7 +165,6 @@ class KernelLoader : public ValueObject {
 
   void AnnotateNativeProcedures(const Array& constant_table);
   void LoadNativeExtensionLibraries(const Array& constant_table);
-  void EvaluateDelayedPragmas();
 
   void ReadVMAnnotations(intptr_t annotation_count,
                          String* native_name,
@@ -300,18 +299,6 @@ class KernelLoader : public ValueObject {
     }
   }
 
-  void EnsurePotentialPragmaFunctions() {
-    potential_pragma_functions_ =
-        kernel_program_info_.potential_pragma_functions();
-    if (potential_pragma_functions_.IsNull()) {
-      // To avoid too many grows in this array, we'll set it's initial size to
-      // something close to the actual number of potential native functions.
-      potential_pragma_functions_ = GrowableObjectArray::New(100, Heap::kNew);
-      kernel_program_info_.set_potential_pragma_functions(
-          potential_pragma_functions_);
-    }
-  }
-
   void EnsurePotentialExtensionLibraries() {
     if (potential_extension_libraries_.IsNull()) {
       potential_extension_libraries_ = GrowableObjectArray::New();
@@ -344,7 +331,6 @@ class KernelLoader : public ValueObject {
   Class& external_name_class_;
   Field& external_name_field_;
   GrowableObjectArray& potential_natives_;
-  GrowableObjectArray& potential_pragma_functions_;
   GrowableObjectArray& potential_extension_libraries_;
 
   Class& pragma_class_;

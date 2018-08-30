@@ -10919,13 +10919,6 @@ static void ReportTooManyImports(const Library& lib) {
   UNREACHABLE();
 }
 
-bool Library::IsAnyCoreLibrary() const {
-  String& url_str = Thread::Current()->StringHandle();
-  url_str = url();
-  return url_str.StartsWith(Symbols::DartScheme()) ||
-         url_str.StartsWith(Symbols::DartSchemePrivate());
-}
-
 void Library::set_num_imports(intptr_t value) const {
   if (!Utils::IsUint(16, value)) {
     ReportTooManyImports(*this);
@@ -11205,6 +11198,7 @@ RawString* Library::MakeMetadataName(const Object& obj) const {
 }
 
 RawField* Library::GetMetadataField(const String& metaname) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   const GrowableObjectArray& metadata =
       GrowableObjectArray::Handle(this->metadata());
   Field& entry = Field::Handle();
@@ -13175,11 +13169,6 @@ void KernelProgramInfo::set_constants_table(
 void KernelProgramInfo::set_potential_natives(
     const GrowableObjectArray& candidates) const {
   StorePointer(&raw_ptr()->potential_natives_, candidates.raw());
-}
-
-void KernelProgramInfo::set_potential_pragma_functions(
-    const GrowableObjectArray& candidates) const {
-  StorePointer(&raw_ptr()->potential_pragma_functions_, candidates.raw());
 }
 
 RawError* Library::CompileAll() {

@@ -4,7 +4,6 @@
 
 // part of "core_patch.dart";
 
-@pragma("vm:exact-result-type", "dart:core#_Smi")
 int _getHash(obj) native "Object_getHash";
 void _setHash(obj, hash) native "Object_setHash";
 
@@ -13,7 +12,6 @@ void _setHash(obj, hash) native "Object_setHash";
 class Object {
   // The VM has its own implementation of equals.
   @patch
-  @pragma("vm:exact-result-type", bool)
   bool operator ==(other) native "Object_equals";
 
   // Helpers used to implement hashCode. If a hashCode is used, we remember it
@@ -51,11 +49,9 @@ class Object {
   }
 
   @patch
-  @pragma("vm:exact-result-type", "dart:core#_Type")
   Type get runtimeType native "Object_runtimeType";
 
   @pragma("vm:entry-point")
-  @pragma("vm:exact-result-type", bool)
   static bool _haveSameRuntimeType(a, b) native "Object_haveSameRuntimeType";
 
   // Call this function instead of inlining instanceof, thus collecting
