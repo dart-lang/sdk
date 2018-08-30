@@ -135,13 +135,11 @@ class _Builder {
     String code = source.contents.data;
     CharSequenceReader reader = new CharSequenceReader(code);
     Scanner scanner = new Scanner(source, reader, errorListener);
-    scanner.scanGenericMethodComments = true;
     Token token = scanner.tokenize();
     LineInfo lineInfo = new LineInfo(scanner.lineStarts);
     Parser parser = new Parser(source, errorListener,
         useFasta: context.analysisOptions.useFastaParser);
     parser.enableOptionalNewAndConst = true;
-    parser.parseGenericMethodComments = true;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
     return unit;

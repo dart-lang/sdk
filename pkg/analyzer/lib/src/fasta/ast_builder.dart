@@ -71,8 +71,6 @@ class AstBuilder extends StackListener {
   /// `native` support.
   Parser parser;
 
-  bool parseGenericMethodComments = false;
-
   /// The class currently being parsed, or `null` if no class is being parsed.
   ClassDeclarationImpl classDeclaration;
 

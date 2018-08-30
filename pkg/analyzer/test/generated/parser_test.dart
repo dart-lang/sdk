@@ -54,8 +54,6 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
 
   void set allowNativeClause(bool value);
 
-  void set enableGenericMethodComments(bool value);
-
   void set enableLazyAssignmentOperators(bool value);
 
   void set enableNnbd(bool value);
@@ -9195,11 +9193,6 @@ class ParserTestCase extends EngineTestCase
   bool parseAsync = true;
 
   /**
-   * Whether generic method comments should be enabled for the test.
-   */
-  bool enableGenericMethodComments = false;
-
-  /**
    * A flag indicating whether lazy assignment operators should be enabled for
    * the test.
    */
@@ -9271,7 +9264,6 @@ class ParserTestCase extends EngineTestCase
     //
     ScannerResult result = scanString(content,
         includeComments: true,
-        scanGenericMethodComments: enableGenericMethodComments,
         scanLazyAssignmentOperators: enableLazyAssignmentOperators);
     Token token = result.tokens;
     if (result.hasErrors) {
@@ -9288,7 +9280,6 @@ class ParserTestCase extends EngineTestCase
     //
     parser = new Parser(source, listener);
     parser.allowNativeClause = allowNativeClause;
-    parser.parseGenericMethodComments = enableGenericMethodComments;
     parser.parseFunctionBodies = parseFunctionBodies;
     parser.enableNnbd = enableNnbd;
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
@@ -9428,7 +9419,6 @@ class ParserTestCase extends EngineTestCase
     //
     ScannerResult result = scanString(content,
         includeComments: true,
-        scanGenericMethodComments: enableGenericMethodComments,
         scanLazyAssignmentOperators: enableLazyAssignmentOperators);
     Token token = result.tokens;
     if (result.hasErrors) {
@@ -9477,7 +9467,6 @@ class ParserTestCase extends EngineTestCase
     //
     ScannerResult result = scanString(content,
         includeComments: true,
-        scanGenericMethodComments: enableGenericMethodComments,
         scanLazyAssignmentOperators: enableLazyAssignmentOperators);
     Token token = result.tokens;
     if (result.hasErrors) {
@@ -9831,7 +9820,6 @@ class ParserTestCase extends EngineTestCase
     //
     ScannerResult result = scanString(content,
         includeComments: true,
-        scanGenericMethodComments: enableGenericMethodComments,
         scanLazyAssignmentOperators: enableLazyAssignmentOperators);
     Token token = result.tokens;
     if (result.hasErrors) {
@@ -9845,7 +9833,6 @@ class ParserTestCase extends EngineTestCase
     listener.setLineInfo(source, result.lineStarts);
 
     Parser parser = new Parser(source, listener);
-    parser.parseGenericMethodComments = enableGenericMethodComments;
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
     Statement statement = parser.parseStatement(token);
     expect(statement, isNotNull);
@@ -9878,7 +9865,6 @@ class ParserTestCase extends EngineTestCase
     // Scan the source.
     //
     ScannerResult result = scanString(content,
-        scanGenericMethodComments: enableGenericMethodComments,
         scanLazyAssignmentOperators: enableLazyAssignmentOperators);
     Token token = result.tokens;
     if (result.hasErrors) {

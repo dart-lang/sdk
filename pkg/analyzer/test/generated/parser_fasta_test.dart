@@ -127,12 +127,6 @@ class FastaParserTestCase extends Object
   @override
   bool allowNativeClause = false;
 
-  /**
-   * Whether generic method comments should be enabled for the test.
-   */
-  bool get enableGenericMethodComments => false;
-  void set enableGenericMethodComments(bool enable) {}
-
   @override
   set enableLazyAssignmentOperators(bool value) {
     // Lazy assignment operators are always enabled
@@ -194,11 +188,9 @@ class FastaParserTestCase extends Object
   @override
   void createParser(String content, {int expectedEndOffset}) {
     var scanner = new StringScanner(content, includeComments: true);
-    scanner.scanGenericMethodComments = enableGenericMethodComments;
     _fastaTokens = scanner.tokenize();
     _parserProxy = new ParserProxy(_fastaTokens,
         allowNativeClause: allowNativeClause,
-        enableGenericMethodComments: enableGenericMethodComments,
         expectedEndOffset: expectedEndOffset);
   }
 
@@ -309,7 +301,6 @@ class FastaParserTestCase extends Object
     // Scan tokens
     var source = new StringSource(content, 'parser_test_StringSource.dart');
     var scanner = new Scanner.fasta(source, listener);
-    scanner.scanGenericMethodComments = enableGenericMethodComments;
     _fastaTokens = scanner.tokenize();
 
     // Run parser
@@ -632,26 +623,20 @@ class ParserProxy extends analyzer.ParserAdapter {
    * Fasta token.
    */
   factory ParserProxy(analyzer.Token firstToken,
-      {bool allowNativeClause: false,
-      bool enableGenericMethodComments: false,
-      int expectedEndOffset}) {
+      {bool allowNativeClause: false, int expectedEndOffset}) {
     TestSource source = new TestSource();
     var errorListener = new GatheringErrorListener(checkRanges: true);
     var errorReporter = new ErrorReporter(errorListener, source);
     return new ParserProxy._(firstToken, errorReporter, null, errorListener,
         allowNativeClause: allowNativeClause,
-        enableGenericMethodComments: enableGenericMethodComments,
         expectedEndOffset: expectedEndOffset);
   }
 
   ParserProxy._(analyzer.Token firstToken, ErrorReporter errorReporter,
       Uri fileUri, this._errorListener,
-      {bool allowNativeClause: false,
-      bool enableGenericMethodComments: false,
-      this.expectedEndOffset})
+      {bool allowNativeClause: false, this.expectedEndOffset})
       : super(firstToken, errorReporter, fileUri,
-            allowNativeClause: allowNativeClause,
-            enableGenericMethodComments: enableGenericMethodComments) {
+            allowNativeClause: allowNativeClause) {
     _eventListener = new ForwardingTestListener(astBuilder);
     fastaParser.listener = _eventListener;
   }

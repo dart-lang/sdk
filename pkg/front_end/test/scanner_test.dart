@@ -83,7 +83,7 @@ abstract class ScannerTestBase {
   bool usingFasta = false;
 
   Token scanWithListener(String source, ErrorListener listener,
-      {bool genericMethodComments: false, bool lazyAssignmentOperators: false});
+      {bool lazyAssignmentOperators: false});
 
   void test_ampersand() {
     _assertToken(TokenType.AMPERSAND, "&");
@@ -189,18 +189,6 @@ abstract class ScannerTestBase {
 
   void test_comma() {
     _assertToken(TokenType.COMMA, ",");
-  }
-
-  void test_comment_generic_method_type_assign() {
-    _assertComment(TokenType.MULTI_LINE_COMMENT, "/*=comment*/");
-    _assertComment(TokenType.GENERIC_METHOD_TYPE_ASSIGN, "/*=comment*/",
-        genericMethodComments: true);
-  }
-
-  void test_comment_generic_method_type_list() {
-    _assertComment(TokenType.MULTI_LINE_COMMENT, "/*<comment>*/");
-    _assertComment(TokenType.GENERIC_METHOD_TYPE_LIST, "/*<comment>*/",
-        genericMethodComments: true);
   }
 
   void test_comment_multi() {
@@ -1341,12 +1329,11 @@ abstract class ScannerTestBase {
     expect(openParen.endToken, isNull);
   }
 
-  void _assertComment(TokenType commentType, String source,
-      {bool genericMethodComments: false}) {
+  void _assertComment(TokenType commentType, String source) {
     //
     // Test without a trailing end-of-line marker
     //
-    Token token = _scan(source, genericMethodComments: genericMethodComments);
+    Token token = _scan(source);
     expect(token, isNotNull);
     expect(token.type, TokenType.EOF);
     Token comment = token.precedingComments;
@@ -1358,7 +1345,7 @@ abstract class ScannerTestBase {
     //
     // Test with a trailing end-of-line marker
     //
-    token = _scan("$source\n", genericMethodComments: genericMethodComments);
+    token = _scan("$source\n");
     expect(token, isNotNull);
     expect(token.type, TokenType.EOF);
     comment = token.precedingComments;
@@ -1520,12 +1507,9 @@ abstract class ScannerTestBase {
   }
 
   Token _scan(String source,
-      {bool genericMethodComments: false,
-      bool lazyAssignmentOperators: false,
-      bool ignoreErrors: false}) {
+      {bool lazyAssignmentOperators: false, bool ignoreErrors: false}) {
     ErrorListener listener = new ErrorListener();
     Token token = scanWithListener(source, listener,
-        genericMethodComments: genericMethodComments,
         lazyAssignmentOperators: lazyAssignmentOperators);
     if (!ignoreErrors) {
       listener.assertNoErrors();

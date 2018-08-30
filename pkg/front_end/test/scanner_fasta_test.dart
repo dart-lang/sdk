@@ -52,12 +52,10 @@ class ScannerTest_Fasta_FuzzTestAPI {
 @reflectiveTest
 class ScannerTest_Fasta_UTF8 extends ScannerTest_Fasta {
   @override
-  createScanner(String source, {bool genericMethodComments: false}) {
+  createScanner(String source) {
     List<int> encoded = utf8.encode(source).toList(growable: true);
     encoded.add(0); // Ensure 0 terminted bytes for UTF8 scanner
-    return new fasta.Utf8BytesScanner(encoded,
-        includeComments: true,
-        scanGenericMethodComments: genericMethodComments);
+    return new fasta.Utf8BytesScanner(encoded, includeComments: true);
   }
 
   test_invalid_utf8() {
@@ -97,17 +95,13 @@ class ScannerTest_Fasta extends ScannerTestBase {
     usingFasta = true;
   }
 
-  createScanner(String source, {bool genericMethodComments: false}) =>
-      new fasta.StringScanner(source,
-          includeComments: true,
-          scanGenericMethodComments: genericMethodComments);
+  createScanner(String source) =>
+      new fasta.StringScanner(source, includeComments: true);
 
   @override
   Token scanWithListener(String source, ErrorListener listener,
-      {bool genericMethodComments: false,
-      bool lazyAssignmentOperators: false}) {
-    var scanner =
-        createScanner(source, genericMethodComments: genericMethodComments);
+      {bool lazyAssignmentOperators: false}) {
+    var scanner = createScanner(source);
     var token = scanner.tokenize();
     return new ToAnalyzerTokenStreamConverter_WithListener(listener)
         .convertTokens(token);

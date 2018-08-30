@@ -53,8 +53,6 @@ class Scanner {
 
   Token firstToken;
 
-  bool scanGenericMethodComments = false;
-
   bool scanLazyAssignmentOperators = false;
 
   /**
@@ -104,7 +102,6 @@ class Scanner {
   Token tokenize() {
     fasta.ScannerResult result = fasta.scanString(_contents,
         includeComments: _preserveComments,
-        scanGenericMethodComments: scanGenericMethodComments,
         scanLazyAssignmentOperators: scanLazyAssignmentOperators);
 
     // fasta pretends there is an additional line at EOF

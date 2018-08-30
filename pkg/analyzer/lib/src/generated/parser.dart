@@ -265,12 +265,6 @@ class Parser {
   @deprecated
   bool parseGenericMethods = false;
 
-  /**
-   * A flag indicating whether to parse generic method comments, of the form
-   * `/*=T*/` and `/*<T>*/`.
-   */
-  bool parseGenericMethodComments = false;
-
   bool allowNativeClause;
 
   /**
