@@ -15632,32 +15632,17 @@ RawCode* Code::FinalizeCode(const char* name,
       compiler == nullptr ? 0 : compiler->UncheckedEntryOffset()));
   INC_STAT(Thread::Current(), total_instr_size, assembler->CodeSize());
   INC_STAT(Thread::Current(), total_code_size, assembler->CodeSize());
-
-  // Copy the instructions into the instruction area and apply all fixups.
-  // Embedded pointers are still in handles at this point.
-  MemoryRegion region(reinterpret_cast<void*>(instrs.PayloadStart()),
-                      instrs.Size());
-  assembler->FinalizeInstructions(region);
-  CPU::FlushICache(instrs.PayloadStart(), instrs.Size());
-
-#if defined(DART_PRECOMPILER)
-  if (stats != nullptr) {
-    stats->Finalize();
-    instrs.set_stats(stats);
-  }
-#endif
-
-  const Code::Comments& comments = assembler->GetCodeComments();
-
-  code.set_compile_timestamp(OS::GetCurrentMonotonicMicros());
-#ifndef PRODUCT
-  CodeCommentsWrapper comments_wrapper(comments);
-  CodeObservers::NotifyAll(name, instrs.PayloadStart(),
-                           assembler->prologue_offset(), instrs.Size(),
-                           optimized, &comments_wrapper);
-#endif
+  // Important: if GC is triggerred at any point between Instructions::New
+  // and here it would write protect instructions object that we are trying
+  // to fill in.
   {
     NoSafepointScope no_safepoint;
+    // Copy the instructions into the instruction area and apply all fixups.
+    // Embedded pointers are still in handles at this point.
+    MemoryRegion region(reinterpret_cast<void*>(instrs.PayloadStart()),
+                        instrs.Size());
+    assembler->FinalizeInstructions(region);
+
     const ZoneGrowableArray<intptr_t>& pointer_offsets =
         assembler->GetPointerOffsets();
     ASSERT(pointer_offsets.length() == pointer_offset_count);
@@ -15669,6 +15654,8 @@ RawCode* Code::FinalizeCode(const char* name,
       intptr_t offset_in_instrs = pointer_offsets[i];
       code.SetPointerOffsetAt(i, offset_in_instrs);
       uword addr = region.start() + offset_in_instrs;
+      ASSERT(instrs.PayloadStart() <= addr);
+      ASSERT((instrs.PayloadStart() + instrs.Size()) > addr);
       const Object* object = *reinterpret_cast<Object**>(addr);
       instrs.raw()->StorePointer(reinterpret_cast<RawObject**>(addr),
                                  object->raw());
@@ -15690,6 +15677,24 @@ RawCode* Code::FinalizeCode(const char* name,
                              instrs.raw()->Size(), VirtualMemory::kReadExecute);
     }
   }
+  CPU::FlushICache(instrs.PayloadStart(), instrs.Size());
+
+#if defined(DART_PRECOMPILER)
+  if (stats != nullptr) {
+    stats->Finalize();
+    instrs.set_stats(stats);
+  }
+#endif
+
+  const Code::Comments& comments = assembler->GetCodeComments();
+
+  code.set_compile_timestamp(OS::GetCurrentMonotonicMicros());
+#ifndef PRODUCT
+  CodeCommentsWrapper comments_wrapper(comments);
+  CodeObservers::NotifyAll(name, instrs.PayloadStart(),
+                           assembler->prologue_offset(), instrs.Size(),
+                           optimized, &comments_wrapper);
+#endif
   code.set_comments(comments);
   if (assembler->prologue_offset() >= 0) {
     code.SetPrologueOffset(assembler->prologue_offset());
