@@ -827,9 +827,9 @@ class MiniJsParser {
       }
       lastCategory = NUMERIC;
       lastToken = src.substring(lastPosition, position);
-      int.parse(lastToken, onError: (_) {
+      if (int.tryParse(lastToken) == null) {
         error("Unparseable number");
-      });
+      }
     } else if (code == charCodes.$SLASH) {
       // Tokens that start with / are special due to regexp literals.
       lastCategory = SYMBOL;
@@ -861,9 +861,9 @@ class MiniJsParser {
       lastCategory = cat;
       lastToken = src.substring(lastPosition, position);
       if (cat == NUMERIC) {
-        double.parse(lastToken, (_) {
+        if (double.tryParse(lastToken) == null) {
           error("Unparseable number");
-        });
+        }
       } else if (cat == SYMBOL) {
         int binaryPrecendence = BINARY_PRECEDENCE[lastToken];
         if (binaryPrecendence == null && !UNARY_OPERATORS.contains(lastToken)) {
