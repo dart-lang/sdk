@@ -172,10 +172,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginFormalParameter(Token beginToken, MemberKind kind,
-      Token covariantToken, Token varFinalOrConst) {
+  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
+      Token varFinalOrConst) {
     listener?.beginFormalParameter(
-        beginToken, kind, covariantToken, varFinalOrConst);
+        token, kind, covariantToken, varFinalOrConst);
   }
 
   @override
@@ -607,15 +607,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endFormalParameter(
-      Token thisKeyword,
-      Token periodAfterThis,
-      Token nameToken,
-      FormalParameterKind kind,
-      MemberKind memberKind,
-      Token endToken) {
+  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
+      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
     listener?.endFormalParameter(
-        thisKeyword, periodAfterThis, nameToken, kind, memberKind, endToken);
+        thisKeyword, periodAfterThis, nameToken, kind, memberKind);
   }
 
   @override

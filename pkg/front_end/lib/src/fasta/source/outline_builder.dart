@@ -907,36 +907,24 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
-  void beginFormalParameter(Token beginToken, MemberKind kind,
-      Token covariantToken, Token varFinalOrConst) {
-    push(beginToken);
+  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
+      Token varFinalOrConst) {
     push((covariantToken != null ? covariantMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme));
   }
 
   @override
-  void endFormalParameter(
-      Token thisKeyword,
-      Token periodAfterThis,
-      Token nameToken,
-      FormalParameterKind kind,
-      MemberKind memberKind,
-      Token endToken) {
+  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
+      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
     debugEvent("FormalParameter");
     int charOffset = pop();
     String name = pop();
     TypeBuilder type = pop();
     int modifiers = pop();
-    Token beginToken = pop();
     List<MetadataBuilder> metadata = pop();
-    Token metadataToken = pop();
-
-    int codeStartOffset =
-        _chooseCodeStartOffset(null, metadataToken, beginToken);
-    int codeEndOffset = endToken.end;
-
-    push(library.addFormalParameter(metadata, modifiers, type, name,
-        thisKeyword != null, charOffset, codeStartOffset, codeEndOffset));
+    pop(); // metadataToken
+    push(library.addFormalParameter(
+        metadata, modifiers, type, name, thisKeyword != null, charOffset));
   }
 
   @override

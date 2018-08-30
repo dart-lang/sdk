@@ -1153,13 +1153,8 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endFormalParameter(
-      Token thisKeyword,
-      Token periodAfterThis,
-      Token nameToken,
-      FormalParameterKind kind,
-      MemberKind memberKind,
-      Token endToken) {
+  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
+      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
     assert(optionalOrNull('this', thisKeyword));
     assert(thisKeyword == null
         ? periodAfterThis == null

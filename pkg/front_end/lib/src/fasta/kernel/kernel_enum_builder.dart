@@ -136,9 +136,9 @@ class KernelEnumBuilder extends SourceClassBuilder
         null,
         <FormalParameterBuilder>[
           new KernelFormalParameterBuilder(
-              null, 0, intType, "index", true, parent, charOffset, 0, 0),
+              null, 0, intType, "index", true, parent, charOffset),
           new KernelFormalParameterBuilder(
-              null, 0, stringType, "_name", true, parent, charOffset, 0, 0)
+              null, 0, stringType, "_name", true, parent, charOffset)
         ],
         parent,
         charOffset,

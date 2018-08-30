@@ -114,9 +114,7 @@ KernelTypeBuilder substituteRange(
               formal.name,
               formal.hasThis,
               formal.parent,
-              formal.charOffset,
-              formal.codeStartOffset,
-              formal.codeEndOffset);
+              formal.charOffset);
           changed = true;
         } else {
           formals[i] = formal;

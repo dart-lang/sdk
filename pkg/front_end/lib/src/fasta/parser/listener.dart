@@ -257,19 +257,11 @@ class Listener implements UnescapeErrorListener {
     logEvent("FactoryMethod");
   }
 
-  /// [beginToken] is the first token of the parameter, e.g. `int` in
-  /// `int a`, or `this` in `C(this.f)`.
-  void beginFormalParameter(Token beginToken, MemberKind kind,
-      Token covariantToken, Token varFinalOrConst) {}
+  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
+      Token varFinalOrConst) {}
 
-  /// [endToken] is the last token of the parameter, e.g. `1` in `{int a = 1}`.
-  void endFormalParameter(
-      Token thisKeyword,
-      Token periodAfterThis,
-      Token nameToken,
-      FormalParameterKind kind,
-      MemberKind memberKind,
-      Token endToken) {
+  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
+      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
     logEvent("FormalParameter");
   }
 

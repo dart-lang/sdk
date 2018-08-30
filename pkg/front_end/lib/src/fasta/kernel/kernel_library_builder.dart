@@ -796,11 +796,9 @@ class KernelLibraryBuilder
       KernelTypeBuilder type,
       String name,
       bool hasThis,
-      int charOffset,
-      int codeStartOffset,
-      int codeEndOffset) {
-    return new KernelFormalParameterBuilder(metadata, modifiers, type, name,
-        hasThis, this, charOffset, codeStartOffset, codeEndOffset);
+      int charOffset) {
+    return new KernelFormalParameterBuilder(
+        metadata, modifiers, type, name, hasThis, this, charOffset);
   }
 
   KernelTypeVariableBuilder addTypeVariable(
