@@ -373,13 +373,6 @@ class LabelScope {
  */
 class LibraryImportScope extends Scope {
   /**
-   * The name of the property containing a list of the elements from the SDK
-   * that conflict with the single name imported from non-SDK libraries. The
-   * value of the property is always of type `List<Element>`.
-   */
-  static const String conflictingSdkElements = 'conflictingSdkElements';
-
-  /**
    * The element representing the library in which this scope is enclosed.
    */
   final LibraryElement _definingLibrary;
@@ -539,38 +532,48 @@ class LibraryImportScope extends Scope {
 
   Element _lookupInImportedNamespaces(
       Identifier identifier, Element lookup(Namespace namespace)) {
-    Set<Element> sdkElements = new HashSet<Element>();
-    Set<Element> nonSdkElements = new HashSet<Element>();
+    Element result;
+
+    bool hasPotentialConflict = false;
     for (int i = 0; i < _importedNamespaces.length; i++) {
       Element element = lookup(_importedNamespaces[i]);
       if (element != null) {
-        if (element.library.isInSdk) {
-          sdkElements.add(element);
+        if (result == null || result == element) {
+          result = element;
         } else {
-          nonSdkElements.add(element);
+          hasPotentialConflict = true;
         }
       }
     }
-    int nonSdkCount = nonSdkElements.length;
-    int sdkCount = sdkElements.length;
-    if (nonSdkCount == 0) {
-      if (sdkCount == 0) {
-        return null;
-      } else if (sdkCount == 1) {
-        return sdkElements.first;
+
+    if (hasPotentialConflict) {
+      var sdkElements = new Set<Element>();
+      var nonSdkElements = new Set<Element>();
+      for (int i = 0; i < _importedNamespaces.length; i++) {
+        Element element = lookup(_importedNamespaces[i]);
+        if (element != null) {
+          if (element.library.isInSdk) {
+            sdkElements.add(element);
+          } else {
+            nonSdkElements.add(element);
+          }
+        }
+      }
+      if (sdkElements.length > 1 || nonSdkElements.length > 1) {
+        var conflictingElements = <Element>[]
+          ..addAll(sdkElements)
+          ..addAll(nonSdkElements);
+        return new MultiplyDefinedElementImpl(_definingLibrary.context,
+            conflictingElements.first.name, conflictingElements);
+      }
+      if (nonSdkElements.isNotEmpty) {
+        result = nonSdkElements.first;
+      } else if (sdkElements.isNotEmpty) {
+        result = sdkElements.first;
       }
     }
-    if (nonSdkCount == 1) {
-      if (sdkCount > 0) {
-        identifier.setProperty(
-            conflictingSdkElements, sdkElements.toList(growable: false));
-      }
-      return nonSdkElements.first;
-    }
-    return new MultiplyDefinedElementImpl(
-        _definingLibrary.context,
-        sdkElements.toList(growable: false),
-        nonSdkElements.toList(growable: false));
+
+    return result;
   }
 }
 

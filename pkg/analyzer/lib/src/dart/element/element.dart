@@ -6802,53 +6802,26 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   /**
    * The analysis context in which the multiply defined elements are defined.
    */
+  @override
   final AnalysisContext context;
 
   /**
    * The name of the conflicting elements.
    */
-  String _name;
-
-  /**
-   * A list containing all of the elements defined in SDK libraries that
-   * conflict.
-   */
-  final List<Element> sdkElements;
-
-  /**
-   * A list containing all of the elements defined in non-SDK libraries that
-   * conflict.
-   */
-  final List<Element> nonSdkElements;
-
-  /**
-   * Initialize a newly created element in the given [context] to represent a
-   * list of conflicting [sdkElements] and [nonSdkElements]. At least one of the
-   * lists must contain more than one element.
-   */
-  MultiplyDefinedElementImpl(
-      this.context, this.sdkElements, this.nonSdkElements) {
-    if (nonSdkElements.length > 0) {
-      _name = nonSdkElements[0].name;
-    } else {
-      _name = sdkElements[0].name;
-    }
-  }
+  @override
+  final String name;
 
   @override
-  List<Element> get conflictingElements {
-    if (sdkElements.isEmpty) {
-      return nonSdkElements;
-    } else if (nonSdkElements.isEmpty) {
-      return sdkElements;
-    }
-    List<Element> elements = nonSdkElements.toList();
-    elements.addAll(sdkElements);
-    return elements;
-  }
+  final List<Element> conflictingElements;
+
+  /**
+   * Initialize a newly created element in the given [context] to represent
+   * the given non-empty [conflictingElements].
+   */
+  MultiplyDefinedElementImpl(this.context, this.name, this.conflictingElements);
 
   @override
-  String get displayName => _name;
+  String get displayName => name;
 
   @override
   String get documentationComment => null;
@@ -6949,9 +6922,6 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   List<ElementAnnotation> get metadata => const <ElementAnnotation>[];
 
   @override
-  String get name => _name;
-
-  @override
   int get nameLength => displayName != null ? displayName.length : 0;
 
   @override
@@ -7017,8 +6987,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
     }
 
     buffer.write("[");
-    writeList(nonSdkElements);
-    writeList(sdkElements);
+    writeList(conflictingElements);
     buffer.write("]");
     return buffer.toString();
   }
@@ -7026,47 +6995,6 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   @override
   void visitChildren(ElementVisitor visitor) {
     // There are no children to visit
-  }
-
-  /**
-   * Return an element in the given [context] that represents the fact that the
-   * [firstElement] and [secondElement] conflict. (If the elements are the same,
-   * then one of the two will be returned directly.)
-   */
-  static Element fromElements(
-      AnalysisContext context, Element firstElement, Element secondElement) {
-    Set<Element> sdkElements = new HashSet<Element>.identity();
-    Set<Element> nonSdkElements = new HashSet<Element>.identity();
-    void add(Element element) {
-      if (element != null) {
-        if (element is MultiplyDefinedElementImpl) {
-          sdkElements.addAll(element.sdkElements);
-          nonSdkElements.addAll(element.nonSdkElements);
-        } else if (element.library.isInSdk) {
-          sdkElements.add(element);
-        } else {
-          nonSdkElements.add(element);
-        }
-      }
-    }
-
-    add(firstElement);
-    add(secondElement);
-    int nonSdkCount = nonSdkElements.length;
-    if (nonSdkCount == 0) {
-      int sdkCount = sdkElements.length;
-      if (sdkCount == 0) {
-        return null;
-      } else if (sdkCount == 1) {
-        return sdkElements.first;
-      }
-    } else if (nonSdkCount == 1) {
-      return nonSdkElements.first;
-    }
-    return new MultiplyDefinedElementImpl(
-        context,
-        sdkElements.toList(growable: false),
-        nonSdkElements.toList(growable: false));
   }
 }
 

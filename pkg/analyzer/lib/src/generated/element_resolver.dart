@@ -207,17 +207,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     if (identifier is SimpleIdentifier) {
       Element element = _resolveSimpleIdentifier(identifier);
       if (element == null) {
-        //
-        // This might be a reference to an imported name that is missing the
-        // prefix.
-        //
-        element = _findImportWithoutPrefix(identifier);
-        if (element is MultiplyDefinedElement) {
-          // TODO(brianwilkerson) Report this error?
-          element = null;
-        }
-      }
-      if (element == null) {
         // TODO(brianwilkerson) Report this error?
         //        resolver.reportError(
         //            StaticWarningCode.UNDEFINED_IDENTIFIER,
@@ -1258,39 +1247,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Look for any declarations of the given [identifier] that are imported using
-   * a prefix. Return the element that was found, or `null` if the name is not
-   * imported using a prefix.
-   */
-  Element _findImportWithoutPrefix(SimpleIdentifier identifier) {
-    Element element = null;
-    Scope nameScope = _resolver.nameScope;
-    List<ImportElement> imports = _definingLibrary.imports;
-    int length = imports.length;
-    for (int i = 0; i < length; i++) {
-      ImportElement importElement = imports[i];
-      PrefixElement prefixElement = importElement.prefix;
-      if (prefixElement != null) {
-        Identifier prefixedIdentifier = new PrefixedIdentifierImpl.temp(
-            new SimpleIdentifierImpl(new StringToken(TokenType.STRING,
-                prefixElement.name, prefixElement.nameOffset)),
-            identifier);
-        Element importedElement =
-            nameScope.lookup(prefixedIdentifier, _definingLibrary);
-        if (importedElement != null) {
-          if (element == null) {
-            element = importedElement;
-          } else {
-            element = MultiplyDefinedElementImpl.fromElements(
-                _definingLibrary.context, element, importedElement);
-          }
-        }
-      }
-    }
-    return element;
-  }
-
-  /**
    * Return the best type of the given [expression] that is to be used for
    * type analysis.
    */
@@ -2221,8 +2177,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       Identifier setterId =
           new SyntheticIdentifier('${identifier.name}=', identifier);
       element = _resolver.nameScope.lookup(setterId, _definingLibrary);
-      identifier.setProperty(LibraryImportScope.conflictingSdkElements,
-          setterId.getProperty(LibraryImportScope.conflictingSdkElements));
     }
     ClassElement enclosingClass = _resolver.enclosingClass;
     if (element == null && enclosingClass != null) {

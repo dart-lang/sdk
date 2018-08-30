@@ -60,6 +60,9 @@ Language/Functions/generator_return_type_t06: MissingCompileTimeError # Issue 32
 Language/Generics/scope_t03: CompileTimeError # Please triage this failure
 Language/Generics/syntax_t02: CompileTimeError # Please triage this failure
 Language/Generics/syntax_t03: Crash # Issue 29388
+Language/Libraries_and_Scripts/Exports/implicit_hide_t01: MissingStaticWarning # Issue #34302
+Language/Libraries_and_Scripts/Imports/implicit_hide_t01: MissingStaticWarning # Issue #34302
+Language/Libraries_and_Scripts/Imports/implicit_hide_t02: MissingStaticWarning # Issue #34302
 Language/Libraries_and_Scripts/Imports/library_name_t01: CompileTimeError # co19 issue 152
 Language/Libraries_and_Scripts/Parts/compilation_t01: MissingCompileTimeError, Pass # Please triage this failure
 Language/Libraries_and_Scripts/Parts/compilation_t04: Pass, CompileTimeError, MissingCompileTimeError # Please triage this failure

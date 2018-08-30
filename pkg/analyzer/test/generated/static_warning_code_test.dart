@@ -83,6 +83,19 @@ class N {}''');
     assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
+  test_ambiguousImport_dart() async {
+    Source source = addSource(r'''
+import 'dart:async';
+import 'dart:async2';
+
+Future v;
+''');
+    await computeAnalysisResult(source);
+    if (enableNewAnalysisDriver) {
+      assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
+    }
+  }
+
   test_ambiguousImport_extends() async {
     Source source = addSource(r'''
 import 'lib1.dart';
@@ -967,19 +980,6 @@ class A implements I {
     assertErrors(
         source, [StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER]);
     verify([source]);
-  }
-
-  test_conflictingDartImport() async {
-    Source source = addSource(r'''
-import 'lib.dart';
-import 'dart:async';
-Future f = null;
-Stream s;''');
-    addNamedSource("/lib.dart", r'''
-library lib;
-class Future {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticWarningCode.CONFLICTING_DART_IMPORT]);
   }
 
   test_conflictingInstanceGetterAndSuperclassMember_declField_direct_setter() async {

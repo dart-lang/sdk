@@ -189,6 +189,23 @@ class N {}''');
     verify([source]);
   }
 
+  test_ambiguousImport_dart_implicitHide() async {
+    Source source = addSource(r'''
+import 'dart:async';
+import 'lib.dart';
+main() {
+  print(Future.zero);
+}
+''');
+    addNamedSource('/lib.dart', r'''
+class Future {
+  static const zero = 0;
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
   test_ambiguousImport_hideCombinator() async {
     Source source = addSource(r'''
 import 'lib1.dart';

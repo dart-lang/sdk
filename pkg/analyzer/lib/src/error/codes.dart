@@ -3578,25 +3578,6 @@ class StaticWarningCode extends ErrorCode {
           correction: "Try making '{1}' abstract, or adding a body to '{0}'.");
 
   /**
-   * 14.1 Imports: If a name <i>N</i> is referenced by a library <i>L</i> and
-   * <i>N</i> would be introduced into the top level scope of <i>L</i> by an
-   * import from a library whose URI begins with <i>dart:</i> and an import from
-   * a library whose URI does not begin with <i>dart:</i>:
-   * * The import from <i>dart:</i> is implicitly extended by a hide N clause.
-   * * A static warning is issued.
-   *
-   * Parameters:
-   * 0: the ambiguous name
-   * 1: the name of the dart: library in which the element is found
-   * 2: the name of the non-dart: library in which the element is found
-   */
-  static const StaticWarningCode CONFLICTING_DART_IMPORT =
-      const StaticWarningCode('CONFLICTING_DART_IMPORT',
-          "Element '{0}' from SDK library '{1}' is implicitly hidden by '{2}'.",
-          correction: "Try adding an explicit hide combinator.",
-          isStrongModeError: false);
-
-  /**
    * 7.2 Getters: It is a static warning if a class <i>C</i> declares an
    * instance getter named <i>v</i> and an accessible static member named
    * <i>v</i> or <i>v=</i> is declared in a superclass of <i>C</i>.

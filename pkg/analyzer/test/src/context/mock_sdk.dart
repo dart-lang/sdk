@@ -98,6 +98,13 @@ abstract class StreamTransformer<S, T> {}
 '''
 });
 
+const _MockSdkLibrary _LIB_ASYNC2 =
+    const _MockSdkLibrary('dart:async2', '$sdkRoot/lib/async2/async2.dart', '''
+library dart.async2;
+
+class Future {}
+''');
+
 const _MockSdkLibrary _LIB_COLLECTION = const _MockSdkLibrary(
     'dart:collection', '$sdkRoot/lib/collection/collection.dart', '''
 library dart.collection;
@@ -443,6 +450,7 @@ class Random {
 const List<SdkLibrary> _LIBRARIES = const [
   _LIB_CORE,
   _LIB_ASYNC,
+  _LIB_ASYNC2,
   _LIB_COLLECTION,
   _LIB_CONVERT,
   _LIB_FOREIGN_HELPER,
@@ -458,6 +466,7 @@ class MockSdk implements DartSdk {
     "dart:core": "$sdkRoot/lib/core/core.dart",
     "dart:html": "$sdkRoot/lib/html/dartium/html_dartium.dart",
     "dart:async": "$sdkRoot/lib/async/async.dart",
+    "dart:async2": "$sdkRoot/lib/async2/async2.dart",
     "dart:async/stream.dart": "$sdkRoot/lib/async/stream.dart",
     "dart:collection": "$sdkRoot/lib/collection/collection.dart",
     "dart:convert": "$sdkRoot/lib/convert/convert.dart",

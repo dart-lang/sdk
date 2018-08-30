@@ -1983,17 +1983,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       libraryNames.sort();
       _errorReporter.reportErrorForNode(StaticWarningCode.AMBIGUOUS_IMPORT,
           node, [name, StringUtilities.printListOfQuotedNames(libraryNames)]);
-    } else if (element != null) {
-      List<Element> sdkElements =
-          node.getProperty(LibraryImportScope.conflictingSdkElements);
-      if (sdkElements != null) {
-        _errorReporter.reportErrorForNode(
-            StaticWarningCode.CONFLICTING_DART_IMPORT, node, [
-          element.displayName,
-          _getLibraryName(sdkElements[0]),
-          _getLibraryName(element)
-        ]);
-      }
     }
   }
 

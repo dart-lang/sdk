@@ -38,6 +38,8 @@ generic_tearoff_test: CompileTimeError
 getter_setter_in_lib_test: Fail # Issue 23286
 getters_setters2_test/01: CompileTimeError
 getters_setters_type_test/01: CompileTimeError
+hidden_import_test/01: MissingStaticWarning # Issue #34302
+hidden_import_test/02: MissingStaticWarning # Issue #34302
 implements_futureor_test/01: MissingCompileTimeError
 implicit_creation/implicit_const_context_constructor_generic_named_test: CompileTimeError
 implicit_creation/implicit_const_context_constructor_generic_test: CompileTimeError
