@@ -2498,7 +2498,10 @@ class CompileTimeErrorCode extends ErrorCode {
               ' of the larger declaration signature');
 
   static const CompileTimeErrorCode FOR_IN_WITH_CONST_VARIABLE =
-      const CompileTimeErrorCode.fromFasta('FOR_IN_WITH_CONST_VARIABLE');
+      const CompileTimeErrorCode('FOR_IN_WITH_CONST_VARIABLE',
+          "A for-in loop-variable can't be 'const'.",
+          correction: "Try removing the 'const' modifier from the variable, or "
+              "use a different variable.");
 
   /**
    * It is a compile-time error if a generic function type is used as an actual
