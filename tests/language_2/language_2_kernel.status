@@ -202,6 +202,10 @@ vm/regress_33469_test/04: MissingCompileTimeError
 web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
 [ $fasta ]
+abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue 32014.
+abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue 32014.
+additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue 32014.
+additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError # Issue 32014.
 async_return_types_test/nestedFuture: MissingCompileTimeError # Issue 33068
 call_non_method_field_test/01: MissingCompileTimeError # Issue 32975
 call_non_method_field_test/02: MissingCompileTimeError # Issue 32975
@@ -269,7 +273,6 @@ mixin_invalid_bound_test/07: MissingCompileTimeError # Issue 33308
 mixin_invalid_bound_test/08: MissingCompileTimeError # Issue 33308
 mixin_invalid_bound_test/09: MissingCompileTimeError # Issue 33308
 mixin_invalid_bound_test/10: MissingCompileTimeError # Issue 33308
-mixin_invalid_override_test/01: MissingCompileTimeError # Issue 34285
 mixin_super_bound_test/01: MissingCompileTimeError # Issue 33308
 mixin_super_bound_test/02: MissingCompileTimeError # Issue 33308
 mixin_type_parameters_errors_test/03: MissingCompileTimeError # Issue 32972

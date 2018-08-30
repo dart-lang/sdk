@@ -827,15 +827,44 @@ abstract class KernelClassBuilder
     return false;
   }
 
-  void _checkArity(Procedure declaredMember, FunctionNode declaredFunction,
-      Procedure interfaceMember, FunctionNode interfaceFunction) {
-    // It is OK for an abstract class to contain an overriden method with
-    // fewer positional parameters.
-    if (!cls.isAbstract &&
-        (declaredFunction.positionalParameters.length <
-                interfaceFunction.requiredParameterCount ||
-            declaredFunction.positionalParameters.length <
-                interfaceFunction.positionalParameters.length)) {
+  /// Returns whether a covariant parameter was seen and more methods thus have
+  /// to be checked.
+  bool checkMethodOverride(
+      ClassHierarchy hierarchy,
+      TypeEnvironment typeEnvironment,
+      Procedure declaredMember,
+      Procedure interfaceMember) {
+    if (declaredMember.enclosingClass != cls) {
+      // TODO(ahe): Include these checks as well, but the message needs to
+      // explain that [declaredMember] is inherited.
+      return false;
+    }
+    assert(declaredMember.kind == ProcedureKind.Method);
+    assert(interfaceMember.kind == ProcedureKind.Method);
+    bool seenCovariant = false;
+    FunctionNode declaredFunction = declaredMember.function;
+    FunctionNode interfaceFunction = interfaceMember.function;
+
+    Substitution interfaceSubstitution = _computeInterfaceSubstitution(
+        hierarchy,
+        declaredMember,
+        interfaceMember,
+        declaredFunction,
+        interfaceFunction);
+
+    _checkTypes(
+        typeEnvironment,
+        interfaceSubstitution,
+        declaredMember,
+        interfaceMember,
+        declaredFunction.returnType,
+        interfaceFunction.returnType,
+        false,
+        null);
+    if (declaredFunction.positionalParameters.length <
+            interfaceFunction.requiredParameterCount ||
+        declaredFunction.positionalParameters.length <
+            interfaceFunction.positionalParameters.length) {
       addProblem(
           templateOverrideFewerPositionalArguments.withArguments(
               "$name::${declaredMember.name.name}",
@@ -866,55 +895,6 @@ abstract class KernelClassBuilder
                     interfaceMember.fileOffset, noLength)
           ]);
     }
-    if (declaredFunction.namedParameters.length <
-        interfaceFunction.namedParameters.length) {
-      addProblem(
-          templateOverrideFewerNamedArguments.withArguments(
-              "$name::${declaredMember.name.name}",
-              "${interfaceMember.enclosingClass.name}::"
-              "${interfaceMember.name.name}"),
-          declaredMember.fileOffset,
-          noLength,
-          context: [
-            templateOverriddenMethodCause
-                .withArguments(interfaceMember.name.name)
-                .withLocation(interfaceMember.fileUri,
-                    interfaceMember.fileOffset, noLength)
-          ]);
-    }
-  }
-
-  // Helpers for checkMethodOverride.
-  void _checkReturnType(
-      Procedure declaredMember,
-      FunctionNode declaredFunction,
-      Procedure interfaceMember,
-      FunctionNode interfaceFunction,
-      Substitution interfaceSubstitution,
-      TypeEnvironment typeEnvironment) {
-    _checkTypes(
-        typeEnvironment,
-        interfaceSubstitution,
-        declaredMember,
-        interfaceMember,
-        declaredFunction.returnType,
-        interfaceFunction.returnType,
-        false,
-        null);
-  }
-
-  int _compareNamedParameters(VariableDeclaration p0, VariableDeclaration p1) {
-    return p0.name.compareTo(p1.name);
-  }
-
-  bool _checkParameterTypes(
-      Procedure declaredMember,
-      FunctionNode declaredFunction,
-      Procedure interfaceMember,
-      FunctionNode interfaceFunction,
-      Substitution interfaceSubstitution,
-      TypeEnvironment typeEnvironment) {
-    bool seenCovariant = false;
     for (int i = 0;
         i < declaredFunction.positionalParameters.length &&
             i < interfaceFunction.positionalParameters.length;
@@ -933,15 +913,34 @@ abstract class KernelClassBuilder
     }
     if (declaredFunction.namedParameters.isEmpty &&
         interfaceFunction.namedParameters.isEmpty) {
-      return seenCovariant; // Short circuits the subsequent computation.
+      return seenCovariant;
+    }
+    if (declaredFunction.namedParameters.length <
+        interfaceFunction.namedParameters.length) {
+      addProblem(
+          templateOverrideFewerNamedArguments.withArguments(
+              "$name::${declaredMember.name.name}",
+              "${interfaceMember.enclosingClass.name}::"
+              "${interfaceMember.name.name}"),
+          declaredMember.fileOffset,
+          noLength,
+          context: [
+            templateOverriddenMethodCause
+                .withArguments(interfaceMember.name.name)
+                .withLocation(interfaceMember.fileUri,
+                    interfaceMember.fileOffset, noLength)
+          ]);
+    }
+    int compareNamedParameters(VariableDeclaration p0, VariableDeclaration p1) {
+      return p0.name.compareTo(p1.name);
     }
 
     List<VariableDeclaration> sortedFromDeclared =
         new List.from(declaredFunction.namedParameters)
-          ..sort(_compareNamedParameters);
+          ..sort(compareNamedParameters);
     List<VariableDeclaration> sortedFromInterface =
         new List.from(interfaceFunction.namedParameters)
-          ..sort(_compareNamedParameters);
+          ..sort(compareNamedParameters);
     Iterator<VariableDeclaration> declaredNamedParameters =
         sortedFromDeclared.iterator;
     Iterator<VariableDeclaration> interfaceNamedParameters =
@@ -982,49 +981,6 @@ abstract class KernelClassBuilder
       if (declaredParameter.isCovariant) seenCovariant = true;
     }
     return seenCovariant;
-  }
-
-  /// Returns whether a covariant parameter was seen and more methods thus have
-  /// to be checked.
-  bool checkMethodOverride(
-      ClassHierarchy hierarchy,
-      TypeEnvironment typeEnvironment,
-      Procedure declaredMember,
-      Procedure interfaceMember) {
-    assert(declaredMember.kind == ProcedureKind.Method);
-    assert(interfaceMember.kind == ProcedureKind.Method);
-
-    FunctionNode declaredFunction = declaredMember.function;
-    FunctionNode interfaceFunction = interfaceMember.function;
-
-    Substitution interfaceSubstitution = _computeInterfaceSubstitution(
-        hierarchy,
-        declaredMember,
-        interfaceMember,
-        declaredFunction,
-        interfaceFunction);
-
-    if (declaredMember.enclosingClass != cls) {
-      // TODO(hillerstrom): Include checkReturnType and checkParameterTypes as
-      // well. There is currently a problem with generic type parameters being
-      // uninstantiated in mixin applications which causes the two
-      // aforementioned checks to produce false-positives.
-      _checkArity(
-          declaredMember, declaredFunction, interfaceMember, interfaceFunction);
-      return false;
-    }
-
-    _checkReturnType(declaredMember, declaredFunction, interfaceMember,
-        interfaceFunction, interfaceSubstitution, typeEnvironment);
-    _checkArity(
-        declaredMember, declaredFunction, interfaceMember, interfaceFunction);
-    return _checkParameterTypes(
-        declaredMember,
-        declaredFunction,
-        interfaceMember,
-        interfaceFunction,
-        interfaceSubstitution,
-        typeEnvironment);
   }
 
   void checkGetterOverride(

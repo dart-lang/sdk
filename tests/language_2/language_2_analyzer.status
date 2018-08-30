@@ -15,7 +15,6 @@ accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
 additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
-bug34235_test/01: MissingCompileTimeError
 built_in_identifier_prefix_test: CompileTimeError
 cascaded_forwarding_stubs_test: CompileTimeError
 check_member_static_test/01: CompileTimeError

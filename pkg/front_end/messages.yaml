@@ -1747,7 +1747,7 @@ OverrideTypeVariablesMismatch:
   analyzerCode: INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS
 
 OverriddenMethodCause:
-  template: "This is the overridden method ('#name')."
+  template: "This is the overriden method ('#name')."
   severity: CONTEXT
 
 OverrideMismatchNamedParameter:
