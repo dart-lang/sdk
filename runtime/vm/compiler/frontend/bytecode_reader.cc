@@ -591,8 +591,9 @@ void BytecodeMetadataHelper::ReadExceptionsTable(const Code& bytecode) {
   }
 }
 
-RawTypedData* BytecodeMetadataHelper::NativeEntry(const Function& function,
-                                                  const String& external_name) {
+RawNativeEntryData* BytecodeMetadataHelper::NativeEntry(
+    const Function& function,
+    const String& external_name) {
   Zone* zone = helper_->zone_;
   MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(function);
   // This list of recognized methods must be kept in sync with the list of
@@ -652,23 +653,12 @@ RawTypedData* BytecodeMetadataHelper::NativeEntry(const Function& function,
     }
     argc_tag = NativeArguments::ComputeArgcTag(function);
   }
-  // TODO(regis): Introduce a new VM class subclassing Object and containing
-  // these four untagged values.
-#ifdef ARCH_IS_32_BIT
-  const TypedData& native_entry = TypedData::Handle(
-      zone, TypedData::New(kTypedDataUint32ArrayCid, 4, Heap::kOld));
-  native_entry.SetUint32(0 << 2, static_cast<uint32_t>(kind));
-  native_entry.SetUint32(1 << 2, reinterpret_cast<uint32_t>(trampoline));
-  native_entry.SetUint32(2 << 2, reinterpret_cast<uint32_t>(native_function));
-  native_entry.SetUint32(3 << 2, static_cast<uint32_t>(argc_tag));
-#else
-  const TypedData& native_entry = TypedData::Handle(
-      zone, TypedData::New(kTypedDataUint64ArrayCid, 4, Heap::kOld));
-  native_entry.SetUint64(0 << 3, static_cast<uint64_t>(kind));
-  native_entry.SetUint64(1 << 3, reinterpret_cast<uint64_t>(trampoline));
-  native_entry.SetUint64(2 << 3, reinterpret_cast<uint64_t>(native_function));
-  native_entry.SetUint64(3 << 3, static_cast<uint64_t>(argc_tag));
-#endif
+  const NativeEntryData& native_entry =
+      NativeEntryData::Handle(zone, NativeEntryData::New());
+  native_entry.set_kind(kind);
+  native_entry.set_trampoline(trampoline);
+  native_entry.set_native_function(native_function);
+  native_entry.set_argc_tag(argc_tag);
   return native_entry.raw();
 }
 

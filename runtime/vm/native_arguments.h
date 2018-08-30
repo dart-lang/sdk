@@ -213,6 +213,7 @@ class NativeArguments {
   friend class Api;
   friend class BootstrapNatives;
   friend class Interpreter;
+  friend class NativeEntryData;
   friend class Simulator;
 
 #if defined(TARGET_ARCH_DBC) || defined(DART_USE_INTERPRETER)

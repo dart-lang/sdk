@@ -183,6 +183,7 @@ class ObjectPointerVisitor;
   V(ClosureData, "ClosureData")                                                \
   V(SignatureData, "SignatureData")                                            \
   V(RedirectionData, "RedirectionData")                                        \
+  V(NativeEntryData, "NativeEntryData")                                        \
   V(Field, "Field")                                                            \
   V(LiteralToken, "LiteralToken")                                              \
   V(TokenStream, "TokenStream")                                                \

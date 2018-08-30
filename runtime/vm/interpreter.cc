@@ -2481,12 +2481,9 @@ RawObject* Interpreter::Call(RawFunction* function,
 
   {
     BYTECODE(NativeCall, __D);
-    RawTypedData* native_entry = static_cast<RawTypedData*>(LOAD_CONSTANT(rD));
-    // TODO(regis): Introduce a new VM class subclassing Object and containing
-    // the four untagged values currently stored as TypeData array elements.
-    MethodRecognizer::Kind kind =
-        static_cast<MethodRecognizer::Kind>(*(reinterpret_cast<uintptr_t*>(
-            native_entry->ptr()->data() + (0 << kWordSizeLog2))));
+    RawNativeEntryData* native_entry =
+        static_cast<RawNativeEntryData*>(LOAD_CONSTANT(rD));
+    MethodRecognizer::Kind kind = native_entry->ptr()->kind_;
     switch (kind) {
       case MethodRecognizer::kObjectEquals: {
         SP[-1] = SP[-1] == SP[0] ? Bool::True().raw() : Bool::False().raw();
@@ -2625,16 +2622,9 @@ RawObject* Interpreter::Call(RawFunction* function,
         *--SP = null_value;
       } break;
       default: {
-        NativeFunctionWrapper trampoline =
-            reinterpret_cast<NativeFunctionWrapper>(
-                *(reinterpret_cast<uintptr_t*>(native_entry->ptr()->data() +
-                                               (1 << kWordSizeLog2))));
-        Dart_NativeFunction function = reinterpret_cast<Dart_NativeFunction>(
-            *(reinterpret_cast<uintptr_t*>(native_entry->ptr()->data() +
-                                           (2 << kWordSizeLog2))));
-        intptr_t argc_tag =
-            static_cast<intptr_t>(*(reinterpret_cast<uintptr_t*>(
-                native_entry->ptr()->data() + (3 << kWordSizeLog2))));
+        NativeFunctionWrapper trampoline = native_entry->ptr()->trampoline_;
+        NativeFunction function = native_entry->ptr()->native_function_;
+        intptr_t argc_tag = native_entry->ptr()->argc_tag_;
         const intptr_t num_arguments =
             NativeArguments::ArgcBits::decode(argc_tag);
 
@@ -2644,7 +2634,8 @@ RawObject* Interpreter::Call(RawFunction* function,
         RawObject** return_slot = SP;
         Exit(thread, FP, SP, pc);
         NativeArguments args(thread, argc_tag, incoming_args, return_slot);
-        INVOKE_NATIVE(trampoline, function,
+        INVOKE_NATIVE(trampoline,
+                      reinterpret_cast<Dart_NativeFunction>(function),
                       reinterpret_cast<Dart_NativeArguments>(&args));
 
         *(SP - num_arguments) = *return_slot;

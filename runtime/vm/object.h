@@ -420,6 +420,9 @@ class Object {
   static RawClass* closure_data_class() { return closure_data_class_; }
   static RawClass* signature_data_class() { return signature_data_class_; }
   static RawClass* redirection_data_class() { return redirection_data_class_; }
+  static RawClass* native_entry_data_class() {
+    return native_entry_data_class_;
+  }
   static RawClass* field_class() { return field_class_; }
   static RawClass* literal_token_class() { return literal_token_class_; }
   static RawClass* token_stream_class() { return token_stream_class_; }
@@ -685,6 +688,7 @@ class Object {
   static RawClass* closure_data_class_;    // Class of ClosureData vm obj.
   static RawClass* signature_data_class_;  // Class of SignatureData vm obj.
   static RawClass* redirection_data_class_;  // Class of RedirectionData vm obj.
+  static RawClass* native_entry_data_class_;  // Class of NativeEntryData.
   static RawClass* field_class_;             // Class of the Field vm object.
   static RawClass* literal_token_class_;     // Class of LiteralToken vm object.
   static RawClass* token_stream_class_;  // Class of the TokenStream vm object.
@@ -3209,6 +3213,39 @@ class RedirectionData : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(RedirectionData, Object);
   friend class Class;
   friend class Function;
+  friend class HeapProfiler;
+};
+
+class NativeEntryData : public Object {
+ public:
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawNativeEntryData));
+  }
+
+  MethodRecognizer::Kind kind() const { return raw_ptr()->kind_; }
+  void set_kind(MethodRecognizer::Kind value) const {
+    StoreNonPointer(&raw_ptr()->kind_, value);
+  }
+
+  NativeFunctionWrapper trampoline() const { return raw_ptr()->trampoline_; }
+  void set_trampoline(NativeFunctionWrapper value) const {
+    StoreNonPointer(&raw_ptr()->trampoline_, value);
+  }
+
+  NativeFunction native_function() const { return raw_ptr()->native_function_; }
+  void set_native_function(NativeFunction value) const {
+    StoreNonPointer(&raw_ptr()->native_function_, value);
+  }
+
+  intptr_t argc_tag() const { return raw_ptr()->argc_tag_; }
+  void set_argc_tag(intptr_t value) const {
+    StoreNonPointer(&raw_ptr()->argc_tag_, value);
+  }
+
+  static RawNativeEntryData* New();
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(NativeEntryData, Object);
+  friend class Class;
   friend class HeapProfiler;
 };
 

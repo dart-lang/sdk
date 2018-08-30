@@ -120,6 +120,8 @@ RawClass* Object::closure_data_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::signature_data_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::redirection_data_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::native_entry_data_class_ =
+    reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::field_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::literal_token_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::token_stream_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -582,6 +584,9 @@ void Object::InitOnce(Isolate* isolate) {
   cls = Class::New<RedirectionData>();
   redirection_data_class_ = cls.raw();
 
+  cls = Class::New<NativeEntryData>();
+  native_entry_data_class_ = cls.raw();
+
   cls = Class::New<Field>();
   field_class_ = cls.raw();
 
@@ -1022,6 +1027,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(closure_data, ClosureData);
   SET_CLASS_NAME(signature_data, SignatureData);
   SET_CLASS_NAME(redirection_data, RedirectionData);
+  SET_CLASS_NAME(native_entry_data, NativeEntryData);
   SET_CLASS_NAME(field, Field);
   SET_CLASS_NAME(literal_token, LiteralToken);
   SET_CLASS_NAME(token_stream, TokenStream);
@@ -3912,6 +3918,8 @@ RawString* Class::GenerateUserVisibleName() const {
       return Symbols::SignatureData().raw();
     case kRedirectionDataCid:
       return Symbols::RedirectionData().raw();
+    case kNativeEntryDataCid:
+      return Symbols::NativeEntryData().raw();
     case kFieldCid:
       return Symbols::Field().raw();
     case kLiteralTokenCid:
@@ -8437,6 +8445,37 @@ const char* RedirectionData::ToCString() const {
                      redir_type.IsNull() ? "null" : redir_type.ToCString(),
                      ident.IsNull() ? "null" : ident.ToCString(),
                      target_fun.IsNull() ? "null" : target_fun.ToCString());
+}
+
+RawNativeEntryData* NativeEntryData::New() {
+  ASSERT(Object::native_entry_data_class() != Class::null());
+  RawObject* raw = Object::Allocate(
+      NativeEntryData::kClassId, NativeEntryData::InstanceSize(), Heap::kOld);
+  return reinterpret_cast<RawNativeEntryData*>(raw);
+}
+
+const char* NativeEntryData::ToCString() const {
+#if defined(DART_USE_INTERPRETER)
+  if (IsNull()) {
+    return "NativeEntryData: null";
+  }
+  if (kind() != MethodRecognizer::kUnknown) {
+    return OS::SCreate(Thread::Current()->zone(), "NativeEntryData %s",
+                       MethodRecognizer::KindToCString(kind()));
+  }
+  return OS::SCreate(
+      Thread::Current()->zone(),
+      "NativeEntryData argc: %d, trampoline: %s, function: 0x%" Px,
+      NativeArguments::ArgcBits::decode(argc_tag()),
+      trampoline() == &NativeEntry::BootstrapNativeCallWrapper
+          ? "BootstrapNativeCallWrapper"
+          : trampoline() == &NativeEntry::AutoScopeNativeCallWrapper
+                ? "AutoScopeNativeCallWrapper"
+                : "NoScopeNativeCallWrapper",
+      reinterpret_cast<uword>(native_function()));
+#else
+  UNREACHABLE();
+#endif  // defined(DART_USE_INTERPRETER)
 }
 
 RawField* Field::CloneFromOriginal() const {
