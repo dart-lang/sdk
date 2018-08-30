@@ -4241,6 +4241,44 @@ main() {
 ''');
   }
 
+  test_flutterWrapContainer_BAD_onContainer() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+main() {
+  return /*caret*/new Container();
+}
+''');
+    _setCaretLocation();
+    await assertNoAssist(DartAssistKind.FLUTTER_WRAP_CONTAINER);
+  }
+
+  test_flutterWrapContainer_OK() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+main() {
+  /*caret*/new Text('a');
+}
+''');
+    _setCaretLocation();
+    if (omitNew) {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_CONTAINER, '''
+import 'package:flutter/widgets.dart';
+main() {
+  /*caret*/Container(child: new Text('a'));
+}
+''');
+    } else {
+      await assertHasAssist(DartAssistKind.FLUTTER_WRAP_CONTAINER, '''
+import 'package:flutter/widgets.dart';
+main() {
+  /*caret*/new Center(child: new Text('a'));
+}
+''');
+    }
+  }
+
   test_flutterWrapPadding_BAD_onPadding() async {
     addFlutterPackage();
     await resolveTestUnit('''

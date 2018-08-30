@@ -13,6 +13,8 @@ const WIDGETS_LIBRARY_URI = 'package:flutter/widgets.dart';
 
 const _BASIC_URI = "package:flutter/src/widgets/basic.dart";
 const _CENTER_NAME = "Center";
+const _CONTAINER_NAME = "Container";
+const _CONTAINER_URI = "package:flutter/src/widgets/container.dart";
 const _PADDING_NAME = "Padding";
 const _STATE_NAME = "State";
 const _STATEFUL_WIDGET_NAME = "StatefulWidget";
@@ -280,6 +282,14 @@ bool isExactState(ClassElement element) {
 bool isExactWidgetTypeCenter(DartType type) {
   return type is InterfaceType &&
       _isExactWidget(type.element, _CENTER_NAME, _BASIC_URI);
+}
+
+/**
+ * Return `true` if the given [type] is the Flutter class `Container`.
+ */
+bool isExactWidgetTypeContainer(DartType type) {
+  return type is InterfaceType &&
+      _isExactWidget(type.element, _CONTAINER_NAME, _CONTAINER_URI);
 }
 
 /**

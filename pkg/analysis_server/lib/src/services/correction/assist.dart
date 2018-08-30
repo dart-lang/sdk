@@ -84,6 +84,8 @@ class DartAssistKind {
       const AssistKind('dart.assist.flutter.wrap.center', 30, "Center widget");
   static const FLUTTER_WRAP_COLUMN = const AssistKind(
       'dart.assist.flutter.wrap.column', 30, "Wrap with Column");
+  static const FLUTTER_WRAP_CONTAINER = const AssistKind(
+      'dart.assist.flutter.wrap.container', 30, "Wrap with Container");
   static const FLUTTER_WRAP_GENERIC = const AssistKind(
       'dart.assist.flutter.wrap.generic', 30, "Wrap with new widget");
   static const FLUTTER_WRAP_PADDING =
