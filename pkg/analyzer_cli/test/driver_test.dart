@@ -527,7 +527,7 @@ var b = new B();
     Set<String> triedDirectories = new Set<String>();
     bool isSuitable(String sdkDir) {
       triedDirectories.add(sdkDir);
-      return new File(path.join(sdkDir, 'lib', '_internal', 'spec.sum'))
+      return new File(path.join(sdkDir, 'lib', '_internal', 'strong.sum'))
           .existsSync();
     }
 

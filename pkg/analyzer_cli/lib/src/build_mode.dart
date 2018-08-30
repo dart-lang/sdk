@@ -404,7 +404,7 @@ class BuildMode extends Object with HasContextMixin {
             createAnalysisOptionsForCommandLineOptions(options, rootPath);
         dartSdk.useSummary = !options.buildSummaryOnly;
         sdk = dartSdk;
-        sdkBundle = dartSdk.getSummarySdkBundle(true);
+        sdkBundle = dartSdk.getSummarySdkBundle();
       }
 
       // Include SDK bundle to avoid parsing SDK sources.

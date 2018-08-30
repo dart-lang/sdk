@@ -163,9 +163,7 @@ abstract class AbstractDartSdk implements DartSdk {
   @override
   PackageBundle getLinkedBundle() {
     if (_useSummary) {
-      // TODO(brianwilkerson) 'strongMode' should probably always be 'true'.
-      bool strongMode = _analysisOptions != null;
-      _sdkBundle ??= getSummarySdkBundle(strongMode);
+      _sdkBundle ??= getSummarySdkBundle();
       return _sdkBundle;
     }
     return null;
@@ -181,7 +179,7 @@ abstract class AbstractDartSdk implements DartSdk {
    * This method should not be used outside of `analyzer` and `analyzer_cli`
    * packages.
    */
-  PackageBundle getSummarySdkBundle(bool strongMode);
+  PackageBundle getSummarySdkBundle();
 
   Source internalMapDartUri(String dartUri) {
     // TODO(brianwilkerson) Figure out how to unify the implementations in the
@@ -300,8 +298,8 @@ class EmbedderSdk extends AbstractDartSdk {
   String getRelativePathFromFile(File file) => file.path;
 
   @override
-  PackageBundle getSummarySdkBundle(bool strongMode) {
-    String name = strongMode ? 'strong.sum' : 'spec.sum';
+  PackageBundle getSummarySdkBundle() {
+    String name = 'strong.sum';
     File file = _embedderYamlLibFolder.parent.getChildAssumingFile(name);
     try {
       if (file.exists) {
@@ -584,7 +582,7 @@ class FolderBasedDartSdk extends AbstractDartSdk {
    * This method should not be used outside of `analyzer` and `analyzer_cli`
    * packages.
    */
-  PackageBundle getSummarySdkBundle(bool _) {
+  PackageBundle getSummarySdkBundle() {
     String rootPath = directory.path;
     String name = 'strong.sum';
     String path =

@@ -309,7 +309,7 @@ class CodeGenerator extends Object
           null,
           sdk is SummaryBasedDartSdk
               ? sdk.bundle
-              : (sdk as FolderBasedDartSdk).getSummarySdkBundle(true));
+              : (sdk as FolderBasedDartSdk).getSummarySdkBundle());
     }
 
     var assembler = PackageBundleAssembler();

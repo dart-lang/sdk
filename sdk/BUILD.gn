@@ -62,7 +62,6 @@ declare_args() {
 # ......dart_server.platform
 # ......dart_shared.platform
 # ......_internal/
-#.........spec.sum
 #.........strong.sum
 #.........dart2js_platform.dill
 #.........dart2js_server_platform.dill
@@ -483,11 +482,9 @@ copy("copy_analysis_summaries") {
   visibility = [ ":create_common_sdk" ]
   deps = [
     ":copy_libraries",
-    "../utils/dartanalyzer:generate_summary_spec",
     "../utils/dartanalyzer:generate_summary_strong",
   ]
   sources = [
-    "$root_gen_dir/spec.sum",
     "$root_gen_dir/strong.sum",
   ]
   outputs = [
