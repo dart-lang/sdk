@@ -1172,6 +1172,13 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   /**
+   * Return `true` if the given [type] is a class [InterfaceType].
+   */
+  bool _isClassInterfaceType(DartType type) {
+    return type is InterfaceType && !type.element.isEnum;
+  }
+
+  /**
    * Resynthesize explicit fields and property accessors and fill [_fields] and
    * [_accessors] with explicit and implicit elements.
    */
@@ -1297,13 +1304,6 @@ class ClassElementImpl extends AbstractClassElementImpl
       }
     }
     return null;
-  }
-
-  /**
-   * Return `true` if the given [type] is a class [InterfaceType].
-   */
-  static bool _isClassInterfaceType(DartType type) {
-    return type is InterfaceType && !type.element.isEnum;
   }
 }
 
@@ -6613,7 +6613,16 @@ class MixinElementImpl extends ClassElementImpl {
   List<InterfaceType> get superclassConstraints {
     if (_superclassConstraints == null) {
       if (_unlinkedClass != null) {
-        throw new UnimplementedError();
+        if (_unlinkedClass.superclassConstraints.isNotEmpty) {
+          ResynthesizerContext context = enclosingUnit.resynthesizerContext;
+          _superclassConstraints = _unlinkedClass.superclassConstraints
+              .map((EntityRef t) => context.resolveTypeRef(this, t))
+              .where(_isClassInterfaceType)
+              .cast<InterfaceType>()
+              .toList(growable: false);
+        } else {
+          _superclassConstraints = [context.typeProvider.objectType];
+        }
       }
     }
     return _superclassConstraints ?? const <InterfaceType>[];
