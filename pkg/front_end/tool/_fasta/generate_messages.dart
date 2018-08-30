@@ -56,7 +56,7 @@ part of fasta.codes;
       throw "No 'template:' in key $name.";
     }
     sb.writeln(compileTemplate(name, map['template'], map['tip'],
-        map['analyzerCode'], map['dart2jsCode'], map['severity']));
+        map['analyzerCode'], map['severity']));
   }
 
   return new DartFormatter().format("$sb");
@@ -66,7 +66,7 @@ final RegExp placeholderPattern =
     new RegExp("#\([-a-zA-Z0-9_]+\)(?:%\([0-9]*\)\.\([0-9]+\))?");
 
 String compileTemplate(String name, String template, String tip,
-    String analyzerCode, String dart2jsCode, String severity) {
+    String analyzerCode, String severity) {
   if (template == null) {
     print('Error: missing template for message: $name');
     exitCode = 1;
@@ -79,6 +79,15 @@ String compileTemplate(String name, String template, String tip,
   var parameters = new Set<String>();
   var conversions = new Set<String>();
   var arguments = new Set<String>();
+  bool hasNameSystem = false;
+  void ensureNameSystem() {
+    if (hasNameSystem) return;
+    conversions.add(r"""
+NameSystem nameSystem = new NameSystem();
+StringBuffer buffer;""");
+    hasNameSystem = true;
+  }
+
   for (Match match in placeholderPattern.allMatches("$template${tip ?? ''}")) {
     String name = match[1];
     String padding = match[2];
@@ -161,9 +170,9 @@ String compileTemplate(String name, String template, String tip,
 
       case "type":
         parameters.add("DartType _type");
+        ensureNameSystem();
         conversions.add(r"""
-NameSystem nameSystem = new NameSystem();
-StringBuffer buffer = new StringBuffer();
+buffer = new StringBuffer();
 new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
 String type = '$buffer';
 """);
@@ -172,6 +181,7 @@ String type = '$buffer';
 
       case "type2":
         parameters.add("DartType _type2");
+        ensureNameSystem();
         conversions.add(r"""
 buffer = new StringBuffer();
 new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
@@ -209,8 +219,16 @@ String type2 = '$buffer';
         break;
 
       case "constant":
-        parameters.add("Constant constant");
-        arguments.add("'constant': constant");
+        parameters.add("Constant _constant");
+        ensureNameSystem();
+        conversions.add(r"""
+buffer = new StringBuffer();
+new Printer(buffer, syntheticNames: nameSystem).writeNode(_constant);
+String constant = '$buffer';
+""");
+
+        arguments.add("'constant': _constant");
+
         break;
 
       case "num1":
@@ -246,9 +264,6 @@ String type2 = '$buffer';
   List<String> codeArguments = <String>[];
   if (analyzerCode != null) {
     codeArguments.add('analyzerCode: "$analyzerCode"');
-  }
-  if (dart2jsCode != null) {
-    codeArguments.add('dart2jsCode: "$dart2jsCode"');
   }
   if (severity != null) {
     String severityEnumName = severityEnumNames[severity];

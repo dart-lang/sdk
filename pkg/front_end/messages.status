@@ -33,7 +33,6 @@ CantInferPackagesFromManyInputs/analyzerCode: Fail
 CantInferPackagesFromManyInputs/example: Fail
 CantInferPackagesFromPackageUri/analyzerCode: Fail
 CantInferPackagesFromPackageUri/example: Fail
-CantInferTypeDueToCircularity/dart2jsCode: Fail
 CantInferTypeDueToCircularity/example: Fail
 CantInferTypeDueToInconsistentOverrides/example: Fail
 CantUseSuperBoundedTypeForInstanceCreation/analyzerCode: Fail
@@ -56,27 +55,19 @@ ConstConstructorRedirectionToNonConst/analyzerCode: Fail # The analyzer doesn't 
 ConstConstructorWithNonConstSuper/example: Fail
 ConstEvalContext/analyzerCode: Fail # This is just used for displaying the context.
 ConstEvalContext/example: Fail # This is just used for displaying the context.
-ConstEvalDuplicateKey/dart2jsCode: Fail
 ConstEvalDuplicateKey/example: Fail
-ConstEvalFailedAssertion/dart2jsCode: Fail
 ConstEvalFailedAssertion/example: Fail
-ConstEvalFailedAssertionWithMessage/dart2jsCode: Fail
 ConstEvalFailedAssertionWithMessage/example: Fail
 ConstEvalInvalidBinaryOperandType/analyzerCode: Fail # CONST_EVAL_TYPE_NUM / CONST_EVAL_TYPE_BOOL
 ConstEvalInvalidBinaryOperandType/example: Fail
-ConstEvalInvalidMethodInvocation/dart2jsCode: Fail
 ConstEvalInvalidMethodInvocation/example: Fail
-ConstEvalInvalidStaticInvocation/dart2jsCode: Fail
 ConstEvalInvalidStaticInvocation/example: Fail
-ConstEvalInvalidStringInterpolationOperand/dart2jsCode: Fail
 ConstEvalInvalidStringInterpolationOperand/example: Fail
 ConstEvalInvalidType/analyzerCode: Fail # CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH / CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH / CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH / ...
 ConstEvalInvalidType/example: Fail
 ConstEvalNegativeShift/analyzerCode: Fail # http://dartbug.com/33481
 ConstEvalNegativeShift/example: Fail
-ConstEvalNonConstantLiteral/dart2jsCode: Fail
 ConstEvalNonConstantLiteral/example: Fail
-ConstEvalNonConstantVariableGet/dart2jsCode: Fail
 ConstEvalNonConstantVariableGet/example: Fail
 ConstEvalZeroDivisor/example: Fail
 ConstFieldWithoutInitializer/example: Fail
@@ -185,7 +176,6 @@ ForInLoopWithConstVariable/example: Fail
 FunctionTypeDefaultValue/example: Fail
 FunctionTypedParameterVar/script1: Fail
 GeneratorReturnsValue/example: Fail
-GetterNotFound/dart2jsCode: Fail
 GetterNotFound/example: Fail
 GetterWithFormals/example: Fail
 IllegalAssignmentToNonAssignable/script1: Fail
@@ -231,7 +221,6 @@ MapLiteralTypeArgumentMismatch/example: Fail
 MemberWithSameNameAsClass/analyzerCode: Fail
 MemberWithSameNameAsClass/example: Fail
 MetadataTypeArguments/example: Fail
-MethodNotFound/dart2jsCode: Fail
 MethodNotFound/example: Fail
 MissingArgumentList/analyzerCode: Fail
 MissingArgumentList/example: Fail
@@ -241,7 +230,6 @@ MissingInput/analyzerCode: Fail
 MissingInput/example: Fail
 MissingMain/analyzerCode: Fail
 MissingMain/example: Fail
-MissingPartOf/dart2jsCode: Fail
 MissingPrefixInDeferredImport/example: Fail
 MixinInferenceNoMatchingClass/example: Fail
 MultipleExtends/script: Fail
@@ -280,14 +268,9 @@ OverrideTypeMismatchReturnType/example: Fail
 OverrideTypeVariablesMismatch/example: Fail
 PackageNotFound/analyzerCode: Fail
 PackageNotFound/example: Fail
-PartOfLibraryNameMismatch/dart2jsCode: Fail
 PartOfLibraryNameMismatch/example: Fail
-PartOfSelf/dart2jsCode: Fail
-PartOfUriMismatch/dart2jsCode: Fail
 PartOfUriMismatch/example: Fail
-PartOfUseUri/dart2jsCode: Fail
 PartOfUseUri/example: Fail
-PartTwice/dart2jsCode: Fail
 PatchClassTypeVariablesMismatch/analyzerCode: Fail
 PatchClassTypeVariablesMismatch/example: Fail
 PatchDeclarationMismatch/analyzerCode: Fail
@@ -314,7 +297,6 @@ SdkSpecificationNotFound/analyzerCode: Fail
 SdkSpecificationNotFound/example: Fail
 SdkSummaryNotFound/analyzerCode: Fail
 SdkSummaryNotFound/example: Fail
-SetterNotFound/dart2jsCode: Fail
 SetterNotFound/example: Fail
 SetterNotSync/example: Fail
 SetterWithWrongNumberOfFormals/example: Fail
@@ -328,10 +310,8 @@ SuperAsExpression/example: Fail
 SuperAsIdentifier/example: Fail
 SuperNullAware/example: Fail
 SuperclassHasNoDefaultConstructor/example: Fail
-SuperclassHasNoGetter/dart2jsCode: Fail
 SuperclassHasNoGetter/example: Fail
 SuperclassHasNoMethod/example: Fail
-SuperclassHasNoSetter/dart2jsCode: Fail
 SuperclassHasNoSetter/example: Fail
 SuperclassMethodArgumentMismatch/analyzerCode: Fail
 SuperclassMethodArgumentMismatch/example: Fail

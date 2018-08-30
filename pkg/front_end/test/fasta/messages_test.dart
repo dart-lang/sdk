@@ -90,7 +90,6 @@ class MessageTestSuite extends ChainContext {
       String externalTest;
       bool frontendInternal = false;
       String analyzerCode;
-      String dart2jsCode;
       Severity severity;
       YamlNode badSeverity;
 
@@ -115,10 +114,6 @@ class MessageTestSuite extends ChainContext {
 
           case "analyzerCode":
             analyzerCode = value;
-            break;
-
-          case "dart2jsCode":
-            dart2jsCode = value;
             break;
 
           case "bytes":
@@ -259,17 +254,6 @@ class MessageTestSuite extends ChainContext {
                   " <BUILDDIR>/dart-sdk/bin/dartanalyzer --format=machine"
                   " on an example to find the code."
                   " The code is printed just before the file name."
-              : null);
-
-      yield createDescription(
-          "dart2jsCode",
-          null,
-          exampleAndAnalyzerCodeRequired &&
-                  !frontendInternal &&
-                  analyzerCode != null &&
-                  dart2jsCode == null
-              ? "No dart2js code for $name."
-                  " Try using *ignored* or *fatal*"
               : null);
     }
   }

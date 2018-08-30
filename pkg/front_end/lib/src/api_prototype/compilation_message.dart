@@ -34,8 +34,4 @@ abstract class CompilationMessage {
   /// The corresponding analyzer error code, or null if there is no
   /// corresponding message in analyzer.
   String get analyzerCode;
-
-  /// The corresponding dart2js error code, or null if there is no corresponding
-  /// message in dart2js.
-  String get dart2jsCode;
 }

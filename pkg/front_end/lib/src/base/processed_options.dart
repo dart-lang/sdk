@@ -689,8 +689,6 @@ class _CompilationMessage implements CompilationMessage {
 
   String get analyzerCode => _original.code.analyzerCode;
 
-  String get dart2jsCode => _original.code.dart2jsCode;
-
   SourceSpan get span {
     var uri = _original.uri;
     var offset = _original.charOffset;
