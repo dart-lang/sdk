@@ -1342,7 +1342,6 @@ const Code<Null> codeConstFactoryRedirectionToNonConst =
 const MessageCode messageConstFactoryRedirectionToNonConst = const MessageCode(
     "ConstFactoryRedirectionToNonConst",
     analyzerCode: "REDIRECT_TO_NON_CONST_CONSTRUCTOR",
-    dart2jsCode: "*fatal*",
     severity: Severity.error,
     message:
         r"""Constant factory constructor can't delegate to a non-constant constructor.""",

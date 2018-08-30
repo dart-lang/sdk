@@ -472,7 +472,6 @@ ConstFactoryRedirectionToNonConst:
   tip: "Try redirecting to a different constructor or marking the target constructor 'const'."
   severity: ERROR
   analyzerCode: REDIRECT_TO_NON_CONST_CONSTRUCTOR
-  dart2jsCode: "*fatal*"
   script:
     - >-
       class A {
