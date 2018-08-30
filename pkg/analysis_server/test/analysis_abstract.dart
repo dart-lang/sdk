@@ -73,12 +73,6 @@ class AbstractAnalysisTest extends Object with ResourceProviderMixin {
 
   AnalysisDriver get testDiver => server.getAnalysisDriver(testFile);
 
-  void addAnalysisOptionsFile(String content) {
-    String optionsFilePath =
-        resourceProvider.convertPath('/project/analysis_options.yaml');
-    newFile(optionsFilePath, content: content);
-  }
-
   void addAnalysisSubscription(AnalysisService service, String file) {
     // add file to subscription
     var files = analysisSubscriptions[service];
