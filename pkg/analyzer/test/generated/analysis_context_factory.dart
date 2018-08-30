@@ -44,9 +44,9 @@ class AnalysisContextFactory {
    * system.
    */
   static InternalAnalysisContext contextWithCore(
-      {ResourceProvider resourceProvider}) {
+      {UriResolver contributedResolver, ResourceProvider resourceProvider}) {
     AnalysisContextForTests context = new AnalysisContextForTests();
-    return initContextWithCore(context, null, resourceProvider);
+    return initContextWithCore(context, contributedResolver, resourceProvider);
   }
 
   /**
