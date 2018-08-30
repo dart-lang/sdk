@@ -115,26 +115,8 @@ Map<String, LinkedLibraryBuilder> link(
     GetDeclaredVariable getDeclaredVariable) {
   Map<String, LinkedLibraryBuilder> linkedLibraries =
       setupForLink(libraryUris, getUnit, getDeclaredVariable);
-  relink(linkedLibraries, getDependency, getUnit);
+  _relink(linkedLibraries, getDependency, getUnit);
   return linkedLibraries;
-}
-
-/**
- * Given [libraries] (a map from URI to [LinkedLibraryBuilder]
- * containing correct prelinked information), rebuild linked
- * information, using [getDependency] to fetch the [LinkedLibrary]
- * objects from other build units, and [getUnit] to fetch the
- * [UnlinkedUnit] objects from both this build unit and other build
- * units.
- *
- * The [strong] flag controls whether type inference is performed in strong
- * mode or spec mode.  Note that in spec mode, the only types that are inferred
- * are the types of initializing formals, which are inferred from the types of
- * the corresponding fields.
- */
-void relink(Map<String, LinkedLibraryBuilder> libraries,
-    GetDependencyCallback getDependency, GetUnitCallback getUnit) {
-  new Linker(libraries, getDependency, getUnit).link();
 }
 
 /**
@@ -273,6 +255,24 @@ DartType _dynamicIfNull(DartType type) {
     return DynamicTypeImpl.instance;
   }
   return type;
+}
+
+/**
+ * Given [libraries] (a map from URI to [LinkedLibraryBuilder]
+ * containing correct prelinked information), rebuild linked
+ * information, using [getDependency] to fetch the [LinkedLibrary]
+ * objects from other build units, and [getUnit] to fetch the
+ * [UnlinkedUnit] objects from both this build unit and other build
+ * units.
+ *
+ * The [strong] flag controls whether type inference is performed in strong
+ * mode or spec mode.  Note that in spec mode, the only types that are inferred
+ * are the types of initializing formals, which are inferred from the types of
+ * the corresponding fields.
+ */
+void _relink(Map<String, LinkedLibraryBuilder> libraries,
+    GetDependencyCallback getDependency, GetUnitCallback getUnit) {
+  new Linker(libraries, getDependency, getUnit).link();
 }
 
 /**
