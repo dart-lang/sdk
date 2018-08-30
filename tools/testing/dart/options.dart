@@ -113,18 +113,13 @@ flutter:          Run Dart code on the Flutter engine.
 dart_precompiled: Run a precompiled snapshot on the VM without a JIT.
 d8:               Run JavaScript from the command line using v8.
 jsshell:          Run JavaScript from the command line using Firefox js-shell.
-drt:              Run Dart or JavaScript in the headless version of Chrome,
-                  Content shell.
 
-ContentShellOnAndroid: Run Dart or JavaScript in content shell on Android.
-
-ff:
+firefox:
 chrome:
 safari:
 ie9:
 ie10:
 ie11:
-opera:
 chromeOnAndroid:  Run JavaScript in the specified browser.
 
 self_check:       Pass each test or its compiled output to every file under
@@ -238,7 +233,6 @@ compact, color, line, verbose, silent, status, buildbot, diff''',
     new _Option.bool('time', 'Print timing information after running tests.'),
     new _Option('dart', 'Path to dart executable.', hide: true),
     new _Option('flutter', 'Path to flutter executable.', hide: true),
-    new _Option('drt', 'Path to content shell executable.', hide: true),
     new _Option('firefox', 'Path to firefox browser executable.', hide: true),
     new _Option('chrome', 'Path to chrome browser executable.', hide: true),
     new _Option('safari', 'Path to safari browser executable.', hide: true),

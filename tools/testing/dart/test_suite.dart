@@ -1062,7 +1062,7 @@ class StandardTestSuite extends TestSuite {
     }
 
     // Construct the command(s) that compile all the inputs needed by the
-    // browser test. For running Dart in DRT, this will be noop commands.
+    // browser test.
     var commands = <Command>[];
 
     void addCompileCommand(String fileName, String toPath) {
@@ -1245,17 +1245,6 @@ class StandardTestSuite extends TestSuite {
         alwaysCompile: !useSdk);
   }
 
-  String get contentShellFilename {
-    if (configuration.drtPath != null) return configuration.drtPath;
-
-    if (Platform.operatingSystem == 'macos') {
-      final path = dartDir.append(
-          '/client/tests/drt/Content Shell.app/Contents/MacOS/Content Shell');
-      return path.toNativePath();
-    }
-    return dartDir.append('client/tests/drt/content_shell').toNativePath();
-  }
-
   List<String> commonArgumentsFromFile(
       Path filePath, Map<String, dynamic> optionsFromFile) {
     var args = configuration.standardOptions.toList();
@@ -1345,40 +1334,16 @@ class StandardTestSuite extends TestSuite {
    *
    *     // OtherScripts=file1.dart file2.dart
    *
-   *   - You can indicate whether a test is treated as a web-only test by
-   *   using an explicit import to a part of the dart:html library:
+   *   - Most tests are not web tests, but can (and will be) wrapped within
+   *   an HTML file and another script file to test them also on browser
+   *   environments (e.g. language and corelib tests are run this way).
+   *   We deduce that if a file with the same name as the test, but ending in
+   *   .html instead of .dart exists, the test was intended to be a web test
+   *   and no wrapping is necessary.
    *
-   *     import 'dart:html';
-   *     import 'dart:web_audio';
-   *     import 'dart:indexed_db';
-   *     import 'dart:svg';
-   *     import 'dart:web_sql';
-   *
-   *   Most tests are not web tests, but can (and will be) wrapped within
-   *   another script file to test them also on browser environments (e.g.
-   *   language and corelib tests are run this way). We deduce that if this
-   *   import is specified, the test was intended to be a web test and no
-   *   wrapping is necessary.
-   *
-   *   - You can convert DRT web-tests into layout-web-tests by specifying a
-   *   test expectation file. An expectation file is located in the same
-   *   location as the test, it has the same file name, except for the extension
-   *   (which can be either .txt or .png).
-   *
-   *   When there are no expectation files, 'test.dart' assumes tests fail if
-   *   the process return a non-zero exit code (in the case of web tests, we
+   *   - 'test.dart' assumes tests fail if
+   *   the process returns a non-zero exit code (in the case of web tests, we
    *   check for PASS/FAIL indications in the test output).
-   *
-   *   When there is an expectation file, tests are run differently: the test
-   *   code is run to the end of the event loop and 'test.dart' takes a snapshot
-   *   of what is rendered in the page at that moment. This snapshot is
-   *   represented either in text form, if the expectation ends in .txt, or as
-   *   an image, if the expectation ends in .png. 'test.dart' will compare the
-   *   snapshot to the expectation file. When tests fail, 'test.dart' saves the
-   *   new snapshot into a file so it can be visualized or copied over.
-   *   Expectations can be recorded for the first time by creating an empty file
-   *   with the right name (touch test_name_test.png), running the test, and
-   *   executing the copy command printed by the test script.
    *
    * This method is static as the map is cached and shared amongst
    * configurations, so it may not use [configuration].
@@ -1643,7 +1608,7 @@ class StandardTestSuite extends TestSuite {
   }
 }
 
-/// Used for testing packages in on off settings, i.e., we pass in the actual
+/// Used for testing packages in one-off settings, i.e., we pass in the actual
 /// directory that we want to test.
 class PKGTestSuite extends StandardTestSuite {
   PKGTestSuite(TestConfiguration configuration, Path directoryPath)

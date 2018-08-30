@@ -16,16 +16,6 @@ import 'utils.dart';
 
 /// A command executed as a step in a test case.
 class Command {
-  static Command contentShell(
-      String executable,
-      String htmlFile,
-      List<String> options,
-      List<String> dartFlags,
-      Map<String, String> environment) {
-    return new ContentShellCommand._(
-        executable, htmlFile, options, dartFlags, environment);
-  }
-
   static Command browserTest(String url, TestConfiguration configuration,
       {bool retry}) {
     return new BrowserTestCommand._(url, configuration, retry);
@@ -401,46 +391,6 @@ class AddFlagsKey {
   bool operator ==(Object other) =>
       other is AddFlagsKey && flags == other.flags && env == other.env;
   int get hashCode => flags.hashCode ^ env.hashCode;
-}
-
-class ContentShellCommand extends ProcessCommand {
-  ContentShellCommand._(
-      String executable,
-      String htmlFile,
-      List<String> options,
-      List<String> dartFlags,
-      Map<String, String> environmentOverrides)
-      : super._("content_shell", executable, _getArguments(options, htmlFile),
-            _getEnvironment(environmentOverrides, dartFlags));
-
-  // Cache the modified environments in a map from the old environment and
-  // the string of Dart flags to the new environment.  Avoid creating new
-  // environment object for each command object.
-  static Map<AddFlagsKey, Map<String, String>> environments = {};
-
-  static Map<String, String> _getEnvironment(
-      Map<String, String> env, List<String> dartFlags) {
-    var needDartFlags = dartFlags != null && dartFlags.isNotEmpty;
-    if (needDartFlags) {
-      if (env == null) {
-        env = const <String, String>{};
-      }
-      var flags = dartFlags.join(' ');
-      return environments.putIfAbsent(
-          new AddFlagsKey(flags, env),
-          () => new Map<String, String>.from(env)
-            ..addAll({'DART_FLAGS': flags, 'DART_FORWARDING_PRINT': '1'}));
-    }
-    return env;
-  }
-
-  static List<String> _getArguments(List<String> options, String htmlFile) {
-    var arguments = options.toList();
-    arguments.add(htmlFile);
-    return arguments;
-  }
-
-  int get maxNumRetries => 3;
 }
 
 class BrowserTestCommand extends Command {

@@ -403,20 +403,6 @@ hooks = [
     ],
   },
   {
-    "name": "drt_resources",
-    "pattern": ".",
-    "action": [
-      "download_from_google_storage",
-      "--no_auth",
-      "--no_resume",
-      "--bucket",
-      "dart-dependencies",
-      "--platform=win32",
-      "--directory",
-      Var('dart_root') + "/third_party/drt_resources",
-    ],
-  },
-  {
     "name": "7zip",
     "pattern": ".",
     "action": [
