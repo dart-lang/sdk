@@ -222,6 +222,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       for (LibraryBuilder library in reusedLibraries) {
         userCode.loader.builders[library.uri] = library;
+        if (entryPoint == library.uri) {
+          userCode.loader.first = library;
+        }
         if (library.uri.scheme == "dart" && library.uri.path == "core") {
           userCode.loader.coreLibrary = library;
         }
