@@ -2468,7 +2468,8 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
                  ((rhs >= result_bits) && is_truncating())) {
         return CreateConstantResult(flow_graph, Integer::Handle(Smi::New(0)));
       } else if ((rhs < 0) || ((rhs >= result_bits) && !is_truncating())) {
-        // Instruction will always throw on negative rhs operand.
+        // Instruction will always throw on negative rhs operand or
+        // deoptimize on large rhs operand.
         if (!CanDeoptimize()) {
           // For non-speculative operations (no deopt), let
           // the code generator deal with throw on slowpath.
