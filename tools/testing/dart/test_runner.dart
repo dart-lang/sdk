@@ -1320,13 +1320,7 @@ class CommandExecutorImpl implements CommandExecutor {
       completer.complete(new BrowserCommandOutput(browserCommand, output));
     };
 
-    BrowserTest browserTest;
-    if (browserCommand is BrowserHtmlTestCommand) {
-      browserTest = new HtmlTest(browserCommand.url, callback, timeout,
-          browserCommand.expectedMessages);
-    } else {
-      browserTest = new BrowserTest(browserCommand.url, callback, timeout);
-    }
+    var browserTest = new BrowserTest(browserCommand.url, callback, timeout);
     _getBrowserTestRunner(browserCommand.configuration).then((testRunner) {
       testRunner.enqueueTest(browserTest);
     });

@@ -736,25 +736,7 @@ class BrowserTest {
     id = _idCounter++;
   }
 
-  String toJSON() => jsonEncode({'url': url, 'id': id, 'isHtmlTest': false});
-}
-
-/**
- * Describes a test with a custom HTML page to be run in the browser.
- */
-class HtmlTest extends BrowserTest {
-  List<String> expectedMessages;
-
-  HtmlTest(String url, BrowserDoneCallback doneCallback, int timeout,
-      this.expectedMessages)
-      : super(url, doneCallback, timeout) {}
-
-  String toJSON() => jsonEncode({
-        'url': url,
-        'id': id,
-        'isHtmlTest': true,
-        'expectedMessages': expectedMessages
-      });
+  String toJSON() => jsonEncode({'url': url, 'id': id});
 }
 
 /* Describes the output of running the test in a browser */
@@ -1424,9 +1406,6 @@ body div {
       var use_iframe = ${configuration.runtime.requiresIFrame};
       var start = new Date();
 
-      // Object that holds the state of an HTML test
-      var html_test;
-
       function newTaskHandler() {
         if (this.readyState == this.DONE) {
           if (this.status == 200) {
@@ -1439,20 +1418,6 @@ body div {
               var nextTask = JSON.parse(this.responseText);
               var url = nextTask.url;
               next_id = nextTask.id;
-              if (nextTask.isHtmlTest) {
-                html_test = {
-                  expected_messages: nextTask.expectedMessages,
-                  found_message_count: 0,
-                  double_received_messages: [],
-                  unexpected_messages: [],
-                  found_messages: {}
-                };
-                for (var i = 0; i < html_test.expected_messages.length; ++i) {
-                  html_test.found_messages[html_test.expected_messages[i]] = 0;
-                }
-              } else {
-                html_test = null;
-              }
               run(url);
             }
           } else {
@@ -1497,37 +1462,12 @@ body div {
         return true;
       }
 
-      function setChildHandlers(e) {
-        embedded_iframe.contentWindow.addEventListener('message',
-                                                       childMessageHandler,
-                                                       false);
-        embedded_iframe.contentWindow.onerror = childError;
-        reportMessage("First message from html test", true, false);
-        html_test.handlers_installed = true;
-        sendRepeatingStatusUpdate();
-      }
-
-      function checkChildHandlersInstalled() {
-        if (!html_test.handlers_installed) {
-          reportMessage("First message from html test", true, false);
-          reportMessage(
-              'FAIL: Html test did not call ' +
-              'window.parent.dispatchEvent(new Event("detect_errors")) ' +
-              'as its first action', false, false);
-        }
-      }
-
       function run(url) {
         number_of_tests++;
         number_div.innerHTML = number_of_tests;
         executing_div.innerHTML = url;
         if (use_iframe) {
-          if (html_test) {
-            window.addEventListener('detect_errors', setChildHandlers, false);
-            embedded_iframe.onload = checkChildHandlersInstalled;
-          } else {
-            embedded_iframe.onload = null;
-          }
+          embedded_iframe.onload = null;
           embedded_iframe_div.removeChild(embedded_iframe);
           embedded_iframe = document.createElement('iframe');
           embedded_iframe.id = "embedded_iframe";
@@ -1659,13 +1599,6 @@ body div {
         var dom =
             embedded_iframe.contentWindow.document.documentElement.innerHTML;
         var message = 'Status:\\n';
-        if (html_test != null) {
-          message +=
-            '  Messages received multiple times:\\n' +
-            '    ' + html_test.double_received_messages + '\\n' +
-            '  Unexpected messages:\\n' +
-            '    ' + html_test.unexpected_messages + '\\n';
-        }
         message += '  DOM:\\n' +
                    '    ' + dom;
         reportMessage(message, false, true);
@@ -1676,35 +1609,8 @@ body div {
         setTimeout(sendRepeatingStatusUpdate, STATUS_UPDATE_INTERVAL);
       }
 
-      // HTML tests post messages to their own window, handled by this handler.
-      // This handler is installed on the child window when it sends the
-      // 'detect_errors' event.  Every HTML test must send 'detect_errors' to
-      // its parent window as its first action, so all errors will be caught.
-      function childMessageHandler(e) {
-        var msg = e.data;
-        if (typeof msg != 'string') return;
-        if (msg in html_test.found_messages) {
-          html_test.found_messages[msg]++;
-          if (html_test.found_messages[msg] == 1) {
-            html_test.found_message_count++;
-          } else {
-            html_test.double_received_messages.push(msg);
-            sendStatusUpdate();
-          }
-        } else {
-          html_test.unexpected_messages.push(msg);
-          sendStatusUpdate();
-        }
-        if (html_test.found_message_count ==
-            html_test.expected_messages.length) {
-          reportMessage('Test done: PASS', false, false);
-        }
-      }
-
-      if (!html_test) {
-        window.addEventListener('message', messageHandler, false);
-        waitForDone = false;
-      }
+      window.addEventListener('message', messageHandler, false);
+      waitForDone = false;
       getNextTask();
     }
   </script>

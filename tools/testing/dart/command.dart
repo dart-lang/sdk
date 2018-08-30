@@ -21,13 +21,6 @@ class Command {
     return new BrowserTestCommand._(url, configuration, retry);
   }
 
-  static Command browserHtmlTest(String url, TestConfiguration configuration,
-      List<String> expectedMessages,
-      {bool retry}) {
-    return new BrowserHtmlTestCommand._(
-        url, configuration, expectedMessages, retry);
-  }
-
   static Command compilation(
       String displayName,
       String outputFile,
@@ -428,22 +421,6 @@ class BrowserTestCommand extends Command {
   }
 
   int get maxNumRetries => 4;
-}
-
-class BrowserHtmlTestCommand extends BrowserTestCommand {
-  List<String> expectedMessages;
-  BrowserHtmlTestCommand._(String url, TestConfiguration configuration,
-      this.expectedMessages, bool retry)
-      : super._(url, configuration, retry);
-
-  void _buildHashCode(HashCodeBuilder builder) {
-    super._buildHashCode(builder);
-    builder.addJson(expectedMessages);
-  }
-
-  bool _equal(BrowserHtmlTestCommand other) =>
-      super._equal(other) &&
-      identical(expectedMessages, other.expectedMessages);
 }
 
 class AnalysisCommand extends ProcessCommand {

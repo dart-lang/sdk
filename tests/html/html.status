@@ -32,7 +32,6 @@ custom/document_register_type_extensions_test/registration: Pass, Timeout # Roll
 custom/entered_left_view_test/shadow_dom: Pass, Timeout # Roll 50 failure
 custom/mirrors_2_test: RuntimeError
 custom/mirrors_test: RuntimeError
-deferred_multi_app_htmltest: CompileTimeError
 fileapi_test/directoryReader: Pass, Timeout # Roll 50 failure
 fileapi_test/entry: Pass, Timeout # Roll 50 failure
 fileapi_test/entry: RuntimeError
@@ -72,7 +71,6 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE does no
 crypto_test/supported: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
 css_test/supportsPointConversions: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
 custom/document_register_type_extensions_test/single-parameter: Fail # Issue 13193.
-deferred_multi_app_htmltest: Skip # Times out on IE.  Issue 21537
 element_animate_test: Fail # Element.animate not supported on these browsers.
 element_test/click: Fail # IE does not support firing this event.
 element_types_test/supported_content: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
@@ -100,12 +98,10 @@ media_stream_test/supported_MediaStreamTrackEvent: Fail # IE11 Feature support s
 media_stream_test/supported_media: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
 mediasource_test/functional: Pass, Fail # Fails on Windows 8
 mediasource_test/supported: Pass, Fail # Should pass on Windows 8
-no_linked_scripts_htmltest: Skip # Times out on IE.  Issue 21537
 notification_test/supported_notification: Fail # Notification not supported on IE
 postmessage_structured_test/more_primitives: Fail # Does not support the MessageEvent constructor.
 request_animation_frame_test: Skip # Times out. Issue 22167
 rtc_test/supported: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
-scripts_htmltest: Skip # Times out on IE.  Issue 21537
 serialized_script_value_test: Fail
 shadow_dom_test/supported: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
 speechrecognition_test/supported: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
@@ -120,7 +116,6 @@ text_event_test: RuntimeError # Issue 23437
 touchevent_test/supported: Fail # IE does not support TouchEvents
 transferables_test: Pass, Fail # Issues 20659.
 transition_event_test/functional: Skip # Times out. Issue 22167
-two_scripts_htmltest: Skip # Times out on IE.  Issue 21537
 webgl_1_test/functional: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
 websocket_test/websocket: Fail # Issue 7875. Closed with "working as intended".
 websql_test: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
@@ -520,10 +515,6 @@ request_animation_frame_test: Skip # Times out. Issue 22167
 transition_event_test/functional: Skip # Times out. Issue 22167
 
 [ $runtime == chrome && $csp ]
-deferred_multi_app_htmltest: SkipByDesign # uses inline script
-no_linked_scripts_htmltest: SkipByDesign # uses inline script
-scripts_htmltest: SkipByDesign # uses inline script
-two_scripts_htmltest: SkipByDesign # uses inline script
 worker_test/functional: SkipByDesign # starts worker with inline script
 
 [ $runtime == chrome || $runtime == chromeOnAndroid ]

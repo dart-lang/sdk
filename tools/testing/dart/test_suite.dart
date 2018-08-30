@@ -22,7 +22,6 @@ import 'command.dart';
 import 'compiler_configuration.dart';
 import 'configuration.dart';
 import 'expectation_set.dart';
-import 'html_test.dart' as html_test;
 import 'http_server.dart';
 import 'multitest.dart';
 import 'path.dart';
@@ -533,23 +532,6 @@ class TestInformation {
   }
 }
 
-class HtmlTestInformation extends TestInformation {
-  List<String> expectedMessages;
-  List<String> scripts;
-
-  HtmlTestInformation(Path filePath, this.expectedMessages, this.scripts)
-      : super(
-            filePath,
-            filePath,
-            {'isMultitest': false, 'isMultiHtmlTest': false},
-            false,
-            false,
-            false,
-            false,
-            false,
-            false) {}
-}
-
 /**
  * A standard [TestSuite] implementation that searches for tests in a
  * directory, and creates [TestCase]s that compile and/or run them.
@@ -648,8 +630,6 @@ class StandardTestSuite extends TestSuite {
     return filename.endsWith("Test.dart");
   }
 
-  bool isHtmlTestFile(String filename) => filename.endsWith('_htmltest.html');
-
   List<String> additionalOptions(Path filePath) => [];
 
   Future forEachTest(
@@ -730,17 +710,6 @@ class StandardTestSuite extends TestSuite {
     }
     if (!match) return;
 
-    if (isHtmlTestFile(filename)) {
-      var info = html_test.getInformation(filename);
-      if (info == null) {
-        DebugLogger.error(
-            "HtmlTest $filename does not contain required annotations");
-        return;
-      }
-      cachedTests.add(info);
-      enqueueTestCaseFromTestInformation(info);
-      return;
-    }
     if (!isTestFile(filename)) return;
     Path filePath = new Path(filename);
 
@@ -764,11 +733,6 @@ class StandardTestSuite extends TestSuite {
         multitestName: info.optionsFromFile['isMultitest'] as bool
             ? info.multitestKey
             : "");
-    if (info is HtmlTestInformation) {
-      _enqueueHtmlTest(info, testName);
-      return;
-    }
-
     var optionsFromFile = info.optionsFromFile;
 
     // If this test is inside a package, we will check if there is a
@@ -1128,84 +1092,6 @@ class StandardTestSuite extends TestSuite {
     var fullName = testName;
     if (subtestName != null) fullName += "/$subtestName";
     enqueueNewTestCase(fullName, commands, expectations, info);
-  }
-
-  void _enqueueHtmlTest(HtmlTestInformation info, String testName) {
-    var compiler = configuration.compiler;
-    var runtime = configuration.runtime;
-
-    if (compiler == Compiler.dartdevc || compiler == Compiler.dartdevk) {
-      // TODO(rnystrom): Support this for dartdevc (#29919).
-      print("Ignoring $testName on ${compiler.name} since HTML tests are not "
-          "implemented for that compiler yet.");
-      return;
-    }
-
-    // HTML tests work only with the browser controller.
-    if (!runtime.isBrowser) return;
-
-    var compileToJS = compiler == Compiler.dart2js;
-
-    var filePath = info.filePath;
-    var tempDir = createOutputDirectory(filePath);
-    var tempUri = new Uri.file('$tempDir/');
-    var contents = html_test.getContents(info, compileToJS);
-    var commands = <Command>[];
-
-    void fail(String message) {
-      var msg = "$message: ${info.filePath}";
-      DebugLogger.warning(msg);
-      contents = html_test.makeFailingHtmlFile(msg);
-    }
-
-    if (info.scripts.length > 0) {
-      var testUri = new Uri.file(filePath.toNativePath());
-      for (var scriptPath in info.scripts) {
-        if (!scriptPath.endsWith('.dart') && !scriptPath.endsWith('.js')) {
-          fail('HTML test scripts must be dart or javascript: $scriptPath');
-          break;
-        }
-
-        var uri = Uri.parse(scriptPath);
-        if (uri.isAbsolute) {
-          fail('HTML test scripts must have relative paths: $scriptPath');
-          break;
-        }
-
-        if (uri.pathSegments.length > 1) {
-          fail('HTML test scripts must be in test directory: $scriptPath');
-          break;
-        }
-
-        var script = testUri.resolveUri(uri);
-        var copiedScript = tempUri.resolveUri(uri);
-        if (compiler == Compiler.none || scriptPath.endsWith('.js')) {
-          new File.fromUri(copiedScript)
-              .writeAsStringSync(new File.fromUri(script).readAsStringSync());
-        } else {
-          var destination = copiedScript.toFilePath();
-          if (compileToJS) {
-            destination = destination.replaceFirst(dartExtension, '.js');
-          }
-
-          assert(compiler == Compiler.dart2js);
-
-          commands.add(_dart2jsCompileCommand(
-              script.toFilePath(), destination, tempDir, info.optionsFromFile));
-        }
-      }
-    }
-
-    var htmlFile = tempUri.resolve(filePath.filename);
-    new File.fromUri(htmlFile).writeAsStringSync(contents);
-
-    var htmlPath = _createUrlPathFromFile(new Path(htmlFile.toFilePath()));
-    var fullHtmlPath = _uriForBrowserTest(htmlPath);
-    commands.add(Command.browserHtmlTest(
-        fullHtmlPath, configuration, info.expectedMessages,
-        retry: !isNegative(info)));
-    enqueueNewTestCase(
-        testName, commands, testExpectations.expectations(testName), info);
   }
 
   /// Creates a [Command] to compile a single .dart file using dart2js.
