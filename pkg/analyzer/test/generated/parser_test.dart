@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -736,177 +735,6 @@ Function(int, String) v;
     expect(method.returnType, isNotNull);
   }
 
-  void test_parseClassMember_method_generic_comment_noReturnType() {
-    enableGenericMethodComments = true;
-    createParser('m/*<T>*/() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes([HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    expect(member, new TypeMatcher<MethodDeclaration>());
-    MethodDeclaration method = member;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNotNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
-  }
-
-  void test_parseClassMember_method_generic_comment_parameterType() {
-    enableGenericMethodComments = true;
-    createParser('m/*<T>*/(dynamic /*=T*/ p) => null;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes(
-          [HintCode.GENERIC_METHOD_COMMENT, HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    expect(member, new TypeMatcher<MethodDeclaration>());
-    MethodDeclaration method = member;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNotNull);
-
-    FormalParameterList parameters = method.parameters;
-    expect(parameters, isNotNull);
-    expect(parameters.parameters, hasLength(1));
-    var parameter = parameters.parameters[0] as SimpleFormalParameter;
-    var parameterType = parameter.type as TypeName;
-    expect(parameterType.name.name, 'T');
-
-    expect(method.body, isNotNull);
-  }
-
-  void test_parseClassMember_method_generic_comment_returnType() {
-    enableGenericMethodComments = true;
-    createParser('/*=T*/ m/*<T>*/() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes(
-          [HintCode.GENERIC_METHOD_COMMENT, HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    expect(member, new TypeMatcher<MethodDeclaration>());
-    MethodDeclaration method = member;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
-    expect((method.returnType as TypeName).name.name, 'T');
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNotNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
-  }
-
-  void test_parseClassMember_method_generic_comment_returnType_bound() {
-    enableGenericMethodComments = true;
-    createParser('num/*=T*/ m/*<T extends num>*/() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes(
-          [HintCode.GENERIC_METHOD_COMMENT, HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    expect(member, new TypeMatcher<MethodDeclaration>());
-    MethodDeclaration method = member;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect((method.returnType as TypeName).name.name, 'T');
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNotNull);
-    TypeParameter tp = method.typeParameters.typeParameters[0];
-    expect(tp.name.name, 'T');
-    expect(tp.extendsKeyword, isNotNull);
-    expect((tp.bound as TypeName).name.name, 'num');
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
-  }
-
-  void test_parseClassMember_method_generic_comment_returnType_complex() {
-    enableGenericMethodComments = true;
-    createParser('dynamic /*=Map<int, T>*/ m/*<T>*/() => null;');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes(
-          [HintCode.GENERIC_METHOD_COMMENT, HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    expect(member, new TypeMatcher<MethodDeclaration>());
-    MethodDeclaration method = member;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-
-    {
-      var returnType = method.returnType as TypeName;
-      expect(returnType, isNotNull);
-      expect(returnType.name.name, 'Map');
-
-      List<TypeAnnotation> typeArguments = returnType.typeArguments.arguments;
-      expect(typeArguments, hasLength(2));
-      expect((typeArguments[0] as TypeName).name.name, 'int');
-      expect((typeArguments[1] as TypeName).name.name, 'T');
-    }
-
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNotNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
-  }
-
-  void test_parseClassMember_method_generic_comment_void() {
-    enableGenericMethodComments = true;
-    createParser('void m/*<T>*/() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes([HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    expect(member, new TypeMatcher<MethodDeclaration>());
-    MethodDeclaration method = member;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNotNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
-  }
-
   void test_parseClassMember_method_generic_noReturnType() {
     createParser('m<T>() {}');
     ClassMember member = parser.parseClassMember('C');
@@ -1365,32 +1193,6 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.name, isNotNull);
     expect(method.operatorKeyword, isNull);
     expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
-  }
-
-  void test_parseClassMember_method_static_generic_comment_returnType() {
-    enableGenericMethodComments = true;
-    createParser('static /*=T*/ m/*<T>*/() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expect(member, isNotNull);
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes(
-          [HintCode.GENERIC_METHOD_COMMENT, HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    expect(member, new TypeMatcher<MethodDeclaration>());
-    MethodDeclaration method = member;
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNotNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
-    expect((method.returnType as TypeName).name.name, 'T');
-    expect(method.name, isNotNull);
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNotNull);
     expect(method.parameters, isNotNull);
     expect(method.body, isNotNull);
   }
@@ -1992,19 +1794,6 @@ abstract class ComplexParserTestMixin implements AbstractParserTestCase {
     ArgumentList argumentList4 = invocation4.argumentList;
     expect(argumentList4, isNotNull);
     expect(argumentList4.arguments, hasLength(1));
-  }
-
-  void test_assignableExpression_arguments_normal_chain_typeArgumentComments() {
-    enableGenericMethodComments = true;
-    _validate_assignableExpression_arguments_normal_chain_typeArguments(
-        "a/*<E>*/(b)/*<F>*/(c).d/*<G>*/(e).f",
-        usingFastaParser
-            ? []
-            : [
-                HintCode.GENERIC_METHOD_COMMENT,
-                HintCode.GENERIC_METHOD_COMMENT,
-                HintCode.GENERIC_METHOD_COMMENT
-              ]);
   }
 
   void test_assignableExpression_arguments_normal_chain_typeArguments() {
@@ -4372,37 +4161,6 @@ class Wrong<T> {
               ]);
   }
 
-  void test_method_invalidTypeParameterComments() {
-    enableGenericMethodComments = true;
-    createParser('void m/*<E, hello!>*/() {}');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    // TODO(brianwilkerson) Seems like this ought to be expecting a single
-    // extraneous token error (for the bang).
-    if (usingFastaParser) {
-      listener.assertErrors([
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 0) /*>*/,
-        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 0, 0),
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 0) /*(*/,
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 0) /*)*/,
-        expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 0, 0)
-      ]);
-    } else {
-      listener.assertErrorsWithCodes([
-        ParserErrorCode.EXPECTED_TOKEN /*>*/,
-        ParserErrorCode.MISSING_IDENTIFIER,
-        ParserErrorCode.EXPECTED_TOKEN /*(*/,
-        ParserErrorCode.EXPECTED_TOKEN /*)*/,
-        ParserErrorCode.MISSING_FUNCTION_BODY,
-        HintCode.GENERIC_METHOD_COMMENT
-      ]);
-    }
-    expect(member, new TypeMatcher<MethodDeclaration>());
-    MethodDeclaration method = member;
-    expect(method.typeParameters.toString(), '<E, hello>',
-        reason: 'parser recovers what it can');
-  }
-
   void test_method_invalidTypeParameterExtends() {
     // Regression test for https://github.com/dart-lang/sdk/issues/25739.
 
@@ -4423,45 +4181,6 @@ class Wrong<T> {
     MethodDeclaration method = member;
     expect(
         method.parameters.toString(), usingFastaParser ? '(E)' : '(E, extends)',
-        reason: 'parser recovers what it can');
-  }
-
-  void test_method_invalidTypeParameterExtendsComment() {
-    // Regression test for https://github.com/dart-lang/sdk/issues/25739.
-
-    // TODO(jmesserly): ideally we'd be better at parser recovery here.
-    // Also, this behavior is slightly different from how we would parse a
-    // normal generic method, because we "discover" the comment at a different
-    // point in the parser. This has a slight effect on the AST that results
-    // from error recovery.
-    enableGenericMethodComments = true;
-    createParser('f/*<E>*/(dynamic/*=E extends num*/p);');
-    ClassMember member = parser.parseClassMember('C');
-    expectNotNullIfNoErrors(member);
-    if (usingFastaParser) {
-      listener.assertErrors([
-        expectedError(
-            ParserErrorCode.MISSING_IDENTIFIER, 0, 0), // `extends` is a keyword
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 0), // comma
-        expectedError(
-            ParserErrorCode.MISSING_IDENTIFIER, 0, 0), // `extends` is a keyword
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 0), // close paren
-        expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 0, 0)
-      ]);
-    } else {
-      listener.assertErrorsWithCodes([
-        ParserErrorCode.MISSING_IDENTIFIER, // `extends` is a keyword
-        ParserErrorCode.EXPECTED_TOKEN, // comma
-        ParserErrorCode.MISSING_IDENTIFIER, // `extends` is a keyword
-        ParserErrorCode.EXPECTED_TOKEN, // close paren
-        ParserErrorCode.MISSING_FUNCTION_BODY,
-        HintCode.GENERIC_METHOD_COMMENT,
-        HintCode.GENERIC_METHOD_COMMENT
-      ]);
-    }
-    expect(member, new TypeMatcher<MethodDeclaration>());
-    MethodDeclaration method = member;
-    expect(method.parameters.toString(), '(E extends, extends)',
         reason: 'parser recovers what it can');
   }
 
@@ -6043,28 +5762,6 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(propertyAccess.propertyName, isNotNull);
   }
 
-  void
-      test_parseAssignableExpression_expression_args_dot_typeArgumentComments() {
-    enableGenericMethodComments = true;
-    Expression expression = parseAssignableExpression('(x)/*<F>*/(y).z', false);
-    expect(expression, isNotNull);
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes([HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    var propertyAccess = expression as PropertyAccess;
-    FunctionExpressionInvocation invocation =
-        propertyAccess.target as FunctionExpressionInvocation;
-    expect(invocation.function, isNotNull);
-    expect(invocation.typeArguments, isNotNull);
-    ArgumentList argumentList = invocation.argumentList;
-    expect(argumentList, isNotNull);
-    expect(argumentList.arguments, hasLength(1));
-    expect(propertyAccess.operator, isNotNull);
-    expect(propertyAccess.propertyName, isNotNull);
-  }
-
   void test_parseAssignableExpression_expression_args_dot_typeArguments() {
     Expression expression = parseAssignableExpression('(x)<F>(y).z', false);
     expect(expression, isNotNull);
@@ -6128,27 +5825,6 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     MethodInvocation invocation = propertyAccess.target as MethodInvocation;
     expect(invocation.methodName.name, "x");
     expect(invocation.typeArguments, isNull);
-    ArgumentList argumentList = invocation.argumentList;
-    expect(argumentList, isNotNull);
-    expect(argumentList.arguments, hasLength(1));
-    expect(propertyAccess.operator, isNotNull);
-    expect(propertyAccess.propertyName, isNotNull);
-  }
-
-  void
-      test_parseAssignableExpression_identifier_args_dot_typeArgumentComments() {
-    enableGenericMethodComments = true;
-    Expression expression = parseAssignableExpression('x/*<E>*/(y).z', false);
-    expect(expression, isNotNull);
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes([HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    var propertyAccess = expression as PropertyAccess;
-    MethodInvocation invocation = propertyAccess.target as MethodInvocation;
-    expect(invocation.methodName.name, "x");
-    expect(invocation.typeArguments, isNotNull);
     ArgumentList argumentList = invocation.argumentList;
     expect(argumentList, isNotNull);
     expect(argumentList.arguments, hasLength(1));
@@ -6356,21 +6032,6 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(section.argumentList, isNotNull);
   }
 
-  void test_parseCascadeSection_ia_typeArgumentComments() {
-    enableGenericMethodComments = true;
-    Expression expression = parseCascadeSection('..[i]/*<E>*/(b)');
-    expect(expression, isNotNull);
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes([HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    var section = expression as FunctionExpressionInvocation;
-    expect(section.function, new TypeMatcher<IndexExpression>());
-    expect(section.typeArguments, isNotNull);
-    expect(section.argumentList, isNotNull);
-  }
-
   void test_parseCascadeSection_ia_typeArguments() {
     Expression expression = parseCascadeSection('..[i]<E>(b)');
     expect(expression, isNotNull);
@@ -6390,25 +6051,6 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(section.operator, isNotNull);
     expect(section.methodName, isNotNull);
     expect(section.typeArguments, isNull);
-    expect(section.argumentList, isNotNull);
-    expect(section.argumentList.arguments, hasLength(1));
-  }
-
-  void test_parseCascadeSection_ii_typeArgumentComments() {
-    enableGenericMethodComments = true;
-    Expression expression = parseCascadeSection('..a/*<E>*/(b).c/*<F>*/(d)');
-    expect(expression, isNotNull);
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes(
-          [HintCode.GENERIC_METHOD_COMMENT, HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    var section = expression as MethodInvocation;
-    expect(section.target, new TypeMatcher<MethodInvocation>());
-    expect(section.operator, isNotNull);
-    expect(section.methodName, isNotNull);
-    expect(section.typeArguments, isNotNull);
     expect(section.argumentList, isNotNull);
     expect(section.argumentList.arguments, hasLength(1));
   }
@@ -6459,19 +6101,6 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
         (obj) => obj is IntegerLiteral, IntegerLiteral, rhs);
   }
 
-  void test_parseCascadeSection_p_assign_withCascade_typeArgumentComments() {
-    enableGenericMethodComments = true;
-    Expression expression = parseCascadeSection('..a = 3..m/*<E>*/()');
-    expect(expression, isNotNull);
-    assertNoErrors();
-    var section = expression as AssignmentExpression;
-    expect(section.leftHandSide, isNotNull);
-    expect(section.operator, isNotNull);
-    Expression rhs = section.rightHandSide;
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is IntegerLiteral, IntegerLiteral, rhs);
-  }
-
   void test_parseCascadeSection_p_assign_withCascade_typeArguments() {
     Expression expression = parseCascadeSection('..a = 3..m<E>()');
     expect(expression, isNotNull);
@@ -6507,24 +6136,6 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(section.argumentList.arguments, hasLength(1));
   }
 
-  void test_parseCascadeSection_pa_typeArgumentComments() {
-    enableGenericMethodComments = true;
-    Expression expression = parseCascadeSection('..a/*<E>*/(b)');
-    expect(expression, isNotNull);
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes([HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    var section = expression as MethodInvocation;
-    expect(section.target, isNull);
-    expect(section.operator, isNotNull);
-    expect(section.methodName, isNotNull);
-    expect(section.typeArguments, isNotNull);
-    expect(section.argumentList, isNotNull);
-    expect(section.argumentList.arguments, hasLength(1));
-  }
-
   void test_parseCascadeSection_pa_typeArguments() {
     Expression expression = parseCascadeSection('..a<E>(b)');
     expect(expression, isNotNull);
@@ -6545,23 +6156,6 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     var section = expression as FunctionExpressionInvocation;
     expect(section.function, new TypeMatcher<MethodInvocation>());
     expect(section.typeArguments, isNull);
-    expect(section.argumentList, isNotNull);
-    expect(section.argumentList.arguments, hasLength(1));
-  }
-
-  void test_parseCascadeSection_paa_typeArgumentComments() {
-    enableGenericMethodComments = true;
-    Expression expression = parseCascadeSection('..a/*<E>*/(b)/*<F>*/(c)');
-    expect(expression, isNotNull);
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes(
-          [HintCode.GENERIC_METHOD_COMMENT, HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    var section = expression as FunctionExpressionInvocation;
-    expect(section.function, new TypeMatcher<MethodInvocation>());
-    expect(section.typeArguments, isNotNull);
     expect(section.argumentList, isNotNull);
     expect(section.argumentList.arguments, hasLength(1));
   }
@@ -6588,28 +6182,6 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(section.argumentList.arguments, hasLength(1));
   }
 
-  void test_parseCascadeSection_paapaa_typeArgumentComments() {
-    enableGenericMethodComments = true;
-    Expression expression =
-        parseCascadeSection('..a/*<E>*/(b)/*<F>*/(c).d/*<G>*/(e)/*<H>*/(f)');
-    expect(expression, isNotNull);
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes([
-        HintCode.GENERIC_METHOD_COMMENT,
-        HintCode.GENERIC_METHOD_COMMENT,
-        HintCode.GENERIC_METHOD_COMMENT,
-        HintCode.GENERIC_METHOD_COMMENT
-      ]);
-    }
-    var section = expression as FunctionExpressionInvocation;
-    expect(section.function, new TypeMatcher<MethodInvocation>());
-    expect(section.typeArguments, isNotNull);
-    expect(section.argumentList, isNotNull);
-    expect(section.argumentList.arguments, hasLength(1));
-  }
-
   void test_parseCascadeSection_paapaa_typeArguments() {
     Expression expression =
         parseCascadeSection('..a<E>(b)<F>(c).d<G>(e)<H>(f)');
@@ -6626,21 +6198,6 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseCascadeSection('..a(b).c');
     expect(expression, isNotNull);
     assertNoErrors();
-    var section = expression as PropertyAccess;
-    expect(section.target, isNotNull);
-    expect(section.operator, isNotNull);
-    expect(section.propertyName, isNotNull);
-  }
-
-  void test_parseCascadeSection_pap_typeArgumentComments() {
-    enableGenericMethodComments = true;
-    Expression expression = parseCascadeSection('..a/*<E>*/(b).c');
-    expect(expression, isNotNull);
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes([HintCode.GENERIC_METHOD_COMMENT]);
-    }
     var section = expression as PropertyAccess;
     expect(section.target, isNotNull);
     expect(section.operator, isNotNull);
@@ -6695,23 +6252,6 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(literal.rightBracket, isNotNull);
   }
 
-  void test_parseConstExpression_listLiteral_typed_genericComment() {
-    enableGenericMethodComments = true;
-    Expression expression = parseConstExpression('const /*<A>*/ []');
-    expect(expression, isNotNull);
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes([HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    var literal = expression as ListLiteral;
-    expect(literal.constKeyword, isNotNull);
-    expect(literal.typeArguments, isNotNull);
-    expect(literal.leftBracket, isNotNull);
-    expect(literal.elements, hasLength(0));
-    expect(literal.rightBracket, isNotNull);
-  }
-
   void test_parseConstExpression_listLiteral_untyped() {
     Expression expression = parseConstExpression('const []');
     expect(expression, isNotNull);
@@ -6728,22 +6268,6 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parseConstExpression('const <A, B> {}');
     expect(expression, isNotNull);
     assertNoErrors();
-    var literal = expression as MapLiteral;
-    expect(literal.leftBracket, isNotNull);
-    expect(literal.entries, hasLength(0));
-    expect(literal.rightBracket, isNotNull);
-    expect(literal.typeArguments, isNotNull);
-  }
-
-  void test_parseConstExpression_mapLiteral_typed_genericComment() {
-    enableGenericMethodComments = true;
-    Expression expression = parseConstExpression('const /*<A, B>*/ {}');
-    expect(expression, isNotNull);
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes([HintCode.GENERIC_METHOD_COMMENT]);
-    }
     var literal = expression as MapLiteral;
     expect(literal.leftBracket, isNotNull);
     expect(literal.entries, hasLength(0));
@@ -6902,18 +6426,6 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(invocation.argumentList, isNotNull);
   }
 
-  void test_parseExpression_superMethodInvocation_typeArgumentComments() {
-    enableGenericMethodComments = true;
-    Expression expression;
-    expression = parseExpression('super.m/*<E>*/()',
-        codes: usingFastaParser ? [] : [HintCode.GENERIC_METHOD_COMMENT]);
-    var invocation = expression as MethodInvocation;
-    expect(invocation.target, isNotNull);
-    expect(invocation.methodName, isNotNull);
-    expect(invocation.typeArguments, isNotNull);
-    expect(invocation.argumentList, isNotNull);
-  }
-
   void test_parseExpression_superMethodInvocation_typeArguments() {
     Expression expression = parseExpression('super.m<E>()');
     var invocation = expression as MethodInvocation;
@@ -6983,23 +6495,6 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
   }
 
   void
-      test_parseExpressionWithoutCascade_superMethodInvocation_typeArgumentComments() {
-    enableGenericMethodComments = true;
-    Expression expression = parseExpressionWithoutCascade('super.m/*<E>*/()');
-    expect(expression, isNotNull);
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes([HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    var invocation = expression as MethodInvocation;
-    expect(invocation.target, isNotNull);
-    expect(invocation.methodName, isNotNull);
-    expect(invocation.typeArguments, isNotNull);
-    expect(invocation.argumentList, isNotNull);
-  }
-
-  void
       test_parseExpressionWithoutCascade_superMethodInvocation_typeArguments() {
     Expression expression = parseExpressionWithoutCascade('super.m<E>()');
     expect(expression, isNotNull);
@@ -7058,25 +6553,6 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     }
   }
 
-  void test_parseFunctionExpression_typeParameterComments() {
-    enableGenericMethodComments = true;
-    FunctionExpression expression =
-        parseFunctionExpression('/*<E>*/(/*=E*/ i) => i++');
-    expect(expression, isNotNull);
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes(
-          [HintCode.GENERIC_METHOD_COMMENT, HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    expect(expression.body, isNotNull);
-    expect(expression.typeParameters, isNotNull);
-    expect(expression.parameters, isNotNull);
-    expect((expression.body as ExpressionFunctionBody).semicolon, isNull);
-    SimpleFormalParameter p = expression.parameters.parameters[0];
-    expect(p.type, isNotNull);
-  }
-
   void test_parseFunctionExpression_typeParameters() {
     FunctionExpression expression = parseFunctionExpression('<E>(E i) => i++');
     expect(expression, isNotNull);
@@ -7122,29 +6598,6 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
   }
 
   void
-      test_parseInstanceCreationExpression_qualifiedType_named_typeArgumentComments() {
-    enableGenericMethodComments = true;
-    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
-    InstanceCreationExpression expression =
-        parseInstanceCreationExpression('A.B/*<E>*/.c()', token);
-    expect(expression, isNotNull);
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes([HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    expect(expression.keyword.keyword, Keyword.NEW);
-    ConstructorName name = expression.constructorName;
-    expect(name, isNotNull);
-    TypeName type = name.type;
-    expect(type, isNotNull);
-    expect(type.typeArguments.arguments, hasLength(1));
-    expect(name.period, isNotNull);
-    expect(name.name, isNotNull);
-    expect(expression.argumentList, isNotNull);
-  }
-
-  void
       test_parseInstanceCreationExpression_qualifiedType_named_typeArguments() {
     Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
     InstanceCreationExpression expression =
@@ -7159,29 +6612,6 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(type.typeArguments.arguments, hasLength(1));
     expect(name.period, isNotNull);
     expect(name.name, isNotNull);
-    expect(expression.argumentList, isNotNull);
-  }
-
-  void
-      test_parseInstanceCreationExpression_qualifiedType_typeArgumentComments() {
-    enableGenericMethodComments = true;
-    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
-    InstanceCreationExpression expression =
-        parseInstanceCreationExpression('A.B/*<E>*/()', token);
-    expect(expression, isNotNull);
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes([HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    expect(expression.keyword.keyword, Keyword.NEW);
-    ConstructorName name = expression.constructorName;
-    expect(name, isNotNull);
-    TypeName type = name.type;
-    expect(type, isNotNull);
-    expect(type.typeArguments.arguments, hasLength(1));
-    expect(name.period, isNull);
-    expect(name.name, isNull);
     expect(expression.argumentList, isNotNull);
   }
 
@@ -7236,28 +6666,6 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(expression.argumentList, isNotNull);
   }
 
-  void test_parseInstanceCreationExpression_type_named_typeArgumentComments() {
-    enableGenericMethodComments = true;
-    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
-    InstanceCreationExpression expression =
-        parseInstanceCreationExpression('A/*<B>*/.c()', token);
-    expect(expression, isNotNull);
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes([HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    expect(expression.keyword.keyword, Keyword.NEW);
-    ConstructorName name = expression.constructorName;
-    expect(name, isNotNull);
-    TypeName type = name.type;
-    expect(type, isNotNull);
-    expect(type.typeArguments.arguments, hasLength(1));
-    expect(name.period, isNotNull);
-    expect(name.name, isNotNull);
-    expect(expression.argumentList, isNotNull);
-  }
-
   void test_parseInstanceCreationExpression_type_named_typeArguments() {
     Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
     InstanceCreationExpression expression =
@@ -7272,29 +6680,6 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(type.typeArguments.arguments, hasLength(1));
     expect(name.period, isNotNull);
     expect(name.name, isNotNull);
-    expect(expression.argumentList, isNotNull);
-  }
-
-  void test_parseInstanceCreationExpression_type_typeArgumentComments() {
-    enableGenericMethodComments = true;
-    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
-    InstanceCreationExpression expression =
-        parseInstanceCreationExpression('A/*<B>*/()', token);
-    expect(expression, isNotNull);
-
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes([HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    expect(expression.keyword.keyword, Keyword.NEW);
-    ConstructorName name = expression.constructorName;
-    expect(name, isNotNull);
-    TypeName type = name.type;
-    expect(type, isNotNull);
-    expect(type.typeArguments.arguments, hasLength(1));
-    expect(name.period, isNull);
-    expect(name.name, isNull);
     expect(expression.argumentList, isNotNull);
   }
 
@@ -7602,24 +6987,6 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
   }
 
   void
-      test_parsePostfixExpression_none_methodInvocation_question_dot_typeArgumentComments() {
-    enableGenericMethodComments = true;
-    Expression expression = parsePostfixExpression('a?.m/*<E>*/()');
-    expect(expression, isNotNull);
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes([HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    var methodInvocation = expression as MethodInvocation;
-    expect(methodInvocation.target, isNotNull);
-    expect(methodInvocation.operator.type, TokenType.QUESTION_PERIOD);
-    expect(methodInvocation.methodName, isNotNull);
-    expect(methodInvocation.typeArguments, isNotNull);
-    expect(methodInvocation.argumentList, isNotNull);
-  }
-
-  void
       test_parsePostfixExpression_none_methodInvocation_question_dot_typeArguments() {
     Expression expression = parsePostfixExpression('a?.m<E>()');
     expect(expression, isNotNull);
@@ -7627,24 +6994,6 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     var methodInvocation = expression as MethodInvocation;
     expect(methodInvocation.target, isNotNull);
     expect(methodInvocation.operator.type, TokenType.QUESTION_PERIOD);
-    expect(methodInvocation.methodName, isNotNull);
-    expect(methodInvocation.typeArguments, isNotNull);
-    expect(methodInvocation.argumentList, isNotNull);
-  }
-
-  void
-      test_parsePostfixExpression_none_methodInvocation_typeArgumentComments() {
-    enableGenericMethodComments = true;
-    Expression expression = parsePostfixExpression('a.m/*<E>*/()');
-    expect(expression, isNotNull);
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes([HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    var methodInvocation = expression as MethodInvocation;
-    expect(methodInvocation.target, isNotNull);
-    expect(methodInvocation.operator.type, TokenType.PERIOD);
     expect(methodInvocation.methodName, isNotNull);
     expect(methodInvocation.typeArguments, isNotNull);
     expect(methodInvocation.argumentList, isNotNull);
@@ -7798,20 +7147,6 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(literal.typeArguments.arguments, hasLength(1));
   }
 
-  void test_parsePrimaryExpression_listLiteral_typed_genericComment() {
-    enableGenericMethodComments = true;
-    Expression expression = parsePrimaryExpression('/*<A>*/[ ]');
-    expect(expression, isNotNull);
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes([HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    var literal = expression as ListLiteral;
-    expect(literal.typeArguments, isNotNull);
-    expect(literal.typeArguments.arguments, hasLength(1));
-  }
-
   void test_parsePrimaryExpression_mapLiteral() {
     Expression expression = parsePrimaryExpression('{}');
     expect(expression, isNotNull);
@@ -7825,20 +7160,6 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     Expression expression = parsePrimaryExpression('<A, B>{}');
     expect(expression, isNotNull);
     assertNoErrors();
-    var literal = expression as MapLiteral;
-    expect(literal.typeArguments, isNotNull);
-    expect(literal.typeArguments.arguments, hasLength(2));
-  }
-
-  void test_parsePrimaryExpression_mapLiteral_typed_genericComment() {
-    enableGenericMethodComments = true;
-    Expression expression = parsePrimaryExpression('/*<A, B>*/{}');
-    expect(expression, isNotNull);
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes([HintCode.GENERIC_METHOD_COMMENT]);
-    }
     var literal = expression as MapLiteral;
     expect(literal.typeArguments, isNotNull);
     expect(literal.typeArguments.arguments, hasLength(2));
@@ -9645,19 +8966,6 @@ class C {
     expect(functionParameter.parameters, isNotNull);
   }
 
-  void test_parseNormalFormalParameter_function_noType_typeParameterComments() {
-    enableGenericMethodComments = true;
-    NormalFormalParameter parameter = parseNormalFormalParameter('a/*<E>*/()',
-        errorCodes: usingFastaParser ? [] : [HintCode.GENERIC_METHOD_COMMENT]);
-    expect(parameter, isNotNull);
-    expect(parameter, new TypeMatcher<FunctionTypedFormalParameter>());
-    FunctionTypedFormalParameter functionParameter = parameter;
-    expect(functionParameter.returnType, isNull);
-    expect(functionParameter.identifier, isNotNull);
-    expect(functionParameter.typeParameters, isNotNull);
-    expect(functionParameter.parameters, isNotNull);
-  }
-
   void test_parseNormalFormalParameter_function_noType_typeParameters() {
     NormalFormalParameter parameter = parseNormalFormalParameter('a<E>()');
     expect(parameter, isNotNull);
@@ -9681,20 +8989,6 @@ class C {
     expect(functionParameter.returnType, isNotNull);
     expect(functionParameter.identifier, isNotNull);
     expect(functionParameter.typeParameters, isNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNull);
-  }
-
-  void test_parseNormalFormalParameter_function_type_typeParameterComments() {
-    enableGenericMethodComments = true;
-    NormalFormalParameter parameter = parseNormalFormalParameter('A a/*<E>*/()',
-        errorCodes: usingFastaParser ? [] : [HintCode.GENERIC_METHOD_COMMENT]);
-    expect(parameter, isNotNull);
-    expect(parameter, new TypeMatcher<FunctionTypedFormalParameter>());
-    FunctionTypedFormalParameter functionParameter = parameter;
-    expect(functionParameter.returnType, isNotNull);
-    expect(functionParameter.identifier, isNotNull);
-    expect(functionParameter.typeParameters, isNotNull);
     expect(functionParameter.parameters, isNotNull);
     expect(functionParameter.question, isNull);
   }
@@ -9735,21 +9029,6 @@ class C {
     expect(functionParameter.returnType, isNotNull);
     expect(functionParameter.identifier, isNotNull);
     expect(functionParameter.typeParameters, isNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.question, isNull);
-  }
-
-  void test_parseNormalFormalParameter_function_void_typeParameterComments() {
-    enableGenericMethodComments = true;
-    NormalFormalParameter parameter = parseNormalFormalParameter(
-        'void a/*<E>*/()',
-        errorCodes: usingFastaParser ? [] : [HintCode.GENERIC_METHOD_COMMENT]);
-    expect(parameter, isNotNull);
-    expect(parameter, new TypeMatcher<FunctionTypedFormalParameter>());
-    FunctionTypedFormalParameter functionParameter = parameter;
-    expect(functionParameter.returnType, isNotNull);
-    expect(functionParameter.identifier, isNotNull);
-    expect(functionParameter.typeParameters, isNotNull);
     expect(functionParameter.parameters, isNotNull);
     expect(functionParameter.question, isNull);
   }
@@ -10013,8 +9292,10 @@ class ParserTestCase extends EngineTestCase
     parser.parseFunctionBodies = parseFunctionBodies;
     parser.enableNnbd = enableNnbd;
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
-    (parser as ParserAdapter).fastaParser.isMixinSupportEnabled =
-        isMixinSupportEnabled;
+    if (parser is ParserAdapter) {
+      (parser as ParserAdapter).fastaParser.isMixinSupportEnabled =
+          isMixinSupportEnabled;
+    }
     parser.currentToken = token;
   }
 
@@ -10162,8 +9443,9 @@ class ParserTestCase extends EngineTestCase
 
     Parser parser = new Parser(source, listener);
     parser.enableOptionalNewAndConst = enableOptionalNewAndConst;
-    (parser as ParserAdapter).fastaParser.isMixinSupportEnabled =
-        isMixinSupportEnabled;
+    if (parser is ParserAdapter) {
+      parser.fastaParser.isMixinSupportEnabled = isMixinSupportEnabled;
+    }
     CompilationUnit unit = parser.parseCompilationUnit(token);
     expect(unit, isNotNull);
     if (codes != null) {
@@ -15608,27 +14890,6 @@ main() {
     expect(statement.functionDeclaration, isNotNull);
   }
 
-  void test_parseFunctionDeclarationStatement_typeParameterComments() {
-    enableGenericMethodComments = true;
-    var statement = parseStatement('/*=E*/ f/*<E>*/(/*=E*/ p) => p * 2;')
-        as FunctionDeclarationStatement;
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes([
-        HintCode.GENERIC_METHOD_COMMENT,
-        HintCode.GENERIC_METHOD_COMMENT,
-        HintCode.GENERIC_METHOD_COMMENT
-      ]);
-    }
-    FunctionDeclaration f = statement.functionDeclaration;
-    expect(f, isNotNull);
-    expect(f.functionExpression.typeParameters, isNotNull);
-    expect(f.returnType, isNotNull);
-    SimpleFormalParameter p = f.functionExpression.parameters.parameters[0];
-    expect(p.type, isNotNull);
-  }
-
   void test_parseFunctionDeclarationStatement_typeParameters() {
     var statement =
         parseStatement('E f<E>(E p) => p * 2;') as FunctionDeclarationStatement;
@@ -15990,21 +15251,6 @@ main() {
     var statement = parseStatement('true;') as ExpressionStatement;
     assertNoErrors();
     expect(statement.expression, isNotNull);
-  }
-
-  void
-      test_parseStatement_functionDeclaration_noReturnType_typeParameterComments() {
-    enableGenericMethodComments = true;
-    var statement =
-        parseStatement('f/*<E>*/(a, b) {}') as FunctionDeclarationStatement;
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes([HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    expect(statement.functionDeclaration, isNotNull);
-    expect(statement.functionDeclaration.functionExpression.typeParameters,
-        isNotNull);
   }
 
   void test_parseStatement_functionDeclaration_noReturnType_typeParameters() {
@@ -16382,30 +15628,6 @@ main() {
     expect(declarationList.variables, hasLength(1));
   }
 
-  void test_parseVariableDeclarationListAfterMetadata_const_typeComment() {
-    enableGenericMethodComments = true;
-    var declarationList = parseVariableDeclarationList('const/*=T*/ a');
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes([HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    expect((declarationList.type as TypeName).name.name, 'T');
-    expect(declarationList.isConst, true);
-  }
-
-  void test_parseVariableDeclarationListAfterMetadata_dynamic_typeComment() {
-    enableGenericMethodComments = true;
-    var declarationList = parseVariableDeclarationList('dynamic/*=T*/ a');
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes([HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    expect((declarationList.type as TypeName).name.name, 'T');
-    expect(declarationList.keyword, isNull);
-  }
-
   void test_parseVariableDeclarationListAfterMetadata_final_noType() {
     var declarationList = parseVariableDeclarationList('final a');
     assertNoErrors();
@@ -16420,18 +15642,6 @@ main() {
     expect(declarationList.keyword.lexeme, 'final');
     expect(declarationList.type, isNotNull);
     expect(declarationList.variables, hasLength(1));
-  }
-
-  void test_parseVariableDeclarationListAfterMetadata_final_typeComment() {
-    enableGenericMethodComments = true;
-    var declarationList = parseVariableDeclarationList('final/*=T*/ a');
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes([HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    expect((declarationList.type as TypeName).name.name, 'T');
-    expect(declarationList.isFinal, true);
   }
 
   void test_parseVariableDeclarationListAfterMetadata_type_multiple() {
@@ -16450,18 +15660,6 @@ main() {
     expect(declarationList.variables, hasLength(1));
   }
 
-  void test_parseVariableDeclarationListAfterMetadata_type_typeComment() {
-    enableGenericMethodComments = true;
-    var declarationList = parseVariableDeclarationList('int/*=T*/ a');
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes([HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    expect((declarationList.type as TypeName).name.name, 'T');
-    expect(declarationList.keyword, isNull);
-  }
-
   void test_parseVariableDeclarationListAfterMetadata_var_multiple() {
     var declarationList = parseVariableDeclarationList('var a, b, c');
     assertNoErrors();
@@ -16476,18 +15674,6 @@ main() {
     expect(declarationList.keyword.lexeme, 'var');
     expect(declarationList.type, isNull);
     expect(declarationList.variables, hasLength(1));
-  }
-
-  void test_parseVariableDeclarationListAfterMetadata_var_typeComment() {
-    enableGenericMethodComments = true;
-    var declarationList = parseVariableDeclarationList('var/*=T*/ a');
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes([HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    expect((declarationList.type as TypeName).name.name, 'T');
-    expect(declarationList.keyword, isNull);
   }
 
   void test_parseVariableDeclarationStatementAfterMetadata_multiple() {
@@ -17921,31 +17107,6 @@ enum E {
     expect(declaration.propertyKeyword, isNull);
   }
 
-  void test_parseFunctionDeclaration_functionWithTypeParameters_comment() {
-    if (usingFastaParser) {
-      // Ignored: Fasta does not support the generic comment syntax.
-      return;
-    }
-    enableGenericMethodComments = true;
-    createParser('/// Doc\nT f/*<E>*/() {}');
-    FunctionDeclaration declaration = parseFullCompilationUnitMember();
-    expect(declaration, isNotNull);
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes([HintCode.GENERIC_METHOD_COMMENT]);
-    }
-    expectCommentText(declaration.documentationComment, '/// Doc');
-    expect((declaration.returnType as TypeName).name.name, 'T');
-    expect(declaration.name, isNotNull);
-    FunctionExpression expression = declaration.functionExpression;
-    expect(expression, isNotNull);
-    expect(expression.body, isNotNull);
-    expect(expression.typeParameters, isNotNull);
-    expect(expression.parameters, isNotNull);
-    expect(declaration.propertyKeyword, isNull);
-  }
-
   void test_parseFunctionDeclaration_getter() {
     createParser('/// Doc\nT get p => 0;');
     FunctionDeclaration declaration = parseFullCompilationUnitMember();
@@ -17960,37 +17121,6 @@ enum E {
     expect(expression.typeParameters, isNull);
     expect(expression.parameters, isNull);
     expect(declaration.propertyKeyword, isNotNull);
-  }
-
-  void test_parseFunctionDeclaration_getter_generic_comment_returnType() {
-    if (usingFastaParser) {
-      // Ignored: Fasta does not support the generic comment syntax.
-      return;
-    }
-    enableGenericMethodComments = true;
-    createParser('/*=T*/ f/*<S, T>*/(/*=S*/ s) => null;');
-    var member = parseFullCompilationUnitMember();
-    expect(member, isNotNull);
-
-    if (usingFastaParser) {
-      assertNoErrors();
-    } else {
-      assertErrorsWithCodes([
-        HintCode.GENERIC_METHOD_COMMENT,
-        HintCode.GENERIC_METHOD_COMMENT,
-        HintCode.GENERIC_METHOD_COMMENT
-      ]);
-    }
-    var functionDeclaration = member as FunctionDeclaration;
-    var functionExpression = functionDeclaration.functionExpression;
-    expect(functionDeclaration.documentationComment, isNull);
-    expect(functionDeclaration.externalKeyword, isNull);
-    expect(functionDeclaration.propertyKeyword, isNull);
-    expect((functionDeclaration.returnType as TypeName).name.name, 'T');
-    expect(functionDeclaration.name, isNotNull);
-    expect(functionExpression.typeParameters, isNotNull);
-    expect(functionExpression.parameters, isNotNull);
-    expect(functionExpression.body, isNotNull);
   }
 
   void test_parseFunctionDeclaration_metadata() {
