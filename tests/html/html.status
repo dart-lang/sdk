@@ -30,21 +30,31 @@ async_test: SkipByDesign
 custom/document_register_type_extensions_test/construction: Pass, Timeout # Roll 50 failure
 custom/document_register_type_extensions_test/registration: Pass, Timeout # Roll 50 failure
 custom/entered_left_view_test/shadow_dom: Pass, Timeout # Roll 50 failure
+custom/mirrors_2_test: RuntimeError
+custom/mirrors_test: RuntimeError
+deferred_multi_app_htmltest: CompileTimeError
 fileapi_test/directoryReader: Pass, Timeout # Roll 50 failure
 fileapi_test/entry: Pass, Timeout # Roll 50 failure
+fileapi_test/entry: RuntimeError
 fileapi_test/fileEntry: Pass, Timeout # Roll 50 failure
 fileapi_test/getDirectory: Pass, Timeout # Roll 50 failure
 fileapi_test/getFile: Pass, Timeout # Roll 50 failure
 indexeddb_1_test/functional: Pass, Timeout # Roll 50 failure
+indexeddb_1_test/functional: RuntimeError
 indexeddb_2_test: Pass, Timeout # Roll 50 failure
 indexeddb_3_test: Pass, Timeout # Roll 50 failure
+indexeddb_3_test: RuntimeError
 indexeddb_4_test: Pass, Timeout # Roll 50 failure
 indexeddb_5_test: Pass, Timeout # Roll 50 failure
+indexeddb_5_test: RuntimeError
 input_element_test/attributes: Fail # Issue 21555
 isolates_test: SkipByDesign
 js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue #25759
+js_typed_interop_default_arg_test/explicit_argument: RuntimeError
 js_typed_interop_side_cast_exp_test: Pass, RuntimeError # Roll 50 failure
+js_typed_interop_test/static_method_tearoff_1: RuntimeError
 mirrors_js_typed_interop_test: Pass, Slow
+mirrors_js_typed_interop_test: SkipByDesign
 svgelement_test/PathElement: Pass, RuntimeError # Roll 50 failure
 worker_api_test: SkipByDesign
 wrapping_collections_test: SkipByDesign # Testing an issue that is only relevant to Dartium
@@ -192,7 +202,7 @@ speechrecognition_test/supported: Fail # TODO(dart2js-team): Please triage this 
 speechrecognition_test/types: Fail # TODO(dart2js-team): Please triage this failure.
 xhr_test/json: Fail # TODO(dart2js-team): Please triage this failure.
 
-[ $compiler == dart2js && $runtime == d8 && $fasta ]
+[ $compiler == dart2js && $runtime == d8 ]
 async_spawnuri_test: RuntimeError
 audiobuffersourcenode_test: RuntimeError
 audiocontext_test: RuntimeError
@@ -362,7 +372,7 @@ xhr_cross_origin_test: RuntimeError
 xhr_test: RuntimeError
 xsltprocessor_test: RuntimeError
 
-[ $compiler == dart2js && $runtime == d8 && $fasta && $minified ]
+[ $compiler == dart2js && $runtime == d8 && $minified ]
 fontface_loaded_test: RuntimeError
 streams_test: RuntimeError
 
@@ -402,9 +412,6 @@ custom/element_upgrade_test: Fail # Issue 17298
 custom/js_custom_test: Fail # Issue 14643
 
 [ $compiler == dart2js && $checked ]
-js_function_getter_trust_types_test: Skip # --trust-type-annotations incompatible with --checked
-
-[ $compiler == dart2js && $checked && $fasta ]
 canvasrenderingcontext2d_test/drawImage_image_element: Timeout
 canvasrenderingcontext2d_test/drawImage_video_element: Timeout
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Timeout
@@ -440,6 +447,7 @@ history_test/history: Timeout
 indexeddb_1_test/functional: RuntimeError
 indexeddb_2_test: RuntimeError
 indexeddb_4_test: RuntimeError
+js_function_getter_trust_types_test: Skip # --trust-type-annotations incompatible with --checked
 js_test/JsObject.fromBrowserObject(): RuntimeError
 js_test/JsObject.jsify(): RuntimeError
 js_util_test/js_util.jsify(): RuntimeError
@@ -486,19 +494,7 @@ custom/mirrors_2_test: Fail # mirrors not supported
 custom/mirrors_test: Fail # mirrors not supported
 mirrors_js_typed_interop_test: Fail # mirrors not supported
 
-[ $compiler == dart2js && $fasta ]
-custom/mirrors_2_test: RuntimeError
-custom/mirrors_test: RuntimeError
-deferred_multi_app_htmltest: CompileTimeError
-fileapi_test/entry: RuntimeError
-indexeddb_1_test/functional: RuntimeError
-indexeddb_3_test: RuntimeError
-indexeddb_5_test: RuntimeError
-js_typed_interop_default_arg_test/explicit_argument: RuntimeError
-js_typed_interop_test/static_method_tearoff_1: RuntimeError
-mirrors_js_typed_interop_test: SkipByDesign
-
-[ $compiler == dart2js && $fasta && $host_checked ]
+[ $compiler == dart2js && $host_checked ]
 fontface_loaded_test: RuntimeError
 streams_test: RuntimeError
 

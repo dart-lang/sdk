@@ -7,23 +7,19 @@ mixin_constructor_forwarding/const_constructor_with_field_test/none: CompileTime
 mixin_constructor_forwarding/optional_named_parameters_test/none: CompileTimeError # Issue 31543
 mixin_constructor_forwarding/optional_positional_parameters_test/none: CompileTimeError # Issue 31543
 
-[ $compiler == dart2js ]
-void/*: Skip  # https://github.com/dart-lang/sdk/issues/34011
-invalid_returns/*: Skip  # https://github.com/dart-lang/sdk/issues/34011
-
-[ $compiler == app_jit || $compiler == none ]
-void/*: Skip # https://github.com/dart-lang/sdk/issues/34013
-invalid_returns/*: Skip  # https://github.com/dart-lang/sdk/issues/34013
-
-[ $compiler == spec_parser ]
-void/*: Skip # https://github.com/dart-lang/sdk/issues/34015
-invalid_returns/*: Skip # https://github.com/dart-lang/sdk/issues/34015
-
 [ $compiler == app_jit ]
 deferred_inheritance_constraints_test/redirecting_constructor: Crash
 
 [ $compiler != dart2analyzer ]
 switch_case_warn_test: Skip # Analyzer only, see language_analyzer2.status
+
+[ $compiler == dart2js ]
+invalid_returns/*: Skip # https://github.com/dart-lang/sdk/issues/34011
+void/*: Skip # https://github.com/dart-lang/sdk/issues/34011
+
+[ $compiler == spec_parser ]
+invalid_returns/*: Skip # https://github.com/dart-lang/sdk/issues/34015
+void/*: Skip # https://github.com/dart-lang/sdk/issues/34015
 
 [ $mode == debug ]
 large_class_declaration_test: Slow, Pass
@@ -42,8 +38,11 @@ regress_29784_test/02: SkipByDesign # Requires checked mode.
 stacktrace_demangle_ctors_test: SkipByDesign # Names are not scrubbed.
 type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
 
-[ $compiler != app_jitk && $compiler != dartk && $compiler != dartkp && $compiler != dartkb && $mode == debug && $runtime == vm ]
+[ $compiler != app_jitk && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $mode == debug && $runtime == vm ]
 built_in_identifier_type_annotation_test/set: Crash # Not supported by legacy VM front-end.
+
+[ $compiler != dart2analyzer && $compiler != dart2js && $compiler != dartdevc && !$fasta && $strong ]
+type_promotion_functions_test: CompileTimeError # Issue 30895: This test requires a complete rewrite for 2.0.
 
 # Detection of compile-time errors that are related to constants can't be fully
 # done at the front end, because constants are evaluated at back ends.  So, some
@@ -63,8 +62,8 @@ implicit_creation/implicit_const_not_default_values_test/e30: MissingCompileTime
 implicit_creation/implicit_const_not_default_values_test/e6: MissingCompileTimeError
 implicit_creation/implicit_const_not_default_values_test/e9: MissingCompileTimeError
 
-[ $compiler != dart2analyzer && $compiler != dart2js && $compiler != dartdevc && !$fasta && $strong ]
-type_promotion_functions_test: CompileTimeError # Issue 30895: This test requires a complete rewrite for 2.0.
+[ $compiler != dart2js && $compiler != dartdevc && !$checked ]
+function_type/*: Skip # Needs checked mode.
 
 [ $compiler != dart2js && !$fasta && $strong ]
 compile_time_constant_static5_test/11: CompileTimeError # Issue 30546
@@ -78,9 +77,6 @@ implicit_creation/implicit_new_constructor_generic_test: Fail # No support for i
 implicit_creation/implicit_new_constructor_test: Fail # No support for implicit creation.
 implicit_creation/implicit_new_prefix_constructor_generic_test: Fail # No support for implicit creation.
 implicit_creation/implicit_new_prefix_constructor_test: Fail # No support for implicit creation.
-
-[ $compiler != dartdevc && $compiler != dart2js && !$checked ]
-function_type/*: Skip # Needs checked mode.
 
 [ $compiler != spec_parser && $runtime != none && !$checked && !$strong ]
 closure_type_test: RuntimeError
@@ -210,47 +206,10 @@ map_literal7_test: RuntimeError # Requires strong mode
 [ $checked && !$strong ]
 type_parameter_test/05: Pass
 
-[ !$fasta && !$strong ]
-implicit_creation/implicit_const_context_constructor_generic_named_test: Fail # No support for implicit creation.
-implicit_creation/implicit_const_context_constructor_generic_test: Fail # No support for implicit creation.
-implicit_creation/implicit_const_context_constructor_named_test: Fail # No support for implicit creation.
-implicit_creation/implicit_const_context_constructor_test: Fail # No support for implicit creation.
-implicit_creation/implicit_const_context_list_test: Fail # No support for implicit creation.
-implicit_creation/implicit_const_context_map_test: Fail # No support for implicit creation.
-implicit_creation/implicit_const_context_prefix_constructor_generic_named_test: Fail # No support for implicit creation.
-implicit_creation/implicit_const_context_prefix_constructor_generic_test: Fail # No support for implicit creation.
-implicit_creation/implicit_const_context_prefix_constructor_named_test: Fail # No support for implicit creation.
-implicit_creation/implicit_const_context_prefix_constructor_test: Fail # No support for implicit creation.
-implicit_creation/implicit_const_not_default_values_test/o.*: CompileTimeError # No support for implicit creation.
-implicit_creation/implicit_new_constructor_generic_named_test: Fail # No support for implicit creation.
-implicit_creation/implicit_new_constructor_named_test: Fail # No support for implicit creation.
-implicit_creation/implicit_new_or_const_composite_test: Fail # No support for implicit creation.
-implicit_creation/implicit_new_or_const_generic_test: Fail # No support for implicit creation.
-implicit_creation/implicit_new_or_const_test: Fail # No support for implicit creation.
-implicit_creation/implicit_new_prefix_constructor_generic_named_test: Fail # No support for implicit creation.
-implicit_creation/implicit_new_prefix_constructor_named_test: Fail # No support for implicit creation.
-setter_override2_test/02: MissingCompileTimeError # Issue 14736
-void/return_future_future_or_void_async_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_future_future_or_void_async_error1_test/none: MissingStaticWarning # https://github.com/dart-lang/sdk/issues/33218
-void/return_future_future_or_void_sync_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_future_or_future_or_void_sync_error1_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_future_or_future_or_void_sync_error2_test/none: MissingStaticWarning # https://github.com/dart-lang/sdk/issues/33218
-void/return_future_or_void_async_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_future_or_void_sync_error3_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_future_or_void_sync_error4_test/none: MissingStaticWarning # https://github.com/dart-lang/sdk/issues/33218
-void/return_future_void_async_error2_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_void_async_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_void_async_error1_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_void_async_error2_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_void_async_error3_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_void_async_error4_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_void_async_test: StaticWarning # https://github.com/dart-lang/sdk/issues/33218
-void/return_void_sync_error0_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_void_sync_error1_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-void/return_void_sync_error2_test: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/33218
-
 [ $compiler == app_jit || $compiler == none ]
+invalid_returns/*: Skip # https://github.com/dart-lang/sdk/issues/34013
 library_env_test/has_no_mirror_support: RuntimeError, OK
+void/*: Skip # https://github.com/dart-lang/sdk/issues/34013
 
 [ $hot_reload || $hot_reload_rollback ]
 cha_deopt1_test: Crash # Requires deferred libraries
