@@ -1852,11 +1852,13 @@ class ProgramCompiler extends Object
   /// This is needed because in ES6, if you only override a getter
   /// (alternatively, a setter), then there is an implicit override of the
   /// setter (alternatively, the getter) that does nothing.
-  JS.Method _emitSuperAccessorWrapper(Procedure method,
+  JS.Method _emitSuperAccessorWrapper(Procedure member,
       Map<String, Procedure> getters, Map<String, Procedure> setters) {
-    var name = method.name.name;
-    var memberName = _declareMemberName(method);
-    if (method.isGetter) {
+    if (member.isAbstract) return null;
+
+    var name = member.name.name;
+    var memberName = _declareMemberName(member);
+    if (member.isGetter) {
       if (!setters.containsKey(name) &&
           _classProperties.inheritedSetters.contains(name)) {
         // Generate a setter that forwards to super.
@@ -1864,7 +1866,7 @@ class ProgramCompiler extends Object
         return JS.Method(memberName, fn, isSetter: true);
       }
     } else {
-      assert(method.isSetter);
+      assert(member.isSetter);
       if (!getters.containsKey(name) &&
           _classProperties.inheritedGetters.contains(name)) {
         // Generate a getter that forwards to super.
