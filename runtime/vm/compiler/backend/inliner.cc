@@ -117,11 +117,6 @@ DECLARE_FLAG(bool, verify_compiler);
     }                                                                          \
   } while (false)
 
-// Is compilation and isolate in strong mode?
-static bool CanUseStrongModeTypes(FlowGraph* flow_graph) {
-  return FLAG_use_strong_mode_types && flow_graph->isolate()->strong();
-}
-
 // Test and obtain Smi value.
 static bool IsSmiValue(Value* val, intptr_t* int_val) {
   if (val->BindsToConstant() && val->BoundConstant().IsSmi()) {
@@ -2779,7 +2774,7 @@ static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
   // For Dart2, both issues are resolved in the inlined code.
   if (array_cid == kDynamicCid) {
     ASSERT(call->IsStaticCall());
-    if (!CanUseStrongModeTypes(flow_graph)) {
+    if (flow_graph->isolate()->can_use_strong_mode_types()) {
       return false;
     }
   }
@@ -2795,7 +2790,8 @@ static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
   // All getters that go through InlineByteArrayBaseLoad() have explicit
   // bounds checks in all their clients in the library, so we can omit yet
   // another inlined bounds check when compiling for Dart2 (resolves (A)).
-  const bool needs_bounds_check = !CanUseStrongModeTypes(flow_graph);
+  const bool needs_bounds_check =
+      !flow_graph->isolate()->can_use_strong_mode_types();
   if (needs_bounds_check) {
     PrepareInlineTypedArrayBoundsCheck(flow_graph, call, array_cid, view_cid,
                                        array, index, &cursor);
@@ -2876,7 +2872,7 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
   // For Dart2, both issues are resolved in the inlined code.
   if (array_cid == kDynamicCid) {
     ASSERT(call->IsStaticCall());
-    if (!CanUseStrongModeTypes(flow_graph)) {
+    if (!flow_graph->isolate()->can_use_strong_mode_types()) {
       return false;
     }
   }
@@ -2892,7 +2888,8 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
   // All setters that go through InlineByteArrayBaseLoad() have explicit
   // bounds checks in all their clients in the library, so we can omit yet
   // another inlined bounds check when compiling for Dart2 (resolves (A)).
-  const bool needs_bounds_check = !CanUseStrongModeTypes(flow_graph);
+  const bool needs_bounds_check =
+      !flow_graph->isolate()->can_use_strong_mode_types();
   if (needs_bounds_check) {
     PrepareInlineTypedArrayBoundsCheck(flow_graph, call, array_cid, view_cid,
                                        array, index, &cursor);
@@ -2924,7 +2921,8 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
     case kTypedDataFloat64ArrayCid: {
       // Check that value is always double. In AOT Dart2, we use
       // an explicit null check and non-speculative unboxing.
-      if (FLAG_precompiled_mode && CanUseStrongModeTypes(flow_graph)) {
+      if (FLAG_precompiled_mode &&
+          flow_graph->isolate()->can_use_strong_mode_types()) {
         needs_null_check = true;
       } else {
         value_check = Cids::CreateMonomorphic(Z, kDoubleCid);
@@ -2946,8 +2944,8 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
       // StoreIndexedInstr takes unboxed int64, so value is
       // checked when unboxing. In AOT Dart2, we use an
       // explicit null check and non-speculative unboxing.
-      needs_null_check =
-          FLAG_precompiled_mode && CanUseStrongModeTypes(flow_graph);
+      needs_null_check = FLAG_precompiled_mode &&
+                         flow_graph->isolate()->can_use_strong_mode_types();
       break;
     default:
       // Array cids are already checked in the caller.

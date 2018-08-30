@@ -645,7 +645,7 @@ JoinEntryInstr* BaseFlowGraphBuilder::BuildThrowNoSuchMethod() {
 }
 
 Fragment BaseFlowGraphBuilder::AssertBool(TokenPosition position) {
-  if (FLAG_omit_strong_type_checks) {
+  if (!I->should_emit_strong_mode_checks()) {
     return Fragment();
   }
   Value* value = Pop();

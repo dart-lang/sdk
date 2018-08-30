@@ -937,7 +937,7 @@ void StreamingFlowGraphBuilder::BuildArgumentTypeChecks(
     TypeChecksToBuild mode,
     Fragment* explicit_checks,
     Fragment* implicit_checks) {
-  if (FLAG_omit_strong_type_checks) return;
+  if (!I->should_emit_strong_mode_checks()) return;
 
   FunctionNodeHelper function_node_helper(this);
   function_node_helper.SetNext(FunctionNodeHelper::kTypeParameters);
@@ -3051,8 +3051,8 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
     const intptr_t kNumArgsChecked = 1;
 
     const String* mangled_name = &setter_name;
-    if (!FLAG_precompiled_mode && I->strong() &&
-        !FLAG_omit_strong_type_checks && H.IsRoot(itarget_name)) {
+    if (!FLAG_precompiled_mode && I->should_emit_strong_mode_checks() &&
+        H.IsRoot(itarget_name)) {
       mangled_name = &String::ZoneHandle(
           Z, Function::CreateDynamicInvocationForwarderName(setter_name));
     }
@@ -3666,8 +3666,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
     //     at the entry because the parameter is marked covariant, neither of
     //     those cases require a dynamic invocation forwarder;
     //   * we assume that all closures are entered in a checked way.
-    if (!FLAG_precompiled_mode && I->strong() &&
-        !FLAG_omit_strong_type_checks &&
+    if (!FLAG_precompiled_mode && I->should_emit_strong_mode_checks() &&
         (name.raw() != Symbols::EqualOperator().raw()) &&
         (name.raw() != Symbols::Call().raw()) && H.IsRoot(itarget_name)) {
       mangled_name = &String::ZoneHandle(

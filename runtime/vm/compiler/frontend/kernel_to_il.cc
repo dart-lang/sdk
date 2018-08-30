@@ -1062,7 +1062,7 @@ Fragment FlowGraphBuilder::CheckAssignable(const AbstractType& dst_type,
   if (dst_type.IsMalformed()) {
     return ThrowTypeError();
   }
-  if (FLAG_omit_strong_type_checks) {
+  if (!I->should_emit_strong_mode_checks()) {
     return Fragment();
   }
   if (!dst_type.IsDynamicType() && !dst_type.IsObjectType() &&
@@ -1080,7 +1080,7 @@ Fragment FlowGraphBuilder::AssertAssignable(TokenPosition position,
                                             const AbstractType& dst_type,
                                             const String& dst_name,
                                             AssertAssignableInstr::Kind kind) {
-  if (FLAG_omit_strong_type_checks) {
+  if (!I->should_emit_strong_mode_checks()) {
     return Fragment();
   }
 

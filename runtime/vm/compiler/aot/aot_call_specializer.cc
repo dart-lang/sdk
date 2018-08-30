@@ -283,7 +283,7 @@ bool AotCallSpecializer::IsSupportedIntOperandForStaticDoubleOp(
 Value* AotCallSpecializer::PrepareStaticOpInput(Value* input,
                                                 intptr_t cid,
                                                 Instruction* call) {
-  ASSERT(I->strong() && FLAG_use_strong_mode_types);
+  ASSERT(I->can_use_strong_mode_types());
   ASSERT((cid == kDoubleCid) || (cid == kMintCid));
 
   const String& function_name =
@@ -320,7 +320,7 @@ Value* AotCallSpecializer::PrepareStaticOpInput(Value* input,
 
 Value* AotCallSpecializer::PrepareReceiverOfDevirtualizedCall(Value* input,
                                                               intptr_t cid) {
-  ASSERT(I->strong() && FLAG_use_strong_mode_types);
+  ASSERT(I->can_use_strong_mode_types());
   ASSERT((cid == kDoubleCid) || (cid == kMintCid));
 
   // Can't assert !input->Type()->is_nullable() here as PushArgument receives
@@ -351,7 +351,7 @@ static void RefineUseTypes(Definition* instr) {
 
 bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
     InstanceCallInstr* instr) {
-  ASSERT(I->strong() && FLAG_use_strong_mode_types);
+  ASSERT(I->can_use_strong_mode_types());
 
   const intptr_t receiver_index = instr->FirstArgIndex();
   const Token::Kind op_kind = instr->token_kind();
@@ -498,7 +498,7 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
 
 bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
     StaticCallInstr* instr) {
-  ASSERT(I->strong() && FLAG_use_strong_mode_types);
+  ASSERT(I->can_use_strong_mode_types());
   Definition* replacement = NULL;
 
   const String& name = String::Handle(Z, instr->function().name());
@@ -762,7 +762,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
   const ICData& unary_checks =
       ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
   const intptr_t number_of_checks = unary_checks.NumberOfChecks();
-  if (FLAG_use_strong_mode_types && I->strong()) {
+  if (I->can_use_strong_mode_types()) {
     // In AOT strong mode, we avoid deopting speculation.
     // TODO(ajcbik): replace this with actual analysis phase
     //               that determines if checks are removed later.
@@ -799,7 +799,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     }
   }
 
-  if (I->strong() && FLAG_use_strong_mode_types &&
+  if (I->can_use_strong_mode_types() &&
       TryOptimizeInstanceCallUsingStaticTypes(instr)) {
     return;
   }

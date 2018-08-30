@@ -2534,7 +2534,7 @@ class Function : public Object {
 
   bool NeedsArgumentTypeChecks(Isolate* I) const {
     if (I->strong()) {
-      if (FLAG_omit_strong_type_checks) {
+      if (!I->should_emit_strong_mode_checks()) {
         return false;
       }
       return IsClosureFunction() ||

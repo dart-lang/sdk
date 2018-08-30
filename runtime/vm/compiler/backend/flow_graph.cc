@@ -435,7 +435,7 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
   if (function().IsDynamicFunction() && IsReceiver(receiver->definition())) {
     // Call receiver is callee receiver: calling "this.g()" in f().
     receiver_class = function().Owner();
-  } else if (FLAG_use_strong_mode_types && isolate()->strong()) {
+  } else if (isolate()->can_use_strong_mode_types()) {
     // In strong mode, get the receiver's compile type. Note that
     // we allow nullable types, which may result in just generating
     // a null check rather than the more elaborate class check
@@ -1314,8 +1314,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
           captured_parameters_->Add(index);
         }
 
-        if ((phi != NULL) && isolate()->strong() &&
-            FLAG_use_strong_mode_types) {
+        if ((phi != NULL) && isolate()->can_use_strong_mode_types()) {
           // Assign type to Phi if it doesn't have a type yet.
           // For a Phi to appear in the local variable it either was placed
           // there as incoming value by renaming or it was stored there by

@@ -95,6 +95,7 @@ class RunKernelTask : public ThreadPool::Task {
     api_flags.use_dart_frontend = true;
     api_flags.reify_generic_functions = true;
     api_flags.strong = true;
+    api_flags.unsafe_trust_strong_mode_types = false;
     api_flags.sync_async = true;
 #if !defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                 \
     !defined(DART_USE_INTERPRETER)

@@ -55,6 +55,9 @@ constexpr bool kDartPrecompiledRuntime = false;
 //   D(name, type, default_value, comment)
 //   C(name, precompiled_value, product_value, type, default_value, comment)
 #define FLAG_LIST(P, R, D, C)                                                  \
+  P(experimental_unsafe_mode_use_at_your_own_risk, bool, false,                \
+    "Omit runtime strong mode type checks and disable optimizations based on " \
+    "types.")                                                                  \
   P(abort_on_oom, bool, false,                                                 \
     "Abort if memory allocation fails - use only with --old-gen-heap-size")    \
   C(async_debugger, false, false, bool, true,                                  \
@@ -129,7 +132,6 @@ constexpr bool kDartPrecompiledRuntime = false;
     "Max size of new gen semi space in MB")                                    \
   P(new_gen_semi_initial_size, int, (kWordSize <= 4) ? 1 : 2,                  \
     "Initial size of new gen semi space in MB")                                \
-  P(omit_strong_type_checks, bool, false, "Omit strong mode type checks.")     \
   P(optimization_counter_threshold, int, USING_KBC ? -1 : 30000,               \
     "Function's usage-counter value before it is optimized, -1 means never")   \
   P(old_gen_heap_size, int, kDefaultMaxOldGenHeapSize,                         \
