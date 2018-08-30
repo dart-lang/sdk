@@ -153,6 +153,24 @@ class TestCase extends UniqueObject {
   }
 
   Expectation get result => lastCommandOutput.result(this);
+  Expectation get realResult => lastCommandOutput.realResult(this);
+  Expectation get realExpected {
+    if (isNegative || (isNegativeIfChecked && configuration.isChecked)) {
+      return Expectation.fail;
+    }
+    if (configuration.compiler == Compiler.specParser) {
+      if (hasSyntaxError) {
+        return Expectation.syntaxError;
+      }
+    } else if ((hasCompileError) ||
+        (hasCompileErrorIfChecked && configuration.isChecked)) {
+      return Expectation.compileTimeError;
+    }
+    if (configuration.runtime != Runtime.none && hasRuntimeError) {
+      return Expectation.runtimeError;
+    }
+    return Expectation.pass;
+  }
 
   CommandOutput get lastCommandOutput {
     if (commandOutputs.length == 0) {

@@ -51,6 +51,17 @@ class CommandOutput extends UniqueObject {
     return Expectation.pass;
   }
 
+  /// Cloned code from member result(), with changes.
+  /// Delete existing result() function and rename, when status files are gone.
+  Expectation realResult(TestCase testCase) {
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (_didFail(testCase)) return Expectation.fail;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+
+    return Expectation.pass;
+  }
+
   bool get hasCrashed {
     // dart2js exits with code 253 in case of unhandled exceptions.
     // The dart binary exits with code 253 in case of an API error such
@@ -75,8 +86,6 @@ class CommandOutput extends UniqueObject {
     }
     return exitCode < 0;
   }
-
-  bool get hasSyntaxError => exitCode == parseFailExitCode;
 
   bool _didFail(TestCase testCase) => exitCode != 0 && !hasCrashed;
 
@@ -206,7 +215,7 @@ class BrowserTestJsonResult {
   }
 
   static Expectation _getOutcome(Map<String, List<String>> messagesByType) {
-    occured(String type) => messagesByType[type].isNotEmpty;
+    occurred(String type) => messagesByType[type].isNotEmpty;
 
     searchForMsg(List<String> types, String message) {
       return types.any((type) => messagesByType[type].contains(message));
@@ -215,13 +224,13 @@ class BrowserTestJsonResult {
     // FIXME(kustermann,ricow): I think this functionality doesn't work in
     // test_controller.js: So far I haven't seen anything being reported on
     // "window.compilationerror"
-    if (occured('window_compilationerror')) {
+    if (occurred('window_compilationerror')) {
       return Expectation.compileTimeError;
     }
 
-    if (occured('sync_exception') ||
-        occured('window_onerror') ||
-        occured('script_onerror')) {
+    if (occurred('sync_exception') ||
+        occurred('window_onerror') ||
+        occurred('script_onerror')) {
       return Expectation.runtimeError;
     }
 
@@ -288,7 +297,7 @@ class BrowserCommandOutput extends CommandOutput
         stderr = "This test timed out. The delay until the test actually "
             "started was: ${result.delayUntilTestStarted}.";
       } else {
-        stderr = "This test has not notified test.py that it started running.";
+        stderr = "This test did not notify test.py that it started running.";
       }
     }
 
@@ -322,6 +331,23 @@ class BrowserCommandOutput extends CommandOutput
     }
 
     return _negateOutcomeIfNegativeTest(_rawOutcome, testCase.isNegative);
+  }
+
+  /// Cloned code from member result(), with changes.
+  /// Delete existing result() function and rename, when status files are gone.
+  Expectation realResult(TestCase testCase) {
+    // Handle timeouts first.
+    if (_result.didTimeout) {
+      if (testCase.configuration.runtime == Runtime.ie11) {
+        // TODO(28955): See http://dartbug.com/28955
+        DebugLogger.warning("Timeout of ie11 on test ${testCase.displayName}");
+        return Expectation.ignore;
+      }
+      return Expectation.timeout;
+    }
+
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+    return _rawOutcome;
   }
 
   void describe(Progress progress, OutputWriter output) {
@@ -472,6 +498,32 @@ class AnalysisCommandOutput extends CommandOutput {
     return Expectation.pass;
   }
 
+  /// Cloned code from member result(), with changes.
+  /// Delete existing result() function and rename, when status files are gone.
+  Expectation realResult(TestCase testCase) {
+    // TODO(kustermann): If we run the analyzer not in batch mode, make sure
+    // that command.exitCodes matches 2 (errors), 1 (warnings), 0 (no warnings,
+    // no errors)
+
+    // Handle crashes and timeouts first
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+
+    // Get the errors/warnings from the analyzer
+    var errors = <String>[];
+    var warnings = <String>[];
+    parseAnalyzerOutput(errors, warnings);
+
+    if (errors.isNotEmpty) {
+      return Expectation.compileTimeError;
+    }
+    if (warnings.isNotEmpty) {
+      return Expectation.staticWarning;
+    }
+    return Expectation.pass;
+  }
+
   void parseAnalyzerOutput(List<String> outErrors, List<String> outWarnings) {
     // Parse a line delimited by the | character using \ as an escape character
     // like:  FOO|BAR|FOO\|BAR|FOO\\BAZ as 4 fields: FOO BAR FOO|BAR FOO\BAZ
@@ -526,6 +578,8 @@ class SpecParseCommandOutput extends CommandOutput {
       : super(command, exitCode, timedOut, stdout, stderr, time,
             compilationSkipped, 0);
 
+  bool get hasSyntaxError => exitCode == parseFailExitCode;
+
   Expectation result(TestCase testCase) {
     // Handle crashes and timeouts first.
     if (hasCrashed) return Expectation.crash;
@@ -548,6 +602,17 @@ class SpecParseCommandOutput extends CommandOutput {
 
     // No compile-time errors expected (including: no syntax errors).
     return exitCode == 0 ? Expectation.pass : Expectation.syntaxError;
+  }
+
+  /// Cloned code from member result(), with changes.
+  /// Delete existing result() function and rename, when status files are gone.
+  Expectation realResult(TestCase testCase) {
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (hasSyntaxError) return Expectation.syntaxError;
+    if (exitCode != 0) return Expectation.syntaxError;
+    return Expectation.pass;
   }
 }
 
@@ -598,6 +663,29 @@ class VMCommandOutput extends CommandOutput with UnittestSuiteMessagesMixin {
     outcome = _negateOutcomeIfIncompleteAsyncTest(outcome, decodeUtf8(stdout));
     return _negateOutcomeIfNegativeTest(outcome, testCase.isNegative);
   }
+
+  /// Cloned code from member result(), with changes.
+  /// Delete existing result() function and rename, when status files are gone.
+  Expectation realResult(TestCase testCase) {
+    // Handle crashes and timeouts first.
+    if (exitCode == _dfeErrorExitCode) return Expectation.dartkCrash;
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+
+    // The actual outcome depends on the exitCode.
+    if (exitCode == _compileErrorExitCode) return Expectation.compileTimeError;
+    if (exitCode == _uncaughtExceptionExitCode) return Expectation.runtimeError;
+    if (exitCode != 0) {
+      // This is a general fail, in case we get an unknown nonzero exitcode.
+      return Expectation.fail;
+    }
+    var testOutput = decodeUtf8(stdout);
+    if (_isAsyncTest(testOutput) && !_isAsyncTestSuccessful(testOutput)) {
+      return Expectation.fail;
+    }
+    return Expectation.pass;
+  }
 }
 
 class CompilationCommandOutput extends CommandOutput {
@@ -613,6 +701,33 @@ class CompilationCommandOutput extends CommandOutput {
       bool compilationSkipped)
       : super(command, exitCode, timedOut, stdout, stderr, time,
             compilationSkipped, 0);
+
+  /// Cloned code from member result(), with changes.
+  /// Delete existing result() function and rename, when status files are gone.
+  /// This code can return Expectation.ignore - we may want to fix that.
+  Expectation realResult(TestCase testCase) {
+    // Handle general crash/timeout detection.
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) {
+      var isWindows = io.Platform.operatingSystem == 'windows';
+      var isBrowserTestCase =
+          testCase.commands.any((command) => command is BrowserTestCommand);
+      // TODO(26060) Dart2js batch mode hangs on Windows under heavy load.
+      return (isWindows && isBrowserTestCase)
+          ? Expectation.ignore
+          : Expectation.timeout;
+    }
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+
+    // Handle dart2js specific crash detection
+    if (exitCode == _crashExitCode ||
+        exitCode == VMCommandOutput._compileErrorExitCode ||
+        exitCode == VMCommandOutput._uncaughtExceptionExitCode) {
+      return Expectation.crash;
+    }
+    if (exitCode != 0) return Expectation.compileTimeError;
+    return Expectation.pass;
+  }
 
   Expectation result(TestCase testCase) {
     // Handle general crash/timeout detection.
@@ -688,6 +803,17 @@ class DevCompilerCommandOutput extends CommandOutput {
         exitCode == 0 ? Expectation.pass : Expectation.compileTimeError;
     return _negateOutcomeIfNegativeTest(outcome, testCase.isNegative);
   }
+
+  /// Cloned code from member result(), with changes.
+  /// Delete existing result() function and rename, when status files are gone.
+  /// This code can return Expectation.ignore - we may want to fix that.
+  Expectation realResult(TestCase testCase) {
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (exitCode != 0) return Expectation.compileTimeError;
+    return Expectation.pass;
+  }
 }
 
 class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
@@ -750,6 +876,41 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
     return _negateOutcomeIfNegativeTest(outcome, testCase.isNegative);
   }
 
+  /// Cloned code from member result(), with changes.
+  /// Delete existing result() function and rename, when status files are gone.
+  /// This code can return Expectation.ignore - we may want to fix that.
+  Expectation realResult(TestCase testCase) {
+    // TODO(kustermann): Currently the batch mode runner (which can be found
+    // in `test_runner.dart:BatchRunnerProcess`) does not really distinguish
+    // between different kinds of failures and will mark a failed
+    // compilation to just an exit code of "1".  So we treat all `exitCode ==
+    // 1`s as compile-time errors as well.
+    const int kBatchModeCompileTimeErrorExit = 1;
+
+    // Handle crashes and timeouts first.
+    if (hasCrashed) return Expectation.dartkCrash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+
+    // If the frontend had an uncaught exception, then we'll consider this a
+    // crash.
+    if (exitCode == VMCommandOutput._uncaughtExceptionExitCode) {
+      return Expectation.dartkCrash;
+    }
+
+    // Multitests are handled specially.
+
+    if (exitCode == VMCommandOutput._compileErrorExitCode ||
+        exitCode == kBatchModeCompileTimeErrorExit) {
+      return Expectation.compileTimeError;
+    }
+    if (exitCode != 0) {
+      // This is a general fail, in case we get an unknown nonzero exitcode.
+      return Expectation.fail;
+    }
+    return Expectation.pass;
+  }
+
   /// If the compiler was able to produce a Kernel IR file we want to run the
   /// result on the Dart VM. We therefore mark the [VMKernelCompilationCommand]
   /// as successful.
@@ -780,6 +941,23 @@ class JSCommandLineOutput extends CommandOutput
     outcome = _negateOutcomeIfIncompleteAsyncTest(outcome, decodeUtf8(stdout));
     return _negateOutcomeIfNegativeTest(outcome, testCase.isNegative);
   }
+
+  /// Cloned code from member result(), with changes.
+  /// Delete existing result() function and rename, when status files are gone.
+  /// This code can return Expectation.ignore - we may want to fix that.
+  Expectation realResult(TestCase testCase) {
+    // Handle crashes and timeouts first.
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+
+    if (exitCode != 0) return Expectation.runtimeError;
+    var output = decodeUtf8(stdout);
+    if (_isAsyncTest(output) && !_isAsyncTestSuccessful(output)) {
+      return Expectation.fail;
+    }
+    return Expectation.pass;
+  }
 }
 
 class ScriptCommandOutput extends CommandOutput {
@@ -793,6 +971,7 @@ class ScriptCommandOutput extends CommandOutput {
   }
 
   Expectation result(TestCase testCase) => _result;
+  Expectation realResult(TestCase testCase) => _result;
 
   bool get canRunDependendCommands => _result == Expectation.pass;
 

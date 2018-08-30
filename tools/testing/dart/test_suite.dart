@@ -33,7 +33,7 @@ import 'test_runner.dart';
 import 'utils.dart';
 
 RegExp multiHtmlTestGroupRegExp = new RegExp(r"\s*[^/]\s*group\('[^,']*");
-RegExp multiHtmlTestRegExp = new RegExp(r"useHtmlIndividualConfiguration()");
+RegExp multiHtmlTestRegExp = new RegExp(r"useHtmlIndividualConfiguration\(\)");
 // Require at least one non-space character before '//[/#]'
 RegExp multiTestRegExp = new RegExp(r"\S *"
     r"//[#/] \w+:(.*)");
