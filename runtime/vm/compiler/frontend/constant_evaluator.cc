@@ -1067,7 +1067,7 @@ ConstantHelper::ConstantHelper(Zone* zone,
 const Array& ConstantHelper::ReadConstantTable() {
   const intptr_t number_of_constants = helper_.ReadUInt();
   if (number_of_constants == 0) {
-    return Array::Handle(Z, Array::null());
+    return Array::empty_array();
   }
 
   const Library& corelib = Library::Handle(Z, Library::CoreLibrary());

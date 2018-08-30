@@ -6,6 +6,7 @@
 
 @pragma("vm:entry-point")
 class _List<E> extends FixedLengthListBase<E> {
+  @pragma("vm:exact-result-type", _List)
   factory _List(length) native "List_allocate";
 
   E operator [](int index) native "List_getIndexed";
@@ -16,6 +17,7 @@ class _List<E> extends FixedLengthListBase<E> {
 
   void _setIndexed(int index, E value) native "List_setIndexed";
 
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get length native "List_getLength";
 
   List _slice(int start, int count, bool needsTypeArgument) {
@@ -134,6 +136,7 @@ class _ImmutableList<E> extends UnmodifiableListBase<E> {
 
   E operator [](int index) native "List_getIndexed";
 
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get length native "List_getLength";
 
   List<E> sublist(int start, [int end]) {

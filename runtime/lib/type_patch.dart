@@ -14,6 +14,7 @@ abstract class _AbstractType implements Type {
 // Equivalent of RawType.
 @pragma("vm:entry-point")
 class _Type extends _AbstractType {
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
   int get hashCode native "Type_getHashCode";
 }
 

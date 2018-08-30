@@ -5,6 +5,7 @@
 // part of "core_patch.dart";
 
 @patch
+@pragma("vm:exact-result-type", bool)
 bool identical(Object a, Object b) native "Identical_comparison";
 
 @patch

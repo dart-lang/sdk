@@ -1205,7 +1205,7 @@ class CreateAllSummariesVisitor extends RecursiveVisitor<Null> {
 
   CreateAllSummariesVisitor(this._environment)
       : _summaryColector = new SummaryCollector(_environment,
-            new EmptyEntryPointsListener(), new NativeCodeOracle(null));
+            new EmptyEntryPointsListener(), new NativeCodeOracle(null, null));
 
   @override
   defaultMember(Member m) {
