@@ -8,7 +8,7 @@ import 'dart:io' show Platform;
 import 'perf.dart' as m;
 
 main() async {
-  var benchIds = ['scan', 'parse', 'linked_summarize'];
+  var benchIds = ['scan', 'parse'];
   var inputFile =
       Platform.script.resolve('../lib/src/api_prototype/file_system.dart').path;
   for (var id in benchIds) {
