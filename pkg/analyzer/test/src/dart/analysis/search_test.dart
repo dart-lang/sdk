@@ -199,6 +199,30 @@ class C {}
     expect(declarations, hasLength(2));
   }
 
+  test_declarations_mixin() async {
+    await _resolveTestUnit('''
+mixin M {
+  int f;
+  int get g => 0;
+  void set s(_) {}
+  void m() {}
+}
+''');
+    var files = new LinkedHashSet<String>();
+    List<Declaration> declarations =
+        await driver.search.declarations(null, null, files);
+    _assertHasDeclaration(declarations, 'M', DeclarationKind.MIXIN,
+        offset: 6, codeOffset: 0, codeLength: 71);
+    _assertHasDeclaration(declarations, 'f', DeclarationKind.FIELD,
+        offset: 16, codeOffset: 12, codeLength: 5, mixinName: 'M');
+    _assertHasDeclaration(declarations, 'g', DeclarationKind.GETTER,
+        offset: 29, codeOffset: 21, codeLength: 15, mixinName: 'M');
+    _assertHasDeclaration(declarations, 's', DeclarationKind.SETTER,
+        offset: 48, codeOffset: 39, codeLength: 16, mixinName: 'M');
+    _assertHasDeclaration(declarations, 'm', DeclarationKind.METHOD,
+        offset: 63, codeOffset: 58, codeLength: 11, mixinName: 'M');
+  }
+
   test_declarations_onlyForFile() async {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
@@ -1860,14 +1884,19 @@ class NoMatchABCDE {}
 
   Declaration _assertHasDeclaration(
       List<Declaration> declarations, String name, DeclarationKind kind,
-      {int offset, int codeOffset, int codeLength, String className}) {
+      {int offset,
+      int codeOffset,
+      int codeLength,
+      String className,
+      String mixinName}) {
     for (var declaration in declarations) {
       if (declaration.name == name &&
           declaration.kind == kind &&
           (offset == null || declaration.offset == offset) &&
           (codeOffset == null || declaration.codeOffset == codeOffset) &&
           (codeLength == null || declaration.codeLength == codeLength) &&
-          declaration.className == className) {
+          declaration.className == className &&
+          declaration.mixinName == mixinName) {
         return declaration;
       }
     }

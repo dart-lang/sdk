@@ -49,6 +49,8 @@ public class ElementKind {
 
   public static final String METHOD = "METHOD";
 
+  public static final String MIXIN = "MIXIN";
+
   public static final String PARAMETER = "PARAMETER";
 
   public static final String PREFIX = "PREFIX";

@@ -1776,6 +1776,7 @@ class Element implements HasToJson {
  *   LIBRARY
  *   LOCAL_VARIABLE
  *   METHOD
+ *   MIXIN
  *   PARAMETER
  *   PREFIX
  *   SETTER
@@ -1829,6 +1830,8 @@ class ElementKind implements Enum {
 
   static const ElementKind METHOD = const ElementKind._("METHOD");
 
+  static const ElementKind MIXIN = const ElementKind._("MIXIN");
+
   static const ElementKind PARAMETER = const ElementKind._("PARAMETER");
 
   static const ElementKind PREFIX = const ElementKind._("PREFIX");
@@ -1870,6 +1873,7 @@ class ElementKind implements Enum {
     LIBRARY,
     LOCAL_VARIABLE,
     METHOD,
+    MIXIN,
     PARAMETER,
     PREFIX,
     SETTER,
@@ -1921,6 +1925,8 @@ class ElementKind implements Enum {
         return LOCAL_VARIABLE;
       case "METHOD":
         return METHOD;
+      case "MIXIN":
+        return MIXIN;
       case "PARAMETER":
         return PARAMETER;
       case "PREFIX":

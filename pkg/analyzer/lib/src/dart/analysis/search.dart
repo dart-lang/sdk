@@ -40,6 +40,7 @@ class Declaration {
   final int codeOffset;
   final int codeLength;
   final String className;
+  final String mixinName;
   final String parameters;
 
   Declaration(
@@ -52,6 +53,7 @@ class Declaration {
       this.codeOffset,
       this.codeLength,
       this.className,
+      this.mixinName,
       this.parameters);
 }
 
@@ -69,6 +71,7 @@ enum DeclarationKind {
   FUNCTION_TYPE_ALIAS,
   GETTER,
   METHOD,
+  MIXIN,
   SETTER,
   VARIABLE
 }
@@ -161,7 +164,7 @@ class Search {
 
         void addDeclaration(String name, DeclarationKind kind, int offset,
             int codeOffset, int codeLength,
-            {String className, String parameters}) {
+            {String className, String mixinName, String parameters}) {
           if (maxResults != null && declarations.length >= maxResults) {
             throw const _MaxNumberOfDeclarationsError();
           }
@@ -189,6 +192,7 @@ class Search {
               codeOffset,
               codeLength,
               className,
+              mixinName,
               parameters));
         }
 
@@ -208,22 +212,17 @@ class Search {
           return getParametersString(executable.parameters);
         }
 
-        for (var class_ in unlinkedUnit.classes) {
-          String className = class_.name;
-          addDeclaration(
-              className,
-              class_.isMixinApplication
-                  ? DeclarationKind.CLASS_TYPE_ALIAS
-                  : DeclarationKind.CLASS,
-              class_.nameOffset,
-              class_.codeRange.offset,
-              class_.codeRange.length);
+        void addUnlinkedClass(UnlinkedClass class_, DeclarationKind kind,
+            {String className, String mixinName}) {
+          addDeclaration(class_.name, kind, class_.nameOffset,
+              class_.codeRange.offset, class_.codeRange.length);
+
           parameterComposer.outerTypeParameters = class_.typeParameters;
 
           for (var field in class_.fields) {
             addDeclaration(field.name, DeclarationKind.FIELD, field.nameOffset,
                 field.codeRange.offset, field.codeRange.length,
-                className: className);
+                className: className, mixinName: mixinName);
           }
 
           for (var executable in class_.executables) {
@@ -235,11 +234,23 @@ class Search {
                 executable.codeRange.offset,
                 executable.codeRange.length,
                 className: className,
+                mixinName: mixinName,
                 parameters: getExecutableParameters(executable));
             parameterComposer.innerTypeParameters = const [];
           }
 
           parameterComposer.outerTypeParameters = const [];
+        }
+
+        for (var class_ in unlinkedUnit.classes) {
+          var kind = class_.isMixinApplication
+              ? DeclarationKind.CLASS_TYPE_ALIAS
+              : DeclarationKind.CLASS;
+          addUnlinkedClass(class_, kind, className: class_.name);
+        }
+
+        for (var mixin in unlinkedUnit.mixins) {
+          addUnlinkedClass(mixin, DeclarationKind.MIXIN, mixinName: mixin.name);
         }
 
         for (var enum_ in unlinkedUnit.enums) {
