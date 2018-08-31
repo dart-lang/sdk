@@ -1668,6 +1668,19 @@ class A {
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
   }
 
+  test_mixin() async {
+    addTestSource('mixin M o^ { }');
+    await computeSuggestions();
+    assertSuggestKeywords([Keyword.ON, Keyword.IMPLEMENTS],
+        relevance: DART_RELEVANCE_HIGH);
+  }
+
+  test_mixin_afterOnClause() async {
+    addTestSource('mixin M on A i^ { } class A {}');
+    await computeSuggestions();
+    assertSuggestKeywords([Keyword.IMPLEMENTS], relevance: DART_RELEVANCE_HIGH);
+  }
+
   test_named_constructor_invocation() async {
     addTestSource('void main() {new Future.^}');
     await computeSuggestions();
