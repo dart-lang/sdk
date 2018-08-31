@@ -716,6 +716,12 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   @override
+  Object visitMixinDeclaration(MixinDeclaration node) {
+    resolveMetadata(node);
+    return null;
+  }
+
+  @override
   Object visitPartDirective(PartDirective node) {
     resolveMetadata(node);
     return null;

@@ -41,6 +41,8 @@ abstract class ResolutionTest implements ResourceProviderMixin {
 
   ClassElement get numElement => typeProvider.numType.element;
 
+  InterfaceType get objectType => typeProvider.objectType;
+
   TypeProvider get typeProvider =>
       result.unit.declaredElement.context.typeProvider;
 
@@ -53,9 +55,33 @@ abstract class ResolutionTest implements ResourceProviderMixin {
     expect(actual, same(expected));
   }
 
+  void assertElementName(Element element, String name,
+      {bool isSynthetic = false, int offset}) {
+    expect(element.name, name);
+    expect(element.isSynthetic, isSynthetic);
+    if (offset != null) {
+      expect(element.nameOffset, offset);
+    }
+  }
+
   void assertElementNull(Expression node) {
     Element actual = getNodeElement(node);
     expect(actual, isNull);
+  }
+
+  void assertElementType(DartType type, DartType expected) {
+    expect(type, expected);
+  }
+
+  void assertElementTypes(List<DartType> types, List<DartType> expected) {
+    expect(types, hasLength(expected.length));
+    for (var i = 0; i < types.length; ++i) {
+      assertElementType(types[i], expected[i]);
+    }
+  }
+
+  void assertEnclosingElement(Element element, Element expectedEnclosing) {
+    expect(element.enclosingElement, expectedEnclosing);
   }
 
   void assertIdentifierTopGetRef(SimpleIdentifier ref, String name) {
@@ -129,9 +155,13 @@ abstract class ResolutionTest implements ResourceProviderMixin {
     expect(node.staticType, isNull);
   }
 
-  Element getNodeElement(Expression node) {
-    if (node is AssignmentExpression) {
+  Element getNodeElement(AstNode node) {
+    if (node is Annotation) {
+      return node.element;
+    } else if (node is AssignmentExpression) {
       return node.staticElement;
+    } else if (node is Declaration) {
+      return node.declaredElement;
     } else if (node is Identifier) {
       return node.staticElement;
     } else if (node is IndexExpression) {

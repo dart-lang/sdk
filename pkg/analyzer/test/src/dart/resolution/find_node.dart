@@ -12,116 +12,138 @@ class FindNode {
     return unit.directives.singleWhere((d) => d is LibraryDirective);
   }
 
+  Annotation annotation(String search) {
+    return _node(search, (n) => n is Annotation);
+  }
+
   AssignmentExpression assignment(String search) {
-    return _node(search).getAncestor((n) => n is AssignmentExpression);
+    return _node(search, (n) => n is AssignmentExpression);
   }
 
   CascadeExpression cascade(String search) {
-    return _node(search).getAncestor((n) => n is CascadeExpression);
+    return _node(search, (n) => n is CascadeExpression);
+  }
+
+  CommentReference commentReference(String search) {
+    return _node(search, (n) => n is CommentReference);
   }
 
   ExportDirective export(String search) {
-    return _node(search).getAncestor((n) => n is ExportDirective);
+    return _node(search, (n) => n is ExportDirective);
   }
 
   FunctionExpression functionExpression(String search) {
-    return _node(search).getAncestor((n) => n is FunctionExpression);
+    return _node(search, (n) => n is FunctionExpression);
   }
 
   GenericFunctionType genericFunctionType(String search) {
-    return _node(search).getAncestor((n) => n is GenericFunctionType);
+    return _node(search, (n) => n is GenericFunctionType);
   }
 
   ImportDirective import(String search) {
-    return _node(search).getAncestor((n) => n is ImportDirective);
+    return _node(search, (n) => n is ImportDirective);
   }
 
   InstanceCreationExpression instanceCreation(String search) {
-    return _node(search).getAncestor((n) => n is InstanceCreationExpression);
+    return _node(search, (n) => n is InstanceCreationExpression);
   }
 
   ListLiteral listLiteral(String search) {
-    return _node(search).getAncestor((n) => n is ListLiteral);
+    return _node(search, (n) => n is ListLiteral);
   }
 
   MapLiteral mapLiteral(String search) {
-    return _node(search).getAncestor((n) => n is MapLiteral);
+    return _node(search, (n) => n is MapLiteral);
+  }
+
+  MethodDeclaration methodDeclaration(String search) {
+    return _node(search, (n) => n is MethodDeclaration);
   }
 
   MethodInvocation methodInvocation(String search) {
-    return _node(search).getAncestor((n) => n is MethodInvocation);
+    return _node(search, (n) => n is MethodInvocation);
+  }
+
+  MixinDeclaration mixin(String search) {
+    return _node(search, (n) => n is MixinDeclaration);
   }
 
   ParenthesizedExpression parenthesized(String search) {
-    return _node(search).getAncestor((n) => n is ParenthesizedExpression);
+    return _node(search, (n) => n is ParenthesizedExpression);
   }
 
   PartDirective part(String search) {
-    return _node(search).getAncestor((n) => n is PartDirective);
+    return _node(search, (n) => n is PartDirective);
   }
 
   PartOfDirective partOf(String search) {
-    return _node(search).getAncestor((n) => n is PartOfDirective);
+    return _node(search, (n) => n is PartOfDirective);
   }
 
   PostfixExpression postfix(String search) {
-    return _node(search).getAncestor((n) => n is PostfixExpression);
+    return _node(search, (n) => n is PostfixExpression);
   }
 
   PrefixExpression prefix(String search) {
-    return _node(search).getAncestor((n) => n is PrefixExpression);
+    return _node(search, (n) => n is PrefixExpression);
   }
 
   PrefixedIdentifier prefixed(String search) {
-    return _node(search).getAncestor((n) => n is PrefixedIdentifier);
+    return _node(search, (n) => n is PrefixedIdentifier);
   }
 
   RethrowExpression rethrow_(String search) {
-    return _node(search).getAncestor((n) => n is RethrowExpression);
+    return _node(search, (n) => n is RethrowExpression);
   }
 
   SimpleIdentifier simple(String search) {
-    return _node(search);
+    return _node(search, (_) => true);
   }
 
   SimpleFormalParameter simpleParameter(String search) {
-    return _node(search).getAncestor((n) => n is SimpleFormalParameter);
+    return _node(search, (n) => n is SimpleFormalParameter);
   }
 
   StringLiteral stringLiteral(String search) {
-    return _node(search).getAncestor((n) => n is StringLiteral);
+    return _node(search, (n) => n is StringLiteral);
   }
 
   SuperExpression super_(String search) {
-    return _node(search).getAncestor((n) => n is SuperExpression);
+    return _node(search, (n) => n is SuperExpression);
   }
 
   ThisExpression this_(String search) {
-    return _node(search).getAncestor((n) => n is ThisExpression);
+    return _node(search, (n) => n is ThisExpression);
   }
 
   ThrowExpression throw_(String search) {
-    return _node(search).getAncestor((n) => n is ThrowExpression);
+    return _node(search, (n) => n is ThrowExpression);
   }
 
   TypeName typeName(String search) {
-    return _node(search).getAncestor((n) => n is TypeName);
+    return _node(search, (n) => n is TypeName);
   }
 
   TypeParameter typeParameter(String search) {
-    return _node(search).getAncestor((n) => n is TypeParameter);
+    return _node(search, (n) => n is TypeParameter);
   }
 
   VariableDeclaration variableDeclaration(String search) {
-    return _node(search).getAncestor((n) => n is VariableDeclaration);
+    return _node(search, (n) => n is VariableDeclaration);
   }
 
-  AstNode _node(String search) {
+  AstNode _node(String search, bool Function(AstNode) predicate) {
     var index = content.indexOf(search);
     if (content.indexOf(search, index + 1) != -1) {
       fail('The pattern |$search| is not unique in:\n$content');
     }
     expect(index, greaterThanOrEqualTo(0));
-    return new NodeLocator2(index).searchWithin(unit);
+
+    var node = new NodeLocator2(index).searchWithin(unit);
+    expect(node, isNotNull);
+
+    var result = node.getAncestor(predicate);
+    expect(result, isNotNull);
+    return result;
   }
 }

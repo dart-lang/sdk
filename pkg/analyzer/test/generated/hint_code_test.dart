@@ -1660,7 +1660,6 @@ abstract class B {}
     verify([source]);
   }
 
-  @failingTest
   test_invalidSealedAnnotation_onMixin() async {
     Source source = addNamedSource('/lib1.dart', r'''
 import 'package:meta/meta.dart';

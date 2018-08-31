@@ -7816,8 +7816,7 @@ class MixinDeclarationImpl extends ClassOrMixinDeclarationImpl
     ..add(rightBracket);
 
   @override
-//  MixinElement get declaredElement => _name?.staticElement as MixinElement;
-  Element get declaredElement => throw new UnimplementedError();
+  ClassElement get declaredElement => _name?.staticElement as ClassElement;
 
   @deprecated
   @override

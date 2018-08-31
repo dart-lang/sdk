@@ -398,6 +398,16 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitMixinDeclaration(MixinDeclaration node) {
+    ClassElement element = _match(node.name, _walker.getMixin());
+    _walk(new ElementWalker.forClass(element), () {
+      super.visitMixinDeclaration(node);
+    });
+    resolveMetadata(node, node.metadata, element);
+    return null;
+  }
+
+  @override
   Object visitPartDirective(PartDirective node) {
     super.visitPartDirective(node);
     List<ElementAnnotation> annotations =
@@ -839,6 +849,8 @@ class ElementWalker {
   int _enumIndex = 0;
   List<ExecutableElement> _functions;
   int _functionIndex = 0;
+  List<ClassElement> _mixins;
+  int _mixinIndex = 0;
   List<ParameterElement> _parameters;
   int _parameterIndex = 0;
   List<FunctionTypeAliasElement> _typedefs;
@@ -872,6 +884,7 @@ class ElementWalker {
         _classes = compilationUnit.types,
         _enums = compilationUnit.enums,
         _functions = compilationUnit.functions,
+        _mixins = compilationUnit.mixins,
         _typedefs = compilationUnit.functionTypeAliases,
         _variables =
             compilationUnit.topLevelVariables.where(_isNotSynthetic).toList();
@@ -975,6 +988,12 @@ class ElementWalker {
    * more.
    */
   ExecutableElement getFunction() => _functions[_functionIndex++];
+
+  /**
+   * Returns the next non-synthetic child of [element] which is a mixin; throws
+   * an [IndexError] if there are no more.
+   */
+  ClassElement getMixin() => _mixins[_mixinIndex++];
 
   /**
    * Returns the next non-synthetic child of [element] which is a parameter;

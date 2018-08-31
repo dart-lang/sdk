@@ -5025,6 +5025,12 @@ class ResolverVisitor extends ScopedVisitor {
    */
   ExecutableElement _enclosingFunction = null;
 
+  /**
+   * The mixin declaration representing the class containing the current node,
+   * or `null` if the current node is not contained in a mixin.
+   */
+  MixinDeclaration _enclosingMixinDeclaration = null;
+
   InferenceContext inferenceContext = null;
 
   /**
@@ -5309,7 +5315,8 @@ class ResolverVisitor extends ScopedVisitor {
   Object visitAnnotation(Annotation node) {
     AstNode parent = node.parent;
     if (identical(parent, _enclosingClassDeclaration) ||
-        identical(parent, _enclosingFunctionTypeAlias)) {
+        identical(parent, _enclosingFunctionTypeAlias) ||
+        identical(parent, _enclosingMixinDeclaration)) {
       return null;
     }
     node.name?.accept(this);
@@ -6207,6 +6214,31 @@ class ResolverVisitor extends ScopedVisitor {
     _inferArgumentTypesForInvocation(node);
     node.argumentList?.accept(this);
     node.accept(typeAnalyzer);
+    return null;
+  }
+
+  @override
+  Object visitMixinDeclaration(MixinDeclaration node) {
+    //
+    // Resolve the metadata in the library scope.
+    //
+    node.metadata?.accept(this);
+    _enclosingMixinDeclaration = node;
+    //
+    // Continue the class resolution.
+    //
+    ClassElement outerType = enclosingClass;
+    try {
+      enclosingClass = node.declaredElement;
+      typeAnalyzer.thisType = enclosingClass?.type;
+      super.visitMixinDeclaration(node);
+      node.accept(elementResolver);
+      node.accept(typeAnalyzer);
+    } finally {
+      typeAnalyzer.thisType = outerType?.type;
+      enclosingClass = outerType;
+      _enclosingMixinDeclaration = null;
+    }
     return null;
   }
 
@@ -7643,6 +7675,40 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
 
   void visitMethodDeclarationInScope(MethodDeclaration node) {
     super.visitMethodDeclaration(node);
+  }
+
+  @override
+  Object visitMixinDeclaration(MixinDeclaration node) {
+    ClassElement element = node.declaredElement;
+
+    Scope outerScope = nameScope;
+    ClassElement outerClass = enclosingClass;
+    try {
+      enclosingClass = element;
+
+      nameScope = new TypeParameterScope(nameScope, element);
+      visitMixinDeclarationInScope(node);
+
+      nameScope = new ClassScope(nameScope, element);
+      visitMixinMembersInScope(node);
+    } finally {
+      nameScope = outerScope;
+      enclosingClass = outerClass;
+    }
+    return null;
+  }
+
+  void visitMixinDeclarationInScope(MixinDeclaration node) {
+    node.name?.accept(this);
+    node.typeParameters?.accept(this);
+    node.onClause?.accept(this);
+    node.implementsClause?.accept(this);
+  }
+
+  void visitMixinMembersInScope(MixinDeclaration node) {
+    node.documentationComment?.accept(this);
+    node.metadata.accept(this);
+    node.members.accept(this);
   }
 
   /**
@@ -9694,7 +9760,8 @@ class TypeResolverVisitor extends ScopedVisitor {
       }
       classElement.supertype = superclassType;
     }
-    _resolve(classElement, withClause, implementsClause);
+    _resolveWithClause(classElement, withClause);
+    _resolveImplementsClause(classElement, implementsClause);
     return null;
   }
 
@@ -9736,7 +9803,8 @@ class TypeResolverVisitor extends ScopedVisitor {
     if (classElement != null) {
       classElement.supertype = superclassType;
     }
-    _resolve(classElement, node.withClause, node.implementsClause);
+    _resolveWithClause(classElement, node.withClause);
+    _resolveImplementsClause(classElement, node.implementsClause);
     return null;
   }
 
@@ -9911,6 +9979,15 @@ class TypeResolverVisitor extends ScopedVisitor {
       }
     }
 
+    return null;
+  }
+
+  @override
+  void visitMixinDeclarationInScope(MixinDeclaration node) {
+    super.visitMixinDeclarationInScope(node);
+    MixinElementImpl element = node.declaredElement;
+    _resolveOnClause(element, node.onClause);
+    _resolveImplementsClause(element, node.implementsClause);
     return null;
   }
 
@@ -10180,24 +10257,10 @@ class TypeResolverVisitor extends ScopedVisitor {
     return null;
   }
 
-  /**
-   * Resolve the types in the given [withClause] and [implementsClause] and
-   * associate those types with the given [classElement].
-   */
-  void _resolve(ClassElementImpl classElement, WithClause withClause,
-      ImplementsClause implementsClause) {
-    if (withClause != null) {
-      List<InterfaceType> mixinTypes = _resolveTypes(
-          withClause.mixinTypes,
-          CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
-          CompileTimeErrorCode.MIXIN_OF_ENUM,
-          CompileTimeErrorCode.MIXIN_OF_NON_CLASS);
-      if (classElement != null) {
-        classElement.mixins = mixinTypes;
-      }
-    }
-    if (implementsClause != null) {
-      NodeList<TypeName> interfaces = implementsClause.interfaces;
+  void _resolveImplementsClause(
+      ClassElementImpl classElement, ImplementsClause clause) {
+    if (clause != null) {
+      NodeList<TypeName> interfaces = clause.interfaces;
       List<InterfaceType> interfaceTypes = _resolveTypes(
           interfaces,
           CompileTimeErrorCode.IMPLEMENTS_NON_CLASS,
@@ -10230,6 +10293,20 @@ class TypeResolverVisitor extends ScopedVisitor {
         }
       }
     }
+  }
+
+  void _resolveOnClause(MixinElementImpl classElement, OnClause clause) {
+    List<InterfaceType> types;
+    if (clause != null) {
+      types = _resolveTypes(
+          clause.superclassConstraints,
+          CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
+          CompileTimeErrorCode.MIXIN_OF_ENUM,
+          CompileTimeErrorCode.MIXIN_OF_NON_CLASS);
+    } else {
+      types = [typeProvider.objectType];
+    }
+    classElement.superclassConstraints = types;
   }
 
   /**
@@ -10292,6 +10369,17 @@ class TypeResolverVisitor extends ScopedVisitor {
       }
     }
     return types;
+  }
+
+  void _resolveWithClause(ClassElementImpl classElement, WithClause clause) {
+    if (clause != null) {
+      List<InterfaceType> mixinTypes = _resolveTypes(
+          clause.mixinTypes,
+          CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
+          CompileTimeErrorCode.MIXIN_OF_ENUM,
+          CompileTimeErrorCode.MIXIN_OF_NON_CLASS);
+      classElement.mixins = mixinTypes;
+    }
   }
 
   /**

@@ -5185,6 +5185,9 @@ abstract class MethodReferenceExpression {
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class MixinDeclaration extends NamedCompilationUnitMember {
+  @override
+  ClassElement get declaredElement;
+
   /**
    * Return the implements clause for the mixin, or `null` if the mixin does not
    * implement any interfaces.

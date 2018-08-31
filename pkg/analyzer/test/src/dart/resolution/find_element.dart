@@ -1,5 +1,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:test/test.dart';
 
 import 'function_ast_visitor.dart';
@@ -85,6 +86,10 @@ class FindElement {
     fail('Not found import: $targetUri');
   }
 
+  InterfaceType interfaceType(String name) {
+    return class_(name).type;
+  }
+
   LocalVariableElement localVar(String name) {
     LocalVariableElement result;
     unit.accept(new FunctionAstVisitor(
@@ -113,6 +118,15 @@ class FindElement {
       }
     }
     fail('Not found class method: $name');
+  }
+
+  ClassElement mixin(String name) {
+    for (var mixin in unitElement.mixins) {
+      if (mixin.name == name) {
+        return mixin;
+      }
+    }
+    fail('Not found mixin: $name');
   }
 
   ParameterElement parameter(String name) {
