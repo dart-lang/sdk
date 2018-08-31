@@ -6,10 +6,12 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 
+import '../../../generated/test_support.dart';
 import 'find_element.dart';
 import 'find_node.dart';
 
@@ -30,6 +32,8 @@ abstract class ResolutionTest implements ResourceProviderMixin {
   ClassElement get doubleElement => typeProvider.doubleType.element;
 
   InterfaceType get doubleType => typeProvider.doubleType;
+
+  Element get dynamicElement => typeProvider.dynamicType.element;
 
   ClassElement get intElement => typeProvider.intType.element;
 
@@ -84,6 +88,31 @@ abstract class ResolutionTest implements ResourceProviderMixin {
     expect(element.enclosingElement, expectedEnclosing);
   }
 
+  /**
+   * Assert that the number of error codes in reported [errors] matches the
+   * number of [expected] error codes. The order of errors is ignored.
+   */
+  void assertErrors(List<AnalysisError> errors,
+      [List<ErrorCode> expected = const <ErrorCode>[]]) {
+    var errorListener = new GatheringErrorListener();
+    for (AnalysisError error in result.errors) {
+      ErrorCode errorCode = error.errorCode;
+      if (errorCode == HintCode.UNUSED_CATCH_CLAUSE ||
+          errorCode == HintCode.UNUSED_CATCH_STACK ||
+          errorCode == HintCode.UNUSED_ELEMENT ||
+          errorCode == HintCode.UNUSED_FIELD ||
+          errorCode == HintCode.UNUSED_LOCAL_VARIABLE) {
+        continue;
+      }
+      errorListener.onError(error);
+    }
+    errorListener.assertErrorsWithCodes(expected);
+  }
+
+  void assertHasTestErrors() {
+    expect(result.errors, isNotEmpty);
+  }
+
   void assertIdentifierTopGetRef(SimpleIdentifier ref, String name) {
     var getter = findElement.topGet(name);
     assertElement(ref, getter);
@@ -105,6 +134,14 @@ abstract class ResolutionTest implements ResourceProviderMixin {
     Member actual = getNodeElement(node);
     expect(actual.definingType.toString(), expectedDefiningType);
     expect(actual.baseElement, same(expectedBase));
+  }
+
+  void assertNoTestErrors() {
+    expect(result.errors, isEmpty);
+  }
+
+  void assertTestErrors(List<ErrorCode> expected) {
+    assertErrors(result.errors, expected);
   }
 
   void assertTopGetRef(String search, String name) {
@@ -179,7 +216,7 @@ abstract class ResolutionTest implements ResourceProviderMixin {
 
   Future<TestAnalysisResult> resolveFile(String path);
 
-  Future resolveTestFile() async {
+  Future<void> resolveTestFile() async {
     var path = convertPath('/test/lib/test.dart');
     result = await resolveFile(path);
     findNode = new FindNode(result.content, result.unit);

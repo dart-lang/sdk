@@ -1048,6 +1048,40 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitMixinDeclaration(MixinDeclaration node) {
+    // TODO(scheglov) Verify for all mixin errors.
+//    ClassElementImpl outerClass = _enclosingClass;
+    try {
+//      _isInNativeClass = node.nativeClause != null;
+//      _enclosingClass = AbstractClassElementImpl.getImpl(node.declaredElement);
+//      _checkDuplicateClassMembers(node);
+//      _checkForBuiltInIdentifierAsName(
+//          node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
+//      _checkForMemberWithClassName();
+//      _checkForNoDefaultSuperConstructorImplicit(node);
+//      _checkForConflictingTypeVariableErrorCodes(node);
+
+      OnClause onClause = node.onClause;
+      ImplementsClause implementsClause = node.implementsClause;
+
+      // Only do error checks only if there is a non-null clause.
+      if (onClause != null || implementsClause != null) {
+        _checkMixinInheritance(node, onClause, implementsClause);
+      }
+//      visitClassDeclarationIncrementally(node);
+//      _checkForFinalNotInitializedInClass(node);
+//      _checkForDuplicateDefinitionInheritance();
+//      _checkForConflictingInstanceMethodSetter(node);
+//      _checkForBadFunctionUse(node);
+      return super.visitMixinDeclaration(node);
+    } finally {
+//      _isInNativeClass = false;
+//      _initialFieldElementsMap = null;
+//      _enclosingClass = outerClass;
+    }
+  }
+
+  @override
   Object visitNativeClause(NativeClause node) {
     // TODO(brianwilkerson) Figure out the right rule for when 'native' is
     // allowed.
@@ -3280,8 +3314,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
     if (typeName.isDeferred) {
-      _errorReporter
-          .reportErrorForNode(errorCode, typeName, [typeName.name.name]);
+      _errorReporter.reportErrorForNode(errorCode, typeName);
       return true;
     }
     return false;
@@ -4919,6 +4952,39 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * Verify that all classes of the given [onClause] are valid.
+   *
+   * See [CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR],
+   * [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT], and
+   * [CompileTimeErrorCode.MIXIN_REFERENCES_SUPER].
+   */
+  bool _checkForOnClauseErrorCodes(OnClause onClause) {
+    if (onClause == null) {
+      return false;
+    }
+    bool problemReported = false;
+    for (TypeName typeName in onClause.superclassConstraints) {
+      DartType type = typeName.type;
+      if (type is InterfaceType) {
+        if (_checkForExtendsOrImplementsDisallowedClass(
+            typeName,
+            CompileTimeErrorCode
+                .MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS)) {
+          problemReported = true;
+        } else {
+          if (_checkForExtendsOrImplementsDeferredClass(
+              typeName,
+              CompileTimeErrorCode
+                  .MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS)) {
+            problemReported = true;
+          }
+        }
+      }
+    }
+    return problemReported;
+  }
+
+  /**
    * Verify the given operator-method [declaration], does not have an optional
    * parameter. This method assumes that the method declaration was tested to be
    * an operator declaration before being called.
@@ -5885,6 +5951,35 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         ClassElementImpl.collectAllSupertypes(
             supertypesForMixinInference, mixinElement.type, type);
       }
+    }
+  }
+
+  /**
+   * Checks the class for problems with the superclass, mixins, or implemented
+   * interfaces.
+   */
+  void _checkMixinInheritance(MixinDeclaration node, OnClause onClause,
+      ImplementsClause implementsClause) {
+    // TODO(scheglov) Verify for all mixin errors.
+    // Only check for all of the inheritance logic around clauses if there
+    // isn't an error code such as "Cannot implement double" already.
+    if (!_checkForOnClauseErrorCodes(onClause) &&
+        !_checkForImplementsDisallowedClass(implementsClause)) {
+//      _checkForImplicitDynamicType(superclass);
+//      _checkForExtendsDeferredClass(superclass);
+      _checkForImplementsDeferredClass(implementsClause);
+//      _checkForNonAbstractClassInheritsAbstractMember(node.name);
+//      _checkForInconsistentMethodInheritance();
+//      _checkForRecursiveInterfaceInheritance(_enclosingClass);
+//      _checkForConflictingGetterAndMethod();
+//      _checkForConflictingInstanceGetterAndSuperclassMember();
+//      _checkImplementsSuperClass(implementsClause);
+//      _checkForMixinHasNoConstructors(node);
+//      _checkMixinInference(node, onClause);
+//      _checkForMixinWithConflictingPrivateMember(onClause, superclass);
+//      if (!disableConflictingGenericsCheck) {
+//        _checkForConflictingGenerics(node);
+//      }
     }
   }
 

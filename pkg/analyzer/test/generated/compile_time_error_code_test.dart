@@ -2320,26 +2320,26 @@ class C = String with M;''');
     verify([source]);
   }
 
-  test_extendsEnum() async {
-    Source source = addSource(r'''
-enum E { ONE }
-class A extends E {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_ENUM]);
-    verify([source]);
-  }
-
-  test_extendsNonClass_class() async {
-    Source source = addSource(r'''
-int A;
-class B extends A {}''');
+  test_extendsNonClass_dynamic() async {
+    Source source = addSource("class B extends dynamic {}");
     await computeAnalysisResult(source);
     assertErrors(source, [CompileTimeErrorCode.EXTENDS_NON_CLASS]);
     verify([source]);
   }
 
-  test_extendsNonClass_dynamic() async {
-    Source source = addSource("class B extends dynamic {}");
+  test_extendsNonClass_enum() async {
+    Source source = addSource(r'''
+enum E { ONE }
+class A extends E {}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.EXTENDS_NON_CLASS]);
+    verify([source]);
+  }
+
+  test_extendsNonClass_variable() async {
+    Source source = addSource(r'''
+int A;
+class B extends A {}''');
     await computeAnalysisResult(source);
     assertErrors(source, [CompileTimeErrorCode.EXTENDS_NON_CLASS]);
     verify([source]);
@@ -3003,26 +3003,26 @@ class C = A with M implements String, num;''');
     verify([source]);
   }
 
-  test_implementsDynamic() async {
-    Source source = addSource("class A implements dynamic {}");
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_DYNAMIC]);
-    verify([source]);
-  }
-
-  test_implementsEnum() async {
-    Source source = addSource(r'''
-enum E { ONE }
-class A implements E {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_ENUM]);
-    verify([source]);
-  }
-
   test_implementsNonClass_class() async {
     Source source = addSource(r'''
 int A;
 class B implements A {}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_NON_CLASS]);
+    verify([source]);
+  }
+
+  test_implementsNonClass_dynamic() async {
+    Source source = addSource("class A implements dynamic {}");
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_NON_CLASS]);
+    verify([source]);
+  }
+
+  test_implementsNonClass_enum() async {
+    Source source = addSource(r'''
+enum E { ONE }
+class A implements E {}''');
     await computeAnalysisResult(source);
     assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_NON_CLASS]);
     verify([source]);
@@ -4535,15 +4535,6 @@ class C = A with String;''');
     verify([source]);
   }
 
-  test_mixinOfEnum() async {
-    Source source = addSource(r'''
-enum E { ONE }
-class A extends Object with E {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_ENUM]);
-    verify([source]);
-  }
-
   @failingTest
   test_mixinOfNonClass() async {
     // TODO(brianwilkerson) Compare with MIXIN_WITH_NON_CLASS_SUPERCLASS.
@@ -4559,6 +4550,15 @@ class B extends Object mixin A {}''');
     Source source = addSource(r'''
 int A;
 class B extends Object with A {}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_NON_CLASS]);
+    verify([source]);
+  }
+
+  test_mixinOfNonClass_enum() async {
+    Source source = addSource(r'''
+enum E { ONE }
+class A extends Object with E {}''');
     await computeAnalysisResult(source);
     assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_NON_CLASS]);
     verify([source]);

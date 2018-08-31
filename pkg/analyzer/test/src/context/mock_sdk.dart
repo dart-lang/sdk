@@ -321,7 +321,7 @@ class Map<K, V> extends Object {
 class Duration implements Comparable<Duration> {}
 
 class Exception {
-  factory Exception([var message]);
+  factory Exception([var message]) => null;
 }
 
 external bool identical(Object a, Object b);

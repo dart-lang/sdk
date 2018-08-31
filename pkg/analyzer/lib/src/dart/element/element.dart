@@ -6613,16 +6613,19 @@ class MixinElementImpl extends ClassElementImpl {
   List<InterfaceType> get superclassConstraints {
     if (_superclassConstraints == null) {
       if (_unlinkedClass != null) {
+        List<InterfaceType> constraints;
         if (_unlinkedClass.superclassConstraints.isNotEmpty) {
           ResynthesizerContext context = enclosingUnit.resynthesizerContext;
-          _superclassConstraints = _unlinkedClass.superclassConstraints
+          constraints = _unlinkedClass.superclassConstraints
               .map((EntityRef t) => context.resolveTypeRef(this, t))
               .where(_isClassInterfaceType)
               .cast<InterfaceType>()
               .toList(growable: false);
-        } else {
-          _superclassConstraints = [context.typeProvider.objectType];
         }
+        if (constraints == null || constraints.isEmpty) {
+          constraints = [context.typeProvider.objectType];
+        }
+        _superclassConstraints = constraints;
       }
     }
     return _superclassConstraints ?? const <InterfaceType>[];

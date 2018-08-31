@@ -944,15 +944,6 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try exporting the library that the part is a part of.");
 
   /**
-   * Enum proposal: It is a compile-time error to subclass, mix-in or implement
-   * an enum.
-   */
-  static const CompileTimeErrorCode EXTENDS_ENUM = const CompileTimeErrorCode(
-      'EXTENDS_ENUM', "Classes can't extend an enum.",
-      correction:
-          "Try specifying a different superclass, or removing the extends clause.");
-
-  /**
    * 7.9 Superclasses: It is a compile-time error if the extends clause of a
    * class <i>C</i> includes a type expression that does not denote a class
    * available in the lexical scope of <i>C</i>.
@@ -1009,8 +1000,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * See [IMPLEMENTS_DEFERRED_CLASS], and [MIXIN_DEFERRED_CLASS].
    */
   static const CompileTimeErrorCode EXTENDS_DEFERRED_CLASS =
-      const CompileTimeErrorCode('EXTENDS_DEFERRED_CLASS',
-          "This class can't extend the deferred class '{0}'.",
+      const CompileTimeErrorCode(
+          'EXTENDS_DEFERRED_CLASS', "Classes can't extend deferred classes.",
           correction: "Try specifying a different superclass, or "
               "removing the extends clause.");
 
@@ -1169,14 +1160,11 @@ class CompileTimeErrorCode extends ErrorCode {
    * of a class <i>C</i> specifies a malformed type or deferred type as a
    * superinterface.
    *
-   * Parameters:
-   * 0: the name of the type that is deferred
-   *
    * See [EXTENDS_DEFERRED_CLASS], and [MIXIN_DEFERRED_CLASS].
    */
   static const CompileTimeErrorCode IMPLEMENTS_DEFERRED_CLASS =
       const CompileTimeErrorCode('IMPLEMENTS_DEFERRED_CLASS',
-          "This class can't implement the deferred class '{0}'.",
+          "Classes and mixins can't implement deferred classes.",
           correction: "Try specifying a different interface, "
               "removing the class from the list, or "
               "changing the import to not be deferred.");
@@ -1207,30 +1195,10 @@ class CompileTimeErrorCode extends ErrorCode {
    * See [EXTENDS_DISALLOWED_CLASS].
    */
   static const CompileTimeErrorCode IMPLEMENTS_DISALLOWED_CLASS =
-      const CompileTimeErrorCode(
-          'IMPLEMENTS_DISALLOWED_CLASS', "Classes can't implement '{0}'.",
+      const CompileTimeErrorCode('IMPLEMENTS_DISALLOWED_CLASS',
+          "Classes and mixins can't implement '{0}'.",
           correction: "Try specifying a different interface, or "
               "remove the class from the list.");
-
-  /**
-   * 7.10 Superinterfaces: It is a compile-time error if the implements clause
-   * of a class includes type dynamic.
-   */
-  static const CompileTimeErrorCode IMPLEMENTS_DYNAMIC =
-      const CompileTimeErrorCode(
-          'IMPLEMENTS_DYNAMIC', "Classes can't implement 'dynamic'.",
-          correction:
-              "Try specifying an interface, or remove 'dynamic' from the list.");
-
-  /**
-   * Enum proposal: It is a compile-time error to subclass, mix-in or implement
-   * an enum.
-   */
-  static const CompileTimeErrorCode IMPLEMENTS_ENUM =
-      const CompileTimeErrorCode(
-          'IMPLEMENTS_ENUM', "Classes can't implement an enum.",
-          correction:
-              "Try specifying an interface, or remove the enum from the list.");
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the implements clause
@@ -1241,8 +1209,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * 0: the name of the interface that was not found
    */
   static const CompileTimeErrorCode IMPLEMENTS_NON_CLASS =
-      const CompileTimeErrorCode(
-          'IMPLEMENTS_NON_CLASS', "Classes can only implement other classes.",
+      const CompileTimeErrorCode('IMPLEMENTS_NON_CLASS',
+          "Classes and mixins can only implement classes.",
           correction:
               "Try specifying a class, or remove the name from the list.");
 
@@ -1718,8 +1686,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * See [EXTENDS_DEFERRED_CLASS], and [IMPLEMENTS_DEFERRED_CLASS].
    */
   static const CompileTimeErrorCode MIXIN_DEFERRED_CLASS =
-      const CompileTimeErrorCode('MIXIN_DEFERRED_CLASS',
-          "This class can't mixin the deferred class '{0}'.",
+      const CompileTimeErrorCode(
+          'MIXIN_DEFERRED_CLASS', "Classes can't mixin deferred classes.",
           correction: "Try changing the import to not be deferred.");
 
   /**
@@ -1799,13 +1767,6 @@ class CompileTimeErrorCode extends ErrorCode {
           'MIXIN_OF_DISALLOWED_CLASS', "Classes can't mixin '{0}'.");
 
   /**
-   * Enum proposal: It is a compile-time error to subclass, mix-in or implement
-   * an enum.
-   */
-  static const CompileTimeErrorCode MIXIN_OF_ENUM = const CompileTimeErrorCode(
-      'MIXIN_OF_ENUM', "Classes can't mixin an enum.");
-
-  /**
    * 9.1 Mixin Application: It is a compile-time error if <i>M</i> does not
    * denote a class or mixin available in the immediately enclosing scope.
    */
@@ -1822,6 +1783,22 @@ class CompileTimeErrorCode extends ErrorCode {
           'MIXIN_REFERENCES_SUPER',
           "The class '{0}' can't be used as a mixin because it references "
           "'super'.");
+
+  static const CompileTimeErrorCode
+      MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS = const CompileTimeErrorCode(
+          'MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS',
+          "Deferred classes can't be used as super-class constraints.",
+          correction: "Try changing the import to not be deferred.");
+
+  static const CompileTimeErrorCode
+      MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS =
+      const CompileTimeErrorCode(
+          'MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS',
+          "'{0}' can't be used as a super-class constraint.");
+
+  static const CompileTimeErrorCode MIXIN_SUPER_CLASS_CONSTRAINT_NON_CLASS =
+      const CompileTimeErrorCode('MIXIN_SUPER_CLASS_CONSTRAINT_NON_CLASS',
+          "Only classes can be used as super-class constraints.");
 
   /**
    * 9.1 Mixin Application: It is a compile-time error if <i>S</i> does not

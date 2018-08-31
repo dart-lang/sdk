@@ -21,6 +21,15 @@ class FindElement {
     fail('Not found class: $name');
   }
 
+  ClassElement enum_(String name) {
+    for (var enum_ in unitElement.enums) {
+      if (enum_.name == name) {
+        return enum_;
+      }
+    }
+    fail('Not found enum: $name');
+  }
+
   ExportElement export(String targetUri) {
     ExportElement exportElement;
     for (var export in unitElement.library.exports) {
