@@ -741,7 +741,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       } else {
         assert(numOptionalNamed != 0);
         for (int i = 0; i < numOptionalNamed; i++) {
-          final param = function.namedParameters[i];
+          final param = locals.sortedNamedParameters[i];
           asm.emitLoadConstant(
               numFixed + i, cp.add(new ConstantString(param.name)));
           asm.emitLoadConstant(numFixed + i, _getDefaultParamConstIndex(param));
@@ -867,7 +867,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         }
       }
       function.positionalParameters.forEach(_copyParamIfCaptured);
-      function.namedParameters.forEach(_copyParamIfCaptured);
+      locals.sortedNamedParameters.forEach(_copyParamIfCaptured);
     }
   }
 
@@ -893,7 +893,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       }
     }
     function.positionalParameters.forEach(_genArgumentTypeCheck);
-    function.namedParameters.forEach(_genArgumentTypeCheck);
+    locals.sortedNamedParameters.forEach(_genArgumentTypeCheck);
   }
 
   void _genArgumentTypeCheck(VariableDeclaration variable) {
@@ -956,7 +956,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     // as default value expressions could use local const variables which
     // are not available in bytecode.
     function.positionalParameters.forEach(_evaluateDefaultParameterValue);
-    function.namedParameters.forEach(_evaluateDefaultParameterValue);
+    locals.sortedNamedParameters.forEach(_evaluateDefaultParameterValue);
 
     final int closureFunctionIndex =
         cp.add(new ConstantClosureFunction(name, function));

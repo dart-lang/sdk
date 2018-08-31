@@ -214,7 +214,7 @@ ConstantPool {
   [25] = StaticICData target 'dart.core::_StringBase::_interpolate', arg-desc CP#12
   [26] = StaticICData target 'dart.core::print', arg-desc CP#12
 }
-]static method foo2(dynamic y, dynamic z, {dynamic a = 42, dynamic b = const <core::String>["default_b"], dynamic c = "default_c"}) → void {
+]static method foo2(dynamic y, dynamic z, {dynamic c = "default_c", dynamic a = 42, dynamic b = const <core::String>["default_b"]}) → void {
   core::print("y = ${y}");
   core::print("z = ${z}");
   core::print("a = ${a}");

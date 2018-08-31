@@ -165,6 +165,8 @@ class LocalVariables {
 
   List<VariableDeclaration> get originalNamedParameters =>
       _currentFrame.originalNamedParameters;
+  List<VariableDeclaration> get sortedNamedParameters =>
+      _currentFrame.sortedNamedParameters;
 
   LocalVariables(Member node) {
     final scopeBuilder = new _ScopeBuilder(this);
@@ -214,6 +216,7 @@ class Frame {
   Scope topScope;
 
   List<VariableDeclaration> originalNamedParameters;
+  List<VariableDeclaration> sortedNamedParameters;
   int numParameters = 0;
   int numTypeArguments = 0;
   bool hasOptionalParameters = false;
@@ -271,10 +274,11 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
 
   _ScopeBuilder(this.locals);
 
-  void _sortNamedParameters(FunctionNode function) {
-    function.namedParameters.sort(
-        (VariableDeclaration a, VariableDeclaration b) =>
-            a.name.compareTo(b.name));
+  List<VariableDeclaration> _sortNamedParameters(FunctionNode function) {
+    final params = function.namedParameters.toList();
+    params.sort((VariableDeclaration a, VariableDeclaration b) =>
+        a.name.compareTo(b.name));
+    return params;
   }
 
   void _visitFunction(TreeNode node) {
@@ -337,11 +341,11 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
         _declareVariable(_currentFrame.closureVar);
       }
 
-      _currentFrame.originalNamedParameters = function.namedParameters.toList();
-      _sortNamedParameters(function);
+      _currentFrame.originalNamedParameters = function.namedParameters;
+      _currentFrame.sortedNamedParameters = _sortNamedParameters(function);
 
       visitList(function.positionalParameters, this);
-      visitList(function.namedParameters, this);
+      visitList(_currentFrame.sortedNamedParameters, this);
 
       if (_currentFrame.isSyncYielding) {
         // The following variables from parent frame are used implicitly and need
@@ -903,7 +907,7 @@ class _Allocator extends RecursiveVisitor<Null> {
     for (var param in function.positionalParameters) {
       _allocateParameter(param, count++);
     }
-    for (var param in function.namedParameters) {
+    for (var param in _currentFrame.sortedNamedParameters) {
       _allocateParameter(param, count++);
     }
     assert(count == _currentFrame.numParameters);
