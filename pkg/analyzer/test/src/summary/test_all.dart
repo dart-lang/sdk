@@ -12,7 +12,6 @@ import 'package_bundle_reader_test.dart' as package_bundle_reader_test;
 import 'prelinker_test.dart' as prelinker_test;
 import 'resynthesize_ast_test.dart' as resynthesize_ast_test;
 import 'summarize_ast_strong_test.dart' as summarize_ast_strong_test;
-import 'summarize_ast_test.dart' as summarize_ast_test;
 import 'top_level_inference_test.dart' as top_level_inference_test;
 
 main() {
@@ -25,7 +24,6 @@ main() {
     prelinker_test.main();
     resynthesize_ast_test.main();
     summarize_ast_strong_test.main();
-    summarize_ast_test.main();
     top_level_inference_test.main();
   }, name: 'summary');
 }

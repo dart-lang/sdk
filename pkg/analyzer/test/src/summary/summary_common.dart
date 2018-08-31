@@ -14,18 +14,9 @@ import 'package:analyzer/src/summary/base.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/public_namespace_computer.dart'
     as public_namespace;
-import 'package:path/path.dart' show posix;
 import 'package:test/test.dart';
 
-import '../context/mock_sdk.dart';
-
-/**
- * Convert the given Posix style file [path] to the corresponding absolute URI.
- */
-String absUri(String path) {
-  String absolutePath = posix.absolute(path);
-  return posix.toUri(absolutePath).toString();
-}
+import 'test_strategies.dart';
 
 /**
  * Convert a summary object (or a portion of one) into a canonical form that
@@ -83,83 +74,16 @@ UnlinkedPublicNamespace computePublicNamespaceFromText(
  */
 typedef void _EntityRefValidator(EntityRef entityRef);
 
-/**
- * [SerializedMockSdk] is a singleton class representing the result of
- * serializing the mock SDK to summaries.  It is computed once and then shared
- * among test invocations so that we don't bog down the tests.
- *
- * Note: should an exception occur during computation of [instance], it will
- * silently be set to null to allow other tests to complete quickly.
- */
-class SerializedMockSdk {
-  static final SerializedMockSdk instance = _serializeMockSdk();
-
-  final Map<String, UnlinkedUnit> uriToUnlinkedUnit;
-
-  final Map<String, LinkedLibrary> uriToLinkedLibrary;
-  SerializedMockSdk._(this.uriToUnlinkedUnit, this.uriToLinkedLibrary);
-
-  static SerializedMockSdk _serializeMockSdk() {
-    try {
-      Map<String, UnlinkedUnit> uriToUnlinkedUnit = <String, UnlinkedUnit>{};
-      Map<String, LinkedLibrary> uriToLinkedLibrary = <String, LinkedLibrary>{};
-      PackageBundle bundle = new MockSdk().getLinkedBundle();
-      for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
-        String uri = bundle.unlinkedUnitUris[i];
-        uriToUnlinkedUnit[uri] = bundle.unlinkedUnits[i];
-      }
-      for (int i = 0; i < bundle.linkedLibraryUris.length; i++) {
-        String uri = bundle.linkedLibraryUris[i];
-        uriToLinkedLibrary[uri] = bundle.linkedLibraries[i];
-      }
-      return new SerializedMockSdk._(uriToUnlinkedUnit, uriToLinkedLibrary);
-    } catch (_) {
-      return null;
-    }
-  }
-}
-
-/**
- * Base class containing most summary tests.  This allows summary tests to be
- * re-used to exercise all the different ways in which summaries can be
- * generated (e.g. direct from the AST, from the element model, from a
- * "relinking" process, etc.)
- */
-abstract class SummaryTest {
-  /**
-   * A test will set this to `true` if it contains `import`, `export`, or
-   * `part` declarations that deliberately refer to non-existent files.
-   */
-  bool allowMissingFiles = false;
-
+/// Test cases that exercise summary generation in a black-box fashion.
+///
+/// These test cases may be mixed into any class derived from
+/// [SummaryBlackBoxTestStrategy], allowing summary generation to be unit-tested
+/// in a variety of ways.
+abstract class SummaryTestCases implements SummaryBlackBoxTestStrategy {
   /**
    * Get access to the linked defining compilation unit.
    */
   LinkedUnit get definingUnit => linked.units[0];
-
-  /**
-   * Get access to the linked summary that results from serializing and
-   * then deserializing the library under test.
-   */
-  LinkedLibrary get linked;
-
-  /**
-   * `true` if the linked portion of the summary only contains prelinked data.
-   * This happens because we don't yet have a full linker; only a prelinker.
-   */
-  bool get skipFullyLinkedData;
-
-  /**
-   * Get access to the unlinked compilation unit summaries that result from
-   * serializing and deserializing the library under test.
-   */
-  List<UnlinkedUnit> get unlinkedUnits;
-
-  /**
-   * Add the given source file so that it may be referenced by the file under
-   * test.
-   */
-  Source addNamedSource(String filePath, String contents);
 
   /**
    * TODO(scheglov) rename "Const" to "Expr" everywhere
@@ -818,12 +742,6 @@ abstract class SummaryTest {
   }
 
   /**
-   * Serialize the given library [text], then deserialize it and store its
-   * summary in [lib].
-   */
-  void serializeLibraryText(String text, {bool allowErrors: false});
-
-  /**
    * Serialize the given method [text] and return the summary of the executable
    * with the given [executableName].
    */
@@ -1417,6 +1335,13 @@ class E {}
   test_class_no_mixins() {
     UnlinkedClass cls = serializeClassText('class C {}');
     expect(cls.mixins, isEmpty);
+  }
+
+  test_class_no_superclass() {
+    UnlinkedClass cls = serializeClassText('part of dart.core; class Object {}',
+        className: 'Object');
+    expect(cls.supertype, isNull);
+    expect(cls.hasNoSupertype, isTrue);
   }
 
   test_class_no_type_param() {
@@ -9976,42 +9901,6 @@ var v;''';
     UnlinkedVariable variable =
         serializeVariableText('int i;', variableName: 'i');
     checkTypeRef(variable.type, 'dart:core', 'int');
-  }
-
-  /**
-   * Verify invariants of the given [linkedLibrary].
-   */
-  void validateLinkedLibrary(LinkedLibrary linkedLibrary) {
-    for (LinkedUnit unit in linkedLibrary.units) {
-      for (LinkedReference reference in unit.references) {
-        switch (reference.kind) {
-          case ReferenceKind.classOrEnum:
-          case ReferenceKind.topLevelPropertyAccessor:
-          case ReferenceKind.topLevelFunction:
-          case ReferenceKind.typedef:
-            // This reference can have either a zero or a nonzero dependency,
-            // since it refers to top level element which might or might not be
-            // imported from another library.
-            break;
-          case ReferenceKind.prefix:
-            // Prefixes should have a dependency of 0, since they come from the
-            // current library.
-            expect(reference.dependency, 0,
-                reason: 'Nonzero dependency for prefix');
-            break;
-          case ReferenceKind.unresolved:
-            // Unresolved references always have a dependency of 0.
-            expect(reference.dependency, 0,
-                reason: 'Nonzero dependency for undefined');
-            break;
-          default:
-            // This reference should have a dependency of 0, since it refers to
-            // an element that is contained within some other element.
-            expect(reference.dependency, 0,
-                reason: 'Nonzero dependency for ${reference.kind}');
-        }
-      }
-    }
   }
 
   /**

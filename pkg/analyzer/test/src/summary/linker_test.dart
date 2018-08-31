@@ -4,13 +4,12 @@
 
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'summarize_ast_test.dart';
+import 'test_strategies.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -19,28 +18,16 @@ main() {
 }
 
 @reflectiveTest
-class LinkerUnitTest extends SummaryLinkerTest {
-  Linker linker;
+class LinkerUnitTest extends SummaryLinkerTestStrategyTwoPhase
+    with LinkerUnitTestCases {}
 
-  LinkerInputs linkerInputs;
-  LibraryElementInBuildUnit _testLibrary;
-  @override
-  bool get allowMissingFiles => false;
-
+/// Test cases that exercise the summary linker in a white-box fashion.
+///
+/// These test cases may be mixed into any class derived from
+/// [SummaryLinkerTestStrategy], allowing the linker to be unit-tested in a
+/// variety of ways.
+abstract class LinkerUnitTestCases implements SummaryLinkerTestStrategy {
   Matcher get isUndefined => const TypeMatcher<UndefinedElementForLink>();
-
-  LibraryElementInBuildUnit get testLibrary => _testLibrary ??=
-      linker.getLibrary(linkerInputs.testDartUri) as LibraryElementInBuildUnit;
-
-  void createLinker(String text, {String path: '/test.dart'}) {
-    linkerInputs = createLinkerInputs(text, path: path);
-    Map<String, LinkedLibraryBuilder> linkedLibraries = setupForLink(
-        linkerInputs.linkedLibraries,
-        linkerInputs.getUnit,
-        linkerInputs.getDeclaredVariable);
-    linker = new Linker(
-        linkedLibraries, linkerInputs.getDependency, linkerInputs.getUnit);
-  }
 
   LibraryElementForLink getLibrary(String uri) {
     return linker.getLibrary(Uri.parse(uri));

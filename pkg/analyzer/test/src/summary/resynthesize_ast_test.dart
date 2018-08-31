@@ -28,7 +28,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../context/abstract_context.dart';
 import 'element_text.dart';
 import 'resynthesize_common.dart';
-import 'summary_common.dart';
+import 'test_strategies.dart';
 
 main() {
   defineReflectiveSuite(() {
