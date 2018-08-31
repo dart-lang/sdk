@@ -36,8 +36,7 @@ void GenerateEmbedStringInCode(Assembler* assembler, const char* str) {
   const String& string_object =
       String::ZoneHandle(String::New(str, Heap::kOld));
   __ LoadObject(R0, string_object);
-  __ LeaveDartFrame();
-  __ Ret();
+  __ LeaveDartFrameAndReturn();
 }
 
 // Generate a dart code sequence that embeds a smi object in it.
