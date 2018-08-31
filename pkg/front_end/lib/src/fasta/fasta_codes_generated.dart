@@ -7031,38 +7031,15 @@ Message _withArgumentsTypeVariableDuplicatedNameCause(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        String name,
-        DartType
-            _type)> templateTypeVariableInConstExpression = const Template<
-        Message Function(String name, DartType _type)>(
-    messageTemplate:
-        r"""Type variable '#name' can't be used as a constant expression '#type'.""",
-    withArguments: _withArgumentsTypeVariableInConstExpression);
+const Code<Null> codeTypeVariableInConstantContext =
+    messageTypeVariableInConstantContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, DartType _type)>
-    codeTypeVariableInConstExpression =
-    const Code<Message Function(String name, DartType _type)>(
-        "TypeVariableInConstExpression", templateTypeVariableInConstExpression,
-        analyzerCode: "TYPE_PARAMETER_IN_CONST_EXPRESSION",
-        severity: Severity.error);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsTypeVariableInConstExpression(
-    String name, DartType _type) {
-  NameSystem nameSystem = new NameSystem();
-  StringBuffer buffer;
-  buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-  String type = '$buffer';
-
-  return new Message(codeTypeVariableInConstExpression,
-      message:
-          """Type variable '${name}' can't be used as a constant expression '${type}'.""",
-      arguments: {'name': name, 'type': _type});
-}
+const MessageCode messageTypeVariableInConstantContext = const MessageCode(
+    "TypeVariableInConstantContext",
+    analyzerCode: "TYPE_PARAMETER_IN_CONST_EXPRESSION",
+    severity: Severity.error,
+    message: r"""Type variables can't be used as constants.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeTypeVariableInStaticContext =

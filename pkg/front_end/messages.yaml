@@ -2180,15 +2180,34 @@ FinalInstanceVariableAlreadyInitializedCause:
   template: "'#name' was initialized here."
   severity: CONTEXT
 
-TypeVariableInConstExpression:
-  template: "Type variable '#name' can't be used as a constant expression '#type'."
-  severity: ERROR
-  analyzerCode: TYPE_PARAMETER_IN_CONST_EXPRESSION
-
 TypeVariableInStaticContext:
   template: "Type variables can't be used in static members."
   severity: ERROR_LEGACY_WARNING
   analyzerCode: TYPE_PARAMETER_REFERENCED_BY_STATIC
+
+TypeVariableInConstantContext:
+  template: "Type variables can't be used as constants."
+  severity: ERROR
+  analyzerCode: TYPE_PARAMETER_IN_CONST_EXPRESSION
+  declaration:
+    - |
+      class C<T> {
+        instanceMethod() {
+          return const <Object>[T];
+        }
+      }
+    - |
+      class C<T> {
+        instanceMethod() {
+          return const <T>[null];
+        }
+      }
+    - |
+      class C<T> {
+        instanceMethod() {
+          return const <List<T>>[null];
+        }
+      }
 
 SuperclassMethodArgumentMismatch:
   template: "Superclass doesn't have a method named '#name' with matching arguments."

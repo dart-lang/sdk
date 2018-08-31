@@ -336,7 +336,9 @@ TypeArgumentMismatch/example: Fail
 TypeArgumentsOnTypeVariable/script1: Fail
 TypeNotFound/example: Fail
 TypeVariableDuplicatedName/example: Fail
-TypeVariableInConstExpression/example: Fail
+TypeVariableInConstantContext/declaration1: Fail
+TypeVariableInConstantContext/declaration2: Fail
+TypeVariableInConstantContext/declaration3: Fail
 TypeVariableInStaticContext/example: Fail
 TypeVariableSameNameAsEnclosing/example: Fail
 TypedefNotFunction/example: Fail
