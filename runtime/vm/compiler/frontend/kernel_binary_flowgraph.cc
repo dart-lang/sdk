@@ -965,7 +965,6 @@ void StreamingFlowGraphBuilder::BuildArgumentTypeChecks(
       I->strong() && I->reify_generic_functions();
 
   TypeParameter& forwarding_param = TypeParameter::Handle(Z);
-  Fragment check_bounds;
   for (intptr_t i = 0; i < num_type_params; ++i) {
     TypeParameterHelper helper(this);
     helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kBound);
@@ -1010,20 +1009,7 @@ void StreamingFlowGraphBuilder::BuildArgumentTypeChecks(
       param ^= TypeArguments::Handle(dart_function.type_parameters()).TypeAt(i);
     }
     ASSERT(param.IsFinalized());
-    check_bounds += CheckTypeArgumentBound(param, bound, name);
-  }
-
-  // Type arguments passed through partial instantiation are guaranteed to be
-  // bounds-checked at the point of partial instantiation, so we don't need to
-  // check them again at the call-site.
-  if (dart_function.IsClosureFunction() && !check_bounds.is_empty() &&
-      FLAG_eliminate_type_checks) {
-    LocalVariable* closure =
-        parsed_function()->node_sequence()->scope()->VariableAt(0);
-    *implicit_checks += B->TestDelayedTypeArgs(closure, /*present=*/{},
-                                               /*absent=*/check_bounds);
-  } else {
-    *implicit_checks += check_bounds;
+    *implicit_checks += CheckTypeArgumentBound(param, bound, name);
   }
 
   function_node_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
@@ -4751,7 +4737,6 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
 
   // Create a copy of the closure.
 
-  Tag closure_expression_tag = PeekTag();
   Fragment instructions = BuildExpression();
   LocalVariable* original_closure = MakeTemporary();
 
@@ -4767,39 +4752,20 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
 
   // Check the bounds.
   //
-  // The Dart 2.0 spec only allows the partial instantiation operation to happen
-  // against a "tearoff", which in the spec's language means a direct reference
-  // to a local function, a direct reference to a toplevel function, or an
-  // actual tearoff of a method against an object.
-  //
-  // In the first two cases the closure's expression will be represented by a
-  // "VariableGet" or "StaticGet", and in these cases we don't need to perform
-  // any checks, since the bounds are known statically by the front-end. This is
-  // also true also in the case of a super-tearoff or tearoff by direct method
-  // reference. Only in the latter case, where the closure's expression is
-  // represented by a "PropertyGet", is the target resolved dynamically, and
-  // checks are needed.
-  ASSERT(closure_expression_tag == kPropertyGet ||
-         closure_expression_tag == kDirectPropertyGet ||
-         closure_expression_tag == kSuperPropertyGet ||
-         closure_expression_tag == kVariableGet ||
-         closure_expression_tag == kSpecializedVariableGet ||
-         closure_expression_tag == kStaticGet);
-  if (closure_expression_tag == kPropertyGet || !FLAG_eliminate_type_checks) {
-    instructions += LoadLocal(original_closure);
-    instructions += PushArgument();
-    instructions += LoadLocal(type_args_vec);
-    instructions += PushArgument();
-    const Library& dart_internal =
-        Library::Handle(Z, Library::InternalLibrary());
-    const Function& bounds_check_function = Function::ZoneHandle(
-        Z, dart_internal.LookupFunctionAllowPrivate(
-               Symbols::BoundsCheckForPartialInstantiation()));
-    ASSERT(!bounds_check_function.IsNull());
-    instructions += StaticCall(TokenPosition::kNoSource, bounds_check_function,
-                               2, ICData::kStatic);
-    instructions += Drop();
-  }
+  // TODO(sjindel): Only perform this check for instance tearoffs, not for
+  // tearoffs against local or top-level functions.
+  instructions += LoadLocal(original_closure);
+  instructions += PushArgument();
+  instructions += LoadLocal(type_args_vec);
+  instructions += PushArgument();
+  const Library& dart_internal = Library::Handle(Z, Library::InternalLibrary());
+  const Function& bounds_check_function = Function::ZoneHandle(
+      Z, dart_internal.LookupFunctionAllowPrivate(
+             Symbols::BoundsCheckForPartialInstantiation()));
+  ASSERT(!bounds_check_function.IsNull());
+  instructions += StaticCall(TokenPosition::kNoSource, bounds_check_function, 2,
+                             ICData::kStatic);
+  instructions += Drop();
 
   instructions += LoadLocal(new_closure);
   instructions += LoadLocal(type_args_vec);

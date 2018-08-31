@@ -214,8 +214,6 @@ constexpr bool kDartPrecompiledRuntime = false;
   P(enable_multiple_entrypoints, bool, true,                                   \
     "Enable multiple entrypoints per-function and related optimizations.")     \
   R(enable_testing_pragmas, false, bool, false,                                \
-    "Enable magical pragmas for testing purposes. Use at your own risk!")      \
-  R(eliminate_type_checks, true, bool, true,                                   \
-    "Eliminate type checks when allowed by static type analysis.")
+    "Enable magical pragmas for testing purposes. Use at your own risk!")
 
 #endif  // RUNTIME_VM_FLAG_LIST_H_

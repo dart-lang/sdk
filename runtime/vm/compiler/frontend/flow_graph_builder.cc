@@ -36,6 +36,10 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool,
+            eliminate_type_checks,
+            true,
+            "Eliminate type checks when allowed by static type analysis.");
 DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
 DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DEFINE_FLAG(bool,
