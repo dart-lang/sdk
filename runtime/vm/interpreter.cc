@@ -1695,15 +1695,16 @@ bool Interpreter::AssertAssignable(Thread* thread,
 AssertAssignableCallRuntime:
   // TODO(regis): Modify AssertAssignable bytecode to expect arguments in same
   // order as the TypeCheck runtime call, so this copying can be avoided.
-  call_top[1] = args[0];  // instance
-  call_top[2] = args[3];  // type
-  call_top[3] = args[1];  // instantiator type args
-  call_top[4] = args[2];  // function type args
-  call_top[5] = args[4];  // name
-  call_top[6] = cache;
-  call_top[7] = Smi::New(kTypeCheckFromInline);
-  Exit(thread, FP, call_top + 8, pc);
-  NativeArguments native_args(thread, 7, call_top + 1, call_top + 1);
+  call_top[1] = 0;        // Unused result.
+  call_top[2] = args[0];  // Instance.
+  call_top[3] = args[3];  // Type.
+  call_top[4] = args[1];  // Instantiator type args.
+  call_top[5] = args[2];  // Function type args.
+  call_top[6] = args[4];  // Name.
+  call_top[7] = cache;
+  call_top[8] = Smi::New(kTypeCheckFromInline);
+  Exit(thread, FP, call_top + 9, pc);
+  NativeArguments native_args(thread, 7, call_top + 2, call_top + 1);
   return InvokeRuntime(thread, this, DRT_TypeCheck, native_args);
 }
 
@@ -2086,8 +2087,10 @@ RawObject* Interpreter::Call(RawFunction* function,
   {
     BYTECODE(CheckStack, A);
     {
-      // Using the interpreter stack limit and not the thread stack limit.
-      if (reinterpret_cast<uword>(SP) >= stack_limit()) {
+      // Check the interpreter's own stack limit for actual interpreter's stack
+      // overflows, and also the thread's stack limit for scheduled interrupts.
+      if (reinterpret_cast<uword>(SP) >= stack_limit() ||
+          thread->HasScheduledInterrupts()) {
         Exit(thread, FP, SP + 1, pc);
         NativeArguments args(thread, 0, NULL, NULL);
         INVOKE_RUNTIME(DRT_StackOverflow, args);

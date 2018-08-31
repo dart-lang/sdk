@@ -304,6 +304,9 @@ class Thread : public BaseThread {
   void ScheduleInterruptsLocked(uword interrupt_bits);
   RawError* HandleInterrupts();
   uword GetAndClearInterrupts();
+  bool HasScheduledInterrupts() const {
+    return (stack_limit_ & kInterruptsMask) != 0;
+  }
 
   // OSThread corresponding to this thread.
   OSThread* os_thread() const { return os_thread_; }
