@@ -37,10 +37,7 @@ Future<ComparisonNode> driveAnalyzer(String libPath) async {
         var unitResult =
             await session.getResolvedAst(compilationUnit.source.fullName);
         for (var astNode in unitResult.unit.declarations) {
-          var childNode = astNode.accept(visitor);
-          if (childNode != null) {
-            childNodes.add(childNode);
-          }
+          childNodes.addAll(astNode.accept(visitor));
         }
       }
       libraryNodes.add(ComparisonNode.sorted(importUri.toString(), childNodes));
@@ -51,38 +48,47 @@ Future<ComparisonNode> driveAnalyzer(String libPath) async {
 
 /// Visitor for serializing the contents of an analyzer AST into
 /// ComparisonNodes.
-class _AnalyzerVisitor extends UnifyingAstVisitor<ComparisonNode> {
+class _AnalyzerVisitor extends UnifyingAstVisitor<Iterable<ComparisonNode>> {
   @override
-  ComparisonNode visitClassDeclaration(ClassDeclaration node) {
-    return ComparisonNode('Class ${node.name.name}');
+  List<ComparisonNode> visitClassDeclaration(ClassDeclaration node) {
+    return [ComparisonNode('Class ${node.name.name}')];
   }
 
   @override
-  ComparisonNode visitEnumDeclaration(EnumDeclaration node) {
-    return ComparisonNode('Enum ${node.name.name}');
+  List<ComparisonNode> visitEnumDeclaration(EnumDeclaration node) {
+    return [ComparisonNode('Enum ${node.name.name}')];
   }
 
   @override
-  ComparisonNode visitFunctionDeclaration(FunctionDeclaration node) {
-    // TODO(paulberry)
-    return null;
+  List<ComparisonNode> visitFunctionDeclaration(FunctionDeclaration node) {
+    String kind;
+    if (node.isGetter) {
+      kind = 'Getter';
+    } else if (node.isSetter) {
+      kind = 'Setter';
+    } else {
+      // Kernel calls top level functions "methods".
+      kind = 'Method';
+    }
+    return [ComparisonNode('$kind ${node.name.name}')];
   }
 
   @override
-  ComparisonNode visitFunctionTypeAlias(FunctionTypeAlias node) {
-    // TODO(paulberry)
-    return null;
+  List<ComparisonNode> visitFunctionTypeAlias(FunctionTypeAlias node) {
+    return [ComparisonNode('Typedef ${node.name.name}')];
   }
 
   @override
-  ComparisonNode visitNode(AstNode node) {
+  Null visitNode(AstNode node) {
     throw new UnimplementedError('AnalyzerVisitor: ${node.runtimeType}');
   }
 
   @override
-  ComparisonNode visitTopLevelVariableDeclaration(
-      TopLevelVariableDeclaration node) {
-    // TODO(paulberry)
-    return null;
+  Iterable<ComparisonNode> visitTopLevelVariableDeclaration(
+      TopLevelVariableDeclaration node) sync* {
+    for (var variableDeclaration in node.variables.variables) {
+      // Kernel calls top level variable declarations "fields".
+      yield ComparisonNode('Field ${variableDeclaration.name.name}');
+    }
   }
 }

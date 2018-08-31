@@ -54,26 +54,53 @@ class _KernelVisitor extends TreeVisitor<ComparisonNode> {
 
   @override
   ComparisonNode visitComponent(Component component) {
-    return ComparisonNode.sorted(
-        'Component',
-        component.libraries
-            .where((library) => _inputs.contains(library.importUri))
-            .map<ComparisonNode>((library) => library.accept(this)));
+    var children = <ComparisonNode>[];
+    _visitList(component.libraries, children);
+    return ComparisonNode.sorted('Component', children);
+  }
+
+  @override
+  ComparisonNode visitField(Field field) {
+    // TODO(paulberry): handle fields from Field
+    return ComparisonNode('Field ${field.name.name}');
   }
 
   @override
   ComparisonNode visitLibrary(Library library) {
+    if (!_inputs.contains(library.importUri)) return null;
     var children = <ComparisonNode>[];
     if (library.name != null) {
       children.add(ComparisonNode('name=${library.name}'));
     }
-    for (var class_ in library.classes) {
-      var childNode = class_.accept(this);
-      if (childNode != null) {
-        children.add(childNode);
-      }
-    }
+    _visitList(library.typedefs, children);
+    _visitList(library.classes, children);
+    _visitList(library.procedures, children);
+    _visitList(library.fields, children);
     // TODO(paulberry): handle more fields from Library
     return ComparisonNode.sorted(library.importUri.toString(), children);
+  }
+
+  @override
+  ComparisonNode visitProcedure(Procedure procedure) {
+    var kind = procedure.kind.toString().replaceAll('ProcedureKind.', '');
+    // TODO(paulberry): handle fields from Procedure
+    return ComparisonNode('$kind ${procedure.name.name}');
+  }
+
+  @override
+  ComparisonNode visitTypedef(Typedef typedef) {
+    // TODO(paulberry): handle fields from Typedef
+    return ComparisonNode('Typedef ${typedef.name}');
+  }
+
+  /// Transforms all the nodes in [src] to [ComparisonNode]s, and adds those
+  /// with non-null results to [dst].
+  void _visitList(List<TreeNode> src, List<ComparisonNode> dst) {
+    for (var item in src) {
+      ComparisonNode result = item.accept(this);
+      if (result != null) {
+        dst.add(result);
+      }
+    }
   }
 }
