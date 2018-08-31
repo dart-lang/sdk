@@ -7131,11 +7131,50 @@ RawFunction* Function::InstantiateSignatureFrom(
 
   Function& sig = Function::Handle(Function::NewSignatureFunction(
       owner, parent, TokenPosition::kNoSource, space));
+  AbstractType& type = AbstractType::Handle(zone);
+
+  // Copy the type parameters and instantiate their bounds (if necessary).
   if (!delete_type_parameters) {
-    sig.set_type_parameters(TypeArguments::Handle(zone, type_parameters()));
+    const TypeArguments& type_params =
+        TypeArguments::Handle(zone, type_parameters());
+    if (!type_params.IsNull()) {
+      TypeArguments& instantiated_type_params = TypeArguments::Handle(zone);
+      TypeParameter& type_param = TypeParameter::Handle(zone);
+      Class& cls = Class::Handle(zone);
+      String& param_name = String::Handle(zone);
+      for (intptr_t i = 0; i < type_params.Length(); ++i) {
+        type_param ^= type_params.TypeAt(i);
+        type = type_param.bound();
+        if (!type.IsInstantiated(kAny, num_free_fun_type_params)) {
+          type = type.InstantiateFrom(
+              instantiator_type_arguments, function_type_arguments,
+              num_free_fun_type_params, NULL, NULL, NULL, space);
+          cls = type_param.parameterized_class();
+          param_name = type_param.name();
+          ASSERT(type_param.IsFinalized());
+          type_param ^=
+              TypeParameter::New(cls, sig, type_param.index(), param_name, type,
+                                 type_param.token_pos());
+          type_param.SetIsFinalized();
+          if (instantiated_type_params.IsNull()) {
+            instantiated_type_params = TypeArguments::New(type_params.Length());
+            for (intptr_t j = 0; j < i; ++j) {
+              type = type_params.TypeAt(j);
+              instantiated_type_params.SetTypeAt(j, type);
+            }
+          }
+          instantiated_type_params.SetTypeAt(i, type_param);
+        } else if (!instantiated_type_params.IsNull()) {
+          instantiated_type_params.SetTypeAt(i, type_param);
+        }
+      }
+      sig.set_type_parameters(instantiated_type_params.IsNull()
+                                  ? type_params
+                                  : instantiated_type_params);
+    }
   }
 
-  AbstractType& type = AbstractType::Handle(zone, result_type());
+  type = result_type();
   if (!type.IsInstantiated(kAny, num_free_fun_type_params)) {
     type = type.InstantiateFrom(
         instantiator_type_arguments, function_type_arguments,
@@ -7884,6 +7923,15 @@ bool Function::HasInstantiatedSignature(Genericity genericity,
   const intptr_t num_parameters = NumParameters();
   for (intptr_t i = 0; i < num_parameters; i++) {
     type = ParameterTypeAt(i);
+    if (!type.IsInstantiated(genericity, num_free_fun_type_params, trail)) {
+      return false;
+    }
+  }
+  TypeArguments& type_params = TypeArguments::Handle(type_parameters());
+  TypeParameter& type_param = TypeParameter::Handle();
+  for (intptr_t i = 0; i < type_params.Length(); ++i) {
+    type_param ^= type_params.TypeAt(i);
+    type = type_param.bound();
     if (!type.IsInstantiated(genericity, num_free_fun_type_params, trail)) {
       return false;
     }
