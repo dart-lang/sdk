@@ -105,7 +105,7 @@ _prependTypeArguments(functionTypeArguments, parentTypeArguments, parentLen,
 // Check that a set of type arguments satisfy the type parameter bounds on a
 // closure.
 @pragma("vm:entry-point")
-_boundsCheckForPartialInstantiation(closure, type_args)
+_boundsCheckForPartialInstantiation(closure, typeArgs)
     native "Internal_boundsCheckForPartialInstantiation";
 
 // Called by IRRegExpMacroAssembler::GrowStack.

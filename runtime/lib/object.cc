@@ -492,7 +492,7 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 2) {
 
   // This should be guaranteed by the front-end.
   ASSERT(type_args_to_check.IsNull() ||
-         bounds.Length() == type_args_to_check.Length());
+         bounds.Length() <= type_args_to_check.Length());
 
   // The bounds on the closure may need instantiation.
   const TypeArguments& instantiator_type_args =
@@ -503,16 +503,17 @@ DEFINE_NATIVE_ENTRY(Internal_boundsCheckForPartialInstantiation, 2) {
   AbstractType& supertype = AbstractType::Handle(zone);
   AbstractType& subtype = AbstractType::Handle(zone);
   TypeParameter& parameter = TypeParameter::Handle(zone);
+  Error& bound_error = Error::Handle(zone);
   for (intptr_t i = 0; i < bounds.Length(); ++i) {
     parameter ^= bounds.TypeAt(i);
     supertype = parameter.bound();
-    subtype = type_args_to_check.TypeAt(i);
+    subtype = type_args_to_check.IsNull() ? Object::dynamic_type().raw()
+                                          : type_args_to_check.TypeAt(i);
 
     ASSERT(!subtype.IsNull() && !subtype.IsMalformedOrMalbounded());
     ASSERT(!supertype.IsNull() && !supertype.IsMalformedOrMalbounded());
 
     // The supertype may not be instantiated.
-    Error& bound_error = Error::Handle(zone);
     if (!AbstractType::InstantiateAndTestSubtype(
             &subtype, &supertype, &bound_error, instantiator_type_args,
             function_type_args)) {
