@@ -3620,16 +3620,26 @@ LocationSummary* TargetEntryInstr::MakeLocationSummary(Zone* zone,
 void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
 
+  // In the AOT compiler we want to reduce code size, so generate no
+  // fall-through code in [FlowGraphCompiler::CompileGraph()].
+  // (As opposed to here where we don't check for the return value of
+  // [Intrinsify]).
+  if (!FLAG_precompiled_mode) {
 #if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM)
-  if (compiler->flow_graph().IsEntryPoint(this)) {
-    __ set_constant_pool_allowed(false);
-    // TODO(#34162): Don't emit more code if 'TryIntrinsify' returns 'true'
-    // (meaning the function was fully intrinsified).
-    compiler->TryIntrinsify();
-    compiler->EmitPrologue();
-    ASSERT(__ constant_pool_allowed());
-  }
+    if (compiler->flow_graph().IsEntryPoint(this)) {
+      // NOTE: Because in JIT X64/ARM mode the graph can have multiple
+      // entrypoints, so we generate several times the same intrinsification &
+      // frame setup.  That's why we cannot rely on the constant pool being
+      // `false` when we come in here.
+      __ set_constant_pool_allowed(false);
+      // TODO(#34162): Don't emit more code if 'TryIntrinsify' returns 'true'
+      // (meaning the function was fully intrinsified).
+      compiler->TryIntrinsify();
+      compiler->EmitPrologue();
+      ASSERT(__ constant_pool_allowed());
+    }
 #endif
+  }
 
   if (!compiler->is_optimizing()) {
 #if !defined(TARGET_ARCH_DBC)

@@ -890,16 +890,25 @@ void FlowGraphCompiler::EmitPrologue() {
 //   R4: arguments descriptor array.
 void FlowGraphCompiler::CompileGraph() {
   InitCompiler();
-#ifdef DART_PRECOMPILER
-  const Function& function = parsed_function().function();
-  if (function.IsDynamicFunction()) {
-    SpecialStatsBegin(CombinedCodeStatistics::kTagCheckedEntry);
-    __ MonomorphicCheckedEntry();
-    SpecialStatsEnd(CombinedCodeStatistics::kTagCheckedEntry);
-  }
-#endif  // DART_PRECOMPILER
+  if (FLAG_precompiled_mode) {
+    const Function& function = parsed_function().function();
+    if (function.IsDynamicFunction()) {
+      SpecialStatsBegin(CombinedCodeStatistics::kTagCheckedEntry);
+      __ MonomorphicCheckedEntry();
+      SpecialStatsEnd(CombinedCodeStatistics::kTagCheckedEntry);
+    }
 
-  __ set_constant_pool_allowed(true);
+    // For JIT we have multiple entrypoints functionality which moved the
+    // intrinsification as well as the setup of the frame to the
+    // [TargetEntryInstr::EmitNativeCode].
+    if (TryIntrinsify()) {
+      // Skip regular code generation.
+      return;
+    }
+    EmitFrameEntry();
+    ASSERT(__ constant_pool_allowed());
+  }
+
   VisitBlocks();
 
   __ bkpt(0);

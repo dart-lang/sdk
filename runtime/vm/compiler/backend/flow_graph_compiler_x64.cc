@@ -880,14 +880,25 @@ void FlowGraphCompiler::EmitPrologue() {
 
 void FlowGraphCompiler::CompileGraph() {
   InitCompiler();
-#ifdef DART_PRECOMPILER
-  const Function& function = parsed_function().function();
-  if (function.IsDynamicFunction()) {
-    __ MonomorphicCheckedEntry();
-  }
-#endif  // DART_PRECOMPILER
 
-  __ set_constant_pool_allowed(true);
+  if (FLAG_precompiled_mode) {
+    const Function& function = parsed_function().function();
+    if (function.IsDynamicFunction()) {
+      SpecialStatsBegin(CombinedCodeStatistics::kTagCheckedEntry);
+      __ MonomorphicCheckedEntry();
+      SpecialStatsEnd(CombinedCodeStatistics::kTagCheckedEntry);
+    }
+
+    // For JIT we have multiple entrypoints functionality which moved the
+    // intrinsification to the [TargetEntryInstr::EmitNativeCode].
+    if (TryIntrinsify()) {
+      // Skip regular code generation.
+      return;
+    }
+    EmitFrameEntry();
+    ASSERT(__ constant_pool_allowed());
+  }
+
   ASSERT(!block_order().is_empty());
   VisitBlocks();
 

@@ -842,18 +842,26 @@ void FlowGraphCompiler::EmitFrameEntry() {
 //   R4: arguments descriptor array.
 void FlowGraphCompiler::CompileGraph() {
   InitCompiler();
-#ifdef DART_PRECOMPILER
-  const Function& function = parsed_function().function();
-  if (function.IsDynamicFunction()) {
-    __ MonomorphicCheckedEntry();
-  }
-#endif  // DART_PRECOMPILER
 
+  if (FLAG_precompiled_mode) {
+    const Function& function = parsed_function().function();
+    if (function.IsDynamicFunction()) {
+      SpecialStatsBegin(CombinedCodeStatistics::kTagCheckedEntry);
+      __ MonomorphicCheckedEntry();
+      SpecialStatsEnd(CombinedCodeStatistics::kTagCheckedEntry);
+    }
+  }
+
+  // For JIT we have multiple entrypoints functionality which moved the
+  // intrinsification as well as the setup of the frame to the
+  // [TargetEntryInstr::EmitNativeCode].
+  //
+  // Though this has not been implemented on ARM64, which is why this code here
+  // is outside the "ifdef DART_PRECOMPILER".
   if (TryIntrinsify()) {
     // Skip regular code generation.
     return;
   }
-
   EmitFrameEntry();
   ASSERT(assembler()->constant_pool_allowed());
 
