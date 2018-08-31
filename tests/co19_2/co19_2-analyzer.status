@@ -33,6 +33,7 @@ Language/Classes/Setters/type_object_t02: CompileTimeError # co19 issue 153
 Language/Classes/method_definition_t06: MissingCompileTimeError # Please triage this failure
 Language/Enums/syntax_t08: CompileTimeError # Issue 33995
 Language/Enums/syntax_t09: CompileTimeError # Issue 33995
+Language/Errors_and_Warnings/static_warning_t01: CompileTimeError # issue #34319
 Language/Expressions/Conditional/syntax_t03: MissingCompileTimeError # Issue 33995
 Language/Expressions/Conditional/syntax_t04: MissingCompileTimeError # Issue 33995
 Language/Expressions/Constants/constant_list_t02: MissingCompileTimeError # Please triage this failure
@@ -96,6 +97,19 @@ Language/Statements/Continue/async_loops_t10: CompileTimeError # Issue 33995
 Language/Statements/Continue/control_transfer_t08: CompileTimeError # Issue 33995
 Language/Statements/Continue/control_transfer_t09: CompileTimeError # Issue 33995
 Language/Statements/Return/many_return_statements_t01: CompileTimeError # co19 issue 157
+Language/Statements/Return/many_return_statements_t02: CompileTimeError # issue #34319
+Language/Statements/Return/no_expression_function_t01: CompileTimeError # issue #34319
+Language/Statements/Return/no_expression_function_t02: CompileTimeError # issue #34319
+Language/Statements/Return/no_expression_function_t03: CompileTimeError # issue #34319
+Language/Statements/Return/no_expression_function_t04: CompileTimeError # issue #34319
+Language/Statements/Return/no_expression_function_t05: CompileTimeError # issue #34319
+Language/Statements/Return/no_expression_function_t07: CompileTimeError # issue #34319
+Language/Statements/Return/no_expression_function_t08: CompileTimeError # issue #34319
+Language/Statements/Return/no_expression_function_t09: CompileTimeError # issue #34319
+Language/Statements/Return/no_expression_function_t10: CompileTimeError # issue #34319
+Language/Statements/Return/no_expression_function_t11: CompileTimeError # issue #34319
+Language/Statements/Return/no_expression_function_t16: CompileTimeError # issue #34319
+Language/Statements/Return/no_expression_not_function_t01: CompileTimeError # issue #34319
 Language/Types/Interface_Types/subtype_t30: CompileTimeError # Please triage this failure
 Language/Types/Type_Void/syntax_t08: MissingCompileTimeError # Issue 33995
 Language/Types/Type_Void/syntax_t09: CompileTimeError # Please triage this failure

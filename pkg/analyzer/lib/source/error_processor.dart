@@ -127,7 +127,7 @@ class _StrongModeTypeErrorProcessor implements ErrorProcessor {
       return true;
     }
     if (errorCode is StaticWarningCode) {
-      return errorCode.isStrongModeError;
+      return true;
     }
     return false;
   }

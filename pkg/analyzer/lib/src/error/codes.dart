@@ -4609,7 +4609,7 @@ class StaticWarningCode extends ErrorCode {
    */
   static const StaticWarningCode RETURN_WITHOUT_VALUE = const StaticWarningCode(
       'RETURN_WITHOUT_VALUE', "Missing return value after 'return'.",
-      correction: null, isStrongModeError: false);
+      correction: null);
 
   /**
    * 12.16.3 Static Invocation: It is a static warning if <i>C</i> does not
@@ -4845,21 +4845,13 @@ class StaticWarningCode extends ErrorCode {
           ' and variables which, in rare cases, may be void as well.');
 
   /**
-   * A flag indicating whether this warning is an error when running with strong
-   * mode enabled.
-   */
-  final bool isStrongModeError;
-
-  /**
    * Initialize a newly created error code to have the given [name]. The message
    * associated with the error will be created from the given [message]
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
   const StaticWarningCode(String name, String message,
-      {String correction,
-      this.isStrongModeError = true,
-      bool isUnresolvedIdentifier: false})
+      {String correction, bool isUnresolvedIdentifier: false})
       : super.temporary(name, message,
             correction: correction,
             isUnresolvedIdentifier: isUnresolvedIdentifier);

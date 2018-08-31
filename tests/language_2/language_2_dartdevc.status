@@ -77,6 +77,17 @@ instantiate_tearoff_after_contravariance_check_test: RuntimeError
 instantiate_tearoff_of_call_test: RuntimeError
 interface_test/00: MissingCompileTimeError
 internal_library_test/01: MissingCompileTimeError # Issue 29920
+invalid_returns/async_invalid_return_00_test/none: CompileTimeError # issue #34319
+invalid_returns/async_invalid_return_01_test/none: CompileTimeError # issue #34319
+invalid_returns/async_invalid_return_02_test/none: CompileTimeError # issue #34319
+invalid_returns/async_invalid_return_03_test/none: CompileTimeError # issue #34319
+invalid_returns/async_invalid_return_04_test/none: CompileTimeError # issue #34319
+invalid_returns/sync_invalid_return_00_test/none: CompileTimeError # issue #34319
+invalid_returns/sync_invalid_return_01_test/none: CompileTimeError # issue #34319
+invalid_returns/sync_invalid_return_02_test/none: CompileTimeError # issue #34319
+invalid_returns/sync_invalid_return_03_test/none: CompileTimeError # issue #34319
+invalid_returns/sync_invalid_return_04_test/none: CompileTimeError # issue #34319
+invalid_returns/sync_invalid_return_05_test/none: CompileTimeError # issue #34319
 issue31596_implement_covariant_test: CompileTimeError
 issue31596_override_test/01: CompileTimeError
 issue31596_override_test/02: CompileTimeError
@@ -185,6 +196,9 @@ type_promotion_functions_test/13: CompileTimeError # Issue 30895
 type_promotion_functions_test/14: CompileTimeError # Issue 30895
 type_promotion_functions_test/none: CompileTimeError # Issue 30895
 type_variable_scope_test/none: CompileTimeError
+void/return_future_future_or_void_async_error1_test/none: CompileTimeError # issue #34319
+void/return_future_or_future_or_void_sync_error2_test/none: CompileTimeError # issue #34319
+void/return_future_or_void_sync_error4_test/none: CompileTimeError # issue #34319
 void/void_type_usage_test/async_use_in_yield: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/async_use_in_yield_star: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
 void/void_type_usage_test/call_boolean_and_right: MissingCompileTimeError # https://github.com/dart-lang/sdk/issues/30177
