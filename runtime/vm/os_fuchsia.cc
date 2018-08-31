@@ -16,7 +16,6 @@
 
 #include <fuchsia/timezone/cpp/fidl.h>
 
-#include "lib/component/cpp/environment_services.h"
 #include "lib/component/cpp/startup_context.h"
 #include "lib/svc/cpp/services.h"
 
