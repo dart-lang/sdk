@@ -15744,8 +15744,11 @@ RawCode* Code::FinalizeCode(const char* name,
       ASSERT(instrs.PayloadStart() <= addr);
       ASSERT((instrs.PayloadStart() + instrs.Size()) > addr);
       const Object* object = *reinterpret_cast<Object**>(addr);
-      instrs.raw()->StorePointer(reinterpret_cast<RawObject**>(addr),
-                                 object->raw());
+      ASSERT(object->IsOld());
+      // N.B. The pointer is embedded in the Instructions object, but visited
+      // through the Code object.
+      code.raw()->StorePointer(reinterpret_cast<RawObject**>(addr),
+                               object->raw());
     }
 
     // Hook up Code and Instructions objects.

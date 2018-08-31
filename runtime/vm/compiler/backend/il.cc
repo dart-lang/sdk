@@ -1002,6 +1002,7 @@ ConstantInstr::ConstantInstr(const Object& value, TokenPosition token_pos)
   // Check that the value is not an incorrect Integer representation.
   ASSERT(!value.IsMint() || !Smi::IsValid(Mint::Cast(value).AsInt64Value()));
   ASSERT(!value.IsField() || Field::Cast(value).IsOriginal());
+  ASSERT(value.IsSmi() || value.IsOld());
 }
 
 bool ConstantInstr::AttributesEqual(Instruction* other) const {
@@ -2678,7 +2679,9 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   if (instance()->BindsToConstant()) {
     Object& result = Object::Handle();
     if (Evaluate(instance()->BoundConstant(), &result)) {
-      return flow_graph->GetConstant(result);
+      if (result.IsSmi() || result.IsOld()) {
+        return flow_graph->GetConstant(result);
+      }
     }
   }
 
