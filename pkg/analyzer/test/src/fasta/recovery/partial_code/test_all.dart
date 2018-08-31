@@ -8,6 +8,7 @@ import 'annotation_test.dart' as annotation;
 import 'assert_statement_test.dart' as assert_statement;
 import 'break_statement_test.dart' as break_statement;
 import 'class_declaration_test.dart' as class_declaration;
+import 'mixin_declaration_test.dart' as mixin_declaration;
 import 'continue_statement_test.dart' as continue_statement;
 import 'do_statement_test.dart' as do_statement;
 import 'enum_declaration_test.dart' as enum_declaration;
@@ -51,6 +52,7 @@ main() {
     library_directive.main();
     local_variable.main();
     method_declaration.main();
+    mixin_declaration.main();
     parameter.main();
     part_directive.main();
     part_of_directive.main();

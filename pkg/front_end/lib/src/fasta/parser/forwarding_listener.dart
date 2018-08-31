@@ -1258,6 +1258,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleRecoverMixinHeader() {
+    listener?.handleRecoverMixinHeader();
+  }
+
+  @override
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {
     if (forwardErrors) {

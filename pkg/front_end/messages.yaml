@@ -262,6 +262,12 @@ ImplementsBeforeExtends:
   analyzerCode: IMPLEMENTS_BEFORE_EXTENDS
   script: "class A implements B extends C {}"
 
+ImplementsBeforeOn:
+  template: "The on clause must be before the implements clause."
+  tip: "Try moving the on clause before the implements clause."
+  analyzerCode: IMPLEMENTS_BEFORE_ON
+  script: "mixin A implements B on C {}"
+
 ImplementsBeforeWith:
   template: "The with clause must be before the implements clause."
   tip: "Try moving the with clause before the implements clause."
@@ -292,6 +298,12 @@ MultipleImplements:
   tip: "Try combining all of the implements clauses into a single clause."
   analyzerCode: MULTIPLE_IMPLEMENTS_CLAUSES
   script: "class A implements B implements C, D {}"
+
+MultipleOnClauses:
+  template: "Each mixin definition can have at most one on clause."
+  tip: "Try combining all of the on clauses into a single clause."
+  analyzerCode: MULTIPLE_ON_CLAUSES
+  script: "mixin A on B on C, D {}"
 
 ImplementsFutureOr:
   template: "'FutureOr' can't be used in an 'implements' clause."

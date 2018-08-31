@@ -3395,6 +3395,16 @@ const MessageCode messageImplementsBeforeExtends = const MessageCode(
     tip: r"""Try moving the extends clause before the implements clause.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeImplementsBeforeOn = messageImplementsBeforeOn;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageImplementsBeforeOn = const MessageCode(
+    "ImplementsBeforeOn",
+    analyzerCode: "IMPLEMENTS_BEFORE_ON",
+    message: r"""The on clause must be before the implements clause.""",
+    tip: r"""Try moving the on clause before the implements clause.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeImplementsBeforeWith = messageImplementsBeforeWith;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5151,6 +5161,16 @@ const MessageCode messageMultipleLibraryDirectives = const MessageCode(
     analyzerCode: "MULTIPLE_LIBRARY_DIRECTIVES",
     message: r"""Only one library directive may be declared in a file.""",
     tip: r"""Try removing all but one of the library directives.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMultipleOnClauses = messageMultipleOnClauses;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMultipleOnClauses = const MessageCode(
+    "MultipleOnClauses",
+    analyzerCode: "MULTIPLE_ON_CLAUSES",
+    message: r"""Each mixin definition can have at most one on clause.""",
+    tip: r"""Try combining all of the on clauses into a single clause.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMultipleWith = messageMultipleWith;

@@ -1134,6 +1134,12 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
+  void handleRecoverMixinHeader() {
+    expectIn('MixinDeclaration');
+    listener.handleRecoverMixinHeader();
+  }
+
+  @override
   void handleInvalidMember(Token endToken) {
     expectIn('Member');
     super.handleInvalidMember(endToken);

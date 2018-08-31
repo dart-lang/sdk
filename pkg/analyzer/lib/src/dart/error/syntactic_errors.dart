@@ -413,6 +413,11 @@ class ParserErrorCode extends ErrorCode {
           correction:
               "Try moving the extends clause before the implements clause.");
 
+  static const ParserErrorCode IMPLEMENTS_BEFORE_ON = const ParserErrorCode(
+      'IMPLEMENTS_BEFORE_ON',
+      "The on clause must be before the implements clause.",
+      correction: "Try moving the on clause before the implements clause.");
+
   static const ParserErrorCode IMPLEMENTS_BEFORE_WITH = const ParserErrorCode(
       'IMPLEMENTS_BEFORE_WITH',
       "The with clause must be before the implements clause.",
@@ -655,7 +660,7 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode MULTIPLE_IMPLEMENTS_CLAUSES = const ParserErrorCode(
       'MULTIPLE_IMPLEMENTS_CLAUSES',
-      "Each class definition can have at most one implements clause.",
+      "Each class or mixin definition can have at most one implements clause.",
       correction:
           "Try combining all of the implements clauses into a single clause.");
 
@@ -668,6 +673,11 @@ class ParserErrorCode extends ErrorCode {
       const ParserErrorCode('MULTIPLE_NAMED_PARAMETER_GROUPS',
           "Can't have multiple groups of named parameters in a single parameter list.",
           correction: "Try combining all of the groups into a single group.");
+
+  static const ParserErrorCode MULTIPLE_ON_CLAUSES = const ParserErrorCode(
+      'MULTIPLE_ON_CLAUSES',
+      "Each mixin definition can have at most one on clause.",
+      correction: "Try combining all of the on clauses into a single clause.");
 
   static const ParserErrorCode MULTIPLE_PART_OF_DIRECTIVES =
       const ParserErrorCode('MULTIPLE_PART_OF_DIRECTIVES',

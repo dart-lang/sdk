@@ -155,6 +155,17 @@ class Listener implements UnescapeErrorListener {
     logEvent("MixinHeader");
   }
 
+  /// Handle recovery associated with a mixin header.
+  /// This may be called multiple times after [handleMixinHeader]
+  /// to recover information about the previous mixin header.
+  /// The substructures are a subset of
+  /// and in the same order as [handleMixinHeader]
+  /// - on types
+  /// - implemented types
+  void handleRecoverMixinHeader() {
+    logEvent("RecoverMixinHeader");
+  }
+
   /// Handle the end of a mixin declaration.  Substructures:
   /// - mixin header
   /// - class or mixin body

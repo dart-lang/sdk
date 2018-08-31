@@ -1920,6 +1920,29 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handleRecoverMixinHeader() {
+    ImplementsClause implementsClause = pop(NullValue.IdentifierList);
+    OnClause onClause = pop(NullValue.IdentifierList);
+
+    if (onClause != null) {
+      if (mixinDeclaration.onClause == null) {
+        mixinDeclaration.onClause = onClause;
+      } else {
+        mixinDeclaration.onClause.superclassConstraints
+            .addAll(onClause.superclassConstraints);
+      }
+    }
+    if (implementsClause != null) {
+      if (mixinDeclaration.implementsClause == null) {
+        mixinDeclaration.implementsClause = implementsClause;
+      } else {
+        mixinDeclaration.implementsClause.interfaces
+            .addAll(implementsClause.interfaces);
+      }
+    }
+  }
+
+  @override
   void endMixinDeclaration(Token token) {
     debugEvent("MixinDeclaration");
     mixinDeclaration = null;

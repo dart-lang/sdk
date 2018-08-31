@@ -73,7 +73,10 @@ import 'member_kind.dart' show MemberKind;
 import 'modifier_context.dart' show ModifierRecoveryContext, isModifier;
 
 import 'recovery_listeners.dart'
-    show ClassHeaderRecoveryListener, ImportRecoveryListener;
+    show
+        ClassHeaderRecoveryListener,
+        ImportRecoveryListener,
+        MixinHeaderRecoveryListener;
 
 import 'token_stream_rewriter.dart' show TokenStreamRewriter;
 
@@ -1869,12 +1872,13 @@ class Parser {
     assert(optional('mixin', mixinKeyword));
     Token name = ensureIdentifier(
         mixinKeyword, IdentifierContext.classOrMixinDeclaration);
-    Token token = computeTypeParamOrArg(name, true).parseVariables(name, this);
+    Token headerStart =
+        computeTypeParamOrArg(name, true).parseVariables(name, this);
     listener.beginMixinDeclaration(mixinKeyword, name);
-    token = parseMixinHeaderOpt(token, mixinKeyword);
+    Token token = parseMixinHeaderOpt(headerStart, mixinKeyword);
     if (!optional('{', token.next)) {
       // Recovery
-      token = parseMixinHeaderRecovery(mixinKeyword);
+      token = parseMixinHeaderRecovery(token, mixinKeyword, headerStart);
       ensureBlock(token, fasta.templateExpectedClassOrMixinBody);
     }
     token = parseClassOrMixinBody(token);
@@ -1889,9 +1893,67 @@ class Parser {
     return token;
   }
 
-  Token parseMixinHeaderRecovery(Token mixinKeyword) {
-    // TODO(danrubel): Add mixin recovery similiar to class recovery.
-    return mixinKeyword;
+  Token parseMixinHeaderRecovery(
+      Token token, Token mixinKeyword, Token headerStart) {
+    final primaryListener = listener;
+    final recoveryListener = new MixinHeaderRecoveryListener();
+
+    // Reparse to determine which clauses have already been parsed
+    // but intercept the events so they are not sent to the primary listener.
+    listener = recoveryListener;
+    token = parseMixinHeaderOpt(headerStart, mixinKeyword);
+    bool hasOn = recoveryListener.onKeyword != null;
+    bool hasImplements = recoveryListener.implementsKeyword != null;
+
+    // Update the recovery listener to forward subsequent events
+    // to the primary listener.
+    recoveryListener.listener = primaryListener;
+
+    // Parse additional out-of-order clauses
+    Token start;
+    do {
+      start = token;
+
+      // Check for extraneous token in the middle of a class header.
+      token = skipUnexpectedTokenOpt(
+          token, const <String>['on', 'implements', '{']);
+
+      // During recovery, clauses are parsed in the same order and
+      // generate the same events as in the parseMixinHeaderOpt method above.
+      recoveryListener.clear();
+      token = parseMixinOnOpt(token);
+
+      if (recoveryListener.onKeyword != null) {
+        if (hasOn) {
+          reportRecoverableError(
+              recoveryListener.onKeyword, fasta.messageMultipleOnClauses);
+        } else {
+          if (hasImplements) {
+            reportRecoverableError(
+                recoveryListener.onKeyword, fasta.messageImplementsBeforeOn);
+          }
+          hasOn = true;
+        }
+      }
+
+      token = parseClassOrMixinImplementsOpt(token);
+
+      if (recoveryListener.implementsKeyword != null) {
+        if (hasImplements) {
+          reportRecoverableError(recoveryListener.implementsKeyword,
+              fasta.messageMultipleImplements);
+        } else {
+          hasImplements = true;
+        }
+      }
+
+      listener.handleRecoverMixinHeader();
+
+      // Exit if a mixin body is detected, or if no progress has been made
+    } while (!optional('{', token.next) && start != token);
+
+    listener = primaryListener;
+    return token;
   }
 
   /// ```

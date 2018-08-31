@@ -7,13 +7,19 @@ import 'package:analyzer/dart/ast/token.dart' as analyzer;
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
+import 'package:front_end/src/fasta/scanner.dart'
+    show ScannerResult, scanString;
+import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/error_token.dart' show ErrorToken;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
+import 'package:front_end/src/scanner/errors.dart' show translateErrorToken;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -298,15 +304,39 @@ class FastaParserTestCase extends Object
 
   CompilationUnit parseCompilationUnit2(
       String content, GatheringErrorListener listener) {
-    // Scan tokens
     var source = new StringSource(content, 'parser_test_StringSource.dart');
-    var scanner = new Scanner.fasta(source, listener);
-    _fastaTokens = scanner.tokenize();
+
+    void reportError(
+        ScannerErrorCode errorCode, int offset, List<Object> arguments) {
+      listener
+          .onError(new AnalysisError(source, offset, 1, errorCode, arguments));
+    }
+
+    // Scan tokens
+    ScannerResult result = scanString(content, includeComments: true);
+    Token token = result.tokens;
+    if (result.hasErrors) {
+      // The default recovery strategy used by scanString
+      // places all error tokens at the head of the stream.
+      while (token.type == TokenType.BAD_INPUT) {
+        translateErrorToken(token, reportError);
+        token = token.next;
+      }
+    }
+    _fastaTokens = token;
 
     // Run parser
-    analyzer.Parser parser =
-        new analyzer.Parser(source, listener, useFasta: true);
-    CompilationUnit unit = parser.parseCompilationUnit(_fastaTokens);
+    ErrorReporter errorReporter = new ErrorReporter(listener, source);
+    fasta.Parser parser = new fasta.Parser(null);
+    AstBuilder astBuilder = new AstBuilder(errorReporter, source.uri, true);
+    parser.listener = astBuilder;
+    parser.isMixinSupportEnabled = true;
+    astBuilder.parser = parser;
+    astBuilder.allowNativeClause = allowNativeClause;
+    parser.parseUnit(_fastaTokens);
+    CompilationUnitImpl unit = astBuilder.pop();
+    unit.localDeclarations = astBuilder.localDeclarations;
+
     expect(unit, isNotNull);
     return unit;
   }

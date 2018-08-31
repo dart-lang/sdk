@@ -184,6 +184,7 @@ IllegalMixin/example: Fail
 IllegalMixinDueToConstructors/example: Fail
 IllegalSyncGeneratorVoidReturnType/analyzerCode: Fail # The analyzer doesn't report this error.
 ImplementsBeforeExtends/script: Fail
+ImplementsBeforeOn/script: Fail
 ImplementsBeforeWith/script: Fail
 ImplementsFutureOr/analyzerCode: Fail # The analyzer doesn't report this error.
 ImplicitCallOfNonMethod/example: Fail
@@ -235,6 +236,7 @@ MixinInferenceNoMatchingClass/example: Fail
 MultipleExtends/script: Fail
 MultipleImplements/script: Fail
 MultipleLibraryDirectives/example: Fail
+MultipleOnClauses/script: Fail
 MultipleWith/script: Fail
 NamedFunctionExpression/example: Fail
 NativeClauseShouldBeAnnotation/example: Fail

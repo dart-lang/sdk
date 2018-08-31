@@ -336,6 +336,10 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS, offset, length);
         return;
+      case "IMPLEMENTS_BEFORE_ON":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.IMPLEMENTS_BEFORE_ON, offset, length);
+        return;
       case "IMPLEMENTS_BEFORE_WITH":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.IMPLEMENTS_BEFORE_WITH, offset, length);
@@ -505,6 +509,10 @@ class FastaErrorReporter {
       case "MULTIPLE_LIBRARY_DIRECTIVES":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES, offset, length);
+        return;
+      case "MULTIPLE_ON_CLAUSES":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MULTIPLE_ON_CLAUSES, offset, length);
         return;
       case "MULTIPLE_WITH_CLAUSES":
         errorReporter?.reportErrorForOffset(
