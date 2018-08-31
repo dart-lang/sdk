@@ -1,3 +1,12 @@
+## 2.1.0-dev.3.1
+
+### Tool Changes
+
+#### dartanalyzer
+
+* Fix a bug in analyzer by cherry-picking commit
+  bd9645abad40d14c8cd9197dfb5c9cc45b20e9d6
+
 ## 2.1.0-dev.3.0
 
 ### Core library changes
