@@ -73,7 +73,7 @@ class SearchTest extends BaseAnalysisDriverTest {
   CompilationUnitElement testUnitElement;
   LibraryElement testLibraryElement;
 
-  test_classMembers() async {
+  test_classMembers_class() async {
     await _resolveTestUnit('''
 class A {
   test() {}
@@ -97,6 +97,25 @@ class B {
 import 'not-dart.txt';
 ''');
     expect(await driver.search.classMembers('test'), isEmpty);
+  }
+
+  test_classMembers_mixin() async {
+    await _resolveTestUnit('''
+mixin A {
+  test() {}
+}
+mixin B {
+  int test = 1;
+  int testTwo = 2;
+  main() {
+    int test = 3;
+  }
+}
+''');
+    ClassElement a = _findElement('A');
+    ClassElement b = _findElement('B');
+    expect(await driver.search.classMembers('test'),
+        unorderedEquals([a.methods[0], b.fields[0]]));
   }
 
   test_declarations_class() async {
@@ -1666,6 +1685,22 @@ class C implements T {} // C
     await _verifyReferences(element, expected);
   }
 
+  test_searchSubtypes_mixinDeclaration() async {
+    await _resolveTestUnit('''
+class T {}
+mixin A on T {} // A
+mixin B implements T {} // B
+''');
+    ClassElement element = _findElement('T');
+    ClassElement a = _findElement('A');
+    ClassElement b = _findElement('B');
+    var expected = [
+      _expectId(a, SearchResultKind.REFERENCE, 'T {} // A'),
+      _expectId(b, SearchResultKind.REFERENCE, 'T {} // B'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
   test_subtypes() async {
     await _resolveTestUnit('''
 class A {}
@@ -1867,19 +1902,21 @@ class B extends A {}
     await _resolveTestUnit('''
 class A {} // A
 class B = Object with A;
-typedef C();
-D() {}
-var e = null;
-class NoMatchABCDE {}
+mixin C {}
+typedef D();
+e() {}
+var f = null;
+class NoMatchABCDEF {}
 ''');
     Element a = _findElement('A');
     Element b = _findElement('B');
     Element c = _findElement('C');
     Element d = _findElement('D');
     Element e = _findElement('e');
-    RegExp regExp = new RegExp(r'^[ABCDe]$');
+    Element f = _findElement('f');
+    RegExp regExp = new RegExp(r'^[ABCDef]$');
     expect(await driver.search.topLevelElements(regExp),
-        unorderedEquals([a, b, c, d, e]));
+        unorderedEquals([a, b, c, d, e, f]));
   }
 
   Declaration _assertHasDeclaration(

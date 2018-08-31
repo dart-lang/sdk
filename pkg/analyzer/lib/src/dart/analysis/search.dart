@@ -85,7 +85,7 @@ class Search {
   Search(this._driver);
 
   /**
-   * Returns class members with the given [name].
+   * Returns class or mixin members with the given [name].
    */
   Future<List<Element>> classMembers(String name) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -98,15 +98,18 @@ class Search {
       }
     }
 
+    void addElements(ClassElement element) {
+      element.accessors.forEach(addElement);
+      element.fields.forEach(addElement);
+      element.methods.forEach(addElement);
+    }
+
     List<String> files = await _driver.getFilesDefiningClassMemberName(name);
     for (String file in files) {
       UnitElementResult unitResult = await _driver.getUnitElement(file);
       if (unitResult != null) {
-        for (ClassElement clazz in unitResult.element.types) {
-          clazz.accessors.forEach(addElement);
-          clazz.fields.forEach(addElement);
-          clazz.methods.forEach(addElement);
-        }
+        unitResult.element.types.forEach(addElements);
+        unitResult.element.mixins.forEach(addElements);
       }
     }
     return elements;
@@ -439,6 +442,7 @@ class Search {
         unitElement.enums.forEach(addElement);
         unitElement.functions.forEach(addElement);
         unitElement.functionTypeAliases.forEach(addElement);
+        unitElement.mixins.forEach(addElement);
         unitElement.topLevelVariables.forEach(addElement);
         unitElement.types.forEach(addElement);
       }

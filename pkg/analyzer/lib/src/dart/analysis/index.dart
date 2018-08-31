@@ -627,6 +627,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitOnClause(OnClause node) {
+    for (TypeName typeName in node.superclassConstraints) {
+      recordSuperType(typeName, IndexRelationKind.IS_IMPLEMENTED_BY);
+    }
+  }
+
+  @override
   visitPartDirective(PartDirective node) {
     CompilationUnitElement element = node.element;
     if (element?.source != null) {

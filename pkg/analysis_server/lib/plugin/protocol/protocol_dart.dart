@@ -100,8 +100,13 @@ ElementKind convertElementKind(engine.ElementKind kind) {
  * Return an [ElementKind] corresponding to the given [engine.Element].
  */
 ElementKind convertElementToElementKind(engine.Element element) {
-  if (element is engine.ClassElement && element.isEnum) {
-    return ElementKind.ENUM;
+  if (element is engine.ClassElement) {
+    if (element.isEnum) {
+      return ElementKind.ENUM;
+    }
+    if (element.isMixin) {
+      return ElementKind.MIXIN;
+    }
   }
   if (element is engine.FieldElement &&
       element.isEnumConstant &&

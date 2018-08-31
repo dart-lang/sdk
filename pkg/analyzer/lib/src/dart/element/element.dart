@@ -1805,6 +1805,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     safelyVisitChildren(enums, visitor);
     safelyVisitChildren(functions, visitor);
     safelyVisitChildren(functionTypeAliases, visitor);
+    safelyVisitChildren(mixins, visitor);
     safelyVisitChildren(types, visitor);
     safelyVisitChildren(topLevelVariables, visitor);
   }
