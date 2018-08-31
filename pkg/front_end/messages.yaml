@@ -461,8 +461,8 @@ ConstAndFinal:
   tip: "Try removing either the 'const' or 'final' keyword."
   analyzerCode: CONST_AND_FINAL
   script:
-    - "class C { const final int x = 5; }"
-    - "class C { final const int x = 5; }"
+    - "class C { static const final int x = 5; }"
+    - "class C { static final const int x = 5; }"
 
 ConstAndVar:
   template: "Members can't be declared to be both 'const' and 'var'."
@@ -2688,3 +2688,10 @@ InvokeNonFunction:
       Foo foo = new Foo();
       foo.f();
     }
+
+ConstInstanceField:
+  template: "Only static fields can be declared as const."
+  tip: "Try using 'final' instead of 'const', or adding the keyword 'static'."
+  analyzerCode: CONST_INSTANCE_FIELD
+  script:
+    - "class C { const field = 0; }"

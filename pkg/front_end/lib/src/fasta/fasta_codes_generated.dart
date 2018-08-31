@@ -1375,6 +1375,17 @@ Message _withArgumentsConstFieldWithoutInitializer(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstInstanceField = messageConstInstanceField;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstInstanceField = const MessageCode(
+    "ConstInstanceField",
+    analyzerCode: "CONST_INSTANCE_FIELD",
+    message: r"""Only static fields can be declared as const.""",
+    tip:
+        r"""Try using 'final' instead of 'const', or adding the keyword 'static'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstMethod = messageConstMethod;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

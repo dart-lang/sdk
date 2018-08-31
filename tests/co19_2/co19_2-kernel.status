@@ -45,7 +45,6 @@ Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t05: Mis
 Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t06: MissingCompileTimeError # Legal, see #33235
 Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t07: MissingCompileTimeError # Legal, see #33235
 Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t09: MissingCompileTimeError # Legal, see #33235
-Language/Classes/Instance_Variables/constant_t01: MissingCompileTimeError # Issue 32326
 Language/Classes/Setters/instance_setter_t01: MissingCompileTimeError # Legal, see #33235
 Language/Classes/Setters/instance_setter_t02: MissingCompileTimeError # Legal, see #33235
 Language/Classes/Setters/instance_setter_t03: MissingCompileTimeError # Legal, see #33235

@@ -21,6 +21,7 @@ import '../fasta_codes.dart'
         LocatedMessage,
         Message,
         messageConstConstructorWithBody,
+        messageConstInstanceField,
         messageConstMethod,
         messageConstructorWithReturnType,
         messageConstructorWithTypeParameters,
@@ -1180,6 +1181,13 @@ class OutlineBuilder extends StackListener {
     int modifiers = (staticToken != null ? staticMask : 0) |
         (covariantToken != null ? covariantMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme);
+    if (staticToken == null && modifiers & constMask != 0) {
+      // It is a compile-time error if an instance variable is declared to be
+      // constant.
+      addCompileTimeError(messageConstInstanceField, varFinalOrConst.charOffset,
+          varFinalOrConst.length);
+      modifiers &= ~constMask;
+    }
     List<MetadataBuilder> metadata = pop();
     Token metadataToken = pop();
     var docComment = documentationComment(beginToken, metadataToken);

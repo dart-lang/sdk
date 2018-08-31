@@ -39,7 +39,6 @@ mirrors/reflected_type_classes_test/02: MissingCompileTimeError
 mirrors/reflected_type_classes_test/03: MissingCompileTimeError
 mirrors/reflected_type_test/02: MissingCompileTimeError
 mirrors/reflected_type_test/03: MissingCompileTimeError
-mirrors/variable_is_const_test/01: MissingCompileTimeError
 
 [ $arch == simarm64 && $strong && ($compiler == dartk || $compiler == dartkb) ]
 isolate/mint_maker_test: Timeout # Please triage.
@@ -111,9 +110,6 @@ mirrors/other_declarations_location_test: Crash # Issue 33325 (assertion error, 
 
 [ $mode == debug && $hot_reload_rollback && ($compiler == dartk || $compiler == dartkb) ]
 isolate/message3_test/constList_identical: Skip # Timeout
-
-[ $mode == debug && $strong && ($compiler == dartk || $compiler == dartkb) ]
-mirrors/variable_is_const_test/01: Crash # Issue 32326
 
 [ $runtime == vm && $checked && $strong && ($compiler == dartk || $compiler == dartkb) ]
 mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError # Issue 28424
