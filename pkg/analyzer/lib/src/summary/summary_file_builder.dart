@@ -36,7 +36,7 @@ class SummaryBuilder {
   /**
    * Create a summary builder for these [librarySources] and [context].
    */
-  SummaryBuilder(this.librarySources, this.context, this.strong);
+  SummaryBuilder(this.librarySources, this.context, [this.strong = true]);
 
   /**
    * Create an SDK summary builder for the dart SDK at the given [sdkPath].
