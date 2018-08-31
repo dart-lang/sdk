@@ -341,7 +341,7 @@ abstract class Stream<T> {
   /**
    * Adds a subscription to this stream.
    *
-   * Returns a [StreamSubscription] which handles events from the stream using
+   * Returns a [StreamSubscription] which handles events from this stream using
    * the provided [onData], [onError] and [onDone] handlers.
    * The handlers can be changed on the subscription, but they start out
    * as the provided functions.
@@ -355,10 +355,10 @@ abstract class Stream<T> {
    * The [onError] callback must be of type `void onError(error)` or
    * `void onError(error, StackTrace stackTrace)`. If [onError] accepts
    * two arguments it is called with the error object and the stack trace
-   * (which could be `null` if the stream itself received an error without
+   * (which could be `null` if this stream itself received an error without
    * stack trace).
    * Otherwise it is called with just the error object.
-   * If [onError] is omitted, any errors on the stream are considered unhandled,
+   * If [onError] is omitted, any errors on this stream are considered unhandled,
    * and will be passed to the current [Zone]'s error handler.
    * By default unhandled async errors are treated
    * as if they were uncaught top-level errors.
@@ -420,7 +420,7 @@ abstract class Stream<T> {
    * mapped to a new event.
    *
    * This acts like [map], except that [convert] may return a [Future],
-   * and in that case, the stream waits for that future to complete before
+   * and in that case, this stream waits for that future to complete before
    * continuing with its result.
    *
    * The returned stream is a broadcast stream if this stream is.
@@ -547,10 +547,11 @@ abstract class Stream<T> {
    * by the [onError] function.
    *
    * The [onError] callback must be of type `void onError(error)` or
-   * `void onError(error, StackTrace stackTrace)`. Depending on the function
-   * type the stream either invokes [onError] with or without a stack
-   * trace. The stack trace argument might be `null` if the stream itself
-   * received an error without stack trace.
+   * `void onError(error, StackTrace stackTrace)`.
+   * The function type determines whether [onError] is invoked with a stack
+   * trace argument.
+   * The stack trace argument may be `null` if this stream received an error
+   * without a stack trace.
    *
    * An asynchronous error `error` is matched by a test function if
    *`test(error)` returns true. If [test] is omitted, every error is considered
@@ -558,7 +559,7 @@ abstract class Stream<T> {
    *
    * If the error is intercepted, the [onError] function can decide what to do
    * with it. It can throw if it wants to raise a new (or the same) error,
-   * or simply return to make the stream forget the error.
+   * or simply return to make this stream forget the error.
    * If the received `error` value is thrown again by the [onError] function,
    * it acts like a `rethrow` and it is emitted along with its original
    * stack trace, not the stack trace of the `throw` inside [onError].
@@ -606,7 +607,7 @@ abstract class Stream<T> {
    * The `streamConsumer` is closed when this stream has been successfully added
    * to it - when the future returned by `addStream` completes without an error.
    *
-   * Returns a future which completes when the stream has been consumed
+   * Returns a future which completes when this stream has been consumed
    * and the consumer has been closed.
    *
    * The returned future completes with the same result as the future returned
@@ -619,9 +620,9 @@ abstract class Stream<T> {
   }
 
   /**
-   * Applies a [StreamTransformer] to the current stream.
+   * Applies  [streamTransformer] to this stream.
    *
-   * Returns the result of the stream transformation,
+   * Returns the transformed stream,
    * that is, the result of `streamTransformer.bind(this)`.
    * This method simply allows writing the call to `streamTransformer.bind`
    * in a chained fashion, like
@@ -643,7 +644,7 @@ abstract class Stream<T> {
    * Combines a sequence of values by repeatedly applying [combine].
    *
    * Similar to [Iterable.reduce], this function maintains a value,
-   * starting with the first element of the stream
+   * starting with the first element of this stream
    * and updated for each further element of this stream.
    * For each element after the first,
    * the value is updated to the result of calling [combine]
@@ -652,7 +653,7 @@ abstract class Stream<T> {
    * When this stream is done, the returned future is completed with
    * the value at that time.
    *
-   * If the stream is empty, the returned future is completed with
+   * If this stream is empty, the returned future is completed with
    * an error.
    * If this stream emits an error, or the call to [combine] throws,
    * the returned future is completed with that error,
@@ -735,11 +736,11 @@ abstract class Stream<T> {
    * If [separator] is provided, it is inserted between element string
    * representations.
    *
-   * The returned future is completed with the combined string when the stream
+   * The returned future is completed with the combined string when this stream
    * is done.
    *
-   * If the stream contains an error, or if the call to [Object.toString]
-   * throws, the returned future is completed with that error,
+   * If this stream emits an error, or the call to [Object.toString] throws,
+   * the returned future is completed with that error,
    * and processing stops.
    */
   Future<String> join([String separator = ""]) {
@@ -770,11 +771,12 @@ abstract class Stream<T> {
    *
    * Compares each element of this stream to [needle] using [Object.==].
    * If an equal element is found, the returned future is completed with `true`.
-   * If the stream ends without finding a match, the future is completed with
+   * If this stream ends without finding a match, the future is completed with
    * `false`.
    *
-   * If the stream contains an error, or the call to `Object.==` throws,
-   * the returned future is completed with that error, and processing stops.
+   * If this stream emits an error, or the call to [Object.==] throws,
+   * the returned future is completed with that error,
+   * and processing stops.
    */
   Future<bool> contains(Object needle) {
     _Future<bool> future = new _Future<bool>();
@@ -796,13 +798,14 @@ abstract class Stream<T> {
   }
 
   /**
-   * Executes [action] on each element of the stream.
+   * Executes [action] on each element of this stream.
    *
-   * Completes the returned [Future] when all elements of the stream
+   * Completes the returned [Future] when all elements of this stream
    * have been processed.
    *
-   * If the stream contains an error, or if the call to [action] throws,
-   * the returned future completes with that error, and processing stops.
+   * If this stream emits an error, or if the call to [action] throws,
+   * the returned future completes with that error,
+   * and processing stops.
    */
   Future forEach(void action(T element)) {
     _Future future = new _Future();
@@ -824,15 +827,16 @@ abstract class Stream<T> {
   /**
    * Checks whether [test] accepts all elements provided by this stream.
    *
-   * Calls [test] on each element of the stream.
+   * Calls [test] on each element of this stream.
    * If the call returns `false`, the returned future is completed with `false`
    * and processing stops.
    *
-   * If the stream ends without finding an element that [test] rejects,
+   * If this stream ends without finding an element that [test] rejects,
    * the returned future is completed with `true`.
    *
-   * If this stream contains an error, or if the call to [test] throws,
-   * the returned future is completed with that error, and processing stops.
+   * If this stream emits an error, or if the call to [test] throws,
+   * the returned future is completed with that error,
+   * and processing stops.
    */
   Future<bool> every(bool test(T element)) {
     _Future<bool> future = new _Future<bool>();
@@ -856,15 +860,16 @@ abstract class Stream<T> {
   /**
    * Checks whether [test] accepts any element provided by this stream.
    *
-   * Calls [test] on each element of the stream.
+   * Calls [test] on each element of this stream.
    * If the call returns `true`, the returned future is completed with `true`
    * and processing stops.
    *
-   * If the stream ends without finding an element that [test] accepts,
+   * If this stream ends without finding an element that [test] accepts,
    * the returned future is completed with `false`.
    *
-   * If this stream contains an error, or if the call to [test] throws,
-   * the returned future is completed with that error, and processing stops.
+   * If this stream emits an error, or if the call to [test] throws,
+   * the returned future is completed with that error,
+   * and processing stops.
    */
   Future<bool> any(bool test(T element)) {
     _Future<bool> future = new _Future<bool>();
@@ -888,13 +893,14 @@ abstract class Stream<T> {
   /**
    * The number of elements in this stream.
    *
-   * Waits for all elements of this stream. When the stream ends,
+   * Waits for all elements of this stream. When this stream ends,
    * the returned future is completed with the number of elements.
    *
-   * If the stream contains an error, the returned future is completed with
-   * that error, and processing stops.
+   * If this stream emits an error,
+   * the returned future is completed with that error,
+   * and processing stops.
    *
-   * This operation listens to the stream, and a non-broadcast stream cannot
+   * This operation listens to this stream, and a non-broadcast stream cannot
    * be reused after finding its length.
    */
   Future<int> get length {
@@ -917,13 +923,13 @@ abstract class Stream<T> {
    *
    * Waits for the first element of this stream, then completes the returned
    * future with `true`.
-   * If the stream ends without emitting any elements, the returned future is
+   * If this stream ends without emitting any elements, the returned future is
    * completed with `false`.
    *
    * If the first event is an error, the returned future is completed with that
    * error.
    *
-   * This operation listens to the stream, and a non-broadcast stream cannot
+   * This operation listens to this stream, and a non-broadcast stream cannot
    * be reused after checking whether it is empty.
    */
   Future<bool> get isEmpty {
@@ -951,12 +957,13 @@ abstract class Stream<T> {
   /**
    * Collects all elements of this stream in a [List].
    *
-   * Creates a `List<T>` and adds all elements of the stream to the list
+   * Creates a `List<T>` and adds all elements of this stream to the list
    * in the order they arrive.
-   * When the stream ends, the returned future is completed with that list.
+   * When this stream ends, the returned future is completed with that list.
    *
-   * If the stream contains an error, the returned future is completed
-   * with that error, and processing stops.
+   * If this stream emits an error,
+   * the returned future is completed with that error,
+   * and processing stops.
    */
   Future<List<T>> toList() {
     List<T> result = <T>[];
@@ -976,9 +983,9 @@ abstract class Stream<T> {
   /**
    * Collects the data of this stream in a [Set].
    *
-   * Creates a `Set<T>` and adds all elements of the stream to the set.
+   * Creates a `Set<T>` and adds all elements of this stream to the set.
    * in the order they arrive.
-   * When the stream ends, the returned future is completed with that set.
+   * When this stream ends, the returned future is completed with that set.
    *
    * The returned set is the same type as returned by `new Set<T>()`.
    * If another type of set is needed, either use [forEach] to add each
@@ -986,8 +993,9 @@ abstract class Stream<T> {
    * `toList().then((list) => new SomeOtherSet.from(list))`
    * to create the set.
    *
-   * If the stream contains an error, the returned future is completed
-   * with that error, and processing stops.
+   * If this stream emits an error,
+   * the returned future is completed with that error,
+   * and processing stops.
    */
   Future<Set<T>> toSet() {
     Set<T> result = new Set<T>();
@@ -1005,12 +1013,15 @@ abstract class Stream<T> {
   }
 
   /**
-   * Discards all data on the stream, but signals when it's done or an error
+   * Discards all data on this stream, but signals when it is done or an error
    * occurred.
    *
    * When subscribing using [drain], cancelOnError will be true. This means
-   * that the future will complete with the first error on the stream and then
+   * that the future will complete with the first error on this stream and then
    * cancel the subscription.
+   * If this stream emits an error, or the call to [combine] throws,
+   * the returned future is completed with that error,
+   * and processing is stopped.
    *
    * In case of a `done` event the future completes with the given
    * [futureValue].
@@ -1136,9 +1147,9 @@ abstract class Stream<T> {
   }
 
   /**
-   * The first element of the stream.
+   * The first element of this stream.
    *
-   * Stops listening to the stream after the first element has been received.
+   * Stops listening to this stream after the first element has been received.
    *
    * Internally the method cancels its subscription after the first element.
    * This means that single-subscription (non-broadcast) streams are closed
@@ -1266,7 +1277,7 @@ abstract class Stream<T> {
    * If this stream emits an error before the first matching element,
    * the returned future is completed with that error, and processing stops.
    *
-   * Stops listening to the stream after the first matching element or error
+   * Stops listening to this stream after the first matching element or error
    * has been received.
    *
    * Internally the method cancels its subscription after the first element that
@@ -1353,7 +1364,7 @@ abstract class Stream<T> {
    * Finds the single element in this stream matching [test].
    *
    * Like [lastWhere], except that it is an error if more than one
-   * matching element occurs in the stream.
+   * matching element occurs in this stream.
    */
   Future<T> singleWhere(bool test(T element), {T orElse()}) {
     _Future<T> future = new _Future<T>();
@@ -1400,7 +1411,7 @@ abstract class Stream<T> {
   /**
    * Returns the value of the [index]th data event of this stream.
    *
-   * Stops listening to the stream after the [index]th data event has been
+   * Stops listening to this stream after the [index]th data event has been
    * received.
    *
    * Internally the method cancels its subscription after these elements. This
@@ -1444,7 +1455,7 @@ abstract class Stream<T> {
    *
    * The countdown doesn't start until the returned stream is listened to.
    * The countdown is reset every time an event is forwarded from this stream,
-   * or when the stream is paused and resumed.
+   * or when this stream is paused and resumed.
    *
    * The [onTimeout] function is called with one argument: an
    * [EventSink] that allows putting events into the returned stream.
