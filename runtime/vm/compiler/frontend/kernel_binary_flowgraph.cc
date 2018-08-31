@@ -4745,13 +4745,34 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
       Class::ZoneHandle(Z, I->object_store()->closure_class()), 0);
   LocalVariable* new_closure = MakeTemporary();
 
-  instructions += LoadLocal(new_closure);
-
   intptr_t num_type_args = ReadListLength();
   const TypeArguments& type_args = T.BuildTypeArguments(num_type_args);
   instructions += TranslateInstantiatedTypeArguments(type_args);
+  LocalVariable* type_args_vec = MakeTemporary();
+
+  // Check the bounds.
+  //
+  // TODO(sjindel): Only perform this check for instance tearoffs, not for
+  // tearoffs against local or top-level functions.
+  instructions += LoadLocal(original_closure);
+  instructions += PushArgument();
+  instructions += LoadLocal(type_args_vec);
+  instructions += PushArgument();
+  const Library& dart_internal = Library::Handle(Z, Library::InternalLibrary());
+  const Function& bounds_check_function = Function::ZoneHandle(
+      Z, dart_internal.LookupFunctionAllowPrivate(
+             Symbols::BoundsCheckForPartialInstantiation()));
+  ASSERT(!bounds_check_function.IsNull());
+  instructions += StaticCall(TokenPosition::kNoSource, bounds_check_function, 2,
+                             ICData::kStatic);
+  instructions += Drop();
+
+  instructions += LoadLocal(new_closure);
+  instructions += LoadLocal(type_args_vec);
   instructions += StoreInstanceField(TokenPosition::kNoSource,
                                      Closure::delayed_type_arguments_offset());
+
+  instructions += Drop();  // Drop type args.
 
   // Copy over the target function.
   instructions += LoadLocal(new_closure);
@@ -4781,7 +4802,7 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
   instructions +=
       StoreInstanceField(TokenPosition::kNoSource, Closure::context_offset());
 
-  instructions += DropTempsPreserveTop(1);  // drop old closure
+  instructions += DropTempsPreserveTop(1);  // Drop old closure.
 
   return instructions;
 }

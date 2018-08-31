@@ -102,6 +102,12 @@ class Lists {
 _prependTypeArguments(functionTypeArguments, parentTypeArguments, parentLen,
     totalLen) native "Internal_prependTypeArguments";
 
+// Check that a set of type arguments satisfy the type parameter bounds on a
+// closure.
+@pragma("vm:entry-point")
+_boundsCheckForPartialInstantiation(closure, type_args)
+    native "Internal_boundsCheckForPartialInstantiation";
+
 // Called by IRRegExpMacroAssembler::GrowStack.
 Int32List _growRegExpStack(Int32List stack) {
   final newStack = new Int32List(stack.length * 2);
