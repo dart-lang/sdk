@@ -305,6 +305,23 @@ main2() {/*1:INC*/
     _compareRegions(regions, content);
   }
 
+  test_mixin() async {
+    String content = """
+// Content before
+
+mixin M {/*1:INC*/
+  void m() {/*3:INC*/
+    print("Got to m");
+  /*3:INC:FUNCTION_BODY*/}
+/*1:INC:CLASS_BODY*/}
+
+// Content after
+""";
+
+    final regions = await _computeRegions(content);
+    _compareRegions(regions, content);
+  }
+
   test_multiple_directive_types() async {
     String content = """
 import/*1:INC*/ 'dart:async';
