@@ -608,8 +608,8 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
             .isOverloadedArithmeticOperatorAndType(combinerMember, readType);
       }
       DartType rhsType;
-      var combinerType =
-          inferrer.getCalleeFunctionType(combinerMember, readType, false);
+      var combinerType = inferrer.getCalleeFunctionType(
+          inferrer.getCalleeType(combinerMember, readType), false);
       if (isPreIncDec || isPostIncDec) {
         rhsType = inferrer.coreTypes.intClass.rawType;
       } else {
@@ -1554,8 +1554,8 @@ class IndexAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
     // To replicate analyzer behavior, we base type inference on the write
     // member.  TODO(paulberry): would it be better to use the read member
     // when doing compound assignment?
-    var calleeType =
-        inferrer.getCalleeFunctionType(writeMember, receiverType, false);
+    var calleeType = inferrer.getCalleeFunctionType(
+        inferrer.getCalleeType(writeMember, receiverType), false);
     DartType expectedIndexTypeForWrite;
     DartType indexContext = const UnknownType();
     DartType writeContext = const UnknownType();
@@ -1581,8 +1581,8 @@ class IndexAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
     if (read != null) {
       var readMember =
           inferrer.findMethodInvocationMember(receiverType, read, silent: true);
-      var calleeFunctionType =
-          inferrer.getCalleeFunctionType(readMember, receiverType, false);
+      var calleeFunctionType = inferrer.getCalleeFunctionType(
+          inferrer.getCalleeType(readMember, receiverType), false);
       inferrer.ensureAssignable(
           getPositionalParameterType(calleeFunctionType, 0),
           indexType,

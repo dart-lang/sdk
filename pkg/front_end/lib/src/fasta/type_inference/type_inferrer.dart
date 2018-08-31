@@ -87,6 +87,7 @@ import '../fasta_codes.dart'
         templateInvalidCastNewExpr,
         templateInvalidCastStaticMethod,
         templateInvalidCastTopLevelFunction,
+        templateInvokeNonFunction,
         templateMixinInferenceNoMatchingClass,
         templateUndefinedGetter,
         templateUndefinedMethod,
@@ -969,14 +970,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
   }
 
-  FunctionType getCalleeFunctionType(
-      Object interfaceMember, DartType receiverType, bool followCall) {
-    var type = getCalleeType(interfaceMember, receiverType);
-    if (type is FunctionType) {
-      return type;
-    } else if (followCall && type is InterfaceType) {
-      var member = _getInterfaceMember(type.classNode, callName, false);
-      var callType = getCalleeType(member, type);
+  FunctionType getCalleeFunctionType(DartType calleeType, bool followCall) {
+    if (calleeType is FunctionType) {
+      return calleeType;
+    } else if (followCall && calleeType is InterfaceType) {
+      var member = _getInterfaceMember(calleeType.classNode, callName, false);
+      var callType = getCalleeType(member, calleeType);
       if (callType is FunctionType) {
         return callType;
       }
@@ -1634,12 +1633,22 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       isOverloadedArithmeticOperator = typeSchemaEnvironment
           .isOverloadedArithmeticOperatorAndType(interfaceMember, receiverType);
     }
-    var calleeType =
-        getCalleeFunctionType(interfaceMember, receiverType, !isImplicitCall);
+    var calleeType = getCalleeType(interfaceMember, receiverType);
+    var functionType = getCalleeFunctionType(calleeType, !isImplicitCall);
+    if (interfaceMember != null &&
+        calleeType is! DynamicType &&
+        calleeType != coreTypes.functionClass.rawType &&
+        identical(functionType, unknownFunction)) {
+      var parent = expression.parent;
+      kernel.Expression error = helper.wrapInProblem(expression,
+          templateInvokeNonFunction.withArguments(methodName.name), noLength);
+      parent?.replaceChild(expression, error);
+      return new ExpressionInferenceResult(null, const DynamicType());
+    }
     var checkKind = preCheckInvocationContravariance(receiver, receiverType,
         interfaceMember, desugaredInvocation, arguments, expression);
-    var inferenceResult = inferInvocation(
-        typeContext, fileOffset, calleeType, calleeType.returnType, arguments,
+    var inferenceResult = inferInvocation(typeContext, fileOffset, functionType,
+        functionType.returnType, arguments,
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
         receiverType: receiverType);
     var inferredType = inferenceResult.type;
@@ -1647,7 +1656,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       inferredType = coreTypes.boolClass.rawType;
     }
     handleInvocationContravariance(checkKind, desugaredInvocation, arguments,
-        expression, inferredType, calleeType, fileOffset);
+        expression, inferredType, functionType, fileOffset);
     int resultOffset = arguments.fileOffset != -1
         ? arguments.fileOffset
         : expression.fileOffset;

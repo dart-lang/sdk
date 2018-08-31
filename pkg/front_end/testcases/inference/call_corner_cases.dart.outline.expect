@@ -24,5 +24,7 @@ class D extends core::Object {
   get getB() → self::B
     ;
 }
+static method test() → dynamic
+  ;
 static method main() → dynamic
   ;

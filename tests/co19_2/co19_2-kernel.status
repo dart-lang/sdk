@@ -110,7 +110,6 @@ Language/Expressions/Maps/constant_map_type_t01: CompileTimeError
 Language/Expressions/Maps/equal_keys_t01: MissingCompileTimeError
 Language/Expressions/Maps/key_value_equals_operator_t01: MissingCompileTimeError # Issue 32557
 Language/Expressions/Method_Invocation/Ordinary_Invocation/accessible_instance_member_t04: CompileTimeError
-Language/Expressions/Method_Invocation/Ordinary_Invocation/function_type_t01: MissingCompileTimeError # Issue 32975
 Language/Expressions/Method_Invocation/Super_Invocation/getter_lookup_failed_t02: CompileTimeError
 Language/Expressions/Multiplicative_Expressions/syntax_t01: CompileTimeError
 Language/Expressions/Postfix_Expressions/syntax_t01: CompileTimeError

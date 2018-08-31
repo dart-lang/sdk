@@ -4667,6 +4667,26 @@ const MessageCode messageInvalidVoid = const MessageCode("InvalidVoid",
         r"""Try removing 'void' keyword or replace it with 'var', 'final', or a type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateInvokeNonFunction =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""'#name' isn't a function or method and can't be invoked.""",
+        withArguments: _withArgumentsInvokeNonFunction);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeInvokeNonFunction =
+    const Code<Message Function(String name)>(
+        "InvokeNonFunction", templateInvokeNonFunction,
+        analyzerCode: "INVOCATION_OF_NON_FUNCTION", severity: Severity.error);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvokeNonFunction(String name) {
+  return new Message(codeInvokeNonFunction,
+      message: """'${name}' isn't a function or method and can't be invoked.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(String name)> templateLabelNotFound = const Template<
         Message Function(String name)>(

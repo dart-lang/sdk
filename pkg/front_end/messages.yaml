@@ -2675,3 +2675,16 @@ ReturnFromVoidFunction:
 RethrowNotCatch:
   template: "'rethrow' can only be used in catch clauses."
   analyzerCode: RETHROW_OUTSIDE_CATCH
+
+InvokeNonFunction:
+  template: "'#name' isn't a function or method and can't be invoked."
+  severity: ERROR
+  analyzerCode: INVOCATION_OF_NON_FUNCTION
+  script: |
+    class Foo {
+      int f;
+    }
+    main() {
+      Foo foo = new Foo();
+      foo.f();
+    }
