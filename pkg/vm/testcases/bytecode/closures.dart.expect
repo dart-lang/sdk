@@ -1493,7 +1493,7 @@ ConstantPool {
 }
 [@vm.bytecode=
 Bytecode {
-  Entry                6
+  Entry                7
   CheckStack
   Allocate             CP#17
   StoreLocal           r3
@@ -1514,10 +1514,15 @@ Bytecode {
   StoreFieldTOS        CP#1
   PopLocal             r2
   Push                 r2
-  PopLocal             r3
+  StoreLocal           r3
+  PushConstant         CP#22
+  StoreLocal           r6
+  PushConstant         CP#24
+  IndirectStaticCall   2, CP#23
+  Drop1
   Allocate             CP#17
   StoreLocal           r5
-  PushConstant         CP#22
+  Push                 r6
   StoreFieldTOS        CP#3
   Push                 r5
   Push                 r3
@@ -1566,6 +1571,8 @@ ConstantPool {
   [20] = InstanceField dart.core::_Closure::_function
   [21] = Reserved
   [22] = TypeArgs [dart.core::int]
+  [23] = ArgDesc num-args 2, num-type-args 0, names []
+  [24] = StaticICData target 'dart._internal::_boundsCheckForPartialInstantiation', arg-desc CP#23
 }
 Closure CP#0 {
   EntryFixed           2, 3

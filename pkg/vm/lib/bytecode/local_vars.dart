@@ -1136,6 +1136,6 @@ class _Allocator extends RecursiveVisitor<Null> {
 
   @override
   visitInstantiation(Instantiation node) {
-    _visit(node, temps: 2);
+    _visit(node, temps: 3);
   }
 }

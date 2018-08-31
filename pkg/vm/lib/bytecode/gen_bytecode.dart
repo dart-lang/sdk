@@ -239,6 +239,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   Procedure get prependTypeArguments => _prependTypeArguments ??=
       libraryIndex.getTopLevelMember('dart:_internal', '_prependTypeArguments');
 
+  Procedure _boundsCheckForPartialInstantiation;
+  Procedure get boundsCheckForPartialInstantiation =>
+      _boundsCheckForPartialInstantiation ??= libraryIndex.getTopLevelMember(
+          'dart:_internal', '_boundsCheckForPartialInstantiation');
+
   Procedure _futureValue;
   Procedure get futureValue =>
       _futureValue ??= libraryIndex.getMember('dart:async', 'Future', 'value');
@@ -1409,15 +1414,23 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   visitInstantiation(Instantiation node) {
     final int oldClosure = locals.tempIndexInFrame(node, tempIndex: 0);
     final int newClosure = locals.tempIndexInFrame(node, tempIndex: 1);
+    final int typeArguments = locals.tempIndexInFrame(node, tempIndex: 2);
 
     node.expression.accept(this);
-    asm.emitPopLocal(oldClosure);
+    asm.emitStoreLocal(oldClosure);
+
+    _genTypeArguments(node.typeArguments);
+    asm.emitStoreLocal(typeArguments);
+
+    _genStaticCall(
+        boundsCheckForPartialInstantiation, new ConstantArgDesc(2), 2);
+    asm.emitDrop1();
 
     assert(closureClass.typeParameters.isEmpty);
     asm.emitAllocate(cp.add(new ConstantClass(closureClass)));
     asm.emitStoreLocal(newClosure);
 
-    _genTypeArguments(node.typeArguments);
+    asm.emitPush(typeArguments);
     asm.emitStoreFieldTOS(
         cp.add(new ConstantInstanceField(closureDelayedTypeArguments)));
 
