@@ -48,8 +48,21 @@ class _KernelVisitor extends TreeVisitor<ComparisonNode> {
   ComparisonNode visitClass(Class class_) {
     if (class_.isAnonymousMixin) return null;
     var kind = class_.isEnum ? 'Enum' : 'Class';
-    // TODO(paulberry): handle fields from Class
-    return ComparisonNode('$kind ${class_.name}');
+    var children = <ComparisonNode>[];
+    if (class_.isEnum) {
+      for (var field in class_.fields) {
+        if (!field.isStatic) continue;
+        if (field.name.name == 'values') continue;
+        // TODO(paulberry): handle index
+        children.add(ComparisonNode('EnumValue ${field.name.name}'));
+      }
+    } else {
+      _visitList(class_.fields, children);
+      _visitList(class_.constructors, children);
+      _visitList(class_.procedures, children);
+    }
+    // TODO(paulberry): handle more fields from Class
+    return ComparisonNode.sorted('$kind ${class_.name}', children);
   }
 
   @override
@@ -60,7 +73,19 @@ class _KernelVisitor extends TreeVisitor<ComparisonNode> {
   }
 
   @override
+  ComparisonNode visitConstructor(Constructor constructor) {
+    if (constructor.isSynthetic) return null;
+    var name = constructor.name.name;
+    if (name.isEmpty) {
+      name = '(unnamed)';
+    }
+    // TODO(paulberry): handle fields from Constructor
+    return ComparisonNode('Constructor $name');
+  }
+
+  @override
   ComparisonNode visitField(Field field) {
+    if (field.name.name == '_redirecting#') return null;
     // TODO(paulberry): handle fields from Field
     return ComparisonNode('Field ${field.name.name}');
   }
@@ -82,9 +107,18 @@ class _KernelVisitor extends TreeVisitor<ComparisonNode> {
 
   @override
   ComparisonNode visitProcedure(Procedure procedure) {
-    var kind = procedure.kind.toString().replaceAll('ProcedureKind.', '');
+    if (procedure.isForwardingStub) return null;
+    // TODO(paulberry): add an annotation to the ComparisonNode when the
+    // procedure is a factory.
+    var kind = procedure.isFactory
+        ? 'Constructor'
+        : procedure.kind.toString().replaceAll('ProcedureKind.', '');
+    var name = procedure.name.name;
+    if (name.isEmpty) {
+      name = '(unnamed)';
+    }
     // TODO(paulberry): handle fields from Procedure
-    return ComparisonNode('$kind ${procedure.name.name}');
+    return ComparisonNode('$kind $name');
   }
 
   @override
