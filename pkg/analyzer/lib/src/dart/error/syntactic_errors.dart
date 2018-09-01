@@ -530,6 +530,7 @@ class ParserErrorCode extends ErrorCode {
       correction: "Try adding either a catch or finally clause, or "
           "remove the try statement.");
 
+  /// TODO(danrubel): Consider splitting this into two separate error messages.
   static const ParserErrorCode MISSING_CLASS_BODY = const ParserErrorCode(
       'MISSING_CLASS_BODY',
       "A class or mixin definition must have a body, even if it is empty.",

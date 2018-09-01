@@ -38,6 +38,17 @@ class MixinDeclarationTest extends PartialCodeTest {
           new TestDescriptor('onBody', 'mixin A on {}',
               [ParserErrorCode.EXPECTED_TYPE_NAME], 'mixin A on _s_ {}'),
           new TestDescriptor(
+              'onNameComma',
+              'mixin A on B,',
+              [
+                ParserErrorCode.EXPECTED_TYPE_NAME,
+                ParserErrorCode.MISSING_CLASS_BODY
+              ],
+              'mixin A on B, _s_ {}',
+              failing: ['functionVoid', 'functionNonVoid', 'getter']),
+          new TestDescriptor('onNameCommaBody', 'mixin A on B, {}',
+              [ParserErrorCode.EXPECTED_TYPE_NAME], 'mixin A on B, _s_ {}'),
+          new TestDescriptor(
               'onImplementsNameBody',
               'mixin A on implements B {}',
               [ParserErrorCode.EXPECTED_TYPE_NAME],
