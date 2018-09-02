@@ -3658,20 +3658,15 @@ class Parser {
     assert(precedence >= 1);
     assert(precedence <= SELECTOR_PRECEDENCE);
     token = parseUnaryExpression(token, allowCascades);
-    Token next = token.next;
-    TokenType type = next.type;
-    int tokenLevel = type.precedence;
-    Token typeArguments;
     TypeParamOrArgInfo typeArg = computeMethodTypeArguments(token);
     if (typeArg != noTypeParamOrArg) {
       // For example a(b)<T>(c), where token is before '<'.
-      typeArguments = next;
       token = typeArg.parseArguments(token, this);
-      next = token.next;
-      assert(optional('(', next));
-      type = next.type;
-      tokenLevel = type.precedence;
+      assert(optional('(', token.next));
     }
+    Token next = token.next;
+    TokenType type = next.type;
+    int tokenLevel = type.precedence;
     for (int level = tokenLevel; level >= precedence; --level) {
       int lastBinaryExpressionLevel = -1;
       while (identical(tokenLevel, level)) {
@@ -3708,8 +3703,7 @@ class Parser {
             listener.endBinaryExpression(operator);
           } else if ((identical(type, TokenType.OPEN_PAREN)) ||
               (identical(type, TokenType.OPEN_SQUARE_BRACKET))) {
-            token = parseArgumentOrIndexStar(token, typeArguments);
-            next = token.next;
+            token = parseArgumentOrIndexStar(token, typeArg);
           } else if (identical(type, TokenType.INDEX)) {
             BeginToken replacement = link(
                 new BeginToken(TokenType.OPEN_SQUARE_BRACKET, next.charOffset,
@@ -3717,7 +3711,7 @@ class Parser {
                 new Token(TokenType.CLOSE_SQUARE_BRACKET, next.charOffset + 1));
             rewriter.replaceTokenFollowing(token, replacement);
             replacement.endToken = replacement.next;
-            token = parseArgumentOrIndexStar(token, null);
+            token = parseArgumentOrIndexStar(token, noTypeParamOrArg);
           } else {
             // Recovery
             reportRecoverableErrorWithToken(
@@ -3761,7 +3755,7 @@ class Parser {
     assert(optional('..', cascadeOperator));
     listener.beginCascade(cascadeOperator);
     if (optional('[', token.next)) {
-      token = parseArgumentOrIndexStar(token, null);
+      token = parseArgumentOrIndexStar(token, noTypeParamOrArg);
     } else {
       token = parseSend(token, IdentifierContext.expressionContinuation);
       listener.endBinaryExpression(cascadeOperator);
@@ -3776,16 +3770,14 @@ class Parser {
         next = token.next;
         listener.endBinaryExpression(period);
       }
-      Token typeArguments;
       TypeParamOrArgInfo typeArg = computeMethodTypeArguments(token);
       if (typeArg != noTypeParamOrArg) {
         // For example a(b)..<T>(c), where token is '<'.
-        typeArguments = next;
         token = typeArg.parseArguments(token, this);
         next = token.next;
         assert(optional('(', next));
       }
-      token = parseArgumentOrIndexStar(token, typeArguments);
+      token = parseArgumentOrIndexStar(token, typeArg);
       next = token.next;
     } while (!identical(mark, token));
 
@@ -3856,15 +3848,12 @@ class Parser {
     return parsePrimary(token, IdentifierContext.expression);
   }
 
-  Token parseArgumentOrIndexStar(Token token, Token typeArguments) {
-    // TODO(danrubel): Accept the token before typeArguments
-    // TODO(brianwilkerson): Consider replacing `typeArguments` with a boolean
-    // flag, given that the only thing it's used for is to compare it with null.
+  Token parseArgumentOrIndexStar(Token token, TypeParamOrArgInfo typeArg) {
     Token next = token.next;
     Token beginToken = next;
     while (true) {
       if (optional('[', next)) {
-        assert(typeArguments == null);
+        assert(typeArg == noTypeParamOrArg);
         Token openSquareBracket = next;
         bool old = mayParseFunctionExpressions;
         mayParseFunctionExpressions = true;
@@ -3879,15 +3868,26 @@ class Parser {
         }
         listener.handleIndexedExpression(openSquareBracket, next);
         token = next;
+        typeArg = computeMethodTypeArguments(token);
+        if (typeArg != noTypeParamOrArg) {
+          // For example a[b]<T>(c), where token is before '<'.
+          token = typeArg.parseArguments(token, this);
+          assert(optional('(', token.next));
+        }
         next = token.next;
       } else if (optional('(', next)) {
-        if (typeArguments == null) {
+        if (typeArg == noTypeParamOrArg) {
           listener.handleNoTypeArguments(next);
         }
         token = parseArguments(token);
+        typeArg = computeMethodTypeArguments(token);
+        if (typeArg != noTypeParamOrArg) {
+          // For example a(b)<T>(c), where token is before '<'.
+          token = typeArg.parseArguments(token, this);
+          assert(optional('(', token.next));
+        }
         next = token.next;
         listener.handleSend(beginToken, next);
-        typeArguments = null;
       } else {
         break;
       }

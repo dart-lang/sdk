@@ -6415,6 +6415,56 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(invocation.argumentList, isNotNull);
   }
 
+  void test_parseExpression_sendWithTypeParam_afterIndex() {
+    final unit = parseCompilationUnit('main() { factories[C]<num, int>(); }');
+    expect(unit.declarations, hasLength(1));
+    FunctionDeclaration mainMethod = unit.declarations[0];
+    BlockFunctionBody body = mainMethod.functionExpression.body;
+    NodeList<Statement> statements = body.block.statements;
+    expect(statements, hasLength(1));
+    ExpressionStatement statement = statements[0];
+    FunctionExpressionInvocation expression = statement.expression;
+
+    IndexExpression function = expression.function;
+    SimpleIdentifier target = function.target;
+    expect(target.name, 'factories');
+    SimpleIdentifier index = function.index;
+    expect(index.name, 'C');
+
+    NodeList<TypeAnnotation> typeArguments = expression.typeArguments.arguments;
+    expect(typeArguments, hasLength(2));
+    expect((typeArguments[0] as NamedType).name.name, 'num');
+    expect((typeArguments[1] as NamedType).name.name, 'int');
+
+    expect(expression.argumentList.arguments, hasLength(0));
+  }
+
+  void test_parseExpression_sendWithTypeParam_afterSend() {
+    final unit = parseCompilationUnit('main() { factories(C)<num, int>(); }');
+    expect(unit.declarations, hasLength(1));
+    FunctionDeclaration mainMethod = unit.declarations[0];
+    BlockFunctionBody body = mainMethod.functionExpression.body;
+    NodeList<Statement> statements = body.block.statements;
+    expect(statements, hasLength(1));
+    ExpressionStatement statement = statements[0];
+    FunctionExpressionInvocation expression = statement.expression;
+
+    MethodInvocation invocation = expression.function;
+    expect(invocation.methodName.name, 'factories');
+    NodeList<Expression> invocationArguments =
+        invocation.argumentList.arguments;
+    expect(invocationArguments, hasLength(1));
+    SimpleIdentifier index = invocationArguments[0];
+    expect(index.name, 'C');
+
+    NodeList<TypeAnnotation> typeArguments = expression.typeArguments.arguments;
+    expect(typeArguments, hasLength(2));
+    expect((typeArguments[0] as NamedType).name.name, 'num');
+    expect((typeArguments[1] as NamedType).name.name, 'int');
+
+    expect(expression.argumentList.arguments, hasLength(0));
+  }
+
   void test_parseExpression_superMethodInvocation() {
     Expression expression = parseExpression('super.m()');
     var invocation = expression as MethodInvocation;
