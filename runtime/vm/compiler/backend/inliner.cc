@@ -2774,7 +2774,7 @@ static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
   // For Dart2, both issues are resolved in the inlined code.
   if (array_cid == kDynamicCid) {
     ASSERT(call->IsStaticCall());
-    if (flow_graph->isolate()->can_use_strong_mode_types()) {
+    if (!flow_graph->isolate()->can_use_strong_mode_types()) {
       return false;
     }
   }
