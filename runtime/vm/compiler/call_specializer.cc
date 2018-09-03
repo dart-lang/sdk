@@ -8,6 +8,7 @@
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/inliner.h"
 #include "vm/compiler/cha.h"
+#include "vm/compiler/compiler_state.h"
 #include "vm/cpu.h"
 
 namespace dart {
@@ -557,7 +558,7 @@ bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
         StrictCompareInstr* comp = new (Z)
             StrictCompareInstr(call->token_pos(), Token::kEQ_STRICT,
                                new (Z) Value(left), new (Z) Value(right),
-                               /* number_check = */ false, Thread::kNoDeoptId);
+                               /* number_check = */ false, DeoptId::kNone);
         ReplaceCall(call, comp);
         return true;
       }
@@ -1310,7 +1311,8 @@ bool CallSpecializer::TypeCheckAsClassEquality(const AbstractType& type) {
             type_class.ToCString());
       }
       if (FLAG_use_cha_deopt) {
-        thread()->cha()->AddToGuardedClasses(type_class, /*subclass_count=*/0);
+        thread()->compiler_state().cha().AddToGuardedClasses(
+            type_class, /*subclass_count=*/0);
       }
     } else {
       return false;
@@ -1357,7 +1359,7 @@ bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
         type.IsNullType() ? Token::kEQ_STRICT : Token::kNE_STRICT,
         left_value->CopyWithType(Z),
         new (Z) Value(flow_graph()->constant_null()),
-        /* number_check = */ false, Thread::kNoDeoptId);
+        /* number_check = */ false, DeoptId::kNone);
     if (FLAG_trace_strong_mode_types) {
       THR_Print("[Strong mode] replacing %s with %s (%s < %s)\n",
                 call->ToCString(), replacement->ToCString(),
@@ -1403,7 +1405,7 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
 
     StrictCompareInstr* check_cid = new (Z) StrictCompareInstr(
         call->token_pos(), Token::kEQ_STRICT, new (Z) Value(left_cid),
-        new (Z) Value(cid), /* number_check = */ false, Thread::kNoDeoptId);
+        new (Z) Value(cid), /* number_check = */ false, DeoptId::kNone);
     ReplaceCall(call, check_cid);
     return;
   }
@@ -1430,7 +1432,7 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
         }
         TestCidsInstr* test_cids = new (Z) TestCidsInstr(
             call->token_pos(), Token::kIS, new (Z) Value(left), *results,
-            can_deopt ? call->deopt_id() : Thread::kNoDeoptId);
+            can_deopt ? call->deopt_id() : DeoptId::kNone);
         // Remove type.
         ReplaceCall(call, test_cids);
         return;

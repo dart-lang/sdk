@@ -862,7 +862,7 @@ uword DeoptInstr::GetRetAddress(DeoptInstr* instr,
       static_cast<DeoptRetAddressInstr*>(instr);
   // The following assert may trigger when displaying a backtrace
   // from the simulator.
-  ASSERT(Thread::IsDeoptAfter(ret_address_instr->deopt_id()));
+  ASSERT(DeoptId::IsDeoptAfter(ret_address_instr->deopt_id()));
   ASSERT(!object_table.IsNull());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();

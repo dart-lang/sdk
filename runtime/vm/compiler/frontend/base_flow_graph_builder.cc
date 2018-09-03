@@ -315,7 +315,7 @@ Fragment BaseFlowGraphBuilder::LoadIndexed(intptr_t index_scale) {
   Value* array = Pop();
   LoadIndexedInstr* instr = new (Z)
       LoadIndexedInstr(array, index, index_scale, kArrayCid, kAlignedAccess,
-                       Thread::kNoDeoptId, TokenPosition::kNoSource);
+                       DeoptId::kNone, TokenPosition::kNoSource);
   Push(instr);
   return Fragment(instr);
 }
@@ -445,7 +445,7 @@ Fragment BaseFlowGraphBuilder::StoreIndexed(intptr_t class_id) {
   StoreIndexedInstr* store = new (Z) StoreIndexedInstr(
       Pop(),  // Array.
       index, value, emit_store_barrier, Instance::ElementSizeFor(class_id),
-      class_id, kAlignedAccess, Thread::kNoDeoptId, TokenPosition::kNoSource);
+      class_id, kAlignedAccess, DeoptId::kNone, TokenPosition::kNoSource);
   Push(store);
   return Fragment(store);
 }

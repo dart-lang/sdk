@@ -8,6 +8,7 @@
 #include "vm/allocation.h"
 #include "vm/ast.h"
 #include "vm/compiler/backend/locations.h"
+#include "vm/compiler/compiler_state.h"
 #include "vm/compiler/method_recognizer.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
@@ -759,21 +760,6 @@ class CallTargets : public Cids {
   void MergeIntoRanges();
 };
 
-class DeoptIdScope : public StackResource {
- public:
-  DeoptIdScope(Thread* thread, intptr_t deopt_id)
-      : StackResource(thread), prev_deopt_id_(thread->deopt_id()) {
-    thread->set_deopt_id(deopt_id);
-  }
-
-  ~DeoptIdScope() { thread()->set_deopt_id(prev_deopt_id_); }
-
- private:
-  const intptr_t prev_deopt_id_;
-
-  DISALLOW_COPY_AND_ASSIGN(DeoptIdScope);
-};
-
 class Instruction : public ZoneAllocated {
  public:
 #define DECLARE_TAG(type, attrs) k##type,
@@ -790,7 +776,7 @@ class Instruction : public ZoneAllocated {
     kNotSpeculative
   };
 
-  explicit Instruction(intptr_t deopt_id = Thread::kNoDeoptId)
+  explicit Instruction(intptr_t deopt_id = DeoptId::kNone)
       : deopt_id_(deopt_id),
         lifetime_position_(kNoPlaceId),
         previous_(NULL),
@@ -974,7 +960,7 @@ class Instruction : public ZoneAllocated {
   // to.
   virtual intptr_t DeoptimizationTarget() const {
     UNREACHABLE();
-    return Thread::kNoDeoptId;
+    return DeoptId::kNone;
   }
 
   // Returns a replacement for the instruction or NULL if the instruction can
@@ -1151,7 +1137,7 @@ template <intptr_t N,
 class TemplateInstruction
     : public CSETrait<Instruction, PureInstruction>::Base {
  public:
-  explicit TemplateInstruction(intptr_t deopt_id = Thread::kNoDeoptId)
+  explicit TemplateInstruction(intptr_t deopt_id = DeoptId::kNone)
       : CSETrait<Instruction, PureInstruction>::Base(deopt_id), inputs_() {}
 
   virtual intptr_t InputCount() const { return N; }
@@ -1855,7 +1841,7 @@ class AliasIdentity : public ValueObject {
 // Abstract super-class of all instructions that define a value (Bind, Phi).
 class Definition : public Instruction {
  public:
-  explicit Definition(intptr_t deopt_id = Thread::kNoDeoptId);
+  explicit Definition(intptr_t deopt_id = DeoptId::kNone);
 
   // Overridden by definitions that have call counts.
   virtual intptr_t CallCount() const {
@@ -2037,7 +2023,7 @@ template <intptr_t N,
           template <typename Impure, typename Pure> class CSETrait = NoCSE>
 class TemplateDefinition : public CSETrait<Definition, PureDefinition>::Base {
  public:
-  explicit TemplateDefinition(intptr_t deopt_id = Thread::kNoDeoptId)
+  explicit TemplateDefinition(intptr_t deopt_id = DeoptId::kNone)
       : CSETrait<Definition, PureDefinition>::Base(deopt_id), inputs_() {}
 
   virtual intptr_t InputCount() const { return N; }
@@ -2651,7 +2637,7 @@ class ComparisonInstr : public Definition {
  protected:
   ComparisonInstr(TokenPosition token_pos,
                   Token::Kind kind,
-                  intptr_t deopt_id = Thread::kNoDeoptId)
+                  intptr_t deopt_id = DeoptId::kNone)
       : Definition(deopt_id),
         token_pos_(token_pos),
         kind_(kind),
@@ -2683,7 +2669,7 @@ class TemplateComparison
  public:
   TemplateComparison(TokenPosition token_pos,
                      Token::Kind kind,
-                     intptr_t deopt_id = Thread::kNoDeoptId)
+                     intptr_t deopt_id = DeoptId::kNone)
       : CSETrait<ComparisonInstr, PureComparison>::Base(token_pos,
                                                         kind,
                                                         deopt_id),
@@ -3592,7 +3578,7 @@ class TestCidsInstr : public TemplateComparison<1, NoThrow, Pure> {
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool ComputeCanDeoptimize() const {
-    return GetDeoptId() != Thread::kNoDeoptId;
+    return GetDeoptId() != DeoptId::kNone;
   }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
@@ -4105,7 +4091,7 @@ class NativeCallInstr : public TemplateDartCall<0> {
                   bool link_lazily,
                   TokenPosition position,
                   PushArgumentsArray* args)
-      : TemplateDartCall(Thread::kNoDeoptId,
+      : TemplateDartCall(DeoptId::kNone,
                          0,
                          Array::null_array(),
                          args,
@@ -4495,7 +4481,7 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
   bool aligned() const { return alignment_ == kAlignedAccess; }
 
   virtual bool ComputeCanDeoptimize() const {
-    return GetDeoptId() != Thread::kNoDeoptId;
+    return GetDeoptId() != DeoptId::kNone;
   }
 
   virtual Representation representation() const;
@@ -4776,7 +4762,7 @@ class InstanceOfInstr : public TemplateDefinition<3, Throws> {
 // either reside in new space or be in the store buffer.
 class AllocationInstr : public Definition {
  public:
-  explicit AllocationInstr(intptr_t deopt_id = Thread::kNoDeoptId)
+  explicit AllocationInstr(intptr_t deopt_id = DeoptId::kNone)
       : Definition(deopt_id) {}
 
   // TODO(sjindel): Update these conditions when the incremental write barrier
@@ -4792,7 +4778,7 @@ class AllocationInstr : public Definition {
 template <intptr_t N, typename ThrowsTrait>
 class TemplateAllocation : public AllocationInstr {
  public:
-  explicit TemplateAllocation(intptr_t deopt_id = Thread::kNoDeoptId)
+  explicit TemplateAllocation(intptr_t deopt_id = DeoptId::kNone)
       : AllocationInstr(deopt_id), inputs_() {}
 
   virtual intptr_t InputCount() const { return N; }
@@ -5542,7 +5528,7 @@ class BoxInstr : public TemplateDefinition<1, NoThrow, Pure> {
   virtual CompileType ComputeType() const;
 
   virtual bool ComputeCanDeoptimize() const { return false; }
-  virtual intptr_t DeoptimizationTarget() const { return Thread::kNoDeoptId; }
+  virtual intptr_t DeoptimizationTarget() const { return DeoptId::kNone; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);

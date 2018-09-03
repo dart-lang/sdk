@@ -22,6 +22,7 @@
 #include "vm/compiler/backend/type_propagator.h"
 #include "vm/compiler/cha.h"
 #include "vm/compiler/compiler_pass.h"
+#include "vm/compiler/compiler_state.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
@@ -883,7 +884,7 @@ void Precompiler::CollectCallbackFields() {
         args_desc = ArgumentsDescriptor::New(0,  // No type argument vector.
                                              function.num_fixed_parameters());
         cids.Clear();
-        if (T->cha()->ConcreteSubclasses(cls, &cids)) {
+        if (CHA::ConcreteSubclasses(cls, &cids)) {
           for (intptr_t j = 0; j < cids.length(); ++j) {
             subcls ^= I->class_table()->At(cids[j]);
             if (subcls.is_allocated()) {
@@ -2832,16 +2833,13 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       true, FLAG_max_speculative_inlining_attempts);
 
   while (!done) {
-    DeoptIdScope deopt_id_scope(thread(), 0);
     LongJumpScope jump;
     const intptr_t val = setjmp(*jump.Set());
     if (val == 0) {
       FlowGraph* flow_graph = nullptr;
       ZoneGrowableArray<const ICData*>* ic_data_array = nullptr;
 
-      // Class hierarchy analysis is registered with the thread in the
-      // constructor and unregisters itself upon destruction.
-      CHA cha(thread());
+      CompilerState compiler_state(thread());
 
       // TimerScope needs an isolate to be properly terminated in case of a
       // LongJump.

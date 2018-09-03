@@ -22,7 +22,7 @@ namespace dart {
 class AbstractType;
 class ApiLocalScope;
 class Array;
-class CHA;
+class CompilerState;
 class Class;
 class Code;
 class CompilerStats;
@@ -369,15 +369,9 @@ class Thread : public BaseThread {
   // Has |this| exited Dart code?
   bool HasExitedDartCode() const;
 
-  // The (topmost) CHA for the compilation in this thread.
-  CHA* cha() const {
-    ASSERT(isolate_ != NULL);
-    return cha_;
-  }
-
-  void set_cha(CHA* value) {
-    ASSERT(isolate_ != NULL);
-    cha_ = value;
+  CompilerState& compiler_state() {
+    ASSERT(compiler_state_ != nullptr);
+    return *compiler_state_;
   }
 
   HierarchyInfo* hierarchy_info() const {
@@ -559,35 +553,6 @@ class Thread : public BaseThread {
   static intptr_t OffsetFromThread(const Object& object);
   static bool ObjectAtOffset(intptr_t offset, Object* object);
   static intptr_t OffsetFromThread(const RuntimeEntry* runtime_entry);
-
-  static const intptr_t kNoDeoptId = -1;
-  static const intptr_t kDeoptIdStep = 2;
-  static const intptr_t kDeoptIdBeforeOffset = 0;
-  static const intptr_t kDeoptIdAfterOffset = 1;
-  intptr_t deopt_id() const { return deopt_id_; }
-  void set_deopt_id(int value) {
-    ASSERT(value >= 0);
-    deopt_id_ = value;
-  }
-  intptr_t GetNextDeoptId() {
-    ASSERT(deopt_id_ != kNoDeoptId);
-    const intptr_t id = deopt_id_;
-    deopt_id_ += kDeoptIdStep;
-    return id;
-  }
-
-  static intptr_t ToDeoptAfter(intptr_t deopt_id) {
-    ASSERT(IsDeoptBefore(deopt_id));
-    return deopt_id + kDeoptIdAfterOffset;
-  }
-
-  static bool IsDeoptBefore(intptr_t deopt_id) {
-    return (deopt_id % kDeoptIdStep) == kDeoptIdBeforeOffset;
-  }
-
-  static bool IsDeoptAfter(intptr_t deopt_id) {
-    return (deopt_id % kDeoptIdStep) == kDeoptIdAfterOffset;
-  }
 
   LongJumpScope* long_jump_base() const { return long_jump_base_; }
   void set_long_jump_base(LongJumpScope* value) { long_jump_base_ = value; }
@@ -819,6 +784,13 @@ class Thread : public BaseThread {
   template <class T>
   T* AllocateReusableHandle();
 
+  // Set the current compiler state and return the previous compiler state.
+  CompilerState* SetCompilerState(CompilerState* state) {
+    CompilerState* previous = compiler_state_;
+    compiler_state_ = state;
+    return previous;
+  }
+
   // Accessed from generated code.
   // ** This block of fields must come first! **
   // For AOT cross-compilation, we rely on these members having the same offsets
@@ -886,10 +858,9 @@ class Thread : public BaseThread {
   int32_t stack_overflow_count_;
 
   // Compiler state:
-  CHA* cha_;
+  CompilerState* compiler_state_ = nullptr;
   HierarchyInfo* hierarchy_info_;
   TypeUsageInfo* type_usage_info_;
-  intptr_t deopt_id_;  // Compilation specific counter.
   RawGrowableObjectArray* pending_functions_;
 
   // JumpToExceptionHandler state:
@@ -958,6 +929,7 @@ class Thread : public BaseThread {
   friend class Simulator;
   friend class StackZone;
   friend class ThreadRegistry;
+  friend class CompilerState;
   DISALLOW_COPY_AND_ASSIGN(Thread);
 };
 

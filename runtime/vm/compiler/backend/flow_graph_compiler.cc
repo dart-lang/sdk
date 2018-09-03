@@ -149,7 +149,7 @@ FlowGraphCompiler::FlowGraphCompiler(
     // No need to collect extra ICData objects created during compilation.
     deopt_id_to_ic_data_ = nullptr;
   } else {
-    const intptr_t len = thread()->deopt_id();
+    const intptr_t len = thread()->compiler_state().deopt_id();
     deopt_id_to_ic_data_->EnsureLength(len, nullptr);
   }
   ASSERT(assembler != NULL);
@@ -425,10 +425,10 @@ void FlowGraphCompiler::EmitCallsiteMetadata(TokenPosition token_pos,
   AddCurrentDescriptor(kind, deopt_id, token_pos);
   RecordSafepoint(locs);
   EmitCatchEntryState();
-  if (deopt_id != Thread::kNoDeoptId) {
+  if (deopt_id != DeoptId::kNone) {
     // Marks either the continuation point in unoptimized code or the
     // deoptimization point in optimized code, after call.
-    const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
+    const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
     if (is_optimizing()) {
       AddDeoptIndexAtCall(deopt_id_after);
     } else {
@@ -1147,7 +1147,7 @@ void FlowGraphCompiler::GenerateCallWithDeopt(TokenPosition token_pos,
                                               RawPcDescriptors::Kind kind,
                                               LocationSummary* locs) {
   GenerateCall(token_pos, stub_entry, kind, locs);
-  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
+  const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
   if (is_optimizing()) {
     AddDeoptIndexAtCall(deopt_id_after);
   } else {
@@ -2209,7 +2209,7 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ CallRuntime(runtime_entry_, num_args_);
   }
   // Can't query deopt_id() without checking if instruction can deoptimize...
-  intptr_t deopt_id = Thread::kNoDeoptId;
+  intptr_t deopt_id = DeoptId::kNone;
   if (instruction()->CanDeoptimize() ||
       instruction()->CanBecomeDeoptimizationTarget()) {
     deopt_id = instruction()->deopt_id();

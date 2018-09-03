@@ -12,6 +12,7 @@
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/cha.h"
+#include "vm/compiler/compiler_state.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/growable_array.h"
 #include "vm/object_store.h"
@@ -507,8 +508,8 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
   // has a null value are excluded above (to avoid throwing an exception
   // on something valid, like null.hashCode).
   intptr_t subclass_count = 0;
-  if (!thread()->cha()->HasOverride(receiver_class, method_name,
-                                    &subclass_count)) {
+  CHA& cha = thread()->compiler_state().cha();
+  if (!cha.HasOverride(receiver_class, method_name, &subclass_count)) {
     if (FLAG_trace_cha) {
       THR_Print(
           "  **(CHA) Instance call needs no class check since there "
@@ -516,7 +517,7 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
           method_name.ToCString(), receiver_class.ToCString());
     }
     if (FLAG_use_cha_deopt) {
-      thread()->cha()->AddToGuardedClasses(receiver_class, subclass_count);
+      cha.AddToGuardedClasses(receiver_class, subclass_count);
     }
     return receiver_maybe_null ? ToCheck::kCheckNull : ToCheck::kNoCheck;
   }
@@ -1115,7 +1116,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
       if (parsed_function().has_arg_desc_var()) {
         Definition* defn =
             new SpecialParameterInstr(SpecialParameterInstr::kArgDescriptor,
-                                      Thread::kNoDeoptId, graph_entry_);
+                                      DeoptId::kNone, graph_entry_);
         AllocateSSAIndexes(defn);
         AddToInitialDefinitions(defn);
         env[ArgumentDescriptorEnvIndex()] = defn;
@@ -1193,10 +1194,10 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
       Definition* param = nullptr;
       if (raw_exception_var_envindex == i) {
         param = new SpecialParameterInstr(SpecialParameterInstr::kException,
-                                          Thread::kNoDeoptId, catch_entry);
+                                          DeoptId::kNone, catch_entry);
       } else if (raw_stacktrace_var_envindex == i) {
         param = new SpecialParameterInstr(SpecialParameterInstr::kStackTrace,
-                                          Thread::kNoDeoptId, catch_entry);
+                                          DeoptId::kNone, catch_entry);
       } else {
         param = new (zone()) ParameterInstr(i, block_entry);
       }
@@ -1650,7 +1651,7 @@ void FlowGraph::InsertConversion(Representation from,
   if (IsUnboxedInteger(from) && IsUnboxedInteger(to)) {
     const intptr_t deopt_id = (to == kUnboxedInt32) && (deopt_target != NULL)
                                   ? deopt_target->DeoptimizationTarget()
-                                  : Thread::kNoDeoptId;
+                                  : DeoptId::kNone;
     converted = new (Z)
         UnboxedIntConverterInstr(from, to, use->CopyWithType(), deopt_id);
   } else if ((from == kUnboxedInt32) && (to == kUnboxedDouble)) {
@@ -1659,13 +1660,13 @@ void FlowGraph::InsertConversion(Representation from,
              CanConvertInt64ToDouble()) {
     const intptr_t deopt_id = (deopt_target != NULL)
                                   ? deopt_target->DeoptimizationTarget()
-                                  : Thread::kNoDeoptId;
+                                  : DeoptId::kNone;
     ASSERT(CanUnboxDouble());
     converted = new Int64ToDoubleInstr(use->CopyWithType(), deopt_id);
   } else if ((from == kTagged) && Boxing::Supports(to)) {
     const intptr_t deopt_id = (deopt_target != NULL)
                                   ? deopt_target->DeoptimizationTarget()
-                                  : Thread::kNoDeoptId;
+                                  : DeoptId::kNone;
     converted = UnboxInstr::Create(to, use->CopyWithType(), deopt_id,
                                    use->instruction()->speculative_mode());
   } else if ((to == kTagged) && Boxing::Supports(from)) {
@@ -1677,7 +1678,7 @@ void FlowGraph::InsertConversion(Representation from,
     // trigger a deoptimization if executed. See #12417 for a discussion.
     const intptr_t deopt_id = (deopt_target != NULL)
                                   ? deopt_target->DeoptimizationTarget()
-                                  : Thread::kNoDeoptId;
+                                  : DeoptId::kNone;
     ASSERT(Boxing::Supports(from));
     ASSERT(Boxing::Supports(to));
     Definition* boxed = BoxInstr::Create(from, use->CopyWithType());
@@ -2277,7 +2278,7 @@ void FlowGraph::OptimizeLeftShiftBitAndSmiOp(
     // Replace Mint op with Smi op.
     BinarySmiOpInstr* smi_op = new (Z) BinarySmiOpInstr(
         Token::kBIT_AND, new (Z) Value(left_instr), new (Z) Value(right_instr),
-        Thread::kNoDeoptId);  // BIT_AND cannot deoptimize.
+        DeoptId::kNone);  // BIT_AND cannot deoptimize.
     bit_and_instr->ReplaceWith(smi_op, current_iterator);
   }
 }
@@ -2369,7 +2370,7 @@ void FlowGraph::AppendExtractNthOutputForMerged(Definition* instr,
 static TargetEntryInstr* NewTarget(FlowGraph* graph, Instruction* inherit) {
   TargetEntryInstr* target = new (graph->zone())
       TargetEntryInstr(graph->allocate_block_id(),
-                       inherit->GetBlock()->try_index(), Thread::kNoDeoptId);
+                       inherit->GetBlock()->try_index(), DeoptId::kNone);
   target->InheritDeoptTarget(graph->zone(), inherit);
   return target;
 }
@@ -2377,7 +2378,7 @@ static TargetEntryInstr* NewTarget(FlowGraph* graph, Instruction* inherit) {
 static JoinEntryInstr* NewJoin(FlowGraph* graph, Instruction* inherit) {
   JoinEntryInstr* join = new (graph->zone())
       JoinEntryInstr(graph->allocate_block_id(),
-                     inherit->GetBlock()->try_index(), Thread::kNoDeoptId);
+                     inherit->GetBlock()->try_index(), DeoptId::kNone);
   join->InheritDeoptTarget(graph->zone(), inherit);
   return join;
 }
@@ -2385,7 +2386,7 @@ static JoinEntryInstr* NewJoin(FlowGraph* graph, Instruction* inherit) {
 static GotoInstr* NewGoto(FlowGraph* graph,
                           JoinEntryInstr* target,
                           Instruction* inherit) {
-  GotoInstr* got = new (graph->zone()) GotoInstr(target, Thread::kNoDeoptId);
+  GotoInstr* got = new (graph->zone()) GotoInstr(target, DeoptId::kNone);
   got->InheritDeoptTarget(graph->zone(), inherit);
   return got;
 }
@@ -2393,7 +2394,7 @@ static GotoInstr* NewGoto(FlowGraph* graph,
 static BranchInstr* NewBranch(FlowGraph* graph,
                               ComparisonInstr* cmp,
                               Instruction* inherit) {
-  BranchInstr* bra = new (graph->zone()) BranchInstr(cmp, Thread::kNoDeoptId);
+  BranchInstr* bra = new (graph->zone()) BranchInstr(cmp, DeoptId::kNone);
   bra->InheritDeoptTarget(graph->zone(), inherit);
   return bra;
 }
@@ -2475,7 +2476,7 @@ JoinEntryInstr* FlowGraph::NewDiamond(Instruction* instruction,
   StrictCompareInstr* circuit = new (zone()) StrictCompareInstr(
       inherit->token_pos(), Token::kEQ_STRICT, new (zone()) Value(phi),
       new (zone()) Value(GetConstant(Bool::True())), false,
-      Thread::kNoDeoptId);  // don't inherit
+      DeoptId::kNone);  // don't inherit
 
   // Return new blocks through the second diamond.
   return NewDiamond(mid_point, inherit, circuit, b_true, b_false);

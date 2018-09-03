@@ -477,7 +477,7 @@ const ICData* Instruction::GetICData(
     const ZoneGrowableArray<const ICData*>& ic_data_array) const {
   // The deopt_id can be outside the range of the IC data array for
   // computations added in the optimizing compiler.
-  ASSERT(deopt_id_ != Thread::kNoDeoptId);
+  ASSERT(deopt_id_ != DeoptId::kNone);
   if (deopt_id_ < ic_data_array.length()) {
     const ICData* result = ic_data_array[deopt_id_];
 #if defined(TAG_IC_DATA)
@@ -1046,7 +1046,7 @@ GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
                                  intptr_t osr_id)
     : BlockEntryInstr(0,
                       CatchClauseNode::kInvalidTryIndex,
-                      Thread::Current()->GetNextDeoptId()),
+                      CompilerState::Current().GetNextDeoptId()),
       parsed_function_(parsed_function),
       normal_entry_(normal_entry),
       catch_entries_(),
@@ -1322,7 +1322,7 @@ void Instruction::InheritDeoptTargetAfter(FlowGraph* flow_graph,
                                           Definition* call,
                                           Definition* result) {
   ASSERT(call->env() != NULL);
-  deopt_id_ = Thread::ToDeoptAfter(call->deopt_id_);
+  deopt_id_ = DeoptId::ToDeoptAfter(call->deopt_id_);
   call->env()->DeepCopyAfterTo(
       flow_graph->zone(), this, call->ArgumentCount(),
       flow_graph->constant_dead(),
@@ -1537,8 +1537,8 @@ bool BlockEntryInstr::FindOsrEntryAndRelink(GraphEntryInstr* graph_entry,
       // we can simply jump to the beginning of the block.
       ASSERT(instr->previous() == this);
 
-      GotoInstr* goto_join =
-          new GotoInstr(AsJoinEntry(), Thread::Current()->GetNextDeoptId());
+      GotoInstr* goto_join = new GotoInstr(
+          AsJoinEntry(), CompilerState::Current().GetNextDeoptId());
       goto_join->CopyDeoptIdFrom(*parent);
       graph_entry->normal_entry()->LinkTo(goto_join);
       return true;
@@ -1754,7 +1754,7 @@ BlockEntryInstr* GotoInstr::SuccessorAt(intptr_t index) const {
 }
 
 void Instruction::Goto(JoinEntryInstr* entry) {
-  LinkTo(new GotoInstr(entry, Thread::Current()->GetNextDeoptId()));
+  LinkTo(new GotoInstr(entry, CompilerState::Current().GetNextDeoptId()));
 }
 
 bool UnboxedIntConverterInstr::ComputeCanDeoptimize() const {
@@ -2268,7 +2268,7 @@ Definition* CheckedSmiOpInstr::Canonicalize(FlowGraph* flow_graph) {
       case Token::kBIT_XOR:
         replacement = new BinarySmiOpInstr(
             op_kind(), new Value(left()->definition()),
-            new Value(right()->definition()), Thread::kNoDeoptId);
+            new Value(right()->definition()), DeoptId::kNone);
       default:
         break;
     }
@@ -2308,11 +2308,11 @@ Definition* CheckedSmiComparisonInstr::Canonicalize(FlowGraph* flow_graph) {
     if (Token::IsRelationalOperator(kind())) {
       replacement = new RelationalOpInstr(
           token_pos(), kind(), left()->CopyWithType(), right()->CopyWithType(),
-          op_cid, Thread::kNoDeoptId, speculative_mode);
+          op_cid, DeoptId::kNone, speculative_mode);
     } else if (Token::IsEqualityOperator(kind())) {
       replacement = new EqualityCompareInstr(
           token_pos(), kind(), left()->CopyWithType(), right()->CopyWithType(),
-          op_cid, Thread::kNoDeoptId, speculative_mode);
+          op_cid, DeoptId::kNone, speculative_mode);
     }
     if (replacement != NULL) {
       if (FLAG_trace_strong_mode_types && (op_cid == kMintCid)) {
@@ -2452,7 +2452,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
           // the code generator deal with throw on slowpath.
           break;
         }
-        ASSERT(GetDeoptId() != Thread::kNoDeoptId);
+        ASSERT(GetDeoptId() != DeoptId::kNone);
         DeoptimizeInstr* deopt =
             new DeoptimizeInstr(ICData::kDeoptBinarySmiOp, GetDeoptId());
         flow_graph->InsertBefore(this, deopt, env(), FlowGraph::kEffect);
@@ -2476,7 +2476,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
           // the code generator deal with throw on slowpath.
           break;
         }
-        ASSERT(GetDeoptId() != Thread::kNoDeoptId);
+        ASSERT(GetDeoptId() != DeoptId::kNone);
         DeoptimizeInstr* deopt =
             new DeoptimizeInstr(ICData::kDeoptBinarySmiOp, GetDeoptId());
         flow_graph->InsertBefore(this, deopt, env(), FlowGraph::kEffect);
@@ -2939,8 +2939,7 @@ Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
       UnboxedIntConverterInstr* converter = new UnboxedIntConverterInstr(
           from_representation, representation(),
           box_defn->value()->CopyWithType(),
-          (representation() == kUnboxedInt32) ? GetDeoptId()
-                                              : Thread::kNoDeoptId);
+          (representation() == kUnboxedInt32) ? GetDeoptId() : DeoptId::kNone);
       // TODO(vegorov): marking resulting converter as truncating when
       // unboxing can't deoptimize is a workaround for the missing
       // deoptimization environment when we insert converter after
@@ -3030,7 +3029,7 @@ Definition* UnboxedIntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
 
     UnboxedIntConverterInstr* converter = new UnboxedIntConverterInstr(
         box_defn->from(), representation(), box_defn->value()->CopyWithType(),
-        (to() == kUnboxedInt32) ? GetDeoptId() : Thread::kNoDeoptId);
+        (to() == kUnboxedInt32) ? GetDeoptId() : DeoptId::kNone);
     if ((representation() == kUnboxedInt32) && is_truncating()) {
       converter->mark_truncating();
     }
@@ -3294,7 +3293,7 @@ TestCidsInstr::TestCidsInstr(TokenPosition token_pos,
   set_operation_cid(kObjectCid);
 #ifdef DEBUG
   ASSERT(cid_results[0] == kSmiCid);
-  if (deopt_id == Thread::kNoDeoptId) {
+  if (deopt_id == DeoptId::kNone) {
     // The entry for Smi can be special, but all other entries have
     // to match in the no-deopt case.
     for (intptr_t i = 4; i < cid_results.length(); i += 2) {
@@ -3320,7 +3319,7 @@ Definition* TestCidsInstr::Canonicalize(FlowGraph* flow_graph) {
   }
 
   if (!CanDeoptimize()) {
-    ASSERT(deopt_id() == Thread::kNoDeoptId);
+    ASSERT(deopt_id() == DeoptId::kNone);
     return (data[data.length() - 1] == true_result)
                ? flow_graph->GetConstant(Bool::False())
                : flow_graph->GetConstant(Bool::True());
@@ -4561,7 +4560,7 @@ Environment* Environment::From(Zone* zone,
                                const ParsedFunction& parsed_function) {
   Environment* env =
       new (zone) Environment(definitions.length(), fixed_parameter_count,
-                             Thread::kNoDeoptId, parsed_function, NULL);
+                             DeoptId::kNone, parsed_function, NULL);
   for (intptr_t i = 0; i < definitions.length(); ++i) {
     env->values_.Add(new (zone) Value(definitions[i]));
   }
@@ -4665,7 +4664,7 @@ ComparisonInstr* RelationalOpInstr::CopyWithNewOperands(Value* new_left,
 ComparisonInstr* StrictCompareInstr::CopyWithNewOperands(Value* new_left,
                                                          Value* new_right) {
   return new StrictCompareInstr(token_pos(), kind(), new_left, new_right,
-                                needs_number_check(), Thread::kNoDeoptId);
+                                needs_number_check(), DeoptId::kNone);
 }
 
 ComparisonInstr* TestSmiInstr::CopyWithNewOperands(Value* new_left,

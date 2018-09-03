@@ -220,7 +220,7 @@ class BaseFlowGraphBuilder {
   Fragment TailCall(const Code& code);
 
   intptr_t GetNextDeoptId() {
-    intptr_t deopt_id = thread_->GetNextDeoptId();
+    intptr_t deopt_id = thread_->compiler_state().GetNextDeoptId();
     if (context_level_array_ != NULL) {
       intptr_t level = context_depth_;
       context_level_array_->Add(deopt_id);

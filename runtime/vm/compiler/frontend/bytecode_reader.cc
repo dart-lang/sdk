@@ -210,7 +210,7 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         }
         obj = ICData::New(function, name,
                           array,  // Arguments descriptor.
-                          Thread::kNoDeoptId, checked_argument_count,
+                          DeoptId::kNone, checked_argument_count,
                           ICData::RebindRule::kInstance);
 #if defined(TAG_IC_DATA)
         ICData::Cast(obj).set_tag(ICData::Tag::kInstanceCall);
@@ -254,7 +254,7 @@ intptr_t BytecodeMetadataHelper::ReadPoolEntries(const Function& function,
         array ^= pool.ObjectAt(arg_desc_index);
         obj = ICData::New(function, name,
                           array,  // Arguments descriptor.
-                          Thread::kNoDeoptId, num_args_checked,
+                          DeoptId::kNone, num_args_checked,
                           ICData::RebindRule::kStatic);
         ICData::Cast(obj).AddTarget(Function::Cast(elem));
 #if defined(TAG_IC_DATA)
@@ -567,10 +567,10 @@ void BytecodeMetadataHelper::ReadExceptionsTable(const Code& bytecode) {
         handler_types.SetAt(i, handler_type);
       }
       pc_descriptors_list->AddDescriptor(RawPcDescriptors::kOther, start_pc,
-                                         Thread::kNoDeoptId,
+                                         DeoptId::kNone,
                                          TokenPosition::kNoSource, try_index);
       pc_descriptors_list->AddDescriptor(RawPcDescriptors::kOther, end_pc,
-                                         Thread::kNoDeoptId,
+                                         DeoptId::kNone,
                                          TokenPosition::kNoSource, -1);
 
       exception_handlers_list->AddHandler(

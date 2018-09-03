@@ -211,7 +211,7 @@ void JitCallSpecializer::VisitStoreInstanceField(
       if (Compiler::IsBackgroundCompilation()) {
         isolate()->AddDeoptimizingBoxedField(field);
         Compiler::AbortBackgroundCompilation(
-            Thread::kNoDeoptId, "Unboxing instance field while compiling");
+            DeoptId::kNone, "Unboxing instance field while compiling");
         UNREACHABLE();
       }
       if (FLAG_trace_optimization || FLAG_trace_field_guards) {

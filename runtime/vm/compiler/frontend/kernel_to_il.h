@@ -172,7 +172,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   LocalVariable* LookupVariable(intptr_t kernel_offset);
 
-  bool IsCompiledForOsr() { return osr_id_ != Thread::kNoDeoptId; }
+  bool IsCompiledForOsr() { return osr_id_ != DeoptId::kNone; }
 
   TranslationHelper translation_helper_;
   Thread* thread_;

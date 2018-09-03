@@ -800,7 +800,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
     loop += condition;
 
     Instruction* entry =
-        new (Z) GotoInstr(join, Thread::Current()->GetNextDeoptId());
+        new (Z) GotoInstr(join, CompilerState::Current().GetNextDeoptId());
     body += Fragment(entry, loop_exit);
   }
 
@@ -5041,8 +5041,9 @@ Fragment StreamingFlowGraphBuilder::BuildDoStatement() {
   condition.IfTrueGoto(flow_graph_builder_, join);
 
   loop_depth_dec();
-  return Fragment(new (Z) GotoInstr(join, Thread::Current()->GetNextDeoptId()),
-                  condition.CreateFalseSuccessor(flow_graph_builder_));
+  return Fragment(
+      new (Z) GotoInstr(join, CompilerState::Current().GetNextDeoptId()),
+      condition.CreateFalseSuccessor(flow_graph_builder_));
 }
 
 Fragment StreamingFlowGraphBuilder::BuildForStatement() {

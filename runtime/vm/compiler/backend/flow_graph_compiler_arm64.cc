@@ -115,7 +115,7 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
     // For any outer environment the deopt id is that of the call instruction
     // which is recorded in the outer environment.
     builder->AddReturnAddress(current->function(),
-                              Thread::ToDeoptAfter(current->deopt_id()),
+                              DeoptId::ToDeoptAfter(current->deopt_id()),
                               slot_ix++);
 
     // The values of outgoing arguments can be changed from the inlined call so
@@ -900,7 +900,7 @@ void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
                                      RawPcDescriptors::Kind kind,
                                      LocationSummary* locs) {
   __ BranchLink(stub_entry);
-  EmitCallsiteMetadata(token_pos, Thread::kNoDeoptId, kind, locs);
+  EmitCallsiteMetadata(token_pos, DeoptId::kNone, kind, locs);
   AddStubCallTarget(Code::ZoneHandle(stub_entry.code()));
 }
 
@@ -909,7 +909,7 @@ void FlowGraphCompiler::GeneratePatchableCall(TokenPosition token_pos,
                                               RawPcDescriptors::Kind kind,
                                               LocationSummary* locs) {
   __ BranchLinkPatchable(stub_entry);
-  EmitCallsiteMetadata(token_pos, Thread::kNoDeoptId, kind, locs);
+  EmitCallsiteMetadata(token_pos, DeoptId::kNone, kind, locs);
 }
 
 void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
@@ -1021,7 +1021,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ blr(LR);
 
   RecordSafepoint(locs, slow_path_argument_count);
-  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
+  const intptr_t deopt_id_after = DeoptId::ToDeoptAfter(deopt_id);
   if (FLAG_precompiled_mode) {
     // Megamorphic calls may occur in slow path stubs.
     // If valid use try_index argument.
@@ -1029,14 +1029,12 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
       try_index = CurrentTryIndex();
     }
     AddDescriptor(RawPcDescriptors::kOther, assembler()->CodeSize(),
-                  Thread::kNoDeoptId, token_pos, try_index);
+                  DeoptId::kNone, token_pos, try_index);
   } else if (is_optimizing()) {
-    AddCurrentDescriptor(RawPcDescriptors::kOther, Thread::kNoDeoptId,
-                         token_pos);
+    AddCurrentDescriptor(RawPcDescriptors::kOther, DeoptId::kNone, token_pos);
     AddDeoptIndexAtCall(deopt_id_after);
   } else {
-    AddCurrentDescriptor(RawPcDescriptors::kOther, Thread::kNoDeoptId,
-                         token_pos);
+    AddCurrentDescriptor(RawPcDescriptors::kOther, DeoptId::kNone, token_pos);
     // Add deoptimization continuation point after the call and before the
     // arguments are removed.
     AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
@@ -1061,7 +1059,7 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(const ICData& ic_data,
   __ LoadUniqueObject(R5, ic_data);
   __ blr(TMP);
 
-  EmitCallsiteMetadata(token_pos, Thread::kNoDeoptId, RawPcDescriptors::kOther,
+  EmitCallsiteMetadata(token_pos, DeoptId::kNone, RawPcDescriptors::kOther,
                        locs);
   __ Drop(ic_data.CountWithTypeArgs());
 }

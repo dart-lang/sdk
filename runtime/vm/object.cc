@@ -3613,7 +3613,7 @@ RawError* Class::EnsureIsFinalized(Thread* thread) const {
     return Error::null();
   }
   if (Compiler::IsBackgroundCompilation()) {
-    Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId,
+    Compiler::AbortBackgroundCompilation(DeoptId::kNone,
                                          "Class finalization while compiling");
   }
   ASSERT(thread->IsMutatorThread());
@@ -13735,7 +13735,7 @@ void PcDescriptors::Verify(const Function& function) const {
   Iterator iter(*this, RawPcDescriptors::kDeopt | RawPcDescriptors::kIcCall);
   while (iter.MoveNext()) {
     // 'deopt_id' is set for kDeopt and kIcCall and must be unique for one kind.
-    if (Thread::IsDeoptAfter(iter.DeoptId())) {
+    if (DeoptId::IsDeoptAfter(iter.DeoptId())) {
       // TODO(vegorov): some instructions contain multiple calls and have
       // multiple "after" targets recorded. Right now it is benign but might
       // lead to issues in the future. Fix that and enable verification.
@@ -15274,7 +15274,7 @@ RawICData* ICData::New() {
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
-  result.set_deopt_id(Thread::kNoDeoptId);
+  result.set_deopt_id(DeoptId::kNone);
   result.set_state_bits(0);
 #if defined(TAG_IC_DATA)
   result.set_tag(ICData::Tag::kUnknown);
@@ -15954,7 +15954,7 @@ intptr_t Code::GetDeoptIdForOsr(uword pc) const {
       return iter.DeoptId();
     }
   }
-  return Thread::kNoDeoptId;
+  return DeoptId::kNone;
 }
 
 const char* Code::ToCString() const {

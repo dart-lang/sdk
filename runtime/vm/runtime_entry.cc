@@ -1428,7 +1428,7 @@ DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 1) {
                               kTypeArgsLen, old_target.num_fixed_parameters()));
   const ICData& ic_data =
       ICData::Handle(zone, ICData::New(caller_function, name, descriptor,
-                                       Thread::kNoDeoptId, 1, /* args_tested */
+                                       DeoptId::kNone, 1, /* args_tested */
                                        ICData::kInstance));
 
   // Maybe add the new target.
@@ -1504,7 +1504,7 @@ DEFINE_RUNTIME_ENTRY(UnlinkedCall, 2) {
   const Array& descriptor = Array::Handle(zone, unlinked.args_descriptor());
   const ICData& ic_data =
       ICData::Handle(zone, ICData::New(caller_function, name, descriptor,
-                                       Thread::kNoDeoptId, 1, /* args_tested */
+                                       DeoptId::kNone, 1, /* args_tested */
                                        ICData::kInstance));
 
   Class& cls = Class::Handle(zone, receiver.clazz());
@@ -1584,7 +1584,7 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 1) {
                               kTypeArgsLen, old_target.num_fixed_parameters()));
   const ICData& ic_data =
       ICData::Handle(zone, ICData::New(caller_function, name, descriptor,
-                                       Thread::kNoDeoptId, 1, /* args_tested */
+                                       DeoptId::kNone, 1, /* args_tested */
                                        ICData::kInstance));
 
   // Add the first target.

@@ -991,7 +991,7 @@ EMIT_NATIVE_CODE(NativeCall,
       __ object_pool_wrapper().FindImmediate(static_cast<uword>(argc_tag));
   __ NativeCall(trampoline_kidx, target_kidx, argc_tag_kidx);
   compiler->RecordSafepoint(locs());
-  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, Thread::kNoDeoptId,
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, DeoptId::kNone,
                                  token_pos());
 }
 
@@ -1040,15 +1040,15 @@ EMIT_NATIVE_CODE(AllocateObject,
       }
       __ PushConstant(cls());
       __ AllocateT();
-      compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
-                                     Thread::kNoDeoptId, token_pos());
+      compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, DeoptId::kNone,
+                                     token_pos());
       compiler->RecordSafepoint(locs());
       __ PopLocal(locs()->out(0).reg());
     } else {
       __ PushConstant(cls());
       __ AllocateT();
-      compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
-                                     Thread::kNoDeoptId, token_pos());
+      compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, DeoptId::kNone,
+                                     token_pos());
       compiler->RecordSafepoint(locs());
     }
   } else if (compiler->is_optimizing()) {
@@ -1069,14 +1069,14 @@ EMIT_NATIVE_CODE(AllocateObject,
     }
     const intptr_t kidx = __ AddConstant(cls());
     __ Allocate(kidx);
-    compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, Thread::kNoDeoptId,
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, DeoptId::kNone,
                                    token_pos());
     compiler->RecordSafepoint(locs());
     __ PopLocal(locs()->out(0).reg());
   } else {
     const intptr_t kidx = __ AddConstant(cls());
     __ Allocate(kidx);
-    compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, Thread::kNoDeoptId,
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, DeoptId::kNone,
                                    token_pos());
     compiler->RecordSafepoint(locs());
   }
@@ -1141,7 +1141,7 @@ EMIT_NATIVE_CODE(AllocateContext,
   ASSERT(!compiler->is_optimizing());
   __ AllocateContext(num_context_variables());
   compiler->RecordSafepoint(locs());
-  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, Thread::kNoDeoptId,
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, DeoptId::kNone,
                                  token_pos());
 }
 
@@ -1154,7 +1154,7 @@ EMIT_NATIVE_CODE(AllocateUninitializedContext,
                                   num_context_variables());
   __ AllocateContext(num_context_variables());
   compiler->RecordSafepoint(locs());
-  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, Thread::kNoDeoptId,
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, DeoptId::kNone,
                                  token_pos());
   __ PopLocal(locs()->out(0).reg());
 }
@@ -1168,7 +1168,7 @@ EMIT_NATIVE_CODE(CloneContext,
   }
   __ CloneContext();
   compiler->RecordSafepoint(locs());
-  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, Thread::kNoDeoptId,
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, DeoptId::kNone,
                                  token_pos());
   if (compiler->is_optimizing()) {
     __ PopLocal(locs()->out(0).reg());
@@ -1183,7 +1183,7 @@ EMIT_NATIVE_CODE(CatchBlockEntry, 0) {
                                 catch_handler_types_, needs_stacktrace());
   // On lazy deoptimization we patch the optimized code here to enter the
   // deoptimization stub.
-  const intptr_t deopt_id = Thread::ToDeoptAfter(GetDeoptId());
+  const intptr_t deopt_id = DeoptId::ToDeoptAfter(GetDeoptId());
   if (compiler->is_optimizing()) {
     compiler->AddDeoptIndexAtCall(deopt_id);
   } else {
@@ -1630,7 +1630,7 @@ EMIT_NATIVE_CODE(Box, 1, Location::RequiresRegister(), LocationSummary::kCall) {
   }
   const intptr_t kidx = __ AddConstant(compiler->double_class());
   __ Allocate(kidx);
-  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, Thread::kNoDeoptId,
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, DeoptId::kNone,
                                  token_pos());
   compiler->RecordSafepoint(locs());
   __ PopLocal(out);

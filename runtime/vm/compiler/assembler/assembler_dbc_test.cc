@@ -6,6 +6,7 @@
 #if defined(TARGET_ARCH_DBC)
 
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/compiler_state.h"
 #include "vm/stack_frame.h"
 #include "vm/unit_test.h"
 
@@ -83,7 +84,7 @@ static void MakeDummyInstanceCall(Assembler* assembler, const Object& result) {
       Array::Handle(ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs));
   const ICData& ic_data = ICData::Handle(ICData::New(
       dummy_instance_function, String::Handle(dummy_instance_function.name()),
-      dummy_arguments_descriptor, Thread::kNoDeoptId, 2, ICData::kInstance));
+      dummy_arguments_descriptor, DeoptId::kNone, 2, ICData::kInstance));
 
   // Wire up the Function in the ICData.
   GrowableArray<intptr_t> cids(2);

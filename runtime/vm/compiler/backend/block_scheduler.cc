@@ -62,7 +62,7 @@ void BlockScheduler::AssignEdgeWeights() const {
   if (Compiler::IsBackgroundCompilation() && ic_data_array.IsNull()) {
     // Deferred loading cleared ic_data_array.
     Compiler::AbortBackgroundCompilation(
-        Thread::kNoDeoptId, "BlockScheduler: ICData array cleared");
+        DeoptId::kNone, "BlockScheduler: ICData array cleared");
   }
   if (ic_data_array.IsNull()) {
     DEBUG_ASSERT(Isolate::Current()->HasAttemptedReload());

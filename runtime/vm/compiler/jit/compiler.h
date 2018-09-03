@@ -6,6 +6,7 @@
 #define RUNTIME_VM_COMPILER_JIT_COMPILER_H_
 
 #include "vm/allocation.h"
+#include "vm/compiler/compiler_state.h"
 #include "vm/growable_array.h"
 #include "vm/runtime_entry.h"
 #include "vm/thread_pool.h"
@@ -79,7 +80,7 @@ class IrregexpCompilationPipeline : public CompilationPipeline {
 
 class Compiler : public AllStatic {
  public:
-  static const intptr_t kNoOSRDeoptId = Thread::kNoDeoptId;
+  static const intptr_t kNoOSRDeoptId = DeoptId::kNone;
 
   static bool IsBackgroundCompilation();
   // The result for a function may change if debugging gets turned on/off.

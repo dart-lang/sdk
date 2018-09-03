@@ -340,7 +340,7 @@ const char* Instruction::ToCString() const {
 }
 
 void Instruction::PrintTo(BufferFormatter* f) const {
-  if (GetDeoptId() != Thread::kNoDeoptId) {
+  if (GetDeoptId() != DeoptId::kNone) {
     f->Print("%s:%" Pd "(", DebugName(), GetDeoptId());
   } else {
     f->Print("%s(", DebugName());
@@ -359,7 +359,7 @@ void Instruction::PrintOperandsTo(BufferFormatter* f) const {
 void Definition::PrintTo(BufferFormatter* f) const {
   PrintUse(f, *this);
   if (HasSSATemp() || HasTemp()) f->Print(" <- ");
-  if (GetDeoptId() != Thread::kNoDeoptId) {
+  if (GetDeoptId() != DeoptId::kNone) {
     f->Print("%s:%" Pd "(", DebugName(), GetDeoptId());
   } else {
     f->Print("%s(", DebugName());
@@ -562,10 +562,10 @@ void TestCidsInstr::PrintOperandsTo(BufferFormatter* f) const {
   }
   f->Print("] ");
   if (CanDeoptimize()) {
-    ASSERT(deopt_id() != Thread::kNoDeoptId);
+    ASSERT(deopt_id() != DeoptId::kNone);
     f->Print("else deoptimize ");
   } else {
-    ASSERT(deopt_id() == Thread::kNoDeoptId);
+    ASSERT(deopt_id() == DeoptId::kNone);
     f->Print("else %s ", cid_results()[length - 1] != 0 ? "false" : "true");
   }
 }
@@ -1075,7 +1075,7 @@ void GotoInstr::PrintTo(BufferFormatter* f) const {
     parallel_move()->PrintTo(f);
     f->Print(" ");
   }
-  if (GetDeoptId() != Thread::kNoDeoptId) {
+  if (GetDeoptId() != DeoptId::kNone) {
     f->Print("goto:%" Pd " B%" Pd "", GetDeoptId(), successor()->block_id());
   } else {
     f->Print("goto: B%" Pd "", successor()->block_id());
@@ -1083,7 +1083,7 @@ void GotoInstr::PrintTo(BufferFormatter* f) const {
 }
 
 void IndirectGotoInstr::PrintTo(BufferFormatter* f) const {
-  if (GetDeoptId() != Thread::kNoDeoptId) {
+  if (GetDeoptId() != DeoptId::kNone) {
     f->Print("igoto:%" Pd "(", GetDeoptId());
   } else {
     f->Print("igoto:(");

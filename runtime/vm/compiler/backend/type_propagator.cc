@@ -8,7 +8,7 @@
 
 #include "vm/bit_vector.h"
 #include "vm/compiler/backend/il_printer.h"
-#include "vm/compiler/cha.h"
+#include "vm/compiler/compiler_state.h"
 #include "vm/object_store.h"
 #include "vm/regexp_assembler.h"
 #include "vm/resolver.h"
@@ -695,7 +695,7 @@ intptr_t CompileType::ToNullableCid() {
     } else if (type_->HasResolvedTypeClass()) {
       const Class& type_class = Class::Handle(type_->type_class());
       Thread* thread = Thread::Current();
-      CHA* cha = thread->cha();
+      CHA& cha = thread->compiler_state().cha();
       // Don't infer a cid from an abstract type since there can be multiple
       // compatible classes with different cids.
       if (!type_class.is_abstract() && !CHA::IsImplemented(type_class) &&
@@ -710,7 +710,7 @@ intptr_t CompileType::ToNullableCid() {
                       type_class.ToCString());
           }
           if (FLAG_use_cha_deopt) {
-            cha->AddToGuardedClasses(type_class, /*subclass_count=*/0);
+            cha.AddToGuardedClasses(type_class, /*subclass_count=*/0);
           }
           cid_ = type_class.id();
         } else {
@@ -968,8 +968,9 @@ CompileType ParameterInstr::ComputeType() const {
                   type_class.ToCString());
             }
             if (FLAG_use_cha_deopt) {
-              thread->cha()->AddToGuardedClasses(type_class,
-                                                 /*subclass_count=*/0);
+              thread->compiler_state().cha().AddToGuardedClasses(
+                  type_class,
+                  /*subclass_count=*/0);
             }
             cid = type_class.id();
           }
