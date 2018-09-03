@@ -158,7 +158,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   void addCompileTimeError(Message message, int charOffset, int length,
       {List<LocatedMessage> context});
 
-  void addProblem(Message message, int charOffset, int length);
+  void addProblem(Message message, int charOffset, int length,
+      {List<LocatedMessage> context});
 
   void addProblemErrorIfConst(Message message, int charOffset, int length);
 

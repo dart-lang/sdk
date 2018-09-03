@@ -16,7 +16,8 @@ abstract class InferenceHelper {
   LocatedMessage checkArgumentsForType(
       FunctionType function, ArgumentsJudgment arguments, int offset);
 
-  void addProblem(Message message, int charOffset, int length);
+  void addProblem(Message message, int charOffset, int length,
+      {List<LocatedMessage> context});
 
   Expression wrapInProblem(Expression expression, Message message, int length,
       {List<LocatedMessage> context});

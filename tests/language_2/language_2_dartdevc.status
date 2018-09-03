@@ -263,7 +263,6 @@ const_dynamic_type_literal_test/02: MissingCompileTimeError
 const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
 const_optional_args_test/01: MissingCompileTimeError
-const_switch2_test/01: MissingCompileTimeError
 const_syntax_test/05: MissingCompileTimeError
 constants_test/05: MissingCompileTimeError
 covariant_subtyping_test: RuntimeError

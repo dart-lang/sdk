@@ -155,12 +155,6 @@ Language/Statements/Continue/control_transfer_t09: CompileTimeError
 Language/Statements/Continue/label_t07: MissingCompileTimeError # Issue 34206
 Language/Statements/Switch/equal_operator_t01: MissingCompileTimeError # Issue 32557
 Language/Statements/Switch/equal_operator_t02: MissingCompileTimeError # Issue 32557
-Language/Statements/Switch/execution_t01: MissingCompileTimeError # Issue 34207
-Language/Statements/Switch/expressions_t01: MissingCompileTimeError # Issue 34207
-Language/Statements/Switch/expressions_t02: MissingCompileTimeError # Issue 34207
-Language/Statements/Switch/expressions_t04: MissingCompileTimeError # Issue 34207
-Language/Statements/Switch/type_t01: MissingCompileTimeError # Issue 34207
-Language/Statements/Switch/type_t02: MissingCompileTimeError # Issue 34207
 Language/Statements/Try/catch_scope_t01: CompileTimeError
 Language/Types/Dynamic_Type_System/malbounded_type_error_t01: MissingCompileTimeError # Issue 33308
 Language/Types/Interface_Types/subtype_t30: CompileTimeError

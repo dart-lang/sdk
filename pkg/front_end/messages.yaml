@@ -2152,6 +2152,22 @@ SuperAsExpression:
   tip: "To delegate a constructor to a super constructor, put the super call as an initializer."
   analyzerCode: SUPER_AS_EXPRESSION
 
+SwitchExpressionNotAssignable:
+  template: "Type '#type' of the switch expression isn't assignable to the type '#type2' of this case expression."
+  severity: ERROR
+  analyzerCode: SWITCH_EXPRESSION_NOT_ASSIGNABLE
+  script:
+    - >-
+      void f() {
+        switch (42) {
+          case "foo": break;
+        }
+      }
+
+SwitchExpressionNotAssignableCause:
+  template: "The switch expression is here."
+  severity: CONTEXT
+
 SwitchHasCaseAfterDefault:
   template: "The default case should be the last case in a switch statement."
   tip: "Try moving the default case after the other case clauses."

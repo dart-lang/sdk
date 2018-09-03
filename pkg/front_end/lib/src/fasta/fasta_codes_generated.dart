@@ -6747,6 +6747,54 @@ const MessageCode messageSwitchCaseFallThrough = const MessageCode(
     message: r"""Switch case may fall through to the next case.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        DartType
+            _type2)> templateSwitchExpressionNotAssignable = const Template<
+        Message Function(DartType _type, DartType _type2)>(
+    messageTemplate:
+        r"""Type '#type' of the switch expression isn't assignable to the type '#type2' of this case expression.""",
+    withArguments: _withArgumentsSwitchExpressionNotAssignable);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, DartType _type2)>
+    codeSwitchExpressionNotAssignable =
+    const Code<Message Function(DartType _type, DartType _type2)>(
+        "SwitchExpressionNotAssignable", templateSwitchExpressionNotAssignable,
+        analyzerCode: "SWITCH_EXPRESSION_NOT_ASSIGNABLE",
+        severity: Severity.error);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSwitchExpressionNotAssignable(
+    DartType _type, DartType _type2) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer;
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  return new Message(codeSwitchExpressionNotAssignable,
+      message:
+          """Type '${type}' of the switch expression isn't assignable to the type '${type2}' of this case expression.""",
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeSwitchExpressionNotAssignableCause =
+    messageSwitchExpressionNotAssignableCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageSwitchExpressionNotAssignableCause = const MessageCode(
+    "SwitchExpressionNotAssignableCause",
+    severity: Severity.context,
+    message: r"""The switch expression is here.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSwitchHasCaseAfterDefault =
     messageSwitchHasCaseAfterDefault;
 

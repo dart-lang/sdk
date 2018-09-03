@@ -1049,9 +1049,6 @@ Language/Statements/Switch/equal_operator_t02: MissingCompileTimeError
 Language/Statements/Switch/execution_case_no_default_t02: CompileTimeError
 Language/Statements/Switch/execution_case_t02: CompileTimeError
 Language/Statements/Switch/execution_t01: CompileTimeError
-Language/Statements/Switch/expressions_t01: MissingCompileTimeError
-Language/Statements/Switch/expressions_t02: MissingCompileTimeError
-Language/Statements/Switch/expressions_t04: MissingCompileTimeError
 Language/Statements/Switch/last_statement_t01: CompileTimeError
 Language/Statements/Switch/scope_t02: CompileTimeError
 Language/Statements/Switch/type_t01: CompileTimeError

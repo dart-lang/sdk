@@ -37,12 +37,14 @@ import '../../base/instrumentation.dart'
 
 import '../fasta_codes.dart'
     show
+        messageSwitchExpressionNotAssignableCause,
         messageVoidExpression,
         noLength,
         templateCantInferTypeDueToCircularity,
         templateCantUseSuperBoundedTypeForInstanceCreation,
         templateForInLoopElementTypeNotAssignable,
-        templateForInLoopTypeNotIterable;
+        templateForInLoopTypeNotIterable,
+        templateSwitchExpressionNotAssignable;
 
 import '../problems.dart' show unhandled, unsupported;
 
@@ -2710,14 +2712,30 @@ class SwitchStatementJudgment extends SwitchStatement
     var expressionJudgment = this.expressionJudgment;
     inferrer.inferExpression(expressionJudgment, const UnknownType(), true);
     var expressionType = expressionJudgment.inferredType;
+
     for (var switchCase in caseJudgments) {
       for (var caseExpression in switchCase.expressionJudgments) {
-        inferrer.inferExpression(caseExpression, expressionType, false);
+        DartType caseExpressionType =
+            inferrer.inferExpression(caseExpression, expressionType, true);
+
+        // Check whether the expression type is assignable to the case expression type.
+        if (!inferrer.isAssignable(expressionType, caseExpressionType)) {
+          inferrer.helper.addProblem(
+              templateSwitchExpressionNotAssignable.withArguments(
+                  expressionType, caseExpressionType),
+              caseExpression.fileOffset,
+              noLength,
+              context: [
+                messageSwitchExpressionNotAssignableCause.withLocation(
+                    inferrer.uri, expressionJudgment.fileOffset, noLength)
+              ]);
+        }
       }
       inferrer.inferStatement(switchCase.bodyJudgment);
       // TODO(paulberry): support labels.
       inferrer.listener.switchCase(switchCase, null, null, null, null, null);
     }
+
     inferrer.listener
         .switchStatement(this, fileOffset, tokens, expression, cases);
   }

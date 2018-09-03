@@ -355,7 +355,6 @@ map_literal3_test/02: MissingCompileTimeError
 [ $compiler != dart2analyzer && $fasta ]
 const_map2_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 const_map3_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-const_switch2_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 invalid_returns/async_invalid_return_05_test: MissingCompileTimeError
 invalid_returns/async_invalid_return_06_test: MissingCompileTimeError
 invalid_returns/async_invalid_return_07_test: MissingCompileTimeError
