@@ -3003,16 +3003,32 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
 
   const DirectCallMetadata direct_call =
       direct_call_metadata_helper_.GetDirectTargetForPropertySet(offset);
+  const CallSiteAttributesMetadata call_site_attributes =
+      call_site_attributes_metadata_helper_.GetCallSiteAttributes(offset);
+
+  // True if callee can skip argument type checks.
+  bool is_unchecked_call = false;
+#ifndef TARGET_ARCH_DBC
+  if (call_site_attributes.receiver_type != nullptr &&
+      call_site_attributes.receiver_type->HasResolvedTypeClass() &&
+      !Class::Handle(call_site_attributes.receiver_type->type_class())
+           .IsGeneric()) {
+    is_unchecked_call = true;
+  }
+#endif
 
   Fragment instructions(MakeTemp());
   LocalVariable* variable = MakeTemporary();
 
   const TokenPosition position = ReadPosition();  // read position.
-  if (p != NULL) *p = position;
+  if (p != nullptr) *p = position;
 
+  if (PeekTag() == kThisExpression) {
+    is_unchecked_call = true;
+  }
   instructions += BuildExpression();  // read receiver.
 
-  LocalVariable* receiver = NULL;
+  LocalVariable* receiver = nullptr;
   if (direct_call.check_receiver_for_null_) {
     // Duplicate receiver for CheckNull before it is consumed by PushArgument.
     receiver = MakeTemporary();
@@ -3042,10 +3058,12 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
   }
 
   if (!direct_call.target_.IsNull()) {
+    // TODO(#34162): Pass 'is_unchecked_call' down if/when we feature multiple
+    // entry-points in AOT.
     ASSERT(FLAG_precompiled_mode);
     instructions +=
         StaticCall(position, direct_call.target_, 2, Array::null_array(),
-                   ICData::kNoRebind, /* result_type = */ NULL);
+                   ICData::kNoRebind, /*result_type=*/nullptr);
   } else {
     const intptr_t kTypeArgsLen = 0;
     const intptr_t kNumArgsChecked = 1;
@@ -3057,10 +3075,12 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
           Z, Function::CreateDynamicInvocationForwarderName(setter_name));
     }
 
-    instructions +=
-        InstanceCall(position, *mangled_name, Token::kSET, kTypeArgsLen, 2,
-                     Array::null_array(), kNumArgsChecked, *interface_target,
-                     /* result_type = */ NULL);
+    instructions += InstanceCall(
+        position, *mangled_name, Token::kSET, kTypeArgsLen, 2,
+        Array::null_array(), kNumArgsChecked, *interface_target,
+        /*result_type=*/nullptr,
+        /*use_unchecked_entry=*/!FLAG_precompiled_mode && is_unchecked_call,
+        &call_site_attributes);
   }
 
   instructions += Drop();  // Drop result of the setter invocation.

@@ -18,38 +18,39 @@ class A<T> {
   void method(T x) {}
 
   @NeverInline
-  void testMethod({bool violateType: false}) {
-    dynamic x = this;
+  void testMethod(bool violateType) {
+    A<dynamic> x = this;
     x.method(violateType ? 10 : "10");
   }
 
   @NeverInline
-  void testSetter({bool violateType: false}) {
-    dynamic x = this;
+  void testSetter(bool violateType) {
+    A<dynamic> x = this;
     x.property = violateType ? 10 : "10";
   }
 
   @NeverInline
-  void testField({bool violateType: false}) {
-    dynamic x = this;
+  void testField(bool violateType) {
+    A<dynamic> x = this;
     x.field = violateType ? 10 : "10";
   }
 }
 
 @NeverInline
-void loop(A<String> obj, {bool violateType: false}) {
+void loop(A<String> obj, bool violateType) {
   for (var i = 0; i < 100; i++) {
-    obj.testMethod(violateType: violateType);
-    obj.testSetter(violateType: violateType);
-    obj.testField(violateType: violateType);
+    obj.testMethod(violateType);
+    obj.testSetter(violateType);
+    obj.testField(violateType);
   }
 }
 
 void main() {
+  A<num>().field = 10;
   final obj = A<String>();
-  loop(obj, violateType: false);
-  loop(obj, violateType: false);
-  Expect.throwsTypeError(() => obj.testMethod(violateType: true));
-  Expect.throwsTypeError(() => obj.testSetter(violateType: true));
-  Expect.throwsTypeError(() => obj.testField(violateType: true));
+  loop(obj, false);
+  loop(obj, false);
+  Expect.throwsTypeError(() => obj.testMethod(true));
+  Expect.throwsTypeError(() => obj.testSetter(true));
+  Expect.throwsTypeError(() => obj.testField(true));
 }

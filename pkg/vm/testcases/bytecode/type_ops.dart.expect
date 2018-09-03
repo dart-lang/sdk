@@ -175,7 +175,7 @@ ConstantPool {
     if(y is self::C<dynamic, self::D::Q, core::List<self::D::P>>) {
       core::print("22");
     }
-    this.{self::D::foo} = y as{TypeError} core::Map<self::D::P, self::D::Q>;
+    [@vm.call-site-attributes.metadata=receiverType:#lib::D<#lib::D::P, #lib::D::Q>] this.{self::D::foo} = y as{TypeError} core::Map<self::D::P, self::D::Q>;
   }
 [@vm.bytecode=
 Bytecode {

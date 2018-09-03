@@ -55,22 +55,27 @@ class AnnotateWithStaticTypes extends RecursiveVisitor<Null> {
   }
 
   @override
-  visitMethodInvocation(MethodInvocation node) {
-    super.visitMethodInvocation(node);
+  visitPropertySet(PropertySet node) {
+    super.visitPropertySet(node);
 
-    if (shouldAnnotate(node)) {
+    if (hasGenericCovariantParameters(node.interfaceTarget)) {
       _metadata.mapping[node] = new CallSiteAttributesMetadata(
           receiverType: node.receiver.getStaticType(env));
     }
   }
 
-  // TODO(vegorov) handle setters as well.
-  // TODO(34162): We don't need to save the type here, just whether or not it's
-  // a statically-checked call.
-  static bool shouldAnnotate(MethodInvocation node) =>
-      (node.interfaceTarget != null &&
-          hasGenericCovariantParameters(node.interfaceTarget)) ||
-      node.name.name == "call";
+  @override
+  visitMethodInvocation(MethodInvocation node) {
+    super.visitMethodInvocation(node);
+
+    // TODO(34162): We don't need to save the type here for calls, just whether
+    // or not it's a statically-checked call.
+    if (node.name.name == 'call' ||
+        hasGenericCovariantParameters(node.interfaceTarget)) {
+      _metadata.mapping[node] = new CallSiteAttributesMetadata(
+          receiverType: node.receiver.getStaticType(env));
+    }
+  }
 
   /// Return [true] if the given list of [VariableDeclaration] contains
   /// any annotated with generic-covariant-impl.
@@ -84,6 +89,8 @@ class AnnotateWithStaticTypes extends RecursiveVisitor<Null> {
       return containsGenericCovariantImpl(
               member.function.positionalParameters) ||
           containsGenericCovariantImpl(member.function.namedParameters);
+    } else if (member is Field) {
+      return member.isGenericCovariantImpl;
     }
 
     return false;

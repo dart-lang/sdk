@@ -958,6 +958,18 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
       break;
   }
 
+  // True if we can use unchecked entry into the setter.
+  bool is_unchecked_call = false;
+  if (!FLAG_precompiled_mode) {
+    if (unary_ic_data.NumberOfChecks() == 1 &&
+        unary_ic_data.GetExactnessAt(0).IsExact()) {
+      if (unary_ic_data.GetExactnessAt(0).IsTriviallyExact()) {
+        flow_graph()->AddExactnessGuard(instr, unary_ic_data.GetCidAt(0));
+      }
+      is_unchecked_call = true;
+    }
+  }
+
   if (I->use_field_guards()) {
     if (field.guarded_cid() != kDynamicCid) {
       InsertBefore(instr,
@@ -1003,10 +1015,13 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
         needs_check = true;
       } else if (is_generic_covariant) {
         // If field is generic covariant then we don't need to check it
-        // if we know that actual type arguments match static type arguments
-        // e.g. if this is an invocation on this (an instance we are storing
-        // into is also a receiver of a surrounding method).
-        needs_check = !flow_graph_->IsReceiver(instr->ArgumentAt(0));
+        // if the invocation was marked as unchecked (e.g. receiver of
+        // the invocation is also the receiver of the surrounding method).
+        // Note: we can't use flow_graph()->IsReceiver() for this optimization
+        // because strong mode only gives static guarantees at the AST level
+        // not at the SSA level.
+        needs_check = !(is_unchecked_call ||
+                        (instr->entry_kind() == Code::EntryKind::kUnchecked));
       } else {
         // The rest of the stores are checked statically (we are not at
         // a dynamic invocation).
