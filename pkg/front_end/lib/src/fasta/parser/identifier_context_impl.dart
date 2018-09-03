@@ -81,8 +81,7 @@ class ClassOrMixinIdentifierContext extends IdentifierContext {
 
 /// See [IdentifierContext.combinator].
 class CombinatorIdentifierContext extends IdentifierContext {
-  const CombinatorIdentifierContext()
-      : super('combinator', requiresSyntheticFlag: true);
+  const CombinatorIdentifierContext() : super('combinator');
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
@@ -155,12 +154,10 @@ class ConstructorReferenceIdentifierContext extends IdentifierContext {
 
 /// See [IdentifierContext.dottedName].
 class DottedNameIdentifierContext extends IdentifierContext {
-  const DottedNameIdentifierContext()
-      : super('dottedName', requiresSyntheticFlag: true);
+  const DottedNameIdentifierContext() : super('dottedName');
 
   const DottedNameIdentifierContext.continuation()
-      : super('dottedNameContinuation',
-            isContinuation: true, requiresSyntheticFlag: true);
+      : super('dottedNameContinuation', isContinuation: true);
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {

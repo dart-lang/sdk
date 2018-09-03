@@ -48,6 +48,8 @@ ConflictsWithSetterWarning/example: Fail
 ConflictsWithTypeVariable/example: Fail
 ConstAfterFactory/script1: Fail
 ConstAndCovariant/script2: Fail
+ConstAndFinal/declaration3: Fail
+ConstAndFinal/declaration4: Fail
 ConstAndVar/script1: Fail
 ConstConstructorInSubclassOfMixinApplication/example: Fail
 ConstConstructorNonFinalField/example: Fail
@@ -327,7 +329,6 @@ ThisAsIdentifier/example: Fail
 ThisOrSuperAccessInFieldInitializer/example: Fail
 TooFewArguments/example: Fail
 TooManyArguments/example: Fail
-TooManyArgumentsCouldBeNamed/example: Fail
 TopLevelOperator/script1: Fail
 TopLevelOperator/script2: Fail
 TopLevelOperator/script3: Fail

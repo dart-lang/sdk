@@ -52,7 +52,6 @@ enum NullValue {
   IdentifierList,
   Initializers,
   Metadata,
-  MetadataToken,
   Modifiers,
   ParameterDefaultValue,
   Prefix,

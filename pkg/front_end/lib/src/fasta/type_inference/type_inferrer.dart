@@ -1685,7 +1685,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       listener.methodInvocation(
           expression,
           resultOffset,
-          receiverType,
           arguments.types,
           isImplicitCall,
           getRealTarget(interfaceMember),
@@ -1760,7 +1759,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       listener.propertyGetCall(expression, expression.fileOffset, inferredType);
     } else {
       listener.propertyGet(expression, expression.fileOffset, forSyntheticToken,
-          receiverType, interfaceMember, inferredType);
+          interfaceMember, inferredType);
     }
     expression.inferredType = inferredType;
   }
@@ -1965,14 +1964,13 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     return new InterfaceType(class_, <DartType>[type ?? const DynamicType()]);
   }
 
-  void _forEachArgument(ArgumentsJudgment arguments,
-      void callback(String name, Expression expression)) {
+  void _forEachArgument(
+      Arguments arguments, void callback(String name, Expression expression)) {
     for (var expression in arguments.positional) {
       callback(null, expression);
     }
-    for (var namedExpression in arguments.namedJudgments) {
-      callback(namedExpression.name,
-          namedExpression.originalValue ?? namedExpression.value);
+    for (var namedExpression in arguments.named) {
+      callback(namedExpression.name, namedExpression.value);
     }
   }
 

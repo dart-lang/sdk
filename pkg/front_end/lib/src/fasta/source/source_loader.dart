@@ -45,8 +45,6 @@ import '../builder/builder.dart'
         NamedTypeBuilder,
         TypeBuilder;
 
-import '../combinator.dart';
-
 import '../deprecated_problems.dart' show deprecated_inputError;
 
 import '../export.dart' show Export;
@@ -103,8 +101,6 @@ import 'diet_listener.dart' show DietListener;
 import 'diet_parser.dart' show DietParser;
 
 import 'outline_builder.dart' show OutlineBuilder;
-
-import 'outline_listener.dart' show OutlineListener;
 
 import 'source_class_builder.dart' show SourceClassBuilder;
 
@@ -213,13 +209,9 @@ class SourceLoader<L> extends Loader<L> {
       // time we suppress lexical errors.
       Token tokens = await tokenize(library, suppressLexicalErrors: true);
       if (tokens == null) return;
-
       DietListener listener = createDietListener(library);
       DietParser parser = new DietParser(listener);
-
-      listener.currentUnit = library;
       parser.parseUnit(tokens);
-
       for (SourceLibraryBuilder part in library.parts) {
         if (part.partOfLibrary != library) {
           // Part was included in multiple libraries. Skip it here.
@@ -227,7 +219,6 @@ class SourceLoader<L> extends Loader<L> {
         }
         Token tokens = await tokenize(part);
         if (tokens != null) {
-          listener.currentUnit = part;
           listener.uri = part.fileUri;
           listener.partDirectiveIndex = 0;
           parser.parseUnit(tokens);
@@ -347,21 +338,6 @@ class SourceLoader<L> extends Loader<L> {
       // exporter to exportee. This creates a reference in the wrong direction
       // and can lead to memory leaks.
       exportee.exporters.clear();
-    }
-    for (var library in builders.values) {
-      if (library is SourceLibraryBuilder) {
-        OutlineListener outlineListener = library.outlineListener;
-        if (outlineListener != null) {
-          for (var import in library.imports) {
-            storeCombinatorIdentifiersResolution(
-                outlineListener, import.imported, import.combinators);
-          }
-          for (var export in library.exports) {
-            storeCombinatorIdentifiersResolution(
-                outlineListener, export.exported, export.combinators);
-          }
-        }
-      }
     }
     ticker.logMs("Computed library scopes");
     // debugPrintExports();
@@ -972,20 +948,5 @@ class SourceLoader<L> extends Loader<L> {
   void releaseAncillaryResources() {
     hierarchy = null;
     typeInferenceEngine = null;
-  }
-
-  void storeCombinatorIdentifiersResolution(OutlineListener outlineListener,
-      LibraryBuilder consumed, List<Combinator> combinators) {
-    if (combinators != null) {
-      for (var combinator in combinators) {
-        for (var identifier in combinator.identifiers) {
-          var declaration = consumed.exportScope.local[identifier.name];
-          declaration ??= consumed.exportScope.setters[identifier.name];
-          outlineListener.store(identifier.offset, identifier.isSynthetic,
-              isNamespaceCombinatorReference: true,
-              reference: declaration?.target);
-        }
-      }
-    }
   }
 }

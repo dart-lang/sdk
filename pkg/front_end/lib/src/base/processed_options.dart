@@ -690,16 +690,12 @@ class _CompilationMessage implements CompilationMessage {
   String get analyzerCode => _original.code.analyzerCode;
 
   SourceSpan get span {
-    var uri = _original.uri;
-    var offset = _original.charOffset;
-    if (offset == -1) {
-      if (uri == null) return null;
-      return new SourceLocation(0, sourceUrl: uri).pointSpan();
+    if (_original.charOffset == -1) {
+      if (_original.uri == null) return null;
+      return new SourceLocation(0, sourceUrl: _original.uri).pointSpan();
     }
-    return new SourceSpan(
-        new SourceLocation(offset, sourceUrl: uri),
-        new SourceLocation(offset + _original.length, sourceUrl: uri),
-        'X' * _original.length);
+    return new SourceLocation(_original.charOffset, sourceUrl: _original.uri)
+        .pointSpan();
   }
 
   _CompilationMessage(this._original, this.severity);

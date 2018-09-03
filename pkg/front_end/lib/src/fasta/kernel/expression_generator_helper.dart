@@ -27,7 +27,6 @@ import 'kernel_builder.dart' show KernelTypeBuilder, PrefixBuilder;
 import 'kernel_ast_api.dart'
     show
         Arguments,
-        ArgumentsJudgment,
         Constructor,
         DartType,
         Expression,
@@ -71,21 +70,18 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   scopeLookup(Scope scope, String name, Token token,
       {bool isQualified: false, PrefixBuilder prefix});
 
-  finishSend(Object receiver, ArgumentsJudgment arguments, int offset);
+  finishSend(Object receiver, Arguments arguments, int offset);
 
   Expression buildCompileTimeError(Message message, int charOffset, int length,
       {List<LocatedMessage> context});
 
   Expression buildCompileTimeErrorExpression(Message message, int offset,
-      {int length, Expression original});
+      {int length});
 
   Expression wrapInCompileTimeError(Expression expression, Message message);
 
   Expression wrapInProblem(Expression expression, Message message, int length,
       {List<LocatedMessage> context});
-
-  Initializer buildInvalidFieldInitializer(int offset, bool isSynthetic,
-      Node target, Expression value, Expression error);
 
   Initializer buildInvalidInitializer(Expression expression, [int offset]);
 
@@ -101,8 +97,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       Constructor constructor, Arguments arguments,
       [int charOffset = -1]);
 
-  Expression buildStaticInvocation(
-      Procedure target, ArgumentsJudgment arguments,
+  Expression buildStaticInvocation(Procedure target, Arguments arguments,
       {Constness constness, int charOffset, Expression error});
 
   Expression buildProblemExpression(
@@ -117,14 +112,11 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       bool isStatic,
       LocatedMessage argMessage});
 
-  LocatedMessage checkArgumentsForFunction(
-      FunctionNode function,
-      ArgumentsJudgment arguments,
-      int offset,
-      List<TypeParameter> typeParameters);
+  LocatedMessage checkArgumentsForFunction(FunctionNode function,
+      Arguments arguments, int offset, List<TypeParameter> typeParameters);
 
   LocatedMessage checkArgumentsForType(
-      FunctionType function, ArgumentsJudgment arguments, int offset);
+      FunctionType function, Arguments arguments, int offset);
 
   StaticGet makeStaticGet(Member readTarget, Token token);
 

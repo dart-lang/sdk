@@ -64,8 +64,7 @@ KernelTypeBuilder substituteRange(
       }
     }
     if (arguments != null) {
-      return new KernelNamedTypeBuilder(
-          type.outlineListener, type.charOffset, type.name, arguments)
+      return new KernelNamedTypeBuilder(type.name, arguments)
         ..bind(type.declaration);
     }
     return type;
@@ -130,8 +129,7 @@ KernelTypeBuilder substituteRange(
     }
 
     if (changed) {
-      return new KernelFunctionTypeBuilder(type.outlineListener,
-          type.charOffset, returnType, variables, formals);
+      return new KernelFunctionTypeBuilder(returnType, variables, formals);
     }
 
     return type;

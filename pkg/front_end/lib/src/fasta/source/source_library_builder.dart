@@ -66,8 +66,6 @@ import '../configuration.dart' show Configuration;
 
 import '../problems.dart' show unhandled;
 
-import '../source/outline_listener.dart' show OutlineListener;
-
 import 'source_loader.dart' show SourceLoader;
 
 abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
@@ -116,8 +114,6 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   bool canAddImplementationBuilders = false;
 
-  final OutlineListener outlineListener;
-
   SourceLibraryBuilder(SourceLoader loader, Uri fileUri, Scope scope)
       : this.fromScopes(loader, fileUri, new DeclarationBuilder<T>.library(),
             scope ?? new Scope.top());
@@ -126,7 +122,6 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       this.loader, this.fileUri, this.libraryDeclaration, this.importScope)
       : disableTypeInference = loader.target.disableTypeInference,
         currentDeclaration = libraryDeclaration,
-        outlineListener = loader.createOutlineListener(fileUri),
         super(
             fileUri, libraryDeclaration.toScope(importScope), new Scope.top());
 
@@ -350,9 +345,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int startCharOffset,
       int charOffset,
       int charEndOffset,
-      int supertypeOffset,
-      int codeStartOffset,
-      int codeEndOffset);
+      int supertypeOffset);
 
   void addNamedMixinApplication(
       String documentationComment,
@@ -362,9 +355,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int modifiers,
       T mixinApplication,
       List<T> interfaces,
-      int charOffset,
-      int codeStartOffset,
-      int codeEndOffset);
+      int charOffset);
 
   void addField(
       String documentationComment,
@@ -373,47 +364,23 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       T type,
       String name,
       int charOffset,
-      int codeStartOffset,
-      int codeEndOffset,
       Token initializerTokenForInference,
       bool hasInitializer);
 
-  void addFields(
-      String documentationComment,
-      List<MetadataBuilder> metadata,
-      int modifiers,
-      T type,
-      List<Object> fieldsInfo,
-      int firstFieldCodeStartOffset) {
+  void addFields(String documentationComment, List<MetadataBuilder> metadata,
+      int modifiers, T type, List<Object> fieldsInfo) {
     for (int i = 0; i < fieldsInfo.length; i += 4) {
       String name = fieldsInfo[i];
       int charOffset = fieldsInfo[i + 1];
       bool hasInitializer = fieldsInfo[i + 2] != null;
       Token initializerTokenForInference =
           type == null ? fieldsInfo[i + 2] : null;
-      Token beforeLast = fieldsInfo[i + 3];
       if (initializerTokenForInference != null) {
+        Token beforeLast = fieldsInfo[i + 3];
         beforeLast.setNext(new Token.eof(beforeLast.next.offset));
       }
-
-      int codeEndOffset;
-      if (beforeLast != null) {
-        codeEndOffset = beforeLast.next.offset;
-      } else {
-        codeEndOffset = charOffset + name.length;
-      }
-
-      addField(
-          documentationComment,
-          metadata,
-          modifiers,
-          type,
-          name,
-          charOffset,
-          i == 0 ? firstFieldCodeStartOffset : charOffset,
-          codeEndOffset,
-          initializerTokenForInference,
-          hasInitializer);
+      addField(documentationComment, metadata, modifiers, type, name,
+          charOffset, initializerTokenForInference, hasInitializer);
     }
   }
 
@@ -430,8 +397,6 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int charOffset,
       int charOpenParenOffset,
       int charEndOffset,
-      int codeStartOffset,
-      int codeEndOffset,
       String nativeMethodName);
 
   void addProcedure(
@@ -448,8 +413,6 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int charOpenParenOffset,
       int charEndOffset,
       String nativeMethodName,
-      int codeStartOffset,
-      int codeEndOffset,
       {bool isTopLevel});
 
   void addEnum(
@@ -485,8 +448,6 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int charOffset,
       int charOpenParenOffset,
       int charEndOffset,
-      int codeStartOffset,
-      int codeEndOffset,
       String nativeMethodName);
 
   FormalParameterBuilder addFormalParameter(List<MetadataBuilder> metadata,

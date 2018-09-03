@@ -472,10 +472,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             combinators ??= <Combinator>[];
 
             combinators.add(combinator.isShow
-                ? new Combinator.show(null, combinator.names,
-                    combinator.fileOffset, library.fileUri)
-                : new Combinator.hide(null, combinator.names,
-                    combinator.fileOffset, library.fileUri));
+                ? new Combinator.show(
+                    combinator.names, combinator.fileOffset, library.fileUri)
+                : new Combinator.hide(
+                    combinator.names, combinator.fileOffset, library.fileUri));
           }
 
           debugLibrary.addImport(

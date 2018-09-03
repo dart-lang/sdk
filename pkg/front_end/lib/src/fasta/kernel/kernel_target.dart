@@ -119,14 +119,12 @@ class KernelTarget extends TargetImplementation {
 
   final List<LocatedMessage> errors = <LocatedMessage>[];
 
-  final TypeBuilder dynamicType =
-      new KernelNamedTypeBuilder(null, -1, "dynamic", null);
+  final TypeBuilder dynamicType = new KernelNamedTypeBuilder("dynamic", null);
 
   final NamedTypeBuilder objectType =
-      new KernelNamedTypeBuilder(null, -1, "Object", null);
+      new KernelNamedTypeBuilder("Object", null);
 
-  final TypeBuilder bottomType =
-      new KernelNamedTypeBuilder(null, -1, "Null", null);
+  final TypeBuilder bottomType = new KernelNamedTypeBuilder("Null", null);
 
   bool get strongMode => backendTarget.strongMode;
 
@@ -219,7 +217,7 @@ class KernelTarget extends TargetImplementation {
     cls.implementedTypes.clear();
     cls.supertype = null;
     cls.mixedInType = null;
-    builder.supertype = new KernelNamedTypeBuilder(null, -1, "Object", null)
+    builder.supertype = new KernelNamedTypeBuilder("Object", null)
       ..bind(objectClassBuilder);
     builder.interfaces = null;
     builder.mixedInType = null;
@@ -435,7 +433,7 @@ class KernelTarget extends TargetImplementation {
               if (cls != objectClass) {
                 cls.supertype ??= objectClass.asRawSupertype;
                 declaration.supertype ??=
-                    new KernelNamedTypeBuilder(null, -1, "Object", null)
+                    new KernelNamedTypeBuilder("Object", null)
                       ..bind(objectClassBuilder);
               }
               if (declaration.isMixinApplication) {

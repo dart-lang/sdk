@@ -116,9 +116,6 @@ abstract class KernelClassBuilder
 
   Class get cls;
 
-  @override
-  bool get hasTarget => true;
-
   Class get target => cls;
 
   Class get actualCls;
@@ -220,13 +217,14 @@ abstract class KernelClassBuilder
     Set<ClassBuilder> implemented = new Set<ClassBuilder>();
     for (KernelTypeBuilder type in interfaces) {
       if (type is KernelNamedTypeBuilder) {
+        int charOffset = -1; // TODO(ahe): Get offset from type.
         Declaration decl = type.declaration;
         if (decl is ClassBuilder) {
           ClassBuilder interface = decl;
           if (superClass == interface) {
             addCompileTimeError(
                 templateImplementsSuperClass.withArguments(interface.name),
-                type.charOffset,
+                charOffset,
                 noLength);
           } else if (implemented.contains(interface)) {
             // Aggregate repetitions.
@@ -235,9 +233,9 @@ abstract class KernelClassBuilder
             problems[interface] += 1;
 
             problemsOffsets ??= new Map<ClassBuilder, int>();
-            problemsOffsets[interface] ??= type.charOffset;
+            problemsOffsets[interface] ??= charOffset;
           } else if (interface.target == coreTypes.futureOrClass) {
-            addCompileTimeError(messageImplementsFutureOr, type.charOffset,
+            addCompileTimeError(messageImplementsFutureOr, charOffset,
                 interface.target.name.length);
           } else {
             implemented.add(interface);

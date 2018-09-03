@@ -158,9 +158,6 @@ class KernelLibraryBuilder
   KernelLibraryBuilder get origin => actualOrigin ?? this;
 
   @override
-  bool get hasTarget => true;
-
-  @override
   Library get target => library;
 
   Uri get uri => library.importUri;
@@ -177,10 +174,7 @@ class KernelLibraryBuilder
 
   KernelTypeBuilder addNamedType(
       Object name, List<KernelTypeBuilder> arguments, int charOffset) {
-    return addType(
-        new KernelNamedTypeBuilder(
-            outlineListener, charOffset, name, arguments),
-        charOffset);
+    return addType(new KernelNamedTypeBuilder(name, arguments), charOffset);
   }
 
   KernelTypeBuilder addMixinApplication(KernelTypeBuilder supertype,
@@ -206,9 +200,7 @@ class KernelLibraryBuilder
       int startCharOffset,
       int charOffset,
       int charEndOffset,
-      int supertypeOffset,
-      int codeStartOffset,
-      int codeEndOffset) {
+      int supertypeOffset) {
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
     var declaration = endNestedDeclaration(className)
       ..resolveTypes(typeVariables, this);
@@ -242,8 +234,6 @@ class KernelLibraryBuilder
         charEndOffset);
     loader.target.metadataCollector
         ?.setDocumentationComment(cls.target, documentationComment);
-    loader.target.metadataCollector
-        ?.setCodeStartEnd(cls.target, codeStartOffset, codeEndOffset);
 
     constructorReferences.clear();
     Map<String, TypeVariableBuilder> typeVariablesByName =
@@ -316,9 +306,7 @@ class KernelLibraryBuilder
       String name,
       List<TypeVariableBuilder> typeVariables,
       int modifiers,
-      List<KernelTypeBuilder> interfaces,
-      int codeStartOffset,
-      int codeEndOffset}) {
+      List<KernelTypeBuilder> interfaces}) {
     if (name == null) {
       // The following parameters should only be used when building a named
       // mixin application.
@@ -498,8 +486,6 @@ class KernelLibraryBuilder
         if (isNamedMixinApplication) {
           loader.target.metadataCollector?.setDocumentationComment(
               application.target, documentationComment);
-          loader.target.metadataCollector?.setCodeStartEnd(
-              application.target, codeStartOffset, codeEndOffset);
         }
         // TODO(ahe, kmillikin): Should always be true?
         // pkg/analyzer/test/src/summary/resynthesize_kernel_test.dart can't
@@ -523,9 +509,7 @@ class KernelLibraryBuilder
       int modifiers,
       KernelTypeBuilder mixinApplication,
       List<KernelTypeBuilder> interfaces,
-      int charOffset,
-      int codeStartOffset,
-      int codeEndOffset) {
+      int charOffset) {
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
     endNestedDeclaration(name).resolveTypes(typeVariables, this);
     KernelNamedTypeBuilder supertype = applyMixins(
@@ -535,9 +519,7 @@ class KernelLibraryBuilder
         name: name,
         typeVariables: typeVariables,
         modifiers: modifiers,
-        interfaces: interfaces,
-        codeStartOffset: codeStartOffset,
-        codeEndOffset: codeEndOffset);
+        interfaces: interfaces);
     checkTypeVariables(typeVariables, supertype.declaration);
   }
 
@@ -549,19 +531,13 @@ class KernelLibraryBuilder
       KernelTypeBuilder type,
       String name,
       int charOffset,
-      int codeStartOffset,
-      int codeEndOffset,
       Token initializerTokenForInference,
       bool hasInitializer) {
     var builder = new KernelFieldBuilder(metadata, type, name, modifiers, this,
         charOffset, initializerTokenForInference, hasInitializer);
     addBuilder(name, builder, charOffset);
-
-    var metadataCollector = loader.target.metadataCollector;
-    metadataCollector?.setDocumentationComment(
-        builder.target, documentationComment);
-    metadataCollector?.setCodeStartEnd(
-        builder.target, codeStartOffset, codeEndOffset);
+    loader.target.metadataCollector
+        ?.setDocumentationComment(builder.target, documentationComment);
   }
 
   void addConstructor(
@@ -577,8 +553,6 @@ class KernelLibraryBuilder
       int charOffset,
       int charOpenParenOffset,
       int charEndOffset,
-      int codeStartOffset,
-      int codeEndOffset,
       String nativeMethodName) {
     MetadataCollector metadataCollector = loader.target.metadataCollector;
     ProcedureBuilder procedure = new KernelConstructorBuilder(
@@ -597,8 +571,6 @@ class KernelLibraryBuilder
     metadataCollector?.setDocumentationComment(
         procedure.target, documentationComment);
     metadataCollector?.setConstructorNameOffset(procedure.target, name);
-    metadataCollector?.setCodeStartEnd(
-        procedure.target, codeStartOffset, codeEndOffset);
     checkTypeVariables(typeVariables, procedure);
     addBuilder(constructorName, procedure, charOffset);
     if (nativeMethodName != null) {
@@ -620,8 +592,6 @@ class KernelLibraryBuilder
       int charOpenParenOffset,
       int charEndOffset,
       String nativeMethodName,
-      int codeStartOffset,
-      int codeEndOffset,
       {bool isTopLevel}) {
     MetadataCollector metadataCollector = loader.target.metadataCollector;
     ProcedureBuilder procedure = new KernelProcedureBuilder(
@@ -640,8 +610,6 @@ class KernelLibraryBuilder
         nativeMethodName);
     metadataCollector?.setDocumentationComment(
         procedure.target, documentationComment);
-    metadataCollector?.setCodeStartEnd(
-        procedure.target, codeStartOffset, codeEndOffset);
     checkTypeVariables(typeVariables, procedure);
     addBuilder(name, procedure, charOffset);
     if (nativeMethodName != null) {
@@ -660,8 +628,6 @@ class KernelLibraryBuilder
       int charOffset,
       int charOpenParenOffset,
       int charEndOffset,
-      int codeStartOffset,
-      int codeEndOffset,
       String nativeMethodName) {
     KernelTypeBuilder returnType = addNamedType(
         currentDeclaration.parent.name, <KernelTypeBuilder>[], charOffset);
@@ -720,8 +686,6 @@ class KernelLibraryBuilder
     metadataCollector?.setDocumentationComment(
         procedure.target, documentationComment);
     metadataCollector?.setConstructorNameOffset(procedure.target, name);
-    metadataCollector?.setCodeStartEnd(
-        procedure.target, codeStartOffset, codeEndOffset);
 
     DeclarationBuilder<TypeBuilder> savedDeclaration = currentDeclaration;
     currentDeclaration = factoryDeclaration;
@@ -781,8 +745,8 @@ class KernelLibraryBuilder
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       int charOffset) {
-    var builder = new KernelFunctionTypeBuilder(
-        outlineListener, charOffset, returnType, typeVariables, formals);
+    var builder =
+        new KernelFunctionTypeBuilder(returnType, typeVariables, formals);
     checkTypeVariables(typeVariables, null);
     // Nested declaration began in `OutlineBuilder.beginFunctionType` or
     // `OutlineBuilder.beginFunctionTypedFormalParameter`.
@@ -875,7 +839,6 @@ class KernelLibraryBuilder
     // This is required for the DietListener to correctly match up metadata.
     int importIndex = 0;
     int exportIndex = 0;
-    MetadataCollector metadataCollector = loader.target.metadataCollector;
     while (importIndex < imports.length || exportIndex < exports.length) {
       if (exportIndex >= exports.length ||
           (importIndex < imports.length &&
@@ -890,18 +853,15 @@ class KernelLibraryBuilder
           continue;
         }
 
-        LibraryDependency dependency;
         if (import.deferred && import.prefixBuilder?.dependency != null) {
-          dependency = import.prefixBuilder.dependency;
+          library.addDependency(import.prefixBuilder.dependency);
         } else {
-          dependency = new LibraryDependency.import(import.imported.target,
+          library.addDependency(new LibraryDependency.import(
+              import.imported.target,
               name: import.prefix,
               combinators: toKernelCombinators(import.combinators))
-            ..fileOffset = import.charOffset;
+            ..fileOffset = import.charOffset);
         }
-        library.addDependency(dependency);
-        metadataCollector?.setImportPrefixOffset(
-            dependency, import.prefixCharOffset);
       } else {
         // Add export
         Export export = exports[exportIndex++];

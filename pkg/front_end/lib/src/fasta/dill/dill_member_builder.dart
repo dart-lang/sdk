@@ -30,9 +30,6 @@ class DillMemberBuilder extends MemberBuilder {
 
   String get debugName => "DillMemberBuilder";
 
-  @override
-  bool get hasTarget => true;
-
   Member get target => member;
 
   String get name => member.name.name;

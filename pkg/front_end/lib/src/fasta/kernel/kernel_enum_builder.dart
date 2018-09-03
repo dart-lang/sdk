@@ -99,19 +99,16 @@ class KernelEnumBuilder extends SourceClassBuilder
     constantNamesAndOffsetsAndDocs ??= const <Object>[];
     // TODO(ahe): These types shouldn't be looked up in scope, they come
     // directly from dart:core.
-    KernelTypeBuilder intType =
-        new KernelNamedTypeBuilder(null, -1, "int", null);
-    KernelTypeBuilder stringType =
-        new KernelNamedTypeBuilder(null, -1, "String", null);
+    KernelTypeBuilder intType = new KernelNamedTypeBuilder("int", null);
+    KernelTypeBuilder stringType = new KernelNamedTypeBuilder("String", null);
     KernelNamedTypeBuilder objectType =
-        new KernelNamedTypeBuilder(null, -1, "Object", null);
+        new KernelNamedTypeBuilder("Object", null);
     ShadowClass cls = new ShadowClass(name: name);
     Map<String, MemberBuilder> members = <String, MemberBuilder>{};
     Map<String, MemberBuilder> constructors = <String, MemberBuilder>{};
-    KernelNamedTypeBuilder selfType =
-        new KernelNamedTypeBuilder(null, -1, name, null);
-    KernelTypeBuilder listType = new KernelNamedTypeBuilder(
-        null, -1, "List", <KernelTypeBuilder>[selfType]);
+    KernelNamedTypeBuilder selfType = new KernelNamedTypeBuilder(name, null);
+    KernelTypeBuilder listType =
+        new KernelNamedTypeBuilder("List", <KernelTypeBuilder>[selfType]);
 
     /// metadata class E {
     ///   final int index;
@@ -164,15 +161,15 @@ class KernelEnumBuilder extends SourceClassBuilder
         charEndOffset);
     members["toString"] = toStringBuilder;
     String className = name;
-    for (int i = 0; i < constantNamesAndOffsetsAndDocs.length; i += 5) {
-      List<MetadataBuilder> metadata = constantNamesAndOffsetsAndDocs[i + 1];
-      String name = constantNamesAndOffsetsAndDocs[i + 2];
-      int charOffset = constantNamesAndOffsetsAndDocs[i + 3];
-      String documentationComment = constantNamesAndOffsetsAndDocs[i + 4];
+    for (int i = 0; i < constantNamesAndOffsetsAndDocs.length; i += 4) {
+      List<MetadataBuilder> metadata = constantNamesAndOffsetsAndDocs[i];
+      String name = constantNamesAndOffsetsAndDocs[i + 1];
+      int charOffset = constantNamesAndOffsetsAndDocs[i + 2];
+      String documentationComment = constantNamesAndOffsetsAndDocs[i + 3];
       if (members.containsKey(name)) {
         parent.addCompileTimeError(templateDuplicatedName.withArguments(name),
             charOffset, noLength, parent.fileUri);
-        constantNamesAndOffsetsAndDocs[i + 2] = null;
+        constantNamesAndOffsetsAndDocs[i + 1] = null;
         continue;
       }
       if (name == className) {
@@ -181,7 +178,7 @@ class KernelEnumBuilder extends SourceClassBuilder
             charOffset,
             noLength,
             parent.fileUri);
-        constantNamesAndOffsetsAndDocs[i + 2] = null;
+        constantNamesAndOffsetsAndDocs[i + 1] = null;
         continue;
       }
       KernelFieldBuilder fieldBuilder = new KernelFieldBuilder(
@@ -253,8 +250,8 @@ class KernelEnumBuilder extends SourceClassBuilder
     toStringBuilder.body = new ReturnStatement(
         new DirectPropertyGet(new ThisExpression(), nameField));
     List<Expression> values = <Expression>[];
-    for (int i = 0; i < constantNamesAndOffsetsAndDocs.length; i += 5) {
-      String name = constantNamesAndOffsetsAndDocs[i + 2];
+    for (int i = 0; i < constantNamesAndOffsetsAndDocs.length; i += 4) {
+      String name = constantNamesAndOffsetsAndDocs[i + 1];
       if (name != null) {
         KernelFieldBuilder builder = this[name];
         values.add(new StaticGet(builder.build(libraryBuilder)));
@@ -291,8 +288,8 @@ class KernelEnumBuilder extends SourceClassBuilder
             ..parent = constructor);
     }
     int index = 0;
-    for (int i = 0; i < constantNamesAndOffsetsAndDocs.length; i += 5) {
-      String constant = constantNamesAndOffsetsAndDocs[i + 2];
+    for (int i = 0; i < constantNamesAndOffsetsAndDocs.length; i += 4) {
+      String constant = constantNamesAndOffsetsAndDocs[i + 1];
       if (constant != null) {
         KernelFieldBuilder field = this[constant];
         field.build(libraryBuilder);

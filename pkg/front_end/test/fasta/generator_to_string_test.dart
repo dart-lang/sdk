@@ -182,17 +182,17 @@ main() {
         " getter: $uri::myGetter, setter: $uri::mySetter,"
         " receiverVariable: null, indexVariable: null)",
         new KernelIndexedAccessGenerator.internal(
-            helper, token, token, expression, index, getter, setter));
+            helper, token, expression, index, getter, setter));
     check(
         "ThisIndexedAccessGenerator(offset: 4, index: index,"
         " getter: $uri::myGetter, setter: $uri::mySetter, indexVariable: null)",
         new KernelThisIndexedAccessGenerator(
-            helper, token, token, index, getter, setter));
+            helper, token, index, getter, setter));
     check(
         "SuperIndexedAccessGenerator(offset: 4, index: index,"
         " getter: $uri::myGetter, setter: $uri::mySetter, indexVariable: null)",
         new KernelSuperIndexedAccessGenerator(
-            helper, token, token, index, getter, setter));
+            helper, token, index, getter, setter));
     check(
         "StaticAccessGenerator(offset: 4, readTarget: $uri::myGetter,"
         " writeTarget: $uri::mySetter)",

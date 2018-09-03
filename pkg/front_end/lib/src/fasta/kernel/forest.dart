@@ -48,13 +48,10 @@ export 'kernel_builder.dart'
 abstract class Forest {
   const Forest();
 
-  /// [beginToken] is the opening `(`.
-  /// [endToken] is the closing `)`.
-  Arguments arguments(
-      List<Expression> positional, Token beginToken, Token endToken,
+  Arguments arguments(List<Expression> positional, Token location,
       {covariant List types, covariant List named});
 
-  Arguments argumentsEmpty(Token beginToken, Token endToken);
+  Arguments argumentsEmpty(Token location);
 
   List argumentsNamed(Arguments arguments);
 
@@ -76,8 +73,7 @@ abstract class Forest {
 
   /// Return a representation of an integer literal at the given [location]. The
   /// literal has the given [value].
-  Expression literalInt(int value, Token location,
-      {Expression desugaredError, bool isSynthetic: false});
+  Expression literalInt(int value, Token location);
 
   /// Return a representation of a list literal. The [constKeyword] is the
   /// location of the `const` keyword, or `null` if there is no keyword. The
@@ -166,8 +162,8 @@ abstract class Forest {
 
   Expression checkLibraryIsLoaded(covariant dependency);
 
-  Expression asExpression(Expression expression, covariant type, Token location,
-      {Expression desugaredError});
+  Expression asExpression(
+      Expression expression, covariant type, Token location);
 
   /// Return a representation of an assert that appears in a constructor's
   /// initializer list.
@@ -394,28 +390,17 @@ abstract class Forest {
 
   Generator indexedAccessGenerator(
       ExpressionGeneratorHelper helper,
-      Token openSquareBracket,
-      Token closeSquareBracket,
+      Token location,
       Expression receiver,
       Expression index,
       Procedure getter,
       Procedure setter);
 
-  Generator thisIndexedAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token openSquareBracket,
-      Token closeSquareBracket,
-      Expression index,
-      Procedure getter,
-      Procedure setter);
+  Generator thisIndexedAccessGenerator(ExpressionGeneratorHelper helper,
+      Token location, Expression index, Procedure getter, Procedure setter);
 
-  Generator superIndexedAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token openSquareBracket,
-      Token closeSquareBracket,
-      Expression index,
-      Member getter,
-      Member setter);
+  Generator superIndexedAccessGenerator(ExpressionGeneratorHelper helper,
+      Token location, Expression index, Member getter, Member setter);
 
   Generator staticAccessGenerator(ExpressionGeneratorHelper helper,
       Token location, Member getter, Member setter);

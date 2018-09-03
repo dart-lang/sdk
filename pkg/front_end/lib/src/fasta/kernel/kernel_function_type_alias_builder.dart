@@ -35,7 +35,6 @@ import 'kernel_builder.dart'
 
 class KernelFunctionTypeAliasBuilder
     extends FunctionTypeAliasBuilder<KernelFunctionTypeBuilder, DartType> {
-  final bool hasTarget = true;
   final Typedef target;
 
   DartType thisType;

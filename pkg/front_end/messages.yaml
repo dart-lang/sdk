@@ -460,9 +460,11 @@ ConstAndFinal:
   template: "Members can't be declared to be both 'const' and 'final'."
   tip: "Try removing either the 'const' or 'final' keyword."
   analyzerCode: CONST_AND_FINAL
-  script:
+  declaration:
     - "class C { static const final int x = 5; }"
     - "class C { static final const int x = 5; }"
+    - "const final int x = 5;"
+    - "final const int x = 5;"
 
 ConstAndVar:
   template: "Members can't be declared to be both 'const' and 'var'."
@@ -1242,12 +1244,6 @@ TooManyArguments:
   tip: "Try removing the extra positional arguments."
   severity: ERROR_LEGACY_WARNING
   analyzerCode: EXTRA_POSITIONAL_ARGUMENTS
-
-TooManyArgumentsCouldBeNamed:
-  template: "Too many positional arguments: #count allowed, but #count2 found."
-  tip: "Try removing the extra positional arguments or specifying the name for named arguments."
-  severity: ERROR_LEGACY_WARNING
-  analyzerCode: EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED
 
 NoSuchNamedParameter:
   template: "No named parameter with the name '#name'."

@@ -33,9 +33,6 @@ class KernelFormalParameterBuilder
       : super(metadata, modifiers, type, name, hasThis, compilationUnit,
             charOffset);
 
-  @override
-  bool get hasTarget => true;
-
   VariableDeclarationJudgment get target => declaration;
 
   VariableDeclarationJudgment build(SourceLibraryBuilder library) {
