@@ -6855,15 +6855,18 @@ TEST_CASE(DartAPI_Multiroot_Valid) {
   EXPECT_VALID(lib);
   Library& lib_obj = Library::Handle();
   lib_obj ^= Api::UnwrapHandle(lib);
-  EXPECT_STREQ("foo:///main.dart", String::Handle(lib_obj.url()).ToCString());
-  const Array& lib_scripts = Array::Handle(lib_obj.LoadedScripts());
-  Script& script = Script::Handle();
-  String& uri = String::Handle();
-  for (intptr_t i = 0; i < lib_scripts.Length(); i++) {
-    script ^= lib_scripts.At(i);
-    uri = script.url();
-    const char* uri_str = uri.ToCString();
-    EXPECT(strstr(uri_str, "foo:///") == uri_str);
+  {
+    TransitionNativeToVM transition(thread);
+    EXPECT_STREQ("foo:///main.dart", String::Handle(lib_obj.url()).ToCString());
+    const Array& lib_scripts = Array::Handle(lib_obj.LoadedScripts());
+    Script& script = Script::Handle();
+    String& uri = String::Handle();
+    for (intptr_t i = 0; i < lib_scripts.Length(); i++) {
+      script ^= lib_scripts.At(i);
+      uri = script.url();
+      const char* uri_str = uri.ToCString();
+      EXPECT(strstr(uri_str, "foo:///") == uri_str);
+    }
   }
   result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);
