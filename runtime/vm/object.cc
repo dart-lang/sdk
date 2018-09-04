@@ -2016,10 +2016,11 @@ void Object::CheckHandle() const {
 RawObject* Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
   // New space allocation allowed only in mutator thread (Dart thread);
   ASSERT(thread->IsMutatorThread() || (space != Heap::kNew));
+  ASSERT(thread->execution_state() == Thread::kThreadInVM);
   ASSERT(thread->no_callback_scope_depth() == 0);
+  Isolate* isolate = thread->isolate();
   Heap* heap = isolate->heap();
 
   uword address = heap->Allocate(size, space);

@@ -50,7 +50,7 @@ static void GenerateCallToCallRuntimeStub(Assembler* assembler, int length) {
   __ ret();
 }
 
-TEST_CASE(CallRuntimeStubCode) {
+ISOLATE_UNIT_TEST_CASE(CallRuntimeStubCode) {
   extern const Function& RegisterFakeFunction(const char* name,
                                               const Code& code);
   const int length = 10;
@@ -87,7 +87,7 @@ static void GenerateCallToCallLeafRuntimeStub(Assembler* assembler,
   __ ret();  // Return value is in RAX.
 }
 
-TEST_CASE(CallLeafRuntimeStubCode) {
+ISOLATE_UNIT_TEST_CASE(CallLeafRuntimeStubCode) {
   extern const Function& RegisterFakeFunction(const char* name,
                                               const Code& code);
   const char* str_value = "abAB";

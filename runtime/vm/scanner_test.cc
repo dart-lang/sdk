@@ -378,7 +378,7 @@ void NewlinesTest() {
   EXPECT_EQ('\n', litchars[3]);
 }
 
-TEST_CASE(Scanner_Test) {
+ISOLATE_UNIT_TEST_CASE(Scanner_Test) {
   ScanLargeText();
 
   BoringTest();

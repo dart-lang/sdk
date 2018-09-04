@@ -672,7 +672,7 @@ ISOLATE_UNIT_TEST_CASE(SerializeByteArray) {
     delete message;                                                            \
   }
 
-TEST_CASE(SerializeTypedArray) {
+ISOLATE_UNIT_TEST_CASE(SerializeTypedArray) {
   TEST_TYPED_ARRAY(Int8, int8_t);
   TEST_TYPED_ARRAY(Uint8, uint8_t);
   TEST_TYPED_ARRAY(Int16, int16_t);
@@ -685,7 +685,7 @@ TEST_CASE(SerializeTypedArray) {
   TEST_TYPED_ARRAY(Float64, double);
 }
 
-TEST_CASE(SerializeExternalTypedArray) {
+ISOLATE_UNIT_TEST_CASE(SerializeExternalTypedArray) {
   TEST_EXTERNAL_TYPED_ARRAY(Int8, int8_t);
   TEST_EXTERNAL_TYPED_ARRAY(Uint8, uint8_t);
   TEST_EXTERNAL_TYPED_ARRAY(Int16, int16_t);
@@ -698,7 +698,7 @@ TEST_CASE(SerializeExternalTypedArray) {
   TEST_EXTERNAL_TYPED_ARRAY(Float64, double);
 }
 
-TEST_CASE(SerializeEmptyByteArray) {
+ISOLATE_UNIT_TEST_CASE(SerializeEmptyByteArray) {
   // Write snapshot with object content.
   const int kTypedDataLength = 0;
   TypedData& typed_data = TypedData::Handle(

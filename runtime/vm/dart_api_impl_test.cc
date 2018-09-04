@@ -4939,6 +4939,7 @@ TEST_CASE(DartAPI_NewListOfType) {
 static Dart_Handle PrivateLibName(Dart_Handle lib, const char* str) {
   EXPECT(Dart_IsLibrary(lib));
   Thread* thread = Thread::Current();
+  TransitionNativeToVM transition(thread);
   const Library& library_obj = Api::UnwrapLibraryHandle(thread->zone(), lib);
   const String& name = String::Handle(String::New(str));
   return Api::NewHandle(thread, library_obj.PrivateName(name));

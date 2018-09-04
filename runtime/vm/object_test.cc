@@ -2272,7 +2272,7 @@ ISOLATE_UNIT_TEST_CASE(ExternalTypedData) {
   }
 }
 
-TEST_CASE(Script) {
+ISOLATE_UNIT_TEST_CASE(Script) {
   const char* url_chars = "builtin:test-case";
   const char* source_chars = "This will not compile.";
   const String& url = String::Handle(String::New(url_chars));
@@ -2292,6 +2292,7 @@ TEST_CASE(Script) {
   EXPECT_EQ('n', str.CharAt(10));
   EXPECT_EQ('.', str.CharAt(21));
 
+  TransitionVMToNative transition(thread);
   const char* kScript = "main() {}";
   Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(h_lib);
@@ -3918,6 +3919,7 @@ TEST_CASE(FunctionSourceFingerprint) {
       "  }\n"
       "}";
   TestCase::LoadTestScript(kScriptChars, NULL);
+  TransitionNativeToVM transition(thread);
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   const String& name = String::Handle(String::New(TestCase::url()));
   const Library& lib = Library::Handle(Library::LookupLibrary(thread, name));
@@ -3979,13 +3981,19 @@ TEST_CASE(FunctionWithBreakpointNotInlined) {
   Dart_Handle result = Dart_Invoke(lib, NewString("test"), 0, NULL);
   EXPECT_VALID(result);
 
+  Function& func_b = Function::Handle();
+  {
+    TransitionNativeToVM transition(thread);
+    const String& name = String::Handle(String::New(TestCase::url()));
+    const Library& vmlib =
+        Library::Handle(Library::LookupLibrary(thread, name));
+    EXPECT(!vmlib.IsNull());
+    const Class& class_a = Class::Handle(
+        vmlib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
+    func_b = GetFunction(class_a, "b");
+  }
+
   // With no breakpoint, function A.b is inlineable.
-  const String& name = String::Handle(String::New(TestCase::url()));
-  const Library& vmlib = Library::Handle(Library::LookupLibrary(thread, name));
-  EXPECT(!vmlib.IsNull());
-  const Class& class_a = Class::Handle(
-      vmlib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
-  const Function& func_b = Function::Handle(GetFunction(class_a, "b"));
   EXPECT(func_b.CanBeInlined());
 
   // After setting a breakpoint in a function A.b, it is no longer inlineable.
@@ -4350,6 +4358,8 @@ TEST_CASE(InstanceEquality) {
   EXPECT(!lib.IsNull());
   Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
+
+  TransitionNativeToVM transition(thread);
   const Class& clazz = Class::Handle(GetClass(lib, "A"));
   EXPECT(!clazz.IsNull());
   const Instance& a0 = Instance::Handle(Instance::New(clazz));
@@ -4377,6 +4387,8 @@ TEST_CASE(HashCode) {
   EXPECT_VALID(h_result);
   Integer& result = Integer::Handle();
   result ^= Api::UnwrapHandle(h_result);
+
+  TransitionNativeToVM transition(thread);
   String& foo = String::Handle(String::New("foo"));
   Integer& expected = Integer::Handle();
   expected ^= foo.HashCode();

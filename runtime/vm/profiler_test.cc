@@ -148,15 +148,19 @@ TEST_CASE(Profiler_AllocationSampleTest) {
 }
 
 static RawClass* GetClass(const Library& lib, const char* name) {
-  const Class& cls = Class::Handle(lib.LookupClassAllowPrivate(
-      String::Handle(Symbols::New(Thread::Current(), name))));
+  Thread* thread = Thread::Current();
+  TransitionNativeToVM transition(thread);
+  const Class& cls = Class::Handle(
+      lib.LookupClassAllowPrivate(String::Handle(Symbols::New(thread, name))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
   return cls.raw();
 }
 
 static RawFunction* GetFunction(const Library& lib, const char* name) {
+  Thread* thread = Thread::Current();
+  TransitionNativeToVM transition(thread);
   const Function& func = Function::Handle(lib.LookupFunctionAllowPrivate(
-      String::Handle(Symbols::New(Thread::Current(), name))));
+      String::Handle(Symbols::New(thread, name))));
   EXPECT(!func.IsNull());  // No ambiguity error expected.
   return func.raw();
 }

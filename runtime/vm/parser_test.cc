@@ -206,6 +206,7 @@ static char* SkipIndex(const char* input) {
 static void SaveVars(Dart_IsolateId isolate_id,
                      intptr_t bp_id,
                      const Dart_CodeLocation& loc) {
+  TransitionNativeToVM transition(Thread::Current());
   DebuggerStackTrace* stack = Isolate::Current()->debugger()->StackTrace();
   intptr_t num_frames = stack->Length();
   const int kBufferLen = 2048;
