@@ -638,6 +638,9 @@ class LibraryScope extends EnclosedScope {
         in compilationUnit.functionTypeAliases) {
       define(element);
     }
+    for (ClassElement element in compilationUnit.mixins) {
+      define(element);
+    }
     for (ClassElement element in compilationUnit.types) {
       define(element);
     }

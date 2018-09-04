@@ -699,6 +699,19 @@ main(A p) {
     await _verifyReferences(element, expected);
   }
 
+  test_searchReferences_ClassElement_mixin() async {
+    await _resolveTestUnit('''
+mixin A {}
+class B extends Object with A {} // with
+''');
+    ClassElement element = _findElementAtString('A {}');
+    Element b = _findElement('B');
+    var expected = [
+      _expectId(b, SearchResultKind.REFERENCE, 'A {} // with'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
   test_searchReferences_CompilationUnitElement() async {
     provider.newFile(_p('$testProject/foo.dart'), '');
     await _resolveTestUnit('''

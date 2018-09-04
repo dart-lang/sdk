@@ -408,6 +408,17 @@ main() {
     assertHasResult(SearchResultKind.REFERENCE, 'mmm);');
   }
 
+  Future<void> test_mixin() async {
+    addTestFile('''
+mixin A {}
+class B extends Object with A {} // B
+''');
+    await findElementReferences('A {}', false);
+    expect(searchElement.kind, ElementKind.MIXIN);
+    expect(results, hasLength(1));
+    assertHasResult(SearchResultKind.REFERENCE, 'A {} // B');
+  }
+
   Future<void> test_noElement() async {
     addTestFile('''
 main() {

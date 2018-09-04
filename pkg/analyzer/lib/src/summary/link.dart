@@ -552,6 +552,9 @@ class ClassElementForLink_Class extends ClassElementForLink
    */
   final UnlinkedClass _unlinkedClass;
 
+  @override
+  final bool isMixin;
+
   List<ConstructorElementForLink> _constructors;
   ConstructorElementForLink _unnamedConstructor;
   bool _unnamedConstructorComputed = false;
@@ -563,8 +566,8 @@ class ClassElementForLink_Class extends ClassElementForLink
   List<InterfaceType> _interfaces;
   List<PropertyAccessorElementForLink> _accessors;
 
-  ClassElementForLink_Class(
-      CompilationUnitElementForLink enclosingElement, this._unlinkedClass)
+  ClassElementForLink_Class(CompilationUnitElementForLink enclosingElement,
+      this._unlinkedClass, this.isMixin)
       : super(enclosingElement);
 
   @override
@@ -1001,6 +1004,7 @@ abstract class CompilationUnitElementForLink
    */
   final String _absoluteUri;
 
+  List<ClassElementForLink_Class> _mixins;
   List<ClassElementForLink_Class> _types;
   Map<String, ReferenceableElementForLink> _containedNames;
   List<TopLevelVariableElementForLink> _topLevelVariables;
@@ -1130,6 +1134,17 @@ abstract class CompilationUnitElementForLink
   LibraryElementForLink get library => enclosingElement;
 
   @override
+  List<ClassElementForLink_Class> get mixins {
+    if (_mixins == null) {
+      _mixins = <ClassElementForLink_Class>[];
+      for (UnlinkedClass unlinkedClass in _unlinkedUnit.mixins) {
+        _mixins.add(new ClassElementForLink_Class(this, unlinkedClass, true));
+      }
+    }
+    return _mixins;
+  }
+
+  @override
   ResynthesizerContext get resynthesizerContext => this;
 
   @override
@@ -1149,7 +1164,7 @@ abstract class CompilationUnitElementForLink
     if (_types == null) {
       _types = <ClassElementForLink_Class>[];
       for (UnlinkedClass unlinkedClass in _unlinkedUnit.classes) {
-        _types.add(new ClassElementForLink_Class(this, unlinkedClass));
+        _types.add(new ClassElementForLink_Class(this, unlinkedClass, false));
       }
     }
     return _types;

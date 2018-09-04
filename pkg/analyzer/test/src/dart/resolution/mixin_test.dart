@@ -89,6 +89,40 @@ mixin M {
     assertElementName(fields[0], 's', isSynthetic: true);
   }
 
+  test_classDeclaration_with() async {
+    addTestFile(r'''
+mixin M {}
+class A extends Object with M {} // A
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    var mElement = findElement.mixin('M');
+
+    var aElement = findElement.class_('A');
+    assertElementTypes(aElement.mixins, [mElement.type]);
+
+    var mRef = findNode.typeName('M {} // A');
+    assertTypeName(mRef, mElement, 'M');
+  }
+
+  test_classTypeAlias_with() async {
+    addTestFile(r'''
+mixin M {}
+class A = Object with M;
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    var mElement = findElement.mixin('M');
+
+    var aElement = findElement.class_('A');
+    assertElementTypes(aElement.mixins, [mElement.type]);
+
+    var mRef = findNode.typeName('M;');
+    assertTypeName(mRef, mElement, 'M');
+  }
+
   test_commentReference() async {
     addTestFile(r'''
 const a = 0;

@@ -620,6 +620,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
     element.typeParameters = holder.typeParameters;
     setElementDocumentationComment(element, node);
     element.accessors = holder.accessors;
+    element.constructors = holder.constructors;
     element.fields = holder.fields;
     element.methods = holder.methods;
     _currentHolder.addMixin(element);
