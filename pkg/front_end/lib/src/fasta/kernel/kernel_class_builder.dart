@@ -492,7 +492,7 @@ abstract class KernelClassBuilder
         }
       }
 
-      unhandled(
+      return unhandled(
           "${interfaceMember.runtimeType} and ${dispatchTarget.runtimeType}",
           "isValidImplementation",
           interfaceMember.fileOffset,
