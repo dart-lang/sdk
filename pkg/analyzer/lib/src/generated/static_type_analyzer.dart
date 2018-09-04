@@ -1207,6 +1207,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   }
 
   DartType _findIteratedType(DartType type, DartType targetType) {
+    if (type == null) {
+      return null;
+    }
+
     // TODO(vsm): Use leafp's matchType here?
     // Set by _find if match is found
     DartType result;
