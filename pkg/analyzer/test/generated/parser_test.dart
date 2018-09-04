@@ -1195,6 +1195,40 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(method.body, isNotNull);
   }
 
+  void test_parseClassMember_method_static_class() {
+    var unit = parseCompilationUnit('class C { static void m() {} }');
+
+    ClassDeclaration c = unit.declarations[0];
+    MethodDeclaration method = c.members[0];
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNotNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNotNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
+  }
+
+  void test_parseClassMember_method_static_mixin() {
+    var unit = parseCompilationUnit('mixin C { static void m() {} }');
+
+    MixinDeclaration c = unit.declarations[0];
+    MethodDeclaration method = c.members[0];
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNotNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNotNull);
+    expect(method.name, isNotNull);
+    expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
+  }
+
   void test_parseClassMember_method_trailing_commas() {
     createParser('void f(int x, int y,) {}');
     ClassMember member = parser.parseClassMember('C');

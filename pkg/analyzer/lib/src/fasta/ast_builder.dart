@@ -2318,7 +2318,10 @@ class AstBuilder extends StackListener {
     }
     if (staticToken != null) {
       assert(staticToken.isModifier);
-      if (name?.lexeme == classDeclaration.name.name) {
+      String className = classDeclaration != null
+          ? classDeclaration.name.name
+          : mixinDeclaration.name.name;
+      if (name?.lexeme == className) {
         // This error is also reported in OutlineBuilder.beginMethod
         handleRecoverableError(
             messageStaticConstructor, staticToken, staticToken);

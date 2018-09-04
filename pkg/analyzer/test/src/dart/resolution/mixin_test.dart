@@ -154,6 +154,131 @@ mixin M {}
     assertElementTypes(element.superclassConstraints, [objectType]);
   }
 
+  test_error_conflictingTypeVariableAndClass() async {
+    addTestFile(r'''
+mixin M<M> {}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS,
+    ]);
+  }
+
+  test_error_conflictingTypeVariableAndMember_field() async {
+    addTestFile(r'''
+mixin M<T> {
+  var T;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER,
+    ]);
+  }
+
+  test_error_conflictingTypeVariableAndMember_getter() async {
+    addTestFile(r'''
+mixin M<T> {
+  get T => null;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER,
+    ]);
+  }
+
+  test_error_conflictingTypeVariableAndMember_method() async {
+    addTestFile(r'''
+mixin M<T> {
+  T() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER,
+    ]);
+  }
+
+  test_error_conflictingTypeVariableAndMember_method_static() async {
+    addTestFile(r'''
+mixin M<T> {
+  static T() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER,
+    ]);
+  }
+
+  test_error_conflictingTypeVariableAndMember_setter() async {
+    addTestFile(r'''
+mixin M<T> {
+  void set T(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER,
+    ]);
+  }
+
+  test_error_duplicateDefinition_field() async {
+    addTestFile(r'''
+mixin M {
+  int t;
+  int t;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+  }
+
+  test_error_duplicateDefinition_field_method() async {
+    addTestFile(r'''
+mixin M {
+  int t;
+  void t() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+  }
+
+  test_error_duplicateDefinition_getter() async {
+    addTestFile(r'''
+mixin M {
+  int get t => 0;
+  int get t => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+  }
+
+  test_error_duplicateDefinition_method() async {
+    addTestFile(r'''
+mixin M {
+  void t() {}
+  void t() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+  }
+
+  test_error_duplicateDefinition_setter() async {
+    addTestFile(r'''
+mixin M {
+  void set t(_) {}
+  void set t(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+  }
+
   test_error_finalNotInitialized() async {
     addTestFile(r'''
 mixin M {
@@ -206,6 +331,17 @@ mixin M {
 
     FieldFormalParameterElement fpElement = fpNode.declaredElement;
     expect(fpElement.field, same(findElement.field('f')));
+  }
+
+  test_error_getterAndMethodWithSameName() async {
+    addTestFile(r'''
+mixin M {
+  void t() {}
+  int get t => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME]);
   }
 
   test_error_implementsClause_deferredClass() async {
@@ -261,6 +397,37 @@ mixin M implements void {}
 
     var typeRef = findNode.typeName('void {}');
     assertTypeName(typeRef, null, 'void');
+  }
+
+  test_error_memberWithClassName_getter() async {
+    addTestFile(r'''
+mixin M {
+  int get M => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME]);
+  }
+
+  test_error_memberWithClassName_OK_setter() async {
+    addTestFile(r'''
+mixin M {
+  void set M(_) {}
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_methodAndGetterWithSameName() async {
+    addTestFile(r'''
+mixin M {
+  int get t => 0;
+  void t() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME]);
   }
 
   test_error_mixinDeclaresConstructor() async {

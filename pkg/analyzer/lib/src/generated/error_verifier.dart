@@ -485,12 +485,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     try {
       _isInNativeClass = node.nativeClause != null;
       _enclosingClass = AbstractClassElementImpl.getImpl(node.declaredElement);
-      _checkDuplicateClassMembers(node);
+
+      List<ClassMember> members = node.members;
+      _checkDuplicateClassMembers(members);
       _checkForBuiltInIdentifierAsName(
           node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
       _checkForMemberWithClassName();
       _checkForNoDefaultSuperConstructorImplicit(node);
-      _checkForConflictingTypeVariableErrorCodes(node);
+      _checkForConflictingTypeVariableErrorCodes();
       TypeName superclass = node.extendsClause?.superclass;
       ImplementsClause implementsClause = node.implementsClause;
       WithClause withClause = node.withClause;
@@ -503,7 +505,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
 
       _initializeInitialFieldElementsMap(_enclosingClass.fields);
-      _checkForFinalNotInitializedInClass(node.members);
+      _checkForFinalNotInitializedInClass(members);
       _checkForDuplicateDefinitionInheritance();
       _checkForConflictingInstanceMethodSetter(node);
       _checkForBadFunctionUse(node);
@@ -1034,12 +1036,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     try {
 //      _isInNativeClass = node.nativeClause != null;
       _enclosingClass = AbstractClassElementImpl.getImpl(node.declaredElement);
-//      _checkDuplicateClassMembers(node);
+
+      List<ClassMember> members = node.members;
+      _checkDuplicateClassMembers(members);
 //      _checkForBuiltInIdentifierAsName(
 //          node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
-//      _checkForMemberWithClassName();
+      _checkForMemberWithClassName();
 //      _checkForNoDefaultSuperConstructorImplicit(node);
-//      _checkForConflictingTypeVariableErrorCodes(node);
+      _checkForConflictingTypeVariableErrorCodes();
 
       OnClause onClause = node.onClause;
       ImplementsClause implementsClause = node.implementsClause;
@@ -1050,7 +1054,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
 
       _initializeInitialFieldElementsMap(_enclosingClass.fields);
-      _checkForFinalNotInitializedInClass(node.members);
+      _checkForFinalNotInitializedInClass(members);
 //      _checkForDuplicateDefinitionInheritance();
 //      _checkForConflictingInstanceMethodSetter(node);
 //      _checkForBadFunctionUse(node);
@@ -1392,10 +1396,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   /**
    * Check that there are no members with the same name.
    */
-  void _checkDuplicateClassMembers(ClassDeclaration node) {
+  void _checkDuplicateClassMembers(List<ClassMember> members) {
     Map<String, Element> definedNames = new HashMap<String, Element>();
     Set<String> visitedFields = new HashSet<String>();
-    for (ClassMember member in node.members) {
+    for (ClassMember member in members) {
       // We ignore constructors because they are checked in the method
       // _checkForConflictingConstructorNameAndMember.
       if (member is FieldDeclaration) {
@@ -2734,8 +2738,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * See [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS], and
    * [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER].
    */
-  void _checkForConflictingTypeVariableErrorCodes(
-      ClassDeclaration declaration) {
+  void _checkForConflictingTypeVariableErrorCodes() {
     for (TypeParameterElement typeParameter in _enclosingClass.typeParameters) {
       String name = typeParameter.name;
       // name is same as the name of the enclosing class
