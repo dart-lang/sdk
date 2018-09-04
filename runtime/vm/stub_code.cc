@@ -178,7 +178,7 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
       }
       Isolate* isolate = thread->isolate();
       if (isolate->heap()->NeedsGarbageCollection()) {
-        isolate->heap()->CollectAllGarbage();
+        isolate->heap()->CollectMostGarbage();
       }
     }
 #ifndef PRODUCT

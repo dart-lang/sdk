@@ -114,13 +114,24 @@ class Heap {
   void NotifyIdle(int64_t deadline);
   void NotifyLowMemory();
 
+  // Collect a single generation.
   void CollectGarbage(Space space);
   void CollectGarbage(GCType type, GCReason reason);
+
+  // Collect both generations by performing a scavenge followed by a
+  // mark-sweep. This function may not collect all unreachable objects. Because
+  // mark-sweep treats new space as roots, a cycle between unreachable old and
+  // new objects will not be collected until the new objects are promoted.
+  // Verification based on heap iteration should instead use CollectAllGarbage.
+  void CollectMostGarbage(GCReason reason = kFull);
+
+  // Collect both generations by performing an evacuation followed by a
+  // mark-sweep. This function will collect all unreachable objects.
   void CollectAllGarbage(GCReason reason = kFull);
+
   bool NeedsGarbageCollection() const {
     return old_space_.NeedsGarbageCollection();
   }
-
   void WaitForSweeperTasks(Thread* thread);
 
   // Enables growth control on the page space heaps.  This should be

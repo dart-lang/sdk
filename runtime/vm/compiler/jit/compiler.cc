@@ -1828,7 +1828,7 @@ void BackgroundCompiler::CompileOptimized(const Function& function) {
   // TODO(srdjan): Checking different strategy for collecting garbage
   // accumulated by background compiler.
   if (isolate_->heap()->NeedsGarbageCollection()) {
-    isolate_->heap()->CollectAllGarbage();
+    isolate_->heap()->CollectMostGarbage();
   }
   {
     MonitorLocker ml(queue_monitor_);

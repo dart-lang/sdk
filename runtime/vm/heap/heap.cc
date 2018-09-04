@@ -95,8 +95,9 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
     if (addr != 0) {
       return addr;
     }
-    // All GC tasks finished without allocating successfully. Run a full GC.
-    CollectAllGarbage();
+    // All GC tasks finished without allocating successfully. Collect both
+    // generations.
+    CollectMostGarbage();
     addr = old_space_.TryAllocate(size, type);
     if (addr != 0) {
       return addr;
@@ -144,7 +145,7 @@ void Heap::AllocateExternal(intptr_t cid, intptr_t size, Space space) {
     ASSERT(space == kOld);
     old_space_.AllocateExternal(cid, size);
     if (old_space_.NeedsGarbageCollection()) {
-      CollectAllGarbage(kExternal);
+      CollectMostGarbage(kExternal);
     }
   }
 }
@@ -458,6 +459,12 @@ void Heap::CollectGarbage(Space space) {
     ASSERT(space == kNew);
     CollectNewSpaceGarbage(thread, kNewSpace);
   }
+}
+
+void Heap::CollectMostGarbage(GCReason reason) {
+  Thread* thread = Thread::Current();
+  CollectNewSpaceGarbage(thread, reason);
+  CollectOldSpaceGarbage(thread, kMarkSweep, reason);
 }
 
 void Heap::CollectAllGarbage(GCReason reason) {
