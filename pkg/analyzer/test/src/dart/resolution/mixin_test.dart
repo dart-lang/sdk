@@ -1,3 +1,4 @@
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -153,6 +154,60 @@ mixin M {}
     assertElementTypes(element.superclassConstraints, [objectType]);
   }
 
+  test_error_finalNotInitialized() async {
+    addTestFile(r'''
+mixin M {
+  final int f;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([StaticWarningCode.FINAL_NOT_INITIALIZED]);
+  }
+
+  test_error_finalNotInitialized_OK() async {
+    addTestFile(r'''
+mixin M {
+  final int f = 0;
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_finalNotInitializedConstructor() async {
+    addTestFile(r'''
+mixin M {
+  final int f;
+  M();
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR,
+      StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
+    ]);
+  }
+
+  test_error_finalNotInitializedConstructor_OK() async {
+    addTestFile(r'''
+mixin M {
+  final int f;
+  M(this.f);
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR]);
+
+    var element = findElement.mixin('M');
+    var constructorElement = element.constructors.single;
+
+    var fpNode = findNode.fieldFormalParameter('f);');
+    assertElement(fpNode.identifier, constructorElement.parameters[0]);
+
+    FieldFormalParameterElement fpElement = fpNode.declaredElement;
+    expect(fpElement.field, same(findElement.field('f')));
+  }
+
   test_error_implementsClause_deferredClass() async {
     addTestFile(r'''
 import 'dart:math' deferred as math;
@@ -206,6 +261,37 @@ mixin M implements void {}
 
     var typeRef = findNode.typeName('void {}');
     assertTypeName(typeRef, null, 'void');
+  }
+
+  test_error_mixinDeclaresConstructor() async {
+    addTestFile(r'''
+mixin M {
+  M(int a) {
+    a; // read
+  }
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR]);
+
+    // Even though it is an error for a mixin to declare a constructor,
+    // we still build elements for constructors, and resolve them.
+
+    var element = findElement.mixin('M');
+    var constructors = element.constructors;
+    expect(constructors, hasLength(1));
+    var constructorElement = constructors[0];
+
+    var constructorNode = findNode.constructor('M(int a)');
+    assertElement(constructorNode, constructorElement);
+
+    var aElement = constructorElement.parameters[0];
+    var aNode = constructorNode.parameters.parameters[0];
+    assertElement(aNode, aElement);
+
+    var aRef = findNode.simple('a; // read');
+    assertElement(aRef, aElement);
+    assertType(aRef, 'int');
   }
 
   test_error_onClause_deferredClass() async {

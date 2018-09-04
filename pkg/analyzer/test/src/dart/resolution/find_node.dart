@@ -28,8 +28,16 @@ class FindNode {
     return _node(search, (n) => n is CommentReference);
   }
 
+  ConstructorDeclaration constructor(String search) {
+    return _node(search, (n) => n is ConstructorDeclaration);
+  }
+
   ExportDirective export(String search) {
     return _node(search, (n) => n is ExportDirective);
+  }
+
+  FieldFormalParameter fieldFormalParameter(String search) {
+    return _node(search, (n) => n is FieldFormalParameter);
   }
 
   FunctionExpression functionExpression(String search) {

@@ -1070,7 +1070,10 @@ class C = Object with A;''');
     ClassElement a = unit.getType('A');
     expect(a.isValidMixin, isFalse);
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR]);
+    assertErrors(
+      source,
+      [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR],
+    );
     verify([source]);
   }
 
@@ -1088,7 +1091,10 @@ class C = Object with A;''');
     ClassElement a = unit.getType('A');
     expect(a.isValidMixin, isFalse);
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR]);
+    assertErrors(
+      source,
+      [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR],
+    );
     verify([source]);
   }
 

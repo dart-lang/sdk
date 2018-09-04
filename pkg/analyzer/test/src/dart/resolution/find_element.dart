@@ -48,6 +48,13 @@ class FindElement {
   }
 
   FieldElement field(String name) {
+    for (var type in unitElement.mixins) {
+      for (var field in type.fields) {
+        if (field.name == name) {
+          return field;
+        }
+      }
+    }
     for (var type in unitElement.types) {
       for (var field in type.fields) {
         if (field.name == name) {

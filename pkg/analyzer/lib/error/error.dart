@@ -192,6 +192,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL,
   CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL,
   CompileTimeErrorCode.MISSING_DART_LIBRARY,
+  CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR,
   CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR,
   CompileTimeErrorCode.MIXIN_DEFERRED_CLASS,
   CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS,

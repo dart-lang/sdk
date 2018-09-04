@@ -501,8 +501,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           withClause != null) {
         _checkClassInheritance(node, superclass, withClause, implementsClause);
       }
-      visitClassDeclarationIncrementally(node);
-      _checkForFinalNotInitializedInClass(node);
+
+      _initializeInitialFieldElementsMap(_enclosingClass.fields);
+      _checkForFinalNotInitializedInClass(node.members);
       _checkForDuplicateDefinitionInheritance();
       _checkForConflictingInstanceMethodSetter(node);
       _checkForBadFunctionUse(node);
@@ -511,28 +512,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _isInNativeClass = false;
       _initialFieldElementsMap = null;
       _enclosingClass = outerClass;
-    }
-  }
-
-  /**
-   * Implementation of this method should be synchronized with
-   * [visitClassDeclaration].
-   */
-  void visitClassDeclarationIncrementally(ClassDeclaration node) {
-    _isInNativeClass = node.nativeClause != null;
-    _enclosingClass = AbstractClassElementImpl.getImpl(node.declaredElement);
-    // initialize initialFieldElementsMap
-    if (_enclosingClass != null) {
-      List<FieldElement> fieldElements = _enclosingClass.fields;
-      _initialFieldElementsMap = new HashMap<FieldElement, INIT_STATE>();
-      for (FieldElement fieldElement in fieldElements) {
-        if (!fieldElement.isSynthetic) {
-          _initialFieldElementsMap[fieldElement] =
-              fieldElement.initializer == null
-                  ? INIT_STATE.NOT_INIT
-                  : INIT_STATE.INIT_IN_DECLARATION;
-        }
-      }
     }
   }
 
@@ -592,6 +571,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _checkForConflictingConstructorNameAndMember(node, constructorElement);
       _checkForAllFinalInitializedErrorCodes(node);
       _checkForRedirectingConstructorErrorCodes(node);
+      _checkForMixinDeclaresConstructor(node);
       _checkForMultipleSuperInitializers(node);
       _checkForRecursiveConstructorRedirect(node, constructorElement);
       if (!_checkForRecursiveFactoryRedirect(node, constructorElement)) {
@@ -1053,7 +1033,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 //    ClassElementImpl outerClass = _enclosingClass;
     try {
 //      _isInNativeClass = node.nativeClause != null;
-//      _enclosingClass = AbstractClassElementImpl.getImpl(node.declaredElement);
+      _enclosingClass = AbstractClassElementImpl.getImpl(node.declaredElement);
 //      _checkDuplicateClassMembers(node);
 //      _checkForBuiltInIdentifierAsName(
 //          node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
@@ -1068,15 +1048,16 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (onClause != null || implementsClause != null) {
         _checkMixinInheritance(node, onClause, implementsClause);
       }
-//      visitClassDeclarationIncrementally(node);
-//      _checkForFinalNotInitializedInClass(node);
+
+      _initializeInitialFieldElementsMap(_enclosingClass.fields);
+      _checkForFinalNotInitializedInClass(node.members);
 //      _checkForDuplicateDefinitionInheritance();
 //      _checkForConflictingInstanceMethodSetter(node);
 //      _checkForBadFunctionUse(node);
       return super.visitMixinDeclaration(node);
     } finally {
 //      _isInNativeClass = false;
-//      _initialFieldElementsMap = null;
+      _initialFieldElementsMap = null;
 //      _enclosingClass = outerClass;
     }
   }
@@ -1816,7 +1797,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   /**
    * Verify that all classes of the given [withClause] are valid.
    *
-   * See [CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR],
+   * See [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR],
    * [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT], and
    * [CompileTimeErrorCode.MIXIN_REFERENCES_SUPER].
    */
@@ -1837,7 +1818,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
               mixinName, CompileTimeErrorCode.MIXIN_DEFERRED_CLASS)) {
             problemReported = true;
           }
-          if (_checkForMixinDeclaresConstructor(mixinName, mixinElement)) {
+          if (_checkForMixinClassDeclaresConstructor(mixinName, mixinElement)) {
             problemReported = true;
           }
           if (!enableSuperMixins &&
@@ -3510,23 +3491,20 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Verify that final fields in the given class [declaration] that are
-   * declared, without any constructors in the enclosing class, are
-   * initialized. Cases in which there is at least one constructor are handled
-   * at the end of
-   * [_checkForAllFinalInitializedErrorCodes].
+   * If there are no constructors in the given [members], verify that all
+   * final fields are initialized.  Cases in which there is at least one
+   * constructor are handled in [_checkForAllFinalInitializedErrorCodes].
    *
    * See [CompileTimeErrorCode.CONST_NOT_INITIALIZED], and
    * [StaticWarningCode.FINAL_NOT_INITIALIZED].
    */
-  void _checkForFinalNotInitializedInClass(ClassDeclaration declaration) {
-    NodeList<ClassMember> classMembers = declaration.members;
-    for (ClassMember classMember in classMembers) {
+  void _checkForFinalNotInitializedInClass(List<ClassMember> members) {
+    for (ClassMember classMember in members) {
       if (classMember is ConstructorDeclaration) {
         return;
       }
     }
-    for (ClassMember classMember in classMembers) {
+    for (ClassMember classMember in members) {
       if (classMember is FieldDeclaration) {
         _checkForFinalNotInitialized(classMember.fields);
       }
@@ -4459,20 +4437,27 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * constructor. The [mixinName] is the node to report problem on. The
    * [mixinElement] is the mixing to evaluate.
    *
-   * See [CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR].
+   * See [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR].
    */
-  bool _checkForMixinDeclaresConstructor(
+  bool _checkForMixinClassDeclaresConstructor(
       TypeName mixinName, ClassElement mixinElement) {
     for (ConstructorElement constructor in mixinElement.constructors) {
       if (!constructor.isSynthetic && !constructor.isFactory) {
         _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR,
+            CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR,
             mixinName,
             [mixinElement.name]);
         return true;
       }
     }
     return false;
+  }
+
+  void _checkForMixinDeclaresConstructor(ConstructorDeclaration node) {
+    if (_enclosingClass.isMixin) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR, node.returnType);
+    }
   }
 
   /**
@@ -4954,7 +4939,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   /**
    * Verify that all classes of the given [onClause] are valid.
    *
-   * See [CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR],
+   * See [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR],
    * [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT], and
    * [CompileTimeErrorCode.MIXIN_REFERENCES_SUPER].
    */
@@ -6321,6 +6306,18 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     var visitor = new _HasTypedefSelfReferenceVisitor(element.function);
     element.accept(visitor);
     return visitor.hasSelfReference;
+  }
+
+  void _initializeInitialFieldElementsMap(List<FieldElement> fields) {
+    _initialFieldElementsMap = new HashMap<FieldElement, INIT_STATE>();
+    for (FieldElement fieldElement in fields) {
+      if (!fieldElement.isSynthetic) {
+        _initialFieldElementsMap[fieldElement] =
+            fieldElement.initializer == null
+                ? INIT_STATE.NOT_INIT
+                : INIT_STATE.INIT_IN_DECLARATION;
+      }
+    }
   }
 
   bool _isFunctionType(DartType type) {

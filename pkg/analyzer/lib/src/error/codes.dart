@@ -1670,11 +1670,19 @@ class CompileTimeErrorCode extends ErrorCode {
    * Parameters:
    * 0: the name of the mixin that is invalid
    */
-  static const CompileTimeErrorCode MIXIN_DECLARES_CONSTRUCTOR =
+  static const CompileTimeErrorCode MIXIN_CLASS_DECLARES_CONSTRUCTOR =
       const CompileTimeErrorCode(
-          'MIXIN_DECLARES_CONSTRUCTOR',
+          'MIXIN_CLASS_DECLARES_CONSTRUCTOR',
           "The class '{0}' can't be used as a mixin because it declares a "
           "constructor.");
+
+  /**
+   * The <i>mixinMember</i> production allows the same instance or static
+   * members that a class would allow, but no constructors (for now).
+   */
+  static const CompileTimeErrorCode MIXIN_DECLARES_CONSTRUCTOR =
+      const CompileTimeErrorCode(
+          'MIXIN_DECLARES_CONSTRUCTOR', "Mixins can't declare constructors.");
 
   /**
    * 9.1 Mixin Application: It is a compile-time error if the with clause of a

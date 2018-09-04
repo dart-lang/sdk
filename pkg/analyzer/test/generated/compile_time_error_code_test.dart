@@ -4055,37 +4055,31 @@ class A {
     verify([source]);
   }
 
-  @failingTest
-  test_mixinDeclaresConstructor() async {
-    Source source = addSource(r'''
-class A {
-  A() {}
-}
-class B extends Object mixin A {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR]);
-    verify([source]);
-  }
-
-  test_mixinDeclaresConstructor_classDeclaration() async {
+  test_mixinClassDeclaresConstructor_classDeclaration() async {
     Source source = addSource(r'''
 class A {
   A() {}
 }
 class B extends Object with A {}''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR]);
+    assertErrors(
+      source,
+      [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR],
+    );
     verify([source]);
   }
 
-  test_mixinDeclaresConstructor_typeAlias() async {
+  test_mixinClassDeclaresConstructor_typeAlias() async {
     Source source = addSource(r'''
 class A {
   A() {}
 }
 class B = Object with A;''');
     await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR]);
+    assertErrors(
+      source,
+      [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR],
+    );
     verify([source]);
   }
 
