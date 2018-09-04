@@ -94,15 +94,17 @@ bool _isFormalParameterReassigned(
         FormalParameter parameter, AssignmentExpression assignment) =>
     assignment.leftHandSide is SimpleIdentifier &&
     (assignment.leftHandSide as SimpleIdentifier).staticElement ==
-        parameter.element;
+        parameter.declaredElement;
 
 bool _preOrPostFixExpressionMutation(FormalParameter parameter, AstNode n) =>
     n is PrefixExpression &&
         n.operand is SimpleIdentifier &&
-        (n.operand as SimpleIdentifier).staticElement == parameter.element ||
+        (n.operand as SimpleIdentifier).staticElement ==
+            parameter.declaredElement ||
     n is PostfixExpression &&
         n.operand is SimpleIdentifier &&
-        (n.operand as SimpleIdentifier).staticElement == parameter.element;
+        (n.operand as SimpleIdentifier).staticElement ==
+            parameter.declaredElement;
 
 class ParameterAssignments extends LintRule implements NodeLintRule {
   ParameterAssignments()
@@ -132,7 +134,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // Getter do not have formal parameters.
       parameters.parameters.forEach((e) {
         if (node.functionExpression.body
-            .isPotentiallyMutatedInScope(e.element)) {
+            .isPotentiallyMutatedInScope(e.declaredElement)) {
           _reportIfSimpleParameterOrWithDefaultValue(e, node);
         }
       });
@@ -145,7 +147,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (parameterList != null) {
       // Getters don't have parameters.
       parameterList.parameters.forEach((e) {
-        if (node.body.isPotentiallyMutatedInScope(e.element)) {
+        if (node.body.isPotentiallyMutatedInScope(e.declaredElement)) {
           _reportIfSimpleParameterOrWithDefaultValue(e, node);
         }
       });

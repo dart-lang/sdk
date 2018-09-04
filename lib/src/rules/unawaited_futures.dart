@@ -64,7 +64,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitCascadeExpression(CascadeExpression node) {
     for (final expr in node.cascadeSections) {
-      if (expr.bestType.isDartAsyncFuture &&
+      if (expr.staticType?.isDartAsyncFuture == true &&
           _isEnclosedInAsyncFunctionBody(expr)) {
         rule.reportLint(expr);
       }

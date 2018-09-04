@@ -49,7 +49,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitMethodInvocation(MethodInvocation node) {
     if (node.methodName.name != 'where') return;
     if (!DartTypeUtilities.implementsInterface(
-        node.realTarget.bestType, 'Iterable', 'dart.core')) {
+        node.realTarget.staticType, 'Iterable', 'dart.core')) {
       return;
     }
 

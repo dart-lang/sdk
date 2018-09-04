@@ -58,14 +58,14 @@ class _Visitor extends SimpleAstVisitor<void> {
   DartType boolType;
   @override
   void visitAssertStatement(AssertStatement node) {
-    if (!_unbound(node.condition.bestType).isAssignableTo(boolType)) {
+    if (!_unbound(node.condition.staticType).isAssignableTo(boolType)) {
       rule.reportLint(node.condition);
     }
   }
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    boolType = node.element.context.typeProvider.boolType;
+    boolType = node.declaredElement.context.typeProvider.boolType;
   }
 
   DartType _unbound(DartType type) {

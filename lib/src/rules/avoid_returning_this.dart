@@ -71,8 +71,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     if (node.isOperator) return;
-    if (node.element.returnType !=
-            (node.parent as ClassDeclaration).element?.type ||
+    if (node.declaredElement.returnType !=
+            (node.parent as ClassDeclaration).declaredElement?.type ||
         DartTypeUtilities.overridesMethod(node)) {
       return;
     }

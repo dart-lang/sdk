@@ -84,7 +84,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     AnalysisContext context = node?.expression == null
         ? null
         : resolutionMap
-            .bestTypeForExpression(node.expression)
+            .staticTypeForExpression(node.expression)
             ?.element
             ?.context;
     if (context == null) {

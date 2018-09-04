@@ -183,7 +183,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     var constructorName = node.constructorName;
-    var type = node.bestType;
+    var type = node.staticType;
     for (var constructor in _constructorsWithNonNullableArguments) {
       if (DartTypeUtilities.extendsClass(
           type, constructor.type, constructor.library)) {
@@ -199,7 +199,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitMethodInvocation(MethodInvocation node) {
     Expression target = node.target;
     String methodName = node.methodName?.name;
-    Element element = target is Identifier ? target?.bestElement : null;
+    Element element = target is Identifier ? target?.staticElement : null;
     if (element is ClassElement) {
       // Static function called, "target" is the class.
       for (var function in _staticFunctionsWithNonNullableArguments) {
@@ -212,7 +212,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     } else {
       // Instance method called, "target" is the instance.
-      DartType targetType = target?.bestType;
+      DartType targetType = target?.staticType;
       for (var method in _instanceMethodsWithNonNullableArguments) {
         if (DartTypeUtilities.implementsAnyInterface(
             targetType, [method.typeDefinition])) {

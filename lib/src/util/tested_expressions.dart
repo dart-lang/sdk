@@ -129,7 +129,7 @@ class TestedExpressions {
     if (testingExpression is SimpleIdentifier) {
       SimpleIdentifier identifier = testingExpression;
       bool sameIdentifier(n) =>
-          n is SimpleIdentifier && identifier.bestElement == n.bestElement;
+          n is SimpleIdentifier && identifier.staticElement == n.staticElement;
       if (negations.any(sameIdentifier)) {
         SimpleIdentifier otherIdentifier = negations.firstWhere(sameIdentifier);
         contradictions

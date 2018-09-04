@@ -69,9 +69,9 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
       if (DartTypeUtilities.isClass(
-              node.leftOperand.bestType, 'String', 'dart.core') ||
+              node.leftOperand.staticType, 'String', 'dart.core') ||
           DartTypeUtilities.isClass(
-              node.rightOperand.bestType, 'String', 'dart.core')) {
+              node.rightOperand.staticType, 'String', 'dart.core')) {
         DartTypeUtilities.traverseNodesInDFS(node).forEach(skippedNodes.add);
         rule.reportLint(node);
       }

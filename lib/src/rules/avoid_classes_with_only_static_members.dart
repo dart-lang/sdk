@@ -78,7 +78,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitClassDeclaration(ClassDeclaration node) {
     if (node.members.isNotEmpty &&
         node.members.every(_isStaticMember) &&
-        node.element.fields.any(_isNonConst)) {
+        node.declaredElement.fields.any(_isNonConst)) {
       rule.reportLint(node);
     }
   }

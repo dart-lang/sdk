@@ -69,7 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitCascadeExpression(CascadeExpression node) {
     for (var section in node.cascadeSections) {
-      if (section is PropertyAccess && section.bestType is FunctionType) {
+      if (section is PropertyAccess && section.staticType is FunctionType) {
         reportNoClearEffect.rule.reportLint(section);
       }
     }
@@ -163,7 +163,7 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor {
   visitPrefixedIdentifier(PrefixedIdentifier node) {
     // Allow getters; getters with side effects were the main cause of false
     // positives.
-    var bestElement = node.identifier.bestElement;
+    var bestElement = node.identifier.staticElement;
     if (bestElement is PropertyAccessorElement && !bestElement.isSynthetic)
       return;
 
@@ -183,7 +183,7 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor {
   visitPropertyAccess(PropertyAccess node) {
     // Allow getters; getters with side effects were the main cause of false
     // positives.
-    var bestElement = node.propertyName.bestElement;
+    var bestElement = node.propertyName.staticElement;
     if (bestElement is PropertyAccessorElement && !bestElement.isSynthetic) {
       return;
     }
@@ -205,8 +205,8 @@ class _ReportNoClearEffectVisitor extends UnifyingAstVisitor {
   visitSimpleIdentifier(SimpleIdentifier node) {
     // Allow getters; getters with side effects were the main cause of false
     // positives.
-    var bestElement = node.bestElement;
-    if (node.bestElement is PropertyAccessorElement &&
+    var bestElement = node.staticElement;
+    if (node.staticElement is PropertyAccessorElement &&
         !bestElement.isSynthetic) {
       return;
     }

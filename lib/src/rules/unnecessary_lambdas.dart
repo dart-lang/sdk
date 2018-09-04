@@ -43,7 +43,7 @@ bool _containsNullAwareInvocationInChain(AstNode node) =>
 Iterable<Element> _extractElementsOfSimpleIdentifiers(AstNode node) =>
     DartTypeUtilities.traverseNodesInDFS(node)
         .where((e) => e is SimpleIdentifier)
-        .map((e) => (e as SimpleIdentifier).bestElement);
+        .map((e) => (e as SimpleIdentifier).staticElement);
 
 bool _isInvocationExpression(AstNode node) => node is InvocationExpression;
 
@@ -54,10 +54,10 @@ bool _isNonFinalElement(Element element) =>
 
 bool _isNonFinalField(AstNode node) =>
     (node is PropertyAccess &&
-        _isNonFinalElement(node.propertyName.bestElement)) ||
+        _isNonFinalElement(node.propertyName.staticElement)) ||
     (node is MethodInvocation &&
-        (_isNonFinalElement(node.methodName.bestElement))) ||
-    (node is SimpleIdentifier && _isNonFinalElement(node.bestElement));
+        (_isNonFinalElement(node.methodName.staticElement))) ||
+    (node is SimpleIdentifier && _isNonFinalElement(node.staticElement));
 
 class UnnecessaryLambdas extends LintRule implements NodeLintRule {
   UnnecessaryLambdas()
@@ -81,7 +81,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    if (node.element.name != '' || node.body.keyword != null) {
+    if (node.declaredElement.name != '' || node.body.keyword != null) {
       return;
     }
     final body = node.body;
@@ -108,7 +108,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     final parameters =
-        nodeToLint.parameters.parameters.map((e) => e.identifier.bestElement);
+        nodeToLint.parameters.parameters.map((e) => e.identifier.staticElement);
 
     Iterable<Element> restOfElements = [];
     if (node is FunctionExpressionInvocation) {
@@ -119,7 +119,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         nodesInTarget =
             DartTypeUtilities.traverseNodesInDFS(node.target).toList();
         restOfElements = node.target is SimpleIdentifier
-            ? [(node.target as SimpleIdentifier).bestElement]
+            ? [(node.target as SimpleIdentifier).staticElement]
             : _extractElementsOfSimpleIdentifiers(node.target);
       }
       if (_isNonFinalField(node) ||

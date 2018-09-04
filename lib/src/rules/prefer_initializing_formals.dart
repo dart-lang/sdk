@@ -61,7 +61,7 @@ Element _getLeftElement(AssignmentExpression assignment) =>
         assignment.leftHandSide);
 
 Iterable<Element> _getParameters(ConstructorDeclaration node) =>
-    node.parameters.parameters.map((e) => e.identifier.bestElement);
+    node.parameters.parameters.map((e) => e.identifier.staticElement);
 
 Element _getRightElement(AssignmentExpression assignment) =>
     DartTypeUtilities.getCanonicalElementFromIdentifier(
@@ -101,7 +101,8 @@ class _Visitor extends SimpleAstVisitor<void> {
           !leftElement.isPrivate &&
           leftElement is FieldElement &&
           !leftElement.isSynthetic &&
-          leftElement.enclosingElement == node.element.enclosingElement &&
+          leftElement.enclosingElement ==
+              node.declaredElement.enclosingElement &&
           parameters.contains(rightElement) &&
           (!parametersUsedMoreThanOnce.contains(rightElement) ||
               leftElement.name == rightElement.name);
@@ -110,13 +111,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     bool isConstructorFieldInitializerToLint(
         ConstructorFieldInitializer constructorFieldInitializer) {
       final expression = constructorFieldInitializer.expression;
-      return !(constructorFieldInitializer.fieldName.bestElement?.isPrivate ??
+      return !(constructorFieldInitializer.fieldName.staticElement?.isPrivate ??
               true) &&
           expression is SimpleIdentifier &&
-          parameters.contains(expression.bestElement) &&
-          (!parametersUsedMoreThanOnce.contains(expression.bestElement) ||
-              constructorFieldInitializer.fieldName.bestElement?.name ==
-                  expression.bestElement.name);
+          parameters.contains(expression.staticElement) &&
+          (!parametersUsedMoreThanOnce.contains(expression.staticElement) ||
+              constructorFieldInitializer.fieldName.staticElement?.name ==
+                  expression.staticElement.name);
     }
 
     void processElement(Element element) {
@@ -136,7 +137,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     _getConstructorFieldInitializersInInitializers(node)
         .where(isConstructorFieldInitializerToLint)
-        .map((e) => (e.expression as SimpleIdentifier).bestElement)
+        .map((e) => (e.expression as SimpleIdentifier).staticElement)
         .forEach(processElement);
 
     _getAssignmentExpressionsInConstructorBody(node)

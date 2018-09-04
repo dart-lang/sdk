@@ -68,11 +68,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     ClassDeclaration clazz = node.parent;
 
-    if (clazz.element.isPrivate) return;
+    if (clazz.declaredElement.isPrivate) return;
     if (!isDefinedInLib(getCompilationUnit(node))) return;
 
-    final parentMethod = clazz.element
-        .lookUpInheritedMethod(node.name.name, clazz.element.library);
+    final parentMethod = clazz.declaredElement
+        .lookUpInheritedMethod(node.name.name, clazz.declaredElement.library);
 
     if (parentMethod == null) return;
 

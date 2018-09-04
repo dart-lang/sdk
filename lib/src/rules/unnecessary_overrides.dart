@@ -125,13 +125,16 @@ abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
   }
 
   bool _haveSameDeclaration() {
-    if (declaration.element.returnType != inheritedMethod.returnType)
+    if (declaration.declaredElement.returnType != inheritedMethod.returnType) {
       return false;
-    if (declaration.element.parameters.length !=
-        inheritedMethod.parameters.length) return false;
+    }
+    if (declaration.declaredElement.parameters.length !=
+        inheritedMethod.parameters.length) {
+      return false;
+    }
     for (var i = 0; i < inheritedMethod.parameters.length; i++) {
       final superParam = inheritedMethod.parameters[i];
-      final param = declaration.element.parameters[i];
+      final param = declaration.declaredElement.parameters[i];
       if (param.type != superParam.type) return false;
       if (param.name != superParam.name) return false;
       if (param.isCovariant != superParam.isCovariant) return false;
@@ -189,7 +192,7 @@ class _UnnecessaryGetterOverrideVisitor
 
   @override
   visitPropertyAccess(PropertyAccess node) {
-    if (node.propertyName.bestElement == inheritedMethod) {
+    if (node.propertyName.staticElement == inheritedMethod) {
       node.target?.accept(this);
     }
   }
@@ -205,7 +208,7 @@ class _UnnecessaryMethodOverrideVisitor
 
   @override
   visitMethodInvocation(MethodInvocation node) {
-    if (node.methodName.bestElement == inheritedMethod &&
+    if (node.methodName.staticElement == inheritedMethod &&
         DartTypeUtilities.matchesArgumentsWithParameters(
             node.argumentList.arguments, declaration.parameters.parameters)) {
       node.target?.accept(this);
@@ -226,7 +229,7 @@ class _UnnecessaryOperatorOverrideVisitor
     final parameters = declaration.parameters.parameters;
     if (node.operator.type == declaration.name.token.type &&
         parameters.length == 1 &&
-        parameters.first.identifier.bestElement ==
+        parameters.first.identifier.staticElement ==
             DartTypeUtilities.getCanonicalElementFromIdentifier(
                 node.rightOperand)) {
       final leftPart = node.leftOperand.unParenthesized;
@@ -261,7 +264,7 @@ class _UnnecessarySetterOverrideVisitor
   visitAssignmentExpression(AssignmentExpression node) {
     final parameters = declaration.parameters.parameters;
     if (parameters.length == 1 &&
-        parameters.first.identifier.bestElement ==
+        parameters.first.identifier.staticElement ==
             DartTypeUtilities.getCanonicalElementFromIdentifier(
                 node.rightHandSide)) {
       final leftPart = node.leftHandSide.unParenthesized;
@@ -272,7 +275,7 @@ class _UnnecessarySetterOverrideVisitor
   }
 
   _visitPropertyAccess(PropertyAccess node) {
-    if (node.propertyName.bestElement == inheritedMethod) {
+    if (node.propertyName.staticElement == inheritedMethod) {
       node.target?.accept(this);
     }
   }

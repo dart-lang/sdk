@@ -80,7 +80,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     // Should be "indexOf".
-    final Element propertyElement = node.bestElement;
+    final Element propertyElement = node.staticElement;
     if (propertyElement?.name != 'indexOf') {
       return;
     }
@@ -91,10 +91,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     final AstNode parent = node.parent;
     if (parent is MethodInvocation && node == parent.methodName) {
       indexOfAccess = parent;
-      if (parent.target?.bestType is! InterfaceType) {
+      if (parent.target?.staticType is! InterfaceType) {
         return;
       }
-      type = parent.target?.bestType;
+      type = parent.target?.staticType;
     } else {
       return;
     }

@@ -15,18 +15,18 @@ import 'package:meta/meta.dart';
 _PredicateBuilder _hasConstructorFieldInitializers = (VariableDeclaration v) =>
     (AstNode n) =>
         n is ConstructorFieldInitializer &&
-        n.fieldName.bestElement == v.name.bestElement;
+        n.fieldName.staticElement == v.name.staticElement;
 
 _PredicateBuilder _hasFieldFormalParameter = (VariableDeclaration v) =>
     (AstNode n) =>
         n is FieldFormalParameter &&
-        (n.identifier.bestElement as FieldFormalParameterElement).field ==
-            v.name.bestElement;
+        (n.identifier.staticElement as FieldFormalParameterElement).field ==
+            v.name.staticElement;
 
 _PredicateBuilder _hasReturn = (VariableDeclaration v) => (AstNode n) =>
     n is ReturnStatement &&
     n.expression is SimpleIdentifier &&
-    (n.expression as SimpleIdentifier).bestElement == v.name.bestElement;
+    (n.expression as SimpleIdentifier).staticElement == v.name.staticElement;
 
 /// Builds a function that reports the variable node if the set of nodes
 /// inside the [container] node is empty for all the predicates resulting
@@ -76,7 +76,7 @@ Iterable<AstNode> _findMethodCallbackNodes(Iterable<AstNode> containerNodes,
       .where((n) => n is PrefixedIdentifier)
       .cast<PrefixedIdentifier>();
   return prefixedIdentifiers.where((n) =>
-      n.prefix.bestElement == variable.name.bestElement &&
+      n.prefix.staticElement == variable.name.staticElement &&
       _hasMatch(
           predicates,
           resolutionMap.elementDeclaredByVariableDeclaration(variable).type,
@@ -90,8 +90,8 @@ Iterable<AstNode> _findMethodInvocationsWithVariableAsArgument(
       .cast<MethodInvocation>();
   return prefixedIdentifiers.where((n) => n.argumentList.arguments
       .where((e) => e is SimpleIdentifier)
-      .map((e) => (e as SimpleIdentifier).bestElement)
-      .contains(variable.name.bestElement));
+      .map((e) => (e as SimpleIdentifier).staticElement)
+      .contains(variable.name.staticElement));
 }
 
 Iterable<AstNode> _findNodesInvokingMethodOnVariable(
@@ -146,9 +146,9 @@ bool _isInvocationThroughCascadeExpression(
 
   final identifier = invocation.realTarget;
   if (identifier is SimpleIdentifier) {
-    final element = identifier.bestElement;
+    final element = identifier.staticElement;
     if (element is PropertyAccessorElement) {
-      return element.variable == variable.element;
+      return element.variable == variable.declaredElement;
     }
   }
   return false;
@@ -158,10 +158,10 @@ bool _isSimpleIdentifierElementEqualToVariable(
         AstNode n, VariableDeclaration variable) =>
     (n is SimpleIdentifier &&
         // Assignment to VariableDeclaration as variable.
-        (n.bestElement == variable.name.bestElement ||
-            (n.bestElement is PropertyAccessorElement &&
-                (n.bestElement as PropertyAccessorElement).variable ==
-                    variable.name.bestElement)));
+        (n.staticElement == variable.name.staticElement ||
+            (n.staticElement is PropertyAccessorElement &&
+                (n.staticElement as PropertyAccessorElement).variable ==
+                    variable.name.staticElement)));
 
 typedef bool DartTypePredicate(DartType type);
 

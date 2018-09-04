@@ -71,7 +71,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (staticType == null) {
       return;
     }
-    final iterableType = node.iterable.bestType;
+    final iterableType = node.iterable.staticType;
     if (iterableType is InterfaceType) {
       final iterableInterfaces =
           DartTypeUtilities.getImplementedInterfaces(iterableType).where(
@@ -100,7 +100,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     for (final child in node.variables) {
-      if (child.initializer?.bestType != staticType) {
+      if (child.initializer?.staticType != staticType) {
         return;
       }
     }

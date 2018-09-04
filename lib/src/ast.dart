@@ -153,7 +153,7 @@ CompilationUnit getCompilationUnit(AstNode node) =>
 /// Return true if the given node is declared in a compilation unit that is in
 /// a `lib/` folder.
 bool isDefinedInLib(CompilationUnit compilationUnit) {
-  String fullName = compilationUnit?.element?.source?.fullName;
+  String fullName = compilationUnit?.declaredElement?.source?.fullName;
   if (fullName == null) {
     return false;
   }
@@ -194,7 +194,7 @@ bool _checkForSimpleGetter(MethodDeclaration getter, Expression expression) {
   if (expression is SimpleIdentifier) {
     var staticElement = expression.staticElement;
     if (staticElement is PropertyAccessorElement) {
-      Element getterElement = getter.element;
+      Element getterElement = getter.declaredElement;
       // Skipping library level getters, test that the enclosing element is
       // the same
       if (staticElement.enclosingElement != null &&
@@ -232,7 +232,7 @@ bool _checkForSimpleSetter(MethodDeclaration setter, Expression expression) {
 
     var parameters = setter.parameters.parameters;
     if (parameters.length == 1) {
-      return rightElement == parameters[0].element;
+      return rightElement == parameters[0].declaredElement;
     }
   }
 
@@ -301,10 +301,10 @@ bool hasErrorWithConstantVerifier(AstNode node) {
   final cu = getCompilationUnit(node);
   final listener = new HasConstErrorListener();
   node.accept(new ConstantVerifier(
-      new ErrorReporter(listener, cu.element.source),
-      cu.element.library,
-      cu.element.context.typeProvider,
-      cu.element.context.declaredVariables));
+      new ErrorReporter(listener, cu.declaredElement.source),
+      cu.declaredElement.library,
+      cu.declaredElement.context.typeProvider,
+      cu.declaredElement.context.declaredVariables));
   return listener.hasConstError;
 }
 
@@ -312,9 +312,9 @@ bool hasErrorWithConstantVisitor(AstNode node) {
   final cu = getCompilationUnit(node);
   final listener = new HasConstErrorListener();
   node.accept(new ConstantVisitor(
-      new ConstantEvaluationEngine(cu.element.context.typeProvider,
-          cu.element.context.declaredVariables),
-      new ErrorReporter(listener, cu.element.source)));
+      new ConstantEvaluationEngine(cu.declaredElement.context.typeProvider,
+          cu.declaredElement.context.declaredVariables),
+      new ErrorReporter(listener, cu.declaredElement.source)));
   return listener.hasConstError;
 }
 

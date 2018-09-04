@@ -56,7 +56,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    if (!isLowerCaseUnderScoreWithDots(node.element.source.shortName)) {
+    if (!isLowerCaseUnderScoreWithDots(node.declaredElement.source.shortName)) {
       rule.reportLint(node);
     }
   }

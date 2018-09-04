@@ -75,13 +75,14 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
+    final element = node.declaredElement;
     final isRedirected =
-        node.element.isFactory && node.element.redirectedConstructor != null;
+        element.isFactory && element.redirectedConstructor != null;
     if (node.body is EmptyFunctionBody &&
-        !node.element.isConst &&
-        !_hasMixin(node.element.enclosingElement) &&
-        _hasImmutableAnnotation(node.element.enclosingElement) &&
-        (isRedirected && node.element.redirectedConstructor.isConst ||
+        !element.isConst &&
+        !_hasMixin(element.enclosingElement) &&
+        _hasImmutableAnnotation(element.enclosingElement) &&
+        (isRedirected && element.redirectedConstructor.isConst ||
             (!isRedirected &&
                 _hasConstConstructorInvocation(node) &&
                 _hasOnlyConstExpressionsInIntializerList(node)))) {
@@ -98,7 +99,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _hasConstConstructorInvocation(ConstructorDeclaration node) {
-    final clazz = node.element.enclosingElement;
+    final clazz = node.declaredElement.enclosingElement;
     // construct with super
     final SuperConstructorInvocation superInvocation = node.initializers
         .firstWhere((e) => e is SuperConstructorInvocation, orElse: () => null);

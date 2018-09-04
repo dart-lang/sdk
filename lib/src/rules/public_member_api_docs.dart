@@ -109,7 +109,7 @@ class _Visitor extends GeneralizingAstVisitor {
   }
 
   bool isOverridingMember(Declaration node) =>
-      getOverriddenMember(node.element) != null;
+      getOverriddenMember(node.declaredElement) != null;
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
@@ -154,7 +154,7 @@ class _Visitor extends GeneralizingAstVisitor {
       if (getter == null) {
         // Look for an inherited getter.
         ExecutableElement getter =
-            manager.lookupMember(node.element, setter.name.name);
+            manager.lookupMember(node.declaredElement, setter.name.name);
         if (getter is PropertyAccessorElement) {
           if (getter.documentationComment != null) {
             continue;

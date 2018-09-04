@@ -116,7 +116,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       node = node.parent;
     }
     if (!(node is InstanceCreationExpression &&
-        _hasImmutableAnnotation(node.bestType))) {
+        _hasImmutableAnnotation(node.staticType))) {
       return;
     }
 
