@@ -6284,7 +6284,7 @@ const Code<Null> codeReturnFromVoidFunction = messageReturnFromVoidFunction;
 const MessageCode messageReturnFromVoidFunction = const MessageCode(
     "ReturnFromVoidFunction",
     analyzerCode: "RETURN_OF_INVALID_TYPE",
-    severity: Severity.warning,
+    severity: Severity.error,
     message: r"""Can't return a value from a void function.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6296,6 +6296,16 @@ const MessageCode messageReturnTypeFunctionExpression = const MessageCode(
     "ReturnTypeFunctionExpression",
     severity: Severity.errorLegacyWarning,
     message: r"""A function expression can't have a return type.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeReturnWithoutExpression = messageReturnWithoutExpression;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageReturnWithoutExpression = const MessageCode(
+    "ReturnWithoutExpression",
+    analyzerCode: "RETURN_WITHOUT_VALUE",
+    severity: Severity.warning,
+    message: r"""Must explicitly return a value from a non-void function.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri_)> templateSdkRootNotFound =
@@ -7421,7 +7431,7 @@ const Code<Null> codeVoidExpression = messageVoidExpression;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageVoidExpression = const MessageCode("VoidExpression",
     analyzerCode: "USE_OF_VOID_RESULT",
-    severity: Severity.warning,
+    severity: Severity.error,
     message: r"""This expression has type 'void' and can't be used.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

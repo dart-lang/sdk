@@ -2377,15 +2377,10 @@ class ReturnJudgment extends ReturnStatement implements StatementJudgment {
           isVoidAllowed: true);
       inferredType = judgment.inferredType;
     } else {
-      inferredType = const VoidType();
+      inferredType = inferrer.coreTypes.nullClass.rawType;
     }
-    // Analyzer treats bare `return` statements as having no effect on the
-    // inferred type of the closure.  TODO(paulberry): is this what we want
-    // for Fasta?
-    if (judgment != null) {
-      closureContext.handleReturn(inferrer, inferredType, expression,
-          fileOffset, !identical(returnKeywordLexeme, "return"));
-    }
+    closureContext.handleReturn(inferrer, this, inferredType,
+        !identical(returnKeywordLexeme, "return"));
     inferrer.listener.returnStatement(this, fileOffset, tokens, null);
   }
 }
@@ -3134,7 +3129,8 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
   DartType inferFieldTopLevel<Expression, Statement, Initializer, Type>(
       ShadowField field, bool typeNeeded) {
     if (field.initializer == null) return const DynamicType();
-    return inferExpression(field.initializer, const UnknownType(), typeNeeded);
+    return inferExpression(field.initializer, const UnknownType(), typeNeeded,
+        isVoidAllowed: true);
   }
 
   @override

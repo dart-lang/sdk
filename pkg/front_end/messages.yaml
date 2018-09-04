@@ -2697,7 +2697,7 @@ GenericFunctionTypeInBound:
 
 VoidExpression:
   template: "This expression has type 'void' and can't be used."
-  severity: WARNING
+  severity: ERROR
   analyzerCode: USE_OF_VOID_RESULT
   statement: |
     {
@@ -2707,9 +2707,15 @@ VoidExpression:
 
 ReturnFromVoidFunction:
   template: "Can't return a value from a void function."
-  severity: WARNING
+  severity: ERROR
   analyzerCode: RETURN_OF_INVALID_TYPE
   declaration: "void foo() { return 1; }"
+
+ReturnWithoutExpression:
+  template: "Must explicitly return a value from a non-void function."
+  severity: WARNING
+  analyzerCode: RETURN_WITHOUT_VALUE
+  declaration: "int foo() { return; }"
 
 RethrowNotCatch:
   template: "'rethrow' can only be used in catch clauses."

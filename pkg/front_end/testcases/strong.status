@@ -59,7 +59,7 @@ redirecting_factory_typeparam_test: Fail # Missing support for RedirectingFactor
 redirecting_factory_typeparambounds_test: Fail # Missing support for RedirectingFactoryConstructor.
 statements: Fail
 stringliteral: Fail
-super_rasta_copy: TypeCheckError
+super_rasta_copy: Fail
 top_level_accessors: Fail
 type_variable_as_super: Fail
 type_variable_prefix: RuntimeError
@@ -176,7 +176,7 @@ rasta/mixin_library: TypeCheckError
 rasta/native_is_illegal: Fail
 rasta/parser_error: Fail
 rasta/static: Fail
-rasta/super: TypeCheckError
+rasta/super: Fail
 rasta/super_initializer: Fail
 rasta/super_mixin: TypeCheckError
 rasta/super_operator: Fail

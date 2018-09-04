@@ -164,11 +164,9 @@ Language/Types/Parameterized_Types/malbounded_t06: MissingCompileTimeError # Iss
 Language/Types/Static_Types/malformed_type_t01/04: MissingCompileTimeError # Issue 33308
 Language/Types/Static_Types/malformed_type_t01/05: MissingCompileTimeError # Issue 33308
 Language/Types/Static_Types/malformed_type_t01/06: MissingCompileTimeError # Issue 33308
-Language/Types/Type_Void/returning_t03: MissingCompileTimeError # Issue 30470
-Language/Types/Type_Void/returning_t04: MissingCompileTimeError # Issue 30470
-Language/Types/Type_Void/returning_t05: MissingCompileTimeError # Issue 30470
 Language/Types/Type_Void/syntax_t08: MissingCompileTimeError # Issue 33308
-Language/Types/Type_Void/using_t01: MissingCompileTimeError # Issue 30470
+Language/Types/Type_Void/syntax_t09: CompileTimeError # Test contains a compile-time error
+Language/Types/Type_Void/using_t02: CompileTimeError # Test contains a compile-time error
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t01: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t03: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/Callable/Callable_ret_extends_neg_assign_l1_t04: MissingCompileTimeError
