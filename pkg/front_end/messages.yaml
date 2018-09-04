@@ -1719,7 +1719,7 @@ InheritedMembersConflict:
       abstract class B {
         get foo;
       }
-      class C extends A implements B {}
+      abstract class C extends A implements B {}
     - >-
       class A {
         var foo;
@@ -1727,7 +1727,7 @@ InheritedMembersConflict:
       abstract class B {
         foo();
       }
-      class C extends A implements B {}
+      abstract class C extends A implements B {}
     - >-
       class A {
         get foo => 0;
@@ -1735,7 +1735,7 @@ InheritedMembersConflict:
       abstract class B {
         foo();
       }
-      class C extends A implements B {}
+      abstract class C extends A implements B {}
 
 InheritedMembersConflictCause1:
   template: "This is one inherited member."

@@ -202,10 +202,6 @@ vm/regress_33469_test/04: MissingCompileTimeError
 web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
 [ $fasta ]
-abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue 32014.
-abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue 32014.
-additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue 32014.
-additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError # Issue 32014.
 async_return_types_test/nestedFuture: MissingCompileTimeError # Issue 33068
 const_cast2_test/01: CompileTimeError # Issue 32517
 const_cast2_test/none: CompileTimeError # Issue 32517

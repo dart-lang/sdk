@@ -428,19 +428,14 @@ abstract class KernelClassBuilder
   }
 
   void checkAbstractMembers(CoreTypes coreTypes, ClassHierarchy hierarchy) {
-    if (isAbstract ||
-        hierarchy.getDispatchTarget(cls, noSuchMethodName).enclosingClass !=
-            coreTypes.objectClass) {
+    if (isAbstract) {
       // Unimplemented members allowed
-      // TODO(dmitryas): Call hasUserDefinedNoSuchMethod instead when ready.
       return;
     }
 
     List<LocatedMessage> context = null;
 
     bool mustHaveImplementation(Member member) {
-      // Forwarding stub
-      if (member is Procedure && member.isSyntheticForwarder) return false;
       // Public member
       if (!member.name.isPrivate) return true;
       // Private member in different library
@@ -450,6 +445,63 @@ abstract class KernelClassBuilder
       // Private member in same library
       return true;
     }
+
+    bool isValidImplementation(Member interfaceMember, Member dispatchTarget,
+        {bool setters}) {
+      // If they're the exact same it's valid.
+      if (interfaceMember == dispatchTarget) return true;
+
+      if (interfaceMember is Procedure && dispatchTarget is Procedure) {
+        // E.g. getter vs method.
+        if (interfaceMember.kind != dispatchTarget.kind) return false;
+
+        if (dispatchTarget.function.positionalParameters.length <
+                interfaceMember.function.requiredParameterCount ||
+            dispatchTarget.function.positionalParameters.length <
+                interfaceMember.function.positionalParameters.length)
+          return false;
+
+        if (interfaceMember.function.requiredParameterCount <
+            dispatchTarget.function.requiredParameterCount) return false;
+
+        if (dispatchTarget.function.namedParameters.length <
+            interfaceMember.function.namedParameters.length) return false;
+
+        // Two Procedures of the same kind with the same number of parameters.
+        return true;
+      }
+
+      if ((interfaceMember is Field || interfaceMember is Procedure) &&
+          (dispatchTarget is Field || dispatchTarget is Procedure)) {
+        if (setters) {
+          bool interfaceMemberHasSetter =
+              (interfaceMember is Field && interfaceMember.hasSetter) ||
+                  interfaceMember is Procedure && interfaceMember.isSetter;
+          bool dispatchTargetHasSetter =
+              (dispatchTarget is Field && dispatchTarget.hasSetter) ||
+                  dispatchTarget is Procedure && dispatchTarget.isSetter;
+          // Combination of (settable) field and/or (procedure) setter is valid.
+          return interfaceMemberHasSetter && dispatchTargetHasSetter;
+        } else {
+          bool interfaceMemberHasGetter = interfaceMember is Field ||
+              interfaceMember is Procedure && interfaceMember.isGetter;
+          bool dispatchTargetHasGetter = dispatchTarget is Field ||
+              dispatchTarget is Procedure && dispatchTarget.isGetter;
+          // Combination of field and/or (procedure) getter is valid.
+          return interfaceMemberHasGetter && dispatchTargetHasGetter;
+        }
+      }
+
+      unhandled(
+          "${interfaceMember.runtimeType} and ${dispatchTarget.runtimeType}",
+          "isValidImplementation",
+          interfaceMember.fileOffset,
+          interfaceMember.fileUri);
+    }
+
+    bool hasNoSuchMethod =
+        hierarchy.getDispatchTarget(cls, noSuchMethodName).enclosingClass !=
+            coreTypes.objectClass;
 
     void findMissingImplementations({bool setters}) {
       List<Member> dispatchTargets =
@@ -464,10 +516,17 @@ abstract class KernelClassBuilder
                   0) {
             targetIndex++;
           }
-          if (targetIndex >= dispatchTargets.length ||
+          bool foundTarget = targetIndex < dispatchTargets.length &&
               ClassHierarchy.compareMembers(
-                      dispatchTargets[targetIndex], interfaceMember) >
-                  0) {
+                      dispatchTargets[targetIndex], interfaceMember) <=
+                  0;
+          bool hasProblem = true;
+          if (foundTarget &&
+              isValidImplementation(
+                  interfaceMember, dispatchTargets[targetIndex],
+                  setters: setters)) hasProblem = false;
+          if (hasNoSuchMethod && !foundTarget) hasProblem = false;
+          if (hasProblem) {
             Name name = interfaceMember.name;
             String displayName = name.name + (setters ? "=" : "");
             context ??= <LocatedMessage>[];

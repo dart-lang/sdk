@@ -117,6 +117,8 @@ regress_29405_test: CompileTimeError # Issue 29421
 regress_29784_test/02: MissingCompileTimeError # Issue 29784
 regress_30121_test: CompileTimeError # Issue 31087
 regress_30339_test: CompileTimeError
+regress_32660_test/01: MissingCompileTimeError # Issue #32660.
+regress_32660_test/04: CompileTimeError
 regress_33235_03_test/01: MissingCompileTimeError
 regress_33235_07_test/03: MissingCompileTimeError
 regress_33235_10_test/01: MissingCompileTimeError

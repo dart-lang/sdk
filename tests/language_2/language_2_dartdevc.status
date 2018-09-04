@@ -144,6 +144,8 @@ regress_29784_test/02: Crash # assert initializers not implemented
 regress_29784_test/02: MissingCompileTimeError
 regress_30121_test: CompileTimeError # Issue 31087
 regress_30339_test: CompileTimeError # As expected. Should we make this a multi test?
+regress_32660_test/01: MissingCompileTimeError # Issue #32660.
+regress_32660_test/04: CompileTimeError
 regress_33235_03_test/01: MissingCompileTimeError
 regress_33235_07_test/03: MissingCompileTimeError
 regress_33235_10_test/01: MissingCompileTimeError
