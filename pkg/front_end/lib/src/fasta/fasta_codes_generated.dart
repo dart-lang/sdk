@@ -6956,24 +6956,23 @@ const MessageCode messageTypeAfterVar = const MessageCode("TypeAfterVar",
     tip: r"""Try removing 'var.'""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, int count)>
-    templateTypeArgumentMismatch =
-    const Template<Message Function(String name, int count)>(
-        messageTemplate: r"""'#name' expects #count type arguments.""",
+const Template<Message Function(int count)> templateTypeArgumentMismatch =
+    const Template<Message Function(int count)>(
+        messageTemplate: r"""Expected #count type arguments.""",
         withArguments: _withArgumentsTypeArgumentMismatch);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, int count)> codeTypeArgumentMismatch =
-    const Code<Message Function(String name, int count)>(
+const Code<Message Function(int count)> codeTypeArgumentMismatch =
+    const Code<Message Function(int count)>(
         "TypeArgumentMismatch", templateTypeArgumentMismatch,
         analyzerCode: "WRONG_NUMBER_OF_TYPE_ARGUMENTS",
         severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsTypeArgumentMismatch(String name, int count) {
+Message _withArgumentsTypeArgumentMismatch(int count) {
   return new Message(codeTypeArgumentMismatch,
-      message: """'${name}' expects ${count} type arguments.""",
-      arguments: {'name': name, 'count': count});
+      message: """Expected ${count} type arguments.""",
+      arguments: {'count': count});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

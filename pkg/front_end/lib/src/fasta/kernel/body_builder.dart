@@ -1446,7 +1446,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void warnTypeArgumentsMismatch(String name, int expected, int charOffset) {
     addProblemErrorIfConst(
-        fasta.templateTypeArgumentMismatch.withArguments(name, expected),
+        fasta.templateTypeArgumentMismatch.withArguments(expected),
         charOffset,
         name.length);
   }
@@ -2963,11 +2963,18 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
     List<Object> types = forest.argumentsTypeArguments(arguments);
     if (typeParameters.length != types.length) {
-      // TODO(paulberry): Report error in this case as well,
-      // after https://github.com/dart-lang/sdk/issues/32130 is fixed.
-      types.clear();
-      for (int i = 0; i < typeParameters.length; i++) {
-        types.add(const DynamicType());
+      if (types.length == 0) {
+        // Expected `typeParameters.length` type arguments, but none given,
+        // so we fill in dynamic.
+        for (int i = 0; i < typeParameters.length; i++) {
+          types.add(const DynamicType());
+        }
+      } else {
+        // A wrong (non-zero) amount of type arguments given. That's an error.
+        // TODO(jensj): Position should be on type arguments instead.
+        return fasta.templateTypeArgumentMismatch
+            .withArguments(typeParameters.length)
+            .withLocation(uri, offset, noLength);
       }
     }
 
@@ -3002,6 +3009,15 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
               .withLocation(uri, argument.fileOffset, argument.name.length);
         }
       }
+    }
+    List<Object> types = forest.argumentsTypeArguments(arguments);
+    List<TypeParameter> typeParameters = function.typeParameters;
+    if (typeParameters.length != types.length && types.length != 0) {
+      // A wrong (non-zero) amount of type arguments given. That's an error.
+      // TODO(jensj): Position should be on type arguments instead.
+      return fasta.templateTypeArgumentMismatch
+          .withArguments(typeParameters.length)
+          .withLocation(uri, offset, noLength);
     }
 
     return null;

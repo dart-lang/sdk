@@ -74,8 +74,8 @@ abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
       declaration = buildInvalidType(
           charOffset,
           fileUri,
-          templateTypeArgumentMismatch.withArguments(
-              name, declaration.typeVariablesCount));
+          templateTypeArgumentMismatch
+              .withArguments(declaration.typeVariablesCount));
     }
   }
 

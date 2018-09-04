@@ -1305,7 +1305,7 @@ LoadLibraryHidesMember:
   severity: IGNORED
 
 TypeArgumentMismatch:
-  template: "'#name' expects #count type arguments."
+  template: "Expected #count type arguments."
   severity: ERROR_LEGACY_WARNING
   analyzerCode: WRONG_NUMBER_OF_TYPE_ARGUMENTS
 

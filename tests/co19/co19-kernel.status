@@ -4,10 +4,16 @@
 
 [ $compiler == fasta ]
 Language/Classes/Constructors/Generative_Constructors/final_variables_t01: CompileTimeError # Expects a warning, but this is an error in Dart 2
+Language/Expressions/Instance_Creation/New/generic_type_t01: CompileTimeError
+Language/Expressions/Instance_Creation/New/generic_type_t02: CompileTimeError
+Language/Expressions/Instance_Creation/New/generic_type_t03: CompileTimeError
 Language/Expressions/Method_Invocation/Ordinary_Invocation/function_type_t01: CompileTimeError # Expects a warning, but this is an error in Dart 2
 Language/Expressions/Method_Invocation/Ordinary_Invocation/static_type_t01: CompileTimeError # Expects a warning, but this is an error in Dart 2
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t01: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: MissingCompileTimeError
+Language/Types/Parameterized_Types/arity_mismatch_t01: CompileTimeError
+Language/Types/Parameterized_Types/arity_mismatch_t05: CompileTimeError
+Language/Types/Parameterized_Types/arity_mismatch_t07: CompileTimeError
 Language/Types/Type_Void/syntax_t08: MissingCompileTimeError
 Language/Types/Type_Void/syntax_t09: MissingCompileTimeError
 LayoutTests/*: Skip # TODO(ahe): Make dart:html available.

@@ -96,9 +96,6 @@ Language/Expressions/Instance_Creation/Const/parameterized_type_t02: CompileTime
 Language/Expressions/Instance_Creation/New/evaluation_t16: MissingCompileTimeError # Issue 33308
 Language/Expressions/Instance_Creation/New/evaluation_t17: MissingCompileTimeError # Issue 33308
 Language/Expressions/Instance_Creation/New/evaluation_t18: MissingCompileTimeError # Issue 33308
-Language/Expressions/Instance_Creation/New/generic_type_t01: MissingCompileTimeError # Issue 32972
-Language/Expressions/Instance_Creation/New/generic_type_t02: MissingCompileTimeError # Issue 32972
-Language/Expressions/Instance_Creation/New/generic_type_t03: MissingCompileTimeError # Issue 32972
 Language/Expressions/Instance_Creation/New/redirecting_factory_constructor_t02: MissingCompileTimeError # Issue 33308
 Language/Expressions/Instance_Creation/New/syntax_t04: MissingCompileTimeError # Legal because of implicit new
 Language/Expressions/Instance_Creation/New/type_argument_t01: MissingCompileTimeError # Issue 33308
@@ -158,9 +155,6 @@ Language/Statements/Switch/equal_operator_t02: MissingCompileTimeError # Issue 3
 Language/Statements/Try/catch_scope_t01: CompileTimeError
 Language/Types/Dynamic_Type_System/malbounded_type_error_t01: MissingCompileTimeError # Issue 33308
 Language/Types/Interface_Types/subtype_t30: CompileTimeError
-Language/Types/Parameterized_Types/arity_mismatch_t01: MissingCompileTimeError # Issue 32972
-Language/Types/Parameterized_Types/arity_mismatch_t05: MissingCompileTimeError # Issue 32972
-Language/Types/Parameterized_Types/arity_mismatch_t07: MissingCompileTimeError # Issue 32972
 Language/Types/Parameterized_Types/malbounded_t01: MissingCompileTimeError # Issue 33308
 Language/Types/Parameterized_Types/malbounded_t02: MissingCompileTimeError # Issue 33308
 Language/Types/Parameterized_Types/malbounded_t03: MissingCompileTimeError # Issue 33308

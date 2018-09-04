@@ -1,6 +1,6 @@
 // Errors:
 //
-// pkg/front_end/testcases/regress/issue_29981.dart:6:3: Error: 'C' expects 1 type arguments.
+// pkg/front_end/testcases/regress/issue_29981.dart:6:3: Error: Expected 1 type arguments.
 //   C<String, String> field;
 //   ^
 
