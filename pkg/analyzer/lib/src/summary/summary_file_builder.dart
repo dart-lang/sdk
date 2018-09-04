@@ -33,7 +33,7 @@ class SummaryBuilder {
    * TODO(paulberry): remove optional "strong" parameter once all callers have
    * stopped passing it in.
    */
-  SummaryBuilder(this.librarySources, this.context, [bool strong]);
+  SummaryBuilder(this.librarySources, this.context);
 
   /**
    * Create an SDK summary builder for the dart SDK at the given [sdkPath].
