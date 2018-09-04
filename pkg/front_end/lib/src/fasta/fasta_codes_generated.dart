@@ -1449,6 +1449,19 @@ const MessageCode messageConstructorWithReturnType = const MessageCode(
     tip: r"""Try removing the return type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstructorWithTypeArguments =
+    messageConstructorWithTypeArguments;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstructorWithTypeArguments = const MessageCode(
+    "ConstructorWithTypeArguments",
+    analyzerCode: "UNDEFINED_CLASS",
+    severity: Severity.error,
+    message:
+        r"""A constructor invocation can't have type arguments on the constructor name.""",
+    tip: r"""Try to place the type arguments on the class name.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstructorWithTypeParameters =
     messageConstructorWithTypeParameters;
 

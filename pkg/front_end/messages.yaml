@@ -1160,6 +1160,14 @@ ConstructorWithTypeParameters:
     - "class C { factory C<T>() => null; }"
     - "class C { factory C.foo<T>() => null; }"
 
+ConstructorWithTypeArguments:
+  template: "A constructor invocation can't have type arguments on the constructor name."
+  tip: "Try to place the type arguments on the class name."
+  severity: ERROR
+  analyzerCode: UNDEFINED_CLASS
+  script:
+    - "class C<X> { C.foo(); } bar() { new C.foo<int>(); }"
+
 ConstructorWithWrongName:
   template: "The name of a constructor must match the name of the enclosing class."
   severity: ERROR

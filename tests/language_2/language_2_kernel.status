@@ -209,6 +209,7 @@ const_constructor_mixin3_test: CompileTimeError # Issue 33644.
 const_constructor_mixin_test: CompileTimeError # Issue 33644.
 const_types_test/34: MissingCompileTimeError # Issue 31590
 const_types_test/39: MissingCompileTimeError # Issue 31590
+constructor_reference_test/27: MissingCompileTimeError # Issue 32972 (parsed as method call)
 cyclic_type_variable_test/01: MissingCompileTimeError # Issue 32989 (missing cycle check in bounds)
 cyclic_type_variable_test/02: MissingCompileTimeError # Issue 32989 (missing cycle check in bounds)
 cyclic_type_variable_test/03: MissingCompileTimeError # Issue 32989 (missing cycle check in bounds)
@@ -268,7 +269,6 @@ mixin_invalid_bound_test/09: MissingCompileTimeError # Issue 33308
 mixin_invalid_bound_test/10: MissingCompileTimeError # Issue 33308
 mixin_super_bound_test/01: MissingCompileTimeError # Issue 33308
 mixin_super_bound_test/02: MissingCompileTimeError # Issue 33308
-named_constructor_test/01: MissingCompileTimeError # Issue 34159
 named_parameters_default_eq_test/02: MissingCompileTimeError # Issue 34160
 redirecting_factory_default_values_test/01: MissingCompileTimeError # Issue 34160
 redirecting_factory_default_values_test/02: MissingCompileTimeError # Issue 34160
@@ -1518,7 +1518,6 @@ method_override6_test/02: MissingCompileTimeError
 method_override6_test/03: MissingCompileTimeError
 mixin_illegal_super_use_test: Skip # Issues 24478 and 23773
 mixin_illegal_superclass_test: Skip # Issues 24478 and 23773
-named_constructor_test/01: MissingRuntimeError # Fasta bug: Bad compilation of constructor reference.
 named_parameters_default_eq_test/none: RuntimeError
 nested_generic_closure_test: RuntimeError
 no_main_test/01: Skip

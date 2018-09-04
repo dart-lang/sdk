@@ -23,6 +23,7 @@ config_import_corelib_test: StaticWarning, OK
 conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Crashes or times out
 const_cast2_test/01: CompileTimeError
 const_cast2_test/none: CompileTimeError
+constructor_reference_test/27: MissingCompileTimeError # Issue 34270
 default_implementation2_test: CompileTimeError # Issue 30855
 dynamic_prefix_core_test/01: MissingCompileTimeError
 emit_const_fields_test: CompileTimeError

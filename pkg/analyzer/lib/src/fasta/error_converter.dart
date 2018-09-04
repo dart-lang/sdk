@@ -630,6 +630,10 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.TYPEDEF_IN_CLASS, offset, length);
         return;
+      case "UNDEFINED_CLASS":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.UNDEFINED_CLASS, offset, length);
+        return;
       case "UNDEFINED_GETTER":
         errorReporter?.reportErrorForOffset(
             StaticTypeWarningCode.UNDEFINED_GETTER, offset, length);

@@ -36,6 +36,7 @@ const_cast2_test/01: CompileTimeError
 const_cast2_test/none: CompileTimeError
 const_constructor_mixin3_test/01: MissingCompileTimeError # Issue 33644
 const_constructor_mixin_test/01: MissingCompileTimeError # Issue 33644
+constructor_reference_test/27: MissingCompileTimeError
 covariance_field_test/03: RuntimeError
 covariant_override/tear_off_type_test: RuntimeError # Issue 28395
 default_implementation2_test: CompileTimeError # Issue 30855

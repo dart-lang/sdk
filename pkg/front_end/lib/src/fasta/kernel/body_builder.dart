@@ -2830,6 +2830,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       identifier = list[1];
       if (prefix is TypeUseGenerator) {
         type = prefix;
+        if (typeArguments != null) {
+          addProblem(fasta.messageConstructorWithTypeArguments,
+              identifier.token.charOffset, identifier.name.length);
+        }
       } else if (prefix is Generator) {
         type = prefix.prefixedLookup(identifier.token);
         identifier = null;
