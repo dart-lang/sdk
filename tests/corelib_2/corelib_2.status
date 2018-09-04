@@ -576,6 +576,6 @@ double_try_parse_test: Fail, OK # Issue 30468
 regexp/UC16_test: RuntimeError
 
 [ $hot_reload || $hot_reload_rollback ]
-bigint_parse_radix_test: Pass, Timeout # Issue 31659
+bigint_parse_radix_test: Pass, Timeout, Crash # Issue 31659. Issue 34361.
 bigint_test: Pass, Timeout # Issue 31659
 integer_parsed_mul_div_vm_test: Pass, Slow # Slow
