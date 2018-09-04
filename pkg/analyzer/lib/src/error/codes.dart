@@ -3563,21 +3563,6 @@ class StaticWarningCode extends ErrorCode {
           correction: "Try making '{1}' abstract, or adding a body to '{0}'.");
 
   /**
-   * 7.2 Getters: It is a static warning if a class <i>C</i> declares an
-   * instance getter named <i>v</i> and an accessible static member named
-   * <i>v</i> or <i>v=</i> is declared in a superclass of <i>C</i>.
-   *
-   * Parameters:
-   * 0: the name of the super class declaring a static member
-   */
-  static const StaticWarningCode
-      CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER =
-      const StaticWarningCode(
-          'CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER',
-          "Superclass '{0}' declares static member with the same name.",
-          correction: "Try renaming either the getter or the static member.");
-
-  /**
    * 7.1 Instance Methods: It is a static warning if a class <i>C</i> declares
    * an instance method named <i>n</i> and has a setter named <i>n=</i>.
    */
@@ -3598,22 +3583,6 @@ class StaticWarningCode extends ErrorCode {
           "Class '{0}' declares the setter '{1}', "
           "but also has an instance method in the same class.",
           correction: "Try renaming either the method or the setter.");
-
-  /**
-   * 7.3 Setters: It is a static warning if a class <i>C</i> declares an
-   * instance setter named <i>v=</i> and an accessible static member named
-   * <i>v=</i> or <i>v</i> is declared in a superclass of <i>C</i>.
-   *
-   * Parameters:
-   * 0: the name of the super class declaring a static member
-   */
-  static const StaticWarningCode
-      CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER =
-      const StaticWarningCode(
-          'CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER',
-          "Superclass '{0}' declares a static member with the same name.",
-          correction:
-              "Try renaming either the setter or the inherited member.");
 
   /**
    * 7.2 Getters: It is a static warning if a class declares a static getter

@@ -982,105 +982,6 @@ class A implements I {
     verify([source]);
   }
 
-  test_conflictingInstanceGetterAndSuperclassMember_declField_direct_setter() async {
-    Source source = addSource(r'''
-class A {
-  static set v(x) {}
-}
-class B extends A {
-  var v;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER]);
-    verify([source]);
-  }
-
-  test_conflictingInstanceGetterAndSuperclassMember_declGetter_direct_getter() async {
-    Source source = addSource(r'''
-class A {
-  static get v => 0;
-}
-class B extends A {
-  get v => 0;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER]);
-    verify([source]);
-  }
-
-  test_conflictingInstanceGetterAndSuperclassMember_declGetter_direct_method() async {
-    Source source = addSource(r'''
-class A {
-  static v() {}
-}
-class B extends A {
-  get v => 0;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER]);
-    verify([source]);
-  }
-
-  test_conflictingInstanceGetterAndSuperclassMember_declGetter_direct_setter() async {
-    Source source = addSource(r'''
-class A {
-  static set v(x) {}
-}
-class B extends A {
-  get v => 0;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER]);
-    verify([source]);
-  }
-
-  test_conflictingInstanceGetterAndSuperclassMember_declGetter_indirect() async {
-    Source source = addSource(r'''
-class A {
-  static int v;
-}
-class B extends A {}
-class C extends B {
-  get v => 0;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER]);
-    verify([source]);
-  }
-
-  test_conflictingInstanceGetterAndSuperclassMember_declGetter_mixin() async {
-    Source source = addSource(r'''
-class M {
-  static int v;
-}
-class B extends Object with M {
-  get v => 0;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER]);
-    verify([source]);
-  }
-
-  test_conflictingInstanceGetterAndSuperclassMember_direct_field() async {
-    Source source = addSource(r'''
-class A {
-  static int v;
-}
-class B extends A {
-  get v => 0;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER]);
-    verify([source]);
-  }
-
   test_conflictingInstanceMethodSetter2() async {
     Source source = addSource(r'''
 class A {
@@ -1130,20 +1031,6 @@ class B extends A {
     await computeAnalysisResult(source);
     assertErrors(
         source, [StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER]);
-    verify([source]);
-  }
-
-  test_conflictingInstanceSetterAndSuperclassMember() async {
-    Source source = addSource(r'''
-class A {
-  static int v;
-}
-class B extends A {
-  set v(x) {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source,
-        [StaticWarningCode.CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER]);
     verify([source]);
   }
 

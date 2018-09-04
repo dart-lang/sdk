@@ -29,7 +29,6 @@ built_in_identifier_type_annotation_test/dynamic-funret: RuntimeError # Issue 28
 built_in_identifier_type_annotation_test/dynamic-list: RuntimeError # Issue 28816
 cascaded_forwarding_stubs_generic_test: RuntimeError
 cascaded_forwarding_stubs_test: CompileTimeError
-check_member_static_test/01: CompileTimeError
 conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Crashes or times out
 conflicting_generic_interfaces_simple_test: MissingCompileTimeError
 const_cast2_test/01: CompileTimeError
@@ -130,7 +129,6 @@ mixin_type_parameter_inference_test/09: RuntimeError
 mock_writable_final_private_field_test: CompileTimeError # Issue 30848
 multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 nested_generic_closure_test: CompileTimeError
-override_field_test/02: CompileTimeError
 override_inheritance_field_test/42: CompileTimeError
 part_of_multiple_libs_test/01: MissingCompileTimeError
 part_refers_to_core_library_test/01: Crash
@@ -460,8 +458,8 @@ generic_instanceof2_test: RuntimeError # Issue 29920; ReferenceError: FooOfK$Str
 generic_is_check_test: RuntimeError # Issue 29920; Expect.isTrue(false) fails.
 generic_tearoff_test: CompileTimeError
 guess_cid_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-identical_closure2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 identical_closure2_test: RuntimeError # Issue 29920; Expect.isFalse(true) fails.
+identical_closure2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 infinite_switch_label_test: RuntimeError # Issue 29920; NoSuchMethodError: method not found: '<Unexpected Null Value>'
 infinity_test: RuntimeError # Issue 29920; Expect.isFalse(true) fails.
 instance_creation_in_function_annotation_test: RuntimeError # Issue 29920; UnimplementedError: JsClosureMirror.function unimplemented

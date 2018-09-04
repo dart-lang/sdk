@@ -14,6 +14,12 @@ Language/Classes/Abstract_Instance_Members/same_name_static_method_in_superclass
 Language/Classes/Abstract_Instance_Members/same_name_static_method_in_superclass_t05: MissingCompileTimeError # Issue 33995
 Language/Classes/Abstract_Instance_Members/same_name_static_method_in_superclass_t06: MissingCompileTimeError # Issue 33995
 Language/Classes/Constructors/Generative_Constructors/final_variables_t01: CompileTimeError # co19 issue 155
+Language/Classes/Getters/instance_getter_t01: MissingCompileTimeError # Legal, see #33235
+Language/Classes/Getters/instance_getter_t02: MissingCompileTimeError # Legal, see #33235
+Language/Classes/Getters/instance_getter_t03: MissingCompileTimeError # Legal, see #33235
+Language/Classes/Getters/instance_getter_t04: MissingCompileTimeError # Legal, see #33235
+Language/Classes/Getters/instance_getter_t05: MissingCompileTimeError # Legal, see #33235
+Language/Classes/Getters/instance_getter_t06: MissingCompileTimeError # Legal, see #33235
 Language/Classes/Getters/type_object_t01: CompileTimeError # Issue 33995
 Language/Classes/Getters/type_object_t02: CompileTimeError # Issue 33995
 Language/Classes/Instance_Methods/Operators/return_type_t01: CompileTimeError # co19 issue 156
@@ -26,6 +32,12 @@ Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t05: Mis
 Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t06: MissingCompileTimeError # Issue 27476
 Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t07: MissingCompileTimeError # Issue 27476
 Language/Classes/Instance_Methods/same_name_static_member_in_superclass_t09: MissingCompileTimeError # Issue 27476
+Language/Classes/Setters/instance_setter_t01: MissingCompileTimeError # Legal, see #33235
+Language/Classes/Setters/instance_setter_t02: MissingCompileTimeError # Legal, see #33235
+Language/Classes/Setters/instance_setter_t03: MissingCompileTimeError # Legal, see #33235
+Language/Classes/Setters/instance_setter_t04: MissingCompileTimeError # Legal, see #33235
+Language/Classes/Setters/instance_setter_t05: MissingCompileTimeError # Legal, see #33235
+Language/Classes/Setters/instance_setter_t06: MissingCompileTimeError # Legal, see #33235
 Language/Classes/Setters/return_type_not_void_t01: CompileTimeError # co19 issue 153
 Language/Classes/Setters/same_name_getter_different_type_t01: CompileTimeError # co19 issue 154
 Language/Classes/Setters/syntax_t04: CompileTimeError # co19 issue 153

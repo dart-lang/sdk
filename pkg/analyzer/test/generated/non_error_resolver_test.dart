@@ -1248,19 +1248,6 @@ set x(_) {}
     verify([source]);
   }
 
-  test_conflictingInstanceGetterAndSuperclassMember_instance() async {
-    Source source = addSource(r'''
-class A {
-  get v => 0;
-}
-class B extends A {
-  get v => 1;
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_conflictingStaticGetterAndInstanceSetter_thisClass() async {
     Source source = addSource(r'''
 class A {

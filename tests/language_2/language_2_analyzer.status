@@ -17,7 +17,6 @@ accessor_conflict_import_test: CompileTimeError # Issue 25626
 additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
 built_in_identifier_prefix_test: CompileTimeError
 cascaded_forwarding_stubs_test: CompileTimeError
-check_member_static_test/01: CompileTimeError
 config_import_corelib_test: CompileTimeError
 config_import_corelib_test: StaticWarning, OK
 conflicting_generic_interfaces_hierarchy_loop_infinite_test: Skip # Crashes or times out
@@ -102,7 +101,6 @@ nested_generic_closure_test: CompileTimeError
 no_main_test/01: Fail # Issue 20030
 no_main_test/01: MissingStaticWarning # Issue 28823
 no_such_constructor2_test: StaticWarning
-override_field_test/02: CompileTimeError
 override_inheritance_field_test/42: CompileTimeError
 parser_quirks_test: CompileTimeError
 part_of_multiple_libs_test/01: MissingCompileTimeError # Issue 33227

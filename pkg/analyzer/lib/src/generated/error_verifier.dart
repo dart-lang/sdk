@@ -1363,7 +1363,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _checkForInconsistentMethodInheritance();
       _checkForRecursiveInterfaceInheritance(_enclosingClass);
       _checkForConflictingGetterAndMethod();
-      _checkForConflictingInstanceGetterAndSuperclassMember();
       _checkImplementsSuperClass(implementsClause);
       _checkForMixinHasNoConstructors(node);
       _checkMixinInference(node, withClause);
@@ -2485,71 +2484,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         inherited.enclosingElement.displayName,
         name
       ]);
-    }
-  }
-
-  /**
-   * Verify that the superclass of the [_enclosingClass] does not declare
-   * accessible static members with the same name as the instance
-   * getters/setters declared in [_enclosingClass].
-   *
-   * See [StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER], and
-   * [StaticWarningCode.CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER].
-   */
-  void _checkForConflictingInstanceGetterAndSuperclassMember() {
-    if (_enclosingClass == null) {
-      return;
-    }
-    InterfaceType enclosingType = _enclosingClass.type;
-    // check every accessor
-    for (PropertyAccessorElement accessor in _enclosingClass.accessors) {
-      // we analyze instance accessors here
-      if (accessor.isStatic) {
-        continue;
-      }
-      // prepare accessor properties
-      String name = accessor.displayName;
-      bool getter = accessor.isGetter;
-      // if non-final variable, ignore setter - we already reported problem for
-      // getter
-      if (accessor.isSetter && accessor.isSynthetic) {
-        continue;
-      }
-      // try to find super element
-      ExecutableElement superElement;
-      superElement =
-          enclosingType.lookUpGetterInSuperclass(name, _currentLibrary);
-      if (superElement == null) {
-        superElement =
-            enclosingType.lookUpSetterInSuperclass(name, _currentLibrary);
-      }
-      if (superElement == null) {
-        superElement =
-            enclosingType.lookUpMethodInSuperclass(name, _currentLibrary);
-      }
-      if (superElement == null) {
-        continue;
-      }
-      // OK, not static
-      if (!superElement.isStatic) {
-        continue;
-      }
-      // prepare "super" type to report its name
-      ClassElement superElementClass =
-          superElement.enclosingElement as ClassElement;
-      InterfaceType superElementType = superElementClass.type;
-
-      if (getter) {
-        _errorReporter.reportErrorForElement(
-            StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER,
-            accessor,
-            [superElementType.displayName]);
-      } else {
-        _errorReporter.reportErrorForElement(
-            StaticWarningCode.CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER,
-            accessor,
-            [superElementType.displayName]);
-      }
     }
   }
 
@@ -5960,7 +5894,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 //      _checkForInconsistentMethodInheritance();
 //      _checkForRecursiveInterfaceInheritance(_enclosingClass);
 //      _checkForConflictingGetterAndMethod();
-//      _checkForConflictingInstanceGetterAndSuperclassMember();
 //      _checkImplementsSuperClass(implementsClause);
 //      _checkForMixinHasNoConstructors(node);
 //      _checkMixinInference(node, onClause);

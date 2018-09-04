@@ -694,9 +694,7 @@ class ErrorReporterTest extends EngineTestCase {
     GatheringErrorListener listener = new GatheringErrorListener();
     ErrorReporter reporter = new ErrorReporter(listener, element.source);
     reporter.reportErrorForElement(
-        StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER,
-        element,
-        ['A']);
+        StaticWarningCode.CAST_TO_NON_TYPE, element, ['A']);
     AnalysisError error = listener.errors[0];
     expect(error.offset, element.nameOffset);
   }
@@ -710,9 +708,7 @@ class ErrorReporterTest extends EngineTestCase {
         new NonExistingSource(
             '/test.dart', path.toUri('/test.dart'), UriKind.FILE_URI));
     reporter.reportErrorForElement(
-        StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER,
-        element,
-        ['A']);
+        StaticWarningCode.CAST_TO_NON_TYPE, element, ['A']);
     AnalysisError error = listener.errors[0];
     expect(error.offset, element.nameOffset);
   }
