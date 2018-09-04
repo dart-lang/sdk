@@ -29,26 +29,36 @@ Future<ComparisonNode> driveKernel(
     ..embedSourceText = false;
 
   var component = await kernelForComponent(inputs, compilerOptions);
-  return component.accept(new _KernelVisitor(inputs.toSet()));
+  var libraryNodes = <ComparisonNode>[];
+  var visitor = _KernelVisitor(libraryNodes);
+  for (var library in component.libraries) {
+    if (inputs.contains(library.importUri)) {
+      library.accept(visitor);
+    }
+  }
+  return ComparisonNode.sorted('Component', libraryNodes);
 }
 
 /// Visitor for serializing a kernel representation of a program into
 /// ComparisonNodes.
-class _KernelVisitor extends TreeVisitor<ComparisonNode> {
-  final Set<Uri> _inputs;
+///
+/// Results are accumulated into [_resultNodes].
+class _KernelVisitor extends TreeVisitor<void> {
+  final List<ComparisonNode> _resultNodes;
 
-  _KernelVisitor(this._inputs);
+  _KernelVisitor(this._resultNodes);
 
   @override
-  ComparisonNode defaultTreeNode(TreeNode node) {
+  void defaultTreeNode(TreeNode node) {
     throw new UnimplementedError('KernelVisitor: ${node.runtimeType}');
   }
 
   @override
-  ComparisonNode visitClass(Class class_) {
+  void visitClass(Class class_) {
     if (class_.isAnonymousMixin) return null;
     var kind = class_.isEnum ? 'Enum' : 'Class';
     var children = <ComparisonNode>[];
+    var visitor = _KernelVisitor(children);
     if (class_.isEnum) {
       for (var field in class_.fields) {
         if (!field.isStatic) continue;
@@ -57,56 +67,99 @@ class _KernelVisitor extends TreeVisitor<ComparisonNode> {
         children.add(ComparisonNode('EnumValue ${field.name.name}'));
       }
     } else {
-      _visitList(class_.fields, children);
-      _visitList(class_.constructors, children);
-      _visitList(class_.procedures, children);
+      visitor._visitTypeParameters(class_.typeParameters);
+      if (class_.supertype != null) {
+        var declaredSupertype = class_.supertype.asInterfaceType;
+        var mixedInTypes = <DartType>[];
+        while (declaredSupertype.classNode.isAnonymousMixin) {
+          // Since we're walking from the class to its declared supertype, we
+          // encounter the mixins in the reverse order that they were declared,
+          // so we have to use [List.insert] to add them to [mixedInTypes].
+          mixedInTypes.insert(
+              0, declaredSupertype.classNode.mixedInType.asInterfaceType);
+          declaredSupertype =
+              declaredSupertype.classNode.supertype.asInterfaceType;
+        }
+        children.add(_TypeVisitor.translate('Extends: ', declaredSupertype));
+        for (int i = 0; i < mixedInTypes.length; i++) {
+          children.add(_TypeVisitor.translate('Mixin $i: ', mixedInTypes[i]));
+        }
+      }
+      for (int i = 0; i < class_.implementedTypes.length; i++) {
+        children.add(_TypeVisitor.translate(
+            'Implements $i: ', class_.implementedTypes[i].asInterfaceType));
+      }
+      visitor._visitList(class_.fields);
+      visitor._visitList(class_.constructors);
+      visitor._visitList(class_.procedures);
     }
     // TODO(paulberry): handle more fields from Class
-    return ComparisonNode.sorted('$kind ${class_.name}', children);
+    _resultNodes.add(ComparisonNode.sorted('$kind ${class_.name}', children));
   }
 
   @override
-  ComparisonNode visitComponent(Component component) {
-    var children = <ComparisonNode>[];
-    _visitList(component.libraries, children);
-    return ComparisonNode.sorted('Component', children);
-  }
-
-  @override
-  ComparisonNode visitConstructor(Constructor constructor) {
+  void visitConstructor(Constructor constructor) {
     if (constructor.isSynthetic) return null;
     var name = constructor.name.name;
     if (name.isEmpty) {
       name = '(unnamed)';
     }
-    // TODO(paulberry): handle fields from Constructor
-    return ComparisonNode('Constructor $name');
+    var children = <ComparisonNode>[];
+    var visitor = _KernelVisitor(children);
+    constructor.function.accept(visitor);
+    // TODO(paulberry): handle more fields from Constructor
+    _resultNodes.add(ComparisonNode.sorted('Constructor $name', children));
   }
 
   @override
-  ComparisonNode visitField(Field field) {
+  void visitField(Field field) {
     if (field.name.name == '_redirecting#') return null;
-    // TODO(paulberry): handle fields from Field
-    return ComparisonNode('Field ${field.name.name}');
+    var children = <ComparisonNode>[];
+    children.add(_TypeVisitor.translate('Type: ', field.type));
+    // TODO(paulberry): handle more fields from Field
+    _resultNodes
+        .add(ComparisonNode.sorted('Field ${field.name.name}', children));
   }
 
   @override
-  ComparisonNode visitLibrary(Library library) {
-    if (!_inputs.contains(library.importUri)) return null;
+  void visitFunctionNode(FunctionNode node) {
+    var parent = node.parent;
+    if (!(parent is Constructor || parent is Procedure && parent.isFactory)) {
+      _visitTypeParameters(node.typeParameters);
+      _resultNodes
+          .add(_TypeVisitor.translate('Return type: ', node.returnType));
+    }
+    var parameterChildren = <ComparisonNode>[];
+    var parameterVisitor = _KernelVisitor(parameterChildren);
+    for (int i = 0; i < node.positionalParameters.length; i++) {
+      parameterVisitor._visitParameter(node.positionalParameters[i],
+          i < node.requiredParameterCount ? 'Required' : 'Optional');
+    }
+    for (int i = 0; i < node.namedParameters.length; i++) {
+      parameterVisitor._visitParameter(node.namedParameters[i], 'Named');
+    }
+    _resultNodes.add(ComparisonNode('Parameters', parameterChildren));
+    // TODO(paulberry): handle more fields from FunctionNode
+  }
+
+  @override
+  void visitLibrary(Library library) {
     var children = <ComparisonNode>[];
     if (library.name != null) {
       children.add(ComparisonNode('name=${library.name}'));
     }
-    _visitList(library.typedefs, children);
-    _visitList(library.classes, children);
-    _visitList(library.procedures, children);
-    _visitList(library.fields, children);
+    var visitor = _KernelVisitor(children);
+    visitor._visitList(library.typedefs);
+    visitor._visitList(library.classes);
+    visitor._visitList(library.procedures);
+    visitor._visitList(library.fields);
     // TODO(paulberry): handle more fields from Library
-    return ComparisonNode.sorted(library.importUri.toString(), children);
+    _resultNodes
+        .add(ComparisonNode.sorted(library.importUri.toString(), children));
   }
 
   @override
-  ComparisonNode visitProcedure(Procedure procedure) {
+  void visitProcedure(Procedure procedure) {
     if (procedure.isForwardingStub) return null;
     // TODO(paulberry): add an annotation to the ComparisonNode when the
     // procedure is a factory.
@@ -117,24 +170,108 @@ class _KernelVisitor extends TreeVisitor<ComparisonNode> {
     if (name.isEmpty) {
       name = '(unnamed)';
     }
-    // TODO(paulberry): handle fields from Procedure
-    return ComparisonNode('$kind $name');
+    var children = <ComparisonNode>[];
+    var visitor = _KernelVisitor(children);
+    procedure.function.accept(visitor);
+    // TODO(paulberry): handle more fields from Procedure
+    _resultNodes.add(ComparisonNode.sorted('$kind $name', children));
   }
 
   @override
-  ComparisonNode visitTypedef(Typedef typedef) {
-    // TODO(paulberry): handle fields from Typedef
-    return ComparisonNode('Typedef ${typedef.name}');
+  void visitTypedef(Typedef typedef) {
+    var children = <ComparisonNode>[];
+    var visitor = _KernelVisitor(children);
+    visitor._visitTypeParameters(typedef.typeParameters);
+    children.add(_TypeVisitor.translate('Type: ', typedef.type));
+    // TODO(paulberry): handle more fields from Typedef
+    _resultNodes
+        .add(ComparisonNode.sorted('Typedef ${typedef.name}', children));
   }
 
-  /// Transforms all the nodes in [src] to [ComparisonNode]s, and adds those
-  /// with non-null results to [dst].
-  void _visitList(List<TreeNode> src, List<ComparisonNode> dst) {
-    for (var item in src) {
-      ComparisonNode result = item.accept(this);
-      if (result != null) {
-        dst.add(result);
-      }
+  /// Visits all the nodes in [nodes].
+  void _visitList(List<TreeNode> nodes) {
+    for (var node in nodes) {
+      node.accept(this);
     }
+  }
+
+  void _visitParameter(VariableDeclaration parameter, String kind) {
+    var children = <ComparisonNode>[];
+    children.add(_TypeVisitor.translate('Type: ', parameter.type));
+    // TODO(paulberry): handle more fields from VariableDeclaration
+    _resultNodes
+        .add(ComparisonNode.sorted('$kind: ${parameter.name}', children));
+  }
+
+  void _visitTypeParameters(List<TypeParameter> typeParameters) {
+    for (int i = 0; i < typeParameters.length; i++) {
+      _resultNodes.add(ComparisonNode(
+          'Type parameter $i: ${typeParameters[i].name}',
+          [_TypeVisitor.translate('Bound: ', typeParameters[i].bound)]));
+    }
+  }
+}
+
+/// Visitor for serializing a kernel representation of a type into
+/// ComparisonNodes.
+class _TypeVisitor extends DartTypeVisitor<ComparisonNode> {
+  /// Text to prepend to the node text.
+  String _prefix;
+
+  _TypeVisitor(this._prefix);
+
+  @override
+  ComparisonNode defaultDartType(DartType node) {
+    throw new UnimplementedError('_TypeVisitor: ${node.runtimeType}');
+  }
+
+  @override
+  ComparisonNode visitDynamicType(DynamicType node) {
+    return ComparisonNode('${_prefix}Dynamic');
+  }
+
+  @override
+  ComparisonNode visitFunctionType(FunctionType node) {
+    var children = <ComparisonNode>[];
+    var visitor = _KernelVisitor(children);
+    visitor._visitTypeParameters(node.typeParameters);
+    for (int i = 0; i < node.positionalParameters.length; i++) {
+      var kind = i < node.requiredParameterCount ? 'Required' : 'Optional';
+      children
+          .add(translate('$kind parameter $i: ', node.positionalParameters[i]));
+    }
+    for (var namedType in node.namedParameters) {
+      children
+          .add(translate('Named parameter ${namedType.name}', namedType.type));
+    }
+    return ComparisonNode.sorted('${_prefix}FunctionType', children);
+  }
+
+  @override
+  ComparisonNode visitInterfaceType(InterfaceType node) {
+    var children = <ComparisonNode>[];
+    children.add(ComparisonNode(
+        'Library: ${node.classNode.enclosingLibrary.importUri}'));
+    for (int i = 0; i < node.typeArguments.length; i++) {
+      children.add(translate('Type arg $i: ', node.typeArguments[i]));
+    }
+    return ComparisonNode(
+        '${_prefix}InterfaceType ${node.classNode.name}', children);
+  }
+
+  @override
+  ComparisonNode visitTypeParameterType(TypeParameterType node) {
+    // TODO(paulberry): disambiguate if needed.
+    return ComparisonNode(
+        '${_prefix}TypeParameterType: ${node.parameter.name}');
+  }
+
+  @override
+  ComparisonNode visitVoidType(VoidType node) {
+    return ComparisonNode('${_prefix}Void');
+  }
+
+  static ComparisonNode translate(String prefix, DartType type) {
+    return type.accept(new _TypeVisitor(prefix));
   }
 }
