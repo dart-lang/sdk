@@ -7,6 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'assignment_test.dart' as assignment_test;
 import 'class_test.dart' as class_test;
 import 'for_in_test.dart' as for_in_test;
+import 'import_prefix_test.dart' as import_prefix_test;
 import 'mixin_test.dart' as mixin_test;
 
 main() {
@@ -14,6 +15,7 @@ main() {
     assignment_test.main();
     class_test.main();
     for_in_test.main();
+    import_prefix_test.main();
     mixin_test.main();
   }, name: 'resolution');
 }

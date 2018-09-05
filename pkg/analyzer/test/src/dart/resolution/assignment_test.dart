@@ -770,7 +770,7 @@ main() {
 
     var pRef = findNode.simple('p +=');
     assertElement(pRef, findElement.prefix('p'));
-    assertTypeNull(pRef);
+    assertTypeDynamic(pRef);
   }
 
   test_to_prefix_increment() async {

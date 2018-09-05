@@ -18,6 +18,8 @@ class ForInDriverResolutionTest extends DriverResolutionTest
 
 abstract class ForInResolutionMixin implements ResolutionTest {
   test_importPrefix_asIterable() async {
+    // TODO(scheglov) Remove this test (already tested as import prefix).
+    // TODO(scheglov) Move other for-in tests here.
     addTestFile(r'''
 import 'dart:async' as p;
 
@@ -32,8 +34,8 @@ main() {
     expect(xRef.staticElement, isNotNull);
 
     var pRef = findNode.simple('p) {}');
-    assertElement(pRef, findElement.import('dart:async').prefix);
-    assertTypeNull(pRef);
+    assertElement(pRef, findElement.prefix('p'));
+    assertTypeDynamic(pRef);
   }
 }
 
