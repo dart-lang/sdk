@@ -25,6 +25,13 @@ abstract class IncrementalKernelGenerator {
         initializeFromDillUri);
   }
 
+  factory IncrementalKernelGenerator.fromComponent(
+      CompilerOptions options, Uri entryPoint, Component component) {
+    return new IncrementalCompiler.fromComponent(
+        new CompilerContext(new ProcessedOptions(options, [entryPoint])),
+        component);
+  }
+
   /// Returns a component whose libraries are the recompiled libraries,
   /// or - in the case of [fullComponent] - a full Component.
   Future<Component> computeDelta({Uri entryPoint, bool fullComponent});

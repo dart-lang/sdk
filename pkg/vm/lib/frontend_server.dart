@@ -159,6 +159,10 @@ abstract class CompilerInterface {
   /// won't recompile sources that were previously reported as changed.
   void acceptLastDelta();
 
+  /// Rejects results of previous compilation and sets compiler back to last
+  /// accepted state.
+  Future<void> rejectLastDelta();
+
   /// This let's compiler know that source file identifed by `uri` was changed.
   void invalidate(Uri uri);
 
@@ -494,6 +498,14 @@ class FrontendCompiler implements CompilerInterface {
   }
 
   @override
+  Future<void> rejectLastDelta() async {
+    await _generator.reject();
+    final String boundaryKey = new Uuid().generateV4();
+    _outputStream.writeln('result $boundaryKey');
+    _outputStream.writeln(boundaryKey);
+  }
+
+  @override
   void invalidate(Uri uri) {
     _generator.invalidate(uri);
   }
@@ -626,6 +638,8 @@ void listenAndCompile(CompilerInterface compiler, Stream<List<int>> input,
           state = _State.COMPILE_EXPRESSION_EXPRESSION;
         } else if (string == 'accept') {
           compiler.acceptLastDelta();
+        } else if (string == 'reject') {
+          await compiler.rejectLastDelta();
         } else if (string == 'reset') {
           compiler.resetIncrementalCompiler();
         } else if (string == 'quit') {
