@@ -161,15 +161,15 @@ class SourceClassBuilder extends KernelClassBuilder {
       if (!member.isStatic) return;
       // TODO(ahe): Revisit these messages. It seems like the last two should
       // be `context` parameter to this message.
-      addProblem(templateConflictsWithMember.withArguments(name),
+      addCompileTimeError(templateConflictsWithMember.withArguments(name),
           constructor.charOffset, noLength);
       if (constructor.isFactory) {
-        addProblem(
+        addCompileTimeError(
             templateConflictsWithFactory.withArguments("${this.name}.${name}"),
             member.charOffset,
             noLength);
       } else {
-        addProblem(
+        addCompileTimeError(
             templateConflictsWithConstructor
                 .withArguments("${this.name}.${name}"),
             member.charOffset,

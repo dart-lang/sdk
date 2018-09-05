@@ -167,13 +167,13 @@ class KernelEnumBuilder extends SourceClassBuilder
       int charOffset = constantNamesAndOffsetsAndDocs[i + 2];
       String documentationComment = constantNamesAndOffsetsAndDocs[i + 3];
       if (members.containsKey(name)) {
-        parent.addProblem(templateDuplicatedName.withArguments(name),
+        parent.addCompileTimeError(templateDuplicatedName.withArguments(name),
             charOffset, noLength, parent.fileUri);
         constantNamesAndOffsetsAndDocs[i + 1] = null;
         continue;
       }
       if (name == className) {
-        parent.addProblem(
+        parent.addCompileTimeError(
             templateEnumConstantSameNameAsEnclosing.withArguments(name),
             charOffset,
             noLength,
@@ -281,7 +281,7 @@ class KernelEnumBuilder extends SourceClassBuilder
       // unnamed constructor requires no arguments. But that information isn't
       // always available at this point, and it's not really a situation that
       // can happen unless you start modifying the SDK sources.
-      addProblem(messageNoUnnamedConstructorInObject, -1, noLength);
+      addCompileTimeError(messageNoUnnamedConstructorInObject, -1, noLength);
     } else {
       constructor.initializers.add(
           new SuperInitializer(superConstructor.target, new Arguments.empty())

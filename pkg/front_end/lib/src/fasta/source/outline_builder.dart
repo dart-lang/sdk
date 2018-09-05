@@ -336,7 +336,7 @@ class OutlineBuilder extends StackListener {
       push(charOffset);
       // Point to dollar sign
       int interpolationOffset = charOffset + beginToken.lexeme.length;
-      addProblem(messageInterpolationInUri, interpolationOffset, 1);
+      addCompileTimeError(messageInterpolationInUri, interpolationOffset, 1);
     }
   }
 
@@ -668,13 +668,14 @@ class OutlineBuilder extends StackListener {
                 charOffset, uri);
         }
         String string = name;
-        addProblem(template.withArguments(name), charOffset, string.length);
+        addCompileTimeError(
+            template.withArguments(name), charOffset, string.length);
       } else {
         if (formals != null) {
           for (FormalParameterBuilder formal in formals) {
             if (!formal.isRequired) {
-              addProblem(messageOperatorWithOptionalFormals, formal.charOffset,
-                  formal.name.length);
+              addCompileTimeError(messageOperatorWithOptionalFormals,
+                  formal.charOffset, formal.name.length);
             }
           }
         }
@@ -709,7 +710,8 @@ class OutlineBuilder extends StackListener {
             : library.computeAndValidateConstructorName(name, charOffset);
     if (constructorName != null) {
       if (isConst && bodyKind != MethodBody.Abstract) {
-        addProblem(messageConstConstructorWithBody, varFinalOrConstOffset, 5);
+        addCompileTimeError(
+            messageConstConstructorWithBody, varFinalOrConstOffset, 5);
         modifiers &= ~constMask;
       }
       if (returnType != null) {
@@ -736,7 +738,7 @@ class OutlineBuilder extends StackListener {
           nativeMethodName);
     } else {
       if (isConst) {
-        addProblem(messageConstMethod, varFinalOrConstOffset, 5);
+        addCompileTimeError(messageConstMethod, varFinalOrConstOffset, 5);
         modifiers &= ~constMask;
       }
       final int startCharOffset =
@@ -925,7 +927,7 @@ class OutlineBuilder extends StackListener {
       if (formals.length == 2) {
         // The name may be null for generalized function types.
         if (formals[0].name != null && formals[0].name == formals[1].name) {
-          addProblem(
+          addCompileTimeError(
               templateDuplicatedParameterName.withArguments(formals[1].name),
               formals[1].charOffset,
               formals[1].name.length,
@@ -942,7 +944,7 @@ class OutlineBuilder extends StackListener {
         for (FormalParameterBuilder formal in formals) {
           if (formal.name == null) continue;
           if (seenNames.containsKey(formal.name)) {
-            addProblem(
+            addCompileTimeError(
                 templateDuplicatedParameterName.withArguments(formal.name),
                 formal.charOffset,
                 formal.name.length,
@@ -1062,7 +1064,8 @@ class OutlineBuilder extends StackListener {
         functionType = type;
       } else {
         // TODO(ahe): Improve this error message.
-        addProblem(messageTypedefNotFunction, equals.charOffset, equals.length);
+        addCompileTimeError(
+            messageTypedefNotFunction, equals.charOffset, equals.length);
       }
     }
     List<MetadataBuilder> metadata = pop();
@@ -1101,7 +1104,7 @@ class OutlineBuilder extends StackListener {
     if (staticToken == null && modifiers & constMask != 0) {
       // It is a compile-time error if an instance variable is declared to be
       // constant.
-      addProblem(messageConstInstanceField, varFinalOrConst.charOffset,
+      addCompileTimeError(messageConstInstanceField, varFinalOrConst.charOffset,
           varFinalOrConst.length);
       modifiers &= ~constMask;
     }
@@ -1339,10 +1342,16 @@ class OutlineBuilder extends StackListener {
     debugEvent("AsyncModifier");
   }
 
+  @override
+  void addCompileTimeError(Message message, int charOffset, int length,
+      {List<LocatedMessage> context}) {
+    library.addCompileTimeError(message, charOffset, length, uri,
+        context: context);
+  }
+
   void addProblem(Message message, int charOffset, int length,
-      {bool wasHandled: false, List<LocatedMessage> context}) {
-    library.addProblem(message, charOffset, length, uri,
-        wasHandled: wasHandled, context: context);
+      {List<LocatedMessage> context}) {
+    library.addProblem(message, charOffset, length, uri, context: context);
   }
 
   /// Return the documentation comment for the entity that starts at the

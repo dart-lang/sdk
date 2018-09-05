@@ -36,20 +36,22 @@ class ThisAccessGenerator extends KernelGenerator {
   Expression buildSimpleRead() {
     if (!isSuper) {
       if (inFieldInitializer) {
-        return buildFieldInitializerError(null);
+        return new SyntheticExpressionJudgment(
+            buildFieldInitializerError(null));
       } else {
         return forest.thisExpression(token);
       }
     } else {
-      return helper.buildProblem(messageSuperAsExpression,
-          offsetForToken(token), lengthForToken(token));
+      return new SyntheticExpressionJudgment(helper.buildCompileTimeError(
+          messageSuperAsExpression,
+          offsetForToken(token),
+          lengthForToken(token)));
     }
   }
 
-  SyntheticExpressionJudgment buildFieldInitializerError(
-      Map<String, int> initializedFields) {
+  Expression buildFieldInitializerError(Map<String, int> initializedFields) {
     String keyword = isSuper ? "super" : "this";
-    return helper.buildProblem(
+    return helper.buildCompileTimeError(
         templateThisOrSuperAccessInFieldInitializer.withArguments(keyword),
         offsetForToken(token),
         keyword.length);
@@ -57,7 +59,7 @@ class ThisAccessGenerator extends KernelGenerator {
 
   @override
   Initializer buildFieldInitializer(Map<String, int> initializedFields) {
-    Expression error = buildFieldInitializerError(initializedFields).desugared;
+    Expression error = buildFieldInitializerError(initializedFields);
     return helper.buildInvalidInitializer(error, error.fileOffset);
   }
 
@@ -68,13 +70,13 @@ class ThisAccessGenerator extends KernelGenerator {
     int offset = offsetForToken(send.token);
     if (isInitializer && send is SendAccessGenerator) {
       if (isNullAware) {
-        helper.addProblem(
+        helper.addCompileTimeError(
             messageInvalidUseOfNullAwareAccess, operatorOffset, 2);
       }
       return buildConstructorInitializer(offset, name, arguments);
     }
     if (inFieldInitializer && !isInitializer) {
-      return buildFieldInitializerError(null);
+      return new SyntheticExpressionJudgment(buildFieldInitializerError(null));
     }
     Member getter = helper.lookupInstanceMember(name, isSuper: isSuper);
     if (send is SendAccessGenerator) {
@@ -104,7 +106,8 @@ class ThisAccessGenerator extends KernelGenerator {
     if (isInitializer) {
       return buildConstructorInitializer(offset, new Name(""), arguments);
     } else if (isSuper) {
-      return helper.buildProblem(messageSuperAsExpression, offset, noLength);
+      return new SyntheticExpressionJudgment(helper.buildCompileTimeError(
+          messageSuperAsExpression, offset, noLength));
     } else {
       return helper.buildMethodInvocation(
           forest.thisExpression(null), callName, arguments, offset,
@@ -171,10 +174,10 @@ class ThisAccessGenerator extends KernelGenerator {
   }
 
   Expression buildAssignmentError() {
-    return helper
-        .buildProblem(isSuper ? messageCannotAssignToSuper : messageNotAnLvalue,
-            offsetForToken(token), token.length)
-        .desugared;
+    return helper.buildCompileTimeError(
+        isSuper ? messageCannotAssignToSuper : messageNotAnLvalue,
+        offsetForToken(token),
+        token.length);
   }
 
   @override
@@ -223,7 +226,7 @@ class IncompleteErrorGenerator extends IncompleteSendGenerator
       offset = offsetForToken(token);
       length = lengthForToken(token);
     }
-    return helper.buildProblem(message, offset, length).desugared;
+    return helper.buildCompileTimeError(message, offset, length);
   }
 
   @override
@@ -392,11 +395,10 @@ class ParenthesizedExpressionGenerator extends KernelReadOnlyAccessGenerator {
   }
 
   Expression makeInvalidWrite(Expression value) {
-    return new InvalidWriteJudgment(
-        helper
-            .buildProblem(messageCannotAssignToParenthesizedExpression,
-                offsetForToken(token), lengthForToken(token))
-            .desugared,
-        expression);
+    var error = helper.buildCompileTimeError(
+        messageCannotAssignToParenthesizedExpression,
+        offsetForToken(token),
+        lengthForToken(token));
+    return new InvalidWriteJudgment(error, expression);
   }
 }

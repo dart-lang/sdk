@@ -656,7 +656,7 @@ class KernelSuperPropertyAccessGenerator extends KernelGenerator
   Expression doInvocation(int offset, Arguments arguments) {
     if (helper.constantContext != ConstantContext.none) {
       // TODO(brianwilkerson) Fix the length
-      helper.addProblem(messageNotAConstantExpression, offset, 1);
+      helper.addCompileTimeError(messageNotAConstantExpression, offset, 1);
     }
     if (getter == null || isFieldOrGetter(getter)) {
       return helper.buildMethodInvocation(
@@ -1146,12 +1146,10 @@ class KernelStaticAccessGenerator extends KernelGenerator
     Expression error;
     if (helper.constantContext != ConstantContext.none &&
         !helper.isIdentical(readTarget)) {
-      error = helper
-          .buildProblem(
-              templateNotConstantExpression.withArguments('Method invocation'),
-              offset,
-              readTarget?.name?.name?.length ?? 0)
-          .desugared /* TODO(ahe): Remove `.desugared`? */;
+      error = helper.buildCompileTimeError(
+          templateNotConstantExpression.withArguments('Method invocation'),
+          offset,
+          readTarget?.name?.name?.length ?? 0);
     }
     if (readTarget == null || isFieldOrGetter(readTarget)) {
       return helper.buildMethodInvocation(buildSimpleRead(), callName,

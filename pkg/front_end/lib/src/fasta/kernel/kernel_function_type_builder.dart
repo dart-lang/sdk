@@ -72,7 +72,7 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
 
   Supertype buildSupertype(
       LibraryBuilder library, int charOffset, Uri fileUri) {
-    library.addProblem(
+    library.addCompileTimeError(
         messageSupertypeIsFunction, charOffset, noLength, fileUri);
     return null;
   }

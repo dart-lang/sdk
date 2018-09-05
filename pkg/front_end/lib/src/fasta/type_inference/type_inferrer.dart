@@ -105,6 +105,7 @@ import '../kernel/kernel_shadow_ast.dart'
         ShadowClass,
         ShadowField,
         ShadowMember,
+        SyntheticExpressionJudgment,
         VariableDeclarationJudgment,
         getExplicitTypeArguments;
 
@@ -740,11 +741,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (!typeSchemaEnvironment.isSubtypeOf(expectedType, actualType)) {
       // Error: not assignable.  Perform error recovery.
       var parent = expression.parent;
-      var errorNode = helper.wrapInProblem(
+      var errorNode = helper.wrapInCompileTimeError(
           expression,
           (template ?? templateInvalidAssignment)
-              .withArguments(actualType, expectedType),
-          noLength);
+              .withArguments(actualType, expectedType));
       parent?.replaceChild(expression, errorNode);
       return errorNode;
     } else {
@@ -753,8 +753,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         // The type of the expression is known precisely, so an implicit
         // downcast is guaranteed to fail.  Insert a compile-time error.
         var parent = expression.parent;
-        var errorNode = helper.wrapInProblem(expression,
-            template.withArguments(actualType, expectedType), noLength);
+        var errorNode = helper.wrapInCompileTimeError(
+            expression, template.withArguments(actualType, expectedType));
         parent?.replaceChild(expression, errorNode);
         return errorNode;
       } else {
@@ -825,10 +825,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           new Let(
               new VariableDeclaration.forValue(receiver)
                 ..fileOffset = receiver.fileOffset,
-              helper.buildProblem(
+              new SyntheticExpressionJudgment(helper.buildCompileTimeError(
                   errorTemplate.withArguments(name.name, receiverType),
                   fileOffset,
-                  noLength))
+                  noLength)))
             ..fileOffset = fileOffset);
     }
     return interfaceMember;
@@ -1334,10 +1334,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (named.length == 2) {
       if (named[0].name == named[1].name) {
         var name = named[1].name;
-        var error = helper
-            .buildProblem(templateDuplicatedNamedArgument.withArguments(name),
-                named[1].fileOffset, name.length)
-            .desugared;
+        var error = helper.buildCompileTimeError(
+            templateDuplicatedNamedArgument.withArguments(name),
+            named[1].fileOffset,
+            name.length);
         arguments.named = [new kernel.NamedExpression(named[1].name, error)];
         formalTypes.removeLast();
         actualTypes.removeLast();
@@ -1352,10 +1352,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         if (seenNames.containsKey(name)) {
           hasProblem = true;
           var prevNamedExpression = seenNames[name];
-          prevNamedExpression.value = helper
-              .buildProblem(templateDuplicatedNamedArgument.withArguments(name),
-                  expression.fileOffset, name.length)
-              .desugared
+          prevNamedExpression.value = helper.buildCompileTimeError(
+              templateDuplicatedNamedArgument.withArguments(name),
+              expression.fileOffset,
+              name.length)
             ..parent = prevNamedExpression;
           formalTypes.removeAt(namedTypeIndex);
           actualTypes.removeAt(namedTypeIndex);
@@ -1671,10 +1671,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           receiverType is! DynamicType &&
           receiverType != typeSchemaEnvironment.rawFunctionType) {
         var parent = expression.parent;
-        var errorNode = helper.wrapInProblem(
-            expression,
-            templateImplicitCallOfNonMethod.withArguments(receiverType),
-            noLength);
+        var errorNode = helper.wrapInCompileTimeError(expression,
+            templateImplicitCallOfNonMethod.withArguments(receiverType));
         parent?.replaceChild(expression, errorNode);
       }
       listener.methodInvocation(

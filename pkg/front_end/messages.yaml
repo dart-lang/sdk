@@ -126,6 +126,7 @@ NotConstantExpression:
 
 NotAConstantExpression:
   template: "Not a constant expression."
+  severity: ERROR
   analyzerCode: NOT_CONSTANT_EXPRESSION
 
 NonAsciiIdentifier:
@@ -306,6 +307,7 @@ MultipleOnClauses:
 
 ImplementsFutureOr:
   template: "'FutureOr' can't be used in an 'implements' clause."
+  severity: ERROR
   script:
     - >-
       import 'dart:async';
@@ -340,6 +342,7 @@ ExpectedHexDigit:
 
 ExpectedIdentifier:
   template: "Expected an identifier, but got '#lexeme'."
+  severity: ERROR
   analyzerCode: MISSING_IDENTIFIER
   script: "do() {} main() {}"
 
@@ -364,6 +367,7 @@ ExpectedToken:
 
 ExpectedType:
   template: "Expected a type, but got '#lexeme'."
+  severity: ERROR
   analyzerCode: EXPECTED_TYPE_NAME
 
 MissingExpressionInThrow:
@@ -480,6 +484,7 @@ ConstFactory:
 ConstFactoryRedirectionToNonConst:
   template: "Constant factory constructor can't delegate to a non-constant constructor."
   tip: "Try redirecting to a different constructor or marking the target constructor 'const'."
+  severity: ERROR
   analyzerCode: REDIRECT_TO_NON_CONST_CONSTRUCTOR
   script:
     - >-
@@ -491,11 +496,13 @@ ConstFactoryRedirectionToNonConst:
 NonConstFactory:
   template: "Cannot invoke a non-'const' factory where a const expression is expected."
   tip: "Try using a constructor or factory that is 'const'."
+  severity: ERROR
   analyzerCode: NOT_CONSTANT_EXPRESSION
 
 NonConstConstructor:
   template: "Cannot invoke a non-'const' constructor where a const expression is expected."
   tip: "Try using a constructor or factory that is 'const'."
+  severity: ERROR
   analyzerCode: NOT_CONSTANT_EXPRESSION
 
 ConstAfterFactory:
@@ -609,6 +616,7 @@ InitializerOutsideConstructor:
 
 MoreThanOneSuperOrThisInitializer:
   template: "Can't have more than one 'super' or 'this' initializer."
+  severity: ERROR
   analyzerCode: SUPER_IN_REDIRECTING_CONSTRUCTOR
   script:
     - "class C { C.bad() : super(), super(); }"
@@ -618,6 +626,7 @@ MoreThanOneSuperOrThisInitializer:
 
 ThisInitializerNotAlone:
   template: "Can't have other initializers together with 'this'."
+  severity: ERROR
   analyzerCode: FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR
   script:
     - "class C { int x; C(); C.bad() : x = 5, this(); }"
@@ -625,6 +634,7 @@ ThisInitializerNotAlone:
 
 SuperInitializerNotLast:
   template: "Can't have initializers after 'super'."
+  severity: ERROR
   analyzerCode: INVALID_SUPER_INVOCATION
   script:
     - "class C { int x; C.bad() : super(), x = 5; }"
@@ -793,6 +803,7 @@ InvalidSyncModifier:
 InvalidVoid:
   template: "Type 'void' can't be used here because it isn't a return type."
   tip: "Try removing 'void' keyword or replace it with 'var', 'final', or a type."
+  severity: ERROR
   analyzerCode: INVALID_USE_OF_VOID
   script:
     - "void x; main() {}"
@@ -801,11 +812,13 @@ InvalidVoid:
 InvalidInitializer:
   template: "Not a valid initializer."
   tip: "To initialize a field, use the syntax 'name = value'."
+  severity: ERROR
   analyzerCode: INVALID_INITIALIZER
 
 FinalFieldNotInitialized:
   template: "Final field '#name' is not initialized."
   tip: "Try to initialize the field in the declaration or in every constructor."
+  severity: ERROR
   analyzerCode: FINAL_NOT_INITIALIZED
   script: >
     class C {
@@ -815,6 +828,7 @@ FinalFieldNotInitialized:
 FinalFieldNotInitializedByConstructor:
   template: "Final field '#name' is not initialized by this constructor."
   tip: "Try to initialize the field using an initializing formal or a field initializer."
+  severity: ERROR
   analyzerCode: FINAL_NOT_INITIALIZED_CONSTRUCTOR_1
   script: >
     class C {
@@ -1138,6 +1152,7 @@ ConstructorWithReturnType:
 
 ConstructorWithTypeParameters:
   template: "Constructors can't have type parameters."
+  severity: ERROR
   analyzerCode: TYPE_PARAMETER_ON_CONSTRUCTOR
   script:
     - "class C { C<T>() {} }"
@@ -1148,12 +1163,14 @@ ConstructorWithTypeParameters:
 ConstructorWithTypeArguments:
   template: "A constructor invocation can't have type arguments on the constructor name."
   tip: "Try to place the type arguments on the class name."
+  severity: ERROR
   analyzerCode: UNDEFINED_CLASS
   script:
     - "class C<X> { C.foo(); } bar() { new C.foo<int>(); }"
 
 ConstructorWithWrongName:
   template: "The name of a constructor must match the name of the enclosing class."
+  severity: ERROR
   analyzerCode: INVALID_CONSTRUCTOR_NAME
   script:
     - "class A { B.foo() {} }"
@@ -1167,6 +1184,7 @@ ConstructorWithWrongNameContext:
 ConstructorCyclic:
   template: "Redirecting constructers can't be cyclic."
   tip: "Try to have all constructors eventually redirect to a non-redirecting constructor."
+  severity: ERROR
   analyzerCode: RECURSIVE_CONSTRUCTOR_REDIRECT
   script:
     - "class C { C.foo() : this.bar(); C.bar() : this.foo(); }"
@@ -1222,6 +1240,7 @@ CandidateFoundIsDefaultConstructor:
 
 MissingArgumentList:
   template: "Constructor invocations must have an argument list."
+  severity: ERROR
 
 TooFewArguments:
   template: "Too few positional arguments: #count required, #count2 given."
@@ -1246,6 +1265,7 @@ AbstractClassInstantiation:
 
 EnumInstantiation:
   template: "Enums can't be instantiated."
+  severity: ERROR
   analyzerCode: INSTANTIATE_ENUM
 
 AbstractRedirectedClassInstantiation:
@@ -1461,6 +1481,10 @@ InternalProblemUriMissingScheme:
   template: "The URI '#uri' has no scheme."
   severity: INTERNAL_PROBLEM
 
+InternalProblemMissingSeverity:
+  template: "Message code missing severity: #string"
+  severity: INTERNAL_PROBLEM
+
 InternalProblemContextSeverity:
   template: "Non-context message has context severity: #string"
   severity: INTERNAL_PROBLEM
@@ -1546,10 +1570,12 @@ DuplicatedImportInType:
 
 CyclicClassHierarchy:
   template: "'#name' is a supertype of itself via '#string'."
+  severity: ERROR
   analyzerCode: RECURSIVE_INTERFACE_INHERITANCE
 
 ExtendingEnum:
   template: "'#name' is an enum and can't be extended or implemented."
+  severity: ERROR
   analyzerCode: EXTENDS_ENUM
 
 ExtendingRestricted:
@@ -1561,6 +1587,7 @@ NoUnnamedConstructorInObject:
 
 IllegalAsyncGeneratorReturnType:
   template: "Functions marked 'async*' must have a return type assignable to 'Stream'."
+  severity: ERROR
   analyzerCode: ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE
   script:
     - >-
@@ -1570,6 +1597,7 @@ IllegalAsyncGeneratorReturnType:
 
 IllegalAsyncGeneratorVoidReturnType:
   template: "Functions marked 'async*' can't have return type 'void'."
+  severity: ERROR
   script:
     - >-
       void g() async* {
@@ -1577,6 +1605,7 @@ IllegalAsyncGeneratorVoidReturnType:
 
 IllegalAsyncReturnType:
   template: "Functions marked 'async' must have a return type assignable to 'Future'."
+  severity: ERROR
   analyzerCode: ILLEGAL_ASYNC_RETURN_TYPE
   script:
     - >-
@@ -1586,6 +1615,7 @@ IllegalAsyncReturnType:
 
 IllegalSyncGeneratorReturnType:
   template: "Functions marked 'sync*' must have a return type assignable to 'Iterable'."
+  severity: ERROR
   analyzerCode: ILLEGAL_SYNC_GENERATOR_RETURN_TYPE
   script:
     - >-
@@ -1595,6 +1625,7 @@ IllegalSyncGeneratorReturnType:
 
 IllegalSyncGeneratorVoidReturnType:
   template: "Functions marked 'sync*' can't have return type 'void'."
+  severity: ERROR
   script:
     - >-
       void g() sync* {
@@ -1610,13 +1641,16 @@ IllegalMixinDueToConstructorsCause:
 
 ConflictsWithConstructor:
   template: "Conflicts with constructor '#name'."
+  severity: ERROR
   analyzerCode: CONFLICTS_WITH_CONSTRUCTOR
 
 ConflictsWithFactory:
   template: "Conflicts with factory '#name'."
+  severity: ERROR
 
 ConflictsWithMember:
   template: "Conflicts with member '#name'."
+  severity: ERROR
   analyzerCode: CONFLICTS_WITH_MEMBER
 
 ConflictsWithMemberWarning:
@@ -1626,6 +1660,7 @@ ConflictsWithMemberWarning:
 
 ConflictsWithSetter:
   template: "Conflicts with setter '#name'."
+  severity: ERROR
   analyzerCode: CONFLICTS_WITH_MEMBER
 
 ConflictsWithSetterWarning:
@@ -1635,6 +1670,7 @@ ConflictsWithSetterWarning:
 
 ConflictsWithTypeVariable:
   template: "Conflicts with type variable '#name'."
+  severity: ERROR
   analyzerCode: CONFLICTING_TYPE_VARIABLE_AND_MEMBER
 
 ConflictsWithTypeVariableCause:
@@ -1887,6 +1923,7 @@ PartTwice:
 PartOfTwoLibraries:
   template: "A file can't be part of more than one library."
   tip: "Try moving the shared declarations into the libraries, or into a new library."
+  severity: ERROR
   analyzerCode: PART_OF_DIFFERENT_LIBRARY
   script:
     main.dart: "library lib; import 'lib.dart'; part 'part.dart';"
@@ -1951,6 +1988,7 @@ MissingPartOf:
 PartOfInLibrary:
   template: "Can't import '#uri', because it has a 'part of' declaration."
   tip: "Try removing the 'part of' declaration, or using '#uri' as a part."
+  severity: ERROR
   analyzerCode: IMPORT_OF_NON_LIBRARY
   script:
     part.dart: "part of mainlib;"
@@ -1980,6 +2018,7 @@ DuplicatedDefinition:
 
 DuplicatedName:
   template: "'#name' is already declared in this scope."
+  severity: ERROR
   analyzerCode: DUPLICATE_DEFINITION
 
 DuplicatedNameCause:
@@ -1988,6 +2027,7 @@ DuplicatedNameCause:
 
 DuplicatedNamePreviouslyUsed:
   template: "Can't declare '#name' because it was already used in this scope."
+  severity: ERROR
   analyzerCode: REFERENCED_BEFORE_DECLARATION
   script:
     - "main(arguments) { arguments; var arguments; }"
@@ -1998,10 +2038,12 @@ DuplicatedNamePreviouslyUsedCause:
 
 DuplicatedNamedArgument:
   template: "Duplicated named argument '#name'."
+  severity: ERROR
   analyzerCode: DUPLICATE_NAMED_ARGUMENT
 
 DuplicatedParameterName:
   template: "Duplicated parameter name '#name'."
+  severity: ERROR
   analyzerCode: DUPLICATE_DEFINITION
 
 DuplicatedParameterNameCause:
@@ -2048,10 +2090,12 @@ OperatorMinusParameterMismatch:
 
 SupertypeIsIllegal:
   template: "The type '#name' can't be used as supertype."
+  severity: ERROR
   analyzerCode: EXTENDS_NON_CLASS
 
 SupertypeIsTypeVariable:
   template: "The type variable '#name' can't be used as supertype."
+  severity: ERROR
   analyzerCode: EXTENDS_NON_CLASS
 
 PartOfLibraryNameMismatch:
@@ -2100,6 +2144,7 @@ ThisOrSuperAccessInFieldInitializer:
 
 ThisAsIdentifier:
   template: "Expected identifier, but got 'this'."
+  severity: ERROR
   analyzerCode: INVALID_REFERENCE_TO_THIS
 
 SuperAsIdentifier:
@@ -2113,6 +2158,7 @@ SuperAsExpression:
 
 SwitchExpressionNotAssignable:
   template: "Type '#type' of the switch expression isn't assignable to the type '#type2' of this case expression."
+  severity: ERROR
   analyzerCode: SWITCH_EXPRESSION_NOT_ASSIGNABLE
   script:
     - >-
@@ -2161,6 +2207,7 @@ TypeVariableInStaticContext:
 
 TypeVariableInConstantContext:
   template: "Type variables can't be used as constants."
+  severity: ERROR
   analyzerCode: TYPE_PARAMETER_IN_CONST_EXPRESSION
   declaration:
     - |
@@ -2215,10 +2262,12 @@ ConstConstructorNonFinalFieldCause:
 
 ConstConstructorInSubclassOfMixinApplication:
   template: "Can't extend a mixin application and be 'const'."
+  severity: ERROR
   analyzerCode: CONST_CONSTRUCTOR_IN_SUBCLASS_OF_MIXIN_APPLICATION
 
 ConstConstructorRedirectionToNonConst:
   template: "A constant constructor can't call a non-constant constructor."
+  severity: ERROR
   script:
     - >-
       class A {
@@ -2457,39 +2506,48 @@ DillOutlineSummary:
 CantInferTypeDueToInconsistentOverrides:
   template: "Can't infer the type of '#string': overridden members must all have the same type."
   tip: "Specify the type explicitly."
+  severity: ERROR
   analyzerCode: INVALID_METHOD_OVERRIDE
 
 CantInferTypeDueToCircularity:
   template: "Can't infer the type of '#string': circularity found during type inference."
   tip: "Specify the type explicitly."
   analyzerCode: RECURSIVE_COMPILE_TIME_CONSTANT
+  severity: ERROR
 
 AmbiguousSupertypes:
   template: "'#name' can't implement both '#type' and '#type2'"
+  severity: ERROR
   analyzerCode: AMBIGUOUS_SUPERTYPES
 
 CantUseSuperBoundedTypeForInstanceCreation:
   template: "Can't use a super-bounded type for instance creation. Got '#type'."
   tip: "Specify a regular-bounded type instead of the super-bounded type. Note that the latter may be due to type inference."
+  severity: ERROR
 
 MixinInferenceNoMatchingClass:
   template: "Type parameters could not be inferred for the mixin '#name' because '#name2' does not implement the mixin's supertype constraint '#type'."
+  severity: ERROR
   analyzerCode: MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION
 
 ImplicitCallOfNonMethod:
   template: "Cannot invoke an instance of '#type' because it declares 'call' to be something other than a method."
   tip: "Try changing 'call' to a method or explicitly invoke 'call'."
+  severity: ERROR
   analyzerCode: IMPLICIT_CALL_OF_NON_METHOD
 
 ExpectedOneExpression:
   template: "Expected one expression, but found additional input."
+  severity: ERROR
 
 ForInLoopNotAssignable:
   template: "Can't assign to this, so it can't be used in a for-in loop."
+  severity: ERROR
   statement: "for (1 in []) {}"
 
 ForInLoopExactlyOneVariable:
   template: "A for-in loop can't have more than one loop variable."
+  severity: ERROR
   statement: "for (var x, y in []) {}"
 
 ForInLoopWithConstVariable:
@@ -2544,10 +2602,12 @@ MissingExplicitTypeArguments:
 WebLiteralCannotBeRepresentedExactly:
   template: "The integer literal #string can't be represented exactly in JavaScript."
   tip: "Try changing the literal to something that can be represented in Javascript. In Javascript #string2 is the nearest value that can be represented exactly."
+  severity: ERROR
 
 BoundIssueViaRawTypeWithNonSimpleBounds:
   template: "Generic type '#name' can't be used without type arguments in a type variable bound."
   tip: "Try providing type arguments to '#name' here."
+  severity: ERROR
   analyzerCode: NOT_INSTANTIATED_BOUND
   script: >
     class Hest<X extends Hest<X>> {}
@@ -2560,6 +2620,7 @@ NonSimpleBoundViaVariable:
 BoundIssueViaLoopNonSimplicity:
   template: "Generic type '#name' can't be used without type arguments in the bounds of its own type variables."
   tip: "Try providing type arguments to '#name' here."
+  severity: ERROR
   analyzerCode: NOT_INSTANTIATED_BOUND
   script: >
     class Hest<X extends Hest> {}
@@ -2567,6 +2628,7 @@ BoundIssueViaLoopNonSimplicity:
 BoundIssueViaCycleNonSimplicity:
   template: "Generic type '#name' can't be used without type arguments in the bounds of its own type variables. It is referenced indirectly through '#name2'."
   tip: "Try providing type arguments to '#name2' here or to some other raw types in the bounds along the reference chain."
+  severity: ERROR
   analyzerCode: NOT_INSTANTIATED_BOUND
   script: >
     class Hest<X extends Fisk> {}
@@ -2586,6 +2648,7 @@ CycleInTypeVariables:
 
 CantUsePrefixAsExpression:
   template: "A prefix can't be used as an expression."
+  severity: ERROR
   analyzerCode: PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT
   script: |
     import "dart:core" as prefix;
@@ -2597,6 +2660,7 @@ CantUsePrefixAsExpression:
 CantUsePrefixWithNullAware:
   template: "A prefix can't be used with null-aware operators."
   tip: "It should be safe to remove the '?' as a prefix is never null."
+  severity: ERROR
   analyzerCode: PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT
   script: |
     import "dart:core" as prefix;
@@ -2613,6 +2677,7 @@ CantUseDeferredPrefixAsConstant:
     Try moving the constant from the deferred library, or removing 'deferred'
     from the import.
   analyzerCode: CONST_DEFERRED_CLASS
+  severity: ERROR
   script: |
     import "dart:core" deferred as prefix;
 
@@ -2623,6 +2688,7 @@ CantUseDeferredPrefixAsConstant:
 CyclicRedirectingFactoryConstructors:
   template: "Cyclic definition of factory '#name'."
   analyzerCode: RECURSIVE_FACTORY_REDIRECT
+  severity: ERROR
   script: |
     class Foo {
       factory Foo.foo() = Foo.bar;
@@ -2633,11 +2699,13 @@ CyclicRedirectingFactoryConstructors:
 GenericFunctionTypeInBound:
   template: "Type variables can't have generic function types in their bounds."
   analyzerCode: GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND
+  severity: ERROR
   script: |
     class Hest<X extends Y Function<Y>(Y)> {}
 
 VoidExpression:
   template: "This expression has type 'void' and can't be used."
+  severity: ERROR
   analyzerCode: USE_OF_VOID_RESULT
   statement: |
     {
@@ -2647,6 +2715,7 @@ VoidExpression:
 
 ReturnFromVoidFunction:
   template: "Can't return a value from a void function."
+  severity: ERROR
   analyzerCode: RETURN_OF_INVALID_TYPE
   declaration: "void foo() { return 1; }"
 
@@ -2662,6 +2731,7 @@ RethrowNotCatch:
 
 InvokeNonFunction:
   template: "'#name' isn't a function or method and can't be invoked."
+  severity: ERROR
   analyzerCode: INVOCATION_OF_NON_FUNCTION
   script: |
     class Foo {

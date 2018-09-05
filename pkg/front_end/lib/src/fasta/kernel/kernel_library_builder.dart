@@ -249,8 +249,10 @@ class KernelLibraryBuilder
       if (typeVariablesByName != null) {
         TypeVariableBuilder tv = typeVariablesByName[name];
         if (tv != null) {
-          cls.addProblem(templateConflictsWithTypeVariable.withArguments(name),
-              member.charOffset, name.length,
+          cls.addCompileTimeError(
+              templateConflictsWithTypeVariable.withArguments(name),
+              member.charOffset,
+              name.length,
               context: [
                 messageConflictsWithTypeVariableCause.withLocation(
                     tv.fileUri, tv.charOffset, name.length)
@@ -274,7 +276,7 @@ class KernelLibraryBuilder
     for (TypeVariableBuilder tv in typeVariables) {
       TypeVariableBuilder existing = typeVariablesByName[tv.name];
       if (existing != null) {
-        addProblem(messageTypeVariableDuplicatedName, tv.charOffset,
+        addCompileTimeError(messageTypeVariableDuplicatedName, tv.charOffset,
             tv.name.length, fileUri,
             context: [
               templateTypeVariableDuplicatedNameCause
@@ -288,8 +290,8 @@ class KernelLibraryBuilder
           // Only classes and type variables can't have the same name. See
           // [#29555](https://github.com/dart-lang/sdk/issues/29555).
           if (tv.name == owner.name) {
-            addProblem(messageTypeVariableSameNameAsEnclosing, tv.charOffset,
-                tv.name.length, fileUri);
+            addCompileTimeError(messageTypeVariableSameNameAsEnclosing,
+                tv.charOffset, tv.name.length, fileUri);
           }
         }
       }
@@ -1282,7 +1284,7 @@ class KernelLibraryBuilder
 
   void exportMemberFromPatch(String name, Declaration member) {
     if (uri.scheme != "dart" || !uri.path.startsWith("_")) {
-      addProblem(templatePatchInjectionFailed.withArguments(name, uri),
+      addCompileTimeError(templatePatchInjectionFailed.withArguments(name, uri),
           member.charOffset, noLength, member.fileUri);
     }
     // Platform-private libraries, such as "dart:_internal" have special

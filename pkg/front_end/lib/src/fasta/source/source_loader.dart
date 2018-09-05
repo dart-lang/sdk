@@ -178,8 +178,8 @@ class SourceLoader<L> extends Loader<L> {
     while (token is ErrorToken) {
       if (!suppressLexicalErrors) {
         ErrorToken error = token;
-        library.addProblem(error.assertionMessage, offsetForToken(token),
-            lengthForToken(token), uri);
+        library.addCompileTimeError(error.assertionMessage,
+            offsetForToken(token), lengthForToken(token), uri);
       }
       token = token.next;
     }
@@ -542,7 +542,7 @@ class SourceLoader<L> extends Loader<L> {
       // [cyclicCandidates] is sensitive to if the platform (or other modules)
       // are included in [classes].
       for (LocatedMessage message in messages.keys.toList()..sort()) {
-        messages[message].addProblem(
+        messages[message].addCompileTimeError(
             message.messageObject, message.charOffset, message.length);
       }
     }
@@ -561,11 +561,13 @@ class SourceLoader<L> extends Loader<L> {
       target.addDirectSupertype(cls, directSupertypes);
       for (ClassBuilder supertype in directSupertypes) {
         if (supertype is EnumBuilder) {
-          cls.addProblem(templateExtendingEnum.withArguments(supertype.name),
-              cls.charOffset, noLength);
+          cls.addCompileTimeError(
+              templateExtendingEnum.withArguments(supertype.name),
+              cls.charOffset,
+              noLength);
         } else if (!cls.library.mayImplementRestrictedTypes &&
             blackListedClasses.contains(supertype)) {
-          cls.addProblem(
+          cls.addCompileTimeError(
               templateExtendingRestricted.withArguments(supertype.name),
               cls.charOffset,
               noLength);
@@ -581,7 +583,7 @@ class SourceLoader<L> extends Loader<L> {
             for (Declaration constructory
                 in builder.constructors.local.values) {
               if (constructory.isConstructor && !constructory.isSynthetic) {
-                cls.addProblem(
+                cls.addCompileTimeError(
                     templateIllegalMixinDueToConstructors
                         .withArguments(builder.fullNameForErrors),
                     cls.charOffset,
@@ -597,7 +599,7 @@ class SourceLoader<L> extends Loader<L> {
           }
         }
         if (!isClassBuilder) {
-          cls.addProblem(
+          cls.addCompileTimeError(
               templateIllegalMixin.withArguments(mixedInType.fullNameForErrors),
               cls.charOffset,
               noLength);
@@ -875,7 +877,8 @@ class SourceLoader<L> extends Loader<L> {
     return target.backendTarget.throwCompileConstantError(coreTypes, error);
   }
 
-  Expression buildProblem(Message message, int offset, int length, Uri uri) {
+  Expression buildCompileTimeError(
+      Message message, int offset, int length, Uri uri) {
     String text = target.context
         .format(message.withLocation(uri, offset, length), Severity.error);
     return target.backendTarget.buildCompileTimeError(coreTypes, text, offset);

@@ -86,7 +86,7 @@ class KernelFunctionTypeAliasBuilder
   DartType buildThisType(LibraryBuilder library) {
     if (thisType != null) {
       if (const InvalidType() == thisType) {
-        library.addProblem(templateCyclicTypedef.withArguments(name),
+        library.addCompileTimeError(templateCyclicTypedef.withArguments(name),
             charOffset, noLength, fileUri);
         return const DynamicType();
       }

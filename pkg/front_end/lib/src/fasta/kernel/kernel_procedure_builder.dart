@@ -233,7 +233,7 @@ abstract class KernelFunctionBuilder
 
   bool checkPatch(KernelFunctionBuilder patch) {
     if (!isExternal) {
-      patch.library.addProblem(
+      patch.library.addCompileTimeError(
           messagePatchNonExternal, patch.charOffset, noLength, patch.fileUri,
           context: [
             messagePatchDeclarationOrigin.withLocation(
@@ -245,8 +245,8 @@ abstract class KernelFunctionBuilder
   }
 
   void reportPatchMismatch(Declaration patch) {
-    library.addProblem(messagePatchDeclarationMismatch, patch.charOffset,
-        noLength, patch.fileUri, context: [
+    library.addCompileTimeError(messagePatchDeclarationMismatch,
+        patch.charOffset, noLength, patch.fileUri, context: [
       messagePatchDeclarationOrigin.withLocation(fileUri, charOffset, noLength)
     ]);
   }
@@ -494,7 +494,7 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
     assert(lastInitializer == superInitializer ||
         lastInitializer == redirectingInitializer);
     Initializer error = helper.buildInvalidInitializer(
-        helper.buildProblem(message, charOffset, noLength).desugared,
+        helper.buildCompileTimeError(message, charOffset, noLength),
         charOffset);
     initializers.add(error..parent = constructor);
     initializers.add(lastInitializer);
@@ -518,10 +518,8 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
       } else if (constructor.initializers.isNotEmpty) {
         Initializer first = constructor.initializers.first;
         Initializer error = helper.buildInvalidInitializer(
-            helper
-                .buildProblem(
-                    messageThisInitializerNotAlone, first.fileOffset, noLength)
-                .desugared,
+            helper.buildCompileTimeError(
+                messageThisInitializerNotAlone, first.fileOffset, noLength),
             first.fileOffset);
         initializers.add(error..parent = constructor);
       } else {

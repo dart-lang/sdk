@@ -27,8 +27,7 @@ class Code<T> {
 
   final Severity severity;
 
-  const Code(this.name, this.template,
-      {this.analyzerCode, this.severity: Severity.error});
+  const Code(this.name, this.template, {this.analyzerCode, this.severity});
 
   String toString() => name;
 }
@@ -59,10 +58,7 @@ class MessageCode extends Code<Null> implements Message {
   final String tip;
 
   const MessageCode(String name,
-      {String analyzerCode,
-      Severity severity: Severity.error,
-      this.message,
-      this.tip})
+      {String analyzerCode, Severity severity, this.message, this.tip})
       : super(name, null, analyzerCode: analyzerCode, severity: severity);
 
   Map<String, dynamic> get arguments => const <String, dynamic>{};

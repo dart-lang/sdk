@@ -92,7 +92,6 @@ class MessageTestSuite extends ChainContext {
       String analyzerCode;
       Severity severity;
       YamlNode badSeverity;
-      YamlNode unnecessarySeverity;
 
       for (String key in message.keys) {
         YamlNode node = message.nodes[key];
@@ -106,8 +105,6 @@ class MessageTestSuite extends ChainContext {
             severity = severityEnumValues[value];
             if (severity == null) {
               badSeverity = node;
-            } else if (severity == Severity.error) {
-              unnecessarySeverity = node;
             }
             break;
 
@@ -195,7 +192,7 @@ class MessageTestSuite extends ChainContext {
         if (problem != null) {
           String filename = relativize(uri);
           location ??= message.span.start;
-          int line = location.line + 1;
+          int line = location.line;
           int column = location.column;
           problem = "$filename:$line:$column: error:\n$problem";
         }
@@ -221,14 +218,6 @@ class MessageTestSuite extends ChainContext {
               ? "Unknown severity: '${badSeverity.value}'."
               : null,
           location: badSeverity?.span?.start);
-
-      yield createDescription(
-          "unnecessarySeverity",
-          null,
-          unnecessarySeverity != null
-              ? "The 'ERROR' severity is the default and not necessary."
-              : null,
-          location: unnecessarySeverity?.span?.start);
 
       bool exampleAndAnalyzerCodeRequired = severity != Severity.context &&
           severity != Severity.internalProblem &&
@@ -275,7 +264,7 @@ class MessageTestSuite extends ChainContext {
     buffer
       ..write(relativize(span.sourceUrl))
       ..write(":")
-      ..write(span.start.line + 1)
+      ..write(span.start.line)
       ..write(":")
       ..write(span.start.column)
       ..write(": error: ")

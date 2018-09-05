@@ -11,8 +11,6 @@ import '../fasta_codes.dart' show Message;
 import '../messages.dart'
     show noLength, templateSupertypeIsIllegal, templateSupertypeIsTypeVariable;
 
-import '../severity.dart' show Severity;
-
 import 'kernel_builder.dart'
     show
         KernelClassBuilder,
@@ -42,9 +40,8 @@ class KernelNamedTypeBuilder
     var template = declaration.isTypeVariable
         ? templateSupertypeIsTypeVariable
         : templateSupertypeIsIllegal;
-    library.addProblem(
-        template.withArguments("$name"), charOffset, noLength, fileUri,
-        severity: Severity.error);
+    library.addCompileTimeError(
+        template.withArguments("$name"), charOffset, noLength, fileUri);
     return null;
   }
 
@@ -58,12 +55,11 @@ class KernelNamedTypeBuilder
     if (declaration is KernelClassBuilder) {
       return declaration.buildSupertype(library, arguments);
     } else if (declaration is KernelInvalidTypeBuilder) {
-      library.addProblem(
+      library.addCompileTimeError(
           declaration.message.messageObject,
           declaration.message.charOffset,
           declaration.message.length,
-          declaration.message.uri,
-          severity: Severity.error);
+          declaration.message.uri);
       return null;
     } else {
       return handleInvalidSupertype(library, charOffset, fileUri);
@@ -76,12 +72,11 @@ class KernelNamedTypeBuilder
     if (declaration is KernelClassBuilder) {
       return declaration.buildMixedInType(library, arguments);
     } else if (declaration is KernelInvalidTypeBuilder) {
-      library.addProblem(
+      library.addCompileTimeError(
           declaration.message.messageObject,
           declaration.message.charOffset,
           declaration.message.length,
-          declaration.message.uri,
-          severity: Severity.error);
+          declaration.message.uri);
       return null;
     } else {
       return handleInvalidSupertype(library, charOffset, fileUri);

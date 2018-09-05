@@ -32,11 +32,7 @@ import '../deprecated_problems.dart'
     show deprecated_InputError, deprecated_inputError;
 
 import '../fasta_codes.dart'
-    show
-        LocatedMessage,
-        Message,
-        messageExpectedBlockToSkip,
-        templateInternalProblemNotFound;
+    show Message, messageExpectedBlockToSkip, templateInternalProblemNotFound;
 
 import '../kernel/kernel_body_builder.dart' show KernelBodyBuilder;
 
@@ -847,10 +843,12 @@ class DietListener extends StackListener {
   }
 
   @override
-  void addProblem(Message message, int charOffset, int length,
-      {bool wasHandled: false, List<LocatedMessage> context}) {
-    library.addProblem(message, charOffset, length, uri,
-        wasHandled: wasHandled, context: context);
+  void addCompileTimeError(Message message, int charOffset, int length) {
+    library.addCompileTimeError(message, charOffset, length, uri);
+  }
+
+  void addProblem(Message message, int charOffset, int length) {
+    library.addProblem(message, charOffset, length, uri);
   }
 
   @override
