@@ -475,9 +475,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     }
     bool isConstructor = declaration is ProcedureBuilder &&
         (declaration.isConstructor || declaration.isFactory);
-    if (!isConstructor &&
-        !declaration.isSetter &&
-        name == currentDeclaration.name) {
+    if (!isConstructor && name == currentDeclaration.name) {
       addCompileTimeError(
           messageMemberWithSameNameAsClass, charOffset, noLength, fileUri);
     }
