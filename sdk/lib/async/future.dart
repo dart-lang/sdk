@@ -289,7 +289,11 @@ abstract class Future<T> {
    * Creates a future that runs its computation after a delay.
    *
    * The [computation] will be executed after the given [duration] has passed,
-   * and the future is completed with the result of the computation,
+   * and the future is completed with the result of the computation.
+   *
+   * If [computation] returns a future,
+   * the future returned by this constructor will complete with the value or
+   * error of that future.
    *
    * If the duration is 0 or less,
    * it completes no sooner than in the next event-loop iteration,
