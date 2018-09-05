@@ -1709,6 +1709,33 @@ const MessageCode messageDeclaredMemberConflictsWithInheritedMemberCause =
         message: r"""This is the inherited member.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateDefaultValueInRedirectingFactoryConstructor =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Can't have a default value here because any default values of '#name' would be used instead.""",
+        tipTemplate: r"""Try removing the default value.""",
+        withArguments:
+            _withArgumentsDefaultValueInRedirectingFactoryConstructor);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeDefaultValueInRedirectingFactoryConstructor =
+    const Code<Message Function(String name)>(
+        "DefaultValueInRedirectingFactoryConstructor",
+        templateDefaultValueInRedirectingFactoryConstructor,
+        analyzerCode: "DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDefaultValueInRedirectingFactoryConstructor(String name) {
+  return new Message(codeDefaultValueInRedirectingFactoryConstructor,
+      message:
+          """Can't have a default value here because any default values of '${name}' would be used instead.""",
+      tip: """Try removing the default value.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeDeferredAfterPrefix = messageDeferredAfterPrefix;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

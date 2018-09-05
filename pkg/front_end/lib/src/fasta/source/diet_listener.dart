@@ -42,9 +42,6 @@ import '../kernel/kernel_formal_parameter_builder.dart'
 import '../kernel/kernel_function_type_alias_builder.dart'
     show KernelFunctionTypeAliasBuilder;
 
-import '../kernel/kernel_procedure_builder.dart'
-    show KernelRedirectingFactoryBuilder;
-
 import '../parser.dart' show Assert, MemberKind, Parser, optional;
 
 import '../problems.dart' show DebugAbort, internalProblem, unexpected;
@@ -282,8 +279,9 @@ class DietListener extends StackListener {
     String name = pop();
     Token metadata = pop();
     checkEmpty(beginToken.charOffset);
-    buildFunctionBody(bodyToken, lookupBuilder(beginToken, getOrSet, name),
-        MemberKind.TopLevelMethod, metadata);
+    final StackListener listener =
+        createFunctionListener(lookupBuilder(beginToken, getOrSet, name));
+    buildFunctionBody(listener, bodyToken, metadata, MemberKind.TopLevelMethod);
   }
 
   @override
@@ -492,37 +490,16 @@ class DietListener extends StackListener {
     Object name = pop();
     Token metadata = pop();
     checkEmpty(beginToken.charOffset);
-    if (bodyToken == null || optional("=", bodyToken.endGroup.next)) {
-      // TODO(dmitryas): Consider building redirecting factory bodies here.
-      KernelRedirectingFactoryBuilder factory =
-          lookupConstructor(beginToken, name);
-      parseMetadata(factory, metadata, factory.target);
 
-      if (factory.formals != null) {
-        List<int> metadataOffsets = new List<int>(factory.formals.length);
-        for (int i = 0; i < factory.formals.length; ++i) {
-          List<MetadataBuilder> metadata = factory.formals[i].metadata;
-          if (metadata != null && metadata.length > 0) {
-            // [parseMetadata] is using [Parser.parseMetadataStar] under the
-            // hood, so we only need the offset of the first annotation.
-            metadataOffsets[i] = metadata[0].charOffset;
-          } else {
-            metadataOffsets[i] = -1;
-          }
-        }
-        List<Token> metadataTokens =
-            tokensForOffsets(beginToken, endToken, metadataOffsets);
-        for (int i = 0; i < factory.formals.length; ++i) {
-          Token metadata = metadataTokens[i];
-          if (metadata == null) continue;
-          parseMetadata(
-              factory.formals[i], metadata, factory.formals[i].target);
-        }
-      }
-      return;
+    ProcedureBuilder builder = lookupConstructor(beginToken, name);
+    if (bodyToken == null || optional("=", bodyToken.endGroup.next)) {
+      parseMetadata(builder, metadata, builder.target);
+      buildRedirectingFactoryMethod(
+          bodyToken, builder, MemberKind.Factory, metadata);
+    } else {
+      buildFunctionBody(createFunctionListener(builder), bodyToken, metadata,
+          MemberKind.Factory);
     }
-    buildFunctionBody(bodyToken, lookupConstructor(beginToken, name),
-        MemberKind.Factory, metadata);
   }
 
   @override
@@ -569,10 +546,12 @@ class DietListener extends StackListener {
       builder = lookupBuilder(beginToken, getOrSet, name);
     }
     buildFunctionBody(
+        createFunctionListener(builder),
         beginParam,
-        builder,
-        builder.isStatic ? MemberKind.StaticMethod : MemberKind.NonStaticMethod,
-        metadata);
+        metadata,
+        builder.isStatic
+            ? MemberKind.StaticMethod
+            : MemberKind.NonStaticMethod);
   }
 
   StackListener createListener(
@@ -604,19 +583,40 @@ class DietListener extends StackListener {
       ..constantContext = constantContext;
   }
 
-  void buildFunctionBody(
-      Token token, ProcedureBuilder builder, MemberKind kind, Token metadata) {
-    Scope typeParameterScope = builder.computeTypeParameterScope(memberScope);
-    Scope formalParameterScope =
+  StackListener createFunctionListener(ProcedureBuilder builder) {
+    final Scope typeParameterScope =
+        builder.computeTypeParameterScope(memberScope);
+    final Scope formalParameterScope =
         builder.computeFormalParameterScope(typeParameterScope);
     assert(typeParameterScope != null);
     assert(formalParameterScope != null);
-    parseFunctionBody(
-        createListener(builder, typeParameterScope, builder.isInstanceMember,
-            formalParameterScope),
-        token,
-        metadata,
-        kind);
+    return createListener(builder, typeParameterScope, builder.isInstanceMember,
+        formalParameterScope);
+  }
+
+  void buildRedirectingFactoryMethod(
+      Token token, ProcedureBuilder builder, MemberKind kind, Token metadata) {
+    final StackListener listener = createFunctionListener(builder);
+    try {
+      Parser parser = new Parser(listener);
+
+      if (metadata != null) {
+        parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
+        listener.pop();
+      }
+
+      token = parser.parseFormalParametersOpt(
+          parser.syntheticPreviousToken(token), MemberKind.Factory);
+
+      listener.pop();
+      listener.checkEmpty(token.next.charOffset);
+    } on DebugAbort {
+      rethrow;
+    } on deprecated_InputError {
+      rethrow;
+    } catch (e, s) {
+      throw new Crash(uri, token.charOffset, e, s);
+    }
   }
 
   void buildFields(int count, Token token, bool isTopLevel) {
@@ -745,7 +745,7 @@ class DietListener extends StackListener {
     listener.finishFields();
   }
 
-  void parseFunctionBody(StackListener listener, Token startToken,
+  void buildFunctionBody(StackListener listener, Token startToken,
       Token metadata, MemberKind kind) {
     Token token = startToken;
     try {
@@ -817,14 +817,11 @@ class DietListener extends StackListener {
   Declaration lookupConstructor(Token token, Object nameOrQualified) {
     assert(currentClass != null);
     Declaration declaration;
-    String name;
     String suffix;
     if (nameOrQualified is QualifiedName) {
-      name = nameOrQualified.prefix;
       suffix = nameOrQualified.suffix;
     } else {
-      name = nameOrQualified;
-      suffix = name == currentClass.name ? "" : name;
+      suffix = nameOrQualified == currentClass.name ? "" : nameOrQualified;
     }
     declaration = currentClass.constructors.local[suffix];
     checkBuilder(token, declaration, nameOrQualified);

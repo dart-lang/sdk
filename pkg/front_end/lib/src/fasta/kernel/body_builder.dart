@@ -2480,7 +2480,17 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             member.fileUri);
       } else {
         variable = formal.build(library);
-        variable.initializer = name.initializer;
+        if (member is KernelRedirectingFactoryBuilder &&
+            name.initializer != null) {
+          KernelRedirectingFactoryBuilder factory = member;
+          addCompileTimeError(
+              fasta.templateDefaultValueInRedirectingFactoryConstructor
+                  .withArguments(factory.redirectionTarget.fullNameForErrors),
+              name.initializer.fileOffset,
+              noLength);
+        } else {
+          variable.initializer = name.initializer;
+        }
       }
     } else {
       variable = new VariableDeclarationJudgment(

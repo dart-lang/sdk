@@ -2740,3 +2740,14 @@ ConstInstanceField:
   analyzerCode: CONST_INSTANCE_FIELD
   script:
     - "class C { const field = 0; }"
+
+DefaultValueInRedirectingFactoryConstructor:
+  template: "Can't have a default value here because any default values of '#name' would be used instead."
+  tip: "Try removing the default value."
+  analyzerCode: DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR
+  script:
+    - >-
+      class A {
+        factory A.f({int x = 42}) = A.g;
+        A.g() {}
+      }

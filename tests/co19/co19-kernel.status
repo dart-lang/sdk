@@ -159,8 +159,6 @@ Language/Classes/Constructors/Factories/accessible_class_t02/01: CompileTimeErro
 Language/Classes/Constructors/Factories/accessible_class_t03/01: CompileTimeError
 Language/Classes/Constructors/Factories/accessible_class_t04/01: CompileTimeError
 Language/Classes/Constructors/Factories/accessible_class_t04/02: CompileTimeError
-Language/Classes/Constructors/Factories/default_value_t01: MissingCompileTimeError
-Language/Classes/Constructors/Factories/default_value_t02: MissingCompileTimeError
 Language/Classes/Constructors/Factories/function_type_t02: CompileTimeError
 Language/Classes/Constructors/Factories/redirecting_constructor_call_t01: CompileTimeError
 Language/Classes/Constructors/Factories/redirecting_constructor_call_t02: CompileTimeError

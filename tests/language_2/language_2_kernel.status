@@ -269,9 +269,6 @@ mixin_invalid_bound_test/09: MissingCompileTimeError # Issue 33308
 mixin_invalid_bound_test/10: MissingCompileTimeError # Issue 33308
 mixin_super_bound_test/01: MissingCompileTimeError # Issue 33308
 mixin_super_bound_test/02: MissingCompileTimeError # Issue 33308
-named_parameters_default_eq_test/02: MissingCompileTimeError # Issue 34160
-redirecting_factory_default_values_test/01: MissingCompileTimeError # Issue 34160
-redirecting_factory_default_values_test/02: MissingCompileTimeError # Issue 34160
 regress_22976_test/*: CompileTimeError # Issue 31935
 syntax_test/28: MissingCompileTimeError # Issue 29763 - low priority
 syntax_test/29: MissingCompileTimeError # Issue 29763 - low priority
