@@ -374,6 +374,10 @@
         "vm-options": ["--no-enable-malloc-hooks"]
     }},
     "dartk-(linux|mac)-(debug|release)-x64": { },
+    "dartk-checked-linux-release-x64": {
+      "options": {
+        "checked": true
+    }},
     "dartk-win-release-x64": { },
     "dartk-linux-(debug|release)-simdbc64": { },
     "dartk-linux-release-(simarm|simarm64)": { },
@@ -761,6 +765,28 @@
           "name": "vm tests",
           "arguments": [
             "-ndartk-${system}-${mode}-${arch}"],
+          "fileset": "vm-kernel",
+          "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-checked-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is for the kernel builder group in checked mode."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["runtime_kernel"]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-ndartk-checked-linux-release-x64"],
           "fileset": "vm-kernel",
           "shards": 10
         }
