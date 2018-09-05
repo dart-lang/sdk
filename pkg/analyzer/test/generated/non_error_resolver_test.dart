@@ -3700,16 +3700,6 @@ f() {
     verify([source]);
   }
 
-  test_memberWithClassName_setter() async {
-    Source source = addSource(r'''
-class A {
-  set A(v) {}
-}''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   test_metadata_enumConstantDeclaration() async {
     Source source = addSource(r'''
 const x = 1;

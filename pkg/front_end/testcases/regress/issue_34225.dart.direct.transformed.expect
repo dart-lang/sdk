@@ -1,10 +1,5 @@
 // Errors:
 //
-// pkg/front_end/testcases/regress/issue_34225.dart:6:3: Error: Constructors can't be static.
-// Try removing the keyword 'static'.
-//   static set C(v) {} //# 01: compile-time error
-//   ^^^^^^
-//
 // pkg/front_end/testcases/regress/issue_34225.dart:6:14: Error: A class member can't have the same name as the enclosing class.
 //   static set C(v) {} //# 01: compile-time error
 //              ^
@@ -21,7 +16,7 @@ class C extends core::Object {
   synthetic constructor •() → void
     : super core::Object::•()
     ;
-  set C(dynamic v) → dynamic {}
+  static set C(dynamic v) → dynamic {}
 }
 class D extends core::Object {
   synthetic constructor •() → void

@@ -409,14 +409,34 @@ mixin M {
     assertTestErrors([CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME]);
   }
 
-  test_error_memberWithClassName_OK_setter() async {
+  test_error_memberWithClassName_getter_static() async {
+    addTestFile(r'''
+mixin M {
+  static int get M => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME]);
+  }
+
+  test_error_memberWithClassName_setter() async {
     addTestFile(r'''
 mixin M {
   void set M(_) {}
 }
 ''');
     await resolveTestFile();
-    assertNoTestErrors();
+    assertTestErrors([CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME]);
+  }
+
+  test_error_memberWithClassName_setter_static() async {
+    addTestFile(r'''
+mixin M {
+  static void set M(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME]);
   }
 
   test_error_methodAndGetterWithSameName() async {

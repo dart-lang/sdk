@@ -4183,7 +4183,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
     // check accessors
     for (PropertyAccessorElement accessor in _enclosingClass.accessors) {
-      if (className == accessor.name) {
+      if (className == accessor.displayName) {
         _errorReporter.reportErrorForElement(
             CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME, accessor);
       }
