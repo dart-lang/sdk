@@ -1029,7 +1029,8 @@ true
             }
 
             // Include platform and verify.
-            component = loadComponentFromBinary(platformKernel.path, component);
+            component =
+                loadComponentFromBinary(platformKernel.toFilePath(), component);
             expect(component.mainMethod, isNotNull);
             verifyComponent(component);
 
@@ -1054,7 +1055,8 @@ true
                 reason: "Expect the same number of sources after a reset.");
 
             // Include platform and verify.
-            component = loadComponentFromBinary(platformKernel.path, component);
+            component =
+                loadComponentFromBinary(platformKernel.toFilePath(), component);
             expect(component.mainMethod, isNotNull);
             verifyComponent(component);
 
@@ -1080,7 +1082,7 @@ true
             // Reload with 1 change
             inputStreamController.add('accept\n'.codeUnits);
             inputStreamController.add('recompile ${dart2js.path} x$count\n'
-                '${dart2jsOtherFile.path}\n'
+                '${dart2jsOtherFile.uri}\n'
                 'x$count\n'
                 .codeUnits);
           } else if (count == 3) {
