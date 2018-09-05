@@ -213,10 +213,6 @@ const_constructor_mixin_test: CompileTimeError # Issue 33644.
 const_types_test/34: MissingCompileTimeError # Issue 31590
 const_types_test/39: MissingCompileTimeError # Issue 31590
 constructor_reference_test/27: MissingCompileTimeError # Issue 32972 (parsed as method call)
-cyclic_type_variable_test/01: MissingCompileTimeError # Issue 32989 (missing cycle check in bounds)
-cyclic_type_variable_test/02: MissingCompileTimeError # Issue 32989 (missing cycle check in bounds)
-cyclic_type_variable_test/03: MissingCompileTimeError # Issue 32989 (missing cycle check in bounds)
-cyclic_type_variable_test/04: MissingCompileTimeError # Issue 32989 (missing cycle check in bounds)
 default_factory2_test/01: MissingCompileTimeError # Issue 31590
 default_factory_test/01: MissingCompileTimeError # Issue 31590
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 30273.

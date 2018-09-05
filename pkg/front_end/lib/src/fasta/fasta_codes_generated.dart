@@ -1623,6 +1623,35 @@ const MessageCode messageCovariantMember = const MessageCode("CovariantMember",
     tip: r"""Try removing the 'covariant' keyword.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            string)> templateCycleInTypeVariables = const Template<
+        Message Function(String name, String string)>(
+    messageTemplate: r"""Type '#name' is a bound of itself via '#string'.""",
+    tipTemplate:
+        r"""Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.""",
+    withArguments: _withArgumentsCycleInTypeVariables);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String string)>
+    codeCycleInTypeVariables =
+    const Code<Message Function(String name, String string)>(
+        "CycleInTypeVariables", templateCycleInTypeVariables,
+        analyzerCode: "TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND",
+        severity: Severity.error);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCycleInTypeVariables(String name, String string) {
+  return new Message(codeCycleInTypeVariables,
+      message: """Type '${name}' is a bound of itself via '${string}'.""",
+      tip:
+          """Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.""",
+      arguments: {'name': name, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, String string)>
     templateCyclicClassHierarchy =
     const Template<Message Function(String name, String string)>(

@@ -2638,6 +2638,14 @@ NonSimpleBoundViaReference:
   template: "Bound of this variable references raw type '#name'."
   severity: CONTEXT
 
+CycleInTypeVariables:
+  template: "Type '#name' is a bound of itself via '#string'."
+  tip: "Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle."
+  severity: ERROR
+  analyzerCode: TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND
+  script:
+    - "foo<A extends A>() {}"
+
 CantUsePrefixAsExpression:
   template: "A prefix can't be used as an expression."
   severity: ERROR

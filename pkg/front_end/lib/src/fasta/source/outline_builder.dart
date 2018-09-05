@@ -28,6 +28,7 @@ import '../fasta_codes.dart'
         messageOperatorWithOptionalFormals,
         messageStaticConstructor,
         messageTypedefNotFunction,
+        templateCycleInTypeVariables,
         templateDuplicatedParameterName,
         templateDuplicatedParameterNameCause,
         templateOperatorMinusParameterMismatch,
@@ -1145,6 +1146,53 @@ class OutlineBuilder extends StackListener {
   @override
   void endTypeVariables(Token beginToken, Token endToken) {
     debugEvent("endTypeVariables");
+
+    // Peek to leave type parameters on top of stack.
+    List typeParameters = peek();
+
+    Map<String, TypeVariableBuilder> typeVariablesByName;
+    for (TypeVariableBuilder builder in typeParameters) {
+      if (builder.bound != null) {
+        if (typeVariablesByName == null) {
+          typeVariablesByName = new Map<String, TypeVariableBuilder>();
+          for (TypeVariableBuilder builder in typeParameters) {
+            typeVariablesByName[builder.name] = builder;
+          }
+        }
+
+        // Find cycle: If there's no cycle we can at most step through all
+        // `typeParameters` (at which point the last builders bound will be
+        // null).
+        // If there is a cycle with `builder` 'inside' the steps to get back to
+        // it will also be bound by `typeParameters.length`.
+        // If there is a cycle without `builder` 'inside' we will just ignore it
+        // for now. It will be reported when processing one of the `builder`s
+        // that is in fact `inside` the cycle. This matches the cyclic class
+        // hierarchy error.
+        TypeVariableBuilder bound = builder;
+        for (int steps = 0;
+            bound.bound != null && steps < typeParameters.length;
+            ++steps) {
+          bound = typeVariablesByName[bound.bound.name];
+          if (bound == null || bound == builder) break;
+        }
+        if (bound == builder && bound.bound != null) {
+          // Write out cycle.
+          List<String> via = new List<String>();
+          bound = typeVariablesByName[builder.bound.name];
+          while (bound != builder) {
+            via.add(bound.name);
+            bound = typeVariablesByName[bound.bound.name];
+          }
+          String involvedString = via.join("', '");
+          addCompileTimeError(
+              templateCycleInTypeVariables.withArguments(
+                  builder.name, involvedString),
+              builder.charOffset,
+              builder.name.length);
+        }
+      }
+    }
 
     if (inConstructorName) {
       addProblem(messageConstructorWithTypeParameters,
