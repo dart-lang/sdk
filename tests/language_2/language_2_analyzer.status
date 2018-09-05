@@ -166,9 +166,6 @@ vm/debug_break_enabled_vm_test: Skip
 vm/debug_break_vm_test/*: Skip
 vm/reflect_core_vm_test: CompileTimeError # Issue 33994
 vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.
-vm/regress_33469_test/01: Crash # http://dartbug.com/33481
-vm/regress_33469_test/02: Crash # http://dartbug.com/33481
-vm/regress_33469_test/03: MissingCompileTimeError # http://dartbug.com/33481
 void/return_future_future_or_void_async_error1_test/none: CompileTimeError # issue #34319
 void/return_future_or_future_or_void_sync_error2_test/none: CompileTimeError # issue #34319
 void/return_future_or_void_sync_error4_test/none: CompileTimeError # issue #34319
