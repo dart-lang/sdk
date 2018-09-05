@@ -589,8 +589,9 @@ class OutlineBuilder extends StackListener {
 
   @override
   void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
-      Token varFinalOrConst, Token name) {
-    inConstructor = name?.lexeme == library.currentDeclaration.name;
+      Token varFinalOrConst, Token getOrSet, Token name) {
+    inConstructor =
+        name?.lexeme == library.currentDeclaration.name && getOrSet == null;
     List<Modifier> modifiers = <Modifier>[];
     if (externalToken != null) {
       modifiers.add(External);

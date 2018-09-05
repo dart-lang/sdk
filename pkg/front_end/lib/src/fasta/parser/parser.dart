@@ -2930,8 +2930,8 @@ class Parser {
 
     // TODO(danrubel): Consider parsing the name before calling beginMethod
     // rather than passing the name token into beginMethod.
-    listener.beginMethod(
-        externalToken, staticToken, covariantToken, varFinalOrConst, name);
+    listener.beginMethod(externalToken, staticToken, covariantToken,
+        varFinalOrConst, getOrSet, name);
 
     Token token = typeInfo.parseType(beforeType, this);
     assert(token.next == (getOrSet ?? name));

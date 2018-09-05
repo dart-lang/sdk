@@ -2310,7 +2310,7 @@ class AstBuilder extends StackListener {
 
   @override
   void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
-      Token varFinalOrConst, Token name) {
+      Token varFinalOrConst, Token getOrSet, Token name) {
     _Modifiers modifiers = new _Modifiers();
     if (externalToken != null) {
       assert(externalToken.isModifier);
@@ -2321,7 +2321,7 @@ class AstBuilder extends StackListener {
       String className = classDeclaration != null
           ? classDeclaration.name.name
           : mixinDeclaration.name.name;
-      if (name?.lexeme == className) {
+      if (name?.lexeme == className && getOrSet == null) {
         // This error is also reported in OutlineBuilder.beginMethod
         handleRecoverableError(
             messageStaticConstructor, staticToken, staticToken);

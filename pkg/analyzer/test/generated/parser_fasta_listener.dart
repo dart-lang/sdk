@@ -380,9 +380,9 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
-      Token varFinalOrConst, Token name) {
-    super.beginMethod(
-        externalToken, staticToken, covariantToken, varFinalOrConst, name);
+      Token varFinalOrConst, Token getOrSet, Token name) {
+    super.beginMethod(externalToken, staticToken, covariantToken,
+        varFinalOrConst, getOrSet, name);
     begin('Method');
   }
 

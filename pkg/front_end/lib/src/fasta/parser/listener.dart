@@ -682,7 +682,7 @@ class Listener implements UnescapeErrorListener {
   /// Handle the beginning of a method declaration.  Substructures:
   /// - metadata
   void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
-      Token varFinalOrConst, Token name) {}
+      Token varFinalOrConst, Token getOrSet, Token name) {}
 
   /// Handle the end of a method declaration.  Substructures:
   /// - metadata
