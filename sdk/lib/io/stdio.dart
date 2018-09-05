@@ -198,6 +198,10 @@ class Stdin extends _StdStream implements Stream<List<int>> {
  *
  * This class can also be used to check whether `stdout` or `stderr` is
  * connected to a terminal and query some terminal properties.
+ *
+ * The [addError] API is inherited from  [StreamSink] and calling it will result
+ * in an unhandled asynchronous error unless there is an error handler on
+ * [done].
  */
 class Stdout extends _StdSink implements IOSink {
   final int _fd;
@@ -403,6 +407,10 @@ Stdin get stdin {
 }
 
 /// The standard output stream of data written by this program.
+///
+/// The `addError` API is inherited from  `StreamSink` and calling it will
+/// result in an unhandled asynchronous error unless there is an error handler
+/// on `done`.
 Stdout get stdout {
   if (_stdout == null) {
     _stdout = _StdIOUtils._getStdioOutputStream(_stdoutFD);
@@ -411,6 +419,10 @@ Stdout get stdout {
 }
 
 /// The standard output stream of errors written by this program.
+///
+/// The `addError` API is inherited from  `StreamSink` and calling it will
+/// result in an unhandled asynchronous error unless there is an error handler
+/// on `done`.
 Stdout get stderr {
   if (_stderr == null) {
     _stderr = _StdIOUtils._getStdioOutputStream(_stderrFD);
