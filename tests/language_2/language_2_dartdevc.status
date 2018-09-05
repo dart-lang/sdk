@@ -107,6 +107,7 @@ method_override7_test/03: MissingCompileTimeError
 mixin_forwarding_constructor4_test/01: CompileTimeError # See issue 15101
 mixin_forwarding_constructor4_test/02: CompileTimeError # See issue 15101
 mixin_forwarding_constructor4_test/03: CompileTimeError # See issue 15101
+mixin_method_override_test/01: MissingCompileTimeError # Issue 34235
 mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError
 mixin_super_constructor_named_test/01: CompileTimeError # See issue 15101
