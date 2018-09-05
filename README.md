@@ -65,7 +65,7 @@ Please file feature requests and bugs at the [issue tracker][tracker].
 
 [tracker]: https://github.com/dart-lang/linter/issues
 [lints]: http://dart-lang.github.io/linter/lints/
-[package-pedantic]: https://github.com/dart-lang/pedantic/blob/master/analysis_options.yaml
+[package-pedantic]: https://github.com/dart-lang/pedantic/blob/master/lib/analysis_options.yaml
 [effective-dart-lints]: /example/effective-dart.yaml
 [options_file]: https://www.dartlang.org/guides/language/analysis-options#the-analysis-options-file
 
