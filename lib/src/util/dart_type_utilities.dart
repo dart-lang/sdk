@@ -24,9 +24,9 @@ class DartTypeUtilities {
     if (rawNode is Expression) {
       final node = rawNode.unParenthesized;
       if (node is Identifier) {
-        return getCanonicalElement(node.bestElement);
+        return getCanonicalElement(node.staticElement);
       } else if (node is PropertyAccess) {
-        return getCanonicalElement(node.propertyName.bestElement);
+        return getCanonicalElement(node.propertyName.staticElement);
       }
     }
     return null;
@@ -104,35 +104,38 @@ class DartTypeUtilities {
 
   static PropertyAccessorElement lookUpGetter(MethodDeclaration node) =>
       (node.parent as ClassDeclaration)
-          .element
-          .lookUpGetter(node.name.name, node.element.library);
+          .declaredElement
+          .lookUpGetter(node.name.name, node.declaredElement.library);
 
   static PropertyAccessorElement lookUpInheritedConcreteGetter(
           MethodDeclaration node) =>
       (node.parent as ClassDeclaration)
-          .element
-          .lookUpInheritedConcreteGetter(node.name.name, node.element.library);
+          .declaredElement
+          .lookUpInheritedConcreteGetter(
+              node.name.name, node.declaredElement.library);
 
   static MethodElement lookUpInheritedConcreteMethod(MethodDeclaration node) =>
       (node.parent as ClassDeclaration)
-          .element
-          .lookUpInheritedConcreteMethod(node.name.name, node.element.library);
+          .declaredElement
+          .lookUpInheritedConcreteMethod(
+              node.name.name, node.declaredElement.library);
 
   static PropertyAccessorElement lookUpInheritedConcreteSetter(
           MethodDeclaration node) =>
       (node.parent as ClassDeclaration)
-          .element
-          .lookUpInheritedConcreteSetter(node.name.name, node.element.library);
+          .declaredElement
+          .lookUpInheritedConcreteSetter(
+              node.name.name, node.declaredElement.library);
 
   static MethodElement lookUpInheritedMethod(MethodDeclaration node) =>
       (node.parent as ClassDeclaration)
-          .element
-          .lookUpInheritedMethod(node.name.name, node.element.library);
+          .declaredElement
+          .lookUpInheritedMethod(node.name.name, node.declaredElement.library);
 
   static PropertyAccessorElement lookUpSetter(MethodDeclaration node) =>
       (node.parent as ClassDeclaration)
-          .element
-          .lookUpSetter(node.name.name, node.element.library);
+          .declaredElement
+          .lookUpSetter(node.name.name, node.declaredElement.library);
 
   static bool matchesArgumentsWithParameters(
       NodeList<Expression> arguments, NodeList<FormalParameter> parameters) {
@@ -143,9 +146,9 @@ class DartTypeUtilities {
     for (final parameter in parameters) {
       if (parameter.isNamed) {
         namedParameters[parameter.identifier.name] =
-            parameter.identifier.bestElement;
+            parameter.identifier.staticElement;
       } else {
-        positionalParameters.add(parameter.identifier.bestElement);
+        positionalParameters.add(parameter.identifier.staticElement);
       }
     }
     for (final argument in arguments) {
@@ -226,9 +229,9 @@ class DartTypeUtilities {
   }
 
   static bool overridesMethod(MethodDeclaration node) {
-    final name = node.element.name;
+    final name = node.declaredElement.name;
     final ClassDeclaration clazz = node.parent;
-    final classElement = clazz.element;
+    final classElement = clazz.declaredElement;
     final library = classElement.library;
     return classElement.allSupertypes
         .map(node.isGetter

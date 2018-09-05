@@ -104,7 +104,7 @@ const _cr = '\r';
 const _lf = '\n';
 
 String _getChars(CompilationUnit unit) {
-  final element = unit.element;
+  final element = unit.declaredElement;
   return element.context.getContents(element.source).data;
 }
 

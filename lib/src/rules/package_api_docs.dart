@@ -104,7 +104,7 @@ class _Visitor extends GeneralizingAstVisitor {
     if (project == null) {
       return;
     }
-    if (project.isApi(node.element)) {
+    if (project.isApi(node.declaredElement)) {
       if (node.documentationComment == null) {
         rule.reportLint(getNodeToAnnotate(node));
       }

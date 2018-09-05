@@ -58,7 +58,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         node.argumentList.arguments.isNotEmpty &&
         node.argumentList.arguments[0] is FunctionExpression &&
         DartTypeUtilities.implementsInterface(
-            node.target.bestType, 'Iterable', 'dart.core')) {
+            node.target.staticType, 'Iterable', 'dart.core')) {
       rule.reportLint(node.function);
     }
   }

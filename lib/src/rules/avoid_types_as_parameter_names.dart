@@ -51,7 +51,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // TODO(a14n) test that parameter name matches a existing type. No api to do
     // that for now.
     for (final parameter in node.parameters) {
-      if (parameter.element.hasImplicitType &&
+      if (parameter.declaredElement.hasImplicitType &&
           (parameter.identifier.name.startsWith(new RegExp('[A-Z]')) ||
               ['num', 'int', 'double', 'bool', 'dynamic']
                   .contains(parameter.identifier.name))) {

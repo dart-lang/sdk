@@ -66,7 +66,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    final element = node.element;
+    final element = node.declaredElement;
     _verifyElement(node.functionExpression, element);
   }
 
@@ -77,7 +77,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    final element = node.element;
+    final element = node.declaredElement;
     _verifyElement(node.body, element);
   }
 

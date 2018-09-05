@@ -79,7 +79,7 @@ class _PreferForEachVisitor extends SimpleAstVisitor {
 
   @override
   visitForEachStatement(ForEachStatement node) {
-    final element = node.loopVariable?.element;
+    final element = node.loopVariable?.declaredElement;
     if (element != null) {
       forEachStatement = node;
       this.element = element;

@@ -94,7 +94,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitCommentReference(CommentReference node) {
     Identifier identifier = node.identifier;
-    if (!identifier.isSynthetic && identifier.bestElement == null) {
+    if (!identifier.isSynthetic && identifier.staticElement == null) {
       rule.reportLint(identifier);
     }
   }

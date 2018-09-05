@@ -112,14 +112,14 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (node.element.isFactory) return;
+    if (node.declaredElement.isFactory) return;
 
     final body = node.body;
     if (body is BlockFunctionBody) {
       for (final statement in body.block.statements) {
         if (statement is! AssertStatement) break;
 
-        final assertVisitor = new _AssertVisitor(node.element);
+        final assertVisitor = new _AssertVisitor(node.declaredElement);
         statement.visitChildren(assertVisitor);
         if (!assertVisitor.needInstance) {
           rule.reportLintForToken(statement.beginToken);

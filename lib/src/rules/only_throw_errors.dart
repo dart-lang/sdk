@@ -51,6 +51,7 @@ final LinkedHashSet<InterfaceTypeDefinition> _interfaceDefinitions =
   new InterfaceTypeDefinition(_errorClassName, _library)
 ]);
 bool _isThrowable(DartType type) =>
+    type == null ||
     type.isDynamic ||
     DartTypeUtilities.implementsAnyInterface(type, _interfaceDefinitions);
 
@@ -81,7 +82,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    if (!_isThrowable(node.expression.bestType)) {
+    if (!_isThrowable(node.expression.staticType)) {
       rule.reportLint(node.expression);
     }
   }

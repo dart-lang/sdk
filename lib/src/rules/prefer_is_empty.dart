@@ -79,7 +79,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier identifier) {
     // Should be "length".
-    Element propertyElement = identifier.bestElement;
+    Element propertyElement = identifier.staticElement;
     if (propertyElement?.name != 'length') {
       return;
     }
@@ -90,17 +90,17 @@ class _Visitor extends SimpleAstVisitor<void> {
     AstNode parent = identifier.parent;
     if (parent is PropertyAccess && identifier == parent.propertyName) {
       lengthAccess = parent;
-      if (parent.target?.bestType is! InterfaceType) {
+      if (parent.target?.staticType is! InterfaceType) {
         return;
       }
-      type = parent.target?.bestType;
+      type = parent.target?.staticType;
     } else if (parent is PrefixedIdentifier &&
         identifier == parent.identifier) {
       lengthAccess = parent;
-      if (parent.prefix.bestType is! InterfaceType) {
+      if (parent.prefix.staticType is! InterfaceType) {
         return;
       }
-      type = parent.prefix.bestType;
+      type = parent.prefix.staticType;
     } else {
       return;
     }

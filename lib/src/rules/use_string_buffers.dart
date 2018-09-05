@@ -99,7 +99,7 @@ class _IdentifierIsPrefixVisitor extends SimpleAstVisitor {
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.bestElement == identifier.bestElement) {
+    if (node.staticElement == identifier.staticElement) {
       rule.reportLint(identifier);
     }
   }
@@ -156,10 +156,11 @@ class _UseStringBufferVisitor extends SimpleAstVisitor {
 
     final identifier = _getSimpleIdentifier(node.leftHandSide);
     if (identifier != null &&
-        DartTypeUtilities.isClass(identifier.bestType, 'String', 'dart.core')) {
+        DartTypeUtilities.isClass(
+            identifier.staticType, 'String', 'dart.core')) {
       if (node.operator.type == TokenType.PLUS_EQ &&
-          !localElements.contains(
-              DartTypeUtilities.getCanonicalElement(identifier.bestElement))) {
+          !localElements.contains(DartTypeUtilities.getCanonicalElement(
+              identifier.staticElement))) {
         rule.reportLint(node);
       }
       if (node.operator.type == TokenType.EQ) {
@@ -187,7 +188,7 @@ class _UseStringBufferVisitor extends SimpleAstVisitor {
   @override
   visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     for (final variable in node.variables.variables) {
-      localElements.add(variable.element);
+      localElements.add(variable.declaredElement);
     }
   }
 }

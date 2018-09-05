@@ -70,7 +70,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       final elseCondition = elseStatement.condition;
       if (ifCondition is IsExpression && elseCondition is IsExpression) {
         final typeProvider =
-            getCompilationUnit(node).element.context.typeProvider;
+            getCompilationUnit(node).declaredElement.context.typeProvider;
         final ifExpression = ifCondition.expression;
         final elseIsExpression = elseCondition.expression;
         if (ifExpression is SimpleIdentifier &&
@@ -78,8 +78,8 @@ class _Visitor extends SimpleAstVisitor<void> {
             ifExpression.name == elseIsExpression.name &&
             ifCondition.type.type == typeProvider.doubleType &&
             elseCondition.type.type == typeProvider.intType &&
-            (ifExpression.bestElement is ParameterElement ||
-                ifExpression.bestElement is LocalVariableElement)) {
+            (ifExpression.staticElement is ParameterElement ||
+                ifExpression.staticElement is LocalVariableElement)) {
           rule.reportLint(elseCondition);
         }
       }

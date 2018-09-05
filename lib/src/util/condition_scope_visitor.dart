@@ -233,7 +233,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
   visitPostfixExpression(PostfixExpression node) {
     final operand = node.operand;
     if (operand is SimpleIdentifier) {
-      _addElementToEnvironment(new _UndefinedExpression(operand.bestElement));
+      _addElementToEnvironment(new _UndefinedExpression(operand.staticElement));
     }
     node.visitChildren(this);
   }
@@ -242,7 +242,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
   visitPrefixExpression(PrefixExpression node) {
     final operand = node.operand;
     if (operand is SimpleIdentifier) {
-      _addElementToEnvironment(new _UndefinedExpression(operand.bestElement));
+      _addElementToEnvironment(new _UndefinedExpression(operand.staticElement));
     }
     node.visitChildren(this);
   }
@@ -267,7 +267,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
 
   @override
   visitVariableDeclaration(VariableDeclaration node) {
-    _addElementToEnvironment(new _UndefinedExpression(node.element));
+    _addElementToEnvironment(new _UndefinedExpression(node.declaredElement));
     node.visitChildren(this);
   }
 
@@ -333,7 +333,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
       node.condition != null &&
       DartTypeUtilities.traverseNodesInDFS(node.condition)
           .where((n) => n is SimpleIdentifier)
-          .map((n) => (n as SimpleIdentifier).bestElement?.computeNode())
+          .map((n) => (n as SimpleIdentifier).staticElement?.computeNode())
           .every((n) =>
               n != null &&
               n.getAncestor(

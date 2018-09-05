@@ -54,12 +54,13 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConditionalExpression(ConditionalExpression node) {
-    final typeProvider = getCompilationUnit(node).element.context.typeProvider;
+    final typeProvider =
+        getCompilationUnit(node).declaredElement.context.typeProvider;
     final thenExp = node.thenExpression;
     final elseExp = node.elseExpression;
 
-    if (thenExp.bestType == typeProvider.boolType &&
-        elseExp.bestType == typeProvider.boolType) {
+    if (thenExp.staticType == typeProvider.boolType &&
+        elseExp.staticType == typeProvider.boolType) {
       if (thenExp is BooleanLiteral) rule.reportLint(node);
       if (elseExp is BooleanLiteral) rule.reportLint(node);
     }

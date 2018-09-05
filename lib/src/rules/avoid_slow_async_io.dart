@@ -95,7 +95,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _checkFileMethods(MethodInvocation node) {
-    DartType type = node.target?.bestType;
+    DartType type = node.target?.staticType;
     if (DartTypeUtilities.extendsClass(type, 'File', 'dart.io')) {
       if (_fileMethodNames.contains(node.methodName?.name)) {
         rule.reportLint(node);
@@ -106,7 +106,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void _checkFileSystemEntityMethods(MethodInvocation node) {
     Expression target = node.target;
     if (target is Identifier) {
-      Element elem = target?.bestElement;
+      Element elem = target?.staticElement;
       if (elem is ClassElement && elem.name == 'FileSystemEntity') {
         if (_fileSystemEntityMethodNames.contains(node.methodName?.name)) {
           rule.reportLint(node);

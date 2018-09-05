@@ -53,14 +53,14 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    if (_isAsync(node.element) && _isVoid(node.returnType)) {
+    if (_isAsync(node.declaredElement) && _isVoid(node.returnType)) {
       rule.reportLint(node.name);
     }
   }
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (_isAsync(node.element) && _isVoid(node.returnType)) {
+    if (_isAsync(node.declaredElement) && _isVoid(node.returnType)) {
       rule.reportLint(node.name);
     }
   }

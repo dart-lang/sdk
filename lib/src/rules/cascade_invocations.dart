@@ -56,7 +56,7 @@ Element _getElementFromVariableDeclarationStatement(
     VariableDeclarationStatement statement) {
   final variables = statement.variables.variables;
   if (variables.length == 1) {
-    return variables.first.element;
+    return variables.first.declaredElement;
   }
   return null;
 }
@@ -169,7 +169,7 @@ class _CascadableExpression {
     final leftExpression = node.leftHandSide.unParenthesized;
     if (leftExpression is SimpleIdentifier) {
       return new _CascadableExpression._internal(
-          DartTypeUtilities.getCanonicalElement(leftExpression.bestElement),
+          DartTypeUtilities.getCanonicalElement(leftExpression.staticElement),
           [node.rightHandSide],
           canJoin: false,
           canReceive: node.operator.type != TokenType.QUESTION_QUESTION_EQ,

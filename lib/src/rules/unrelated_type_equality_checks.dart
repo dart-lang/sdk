@@ -141,9 +141,12 @@ bool _isFixNumIntX(DartType type) =>
 
 bool _hasNonComparableOperands(BinaryExpression node) {
   var left = node.leftOperand;
-  var leftType = left.bestType;
+  var leftType = left.staticType;
   var right = node.rightOperand;
-  var rightType = right.bestType;
+  var rightType = right.staticType;
+  if (leftType == null || rightType == null) {
+    return false;
+  }
   return !DartTypeUtilities.isNullLiteral(left) &&
       !DartTypeUtilities.isNullLiteral(right) &&
       DartTypeUtilities.unrelatedTypes(leftType, rightType) &&
@@ -174,10 +177,10 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    bool isDartCoreBoolean =
-        resolutionMap.bestTypeForExpression(node).name == _boolClassName &&
-            resolutionMap.bestTypeForExpression(node).element?.library?.name ==
-                _dartCoreLibraryName;
+    bool isDartCoreBoolean = resolutionMap.staticTypeForExpression(node).name ==
+            _boolClassName &&
+        resolutionMap.staticTypeForExpression(node).element?.library?.name ==
+            _dartCoreLibraryName;
     if (!isDartCoreBoolean ||
         (node.operator.type != TokenType.EQ_EQ &&
             node.operator.type != TokenType.BANG_EQ)) {

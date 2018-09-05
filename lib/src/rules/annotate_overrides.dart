@@ -93,11 +93,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     for (VariableDeclaration field in node.fields.variables) {
-      if (field?.element != null &&
+      if (field?.declaredElement != null &&
           !resolutionMap
               .elementDeclaredByVariableDeclaration(field)
               .hasOverride) {
-        ExecutableElement member = getOverriddenMember(field.element);
+        ExecutableElement member = getOverriddenMember(field.declaredElement);
         if (member != null) {
           rule.reportLint(field);
         }
@@ -107,9 +107,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (node?.element != null &&
+    if (node?.declaredElement != null &&
         !resolutionMap.elementDeclaredByMethodDeclaration(node).hasOverride) {
-      ExecutableElement member = getOverriddenMember(node.element);
+      ExecutableElement member = getOverriddenMember(node.declaredElement);
       if (member != null) {
         rule.reportLint(node.name);
       }

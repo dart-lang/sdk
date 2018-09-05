@@ -70,14 +70,14 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    final type = node.leftHandSide?.bestType;
-    _check(type, node.rightHandSide?.bestType, node,
+    final type = node.leftHandSide?.staticType;
+    _check(type, node.rightHandSide?.staticType, node,
         checkedNode: node.rightHandSide);
   }
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    final typeProvider = node.element.context.typeProvider;
+    final typeProvider = node.declaredElement.context.typeProvider;
     _futureDynamicType =
         typeProvider.futureType.instantiate([typeProvider.dynamicType]);
     _futureOrDynamicType =
@@ -110,16 +110,18 @@ class _Visitor extends SimpleAstVisitor<void> {
         e is MethodDeclaration ||
         e is FunctionDeclaration);
     if (parent is FunctionExpression) {
-      final type = parent.bestType;
+      final type = parent.staticType;
       if (type is FunctionType) {
-        _check(type.returnType, node.expression?.bestType, node,
+        _check(type.returnType, node.expression?.staticType, node,
             checkedNode: node.expression);
       }
     } else if (parent is MethodDeclaration) {
-      _check(parent.element.returnType, node.expression?.bestType, node,
+      _check(
+          parent.declaredElement.returnType, node.expression?.staticType, node,
           checkedNode: node.expression);
     } else if (parent is FunctionDeclaration) {
-      _check(parent.element.returnType, node.expression?.bestType, node,
+      _check(
+          parent.declaredElement.returnType, node.expression?.staticType, node,
           checkedNode: node.expression);
     }
   }
@@ -148,11 +150,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   void _checkArgs(
       NodeList<Expression> args, List<ParameterElement> parameters) {
     for (final arg in args) {
-      final parameterElement = arg.bestParameterElement;
+      final parameterElement = arg.staticParameterElement;
       if (parameterElement != null) {
         final type = parameterElement.type;
         final expression = arg is NamedExpression ? arg.expression : arg;
-        _check(type, expression?.bestType, expression);
+        _check(type, expression?.staticType, expression);
       }
     }
   }

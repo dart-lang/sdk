@@ -108,7 +108,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     node.fields.variables.forEach((VariableDeclaration variable) {
-      PropertyAccessorElement field = _getOverriddenMember(variable.element);
+      PropertyAccessorElement field =
+          _getOverriddenMember(variable.declaredElement);
       if (field != null) {
         rule.reportLint(variable.name);
       }

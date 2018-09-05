@@ -61,14 +61,14 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    if (node.element.isPrivate) {
+    if (node.declaredElement.isPrivate) {
       _countAndReport(node.name.name, node);
     }
   }
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    if (node.element.isPrivate) {
+    if (node.declaredElement.isPrivate) {
       _countAndReport(node.name.name, node);
     }
   }
@@ -76,7 +76,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   _countAndReport(String name, AstNode node) {
     final visitor = new _CountVisitor(name);
     final units = getCompilationUnit(node)
-        .element
+        .declaredElement
         .library
         .units
         .map((cu) => cu.computeNode());

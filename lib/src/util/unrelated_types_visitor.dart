@@ -80,7 +80,7 @@ abstract class UnrelatedTypesProcessors extends SimpleAstVisitor<void> {
 
     DartType type;
     if (node.target != null) {
-      type = node.target.bestType;
+      type = node.target.staticType;
     } else {
       var classDeclaration =
           (node.getAncestor((a) => a is ClassDeclaration) as ClassDeclaration);
@@ -93,7 +93,7 @@ abstract class UnrelatedTypesProcessors extends SimpleAstVisitor<void> {
     Expression argument = node.argumentList.arguments.first;
     if (type is InterfaceType &&
         DartTypeUtilities.unrelatedTypes(
-            argument.bestType, _findIterableTypeArgument(definition, type))) {
+            argument.staticType, _findIterableTypeArgument(definition, type))) {
       rule.reportLint(node);
     }
   }

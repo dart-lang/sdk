@@ -53,12 +53,13 @@ class _ConstructorVisitor extends RecursiveAstVisitor {
 
   _ConstructorVisitor(this.rule, this.element)
       : unusedParameters = element.parameters.parameters
-            .where((p) => (p.element is! FieldFormalParameterElement))
+            .where((p) => (p.declaredElement is! FieldFormalParameterElement))
             .toSet();
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    unusedParameters.removeWhere((p) => node.bestElement == p.element);
+    unusedParameters
+        .removeWhere((p) => node.staticElement == p.declaredElement);
   }
 }
 
