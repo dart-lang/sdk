@@ -1604,6 +1604,9 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.isConst) {
+      TypeName typeName = node.constructorName.type;
+      _checkForConstWithTypeParameters(typeName);
+
       // We need to evaluate the constant to see if any errors occur during its
       // evaluation.
       ConstructorElement constructor = node.staticElement;
@@ -1805,6 +1808,35 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
         node.switchKeyword,
         [type.displayName]);
     return true;
+  }
+
+  /**
+   * Verify that the given [type] does not reference any type parameters.
+   *
+   * See [CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS].
+   */
+  void _checkForConstWithTypeParameters(TypeAnnotation type) {
+    // something wrong with AST
+    if (type is! TypeName) {
+      return;
+    }
+    TypeName typeName = type;
+    Identifier name = typeName.name;
+    if (name == null) {
+      return;
+    }
+    // should not be a type parameter
+    if (name.staticElement is TypeParameterElement) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS, name);
+    }
+    // check type arguments
+    TypeArgumentList typeArguments = typeName.typeArguments;
+    if (typeArguments != null) {
+      for (TypeAnnotation argument in typeArguments.arguments) {
+        _checkForConstWithTypeParameters(argument);
+      }
+    }
   }
 
   /**
