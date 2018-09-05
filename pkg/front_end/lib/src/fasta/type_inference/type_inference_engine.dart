@@ -59,7 +59,7 @@ class FieldInitializerInferenceNode extends InferenceNode {
             .inferDeclarationType(typeInferrer.inferFieldTopLevel(field, true));
         if (isCircular) {
           // Report the appropriate error.
-          _library.addCompileTimeError(
+          _library.addProblem(
               templateCantInferTypeDueToCircularity
                   .withArguments(field.name.name),
               field.fileOffset,

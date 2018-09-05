@@ -195,8 +195,8 @@ abstract class Generator implements ExpressionGenerator {
   Initializer buildFieldInitializer(Map<String, int> initializedFields) {
     int offset = offsetForToken(token);
     return helper.buildInvalidInitializer(
-        new SyntheticExpressionJudgment(helper.buildCompileTimeError(
-            messageInvalidInitializer, offset, lengthForToken(token))),
+        helper.buildProblem(messageInvalidInitializer, offset,
+            lengthForToken(token)) /* TODO(ahe): Add .desugared here? */,
         offset);
   }
 
@@ -215,7 +215,7 @@ abstract class Generator implements ExpressionGenerator {
     } else {
       if (helper.constantContext != ConstantContext.none &&
           send.name != lengthName) {
-        helper.addCompileTimeError(
+        helper.addProblem(
             messageNotAConstantExpression, offsetForToken(token), token.length);
       }
       return PropertyAccessGenerator.make(helper, send.token, buildSimpleRead(),
@@ -714,10 +714,10 @@ abstract class LargeIntAccessGenerator implements Generator {
   String get debugName => "LargeIntAccessGenerator";
 
   Expression buildError() {
-    return helper.buildCompileTimeError(
-        templateIntegerLiteralIsOutOfRange.withArguments(token),
-        offsetForToken(token),
-        lengthForToken(token));
+    return helper
+        .buildProblem(templateIntegerLiteralIsOutOfRange.withArguments(token),
+            offsetForToken(token), lengthForToken(token))
+        .desugared /* TODO(ahe): Remove `.desugared`? */;
   }
 
   @override
@@ -963,9 +963,8 @@ abstract class ContextAwareGenerator implements Generator {
 
   @override
   Expression makeInvalidWrite(Expression value) {
-    return helper.buildCompileTimeErrorExpression(
-        messageIllegalAssignmentToNonAssignable, offsetForToken(token),
-        length: token?.length);
+    return helper.buildProblem(messageIllegalAssignmentToNonAssignable,
+        offsetForToken(token), lengthForToken(token));
   }
 }
 
@@ -995,9 +994,8 @@ abstract class DelayedAssignment implements ContextAwareGenerator {
 
   Expression handleAssignment(bool voidContext) {
     if (helper.constantContext != ConstantContext.none) {
-      return helper.buildCompileTimeErrorExpression(
-          messageNotAConstantExpression, offsetForToken(token),
-          length: token.length);
+      return helper.buildProblem(
+          messageNotAConstantExpression, offsetForToken(token), token.length);
     }
     if (identical("=", assignmentOperator)) {
       return generator.buildAssignment(value, voidContext: voidContext);
@@ -1136,7 +1134,7 @@ abstract class PrefixUseGenerator implements Generator {
   @override
   /* Expression | Generator | Initializer */ doInvocation(
       int offset, Arguments arguments) {
-    var error = helper.wrapInLocatedCompileTimeError(
+    var error = helper.wrapInLocatedProblem(
         helper.evaluateArgumentsBefore(arguments, forest.literalNull(token)),
         messageCantUsePrefixAsExpression.withLocation(
             helper.uri, offsetForToken(token), lengthForToken(token)));
@@ -1159,7 +1157,7 @@ abstract class PrefixUseGenerator implements Generator {
             offsetForToken(token));
       }
       if (isNullAware) {
-        result = helper.wrapInLocatedCompileTimeError(
+        result = helper.wrapInLocatedProblem(
             helper.toValue(result),
             messageCantUsePrefixWithNullAware.withLocation(
                 helper.uri, offsetForToken(token), lengthForToken(token)));
@@ -1172,10 +1170,8 @@ abstract class PrefixUseGenerator implements Generator {
 
   @override
   Expression makeInvalidRead() {
-    return new SyntheticExpressionJudgment(helper.buildCompileTimeError(
-        messageCantUsePrefixAsExpression,
-        offsetForToken(token),
-        lengthForToken(token)));
+    return helper.buildProblem(messageCantUsePrefixAsExpression,
+        offsetForToken(token), lengthForToken(token));
   }
 
   @override

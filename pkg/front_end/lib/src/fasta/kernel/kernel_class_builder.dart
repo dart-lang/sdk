@@ -222,7 +222,7 @@ abstract class KernelClassBuilder
         if (decl is ClassBuilder) {
           ClassBuilder interface = decl;
           if (superClass == interface) {
-            addCompileTimeError(
+            addProblem(
                 templateImplementsSuperClass.withArguments(interface.name),
                 charOffset,
                 noLength);
@@ -235,7 +235,7 @@ abstract class KernelClassBuilder
             problemsOffsets ??= new Map<ClassBuilder, int>();
             problemsOffsets[interface] ??= charOffset;
           } else if (interface.target == coreTypes.futureOrClass) {
-            addCompileTimeError(messageImplementsFutureOr, charOffset,
+            addProblem(messageImplementsFutureOr, charOffset,
                 interface.target.name.length);
           } else {
             implemented.add(interface);
@@ -245,7 +245,7 @@ abstract class KernelClassBuilder
     }
     if (problems != null) {
       problems.forEach((ClassBuilder interface, int repetitions) {
-        addCompileTimeError(
+        addProblem(
             templateImplementsRepeated.withArguments(
                 interface.name, repetitions),
             problemsOffsets[interface],
@@ -304,7 +304,7 @@ abstract class KernelClassBuilder
               var message = templateRedirectionTargetNotFound
                   .withArguments(redirectionTarget.fullNameForErrors);
               if (declaration.isConst) {
-                addCompileTimeError(message, declaration.charOffset, noLength);
+                addProblem(message, declaration.charOffset, noLength);
               } else {
                 addProblem(message, declaration.charOffset, noLength);
               }
@@ -872,13 +872,12 @@ abstract class KernelClassBuilder
             interfaceType);
         fileOffset = declaredParameter.fileOffset;
       }
-      library.addCompileTimeError(message, fileOffset, noLength, fileUri,
-          context: [
-            templateOverriddenMethodCause
-                .withArguments(interfaceMember.name.name)
-                .withLocation(_getMemberUri(interfaceMember),
-                    interfaceMember.fileOffset, noLength)
-          ]);
+      library.addProblem(message, fileOffset, noLength, fileUri, context: [
+        templateOverriddenMethodCause
+            .withArguments(interfaceMember.name.name)
+            .withLocation(_getMemberUri(interfaceMember),
+                interfaceMember.fileOffset, noLength)
+      ]);
       return true;
     }
     return false;
@@ -1124,7 +1123,7 @@ abstract class KernelClassBuilder
       int originLength = typeVariables?.length ?? 0;
       int patchLength = patch.typeVariables?.length ?? 0;
       if (originLength != patchLength) {
-        patch.addCompileTimeError(messagePatchClassTypeVariablesMismatch,
+        patch.addProblem(messagePatchClassTypeVariablesMismatch,
             patch.charOffset, noLength, context: [
           messagePatchClassOrigin.withLocation(fileUri, charOffset, noLength)
         ]);
@@ -1135,8 +1134,8 @@ abstract class KernelClassBuilder
         }
       }
     } else {
-      library.addCompileTimeError(messagePatchDeclarationMismatch,
-          patch.charOffset, noLength, patch.fileUri, context: [
+      library.addProblem(messagePatchDeclarationMismatch, patch.charOffset,
+          noLength, patch.fileUri, context: [
         messagePatchDeclarationOrigin.withLocation(
             fileUri, charOffset, noLength)
       ]);

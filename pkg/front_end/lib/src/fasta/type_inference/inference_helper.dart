@@ -6,17 +6,18 @@ import 'package:kernel/ast.dart' show Arguments, Expression, FunctionType;
 
 import '../fasta_codes.dart' show LocatedMessage, Message;
 
-abstract class InferenceHelper {
-  Expression wrapInCompileTimeError(Expression expression, Message message);
+import '../kernel/kernel_shadow_ast.dart' show SyntheticExpressionJudgment;
 
-  Expression buildCompileTimeError(Message message, int charOffset, int length,
+abstract class InferenceHelper {
+  SyntheticExpressionJudgment buildProblem(
+      Message message, int charOffset, int length,
       {List<LocatedMessage> context});
 
   LocatedMessage checkArgumentsForType(
       FunctionType function, Arguments arguments, int offset);
 
   void addProblem(Message message, int charOffset, int length,
-      {List<LocatedMessage> context});
+      {List<LocatedMessage> context, bool wasHandled});
 
   Expression wrapInProblem(Expression expression, Message message, int length,
       {List<LocatedMessage> context});

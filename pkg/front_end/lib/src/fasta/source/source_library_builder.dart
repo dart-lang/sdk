@@ -171,7 +171,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   Uri resolve(Uri baseUri, String uri, int uriOffset, {isPart: false}) {
     if (uri == null) {
-      addCompileTimeError(messageExpectedUri, uriOffset, noLength, this.uri);
+      addProblem(messageExpectedUri, uriOffset, noLength, this.uri);
       return new Uri(scheme: MALFORMED_URI_SCHEME);
     }
     Uri parsedUri;
@@ -181,11 +181,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       // Point to position in string indicated by the exception,
       // or to the initial quote if no position is given.
       // (Assumes the directive is using a single-line string.)
-      addCompileTimeError(
-          templateCouldNotParseUri.withArguments(uri, e.message),
-          uriOffset + 1 + (e.offset ?? -1),
-          1,
-          this.uri);
+      addProblem(templateCouldNotParseUri.withArguments(uri, e.message),
+          uriOffset + 1 + (e.offset ?? -1), 1, this.uri);
       return new Uri(
           scheme: MALFORMED_URI_SCHEME, query: Uri.encodeQueryComponent(uri));
     }
@@ -476,7 +473,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     bool isConstructor = declaration is ProcedureBuilder &&
         (declaration.isConstructor || declaration.isFactory);
     if (!isConstructor && name == currentDeclaration.name) {
-      addCompileTimeError(
+      addProblem(
           messageMemberWithSameNameAsClass, charOffset, noLength, fileUri);
     }
     Map<String, Declaration> members = isConstructor
@@ -498,11 +495,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         other = declaration;
       }
       if (deferred != null) {
-        addCompileTimeError(
-            templateDeferredPrefixDuplicated.withArguments(name),
-            deferred.charOffset,
-            noLength,
-            fileUri,
+        addProblem(templateDeferredPrefixDuplicated.withArguments(name),
+            deferred.charOffset, noLength, fileUri,
             context: [
               templateDeferredPrefixDuplicatedCause
                   .withArguments(name)
@@ -516,8 +510,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
               name, existing, member, charOffset);
         });
     } else if (isDuplicatedDefinition(existing, declaration)) {
-      addCompileTimeError(templateDuplicatedDefinition.withArguments(name),
-          charOffset, noLength, fileUri);
+      addProblem(templateDuplicatedDefinition.withArguments(name), charOffset,
+          noLength, fileUri);
     }
     return members[name] = declaration;
   }
@@ -564,10 +558,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     scope.setters.forEach((String name, Declaration setter) {
       Declaration member = scopeBuilder[name];
       if (member == null || !member.isField || member.isFinal) return;
-      addCompileTimeError(templateConflictsWithMember.withArguments(name),
+      addProblem(templateConflictsWithMember.withArguments(name),
           setter.charOffset, noLength, fileUri);
       // TODO(ahe): Context to previous message?
-      addCompileTimeError(templateConflictsWithSetter.withArguments(name),
+      addProblem(templateConflictsWithSetter.withArguments(name),
           member.charOffset, noLength, fileUri);
     });
 
@@ -600,7 +594,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     Set<Uri> seenParts = new Set<Uri>();
     for (SourceLibraryBuilder<T, R> part in parts) {
       if (part == this) {
-        addCompileTimeError(messagePartOfSelf, -1, noLength, fileUri);
+        addProblem(messagePartOfSelf, -1, noLength, fileUri);
       } else if (seenParts.add(part.fileUri)) {
         if (part.partOfLibrary != null) {
           addProblem(messagePartOfTwoLibraries, -1, noLength, part.fileUri,
@@ -614,8 +608,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
           includePart(part);
         }
       } else {
-        addCompileTimeError(templatePartTwice.withArguments(part.fileUri), -1,
-            noLength, fileUri);
+        addProblem(templatePartTwice.withArguments(part.fileUri), -1, noLength,
+            fileUri);
       }
     }
   }
@@ -656,8 +650,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       // metadata annotations can be associated with it.
       assert(!part.isPart);
       if (uriIsValid(part.fileUri)) {
-        addCompileTimeError(templateMissingPartOf.withArguments(part.fileUri),
-            -1, noLength, fileUri);
+        addProblem(templateMissingPartOf.withArguments(part.fileUri), -1,
+            noLength, fileUri);
       }
     }
     part.forEach((String name, Declaration declaration) {

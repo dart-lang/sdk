@@ -657,10 +657,8 @@ class KernelTarget extends TargetImplementation {
       for (Initializer initializer in constructor.initializers) {
         if (initializer is RedirectingInitializer) {
           if (constructor.isConst && !initializer.target.isConst) {
-            builder.addCompileTimeError(
-                messageConstConstructorRedirectionToNonConst,
-                initializer.fileOffset,
-                initializer.target.name.name.length);
+            builder.addProblem(messageConstConstructorRedirectionToNonConst,
+                initializer.fileOffset, initializer.target.name.name.length);
           }
           isRedirecting = true;
           break;
@@ -674,7 +672,7 @@ class KernelTarget extends TargetImplementation {
           superTarget ??= defaultSuperConstructor(cls);
           Initializer initializer;
           if (superTarget == null) {
-            builder.addCompileTimeError(
+            builder.addProblem(
                 templateSuperclassHasNoDefaultConstructor
                     .withArguments(cls.superclass.name),
                 constructor.fileOffset,
@@ -714,7 +712,7 @@ class KernelTarget extends TargetImplementation {
         }
         constructorInitializedFields[constructor] = myInitializedFields;
         if (constructor.isConst && nonFinalFields.isNotEmpty) {
-          builder.addCompileTimeError(messageConstConstructorNonFinalField,
+          builder.addProblem(messageConstConstructorNonFinalField,
               constructor.fileOffset, noLength,
               context: nonFinalFields
                   .map((field) => messageConstConstructorNonFinalFieldCause

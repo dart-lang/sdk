@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/messages.dart' show Message;
+import 'package:front_end/src/fasta/messages.dart' show LocatedMessage, Message;
 import 'package:front_end/src/fasta/parser.dart';
 import 'package:front_end/src/fasta/problems.dart'
     show internalProblem, unsupported;
@@ -147,8 +147,9 @@ class MiniAstBuilder extends StackListener {
   Uri get uri => null;
 
   @override
-  void addCompileTimeError(Message message, int offset, int length) {
-    internalProblem(message, offset, uri);
+  void addProblem(Message message, int charOffset, int length,
+      {bool wasHandled: false, List<LocatedMessage> context}) {
+    internalProblem(message, charOffset, uri);
   }
 
   @override
