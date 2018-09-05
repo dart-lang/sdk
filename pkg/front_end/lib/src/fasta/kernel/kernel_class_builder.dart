@@ -529,6 +529,11 @@ abstract class KernelClassBuilder
           if (hasProblem) {
             Name name = interfaceMember.name;
             String displayName = name.name + (setters ? "=" : "");
+            if (interfaceMember is Procedure &&
+                interfaceMember.isSyntheticForwarder) {
+              Procedure forwarder = interfaceMember;
+              interfaceMember = forwarder.forwardingStubInterfaceTarget;
+            }
             context ??= <LocatedMessage>[];
             context.add(templateMissingImplementationCause
                 .withArguments(displayName)

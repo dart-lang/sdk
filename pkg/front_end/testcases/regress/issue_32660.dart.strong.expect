@@ -1,0 +1,73 @@
+// Errors:
+//
+// pkg/front_end/testcases/regress/issue_32660.dart:13:7: Error: The non-abstract class 'C' is missing implementations for these members:
+//   'foo'.
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+// 
+// class C extends A implements B {
+//       ^
+//
+// pkg/front_end/testcases/regress/issue_32660.dart:24:7: Error: The non-abstract class 'E' is missing implementations for these members:
+//   'foo'.
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+// 
+// class E extends D {
+//       ^
+
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method foo(core::int x) → dynamic
+    return x;
+}
+class B extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method foo(core::int x, {core::int y = null}) → dynamic
+    return y;
+}
+class C extends self::A implements self::B {
+  synthetic constructor •() → void
+    : super self::A::•()
+    ;
+  method noSuchMethod(core::Invocation i) → dynamic {
+    core::print("No such method!");
+    return 42;
+  }
+  abstract forwarding-stub method foo(core::int x, {core::int y = null}) → dynamic;
+}
+class D extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method foo(core::int x) → dynamic
+    return x;
+}
+class E extends self::D {
+  synthetic constructor •() → void
+    : super self::D::•()
+    ;
+  abstract method foo(core::int x, {core::int y = null}) → dynamic;
+  method noSuchMethod(core::Invocation i) → dynamic {
+    core::print(i.{core::Invocation::namedArguments});
+    return 42;
+  }
+}
+static method main() → dynamic {
+  self::C c = new self::C::•();
+  self::E e = new self::E::•();
+}
