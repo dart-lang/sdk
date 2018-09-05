@@ -140,7 +140,7 @@ class _InvariantBooleansVisitor extends ConditionScopeVisitor {
   visitCondition(Expression node) {
     // Right part discards reporting a subexpression already reported.
     if (node == null ||
-        resolutionMap.staticTypeForExpression(node).name != 'bool') {
+        resolutionMap.staticTypeForExpression(node)?.name != 'bool') {
       return;
     }
 
