@@ -2,6 +2,8 @@
 
 leafp@google.com
 
+Status: Ready for implementation
+
 **Note: Also see alternative presentation at the bottom for a dual presentation
 of these rules in terms of which things are errors, rather than which things are
 valid*.*

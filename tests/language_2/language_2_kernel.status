@@ -225,6 +225,7 @@ f_bounded_quantification_test/02: MissingCompileTimeError # Issue 33308
 factory4_test/00: MissingCompileTimeError # Issue 31590
 generic_methods_bounds_test/01: MissingCompileTimeError # Issue 33308
 generic_methods_recursive_bound_test/02: MissingCompileTimeError # Issue 33308
+invalid_returns/async_valid_returns_test: CompileTimeError #34014
 issue31596_super_test/02: MissingCompileTimeError # Issue 31596
 issue31596_super_test/04: MissingCompileTimeError # Issue 31596
 malbounded_instantiation_test/01: MissingCompileTimeError # Issue 33308

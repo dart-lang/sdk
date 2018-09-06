@@ -37,7 +37,6 @@ void sync_FutureOr_int__to_void_e() => fovi;
 void sync_Future_Object__to_void_e() => fvo;
 void sync_FutureOr_Object__to_void_e() => fovo;
 
-
 /* Test the cases that apply only to block bodied  functions
  */
 
@@ -62,8 +61,6 @@ Null sync_empty_to_Null() {
 /* Test the cases that apply to both expression bodied and block bodied
  * functions
  */
-  
-
 
 /*
 * `return exp;` where `exp` has static type `S` is a valid return if:

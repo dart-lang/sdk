@@ -20,7 +20,6 @@ FutureOr<Object> fovo = null;
 FutureOr<Null> fovn = null;
 FutureOr<int> fovi = null;
 
-
 /* Test the cases where expression bodied functions are more permissive
  * than block bodied functions (places where they behave the same
  * are tested below).
@@ -32,7 +31,6 @@ expression `e` has a valid return if:
   with return type `T` as defined below.
 */
 
-  
 void async_int_to_void_e() async => vi;
 Future<void> async_int_to_Future_void__e() async => vi;
 FutureOr<void> async_int_to_FutureOr_void__e() async => vi;
@@ -343,42 +341,34 @@ Future<int> async_Future_int__to_Future_int_() async {
   return fvi;
 }
 
-Future<void> async_int_to_Future_void__e() async => vi;
 Future<void> async_int_to_Future_void_() async {
   return vi;
 }
 
-Future<void> async_Object_to_Future_void__e() async => vo;
 Future<void> async_Object_to_Future_void_() async {
   return vo;
 }
 
-Future<void> async_FutureOr_int__to_Future_void__e() async => fovi;
 Future<void> async_FutureOr_int__to_Future_void_() async {
   return fovi;
 }
 
-Future<void> async_Future_int__to_Future_void__e() async => fvi;
 Future<void> async_Future_int__to_Future_void_() async {
   return fvi;
 }
 
-FutureOr<void> async_int_to_FutureOr_void__e() async => vi;
 FutureOr<void> async_int_to_FutureOr_void_() async {
   return vi;
 }
 
-FutureOr<void> async_Object_to_FutureOr_void__e() async => vo;
 FutureOr<void> async_Object_to_FutureOr_void_() async {
   return vo;
 }
 
-FutureOr<void> async_FutureOr_int__to_FutureOr_void__e() async => fovi;
 FutureOr<void> async_FutureOr_int__to_FutureOr_void_() async {
   return fovi;
 }
 
-FutureOr<void> async_Future_int__to_FutureOr_void__e() async => fvi;
 FutureOr<void> async_Future_int__to_FutureOr_void_() async {
   return fvi;
 }
