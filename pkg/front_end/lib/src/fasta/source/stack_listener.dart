@@ -76,7 +76,7 @@ abstract class StackListener extends Listener {
 
   // TODO(ahe): This doesn't belong here. Only implemented by body_builder.dart
   // and ast_builder.dart.
-  void finishFunction(List annotations, covariant formals,
+  void finishFunction(covariant List<Object> annotations, covariant formals,
       AsyncMarker asyncModifier, covariant body) {
     return unsupported("finishFunction", -1, uri);
   }

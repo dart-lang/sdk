@@ -392,8 +392,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     }
   }
 
-  void declareVariable(Object variable, Scope scope) {
-    String name = forest.getVariableDeclarationName(variable);
+  void declareVariable(VariableDeclaration variable, Scope scope) {
+    String name = variable.name;
     Declaration existing = scope.local[name];
     if (existing != null) {
       // This reports an error for duplicated declarations in the same scope:
@@ -407,7 +407,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       return;
     }
     LocatedMessage context = scope.declare(
-        forest.getVariableDeclarationName(variable),
+        variable.name,
         new KernelVariableBuilder(
             variable, member ?? classBuilder ?? library, uri),
         uri);
@@ -438,7 +438,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
     debugEvent("Metadata");
-    Object arguments = pop();
+    Arguments arguments = pop();
     pushQualifiedReference(beginToken.next, periodBeforeName);
     if (arguments != null) {
       push(arguments);
@@ -531,7 +531,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
     pop(); // Type.
-    List<Object> annotations = pop();
+    List<Expression> annotations = pop();
     if (annotations != null) {
       _typeInferrer.inferMetadata(this, annotations);
       Field field = fields.first.target;
@@ -679,7 +679,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void finishFunction(
-      List<Object> annotations,
+      List<Expression> annotations,
       FormalParameters<Expression, Statement, Arguments> formals,
       AsyncMarker asyncModifier,
       Statement body) {
@@ -1081,8 +1081,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endArguments(int count, Token beginToken, Token endToken) {
     debugEvent("Arguments");
-    List<Object> arguments =
-        new List<Object>.filled(count, null, growable: true);
+    List<Object> arguments = new List<Object>(count);
     popList(count, arguments);
     int firstNamedArgumentIndex = arguments.length;
     for (int i = 0; i < arguments.length; i++) {
@@ -1730,9 +1729,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       String value = unescapeString(token.lexeme, token, this);
       push(forest.literalString(value, token));
     } else {
-      Object count = 1 + interpolationCount * 2;
-      List<Object> parts =
-          popList(count, new List<Object>.filled(count, null, growable: true));
+      int count = 1 + interpolationCount * 2;
+      List<Object> parts = popList(count, new List<Object>(count));
       Token first = parts.first;
       Token last = parts.last;
       Quote quote = analyzeQuote(first.lexeme);
@@ -2150,16 +2148,16 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       int count, Token leftBracket, Token constKeyword, Token rightBracket) {
     debugEvent("LiteralList");
     List<Expression> expressions = popListForValue(count);
-    Object typeArguments = pop();
+    List<DartType> typeArguments = pop();
     DartType typeArgument;
     if (typeArguments != null) {
-      if (forest.getTypeCount(typeArguments) > 1) {
+      if (typeArguments.length > 1) {
         addProblem(
             fasta.messageListLiteralTooManyTypeArguments,
             offsetForToken(leftBracket),
             lengthOfSpan(leftBracket, leftBracket.endGroup));
       } else {
-        typeArgument = forest.getTypeAt(typeArguments, 0);
+        typeArgument = typeArguments.single;
         if (library.loader.target.strongMode) {
           typeArgument =
               instantiateToBounds(typeArgument, coreTypes.objectClass);
@@ -2200,20 +2198,21 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void handleLiteralMap(
       int count, Token leftBrace, Token constKeyword, Token rightBrace) {
     debugEvent("LiteralMap");
-    List<Object> entries = forest.mapEntryList(count);
+    List<MapEntry> entries =
+        new List<MapEntry>.filled(count, null, growable: true);
     popList(count, entries);
-    Object typeArguments = pop();
+    List<DartType> typeArguments = pop();
     DartType keyType;
     DartType valueType;
     if (typeArguments != null) {
-      if (forest.getTypeCount(typeArguments) != 2) {
+      if (typeArguments.length != 2) {
         addProblem(
             fasta.messageMapLiteralTypeArgumentMismatch,
             offsetForToken(leftBrace),
             lengthOfSpan(leftBrace, leftBrace.endGroup));
       } else {
-        keyType = forest.getTypeAt(typeArguments, 0);
-        valueType = forest.getTypeAt(typeArguments, 1);
+        keyType = typeArguments[0];
+        valueType = typeArguments[1];
         if (library.loader.target.strongMode) {
           keyType = instantiateToBounds(keyType, coreTypes.objectClass);
           valueType = instantiateToBounds(valueType, coreTypes.objectClass);
@@ -2305,7 +2304,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("beginFunctionType");
   }
 
-  void enterFunctionTypeScope(List<Object> typeVariables) {
+  void enterFunctionTypeScope(List<KernelTypeVariableBuilder> typeVariables) {
     debugEvent("enterFunctionTypeScope");
     enterLocalScope(null,
         scope.createNestedScope("function-type scope", isModifiable: true));
@@ -2520,7 +2519,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     FormalParameterKind kind = optional("{", beginToken)
         ? FormalParameterKind.optionalNamed
         : FormalParameterKind.optionalPositional;
-    Object variables =
+    List<VariableDeclaration> variables =
         new List<VariableDeclaration>.filled(count, null, growable: true);
     popList(count, variables);
     push(new OptionalFormals(kind, variables));
@@ -2634,19 +2633,18 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     }
     FormalParameters<Expression, Statement, Arguments> catchParameters =
         popIfNotNull(catchKeyword);
-    Object type = popIfNotNull(onKeyword);
-    Object exception;
-    Object stackTrace;
+    DartType type = popIfNotNull(onKeyword) ?? const DynamicType();
+    VariableDeclaration exception;
+    VariableDeclaration stackTrace;
     if (catchParameters != null) {
       int requiredCount = catchParameters.required.length;
       if ((requiredCount == 1 || requiredCount == 2) &&
           catchParameters.optional == null) {
         exception = catchParameters.required[0];
-        forest.setParameterType(exception, type);
+        exception.type = type;
         if (requiredCount == 2) {
           stackTrace = catchParameters.required[1];
-          forest.setParameterType(
-              stackTrace, coreTypes.stackTraceClass.rawType);
+          stackTrace.type = coreTypes.stackTraceClass.rawType;
         }
       } else {
         // TODO(ahe): We're not storing this error in the AST.
@@ -2662,12 +2660,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         var allCount = allFormals.length;
         if (allCount >= 1) {
           exception = allFormals[0];
-          forest.setParameterType(exception, type);
+          exception.type = type;
         }
         if (allCount >= 2) {
           stackTrace = allFormals[1];
-          forest.setParameterType(
-              stackTrace, coreTypes.stackTraceClass.rawType);
+          stackTrace.type = coreTypes.stackTraceClass.rawType;
         }
       }
     }
@@ -2678,7 +2675,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endTryStatement(int catchCount, Token tryKeyword, Token finallyKeyword) {
     Statement finallyBlock = popStatementIfNotNull(finallyKeyword);
-    Object catches = popList(
+    List<Catch> catches = popList(
         catchCount, new List<Catch>.filled(catchCount, null, growable: true));
     Statement tryBlock = popStatement();
     if (problemInTry == null) {
@@ -2976,7 +2973,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
 
-    List<Object> types = forest.argumentsTypeArguments(arguments);
+    List<DartType> types = forest.argumentsTypeArguments(arguments);
     if (typeParameters.length != types.length) {
       if (types.length == 0) {
         // Expected `typeParameters.length` type arguments, but none given,
@@ -3308,7 +3305,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     functionNestingLevel--;
     inCatchBlock = pop();
     switchScope = pop();
-    List<Object> typeVariables = pop();
+    List<KernelTypeVariableBuilder> typeVariables = pop();
     exitLocalScope();
     push(typeVariables ?? NullValue.TypeVariables);
   }
@@ -3322,7 +3319,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void beginNamedFunctionExpression(Token token) {
     debugEvent("beginNamedFunctionExpression");
-    List<Object> typeVariables = pop();
+    List<KernelTypeVariableBuilder> typeVariables = pop();
     // Create an additional scope in which the named function expression is
     // declared.
     enterLocalScope("named function");
@@ -3342,8 +3339,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     exitLocalScope();
     FormalParameters<Expression, Statement, Arguments> formals = pop();
     Object declaration = pop();
-    Object returnType = pop();
-    Object hasImplicitReturnType = returnType == null;
+    DartType returnType = pop();
+    bool hasImplicitReturnType = returnType == null;
     returnType ??= const DynamicType();
     exitFunction();
     List<TypeParameter> typeParameters = typeVariableBuildersToKernel(pop());
@@ -3557,20 +3554,20 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void handleLabel(Token token) {
     debugEvent("Label");
     Identifier identifier = pop();
-    push(forest.label(deprecated_extractToken(identifier), token));
+    push(new Label(identifier.name, identifier.charOffset));
   }
 
   @override
   void beginLabeledStatement(Token token, int labelCount) {
     debugEvent("beginLabeledStatement");
-    List<Object> labels =
-        new List<Object>.filled(labelCount, null, growable: true);
+    List<Label> labels =
+        new List<Label>.filled(labelCount, null, growable: true);
     popList(labelCount, labels);
     enterLocalScope(null, scope.createNestedLabelScope());
     LabelTarget target =
         new LabelTarget(labels, member, functionNestingLevel, token.charOffset);
-    for (Object label in labels) {
-      scope.declareLabel(forest.getLabelName(label), target);
+    for (Label label in labels) {
+      scope.declareLabel(label.name, target);
     }
     push(target);
   }
@@ -3695,14 +3692,13 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {
     debugEvent("beginSwitchCase");
-    Object count = labelCount + expressionCount;
-    List<Object> labelsAndExpressions =
-        popList(count, new List<Object>.filled(count, null, growable: true));
-    List<Object> labels = <Object>[];
+    int count = labelCount + expressionCount;
+    List<Object> labelsAndExpressions = popList(count, new List<Object>(count));
+    List<Label> labels = <Label>[];
     List<Expression> expressions = <Expression>[];
     if (labelsAndExpressions != null) {
       for (Object labelOrExpression in labelsAndExpressions) {
-        if (forest.isLabel(labelOrExpression)) {
+        if (labelOrExpression is Label) {
           labels.add(labelOrExpression);
         } else {
           expressions.add(labelOrExpression);
@@ -3710,15 +3706,15 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
     assert(scope == switchScope);
-    for (Object label in labels) {
-      String labelName = forest.getLabelName(label);
+    for (Label label in labels) {
+      String labelName = label.name;
       if (scope.hasLocalLabel(labelName)) {
         // TODO(ahe): Should validate this is a goto target.
         if (!scope.claimLabel(labelName)) {
           addProblem(
               fasta.templateDuplicateLabelInSwitchStatement
                   .withArguments(labelName),
-              forest.getLabelOffset(label),
+              label.charOffset,
               labelName.length);
         }
       } else {
@@ -3745,7 +3741,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     // check this switch case to see if it falls through to the next case.
     Statement block = popBlock(statementCount, firstToken, null);
     exitLocalScope();
-    List<Object> labels = pop();
+    List<Label> labels = pop();
     List<Expression> expressions = pop();
     List<int> expressionOffsets = <int>[];
     for (Expression expression in expressions) {
@@ -3791,10 +3787,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     List<SwitchCase> cases =
         new List<SwitchCase>.filled(caseCount, null, growable: true);
     for (int i = caseCount - 1; i >= 0; i--) {
-      List<Object> labels = pop();
+      List<Label> labels = pop();
       SwitchCase current = cases[i] = pop();
-      for (Object label in labels) {
-        JumpTarget target = switchScope.lookupLabel(forest.getLabelName(label));
+      for (Label label in labels) {
+        JumpTarget target = switchScope.lookupLabel(label.name);
         if (target != null) {
           target.resolveGotos(forest, current);
         }
@@ -3952,7 +3948,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     // See the code that resolves them below.
     new ClassMemberParser(listener)
         .parseTypeVariablesOpt(new Token.eof(-1)..next = token);
-    enterFunctionTypeScope(listener.pop());
+    List<Object> typeVariables = listener.pop();
+    if (typeVariables != null) {
+      typeVariables = new List<KernelTypeVariableBuilder>.from(typeVariables);
+    }
+    enterFunctionTypeScope(typeVariables);
 
     // The invocation of [enterFunctionTypeScope] above has put the type
     // variables into the scope, and now the possibly unresolved types from
@@ -4058,7 +4058,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   List<TypeParameter> typeVariableBuildersToKernel(
-      List<Object> typeVariableBuilders) {
+      List<KernelTypeVariableBuilder> typeVariableBuilders) {
     if (typeVariableBuilders == null) return null;
     List<TypeParameter> typeParameters = new List<TypeParameter>.filled(
         typeVariableBuilders.length, null,
@@ -4500,7 +4500,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   Expression wrapInDeferredCheck(
       Expression expression, KernelPrefixBuilder prefix, int charOffset) {
-    Object check = new VariableDeclaration.forValue(
+    VariableDeclaration check = new VariableDeclaration.forValue(
         forest.checkLibraryIsLoaded(prefix.dependency))
       ..fileOffset = charOffset;
     return new DeferredCheckJudgment(check, expression);
@@ -4601,24 +4601,24 @@ class JumpTarget extends Declaration {
 
   void resolveBreaks(Forest forest, Statement target) {
     assert(isBreakTarget);
-    for (Statement user in users) {
-      forest.resolveBreak(target, user);
+    for (BreakStatement user in users) {
+      user.target = target;
     }
     users.clear();
   }
 
   void resolveContinues(Forest forest, Statement target) {
     assert(isContinueTarget);
-    for (Statement user in users) {
-      forest.resolveContinue(target, user);
+    for (BreakStatement user in users) {
+      user.target = target;
     }
     users.clear();
   }
 
-  void resolveGotos(Forest forest, Object target) {
+  void resolveGotos(Forest forest, SwitchCase target) {
     assert(isGotoTarget);
-    for (Statement user in users) {
-      forest.resolveContinueInSwitch(target, user);
+    for (ContinueSwitchStatement user in users) {
+      user.target = target;
     }
     users.clear();
   }
@@ -4628,7 +4628,7 @@ class JumpTarget extends Declaration {
 }
 
 class LabelTarget extends Declaration implements JumpTarget {
-  final List<Object> labels;
+  final List<Label> labels;
 
   @override
   final MemberBuilder parent;
@@ -4684,7 +4684,7 @@ class LabelTarget extends Declaration implements JumpTarget {
     continueTarget.resolveContinues(forest, target);
   }
 
-  void resolveGotos(Forest forest, Object target) {
+  void resolveGotos(Forest forest, SwitchCase target) {
     unsupported("resolveGotos", charOffset, fileUri);
   }
 
@@ -4844,4 +4844,15 @@ AsyncMarker asyncMarkerFromTokens(Token asyncToken, Token starToken) {
     return unhandled(asyncToken.lexeme, "asyncMarkerFromTokens",
         asyncToken.charOffset, null);
   }
+}
+
+/// A data holder used to hold the information about a label that is pushed on
+/// the stack.
+class Label {
+  String name;
+  int charOffset;
+
+  Label(this.name, this.charOffset);
+
+  String toString() => "label($name)";
 }

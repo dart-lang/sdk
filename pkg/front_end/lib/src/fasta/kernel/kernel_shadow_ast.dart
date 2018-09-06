@@ -1881,12 +1881,12 @@ class MapLiteralJudgment extends MapLiteral implements ExpressionJudgment {
   MapLiteralTokens tokens;
   DartType inferredType;
 
-  List<MapEntryJudgment> get judgments => entries;
+  List<MapEntry> get judgments => entries;
 
   final DartType _declaredKeyType;
   final DartType _declaredValueType;
 
-  MapLiteralJudgment(this.tokens, List<MapEntryJudgment> judgments,
+  MapLiteralJudgment(this.tokens, List<MapEntry> judgments,
       {DartType keyType, DartType valueType, bool isConst: false})
       : _declaredKeyType = keyType,
         _declaredValueType = valueType,
@@ -1924,9 +1924,9 @@ class MapLiteralJudgment extends MapLiteral implements ExpressionJudgment {
       inferredValueType = _declaredValueType ?? const DynamicType();
     }
     List<ExpressionJudgment> cachedKeyJudgments =
-        judgments.map((j) => j.keyJudgment).toList();
+        judgments.map((j) => (j as MapEntryJudgment).keyJudgment).toList();
     List<ExpressionJudgment> cachedValueJudgments =
-        judgments.map((j) => j.valueJudgment).toList();
+        judgments.map((j) => (j as MapEntryJudgment).valueJudgment).toList();
     if (inferenceNeeded || typeChecksNeeded) {
       for (MapEntryJudgment judgment in judgments) {
         judgment.infer(inferrer, inferredKeyType, inferredValueType);
