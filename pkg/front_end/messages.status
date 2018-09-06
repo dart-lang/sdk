@@ -252,7 +252,6 @@ NonConstFactory/example: Fail
 NonInstanceTypeVariableUse/example: Fail
 NonPartOfDirectiveInPart/script1: Fail
 NotAConstantExpression/example: Fail
-NotAPrefixInTypeAnnotation/example: Fail
 NotAType/example: Fail
 NotAnLvalue/example: Fail
 NotConstantExpression/example: Fail
@@ -350,7 +349,6 @@ UnexpectedDollarInString/script4: Fail
 UnexpectedToken/script1: Fail
 UnmatchedToken/script1: Fail
 UnmatchedToken/script3: Fail
-UnresolvedPrefixInTypeAnnotation/example: Fail
 Unspecified/analyzerCode: Fail
 Unspecified/example: Fail
 UnsupportedPrefixPlus/script: Fail

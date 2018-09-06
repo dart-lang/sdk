@@ -1220,11 +1220,11 @@ abstract class UnexpectedQualifiedUseGenerator implements Generator {
   @override
   DartType buildTypeWithBuiltArguments(List<DartType> arguments,
       {bool nonInstanceAccessIsError: false, TypeInferrer typeInferrer}) {
-    Template<Message Function(Token, Token)> template = isUnresolved
+    Template<Message Function(String, String)> template = isUnresolved
         ? templateUnresolvedPrefixInTypeAnnotation
         : templateNotAPrefixInTypeAnnotation;
     helper.addProblem(
-        template.withArguments(prefixGenerator.token, token),
+        template.withArguments(prefixGenerator.token.lexeme, token.lexeme),
         offsetForToken(prefixGenerator.token),
         lengthOfSpan(prefixGenerator.token, token));
     prefixGenerator.storeUnexpectedTypePrefix(typeInferrer);

@@ -5457,29 +5457,27 @@ const MessageCode messageNotAConstantExpression = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
-        Token token,
-        Token
-            token2)> templateNotAPrefixInTypeAnnotation = const Template<
-        Message Function(Token token, Token token2)>(
+        String name,
+        String
+            name2)> templateNotAPrefixInTypeAnnotation = const Template<
+        Message Function(String name, String name2)>(
     messageTemplate:
-        r"""'#lexeme.#lexeme2' can't be used as a type because '#lexeme' doesn't refer to an import prefix.""",
+        r"""'#name.#name2' can't be used as a type because '#name' doesn't refer to an import prefix.""",
     withArguments: _withArgumentsNotAPrefixInTypeAnnotation);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(Token token, Token token2)>
+const Code<Message Function(String name, String name2)>
     codeNotAPrefixInTypeAnnotation =
-    const Code<Message Function(Token token, Token token2)>(
+    const Code<Message Function(String name, String name2)>(
         "NotAPrefixInTypeAnnotation", templateNotAPrefixInTypeAnnotation,
         analyzerCode: "NOT_A_TYPE", severity: Severity.errorLegacyWarning);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNotAPrefixInTypeAnnotation(Token token, Token token2) {
-  String lexeme = token.lexeme;
-  String lexeme2 = token2.lexeme;
+Message _withArgumentsNotAPrefixInTypeAnnotation(String name, String name2) {
   return new Message(codeNotAPrefixInTypeAnnotation,
       message:
-          """'${lexeme}.${lexeme2}' can't be used as a type because '${lexeme}' doesn't refer to an import prefix.""",
-      arguments: {'token': token, 'token2': token2});
+          """'${name}.${name2}' can't be used as a type because '${name}' doesn't refer to an import prefix.""",
+      arguments: {'name': name, 'name2': name2});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7272,18 +7270,18 @@ Message _withArgumentsUnmatchedToken(String string, Token token) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
-        Token token,
-        Token
-            token2)> templateUnresolvedPrefixInTypeAnnotation = const Template<
-        Message Function(Token token, Token token2)>(
+        String name,
+        String
+            name2)> templateUnresolvedPrefixInTypeAnnotation = const Template<
+        Message Function(String name, String name2)>(
     messageTemplate:
-        r"""'#lexeme.#lexeme2' can't be used as a type because '#lexeme' isn't defined.""",
+        r"""'#name.#name2' can't be used as a type because '#name' isn't defined.""",
     withArguments: _withArgumentsUnresolvedPrefixInTypeAnnotation);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(Token token, Token token2)>
+const Code<Message Function(String name, String name2)>
     codeUnresolvedPrefixInTypeAnnotation =
-    const Code<Message Function(Token token, Token token2)>(
+    const Code<Message Function(String name, String name2)>(
         "UnresolvedPrefixInTypeAnnotation",
         templateUnresolvedPrefixInTypeAnnotation,
         analyzerCode: "NOT_A_TYPE",
@@ -7291,13 +7289,11 @@ const Code<Message Function(Token token, Token token2)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsUnresolvedPrefixInTypeAnnotation(
-    Token token, Token token2) {
-  String lexeme = token.lexeme;
-  String lexeme2 = token2.lexeme;
+    String name, String name2) {
   return new Message(codeUnresolvedPrefixInTypeAnnotation,
       message:
-          """'${lexeme}.${lexeme2}' can't be used as a type because '${lexeme}' isn't defined.""",
-      arguments: {'token': token, 'token2': token2});
+          """'${name}.${name2}' can't be used as a type because '${name}' isn't defined.""",
+      arguments: {'name': name, 'name2': name2});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

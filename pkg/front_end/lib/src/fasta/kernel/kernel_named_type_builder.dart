@@ -6,7 +6,7 @@ library fasta.kernel_interface_type_builder;
 
 import 'package:kernel/ast.dart' show DartType, Supertype;
 
-import '../fasta_codes.dart' show Message;
+import '../fasta_codes.dart' show LocatedMessage;
 
 import '../messages.dart'
     show noLength, templateSupertypeIsIllegal, templateSupertypeIsTypeVariable;
@@ -31,12 +31,11 @@ class KernelNamedTypeBuilder
   KernelNamedTypeBuilder(Object name, List<KernelTypeBuilder> arguments)
       : super(name, arguments);
 
-  KernelInvalidTypeBuilder buildInvalidType(int charOffset, Uri fileUri,
-      [Message message]) {
+  KernelInvalidTypeBuilder buildInvalidType(LocatedMessage message) {
     // TODO(ahe): Consider if it makes sense to pass a QualifiedName to
     // KernelInvalidTypeBuilder?
     return new KernelInvalidTypeBuilder(
-        flattenName(name, charOffset, fileUri), charOffset, fileUri, message);
+        flattenName(name, message.charOffset, message.uri), message);
   }
 
   Supertype handleInvalidSupertype(

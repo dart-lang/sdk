@@ -986,8 +986,16 @@ class KernelLibraryBuilder
     var builderTemplate = isExport
         ? templateDuplicatedExportInType
         : templateDuplicatedImportInType;
-    return new KernelInvalidTypeBuilder(name, charOffset, fileUri,
-        builderTemplate.withArguments(name, uri, otherUri));
+    return new KernelInvalidTypeBuilder(
+        name,
+        builderTemplate
+            .withArguments(
+                name,
+                // TODO(ahe): We should probably use a context object here
+                // instead of including URIs in this message.
+                uri,
+                otherUri)
+            .withLocation(fileUri, charOffset, name.length));
   }
 
   int finishDeferredLoadTearoffs() {

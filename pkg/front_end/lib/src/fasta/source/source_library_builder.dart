@@ -29,7 +29,8 @@ import '../builder/builder.dart'
         TypeBuilder,
         TypeDeclarationBuilder,
         TypeVariableBuilder,
-        UnresolvedType;
+        UnresolvedType,
+        flattenName;
 
 import '../combinator.dart' show Combinator;
 
@@ -48,12 +49,13 @@ import '../fasta_codes.dart'
         noLength,
         templateConflictsWithMember,
         templateConflictsWithSetter,
+        templateConstructorWithWrongNameContext,
         templateCouldNotParseUri,
         templateDeferredPrefixDuplicated,
         templateDeferredPrefixDuplicatedCause,
         templateDuplicatedDefinition,
-        templateConstructorWithWrongNameContext,
         templateMissingPartOf,
+        templateNotAPrefixInTypeAnnotation,
         templatePartOfInLibrary,
         templatePartOfLibraryNameMismatch,
         templatePartOfUriMismatch,
@@ -834,8 +836,13 @@ class DeclarationBuilder<T extends TypeBuilder> {
           parent.addType(type);
         } else if (nameOrQualified is QualifiedName) {
           // Attempt to use type variable as prefix.
-          type.builder.bind(
-              type.builder.buildInvalidType(type.charOffset, type.fileUri));
+          type.builder.bind(type.builder.buildInvalidType(
+              templateNotAPrefixInTypeAnnotation
+                  .withArguments(
+                      flattenName(nameOrQualified.qualifier, type.charOffset,
+                          type.fileUri),
+                      nameOrQualified.name)
+                  .withLocation(type.fileUri, type.charOffset, noLength)));
         } else {
           type.builder.bind(builder);
         }

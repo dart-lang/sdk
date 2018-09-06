@@ -1303,14 +1303,24 @@ NotAType:
   analyzerCode: NOT_A_TYPE
 
 NotAPrefixInTypeAnnotation:
-  template: "'#lexeme.#lexeme2' can't be used as a type because '#lexeme' doesn't refer to an import prefix."
+  template: "'#name.#name2' can't be used as a type because '#name' doesn't refer to an import prefix."
   severity: ERROR_LEGACY_WARNING
   analyzerCode: NOT_A_TYPE
+  declaration:
+    - |
+        class C<T> {
+          T.String method() {}
+        }
+    - |
+        class C<T> {
+          T.String field;
+        }
 
 UnresolvedPrefixInTypeAnnotation:
-  template: "'#lexeme.#lexeme2' can't be used as a type because '#lexeme' isn't defined."
+  template: "'#name.#name2' can't be used as a type because '#name' isn't defined."
   severity: ERROR_LEGACY_WARNING
   analyzerCode: NOT_A_TYPE
+  statement: "T.String x;"
 
 FastaUsageShort:
   template: |

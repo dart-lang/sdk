@@ -13,7 +13,8 @@ import 'package:kernel/ast.dart'
         Supertype,
         TypeParameter;
 
-import '../fasta_codes.dart' show messageSupertypeIsFunction, noLength;
+import '../fasta_codes.dart'
+    show LocatedMessage, messageSupertypeIsFunction, noLength;
 
 import '../problems.dart' show unsupported;
 
@@ -83,8 +84,8 @@ class KernelFunctionTypeBuilder extends FunctionTypeBuilder
   }
 
   @override
-  buildInvalidType(int charOffset, Uri fileUri) {
-    return unsupported("buildInvalidType", charOffset, fileUri);
+  buildInvalidType(LocatedMessage message) {
+    return unsupported("buildInvalidType", message.charOffset, message.uri);
   }
 
   KernelFunctionTypeBuilder clone(List<TypeBuilder> newTypes) {
