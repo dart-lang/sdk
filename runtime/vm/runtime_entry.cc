@@ -2722,7 +2722,7 @@ uword RuntimeEntry::InterpretCallEntry() {
   return reinterpret_cast<uword>(RuntimeEntry::InterpretCall);
 }
 
-// Interpret a function call. Should be called only for uncompiled functions.
+// Interpret a function call. Should be called only for non-jitted functions.
 // argc indicates the number of arguments, including the type arguments.
 // argv points to the first argument.
 // If argc < 0, arguments are passed at decreasing memory addresses from argv.
@@ -2737,6 +2737,9 @@ RawObject* RuntimeEntry::InterpretCall(RawFunction* function,
   uword exit_fp = thread->top_exit_frame_info();
   ASSERT(exit_fp != 0);
   ASSERT(thread == Thread::Current());
+  // Caller is InterpretCall stub called from generated code.
+  // We stay in "in generated code" execution state when interpreting code.
+  ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
   ASSERT(!Function::HasCode(function));
   ASSERT(Function::HasBytecode(function));
   ASSERT(interpreter != NULL);
@@ -2744,7 +2747,12 @@ RawObject* RuntimeEntry::InterpretCall(RawFunction* function,
   const Object& result = Object::Handle(
       thread->zone(), interpreter->Call(function, argdesc, argc, argv, thread));
   DEBUG_ASSERT(thread->top_exit_frame_info() == exit_fp);
-  CheckResultError(result);
+  if (result.IsError()) {
+    // Propagating an error may cause allocation. Check if we need to block for
+    // a safepoint by switching to "in VM" execution state.
+    TransitionGeneratedToVM transition(thread);
+    Exceptions::PropagateError(Error::Cast(result));
+  }
   return result.raw();
 #else
   UNREACHABLE();
