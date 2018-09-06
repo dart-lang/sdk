@@ -13,6 +13,7 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
+import 'package:analyzer/src/summary/one_phase.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/prelink.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
@@ -28,6 +29,55 @@ import '../context/mock_sdk.dart';
 String absUri(String path) {
   String absolutePath = posix.absolute(path);
   return posix.toUri(absolutePath).toString();
+}
+
+CompilationUnit _parseText(String text) {
+  CharSequenceReader reader = new CharSequenceReader(text);
+  Scanner scanner =
+      new Scanner(null, reader, AnalysisErrorListener.NULL_LISTENER);
+  Token token = scanner.tokenize();
+  Parser parser = new Parser(
+      NonExistingSource.unknown, AnalysisErrorListener.NULL_LISTENER);
+  (parser as ParserAdapter).fastaParser.isMixinSupportEnabled = true;
+  CompilationUnit unit = parser.parseCompilationUnit(token);
+  unit.lineInfo = new LineInfo(scanner.lineStarts);
+  return unit;
+}
+
+/**
+ * Verify invariants of the given [linkedLibrary].
+ */
+void _validateLinkedLibrary(LinkedLibrary linkedLibrary) {
+  for (LinkedUnit unit in linkedLibrary.units) {
+    for (LinkedReference reference in unit.references) {
+      switch (reference.kind) {
+        case ReferenceKind.classOrEnum:
+        case ReferenceKind.topLevelPropertyAccessor:
+        case ReferenceKind.topLevelFunction:
+        case ReferenceKind.typedef:
+          // This reference can have either a zero or a nonzero dependency,
+          // since it refers to top level element which might or might not be
+          // imported from another library.
+          break;
+        case ReferenceKind.prefix:
+          // Prefixes should have a dependency of 0, since they come from the
+          // current library.
+          expect(reference.dependency, 0,
+              reason: 'Nonzero dependency for prefix');
+          break;
+        case ReferenceKind.unresolved:
+          // Unresolved references always have a dependency of 0.
+          expect(reference.dependency, 0,
+              reason: 'Nonzero dependency for undefined');
+          break;
+        default:
+          // This reference should have a dependency of 0, since it refers to
+          // an element that is contained within some other element.
+          expect(reference.dependency, 0,
+              reason: 'Nonzero dependency for ${reference.kind}');
+      }
+    }
+  }
 }
 
 /**
@@ -116,6 +166,96 @@ abstract class SummaryBlackBoxTestStrategy extends SummaryBaseTestStrategy {
    * summary in [lib].
    */
   void serializeLibraryText(String text, {bool allowErrors: false});
+}
+
+/// Implementation of [SummaryBlackBoxTestStrategy] that drives summary
+/// generation using the new one-phase API.
+class SummaryBlackBoxTestStrategyOnePhase
+    implements SummaryBlackBoxTestStrategy {
+  /// Information about the files to be summarized.
+  final _filesToSummarize = _FilesToLink<CompilationUnit>();
+
+  final _testUriString = absUri('/test.dart');
+
+  bool _allowMissingFiles = false;
+
+  @override
+  LinkedLibrary linked;
+
+  @override
+  List<UnlinkedUnit> unlinkedUnits;
+
+  SummaryBlackBoxTestStrategyOnePhase() {
+    // TODO(paulberry): cache the bundle?
+    _filesToSummarize.summaryDataStore
+        .addBundle(null, new MockSdk().getLinkedBundle());
+  }
+
+  @override
+  void set allowMissingFiles(bool value) {
+    _allowMissingFiles = value;
+  }
+
+  @override
+  bool get skipFullyLinkedData => false;
+
+  @override
+  void addNamedSource(String filePath, String contents) {
+    _filesToSummarize.uriToUnit[absUri(filePath)] = _parseText(contents);
+  }
+
+  @override
+  void serializeLibraryText(String text, {bool allowErrors = false}) {
+    addNamedSource('/test.dart', text);
+    var assembler = PackageBundleAssembler();
+    summarize(_filesToSummarize.uriToUnit, _filesToSummarize.summaryDataStore,
+        assembler, (name) => null, _allowMissingFiles);
+    var result = assembler.assemble();
+    linked = _findLinkedLibrary(result, _testUriString);
+    unlinkedUnits =
+        _findUnlinkedUnits(result, _testUriString, _allowMissingFiles);
+  }
+
+  static LinkedLibrary _findLinkedLibrary(
+      PackageBundle bundle, String uriString) {
+    for (int i = 0; i < bundle.linkedLibraryUris.length; i++) {
+      if (bundle.linkedLibraryUris[i] == uriString) {
+        return bundle.linkedLibraries[i];
+      }
+    }
+    throw new StateError('LinkedLibrary $uriString not found in bundle');
+  }
+
+  static List<UnlinkedUnit> _findUnlinkedUnits(
+      PackageBundle bundle, String uriString, bool allowMissingFiles) {
+    var uriToUnlinkedUnit = <String, UnlinkedUnit>{};
+    for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
+      uriToUnlinkedUnit[bundle.unlinkedUnitUris[i]] = bundle.unlinkedUnits[i];
+    }
+    var unlinkedDefiningUnit = uriToUnlinkedUnit[uriString];
+    var unlinkedUnits = <UnlinkedUnit>[unlinkedDefiningUnit];
+    var definingUnitUri = Uri.parse(uriString);
+    for (String relativeUriStr in unlinkedDefiningUnit.publicNamespace.parts) {
+      Uri relativeUri;
+      try {
+        relativeUri = Uri.parse(relativeUriStr);
+      } on FormatException {
+        unlinkedUnits.add(new UnlinkedUnitBuilder());
+        continue;
+      }
+
+      UnlinkedUnit unit = uriToUnlinkedUnit[
+          resolveRelativeUri(definingUnitUri, relativeUri).toString()];
+      if (unit == null) {
+        if (!allowMissingFiles) {
+          fail('Test referred to unknown unit $relativeUriStr');
+        }
+      } else {
+        unlinkedUnits.add(unit);
+      }
+    }
+    return unlinkedUnits;
+  }
 }
 
 /// Implementation of [SummaryBlackBoxTestStrategy] that drives summary
@@ -343,6 +483,9 @@ abstract class _SummaryBaseTestStrategyTwoPhase
     _filesToLink.uriToUnit[absUri(filePath)] = unlinkedUnit;
   }
 
+  UnlinkedUnitBuilder createUnlinkedSummary(Uri uri, String text) =>
+      serializeAstUnlinked(_parseText(text));
+
   _LinkerInputs _createLinkerInputs(String text,
       {String path: '/test.dart', String uri}) {
     uri ??= absUri(path);
@@ -361,22 +504,6 @@ abstract class _SummaryBaseTestStrategyTwoPhase
     _filesToLink = new _FilesToLink<UnlinkedUnitBuilder>();
     return linkerInputs;
   }
-
-  UnlinkedUnitBuilder createUnlinkedSummary(Uri uri, String text) =>
-      serializeAstUnlinked(_parseText(text));
-}
-
-CompilationUnit _parseText(String text) {
-  CharSequenceReader reader = new CharSequenceReader(text);
-  Scanner scanner =
-      new Scanner(null, reader, AnalysisErrorListener.NULL_LISTENER);
-  Token token = scanner.tokenize();
-  Parser parser = new Parser(
-      NonExistingSource.unknown, AnalysisErrorListener.NULL_LISTENER);
-  (parser as ParserAdapter).fastaParser.isMixinSupportEnabled = true;
-  CompilationUnit unit = parser.parseCompilationUnit(token);
-  unit.lineInfo = new LineInfo(scanner.lineStarts);
-  return unit;
 }
 
 /// Implementation of [SummaryBlackBoxTestStrategy] that drives summary
@@ -432,42 +559,6 @@ abstract class _SummaryBlackBoxTestStrategyTwoPhase
         }
       } else {
         unlinkedUnits.add(unit);
-      }
-    }
-  }
-
-  /**
-   * Verify invariants of the given [linkedLibrary].
-   */
-  void _validateLinkedLibrary(LinkedLibrary linkedLibrary) {
-    for (LinkedUnit unit in linkedLibrary.units) {
-      for (LinkedReference reference in unit.references) {
-        switch (reference.kind) {
-          case ReferenceKind.classOrEnum:
-          case ReferenceKind.topLevelPropertyAccessor:
-          case ReferenceKind.topLevelFunction:
-          case ReferenceKind.typedef:
-            // This reference can have either a zero or a nonzero dependency,
-            // since it refers to top level element which might or might not be
-            // imported from another library.
-            break;
-          case ReferenceKind.prefix:
-            // Prefixes should have a dependency of 0, since they come from the
-            // current library.
-            expect(reference.dependency, 0,
-                reason: 'Nonzero dependency for prefix');
-            break;
-          case ReferenceKind.unresolved:
-            // Unresolved references always have a dependency of 0.
-            expect(reference.dependency, 0,
-                reason: 'Nonzero dependency for undefined');
-            break;
-          default:
-            // This reference should have a dependency of 0, since it refers to
-            // an element that is contained within some other element.
-            expect(reference.dependency, 0,
-                reason: 'Nonzero dependency for ${reference.kind}');
-        }
       }
     }
   }
