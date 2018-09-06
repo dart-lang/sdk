@@ -6,15 +6,15 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'analysis_options_test.dart' as analysis_options_test;
 import 'error_test.dart' as error_test;
-import 'get_errors_nonStandard_sdk.dart' as get_errors_nonStandard_sdk;
+import 'get_errors_nonStandard_sdk_test.dart' as get_errors_nonStandard_sdk;
 import 'get_errors_test.dart' as get_errors_test;
 import 'get_hover_test.dart' as get_hover_test;
 import 'get_imported_elements_test.dart' as get_imported_elements_test;
 import 'get_library_dependencies_test.dart' as get_library_dependencies_test;
 import 'get_navigation_test.dart' as get_navigation_test;
 import 'get_reachable_sources_test.dart' as get_reachable_sources_test;
+import 'highlights2_test.dart' as highlights2_test;
 import 'highlights_test.dart' as highlights_test;
-import 'highlights_test2.dart' as highlights_test2;
 import 'lint_test.dart' as lint_test;
 import 'navigation_test.dart' as navigation_test;
 import 'occurrences_test.dart' as occurrences_test;
@@ -45,8 +45,8 @@ main() {
     get_imported_elements_test.main();
     get_navigation_test.main();
     get_reachable_sources_test.main();
+    highlights2_test.main();
     highlights_test.main();
-    highlights_test2.main();
     lint_test.main();
     navigation_test.main();
     occurrences_test.main();

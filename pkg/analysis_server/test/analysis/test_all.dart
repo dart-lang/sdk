@@ -14,10 +14,10 @@ import 'notification_analyzedFiles_test.dart'
     as notification_analyzedFiles_test;
 import 'notification_closingLabels_test.dart'
     as notification_closingLabels_test;
-import 'notification_folding_test.dart' as notification_folding_test;
 import 'notification_errors_test.dart' as notification_errors_test;
+import 'notification_folding_test.dart' as notification_folding_test;
+import 'notification_highlights2_test.dart' as notification_highlights2_test;
 import 'notification_highlights_test.dart' as notification_highlights_test;
-import 'notification_highlights_test2.dart' as notification_highlights_test2;
 import 'notification_implemented_test.dart' as notification_implemented_test;
 import 'notification_navigation_test.dart' as notification_navigation_test;
 import 'notification_occurrences_test.dart' as notification_occurrences_test;
@@ -41,8 +41,8 @@ main() {
     notification_closingLabels_test.main();
     notification_folding_test.main();
     notification_errors_test.main();
+    notification_highlights2_test.main();
     notification_highlights_test.main();
-    notification_highlights_test2.main();
     notification_implemented_test.main();
     notification_navigation_test.main();
     notification_occurrences_test.main();

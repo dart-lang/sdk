@@ -144,7 +144,7 @@ int topLevelVariable;
     check(HighlightRegionType.INSTANCE_GETTER_DECLARATION, ['getter']);
     check(HighlightRegionType.IDENTIFIER_DEFAULT, ['unresolvedIdentifier']);
     check(HighlightRegionType.IMPORT_PREFIX, ['async']);
-    check(HighlightRegionType.KEYWORD, ['class', 'true', 'return']);
+    check(HighlightRegionType.KEYWORD, ['class', 'extends', 'true', 'return']);
     check(HighlightRegionType.LITERAL_BOOLEAN, ['true']);
     check(HighlightRegionType.LITERAL_DOUBLE, ['1.0']);
     check(HighlightRegionType.LITERAL_INTEGER, ['2', '42']);
