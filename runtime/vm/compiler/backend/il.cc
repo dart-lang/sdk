@@ -45,7 +45,6 @@ DEFINE_FLAG(bool,
             unbox_numeric_fields,
             !USING_DBC,
             "Support unboxed double and float32x4 fields.");
-DECLARE_FLAG(bool, eliminate_type_checks);
 
 class SubclassFinder {
  public:

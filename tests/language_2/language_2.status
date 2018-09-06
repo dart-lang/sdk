@@ -47,6 +47,11 @@ regress_29784_test/02: SkipByDesign # Requires checked mode.
 stacktrace_demangle_ctors_test: SkipByDesign # Names are not scrubbed.
 type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
 
+[ $fasta ]
+partial_instantiation_static_bounds_check_test/01: MissingCompileTimeError # Issue 34327
+partial_instantiation_static_bounds_check_test/02: MissingCompileTimeError # Issue 34327
+partial_instantiation_static_bounds_check_test/03: MissingCompileTimeError # Issue 34327
+
 [ $compiler != app_jitk && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $mode == debug && $runtime == vm ]
 built_in_identifier_type_annotation_test/set: Crash # Not supported by legacy VM front-end.
 

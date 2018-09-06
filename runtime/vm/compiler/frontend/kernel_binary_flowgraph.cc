@@ -965,6 +965,7 @@ void StreamingFlowGraphBuilder::BuildArgumentTypeChecks(
       I->strong() && I->reify_generic_functions();
 
   TypeParameter& forwarding_param = TypeParameter::Handle(Z);
+  Fragment check_bounds;
   for (intptr_t i = 0; i < num_type_params; ++i) {
     TypeParameterHelper helper(this);
     helper.ReadUntilExcludingAndSetJustRead(TypeParameterHelper::kBound);
@@ -1009,7 +1010,20 @@ void StreamingFlowGraphBuilder::BuildArgumentTypeChecks(
       param ^= TypeArguments::Handle(dart_function.type_parameters()).TypeAt(i);
     }
     ASSERT(param.IsFinalized());
-    *implicit_checks += CheckTypeArgumentBound(param, bound, name);
+    check_bounds += CheckTypeArgumentBound(param, bound, name);
+  }
+
+  // Type arguments passed through partial instantiation are guaranteed to be
+  // bounds-checked at the point of partial instantiation, so we don't need to
+  // check them again at the call-site.
+  if (dart_function.IsClosureFunction() && !check_bounds.is_empty() &&
+      FLAG_eliminate_type_checks) {
+    LocalVariable* closure =
+        parsed_function()->node_sequence()->scope()->VariableAt(0);
+    *implicit_checks += B->TestDelayedTypeArgs(closure, /*present=*/{},
+                                               /*absent=*/check_bounds);
+  } else {
+    *implicit_checks += check_bounds;
   }
 
   function_node_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
@@ -4772,8 +4786,9 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
 
   // Check the bounds.
   //
-  // TODO(sjindel): Only perform this check for instance tearoffs, not for
-  // tearoffs against local or top-level functions.
+  // TODO(sjindel): We should be able to skip this check in many cases, e.g.
+  // when the closure is coming from a tearoff of a top-level method or from a
+  // local closure.
   instructions += LoadLocal(original_closure);
   instructions += PushArgument();
   instructions += LoadLocal(type_args_vec);
