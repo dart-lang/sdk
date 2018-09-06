@@ -1608,21 +1608,43 @@ void Assembler::PushRegisters(const RegisterSet& regs) {
 
   // The order in which the registers are pushed must match the order
   // in which the registers are encoded in the safe point's stack map.
+  Register prev = kNoRegister;
   for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
     Register reg = static_cast<Register>(i);
     if (regs.ContainsRegister(reg)) {
-      Push(reg);
+      if (prev != kNoRegister) {
+        PushPair(/*low=*/reg, /*high=*/prev);
+        prev = kNoRegister;
+      } else {
+        prev = reg;
+      }
     }
+  }
+  if (prev != kNoRegister) {
+    Push(prev);
   }
 }
 
 void Assembler::PopRegisters(const RegisterSet& regs) {
+  bool pop_single = (regs.CpuRegisterCount() & 1) == 1;
+  Register prev = kNoRegister;
   for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
     Register reg = static_cast<Register>(i);
     if (regs.ContainsRegister(reg)) {
-      Pop(reg);
+      if (pop_single) {
+        // Emit the leftover pop at the beginning instead of the end to
+        // mirror PushRegisters.
+        Pop(reg);
+        pop_single = false;
+      } else if (prev != kNoRegister) {
+        PopPair(/*low=*/prev, /*high=*/reg);
+        prev = kNoRegister;
+      } else {
+        prev = reg;
+      }
     }
   }
+  ASSERT(prev == kNoRegister);
 
   const intptr_t fpu_regs_count = regs.FpuRegisterCount();
   if (fpu_regs_count > 0) {
