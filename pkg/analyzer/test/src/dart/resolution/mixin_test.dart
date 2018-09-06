@@ -154,6 +154,32 @@ mixin M {}
     assertElementTypes(element.superclassConstraints, [objectType]);
   }
 
+  test_error_builtInIdentifierAsTypeName() async {
+    addTestFile(r'''
+mixin as {}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME]);
+  }
+
+  test_error_builtInIdentifierAsTypeName_OK_on() async {
+    addTestFile(r'''
+class A {}
+
+mixin on on A {}
+
+mixin M on on {}
+
+mixin M2 implements on {}
+
+class B = A with on;
+class C = B with M;
+class D = Object with M2;
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
   test_error_conflictingTypeVariableAndClass() async {
     addTestFile(r'''
 mixin M<M> {}

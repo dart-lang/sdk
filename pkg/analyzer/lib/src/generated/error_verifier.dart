@@ -1031,15 +1031,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitMixinDeclaration(MixinDeclaration node) {
     // TODO(scheglov) Verify for all mixin errors.
-//    ClassElementImpl outerClass = _enclosingClass;
+    ClassElementImpl outerClass = _enclosingClass;
     try {
-//      _isInNativeClass = node.nativeClause != null;
       _enclosingClass = AbstractClassElementImpl.getImpl(node.declaredElement);
 
       List<ClassMember> members = node.members;
       _checkDuplicateClassMembers(members);
-//      _checkForBuiltInIdentifierAsName(
-//          node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
+      _checkForBuiltInIdentifierAsName(
+          node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
       _checkForMemberWithClassName();
 //      _checkForNoDefaultSuperConstructorImplicit(node);
       _checkForConflictingTypeVariableErrorCodes();
@@ -1059,9 +1058,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 //      _checkForBadFunctionUse(node);
       return super.visitMixinDeclaration(node);
     } finally {
-//      _isInNativeClass = false;
       _initialFieldElementsMap = null;
-//      _enclosingClass = outerClass;
+      _enclosingClass = outerClass;
     }
   }
 
@@ -1353,11 +1351,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     // isn't an error code such as "Cannot extend double" already on the
     // class.
     if (!_checkForExtendsDisallowedClass(superclass) &&
-        !_checkForImplementsDisallowedClass(implementsClause) &&
+        !_checkForImplementsClauseErrorCodes(implementsClause) &&
         !_checkForAllMixinErrorCodes(withClause)) {
       _checkForImplicitDynamicType(superclass);
       _checkForExtendsDeferredClass(superclass);
-      _checkForImplementsDeferredClass(implementsClause);
       _checkForNonAbstractClassInheritsAbstractMember(node.name);
       _checkForInconsistentMethodInheritance();
       _checkForRecursiveInterfaceInheritance(_enclosingClass);
@@ -3214,7 +3211,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    *
    * See [_checkForExtendsDisallowedClass],
    * [_checkForExtendsDisallowedClassInTypeAlias],
-   * [_checkForImplementsDisallowedClass],
+   * [_checkForImplementsClauseErrorCodes],
    * [_checkForAllMixinErrorCodes],
    * [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS],
    * [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS], and
@@ -3498,28 +3495,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Verify that the given implements [clause] does not implement classes that
-   * are deferred.
-   *
-   * See [CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS].
-   */
-  void _checkForImplementsDeferredClass(ImplementsClause clause) {
-    if (clause == null) {
-      return;
-    }
-    for (TypeName type in clause.interfaces) {
-      _checkForExtendsOrImplementsDeferredClass(
-          type, CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS);
-    }
-  }
-
-  /**
    * Verify that the given implements [clause] does not implement classes such
    * as 'num' or 'String'.
    *
-   * See [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS].
+   * See [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS],
+   * [CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS].
    */
-  bool _checkForImplementsDisallowedClass(ImplementsClause clause) {
+  bool _checkForImplementsClauseErrorCodes(ImplementsClause clause) {
     if (clause == null) {
       return false;
     }
@@ -3527,6 +3509,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     for (TypeName type in clause.interfaces) {
       if (_checkForExtendsOrImplementsDisallowedClass(
           type, CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS)) {
+        foundError = true;
+      } else if (_checkForExtendsOrImplementsDeferredClass(
+          type, CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS)) {
         foundError = true;
       }
     }
@@ -4846,9 +4831,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   /**
    * Verify that all classes of the given [onClause] are valid.
    *
-   * See [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR],
-   * [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT], and
-   * [CompileTimeErrorCode.MIXIN_REFERENCES_SUPER].
+   * See [CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS],
+   * [CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS].
    */
   bool _checkForOnClauseErrorCodes(OnClause onClause) {
     if (onClause == null) {
@@ -5856,10 +5840,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     // Only check for all of the inheritance logic around clauses if there
     // isn't an error code such as "Cannot implement double" already.
     if (!_checkForOnClauseErrorCodes(onClause) &&
-        !_checkForImplementsDisallowedClass(implementsClause)) {
+        !_checkForImplementsClauseErrorCodes(implementsClause)) {
 //      _checkForImplicitDynamicType(superclass);
-//      _checkForExtendsDeferredClass(superclass);
-      _checkForImplementsDeferredClass(implementsClause);
 //      _checkForNonAbstractClassInheritsAbstractMember(node.name);
 //      _checkForInconsistentMethodInheritance();
 //      _checkForRecursiveInterfaceInheritance(_enclosingClass);
