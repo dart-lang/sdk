@@ -252,46 +252,64 @@ class ClosureContext {
 
   bool checkValidReturn(TypeInferrerImpl inferrer, DartType returnType,
       ReturnStatement statement, DartType expressionType) {
+    // The rules for valid returns for functions with return type T and possibly
+    // a return expression with static type S.
+    var flattenedReturnType = isAsync
+        ? inferrer.typeSchemaEnvironment.unfutureType(returnType)
+        : returnType;
     if (statement.expression == null) {
-      if (isAsync) {
-        returnType = inferrer.typeSchemaEnvironment.unfutureType(returnType);
+      // Sync: return; is a valid return if T is void, dynamic, or Null.
+      // Async: return; is a valid return if flatten(T) is void, dynamic, or
+      // Null.
+      if (flattenedReturnType is VoidType ||
+          flattenedReturnType is DynamicType ||
+          flattenedReturnType == inferrer.coreTypes.nullClass.rawType) {
+        return true;
       }
-      if (returnType is! VoidType &&
-          returnType is! DynamicType &&
-          returnType != inferrer.coreTypes.nullClass.rawType) {
-        statement.expression = inferrer.helper.wrapInProblem(
-            new NullLiteral()..fileOffset = statement.fileOffset,
-            messageReturnWithoutExpression,
-            noLength)
-          ..parent = statement;
-        return false;
-      }
-    } else {
-      if (isAsync) {
-        returnType = inferrer.typeSchemaEnvironment.unfutureType(returnType);
-        expressionType =
-            inferrer.typeSchemaEnvironment.unfutureType(expressionType);
-      }
-      if (!isArrow && returnType is VoidType) {
-        if (expressionType is! VoidType &&
-            expressionType is! DynamicType &&
-            expressionType != inferrer.coreTypes.nullClass.rawType) {
-          statement.expression = inferrer.helper.wrapInProblem(
-              statement.expression, messageReturnFromVoidFunction, noLength)
-            ..parent = statement;
-          return false;
-        }
-      } else if (expressionType is VoidType) {
-        if (returnType is! VoidType &&
-            returnType is! DynamicType &&
-            returnType != inferrer.coreTypes.nullClass.rawType) {
-          statement.expression = inferrer.helper.wrapInProblem(
-              statement.expression, messageVoidExpression, noLength)
-            ..parent = statement;
-          return false;
-        }
-      }
+      statement.expression = inferrer.helper.wrapInProblem(
+          new NullLiteral()..fileOffset = statement.fileOffset,
+          messageReturnWithoutExpression,
+          noLength)
+        ..parent = statement;
+      return false;
     }
+
+    // Arrow functions are valid if:
+    // Sync: T is void or return exp; is a valid for a block-bodied function.
+    // Async: flatten(T) is void or return exp; is valid for a block-bodied
+    // function.
+    if (isArrow && flattenedReturnType is VoidType) return true;
+
+    // Sync: invalid if T is void and S is not void, dynamic, or Null
+    // Async: invalid if T is void and flatten(S) is not void, dynamic, or Null.
+    var flattenedExpressionType = isAsync
+        ? inferrer.typeSchemaEnvironment.unfutureType(expressionType)
+        : expressionType;
+    if (returnType is VoidType &&
+        flattenedExpressionType is! VoidType &&
+        flattenedExpressionType is! DynamicType &&
+        flattenedExpressionType != inferrer.coreTypes.nullClass.rawType) {
+      statement.expression = inferrer.helper.wrapInProblem(
+          statement.expression, messageReturnFromVoidFunction, noLength)
+        ..parent = statement;
+      return false;
+    }
+
+    // Sync: invalid if S is void and T is not void, dynamic, or Null.
+    // Async: invalid if flatten(S) is void and flatten(T) is not void, dynamic,
+    // or Null.
+    if (flattenedExpressionType is VoidType &&
+        flattenedReturnType is! VoidType &&
+        flattenedReturnType is! DynamicType &&
+        flattenedReturnType != inferrer.coreTypes.nullClass.rawType) {
+      statement.expression = inferrer.helper
+          .wrapInProblem(statement.expression, messageVoidExpression, noLength)
+            ..parent = statement;
+      return false;
+    }
+
+    // The caller will check that the return expression is assignable to the
+    // return type.
     return true;
   }
 
