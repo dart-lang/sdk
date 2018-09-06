@@ -7,6 +7,7 @@
 #define RUNTIME_VM_CODE_PATCHER_H_
 
 #include "vm/allocation.h"
+#include "vm/globals.h"  // Needed here to get DART_USE_INTERPRETER.
 #include "vm/native_entry.h"
 
 namespace dart {
@@ -111,6 +112,20 @@ class CodePatcher : public AllStatic {
 //
 // Example pattern: `[0x3d, 0x8b, -1, -1]`.
 bool MatchesPattern(uword addr, int16_t* pattern, intptr_t size);
+
+#if defined(DART_USE_INTERPRETER)
+class KBCPatcher : public AllStatic {
+ public:
+  static NativeFunctionWrapper GetNativeCallAt(uword return_address,
+                                               const Code& bytecode,
+                                               NativeFunction* function);
+
+  static void PatchNativeCallAt(uword return_address,
+                                const Code& bytecode,
+                                NativeFunction function,
+                                NativeFunctionWrapper trampoline);
+};
+#endif  // defined DART_USE_INTERPRETER
 
 }  // namespace dart
 

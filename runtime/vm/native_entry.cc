@@ -283,8 +283,20 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
     ASSERT(target_function != NULL);
 
 #if defined(DEBUG) && !defined(TARGET_ARCH_DBC)
-    {
-      NativeFunction current_function = NULL;
+    NativeFunction current_function = NULL;
+    if (caller_frame->is_interpreted()) {
+#if defined(DART_USE_INTERPRETER)
+      NativeFunctionWrapper current_trampoline = KBCPatcher::GetNativeCallAt(
+          caller_frame->pc(), code, &current_function);
+      ASSERT(current_function ==
+             reinterpret_cast<NativeFunction>(LinkNativeCall));
+      ASSERT(current_trampoline == &BootstrapNativeCallWrapper ||
+             current_trampoline == &AutoScopeNativeCallWrapper ||
+             current_trampoline == &NoScopeNativeCallWrapper);
+#else
+      UNREACHABLE();
+#endif  // defined DART_USE_INTERPRETER
+    } else {
       const Code& current_trampoline =
           Code::Handle(zone, CodePatcher::GetNativeCallAt(
                                  caller_frame->pc(), code, &current_function));
@@ -313,25 +325,43 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
     } else {
       trampoline = &NoScopeNativeCallWrapper;
     }
-#else
-    Code& trampoline = Code::Handle(zone);
-    if (is_bootstrap_native) {
-      trampoline = StubCode::CallBootstrapNative_entry()->code();
-#if defined(USING_SIMULATOR)
-      patch_target_function =
-          reinterpret_cast<NativeFunction>(Simulator::RedirectExternalReference(
-              reinterpret_cast<uword>(patch_target_function),
-              Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments));
-#endif
-    } else if (is_auto_scope) {
-      trampoline = StubCode::CallAutoScopeNative_entry()->code();
-    } else {
-      trampoline = StubCode::CallNoScopeNative_entry()->code();
-    }
-#endif
-
     CodePatcher::PatchNativeCallAt(caller_frame->pc(), code,
                                    patch_target_function, trampoline);
+#else
+    if (caller_frame->is_interpreted()) {
+#if defined(DART_USE_INTERPRETER)
+      NativeFunctionWrapper trampoline;
+      if (is_bootstrap_native) {
+        trampoline = &BootstrapNativeCallWrapper;
+      } else if (is_auto_scope) {
+        trampoline = &AutoScopeNativeCallWrapper;
+      } else {
+        trampoline = &NoScopeNativeCallWrapper;
+      }
+      KBCPatcher::PatchNativeCallAt(caller_frame->pc(), code,
+                                    patch_target_function, trampoline);
+#else
+      UNREACHABLE();
+#endif  // defined DART_USE_INTERPRETER
+    } else {
+      Code& trampoline = Code::Handle(zone);
+      if (is_bootstrap_native) {
+        trampoline = StubCode::CallBootstrapNative_entry()->code();
+#if defined(USING_SIMULATOR)
+        patch_target_function = reinterpret_cast<NativeFunction>(
+            Simulator::RedirectExternalReference(
+                reinterpret_cast<uword>(patch_target_function),
+                Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments));
+#endif  // defined USING_SIMULATOR
+      } else if (is_auto_scope) {
+        trampoline = StubCode::CallAutoScopeNative_entry()->code();
+      } else {
+        trampoline = StubCode::CallNoScopeNative_entry()->code();
+      }
+      CodePatcher::PatchNativeCallAt(caller_frame->pc(), code,
+                                     patch_target_function, trampoline);
+    }
+#endif  // defined TARGET_ARCH_DBC
 
     if (FLAG_trace_natives) {
       THR_Print("    -> %p (%s)\n", target_function,
