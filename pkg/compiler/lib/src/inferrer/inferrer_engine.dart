@@ -121,8 +121,6 @@ abstract class InferrerEngine {
   // TODO(johnniwinther): Make this private again.
   GlobalTypeInferenceElementData dataOfMember(MemberEntity element);
 
-  GlobalTypeInferenceElementData lookupDataOfMember(MemberEntity element);
-
   bool checkIfExposesThis(ConstructorEntity element);
 
   void recordExposesThis(ConstructorEntity element, bool exposesThis);
@@ -225,6 +223,8 @@ abstract class InferrerEngine {
 
   bool returnsMapValueType(Selector selector, AbstractValue mask);
 
+  void close();
+
   void clear();
 
   /// Returns true if global optimizations such as type inferencing can apply to
@@ -280,8 +280,6 @@ class InferrerEngineImpl extends InferrerEngine {
   final Map<ir.Node, TypeInformation> concreteTypes =
       new Map<ir.Node, TypeInformation>();
 
-  final Map<ir.Node, TypeInformation> concreteKernelTypes =
-      new Map<ir.Node, TypeInformation>();
   final Set<ConstructorEntity> generativeConstructorsExposingThis =
       new Set<ConstructorEntity>();
 
@@ -328,9 +326,6 @@ class InferrerEngineImpl extends InferrerEngine {
   // TODO(johnniwinther): Make this private again.
   GlobalTypeInferenceElementData dataOfMember(MemberEntity element) =>
       _memberData[element] ??= new KernelGlobalTypeInferenceElementData();
-
-  GlobalTypeInferenceElementData lookupDataOfMember(MemberEntity element) =>
-      _memberData[element];
 
   /**
    * Update [sideEffects] with the side effects of [callee] being
@@ -1167,11 +1162,18 @@ class InferrerEngineImpl extends InferrerEngine {
     return info;
   }
 
+  void close() {
+    for (MemberTypeInformation typeInformation
+        in types.memberTypeInformations.values) {
+      typeInformation.computeIsCalledOnce();
+    }
+  }
+
   void clear() {
+    if (retainDataForTesting) return;
+
     void cleanup(TypeInformation info) {
-      if (!retainDataForTesting) {
-        info.cleanup();
-      }
+      info.cleanup();
     }
 
     types.allocatedCalls.forEach(cleanup);
@@ -1195,6 +1197,8 @@ class InferrerEngineImpl extends InferrerEngine {
 
     types.allocatedMaps.values.forEach(cleanup);
     types.allocatedLists.values.forEach(cleanup);
+
+    _memberData.clear();
   }
 
   Iterable<MemberEntity> getCallersOfForTesting(MemberEntity element) {

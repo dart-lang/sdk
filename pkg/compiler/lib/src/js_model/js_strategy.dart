@@ -221,11 +221,9 @@ class JsBackendStrategy implements KernelBackendStrategy {
 
   @override
   TypesInferrer createTypesInferrer(
-      JClosedWorld closedWorld, InferredDataBuilder inferredDataBuilder,
-      {bool disableTypeInference: false}) {
+      JClosedWorld closedWorld, InferredDataBuilder inferredDataBuilder) {
     return new TypeGraphInferrer(_compiler, _elementMap, _globalLocalsMap,
-        _closureDataLookup, closedWorld, inferredDataBuilder,
-        disableTypeInference: disableTypeInference);
+        _closureDataLookup, closedWorld, inferredDataBuilder);
   }
 }
 

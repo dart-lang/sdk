@@ -243,3 +243,27 @@ class InferredDataBuilderImpl implements InferredDataBuilder {
     return _functionsThatMightBePassedToApply.contains(element);
   }
 }
+
+class TrivialInferredData implements InferredData {
+  final SideEffects _allSideEffects = new SideEffects();
+
+  @override
+  SideEffects getSideEffectsOfElement(FunctionEntity element) {
+    return _allSideEffects;
+  }
+
+  @override
+  bool getMightBePassedToApply(FunctionEntity element) => true;
+
+  @override
+  bool isCalledInLoop(MemberEntity element) => true;
+
+  @override
+  bool getCannotThrow(FunctionEntity element) => false;
+
+  @override
+  SideEffects getSideEffectsOfSelector(
+      Selector selector, AbstractValue receiver) {
+    return _allSideEffects;
+  }
+}

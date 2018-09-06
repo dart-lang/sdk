@@ -68,15 +68,15 @@ runTest() async {
       'AssumeDynamicClass is unresolved.');
 
   void testTypeMatch(FunctionEntity function, TypeMask expectedParameterType,
-      TypeMask expectedReturnType, TypesInferrer inferrer) {
+      TypeMask expectedReturnType, GlobalTypeInferenceResults results) {
     compiler.codegenWorldBuilder.forEachParameterAsLocal(function,
         (Local parameter) {
-      TypeMask type = inferrer.getTypeOfParameter(parameter);
+      TypeMask type = results.resultOfParameter(parameter);
       Expect.equals(
           expectedParameterType, simplify(type, closedWorld), "$parameter");
     });
     if (expectedReturnType != null) {
-      TypeMask type = inferrer.getReturnTypeOfMember(function);
+      TypeMask type = results.resultOfMember(function).returnType;
       Expect.equals(
           expectedReturnType, simplify(type, closedWorld), "$function");
     }
@@ -107,13 +107,13 @@ runTest() async {
         optimizerHints.assumeDynamic(
             closedWorld.elementEnvironment, closedWorld.commonElements, method),
         "Unexpected annotation of @AssumeDynamic on '$method'.");
-    TypesInferrer inferrer = compiler.globalInference.typesInferrerInternal;
+    GlobalTypeInferenceResults results =
+        compiler.globalInference.resultsForTesting;
     if (expectTrustTypeAnnotations && expectedParameterType != null) {
-      testTypeMatch(
-          method, expectedParameterType, expectedReturnType, inferrer);
+      testTypeMatch(method, expectedParameterType, expectedReturnType, results);
     } else if (expectAssumeDynamic) {
       testTypeMatch(
-          method, closedWorld.abstractValueDomain.dynamicType, null, inferrer);
+          method, closedWorld.abstractValueDomain.dynamicType, null, results);
     }
   }
 

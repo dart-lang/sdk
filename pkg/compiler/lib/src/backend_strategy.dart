@@ -58,6 +58,5 @@ abstract class BackendStrategy {
 
   /// Creates the [TypesInferrer] used by this strategy.
   TypesInferrer createTypesInferrer(
-      JClosedWorld closedWorld, InferredDataBuilder inferredDataBuilder,
-      {bool disableTypeInference: false});
+      JClosedWorld closedWorld, InferredDataBuilder inferredDataBuilder);
 }

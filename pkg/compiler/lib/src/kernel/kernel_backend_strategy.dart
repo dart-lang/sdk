@@ -121,14 +121,14 @@ class KernelSsaBuilder implements SsaBuilder {
 
 class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
   final GlobalTypeInferenceResults _globalInferenceResults;
-  GlobalTypeInferenceElementResult _targetResults;
+  GlobalTypeInferenceMemberResult _targetResults;
 
   KernelToTypeInferenceMapImpl(
       MemberEntity target, this._globalInferenceResults) {
     _targetResults = _resultOf(target);
   }
 
-  GlobalTypeInferenceElementResult _resultOf(MemberEntity e) =>
+  GlobalTypeInferenceMemberResult _resultOf(MemberEntity e) =>
       _globalInferenceResults
           .resultOfMember(e is ConstructorBodyEntity ? e.constructor : e);
 

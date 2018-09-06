@@ -22,10 +22,7 @@ import 'js/js.dart' as jsAst;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'types/abstract_value_domain.dart';
 import 'types/types.dart'
-    show
-        GlobalTypeInferenceElementResult,
-        GlobalTypeInferenceMemberResult,
-        GlobalTypeInferenceResults;
+    show GlobalTypeInferenceMemberResult, GlobalTypeInferenceResults;
 import 'universe/world_builder.dart' show CodegenWorldBuilder;
 import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
@@ -112,7 +109,7 @@ class ElementInfoCollector {
   GlobalTypeInferenceMemberResult _resultOfMember(MemberEntity e) =>
       _globalInferenceResults.resultOfMember(e);
 
-  GlobalTypeInferenceElementResult _resultOfParameter(Local e) =>
+  AbstractValue _resultOfParameter(Local e) =>
       _globalInferenceResults.resultOfParameter(e);
 
   FieldInfo visitField(FieldEntity field, {ClassEntity containingClass}) {
@@ -280,7 +277,7 @@ class ElementInfoCollector {
     List<ParameterInfo> parameters = <ParameterInfo>[];
     List<String> inferredParameterTypes = <String>[];
     codegenWorldBuilder.forEachParameterAsLocal(function, (parameter) {
-      inferredParameterTypes.add('${_resultOfParameter(parameter).type}');
+      inferredParameterTypes.add('${_resultOfParameter(parameter)}');
     });
     int parameterIndex = 0;
     codegenWorldBuilder.forEachParameter(function, (type, name, _) {

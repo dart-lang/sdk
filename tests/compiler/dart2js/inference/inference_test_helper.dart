@@ -73,7 +73,7 @@ class TypeMaskDataComputer extends DataComputer {
 /// IR visitor for computing inference data for a member.
 class TypeMaskIrComputer extends IrDataExtractor {
   final GlobalTypeInferenceResults results;
-  GlobalTypeInferenceElementResult result;
+  GlobalTypeInferenceMemberResult result;
   final KernelToElementMapForBuilding _elementMap;
   final KernelToLocalsMap _localsMap;
   final ClosureDataLookup _closureDataLookup;
@@ -106,9 +106,7 @@ class TypeMaskIrComputer extends IrDataExtractor {
   }
 
   String getParameterValue(Local parameter) {
-    GlobalTypeInferenceParameterResult elementResult =
-        results.resultOfParameter(parameter);
-    return getTypeMaskValue(elementResult.type);
+    return getTypeMaskValue(results.resultOfParameter(parameter));
   }
 
   String getTypeMaskValue(TypeMask typeMask) {

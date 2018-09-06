@@ -25,7 +25,7 @@ class AbstractValueFactory {
 
   static AbstractValue inferredTypeForParameter(
       Local element, GlobalTypeInferenceResults results) {
-    return results.resultOfParameter(element).type ??
+    return results.resultOfParameter(element) ??
         results.closedWorld.abstractValueDomain.dynamicType;
   }
 
