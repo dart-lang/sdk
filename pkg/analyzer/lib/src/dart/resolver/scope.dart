@@ -8,9 +8,7 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -72,28 +70,6 @@ class ClassScope extends EnclosedScope {
       throw new ArgumentError("class element cannot be null");
     }
     _defineMembers(classElement);
-  }
-
-  @override
-  AnalysisError getErrorForDuplicate(Element existing, Element duplicate) {
-    if (existing is PropertyAccessorElement && duplicate is MethodElement) {
-      if (existing.nameOffset < duplicate.nameOffset) {
-        return new AnalysisError(
-            duplicate.source,
-            duplicate.nameOffset,
-            duplicate.nameLength,
-            CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME,
-            [existing.displayName]);
-      } else {
-        return new AnalysisError(
-            existing.source,
-            existing.nameOffset,
-            existing.nameLength,
-            CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME,
-            [existing.displayName]);
-      }
-    }
-    return super.getErrorForDuplicate(existing, duplicate);
   }
 
   /**
@@ -598,28 +574,6 @@ class LibraryScope extends EnclosedScope {
     }
   }
 
-  @override
-  AnalysisError getErrorForDuplicate(Element existing, Element duplicate) {
-    if (existing is PrefixElement) {
-      // TODO(scheglov) consider providing actual 'nameOffset' from the
-      // synthetic accessor
-      int offset = duplicate.nameOffset;
-      if (duplicate is PropertyAccessorElement) {
-        PropertyAccessorElement accessor = duplicate;
-        if (accessor.isSynthetic) {
-          offset = accessor.variable.nameOffset;
-        }
-      }
-      return new AnalysisError(
-          duplicate.source,
-          offset,
-          duplicate.nameLength,
-          CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
-          [existing.displayName]);
-    }
-    return super.getErrorForDuplicate(existing, duplicate);
-  }
-
   /**
    * Add to this scope all of the public top-level names that are defined in the
    * given [compilationUnit].
@@ -1049,22 +1003,6 @@ abstract class Scope {
   void defineWithoutChecking(Element element) {
     _definedNames ??= new HashMap<String, Element>();
     _definedNames[_getName(element)] = element;
-  }
-
-  /**
-   * Return the error code to be used when reporting that a name being defined
-   * locally conflicts with another element of the same name in the local scope.
-   * [existing] is the first element to be declared with the conflicting name,
-   * while [duplicate] another element declared with the conflicting name.
-   */
-  AnalysisError getErrorForDuplicate(Element existing, Element duplicate) {
-    // TODO(brianwilkerson) Customize the error message based on the types of
-    // elements that share the same name.
-    // TODO(jwren) There are 4 error codes for duplicate, but only 1 is being
-    // generated.
-    Source source = duplicate.source;
-    return new AnalysisError(source, duplicate.nameOffset, duplicate.nameLength,
-        CompileTimeErrorCode.DUPLICATE_DEFINITION, [existing.displayName]);
   }
 
   /**

@@ -283,11 +283,33 @@ mixin M {
     assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
   }
 
+  test_error_duplicateDefinition_getter_method() async {
+    addTestFile(r'''
+mixin M {
+  int get foo => 0;
+  void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+  }
+
   test_error_duplicateDefinition_method() async {
     addTestFile(r'''
 mixin M {
   void t() {}
   void t() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+  }
+
+  test_error_duplicateDefinition_method_getter() async {
+    addTestFile(r'''
+mixin M {
+  void foo() {}
+  int get foo => 0;
 }
 ''');
     await resolveTestFile();
@@ -357,17 +379,6 @@ mixin M {
 
     FieldFormalParameterElement fpElement = fpNode.declaredElement;
     expect(fpElement.field, same(findElement.field('f')));
-  }
-
-  test_error_getterAndMethodWithSameName() async {
-    addTestFile(r'''
-mixin M {
-  void t() {}
-  int get t => 0;
-}
-''');
-    await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME]);
   }
 
   test_error_implementsClause_deferredClass() async {
@@ -463,17 +474,6 @@ mixin M {
 ''');
     await resolveTestFile();
     assertTestErrors([CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME]);
-  }
-
-  test_error_methodAndGetterWithSameName() async {
-    addTestFile(r'''
-mixin M {
-  int get t => 0;
-  void t() {}
-}
-''');
-    await resolveTestFile();
-    assertTestErrors([CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME]);
   }
 
   test_error_mixinApplicationNotImplementedInterface() async {

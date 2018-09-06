@@ -506,8 +506,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
       _initializeInitialFieldElementsMap(_enclosingClass.fields);
       _checkForFinalNotInitializedInClass(members);
-      _checkForDuplicateDefinitionInheritance();
-      _checkForConflictingInstanceMethodSetter(node);
       _checkForBadFunctionUse(node);
       return super.visitClassDeclaration(node);
     } finally {
@@ -987,14 +985,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (node.isSetter || node.isGetter) {
         _checkForMismatchedAccessorTypes(node, methodName);
       }
-      if (node.isGetter) {
-        _checkForConflictingStaticGetterAndInstanceSetter(node);
-      } else if (node.isSetter) {
+      if (node.isSetter) {
         _checkForInvalidModifierOnBody(
             node.body, CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER);
         _checkForWrongNumberOfParametersForSetter(node.name, node.parameters);
         _checkForNonVoidReturnTypeForSetter(returnType);
-        _checkForConflictingStaticSetterAndInstanceMember(node);
       } else if (node.isOperator) {
         _checkForOptionalParameterInOperator(node);
         _checkForWrongNumberOfParametersForOperator(node);
@@ -1358,7 +1353,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _checkForNonAbstractClassInheritsAbstractMember(node.name);
       _checkForInconsistentMethodInheritance();
       _checkForRecursiveInterfaceInheritance(_enclosingClass);
-      _checkForConflictingGetterAndMethod();
+      _checkForConflictingClassMembers();
       _checkImplementsSuperClass(implementsClause);
       _checkForMixinHasNoConstructors(node);
       _checkMixinInference(node, withClause);
@@ -1392,26 +1387,62 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * Check that there are no members with the same name.
    */
   void _checkDuplicateClassMembers(List<ClassMember> members) {
-    Map<String, Element> definedNames = new HashMap<String, Element>();
-    Set<String> visitedFields = new HashSet<String>();
+    Map<String, Element> instanceGetters = new HashMap<String, Element>();
+    Map<String, Element> instanceSetters = new HashMap<String, Element>();
+    Map<String, Element> staticGetters = new HashMap<String, Element>();
+    Map<String, Element> staticSetters = new HashMap<String, Element>();
+
     for (ClassMember member in members) {
       // We ignore constructors because they are checked in the method
       // _checkForConflictingConstructorNameAndMember.
       if (member is FieldDeclaration) {
         for (VariableDeclaration field in member.fields.variables) {
           SimpleIdentifier identifier = field.name;
-          _checkDuplicateIdentifier(definedNames, identifier);
-          String name = identifier.name;
-          if (!field.isFinal &&
-              !field.isConst &&
-              !visitedFields.contains(name)) {
-            _checkDuplicateIdentifier(definedNames, identifier,
-                implicitSetter: true);
-          }
-          visitedFields.add(name);
+          _checkDuplicateIdentifier(
+            member.isStatic ? staticGetters : instanceGetters,
+            identifier,
+            setterScope: member.isStatic ? staticSetters : instanceSetters,
+          );
         }
       } else if (member is MethodDeclaration) {
-        _checkDuplicateIdentifier(definedNames, member.name);
+        _checkDuplicateIdentifier(
+          member.isStatic ? staticGetters : instanceGetters,
+          member.name,
+          setterScope: member.isStatic ? staticSetters : instanceSetters,
+        );
+      }
+    }
+
+    // Check for local static members conflicting with local instance members.
+    for (ClassMember member in members) {
+      if (member is FieldDeclaration) {
+        if (member.isStatic) {
+          for (VariableDeclaration field in member.fields.variables) {
+            SimpleIdentifier identifier = field.name;
+            String name = identifier.name;
+            if (instanceGetters.containsKey(name) ||
+                instanceSetters.containsKey(name)) {
+              String className = _enclosingClass.displayName;
+              _errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
+                  identifier,
+                  [className, name, className]);
+            }
+          }
+        }
+      } else if (member is MethodDeclaration) {
+        if (member.isStatic) {
+          SimpleIdentifier identifier = member.name;
+          String name = identifier.name;
+          if (instanceGetters.containsKey(name) ||
+              instanceSetters.containsKey(name)) {
+            String className = identifier.staticElement.enclosingElement.name;
+            _errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
+                identifier,
+                [className, name, className]);
+          }
+        }
       }
     }
   }
@@ -1479,58 +1510,101 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * Check that there are no members with the same name.
    */
   void _checkDuplicateEnumMembers(EnumDeclaration node) {
-    Map<String, Element> definedNames = new HashMap<String, Element>();
     ClassElement element = node.declaredElement;
+
+    Map<String, Element> instanceGetters = new HashMap<String, Element>();
+    Map<String, Element> staticGetters = new HashMap<String, Element>();
+
     String indexName = 'index';
     String valuesName = 'values';
-    definedNames[indexName] = element.getField(indexName);
-    definedNames[valuesName] = element.getField(valuesName);
+    instanceGetters[indexName] = element.getGetter(indexName);
+    staticGetters[valuesName] = element.getGetter(valuesName);
+
     for (EnumConstantDeclaration constant in node.constants) {
-      _checkDuplicateIdentifier(definedNames, constant.name);
+      _checkDuplicateIdentifier(staticGetters, constant.name);
+    }
+
+    for (EnumConstantDeclaration constant in node.constants) {
+      SimpleIdentifier identifier = constant.name;
+      String name = identifier.name;
+      if (instanceGetters.containsKey(name)) {
+        String enumName = element.displayName;
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
+            identifier,
+            [enumName, name, enumName]);
+      }
     }
   }
 
   /**
-   * Check whether the given [identifier] is already in the set of
-   * [definedNames], and produce an error if it is. If [implicitSetter] is
-   * `true`, then the identifier represents the definition of a setter.
+   * Check whether the given [element] defined by the [identifier] is already
+   * in one of the scopes - [getterScope] or [setterScope], and produce an
+   * error if it is.
    */
   void _checkDuplicateIdentifier(
-      Map<String, Element> definedNames, SimpleIdentifier identifier,
-      {bool implicitSetter: false}) {
+      Map<String, Element> getterScope, SimpleIdentifier identifier,
+      {Element element, Map<String, Element> setterScope}) {
+    element ??= identifier.staticElement;
+
+    // Fields define getters and setters, so check them separately.
+    if (element is PropertyInducingElement) {
+      _checkDuplicateIdentifier(getterScope, identifier,
+          element: element.getter, setterScope: setterScope);
+      if (!element.isConst && !element.isFinal) {
+        _checkDuplicateIdentifier(getterScope, identifier,
+            element: element.setter, setterScope: setterScope);
+      }
+      return;
+    }
+
     ErrorCode getError(Element previous, Element current) {
-      if (previous is MethodElement && current is PropertyAccessorElement) {
-        if (current.isGetter) {
-          return CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME;
-        }
-      } else if (previous is PropertyAccessorElement &&
-          current is MethodElement) {
-        if (previous.isGetter) {
-          return CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME;
-        }
-      } else if (previous is PrefixElement) {
+      if (previous is PrefixElement) {
         return CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER;
       }
       return CompileTimeErrorCode.DUPLICATE_DEFINITION;
     }
 
-    Element current = identifier.staticElement;
+    bool isGetterSetterPair(Element a, Element b) {
+      if (a is PropertyAccessorElement && b is PropertyAccessorElement) {
+        return a.isGetter && b.isSetter || a.isSetter && b.isGetter;
+      }
+      return false;
+    }
+
     String name = identifier.name;
-    if (current is PropertyAccessorElement && current.isSetter) {
-      name += '=';
-    } else if (current is MethodElement && current.isOperator && name == '-') {
-      if (current.parameters.length == 0) {
+    if (element is MethodElement && element.isOperator && name == '-') {
+      if (element.parameters.length == 0) {
         name = 'unary-';
       }
-    } else if (implicitSetter) {
-      name += '=';
     }
-    Element previous = definedNames[name];
+
+    Element previous = getterScope[name];
     if (previous != null) {
-      _errorReporter
-          .reportErrorForNode(getError(previous, current), identifier, [name]);
+      if (isGetterSetterPair(element, previous)) {
+        // OK
+      } else {
+        _errorReporter.reportErrorForNode(
+          getError(previous, element),
+          identifier,
+          [name],
+        );
+      }
     } else {
-      definedNames[name] = identifier.staticElement;
+      getterScope[name] = element;
+    }
+
+    if (element is PropertyAccessorElement && element.isSetter) {
+      previous = setterScope[name];
+      if (previous != null) {
+        _errorReporter.reportErrorForNode(
+          getError(previous, element),
+          identifier,
+          [name],
+        );
+      } else {
+        setterScope[name] = element;
+      }
     }
   }
 
@@ -1538,39 +1612,41 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * Check that there are no members with the same name.
    */
   void _checkDuplicateUnitMembers(CompilationUnit node) {
-    Map<String, Element> definedNames = new HashMap<String, Element>();
+    Map<String, Element> definedGetters = new HashMap<String, Element>();
+    Map<String, Element> definedSetters = new HashMap<String, Element>();
+
     void addWithoutChecking(CompilationUnitElement element) {
       for (PropertyAccessorElement accessor in element.accessors) {
         String name = accessor.name;
         if (accessor.isSetter) {
           name += '=';
         }
-        definedNames[name] = accessor;
+        definedGetters[name] = accessor;
       }
       for (ClassElement type in element.enums) {
-        definedNames[type.name] = type;
+        definedGetters[type.name] = type;
       }
       for (FunctionElement function in element.functions) {
-        definedNames[function.name] = function;
+        definedGetters[function.name] = function;
       }
       for (FunctionTypeAliasElement alias in element.functionTypeAliases) {
-        definedNames[alias.name] = alias;
+        definedGetters[alias.name] = alias;
       }
       for (TopLevelVariableElement variable in element.topLevelVariables) {
-        definedNames[variable.name] = variable;
+        definedGetters[variable.name] = variable;
         if (!variable.isFinal && !variable.isConst) {
-          definedNames[variable.name + '='] = variable;
+          definedGetters[variable.name + '='] = variable;
         }
       }
       for (ClassElement type in element.types) {
-        definedNames[type.name] = type;
+        definedGetters[type.name] = type;
       }
     }
 
     for (ImportElement importElement in _currentLibrary.imports) {
       PrefixElement prefix = importElement.prefix;
       if (prefix != null) {
-        definedNames[prefix.name] = prefix;
+        definedGetters[prefix.name] = prefix;
       }
     }
     CompilationUnitElement element = node.declaredElement;
@@ -1585,14 +1661,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     for (CompilationUnitMember member in node.declarations) {
       if (member is NamedCompilationUnitMember) {
-        _checkDuplicateIdentifier(definedNames, member.name);
+        _checkDuplicateIdentifier(definedGetters, member.name,
+            setterScope: definedSetters);
       } else if (member is TopLevelVariableDeclaration) {
         for (VariableDeclaration variable in member.variables.variables) {
-          _checkDuplicateIdentifier(definedNames, variable.name);
-          if (!variable.isFinal && !variable.isConst) {
-            _checkDuplicateIdentifier(definedNames, variable.name,
-                implicitSetter: true);
-          }
+          _checkDuplicateIdentifier(definedGetters, variable.name,
+              setterScope: definedSetters);
         }
       }
     }
@@ -2357,6 +2431,74 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * Verify that the [_enclosingClass] does not have a method and getter pair
+   * with the same name on, via inheritance.
+   *
+   * See [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE],
+   * [CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD], and
+   * [CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD].
+   */
+  void _checkForConflictingClassMembers() {
+    if (_enclosingClass == null) {
+      return;
+    }
+
+    // method declared in the enclosing class vs. inherited getter/setter
+    for (MethodElement method in _enclosingClass.methods) {
+      String name = method.name;
+
+      // find inherited property accessor
+      ExecutableElement inherited =
+          _inheritanceManager.lookupInheritance(_enclosingClass, name);
+      inherited ??=
+          _inheritanceManager.lookupInheritance(_enclosingClass, '$name=');
+
+      if (method.isStatic && inherited != null) {
+        _errorReporter.reportErrorForElement(
+            CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, method, [
+          _enclosingClass.displayName,
+          name,
+          inherited.enclosingElement.displayName,
+        ]);
+      } else if (inherited is PropertyAccessorElement) {
+        _errorReporter.reportErrorForElement(
+            CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, method, [
+          _enclosingClass.displayName,
+          inherited.enclosingElement.displayName,
+          name
+        ]);
+      }
+    }
+
+    // getter declared in the enclosing class vs. inherited method
+    for (PropertyAccessorElement accessor in _enclosingClass.accessors) {
+      String name = accessor.displayName;
+
+      // find inherited method or property accessor
+      ExecutableElement inherited =
+          _inheritanceManager.lookupInheritance(_enclosingClass, name);
+      inherited ??=
+          _inheritanceManager.lookupInheritance(_enclosingClass, '$name=');
+
+      if (accessor.isStatic && inherited != null) {
+        _errorReporter.reportErrorForElement(
+            CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, accessor, [
+          _enclosingClass.displayName,
+          name,
+          inherited.enclosingElement.displayName,
+        ]);
+      } else if (inherited is MethodElement) {
+        _errorReporter.reportErrorForElement(
+            CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, accessor, [
+          _enclosingClass.displayName,
+          name,
+          inherited.enclosingElement.displayName
+        ]);
+      }
+    }
+  }
+
+  /**
    * Verify all possible conflicts of the given [constructor]'s name with other
    * constructors and members of the same class. The [constructorElement] is the
    * constructor's element.
@@ -2437,235 +2579,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
 
     visit(_enclosingClass.type);
-  }
-
-  /**
-   * Verify that the [_enclosingClass] does not have a method and getter pair
-   * with the same name on, via inheritance.
-   *
-   * See [CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD], and
-   * [CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER].
-   */
-  void _checkForConflictingGetterAndMethod() {
-    if (_enclosingClass == null) {
-      return;
-    }
-
-    // method declared in the enclosing class vs. inherited getter
-    for (MethodElement method in _enclosingClass.methods) {
-      String name = method.name;
-      // find inherited property accessor (and can be only getter)
-      ExecutableElement inherited =
-          _inheritanceManager.lookupInheritance(_enclosingClass, name);
-      if (inherited is! PropertyAccessorElement) {
-        continue;
-      }
-
-      _errorReporter.reportErrorForElement(
-          CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD, method, [
-        _enclosingClass.displayName,
-        inherited.enclosingElement.displayName,
-        name
-      ]);
-    }
-    // getter declared in the enclosing class vs. inherited method
-    for (PropertyAccessorElement accessor in _enclosingClass.accessors) {
-      if (!accessor.isGetter) {
-        continue;
-      }
-      String name = accessor.name;
-      // find inherited method
-      ExecutableElement inherited =
-          _inheritanceManager.lookupInheritance(_enclosingClass, name);
-      if (inherited is! MethodElement) {
-        continue;
-      }
-
-      _errorReporter.reportErrorForElement(
-          CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER, accessor, [
-        _enclosingClass.displayName,
-        inherited.enclosingElement.displayName,
-        name
-      ]);
-    }
-  }
-
-  /**
-   * Verify that the enclosing class does not have a setter with the same name
-   * as the given instance method declaration.
-   *
-   * TODO(jwren) add other "conflicting" error codes into algorithm/ data
-   * structure.
-   *
-   * See [StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER].
-   */
-  void _checkForConflictingInstanceMethodSetter(ClassDeclaration declaration) {
-    // Reference all of the class members in this class.
-    NodeList<ClassMember> classMembers = declaration.members;
-    if (classMembers.isEmpty) {
-      return;
-    }
-    // Create a HashMap to track conflicting members, and then loop through
-    // members in the class to construct the HashMap, at the same time,
-    // look for violations.  Don't add members if they are part of a conflict,
-    // this prevents multiple warnings for one issue.
-    Map<String, ClassMember> memberHashMap = new HashMap<String, ClassMember>();
-    for (ClassMember member in classMembers) {
-      if (member is MethodDeclaration) {
-        if (member.isStatic) {
-          continue;
-        }
-        // prepare name
-        SimpleIdentifier name = member.name;
-        if (name == null) {
-          continue;
-        }
-        bool addThisMemberToTheMap = true;
-        bool isGetter = member.isGetter;
-        bool isSetter = member.isSetter;
-        bool isOperator = member.isOperator;
-        bool isMethod = !isGetter && !isSetter && !isOperator;
-        // Do lookups in the enclosing class (and the inherited member) if the
-        // member is a method or a setter for
-        // StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER warning.
-        if (isMethod) {
-          String setterName = "${name.name}=";
-          Element enclosingElementOfSetter = null;
-          ClassMember conflictingSetter = memberHashMap[setterName];
-          if (conflictingSetter != null) {
-            enclosingElementOfSetter = resolutionMap
-                .elementDeclaredByDeclaration(conflictingSetter)
-                .enclosingElement;
-          } else {
-            ExecutableElement elementFromInheritance = _inheritanceManager
-                .lookupInheritance(_enclosingClass, setterName);
-            if (elementFromInheritance != null) {
-              enclosingElementOfSetter =
-                  elementFromInheritance.enclosingElement;
-            }
-          }
-          if (enclosingElementOfSetter != null) {
-            _errorReporter.reportErrorForNode(
-                StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER, name, [
-              _enclosingClass.displayName,
-              name.name,
-              enclosingElementOfSetter.displayName
-            ]);
-            addThisMemberToTheMap = false;
-          }
-        } else if (isSetter) {
-          String methodName = name.name;
-          ClassMember conflictingMethod = memberHashMap[methodName];
-          if (conflictingMethod != null &&
-              conflictingMethod is MethodDeclaration &&
-              !conflictingMethod.isGetter) {
-            _errorReporter.reportErrorForNode(
-                StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER2,
-                name,
-                [_enclosingClass.displayName, name.name]);
-            addThisMemberToTheMap = false;
-          }
-        }
-        // Finally, add this member into the HashMap.
-        if (addThisMemberToTheMap) {
-          if (member.isSetter) {
-            memberHashMap["${name.name}="] = member;
-          } else {
-            memberHashMap[name.name] = member;
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * Verify that the enclosing class does not have an instance member with the
-   * same name as the given static [method] declaration.
-   *
-   * See [StaticWarningCode.CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER].
-   */
-  void _checkForConflictingStaticGetterAndInstanceSetter(
-      MethodDeclaration method) {
-    if (!method.isStatic) {
-      return;
-    }
-    // prepare name
-    SimpleIdentifier nameNode = method.name;
-    if (nameNode == null) {
-      return;
-    }
-    String name = nameNode.name;
-    // prepare enclosing type
-    if (_enclosingClass == null) {
-      return;
-    }
-    InterfaceType enclosingType = _enclosingClass.type;
-    // try to find setter
-    ExecutableElement setter =
-        enclosingType.lookUpSetter(name, _currentLibrary);
-    if (setter == null) {
-      return;
-    }
-    // OK, also static
-    if (setter.isStatic) {
-      return;
-    }
-    // prepare "setter" type to report its name
-    ClassElement setterClass = setter.enclosingElement as ClassElement;
-    InterfaceType setterType = setterClass.type;
-
-    _errorReporter.reportErrorForNode(
-        StaticWarningCode.CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER,
-        nameNode,
-        [setterType.displayName]);
-  }
-
-  /**
-   * Verify that the enclosing class does not have an instance member with the
-   * same name as the given static [method] declaration.
-   *
-   * See [StaticWarningCode.CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER].
-   */
-  void _checkForConflictingStaticSetterAndInstanceMember(
-      MethodDeclaration method) {
-    if (!method.isStatic) {
-      return;
-    }
-    // prepare name
-    SimpleIdentifier nameNode = method.name;
-    if (nameNode == null) {
-      return;
-    }
-    String name = nameNode.name;
-    // prepare enclosing type
-    if (_enclosingClass == null) {
-      return;
-    }
-    InterfaceType enclosingType = _enclosingClass.type;
-    // try to find member
-    ExecutableElement member;
-    member = enclosingType.lookUpMethod(name, _currentLibrary);
-    if (member == null) {
-      member = enclosingType.lookUpGetter(name, _currentLibrary);
-    }
-    if (member == null) {
-      member = enclosingType.lookUpSetter(name, _currentLibrary);
-    }
-    if (member == null) {
-      return;
-    }
-    // OK, also static
-    if (member.isStatic) {
-      return;
-    }
-    // prepare "member" type to report its name
-    ClassElement memberClass = member.enclosingElement as ClassElement;
-    InterfaceType memberType = memberClass.type;
-
-    _errorReporter.reportErrorForNode(
-        StaticWarningCode.CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER,
-        nameNode,
-        [memberType.displayName]);
   }
 
   /**
@@ -3010,67 +2923,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         _checkDeferredPrefixCollision(imports);
       }
     }
-  }
-
-  /**
-   * Verify that the enclosing class does not have an instance member with the
-   * given name of the static member.
-   *
-   * See [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE].
-   */
-  void _checkForDuplicateDefinitionInheritance() {
-    if (_enclosingClass == null) {
-      return;
-    }
-
-    for (ExecutableElement member in _enclosingClass.methods) {
-      if (member.isStatic) {
-        _checkForDuplicateDefinitionOfMember(member);
-      }
-    }
-    for (ExecutableElement member in _enclosingClass.accessors) {
-      if (member.isStatic) {
-        _checkForDuplicateDefinitionOfMember(member);
-      }
-    }
-  }
-
-  /**
-   * Verify that the enclosing class does not have an instance member with the
-   * given name of the [staticMember].
-   *
-   * See [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE].
-   */
-  void _checkForDuplicateDefinitionOfMember(ExecutableElement staticMember) {
-    // prepare name
-    String name = staticMember.name;
-    if (name == null) {
-      return;
-    }
-    // try to find member
-    ExecutableElement inheritedMember =
-        _inheritanceManager.lookupInheritance(_enclosingClass, name);
-    if (inheritedMember == null) {
-      return;
-    }
-    // OK, also static
-    if (inheritedMember.isStatic) {
-      return;
-    }
-    // determine the display name, use the extended display name if the
-    // enclosing class of the inherited member is in a different source
-    String displayName;
-    Element enclosingElement = inheritedMember.enclosingElement;
-    if (enclosingElement.source == _enclosingClass.source) {
-      displayName = enclosingElement.displayName;
-    } else {
-      displayName = enclosingElement.getExtendedDisplayName(null);
-    }
-
-    _errorReporter.reportErrorForElement(
-        CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE,
-        staticMember,
-        [name, displayName]);
   }
 
   /**

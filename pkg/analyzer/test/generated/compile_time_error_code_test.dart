@@ -790,58 +790,6 @@ class C extends A with B {}
     assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
   }
 
-  test_conflictingGetterAndMethod_field_method() async {
-    Source source = addSource(r'''
-class A {
-  final int m = 0;
-}
-class B extends A {
-  m() {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD]);
-    verify([source]);
-  }
-
-  test_conflictingGetterAndMethod_getter_method() async {
-    Source source = addSource(r'''
-class A {
-  get m => 0;
-}
-class B extends A {
-  m() {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD]);
-    verify([source]);
-  }
-
-  test_conflictingGetterAndMethod_method_field() async {
-    Source source = addSource(r'''
-class A {
-  m() {}
-}
-class B extends A {
-  int m;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER]);
-    verify([source]);
-  }
-
-  test_conflictingGetterAndMethod_method_getter() async {
-    Source source = addSource(r'''
-class A {
-  m() {}
-}
-class B extends A {
-  get m => 0;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER]);
-    verify([source]);
-  }
-
   test_conflictingTypeVariableAndClass() async {
     Source source = addSource(r'''
 class T<T> {
@@ -1888,39 +1836,6 @@ main() {
     verify([source]);
   }
 
-  test_duplicateDefinition_classMembers_fields() async {
-    Source source = addSource(r'''
-class A {
-  int a;
-  int a;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.DUPLICATE_DEFINITION]);
-    verify([source]);
-  }
-
-  test_duplicateDefinition_classMembers_fields_oneStatic() async {
-    Source source = addSource(r'''
-class A {
-  int x;
-  static int x;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.DUPLICATE_DEFINITION]);
-    verify([source]);
-  }
-
-  test_duplicateDefinition_classMembers_methods() async {
-    Source source = addSource(r'''
-class A {
-  m() {}
-  m() {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.DUPLICATE_DEFINITION]);
-    verify([source]);
-  }
-
   test_duplicateDefinition_inPart() async {
     Source librarySource = addNamedSource("/lib.dart", r'''
 library test;
@@ -2044,90 +1959,6 @@ class A<T, T> {
 }''');
     await computeAnalysisResult(source);
     assertErrors(source, [CompileTimeErrorCode.DUPLICATE_DEFINITION]);
-    verify([source]);
-  }
-
-  test_duplicateDefinitionInheritance_instanceGetter_staticGetter() async {
-    Source source = addSource(r'''
-class A {
-  int get x => 0;
-}
-class B extends A {
-  static int get x => 0;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
-    verify([source]);
-  }
-
-  test_duplicateDefinitionInheritance_instanceGetterAbstract_staticGetter() async {
-    Source source = addSource(r'''
-abstract class A {
-  int get x;
-}
-class B extends A {
-  static int get x => 0;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
-    verify([source]);
-  }
-
-  test_duplicateDefinitionInheritance_instanceMethod_staticMethod() async {
-    Source source = addSource(r'''
-class A {
-  x() {}
-}
-class B extends A {
-  static x() {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
-    verify([source]);
-  }
-
-  test_duplicateDefinitionInheritance_instanceMethodAbstract_staticMethod() async {
-    Source source = addSource(r'''
-abstract class A {
-  x();
-}
-abstract class B extends A {
-  static x() {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
-    verify([source]);
-  }
-
-  test_duplicateDefinitionInheritance_instanceSetter_staticSetter() async {
-    Source source = addSource(r'''
-class A {
-  set x(value) {}
-}
-class B extends A {
-  static set x(value) {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
-    verify([source]);
-  }
-
-  test_duplicateDefinitionInheritance_instanceSetterAbstract_staticSetter() async {
-    Source source = addSource(r'''
-abstract class A {
-  set x(value);
-}
-class B extends A {
-  static set x(value) {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE]);
     verify([source]);
   }
 
@@ -2833,18 +2664,6 @@ typedef T foo<T extends S Function<S>(S)>(T t);
       ]);
     }
     assertErrors(source, expectedErrorCodes);
-    verify([source]);
-  }
-
-  test_getterAndMethodWithSameName() async {
-    Source source = addSource(r'''
-class A {
-  x(y) {}
-  get x => 0;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME]);
     verify([source]);
   }
 
@@ -4041,18 +3860,6 @@ class A {
 
   test_memberWithClassName_method() async {
     // no test because indistinguishable from constructor
-  }
-
-  test_methodAndGetterWithSameName() async {
-    Source source = addSource(r'''
-class A {
-  get x => 0;
-  x(y) {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME]);
-    verify([source]);
   }
 
   test_mixinClassDeclaresConstructor_classDeclaration() async {

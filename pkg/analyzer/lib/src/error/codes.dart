@@ -354,44 +354,6 @@ class CompileTimeErrorCode extends ErrorCode {
           "The switch case expression type '{0}' can't override the == operator.");
 
   /**
-   * 7.2 Getters: It is a compile-time error if a class has both a getter and a
-   * method with the same name. This restriction holds regardless of whether the
-   * getter is defined explicitly or implicitly, or whether the getter or the
-   * method are inherited or not.
-   *
-   * Parameters:
-   * 0: the name of the class defining the conflicting method
-   * 1: the name of the class defining the getter with which the method conflicts
-   * 2: the name of the conflicting method
-   */
-  static const CompileTimeErrorCode CONFLICTING_GETTER_AND_METHOD =
-      const CompileTimeErrorCode(
-          'CONFLICTING_GETTER_AND_METHOD',
-          "Class '{0}' can't have both getter '{1}.{2}' and method with the "
-          "same name.",
-          correction: "Try converting the method to a getter, or "
-              "renaming the method to a name that doesn't conflit.");
-
-  /**
-   * 7.2 Getters: It is a compile-time error if a class has both a getter and a
-   * method with the same name. This restriction holds regardless of whether the
-   * getter is defined explicitly or implicitly, or whether the getter or the
-   * method are inherited or not.
-   *
-   * Parameters:
-   * 0: the name of the class defining the conflicting getter
-   * 1: the name of the class defining the method with which the getter conflicts
-   * 2: the name of the conflicting getter
-   */
-  static const CompileTimeErrorCode CONFLICTING_METHOD_AND_GETTER =
-      const CompileTimeErrorCode(
-          'CONFLICTING_METHOD_AND_GETTER',
-          "Class '{0}' can't have both method '{1}.{2}' and getter with the "
-          "same name.",
-          correction: "Try converting the getter to a method, or "
-              "renaming the getter to a name that doesn't conflit.");
-
-  /**
    * 7.6 Constructors: A constructor name always begins with the name of its
    * immediately enclosing class, and may optionally be followed by a dot and an
    * identifier <i>id</i>. It is a compile-time error if <i>id</i> is the name
@@ -406,6 +368,24 @@ class CompileTimeErrorCode extends ErrorCode {
           "'{0}' can't be used to name both a constructor and a field in this "
           "class.",
           correction: "Try renaming either the constructor or the field.");
+
+  /**
+   * 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
+   * error if `C` declares a getter or a setter with basename `n`, and has a
+   * method named `n`.
+   *
+   * Parameters:
+   * 0: the name of the class defining the conflicting field
+   * 1: the name of the conflicting field
+   * 2: the name of the class defining the method with which the field conflicts
+   */
+  static const CompileTimeErrorCode CONFLICTING_FIELD_AND_METHOD =
+      const CompileTimeErrorCode(
+          'CONFLICTING_FIELD_AND_METHOD',
+          "Class '{0}' can't define field '{1}' and have method '{2}.{1}' "
+          "with the same name.",
+          correction: "Try converting the getter to a method, or "
+              "renaming the field to a name that doesn't conflit.");
 
   /**
    * 7.6 Constructors: A constructor name always begins with the name of its
@@ -428,6 +408,42 @@ class CompileTimeErrorCode extends ErrorCode {
           'CONFLICTING_GENERIC_INTERFACES',
           "The class '{0}' cannot implement both '{1}' and '{2}' because the "
           "type arguments are different.");
+
+  /**
+   * 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
+   * error if `C` declares a method named `n`, and has a getter or a setter
+   * with basename `n`.
+   *
+   * Parameters:
+   * 0: the name of the class defining the conflicting method
+   * 1: the name of the conflicting method
+   * 2: the name of the class defining the field with which the method conflicts
+   */
+  static const CompileTimeErrorCode CONFLICTING_METHOD_AND_FIELD =
+      const CompileTimeErrorCode(
+          'CONFLICTING_METHOD_AND_FIELD',
+          "Class '{0}' can't define method '{1}' and have field '{2}.{1}' "
+          "with the same name.",
+          correction: "Try converting the method to a getter, or "
+              "renaming the method to a name that doesn't conflit.");
+
+  /**
+   * 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
+   * error if `C` declares a static member with basename `n`, and has an
+   * instance member with basename `n`.
+   *
+   * Parameters:
+   * 0: the name of the class defining the conflicting member
+   * 1: the name of the conflicting static member
+   * 2: the name of the class defining the field with which the method conflicts
+   */
+  static const CompileTimeErrorCode CONFLICTING_STATIC_AND_INSTANCE =
+      const CompileTimeErrorCode(
+          'CONFLICTING_STATIC_AND_INSTANCE',
+          "Class '{0}' can't define static member '{1}' and have instance "
+          "member '{2}.{1}' with the same name.",
+          correction:
+              "Try renaming the member to a name that doesn't conflit.");
 
   /**
    * 7. Classes: It is a compile time error if a generic class declares a type
@@ -887,24 +903,6 @@ class CompileTimeErrorCode extends ErrorCode {
           "Try removing all but one of the duplicated part directives.");
 
   /**
-   * 7. Classes: It is a compile-time error if a class has an instance member
-   * and a static member with the same name.
-   *
-   * This covers the additional duplicate definition cases where inheritance has
-   * to be considered.
-   *
-   * Parameters:
-   * 0: the name of the class that has conflicting instance/static members
-   * 1: the name of the conflicting member
-   *
-   * See [DUPLICATE_DEFINITION].
-   */
-  static const CompileTimeErrorCode DUPLICATE_DEFINITION_INHERITANCE =
-      const CompileTimeErrorCode('DUPLICATE_DEFINITION_INHERITANCE',
-          "The name '{0}' is already defined in '{1}'.",
-          correction: "Try renaming one of the declarations.");
-
-  /**
    * 12.14.2 Binding Actuals to Formals: It is a compile-time error if
    * <i>q<sub>i</sub> = q<sub>j</sub></i> for any <i>i != j</i> [where
    * <i>q<sub>i</sub></i> is the label for a named argument].
@@ -1137,20 +1135,6 @@ class CompileTimeErrorCode extends ErrorCode {
           correction:
               "Try using an explicit typedef, or changing type parameters to "
               "`dynamic`.");
-
-  /**
-   * 7.2 Getters: It is a compile-time error if a class has both a getter and a
-   * method with the same name.
-   *
-   * Parameters:
-   * 0: the conflicting name of the getter and method
-   */
-  static const CompileTimeErrorCode GETTER_AND_METHOD_WITH_SAME_NAME =
-      const CompileTimeErrorCode(
-          'GETTER_AND_METHOD_WITH_SAME_NAME',
-          "'{0}' can't be used to name a getter, there is already a method "
-          "with the same name.",
-          correction: "Try renaming either the getter or the method.");
 
   static const CompileTimeErrorCode ILLEGAL_MIXIN =
       const CompileTimeErrorCode.fromFasta('ILLEGAL_MIXIN');
@@ -1624,19 +1608,6 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode MEMBER_WITH_CLASS_NAME =
       const CompileTimeErrorCode('MEMBER_WITH_CLASS_NAME',
           "Class members can't have the same name as the enclosing class.");
-
-  /**
-   * 7.2 Getters: It is a compile-time error if a class has both a getter and a
-   * method with the same name.
-   *
-   * Parameters:
-   * 0: the conflicting name of the getter and method
-   */
-  static const CompileTimeErrorCode METHOD_AND_GETTER_WITH_SAME_NAME =
-      const CompileTimeErrorCode(
-          'METHOD_AND_GETTER_WITH_SAME_NAME',
-          "'{0}' can't be used to name a method, there is already a getter "
-          "with the same name.");
 
   /**
    * 12.1 Constants: A constant expression is ... a constant list literal.
@@ -3587,47 +3558,6 @@ class StaticWarningCode extends ErrorCode {
       const StaticWarningCode('CONCRETE_CLASS_WITH_ABSTRACT_MEMBER',
           "'{0}' must have a method body because '{1}' isn't abstract.",
           correction: "Try making '{1}' abstract, or adding a body to '{0}'.");
-
-  /**
-   * 7.1 Instance Methods: It is a static warning if a class <i>C</i> declares
-   * an instance method named <i>n</i> and has a setter named <i>n=</i>.
-   */
-  static const StaticWarningCode CONFLICTING_INSTANCE_METHOD_SETTER =
-      const StaticWarningCode(
-          'CONFLICTING_INSTANCE_METHOD_SETTER',
-          "Class '{0}' declares instance method '{1}', "
-          "but also has a setter with the same name from '{2}'.",
-          correction: "Try renaming either the method or the setter.");
-
-  /**
-   * 7.1 Instance Methods: It is a static warning if a class <i>C</i> declares
-   * an instance method named <i>n</i> and has a setter named <i>n=</i>.
-   */
-  static const StaticWarningCode CONFLICTING_INSTANCE_METHOD_SETTER2 =
-      const StaticWarningCode(
-          'CONFLICTING_INSTANCE_METHOD_SETTER2',
-          "Class '{0}' declares the setter '{1}', "
-          "but also has an instance method in the same class.",
-          correction: "Try renaming either the method or the setter.");
-
-  /**
-   * 7.2 Getters: It is a static warning if a class declares a static getter
-   * named <i>v</i> and also has a non-static setter named <i>v=</i>.
-   */
-  static const StaticWarningCode CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER =
-      const StaticWarningCode('CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER',
-          "Class '{0}' declares non-static setter with the same name.",
-          correction: "Try renaming either the getter or the setter.");
-
-  /**
-   * 7.3 Setters: It is a static warning if a class declares a static setter
-   * named <i>v=</i> and also has a non-static member named <i>v</i>.
-   */
-  static const StaticWarningCode CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER =
-      const StaticWarningCode('CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER',
-          "Class '{0}' declares non-static member with the same name.",
-          correction:
-              "Try renaming either the inherited member or the setter.");
 
   /**
    * 16.12.2 Const: Given an instance creation expression of the form <i>const

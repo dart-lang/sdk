@@ -18,6 +18,545 @@ class ClassDriverResolutionTest extends DriverResolutionTest
     with ClassResolutionMixin {}
 
 abstract class ClassResolutionMixin implements ResolutionTest {
+  test_error_conflictingFieldAndMethod_inSuper_field() async {
+    addTestFile(r'''
+class A {
+  foo() {}
+}
+class B extends A {
+  int foo;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD]);
+  }
+
+  test_error_conflictingFieldAndMethod_inSuper_getter() async {
+    addTestFile(r'''
+class A {
+  foo() {}
+}
+class B extends A {
+  get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD]);
+  }
+
+  test_error_conflictingFieldAndMethod_inSuper_setter() async {
+    addTestFile(r'''
+class A {
+  foo() {}
+}
+class B extends A {
+  set foo(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD]);
+  }
+
+  test_error_conflictingMethodAndField_inSuper_field() async {
+    addTestFile(r'''
+class A {
+  int foo;
+}
+class B extends A {
+  foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD]);
+  }
+
+  test_error_conflictingMethodAndField_inSuper_getter() async {
+    addTestFile(r'''
+class A {
+  get foo => 0;
+}
+class B extends A {
+  foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD]);
+  }
+
+  test_error_conflictingMethodAndField_inSuper_setter() async {
+    addTestFile(r'''
+class A {
+  set foo(_) {}
+}
+class B extends A {
+  foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD]);
+  }
+
+  test_error_conflictingStaticAndInstance_inClass_getter_getter() async {
+    addTestFile(r'''
+class C {
+  static int get foo => 0;
+  int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inClass_getter_method() async {
+    addTestFile(r'''
+class C {
+  static int get foo => 0;
+  void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inClass_getter_setter() async {
+    addTestFile(r'''
+class C {
+  static int get foo => 0;
+  set foo(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inClass_method_getter() async {
+    addTestFile(r'''
+class C {
+  static void foo() {}
+  int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inClass_method_method() async {
+    addTestFile(r'''
+class C {
+  static void foo() {}
+  void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inClass_method_setter() async {
+    addTestFile(r'''
+class C {
+  static void foo() {}
+  set foo(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inClass_setter_getter() async {
+    addTestFile(r'''
+class C {
+  static set foo(_) {}
+  int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inClass_setter_method() async {
+    addTestFile(r'''
+class C {
+  static set foo(_) {}
+  void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inClass_setter_setter() async {
+    addTestFile(r'''
+class C {
+  static set foo(_) {}
+  set foo(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inMixin_getter_getter() async {
+    addTestFile(r'''
+class A {
+  int get foo => 0;
+}
+class B extends Object with A {
+  static int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inMixin_getter_method() async {
+    addTestFile(r'''
+class A {
+  int get foo => 0;
+}
+class B extends Object with A {
+  static void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inMixin_getter_setter() async {
+    addTestFile(r'''
+class A {
+  set foo(_) {}
+}
+class B extends Object with A {
+  static int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inMixin_method_getter() async {
+    addTestFile(r'''
+class A {
+  int get foo => 0;
+}
+class B extends Object with A {
+  static void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inMixin_method_method() async {
+    addTestFile(r'''
+class A {
+  void foo() {}
+}
+class B extends Object with A {
+  static void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inMixin_method_setter() async {
+    addTestFile(r'''
+class A {
+  set foo(_) {}
+}
+class B extends Object with A {
+  static void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inMixin_setter_method() async {
+    addTestFile(r'''
+class A {
+  void foo() {}
+}
+class B extends Object with A {
+  static set foo(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inMixin_setter_setter() async {
+    addTestFile(r'''
+class A {
+  set foo(_) {}
+}
+class B extends Object with A {
+  static set foo(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inSuper_getter_getter() async {
+    addTestFile(r'''
+class A {
+  int get foo => 0;
+}
+class B extends A {
+  static int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inSuper_getter_method() async {
+    addTestFile(r'''
+class A {
+  int get foo => 0;
+}
+class B extends A {
+  static void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inSuper_getter_setter() async {
+    addTestFile(r'''
+class A {
+  set foo(_) {}
+}
+class B extends A {
+  static int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inSuper_method_getter() async {
+    addTestFile(r'''
+class A {
+  int get foo => 0;
+}
+class B extends A {
+  static void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inSuper_method_method() async {
+    addTestFile(r'''
+class A {
+  void foo() {}
+}
+class B extends A {
+  static void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inSuper_method_setter() async {
+    addTestFile(r'''
+class A {
+  set foo(_) {}
+}
+class B extends A {
+  static void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inSuper_setter_method() async {
+    addTestFile(r'''
+class A {
+  void foo() {}
+}
+class B extends A {
+  static set foo(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_conflictingStaticAndInstance_inSuper_setter_setter() async {
+    addTestFile(r'''
+class A {
+  set foo(_) {}
+}
+class B extends A {
+  static set foo(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE]);
+  }
+
+  test_error_duplicateDefinition_field_field() async {
+    addTestFile(r'''
+class C {
+  int foo;
+  int foo;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+  }
+
+  test_error_duplicateDefinition_field_field_static() async {
+    addTestFile(r'''
+class C {
+  static int foo;
+  static int foo;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+  }
+
+  test_error_duplicateDefinition_field_getter() async {
+    addTestFile(r'''
+class C {
+  int foo;
+  int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+  }
+
+  test_error_duplicateDefinition_field_method() async {
+    addTestFile(r'''
+class C {
+  int foo;
+  void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+  }
+
+  test_error_duplicateDefinition_getter_getter() async {
+    addTestFile(r'''
+class C {
+  int get foo => 0;
+  int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+  }
+
+  test_error_duplicateDefinition_getter_method() async {
+    addTestFile(r'''
+class C {
+  int get foo => 0;
+  void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+  }
+
+  test_error_duplicateDefinition_method_getter() async {
+    addTestFile(r'''
+class C {
+  void foo() {}
+  int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+  }
+
+  test_error_duplicateDefinition_method_method() async {
+    addTestFile(r'''
+class C {
+  void foo() {}
+  void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+  }
+
+  test_error_duplicateDefinition_method_setter() async {
+    addTestFile(r'''
+class C {
+  void foo() {}
+  set foo(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+  }
+
+  test_error_duplicateDefinition_OK_fieldFinal_setter() async {
+    addTestFile(r'''
+class C {
+  final int foo = 0;
+  set foo(int x) {}
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_duplicateDefinition_OK_getter_setter() async {
+    addTestFile(r'''
+class C {
+  int get foo => 0;
+  set foo(_) {}
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_duplicateDefinition_OK_setter_getter() async {
+    addTestFile(r'''
+class C {
+  set foo(_) {}
+  int get foo => 0;
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_duplicateDefinition_setter_method() async {
+    addTestFile(r'''
+class C {
+  set foo(_) {}
+  void foo() {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+  }
+
+  test_error_duplicateDefinition_setter_setter() async {
+    addTestFile(r'''
+class C {
+  void set foo(_) {}
+  void set foo(_) {}
+}
+''');
+    await resolveTestFile();
+    assertTestErrors([CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+  }
+
   test_error_memberWithClassName_getter() async {
     addTestFile(r'''
 class C {

@@ -1259,18 +1259,6 @@ class A {
     verify([source]);
   }
 
-  @failingTest
-  test_conflictingStaticSetterAndInstanceMember_thisClass_method() async {
-    Source source = addSource(r'''
-class A {
-  static x() {}
-  static set x(int p) {}
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD]);
-    verify([source]);
-  }
-
   test_const_constructor_with_named_generic_parameter() async {
     Source source = addSource('''
 class C<T> {
