@@ -2491,9 +2491,23 @@ class Parser {
       next = token.next;
     }
     if (!optional('(', next)) {
-      reportRecoverableError(
-          token, fasta.templateExpectedAfterButGot.withArguments('('));
-      rewriter.insertParens(token, false);
+      // Recovery
+      if (optional('?.', next)) {
+        // An error for `super?.` is reported in parseSuperExpression.
+        token = next;
+        next = token.next;
+        if (!next.isIdentifier) {
+          // Insert a synthetic identifier but don't report another error.
+          next = rewriter.insertSyntheticIdentifier(token);
+        }
+        token = next;
+        next = token.next;
+      }
+      if (!optional('(', next)) {
+        reportRecoverableError(
+            next, fasta.templateExpectedAfterButGot.withArguments('('));
+        rewriter.insertParens(token, false);
+      }
     }
     return parseInitializerExpressionRest(start);
   }

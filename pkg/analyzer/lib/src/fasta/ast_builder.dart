@@ -595,12 +595,15 @@ class AstBuilder extends StackListener {
               initializerObject.operator,
               initializerObject.methodName,
               initializerObject.argumentList));
-        } else {
+        } else if (target is ThisExpression) {
           initializers.add(ast.redirectingConstructorInvocation(
-              (target as ThisExpression).thisKeyword,
+              target.thisKeyword,
               initializerObject.operator,
               initializerObject.methodName,
               initializerObject.argumentList));
+        } else {
+          // Invalid initializer
+          // TODO(danrubel): Capture this in the AST.
         }
       } else if (initializerObject is AssignmentExpression) {
         Token thisKeyword;

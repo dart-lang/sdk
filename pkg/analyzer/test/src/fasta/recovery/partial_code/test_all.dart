@@ -8,6 +8,7 @@ import 'annotation_test.dart' as annotation;
 import 'assert_statement_test.dart' as assert_statement;
 import 'break_statement_test.dart' as break_statement;
 import 'class_declaration_test.dart' as class_declaration;
+import 'constructor_test.dart' as constructor;
 import 'mixin_declaration_test.dart' as mixin_declaration;
 import 'continue_statement_test.dart' as continue_statement;
 import 'do_statement_test.dart' as do_statement;
@@ -39,6 +40,7 @@ main() {
     assert_statement.main();
     break_statement.main();
     class_declaration.main();
+    constructor.main();
     continue_statement.main();
     do_statement.main();
     enum_declaration.main();

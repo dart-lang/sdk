@@ -91,6 +91,13 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
       ]);
     }
   }
+
+  void test_invalidOperatorAfterSuper_constructorInitializer2() {
+    parseCompilationUnit('class C { C() : super?.namedConstructor(); }',
+        errors: [
+          expectedError(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, 21, 2)
+        ]);
+  }
 }
 
 /**
