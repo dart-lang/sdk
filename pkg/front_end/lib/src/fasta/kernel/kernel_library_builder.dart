@@ -319,14 +319,6 @@ class KernelLibraryBuilder
       }
     }
     if (type is KernelMixinApplicationBuilder) {
-      String extractName(name) {
-        if (name is QualifiedName) {
-          return name.suffix;
-        } else {
-          return name;
-        }
-      }
-
       // Documentation below assumes the given mixin application is in one of
       // these forms:
       //
@@ -1306,3 +1298,5 @@ Uri computeLibraryUri(Declaration declaration) {
   return unhandled("no library parent", "${declaration.runtimeType}",
       declaration.charOffset, declaration.fileUri);
 }
+
+String extractName(name) => name is QualifiedName ? name.name : name;

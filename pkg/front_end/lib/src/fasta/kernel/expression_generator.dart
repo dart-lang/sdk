@@ -230,7 +230,7 @@ abstract class Generator implements ExpressionGenerator {
     return const InvalidType();
   }
 
-  /* Expression | Generator */ Object prefixedLookup(Token name) {
+  /* Expression | Generator */ Object qualifiedLookup(Token name) {
     return new UnexpectedQualifiedUseGenerator(helper, name, this, false);
   }
 
@@ -882,7 +882,7 @@ abstract class UnresolvedNameGenerator implements ErroneousExpressionGenerator {
   }
 
   @override
-  /* Expression | Generator */ Object prefixedLookup(Token name) {
+  /* Expression | Generator */ Object qualifiedLookup(Token name) {
     helper.storeUnresolved(token);
     return new UnexpectedQualifiedUseGenerator(helper, name, this, true);
   }
@@ -1110,7 +1110,7 @@ abstract class PrefixUseGenerator implements Generator {
   Expression buildSimpleRead() => makeInvalidRead();
 
   @override
-  /* Expression | Generator */ Object prefixedLookup(Token name) {
+  /* Expression | Generator */ Object qualifiedLookup(Token name) {
     if (helper.constantContext != ConstantContext.none && prefix.deferred) {
       helper.addProblem(
           templateCantUseDeferredPrefixAsConstant.withArguments(token),
@@ -1149,7 +1149,7 @@ abstract class PrefixUseGenerator implements Generator {
     if (send is IncompleteSendGenerator) {
       assert(send.name.name == send.token.lexeme,
           "'${send.name.name}' != ${send.token.lexeme}");
-      Object result = prefixedLookup(send.token);
+      Object result = qualifiedLookup(send.token);
       if (send is SendAccessGenerator) {
         result = helper.finishSend(
             result,

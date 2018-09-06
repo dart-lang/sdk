@@ -200,8 +200,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     String prefix;
     String suffix;
     if (name is QualifiedName) {
-      prefix = name.prefix;
-      suffix = name.suffix;
+      prefix = name.qualifier;
+      suffix = name.name;
     } else {
       prefix = name;
       suffix = null;
@@ -822,7 +822,7 @@ class DeclarationBuilder<T extends TypeBuilder> {
       for (UnresolvedType<T> type in types) {
         Object nameOrQualified = type.builder.name;
         String name = nameOrQualified is QualifiedName
-            ? nameOrQualified.prefix
+            ? nameOrQualified.qualifier
             : nameOrQualified;
         TypeVariableBuilder builder;
         if (name != null) {

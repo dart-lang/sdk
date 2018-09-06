@@ -7,6 +7,10 @@
 // pkg/front_end/testcases/qualified.dart:11:19: Error: Type 'lib.Missing' not found.
 // class Bad extends lib.Missing {
 //                   ^
+//
+// pkg/front_end/testcases/qualified.dart:18:7: Error: The type 'lib.VoidFunction' can't be used as supertype.
+// class IllegalSupertype extends lib.VoidFunction {}
+//       ^
 
 library test.qualified.main;
 import self as self;
@@ -22,6 +26,11 @@ abstract class _WithMixin&Supertype&Mixin = lib::Supertype with lib::Mixin {
 class WithMixin extends self::_WithMixin&Supertype&Mixin {
   synthetic constructor •() → void
     : super lib::Supertype::•()
+    ;
+}
+class IllegalSupertype extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
     ;
 }
 class C<T extends core::Object = dynamic> extends core::Object { // from org-dartlang-testcase:///qualified_part.dart
@@ -44,4 +53,5 @@ static method main() → dynamic {
   new lib::C::a<core::String>();
   new self::WithMixin::•().supertypeMethod();
   new self::WithMixin::•().foo();
+  new self::IllegalSupertype::•();
 }

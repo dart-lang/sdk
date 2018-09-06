@@ -377,9 +377,11 @@ class OutlineBuilder extends StackListener {
     debugEvent("handleQualified");
     int suffixOffset = pop();
     String suffix = pop();
+    assert(identical(suffix, period.next.lexeme));
+    assert(suffixOffset == period.next.charOffset);
     int offset = pop();
     var prefix = pop();
-    push(new QualifiedName(prefix, suffix, suffixOffset));
+    push(new QualifiedName(prefix, period.next));
     push(offset);
   }
 
@@ -391,7 +393,7 @@ class OutlineBuilder extends StackListener {
     Object name = pop();
     List<MetadataBuilder> metadata = pop();
     library.documentationComment = documentationComment;
-    library.name = "${name}";
+    library.name = flattenName(name, offsetForToken(libraryKeyword), uri);
     library.metadata = metadata;
   }
 
@@ -1207,7 +1209,8 @@ class OutlineBuilder extends StackListener {
     Object containingLibrary = pop();
     List<MetadataBuilder> metadata = pop();
     if (hasName) {
-      library.addPartOf(metadata, "$containingLibrary", null, charOffset);
+      library.addPartOf(metadata,
+          flattenName(containingLibrary, charOffset, uri), null, charOffset);
     } else {
       library.addPartOf(metadata, null, containingLibrary, charOffset);
     }

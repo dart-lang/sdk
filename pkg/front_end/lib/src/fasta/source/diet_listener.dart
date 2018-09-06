@@ -320,7 +320,8 @@ class DietListener extends StackListener {
     debugEvent("handleQualified");
     String suffix = pop();
     var prefix = pop();
-    push(new QualifiedName(prefix, suffix, period.charOffset));
+    assert(identical(suffix, period.next.lexeme));
+    push(new QualifiedName(prefix, period.next));
   }
 
   @override
@@ -823,7 +824,7 @@ class DietListener extends StackListener {
     Declaration declaration;
     String suffix;
     if (nameOrQualified is QualifiedName) {
-      suffix = nameOrQualified.suffix;
+      suffix = nameOrQualified.name;
     } else {
       suffix = nameOrQualified == currentClass.name ? "" : nameOrQualified;
     }

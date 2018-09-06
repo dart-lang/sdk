@@ -4,6 +4,14 @@
 
 library fasta.builder;
 
+export '../identifiers.dart'
+    show
+        Identifier,
+        InitializedIdentifier,
+        QualifiedName,
+        deprecated_extractToken,
+        flattenName;
+
 export '../scope.dart' show AccessErrorBuilder, Scope, ScopeBuilder;
 
 export 'builtin_type_builder.dart' show BuiltinTypeBuilder;
@@ -43,8 +51,6 @@ export 'named_type_builder.dart' show NamedTypeBuilder;
 export 'prefix_builder.dart' show PrefixBuilder;
 
 export 'procedure_builder.dart' show ProcedureBuilder;
-
-export 'qualified_name.dart' show QualifiedName;
 
 export 'type_builder.dart' show TypeBuilder;
 

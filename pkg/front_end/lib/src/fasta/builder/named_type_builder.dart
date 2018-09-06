@@ -10,16 +10,20 @@ import '../fasta_codes.dart'
         templateMissingExplicitTypeArguments,
         templateTypeArgumentMismatch;
 
+import '../problems.dart' show unhandled;
+
 import 'builder.dart'
     show
         Declaration,
+        Identifier,
         InvalidTypeBuilder,
         LibraryBuilder,
         PrefixBuilder,
         QualifiedName,
         Scope,
         TypeBuilder,
-        TypeDeclarationBuilder;
+        TypeDeclarationBuilder,
+        flattenName;
 
 abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
   final Object name;
@@ -45,21 +49,34 @@ abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
     final name = this.name;
     Declaration member;
     if (name is QualifiedName) {
-      Declaration prefix = scope.lookup(name.prefix, charOffset, fileUri);
+      Object qualifier = name.qualifier;
+      String prefixName = flattenName(qualifier, charOffset, fileUri);
+      Declaration prefix = scope.lookup(prefixName, charOffset, fileUri);
       if (prefix is PrefixBuilder) {
-        member = prefix.lookup(name.suffix, name.charOffset, fileUri);
+        member = prefix.lookup(name.name, name.charOffset, fileUri);
       }
-    } else {
+    } else if (name is String) {
       member = scope.lookup(name, charOffset, fileUri);
+    } else {
+      unhandled("${name.runtimeType}", "resolveIn", charOffset, fileUri);
     }
     if (member is TypeDeclarationBuilder) {
       declaration = member.origin;
       if (arguments == null && declaration.typeVariablesCount != 0) {
+        String typeName;
+        int typeNameOffset;
+        if (name is Identifier) {
+          typeName = name.name;
+          typeNameOffset = name.charOffset;
+        } else {
+          typeName = name;
+          typeNameOffset = charOffset;
+        }
         library.addProblem(
             templateMissingExplicitTypeArguments
                 .withArguments(declaration.typeVariablesCount),
-            charOffset,
-            "$name".length,
+            typeNameOffset,
+            typeName.length,
             fileUri);
       }
       return;

@@ -14,7 +14,7 @@ import 'package:kernel/ast.dart'
         Procedure,
         Statement;
 
-import 'body_builder.dart' show Identifier, LabelTarget;
+import 'body_builder.dart' show LabelTarget;
 
 import 'expression_generator.dart' show Generator, PrefixUseGenerator;
 
@@ -22,6 +22,7 @@ import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
 import 'kernel_builder.dart'
     show
+        Identifier,
         LoadLibraryBuilder,
         PrefixBuilder,
         TypeDeclarationBuilder,
@@ -29,7 +30,7 @@ import 'kernel_builder.dart'
 
 import '../scanner.dart' show Token;
 
-export 'body_builder.dart' show Identifier, Operator;
+export 'body_builder.dart' show Operator;
 
 export 'constness.dart' show Constness;
 
@@ -39,6 +40,7 @@ export 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
 export 'kernel_builder.dart'
     show
+        Identifier,
         LoadLibraryBuilder,
         PrefixBuilder,
         TypeDeclarationBuilder,

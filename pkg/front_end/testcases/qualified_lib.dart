@@ -23,3 +23,5 @@ abstract class Mixin {
     print("I'm Mixin.foo");
   }
 }
+
+typedef VoidFunction = void Function();

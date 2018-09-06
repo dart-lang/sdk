@@ -453,7 +453,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       if (expression is Identifier) {
         Identifier identifier = expression;
         expression = new UnresolvedNameGenerator(
-            this, identifier.token, new Name(identifier.name, library.library));
+            this,
+            deprecated_extractToken(identifier),
+            new Name(identifier.name, library.library));
       }
       if (name?.isNotEmpty ?? false) {
         Token period = periodBeforeName ?? beginToken.next.next;
@@ -1564,7 +1566,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       addProblem(
           fasta.messageNotAConstantExpression, token.charOffset, token.length);
     }
-    push(new Identifier(token));
+    push(new Identifier.preserveToken(token));
   }
 
   /// Look up [name] in [scope] using [token] as location information (both to
@@ -1703,9 +1705,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleQualified(Token period) {
     debugEvent("Qualified");
-    Identifier name = pop();
-    Object receiver = pop();
-    push([receiver, name]);
+    Identifier identifier = pop();
+    Object qualifier = pop();
+    push(identifier.withQualifier(qualifier));
   }
 
   @override
@@ -1905,12 +1907,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     bool isFinal = (currentLocalVariableModifiers & finalMask) != 0;
     assert(isConst == (constantContext == ConstantContext.inferred));
     push(new VariableDeclarationJudgment(identifier.name, functionNestingLevel,
-        forSyntheticToken: identifier.token.isSynthetic,
+        forSyntheticToken: deprecated_extractToken(identifier).isSynthetic,
         initializer: initializer,
         type: currentLocalVariableType,
         isFinal: isFinal,
         isConst: isConst)
-      ..fileOffset = offsetForToken(identifier.token)
+      ..fileOffset = identifier.charOffset
       ..fileEqualsOffset = offsetForToken(equalsToken));
   }
 
@@ -2273,19 +2275,16 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("Type");
     List<DartType> arguments = pop();
     Object name = pop();
-    if (name is List<Object>) {
-      List<Object> list = name;
-      if (list.length != 2) {
-        unexpected("${list.length}", "2", beginToken.charOffset, uri);
-      }
-      Object prefix = list[0];
-      Identifier suffix = list[1];
+    if (name is QualifiedName) {
+      QualifiedName qualified = name;
+      Object prefix = qualified.qualifier;
+      Token suffix = deprecated_extractToken(qualified);
       if (prefix is Generator) {
-        name = prefix.prefixedLookup(suffix.token);
+        name = prefix.qualifiedLookup(suffix);
       } else {
-        String displayName = debugName(getNodeName(prefix), suffix.name);
+        String displayName = debugName(getNodeName(prefix), suffix.lexeme);
         addProblem(fasta.templateNotAType.withArguments(displayName),
-            offsetForToken(beginToken), lengthOfSpan(beginToken, suffix.token));
+            offsetForToken(beginToken), lengthOfSpan(beginToken, suffix));
         push(const InvalidType());
         return;
       }
@@ -2492,14 +2491,15 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     } else {
       variable = new VariableDeclarationJudgment(
           name?.name, functionNestingLevel,
-          forSyntheticToken: name?.token?.isSynthetic ?? false,
+          forSyntheticToken:
+              deprecated_extractToken(name)?.isSynthetic ?? false,
           type: type,
           initializer: name?.initializer,
           isFinal: isFinal,
           isConst: isConst);
       if (name != null) {
         // TODO(ahe): Need an offset when name is null.
-        variable.fileOffset = offsetForToken(name.token);
+        variable.fileOffset = name.charOffset;
       }
     }
     if (annotations != null) {
@@ -2567,7 +2567,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("ValuedFormalParameter");
     Expression initializer = popForValue();
     Identifier name = pop();
-    push(new InitializedIdentifier(name.token, initializer));
+    push(new InitializedIdentifier(name, initializer));
   }
 
   @override
@@ -2832,21 +2832,21 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     Identifier identifier;
     List<DartType> typeArguments = pop();
     Object type = pop();
-    if (type is List<Object>) {
-      List<Object> list = type;
-      Object prefix = list[0];
-      identifier = list[1];
-      if (prefix is TypeUseGenerator) {
-        type = prefix;
+    if (type is QualifiedName) {
+      identifier = type;
+      QualifiedName qualified = type;
+      Object qualifier = qualified.qualifier;
+      if (qualifier is TypeUseGenerator) {
+        type = qualifier;
         if (typeArguments != null) {
           addProblem(fasta.messageConstructorWithTypeArguments,
-              identifier.token.charOffset, identifier.name.length);
+              identifier.charOffset, identifier.name.length);
         }
-      } else if (prefix is Generator) {
-        type = prefix.prefixedLookup(identifier.token);
+      } else if (qualifier is Generator) {
+        type = qualifier.qualifiedLookup(deprecated_extractToken(identifier));
         identifier = null;
       } else {
-        unhandled("${prefix.runtimeType}", "pushQualifiedReference",
+        unhandled("${qualifier.runtimeType}", "pushQualifiedReference",
             start.charOffset, uri);
       }
     }
@@ -3090,7 +3090,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       Token nameToken, int offset, Constness constness) {
     Arguments arguments = pop();
     Identifier nameLastIdentifier = pop(NullValue.Identifier);
-    Token nameLastToken = nameLastIdentifier?.token ?? nameToken;
+    Token nameLastToken =
+        deprecated_extractToken(nameLastIdentifier) ?? nameToken;
     String name = pop();
     List<DartType> typeArguments = pop();
 
@@ -3263,17 +3264,18 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     Expression value = popForValue();
     Identifier identifier = pop();
     push(new NamedExpressionJudgment(
-        tokensSaver?.namedExpressionTokens(identifier.token, colon),
-        identifier.token.lexeme,
+        tokensSaver?.namedExpressionTokens(
+            deprecated_extractToken(identifier), colon),
+        identifier.name,
         value)
-      ..fileOffset = offsetForToken(identifier.token));
+      ..fileOffset = identifier.charOffset);
   }
 
   @override
   void endFunctionName(Token beginToken, Token token) {
     debugEvent("FunctionName");
     Identifier name = pop();
-    Token nameToken = name.token;
+    Token nameToken = deprecated_extractToken(name);
     VariableDeclaration variable = new VariableDeclarationJudgment(
         name.name, functionNestingLevel,
         forSyntheticToken: nameToken.isSynthetic,
@@ -3282,7 +3284,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       ..fileOffset = offsetForToken(nameToken);
     if (scope.local[variable.name] != null) {
       addProblem(fasta.templateDuplicatedName.withArguments(variable.name),
-          offsetForToken(nameToken), nameToken.length);
+          name.charOffset, nameToken.length);
     }
     push(new FunctionDeclarationJudgment(
         variable,
@@ -3555,7 +3557,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void handleLabel(Token token) {
     debugEvent("Label");
     Identifier identifier = pop();
-    push(forest.label(identifier.token, token));
+    push(forest.label(deprecated_extractToken(identifier), token));
   }
 
   @override
@@ -3896,8 +3898,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
               continueKeyword.next.charOffset));
           return;
         }
-        switchScope.forwardDeclareLabel(identifier.name,
-            target = createGotoTarget(offsetForToken(identifier.token)));
+        switchScope.forwardDeclareLabel(
+            identifier.name, target = createGotoTarget(identifier.charOffset));
       }
       if (target.isGotoTarget &&
           target.functionNestingLevel == functionNestingLevel) {
@@ -3979,7 +3981,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       // Something went wrong when pre-parsing the type variables.
       // Assume an error is reported elsewhere.
       variable = new KernelTypeVariableBuilder(
-          name.name, library, offsetForToken(name.token), null);
+          name.name, library, name.charOffset, null);
       variable.binder = _typeInferrer.binderForTypeVariable(
           variable, variable.charOffset, variable.name);
     }
@@ -4329,7 +4331,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleSymbolVoid(Token token) {
     debugEvent("SymbolVoid");
-    push(new Identifier(token));
+    push(new Identifier.preserveToken(token));
   }
 
   @override
@@ -4544,17 +4546,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 }
 
-class Identifier {
-  final Token token;
-  String get name => token.lexeme;
-
-  Identifier(this.token);
-
-  Expression get initializer => null;
-
-  String toString() => "identifier($name)";
-}
-
 class Operator {
   final Token token;
   String get name => token.stringValue;
@@ -4564,14 +4555,6 @@ class Operator {
   Operator(this.token, this.charOffset);
 
   String toString() => "operator($name)";
-}
-
-class InitializedIdentifier extends Identifier {
-  final Expression initializer;
-
-  InitializedIdentifier(Token token, this.initializer) : super(token);
-
-  String toString() => "initialized-identifier($name, $initializer)";
 }
 
 class JumpTarget extends Declaration {
@@ -4835,6 +4818,8 @@ String getNodeName(Object node) {
     return node.isSuper ? "super" : "this";
   } else if (node is Generator) {
     return node.plainNameForRead;
+  } else if (node is QualifiedName) {
+    return flattenName(node, node.charOffset, null);
   } else {
     return unhandled("${node.runtimeType}", "getNodeName", -1, null);
   }

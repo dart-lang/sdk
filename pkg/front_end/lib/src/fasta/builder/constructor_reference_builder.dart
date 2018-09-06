@@ -14,7 +14,8 @@ import 'builder.dart'
         PrefixBuilder,
         QualifiedName,
         Scope,
-        TypeBuilder;
+        TypeBuilder,
+        flattenName;
 
 class ConstructorReferenceBuilder {
   final int charOffset;
@@ -34,14 +35,17 @@ class ConstructorReferenceBuilder {
       Declaration parent, this.charOffset)
       : fileUri = parent.fileUri;
 
-  String get fullNameForErrors => "$name${suffix == null ? '' : '.$suffix'}";
+  String get fullNameForErrors {
+    return "${flattenName(name, charOffset, fileUri)}"
+        "${suffix == null ? '' : '.$suffix'}";
+  }
 
   void resolveIn(Scope scope, LibraryBuilder accessingLibrary) {
     final name = this.name;
     Declaration declaration;
     if (name is QualifiedName) {
-      String prefix = name.prefix;
-      String middle = name.suffix;
+      String prefix = name.qualifier;
+      String middle = name.name;
       declaration = scope.lookup(prefix, charOffset, fileUri);
       if (declaration is PrefixBuilder) {
         PrefixBuilder prefix = declaration;

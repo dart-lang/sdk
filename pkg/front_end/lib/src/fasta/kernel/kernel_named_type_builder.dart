@@ -22,7 +22,8 @@ import 'kernel_builder.dart'
         NamedTypeBuilder,
         TypeBuilder,
         TypeDeclarationBuilder,
-        TypeVariableBuilder;
+        TypeVariableBuilder,
+        flattenName;
 
 class KernelNamedTypeBuilder
     extends NamedTypeBuilder<KernelTypeBuilder, DartType>
@@ -34,7 +35,8 @@ class KernelNamedTypeBuilder
       [Message message]) {
     // TODO(ahe): Consider if it makes sense to pass a QualifiedName to
     // KernelInvalidTypeBuilder?
-    return new KernelInvalidTypeBuilder("$name", charOffset, fileUri, message);
+    return new KernelInvalidTypeBuilder(
+        flattenName(name, charOffset, fileUri), charOffset, fileUri, message);
   }
 
   Supertype handleInvalidSupertype(
@@ -43,8 +45,10 @@ class KernelNamedTypeBuilder
         ? templateSupertypeIsTypeVariable
         : templateSupertypeIsIllegal;
     library.addProblem(
-        template.withArguments("$name"), charOffset, noLength, fileUri,
-        severity: Severity.error);
+        template.withArguments(flattenName(name, charOffset, fileUri)),
+        charOffset,
+        noLength,
+        fileUri);
     return null;
   }
 
