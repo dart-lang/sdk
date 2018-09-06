@@ -1817,15 +1817,22 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
               mixinName, CompileTimeErrorCode.MIXIN_DEFERRED_CLASS)) {
             problemReported = true;
           }
-          if (_checkForMixinClassDeclaresConstructor(mixinName, mixinElement)) {
-            problemReported = true;
-          }
-          if (!enableSuperMixins &&
-              _checkForMixinInheritsNotFromObject(mixinName, mixinElement)) {
-            problemReported = true;
-          }
-          if (_checkForMixinReferencesSuper(mixinName, mixinElement)) {
-            problemReported = true;
+          if (mixinElement.isMixin) {
+            if (_checkForMixinSuperclassConstraints(mixinName, mixinElement)) {
+              problemReported = true;
+            }
+          } else {
+            if (_checkForMixinClassDeclaresConstructor(
+                mixinName, mixinElement)) {
+              problemReported = true;
+            }
+            if (!enableSuperMixins &&
+                _checkForMixinInheritsNotFromObject(mixinName, mixinElement)) {
+              problemReported = true;
+            }
+            if (_checkForMixinReferencesSuper(mixinName, mixinElement)) {
+              problemReported = true;
+            }
           }
         }
       }
@@ -4401,6 +4408,22 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           CompileTimeErrorCode.MIXIN_REFERENCES_SUPER,
           mixinName,
           [mixinElement.name]);
+    }
+    return false;
+  }
+
+  /// Check that superclass constrains for the [mixinElement] are satisfied
+  /// by the [_enclosingClass].
+  bool _checkForMixinSuperclassConstraints(
+      TypeName mixinName, ClassElement mixinElement) {
+    for (var constraint in mixinElement.superclassConstraints) {
+      if (!_typeSystem.isSubtypeOf(_enclosingClass.type, constraint)) {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+            mixinName.name,
+            [constraint.displayName]);
+        return true;
+      }
     }
     return false;
   }

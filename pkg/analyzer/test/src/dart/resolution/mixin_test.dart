@@ -476,6 +476,72 @@ mixin M {
     assertTestErrors([CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME]);
   }
 
+  test_error_mixinApplicationNotImplementedInterface() async {
+    addTestFile(r'''
+class A {}
+
+mixin M on A {}
+
+class X = Object with M;
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+    ]);
+  }
+
+  test_error_mixinApplicationNotImplementedInterface_generic() async {
+    addTestFile(r'''
+class A<T> {}
+
+mixin M on A<int> {}
+
+class X = A<double> with M;
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+    ]);
+  }
+
+  test_error_mixinApplicationNotImplementedInterface_OK_0() async {
+    addTestFile(r'''
+mixin M {}
+
+class X = Object with M;
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_mixinApplicationNotImplementedInterface_OK_1() async {
+    addTestFile(r'''
+class A {}
+
+mixin M on A {}
+
+class X = A with M;
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+  }
+
+  test_error_mixinApplicationNotImplementedInterface_oneOfTwo() async {
+    addTestFile(r'''
+class A {}
+class B {}
+class C {}
+
+mixin M on A, B {}
+
+class X = C with M;
+''');
+    await resolveTestFile();
+    assertTestErrors([
+      CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+    ]);
+  }
+
   test_error_mixinDeclaresConstructor() async {
     addTestFile(r'''
 mixin M {

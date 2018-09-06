@@ -1664,6 +1664,18 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Check your Dart SDK installation for completeness.");
 
   /**
+   * It's a compile-time error to apply a mixin to a class that doesn't
+   * implement all the on type requirements of the mixin declaration.
+   *
+   * Parameters:
+   * 0: the display name of the not implemented type
+   */
+  static const CompileTimeErrorCode
+      MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE = const CompileTimeErrorCode(
+          'MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE',
+          "The class doesn't implement the required class '{0}'.");
+
+  /**
    * 9 Mixins: It is a compile-time error if a declared or derived mixin
    * explicitly declares a constructor.
    *
