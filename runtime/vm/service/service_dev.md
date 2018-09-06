@@ -1021,7 +1021,7 @@ _BeingInitialized_ [Sentinel](#sentinel).
 ```
 class BoundVariable {
   string name;
-  @Instance|Sentinel value;
+  @Instance|@TypeArguments|Sentinel value;
 
   // The token position where this variable was declared.
   int declarationTokenPos;
