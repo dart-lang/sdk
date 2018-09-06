@@ -21,6 +21,27 @@ class FindElement {
     fail('Not found class: $name');
   }
 
+  ConstructorElement constructor(String name, {String className}) {
+    assert(name != '');
+    ConstructorElement result;
+    for (var class_ in unitElement.types) {
+      if (className == null || class_.name == className) {
+        for (var constructor in class_.constructors) {
+          if (constructor.name == name) {
+            if (result != null) {
+              throw new StateError('Not constructor name: $name');
+            }
+            result = constructor;
+          }
+        }
+      }
+    }
+    if (result != null) {
+      return result;
+    }
+    fail('Not found constructor: $name');
+  }
+
   ClassElement enum_(String name) {
     for (var enum_ in unitElement.enums) {
       if (enum_.name == name) {

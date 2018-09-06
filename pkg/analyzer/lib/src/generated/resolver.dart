@@ -109,18 +109,28 @@ class AstRewriteVisitor extends ScopedVisitor {
         // Possible case: C.n()
         var constructorElement = element.getNamedConstructor(methodName.name);
         if (constructorElement != null) {
+          var typeArguments = node.typeArguments;
+          if (typeArguments != null) {
+            errorReporter.reportErrorForNode(
+                StaticTypeWarningCode
+                    .WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+                node,
+                [element.name, constructorElement.name]);
+          }
           AstFactory astFactory = new AstFactoryImpl();
-          TypeName typeName = astFactory.typeName(target, node.typeArguments);
+          TypeName typeName = astFactory.typeName(target, typeArguments);
           ConstructorName constructorName =
               astFactory.constructorName(typeName, node.operator, methodName);
           InstanceCreationExpression instanceCreationExpression =
               astFactory.instanceCreationExpression(
                   _getKeyword(node), constructorName, node.argumentList);
-          InterfaceType type = _getType(element, node.typeArguments);
+          InterfaceType type = _getType(element, typeArguments);
           constructorElement =
               type.lookUpConstructor(methodName.name, definingLibrary);
           methodName.staticElement = element;
           methodName.staticType = type;
+          target.staticElement = element;
+          target.staticType = type; // TODO(scheglov) remove this
           typeName.type = type;
           constructorName.staticElement = constructorElement;
           instanceCreationExpression.staticType = type;
@@ -159,23 +169,33 @@ class AstRewriteVisitor extends ScopedVisitor {
     } else if (target is PrefixedIdentifier) {
       // Possible case: p.C.n()
       Element prefixElement = nameScope.lookup(target.prefix, definingLibrary);
+      target.prefix.staticElement = prefixElement;
       if (prefixElement is PrefixElement) {
         Element element = nameScope.lookup(target, definingLibrary);
         if (element is ClassElement) {
           var constructorElement = element.getNamedConstructor(methodName.name);
           if (constructorElement != null) {
+            var typeArguments = node.typeArguments;
+            if (typeArguments != null) {
+              errorReporter.reportErrorForNode(
+                  StaticTypeWarningCode
+                      .WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+                  node,
+                  [element.name, constructorElement.name]);
+            }
             AstFactory astFactory = new AstFactoryImpl();
-            TypeName typeName = astFactory.typeName(target, node.typeArguments);
+            TypeName typeName = astFactory.typeName(target, typeArguments);
             ConstructorName constructorName =
                 astFactory.constructorName(typeName, node.operator, methodName);
             InstanceCreationExpression instanceCreationExpression =
                 astFactory.instanceCreationExpression(
                     _getKeyword(node), constructorName, node.argumentList);
-            InterfaceType type = _getType(element, node.typeArguments);
+            InterfaceType type = _getType(element, typeArguments);
             constructorElement =
                 type.lookUpConstructor(methodName.name, definingLibrary);
             methodName.staticElement = element;
             methodName.staticType = type;
+            target.identifier.staticElement = element;
             typeName.type = type;
             constructorName.staticElement = constructorElement;
             instanceCreationExpression.staticType = type;

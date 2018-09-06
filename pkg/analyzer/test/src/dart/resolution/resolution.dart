@@ -129,6 +129,40 @@ abstract class ResolutionTest implements ResourceProviderMixin {
     assertType(ref, type);
   }
 
+  void assertInstanceCreation(InstanceCreationExpression creation,
+      ClassElement expectedClassElement, String expectedType,
+      {String constructorName, PrefixElement expectedPrefix}) {
+    String expectedClassName = expectedClassElement.name;
+
+    ConstructorElement expectedConstructorElement;
+    if (constructorName != null) {
+      expectedConstructorElement =
+          expectedClassElement.getNamedConstructor(constructorName);
+      if (expectedConstructorElement == null) {
+        fail("No constructor '$constructorName' in class"
+            " '$expectedClassName'.");
+      }
+    } else {
+      expectedConstructorElement = expectedClassElement.unnamedConstructor;
+      if (expectedConstructorElement == null) {
+        fail("No unnamed constructor in class '$expectedClassName'.");
+      }
+    }
+
+    var actualConstructorElement = getNodeElement(creation);
+    if (actualConstructorElement is ConstructorMember) {
+      assertMember(creation, expectedType, expectedConstructorElement);
+    } else {
+      assertElement(creation, actualConstructorElement);
+    }
+
+    assertType(creation, expectedType);
+
+    var typeName = creation.constructorName.type;
+    assertTypeName(typeName, expectedClassElement, expectedType,
+        expectedPrefix: expectedPrefix);
+  }
+
   void assertMember(
       Expression node, String expectedDefiningType, Element expectedBase) {
     Member actual = getNodeElement(node);
@@ -176,6 +210,7 @@ abstract class ResolutionTest implements ResourceProviderMixin {
     if (expectedPrefix == null) {
       var name = node.name as SimpleIdentifier;
       assertElement(name, expectedElement);
+      // TODO(scheglov) Should this be null?
       assertType(name, expectedType);
     } else {
       var name = node.name as PrefixedIdentifier;

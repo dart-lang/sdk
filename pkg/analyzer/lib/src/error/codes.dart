@@ -3313,6 +3313,20 @@ class StaticTypeWarningCode extends ErrorCode {
    * exactly <i>n</i> type parameters.
    *
    * Parameters:
+   * 0: the name of the class being instantiated
+   * 1: the name of the constructor being invoked
+   */
+  static const StaticTypeWarningCode
+      WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR = const StaticTypeWarningCode(
+          'WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR',
+          "The constructor '{0}.{1}' does not have type parameters.",
+          correction: "Try moving type arguments to after the type name.");
+
+  /**
+   * It will be a static type warning if <i>m</i> is not a generic method with
+   * exactly <i>n</i> type parameters.
+   *
+   * Parameters:
    * 0: the name of the method being referenced (<i>G</i>)
    * 1: the number of type parameters that were declared
    * 2: the number of type arguments provided

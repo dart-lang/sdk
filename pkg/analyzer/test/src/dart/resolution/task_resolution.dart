@@ -23,7 +23,7 @@ class TaskResolutionTest extends Object
   Future<TestAnalysisResult> resolveFile(String path) async {
     var file = resourceProvider.getFile(path);
     var content = file.readAsStringSync();
-    var source = file.createSource();
+    var source = file.createSource(Uri.parse('package:test/test.dart'));
 
     analysisContext.computeKindOf(source);
     List<Source> libraries = analysisContext.getLibrariesContaining(source);

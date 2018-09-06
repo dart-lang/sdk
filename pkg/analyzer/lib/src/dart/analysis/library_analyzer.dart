@@ -567,7 +567,7 @@ class LibraryAnalyzer {
     new DeclarationResolver().resolve(unit, unitElement);
 
     unit.accept(new AstRewriteVisitor(_context.typeSystem, _libraryElement,
-        source, _typeProvider, AnalysisErrorListener.NULL_LISTENER));
+        source, _typeProvider, errorListener));
 
     // TODO(scheglov) remove EnumMemberBuilder class
 

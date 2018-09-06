@@ -581,6 +581,7 @@ const List<ErrorCode> errorCodeValues = const [
   StaticTypeWarningCode.UNDEFINED_SUPER_SETTER,
   StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
   StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
+  StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
   StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
   StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
   StaticWarningCode.AMBIGUOUS_IMPORT,

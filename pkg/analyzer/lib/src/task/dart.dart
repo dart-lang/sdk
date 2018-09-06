@@ -5109,12 +5109,8 @@ class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
     //
     // Re-write the AST to handle the optional new and const feature.
     //
-    unit.accept(new AstRewriteVisitor(
-        context.typeSystem,
-        library,
-        unit.declaredElement.source,
-        typeProvider,
-        AnalysisErrorListener.NULL_LISTENER));
+    unit.accept(new AstRewriteVisitor(context.typeSystem, library,
+        unit.declaredElement.source, typeProvider, errorListener));
     //
     // Record outputs.
     //
