@@ -313,7 +313,16 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'native = 42');
   }
 
-  test_BUILT_IN_on() async {
+  test_BUILT_IN_on_inMixin() async {
+    addTestFile('''
+mixin M on N {}
+class N {}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'on N');
+  }
+
+  test_BUILT_IN_on_inTry() async {
     addTestFile('''
 main() {
   try {
@@ -780,6 +789,14 @@ class C = Object with A;
     assertHasRegion(HighlightRegionType.KEYWORD, 'while (true) {}');
     assertHasRegion(HighlightRegionType.KEYWORD, 'while (true);');
     assertHasRegion(HighlightRegionType.KEYWORD, 'with A;');
+  }
+
+  test_KEYWORD_mixin() async {
+    addTestFile('''
+mixin M {}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'mixin');
   }
 
   test_KEYWORD_void() async {
