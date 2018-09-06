@@ -14,32 +14,24 @@ import 'package:analyzer/src/summary/public_namespace_computer.dart';
 import 'package:analyzer/src/summary/summarize_const_expr.dart';
 import 'package:front_end/src/base/api_signature.dart';
 
-/**
- * Serialize all the declarations in [compilationUnit] to an unlinked summary.
- */
+/// Serialize all the declarations in [compilationUnit] to an unlinked summary.
 UnlinkedUnitBuilder serializeAstUnlinked(CompilationUnit compilationUnit) {
   return new _SummarizeAstVisitor().serializeCompilationUnit(compilationUnit);
 }
 
-/**
- * Instances of this class keep track of intermediate state during
- * serialization of a single constant [Expression].
- */
+/// Instances of this class keep track of intermediate state during
+/// serialization of a single constant [Expression].
 class _ConstExprSerializer extends AbstractConstExprSerializer {
   final _SummarizeAstVisitor visitor;
 
-  /**
-   * If the expression being serialized can contain closures, map whose
-   * keys are the offsets of local function nodes representing those closures,
-   * and whose values are indices of those local functions relative to their
-   * siblings.
-   */
+  /// If the expression being serialized can contain closures, map whose
+  /// keys are the offsets of local function nodes representing those closures,
+  /// and whose values are indices of those local functions relative to their
+  /// siblings.
   final Map<int, int> localClosureIndexMap;
 
-  /**
-   * If the expression being serialized appears inside a function body, the names
-   * of parameters that are in scope.  Otherwise `null`.
-   */
+  /// If the expression being serialized appears inside a function body, the
+  /// names of parameters that are in scope.  Otherwise `null`.
   final Set<String> parameterNames;
 
   _ConstExprSerializer(bool forConst, this.visitor, this.localClosureIndexMap,
@@ -153,233 +145,157 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
   }
 }
 
-/**
- * A [_Scope] represents a set of name/value pairs defined locally within a
- * limited span of a compilation unit.  (Note that the spec also uses the term
- * "scope" to refer to the set of names defined at top level within a
- * compilation unit, but we do not use [_Scope] for that purpose).
- */
+/// A [_Scope] represents a set of name/value pairs defined locally within a
+/// limited span of a compilation unit.  (Note that the spec also uses the term
+/// "scope" to refer to the set of names defined at top level within a
+/// compilation unit, but we do not use [_Scope] for that purpose).
 class _Scope {
-  /**
-   * Names defined in this scope, and their meanings.
-   */
+  /// Names defined in this scope, and their meanings.
   Map<String, _ScopedEntity> _definedNames = <String, _ScopedEntity>{};
 
-  /**
-   * Look up the meaning associated with the given [name], and return it.  If
-   * [name] is not defined in this scope, return `null`.
-   */
+  /// Look up the meaning associated with the given [name], and return it.  If
+  /// [name] is not defined in this scope, return `null`.
   _ScopedEntity operator [](String name) => _definedNames[name];
 
-  /**
-   * Let the given [name] refer to [entity] within this scope.
-   */
+  /// Let the given [name] refer to [entity] within this scope.
   void operator []=(String name, _ScopedEntity entity) {
     _definedNames[name] = entity;
   }
 }
 
-/**
- * A [_ScopedClassMember] is a [_ScopedEntity] refers to a member of a class.
- */
+/// A [_ScopedClassMember] is a [_ScopedEntity] refers to a member of a class.
 class _ScopedClassMember extends _ScopedEntity {
-  /**
-   * The name of the class.
-   */
+  /// The name of the class.
   final String className;
 
   _ScopedClassMember(this.className);
 }
 
-/**
- * Base class for entities that can live inside a scope.
- */
+/// Base class for entities that can live inside a scope.
 abstract class _ScopedEntity {}
 
-/**
- * A [_ScopedTypeParameter] is a [_ScopedEntity] that refers to a type
- * parameter of a class, typedef, or executable.
- */
+/// A [_ScopedTypeParameter] is a [_ScopedEntity] that refers to a type
+/// parameter of a class, typedef, or executable.
 class _ScopedTypeParameter extends _ScopedEntity {
-  /**
-   * Index of the type parameter within this scope.  Since summaries use De
-   * Bruijn indices to refer to type parameters, which count upwards from the
-   * innermost bound name, the last type parameter in the scope has an index of
-   * 1, and each preceding type parameter has the next higher index.
-   */
+  /// Index of the type parameter within this scope.  Since summaries use De
+  /// Bruijn indices to refer to type parameters, which count upwards from the
+  /// innermost bound name, the last type parameter in the scope has an index of
+  /// 1, and each preceding type parameter has the next higher index.
   final int index;
 
   _ScopedTypeParameter(this.index);
 }
 
-/**
- * Visitor used to create a summary from an AST.
- */
+/// Visitor used to create a summary from an AST.
 class _SummarizeAstVisitor extends RecursiveAstVisitor {
-  /**
-   * List of objects which should be written to [UnlinkedUnit.classes].
-   */
+  /// List of objects which should be written to [UnlinkedUnit.classes].
   final List<UnlinkedClassBuilder> classes = <UnlinkedClassBuilder>[];
 
-  /**
-   * List of objects which should be written to [UnlinkedUnit.enums].
-   */
+  /// List of objects which should be written to [UnlinkedUnit.enums].
   final List<UnlinkedEnumBuilder> enums = <UnlinkedEnumBuilder>[];
 
-  /**
-   * List of objects which should be written to [UnlinkedUnit.executables],
-   * [UnlinkedClass.executables] or [UnlinkedExecutable.localFunctions].
-   */
+  /// List of objects which should be written to [UnlinkedUnit.executables],
+  /// [UnlinkedClass.executables] or [UnlinkedExecutable.localFunctions].
   List<UnlinkedExecutableBuilder> executables = <UnlinkedExecutableBuilder>[];
 
-  /**
-   * List of objects which should be written to [UnlinkedUnit.exports].
-   */
+  /// List of objects which should be written to [UnlinkedUnit.exports].
   final List<UnlinkedExportNonPublicBuilder> exports =
       <UnlinkedExportNonPublicBuilder>[];
 
-  /**
-   * List of objects which should be written to [UnlinkedUnit.mixins].
-   */
+  /// List of objects which should be written to [UnlinkedUnit.mixins].
   final List<UnlinkedClassBuilder> mixins = <UnlinkedClassBuilder>[];
 
-  /**
-   * List of objects which should be written to [UnlinkedUnit.parts].
-   */
+  /// List of objects which should be written to [UnlinkedUnit.parts].
   final List<UnlinkedPartBuilder> parts = <UnlinkedPartBuilder>[];
 
-  /**
-   * List of objects which should be written to [UnlinkedUnit.typedefs].
-   */
+  /// List of objects which should be written to [UnlinkedUnit.typedefs].
   final List<UnlinkedTypedefBuilder> typedefs = <UnlinkedTypedefBuilder>[];
 
-  /**
-   * List of objects which should be written to [UnlinkedUnit.variables] or
-   * [UnlinkedClass.fields].
-   */
+  /// List of objects which should be written to [UnlinkedUnit.variables] or
+  /// [UnlinkedClass.fields].
   List<UnlinkedVariableBuilder> variables = <UnlinkedVariableBuilder>[];
 
-  /**
-   * The unlinked portion of the "imports table".  This is the list of objects
-   * which should be written to [UnlinkedUnit.imports].
-   */
+  /// The unlinked portion of the "imports table".  This is the list of objects
+  /// which should be written to [UnlinkedUnit.imports].
   final List<UnlinkedImportBuilder> unlinkedImports = <UnlinkedImportBuilder>[];
 
-  /**
-   * The unlinked portion of the "references table".  This is the list of
-   * objects which should be written to [UnlinkedUnit.references].
-   */
+  /// The unlinked portion of the "references table".  This is the list of
+  /// objects which should be written to [UnlinkedUnit.references].
   final List<UnlinkedReferenceBuilder> unlinkedReferences =
       <UnlinkedReferenceBuilder>[new UnlinkedReferenceBuilder()];
 
-  /**
-   * List of [_Scope]s currently in effect.  This is used to resolve type names
-   * to type parameters within classes, typedefs, and executables, as well as
-   * references to class members.
-   */
+  /// List of [_Scope]s currently in effect.  This is used to resolve type names
+  /// to type parameters within classes, typedefs, and executables, as well as
+  /// references to class members.
   final List<_Scope> scopes = <_Scope>[];
 
-  /**
-   * True if 'dart:core' has been explicitly imported.
-   */
+  /// True if 'dart:core' has been explicitly imported.
   bool hasCoreBeenImported = false;
 
-  /**
-   * Names referenced by this compilation unit.  Structured as a map from
-   * prefix index to (map from name to reference table index), where "prefix
-   * index" means the index into [UnlinkedUnit.references] of the prefix (or
-   * `null` if there is no prefix), and "reference table index" means the index
-   * into [UnlinkedUnit.references] for the name itself.
-   */
+  /// Names referenced by this compilation unit.  Structured as a map from
+  /// prefix index to (map from name to reference table index), where "prefix
+  /// index" means the index into [UnlinkedUnit.references] of the prefix (or
+  /// `null` if there is no prefix), and "reference table index" means the index
+  /// into [UnlinkedUnit.references] for the name itself.
   final Map<int, Map<String, int>> nameToReference = <int, Map<String, int>>{};
 
-  /**
-   * True if the 'dart:core' library is been summarized.
-   */
+  /// True if the 'dart:core' library is been summarized.
   bool isCoreLibrary = false;
 
-  /**
-   * True is a [PartOfDirective] was found, so the unit is a part.
-   */
+  /// True is a [PartOfDirective] was found, so the unit is a part.
   bool isPartOf = false;
 
-  /**
-   * If the library has a library directive, the library name derived from it.
-   * Otherwise `null`.
-   */
+  /// If the library has a library directive, the library name derived from it.
+  /// Otherwise `null`.
   String libraryName;
 
-  /**
-   * If the library has a library directive, the offset of the library name.
-   * Otherwise `null`.
-   */
+  /// If the library has a library directive, the offset of the library name.
+  /// Otherwise `null`.
   int libraryNameOffset;
 
-  /**
-   * If the library has a library directive, the length of the library name, as
-   * it appears in the source file.  Otherwise `null`.
-   */
+  /// If the library has a library directive, the length of the library name, as
+  /// it appears in the source file.  Otherwise `null`.
   int libraryNameLength;
 
-  /**
-   * If the library has a library directive, the documentation comment for it
-   * (if any).  Otherwise `null`.
-   */
+  /// If the library has a library directive, the documentation comment for it
+  /// (if any).  Otherwise `null`.
   UnlinkedDocumentationCommentBuilder libraryDocumentationComment;
 
-  /**
-   * If the library has a library directive, the annotations for it (if any).
-   * Otherwise `null`.
-   */
+  /// If the library has a library directive, the annotations for it (if any).
+  /// Otherwise `null`.
   List<UnlinkedExpr> libraryAnnotations = const <UnlinkedExprBuilder>[];
 
-  /**
-   * The number of slot ids which have been assigned to this compilation unit.
-   */
+  /// The number of slot ids which have been assigned to this compilation unit.
   int numSlots = 0;
 
-  /**
-   * The [Block] that is being visited now, or `null` for non-local contexts.
-   */
+  /// The [Block] that is being visited now, or `null` for non-local contexts.
   Block enclosingBlock = null;
 
-  /**
-   * If an expression is being serialized which can contain closures, map whose
-   * keys are the offsets of local function nodes representing those closures,
-   * and whose values are indices of those local functions relative to their
-   * siblings.
-   */
+  /// If an expression is being serialized which can contain closures, map whose
+  /// keys are the offsets of local function nodes representing those closures,
+  /// and whose values are indices of those local functions relative to their
+  /// siblings.
   Map<int, int> _localClosureIndexMap;
 
-  /**
-   * Indicates whether closure function bodies should be serialized.  This flag
-   * is set while visiting the bodies of initializer expressions that will be
-   * needed by type inference.
-   */
+  /// Indicates whether closure function bodies should be serialized.  This flag
+  /// is set while visiting the bodies of initializer expressions that will be
+  /// needed by type inference.
   bool _serializeClosureBodyExprs = false;
 
-  /**
-   * If a closure function body is being serialized, the set of closure
-   * parameter names which are currently in scope.  Otherwise `null`.
-   */
+  /// If a closure function body is being serialized, the set of closure
+  /// parameter names which are currently in scope.  Otherwise `null`.
   Set<String> _parameterNames;
 
-  /**
-   * Indicates whether parameters found during visitors might inherit
-   * covariance.
-   */
+  /// Indicates whether parameters found during visitors might inherit
+  /// covariance.
   bool _parametersMayInheritCovariance = false;
 
-  /**
-   * Create a slot id for storing a propagated or inferred type or const cycle
-   * info.
-   */
+  /// Create a slot id for storing a propagated or inferred type or const cycle
+  /// info.
   int assignSlot() => ++numSlots;
 
-  /**
-   * Build a [_Scope] object containing the names defined within the body of a
-   * class declaration.
-   */
+  /// Build a [_Scope] object containing the names defined within the body of a
+  /// class declaration.
   _Scope buildClassMemberScope(
       String className, NodeList<ClassMember> members) {
     _Scope scope = new _Scope();
@@ -403,10 +319,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     return scope;
   }
 
-  /**
-   * Serialize the given list of [annotations].  If there are no annotations,
-   * the empty list is returned.
-   */
+  /// Serialize the given list of [annotations].  If there are no annotations,
+  /// the empty list is returned.
   List<UnlinkedExprBuilder> serializeAnnotations(
       NodeList<Annotation> annotations) {
     if (annotations == null || annotations.isEmpty) {
@@ -427,10 +341,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     }).toList();
   }
 
-  /**
-   * Serialize a [ClassDeclaration] or [ClassTypeAlias] into an [UnlinkedClass]
-   * and store the result in [classes].
-   */
+  /// Serialize a [ClassDeclaration] or [ClassTypeAlias] into an [UnlinkedClass]
+  /// and store the result in [classes].
   void serializeClass(
       AstNode node,
       Token abstractKeyword,
@@ -488,16 +400,12 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     variables = oldVariables;
   }
 
-  /**
-   * Create a [CodeRangeBuilder] for the given [node].
-   */
+  /// Create a [CodeRangeBuilder] for the given [node].
   CodeRangeBuilder serializeCodeRange(AstNode node) {
     return new CodeRangeBuilder(offset: node.offset, length: node.length);
   }
 
-  /**
-   * Serialize a [Combinator] into an [UnlinkedCombinator].
-   */
+  /// Serialize a [Combinator] into an [UnlinkedCombinator].
   UnlinkedCombinatorBuilder serializeCombinator(Combinator combinator) {
     UnlinkedCombinatorBuilder b = new UnlinkedCombinatorBuilder();
     if (combinator is ShowCombinator) {
@@ -515,9 +423,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     return b;
   }
 
-  /**
-   * Main entry point for serializing an AST.
-   */
+  /// Main entry point for serializing an AST.
   UnlinkedUnitBuilder serializeCompilationUnit(
       CompilationUnit compilationUnit) {
     compilationUnit.directives.accept(this);
@@ -549,9 +455,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     return b;
   }
 
-  /**
-   * Serialize the given [expression], creating an [UnlinkedExprBuilder].
-   */
+  /// Serialize the given [expression], creating an [UnlinkedExprBuilder].
   UnlinkedExprBuilder serializeConstExpr(
       bool forConst, Map<int, int> localClosureIndexMap, Expression expression,
       [Set<String> parameterNames]) {
@@ -561,9 +465,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     return serializer.toBuilder();
   }
 
-  /**
-   * Serialize a [Comment] node into an [UnlinkedDocumentationComment] object.
-   */
+  /// Serialize a [Comment] node into an [UnlinkedDocumentationComment] object.
   UnlinkedDocumentationCommentBuilder serializeDocumentation(
       Comment documentationComment) {
     if (documentationComment == null) {
@@ -576,18 +478,14 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     return new UnlinkedDocumentationCommentBuilder(text: text);
   }
 
-  /**
-   * Return an entity reference builder representing the type 'dynamic'.
-   */
+  /// Return an entity reference builder representing the type 'dynamic'.
   EntityRefBuilder serializeDynamic() {
     EntityRefBuilder builder = new EntityRefBuilder();
     builder.reference = serializeReference(null, 'dynamic');
     return builder;
   }
 
-  /**
-   * Serialize an [EnumConstantDeclaration] into an [UnlinkedEnumValue].
-   */
+  /// Serialize an [EnumConstantDeclaration] into an [UnlinkedEnumValue].
   UnlinkedEnumValueBuilder serializeEnumConstantDeclaration(
       EnumConstantDeclaration node) {
     return new UnlinkedEnumValueBuilder(
@@ -597,13 +495,11 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         nameOffset: node.name.offset);
   }
 
-  /**
-   * Serialize a [FunctionDeclaration] or [MethodDeclaration] into an
-   * [UnlinkedExecutable].
-   *
-   * If [serializeBodyExpr] is `true`, then the function definition is stored
-   * in [UnlinkedExecutableBuilder.bodyExpr].
-   */
+  /// Serialize a [FunctionDeclaration] or [MethodDeclaration] into an
+  /// [UnlinkedExecutable].
+  ///
+  /// If [serializeBodyExpr] is `true`, then the function definition is stored
+  /// in [UnlinkedExecutableBuilder.bodyExpr].
   UnlinkedExecutableBuilder serializeExecutable(
       AstNode node,
       String name,
@@ -686,22 +582,21 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     return b;
   }
 
-  /**
-   * Record local functions and variables into the given executable. The given
-   * [body] is usually an actual [FunctionBody], but may be an [Expression]
-   * when we process a synthetic variable initializer function.
-   *
-   * If [initializers] is non-`null`, closures occurring inside the initializers
-   * are serialized first.
-   *
-   * If [serializeBodyExpr] is `true`, then the function definition is stored
-   * in [UnlinkedExecutableBuilder.bodyExpr], and closures occurring inside
-   * [initializers] and [body] have their function bodies serialized as well.
-   *
-   * The return value is a map whose keys are the offsets of local function
-   * nodes representing closures inside [initializers] and [body], and whose
-   * values are the indices of those local functions relative to their siblings.
-   */
+  /// Record local functions and variables into the given executable. The given
+  /// [body] is usually an actual [FunctionBody], but may be an [Expression]
+  /// when we process a synthetic variable initializer function.
+  ///
+  /// If [initializers] is non-`null`, closures occurring inside the
+  /// initializers are serialized first.
+  ///
+  /// If [serializeBodyExpr] is `true`, then the function definition is stored
+  /// in [UnlinkedExecutableBuilder.bodyExpr], and closures occurring inside
+  /// [initializers] and [body] have their function bodies serialized as well.
+  ///
+  /// The return value is a map whose keys are the offsets of local function
+  /// nodes representing closures inside [initializers] and [body], and whose
+  /// values are the indices of those local functions relative to their
+  /// siblings.
   Map<int, int> serializeFunctionBody(
       UnlinkedExecutableBuilder b,
       List<ConstructorInitializer> initializers,
@@ -750,10 +645,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     return localClosureIndexMap;
   }
 
-  /**
-   * Serialize the return type and parameters of a function-typed formal
-   * parameter and store them in [b].
-   */
+  /// Serialize the return type and parameters of a function-typed formal
+  /// parameter and store them in [b].
   void serializeFunctionTypedParameterDetails(UnlinkedParamBuilder b,
       TypeAnnotation returnType, FormalParameterList parameters) {
     EntityRefBuilder serializedReturnType = serializeType(returnType);
@@ -768,9 +661,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     _parametersMayInheritCovariance = oldMayInheritCovariance;
   }
 
-  /**
-   * Serialize a generic function type.
-   */
+  /// Serialize a generic function type.
   EntityRefBuilder serializeGenericFunctionType(GenericFunctionType node) {
     _TypeParameterScope typeParameterScope = new _TypeParameterScope();
     scopes.add(typeParameterScope);
@@ -788,13 +679,11 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     return b;
   }
 
-  /**
-   * If the given [expression] is not `null`, serialize it as an
-   * [UnlinkedExecutableBuilder], otherwise return `null`.
-   *
-   * If [serializeBodyExpr] is `true`, then the initializer expression is stored
-   * in [UnlinkedExecutableBuilder.bodyExpr].
-   */
+  /// If the given [expression] is not `null`, serialize it as an
+  /// [UnlinkedExecutableBuilder], otherwise return `null`.
+  ///
+  /// If [serializeBodyExpr] is `true`, then the initializer expression is
+  /// stored in [UnlinkedExecutableBuilder.bodyExpr].
   UnlinkedExecutableBuilder serializeInitializerFunction(
       Expression expression, bool serializeBodyExpr, bool forConst) {
     if (expression == null) {
@@ -808,9 +697,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     return initializer;
   }
 
-  /**
-   * Serialize a type name that appears in a "with" clause to an [EntityRef].
-   */
+  /// Serialize a type name that appears in a "with" clause to an [EntityRef].
   EntityRefBuilder serializeMixedInType(TypeAnnotation node) {
     var builder = serializeType(node);
     if (builder != null && builder.typeArguments.isEmpty) {
@@ -821,10 +708,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     return builder;
   }
 
-  /**
-   * Serialize a [MixinDeclaration] into an [UnlinkedClass]
-   * and store the result in [mixins].
-   */
+  /// Serialize a [MixinDeclaration] into an [UnlinkedClass]
+  /// and store the result in [mixins].
   void serializeMixin(
       AstNode node,
       String name,
@@ -873,10 +758,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     variables = oldVariables;
   }
 
-  /**
-   * Serialize a [FieldFormalParameter], [FunctionTypedFormalParameter], or
-   * [SimpleFormalParameter] into an [UnlinkedParam].
-   */
+  /// Serialize a [FieldFormalParameter], [FunctionTypedFormalParameter], or
+  /// [SimpleFormalParameter] into an [UnlinkedParam].
   UnlinkedParamBuilder serializeParameter(NormalFormalParameter node) {
     UnlinkedParamBuilder b = new UnlinkedParamBuilder();
     b.name = node.identifier?.name;
@@ -901,12 +784,10 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     return b;
   }
 
-  /**
-   * Serialize a reference to a top level name declared elsewhere, by adding an
-   * entry to the references table if necessary.  If [prefixIndex] is not null,
-   * the reference is associated with the prefix having the given index in the
-   * references table.
-   */
+  /// Serialize a reference to a top level name declared elsewhere, by adding an
+  /// entry to the references table if necessary.  If [prefixIndex] is not null,
+  /// the reference is associated with the prefix having the given index in the
+  /// references table.
   int serializeReference(int prefixIndex, String name) => nameToReference
           .putIfAbsent(prefixIndex, () => <String, int>{})
           .putIfAbsent(name, () {
@@ -916,12 +797,10 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         return index;
       });
 
-  /**
-   * Serialize a reference to a name declared either at top level or in a
-   * nested scope.
-   *
-   * References to type parameters are returned as negative numbers.
-   */
+  /// Serialize a reference to a name declared either at top level or in a
+  /// nested scope.
+  ///
+  /// References to type parameters are returned as negative numbers.
   int serializeSimpleReference(String name) {
     int indexOffset = 0;
     for (int i = scopes.length - 1; i >= 0; i--) {
@@ -943,12 +822,10 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     return serializeReference(null, name);
   }
 
-  /**
-   * Serialize a type name (which might be defined in a nested scope, at top
-   * level within this library, or at top level within an imported library) to
-   * a [EntityRef].  Note that this method does the right thing if the
-   * name doesn't refer to an entity other than a type (e.g. a class member).
-   */
+  /// Serialize a type name (which might be defined in a nested scope, at top
+  /// level within this library, or at top level within an imported library) to
+  /// a [EntityRef].  Note that this method does the right thing if the
+  /// name doesn't refer to an entity other than a type (e.g. a class member).
   EntityRefBuilder serializeType(TypeAnnotation node) {
     if (node is TypeName) {
       return serializeTypeName(node?.name, node?.typeArguments);
@@ -960,12 +837,10 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     return null;
   }
 
-  /**
-   * Serialize a type name (which might be defined in a nested scope, at top
-   * level within this library, or at top level within an imported library) to
-   * a [EntityRef].  Note that this method does the right thing if the
-   * name doesn't refer to an entity other than a type (e.g. a class member).
-   */
+  /// Serialize a type name (which might be defined in a nested scope, at top
+  /// level within this library, or at top level within an imported library) to
+  /// a [EntityRef].  Note that this method does the right thing if the
+  /// name doesn't refer to an entity other than a type (e.g. a class member).
   EntityRefBuilder serializeTypeName(
       Identifier identifier, TypeArgumentList typeArguments) {
     if (identifier == null) {
@@ -1017,10 +892,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     }
   }
 
-  /**
-   * Serialize the given [typeParameters] into a list of [UnlinkedTypeParam]s,
-   * and also store them in [typeParameterScope].
-   */
+  /// Serialize the given [typeParameters] into a list of [UnlinkedTypeParam]s,
+  /// and also store them in [typeParameterScope].
   List<UnlinkedTypeParamBuilder> serializeTypeParameters(
       TypeParameterList typeParameters,
       _TypeParameterScope typeParameterScope) {
@@ -1035,10 +908,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     return const <UnlinkedTypeParamBuilder>[];
   }
 
-  /**
-   * Serialize the given [variables] into [UnlinkedVariable]s, and store them
-   * in [this.variables].
-   */
+  /// Serialize the given [variables] into [UnlinkedVariable]s, and store them
+  /// in [this.variables].
   void serializeVariables(
       VariableDeclarationList variables,
       bool isDeclaredStatic,
@@ -1470,9 +1341,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     // TODO(scheglov) Remove when we stop serializing local functions.
   }
 
-  /**
-   * Compute the API signature of the unit and record it.
-   */
+  /// Compute the API signature of the unit and record it.
   static void _computeApiSignature(UnlinkedUnitBuilder b) {
     ApiSignature apiSignature = new ApiSignature();
     b.collectApiSignature(apiSignature);
@@ -1480,13 +1349,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   }
 }
 
-/**
- * A [_TypeParameterScope] is a [_Scope] which defines [_ScopedTypeParameter]s.
- */
+/// A [_TypeParameterScope] is a [_Scope] which defines [_ScopedTypeParameter]s.
 class _TypeParameterScope extends _Scope {
-  /**
-   * Get the number of [_ScopedTypeParameter]s defined in this
-   * [_TypeParameterScope].
-   */
+  /// Get the number of [_ScopedTypeParameter]s defined in this
+  /// [_TypeParameterScope].
   int get length => _definedNames.length;
 }
