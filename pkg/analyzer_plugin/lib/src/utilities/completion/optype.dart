@@ -810,6 +810,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitOnClause(OnClause node) {
+    optype.includeTypeNameSuggestions = true;
+  }
+
+  @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     if (identical(entity, node.expression)) {
       optype.includeReturnValueSuggestions = true;
