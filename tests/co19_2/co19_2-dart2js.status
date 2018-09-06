@@ -2096,7 +2096,7 @@ LayoutTests/fast/dom/custom/element-type_t01: RuntimeError
 LayoutTests/fast/dom/custom/element-upgrade_t01: RuntimeError
 LayoutTests/fast/dom/custom/type-extensions_t01: RuntimeError
 LayoutTests/fast/dom/importNode-unsupported-node-type_t01: RuntimeError
-LayoutTests/fast/dom/navigatorcontentutils/register-protocol-handler_t01: RuntimeError
+LayoutTests/fast/dom/navigatorcontentutils/register-protocol-handler_t01: RuntimeError, Pass
 LayoutTests/fast/dom/shadow/content-element-api_t01: RuntimeError
 LayoutTests/fast/dom/shadow/content-element-crash_t01: RuntimeError
 LayoutTests/fast/dom/shadow/content-element-outside-shadow-style_t01: RuntimeError
@@ -3350,7 +3350,7 @@ LibTest/html/IFrameElement/isContentEditable_A01_t01: RuntimeError
 LibTest/html/Window/close_A01_t01: RuntimeError
 
 [ $compiler == dart2js && $runtime != chrome && $runtime != safari ]
-LayoutTests/fast/animation/request-animation-frame-cancel2_t01: RuntimeError
+LayoutTests/fast/animation/request-animation-frame-cancel2_t01: RuntimeError, Timeout
 LayoutTests/fast/backgrounds/mask-box-image-width_t01: RuntimeError
 LayoutTests/fast/borders/border-color-visited_t01: RuntimeError
 LayoutTests/fast/canvas/canvas-fill-zeroSizeGradient_t01: RuntimeError
@@ -3451,8 +3451,8 @@ LayoutTests/fast/overflow/height-during-simplified-layout_t01: RuntimeError
 LayoutTests/fast/overflow/overflow-rtl-vertical-origin_t01: RuntimeError
 LayoutTests/fast/parser/block-nesting-cap_t01: RuntimeError
 LayoutTests/fast/selectors/specificity-overflow_t01: RuntimeError
-LayoutTests/fast/shapes/parsing/parsing-shape-image-threshold_t01: RuntimeError
-LayoutTests/fast/shapes/parsing/parsing-shape-property-aliases_t01: RuntimeError
+LayoutTests/fast/shapes/parsing/parsing-shape-image-threshold_t01: RuntimeError, Pass
+LayoutTests/fast/shapes/parsing/parsing-shape-property-aliases_t01: RuntimeError, Pass
 LayoutTests/fast/table/border-changes_t01: RuntimeError
 LayoutTests/fast/text/line-breaks-after-hyphen-before-number_t01: RuntimeError
 LayoutTests/fast/writing-mode/block-formatting-context_t01: RuntimeError
@@ -5514,7 +5514,7 @@ LayoutTests/fast/dom/css-innerHTML_t01: RuntimeError
 LayoutTests/fast/dom/css-insert-import-rule-twice_t01: RuntimeError
 LayoutTests/fast/dom/css-insert-import-rule_t01: RuntimeError
 LayoutTests/fast/dom/css-mediarule-functions_t01: RuntimeError
-LayoutTests/fast/dom/css-selectorText_t01: RuntimeError
+LayoutTests/fast/dom/css-selectorText_t01: RuntimeError, Pass
 LayoutTests/fast/dom/css-shorthand-common-value_t01: RuntimeError
 LayoutTests/fast/dom/cssTarget-crash_t01: RuntimeError, Pass
 LayoutTests/fast/dom/custom/attribute-changed-callback_t01: RuntimeError
@@ -5735,8 +5735,8 @@ LayoutTests/fast/replaced/table-percent-height_t01: RuntimeError
 LayoutTests/fast/replaced/table-percent-width_t01: RuntimeError
 LayoutTests/fast/ruby/ruby-line-height_t01: RuntimeError
 LayoutTests/fast/scrolling/scroll-element-into-view_t01: RuntimeError
-LayoutTests/fast/shapes/parsing/parsing-shape-margin_t01: RuntimeError
-LayoutTests/fast/shapes/parsing/parsing-shape-outside-none_t01: RuntimeError
+LayoutTests/fast/shapes/parsing/parsing-shape-margin_t01: RuntimeError, Pass
+LayoutTests/fast/shapes/parsing/parsing-shape-outside-none_t01: RuntimeError, Pass
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-inset-rounded-different-writing-modes-left_t01: RuntimeError
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-rounded-boxes_t01: RuntimeError
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-rounded-boxes_t02: RuntimeError
@@ -5774,7 +5774,7 @@ LayoutTests/fast/url/idna2008_t01: RuntimeError
 LayoutTests/fast/url/invalid-urls-utf8_t01: RuntimeError
 LayoutTests/fast/url/ipv4_t01: RuntimeError
 LayoutTests/fast/url/ipv6_t01: RuntimeError
-LayoutTests/fast/url/mailto_t01: RuntimeError
+LayoutTests/fast/url/mailto_t01: RuntimeError, Pass
 LayoutTests/fast/url/path_t01: RuntimeError
 LayoutTests/fast/url/query_t01: RuntimeError
 LayoutTests/fast/url/relative-win_t01: RuntimeError
