@@ -63,6 +63,7 @@ Language/Types/Interface_Types/subtype_t03: RuntimeError
 Language/Types/Interface_Types/subtype_t17: RuntimeError
 Language/Types/Interface_Types/subtype_t22: RuntimeError
 Language/Types/Interface_Types/subtype_t26: RuntimeError
+Language/Types/Interface_Types/subtype_t27: Pass, Crash # Issue 34389
 Language/Types/Type_Declarations/Typedef/dynamic_param_type_t02: RuntimeError
 Language/Variables/constant_initialization_t03: RuntimeError
 LanguageFeatures/Subtyping/dynamic/generated/interface_compositionality_arguments_binding_A02_t01: RuntimeError
@@ -5139,9 +5140,6 @@ WebPlatformTest/webstorage/storage_session_removeitem_t01: RuntimeError
 [ $compiler == dart2js && $runtime == d8 && $system == linux && !$fast_startup ]
 LayoutTests/fast/canvas/canvas-drawImage-scaled-copy-to-self_t01: RuntimeError
 LayoutTests/fast/events/input-focus-no-duplicate-events_t01: RuntimeError
-
-[ $compiler == dart2js && $runtime != d8 ]
-Language/Types/Interface_Types/subtype_t27: Crash
 
 [ $compiler == dart2js && $runtime == ff ]
 Language/Expressions/Additive_Expressions/syntax_t01: RuntimeError
