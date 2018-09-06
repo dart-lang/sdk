@@ -1548,12 +1548,12 @@ table PackageBundle {
    * including this one).  This can be used to identify when the API of a
    * package may have changed.
    */
-  apiSignature:string (id: 7);
+  apiSignature:string (id: 7, deprecated);
 
   /**
    * Information about the packages this package depends on, if known.
    */
-  dependencies:[PackageDependencyInfo] (id: 8);
+  dependencies:[PackageDependencyInfo] (id: 8, deprecated);
 
   /**
    * Linked libraries.

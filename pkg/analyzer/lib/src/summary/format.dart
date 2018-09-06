@@ -3099,7 +3099,7 @@ class LinkedLibraryBuilder extends Object
   }
 
   @override
-  bool get fallbackMode =>
+  Null get fallbackMode =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
@@ -3316,7 +3316,7 @@ class _LinkedLibraryImpl extends Object
   }
 
   @override
-  bool get fallbackMode =>
+  Null get fallbackMode =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
@@ -3432,7 +3432,7 @@ class LinkedReferenceBuilder extends Object
   }
 
   @override
-  int get localIndex =>
+  Null get localIndex =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
@@ -3580,7 +3580,7 @@ class _LinkedReferenceImpl extends Object
   }
 
   @override
-  int get localIndex =>
+  Null get localIndex =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
@@ -3915,8 +3915,6 @@ abstract class _LinkedUnitMixin implements idl.LinkedUnit {
 class PackageBundleBuilder extends Object
     with _PackageBundleMixin
     implements idl.PackageBundle {
-  String _apiSignature;
-  List<PackageDependencyInfoBuilder> _dependencies;
   List<LinkedLibraryBuilder> _linkedLibraries;
   List<String> _linkedLibraryUris;
   int _majorVersion;
@@ -3925,27 +3923,12 @@ class PackageBundleBuilder extends Object
   List<String> _unlinkedUnitUris;
 
   @override
-  String get apiSignature => _apiSignature ??= '';
-
-  /**
-   * MD5 hash of the non-informative fields of the [PackageBundle] (not
-   * including this one).  This can be used to identify when the API of a
-   * package may have changed.
-   */
-  void set apiSignature(String value) {
-    this._apiSignature = value;
-  }
+  Null get apiSignature =>
+      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
-  List<PackageDependencyInfoBuilder> get dependencies =>
-      _dependencies ??= <PackageDependencyInfoBuilder>[];
-
-  /**
-   * Information about the packages this package depends on, if known.
-   */
-  void set dependencies(List<PackageDependencyInfoBuilder> value) {
-    this._dependencies = value;
-  }
+  Null get dependencies =>
+      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
   List<LinkedLibraryBuilder> get linkedLibraries =>
@@ -3994,7 +3977,7 @@ class PackageBundleBuilder extends Object
   }
 
   @override
-  List<String> get unlinkedUnitHashes =>
+  Null get unlinkedUnitHashes =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
@@ -4019,17 +4002,13 @@ class PackageBundleBuilder extends Object
   }
 
   PackageBundleBuilder(
-      {String apiSignature,
-      List<PackageDependencyInfoBuilder> dependencies,
-      List<LinkedLibraryBuilder> linkedLibraries,
+      {List<LinkedLibraryBuilder> linkedLibraries,
       List<String> linkedLibraryUris,
       int majorVersion,
       int minorVersion,
       List<UnlinkedUnitBuilder> unlinkedUnits,
       List<String> unlinkedUnitUris})
-      : _apiSignature = apiSignature,
-        _dependencies = dependencies,
-        _linkedLibraries = linkedLibraries,
+      : _linkedLibraries = linkedLibraries,
         _linkedLibraryUris = linkedLibraryUris,
         _majorVersion = majorVersion,
         _minorVersion = minorVersion,
@@ -4040,7 +4019,6 @@ class PackageBundleBuilder extends Object
    * Flush [informative] data recursively.
    */
   void flushInformative() {
-    _dependencies = null;
     _linkedLibraries?.forEach((b) => b.flushInformative());
     _unlinkedUnits?.forEach((b) => b.flushInformative());
   }
@@ -4083,7 +4061,6 @@ class PackageBundleBuilder extends Object
     }
     signature.addInt(this._majorVersion ?? 0);
     signature.addInt(this._minorVersion ?? 0);
-    signature.addString(this._apiSignature ?? '');
   }
 
   List<int> toBuffer() {
@@ -4092,19 +4069,10 @@ class PackageBundleBuilder extends Object
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    fb.Offset offset_apiSignature;
-    fb.Offset offset_dependencies;
     fb.Offset offset_linkedLibraries;
     fb.Offset offset_linkedLibraryUris;
     fb.Offset offset_unlinkedUnits;
     fb.Offset offset_unlinkedUnitUris;
-    if (_apiSignature != null) {
-      offset_apiSignature = fbBuilder.writeString(_apiSignature);
-    }
-    if (!(_dependencies == null || _dependencies.isEmpty)) {
-      offset_dependencies = fbBuilder
-          .writeList(_dependencies.map((b) => b.finish(fbBuilder)).toList());
-    }
     if (!(_linkedLibraries == null || _linkedLibraries.isEmpty)) {
       offset_linkedLibraries = fbBuilder
           .writeList(_linkedLibraries.map((b) => b.finish(fbBuilder)).toList());
@@ -4122,12 +4090,6 @@ class PackageBundleBuilder extends Object
           _unlinkedUnitUris.map((b) => fbBuilder.writeString(b)).toList());
     }
     fbBuilder.startTable();
-    if (offset_apiSignature != null) {
-      fbBuilder.addOffset(7, offset_apiSignature);
-    }
-    if (offset_dependencies != null) {
-      fbBuilder.addOffset(8, offset_dependencies);
-    }
     if (offset_linkedLibraries != null) {
       fbBuilder.addOffset(0, offset_linkedLibraries);
     }
@@ -4171,8 +4133,6 @@ class _PackageBundleImpl extends Object
 
   _PackageBundleImpl(this._bc, this._bcOffset);
 
-  String _apiSignature;
-  List<idl.PackageDependencyInfo> _dependencies;
   List<idl.LinkedLibrary> _linkedLibraries;
   List<String> _linkedLibraryUris;
   int _majorVersion;
@@ -4181,18 +4141,12 @@ class _PackageBundleImpl extends Object
   List<String> _unlinkedUnitUris;
 
   @override
-  String get apiSignature {
-    _apiSignature ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 7, '');
-    return _apiSignature;
-  }
+  Null get apiSignature =>
+      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
-  List<idl.PackageDependencyInfo> get dependencies {
-    _dependencies ??= const fb.ListReader<idl.PackageDependencyInfo>(
-            const _PackageDependencyInfoReader())
-        .vTableGet(_bc, _bcOffset, 8, const <idl.PackageDependencyInfo>[]);
-    return _dependencies;
-  }
+  Null get dependencies =>
+      throw new UnimplementedError('attempt to access deprecated field');
 
   @override
   List<idl.LinkedLibrary> get linkedLibraries {
@@ -4222,7 +4176,7 @@ class _PackageBundleImpl extends Object
   }
 
   @override
-  List<String> get unlinkedUnitHashes =>
+  Null get unlinkedUnitHashes =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
@@ -4245,10 +4199,6 @@ abstract class _PackageBundleMixin implements idl.PackageBundle {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (apiSignature != '') _result["apiSignature"] = apiSignature;
-    if (dependencies.isNotEmpty)
-      _result["dependencies"] =
-          dependencies.map((_value) => _value.toJson()).toList();
     if (linkedLibraries.isNotEmpty)
       _result["linkedLibraries"] =
           linkedLibraries.map((_value) => _value.toJson()).toList();
@@ -4266,239 +4216,12 @@ abstract class _PackageBundleMixin implements idl.PackageBundle {
 
   @override
   Map<String, Object> toMap() => {
-        "apiSignature": apiSignature,
-        "dependencies": dependencies,
         "linkedLibraries": linkedLibraries,
         "linkedLibraryUris": linkedLibraryUris,
         "majorVersion": majorVersion,
         "minorVersion": minorVersion,
         "unlinkedUnits": unlinkedUnits,
         "unlinkedUnitUris": unlinkedUnitUris,
-      };
-
-  @override
-  String toString() => convert.json.encode(toJson());
-}
-
-class PackageDependencyInfoBuilder extends Object
-    with _PackageDependencyInfoMixin
-    implements idl.PackageDependencyInfo {
-  String _apiSignature;
-  List<String> _includedPackageNames;
-  bool _includesDartUris;
-  bool _includesFileUris;
-  String _summaryPath;
-
-  @override
-  String get apiSignature => _apiSignature ??= '';
-
-  /**
-   * API signature of this dependency.
-   */
-  void set apiSignature(String value) {
-    this._apiSignature = value;
-  }
-
-  @override
-  List<String> get includedPackageNames => _includedPackageNames ??= <String>[];
-
-  /**
-   * If this dependency summarizes any files whose URI takes the form
-   * "package:<package_name>/...", a list of all such package names, sorted
-   * lexicographically.  Otherwise empty.
-   */
-  void set includedPackageNames(List<String> value) {
-    this._includedPackageNames = value;
-  }
-
-  @override
-  bool get includesDartUris => _includesDartUris ??= false;
-
-  /**
-   * Indicates whether this dependency summarizes any files whose URI takes the
-   * form "dart:...".
-   */
-  void set includesDartUris(bool value) {
-    this._includesDartUris = value;
-  }
-
-  @override
-  bool get includesFileUris => _includesFileUris ??= false;
-
-  /**
-   * Indicates whether this dependency summarizes any files whose URI takes the
-   * form "file:...".
-   */
-  void set includesFileUris(bool value) {
-    this._includesFileUris = value;
-  }
-
-  @override
-  String get summaryPath => _summaryPath ??= '';
-
-  /**
-   * Relative path to the summary file for this dependency.  This is intended as
-   * a hint to help the analysis server locate summaries of dependencies.  We
-   * don't specify precisely what this path is relative to, but we expect it to
-   * be relative to a directory the analysis server can find (e.g. for projects
-   * built using Bazel, it would be relative to the "bazel-bin" directory).
-   *
-   * Absent if the path is not known.
-   */
-  void set summaryPath(String value) {
-    this._summaryPath = value;
-  }
-
-  PackageDependencyInfoBuilder(
-      {String apiSignature,
-      List<String> includedPackageNames,
-      bool includesDartUris,
-      bool includesFileUris,
-      String summaryPath})
-      : _apiSignature = apiSignature,
-        _includedPackageNames = includedPackageNames,
-        _includesDartUris = includesDartUris,
-        _includesFileUris = includesFileUris,
-        _summaryPath = summaryPath;
-
-  /**
-   * Flush [informative] data recursively.
-   */
-  void flushInformative() {}
-
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    signature.addString(this._apiSignature ?? '');
-    signature.addString(this._summaryPath ?? '');
-    if (this._includedPackageNames == null) {
-      signature.addInt(0);
-    } else {
-      signature.addInt(this._includedPackageNames.length);
-      for (var x in this._includedPackageNames) {
-        signature.addString(x);
-      }
-    }
-    signature.addBool(this._includesFileUris == true);
-    signature.addBool(this._includesDartUris == true);
-  }
-
-  fb.Offset finish(fb.Builder fbBuilder) {
-    fb.Offset offset_apiSignature;
-    fb.Offset offset_includedPackageNames;
-    fb.Offset offset_summaryPath;
-    if (_apiSignature != null) {
-      offset_apiSignature = fbBuilder.writeString(_apiSignature);
-    }
-    if (!(_includedPackageNames == null || _includedPackageNames.isEmpty)) {
-      offset_includedPackageNames = fbBuilder.writeList(
-          _includedPackageNames.map((b) => fbBuilder.writeString(b)).toList());
-    }
-    if (_summaryPath != null) {
-      offset_summaryPath = fbBuilder.writeString(_summaryPath);
-    }
-    fbBuilder.startTable();
-    if (offset_apiSignature != null) {
-      fbBuilder.addOffset(0, offset_apiSignature);
-    }
-    if (offset_includedPackageNames != null) {
-      fbBuilder.addOffset(2, offset_includedPackageNames);
-    }
-    if (_includesDartUris == true) {
-      fbBuilder.addBool(4, true);
-    }
-    if (_includesFileUris == true) {
-      fbBuilder.addBool(3, true);
-    }
-    if (offset_summaryPath != null) {
-      fbBuilder.addOffset(1, offset_summaryPath);
-    }
-    return fbBuilder.endTable();
-  }
-}
-
-class _PackageDependencyInfoReader
-    extends fb.TableReader<_PackageDependencyInfoImpl> {
-  const _PackageDependencyInfoReader();
-
-  @override
-  _PackageDependencyInfoImpl createObject(fb.BufferContext bc, int offset) =>
-      new _PackageDependencyInfoImpl(bc, offset);
-}
-
-class _PackageDependencyInfoImpl extends Object
-    with _PackageDependencyInfoMixin
-    implements idl.PackageDependencyInfo {
-  final fb.BufferContext _bc;
-  final int _bcOffset;
-
-  _PackageDependencyInfoImpl(this._bc, this._bcOffset);
-
-  String _apiSignature;
-  List<String> _includedPackageNames;
-  bool _includesDartUris;
-  bool _includesFileUris;
-  String _summaryPath;
-
-  @override
-  String get apiSignature {
-    _apiSignature ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
-    return _apiSignature;
-  }
-
-  @override
-  List<String> get includedPackageNames {
-    _includedPackageNames ??=
-        const fb.ListReader<String>(const fb.StringReader())
-            .vTableGet(_bc, _bcOffset, 2, const <String>[]);
-    return _includedPackageNames;
-  }
-
-  @override
-  bool get includesDartUris {
-    _includesDartUris ??=
-        const fb.BoolReader().vTableGet(_bc, _bcOffset, 4, false);
-    return _includesDartUris;
-  }
-
-  @override
-  bool get includesFileUris {
-    _includesFileUris ??=
-        const fb.BoolReader().vTableGet(_bc, _bcOffset, 3, false);
-    return _includesFileUris;
-  }
-
-  @override
-  String get summaryPath {
-    _summaryPath ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 1, '');
-    return _summaryPath;
-  }
-}
-
-abstract class _PackageDependencyInfoMixin
-    implements idl.PackageDependencyInfo {
-  @override
-  Map<String, Object> toJson() {
-    Map<String, Object> _result = <String, Object>{};
-    if (apiSignature != '') _result["apiSignature"] = apiSignature;
-    if (includedPackageNames.isNotEmpty)
-      _result["includedPackageNames"] = includedPackageNames;
-    if (includesDartUris != false)
-      _result["includesDartUris"] = includesDartUris;
-    if (includesFileUris != false)
-      _result["includesFileUris"] = includesFileUris;
-    if (summaryPath != '') _result["summaryPath"] = summaryPath;
-    return _result;
-  }
-
-  @override
-  Map<String, Object> toMap() => {
-        "apiSignature": apiSignature,
-        "includedPackageNames": includedPackageNames,
-        "includesDartUris": includesDartUris,
-        "includesFileUris": includesFileUris,
-        "summaryPath": summaryPath,
       };
 
   @override
@@ -6890,11 +6613,11 @@ class UnlinkedDocumentationCommentBuilder extends Object
   String _text;
 
   @override
-  int get length =>
+  Null get length =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
-  int get offset =>
+  Null get offset =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
@@ -6958,11 +6681,11 @@ class _UnlinkedDocumentationCommentImpl extends Object
   String _text;
 
   @override
-  int get length =>
+  Null get length =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
-  int get offset =>
+  Null get offset =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
@@ -7676,11 +7399,11 @@ class UnlinkedExecutableBuilder extends Object
   }
 
   @override
-  List<String> get localLabels =>
+  Null get localLabels =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
-  List<UnlinkedVariableBuilder> get localVariables =>
+  Null get localVariables =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
@@ -8269,11 +7992,11 @@ class _UnlinkedExecutableImpl extends Object
   }
 
   @override
-  List<String> get localLabels =>
+  Null get localLabels =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
-  List<idl.UnlinkedVariable> get localVariables =>
+  Null get localVariables =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
@@ -11506,7 +11229,7 @@ class UnlinkedUnitBuilder extends Object
   }
 
   @override
-  String get fallbackModePath =>
+  Null get fallbackModePath =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
@@ -12077,7 +11800,7 @@ class _UnlinkedUnitImpl extends Object
   }
 
   @override
-  String get fallbackModePath =>
+  Null get fallbackModePath =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
@@ -12444,11 +12167,11 @@ class UnlinkedVariableBuilder extends Object
   }
 
   @override
-  int get visibleLength =>
+  Null get visibleLength =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
-  int get visibleOffset =>
+  Null get visibleOffset =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   UnlinkedVariableBuilder(
@@ -12715,11 +12438,11 @@ class _UnlinkedVariableImpl extends Object
   }
 
   @override
-  int get visibleLength =>
+  Null get visibleLength =>
       throw new UnimplementedError('attempt to access deprecated field');
 
   @override
-  int get visibleOffset =>
+  Null get visibleOffset =>
       throw new UnimplementedError('attempt to access deprecated field');
 }
 

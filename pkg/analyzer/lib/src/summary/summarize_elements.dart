@@ -7,7 +7,6 @@ library serialization.elements;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:front_end/src/base/api_signature.dart';
 
 /**
  * Object that gathers information uses it to assemble a new
@@ -63,19 +62,6 @@ class PackageBundleAssembler {
         unlinkedUnitUris: _unlinkedUnitUris,
         unlinkedUnits: _unlinkedUnits,
         majorVersion: currentMajorVersion,
-        minorVersion: currentMinorVersion,
-        apiSignature: _computeApiSignature());
-  }
-
-  /**
-   * Compute the API signature for this package bundle.
-   */
-  String _computeApiSignature() {
-    ApiSignature apiSignature = new ApiSignature();
-    for (String unitUri in _unlinkedUnitMap.keys.toList()..sort()) {
-      apiSignature.addString(unitUri);
-      _unlinkedUnitMap[unitUri].collectApiSignature(apiSignature);
-    }
-    return apiSignature.toHex();
+        minorVersion: currentMinorVersion);
   }
 }

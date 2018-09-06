@@ -215,6 +215,7 @@ class _CodeGenerator {
     for (CompilationUnitMember decl in idlParsed.declarations) {
       if (decl is ClassDeclaration) {
         bool isTopLevel = false;
+        bool isDeprecated = false;
         String fileIdentifier;
         String clsName = decl.name;
         for (Annotation annotation in decl.metadata) {
@@ -222,14 +223,6 @@ class _CodeGenerator {
               annotation.name == 'TopLevel' &&
               annotation.constructorName == null) {
             isTopLevel = true;
-            if (annotation.arguments == null) {
-              throw new Exception(
-                  'Class `$clsName`: TopLevel requires parenthesis');
-            }
-            if (annotation.constructorName != null) {
-              throw new Exception(
-                  "Class `$clsName`: TopLevel doesn't have named constructors");
-            }
             if (annotation.arguments.length == 1) {
               Expression arg = annotation.arguments[0];
               if (arg is StringLiteral) {
@@ -243,11 +236,15 @@ class _CodeGenerator {
               throw new Exception(
                   'Class `$clsName`: TopLevel requires 0 or 1 arguments');
             }
+          } else if (annotation.arguments == null &&
+              annotation.name == 'deprecated' &&
+              annotation.constructorName == null) {
+            isDeprecated = true;
           }
         }
         String doc = _getNodeDoc(decl);
         idlModel.ClassDeclaration cls = new idlModel.ClassDeclaration(
-            doc, clsName, isTopLevel, fileIdentifier);
+            doc, clsName, isTopLevel, fileIdentifier, isDeprecated);
         _idl.classes[clsName] = cls;
         String expectedBase = 'base.SummaryClass';
         if (decl.superclass == null || decl.superclass.name != expectedBase) {
@@ -445,18 +442,22 @@ class _CodeGenerator {
       out();
     }
     for (idlModel.ClassDeclaration cls in _idl.classes.values) {
-      _generateBuilder(cls);
-      out();
+      if (!cls.isDeprecated) {
+        _generateBuilder(cls);
+        out();
+      }
       if (cls.isTopLevel) {
         _generateReadFunction(cls);
         out();
       }
-      _generateReader(cls);
-      out();
-      _generateImpl(cls);
-      out();
-      _generateMixin(cls);
-      out();
+      if (!cls.isDeprecated) {
+        _generateReader(cls);
+        out();
+        _generateImpl(cls);
+        out();
+        _generateMixin(cls);
+        out();
+      }
     }
   }
 
@@ -529,8 +530,9 @@ class _CodeGenerator {
     String builderName = name + 'Builder';
     String mixinName = '_${name}Mixin';
     List<String> constructorParams = <String>[];
-    out('class $builderName extends Object with $mixinName '
-        'implements ${idlPrefix(name)} {');
+    var implementsClause =
+        cls.isDeprecated ? '' : ' implements ${idlPrefix(name)}';
+    out('class $builderName extends Object with $mixinName$implementsClause {');
     indent(() {
       // Generate fields.
       for (idlModel.FieldDeclaration field in cls.fields) {
@@ -549,7 +551,7 @@ class _CodeGenerator {
         out();
         out('@override');
         if (field.isDeprecated) {
-          out('$typeStr get $fieldName => $_throwDeprecated;');
+          out('Null get $fieldName => $_throwDeprecated;');
         } else {
           out('$typeStr get $fieldName => _$fieldName$defSuffix;');
           out();
@@ -842,7 +844,7 @@ class _CodeGenerator {
         out('@override');
         String returnType = dartType(type);
         if (field.isDeprecated) {
-          out('$returnType get $fieldName => $_throwDeprecated;');
+          out('Null get $fieldName => $_throwDeprecated;');
         } else {
           out('$returnType get $fieldName {');
           indent(() {

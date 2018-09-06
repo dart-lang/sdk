@@ -944,6 +944,7 @@ abstract class PackageBundle extends base.SummaryClass {
    * package may have changed.
    */
   @Id(7)
+  @deprecated
   String get apiSignature;
 
   /**
@@ -951,6 +952,7 @@ abstract class PackageBundle extends base.SummaryClass {
    */
   @Id(8)
   @informative
+  @deprecated
   List<PackageDependencyInfo> get dependencies;
 
   /**
@@ -1005,6 +1007,7 @@ abstract class PackageBundle extends base.SummaryClass {
 /**
  * Information about a single dependency of a summary package.
  */
+@deprecated
 abstract class PackageDependencyInfo extends base.SummaryClass {
   /**
    * API signature of this dependency.
