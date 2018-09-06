@@ -267,6 +267,7 @@ abstract class File implements FileSystemEntity {
    * Creates a File object from a raw path, that is, a sequence of bytes
    * as represented by the OS.
    */
+  @pragma("vm:entry-point")
   factory File.fromRawPath(Uint8List rawPath) {
     // TODO(bkonyi): Handle overrides.
     return new _File.fromRawPath(rawPath);
